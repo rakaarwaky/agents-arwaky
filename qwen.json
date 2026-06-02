@@ -63,10 +63,10 @@
         "arwaky-lint"
       ]
     },
-    "arwaky-vision": {
+    "vision-arwaky": {
       "command": "uvx",
       "args": [
-        "arwaky-vision"
+        "vision-arwaky"
       ]
     }
   }

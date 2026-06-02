@@ -96,9 +96,9 @@
       "command": [
         "uv",
         "--directory",
-        "C:/Users/Administrator/mcp-arwaky/vision",
+        "C:/Users/Administrator/mcp-arwaky/vision-arwaky",
         "run",
-        "mcp-vision"
+        "vision-arwaky"
       ],
       "enabled": true
     }
