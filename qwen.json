@@ -7,18 +7,18 @@
         "mcp-fetch-server"
       ]
     },
-    "context7": {
+    "contex7-arwaky": {
       "command": "npx",
       "args": [
         "-y",
         "@upstash/context7-mcp"
       ]
     },
-    "desktop-commander": {
+    "comander-arwaky": {
       "command": "npx",
       "args": [
         "-y",
-        "@wonderwhy-er/desktop-commander"
+        "@wonderwhy-er/comander-arwaky"
       ]
     },
     "github": {
@@ -31,17 +31,17 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"
       }
     },
-    "blender-mcp": {
+    "blender-arwaky": {
       "command": "uvx",
       "args": [
-        "blender-mcp"
+        "blender-arwaky"
       ]
     },
     "gmail": {
       "command": "npx",
       "args": [
         "-y",
-        "gmail-mcp-server"
+        "gmail-arwaky-server"
       ]
     },
     "arwaky-mail": {

@@ -1,26 +1,26 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
   "mcp": {
-     "context7": {
+     "contex7-arwaky": {
        "type": "local",
        "command": [
          "node",
-         "C:/Users/Administrator/mcp-servers/context7/packages/mcp/dist/index.js"
+         "C:/Users/Administrator/mcp-arwaky/contex7-arwaky/packages/mcp/dist/index.js"
        ],
        "enabled": true
      },
-     "desktop-commander": {
+     "comander-arwaky": {
        "type": "local",
        "command": [
          "node",
-         "C:/Users/Administrator/mcp-servers/DesktopCommanderMCP/dist/index.js"
+         "C:/Users/Administrator/mcp-arwaky/comander-arwaky/dist/index.js"
        ],
        "enabled": true
      },
     "github": {
       "type": "local",
       "command": [
-        "C:/Users/Administrator/mcp-servers/github-mcp-server/github-mcp-server.exe",
+        "C:/Users/Administrator/mcp-arwaky/github-arwaky/github-mcp-server.exe",
         "stdio",
         "--tools",
         "github_list_activity,github_understand_codebase,github_execute_workflow,github_manage_thread,get_me,search_repositories,search_code,get_file_contents,delete_file,push_files,issue_write,add_issue_comment,pull_request_read,merge_pull_request,create_branch,list_branches,list_commits,create_repository"
@@ -30,25 +30,25 @@
       },
       "enabled": true
     },
-    "agentic-testing": {
+    "testing-arwaky": {
       "type": "local",
       "command": [
         "uv",
         "--directory",
-        "C:/Users/Administrator/mcp-servers/agentic-testing",
+        "C:/Users/Administrator/mcp-arwaky/agentic-testing",
         "run",
-        "agentic-testing"
+        "testing-arwaky"
       ],
       "enabled": true
     },
-    "auto-linter": {
+    "lint-arwaky": {
       "type": "local",
       "command": [
         "uv",
         "--directory",
-        "C:/Users/Administrator/mcp-servers/auto-linter",
+        "C:/Users/Administrator/mcp-arwaky/auto-linter",
         "run",
-        "auto-linter"
+        "lint-arwaky"
       ],
       "environment": {
         "DESKTOP_COMMANDER_URL": "127.0.0.1:4444",
@@ -60,43 +60,43 @@
        "type": "local",
        "command": [
          "node",
-         "C:/Users/Administrator/mcp-servers/fetch-mcp/dist/index.js"
+         "C:/Users/Administrator/mcp-arwaky/fetch-arwaky/dist/index.js"
        ],
        "enabled": true
      },
-    "blender-mcp": {
+    "blender-arwaky": {
       "type": "local",
       "command": [
         "uv",
         "--directory",
-        "C:/Users/Administrator/mcp-servers/blender-mcp",
+        "C:/Users/Administrator/mcp-arwaky/blender-arwaky",
         "run",
-        "blender-mcp"
+        "blender-arwaky"
       ],
       "enabled": true
     },
-     "cloud-mail-flare": {
+     "cloudmail-arwaky": {
        "type": "local",
        "command": [
          "node",
-         "C:/Users/Administrator/mcp-servers/cloud-mail-flare/mcp_server.js"
+         "C:/Users/Administrator/mcp-arwaky/cloudmail-arwaky/mcp_server.js"
        ],
        "enabled": true
      },
-     "gmail-mcp": {
+     "gmail-arwaky": {
        "type": "local",
        "command": [
          "node",
-         "C:/Users/Administrator/mcp-servers/gmail-mcp/dist/index.js"
+         "C:/Users/Administrator/mcp-arwaky/gmail-arwaky/dist/index.js"
        ],
        "enabled": true
      },
-    "vision": {
+    "vision-arwaky": {
       "type": "local",
       "command": [
         "uv",
         "--directory",
-        "C:/Users/Administrator/mcp-servers/vision",
+        "C:/Users/Administrator/mcp-arwaky/vision",
         "run",
         "mcp-vision"
       ],

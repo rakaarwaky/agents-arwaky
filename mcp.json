@@ -1,60 +1,60 @@
 {
   "mcpServers": {
-    "agentic-testing": {
+    "testing-arwaky": {
       "command": "uv",
       "args": [
         "--directory",
-        "C:/Users/Administrator/mcp-servers/agentic-testing",
+        "C:/Users/Administrator/mcp-arwaky/agentic-testing",
         "run",
-        "agentic-testing"
+        "testing-arwaky"
       ]
     },
-    "auto-linter": {
+    "lint-arwaky": {
       "command": "uv",
       "args": [
         "--directory",
-        "C:/Users/Administrator/mcp-servers/auto-linter",
+        "C:/Users/Administrator/mcp-arwaky/auto-linter",
         "run",
-        "auto-linter"
+        "lint-arwaky"
       ]
     },
-    "blender-mcp": {
+    "blender-arwaky": {
       "command": "uv",
       "args": [
         "--directory",
-        "C:/Users/Administrator/mcp-servers/blender-mcp",
+        "C:/Users/Administrator/mcp-arwaky/blender-arwaky",
         "run",
         "python",
         "-m",
         "surfaces.mcp_server_entry"
       ]
     },
-    "cloud-mail-flare": {
+    "cloudmail-arwaky": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-servers/cloud-mail-flare/mcp_server.js"
+        "C:/Users/Administrator/mcp-arwaky/cloudmail-arwaky/mcp_server.js"
       ]
     },
-    "context7": {
+    "contex7-arwaky": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-servers/context7/packages/mcp/dist/index.js"
+        "C:/Users/Administrator/mcp-arwaky/contex7-arwaky/packages/mcp/dist/index.js"
       ]
     },
-    "desktop-commander": {
+    "comander-arwaky": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-servers/DesktopCommanderMCP/dist/index.js"
+        "C:/Users/Administrator/mcp-arwaky/comander-arwaky/dist/index.js"
       ]
     },
     "fetch": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-servers/fetch-mcp/dist/index.js"
+        "C:/Users/Administrator/mcp-arwaky/fetch-arwaky/dist/index.js"
       ]
     },
     "github": {
-      "command": "C:/Users/Administrator/mcp-servers/github-mcp-server/github-mcp-server.exe",
+      "command": "C:/Users/Administrator/mcp-arwaky/github-arwaky/github-mcp-server.exe",
       "args": [
         "stdio",
         "--tools",
@@ -67,14 +67,14 @@
     "gmail": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-servers/gmail-mcp/dist/index.js"
+        "C:/Users/Administrator/mcp-arwaky/gmail-arwaky/dist/index.js"
       ]
     },
-    "vision": {
+    "vision-arwaky": {
       "command": "uv",
       "args": [
         "--directory",
-        "C:/Users/Administrator/mcp-servers/vision",
+        "C:/Users/Administrator/mcp-arwaky/vision",
         "run",
         "mcp-vision"
       ]
