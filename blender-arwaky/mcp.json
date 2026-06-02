@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "blender-mcp": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/home/raka/mcp-servers/blender-mcp",
+        "run",
+        "blender-mcp"
+      ]
+    }
+  }
+}

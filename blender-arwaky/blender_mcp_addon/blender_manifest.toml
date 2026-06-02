@@ -1,0 +1,21 @@
+schema_version = "1.0.0"
+
+id = "blender_mcp_addon"
+version = "1.6.5"
+name = "Blender MCP"
+tagline = "Connect Blender to Claude (or any MCP client)"
+maintainer = "BlenderMCP <davinci@blendermcp.local>"
+type = "add-on"
+
+blender_version_min = "4.2.0"
+
+website = "https://github.com/rakaarwaky/blender-mcp"
+
+tags = ["Interface", "Import-Export"]
+
+license = [
+  "SPDX:MIT",
+]
+
+[permissions]
+network = "Connect to external MCP server and asset providers (Polyhaven, Sketchfab, Hyper3D)"

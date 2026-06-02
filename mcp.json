@@ -1,0 +1,83 @@
+{
+  "mcpServers": {
+    "agentic-testing": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/Administrator/mcp-servers/agentic-testing",
+        "run",
+        "agentic-testing"
+      ]
+    },
+    "auto-linter": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/Administrator/mcp-servers/auto-linter",
+        "run",
+        "auto-linter"
+      ]
+    },
+    "blender-mcp": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/Administrator/mcp-servers/blender-mcp",
+        "run",
+        "python",
+        "-m",
+        "surfaces.mcp_server_entry"
+      ]
+    },
+    "cloud-mail-flare": {
+      "command": "node",
+      "args": [
+        "C:/Users/Administrator/mcp-servers/cloud-mail-flare/mcp_server.js"
+      ]
+    },
+    "context7": {
+      "command": "node",
+      "args": [
+        "C:/Users/Administrator/mcp-servers/context7/packages/mcp/dist/index.js"
+      ]
+    },
+    "desktop-commander": {
+      "command": "node",
+      "args": [
+        "C:/Users/Administrator/mcp-servers/DesktopCommanderMCP/dist/index.js"
+      ]
+    },
+    "fetch": {
+      "command": "node",
+      "args": [
+        "C:/Users/Administrator/mcp-servers/fetch-mcp/dist/index.js"
+      ]
+    },
+    "github": {
+      "command": "C:/Users/Administrator/mcp-servers/github-mcp-server/github-mcp-server.exe",
+      "args": [
+        "stdio",
+        "--tools",
+        "github_list_activity,github_understand_codebase,github_execute_workflow,github_manage_thread,get_me,search_repositories,search_code,get_file_contents,delete_file,push_files,issue_write,add_issue_comment,pull_request_read,merge_pull_request,create_branch,list_branches,list_commits,create_repository"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"
+      }
+    },
+    "gmail": {
+      "command": "node",
+      "args": [
+        "C:/Users/Administrator/mcp-servers/gmail-mcp/dist/index.js"
+      ]
+    },
+    "vision": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/Administrator/mcp-servers/vision",
+        "run",
+        "mcp-vision"
+      ]
+    }
+  }
+}

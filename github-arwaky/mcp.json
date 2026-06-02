@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "/home/raka/mcp-servers/github-mcp-server/github-mcp-server",
+      "args": [
+        "stdio",
+        "--tools",
+        "github_list_activity,github_understand_codebase,github_execute_workflow,github_manage_thread,get_me,search_repositories,search_code,get_file_contents,delete_file,push_files,issue_write,add_issue_comment,pull_request_read,merge_pull_request,create_branch,list_branches,list_commits,create_repository"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"
+      }
+    }
+  }
+}

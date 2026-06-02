@@ -1,0 +1,106 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "mcp": {
+     "context7": {
+       "type": "local",
+       "command": [
+         "node",
+         "C:/Users/Administrator/mcp-servers/context7/packages/mcp/dist/index.js"
+       ],
+       "enabled": true
+     },
+     "desktop-commander": {
+       "type": "local",
+       "command": [
+         "node",
+         "C:/Users/Administrator/mcp-servers/DesktopCommanderMCP/dist/index.js"
+       ],
+       "enabled": true
+     },
+    "github": {
+      "type": "local",
+      "command": [
+        "C:/Users/Administrator/mcp-servers/github-mcp-server/github-mcp-server.exe",
+        "stdio",
+        "--tools",
+        "github_list_activity,github_understand_codebase,github_execute_workflow,github_manage_thread,get_me,search_repositories,search_code,get_file_contents,delete_file,push_files,issue_write,add_issue_comment,pull_request_read,merge_pull_request,create_branch,list_branches,list_commits,create_repository"
+      ],
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"
+      },
+      "enabled": true
+    },
+    "agentic-testing": {
+      "type": "local",
+      "command": [
+        "uv",
+        "--directory",
+        "C:/Users/Administrator/mcp-servers/agentic-testing",
+        "run",
+        "agentic-testing"
+      ],
+      "enabled": true
+    },
+    "auto-linter": {
+      "type": "local",
+      "command": [
+        "uv",
+        "--directory",
+        "C:/Users/Administrator/mcp-servers/auto-linter",
+        "run",
+        "auto-linter"
+      ],
+      "environment": {
+        "DESKTOP_COMMANDER_URL": "127.0.0.1:4444",
+        "PHANTOM_ROOT": "C:/Users/Administrator/"
+      },
+      "enabled": true
+    },
+     "fetch": {
+       "type": "local",
+       "command": [
+         "node",
+         "C:/Users/Administrator/mcp-servers/fetch-mcp/dist/index.js"
+       ],
+       "enabled": true
+     },
+    "blender-mcp": {
+      "type": "local",
+      "command": [
+        "uv",
+        "--directory",
+        "C:/Users/Administrator/mcp-servers/blender-mcp",
+        "run",
+        "blender-mcp"
+      ],
+      "enabled": true
+    },
+     "cloud-mail-flare": {
+       "type": "local",
+       "command": [
+         "node",
+         "C:/Users/Administrator/mcp-servers/cloud-mail-flare/mcp_server.js"
+       ],
+       "enabled": true
+     },
+     "gmail-mcp": {
+       "type": "local",
+       "command": [
+         "node",
+         "C:/Users/Administrator/mcp-servers/gmail-mcp/dist/index.js"
+       ],
+       "enabled": true
+     },
+    "vision": {
+      "type": "local",
+      "command": [
+        "uv",
+        "--directory",
+        "C:/Users/Administrator/mcp-servers/vision",
+        "run",
+        "mcp-vision"
+      ],
+      "enabled": true
+    }
+  }
+}
