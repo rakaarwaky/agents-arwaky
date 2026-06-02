@@ -1,1 +1,0 @@
-# Vision MCP Source Package
