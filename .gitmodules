@@ -1,0 +1,30 @@
+[submodule "blender-arwaky"]
+	path = blender-arwaky
+	url = https://github.com/rakaarwaky/blender-arwaky.git
+[submodule "cloudmail-arwaky"]
+	path = cloudmail-arwaky
+	url = https://github.com/rakaarwaky/cloudmail-arwaky.git
+[submodule "comander-arwaky"]
+	path = comander-arwaky
+	url = https://github.com/rakaarwaky/comander-arwaky.git
+[submodule "contex7-arwaky"]
+	path = contex7-arwaky
+	url = https://github.com/rakaarwaky/contex7-arwaky.git
+[submodule "fetch-arwaky"]
+	path = fetch-arwaky
+	url = https://github.com/rakaarwaky/fetch-arwaky.git
+[submodule "github-arwaky"]
+	path = github-arwaky
+	url = https://github.com/rakaarwaky/github-arwaky.git
+[submodule "gmail-arwaky"]
+	path = gmail-arwaky
+	url = https://github.com/rakaarwaky/gmail-arwaky.git
+[submodule "lint-arwaky"]
+	path = lint-arwaky
+	url = https://github.com/rakaarwaky/lint-arwaky.git
+[submodule "testing-arwaky"]
+	path = testing-arwaky
+	url = https://github.com/rakaarwaky/testing-arwaky.git
+[submodule "vision-arwaky"]
+	path = vision-arwaky
+	url = https://github.com/rakaarwaky/vision-arwaky.git
