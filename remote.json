@@ -1,0 +1,46 @@
+{
+  "mcpServers": {
+    "comander-arwaky": {
+      "command": "npx",
+      "args": ["-y", "comander-arwaky"]
+    },
+    "gmail-arwaky": {
+      "command": "npx",
+      "args": ["-y", "gmail-arwaky"]
+    },
+    "fetch-arwaky": {
+      "command": "npx",
+      "args": ["-y", "fetch-arwaky"]
+    },
+    "cloudmail-arwaky": {
+      "command": "npx",
+      "args": ["-y", "cloudmail-arwaky"],
+      "env": { "CMF_API_URL": "YOUR_CMF_API_URL" }
+    },
+    "contex7-arwaky": {
+      "command": "npx",
+      "args": ["-y", "@rakaarwaky/contex7-arwaky-mcp"]
+    },
+    "testing-arwaky": {
+      "command": "uvx",
+      "args": ["testing-arwaky"]
+    },
+    "vision-arwaky": {
+      "command": "uvx",
+      "args": ["vision-arwaky"]
+    },
+    "lint-arwaky": {
+      "command": "uvx",
+      "args": ["lint-arwaky"]
+    },
+    "blender-arwaky": {
+      "command": "uvx",
+      "args": ["blender-arwaky"]
+    },
+    "github": {
+      "command": "C:/Users/Administrator/mcp-arwaky/github-arwaky/github-mcp-server.exe",
+      "args": ["stdio"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN" }
+    }
+  }
+}

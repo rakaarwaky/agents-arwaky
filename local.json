@@ -1,56 +1,36 @@
 {
   "mcpServers": {
-    "testing-arwaky": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:/Users/Administrator/mcp-arwaky/agentic-testing",
-        "run",
-        "testing-arwaky"
-      ]
-    },
-    "lint-arwaky": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:/Users/Administrator/mcp-arwaky/auto-linter",
-        "run",
-        "lint-arwaky"
-      ]
-    },
-    "blender-arwaky": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:/Users/Administrator/mcp-arwaky/blender-arwaky",
-        "run",
-        "python",
-        "-m",
-        "surfaces.mcp_server_entry"
-      ]
-    },
-    "cloudmail-arwaky": {
-      "command": "node",
-      "args": [
-        "C:/Users/Administrator/mcp-arwaky/cloudmail-arwaky/mcp_server.js"
-      ]
-    },
-    "contex7-arwaky": {
-      "command": "node",
-      "args": [
-        "C:/Users/Administrator/mcp-arwaky/contex7-arwaky/packages/mcp/dist/index.js"
-      ]
-    },
     "comander-arwaky": {
       "command": "node",
       "args": [
         "C:/Users/Administrator/mcp-arwaky/comander-arwaky/dist/index.js"
       ]
     },
-    "fetch": {
+    "gmail-arwaky": {
+      "command": "node",
+      "args": [
+        "C:/Users/Administrator/mcp-arwaky/gmail-arwaky/dist/index.js"
+      ]
+    },
+    "fetch-arwaky": {
       "command": "node",
       "args": [
         "C:/Users/Administrator/mcp-arwaky/fetch-arwaky/dist/index.js"
+      ]
+    },
+    "cloudmail-arwaky": {
+      "command": "node",
+      "args": [
+        "C:/Users/Administrator/mcp-arwaky/cloudmail-arwaky/dist/index.js"
+      ],
+      "env": {
+        "CMF_API_URL": "YOUR_CMF_API_URL"
+      }
+    },
+    "contex7-arwaky": {
+      "command": "node",
+      "args": [
+        "C:/Users/Administrator/mcp-arwaky/contex7-arwaky/packages/mcp/dist/index.js"
       ]
     },
     "github": {
@@ -64,10 +44,22 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"
       }
     },
-    "gmail": {
-      "command": "node",
+    "lint-arwaky": {
+      "command": "uv",
       "args": [
-        "C:/Users/Administrator/mcp-arwaky/gmail-arwaky/dist/index.js"
+        "--directory",
+        "C:/Users/Administrator/mcp-arwaky/lint-arwaky",
+        "run",
+        "lint-arwaky"
+      ]
+    },
+    "testing-arwaky": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/Administrator/mcp-arwaky/testing-arwaky",
+        "run",
+        "testing-arwaky"
       ]
     },
     "vision-arwaky": {
@@ -77,6 +69,15 @@
         "C:/Users/Administrator/mcp-arwaky/vision-arwaky",
         "run",
         "vision-arwaky"
+      ]
+    },
+    "blender-arwaky": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/Administrator/mcp-arwaky/blender-arwaky",
+        "run",
+        "blender-arwaky"
       ]
     }
   }
