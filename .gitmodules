@@ -31,3 +31,6 @@
 [submodule "mnemosyne-arwaky"]
 	path = mnemosyne-arwaky
 	url = https://github.com/rakaarwaky/mnemosyne-arwaky.git
+[submodule "comfyui-mcp-arwaky"]
+	path = comfyui-mcp-arwaky
+	url = https://github.com/rakaarwaky/comfyui-mcp-arwaky.git
