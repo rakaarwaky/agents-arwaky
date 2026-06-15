@@ -3,19 +3,19 @@
     "comander-arwaky": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-arwaky/comander-arwaky/dist/index.js"
+        "C:/Users/Administrator/mcp-arwaky/comander-arwaky/desktop-commander/dist/index.js"
       ]
     },
     "gmail-arwaky": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-arwaky/gmail-arwaky/dist/index.js"
+        "C:/Users/Administrator/mcp-arwaky/gmail-arwaky/gmail-mcp/dist/index.js"
       ]
     },
     "fetch-arwaky": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-arwaky/fetch-arwaky/dist/index.js"
+        "C:/Users/Administrator/mcp-arwaky/fetch-arwaky/fetch-mcp/dist/index.js"
       ]
     },
     "cloudmail-arwaky": {
@@ -30,11 +30,11 @@
     "contex7-arwaky": {
       "command": "node",
       "args": [
-        "C:/Users/Administrator/mcp-arwaky/contex7-arwaky/packages/mcp/dist/index.js"
+        "C:/Users/Administrator/mcp-arwaky/contex7-arwaky/context7/packages/mcp/dist/index.js"
       ]
     },
     "github": {
-      "command": "C:/Users/Administrator/mcp-arwaky/github-arwaky/github-mcp-server.exe",
+      "command": "C:/Users/Administrator/mcp-arwaky/github-arwaky/github-mcp-server/github-mcp-server.exe",
       "args": [
         "stdio",
         "--tools",
@@ -43,6 +43,15 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"
       }
+    },
+    "mnemosyne-arwaky": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/Users/Administrator/mcp-arwaky/mnemosyne-arwaky/mnemosyne",
+        "run",
+        "mnemosyne"
+      ]
     },
     "lint-arwaky": {
       "command": "uv",
