@@ -34,6 +34,3 @@
 [submodule "comfyui-mcp-arwaky"]
 	path = comfyui-mcp-arwaky
 	url = https://github.com/rakaarwaky/comfyui-mcp-arwaky.git
-[submodule "agentic-memory-arwaky"]
-	path = agentic-memory-arwaky
-	url = https://github.com/rakaarwaky/agentic-memory-arwaky.git
