@@ -31,3 +31,6 @@
 [submodule "ponytail-arwaky"]
 	path = ponytail-arwaky
 	url = https://github.com/rakaarwaky/ponytail-arwaky.git
+[submodule "codegraph-arwaky"]
+	path = codegraph-arwaky
+	url = https://github.com/rakaarwaky/codegraph-arwaky.git
