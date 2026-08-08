@@ -16,9 +16,6 @@
 [submodule "github-arwaky"]
 	path = github-arwaky
 	url = https://github.com/rakaarwaky/github-arwaky.git
-[submodule "gmail-arwaky"]
-	path = gmail-arwaky
-	url = https://github.com/rakaarwaky/gmail-arwaky.git
 [submodule "lint-arwaky"]
 	path = lint-arwaky
 	url = https://github.com/rakaarwaky/lint-arwaky.git
@@ -28,9 +25,9 @@
 [submodule "vision-arwaky"]
 	path = vision-arwaky
 	url = https://github.com/rakaarwaky/vision-arwaky.git
-[submodule "comfyui-mcp-arwaky"]
-	path = comfyui-mcp-arwaky
-	url = https://github.com/rakaarwaky/comfyui-mcp-arwaky.git
 [submodule "lean-arwaky"]
 	path = lean-arwaky
-	url = ./lean-arwaky
+	url = https://github.com/rakaarwaky/lean-arwaky.git
+[submodule "ponytail-arwaky"]
+	path = ponytail-arwaky
+	url = https://github.com/rakaarwaky/ponytail-arwaky.git

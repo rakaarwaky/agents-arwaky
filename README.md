@@ -1,0 +1,221 @@
+# MCP Arwaky
+
+Personal collection of [Model Context Protocol (MCP)](https://modelcontextprotocol.io) servers for AI coding agents.
+
+Each server lives as a **git submodule** under this repository. Some are original projects (AES-style architecture); others are local forks or wrappers around well-known upstream MCP servers.
+
+## Servers
+
+| Submodule                            | Purpose                                                       | Stack             |
+| ------------------------------------ | ------------------------------------------------------------- | ----------------- |
+| [blender-arwaky](blender-arwaky/)     | Control Blender 3D (scenes, objects, render, Python)          | Python            |
+| [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email / inbox on Cloudflare Workers                   | TypeScript        |
+| [comander-arwaky](comander-arwaky/)   | Desktop Commander — terminal, filesystem, process control    | TypeScript / Node |
+| [contex7-arwaky](contex7-arwaky/)     | Up-to-date library docs (Context7)                            | TypeScript        |
+| [fetch-arwaky](fetch-arwaky/)         | Fetch web content (HTML, Markdown, JSON, YouTube transcripts) | TypeScript        |
+| [github-arwaky](github-arwaky/)       | GitHub platform (repos, issues, PRs, Actions, security)       | Go                |
+| [lean-arwaky](lean-arwaky/)           | LeanCTX — context engineering / token compression for agents | Rust              |
+| [lint-arwaky](lint-arwaky/)           | Architecture linter (AES rules) for Rust, Python, TypeScript  | Rust              |
+| [testing-arwaky](testing-arwaky/)     | Autonomous test engine with self-healing                      | Python            |
+| [vision-arwaky](vision-arwaky/)       | Computer vision — image, OCR, video, tracking, visual memory | Python            |
+| [ponytail-arwaky](ponytail-arwaky/)   | Lazy senior dev mode — AI agent wrapper (Ponytail)           | TypeScript / Node |
+
+---
+
+## What each server does
+
+### blender-arwaky
+
+Bridges Blender 3D to MCP clients. Control scenes, import assets, render, and run Blender Python through a small set of universal tools. Requires Blender 3.0+ and a Blender addon.
+
+### cloudmail-arwaky
+
+Email management on Cloudflare Workers: virtual users, inbox, settings, API keys. Surfaces: HTTP API, CLI, MCP (Hydra meta-tools), and Web UI.
+
+### comander-arwaky
+
+Local fork / wrapper of [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP). Run terminal commands, manage processes, edit files (text, Excel, PDF, DOCX), search code, and automate the desktop from an agent.
+
+### contex7-arwaky
+
+Local wrapper around [Context7](https://github.com/upstash/context7). Resolves library IDs and pulls version-specific documentation and code examples into the agent context (avoids hallucinated APIs).
+
+### fetch-arwaky
+
+Local wrapper around [mcp-fetch-server](https://www.npmjs.com/package/mcp-fetch-server). Fetch URLs as HTML, Markdown, plain text, JSON, readable article content, or YouTube transcripts. Includes SSRF protection and response size limits.
+
+### github-arwaky
+
+Local build of the [official GitHub MCP Server](https://github.com/github/github-mcp-server). Repos, issues, PRs, Actions, code security, Dependabot, discussions, gists, and more — configurable via toolsets.
+
+### lean-arwaky
+
+LeanCTX — context engineering layer for coding agents. Decides what agents read, compresses prompts (often 60–90% fewer tokens), remembers session knowledge, and guards filesystem access. Local-first Rust binary.
+
+### lint-arwaky
+
+Architecture linter for Rust, Python, and TypeScript. Enforces 24 AES rules (naming, imports, quality, layer roles, orphans), bridges external linters (Clippy, Ruff, ESLint, …), and exposes a 5-tool MCP server with full CLI parity.
+
+### testing-arwaky
+
+Autonomous test engine for AI agents: run tests with self-healing, AST analysis, coverage audit, synthetic data generation, and pytest workflows.
+
+### vision-arwaky
+
+Unified computer-vision MCP: image analysis (VLM), OCR (Tesseract), video (ffmpeg/OpenCV), object tracking, and perceptual-hash visual memory.
+
+---
+
+## Repository layout
+
+```
+mcp-arwaky/
+├── blender-arwaky/      # original 
+├── cloudmail-arwaky/    # original 
+├── comander-arwaky/     # Desktop Commander wrapper
+│   └── desktop-commander/
+├── contex7-arwaky/      # Context7 wrapper
+│   └── context7/
+├── fetch-arwaky/        # fetch-mcp wrapper
+│   └── fetch-mcp/
+├── github-arwaky/       # GitHub MCP wrapper
+│   └── github-mcp-server/
+├── lean-arwaky/         # LeanCTX wrapper
+│   └── lean-ctx/
+├── lint-arwaky/         # original 
+├── testing-arwaky/      # original 
+├── vision-arwaky/       # original 
+├── .gitmodules
+└── README.md            # this file
+```
+
+Wrapper submodules typically contain:
+
+- Upstream (or vendored) source under a nested directory
+- `script/build.sh` — local build into `dist/`
+- Optional `*_local.json` / `*_remote.json` — MCP client config snippets
+
+---
+
+## Clone and init
+
+```bash
+git clone --recurse-submodules https://github.com/rakaarwaky/mcp-arwaky.git
+cd mcp-arwaky
+```
+
+If you already cloned without submodules:
+
+```bash
+git submodule update --init --recursive
+```
+
+Update all submodules to their tracked commits:
+
+```bash
+git submodule update --remote --merge
+```
+
+---
+
+## Build notes (wrappers)
+
+| Submodule           | Build                                                                          |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `github-arwaky`   | `bash github-arwaky/script/build.sh` → Go binary in `github-arwaky/dist/` |
+| `fetch-arwaky`    | `bash fetch-arwaky/script/build.sh` → esbuild bundle in `fetch-mcp/dist/` |
+| `contex7-arwaky`  | See`contex7-arwaky/script/` and nested `context7` package                  |
+| `comander-arwaky` | See`comander-arwaky/script/` and nested `desktop-commander`                |
+
+Original AES projects usually use their own installers:
+
+```bash
+# Examples
+cd blender-arwaky && uv sync
+cd lint-arwaky && bash scripts/install.local.sh
+cd testing-arwaky && # see install.sh / pip
+cd vision-arwaky && ./scripts/install.local.sh
+cd cloudmail-arwaky && pnpm install
+```
+
+---
+
+## MCP client configuration
+
+Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Patterns differ by stack:
+
+**Python (uv)**
+
+```json
+{
+  "mcpServers": {
+    "blender-arwaky": {
+      "command": "uv",
+      "args": ["--directory", "/path/to/mcp-arwaky/blender-arwaky", "run", "blender-mcp"]
+    }
+  }
+}
+```
+
+**Rust binary**
+
+```json
+{
+  "mcpServers": {
+    "lint-arwaky": {
+      "command": "lint-arwaky-mcp"
+    }
+  }
+}
+```
+
+**Go binary (local build)**
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "/path/to/mcp-arwaky/github-arwaky/dist/github-mcp-server",
+      "args": ["stdio"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "<token>"
+      }
+    }
+  }
+}
+```
+
+**Node / npx (wrappers)**
+
+```json
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "node",
+      "args": ["/path/to/mcp-arwaky/fetch-arwaky/fetch-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+Several wrappers ship ready-made snippets (`*_local.json`, `*_remote.json`) — prefer those when present.
+
+---
+
+## Architecture note (AES)
+
+Several original projects follow **AES (Agentic Engineering System)** — a layered design:
+
+```
+taxonomy → contract → capabilities → agent → surface
+                ↑
+          infrastructure
+```
+
+Surfaces (CLI / MCP / HTTP / Web) stay thin; business logic lives in capabilities/agent layers. `lint-arwaky` enforces these rules across Rust, Python, and TypeScript.
+
+---
+
+## License
+
+Each submodule has its own license (typically MIT or Apache-2.0). See the `LICENSE` file inside each project.
