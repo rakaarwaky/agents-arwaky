@@ -4,9 +4,6 @@
 [submodule "cloudmail-arwaky"]
 	path = cloudmail-arwaky
 	url = https://github.com/rakaarwaky/cloudmail-arwaky.git
-[submodule "comander-arwaky"]
-	path = comander-arwaky
-	url = https://github.com/rakaarwaky/comander-arwaky.git
 [submodule "contex7-arwaky"]
 	path = contex7-arwaky
 	url = https://github.com/rakaarwaky/contex7-arwaky.git
