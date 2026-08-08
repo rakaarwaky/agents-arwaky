@@ -28,9 +28,9 @@
 [submodule "vision-arwaky"]
 	path = vision-arwaky
 	url = https://github.com/rakaarwaky/vision-arwaky.git
-[submodule "mnemosyne-arwaky"]
-	path = mnemosyne-arwaky
-	url = https://github.com/rakaarwaky/mnemosyne-arwaky.git
 [submodule "comfyui-mcp-arwaky"]
 	path = comfyui-mcp-arwaky
 	url = https://github.com/rakaarwaky/comfyui-mcp-arwaky.git
+[submodule "lean-arwaky"]
+	path = lean-arwaky
+	url = ./lean-arwaky
