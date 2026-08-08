@@ -19,6 +19,7 @@ Each server lives as a **git submodule** under this repository. Some are origina
 | [testing-arwaky](testing-arwaky/)     | Autonomous test engine with self-healing                      | Python            |
 | [vision-arwaky](vision-arwaky/)       | Computer vision — image, OCR, video, tracking, visual memory | Python            |
 | [ponytail-arwaky](ponytail-arwaky/)   | Lazy senior dev mode — AI agent wrapper (Ponytail)           | TypeScript / Node |
+| [codegraph-arwaky](codegraph-arwaky/) | Semantic code intelligence — Rust kernel, local index, MCP   | Rust / TypeScript |
 
 ---
 
@@ -98,7 +99,7 @@ mcp-arwaky/
 Wrapper submodules typically contain:
 
 - Upstream (or vendored) source under a nested directory
-- `script/build.sh` — local build into `dist/`
+- `script/install.sh` — local build into `dist/`
 - Optional `*_local.json` / `*_remote.json` — MCP client config snippets
 
 ---

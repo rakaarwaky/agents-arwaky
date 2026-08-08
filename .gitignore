@@ -43,3 +43,7 @@ $RECYCLE.BIN/
 # Large Model Files
 *.gguf
 models/
+
+
+#agents
+.qwen
