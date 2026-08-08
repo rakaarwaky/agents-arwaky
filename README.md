@@ -10,7 +10,6 @@ Each server lives as a **git submodule** under this repository. Some are origina
 | ------------------------------------ | ------------------------------------------------------------- | ----------------- |
 | [blender-arwaky](blender-arwaky/)     | Control Blender 3D (scenes, objects, render, Python)          | Python            |
 | [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email / inbox on Cloudflare Workers                   | TypeScript        |
-| [comander-arwaky](comander-arwaky/)   | Desktop Commander — terminal, filesystem, process control    | TypeScript / Node |
 | [contex7-arwaky](contex7-arwaky/)     | Up-to-date library docs (Context7)                            | TypeScript        |
 | [fetch-arwaky](fetch-arwaky/)         | Fetch web content (HTML, Markdown, JSON, YouTube transcripts) | TypeScript        |
 | [github-arwaky](github-arwaky/)       | GitHub platform (repos, issues, PRs, Actions, security)       | Go                |
@@ -32,10 +31,6 @@ Bridges Blender 3D to MCP clients. Control scenes, import assets, render, and ru
 ### cloudmail-arwaky
 
 Email management on Cloudflare Workers: virtual users, inbox, settings, API keys. Surfaces: HTTP API, CLI, MCP (Hydra meta-tools), and Web UI.
-
-### comander-arwaky
-
-Local fork / wrapper of [Desktop Commander MCP](https://github.com/wonderwhy-er/DesktopCommanderMCP). Run terminal commands, manage processes, edit files (text, Excel, PDF, DOCX), search code, and automate the desktop from an agent.
 
 ### contex7-arwaky
 
@@ -75,10 +70,8 @@ Wrapper repository that integrates the [Ponytail](https://github.com/DietrichGeb
 
 ```
 mcp-arwaky/
-├── blender-arwaky/      # original 
-├── cloudmail-arwaky/    # original 
-├── comander-arwaky/     # Desktop Commander wrapper
-│   └── desktop-commander/
+├── blender-arwaky/      # original
+├── cloudmail-arwaky/    # original
 ├── contex7-arwaky/      # Context7 wrapper
 │   └── context7/
 ├── fetch-arwaky/        # fetch-mcp wrapper
