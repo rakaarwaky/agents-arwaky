@@ -124,28 +124,6 @@ git submodule update --remote --merge
 
 ---
 
-## Build notes (wrappers)
-
-| Submodule           | Build                                                                          |
-| ------------------- | ------------------------------------------------------------------------------ |
-| `github-arwaky`   | `bash github-arwaky/script/build.sh` → Go binary in `github-arwaky/dist/` |
-| `fetch-arwaky`    | `bash fetch-arwaky/script/build.sh` → esbuild bundle in `fetch-mcp/dist/` |
-| `contex7-arwaky`  | See`contex7-arwaky/script/` and nested `context7` package                  |
-| `comander-arwaky` | See`comander-arwaky/script/` and nested `desktop-commander`                |
-
-Original AES projects usually use their own installers:
-
-```bash
-# Examples
-cd blender-arwaky && uv sync
-cd lint-arwaky && bash scripts/install.local.sh
-cd testing-arwaky && # see install.sh / pip
-cd vision-arwaky && ./scripts/install.local.sh
-cd cloudmail-arwaky && pnpm install
-```
-
----
-
 ## MCP client configuration
 
 Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Patterns differ by stack:
@@ -206,19 +184,6 @@ Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Pa
 
 Several wrappers ship ready-made snippets (`*_local.json`, `*_remote.json`) — prefer those when present.
 
----
-
-## Architecture note (AES)
-
-Several original projects follow **AES (Agentic Engineering System)** — a layered design:
-
-```
-taxonomy → contract → capabilities → agent → surface
-                ↑
-          infrastructure
-```
-
-Surfaces (CLI / MCP / HTTP / Web) stay thin; business logic lives in capabilities/agent layers. `lint-arwaky` enforces these rules across Rust, Python, and TypeScript.
 
 ---
 
