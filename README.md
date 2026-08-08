@@ -64,6 +64,10 @@ Autonomous test engine for AI agents: run tests with self-healing, AST analysis,
 
 Unified computer-vision MCP: image analysis (VLM), OCR (Tesseract), video (ffmpeg/OpenCV), object tracking, and perceptual-hash visual memory.
 
+### ponytail-arwaky
+
+Wrapper repository that integrates the [Ponytail](https://github.com/DietrichGebert/ponytail) project — "lazy senior dev" AI agent plugin. Provides MCP server built with CLI scripts and optional ready-made MCP configs (`ponytail_arwaky_local.json`, `ponytail_arwaky_remote.json`).
+
 ---
 
 ## Repository layout
@@ -84,7 +88,9 @@ mcp-arwaky/
 │   └── lean-ctx/
 ├── lint-arwaky/         # original 
 ├── testing-arwaky/      # original 
-├── vision-arwaky/       # original 
+├── vision-arwaky/       # original
+├── ponytail-arwaky/     # Ponytail wrapper
+│   └── ponytail/
 ├── .gitmodules
 └── README.md            # this file
 ```
