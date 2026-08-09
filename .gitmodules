@@ -31,3 +31,6 @@
 [submodule "codegraph-arwaky"]
 	path = codegraph-arwaky
 	url = https://github.com/rakaarwaky/codegraph-arwaky.git
+[submodule "qwen-web-arwaky"]
+	path = qwen-web-arwaky
+	url = https://github.com/rakaarwaky/qwen-web.git
