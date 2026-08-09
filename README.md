@@ -19,6 +19,7 @@ Each server lives as a **git submodule** under this repository. Some are origina
 | [vision-arwaky](vision-arwaky/)       | Computer vision — image, OCR, video, tracking, visual memory | Python            |
 | [ponytail-arwaky](ponytail-arwaky/)   | Lazy senior dev mode — AI agent wrapper (Ponytail)           | TypeScript / Node |
 | [codegraph-arwaky](codegraph-arwaky/) | Semantic code intelligence — Rust kernel, local index, MCP   | Rust / TypeScript |
+| [qwen-web-arwaky](qwen-web-arwaky/)   | Qwen AI Web Automation CLI & MCP Server                      | Python / Playwright |
 
 ---
 
@@ -64,6 +65,10 @@ Unified computer-vision MCP: image analysis (VLM), OCR (Tesseract), video (ffmpe
 
 Wrapper repository that integrates the [Ponytail](https://github.com/DietrichGebert/ponytail) project — "lazy senior dev" AI agent plugin. Provides MCP server built with CLI scripts and optional ready-made MCP configs (`ponytail_arwaky_local.json`, `ponytail_arwaky_remote.json`).
 
+### qwen-web-arwaky
+
+Qwen AI Web Automation CLI & MCP Server. Automates browser interactions with `chat.qwen.ai` using Playwright, supporting batch prompt processing, real-time file watching, persistent session management, and 1:1 MCP Server tool integration for local AI agents.
+
 ---
 
 ## Repository layout
@@ -85,6 +90,7 @@ mcp-arwaky/
 ├── vision-arwaky/       # original
 ├── ponytail-arwaky/     # Ponytail wrapper
 │   └── ponytail/
+├── qwen-web-arwaky/     # original
 ├── .gitmodules
 └── README.md            # this file
 ```
