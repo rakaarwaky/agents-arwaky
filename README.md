@@ -20,6 +20,7 @@ Each server lives as a **git submodule** under this repository. Some are origina
 | [ponytail-arwaky](ponytail-arwaky/)   | Lazy senior dev mode — AI agent wrapper (Ponytail)           | TypeScript / Node |
 | [codegraph-arwaky](codegraph-arwaky/) | Semantic code intelligence — Rust kernel, local index, MCP   | Rust / TypeScript |
 | [qwen-web-arwaky](qwen-web-arwaky/)   | Qwen AI Web Automation CLI & MCP Server                      | Python / Playwright |
+| [caveman-arwaky](caveman-arwaky/)     | Caveman — token compression skill + MCP middleware            | TypeScript          |
 
 ---
 
@@ -69,6 +70,10 @@ Wrapper repository that integrates the [Ponytail](https://github.com/DietrichGeb
 
 Qwen AI Web Automation CLI & MCP Server. Automates browser interactions with `chat.qwen.ai` using Playwright, supporting batch prompt processing, real-time file watching, persistent session management, and 1:1 MCP Server tool integration for local AI agents.
 
+### caveman-arwaky
+
+Caveman — token compression skill for AI coding agents. Makes agents talk like caveman: 65% fewer output tokens, full technical accuracy. Includes `caveman-shrink` MCP middleware that wraps any MCP server and compresses its tool descriptions. Supports Claude Code, Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 40+ agents.
+
 ---
 
 ## Repository layout
@@ -91,6 +96,8 @@ mcp-arwaky/
 ├── ponytail-arwaky/     # Ponytail wrapper
 │   └── ponytail/
 ├── qwen-web-arwaky/     # original
+├── caveman-arwaky/      # Caveman wrapper (token compression)
+│   └── caveman/         # upstream (JuliusBrussee/caveman)
 ├── .gitmodules
 └── README.md            # this file
 ```
@@ -177,6 +184,19 @@ Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Pa
     "fetch": {
       "command": "node",
       "args": ["/path/to/mcp-arwaky/fetch-arwaky/fetch-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+**Caveman-shrink MCP middleware**
+
+```json
+{
+  "mcpServers": {
+    "caveman-shrink": {
+      "command": "node",
+      "args": ["/path/to/mcp-arwaky/caveman-arwaky/dist/caveman-shrink/index.js"]
     }
   }
 }

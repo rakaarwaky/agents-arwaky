@@ -34,3 +34,6 @@
 [submodule "qwen-web-arwaky"]
 	path = qwen-web-arwaky
 	url = https://github.com/rakaarwaky/qwen-web.git
+[submodule "caveman-arwaky"]
+	path = caveman-arwaky
+	url = ./caveman-arwaky
