@@ -12,15 +12,14 @@ Each server lives as a **git submodule** under this repository. Some are origina
 | [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email / inbox on Cloudflare Workers                   | TypeScript        |
 | [contex7-arwaky](contex7-arwaky/)     | Up-to-date library docs (Context7)                            | TypeScript        |
 | [fetch-arwaky](fetch-arwaky/)         | Fetch web content (HTML, Markdown, JSON, YouTube transcripts) | TypeScript        |
-| [github-arwaky](github-arwaky/)       | GitHub platform (repos, issues, PRs, Actions, security)       | Go                |
-| [lean-arwaky](lean-arwaky/)           | LeanCTX — context engineering / token compression for agents | Rust              |
+| [lean-arwaky](lean-arwaky/)           | LeanCTX — context engineering / token compression for agents  | Rust              |
 | [lint-arwaky](lint-arwaky/)           | Architecture linter (AES rules) for Rust, Python, TypeScript  | Rust              |
 | [testing-arwaky](testing-arwaky/)     | Autonomous test engine with self-healing                      | Python            |
-| [vision-arwaky](vision-arwaky/)       | Computer vision — image, OCR, video, tracking, visual memory | Python            |
-| [ponytail-arwaky](ponytail-arwaky/)   | Lazy senior dev mode — AI agent wrapper (Ponytail)           | TypeScript / Node |
-| [codegraph-arwaky](codegraph-arwaky/) | Semantic code intelligence — Rust kernel, local index, MCP   | Rust / TypeScript |
-| [qwen-web-arwaky](qwen-web-arwaky/)   | Qwen AI Web Automation CLI & MCP Server                      | Python / Playwright |
-| [caveman-arwaky](caveman-arwaky/)     | Caveman — token compression skill + MCP middleware            | TypeScript          |
+| [vision-arwaky](vision-arwaky/)       | Computer vision — image, OCR, video, tracking, visual memory  | Python            |
+| [ponytail-arwaky](ponytail-arwaky/)   | Lazy senior dev mode — AI agent wrapper (Ponytail)            | TypeScript / Node |
+| [codegraph-arwaky](codegraph-arwaky/) | Semantic code intelligence — Rust kernel, local index, MCP    | Rust / TypeScript |
+| [qwen-web-arwaky](qwen-web-arwaky/)   | Qwen AI Web Automation CLI & MCP Server                       | Python / Playwright |
+| [caveman-arwaky](caveman-arwaky/)     | Caveman — token compression skill + MCP middleware            | TypeScript        |
 
 ---
 
@@ -41,10 +40,6 @@ Local wrapper around [Context7](https://github.com/upstash/context7). Resolves l
 ### fetch-arwaky
 
 Local wrapper around [mcp-fetch-server](https://www.npmjs.com/package/mcp-fetch-server). Fetch URLs as HTML, Markdown, plain text, JSON, readable article content, or YouTube transcripts. Includes SSRF protection and response size limits.
-
-### github-arwaky
-
-Local build of the [official GitHub MCP Server](https://github.com/github/github-mcp-server). Repos, issues, PRs, Actions, code security, Dependabot, discussions, gists, and more — configurable via toolsets.
 
 ### lean-arwaky
 
@@ -86,12 +81,10 @@ mcp-arwaky/
 │   └── context7/
 ├── fetch-arwaky/        # fetch-mcp wrapper
 │   └── fetch-mcp/
-├── github-arwaky/       # GitHub MCP wrapper
-│   └── github-mcp-server/
 ├── lean-arwaky/         # LeanCTX wrapper
 │   └── lean-ctx/
-├── lint-arwaky/         # original 
-├── testing-arwaky/      # original 
+├── lint-arwaky/         # original
+├── testing-arwaky/      # original
 ├── vision-arwaky/       # original
 ├── ponytail-arwaky/     # Ponytail wrapper
 │   └── ponytail/
