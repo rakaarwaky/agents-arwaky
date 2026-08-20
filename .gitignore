@@ -48,8 +48,6 @@ models/
 #agents
 .qwen
 fetch-arwaky/fetch-mcp
-agents/
-agents/plan/
 
 
 #Ignore vscode AI rules
