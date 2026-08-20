@@ -10,9 +10,6 @@
 [submodule "fetch-arwaky"]
 	path = fetch-arwaky
 	url = https://github.com/rakaarwaky/fetch-arwaky.git
-[submodule "github-arwaky"]
-	path = github-arwaky
-	url = https://github.com/rakaarwaky/github-arwaky.git
 [submodule "lint-arwaky"]
 	path = lint-arwaky
 	url = https://github.com/rakaarwaky/lint-arwaky.git
