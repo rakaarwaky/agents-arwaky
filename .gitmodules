@@ -31,7 +31,7 @@
 [submodule "qwen-web-arwaky"]
 	path = qwen-web-arwaky
 	url = https://github.com/rakaarwaky/qwen-web.git
-[submodule "graphyarwaky"]
-	path = graphyarwaky
+[submodule "graphify-arwaky"]
+	path = graphify-arwaky
 	url = https://github.com/rakaarwaky/graphify-arwaky.git
 
