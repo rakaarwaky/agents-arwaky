@@ -35,6 +35,6 @@
 	path = graphify-arwaky
 	url = https://github.com/rakaarwaky/graphify-arwaky.git
 
-[submodule "anytype-arwaky/anytype-mcp"]
-	path = anytype-arwaky/anytype-mcp
-	url = https://github.com/anyproto/anytype-mcp.git
+[submodule "anytype-arwaky"]
+	path = anytype-arwaky
+	url = https://github.com/rakaarwaky/anytype-arwaky.git

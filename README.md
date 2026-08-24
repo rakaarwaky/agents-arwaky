@@ -21,6 +21,7 @@ Each server lives as a **git submodule** under this repository. Some are origina
 | [qwen-web-arwaky](qwen-web-arwaky/)   | Qwen AI Web Automation CLI & MCP Server                       | Python / Playwright |
 | [caveman-arwaky](caveman-arwaky/)     | Caveman — token compression skill + MCP middleware            | TypeScript        |
 | [graphyarwaky](graphyarwaky/)         | Graphify wrapper — query knowledge graphs via MCP             | TypeScript / Node |
+| [anytype-arwaky](anytype-arwaky/)     | Anytype MCP wrapper — manage objects/lists via AI              | TypeScript / Node |
 
 ---
 
