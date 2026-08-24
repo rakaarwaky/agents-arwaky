@@ -1,10 +1,10 @@
-# MCP Arwaky
+# Agents Arwaky
 
-Personal collection of [Model Context Protocol (MCP)](https://modelcontextprotocol.io) servers for AI coding agents.
+Personal collection of tools for AI coding agents — MCP servers, CLIs, skills, and wrappers.
 
-Each server lives as a **git submodule** under this repository. Some are original projects (AES-style architecture); others are local forks or wrappers around well-known upstream MCP servers.
+Each tool lives as a **git submodule** under this repository. Some are original projects (AES-style architecture); others are local forks or wrappers around well-known upstream projects. Most expose an [MCP](https://modelcontextprotocol.io) interface, but the collection is not limited to MCP — anything that makes agents more capable belongs here.
 
-## Servers
+## Tools
 
 | Submodule                            | Purpose                                                       | Stack             |
 | ------------------------------------ | ------------------------------------------------------------- | ----------------- |
@@ -25,7 +25,7 @@ Each server lives as a **git submodule** under this repository. Some are origina
 
 ---
 
-## What each server does
+## What each tool does
 
 ### blender-arwaky
 
@@ -80,7 +80,7 @@ Wrapper around [Graphify](https://github.com/Graphify-Labs/graphify). Turns code
 ## Repository layout
 
 ```
-mcp-arwaky/
+agents-arwaky/
 ├── blender-arwaky/      # original
 ├── cloudmail-arwaky/    # original
 ├── contex7-arwaky/      # Context7 wrapper
@@ -114,8 +114,8 @@ Wrapper submodules typically contain:
 ## Clone and init
 
 ```bash
-git clone --recurse-submodules https://github.com/rakaarwaky/mcp-arwaky.git
-cd mcp-arwaky
+git clone --recurse-submodules https://github.com/rakaarwaky/agents-arwaky.git
+cd agents-arwaky
 ```
 
 If you already cloned without submodules:
@@ -132,9 +132,9 @@ git submodule update --remote --merge
 
 ---
 
-## MCP client configuration
+## Agent / MCP client configuration
 
-Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Patterns differ by stack:
+Point your agent host or MCP client (Qwen Code, Claude Desktop, Claude Code, Cursor, etc.) at each tool. Patterns differ by stack:
 
 **Python (uv)**
 
@@ -143,7 +143,7 @@ Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Pa
   "mcpServers": {
     "blender-arwaky": {
       "command": "uv",
-      "args": ["--directory", "/path/to/mcp-arwaky/blender-arwaky", "run", "blender-mcp"]
+      "args": ["--directory", "/path/to/agents-arwaky/blender-arwaky", "run", "blender-mcp"]
     }
   }
 }
@@ -167,7 +167,7 @@ Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Pa
 {
   "mcpServers": {
     "github": {
-      "command": "/path/to/mcp-arwaky/github-arwaky/dist/github-mcp-server",
+      "command": "/path/to/agents-arwaky/github-arwaky/dist/github-mcp-server",
       "args": ["stdio"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "<token>"
@@ -184,7 +184,7 @@ Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Pa
   "mcpServers": {
     "fetch": {
       "command": "node",
-      "args": ["/path/to/mcp-arwaky/fetch-arwaky/fetch-mcp/dist/index.js"]
+      "args": ["/path/to/agents-arwaky/fetch-arwaky/fetch-mcp/dist/index.js"]
     }
   }
 }
@@ -197,7 +197,7 @@ Point your MCP host (Qwen Code, Claude Desktop, Cursor, etc.) at each server. Pa
   "mcpServers": {
     "caveman-shrink": {
       "command": "node",
-      "args": ["/path/to/mcp-arwaky/caveman-arwaky/dist/caveman-shrink/index.js"]
+      "args": ["/path/to/agents-arwaky/caveman-arwaky/dist/caveman-shrink/index.js"]
     }
   }
 }
