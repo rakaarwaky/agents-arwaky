@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # tools/distrobox/setup-host.sh
-# Checks host prerequisites (Podman and Distrobox) and helps install if missing
+# Checks host prerequisites (Podman and Distrobox) and optionally installs them
 set -euo pipefail
+
+AUTO_INSTALL=false
+if [ "${1:-}" = "--install" ] || [ "${1:-}" = "-y" ]; then
+  AUTO_INSTALL=true
+fi
 
 echo "=========================================="
 echo " Checking Host Container Prerequisites"
@@ -21,8 +26,7 @@ if [ ${#MISSING[@]} -eq 0 ]; then
   echo " [OK] Container runtime: $(command -v podman 2>/dev/null || command -v docker)"
   echo " [OK] Distrobox: $(command -v distrobox)"
   echo ""
-  echo "Host environment is ready to use Distrobox!"
-  echo "Run 'make distrobox-create' to initialize the environment."
+  echo "Host environment is ready for Distrobox First-Class operation!"
   exit 0
 fi
 
@@ -31,9 +35,33 @@ for tool in "${MISSING[@]}"; do
   echo "  - $tool"
 done
 echo ""
-echo "Installation commands for Linux:"
+
+if [ "$AUTO_INSTALL" = true ]; then
+  echo ">>> Attempting automated installation via system package manager..."
+  if command -v apt-get >/dev/null 2>&1; then
+    echo "Running: sudo apt-get update && sudo apt-get install -y podman distrobox"
+    sudo apt-get update && sudo apt-get install -y podman distrobox
+  elif command -v pacman >/dev/null 2>&1; then
+    echo "Running: sudo pacman -S --noconfirm podman distrobox"
+    sudo pacman -S --noconfirm podman distrobox
+  elif command -v dnf >/dev/null 2>&1; then
+    echo "Running: sudo dnf install -y podman distrobox"
+    sudo dnf install -y podman distrobox
+  else
+    echo "Unsupported package manager. Please install manually:" >&2
+    exit 1
+  fi
+  echo ">>> Prerequisites successfully installed!"
+  exit 0
+fi
+
+echo "To install missing prerequisites automatically, run:"
+echo "  make setup"
+echo "  (or: ./tools/distrobox/setup-host.sh --install)"
+echo ""
+echo "Or install manually for your Linux distribution:"
 echo "---------------------------------------------------------"
-if command -v apt >/dev/null 2>&1; then
+if command -v apt-get >/dev/null 2>&1; then
   echo "Debian / Ubuntu / Deepin:"
   echo "  sudo apt update && sudo apt install -y podman distrobox"
 elif command -v pacman >/dev/null 2>&1; then
@@ -47,4 +75,4 @@ echo ""
 echo "Or install Distrobox standalone (rootless):"
 echo "  curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local"
 echo "---------------------------------------------------------"
-exit 0
+exit 1

@@ -5,9 +5,10 @@ set -euo pipefail
 
 echo ">>> Initializing agents-arwaky Distrobox environment..."
 
-# 1. Ensure ~/.local/bin is in PATH
+# 1. Ensure ~/.local/bin and internal-bin are in PATH
 mkdir -p "$HOME/.local/bin"
-export PATH="$HOME/.local/bin:$PATH"
+mkdir -p "$HOME/.local/share/agents-arwaky/internal-bin"
+export PATH="$HOME/.local/share/agents-arwaky/internal-bin:$HOME/.local/bin:$PATH"
 
 # 2. Install uv if not present
 if ! command -v uv >/dev/null 2>&1; then
