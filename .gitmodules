@@ -1,17 +1,17 @@
 [submodule "blender-arwaky"]
-	path = blender-arwaky
+	path = internal/blender-arwaky
 	url = https://github.com/rakaarwaky/blender-arwaky.git
 [submodule "cloudmail-arwaky"]
-	path = cloudmail-arwaky
+	path = internal/cloudmail-arwaky
 	url = https://github.com/rakaarwaky/cloudmail-arwaky.git
 [submodule "lint-arwaky"]
-	path = lint-arwaky
+	path = internal/lint-arwaky
 	url = https://github.com/rakaarwaky/lint-arwaky.git
 [submodule "vision-arwaky"]
-	path = vision-arwaky
+	path = internal/vision-arwaky
 	url = https://github.com/rakaarwaky/vision-arwaky.git
 [submodule "qwen-web-arwaky"]
-	path = qwen-web-arwaky
+	path = internal/qwen-web-arwaky
 	url = https://github.com/rakaarwaky/qwen-web-arwaky.git
 [submodule "vendor/context7"]
 	path = vendor/context7
