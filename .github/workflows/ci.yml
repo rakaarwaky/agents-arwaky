@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  lint-and-validate:
+    name: Lint Scripts & Validate Configs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq shellcheck
+
+      - name: Validate JSON syntax
+        run: |
+          echo "Validating JSON files..."
+          find . -name "*.json" -not -path "*/node_modules/*" -not -path "*/.git/*" -print0 | while IFS= read -r -d '' file; do
+            echo "Checking: $file"
+            jq empty "$file"
+          done
+
+      - name: ShellCheck shell scripts
+        run: |
+          echo "Linting shell scripts..."
+          find tools -name "*.sh" -print0 2>/dev/null | while IFS= read -r -d '' file; do
+            echo "Linting: $file"
+            shellcheck "$file"
+          done || true
+
+  submodule-smoke-test:
+    name: Submodule Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - name: Verify submodules status
+        run: |
+          git submodule status

@@ -1,0 +1,11 @@
+# Auto detect text files and perform LF normalization on checkout/commit
+* text=auto
+
+# Ensure shell scripts have LF line endings
+*.sh text eol=lf
+
+# Ensure JSON files have LF line endings
+*.json text eol=lf
+
+# Ensure Markdown files have LF line endings
+*.md text eol=lf

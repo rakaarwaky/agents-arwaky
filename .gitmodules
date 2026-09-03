@@ -30,11 +30,10 @@
 	url = https://github.com/rakaarwaky/codegraph-arwaky.git
 [submodule "qwen-web-arwaky"]
 	path = qwen-web-arwaky
-	url = https://github.com/rakaarwaky/qwen-web.git
+	url = https://github.com/rakaarwaky/qwen-web-arwaky.git
 [submodule "graphify-arwaky"]
 	path = graphify-arwaky
 	url = https://github.com/rakaarwaky/graphify-arwaky.git
-
 [submodule "anytype-arwaky"]
 	path = anytype-arwaky
 	url = https://github.com/rakaarwaky/anytype-arwaky.git
