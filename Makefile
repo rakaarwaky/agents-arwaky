@@ -1,4 +1,4 @@
-.PHONY: all help submodules build-all build-context7 build-fetch build-lean build-ponytail build-graphify build-anytype build-codegraph config check clean
+.PHONY: all help submodules build-all build-context7 build-fetch build-lean build-ponytail build-graphify build-anytype build-codegraph config check clean distrobox-check distrobox-create distrobox-enter distrobox-build distrobox-export distrobox-destroy
 
 SHELL := /usr/bin/env bash
 
@@ -7,10 +7,18 @@ all: help
 help:
 	@echo "agents-arwaky - Developer Commands"
 	@echo ""
+	@echo "Distrobox + Podman (Sandbox Environment):"
+	@echo "  make distrobox-check   - Check if podman and distrobox are installed on host"
+	@echo "  make distrobox-create  - Create/assemble agents-env container"
+	@echo "  make distrobox-enter   - Enter the interactive sandbox container"
+	@echo "  make distrobox-build   - Build all tools inside the Distrobox container"
+	@echo "  make distrobox-export  - Export all tool binaries to host ~/.local/bin"
+	@echo "  make distrobox-destroy - Destroy sandbox container (keeps all persistent data)"
+	@echo ""
 	@echo "Submodules:"
 	@echo "  make submodules        - Initialize and update vendor submodules"
 	@echo ""
-	@echo "Install Tools to Linux XDG (~/.local/share/<tool> and ~/.local/bin/<tool>):"
+	@echo "Install Tools to Linux XDG (~/.local/share/<vendor> and ~/.local/bin/<tool>):"
 	@echo "  make build-all         - Install all vendor MCP tools to XDG paths"
 	@echo "  make build-context7    - Install Context7 (context7-mcp)"
 	@echo "  make build-fetch       - Install Fetch-MCP (fetch-mcp)"
@@ -25,6 +33,25 @@ help:
 	@echo "  make check             - Run verification, shellcheck, and JSON validation"
 	@echo "  make clean             - Clean local build artifacts"
 	@echo ""
+
+# Distrobox commands
+distrobox-check:
+	@./tools/distrobox/setup-host.sh
+
+distrobox-create:
+	@distrobox assemble create --file distrobox.ini
+
+distrobox-enter:
+	@distrobox enter agents-env
+
+distrobox-build:
+	@distrobox enter agents-env -- bash -c "cd $(CURDIR) && make build-all"
+
+distrobox-export:
+	@distrobox enter agents-env -- bash -c "distrobox-export --bin /home/raka/.local/bin/context7-mcp --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/fetch-mcp --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/lean-ctx --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/ponytail-mcp --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/graphify --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/anytype-mcp --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/codegraph-mcp --export-path /home/raka/.local/bin"
+
+distrobox-destroy:
+	@distrobox rm -f agents-env
 
 submodules:
 	git submodule update --init vendor/

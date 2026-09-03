@@ -1,6 +1,6 @@
 # agents-arwaky
 
-A consolidated orchestration repository providing an autonomous multi-agent ecosystem. It combines internal core components alongside vetted, high-value upstream tools and MCP servers under an ergonomic monorepo structure following the **Linux XDG Base Directory Specification**.
+A consolidated orchestration repository providing an autonomous multi-agent ecosystem. It combines internal core components alongside vetted, high-value upstream tools and MCP servers under an ergonomic monorepo structure following the **Linux XDG Base Directory Specification**, with optional **Distrobox + Podman container sandboxing**.
 
 ---
 
@@ -12,6 +12,7 @@ The repository is structured into two main components:
 
 ```
 agents-arwaky/
+├── distrobox.ini                # Declarative container environment (Distrobox + Podman)
 ├── vendor/                      # Pinned upstream repositories (submodules)
 │   ├── context7/                # Upstash documentation & context MCP
 │   ├── fetch-mcp/               # Fast web scraping & extraction MCP
@@ -22,6 +23,7 @@ agents-arwaky/
 │   └── codegraph/               # High-performance codebase intelligence & graph engine
 ├── tools/                       # Build scripts, XDG glue & MCP configs
 │   ├── xdg.sh                   # Linux XDG Base Directory helper
+│   ├── distrobox/               # Distrobox host check & container init scripts
 │   ├── <tool>/install.sh        # Installs tool to ~/.local/share/<tool> & ~/.local/bin/
 │   ├── <tool>/<tool>.local.json # MCP config snippet
 │   └── generate-mcp-config.sh   # Generates unified XDG MCP client configuration
@@ -30,7 +32,7 @@ agents-arwaky/
 ├── lint-arwaky/
 ├── qwen-web-arwaky/
 ├── vision-arwaky/
-├── Makefile                     # Ergonomic build & check entrypoints
+├── Makefile                     # Ergonomic build, check & distrobox entrypoints
 ├── THIRD_PARTY_LICENSES.md      # Upstream licensing and attribution records
 ├── LICENSE                      # MIT License
 └── README.md
@@ -48,6 +50,28 @@ All tool runtimes, launchers, configurations, and caches strictly follow standar
 | **Tool Runtimes & Data** | `${XDG_DATA_HOME:-~/.local/share}/<vendor>/` | Isolated bundles, dependencies, and index stores |
 | **User Configuration** | `${XDG_CONFIG_HOME:-~/.config}/<vendor>/` | Per-vendor dedicated configuration directories |
 | **Caches & Temporary Files** | `${XDG_CACHE_HOME:-~/.cache}/<vendor>/` | Ephemeral build and index caches |
+
+---
+
+## Distrobox + Podman Workflow (Recommended for DevEx)
+
+To keep your host OS pristine while compiling polyglot codebases (Rust, TypeScript, Python C-extensions, Playwright browsers, Blender libs), use Distrobox:
+
+```bash
+# 1. Check prerequisites (Podman and Distrobox)
+make distrobox-check
+
+# 2. Create the sandbox environment
+make distrobox-create
+
+# 3. Enter interactive container shell or build all tools directly:
+make distrobox-enter
+# OR run build from host inside container:
+make distrobox-build
+
+# 4. Export binaries to host ~/.local/bin:
+make distrobox-export
+```
 
 ---
 
