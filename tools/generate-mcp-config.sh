@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-# shellcheck source=xdg.sh
+# shellcheck source=/dev/null
 source "$SCRIPT_DIR/xdg.sh"
 
 OUTPUT_FILE="${1:-"$XDG_CONFIG_HOME/agents-arwaky/mcp_servers.json"}"

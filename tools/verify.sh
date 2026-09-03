@@ -32,7 +32,7 @@ done < <(find "$REPO_ROOT/tools" -name "*.json" -print0)
 echo "[3/4] ShellCheck linting..."
 if command -v shellcheck >/dev/null 2>&1; then
   while IFS= read -r -d '' script; do
-    if ! shellcheck "$script"; then
+    if ! shellcheck -x -P "$REPO_ROOT/tools" "$script"; then
       echo "  [FAIL] Shellcheck error in: $script"
       ERRORS=$((ERRORS + 1))
     fi

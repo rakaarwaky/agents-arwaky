@@ -47,7 +47,7 @@ jobs:
           echo "Linting shell scripts..."
           find tools -name "*.sh" -print0 2>/dev/null | while IFS= read -r -d '' file; do
             echo "Linting: $file"
-            shellcheck "$file"
+            shellcheck -x -P tools "$file"
           done
 
   submodule-smoke-test:
