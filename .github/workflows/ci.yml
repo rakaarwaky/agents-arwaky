@@ -62,5 +62,5 @@ jobs:
       - name: Initialize and update vendor submodules
         run: |
           echo "Testing vendor submodules..."
-          git submodule update --init --recursive vendor/
+          git submodule update --init vendor/
           git submodule status vendor/*

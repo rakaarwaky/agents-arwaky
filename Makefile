@@ -8,7 +8,7 @@ help:
 	@echo "agents-arwaky - Developer Commands"
 	@echo ""
 	@echo "Submodules:"
-	@echo "  make submodules        - Initialize and update all submodules"
+	@echo "  make submodules        - Initialize and update submodules"
 	@echo ""
 	@echo "Building Tools:"
 	@echo "  make build-all         - Build all MCP tools"
@@ -26,33 +26,33 @@ help:
 	@echo ""
 
 submodules:
-	git submodule update --init --recursive
+	git submodule update --init
 
 build-all: submodules
 	./tools/build-all.sh
 
 build-context7:
-	git submodule update --init --recursive vendor/context7
+	git submodule update --init vendor/context7
 	./tools/context7/install.sh
 
 build-fetch:
-	git submodule update --init --recursive vendor/fetch-mcp
+	git submodule update --init vendor/fetch-mcp
 	./tools/fetch-mcp/install.sh
 
 build-lean:
-	git submodule update --init --recursive vendor/lean-ctx
+	git submodule update --init vendor/lean-ctx
 	./tools/lean-ctx/install.sh
 
 build-ponytail:
-	git submodule update --init --recursive vendor/ponytail
+	git submodule update --init vendor/ponytail
 	./tools/ponytail/install.sh
 
 build-graphify:
-	git submodule update --init --recursive vendor/graphify
+	git submodule update --init vendor/graphify
 	./tools/graphify/build.sh
 
 build-anytype:
-	git submodule update --init --recursive vendor/anytype-mcp
+	git submodule update --init vendor/anytype-mcp
 	./tools/anytype-mcp/install.sh
 
 config:

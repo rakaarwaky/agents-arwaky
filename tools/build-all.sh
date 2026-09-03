@@ -32,7 +32,7 @@ build_tool() {
 
 # Submodule checkout check
 echo "Ensuring submodules are initialized..."
-git -C "$REPO_ROOT" submodule update --init --recursive vendor/
+git -C "$REPO_ROOT" submodule update --init vendor/
 
 build_tool "context7"    "$SCRIPT_DIR/context7/install.sh"
 build_tool "fetch-mcp"   "$SCRIPT_DIR/fetch-mcp/install.sh"
