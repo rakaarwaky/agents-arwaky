@@ -48,18 +48,19 @@ jobs:
           find tools -name "*.sh" -print0 2>/dev/null | while IFS= read -r -d '' file; do
             echo "Linting: $file"
             shellcheck "$file"
-          done || true
+          done
 
   submodule-smoke-test:
     name: Submodule Smoke Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository with submodules
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: true
           fetch-depth: 1
 
-      - name: Verify submodules status
+      - name: Initialize and update vendor submodules
         run: |
-          git submodule status
+          echo "Testing vendor submodules..."
+          git submodule update --init --recursive vendor/
+          git submodule status vendor/*
