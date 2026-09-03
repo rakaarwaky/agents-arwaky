@@ -8,7 +8,7 @@ A consolidated orchestration repository providing an autonomous multi-agent ecos
 
 The repository is structured into two main components:
 1. **Core Agent Components (`*-arwaky`)**: Standalone capabilities developed for the `arwaky` ecosystem.
-2. **Upstream Vendor Tools (`vendor/` + `tools/`)**: Vetted upstream dependencies maintained as submodules, built into separated Linux XDG directories, and exposed as standalone CLI / MCP tools.
+2. **Upstream Vendor Tools (`vendor/` + `tools/`)**: Vetted upstream dependencies maintained as submodules, built into isolated Linux XDG directories per vendor, and exposed as standalone CLI / MCP tools.
 
 ```
 agents-arwaky/
@@ -40,14 +40,14 @@ agents-arwaky/
 
 ## Linux XDG Base Directory Layout
 
-All tool runtimes, launchers, configurations, and caches strictly follow standard Linux freedesktop.org XDG conventions with **isolated top-level namespaces per vendor tool**:
+All tool runtimes, launchers, configurations, and caches strictly follow standard Linux freedesktop.org XDG conventions with **100% isolated top-level namespaces per vendor tool**:
 
 | Purpose | Standard Path | Usage in `agents-arwaky` |
 |---|---|---|
 | **Executables / Launchers** | `${XDG_BIN_HOME:-~/.local/bin}` | Clean commands on `$PATH` (`context7-mcp`, `fetch-mcp`, `lean-ctx`, `ponytail-mcp`, `codegraph-mcp`, `graphify-mcp`, `anytype-mcp`) |
-| **Tool Runtimes & Data** | `${XDG_DATA_HOME:-~/.local/share}/<tool>/` | Isolated bundles, dependencies, and index stores |
-| **User Configuration** | `${XDG_CONFIG_HOME:-~/.config}/agents-arwaky/` | Generated unified `mcp_servers.json` configuration |
-| **Caches & Temporary Files** | `${XDG_CACHE_HOME:-~/.cache}/<tool>/` | Ephemeral build and index caches |
+| **Tool Runtimes & Data** | `${XDG_DATA_HOME:-~/.local/share}/<vendor>/` | Isolated bundles, dependencies, and index stores |
+| **User Configuration** | `${XDG_CONFIG_HOME:-~/.config}/<vendor>/` | Per-vendor dedicated configuration directories |
+| **Caches & Temporary Files** | `${XDG_CACHE_HOME:-~/.cache}/<vendor>/` | Ephemeral build and index caches |
 
 ---
 
@@ -109,7 +109,7 @@ Generate a clean XDG MCP client configuration:
 ```bash
 make config
 ```
-This writes directly to `${XDG_CONFIG_HOME:-~/.config}/agents-arwaky/mcp_servers.json` (and `mcp_servers.generated.json` in the repo) with executable commands that work directly across Claude Desktop, Antigravity, Gemini CLI, or Qwen Code:
+This distributes configs directly to `${XDG_CONFIG_HOME:-~/.config}/<vendor>/` and generates `mcp_servers.generated.json` in the repo:
 ```json
 {
   "mcpServers": {

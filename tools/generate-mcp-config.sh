@@ -6,11 +6,10 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/xdg.sh"
 
-OUTPUT_FILE="${1:-"$XDG_CONFIG_HOME/agents-arwaky/mcp_servers.json"}"
-mkdir -p "$(dirname "$OUTPUT_FILE")"
+OUTPUT_FILE="${1:-"$REPO_ROOT/mcp_servers.generated.json"}"
 
 echo "Generating unified MCP client configuration..."
-echo "Target XDG Config: $OUTPUT_FILE"
+echo "Target: $OUTPUT_FILE"
 
 cat <<EOF > "$OUTPUT_FILE"
 {
@@ -46,9 +45,11 @@ cat <<EOF > "$OUTPUT_FILE"
 }
 EOF
 
-# Also create local convenience link if in repository
-if [ "$OUTPUT_FILE" != "$REPO_ROOT/mcp_servers.generated.json" ]; then
-  cp "$OUTPUT_FILE" "$REPO_ROOT/mcp_servers.generated.json"
-fi
+echo ">>> Distributing per-vendor client config templates to individual XDG dirs:"
+for vendor in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph graphify; do
+  conf_dir="$(xdg_config_dir "$vendor")"
+  cp "$OUTPUT_FILE" "$conf_dir/mcp_servers.json"
+  echo "  - $conf_dir/mcp_servers.json"
+done
 
-echo "Generated valid JSON configuration at $OUTPUT_FILE (and $REPO_ROOT/mcp_servers.generated.json)"
+echo "Generated valid JSON configuration at $OUTPUT_FILE and distributed to ~/.config/<vendor>/"
