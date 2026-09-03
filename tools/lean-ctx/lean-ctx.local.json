@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "lean-ctx": {
+      "command": "${HOME}/.local/bin/lean-ctx",
+      "args": [
+        "serve"
+      ]
+    }
+  }
+}

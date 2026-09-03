@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "anytype": {
+      "command": "node",
+      "args": [
+        "${AGENTS_ROOT}/tools/anytype-mcp/dist/bin/cli.mjs"
+      ],
+      "env": {
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\":\"Bearer <YOUR_API_KEY>\", \"Anytype-Version\":\"2025-11-08\"}"
+      }
+    }
+  }
+}

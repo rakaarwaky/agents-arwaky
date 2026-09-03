@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "node",
+      "args": [
+        "${AGENTS_ROOT}/tools/context7/dist/index.js"
+      ]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "node",
+      "args": [
+        "${AGENTS_ROOT}/tools/fetch-mcp/dist/index.js"
+      ]
+    }
+  }
+}

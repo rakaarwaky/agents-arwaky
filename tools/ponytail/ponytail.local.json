@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "ponytail": {
+      "command": "node",
+      "args": [
+        "${AGENTS_ROOT}/tools/ponytail/dist/index.js"
+      ]
+    }
+  }
+}

@@ -19,10 +19,22 @@ htmlcov/
 
 # Node.js
 node_modules/
+tools/*/node_modules/
+tools/*/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Generated MCP configurations
+mcp_servers.generated.json
+*.local.generated.json
+
+# Tool build artifacts
+tools/ponytail/hooks/
+tools/ponytail/skills/
+tools/ponytail/package.json
+tools/context7/package.json
 
 # Environment and local configs
 .env
@@ -44,13 +56,9 @@ $RECYCLE.BIN/
 *.gguf
 models/
 
-
-#agents
+# Agents
 .qwen
-fetch-arwaky/fetch-mcp
-
-
-#Ignore vscode AI rules
-.github/instructions/codacy.instructions.md
 .commandcode/
-.qwen/
+
+# Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

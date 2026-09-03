@@ -4,12 +4,6 @@
 [submodule "cloudmail-arwaky"]
 	path = cloudmail-arwaky
 	url = https://github.com/rakaarwaky/cloudmail-arwaky.git
-[submodule "contex7-arwaky"]
-	path = contex7-arwaky
-	url = https://github.com/rakaarwaky/contex7-arwaky.git
-[submodule "fetch-arwaky"]
-	path = fetch-arwaky
-	url = https://github.com/rakaarwaky/fetch-arwaky.git
 [submodule "lint-arwaky"]
 	path = lint-arwaky
 	url = https://github.com/rakaarwaky/lint-arwaky.git
@@ -19,21 +13,27 @@
 [submodule "vision-arwaky"]
 	path = vision-arwaky
 	url = https://github.com/rakaarwaky/vision-arwaky.git
-[submodule "lean-arwaky"]
-	path = lean-arwaky
-	url = https://github.com/rakaarwaky/lean-arwaky.git
-[submodule "ponytail-arwaky"]
-	path = ponytail-arwaky
-	url = https://github.com/rakaarwaky/ponytail-arwaky.git
 [submodule "codegraph-arwaky"]
 	path = codegraph-arwaky
 	url = https://github.com/rakaarwaky/codegraph-arwaky.git
 [submodule "qwen-web-arwaky"]
 	path = qwen-web-arwaky
 	url = https://github.com/rakaarwaky/qwen-web-arwaky.git
-[submodule "graphify-arwaky"]
-	path = graphify-arwaky
-	url = https://github.com/rakaarwaky/graphify-arwaky.git
-[submodule "anytype-arwaky"]
-	path = anytype-arwaky
-	url = https://github.com/rakaarwaky/anytype-arwaky.git
+[submodule "vendor/context7"]
+	path = vendor/context7
+	url = https://github.com/upstash/context7.git
+[submodule "vendor/fetch-mcp"]
+	path = vendor/fetch-mcp
+	url = https://github.com/zcaceres/fetch-mcp.git
+[submodule "vendor/lean-ctx"]
+	path = vendor/lean-ctx
+	url = https://github.com/yvgude/lean-ctx.git
+[submodule "vendor/ponytail"]
+	path = vendor/ponytail
+	url = https://github.com/DietrichGebert/ponytail.git
+[submodule "vendor/graphify"]
+	path = vendor/graphify
+	url = https://github.com/Graphify-Labs/graphify.git
+[submodule "vendor/anytype-mcp"]
+	path = vendor/anytype-mcp
+	url = https://github.com/anyproto/anytype-mcp.git

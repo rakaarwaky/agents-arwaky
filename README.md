@@ -1,213 +1,119 @@
 # Agents Arwaky
 
-Personal collection of tools for AI coding agents — MCP servers, CLIs, skills, and wrappers.
+A curated, hardened collection of tools for AI coding agents — MCP servers, CLIs, skills, and orchestrations.
 
-Each tool lives as a **git submodule** under this repository. Some are original projects (AES-style architecture); others are local forks or wrappers around well-known upstream projects. Most expose an [MCP](https://modelcontextprotocol.io) interface, but the collection is not limited to MCP — anything that makes agents more capable belongs here.
-
-## Tools
-
-| Submodule                            | Purpose                                                       | Stack             |
-| ------------------------------------ | ------------------------------------------------------------- | ----------------- |
-| [blender-arwaky](blender-arwaky/)     | Control Blender 3D (scenes, objects, render, Python)          | Python            |
-| [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email / inbox on Cloudflare Workers                   | TypeScript        |
-| [contex7-arwaky](contex7-arwaky/)     | Up-to-date library docs (Context7)                            | TypeScript        |
-| [fetch-arwaky](fetch-arwaky/)         | Fetch web content (HTML, Markdown, JSON, YouTube transcripts) | TypeScript        |
-| [lean-arwaky](lean-arwaky/)           | LeanCTX — context engineering / token compression for agents  | Rust              |
-| [lint-arwaky](lint-arwaky/)           | Architecture linter (AES rules) for Rust, Python, TypeScript  | Rust              |
-| [testing-arwaky](testing-arwaky/)     | Autonomous test engine with self-healing                      | Python            |
-| [vision-arwaky](vision-arwaky/)       | Computer vision — image, OCR, video, tracking, visual memory  | Python            |
-| [ponytail-arwaky](ponytail-arwaky/)   | Lazy senior dev mode — AI agent wrapper (Ponytail)            | TypeScript / Node |
-| [codegraph-arwaky](codegraph-arwaky/) | Semantic code intelligence — Rust kernel, local index, MCP    | Rust / TypeScript |
-| [qwen-web-arwaky](qwen-web-arwaky/)   | Qwen AI Web Automation CLI & MCP Server                       | Python / Playwright |
-| [caveman-arwaky](caveman-arwaky/)     | Caveman — token compression skill + MCP middleware            | TypeScript        |
-| [graphyarwaky](graphyarwaky/)         | Graphify wrapper — query knowledge graphs via MCP             | TypeScript / Node |
-| [anytype-arwaky](anytype-arwaky/)     | Anytype MCP wrapper — manage objects/lists via AI              | TypeScript / Node |
+The repository is structured into two main components:
+1. **Original Projects**: Bespoke tools authored and maintained under `rakaarwaky/*-arwaky` (AES architecture, Rust/Python).
+2. **Upstream Tools & Wrappers**: Direct 1-level-deep submodules under `vendor/` paired with portable build and configuration scripts in `tools/`.
 
 ---
 
-## What each tool does
+## Tools & Submodules
 
-### blender-arwaky
+### Original Standalone Projects
+| Project | Description | Stack |
+|---|---|---|
+| [blender-arwaky](blender-arwaky/) | Control Blender 3D (scenes, objects, render, Python via MCP) | Python |
+| [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email & inbox management on Cloudflare Workers | TypeScript |
+| [codegraph-arwaky](codegraph-arwaky/) | Semantic code intelligence — Rust kernel, local index, MCP | Rust / TypeScript |
+| [lint-arwaky](lint-arwaky/) | Architecture linter (AES rules) for Rust, Python, TypeScript | Rust |
+| [qwen-web-arwaky](qwen-web-arwaky/) | Qwen AI Web Automation CLI & 1:1 MCP Server | Python / Playwright |
+| [testing-arwaky](testing-arwaky/) | Autonomous test engine with self-healing and pytest workflows | Python |
+| [vision-arwaky](vision-arwaky/) | Unified computer vision MCP — VLM, OCR, tracking, visual memory | Python |
 
-Bridges Blender 3D to MCP clients. Control scenes, import assets, render, and run Blender Python through a small set of universal tools. Requires Blender 3.0+ and a Blender addon.
-
-### cloudmail-arwaky
-
-Email management on Cloudflare Workers: virtual users, inbox, settings, API keys. Surfaces: HTTP API, CLI, MCP (Hydra meta-tools), and Web UI.
-
-### contex7-arwaky
-
-Local wrapper around [Context7](https://github.com/upstash/context7). Resolves library IDs and pulls version-specific documentation and code examples into the agent context (avoids hallucinated APIs).
-
-### fetch-arwaky
-
-Local wrapper around [mcp-fetch-server](https://www.npmjs.com/package/mcp-fetch-server). Fetch URLs as HTML, Markdown, plain text, JSON, readable article content, or YouTube transcripts. Includes SSRF protection and response size limits.
-
-### lean-arwaky
-
-LeanCTX — context engineering layer for coding agents. Decides what agents read, compresses prompts (often 60–90% fewer tokens), remembers session knowledge, and guards filesystem access. Local-first Rust binary.
-
-### lint-arwaky
-
-Architecture linter for Rust, Python, and TypeScript. Enforces 24 AES rules (naming, imports, quality, layer roles, orphans), bridges external linters (Clippy, Ruff, ESLint, …), and exposes a 5-tool MCP server with full CLI parity.
-
-### testing-arwaky
-
-Autonomous test engine for AI agents: run tests with self-healing, AST analysis, coverage audit, synthetic data generation, and pytest workflows.
-
-### vision-arwaky
-
-Unified computer-vision MCP: image analysis (VLM), OCR (Tesseract), video (ffmpeg/OpenCV), object tracking, and perceptual-hash visual memory.
-
-### ponytail-arwaky
-
-Wrapper repository that integrates the [Ponytail](https://github.com/DietrichGebert/ponytail) project — "lazy senior dev" AI agent plugin. Provides MCP server built with CLI scripts and optional ready-made MCP configs (`ponytail_arwaky_local.json`, `ponytail_arwaky_remote.json`).
-
-### qwen-web-arwaky
-
-Qwen AI Web Automation CLI & MCP Server. Automates browser interactions with `chat.qwen.ai` using Playwright, supporting batch prompt processing, real-time file watching, persistent session management, and 1:1 MCP Server tool integration for local AI agents.
-
-### caveman-arwaky
-
-Caveman — token compression skill for AI coding agents. Makes agents talk like caveman: 65% fewer output tokens, full technical accuracy. Includes `caveman-shrink` MCP middleware that wraps any MCP server and compresses its tool descriptions. Supports Claude Code, Codex, Gemini, Cursor, Windsurf, Cline, Copilot, 40+ agents.
-
-### graphyarwaky
-
-Wrapper around [Graphify](https://github.com/Graphify-Labs/graphify). Turns codebases and docs into queryable knowledge graphs and exposes `query`, `path`, and `explain` through MCP.
+### Upstream Vendor Tools & Orchestrations
+| Tool | Purpose | Upstream | Orchestration |
+|---|---|---|---|
+| **Context7** | Up-to-date documentation & code examples for LLMs | [upstash/context7](https://github.com/upstash/context7) | `tools/context7/` |
+| **Fetch-MCP** | Fetch web pages (HTML, Markdown, JSON, YouTube transcripts) | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp) | `tools/fetch-mcp/` |
+| **Lean-Ctx** | Token compression and context engineering engine | [yvgude/lean-ctx](https://github.com/yvgude/lean-ctx) | `tools/lean-ctx/` |
+| **Ponytail** | AI agent instruction & skill middleware | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | `tools/ponytail/` |
+| **Graphify** | Codebase and document knowledge graph generator | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) | `tools/graphify/` |
+| **Anytype-MCP** | Manage Anytype personal knowledge graph via MCP | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `tools/anytype-mcp/` |
 
 ---
 
-## Repository layout
+## Repository Layout
 
 ```
 agents-arwaky/
-├── blender-arwaky/      # original
-├── cloudmail-arwaky/    # original
-├── contex7-arwaky/      # Context7 wrapper
-│   └── context7/
-├── fetch-arwaky/        # fetch-mcp wrapper
-│   └── fetch-mcp/
-├── lean-arwaky/         # LeanCTX wrapper
-│   └── lean-ctx/
-├── lint-arwaky/         # original
-├── testing-arwaky/      # original
-├── vision-arwaky/       # original
-├── ponytail-arwaky/     # Ponytail wrapper
-│   └── ponytail/
-├── qwen-web-arwaky/     # original
-├── caveman-arwaky/      # Caveman wrapper (token compression)
-│   └── caveman/         # upstream (JuliusBrussee/caveman)
-├── graphyarwaky/        # Graphify wrapper
-│   └── graphify/        # upstream Graphify tooling
-├── .gitmodules
-└── README.md            # this file
+├── .github/
+│   └── workflows/ci.yml         # Secret scan, shellcheck, JSON validation, smoke tests
+├── vendor/                      # Direct submodules to upstream repos
+│   ├── context7/
+│   ├── fetch-mcp/
+│   ├── lean-ctx/
+│   ├── ponytail/
+│   ├── graphify/
+│   └── anytype-mcp/
+├── tools/                       # Portable build scripts and configuration templates
+│   ├── build-all.sh             # Master build runner
+│   ├── generate-mcp-config.sh   # Dynamic client configuration generator
+│   ├── verify.sh                # Local QA & verification suite
+│   ├── context7/
+│   ├── fetch-mcp/
+│   ├── lean-ctx/
+│   ├── ponytail/
+│   ├── graphify/
+│   └── anytype-mcp/
+├── blender-arwaky/              # Original submodules
+├── cloudmail-arwaky/
+├── codegraph-arwaky/
+├── lint-arwaky/
+├── qwen-web-arwaky/
+├── testing-arwaky/
+├── vision-arwaky/
+├── Makefile                     # Ergonomic build & check entrypoints
+├── THIRD_PARTY_LICENSES.md      # Upstream licensing and attribution records
+├── LICENSE                      # MIT License
+└── README.md
 ```
-
-Wrapper submodules typically contain:
-
-- Upstream (or vendored) source under a nested directory
-- `script/install.sh` — local build into `dist/`
-- Optional `*_local.json` / `*_remote.json` — MCP client config snippets
 
 ---
 
-## Clone and init
+## Quickstart
 
+### 1. Clone with Submodules
 ```bash
 git clone --recurse-submodules https://github.com/rakaarwaky/agents-arwaky.git
 cd agents-arwaky
 ```
 
-If you already cloned without submodules:
-
+If already cloned without submodules:
 ```bash
-git submodule update --init --recursive
+make submodules
 ```
 
-Update all submodules to their tracked commits:
-
+### 2. Build Tools
+Build all vendor tools in one command:
 ```bash
-git submodule update --remote --merge
+make build-all
+```
+Or build specific tools individually:
+```bash
+make build-context7
+make build-fetch
+make build-lean
+make build-ponytail
+make build-graphify
+make build-anytype
+```
+
+### 3. Generate MCP Client Configuration
+Generate a consolidated MCP server configuration block tailored with your machine's absolute paths:
+```bash
+make config
+```
+This generates `mcp_servers.generated.json` ready to paste into Claude Desktop, Antigravity, Gemini CLI, or Qwen Code.
+
+### 4. Run Quality Checks
+```bash
+make check
 ```
 
 ---
 
-## Agent / MCP client configuration
+## License & Attribution
 
-Point your agent host or MCP client (Qwen Code, Claude Desktop, Claude Code, Cursor, etc.) at each tool. Patterns differ by stack:
-
-**Python (uv)**
-
-```json
-{
-  "mcpServers": {
-    "blender-arwaky": {
-      "command": "uv",
-      "args": ["--directory", "/path/to/agents-arwaky/blender-arwaky", "run", "blender-mcp"]
-    }
-  }
-}
-```
-
-**Rust binary**
-
-```json
-{
-  "mcpServers": {
-    "lint-arwaky": {
-      "command": "lint-arwaky-mcp"
-    }
-  }
-}
-```
-
-**Go binary (local build)**
-
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "/path/to/agents-arwaky/github-arwaky/dist/github-mcp-server",
-      "args": ["stdio"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "<token>"
-      }
-    }
-  }
-}
-```
-
-**Node / npx (wrappers)**
-
-```json
-{
-  "mcpServers": {
-    "fetch": {
-      "command": "node",
-      "args": ["/path/to/agents-arwaky/fetch-arwaky/fetch-mcp/dist/index.js"]
-    }
-  }
-}
-```
-
-**Caveman-shrink MCP middleware**
-
-```json
-{
-  "mcpServers": {
-    "caveman-shrink": {
-      "command": "node",
-      "args": ["/path/to/agents-arwaky/caveman-arwaky/dist/caveman-shrink/index.js"]
-    }
-  }
-}
-```
-
-Several wrappers ship ready-made snippets (`*_local.json`, `*_remote.json`) — prefer those when present.
-
-
----
-
-## License
-
-Each submodule has its own license (typically MIT or Apache-2.0). See the `LICENSE` file inside each project.
+- Root repository and glue tools are licensed under the **[MIT License](LICENSE)**.
+- Upstream submodules are licensed by their respective authors under permissive open-source licenses. Full attribution and license details are documented in **[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)**.
