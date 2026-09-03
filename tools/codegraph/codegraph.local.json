@@ -1,7 +1,0 @@
-{
-  "mcpServers": {
-    "codegraph": {
-      "command": "codegraph-mcp"
-    }
-  }
-}

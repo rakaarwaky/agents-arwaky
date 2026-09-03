@@ -2,9 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$SCRIPT_DIR/xdg.sh"
+source "$REPO_ROOT/tools/lib/xdg.sh"
 
 OUTPUT_FILE="${1:-"$REPO_ROOT/mcp_servers.generated.json"}"
 
@@ -37,16 +37,13 @@ cat <<EOF > "$OUTPUT_FILE"
     },
     "codegraph": {
       "command": "codegraph-mcp"
-    },
-    "graphify": {
-      "command": "graphify-mcp"
     }
   }
 }
 EOF
 
 echo ">>> Distributing per-vendor client config templates to individual XDG dirs:"
-for vendor in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph graphify; do
+for vendor in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph; do
   conf_dir="$(xdg_config_dir "$vendor")"
   cp "$OUTPUT_FILE" "$conf_dir/mcp_servers.json"
   echo "  - $conf_dir/mcp_servers.json"

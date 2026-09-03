@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$REPO_ROOT/tools/xdg.sh"
+source "$REPO_ROOT/tools/lib/xdg.sh"
 
 VENDOR_DIR="$REPO_ROOT/vendor/anytype-mcp"
 TARGET_DIR="$XDG_DATA_HOME/anytype-mcp"

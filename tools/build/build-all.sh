@@ -2,7 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+TOOLS_DIR="$REPO_ROOT/tools"
 
 echo "=========================================="
 echo " Building agents-arwaky tools"
@@ -34,13 +35,13 @@ build_tool() {
 echo "Ensuring submodules are initialized..."
 git -C "$REPO_ROOT" submodule update --init vendor/
 
-build_tool "context7"    "$SCRIPT_DIR/context7/install.sh"
-build_tool "fetch-mcp"   "$SCRIPT_DIR/fetch-mcp/install.sh"
-build_tool "lean-ctx"    "$SCRIPT_DIR/lean-ctx/install.sh"
-build_tool "ponytail"    "$SCRIPT_DIR/ponytail/install.sh"
-build_tool "graphify"    "$SCRIPT_DIR/graphify/build.sh"
-build_tool "anytype-mcp" "$SCRIPT_DIR/anytype-mcp/install.sh"
-build_tool "codegraph"   "$SCRIPT_DIR/codegraph/install.sh"
+build_tool "context7"    "$TOOLS_DIR/context7/install.sh"
+build_tool "fetch-mcp"   "$TOOLS_DIR/fetch-mcp/install.sh"
+build_tool "lean-ctx"    "$TOOLS_DIR/lean-ctx/install.sh"
+build_tool "ponytail"    "$TOOLS_DIR/ponytail/install.sh"
+build_tool "graphify"    "$TOOLS_DIR/graphify/install.sh"
+build_tool "anytype-mcp" "$TOOLS_DIR/anytype-mcp/install.sh"
+build_tool "codegraph"   "$TOOLS_DIR/codegraph/install.sh"
 
 echo "=========================================="
 echo " Build Summary"
