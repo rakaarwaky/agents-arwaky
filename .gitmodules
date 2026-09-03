@@ -13,9 +13,6 @@
 [submodule "vision-arwaky"]
 	path = vision-arwaky
 	url = https://github.com/rakaarwaky/vision-arwaky.git
-[submodule "codegraph-arwaky"]
-	path = codegraph-arwaky
-	url = https://github.com/rakaarwaky/codegraph-arwaky.git
 [submodule "qwen-web-arwaky"]
 	path = qwen-web-arwaky
 	url = https://github.com/rakaarwaky/qwen-web-arwaky.git
@@ -37,3 +34,6 @@
 [submodule "vendor/anytype-mcp"]
 	path = vendor/anytype-mcp
 	url = https://github.com/anyproto/anytype-mcp.git
+[submodule "vendor/codegraph"]
+	path = vendor/codegraph
+	url = https://github.com/colbymchenry/codegraph.git

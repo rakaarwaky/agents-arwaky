@@ -15,7 +15,6 @@ The repository is structured into two main components:
 |---|---|---|
 | [blender-arwaky](blender-arwaky/) | Control Blender 3D (scenes, objects, render, Python via MCP) | Python |
 | [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email & inbox management on Cloudflare Workers | TypeScript |
-| [codegraph-arwaky](codegraph-arwaky/) | Semantic code intelligence — Rust kernel, local index, MCP | Rust / TypeScript |
 | [lint-arwaky](lint-arwaky/) | Architecture linter (AES rules) for Rust, Python, TypeScript | Rust |
 | [qwen-web-arwaky](qwen-web-arwaky/) | Qwen AI Web Automation CLI & 1:1 MCP Server | Python / Playwright |
 | [testing-arwaky](testing-arwaky/) | Autonomous test engine with self-healing and pytest workflows | Python |
@@ -30,6 +29,7 @@ The repository is structured into two main components:
 | **Ponytail** | AI agent instruction & skill middleware | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | `tools/ponytail/` |
 | **Graphify** | Codebase and document knowledge graph generator | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) | `tools/graphify/` |
 | **Anytype-MCP** | Manage Anytype personal knowledge graph via MCP | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `tools/anytype-mcp/` |
+| **CodeGraph** | Semantic code intelligence — AST parsing, indexer, and MCP | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | `tools/codegraph/` |
 
 ---
 
@@ -45,7 +45,8 @@ agents-arwaky/
 │   ├── lean-ctx/
 │   ├── ponytail/
 │   ├── graphify/
-│   └── anytype-mcp/
+│   ├── anytype-mcp/
+│   └── codegraph/
 ├── tools/                       # Portable build scripts and configuration templates
 │   ├── build-all.sh             # Master build runner
 │   ├── generate-mcp-config.sh   # Dynamic client configuration generator
@@ -55,10 +56,10 @@ agents-arwaky/
 │   ├── lean-ctx/
 │   ├── ponytail/
 │   ├── graphify/
-│   └── anytype-mcp/
+│   ├── anytype-mcp/
+│   └── codegraph/
 ├── blender-arwaky/              # Original submodules
 ├── cloudmail-arwaky/
-├── codegraph-arwaky/
 ├── lint-arwaky/
 ├── qwen-web-arwaky/
 ├── testing-arwaky/
@@ -97,6 +98,7 @@ make build-lean
 make build-ponytail
 make build-graphify
 make build-anytype
+make build-codegraph
 ```
 
 ### 3. Generate MCP Client Configuration

@@ -40,6 +40,7 @@ build_tool "lean-ctx"    "$SCRIPT_DIR/lean-ctx/install.sh"
 build_tool "ponytail"    "$SCRIPT_DIR/ponytail/install.sh"
 build_tool "graphify"    "$SCRIPT_DIR/graphify/build.sh"
 build_tool "anytype-mcp" "$SCRIPT_DIR/anytype-mcp/install.sh"
+build_tool "codegraph"   "$SCRIPT_DIR/codegraph/install.sh"
 
 echo "=========================================="
 echo " Build Summary"

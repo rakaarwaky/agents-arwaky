@@ -14,6 +14,7 @@ This repository incorporates upstream open-source software as git submodules und
 | `vendor/ponytail` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | `2ed6c52c` | MIT License |
 | `vendor/graphify` | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) | `b14b52e9` | MIT License |
 | `vendor/anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `4ba725d9` (`v1.2.10`) | MIT License |
+| `vendor/codegraph` | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | `c6aaa203` | MIT License |
 
 ---
 
@@ -54,3 +55,9 @@ This repository incorporates upstream open-source software as git submodules und
 - **Author:** Any Association
 - **URL:** https://github.com/anyproto/anytype-mcp
 - **License:** MIT License (reproduced in [tools/anytype-mcp/NOTICE](tools/anytype-mcp/NOTICE))
+
+### 7. CodeGraph
+- **Project:** CodeGraph
+- **Author:** Colby McHenry
+- **URL:** https://github.com/colbymchenry/codegraph
+- **License:** MIT License

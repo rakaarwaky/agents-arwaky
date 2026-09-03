@@ -1,4 +1,4 @@
-.PHONY: all help submodules build build-all build-context7 build-fetch build-lean build-ponytail build-graphify build-anytype config check clean
+.PHONY: all help submodules build build-all build-context7 build-fetch build-lean build-ponytail build-graphify build-anytype build-codegraph config check clean
 
 SHELL := /usr/bin/env bash
 
@@ -18,6 +18,7 @@ help:
 	@echo "  make build-ponytail    - Build Ponytail MCP"
 	@echo "  make build-graphify    - Build/verify Graphify"
 	@echo "  make build-anytype     - Build Anytype-MCP"
+	@echo "  make build-codegraph   - Build CodeGraph MCP"
 	@echo ""
 	@echo "Configuration & Quality:"
 	@echo "  make config            - Generate unified mcp_servers.generated.json"
@@ -54,6 +55,10 @@ build-graphify:
 build-anytype:
 	git submodule update --init vendor/anytype-mcp
 	./tools/anytype-mcp/install.sh
+
+build-codegraph:
+	git submodule update --init vendor/codegraph
+	./tools/codegraph/install.sh
 
 config:
 	./tools/generate-mcp-config.sh

@@ -44,6 +44,12 @@ cat <<EOF > "$OUTPUT_FILE"
       "env": {
         "OPENAPI_MCP_HEADERS": "{\"Authorization\":\"Bearer <YOUR_API_KEY>\", \"Anytype-Version\":\"2025-11-08\"}"
       }
+    },
+    "codegraph": {
+      "command": "node",
+      "args": [
+        "$REPO_ROOT/tools/codegraph/dist/bin/codegraph.js"
+      ]
     }
   }
 }
