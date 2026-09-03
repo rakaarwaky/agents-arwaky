@@ -1,74 +1,77 @@
-# Agents Arwaky
+# agents-arwaky
 
-A curated, hardened collection of tools for AI coding agents — MCP servers, CLIs, skills, and orchestrations.
+A consolidated orchestration repository providing an autonomous multi-agent ecosystem. It combines internal core components alongside vetted, high-value upstream tools and MCP servers under an ergonomic monorepo structure following the **Linux XDG Base Directory Specification**.
+
+---
+
+## Architecture Overview
 
 The repository is structured into two main components:
-1. **Original Projects**: Bespoke tools authored and maintained under `rakaarwaky/*-arwaky` (AES architecture, Rust/Python).
-2. **Upstream Tools & Wrappers**: Direct 1-level-deep submodules under `vendor/` paired with portable build and configuration scripts in `tools/`.
-
----
-
-## Tools & Submodules
-
-### Original Standalone Projects
-| Project | Description | Stack |
-|---|---|---|
-| [blender-arwaky](blender-arwaky/) | Control Blender 3D (scenes, objects, render, Python via MCP) | Python |
-| [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email & inbox management on Cloudflare Workers | TypeScript |
-| [lint-arwaky](lint-arwaky/) | Architecture linter (AES rules) for Rust, Python, TypeScript | Rust |
-| [qwen-web-arwaky](qwen-web-arwaky/) | Qwen AI Web Automation CLI & 1:1 MCP Server | Python / Playwright |
-| [testing-arwaky](testing-arwaky/) | Autonomous test engine with self-healing and pytest workflows | Python |
-| [vision-arwaky](vision-arwaky/) | Unified computer vision MCP — VLM, OCR, tracking, visual memory | Python |
-
-### Upstream Vendor Tools & Orchestrations
-| Tool | Purpose | Upstream | Orchestration |
-|---|---|---|---|
-| **Context7** | Up-to-date documentation & code examples for LLMs | [upstash/context7](https://github.com/upstash/context7) | `tools/context7/` |
-| **Fetch-MCP** | Fetch web pages (HTML, Markdown, JSON, YouTube transcripts) | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp) | `tools/fetch-mcp/` |
-| **Lean-Ctx** | Token compression and context engineering engine | [yvgude/lean-ctx](https://github.com/yvgude/lean-ctx) | `tools/lean-ctx/` |
-| **Ponytail** | AI agent instruction & skill middleware | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | `tools/ponytail/` |
-| **Graphify** | Codebase and document knowledge graph generator | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) | `tools/graphify/` |
-| **Anytype-MCP** | Manage Anytype personal knowledge graph via MCP | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `tools/anytype-mcp/` |
-| **CodeGraph** | Semantic code intelligence — AST parsing, indexer, and MCP | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | `tools/codegraph/` |
-
----
-
-## Repository Layout
+1. **Core Agent Components (`*-arwaky`)**: Standalone capabilities developed for the `arwaky` ecosystem.
+2. **Upstream Vendor Tools (`vendor/` + `tools/`)**: Vetted upstream dependencies maintained as submodules, built into separated Linux XDG directories, and exposed as standalone CLI / MCP tools.
 
 ```
 agents-arwaky/
-├── .github/
-│   └── workflows/ci.yml         # Secret scan, shellcheck, JSON validation, smoke tests
-├── vendor/                      # Direct submodules to upstream repos
-│   ├── context7/
-│   ├── fetch-mcp/
-│   ├── lean-ctx/
-│   ├── ponytail/
-│   ├── graphify/
-│   ├── anytype-mcp/
-│   └── codegraph/
-├── tools/                       # Portable build scripts and configuration templates
-│   ├── build-all.sh             # Master build runner
-│   ├── generate-mcp-config.sh   # Dynamic client configuration generator
-│   ├── verify.sh                # Local QA & verification suite
-│   ├── context7/
-│   ├── fetch-mcp/
-│   ├── lean-ctx/
-│   ├── ponytail/
-│   ├── graphify/
-│   ├── anytype-mcp/
-│   └── codegraph/
+├── vendor/                      # Pinned upstream repositories (submodules)
+│   ├── context7/                # Upstash documentation & context MCP
+│   ├── fetch-mcp/               # Fast web scraping & extraction MCP
+│   ├── lean-ctx/                # Rust-based code & context indexer
+│   ├── ponytail/                # Agent instruction & pattern system
+│   ├── graphify/                # Knowledge graph generation & analysis
+│   ├── anytype-mcp/             # Anytype desktop & sync MCP server
+│   └── codegraph/               # High-performance codebase intelligence & graph engine
+├── tools/                       # Build scripts, XDG glue & MCP configs
+│   ├── xdg.sh                   # Linux XDG Base Directory helper
+│   ├── <tool>/install.sh        # Installs tool to ~/.local/share/<tool> & ~/.local/bin/
+│   ├── <tool>/<tool>.local.json # MCP config snippet
+│   └── generate-mcp-config.sh   # Generates unified XDG MCP client configuration
 ├── blender-arwaky/              # Original submodules
 ├── cloudmail-arwaky/
 ├── lint-arwaky/
 ├── qwen-web-arwaky/
-├── testing-arwaky/
 ├── vision-arwaky/
 ├── Makefile                     # Ergonomic build & check entrypoints
 ├── THIRD_PARTY_LICENSES.md      # Upstream licensing and attribution records
 ├── LICENSE                      # MIT License
 └── README.md
 ```
+
+---
+
+## Linux XDG Base Directory Layout
+
+All tool runtimes, launchers, configurations, and caches strictly follow standard Linux freedesktop.org XDG conventions with **isolated top-level namespaces per vendor tool**:
+
+| Purpose | Standard Path | Usage in `agents-arwaky` |
+|---|---|---|
+| **Executables / Launchers** | `${XDG_BIN_HOME:-~/.local/bin}` | Clean commands on `$PATH` (`context7-mcp`, `fetch-mcp`, `lean-ctx`, `ponytail-mcp`, `codegraph-mcp`, `graphify-mcp`, `anytype-mcp`) |
+| **Tool Runtimes & Data** | `${XDG_DATA_HOME:-~/.local/share}/<tool>/` | Isolated bundles, dependencies, and index stores |
+| **User Configuration** | `${XDG_CONFIG_HOME:-~/.config}/agents-arwaky/` | Generated unified `mcp_servers.json` configuration |
+| **Caches & Temporary Files** | `${XDG_CACHE_HOME:-~/.cache}/<tool>/` | Ephemeral build and index caches |
+
+---
+
+## Components
+
+### Core Agent Modules
+| Module | Description | Primary Language |
+|---|---|---|
+| [blender-arwaky](blender-arwaky/) | Headless 3D execution engine with automated test suites | Python / Blender |
+| [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email & inbox management on Cloudflare Workers | TypeScript |
+| [lint-arwaky](lint-arwaky/) | Architecture linter (AES rules) for Rust, Python, TypeScript | Rust |
+| [qwen-web-arwaky](qwen-web-arwaky/) | Qwen AI Web Automation CLI & 1:1 MCP Server | Python / Playwright |
+| [vision-arwaky](vision-arwaky/) | Unified computer vision MCP — VLM, OCR, tracking, visual memory | Python |
+
+### Upstream Vendor Tools & Orchestrations
+| Upstream Submodule | Orchestration (`tools/`) | Description | Type |
+|---|---|---|---|
+| [`vendor/context7`](https://github.com/upstash/context7) | `tools/context7/` | Fast Upstash documentation & context retrieval | MCP Server (`context7-mcp`) |
+| [`vendor/fetch-mcp`](https://github.com/zcaceres/fetch-mcp) | `tools/fetch-mcp/` | Clean web scraping & extraction engine | MCP Server (`fetch-mcp`) |
+| [`vendor/lean-ctx`](https://github.com/yvgude/lean-ctx) | `tools/lean-ctx/` | Token-lean rust repository indexing | CLI / MCP Server (`lean-ctx`) |
+| [`vendor/ponytail`](https://github.com/DietrichGebert/ponytail) | `tools/ponytail/` | Senior-dev instructions & agent patterns | MCP Server (`ponytail-mcp`) |
+| [`vendor/graphify`](https://github.com/Graphify-Labs/graphify) | `tools/graphify/` | Knowledge graph generation & analysis | CLI / MCP Server (`graphify-mcp`) |
+| [`vendor/anytype-mcp`](https://github.com/anyproto/anytype-mcp) | `tools/anytype-mcp/` | Anytype local workspace integration | MCP Server (`anytype-mcp`) |
+| [`vendor/codegraph`](https://github.com/colbymchenry/codegraph) | `tools/codegraph/` | High-performance codebase intelligence & graph engine | CLI / MCP Server (`codegraph-mcp`) |
 
 ---
 
@@ -85,28 +88,41 @@ If already cloned without submodules:
 make submodules
 ```
 
-### 2. Build Tools
-Build all vendor tools in one command:
+### 2. Build & Install Tools to Linux XDG
+Install all vendor tools into your local Linux user environment:
 ```bash
 make build-all
 ```
 Or build specific tools individually:
 ```bash
-make build-context7
-make build-fetch
-make build-lean
-make build-ponytail
-make build-graphify
-make build-anytype
-make build-codegraph
+make build-context7    # Installs ~/.local/bin/context7-mcp
+make build-fetch       # Installs ~/.local/bin/fetch-mcp
+make build-lean        # Installs ~/.local/bin/lean-ctx
+make build-ponytail    # Installs ~/.local/bin/ponytail-mcp
+make build-graphify    # Installs ~/.local/bin/graphify-mcp
+make build-anytype     # Installs ~/.local/bin/anytype-mcp
+make build-codegraph   # Installs ~/.local/bin/codegraph-mcp
 ```
 
 ### 3. Generate MCP Client Configuration
-Generate a consolidated MCP server configuration block tailored with your machine's absolute paths:
+Generate a clean XDG MCP client configuration:
 ```bash
 make config
 ```
-This generates `mcp_servers.generated.json` ready to paste into Claude Desktop, Antigravity, Gemini CLI, or Qwen Code.
+This writes directly to `${XDG_CONFIG_HOME:-~/.config}/agents-arwaky/mcp_servers.json` (and `mcp_servers.generated.json` in the repo) with executable commands that work directly across Claude Desktop, Antigravity, Gemini CLI, or Qwen Code:
+```json
+{
+  "mcpServers": {
+    "context7": { "command": "context7-mcp" },
+    "fetch": { "command": "fetch-mcp" },
+    "lean-ctx": { "command": "lean-ctx", "args": ["serve"] },
+    "ponytail": { "command": "ponytail-mcp" },
+    "anytype": { "command": "anytype-mcp" },
+    "codegraph": { "command": "codegraph-mcp" },
+    "graphify": { "command": "graphify-mcp" }
+  }
+}
+```
 
 ### 4. Run Quality Checks
 ```bash

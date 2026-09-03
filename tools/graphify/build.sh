@@ -3,21 +3,43 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-VENDOR_DIR="$REPO_ROOT/vendor/graphify"
+# shellcheck source=../xdg.sh
+source "$REPO_ROOT/tools/xdg.sh"
 
-if [ ! -d "$VENDOR_DIR" ]; then
+VENDOR_DIR="$REPO_ROOT/vendor/graphify"
+TARGET_DIR="$XDG_DATA_HOME/graphify"
+LAUNCHER="$XDG_BIN_HOME/graphify"
+LAUNCHER_MCP="$XDG_BIN_HOME/graphify-mcp"
+
+if [ ! -d "$VENDOR_DIR" ] || [ ! -f "$VENDOR_DIR/pyproject.toml" ]; then
   echo "Error: Upstream source not found at $VENDOR_DIR."
-  echo "Run 'git submodule update --init --recursive vendor/graphify' first."
+  echo "Run 'git submodule update --init vendor/graphify' first."
   exit 1
 fi
 
-echo ">>> Graphify source ready at $VENDOR_DIR"
-if [ -f "$VENDOR_DIR/package.json" ]; then
-  echo ">>> Installing npm dependencies in vendor/graphify..."
-  cd "$VENDOR_DIR"
-  npm install
-elif [ -f "$VENDOR_DIR/pyproject.toml" ] || [ -f "$VENDOR_DIR/setup.py" ]; then
-  echo ">>> Python project detected at $VENDOR_DIR"
+echo ">>> Setting up Graphify in XDG Data Directory ($TARGET_DIR)..."
+mkdir -p "$TARGET_DIR"
+
+if command -v uv >/dev/null 2>&1; then
+  if [ ! -d "$TARGET_DIR/venv" ]; then
+    uv venv "$TARGET_DIR/venv"
+  fi
+  echo ">>> Installing Graphify into virtual environment via uv..."
+  uv pip install --quiet -e "$VENDOR_DIR" --python "$TARGET_DIR/venv"
+else
+  echo "Error: uv is not installed. Please install uv or run 'curl -LsSf https://astral.sh/uv/install.sh | sh'."
+  exit 1
 fi
 
-echo ">>> Graphify build check complete."
+echo ">>> Installing launchers..."
+cat <<'EOF' > "$LAUNCHER"
+#!/usr/bin/env bash
+set -euo pipefail
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/graphify"
+exec "$DATA_DIR/venv/bin/graphify" "$@"
+EOF
+chmod +x "$LAUNCHER"
+
+cp "$LAUNCHER" "$LAUNCHER_MCP"
+
+echo ">>> Successfully installed graphify -> $LAUNCHER and $LAUNCHER_MCP"

@@ -3,29 +3,41 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-VENDOR_DIR="$REPO_ROOT/vendor/ponytail"
-MCP_DIR="$VENDOR_DIR/ponytail-mcp"
-DIST_DIR="$SCRIPT_DIR/dist"
+# shellcheck source=../xdg.sh
+source "$REPO_ROOT/tools/xdg.sh"
 
-if [ ! -d "$MCP_DIR" ]; then
-  echo "Error: Upstream source not found at $MCP_DIR."
-  echo "Run 'git submodule update --init --recursive vendor/ponytail' first."
+VENDOR_DIR="$REPO_ROOT/vendor/ponytail"
+TARGET_DIR="$XDG_DATA_HOME/ponytail"
+LAUNCHER="$XDG_BIN_HOME/ponytail-mcp"
+
+if [ ! -d "$VENDOR_DIR" ] || [ ! -f "$VENDOR_DIR/ponytail-mcp/package.json" ]; then
+  echo "Error: Upstream source not found at $VENDOR_DIR."
+  echo "Run 'git submodule update --init vendor/ponytail' first."
   exit 1
 fi
 
-echo ">>> Building Ponytail MCP..."
-mkdir -p "$DIST_DIR"
+echo ">>> Building Ponytail into XDG Data Directory ($TARGET_DIR)..."
+mkdir -p "$TARGET_DIR"
 
-cp "$MCP_DIR/package.json" "$DIST_DIR/"
-npm install --prefix "$DIST_DIR"
+cd "$VENDOR_DIR/ponytail-mcp"
+npm install --no-audit --no-fund
 
-cp "$MCP_DIR/index.js" "$DIST_DIR/"
-cp "$MCP_DIR/instructions.js" "$DIST_DIR/"
+echo ">>> Installing runtime to $TARGET_DIR..."
+rm -rf "${TARGET_DIR:?}"/*
+cp -r index.js instructions.js package.json "$TARGET_DIR/"
+if [ -d "node_modules" ]; then
+  cp -r node_modules "$TARGET_DIR/"
+fi
+if [ -d "$VENDOR_DIR/hooks" ]; then cp -r "$VENDOR_DIR/hooks" "$TARGET_DIR/"; fi
+if [ -d "$VENDOR_DIR/skills" ]; then cp -r "$VENDOR_DIR/skills" "$TARGET_DIR/"; fi
 
-rm -rf "$SCRIPT_DIR/hooks" "$SCRIPT_DIR/skills"
-cp -r "$VENDOR_DIR/hooks" "$SCRIPT_DIR/hooks"
-cp -r "$VENDOR_DIR/skills" "$SCRIPT_DIR/skills"
-cp "$VENDOR_DIR/package.json" "$SCRIPT_DIR/package.json"
+echo ">>> Installing launcher to $LAUNCHER..."
+cat <<'EOF' > "$LAUNCHER"
+#!/usr/bin/env bash
+set -euo pipefail
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/ponytail"
+exec node "$DATA_DIR/index.js" "$@"
+EOF
+chmod +x "$LAUNCHER"
 
-chmod 755 "$DIST_DIR/index.js"
-echo ">>> Ponytail MCP built successfully in $DIST_DIR/index.js"
+echo ">>> Successfully installed ponytail-mcp -> $LAUNCHER"

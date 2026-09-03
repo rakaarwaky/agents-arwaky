@@ -7,9 +7,6 @@
 [submodule "lint-arwaky"]
 	path = lint-arwaky
 	url = https://github.com/rakaarwaky/lint-arwaky.git
-[submodule "testing-arwaky"]
-	path = testing-arwaky
-	url = https://github.com/rakaarwaky/testing-arwaky.git
 [submodule "vision-arwaky"]
 	path = vision-arwaky
 	url = https://github.com/rakaarwaky/vision-arwaky.git
@@ -19,21 +16,28 @@
 [submodule "vendor/context7"]
 	path = vendor/context7
 	url = https://github.com/upstash/context7.git
+	ignore = dirty
 [submodule "vendor/fetch-mcp"]
 	path = vendor/fetch-mcp
 	url = https://github.com/zcaceres/fetch-mcp.git
+	ignore = dirty
 [submodule "vendor/lean-ctx"]
 	path = vendor/lean-ctx
 	url = https://github.com/yvgude/lean-ctx.git
+	ignore = dirty
 [submodule "vendor/ponytail"]
 	path = vendor/ponytail
 	url = https://github.com/DietrichGebert/ponytail.git
+	ignore = dirty
 [submodule "vendor/graphify"]
 	path = vendor/graphify
 	url = https://github.com/Graphify-Labs/graphify.git
+	ignore = dirty
 [submodule "vendor/anytype-mcp"]
 	path = vendor/anytype-mcp
 	url = https://github.com/anyproto/anytype-mcp.git
+	ignore = dirty
 [submodule "vendor/codegraph"]
 	path = vendor/codegraph
 	url = https://github.com/colbymchenry/codegraph.git
+	ignore = dirty

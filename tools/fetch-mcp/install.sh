@@ -3,35 +3,41 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=../xdg.sh
+source "$REPO_ROOT/tools/xdg.sh"
+
 VENDOR_DIR="$REPO_ROOT/vendor/fetch-mcp"
-DIST_DIR="$SCRIPT_DIR/dist"
+TARGET_DIR="$XDG_DATA_HOME/fetch-mcp"
+LAUNCHER="$XDG_BIN_HOME/fetch-mcp"
 
 if [ ! -d "$VENDOR_DIR" ] || [ ! -f "$VENDOR_DIR/package.json" ]; then
   echo "Error: Upstream source not found at $VENDOR_DIR."
-  echo "Run 'git submodule update --init --recursive vendor/fetch-mcp' first."
+  echo "Run 'git submodule update --init vendor/fetch-mcp' first."
   exit 1
 fi
 
-echo ">>> Building Fetch-MCP..."
-mkdir -p "$DIST_DIR"
+echo ">>> Building Fetch-MCP into XDG Data Directory ($TARGET_DIR)..."
+mkdir -p "$TARGET_DIR"
 
 cd "$VENDOR_DIR"
-npm install
+npm install --no-audit --no-fund
+npm run build
 
-echo ">>> Compiling with esbuild..."
-npx -y esbuild src/index.ts \
-  --bundle \
-  --platform=node \
-  --format=esm \
-  --outfile="$DIST_DIR/index.js" \
-  --external:jsdom \
-  --external:@mozilla/readability \
-  --external:turndown \
-  --external:private-ip \
-  --external:@modelcontextprotocol/sdk \
-  --external:zod
+echo ">>> Installing runtime to $TARGET_DIR..."
+rm -rf "${TARGET_DIR:?}"/*
+cp -r dist "$TARGET_DIR/"
+cp package.json "$TARGET_DIR/"
+if [ -d "node_modules" ]; then
+  cp -r node_modules "$TARGET_DIR/"
+fi
 
-ln -sfn "$VENDOR_DIR/node_modules" "$DIST_DIR/node_modules"
-chmod 755 "$DIST_DIR/index.js"
+echo ">>> Installing launcher to $LAUNCHER..."
+cat <<'EOF' > "$LAUNCHER"
+#!/usr/bin/env bash
+set -euo pipefail
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/fetch-mcp"
+exec node "$DATA_DIR/dist/index.js" "$@"
+EOF
+chmod +x "$LAUNCHER"
 
-echo ">>> Fetch-MCP built successfully in $DIST_DIR/index.js"
+echo ">>> Successfully installed fetch-mcp -> $LAUNCHER"

@@ -3,34 +3,37 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=../xdg.sh
+source "$REPO_ROOT/tools/xdg.sh"
+
 VENDOR_DIR="$REPO_ROOT/vendor/lean-ctx"
-DIST_DIR="$SCRIPT_DIR/dist"
+TARGET_DIR="$XDG_DATA_HOME/lean-ctx"
+LAUNCHER="$XDG_BIN_HOME/lean-ctx"
 
-if [ ! -d "$VENDOR_DIR/rust" ]; then
-  echo "Error: Upstream source not found at $VENDOR_DIR/rust."
-  echo "Run 'git submodule update --init --recursive vendor/lean-ctx' first."
-  exit 1
+mkdir -p "$TARGET_DIR/bin"
+
+if command -v cargo >/dev/null 2>&1; then
+  echo ">>> Building lean-ctx from source with cargo..."
+  cargo install --path "$VENDOR_DIR" --root "$TARGET_DIR"
+elif [ -f "$LAUNCHER" ]; then
+  echo ">>> Existing lean-ctx binary found at $LAUNCHER"
+else
+  echo ">>> Cargo not found. Fetching official release binary for Linux..."
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    x86_64)  ASSET_NAME="lean-ctx-x86_64-unknown-linux-gnu.tar.gz" ;;
+    aarch64) ASSET_NAME="lean-ctx-aarch64-unknown-linux-gnu.tar.gz" ;;
+    *) echo "Unsupported architecture: $ARCH" >&2; exit 1 ;;
+  esac
+  RELEASE_URL="https://github.com/yvgude/lean-ctx/releases/download/v3.10.0/$ASSET_NAME"
+  echo ">>> Downloading $RELEASE_URL..."
+  curl -sL "$RELEASE_URL" | tar -xzf - -C "$TARGET_DIR/bin"
+  chmod +x "$TARGET_DIR/bin/lean-ctx"
 fi
 
-echo ">>> Building lean-ctx (release)..."
-mkdir -p "$DIST_DIR"
-cd "$VENDOR_DIR/rust"
-export RUST_MIN_STACK=67108864
-cargo build --release --locked
-
-cp "$VENDOR_DIR/rust/target/release/lean-ctx" "$DIST_DIR/lean-ctx"
-chmod 755 "$DIST_DIR/lean-ctx"
-
-echo ">>> Installing to ~/.local/bin/..."
-mkdir -p "$HOME/.local/bin"
-cp "$DIST_DIR/lean-ctx" "$HOME/.local/bin/lean-ctx"
-chmod 755 "$HOME/.local/bin/lean-ctx"
-
-echo ">>> Setting up Qwen Code integration..."
-export PATH="$HOME/.local/bin:$PATH"
-if command -v lean-ctx >/dev/null 2>&1; then
-  lean-ctx init --agent qwen || true
-  echo ">>> Qwen Code integration initialized."
+if [ -f "$TARGET_DIR/bin/lean-ctx" ]; then
+  cp "$TARGET_DIR/bin/lean-ctx" "$LAUNCHER"
+  chmod +x "$LAUNCHER"
+  echo ">>> Successfully installed lean-ctx -> $LAUNCHER"
+  "$LAUNCHER" --version
 fi
-
-echo ">>> Done! Binary ready at $DIST_DIR/lean-ctx and ~/.local/bin/lean-ctx"

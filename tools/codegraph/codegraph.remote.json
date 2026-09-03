@@ -1,10 +1,7 @@
 {
   "mcpServers": {
     "codegraph": {
-      "command": "node",
-      "args": [
-        "${AGENTS_ROOT}/tools/codegraph/dist/bin/codegraph.js"
-      ],
+      "command": "codegraph-mcp",
       "env": {
         "CODEGRAPH_NO_DAEMON": "1"
       }

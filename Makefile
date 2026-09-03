@@ -1,4 +1,4 @@
-.PHONY: all help submodules build build-all build-context7 build-fetch build-lean build-ponytail build-graphify build-anytype build-codegraph config check clean
+.PHONY: all help submodules build-all build-context7 build-fetch build-lean build-ponytail build-graphify build-anytype build-codegraph config check clean
 
 SHELL := /usr/bin/env bash
 
@@ -8,26 +8,26 @@ help:
 	@echo "agents-arwaky - Developer Commands"
 	@echo ""
 	@echo "Submodules:"
-	@echo "  make submodules        - Initialize and update submodules"
+	@echo "  make submodules        - Initialize and update vendor submodules"
 	@echo ""
-	@echo "Building Tools:"
-	@echo "  make build-all         - Build all MCP tools"
-	@echo "  make build-context7    - Build Context7 MCP"
-	@echo "  make build-fetch       - Build Fetch-MCP"
-	@echo "  make build-lean        - Build Lean-Ctx"
-	@echo "  make build-ponytail    - Build Ponytail MCP"
-	@echo "  make build-graphify    - Build/verify Graphify"
-	@echo "  make build-anytype     - Build Anytype-MCP"
-	@echo "  make build-codegraph   - Build CodeGraph MCP"
+	@echo "Install Tools to Linux XDG (~/.local/share/<tool> and ~/.local/bin/<tool>):"
+	@echo "  make build-all         - Install all vendor MCP tools to XDG paths"
+	@echo "  make build-context7    - Install Context7 (context7-mcp)"
+	@echo "  make build-fetch       - Install Fetch-MCP (fetch-mcp)"
+	@echo "  make build-lean        - Install Lean-Ctx (lean-ctx)"
+	@echo "  make build-ponytail    - Install Ponytail (ponytail-mcp)"
+	@echo "  make build-graphify    - Install Graphify (graphify-mcp)"
+	@echo "  make build-anytype     - Install Anytype-MCP (anytype-mcp)"
+	@echo "  make build-codegraph   - Install CodeGraph (codegraph-mcp)"
 	@echo ""
 	@echo "Configuration & Quality:"
-	@echo "  make config            - Generate unified mcp_servers.generated.json"
-	@echo "  make check             - Run verification, shellcheck and JSON validation"
-	@echo "  make clean             - Clean build outputs and dist directories"
+	@echo "  make config            - Generate unified XDG MCP client configuration"
+	@echo "  make check             - Run verification, shellcheck, and JSON validation"
+	@echo "  make clean             - Clean local build artifacts"
 	@echo ""
 
 submodules:
-	git submodule update --init
+	git submodule update --init vendor/
 
 build-all: submodules
 	./tools/build-all.sh
@@ -67,4 +67,4 @@ check:
 	./tools/verify.sh
 
 clean:
-	rm -rf tools/*/dist tools/ponytail/hooks tools/ponytail/skills tools/ponytail/package.json tools/context7/package.json mcp_servers.generated.json
+	rm -rf tools/*/dist mcp_servers.generated.json

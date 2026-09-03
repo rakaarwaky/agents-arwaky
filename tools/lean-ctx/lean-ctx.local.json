@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "lean-ctx": {
-      "command": "${HOME}/.local/bin/lean-ctx",
+      "command": "lean-ctx",
       "args": [
         "serve"
       ]

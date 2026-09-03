@@ -37,7 +37,7 @@ agents-arwaky/
 └── README.md                          # Comprehensive documentation & quickstart
 ```
 
-*Note: Original standalone repos remain untouched in their existing submodule locations (`blender-arwaky`, `cloudmail-arwaky`, `lint-arwaky`, `testing-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `codegraph-arwaky`).*
+*Note: Original standalone repos remain untouched in their existing submodule locations (`blender-arwaky`, `cloudmail-arwaky`, `lint-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `codegraph-arwaky`).*
 
 ---
 

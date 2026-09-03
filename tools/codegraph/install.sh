@@ -3,8 +3,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=../xdg.sh
+source "$REPO_ROOT/tools/xdg.sh"
+
 VENDOR_DIR="$REPO_ROOT/vendor/codegraph"
-DIST_DIR="$SCRIPT_DIR/dist"
+TARGET_DIR="$XDG_DATA_HOME/codegraph"
+LAUNCHER="$XDG_BIN_HOME/codegraph-mcp"
 
 if [ ! -d "$VENDOR_DIR" ] || [ ! -f "$VENDOR_DIR/package.json" ]; then
   echo "Error: Upstream source not found at $VENDOR_DIR."
@@ -12,28 +16,31 @@ if [ ! -d "$VENDOR_DIR" ] || [ ! -f "$VENDOR_DIR/package.json" ]; then
   exit 1
 fi
 
-echo ">>> Building CodeGraph from source..."
-mkdir -p "$DIST_DIR"
+echo ">>> Building CodeGraph into XDG Data Directory ($TARGET_DIR)..."
+mkdir -p "$TARGET_DIR"
 cd "$VENDOR_DIR"
 
 echo ">>> Installing dependencies..."
-npm ci || npm install
+npm install --no-audit --no-fund
 
-echo ">>> Building Rust kernel..."
-if [ -d "codegraph-kernel" ]; then
-  npm run build:kernel || (cd codegraph-kernel && cargo build --release)
-fi
-
-echo ">>> Compiling TypeScript..."
+echo ">>> Compiling TypeScript and assets..."
 npm run build
 
-echo ">>> Staging build output to dist/..."
-rm -rf "${DIST_DIR:?}"/*
-cp -r dist/* "$DIST_DIR/"
-cp package.json "$DIST_DIR/"
+echo ">>> Staging build output to $TARGET_DIR..."
+rm -rf "${TARGET_DIR:?}"/*
+cp -r dist "$TARGET_DIR/"
+cp package.json "$TARGET_DIR/"
 if [ -d "node_modules" ]; then
-  cp -r node_modules "$DIST_DIR/"
+  cp -r node_modules "$TARGET_DIR/"
 fi
 
-chmod +x "$DIST_DIR/bin/codegraph.js" 2>/dev/null || true
-echo ">>> Done! CodeGraph built into $DIST_DIR/bin/codegraph.js"
+echo ">>> Installing launcher to $LAUNCHER..."
+cat <<'EOF' > "$LAUNCHER"
+#!/usr/bin/env bash
+set -euo pipefail
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/codegraph"
+exec node "$DATA_DIR/dist/bin/codegraph.js" "$@"
+EOF
+chmod +x "$LAUNCHER"
+
+echo ">>> Successfully installed codegraph-mcp -> $LAUNCHER"
