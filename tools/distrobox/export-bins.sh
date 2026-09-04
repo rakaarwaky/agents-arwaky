@@ -14,6 +14,7 @@ TOOLS=(
   "ponytail-mcp"
   "anytype-mcp"
   "codegraph-mcp"
+  "9router"
 )
 
 echo "=========================================="

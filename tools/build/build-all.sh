@@ -42,6 +42,7 @@ build_tool "ponytail"    "$TOOLS_DIR/ponytail/install.sh"
 build_tool "graphify"    "$TOOLS_DIR/graphify/install.sh"
 build_tool "anytype-mcp" "$TOOLS_DIR/anytype-mcp/install.sh"
 build_tool "codegraph"   "$TOOLS_DIR/codegraph/install.sh"
+build_tool "9router"     "$TOOLS_DIR/9router/install.sh"
 
 echo "=========================================="
 echo " Build Summary"

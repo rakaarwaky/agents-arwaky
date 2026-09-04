@@ -15,6 +15,7 @@ This repository incorporates upstream open-source software as git submodules und
 | `vendor/graphify` | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) | `b14b52e9` | MIT License |
 | `vendor/anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `4ba725d9` (`v1.2.10`) | MIT License |
 | `vendor/codegraph` | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | `c6aaa203` | MIT License |
+| `vendor/9router` | [decolua/9router](https://github.com/decolua/9router) | `4eda76e2` (`v0.5.65`) | MIT License |
 
 ---
 
@@ -61,3 +62,10 @@ This repository incorporates upstream open-source software as git submodules und
 - **Author:** Colby McHenry
 - **URL:** https://github.com/colbymchenry/codegraph
 - **License:** MIT License
+
+### 8. 9Router
+- **Project:** 9Router
+- **Author:** decolua and contributors
+- **URL:** https://github.com/decolua/9router
+- **License:** MIT License
+

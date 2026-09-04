@@ -73,13 +73,15 @@ cmd_help() {
   echo -e "  ${GREEN}run${RESET} <tool> [args]  Execute any registered tool (auto-dispatches host/container)"
   echo -e "  ${GREEN}anytype${RESET} [action]    Manage Anytype headless daemon, bot accounts & keys"
   echo -e "  ${GREEN}mcp${RESET} [action]       Manage MCP configurations (list, generate, show)"
-  echo -e "  ${GREEN}build${RESET} [tool]       Trigger compilation/installation pipeline via Makefile"
+  echo -e "  ${GREEN}install${RESET} [tool]     Install full ecosystem or a specific tool from source"
   echo -e "  ${GREEN}shell${RESET}              Enter the Distrobox 'agents-env' sandbox shell"
   echo -e "  ${GREEN}help${RESET}               Show this help message"
   echo ""
   echo -e "${BOLD}EXAMPLES:${RESET}"
   echo -e "  arwaky status"
   echo -e "  arwaky doctor"
+  echo -e "  arwaky install"
+  echo -e "  arwaky install 9router"
   echo -e "  arwaky run context7 --help"
   echo -e "  arwaky run codegraph index ."
   echo -e "  arwaky run lint --help"
@@ -304,18 +306,38 @@ cmd_run() {
   fi
 
   echo -e "${RED}Error: Binary '$bin' for tool '$id' is not installed or runnable.${RESET}"
-  echo -e "Try running: ${BOLD}arwaky build $id${RESET} or ${BOLD}make install${RESET}"
+  echo -e "Try running: ${BOLD}arwaky install $id${RESET} or ${BOLD}arwaky install${RESET}"
   exit 1
 }
 
-cmd_build() {
+cmd_install() {
   local tool="${1:-}"
   if [ -z "$tool" ]; then
-    echo ">>> Running master build pipeline..."
-    make -C "$REPO_ROOT" build
+    echo ">>> Running full installation pipeline..."
+    if is_inside_container; then
+      "$REPO_ROOT/tools/build/build-all.sh"
+    else
+      make -C "$REPO_ROOT" install
+    fi
   else
-    echo ">>> Building specific tool: $tool..."
-    make -C "$REPO_ROOT" "host-build-$tool" || make -C "$REPO_ROOT" build
+    local tool_info
+    tool_info="$(jq -c --arg q "$tool" '.tools[] | select(.id == $q or .binary == $q or (.alias? != null and .alias == $q))' "$MANIFEST_FILE" 2>/dev/null | head -n1 || true)"
+    
+    local tool_id="$tool"
+    if [ -n "$tool_info" ]; then
+      tool_id="$(echo "$tool_info" | jq -r '.id')"
+    fi
+
+    echo ">>> Installing tool: $tool_id..."
+    if grep -q "^host-build-${tool_id}:" "$REPO_ROOT/Makefile"; then
+      make -C "$REPO_ROOT" "host-build-${tool_id}"
+    elif [ -x "$REPO_ROOT/tools/$tool_id/install.sh" ]; then
+      "$REPO_ROOT/tools/$tool_id/install.sh"
+    elif [ -x "$REPO_ROOT/tools/${tool_id}-mcp/install.sh" ]; then
+      "$REPO_ROOT/tools/${tool_id}-mcp/install.sh"
+    else
+      make -C "$REPO_ROOT" "host-build-$tool" || make -C "$REPO_ROOT" install
+    fi
   fi
 }
 
@@ -329,9 +351,9 @@ main() {
     doctor)          cmd_doctor "$@" ;;
     list|ls)         cmd_list "$@" ;;
     run)             cmd_run "$@" ;;
+    install)         cmd_install "$@" ;;
     anytype)         "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" "$@" ;;
     mcp)             cmd_mcp "$@" ;;
-    build)           cmd_build "$@" ;;
     shell|enter)     make -C "$REPO_ROOT" shell ;;
     help|-h|--help)  cmd_help ;;
     *)

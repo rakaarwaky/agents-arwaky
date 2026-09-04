@@ -91,6 +91,8 @@ agents-arwaky/
 ├── distrobox.ini                # Declarative container specification (Podman/Docker)
 ├── Makefile                     # Standard developer commands (install, build, shell, test)
 ├── mcp_servers.generated.json   # Auto-generated unified MCP client manifest
+├── AGENTS.md                    # Operational manual & architecture context for AI agents
+├── CONTRIBUTING.md              # Contributor workflows (adding/removing vendor tools)
 ├── THIRD_PARTY_LICENSES.md      # Upstream licensing compliance records
 ├── LICENSE                      # Project License (MIT)
 │
@@ -102,6 +104,7 @@ agents-arwaky/
 │   └── vision-arwaky/           # Computer vision MCP (VLM, OCR, visual memory)
 │
 ├── vendor/                      # Pinned Upstream Repositories (Git Submodules)
+│   ├── 9router/                 # Local AI routing gateway & token saver
 │   ├── anytype-mcp/             # Anytype desktop & sync integration
 │   ├── codegraph/               # Codebase intelligence & graph query engine
 │   ├── context7/                # Upstash documentation & context retrieval
@@ -187,7 +190,7 @@ The repository installs the `arwaky` CLI into `~/.local/bin/arwaky`. It serves a
 | `arwaky mcp list` | Enumerate all tools offering Model Context Protocol servers | `arwaky mcp list` |
 | `arwaky mcp generate` | Rebuild unified client configuration (`mcp_servers.generated.json`) | `arwaky mcp generate` |
 | `arwaky mcp show` | View current unified MCP configuration JSON | `arwaky mcp show` |
-| `arwaky build [tool]` | Trigger compilation pipeline for all or a specific component | `arwaky build codegraph` |
+| `arwaky install [tool]` | Install full ecosystem or a specific tool from source | `arwaky install codegraph` |
 | `arwaky shell` | Drop into an interactive shell inside the sandbox container | `arwaky shell` |
 
 ### Practical Examples
@@ -232,6 +235,8 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **ponytail** | `ponytail-mcp` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MCP Server | Senior-developer prompt instructions and agent behavioral patterns. |
 | **graphify** | `graphify-mcp` | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) | CLI / MCP | Knowledge graph synthesis, relation clustering, and visualization. |
 | **anytype-mcp**| `anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | MCP Server | Local-first knowledge base & workspace synchronization. |
+| **9router** | `9router` | [decolua/9router](https://github.com/decolua/9router) | CLI Gateway | Local AI routing gateway, token saver (RTK), and multi-provider fallback. |
+
 
 ---
 
@@ -414,16 +419,22 @@ make distclean
 
 Contributions to internal agents, orchestration wrappers, and documentation are welcome!
 
-1. Fork the repository & create a feature branch (`git checkout -b feat/my-new-agent`).
-2. If adding a vendor tool:
-   - Add the submodule to `vendor/`.
-   - Create orchestration scripts under `tools/<name>/install.sh`.
-   - Register the tool in `tools/arwaky/manifest.json`.
-3. Verify formatting and linting:
+- **AI Agents & Autonomous Assistants:** Please read [**`AGENTS.md`**](AGENTS.md) for operational boundaries, invariants, container execution rules, and directory standards.
+- **Human Contributors & Developers:** Refer to [**`CONTRIBUTING.md`**](CONTRIBUTING.md) for detailed step-by-step workflows on:
+  - Adding a new vendor tool or MCP server
+  - Cleanly removing or deprecating vendor tools
+  - Upgrading upstream submodules
+  - Contributing to in-house agents under `internal/`
+  - Quality verification gates (`make check`)
+
+### Quick Pull Request Checklist:
+1. Fork the repository & create a feature branch (`git checkout -b feat/my-new-tool`).
+2. Follow the step-by-step workflow in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+3. Run verification before committing:
    ```bash
    make check
    ```
-4. Commit using conventional commits (`git commit -m "feat(vision): add real-time tracking pipeline"`).
+4. Commit using conventional commits (`git commit -m "feat(vendor): add my-new-tool"`).
 5. Open a Pull Request.
 
 ---
