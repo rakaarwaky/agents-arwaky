@@ -161,7 +161,6 @@ The Single Source of Truth (SSOT) for all registered tools is [`tools/arwaky/man
 | `vision` | internal | `vision-arwaky` | CLI / MCP | VLM visual analysis, OCR, visual memory |
 | `qwen-web` | internal | `qwen-web-arwaky` | CLI / MCP | Playwright web automation & MCP interface |
 | `lint` | internal | `aes-lint` | CLI | AES 7-layer architecture compliance scanner |
-| `cloudmail` | internal | `cmf` | CLI | Serverless virtual email manager |
 | `blender` | internal | `blender-arwaky` | CLI / MCP | Headless 3D execution engine |
 
 ---

@@ -102,15 +102,6 @@
       "path": "internal/lint-arwaky"
     },
     {
-      "id": "cloudmail",
-      "alias": "cloudmail-arwaky",
-      "category": "internal",
-      "binary": "cmf",
-      "isMcp": false,
-      "description": "Virtual email & inbox management on Cloudflare Workers",
-      "path": "internal/cloudmail-arwaky"
-    },
-    {
       "id": "blender",
       "alias": "blender-arwaky",
       "category": "internal",

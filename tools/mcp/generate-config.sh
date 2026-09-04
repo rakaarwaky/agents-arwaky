@@ -67,14 +67,23 @@ cat <<EOF > "$OUTPUT_FILE"
     },
     "codegraph": {
       "command": "codegraph-mcp"
+    },
+    "vision": {
+      "command": "vision-arwaky-mcp"
+    },
+    "qwen-web": {
+      "command": "qwen-web-mcp"
+    },
+    "blender": {
+      "command": "blender-mcp"
     }
   }
 }
 EOF
 
-echo ">>> Distributing per-vendor client config templates to individual XDG dirs:"
-for vendor in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph; do
-  conf_dir="$(xdg_config_dir "$vendor")"
+echo ">>> Distributing client config templates to individual XDG config dirs:"
+for tool in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph vision-arwaky qwen-web blender-arwaky; do
+  conf_dir="$(xdg_config_dir "$tool")"
   cp "$OUTPUT_FILE" "$conf_dir/mcp_servers.json"
   echo "  - $conf_dir/mcp_servers.json"
 done

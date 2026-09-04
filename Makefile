@@ -1,6 +1,7 @@
 .PHONY: default all help install build setup enter shell config check clean clean-host distclean destroy submodules \
         distrobox-check distrobox-create distrobox-build distrobox-export distrobox-enter distrobox-destroy \
-        host-build host-build-all host-build-context7 host-build-fetch host-build-lean host-build-lean-ctx host-build-ponytail host-build-graphify host-build-anytype host-build-codegraph host-build-9router
+        host-build host-build-all host-build-context7 host-build-fetch host-build-lean host-build-lean-ctx host-build-ponytail host-build-graphify host-build-anytype host-build-codegraph host-build-9router \
+        host-build-lint host-build-qwen-web host-build-vision host-build-blender
 
 SHELL := /usr/bin/env bash
 
@@ -124,4 +125,22 @@ host-build-codegraph:
 host-build-9router:
 	git submodule update --init vendor/9router
 	./tools/9router/install.sh
+
+# Internal In-House Agent Targets
+host-build-lint:
+	git submodule update --init internal/lint-arwaky
+	./internal/lint-arwaky/scripts/install.local.sh
+
+host-build-qwen-web:
+	git submodule update --init internal/qwen-web-arwaky
+	./internal/qwen-web-arwaky/scripts/install.sh
+
+host-build-vision:
+	git submodule update --init internal/vision-arwaky
+	./internal/vision-arwaky/scripts/install.local.sh
+
+host-build-blender:
+	git submodule update --init internal/blender-arwaky
+	./internal/blender-arwaky/scripts/install/install.sh
+
 

@@ -15,6 +15,14 @@ TOOLS=(
   "anytype-mcp"
   "codegraph-mcp"
   "9router"
+  "vision-arwaky"
+  "vision-arwaky-mcp"
+  "qwen-web-arwaky"
+  "qwc"
+  "qwen-web-mcp"
+  "aes-lint"
+  "blender-arwaky"
+  "blender-mcp"
 )
 
 echo "=========================================="

@@ -220,7 +220,6 @@ Specialized autonomous agents developed specifically for the `arwaky` ecosystem:
 | **[qwen-web-arwaky](internal/qwen-web-arwaky/)** | `qwen-web-arwaky` | Python / Playwright | Yes | Browser automation engine with bi-directional MCP interface. |
 | **[blender-arwaky](internal/blender-arwaky/)** | `blender-arwaky` | Python / Blender | Yes | Headless 3D procedural execution, asset generation, and rendering pipeline. |
 | **[lint-arwaky](internal/lint-arwaky/)** | `aes-lint` | Rust | No | Architecture Enforcement System (AES) validating code structure across languages. |
-| **[cloudmail-arwaky](internal/cloudmail-arwaky/)** | `cmf` | TypeScript / Bun | No | Serverless transactional email and virtual inbox management on Cloudflare. |
 
 ### Curated Upstream Vendor Tools (`vendor/`)
 
