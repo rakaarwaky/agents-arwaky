@@ -29,10 +29,6 @@
 	path = vendor/ponytail
 	url = https://github.com/DietrichGebert/ponytail.git
 	ignore = dirty
-[submodule "vendor/graphify"]
-	path = vendor/graphify
-	url = https://github.com/Graphify-Labs/graphify.git
-	ignore = dirty
 [submodule "vendor/anytype-mcp"]
 	path = vendor/anytype-mcp
 	url = https://github.com/anyproto/anytype-mcp.git
