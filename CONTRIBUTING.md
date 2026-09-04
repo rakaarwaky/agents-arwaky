@@ -440,7 +440,6 @@ The repository hosts several core in-house agents under `internal/`:
 - [`qwen-web-arwaky`](internal/qwen-web-arwaky/) (Python / Playwright)
 - [`blender-arwaky`](internal/blender-arwaky/) (Python / Blender)
 - [`lint-arwaky`](internal/lint-arwaky/) (Rust)
-- [`cloudmail-arwaky`](internal/cloudmail-arwaky/) (TypeScript / `bun`)
 
 ### In-House Agent Principles:
 1. **AES Architecture Standards:**  

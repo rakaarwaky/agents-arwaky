@@ -34,14 +34,6 @@
       "path": "vendor/ponytail"
     },
     {
-      "id": "graphify",
-      "category": "vendor",
-      "binary": "graphify-mcp",
-      "isMcp": true,
-      "description": "Knowledge graph generation & analysis",
-      "path": "vendor/graphify"
-    },
-    {
       "id": "anytype",
       "category": "vendor",
       "binary": "anytype-mcp",

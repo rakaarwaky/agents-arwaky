@@ -288,13 +288,6 @@ cmd_run() {
           exec distrobox enter agents-env -- cargo run --quiet --manifest-path "$tool_dir/Cargo.toml" -- "$@"
         fi
         ;;
-      cloudmail)
-        if [ -x "$tool_dir/cmf" ]; then
-          exec "$tool_dir/cmf" "$@"
-        elif command -v bun >/dev/null 2>&1; then
-          exec bun run --cwd "$tool_dir" "$@"
-        fi
-        ;;
       vision|qwen-web|blender)
         if command -v uv >/dev/null 2>&1; then
           exec uv run --directory "$tool_dir" "$@"

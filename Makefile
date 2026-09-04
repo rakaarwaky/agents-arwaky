@@ -1,6 +1,6 @@
 .PHONY: default all help install build setup enter shell config check clean clean-host distclean destroy submodules \
         distrobox-check distrobox-create distrobox-build distrobox-export distrobox-enter distrobox-destroy \
-        host-build host-build-all host-build-context7 host-build-fetch host-build-lean host-build-lean-ctx host-build-ponytail host-build-graphify host-build-anytype host-build-codegraph host-build-9router \
+        host-build host-build-all host-build-context7 host-build-fetch host-build-lean host-build-lean-ctx host-build-ponytail host-build-anytype host-build-codegraph host-build-9router \
         host-build-lint host-build-qwen-web host-build-vision host-build-blender
 
 SHELL := /usr/bin/env bash
@@ -108,11 +108,6 @@ host-build-lean host-build-lean-ctx:
 host-build-ponytail:
 	git submodule update --init vendor/ponytail
 	./tools/ponytail/install.sh
-
-host-build-graphify:
-	git submodule update --init vendor/graphify
-	./tools/graphify/install.sh
-
 
 host-build-anytype:
 	git submodule update --init vendor/anytype-mcp

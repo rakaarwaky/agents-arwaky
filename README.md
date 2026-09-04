@@ -67,7 +67,7 @@ flowchart TB
     subgraph Container["Distrobox Sandbox Container (agents-env)"]
         Base["Ubuntu Toolbox Base Image"]
         Toolchains["Runtimes: Rust / Cargo • Python / uv • Bun • pnpm"]
-        InternalApps["In-House Agents (blender, vision, qwen-web, lint, cloudmail)"]
+        InternalApps["In-House Agents (blender, vision, qwen-web, lint)"]
         VendorApps["Vendor MCPs (context7, codegraph, lean-ctx, ponytail, anytype, fetch)"]
         InternalBin["~/.local/share/agents-arwaky/internal-bin/"]
     end
@@ -98,7 +98,7 @@ agents-arwaky/
 │
 ├── internal/                    # In-House Autonomous Agents & Tools
 │   ├── blender-arwaky/          # Headless 3D pipeline & rendering execution engine
-│   ├── cloudmail-arwaky/        # Serverless mail agent on Cloudflare Workers
+│   ├── cloudmail-arwaky/        # Serverless mail agent on Cloudflare (incubation / unlisted)
 │   ├── lint-arwaky/             # Rust-based Architecture Enforcement System (AES)
 │   ├── qwen-web-arwaky/         # Playwright-driven browser automation & MCP
 │   └── vision-arwaky/           # Computer vision MCP (VLM, OCR, visual memory)
@@ -109,7 +109,6 @@ agents-arwaky/
 │   ├── codegraph/               # Codebase intelligence & graph query engine
 │   ├── context7/                # Upstash documentation & context retrieval
 │   ├── fetch-mcp/               # Fast, clean web scraping & text extraction
-│   ├── graphify/                # Knowledge graph generation & analysis
 │   ├── lean-ctx/                # High-efficiency token-lean codebase indexer
 │   └── ponytail/                # Agent architecture patterns & instructions
 │
@@ -232,7 +231,6 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **lean-ctx** | `lean-ctx` | [yvgude/lean-ctx](https://github.com/yvgude/lean-ctx) | CLI / MCP | Ultra-low token overhead repository context extraction for LLMs. |
 | **fetch-mcp** | `fetch-mcp` | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp) | MCP Server | Resilient web scraping, HTML cleaning, and Markdown transformation. |
 | **ponytail** | `ponytail-mcp` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MCP Server | Senior-developer prompt instructions and agent behavioral patterns. |
-| **graphify** | `graphify-mcp` | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) | CLI / MCP | Knowledge graph synthesis, relation clustering, and visualization. |
 | **anytype-mcp**| `anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | MCP Server | Local-first knowledge base & workspace synchronization. |
 | **9router** | `9router` | [decolua/9router](https://github.com/decolua/9router) | CLI Gateway | Local AI routing gateway, token saver (RTK), and multi-provider fallback. |
 
@@ -260,7 +258,9 @@ High-performance community tools integrated via Git submodules and sandboxed wit
       }
     },
     "codegraph": { "command": "codegraph-mcp" },
-    "graphify": { "command": "graphify-mcp" }
+    "vision": { "command": "vision-arwaky-mcp" },
+    "qwen-web": { "command": "qwen-web-mcp" },
+    "blender": { "command": "blender-mcp" }
   }
 }
 ```
