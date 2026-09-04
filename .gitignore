@@ -35,6 +35,7 @@ tools/ponytail/hooks/
 tools/ponytail/skills/
 tools/ponytail/package.json
 tools/context7/package.json
+tools/anytype-mcp/daemon/anytype
 
 # Environment and local configs
 .env

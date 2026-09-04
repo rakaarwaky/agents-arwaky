@@ -50,6 +50,15 @@
       "path": "vendor/anytype-mcp"
     },
     {
+      "id": "anytype-daemon",
+      "alias": "anytype-daemon",
+      "category": "internal",
+      "binary": "anytype-daemon.sh",
+      "isMcp": false,
+      "description": "Anytype headless daemon & Podman container manager",
+      "path": "tools/anytype-mcp/daemon"
+    },
+    {
       "id": "codegraph",
       "category": "vendor",
       "binary": "codegraph-mcp",

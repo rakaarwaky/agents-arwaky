@@ -33,6 +33,40 @@ echo ">>> Installing launcher to $LAUNCHER..."
 cat <<'EOF' > "$LAUNCHER"
 #!/usr/bin/env bash
 set -euo pipefail
+
+# Auto-load .env if OPENAPI_MCP_HEADERS or ANYTYPE_API_KEY is not defined
+ENV_FILE="${AGENTS_ARWAKY_ENV:-}"
+if [ -z "$ENV_FILE" ]; then
+  for candidate in \
+    "$HOME/agents-arwaky/tools/anytype-mcp/.env" \
+    "${XDG_CONFIG_HOME:-$HOME/.config}/anytype-mcp/.env" \
+    "$HOME/agents-arwaky/.env" \
+    "${XDG_CONFIG_HOME:-$HOME/.config}/agents-arwaky/.env"; do
+    if [ -f "$candidate" ]; then
+      ENV_FILE="$candidate"
+      break
+    fi
+  done
+fi
+
+if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
+  while IFS='=' read -r key val || [ -n "$key" ]; do
+    [[ "$key" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${key// }" ]] && continue
+    key="$(echo "$key" | xargs)"
+    val="$(echo "$val" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+    if [ -n "$key" ] && [ -z "${!key:-}" ]; then
+      export "$key"="$val"
+    fi
+  done < "$ENV_FILE"
+fi
+
+export ANYTYPE_API_BASE_URL="${ANYTYPE_API_BASE_URL:-http://127.0.0.1:31012}"
+
+if [ -z "${OPENAPI_MCP_HEADERS:-}" ] && [ -n "${ANYTYPE_API_KEY:-}" ]; then
+  export OPENAPI_MCP_HEADERS="{\"Authorization\":\"Bearer ${ANYTYPE_API_KEY}\", \"Anytype-Version\":\"2025-11-08\"}"
+fi
+
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/anytype-mcp"
 exec node "$DATA_DIR/bin/cli.mjs" "$@"
 EOF

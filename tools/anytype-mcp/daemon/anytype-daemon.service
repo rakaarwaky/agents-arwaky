@@ -1,0 +1,25 @@
+[Unit]
+Description=Anytype Headless Daemon (Podman)
+Documentation=https://github.com/anyproto/anytype-cli
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Restart=always
+RestartSec=5s
+ExecStartPre=-/usr/bin/podman stop anytype-daemon
+ExecStartPre=-/usr/bin/podman rm anytype-daemon
+ExecStart=/usr/bin/podman run --name anytype-daemon \
+  --rm \
+  --network host \
+  -v %h/.local/share/anytype-daemon/data:/data:Z \
+  -v %h/.local/share/anytype-daemon/dot-anytype:/root/.anytype:Z \
+  -v %h/.local/share/anytype-daemon/config:/root/.config/anytype:Z \
+  -v %h/.local/share/anytype-daemon/share:/root/.local/share/anytype:Z \
+  anytype-daemon:latest
+ExecStop=/usr/bin/podman stop anytype-daemon
+
+[Install]
+WantedBy=default.target

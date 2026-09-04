@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1
+FROM alpine:3.21
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata bash curl
+
+WORKDIR /data
+ENV HOME=/root
+ENV TMPDIR=/data/tmp
+
+# Binary copied from build context (prepared by anytype-daemon.sh)
+COPY anytype /usr/local/bin/anytype
+RUN chmod +x /usr/local/bin/anytype && \
+    mkdir -p /data/tmp /root/.config/anytype /root/.local/share/anytype
+
+# gRPC (31010), gRPC-Web (31011), REST API (31012)
+EXPOSE 31010 31011 31012
+
+VOLUME ["/data", "/root/.config/anytype", "/root/.local/share/anytype"]
+
+ENTRYPOINT ["/usr/local/bin/anytype"]
+CMD ["serve", "--listen-address", "0.0.0.0:31012"]

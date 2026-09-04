@@ -71,6 +71,7 @@ cmd_help() {
   echo -e "  ${GREEN}doctor${RESET}             Diagnose runtime environment, container sandbox & PATH"
   echo -e "  ${GREEN}list${RESET}               List all registered tools (vendor & internal)"
   echo -e "  ${GREEN}run${RESET} <tool> [args]  Execute any registered tool (auto-dispatches host/container)"
+  echo -e "  ${GREEN}anytype${RESET} [action]    Manage Anytype headless daemon, bot accounts & keys"
   echo -e "  ${GREEN}mcp${RESET} [action]       Manage MCP configurations (list, generate, show)"
   echo -e "  ${GREEN}build${RESET} [tool]       Trigger compilation/installation pipeline via Makefile"
   echo -e "  ${GREEN}shell${RESET}              Enter the Distrobox 'agents-env' sandbox shell"
@@ -328,6 +329,7 @@ main() {
     doctor)          cmd_doctor "$@" ;;
     list|ls)         cmd_list "$@" ;;
     run)             cmd_run "$@" ;;
+    anytype)         "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" "$@" ;;
     mcp)             cmd_mcp "$@" ;;
     build)           cmd_build "$@" ;;
     shell|enter)     make -C "$REPO_ROOT" shell ;;

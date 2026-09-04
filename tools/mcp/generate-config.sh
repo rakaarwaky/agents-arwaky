@@ -11,6 +11,35 @@ OUTPUT_FILE="${1:-"$REPO_ROOT/mcp_servers.generated.json"}"
 echo "Generating unified MCP client configuration..."
 echo "Target: $OUTPUT_FILE"
 
+# Load environment if .env exists
+ENV_FILE="${AGENTS_ARWAKY_ENV:-}"
+if [ -z "$ENV_FILE" ]; then
+  for candidate in \
+    "$REPO_ROOT/tools/anytype-mcp/.env" \
+    "${XDG_CONFIG_HOME:-$HOME/.config}/anytype-mcp/.env" \
+    "$REPO_ROOT/.env"; do
+    if [ -f "$candidate" ]; then
+      ENV_FILE="$candidate"
+      break
+    fi
+  done
+fi
+
+if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
+  while IFS='=' read -r key val || [ -n "$key" ]; do
+    [[ "$key" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${key// }" ]] && continue
+    key="$(echo "$key" | xargs)"
+    val="$(echo "$val" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+    if [ -n "$key" ]; then
+      export "$key"="$val"
+    fi
+  done < "$ENV_FILE"
+fi
+
+ANYTYPE_BASE="${ANYTYPE_API_BASE_URL:-http://127.0.0.1:31012}"
+ANYTYPE_KEY="${ANYTYPE_API_KEY:-<YOUR_API_KEY>}"
+
 cat <<EOF > "$OUTPUT_FILE"
 {
   "mcpServers": {
@@ -32,7 +61,8 @@ cat <<EOF > "$OUTPUT_FILE"
     "anytype": {
       "command": "anytype-mcp",
       "env": {
-        "OPENAPI_MCP_HEADERS": "{\"Authorization\":\"Bearer <YOUR_API_KEY>\", \"Anytype-Version\":\"2025-11-08\"}"
+        "ANYTYPE_API_BASE_URL": "$ANYTYPE_BASE",
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\":\"Bearer $ANYTYPE_KEY\", \"Anytype-Version\":\"2025-11-08\"}"
       }
     },
     "codegraph": {
