@@ -69,7 +69,6 @@ agents-arwaky/
 │   ├── codegraph/               # Graph-based codebase intelligence & query engine
 │   ├── context7/                # Upstash documentation & context retrieval
 │   ├── fetch-mcp/               # Resilient web scraping & HTML cleaning engine
-│   ├── graphify/                # Knowledge graph generation & analysis
 │   ├── lean-ctx/                # Ultra token-lean codebase indexer
 │   └── ponytail/                # Agent architecture instructions & prompt patterns
 │
@@ -153,7 +152,6 @@ The Single Source of Truth (SSOT) for all registered tools is [`tools/arwaky/man
 | `fetch` | vendor | `fetch-mcp` | MCP | Web scraping & markdown transformation |
 | `lean-ctx` | vendor | `lean-ctx` | CLI / MCP | Token-lean repository context indexer |
 | `ponytail` | vendor | `ponytail-mcp` | MCP | Senior-developer prompt instructions |
-| `graphify` | vendor | `graphify-mcp` | CLI / MCP | Knowledge graph synthesis & visualization |
 | `anytype` | vendor | `anytype-mcp` | MCP | Local-first Anytype knowledge base sync |
 | `anytype-daemon` | internal | `anytype-daemon.sh` | CLI | Headless Anytype daemon container manager |
 | `codegraph` | vendor | `codegraph-mcp` | CLI / MCP | Codebase intelligence & semantic graph |
