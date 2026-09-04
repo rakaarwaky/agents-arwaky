@@ -1,14 +1,14 @@
 # agents-arwaky
 
-A consolidated orchestration repository providing an autonomous multi-agent ecosystem. It combines internal core components alongside vetted, high-value upstream tools and MCP servers under an ergonomic monorepo structure following the **Linux XDG Base Directory Specification**, with optional **Distrobox + Podman container sandboxing**.
+A consolidated orchestration repository providing an autonomous multi-agent ecosystem. Engineered with a **Distrobox First-Class architecture**: all polyglot compilers, toolchains (Rust/Cargo, Node/pnpm/Bun, Python/uv, C libraries, Playwright), and vendor tools are completely sandboxed inside an automated Linux container (`agents-env`), while cleanly exposing standard Linux XDG executables directly to your host system (`~/.local/bin/`).
 
 ---
 
 ## Architecture Overview
 
-The repository is structured into two main components:
+The repository is structured into two main tiers:
 1. **Core Agent Components (`*-arwaky`)**: Standalone capabilities developed for the `arwaky` ecosystem.
-2. **Upstream Vendor Tools (`vendor/` + `tools/`)**: Vetted upstream dependencies maintained as submodules, built into isolated Linux XDG directories per vendor, and exposed as standalone CLI / MCP tools.
+2. **Upstream Vendor Tools (`vendor/` + `tools/`)**: Vetted upstream dependencies maintained as submodules, built into isolated Linux XDG directories inside the container, and exported as transparent host CLI / MCP tools.
 
 ```
 agents-arwaky/
@@ -18,21 +18,27 @@ agents-arwaky/
 │   ├── fetch-mcp/               # Fast web scraping & extraction MCP
 │   ├── lean-ctx/                # Rust-based code & context indexer
 │   ├── ponytail/                # Agent instruction & pattern system
-│   ├── graphify/                # Knowledge graph generation & analysis
 │   ├── anytype-mcp/             # Anytype desktop & sync MCP server
 │   └── codegraph/               # High-performance codebase intelligence & graph engine
-├── tools/                       # Build scripts, XDG glue & MCP configs
-│   ├── xdg.sh                   # Linux XDG Base Directory helper
-│   ├── distrobox/               # Distrobox host check & container init scripts
-│   ├── <tool>/install.sh        # Installs tool to ~/.local/share/<tool> & ~/.local/bin/
-│   ├── <tool>/<tool>.local.json # MCP config snippet
-│   └── generate-mcp-config.sh   # Generates unified XDG MCP client configuration
-├── blender-arwaky/              # Original submodules
-├── cloudmail-arwaky/
-├── lint-arwaky/
-├── qwen-web-arwaky/
-├── vision-arwaky/
-├── Makefile                     # Ergonomic build, check & distrobox entrypoints
+├── tools/                       # Build scripts, XDG glue & container orchestration
+│   ├── arwaky/                  # Core orchestrator engine & tool manifest
+│   ├── build/                   # Master build pipeline (build-all.sh)
+│   ├── ci/                      # Quality gate & validation scripts (verify.sh)
+│   ├── distrobox/               # Setup, container init & host export scripts
+│   │   ├── setup-host.sh        # Host prerequisite check & installer
+│   │   ├── init-container.sh    # Provisions uv, bun, pnpm inside container
+│   │   └── export-bins.sh       # Exports container binaries to host ~/.local/bin
+│   ├── lib/                     # Shared shell utilities & XDG helpers (xdg.sh)
+│   ├── mcp/                     # MCP configuration generator (generate-config.sh)
+│   └── <vendor-tool>/           # Per-vendor orchestration glue (install.sh & configs)
+├── internal/                    # In-house tools & agents
+│   ├── blender-arwaky/          # Headless 3D execution engine
+│   ├── cloudmail-arwaky/        # Cloudflare Workers mail agent
+│   ├── lint-arwaky/             # Architecture linter
+│   ├── qwen-web-arwaky/         # Browser automation MCP
+│   └── vision-arwaky/           # Computer vision & VLM agent
+├── arwaky                       # Unified Orchestration Entrypoint CLI
+├── Makefile                     # Distrobox First-Class entrypoints (make install, make shell)
 ├── THIRD_PARTY_LICENSES.md      # Upstream licensing and attribution records
 ├── LICENSE                      # MIT License
 └── README.md
@@ -40,37 +46,77 @@ agents-arwaky/
 
 ---
 
-## Linux XDG Base Directory Layout
+## Distrobox First-Class Workflow
 
-All tool runtimes, launchers, configurations, and caches strictly follow standard Linux freedesktop.org XDG conventions with **100% isolated top-level namespaces per vendor tool**:
-
-| Purpose | Standard Path | Usage in `agents-arwaky` |
-|---|---|---|
-| **Executables / Launchers** | `${XDG_BIN_HOME:-~/.local/bin}` | Clean commands on `$PATH` (`context7-mcp`, `fetch-mcp`, `lean-ctx`, `ponytail-mcp`, `codegraph-mcp`, `graphify-mcp`, `anytype-mcp`) |
-| **Tool Runtimes & Data** | `${XDG_DATA_HOME:-~/.local/share}/<vendor>/` | Isolated bundles, dependencies, and index stores |
-| **User Configuration** | `${XDG_CONFIG_HOME:-~/.config}/<vendor>/` | Per-vendor dedicated configuration directories |
-| **Caches & Temporary Files** | `${XDG_CACHE_HOME:-~/.cache}/<vendor>/` | Ephemeral build and index caches |
+In this repository, **Distrobox is the primary, default build and runtime environment**:
+- **Pristine Host**: Your host OS does not need Rust, Cargo, Node, Bun, pnpm, Python venvs, or dev libraries installed.
+- **Reproducible Sandbox**: The container is assembled from declarative [`distrobox.ini`](distrobox.ini) and automatically provisioned with all toolchains.
+- **Transparent Host Integration**: Tool executables are exported directly to host `${HOME}/.local/bin/`. Running `context7-mcp` or `codegraph-mcp` on your host seamlessly dispatches inside the sandbox container.
 
 ---
 
-## Distrobox + Podman Workflow (Recommended for DevEx)
+## Quickstart (Distrobox First-Class)
 
-To keep your host OS pristine while compiling polyglot codebases (Rust, TypeScript, Python C-extensions, Playwright browsers, Blender libs), use Distrobox:
+### 1. Clone with Submodules
+```bash
+git clone --recurse-submodules https://github.com/rakaarwaky/agents-arwaky.git
+cd agents-arwaky
+```
+
+If already cloned without submodules:
+```bash
+make submodules
+```
+
+### 2. Install Host Prerequisites (Podman & Distrobox)
+Verify and install required container tools on your host OS:
+```bash
+make setup
+```
+*(Runs `./tools/distrobox/setup-host.sh --install` using your distribution's package manager: Debian/Deepin/Ubuntu, Arch, or Fedora).*
+
+### 3. Build & Install Everything (One Command)
+```bash
+make install
+```
+This default pipeline automatically:
+1. Verifies host container runtime.
+2. Creates the `agents-env` Distrobox container from [`distrobox.ini`](distrobox.ini).
+3. Provisions runtimes (`uv`, `bun`, `pnpm`) inside the container.
+4. Compiles and installs all MCP tools in isolated container namespaces.
+5. Exports binary launchers to host `~/.local/bin/`.
+6. Generates unified MCP configuration (`mcp_servers.generated.json`).
+
+### 4. Interactive Development Shell
+To enter the fully-provisioned container sandbox for development or debugging:
+```bash
+make shell
+# or: make enter
+```
+
+---
+
+## Unified Orchestrator CLI (`arwaky`)
+
+The repository includes a unified orchestration CLI [`arwaky`](arwaky) (installed directly to `${HOME}/.local/bin/arwaky`), which provides operational control, health monitoring, and tool execution across both vendor and internal tools:
 
 ```bash
-# 1. Check prerequisites (Podman and Distrobox)
-make distrobox-check
+# Check health of all tools (vendor & internal)
+arwaky status
 
-# 2. Create the sandbox environment
-make distrobox-create
+# Run runtime & container diagnostics
+arwaky doctor
 
-# 3. Enter interactive container shell or build all tools directly:
-make distrobox-enter
-# OR run build from host inside container:
-make distrobox-build
+# List all registered tools with descriptions
+arwaky list
 
-# 4. Export binaries to host ~/.local/bin:
-make distrobox-export
+# Run any tool (transparently dispatches on host or inside container)
+arwaky run context7 --help
+arwaky run codegraph index .
+
+# Manage unified MCP configurations
+arwaky mcp list
+arwaky mcp show
 ```
 
 ---
@@ -80,11 +126,11 @@ make distrobox-export
 ### Core Agent Modules
 | Module | Description | Primary Language |
 |---|---|---|
-| [blender-arwaky](blender-arwaky/) | Headless 3D execution engine with automated test suites | Python / Blender |
-| [cloudmail-arwaky](cloudmail-arwaky/) | Virtual email & inbox management on Cloudflare Workers | TypeScript |
-| [lint-arwaky](lint-arwaky/) | Architecture linter (AES rules) for Rust, Python, TypeScript | Rust |
-| [qwen-web-arwaky](qwen-web-arwaky/) | Qwen AI Web Automation CLI & 1:1 MCP Server | Python / Playwright |
-| [vision-arwaky](vision-arwaky/) | Unified computer vision MCP — VLM, OCR, tracking, visual memory | Python |
+| [blender-arwaky](internal/blender-arwaky/) | Headless 3D execution engine with automated test suites | Python / Blender |
+| [cloudmail-arwaky](internal/cloudmail-arwaky/) | Virtual email & inbox management on Cloudflare Workers | TypeScript |
+| [lint-arwaky](internal/lint-arwaky/) | Architecture linter (AES rules) for Rust, Python, TypeScript | Rust |
+| [qwen-web-arwaky](internal/qwen-web-arwaky/) | Qwen AI Web Automation CLI & 1:1 MCP Server | Python / Playwright |
+| [vision-arwaky](internal/vision-arwaky/) | Unified computer vision MCP — VLM, OCR, tracking, visual memory | Python |
 
 ### Upstream Vendor Tools & Orchestrations
 | Upstream Submodule | Orchestration (`tools/`) | Description | Type |
@@ -99,41 +145,10 @@ make distrobox-export
 
 ---
 
-## Quickstart
+## Generated MCP Client Configuration
 
-### 1. Clone with Submodules
-```bash
-git clone --recurse-submodules https://github.com/rakaarwaky/agents-arwaky.git
-cd agents-arwaky
-```
+After installation, `mcp_servers.generated.json` is generated for use in Claude Desktop, Zed, Antigravity, or Cursor:
 
-If already cloned without submodules:
-```bash
-make submodules
-```
-
-### 2. Build & Install Tools to Linux XDG
-Install all vendor tools into your local Linux user environment:
-```bash
-make build-all
-```
-Or build specific tools individually:
-```bash
-make build-context7    # Installs ~/.local/bin/context7-mcp
-make build-fetch       # Installs ~/.local/bin/fetch-mcp
-make build-lean        # Installs ~/.local/bin/lean-ctx
-make build-ponytail    # Installs ~/.local/bin/ponytail-mcp
-make build-graphify    # Installs ~/.local/bin/graphify-mcp
-make build-anytype     # Installs ~/.local/bin/anytype-mcp
-make build-codegraph   # Installs ~/.local/bin/codegraph-mcp
-```
-
-### 3. Generate MCP Client Configuration
-Generate a clean XDG MCP client configuration:
-```bash
-make config
-```
-This distributes configs directly to `${XDG_CONFIG_HOME:-~/.config}/<vendor>/` and generates `mcp_servers.generated.json` in the repo:
 ```json
 {
   "mcpServers": {
@@ -148,9 +163,34 @@ This distributes configs directly to `${XDG_CONFIG_HOME:-~/.config}/<vendor>/` a
 }
 ```
 
-### 4. Run Quality Checks
+---
+
+## Secondary Workflow: Bare-Metal Host Build (Fallback)
+
+If you are working in an environment where container runtimes cannot run, you can build directly on the host OS:
+
 ```bash
-make check
+# Build all tools directly on host
+make host-build
+
+# Or build individual tools directly on host:
+make host-build-context7
+make host-build-fetch
+make host-build-lean
+make host-build-ponytail
+make host-build-graphify
+make host-build-anytype
+make host-build-codegraph
+```
+
+---
+
+## Quality & Maintenance Commands
+
+```bash
+make check      # Run validation, shellcheck, and submodules verification
+make clean      # Clean local build artifacts
+make destroy    # Remove the agents-env Distrobox container
 ```
 
 ---

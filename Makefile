@@ -1,97 +1,118 @@
-.PHONY: all help submodules build-all build-context7 build-fetch build-lean build-ponytail build-graphify build-anytype build-codegraph config check clean distrobox-check distrobox-create distrobox-enter distrobox-build distrobox-export distrobox-destroy
+.PHONY: default all help install build setup enter shell config check clean clean-host distclean destroy submodules \
+        distrobox-check distrobox-create distrobox-build distrobox-export distrobox-enter distrobox-destroy \
+        host-build host-build-all host-build-context7 host-build-fetch host-build-lean host-build-ponytail host-build-anytype host-build-codegraph
 
 SHELL := /usr/bin/env bash
 
-all: help
+# Distrobox First-Class: default target installs via sandbox container
+default: install
+
+all: install
 
 help:
-	@echo "agents-arwaky - Developer Commands"
+	@echo "agents-arwaky - Developer Commands (Distrobox First-Class)"
 	@echo ""
-	@echo "Distrobox + Podman (Sandbox Environment):"
-	@echo "  make distrobox-check   - Check if podman and distrobox are installed on host"
-	@echo "  make distrobox-create  - Create/assemble agents-env container"
-	@echo "  make distrobox-enter   - Enter the interactive sandbox container"
-	@echo "  make distrobox-build   - Build all tools inside the Distrobox container"
-	@echo "  make distrobox-export  - Export all tool binaries to host ~/.local/bin"
-	@echo "  make distrobox-destroy - Destroy sandbox container (keeps all persistent data)"
-	@echo ""
-	@echo "Submodules:"
-	@echo "  make submodules        - Initialize and update vendor submodules"
-	@echo ""
-	@echo "Install Tools to Linux XDG (~/.local/share/<vendor> and ~/.local/bin/<tool>):"
-	@echo "  make build-all         - Install all vendor MCP tools to XDG paths"
-	@echo "  make build-context7    - Install Context7 (context7-mcp)"
-	@echo "  make build-fetch       - Install Fetch-MCP (fetch-mcp)"
-	@echo "  make build-lean        - Install Lean-Ctx (lean-ctx)"
-	@echo "  make build-ponytail    - Install Ponytail (ponytail-mcp)"
-	@echo "  make build-graphify    - Install Graphify (graphify-mcp)"
-	@echo "  make build-anytype     - Install Anytype-MCP (anytype-mcp)"
-	@echo "  make build-codegraph   - Install CodeGraph (codegraph-mcp)"
-	@echo ""
-	@echo "Configuration & Quality:"
+	@echo "Primary Workflow (Distrobox Container - Default):"
+	@echo "  make setup             - Install host prerequisites (podman & distrobox)"
+	@echo "  make install           - Complete setup: submodules -> container -> build -> export -> config"
+	@echo "  make build             - Rebuild all tools inside Distrobox and re-export binaries"
+	@echo "  make enter / shell     - Open interactive shell inside agents-env sandbox container"
 	@echo "  make config            - Generate unified XDG MCP client configuration"
-	@echo "  make check             - Run verification, shellcheck, and JSON validation"
+	@echo "  make check             - Run repository verification and validation"
 	@echo "  make clean             - Clean local build artifacts"
+	@echo "  make destroy           - Destroy the sandbox container (preserves persistent data)"
+	@echo ""
+	@echo "Secondary / Fallback Workflow (Bare-Metal Host):"
+	@echo "  make host-build        - Install all vendor tools directly on host OS without container"
+	@echo "  make host-build-<tool> - Build a specific tool directly on host (e.g. host-build-context7)"
 	@echo ""
 
-# Distrobox commands
+# Distrobox First-Class Pipeline
+setup:
+	@./tools/distrobox/setup-host.sh --install
+
 distrobox-check:
 	@./tools/distrobox/setup-host.sh
 
 distrobox-create:
-	@distrobox assemble create --file distrobox.ini
+	@if ! distrobox list 2>/dev/null | grep -q "agents-env"; then \
+		echo ">>> Creating Distrobox container 'agents-env'..."; \
+		distrobox assemble create --file distrobox.ini; \
+	else \
+		echo ">>> Container 'agents-env' already exists."; \
+	fi
+	@echo ">>> Ensuring container environment is initialized..."
+	@distrobox enter agents-env -- bash $(CURDIR)/tools/distrobox/init-container.sh
 
-distrobox-enter:
+distrobox-enter enter shell:
 	@distrobox enter agents-env
 
-distrobox-build:
-	@distrobox enter agents-env -- bash -c "cd $(CURDIR) && make build-all"
+distrobox-build: submodules
+	@echo ">>> Building tools inside Distrobox container 'agents-env'..."
+	@distrobox enter agents-env -- bash -c "cd $(CURDIR) && XDG_BIN_HOME=\$$HOME/.local/share/agents-arwaky/internal-bin ./tools/build/build-all.sh"
 
 distrobox-export:
-	@distrobox enter agents-env -- bash -c "distrobox-export --bin /home/raka/.local/bin/context7-mcp --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/fetch-mcp --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/lean-ctx --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/ponytail-mcp --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/graphify --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/anytype-mcp --export-path /home/raka/.local/bin && distrobox-export --bin /home/raka/.local/bin/codegraph-mcp --export-path /home/raka/.local/bin"
+	@./tools/distrobox/export-bins.sh
 
-distrobox-destroy:
+distrobox-destroy destroy:
 	@distrobox rm -f agents-env
+
+build: distrobox-build distrobox-export
+
+install: submodules distrobox-check distrobox-create distrobox-build distrobox-export config
+	@echo ""
+	@echo "============================================================"
+	@echo " agents-arwaky Distrobox First-Class installation complete! "
+	@echo " Binaries exported to $(HOME)/.local/bin"
+	@echo " MCP configuration generated at mcp_servers.generated.json"
+	@echo "============================================================"
 
 submodules:
 	git submodule update --init vendor/
 
-build-all: submodules
-	./tools/build-all.sh
-
-build-context7:
-	git submodule update --init vendor/context7
-	./tools/context7/install.sh
-
-build-fetch:
-	git submodule update --init vendor/fetch-mcp
-	./tools/fetch-mcp/install.sh
-
-build-lean:
-	git submodule update --init vendor/lean-ctx
-	./tools/lean-ctx/install.sh
-
-build-ponytail:
-	git submodule update --init vendor/ponytail
-	./tools/ponytail/install.sh
-
-build-graphify:
-	git submodule update --init vendor/graphify
-	./tools/graphify/build.sh
-
-build-anytype:
-	git submodule update --init vendor/anytype-mcp
-	./tools/anytype-mcp/install.sh
-
-build-codegraph:
-	git submodule update --init vendor/codegraph
-	./tools/codegraph/install.sh
-
 config:
-	./tools/generate-mcp-config.sh
+	./tools/mcp/generate-config.sh
 
 check:
-	./tools/verify.sh
+	./tools/ci/verify.sh
 
 clean:
 	rm -rf tools/*/dist mcp_servers.generated.json
+
+clean-host:
+	@echo ">>> Cleaning host ~/.local/bin and ~/.local/share tool installations..."
+	rm -f $(HOME)/.local/bin/{context7-mcp,fetch-mcp,lean-ctx,ponytail-mcp,anytype-mcp,codegraph-mcp,arwaky}
+	rm -rf $(HOME)/.local/share/{context7,fetch-mcp,lean-ctx,ponytail,anytype-mcp,codegraph,agents-arwaky}
+	@echo ">>> Host tool binaries and data directories cleaned."
+
+distclean: clean clean-host
+	git submodule foreach --recursive 'git clean -fd && git checkout .'
+
+# Host / Bare-Metal Fallback Targets
+host-build host-build-all: submodules
+	./tools/build/build-all.sh
+
+host-build-context7:
+	git submodule update --init vendor/context7
+	./tools/context7/install.sh
+
+host-build-fetch:
+	git submodule update --init vendor/fetch-mcp
+	./tools/fetch-mcp/install.sh
+
+host-build-lean:
+	git submodule update --init vendor/lean-ctx
+	./tools/lean-ctx/install.sh
+
+host-build-ponytail:
+	git submodule update --init vendor/ponytail
+	./tools/ponytail/install.sh
+
+
+host-build-anytype:
+	git submodule update --init vendor/anytype-mcp
+	./tools/anytype-mcp/install.sh
+
+host-build-codegraph:
+	git submodule update --init vendor/codegraph
+	./tools/codegraph/install.sh
