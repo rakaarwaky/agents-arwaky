@@ -58,7 +58,6 @@ agents-arwaky/
 │
 ├── internal/                    # In-House Autonomous Agents & Tools (Git Submodules)
 │   ├── blender-arwaky/          # Headless 3D procedural execution & rendering engine
-│   ├── cloudmail-arwaky/        # Virtual transactional email manager (incubation / unlisted)
 │   ├── lint-arwaky/             # Rust-based Architecture Enforcement System (AES)
 │   ├── qwen-web-arwaky/         # Playwright-driven browser automation & MCP server
 │   └── vision-arwaky/           # Computer vision MCP (VLM, OCR, visual memory)
@@ -174,7 +173,6 @@ When generating code or executing tasks within this repository:
   - `internal/lint-arwaky`: Rust (`cargo fmt`, `cargo clippy`, `cargo nextest`)
   - `internal/vision-arwaky`: Python with `uv` (`uv run`, `pyproject.toml`)
   - `internal/qwen-web-arwaky`: Python Playwright (`uv run`)
-  - `internal/cloudmail-arwaky`: TypeScript with `bun` (`bun run`)
   - `internal/blender-arwaky`: Python / Blender headless pipeline
 
 ### 2. Modifying Build & Orchestration Scripts in `tools/`

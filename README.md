@@ -98,7 +98,6 @@ agents-arwaky/
 │
 ├── internal/                    # In-House Autonomous Agents & Tools
 │   ├── blender-arwaky/          # Headless 3D pipeline & rendering execution engine
-│   ├── cloudmail-arwaky/        # Serverless mail agent on Cloudflare (incubation / unlisted)
 │   ├── lint-arwaky/             # Rust-based Architecture Enforcement System (AES)
 │   ├── qwen-web-arwaky/         # Playwright-driven browser automation & MCP
 │   └── vision-arwaky/           # Computer vision MCP (VLM, OCR, visual memory)

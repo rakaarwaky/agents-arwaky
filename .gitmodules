@@ -1,9 +1,6 @@
 [submodule "blender-arwaky"]
 	path = internal/blender-arwaky
 	url = https://github.com/rakaarwaky/blender-arwaky.git
-[submodule "cloudmail-arwaky"]
-	path = internal/cloudmail-arwaky
-	url = https://github.com/rakaarwaky/cloudmail-arwaky.git
 [submodule "lint-arwaky"]
 	path = internal/lint-arwaky
 	url = https://github.com/rakaarwaky/lint-arwaky.git
