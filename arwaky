@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# arwaky - Main Orchestrator Entrypoint for agents-arwaky
+set -euo pipefail
+
+# Self-resolve location even when invoked via symlink
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+REPO_ROOT="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+
+exec "$REPO_ROOT/tools/arwaky/arwaky-cli.sh" "$@"

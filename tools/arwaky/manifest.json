@@ -1,0 +1,106 @@
+{
+  "version": "1.0.0",
+  "tools": [
+    {
+      "id": "context7",
+      "category": "vendor",
+      "binary": "context7-mcp",
+      "isMcp": true,
+      "description": "Fast Upstash documentation & context retrieval",
+      "path": "vendor/context7"
+    },
+    {
+      "id": "fetch",
+      "category": "vendor",
+      "binary": "fetch-mcp",
+      "isMcp": true,
+      "description": "Clean web scraping & extraction engine",
+      "path": "vendor/fetch-mcp"
+    },
+    {
+      "id": "lean-ctx",
+      "category": "vendor",
+      "binary": "lean-ctx",
+      "isMcp": true,
+      "description": "Token-lean rust repository indexing",
+      "path": "vendor/lean-ctx"
+    },
+    {
+      "id": "ponytail",
+      "category": "vendor",
+      "binary": "ponytail-mcp",
+      "isMcp": true,
+      "description": "Senior-dev instructions & agent patterns",
+      "path": "vendor/ponytail"
+    },
+    {
+      "id": "graphify",
+      "category": "vendor",
+      "binary": "graphify-mcp",
+      "isMcp": true,
+      "description": "Knowledge graph generation & analysis",
+      "path": "vendor/graphify"
+    },
+    {
+      "id": "anytype",
+      "category": "vendor",
+      "binary": "anytype-mcp",
+      "isMcp": true,
+      "description": "Anytype desktop & sync MCP server",
+      "path": "vendor/anytype-mcp"
+    },
+    {
+      "id": "codegraph",
+      "category": "vendor",
+      "binary": "codegraph-mcp",
+      "isMcp": true,
+      "description": "High-performance codebase intelligence & graph engine",
+      "path": "vendor/codegraph"
+    },
+    {
+      "id": "vision",
+      "alias": "vision-arwaky",
+      "category": "internal",
+      "binary": "vision-arwaky",
+      "isMcp": true,
+      "description": "Unified computer vision MCP (VLM, OCR, visual memory)",
+      "path": "internal/vision-arwaky"
+    },
+    {
+      "id": "qwen-web",
+      "alias": "qwen-web-arwaky",
+      "category": "internal",
+      "binary": "qwen-web-arwaky",
+      "isMcp": true,
+      "description": "Qwen AI Web Automation CLI & 1:1 MCP Server",
+      "path": "internal/qwen-web-arwaky"
+    },
+    {
+      "id": "lint",
+      "alias": "lint-arwaky",
+      "category": "internal",
+      "binary": "aes-lint",
+      "isMcp": false,
+      "description": "Architecture linter (AES rules) for Rust, Python, TypeScript",
+      "path": "internal/lint-arwaky"
+    },
+    {
+      "id": "cloudmail",
+      "alias": "cloudmail-arwaky",
+      "category": "internal",
+      "binary": "cmf",
+      "isMcp": false,
+      "description": "Virtual email & inbox management on Cloudflare Workers",
+      "path": "internal/cloudmail-arwaky"
+    },
+    {
+      "id": "blender",
+      "alias": "blender-arwaky",
+      "category": "internal",
+      "binary": "blender-arwaky",
+      "isMcp": true,
+      "description": "Headless 3D execution engine with automated test suites",
+      "path": "internal/blender-arwaky"
+    }
+  ]
+}
