@@ -290,7 +290,7 @@ cmd_run() {
         ;;
       vision|qwen-web|blender)
         if command -v uv >/dev/null 2>&1; then
-          exec uv run --directory "$tool_dir" "$@"
+          exec uv run --directory "$tool_dir" "$bin" "$@"
         elif command -v python3 >/dev/null 2>&1; then
           exec python3 -m "$id" "$@"
         fi
