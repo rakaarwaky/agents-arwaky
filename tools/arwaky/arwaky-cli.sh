@@ -87,6 +87,7 @@ cmd_help() {
   echo -e "  ${GREEN}shell${RESET}                          Enter the Distrobox 'agents-env' sandbox shell"
   echo -e "  ${GREEN}mcp${RESET} [action]                   Manage MCP configurations (list, generate, show)"
   echo -e "  ${GREEN}skill${RESET} [action]                 Manage & provision agent skills to workspace"
+  echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP & global skills to agent harnesses (--antigravity, --hermes, --opencode, --claude, --all)"
   echo -e "  ${GREEN}anytype${RESET} [action]                Manage Anytype headless daemon, bot accounts & keys"
   echo ""
   echo -e "${BOLD}MAINTENANCE & LIFECYCLE:${RESET}"
@@ -482,6 +483,7 @@ main() {
     anytype)         "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" "$@" ;;
     mcp)             cmd_mcp "$@" ;;
     skill|skills)    "$REPO_ROOT/tools/skill/skill-manager.sh" "$@" ;;
+    connect)         "$REPO_ROOT/tools/connect/connect-agent.sh" "$@" ;;
     shell|enter)     cmd_shell "$@" ;;
     help|-h|--help)  cmd_help ;;
     *)

@@ -134,6 +134,7 @@ The verification script checks:
 | **Install on Host (Bare-Metal)** | `aa install [tool] --host` |
 | **Enter container shell** | `aa shell` |
 | **Reset submodules cleanly** | `aa submodules` |
+| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (e.g. `--antigravity`, `--hermes`, `--opencode`, `--claude`, `--all`) |
 | **Clean build artifacts** | `aa clean` (or: `aa clean --all`) |
 
 ---
@@ -145,6 +146,7 @@ The verification script checks:
 - Container Specification: [`distrobox.ini`](distrobox.ini)
 - Shared XDG Helper: [`tools/lib/xdg.sh`](tools/lib/xdg.sh)
 - Master Build Script: [`tools/build/build-all.sh`](tools/build/build-all.sh)
+- Agent Harness Connector: [`tools/connect/connect-agent.sh`](tools/connect/connect-agent.sh)
 - Binary Exporter: [`tools/distrobox/export-bins.sh`](tools/distrobox/export-bins.sh)
 - CI Verification Gate: [`tools/ci/verify.sh`](tools/ci/verify.sh)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
