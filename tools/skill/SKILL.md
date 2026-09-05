@@ -12,7 +12,7 @@ The Skill Manager provides skill discovery, integrity auditing, inspection, and 
 
 Activate this skill when:
 - Discovering what agent skills and tool capabilities exist within the `agents-arwaky` ecosystem.
-- Provisioning tool usage guidelines to a workspace (`agents/skill/<name>/SKILL.md` and `.agents/skills/<name>/SKILL.md`).
+- Provisioning tool usage guidelines to a workspace (`.agents/skills/<name>/SKILL.md`).
 - Checking whether all registered tools have complete and valid `SKILL.md` documentation.
 - Inspecting a tool's agent guide or MCP parameters directly in the terminal without opening browsers or files manually.
 
@@ -28,9 +28,8 @@ Activate this skill when:
 
 ## Workspace Target Layout
 
-When `aa skill install <name>` runs, it provisions the skill to standard agent discovery locations:
-1. `agents/skill/<name>/SKILL.md` (project workspace convention)
-2. `.agents/skills/<name>/SKILL.md` (OpenClaw / Claude / Antigravity / AES convention)
+When `aa skill install <name>` runs, it provisions the skill exclusively to the standard AI agent location:
+- `.agents/skills/<name>/SKILL.md` (OpenClaw / Claude / Antigravity / AES standard)
 
 Custom destination paths can be specified with `--dest <custom_path>`.
 Existing files can be overwritten using `--force` or `-f`.

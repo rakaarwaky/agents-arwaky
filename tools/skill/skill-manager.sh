@@ -283,23 +283,17 @@ copy_single_skill_file() {
     return 0
   fi
 
-  # Standard provisioning: Both agents/skill/ and .agents/skills/
-  local dest1="$target_dir/agents/skill/$clean_name/SKILL.md"
-  local dest2="$target_dir/.agents/skills/$clean_name/SKILL.md"
+  # Standard provisioning: Exclusively to .agents/skills/
+  local dest="$target_dir/.agents/skills/$clean_name/SKILL.md"
 
-  mkdir -p "$(dirname "$dest1")"
-  mkdir -p "$(dirname "$dest2")"
+  mkdir -p "$(dirname "$dest")"
 
-  local copied=0
-  for dest in "$dest1" "$dest2"; do
-    if [ -f "$dest" ] && [ "$force" != "true" ]; then
-      echo -e "  ${YELLOW}[SKIP]${RESET} Already exists: $dest"
-    else
-      cp "$source_file" "$dest"
-      echo -e "  ${GREEN}[OK]${RESET} Provisioned: $dest"
-      copied=$((copied + 1))
-    fi
-  done
+  if [ -f "$dest" ] && [ "$force" != "true" ]; then
+    echo -e "  ${YELLOW}[SKIP]${RESET} Already exists: $dest"
+  else
+    cp "$source_file" "$dest"
+    echo -e "  ${GREEN}[OK]${RESET} Provisioned: $dest"
+  fi
 
   return 0
 }
