@@ -38,19 +38,19 @@ Before making changes, please review our core architectural rules:
 
 2. **Verify host prerequisites:**
    ```bash
-   make setup
+   aa setup
    ```
    *(Checks for Podman/Docker and Distrobox, offering automated installation via system package managers).*
 
 3. **Provision the environment:**
    ```bash
-   make install
+   aa install
    ```
 
 4. **Verify installation:**
    ```bash
-   arwaky doctor
-   arwaky status
+   aa doctor
+   aa status
    ```
 
 ---
@@ -298,14 +298,16 @@ If your tool provides an MCP server (`isMcp: true`):
 
 ---
 
-### Step 7: Add Host-Build Fallback in `Makefile` (Optional)
+### Step 7: Test Installation in Both Paradigms
 
-Add a direct fallback target in [`Makefile`](Makefile) for host-only environments:
+Verify installation under both paradigms:
 
-```makefile
-host-build-my-cool-tool:
-	git submodule update --init vendor/my-cool-tool
-	./tools/my-cool-tool/install.sh
+```bash
+# 1. Test Distrobox sandbox installation (default):
+aa install my-cool-tool
+
+# 2. Test Host installation:
+aa install my-cool-tool --host
 ```
 
 ---
@@ -324,19 +326,19 @@ host-build-my-cool-tool:
 
 Run the quality gate:
 ```bash
-make check
+aa check
 ```
 Test the integration end-to-end:
 ```bash
 # Check presence in status and catalog
-arwaky status
-arwaky list
+aa status
+aa list
 
 # Test execution
-arwaky run my-cool-tool --help
+aa run my-cool-tool --help
 
 # Verify MCP manifest
-arwaky mcp show
+aa mcp show
 ```
 
 ---
@@ -370,8 +372,11 @@ Delete the tool's recipe directory under `tools/`:
 rm -rf tools/my-cool-tool
 ```
 
-### Step 6: Remove Host-Build Target in `Makefile`
-If a `host-build-<tool-name>` target was added to [`Makefile`](Makefile), remove it and update `.PHONY`. Also remove binary references in `clean-host`.
+### Step 6: Clean Host Binaries & Cache (If Installed)
+Purge any lingering binaries and share directories from the host:
+```bash
+aa clean --host
+```
 
 ### Step 7: De-initialize and Remove Git Submodule
 Use Git to cleanly purge the submodule:
@@ -394,8 +399,8 @@ rm -rf .git/modules/vendor/my-cool-tool
 ### Step 9: Verify Cleanliness
 Execute the verification suite to ensure no broken references remain:
 ```bash
-make check
-arwaky status
+aa check
+aa status
 ```
 
 ---
@@ -414,13 +419,12 @@ To upgrade a vendor tool to a newer upstream release or commit:
 
 2. Test the build inside the container:
    ```bash
-   arwaky install <tool-name>
-   # or: ./tools/<tool-name>/install.sh
+   aa install <tool-name>
    ```
 
 3. Test execution:
    ```bash
-   arwaky run <tool-name> --help
+   aa run <tool-name> --help
    ```
 
 4. Update the pinned commit SHA in [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
@@ -457,7 +461,7 @@ Before committing code or submitting a Pull Request, verify that all automated c
 
 ### 1. Run the CI Verification Script
 ```bash
-make check
+aa check
 # Equivalent to: ./tools/ci/verify.sh
 ```
 
@@ -484,4 +488,4 @@ When submitting a PR, ensure:
 - [ ] New shell scripts include `set -euo pipefail` and executable bits (`chmod +x`).
 - [ ] `tools/arwaky/manifest.json` is updated and validated with `jq`.
 - [ ] `THIRD_PARTY_LICENSES.md` lists the upstream license and commit.
-- [ ] `make check` passes with zero errors.
+- [ ] `aa check` passes with zero errors.
