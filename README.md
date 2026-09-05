@@ -58,7 +58,7 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 flowchart TB
     subgraph Host["Host Operating System (Linux)"]
         User["User / AI Agent"]
-        CLI["arwaky CLI (~/.local/bin/arwaky)"]
+        CLI["agents-arwaky CLI (~/.local/bin/agents-arwaky, alias: aa)"]
         BinDir["~/.local/bin/ (Exported Executables)"]
         Clients["MCP Clients\n(Antigravity / Claude / Cursor / Zed)"]
         Configs["~/.config/<tool>/ & mcp_servers.generated.json"]
@@ -87,7 +87,7 @@ flowchart TB
 
 ```text
 agents-arwaky/
-├── arwaky                       # Main Orchestration Entrypoint CLI (Host executable)
+├── agents-arwaky                # Main Orchestration Entrypoint CLI (alias: aa)
 ├── distrobox.ini                # Declarative container specification (Podman/Docker)
 ├── Makefile                     # Standard developer commands (install, build, shell, test)
 ├── mcp_servers.generated.json   # Auto-generated unified MCP client manifest
@@ -158,15 +158,15 @@ This single command executes the end-to-end setup pipeline:
 
 ### 4. Verify System Health
 ```bash
-arwaky doctor
-arwaky status
+aa doctor
+aa status
 ```
 
 ---
 
-## 💻 Unified Orchestrator CLI (`arwaky`)
+## 💻 Unified Orchestrator CLI (`agents-arwaky` / `aa`)
 
-The repository installs the `arwaky` CLI into `~/.local/bin/arwaky`. It serves as the single pane of glass for monitoring, executing, and managing all ecosystem components.
+The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~/.local/bin/`. It serves as the single pane of glass for monitoring, executing, and managing all ecosystem components.
 
 ```
    ___                           _          
@@ -181,43 +181,49 @@ The repository installs the `arwaky` CLI into `~/.local/bin/arwaky`. It serves a
 
 | Command | Purpose | Example |
 |---|---|---|
-| `arwaky status` | Display health, installation state, and submodule readiness | `arwaky status` |
-| `arwaky doctor` | Diagnose container runtime, PATH availability, and dependencies | `arwaky doctor` |
-| `arwaky list` | List all registered tools (internal & vendor) with categories | `arwaky list` |
-| `arwaky run <tool> [args]` | Transparently execute any tool inside the container from host | `arwaky run context7 --help` |
-| `arwaky mcp list` | Enumerate all tools offering Model Context Protocol servers | `arwaky mcp list` |
-| `arwaky mcp generate` | Rebuild unified client configuration (`mcp_servers.generated.json`) | `arwaky mcp generate` |
-| `arwaky mcp show` | View current unified MCP configuration JSON | `arwaky mcp show` |
-| `arwaky install [tool]` | Install full ecosystem or a specific tool from source | `arwaky install codegraph` |
-| `arwaky shell` | Drop into an interactive shell inside the sandbox container | `arwaky shell` |
+| `aa status` | Display health, installation state, and submodule readiness | `aa status` |
+| `aa doctor` | Diagnose container runtime, PATH availability, and dependencies | `aa doctor` |
+| `aa list` | List all registered tools (internal & vendor) with categories | `aa list` |
+| `aa run <tool> [args]` | Transparently execute any tool inside the container from host | `aa run context7 --help` |
+| `aa mcp list` | Enumerate all tools offering Model Context Protocol servers | `aa mcp list` |
+| `aa mcp generate` | Rebuild unified client configuration (`mcp_servers.generated.json`) | `aa mcp generate` |
+| `aa mcp show` | View current unified MCP configuration JSON | `aa mcp show` |
+| `aa install [tool]` | Install full ecosystem or a specific tool from source | `aa install codegraph` |
+| `aa shell` | Drop into an interactive shell inside the sandbox container | `aa shell` |
+
+> [!TIP]
+> You can use `agents-arwaky` or the short alias `aa` interchangeably for all commands!
 
 ### Practical Examples
 
 ```bash
 # Codebase indexing with codegraph
-arwaky run codegraph index .
+aa run codegraph index .
 
 # Architecture validation across the repository
-arwaky run lint --help
+aa run lint --help
 
 # Token-lean repository context generation
-arwaky run lean-ctx serve
+aa run lean-ctx serve
 ```
 
 ---
 
 ## 📦 Agent & Tool Catalog
 
+> [!TIP]
+> The single source of truth (SSOT) for all tool registrations is [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json). You can also run `aa list` or `aa mcp list` to inspect live tool status from the terminal.
+
 ### Core In-House Agents (`internal/`)
 
-Specialized autonomous agents developed specifically for the `arwaky` ecosystem:
+Specialized autonomous agents developed specifically for the `agents-arwaky` ecosystem:
 
 | Agent / Tool | Binary | Language & Stack | MCP? | Description |
 |---|---|---|:---:|---|
 | **[vision-arwaky](internal/vision-arwaky/)** | `vision-arwaky` | Python / `uv` | Yes | Unified vision intelligence: VLM inspection, OCR extraction, and visual memory. |
 | **[qwen-web-arwaky](internal/qwen-web-arwaky/)** | `qwen-web-arwaky` | Python / Playwright | Yes | Browser automation engine with bi-directional MCP interface. |
 | **[blender-arwaky](internal/blender-arwaky/)** | `blender-arwaky` | Python / Blender | Yes | Headless 3D procedural execution, asset generation, and rendering pipeline. |
-| **[lint-arwaky](internal/lint-arwaky/)** | `aes-lint` | Rust | No | Architecture Enforcement System (AES) validating code structure across languages. |
+| **[lint-arwaky](internal/lint-arwaky/)** | `lint-arwaky-cli` | Rust | No | Architecture Enforcement System (AES) validating code structure across languages. |
 
 ### Curated Upstream Vendor Tools (`vendor/`)
 
@@ -238,7 +244,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 
 ## 🔌 MCP Client Integration
 
-`agents-arwaky` generates a standardized MCP server configuration file during `make install` or `arwaky mcp generate`:
+`agents-arwaky` generates a standardized MCP server configuration file during `make install` or `aa mcp generate`:
 
 📁 File Location: `mcp_servers.generated.json`
 
@@ -270,19 +276,19 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 
 ```bash
 # 1. Start the headless daemon container
-arwaky anytype start
+aa anytype start
 
 # 2. Check daemon health and API status
-arwaky anytype status
+aa anytype status
 
 # 3. Generate API key (auto-updates .env and MCP config)
-arwaky anytype auth-key "arwaky-agent-key"
+aa anytype auth-key "arwaky-agent-key"
 
 # 4. Invite agent to your Anytype Space (from desktop app invite link)
-arwaky anytype space-join "<your-invite-link>"
+aa anytype space-join "<your-invite-link>"
 
 # 5. List joined spaces
-arwaky anytype space-list
+aa anytype space-list
 ```
 
 ### Client Setup Guides
@@ -386,6 +392,8 @@ To run automated integrity checks (executable permissions, JSON schema validity,
 make check
 ```
 
+> See [**`CONTRIBUTING.md` § Quality Verification & PR Process**](CONTRIBUTING.md#-quality-verification--pr-process) for details on validation checks and commit conventions.
+
 ### Clean & Reset Targets
 
 ```bash
@@ -410,6 +418,9 @@ make distclean
 - **XDG Conformance:** Tools do not touch `/usr` or global system locations. Data resides cleanly in `${XDG_DATA_HOME}` (`~/.local/share/`) and configurations in `${XDG_CONFIG_HOME}` (`~/.config/`).
 - **Pristine Host Toolchain:** No global `cargo`, `rustc`, `node`, `bun`, or `uv` installations are forced onto your host machine.
 - **Submodule Isolation:** Upstream codebases are strictly tracked via Git submodules at pinned commits, preventing unsolicited upstream drift.
+
+> [!NOTE]
+> For the complete technical specifications on XDG storage paths, container isolation contracts, and Architecture Enforcement System (AES) rules, see [**`AGENTS.md` § System Philosophy & Core Invariants**](AGENTS.md#-system-philosophy--core-invariants).
 
 ---
 

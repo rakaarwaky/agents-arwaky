@@ -82,7 +82,7 @@ clean:
 
 clean-host:
 	@echo ">>> Cleaning host ~/.local/bin and ~/.local/share tool installations..."
-	rm -f $(HOME)/.local/bin/{context7-mcp,fetch-mcp,lean-ctx,ponytail-mcp,anytype-mcp,codegraph-mcp,9router,arwaky}
+	rm -f $(HOME)/.local/bin/{context7-mcp,fetch-mcp,lean-ctx,ponytail-mcp,anytype-mcp,codegraph-mcp,9router,agents-arwaky,aa,arwaky,lint-arwaky-cli,lac}
 	rm -rf $(HOME)/.local/share/{context7,fetch-mcp,lean-ctx,ponytail,anytype-mcp,codegraph,9router,agents-arwaky}
 	@echo ">>> Host tool binaries and data directories cleaned."
 
@@ -124,7 +124,7 @@ host-build-9router:
 # Internal In-House Agent Targets
 host-build-lint:
 	git submodule update --init internal/lint-arwaky
-	./internal/lint-arwaky/scripts/install.local.sh
+	./tools/lint/install.sh
 
 host-build-qwen-web:
 	git submodule update --init internal/qwen-web-arwaky

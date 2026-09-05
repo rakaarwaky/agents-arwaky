@@ -39,126 +39,41 @@ When executing or reasoning about this repository, **you must preserve these inv
 4. **Architecture Enforcement System (AES) Compliance:**
    - In-house agents (`internal/lint-arwaky`, `internal/vision-arwaky`, etc.) enforce the AES 7-layer architecture.
    - Every file must adhere to naming rules: `layer_concern_role.<ext>`.
-   - Linters and architecture checks can be triggered with `arwaky run lint --help` or via `internal/lint-arwaky`.
+   - Linters and architecture checks can be triggered with `aa run lint --help` (or `agents-arwaky run lint --help`) or via `internal/lint-arwaky`.
 
 ---
 
 ## 🗂️ Repository Architecture Map
 
-```text
-agents-arwaky/
-├── arwaky                       # Root wrapper script for the unified CLI
-├── distrobox.ini                # Declarative container spec for 'agents-env'
-├── Makefile                     # Standard developer commands and lifecycle targets
-├── mcp_servers.generated.json   # Generated MCP client manifest for AI tools
-├── THIRD_PARTY_LICENSES.md      # Upstream licensing inventory and attributions
-├── README.md                    # Human-facing project overview
-├── AGENTS.md                    # This document (AI Agent handbook)
-├── CONTRIBUTING.md              # Contributor guide (vendor add/remove flows)
-│
-├── internal/                    # In-House Autonomous Agents & Tools (Git Submodules)
-│   ├── blender-arwaky/          # Headless 3D procedural execution & rendering engine
-│   ├── lint-arwaky/             # Rust-based Architecture Enforcement System (AES)
-│   ├── qwen-web-arwaky/         # Playwright-driven browser automation & MCP server
-│   └── vision-arwaky/           # Computer vision MCP (VLM, OCR, visual memory)
-│
-├── vendor/                      # Pinned Upstream Community Tools (Git Submodules)
-│   ├── 9router/                 # Local AI routing gateway & token saver
-│   ├── anytype-mcp/             # Local-first knowledge base sync MCP server
-│   ├── codegraph/               # Graph-based codebase intelligence & query engine
-│   ├── context7/                # Upstash documentation & context retrieval
-│   ├── fetch-mcp/               # Resilient web scraping & HTML cleaning engine
-│   ├── lean-ctx/                # Ultra token-lean codebase indexer
-│   └── ponytail/                # Agent architecture instructions & prompt patterns
-│
-└── tools/                       # Orchestration, CI & XDG Infrastructure
-    ├── arwaky/                  # CLI engine (arwaky-cli.sh) & SSOT manifest (manifest.json)
-    ├── build/                   # Master cross-compilation pipeline (build-all.sh)
-    ├── ci/                      # Quality gates & syntax validation (verify.sh)
-    ├── distrobox/               # Container provisioning & binary exporter
-    ├── lib/                     # Shared bash utilities & XDG path helpers (xdg.sh)
-    ├── mcp/                     # Unified MCP configuration generator (generate-config.sh)
-    └── <vendor-tool>/           # Per-tool install scripts (install.sh) & daemon wrappers
-```
+The repository segregates agent workloads into three primary zones:
+- `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules).
+- `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules).
+- `tools/`: Orchestration CLI (`arwaky`), Distrobox container lifecycle, CI validation, and per-tool installers.
+
+> For the comprehensive visual directory tree and system flow diagram, see [**README.md § Architecture**](README.md#-architecture).
 
 ---
 
-## ⚡ Primary Agent Interface: `arwaky` CLI
+## ⚡ Primary Agent Interface: `agents-arwaky` (`aa`) CLI
 
-When an agent needs to inspect system health, execute tools, or verify MCP availability, **use the `arwaky` CLI**. It automatically resolves whether it is running on the host or inside Distrobox.
-
-### Diagnostic & Status Commands
-
-```bash
-# Check system health, submodule presence, and binary export state
-arwaky status
-
-# Run comprehensive environment diagnostics (container, PATH, tools)
-arwaky doctor
-
-# List all registered internal and vendor tools with MCP status
-arwaky list
-```
+When inspecting system health, executing tools, or managing MCP configurations, **always use the `agents-arwaky` (alias `aa`) CLI**. It automatically resolves execution context between host and Distrobox `agents-env`.
 
 ### Tool Execution Dispatcher
 
-Agents should execute tools via `arwaky run <tool> [args...]`. This command intelligently dispatches execution:
-1. Searches host `PATH` and `~/.local/bin/`.
-2. If absent and on host, executes transparently inside Distrobox `agents-env`.
-3. If an internal tool, leverages specific project runners (`cargo`, `uv`, `bun`).
+Agents should execute tools via `aa run <tool> [args...]` (or `agents-arwaky run <tool> [args...]`). The CLI resolves execution in order:
+1. Host `PATH` and `~/.local/bin/`.
+2. Transparent execution inside Distrobox `agents-env` if absent on host.
+3. Native project runners (`cargo`, `uv`, `bun`) for in-house submodules.
 
-```bash
-# Query context with context7
-arwaky run context7 --help
-
-# Index codebase with codegraph
-arwaky run codegraph index .
-
-# Generate token-lean repository context
-arwaky run lean-ctx --help
-
-# Run AES architecture linter
-arwaky run lint --help
-
-# Web scraping via fetch
-arwaky run fetch --help
-```
-
-### MCP Configuration Management
-
-`agents-arwaky` generates a unified Model Context Protocol configuration (`mcp_servers.generated.json`):
-
-```bash
-# List all MCP-capable tools
-arwaky mcp list
-
-# Re-generate mcp_servers.generated.json and ~/.config/<tool>/ configs
-arwaky mcp generate
-
-# View current unified MCP configuration
-arwaky mcp show
-```
+> For the complete CLI command reference, syntax, and practical examples, see [**README.md § Unified Orchestrator CLI (`agents-arwaky` / `aa`)**](README.md#-unified-orchestrator-cli-arwaky).
 
 ---
 
-## 📋 Tool & MCP Inventory Matrix
+## 📋 Tool & MCP Inventory
 
-The Single Source of Truth (SSOT) for all registered tools is [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json).
-
-| Tool ID | Category | Exported Binary | Protocol | Focus & Capabilities |
-|---|---|---|:---:|---|
-| `context7` | vendor | `context7-mcp` | MCP | Upstash documentation & context retrieval |
-| `fetch` | vendor | `fetch-mcp` | MCP | Web scraping & markdown transformation |
-| `lean-ctx` | vendor | `lean-ctx` | CLI / MCP | Token-lean repository context indexer |
-| `ponytail` | vendor | `ponytail-mcp` | MCP | Senior-developer prompt instructions |
-| `anytype` | vendor | `anytype-mcp` | MCP | Local-first Anytype knowledge base sync |
-| `anytype-daemon` | internal | `anytype-daemon.sh` | CLI | Headless Anytype daemon container manager |
-| `codegraph` | vendor | `codegraph-mcp` | CLI / MCP | Codebase intelligence & semantic graph |
-| `9router` | vendor | `9router` | CLI | Local AI routing gateway & token saver (40+ providers) |
-| `vision` | internal | `vision-arwaky` | CLI / MCP | VLM visual analysis, OCR, visual memory |
-| `qwen-web` | internal | `qwen-web-arwaky` | CLI / MCP | Playwright web automation & MCP interface |
-| `lint` | internal | `aes-lint` | CLI | AES 7-layer architecture compliance scanner |
-| `blender` | internal | `blender-arwaky` | CLI / MCP | Headless 3D execution engine |
+- **Machine-Readable SSOT:** [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json) is the single source of truth for all registered internal and vendor tools.
+- **Runtime Discovery:** Use `aa list` to view all registered tools, or `aa mcp list` to inspect active MCP servers.
+- **Detailed Catalog & Documentation:** For tool descriptions, language stacks, upstream repository links, and client integration snippets, see [**README.md § Agent & Tool Catalog**](README.md#-agent--tool-catalog) and [**README.md § MCP Client Integration**](README.md#-mcp-client-integration).
 
 ---
 
@@ -209,14 +124,14 @@ The verification script checks:
 
 | Objective | Recommended Agent Command |
 |---|---|
-| **Diagnose environment** | `arwaky doctor` |
-| **Check tool readiness** | `arwaky status` |
+| **Diagnose environment** | `aa doctor` |
+| **Check tool readiness** | `aa status` |
 | **Verify repository integrity** | `make check` |
-| **Inspect MCP server schema** | `arwaky mcp show` |
-| **Regenerate MCP manifest** | `arwaky mcp generate` |
-| **Execute containerized tool** | `arwaky run <tool-id> [args]` |
-| **Install single tool** | `arwaky install <tool-id>` |
-| **Enter container shell** | `arwaky shell` (or `make shell`) |
+| **Inspect MCP server schema** | `aa mcp show` |
+| **Regenerate MCP manifest** | `aa mcp generate` |
+| **Execute containerized tool** | `aa run <tool-id> [args]` |
+| **Install single tool** | `aa install <tool-id>` |
+| **Enter container shell** | `aa shell` (or `make shell`) |
 | **Reset submodules cleanly** | `make submodules` |
 | **Clean host build artifacts** | `make clean` |
 
@@ -231,5 +146,6 @@ The verification script checks:
 - Master Build Script: [`tools/build/build-all.sh`](tools/build/build-all.sh)
 - Binary Exporter: [`tools/distrobox/export-bins.sh`](tools/distrobox/export-bins.sh)
 - CI Verification Gate: [`tools/ci/verify.sh`](tools/ci/verify.sh)
-- Contributor Workflows: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Human Documentation & Tool Catalog: [`README.md`](README.md)
 - Upstream Licenses: [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)

@@ -64,7 +64,7 @@ check_distrobox_container() {
 cmd_help() {
   print_banner
   echo -e "${BOLD}USAGE:${RESET}"
-  echo -e "  arwaky <command> [arguments...]"
+  echo -e "  agents-arwaky <command> [arguments...]  (alias: aa <command>)"
   echo ""
   echo -e "${BOLD}COMMANDS:${RESET}"
   echo -e "  ${GREEN}status${RESET}             Check health, submodule and binary installation status"
@@ -78,14 +78,14 @@ cmd_help() {
   echo -e "  ${GREEN}help${RESET}               Show this help message"
   echo ""
   echo -e "${BOLD}EXAMPLES:${RESET}"
-  echo -e "  arwaky status"
-  echo -e "  arwaky doctor"
-  echo -e "  arwaky install"
-  echo -e "  arwaky install 9router"
-  echo -e "  arwaky run context7 --help"
-  echo -e "  arwaky run codegraph index ."
-  echo -e "  arwaky run lint --help"
-  echo -e "  arwaky mcp generate"
+  echo -e "  aa status"
+  echo -e "  aa doctor"
+  echo -e "  aa install"
+  echo -e "  aa install 9router"
+  echo -e "  aa run context7 --help"
+  echo -e "  aa run codegraph index ."
+  echo -e "  aa run lint --help"
+  echo -e "  aa mcp generate"
   echo ""
 }
 
@@ -239,7 +239,7 @@ cmd_mcp() {
 cmd_run() {
   if [ $# -lt 1 ]; then
     echo -e "${RED}Error: Missing tool name.${RESET}"
-    echo "Usage: arwaky run <tool-name> [args...]"
+    echo "Usage: agents-arwaky run <tool-name> [args...]  (or: aa run <tool-name>)"
     exit 1
   fi
 
@@ -252,7 +252,7 @@ cmd_run() {
 
   if [ -z "$tool_info" ]; then
     echo -e "${RED}Error: Tool '$tool_input' not found in manifest.${RESET}"
-    echo "Run 'arwaky list' to see all available tools."
+    echo "Run 'aa list' to see all available tools."
     exit 1
   fi
 
@@ -283,9 +283,9 @@ cmd_run() {
     case "$id" in
       lint)
         if command -v cargo >/dev/null 2>&1; then
-          exec cargo run --quiet --manifest-path "$tool_dir/Cargo.toml" -- "$@"
+          exec cargo run --quiet --manifest-path "$tool_dir/Cargo.toml" --bin lint-arwaky-cli -- "$@"
         elif check_distrobox_container; then
-          exec distrobox enter agents-env -- cargo run --quiet --manifest-path "$tool_dir/Cargo.toml" -- "$@"
+          exec distrobox enter agents-env -- cargo run --quiet --manifest-path "$tool_dir/Cargo.toml" --bin lint-arwaky-cli -- "$@"
         fi
         ;;
       vision|qwen-web|blender)
@@ -299,7 +299,7 @@ cmd_run() {
   fi
 
   echo -e "${RED}Error: Binary '$bin' for tool '$id' is not installed or runnable.${RESET}"
-  echo -e "Try running: ${BOLD}arwaky install $id${RESET} or ${BOLD}arwaky install${RESET}"
+  echo -e "Try running: ${BOLD}aa install $id${RESET} or ${BOLD}aa install${RESET}"
   exit 1
 }
 

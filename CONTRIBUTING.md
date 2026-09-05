@@ -316,7 +316,7 @@ host-build-my-cool-tool:
    ```markdown
    | `vendor/my-cool-tool` | [example-org/my-cool-tool](https://github.com/example-org/my-cool-tool) | `a1b2c3d4` | MIT License |
    ```
-2. **Catalog Update:** Add a row to the **Curated Upstream Vendor Tools** table in [`README.md`](README.md) and [`AGENTS.md`](AGENTS.md).
+2. **Catalog Update:** Add a row to the **Curated Upstream Vendor Tools** table in [`README.md`](README.md). Ensure the tool is registered in [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json).
 
 ---
 
@@ -389,7 +389,7 @@ rm -rf .git/modules/vendor/my-cool-tool
 
 ### Step 8: Update Documentation & Licenses
 - Remove the tool entry from [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
-- Remove the tool row from the catalog tables in [`README.md`](README.md) and [`AGENTS.md`](AGENTS.md).
+- Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json).
 
 ### Step 9: Verify Cleanliness
 Execute the verification suite to ensure no broken references remain:
