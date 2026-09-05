@@ -23,8 +23,35 @@ echo ">>> Data Directory: $DATA_DIR"
 mkdir -p "$DATA_DIR" "$XDG_BIN_HOME"
 chmod +x "$DAEMON_SCRIPT"
 
+# Setup or load configuration file
+ENV_FILE="$SCRIPT_DIR/.env"
+if [ ! -f "$ENV_FILE" ] || [ ! -s "$ENV_FILE" ]; then
+  echo ">>> Initializing $ENV_FILE from template..."
+  RAND_PASS="9r_$(openssl rand -hex 6 2>/dev/null || date +%s | sha256sum | head -c 12)"
+  sed "s|change-me-to-a-strong-password|$RAND_PASS|" "$SCRIPT_DIR/.env.example" > "$ENV_FILE"
+  chmod 600 "$ENV_FILE"
+  echo "=========================================================="
+  echo " 🔑 9Router Dashboard Initial Password Configured:"
+  echo "    Password: $RAND_PASS"
+  echo "    Saved to: tools/9router/.env"
+  echo "=========================================================="
+fi
+
+if grep -q "change-me-to-a-strong-password" "$ENV_FILE" 2>/dev/null; then
+  RAND_PASS="9r_$(openssl rand -hex 6 2>/dev/null || date +%s | sha256sum | head -c 12)"
+  sed -i "s|change-me-to-a-strong-password|$RAND_PASS|" "$ENV_FILE"
+  echo ">>> Auto-generated INITIAL_PASSWORD in $ENV_FILE: $RAND_PASS"
+fi
+
 echo ">>> Initializing and verifying 9Router daemon container..."
 "$DAEMON_SCRIPT" start
+
+echo ">>> Synchronizing AI providers configuration..."
+if [ -f "$SCRIPT_DIR/providers.json" ] || [ -f "$SCRIPT_DIR/provider.json" ]; then
+  "$DAEMON_SCRIPT" provider sync
+else
+  echo ">>> Note: No tools/9router/providers.json found (template: tools/9router/providers.example.json)."
+fi
 
 echo ">>> Installing launcher to $LAUNCHER..."
 cat <<'EOF' > "$LAUNCHER"
@@ -60,6 +87,9 @@ if [ $# -eq 0 ]; then
   echo "  9router stop      Stop the daemon container"
   echo "  9router restart   Restart the daemon container"
   echo "  9router status    Check container status and API health"
+  echo "  9router password  Display or manage admin dashboard password"
+  echo "  9router key       Manage consumer API keys (list, add, delete)"
+  echo "  9router provider  Manage upstream AI providers (list, add, delete, sync)"
   echo "  9router logs      Inspect container logs (-f to follow)"
   echo "  9router models    Discover available AI models"
   echo "  9router open      Open web dashboard in browser"
@@ -67,7 +97,7 @@ if [ $# -eq 0 ]; then
 fi
 
 case "$1" in
-  start|stop|restart|status|logs|models|open|health)
+  start|stop|restart|status|logs|models|open|health|key|keys|provider|providers|password)
     exec "$DAEMON_SCRIPT" "$@"
     ;;
   --help|-h|help)

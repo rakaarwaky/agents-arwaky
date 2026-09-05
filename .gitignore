@@ -39,11 +39,15 @@ tools/anytype-mcp/daemon/anytype
 
 # Environment and local configs
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
 .dev.vars
+tools/*/env
+tools/*/.env
+!tools/*/env.example
+!tools/*/.env.example
+tools/*/providers.json
+tools/*/provider.json
+!tools/*/providers.example.json
 
 # Windows OS files
 Thumbs.db

@@ -1,0 +1,32 @@
+[
+  {
+    "provider": "openrouter",
+    "apiKeys": [
+      "OpenRouter Utama|sk-or-v1-YourPrimaryOpenRouterKey",
+      "OpenRouter Cadangan|sk-or-v1-YourBackupOpenRouterKey"
+    ]
+  },
+  {
+    "provider": "gemini",
+    "apiKeys": [
+      "Google Gemini|AIzaSyYourGeminiApiKeyHere"
+    ]
+  },
+  {
+    "provider": "deepseek",
+    "apiKeys": [
+      "DeepSeek Official|sk-YourDeepSeekApiKeyHere"
+    ]
+  },
+  {
+    "provider": "custom",
+    "url": "http://localhost:11434/v1",
+    "apiKeys": [
+      "Local Ollama|ollama"
+    ],
+    "models": [
+      "qwen2.5-coder:7b",
+      "deepseek-r1:7b"
+    ]
+  }
+]
