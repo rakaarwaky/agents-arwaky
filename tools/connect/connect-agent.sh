@@ -349,8 +349,6 @@ if "mcp_servers" not in data or data["mcp_servers"] is None:
     data["mcp_servers"] = {}
 
 for name, srv in servers.items():
-    if name in data["mcp_servers"] and not force:
-        continue
     entry = {"command": srv["command"], "enabled": True}
     if "args" in srv:
         entry["args"] = srv["args"]
