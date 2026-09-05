@@ -89,7 +89,6 @@ flowchart TB
 agents-arwaky/
 ├── agents-arwaky                # Main Orchestration Entrypoint CLI (alias: aa)
 ├── distrobox.ini                # Declarative container specification (Podman/Docker)
-├── Makefile                     # Standard developer commands (install, build, shell, test)
 ├── mcp_servers.generated.json   # Auto-generated unified MCP client manifest
 ├── AGENTS.md                    # Operational manual & architecture context for AI agents
 ├── CONTRIBUTING.md              # Contributor workflows (adding/removing vendor tools)
@@ -134,19 +133,19 @@ cd agents-arwaky
 > [!TIP]
 > If you previously cloned without submodules, initialize them via:
 > ```bash
-> make submodules
+> ./aa submodules
 > ```
 
 ### 2. Verify Host Prerequisites
 Ensure [Podman](https://podman.io/) (or Docker) and [Distrobox](https://distrobox.it/) are installed:
 ```bash
-make setup
+./aa setup
 ```
 *(Runs an automated prerequisite check and optionally installs dependencies using your host package manager: `apt`, `pacman`, or `dnf`).*
 
 ### 3. Build & Provision (One-Command)
 ```bash
-make install
+./aa install
 ```
 This single command executes the end-to-end setup pipeline:
 1. Validates host container runtime.
@@ -243,7 +242,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 
 ## 🔌 MCP Client Integration
 
-`agents-arwaky` generates a standardized MCP server configuration file during `make install` or `aa mcp generate`:
+`agents-arwaky` generates a standardized MCP server configuration file during `aa install` or `aa mcp generate`:
 
 📁 File Location: `mcp_servers.generated.json`
 
@@ -372,33 +371,32 @@ Add to `~/.config/zed/settings.json`:
 Compiles runtimes and tools inside the rootless `agents-env` container, exporting clean binary launchers to `~/.local/bin/`. Zero host contamination.
 ```bash
 # Install all tools in ecosystem:
-aa install                       # or: make install
+aa install
 
 # Install a specific tool (e.g. fetch, lint, vision, codegraph):
-aa install fetch                 # or: make install-fetch
+aa install fetch
 ```
 
 ### 2. Host Mode (Bare-Metal Fallback)
 If running without container permissions (e.g. nested virtualization restrictions), tools can be compiled directly on the host using native runtimes into standard XDG directories:
 ```bash
 # Install all tools directly on host:
-aa install --host                # or: make host-build
+aa install --host
 
 # Install a specific tool directly on host:
-aa install fetch --host          # or: make host-build-fetch
+aa install fetch --host
 ```
 
 ### Interactive Container Shell
 To inspect the internal toolchains or debug builds inside the sandbox:
 ```bash
-make shell
-# or: aa shell
+aa shell
 ```
 
 ### Quality Gate & CI Verification
 To run automated integrity checks (executable permissions, JSON schema validity, submodules state, and ShellCheck):
 ```bash
-make check
+aa check
 ```
 
 > See [**`CONTRIBUTING.md` § Quality Verification & PR Process**](CONTRIBUTING.md#-quality-verification--pr-process) for details on validation checks and commit conventions.
@@ -406,17 +404,17 @@ make check
 ### Clean & Reset Targets
 
 ```bash
-# Remove build artifacts & generated configurations
-make clean
+# Remove build artifacts & generated configurations:
+aa clean
 
-# Remove exported host binaries (~/.local/bin) and data (~/.local/share)
-make clean-host
+# Remove exported host binaries (~/.local/bin) and data (~/.local/share):
+aa clean --host
 
-# Destroy the sandbox container (preserves your code and host config)
-make destroy
+# Destroy the sandbox container (preserves your code and host config):
+aa destroy
 
-# Deep reset submodules and repository to pristine state
-make distclean
+# Deep reset submodules and repository to pristine state:
+aa clean --all
 ```
 
 ---
@@ -443,14 +441,14 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
   - Cleanly removing or deprecating vendor tools
   - Upgrading upstream submodules
   - Contributing to in-house agents under `internal/`
-  - Quality verification gates (`make check`)
+  - Quality verification gates (`aa check`)
 
 ### Quick Pull Request Checklist:
 1. Fork the repository & create a feature branch (`git checkout -b feat/my-new-tool`).
 2. Follow the step-by-step workflow in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 3. Run verification before committing:
    ```bash
-   make check
+   aa check
    ```
 4. Commit using conventional commits (`git commit -m "feat(vendor): add my-new-tool"`).
 5. Open a Pull Request.

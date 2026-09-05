@@ -26,6 +26,7 @@ if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
   BOLD="\033[1m"
   DIM="\033[2m"
   GREEN="\033[0;32m"
+  BLUE="\033[0;34m"
   CYAN="\033[0;36m"
   YELLOW="\033[0;33m"
   RED="\033[0;31m"
@@ -34,6 +35,7 @@ else
   BOLD=""
   DIM=""
   GREEN=""
+  BLUE=""
   CYAN=""
   YELLOW=""
   RED=""
@@ -404,8 +406,122 @@ cmd_install() {
     return 0
   fi
 
+  case "$skill_name" in
+    pack-*|aes-*|agent-roles|roles|9router-all|ponytail-all)
+      cmd_pack_install "$skill_name" "$@"
+      return 0
+      ;;
+  esac
+
   echo -e "${BOLD}Provisioning skill '$skill_name'...${RESET}"
   copy_single_skill "$skill_name" "$target_dir" "$custom_dest" "$force"
+}
+
+cmd_pack_list() {
+  echo -e "${BOLD}Available AI Agent Skill Packs in agents-arwaky:${RESET}"
+  echo "------------------------------------------------------------------------------------------------"
+  printf "${BOLD}%-18s %-14s %-8s %-50s${RESET}\n" "PACK NAME" "SOURCE TOOL" "SKILLS" "DESCRIPTION"
+  echo "------------------------------------------------------------------------------------------------"
+
+  while IFS=: read -r pname ptool pcount pdesc _ppattern; do
+    [ -z "$pname" ] && continue
+    local cat_color="$CYAN"
+    [ "$ptool" = "lint-arwaky" ] && cat_color="$GREEN"
+    printf "${BOLD}%-18s${RESET} ${cat_color}%-14s${RESET} %-8s %-50s\n" "$pname" "$ptool" "$pcount" "$pdesc"
+  done < <(get_skill_packs)
+  echo "------------------------------------------------------------------------------------------------"
+  echo -e "${DIM}Install an entire pack using 'aa skill pack install <pack-name>' or 'aa skill install <pack-name>'.${RESET}"
+}
+
+cmd_pack_install() {
+  local pack_name="${1:-}"
+  shift || true
+
+  if [ -z "$pack_name" ]; then
+    echo -e "${RED}Error: Missing skill pack name.${RESET}"
+    echo "Usage: aa skill pack install <pack-name> [--target <dir>] [--force]"
+    echo "Run 'aa skill pack list' to view available packs."
+    exit 1
+  fi
+
+  local target_dir="."
+  local force="false"
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --target|-t) target_dir="$2"; shift 2 ;;
+      --force|-f) force="true"; shift ;;
+      *) shift ;;
+    esac
+  done
+
+  target_dir="$(cd "$target_dir" 2>/dev/null && pwd || echo "$target_dir")"
+
+  # Normalize pack name aliases
+  case "$pack_name" in
+    pack-python|python|aes-python|lint-python) pack_name="aes-python" ;;
+    pack-rust|rust|aes-rust|lint-rust) pack_name="aes-rust" ;;
+    pack-typescript|typescript|ts|aes-typescript|lint-typescript) pack_name="aes-typescript" ;;
+    pack-roles|roles|agent-roles) pack_name="agent-roles" ;;
+    pack-9router|9router-all) pack_name="9router" ;;
+    pack-ponytail|ponytail-all) pack_name="ponytail" ;;
+    pack-core|core|core-tools) pack_name="core-tools" ;;
+  esac
+
+  local pack_info
+  pack_info="$(get_skill_packs | grep "^${pack_name}:" | head -n1 || true)"
+  if [ -z "$pack_info" ]; then
+    echo -e "${RED}Error: Skill pack '$pack_name' not found.${RESET}"
+    echo "Run 'aa skill pack list' to see all available packs."
+    return 1
+  fi
+
+  local p_tool p_count p_desc p_pattern
+  p_tool="$(echo "$pack_info" | cut -d: -f2)"
+  p_count="$(echo "$pack_info" | cut -d: -f3)"
+  p_desc="$(echo "$pack_info" | cut -d: -f4)"
+  p_pattern="$(echo "$pack_info" | cut -d: -f5)"
+
+  echo -e "${BOLD}Installing Skill Pack: ${CYAN}$pack_name${RESET} [$p_tool] ($p_count skills: $p_desc)"
+  echo -e "Target Workspace: ${BLUE}$target_dir${RESET}"
+  echo "------------------------------------------------------------------"
+
+  if [ "$p_pattern" = "canonical" ]; then
+    local force_flag=""
+    [ "$force" = "true" ] && force_flag="--force"
+    cmd_install "all" --target "$target_dir" $force_flag
+    return 0
+  fi
+
+  local count=0
+  for dir in $REPO_ROOT/$p_pattern; do
+    if [ -d "$dir" ] && [ -f "$dir/SKILL.md" ]; then
+      local sname
+      sname="$(basename "$dir")"
+      copy_single_skill "$sname" "$target_dir" "" "$force" || true
+      count=$((count + 1))
+    fi
+  done
+  echo "------------------------------------------------------------------"
+  echo -e "${GREEN}Successfully provisioned $count skills from pack '$pack_name'.${RESET}"
+}
+
+cmd_pack() {
+  local sub="${1:-list}"
+  shift || true
+
+  case "$sub" in
+    list|ls)
+      cmd_pack_list "$@"
+      ;;
+    install|get|add)
+      cmd_pack_install "$@"
+      ;;
+    *)
+      # If first argument is a pack name directly
+      cmd_pack_install "$sub" "$@"
+      ;;
+  esac
 }
 
 cmd_show() {
@@ -440,6 +556,9 @@ main() {
   case "$action" in
     list|ls)
       cmd_list "$@"
+      ;;
+    pack|packs)
+      cmd_pack "$@"
       ;;
     check|audit)
       cmd_check "$@"

@@ -110,7 +110,7 @@ When generating code or executing tasks within this repository:
 Before concluding any task that modifies scripts, manifest files, or configurations, agents **MUST** execute:
 ```bash
 ./tools/ci/verify.sh
-# or: make check
+# or: aa check
 ```
 The verification script checks:
 1. Executable bits on all shell scripts under `tools/`.
@@ -126,15 +126,15 @@ The verification script checks:
 |---|---|
 | **Diagnose environment** | `aa doctor` |
 | **Check tool readiness** | `aa status` |
-| **Verify repository integrity** | `make check` |
+| **Verify repository integrity** | `aa check` |
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
 | **Execute containerized tool** | `aa run <tool-id> [args]` |
-| **Install via Distrobox (Sandbox)** | `aa install [tool]` (or: `make install-<tool>`) |
-| **Install on Host (Bare-Metal)** | `aa install [tool] --host` (or: `make host-build-<tool>`) |
-| **Enter container shell** | `aa shell` (or `make shell`) |
-| **Reset submodules cleanly** | `make submodules` |
-| **Clean host build artifacts** | `make clean` |
+| **Install via Distrobox (Sandbox)** | `aa install [tool]` |
+| **Install on Host (Bare-Metal)** | `aa install [tool] --host` |
+| **Enter container shell** | `aa shell` |
+| **Reset submodules cleanly** | `aa submodules` |
+| **Clean build artifacts** | `aa clean` (or: `aa clean --all`) |
 
 ---
 
