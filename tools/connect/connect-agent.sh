@@ -221,6 +221,139 @@ copy_skill_to_dir() {
   log_ok "Skill '$sname' provisioned"
 }
 
+# --- 9Router Credentials & Environment Injection Helpers ---
+get_9router_credentials() {
+  local router_url=""
+  local router_key=""
+
+  # 1. Search candidate env files for 9Router configuration
+  local env_file=""
+  for candidate in \
+    "$REPO_ROOT/tools/9router/.env" \
+    "$REPO_ROOT/tools/9router/env" \
+    "${XDG_CONFIG_HOME:-$HOME/.config}/9router/.env"; do
+    if [ -f "$candidate" ]; then
+      env_file="$candidate"
+      break
+    fi
+  done
+
+  if [ -n "$env_file" ] && [ -f "$env_file" ]; then
+    local port
+    router_url="$(grep "^NINEROUTER_URL=" "$env_file" 2>/dev/null | head -n1 | cut -d'=' -f2- | tr -d "\"'" || true)"
+    port="$(grep -E "^(NINEROUTER_PORT|PORT)=" "$env_file" 2>/dev/null | head -n1 | cut -d'=' -f2- | tr -d "\"'" || true)"
+    router_key="$(grep "^NINEROUTER_KEY=" "$env_file" 2>/dev/null | head -n1 | cut -d'=' -f2- | tr -d "\"'" || true)"
+    if [ -z "$router_url" ] && [ -n "$port" ]; then
+      router_url="http://localhost:$port"
+    fi
+  fi
+
+  [ -z "$router_url" ] && router_url="http://localhost:20128"
+
+  # 2. If key is missing from .env, query active key from 9Router DB via container
+  if [ -z "$router_key" ]; then
+    local engine=""
+    command -v podman >/dev/null 2>&1 && engine="podman"
+    [ -z "$engine" ] && command -v docker >/dev/null 2>&1 && engine="docker"
+    if [ -n "$engine" ]; then
+      router_key="$("$engine" exec 9router node -e "
+        try {
+          const db = require('better-sqlite3')('/app/data/db/data.sqlite');
+          const k = db.prepare('SELECT key FROM apiKeys WHERE isActive = 1 ORDER BY createdAt DESC LIMIT 1').get();
+          if (k) process.stdout.write(k.key);
+        } catch {}
+      " 2>/dev/null || true)"
+    fi
+  fi
+
+  echo "$router_url|$router_key"
+}
+
+update_env_file() {
+  local file="$1"
+  local key="$2"
+  local val="$3"
+  local dry_run="${4:-false}"
+
+  if [ "$dry_run" = "true" ]; then
+    log_sub "[DRY-RUN] Would set $key in $file"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$file")"
+  touch "$file"
+  chmod 600 "$file" 2>/dev/null || true
+
+  if grep -q "^${key}=" "$file" 2>/dev/null; then
+    local escaped_val
+    escaped_val="$(printf '%s\n' "$val" | sed -e 's/[\/&]/\\&/g')"
+    sed -i "s|^${key}=.*|${key}=\"${escaped_val}\"|" "$file"
+  else
+    echo "${key}=\"${val}\"" >> "$file"
+  fi
+}
+
+inject_9router_env() {
+  local target="$1"
+  local dry_run="${2:-false}"
+
+  local creds
+  creds="$(get_9router_credentials)"
+  local router_url="${creds%%|*}"
+  local router_key="${creds#*|}"
+
+  if [ -z "$router_key" ]; then
+    log_skip "No active 9Router API Key found in .env or database; skipping env injection for $target."
+    return 0
+  fi
+
+  case "$target" in
+    antigravity)
+      log_sub "Target Environment: ${BLUE}~/.gemini/config/.env & ~/.gemini/antigravity-cli/.env${RESET}"
+      update_env_file "$HOME/.gemini/config/.env" "NINEROUTER_URL" "$router_url" "$dry_run"
+      update_env_file "$HOME/.gemini/config/.env" "NINEROUTER_KEY" "$router_key" "$dry_run"
+      if [ -d "$HOME/.gemini/antigravity-cli" ]; then
+        update_env_file "$HOME/.gemini/antigravity-cli/.env" "NINEROUTER_URL" "$router_url" "$dry_run"
+        update_env_file "$HOME/.gemini/antigravity-cli/.env" "NINEROUTER_KEY" "$router_key" "$dry_run"
+      fi
+      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into Antigravity environment."
+      ;;
+    hermes)
+      local hermes_env="${XDG_DATA_HOME:-$HOME}/.hermes/.env"
+      [ -d "$HOME/.hermes" ] && hermes_env="$HOME/.hermes/.env"
+      log_sub "Target Environment: ${BLUE}$hermes_env${RESET}"
+      update_env_file "$hermes_env" "NINEROUTER_URL" "$router_url" "$dry_run"
+      update_env_file "$hermes_env" "NINEROUTER_KEY" "$router_key" "$dry_run"
+      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into Hermes environment."
+      ;;
+    opencode)
+      local opencode_env="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/.env"
+      log_sub "Target Environment: ${BLUE}$opencode_env${RESET}"
+      update_env_file "$opencode_env" "NINEROUTER_URL" "$router_url" "$dry_run"
+      update_env_file "$opencode_env" "NINEROUTER_KEY" "$router_key" "$dry_run"
+      if [ -d "$HOME/.opencode" ]; then
+        update_env_file "$HOME/.opencode/.env" "NINEROUTER_URL" "$router_url" "$dry_run"
+        update_env_file "$HOME/.opencode/.env" "NINEROUTER_KEY" "$router_key" "$dry_run"
+      fi
+      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into OpenCode environment."
+      ;;
+    claude)
+      local claude_env="$HOME/.claude/.env"
+      log_sub "Target Environment: ${BLUE}$claude_env${RESET}"
+      update_env_file "$claude_env" "NINEROUTER_URL" "$router_url" "$dry_run"
+      update_env_file "$claude_env" "NINEROUTER_KEY" "$router_key" "$dry_run"
+      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into Claude environment."
+      ;;
+    session)
+      local env_d="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d/9router.conf"
+      log_sub "Target Session Environment: ${BLUE}$env_d${RESET}"
+      update_env_file "$env_d" "NINEROUTER_URL" "$router_url" "$dry_run"
+      update_env_file "$env_d" "NINEROUTER_KEY" "$router_key" "$dry_run"
+      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into user session environment.d."
+      ;;
+  esac
+}
+
 # ==============================================================================
 # 1. Antigravity Harness Connector
 # ==============================================================================
@@ -229,6 +362,7 @@ connect_antigravity() {
   local dry_run="$2"
   local mcp_only="$3"
   local skills_only="$4"
+  local env_only="${5:-false}"
 
   log_header "Connecting to Google Antigravity..."
 
@@ -237,7 +371,7 @@ connect_antigravity() {
   local skills_dir="$config_dir/skills"
 
   # 1. MCP Configuration
-  if [ "$skills_only" != "true" ]; then
+  if [ "$skills_only" != "true" ] && [ "$env_only" != "true" ]; then
     log_sub "Target MCP Config: ${BLUE}$mcp_file${RESET}"
     if [ "$dry_run" = "true" ]; then
       log_sub "[DRY-RUN] Would merge MCP servers into $mcp_file"
@@ -268,7 +402,7 @@ connect_antigravity() {
   fi
 
   # 2. Global Skills
-  if [ "$mcp_only" != "true" ]; then
+  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
     log_sub "Target Global Skills: ${BLUE}$skills_dir${RESET}"
     local count=0
     while IFS= read -r sf; do
@@ -281,6 +415,11 @@ connect_antigravity() {
     fi
     log_ok "Processed $count skills for Antigravity."
   fi
+
+  # 3. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  if [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ] || [ "$env_only" = "true" ]; then
+    inject_9router_env "antigravity" "$dry_run"
+  fi
 }
 
 # ==============================================================================
@@ -292,6 +431,7 @@ connect_hermes() {
   local dry_run="$2"
   local mcp_only="$3"
   local skills_only="$4"
+  local env_only="${5:-false}"
 
   log_header "Connecting to Hermes Agent..."
 
@@ -301,7 +441,7 @@ connect_hermes() {
   local skills_dir="$hermes_home/skills"
 
   # 1. MCP Configuration in config.yaml
-  if [ "$skills_only" != "true" ]; then
+  if [ "$skills_only" != "true" ] && [ "$env_only" != "true" ]; then
     log_sub "Target MCP Config: ${BLUE}$config_file${RESET}"
     if [ "$dry_run" = "true" ]; then
       log_sub "[DRY-RUN] Would merge MCP servers into $config_file (mcp_servers: section)"
@@ -370,7 +510,7 @@ EOF
   fi
 
   # 2. Global Skills strictly in ~/.hermes/skills/
-  if [ "$mcp_only" != "true" ]; then
+  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
     log_sub "Target Global Skills (strictly ~/.hermes/skills): ${BLUE}$skills_dir${RESET}"
     local count=0
     while IFS= read -r sf; do
@@ -379,6 +519,11 @@ EOF
       count=$((count + 1))
     done < <(get_all_skill_files)
     log_ok "Processed $count skills for Hermes."
+  fi
+
+  # 3. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
+    inject_9router_env "hermes" "$dry_run"
   fi
 }
 
@@ -390,6 +535,7 @@ connect_opencode() {
   local dry_run="$2"
   local mcp_only="$3"
   local skills_only="$4"
+  local env_only="${5:-false}"
 
   log_header "Connecting to OpenCode..."
 
@@ -398,7 +544,7 @@ connect_opencode() {
   local skills_dir="$config_dir/skills"
 
   # 1. MCP Configuration & Skills Path in opencode.jsonc
-  if [ "$skills_only" != "true" ]; then
+  if [ "$skills_only" != "true" ] && [ "$env_only" != "true" ]; then
     log_sub "Target OpenCode Config: ${BLUE}$config_file${RESET}"
     if [ "$dry_run" = "true" ]; then
       log_sub "[DRY-RUN] Would update .mcp and .skills.paths in $config_file"
@@ -450,7 +596,7 @@ connect_opencode() {
   fi
 
   # 2. Global Skills in ~/.config/opencode/skills/
-  if [ "$mcp_only" != "true" ]; then
+  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
     log_sub "Target Global Skills: ${BLUE}$skills_dir${RESET}"
     local count=0
     while IFS= read -r sf; do
@@ -459,6 +605,11 @@ connect_opencode() {
       count=$((count + 1))
     done < <(get_all_skill_files)
     log_ok "Processed $count skills for OpenCode."
+  fi
+
+  # 3. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
+    inject_9router_env "opencode" "$dry_run"
   fi
 }
 
@@ -470,6 +621,7 @@ connect_claude() {
   local dry_run="$2"
   local mcp_only="$3"
   local skills_only="$4"
+  local env_only="${5:-false}"
 
   log_header "Connecting to Claude (Desktop & Code CLI)..."
 
@@ -480,7 +632,7 @@ connect_claude() {
   local skills_dir="$HOME/.claude/skills"
 
   # 1. Claude Desktop Config
-  if [ "$skills_only" != "true" ]; then
+  if [ "$skills_only" != "true" ] && [ "$env_only" != "true" ]; then
     log_sub "Target Claude Desktop Config: ${BLUE}$desktop_config_file${RESET}"
     if [ "$dry_run" = "true" ]; then
       log_sub "[DRY-RUN] Would merge MCP servers into $desktop_config_file"
@@ -531,7 +683,7 @@ connect_claude() {
   fi
 
   # 3. Claude Slash Commands & Skills
-  if [ "$mcp_only" != "true" ]; then
+  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
     log_sub "Target Claude Commands: ${BLUE}$commands_dir${RESET}"
     log_sub "Target Claude Skills: ${BLUE}$skills_dir${RESET}"
     local count=0
@@ -553,6 +705,11 @@ connect_claude() {
     done < <(get_all_skill_files)
     log_ok "Processed $count skills/commands for Claude."
   fi
+
+  # 4. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
+    inject_9router_env "claude" "$dry_run"
+  fi
 }
 
 # --- Show Usage Help ---
@@ -573,8 +730,9 @@ cmd_help() {
   echo -e "${BOLD}OPTIONS:${RESET}"
   echo -e "  ${CYAN}--force, -f${RESET}                 Overwrite existing skill files and update existing MCP entries"
   echo -e "  ${CYAN}--dry-run${RESET}                   Preview modifications without writing to disk"
-  echo -e "  ${CYAN}--mcp-only${RESET}                  Only configure MCP servers (skip skills provisioning)"
-  echo -e "  ${CYAN}--skills-only${RESET}               Only provision global skills (skip MCP configuration)"
+  echo -e "  ${CYAN}--mcp-only${RESET}                  Only configure MCP servers (skip skills & env provisioning)"
+  echo -e "  ${CYAN}--skills-only${RESET}               Only provision global skills (skip MCP & env configuration)"
+  echo -e "  ${CYAN}--env-only${RESET}                  Only inject environment variables (NINEROUTER_URL/KEY)"
   echo -e "  ${CYAN}--help, -h${RESET}                  Show this help screen"
   echo ""
   echo -e "${BOLD}EXAMPLES:${RESET}"
@@ -599,6 +757,7 @@ main() {
   local dry_run="false"
   local mcp_only="false"
   local skills_only="false"
+  local env_only="false"
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -638,6 +797,10 @@ main() {
         skills_only="true"
         shift
         ;;
+      --env-only)
+        env_only="true"
+        shift
+        ;;
       --help|-h|help)
         cmd_help
         exit 0
@@ -664,7 +827,9 @@ main() {
     unique_targets["$t"]=1
   done
 
-  ensure_mcp_config
+  if [ "$skills_only" != "true" ] && [ "$env_only" != "true" ]; then
+    ensure_mcp_config
+  fi
 
   echo -e "${BOLD}Connecting agents-arwaky to agent harnesses...${RESET}"
   echo "------------------------------------------------------------------"
@@ -672,20 +837,26 @@ main() {
   for target in "${!unique_targets[@]}"; do
     case "$target" in
       antigravity)
-        connect_antigravity "$force" "$dry_run" "$mcp_only" "$skills_only"
+        connect_antigravity "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only"
         ;;
       hermes)
-        connect_hermes "$force" "$dry_run" "$mcp_only" "$skills_only"
+        connect_hermes "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only"
         ;;
       opencode)
-        connect_opencode "$force" "$dry_run" "$mcp_only" "$skills_only"
+        connect_opencode "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only"
         ;;
       claude)
-        connect_claude "$force" "$dry_run" "$mcp_only" "$skills_only"
+        connect_claude "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only"
         ;;
     esac
     echo ""
   done
+
+  # Inject user session environment for GUI and shell consistency
+  if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
+    inject_9router_env "session" "$dry_run"
+    echo ""
+  fi
 
   echo "------------------------------------------------------------------"
   echo -e "${GREEN}${BOLD}Connection complete.${RESET} Agent harnesses are now synchronized with agents-arwaky."
