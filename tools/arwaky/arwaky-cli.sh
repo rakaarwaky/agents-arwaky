@@ -213,8 +213,12 @@ cmd_status() {
     [ "$category" = "internal" ] && cat_color="$GREEN"
 
     local status_str
-    # Check submodule presence
-    if [ ! -d "$REPO_ROOT/$subpath" ] || [ ! -e "$REPO_ROOT/$subpath/.git" ]; then
+    local is_submodule="false"
+    if [ -f "$REPO_ROOT/.gitmodules" ] && grep -q "path = $subpath" "$REPO_ROOT/.gitmodules" 2>/dev/null; then
+      is_submodule="true"
+    fi
+
+    if [ "$is_submodule" = "true" ] && { [ ! -d "$REPO_ROOT/$subpath" ] || [ ! -e "$REPO_ROOT/$subpath/.git" ]; }; then
       status_str="${RED}Submodule Missing${RESET}"
     elif command -v "$bin" >/dev/null 2>&1; then
       status_str="${GREEN}Installed ($bin)${RESET}"
