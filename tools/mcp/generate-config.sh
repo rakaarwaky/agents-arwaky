@@ -66,7 +66,11 @@ cat <<EOF > "$OUTPUT_FILE"
       }
     },
     "codegraph": {
-      "command": "codegraph-mcp"
+      "command": "codegraph-mcp",
+      "args": [
+        "serve",
+        "--mcp"
+      ]
     },
     "vision": {
       "command": "vision-arwaky-mcp"

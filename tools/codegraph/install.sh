@@ -39,8 +39,14 @@ cat <<'EOF' > "$LAUNCHER"
 #!/usr/bin/env bash
 set -euo pipefail
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/codegraph"
-exec node "$DATA_DIR/dist/bin/codegraph.js" "$@"
+if [ $# -eq 0 ]; then
+  exec node "$DATA_DIR/dist/bin/codegraph.js" serve --mcp
+else
+  exec node "$DATA_DIR/dist/bin/codegraph.js" "$@"
+fi
 EOF
 chmod +x "$LAUNCHER"
+ln -sf "$LAUNCHER" "$XDG_BIN_HOME/codegraph"
 
-echo ">>> Successfully installed codegraph-mcp -> $LAUNCHER"
+echo ">>> Successfully installed codegraph-mcp -> $LAUNCHER (and $XDG_BIN_HOME/codegraph)"
+

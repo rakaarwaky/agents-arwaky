@@ -11,6 +11,8 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
+export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/agents-arwaky/internal-bin:${XDG_BIN_HOME:-$HOME/.local/bin}:$PATH"
+
 
 # Helper function to resolve paths for a specific vendor tool
 xdg_data_dir() {
