@@ -408,7 +408,9 @@ cmd_install() {
 
   case "$skill_name" in
     pack-*|aes-*|agent-roles|roles|9router-all|ponytail-all)
-      cmd_pack_install "$skill_name" "$@"
+      local force_flag=""
+      [ "$force" = "true" ] && force_flag="--force"
+      cmd_pack_install "$skill_name" --target "$target_dir" $force_flag
       return 0
       ;;
   esac
