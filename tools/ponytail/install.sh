@@ -24,10 +24,12 @@ npm install --no-audit --no-fund
 
 echo ">>> Installing runtime to $TARGET_DIR..."
 rm -rf "${TARGET_DIR:?}"/*
-cp -r index.js instructions.js package.json "$TARGET_DIR/"
+mkdir -p "$TARGET_DIR/ponytail-mcp"
+cp -r index.js instructions.js package.json "$TARGET_DIR/ponytail-mcp/"
 if [ -d "node_modules" ]; then
-  cp -r node_modules "$TARGET_DIR/"
+  cp -r node_modules "$TARGET_DIR/ponytail-mcp/"
 fi
+cp "$VENDOR_DIR/package.json" "$TARGET_DIR/"
 if [ -d "$VENDOR_DIR/hooks" ]; then cp -r "$VENDOR_DIR/hooks" "$TARGET_DIR/"; fi
 if [ -d "$VENDOR_DIR/skills" ]; then cp -r "$VENDOR_DIR/skills" "$TARGET_DIR/"; fi
 
@@ -36,7 +38,7 @@ cat <<'EOF' > "$LAUNCHER"
 #!/usr/bin/env bash
 set -euo pipefail
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/ponytail"
-exec node "$DATA_DIR/index.js" "$@"
+exec node "$DATA_DIR/ponytail-mcp/index.js" "$@"
 EOF
 chmod +x "$LAUNCHER"
 

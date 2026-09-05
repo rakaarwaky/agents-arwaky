@@ -50,10 +50,7 @@ cat <<EOF > "$OUTPUT_FILE"
       "command": "fetch-mcp"
     },
     "lean-ctx": {
-      "command": "lean-ctx",
-      "args": [
-        "serve"
-      ]
+      "command": "lean-ctx"
     },
     "ponytail": {
       "command": "ponytail-mcp"
