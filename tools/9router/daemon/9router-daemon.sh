@@ -530,6 +530,7 @@ cmd_provider() {
               const k = nodeId + "|" + mid + "|llm";
               const val = JSON.stringify({ id: mid, name: mname, providerAlias: nodeId, type: "llm" });
               db.prepare("INSERT OR REPLACE INTO kv(scope, key, value) VALUES(?, ?, ?)").run("customModels", k, val);
+              db.prepare("INSERT OR REPLACE INTO kv(scope, key, value) VALUES(?, ?, ?)").run("modelAliases", mid, JSON.stringify(nodeId + "/" + mid));
             }
             console.log(`  [OK] Custom Provider: ${name} -> ${nodeId} (priority ${priority}, ${models.length} model(s))`);
             syncedCount++;
