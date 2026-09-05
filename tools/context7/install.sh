@@ -32,4 +32,14 @@ exec node "$VENDOR_DIR/packages/mcp/dist/index.js" "\$@"
 EOF
 chmod +x "$LAUNCHER"
 
+if pnpm --filter ctx7 build 2>/dev/null; then
+  echo ">>> Installing CLI launcher to $XDG_BIN_HOME/ctx7..."
+  cat <<EOF > "$XDG_BIN_HOME/ctx7"
+#!/usr/bin/env bash
+set -euo pipefail
+exec node "$VENDOR_DIR/packages/cli/dist/index.js" "\$@"
+EOF
+  chmod +x "$XDG_BIN_HOME/ctx7"
+fi
+
 echo ">>> Successfully installed context7-mcp -> $LAUNCHER"

@@ -12,9 +12,14 @@ LAUNCHER="$XDG_BIN_HOME/lean-ctx"
 
 mkdir -p "$TARGET_DIR/bin"
 
+CARGO_DIR="$VENDOR_DIR"
+if [ -f "$VENDOR_DIR/rust/Cargo.toml" ]; then
+  CARGO_DIR="$VENDOR_DIR/rust"
+fi
+
 if command -v cargo >/dev/null 2>&1; then
   echo ">>> Building lean-ctx from source with cargo..."
-  cargo install --path "$VENDOR_DIR" --root "$TARGET_DIR"
+  cargo install --path "$CARGO_DIR" --root "$TARGET_DIR"
 elif [ -f "$LAUNCHER" ]; then
   echo ">>> Existing lean-ctx binary found at $LAUNCHER"
 else

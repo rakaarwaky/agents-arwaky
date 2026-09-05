@@ -9,11 +9,14 @@ TARGET_BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
 TOOLS=(
   "context7-mcp"
+  "ctx7"
   "fetch-mcp"
+  "mcp-fetch"
   "lean-ctx"
   "ponytail-mcp"
   "anytype-mcp"
   "codegraph-mcp"
+  "codegraph"
   "9router"
   # Internal Tools (Full Names & Short Aliases)
   "lint-arwaky"
@@ -52,6 +55,12 @@ if [ -n "$FILTER_TOOL" ]; then
       TARGET_LIST+=("$tool")
     fi
   done
+  if [[ "$FILTER_TOOL" == *"context7"* ]]; then
+    TARGET_LIST+=("ctx7")
+  fi
+  if [[ "$FILTER_TOOL" == *"codegraph"* ]]; then
+    TARGET_LIST+=("codegraph" "codegraph-mcp")
+  fi
   if [ ${#TARGET_LIST[@]} -eq 0 ]; then
     TARGET_LIST+=("$FILTER_TOOL")
   fi
