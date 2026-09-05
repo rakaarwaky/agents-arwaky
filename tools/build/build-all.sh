@@ -33,7 +33,7 @@ build_tool() {
 
 # Submodule checkout check
 echo "Ensuring submodules are initialized..."
-git -C "$REPO_ROOT" submodule update --init vendor/ internal/lint-arwaky
+git -C "$REPO_ROOT" submodule update --init vendor/ internal/
 
 # Vendor Tools
 build_tool "context7"    "$TOOLS_DIR/context7/install.sh"
@@ -46,6 +46,9 @@ build_tool "9router"     "$TOOLS_DIR/9router/install.sh"
 
 # Internal Tools
 build_tool "lint"        "$TOOLS_DIR/lint/install.sh"
+build_tool "vision"      "$TOOLS_DIR/vision/install.sh"
+build_tool "qwen-web"    "$TOOLS_DIR/qwen-web/install.sh"
+build_tool "blender"     "$TOOLS_DIR/blender/install.sh"
 
 echo "=========================================="
 echo " Build Summary"

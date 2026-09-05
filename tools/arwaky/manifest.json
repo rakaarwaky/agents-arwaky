@@ -88,7 +88,7 @@
       "id": "lint",
       "alias": "lint-arwaky",
       "category": "internal",
-      "binary": "lint-arwaky-cli",
+      "binary": "lint-arwaky",
       "isMcp": false,
       "description": "Architecture linter (AES rules) for Rust, Python, TypeScript",
       "path": "internal/lint-arwaky"
@@ -101,6 +101,15 @@
       "isMcp": true,
       "description": "Headless 3D execution engine with automated test suites",
       "path": "internal/blender-arwaky"
+    },
+    {
+      "id": "skill",
+      "alias": "skills",
+      "category": "internal",
+      "binary": "skill-manager.sh",
+      "isMcp": false,
+      "description": "Agent skill manager & workspace provisioner",
+      "path": "tools/skill"
     }
   ]
 }

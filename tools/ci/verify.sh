@@ -30,9 +30,16 @@ while IFS= read -r -d '' json_file; do
 done < <(find "$REPO_ROOT/tools" -name "*.json" -print0)
 
 echo "[3/4] ShellCheck linting..."
+SHELLCHECK_CMD=()
 if command -v shellcheck >/dev/null 2>&1; then
+  SHELLCHECK_CMD=(shellcheck)
+elif command -v uvx >/dev/null 2>&1; then
+  SHELLCHECK_CMD=(uvx --from shellcheck-py shellcheck)
+fi
+
+if [ "${#SHELLCHECK_CMD[@]}" -gt 0 ]; then
   while IFS= read -r -d '' script; do
-    if ! shellcheck -x -P "$REPO_ROOT/tools" "$script"; then
+    if ! "${SHELLCHECK_CMD[@]}" -x -P "$REPO_ROOT/tools" "$script"; then
       echo "  [FAIL] Shellcheck error in: $script"
       ERRORS=$((ERRORS + 1))
     fi

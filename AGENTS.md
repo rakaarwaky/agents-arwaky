@@ -130,7 +130,8 @@ The verification script checks:
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
 | **Execute containerized tool** | `aa run <tool-id> [args]` |
-| **Install single tool** | `aa install <tool-id>` |
+| **Install via Distrobox (Sandbox)** | `aa install [tool]` (or: `make install-<tool>`) |
+| **Install on Host (Bare-Metal)** | `aa install [tool] --host` (or: `make host-build-<tool>`) |
 | **Enter container shell** | `aa shell` (or `make shell`) |
 | **Reset submodules cleanly** | `make submodules` |
 | **Clean host build artifacts** | `make clean` |

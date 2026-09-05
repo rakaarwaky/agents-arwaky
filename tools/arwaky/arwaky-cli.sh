@@ -61,31 +61,55 @@ check_distrobox_container() {
   fi
 }
 
+ensure_distrobox_container() {
+  "$REPO_ROOT/tools/distrobox/setup-host.sh"
+  if ! distrobox list 2>/dev/null | grep -q "agents-env"; then
+    echo ">>> Creating Distrobox container 'agents-env'..."
+    distrobox assemble create --file "$REPO_ROOT/distrobox.ini"
+  else
+    echo ">>> Container 'agents-env' already exists."
+  fi
+  echo ">>> Ensuring container environment is initialized..."
+  distrobox enter agents-env -- bash "$REPO_ROOT/tools/distrobox/init-container.sh"
+}
+
 cmd_help() {
   print_banner
   echo -e "${BOLD}USAGE:${RESET}"
-  echo -e "  agents-arwaky <command> [arguments...]  (alias: aa <command>)"
+  echo -e "  aa <command> [arguments...]  (or: agents-arwaky <command>)"
   echo ""
-  echo -e "${BOLD}COMMANDS:${RESET}"
-  echo -e "  ${GREEN}status${RESET}             Check health, submodule and binary installation status"
-  echo -e "  ${GREEN}doctor${RESET}             Diagnose runtime environment, container sandbox & PATH"
-  echo -e "  ${GREEN}list${RESET}               List all registered tools (vendor & internal)"
-  echo -e "  ${GREEN}run${RESET} <tool> [args]  Execute any registered tool (auto-dispatches host/container)"
-  echo -e "  ${GREEN}anytype${RESET} [action]    Manage Anytype headless daemon, bot accounts & keys"
-  echo -e "  ${GREEN}mcp${RESET} [action]       Manage MCP configurations (list, generate, show)"
-  echo -e "  ${GREEN}install${RESET} [tool]     Install full ecosystem or a specific tool from source"
-  echo -e "  ${GREEN}shell${RESET}              Enter the Distrobox 'agents-env' sandbox shell"
-  echo -e "  ${GREEN}help${RESET}               Show this help message"
+  echo -e "${BOLD}PRIMARY COMMANDS:${RESET}"
+  echo -e "  ${GREEN}status${RESET}                         Check health, submodule and binary installation status"
+  echo -e "  ${GREEN}doctor${RESET}                         Diagnose runtime environment, container sandbox & PATH"
+  echo -e "  ${GREEN}list${RESET}                           List all registered tools (vendor & internal)"
+  echo -e "  ${GREEN}run${RESET} <tool> [args]              Execute any registered tool (auto-dispatches host/container)"
+  echo -e "  ${GREEN}install${RESET} [tool] [--distrobox|--host]  Install tools (Two paradigms only: Distrobox or Host)"
+  echo -e "  ${GREEN}shell${RESET}                          Enter the Distrobox 'agents-env' sandbox shell"
+  echo -e "  ${GREEN}mcp${RESET} [action]                   Manage MCP configurations (list, generate, show)"
+  echo -e "  ${GREEN}skill${RESET} [action]                 Manage & provision agent skills to workspace"
+  echo -e "  ${GREEN}anytype${RESET} [action]                Manage Anytype headless daemon, bot accounts & keys"
+  echo ""
+  echo -e "${BOLD}MAINTENANCE & LIFECYCLE:${RESET}"
+  echo -e "  ${CYAN}setup${RESET}                          Check and install host prerequisites (podman & distrobox)"
+  echo -e "  ${CYAN}check${RESET}                          Run repository verification and quality gates"
+  echo -e "  ${CYAN}submodules${RESET}                     Initialize and update all git submodules"
+  echo -e "  ${CYAN}clean${RESET} [--host|--all]           Clean build artifacts (or host binaries / reset repo)"
+  echo -e "  ${CYAN}destroy${RESET}                        Destroy the sandbox container"
+  echo -e "  ${CYAN}help${RESET}                           Show this help message"
+  echo ""
+  echo -e "${BOLD}INSTALLATION (TWO PARADIGMS ONLY):${RESET}"
+  echo -e "  ${CYAN}1. Distrobox Mode (Default / Recommended - Zero Host Contamination):${RESET}"
+  echo -e "     aa install [tool]                     (or: aa install [tool] --distrobox)"
+  echo -e "  ${YELLOW}2. Host Mode (Bare-Metal Fallback):${RESET}"
+  echo -e "     aa install [tool] --host"
   echo ""
   echo -e "${BOLD}EXAMPLES:${RESET}"
   echo -e "  aa status"
+  echo -e "  aa check"
+  echo -e "  aa install fetch                       # Install fetch via Distrobox sandbox"
+  echo -e "  aa install fetch --host                # Install fetch directly on host"
+  echo -e "  aa run fetch --help"
   echo -e "  aa doctor"
-  echo -e "  aa install"
-  echo -e "  aa install 9router"
-  echo -e "  aa run context7 --help"
-  echo -e "  aa run codegraph index ."
-  echo -e "  aa run lint --help"
-  echo -e "  aa mcp generate"
   echo ""
 }
 
@@ -114,7 +138,7 @@ cmd_doctor() {
     if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then
       echo -e " Container Engine: ${GREEN}[OK] $(command -v podman || command -v docker)${RESET}"
     else
-      echo -e " Container Engine: ${RED}[FAIL] Podman or Docker not found (Run 'make setup')${RESET}"
+      echo -e " Container Engine: ${RED}[FAIL] Podman or Docker not found (Run 'aa setup')${RESET}"
     fi
 
     if command -v distrobox >/dev/null 2>&1; then
@@ -122,10 +146,10 @@ cmd_doctor() {
       if check_distrobox_container; then
         echo -e " Sandbox Container:${GREEN}[OK] 'agents-env' exists and ready${RESET}"
       else
-        echo -e " Sandbox Container:${YELLOW}[WARN] 'agents-env' not yet created (Run 'make install')${RESET}"
+        echo -e " Sandbox Container:${YELLOW}[WARN] 'agents-env' not yet created (Run 'aa install')${RESET}"
       fi
     else
-      echo -e " Distrobox:       ${YELLOW}[WARN] Distrobox not found on host (Run 'make setup')${RESET}"
+      echo -e " Distrobox:       ${YELLOW}[WARN] Distrobox not found on host (Run 'aa setup')${RESET}"
     fi
   fi
 
@@ -304,34 +328,135 @@ cmd_run() {
 }
 
 cmd_install() {
-  local tool="${1:-}"
-  if [ -z "$tool" ]; then
-    echo ">>> Running full installation pipeline..."
-    if is_inside_container; then
-      "$REPO_ROOT/tools/build/build-all.sh"
-    else
-      make -C "$REPO_ROOT" install
-    fi
-  else
+  local target=""
+  local mode="distrobox"
+
+  # Parse arguments: [tool] and [--distrobox | --host]
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --host)
+        mode="host"
+        shift
+        ;;
+      --distrobox)
+        mode="distrobox"
+        shift
+        ;;
+      -*)
+        echo -e "${RED}Error: Unknown install option '$1'${RESET}"
+        echo "Valid options: --distrobox, --host"
+        exit 1
+        ;;
+      *)
+        if [ -z "$target" ]; then
+          target="$1"
+        else
+          echo -e "${RED}Error: Unexpected argument '$1'${RESET}"
+          exit 1
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  # Resolve tool_id if target is provided
+  local tool_id=""
+  if [ -n "$target" ] && [ "$target" != "all" ]; then
     local tool_info
-    tool_info="$(jq -c --arg q "$tool" '.tools[] | select(.id == $q or .binary == $q or (.alias? != null and .alias == $q))' "$MANIFEST_FILE" 2>/dev/null | head -n1 || true)"
-    
-    local tool_id="$tool"
+    tool_info="$(jq -c --arg q "$target" '.tools[] | select(.id == $q or .binary == $q or (.alias? != null and .alias == $q))' "$MANIFEST_FILE" 2>/dev/null | head -n1 || true)"
     if [ -n "$tool_info" ]; then
       tool_id="$(echo "$tool_info" | jq -r '.id')"
-    fi
-
-    echo ">>> Installing tool: $tool_id..."
-    if grep -q "^host-build-${tool_id}:" "$REPO_ROOT/Makefile"; then
-      make -C "$REPO_ROOT" "host-build-${tool_id}"
-    elif [ -x "$REPO_ROOT/tools/$tool_id/install.sh" ]; then
-      "$REPO_ROOT/tools/$tool_id/install.sh"
-    elif [ -x "$REPO_ROOT/tools/${tool_id}-mcp/install.sh" ]; then
-      "$REPO_ROOT/tools/${tool_id}-mcp/install.sh"
     else
-      make -C "$REPO_ROOT" "host-build-$tool" || make -C "$REPO_ROOT" install
+      echo -e "${RED}Error: Tool '$target' not found in manifest.${RESET}"
+      echo "Run 'aa list' to view registered tools."
+      exit 1
     fi
   fi
+
+  if [ "$mode" = "host" ]; then
+    echo -e "${BOLD}>>> [Mode: Host Bare-Metal] Installing ${tool_id:-all tools}...${RESET}"
+    git -C "$REPO_ROOT" submodule update --init vendor/ internal/
+    if [ -n "$tool_id" ]; then
+      "$REPO_ROOT/tools/build/build-tool.sh" "$tool_id"
+    else
+      "$REPO_ROOT/tools/build/build-all.sh"
+      "$REPO_ROOT/tools/mcp/generate-config.sh"
+    fi
+  else
+    echo -e "${BOLD}>>> [Mode: Distrobox Sandbox] Installing ${tool_id:-all tools}...${RESET}"
+    if is_inside_container; then
+      if [ -n "$tool_id" ]; then
+        "$REPO_ROOT/tools/build/build-tool.sh" "$tool_id"
+      else
+        "$REPO_ROOT/tools/build/build-all.sh"
+      fi
+    else
+      git -C "$REPO_ROOT" submodule update --init vendor/ internal/
+      ensure_distrobox_container
+      if [ -n "$tool_id" ]; then
+        distrobox enter agents-env -- bash -c "cd $REPO_ROOT && XDG_BIN_HOME=\$HOME/.local/share/agents-arwaky/internal-bin $REPO_ROOT/tools/build/build-tool.sh $tool_id"
+        "$REPO_ROOT/tools/distrobox/export-bins.sh" "$tool_id"
+      else
+        distrobox enter agents-env -- bash -c "cd $REPO_ROOT && XDG_BIN_HOME=\$HOME/.local/share/agents-arwaky/internal-bin $REPO_ROOT/tools/build/build-all.sh"
+        "$REPO_ROOT/tools/distrobox/export-bins.sh"
+        "$REPO_ROOT/tools/mcp/generate-config.sh"
+      fi
+    fi
+  fi
+}
+
+cmd_setup() {
+  echo -e "${BOLD}>>> Setting up host prerequisites (podman & distrobox)...${RESET}"
+  "$REPO_ROOT/tools/distrobox/setup-host.sh" --install
+}
+
+cmd_submodules() {
+  echo -e "${BOLD}>>> Initializing and updating all submodules...${RESET}"
+  git -C "$REPO_ROOT" submodule update --init --recursive vendor/ internal/
+  echo -e "${GREEN}>>> Submodules ready.${RESET}"
+}
+
+cmd_check() {
+  "$REPO_ROOT/tools/ci/verify.sh"
+}
+
+cmd_clean() {
+  local target="${1:-}"
+  case "$target" in
+    --host)
+      echo ">>> Cleaning host ~/.local/bin and ~/.local/share tool installations..."
+      rm -f "$HOME/.local/bin/"{context7-mcp,fetch-mcp,lean-ctx,ponytail-mcp,anytype-mcp,codegraph-mcp,9router,agents-arwaky,aa,arwaky,lint-arwaky,la,lint-arwaky-cli,lac,vision-arwaky,va,vision-arwaky-mcp,qwen-web-arwaky,qwa,qwc,qwen-web-mcp,blender-arwaky,ba,blender-mcp} 2>/dev/null || true
+      rm -rf "$HOME/.local/share/"{context7,fetch-mcp,lean-ctx,ponytail,anytype-mcp,codegraph,9router,agents-arwaky,vision-arwaky,qwen-web,blender-arwaky} 2>/dev/null || true
+      echo ">>> Host tool binaries and data directories cleaned."
+      ;;
+    --all|distclean)
+      echo ">>> Running deep clean (build artifacts + host installations + submodules reset)..."
+      rm -rf "$REPO_ROOT/tools/"*/dist "$REPO_ROOT/mcp_servers.generated.json"
+      rm -f "$HOME/.local/bin/"{context7-mcp,fetch-mcp,lean-ctx,ponytail-mcp,anytype-mcp,codegraph-mcp,9router,agents-arwaky,aa,arwaky,lint-arwaky,la,lint-arwaky-cli,lac,vision-arwaky,va,vision-arwaky-mcp,qwen-web-arwaky,qwa,qwc,qwen-web-mcp,blender-arwaky,ba,blender-mcp} 2>/dev/null || true
+      rm -rf "$HOME/.local/share/"{context7,fetch-mcp,lean-ctx,ponytail,anytype-mcp,codegraph,9router,agents-arwaky,vision-arwaky,qwen-web,blender-arwaky} 2>/dev/null || true
+      git -C "$REPO_ROOT" submodule foreach --recursive 'git clean -fd && git checkout .' || true
+      echo ">>> Deep clean complete."
+      ;;
+    *)
+      echo ">>> Cleaning build artifacts and generated configs..."
+      rm -rf "$REPO_ROOT/tools/"*/dist "$REPO_ROOT/mcp_servers.generated.json"
+      echo ">>> Build artifacts cleaned. (Tip: Use 'aa clean --host' or 'aa clean --all' for deep clean)."
+      ;;
+  esac
+}
+
+cmd_shell() {
+  if ! check_distrobox_container; then
+    echo -e "${YELLOW}Container 'agents-env' not found. Creating now...${RESET}"
+    ensure_distrobox_container
+  fi
+  exec distrobox enter agents-env
+}
+
+cmd_destroy() {
+  echo -e "${YELLOW}>>> Destroying Distrobox container 'agents-env'...${RESET}"
+  distrobox rm -f agents-env 2>/dev/null || true
+  echo -e "${GREEN}>>> Container destroyed (persistent code & host configs preserved).${RESET}"
 }
 
 # --- Main Dispatcher ---
@@ -345,9 +470,15 @@ main() {
     list|ls)         cmd_list "$@" ;;
     run)             cmd_run "$@" ;;
     install)         cmd_install "$@" ;;
+    setup)           cmd_setup "$@" ;;
+    submodules)      cmd_submodules "$@" ;;
+    check)           cmd_check "$@" ;;
+    clean)           cmd_clean "$@" ;;
+    destroy)         cmd_destroy "$@" ;;
     anytype)         "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" "$@" ;;
     mcp)             cmd_mcp "$@" ;;
-    shell|enter)     make -C "$REPO_ROOT" shell ;;
+    skill|skills)    "$REPO_ROOT/tools/skill/skill-manager.sh" "$@" ;;
+    shell|enter)     cmd_shell "$@" ;;
     help|-h|--help)  cmd_help ;;
     *)
       echo -e "${RED}Unknown command: $cmd${RESET}"

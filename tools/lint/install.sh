@@ -16,7 +16,7 @@ fi
 
 if ! command -v cargo >/dev/null 2>&1; then
   echo "Error: cargo is required to build lint-arwaky." >&2
-  echo "Please run inside Distrobox (make install) or install Rust on your host." >&2
+  echo "Please run inside Distrobox (aa install lint) or install Rust on your host." >&2
   exit 1
 fi
 
@@ -31,10 +31,12 @@ mkdir -p "$TARGET_BIN"
   bash "$INTERNAL_DIR/scripts/install.local.sh"
 )
 
-# Create lac symlink as official short alias
+# Create lint-arwaky and la symlinks as official names
 if [ -f "$TARGET_BIN/lint-arwaky-cli" ]; then
+  ln -sf "$TARGET_BIN/lint-arwaky-cli" "$TARGET_BIN/lint-arwaky"
+  ln -sf "$TARGET_BIN/lint-arwaky-cli" "$TARGET_BIN/la"
   ln -sf "$TARGET_BIN/lint-arwaky-cli" "$TARGET_BIN/lac"
-  echo ">>> Created official short alias: $TARGET_BIN/lac -> lint-arwaky-cli"
+  echo ">>> Created official aliases: $TARGET_BIN/lint-arwaky, $TARGET_BIN/la -> lint-arwaky-cli"
 fi
 
 echo ">>> Successfully installed lint-arwaky -> $TARGET_BIN"

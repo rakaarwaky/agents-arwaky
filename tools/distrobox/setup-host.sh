@@ -56,7 +56,7 @@ if [ "$AUTO_INSTALL" = true ]; then
 fi
 
 echo "To install missing prerequisites automatically, run:"
-echo "  make setup"
+echo "  aa setup"
 echo "  (or: ./tools/distrobox/setup-host.sh --install)"
 echo ""
 echo "Or install manually for your Linux distribution:"

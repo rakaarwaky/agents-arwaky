@@ -187,8 +187,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa run <tool> [args]` | Transparently execute any tool inside the container from host | `aa run context7 --help` |
 | `aa mcp list` | Enumerate all tools offering Model Context Protocol servers | `aa mcp list` |
 | `aa mcp generate` | Rebuild unified client configuration (`mcp_servers.generated.json`) | `aa mcp generate` |
-| `aa mcp show` | View current unified MCP configuration JSON | `aa mcp show` |
-| `aa install [tool]` | Install full ecosystem or a specific tool from source | `aa install codegraph` |
+| `aa install [tool] [--distrobox\|--host]` | Install tools (Two paradigms only: Distrobox or Host) | `aa install fetch` / `aa install fetch --host` |
 | `aa shell` | Drop into an interactive shell inside the sandbox container | `aa shell` |
 
 > [!TIP]
@@ -365,25 +364,35 @@ Add to `~/.config/zed/settings.json`:
 
 ---
 
-## 🛠️ Developer Workflows
+## 🛠️ Developer Workflows & Installation Paradigms
+
+`agents-arwaky` strictly defines **Two Installation Paradigms Only** across all tools (both internal agents and vendor MCPs):
+
+### 1. Distrobox Mode (Sandboxed / Default & Recommended)
+Compiles runtimes and tools inside the rootless `agents-env` container, exporting clean binary launchers to `~/.local/bin/`. Zero host contamination.
+```bash
+# Install all tools in ecosystem:
+aa install                       # or: make install
+
+# Install a specific tool (e.g. fetch, lint, vision, codegraph):
+aa install fetch                 # or: make install-fetch
+```
+
+### 2. Host Mode (Bare-Metal Fallback)
+If running without container permissions (e.g. nested virtualization restrictions), tools can be compiled directly on the host using native runtimes into standard XDG directories:
+```bash
+# Install all tools directly on host:
+aa install --host                # or: make host-build
+
+# Install a specific tool directly on host:
+aa install fetch --host          # or: make host-build-fetch
+```
 
 ### Interactive Container Shell
 To inspect the internal toolchains or debug builds inside the sandbox:
 ```bash
 make shell
-# or: make enter
-```
-
-### Host / Bare-Metal Fallback
-If running in an environment without container permissions (e.g. nested virtualization restrictions), tools can be compiled directly on the host:
-```bash
-# Build all vendor tools on host
-make host-build
-
-# Or build individual tools directly:
-make host-build-codegraph
-make host-build-context7
-make host-build-fetch
+# or: aa shell
 ```
 
 ### Quality Gate & CI Verification
