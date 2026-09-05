@@ -162,14 +162,7 @@ get_all_skill_files() {
     esac
   done
 
-  # 2. Add repository root agent role & review skills (.agents/skills/*)
-  if [ -d "$REPO_ROOT/.agents/skills" ]; then
-    while IFS= read -r f; do
-      [ -f "$f" ] && skill_files+=("$f")
-    done < <(find "$REPO_ROOT/.agents/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
-  fi
-
-  # 3. Deduplicate by extracted skill name
+  # 2. Deduplicate by extracted skill name
   for sf in "${skill_files[@]}"; do
     local sname
     sname="$(extract_skill_name "$sf")"
