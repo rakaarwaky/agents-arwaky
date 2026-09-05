@@ -20,8 +20,16 @@ echo ">>> Building Fetch-MCP into XDG Data Directory ($TARGET_DIR)..."
 mkdir -p "$TARGET_DIR"
 
 cd "$VENDOR_DIR"
-npm install --no-audit --no-fund
-npm run build
+if command -v bun >/dev/null 2>&1; then
+  bun install
+  bun run build
+elif command -v npm >/dev/null 2>&1; then
+  npm install --no-audit --no-fund
+  npm run build
+else
+  echo "Error: Neither bun nor npm found."
+  exit 1
+fi
 
 echo ">>> Installing runtime to $TARGET_DIR..."
 rm -rf "${TARGET_DIR:?}"/*
@@ -31,13 +39,23 @@ if [ -d "node_modules" ]; then
   cp -r node_modules "$TARGET_DIR/"
 fi
 
-echo ">>> Installing launcher to $LAUNCHER..."
+echo ">>> Installing dual MCP/CLI launcher to $LAUNCHER..."
 cat <<'EOF' > "$LAUNCHER"
 #!/usr/bin/env bash
 set -euo pipefail
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/fetch-mcp"
-exec node "$DATA_DIR/dist/index.js" "$@"
+export NODE_PATH="$DATA_DIR/node_modules:${NODE_PATH:-}"
+
+# Check if first argument is a CLI subcommand or help flag
+CLI_COMMANDS=" html markdown readable txt json youtube "
+
+if [ $# -gt 0 ] && { [[ "$CLI_COMMANDS" =~ [[:space:]]"$1"[[:space:]] ]] || [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--version" ]] || [[ "$1" == "-v" ]]; }; then
+  exec node "$DATA_DIR/dist/cli.js" "$@"
+else
+  exec node "$DATA_DIR/dist/index.js" "$@"
+fi
 EOF
 chmod +x "$LAUNCHER"
+ln -sf "$LAUNCHER" "$XDG_BIN_HOME/mcp-fetch"
 
-echo ">>> Successfully installed fetch-mcp -> $LAUNCHER"
+echo ">>> Successfully installed fetch-mcp -> $LAUNCHER (and $XDG_BIN_HOME/mcp-fetch)"

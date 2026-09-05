@@ -266,6 +266,10 @@ connect_antigravity() {
         ' "$mcp_file" > "$tmp_file"
       fi
       mv "$tmp_file" "$mcp_file"
+      # Ensure compatibility with both ~/.gemini/config and ~/.gemini/antigravity-cli
+      if [ -d "$HOME/.gemini/antigravity-cli" ]; then
+        ln -sf "$mcp_file" "$HOME/.gemini/antigravity-cli/mcp_config.json"
+      fi
       log_ok "Antigravity MCP servers configured successfully."
     fi
   fi
@@ -279,6 +283,9 @@ connect_antigravity() {
       copy_skill_to_dir "$sf" "$skills_dir" "$force" "$dry_run"
       count=$((count + 1))
     done < <(get_all_skill_files)
+    if [ -d "$HOME/.gemini/antigravity-cli" ]; then
+      ln -sfn "$skills_dir" "$HOME/.gemini/antigravity-cli/skills" 2>/dev/null || true
+    fi
     log_ok "Processed $count skills for Antigravity."
   fi
 }
