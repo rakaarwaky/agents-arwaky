@@ -1,15 +1,19 @@
 [submodule "blender-arwaky"]
 	path = internal/blender-arwaky
 	url = https://github.com/rakaarwaky/blender-arwaky.git
+	ignore = dirty
 [submodule "lint-arwaky"]
 	path = internal/lint-arwaky
 	url = https://github.com/rakaarwaky/lint-arwaky.git
+	ignore = dirty
 [submodule "vision-arwaky"]
 	path = internal/vision-arwaky
 	url = https://github.com/rakaarwaky/vision-arwaky.git
+	ignore = dirty
 [submodule "qwen-web-arwaky"]
 	path = internal/qwen-web-arwaky
 	url = https://github.com/rakaarwaky/qwen-web-arwaky.git
+	ignore = dirty
 [submodule "vendor/context7"]
 	path = vendor/context7
 	url = https://github.com/upstash/context7.git
