@@ -200,6 +200,12 @@ get_tool_skills() {
     skill)
       [ -f "$REPO_ROOT/tools/skill/SKILL.md" ] && files+=("$REPO_ROOT/tools/skill/SKILL.md")
       ;;
+    workspace)
+      [ -f "$REPO_ROOT/tools/google-workspace-mcp/SKILL.md" ] && files+=("$REPO_ROOT/tools/google-workspace-mcp/SKILL.md")
+      while IFS= read -r f; do
+        [ -f "$f" ] && files+=("$f")
+      done < <(find "$REPO_ROOT/vendor/google-workspace-mcp/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
+      ;;
   esac
 
   for f in "${files[@]}"; do

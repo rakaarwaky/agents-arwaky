@@ -39,3 +39,7 @@
 	url = https://github.com/decolua/9router.git
 	ignore = dirty
 
+[submodule "vendor/google-workspace-mcp"]
+	path = vendor/google-workspace-mcp
+	url = https://github.com/taylorwilsdon/google_workspace_mcp.git
+	ignore = dirty

@@ -67,6 +67,15 @@
       "path": "vendor/9router"
     },
     {
+      "id": "workspace",
+      "alias": "google-workspace",
+      "category": "vendor",
+      "binary": "workspace-mcp",
+      "isMcp": true,
+      "description": "Google Workspace MCP (Gmail, Calendar, Drive, Docs, Sheets, Chat)",
+      "path": "vendor/google-workspace-mcp"
+    },
+    {
       "id": "vision",
       "alias": "vision-arwaky",
       "category": "internal",

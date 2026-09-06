@@ -107,7 +107,7 @@ get_all_skill_files() {
   local skill_files=()
 
   # 1. Gather all skills from registered tools via skill-manager logic
-  local registered_tools=("lint" "9router" "ponytail" "context7" "codegraph" "anytype" "fetch" "lean-ctx" "vision" "qwen-web" "blender" "skill")
+  local registered_tools=("lint" "9router" "ponytail" "context7" "codegraph" "anytype" "fetch" "lean-ctx" "vision" "qwen-web" "blender" "skill" "workspace")
   for tid in "${registered_tools[@]}"; do
     case "$tid" in
       lint)
@@ -158,6 +158,12 @@ get_all_skill_files() {
         ;;
       skill)
         [ -f "$REPO_ROOT/tools/skill/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/skill/SKILL.md")
+        ;;
+      workspace)
+        [ -f "$REPO_ROOT/tools/google-workspace-mcp/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/google-workspace-mcp/SKILL.md")
+        while IFS= read -r f; do
+          [ -f "$f" ] && skill_files+=("$f")
+        done < <(find "$REPO_ROOT/vendor/google-workspace-mcp/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
         ;;
     esac
   done

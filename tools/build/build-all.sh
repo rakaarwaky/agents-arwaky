@@ -42,7 +42,8 @@ build_tool "lean-ctx"    "$TOOLS_DIR/lean-ctx/install.sh"
 build_tool "ponytail"    "$TOOLS_DIR/ponytail/install.sh"
 build_tool "anytype-mcp" "$TOOLS_DIR/anytype-mcp/install.sh"
 build_tool "codegraph"   "$TOOLS_DIR/codegraph/install.sh"
-build_tool "9router"     "$TOOLS_DIR/9router/install.sh"
+build_tool "9router"              "$TOOLS_DIR/9router/install.sh"
+build_tool "google-workspace-mcp" "$TOOLS_DIR/google-workspace-mcp/install.sh"
 
 # Internal Tools
 build_tool "lint"        "$TOOLS_DIR/lint/install.sh"
