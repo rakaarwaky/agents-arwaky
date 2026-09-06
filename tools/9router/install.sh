@@ -43,8 +43,8 @@ if grep -q "change-me-to-a-strong-password" "$ENV_FILE" 2>/dev/null; then
   echo ">>> Auto-generated INITIAL_PASSWORD in $ENV_FILE: $RAND_PASS"
 fi
 
-echo ">>> Initializing and verifying 9Router daemon container..."
-"$DAEMON_SCRIPT" start
+echo ">>> Initializing 9Router 24/7 systemd user service..."
+"$DAEMON_SCRIPT" service-install
 
 echo ">>> Synchronizing AI providers configuration..."
 if [ -f "$SCRIPT_DIR/providers.json" ] || [ -f "$SCRIPT_DIR/provider.json" ]; then
@@ -83,21 +83,24 @@ if [ $# -eq 0 ]; then
   "$DAEMON_SCRIPT" status || true
   echo ""
   echo "Commands:"
-  echo "  9router start     Start the daemon container"
-  echo "  9router stop      Stop the daemon container"
-  echo "  9router restart   Restart the daemon container"
-  echo "  9router status    Check container status and API health"
-  echo "  9router password  Display or manage admin dashboard password"
-  echo "  9router key       Manage consumer API keys (list, add, delete)"
-  echo "  9router provider  Manage upstream AI providers (list, add, delete, sync)"
-  echo "  9router logs      Inspect container logs (-f to follow)"
-  echo "  9router models    Discover available AI models"
-  echo "  9router open      Open web dashboard in browser"
+  echo "  9router start             Start the daemon (systemd / container)"
+  echo "  9router stop              Stop the daemon"
+  echo "  9router restart           Restart the daemon"
+  echo "  9router status            Check container status and API health"
+  echo "  9router password          Display or manage admin dashboard password"
+  echo "  9router key               Manage consumer API keys (list, add, delete)"
+  echo "  9router provider          Manage upstream AI providers (list, add, delete, sync)"
+  echo "  9router service-install   Install and enable 24/7 systemd user service"
+  echo "  9router service-status    Show systemd service status"
+  echo "  9router service-uninstall Disable and remove systemd user service"
+  echo "  9router logs              Inspect container logs (-f to follow)"
+  echo "  9router models            Discover available AI models"
+  echo "  9router open              Open web dashboard in browser"
   exit 0
 fi
 
 case "$1" in
-  start|stop|restart|status|logs|models|open|health|key|keys|provider|providers|password)
+  start|stop|restart|status|logs|models|open|health|key|keys|provider|providers|password|service-install|service-status|service-uninstall)
     exec "$DAEMON_SCRIPT" "$@"
     ;;
   --help|-h|help)

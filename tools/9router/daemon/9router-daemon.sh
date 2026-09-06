@@ -89,7 +89,89 @@ check_api_ready() {
   return 1
 }
 
+is_service_installed() {
+  [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/9router.service" ]
+}
+
+is_service_active() {
+  command -v systemctl >/dev/null 2>&1 && systemctl --user is-active 9router.service >/dev/null 2>&1
+}
+
+cmd_service_install() {
+  if ! has_podman; then
+    echo "Error: Podman is required to install the systemd container service." >&2
+    exit 1
+  fi
+
+  local unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+  mkdir -p "$unit_dir"
+  cp "$SCRIPT_DIR/9router.service" "$unit_dir/9router.service"
+
+  # Ensure lingering is enabled so user services run 24/7 without active desktop/ssh session
+  if command -v loginctl >/dev/null 2>&1; then
+    loginctl enable-linger "$USER" 2>/dev/null || true
+  fi
+
+  # Stop standalone container if running outside systemd
+  if container_is_running && ! is_service_active; then
+    echo ">>> Stopping existing standalone container '$CONTAINER_NAME'..."
+    "$(get_engine)" stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
+    "$(get_engine)" rm "$CONTAINER_NAME" >/dev/null 2>&1 || true
+  fi
+
+  systemctl --user daemon-reload
+  systemctl --user enable --now 9router.service
+
+  echo ">>> Waiting for 9Router API to be ready at http://127.0.0.1:$PORT..."
+  if check_api_ready; then
+    echo ">>> [OK] 9Router daemon installed and active as user systemd service: 9router.service"
+    echo ">>> Web Dashboard: http://localhost:$PORT"
+    echo ">>> REST API Base: http://localhost:$PORT/v1"
+    echo ">>> Data Storage:  $DATA_DIR"
+    echo ">>> 24/7 Autostart: Enabled via systemd user unit + loginctl linger"
+  else
+    echo ">>> [WARN] Service enabled, but API is still initializing. Check '9router logs'."
+  fi
+}
+
+cmd_service_uninstall() {
+  local unit_file="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/9router.service"
+  if [ -f "$unit_file" ]; then
+    echo ">>> Disabling and stopping 9router.service..."
+    systemctl --user disable --now 9router.service 2>/dev/null || true
+    rm -f "$unit_file"
+    systemctl --user daemon-reload
+    echo ">>> 9Router systemd user service removed."
+  else
+    echo ">>> 9Router systemd service is not installed."
+  fi
+}
+
+cmd_service_status() {
+  if is_service_installed; then
+    systemctl --user status 9router.service
+  else
+    echo "9Router systemd service is not installed (run '$0 service-install')."
+  fi
+}
+
 cmd_start() {
+  if is_service_installed; then
+    echo ">>> Starting 9Router via systemd service (9router.service)..."
+    systemctl --user start 9router.service
+    echo ">>> Waiting for 9Router API to be ready at http://127.0.0.1:$PORT..."
+    if check_api_ready; then
+      echo ">>> [OK] 9Router daemon is active and healthy!"
+      echo ">>> Web Dashboard: http://localhost:$PORT"
+      echo ">>> REST API Base: http://localhost:$PORT/v1"
+      echo ">>> Data Storage:  $DATA_DIR"
+    else
+      echo "Warning: 9Router service started but API health check timed out." >&2
+      echo "Check container logs with: $0 logs" >&2
+    fi
+    return 0
+  fi
+
   local engine
   engine="$(get_engine)"
   if [ -z "$engine" ]; then
@@ -147,6 +229,13 @@ cmd_start() {
 }
 
 cmd_stop() {
+  if is_service_active; then
+    echo ">>> Stopping 9Router systemd service (9router.service)..."
+    systemctl --user stop 9router.service
+    echo ">>> 9Router service stopped."
+    return 0
+  fi
+
   local engine
   engine="$(get_engine)"
   if [ -z "$engine" ]; then
@@ -164,6 +253,16 @@ cmd_stop() {
 }
 
 cmd_restart() {
+  if is_service_active; then
+    echo ">>> Restarting 9Router systemd service (9router.service)..."
+    systemctl --user restart 9router.service
+    echo ">>> Waiting for 9Router API to be ready at http://127.0.0.1:$PORT..."
+    if check_api_ready; then
+      echo ">>> [OK] 9Router daemon is active and healthy!"
+    fi
+    return 0
+  fi
+
   cmd_stop
   sleep 1
   cmd_start
@@ -179,6 +278,16 @@ cmd_status() {
   echo "Container Name:   $CONTAINER_NAME"
   echo "Target Port:      $PORT"
   echo "Data Directory:   $DATA_DIR"
+
+  if is_service_installed; then
+    if is_service_active; then
+      echo "Systemd Service:  Active (running 24/7) [9router.service]"
+    else
+      echo "Systemd Service:  Inactive (stopped) [9router.service]"
+    fi
+  else
+    echo "Systemd Service:  Not Installed (run '$0 service-install')"
+  fi
 
   if [ -z "$engine" ]; then
     echo "Status:           Engine Not Found (Install Podman)"
@@ -677,6 +786,9 @@ Commands:
   provider add <p> <k> [n]  Add provider connection (e.g. openrouter sk-...)
   provider delete <target>  Delete provider connection
   provider sync [file]      Sync providers from providers.json into database
+  service-install           Install and enable 24/7 systemd user service
+  service-status            Show systemd service status
+  service-uninstall         Disable and remove systemd user service
   open                      Open web dashboard in browser (http://localhost:$PORT)
   help                      Show this help message
 EOF
@@ -686,17 +798,20 @@ ACTION="${1:-help}"
 shift || true
 
 case "$ACTION" in
-  start)    cmd_start "$@" ;;
-  stop)     cmd_stop "$@" ;;
-  restart)  cmd_restart "$@" ;;
-  status)   cmd_status "$@" ;;
-  logs)     cmd_logs "$@" ;;
-  models)   cmd_models "$@" ;;
-  password) cmd_password "$@" ;;
-  key|keys) cmd_key "$@" ;;
+  start)             cmd_start "$@" ;;
+  stop)              cmd_stop "$@" ;;
+  restart)           cmd_restart "$@" ;;
+  status)            cmd_status "$@" ;;
+  logs)              cmd_logs "$@" ;;
+  models)            cmd_models "$@" ;;
+  password)          cmd_password "$@" ;;
+  key|keys)          cmd_key "$@" ;;
   provider|providers) cmd_provider "$@" ;;
-  open)     cmd_open "$@" ;;
-  help|-h)  cmd_help ;;
+  service-install)   cmd_service_install "$@" ;;
+  service-status)    cmd_service_status "$@" ;;
+  service-uninstall) cmd_service_uninstall "$@" ;;
+  open)              cmd_open "$@" ;;
+  help|-h)           cmd_help ;;
   *)
     cmd_help
     exit 1

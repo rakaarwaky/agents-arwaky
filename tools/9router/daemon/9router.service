@@ -1,0 +1,32 @@
+[Unit]
+Description=9Router Core Gateway (Podman)
+Documentation=https://github.com/decolua/9router
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Environment=NINEROUTER_PORT=20128
+Environment=INITIAL_PASSWORD=
+EnvironmentFile=-%h/.config/9router/env
+EnvironmentFile=-%h/.config/9router/.env
+EnvironmentFile=-%h/agents-arwaky/tools/9router/env
+EnvironmentFile=-%h/agents-arwaky/tools/9router/.env
+Restart=always
+RestartSec=5s
+ExecStartPre=-/usr/bin/podman stop 9router
+ExecStartPre=-/usr/bin/podman rm 9router
+ExecStart=/usr/bin/podman run --name 9router \
+  --rm \
+  -p ${NINEROUTER_PORT}:20128 \
+  -v %h/.local/share/9router/data:/app/data:Z \
+  -e DATA_DIR=/app/data \
+  -e PORT=20128 \
+  -e HOSTNAME=0.0.0.0 \
+  -e INITIAL_PASSWORD=${INITIAL_PASSWORD} \
+  ghcr.io/decolua/9router:latest
+ExecStop=/usr/bin/podman stop -t 10 9router
+
+[Install]
+WantedBy=default.target
