@@ -18,6 +18,9 @@ TOOLS=(
   "codegraph-mcp"
   "codegraph"
   "9router"
+  "workspace-mcp"
+  "mnemosyne"
+  "mnemosyne-mcp"
   # Internal Tools (Full Names & Short Aliases)
   "lint-arwaky"
   "la"

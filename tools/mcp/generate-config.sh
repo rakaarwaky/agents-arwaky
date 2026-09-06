@@ -83,13 +83,16 @@ cat <<EOF > "$OUTPUT_FILE"
     },
     "workspace": {
       "command": "workspace-mcp"
+    },
+    "mnemosyne": {
+      "command": "mnemosyne-mcp"
     }
   }
 }
 EOF
 
 echo ">>> Distributing client config templates to individual XDG config dirs:"
-for tool in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph vision-arwaky qwen-web blender-arwaky lint-arwaky google-workspace-mcp; do
+for tool in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph vision-arwaky qwen-web blender-arwaky lint-arwaky google-workspace-mcp mnemosyne; do
   conf_dir="$(xdg_config_dir "$tool")"
   cp "$OUTPUT_FILE" "$conf_dir/mcp_servers.json"
   echo "  - $conf_dir/mcp_servers.json"

@@ -90,6 +90,8 @@ cmd_help() {
   echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP, skills & env variables to agent harnesses (--antigravity, --hermes, --opencode, --all)"
   echo -e "  ${GREEN}anytype${RESET} [action]                Manage Anytype headless daemon, bot accounts & keys"
   echo -e "  ${GREEN}9router${RESET} [action]                Manage 9Router local AI gateway, daemon & models"
+  echo -e "  ${GREEN}backup${RESET} <tool|all> [dest] [--gdrive] Backup sensitive credentials, DBs & login sessions"
+  echo -e "  ${GREEN}restore${RESET} <tool|all> <src> [--gdrive]  Restore sensitive credentials, DBs & login sessions"
   echo ""
   echo -e "${BOLD}MAINTENANCE & LIFECYCLE:${RESET}"
   echo -e "  ${CYAN}setup${RESET}                          Check and install host prerequisites (podman & distrobox)"
@@ -483,6 +485,8 @@ main() {
     destroy)         cmd_destroy "$@" ;;
     anytype)         "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" "$@" ;;
     9router)         "$REPO_ROOT/tools/9router/daemon/9router-daemon.sh" "$@" ;;
+    backup)          "$REPO_ROOT/tools/backup/backup-manager.sh" backup "$@" ;;
+    restore)         "$REPO_ROOT/tools/backup/backup-manager.sh" restore "$@" ;;
     mcp)             cmd_mcp "$@" ;;
     skill|skills)    "$REPO_ROOT/tools/skill/skill-manager.sh" "$@" ;;
     connect)         "$REPO_ROOT/tools/connect/connect-agent.sh" "$@" ;;

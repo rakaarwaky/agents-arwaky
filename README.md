@@ -121,7 +121,9 @@ agents-arwaky/
 │   ├── codegraph/               # Codebase intelligence & graph query engine
 │   ├── context7/                # Upstash documentation & context retrieval
 │   ├── fetch-mcp/               # Fast, clean web scraping & text extraction
+│   ├── google-workspace-mcp/    # Google Workspace integration (Gmail, Drive, Docs, etc.)
 │   ├── lean-ctx/                # High-efficiency token-lean codebase indexer
+│   ├── mnemosyne/               # Universal local AI memory layer & temporal graph
 │   └── ponytail/                # Agent architecture patterns & instructions
 │
 └── tools/                       # Orchestration, CI & XDG Infrastructure
@@ -271,6 +273,8 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **ponytail**    | `ponytail-mcp`                     | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) |     MCP Server     | Senior-developer prompt instructions and agent behavioral patterns.     |
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
 | **9router**     | `9router`                          | [decolua/9router](https://github.com/decolua/9router)                 | CLI / HTTP Gateway | Local AI routing gateway, token saver (RTK), and 40+ provider fallback. |
+| **workspace**   | `workspace-mcp`                    | [taylorwilsdon/google_workspace_mcp](https://github.com/taylorwilsdon/google_workspace_mcp) | MCP Server | Google Workspace full integration (Gmail, Drive, Docs, Sheets, Chat).   |
+| **mnemosyne**   | `mnemosyne`, `mnemosyne-mcp`       | [mnemosyne-oss/mnemosyne](https://github.com/mnemosyne-oss/mnemosyne) | CLI / MCP / Plugin | Universal SQLite memory, temporal knowledge graph & multi-harness sync. |
 
 ---
 

@@ -76,6 +76,15 @@
       "path": "vendor/google-workspace-mcp"
     },
     {
+      "id": "mnemosyne",
+      "alias": "mnemosyne-memory",
+      "category": "vendor",
+      "binary": "mnemosyne-mcp",
+      "isMcp": true,
+      "description": "Universal AI memory layer (SQLite, temporal graph, episodic recall)",
+      "path": "vendor/mnemosyne"
+    },
+    {
       "id": "vision",
       "alias": "vision-arwaky",
       "category": "internal",

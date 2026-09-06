@@ -130,6 +130,8 @@ normalize_tool_id() {
     qwen-web|qwen-web-arwaky|qwa|qwc) echo "qwen-web" ;;
     blender|blender-arwaky|ba) echo "blender" ;;
     skill|skills|skill-manager) echo "skill" ;;
+    workspace|workspace-mcp|google-workspace) echo "workspace" ;;
+    mnemosyne|mnemosyne-memory|mnemosyne-mcp) echo "mnemosyne" ;;
     *)
       # Lookup in manifest.json
       if [ -f "$MANIFEST_FILE" ]; then
@@ -205,6 +207,12 @@ get_tool_skills() {
       while IFS= read -r f; do
         [ -f "$f" ] && files+=("$f")
       done < <(find "$REPO_ROOT/vendor/google-workspace-mcp/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
+      ;;
+    mnemosyne)
+      [ -f "$REPO_ROOT/tools/mnemosyne/SKILL.md" ] && files+=("$REPO_ROOT/tools/mnemosyne/SKILL.md")
+      while IFS= read -r f; do
+        [ -f "$f" ] && files+=("$f")
+      done < <(find "$REPO_ROOT/vendor/mnemosyne/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
       ;;
   esac
 

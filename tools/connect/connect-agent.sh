@@ -107,7 +107,7 @@ get_all_skill_files() {
   local skill_files=()
 
   # 1. Gather all skills from registered tools via skill-manager logic
-  local registered_tools=("lint" "9router" "ponytail" "context7" "codegraph" "anytype" "fetch" "lean-ctx" "vision" "qwen-web" "blender" "skill" "workspace")
+  local registered_tools=("lint" "9router" "ponytail" "context7" "codegraph" "anytype" "fetch" "lean-ctx" "vision" "qwen-web" "blender" "skill" "workspace" "mnemosyne")
   for tid in "${registered_tools[@]}"; do
     case "$tid" in
       lint)
@@ -164,6 +164,12 @@ get_all_skill_files() {
         while IFS= read -r f; do
           [ -f "$f" ] && skill_files+=("$f")
         done < <(find "$REPO_ROOT/vendor/google-workspace-mcp/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
+        ;;
+      mnemosyne)
+        [ -f "$REPO_ROOT/tools/mnemosyne/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/mnemosyne/SKILL.md")
+        while IFS= read -r f; do
+          [ -f "$f" ] && skill_files+=("$f")
+        done < <(find "$REPO_ROOT/vendor/mnemosyne/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
         ;;
     esac
   done
@@ -363,6 +369,58 @@ inject_9router_env() {
   esac
 }
 
+# --- Ensure Shared Mnemosyne Memory DB Path across Environments ---
+inject_mnemosyne_env() {
+  local target="$1"
+  local dry_run="${2:-false}"
+  local data_dir="${XDG_DATA_HOME:-$HOME/.local/share}/mnemosyne"
+
+  case "$target" in
+    antigravity)
+      log_sub "Target Environment (Mnemosyne): ${BLUE}~/.gemini/config/.env & ~/.gemini/antigravity-cli/.env${RESET}"
+      update_env_file "$HOME/.gemini/config/.env" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
+      if [ -d "$HOME/.gemini/antigravity-cli" ]; then
+        update_env_file "$HOME/.gemini/antigravity-cli/.env" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
+      fi
+      log_ok "Injected MNEMOSYNE_DATA_DIR into Antigravity environment."
+      ;;
+    hermes)
+      local hermes_env="${XDG_DATA_HOME:-$HOME}/.hermes/.env"
+      [ -d "$HOME/.hermes" ] && hermes_env="$HOME/.hermes/.env"
+      log_sub "Target Environment (Mnemosyne): ${BLUE}$hermes_env${RESET}"
+      update_env_file "$hermes_env" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
+      local hermes_profiles_dir="${hermes_env%/.env}/profiles"
+      if [ -d "$hermes_profiles_dir" ]; then
+        for pdir in "$hermes_profiles_dir"/*; do
+          if [ -d "$pdir" ]; then
+            local pname
+            pname="$(basename "$pdir")"
+            local penv="$pdir/.env"
+            update_env_file "$penv" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
+            log_ok "Injected MNEMOSYNE_DATA_DIR into Hermes profile '$pname' environment."
+          fi
+        done
+      fi
+      log_ok "Injected MNEMOSYNE_DATA_DIR into Hermes main environment."
+      ;;
+    opencode)
+      local opencode_env="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/.env"
+      log_sub "Target Environment (Mnemosyne): ${BLUE}$opencode_env${RESET}"
+      update_env_file "$opencode_env" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
+      if [ -d "$HOME/.opencode" ]; then
+        update_env_file "$HOME/.opencode/.env" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
+      fi
+      log_ok "Injected MNEMOSYNE_DATA_DIR into OpenCode environment."
+      ;;
+    session)
+      local env_d="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d/mnemosyne.conf"
+      log_sub "Target Session Environment (Mnemosyne): ${BLUE}$env_d${RESET}"
+      update_env_file "$env_d" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
+      log_ok "Injected MNEMOSYNE_DATA_DIR into user session environment.d."
+      ;;
+  esac
+}
+
 # --- Ensure Lean-CTX Agent Rules in Rules File ---
 ensure_lean_ctx_rules() {
   local target_file="$1"
@@ -478,9 +536,10 @@ connect_antigravity() {
     ensure_lean_ctx_rules "$HOME/.gemini/GEMINI.md" "$dry_run"
   fi
 
-  # 4. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  # 4. Environment Variables (NINEROUTER_URL, NINEROUTER_KEY, MNEMOSYNE_DATA_DIR)
   if [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ] || [ "$env_only" = "true" ]; then
     inject_9router_env "antigravity" "$dry_run"
+    inject_mnemosyne_env "antigravity" "$dry_run"
   fi
 }
 
@@ -620,9 +679,10 @@ connect_hermes() {
     log_ok "Synchronized all $p_count Hermes multi-profiles."
   fi
 
-  # 3. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY) for Main & Profiles
+  # 3. Environment Variables (NINEROUTER_URL, NINEROUTER_KEY, MNEMOSYNE_DATA_DIR) for Main & Profiles
   if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
     inject_9router_env "hermes" "$dry_run"
+    inject_mnemosyne_env "hermes" "$dry_run"
   fi
 }
 
@@ -723,9 +783,10 @@ connect_opencode() {
     ensure_lean_ctx_rules "$config_dir/AGENTS.md" "$dry_run"
   fi
 
-  # 4. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  # 4. Environment Variables (NINEROUTER_URL, NINEROUTER_KEY, MNEMOSYNE_DATA_DIR)
   if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
     inject_9router_env "opencode" "$dry_run"
+    inject_mnemosyne_env "opencode" "$dry_run"
   fi
 }
 
@@ -863,6 +924,7 @@ main() {
   # Inject user session environment for GUI and shell consistency
   if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
     inject_9router_env "session" "$dry_run"
+    inject_mnemosyne_env "session" "$dry_run"
     echo ""
   fi
 
