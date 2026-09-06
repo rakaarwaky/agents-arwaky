@@ -89,7 +89,7 @@
       "alias": "lint-arwaky",
       "category": "internal",
       "binary": "lint-arwaky",
-      "isMcp": false,
+      "isMcp": true,
       "description": "Architecture linter (AES rules) for Rust, Python, TypeScript",
       "path": "internal/lint-arwaky"
     },

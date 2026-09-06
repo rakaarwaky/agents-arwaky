@@ -479,22 +479,23 @@ connect_antigravity() {
 }
 
 # ==============================================================================
-# 2. Hermes Harness Connector
-# NOTE: User rule: Save strictly in ~/.hermes/skills/, NOT in shared-skills!
+# 2. Hermes Harness Connector (Main & Multi-Profiles)
+# NOTE: User rule: Save strictly in ~/.hermes/skills/ (or profile skills), NOT in shared-skills!
 # ==============================================================================
-connect_hermes() {
-  local force="$1"
-  local dry_run="$2"
-  local mcp_only="$3"
-  local skills_only="$4"
-  local env_only="${5:-false}"
+connect_hermes_instance() {
+  local target_dir="$1"
+  local profile_label="$2"
+  local force="$3"
+  local dry_run="$4"
+  local mcp_only="$5"
+  local skills_only="$6"
+  local env_only="$7"
+  local hermes_root="$8"
 
-  log_header "Connecting to Hermes Agent..."
+  local config_file="$target_dir/config.yaml"
+  local skills_dir="$target_dir/skills"
 
-  local hermes_home="${XDG_DATA_HOME:-$HOME}/.hermes"
-  [ -d "$HOME/.hermes" ] && hermes_home="$HOME/.hermes"
-  local config_file="$hermes_home/config.yaml"
-  local skills_dir="$hermes_home/skills"
+  log_header "Connecting to Hermes ($profile_label)..."
 
   # 1. MCP Configuration in config.yaml
   if [ "$skills_only" != "true" ] && [ "$env_only" != "true" ]; then
@@ -502,15 +503,15 @@ connect_hermes() {
     if [ "$dry_run" = "true" ]; then
       log_sub "[DRY-RUN] Would merge MCP servers into $config_file (mcp_servers: section)"
     else
-      mkdir -p "$hermes_home"
+      mkdir -p "$target_dir"
       if [ ! -f "$config_file" ]; then
         echo "mcp_servers: {}" > "$config_file"
       fi
 
       # Determine Python interpreter (prefer Hermes venv with ruamel.yaml for comment preservation)
       local python_cmd=""
-      if [ -x "$hermes_home/hermes-agent/venv/bin/python" ]; then
-        python_cmd="$hermes_home/hermes-agent/venv/bin/python"
+      if [ -x "$hermes_root/hermes-agent/venv/bin/python" ]; then
+        python_cmd="$hermes_root/hermes-agent/venv/bin/python"
       elif command -v python3 >/dev/null 2>&1; then
         python_cmd="python3"
       fi
@@ -565,24 +566,55 @@ EOF
     fi
   fi
 
-  # 2. Global Skills strictly in ~/.hermes/skills/
+  # 2. Global Skills strictly in <target_dir>/skills/
   if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
-    log_sub "Target Global Skills (strictly ~/.hermes/skills): ${BLUE}$skills_dir${RESET}"
+    log_sub "Target Global Skills (strictly $skills_dir): ${BLUE}$skills_dir${RESET}"
     local count=0
     while IFS= read -r sf; do
       [ -n "$sf" ] || continue
       copy_skill_to_dir "$sf" "$skills_dir" "$force" "$dry_run"
       count=$((count + 1))
     done < <(get_all_skill_files)
-    log_ok "Processed $count skills for Hermes."
+    log_ok "Processed $count skills for Hermes ($profile_label)."
   fi
 
   # 3. Agent Rules (HERMES.md)
   if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
-    ensure_lean_ctx_rules "$hermes_home/HERMES.md" "$dry_run"
+    ensure_lean_ctx_rules "$target_dir/HERMES.md" "$dry_run"
+  fi
+}
+
+connect_hermes() {
+  local force="$1"
+  local dry_run="$2"
+  local mcp_only="$3"
+  local skills_only="$4"
+  local env_only="${5:-false}"
+
+  log_header "Connecting to Hermes Agent (Main & Multi-Profiles)..."
+
+  local hermes_home="${XDG_DATA_HOME:-$HOME}/.hermes"
+  [ -d "$HOME/.hermes" ] && hermes_home="$HOME/.hermes"
+
+  # 1. Connect Default/Main Hermes Instance
+  connect_hermes_instance "$hermes_home" "Main Profile" "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only" "$hermes_home"
+
+  # 2. Connect All Multi-Profiles under ~/.hermes/profiles/
+  local profiles_dir="$hermes_home/profiles"
+  if [ -d "$profiles_dir" ]; then
+    local p_count=0
+    for pdir in "$profiles_dir"/*; do
+      if [ -d "$pdir" ]; then
+        local pname
+        pname="$(basename "$pdir")"
+        connect_hermes_instance "$pdir" "Profile: $pname" "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only" "$hermes_home"
+        p_count=$((p_count + 1))
+      fi
+    done
+    log_ok "Synchronized all $p_count Hermes multi-profiles."
   fi
 
-  # 4. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  # 3. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY) for Main & Profiles
   if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
     inject_9router_env "hermes" "$dry_run"
   fi
@@ -701,7 +733,7 @@ cmd_help() {
   echo ""
   echo -e "${BOLD}TARGET AGENT HARNESSES:${RESET}"
   echo -e "  ${GREEN}--antigravity, antigravity${RESET}  Google Antigravity (~/.gemini/config/)"
-  echo -e "  ${GREEN}--hermes, hermes${RESET}            Hermes Agent (~/.hermes/config.yaml & ~/.hermes/skills/)"
+  echo -e "  ${GREEN}--hermes, hermes${RESET}            Hermes Agent (Main & all profiles under ~/.hermes/profiles/)"
   echo -e "  ${GREEN}--opencode, opencode${RESET}        OpenCode (~/.config/opencode/opencode.jsonc)"
   echo -e "  ${GREEN}--all, all${RESET}                  Connect to ALL 3 agent harnesses"
   echo ""
