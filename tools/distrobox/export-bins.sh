@@ -61,6 +61,18 @@ if [ -n "$FILTER_TOOL" ]; then
   if [[ "$FILTER_TOOL" == *"codegraph"* ]]; then
     TARGET_LIST+=("codegraph" "codegraph-mcp")
   fi
+  if [[ "$FILTER_TOOL" == *"lint"* ]]; then
+    TARGET_LIST+=("la" "lac")
+  fi
+  if [[ "$FILTER_TOOL" == *"vision"* ]]; then
+    TARGET_LIST+=("va")
+  fi
+  if [[ "$FILTER_TOOL" == *"qwen-web"* ]]; then
+    TARGET_LIST+=("qwa" "qwc" "qwen-web-mcp")
+  fi
+  if [[ "$FILTER_TOOL" == *"blender"* ]]; then
+    TARGET_LIST+=("ba" "blender-mcp")
+  fi
   if [ ${#TARGET_LIST[@]} -eq 0 ]; then
     TARGET_LIST+=("$FILTER_TOOL")
   fi
