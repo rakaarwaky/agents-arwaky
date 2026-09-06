@@ -13,17 +13,18 @@ When executing or reasoning about this repository, **you must preserve these inv
 
 1. **Zero Host Contamination:**
    - **NEVER** install compilers, runtimes, or system packages globally on the host operating system (e.g., do not run `sudo apt install`, `pacman -S`, `pip install --user`, or global `npm install -g`).
-   - All toolchains (Rust/Cargo, Node/pnpm, Bun, Python/uv, Playwright headless browsers) reside inside the rootless container sandbox named `agents-env` managed via [Distrobox](https://distrobox.it/) / Podman.
-   - Binaries are exposed to the host exclusively via `~/.local/bin/` as lightweight distrobox-export launchers or self-resolving wrappers.
+   - All toolchains (Rust/Cargo, Node/pnpm, Bun, Python/uv, Playwright headless browsers, system C-libraries) reside inside the rootless container sandbox named `agents-env` managed via [Distrobox](https://distrobox.it/) / Podman.
+   - Host `$HOME` is mounted into the container. Internal compiled ELF binaries reside in container-internal storage (`~/.local/share/agents-arwaky/internal-bin/`), while host wrappers are exported to `~/.local/bin/` via `distrobox-export`.
+   - Host OS `/usr` and root filesystems remain completely untouched.
 
 2. **XDG Base Directory Compliance:**
    - Adhere strictly to the Linux XDG Base Directory specification.
    - Do not write persistent data or cache to the repository root.
-   - Tool data: `${XDG_DATA_HOME:-$HOME/.local/share}/<tool-name>/`
-   - Tool config: `${XDG_CONFIG_HOME:-$HOME/.config}/<tool-name>/`
+   - Tool data & reports: `${XDG_DATA_HOME:-$HOME/.local/share}/<tool-name>/`
+   - Tool config & rules: `${XDG_CONFIG_HOME:-$HOME/.config}/<tool-name>/`
    - Tool cache: `${XDG_CACHE_HOME:-$HOME/.cache}/<tool-name>/`
    - Host executable launchers: `${XDG_BIN_HOME:-$HOME/.local/bin}/`
-   - Container-internal binaries: `${XDG_DATA_HOME:-$HOME/.local/share}/agents-arwaky/internal-bin/`
+   - Container-internal real binaries: `${XDG_DATA_HOME:-$HOME/.local/share}/agents-arwaky/internal-bin/`
 
 3. **Submodule Architecture & Pin Integrity:**
    - Both in-house agents (`internal/`) and upstream vendor tools (`vendor/`) are Git submodules pinned to explicit commits.
@@ -31,23 +32,23 @@ When executing or reasoning about this repository, **you must preserve these inv
    - Submodules use `ignore = dirty` in `.gitmodules` to prevent spurious diffs during local builds.
    - If submodule sources are missing, use:
      ```bash
-     git submodule update --init vendor/
-     # or for all submodules:
-     git submodule update --init --recursive
+     git submodule update --init vendor/ internal/
+     # or via orchestrator:
+     aa submodules
      ```
 
 4. **Architecture Enforcement System (AES) Compliance:**
    - In-house agents (`internal/lint-arwaky`, `internal/vision-arwaky`, etc.) enforce the AES 7-layer architecture.
    - Every file must adhere to naming rules: `layer_concern_role.<ext>`.
-   - Linters and architecture checks can be triggered with `aa run lint --help` (or `agents-arwaky run lint --help`) or via `internal/lint-arwaky`.
+   - Linters and architecture checks can be triggered with `aa run lint --help` (or `lint-arwaky`) or via `internal/lint-arwaky`.
 
 ---
 
 ## 🗂️ Repository Architecture Map
 
 The repository segregates agent workloads into three primary zones:
-- `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules).
-- `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules).
+- `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules: `lint-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `blender-arwaky`).
+- `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `lean-ctx`, `ponytail`, `anytype-mcp`, `codegraph`, `9router`).
 - `tools/`: Orchestration CLI (`arwaky`), Distrobox container lifecycle, CI validation, and per-tool installers.
 
 > For the comprehensive visual directory tree and system flow diagram, see [**README.md § Architecture**](README.md#-architecture).
@@ -85,10 +86,10 @@ When generating code or executing tasks within this repository:
 - Internal agents are submodules pointing to separate git repositories.
 - When modifying internal agents, check for repository-specific instructions (e.g. [`internal/lint-arwaky/AGENTS.md`](internal/lint-arwaky/AGENTS.md), [`internal/vision-arwaky/SKILL.md`](internal/vision-arwaky/SKILL.md)).
 - Respect the language toolchain of each submodule:
-  - `internal/lint-arwaky`: Rust (`cargo fmt`, `cargo clippy`, `cargo nextest`)
-  - `internal/vision-arwaky`: Python with `uv` (`uv run`, `pyproject.toml`)
-  - `internal/qwen-web-arwaky`: Python Playwright (`uv run`)
-  - `internal/blender-arwaky`: Python / Blender headless pipeline
+  - `internal/lint-arwaky`: Rust (`cargo fmt`, `cargo clippy`, `cargo nextest`). Provides CLI (`lint-arwaky`, `la`, `lac`), TUI (`lint-arwaky-tui`), and MCP server (`lint-arwaky-mcp`) exposing `execute_command`, `get_config`, `health_check`, `list_commands`, `read_skill`.
+  - `internal/vision-arwaky`: Python with `uv` (`uv run`, `pyproject.toml`). CLI (`vision-arwaky`, `va`), MCP (`vision-arwaky-mcp`).
+  - `internal/qwen-web-arwaky`: Python Playwright (`uv run`). CLI (`qwen-web-arwaky`, `qwa`, `qwc`), MCP (`qwen-web-mcp`).
+  - `internal/blender-arwaky`: Python / Blender headless pipeline. CLI (`blender-arwaky`, `ba`), MCP (`blender-mcp`).
 
 ### 2. Modifying Build & Orchestration Scripts in `tools/`
 - Every script in `tools/` must begin with:
@@ -127,14 +128,17 @@ The verification script checks:
 | **Diagnose environment** | `aa doctor` |
 | **Check tool readiness** | `aa status` |
 | **Verify repository integrity** | `aa check` |
+| **List registered tools** | `aa list` |
+| **List active MCP servers** | `aa mcp list` |
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
 | **Execute containerized tool** | `aa run <tool-id> [args]` |
 | **Install via Distrobox (Sandbox)** | `aa install [tool]` |
 | **Install on Host (Bare-Metal)** | `aa install [tool] --host` |
+| **Manage Anytype daemon** | `aa anytype [start\|status\|auth-key\|space-list]` |
 | **Enter container shell** | `aa shell` |
 | **Reset submodules cleanly** | `aa submodules` |
-| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (e.g. `--antigravity`, `--hermes`, `--opencode`, `--all`) |
+| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (`--antigravity`, `--hermes`, `--opencode`, `--all`) |
 | **Clean build artifacts** | `aa clean` (or: `aa clean --all`) |
 
 ---
