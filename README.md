@@ -2,19 +2,6 @@
 
 <div align="center">
 
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
-![Architecture](https://img.shields.io/badge/Architecture-Distrobox%20First--Class-8A2BE2?style=for-the-badge)
-![Container Runtime](https://img.shields.io/badge/Container-Podman%20%7C%20Docker-orange?style=for-the-badge)
-![Protocol](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-00C7B7?style=for-the-badge)
-![XDG Compliant](https://img.shields.io/badge/Standard-Linux%20XDG-2ea44f?style=for-the-badge)
-![Polyglot](https://img.shields.io/badge/Toolchains-Rust%20%7C%20Python%20%7C%20Bun%20%7C%20Node-yellow?style=for-the-badge)
-
-**A production-grade, sandboxed multi-agent ecosystem and unified Model Context Protocol (MCP) orchestrator.**
-
-[Quickstart](#-quickstart-in-60-seconds) • [Architecture](#-architecture) • [CLI Reference](#-unified-orchestrator-cli-arwaky) • [Catalog](#-agent--tool-catalog) • [MCP Client Setup](#-mcp-client-integration) • [Contributing](#-contributing)
-
-</div>
-
 ---
 
 ## 💡 Executive Summary
@@ -22,6 +9,7 @@
 Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`cargo`), Node (`pnpm`/`npm`), Bun, Python (`uv`), Playwright headless browsers, and system C-libraries. Installing these natively clutters the host operating system, introduces version conflicts, and creates security vulnerabilities.
 
 **`agents-arwaky`** solves this through a **Distrobox First-Class Architecture**:
+
 - 🛡️ **Zero Host Contamination:** Compilers, dependencies, and runtimes live inside an automated rootless container (`agents-env`). Your host OS stays clean.
 - ⚡ **Seamless Host Execution:** Containerized executables are exported directly to `~/.local/bin/` via standard Linux XDG integration. Run tools from your host terminal with zero manual container switching.
 - 🤖 **Universal MCP Hub & Skills Provisioner:** Out-of-the-box integration for AI harnesses (Google Antigravity, Hermes Agent with full multi-profile sync, OpenCode, Cursor, Zed) via declarative MCP configs and automated skill provisioning.
@@ -59,31 +47,54 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 
 ```mermaid
 flowchart TB
-    subgraph Host["Host Operating System (Linux)"]
-        User["User / AI Agent"]
-        CLI["agents-arwaky CLI (~/.local/bin/agents-arwaky, alias: aa)"]
-        BinDir["~/.local/bin/ (Exported Executables)"]
-        Clients["Agent Harnesses & Editors\n(Antigravity / Hermes Multi-Profiles / OpenCode / Cursor / Zed)"]
-        Configs["~/.config/<tool>/ & mcp_servers.generated.json"]
+    subgraph HostOS["Host Operating System (Linux)"]
+        User["User / Developer"]
+        Harnesses["AI Agent Harnesses & IDEs\n(Antigravity • Hermes Multi-Profiles • OpenCode • Cursor • Zed)"]
+        CLI["Orchestrator CLI: 'aa' / 'agents-arwaky'\n(~/.local/bin/aa)"]
+      
+        subgraph XDGShared["Shared Host Storage ($HOME Bind-Mount)"]
+            Launchers["Host Wrappers: ~/.local/bin/\n(lint-arwaky, codegraph-mcp, context7, etc.)"]
+            InternalBin["Container Binaries: ~/.local/share/agents-arwaky/internal-bin/\n(Compiled ELFs, Venv Wrappers, Node Scripts)"]
+            XDGConfigs["Configs & Generated MCP:\n~/.config/<tool>/ & mcp_servers.generated.json"]
+            XDGSkills["Harness Skills:\n~/.gemini/... • ~/.hermes/skills • ~/.config/opencode/skills"]
+        end
     end
 
-    subgraph Container["Distrobox Sandbox Container (agents-env)"]
-        Base["Ubuntu Toolbox Base Image"]
-        Toolchains["Runtimes: Rust / Cargo • Python / uv • Bun • pnpm"]
-        InternalApps["In-House Agents (blender, vision, qwen-web, lint, anytype-daemon)"]
-        VendorApps["Vendor Tools (context7, codegraph, lean-ctx, ponytail, anytype, fetch, 9router)"]
-        InternalBin["~/.local/share/agents-arwaky/internal-bin/"]
+    subgraph DistroboxEnv["Distrobox Container Sandbox ('agents-env')"]
+        DistroboxEngine["distrobox-enter Execution Dispatcher"]
+        IsolatedRuntimes["Container Toolchains & Libs (Zero Host Contamination)\nRust/Cargo • Python/uv • Bun/pnpm • C-Libs • Playwright"]
+      
+        subgraph AgentsAndTools["Managed Agent & Vendor Engines"]
+            InternalAgents["Internal Agents:\nlint-arwaky • vision-arwaky • qwen-web • blender"]
+            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • lean-ctx • ponytail • fetch • 9router"]
+        end
     end
 
+    subgraph SidecarServices["Dedicated Background Daemons (Podman)"]
+        AnytypeDaemon["Anytype Headless Daemon (Podman Container)\nlocalhost:31012 • Encrypted Local P2P Graph"]
+    end
+
+    %% User & CLI interactions
     User --> CLI
-    User --> Clients
-    Clients -. Reads config .-> Configs
-    Clients --> BinDir
-    CLI --> BinDir
-    BinDir == "distrobox-export wrapper" ==> InternalBin
-    InternalBin --> Toolchains
-    Toolchains --> InternalApps
-    Toolchains --> VendorApps
+    User --> Harnesses
+    CLI -- "aa connect (provisions)" --> XDGSkills
+    CLI -- "aa mcp generate" --> XDGConfigs
+    CLI -- "aa install (builds)" --> IsolatedRuntimes
+
+    %% Harness interactions
+    Harnesses -. "Reads config" .-> XDGConfigs
+    Harnesses -. "Loads skills" .-> XDGSkills
+    Harnesses == "Executes via stdio (JSON-RPC)" ==> Launchers
+
+    %% Host wrapper to Distrobox execution
+    Launchers == "distrobox-export wrapper" ==> DistroboxEngine
+    DistroboxEngine --> InternalBin
+    InternalBin --> AgentsAndTools
+    IsolatedRuntimes -. "Builds & powers runtime" .-> AgentsAndTools
+
+    %% Daemons & Services
+    AgentsAndTools -. "anytype-mcp (HTTP :31012)" .-> AnytypeDaemon
+    Harnesses -. "AI Requests via 9Router (HTTP Gateway)" .-> VendorTools
 ```
 
 ### Directory Layout
@@ -128,6 +139,7 @@ agents-arwaky/
 ## 🚀 Quickstart in 60 Seconds
 
 ### 1. Clone with Submodules
+
 ```bash
 git clone --recurse-submodules https://github.com/rakaarwaky/agents-arwaky.git
 cd agents-arwaky
@@ -135,22 +147,29 @@ cd agents-arwaky
 
 > [!TIP]
 > If you previously cloned without submodules, initialize them via:
+>
 > ```bash
 > ./aa submodules
 > ```
 
 ### 2. Verify Host Prerequisites
+
 Ensure [Podman](https://podman.io/) (or Docker) and [Distrobox](https://distrobox.it/) are installed:
+
 ```bash
 ./aa setup
 ```
+
 *(Runs an automated prerequisite check and optionally installs dependencies using your host package manager: `apt`, `pacman`, or `dnf`).*
 
 ### 3. Build & Provision (One-Command)
+
 ```bash
 ./aa install
 ```
+
 This single command executes the end-to-end setup pipeline:
+
 1. Validates host container runtime.
 2. Creates the isolated `agents-env` Distrobox container from [`distrobox.ini`](distrobox.ini).
 3. Provisions isolated runtimes (`uv`, `bun`, `pnpm`, `cargo`) inside the container.
@@ -159,6 +178,7 @@ This single command executes the end-to-end setup pipeline:
 6. Generates unified MCP configurations at `mcp_servers.generated.json`.
 
 ### 4. Verify System Health
+
 ```bash
 aa doctor
 aa status
@@ -171,34 +191,35 @@ aa status
 The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~/.local/bin/`. It serves as the single pane of glass for monitoring, executing, and managing all ecosystem components.
 
 ```
-   ___                           _          
+   ___                           _        
   / _ | _______    _____ _ / /____ __   
  / __ |/ __/ _ \/\/ _ `/  '_/ // /   
-/_/ |_/_/  \_/\_/\_,_/_/\_\_, /    
-                           /___/     
+/_/ |_/_/  \_/\_/\_,_/_/\_\_, /  
+                           /___/   
  agents-arwaky Unified Tool Orchestrator v1.0
 ```
 
 ### Command Reference
 
-| Command | Purpose | Example |
-|---|---|---|
-| `aa status` | Display health, installation state, and submodule readiness | `aa status` |
-| `aa doctor` | Diagnose container runtime, PATH availability, and dependencies | `aa doctor` |
-| `aa check` | Run quality gate verification (executable bits, JSON syntax, shellcheck, submodules) | `aa check` |
-| `aa list` | List all registered tools (internal & vendor) with categories | `aa list` |
-| `aa run <tool> [args]` | Transparently execute any tool inside the container from host | `aa run context7 --help` |
-| `aa mcp list` | Enumerate all tools offering Model Context Protocol servers | `aa mcp list` |
-| `aa mcp show` | Inspect current generated unified MCP client manifest | `aa mcp show` |
-| `aa mcp generate` | Rebuild unified client configuration (`mcp_servers.generated.json`) | `aa mcp generate` |
-| `aa skill list` | Discover, audit, and provision skills across all tools | `aa skill list` |
-| `aa connect <harness>` | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--all`) | `aa connect --all` |
-| `aa install [tool] [--distrobox\|--host]` | Install tools (Distrobox sandbox default, or host bare-metal) | `aa install fetch` / `aa install fetch --host` |
-| `aa anytype <action>` | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status` |
-| `aa shell` | Drop into an interactive shell inside the sandbox container | `aa shell` |
-| `aa submodules` | Cleanly initialize or update all git submodules | `aa submodules` |
-| `aa clean [--host\|--all]` | Remove build artifacts, host binaries, or full pristine reset | `aa clean` |
-| `aa destroy` | Remove and reset Distrobox container `agents-env` | `aa destroy` |
+
+| Command                                  | Purpose                                                                                            | Example                                        |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `aa status`                              | Display health, installation state, and submodule readiness                                        | `aa status`                                    |
+| `aa doctor`                              | Diagnose container runtime, PATH availability, and dependencies                                    | `aa doctor`                                    |
+| `aa check`                               | Run quality gate verification (executable bits, JSON syntax, shellcheck, submodules)               | `aa check`                                     |
+| `aa list`                                | List all registered tools (internal & vendor) with categories                                      | `aa list`                                      |
+| `aa run <tool> [args]`                   | Transparently execute any tool inside the container from host                                      | `aa run context7 --help`                       |
+| `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
+| `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
+| `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
+| `aa skill list`                          | Discover, audit, and provision skills across all tools                                             | `aa skill list`                                |
+| `aa connect <harness>`                   | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--all`)      | `aa connect --all`                             |
+| `aa install [tool] [--distrobox|--host]` | Install tools (Distrobox sandbox default, or host bare-metal)                                      | `aa install fetch` / `aa install fetch --host` |
+| `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
+| `aa shell`                               | Drop into an interactive shell inside the sandbox container                                        | `aa shell`                                     |
+| `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
+| `aa clean [--host|--all]`                | Remove build artifacts, host binaries, or full pristine reset                                      | `aa clean`                                     |
+| `aa destroy`                             | Remove and reset Distrobox container`agents-env`                                                   | `aa destroy`                                   |
 
 > [!TIP]
 > You can use `agents-arwaky` or the short alias `aa` interchangeably for all commands!
@@ -227,28 +248,29 @@ aa run lean-ctx serve
 
 Specialized autonomous agents developed specifically for the `agents-arwaky` ecosystem:
 
-| Agent / Tool | Binary & Aliases | Language & Stack | MCP? | Description |
-|---|---|---|:---:|---|
-| **[lint-arwaky](internal/lint-arwaky/)** | `lint-arwaky` (`la`, `lac`, `lint-arwaky-cli`, `lint-arwaky-mcp`, `lint-arwaky-tui`) | Rust | **Yes** (`lint-arwaky-mcp`) | Architecture Enforcement System (AES) validating 24 rules across Rust, Python, TypeScript. Exposes 5 MCP tools: `execute_command`, `get_config`, `health_check`, `list_commands`, `read_skill`. |
-| **[vision-arwaky](internal/vision-arwaky/)** | `vision-arwaky` (`va`, `vision-arwaky-cli`, `vision-arwaky-mcp`, `vision-arwaky-tui`) | Python / `uv` | **Yes** (`vision-arwaky-mcp`) | Unified vision intelligence: VLM inspection, OCR extraction, and visual memory. |
-| **[qwen-web-arwaky](internal/qwen-web-arwaky/)** | `qwen-web-arwaky` (`qwa`, `qwc`, `qwen-web-cli`, `qwen-web-mcp`) | Python / Playwright | **Yes** (`qwen-web-mcp`) | Browser automation engine with bi-directional MCP interface. |
-| **[blender-arwaky](internal/blender-arwaky/)** | `blender-arwaky` (`ba`, `blender-mcp`) | Python / Blender | **Yes** (`blender-mcp`) | Headless 3D procedural execution, asset generation, and rendering pipeline. |
-| **[anytype-daemon](tools/anytype-mcp/daemon/)** | `anytype-daemon.sh` (CLI: `aa anytype`) | Bash / Podman | No | Headless Anytype daemon managing local-first encrypted P2P space sync for `anytype-mcp`. |
+
+| Agent / Tool                                     | Binary & Aliases                                                                      | Language & Stack    |             MCP?             | Description                                                                                                                                                                                    |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------- | :-----------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **[lint-arwaky](internal/lint-arwaky/)**         | `lint-arwaky` (`la`, `lac`, `lint-arwaky-cli`, `lint-arwaky-mcp`, `lint-arwaky-tui`)  | Rust                |  **Yes** (`lint-arwaky-mcp`)  | Architecture Enforcement System (AES) validating 24 rules across Rust, Python, TypeScript. Exposes 5 MCP tools:`execute_command`, `get_config`, `health_check`, `list_commands`, `read_skill`. |
+| **[vision-arwaky](internal/vision-arwaky/)**     | `vision-arwaky` (`va`, `vision-arwaky-cli`, `vision-arwaky-mcp`, `vision-arwaky-tui`) | Python /`uv`        | **Yes** (`vision-arwaky-mcp`) | Unified vision intelligence: VLM inspection, OCR extraction, and visual memory.                                                                                                                |
+| **[qwen-web-arwaky](internal/qwen-web-arwaky/)** | `qwen-web-arwaky` (`qwa`, `qwc`, `qwen-web-cli`, `qwen-web-mcp`)                      | Python / Playwright |   **Yes** (`qwen-web-mcp`)   | Browser automation engine with bi-directional MCP interface.                                                                                                                                   |
+| **[blender-arwaky](internal/blender-arwaky/)**   | `blender-arwaky` (`ba`, `blender-mcp`)                                                | Python / Blender    |    **Yes** (`blender-mcp`)    | Headless 3D procedural execution, asset generation, and rendering pipeline.                                                                                                                    |
+| **[anytype-daemon](tools/anytype-mcp/daemon/)**  | `anytype-daemon.sh` (CLI: `aa anytype`)                                               | Bash / Podman       |              No              | Headless Anytype daemon managing local-first encrypted P2P space sync for`anytype-mcp`.                                                                                                        |
 
 ### Curated Upstream Vendor Tools (`vendor/`)
 
 High-performance community tools integrated via Git submodules and sandboxed with isolated XDG prefixes:
 
-| Tool | Exported Binary | Source Repo | Protocol | Focus Area |
-|---|---|---|:---:|---|
-| **context7** | `context7-mcp`, `ctx7` | [upstash/context7](https://github.com/upstash/context7) | CLI / MCP Server | Rapid documentation retrieval and vector context ingestion. |
-| **codegraph** | `codegraph-mcp`, `codegraph` | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | CLI / MCP | Graph-based codebase intelligence and semantic symbol indexing. |
-| **lean-ctx** | `lean-ctx` (`_lc`, `_lc_compress`) | [yvgude/lean-ctx](https://github.com/yvgude/lean-ctx) | CLI / MCP | Ultra-low token overhead repository context extraction and shadowing. |
-| **fetch-mcp** | `fetch-mcp`, `mcp-fetch` | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp) | MCP Server | Resilient web scraping, HTML cleaning, and Markdown transformation. |
-| **ponytail** | `ponytail-mcp` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MCP Server | Senior-developer prompt instructions and agent behavioral patterns. |
-| **anytype-mcp**| `anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | MCP Server | Local-first knowledge base & workspace synchronization. |
-| **9router** | `9router` | [decolua/9router](https://github.com/decolua/9router) | CLI / HTTP Gateway | Local AI routing gateway, token saver (RTK), and 40+ provider fallback. |
 
+| Tool            | Exported Binary                    | Source Repo                                                           |      Protocol      | Focus Area                                                              |
+| ----------------- | ------------------------------------ | ----------------------------------------------------------------------- | :------------------: | ------------------------------------------------------------------------- |
+| **context7**    | `context7-mcp`, `ctx7`             | [upstash/context7](https://github.com/upstash/context7)               |  CLI / MCP Server  | Rapid documentation retrieval and vector context ingestion.             |
+| **codegraph**   | `codegraph-mcp`, `codegraph`       | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)   |     CLI / MCP     | Graph-based codebase intelligence and semantic symbol indexing.         |
+| **lean-ctx**    | `lean-ctx` (`_lc`, `_lc_compress`) | [yvgude/lean-ctx](https://github.com/yvgude/lean-ctx)                 |     CLI / MCP     | Ultra-low token overhead repository context extraction and shadowing.   |
+| **fetch-mcp**   | `fetch-mcp`, `mcp-fetch`           | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)           |     MCP Server     | Resilient web scraping, HTML cleaning, and Markdown transformation.     |
+| **ponytail**    | `ponytail-mcp`                     | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) |     MCP Server     | Senior-developer prompt instructions and agent behavioral patterns.     |
+| **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
+| **9router**     | `9router`                          | [decolua/9router](https://github.com/decolua/9router)                 | CLI / HTTP Gateway | Local AI routing gateway, token saver (RTK), and 40+ provider fallback. |
 
 ---
 
@@ -337,6 +359,7 @@ aa connect --clean            # Remove provisioned skills and MCP entries cleanl
 <summary><b>🤖 Google Antigravity (AGY CLI / IDE)</b></summary>
 
 Add the servers to your `~/.gemini/antigravity-cli/mcp_config.json` or run `aa connect --antigravity`:
+
 ```json
 {
   "mcpServers": {
@@ -352,12 +375,14 @@ Add the servers to your `~/.gemini/antigravity-cli/mcp_config.json` or run `aa c
   }
 }
 ```
+
 </details>
 
 <details>
 <summary><b>🪶 Hermes Agent (Multi-Profile)</b></summary>
 
 Hermes configuration uses `~/.hermes/config.yaml` and profile-specific paths `~/.hermes/profiles/<profile>/config.yaml`. Run `aa connect --hermes` to configure automatically, or register under the `mcp_servers` section:
+
 ```yaml
 mcp_servers:
   lint:
@@ -380,12 +405,14 @@ mcp_servers:
   blender:
     command: blender-mcp
 ```
+
 </details>
 
 <details>
 <summary><b>💻 OpenCode</b></summary>
 
 Add to `~/.config/opencode/opencode.jsonc` or run `aa connect --opencode`:
+
 ```jsonc
 {
   "mcp": {
@@ -401,12 +428,14 @@ Add to `~/.config/opencode/opencode.jsonc` or run `aa connect --opencode`:
   }
 }
 ```
+
 </details>
 
 <details>
 <summary><b>⚡ Cursor</b></summary>
 
 Add to `.cursor/mcp.json` or Cursor Global Settings > MCP:
+
 ```json
 {
   "mcpServers": {
@@ -418,12 +447,14 @@ Add to `.cursor/mcp.json` or Cursor Global Settings > MCP:
   }
 }
 ```
+
 </details>
 
 <details>
 <summary><b>🟦 Zed Editor</b></summary>
 
 Add to `~/.config/zed/settings.json`:
+
 ```json
 {
   "context_servers": {
@@ -435,6 +466,7 @@ Add to `~/.config/zed/settings.json`:
   }
 }
 ```
+
 </details>
 
 ---
@@ -444,7 +476,9 @@ Add to `~/.config/zed/settings.json`:
 `agents-arwaky` strictly defines **Two Installation Paradigms Only** across all tools (both internal agents and vendor MCPs):
 
 ### 1. Distrobox Mode (Sandboxed / Default & Recommended)
+
 Compiles runtimes and tools inside the rootless `agents-env` container, exporting clean binary launchers to `~/.local/bin/`. Zero host contamination.
+
 ```bash
 # Install all tools in ecosystem:
 aa install
@@ -454,7 +488,9 @@ aa install fetch
 ```
 
 ### 2. Host Mode (Bare-Metal Fallback)
+
 If running without container permissions (e.g. nested virtualization restrictions), tools can be compiled directly on the host using native runtimes into standard XDG directories:
+
 ```bash
 # Install all tools directly on host:
 aa install --host
@@ -464,13 +500,17 @@ aa install fetch --host
 ```
 
 ### Interactive Container Shell
+
 To inspect the internal toolchains or debug builds inside the sandbox:
+
 ```bash
 aa shell
 ```
 
 ### Quality Gate & CI Verification
+
 To run automated integrity checks (executable permissions, JSON schema validity, submodules state, and ShellCheck):
+
 ```bash
 aa check
 ```
@@ -524,6 +564,7 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
   - Quality verification gates (`aa check`)
 
 ### Quick Pull Request Checklist:
+
 1. Fork the repository & create a feature branch (`git checkout -b feat/my-new-tool`).
 2. Follow the step-by-step workflow in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 3. Run verification before committing:
