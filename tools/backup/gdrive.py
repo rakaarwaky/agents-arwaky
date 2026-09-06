@@ -63,9 +63,22 @@ def get_drive_service():
     auth_http = google_auth_httplib2.AuthorizedHttp(creds, http=http)
     return build("drive", "v3", http=auth_http)
 
+import time
+
+def retry_api(func, max_retries=4, delay=2):
+    last_err = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            return func()
+        except Exception as e:
+            last_err = e
+            if attempt < max_retries:
+                time.sleep(delay * attempt)
+    raise last_err
+
 def get_or_create_folder(service, folder_name=DEFAULT_FOLDER_NAME):
     query = f"name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
-    res = service.files().list(q=query, spaces="drive", fields="files(id, name)").execute()
+    res = retry_api(lambda: service.files().list(q=query, spaces="drive", fields="files(id, name)").execute())
     files = res.get("files", [])
     if files:
         return files[0]["id"]
@@ -74,7 +87,7 @@ def get_or_create_folder(service, folder_name=DEFAULT_FOLDER_NAME):
         "name": folder_name,
         "mimeType": "application/vnd.google-apps.folder"
     }
-    folder = service.files().create(body=metadata, fields="id").execute()
+    folder = retry_api(lambda: service.files().create(body=metadata, fields="id").execute())
     return folder.get("id")
 
 def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
@@ -93,11 +106,11 @@ def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
         "parents": [folder_id]
     }
     
-    file_obj = service.files().create(
+    file_obj = retry_api(lambda: service.files().create(
         body=metadata,
         media_body=media,
         fields="id, name, webViewLink, size"
-    ).execute()
+    ).execute())
 
     print(json.dumps({
         "status": "success",
@@ -116,7 +129,7 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
     # Check if query_or_id is a file ID (Google Drive IDs are usually ~33-44 alphanum with - and _)
     if len(query_or_id) > 25 and "/" not in query_or_id and "." not in query_or_id:
         try:
-            meta = service.files().get(fileId=query_or_id, fields="id, name").execute()
+            meta = retry_api(lambda: service.files().get(fileId=query_or_id, fields="id, name").execute())
             if meta:
                 file_id = meta["id"]
                 target_name = meta["name"]
@@ -127,12 +140,12 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
         # Search by file name in folder
         folder_id = get_or_create_folder(service, folder_name)
         q = f"'{folder_id}' in parents and name contains '{query_or_id}' and trashed = false"
-        res = service.files().list(q=q, orderBy="createdTime desc", fields="files(id, name)").execute()
+        res = retry_api(lambda: service.files().list(q=q, orderBy="createdTime desc", fields="files(id, name)").execute())
         files = res.get("files", [])
         if not files:
             # Fallback: search anywhere in Drive
             q_any = f"name contains '{query_or_id}' and trashed = false"
-            res = service.files().list(q=q_any, orderBy="createdTime desc", fields="files(id, name)").execute()
+            res = retry_api(lambda: service.files().list(q=q_any, orderBy="createdTime desc", fields="files(id, name)").execute())
             files = res.get("files", [])
 
         if not files:
@@ -166,7 +179,7 @@ def cmd_list(folder_name=DEFAULT_FOLDER_NAME):
     service = get_drive_service()
     folder_id = get_or_create_folder(service, folder_name)
     q = f"'{folder_id}' in parents and trashed = false"
-    res = service.files().list(q=q, orderBy="createdTime desc", fields="files(id, name, size, createdTime, webViewLink)").execute()
+    res = retry_api(lambda: service.files().list(q=q, orderBy="createdTime desc", fields="files(id, name, size, createdTime, webViewLink)").execute())
     files = res.get("files", [])
     print(json.dumps(files, indent=2))
 

@@ -92,11 +92,13 @@ safe_copy_container_dir() {
   local src="$1"
   local dest="$2"
   [ -d "$src" ] || return 0
+  rm -rf "$dest"
   mkdir -p "$(dirname "$dest")"
   if cp -ra "$src" "$dest" 2>/dev/null; then
     return 0
   elif command -v podman >/dev/null 2>&1; then
-    podman unshare bash -c "cp -ra '$src' '$dest' && chown -R 0:0 '$dest'" 2>/dev/null || true
+    podman unshare bash -c "rm -rf '$dest' && cp -ra '$src' '$dest' && chown -R 0:0 '$dest'" 2>/dev/null || true
+    return 0
   fi
 }
 
