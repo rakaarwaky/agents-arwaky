@@ -134,7 +134,7 @@ The verification script checks:
 | **Install on Host (Bare-Metal)** | `aa install [tool] --host` |
 | **Enter container shell** | `aa shell` |
 | **Reset submodules cleanly** | `aa submodules` |
-| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (e.g. `--antigravity`, `--hermes`, `--opencode`, `--claude`, `--all`) |
+| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (e.g. `--antigravity`, `--hermes`, `--opencode`, `--all`) |
 | **Clean build artifacts** | `aa clean` (or: `aa clean --all`) |
 
 ---
@@ -152,3 +152,10 @@ The verification script checks:
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Human Documentation & Tool Catalog: [`README.md`](README.md)
 - Upstream Licenses: [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)
+
+<!-- lean-ctx -->
+## lean-ctx
+
+lean-ctx is active — the MCP tools replace native equivalents.
+Full rules: LEAN-CTX.md (open on demand — do not auto-load).
+<!-- /lean-ctx -->

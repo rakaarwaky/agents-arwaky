@@ -87,7 +87,7 @@ cmd_help() {
   echo -e "  ${GREEN}shell${RESET}                          Enter the Distrobox 'agents-env' sandbox shell"
   echo -e "  ${GREEN}mcp${RESET} [action]                   Manage MCP configurations (list, generate, show)"
   echo -e "  ${GREEN}skill${RESET} [action]                 Manage & provision agent skills to workspace"
-  echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP, skills & env variables to agent harnesses (--antigravity, --hermes, --opencode, --claude, --all)"
+  echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP, skills & env variables to agent harnesses (--antigravity, --hermes, --opencode, --all)"
   echo -e "  ${GREEN}anytype${RESET} [action]                Manage Anytype headless daemon, bot accounts & keys"
   echo -e "  ${GREEN}9router${RESET} [action]                Manage 9Router local AI gateway, daemon & models"
   echo ""

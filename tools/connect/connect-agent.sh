@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tools/connect/connect-agent.sh
 # Bridge & Inject agents-arwaky MCP Servers & Global Skills into AI Agent Harnesses
-# Supports: Antigravity, Hermes, OpenCode, Claude
+# Supports: Antigravity, Hermes, OpenCode
 # Compliant with Linux XDG Base Directory Specification & AES standards
 
 set -euo pipefail
@@ -197,14 +197,9 @@ copy_skill_to_dir() {
     return 0
   fi
 
-  # Handle case where destination path exists as a non-directory file (e.g. symlink/pointer)
+  # Handle case where destination path exists as a non-directory file (e.g. broken pointer/symlink)
   if [ -e "$dest_skill_dir" ] && [ ! -d "$dest_skill_dir" ]; then
-    if [ "$force" = "true" ]; then
-      rm -f "$dest_skill_dir"
-    else
-      log_skip "Destination '$dest_skill_dir' exists as a non-directory file (use --force to replace)"
-      return 0
-    fi
+    rm -f "$dest_skill_dir"
   fi
 
   mkdir -p "$dest_skill_dir"
@@ -324,7 +319,22 @@ inject_9router_env() {
       log_sub "Target Environment: ${BLUE}$hermes_env${RESET}"
       update_env_file "$hermes_env" "NINEROUTER_URL" "$router_url" "$dry_run"
       update_env_file "$hermes_env" "NINEROUTER_KEY" "$router_key" "$dry_run"
-      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into Hermes environment."
+      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into Hermes main environment."
+
+      # Multi-profile support: inject into all Hermes profile environments
+      local hermes_profiles_dir="${hermes_env%/.env}/profiles"
+      if [ -d "$hermes_profiles_dir" ]; then
+        for pdir in "$hermes_profiles_dir"/*; do
+          if [ -d "$pdir" ]; then
+            local pname
+            pname="$(basename "$pdir")"
+            local penv="$pdir/.env"
+            update_env_file "$penv" "NINEROUTER_URL" "$router_url" "$dry_run"
+            update_env_file "$penv" "NINEROUTER_KEY" "$router_key" "$dry_run"
+            log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into Hermes profile '$pname' environment."
+          fi
+        done
+      fi
       ;;
     opencode)
       local opencode_env="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/.env"
@@ -337,13 +347,6 @@ inject_9router_env() {
       fi
       log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into OpenCode environment."
       ;;
-    claude)
-      local claude_env="$HOME/.claude/.env"
-      log_sub "Target Environment: ${BLUE}$claude_env${RESET}"
-      update_env_file "$claude_env" "NINEROUTER_URL" "$router_url" "$dry_run"
-      update_env_file "$claude_env" "NINEROUTER_KEY" "$router_key" "$dry_run"
-      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into Claude environment."
-      ;;
     session)
       local env_d="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d/9router.conf"
       log_sub "Target Session Environment: ${BLUE}$env_d${RESET}"
@@ -352,6 +355,48 @@ inject_9router_env() {
       log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into user session environment.d."
       ;;
   esac
+}
+
+# --- Ensure Lean-CTX Agent Rules in Rules File ---
+ensure_lean_ctx_rules() {
+  local target_file="$1"
+  local dry_run="${2:-false}"
+
+  if [ -f "$target_file" ] && grep -q "lean-ctx-rules" "$target_file"; then
+    return 0
+  fi
+
+  log_sub "Injecting lean-ctx rules: ${BLUE}$target_file${RESET}"
+  if [ "$dry_run" = "true" ]; then
+    log_sub "[DRY-RUN] Would inject lean-ctx rules into $target_file"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$target_file")"
+
+  cat >> "$target_file" << 'EOF'
+
+<!-- lean-ctx-rules -->
+<!-- version: 9 -->
+
+lean-ctx shadow mode: native read/search/shell calls auto-route to ctx_* — no tool-mapping needed.
+File editing → native Edit/StrReplace (lean-ctx only handles reads); if denied, use ctx_patch.
+Exclusive tools (no native trigger): ctx_compose (understand code, call first), ctx_search(action=symbol) (exact symbol), ctx_search(action=semantic) (by meaning), ctx_callgraph (callers), ctx_knowledge / ctx_session (memory).
+<!-- lean-ctx-compression -->
+OUTPUT STYLE: concise
+- Bullet points over paragraphs
+- Skip filler words and hedging ("I think", "probably", "it seems")
+- 1-sentence explanations max, then code/action
+- No repeating what the user said
+<!-- /lean-ctx-compression -->
+<!-- lean-ctx-solution -->
+SOLUTION EFFICIENCY: stop at first level that applies:
+skip (YAGNI) → reuse codebase → stdlib → native platform → installed dep → one-line → minimum code.
+Never skip: validation, security, error handling.
+<!-- /lean-ctx-solution -->
+<!-- /lean-ctx-rules -->
+EOF
+  log_ok "Injected lean-ctx rules into $target_file."
 }
 
 # ==============================================================================
@@ -393,9 +438,12 @@ connect_antigravity() {
         ' "$mcp_file" > "$tmp_file"
       fi
       mv "$tmp_file" "$mcp_file"
-      # Ensure compatibility with both ~/.gemini/config and ~/.gemini/antigravity-cli
+      # Ensure compatibility with both ~/.gemini/config, ~/.gemini/antigravity-cli, and ~/.gemini/antigravity
       if [ -d "$HOME/.gemini/antigravity-cli" ]; then
         ln -sf "$mcp_file" "$HOME/.gemini/antigravity-cli/mcp_config.json"
+      fi
+      if [ -d "$HOME/.gemini/antigravity" ]; then
+        ln -sf "$mcp_file" "$HOME/.gemini/antigravity/mcp_config.json"
       fi
       log_ok "Antigravity MCP servers configured successfully."
     fi
@@ -413,10 +461,18 @@ connect_antigravity() {
     if [ -d "$HOME/.gemini/antigravity-cli" ]; then
       ln -sfn "$skills_dir" "$HOME/.gemini/antigravity-cli/skills" 2>/dev/null || true
     fi
+    if [ -d "$HOME/.gemini/antigravity" ]; then
+      ln -sfn "$skills_dir" "$HOME/.gemini/antigravity/skills" 2>/dev/null || true
+    fi
     log_ok "Processed $count skills for Antigravity."
   fi
 
-  # 3. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  # 3. Agent Rules (GEMINI.md)
+  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
+    ensure_lean_ctx_rules "$HOME/.gemini/GEMINI.md" "$dry_run"
+  fi
+
+  # 4. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
   if [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ] || [ "$env_only" = "true" ]; then
     inject_9router_env "antigravity" "$dry_run"
   fi
@@ -521,7 +577,12 @@ EOF
     log_ok "Processed $count skills for Hermes."
   fi
 
-  # 3. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
+  # 3. Agent Rules (HERMES.md)
+  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
+    ensure_lean_ctx_rules "$hermes_home/HERMES.md" "$dry_run"
+  fi
+
+  # 4. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
   if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
     inject_9router_env "hermes" "$dry_run"
   fi
@@ -572,6 +633,12 @@ connect_opencode() {
           | .skills = ((.skills // {}) * {
               paths: (((.skills.paths // []) + [$sdir]) | unique)
             })
+          | .permission = ((.permission // {}) + {
+              "bash": "deny",
+              "glob": "deny",
+              "grep": "deny",
+              "read": "deny"
+            })
         ' "$config_file" > "$tmp_file"
       else
         jq --arg sdir "$skills_dir" --slurpfile src "$MCP_GENERATED_FILE" '
@@ -588,10 +655,16 @@ connect_opencode() {
           | .skills = ((.skills // {}) * {
               paths: (((.skills.paths // []) + [$sdir]) | unique)
             })
+          | .permission = ((.permission // {}) + {
+              "bash": "deny",
+              "glob": "deny",
+              "grep": "deny",
+              "read": "deny"
+            })
         ' "$config_file" > "$tmp_file"
       fi
       mv "$tmp_file" "$config_file"
-      log_ok "OpenCode MCP servers & skill search paths configured successfully."
+      log_ok "OpenCode MCP servers, shadow permissions & skill search paths configured successfully."
     fi
   fi
 
@@ -607,108 +680,14 @@ connect_opencode() {
     log_ok "Processed $count skills for OpenCode."
   fi
 
-  # 3. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
-  if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
-    inject_9router_env "opencode" "$dry_run"
-  fi
-}
-
-# ==============================================================================
-# 4. Claude Harness Connector (Claude Desktop & Claude Code CLI)
-# ==============================================================================
-connect_claude() {
-  local force="$1"
-  local dry_run="$2"
-  local mcp_only="$3"
-  local skills_only="$4"
-  local env_only="${5:-false}"
-
-  log_header "Connecting to Claude (Desktop & Code CLI)..."
-
-  local desktop_config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/Claude"
-  local desktop_config_file="$desktop_config_dir/claude_desktop_config.json"
-  local cli_config_file="$HOME/.claude.json"
-  local commands_dir="$HOME/.claude/commands"
-  local skills_dir="$HOME/.claude/skills"
-
-  # 1. Claude Desktop Config
-  if [ "$skills_only" != "true" ] && [ "$env_only" != "true" ]; then
-    log_sub "Target Claude Desktop Config: ${BLUE}$desktop_config_file${RESET}"
-    if [ "$dry_run" = "true" ]; then
-      log_sub "[DRY-RUN] Would merge MCP servers into $desktop_config_file"
-    else
-      mkdir -p "$desktop_config_dir"
-      if [ ! -f "$desktop_config_file" ] || [ ! -s "$desktop_config_file" ] || ! jq empty "$desktop_config_file" 2>/dev/null; then
-        echo '{"mcpServers":{}}' > "$desktop_config_file"
-      fi
-      local tmp_file
-      tmp_file="$(mktemp)"
-      if [ "$force" = "true" ]; then
-        jq --slurpfile src "$MCP_GENERATED_FILE" '
-          .mcpServers = ((.mcpServers // {}) + $src[0].mcpServers)
-        ' "$desktop_config_file" > "$tmp_file"
-      else
-        jq --slurpfile src "$MCP_GENERATED_FILE" '
-          .mcpServers = ($src[0].mcpServers + (.mcpServers // {}))
-        ' "$desktop_config_file" > "$tmp_file"
-      fi
-      mv "$tmp_file" "$desktop_config_file"
-      log_ok "Claude Desktop MCP configuration updated."
-    fi
-
-    # 2. Claude Code CLI Config (if .claude.json exists or ~/.claude directory exists)
-    if [ -f "$cli_config_file" ] || [ -d "$HOME/.claude" ]; then
-      log_sub "Target Claude Code CLI Config: ${BLUE}$cli_config_file${RESET}"
-      if [ "$dry_run" = "true" ]; then
-        log_sub "[DRY-RUN] Would merge MCP servers into $cli_config_file"
-      else
-        if [ ! -f "$cli_config_file" ] || [ ! -s "$cli_config_file" ] || ! jq empty "$cli_config_file" 2>/dev/null; then
-          echo '{"mcpServers":{}}' > "$cli_config_file"
-        fi
-        local tmp_cli
-        tmp_cli="$(mktemp)"
-        if [ "$force" = "true" ]; then
-          jq --slurpfile src "$MCP_GENERATED_FILE" '
-            .mcpServers = ((.mcpServers // {}) + $src[0].mcpServers)
-          ' "$cli_config_file" > "$tmp_cli"
-        else
-          jq --slurpfile src "$MCP_GENERATED_FILE" '
-            .mcpServers = ($src[0].mcpServers + (.mcpServers // {}))
-          ' "$cli_config_file" > "$tmp_cli"
-        fi
-        mv "$tmp_cli" "$cli_config_file"
-        log_ok "Claude Code CLI MCP configuration updated."
-      fi
-    fi
-  fi
-
-  # 3. Claude Slash Commands & Skills
+  # 3. Agent Rules (AGENTS.md)
   if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
-    log_sub "Target Claude Commands: ${BLUE}$commands_dir${RESET}"
-    log_sub "Target Claude Skills: ${BLUE}$skills_dir${RESET}"
-    local count=0
-    while IFS= read -r sf; do
-      [ -n "$sf" ] || continue
-      local sname
-      sname="$(extract_skill_name "$sf")"
-
-      if [ "$dry_run" = "true" ]; then
-        log_sub "[DRY-RUN] Would provision Claude command: $commands_dir/$sname.md"
-      else
-        mkdir -p "$commands_dir"
-        if [ ! -f "$commands_dir/$sname.md" ] || [ "$force" = "true" ]; then
-          cp "$sf" "$commands_dir/$sname.md"
-        fi
-        copy_skill_to_dir "$sf" "$skills_dir" "$force" "$dry_run"
-      fi
-      count=$((count + 1))
-    done < <(get_all_skill_files)
-    log_ok "Processed $count skills/commands for Claude."
+    ensure_lean_ctx_rules "$config_dir/AGENTS.md" "$dry_run"
   fi
 
   # 4. Environment Variables (NINEROUTER_URL & NINEROUTER_KEY)
   if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
-    inject_9router_env "claude" "$dry_run"
+    inject_9router_env "opencode" "$dry_run"
   fi
 }
 
@@ -724,8 +703,7 @@ cmd_help() {
   echo -e "  ${GREEN}--antigravity, antigravity${RESET}  Google Antigravity (~/.gemini/config/)"
   echo -e "  ${GREEN}--hermes, hermes${RESET}            Hermes Agent (~/.hermes/config.yaml & ~/.hermes/skills/)"
   echo -e "  ${GREEN}--opencode, opencode${RESET}        OpenCode (~/.config/opencode/opencode.jsonc)"
-  echo -e "  ${GREEN}--claude, claude${RESET}            Claude Desktop & Claude Code CLI"
-  echo -e "  ${GREEN}--all, all${RESET}                  Connect to ALL 4 agent harnesses"
+  echo -e "  ${GREEN}--all, all${RESET}                  Connect to ALL 3 agent harnesses"
   echo ""
   echo -e "${BOLD}OPTIONS:${RESET}"
   echo -e "  ${CYAN}--force, -f${RESET}                 Overwrite existing skill files and update existing MCP entries"
@@ -739,7 +717,6 @@ cmd_help() {
   echo -e "  aa connect --antigravity"
   echo -e "  aa connect hermes"
   echo -e "  aa connect --opencode"
-  echo -e "  aa connect --claude"
   echo -e "  aa connect --all"
   echo -e "  aa connect antigravity hermes --force"
   echo ""
@@ -773,12 +750,8 @@ main() {
         targets+=("opencode")
         shift
         ;;
-      --claude|claude)
-        targets+=("claude")
-        shift
-        ;;
       --all|all)
-        targets=("antigravity" "hermes" "opencode" "claude")
+        targets=("antigravity" "hermes" "opencode")
         shift
         ;;
       --force|-f)
@@ -844,9 +817,6 @@ main() {
         ;;
       opencode)
         connect_opencode "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only"
-        ;;
-      claude)
-        connect_claude "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only"
         ;;
     esac
     echo ""

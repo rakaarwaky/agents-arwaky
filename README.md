@@ -187,7 +187,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa mcp list` | Enumerate all tools offering Model Context Protocol servers | `aa mcp list` |
 | `aa mcp generate` | Rebuild unified client configuration (`mcp_servers.generated.json`) | `aa mcp generate` |
 | `aa skill list` | Discover, audit, and provision skills across all tools | `aa skill list` |
-| `aa connect <harness>` | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--claude`, `--all`) | `aa connect --all` |
+| `aa connect <harness>` | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--all`) | `aa connect --all` |
 | `aa install [tool] [--distrobox\|--host]` | Install tools (Two paradigms only: Distrobox or Host) | `aa install fetch` / `aa install fetch --host` |
 | `aa shell` | Drop into an interactive shell inside the sandbox container | `aa shell` |
 
@@ -300,7 +300,6 @@ Instead of manually editing configurations, use `aa connect` to automatically in
 aa connect --antigravity      # Google Antigravity (~/.gemini/config/)
 aa connect --hermes           # Hermes Agent (~/.hermes/config.yaml & ~/.hermes/skills/)
 aa connect --opencode         # OpenCode (~/.config/opencode/opencode.jsonc)
-aa connect --claude           # Claude Desktop & Claude Code CLI
 
 # Connect to all supported harnesses at once
 aa connect --all
