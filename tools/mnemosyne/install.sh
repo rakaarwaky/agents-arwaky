@@ -73,29 +73,8 @@ chmod +x "$LAUNCHER"
 echo ">>> Installing MCP launcher to $MCP_LAUNCHER..."
 cat <<'EOF' > "$MCP_LAUNCHER"
 #!/usr/bin/env bash
-set -euo pipefail
-
-DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/mnemosyne"
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/mnemosyne"
-VENV_PY="$DATA_DIR/venv/bin/python"
-
-if [ ! -x "$VENV_PY" ]; then
-  echo "Error: Mnemosyne Python runtime not found at $VENV_PY" >&2
-  echo "Please run: aa install mnemosyne" >&2
-  exit 1
-fi
-
-mkdir -p "$DATA_DIR" "$CONFIG_DIR"
-export MNEMOSYNE_DATA_DIR="${MNEMOSYNE_DATA_DIR:-$DATA_DIR}"
-
-# Graceful SIGTERM shutdown handler (prevents exit code 143 / signal: terminated on reload)
-exec "$VENV_PY" -c "
-import signal, sys
-signal.signal(signal.SIGTERM, lambda s, f: sys.exit(0))
-from mnemosyne.cli import run_cli
-sys.argv = ['mnemosyne', 'mcp'] + sys.argv[1:]
-run_cli()
-" "$@"
+trap 'exit 0' TERM
+exec "${XDG_BIN_HOME:-$HOME/.local/bin}/mnemosyne" mcp "$@"
 EOF
 chmod +x "$MCP_LAUNCHER"
 

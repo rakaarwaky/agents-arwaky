@@ -215,7 +215,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
 | `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
 | `aa skill list`                          | Discover, audit, and provision skills across all tools                                             | `aa skill list`                                |
-| `aa connect <harness>`                   | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--all`)      | `aa connect --all`                             |
+| `aa connect <harness>`                   | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
 | `aa install [tool] [--distrobox|--host]` | Install tools (Distrobox sandbox default, or host bare-metal)                                      | `aa install fetch` / `aa install fetch --host` |
 | `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
 | `aa shell`                               | Drop into an interactive shell inside the sandbox container                                        | `aa shell`                                     |
@@ -340,6 +340,7 @@ Instead of manually copying configurations, use `aa connect` to automatically in
 aa connect --antigravity      # Google Antigravity (~/.gemini/antigravity-cli/mcp_config.json & skills/)
 aa connect --hermes           # Hermes Agent (Main profile + auto-detects all multi-profiles)
 aa connect --opencode         # OpenCode (~/.config/opencode/opencode.jsonc & skills/)
+aa connect --qwencode         # Qwen Code (~/.qwen/settings.json & skills/)
 
 # Connect to all supported harnesses at once
 aa connect --all
@@ -429,6 +430,31 @@ Add to `~/.config/opencode/opencode.jsonc` or run `aa connect --opencode`:
     "vision": { "type": "local", "command": ["vision-arwaky-mcp"] },
     "qwen-web": { "type": "local", "command": ["qwen-web-mcp"] },
     "blender": { "type": "local", "command": ["blender-mcp"] }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>🤖 Qwen Code (qwencode)</b></summary>
+
+Add to `~/.qwen/settings.json` or run `aa connect --qwencode`:
+
+```json
+{
+  "mcpServers": {
+    "lint": { "command": "lint-arwaky-mcp" },
+    "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
+    "context7": { "command": "context7-mcp" },
+    "lean-ctx": { "command": "lean-ctx" },
+    "fetch": { "command": "fetch-mcp" },
+    "ponytail": { "command": "ponytail-mcp" },
+    "vision": { "command": "vision-arwaky-mcp" },
+    "qwen-web": { "command": "qwen-web-mcp" },
+    "blender": { "command": "blender-mcp" },
+    "workspace": { "command": "workspace-mcp" },
+    "mnemosyne": { "command": "mnemosyne-mcp" }
   }
 }
 ```

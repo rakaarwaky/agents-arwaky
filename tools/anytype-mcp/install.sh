@@ -50,15 +50,10 @@ if [ -z "$ENV_FILE" ]; then
 fi
 
 if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
-  while IFS='=' read -r key val || [ -n "$key" ]; do
-    [[ "$key" =~ ^[[:space:]]*# ]] && continue
-    [[ -z "${key// }" ]] && continue
-    key="$(echo "$key" | xargs)"
-    val="$(echo "$val" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
-    if [ -n "$key" ] && [ -z "${!key:-}" ]; then
-      export "$key"="$val"
-    fi
-  done < "$ENV_FILE"
+  set -a
+  # shellcheck source=/dev/null
+  . "$ENV_FILE"
+  set +a
 fi
 
 export ANYTYPE_API_BASE_URL="${ANYTYPE_API_BASE_URL:-http://127.0.0.1:31012}"

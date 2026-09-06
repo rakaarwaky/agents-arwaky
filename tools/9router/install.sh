@@ -54,62 +54,12 @@ else
 fi
 
 echo ">>> Installing launcher to $LAUNCHER..."
-cat <<'EOF' > "$LAUNCHER"
+cat <<EOF > "$LAUNCHER"
 #!/usr/bin/env bash
 set -euo pipefail
-
-# Resolve repository root
-REPO_ROOT="${AGENTS_ARWAKY_ROOT:-}"
-if [ -z "$REPO_ROOT" ]; then
-  for candidate in \
-    "$HOME/agents-arwaky" \
-    "${XDG_CONFIG_HOME:-$HOME/.config}/agents-arwaky" \
-    "$(pwd)"; do
-    if [ -f "$candidate/tools/9router/daemon/9router-daemon.sh" ]; then
-      REPO_ROOT="$candidate"
-      break
-    fi
-  done
-fi
-
-DAEMON_SCRIPT="${REPO_ROOT:-$HOME/agents-arwaky}/tools/9router/daemon/9router-daemon.sh"
-
-if [ ! -f "$DAEMON_SCRIPT" ]; then
-  echo "Error: 9Router daemon script not found at $DAEMON_SCRIPT." >&2
-  exit 1
-fi
-
-if [ $# -eq 0 ]; then
-  "$DAEMON_SCRIPT" status || true
-  echo ""
-  echo "Commands:"
-  echo "  9router start             Start the daemon (systemd / container)"
-  echo "  9router stop              Stop the daemon"
-  echo "  9router restart           Restart the daemon"
-  echo "  9router status            Check container status and API health"
-  echo "  9router password          Display or manage admin dashboard password"
-  echo "  9router key               Manage consumer API keys (list, add, delete)"
-  echo "  9router provider          Manage upstream AI providers (list, add, delete, sync)"
-  echo "  9router service-install   Install and enable 24/7 systemd user service"
-  echo "  9router service-status    Show systemd service status"
-  echo "  9router service-uninstall Disable and remove systemd user service"
-  echo "  9router logs              Inspect container logs (-f to follow)"
-  echo "  9router models            Discover available AI models"
-  echo "  9router open              Open web dashboard in browser"
-  exit 0
-fi
-
-case "$1" in
-  start|stop|restart|status|logs|models|open|health|key|keys|provider|providers|password|service-install|service-status|service-uninstall)
-    exec "$DAEMON_SCRIPT" "$@"
-    ;;
-  --help|-h|help)
-    "$DAEMON_SCRIPT" help
-    ;;
-  *)
-    exec "$DAEMON_SCRIPT" "$@"
-    ;;
-esac
+DAEMON_SCRIPT="\${AGENTS_ARWAKY_ROOT:-\$HOME/agents-arwaky}/tools/9router/daemon/9router-daemon.sh"
+[ -f "\$DAEMON_SCRIPT" ] || DAEMON_SCRIPT="$DAEMON_SCRIPT"
+exec "\$DAEMON_SCRIPT" "\$@"
 EOF
 chmod +x "$LAUNCHER"
 

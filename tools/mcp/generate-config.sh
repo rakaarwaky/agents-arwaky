@@ -26,15 +26,10 @@ if [ -z "$ENV_FILE" ]; then
 fi
 
 if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
-  while IFS='=' read -r key val || [ -n "$key" ]; do
-    [[ "$key" =~ ^[[:space:]]*# ]] && continue
-    [[ -z "${key// }" ]] && continue
-    key="$(echo "$key" | xargs)"
-    val="$(echo "$val" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
-    if [ -n "$key" ]; then
-      export "$key"="$val"
-    fi
-  done < "$ENV_FILE"
+  set -a
+  # shellcheck source=/dev/null
+  source "$ENV_FILE"
+  set +a
 fi
 
 ANYTYPE_BASE="${ANYTYPE_API_BASE_URL:-http://127.0.0.1:31012}"
@@ -91,11 +86,4 @@ cat <<EOF > "$OUTPUT_FILE"
 }
 EOF
 
-echo ">>> Distributing client config templates to individual XDG config dirs:"
-for tool in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph vision-arwaky qwen-web blender-arwaky lint-arwaky google-workspace-mcp mnemosyne; do
-  conf_dir="$(xdg_config_dir "$tool")"
-  cp "$OUTPUT_FILE" "$conf_dir/mcp_servers.json"
-  echo "  - $conf_dir/mcp_servers.json"
-done
-
-echo "Generated valid JSON configuration at $OUTPUT_FILE and distributed to ~/.config/<vendor>/"
+echo "Generated valid JSON configuration at $OUTPUT_FILE"

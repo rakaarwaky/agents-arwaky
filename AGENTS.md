@@ -138,7 +138,7 @@ The verification script checks:
 | **Manage Anytype daemon** | `aa anytype [start\|status\|auth-key\|space-list]` |
 | **Enter container shell** | `aa shell` |
 | **Reset submodules cleanly** | `aa submodules` |
-| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (`--antigravity`, `--hermes`, `--opencode`, `--all`) |
+| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) |
 | **Clean build artifacts** | `aa clean` (or: `aa clean --all`) |
 
 ---

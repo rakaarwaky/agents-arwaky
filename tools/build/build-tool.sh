@@ -44,54 +44,15 @@ if [ -d "$REPO_ROOT/$TOOL_PATH" ] || [ -f "$REPO_ROOT/.gitmodules" ]; then
 fi
 
 # Dispatch to tool-specific installer
-case "$TOOL_ID" in
-  context7)
-    "$REPO_ROOT/tools/context7/install.sh"
-    ;;
-  fetch)
-    "$REPO_ROOT/tools/fetch-mcp/install.sh"
-    ;;
-  lean-ctx)
-    "$REPO_ROOT/tools/lean-ctx/install.sh"
-    ;;
-  ponytail)
-    "$REPO_ROOT/tools/ponytail/install.sh"
-    ;;
-  anytype)
-    "$REPO_ROOT/tools/anytype-mcp/install.sh"
-    ;;
-  anytype-daemon)
-    echo ">>> Anytype daemon setup..."
-    "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" status || true
-    ;;
-  codegraph)
-    "$REPO_ROOT/tools/codegraph/install.sh"
-    ;;
-  9router)
-    "$REPO_ROOT/tools/9router/install.sh"
-    ;;
-  lint)
-    "$REPO_ROOT/tools/lint/install.sh"
-    ;;
-  qwen-web)
-    "$REPO_ROOT/tools/qwen-web/install.sh"
-    ;;
-  vision)
-    "$REPO_ROOT/tools/vision/install.sh"
-    ;;
-  blender)
-    "$REPO_ROOT/tools/blender/install.sh"
-    ;;
-  *)
-    if [ -x "$REPO_ROOT/tools/$TOOL_ID/install.sh" ]; then
-      "$REPO_ROOT/tools/$TOOL_ID/install.sh"
-    elif [ -x "$REPO_ROOT/tools/${TOOL_ID}-mcp/install.sh" ]; then
-      "$REPO_ROOT/tools/${TOOL_ID}-mcp/install.sh"
-    else
-      echo "Error: No installer found for tool '$TOOL_ID'." >&2
-      exit 1
-    fi
-    ;;
-esac
+if [ "$TOOL_ID" = "anytype-daemon" ]; then
+  "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" status || true
+elif [ -x "$REPO_ROOT/tools/$TOOL_ID/install.sh" ]; then
+  "$REPO_ROOT/tools/$TOOL_ID/install.sh"
+elif [ -x "$REPO_ROOT/tools/${TOOL_ID}-mcp/install.sh" ]; then
+  "$REPO_ROOT/tools/${TOOL_ID}-mcp/install.sh"
+else
+  echo "Error: No installer found for tool '$TOOL_ID'." >&2
+  exit 1
+fi
 
 echo ">>> Successfully built $TOOL_ID!"

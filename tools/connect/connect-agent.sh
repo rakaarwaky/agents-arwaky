@@ -104,85 +104,23 @@ extract_skill_name() {
 # Returns one absolute path to SKILL.md per line (deduplicated by skill name)
 get_all_skill_files() {
   local -A seen_names=()
-  local skill_files=()
+  local sf sname
 
-  # 1. Gather all skills from registered tools via skill-manager logic
-  local registered_tools=("lint" "9router" "ponytail" "context7" "codegraph" "anytype" "fetch" "lean-ctx" "vision" "qwen-web" "blender" "skill" "workspace" "mnemosyne")
-  for tid in "${registered_tools[@]}"; do
-    case "$tid" in
-      lint)
-        [ -f "$REPO_ROOT/tools/lint/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/lint/SKILL.md")
-        while IFS= read -r f; do
-          [ -f "$f" ] && skill_files+=("$f")
-        done < <(find "$REPO_ROOT/internal/lint-arwaky/.agents/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
-        ;;
-      9router)
-        while IFS= read -r f; do
-          [ -f "$f" ] && skill_files+=("$f")
-        done < <(find "$REPO_ROOT/vendor/9router/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
-        ;;
-      ponytail)
-        while IFS= read -r f; do
-          [ -f "$f" ] && skill_files+=("$f")
-        done < <(find "$REPO_ROOT/vendor/ponytail/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
-        ;;
-      context7)
-        while IFS= read -r f; do
-          [ -f "$f" ] && skill_files+=("$f")
-        done < <(find "$REPO_ROOT/vendor/context7/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
-        ;;
-      codegraph)
-        [ -f "$REPO_ROOT/tools/codegraph/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/codegraph/SKILL.md")
-        while IFS= read -r f; do
-          [ -f "$f" ] && skill_files+=("$f")
-        done < <(find "$REPO_ROOT/vendor/codegraph/.claude/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
-        ;;
-      anytype)
-        [ -f "$REPO_ROOT/tools/anytype-mcp/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/anytype-mcp/SKILL.md")
-        [ -f "$REPO_ROOT/tools/anytype-mcp/daemon/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/anytype-mcp/daemon/SKILL.md")
-        ;;
-      fetch)
-        [ -f "$REPO_ROOT/tools/fetch-mcp/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/fetch-mcp/SKILL.md")
-        ;;
-      lean-ctx)
-        [ -f "$REPO_ROOT/vendor/lean-ctx/skills/lean-ctx/SKILL.md" ] && skill_files+=("$REPO_ROOT/vendor/lean-ctx/skills/lean-ctx/SKILL.md")
-        ;;
-      vision)
-        [ -f "$REPO_ROOT/internal/vision-arwaky/SKILL.md" ] && skill_files+=("$REPO_ROOT/internal/vision-arwaky/SKILL.md")
-        ;;
-      qwen-web)
-        [ -f "$REPO_ROOT/internal/qwen-web-arwaky/SKILL.md" ] && skill_files+=("$REPO_ROOT/internal/qwen-web-arwaky/SKILL.md")
-        ;;
-      blender)
-        [ -f "$REPO_ROOT/internal/blender-arwaky/SKILL.md" ] && skill_files+=("$REPO_ROOT/internal/blender-arwaky/SKILL.md")
-        ;;
-      skill)
-        [ -f "$REPO_ROOT/tools/skill/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/skill/SKILL.md")
-        ;;
-      workspace)
-        [ -f "$REPO_ROOT/tools/google-workspace-mcp/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/google-workspace-mcp/SKILL.md")
-        while IFS= read -r f; do
-          [ -f "$f" ] && skill_files+=("$f")
-        done < <(find "$REPO_ROOT/vendor/google-workspace-mcp/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
-        ;;
-      mnemosyne)
-        [ -f "$REPO_ROOT/tools/mnemosyne/SKILL.md" ] && skill_files+=("$REPO_ROOT/tools/mnemosyne/SKILL.md")
-        while IFS= read -r f; do
-          [ -f "$f" ] && skill_files+=("$f")
-        done < <(find "$REPO_ROOT/vendor/mnemosyne/skills" -type f -name "SKILL.md" 2>/dev/null | sort)
-        ;;
-    esac
-  done
-
-  # 2. Deduplicate by extracted skill name
-  for sf in "${skill_files[@]}"; do
-    local sname
+  while IFS= read -r sf; do
+    [ -f "$sf" ] || continue
     sname="$(extract_skill_name "$sf")"
     if [ -n "$sname" ] && [ -z "${seen_names["$sname"]:-}" ]; then
       seen_names["$sname"]=1
       echo "$sf"
     fi
-  done
+  done < <(find "$REPO_ROOT/tools" "$REPO_ROOT/internal" "$REPO_ROOT/vendor" \
+    -name "node_modules" -prune -o \
+    -name ".venv" -prune -o \
+    -name "venv" -prune -o \
+    -name "target" -prune -o \
+    -name ".git" -prune -o \
+    -name "*copy*" -prune -o \
+    -type f -name "SKILL.md" -print 2>/dev/null | sort)
 }
 
 # --- Copy Skill Directory Safely ---
@@ -359,6 +297,13 @@ inject_9router_env() {
       fi
       log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into OpenCode environment."
       ;;
+    qwencode|qwen)
+      local qwen_env="${QWEN_HOME:-$HOME/.qwen}/.env"
+      log_sub "Target Environment: ${BLUE}$qwen_env${RESET}"
+      update_env_file "$qwen_env" "NINEROUTER_URL" "$router_url" "$dry_run"
+      update_env_file "$qwen_env" "NINEROUTER_KEY" "$router_key" "$dry_run"
+      log_ok "Injected NINEROUTER_URL and NINEROUTER_KEY into Qwen Code environment."
+      ;;
     session)
       local env_d="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d/9router.conf"
       log_sub "Target Session Environment: ${BLUE}$env_d${RESET}"
@@ -411,6 +356,12 @@ inject_mnemosyne_env() {
         update_env_file "$HOME/.opencode/.env" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
       fi
       log_ok "Injected MNEMOSYNE_DATA_DIR into OpenCode environment."
+      ;;
+    qwencode|qwen)
+      local qwen_env="${QWEN_HOME:-$HOME/.qwen}/.env"
+      log_sub "Target Environment (Mnemosyne): ${BLUE}$qwen_env${RESET}"
+      update_env_file "$qwen_env" "MNEMOSYNE_DATA_DIR" "$data_dir" "$dry_run"
+      log_ok "Injected MNEMOSYNE_DATA_DIR into Qwen Code environment."
       ;;
     session)
       local env_d="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d/mnemosyne.conf"
@@ -790,6 +741,73 @@ connect_opencode() {
   fi
 }
 
+# ==============================================================================
+# 4. Qwen Code (qwencode) Harness Connector
+# ==============================================================================
+connect_qwencode() {
+  local force="$1"
+  local dry_run="$2"
+  local mcp_only="$3"
+  local skills_only="$4"
+  local env_only="${5:-false}"
+
+  log_header "Connecting to Qwen Code (qwencode)..."
+
+  local qwen_home="${QWEN_HOME:-$HOME/.qwen}"
+  local settings_file="$qwen_home/settings.json"
+  local skills_dir="$qwen_home/skills"
+
+  # 1. MCP Configuration in settings.json
+  if [ "$skills_only" != "true" ] && [ "$env_only" != "true" ]; then
+    log_sub "Target MCP Config: ${BLUE}$settings_file${RESET}"
+    if [ "$dry_run" = "true" ]; then
+      log_sub "[DRY-RUN] Would merge MCP servers into $settings_file (mcpServers: section)"
+    else
+      mkdir -p "$qwen_home"
+      if [ ! -f "$settings_file" ] || [ ! -s "$settings_file" ] || ! jq empty "$settings_file" 2>/dev/null; then
+        echo '{"mcpServers":{}}' > "$settings_file"
+      fi
+
+      local tmp_file
+      tmp_file="$(mktemp)"
+      if [ "$force" = "true" ]; then
+        jq --slurpfile src "$MCP_GENERATED_FILE" '
+          .mcpServers = ((.mcpServers // {}) + $src[0].mcpServers)
+        ' "$settings_file" > "$tmp_file"
+      else
+        jq --slurpfile src "$MCP_GENERATED_FILE" '
+          .mcpServers = ($src[0].mcpServers + (.mcpServers // {}))
+        ' "$settings_file" > "$tmp_file"
+      fi
+      mv "$tmp_file" "$settings_file"
+      log_ok "Qwen Code MCP servers configured successfully."
+    fi
+  fi
+
+  # 2. Global Skills in ~/.qwen/skills/
+  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
+    log_sub "Target Global Skills: ${BLUE}$skills_dir${RESET}"
+    local count=0
+    while IFS= read -r sf; do
+      [ -n "$sf" ] || continue
+      copy_skill_to_dir "$sf" "$skills_dir" "$force" "$dry_run"
+      count=$((count + 1))
+    done < <(get_all_skill_files)
+    log_ok "Processed $count skills for Qwen Code."
+  fi
+
+  # 3. Agent Rules (QWEN.md)
+  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
+    ensure_lean_ctx_rules "$qwen_home/QWEN.md" "$dry_run"
+  fi
+
+  # 4. Environment Variables (NINEROUTER_URL, NINEROUTER_KEY, MNEMOSYNE_DATA_DIR)
+  if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
+    inject_9router_env "qwencode" "$dry_run"
+    inject_mnemosyne_env "qwencode" "$dry_run"
+  fi
+}
+
 # --- Show Usage Help ---
 cmd_help() {
   echo -e "${BOLD}agents-arwaky Harness Connector (${CYAN}aa connect${RESET}${BOLD})${RESET}"
@@ -802,7 +820,8 @@ cmd_help() {
   echo -e "  ${GREEN}--antigravity, antigravity${RESET}  Google Antigravity (~/.gemini/config/)"
   echo -e "  ${GREEN}--hermes, hermes${RESET}            Hermes Agent (Main & all profiles under ~/.hermes/profiles/)"
   echo -e "  ${GREEN}--opencode, opencode${RESET}        OpenCode (~/.config/opencode/opencode.jsonc)"
-  echo -e "  ${GREEN}--all, all${RESET}                  Connect to ALL 3 agent harnesses"
+  echo -e "  ${GREEN}--qwencode, qwencode${RESET}        Qwen Code (~/.qwen/settings.json)"
+  echo -e "  ${GREEN}--all, all${RESET}                  Connect to ALL 4 agent harnesses"
   echo ""
   echo -e "${BOLD}OPTIONS:${RESET}"
   echo -e "  ${CYAN}--force, -f${RESET}                 Overwrite existing skill files and update existing MCP entries"
@@ -816,8 +835,9 @@ cmd_help() {
   echo -e "  aa connect --antigravity"
   echo -e "  aa connect hermes"
   echo -e "  aa connect --opencode"
+  echo -e "  aa connect qwencode"
   echo -e "  aa connect --all"
-  echo -e "  aa connect antigravity hermes --force"
+  echo -e "  aa connect antigravity hermes qwencode --force"
   echo ""
 }
 
@@ -849,8 +869,12 @@ main() {
         targets+=("opencode")
         shift
         ;;
+      --qwencode|qwencode|--qwen|qwen|qwen-code)
+        targets+=("qwencode")
+        shift
+        ;;
       --all|all)
-        targets=("antigravity" "hermes" "opencode")
+        targets=("antigravity" "hermes" "opencode" "qwencode")
         shift
         ;;
       --force|-f)
@@ -916,6 +940,9 @@ main() {
         ;;
       opencode)
         connect_opencode "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only"
+        ;;
+      qwencode)
+        connect_qwencode "$force" "$dry_run" "$mcp_only" "$skills_only" "$env_only"
         ;;
     esac
     echo ""

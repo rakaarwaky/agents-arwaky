@@ -87,7 +87,7 @@ cmd_help() {
   echo -e "  ${GREEN}shell${RESET}                          Enter the Distrobox 'agents-env' sandbox shell"
   echo -e "  ${GREEN}mcp${RESET} [action]                   Manage MCP configurations (list, generate, show)"
   echo -e "  ${GREEN}skill${RESET} [action]                 Manage & provision agent skills to workspace"
-  echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP, skills & env variables to agent harnesses (--antigravity, --hermes, --opencode, --all)"
+  echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP, skills & env variables to agent harnesses (--antigravity, --hermes, --opencode, --qwencode, --all)"
   echo -e "  ${GREEN}anytype${RESET} [action]                Manage Anytype headless daemon, bot accounts & keys"
   echo -e "  ${GREEN}9router${RESET} [action]                Manage 9Router local AI gateway, daemon & models"
   echo -e "  ${GREEN}backup${RESET} <tool|all> [dest] [--gdrive] Backup sensitive credentials, DBs & login sessions"
@@ -177,15 +177,8 @@ cmd_list() {
   printf "${BOLD}%-14s %-10s %-8s %-45s${RESET}\n" "TOOL ID" "CATEGORY" "MCP?" "DESCRIPTION"
   echo "--------------------------------------------------------------------------------"
 
-  local count
-  count="$(jq '.tools | length' "$MANIFEST_FILE")"
-  for ((i=0; i<count; i++)); do
-    local id category isMcp desc
-    id="$(jq -r ".tools[$i].id" "$MANIFEST_FILE")"
-    category="$(jq -r ".tools[$i].category" "$MANIFEST_FILE")"
-    isMcp="$(jq -r ".tools[$i].isMcp" "$MANIFEST_FILE")"
-    desc="$(jq -r ".tools[$i].description" "$MANIFEST_FILE")"
-
+  local tab=$'\t'
+  while IFS="$tab" read -r id category isMcp desc; do
     local mcp_label="No"
     [ "$isMcp" = "true" ] && mcp_label="Yes"
 
@@ -193,7 +186,7 @@ cmd_list() {
     [ "$category" = "internal" ] && cat_color="$GREEN"
 
     printf "%-14s ${cat_color}%-10s${RESET} %-8s %-45s\n" "$id" "$category" "$mcp_label" "$desc"
-  done
+  done < <(jq -r '.tools[] | [ .id, .category, (.isMcp|tostring), .description ] | @tsv' "$MANIFEST_FILE")
   echo "--------------------------------------------------------------------------------"
 }
 
@@ -204,15 +197,8 @@ cmd_status() {
   printf "${BOLD}%-14s %-10s %-20s %-25s${RESET}\n" "TOOL" "CATEGORY" "TARGET BINARY" "STATUS"
   echo "--------------------------------------------------------------------------------"
 
-  local count
-  count="$(jq '.tools | length' "$MANIFEST_FILE")"
-  for ((i=0; i<count; i++)); do
-    local id category bin subpath
-    id="$(jq -r ".tools[$i].id" "$MANIFEST_FILE")"
-    category="$(jq -r ".tools[$i].category" "$MANIFEST_FILE")"
-    bin="$(jq -r ".tools[$i].binary" "$MANIFEST_FILE")"
-    subpath="$(jq -r ".tools[$i].path" "$MANIFEST_FILE")"
-
+  local tab=$'\t'
+  while IFS="$tab" read -r id category bin subpath; do
     local cat_color="$CYAN"
     [ "$category" = "internal" ] && cat_color="$GREEN"
 
@@ -235,7 +221,7 @@ cmd_status() {
     fi
 
     printf "%-14s ${cat_color}%-10s${RESET} %-20s %b\n" "$id" "$category" "$bin" "$status_str"
-  done
+  done < <(jq -r '.tools[] | [ .id, .category, .binary, .path ] | @tsv' "$MANIFEST_FILE")
   echo "--------------------------------------------------------------------------------"
 }
 

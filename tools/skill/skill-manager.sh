@@ -250,20 +250,9 @@ resolve_single_skill_file() {
 
 # --- Get Canonical Tool List ---
 get_registered_tool_ids() {
-  cat << 'EOF'
-lint:internal:AES 7-layer architecture linter & 38 generation/remediation skills
-9router:vendor:Local AI routing gateway for 40+ providers & multimodal skills
-ponytail:vendor:Senior-dev instructions, technical debt analysis & code review
-context7:vendor:Fast Upstash documentation & context retrieval
-codegraph:vendor:Rust-powered code graph engine & symbol intelligence
-anytype:vendor:Anytype local-first knowledge graph & background daemon
-fetch:vendor:Web scraping, clean HTML-to-markdown & YouTube transcripts
-lean-ctx:vendor:Token-lean repository indexing & context compression
-vision:internal:Unified computer vision, OCR, video intelligence & visual memory
-qwen-web:internal:Qwen AI Web Automation CLI & Playwright MCP
-blender:internal:Headless 3D execution engine & scene automation
-skill:internal:Skill discovery, audit & workspace provisioner
-EOF
+  if [ -f "$MANIFEST_FILE" ]; then
+    jq -r '.tools[] | "\(.id):\(.category):\(.description)"' "$MANIFEST_FILE"
+  fi
 }
 
 # --- Copy a Single SKILL.md to Target Workspace ---
