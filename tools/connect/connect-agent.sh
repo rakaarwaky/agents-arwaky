@@ -887,6 +887,7 @@ disconnect_hermes_instance() {
         python_cmd="python3"
       fi
       if [ -n "$python_cmd" ]; then
+        # shellcheck disable=SC2086
         "$python_cmd" - "$config_file" $names << 'PYEOF'
 import sys
 from pathlib import Path
@@ -1103,7 +1104,11 @@ PYEOF
     if [ "$dry_run" = "true" ]; then
       log_sub "[DRY-RUN] Would remove lean-ctx from $zed_cfg"
     else
-      jq 'del(.mcp["lean-ctx"]) // del(.mcpServers["lean-ctx"])' "$zed_cfg" > "$zed_cfg.$$" 2>/dev/null && mv "$zed_cfg.$$" "$zed_cfg" || rm -f "$zed_cfg.$$"
+      if jq 'del(.mcp["lean-ctx"]) // del(.mcpServers["lean-ctx"])' "$zed_cfg" > "$zed_cfg.$$" 2>/dev/null; then
+        mv "$zed_cfg.$$" "$zed_cfg"
+      else
+        rm -f "$zed_cfg.$$"
+      fi
       log_ok "Removed lean-ctx from $zed_cfg"
     fi
   fi
@@ -1116,7 +1121,11 @@ PYEOF
       if [ "$dry_run" = "true" ]; then
         log_sub "[DRY-RUN] Would remove lean-ctx from $tpl"
       else
-        jq 'del(.mcpServers["lean-ctx"])' "$tpl" > "$tpl.$$" 2>/dev/null && mv "$tpl.$$" "$tpl" || rm -f "$tpl.$$"
+        if jq 'del(.mcpServers["lean-ctx"])' "$tpl" > "$tpl.$$" 2>/dev/null; then
+          mv "$tpl.$$" "$tpl"
+        else
+          rm -f "$tpl.$$"
+        fi
         log_ok "Removed lean-ctx from $tpl"
       fi
     fi
