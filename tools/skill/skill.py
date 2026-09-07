@@ -127,32 +127,16 @@ def _find_skills(base: Path):
 def get_tool_skills(tool_id):
     """Return sorted list of SKILL.md paths for a tool.
 
-    Source of truth: ONLY tools/skills/ (user-managed skill pack).
-    Mapping tool -> skill names is derived from the original internal/vendor
-    sources, but files are now read exclusively from tools/skills/.
+    User-managed skill pack: ALL skills live in tools/skills/ and are shared
+    across every tool. internal/ and vendor/ submodules are no longer read.
     """
-    TOOL_SKILL_MAP = {
-        "lint": ["lint-arwaky", "add-docs-python", "add-docs-rust", "add-docs-typescript", "cleanup-consolidate-python", "cleanup-consolidate-rust", "cleanup-consolidate-typescript", "create-agent-python", "create-agent-rust", "create-agent-typescript", "create-capabilities-python", "create-capabilities-rust", "create-capabilities-typescript", "create-contract-python", "create-contract-rust", "create-contract-typescript", "create-root-python", "create-root-rust", "create-root-typescript", "create-skill-all", "create-surface-python", "create-surface-rust", "create-surface-typescript", "create-taxonomy-python", "create-taxonomy-rust", "create-taxonomy-typescript", "create-test-python", "create-test-rust", "create-test-typescript", "create-utility-python", "create-utility-rust", "create-utility-typescript", "fix-bypass-python", "fix-bypass-rust", "fix-bypass-typescript", "lint-arwaky-python", "lint-arwaky-rust", "lint-arwaky-typescript", "setup-ci-quality-gates"],
-        "9router": ["9router", "9router-chat", "9router-embeddings", "9router-image", "9router-stt", "9router-tts", "9router-video", "9router-web-fetch", "9router-web-search"],
-        "ponytail": ["ponytail", "ponytail-audit", "ponytail-debt", "ponytail-gain", "ponytail-help", "ponytail-review"],
-        "context7": ["context7-cli", "context7-mcp", "find-docs"],
-        "codegraph": ["codegraph", "add-lang", "agent-eval"],
-        "anytype": ["anytype-mcp", "anytype-daemon"],
-        "fetch": ["fetch-mcp"],
-        "vision": ["vision-arwaky", "add-docs-python", "cleanup-consolidate-python", "codacy-review", "coderabbit-review", "create-agent-python", "create-capabilities-python", "create-contract-python", "create-root-python", "create-skill-all", "create-surface-python", "create-taxonomy-python", "create-test-python", "create-utility-python", "fix-bypass-python", "lint-arwaky-python", "qwen-web", "repowise-scan", "role-architect", "role-business-analyst", "role-fullstack-developer", "role-quality-analysis", "role-tech-lead", "setup-ci-quality-gates"],
-        "qwen-web": ["qwen-web", "add-docs-python", "cleanup-consolidate-python", "codacy-review", "coderabbit-review", "create-agent-python", "create-capabilities-python", "create-contract-python", "create-root-python", "create-skill-all", "create-surface-python", "create-taxonomy-python", "create-test-python", "create-utility-python", "fix-bypass-python", "lint-arwaky-python", "repowise-scan", "setup-ci-quality-gates"],
-        "blender": ["blender-arwaky", "add-docs-python", "cleanup-consolidate-python", "codacy-review-copy", "coderabbit-review", "create-agent-python", "create-capabilities-python", "create-contract-python", "create-root-python", "create-skill-all", "create-surface-python", "create-taxonomy-python", "create-test-python", "create-utility-python", "fix-bypass-python", "lint-arwaky-python", "qwen-web"],
-        "skill": ["skill-manager"],
-        "workspace": ["google-workspace-mcp", "managing-google-workspace"],
-        "mnemosyne": ["mnemosyne", "hermes-memory-providers", "mnemosyne-context", "no-mistakes"],
-    }
-    names = TOOL_SKILL_MAP.get(tool_id, [])
-    files = []
-    for name in names:
-        f = REPO_ROOT / "tools/skills" / name / "SKILL.md"
-        if f.is_file():
-            files.append(f)
-    return files
+    base = REPO_ROOT / "tools" / "skills"
+    if not base.is_dir():
+        return []
+    return sorted(
+        f for f in base.rglob("SKILL.md")
+        if not any(part in {"node_modules", ".venv", "venv", "target", ".git", "__pycache__"} for part in f.parts)
+    )
 
 
 def resolve_single_skill_file(query):
@@ -389,32 +373,31 @@ def cmd_install(argv):
 # --- list ----------------------------------------------------------------------
 def cmd_list(argv):
     tool_filter = argv[0] if argv else ""
+    pack = get_tool_skills("all")  # satu pack user di tools/skills/
+    total_unique = len(pack)
     if tool_filter and tool_filter != "--all":
         tid = normalize_tool_id(tool_filter)
         if not tid:
             print(f"Error: Tool '{tool_filter}' not found in manifest.", file=sys.stderr)
             return 1
-        print(f"Skills associated with tool '{tid}':")
+        print(f"Skills available for tool '{tid}' (shared skill pack):")
         print("-" * 100)
         print(f"{'SKILL NAME':<28} {'DESCRIPTION':<65}")
         print("-" * 100)
-        for sf in get_tool_skills(tid):
+        for sf in pack:
             print(f"{extract_skill_name(sf):<28} {extract_description(sf):<65}")
         print("-" * 100)
-        print(f"Install all skills for this tool using 'aa skill install {tid}'.")
+        print(f"Total skill pack: {total_unique} | Install: 'aa skill install {tid}'")
         return 0
 
-    print("Available Tools & Associated Skills in agents-arwaky:")
+    print("Available Tools & Shared Skill Pack in agents-arwaky:")
     print("-" * 100)
     print(f"{'TOOL ID':<14} {'CATEGORY':<10} {'SKILLS COUNT':<14} {'DESCRIPTION':<50}")
     print("-" * 100)
-    total = 0
     for tid, cat, desc in get_registered_tool_ids():
-        scount = len(get_tool_skills(tid))
-        total += scount
-        print(f"{tid:<14} {cat:<10} {scount:<14} {desc:<50}")
+        print(f"{tid:<14} {cat:<10} {total_unique:<14} {desc:<50}")
     print("-" * 100)
-    print(f"Total Tools: {len(get_registered_tool_ids())} | Total Ecosystem Skills: {total}")
+    print(f"Total Tools: {len(get_registered_tool_ids())} | Total Skill Pack (unique): {total_unique}")
     return 0
 
 
