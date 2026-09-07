@@ -22,10 +22,6 @@
 	path = vendor/fetch-mcp
 	url = https://github.com/zcaceres/fetch-mcp.git
 	ignore = dirty
-[submodule "vendor/lean-ctx"]
-	path = vendor/lean-ctx
-	url = https://github.com/yvgude/lean-ctx.git
-	ignore = dirty
 [submodule "vendor/ponytail"]
 	path = vendor/ponytail
 	url = https://github.com/DietrichGebert/ponytail.git
