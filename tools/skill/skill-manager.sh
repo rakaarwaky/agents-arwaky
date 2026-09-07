@@ -335,6 +335,149 @@ install_tool_skills() {
   return 0
 }
 
+
+# --- Remove a Single Provisioned Skill from Target Workspace ---
+remove_single_skill_file() {
+  local source_file="$1"
+  local target_dir="$2"
+  local custom_dest="$3"
+
+  if [ ! -f "$source_file" ]; then
+    return 1
+  fi
+
+  local clean_name
+  clean_name="$(extract_skill_name "$source_file")"
+
+  # If custom destination was used during install, remove from there
+  if [ -n "$custom_dest" ]; then
+    local dest_dir="$custom_dest/$clean_name"
+    if [[ "$custom_dest" == *".md" ]]; then
+      rm -f "$custom_dest" 2>/dev/null || true
+      echo -e "  ${GREEN}[OK]${RESET} Removed: $custom_dest"
+      return 0
+    fi
+    if [ -d "$dest_dir" ]; then
+      rm -rf "$dest_dir"
+      echo -e "  ${GREEN}[OK]${RESET} Removed: $dest_dir"
+    else
+      echo -e "  ${YELLOW}[SKIP]${RESET} Not found: $dest_dir"
+    fi
+    return 0
+  fi
+
+  # Standard removal: from .agents/skills/ in target workspace
+  local dest_dir="$target_dir/.agents/skills/$clean_name"
+  if [ -d "$dest_dir" ]; then
+    rm -rf "$dest_dir"
+    echo -e "  ${GREEN}[OK]${RESET} Removed: $dest_dir"
+  else
+    echo -e "  ${YELLOW}[SKIP]${RESET} Not found: $dest_dir"
+  fi
+  return 0
+}
+
+# --- Remove All Skills for a Tool ---
+uninstall_tool_skills() {
+  local tool_id="$1"
+  local target_dir="$2"
+  local custom_dest="$3"
+
+  local skill_files=()
+  while IFS= read -r f; do
+    [ -n "$f" ] && skill_files+=("$f")
+  done < <(get_tool_skills "$tool_id")
+
+  local total="${#skill_files[@]}"
+  if [ "$total" -eq 0 ]; then
+    echo -e "${YELLOW}No skills registered for tool '$tool_id'.${RESET}" >&2
+    return 0
+  fi
+
+  echo -e "${BOLD}Removing ${CYAN}$total skill(s)${RESET} for tool '${CYAN}$tool_id${RESET}'...${RESET}"
+  echo -e "Target Workspace: ${BLUE}$target_dir${RESET}"
+  echo "------------------------------------------------------------------"
+
+  local removed=0
+  for sf in "${skill_files[@]}"; do
+    if remove_single_skill_file "$sf" "$target_dir" "$custom_dest"; then
+      removed=$((removed + 1))
+    fi
+  done
+
+  echo "------------------------------------------------------------------"
+  echo -e "${GREEN}Successfully removed $removed skill(s) for tool '$tool_id'.${RESET}"
+  return 0
+}
+
+# --- Uninstall (Unskill) Skills ---
+cmd_uninstall() {
+  local target_name="${1:-}"
+  local target_dir="."
+  local custom_dest=""
+
+  if [ -z "$target_name" ]; then
+    echo -e "${RED}Error: Missing tool or skill name.${RESET}"
+    echo "Usage: aa skill uninstall <tool-name|skill-name|all> [--target <dir>]"
+    exit 1
+  fi
+  shift || true
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --target|-t)
+        target_dir="$2"
+        shift 2
+        ;;
+      --dest|-d)
+        custom_dest="$2"
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  target_dir="$(cd "$target_dir" 2>/dev/null && pwd || echo "$target_dir")"
+
+  # Case 1: Remove ALL skills for ALL tools
+  if [ "$target_name" = "all" ]; then
+    echo -e "${BOLD}Removing ALL provisioned skills from target workspace: $target_dir${RESET}"
+    echo "------------------------------------------------------------------"
+    local total_removed=0
+    while IFS=: read -r tid _cat _desc; do
+      [ -z "$tid" ] && continue
+      while IFS= read -r sf; do
+        if remove_single_skill_file "$sf" "$target_dir" "$custom_dest"; then
+          total_removed=$((total_removed + 1))
+        fi
+      done < <(get_tool_skills "$tid")
+    done < <(get_registered_tool_ids)
+    echo "------------------------------------------------------------------"
+    echo -e "${GREEN}All provisioned skills removed ($total_removed skill file(s) processed).${RESET}"
+    return 0
+  fi
+
+  # Case 2: Target is a registered Tool (remove ALL its skills)
+  local matched_tool_id=""
+  if matched_tool_id="$(normalize_tool_id "$target_name")"; then
+    uninstall_tool_skills "$matched_tool_id" "$target_dir" "$custom_dest"
+    return 0
+  fi
+
+  # Case 3: Target is a specific individual skill
+  local single_skill_file=""
+  if single_skill_file="$(resolve_single_skill_file "$target_name")"; then
+    echo -e "${BOLD}Removing individual skill '$target_name'...${RESET}"
+    remove_single_skill_file "$single_skill_file" "$target_dir" "$custom_dest"
+    return 0
+  fi
+
+  echo -e "${RED}Error: Neither tool nor skill named '$target_name' could be found.${RESET}"
+  echo "Run 'aa skill list' to see all available tools and skills."
+  exit 1
+}
 cmd_help() {
   echo -e "${BOLD}agents-arwaky Skill Manager (${CYAN}aa skill${RESET}${BOLD})${RESET}"
   echo -e "${DIM}Discover, inspect and provision AI agent skills across internal and vendor tools.${RESET}"
@@ -596,6 +739,13 @@ main() {
       ;;
     sync)
       cmd_install "all" "$@"
+      ;;
+    clean-workspace)
+      # Internal: dipanggil oleh 'aa uninstall --all' / 'aa reset' untuk membersihkan
+      # semua skill yang diprovision ke CURRENT WORKING DIRECTORY (.agents/skills/).
+      # Catatan: berbeda dengan 'unconnect' yang menghapus skill di harness path
+      # (~/.hermes/skills, ~/.config/opencode/skills, dll).
+      cmd_uninstall "all" --target "$(pwd)"
       ;;
     show|cat|view)
       cmd_show "$@"

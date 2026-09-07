@@ -415,12 +415,17 @@ cmd_uninstall() {
   done < <(jq -r '.tools[] | [.id, .category, .binary, .path] | @tsv' "$MANIFEST_FILE")
   echo -e "${GREEN}>>> All tool binaries and data directories removed.${RESET}"
 
-  # 3. Disconnect agents-arwaky from all agent harnesses (MCP servers, skills, env)
+  # 3. Remove all provisioned skills from workspace (.agents/skills/)
+  echo ""
+  echo -e "${BOLD}>>> Removing provisioned skills from workspace...${RESET}"
+  "$REPO_ROOT/tools/skill/skill-manager.sh" clean-workspace || true
+
+  # 4. Disconnect agents-arwaky from all agent harnesses (MCP servers, skills, env)
   echo ""
   echo -e "${BOLD}>>> Disconnecting agents-arwaky from agent harnesses...${RESET}"
   "$REPO_ROOT/tools/connect/connect-agent.sh" disconnect --all
 
-  # 4. Clean up legacy lean-ctx remnants left in harnesses & internal-bin
+  # 5. Clean up legacy lean-ctx remnants left in harnesses & internal-bin
   echo ""
   echo -e "${BOLD}>>> Cleaning legacy lean-ctx remnants...${RESET}"
   "$REPO_ROOT/tools/connect/connect-agent.sh" disconnect --lean-ctx
@@ -432,7 +437,7 @@ cmd_reset() {
   echo -e "${YELLOW}    This action cannot be undone.${RESET}"
   echo ""
   echo -e "${BOLD}>>> Running full factory reset...${RESET}"
-  # 1. Uninstall all tools (incl. per-tool uninstall scripts + harness disconnect + lean-ctx cleanup)
+  # 1. Uninstall all tools (incl. per-tool uninstall scripts + skill cleanup + harness disconnect + lean-ctx cleanup)
   "$REPO_ROOT/tools/arwaky/arwaky-cli.sh" uninstall --all
   # 2. Clean build artifacts
   rm -rf "$REPO_ROOT/tools/"*/dist "$REPO_ROOT/mcp_servers.generated.json"
