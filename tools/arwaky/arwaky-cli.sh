@@ -84,6 +84,7 @@ cmd_help() {
   echo -e "  ${GREEN}mcp${RESET} [action]                   Manage MCP configurations (list, generate, show)"
   echo -e "  ${GREEN}skill${RESET} [action]                 Manage & provision agent skills to workspace"
   echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP, skills & env variables to agent harnesses"
+  echo -e "  ${GREEN}disconnect${RESET} <harness>            Unconnect MCP, skills & env variables from agent harnesses"
   echo -e "  ${GREEN}anytype${RESET} [action]                Manage Anytype headless daemon, bot accounts & keys"
   echo -e "  ${GREEN}9router${RESET} [action]                Manage 9Router local AI gateway, daemon & models"
   echo -e "  ${GREEN}backup${RESET} <tool|all> [dest] [--gdrive] Backup sensitive credentials, DBs & login sessions"
@@ -93,7 +94,9 @@ cmd_help() {
   echo -e "${BOLD}MAINTENANCE & LIFECYCLE:${RESET}"
   echo -e "  ${CYAN}check${RESET}                          Run repository verification and quality gates"
   echo -e "  ${CYAN}submodules${RESET}                     Initialize and update all git submodules"
-  echo -e "  ${CYAN}clean${RESET} [--host|--all]           Clean build artifacts (or host binaries / reset repo)"
+  echo -e "  ${CYAN}clean${RESET}                          Remove build artifacts (dist/, generated configs)"
+  echo -e "  ${CYAN}uninstall${RESET} [tool|--all]          Remove installed tool binaries & data from system"
+  echo -e "  ${CYAN}reset${RESET}                          Factory reset: uninstall all + clean + submodule reset"
   echo -e "  ${CYAN}help${RESET}                           Show this help message"
   echo ""
   echo -e "${BOLD}EXAMPLES:${RESET}"
@@ -345,28 +348,97 @@ cmd_check() {
 }
 
 cmd_clean() {
+  echo ">>> Cleaning build artifacts and generated configs..."
+  rm -rf "$REPO_ROOT/tools/"*/dist "$REPO_ROOT/mcp_servers.generated.json"
+  echo -e "${GREEN}>>> Build artifacts cleaned.${RESET}"
+}
+
+cmd_uninstall() {
   local target="${1:-}"
-  case "$target" in
-    --host)
-      echo ">>> Cleaning host ~/.local/bin and ~/.local/share tool installations..."
-      rm -f "$HOME/.local/bin/"{context7-mcp,fetch-mcp,lean-ctx,ponytail-mcp,anytype-mcp,codegraph-mcp,9router,agents-arwaky,aa,arwaky,lint-arwaky,la,lint-arwaky-cli,lac,vision-arwaky,va,vision-arwaky-mcp,qwen-web-arwaky,qwa,qwc,qwen-web-mcp,blender-arwaky,ba,blender-mcp} 2>/dev/null || true
-      rm -rf "$HOME/.local/share/"{context7,fetch-mcp,lean-ctx,ponytail,anytype-mcp,codegraph,9router,agents-arwaky,vision-arwaky,qwen-web,blender-arwaky} 2>/dev/null || true
-      echo ">>> Host tool binaries and data directories cleaned."
-      ;;
-    --all|distclean)
-      echo ">>> Running deep clean (build artifacts + host installations + submodules reset)..."
-      rm -rf "$REPO_ROOT/tools/"*/dist "$REPO_ROOT/mcp_servers.generated.json"
-      rm -f "$HOME/.local/bin/"{context7-mcp,fetch-mcp,lean-ctx,ponytail-mcp,anytype-mcp,codegraph-mcp,9router,agents-arwaky,aa,arwaky,lint-arwaky,la,lint-arwaky-cli,lac,vision-arwaky,va,vision-arwaky-mcp,qwen-web-arwaky,qwa,qwc,qwen-web-mcp,blender-arwaky,ba,blender-mcp} 2>/dev/null || true
-      rm -rf "$HOME/.local/share/"{context7,fetch-mcp,lean-ctx,ponytail,anytype-mcp,codegraph,9router,agents-arwaky,vision-arwaky,qwen-web,blender-arwaky} 2>/dev/null || true
-      git -C "$REPO_ROOT" submodule foreach --recursive 'git clean -fd && git checkout .' || true
-      echo ">>> Deep clean complete."
-      ;;
-    *)
-      echo ">>> Cleaning build artifacts and generated configs..."
-      rm -rf "$REPO_ROOT/tools/"*/dist "$REPO_ROOT/mcp_servers.generated.json"
-      echo ">>> Build artifacts cleaned. (Tip: Use 'aa clean --host' or 'aa clean --all' for deep clean)."
-      ;;
-  esac
+  local mode="all"
+
+  if [ "$target" = "--all" ] || [ "$target" = "all" ]; then
+    mode="all"
+  elif [ -n "$target" ]; then
+    mode="single"
+  fi
+
+  if [ "$mode" = "single" ]; then
+    # Resolve tool
+    local tool_info
+    tool_info="$(jq -c --arg q "$target" \
+      '.tools[] | select(.id == $q or .binary == $q or (.alias? != null and .alias == $q))' \
+      "$MANIFEST_FILE" 2>/dev/null | head -n1 || true)"
+    if [ -z "$tool_info" ]; then
+      echo -e "${RED}Error: Tool '$target' not found in manifest.${RESET}"
+      exit 1
+    fi
+    local bin data_dir
+    bin="$(echo "$tool_info" | jq -r '.binary')"
+    data_dir="$(echo "$tool_info" | jq -r '.id')"
+    echo -e "${BOLD}>>> Uninstalling $target...${RESET}"
+    # Prefer the tool's own uninstall.sh if it exists
+    local tool_uninst
+    tool_uninst="$(find "$REPO_ROOT/tools" -maxdepth 2 -name uninstall.sh -path "*/$data_dir/*" 2>/dev/null | head -n1 || true)"
+    if [ -n "$tool_uninst" ] && [ -f "$tool_uninst" ]; then
+      bash "$tool_uninst"
+    else
+      rm -f "$TARGET_BIN_DIR/$bin" 2>/dev/null || true
+      rm -rf "$HOME/.local/share/$data_dir" 2>/dev/null || true
+      rm -rf "$HOME/.config/$data_dir" 2>/dev/null || true
+    fi
+    echo -e "${GREEN}>>> $target uninstalled.${RESET}"
+    return
+  fi
+
+  echo -e "${BOLD}>>> Uninstalling all tools from ~/.local/bin and ~/.local/share...${RESET}"
+
+  # 1. Run per-tool uninstall scripts (tools/*/uninstall.sh)
+  local uninstalled=0
+  for uninst in "$REPO_ROOT"/tools/*/uninstall.sh; do
+    [ -f "$uninst" ] || continue
+    echo ""
+    bash "$uninst"
+    uninstalled=$((uninstalled + 1))
+  done
+  if [ "$uninstalled" -gt 0 ]; then
+    echo -e "${GREEN}>>> Ran $uninstalled per-tool uninstall scripts.${RESET}"
+  fi
+
+  # 2. Fallback: remove all tool binaries/data dirs from manifest (safety net)
+  while IFS=$'\t' read -r id _ bin _; do
+    [ -n "$bin" ] && rm -f "$TARGET_BIN_DIR/$bin" 2>/dev/null || true
+  done < <(jq -r '.tools[] | [.id, .category, .binary, .path] | @tsv' "$MANIFEST_FILE")
+  while IFS=$'\t' read -r id _ _ _; do
+    [ -n "$id" ] && rm -rf "$HOME/.local/share/$id" 2>/dev/null || true
+    [ -n "$id" ] && rm -rf "$HOME/.config/$id" 2>/dev/null || true
+  done < <(jq -r '.tools[] | [.id, .category, .binary, .path] | @tsv' "$MANIFEST_FILE")
+  echo -e "${GREEN}>>> All tool binaries and data directories removed.${RESET}"
+
+  # 3. Disconnect agents-arwaky from all agent harnesses (MCP servers, skills, env)
+  echo ""
+  echo -e "${BOLD}>>> Disconnecting agents-arwaky from agent harnesses...${RESET}"
+  "$REPO_ROOT/tools/connect/connect-agent.sh" disconnect --all
+
+  # 4. Clean up legacy lean-ctx remnants left in harnesses & internal-bin
+  echo ""
+  echo -e "${BOLD}>>> Cleaning legacy lean-ctx remnants...${RESET}"
+  "$REPO_ROOT/tools/connect/connect-agent.sh" disconnect --lean-ctx
+  echo -e "${GREEN}>>> Harness disconnect + lean-ctx cleanup complete.${RESET}"
+}
+
+cmd_reset() {
+  echo -e "${YELLOW}!!! WARNING: This will wipe ALL installed tools AND reset the repository to pristine state.${RESET}"
+  echo -e "${YELLOW}    This action cannot be undone.${RESET}"
+  echo ""
+  echo -e "${BOLD}>>> Running full factory reset...${RESET}"
+  # 1. Uninstall all tools (incl. per-tool uninstall scripts + harness disconnect + lean-ctx cleanup)
+  "$REPO_ROOT/tools/arwaky/arwaky-cli.sh" uninstall --all
+  # 2. Clean build artifacts
+  rm -rf "$REPO_ROOT/tools/"*/dist "$REPO_ROOT/mcp_servers.generated.json"
+  # 3. Reset submodules to pristine state
+  git -C "$REPO_ROOT" submodule foreach --recursive 'git clean -fd && git checkout .' 2>/dev/null || true
+  echo -e "${GREEN}>>> Factory reset complete. Repository is pristine.${RESET}"
 }
 
 # --- Main Dispatcher ---
@@ -384,6 +456,8 @@ main() {
     submodules)      cmd_submodules "$@" ;;
     check)           cmd_check "$@" ;;
     clean)           cmd_clean "$@" ;;
+    uninstall)       cmd_uninstall "$@" ;;
+    reset)           cmd_reset "$@" ;;
     anytype)         "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" "$@" ;;
     9router)         "$REPO_ROOT/tools/9router/daemon/9router-daemon.sh" "$@" ;;
     backup)          "$REPO_ROOT/tools/backup/backup-manager.sh" backup "$@" ;;

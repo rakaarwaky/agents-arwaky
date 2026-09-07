@@ -125,7 +125,6 @@ normalize_tool_id() {
     codegraph|codegraph-mcp) echo "codegraph" ;;
     anytype|anytype-mcp|anytype-daemon) echo "anytype" ;;
     fetch|fetch-mcp) echo "fetch" ;;
-    lean-ctx) echo "lean-ctx" ;;
     vision|vision-arwaky|va) echo "vision" ;;
     qwen-web|qwen-web-arwaky|qwa|qwc) echo "qwen-web" ;;
     blender|blender-arwaky|ba) echo "blender" ;;
@@ -186,9 +185,6 @@ get_tool_skills() {
       ;;
     fetch)
       [ -f "$REPO_ROOT/tools/fetch-mcp/SKILL.md" ] && files+=("$REPO_ROOT/tools/fetch-mcp/SKILL.md")
-      ;;
-    lean-ctx)
-      [ -f "$REPO_ROOT/vendor/lean-ctx/skills/lean-ctx/SKILL.md" ] && files+=("$REPO_ROOT/vendor/lean-ctx/skills/lean-ctx/SKILL.md")
       ;;
     vision)
       [ -f "$REPO_ROOT/internal/vision-arwaky/SKILL.md" ] && files+=("$REPO_ROOT/internal/vision-arwaky/SKILL.md")

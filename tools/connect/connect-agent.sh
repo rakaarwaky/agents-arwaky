@@ -372,47 +372,6 @@ inject_mnemosyne_env() {
   esac
 }
 
-# --- Ensure Lean-CTX Agent Rules in Rules File ---
-ensure_lean_ctx_rules() {
-  local target_file="$1"
-  local dry_run="${2:-false}"
-
-  if [ -f "$target_file" ] && grep -q "lean-ctx-rules" "$target_file"; then
-    return 0
-  fi
-
-  log_sub "Injecting lean-ctx rules: ${BLUE}$target_file${RESET}"
-  if [ "$dry_run" = "true" ]; then
-    log_sub "[DRY-RUN] Would inject lean-ctx rules into $target_file"
-    return 0
-  fi
-
-  mkdir -p "$(dirname "$target_file")"
-
-  cat >> "$target_file" << 'EOF'
-
-<!-- lean-ctx-rules -->
-<!-- version: 9 -->
-
-lean-ctx shadow mode: native read/search/shell calls auto-route to ctx_* — no tool-mapping needed.
-File editing → native Edit/StrReplace (lean-ctx only handles reads); if denied, use ctx_patch.
-Exclusive tools (no native trigger): ctx_compose (understand code, call first), ctx_search(action=symbol) (exact symbol), ctx_search(action=semantic) (by meaning), ctx_callgraph (callers), ctx_knowledge / ctx_session (memory).
-<!-- lean-ctx-compression -->
-OUTPUT STYLE: concise
-- Bullet points over paragraphs
-- Skip filler words and hedging ("I think", "probably", "it seems")
-- 1-sentence explanations max, then code/action
-- No repeating what the user said
-<!-- /lean-ctx-compression -->
-<!-- lean-ctx-solution -->
-SOLUTION EFFICIENCY: stop at first level that applies:
-skip (YAGNI) → reuse codebase → stdlib → native platform → installed dep → one-line → minimum code.
-Never skip: validation, security, error handling.
-<!-- /lean-ctx-solution -->
-<!-- /lean-ctx-rules -->
-EOF
-  log_ok "Injected lean-ctx rules into $target_file."
-}
 
 # ==============================================================================
 # 1. Antigravity Harness Connector
@@ -482,10 +441,6 @@ connect_antigravity() {
     log_ok "Processed $count skills for Antigravity."
   fi
 
-  # 3. Agent Rules (GEMINI.md)
-  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
-    ensure_lean_ctx_rules "$HOME/.gemini/GEMINI.md" "$dry_run"
-  fi
 
   # 4. Environment Variables (NINEROUTER_URL, NINEROUTER_KEY, MNEMOSYNE_DATA_DIR)
   if [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ] || [ "$env_only" = "true" ]; then
@@ -594,10 +549,6 @@ EOF
     log_ok "Processed $count skills for Hermes ($profile_label)."
   fi
 
-  # 3. Agent Rules (HERMES.md)
-  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
-    ensure_lean_ctx_rules "$target_dir/HERMES.md" "$dry_run"
-  fi
 }
 
 connect_hermes() {
@@ -729,10 +680,6 @@ connect_opencode() {
     log_ok "Processed $count skills for OpenCode."
   fi
 
-  # 3. Agent Rules (AGENTS.md)
-  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
-    ensure_lean_ctx_rules "$config_dir/AGENTS.md" "$dry_run"
-  fi
 
   # 4. Environment Variables (NINEROUTER_URL, NINEROUTER_KEY, MNEMOSYNE_DATA_DIR)
   if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
@@ -796,10 +743,6 @@ connect_qwencode() {
     log_ok "Processed $count skills for Qwen Code."
   fi
 
-  # 3. Agent Rules (QWEN.md)
-  if [ "$mcp_only" != "true" ] && [ "$env_only" != "true" ]; then
-    ensure_lean_ctx_rules "$qwen_home/QWEN.md" "$dry_run"
-  fi
 
   # 4. Environment Variables (NINEROUTER_URL, NINEROUTER_KEY, MNEMOSYNE_DATA_DIR)
   if [ "$env_only" = "true" ] || { [ "$mcp_only" != "true" ] && [ "$skills_only" != "true" ]; }; then
@@ -808,6 +751,478 @@ connect_qwencode() {
   fi
 }
 
+
+# ==============================================================================
+# Disconnect (Unconnect) Connectors — reverse of connect_* above
+# Removes agents-arwaky MCP servers, provisioned skills, and injected env vars
+# from each agent harness. Safe: only touches keys/entries that agents-arwaky
+# itself injected (driven by MCP_GENERATED_FILE or the static fallback list).
+# ==============================================================================
+
+# --- Resolve the list of MCP server names owned by agents-arwaky ---
+get_arwaky_mcp_server_names() {
+  local names=""
+  if [ -f "$MCP_GENERATED_FILE" ]; then
+    names="$(jq -r '.mcpServers | keys[]' "$MCP_GENERATED_FILE" 2>/dev/null || true)"
+  fi
+  if [ -z "$names" ]; then
+    # Static fallback mirroring tools/mcp/generate-config.sh
+    names="context7
+fetch
+ponytail
+anytype
+codegraph
+vision
+qwen-web
+blender
+lint
+workspace
+mnemosyne"
+  fi
+  printf '%s\n' "$names"
+}
+
+# --- Remove one env key from a .env file ---
+remove_env_key() {
+  local file="$1"
+  local key="$2"
+  local dry_run="${3:-false}"
+  [ -f "$file" ] || return 0
+  if [ "$dry_run" = "true" ]; then
+    log_sub "[DRY-RUN] Would remove $key from $file"
+    return 0
+  fi
+  sed -i "/^${key}=/d" "$file" 2>/dev/null || true
+  log_ok "Removed $key from $file"
+}
+
+# --- Remove provisioned skills that came from agents-arwaky ---
+remove_provisioned_skills() {
+  local dest_base_dir="$1"
+  local dry_run="${2:-false}"
+  [ -d "$dest_base_dir" ] || return 0
+  local sname dest
+  while IFS= read -r sf; do
+    [ -n "$sf" ] || continue
+    sname="$(extract_skill_name "$sf")"
+    [ -n "$sname" ] || continue
+    dest="$dest_base_dir/$sname"
+    if [ -d "$dest" ]; then
+      if [ "$dry_run" = "true" ]; then
+        log_sub "[DRY-RUN] Would remove skill '$sname' from $dest_base_dir"
+      else
+        rm -rf "$dest"
+        log_ok "Removed skill '$sname' from $dest_base_dir"
+      fi
+    fi
+  done < <(get_all_skill_files)
+}
+
+# --- Remove agents-arwaky MCP servers from a JSON mcpServers map ---
+remove_mcp_servers_json() {
+  local file="$1"
+  local key="$2"          # top-level key holding the server map ("mcpServers" or "mcp")
+  local dry_run="${3:-false}"
+  [ -f "$file" ] || return 0
+  local names
+  names="$(get_arwaky_mcp_server_names)"
+  if [ "$dry_run" = "true" ]; then
+    log_sub "[DRY-RUN] Would remove agents-arwaky servers from $file"
+    return 0
+  fi
+  local tmp
+  tmp="$(mktemp)"
+  cp "$file" "$tmp"
+  local n
+  for n in $names; do
+    jq --arg n "$n" "del(.${key}[\$n])" "$tmp" > "$tmp.$$" 2>/dev/null && mv "$tmp.$$" "$tmp" || true
+  done
+  mv "$tmp" "$file"
+  log_ok "Removed agents-arwaky MCP servers from $file"
+}
+
+# --- 1. Antigravity Disconnect ---
+disconnect_antigravity() {
+  local dry_run="${1:-false}"
+  log_header "Disconnecting from Google Antigravity..."
+  local config_dir="$HOME/.gemini/config"
+  local mcp_file="$config_dir/mcp_config.json"
+  local skills_dir="$config_dir/skills"
+
+  remove_mcp_servers_json "$mcp_file" "mcpServers" "$dry_run"
+  remove_provisioned_skills "$skills_dir" "$dry_run"
+
+  # Remove env keys injected by agents-arwaky
+  remove_env_key "$config_dir/.env" "NINEROUTER_URL" "$dry_run"
+  remove_env_key "$config_dir/.env" "NINEROUTER_KEY" "$dry_run"
+  remove_env_key "$config_dir/.env" "MNEMOSYNE_DATA_DIR" "$dry_run"
+  if [ -d "$HOME/.gemini/antigravity-cli" ]; then
+    remove_mcp_servers_json "$HOME/.gemini/antigravity-cli/mcp_config.json" "mcpServers" "$dry_run"
+    remove_env_key "$HOME/.gemini/antigravity-cli/.env" "NINEROUTER_URL" "$dry_run"
+    remove_env_key "$HOME/.gemini/antigravity-cli/.env" "NINEROUTER_KEY" "$dry_run"
+    remove_env_key "$HOME/.gemini/antigravity-cli/.env" "MNEMOSYNE_DATA_DIR" "$dry_run"
+  fi
+  log_ok "Antigravity disconnect complete."
+}
+
+# --- 2. Hermes Disconnect (Main + Multi-Profiles) ---
+disconnect_hermes_instance() {
+  local target_dir="$1"
+  local profile_label="$2"
+  local dry_run="$3"
+  local config_file="$target_dir/config.yaml"
+  local skills_dir="$target_dir/skills"
+
+  log_header "Disconnecting from Hermes ($profile_label)..."
+  if [ -f "$config_file" ]; then
+    if [ "$dry_run" = "true" ]; then
+      log_sub "[DRY-RUN] Would remove agents-arwaky MCP servers from $config_file"
+    else
+      local names
+      names="$(get_arwaky_mcp_server_names | tr '\n' ' ')"
+      local python_cmd=""
+      if [ -x "${XDG_DATA_HOME:-$HOME}/.hermes/hermes-agent/venv/bin/python" ]; then
+        python_cmd="${XDG_DATA_HOME:-$HOME}/.hermes/hermes-agent/venv/bin/python"
+      elif command -v python3 >/dev/null 2>&1; then
+        python_cmd="python3"
+      fi
+      if [ -n "$python_cmd" ]; then
+        "$python_cmd" - "$config_file" $names << 'PYEOF'
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+to_remove = set(sys.argv[2:])
+
+try:
+    from ruamel.yaml import YAML
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    with open(config_path, "r", encoding="utf-8") as f:
+        data = yaml.load(f) or {}
+    yaml_fallback = False
+except Exception:
+    import yaml
+    with open(config_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    yaml_fallback = True
+
+if isinstance(data, dict) and isinstance(data.get("mcp_servers"), dict):
+    for name in list(to_remove):
+        data["mcp_servers"].pop(name, None)
+    if not data["mcp_servers"]:
+        data.pop("mcp_servers", None)
+
+with open(config_path, "w", encoding="utf-8") as f:
+    if yaml_fallback:
+        yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+    else:
+        yaml.dump(data, f)
+PYEOF
+        log_ok "Removed agents-arwaky MCP servers from $config_file"
+      else
+        log_warn "Python interpreter not available; skipping YAML cleanup."
+      fi
+    fi
+  fi
+
+  remove_provisioned_skills "$skills_dir" "$dry_run"
+
+  remove_env_key "$target_dir/.env" "NINEROUTER_URL" "$dry_run"
+  remove_env_key "$target_dir/.env" "NINEROUTER_KEY" "$dry_run"
+  remove_env_key "$target_dir/.env" "MNEMOSYNE_DATA_DIR" "$dry_run"
+}
+
+disconnect_hermes() {
+  local dry_run="${1:-false}"
+  log_header "Disconnecting from Hermes Agent (Main & Multi-Profiles)..."
+  local hermes_home="${XDG_DATA_HOME:-$HOME}/.hermes"
+  [ -d "$HOME/.hermes" ] && hermes_home="$HOME/.hermes"
+
+  disconnect_hermes_instance "$hermes_home" "Main Profile" "$dry_run"
+
+  local profiles_dir="$hermes_home/profiles"
+  if [ -d "$profiles_dir" ]; then
+    local p_count=0
+    for pdir in "$profiles_dir"/*; do
+      if [ -d "$pdir" ]; then
+        local pname
+        pname="$(basename "$pdir")"
+        disconnect_hermes_instance "$pdir" "Profile: $pname" "$dry_run"
+        p_count=$((p_count + 1))
+      fi
+    done
+    log_ok "Disconnected all $p_count Hermes multi-profiles."
+  fi
+  log_ok "Hermes disconnect complete."
+}
+
+# --- 3. OpenCode Disconnect ---
+disconnect_opencode() {
+  local dry_run="${1:-false}"
+  log_header "Disconnecting from OpenCode..."
+  local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
+  local config_file="$config_dir/opencode.jsonc"
+  local skills_dir="$config_dir/skills"
+
+  remove_mcp_servers_json "$config_file" "mcp" "$dry_run"
+  remove_provisioned_skills "$skills_dir" "$dry_run"
+
+  remove_env_key "$config_dir/.env" "NINEROUTER_URL" "$dry_run"
+  remove_env_key "$config_dir/.env" "NINEROUTER_KEY" "$dry_run"
+  remove_env_key "$config_dir/.env" "MNEMOSYNE_DATA_DIR" "$dry_run"
+  if [ -d "$HOME/.opencode" ]; then
+    remove_env_key "$HOME/.opencode/.env" "NINEROUTER_URL" "$dry_run"
+    remove_env_key "$HOME/.opencode/.env" "NINEROUTER_KEY" "$dry_run"
+    remove_env_key "$HOME/.opencode/.env" "MNEMOSYNE_DATA_DIR" "$dry_run"
+  fi
+  log_ok "OpenCode disconnect complete."
+}
+
+# --- 4. Qwen Code Disconnect ---
+disconnect_qwencode() {
+  local dry_run="${1:-false}"
+  log_header "Disconnecting from Qwen Code (qwencode)..."
+  local qwen_home="${QWEN_HOME:-$HOME/.qwen}"
+  local settings_file="$qwen_home/settings.json"
+  local skills_dir="$qwen_home/skills"
+
+  remove_mcp_servers_json "$settings_file" "mcpServers" "$dry_run"
+  remove_provisioned_skills "$skills_dir" "$dry_run"
+
+  remove_env_key "$qwen_home/.env" "NINEROUTER_URL" "$dry_run"
+  remove_env_key "$qwen_home/.env" "NINEROUTER_KEY" "$dry_run"
+  remove_env_key "$qwen_home/.env" "MNEMOSYNE_DATA_DIR" "$dry_run"
+  log_ok "Qwen Code disconnect complete."
+}
+
+# --- Disconnect All Harnesses ---
+disconnect_all() {
+  local dry_run="${1:-false}"
+  log_header "Disconnecting agents-arwaky from ALL agent harnesses..."
+  echo "------------------------------------------------------------------"
+  disconnect_antigravity "$dry_run"
+  echo ""
+  disconnect_hermes "$dry_run"
+  echo ""
+  disconnect_opencode "$dry_run"
+  echo ""
+  disconnect_qwencode "$dry_run"
+  echo "------------------------------------------------------------------"
+  echo -e "${GREEN}${BOLD}Disconnect complete.${RESET} agents-arwaky entries removed from all harnesses."
+}
+
+
+# ==============================================================================
+# Legacy lean-ctx remnant cleanup (post-uninstall lean-ctx)
+# Removes leftover lean-ctx MCP entries, skill dirs, HERMES.md blocks and the
+# 97MB binary that older installs dropped into harnesses and internal-bin.
+# ==============================================================================
+disconnect_legacy_lean_ctx() {
+  local dry_run="${1:-false}"
+  log_header "Cleaning up legacy lean-ctx remnants..."
+
+  # 1. Hermes config.yaml (mcp_servers.lean-ctx)
+  local hermes_home="${XDG_DATA_HOME:-$HOME}/.hermes"
+  [ -d "$HOME/.hermes" ] && hermes_home="$HOME/.hermes"
+  local config_file="$hermes_home/config.yaml"
+  if [ -f "$config_file" ]; then
+    if [ "$dry_run" = "true" ]; then
+      log_sub "[DRY-RUN] Would remove lean-ctx from $config_file"
+    else
+      local python_cmd="python3"
+      [ -x "$hermes_home/hermes-agent/venv/bin/python" ] && python_cmd="$hermes_home/hermes-agent/venv/bin/python"
+      "$python_cmd" - "$config_file" << 'PYEOF' || true
+import sys
+from pathlib import Path
+try:
+    from ruamel.yaml import YAML
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    with open(Path(sys.argv[1]), "r", encoding="utf-8") as f:
+        data = yaml.load(f) or {}
+    fb = False
+except Exception:
+    import yaml
+    with open(Path(sys.argv[1]), "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    fb = True
+if isinstance(data, dict) and isinstance(data.get("mcp_servers"), dict):
+    data["mcp_servers"].pop("lean-ctx", None)
+    if not data["mcp_servers"]:
+        data.pop("mcp_servers", None)
+with open(Path(sys.argv[1]), "w", encoding="utf-8") as f:
+    if fb:
+        yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+    else:
+        yaml.dump(data, f)
+PYEOF
+      log_ok "Removed lean-ctx from $config_file"
+    fi
+  fi
+
+  # 2. HERMES.md lean-ctx blocks (main + profiles)
+  local hmd
+  for hmd in "$hermes_home/HERMES.md" "$hermes_home"/profiles/*/HERMES.md; do
+    [ -f "$hmd" ] || continue
+    if [ "$dry_run" = "true" ]; then
+      log_sub "[DRY-RUN] Would strip lean-ctx blocks from $hmd"
+    else
+      python3 - "$hmd" << 'PYEOF' || true
+import re, sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8").read()
+before = s
+s = re.sub(r"(?s)<!--\s*lean-ctx-rules\s*-->.*?<!--\s*/lean-ctx-rules\s*-->\n?", "", s)
+s = re.sub(r"(?s)<!--\s*lean-ctx-compression\s*-->.*?<!--\s*/lean-ctx-compression\s*-->\n?", "", s)
+s = re.sub(r"(?s)<!--\s*lean-ctx-solution\s*-->.*?<!--\s*/lean-ctx-solution\s*-->\n?", "", s)
+s = re.sub(r"(?s)<!--\s*lean-ctx\s*-->.*?<!--\s*/lean-ctx\s*-->\n?", "", s)
+s = re.sub(r"(?s)#\s*Lean-CTX.*?(?=\n# |\Z)", "", s, flags=re.I)
+if s != before:
+    open(p, "w", encoding="utf-8").write(s)
+PYEOF
+      log_ok "Stripped lean-ctx blocks from $hmd"
+    fi
+  done
+
+  # 3. Skill dirs named lean-ctx (Hermes main + profiles, Zed, OpenCode, etc.)
+  local skill_root
+  for skill_root in "$hermes_home/skills" "$hermes_home"/profiles/*/skills; do
+    [ -d "$skill_root/lean-ctx" ] || continue
+    if [ "$dry_run" = "true" ]; then
+      log_sub "[DRY-RUN] Would remove skill dir $skill_root/lean-ctx"
+    else
+      rm -rf "$skill_root/lean-ctx"
+      log_ok "Removed skill dir $skill_root/lean-ctx"
+    fi
+  done
+
+  # 4. Zed settings.json lean-ctx block
+  local zed_cfg="$HOME/.config/zed/settings.json"
+  if [ -f "$zed_cfg" ]; then
+    if [ "$dry_run" = "true" ]; then
+      log_sub "[DRY-RUN] Would remove lean-ctx from $zed_cfg"
+    else
+      jq 'del(.mcp["lean-ctx"]) // del(.mcpServers["lean-ctx"])' "$zed_cfg" > "$zed_cfg.$$" 2>/dev/null && mv "$zed_cfg.$$" "$zed_cfg" || rm -f "$zed_cfg.$$"
+      log_ok "Removed lean-ctx from $zed_cfg"
+    fi
+  fi
+
+  # 5. mcp_servers.json templates that reference lean-ctx
+  local tpl
+  for tpl in "$HOME"/.config/*/mcp_servers.json; do
+    [ -f "$tpl" ] || continue
+    if grep -q '"lean-ctx"' "$tpl" 2>/dev/null; then
+      if [ "$dry_run" = "true" ]; then
+        log_sub "[DRY-RUN] Would remove lean-ctx from $tpl"
+      else
+        jq 'del(.mcpServers["lean-ctx"])' "$tpl" > "$tpl.$$" 2>/dev/null && mv "$tpl.$$" "$tpl" || rm -f "$tpl.$$"
+        log_ok "Removed lean-ctx from $tpl"
+      fi
+    fi
+  done
+
+  # 6. Binary remnants in internal-bin
+  local ibin="${XDG_DATA_HOME:-$HOME/.local/share}/agents-arwaky/internal-bin"
+  for b in lean-ctx _lc _lc_compress; do
+    if [ -e "$ibin/$b" ]; then
+      if [ "$dry_run" = "true" ]; then
+        log_sub "[DRY-RUN] Would remove binary $ibin/$b"
+      else
+        rm -f "$ibin/$b"
+        log_ok "Removed binary $ibin/$b"
+      fi
+    fi
+  done
+
+  log_ok "Legacy lean-ctx cleanup complete."
+}
+# --- Disconnect Usage Help ---
+cmd_disconnect_help() {
+  echo -e "${BOLD}agents-arwaky Harness Disconnector (${CYAN}aa disconnect${RESET}${BOLD})${RESET}"
+  echo -e "${DIM}Remove agents-arwaky MCP servers, provisioned skills and env vars from agent harnesses.${RESET}"
+  echo ""
+  echo -e "${BOLD}USAGE:${RESET}"
+  echo -e "  aa disconnect <agent-harness...> [options]"
+  echo ""
+  echo -e "${BOLD}TARGET AGENT HARNESSES:${RESET}"
+  echo -e "  ${GREEN}--antigravity, antigravity${RESET}  Google Antigravity (~/.gemini/config/)"
+  echo -e "  ${GREEN}--hermes, hermes${RESET}            Hermes Agent (Main & all profiles under ~/.hermes/profiles/)"
+  echo -e "  ${GREEN}--opencode, opencode${RESET}        OpenCode (~/.config/opencode/opencode.jsonc)"
+  echo -e "  ${GREEN}--qwencode, qwencode${RESET}        Qwen Code (~/.qwen/settings.json)"
+  echo -e "  ${GREEN}--all, all${RESET}                  Disconnect from ALL 4 agent harnesses"
+  echo -e "  ${GREEN}--lean-ctx${RESET}                 Remove legacy lean-ctx remnants (Hermes, Zed, mcp templates, binary)"
+  echo ""
+  echo -e "${BOLD}OPTIONS:${RESET}"
+  echo -e "  ${CYAN}--dry-run${RESET}                   Preview modifications without writing to disk"
+  echo -e "  ${CYAN}--help, -h${RESET}                  Show this help screen"
+  echo ""
+}
+
+# --- Main Dispatcher for disconnect subcommand ---
+cmd_disconnect() {
+  local targets=()
+  local dry_run="false"
+  local lean_ctx_only="false"
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --antigravity|antigravity|agy)
+        targets+=("antigravity"); shift ;;
+      --hermes|hermes)
+        targets+=("hermes"); shift ;;
+      --opencode|opencode)
+        targets+=("opencode"); shift ;;
+      --qwencode|qwencode|--qwen|qwen|qwen-code)
+        targets+=("qwencode"); shift ;;
+      --lean-ctx|lean-ctx|lean_ctx)
+        lean_ctx_only="true"; shift ;;
+      --all|all)
+        targets=("antigravity" "hermes" "opencode" "qwencode"); shift ;;
+      --dry-run)
+        dry_run="true"; shift ;;
+      --help|-h|help)
+        cmd_disconnect_help; exit 0 ;;
+      *)
+        log_err "Unknown target or option: $1"; echo ""; cmd_disconnect_help; exit 1 ;;
+    esac
+  done
+
+  # Legacy lean-ctx cleanup only (used by aa uninstall --all / aa reset)
+  if [ "$lean_ctx_only" = "true" ]; then
+    disconnect_legacy_lean_ctx "$dry_run"
+    exit 0
+  fi
+
+  if [ "${#targets[@]}" -eq 0 ]; then
+    log_err "No target agent harness specified."
+    echo ""
+    cmd_disconnect_help
+    exit 1
+  fi
+
+  # Deduplicate targets
+  local -A unique_targets=()
+  for t in "${targets[@]}"; do
+    unique_targets["$t"]=1
+  done
+
+  echo -e "${BOLD}Disconnecting agents-arwaky from agent harnesses...${RESET}"
+  echo "------------------------------------------------------------------"
+
+  for target in "${!unique_targets[@]}"; do
+    case "$target" in
+      antigravity) disconnect_antigravity "$dry_run" ;;
+      hermes)      disconnect_hermes "$dry_run" ;;
+      opencode)    disconnect_opencode "$dry_run" ;;
+      qwencode)    disconnect_qwencode "$dry_run" ;;
+    esac
+    echo ""
+  done
+
+  echo "------------------------------------------------------------------"
+  echo -e "${GREEN}${BOLD}Disconnect complete.${RESET} agents-arwaky entries removed from selected harnesses."
+}
 # --- Show Usage Help ---
 cmd_help() {
   echo -e "${BOLD}agents-arwaky Harness Connector (${CYAN}aa connect${RESET}${BOLD})${RESET}"
@@ -815,6 +1230,7 @@ cmd_help() {
   echo ""
   echo -e "${BOLD}USAGE:${RESET}"
   echo -e "  aa connect <agent-harness...> [options]"
+  echo -e "  aa disconnect <agent-harness...>   (unconnect / remove agents-arwaky entries)"
   echo ""
   echo -e "${BOLD}TARGET AGENT HARNESSES:${RESET}"
   echo -e "  ${GREEN}--antigravity, antigravity${RESET}  Google Antigravity (~/.gemini/config/)"
@@ -845,6 +1261,13 @@ cmd_help() {
 main() {
   if [ $# -eq 0 ]; then
     cmd_help
+    exit 0
+  fi
+
+  # Support 'aa disconnect' subcommand (unconnect harnesses)
+  if [ "${1:-}" = "disconnect" ] || [ "${1:-}" = "unconnect" ]; then
+    shift || true
+    cmd_disconnect "$@"
     exit 0
   fi
 

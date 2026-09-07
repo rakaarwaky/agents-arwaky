@@ -44,9 +44,6 @@ cat <<EOF > "$OUTPUT_FILE"
     "fetch": {
       "command": "fetch-mcp"
     },
-    "lean-ctx": {
-      "command": "lean-ctx"
-    },
     "ponytail": {
       "command": "ponytail-mcp"
     },

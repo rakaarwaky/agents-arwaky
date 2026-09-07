@@ -257,7 +257,6 @@ After running `aa install my-cool-tool`, verify the launcher exists in `~/.local
 TOOLS=(
   "context7-mcp"
   "fetch-mcp"
-  "lean-ctx"
   "ponytail-mcp"
   "anytype-mcp"
   "codegraph-mcp"
@@ -289,7 +288,7 @@ If your tool provides an MCP server (`isMcp: true`):
    ```
 3. Add the vendor name to the distribution loop in `generate-config.sh`:
    ```bash
-   for vendor in context7 fetch-mcp lean-ctx ponytail anytype-mcp codegraph my-cool-tool; do
+   for vendor in context7 fetch-mcp ponytail anytype-mcp codegraph my-cool-tool; do
    ```
 4. Regenerate the client configuration:
    ```bash

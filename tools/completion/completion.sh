@@ -19,9 +19,10 @@ _aa_completion() {
 
   local commands="status doctor list run install shell mcp skill connect anytype 9router service sync backup restore setup check submodules clean destroy completion help"
   local harnesses="--antigravity --hermes --opencode --qwencode --all --force --dry-run --mcp-only --skills-only --env-only"
+  local disconnect_cmds="connect disconnect unconnect"
   local service_actions="status start stop restart logs"
   local service_targets="9router anytype all"
-  local tools="context7 fetch lean-ctx ponytail anytype codegraph 9router workspace mnemosyne vision qwen-web lint blender skill"
+  local tools="context7 fetch ponytail anytype codegraph 9router workspace mnemosyne vision qwen-web lint blender skill"
 
   if [ "$cword" -eq 1 ]; then
     COMPREPLY=( $(compgen -W "$commands" -- "$cur") )
@@ -43,6 +44,9 @@ _aa_completion() {
       fi
       ;;
     connect)
+      COMPREPLY=( $(compgen -W "$harnesses" -- "$cur") )
+      ;;
+    disconnect|unconnect)
       COMPREPLY=( $(compgen -W "$harnesses" -- "$cur") )
       ;;
     service)
@@ -82,8 +86,8 @@ _aa_completion() {
     sync)
       COMPREPLY=( $(compgen -W "--pull --build --no-connect --help" -- "$cur") )
       ;;
-    clean)
-      COMPREPLY=( $(compgen -W "--host --all" -- "$cur") )
+    clean|uninstall|reset)
+      COMPREPLY=( $(compgen -W "--all" -- "$cur") )
       ;;
     completion)
       COMPREPLY=( $(compgen -W "bash zsh --install" -- "$cur") )

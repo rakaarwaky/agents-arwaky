@@ -65,7 +65,7 @@ flowchart TB
 
         subgraph AgentsAndTools["Managed Agent & Vendor Engines"]
             InternalAgents["Internal Agents:\nlint-arwaky • vision-arwaky • qwen-web • blender"]
-            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • lean-ctx • ponytail • fetch • 9router"]
+            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • ponytail • fetch • 9router"]
         end
     end
 
@@ -123,7 +123,6 @@ agents-arwaky/
 │   ├── context7/                # Upstash documentation & context retrieval
 │   ├── fetch-mcp/               # Fast, clean web scraping & text extraction
 │   ├── google-workspace-mcp/    # Google Workspace integration (Gmail, Drive, Docs, etc.)
-│   ├── lean-ctx/                # High-efficiency token-lean codebase indexer
 │   ├── mnemosyne/               # Universal local AI memory layer & temporal graph
 │   └── ponytail/                # Agent architecture patterns & instructions
 │
@@ -239,8 +238,6 @@ aa run codegraph index .
 # Architecture validation across the repository
 aa run lint --help
 
-# Token-lean repository context generation
-aa run lean-ctx serve
 ```
 
 ---
@@ -272,7 +269,6 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | ----------------- | ------------------------------------ | ----------------------------------------------------------------------- | :------------------: | ------------------------------------------------------------------------- |
 | **context7**    | `context7-mcp`, `ctx7`             | [upstash/context7](https://github.com/upstash/context7)               |  CLI / MCP Server  | Rapid documentation retrieval and vector context ingestion.             |
 | **codegraph**   | `codegraph-mcp`, `codegraph`       | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)   |     CLI / MCP     | Graph-based codebase intelligence and semantic symbol indexing.         |
-| **lean-ctx**    | `lean-ctx` (`_lc`, `_lc_compress`) | [yvgude/lean-ctx](https://github.com/yvgude/lean-ctx)                 |     CLI / MCP     | Ultra-low token overhead repository context extraction and shadowing.   |
 | **fetch-mcp**   | `fetch-mcp`, `mcp-fetch`           | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)           |     MCP Server     | Resilient web scraping, HTML cleaning, and Markdown transformation.     |
 | **ponytail**    | `ponytail-mcp`                     | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) |     MCP Server     | Senior-developer prompt instructions and agent behavioral patterns.     |
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
@@ -293,7 +289,6 @@ High-performance community tools integrated via Git submodules and sandboxed wit
   "mcpServers": {
     "context7": { "command": "context7-mcp" },
     "fetch": { "command": "fetch-mcp" },
-    "lean-ctx": { "command": "lean-ctx" },
     "ponytail": { "command": "ponytail-mcp" },
     "anytype": {
       "command": "anytype-mcp",
@@ -375,7 +370,6 @@ Add the servers to your `~/.gemini/antigravity-cli/mcp_config.json` or run `aa c
     "lint": { "command": "lint-arwaky-mcp" },
     "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
     "context7": { "command": "context7-mcp" },
-    "lean-ctx": { "command": "lean-ctx" },
     "fetch": { "command": "fetch-mcp" },
     "ponytail": { "command": "ponytail-mcp" },
     "vision": { "command": "vision-arwaky-mcp" },
@@ -401,8 +395,6 @@ mcp_servers:
     args: ["serve", "--mcp"]
   context7:
     command: context7-mcp
-  lean-ctx:
-    command: lean-ctx
   fetch:
     command: fetch-mcp
   ponytail:
@@ -428,7 +420,6 @@ Add to `~/.config/opencode/opencode.jsonc` or run `aa connect --opencode`:
     "lint": { "type": "local", "command": ["lint-arwaky-mcp"] },
     "codegraph": { "type": "local", "command": ["codegraph-mcp", "serve", "--mcp"] },
     "context7": { "type": "local", "command": ["context7-mcp"] },
-    "lean-ctx": { "type": "local", "command": ["lean-ctx"] },
     "fetch": { "type": "local", "command": ["fetch-mcp"] },
     "ponytail": { "type": "local", "command": ["ponytail-mcp"] },
     "vision": { "type": "local", "command": ["vision-arwaky-mcp"] },
@@ -451,7 +442,6 @@ Add to `~/.qwen/settings.json` or run `aa connect --qwencode`:
     "lint": { "command": "lint-arwaky-mcp" },
     "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
     "context7": { "command": "context7-mcp" },
-    "lean-ctx": { "command": "lean-ctx" },
     "fetch": { "command": "fetch-mcp" },
     "ponytail": { "command": "ponytail-mcp" },
     "vision": { "command": "vision-arwaky-mcp" },
@@ -476,7 +466,6 @@ Add to `.cursor/mcp.json` or Cursor Global Settings > MCP:
     "lint": { "command": "lint-arwaky-mcp" },
     "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
     "context7": { "command": "context7-mcp" },
-    "lean-ctx": { "command": "lean-ctx" },
     "fetch": { "command": "fetch-mcp" }
   }
 }
@@ -495,7 +484,6 @@ Add to `~/.config/zed/settings.json`:
     "lint": { "command": "lint-arwaky-mcp" },
     "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
     "context7": { "command": "context7-mcp" },
-    "lean-ctx": { "command": "lean-ctx" },
     "fetch": { "command": "fetch-mcp" }
   }
 }

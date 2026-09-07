@@ -38,7 +38,6 @@ git -C "$REPO_ROOT" submodule update --init vendor/ internal/
 # Vendor Tools
 build_tool "context7"    "$TOOLS_DIR/context7/install.sh"
 build_tool "fetch-mcp"   "$TOOLS_DIR/fetch-mcp/install.sh"
-build_tool "lean-ctx"    "$TOOLS_DIR/lean-ctx/install.sh"
 build_tool "ponytail"    "$TOOLS_DIR/ponytail/install.sh"
 build_tool "anytype-mcp" "$TOOLS_DIR/anytype-mcp/install.sh"
 build_tool "codegraph"   "$TOOLS_DIR/codegraph/install.sh"
