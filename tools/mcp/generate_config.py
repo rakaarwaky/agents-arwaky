@@ -19,7 +19,7 @@ def main() -> int:
     print(f"Target: {output}")
 
     env = load_first_env([
-        ROOT / "tools/anytype-mcp/.env",
+        ROOT / "tools/config/anytype.env",
         config_home() / "anytype-mcp/.env",
         ROOT / ".env",
     ])
@@ -52,6 +52,10 @@ def main() -> int:
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    try:
+        output.chmod(0o600)
+    except OSError:
+        print("Warning: could not set 0600 permissions on generated MCP config.", file=sys.stderr)
     print(f"Generated valid JSON configuration at {output}")
     return 0
 

@@ -13,6 +13,7 @@ agent harness paths (NOT the current working directory's .agents/skills —
 that is `aa unskill` / skill-manager).
 """
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -33,11 +34,17 @@ def log_err(msg):    print(f"  \u2717 {msg}", file=sys.stderr)
 
 # --- engine bridge -----------------------------------------------------------
 def engine(*args):
-    """Run tools/lib/engine.py and return stdout lines."""
+    """Run tools/lib/engine.py and return stdout lines.
+
+    Raises RuntimeError on non-zero exit so config failures are not hidden (E2).
+    """
     proc = subprocess.run(
         [sys.executable, str(REPO_ROOT / "tools/lib/engine.py"), *args],
         capture_output=True, text=True,
     )
+    if proc.returncode != 0:
+        err_msg = proc.stderr.strip() or f"engine.py exited {proc.returncode}"
+        raise RuntimeError(f"engine.py: {err_msg}")
     return proc.stdout.splitlines()
 
 
@@ -53,7 +60,11 @@ def remove_mcp_servers(file: Path, dry_run: bool = False):
     args = ["remove-mcp-servers", str(file), *servers]
     if dry_run:
         args.append("--dry-run")
-    return engine(*args)
+    try:
+        return engine(*args)
+    except RuntimeError as exc:
+        log_err(str(exc))
+        return []
 
 
 def remove_env_keys(file: Path, keys, dry_run: bool = False):
@@ -62,7 +73,11 @@ def remove_env_keys(file: Path, keys, dry_run: bool = False):
     args = ["remove-env-keys", str(file), *keys]
     if dry_run:
         args.append("--dry-run")
-    return engine(*args)
+    try:
+        return engine(*args)
+    except RuntimeError as exc:
+        log_err(str(exc))
+        return []
 
 
 # --- skills ------------------------------------------------------------------
@@ -81,20 +96,54 @@ def extract_skill_name(skill_md: Path) -> str:
     return skill_md.parent.name
 
 
+def sanitize_skill_name(raw: str, fallback: str) -> str:
+    raw = (raw or "").strip().replace("\\", "/")
+    raw = posixpath.basename(raw)
+    name = re.sub(r"[^A-Za-z0-9._-]+", "-", raw).strip(".-")
+    if not name:
+        name = re.sub(r"[^A-Za-z0-9._-]+", "-", fallback).strip(".-") or "skill"
+    return name[:64]
+
+
+def safe_skill_name(skill_md: Path) -> str:
+    return sanitize_skill_name(extract_skill_name(skill_md), skill_md.parent.name)
+
+
+def ensure_under(base: Path, child: Path) -> Path:
+    base_resolved = base.resolve()
+    child_resolved = child.resolve()
+    if child_resolved == base_resolved:
+        return child_resolved
+    if base_resolved not in child_resolved.parents:
+        raise ValueError(f"Refusing path outside target directory: {child_resolved}")
+    return child_resolved
+
+
+def hermes_targets(h: Path):
+    targets = [("Main Profile", h)]
+    profiles = h / "profiles"
+    if profiles.is_dir():
+        targets.extend((f"Profile: {p.name}", p) for p in sorted(profiles.iterdir()) if p.is_dir())
+    return targets
+
+
 def get_all_skill_files():
-    """All SKILL.md files owned by agents-arwaky (tools/internal/vendor)."""
+    """All SKILL.md files owned by the user-managed skill pack (tools/skills/).
+
+    Source of truth is ONLY tools/skills/ — internal/ and vendor/ submodules
+    are no longer scanned directly.
+    """
     seen = set()
-    for base in ("tools", "internal", "vendor"):
-        root = REPO_ROOT / base
-        if not root.exists():
+    base = REPO_ROOT / "tools" / "skills"
+    if not base.is_dir():
+        return
+    for p in base.rglob("SKILL.md"):
+        if any(part in {"node_modules", ".venv", "venv", "target", ".git"} for part in p.parts):
             continue
-        for p in root.rglob("SKILL.md"):
-            if any(part in {"node_modules", ".venv", "venv", "target", ".git"} for part in p.parts):
-                continue
-            name = extract_skill_name(p)
-            if name and name not in seen:
-                seen.add(name)
-                yield p
+        name = extract_skill_name(p)
+        if name and name not in seen:
+            seen.add(name)
+            yield p
 
 
 def remove_provisioned_skills(dest_base: Path, dry_run: bool = False):
@@ -281,7 +330,11 @@ def engine_merge_mcp(file, servers, force=False):
     args = ["merge-mcp-servers", str(file), _json.dumps(servers)]
     if force:
         args.append("--force")
-    return engine(*args)
+    try:
+        return engine(*args)
+    except RuntimeError as exc:
+        log_err(str(exc))
+        return []
 
 
 def engine_set_env(file, pairs):
@@ -318,8 +371,8 @@ def get_9router_credentials():
     router_url = "http://127.0.0.1:20128"
     router_key = ""
     for cand in (
-        REPO_ROOT / "tools/9router/.env",
-        REPO_ROOT / "tools/9router/env",
+        REPO_ROOT / "tools/config/ninerouter.env",
+        
         HOME / ".config/9router/.env",
     ):
         if cand.is_file():
@@ -414,7 +467,7 @@ def connect_hermes(force, dry_run, mcp_only, skills_only, env_only):
     h = hermes_home()
     servers = load_generated_servers()
     if not skills_only and not env_only:
-        for label, target_dir in [("Main Profile", h)] +                 [(f"Profile: {p.name}", p) for p in sorted((h / "profiles").iterdir()) if p.is_dir()]:
+        for label, target_dir in hermes_targets(h):
             log_sub(f"Target MCP Config: {target_dir / 'config.yaml'}")
             if dry_run:
                 log_sub(f"[DRY-RUN] Would merge MCP servers into {target_dir / 'config.yaml'}")
@@ -423,7 +476,7 @@ def connect_hermes(force, dry_run, mcp_only, skills_only, env_only):
             merged = engine_merge_mcp(target_dir / "config.yaml", servers, force)
             log_ok(f"Hermes MCP servers configured in {target_dir / 'config.yaml'}")
     if not mcp_only and not env_only:
-        for label, target_dir in [("Main Profile", h)] +                 [(f"Profile: {p.name}", p) for p in sorted((h / "profiles").iterdir()) if p.is_dir()]:
+        for label, target_dir in hermes_targets(h):
             for sf in get_all_skill_files():
                 copy_skill_to_dir(sf, target_dir / "skills", force, dry_run)
     if env_only or (not mcp_only and not skills_only):

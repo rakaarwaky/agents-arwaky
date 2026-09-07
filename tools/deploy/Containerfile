@@ -19,4 +19,4 @@ EXPOSE 31010 31011 31012
 VOLUME ["/data", "/root/.config/anytype", "/root/.local/share/anytype"]
 
 ENTRYPOINT ["/usr/local/bin/anytype"]
-CMD ["serve", "--listen-address", "0.0.0.0:31012"]
+CMD ["serve", "--listen-address", "127.0.0.1:31012"]

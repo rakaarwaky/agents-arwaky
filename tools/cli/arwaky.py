@@ -70,7 +70,7 @@ def install_dir_candidates(tool: Tool) -> list[Path]:
         names.append(overrides[tool.id])
     names.append(tool.id)
     names.append(f"{tool.id}-mcp")
-    return [repo_root() / "tools" / n / "install.py" for n in names if n]
+    return [repo_root() / "tools/install" / f"install_{n.replace(chr(45), chr(95))}.py" for n in names if n]
 
 
 def find_installer(tool: Tool):
@@ -87,7 +87,7 @@ def uninstall_dir_candidates(tool: Tool) -> list[Path]:
         names.append(overrides[tool.id])
     names.append(tool.id)
     names.append(f"{tool.id}-mcp")
-    return [repo_root() / "tools" / n / "uninstall.py" for n in names if n]
+    return [repo_root() / "tools/uninstall" / f"uninstall_{n.replace(chr(45), chr(95))}.py" for n in names if n]
 
 
 def find_uninstaller(tool: Tool):
@@ -351,11 +351,11 @@ def cmd_unskill(argv: list[str]) -> int:
 
 
 def cmd_anytype(argv: list[str]) -> int:
-    return exec_python(repo_root() / "tools/anytype-mcp/daemon/anytype_daemon.py", argv)
+    return exec_python(repo_root() / "tools/daemons/anytype_daemon.py", argv)
 
 
 def cmd_9router(argv: list[str]) -> int:
-    return exec_python(repo_root() / "tools/9router/daemon/9router_daemon.py", argv)
+    return exec_python(repo_root() / "tools/daemons/ninerouter_daemon.py", argv)
 
 
 def cmd_service(argv: list[str]) -> int:
@@ -453,6 +453,13 @@ def cmd_uninstall(argv: list[str]) -> int:
 
 
 def cmd_reset(argv: list[str]) -> int:
+    if "--yes" not in argv:
+        warn("WARNING: This will wipe installed tool state and reset the repository.")
+        warn("This action cannot be undone.")
+        answer = input("Type RESET to continue: ").strip()
+        if answer != "RESET":
+            warn("Aborted.")
+            return 1
     warn("WARNING: This will wipe installed tool state and reset the repository.")
     warn("This action cannot be undone.")
     print()

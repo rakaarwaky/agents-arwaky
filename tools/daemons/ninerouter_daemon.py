@@ -10,7 +10,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from xdg import config_home, data_home  # noqa: E402
@@ -19,7 +19,7 @@ CONTAINER_NAME = "9router"
 IMAGE_NAME = os.environ.get("NINEROUTER_IMAGE", "ghcr.io/decolua/9router:latest")
 PORT = os.environ.get("NINEROUTER_PORT", "20128")
 DATA_DIR = data_home() / "9router" / "data"
-SCRIPT_DIR = Path(__file__).resolve().parent
+SCRIPT_DIR = ROOT / "tools/deploy"
 UNIT_DIR = config_home() / "systemd/user"
 UNIT_FILE = UNIT_DIR / "9router.service"
 
@@ -77,7 +77,7 @@ def service_active():
 
 def read_env():
     env = {}
-    for cand in (ROOT / "tools/9router/.env", ROOT / "tools/9router/env", config_home() / "9router/.env"):
+    for cand in (ROOT / "tools/config/ninerouter.env", config_home() / "9router/.env"):
         if cand.exists():
             for line in cand.read_text(encoding="utf-8", errors="replace").splitlines():
                 if "=" in line and not line.strip().startswith("#"):
@@ -132,6 +132,24 @@ def cmd_service_status():
     return 0
 
 
+def write_container_env(env: dict):
+    """Write container env to a 0600 file (avoid secrets on CLI)."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    env_file = DATA_DIR / "container.env"
+    lines = []
+    password = env.get("INITIAL_PASSWORD", "")
+    if password:
+        if "\n" in password or "\r" in password:
+            raise ValueError("INITIAL_PASSWORD must not contain newline characters")
+        lines.append(f"INITIAL_PASSWORD={password}")
+    if not lines:
+        env_file.unlink(missing_ok=True)
+        return None
+    env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    env_file.chmod(0o600)
+    return env_file
+
+
 def cmd_start():
     if service_installed():
         print(">>> Starting 9Router via systemd service (9router.service)...")
@@ -152,8 +170,13 @@ def cmd_start():
         return cmd_status()
     env = read_env()
     env_args = []
-    if env.get("INITIAL_PASSWORD"):
-        env_args += ["-e", f"INITIAL_PASSWORD={env['INITIAL_PASSWORD']}"]
+    try:
+        env_file = write_container_env(env)
+        if env_file:
+            env_args += ["--env-file", str(env_file)]
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
     if container_exists():
         print(f">>> Starting existing container '{CONTAINER_NAME}' with {engine}...")
         run([engine, "start", CONTAINER_NAME])

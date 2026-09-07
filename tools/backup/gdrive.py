@@ -76,8 +76,29 @@ def retry_api(func, max_retries=4, delay=2):
                 time.sleep(delay * attempt)
     raise last_err
 
+def escape_drive_query(value: str) -> str:
+    """Escape values for Google Drive query language (single quotes & backslashes)."""
+    return value.replace("\\", "\\\\").replace("'", "\\'")
+
+
+def list_all_files(service, query, fields):
+    """List files with pagination (P1: handle multiple pages)."""
+    all_files = []
+    page_token = None
+    while True:
+        params = {"q": query, "fields": fields, "pageSize": 100}
+        if page_token:
+            params["pageToken"] = page_token
+        res = retry_api(lambda: service.files().list(**params).execute())
+        all_files.extend(res.get("files", []))
+        page_token = res.get("nextPageToken")
+        if not page_token:
+            break
+    return all_files
+
+
 def get_or_create_folder(service, folder_name=DEFAULT_FOLDER_NAME):
-    query = f"name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+    query = f"name = '{escape_drive_query(folder_name)}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
     res = retry_api(lambda: service.files().list(q=query, spaces="drive", fields="files(id, name)").execute())
     files = res.get("files", [])
     if files:
@@ -139,12 +160,12 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
     if not file_id:
         # Search by file name in folder
         folder_id = get_or_create_folder(service, folder_name)
-        q = f"'{folder_id}' in parents and name contains '{query_or_id}' and trashed = false"
+        q = f"'{folder_id}' in parents and name contains '{escape_drive_query(query_or_id)}' and trashed = false"
         res = retry_api(lambda: service.files().list(q=q, orderBy="createdTime desc", fields="files(id, name)").execute())
         files = res.get("files", [])
         if not files:
             # Fallback: search anywhere in Drive
-            q_any = f"name contains '{query_or_id}' and trashed = false"
+            q_any = f"name contains '{escape_drive_query(query_or_id)}' and trashed = false"
             res = retry_api(lambda: service.files().list(q=q_any, orderBy="createdTime desc", fields="files(id, name)").execute())
             files = res.get("files", [])
 

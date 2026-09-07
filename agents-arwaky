@@ -8,4 +8,4 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export AGENTS_ARWAKY_ROOT="$ROOT"
 export PYTHONPATH="$ROOT/tools/lib${PYTHONPATH:+:${PYTHONPATH}}"
 
-exec python3 "$ROOT/tools/arwaky/arwaky.py" "$@"
+exec python3 "$ROOT/tools/cli/arwaky.py" "$@"

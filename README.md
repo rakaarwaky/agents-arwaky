@@ -245,7 +245,7 @@ aa run lint --help
 ## 📦 Agent & Tool Catalog
 
 > [!TIP]
-> The single source of truth (SSOT) for all tool registrations is [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json). You can also run `aa list` or `aa mcp list` to inspect live tool status from the terminal.
+> The single source of truth (SSOT) for all tool registrations is [`tools/config/manifest.json`](tools/config/manifest.json). You can also run `aa list` or `aa mcp list` to inspect live tool status from the terminal.
 
 ### Core In-House Agents (`internal/`)
 
@@ -258,7 +258,7 @@ Specialized autonomous agents developed specifically for the `agents-arwaky` eco
 | **[vision-arwaky](internal/vision-arwaky/)**     | `vision-arwaky` (`va`, `vision-arwaky-cli`, `vision-arwaky-mcp`, `vision-arwaky-tui`) | Python /`uv`        | **Yes** (`vision-arwaky-mcp`) | Unified vision intelligence: VLM inspection, OCR extraction, and visual memory.                                                                                                                |
 | **[qwen-web-arwaky](internal/qwen-web-arwaky/)** | `qwen-web-arwaky` (`qwa`, `qwc`, `qwen-web-cli`, `qwen-web-mcp`)                      | Python / Playwright |   **Yes** (`qwen-web-mcp`)   | Browser automation engine with bi-directional MCP interface.                                                                                                                                   |
 | **[blender-arwaky](internal/blender-arwaky/)**   | `blender-arwaky` (`ba`, `blender-mcp`)                                                | Python / Blender    |    **Yes** (`blender-mcp`)    | Headless 3D procedural execution, asset generation, and rendering pipeline.                                                                                                                    |
-| **[anytype-daemon](tools/anytype-mcp/daemon/)**  | `anytype-daemon.sh` (CLI: `aa anytype`)                                               | Bash / Podman       |              No              | Headless Anytype daemon managing local-first encrypted P2P space sync for`anytype-mcp`.                                                                                                        |
+| **[anytype-daemon](tools/daemons/)**  | `anytype_daemon.py` (CLI: `aa anytype`)                                               | Bash / Podman       |              No              | Headless Anytype daemon managing local-first encrypted P2P space sync for`anytype-mcp`.                                                                                                        |
 
 ### Curated Upstream Vendor Tools (`vendor/`)
 

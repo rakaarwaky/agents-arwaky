@@ -10,13 +10,15 @@ Commands:
     aa skill sync
 """
 import json
+import os
+import posixpath
 import re
 import shutil
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-MANIFEST = REPO_ROOT / "tools/arwaky/manifest.json"
+MANIFEST = REPO_ROOT / "tools/config/manifest.json"
 
 # --- tool registry ------------------------------------------------------------
 def get_registered_tool_ids():
@@ -72,6 +74,31 @@ def extract_skill_name(skill_md):
     return skill_md.parent.name
 
 
+def sanitize_skill_name(raw: str, fallback: str) -> str:
+    """Convert frontmatter name into a safe directory name (prevents path traversal)."""
+    raw = (raw or "").strip().replace("\\", "/")
+    raw = posixpath.basename(raw)
+    name = re.sub(r"[^A-Za-z0-9._-]+", "-", raw).strip(".-")
+    if not name:
+        name = re.sub(r"[^A-Za-z0-9._-]+", "-", fallback).strip(".-") or "skill"
+    return name[:64]
+
+
+def safe_skill_name(skill_md: Path) -> str:
+    return sanitize_skill_name(extract_skill_name(skill_md), skill_md.parent.name)
+
+
+def ensure_under(base: Path, child: Path) -> Path:
+    """Ensure child path stays inside base. Raises ValueError on traversal."""
+    base_resolved = base.resolve()
+    child_resolved = child.resolve()
+    if child_resolved == base_resolved:
+        return child_resolved
+    if base_resolved not in child_resolved.parents:
+        raise ValueError(f"Refusing path outside target directory: {child_resolved}")
+    return child_resolved
+
+
 def extract_description(skill_md):
     """Extract `description:` from SKILL.md frontmatter."""
     try:
@@ -98,50 +125,34 @@ def _find_skills(base: Path):
 
 
 def get_tool_skills(tool_id):
-    """Return sorted list of SKILL.md paths for a tool (mirrors bash get_tool_skills)."""
+    """Return sorted list of SKILL.md paths for a tool.
+
+    Source of truth: ONLY tools/skills/ (user-managed skill pack).
+    Mapping tool -> skill names is derived from the original internal/vendor
+    sources, but files are now read exclusively from tools/skills/.
+    """
+    TOOL_SKILL_MAP = {
+        "lint": ["lint-arwaky", "add-docs-python", "add-docs-rust", "add-docs-typescript", "cleanup-consolidate-python", "cleanup-consolidate-rust", "cleanup-consolidate-typescript", "create-agent-python", "create-agent-rust", "create-agent-typescript", "create-capabilities-python", "create-capabilities-rust", "create-capabilities-typescript", "create-contract-python", "create-contract-rust", "create-contract-typescript", "create-root-python", "create-root-rust", "create-root-typescript", "create-skill-all", "create-surface-python", "create-surface-rust", "create-surface-typescript", "create-taxonomy-python", "create-taxonomy-rust", "create-taxonomy-typescript", "create-test-python", "create-test-rust", "create-test-typescript", "create-utility-python", "create-utility-rust", "create-utility-typescript", "fix-bypass-python", "fix-bypass-rust", "fix-bypass-typescript", "lint-arwaky-python", "lint-arwaky-rust", "lint-arwaky-typescript", "setup-ci-quality-gates"],
+        "9router": ["9router", "9router-chat", "9router-embeddings", "9router-image", "9router-stt", "9router-tts", "9router-video", "9router-web-fetch", "9router-web-search"],
+        "ponytail": ["ponytail", "ponytail-audit", "ponytail-debt", "ponytail-gain", "ponytail-help", "ponytail-review"],
+        "context7": ["context7-cli", "context7-mcp", "find-docs"],
+        "codegraph": ["codegraph", "add-lang", "agent-eval"],
+        "anytype": ["anytype-mcp", "anytype-daemon"],
+        "fetch": ["fetch-mcp"],
+        "vision": ["vision-arwaky", "add-docs-python", "cleanup-consolidate-python", "codacy-review", "coderabbit-review", "create-agent-python", "create-capabilities-python", "create-contract-python", "create-root-python", "create-skill-all", "create-surface-python", "create-taxonomy-python", "create-test-python", "create-utility-python", "fix-bypass-python", "lint-arwaky-python", "qwen-web", "repowise-scan", "role-architect", "role-business-analyst", "role-fullstack-developer", "role-quality-analysis", "role-tech-lead", "setup-ci-quality-gates"],
+        "qwen-web": ["qwen-web", "add-docs-python", "cleanup-consolidate-python", "codacy-review", "coderabbit-review", "create-agent-python", "create-capabilities-python", "create-contract-python", "create-root-python", "create-skill-all", "create-surface-python", "create-taxonomy-python", "create-test-python", "create-utility-python", "fix-bypass-python", "lint-arwaky-python", "repowise-scan", "setup-ci-quality-gates"],
+        "blender": ["blender-arwaky", "add-docs-python", "cleanup-consolidate-python", "codacy-review-copy", "coderabbit-review", "create-agent-python", "create-capabilities-python", "create-contract-python", "create-root-python", "create-skill-all", "create-surface-python", "create-taxonomy-python", "create-test-python", "create-utility-python", "fix-bypass-python", "lint-arwaky-python", "qwen-web"],
+        "skill": ["skill-manager"],
+        "workspace": ["google-workspace-mcp", "managing-google-workspace"],
+        "mnemosyne": ["mnemosyne", "hermes-memory-providers", "mnemosyne-context", "no-mistakes"],
+    }
+    names = TOOL_SKILL_MAP.get(tool_id, [])
     files = []
-    def add(f):
-        if f and f.is_file():
+    for name in names:
+        f = REPO_ROOT / "tools/skills" / name / "SKILL.md"
+        if f.is_file():
             files.append(f)
-    if tool_id == "lint":
-        add(REPO_ROOT / "tools/lint/SKILL.md")
-        files.extend(_find_skills(REPO_ROOT / "internal/lint-arwaky/.agents/skills"))
-    elif tool_id == "9router":
-        files.extend(_find_skills(REPO_ROOT / "vendor/9router/skills"))
-    elif tool_id == "ponytail":
-        files.extend(_find_skills(REPO_ROOT / "vendor/ponytail/skills"))
-    elif tool_id == "context7":
-        files.extend(_find_skills(REPO_ROOT / "vendor/context7/skills"))
-    elif tool_id == "codegraph":
-        add(REPO_ROOT / "tools/codegraph/SKILL.md")
-        files.extend(_find_skills(REPO_ROOT / "vendor/codegraph/.claude/skills"))
-    elif tool_id == "anytype":
-        add(REPO_ROOT / "tools/anytype-mcp/SKILL.md")
-        add(REPO_ROOT / "tools/anytype-mcp/daemon/SKILL.md")
-    elif tool_id == "fetch":
-        add(REPO_ROOT / "tools/fetch-mcp/SKILL.md")
-    elif tool_id == "vision":
-        add(REPO_ROOT / "internal/vision-arwaky/SKILL.md")
-    elif tool_id == "qwen-web":
-        add(REPO_ROOT / "internal/qwen-web-arwaky/SKILL.md")
-    elif tool_id == "blender":
-        add(REPO_ROOT / "internal/blender-arwaky/SKILL.md")
-    elif tool_id == "skill":
-        add(REPO_ROOT / "tools/skill/SKILL.md")
-    elif tool_id == "workspace":
-        add(REPO_ROOT / "tools/google-workspace-mcp/SKILL.md")
-        files.extend(_find_skills(REPO_ROOT / "vendor/google-workspace-mcp/skills"))
-    elif tool_id == "mnemosyne":
-        add(REPO_ROOT / "tools/mnemosyne/SKILL.md")
-        files.extend(_find_skills(REPO_ROOT / "vendor/mnemosyne/skills"))
-    # dedupe preserving order
-    seen = set()
-    out = []
-    for f in files:
-        if f not in seen:
-            seen.add(f)
-            out.append(f)
-    return out
+    return files
 
 
 def resolve_single_skill_file(query):
@@ -165,24 +176,36 @@ def resolve_single_skill_file(query):
 
 
 def copy_single_skill(source_file, target_dir, custom_dest="", force=False):
-    """Copy one SKILL.md into target workspace (mirrors bash copy_single_skill_file)."""
+    """Copy one SKILL.md into target workspace (with path containment)."""
     if not source_file.is_file():
         print(f"  \u2717 Error: Source file not found: {source_file}", file=sys.stderr)
         return False
-    name = extract_skill_name(source_file)
+    name = safe_skill_name(source_file)
     if custom_dest:
-        dest = Path(custom_dest) / name / "SKILL.md"
         if custom_dest.endswith(".md"):
             dest = Path(custom_dest)
+        else:
+            dest = Path(custom_dest) / name / "SKILL.md"
         dest.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            dest = ensure_under(dest.parent, dest)
+        except ValueError as exc:
+            print(f"  \u2717 {exc}", file=sys.stderr)
+            return False
         if dest.exists() and not force:
             print(f"  \u21b7 [SKIP] Already exists: {dest} (use --force to overwrite)")
             return False
         shutil.copy2(source_file, dest)
         print(f"  \u2713 [OK] Provisioned: {dest}")
         return True
-    dest = target_dir / ".agents" / "skills" / name / "SKILL.md"
-    dest.parent.mkdir(parents=True, exist_ok=True)
+    skills_base = target_dir / ".agents" / "skills"
+    try:
+        dest_dir = ensure_under(skills_base, skills_base / name)
+    except ValueError as exc:
+        print(f"  \u2717 {exc}", file=sys.stderr)
+        return False
+    dest = dest_dir / "SKILL.md"
+    dest_dir.mkdir(parents=True, exist_ok=True)
     if dest.exists() and not force:
         print(f"  \u21b7 [SKIP] Already exists: {dest}")
         return False
@@ -192,10 +215,10 @@ def copy_single_skill(source_file, target_dir, custom_dest="", force=False):
 
 # --- uninstall (unskill) --------------------------------------------------------
 def remove_single_skill(source_file, target_dir, custom_dest=""):
-    """Remove one provisioned skill (mirrors bash remove_single_skill_file)."""
+    """Remove one provisioned skill (with path containment)."""
     if not source_file.is_file():
         return False
-    name = extract_skill_name(source_file)
+    name = safe_skill_name(source_file)
     if custom_dest:
         if custom_dest.endswith(".md"):
             p = Path(custom_dest)
@@ -205,14 +228,23 @@ def remove_single_skill(source_file, target_dir, custom_dest=""):
             else:
                 print(f"  \u21b7 [SKIP] Not found: {p}")
             return True
-        d = Path(custom_dest) / name
+        try:
+            d = ensure_under(Path(custom_dest), Path(custom_dest) / name)
+        except ValueError as exc:
+            print(f"  \u2717 {exc}", file=sys.stderr)
+            return False
         if d.is_dir():
             shutil.rmtree(d)
             print(f"  \u2713 [OK] Removed: {d}")
         else:
             print(f"  \u21b7 [SKIP] Not found: {d}")
         return True
-    d = target_dir / ".agents" / "skills" / name
+    skills_base = target_dir / ".agents" / "skills"
+    try:
+        d = ensure_under(skills_base, skills_base / name)
+    except ValueError as exc:
+        print(f"  \u2717 {exc}", file=sys.stderr)
+        return False
     if d.is_dir():
         shutil.rmtree(d)
         print(f"  \u2713 [OK] Removed: {d}")

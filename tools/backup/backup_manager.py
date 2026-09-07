@@ -4,6 +4,7 @@ Memanggil gdrive.py (sudah Python) untuk Google Drive, dan tar data dirs.
 """
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -38,12 +39,25 @@ def tar_dir(src: Path, dest: Path):
 
 
 def untar(src: Path, dest: Path):
+    dest = dest.resolve()
     with tarfile.open(src, "r:gz") as tar:
-        tar.extractall(dest)
+        try:
+            # Python 3.12+: filter="data" blocks traversal/symlinks
+            tar.extractall(dest, filter="data")
+        except TypeError:
+            # Fallback for older Python
+            for member in tar.getmembers():
+                member_path = (dest / member.name).resolve()
+                if not str(member_path).startswith(str(dest) + os.sep):
+                    raise ValueError(f"Blocked path traversal in archive: {member.name}")
+                if member.issym() or member.islnk():
+                    raise ValueError(f"Blocked symlink/hardlink in archive: {member.name}")
+            tar.extractall(dest)
 
 
 def backup_tool(tool: str, dest: str = ""):
-    store = Path(dest) if dest else BACKUP_STORE
+    upload_to_gdrive = dest == "gdrive" or dest.startswith("gdrive:")
+    store = BACKUP_STORE
     store.mkdir(parents=True, exist_ok=True)
     subdir = TOOL_DATA.get(tool, tool)
     src = data_home() / subdir
@@ -55,7 +69,7 @@ def backup_tool(tool: str, dest: str = ""):
     log_info(f"Backing up {tool} -> {archive}")
     tar_dir(src, archive)
     log_ok(f"{tool} backed up.")
-    if dest == "gdrive" or dest.startswith("gdrive:"):
+    if upload_to_gdrive:
         return subprocess.run([sys.executable, str(GDRIVE_HELPER), "upload", str(archive)]).returncode
     return 0
 
@@ -78,8 +92,6 @@ def cmd_backup(argv):
     tool = argv[0] if argv else "all"
     dest = argv[1] if len(argv) > 1 else ""
     tools = list(TOOL_DATA.keys()) if tool == "all" else [tool]
-    if tool == "all" and dest in ("", "gdrive"):
-        pass
     for t in tools:
         backup_tool(t, dest)
     return 0

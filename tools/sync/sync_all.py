@@ -21,22 +21,33 @@ def main(argv):
     no_build = "--no-build" in argv
     info("Running one-shot ecosystem sync...")
 
+    failures = []
+
     info("Step 1: syncing submodules...")
-    run(["git", "-C", str(ROOT), "submodule", "update", "--init", "--recursive", "vendor/", "internal/"])
+    if run(["git", "-C", str(ROOT), "submodule", "update", "--init", "--recursive", "vendor/", "internal/"]) != 0:
+        failures.append("submodules")
 
     if not no_build:
         info("Step 2: building tools...")
-        run([sys.executable, str(ROOT / "tools/arwaky/arwaky.py"), "install"])
+        if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"), "install"]) != 0:
+            failures.append("install")
 
     info("Step 3: generating MCP config...")
-    run([sys.executable, str(ROOT / "tools/mcp/generate_config.py")])
+    if run([sys.executable, str(ROOT / "tools/mcp/generate_config.py")]) != 0:
+        failures.append("mcp-generate")
 
     if not no_connect:
         info("Step 4: reconnecting harnesses...")
-        run([sys.executable, str(ROOT / "tools/arwaky/arwaky.py"), "connect", "--all"])
+        if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"), "connect", "--all"]) != 0:
+            failures.append("connect")
 
     info("Step 5: verifying...")
-    run([sys.executable, str(ROOT / "tools/arwaky/arwaky.py"), "check"])
+    if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"), "check"]) != 0:
+        failures.append("check")
+
+    if failures:
+        warn(f"Sync finished with failures: {', '.join(failures)}")
+        return 1
 
     ok("Ecosystem sync complete.")
     return 0

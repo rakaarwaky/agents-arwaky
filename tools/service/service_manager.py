@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-NINEROUTER = ROOT / "tools/9router/daemon/9router_daemon.py"
-ANYTYPE = ROOT / "tools/anytype-mcp/daemon/anytype_daemon.py"
+NINEROUTER = ROOT / "tools/daemons/ninerouter_daemon.py"
+ANYTYPE = ROOT / "tools/daemons/anytype_daemon.py"
 
 
 def run_py(script, args):

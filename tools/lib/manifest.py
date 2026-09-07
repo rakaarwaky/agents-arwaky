@@ -16,7 +16,7 @@ def repo_root() -> Path:
 
 
 def manifest_path() -> Path:
-    return repo_root() / "tools" / "arwaky" / "manifest.json"
+    return repo_root() / "tools" / "config" / "manifest.json"
 
 
 @dataclass

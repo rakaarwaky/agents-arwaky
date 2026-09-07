@@ -40,7 +40,7 @@
       "binary": "anytype-daemon.sh",
       "isMcp": false,
       "description": "Anytype headless daemon & Podman container manager",
-      "path": "tools/anytype-mcp/daemon"
+      "path": "tools/daemons"
     },
     {
       "id": "codegraph",

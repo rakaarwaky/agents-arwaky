@@ -72,7 +72,7 @@ Agents should execute tools via `aa run <tool> [args...]` (or `agents-arwaky run
 
 ## 📋 Tool & MCP Inventory
 
-- **Machine-Readable SSOT:** [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json) is the single source of truth for all registered internal and vendor tools.
+- **Machine-Readable SSOT:** [`tools/config/manifest.json`](tools/config/manifest.json) is the single source of truth for all registered internal and vendor tools.
 - **Runtime Discovery:** Use `aa list` to view all registered tools, or `aa mcp list` to inspect active MCP servers.
 - **Detailed Catalog & Documentation:** For tool descriptions, language stacks, upstream repository links, and client integration snippets, see [**README.md § Agent & Tool Catalog**](README.md#-agent--tool-catalog) and [**README.md § MCP Client Integration**](README.md#-mcp-client-integration).
 
@@ -97,7 +97,7 @@ When generating code or executing tasks within this repository:
   #!/usr/bin/env bash
   set -euo pipefail
   ```
-- Use `tools/lib/xdg.sh` for resolving XDG paths (`xdg_data_dir`, `xdg_config_dir`, `xdg_cache_dir`).
+- Use `tools/lib/xdg.py` for resolving XDG paths (`xdg_data_dir`, `xdg_config_dir`, `xdg_cache_dir`).
 - Maintain executable permissions on all `.sh` files (`chmod +x <script>`).
 - Ensure all JSON files match valid JSON syntax (`jq empty <file>`).
 - Avoid bashisms or unquoted variables that fail `shellcheck`.
@@ -145,11 +145,11 @@ The verification script checks:
 
 ## 📌 Standard Reference Paths
 
-- Single Source of Truth Manifest: [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json)
+- Single Source of Truth Manifest: [`tools/config/manifest.json`](tools/config/manifest.json)
 - Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
-- Shared XDG Helper: [`tools/lib/xdg.sh`](tools/lib/xdg.sh)
+- Shared XDG Helper: [`tools/lib/xdg.py`](tools/lib/xdg.py)
 - Master Build Script: [`tools/build/build-all.sh`](tools/build/build-all.sh)
-- Agent Harness Connector: [`tools/connect/connect-agent.sh`](tools/connect/connect-agent.sh)
+- Agent Harness Connector: [`tools/connect/connect.py`](tools/connect/connect.py)
 - CI Verification Gate: [`tools/ci/verify.sh`](tools/ci/verify.sh)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Human Documentation & Tool Catalog: [`README.md`](README.md)

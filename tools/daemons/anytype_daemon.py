@@ -11,7 +11,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from xdg import config_home, data_home  # noqa: E402
@@ -24,7 +24,7 @@ DOT_ANYTYPE = data_home() / "anytype"
 CONFIG_DIR = config_home() / "anytype"
 SHARE_DIR = data_home() / "anytype" / "share"
 LOCAL_BIN = data_home() / "anytype-mcp/bin"
-SCRIPT_DIR = Path(__file__).resolve().parent
+SCRIPT_DIR = ROOT / "tools/deploy"
 UNIT_DIR = config_home() / "systemd/user"
 UNIT_FILE = UNIT_DIR / "anytype-daemon.service"
 DATA_ROOT = data_home() / "anytype-mcp"
@@ -64,6 +64,14 @@ def api_ready(timeout=90):
     return False
 
 
+def image_exists() -> bool:
+    return subprocess.run(
+        ["podman", "image", "exists", IMAGE_NAME],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
 def build_image():
     print(">>> Building Anytype daemon image...")
     cwd = SCRIPT_DIR
@@ -88,7 +96,7 @@ def cmd_start():
             print(f">>> Starting existing Anytype container '{CONTAINER_NAME}'...")
             run(["podman", "start", CONTAINER_NAME])
         else:
-            if out(["podman", "image", "exists", IMAGE_NAME]) != "":
+            if not image_exists():
                 build_image()
             print(f">>> Launching Anytype daemon container '{CONTAINER_NAME}' on port {PORT}...")
             run(["podman", "run", "-d", "--name", CONTAINER_NAME, "--network", "host",

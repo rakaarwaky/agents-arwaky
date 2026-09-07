@@ -145,7 +145,7 @@ def get_mcp_map(data: dict):
 
 
 def remove_mcp_servers(path: Path, servers, dry_run: bool = False) -> list:
-    """Remove the given server names from the file's MCP map.
+    """Remove the given server names from the file's MCP map (with backup).
 
     Returns list of actually-removed server names.
     """
@@ -160,7 +160,12 @@ def remove_mcp_servers(path: Path, servers, dry_run: bool = False) -> list:
                 mcp.pop(s)
                 removed.append(s)
     if removed and not dry_run:
-        # If MCP map is now empty, keep the empty dict (harmless) — matches prior behaviour.
+        # Backup original before mutating (S8: no silent config loss)
+        try:
+            backup = path.with_name(path.name + ".bak-arwaky")
+            backup.write_text(path.read_text(encoding="utf-8", errors="replace"), encoding="utf-8")
+        except OSError:
+            pass
         save_file(path, data, fmt)
     return removed
 
@@ -285,26 +290,42 @@ if __name__ == "__main__":
 
 
 def merge_mcp_servers(path: Path, servers: dict, force: bool = False) -> list:
-    """Merge MCP servers into the file's MCP map. Returns list of merged names."""
-    if not path.exists():
+    """Merge MCP servers into the file's MCP map (fail-closed + backup)."""
+    if path.exists():
+        original_text = path.read_text(encoding="utf-8", errors="replace")
+        data, fmt = load_file(path)
+        # Fail closed: existing but unparsable config must not be clobbered
+        if not data and original_text.strip():
+            backup = path.with_name(path.name + ".bak-arwaky")
+            backup.write_text(original_text, encoding="utf-8")
+            if not force:
+                raise ValueError(
+                    f"Refusing to merge into unparsable config file: {path}. "
+                    f"Backup saved to {backup}. Use --force only after manual review."
+                )
+            data, fmt = {}, "json"
+    else:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("{}", encoding="utf-8")
-    data, fmt = load_file(path)
+        data, fmt = {}, "json"
+
     mcp, key = get_mcp_map(data)
     if mcp is None:
-        # create the map under the preferred key
-        if "mcpServers" not in data and isinstance(data, dict):
+        if isinstance(data, dict):
             data["mcpServers"] = {}
             key = "mcpServers"
         else:
             return []
         mcp = data[key]
+
     merged = []
     for name, srv in servers.items():
         if force or name not in mcp:
             mcp[name] = srv
             merged.append(name)
-    save_file(path, data, fmt)
+
+    if merged:
+        save_file(path, data, fmt)
     return merged
 
 

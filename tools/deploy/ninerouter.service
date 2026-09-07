@@ -9,10 +9,7 @@ Type=simple
 Environment=HOME=%h
 Environment=NINEROUTER_PORT=20128
 Environment=INITIAL_PASSWORD=
-EnvironmentFile=-%h/.config/9router/env
-EnvironmentFile=-%h/.config/9router/.env
-EnvironmentFile=-%h/agents-arwaky/tools/9router/env
-EnvironmentFile=-%h/agents-arwaky/tools/9router/.env
+EnvironmentFile=-%h/agents-arwaky/tools/config/ninerouter.env
 Restart=always
 RestartSec=5s
 ExecStartPre=-/usr/bin/podman stop 9router

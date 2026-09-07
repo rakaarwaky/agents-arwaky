@@ -20,11 +20,11 @@ Before making changes, please review our core architectural rules:
 
 2. **Strict XDG Base Directory Compliance:**
    - Never write persistent data or cache to the repository directory.
-   - Use [`tools/lib/xdg.sh`](tools/lib/xdg.sh) helper functions (`xdg_data_dir`, `xdg_config_dir`, `xdg_cache_dir`).
+   - Use [`tools/lib/xdg.py`](tools/lib/xdg.py) helper functions (`xdg_data_dir`, `xdg_config_dir`, `xdg_cache_dir`).
    - Binary launchers are placed into `${XDG_BIN_HOME:-$HOME/.local/bin}` (host) or `${XDG_DATA_HOME}/agents-arwaky/internal-bin` (container).
 
 3. **Single Source of Truth (SSOT):**
-   - [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json) is the definitive registry of all tools. Any addition or deletion must update this file.
+   - [`tools/config/manifest.json`](tools/config/manifest.json) is the definitive registry of all tools. Any addition or deletion must update this file.
 
 ---
 
@@ -97,7 +97,7 @@ chmod +x tools/my-cool-tool/install.sh
 
 The script must:
 - Start with `#!/usr/bin/env bash` and `set -euo pipefail`.
-- Source `tools/lib/xdg.sh`.
+- Source `tools/lib/xdg.py`.
 - Install or compile the tool into `$XDG_DATA_HOME/<tool-name>/`.
 - Create an executable wrapper/launcher in `$XDG_BIN_HOME/<binary-name>`.
 
@@ -109,7 +109,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$REPO_ROOT/tools/lib/xdg.sh"
+source "$REPO_ROOT/tools/lib/xdg.py"
 
 VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
 TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
@@ -155,7 +155,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$REPO_ROOT/tools/lib/xdg.sh"
+source "$REPO_ROOT/tools/lib/xdg.py"
 
 VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
 TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
@@ -192,7 +192,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$REPO_ROOT/tools/lib/xdg.sh"
+source "$REPO_ROOT/tools/lib/xdg.py"
 
 VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
 TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
@@ -215,9 +215,9 @@ echo ">>> Successfully installed my-cool-tool -> $LAUNCHER"
 
 ---
 
-### Step 3: Register in Manifest (`tools/arwaky/manifest.json`)
+### Step 3: Register in Manifest (`tools/config/manifest.json`)
 
-Add the tool entry to the `"tools"` array in [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json):
+Add the tool entry to the `"tools"` array in [`tools/config/manifest.json`](tools/config/manifest.json):
 
 ```json
 {
@@ -270,7 +270,7 @@ TOOLS=(
 
 If your tool provides an MCP server (`isMcp: true`):
 
-1. Edit [`tools/mcp/generate-config.sh`](tools/mcp/generate-config.sh) to include the server definition inside the JSON template:
+1. Edit [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py) to include the server definition inside the JSON template:
    ```json
    "my-cool-tool": {
      "command": "my-cool-tool-mcp"
@@ -286,7 +286,7 @@ If your tool provides an MCP server (`isMcp: true`):
      }
    }
    ```
-3. Add the vendor name to the distribution loop in `generate-config.sh`:
+3. Add the vendor name to the distribution loop in `generate_config.py`:
    ```bash
    for vendor in context7 fetch-mcp ponytail anytype-mcp codegraph my-cool-tool; do
    ```
@@ -314,7 +314,7 @@ aa install my-cool-tool
    ```markdown
    | `vendor/my-cool-tool` | [example-org/my-cool-tool](https://github.com/example-org/my-cool-tool) | `a1b2c3d4` | MIT License |
    ```
-2. **Catalog Update:** Add a row to the **Curated Upstream Vendor Tools** table in [`README.md`](README.md). Ensure the tool is registered in [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json).
+2. **Catalog Update:** Add a row to the **Curated Upstream Vendor Tools** table in [`README.md`](README.md). Ensure the tool is registered in [`tools/config/manifest.json`](tools/config/manifest.json).
 
 ---
 
@@ -344,7 +344,7 @@ aa mcp show
 When deprecating or removing an upstream tool, follow this procedure to ensure clean de-registration with zero dangling references or broken CI checks.
 
 ### Step 1: De-register from Manifest
-Open [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
+Open [`tools/config/manifest.json`](tools/config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
 
 ### Step 2: Remove from Master Build Pipeline
 Open [`tools/build/build-all.sh`](tools/build/build-all.sh) and delete the corresponding `build_tool` line:
@@ -357,7 +357,7 @@ build_tool "my-cool-tool" "$TOOLS_DIR/my-cool-tool/install.sh"
 No binary exporter array to maintain — uninstall by removing `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
 
 ### Step 4: Remove from MCP Configuration Generator (If Applicable)
-In [`tools/mcp/generate-config.sh`](tools/mcp/generate-config.sh):
+In [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py):
 - Remove the server block from the JSON template.
 - Remove the vendor name from the distribution loop.
 - Re-run `arwaky mcp generate` to refresh `mcp_servers.generated.json`.
@@ -390,7 +390,7 @@ rm -rf .git/modules/vendor/my-cool-tool
 
 ### Step 8: Update Documentation & Licenses
 - Remove the tool entry from [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
-- Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json).
+- Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`tools/config/manifest.json`](tools/config/manifest.json).
 
 ### Step 9: Verify Cleanliness
 Execute the verification suite to ensure no broken references remain:
@@ -482,6 +482,6 @@ We follow standard Conventional Commits:
 When submitting a PR, ensure:
 - [ ] Submodule pointers are updated cleanly without detached state conflicts.
 - [ ] New shell scripts include `set -euo pipefail` and executable bits (`chmod +x`).
-- [ ] `tools/arwaky/manifest.json` is updated and validated with `jq`.
+- [ ] `tools/config/manifest.json` is updated and validated with `jq`.
 - [ ] `THIRD_PARTY_LICENSES.md` lists the upstream license and commit.
 - [ ] `aa check` passes with zero errors.

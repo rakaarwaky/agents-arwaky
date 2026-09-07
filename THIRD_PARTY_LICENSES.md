@@ -42,7 +42,7 @@ This repository incorporates upstream open-source software as git submodules und
 - **Project:** Anytype MCP Server
 - **Author:** Any Association
 - **URL:** https://github.com/anyproto/anytype-mcp
-- **License:** MIT License (reproduced in [tools/anytype-mcp/NOTICE](tools/anytype-mcp/NOTICE))
+- **License:** MIT License (upstream NOTICE available at [github.com/anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp))
 
 ### 5. CodeGraph
 - **Project:** CodeGraph
