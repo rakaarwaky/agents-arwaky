@@ -193,7 +193,7 @@ get_9router_credentials() {
     fi
   fi
 
-  [ -z "$router_url" ] && router_url="http://localhost:20128"
+  [ -z "$router_url" ] && router_url="http://127.0.0.1:20128"
 
   # 2. If key is missing from .env, query active key from 9Router DB via container
   if [ -z "$router_key" ]; then

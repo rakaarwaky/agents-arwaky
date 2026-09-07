@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # tools/arwaky/arwaky-cli.sh
-# Core Orchestration Engine for agents-arwaky
+# Core Orchestration Engine for agents-arwaky (local bare-metal mode)
 
 set -euo pipefail
 
@@ -49,28 +49,25 @@ print_banner() {
   echo ""
 }
 
-is_inside_container() {
-  [ -f /.dockerenv ] || [ -n "${CONTAINER_ID:-}" ]
-}
-
-check_distrobox_container() {
-  if command -v distrobox >/dev/null 2>&1; then
-    distrobox list 2>/dev/null | grep -q "agents-env"
-  else
-    return 1
+find_closest_match() {
+  local target="$1"
+  shift
+  local cand
+  for cand in "$@"; do
+    if [[ "$cand" == *"$target"* ]] || [[ "$target" == *"$cand"* ]]; then
+      echo "$cand"
+      return 0
+    fi
+  done
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$target" "$@" << 'PYEOF' 2>/dev/null || true
+import sys, difflib
+target = sys.argv[1]
+candidates = sys.argv[2:]
+matches = difflib.get_close_matches(target, candidates, n=1, cutoff=0.4)
+print(matches[0] if matches else '')
+PYEOF
   fi
-}
-
-ensure_distrobox_container() {
-  "$REPO_ROOT/tools/distrobox/setup-host.sh"
-  if ! distrobox list 2>/dev/null | grep -q "agents-env"; then
-    echo ">>> Creating Distrobox container 'agents-env'..."
-    distrobox assemble create --file "$REPO_ROOT/distrobox.ini"
-  else
-    echo ">>> Container 'agents-env' already exists."
-  fi
-  echo ">>> Ensuring container environment is initialized..."
-  distrobox enter agents-env -- bash "$REPO_ROOT/tools/distrobox/init-container.sh"
 }
 
 cmd_help() {
@@ -80,38 +77,29 @@ cmd_help() {
   echo ""
   echo -e "${BOLD}PRIMARY COMMANDS:${RESET}"
   echo -e "  ${GREEN}status${RESET}                         Check health, submodule and binary installation status"
-  echo -e "  ${GREEN}doctor${RESET}                         Diagnose runtime environment, container sandbox & PATH"
+  echo -e "  ${GREEN}doctor${RESET}                         Diagnose runtime environment & toolchain"
   echo -e "  ${GREEN}list${RESET}                           List all registered tools (vendor & internal)"
-  echo -e "  ${GREEN}run${RESET} <tool> [args]              Execute any registered tool (auto-dispatches host/container)"
-  echo -e "  ${GREEN}install${RESET} [tool] [--distrobox|--host]  Install tools (Two paradigms only: Distrobox or Host)"
-  echo -e "  ${GREEN}shell${RESET}                          Enter the Distrobox 'agents-env' sandbox shell"
+  echo -e "  ${GREEN}run${RESET} <tool> [args]              Execute any registered tool (local native execution)"
+  echo -e "  ${GREEN}install${RESET} [tool]                 Install tools (local native build)"
   echo -e "  ${GREEN}mcp${RESET} [action]                   Manage MCP configurations (list, generate, show)"
   echo -e "  ${GREEN}skill${RESET} [action]                 Manage & provision agent skills to workspace"
-  echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP, skills & env variables to agent harnesses (--antigravity, --hermes, --opencode, --qwencode, --all)"
+  echo -e "  ${GREEN}connect${RESET} <harness>               Connect MCP, skills & env variables to agent harnesses"
   echo -e "  ${GREEN}anytype${RESET} [action]                Manage Anytype headless daemon, bot accounts & keys"
   echo -e "  ${GREEN}9router${RESET} [action]                Manage 9Router local AI gateway, daemon & models"
   echo -e "  ${GREEN}backup${RESET} <tool|all> [dest] [--gdrive] Backup sensitive credentials, DBs & login sessions"
   echo -e "  ${GREEN}restore${RESET} <tool|all> <src> [--gdrive]  Restore sensitive credentials, DBs & login sessions"
+  echo -e "  ${GREEN}completion${RESET} [bash|zsh|--install] Generate or install shell tab completion"
   echo ""
   echo -e "${BOLD}MAINTENANCE & LIFECYCLE:${RESET}"
-  echo -e "  ${CYAN}setup${RESET}                          Check and install host prerequisites (podman & distrobox)"
   echo -e "  ${CYAN}check${RESET}                          Run repository verification and quality gates"
   echo -e "  ${CYAN}submodules${RESET}                     Initialize and update all git submodules"
   echo -e "  ${CYAN}clean${RESET} [--host|--all]           Clean build artifacts (or host binaries / reset repo)"
-  echo -e "  ${CYAN}destroy${RESET}                        Destroy the sandbox container"
   echo -e "  ${CYAN}help${RESET}                           Show this help message"
-  echo ""
-  echo -e "${BOLD}INSTALLATION (TWO PARADIGMS ONLY):${RESET}"
-  echo -e "  ${CYAN}1. Distrobox Mode (Default / Recommended - Zero Host Contamination):${RESET}"
-  echo -e "     aa install [tool]                     (or: aa install [tool] --distrobox)"
-  echo -e "  ${YELLOW}2. Host Mode (Bare-Metal Fallback):${RESET}"
-  echo -e "     aa install [tool] --host"
   echo ""
   echo -e "${BOLD}EXAMPLES:${RESET}"
   echo -e "  aa status"
   echo -e "  aa check"
-  echo -e "  aa install fetch                       # Install fetch via Distrobox sandbox"
-  echo -e "  aa install fetch --host                # Install fetch directly on host"
+  echo -e "  aa install fetch                       # Install fetch (local native build)"
   echo -e "  aa run fetch --help"
   echo -e "  aa doctor"
   echo ""
@@ -122,14 +110,7 @@ cmd_doctor() {
   echo -e "${BOLD}Running Environment Diagnostics...${RESET}"
   echo "------------------------------------------------------"
 
-  # 1. Execution Context
-  if is_inside_container; then
-    echo -e " Context:         ${GREEN}[OK] Running INSIDE Distrobox container${RESET}"
-  else
-    echo -e " Context:         ${BLUE}[INFO] Running on HOST OS${RESET}"
-  fi
-
-  # 2. PATH Verification
+  # 1. PATH Verification
   if [[ ":$PATH:" == *":$TARGET_BIN_DIR:"* ]]; then
     echo -e " User PATH:       ${GREEN}[OK] $TARGET_BIN_DIR is present in PATH${RESET}"
   else
@@ -137,32 +118,21 @@ cmd_doctor() {
     echo -e "                  Add 'export PATH=\"\$HOME/.local/bin:\$PATH\"' to your ~/.bashrc or ~/.zshrc"
   fi
 
-  # 3. Host Prerequisites (if on host)
-  if ! is_inside_container; then
-    if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then
-      echo -e " Container Engine: ${GREEN}[OK] $(command -v podman || command -v docker)${RESET}"
-    else
-      echo -e " Container Engine: ${RED}[FAIL] Podman or Docker not found (Run 'aa setup')${RESET}"
-    fi
-
-    if command -v distrobox >/dev/null 2>&1; then
-      echo -e " Distrobox:       ${GREEN}[OK] $(distrobox --version 2>&1 | head -n1)${RESET}"
-      if check_distrobox_container; then
-        echo -e " Sandbox Container:${GREEN}[OK] 'agents-env' exists and ready${RESET}"
-      else
-        echo -e " Sandbox Container:${YELLOW}[WARN] 'agents-env' not yet created (Run 'aa install')${RESET}"
-      fi
-    else
-      echo -e " Distrobox:       ${YELLOW}[WARN] Distrobox not found on host (Run 'aa setup')${RESET}"
-    fi
-  fi
-
-  # 4. Utilities
-  for util in git jq curl; do
+  # 2. Core Utilities
+  for util in git jq curl python3; do
     if command -v "$util" >/dev/null 2>&1; then
       echo -e " Utility ($util):   ${GREEN}[OK] $(command -v "$util")${RESET}"
     else
       echo -e " Utility ($util):   ${RED}[FAIL] $util is required${RESET}"
+    fi
+  done
+
+  # 3. Toolchain (optional but recommended)
+  for util in cargo uv node npm bun pnpm; do
+    if command -v "$util" >/dev/null 2>&1; then
+      echo -e " Toolchain ($util): ${GREEN}[OK] $(command -v "$util")${RESET}"
+    else
+      echo -e " Toolchain ($util): ${DIM}[SKIP] not installed (optional)${RESET}"
     fi
   done
 
@@ -287,23 +257,13 @@ cmd_run() {
     exec "$TARGET_BIN_DIR/$bin" "$@"
   fi
 
-  # 2. If running on host and binary is inside Distrobox container
-  if ! is_inside_container && check_distrobox_container; then
-    local internal_bin="$HOME/.local/share/agents-arwaky/internal-bin/$bin"
-    if distrobox enter agents-env -- test -x "$internal_bin" 2>/dev/null; then
-      exec distrobox enter agents-env -- "$internal_bin" "$@"
-    fi
-  fi
-
-  # 3. For internal tools with specific runners
+  # 2. For internal tools with specific runners
   if [ "$category" = "internal" ]; then
     local tool_dir="$REPO_ROOT/$subpath"
     case "$id" in
       lint)
         if command -v cargo >/dev/null 2>&1; then
           exec cargo run --quiet --manifest-path "$tool_dir/Cargo.toml" --bin lint-arwaky-cli -- "$@"
-        elif check_distrobox_container; then
-          exec distrobox enter agents-env -- cargo run --quiet --manifest-path "$tool_dir/Cargo.toml" --bin lint-arwaky-cli -- "$@"
         fi
         ;;
       vision|qwen-web|blender)
@@ -323,22 +283,13 @@ cmd_run() {
 
 cmd_install() {
   local target=""
-  local mode="distrobox"
 
-  # Parse arguments: [tool] and [--distrobox | --host]
+  # Parse arguments: [tool]
   while [ $# -gt 0 ]; do
     case "$1" in
-      --host)
-        mode="host"
-        shift
-        ;;
-      --distrobox)
-        mode="distrobox"
-        shift
-        ;;
       -*)
         echo -e "${RED}Error: Unknown install option '$1'${RESET}"
-        echo "Valid options: --distrobox, --host"
+        echo "Valid: no flags (local native install only)"
         exit 1
         ;;
       *)
@@ -367,41 +318,20 @@ cmd_install() {
     fi
   fi
 
-  if [ "$mode" = "host" ]; then
-    echo -e "${BOLD}>>> [Mode: Host Bare-Metal] Installing ${tool_id:-all tools}...${RESET}"
-    git -C "$REPO_ROOT" submodule update --init vendor/ internal/
-    if [ -n "$tool_id" ]; then
-      "$REPO_ROOT/tools/build/build-tool.sh" "$tool_id"
-    else
-      "$REPO_ROOT/tools/build/build-all.sh"
-      "$REPO_ROOT/tools/mcp/generate-config.sh"
-    fi
+  echo -e "${BOLD}>>> [Local Native] Installing ${tool_id:-all tools}...${RESET}"
+  git -C "$REPO_ROOT" submodule update --init vendor/ internal/
+  if [ -n "$tool_id" ]; then
+    "$REPO_ROOT/tools/build/build-tool.sh" "$tool_id"
   else
-    echo -e "${BOLD}>>> [Mode: Distrobox Sandbox] Installing ${tool_id:-all tools}...${RESET}"
-    if is_inside_container; then
-      if [ -n "$tool_id" ]; then
-        "$REPO_ROOT/tools/build/build-tool.sh" "$tool_id"
-      else
-        "$REPO_ROOT/tools/build/build-all.sh"
-      fi
-    else
-      git -C "$REPO_ROOT" submodule update --init vendor/ internal/
-      ensure_distrobox_container
-      if [ -n "$tool_id" ]; then
-        distrobox enter agents-env -- bash -c "cd $REPO_ROOT && XDG_BIN_HOME=\$HOME/.local/share/agents-arwaky/internal-bin $REPO_ROOT/tools/build/build-tool.sh $tool_id"
-        "$REPO_ROOT/tools/distrobox/export-bins.sh" "$tool_id"
-      else
-        distrobox enter agents-env -- bash -c "cd $REPO_ROOT && XDG_BIN_HOME=\$HOME/.local/share/agents-arwaky/internal-bin $REPO_ROOT/tools/build/build-all.sh"
-        "$REPO_ROOT/tools/distrobox/export-bins.sh"
-        "$REPO_ROOT/tools/mcp/generate-config.sh"
-      fi
-    fi
+    "$REPO_ROOT/tools/build/build-all.sh"
+    "$REPO_ROOT/tools/mcp/generate-config.sh"
   fi
 }
 
 cmd_setup() {
-  echo -e "${BOLD}>>> Setting up host prerequisites (podman & distrobox)...${RESET}"
-  "$REPO_ROOT/tools/distrobox/setup-host.sh" --install
+  echo -e "${BOLD}[INFO] agents-arwaky running in local native mode.${RESET}"
+  echo "No container prerequisites needed."
+  echo "Ensure your toolchain is available: cargo (Rust), uv (Python), or python3."
 }
 
 cmd_submodules() {
@@ -439,20 +369,6 @@ cmd_clean() {
   esac
 }
 
-cmd_shell() {
-  if ! check_distrobox_container; then
-    echo -e "${YELLOW}Container 'agents-env' not found. Creating now...${RESET}"
-    ensure_distrobox_container
-  fi
-  exec distrobox enter agents-env
-}
-
-cmd_destroy() {
-  echo -e "${YELLOW}>>> Destroying Distrobox container 'agents-env'...${RESET}"
-  distrobox rm -f agents-env 2>/dev/null || true
-  echo -e "${GREEN}>>> Container destroyed (persistent code & host configs preserved).${RESET}"
-}
-
 # --- Main Dispatcher ---
 main() {
   local cmd="${1:-help}"
@@ -468,7 +384,6 @@ main() {
     submodules)      cmd_submodules "$@" ;;
     check)           cmd_check "$@" ;;
     clean)           cmd_clean "$@" ;;
-    destroy)         cmd_destroy "$@" ;;
     anytype)         "$REPO_ROOT/tools/anytype-mcp/daemon/anytype-daemon.sh" "$@" ;;
     9router)         "$REPO_ROOT/tools/9router/daemon/9router-daemon.sh" "$@" ;;
     backup)          "$REPO_ROOT/tools/backup/backup-manager.sh" backup "$@" ;;
@@ -476,7 +391,6 @@ main() {
     mcp)             cmd_mcp "$@" ;;
     skill|skills)    "$REPO_ROOT/tools/skill/skill-manager.sh" "$@" ;;
     connect)         "$REPO_ROOT/tools/connect/connect-agent.sh" "$@" ;;
-    shell|enter)     cmd_shell "$@" ;;
     help|-h|--help)  cmd_help ;;
     *)
       echo -e "${RED}Unknown command: $cmd${RESET}"

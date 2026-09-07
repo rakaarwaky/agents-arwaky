@@ -207,21 +207,26 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | Command                                  | Purpose                                                                                            | Example                                        |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | `aa status`                              | Display health, installation state, and submodule readiness                                        | `aa status`                                    |
-| `aa doctor`                              | Diagnose container runtime, PATH availability, and dependencies                                    | `aa doctor`                                    |
+| `aa doctor`                              | All-in-one ecosystem diagnostics (sandbox, daemons, MCP JSON-RPC ping, harnesses)                 | `aa doctor`                                    |
+| `aa service [action] [target]`           | Unified manager for background services (`status`, `start`, `stop`, `restart`, `logs`)              | `aa service status`                            |
+| `aa sync [options]`                      | One-shot ecosystem update (submodules, binary exports, MCP configs, harnesses, and verify)          | `aa sync`                                      |
+| `aa completion [bash\|zsh\|--install]`   | Shell tab completion generator and persistent installer                                            | `aa completion --install`                      |
 | `aa check`                               | Run quality gate verification (executable bits, JSON syntax, shellcheck, submodules)               | `aa check`                                     |
 | `aa list`                                | List all registered tools (internal & vendor) with categories                                      | `aa list`                                      |
 | `aa run <tool> [args]`                   | Transparently execute any tool inside the container from host                                      | `aa run context7 --help`                       |
+| `aa install [tool] [--distrobox|--host]` | Install tools (Distrobox sandbox default, or host bare-metal)                                      | `aa install fetch` / `aa install fetch --host` |
 | `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
 | `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
 | `aa skill list`                          | Discover, audit, and provision skills across all tools                                             | `aa skill list`                                |
 | `aa connect <harness>`                   | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
-| `aa install [tool] [--distrobox|--host]` | Install tools (Distrobox sandbox default, or host bare-metal)                                      | `aa install fetch` / `aa install fetch --host` |
+| `aa logs <service>`                      | Tail logs for background services (`9router`, `anytype`)                                           | `aa logs 9router`                              |
 | `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
+| `aa 9router <action>`                    | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                            |
 | `aa shell`                               | Drop into an interactive shell inside the sandbox container                                        | `aa shell`                                     |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
 | `aa clean [--host|--all]`                | Remove build artifacts, host binaries, or full pristine reset                                      | `aa clean`                                     |
-| `aa destroy`                             | Remove and reset Distrobox container`agents-env`                                                   | `aa destroy`                                   |
+| `aa destroy`                             | Remove and reset Distrobox container `agents-env`                                                  | `aa destroy`                                   |
 
 > [!TIP]
 > You can use `agents-arwaky` or the short alias `aa` interchangeably for all commands!
