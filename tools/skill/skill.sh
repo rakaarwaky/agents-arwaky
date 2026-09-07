@@ -1,1 +1,1 @@
-skill-manager.sh
+skill.py

@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
-# agents-arwaky - Main Orchestrator Entrypoint for agents-arwaky (alias: aa)
+# agents-arwaky - Main Orchestrator Entrypoint (alias: aa)
+# Bash wrapper tipis: hanya exec Python CLI utama.
 set -euo pipefail
 
-# Self-resolve location even when invoked via symlink
-SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do
-  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-done
-REPO_ROOT="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-exec "$REPO_ROOT/tools/arwaky/arwaky-cli.sh" "$@"
+export AGENTS_ARWAKY_ROOT="$ROOT"
+export PYTHONPATH="$ROOT/tools/lib${PYTHONPATH:+:${PYTHONPATH}}"
+
+exec python3 "$ROOT/tools/arwaky/arwaky.py" "$@"
