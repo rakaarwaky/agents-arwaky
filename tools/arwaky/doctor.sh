@@ -38,17 +38,7 @@ else
   RESET=""
 fi
 
-is_inside_container() {
-  [ -f /.dockerenv ] || [ -n "${CONTAINER_ID:-}" ]
-}
-
-check_distrobox_container() {
-  if command -v distrobox >/dev/null 2>&1; then
-    distrobox list 2>/dev/null | grep -q "agents-env"
-  else
-    return 1
-  fi
-}
+# (distrobox helpers removed — agents-arwaky now runs in local bare-metal mode)
 
 print_header() {
   echo -e "${CYAN}${BOLD}   ___                           _          ${RESET}"
@@ -68,17 +58,10 @@ main() {
   local errors=0
 
   # ==========================================================
-  # 1. Environment & Container Sandbox
+  # 1. Toolchain Readiness
   # ==========================================================
-  echo -e "${BOLD}[1/5] Environment & Container Sandbox${RESET}"
+  echo -e "${BOLD}[1/5] Toolchain Readiness (Local Bare-Metal)${RESET}"
   echo "------------------------------------------------------"
-
-  if is_inside_container; then
-    echo -e "  Context:             ${GREEN}[OK] Running INSIDE Distrobox container${RESET}"
-    passed=$((passed + 1))
-  else
-    echo -e "  Context:             ${BLUE}[INFO] Running on HOST OS${RESET}"
-  fi
 
   if [[ ":$PATH:" == *":$TARGET_BIN_DIR:"* ]]; then
     echo -e "  User PATH:           ${GREEN}[OK] $TARGET_BIN_DIR is present in PATH${RESET}"
@@ -89,41 +72,35 @@ main() {
     warnings=$((warnings + 1))
   fi
 
-  if ! is_inside_container; then
-    if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then
-      local engine_path
-      engine_path="$(command -v podman || command -v docker)"
-      echo -e "  Container Engine:    ${GREEN}[OK] $engine_path${RESET}"
-      passed=$((passed + 1))
-    else
-      echo -e "  Container Engine:    ${RED}[FAIL] Neither Podman nor Docker found (Run 'aa setup')${RESET}"
-      errors=$((errors + 1))
-    fi
-
-    if command -v distrobox >/dev/null 2>&1; then
-      echo -e "  Distrobox:           ${GREEN}[OK] $(distrobox --version 2>&1 | head -n1)${RESET}"
-      if check_distrobox_container; then
-        echo -e "  Sandbox Container:   ${GREEN}[OK] 'agents-env' container ready${RESET}"
-        passed=$((passed + 2))
-      else
-        echo -e "  Sandbox Container:   ${YELLOW}[WARN] 'agents-env' not initialized (Run 'aa install')${RESET}"
-        warnings=$((warnings + 1))
-      fi
-    else
-      echo -e "  Distrobox:           ${YELLOW}[WARN] Distrobox not found on host (Run 'aa setup')${RESET}"
-      warnings=$((warnings + 1))
-    fi
-  fi
-
+  # Core utilities (required)
   for util in git jq curl python3; do
     if command -v "$util" >/dev/null 2>&1; then
-      echo -e "  Utility ($util):       ${GREEN}[OK] $(command -v "$util")${RESET}"
+      echo -e "  Core ($util):          ${GREEN}[OK] $(command -v "$util")${RESET}"
       passed=$((passed + 1))
     else
-      echo -e "  Utility ($util):       ${RED}[FAIL] $util is required${RESET}"
+      echo -e "  Core ($util):          ${RED}[FAIL] $util is required${RESET}"
       errors=$((errors + 1))
     fi
   done
+
+  # Build toolchains (optional but recommended for full toolset)
+  for util in cargo uv node npm bun pnpm rustc; do
+    if command -v "$util" >/dev/null 2>&1; then
+      echo -e "  Toolchain ($util):     ${GREEN}[OK] $(command -v "$util")${RESET}"
+    else
+      echo -e "  Toolchain ($util):     ${DIM}[SKIP] not installed (optional)${RESET}"
+    fi
+  done
+
+  # Container engine (only needed for daemons: 9router, anytype)
+  if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then
+    local engine_path
+    engine_path="$(command -v podman || command -v docker)"
+    echo -e "  Container Engine:    ${GREEN}[OK] $engine_path (for daemon services only)${RESET}"
+    passed=$((passed + 1))
+  else
+    echo -e "  Container Engine:    ${YELLOW}[INFO] Podman/Docker not found (only needed for 9router & anytype daemons)${RESET}"
+  fi
   echo ""
 
   # ==========================================================

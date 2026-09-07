@@ -13,10 +13,10 @@ Thank you for your interest in contributing to **agents-arwaky**! This document 
 
 Before making changes, please review our core architectural rules:
 
-1. **Distrobox First-Class & Zero Host Contamination:**
-   - All toolchains (Node, Rust, Python, Bun, C-compilers) run inside the rootless `agents-env` container.
-   - Do **NOT** install global packages on the host machine.
-   - All tools are compiled inside containerized XDG prefixes and exported to `~/.local/bin/` via `distrobox-export`.
+1. **Local Bare-Metal Execution:**
+   - All toolchains (Node, Rust, Python, Bun, C-compilers) are installed and executed directly on the host.
+   - Tools are compiled to host-native binaries and exported to `~/.local/bin/` (XDG compliant).
+   - Daemon services (9Router, Anytype) run in dedicated Podman containers — they are the only containerized layer.
 
 2. **Strict XDG Base Directory Compliance:**
    - Never write persistent data or cache to the repository directory.
@@ -40,7 +40,7 @@ Before making changes, please review our core architectural rules:
    ```bash
    aa setup
    ```
-   *(Checks for Podman/Docker and Distrobox, offering automated installation via system package managers).*
+   *(Checks for Podman/Docker; distrobox is no longer required — only needed for the optional 9Router & Anytype daemons).*
 
 3. **Provision the environment:**
    ```bash
@@ -249,9 +249,9 @@ build_tool "my-cool-tool" "$TOOLS_DIR/my-cool-tool/install.sh"
 
 ---
 
-### Step 5: Register in Binary Exporter (`tools/distrobox/export-bins.sh`)
+### Step 5: Verify Binary in `~/.local/bin/`
 
-To make the binary executable directly from the host terminal, register its binary name in the `TOOLS` array in [`tools/distrobox/export-bins.sh`](tools/distrobox/export-bins.sh):
+After running `aa install my-cool-tool`, verify the launcher exists in `~/.local/bin/`. The install script handles `~/.local/bin/<binary>` placement automatically via XDG.
 
 ```bash
 TOOLS=(
@@ -303,11 +303,8 @@ If your tool provides an MCP server (`isMcp: true`):
 Verify installation under both paradigms:
 
 ```bash
-# 1. Test Distrobox sandbox installation (default):
+# 1. Test installation on host:
 aa install my-cool-tool
-
-# 2. Test Host installation:
-aa install my-cool-tool --host
 ```
 
 ---
@@ -357,8 +354,8 @@ Open [`tools/build/build-all.sh`](tools/build/build-all.sh) and delete the corre
 build_tool "my-cool-tool" "$TOOLS_DIR/my-cool-tool/install.sh"
 ```
 
-### Step 3: Remove from Binary Exporter
-Open [`tools/distrobox/export-bins.sh`](tools/distrobox/export-bins.sh) and remove the tool binary from the `TOOLS` array.
+### Step 3: Remove from Local Install
+No binary exporter array to maintain — uninstall by removing `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
 
 ### Step 4: Remove from MCP Configuration Generator (If Applicable)
 In [`tools/mcp/generate-config.sh`](tools/mcp/generate-config.sh):

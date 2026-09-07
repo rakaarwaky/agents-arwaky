@@ -8,12 +8,12 @@
 
 Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`cargo`), Node (`pnpm`/`npm`), Bun, Python (`uv`), Playwright headless browsers, and system C-libraries. Installing these natively clutters the host operating system, introduces version conflicts, and creates security vulnerabilities.
 
-**`agents-arwaky`** solves this through a **Distrobox First-Class Architecture**:
+**`agents-arwaky`** solves this through a **Local Bare-Metal Architecture**:
 
-- 🛡️ **Zero Host Contamination:** Compilers, dependencies, and runtimes live inside an automated rootless container (`agents-env`). Your host OS stays clean.
-- ⚡ **Seamless Host Execution:** Containerized executables are exported directly to `~/.local/bin/` via standard Linux XDG integration. Run tools from your host terminal with zero manual container switching.
+- ⚡ **Direct Host Execution:** Compilers, dependencies, and runtimes are installed natively on the host. Tools compile to host-native binaries in `~/.local/bin/` via standard Linux XDG integration. Run tools from your host terminal directly.
 - 🤖 **Universal MCP Hub & Skills Provisioner:** Out-of-the-box integration for AI harnesses (Google Antigravity, Hermes Agent with full multi-profile sync, OpenCode, Cursor, Zed) via declarative MCP configs and automated skill provisioning.
 - 🎯 **Unified Orchestration (`agents-arwaky` / `aa` CLI):** One single control point for diagnostics, health checks, execution dispatching, and build pipelines.
+- 🐳 **Daemon-only Containerization:** Only background daemons (9Router, Anytype) run in Podman containers. CLI tools and MCPs are host-native.
 
 ---
 
@@ -60,10 +60,9 @@ flowchart TB
         end
     end
 
-    subgraph DistroboxEnv["Distrobox Container Sandbox ('agents-env')"]
-        DistroboxEngine["distrobox-enter Execution Dispatcher"]
-        IsolatedRuntimes["Container Toolchains & Libs (Zero Host Contamination)\nRust/Cargo • Python/uv • Bun/pnpm • C-Libs • Playwright"]
-      
+    subgraph HostToolchain["Host Native Toolchains"]
+        IsolatedRuntimes["Host-Native Toolchains & Libs\nRust/Cargo • Python/uv • Bun/pnpm • C-Libs • Playwright"]
+
         subgraph AgentsAndTools["Managed Agent & Vendor Engines"]
             InternalAgents["Internal Agents:\nlint-arwaky • vision-arwaky • qwen-web • blender"]
             VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • lean-ctx • ponytail • fetch • 9router"]
@@ -81,14 +80,16 @@ flowchart TB
     CLI -- "aa mcp generate" --> XDGConfigs
     CLI -- "aa install (builds)" --> IsolatedRuntimes
 
+    %% Host-native execution
+    Launchers == "Direct host execution" ==> InternalBin
+
     %% Harness interactions
     Harnesses -. "Reads config" .-> XDGConfigs
     Harnesses -. "Loads skills" .-> XDGSkills
     Harnesses == "Executes via stdio (JSON-RPC)" ==> Launchers
 
-    %% Host wrapper to Distrobox execution
-    Launchers == "distrobox-export wrapper" ==> DistroboxEngine
-    DistroboxEngine --> InternalBin
+    %% Host-native execution
+    Launchers == "Direct host execution" ==> InternalBin
     InternalBin --> AgentsAndTools
     IsolatedRuntimes -. "Builds & powers runtime" .-> AgentsAndTools
 
@@ -102,7 +103,7 @@ flowchart TB
 ```text
 agents-arwaky/
 ├── agents-arwaky                # Main Orchestration Entrypoint CLI (alias: aa)
-├── distrobox.ini                # Declarative container specification (Podman/Docker)
+├── distrobox.ini.bak            # Archived: container spec (no longer used)
 ├── mcp_servers.generated.json   # Auto-generated unified MCP client manifest
 ├── AGENTS.md                    # Operational manual & architecture context for AI agents
 ├── CONTRIBUTING.md              # Contributor workflows (adding/removing vendor tools)
@@ -130,7 +131,7 @@ agents-arwaky/
     ├── arwaky/                  # CLI engine implementation & tool manifest
     ├── build/                   # Master cross-compilation pipeline
     ├── ci/                      # Quality gates & syntax validation scripts
-    ├── distrobox/               # Container provisioning & binary exporter
+    ├── distrobox-archive/        # Archived: old container provisioning scripts
     ├── lib/                     # Shared bash utilities & XDG path helpers
     ├── mcp/                     # Multi-client MCP configuration generator
     └── <vendor-tool>/           # Per-tool installation & wrapper definitions
@@ -156,13 +157,15 @@ cd agents-arwaky
 
 ### 2. Verify Host Prerequisites
 
-Ensure [Podman](https://podman.io/) (or Docker) and [Distrobox](https://distrobox.it/) are installed:
+Ensure [Podman](https://podman.io/) (or Docker) is installed for daemon services:
 
 ```bash
 ./aa setup
 ```
 
 *(Runs an automated prerequisite check and optionally installs dependencies using your host package manager: `apt`, `pacman`, or `dnf`).*
+
+Required core tools: `git`, `jq`, `curl`, `python3`. Recommended: `cargo` (Rust), `uv` (Python), `node`/`npm`/`pnpm`/`bun` (Node).
 
 ### 3. Build & Provision (One-Command)
 
@@ -172,12 +175,10 @@ Ensure [Podman](https://podman.io/) (or Docker) and [Distrobox](https://distrobo
 
 This single command executes the end-to-end setup pipeline:
 
-1. Validates host container runtime.
-2. Creates the isolated `agents-env` Distrobox container from [`distrobox.ini`](distrobox.ini).
-3. Provisions isolated runtimes (`uv`, `bun`, `pnpm`, `cargo`) inside the container.
-4. Compiles all internal agents and vendor tools into containerized XDG prefixes.
-5. Exports binary launchers to host `~/.local/bin/`.
-6. Generates unified MCP configurations at `mcp_servers.generated.json`.
+1. Initializes git submodules (`vendor/`, `internal/`).
+2. Compiles all internal agents and vendor tools natively on host into XDG prefixes.
+3. Installs binary launchers to host `~/.local/bin/`.
+4. Generates unified MCP configurations at `mcp_servers.generated.json`.
 
 ### 4. Verify System Health
 
@@ -213,8 +214,8 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa completion [bash\|zsh\|--install]`   | Shell tab completion generator and persistent installer                                            | `aa completion --install`                      |
 | `aa check`                               | Run quality gate verification (executable bits, JSON syntax, shellcheck, submodules)               | `aa check`                                     |
 | `aa list`                                | List all registered tools (internal & vendor) with categories                                      | `aa list`                                      |
-| `aa run <tool> [args]`                   | Transparently execute any tool inside the container from host                                      | `aa run context7 --help`                       |
-| `aa install [tool] [--distrobox|--host]` | Install tools (Distrobox sandbox default, or host bare-metal)                                      | `aa install fetch` / `aa install fetch --host` |
+| `aa run <tool> [args]`                   | Execute any registered tool on the local host (auto-resolves to PATH or native runner)                   | `aa run context7 --help`                       |
+| `aa install [tool]`                      | Install tools on the local host (native build, no container indirection for CLI tools)                   | `aa install fetch` / `aa install`             |
 | `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
 | `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
@@ -223,10 +224,8 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa logs <service>`                      | Tail logs for background services (`9router`, `anytype`)                                           | `aa logs 9router`                              |
 | `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
 | `aa 9router <action>`                    | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                            |
-| `aa shell`                               | Drop into an interactive shell inside the sandbox container                                        | `aa shell`                                     |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
 | `aa clean [--host|--all]`                | Remove build artifacts, host binaries, or full pristine reset                                      | `aa clean`                                     |
-| `aa destroy`                             | Remove and reset Distrobox container `agents-env`                                                  | `aa destroy`                                   |
 
 > [!TIP]
 > You can use `agents-arwaky` or the short alias `aa` interchangeably for all commands!
@@ -508,11 +507,11 @@ Add to `~/.config/zed/settings.json`:
 
 ## 🛠️ Developer Workflows & Installation Paradigms
 
-`agents-arwaky` strictly defines **Two Installation Paradigms Only** across all tools (both internal agents and vendor MCPs):
+`agents-arwaky` defines **One Installation Paradigm** across all tools: **local bare-metal build** that compiles and installs directly on the host.
 
-### 1. Distrobox Mode (Sandboxed / Default & Recommended)
+### 1. Local Bare-Metal Mode (Primary & Only)
 
-Compiles runtimes and tools inside the rootless `agents-env` container, exporting clean binary launchers to `~/.local/bin/`. Zero host contamination.
+Compiles runtimes and tools directly on host into native XDG prefixes, exporting binary launchers to `~/.local/bin/`. No container indirection for CLI tools.
 
 ```bash
 # Install all tools in ecosystem:
@@ -572,13 +571,13 @@ aa clean --all
 
 ## 🔒 Security & Sandboxing Model
 
-- **Rootless Container Execution:** All compilation and execution runs under the unprivileged host user namespace using Podman rootless semantics.
+- **Local Bare-Metal Execution:** Tools compile and run directly on the host OS — no container indirection for CLI tools or MCPs.
 - **XDG Conformance & Storage Isolation:**
-  - Real compiled binaries reside in container-internal storage: `${XDG_DATA_HOME}/agents-arwaky/internal-bin/` (`~/.local/share/agents-arwaky/internal-bin/`).
-  - Host executable wrappers reside in `${XDG_BIN_HOME}/` (`~/.local/bin/`) as lightweight `distrobox-export` scripts.
+  - Compiled binaries reside in `${XDG_DATA_HOME}/<tool>/` (`~/.local/share/<tool>/`).
+  - Host executable wrappers reside in `${XDG_BIN_HOME}/` (`~/.local/bin/`) as native launchers.
   - Configurations reside in `${XDG_CONFIG_HOME}/<tool>/` (`~/.config/<tool>/`).
   - Data and reports reside in `${XDG_DATA_HOME}/<tool>/` (`~/.local/share/<tool>/`).
-- **Pristine Host Toolchain (Zero Contamination):** Compilers, runtimes, package managers, and system libraries (`cargo`, `rustc`, `gcc`, `node`, `bun`, `uv`, `libssl-dev`) exist solely within the container's isolated root storage. Your host OS `/usr` and root filesystems remain completely untouched.
+- **Daemon-only Containerization:** Only background services (9Router, Anytype) run in Podman rootless containers — they are the only containerized layer. Your host OS `/usr` and root filesystems remain untouched by toolchain installations.
 - **Submodule Isolation:** Upstream codebases are strictly tracked via Git submodules at pinned commits, preventing unsolicited upstream drift.
 
 > [!NOTE]

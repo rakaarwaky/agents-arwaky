@@ -37,9 +37,9 @@ _aa_completion() {
       ;;
     install)
       if [ "$cword" -eq 2 ]; then
-        COMPREPLY=( $(compgen -W "$tools --distrobox --host" -- "$cur") )
+        COMPREPLY=( $(compgen -W "$tools" -- "$cur") )
       elif [ "$cword" -eq 3 ]; then
-        COMPREPLY=( $(compgen -W "--distrobox --host" -- "$cur") )
+        COMPREPLY=( $(compgen -W "" -- "$cur") )
       fi
       ;;
     connect)

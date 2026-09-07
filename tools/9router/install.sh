@@ -2,7 +2,7 @@
 # tools/9router/install.sh
 # Installs 9Router in Hybrid Architecture:
 # - Core Daemon runs in rootless Podman container (ghcr.io/decolua/9router:latest)
-# - Host / Distrobox CLI wrapper installed to ~/.local/bin/9router
+# - Host CLI wrapper installed to ~/.local/bin/9router
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

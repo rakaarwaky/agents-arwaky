@@ -112,14 +112,12 @@ check_service_status() {
   fi
   printf "%-18s %-10s %-18s %b\n" "Anytype Daemon" "$a_port" "$a_container" "$a_status"
 
-  # 3. Distrobox 'agents-env'
-  local d_status="${YELLOW}Not Created${RESET}"
-  if command -v distrobox >/dev/null 2>&1; then
-    if distrobox list 2>/dev/null | grep -q "agents-env"; then
-      d_status="${GREEN}Ready (Sandbox)${RESET}"
-    fi
+  # 3. Container Engine (for daemon services)
+  local d_status="${YELLOW}Not Available${RESET}"
+  if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then
+    d_status="${GREEN}Ready (Podman/Docker)${RESET}"
   fi
-  printf "%-18s %-10s %-18s %b\n" "Distrobox Sandbox" "-" "agents-env" "$d_status"
+  printf "%-18s %-10s %-18s %b\n" "Container Engine" "-" "podman/docker" "$d_status"
 
   echo "--------------------------------------------------------------------------------"
   if [ "$r_state" != "running" ]; then

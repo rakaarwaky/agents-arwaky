@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # tools/build/build-tool.sh
-# Universal single-tool installer dispatcher (used by both Distrobox and Host modes)
+# Universal single-tool installer dispatcher (local native build)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

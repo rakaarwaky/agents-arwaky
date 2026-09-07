@@ -7,15 +7,15 @@
 
 ## 🧭 System Philosophy & Core Invariants
 
-`agents-arwaky` is a sandboxed multi-agent ecosystem and unified Model Context Protocol (MCP) orchestrator designed for high-density, polyglot AI workflows without host contamination.
+`agents-arwaky` is a polyglot multi-agent ecosystem and unified Model Context Protocol (MCP) orchestrator designed for high-density AI workflows running directly on the host operating system.
 
 When executing or reasoning about this repository, **you must preserve these invariants:**
 
-1. **Zero Host Contamination:**
-   - **NEVER** install compilers, runtimes, or system packages globally on the host operating system (e.g., do not run `sudo apt install`, `pacman -S`, `pip install --user`, or global `npm install -g`).
-   - All toolchains (Rust/Cargo, Node/pnpm, Bun, Python/uv, Playwright headless browsers, system C-libraries) reside inside the rootless container sandbox named `agents-env` managed via [Distrobox](https://distrobox.it/) / Podman.
-   - Host `$HOME` is mounted into the container. Internal compiled ELF binaries reside in container-internal storage (`~/.local/share/agents-arwaky/internal-bin/`), while host wrappers are exported to `~/.local/bin/` via `distrobox-export`.
-   - Host OS `/usr` and root filesystems remain completely untouched.
+1. **Local Bare-Metal Execution:**
+   - All toolchains (Rust/Cargo, Node/npm/pnpm, Bun, Python/uv, system C-libraries) are installed and executed directly on the host.
+   - Tools are compiled to host-native binaries and exported to `~/.local/bin/` (XDG compliant).
+   - Per-tool data & caches follow XDG: `${XDG_DATA_HOME:-$HOME/.local/share}/<tool>/`, `${XDG_CONFIG_HOME:-$HOME/.config}/<tool>/`.
+   - Daemon services (9Router, Anytype) run in dedicated Podman containers — they are the only containerized layer.
 
 2. **XDG Base Directory Compliance:**
    - Adhere strictly to the Linux XDG Base Directory specification.
@@ -49,7 +49,7 @@ When executing or reasoning about this repository, **you must preserve these inv
 The repository segregates agent workloads into three primary zones:
 - `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules: `lint-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `blender-arwaky`).
 - `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `lean-ctx`, `ponytail`, `anytype-mcp`, `codegraph`, `9router`).
-- `tools/`: Orchestration CLI (`arwaky`), Distrobox container lifecycle, CI validation, and per-tool installers.
+- `tools/`: Orchestration CLI (`arwaky`), CI validation, and per-tool installers.
 
 > For the comprehensive visual directory tree and system flow diagram, see [**README.md § Architecture**](README.md#-architecture).
 
@@ -57,13 +57,13 @@ The repository segregates agent workloads into three primary zones:
 
 ## ⚡ Primary Agent Interface: `agents-arwaky` (`aa`) CLI
 
-When inspecting system health, executing tools, or managing MCP configurations, **always use the `agents-arwaky` (alias `aa`) CLI**. It automatically resolves execution context between host and Distrobox `agents-env`.
+When inspecting system health, executing tools, or managing MCP configurations, **always use the `agents-arwaky` (alias `aa`) CLI**. It resolves execution context on the local host (daemon-only containerization for 9Router & Anytype).
 
 ### Tool Execution Dispatcher
 
 Agents should execute tools via `aa run <tool> [args...]` (or `agents-arwaky run <tool> [args...]`). The CLI resolves execution in order:
 1. Host `PATH` and `~/.local/bin/`.
-2. Transparent execution inside Distrobox `agents-env` if absent on host.
+2. Native project runners (`cargo`, `uv`, `bun`) for in-house submodules when binary not yet installed.
 3. Native project runners (`cargo`, `uv`, `bun`) for in-house submodules.
 
 > For the complete CLI command reference, syntax, and practical examples, see [**README.md § Unified Orchestrator CLI (`agents-arwaky` / `aa`)**](README.md#-unified-orchestrator-cli-arwaky).
@@ -133,7 +133,7 @@ The verification script checks:
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
 | **Execute containerized tool** | `aa run <tool-id> [args]` |
-| **Install via Distrobox (Sandbox)** | `aa install [tool]` |
+| **Install via Local Native Build** | `aa install [tool]` |
 | **Install on Host (Bare-Metal)** | `aa install [tool] --host` |
 | **Manage Anytype daemon** | `aa anytype [start\|status\|auth-key\|space-list]` |
 | **Enter container shell** | `aa shell` |
@@ -147,11 +147,9 @@ The verification script checks:
 
 - Single Source of Truth Manifest: [`tools/arwaky/manifest.json`](tools/arwaky/manifest.json)
 - Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
-- Container Specification: [`distrobox.ini`](distrobox.ini)
 - Shared XDG Helper: [`tools/lib/xdg.sh`](tools/lib/xdg.sh)
 - Master Build Script: [`tools/build/build-all.sh`](tools/build/build-all.sh)
 - Agent Harness Connector: [`tools/connect/connect-agent.sh`](tools/connect/connect-agent.sh)
-- Binary Exporter: [`tools/distrobox/export-bins.sh`](tools/distrobox/export-bins.sh)
 - CI Verification Gate: [`tools/ci/verify.sh`](tools/ci/verify.sh)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Human Documentation & Tool Catalog: [`README.md`](README.md)

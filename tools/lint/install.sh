@@ -18,7 +18,7 @@ fi
 
 if ! command -v cargo >/dev/null 2>&1; then
   echo "Error: cargo is required to build lint-arwaky." >&2
-  echo "Please run inside Distrobox (aa install lint) or install Rust on your host." >&2
+  echo "Please install Rust (cargo) on your host: https://rustup.rs" >&2
   exit 1
 fi
 
