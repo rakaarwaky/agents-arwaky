@@ -10,7 +10,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, config_home, data_home, ensure_bin_home
+from xdg import (  # type: ignore[import-untyped]
+    bin_home,
+    config_home,
+    data_home,
+    ensure_bin_home,
+)
 
 INTERNAL_DIR = ROOT / "internal/lint-arwaky"
 BINARIES = ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui"]

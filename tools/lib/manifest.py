@@ -37,7 +37,7 @@ def load_tools() -> list[Tool]:
         return []
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    except (OSError, ValueError):
         return []
     tools: list[Tool] = []
     for item in data.get("tools", []):

@@ -24,11 +24,11 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 def detect_format(path: Path) -> str:
     name = path.name.lower()
-    if name.endswith(".yaml") or name.endswith(".yml"):
+    if name.endswith((".yaml", ".yml")):
         return "yaml"
     if name.endswith(".jsonc"):
         return "jsonc"
-    if name.endswith(".json") or name.endswith(".bak"):
+    if name.endswith((".json", ".bak")):
         return "json"
     # Fallback: peek content
     try:
@@ -91,18 +91,26 @@ def load_file(path: Path):
         except json.JSONDecodeError:
             return {}, fmt
     # YAML
+    data = None
     try:
         import yaml  # type: ignore
         data = yaml.safe_load(text) or {}
+    except ImportError:
+        data = None  # pyyaml not installed; try ruamel below
+    except yaml.YAMLError:
+        data = None  # malformed YAML; try ruamel below
+    if data is not None:
         return data, fmt
-    except Exception:
-        # try ruamel fallback
-        try:
-            from ruamel.yaml import YAML  # type: ignore
-            data = YAML(typ="safe").load(text) or {}
-            return data, fmt
-        except Exception:
-            return {}, fmt
+    # ruamel fallback
+    try:
+        import ruamel.yaml  # type: ignore
+        data = ruamel.yaml.YAML(typ="safe").load(text) or {}
+        return data, fmt
+    except ImportError:
+        pass  # ruamel not installed
+    except ruamel.yaml.YAMLError:
+        pass  # malformed YAML
+    return {}, fmt
 
 
 def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> bool:
@@ -126,21 +134,25 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
                 body = "\n".join(comment_lines) + "\n" + body
             path.write_text(body + "\n", encoding="utf-8")
         elif fmt == "yaml":
-            try:
-                if preserve_comments:
-                    from ruamel.yaml import YAML
-                    y = YAML()
+            dumped = False
+            if preserve_comments:
+                try:
+                    import ruamel.yaml  # type: ignore
+                    y = ruamel.yaml.YAML()
                     y.preserve_quotes = True
                     with path.open("w", encoding="utf-8") as f:
                         y.dump(data, f)
-                else:
-                    raise ImportError
-            except Exception:
+                    dumped = True
+                except ImportError:
+                    dumped = False  # ruamel unavailable; fall back to pyyaml
+                except ruamel.yaml.YAMLError:
+                    dumped = False  # ruamel dump failed; fall back to pyyaml
+            if not dumped:
                 import yaml
                 with path.open("w", encoding="utf-8") as f:
                     yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
         return True
-    except Exception:
+    except (OSError, TypeError, ValueError, ImportError):
         return False
 
 
@@ -165,7 +177,7 @@ def remove_mcp_servers(path: Path, servers, dry_run: bool = False) -> list:
     if not path.exists():
         return []
     data, fmt = load_file(path)
-    mcp, key = get_mcp_map(data)
+    mcp, _ = get_mcp_map(data)
     removed = []
     if mcp is not None:
         for s in servers:
@@ -247,7 +259,7 @@ def arwaky_server_names(repo_root: Path) -> list:
             keys = list(data.get("mcpServers", {}).keys())
             if keys:
                 return keys
-        except Exception:
+        except (OSError, ValueError):
             pass
     return default_server_names()
 
@@ -327,7 +339,7 @@ def merge_mcp_servers(path: Path, servers: dict, force: bool = False) -> list:
         path.write_text("{}", encoding="utf-8")
         data, fmt = {}, "json"
 
-    mcp, key = get_mcp_map(data)
+    mcp, _ = get_mcp_map(data)
     if mcp is None:
         if isinstance(data, dict):
             data["mcpServers"] = {}

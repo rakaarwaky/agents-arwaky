@@ -12,8 +12,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from manifest import Tool, find_tool, load_tools, repo_root
-from ui import (
+from manifest import (  # type: ignore[import-not-found]
+    Tool,
+    find_tool,
+    load_tools,
+    repo_root,
+)
+from ui import (  # type: ignore[import-not-found]
     BLUE,
     BOLD,
     CYAN,
@@ -28,8 +33,12 @@ from ui import (
     ok,
     warn,
 )
-from xdg import bin_home, config_home, data_home, ensure_path
-
+from xdg import (  # type: ignore[import-untyped]
+    bin_home,
+    config_home,
+    data_home,
+    ensure_path,
+)
 
 # =============================================================================
 # Helpers
@@ -45,7 +54,7 @@ TOOL_RUNNERS = {
 
 def run_cmd(cmd: list[str]) -> int:
     try:
-        return subprocess.run(cmd).returncode
+        return subprocess.run(cmd, check=False).returncode
     except FileNotFoundError:
         err(f"Command not found: {cmd[0]}")
         return 127
@@ -426,7 +435,7 @@ def cmd_check(argv: list[str]) -> int:
         try:
             json.loads(json_file.read_text(encoding="utf-8"))
             ok(str(json_file.relative_to(repo_root())))
-        except Exception as e:
+        except (OSError, ValueError) as e:
             err(f"Invalid JSON: {json_file}: {e}")
             errors += 1
     print()
@@ -437,7 +446,7 @@ def cmd_check(argv: list[str]) -> int:
         try:
             py_compile.compile(str(py_file), doraise=True)
             ok(str(py_file.relative_to(repo_root())))
-        except Exception as e:
+        except (py_compile.PyCompileError, OSError, ValueError) as e:
             err(f"Python compile error: {py_file}: {e}")
             errors += 1
     print()
@@ -453,7 +462,7 @@ def cmd_check(argv: list[str]) -> int:
                 try:
                     res = subprocess.run(
                         ["shellcheck", "-x", str(f)],
-                        capture_output=True, text=True, input="", timeout=15,
+                        capture_output=True, text=True, input="", timeout=15, check=False,
                     )
                 except subprocess.TimeoutExpired:
                     err(f"shellcheck timeout: {f}")

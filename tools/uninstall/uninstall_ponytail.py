@@ -9,15 +9,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, config_home, data_home
+from xdg import bin_home, config_home, data_home  # type: ignore[import-untyped]
 
 
 def main() -> int:
     print(">>> Uninstalling ponytail...")
     for launcher in ['ponytail-mcp']:
         (bin_home() / launcher).unlink(missing_ok=True)
-    for alias in []:
-        (bin_home() / alias).unlink(missing_ok=True)
     shutil.rmtree(data_home() / "ponytail", ignore_errors=True)
     shutil.rmtree(config_home() / "ponytail", ignore_errors=True)
     print(">>> ponytail uninstalled (launchers + data + config).")

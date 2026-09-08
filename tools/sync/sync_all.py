@@ -9,11 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from ui import info, ok, warn
+from ui import info, ok, warn  # type: ignore[import-not-found]
 
 
 def run(cmd):
-    return subprocess.run(cmd).returncode
+    return subprocess.run(cmd, check=False).returncode
 
 
 def main(argv):

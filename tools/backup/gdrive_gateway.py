@@ -16,7 +16,7 @@ class GDriveGateway(IBackupGateway):
     def upload(self, local_path: Path, remote_name: str = "") -> dict:
         result = subprocess.run(
             [sys.executable, str(GDRIVE_HELPER), "upload", str(local_path)],
-            capture_output=True, text=True,
+            capture_output=True, text=True, check=False,
         )
         if result.returncode != 0:
             raise RuntimeError(f"Google Drive upload failed: {result.stderr.strip()}")
@@ -25,7 +25,7 @@ class GDriveGateway(IBackupGateway):
     def download(self, query_or_id: str, destination: Path) -> Path:
         result = subprocess.run(
             [sys.executable, str(GDRIVE_HELPER), "download", query_or_id, str(destination)],
-            capture_output=True, text=True,
+            capture_output=True, text=True, check=False,
         )
         if result.returncode != 0:
             raise RuntimeError(f"Google Drive download failed: {result.stderr.strip()}")
@@ -34,6 +34,6 @@ class GDriveGateway(IBackupGateway):
     def list(self, prefix: str = "") -> list:
         result = subprocess.run(
             [sys.executable, str(GDRIVE_HELPER), "list"],
-            capture_output=True, text=True,
+            capture_output=True, text=True, check=False,
         )
         return result.stdout.splitlines()

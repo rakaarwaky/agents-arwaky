@@ -26,7 +26,7 @@ def get_registered_tool_ids():
         return []
     try:
         data = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    except Exception:
+    except (OSError, ValueError):
         return []
     out = []
     for t in data.get("tools", []):

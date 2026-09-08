@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from xdg import bin_home, ensure_bin_home
+from xdg import bin_home, ensure_bin_home  # type: ignore[import-untyped]
 
 
 def write_uv_launchers(package_name: str, src_rel: str, launchers: list) -> list:
@@ -27,7 +27,7 @@ def write_uv_launchers(package_name: str, src_rel: str, launchers: list) -> list
     return created
 
 
-def write_generic_launcher(tool_name: str, content: str, aliases: list = None) -> Path:
+def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | None = None) -> Path:
     """Write a generic launcher with aliases. Returns launcher path."""
     ensure_bin_home()
     launcher = bin_home() / tool_name

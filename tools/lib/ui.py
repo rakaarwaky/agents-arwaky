@@ -1,10 +1,9 @@
 """UI helpers: warna/banner/log (Python)."""
 from __future__ import annotations
 
+import logging as _logging
 import os
 import sys
-
-import logging as _logging
 
 # Structured logging (P1-O1): level + timestamp pada output log
 _logger = _logging.getLogger("agents-arwaky")

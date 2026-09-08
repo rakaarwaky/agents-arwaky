@@ -17,7 +17,7 @@ def get_credentials():
     data_dir = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
     creds_dir = Path(data_dir) / "google-workspace-mcp" / "credentials"
     user_email = os.environ.get("USER_GOOGLE_EMAIL", "")
-    
+
     cred_file = creds_dir / f"{user_email}.json"
     if not cred_file.exists():
         # Fallback to any json file in credentials directory
@@ -30,7 +30,7 @@ def get_credentials():
                 f"Google Workspace credentials not found in {creds_dir}. "
                 "Please run: aa install workspace or workspace-mcp setup"
             )
-            
+
     with open(cred_file, "r", encoding="utf-8") as f:
         cdata = json.load(f)
 
@@ -123,7 +123,8 @@ def list_all_files(service, query, fields, max_pages: int = 50):
         pages += 1
         if pages > max_pages:
             print(
-                f"  \u26a0 Warning: stopped after {max_pages} pages (pagination bound).",
+                f"  \u26a0 Warning: stopped after {max_pages} pages "
+                f"(pagination bound).",
                 file=sys.stderr,
             )
             break
@@ -151,7 +152,7 @@ def get_or_create_folder(service, folder_name=DEFAULT_FOLDER_NAME):
     files = res.get("files", [])
     if files:
         return files[0]["id"]
-        
+
     metadata = {
         "name": folder_name,
         "mimeType": "application/vnd.google-apps.folder"
@@ -176,7 +177,7 @@ def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
         "name": path.name,
         "parents": [folder_id]
     }
-    
+
     file_obj = retry_api(lambda: service.files().create(
         body=metadata,
         media_body=media,
@@ -193,7 +194,7 @@ def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
 
 def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME):
     service = get_drive_service()
-    
+
     file_id = None
     target_name = query_or_id
 
@@ -276,7 +277,9 @@ def cmd_list(folder_name=DEFAULT_FOLDER_NAME):
     folder_id = get_or_create_folder(service, folder_name)
     q = f"'{folder_id}' in parents and trashed = false"
     # Gunakan list_all_files (pagination-aware, bounded) (P3)
-    files = list_all_files(service, q, "files(id, name, size, createdTime, webViewLink)")
+    files = list_all_files(
+        service, q, "files(id, name, size, createdTime, webViewLink)"
+    )
     print(json.dumps(files, indent=2))
 
 def main():

@@ -10,8 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from envfile import load_first_env
-from xdg import config_home
+from envfile import load_first_env  # type: ignore[import-not-found]
+from xdg import config_home  # type: ignore[import-untyped]
 
 
 def main() -> int:
@@ -36,7 +36,7 @@ def main() -> int:
     # Single source of truth: manifest.json (Traceability fix — hapus hardcoded dict)
     manifest_path = ROOT / "tools/config/manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    config = {"mcpServers": {}}
+    config: dict = {"mcpServers": {}}
     for tool in manifest.get("tools", []):
         if not tool.get("isMcp", False):
             continue

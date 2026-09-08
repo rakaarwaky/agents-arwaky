@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import config_home, data_home
+from xdg import config_home, data_home  # type: ignore[import-untyped]
 
 CONTAINER_NAME = "9router"
 IMAGE_NAME = os.environ.get("NINEROUTER_IMAGE", "ghcr.io/decolua/9router:latest")
@@ -25,11 +25,11 @@ UNIT_FILE = UNIT_DIR / "9router.service"
 
 
 def run(cmd, **kw):
-    return subprocess.run(cmd, **kw)
+    return subprocess.run(cmd, check=False, **kw)
 
 
 def out(cmd, **kw):
-    return subprocess.run(cmd, capture_output=True, text=True, **kw).stdout.strip()
+    return subprocess.run(cmd, capture_output=True, text=True, check=False, **kw).stdout.strip()
 
 
 def get_engine():
@@ -62,7 +62,7 @@ def api_ready(timeout=90):
             with urllib.request.urlopen(url, timeout=3) as r:
                 if r.status < 400:
                     return True
-        except Exception:
+        except (OSError, ValueError):
             pass
         # Exponential backoff: 1s, 2s, 4s, 8s... capped at 10s
         time.sleep(delay)
@@ -273,7 +273,7 @@ def cmd_models():
         with urllib.request.urlopen(url, timeout=10) as r:
             print(r.read().decode("utf-8", errors="replace"))
         return 0
-    except Exception as e:
+    except (OSError, ValueError) as e:
         print(f"Error fetching models: {e}", file=sys.stderr)
         return 1
 

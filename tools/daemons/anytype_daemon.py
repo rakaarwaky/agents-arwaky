@@ -16,8 +16,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from envfile import update_env_file
-from xdg import config_home, data_home
+from envfile import update_env_file  # type: ignore[import-not-found]
+from xdg import config_home, data_home  # type: ignore[import-untyped]
 
 CONTAINER_NAME = "anytype-daemon"
 IMAGE_NAME = "localhost/anytype-daemon:latest"
@@ -35,11 +35,11 @@ PID_FILE = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state
 
 
 def run(cmd, **kw):
-    return subprocess.run(cmd, **kw)
+    return subprocess.run(cmd, check=False, **kw)
 
 
 def out(cmd, **kw):
-    return subprocess.run(cmd, capture_output=True, text=True, **kw).stdout.strip()
+    return subprocess.run(cmd, capture_output=True, text=True, check=False, **kw).stdout.strip()
 
 
 def has_podman():
@@ -62,7 +62,7 @@ def api_ready(timeout=90):
             with urllib.request.urlopen(url, timeout=3) as r:
                 if r.status < 400:
                     return True
-        except Exception:
+        except (OSError, ValueError):
             pass
         time.sleep(2)
     return False
@@ -73,6 +73,7 @@ def image_exists() -> bool:
         ["podman", "image", "exists", IMAGE_NAME],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
+        check=False,
     ).returncode == 0
 
 
@@ -176,7 +177,7 @@ def cmd_stop():
             print(">>> Anytype daemon process not found (stale PID file).")
         _cleanup_pid()
     elif shutil.which("pkill"):
-        subprocess.run(["pkill", "-f", "anytype serve"], capture_output=True)
+        subprocess.run(["pkill", "-f", "anytype serve"], capture_output=True, check=False)
         print(">>> Anytype daemon stopped.")
     else:
         print(">>> No Anytype daemon PID found and pkill unavailable.")
@@ -236,12 +237,12 @@ def cmd_auth_key(name="arwaky-agent-key"):
     if has_podman() and container_running():
         result = subprocess.run(
             ["podman", "exec", CONTAINER_NAME, "anytype", "account", "api-key", "create", "--name", name],
-            capture_output=True, text=True,
+            capture_output=True, text=True, check=False,
         )
     elif (LOCAL_BIN / "anytype").exists():
         result = subprocess.run(
             [str(LOCAL_BIN / "anytype"), "account", "api-key", "create", "--name", name],
-            capture_output=True, text=True,
+            capture_output=True, text=True, check=False,
         )
     else:
         print("Error: Anytype daemon not running and local binary not found.", file=sys.stderr)

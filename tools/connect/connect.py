@@ -41,7 +41,7 @@ def engine(*args):
     try:
         proc = subprocess.run(
             [sys.executable, str(REPO_ROOT / "tools/lib/engine.py"), *args],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True, text=True, timeout=30, check=False,
         )
     except subprocess.TimeoutExpired:
         raise RuntimeError(f"engine.py timed out after 30s: {args[:2]}")
@@ -247,8 +247,6 @@ def disconnect_qwencode(dry_run: bool):
 # --- legacy lean-ctx remnants -------------------------------------------------
 def disconnect_legacy_lean_ctx(dry_run: bool):
     log_header("Cleaning up legacy lean-ctx remnants...")
-    names = arwaky_server_names() + ["lean-ctx"]
-
     # 1. Hermes config.yaml mcp_servers.lean-ctx
     h = hermes_home()
     remove_mcp_servers(h / "config.yaml", dry_run)
@@ -442,7 +440,7 @@ def connect_antigravity(force, dry_run, mcp_only, skills_only, env_only):
         if dry_run:
             log_sub(f"[DRY-RUN] Would merge MCP servers into {mcp_file}")
         else:
-            merged = engine_merge_mcp(mcp_file, servers, force)
+            engine_merge_mcp(mcp_file, servers, force)
             for sub in ("antigravity-cli", "antigravity"):
                 d = HOME / ".gemini" / sub
                 if d.is_dir():
@@ -480,7 +478,7 @@ def connect_hermes(force, dry_run, mcp_only, skills_only, env_only):
                 log_sub(f"[DRY-RUN] Would merge MCP servers into {target_dir / 'config.yaml'}")
                 continue
             target_dir.mkdir(parents=True, exist_ok=True)
-            merged = engine_merge_mcp(target_dir / "config.yaml", servers, force)
+            engine_merge_mcp(target_dir / "config.yaml", servers, force)
             log_ok(f"Hermes MCP servers configured in {target_dir / 'config.yaml'}")
     if not mcp_only and not env_only:
         for label, target_dir in hermes_targets(h):
@@ -502,7 +500,7 @@ def connect_opencode(force, dry_run, mcp_only, skills_only, env_only):
             log_sub(f"[DRY-RUN] Would update MCP servers in {cfg_file}")
         else:
             cfg.mkdir(parents=True, exist_ok=True)
-            merged = engine_merge_mcp(cfg_file, servers, force)
+            engine_merge_mcp(cfg_file, servers, force)
             log_ok(f"OpenCode MCP servers configured in {cfg_file}")
     if not mcp_only and not env_only:
         for sf in get_all_skill_files():
@@ -523,7 +521,7 @@ def connect_qwencode(force, dry_run, mcp_only, skills_only, env_only):
             log_sub(f"[DRY-RUN] Would merge MCP servers into {settings_file}")
         else:
             qwen_home.mkdir(parents=True, exist_ok=True)
-            merged = engine_merge_mcp(settings_file, servers, force)
+            engine_merge_mcp(settings_file, servers, force)
             log_ok(f"Qwen Code MCP servers configured in {settings_file}")
     if not mcp_only and not env_only:
         for sf in get_all_skill_files():
@@ -540,8 +538,8 @@ def load_generated_servers():
         try:
             data = _json.loads(gen.read_text(encoding="utf-8"))
             return data.get("mcpServers", {})
-        except Exception:
-            pass
+        except (OSError, ValueError) as exc:
+            log_warn(f"Could not read {gen} ({exc}); using default servers.")
     names = default_servers_dict()
     return names
 

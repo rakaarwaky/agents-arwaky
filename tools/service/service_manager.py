@@ -14,7 +14,7 @@ ANYTYPE = ROOT / "tools/daemons/anytype_daemon.py"
 
 
 def run_py(script, args):
-    return subprocess.run([sys.executable, str(script), *args]).returncode
+    return subprocess.run([sys.executable, str(script), *args], check=False).returncode
 
 
 def cmd_status():
