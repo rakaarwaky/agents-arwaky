@@ -51,12 +51,12 @@ def _c(code: str) -> str:
 
 BOLD = _c("1")
 DIM = _c("2")
-GREEN = _c("0;32m")
-BLUE = _c("0;34m")
-CYAN = _c("0;36m")
-YELLOW = _c("0;33m")
-RED = _c("0;31m")
-RESET = _c("0m")
+GREEN = _c("0;32")
+BLUE = _c("0;34")
+CYAN = _c("0;36")
+YELLOW = _c("0;33")
+RED = _c("0;31")
+RESET = _c("0")
 
 
 def _term_width() -> int:
