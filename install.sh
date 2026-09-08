@@ -196,6 +196,12 @@ install_rust() {
     ok "cargo: $(cargo --version)"
     return 0
   fi
+  # Check if rustup is installed but not on PATH
+  if [[ -f "$HOME/.cargo/bin/cargo" ]]; then
+    export PATH="$HOME/.cargo/bin:$PATH"
+    ok "cargo: $(cargo --version)"
+    return 0
+  fi
   info "Installing Rust..."
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
   CARGO_ENV="$HOME/.cargo/env"
@@ -281,7 +287,8 @@ install_all() {
   # System packages (base OS)
   step "System packages"
   if [[ "$PKG_MGR" != "none" ]]; then
-    $PKG_UPDATE || true
+    # Suppress GPG warnings from broken third-party repos (e.g. Brave)
+    $PKG_UPDATE 2>/dev/null || true
     for pkg in "${SYS_PACKAGES[@]}"; do
       install_pkg "$pkg"
     done
@@ -305,6 +312,12 @@ install_all() {
   # Podman
   step "Podman"
   if command -v podman &>/dev/null; then
+    # Suppress storage driver warning by setting overlay driver
+    local podman_conf="${XDG_CONFIG_HOME:-$HOME/.config}/containers/storage.conf"
+    if [[ ! -f "$podman_conf" ]]; then
+      mkdir -p "$(dirname "$podman_conf")"
+      printf '[storage]\ndriver = "overlay"\n' > "$podman_conf"
+    fi
     ok "podman: $(podman --version)"
   else
     install_pkg podman || warn "podman not available"
