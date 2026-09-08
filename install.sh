@@ -138,7 +138,23 @@ install_python() {
 }
 
 # =============================================================================
-# SECTION 4: Node.js (latest LTS via NodeSource)
+# SECTION 4: Python venv (uv-managed)
+# =============================================================================
+install_venv() {
+  step "Python venv (uv-managed)"
+  VENV_DIR="$ROOT/.venv"
+
+  if [[ -d "$VENV_DIR" ]] && [[ -f "$VENV_DIR/bin/activate" ]]; then
+    ok "venv already exists: $VENV_DIR"
+    return 0
+  fi
+
+  info "Creating Python venv via uv..."
+  uv venv "$VENV_DIR" && ok "Created venv: $VENV_DIR" || die "Failed to create venv"
+}
+
+# =============================================================================
+# SECTION 5: Node.js (latest LTS via NodeSource)
 # =============================================================================
 install_nodejs() {
   step "Node.js (latest LTS via NodeSource)"
@@ -302,6 +318,7 @@ install_all() {
 
   # Runtimes — all via official latest installers
   install_python
+  install_venv
   install_nodejs
   install_npm
   install_rust
@@ -360,6 +377,13 @@ check_only() {
     err "python3 not found"; ((fail++))
   fi
 
+  # Python venv
+  if [[ -d "$ROOT/.venv" ]] && [[ -f "$ROOT/.venv/bin/activate" ]]; then
+    ok "Python venv (.venv)"
+  else
+    err "Python venv not found"; ((fail++))
+  fi
+
   # Node.js
   if command -v node &>/dev/null; then
     local nver
@@ -394,6 +418,10 @@ set -euo pipefail
 ROOT="$ROOT"
 export AGENTS_ARWAKY_ROOT="\$ROOT"
 export PYTHONPATH="\$ROOT/tools/lib\${PYTHONPATH:+:\${PYTHONPATH}}"
+VENV_DIR="\$ROOT/.venv"
+if [[ -f "\$VENV_DIR/bin/activate" ]]; then
+  source "\$VENV_DIR/bin/activate"
+fi
 exec python3 "\$ROOT/tools/cli/arwaky.py" "\$@"
 EOL
   chmod +x "$LAUNCHER"
