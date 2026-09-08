@@ -81,11 +81,16 @@ def escape_drive_query(value: str) -> str:
     return value.replace("\\", "\\\\").replace("'", "\\'")
 
 
-def list_all_files(service, query, fields):
-    """List files with pagination (P1: handle multiple pages)."""
+def list_all_files(service, query, fields, max_pages: int = 50):
+    """List files with pagination (P1: handle multiple pages, bounded)."""
     all_files = []
     page_token = None
+    pages = 0
     while True:
+        pages += 1
+        if pages > max_pages:
+            print(f"  \u26a0 Warning: stopped after {max_pages} pages (pagination bound).", file=sys.stderr)
+            break
         params = {"q": query, "fields": fields, "pageSize": 100}
         if page_token:
             params["pageToken"] = page_token

@@ -390,10 +390,13 @@ def get_9router_credentials():
     return router_url, router_key
 
 
+PLACEHOLDER_KEYS = {"sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "change-me", ""}
+
+
 def inject_9router_env(target, dry_run=False):
     url, key = get_9router_credentials()
-    if not key:
-        log_skip(f"No active 9Router API Key found; skipping env injection for {target}.")
+    if not key or key in PLACEHOLDER_KEYS:
+        log_skip(f"No active 9Router API Key found (empty/placeholder); skipping env injection for {target}.")
         return
     pairs = {"NINEROUTER_URL": url, "NINEROUTER_KEY": key}
     m_pairs = {"MNEMOSYNE_DATA_DIR": str(HOME / ".local/share/mnemosyne")}

@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from xdg import config_home, data_home  # noqa: E402
+from envfile import update_env_file  # noqa: E402
 
 CONTAINER_NAME = "anytype-daemon"
 IMAGE_NAME = "localhost/anytype-daemon:latest"
@@ -186,9 +187,43 @@ def cmd_auth_create(name="agent"):
 
 
 def cmd_auth_key(name="arwaky-agent-key"):
-    code = cmd_exec_anytype(["account", "api-key", "create", "--name", name])
-    if code != 0:
-        return code
+    """Generate API key and update .env with ANYTYPE_API_KEY (parse output)."""
+    if has_podman() and container_running():
+        result = subprocess.run(
+            ["podman", "exec", CONTAINER_NAME, "anytype", "account", "api-key", "create", "--name", name],
+            capture_output=True, text=True,
+        )
+    elif (LOCAL_BIN / "anytype").exists():
+        result = subprocess.run(
+            [str(LOCAL_BIN / "anytype"), "account", "api-key", "create", "--name", name],
+            capture_output=True, text=True,
+        )
+    else:
+        print("Error: Anytype daemon not running and local binary not found.", file=sys.stderr)
+        return 1
+
+    if result.returncode != 0:
+        print(result.stderr.strip(), file=sys.stderr)
+        return result.returncode
+
+    # Parse API key dari output (cari baris yang berisi token panjang)
+    api_key = result.stdout.strip()
+    if not api_key:
+        print("Error: No API key returned from daemon.", file=sys.stderr)
+        return 1
+
+    # Update .env (lokasi aman XDG + config repo placeholder)
+    secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
+    env_candidates = [
+        secret_home / "anytype.env",
+        ROOT / "tools/config/anytype.env",
+    ]
+    for env_path in env_candidates:
+        env_path.parent.mkdir(parents=True, exist_ok=True)
+        update_env_file(env_path, "ANYTYPE_API_KEY", api_key)
+        print(f"  \u2713 Updated ANYTYPE_API_KEY in {env_path}")
+
+    print(f"  \u2713 API key generated: {name}")
     return 0
 
 

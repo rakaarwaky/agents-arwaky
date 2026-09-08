@@ -45,13 +45,15 @@ def untar(src: Path, dest: Path):
             # Python 3.12+: filter="data" blocks traversal/symlinks
             tar.extractall(dest, filter="data")
         except TypeError:
-            # Fallback for older Python
+            # Fallback for older Python: validate ALL members before extraction
             for member in tar.getmembers():
                 member_path = (dest / member.name).resolve()
                 if not str(member_path).startswith(str(dest) + os.sep):
                     raise ValueError(f"Blocked path traversal in archive: {member.name}")
                 if member.issym() or member.islnk():
                     raise ValueError(f"Blocked symlink/hardlink in archive: {member.name}")
+                if member.isdev():
+                    raise ValueError(f"Blocked device node in archive: {member.name}")
             tar.extractall(dest)
 
 

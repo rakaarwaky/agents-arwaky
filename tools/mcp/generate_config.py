@@ -28,6 +28,10 @@ def main() -> int:
     ])
     anytype_base = env.get("ANYTYPE_API_BASE_URL", "http://127.0.0.1:31012")
     anytype_key = env.get("ANYTYPE_API_KEY", "<YOUR_API_KEY>")
+    if not anytype_key or anytype_key in ("<YOUR_API_KEY>", "change-me", "<YOUR_ANYTYPE_API_KEY>", ""):
+        print("  \u26a0 Warning: ANYTYPE_API_KEY is not set or is a placeholder.", file=sys.stderr)
+        print("    Run 'aa anytype auth-key' to generate a valid key.", file=sys.stderr)
+        anytype_key = "<YOUR_API_KEY>"
 
     config = {
         "mcpServers": {

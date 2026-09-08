@@ -160,10 +160,14 @@ def remove_mcp_servers(path: Path, servers, dry_run: bool = False) -> list:
                 mcp.pop(s)
                 removed.append(s)
     if removed and not dry_run:
-        # Backup original before mutating (S8: no silent config loss)
+        # Backup original before mutating (S8: no silent config loss) + rotation (max 3)
         try:
             backup = path.with_name(path.name + ".bak-arwaky")
             backup.write_text(path.read_text(encoding="utf-8", errors="replace"), encoding="utf-8")
+            # Rotate: keep only the 3 most recent backups
+            backups = sorted(path.parent.glob(path.name + ".bak-arwaky*"))
+            for stale in backups[:-3]:
+                stale.unlink(missing_ok=True)
         except OSError:
             pass
         save_file(path, data, fmt)
@@ -238,6 +242,7 @@ def arwaky_server_names(repo_root: Path) -> list:
 # ---------------------------------------------------------------------------
 # CLI entrypoint
 # ---------------------------------------------------------------------------
+
 def main(argv):
     if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
         print(__doc__)
