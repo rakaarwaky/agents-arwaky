@@ -9,11 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from ui import info, ok, warn  # type: ignore[import-not-found]
+from ui import info, ok, warn  # type: ignore[import-untyped]
 
 
 def run(cmd):
-    return subprocess.run(cmd, check=False).returncode
+    return subprocess.run(cmd, check=False).returncode  # noqa: S603
 
 
 def main(argv):
@@ -25,7 +25,8 @@ def main(argv):
     completed_steps = []
 
     info("Step 1: syncing submodules...")
-    if run(["git", "-C", str(ROOT), "submodule", "update", "--init", "--recursive", "vendor/", "internal/"]) != 0:
+    if run(["git", "-C", str(ROOT), "submodule", "update",
+            "--init", "--recursive", "vendor/", "internal/"]) != 0:
         failures.append("submodules")
     else:
         completed_steps.append("submodules")
@@ -45,7 +46,8 @@ def main(argv):
 
     if not no_connect:
         info("Step 4: reconnecting harnesses...")
-        if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"), "connect", "--all"]) != 0:
+        if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"),
+                "connect", "--all"]) != 0:
             failures.append("connect")
     else:
         completed_steps.append("connect")

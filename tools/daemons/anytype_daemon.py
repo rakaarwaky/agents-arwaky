@@ -27,7 +27,9 @@ from xdg import (  # type: ignore[import-untyped]
 
 CONTAINER_NAME = "anytype-daemon"
 IMAGE_NAME = "localhost/anytype-daemon:latest"
-PORT = os.environ.get("ANYTYPE_API_BASE_URL", "http://127.0.0.1:31012").split(":")[-1].strip("/")
+PORT = os.environ.get(
+    "ANYTYPE_API_BASE_URL", "http://127.0.0.1:31012"
+).split(":")[-1].strip("/")
 DATA_DIR = data_home() / "anytype-mcp"
 DOT_ANYTYPE = data_home() / "anytype"
 CONFIG_DIR = config_home() / "anytype"
@@ -45,7 +47,9 @@ def run(cmd, **kw):  # noqa: S603
 
 
 def out(cmd, **kw):  # noqa: S603
-    return subprocess.run(cmd, capture_output=True, text=True, check=False, **kw).stdout.strip()
+    return subprocess.run(
+        cmd, capture_output=True, text=True, check=False, **kw
+    ).stdout.strip()
 
 
 def has_podman():
@@ -53,11 +57,15 @@ def has_podman():
 
 
 def container_running():
-    return out(["podman", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME]) == "true"
+    return out(
+        ["podman", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME]
+    ) == "true"
 
 
 def container_exists():
-    return out(["podman", "ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]) == CONTAINER_NAME
+    return out(
+        ["podman", "ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]
+    ) == CONTAINER_NAME
 
 
 def api_ready(timeout=90):
@@ -66,7 +74,7 @@ def api_ready(timeout=90):
     delay = 1.0
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(url, timeout=3) as r:
+            with urllib.request.urlopen(url, timeout=3) as r:  # noqa: S310
                 if r.status < 400:
                     return True
         except (OSError, ValueError):
@@ -140,19 +148,27 @@ def cmd_start():
         else:
             if not image_exists():
                 build_image()
-            print(f">>> Launching Anytype daemon container '{CONTAINER_NAME}' on port {PORT}...")
-            run(["podman", "run", "-d", "--name", CONTAINER_NAME, "--network", "host",
-                 "--restart", "unless-stopped",
-                 "-v", f"{DATA_DIR}:/data:Z",
-                 "-v", f"{DOT_ANYTYPE}:/root/.anytype:Z",
-                 "-v", f"{CONFIG_DIR}:/root/.config/anytype:Z",
-                 "-v", f"{SHARE_DIR}:/root/.local/share/anytype:Z",
-                 IMAGE_NAME])
+            print(
+                f">>> Launching Anytype daemon container '{CONTAINER_NAME}' on port {PORT}..."
+            )
+            run([
+                "podman", "run", "-d", "--name", CONTAINER_NAME, "--network", "host",
+                "--restart", "unless-stopped",
+                "-v", f"{DATA_DIR}:/data:Z",
+                "-v", f"{DOT_ANYTYPE}:/root/.anytype:Z",
+                "-v", f"{CONFIG_DIR}:/root/.config/anytype:Z",
+                "-v", f"{SHARE_DIR}:/root/.local/share/anytype:Z",
+                IMAGE_NAME,
+            ])
         print(f">>> Waiting for Anytype API on port {PORT}...")
         if api_ready():
             print(f">>> [OK] Anytype daemon is ready at http://127.0.0.1:{PORT}")
             return 0
-        print(">>> [WARN] Container started, but API is still initializing. Check 'aa anytype logs'.", file=sys.stderr)
+        print(
+            ">>> [WARN] Container started, but API is still initializing."
+            " Check 'aa anytype logs'.",
+            file=sys.stderr,
+        )
         return 2
     # native fallback
     print(">>> Podman not found. Falling back to native background execution...")
@@ -190,7 +206,9 @@ def cmd_stop():
             print(">>> Anytype daemon process not found (stale PID file).")
         _cleanup_pid()
     elif shutil.which("pkill"):
-        subprocess.run(["pkill", "-f", "anytype serve"], capture_output=True, check=False)  # noqa: S603, S607
+        subprocess.run(  # noqa: S603
+            ["pkill", "-f", "anytype serve"], capture_output=True, check=False
+        )
         print(">>> Anytype daemon stopped.")
     else:
         print(">>> No Anytype daemon PID found and pkill unavailable.")
@@ -249,12 +267,14 @@ def cmd_auth_key(name="arwaky-agent-key"):
     """Generate API key and update .env with ANYTYPE_API_KEY (parse output)."""
     if has_podman() and container_running():
         result = subprocess.run(  # noqa: S603
-            ["podman", "exec", CONTAINER_NAME, "anytype", "account", "api-key", "create", "--name", name],
+            ["podman", "exec", CONTAINER_NAME, "anytype",
+             "account", "api-key", "create", "--name", name],
             capture_output=True, text=True, check=False,
         )
     elif (LOCAL_BIN / "anytype").exists():
-        result = subprocess.run(  # noqa: S603, S607
-            [str(LOCAL_BIN / "anytype"), "account", "api-key", "create", "--name", name],
+        result = subprocess.run(  # noqa: S603
+            [str(LOCAL_BIN / "anytype"), "account", "api-key",
+             "create", "--name", name],
             capture_output=True, text=True, check=False,
         )
     else:
