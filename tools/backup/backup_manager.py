@@ -9,13 +9,13 @@ import shutil
 import subprocess
 import sys
 import tarfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import data_home
+from xdg import data_home  # type: ignore[import-untyped]
 
 BACKUP_STORE = data_home() / "backups"
 GDRIVE_HELPER = ROOT / "tools/backup/gdrive.py"
@@ -74,7 +74,7 @@ def backup_tool(tool: str, dest: str = ""):
     if not src.exists():
         print(f"  \u26a0 No data for {tool} at {src}, skipping.")
         return 0
-    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     archive = store / f"{tool}-{ts}.tar.gz"
     log_info(f"Backing up {tool} -> {archive}")
     tar_dir(src, archive)
@@ -82,7 +82,7 @@ def backup_tool(tool: str, dest: str = ""):
     if upload_to_gdrive:
         result = subprocess.run(
             [sys.executable, str(GDRIVE_HELPER), "upload", str(archive)],
-            capture_output=True, text=True,
+            capture_output=True, text=True, check=False,
         )
         if result.returncode != 0:
             print(f"  \u2717 Google Drive upload failed: {result.stderr.strip()}", file=sys.stderr)

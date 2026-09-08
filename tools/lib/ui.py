@@ -4,6 +4,29 @@ from __future__ import annotations
 import os
 import sys
 
+import logging as _logging
+
+# Structured logging (P1-O1): level + timestamp pada output log
+_logger = _logging.getLogger("agents-arwaky")
+if not _logger.handlers:
+    _handler = _logging.StreamHandler()
+    _handler.setFormatter(_logging.Formatter("%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S"))
+    _logger.addHandler(_handler)
+    _logger.setLevel(_logging.INFO)
+
+
+def log_debug(msg):
+    _logger.debug(msg)
+
+
+def log_info(msg):
+    _logger.info(msg)
+
+
+def log_warning(msg):
+    _logger.warning(msg)
+
+
 _color_override = None
 
 

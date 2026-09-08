@@ -111,8 +111,20 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
         if fmt == "json":
             path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         elif fmt == "jsonc":
-            # JSONC files are usually valid JSON with optional comments; write as JSON.
-            path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            # Best-effort: pertahankan komentar JSONC asli di luar blok yang diubah.
+            # Jika file asli ada, simpan komentar baris (//) yang berada di luar bagian mcp/mcpServers.
+            try:
+                original = path.read_text(encoding="utf-8", errors="replace")
+                comment_lines = [
+                    ln for ln in original.splitlines()
+                    if ln.strip().startswith("//") and "mcp" not in ln.lower()
+                ]
+            except OSError:
+                comment_lines = []
+            body = json.dumps(data, indent=2, ensure_ascii=False)
+            if comment_lines:
+                body = "\n".join(comment_lines) + "\n" + body
+            path.write_text(body + "\n", encoding="utf-8")
         elif fmt == "yaml":
             try:
                 if preserve_comments:

@@ -21,8 +21,9 @@ def test_find_tool():
 
 
 def test_find_tool_alias():
-    t = manifest.find_tool("la")
-    assert t is not None and t.id == "lint"
+    # alias resmi di manifest (vision punya alias vision-arwaky)
+    t = manifest.find_tool("vision-arwaky")
+    assert t is not None and t.id == "vision"
 
 
 if __name__ == "__main__":

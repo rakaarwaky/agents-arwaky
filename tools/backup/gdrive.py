@@ -8,6 +8,7 @@ import io
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
@@ -15,7 +16,7 @@ DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 def get_credentials():
     data_dir = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
     creds_dir = Path(data_dir) / "google-workspace-mcp" / "credentials"
-    user_email = os.environ.get("USER_GOOGLE_EMAIL", "arwaky90@gmail.com")
+    user_email = os.environ.get("USER_GOOGLE_EMAIL", "")
     
     cred_file = creds_dir / f"{user_email}.json"
     if not cred_file.exists():
@@ -33,6 +34,7 @@ def get_credentials():
     with open(cred_file, "r", encoding="utf-8") as f:
         cdata = json.load(f)
 
+    from google.auth.exceptions import RefreshError
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
     creds = Credentials(
@@ -49,7 +51,7 @@ def get_credentials():
             cdata["token"] = creds.token
             with open(cred_file, "w", encoding="utf-8") as f:
                 json.dump(cdata, f, indent=2)
-        except Exception as e:
+        except (RefreshError, OSError, TypeError) as e:
             print(f"Warning: Failed to refresh token: {e}", file=sys.stderr)
     return creds
 
@@ -63,11 +65,10 @@ def get_drive_service():
     auth_http = google_auth_httplib2.AuthorizedHttp(creds, http=http)
     return build("drive", "v3", http=auth_http)
 
-import time
-
 
 def _is_transient(err) -> bool:
-    """Return True if the error is retryable (transient), False for permanent failures."""
+    """Return True if the error is retryable (transient), False for permanent
+    failures."""
     # Timeout / connection errors
     if isinstance(err, (ConnectionError, TimeoutError)):
         return True
@@ -76,10 +77,12 @@ def _is_transient(err) -> bool:
         from googleapiclient.errors import HttpError
         if isinstance(err, HttpError):
             status = getattr(err, "resp", None)
-            code = status.status if status is not None else getattr(err, "status_code", None)
-            if code in (429, 500, 502, 503):
-                return True
-            return False  # 401/403/404 dan lainnya = permanen, jangan retry
+            code = (
+                status.status
+                if status is not None
+                else getattr(err, "status_code", None)
+            )
+            return code in (429, 500, 502, 503)  # 401/403/404 = permanen, jangan retry
     except ImportError:
         pass
     return False
@@ -119,12 +122,15 @@ def list_all_files(service, query, fields, max_pages: int = 50):
     while True:
         pages += 1
         if pages > max_pages:
-            print(f"  \u26a0 Warning: stopped after {max_pages} pages (pagination bound).", file=sys.stderr)
+            print(
+                f"  \u26a0 Warning: stopped after {max_pages} pages (pagination bound).",
+                file=sys.stderr,
+            )
             break
         params = {"q": query, "fields": fields, "pageSize": 100}
         if page_token:
             params["pageToken"] = page_token
-        res = retry_api(lambda: service.files().list(**params).execute())
+        res = retry_api(lambda p=params: service.files().list(**p).execute())
         all_files.extend(res.get("files", []))
         page_token = res.get("nextPageToken")
         if not page_token:
@@ -133,8 +139,15 @@ def list_all_files(service, query, fields, max_pages: int = 50):
 
 
 def get_or_create_folder(service, folder_name=DEFAULT_FOLDER_NAME):
-    query = f"name = '{escape_drive_query(folder_name)}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
-    res = retry_api(lambda: service.files().list(q=query, spaces="drive", fields="files(id, name)").execute())
+    query = (
+        f"name = '{escape_drive_query(folder_name)}' "
+        "and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+    )
+    res = retry_api(
+        lambda: service.files().list(
+            q=query, spaces="drive", fields="files(id, name)"
+        ).execute()
+    )
     files = res.get("files", [])
     if files:
         return files[0]["id"]
@@ -143,7 +156,9 @@ def get_or_create_folder(service, folder_name=DEFAULT_FOLDER_NAME):
         "name": folder_name,
         "mimeType": "application/vnd.google-apps.folder"
     }
-    folder = retry_api(lambda: service.files().create(body=metadata, fields="id").execute())
+    folder = retry_api(
+        lambda: service.files().create(body=metadata, fields="id").execute()
+    )
     return folder.get("id")
 
 def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
@@ -182,30 +197,55 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
     file_id = None
     target_name = query_or_id
 
-    # Check if query_or_id is a file ID (Google Drive IDs are usually ~33-44 alphanum with - and _)
+    # Check if query_or_id is a file ID (Google Drive IDs are usually
+    # ~33-44 alphanum with - and _)
     if len(query_or_id) > 25 and "/" not in query_or_id and "." not in query_or_id:
+        from googleapiclient.errors import HttpError
+
         try:
-            meta = retry_api(lambda: service.files().get(fileId=query_or_id, fields="id, name").execute())
+            meta = retry_api(
+                lambda: service.files().get(
+                    fileId=query_or_id, fields="id, name"
+                ).execute()
+            )
             if meta:
                 file_id = meta["id"]
                 target_name = meta["name"]
-        except Exception:
+        except (HttpError, OSError, ValueError):
             pass
 
     if not file_id:
         # Search by file name in folder
         folder_id = get_or_create_folder(service, folder_name)
-        q = f"'{folder_id}' in parents and name contains '{escape_drive_query(query_or_id)}' and trashed = false"
-        res = retry_api(lambda: service.files().list(q=q, orderBy="createdTime desc", fields="files(id, name)").execute())
+        q = (
+            f"'{folder_id}' in parents and name contains "
+            f"'{escape_drive_query(query_or_id)}' and trashed = false"
+        )
+        res = retry_api(
+            lambda: service.files().list(
+                q=q, orderBy="createdTime desc", fields="files(id, name)"
+            ).execute()
+        )
         files = res.get("files", [])
         if not files:
             # Fallback: search anywhere in Drive
-            q_any = f"name contains '{escape_drive_query(query_or_id)}' and trashed = false"
-            res = retry_api(lambda: service.files().list(q=q_any, orderBy="createdTime desc", fields="files(id, name)").execute())
+            q_any = (
+                f"name contains '{escape_drive_query(query_or_id)}' "
+                "and trashed = false"
+            )
+            res = retry_api(
+                lambda: service.files().list(
+                    q=q_any, orderBy="createdTime desc", fields="files(id, name)"
+                ).execute()
+            )
             files = res.get("files", [])
 
         if not files:
-            print(f"Error: No backup archive found in Google Drive matching '{query_or_id}'", file=sys.stderr)
+            print(
+                f"Error: No backup archive found in Google Drive matching "
+                f"'{query_or_id}'",
+                file=sys.stderr,
+            )
             sys.exit(1)
         file_id = files[0]["id"]
         target_name = files[0]["name"]
@@ -221,7 +261,7 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
     downloader = MediaIoBaseDownload(fh, request)
     done = False
     while not done:
-        status, done = downloader.next_chunk()
+        _, done = downloader.next_chunk()
 
     fh.close()
     print(json.dumps({
@@ -235,8 +275,8 @@ def cmd_list(folder_name=DEFAULT_FOLDER_NAME):
     service = get_drive_service()
     folder_id = get_or_create_folder(service, folder_name)
     q = f"'{folder_id}' in parents and trashed = false"
-    res = retry_api(lambda: service.files().list(q=q, orderBy="createdTime desc", fields="files(id, name, size, createdTime, webViewLink)").execute())
-    files = res.get("files", [])
+    # Gunakan list_all_files (pagination-aware, bounded) (P3)
+    files = list_all_files(service, q, "files(id, name, size, createdTime, webViewLink)")
     print(json.dumps(files, indent=2))
 
 def main():
@@ -253,7 +293,11 @@ def main():
         cmd_upload(sys.argv[2], folder)
     elif action == "download":
         if len(sys.argv) < 4:
-            print("Usage: gdrive.py download <query_or_id> <destination_path> [folder_name]", file=sys.stderr)
+            print(
+                "Usage: gdrive.py download <query_or_id> <destination_path> "
+                "[folder_name]",
+                file=sys.stderr,
+            )
             sys.exit(1)
         folder = sys.argv[4] if len(sys.argv) > 4 else DEFAULT_FOLDER_NAME
         cmd_download(sys.argv[2], sys.argv[3], folder)

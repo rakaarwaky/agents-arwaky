@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-COMMANDS = "status doctor list run install mcp skill connect disconnect unconnect unskill anytype 9router service sync backup restore check submodules clean uninstall reset completion help"
+COMMANDS = "status doctor list run install mcp skill connect disconnect unconnect unskill anytype 9router service sync backup restore check submodules clean uninstall reset version completion help"
 HARNESSES = "--antigravity --hermes --opencode --qwencode --all --force --dry-run --mcp-only --skills-only --env-only"
 SERVICE_ACTIONS = "status start stop restart logs"
 SERVICE_TARGETS = "9router anytype all"

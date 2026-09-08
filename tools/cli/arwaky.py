@@ -34,6 +34,15 @@ from xdg import bin_home, config_home, data_home, ensure_path
 # =============================================================================
 # Helpers
 # =============================================================================
+# Runner map per tool (P5-P1: manifest-driven dispatch, avoid hardcoded IDs)
+TOOL_RUNNERS = {
+    "lint": "cargo",
+    "vision": "uv",
+    "qwen-web": "uv",
+    "blender": "uv",
+}
+
+
 def run_cmd(cmd: list[str]) -> int:
     try:
         return subprocess.run(cmd).returncode
@@ -172,15 +181,15 @@ def cmd_status(argv: list[str]) -> int:
     for tool in load_tools():
         cat_color = GREEN if tool.category == "internal" else CYAN
         if is_submodule_missing(tool.path):
-            status = f"{RED}Submodule Missing{RESET}"
+            status = f"{RED}[FAIL] Submodule Missing{RESET}"
         elif executable_path(tool.binary):
-            status = f"{GREEN}Installed ({tool.binary}){RESET}"
+            status = f"{GREEN}[OK] Installed ({tool.binary}){RESET}"
         elif (bin_home() / tool.binary).exists():
-            status = f"{GREEN}Ready ({bin_home()}){RESET}"
+            status = f"{GREEN}[OK] Ready ({bin_home()}){RESET}"
         elif tool.category == "internal":
-            status = f"{BLUE}Source Ready (Internal){RESET}"
+            status = f"{BLUE}[OK] Source Ready (Internal){RESET}"
         else:
-            status = f"{YELLOW}Not Installed{RESET}"
+            status = f"{YELLOW}[WARN] Not Installed{RESET}"
         print(f"{tool.id:<14} {cat_color}{tool.category:<10}{RESET} {tool.binary:<20} {status}")
     print("--------------------------------------------------------------------------------")
     return 0
@@ -247,12 +256,16 @@ def cmd_run(argv: list[str]) -> int:
     if exe:
         os.execvpe(str(exe), [str(exe), *tool_args], os.environ)
     tool_dir = repo_root() / tool.path
+    # Runner dispatch (P5-P1: manifest-driven, bukan hardcoded tool IDs)
     if tool.category == "internal":
-        if tool.id == "lint" and shutil.which("cargo"):
+        runner = TOOL_RUNNERS.get(tool.id, "")
+        if runner == "cargo" and shutil.which("cargo"):
             os.execvpe("cargo", ["cargo", "run", "--quiet", "--manifest-path",
                                  str(tool_dir / "Cargo.toml"), "--bin", "lint-arwaky-cli", "--", *tool_args], os.environ)
-        if tool.id in {"vision", "qwen-web", "blender"} and shutil.which("uv"):
+        if runner in {"uv", "python"} and shutil.which("uv"):
             os.execvpe("uv", ["uv", "run", "--directory", str(tool_dir), tool.binary, *tool_args], os.environ)
+        if runner == "uv" and not shutil.which("uv") and shutil.which("python3"):
+            os.execvpe("python3", ["python3", "-m", tool.id, *tool_args], os.environ)
     err(f"Binary '{tool.binary}' for tool '{tool.id}' is not installed or runnable.")
     print(f"Try running: {BOLD}aa install {tool.id}{RESET} or {BOLD}aa install{RESET}")
     return 1
@@ -564,10 +577,28 @@ def cmd_sync(argv):
 # =============================================================================
 # Main dispatcher
 # =============================================================================
+def _init_sentry():
+    """Opt-in Sentry error tracking (P1-O2), dikontrol ARWAKY_SENTRY_DSN."""
+    dsn = os.environ.get("ARWAKY_SENTRY_DSN", "")
+    if not dsn:
+        return
+    try:
+        import sentry_sdk
+        sentry_sdk.init(dsn=dsn, traces_sample_rate=0.1)
+    except ImportError:
+        pass
+
+
 def main() -> int:
+    _init_sentry()
     argv = sys.argv[1:]
     if not argv:
         return cmd_help([])
+    # Global flag: --no-color / --plain (P2-P1)
+    if "--no-color" in argv or "--plain" in argv:
+        import ui
+        ui.set_color_mode(False)
+        argv = [a for a in argv if a not in ("--no-color", "--plain")]
     cmd = argv[0]
     rest = argv[1:]
     dispatch = {
