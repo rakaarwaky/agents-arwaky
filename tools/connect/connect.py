@@ -6,7 +6,6 @@ adapter registry, and delegates to per-harness capability modules.
 
 Supports:
     aa disconnect --antigravity|--hermes|--opencode|--qwencode|--all
-    aa disconnect --lean-ctx
     aa disconnect <targets> --dry-run
 
 Removes agents-arwaky MCP servers, provisioned skills and env vars from
