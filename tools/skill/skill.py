@@ -124,6 +124,7 @@ def _find_skills(base: Path):
     return out
 
 
+@lru_cache(maxsize=1)
 def get_tool_skills(tool_id):
     """Return sorted list of SKILL.md paths for a tool.
 
@@ -133,10 +134,10 @@ def get_tool_skills(tool_id):
     base = REPO_ROOT / "tools" / "skills"
     if not base.is_dir():
         return []
-    return sorted(
+    return tuple(sorted(
         f for f in base.rglob("SKILL.md")
         if not any(part in {"node_modules", ".venv", "venv", "target", ".git", "__pycache__"} for part in f.parts)
-    )
+    ))
 
 
 def resolve_single_skill_file(query):
