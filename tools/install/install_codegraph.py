@@ -33,9 +33,18 @@ def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
 
+def _require(tool: str, reason: str) -> bool:
+    if shutil.which(tool):
+        return True
+    print(f"Error: {tool} tidak ditemukan di PATH. {reason}", file=sys.stderr)
+    return False
+
+
 def main() -> int:
     if not (SRC / "package.json").exists():
         print("Error: codegraph source not found (submodule belum di-init).", file=sys.stderr)
+        return 1
+    if not _require("npm", "codegraph membutuhkan npm (https://nodejs.org)"):
         return 1
 
     print(f">>> Installing codegraph into {APP_DIR}...")

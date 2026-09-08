@@ -64,6 +64,40 @@ def _bootstrap_rustup() -> bool:
     return _cargo_on_path() is not None
 
 
+_BUILD_DEPS = [
+    # (perintah, paket apt)
+    ("cc", "gcc"),
+    ("sccache", "sccache"),
+    ("mold", "mold"),
+]
+
+
+def _preflight_build_deps() -> dict:
+    """Pastikan build deps ada (apt best-effort via sudo); fallback override env."""
+    env = {}
+    for cmd, pkg in _BUILD_DEPS:
+        if shutil.which(cmd):
+            continue
+        print(f">>> Build dep '{cmd}' tidak ada; mencoba apt install {pkg}...", file=sys.stderr)
+        try:
+            subprocess.run(["sudo", "-n", "apt-get", "install", "-y", pkg],
+                           check=True, timeout=300, capture_output=True)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+            print(f"  Warning: apt install {pkg} gagal ({e}); pakai fallback.", file=sys.stderr)
+        if shutil.which(cmd):
+            print(f"  -> {cmd} tersedia.")
+        else:
+            # Fallback: matikan wrapper/flag yang butuh tool tsb.
+            if cmd == "sccache":
+                env["CARGO_BUILD_RUSTC_WRAPPER"] = ""
+                print("  -> sccache dilewati (RUSTC_WRAPPER kosong).", file=sys.stderr)
+            elif cmd == "mold":
+                env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS"] = ""
+                env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER"] = "cc"
+                print("  -> mold dilewati (linker=cc).", file=sys.stderr)
+    return env
+
+
 def main() -> int:
     if not INTERNAL_DIR.exists() or not (INTERNAL_DIR / "Cargo.toml").exists():
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/lint-arwaky"])
@@ -75,11 +109,16 @@ def main() -> int:
             print("  Jalankan ulang 'aa install lint' setelah rust terpasang.", file=sys.stderr)
             return 0
 
+    build_env = _preflight_build_deps()
+    build_env["CARGO_INCREMENTAL"] = "0"  # rekomendasi proyek utk sccache
+    env = os.environ.copy()
+    env.update(build_env)
+
     ensure_bin_home()
     (config_home() / "lint-arwaky/rules").mkdir(parents=True, exist_ok=True)
     (data_home() / "lint-arwaky/reports").mkdir(parents=True, exist_ok=True)
     print(">>> Building lint-arwaky (AES Architecture Linter)...")
-    run(["cargo", "build", "--release"], INTERNAL_DIR)
+    subprocess.run(["cargo", "build", "--release"], cwd=INTERNAL_DIR, env=env, check=True)
     release = INTERNAL_DIR / "target/release"
     for b in BINARIES:
         src = release / b
