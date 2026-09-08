@@ -17,8 +17,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  
+from xdg import (
     bin_home,
+    cache_home,
     config_home,
     data_home,
     ensure_bin_home,
@@ -105,9 +106,14 @@ def main() -> int:
     ensure_bin_home()
     (config_home() / "lint-arwaky/rules").mkdir(parents=True, exist_ok=True)
     (data_home() / "lint-arwaky/reports").mkdir(parents=True, exist_ok=True)
-    print(">>> Building lint-arwaky (AES Architecture Linter)...")
+
+    # Build in cache directory (XDG spec: transient build artifacts in ~/.cache/)
+    cache_dir = cache_home() / "lint-arwaky"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    print(f">>> Building lint-arwaky (AES Architecture Linter) into {cache_dir}...")
+    env["CARGO_TARGET_DIR"] = str(cache_dir)
     subprocess.run(["cargo", "build", "--release"], cwd=INTERNAL_DIR, env=env, check=True)
-    release = INTERNAL_DIR / "target/release"
+    release = cache_dir / "release"
     for b in BINARIES:
         src = release / b
         if src.exists():

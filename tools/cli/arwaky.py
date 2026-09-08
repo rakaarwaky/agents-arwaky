@@ -37,6 +37,7 @@ from ui import (  # type: ignore[import-not-found]
 )
 from xdg import (  # type: ignore[import-untyped]
     bin_home,
+    cache_home,
     config_home,
     data_home,
     ensure_path,
@@ -555,8 +556,13 @@ def cmd_submodules(argv: list[str]) -> int:
 
 def cmd_clean(argv: list[str]) -> int:
     info("Cleaning build artifacts and generated configs...")
-    for dist_dir in (repo_root() / "tools").glob("*/dist"):
-        shutil.rmtree(dist_dir, ignore_errors=True)
+    # Remove tool build caches (~/.cache/<tool>/)
+    for tool in load_tools():
+        cache_path = cache_home() / tool.id
+        if cache_path.exists():
+            shutil.rmtree(cache_path, ignore_errors=True)
+            info(f"  Removed {cache_path}")
+    # Remove generated MCP config
     (repo_root() / "mcp_servers.generated.json").unlink(missing_ok=True)
     ok("Build artifacts cleaned.")
     return 0
