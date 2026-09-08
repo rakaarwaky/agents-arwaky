@@ -59,7 +59,6 @@ ALL_HARNESS_IDS = tuple(HARNESSES.keys())
 
 def cmd_disconnect(args):
     dry_run = False
-    lean_ctx_only = False
     clean_args = []
     for a in args:
         if a == "--dry-run":
