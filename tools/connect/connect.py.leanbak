@@ -6,6 +6,7 @@ adapter registry, and delegates to per-harness capability modules.
 
 Supports:
     aa disconnect --antigravity|--hermes|--opencode|--qwencode|--all
+    aa disconnect --lean-ctx
     aa disconnect <targets> --dry-run
 
 Removes agents-arwaky MCP servers, provisioned skills and env vars from
@@ -56,6 +57,100 @@ for _mod in (_register_antigravity, _register_hermes, _register_opencode, _regis
 ALL_HARNESS_IDS = tuple(HARNESSES.keys())
 
 
+# --- legacy lean-ctx cleanup (special command, not a harness adapter) ---------
+def disconnect_legacy_lean_ctx(dry_run: bool):
+    log_header("Cleaning up legacy lean-ctx remnants...")
+    # 1. Hermes config.yaml mcp_servers.lean-ctx
+    h = hermes_home()
+    remove_mcp_servers(h / "config.yaml", dry_run)
+
+    # 2. HERMES.md lean-ctx comment blocks (main + profiles)
+    hermes_mds = [h / "HERMES.md"]
+    if (h / "profiles").is_dir():
+        hermes_mds.extend((h / "profiles").glob("*/HERMES.md"))
+    for hmd in hermes_mds:
+        if not hmd.is_file():
+            continue
+        if dry_run:
+            log_sub(f"[DRY-RUN] Would strip lean-ctx blocks from {hmd}")
+            continue
+        try:
+            s = hmd.read_text(encoding="utf-8")
+            before = s
+            s = re.sub(r"(?s)<!--\s*lean-ctx-rules\s*-->.*?<!--\s*/lean-ctx-rules\s*-->\n?", "", s)
+            s = re.sub(r"(?s)<!--\s*lean-ctx-compression\s*-->.*?<!--\s*/lean-ctx-compression\s*-->\n?", "", s)
+            s = re.sub(r"(?s)<!--\s*lean-ctx-solution\s*-->.*?<!--\s*/lean-ctx-solution\s*-->\n?", "", s)
+            s = re.sub(r"(?s)<!--\s*lean-ctx\s*-->.*?<!--\s*/lean-ctx\s*-->\n?", "", s)
+            s = re.sub(r"(?s)#\s*Lean-CTX.*?(?=\n# |\Z)", "", s, flags=re.IGNORECASE)
+            if s != before:
+                hmd.write_text(s, encoding="utf-8")
+                log_ok(f"Stripped lean-ctx blocks from {hmd}")
+        except OSError:
+            log_warn(f"Could not process {hmd}")
+
+    # 3. Skill dirs named lean-ctx
+    skill_bases = [h / "skills"]
+    if (h / "profiles").is_dir():
+        skill_bases.extend((h / "profiles").glob("*/skills"))
+    for base in skill_bases:
+        if base.is_dir():
+            d = base / "lean-ctx"
+            if d.exists():
+                if dry_run:
+                    log_sub(f"[DRY-RUN] Would remove skill dir {d}")
+                else:
+                    shutil.rmtree(d, ignore_errors=True)
+                    log_ok(f"Removed skill dir {d}")
+
+    # 4. Zed settings.json
+    zed = HOME / ".config" / "zed" / "settings.json"
+    remove_mcp_servers(zed, dry_run)
+
+    # 5. All ~/.config/*/mcp_servers.json templates
+    for tpl in (HOME / ".config").glob("*/mcp_servers.json"):
+        if tpl.is_file():
+            removed = remove_mcp_servers(tpl, dry_run)
+            if removed or dry_run:
+                log_ok(f"Removed agents-arwaky servers from {tpl}")
+
+    # 5b. Qwen settings.json.bak
+    qwen_bak = HOME / ".qwen" / "settings.json.bak"
+    if qwen_bak.is_file():
+        removed = remove_mcp_servers(qwen_bak, dry_run)
+        if removed or dry_run:
+            log_ok(f"Removed agents-arwaky servers from {qwen_bak}")
+
+    # 6. Binary remnants in internal-bin
+    ibin = data_home() / "agents-arwaky" / "internal-bin"
+    for b in ("lean-ctx", "_lc", "_lc_compress"):
+        f = ibin / b
+        if f.exists():
+            if dry_run:
+                log_sub(f"[DRY-RUN] Would remove binary {f}")
+            else:
+                f.unlink(missing_ok=True)
+                log_ok(f"Removed binary {f}")
+
+    log_ok("Legacy lean-ctx cleanup complete.")
+
+
+# --- dispatcher --------------------------------------------------------------
+def _parse_targets(args):
+    """Return (targets, extras) where targets are resolved registry IDs."""
+    targets = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ALIASES:
+            targets.append(ALIASES[a])
+        elif a in ("--all", "all"):
+            targets = list(ALL_HARNESS_IDS)
+        elif a in ("--help", "-h", "help"):
+            return None, "help"
+        else:
+            return None, a
+        i += 1
+    return targets, None
 
 
 def cmd_disconnect(args):
@@ -65,7 +160,8 @@ def cmd_disconnect(args):
     for a in args:
         if a == "--dry-run":
             dry_run = True
-
+        elif a in ("--lean-ctx", "lean-ctx", "lean_ctx"):
+            lean_ctx_only = True
         else:
             clean_args.append(a)
 

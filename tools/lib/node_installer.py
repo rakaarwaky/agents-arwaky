@@ -25,11 +25,30 @@ def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
 
+# Artefak vendor yang TIDAK boleh ikut tersalin ke build dir:
+# - node_modules: deps lama bisa berisi symlink putus (pnpm .old_modules-*);
+#   install deps fresh di build dir justru wajib.
+# - .git/__pycache__/.venv/dist dsb: sampah/stale yang tidak relevan utk build.
+_BUILD_IGNORES = shutil.ignore_patterns(
+    "node_modules",
+    ".git",
+    ".old_modules*",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "dist",
+    "target",
+    "*.egg-info",
+    ".next",
+    ".turbo",
+)
+
+
 def build(source_dir: Path, build_dir: Path):
     """Build a Node.js project using bun or npm in an isolated cache directory."""
     if build_dir.exists():
         shutil.rmtree(build_dir)
-    shutil.copytree(source_dir, build_dir)
+    shutil.copytree(source_dir, build_dir, ignore=_BUILD_IGNORES)
     if shutil.which("bun"):
         run(["bun", "install"], build_dir)
         run(["bun", "run", "build"], build_dir)
