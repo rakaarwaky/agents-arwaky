@@ -136,10 +136,10 @@ def tool_cache_dir(tool: str) -> Path:
 
 
 # ---------------------------------------------------------------------------
-# agents-arwaky private config (secrets/env) — canonical + legacy
+# agents-arwaky private config (secrets/env)
 # ---------------------------------------------------------------------------
 def agents_arwaky_config_dir() -> Path:
-    """Canonical private config dir: $XDG_CONFIG_HOME/agents-arwaky.
+    """Private config dir: $XDG_CONFIG_HOME/agents-arwaky.
 
     Stores secret/env (.env) per tool with mode 0700.
     """
@@ -148,16 +148,10 @@ def agents_arwaky_config_dir() -> Path:
     return p
 
 
-def legacy_agents_arwaky_secret_dir() -> Path:
-    """Legacy location ($XDG_DATA_HOME/agents-arwaky/config) for backward-compat."""
-    return data_home() / "agents-arwaky" / "config"
-
-
 def agent_secret_candidates(tool: str, repo_config: Path | None = None) -> list[Path]:
-    """Candidate env files utk sebuah tool: kanonik -> legacy -> repo config."""
+    """Candidate env files utk sebuah tool: kanonik -> repo config."""
     candidates = [
         agents_arwaky_config_dir() / f"{tool}.env",
-        legacy_agents_arwaky_secret_dir() / f"{tool}.env",
     ]
     if repo_config is not None:
         candidates.append(repo_config)
@@ -182,7 +176,6 @@ def remove_tool_artifacts(
         (bin_home() / name).unlink(missing_ok=True)
     shutil.rmtree(tool_data_path(tool), ignore_errors=True)
     shutil.rmtree(tool_cache_path(tool), ignore_errors=True)
-    shutil.rmtree(cache_home() / "agents-arwaky" / f"build-{tool}", ignore_errors=True)
     if clean_config:
         shutil.rmtree(tool_config_path(tool), ignore_errors=True)
 

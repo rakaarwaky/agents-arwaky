@@ -14,7 +14,6 @@ from envfile import load_first_env  # type: ignore[import-not-found]
 from xdg import (  # type: ignore[import-untyped]
     agents_arwaky_config_dir,
     config_home,
-    legacy_agents_arwaky_secret_dir,
 )
 
 
@@ -25,7 +24,6 @@ def main() -> int:
 
     env = load_first_env([
         agents_arwaky_config_dir() / "anytype.env",
-        legacy_agents_arwaky_secret_dir() / "anytype.env",
         config_home() / "anytype-mcp/.env",
         ROOT / "tools/config/anytype.env",
         ROOT / ".env",

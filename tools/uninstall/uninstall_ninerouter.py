@@ -13,8 +13,6 @@ from xdg import (
     agents_arwaky_config_dir,
     bin_home,
     data_home,
-    legacy_agents_arwaky_secret_dir,
-    remove_tool_artifacts,
 )
 
 LAUNCHERS = ["9router"]
@@ -31,14 +29,13 @@ def main() -> int:
     # Remove launcher + XDG artifacts via shared helper
     remove_tool_artifacts("9router", LAUNCHERS, clean_config=True)
 
-    # Remove container-internal binary (per AGENTS.md invariant)
-    internal_bin = data_home() / "agents-arwaky" / "internal-bin" / "9router"
+    # Remove container-internal binary (per-tool internal-bin)
+    internal_bin = data_home() / "9router" / "internal-bin" / "9router"
     internal_bin.unlink(missing_ok=True)
 
     # Remove secret env files (tool-specific, not handled by remove_tool_artifacts)
     for env in (
         agents_arwaky_config_dir() / "ninerouter.env",
-        legacy_agents_arwaky_secret_dir() / "ninerouter.env",
     ):
         env.unlink(missing_ok=True)
 

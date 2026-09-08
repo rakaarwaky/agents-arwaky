@@ -21,7 +21,6 @@ from xdg import (  # type: ignore[import-untyped]
     agents_arwaky_config_dir,
     config_home,
     data_home,
-    legacy_agents_arwaky_secret_dir,
     state_home,
 )
 
@@ -291,15 +290,11 @@ def cmd_auth_key(name="arwaky-agent-key"):
         print("Error: could not extract API key from daemon output.", file=sys.stderr)
         return 1
 
-    # Update .env (canonical $XDG_CONFIG_HOME/agents-arwaky + repo config placeholder;
-    # legacy migration: also update old file if it still exists)
+    # Update .env (canonical $XDG_CONFIG_HOME/agents-arwaky + repo config placeholder)
     env_candidates = [
         agents_arwaky_config_dir() / "anytype.env",
         ROOT / "tools/config/anytype.env",
     ]
-    legacy_env = legacy_agents_arwaky_secret_dir() / "anytype.env"
-    if legacy_env.exists():
-        env_candidates.append(legacy_env)
     for env_path in env_candidates:
         env_path.parent.mkdir(parents=True, exist_ok=True)
         update_env_file(env_path, "ANYTYPE_API_KEY", api_key)

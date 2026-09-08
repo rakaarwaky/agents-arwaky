@@ -24,7 +24,6 @@ from xdg import (  # type: ignore[import-not-found]
     agents_arwaky_config_dir,
     config_home,
     data_home,
-    legacy_agents_arwaky_secret_dir,
 )
 
 
@@ -265,7 +264,6 @@ def get_9router_credentials():
     router_key = ""
     for cand in (
         agents_arwaky_config_dir() / "ninerouter.env",
-        legacy_agents_arwaky_secret_dir() / "ninerouter.env",
         config_home() / "9router/.env",
         REPO_ROOT / "tools/config/ninerouter.env",
     ):

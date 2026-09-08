@@ -52,7 +52,7 @@ flowchart TB
       
         subgraph XDGShared["Shared Host Storage ($HOME Bind-Mount)"]
             Launchers["Host Wrappers: ~/.local/bin/\n(lint-arwaky, codegraph-mcp, context7, etc.)"]
-            InternalBin["Container Binaries: ~/.local/share/agents-arwaky/internal-bin/\n(Compiled ELFs, Venv Wrappers, Node Scripts)"]
+            InternalBin["Per-Tool Container Binaries: ~/.local/share/<tool>/internal-bin/\n(Compiled ELFs, Venv Wrappers, Node Scripts)"]
             XDGConfigs["Configs & Generated MCP:\n~/.config/<tool>/ & mcp_servers.generated.json"]
             XDGSkills["Harness Skills:\n~/.gemini/... • ~/.hermes/skills • ~/.config/opencode/skills"]
         end

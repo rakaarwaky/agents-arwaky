@@ -30,9 +30,9 @@ def main() -> int:
         subprocess.run(["systemctl", "--user", "daemon-reload"], check=False, capture_output=True)
         print("  -> systemd service anytype-daemon removed")
 
-    # Launcher + alias ad + internal-bin copy
+    # Launcher + alias ad + per-tool internal-bin
     remove_tool_artifacts("anytype-daemon", ["anytype-daemon", "ad"], clean_config=False)
-    (data_home() / "agents-arwaky/internal-bin/anytype-daemon").unlink(missing_ok=True)
+    (data_home() / "anytype-daemon/internal-bin/anytype-daemon").unlink(missing_ok=True)
 
     if "--purge" in sys.argv:
         shutil.rmtree(data_home() / "anytype", ignore_errors=True)

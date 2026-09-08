@@ -20,7 +20,7 @@ from xdg import (
 
 TOOL_DIR = ROOT / "tools/daemons"
 DATA_DIR = data_home() / "9router"
-INTERNAL_BIN = data_home() / "agents-arwaky/internal-bin"
+INTERNAL_BIN = DATA_DIR / "internal-bin"
 LAUNCHER = bin_home() / "9router"
 def main() -> int:
     ensure_bin_home()

@@ -24,7 +24,7 @@ When executing or reasoning about this repository, **you must preserve these inv
    - Tool config & rules: `${XDG_CONFIG_HOME:-$HOME/.config}/<tool-name>/`
    - Tool cache: `${XDG_CACHE_HOME:-$HOME/.cache}/<tool-name>/`
    - Host executable launchers: `${XDG_BIN_HOME:-$HOME/.local/bin}/`
-   - Container-internal real binaries: `${XDG_DATA_HOME:-$HOME/.local/share}/agents-arwaky/internal-bin/`
+   - Container-internal real binaries: `${XDG_DATA_HOME:-$HOME/.local/share}/<tool-name>/internal-bin/`
 
 3. **Submodule Architecture & Pin Integrity:**
    - Both in-house agents (`internal/`) and upstream vendor tools (`vendor/`) are Git submodules pinned to explicit commits.

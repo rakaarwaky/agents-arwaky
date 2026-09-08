@@ -22,7 +22,7 @@ Before making changes, please review our core architectural rules:
 2. **Strict XDG Base Directory Compliance:**
    - Never write persistent data or cache to the repository directory.
    - Use [`tools/lib/xdg.py`](tools/lib/xdg.py) helper functions (`xdg_data_dir`, `xdg_config_dir`, `xdg_cache_dir`).
-   - Binary launchers are placed into `${XDG_BIN_HOME:-$HOME/.local/bin}` (host) or `${XDG_DATA_HOME}/agents-arwaky/internal-bin` (container).
+   - Binary launchers are placed into `${XDG_BIN_HOME:-$HOME/.local/bin}` (host) or `${XDG_DATA_HOME}/<tool-name>/internal-bin` (container).
 
 3. **Single Source of Truth (SSOT):**
    - [`tools/config/manifest.json`](tools/config/manifest.json) is the definitive registry of all tools. Any addition or deletion must update this file.

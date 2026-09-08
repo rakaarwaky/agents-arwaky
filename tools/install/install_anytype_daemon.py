@@ -25,7 +25,8 @@ from xdg import (
 )
 
 TOOL_DIR = ROOT / "tools/daemons"
-INTERNAL_BIN = data_home() / "agents-arwaky/internal-bin"
+DATA_DIR = data_home() / "anytype-daemon"
+INTERNAL_BIN = DATA_DIR / "internal-bin"
 def _write_launcher(path: Path) -> None:
     path.write_text(
         "#!/usr/bin/env python3\n"

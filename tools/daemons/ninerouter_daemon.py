@@ -18,7 +18,6 @@ from xdg import (  # type: ignore[import-untyped]
     agents_arwaky_config_dir,
     config_home,
     data_home,
-    legacy_agents_arwaky_secret_dir,
 )
 
 CONTAINER_NAME = "9router"
@@ -92,7 +91,6 @@ def read_env():
     secret_dir = config_home() / "9router"
     for cand in (
         agents_arwaky_config_dir() / "ninerouter.env",
-        legacy_agents_arwaky_secret_dir() / "ninerouter.env",
         secret_dir / "ninerouter.env",
         secret_dir / ".env",
         ROOT / "tools/config/ninerouter.env",
