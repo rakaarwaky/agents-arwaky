@@ -73,3 +73,6 @@ tools/config/*.env
 !tools/config/*.env.example
 tools/config/*.providers.json
 !tools/config/*.providers.example.json
+
+# Codacy review artifacts
+.codacy/

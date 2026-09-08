@@ -5,15 +5,27 @@ import os
 import sys
 
 
+_color_override = None
+
+
+def set_color_mode(enabled):
+    """Override color detection. None = auto-detect."""
+    global _color_override
+    _color_override = enabled
+
+
 def _color_enabled() -> bool:
-    return sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
-
-
-_ENABLED = _color_enabled()
+    if _color_override is not None:
+        return _color_override
+    if os.environ.get("NO_COLOR") is not None:
+        return False
+    if os.environ.get("FORCE_COLOR") is not None:
+        return True
+    return sys.stdout.isatty()
 
 
 def _c(code: str) -> str:
-    return f"\033[{code}m" if _ENABLED else ""
+    return f"\033[{code}m" if _color_enabled() else ""
 
 
 BOLD = _c("1")

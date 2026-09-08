@@ -38,10 +38,13 @@ def engine(*args):
 
     Raises RuntimeError on non-zero exit so config failures are not hidden (E2).
     """
-    proc = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "tools/lib/engine.py"), *args],
-        capture_output=True, text=True,
-    )
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(REPO_ROOT / "tools/lib/engine.py"), *args],
+            capture_output=True, text=True, timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"engine.py timed out after 30s: {args[:2]}")
     if proc.returncode != 0:
         err_msg = proc.stderr.strip() or f"engine.py exited {proc.returncode}"
         raise RuntimeError(f"engine.py: {err_msg}")

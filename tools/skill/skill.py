@@ -168,14 +168,20 @@ def copy_single_skill(source_file, target_dir, custom_dest="", force=False):
     if custom_dest:
         if custom_dest.endswith(".md"):
             dest = Path(custom_dest)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                dest = ensure_under(REPO_ROOT, dest)
+            except ValueError as exc:
+                print(f"  \u2717 {exc}", file=sys.stderr)
+                return False
         else:
             dest = Path(custom_dest) / name / "SKILL.md"
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            dest = ensure_under(dest.parent, dest)
-        except ValueError as exc:
-            print(f"  \u2717 {exc}", file=sys.stderr)
-            return False
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                dest = ensure_under(dest.parent, dest)
+            except ValueError as exc:
+                print(f"  \u2717 {exc}", file=sys.stderr)
+                return False
         if dest.exists() and not force:
             print(f"  \u21b7 [SKIP] Already exists: {dest} (use --force to overwrite)")
             return False

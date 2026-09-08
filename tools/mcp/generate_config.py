@@ -33,13 +33,18 @@ def main() -> int:
         print("    Run 'aa anytype auth-key' to generate a valid key.", file=sys.stderr)
         anytype_key = "<YOUR_API_KEY>"
 
-    config = {
-        "mcpServers": {
-            "context7": {"command": "context7-mcp"},
-            "fetch": {"command": "fetch-mcp"},
-            "ponytail": {"command": "ponytail-mcp"},
-            "anytype": {
-                "command": "anytype-mcp",
+    # Single source of truth: manifest.json (Traceability fix — hapus hardcoded dict)
+    manifest_path = ROOT / "tools/config/manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    config = {"mcpServers": {}}
+    for tool in manifest.get("tools", []):
+        if not tool.get("isMcp", False):
+            continue
+        tool_id = tool["id"]
+        binary = tool["binary"]
+        if tool_id == "anytype":
+            config["mcpServers"]["anytype"] = {
+                "command": binary,
                 "env": {
                     "ANYTYPE_API_BASE_URL": anytype_base,
                     "OPENAPI_MCP_HEADERS": json.dumps(
@@ -47,16 +52,11 @@ def main() -> int:
                         ensure_ascii=False,
                     ),
                 },
-            },
-            "codegraph": {"command": "codegraph-mcp", "args": ["serve", "--mcp"]},
-            "vision": {"command": "vision-arwaky-mcp"},
-            "qwen-web": {"command": "qwen-web-mcp"},
-            "blender": {"command": "blender-mcp"},
-            "lint": {"command": "lint-arwaky-mcp"},
-            "workspace": {"command": "workspace-mcp"},
-            "mnemosyne": {"command": "mnemosyne-mcp"},
-        }
-    }
+            }
+        elif tool_id == "codegraph":
+            config["mcpServers"]["codegraph"] = {"command": binary, "args": ["serve", "--mcp"]}
+        else:
+            config["mcpServers"][tool_id] = {"command": binary}
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     try:

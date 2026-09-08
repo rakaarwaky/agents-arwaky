@@ -2,7 +2,9 @@
 """Anytype daemon manager (Python) — pengganti anytype-daemon.sh."""
 from __future__ import annotations
 
+import atexit
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -29,6 +31,7 @@ SCRIPT_DIR = ROOT / "tools/deploy"
 UNIT_DIR = config_home() / "systemd/user"
 UNIT_FILE = UNIT_DIR / "anytype-daemon.service"
 DATA_ROOT = data_home() / "anytype-mcp"
+PID_FILE = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "anytype-daemon.pid"
 
 
 def run(cmd, **kw):
@@ -87,6 +90,34 @@ def ensure_dirs():
         d.mkdir(parents=True, exist_ok=True)
 
 
+def _write_pid(pid: int) -> None:
+    PID_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PID_FILE.write_text(str(pid), encoding="utf-8")
+
+
+def _read_pid():
+    if PID_FILE.exists():
+        try:
+            return int(PID_FILE.read_text().strip())
+        except (ValueError, OSError):
+            return None
+    return None
+
+
+def _cleanup_pid() -> None:
+    PID_FILE.unlink(missing_ok=True)
+
+
+def _extract_api_key(stdout: str) -> str:
+    """Return first token-shaped line (API key), else last non-empty line."""
+    lines = [ln.strip() for ln in stdout.splitlines() if ln.strip()]
+    for ln in lines:
+        m = re.search(r"[A-Za-z0-9_\-\.]{20,}", ln)
+        if m:
+            return m.group(0)
+    return lines[-1] if lines else ""
+
+
 def cmd_start():
     if has_podman():
         if container_running():
@@ -124,6 +155,8 @@ def cmd_start():
     with log_file.open("ab") as f:
         p = subprocess.Popen([str(anytype_bin), "serve", "--listen-address", f"127.0.0.1:{PORT}"],
                              stdout=f, stderr=f, start_new_session=True)
+    _write_pid(p.pid)
+    atexit.register(_cleanup_pid)
     print(f">>> Started local Anytype daemon (PID: {p.pid}). Logs: {log_file}")
     return 0
 
@@ -133,8 +166,20 @@ def cmd_stop():
         print(f">>> Stopping Anytype daemon container '{CONTAINER_NAME}'...")
         run(["podman", "stop", CONTAINER_NAME])
         return 0
-    subprocess.run(["pkill", "-f", "anytype serve"])
-    print(">>> Anytype daemon stopped.")
+    # Native mode: gunakan PID file (targeted, bukan pkill)
+    pid = _read_pid()
+    if pid:
+        try:
+            os.kill(pid, signal.SIGTERM)
+            print(f">>> Sent SIGTERM to Anytype daemon (PID: {pid}).")
+        except ProcessLookupError:
+            print(">>> Anytype daemon process not found (stale PID file).")
+        _cleanup_pid()
+    elif shutil.which("pkill"):
+        subprocess.run(["pkill", "-f", "anytype serve"], capture_output=True)
+        print(">>> Anytype daemon stopped.")
+    else:
+        print(">>> No Anytype daemon PID found and pkill unavailable.")
     return 0
 
 
@@ -206,10 +251,10 @@ def cmd_auth_key(name="arwaky-agent-key"):
         print(result.stderr.strip(), file=sys.stderr)
         return result.returncode
 
-    # Parse API key dari output (cari baris yang berisi token panjang)
-    api_key = result.stdout.strip()
+    # Parse API key dari output (token-shaped regex)
+    api_key = _extract_api_key(result.stdout)
     if not api_key:
-        print("Error: No API key returned from daemon.", file=sys.stderr)
+        print("Error: could not extract API key from daemon output.", file=sys.stderr)
         return 1
 
     # Update .env (lokasi aman XDG + config repo placeholder)

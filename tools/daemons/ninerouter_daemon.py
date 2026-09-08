@@ -56,6 +56,7 @@ def container_exists():
 def api_ready(timeout=90):
     url = f"http://127.0.0.1:{PORT}/v1/models"
     deadline = time.time() + timeout
+    delay = 1.0
     while time.time() < deadline:
         try:
             with urllib.request.urlopen(url, timeout=3) as r:
@@ -63,7 +64,9 @@ def api_ready(timeout=90):
                     return True
         except Exception:
             pass
-        time.sleep(2)
+        # Exponential backoff: 1s, 2s, 4s, 8s... capped at 10s
+        time.sleep(delay)
+        delay = min(delay * 2, 10.0)
     return False
 
 
@@ -134,7 +137,10 @@ def cmd_service_status():
 
 
 def write_container_env(env: dict):
-    """Write container env to a 0600 file (avoid secrets on CLI)."""
+    """Write container env to a 0600 file (avoid secrets on CLI).
+
+    Secret is zeroed from the in-memory dict after writing (S-1).
+    """
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     env_file = DATA_DIR / "container.env"
     lines = []
@@ -143,6 +149,8 @@ def write_container_env(env: dict):
         if "\n" in password or "\r" in password:
             raise ValueError("INITIAL_PASSWORD must not contain newline characters")
         lines.append(f"INITIAL_PASSWORD={password}")
+    # Zero out in-memory secret immediately (avoid core-dump / debug exposure)
+    env["INITIAL_PASSWORD"] = ""
     if not lines:
         env_file.unlink(missing_ok=True)
         return None

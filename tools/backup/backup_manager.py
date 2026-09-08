@@ -40,6 +40,14 @@ def tar_dir(src: Path, dest: Path):
 
 def untar(src: Path, dest: Path):
     dest = dest.resolve()
+    # Verifikasi integritas archive sebelum extract (R-7)
+    if not tarfile.is_tarfile(src):
+        raise ValueError(f"Not a valid tar archive: {src}")
+    try:
+        with tarfile.open(src, "r:gz") as check_tar:
+            check_tar.getmembers()  # pastikan bisa dibaca penuh
+    except (tarfile.TarError, OSError) as e:
+        raise ValueError(f"Corrupt or truncated archive {src}: {e}")
     with tarfile.open(src, "r:gz") as tar:
         try:
             # Python 3.12+: filter="data" blocks traversal/symlinks
@@ -72,7 +80,14 @@ def backup_tool(tool: str, dest: str = ""):
     tar_dir(src, archive)
     log_ok(f"{tool} backed up.")
     if upload_to_gdrive:
-        return subprocess.run([sys.executable, str(GDRIVE_HELPER), "upload", str(archive)]).returncode
+        result = subprocess.run(
+            [sys.executable, str(GDRIVE_HELPER), "upload", str(archive)],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            print(f"  \u2717 Google Drive upload failed: {result.stderr.strip()}", file=sys.stderr)
+            return result.returncode
+        print(result.stdout)
     return 0
 
 
@@ -83,7 +98,13 @@ def restore_tool(tool: str, src: str):
         return 1
     subdir = TOOL_DATA.get(tool, tool)
     target = data_home() / subdir
+
+    # Bersihkan data lama sebelum restore (cegah kontaminasi file stale)
+    if target.exists():
+        log_info(f"Cleaning existing data at {target} before restore...")
+        shutil.rmtree(target)
     target.mkdir(parents=True, exist_ok=True)
+
     log_info(f"Restoring {tool} from {src_path}")
     untar(src_path, target)
     log_ok(f"{tool} restored to {target}.")

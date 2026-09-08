@@ -1,0 +1,199 @@
+## Summary
+
+Review of the `agents-arwaky` unified tool orchestrator: a polyglot multi-agent ecosystem (Rust/Node/Python) with a central `aa`/`arwaky` CLI, XDG-compliant per-tool installers/uninstallers, MCP config generation, harness connector/disconnector, skill manager, backup/restore (incl. Google Drive), and daemon managers (Anytype, 9Router). Scope covers `tools/cli`, `tools/lib`, `tools/install`, `tools/uninstall`, `tools/skill`, `tools/connect`, `tools/backup`, `tools/daemons`, `tools/mcp`, and representative `tools/skills/*` scripts. Overall the codebase is well-structured with good security hygiene (path-containment helpers, `filter="data"` tar extraction, 0600 secret files, fail-closed config merges, env-file secret passing). Findings below are correctness/DRY/error-propagation issues, not exploitable vulnerabilities.
+
+## Findings
+
+### Security
+| # | Severity | Issue | Location | Recommendation |
+| --- | ---------- | ------- | ---------- | ---------------- |
+| S1 | 🟡 WARNING | Path-containment guard is a **no-op** in the `--dest …/*.md` branch: `ensure_under(dest.parent, dest)` always passes because `dest` is trivially inside its own parent. This gives a false sense of traversal protection (bypass pattern). | `tools/skill/skill.py::copy_single_skill` / `remove_single_skill` | Drop the misleading `ensure_under` for the explicit-file case (user-supplied `--dest` is intentionally arbitrary) **or** validate against an allowed root. Keep `ensure_under` only where a real base dir exists. |
+| S2 | 🟢 INFO | A personal email is hardcoded as the credentials fallback default (PII in source). | `tools/backup/gdrive.py::get_credentials` | Remove the hardcoded `arwaky90@gmail.com` default; discover the credential file or fail with a clear message. |
+
+### Performance
+| # | Severity | Issue | Location | Recommendation |
+| --- | ---------- | ------- | ---------- | ---------------- |
+| P1 | 🟢 INFO | `cmd_list` only fetches the first Drive results page; the existing paginated helper `list_all_files` is never called (also dead code). | `tools/backup/gdrive.py::cmd_list` / `list_all_files` | Route `cmd_list` through `list_all_files` (bounded pagination already implemented). |
+| P2 | 🟢 INFO | `aa skill list` re-reads and re-parses each `SKILL.md` (name + description) on every render; no caching. | `tools/skill/skill.py::cmd_list` / `extract_skill_name` / `extract_description` | Parse once per file and reuse, or cache frontmatter per path. |
+
+### Error Handling
+| # | Severity | Issue | Location | Recommendation |
+| --- | ---------- | ------- | ---------- | ---------------- |
+| E1 | 🟡 WARNING | `cmd_auth_key` does not actually parse the API key — it takes the entire stripped stdout. Any banner/multi-line output corrupts the key written to `.env` (comment says "parse output" but code doesn't). | `tools/daemons/anytype_daemon.py::cmd_auth_key` | Extract a token-shaped line; validate non-empty before writing. |
+| E2 | 🟡 WARNING | Backup/restore **swallow per-tool failures** and always return 0. `cmd_backup` ignores `backup_tool()` results; `cmd_restore` ignores `restore_tool()` in the `all` path. Callers/CI can't detect a failed backup. | `tools/backup/backup_manager.py::cmd_backup` / `cmd_restore` | Aggregate return codes; return non-zero if any tool fails. Make `backup_tool` return consistently. |
+| E3 | 🟢 INFO | `load_tools` catches all exceptions and returns `[]` silently; a malformed `manifest.json` yields an empty tool list with no diagnostic. | `tools/lib/manifest.py::load_tools` | Log the parse error to stderr before returning `[]`. |
+| E4 | 🟢 INFO | `merge_mcp_servers` ignores the boolean return of `save_file`; a write failure is silent. | `tools/lib/engine.py::merge_mcp_servers` | Check the return and raise/log on failure. |
+
+### SOLID
+| # | Severity | Issue | Location | Recommendation |
+| --- | ---------- | ------- | ---------- | ---------------- |
+| D1 | 🟡 WARNING | **DRY/OCP violation + dead code:** five uv-based installers inline an identical launcher-writing block, while the shared helper `write_uv_launchers()` exists but is never imported. Adding a tool means copy-pasting the template again. | `tools/install/install_blender.py`, `install_mnemosyne.py`, `install_qwen_web.py`, `install_vision.py`, `install_workspace.py` vs `tools/lib/utility_launcher_writer.py` | Replace inline blocks with `write_uv_launchers(package, src_rel, launchers)`. |
+| D2 | 🟢 INFO | `install_dir_candidates` and `uninstall_dir_candidates` duplicate the same `overrides` mapping and name-building logic. | `tools/cli/arwaky.py` | Extract one shared `_dir_candidates(tool, kind)` helper. |
+
+### Code Quality
+| # | Severity | Issue | Location | Recommendation |
+| --- | ---------- | ------- | ---------- | ---------------- |
+| Q1 | 🟢 INFO | Unused `import shutil` (no `shutil.*` usage). | `tools/install/install_blender.py`, `install_mnemosyne.py`, `install_qwen_web.py`, `install_vision.py`, `install_workspace.py` | Remove the import. |
+| Q2 | 🟢 INFO | `scripts/gates.sh` and `scripts/ci.sh` are byte-for-byte duplicates. | `tools/skills/blender-arwaky/scripts/` | Keep one; have the other delegate (`exec bash "$(dirname …)/gates.sh"`). |
+| Q3 | 🟢 INFO | Dead code: `utility_launcher_writer.py` never imported; `gdrive.list_all_files` never called. | `tools/lib/utility_launcher_writer.py`, `tools/backup/gdrive.py` | Wire them in (see D1/P1) or delete. |
+
+### Maintainability
+| # | Severity | Issue | Location | Recommendation |
+| --- | ---------- | ------- | ---------- | ---------------- |
+| M1 | 🟢 INFO | Launcher template strings are embedded per-installer; a template change requires 5 edits. | `tools/install/install_*` | Centralize in `utility_launcher_writer.py` (single source). |
+| M2 | 🟢 INFO | Hardcoded per-tool filename overrides in the CLI candidate helpers are not data-driven. | `tools/cli/arwaky.py` | Move overrides into `manifest.json` or a single constant dict. |
+
+## Action Items
+
+- [ ] 🔴/🟡 **E1** Fix `cmd_auth_key` to parse a real token and reject empty output.
+- [ ] 🟡 **E2** Propagate backup/restore failures (non-zero exit) for CI gating.
+- [ ] 🟡 **D1 / M1 / Q1 / Q3** Refactor the 5 uv installers to `write_uv_launchers`; drop unused `shutil`.
+- [ ] 🟡 **S1** Remove or correct the no-op `ensure_under` in the `--dest *.md` branch.
+- [ ] 🟢 **P1 / Q3** Use `list_all_files` in `cmd_list`.
+- [ ] 🟢 **E3 / E4** Add logging for swallowed parse/write errors.
+- [ ] 🟢 **S2** Remove hardcoded email default.
+- [ ] 🟢 **Q2 / D2 / M2** Deduplicate `gates.sh`/`ci.sh` and CLI candidate helpers.
+
+## Fixed Code
+
+### `tools/daemons/anytype_daemon.py` (E1)
+```python
+import re  # add to imports
+
+def _extract_api_key(stdout: str) -> str:
+    """Return the first token-shaped line (API key), else last non-empty line."""
+    lines = [ln.strip() for ln in stdout.splitlines() if ln.strip()]
+    for ln in lines:
+        m = re.search(r"[A-Za-z0-9_\-\.]{20,}", ln)
+        if m:
+            return m.group(0)
+    return lines[-1] if lines else ""
+
+# inside cmd_auth_key, replace `api_key = result.stdout.strip()` with:
+api_key = _extract_api_key(result.stdout)
+if not api_key:
+    print("Error: could not extract API key from daemon output.", file=sys.stderr)
+    return 1
+```
+
+### `tools/backup/backup_manager.py` (E2)
+```python
+def cmd_backup(argv):
+    tool = argv[0] if argv else "all"
+    dest = argv[1] if len(argv) > 1 else ""
+    tools = list(TOOL_DATA.keys()) if tool == "all" else [tool]
+    rc = 0
+    for t in tools:
+        if backup_tool(t, dest) not in (0, None):
+            rc = 1
+    return rc
+
+def cmd_restore(argv):
+    if len(argv) < 2:
+        print("Usage: aa restore <tool|all> <archive.tar.gz>", file=sys.stderr)
+        return 1
+    tool, archive = argv[0], argv[1]
+    if tool == "all":
+        rc = 0
+        for t in TOOL_DATA:
+            if restore_tool(t, archive) != 0:
+                rc = 1
+        return rc
+    return restore_tool(tool, archive)
+```
+
+### `tools/install/install_blender.py` (D1/Q1 — same pattern for mnemosyne/qwen_web/vision/workspace)
+```python
+#!/usr/bin/env python3
+"""blender installer (Python)."""
+from __future__ import annotations
+import subprocess
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools" / "lib"))
+from utility_launcher_writer import write_uv_launchers  # noqa: E402
+
+SRC_DIR = ROOT / "internal/blender-arwaky"
+
+def run(cmd, cwd=None):
+    subprocess.run(cmd, cwd=cwd, check=True)
+
+def main() -> int:
+    if not SRC_DIR.exists():
+        print(f">>> Initializing submodule {SRC_DIR}...", file=sys.stderr)
+        run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/blender-arwaky"])
+    print(f">>> Installing blender launchers...")
+    created = write_uv_launchers("blender-arwaky", "internal/blender-arwaky",
+                                 ['blender-arwaky', 'ba', 'blender-mcp'])
+    for p in created:
+        print(f"    -> {p}")
+    print(">>> Successfully installed blender")
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+### `tools/skill/skill.py` (S1)
+```python
+# In copy_single_skill / remove_single_skill, the explicit-file branch:
+if custom_dest:
+    if custom_dest.endswith(".md"):
+        # --dest is an explicit user target; containment does NOT apply here.
+        # (Do NOT call ensure_under(dest.parent, dest) — it is a no-op.)
+        dest = Path(custom_dest)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        ...
+```
+
+### `tools/backup/gdrive.py` (P1/S2)
+```python
+def cmd_list(folder_name=DEFAULT_FOLDER_NAME):
+    service = get_drive_service()
+    folder_id = get_or_create_folder(service, folder_name)
+    q = f"'{folder_id}' in parents and trashed = false"
+    files = list_all_files(
+        service, q,
+        "nextPageToken, files(id, name, size, createdTime, webViewLink)",
+    )
+    print(json.dumps(files, indent=2))
+
+# get_credentials: remove hardcoded email default
+user_email = os.environ.get("USER_GOOGLE_EMAIL")
+if not user_email:
+    candidates = [c for c in creds_dir.glob("*.json") if c.name != "oauth_states.json"]
+    if not candidates:
+        raise FileNotFoundError(f"No Google credentials in {creds_dir}. Set USER_GOOGLE_EMAIL or run workspace-mcp setup.")
+    cred_file = candidates[0]
+else:
+    cred_file = creds_dir / f"{user_email}.json"
+```
+
+### `tools/lib/manifest.py` (E3)
+```python
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"Warning: failed to parse {path}: {e}", file=sys.stderr)
+        return []
+```
+
+### `tools/lib/engine.py` (E4)
+```python
+    if merged:
+        if not save_file(path, data, fmt):
+            raise RuntimeError(f"Failed to write MCP config: {path}")
+    return merged
+```
+
+## Severity
+
+| Level | Meaning |
+| ------- | ------------------------------------------------------------------- |
+| 🔴 CRITICAL | Security vuln, data leak, crash risk. Immediate fix. |
+| 🟡 WARNING | Perf bottleneck, SOLID violation, bypass pattern. Fix this cycle. |
+| 🟢 INFO | Nice-to-have. Deferrable. |
+
+---
+**No CRITICAL issues found.** The codebase already implements strong safeguards (tar `filter="data"` + traversal fallback, `ensure_under`, fail-closed config merges with backups, 0600 secret files, env-file secret passing, bounded Drive pagination). The actionable items are error propagation (E1/E2), a DRY refactor that also removes dead code (D1), and a misleading containment check (S1). Want me to apply the high-priority fixes (E1, E2, D1) across the affected files?

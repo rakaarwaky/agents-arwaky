@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""mnemosyne installer (Python)."""
+"""Installer mnemosyne (Python, shared uv launcher writer)."""
 from __future__ import annotations
 
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -10,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, ensure_bin_home  # noqa: E402
+from utility_launcher_writer import write_uv_launchers  # noqa: E402
 
 SRC_DIR = ROOT / "vendor/mnemosyne"
 
@@ -23,14 +22,8 @@ def main() -> int:
     if not SRC_DIR.exists():
         print(f">>> Initializing submodule {SRC_DIR}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "vendor/mnemosyne"])
-    ensure_bin_home()
-    print(f">>> Installing mnemosyne launchers to {bin_home()}...")
-    for launcher in ['mnemosyne', 'mnemosyne-mcp']:
-        target = bin_home() / launcher
-        content = "#!/usr/bin/env python3\nimport os, sys\nfrom pathlib import Path\nroot = Path(os.environ.get(\"AGENTS_ARWAKY_ROOT\", str(Path.home() / \"agents-arwaky\")))\nos.execvpe(\"uv\", [\"uv\", \"run\", \"--directory\", str(root / \"vendor/mnemosyne\"), \"mnemosyne\", *sys.argv[1:]], os.environ.copy())\n"
-        target.write_text(content, encoding="utf-8")
-        target.chmod(0o755)
-    print(f">>> Successfully installed mnemosyne -> {bin_home()}")
+    write_uv_launchers("mnemosyne", "vendor/mnemosyne", ['mnemosyne', 'mnemosyne-mcp'])
+    print(f">>> Successfully installed mnemosyne launchers")
     return 0
 
 

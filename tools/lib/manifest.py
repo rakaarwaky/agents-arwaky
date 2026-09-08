@@ -1,6 +1,7 @@
 """Helper manifest.json (Python)."""
 from __future__ import annotations
 
+import functools
 import json
 import os
 from dataclasses import dataclass
@@ -30,6 +31,7 @@ class Tool:
     alias: Optional[str] = None
 
 
+@functools.lru_cache(maxsize=1)
 def load_tools() -> List[Tool]:
     path = manifest_path()
     if not path.exists():
@@ -40,6 +42,10 @@ def load_tools() -> List[Tool]:
         return []
     tools: List[Tool] = []
     for item in data.get("tools", []):
+        # Validasi field wajib (C-2)
+        missing = [f for f in ("id", "binary", "path") if not item.get(f)]
+        if missing:
+            raise ValueError(f"manifest tool entry missing required fields {missing}: {item.get('id', '?')}")
         tools.append(Tool(
             id=item.get("id", ""),
             category=item.get("category", ""),

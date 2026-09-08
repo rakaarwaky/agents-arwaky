@@ -21,7 +21,12 @@ def parse_env_file(path: Path) -> Dict[str, str]:
             continue
         key, val = line.split("=", 1)
         key = key.strip()
-        val = val.strip().strip('"').strip("'")
+        val = val.strip()
+        # Handle quoted values with proper escape support (round-trip safe)
+        if len(val) >= 2 and val[0] == '"' and val[-1] == '"':
+            val = val[1:-1].replace('\\"', '"')
+        elif len(val) >= 2 and val[0] == "'" and val[-1] == "'":
+            val = val[1:-1]
         if key:
             env[key] = val
     return env
@@ -43,17 +48,20 @@ def update_env_file(path: Path, key: str, value: str) -> None:
             lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
         except OSError:
             lines = []
+    # Escape double quotes in value for safe round-trip
+    escaped_value = value.replace('"', '\\"')
+
     found = False
     new_lines = []
     for line in lines:
         stripped = line.strip()
         if stripped.startswith(f"{key}="):
-            new_lines.append(f'{key}="{value}"')
+            new_lines.append(f'{key}="{escaped_value}"')
             found = True
         else:
             new_lines.append(line)
     if not found:
-        new_lines.append(f'{key}="{value}"')
+        new_lines.append(f'{key}="{escaped_value}"')
     path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
     try:
         path.chmod(0o600)

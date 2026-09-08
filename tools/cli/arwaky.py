@@ -240,8 +240,17 @@ def cmd_run(argv: list[str]) -> int:
 def cmd_install(argv: list[str]) -> int:
     ensure_path()
     target = argv[0] if argv else "all"
+    # Konfirmasi untuk install all (Plan2 P0)
+    if target == "all" and "--yes" not in argv and "-y" not in argv:
+        answer = input(f"Install ALL tools? [y/N]: ").strip().lower()
+        if answer not in ("y", "yes"):
+            warn("Aborted.")
+            return 1
     print(f"{BOLD}>>> Installing {target} using per-tool Python installers...{RESET}")
-    run_cmd(["git", "-C", str(repo_root()), "submodule", "update", "--init", "vendor/", "internal/"])
+    rc = run_cmd(["git", "-C", str(repo_root()), "submodule", "update", "--init", "vendor/", "internal/"])
+    if rc != 0:
+        err("Submodule init failed. Run 'aa submodules' manually and retry.")
+        return rc
     tools = load_tools()
     if target != "all":
         tool = find_tool(target)
@@ -398,6 +407,33 @@ def cmd_check(argv: list[str]) -> int:
             err(f"Python compile error: {py_file}: {e}")
             errors += 1
     print()
+    # Shellcheck untuk .sh milik kita (exclude tools/skills = salinan submodule upstream)
+    sh_files = [
+        f for f in (repo_root() / "tools").rglob("*.sh")
+        if "node_modules" not in f.parts and "tools/skills" not in f.relative_to(repo_root()).as_posix()
+    ]
+    if sh_files:
+        if shutil.which("shellcheck"):
+            print("[3/3] Running shellcheck...", flush=True)
+            for f in sh_files:
+                try:
+                    res = subprocess.run(
+                        ["shellcheck", "-x", str(f)],
+                        capture_output=True, text=True, input="", timeout=15,
+                    )
+                except subprocess.TimeoutExpired:
+                    err(f"shellcheck timeout: {f}")
+                    errors += 1
+                    continue
+                if res.returncode != 0:
+                    # tampilkan ringkas (baris pertama saja)
+                    first = res.stdout.strip().splitlines()[:3]
+                    for line in first:
+                        err(f"shellcheck {f}: {line}")
+                    errors += 1
+        else:
+            warn("shellcheck not installed; skipping .sh lint")
+    print()
     if errors:
         err(f"Verification FAILED with {errors} errors.")
         return 1
@@ -434,6 +470,13 @@ def uninstall_tool(tool: Tool) -> int:
 
 def cmd_uninstall(argv: list[str]) -> int:
     target = argv[0] if argv else "--all"
+    # Konfirmasi untuk uninstall all (Plan2 P0)
+    if target in {"--all", "all"} and "--yes" not in argv and "-y" not in argv:
+        warn("WARNING: This will remove ALL installed tool binaries, data and config.")
+        answer = input("Type 'uninstall' to continue: ").strip()
+        if answer.lower() != "uninstall":
+            warn("Aborted.")
+            return 1
     if target in {"--all", "all"}:
         info("Uninstalling all tools...")
         failed = []

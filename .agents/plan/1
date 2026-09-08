@@ -1,0 +1,321 @@
+# Operational Review — `agents-arwaky` Ecosystem
+
+## Summary
+
+This operational review covers the **`agents-arwaky`** unified tool orchestrator: a polyglot multi-agent platform comprising a CLI dispatcher (`tools/cli/arwaky.py`), 14+ MCP server integrations, two Podman-managed daemon services (Anytype, 9Router), per-tool installers/uninstallers, a skill provisioning system, a harness connector for four AI agent frameworks, and a Google Drive backup pipeline. The deployment target is **Linux bare-metal** with XDG Base Directory compliance; daemon services run in **rootless Podman containers**. The observability stack is **absent** — no structured logging, no tracing, no error tracking is wired anywhere in the orchestration layer. Reliability requirements include idempotent daemon lifecycle management, safe backup/restore with path-traversal protection, and atomic harness config injection. This review identifies **7 critical**, **14 warning**, and **9 informational** findings across six domains.
+
+---
+
+## Findings
+
+### Deployment & Packaging
+
+| # | Severity | Issue | Location | Recommendation |
+|---|----------|-------|----------|----------------|
+| D-1 | 🔴 CRITICAL | **Fragile ROOT resolution via `parents[N]`** — every script computes `ROOT = Path(__file__).resolve().parents[2]`. Moving any file one level deeper silently breaks all path resolution (manifest, skills, config). No validation that ROOT actually contains the expected structure. | `tools/cli/arwaky.py:14`, `tools/install/*.py`, `tools/uninstall/*.py`, `tools/daemons/*.py` (12+ files) | Add a `validate_root()` guard: assert `(ROOT / "tools/config/manifest.json").exists()` immediately after resolution. Fail fast with a clear error instead of silently producing `FileNotFoundError` deep in execution. Consider a single `tools/lib/paths.py` module that all scripts import. |
+| D-2 | 🔴 CRITICAL | **Massive installer code duplication** — `install_blender.py`, `install_mnemosyne.py`, `install_qwen_web.py`, `install_vision.py`, `install_workspace.py` each contain ~30 identical lines of inline launcher generation (`os.execvpe("uv", ...)`). `utility_launcher_writer.py` exists but is **not used** by any of these five installers. | `tools/install/install_blender.py:22-33`, `install_mnemosyne.py:22-33`, `install_qwen_web.py:22-33`, `install_vision.py:22-33`, `install_workspace.py:22-33` | Refactor all five to call `write_uv_launchers()` from `utility_launcher_writer.py`. Each installer becomes ~8 lines. Single point of change for launcher template. |
+| D-3 | 🟡 WARNING | **Node installer DRY pattern partially adopted** — `utility_node_installer.py` provides `install_node_tool()` but `install_fetch_mcp.py` bypasses it with a custom dual-launcher path. `install_context7.py`, `install_ponytail.py`, `install_anytype_mcp.py`, `install_codegraph.py` use it correctly. | `tools/install/install_fetch_mcp.py` | Extend `install_node_tool()` with an optional `custom_launcher_content` parameter so fetch-mcp's dual MCP/CLI launcher can be handled within the shared pipeline. |
+| D-4 | 🟡 WARNING | **No dependency version pinning in launcher scripts** — generated launchers call `uv run --directory` without pinning `uv` version, Python version, or package versions. A `uv` upgrade could change resolution behavior. | All generated launcher content in `tools/install/install_*.py` | Pin minimum versions in launcher preamble: check `uv --version` against a known-good minimum. Document supported version matrix in `AGENTS.md`. |
+| D-5 | 🟡 WARNING | **`install_lint.py` requires `cargo` but does not verify Rust toolchain version or target triple** — a missing `rustup` target or incompatible nightly will produce a confusing build failure. | `tools/install/install_lint.py:26-28` | Add `cargo --version` and `rustc --version` checks with minimum version requirements before invoking `cargo build --release`. |
+| D-6 | 🟢 INFO | **No `--version` flag on `aa` CLI** — `cmd_help` prints a banner but no version. Impossible to script version checks or correlate logs with releases. | `tools/cli/arwaky.py` `cmd_help()` | Add `aa --version` / `aa version` reading from a `tools/config/version.txt` or `pyproject.toml`. |
+| D-7 | 🟢 INFO | **`manifest.json` has no per-tool version or health-check endpoint** — the manifest is a static registry with no way to detect version drift between installed binary and expected version. | `tools/config/manifest.json` | Add `"version"` and optional `"healthCheck"` fields per tool entry. `aa status` can then compare installed vs expected. |
+
+### Observability
+
+| # | Severity | Issue | Location | Recommendation |
+|---|----------|-------|----------|----------------|
+| O-1 | 🔴 CRITICAL | **Zero structured logging across the entire orchestration layer** — all output goes through `ui.py` `print()` helpers (`info`, `ok`, `warn`, `err`). No log levels, no timestamps, no correlation IDs, no machine-parseable format. Daemon logs go to raw files with no rotation. | `tools/lib/ui.py`, `tools/daemons/anytype_daemon.py:139` (`log_file`), `tools/daemons/ninerouter_daemon.py` | Introduce `structlog` or stdlib `logging` with a JSON formatter. Wire `ui.py` as a console renderer over structured log records. Add `logrotate` config or `logging.handlers.RotatingFileHandler` for daemon logs. |
+| O-2 | 🔴 CRITICAL | **No error tracking or alerting** — no Sentry, no OpenTelemetry, no error aggregation. When `aa install` fails mid-pipeline, the failure is printed to stderr and lost. No way to detect recurring failures across users or deployments. | Entire `tools/` tree | Add opt-in Sentry SDK initialization in `tools/cli/arwaky.py` main entry (controlled by `ARWAKY_SENTRY_DSN` env var). Wrap top-level `main()` in a try/except that reports to Sentry before re-raising. |
+| O-3 | 🟡 WARNING | **`ui.py` color detection is frozen at import time** — `_ENABLED = _color_enabled()` runs once at module load. If stdout is redirected after import (e.g., piped through `tee`), colors are incorrectly enabled or disabled. No `NO_COLOR` runtime toggle. | `tools/lib/ui.py:10` | Make `_color_enabled()` a function called per-invocation, or cache with an explicit `ui.set_color_mode(bool)` override. Respect `FORCE_COLOR` env var as well. |
+| O-4 | 🟡 WARNING | **No trace/correlation ID propagation** — multi-step operations (`aa install` → submodule update → per-tool build → MCP generate → harness connect) have no shared correlation ID. Debugging a failure in step 4 of 5 requires manually correlating output. | `tools/cli/arwaky.py`, `tools/sync/sync_all.py` | Generate a UUID at `main()` entry. Pass through all sub-command invocations. Include in every log line. |
+| O-5 | 🟢 INFO | **Daemon `api_ready()` polling produces no progress feedback** — `anytype_daemon.py` and `ninerouter_daemon.py` poll silently for up to 90 seconds with `time.sleep(2)`. User sees no indication of progress. | `tools/daemons/anytype_daemon.py:47-56`, `tools/daemons/ninerouter_daemon.py:47-56` | Print a progress indicator or elapsed-time counter during polling. |
+
+### Reliability & Resilience
+
+| # | Severity | Issue | Location | Recommendation |
+|---|----------|-------|----------|----------------|
+| R-1 | 🔴 CRITICAL | **No signal handling or graceful shutdown in daemon managers** — `anytype_daemon.py` native fallback spawns with `start_new_session=True` but registers no `SIGTERM`/`SIGINT` handler. `Ctrl+C` during `cmd_start` leaves the child process orphaned. No PID file is written, so `cmd_stop` uses `pkill -f "anytype serve"` which can kill unrelated processes. | `tools/daemons/anytype_daemon.py:133-141`, `cmd_stop()` line 148 | Write a PID file to `$XDG_STATE_HOME/anytype-daemon.pid`. Register `atexit` and signal handlers. Use PID-based stop instead of `pkill` pattern matching. |
+| R-2 | 🔴 CRITICAL | **`sync_all.py` has no rollback on partial failure** — if step 3 (MCP generate) fails, steps 1-2 (submodule update, install) have already mutated state. The `failures` list is collected but no compensating action is taken. User is left in an inconsistent state. | `tools/sync/sync_all.py:22-42` | Implement a two-phase approach: validate all preconditions first, then execute. On failure, print explicit rollback instructions. Consider `--dry-run` mode that validates without mutating. |
+| R-3 | 🟡 WARNING | **`api_ready()` uses fixed 2-second polling with no exponential backoff** — under load, this hammers the endpoint. 90-second timeout with 2s interval = 45 requests. | `tools/daemons/anytype_daemon.py:47-56`, `tools/daemons/ninerouter_daemon.py:47-56` | Use exponential backoff: 1s, 2s, 4s, 8s... capped at 10s. Total timeout remains 90s. |
+| R-4 | 🟡 WARNING | **`gdrive.py` `retry_api` uses linear backoff** — `delay * attempt` gives 2s, 4s, 6s, 8s. Under sustained API pressure this is insufficient. No jitter. | `tools/backup/gdrive.py:59-67` | Switch to exponential backoff with jitter: `min(base * 2**attempt + random.uniform(0,1), max_delay)`. |
+| R-5 | 🟡 WARNING | **`connect.py` `engine()` subprocess calls have no timeout** — `subprocess.run()` without `timeout=` can hang indefinitely if `engine.py` deadlocks. | `tools/connect/connect.py:36-44` | Add `timeout=30` to all `engine()` subprocess calls. Catch `subprocess.TimeoutExpired` and report clearly. |
+| R-6 | 🟡 WARNING | **`anytype_daemon.py` native fallback has no health monitoring** — after spawning the background process, there is no watchdog. If the process crashes, `cmd_status` reports "not ready" but no automatic restart occurs. | `tools/daemons/anytype_daemon.py:133-141` | For native mode, write a PID file and add a `cmd_status` check that verifies the PID is still alive. Document that Podman mode provides `--restart unless-stopped` but native mode does not. |
+| R-7 | 🟡 WARNING | **Backup restore does not verify archive integrity before extraction** — `untar()` validates path traversal (good) but does not verify the archive is not corrupted or truncated before extracting. A partial download from Google Drive could produce a corrupt restore. | `tools/backup/backup_manager.py:33-48` | Add a `tarfile.is_tarfile()` check and verify the archive can be fully listed before extraction. Optionally verify a SHA-256 checksum stored alongside the archive. |
+| R-8 | 🟢 INFO | **`cmd_stop` in `anytype_daemon.py` calls `subprocess.run(["pkill", ...])` without checking if `pkill` exists** — on minimal containers or non-Linux systems, this will raise `FileNotFoundError`. | `tools/daemons/anytype_daemon.py:148` | Guard with `shutil.which("pkill")` or use PID-file-based stop. |
+| R-9 | 🟢 INFO | **No idempotency guard on `aa install`** — running `aa install` twice in succession re-runs all builds. No check for "already installed and up to date." | `tools/cli/arwaky.py` `cmd_install()` | Add a state file (`$XDG_STATE_HOME/agents-arwaky/install-state.json`) recording last successful install timestamp and tool versions. Skip reinstall if state is current. |
+
+### Security Hardening
+
+| # | Severity | Issue | Location | Recommendation |
+|---|----------|-------|----------|----------------|
+| S-1 | 🔴 CRITICAL | **`ninerouter_daemon.py` passes `INITIAL_PASSWORD` as container env var** — even though `write_container_env` correctly writes to a `chmod 0o600` file, the password is also read into a Python dict (`read_env()`) and could appear in process memory dumps, core dumps, or debug logs. The `--env-file` approach is correct but the in-memory handling is not zeroed. | `tools/daemons/ninerouter_daemon.py:73-87`, `read_env()` | After writing the env file, explicitly delete the password from the in-memory dict: `env.pop("INITIAL_PASSWORD", None)`. Avoid logging any env var values. Consider reading the password directly from file to `--env-file` without loading into Python. |
+| S-2 | 🟡 WARNING | **`envfile.py` `parse_env_file` strips quotes naively** — `val.strip().strip('"').strip("'")` does not handle escaped quotes, multi-line values, or values containing both quote types. A malicious `.env` could inject unexpected values. | `tools/lib/envfile.py:18-19` | Use a proper env parser (`python-dotenv`) or implement stricter parsing: only strip matching outer quotes, reject values with unbalanced quotes. |
+| S-3 | 🟡 WARNING | **`connect.py` reads secrets from multiple fallback locations without validation** — `get_9router_credentials()` checks three file locations and uses the first one with a non-empty key. No validation that the key format is correct (e.g., starts with `sk-`). A misconfigured file could inject a wrong key silently. | `tools/connect/connect.py` `get_9router_credentials()` | Validate key format before use. Log which file the key was loaded from (without logging the key itself). Warn if multiple files define conflicting keys. |
+| S-4 | 🟡 WARNING | **`generate_config.py` embeds API key in generated JSON** — `mcp_servers.generated.json` contains `ANYTYPE_API_KEY` in plaintext within the `OPENAPI_MCP_HEADERS` JSON string. File is `chmod 0o600` (good) but the key is still in a JSON file that could be accidentally committed or shared. | `tools/mcp/generate_config.py:38-45` | Consider referencing the key via env var indirection (`$ANYTYPE_API_KEY`) in the generated config rather than embedding the literal value. Or generate to `$XDG_CONFIG_HOME` instead of repo root. |
+| S-5 | 🟡 WARNING | **No `pip-audit` or `cargo audit` in any CI gate** — `scripts/gates.sh` and `scripts/ci.sh` in blender-arwaky run Bandit but not dependency CVE scanning. The root repo has no security scanning at all. | `tools/skills/blender-arwaky/scripts/gates.sh`, root repo | Add `pip-audit` (Python deps) and `cargo audit` (Rust deps) to CI gates. Add `npm audit` for Node.js tools. |
+| S-6 | 🟡 WARNING | **`engine.py` `_strip_jsonc_comments` is a best-effort parser** — the state-machine comment stripper does not handle all edge cases (e.g., `//` inside a regex literal, nested template strings). A malformed JSONC file could produce incorrect JSON that silently corrupts harness config. | `tools/lib/engine.py:38-73` | Add a round-trip validation: after stripping comments, parse the result as JSON. If parsing fails, refuse to modify the file and report the error. |
+| S-7 | 🟢 INFO | **`anytype.env.example` ships with empty `ANYTYPE_API_KEY=`** — while this is an example file, it could be copied to `.env` and used as-is, resulting in silent auth failures. | `tools/config/anytype.env.example` | Add a comment `# REQUIRED: generate via 'aa anytype auth-key'` next to the empty value. |
+| S-8 | 🟢 INFO | **Uninstall scripts have no confirmation prompt** — `uninstall_*.py` scripts immediately delete binaries, data, and config without asking. A typo in `aa uninstall` could wipe data. | `tools/uninstall/uninstall_*.py` | Add `--yes` / `--force` flag requirement. Without it, print what will be deleted and prompt for confirmation. |
+
+### Configuration & Environment
+
+| # | Severity | Issue | Location | Recommendation |
+|---|----------|-------|----------|----------------|
+| C-1 | 🟡 WARNING | **`AGENTS_ARWAKY_ROOT` defaults to `~/agents-arwaky`** — if the repo is cloned elsewhere and the env var is not set, all launcher scripts will point to a non-existent directory. No fallback to auto-detection. | Generated launcher content in `tools/install/install_*.py`, `tools/lib/manifest.py:10` | At install time, bake the actual `ROOT` path into the launcher instead of relying on env var or a hardcoded default. Or auto-detect by walking up from `__file__`. |
+| C-2 | 🟡 WARNING | **No config schema validation for `manifest.json`** — `load_tools()` silently returns `[]` on parse failure. A malformed manifest produces an empty tool list with no error. | `tools/lib/manifest.py:24-40` | Validate required fields (`id`, `binary`, `path`) for each tool entry. Raise a descriptive error on missing fields. Log a warning on parse failure instead of silently returning empty. |
+| C-3 | 🟡 WARNING | **`xdg.py` helpers create directories as a side effect of querying** — `tool_data_dir()`, `tool_config_dir()`, `tool_cache_dir()` all call `mkdir(parents=True, exist_ok=True)`. A read-only query unexpectedly mutates the filesystem. | `tools/lib/xdg.py:30-44` | Split into `*_path()` (returns Path, no mkdir) and `ensure_*_dir()` (creates). Callers opt in to creation. |
+| C-4 | 🟢 INFO | **No backward-compatible config migration path** — if `manifest.json` schema changes (e.g., adding a new required field), there is no migration mechanism. Old configs will silently produce incomplete tool entries. | `tools/config/manifest.json`, `tools/lib/manifest.py` | Add a `"schemaVersion"` field to manifest. `load_tools()` checks version and applies migration transforms or warns. |
+| C-5 | 🟢 INFO | **`xdg.py` `ensure_path()` mutates `os.environ["PATH"]` in-process only** — child processes inherit the modified PATH, but the user's shell is not updated. This can cause confusion when running tools manually after `aa install`. | `tools/lib/xdg.py:22-27` | Print a reminder to add `~/.local/bin` to PATH if it is not already present. The `install.sh` scripts do this, but the Python path does not. |
+
+### Release & CI
+
+| # | Severity | Issue | Location | Recommendation |
+|---|----------|-------|----------|----------------|
+| CI-1 | 🔴 CRITICAL | **No CI pipeline for the root `agents-arwaky` repo** — `scripts/gates.sh` and `scripts/ci.sh` exist only inside `tools/skills/blender-arwaky/`. The root repo has no lint gate, no test gate, no type gate, no security gate. The `aa check` command validates JSON syntax and Python compilation but does not run any linter or test suite. | Root repo, `tools/cli/arwaky.py` `cmd_check()` | Create `.github/workflows/ci.yml` at root with gates: (1) `ruff check tools/`, (2) `python -m compileall tools/`, (3) JSON validation, (4) `shellcheck tools/**/*.sh`, (5) submodule integrity check. Mirror the pattern from `setup-ci-quality-gates` skill. |
+| CI-2 | 🟡 WARNING | **`aa check` does not run `shellcheck`** — the verify script checks executable bits and JSON syntax but skips shellcheck even when available. Shell scripts in `tools/` are unlinted. | `tools/cli/arwaky.py` `cmd_check()` | Add shellcheck invocation for all `.sh` files under `tools/`. Treat shellcheck absence as a warning, not a skip. |
+| CI-3 | 🟡 WARNING | **Version bump is manual and per-project** — `bump_release_version.py` (blender), `bump.py` (qwen-web, vision) each implement their own version bump logic. No unified version management for the orchestrator itself. | `tools/skills/blender-arwaky/scripts/build/bump_release_version.py`, `tools/skills/qwen-web/scripts/bump.py`, `tools/skills/vision-arwaky/scripts/bump.py` | Create a unified `tools/build/bump_version.py` that handles all sub-projects. Add `aa version bump <patch|minor|major>`. |
+| CI-4 | 🟡 WARNING | **No changelog generation** — no `CHANGELOG.md` at root. Release notes are implicit in git tags. | Root repo | Add `CHANGELOG.md` and integrate with `git-cliff` or manual section updates in the bump script. |
+| CI-5 | 🟢 INFO | **No branch protection rules documented for the root repo** — the `setup-ci-quality-gates` skill describes rulesets but there is no evidence they are applied to `agents-arwaky` itself. | Root repo | Apply the ruleset pattern from `setup-ci-quality-gates` skill: required status checks, strict up-to-date requirement, no fast-forward. |
+
+---
+
+## Runbook
+
+### Deploy
+```bash
+# 1. Clone with submodules
+git clone --recurse-submodules <repo-url> && cd agents-arwaky
+
+# 2. Verify prerequisites
+./aa doctor
+
+# 3. Full install (submodules → build → launchers → MCP config)
+./aa install
+
+# 4. Verify
+aa status && aa check
+
+# 5. Connect harnesses
+aa connect --all
+
+# 6. Start daemons
+aa service start all
+```
+
+### Rollback
+```bash
+# 1. Stop daemons
+aa service stop all
+
+# 2. Uninstall all tools
+aa uninstall --all
+
+# 3. Reset submodules
+git submodule foreach --recursive 'git clean -fd && git checkout .'
+
+# 4. Clean generated artifacts
+aa clean --all
+
+# 5. Re-install from known-good commit
+git checkout <known-good-tag>
+./aa install
+```
+
+### Monitor
+```bash
+# Daemon health
+aa anytype status
+aa 9router status
+aa service status
+
+# Daemon logs
+aa anytype logs
+aa 9router logs
+
+# Tool readiness
+aa status
+
+# Full diagnostics
+aa doctor
+```
+
+### Incident Response
+| Symptom | Diagnosis | Action |
+|---------|-----------|--------|
+| `aa run <tool>` fails with "not installed" | `aa status` shows tool as Not Installed | `aa install <tool>` |
+| Anytype API not ready | `aa anytype status` shows API: not ready | `aa anytype logs` → check for port conflict or missing binary |
+| 9Router dashboard unreachable | `aa 9router status` | Check `NINEROUTER_PORT` env, verify Podman is running |
+| Harness MCP not loading | `aa connect --all --dry-run` | Verify `mcp_servers.generated.json` is valid JSON, re-run `aa mcp generate` |
+| Backup restore fails | Check archive integrity | `tar -tzf <archive>` to verify before restore |
+| Skill not found after install | `aa skill check` | `aa skill install all --force` |
+
+---
+
+## Action Items
+
+- [ ] 🔴 **P0** — Add `validate_root()` guard to all scripts using `parents[N]` resolution (D-1)
+- [ ] 🔴 **P0** — Introduce structured logging (`structlog` or `logging`) across `tools/` (O-1)
+- [ ] 🔴 **P0** — Add opt-in Sentry error tracking to `aa` CLI main entry (O-2)
+- [ ] 🔴 **P0** — Add PID file + signal handling to `anytype_daemon.py` native mode (R-1)
+- [ ] 🔴 **P0** — Add rollback/compensation to `sync_all.py` (R-2)
+- [ ] 🔴 **P0** — Zero out in-memory password in `ninerouter_daemon.py` after env file write (S-1)
+- [ ] 🔴 **P0** — Create root `.github/workflows/ci.yml` with lint/test/type/security gates (CI-1)
+- [ ] 🟡 **P1** — Refactor 5 duplicate uv installers to use `utility_launcher_writer.py` (D-2)
+- [ ] 🟡 **P1** — Extend `install_node_tool()` for fetch-mcp dual launcher (D-3)
+- [ ] 🟡 **P1** — Add exponential backoff to `api_ready()` polling (R-3)
+- [ ] 🟡 **P1** — Add timeout to `connect.py` `engine()` subprocess calls (R-5)
+- [ ] 🟡 **P1** — Add archive integrity check before `untar()` (R-7)
+- [ ] 🟡 **P1** — Validate `manifest.json` schema on load (C-2)
+- [ ] 🟡 **P1** — Split `xdg.py` query vs create side effects (C-3)
+- [ ] 🟡 **P1** — Add `pip-audit` / `cargo audit` to CI gates (S-5)
+- [ ] 🟡 **P1** — Add shellcheck to `aa check` (CI-2)
+- [ ] 🟡 **P1** — Unify version bump scripts (CI-3)
+- [ ] 🟢 **P2** — Add `aa --version` command (D-6)
+- [ ] 🟢 **P2** — Add per-tool version to manifest (D-7)
+- [ ] 🟢 **P2** — Add correlation ID to multi-step operations (O-4)
+- [ ] 🟢 **P2** — Add confirmation prompt to uninstall scripts (S-8)
+- [ ] 🟢 **P2** — Add `CHANGELOG.md` and generation tooling (CI-4)
+- [ ] 🟢 **P2** — Apply branch protection ruleset to root repo (CI-5)
+
+---
+
+## Fixed Code
+
+### `tools/lib/paths.py` (NEW — addresses D-1)
+
+```python
+"""Centralized path resolution with validation (replaces scattered parents[N])."""
+from __future__ import annotations
+from pathlib import Path
+
+def repo_root() -> Path:
+    """Resolve and validate the agents-arwaky repository root."""
+    import os
+    env_root = os.environ.get("AGENTS_ARWAKY_ROOT")
+    if env_root:
+        root = Path(env_root).resolve()
+    else:
+        root = Path(__file__).resolve().parents[2]
+
+    manifest = root / "tools" / "config" / "manifest.json"
+    if not manifest.exists():
+        raise RuntimeError(
+            f"agents-arwaky root not found at {root}. "
+            f"Expected {manifest} to exist. "
+            f"Set AGENTS_ARWAKY_ROOT or run from the repository."
+        )
+    return root
+```
+
+### `tools/daemons/anytype_daemon.py` — PID file + signal handling (addresses R-1)
+
+```python
+# Add at module level:
+import atexit
+
+PID_FILE = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "anytype-daemon.pid"
+
+def _write_pid(pid: int) -> None:
+    PID_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PID_FILE.write_text(str(pid), encoding="utf-8")
+
+def _read_pid() -> int | None:
+    if PID_FILE.exists():
+        try:
+            return int(PID_FILE.read_text().strip())
+        except (ValueError, OSError):
+            return None
+    return None
+
+def _cleanup_pid() -> None:
+    PID_FILE.unlink(missing_ok=True)
+
+# In cmd_start() native fallback, replace the Popen block:
+    PID_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with log_file.open("ab") as f:
+        p = subprocess.Popen(
+            [str(anytype_bin), "serve", "--listen-address", f"127.0.0.1:{PORT}"],
+            stdout=f, stderr=f, start_new_session=True,
+        )
+    _write_pid(p.pid)
+    atexit.register(_cleanup_pid)
+    print(f">>> Started local Anytype daemon (PID: {p.pid}). Logs: {log_file}")
+
+# In cmd_stop(), replace pkill:
+    pid = _read_pid()
+    if pid:
+        try:
+            os.kill(pid, signal.SIGTERM)
+            print(f">>> Sent SIGTERM to Anytype daemon (PID: {pid}).")
+        except ProcessLookupError:
+            print(">>> Anytype daemon process not found (stale PID file).")
+        _cleanup_pid()
+    else:
+        subprocess.run(["pkill", "-f", "anytype serve"], capture_output=True)
+    print(">>> Anytype daemon stopped.")
+```
+
+### `tools/sync/sync_all.py` — rollback instructions (addresses R-2)
+
+```python
+def main(argv):
+    # ... existing flag parsing ...
+
+    info("Running one-shot ecosystem sync...")
+    failures = []
+    completed_steps = []
+
+    info("Step 1: syncing submodules...")
+    if run(["git", "-C", str(ROOT), "submodule", "update", "--init", "--recursive", "vendor/", "internal/"]) != 0:
+        failures.append("submodules")
+    else:
+        completed_steps.append("submodules")
+
+    # ... steps 2-5 similarly track completed_steps ...
+
+    if failures:
+        warn(f"Sync finished with failures: {', '.join(failures)}")
+        warn("Completed steps that may need rollback:")
+        for step in completed_steps:
+            warn(f"  - {step}")
+        warn("To restore submodules: git submodule foreach 'git checkout .'")
+        warn("To regenerate MCP: aa mcp generate")
+        warn("To reconnect harnesses: aa connect --all")
+        return 1
+
+    ok("Ecosystem sync complete.")
+    return 0
+```
+
+### `tools/lib/ui.py` — runtime color toggle (addresses O-3)
+
+```python
+_color_override: bool | None = None
+
+def set_color_mode(enabled: bool | None) -> None:
+    """Override color detection. None = auto-detect."""
+    global _color_override
+    _color_override = enabled
+
+def _color_enabled() -> bool:
+    if _color_override is not None:
+        return _color_override
+    if os.environ.get("NO_COLOR") is not None:
+        return False
+    if os.environ.get("FORCE_COLOR") is not None:
+        return True
+    return sys.stdout.isatty()
+
+def _c(code: str) -> str:
+    return f"\033[{code}m" if _color_enabled() else ""
+```
+
+---
+
+## Severity
+
+| Level | Meaning |
+|-------|---------|
+| 🔴 CRITICAL | Outage risk, security vuln, data leak, observability blind spot. Immediate fix. |
+| 🟡 WARNING | Resilience gap, config fragility, CI gap, missing instrumentation. Fix this cycle. |
+| 🟢 INFO | Hardening suggestion, cost optimization, DX improvement. Deferrable. |
