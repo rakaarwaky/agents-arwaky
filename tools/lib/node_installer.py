@@ -10,11 +10,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
+from paths import repo_root  # type: ignore[import-not-found]
 from xdg import (  # type: ignore[import-untyped]
     bin_home,
     cache_home,
     data_home,
     ensure_bin_home,
+    ensure_path,
     warn_if_bin_not_on_path,
 )
 
@@ -27,11 +29,7 @@ def build(source_dir: Path, build_dir: Path):
     """Build a Node.js project using bun or npm in an isolated cache directory."""
     if build_dir.exists():
         shutil.rmtree(build_dir)
-    shutil.copytree(
-        source_dir,
-        build_dir,
-        ignore=shutil.ignore_patterns("node_modules", ".git", ".gitmodules"),
-    )
+    shutil.copytree(source_dir, build_dir)
     if shutil.which("bun"):
         run(["bun", "install"], build_dir)
         run(["bun", "run", "build"], build_dir)
@@ -63,6 +61,7 @@ def install_launcher(
     aliases: list[str] | None = None,
     entry_point: str = "index.js",
     custom_launcher_content: str | None = None,
+    root: Path | None = None,
 ):
     """Create Node launcher script in XDG bin. Returns launcher path."""
     ensure_bin_home()
@@ -71,19 +70,25 @@ def install_launcher(
     if custom_launcher_content is not None:
         content = custom_launcher_content
     else:
+        baked_root = str(root) if root is not None else str(repo_root())
         content = f"""#!/usr/bin/env python3
 import os, sys
 from pathlib import Path
+root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(baked_root)}))
 data = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "{tool_name}"
 os.execvpe("node", ["node", str(data / "dist" / "{entry_point}"), *sys.argv[1:]], os.environ.copy())
 """
     launcher.write_text(content, encoding="utf-8")
     launcher.chmod(0o755)
     for alias in (aliases or []):
+        # Jangan buat symlink ke diri sendiri (alias == tool_name)
+        if alias == tool_name:
+            continue
         a = bin_home() / alias
         a.unlink(missing_ok=True)
         a.symlink_to(launcher)
     warn_if_bin_not_on_path()
+    ensure_path()
     return launcher
 
 
