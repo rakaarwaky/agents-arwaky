@@ -452,8 +452,6 @@ def cmd_unconnect(argv: list[str]) -> int:
     if code != 0:
         return code
     print()
-    info("Cleaning legacy lean-ctx remnants...")
-    return run_cmd([sys.executable, str(script), "disconnect", "--lean-ctx"])
 
 
 def cmd_unskill(argv: list[str]) -> int:
