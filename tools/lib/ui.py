@@ -63,7 +63,7 @@ def _term_width() -> int:
     try:
         import shutil
         return shutil.get_terminal_size((80, 24)).columns
-    except Exception:
+    except (OSError, ValueError):
         return 80
 
 
@@ -86,12 +86,12 @@ def sub(msg: str) -> None:
 
 
 def ok(msg: str) -> None:
-    print(f"  {GREEN}\u2713{RESET} {msg}")
+    print(f"  {GREEN}[OK]{RESET} {msg}")
 
 
 def warn(msg: str) -> None:
-    print(f"  {YELLOW}\u26a0{RESET} {msg}")
+    print(f"  {YELLOW}[WARN]{RESET} {msg}")
 
 
 def err(msg: str) -> None:
-    print(f"  {RED}\u2717{RESET} {msg}", file=sys.stderr)
+    print(f"  {RED}[FAIL]{RESET} {msg}", file=sys.stderr)

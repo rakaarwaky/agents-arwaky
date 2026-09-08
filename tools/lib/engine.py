@@ -354,8 +354,8 @@ def merge_mcp_servers(path: Path, servers: dict, force: bool = False) -> list:
             mcp[name] = srv
             merged.append(name)
 
-    if merged:
-        save_file(path, data, fmt)
+    if merged and not save_file(path, data, fmt):
+        raise RuntimeError(f"Failed to write MCP config: {path}")
     return merged
 
 

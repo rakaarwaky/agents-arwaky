@@ -47,7 +47,7 @@ def untar(src: Path, dest: Path):
         with tarfile.open(src, "r:gz") as check_tar:
             check_tar.getmembers()  # pastikan bisa dibaca penuh
     except (tarfile.TarError, OSError) as e:
-        raise ValueError(f"Corrupt or truncated archive {src}: {e}")
+        raise ValueError(f"Corrupt or truncated archive {src}: {e}") from e
     with tarfile.open(src, "r:gz") as tar:
         try:
             # Python 3.12+: filter="data" blocks traversal/symlinks
@@ -57,11 +57,18 @@ def untar(src: Path, dest: Path):
             for member in tar.getmembers():
                 member_path = (dest / member.name).resolve()
                 if not str(member_path).startswith(str(dest) + os.sep):
-                    raise ValueError(f"Blocked path traversal in archive: {member.name}")
+                    raise ValueError(
+                        f"Blocked path traversal in archive: {member.name}"
+                    ) from None
                 if member.issym() or member.islnk():
-                    raise ValueError(f"Blocked symlink/hardlink in archive: {member.name}")
+                    raise ValueError(
+                        f"Blocked symlink/hardlink in archive: {member.name}"
+                    ) from None
                 if member.isdev():
-                    raise ValueError(f"Blocked device node in archive: {member.name}")
+                    raise ValueError(
+                        f"Blocked device node in archive: {member.name}"
+                    ) from None
+            # Semua member sudah divalidasi aman (R-7) => extract di sini aman
             tar.extractall(dest)
 
 
@@ -80,12 +87,16 @@ def backup_tool(tool: str, dest: str = ""):
     tar_dir(src, archive)
     log_ok(f"{tool} backed up.")
     if upload_to_gdrive:
+        # Argumen list tanpa shell=True; helper path berasal dari repo (S603 ok)
         result = subprocess.run(
             [sys.executable, str(GDRIVE_HELPER), "upload", str(archive)],
             capture_output=True, text=True, check=False,
         )
         if result.returncode != 0:
-            print(f"  \u2717 Google Drive upload failed: {result.stderr.strip()}", file=sys.stderr)
+            print(
+                f"  \u2717 Google Drive upload failed: {result.stderr.strip()}",
+                file=sys.stderr,
+            )
             return result.returncode
         print(result.stdout)
     return 0
@@ -115,9 +126,11 @@ def cmd_backup(argv):
     tool = argv[0] if argv else "all"
     dest = argv[1] if len(argv) > 1 else ""
     tools = list(TOOL_DATA.keys()) if tool == "all" else [tool]
+    rc = 0
     for t in tools:
-        backup_tool(t, dest)
-    return 0
+        if backup_tool(t, dest) not in (0, None):
+            rc = 1
+    return rc
 
 
 def cmd_restore(argv):
@@ -127,9 +140,11 @@ def cmd_restore(argv):
     tool = argv[0]
     archive = argv[1]
     if tool == "all":
+        rc = 0
         for t in TOOL_DATA:
-            restore_tool(t, archive)
-        return 0
+            if restore_tool(t, archive) != 0:
+                rc = 1
+        return rc
     return restore_tool(tool, archive)
 
 

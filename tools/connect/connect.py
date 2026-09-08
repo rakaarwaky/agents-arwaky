@@ -52,8 +52,15 @@ def engine(*args):
     return proc.stdout.splitlines()
 
 
+_server_names_cache: list | None = None
+
+
 def arwaky_server_names():
-    return engine("arwaky-server-names", str(REPO_ROOT))
+    """Return agents-arwaky server names, cached once per process run (P1)."""
+    global _server_names_cache
+    if _server_names_cache is None:
+        _server_names_cache = engine("arwaky-server-names", str(REPO_ROOT))
+    return _server_names_cache
 
 
 def remove_mcp_servers(file: Path, dry_run: bool = False):
@@ -399,7 +406,10 @@ PLACEHOLDER_KEYS = {"sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "chan
 def inject_9router_env(target, dry_run=False):
     url, key = get_9router_credentials()
     if not key or key in PLACEHOLDER_KEYS:
-        log_skip(f"No active 9Router API Key found (empty/placeholder); skipping env injection for {target}.")
+        log_warn(
+            f"No active 9Router API Key found (empty/placeholder); env injection "
+            f"SKIPPED for {target}. Run 'aa 9router' to configure."
+        )
         return
     pairs = {"NINEROUTER_URL": url, "NINEROUTER_KEY": key}
     m_pairs = {"MNEMOSYNE_DATA_DIR": str(HOME / ".local/share/mnemosyne")}

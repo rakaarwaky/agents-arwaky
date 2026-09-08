@@ -8,8 +8,12 @@ import io
 import json
 import os
 import sys
-import time
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools" / "lib"))
+
+from utility_retry import retry_api as _shared_retry
 
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 
@@ -49,8 +53,11 @@ def get_credentials():
         try:
             creds.refresh(Request())
             cdata["token"] = creds.token
-            with open(cred_file, "w", encoding="utf-8") as f:
+            # Atomic write: temp file + rename prevents partial-write corruption
+            tmp = cred_file.with_suffix(cred_file.suffix + ".tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(cdata, f, indent=2)
+            os.replace(tmp, cred_file)
         except (RefreshError, OSError, TypeError) as e:
             print(f"Warning: Failed to refresh token: {e}", file=sys.stderr)
     return creds
@@ -89,25 +96,8 @@ def _is_transient(err) -> bool:
 
 
 def retry_api(func, max_retries=4, delay=1):
-    """Retry a Google API call with exponential backoff + jitter.
-
-    Only transient errors (timeout, connection, 429/500/502/503) are retried.
-    Permanent errors (401/403/404, etc.) propagate immediately (P5-P1).
-    """
-    import random
-    last_err = None
-    for attempt in range(1, max_retries + 1):
-        try:
-            return func()
-        except Exception as e:
-            last_err = e
-            if not _is_transient(e):
-                raise
-            if attempt < max_retries:
-                # Exponential backoff with jitter: min(base * 2**attempt + jitter, 10)
-                wait = min(delay * (2 ** attempt) + random.uniform(0, 1), 10)
-                time.sleep(wait)
-    raise last_err
+    """Retry a Google API call (shared utility) — transient errors only (P5-P1)."""
+    return _shared_retry(func, max_retries=max_retries, delay=delay, is_transient=_is_transient)
 
 def escape_drive_query(value: str) -> str:
     """Escape values for Google Drive query language (single quotes & backslashes)."""

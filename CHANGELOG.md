@@ -1,23 +1,28 @@
 # Changelog
 
-Semua perubahan penting pada agents-arwaky akan dicatat di file ini.
+All notable changes to this project are documented in this file.
 
-Format berdasarkan [Keep a Changelog](https://keepachangelog.com/id/1.1.0/),
-dan proyek ini mengikuti [Semantic Versioning](https://semver.org/).
+## [Unreleased]
 
-## [0.1.0] - 2026-09-08
 ### Added
-- Migrasi penuh toolchain Bash → Python (40 file .py, per-tool installers)
-- Struktur tools/ terpusat: cli/, lib/, install/, uninstall/, daemons/, deploy/, config/, skills/
-- Skill pack terpusat di tools/skills/ (83 skill, user-managed)
-- `aa unconnect` / `aa unskill` untuk memutus harness & membersihkan skill workspace
-- Unit tests: test_envfile, test_manifest, test_xdg
-- CI workflow (ruff, shellcheck, JSON, pip-audit, aa check)
-- Secret management: file .env dipindah ke $XDG_DATA_HOME + .gitignore + pre-commit hook
+- Centralized root/path resolution with validation (`tools/lib/paths.py`).
+- Backup gateway contract + Google Drive implementation (`contract_backup_gateway_protocol.py`, `gdrive_gateway.py`).
+- Generic retry utility (`tools/lib/utility_retry.py`).
+- Capabilities tool resolver (`tools/lib/capabilities_tool_resolver.py`).
+- Unified version bump script (`tools/build/bump_version.py`).
+- Unit tests for `envfile`, `xdg`, and `manifest`.
+- CI pipeline with lint / compile / audit / shellcheck / JSON gates.
+- Opt-in Sentry error tracking (`ARWAKY_SENTRY_DSN`).
+- Structured logging helpers in `ui.py`.
+- `--version` command and `tools/config/version.txt`.
+- zsh completion generation.
+- `--json` output for `status`, `list`, `doctor`.
 
-### Security
-- Rotasi & hapus kredensial live dari history (filter-branch)
-- Sanitasi skill name + path containment (anti path traversal)
-- Validasi API key sebelum menulis config / inject env
-- Backup rotasi (.bak-arwaky max 3)
-- Tar extraction aman (filter="data" + validasi member)
+### Fixed
+- Resolved lint violations across the orchestration layer (Ruff/Mypy/Pylance/Codacy).
+- Env file quote round-trip escaping.
+- `retry_api` only retries transient errors (429/500/502/503/timeout).
+- `restore_tool` cleans target before extraction; backup/restore propagate failures.
+- `generate_config.py` derives MCP servers from `manifest.json` (single source of truth).
+- PID-file based daemon stop for Anytype native mode; password zeroing in 9Router env.
+- ANSI-width-aware table padding and `[OK]/[WARN]/[FAIL]` status labels.

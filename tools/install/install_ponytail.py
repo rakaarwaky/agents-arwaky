@@ -8,7 +8,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from utility_node_installer import install_node_tool  # type: ignore[import-not-found]
+from utility_node_installer import (  # noqa: E402  # type: ignore[import-not-found]
+    install_node_tool,
+)
 
 
 def main() -> int:

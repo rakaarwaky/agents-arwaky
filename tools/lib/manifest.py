@@ -4,6 +4,7 @@ from __future__ import annotations
 import functools
 import json
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,7 +38,8 @@ def load_tools() -> list[Tool]:
         return []
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+    except (OSError, ValueError) as e:
+        print(f"Warning: failed to parse {path}: {e}", file=sys.stderr)
         return []
     tools: list[Tool] = []
     for item in data.get("tools", []):
