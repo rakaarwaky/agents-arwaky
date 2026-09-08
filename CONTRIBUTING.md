@@ -1,6 +1,7 @@
 # Contributing to agents-arwaky
 
 Thank you for your interest in contributing to **agents-arwaky**! This document provides comprehensive, step-by-step guides for contributing code, maintaining the orchestration tooling, and specifically:
+
 - [Adding a New Vendor Tool](#-adding-a-new-vendor-tool-step-by-step)
 - [Removing a Vendor Tool](#-removing-a-vendor-tool-step-by-step)
 - [Updating an Existing Vendor Tool](#-updating-an-existing-vendor-tool)
@@ -78,9 +79,9 @@ cd ../..
 Ensure `.gitmodules` marks the submodule with `ignore = dirty` so local build artifacts inside the submodule don't clutter git status:
 ```ini
 [submodule "vendor/my-cool-tool"]
-	path = vendor/my-cool-tool
-	url = https://github.com/example-org/my-cool-tool.git
-	ignore = dirty
+    path = vendor/my-cool-tool
+    url = https://github.com/example-org/my-cool-tool.git
+    ignore = dirty
 ```
 
 ---
@@ -96,12 +97,14 @@ chmod +x tools/my-cool-tool/install.sh
 ```
 
 The script must:
+
 - Start with `#!/usr/bin/env bash` and `set -euo pipefail`.
 - Source `tools/lib/xdg.py`.
 - Install or compile the tool into `$XDG_DATA_HOME/<tool-name>/`.
 - Create an executable wrapper/launcher in `$XDG_BIN_HOME/<binary-name>`.
 
 #### Template A: For Python Tools (via `uv`)
+
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -148,6 +151,7 @@ echo ">>> Successfully installed my-cool-tool -> $LAUNCHER"
 ```
 
 #### Template B: For Node / TypeScript Tools (via `pnpm` or `npm`)
+
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -185,6 +189,7 @@ echo ">>> Successfully installed my-cool-tool -> $LAUNCHER"
 ```
 
 #### Template C: For Rust Tools (via `cargo`)
+
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -344,9 +349,11 @@ aa mcp show
 When deprecating or removing an upstream tool, follow this procedure to ensure clean de-registration with zero dangling references or broken CI checks.
 
 ### Step 1: De-register from Manifest
+
 Open [`tools/config/manifest.json`](tools/config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
 
 ### Step 2: Remove from Master Build Pipeline
+
 Open [`tools/build/build-all.sh`](tools/build/build-all.sh) and delete the corresponding `build_tool` line:
 ```bash
 # Delete this line:
@@ -354,27 +361,33 @@ build_tool "my-cool-tool" "$TOOLS_DIR/my-cool-tool/install.sh"
 ```
 
 ### Step 3: Remove from Local Install
+
 No binary exporter array to maintain — uninstall by removing `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
 
 ### Step 4: Remove from MCP Configuration Generator (If Applicable)
+
 In [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py):
+
 - Remove the server block from the JSON template.
 - Remove the vendor name from the distribution loop.
 - Re-run `arwaky mcp generate` to refresh `mcp_servers.generated.json`.
 
 ### Step 5: Remove Tool Setup Directory
+
 Delete the tool's recipe directory under `tools/`:
 ```bash
 rm -rf tools/my-cool-tool
 ```
 
 ### Step 6: Clean Host Binaries & Cache (If Installed)
+
 Purge any lingering binaries and share directories from the host:
 ```bash
 aa clean --host
 ```
 
 ### Step 7: De-initialize and Remove Git Submodule
+
 Use Git to cleanly purge the submodule:
 
 ```bash
@@ -389,10 +402,12 @@ rm -rf .git/modules/vendor/my-cool-tool
 ```
 
 ### Step 8: Update Documentation & Licenses
+
 - Remove the tool entry from [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
 - Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`tools/config/manifest.json`](tools/config/manifest.json).
 
 ### Step 9: Verify Cleanliness
+
 Execute the verification suite to ensure no broken references remain:
 ```bash
 aa check
@@ -441,7 +456,8 @@ The repository hosts several core in-house agents under `internal/`:
 - [`blender-arwaky`](internal/blender-arwaky/) (Python / Blender)
 - [`lint-arwaky`](internal/lint-arwaky/) (Rust)
 
-### In-House Agent Principles:
+### In-House Agent Principles
+
 1. **AES Architecture Standards:**  
    In-house code adheres to the 7-layer Agentic Engineering System (AES). Every file follows `layer_concern_role.<ext>`. Run `arwaky run lint --help` to audit rules.
 2. **Submodule Workflows:**  
