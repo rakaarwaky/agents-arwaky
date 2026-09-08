@@ -46,7 +46,10 @@ def load_tools() -> list[Tool]:
         # Validasi field wajib (C-2)
         missing = [f for f in ("id", "binary", "path") if not item.get(f)]
         if missing:
-            raise ValueError(f"manifest tool entry missing required fields {missing}: {item.get('id', '?')}")
+            raise ValueError(
+                f"manifest tool entry missing required fields {missing}: "
+                f"{item.get('id', '?')}"
+            )
         tools.append(Tool(
             id=item.get("id", ""),
             category=item.get("category", ""),
@@ -64,6 +67,10 @@ def find_tool(query: str) -> Tool | None:
     if not query:
         return None
     for tool in load_tools():
-        if query == tool.id or query == tool.binary or (tool.alias and query == tool.alias):
+        if (
+            query == tool.id
+            or query == tool.binary
+            or (tool.alias and query == tool.alias)
+        ):
             return tool
     return None

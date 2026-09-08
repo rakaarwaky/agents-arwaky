@@ -14,7 +14,12 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from ui import info, ok, warn, err, sub  # type: ignore[import-not-found]
-from xdg import config_home, data_home  # type: ignore[import-untyped]
+from xdg import (  # type: ignore[import-untyped]
+    agents_arwaky_config_dir,
+    config_home,
+    data_home,
+    legacy_agents_arwaky_secret_dir,
+)
 
 CONTAINER_NAME = "9router"
 IMAGE_NAME = os.environ.get("NINEROUTER_IMAGE", "ghcr.io/decolua/9router:latest")
@@ -84,20 +89,25 @@ WEAK_PASSWORDS = {"change-me-to-a-strong-password", "", "password", "admin"}
 
 def read_env():
     env = {}
-    secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
-    for cand in (secret_home / "ninerouter.env", ROOT / "tools/config/ninerouter.env", config_home() / "9router/.env"):
+    secret_dir = config_home() / "9router"
+    for cand in (
+        agents_arwaky_config_dir() / "ninerouter.env",
+        legacy_agents_arwaky_secret_dir() / "ninerouter.env",
+        secret_dir / "ninerouter.env",
+        secret_dir / ".env",
+        ROOT / "tools/config/ninerouter.env",
+    ):
         if cand.exists():
             for line in cand.read_text(encoding="utf-8", errors="replace").splitlines():
                 if "=" in line and not line.strip().startswith("#"):
                     k, v = line.split("=", 1)
                     env[k.strip()] = v.strip().strip('"').strip("'")
             break
-    # Validasi password lemah/placeholder (P5-P1)
     pwd = env.get("INITIAL_PASSWORD", "")
     if pwd in WEAK_PASSWORDS:
         print("  \u26a0 Warning: INITIAL_PASSWORD is a known-weak/placeholder value.", file=sys.stderr)
         print("    Set a strong password (min 16 chars, mixed case + digits + symbols) in", file=sys.stderr)
-        print("    $XDG_DATA_HOME/agents-arwaky/config/ninerouter.env", file=sys.stderr)
+        print("    $XDG_CONFIG_HOME/9router/ninerouter.env", file=sys.stderr)
     return env
 
 

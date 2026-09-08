@@ -10,36 +10,49 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home  # type: ignore[import-untyped]
+from xdg import (  # type: ignore[import-untyped]
+    bin_home,
+    cache_home,
+    data_home,
+    ensure_bin_home,
+    warn_if_bin_not_on_path,
+)
 
 
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
 
-def build(vendor_dir: Path):
-    """Build a Node.js project using bun or npm."""
+def build(source_dir: Path, build_dir: Path):
+    """Build a Node.js project using bun or npm in an isolated cache directory."""
+    if build_dir.exists():
+        shutil.rmtree(build_dir)
+    shutil.copytree(
+        source_dir,
+        build_dir,
+        ignore=shutil.ignore_patterns("node_modules", ".git", ".gitmodules"),
+    )
     if shutil.which("bun"):
-        run(["bun", "install"], vendor_dir)
-        run(["bun", "run", "build"], vendor_dir)
+        run(["bun", "install"], build_dir)
+        run(["bun", "run", "build"], build_dir)
     elif shutil.which("npm"):
-        run(["npm", "install", "--no-audit", "--no-fund"], vendor_dir)
-        run(["npm", "run", "build"], vendor_dir)
+        run(["npm", "install", "--no-audit", "--no-fund"], build_dir)
+        run(["npm", "run", "build"], build_dir)
     else:
         raise RuntimeError("Neither bun nor npm found.")
 
 
-def install_runtime(vendor_dir: Path, target_dir: Path):
+def install_runtime(build_dir: Path, target_dir: Path):
     """Copy built artifacts to XDG data directory."""
     if target_dir.exists():
         shutil.rmtree(target_dir)
     target_dir.mkdir(parents=True, exist_ok=True)
-    if (vendor_dir / "dist").exists():
-        shutil.copytree(vendor_dir / "dist", target_dir / "dist")
-    shutil.copy2(vendor_dir / "package.json", target_dir / "package.json")
-    if (vendor_dir / "node_modules").exists():
+    if (build_dir / "dist").exists():
+        shutil.copytree(build_dir / "dist", target_dir / "dist")
+    shutil.copy2(build_dir / "package.json", target_dir / "package.json")
+    if (build_dir / "node_modules").exists():
         shutil.copytree(
-            vendor_dir / "node_modules",
+            build_dir / "node_modules",
             target_dir / "node_modules",
             dirs_exist_ok=True,
         )
@@ -54,6 +67,7 @@ def install_launcher(
     """Create Node launcher script in XDG bin. Returns launcher path."""
     ensure_bin_home()
     launcher = bin_home() / tool_name
+    launcher.unlink(missing_ok=True)
     if custom_launcher_content is not None:
         content = custom_launcher_content
     else:
@@ -69,6 +83,7 @@ os.execvpe("node", ["node", str(data / "dist" / "{entry_point}"), *sys.argv[1:]]
         a = bin_home() / alias
         a.unlink(missing_ok=True)
         a.symlink_to(launcher)
+    warn_if_bin_not_on_path()
     return launcher
 
 
@@ -82,14 +97,21 @@ def install_node_tool(
     """Complete installation pipeline for a Node.js-based tool."""
     vendor_dir = ROOT / vendor_subpath
     target_dir = data_home() / tool_name
+    # Build artifacts bersifat transient -> $XDG_CACHE_HOME (bukan data dir).
+    build_dir = cache_home() / "agents-arwaky" / f"build-{tool_name}"
 
     if not vendor_dir.exists() or not (vendor_dir / "package.json").exists():
         print(f"Error: Upstream source not found at {vendor_dir}.", file=sys.stderr)
         return 1
 
     print(f">>> Building {tool_name} into {target_dir}...")
-    build(vendor_dir)
-    install_runtime(vendor_dir, target_dir)
+    try:
+        build(vendor_dir, build_dir)
+        install_runtime(build_dir, target_dir)
+    finally:
+        # Selalu bersihkan build cache, termasuk bila build gagal di tengah.
+        if build_dir.exists():
+            shutil.rmtree(build_dir)
     launcher = install_launcher(
         tool_name, aliases, entry_point, custom_launcher_content=custom_launcher_content
     )

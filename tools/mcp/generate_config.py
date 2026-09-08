@@ -11,7 +11,11 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from envfile import load_first_env  # type: ignore[import-not-found]
-from xdg import config_home  # type: ignore[import-untyped]
+from xdg import (  # type: ignore[import-untyped]
+    agents_arwaky_config_dir,
+    config_home,
+    legacy_agents_arwaky_secret_dir,
+)
 
 
 def main() -> int:
@@ -19,9 +23,9 @@ def main() -> int:
     print("Generating unified MCP client configuration...")
     print(f"Target: {output}")
 
-    secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
     env = load_first_env([
-        secret_home / "anytype.env",
+        agents_arwaky_config_dir() / "anytype.env",
+        legacy_agents_arwaky_secret_dir() / "anytype.env",
         config_home() / "anytype-mcp/.env",
         ROOT / "tools/config/anytype.env",
         ROOT / ".env",

@@ -17,7 +17,13 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from envfile import update_env_file  # type: ignore[import-not-found]
-from xdg import config_home, data_home  # type: ignore[import-untyped]
+from xdg import (  # type: ignore[import-untyped]
+    agents_arwaky_config_dir,
+    config_home,
+    data_home,
+    legacy_agents_arwaky_secret_dir,
+    state_home,
+)
 
 CONTAINER_NAME = "anytype-daemon"
 IMAGE_NAME = "localhost/anytype-daemon:latest"
@@ -31,7 +37,7 @@ SCRIPT_DIR = ROOT / "tools/deploy"
 UNIT_DIR = config_home() / "systemd/user"
 UNIT_FILE = UNIT_DIR / "anytype-daemon.service"
 DATA_ROOT = data_home() / "anytype-mcp"
-PID_FILE = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state"))) / "anytype-daemon.pid"
+PID_FILE = state_home() / "anytype-daemon.pid"
 
 
 def run(cmd, **kw):
@@ -261,12 +267,15 @@ def cmd_auth_key(name="arwaky-agent-key"):
         print("Error: could not extract API key from daemon output.", file=sys.stderr)
         return 1
 
-    # Update .env (lokasi aman XDG + config repo placeholder)
-    secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
+    # Update .env (kanonik $XDG_CONFIG_HOME/agents-arwaky + config repo placeholder;
+    # migrasi legacy: update juga file lama bila masih ada)
     env_candidates = [
-        secret_home / "anytype.env",
+        agents_arwaky_config_dir() / "anytype.env",
         ROOT / "tools/config/anytype.env",
     ]
+    legacy_env = legacy_agents_arwaky_secret_dir() / "anytype.env"
+    if legacy_env.exists():
+        env_candidates.append(legacy_env)
     for env_path in env_candidates:
         env_path.parent.mkdir(parents=True, exist_ok=True)
         update_env_file(env_path, "ANYTYPE_API_KEY", api_key)

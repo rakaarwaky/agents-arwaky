@@ -10,7 +10,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home  # type: ignore[import-untyped]
+from xdg import (  # type: ignore[import-untyped]
+    agents_arwaky_config_dir,
+    bin_home,
+    cache_home,
+    config_home,
+    data_home,
+    legacy_agents_arwaky_secret_dir,
+)
 
 
 def main() -> int:
@@ -21,7 +28,17 @@ def main() -> int:
     (bin_home() / "9router").unlink(missing_ok=True)
     (data_home() / "agents-arwaky/internal-bin/9router").unlink(missing_ok=True)
     shutil.rmtree(data_home() / "9router", ignore_errors=True)
-    print(">>> 9router uninstalled.")
+    shutil.rmtree(config_home() / "9router", ignore_errors=True)
+    shutil.rmtree(cache_home() / "9router", ignore_errors=True)
+    shutil.rmtree(cache_home() / "agents-arwaky" / "build-9router", ignore_errors=True)
+    # Hapus secret env kanonik + legacy (hanya file 9router, jangan hapus dir
+    # agents-arwaky karena bisa berisi secret tool lain).
+    for env in (
+        agents_arwaky_config_dir() / "ninerouter.env",
+        legacy_agents_arwaky_secret_dir() / "ninerouter.env",
+    ):
+        env.unlink(missing_ok=True)
+    print(">>> 9router uninstalled (launchers + data + config + cache + secrets).")
     return 0
 
 

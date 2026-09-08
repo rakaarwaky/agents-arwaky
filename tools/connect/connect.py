@@ -24,6 +24,8 @@ from pathlib import Path
 from antigravity_adapter import (
     register as _register_antigravity,  # type: ignore[import-not-found]
 )
+from xdg import data_home  # type: ignore[import-not-found]
+
 from connect_shared import (  # type: ignore[import-not-found]
     HOME,
     hermes_home,
@@ -119,7 +121,7 @@ def disconnect_legacy_lean_ctx(dry_run: bool):
             log_ok(f"Removed agents-arwaky servers from {qwen_bak}")
 
     # 6. Binary remnants in internal-bin
-    ibin = Path(os.environ.get("XDG_DATA_HOME", HOME / ".local" / "share")) / "agents-arwaky" / "internal-bin"
+    ibin = data_home() / "agents-arwaky" / "internal-bin"
     for b in ("lean-ctx", "_lc", "_lc_compress"):
         f = ibin / b
         if f.exists():

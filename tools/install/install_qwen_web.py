@@ -22,7 +22,7 @@ def main() -> int:
     if not SRC_DIR.exists():
         print(f">>> Initializing submodule {SRC_DIR}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/qwen-web-arwaky"])
-    write_uv_launchers("qwen-web", "internal/qwen-web-arwaky", ['qwen-web-arwaky', 'qwa', 'qwen-web-cli', 'qwen-web-mcp', 'qwc'])
+    write_uv_launchers("qwen-web", "internal/qwen-web-arwaky", ['qwen-web-arwaky', 'qwa', 'qwen-web-cli', 'qwen-web-mcp', 'qwc'], root=ROOT)
     print(">>> Successfully installed qwen-web launchers")
     return 0
 

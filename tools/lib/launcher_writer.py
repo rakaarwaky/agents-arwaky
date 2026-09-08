@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from xdg import bin_home, ensure_bin_home  # type: ignore[import-untyped]
+from paths import repo_root  # type: ignore[import-not-found]
+from xdg import bin_home, ensure_bin_home, warn_if_bin_not_on_path  # type: ignore[import-untyped]
 
 
 def write_uv_launchers(package_name: str, src_rel: str, launchers: list) -> list:
     """Write uv-run launchers for a Python tool. Returns list of created paths."""
     ensure_bin_home()
+    # Bake actual install-time ROOT sebagai fallback (bukan hardcode ~/agents-arwaky),
+    # tetap hormati AGENTS_ARWAKY_ROOT bila diset runtime.
+    root = str(repo_root())
     created = []
     for launcher in launchers:
         target = bin_home() / launcher
@@ -17,13 +21,14 @@ def write_uv_launchers(package_name: str, src_rel: str, launchers: list) -> list
             "#!/usr/bin/env python3\n"
             "import os, sys\n"
             "from pathlib import Path\n"
-            'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", str(Path.home() / "agents-arwaky")))\n'
+            f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", r"{root}"))\n'
             f'os.execvpe("uv", ["uv", "run", "--directory", str(root / "{src_rel}"), '
             f'"{launcher}", *sys.argv[1:]], os.environ.copy())\n'
         )
         target.write_text(content, encoding="utf-8")
         target.chmod(0o755)
         created.append(target)
+    warn_if_bin_not_on_path()
     return created
 
 
@@ -37,4 +42,5 @@ def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | No
         a = bin_home() / alias
         a.unlink(missing_ok=True)
         a.symlink_to(launcher)
+    warn_if_bin_not_on_path()
     return launcher

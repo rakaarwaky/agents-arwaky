@@ -22,7 +22,7 @@ def main() -> int:
     if not SRC_DIR.exists():
         print(f">>> Initializing submodule {SRC_DIR}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/blender-arwaky"])
-    write_uv_launchers("blender", "internal/blender-arwaky", ['blender-arwaky', 'ba', 'blender-mcp'])
+    write_uv_launchers("blender", "internal/blender-arwaky", ['blender-arwaky', 'ba', 'blender-mcp'], root=ROOT)
     print(">>> Successfully installed blender launchers")
     return 0
 

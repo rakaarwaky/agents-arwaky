@@ -18,6 +18,15 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HOME = Path.home()
 
+sys.path.insert(0, str(REPO_ROOT / "tools" / "lib"))
+
+from xdg import (  # type: ignore[import-not-found]
+    agents_arwaky_config_dir,
+    config_home,
+    data_home,
+    legacy_agents_arwaky_secret_dir,
+)
+
 
 # --- logging helpers ---------------------------------------------------------
 def log_header(msg): print(f"==> {msg}")
@@ -254,10 +263,10 @@ def get_9router_credentials():
     """Read NINEROUTER_URL/KEY from .env candidates; fallback default URL."""
     router_url = "http://127.0.0.1:20128"
     router_key = ""
-    secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
     for cand in (
-        secret_home / "ninerouter.env",
-        HOME / ".config/9router/.env",
+        agents_arwaky_config_dir() / "ninerouter.env",
+        legacy_agents_arwaky_secret_dir() / "ninerouter.env",
+        config_home() / "9router/.env",
         REPO_ROOT / "tools/config/ninerouter.env",
     ):
         if cand.is_file():
@@ -284,7 +293,7 @@ def inject_9router_env(target, dry_run=False):
         )
         return
     pairs = {"NINEROUTER_URL": url, "NINEROUTER_KEY": key}
-    m_pairs = {"MNEMOSYNE_DATA_DIR": str(HOME / ".local/share/mnemosyne")}
+    m_pairs = {"MNEMOSYNE_DATA_DIR": str(data_home() / "mnemosyne")}
     envs = []
     if target == "antigravity":
         envs = [HOME / ".gemini/config/.env"]

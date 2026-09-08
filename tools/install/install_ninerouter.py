@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home  # type: ignore[import-untyped]
+from xdg import bin_home, data_home, ensure_bin_home, ensure_path  # type: ignore[import-untyped]
 
 TOOL_DIR = ROOT / "tools/daemons"
 DATA_DIR = data_home() / "9router"
@@ -20,15 +20,16 @@ LAUNCHER = bin_home() / "9router"
 
 def main() -> int:
     ensure_bin_home()
+    ensure_path()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     daemon_py = TOOL_DIR / "ninerouter_daemon.py"
     print(">>> Setting up 9Router hybrid architecture...")
     if daemon_py.exists():
         subprocess.run([sys.executable, str(daemon_py), "service-install"], check=False)
-    launcher_content = '''#!/usr/bin/env python3
+    launcher_content = f'''#!/usr/bin/env python3
 import os, sys
 from pathlib import Path
-root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", str(Path.home() / "agents-arwaky")))
+root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(ROOT))}))
 daemon = root / "tools/daemons/ninerouter_daemon.py"
 os.execvpe("python3", ["python3", str(daemon), *sys.argv[1:]], os.environ.copy())
 '''

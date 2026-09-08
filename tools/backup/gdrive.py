@@ -13,11 +13,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
+from xdg import data_home  # type: ignore[import-not-found]
+
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 
 def get_credentials():
-    data_dir = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
-    creds_dir = Path(data_dir) / "google-workspace-mcp" / "credentials"
+    creds_dir = data_home() / "google-workspace-mcp" / "credentials"
     user_email = os.environ.get("USER_GOOGLE_EMAIL", "")
 
     cred_file = creds_dir / f"{user_email}.json"

@@ -22,7 +22,7 @@ def main() -> int:
     if not SRC_DIR.exists():
         print(f">>> Initializing submodule {SRC_DIR}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/vision-arwaky"])
-    write_uv_launchers("vision", "internal/vision-arwaky", ['vision-arwaky', 'vision-arwaky-cli', 'va', 'vision-arwaky-mcp'])
+    write_uv_launchers("vision", "internal/vision-arwaky", ['vision-arwaky', 'vision-arwaky-cli', 'va', 'vision-arwaky-mcp'], root=ROOT)
     print(">>> Successfully installed vision launchers")
     return 0
 

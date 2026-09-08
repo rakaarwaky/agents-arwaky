@@ -2,23 +2,19 @@
 """lint-arwaky uninstaller (Python)."""
 from __future__ import annotations
 
-import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, config_home, data_home  # type: ignore[import-untyped]
+from xdg import remove_tool_artifacts  # type: ignore[import-untyped]
 
 
 def main() -> int:
     print(">>> Uninstalling lint-arwaky...")
-    for b in ("lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"):
-        (bin_home() / b).unlink(missing_ok=True)
-    shutil.rmtree(data_home() / "lint-arwaky", ignore_errors=True)
-    shutil.rmtree(config_home() / "lint-arwaky", ignore_errors=True)
-    print(">>> lint-arwaky uninstalled.")
+    remove_tool_artifacts("lint-arwaky", ['lint-arwaky', 'la', 'lint-arwaky-cli', 'lint-arwaky-mcp', 'lint-arwaky-tui', 'lac'])
+    print(">>> lint-arwaky uninstalled (launchers + data + config + cache).")
     return 0
 
 

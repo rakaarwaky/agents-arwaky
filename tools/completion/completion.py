@@ -6,6 +6,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools" / "lib"))
+
+from xdg import data_home  # type: ignore[import-not-found]
 
 COMMANDS = "status doctor list run install mcp skill connect disconnect unconnect unskill anytype 9router service sync backup restore check submodules clean uninstall reset version completion help"
 HARNESSES = "--antigravity --hermes --opencode --qwencode --all --force --dry-run --mcp-only --skills-only --env-only"
@@ -79,7 +82,7 @@ def generate_zsh():
 
 
 def install():
-    target = Path.home() / ".local/share/bash-completion/completions"
+    target = data_home() / "bash-completion/completions"
     target.mkdir(parents=True, exist_ok=True)
     f = target / "aa"
     f.write_text(generate_bash(), encoding="utf-8")
