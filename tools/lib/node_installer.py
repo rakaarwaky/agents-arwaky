@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home
+from xdg import bin_home, data_home, ensure_bin_home  # type: ignore[import-untyped]
 
 
 def run(cmd, cwd=None):
@@ -49,11 +49,15 @@ def install_launcher(
     tool_name: str,
     aliases: list[str] | None = None,
     entry_point: str = "index.js",
+    custom_launcher_content: str | None = None,
 ):
     """Create Node launcher script in XDG bin. Returns launcher path."""
     ensure_bin_home()
     launcher = bin_home() / tool_name
-    content = f"""#!/usr/bin/env python3
+    if custom_launcher_content is not None:
+        content = custom_launcher_content
+    else:
+        content = f"""#!/usr/bin/env python3
 import os, sys
 from pathlib import Path
 data = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "{tool_name}"
@@ -73,6 +77,7 @@ def install_node_tool(
     vendor_subpath: str,
     aliases: list[str] | None = None,
     entry_point: str = "index.js",
+    custom_launcher_content: str | None = None,
 ) -> int:
     """Complete installation pipeline for a Node.js-based tool."""
     vendor_dir = ROOT / vendor_subpath
@@ -85,6 +90,8 @@ def install_node_tool(
     print(f">>> Building {tool_name} into {target_dir}...")
     build(vendor_dir)
     install_runtime(vendor_dir, target_dir)
-    launcher = install_launcher(tool_name, aliases, entry_point)
+    launcher = install_launcher(
+        tool_name, aliases, entry_point, custom_launcher_content=custom_launcher_content
+    )
     print(f">>> Successfully installed {tool_name} -> {launcher}")
     return 0

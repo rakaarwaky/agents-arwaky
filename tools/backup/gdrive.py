@@ -8,8 +8,10 @@ import io
 import json
 import os
 import sys
-import time
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 
@@ -34,9 +36,9 @@ def get_credentials():
     with open(cred_file, "r", encoding="utf-8") as f:
         cdata = json.load(f)
 
-    from google.auth.exceptions import RefreshError
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
+    from google.auth.exceptions import RefreshError  # type: ignore
+    from google.auth.transport.requests import Request  # type: ignore
+    from google.oauth2.credentials import Credentials  # type: ignore
     creds = Credentials(
         token=cdata.get("token"),
         refresh_token=cdata.get("refresh_token"),
@@ -49,16 +51,19 @@ def get_credentials():
         try:
             creds.refresh(Request())
             cdata["token"] = creds.token
-            with open(cred_file, "w", encoding="utf-8") as f:
+            # Atomic write: temp file + rename prevents partial-write corruption
+            tmp = cred_file.with_suffix(cred_file.suffix + ".tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(cdata, f, indent=2)
+            os.replace(tmp, cred_file)
         except (RefreshError, OSError, TypeError) as e:
             print(f"Warning: Failed to refresh token: {e}", file=sys.stderr)
     return creds
 
 def get_drive_service():
-    import google_auth_httplib2
-    import httplib2
-    from googleapiclient.discovery import build
+    import google_auth_httplib2  # type: ignore
+    import httplib2  # type: ignore
+    from googleapiclient.discovery import build  # type: ignore
     creds = get_credentials()
     http = httplib2.Http(timeout=60)
     http.redirect_codes = http.redirect_codes - {308}
@@ -74,7 +79,7 @@ def _is_transient(err) -> bool:
         return True
     # Google API HttpError: retry only 429/500/502/503
     try:
-        from googleapiclient.errors import HttpError
+        from googleapiclient.errors import HttpError  # type: ignore
         if isinstance(err, HttpError):
             status = getattr(err, "resp", None)
             code = (
@@ -89,25 +94,11 @@ def _is_transient(err) -> bool:
 
 
 def retry_api(func, max_retries=4, delay=1):
-    """Retry a Google API call with exponential backoff + jitter.
-
-    Only transient errors (timeout, connection, 429/500/502/503) are retried.
-    Permanent errors (401/403/404, etc.) propagate immediately (P5-P1).
-    """
-    import random
-    last_err = None
-    for attempt in range(1, max_retries + 1):
-        try:
-            return func()
-        except Exception as e:
-            last_err = e
-            if not _is_transient(e):
-                raise
-            if attempt < max_retries:
-                # Exponential backoff with jitter: min(base * 2**attempt + jitter, 10)
-                wait = min(delay * (2 ** attempt) + random.uniform(0, 1), 10)
-                time.sleep(wait)
-    raise last_err
+    """Retry a Google API call (shared utility) — transient errors only."""
+    from retry import retry_api as _shared_retry  # type: ignore
+    return _shared_retry(
+        func, max_retries=max_retries, delay=delay, is_transient=_is_transient
+    )
 
 def escape_drive_query(value: str) -> str:
     """Escape values for Google Drive query language (single quotes & backslashes)."""
@@ -171,7 +162,7 @@ def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
     service = get_drive_service()
     folder_id = get_or_create_folder(service, folder_name)
 
-    from googleapiclient.http import MediaFileUpload
+    from googleapiclient.http import MediaFileUpload  # type: ignore
     media = MediaFileUpload(str(path), mimetype="application/gzip", resumable=True)
     metadata = {
         "name": path.name,
@@ -201,7 +192,7 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
     # Check if query_or_id is a file ID (Google Drive IDs are usually
     # ~33-44 alphanum with - and _)
     if len(query_or_id) > 25 and "/" not in query_or_id and "." not in query_or_id:
-        from googleapiclient.errors import HttpError
+        from googleapiclient.errors import HttpError  # type: ignore
 
         try:
             meta = retry_api(
@@ -256,7 +247,7 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
         dest = dest / target_name
     dest.parent.mkdir(parents=True, exist_ok=True)
 
-    from googleapiclient.http import MediaIoBaseDownload
+    from googleapiclient.http import MediaIoBaseDownload  # type: ignore
     request = service.files().get_media(fileId=file_id)
     fh = io.FileIO(str(dest), "wb")
     downloader = MediaIoBaseDownload(fh, request)

@@ -58,7 +58,24 @@ _aa_completion() {{
   esac
 }}
 complete -F _aa_completion aa agents-arwaky
+
+
 '''
+
+
+def generate_zsh():
+    """Generate zsh completion using compdef/_describe."""
+    cmds = " ".join(f"'{c}:{c} command'" for c in COMMANDS.split())
+    return (
+        "#compdef aa\n"
+        "_aa() {\n"
+        "  local -a commands\n"
+        f"  commands=({cmds})\n"
+        "  _describe 'command' commands\n"
+        "}\n"
+        "_aa \"$@\"\n"
+    )
+
 
 
 def install():
@@ -83,8 +100,11 @@ def main(argv):
     target = argv[0] if argv else "bash"
     if target == "--install":
         return install()
-    if target in ("bash", "zsh"):
+    if target == "bash":
         print(generate_bash())
+        return 0
+    if target == "zsh":
+        print(generate_zsh())
         return 0
     if target in ("help", "-h", "--help"):
         print("Usage: aa completion [bash|zsh|--install]")

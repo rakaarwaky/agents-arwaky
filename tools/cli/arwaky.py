@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,6 +40,21 @@ from xdg import (  # type: ignore[import-untyped]
     config_home,
     data_home,
     ensure_path,
+)
+
+_ANSI_RE = re.compile(r"\033\[[0-9;]*m")
+
+
+def _pad(s: str, width: int) -> str:
+    """Pad a possibly-ANSI-colored string to width using visible length."""
+    return s + " " * max(0, width - len(_ANSI_RE.sub("", s)))
+
+
+
+from tool_resolver import (  # type: ignore[import-not-found]
+    executable_path,
+    find_installer,
+    find_uninstaller,
 )
 
 # =============================================================================
@@ -80,50 +97,6 @@ def is_submodule_missing(path_str: str) -> bool:
     if f"path = {path_str}" not in text:
         return False
     return not target.exists() or not (target / ".git").exists()
-
-
-def executable_path(binary: str):
-    found = shutil.which(binary)
-    if found:
-        return Path(found)
-    local = bin_home() / binary
-    if local.exists() and os.access(local, os.X_OK):
-        return local
-    return None
-
-
-def install_dir_candidates(tool: Tool) -> list[Path]:
-    overrides = {"workspace": "google-workspace-mcp", "fetch": "fetch-mcp", "anytype": "anytype-mcp"}
-    names = []
-    if tool.id in overrides:
-        names.append(overrides[tool.id])
-    names.append(tool.id)
-    names.append(f"{tool.id}-mcp")
-    return [repo_root() / "tools/install" / f"install_{n.replace(chr(45), chr(95))}.py" for n in names if n]
-
-
-def find_installer(tool: Tool):
-    for candidate in install_dir_candidates(tool):
-        if candidate.exists():
-            return candidate
-    return None
-
-
-def uninstall_dir_candidates(tool: Tool) -> list[Path]:
-    overrides = {"workspace": "google-workspace-mcp", "fetch": "fetch-mcp", "anytype": "anytype-mcp"}
-    names = []
-    if tool.id in overrides:
-        names.append(overrides[tool.id])
-    names.append(tool.id)
-    names.append(f"{tool.id}-mcp")
-    return [repo_root() / "tools/uninstall" / f"uninstall_{n.replace(chr(45), chr(95))}.py" for n in names if n]
-
-
-def find_uninstaller(tool: Tool):
-    for candidate in uninstall_dir_candidates(tool):
-        if candidate.exists():
-            return candidate
-    return None
 
 
 def remove_tool_state(tool: Tool) -> None:
@@ -216,7 +189,7 @@ def cmd_status(argv: list[str]) -> int:
             status = f"{BLUE}[OK] Source Ready (Internal){RESET}"
         else:
             status = f"{YELLOW}[WARN] Not Installed{RESET}"
-        print(f"{tool.id:<14} {cat_color}{tool.category:<10}{RESET} {tool.binary:<20} {status}")
+        print(f"{_pad(tool.id, 14)} {_pad(cat_color + tool.category + RESET, 10)} {_pad(tool.binary, 20)} {status}")
     print("--------------------------------------------------------------------------------")
     return 0
 
@@ -270,7 +243,10 @@ def cmd_list(argv: list[str]) -> int:
     for tool in load_tools():
         cat_color = GREEN if tool.category == "internal" else CYAN
         mcp_label = "Yes" if tool.is_mcp else "No"
-        print(f"{tool.id:<14} {cat_color}{tool.category:<10}{RESET} {mcp_label:<8} {tool.description:<45}")
+        print(
+            f"{_pad(tool.id, 14)} {_pad(cat_color + tool.category + RESET, 10)} "
+            f"{_pad(mcp_label, 8)} {textwrap.shorten(tool.description, width=45, placeholder='...')}"
+        )
     print("--------------------------------------------------------------------------------")
     return 0
 
@@ -624,7 +600,7 @@ def _init_sentry():
     if not dsn:
         return
     try:
-        import sentry_sdk
+        import sentry_sdk  # type: ignore[import-not-found]
         sentry_sdk.init(dsn=dsn, traces_sample_rate=0.1)
     except ImportError:
         pass
@@ -638,7 +614,7 @@ def main() -> int:
         return cmd_help([])
     # Global flag: --no-color / --plain (P2-P1)
     if "--no-color" in argv or "--plain" in argv:
-        import ui
+        import ui  # type: ignore[import-not-found]
         ui.set_color_mode(False)
         argv = [a for a in argv if a not in ("--no-color", "--plain")]
     cmd = argv[0]

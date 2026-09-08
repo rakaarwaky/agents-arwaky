@@ -57,6 +57,7 @@ def container_exists():
 def api_ready(timeout=90):
     url = f"http://127.0.0.1:{PORT}"
     deadline = time.time() + timeout
+    delay = 1.0
     while time.time() < deadline:
         try:
             with urllib.request.urlopen(url, timeout=3) as r:
@@ -64,7 +65,9 @@ def api_ready(timeout=90):
                     return True
         except (OSError, ValueError):
             pass
-        time.sleep(2)
+        # Exponential backoff: 1s, 2s, 4s, 8s... capped at 10s
+        time.sleep(delay)
+        delay = min(delay * 2, 10.0)
     return False
 
 

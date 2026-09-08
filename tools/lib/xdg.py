@@ -34,19 +34,34 @@ def ensure_path() -> None:
         os.environ["PATH"] = b + os.pathsep + os.environ.get("PATH", "")
 
 
+def tool_data_path(tool: str) -> Path:
+    """Return the XDG data path for a tool (no side effects)."""
+    return data_home() / tool
+
+
+def tool_config_path(tool: str) -> Path:
+    """Return the XDG config path for a tool (no side effects)."""
+    return config_home() / tool
+
+
+def tool_cache_path(tool: str) -> Path:
+    """Return the XDG cache path for a tool (no side effects)."""
+    return cache_home() / tool
+
+
 def tool_data_dir(tool: str) -> Path:
-    p = data_home() / tool
+    p = tool_data_path(tool)
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def tool_config_dir(tool: str) -> Path:
-    p = config_home() / tool
+    p = tool_config_path(tool)
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def tool_cache_dir(tool: str) -> Path:
-    p = cache_home() / tool
+    p = tool_cache_path(tool)
     p.mkdir(parents=True, exist_ok=True)
     return p

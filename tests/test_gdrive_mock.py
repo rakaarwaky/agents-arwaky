@@ -1,13 +1,12 @@
 """Unit test: MockDriveClient untuk backup/restore tanpa network (P5-P2)."""
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools/backup"))
 
-from contract_backup_gateway_protocol import IBackupGateway
 
-
-class MockDriveClient(IBackupGateway):
+class MockDriveClient:
     """In-memory mock gateway untuk testing."""
 
     def __init__(self):
@@ -29,7 +28,6 @@ class MockDriveClient(IBackupGateway):
 
 
 def test_mock_roundtrip():
-    import tempfile
     client = MockDriveClient()
     with tempfile.TemporaryDirectory() as d:
         src = Path(d) / "backup.tar.gz"

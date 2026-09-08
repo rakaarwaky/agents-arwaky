@@ -174,13 +174,9 @@ def copy_single_skill(source_file, target_dir, custom_dest="", force=False):
                 print(f"  \u2717 {exc}", file=sys.stderr)
                 return False
         else:
+            # user-supplied --dest dir is intentionally arbitrary; no containment
             dest = Path(custom_dest) / name / "SKILL.md"
             dest.parent.mkdir(parents=True, exist_ok=True)
-            try:
-                dest = ensure_under(dest.parent, dest)
-            except ValueError as exc:
-                print(f"  \u2717 {exc}", file=sys.stderr)
-                return False
         if dest.exists() and not force:
             print(f"  \u21b7 [SKIP] Already exists: {dest} (use --force to overwrite)")
             return False
@@ -217,11 +213,7 @@ def remove_single_skill(source_file, target_dir, custom_dest=""):
             else:
                 print(f"  \u21b7 [SKIP] Not found: {p}")
             return True
-        try:
-            d = ensure_under(Path(custom_dest), Path(custom_dest) / name)
-        except ValueError as exc:
-            print(f"  \u2717 {exc}", file=sys.stderr)
-            return False
+        d = Path(custom_dest) / name
         if d.is_dir():
             shutil.rmtree(d)
             print(f"  \u2713 [OK] Removed: {d}")
