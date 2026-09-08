@@ -1,0 +1,5352 @@
+[{
+	"resource": "/home/raka/agents-arwaky/tools/backup/backup_manager.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 18,
+	"startColumn": 1,
+	"endLineNumber": 18,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/backup_manager.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 18,
+	"startColumn": 6,
+	"endLineNumber": 18,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/backup_manager.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 18,
+	"startColumn": 28,
+	"endLineNumber": 18,
+	"endColumn": 40,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/backup_manager.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "DTZ005",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/call-datetime-now-without-tzinfo",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`datetime.datetime.now()` called without a `tz` argument\n\nhelp: Pass a `datetime.timezone` object to the `tz` parameter",
+	"source": "Ruff",
+	"startLineNumber": 77,
+	"startColumn": 10,
+	"endLineNumber": 77,
+	"endColumn": 24,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/backup_manager.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 83,
+	"startColumn": 18,
+	"endLineNumber": 83,
+	"endColumn": 32,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/backup_manager.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 18,
+	"startColumn": 1,
+	"endLineNumber": 18,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"manifest\"",
+	"source": "Mypy",
+	"startLineNumber": 15,
+	"startColumn": 1,
+	"endLineNumber": 15,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"ui\"",
+	"source": "Mypy",
+	"startLineNumber": 16,
+	"startColumn": 1,
+	"endLineNumber": 16,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 20,
+	"startColumn": 1,
+	"endLineNumber": 20,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 15,
+	"startColumn": 1,
+	"endLineNumber": 20,
+	"endColumn": 62,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"manifest\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 15,
+	"startColumn": 6,
+	"endLineNumber": 15,
+	"endColumn": 14,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 15,
+	"startColumn": 62,
+	"endLineNumber": 15,
+	"endColumn": 74,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"ui\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 16,
+	"startColumn": 6,
+	"endLineNumber": 16,
+	"endColumn": 8,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 16,
+	"startColumn": 19,
+	"endLineNumber": 16,
+	"endColumn": 31,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F401",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-import",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`ui.sub` imported but unused\n\nhelp: Remove unused import: `ui.sub`",
+	"source": "Ruff",
+	"startLineNumber": 18,
+	"startColumn": 28,
+	"endLineNumber": 18,
+	"endColumn": 31,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 20,
+	"startColumn": 6,
+	"endLineNumber": 20,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 20,
+	"startColumn": 64,
+	"endLineNumber": 20,
+	"endColumn": 76,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 28,
+	"startColumn": 16,
+	"endLineNumber": 28,
+	"endColumn": 30,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F541",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/f-string-missing-placeholders",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
+	"source": "Ruff",
+	"startLineNumber": 245,
+	"startColumn": 24,
+	"endLineNumber": 245,
+	"endColumn": 53,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 395,
+	"startColumn": 16,
+	"endLineNumber": 395,
+	"endColumn": 25,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 406,
+	"startColumn": 16,
+	"endLineNumber": 406,
+	"endColumn": 25,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 420,
+	"startColumn": 27,
+	"endLineNumber": 420,
+	"endColumn": 41,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 15,
+	"startColumn": 1,
+	"endLineNumber": 15,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/cli/arwaky.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)",
+	"source": "Mypy",
+	"startLineNumber": 20,
+	"startColumn": 1,
+	"endLineNumber": 20,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 19,
+	"startColumn": 1,
+	"endLineNumber": 19,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"envfile\"",
+	"source": "Mypy",
+	"startLineNumber": 20,
+	"startColumn": 1,
+	"endLineNumber": 20,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 19,
+	"startColumn": 1,
+	"endLineNumber": 20,
+	"endColumn": 36,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 19,
+	"startColumn": 6,
+	"endLineNumber": 19,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 19,
+	"startColumn": 41,
+	"endLineNumber": 19,
+	"endColumn": 53,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"envfile\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 20,
+	"startColumn": 6,
+	"endLineNumber": 20,
+	"endColumn": 13,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 20,
+	"startColumn": 38,
+	"endLineNumber": 20,
+	"endColumn": 50,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 38,
+	"startColumn": 12,
+	"endLineNumber": 38,
+	"endColumn": 26,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 42,
+	"startColumn": 12,
+	"endLineNumber": 42,
+	"endColumn": 26,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "S110",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/try-except-pass",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`try`-`except`-`pass` detected, consider logging the exception",
+	"source": "Ruff",
+	"startLineNumber": 65,
+	"startColumn": 9,
+	"endLineNumber": 66,
+	"endColumn": 17,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 65,
+	"startColumn": 16,
+	"endLineNumber": 65,
+	"endColumn": 25,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 72,
+	"startColumn": 12,
+	"endLineNumber": 72,
+	"endColumn": 26,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 179,
+	"startColumn": 9,
+	"endLineNumber": 179,
+	"endColumn": 23,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F541",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/f-string-missing-placeholders",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
+	"source": "Ruff",
+	"startLineNumber": 206,
+	"startColumn": 15,
+	"endLineNumber": 206,
+	"endColumn": 33,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 237,
+	"startColumn": 18,
+	"endLineNumber": 237,
+	"endColumn": 32,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 242,
+	"startColumn": 18,
+	"endLineNumber": 242,
+	"endColumn": 32,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/anytype_daemon.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 19,
+	"startColumn": 1,
+	"endLineNumber": 19,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 16,
+	"startColumn": 1,
+	"endLineNumber": 16,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 16,
+	"startColumn": 6,
+	"endLineNumber": 16,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 16,
+	"startColumn": 41,
+	"endLineNumber": 16,
+	"endColumn": 53,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 28,
+	"startColumn": 12,
+	"endLineNumber": 28,
+	"endColumn": 26,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 32,
+	"startColumn": 12,
+	"endLineNumber": 32,
+	"endColumn": 26,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "S110",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/try-except-pass",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`try`-`except`-`pass` detected, consider logging the exception",
+	"source": "Ruff",
+	"startLineNumber": 65,
+	"startColumn": 9,
+	"endLineNumber": 66,
+	"endColumn": 17,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 65,
+	"startColumn": 16,
+	"endLineNumber": 65,
+	"endColumn": 25,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F541",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/f-string-missing-placeholders",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
+	"source": "Ruff",
+	"startLineNumber": 113,
+	"startColumn": 15,
+	"endLineNumber": 113,
+	"endColumn": 79,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F541",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/f-string-missing-placeholders",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
+	"source": "Ruff",
+	"startLineNumber": 246,
+	"startColumn": 15,
+	"endLineNumber": 246,
+	"endColumn": 34,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 267,
+	"startColumn": 12,
+	"endLineNumber": 267,
+	"endColumn": 21,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/daemons/ninerouter_daemon.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 16,
+	"startColumn": 1,
+	"endLineNumber": 16,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_anytype_mcp.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"utility_node_installer\"",
+	"source": "Mypy",
+	"startLineNumber": 11,
+	"startColumn": 1,
+	"endLineNumber": 11,
+	"endColumn": 2,
+	"modelVersionId": 2,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_anytype_mcp.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"utility_node_installer\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 11,
+	"startColumn": 6,
+	"endLineNumber": 11,
+	"endColumn": 28,
+	"modelVersionId": 2,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_anytype_mcp.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 11,
+	"startColumn": 55,
+	"endLineNumber": 11,
+	"endColumn": 67,
+	"modelVersionId": 2,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_anytype_mcp.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 11,
+	"startColumn": 1,
+	"endLineNumber": 11,
+	"endColumn": 2,
+	"modelVersionId": 2,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_blender.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"utility_launcher_writer\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_blender.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"utility_launcher_writer\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 29,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_blender.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 57,
+	"endLineNumber": 12,
+	"endColumn": 69,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_blender.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F541",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/f-string-missing-placeholders",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
+	"source": "Ruff",
+	"startLineNumber": 26,
+	"startColumn": 11,
+	"endLineNumber": 26,
+	"endColumn": 58,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_blender.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_codegraph.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"utility_node_installer\"",
+	"source": "Mypy",
+	"startLineNumber": 11,
+	"startColumn": 1,
+	"endLineNumber": 11,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_codegraph.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"utility_node_installer\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 11,
+	"startColumn": 6,
+	"endLineNumber": 11,
+	"endColumn": 28,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_codegraph.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 11,
+	"startColumn": 55,
+	"endLineNumber": 11,
+	"endColumn": 67,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_codegraph.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 11,
+	"startColumn": 1,
+	"endLineNumber": 11,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_context7.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"utility_node_installer\"",
+	"source": "Mypy",
+	"startLineNumber": 11,
+	"startColumn": 1,
+	"endLineNumber": 11,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_context7.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"utility_node_installer\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 11,
+	"startColumn": 6,
+	"endLineNumber": 11,
+	"endColumn": 28,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_context7.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 11,
+	"startColumn": 55,
+	"endLineNumber": 11,
+	"endColumn": 67,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_context7.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 11,
+	"startColumn": 1,
+	"endLineNumber": 11,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_lint.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 13,
+	"startColumn": 1,
+	"endLineNumber": 13,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_lint.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 13,
+	"startColumn": 6,
+	"endLineNumber": 13,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_lint.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 13,
+	"startColumn": 68,
+	"endLineNumber": 13,
+	"endColumn": 80,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_lint.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 13,
+	"startColumn": 1,
+	"endLineNumber": 13,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_ninerouter.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 13,
+	"startColumn": 1,
+	"endLineNumber": 13,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_ninerouter.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 13,
+	"startColumn": 6,
+	"endLineNumber": 13,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_ninerouter.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 13,
+	"startColumn": 55,
+	"endLineNumber": 13,
+	"endColumn": 67,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_ninerouter.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 13,
+	"startColumn": 1,
+	"endLineNumber": 13,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_ponytail.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"utility_node_installer\"",
+	"source": "Mypy",
+	"startLineNumber": 11,
+	"startColumn": 1,
+	"endLineNumber": 11,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_ponytail.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"utility_node_installer\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 11,
+	"startColumn": 6,
+	"endLineNumber": 11,
+	"endColumn": 28,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_ponytail.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 11,
+	"startColumn": 55,
+	"endLineNumber": 11,
+	"endColumn": 67,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_ponytail.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 11,
+	"startColumn": 1,
+	"endLineNumber": 11,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_qwen_web.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"utility_launcher_writer\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_qwen_web.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"utility_launcher_writer\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 29,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_qwen_web.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 57,
+	"endLineNumber": 12,
+	"endColumn": 69,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_qwen_web.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F541",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/f-string-missing-placeholders",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
+	"source": "Ruff",
+	"startLineNumber": 26,
+	"startColumn": 11,
+	"endLineNumber": 26,
+	"endColumn": 59,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_qwen_web.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_vision.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"utility_launcher_writer\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_vision.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"utility_launcher_writer\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 29,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_vision.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 57,
+	"endLineNumber": 12,
+	"endColumn": 69,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_vision.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F541",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/f-string-missing-placeholders",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
+	"source": "Ruff",
+	"startLineNumber": 26,
+	"startColumn": 11,
+	"endLineNumber": 26,
+	"endColumn": 57,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_vision.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_workspace.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"utility_launcher_writer\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_workspace.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"utility_launcher_writer\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 29,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_workspace.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 57,
+	"endLineNumber": 12,
+	"endColumn": 69,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_workspace.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F541",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/f-string-missing-placeholders",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
+	"source": "Ruff",
+	"startLineNumber": 26,
+	"startColumn": 11,
+	"endLineNumber": 26,
+	"endColumn": 60,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/install/install_workspace.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_launcher_writer.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "assignment",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-assignment"
+		}
+	},
+	"severity": 8,
+	"message": "Incompatible default for argument \"aliases\" (default has type \"None\", argument has type \"list[Any]\")",
+	"source": "Mypy",
+	"startLineNumber": 30,
+	"startColumn": 74,
+	"endLineNumber": 30,
+	"endColumn": 78,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_launcher_writer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "EXE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/shebang-not-executable",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Shebang is present but file is not executable",
+	"source": "Ruff",
+	"startLineNumber": 1,
+	"startColumn": 1,
+	"endLineNumber": 1,
+	"endColumn": 23,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_launcher_writer.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 7,
+	"startColumn": 6,
+	"endLineNumber": 7,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_launcher_writer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 7,
+	"startColumn": 44,
+	"endLineNumber": 7,
+	"endColumn": 56,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_launcher_writer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF013",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/implicit-optional",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "PEP 484 prohibits implicit `Optional`\n\nhelp: Convert to `T | None`",
+	"source": "Ruff",
+	"startLineNumber": 30,
+	"startColumn": 67,
+	"endLineNumber": 30,
+	"endColumn": 71,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_launcher_writer.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"severity": 2,
+	"message": "PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True\nUse https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase",
+	"source": "Mypy",
+	"startLineNumber": 30,
+	"startColumn": 74,
+	"endLineNumber": 30,
+	"endColumn": 78,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"envfile\"",
+	"source": "Mypy",
+	"startLineNumber": 13,
+	"startColumn": 1,
+	"endLineNumber": 13,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 14,
+	"startColumn": 1,
+	"endLineNumber": 14,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "var-annotated",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-var-annotated"
+		}
+	},
+	"severity": 8,
+	"message": "Need type annotation for \"config\"",
+	"source": "Mypy",
+	"startLineNumber": 39,
+	"startColumn": 14,
+	"endLineNumber": 39,
+	"endColumn": 32,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"envfile\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 13,
+	"startColumn": 6,
+	"endLineNumber": 13,
+	"endColumn": 13,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 13,
+	"startColumn": 37,
+	"endLineNumber": 13,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 14,
+	"startColumn": 6,
+	"endLineNumber": 14,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 14,
+	"startColumn": 30,
+	"endLineNumber": 14,
+	"endColumn": 42,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 13,
+	"startColumn": 1,
+	"endLineNumber": 13,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/mcp/generate_config.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)",
+	"source": "Mypy",
+	"startLineNumber": 14,
+	"startColumn": 1,
+	"endLineNumber": 14,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/sync/sync_all.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-not-found",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-not-found"
+		}
+	},
+	"severity": 8,
+	"message": "Cannot find implementation or library stub for module named \"ui\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/sync/sync_all.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"ui\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 8,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/sync/sync_all.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 32,
+	"endLineNumber": 12,
+	"endColumn": 44,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/sync/sync_all.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 16,
+	"startColumn": 12,
+	"endLineNumber": 16,
+	"endColumn": 26,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/sync/sync_all.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_anytype_mcp.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_anytype_mcp.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "var-annotated",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-var-annotated"
+		}
+	},
+	"severity": 8,
+	"message": "Need type annotation for \"alias\"",
+	"source": "Mypy",
+	"startLineNumber": 19,
+	"startColumn": 5,
+	"endLineNumber": 19,
+	"endColumn": 6,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_anytype_mcp.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_anytype_mcp.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_anytype_mcp.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_anytype_mcp.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_blender.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_blender.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_blender.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_blender.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_blender.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_codegraph.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_codegraph.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_codegraph.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_codegraph.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_codegraph.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_context7.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_context7.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_context7.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_context7.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_context7.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_fetch_mcp.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_fetch_mcp.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_fetch_mcp.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 38,
+	"endLineNumber": 12,
+	"endColumn": 50,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_fetch_mcp.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_lint.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_lint.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_lint.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_lint.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_lint.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_mnemosyne.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_mnemosyne.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_mnemosyne.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_mnemosyne.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_mnemosyne.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ninerouter.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 13,
+	"startColumn": 1,
+	"endLineNumber": 13,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ninerouter.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 13,
+	"startColumn": 6,
+	"endLineNumber": 13,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ninerouter.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 13,
+	"startColumn": 38,
+	"endLineNumber": 13,
+	"endColumn": 50,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ninerouter.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 13,
+	"startColumn": 1,
+	"endLineNumber": 13,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ponytail.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ponytail.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "var-annotated",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-var-annotated"
+		}
+	},
+	"severity": 8,
+	"message": "Need type annotation for \"alias\"",
+	"source": "Mypy",
+	"startLineNumber": 19,
+	"startColumn": 5,
+	"endLineNumber": 19,
+	"endColumn": 6,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ponytail.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ponytail.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ponytail.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_ponytail.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_qwen_web.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_qwen_web.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_qwen_web.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_qwen_web.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_qwen_web.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_B023_function-uses-loop-variable",
+	"severity": 4,
+	"message": "Function definition does not bind loop variable `params`",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 97,
+	"startColumn": 56,
+	"endLineNumber": 97,
+	"endColumn": 62,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_S110_try-except-pass",
+	"severity": 4,
+	"message": "`try`-`except`-`pass` detected, consider logging the exception",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 162,
+	"startColumn": 9,
+	"endLineNumber": 163,
+	"endColumn": 17,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 19,
+	"startColumn": 1,
+	"endLineNumber": 19,
+	"endColumn": 5,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 32,
+	"startColumn": 1,
+	"endLineNumber": 32,
+	"endColumn": 13,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E402_module-import-not-at-top-of-file",
+	"severity": 2,
+	"message": "Module level import not at top of file",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 66,
+	"startColumn": 1,
+	"endLineNumber": 66,
+	"endColumn": 12,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (108 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 92,
+	"startColumn": 89,
+	"endLineNumber": 92,
+	"endColumn": 109,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (129 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 106,
+	"startColumn": 89,
+	"endLineNumber": 106,
+	"endColumn": 130,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (110 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 107,
+	"startColumn": 89,
+	"endLineNumber": 107,
+	"endColumn": 111,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 111,
+	"startColumn": 1,
+	"endLineNumber": 111,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (92 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 116,
+	"startColumn": 89,
+	"endLineNumber": 116,
+	"endColumn": 93,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 134,
+	"startColumn": 1,
+	"endLineNumber": 134,
+	"endColumn": 5,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 151,
+	"startColumn": 1,
+	"endLineNumber": 151,
+	"endColumn": 5,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (99 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 155,
+	"startColumn": 89,
+	"endLineNumber": 155,
+	"endColumn": 100,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (106 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 158,
+	"startColumn": 89,
+	"endLineNumber": 158,
+	"endColumn": 107,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (113 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 168,
+	"startColumn": 89,
+	"endLineNumber": 168,
+	"endColumn": 114,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (122 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 169,
+	"startColumn": 89,
+	"endLineNumber": 169,
+	"endColumn": 123,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (92 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 173,
+	"startColumn": 89,
+	"endLineNumber": 173,
+	"endColumn": 93,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (130 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 174,
+	"startColumn": 89,
+	"endLineNumber": 174,
+	"endColumn": 131,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (110 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 178,
+	"startColumn": 89,
+	"endLineNumber": 178,
+	"endColumn": 111,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (150 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 208,
+	"startColumn": 89,
+	"endLineNumber": 208,
+	"endColumn": 151,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (110 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 226,
+	"startColumn": 89,
+	"endLineNumber": 226,
+	"endColumn": 111,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_B023_function-uses-loop-variable",
+	"severity": 4,
+	"message": "Function definition does not bind loop variable `params`",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 97,
+	"startColumn": 56,
+	"endLineNumber": 97,
+	"endColumn": 62,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_S110_try-except-pass",
+	"severity": 4,
+	"message": "`try`-`except`-`pass` detected, consider logging the exception",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 162,
+	"startColumn": 9,
+	"endLineNumber": 163,
+	"endColumn": 17,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 19,
+	"startColumn": 1,
+	"endLineNumber": 19,
+	"endColumn": 5,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 32,
+	"startColumn": 1,
+	"endLineNumber": 32,
+	"endColumn": 13,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E402_module-import-not-at-top-of-file",
+	"severity": 2,
+	"message": "Module level import not at top of file",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 66,
+	"startColumn": 1,
+	"endLineNumber": 66,
+	"endColumn": 12,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (108 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 92,
+	"startColumn": 89,
+	"endLineNumber": 92,
+	"endColumn": 109,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (129 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 106,
+	"startColumn": 89,
+	"endLineNumber": 106,
+	"endColumn": 130,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (110 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 107,
+	"startColumn": 89,
+	"endLineNumber": 107,
+	"endColumn": 111,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 111,
+	"startColumn": 1,
+	"endLineNumber": 111,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (92 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 116,
+	"startColumn": 89,
+	"endLineNumber": 116,
+	"endColumn": 93,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 134,
+	"startColumn": 1,
+	"endLineNumber": 134,
+	"endColumn": 5,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_W293_blank-line-with-whitespace",
+	"severity": 2,
+	"message": "Blank line contains whitespace",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 151,
+	"startColumn": 1,
+	"endLineNumber": 151,
+	"endColumn": 5,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (99 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 155,
+	"startColumn": 89,
+	"endLineNumber": 155,
+	"endColumn": 100,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (106 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 158,
+	"startColumn": 89,
+	"endLineNumber": 158,
+	"endColumn": 107,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (113 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 168,
+	"startColumn": 89,
+	"endLineNumber": 168,
+	"endColumn": 114,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (122 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 169,
+	"startColumn": 89,
+	"endLineNumber": 169,
+	"endColumn": 123,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (92 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 173,
+	"startColumn": 89,
+	"endLineNumber": 173,
+	"endColumn": 93,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (130 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 174,
+	"startColumn": 89,
+	"endLineNumber": 174,
+	"endColumn": 131,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (110 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 178,
+	"startColumn": 89,
+	"endLineNumber": 178,
+	"endColumn": 111,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (150 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 208,
+	"startColumn": 89,
+	"endLineNumber": 208,
+	"endColumn": 151,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/backup/gdrive.py",
+	"owner": "codacy",
+	"code": "Ruff_E501_line-too-long",
+	"severity": 2,
+	"message": "Line too long (110 > 88)",
+	"source": "Codacy CLI [Ruff]",
+	"startLineNumber": 226,
+	"startColumn": 89,
+	"endLineNumber": 226,
+	"endColumn": 111,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 42,
+	"startColumn": 16,
+	"endLineNumber": 42,
+	"endColumn": 30,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB167",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/regex-flag-alias",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use of regular expression alias `re.S`\n\nhelp: Replace with `re.DOTALL`",
+	"source": "Ruff",
+	"startLineNumber": 91,
+	"startColumn": 53,
+	"endLineNumber": 91,
+	"endColumn": 57,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB167",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/regex-flag-alias",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use of regular expression alias `re.M`\n\nhelp: Replace with `re.MULTILINE`",
+	"source": "Ruff",
+	"startLineNumber": 94,
+	"startColumn": 67,
+	"endLineNumber": 94,
+	"endColumn": 71,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F841",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-variable",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Local variable `names` is assigned to but never used\n\nhelp: Remove assignment to unused variable `names`",
+	"source": "Ruff",
+	"startLineNumber": 250,
+	"startColumn": 5,
+	"endLineNumber": 250,
+	"endColumn": 10,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB167",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/regex-flag-alias",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use of regular expression alias `re.I`\n\nhelp: Replace with `re.IGNORECASE`",
+	"source": "Ruff",
+	"startLineNumber": 273,
+	"startColumn": 72,
+	"endLineNumber": 273,
+	"endColumn": 76,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F841",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-variable",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Local variable `merged` is assigned to but never used\n\nhelp: Remove assignment to unused variable `merged`",
+	"source": "Ruff",
+	"startLineNumber": 445,
+	"startColumn": 13,
+	"endLineNumber": 445,
+	"endColumn": 19,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F841",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-variable",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Local variable `merged` is assigned to but never used\n\nhelp: Remove assignment to unused variable `merged`",
+	"source": "Ruff",
+	"startLineNumber": 483,
+	"startColumn": 13,
+	"endLineNumber": 483,
+	"endColumn": 19,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F841",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-variable",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Local variable `merged` is assigned to but never used\n\nhelp: Remove assignment to unused variable `merged`",
+	"source": "Ruff",
+	"startLineNumber": 505,
+	"startColumn": 13,
+	"endLineNumber": 505,
+	"endColumn": 19,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F841",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-variable",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Local variable `merged` is assigned to but never used\n\nhelp: Remove assignment to unused variable `merged`",
+	"source": "Ruff",
+	"startLineNumber": 526,
+	"startColumn": 13,
+	"endLineNumber": 526,
+	"endColumn": 19,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "S110",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/try-except-pass",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`try`-`except`-`pass` detected, consider logging the exception",
+	"source": "Ruff",
+	"startLineNumber": 543,
+	"startColumn": 9,
+	"endLineNumber": 544,
+	"endColumn": 17,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 543,
+	"startColumn": 16,
+	"endLineNumber": 543,
+	"endColumn": 25,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB105",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/print-empty-string",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unnecessary empty string passed to `print`\n\nhelp: Remove empty string",
+	"source": "Ruff",
+	"startLineNumber": 620,
+	"startColumn": 9,
+	"endLineNumber": 620,
+	"endColumn": 18,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/connect/connect.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB105",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/print-empty-string",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unnecessary empty string passed to `print`\n\nhelp: Remove empty string",
+	"source": "Ruff",
+	"startLineNumber": 676,
+	"startColumn": 9,
+	"endLineNumber": 676,
+	"endColumn": 18,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 15,
+	"startColumn": 1,
+	"endLineNumber": 19,
+	"endColumn": 25,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PIE810",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/multiple-starts-ends-with",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Call `endswith` once with a `tuple`\n\nhelp: Merge into a single `endswith` call",
+	"source": "Ruff",
+	"startLineNumber": 26,
+	"startColumn": 8,
+	"endLineNumber": 26,
+	"endColumn": 55,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PIE810",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/multiple-starts-ends-with",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Call `endswith` once with a `tuple`\n\nhelp: Merge into a single `endswith` call",
+	"source": "Ruff",
+	"startLineNumber": 30,
+	"startColumn": 8,
+	"endLineNumber": 30,
+	"endColumn": 55,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB167",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/regex-flag-alias",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use of regular expression alias `re.M`\n\nhelp: Replace with `re.MULTILINE`",
+	"source": "Ruff",
+	"startLineNumber": 35,
+	"startColumn": 47,
+	"endLineNumber": 35,
+	"endColumn": 51,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 97,
+	"startColumn": 12,
+	"endLineNumber": 97,
+	"endColumn": 21,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 103,
+	"startColumn": 16,
+	"endLineNumber": 103,
+	"endColumn": 25,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingImports",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingImports.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"ruamel.yaml\" could not be resolved",
+	"source": "Pylance",
+	"startLineNumber": 118,
+	"startColumn": 26,
+	"endLineNumber": 118,
+	"endColumn": 37,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 125,
+	"startColumn": 20,
+	"endLineNumber": 125,
+	"endColumn": 29,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"yaml\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 126,
+	"startColumn": 24,
+	"endLineNumber": 126,
+	"endColumn": 28,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 130,
+	"startColumn": 12,
+	"endLineNumber": 130,
+	"endColumn": 21,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF059",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-unpacked-variable",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unpacked variable `key` is never used\n\nhelp: Prefix it with an underscore or any other dummy variable pattern",
+	"source": "Ruff",
+	"startLineNumber": 155,
+	"startColumn": 10,
+	"endLineNumber": 155,
+	"endColumn": 13,
+	"modelVersionId": 3,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "S110",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/try-except-pass",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`try`-`except`-`pass` detected, consider logging the exception",
+	"source": "Ruff",
+	"startLineNumber": 237,
+	"startColumn": 9,
+	"endLineNumber": 238,
+	"endColumn": 17,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/engine.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 237,
+	"startColumn": 16,
+	"endLineNumber": 237,
+	"endColumn": 25,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/manifest.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP035",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/deprecated-import",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`typing.List` is deprecated, use `list` instead",
+	"source": "Ruff",
+	"startLineNumber": 9,
+	"startColumn": 1,
+	"endLineNumber": 9,
+	"endColumn": 34,
+	"modelVersionId": 1,
+	"tags": [
+		2
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/manifest.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP045",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/non-pep604-annotation-optional",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use `X | None` for type annotations\n\nhelp: Convert to `X | None`",
+	"source": "Ruff",
+	"startLineNumber": 31,
+	"startColumn": 12,
+	"endLineNumber": 31,
+	"endColumn": 25,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/manifest.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP006",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/non-pep585-annotation",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use `list` instead of `List` for type annotation\n\nhelp: Replace with `list`",
+	"source": "Ruff",
+	"startLineNumber": 35,
+	"startColumn": 21,
+	"endLineNumber": 35,
+	"endColumn": 25,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/manifest.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 41,
+	"startColumn": 12,
+	"endLineNumber": 41,
+	"endColumn": 21,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/manifest.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP006",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/non-pep585-annotation",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use `list` instead of `List` for type annotation\n\nhelp: Replace with `list`",
+	"source": "Ruff",
+	"startLineNumber": 43,
+	"startColumn": 12,
+	"endLineNumber": 43,
+	"endColumn": 16,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/manifest.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP045",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/non-pep604-annotation-optional",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use `X | None` for type annotations\n\nhelp: Convert to `X | None`",
+	"source": "Ruff",
+	"startLineNumber": 61,
+	"startColumn": 30,
+	"endLineNumber": 61,
+	"endColumn": 44,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/ui.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 2,
+	"startColumn": 1,
+	"endLineNumber": 5,
+	"endColumn": 11,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_node_installer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "EXE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/shebang-not-executable",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Shebang is present but file is not executable",
+	"source": "Ruff",
+	"startLineNumber": 1,
+	"startColumn": 1,
+	"endLineNumber": 1,
+	"endColumn": 23,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_node_installer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP035",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/deprecated-import",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`typing.List` is deprecated, use `list` instead",
+	"source": "Ruff",
+	"startLineNumber": 9,
+	"startColumn": 1,
+	"endLineNumber": 9,
+	"endColumn": 34,
+	"modelVersionId": 1,
+	"tags": [
+		2
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_node_installer.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 14,
+	"startColumn": 6,
+	"endLineNumber": 14,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_node_installer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 14,
+	"startColumn": 55,
+	"endLineNumber": 14,
+	"endColumn": 67,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_node_installer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP045",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/non-pep604-annotation-optional",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use `X | None` for type annotations\n\nhelp: Convert to `X | None`",
+	"source": "Ruff",
+	"startLineNumber": 51,
+	"startColumn": 14,
+	"endLineNumber": 51,
+	"endColumn": 33,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_node_installer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP006",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/non-pep585-annotation",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use `list` instead of `List` for type annotation\n\nhelp: Replace with `list`",
+	"source": "Ruff",
+	"startLineNumber": 51,
+	"startColumn": 23,
+	"endLineNumber": 51,
+	"endColumn": 27,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_node_installer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP045",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/non-pep604-annotation-optional",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use `X | None` for type annotations\n\nhelp: Convert to `X | None`",
+	"source": "Ruff",
+	"startLineNumber": 75,
+	"startColumn": 14,
+	"endLineNumber": 75,
+	"endColumn": 33,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/lib/utility_node_installer.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "UP006",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/non-pep585-annotation",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use `list` instead of `List` for type annotation\n\nhelp: Replace with `list`",
+	"source": "Ruff",
+	"startLineNumber": 75,
+	"startColumn": 23,
+	"endLineNumber": 75,
+	"endColumn": 27,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/service/service_manager.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "PLW1510",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/subprocess-run-without-check",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`subprocess.run` without explicit `check` argument\n\nhelp: Add explicit `check=False`",
+	"source": "Ruff",
+	"startLineNumber": 17,
+	"startColumn": 12,
+	"endLineNumber": 17,
+	"endColumn": 26,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/skill/skill.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "F401",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-import",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "`os` imported but unused\n\nhelp: Remove unused import: `os`",
+	"source": "Ruff",
+	"startLineNumber": 13,
+	"startColumn": 8,
+	"endLineNumber": 13,
+	"endColumn": 10,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/skill/skill.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "BLE001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/blind-except",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Do not catch blind exception: `Exception`",
+	"source": "Ruff",
+	"startLineNumber": 30,
+	"startColumn": 12,
+	"endLineNumber": 30,
+	"endColumn": 21,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/skill/skill.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB167",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/regex-flag-alias",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use of regular expression alias `re.S`\n\nhelp: Replace with `re.DOTALL`",
+	"source": "Ruff",
+	"startLineNumber": 67,
+	"startColumn": 53,
+	"endLineNumber": 67,
+	"endColumn": 57,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/skill/skill.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB167",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/regex-flag-alias",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use of regular expression alias `re.M`\n\nhelp: Replace with `re.MULTILINE`",
+	"source": "Ruff",
+	"startLineNumber": 69,
+	"startColumn": 75,
+	"endLineNumber": 69,
+	"endColumn": 79,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/skill/skill.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB167",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/regex-flag-alias",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use of regular expression alias `re.S`\n\nhelp: Replace with `re.DOTALL`",
+	"source": "Ruff",
+	"startLineNumber": 106,
+	"startColumn": 53,
+	"endLineNumber": 106,
+	"endColumn": 57,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/skill/skill.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB167",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/regex-flag-alias",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Use of regular expression alias `re.M`\n\nhelp: Replace with `re.MULTILINE`",
+	"source": "Ruff",
+	"startLineNumber": 108,
+	"startColumn": 81,
+	"endLineNumber": 108,
+	"endColumn": 85,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/skill/skill.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB105",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/print-empty-string",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unnecessary empty string passed to `print`\n\nhelp: Remove empty string",
+	"source": "Ruff",
+	"startLineNumber": 281,
+	"startColumn": 9,
+	"endLineNumber": 281,
+	"endColumn": 18,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/skill/skill.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "FURB105",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/print-empty-string",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unnecessary empty string passed to `print`\n\nhelp: Remove empty string",
+	"source": "Ruff",
+	"startLineNumber": 473,
+	"startColumn": 5,
+	"endLineNumber": 473,
+	"endColumn": 14,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_workspace.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "import-untyped",
+		"target": {
+			"$mid": 1,
+			"path": "/en/latest/_refs.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "code-import-untyped"
+		}
+	},
+	"severity": 8,
+	"message": "Library stubs not installed for \"xdg\"",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_workspace.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "I001",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unsorted-imports",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 49,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_workspace.py",
+	"owner": "Pylance13",
+	"code": {
+		"value": "reportMissingModuleSource",
+		"target": {
+			"$mid": 1,
+			"path": "/microsoft/pylance-release/blob/main/docs/diagnostics/reportMissingModuleSource.md",
+			"scheme": "https",
+			"authority": "github.com"
+		}
+	},
+	"severity": 4,
+	"message": "Import \"xdg\" could not be resolved from source",
+	"source": "Pylance",
+	"startLineNumber": 12,
+	"startColumn": 6,
+	"endLineNumber": 12,
+	"endColumn": 9,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_workspace.py",
+	"owner": "Ruff",
+	"code": {
+		"value": "RUF100",
+		"target": {
+			"$mid": 1,
+			"path": "/ruff/rules/unused-noqa",
+			"scheme": "https",
+			"authority": "docs.astral.sh"
+		}
+	},
+	"severity": 4,
+	"message": "Unused `noqa` directive (non-enabled: `E402`)\n\nhelp: Remove unused `noqa` directive",
+	"source": "Ruff",
+	"startLineNumber": 12,
+	"startColumn": 51,
+	"endLineNumber": 12,
+	"endColumn": 63,
+	"modelVersionId": 1,
+	"tags": [
+		1
+	],
+	"origin": "extHost1"
+},{
+	"resource": "/home/raka/agents-arwaky/tools/uninstall/uninstall_workspace.py",
+	"owner": "_generated_diagnostic_collection_name_#12",
+	"code": {
+		"value": "note",
+		"target": {
+			"$mid": 1,
+			"path": "/en/stable/running_mypy.html",
+			"scheme": "https",
+			"authority": "mypy.readthedocs.io",
+			"fragment": "missing-imports"
+		}
+	},
+	"severity": 2,
+	"message": "Hint: \"python3 -m pip install types-pyxdg\"\n(or run \"mypy --install-types\" to install all missing stub packages)\nSee https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports",
+	"source": "Mypy",
+	"startLineNumber": 12,
+	"startColumn": 1,
+	"endLineNumber": 12,
+	"endColumn": 2,
+	"modelVersionId": 1,
+	"origin": "extHost1"
+}]

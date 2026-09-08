@@ -1,12 +1,12 @@
 """Helper baca/tulis .env files (Python)."""
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable
 
 
-def parse_env_file(path: Path) -> Dict[str, str]:
-    env: Dict[str, str] = {}
+def parse_env_file(path: Path) -> dict[str, str]:
+    env: dict[str, str] = {}
     if not path.exists():
         return env
     try:
@@ -32,7 +32,7 @@ def parse_env_file(path: Path) -> Dict[str, str]:
     return env
 
 
-def load_first_env(candidates: Iterable[Path]) -> Dict[str, str]:
+def load_first_env(candidates: Iterable[Path]) -> dict[str, str]:
     for candidate in candidates:
         c = Path(candidate)
         if c.exists():

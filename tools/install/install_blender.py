@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from utility_launcher_writer import write_uv_launchers  # noqa: E402
+from utility_launcher_writer import write_uv_launchers
 
 SRC_DIR = ROOT / "internal/blender-arwaky"
 
@@ -23,7 +23,7 @@ def main() -> int:
         print(f">>> Initializing submodule {SRC_DIR}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/blender-arwaky"])
     write_uv_launchers("blender", "internal/blender-arwaky", ['blender-arwaky', 'ba', 'blender-mcp'])
-    print(f">>> Successfully installed blender launchers")
+    print(">>> Successfully installed blender launchers")
     return 0
 
 

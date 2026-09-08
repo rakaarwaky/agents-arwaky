@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from utility_launcher_writer import write_uv_launchers  # noqa: E402
+from utility_launcher_writer import write_uv_launchers
 
 SRC_DIR = ROOT / "internal/vision-arwaky"
 
@@ -23,7 +23,7 @@ def main() -> int:
         print(f">>> Initializing submodule {SRC_DIR}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/vision-arwaky"])
     write_uv_launchers("vision", "internal/vision-arwaky", ['vision-arwaky', 'vision-arwaky-cli', 'va', 'vision-arwaky-mcp'])
-    print(f">>> Successfully installed vision launchers")
+    print(">>> Successfully installed vision launchers")
     return 0
 
 

@@ -4,10 +4,10 @@ Google Drive Backup & Restore Helper for agents-arwaky
 Uses Google Workspace MCP credentials to upload/download/list backup archives.
 """
 
-import sys
-import os
-import json
 import io
+import json
+import os
+import sys
 from pathlib import Path
 
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
@@ -33,8 +33,8 @@ def get_credentials():
     with open(cred_file, "r", encoding="utf-8") as f:
         cdata = json.load(f)
 
-    from google.oauth2.credentials import Credentials
     from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
     creds = Credentials(
         token=cdata.get("token"),
         refresh_token=cdata.get("refresh_token"),
@@ -54,9 +54,9 @@ def get_credentials():
     return creds
 
 def get_drive_service():
-    from googleapiclient.discovery import build
-    import httplib2
     import google_auth_httplib2
+    import httplib2
+    from googleapiclient.discovery import build
     creds = get_credentials()
     http = httplib2.Http(timeout=60)
     http.redirect_codes = http.redirect_codes - {308}
@@ -65,15 +65,45 @@ def get_drive_service():
 
 import time
 
-def retry_api(func, max_retries=4, delay=2):
+
+def _is_transient(err) -> bool:
+    """Return True if the error is retryable (transient), False for permanent failures."""
+    # Timeout / connection errors
+    if isinstance(err, (ConnectionError, TimeoutError)):
+        return True
+    # Google API HttpError: retry only 429/500/502/503
+    try:
+        from googleapiclient.errors import HttpError
+        if isinstance(err, HttpError):
+            status = getattr(err, "resp", None)
+            code = status.status if status is not None else getattr(err, "status_code", None)
+            if code in (429, 500, 502, 503):
+                return True
+            return False  # 401/403/404 dan lainnya = permanen, jangan retry
+    except ImportError:
+        pass
+    return False
+
+
+def retry_api(func, max_retries=4, delay=1):
+    """Retry a Google API call with exponential backoff + jitter.
+
+    Only transient errors (timeout, connection, 429/500/502/503) are retried.
+    Permanent errors (401/403/404, etc.) propagate immediately (P5-P1).
+    """
+    import random
     last_err = None
     for attempt in range(1, max_retries + 1):
         try:
             return func()
         except Exception as e:
             last_err = e
+            if not _is_transient(e):
+                raise
             if attempt < max_retries:
-                time.sleep(delay * attempt)
+                # Exponential backoff with jitter: min(base * 2**attempt + jitter, 10)
+                wait = min(delay * (2 ** attempt) + random.uniform(0, 1), 10)
+                time.sleep(wait)
     raise last_err
 
 def escape_drive_query(value: str) -> str:

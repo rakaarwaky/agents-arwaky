@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from utility_launcher_writer import write_uv_launchers  # noqa: E402
+from utility_launcher_writer import write_uv_launchers
 
 SRC_DIR = ROOT / "internal/qwen-web-arwaky"
 
@@ -23,7 +23,7 @@ def main() -> int:
         print(f">>> Initializing submodule {SRC_DIR}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/qwen-web-arwaky"])
     write_uv_launchers("qwen-web", "internal/qwen-web-arwaky", ['qwen-web-arwaky', 'qwa', 'qwen-web-cli', 'qwen-web-mcp', 'qwc'])
-    print(f">>> Successfully installed qwen-web launchers")
+    print(">>> Successfully installed qwen-web launchers")
     return 0
 
 

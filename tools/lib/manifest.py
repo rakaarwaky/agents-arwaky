@@ -6,7 +6,6 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 
 def repo_root() -> Path:
@@ -28,11 +27,11 @@ class Tool:
     is_mcp: bool
     description: str
     path: str
-    alias: Optional[str] = None
+    alias: str | None = None
 
 
 @functools.lru_cache(maxsize=1)
-def load_tools() -> List[Tool]:
+def load_tools() -> list[Tool]:
     path = manifest_path()
     if not path.exists():
         return []
@@ -40,7 +39,7 @@ def load_tools() -> List[Tool]:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return []
-    tools: List[Tool] = []
+    tools: list[Tool] = []
     for item in data.get("tools", []):
         # Validasi field wajib (C-2)
         missing = [f for f in ("id", "binary", "path") if not item.get(f)]
@@ -58,7 +57,7 @@ def load_tools() -> List[Tool]:
     return tools
 
 
-def find_tool(query: str) -> Optional[Tool]:
+def find_tool(query: str) -> Tool | None:
     query = query.strip()
     if not query:
         return None

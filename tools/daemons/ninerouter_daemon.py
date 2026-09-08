@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import config_home, data_home  # noqa: E402
+from xdg import config_home, data_home
 
 CONTAINER_NAME = "9router"
 IMAGE_NAME = os.environ.get("NINEROUTER_IMAGE", "ghcr.io/decolua/9router:latest")
@@ -78,6 +78,9 @@ def service_active():
     return out(["systemctl", "--user", "is-active", "9router.service"]) == "active"
 
 
+WEAK_PASSWORDS = {"change-me-to-a-strong-password", "", "password", "admin"}
+
+
 def read_env():
     env = {}
     secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
@@ -88,6 +91,12 @@ def read_env():
                     k, v = line.split("=", 1)
                     env[k.strip()] = v.strip().strip('"').strip("'")
             break
+    # Validasi password lemah/placeholder (P5-P1)
+    pwd = env.get("INITIAL_PASSWORD", "")
+    if pwd in WEAK_PASSWORDS:
+        print("  \u26a0 Warning: INITIAL_PASSWORD is a known-weak/placeholder value.", file=sys.stderr)
+        print("    Set a strong password (min 16 chars, mixed case + digits + symbols) in", file=sys.stderr)
+        print("    $XDG_DATA_HOME/agents-arwaky/config/ninerouter.env", file=sys.stderr)
     return env
 
 
@@ -110,7 +119,7 @@ def cmd_service_install():
     run(["systemctl", "--user", "enable", "--now", "9router.service"])
     print(f">>> Waiting for 9Router API to be ready at http://127.0.0.1:{PORT}...")
     if api_ready():
-        print(f">>> [OK] 9Router daemon installed and active: 9router.service")
+        print(">>> [OK] 9Router daemon installed and active: 9router.service")
         print(f">>> Web Dashboard: http://localhost:{PORT}")
     else:
         print(">>> [WARN] Service enabled, but API is still initializing. Check 'aa 9router logs'.")
@@ -243,7 +252,7 @@ def cmd_status():
     if api_ready(timeout=10):
         print(f"  API: OK (http://127.0.0.1:{PORT})")
     else:
-        print(f"  API: not ready")
+        print("  API: not ready")
     print(f"  Data: {DATA_DIR}")
     return 0
 

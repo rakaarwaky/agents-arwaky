@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from xdg import bin_home, ensure_bin_home  # noqa: E402
+from xdg import bin_home, ensure_bin_home
 
 
 def write_uv_launchers(package_name: str, src_rel: str, launchers: list) -> list:

@@ -8,8 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from utility_node_installer import build, install_runtime, install_launcher  # noqa: E402
-from xdg import bin_home, data_home  # noqa: E402
+from utility_node_installer import build, install_runtime
+from xdg import bin_home, data_home
 
 VENDOR_DIR = ROOT / "vendor/fetch-mcp"
 TARGET_DIR = data_home() / "fetch-mcp"

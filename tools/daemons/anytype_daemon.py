@@ -16,8 +16,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import config_home, data_home  # noqa: E402
-from envfile import update_env_file  # noqa: E402
+from envfile import update_env_file
+from xdg import config_home, data_home
 
 CONTAINER_NAME = "anytype-daemon"
 IMAGE_NAME = "localhost/anytype-daemon:latest"
@@ -203,7 +203,7 @@ def cmd_status():
     if api_ready(timeout=10):
         print(f" API: OK (http://127.0.0.1:{PORT})")
     else:
-        print(f" API: not ready")
+        print(" API: not ready")
     return 0
 
 

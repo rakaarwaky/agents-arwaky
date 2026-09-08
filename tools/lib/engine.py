@@ -18,6 +18,7 @@ import re
 import sys
 from pathlib import Path
 
+
 # ---------------------------------------------------------------------------
 # Format detection & generic load/dump
 # ---------------------------------------------------------------------------
@@ -32,7 +33,7 @@ def detect_format(path: Path) -> str:
     # Fallback: peek content
     try:
         text = path.read_text(encoding="utf-8", errors="replace")[:4096]
-        if re.search(r"^\s*[-\w]+\s*:", text, re.M):
+        if re.search(r"^\s*[-\w]+\s*:", text, re.MULTILINE):
             return "yaml"
     except OSError:
         pass

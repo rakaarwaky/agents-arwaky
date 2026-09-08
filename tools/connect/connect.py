@@ -88,10 +88,10 @@ def extract_skill_name(skill_md: Path) -> str:
     """Extract `name:` from SKILL.md frontmatter; fallback to parent dir name."""
     try:
         text = skill_md.read_text(encoding="utf-8", errors="replace")
-        m = re.search(r"^---\s*\n(.*?)\n---", text, re.S)
+        m = re.search(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
         if m:
             fm = m.group(1)
-            nm = re.search(r"^name:\s*[\"']?(.+?)[\"']?\s*$", fm, re.M)
+            nm = re.search(r"^name:\s*[\"']?(.+?)[\"']?\s*$", fm, re.MULTILINE)
             if nm:
                 return nm.group(1).strip()
     except OSError:
@@ -270,7 +270,7 @@ def disconnect_legacy_lean_ctx(dry_run: bool):
             s = re.sub(r"(?s)<!--\s*lean-ctx-compression\s*-->.*?<!--\s*/lean-ctx-compression\s*-->\n?", "", s)
             s = re.sub(r"(?s)<!--\s*lean-ctx-solution\s*-->.*?<!--\s*/lean-ctx-solution\s*-->\n?", "", s)
             s = re.sub(r"(?s)<!--\s*lean-ctx\s*-->.*?<!--\s*/lean-ctx\s*-->\n?", "", s)
-            s = re.sub(r"(?s)#\s*Lean-CTX.*?(?=\n# |\Z)", "", s, flags=re.I)
+            s = re.sub(r"(?s)#\s*Lean-CTX.*?(?=\n# |\Z)", "", s, flags=re.IGNORECASE)
             if s != before:
                 hmd.write_text(s, encoding="utf-8")
                 log_ok(f"Stripped lean-ctx blocks from {hmd}")
@@ -617,7 +617,7 @@ def cmd_disconnect(args):
             disconnect_opencode(dry_run)
         elif t == "qwencode":
             disconnect_qwencode(dry_run)
-        print("")
+        print()
     print("------------------------------------------------------------------")
     print("\u2713 Disconnect complete. agents-arwaky entries removed from selected harnesses.")
     return 0
@@ -673,7 +673,7 @@ def cmd_connect(args):
             connect_opencode(force, dry_run, mcp_only, skills_only, env_only)
         elif t == "qwencode":
             connect_qwencode(force, dry_run, mcp_only, skills_only, env_only)
-        print("")
+        print()
     print("------------------------------------------------------------------")
     print("\u2713 Connection complete. Agent harnesses are now synchronized with agents-arwaky.")
     return 0

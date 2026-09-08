@@ -10,7 +10,6 @@ Commands:
     aa skill sync
 """
 import json
-import os
 import posixpath
 import re
 import shutil
@@ -64,9 +63,9 @@ def extract_skill_name(skill_md):
     """Extract `name:` from SKILL.md frontmatter; fallback to parent dir name."""
     try:
         text = skill_md.read_text(encoding="utf-8", errors="replace")
-        m = re.search(r"^---\s*\n(.*?)\n---", text, re.S)
+        m = re.search(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
         if m:
-            nm = re.search(r"^name:\s*[\"']?(.+?)[\"']?\s*$", m.group(1), re.M)
+            nm = re.search(r"^name:\s*[\"']?(.+?)[\"']?\s*$", m.group(1), re.MULTILINE)
             if nm:
                 return nm.group(1).strip()
     except OSError:
@@ -103,9 +102,9 @@ def extract_description(skill_md):
     """Extract `description:` from SKILL.md frontmatter."""
     try:
         text = skill_md.read_text(encoding="utf-8", errors="replace")
-        m = re.search(r"^---\s*\n(.*?)\n---", text, re.S)
+        m = re.search(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
         if m:
-            d = re.search(r"^description:\s*[\"']?(.+?)[\"']?\s*$", m.group(1), re.M)
+            d = re.search(r"^description:\s*[\"']?(.+?)[\"']?\s*$", m.group(1), re.MULTILINE)
             if d:
                 return d.group(1).strip()
     except OSError:
@@ -278,7 +277,7 @@ def cmd_uninstall(argv):
     if not target_name:
         print("Error: Missing tool or skill name.")
         print("Usage: aa skill uninstall <tool-name|skill-name|all> [--target <dir>]")
-        print("")
+        print()
         print("Note: Default target is the CURRENT WORKING DIRECTORY (.agents/skills/).")
         print("      This is different from 'aa disconnect' which removes skills from harness paths.")
         return 1
@@ -470,7 +469,7 @@ def cmd_show(argv):
 def cmd_help():
     print("agents-arwaky Skill Manager (aa skill)")
     print("Discover, inspect and provision AI agent skills.")
-    print("")
+    print()
     print("COMMANDS:")
     print("  list, ls [tool]             List all tools and their associated skills")
     print("  install, get, copy <name>   Install ALL skills for a tool (or a specific skill)")

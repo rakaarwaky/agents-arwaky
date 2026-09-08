@@ -12,12 +12,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from manifest import Tool, find_tool, load_tools, repo_root  # noqa: E402
-from ui import (  # noqa: E402
-    BOLD, BLUE, CYAN, DIM, GREEN, RED, RESET, YELLOW,
-    banner, err, info, ok, sub, warn,
+from manifest import Tool, find_tool, load_tools, repo_root
+from ui import (
+    BLUE,
+    BOLD,
+    CYAN,
+    DIM,
+    GREEN,
+    RED,
+    RESET,
+    YELLOW,
+    banner,
+    err,
+    info,
+    ok,
+    warn,
 )
-from xdg import bin_home, config_home, data_home, ensure_path  # noqa: E402
+from xdg import bin_home, config_home, data_home, ensure_path
 
 
 # =============================================================================
@@ -107,6 +118,16 @@ def remove_tool_state(tool: Tool) -> None:
 # =============================================================================
 # Commands
 # =============================================================================
+def cmd_version(argv: list[str]) -> int:
+    """Print version (P1-D6). Reads tools/config/version.txt if present."""
+    vfile = repo_root() / "tools/config/version.txt"
+    version = "0.1.0"
+    if vfile.exists():
+        version = vfile.read_text(encoding="utf-8").strip()
+    print(f"agents-arwaky {version}")
+    return 0
+
+
 def cmd_help(argv: list[str]) -> int:
     banner()
     print(f"{BOLD}USAGE:{RESET}")
@@ -242,7 +263,7 @@ def cmd_install(argv: list[str]) -> int:
     target = argv[0] if argv else "all"
     # Konfirmasi untuk install all (Plan2 P0)
     if target == "all" and "--yes" not in argv and "-y" not in argv:
-        answer = input(f"Install ALL tools? [y/N]: ").strip().lower()
+        answer = input("Install ALL tools? [y/N]: ").strip().lower()
         if answer not in ("y", "yes"):
             warn("Aborted.")
             return 1
@@ -560,6 +581,7 @@ def main() -> int:
         "completion": cmd_completion, "sync": cmd_sync,
         "check": cmd_check, "submodules": cmd_submodules, "clean": cmd_clean,
         "uninstall": cmd_uninstall, "reset": cmd_reset,
+        "version": cmd_version, "--version": cmd_version,
         "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
     }
     handler = dispatch.get(cmd)

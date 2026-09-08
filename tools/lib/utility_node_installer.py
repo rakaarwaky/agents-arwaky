@@ -6,12 +6,11 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home  # noqa: E402
+from xdg import bin_home, data_home, ensure_bin_home
 
 
 def run(cmd, cwd=None):
@@ -48,7 +47,7 @@ def install_runtime(vendor_dir: Path, target_dir: Path):
 
 def install_launcher(
     tool_name: str,
-    aliases: Optional[List[str]] = None,
+    aliases: list[str] | None = None,
     entry_point: str = "index.js",
 ):
     """Create Node launcher script in XDG bin. Returns launcher path."""
@@ -72,7 +71,7 @@ os.execvpe("node", ["node", str(data / "dist" / "{entry_point}"), *sys.argv[1:]]
 def install_node_tool(
     tool_name: str,
     vendor_subpath: str,
-    aliases: Optional[List[str]] = None,
+    aliases: list[str] | None = None,
     entry_point: str = "index.js",
 ) -> int:
     """Complete installation pipeline for a Node.js-based tool."""

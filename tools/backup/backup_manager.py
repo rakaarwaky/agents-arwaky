@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import data_home  # noqa: E402
+from xdg import data_home
 
 BACKUP_STORE = data_home() / "backups"
 GDRIVE_HELPER = ROOT / "tools/backup/gdrive.py"
