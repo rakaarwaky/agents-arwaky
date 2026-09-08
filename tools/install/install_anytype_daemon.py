@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-untyped]
+from xdg import (  
     bin_home,
     data_home,
     ensure_bin_home,
@@ -26,8 +26,6 @@ from xdg import (  # type: ignore[import-untyped]
 
 TOOL_DIR = ROOT / "tools/daemons"
 INTERNAL_BIN = data_home() / "agents-arwaky/internal-bin"
-
-
 def _write_launcher(path: Path) -> None:
     path.write_text(
         "#!/usr/bin/env python3\n"
@@ -39,8 +37,6 @@ def _write_launcher(path: Path) -> None:
         encoding="utf-8",
     )
     path.chmod(0o755)
-
-
 def main() -> int:
     if not shutil.which("podman") and not shutil.which("docker"):
         print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
@@ -66,7 +62,5 @@ def main() -> int:
 
     print(f">>> Successfully installed anytype-daemon -> {launcher} (alias ad)")
     return 0
-
-
 if __name__ == "__main__":
     raise SystemExit(main())

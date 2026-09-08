@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-untyped]
+from xdg import (  
     bin_home,
     config_home,
     data_home,
@@ -26,12 +26,8 @@ from xdg import (  # type: ignore[import-untyped]
 
 INTERNAL_DIR = ROOT / "internal/lint-arwaky"
 BINARIES = ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui"]
-
-
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
-
-
 def _cargo_on_path() -> str | None:
     """Find cargo on PATH or at the default rustup location."""
     found = shutil.which("cargo")
@@ -42,8 +38,6 @@ def _cargo_on_path() -> str | None:
             os.environ["PATH"] = str(cand.parent) + os.pathsep + os.environ.get("PATH", "")
             return str(cand)
     return None
-
-
 def _bootstrap_rustup() -> bool:
     """Install rust toolchain via rustup (non-interactive). Best effort."""
     if shutil.which("curl"):
@@ -62,16 +56,12 @@ def _bootstrap_rustup() -> bool:
         print(f"  Warning: rustup bootstrap failed ({e}).", file=sys.stderr)
         return False
     return _cargo_on_path() is not None
-
-
 _BUILD_DEPS = [
     # (command, apt package)
     ("cc", "gcc"),
     ("sccache", "sccache"),
     ("mold", "mold"),
 ]
-
-
 def _preflight_build_deps() -> dict:
     """Ensure build deps are present (apt best-effort via sudo); fallback override env."""
     env = {}
@@ -96,8 +86,6 @@ def _preflight_build_deps() -> dict:
                 env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER"] = "cc"
                 print("  -> mold skipped (linker=cc).", file=sys.stderr)
     return env
-
-
 def main() -> int:
     if not INTERNAL_DIR.exists() or not (INTERNAL_DIR / "Cargo.toml").exists():
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/lint-arwaky"])
@@ -137,7 +125,5 @@ def main() -> int:
         lac.symlink_to(bin_home() / "lint-arwaky-cli")
     print(">>> Successfully installed lint-arwaky")
     return 0
-
-
 if __name__ == "__main__":
     raise SystemExit(main())

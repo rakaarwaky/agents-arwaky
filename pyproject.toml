@@ -1,0 +1,6 @@
+[tool.ruff]
+target-version = "py313"
+
+[tool.ruff.lint.per-file-ignores]
+"tools/install/*.py" = ["E402", "S603"]
+"tools/uninstall/*.py" = ["E402", "S603"]

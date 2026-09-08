@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-untyped]
+from xdg import (  
     atomic_write_text,
     bin_home,
     data_home,
@@ -41,12 +41,8 @@ LAUNCHERS = {
     "context7-mcp": "packages/mcp/dist/index.js",
     "ctx7": "packages/cli/dist/index.js",
 }
-
-
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
-
-
 def main() -> int:
     if not (SRC / "pnpm-workspace.yaml").exists():
         print("Error: context7 source not found (submodule not initialized).", file=sys.stderr)
@@ -86,7 +82,5 @@ def main() -> int:
     warn_if_bin_not_on_path()
     print(">>> Successfully installed context7")
     return 0
-
-
 if __name__ == "__main__":
     raise SystemExit(main())

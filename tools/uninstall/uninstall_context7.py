@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import remove_tool_artifacts  # type: ignore[import-untyped]
+from xdg import remove_tool_artifacts
 
 
 def main() -> int:

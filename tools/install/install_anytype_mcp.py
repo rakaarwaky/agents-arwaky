@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-untyped]
+from xdg import (  
     bin_home,
     data_home,
     ensure_bin_home,
@@ -31,19 +31,13 @@ IGNORES = shutil.ignore_patterns(
     "node_modules", ".git", "__pycache__", "dist", "target", "*.egg-info",
     ".venv", "venv", "*.tsbuildinfo",
 )
-
-
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
-
-
 def _require(tool: str, reason: str) -> bool:
     if shutil.which(tool):
         return True
     print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
     return False
-
-
 def main() -> int:
     if not (SRC / "package.json").exists():
         print("Error: anytype-mcp source not found (submodule not initialized).", file=sys.stderr)
@@ -79,7 +73,5 @@ def main() -> int:
     warn_if_bin_not_on_path()
     print(">>> Successfully installed anytype-mcp")
     return 0
-
-
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from launcher_writer import write_uv_launchers  # noqa: E402
-from xdg import ensure_bin_home  # noqa: E402
+from launcher_writer import write_uv_launchers
+from xdg import ensure_bin_home
 
 SRC_REL = "internal/blender-arwaky"
 SRC_DIR = ROOT / SRC_REL
@@ -19,12 +19,8 @@ LAUNCHERS = [
     ("ba", "blender-arwaky"),
     ("blender-mcp", "blender-mcp"),
 ]
-
-
 def run(cmd, cwd=None):
-    subprocess.run(cmd, cwd=cwd, check=True)  # noqa: S603
-
-
+    subprocess.run(cmd, cwd=cwd, check=True)
 def main() -> int:
     if not SRC_DIR.exists():
         print(f">>> Initializing submodule {SRC_REL}...", file=sys.stderr)
@@ -39,7 +35,5 @@ def main() -> int:
         print(f"  -> {p}")
     print(">>> Successfully installed blender-arwaky")
     return 0
-
-
 if __name__ == "__main__":
     raise SystemExit(main())
