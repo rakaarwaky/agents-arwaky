@@ -9,7 +9,10 @@ import sys
 _logger = _logging.getLogger("agents-arwaky")
 if not _logger.handlers:
     _handler = _logging.StreamHandler()
-    _handler.setFormatter(_logging.Formatter("%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S"))
+    _fmt = (
+        "%(asctime)s %(levelname)s %(message)s"
+    )
+    _handler.setFormatter(_logging.Formatter(_fmt, datefmt="%H:%M:%S"))
     _logger.addHandler(_handler)
     _logger.setLevel(_logging.INFO)
 

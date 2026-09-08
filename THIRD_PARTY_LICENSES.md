@@ -20,39 +20,43 @@ This repository incorporates upstream open-source software as git submodules und
 ## Upstream Licenses
 
 ### 1. Context7
+
 - **Project:** Context7
 - **Author:** Upstash, Inc.
-- **URL:** https://github.com/upstash/context7
+- **URL:** [https://github.com/upstash/context7](https://github.com/upstash/context7)
 - **License:** MIT License
 
 ### 2. Fetch-MCP
+
 - **Project:** Fetch MCP
 - **Author:** Zach Caceres
-- **URL:** https://github.com/zcaceres/fetch-mcp
+- **URL:** [https://github.com/zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)
 - **License:** MIT License
 
-
 ### 3. Ponytail
+
 - **Project:** Ponytail
 - **Author:** Dietrich Gebert
-- **URL:** https://github.com/DietrichGebert/ponytail
+- **URL:** [https://github.com/DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)
 - **License:** MIT License
 
 ### 4. Anytype MCP
+
 - **Project:** Anytype MCP Server
 - **Author:** Any Association
-- **URL:** https://github.com/anyproto/anytype-mcp
+- **URL:** [https://github.com/anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)
 - **License:** MIT License (upstream NOTICE available at [github.com/anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp))
 
 ### 5. CodeGraph
+
 - **Project:** CodeGraph
 - **Author:** Colby McHenry
-- **URL:** https://github.com/colbymchenry/codegraph
+- **URL:** [https://github.com/colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)
 - **License:** MIT License
 
 ### 6. 9Router
+
 - **Project:** 9Router
 - **Author:** decolua and contributors
-- **URL:** https://github.com/decolua/9router
+- **URL:** [https://github.com/decolua/9router](https://github.com/decolua/9router)
 - **License:** MIT License
-

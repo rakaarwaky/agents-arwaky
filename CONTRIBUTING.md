@@ -91,6 +91,7 @@ Ensure `.gitmodules` marks the submodule with `ignore = dirty` so local build ar
 Per-tool installers are **Python scripts**, discovered automatically from the manifest via [`tools/lib/tool_resolver.py`](tools/lib/tool_resolver.py) — there is no central build script to edit. Create `tools/install/install_<tool>.py`:
 
 The installer must:
+
 - Resolve the repository root with [`tools/lib/paths.py`](tools/lib/paths.py) (`repo_root()`).
 - Resolve XDG paths with [`tools/lib/xdg.py`](tools/lib/xdg.py) (`bin_home()`, `data_home()`, `config_home()`, `ensure_bin_home()`).
 - Install or compile the tool into `$XDG_DATA_HOME/<tool>/` and write an executable launcher into `$XDG_BIN_HOME/<binary>` (see [`tools/lib/launcher_writer.py`](tools/lib/launcher_writer.py)).
@@ -381,6 +382,7 @@ When deprecating or removing an upstream tool, follow this procedure to ensure c
 Open [`tools/config/manifest.json`](tools/config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
 
 ### Step 2: Remove Installer & Uninstaller Scripts
+
 Delete the per-tool scripts under `tools/`:
 ```bash
 rm -f tools/install/install_my_cool_tool.py
