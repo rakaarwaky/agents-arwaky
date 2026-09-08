@@ -118,7 +118,7 @@ def cmd_service_install():
         run([e, "rm", CONTAINER_NAME])
     run(["systemctl", "--user", "daemon-reload"])
     run(["systemctl", "--user", "enable", "--now", "9router.service"])
-    print(">>> Waiting for 9Router API to be ready at http://127.0.0.1:{PORT}...")
+    print(f">>> Waiting for 9Router API to be ready at http://127.0.0.1:{PORT}...")
     if api_ready():
         print(">>> [OK] 9Router daemon installed and active: 9router.service")
         print(f">>> Web Dashboard: http://localhost:{PORT}")

@@ -138,19 +138,22 @@ def get_all_skill_files():
     """All SKILL.md files owned by the user-managed skill pack (tools/skills/).
 
     Source of truth is ONLY tools/skills/ — internal/ and vendor/ submodules
-    are no longer scanned directly.
+    are no longer scanned directly. Materialized as a tuple so the cache
+    does not return an exhausted generator to later callers.
     """
     seen = set()
     base = REPO_ROOT / "tools" / "skills"
     if not base.is_dir():
-        return
+        return ()
+    result = []
     for p in base.rglob("SKILL.md"):
         if any(part in {"node_modules", ".venv", "venv", "target", ".git"} for part in p.parts):
             continue
         name = extract_skill_name(p)
         if name and name not in seen:
             seen.add(name)
-            yield p
+            result.append(p)
+    return tuple(result)
 
 
 def remove_provisioned_skills(dest_base: Path, dry_run: bool = False):
@@ -212,9 +215,17 @@ def engine_set_env(file, pairs):
 
 
 def copy_skill_to_dir(src, dest_base, force=False, dry_run=False):
-    """Copy SKILL.md + companion assets (mirrors bash copy_skill_to_dir)."""
-    name = extract_skill_name(src)
-    dest_dir = dest_base / name
+    """Copy SKILL.md + companion assets (mirrors bash copy_skill_to_dir).
+
+    Uses safe_skill_name + containment checks so a crafted SKILL.md name
+    cannot write outside the harness skills directory.
+    """
+    name = safe_skill_name(src)
+    try:
+        dest_dir = ensure_under(dest_base, dest_base / name)
+    except ValueError as exc:
+        log_err(str(exc))
+        return False
     dest_file = dest_dir / "SKILL.md"
     if dry_run:
         log_sub(f"[DRY-RUN] Would install skill '{name}' -> {dest_file}")
@@ -236,6 +247,9 @@ def copy_skill_to_dir(src, dest_base, force=False, dry_run=False):
     return True
 
 
+PLACEHOLDER_KEYS = {"sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "change-me", ""}
+
+
 def get_9router_credentials():
     """Read NINEROUTER_URL/KEY from .env candidates; fallback default URL."""
     router_url = "http://127.0.0.1:20128"
@@ -255,12 +269,10 @@ def get_9router_credentials():
                         router_key = line.split("=", 1)[1].strip().strip('"\'')
             except OSError:
                 pass
-            if router_key:
+            # Break only for a non-placeholder key; skip candidates with empty/placeholder values
+            if router_key and router_key not in PLACEHOLDER_KEYS:
                 break
     return router_url, router_key
-
-
-PLACEHOLDER_KEYS = {"sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "change-me", ""}
 
 
 def inject_9router_env(target, dry_run=False):

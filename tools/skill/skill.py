@@ -125,19 +125,24 @@ def _find_skills(base: Path):
 
 
 @lru_cache(maxsize=1)
+def _get_all_skills():
+    """Shared skill discovery — cached once per process (no per-tool eviction)."""
+    base = REPO_ROOT / "tools" / "skills"
+    if not base.is_dir():
+        return ()
+    return tuple(sorted(
+        f for f in base.rglob("SKILL.md")
+        if not any(part in {"node_modules", ".venv", "venv", "target", ".git", "__pycache__"} for part in f.parts)
+    ))
+
+
 def get_tool_skills(tool_id):
     """Return sorted list of SKILL.md paths for a tool.
 
     User-managed skill pack: ALL skills live in tools/skills/ and are shared
     across every tool. internal/ and vendor/ submodules are no longer read.
     """
-    base = REPO_ROOT / "tools" / "skills"
-    if not base.is_dir():
-        return []
-    return tuple(sorted(
-        f for f in base.rglob("SKILL.md")
-        if not any(part in {"node_modules", ".venv", "venv", "target", ".git", "__pycache__"} for part in f.parts)
-    ))
+    return _get_all_skills()
 
 
 def resolve_single_skill_file(query):
@@ -383,8 +388,13 @@ def _table_widths(available: int, weights: list[int]) -> list[int]:
 
 
 def _pad(s: str, width: int) -> str:
-    """Pad a possibly-ANSI-colored string to width using visible length."""
-    return s + " " * max(0, width - len(re.sub(r"\033\[[0-9;]*m", "", s)))
+    """Pad a possibly-ANSI-colored string to width using visible length.
+    Truncates with ellipsis if the visible content exceeds the column width."""
+    visible = re.sub(r"\033\[[0-9;]*m", "", s)
+    if len(visible) > width:
+        s = s[: max(0, len(s) - (len(visible) - width) + 1)] + "…"
+        visible = re.sub(r"\033\[[0-9;]*m", "", s)
+    return s + " " * max(0, width - len(visible))
 
 
 # --- list ----------------------------------------------------------------------
@@ -393,7 +403,9 @@ def cmd_list(argv):
     pack = get_tool_skills("all")  # satu pack user di tools/skills/
     total_unique = len(pack)
     term_w = _term_width()
-    available = max(60, term_w - 2)
+    # Reserve space for inter-column separators (one space between each column)
+    n_cols = 2 if (tool_filter and tool_filter != "--all") else 4
+    available = max(40, term_w - 2 - (n_cols - 1))
     if tool_filter and tool_filter != "--all":
         tid = normalize_tool_id(tool_filter)
         if not tid:
@@ -425,7 +437,8 @@ def cmd_list(argv):
 # --- check ---------------------------------------------------------------------
 def cmd_check():
     term_w = _term_width()
-    available = max(60, term_w - 2)
+    n_cols = 5
+    available = max(40, term_w - 2 - (n_cols - 1))
     w_id, w_cat, w_status, w_count, w_path = _table_widths(available, [2, 1, 1, 1, 5])
     print("Auditing SKILL.md Readiness across Registered Tools:")
     print("-" * available)
@@ -561,7 +574,7 @@ def main(argv):
     if rest and rest[0] in ("-h", "--help", "help"):
         if action in ("list", "ls"):
             return cmd_list_help()
-        if action in ("install", "copy", "get", "add"):
+        if action in ("install", "copy", "get", "add", "sync"):
             return cmd_install_help()
         if action in ("uninstall", "remove", "unskill", "delete"):
             return cmd_uninstall_help()

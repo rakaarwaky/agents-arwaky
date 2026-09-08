@@ -223,7 +223,7 @@ def cmd_status(argv: list[str]) -> int:
             status = f"{BLUE()}[OK] Source Ready (Internal){RESET()}"
         else:
             status = f"{YELLOW()}[WARN] Not Installed{RESET()}"
-        print(f"{_pad(tool.id, w_tool)} {_pad(cat_color + tool.category + RESET, w_cat)} {_pad(tool.binary, w_bin)} {status}")
+        print(f"{_pad(tool.id, w_tool)} {_pad(cat_color + tool.category + RESET(), w_cat)} {_pad(tool.binary, w_bin)} {status}")
     print(sep)
     return 0
 
@@ -287,7 +287,7 @@ def cmd_list(argv: list[str]) -> int:
         mcp_label = "Yes" if tool.is_mcp else "No"
         desc = textwrap.shorten(tool.description, width=w_desc, placeholder='...')
         print(
-            f"{_pad(tool.id, w_id)} {_pad(cat_color + tool.category + RESET, w_cat)} "
+            f"{_pad(tool.id, w_id)} {_pad(cat_color + tool.category + RESET(), w_cat)} "
             f"{_pad(mcp_label, w_mcp)} {desc}"
         )
     print(sep)
@@ -328,7 +328,7 @@ def cmd_run(argv: list[str]) -> int:
     return 1
 
 
-def _confirm(prompt: str, default: str = "n") -> bool:
+def _confirm(prompt: str, accepted: tuple = ("y", "yes")) -> bool:
     """Safe TTY-aware confirmation prompt. Returns False in non-TTY without --yes."""
     if not sys.stdin.isatty():
         return False
@@ -337,7 +337,7 @@ def _confirm(prompt: str, default: str = "n") -> bool:
     except (EOFError, KeyboardInterrupt):
         print()
         return False
-    return answer in ("y", "yes")
+    return answer in accepted
 
 
 def cmd_install(argv: list[str]) -> int:
@@ -584,7 +584,7 @@ def cmd_uninstall(argv: list[str]) -> int:
             err("Non-interactive mode detected. Use --yes to skip confirmation.")
             return 1
         warn("WARNING: This will remove ALL installed tool binaries, data and config.")
-        if not _confirm("Type 'uninstall' to continue: "):
+        if not _confirm("Type 'uninstall' to continue: ", accepted=("uninstall",)):
             warn("Aborted.")
             return 1
     if target in {"--all", "all"}:
@@ -613,7 +613,7 @@ def cmd_reset(argv: list[str]) -> int:
             return 1
         warn("WARNING: This will wipe installed tool state and reset the repository.")
         warn("This action cannot be undone.")
-        if not _confirm("Type 'RESET' to continue: "):
+        if not _confirm("Type 'RESET' to continue: ", accepted=("reset",)):
             warn("Aborted.")
             return 1
     warn("WARNING: This will wipe installed tool state and reset the repository.")
@@ -623,7 +623,10 @@ def cmd_reset(argv: list[str]) -> int:
     cmd_clean([])
     print()
     info("[2/4] uninstall --all")
-    cmd_uninstall(["--all"])
+    uninstall_rc = cmd_uninstall(["--all", "--yes"])
+    if uninstall_rc != 0:
+        err("Uninstall step failed during reset.")
+        return uninstall_rc
     print()
     info("[3/4] unconnect")
     cmd_unconnect([])
