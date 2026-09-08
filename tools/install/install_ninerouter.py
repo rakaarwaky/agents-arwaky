@@ -10,7 +10,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home, ensure_path  # type: ignore[import-untyped]
+from xdg import (  # type: ignore[import-untyped]
+    atomic_write_text,
+    bin_home,
+    data_home,
+    ensure_bin_home,
+    ensure_path,
+)
 
 TOOL_DIR = ROOT / "tools/daemons"
 DATA_DIR = data_home() / "9router"
@@ -33,8 +39,7 @@ root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(ROOT))}))
 daemon = root / "tools/daemons/ninerouter_daemon.py"
 os.execvpe("python3", ["python3", str(daemon), *sys.argv[1:]], os.environ.copy())
 '''
-    LAUNCHER.write_text(launcher_content, encoding="utf-8")
-    LAUNCHER.chmod(0o755)
+    atomic_write_text(LAUNCHER, launcher_content)
     INTERNAL_BIN.mkdir(parents=True, exist_ok=True)
     shutil.copy2(LAUNCHER, INTERNAL_BIN / "9router")
     (INTERNAL_BIN / "9router").chmod(0o755)

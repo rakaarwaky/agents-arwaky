@@ -30,7 +30,7 @@ def main() -> int:
         print(f">>> Initializing submodule {SRC_REL}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", SRC_REL])
     if not SRC_DIR.exists():
-        print(f"Error: source tidak ditemukan {SRC_DIR}.", file=sys.stderr)
+        print(f"Error: source not found {SRC_DIR}.", file=sys.stderr)
         return 1
 
     ensure_bin_home()

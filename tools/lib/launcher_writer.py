@@ -5,7 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from paths import repo_root  # type: ignore[import-not-found]
-from xdg import bin_home, ensure_bin_home, ensure_path, warn_if_bin_not_on_path  # type: ignore[import-untyped]
+from xdg import (  # type: ignore[import-untyped]
+    atomic_write_text,
+    bin_home,
+    ensure_bin_home,
+    ensure_path,
+    warn_if_bin_not_on_path,
+)
 
 
 def write_uv_launchers(
@@ -37,8 +43,7 @@ def write_uv_launchers(
             f'os.execvpe("uv", ["uv", "run", "--directory", str(root / "{src_rel}"), '
             f'"{entry}", *sys.argv[1:]], os.environ.copy())\n'
         )
-        target.write_text(content, encoding="utf-8")
-        target.chmod(0o755)
+        atomic_write_text(target, content)
         created.append(target)
     warn_if_bin_not_on_path()
     ensure_path()
@@ -49,8 +54,7 @@ def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | No
     """Write a generic launcher with aliases. Returns launcher path."""
     ensure_bin_home()
     launcher = bin_home() / tool_name
-    launcher.write_text(content, encoding="utf-8")
-    launcher.chmod(0o755)
+    atomic_write_text(launcher, content)
     for alias in (aliases or []):
         a = bin_home() / alias
         a.unlink(missing_ok=True)

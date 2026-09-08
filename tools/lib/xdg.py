@@ -185,3 +185,16 @@ def remove_tool_artifacts(
     shutil.rmtree(cache_home() / "agents-arwaky" / f"build-{tool}", ignore_errors=True)
     if clean_config:
         shutil.rmtree(tool_config_path(tool), ignore_errors=True)
+
+
+def atomic_write_text(path: Path, content: str, mode: int = 0o755) -> None:
+    """Tulis file secara atomik (temp + os.replace).
+
+    Menghindari ETXTBSY ('Text file busy') saat menimpa executable yang
+    sedang dipakai proses berjalan: rename aman karena proses lama tetap
+    memegang inode lama.
+    """
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(content, encoding="utf-8")
+    tmp.chmod(mode)
+    os.replace(tmp, path)

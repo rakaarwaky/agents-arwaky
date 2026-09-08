@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Installer lint-arwaky — AES Architecture Linter (Rust, cargo).
 
-Spesifik: lint-arwaky dibangun dari source Rust (cargo build --release).
-Jika `cargo` belum ada, installer mencoba bootstrap rustup secara non-interaktif;
-bila bootstrap gagal, tool dilewati dengan peringatan (return 0) agar
-`aa install all` tetap tuntas tanpa crash.
+Specifics: lint-arwaky is built from Rust source (cargo build --release).
+If `cargo` is not found, the installer attempts a non-interactive rustup bootstrap;
+if bootstrap fails, the tool is skipped with a warning (return 0) so that
+`aa install all` completes without crashing.
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ def run(cmd, cwd=None):
 
 
 def _cargo_on_path() -> str | None:
-    """Cari cargo di PATH atau di lokasi rustup default."""
+    """Find cargo on PATH or at the default rustup location."""
     found = shutil.which("cargo")
     if found:
         return found
@@ -45,27 +45,27 @@ def _cargo_on_path() -> str | None:
 
 
 def _bootstrap_rustup() -> bool:
-    """Install rust toolchain via rustup (non-interaktif). Best effort."""
+    """Install rust toolchain via rustup (non-interactive). Best effort."""
     if shutil.which("curl"):
         cmd = ["curl", "--proto", "=https", "--tlsv1.2", "-sSf",
                "https://sh.rustup.rs", "-o", "/tmp/rustup-init.sh"]
     elif shutil.which("wget"):
         cmd = ["wget", "-qO", "/tmp/rustup-init.sh", "https://sh.rustup.rs"]
     else:
-        print("  Warning: tidak ada curl/wget untuk bootstrap rustup.", file=sys.stderr)
+        print("  Warning: no curl/wget found for rustup bootstrap.", file=sys.stderr)
         return False
     try:
         subprocess.run(cmd, check=True, timeout=120)
         subprocess.run(["sh", "/tmp/rustup-init.sh", "-y", "--no-modify-path"],
                        check=True, timeout=600)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-        print(f"  Warning: bootstrap rustup gagal ({e}).", file=sys.stderr)
+        print(f"  Warning: rustup bootstrap failed ({e}).", file=sys.stderr)
         return False
     return _cargo_on_path() is not None
 
 
 _BUILD_DEPS = [
-    # (perintah, paket apt)
+    # (command, apt package)
     ("cc", "gcc"),
     ("sccache", "sccache"),
     ("mold", "mold"),
@@ -73,28 +73,28 @@ _BUILD_DEPS = [
 
 
 def _preflight_build_deps() -> dict:
-    """Pastikan build deps ada (apt best-effort via sudo); fallback override env."""
+    """Ensure build deps are present (apt best-effort via sudo); fallback override env."""
     env = {}
     for cmd, pkg in _BUILD_DEPS:
         if shutil.which(cmd):
             continue
-        print(f">>> Build dep '{cmd}' tidak ada; mencoba apt install {pkg}...", file=sys.stderr)
+        print(f">>> Build dep '{cmd}' not found; trying apt install {pkg}...", file=sys.stderr)
         try:
             subprocess.run(["sudo", "-n", "apt-get", "install", "-y", pkg],
                            check=True, timeout=300, capture_output=True)
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-            print(f"  Warning: apt install {pkg} gagal ({e}); pakai fallback.", file=sys.stderr)
+            print(f"  Warning: apt install {pkg} failed ({e}); using fallback.", file=sys.stderr)
         if shutil.which(cmd):
-            print(f"  -> {cmd} tersedia.")
+            print(f"  -> {cmd} available.")
         else:
-            # Fallback: matikan wrapper/flag yang butuh tool tsb.
+            # Fallback: disable wrapper/flag that needs this tool.
             if cmd == "sccache":
                 env["CARGO_BUILD_RUSTC_WRAPPER"] = ""
-                print("  -> sccache dilewati (RUSTC_WRAPPER kosong).", file=sys.stderr)
+                print("  -> sccache skipped (RUSTC_WRAPPER empty).", file=sys.stderr)
             elif cmd == "mold":
                 env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS"] = ""
                 env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER"] = "cc"
-                print("  -> mold dilewati (linker=cc).", file=sys.stderr)
+                print("  -> mold skipped (linker=cc).", file=sys.stderr)
     return env
 
 
@@ -103,14 +103,14 @@ def main() -> int:
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/lint-arwaky"])
 
     if _cargo_on_path() is None:
-        print(">>> cargo tidak ditemukan; mencoba bootstrap rustup...", file=sys.stderr)
+        print(">>> cargo not found; attempting rustup bootstrap...", file=sys.stderr)
         if not _bootstrap_rustup():
-            print("  Warning: lint-arwaky dilewati (toolchain Rust tidak tersedia).", file=sys.stderr)
-            print("  Jalankan ulang 'aa install lint' setelah rust terpasang.", file=sys.stderr)
+            print("  Warning: lint-arwaky skipped (Rust toolchain not available).", file=sys.stderr)
+            print("  Re-run 'aa install lint' after installing Rust.", file=sys.stderr)
             return 0
 
     build_env = _preflight_build_deps()
-    build_env["CARGO_INCREMENTAL"] = "0"  # rekomendasi proyek utk sccache
+    build_env["CARGO_INCREMENTAL"] = "0"  # project recommendation for sccache
     env = os.environ.copy()
     env.update(build_env)
 
@@ -124,8 +124,12 @@ def main() -> int:
         src = release / b
         if src.exists():
             dst = bin_home() / b
-            shutil.copy2(src, dst)
-            dst.chmod(0o755)
+            # Atomic replace: hindari ETXTBSY bila binary lama sedang dipakai
+            # proses yang berjalan (rename aman; proses lama tetap pakai inode lama).
+            tmp = dst.with_suffix(dst.suffix + ".tmp")
+            shutil.copy2(src, tmp)
+            tmp.chmod(0o755)
+            os.replace(tmp, dst)
             print(f"  -> {dst}")
     if (bin_home() / "lint-arwaky-cli").exists():
         lac = bin_home() / "lac"

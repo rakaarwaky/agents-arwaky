@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Installer anytype-mcp — @anyproto/anytype-mcp (TypeScript, bun).
 
-Spesifik: lockfile bun.lock -> `bun install`; build `tsc -build` (outDir ./build)
-+ scripts/build-cli.js (outfile bin/cli.mjs). Entry CLI = bin/cli.mjs (BUKAN
-dist/cli.mjs — dist tidak pernah dihasilkan). Runtime di-install in-place di
-$XDG_DATA_HOME/anytype-mcp agar node_modules hasil bun ikut serta.
+Specifics: lockfile bun.lock -> `bun install`; build `tsc -build` (outDir ./build)
++ scripts/build-cli.js (outfile bin/cli.mjs). Entry CLI = bin/cli.mjs (NOT
+dist/cli.mjs — dist is never generated). Runtime installed in-place at
+$XDG_DATA_HOME/anytype-mcp so bun node_modules are included.
 """
 from __future__ import annotations
 
@@ -16,7 +16,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home, warn_if_bin_not_on_path  # type: ignore[import-not-found]
+from xdg import (  # type: ignore[import-not-found]
+    atomic_write_text,
+    bin_home,
+    data_home,
+    ensure_bin_home,
+    warn_if_bin_not_on_path,
+)
 
 SRC = ROOT / "vendor/anytype-mcp"
 APP_DIR = data_home() / "anytype-mcp"
@@ -35,15 +41,15 @@ def run(cmd, cwd=None):
 def _require(tool: str, reason: str) -> bool:
     if shutil.which(tool):
         return True
-    print(f"Error: {tool} tidak ditemukan di PATH. {reason}", file=sys.stderr)
+    print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
     return False
 
 
 def main() -> int:
     if not (SRC / "package.json").exists():
-        print("Error: anytype-mcp source not found (submodule belum di-init).", file=sys.stderr)
+        print("Error: anytype-mcp source not found (submodule not initialized).", file=sys.stderr)
         return 1
-    if not _require("bun", "anytype-mcp membutuhkan bun (curl -fsSL https://bun.sh/install | bash)"):
+    if not _require("bun", "anytype-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"):
         return 1
 
     print(f">>> Installing anytype-mcp into {APP_DIR}...")
@@ -56,7 +62,7 @@ def main() -> int:
 
     entry = APP_DIR / ENTRY
     if not entry.exists():
-        print(f"  Error: entry tidak ditemukan {entry}", file=sys.stderr)
+        print(f"  Error: entry not found {entry}", file=sys.stderr)
         return 1
 
     ensure_bin_home()

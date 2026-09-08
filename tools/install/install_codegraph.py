@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Installer codegraph — @colbymchenry/codegraph (TypeScript, npm).
 
-Spesifik: lockfile package-lock.json -> `npm install`; build `npm run build`
-(tsc + copy-assets + build:ui) menghasilkan dist/bin/codegraph.js.
-Launcher codegraph-mcp & codegraph sama-sama menunjuk ke dist/bin/codegraph.js
-(tool mendispatch mode via argumen).
+Specifics: lockfile package-lock.json -> `npm install`; build `npm run build`
+(tsc + copy-assets + build:ui) produces dist/bin/codegraph.js.
+Launchers codegraph-mcp & codegraph both point to dist/bin/codegraph.js
+(tool dispatches mode via arguments).
 """
 from __future__ import annotations
 
@@ -16,7 +16,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home, warn_if_bin_not_on_path  # type: ignore[import-not-found]
+from xdg import (  # type: ignore[import-not-found]
+    atomic_write_text,
+    bin_home,
+    data_home,
+    ensure_bin_home,
+    warn_if_bin_not_on_path,
+)
 
 SRC = ROOT / "vendor/codegraph"
 APP_DIR = data_home() / "codegraph"
@@ -36,15 +42,15 @@ def run(cmd, cwd=None):
 def _require(tool: str, reason: str) -> bool:
     if shutil.which(tool):
         return True
-    print(f"Error: {tool} tidak ditemukan di PATH. {reason}", file=sys.stderr)
+    print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
     return False
 
 
 def main() -> int:
     if not (SRC / "package.json").exists():
-        print("Error: codegraph source not found (submodule belum di-init).", file=sys.stderr)
+        print("Error: codegraph source not found (submodule not initialized).", file=sys.stderr)
         return 1
-    if not _require("npm", "codegraph membutuhkan npm (https://nodejs.org)"):
+    if not _require("npm", "codegraph requires npm (https://nodejs.org)"):
         return 1
 
     print(f">>> Installing codegraph into {APP_DIR}...")
@@ -57,20 +63,17 @@ def main() -> int:
 
     entry = APP_DIR / ENTRY
     if not entry.exists():
-        print(f"  Error: entry tidak ditemukan {entry}", file=sys.stderr)
+        print(f"  Error: entry not found {entry}", file=sys.stderr)
         return 1
 
     ensure_bin_home()
     for name in LAUNCHERS:
         launcher = bin_home() / name
-        launcher.write_text(
+        atomic_write_text(launcher,
             "#!/usr/bin/env python3\n"
             "import os, sys\n"
             f'entry = r"{entry}"\n'
-            'os.execvpe("node", ["node", entry, *sys.argv[1:]], os.environ.copy())\n',
-            encoding="utf-8",
-        )
-        launcher.chmod(0o755)
+            'os.execvpe("node", ["node", entry, *sys.argv[1:]], os.environ.copy())\n')
         print(f"  -> {launcher}")
 
     warn_if_bin_not_on_path()

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Installer fetch-mcp — zcaceres/fetch-mcp (TypeScript, bun).
 
-Spesifik: script build memakai bun (`bun build src/index.ts src/cli.ts
---outdir dist`), jadi wajib `bun install` + `bun run build` (ada dua lockfile,
-bun.lock & pnpm-lock.yaml; yang dipakai build adalah bun). Hasil:
+Specifics: build script uses bun (`bun build src/index.ts src/cli.ts
+--outdir dist`), so `bun install` + `bun run build` is required (two lockfiles:
+bun.lock & pnpm-lock.yaml; bun is used for build). Output:
   - dist/index.js -> MCP server (fetch-mcp, mcp-fetch)
   - dist/cli.js   -> CLI mode (html/markdown/readable/txt/json/youtube/--help/...)
-Launcher mendispatch CLI vs MCP berdasarkan argumen pertama.
+Launcher dispatches CLI vs MCP based on the first argument.
 """
 from __future__ import annotations
 
@@ -18,12 +18,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home, warn_if_bin_not_on_path  # type: ignore[import-not-found]
+from xdg import (  # type: ignore[import-not-found]
+    atomic_write_text,
+    bin_home,
+    data_home,
+    ensure_bin_home,
+    warn_if_bin_not_on_path,
+)
 
 SRC = ROOT / "vendor/fetch-mcp"
 APP_DIR = data_home() / "fetch-mcp"
 
-# Argumen pertama yang berarti "CLI mode" -> jalankan dist/cli.js, selain itu MCP.
+# First argument meaning "CLI mode" -> run dist/cli.js, otherwise MCP.
 CLI_ARGS = {"html", "markdown", "readable", "txt", "json", "youtube", "--help", "-h", "--version", "-v"}
 
 IGNORES = shutil.ignore_patterns(
@@ -39,15 +45,15 @@ def run(cmd, cwd=None):
 def _require(tool: str, reason: str) -> bool:
     if shutil.which(tool):
         return True
-    print(f"Error: {tool} tidak ditemukan di PATH. {reason}", file=sys.stderr)
+    print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
     return False
 
 
 def main() -> int:
     if not (SRC / "package.json").exists():
-        print("Error: fetch-mcp source not found (submodule belum di-init).", file=sys.stderr)
+        print("Error: fetch-mcp source not found (submodule not initialized).", file=sys.stderr)
         return 1
-    if not _require("bun", "fetch-mcp membutuhkan bun (curl -fsSL https://bun.sh/install | bash)"):
+    if not _require("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"):
         return 1
 
     print(f">>> Installing fetch-mcp into {APP_DIR}...")
@@ -61,7 +67,7 @@ def main() -> int:
     index_js = APP_DIR / "dist/index.js"
     cli_js = APP_DIR / "dist/cli.js"
     if not index_js.exists() or not cli_js.exists():
-        print(f"  Error: hasil build tidak lengkap ({index_js}, {cli_js})", file=sys.stderr)
+        print(f"  Error: build output incomplete ({index_js}, {cli_js})", file=sys.stderr)
         return 1
 
     ensure_bin_home()

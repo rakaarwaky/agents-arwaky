@@ -17,7 +17,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home, ensure_path  # type: ignore[import-not-found]
+from xdg import (  # type: ignore[import-not-found]
+    atomic_write_text,
+    bin_home,
+    data_home,
+    ensure_bin_home,
+    ensure_path,
+)
 
 TOOL_DIR = ROOT / "tools/daemons"
 INTERNAL_BIN = data_home() / "agents-arwaky/internal-bin"
