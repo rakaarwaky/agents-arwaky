@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
-"""lint-arwaky installer (Python, cargo)."""
+"""Installer lint-arwaky — AES Architecture Linter (Rust, cargo).
+
+Spesifik: lint-arwaky dibangun dari source Rust (cargo build --release).
+Jika `cargo` belum ada, installer mencoba bootstrap rustup secara non-interaktif;
+bila bootstrap gagal, tool dilewati dengan peringatan (return 0) agar
+`aa install all` tetap tuntas tanpa crash.
+"""
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -25,12 +32,49 @@ def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
 
+def _cargo_on_path() -> str | None:
+    """Cari cargo di PATH atau di lokasi rustup default."""
+    found = shutil.which("cargo")
+    if found:
+        return found
+    for cand in (Path.home() / ".cargo/bin/cargo", Path("/usr/local/cargo/bin/cargo")):
+        if cand.exists():
+            os.environ["PATH"] = str(cand.parent) + os.pathsep + os.environ.get("PATH", "")
+            return str(cand)
+    return None
+
+
+def _bootstrap_rustup() -> bool:
+    """Install rust toolchain via rustup (non-interaktif). Best effort."""
+    if shutil.which("curl"):
+        cmd = ["curl", "--proto", "=https", "--tlsv1.2", "-sSf",
+               "https://sh.rustup.rs", "-o", "/tmp/rustup-init.sh"]
+    elif shutil.which("wget"):
+        cmd = ["wget", "-qO", "/tmp/rustup-init.sh", "https://sh.rustup.rs"]
+    else:
+        print("  Warning: tidak ada curl/wget untuk bootstrap rustup.", file=sys.stderr)
+        return False
+    try:
+        subprocess.run(cmd, check=True, timeout=120)
+        subprocess.run(["sh", "/tmp/rustup-init.sh", "-y", "--no-modify-path"],
+                       check=True, timeout=600)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        print(f"  Warning: bootstrap rustup gagal ({e}).", file=sys.stderr)
+        return False
+    return _cargo_on_path() is not None
+
+
 def main() -> int:
     if not INTERNAL_DIR.exists() or not (INTERNAL_DIR / "Cargo.toml").exists():
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/lint-arwaky"])
-    if not shutil.which("cargo"):
-        print("Error: cargo is required to build lint-arwaky.", file=sys.stderr)
-        return 1
+
+    if _cargo_on_path() is None:
+        print(">>> cargo tidak ditemukan; mencoba bootstrap rustup...", file=sys.stderr)
+        if not _bootstrap_rustup():
+            print("  Warning: lint-arwaky dilewati (toolchain Rust tidak tersedia).", file=sys.stderr)
+            print("  Jalankan ulang 'aa install lint' setelah rust terpasang.", file=sys.stderr)
+            return 0
+
     ensure_bin_home()
     (config_home() / "lint-arwaky/rules").mkdir(parents=True, exist_ok=True)
     (data_home() / "lint-arwaky/reports").mkdir(parents=True, exist_ok=True)

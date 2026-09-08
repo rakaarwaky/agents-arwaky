@@ -9,26 +9,33 @@ from xdg import bin_home, ensure_bin_home, ensure_path, warn_if_bin_not_on_path 
 
 
 def write_uv_launchers(
-    package_name: str,
     src_rel: str,
-    launchers: list,
+    launchers: list[tuple[str, str]],
     root: Path | None = None,
-) -> list:
-    """Write uv-run launchers for a Python tool. Returns list of created paths."""
+) -> list[Path]:
+    """Write uv-run launchers for a Python tool.
+
+    Args:
+        src_rel: Relative path from repo root to tool source (e.g. "internal/vision-arwaky").
+        launchers: List of (launcher_name, entry_command) tuples.
+            Each launcher runs: uv run --directory <src_rel> <entry_command>
+        root: Override repo root (default: resolved from this file's location).
+
+    Returns:
+        List of created launcher paths.
+    """
     ensure_bin_home()
-    # Bake actual install-time ROOT sebagai fallback (bukan hardcode ~/agents-arwaky),
-    # tetap hormati AGENTS_ARWAKY_ROOT bila diset runtime.
     baked_root = str(root) if root is not None else str(repo_root())
     created = []
-    for launcher in launchers:
-        target = bin_home() / launcher
+    for name, entry in launchers:
+        target = bin_home() / name
         content = (
             "#!/usr/bin/env python3\n"
             "import os, sys\n"
             "from pathlib import Path\n"
             f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(baked_root)}))\n'
             f'os.execvpe("uv", ["uv", "run", "--directory", str(root / "{src_rel}"), '
-            f'"{launcher}", *sys.argv[1:]], os.environ.copy())\n'
+            f'"{entry}", *sys.argv[1:]], os.environ.copy())\n'
         )
         target.write_text(content, encoding="utf-8")
         target.chmod(0o755)
