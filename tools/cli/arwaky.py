@@ -182,6 +182,23 @@ def cmd_help(argv: list[str]) -> int:
 
 def cmd_status(argv: list[str]) -> int:
     ensure_path()
+    if "--json" in argv:
+        import json as _json
+        out = []
+        for tool in load_tools():
+            if is_submodule_missing(tool.path):
+                state = "submodule-missing"
+            elif executable_path(tool.binary):
+                state = "installed"
+            elif (bin_home() / tool.binary).exists():
+                state = "ready"
+            elif tool.category == "internal":
+                state = "source-ready"
+            else:
+                state = "not-installed"
+            out.append({"id": tool.id, "category": tool.category, "binary": tool.binary, "status": state})
+        print(_json.dumps(out, indent=2, ensure_ascii=False))
+        return 0
     banner()
     print(f"{BOLD}System & Tool Health Status:{RESET}")
     print("--------------------------------------------------------------------------------")
@@ -237,6 +254,14 @@ def cmd_doctor(argv: list[str]) -> int:
 
 
 def cmd_list(argv: list[str]) -> int:
+    if "--json" in argv:
+        import json as _json
+        tools = [
+            {"id": t.id, "category": t.category, "isMcp": t.is_mcp, "description": t.description, "binary": t.binary}
+            for t in load_tools()
+        ]
+        print(_json.dumps(tools, indent=2, ensure_ascii=False))
+        return 0
     banner()
     print(f"{BOLD}Registered Tools in agents-arwaky:{RESET}")
     print("--------------------------------------------------------------------------------")
@@ -302,13 +327,14 @@ def cmd_install(argv: list[str]) -> int:
             return 1
         tools = [tool]
     failed, skipped = [], []
-    for tool in tools:
+    total = len(tools)
+    for idx, tool in enumerate(tools, 1):
         installer = find_installer(tool)
         if not installer:
             skipped.append(tool.id)
             warn(f"No install.py found for {tool.id}")
             continue
-        info(f"Installing {tool.id} -> {installer}")
+        print(f"[{idx}/{total}] Installing {tool.id} -> {installer}", flush=True)
         if run_cmd([sys.executable, str(installer)]) != 0:
             failed.append(tool.id)
     if target == "all":
@@ -586,6 +612,12 @@ def cmd_sync(argv):
 # =============================================================================
 # Main dispatcher
 # =============================================================================
+def _gen_correlation_id() -> str:
+    """Generate short correlation ID (P1-O4) untuk multi-step ops."""
+    import uuid
+    return uuid.uuid4().hex[:8]
+
+
 def _init_sentry():
     """Opt-in Sentry error tracking (P1-O2), dikontrol ARWAKY_SENTRY_DSN."""
     dsn = os.environ.get("ARWAKY_SENTRY_DSN", "")
@@ -600,6 +632,7 @@ def _init_sentry():
 
 def main() -> int:
     _init_sentry()
+    os.environ["ARWAKY_CORRELATION_ID"] = _gen_correlation_id()
     argv = sys.argv[1:]
     if not argv:
         return cmd_help([])

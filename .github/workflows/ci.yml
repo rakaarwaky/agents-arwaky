@@ -29,6 +29,11 @@ jobs:
       - name: Ruff lint
         run: ruff check tools/ --ignore E501 || true
 
+      - name: Dependency audit (pip-audit)
+        run: |
+          pip install pip-audit
+          pip-audit || true
+
       - name: JSON validation
         run: |
           find tools -name "*.json" -not -path "*/node_modules/*" -exec jq empty {} +

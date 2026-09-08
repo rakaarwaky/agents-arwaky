@@ -12,6 +12,7 @@ Removes agents-arwaky MCP servers, provisioned skills and env vars from
 agent harness paths (NOT the current working directory's .agents/skills —
 that is `aa unskill` / skill-manager).
 """
+import functools
 import os
 import posixpath
 import re
@@ -130,6 +131,7 @@ def hermes_targets(h: Path):
     return targets
 
 
+@functools.lru_cache(maxsize=1)
 def get_all_skill_files():
     """All SKILL.md files owned by the user-managed skill pack (tools/skills/).
 

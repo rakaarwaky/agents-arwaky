@@ -59,6 +59,14 @@ RED = _c("0;31m")
 RESET = _c("0m")
 
 
+def _term_width() -> int:
+    try:
+        import shutil
+        return shutil.get_terminal_size((80, 24)).columns
+    except Exception:
+        return 80
+
+
 def banner() -> None:
     print(f"{CYAN}{BOLD}   ___                           _          {RESET}")
     print(f"{CYAN}{BOLD}  / _ | _______    _____ _ / /____ __   {RESET}")
