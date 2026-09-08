@@ -86,9 +86,9 @@ When generating code or executing tasks within this repository:
 - When modifying internal agents, check for repository-specific instructions (e.g. [`internal/lint-arwaky/AGENTS.md`](internal/lint-arwaky/AGENTS.md), [`internal/vision-arwaky/SKILL.md`](internal/vision-arwaky/SKILL.md)).
 - Respect the language toolchain of each submodule:
   - `internal/lint-arwaky`: Rust (`cargo fmt`, `cargo clippy`, `cargo nextest`). Provides CLI (`lint-arwaky`, `la`, `lac`), TUI (`lint-arwaky-tui`), and MCP server (`lint-arwaky-mcp`) exposing `execute_command`, `get_config`, `health_check`, `list_commands`, `read_skill`.
-  - `internal/vision-arwaky`: Python with `uv` (`uv run`, `pyproject.toml`). CLI (`vision-arwaky`, `va`), MCP (`vision-arwaky-mcp`).
-  - `internal/qwen-web-arwaky`: Python Playwright (`uv run`). CLI (`qwen-web-arwaky`, `qwa`, `qwc`), MCP (`qwen-web-mcp`).
-  - `internal/blender-arwaky`: Python / Blender headless pipeline. CLI (`blender-arwaky`, `ba`), MCP (`blender-mcp`).
+  - `internal/vision-arwaky`: Python (`pip install -e .`). Venv at `~/.local/share/vision-arwaky/venv/`. CLI (`vision-arwaky`, `va`), MCP (`vision-arwaky-mcp`).
+  - `internal/qwen-web-arwaky`: Python Playwright (`pip install -e .`). Venv at `~/.local/share/qwen-web/venv/`. CLI (`qwen-web-arwaky`, `qwa`, `qwc`), MCP (`qwen-web-mcp`).
+  - `internal/blender-arwaky`: Python (`pip install -e .`). Venv at `~/.local/share/blender-arwaky/venv/`. CLI (`blender-arwaky`, `ba`), MCP (`blender-mcp`).
 
 ### 2. Modifying Build & Orchestration Scripts in `tools/`
 - Every script in `tools/` must begin with:
