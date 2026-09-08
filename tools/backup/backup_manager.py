@@ -68,9 +68,8 @@ class _Progress:
 
 def tar_dir(src: Path, dest: Path):
     file_count = sum(1 for _ in src.rglob("*") if _.is_file())
-    with _Progress(f"Archiving {src.name} ({file_count} files)..."):
-        with tarfile.open(dest, "w:gz") as tar:
-            tar.add(src, arcname=src.name)
+    with _Progress(f"Archiving {src.name} ({file_count} files)..."), tarfile.open(dest, "w:gz") as tar:
+        tar.add(src, arcname=src.name)
 
 
 def untar(src: Path, dest: Path):
