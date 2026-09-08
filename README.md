@@ -147,29 +147,38 @@ git clone --recurse-submodules https://github.com/rakaarwaky/agents-arwaky.git
 cd agents-arwaky
 ```
 
+### 2. Install the CLI
+
+Install the `agents-arwaky` launcher (alias `aa`) into `~/.local/bin` so it
+can be invoked from any terminal:
+
+```bash
+./install.sh
+```
+
 > [!TIP]
 > If you previously cloned without submodules, initialize them via:
 >
 > ```bash
-> ./aa submodules
+> aa submodules
 > ```
 
-### 2. Verify Host Prerequisites
+### 3. Verify Host Prerequisites
 
 Ensure [Podman](https://podman.io/) (or Docker) is installed for daemon services:
 
 ```bash
-./aa setup
+aa setup
 ```
 
 *(Runs an automated prerequisite check and optionally installs dependencies using your host package manager: `apt`, `pacman`, or `dnf`).*
 
 Required core tools: `git`, `jq`, `curl`, `python3`. Recommended: `cargo` (Rust), `uv` (Python), `node`/`npm`/`pnpm`/`bun` (Node).
 
-### 3. Build & Provision (One-Command)
+### 4. Build & Provision (One-Command)
 
 ```bash
-./aa install
+aa install
 ```
 
 This single command executes the end-to-end setup pipeline:
@@ -179,7 +188,7 @@ This single command executes the end-to-end setup pipeline:
 3. Installs binary launchers to host `~/.local/bin/`.
 4. Generates unified MCP configurations at `mcp_servers.generated.json`.
 
-### 4. Verify System Health
+### 5. Verify System Health
 
 ```bash
 aa doctor
