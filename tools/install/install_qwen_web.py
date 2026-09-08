@@ -77,30 +77,7 @@ def ensure_venv() -> Path:
     return python_bin
 
 
-def setup_project_venv_symlink(venv_dir: Path) -> None:
-    """Create .venv symlink in source dir for IDE support."""
-    if sys.platform == "win32":
-        return
 
-    for name in (".venv", "venv"):
-        target = SRC_DIR / name
-        if target.is_symlink():
-            try:
-                if target.resolve() == venv_dir.resolve():
-                    continue
-                target.unlink()
-            except OSError:
-                target.unlink(missing_ok=True)
-        elif target.exists():
-            if target.is_dir():
-                shutil.rmtree(target, ignore_errors=True)
-            else:
-                target.unlink(missing_ok=True)
-        try:
-            target.symlink_to(venv_dir)
-            print(f"  [ok] Symlink: {target} -> {venv_dir}")
-        except OSError as err:
-            print(f"  [warn] Could not create {target} symlink: {err}")
 
 
 def install_package(python_bin: Path) -> None:
@@ -186,25 +163,22 @@ def main() -> int:
     # 1. Create venv in XDG data directory
     python_bin = ensure_venv()
 
-    # 2. Create symlink for IDE support
-    setup_project_venv_symlink(get_venv_dir())
-
-    # 3. Install package
+    # 2. Install package
     install_package(python_bin)
 
-    # 4. Install playwright
+    # 3. Install playwright
     install_playwright(python_bin)
 
-    # 5. Create XDG directories
+    # 4. Create XDG directories
     setup_xdg_directories()
 
-    # 6. Create launchers
+    # 5. Create launchers
     setup_bin_links(python_bin)
 
     print("\n>>> Successfully installed qwen-web-arwaky")
     print(f"    Venv: {get_venv_dir()}")
     print(f"    Data: {tool_data_dir(TOOL_NAME)}")
-    print(f"    Run: qwc --help")
+    print(f"    Run 'qwc init' to setup workspace symlinks")
     return 0
 
 
