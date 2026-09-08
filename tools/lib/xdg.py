@@ -171,6 +171,7 @@ def remove_tool_artifacts(
 
     Removes: launchers + aliases in bin, data, cache (including build dir),
     and (optionally) config dir. Does not touch $XDG_STATE_HOME.
+    Also cleans up .venv in source directories (for uv-based tools).
     """
     for name in launchers:
         (bin_home() / name).unlink(missing_ok=True)
@@ -178,6 +179,25 @@ def remove_tool_artifacts(
     shutil.rmtree(tool_cache_path(tool), ignore_errors=True)
     if clean_config:
         shutil.rmtree(tool_config_path(tool), ignore_errors=True)
+    # Clean up .venv in source directories (uv-based tools)
+    for src_dir in _find_source_dirs(tool):
+        venv_path = src_dir / ".venv"
+        if venv_path.is_symlink():
+            venv_path.unlink(missing_ok=True)
+        elif venv_path.is_dir():
+            shutil.rmtree(venv_path, ignore_errors=True)
+
+
+def _find_source_dirs(tool: str) -> list[Path]:
+    """Find source directories for a tool (internal/ or vendor/)."""
+    candidates = []
+    internal_dir = Path(__file__).resolve().parents[1].parent / "internal" / f"{tool}-arwaky"
+    if internal_dir.is_dir():
+        candidates.append(internal_dir)
+    vendor_dir = Path(__file__).resolve().parents[1].parent / "vendor" / tool
+    if vendor_dir.is_dir():
+        candidates.append(vendor_dir)
+    return candidates
 
 
 def atomic_write_text(path: Path, content: str, mode: int = 0o755) -> None:
