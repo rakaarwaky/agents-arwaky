@@ -370,10 +370,11 @@ def get_9router_credentials():
     """Read NINEROUTER_URL/KEY from .env candidates; fallback default URL."""
     router_url = "http://127.0.0.1:20128"
     router_key = ""
+    secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
     for cand in (
-        REPO_ROOT / "tools/config/ninerouter.env",
-        
+        secret_home / "ninerouter.env",
         HOME / ".config/9router/.env",
+        REPO_ROOT / "tools/config/ninerouter.env",
     ):
         if cand.is_file():
             try:

@@ -67,3 +67,9 @@ models/
 
 # Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+
+# Never commit live credentials (real secrets live in $XDG_DATA_HOME/agents-arwaky/config/)
+tools/config/*.env
+!tools/config/*.env.example
+tools/config/*.providers.json
+!tools/config/*.providers.example.json

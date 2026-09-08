@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -18,9 +19,11 @@ def main() -> int:
     print("Generating unified MCP client configuration...")
     print(f"Target: {output}")
 
+    secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
     env = load_first_env([
-        ROOT / "tools/config/anytype.env",
+        secret_home / "anytype.env",
         config_home() / "anytype-mcp/.env",
+        ROOT / "tools/config/anytype.env",
         ROOT / ".env",
     ])
     anytype_base = env.get("ANYTYPE_API_BASE_URL", "http://127.0.0.1:31012")

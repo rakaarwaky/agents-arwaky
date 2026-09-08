@@ -77,7 +77,8 @@ def service_active():
 
 def read_env():
     env = {}
-    for cand in (ROOT / "tools/config/ninerouter.env", config_home() / "9router/.env"):
+    secret_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "agents-arwaky/config"
+    for cand in (secret_home / "ninerouter.env", ROOT / "tools/config/ninerouter.env", config_home() / "9router/.env"):
         if cand.exists():
             for line in cand.read_text(encoding="utf-8", errors="replace").splitlines():
                 if "=" in line and not line.strip().startswith("#"):
