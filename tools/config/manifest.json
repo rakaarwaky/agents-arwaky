@@ -35,9 +35,9 @@
     },
     {
       "id": "anytype-daemon",
-      "alias": "anytype-daemon",
+      "alias": "ad",
       "category": "internal",
-      "binary": "anytype-daemon.sh",
+      "binary": "anytype-daemon",
       "isMcp": false,
       "description": "Anytype headless daemon & Podman container manager",
       "path": "tools/daemons"
