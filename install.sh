@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =============================================================================
-# agents-arwaky — Installer (wajib semua, non-interactive)
+# agents-arwaky — Installer (wajib semua, latest versions, non-interactive)
 # =============================================================================
-# Menginstal launcher `agents-arwaky` (alias `aa`) DAN semua prerequisite
-# yang dibutuhkan oleh seluruh toolchain. Tidak ada yang optional.
+# Install SEMUA prerequisite versi terbaru otomatis + launcher `aa`.
+# Tidak ada yang optional, tidak ada prompt.
 #
 # Usage:
-#   ./install.sh              # install semua, non-interactive
-#   ./install.sh --check      # dry-run: hanya report mana yang missing
+#   ./install.sh              # install semua
+#   ./install.sh --check      # dry-run only
 # =============================================================================
 set -euo pipefail
 
@@ -41,7 +41,6 @@ for arg in "$@"; do
     --check) CHECK_ONLY=true ;;
     --help|-h)
       echo "Usage: $0 [--check]"
-      echo "  --check   Dry-run: only report missing prerequisites"
       exit 0 ;;
   esac
 done
@@ -78,293 +77,323 @@ detect_pkg_manager() {
 }
 
 # =============================================================================
-# SECTION 2: Semua Prerequisite (WAJIB)
+# SECTION 2: System packages via apt/dnf (base OS deps saja)
 # =============================================================================
-# System packages via package manager (semua wajib ada)
-SYS_PACKAGES=(git curl wget python3 nodejs npm jq)
-
-# System libraries untuk vision-arwaky
+SYS_PACKAGES=(git curl wget ca-certificates gnupg jq)
 VISION_LIBS=(libgl1 tesseract-ocr ffmpeg)
-
-# =============================================================================
-# SECTION 3: Check + Install Functions
-# =============================================================================
-MISSING=()
-
-check_tool() {
-  local tool="$1"
-  if command -v "$tool" &>/dev/null; then
-    ok "$tool: $(command -v "$tool")"
-    return 0
-  else
-    err "$tool tidak ditemukan"
-    MISSING+=("$tool")
-    return 1
-  fi
-}
-
-check_python_version() {
-  if ! command -v python3 &>/dev/null; then return; fi
-  local ver
-  ver="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-  local major="${ver%%.*}"
-  local minor="${ver#*.}"
-  if (( major >= 3 && minor >= 10 )); then
-    ok "Python $ver (>= 3.10)"
-  else
-    err "Python $ver ditemukan tapi >= 3.10 wajib"
-    die "Upgrade Python ke 3.10+ lalu jalankan ulang: sudo apt-get install python3.12"
-  fi
-}
-
-check_node_version() {
-  if ! command -v node &>/dev/null; then return; fi
-  local ver
-  ver="$(node -v 2>/dev/null || echo "v0.0.0")"
-  ok "Node.js $ver"
-}
-
-is_installed_pkg() {
-  local pkg="$1"
-  case "$PKG_MGR" in
-    apt)     dpkg -s "$pkg" &>/dev/null 2>&1 ;;
-    dnf|yum) rpm -q "$pkg" &>/dev/null 2>&1 ;;
-    pacman)  pacman -Qi "$pkg" &>/dev/null 2>&1 ;;
-    apk)     apk info -e "$pkg" &>/dev/null 2>&1 ;;
-    *)       false ;;
-  esac
-}
 
 install_pkg() {
   local pkg="$1"
-  if is_installed_pkg "$pkg"; then
-    ok "$pkg (sudah terpasang)"
-    return 0
-  fi
-  if [[ -z "$PKG_INSTALL" ]]; then
-    err "Tidak bisa auto-install $pkg (package manager tidak dikenal)"
-    return 1
-  fi
+  case "$PKG_MGR" in
+    apt)     dpkg -s "$pkg" &>/dev/null 2>&1 && ok "$pkg (sudah ada)" && return 0 ;;
+    dnf|yum) rpm -q "$pkg" &>/dev/null 2>&1 && ok "$pkg (sudah ada)" && return 0 ;;
+    pacman)  pacman -Qi "$pkg" &>/dev/null 2>&1 && ok "$pkg (sudah ada)" && return 0 ;;
+    apk)     apk info -e "$pkg" &>/dev/null 2>&1 && ok "$pkg (sudah ada)" && return 0 ;;
+  esac
+  if [[ -z "$PKG_INSTALL" ]]; then return 1; fi
   info "Installing $pkg..."
-  if $PKG_INSTALL "$pkg" &>/dev/null; then
-    ok "Installed $pkg"
-  else
-    warn "Gagal install $pkg — mungkin namanya berbeda, install manual"
-  fi
+  $PKG_INSTALL "$pkg" &>/dev/null && ok "Installed $pkg" || warn "Gagal install $pkg"
 }
 
-install_all_prereqs() {
-  # --- System packages via package manager ---
-  step "System packages (wajib)"
-  if [[ "$PKG_MGR" == "none" ]]; then
-    err "Package manager tidak dikenal. Install manual: ${SYS_PACKAGES[*]}"
-    exit 1
+# =============================================================================
+# SECTION 3: Python (latest via deadsnakes PPA / system)
+# =============================================================================
+install_python() {
+  step "Python (latest)"
+  # Cek apakah sudah >= 3.10
+  if command -v python3 &>/dev/null; then
+    local ver
+    ver="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+    local major="${ver%%.*}"
+    local minor="${ver#*.}"
+    if (( major >= 3 && minor >= 10 )); then
+      ok "Python $ver (sudah memenuhi)"
+      return 0
+    fi
   fi
-  $PKG_UPDATE || true
-  for pkg in "${SYS_PACKAGES[@]}"; do
-    install_pkg "$pkg"
-  done
 
-  # --- System libraries untuk vision-arwaky ---
-  step "System libraries (vision-arwaky)"
+  # Install versi terbaru via deadsnakes PPA (Ubuntu/Debian)
+  if [[ "$PKG_MGR" == "apt" ]]; then
+    info "Installing latest Python via deadsnakes PPA..."
+    sudo add-apt-repository -y ppa:deadsnakes/ppa 2>/dev/null || true
+    $PKG_UPDATE || true
+    for py in python3.13 python3.12 python3.11 python3.10; do
+      if $PKG_INSTALL "$py" 2>/dev/null; then
+        ok "Installed $py"
+        # Pastikan python3指向 versi baru
+        sudo update-alternatives --install /usr/bin/python3 python3 "/usr/bin/$py" 1 2>/dev/null || true
+        return 0
+      fi
+    done
+  fi
+
+  # Fallback: install via system package
+  case "$PKG_MGR" in
+    dnf|yum) $PKG_INSTALL python3 && ok "Installed python3" && return 0 ;;
+    pacman)  $PKG_INSTALL python && ok "Installed python" && return 0 ;;
+    apk)     $PKG_INSTALL python3 && ok "Installed python3" && return 0 ;;
+  esac
+
+  die "Gagal install Python >= 3.10"
+}
+
+# =============================================================================
+# SECTION 4: Node.js (latest LTS via NodeSource)
+# =============================================================================
+install_nodejs() {
+  step "Node.js (latest LTS via NodeSource)"
+
+  # Cek apakah sudah >= 18
+  if command -v node &>/dev/null; then
+    local ver
+    ver="$(node -v 2>/dev/null | sed 's/v//')"
+    local major="${ver%%.*}"
+    if (( major >= 18 )); then
+      ok "Node.js v$ver (sudah memenuhi)"
+      return 0
+    fi
+    warn "Node.js v$ver terlalu tua, upgrade..."
+  fi
+
+  # Install via NodeSource (Debian/Ubuntu)
+  if [[ "$PKG_MGR" == "apt" ]]; then
+    info "Setting up NodeSource repository..."
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
+      sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg 2>/dev/null || true
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" | \
+      sudo tee /etc/apt/sources.list.d/nodesource.list >/dev/null
+    $PKG_UPDATE || true
+    $PKG_INSTALL nodejs && ok "Installed Node.js 22.x (latest LTS)" && return 0
+  fi
+
+  # Fallback: nvm (cross-distro)
+  info "Installing Node.js via nvm..."
+  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+  if [[ ! -d "$NVM_DIR" ]]; then
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+  fi
+  [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+  if command -v nvm &>/dev/null; then
+    nvm install --lts && ok "Installed Node.js $(node -v) via nvm" && return 0
+  fi
+
+  # Fallback: system package (mungkin versi lama)
+  case "$PKG_MGR" in
+    dnf|yum) $PKG_INSTALL nodejs && ok "Installed nodejs" && return 0 ;;
+    pacman)  $PKG_INSTALL nodejs npm && ok "Installed nodejs + npm" && return 0 ;;
+  esac
+
+  die "Gagal install Node.js. Manual: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs"
+}
+
+# =============================================================================
+# SECTION 5: Rust (latest via rustup)
+# =============================================================================
+install_rust() {
+  step "Rust (latest via rustup)"
+  if command -v cargo &>/dev/null; then
+    ok "cargo: $(cargo --version)"
+    return 0
+  fi
+  info "Installing Rust..."
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+  CARGO_ENV="$HOME/.cargo/env"
+  [[ -f "$CARGO_ENV" ]] && source "$CARGO_ENV"  # shellcheck disable=SC1090
+  command -v cargo &>/dev/null && ok "Rust: $(cargo --version)" && return 0
+  die "Gagal install Rust"
+}
+
+# =============================================================================
+# SECTION 6: uv (latest via official installer)
+# =============================================================================
+install_uv() {
+  step "uv (latest)"
+  if command -v uv &>/dev/null; then
+    ok "uv: $(uv --version)"
+    return 0
+  fi
+  info "Installing uv..."
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="$HOME/.local/bin:$PATH"
+  command -v uv &>/dev/null && ok "uv: $(uv --version)" && return 0
+  die "Gagal install uv"
+}
+
+# =============================================================================
+# SECTION 7: bun (latest via official installer)
+# =============================================================================
+install_bun() {
+  step "bun (latest)"
+  if command -v bun &>/dev/null; then
+    ok "bun: $(bun --version)"
+    return 0
+  fi
+  info "Installing bun..."
+  curl -fsSL https://bun.sh/install | bash
+  export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"
+  command -v bun &>/dev/null && ok "bun: $(bun --version)" && return 0
+  die "Gagal install bun"
+}
+
+# =============================================================================
+# SECTION 8: pnpm (latest via corepack/npm)
+# =============================================================================
+install_pnpm() {
+  step "pnpm (latest)"
+  if command -v pnpm &>/dev/null; then
+    ok "pnpm: $(pnpm -v)"
+    return 0
+  fi
+  info "Installing pnpm..."
+  if command -v corepack &>/dev/null; then
+    corepack enable && corepack prepare pnpm@latest --activate && ok "pnpm: $(pnpm -v)" && return 0
+  fi
+  if command -v npm &>/dev/null; then
+    npm install -g pnpm@latest && ok "pnpm: $(pnpm -v)" && return 0
+  fi
+  die "Gagal install pnpm"
+}
+
+# =============================================================================
+# SECTION 9: npm (usually bundled with Node.js)
+# =============================================================================
+install_npm() {
+  step "npm"
+  if command -v npm &>/dev/null; then
+    ok "npm: $(npm -v)"
+    return 0
+  fi
+  # npm biasanya sudah included dengan NodeSource install
+  case "$PKG_MGR" in
+    apt)    $PKG_INSTALL npm 2>/dev/null ;;
+    dnf|yum) $PKG_INSTALL npm 2>/dev/null ;;
+    pacman) $PKG_INSTALL npm 2>/dev/null ;;
+  esac
+  command -v npm &>/dev/null && ok "npm: $(npm -v)" && return 0
+  warn "npm tidak ditemukan — mungkin sudah included dengan nodejs"
+}
+
+# =============================================================================
+# SECTION 10: Install all
+# =============================================================================
+install_all() {
+  # System packages (base OS)
+  step "System packages"
+  if [[ "$PKG_MGR" != "none" ]]; then
+    $PKG_UPDATE || true
+    for pkg in "${SYS_PACKAGES[@]}"; do
+      install_pkg "$pkg"
+    done
+  fi
+
+  # System libraries
+  step "System libraries"
   for pkg in "${VISION_LIBS[@]}"; do
     install_pkg "$pkg"
   done
 
-  # --- uv (Python package manager, wajib untuk internal tools) ---
-  step "uv (Python package manager)"
-  if command -v uv &>/dev/null; then
-    ok "uv: $(command -v uv)"
-  else
-    info "Installing uv..."
-    if command -v curl &>/dev/null; then
-      curl -LsSf https://astral.sh/uv/install.sh | sh
-      # Update PATH untuk sesi ini
-      export PATH="$HOME/.local/bin:$PATH"
-      if command -v uv &>/dev/null; then
-        ok "uv installed"
-      else
-        die "Gagal install uv. Run manually: curl -LsSf https://astral.sh/uv/install.sh | sh"
-      fi
-    else
-      die "curl tidak ada, tidak bisa install uv"
-    fi
-  fi
+  # Runtimes — semua via official latest installers
+  install_python
+  install_nodejs
+  install_npm
+  install_rust
+  install_uv
+  install_bun
+  install_pnpm
 
-  # --- bun (wajib untuk fetch-mcp, anytype-mcp) ---
-  step "bun (JS runtime)"
-  if command -v bun &>/dev/null; then
-    ok "bun: $(command -v bun)"
-  else
-    info "Installing bun..."
-    if command -v curl &>/dev/null; then
-      curl -fsSL https://bun.sh/install | bash
-      export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"
-      if command -v bun &>/dev/null; then
-        ok "bun installed"
-      else
-        die "Gagal install bun. Run manually: curl -fsSL https://bun.sh/install | bash"
-      fi
-    else
-      die "curl tidak ada, tidak bisa install bun"
-    fi
-  fi
-
-  # --- pnpm (wajib untuk context7) ---
-  step "pnpm (package manager)"
-  if command -v pnpm &>/dev/null; then
-    ok "pnpm: $(command -v pnpm)"
-  else
-    info "Installing pnpm..."
-    if command -v npm &>/dev/null; then
-      npm install -g pnpm && ok "pnpm installed" || die "Gagal install pnpm"
-    elif command -v corepack &>/dev/null; then
-      corepack enable && corepack prepare pnpm@latest --activate && ok "pnpm installed" || die "Gagal install pnpm"
-    else
-      die "npm/corepack tidak ada, tidak bisa install pnpm"
-    fi
-  fi
-
-  # --- Rust toolchain (wajib untuk lint-arwaky) ---
-  step "Rust toolchain (cargo + rustc)"
-  if command -v cargo &>/dev/null; then
-    ok "cargo: $(cargo --version)"
-  elif command -v rustc &>/dev/null; then
-    ok "rustc: $(rustc --version) — cargo missing, installing..."
-    rustup component add cargo 2>/dev/null && ok "cargo added" || die "Gagal tambah cargo"
-  else
-    info "Installing Rust via rustup..."
-    if command -v curl &>/dev/null; then
-      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-      # Source cargo env
-      CARGO_ENV="$HOME/.cargo/env"
-      if [[ -f "$CARGO_ENV" ]]; then
-        # shellcheck disable=SC1090
-        source "$CARGO_ENV"
-      fi
-      if command -v cargo &>/dev/null; then
-        ok "Rust toolchain installed"
-      else
-        die "Gagal install Rust"
-      fi
-    else
-      die "curl tidak ada, tidak bisa install Rust"
-    fi
-  fi
-
-  # --- Podman (wajib untuk daemon container) ---
-  step "Podman (container engine)"
+  # Podman
+  step "Podman"
   if command -v podman &>/dev/null; then
-    ok "podman: $(command -v podman)"
+    ok "podman: $(podman --version)"
   else
-    install_pkg podman || warn "podman tidak tersedia — daemon container tidak akan jalan"
+    install_pkg podman || warn "podman tidak tersedia"
   fi
 }
 
 # =============================================================================
-# SECTION 4: Check Only (dry-run)
+# SECTION 11: Check only
 # =============================================================================
 check_only() {
   step "Checking semua prerequisite"
+  local fail=0
 
+  # System packages
   for tool in "${SYS_PACKAGES[@]}"; do
-    check_tool "$tool" || true
+    command -v "$tool" &>/dev/null && ok "$tool" || { err "$tool tidak ada"; ((fail++)); }
   done
-
   for tool in "${VISION_LIBS[@]}"; do
-    check_tool "$tool" || true
+    command -v "$tool" &>/dev/null 2>/dev/null && ok "$tool" || \
+    dpkg -s "$tool" &>/dev/null 2>&1 && ok "$tool" || \
+    { err "$tool tidak ada"; ((fail++)); }
   done
 
-  check_tool uv || true
-  check_tool bun || true
-  check_tool pnpm || true
-  check_tool cargo || true
-  check_tool podman || true
+  # Python
+  if command -v python3 &>/dev/null; then
+    local pyver
+    pyver="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+    local pyminor="${pyver#*.}"
+    (( pyminor >= 10 )) && ok "Python $pyver" || { err "Python $pyver (butuh >= 3.10)"; ((fail++)); }
+  else
+    err "python3 tidak ada"; ((fail++))
+  fi
 
-  check_python_version
-  check_node_version
+  # Node.js
+  if command -v node &>/dev/null; then
+    local nver
+    nver="$(node -v | sed 's/v//' | cut -d. -f1)"
+    (( nver >= 18 )) && ok "Node.js $(node -v)" || { err "Node.js $(node -v) (butuh >= 18)"; ((fail++)); }
+  else
+    err "node tidak ada"; ((fail++))
+  fi
+
+  # Toolchains
+  for tool in npm cargo uv bun pnpm podman; do
+    command -v "$tool" &>/dev/null && ok "$tool" || { err "$tool tidak ada"; ((fail++)); }
+  done
 
   echo
-  if (( ${#MISSING[@]} > 0 )); then
-    err "${#MISSING[@]} prerequisite belum terpasang: ${MISSING[*]}"
-    echo "  Jalankan: $0  (tanpa --check) untuk install otomatis"
-    return 1
-  else
-    ok "Semua prerequisite sudah terpasang!"
-    return 0
-  fi
+  (( fail == 0 )) && ok "Semua prerequisite terpasang!" || err "$fail prerequisite belum terpasang"
+  return $fail
 }
 
 # =============================================================================
-# SECTION 5: XDG Setup + aa Launcher
+# SECTION 12: Launcher + submodules
 # =============================================================================
 setup_launcher() {
-  step "Setup agents-arwaky launcher"
-
+  step "Setup launcher"
   BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
   mkdir -p "$BIN_DIR"
-
   LAUNCHER="$BIN_DIR/agents-arwaky"
   rm -f "$LAUNCHER"
-
   cat > "$LAUNCHER" <<EOL
 #!/usr/bin/env bash
-# agents-arwaky — Main Orchestrator (alias: aa)
-# Installed by install.sh — points to $ROOT
 set -euo pipefail
-
 ROOT="$ROOT"
-
 export AGENTS_ARWAKY_ROOT="\$ROOT"
 export PYTHONPATH="\$ROOT/tools/lib\${PYTHONPATH:+:\${PYTHONPATH}}"
-
 exec python3 "\$ROOT/tools/cli/arwaky.py" "\$@"
 EOL
   chmod +x "$LAUNCHER"
   ln -sf "$LAUNCHER" "$BIN_DIR/aa"
-
   ok "Launcher: $LAUNCHER"
   ok "Alias:    $BIN_DIR/aa"
-
-  if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-    echo
-    warn "$BIN_DIR belum ada di PATH."
-    echo "  Tambahkan ke ~/.bashrc:"
-    echo "    echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.bashrc"
-    echo "  Lalu: source ~/.bashrc"
-  fi
+  [[ ":$PATH:" != *":$BIN_DIR:"* ]] && warn "$BIN_DIR belum di PATH — tambah ke ~/.bashrc"
 }
 
-# =============================================================================
-# SECTION 6: Git Submodules
-# =============================================================================
 init_submodules() {
-  step "Init git submodules"
-  if [[ -d "$ROOT/.git" ]]; then
-    git -C "$ROOT" submodule update --init --recursive vendor/ internal/ && \
-      ok "Submodules siap" || warn "Submodule init ada masalah"
-  else
-    warn "Bukan git repo — skip submodule init"
-  fi
+  step "Init submodules"
+  [[ -d "$ROOT/.git" ]] && git -C "$ROOT" submodule update --init --recursive vendor/ internal/ && ok "Submodules siap" || warn "Skip"
 }
 
-# =============================================================================
-# SECTION 7: Summary
-# =============================================================================
 print_summary() {
   echo
-  step "Ringkasan Instalasi"
+  step "Selesai!"
   echo
-  printf "  ${BOLD}Launcher:${RST}   %s (alias: aa)\n" "$BIN_DIR/agents-arwaky"
-  printf "  ${BOLD}Repo:${RST}       %s\n" "$ROOT"
-  printf "  ${BOLD}XDG Data:${RST}   %s\n" "${XDG_DATA_HOME:-$HOME/.local/share}"
-  printf "  ${BOLD}XDG Config:${RST} %s\n" "${XDG_CONFIG_HOME:-$HOME/.config}"
-  printf "  ${BOLD}XDG Cache:${RST}  %s\n" "${XDG_CACHE_HOME:-$HOME/.cache}"
+  printf "  ${BOLD}Launcher:${RST} %s (alias: aa)\n" "$BIN_DIR/agents-arwaky"
+  printf "  ${BOLD}Repo:${RST}     %s\n" "$ROOT"
   echo
-  echo "  Selanjutnya:"
-  echo "    1. Reload shell:  source ~/.bashrc"
-  echo "    2. Cek kesehatan: aa doctor"
-  echo "    3. Install tools: aa install --yes"
+  echo "  Next: source ~/.bashrc && aa doctor && aa install --yes"
   echo
 }
 
@@ -373,18 +402,13 @@ print_summary() {
 # =============================================================================
 main() {
   step "agents-arwaky Installer"
-  echo "  Repository: $ROOT"
-  echo
-
+  echo "  Repo: $ROOT"
   detect_pkg_manager
   info "Package manager: $PKG_MGR"
 
-  if $CHECK_ONLY; then
-    check_only
-    exit $?
-  fi
+  $CHECK_ONLY && { check_only; exit $?; }
 
-  install_all_prereqs
+  install_all
   setup_launcher
   init_submodules
   print_summary
