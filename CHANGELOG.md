@@ -6,7 +6,7 @@ All notable changes to this project are documented in this file.
 
 ### Added
 - Centralized root/path resolution with validation (`tools/lib/paths.py`).
-- Backup gateway contract + Google Drive implementation (`contract_backup_gateway_protocol.py`, `gdrive_gateway.py`).
+- Google Drive backup helper (`tools/backup/gdrive.py`).
 - Generic retry utility (`tools/lib/utility_retry.py`).
 - Capabilities tool resolver (`tools/lib/capabilities_tool_resolver.py`).
 - Unified version bump script (`tools/build/bump_version.py`).
