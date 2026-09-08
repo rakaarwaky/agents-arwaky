@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import bin_home, data_home, ensure_bin_home
+from xdg import bin_home, data_home, ensure_bin_home  # type: ignore[import-untyped]
 
 
 def run(cmd, cwd=None):

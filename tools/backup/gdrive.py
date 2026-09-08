@@ -13,8 +13,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from utility_retry import retry_api as _shared_retry
-
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 
 def get_credentials():
@@ -38,9 +36,9 @@ def get_credentials():
     with open(cred_file, "r", encoding="utf-8") as f:
         cdata = json.load(f)
 
-    from google.auth.exceptions import RefreshError
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
+    from google.auth.exceptions import RefreshError  # type: ignore
+    from google.auth.transport.requests import Request  # type: ignore
+    from google.oauth2.credentials import Credentials  # type: ignore
     creds = Credentials(
         token=cdata.get("token"),
         refresh_token=cdata.get("refresh_token"),
@@ -96,8 +94,11 @@ def _is_transient(err) -> bool:
 
 
 def retry_api(func, max_retries=4, delay=1):
-    """Retry a Google API call (shared utility) — transient errors only (P5-P1)."""
-    return _shared_retry(func, max_retries=max_retries, delay=delay, is_transient=_is_transient)
+    """Retry a Google API call (shared utility) — transient errors only."""
+    from utility_retry import retry_api as _shared_retry
+    return _shared_retry(
+        func, max_retries=max_retries, delay=delay, is_transient=_is_transient
+    )
 
 def escape_drive_query(value: str) -> str:
     """Escape values for Google Drive query language (single quotes & backslashes)."""

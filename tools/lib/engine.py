@@ -148,7 +148,7 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
                 except ruamel.yaml.YAMLError:
                     dumped = False  # ruamel dump failed; fall back to pyyaml
             if not dumped:
-                import yaml
+                import yaml  # type: ignore
                 with path.open("w", encoding="utf-8") as f:
                     yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
         return True

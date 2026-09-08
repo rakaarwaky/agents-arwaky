@@ -51,7 +51,7 @@ def _pad(s: str, width: int) -> str:
 
 
 
-from capabilities_tool_resolver import executable_path, find_installer, find_uninstaller
+from capabilities_tool_resolver import executable_path, find_installer, find_uninstaller  # type: ignore[import-not-found]
 
 # =============================================================================
 # Helpers
@@ -596,7 +596,7 @@ def _init_sentry():
     if not dsn:
         return
     try:
-        import sentry_sdk
+        import sentry_sdk  # type: ignore[import-not-found]
         sentry_sdk.init(dsn=dsn, traces_sample_rate=0.1)
     except ImportError:
         pass
@@ -610,7 +610,7 @@ def main() -> int:
         return cmd_help([])
     # Global flag: --no-color / --plain (P2-P1)
     if "--no-color" in argv or "--plain" in argv:
-        import ui
+        import ui  # type: ignore[import-not-found]
         ui.set_color_mode(False)
         argv = [a for a in argv if a not in ("--no-color", "--plain")]
     cmd = argv[0]
