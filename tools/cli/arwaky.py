@@ -320,7 +320,11 @@ def cmd_run(argv: list[str]) -> int:
         if runner == "uv" and not shutil.which("uv") and shutil.which("python3"):
             os.execvpe("python3", ["python3", "-m", tool.id, *tool_args], os.environ)
     err(f"Binary '{tool.binary}' for tool '{tool.id}' is not installed or runnable.")
-    print(f"Try running: {BOLD()}aa install {tool.id}{RESET()} or {BOLD()}aa install{RESET()}")
+    installer = find_installer(tool)
+    if installer:
+        print(f"Try running: {BOLD()}aa install {tool.id}{RESET()}")
+    else:
+        print(f"No installer available for '{tool.id}'. Try: {BOLD()}aa submodules{RESET()} then {BOLD()}aa run {tool.id}{RESET()}")
     return 1
 
 

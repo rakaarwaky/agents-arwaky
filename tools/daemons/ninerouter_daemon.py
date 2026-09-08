@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
+from ui import info, ok, warn, err, sub  # type: ignore[import-not-found]
 from xdg import config_home, data_home  # type: ignore[import-untyped]
 
 CONTAINER_NAME = "9router"

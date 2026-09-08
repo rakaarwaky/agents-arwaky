@@ -59,8 +59,15 @@ def main(argv):
     if failures:
         warn(f"Sync finished with failures: {', '.join(failures)}")
         warn("Completed steps that may need rollback:")
+        reversibility = {
+            "submodules": "(reversible: git submodule foreach 'git checkout .')",
+            "install": "(manual cleanup needed: re-run 'aa uninstall --all')",
+            "mcp-generate": "(reversible: rm mcp_servers.generated.json)",
+            "connect": "(reversible: aa disconnect --all)",
+            "check": "(no action needed)",
+        }
         for s in completed_steps:
-            warn(f"  - {s}")
+            warn(f"  - {s} {reversibility.get(s, '')}")
         warn("To restore submodules: git submodule foreach 'git checkout .'")
         warn("To regenerate MCP: aa mcp generate")
         warn("To reconnect harnesses: aa connect --all")

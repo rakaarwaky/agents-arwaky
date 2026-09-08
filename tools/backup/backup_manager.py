@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -30,12 +31,46 @@ TOOL_DATA = {
 
 
 def log_info(msg): print(f"==> {msg}")
-def log_ok(msg):  print(f"  \u2713 {msg}")
+def log_ok(msg):  print(f"  [OK] {msg}")
+def log_warn(msg): print(f"  [WARN] {msg}")
+
+
+class _Progress:
+    """Simple spinner for long-running operations."""
+
+    def __init__(self, message: str):
+        self.message = message
+        self._stop = threading.Event()
+        self._thread = None
+
+    def _spin(self):
+        chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+        i = 0
+        while not self._stop.is_set():
+            sys.stdout.write(f"\r  {chars[i % len(chars)]} {self.message}")
+            sys.stdout.flush()
+            i += 1
+            self._stop.wait(0.1)
+        sys.stdout.write("\r" + " " * (len(self.message) + 4) + "\r")
+        sys.stdout.flush()
+
+    def __enter__(self):
+        if sys.stdout.isatty():
+            self._thread = threading.Thread(target=self._spin, daemon=True)
+            self._thread.start()
+        return self
+
+    def __exit__(self, *args):
+        self._stop.set()
+        if self._thread:
+            self._thread.join(timeout=0.5)
 
 
 def tar_dir(src: Path, dest: Path):
-    with tarfile.open(dest, "w:gz") as tar:
-        tar.add(src, arcname=src.name)
+    file_count = sum(1 for _ in src.rglob("*") if _.is_file())
+    with _Progress(f"Archiving {src.name} ({file_count} files)..."):
+        with tarfile.open(dest, "w:gz") as tar:
+            tar.add(src, arcname=src.name)
 
 
 def untar(src: Path, dest: Path):
@@ -88,13 +123,14 @@ def backup_tool(tool: str, dest: str = ""):
     log_ok(f"{tool} backed up.")
     if upload_to_gdrive:
         # Argumen list tanpa shell=True; helper path berasal dari repo (S603 ok)
-        result = subprocess.run(
-            [sys.executable, str(GDRIVE_HELPER), "upload", str(archive)],
-            capture_output=True, text=True, check=False,
-        )
+        with _Progress(f"Uploading {archive.name} to Google Drive..."):
+            result = subprocess.run(
+                [sys.executable, str(GDRIVE_HELPER), "upload", str(archive)],
+                capture_output=True, text=True, check=False,
+            )
         if result.returncode != 0:
             print(
-                f"  \u2717 Google Drive upload failed: {result.stderr.strip()}",
+                f"  [FAIL] Google Drive upload failed: {result.stderr.strip()}",
                 file=sys.stderr,
             )
             return result.returncode
