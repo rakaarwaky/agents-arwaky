@@ -76,3 +76,6 @@ tools/config/*.providers.json
 
 # Codacy review artifacts
 .codacy/
+
+# Large binary: diunduh saat install, bukan di-commit
+**/anytype-bin
