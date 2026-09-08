@@ -50,6 +50,17 @@ def _pad(s: str, width: int) -> str:
     return s + " " * max(0, width - len(_ANSI_RE.sub("", s)))
 
 
+def _table_widths(available: int, weights: list[int]) -> list[int]:
+    """Distribute available terminal width across columns by weight."""
+    total_w = sum(weights)
+    widths = []
+    for i, w in enumerate(weights):
+        if i == len(weights) - 1:
+            widths.append(max(1, available - sum(widths)))
+        else:
+            widths.append(max(1, int(available * w / total_w)))
+    return widths
+
 
 from tool_resolver import (  # type: ignore[import-not-found]
     executable_path,
@@ -121,34 +132,47 @@ def cmd_version(argv: list[str]) -> int:
 
 def cmd_help(argv: list[str]) -> int:
     banner()
-    print(f"{BOLD}USAGE:{RESET}")
+    print(f"{BOLD()}USAGE:{RESET()}")
     print("  aa <command> [arguments...]")
     print()
-    print(f"{BOLD}PRIMARY COMMANDS:{RESET}")
-    print(f"  {GREEN}status{RESET}                         Check health, submodule and binary installation status")
-    print(f"  {GREEN}doctor{RESET}                         Diagnose runtime environment & toolchain")
-    print(f"  {GREEN}list{RESET}                           List all registered tools")
-    print(f"  {GREEN}run{RESET} <tool> [args]              Execute registered tool")
-    print(f"  {GREEN}install{RESET} [tool]                 Install tools using per-tool install.py")
-    print(f"  {GREEN}mcp{RESET} [list|generate|show]       Manage MCP configuration")
-    print(f"  {GREEN}skill{RESET} [args]                   Skill manager")
-    print(f"  {GREEN}connect{RESET} [args]                 Harness connector")
-    print(f"  {GREEN}disconnect{RESET} [args]              Harness disconnector")
-    print(f"  {GREEN}unconnect{RESET}                      Remove agents-arwaky from all harnesses")
-    print(f"  {GREEN}unskill{RESET}                        Remove provisioned skills from current workspace")
-    print(f"  {GREEN}anytype{RESET} [args]                 Anytype daemon manager")
-    print(f"  {GREEN}9router{RESET} [args]                 9Router daemon manager")
-    print(f"  {GREEN}service{RESET} [args]                 Service manager")
-    print(f"  {GREEN}backup{RESET} [args]                  Backup manager")
-    print(f"  {GREEN}restore{RESET} [args]                 Restore manager")
+    print(f"{BOLD()}PRIMARY COMMANDS:{RESET()}")
+    print(f"  {GREEN()}status{RESET()}                         Check health, submodule and binary installation status")
+    print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
+    print(f"  {GREEN()}list{RESET()}                           List all registered tools")
+    print(f"  {GREEN()}run{RESET()} <tool> [args]              Execute registered tool")
+    print(f"  {GREEN()}install{RESET()} [tool]                 Install tools using per-tool install.py")
+    print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
+    print(f"  {GREEN()}skill{RESET()} [args]                   Skill manager")
+    print(f"  {GREEN()}connect{RESET()} [args]                 Harness connector")
+    print(f"  {GREEN()}disconnect{RESET()} [args]              Harness disconnector")
+    print(f"  {GREEN()}unconnect{RESET()}                      Remove agents-arwaky from all harnesses")
+    print(f"  {GREEN()}unskill{RESET()}                        Remove provisioned skills from current workspace")
+    print(f"  {GREEN()}anytype{RESET()} [args]                 Anytype daemon manager")
+    print(f"  {GREEN()}9router{RESET()} [args]                 9Router daemon manager")
+    print(f"  {GREEN()}service{RESET()} [args]                 Service manager")
+    print(f"  {GREEN()}backup{RESET()} [args]                  Backup manager")
+    print(f"  {GREEN()}restore{RESET()} [args]                 Restore manager")
     print()
-    print(f"{BOLD}MAINTENANCE:{RESET}")
-    print(f"  {CYAN}check{RESET}                          Run repository verification (JSON + Python compile)")
-    print(f"  {CYAN}submodules{RESET}                     Initialize/update git submodules")
-    print(f"  {CYAN}clean{RESET}                          Remove generated artifacts")
-    print(f"  {CYAN}uninstall{RESET} [tool|--all]         Remove installed binaries/data (per-tool uninstall.py)")
-    print(f"  {CYAN}reset{RESET}                          Full factory reset = clean + uninstall + unconnect + unskill")
-    print(f"  {CYAN}help{RESET}                           Show this help")
+    print(f"{BOLD()}MAINTENANCE:{RESET()}")
+    print(f"  {CYAN()}check{RESET()}                          Run repository verification (JSON + Python compile)")
+    print(f"  {CYAN()}submodules{RESET()}                     Initialize/update git submodules")
+    print(f"  {CYAN()}clean{RESET()}                          Remove generated artifacts")
+    print(f"  {CYAN()}uninstall{RESET()} [tool|--all]         Remove installed binaries/data (per-tool uninstall.py)")
+    print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + unconnect + unskill")
+    print(f"  {CYAN()}help{RESET()}                           Show this help")
+    print()
+    print(f"{BOLD()}GLOBAL OPTIONS:{RESET()}")
+    print(f"  {CYAN()}--no-color{RESET()} / {CYAN()}--plain{RESET()}         Disable ANSI colors (same as NO_COLOR env)")
+    print(f"  {CYAN()}--force-color{RESET()}                  Force ANSI colors (same as FORCE_COLOR env)")
+    print(f"  {CYAN()}-v{RESET()} / {CYAN()}--verbose{RESET()}              Enable debug logging")
+    print(f"  {CYAN()}-q{RESET()} / {CYAN()}--quiet{RESET()}                Suppress info logs (warnings/errors only)")
+    print()
+    print(f"{BOLD()}EXAMPLES:{RESET()}")
+    print(f"  {CYAN()}aa status{RESET()}                      Show tool health")
+    print(f"  {CYAN()}aa install lint{RESET()}                Install a single tool")
+    print(f"  {CYAN()}aa run lint check .{RESET()}            Run a tool (AES linter)")
+    print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
+    print(f"  {CYAN()}aa backup all gdrive{RESET()}           Backup all tools to Google Drive")
     print()
     return 0
 
@@ -173,31 +197,40 @@ def cmd_status(argv: list[str]) -> int:
         print(_json.dumps(out, indent=2, ensure_ascii=False))
         return 0
     banner()
-    print(f"{BOLD}System & Tool Health Status:{RESET}")
-    print("--------------------------------------------------------------------------------")
-    print(f"{BOLD}{'TOOL':<14} {'CATEGORY':<10} {'TARGET BINARY':<20} STATUS{RESET}")
-    print("--------------------------------------------------------------------------------")
+    print(f"{BOLD()}System & Tool Health Status:{RESET()}")
+    # Terminal-width-aware column sizing
+    try:
+        import shutil
+        term_w = shutil.get_terminal_size((80, 24)).columns
+    except (OSError, ValueError):
+        term_w = 80
+    available = max(60, term_w - 2)
+    w_tool, w_cat, w_bin, w_status = _table_widths(available, [2, 1, 3, 4])
+    sep = "-" * available
+    print(sep)
+    print(f"{BOLD()}{_pad('TOOL', w_tool)} {_pad('CATEGORY', w_cat)} {_pad('TARGET BINARY', w_bin)} STATUS{RESET()}")
+    print(sep)
     for tool in load_tools():
-        cat_color = GREEN if tool.category == "internal" else CYAN
+        cat_color = GREEN() if tool.category == "internal" else CYAN()
         if is_submodule_missing(tool.path):
-            status = f"{RED}[FAIL] Submodule Missing{RESET}"
+            status = f"{RED()}[FAIL] Submodule Missing{RESET()}"
         elif executable_path(tool.binary):
-            status = f"{GREEN}[OK] Installed ({tool.binary}){RESET}"
+            status = f"{GREEN()}[OK] Installed ({tool.binary}){RESET()}"
         elif (bin_home() / tool.binary).exists():
-            status = f"{GREEN}[OK] Ready ({bin_home()}){RESET}"
+            status = f"{GREEN()}[OK] Ready ({bin_home()}){RESET()}"
         elif tool.category == "internal":
-            status = f"{BLUE}[OK] Source Ready (Internal){RESET}"
+            status = f"{BLUE()}[OK] Source Ready (Internal){RESET()}"
         else:
-            status = f"{YELLOW}[WARN] Not Installed{RESET}"
-        print(f"{_pad(tool.id, 14)} {_pad(cat_color + tool.category + RESET, 10)} {_pad(tool.binary, 20)} {status}")
-    print("--------------------------------------------------------------------------------")
+            status = f"{YELLOW()}[WARN] Not Installed{RESET()}"
+        print(f"{_pad(tool.id, w_tool)} {_pad(cat_color + tool.category + RESET(), w_cat)} {_pad(tool.binary, w_bin)} {status}")
+    print(sep)
     return 0
 
 
 def cmd_doctor(argv: list[str]) -> int:
     ensure_path()
     banner()
-    print(f"{BOLD}Running Environment Diagnostics...{RESET}")
+    print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")
     print("------------------------------------------------------")
     target_bin = str(bin_home())
     if target_bin in os.environ.get("PATH", "").split(os.pathsep):
@@ -215,14 +248,14 @@ def cmd_doctor(argv: list[str]) -> int:
         if p:
             ok(f"{util}: {p}")
         else:
-            print(f"  {DIM}[SKIP]{RESET} {util} not installed (optional)")
+            print(f"  {DIM()}[SKIP]{RESET()} {util} not installed (optional)")
     engine = shutil.which("podman") or shutil.which("docker")
     if engine:
         ok(f"Container engine: {engine}")
     else:
         warn("Podman/Docker not found (only needed for 9router & anytype daemons)")
     print("------------------------------------------------------")
-    print(f"{GREEN}Diagnostics complete.{RESET}")
+    print(f"{GREEN()}Diagnostics complete.{RESET()}")
     return 0
 
 
@@ -236,18 +269,27 @@ def cmd_list(argv: list[str]) -> int:
         print(_json.dumps(tools, indent=2, ensure_ascii=False))
         return 0
     banner()
-    print(f"{BOLD}Registered Tools in agents-arwaky:{RESET}")
-    print("--------------------------------------------------------------------------------")
-    print(f"{BOLD}{'TOOL ID':<14} {'CATEGORY':<10} {'MCP?':<8} {'DESCRIPTION':<45}{RESET}")
-    print("--------------------------------------------------------------------------------")
+    print(f"{BOLD()}Registered Tools in agents-arwaky:{RESET()}")
+    try:
+        import shutil
+        term_w = shutil.get_terminal_size((80, 24)).columns
+    except (OSError, ValueError):
+        term_w = 80
+    available = max(60, term_w - 2)
+    w_id, w_cat, w_mcp, w_desc = _table_widths(available, [2, 1, 1, 6])
+    sep = "-" * available
+    print(sep)
+    print(f"{BOLD()}{_pad('TOOL ID', w_id)} {_pad('CATEGORY', w_cat)} {_pad('MCP?', w_mcp)} {_pad('DESCRIPTION', w_desc)}{RESET()}")
+    print(sep)
     for tool in load_tools():
-        cat_color = GREEN if tool.category == "internal" else CYAN
+        cat_color = GREEN() if tool.category == "internal" else CYAN()
         mcp_label = "Yes" if tool.is_mcp else "No"
+        desc = textwrap.shorten(tool.description, width=w_desc, placeholder='...')
         print(
-            f"{_pad(tool.id, 14)} {_pad(cat_color + tool.category + RESET, 10)} "
-            f"{_pad(mcp_label, 8)} {textwrap.shorten(tool.description, width=45, placeholder='...')}"
+            f"{_pad(tool.id, w_id)} {_pad(cat_color + tool.category + RESET(), w_cat)} "
+            f"{_pad(mcp_label, w_mcp)} {desc}"
         )
-    print("--------------------------------------------------------------------------------")
+    print(sep)
     return 0
 
 
@@ -277,20 +319,39 @@ def cmd_run(argv: list[str]) -> int:
         if runner == "uv" and not shutil.which("uv") and shutil.which("python3"):
             os.execvpe("python3", ["python3", "-m", tool.id, *tool_args], os.environ)
     err(f"Binary '{tool.binary}' for tool '{tool.id}' is not installed or runnable.")
-    print(f"Try running: {BOLD}aa install {tool.id}{RESET} or {BOLD}aa install{RESET}")
+    installer = find_installer(tool)
+    if installer:
+        print(f"Try running: {BOLD()}aa install {tool.id}{RESET()}")
+    else:
+        print(f"No installer available for '{tool.id}'. Try: {BOLD()}aa submodules{RESET()} then {BOLD()}aa run {tool.id}{RESET()}")
     return 1
+
+
+def _confirm(prompt: str, accepted: tuple = ("y", "yes")) -> bool:
+    """Safe TTY-aware confirmation prompt. Returns False in non-TTY without --yes."""
+    if not sys.stdin.isatty():
+        return False
+    try:
+        answer = input(prompt).strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return False
+    return answer in accepted
 
 
 def cmd_install(argv: list[str]) -> int:
     ensure_path()
     target = argv[0] if argv else "all"
+    has_yes = "--yes" in argv or "-y" in argv
     # Konfirmasi untuk install all (Plan2 P0)
-    if target == "all" and "--yes" not in argv and "-y" not in argv:
-        answer = input("Install ALL tools? [y/N]: ").strip().lower()
-        if answer not in ("y", "yes"):
+    if target == "all" and not has_yes:
+        if not sys.stdin.isatty():
+            err("Non-interactive mode detected. Use --yes to skip confirmation.")
+            return 1
+        if not _confirm("Install ALL tools? [y/N]: "):
             warn("Aborted.")
             return 1
-    print(f"{BOLD}>>> Installing {target} using per-tool Python installers...{RESET}")
+    print(f"{BOLD()}>>> Installing {target} using per-tool Python installers...{RESET()}")
     rc = run_cmd(["git", "-C", str(repo_root()), "submodule", "update", "--init", "vendor/", "internal/"])
     if rc != 0:
         err("Submodule init failed. Run 'aa submodules' manually and retry.")
@@ -335,7 +396,7 @@ def cmd_mcp(argv: list[str]) -> int:
     generated = repo_root() / "mcp_servers.generated.json"
     generator = repo_root() / "tools" / "mcp" / "generate_config.py"
     if action == "list":
-        print(f"{BOLD}MCP-Enabled Tools:{RESET}")
+        print(f"{BOLD()}MCP-Enabled Tools:{RESET()}")
         for tool in load_tools():
             if tool.is_mcp:
                 print(f"  - {tool.id} [{tool.category}]: {tool.description}")
@@ -350,7 +411,7 @@ def cmd_mcp(argv: list[str]) -> int:
             warn("Configuration file not found. Generating now...")
             run_cmd([sys.executable, str(generator)])
         if generated.exists():
-            print(f"{BOLD}Path:{RESET} {generated}")
+            print(f"{BOLD()}Path:{RESET()} {generated}")
             print()
             print(generated.read_text(encoding="utf-8"))
             return 0
@@ -515,11 +576,14 @@ def uninstall_tool(tool: Tool) -> int:
 
 def cmd_uninstall(argv: list[str]) -> int:
     target = argv[0] if argv else "--all"
+    has_yes = "--yes" in argv or "-y" in argv
     # Konfirmasi untuk uninstall all (Plan2 P0)
-    if target in {"--all", "all"} and "--yes" not in argv and "-y" not in argv:
+    if target in {"--all", "all"} and not has_yes:
+        if not sys.stdin.isatty():
+            err("Non-interactive mode detected. Use --yes to skip confirmation.")
+            return 1
         warn("WARNING: This will remove ALL installed tool binaries, data and config.")
-        answer = input("Type 'uninstall' to continue: ").strip()
-        if answer.lower() != "uninstall":
+        if not _confirm("Type 'uninstall' to continue: ", accepted=("uninstall",)):
             warn("Aborted.")
             return 1
     if target in {"--all", "all"}:
@@ -541,11 +605,14 @@ def cmd_uninstall(argv: list[str]) -> int:
 
 
 def cmd_reset(argv: list[str]) -> int:
-    if "--yes" not in argv:
+    has_yes = "--yes" in argv or "-y" in argv
+    if not has_yes:
+        if not sys.stdin.isatty():
+            err("Non-interactive mode detected. Use --yes to skip confirmation.")
+            return 1
         warn("WARNING: This will wipe installed tool state and reset the repository.")
         warn("This action cannot be undone.")
-        answer = input("Type RESET to continue: ").strip()
-        if answer != "RESET":
+        if not _confirm("Type 'RESET' to continue: ", accepted=("reset",)):
             warn("Aborted.")
             return 1
     warn("WARNING: This will wipe installed tool state and reset the repository.")
@@ -555,7 +622,10 @@ def cmd_reset(argv: list[str]) -> int:
     cmd_clean([])
     print()
     info("[2/4] uninstall --all")
-    cmd_uninstall(["--all"])
+    uninstall_rc = cmd_uninstall(["--all", "--yes"])
+    if uninstall_rc != 0:
+        err("Uninstall step failed during reset.")
+        return uninstall_rc
     print()
     info("[3/4] unconnect")
     cmd_unconnect([])
@@ -617,6 +687,19 @@ def main() -> int:
         import ui  # type: ignore[import-not-found]
         ui.set_color_mode(False)
         argv = [a for a in argv if a not in ("--no-color", "--plain")]
+    if "--force-color" in argv:
+        import ui  # type: ignore[import-not-found]
+        ui.set_color_mode(True)
+        argv = [a for a in argv if a != "--force-color"]
+    # Global verbosity: -v / --verbose, -q / --quiet
+    if "-v" in argv or "--verbose" in argv:
+        import ui  # type: ignore[import-not-found]
+        ui.set_verbosity("debug")
+        argv = [a for a in argv if a not in ("-v", "--verbose")]
+    if "-q" in argv or "--quiet" in argv:
+        import ui  # type: ignore[import-not-found]
+        ui.set_verbosity("warning")
+        argv = [a for a in argv if a not in ("-q", "--quiet")]
     cmd = argv[0]
     rest = argv[1:]
     dispatch = {

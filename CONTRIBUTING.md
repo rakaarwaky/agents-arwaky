@@ -39,9 +39,9 @@ Before making changes, please review our core architectural rules:
 
 2. **Verify host prerequisites:**
    ```bash
-   aa setup
+   aa doctor
    ```
-   *(Checks for Podman/Docker; distrobox is no longer required — only needed for the optional 9Router & Anytype daemons).*
+   *(Checks host toolchains and the optional 9Router & Anytype daemons. There is no containerized development layer — everything builds natively on the host).*
 
 3. **Provision the environment:**
    ```bash
@@ -86,15 +86,57 @@ Ensure `.gitmodules` marks the submodule with `ignore = dirty` so local build ar
 
 ---
 
-### Step 2: Create Tool Installer Script (`tools/<tool-name>/install.sh`)
+### Step 2: Create Tool Installer (`tools/install/install_<tool>.py`)
 
-Create a dedicated directory under `tools/` and add an `install.sh` script:
+Per-tool installers are **Python scripts**, discovered automatically from the manifest via [`tools/lib/tool_resolver.py`](tools/lib/tool_resolver.py) — there is no central build script to edit. Create `tools/install/install_<tool>.py`:
 
-```bash
-mkdir -p tools/my-cool-tool
-touch tools/my-cool-tool/install.sh
-chmod +x tools/my-cool-tool/install.sh
+The installer must:
+- Resolve the repository root with [`tools/lib/paths.py`](tools/lib/paths.py) (`repo_root()`).
+- Resolve XDG paths with [`tools/lib/xdg.py`](tools/lib/xdg.py) (`bin_home()`, `data_home()`, `config_home()`, `ensure_bin_home()`).
+- Install or compile the tool into `$XDG_DATA_HOME/<tool>/` and write an executable launcher into `$XDG_BIN_HOME/<binary>` (see [`tools/lib/launcher_writer.py`](tools/lib/launcher_writer.py)).
+
+#### Example: Python Tool via `uv`
+
+```python
+#!/usr/bin/env python3
+"""Install my-cool-tool from vendor/ into XDG prefixes."""
+from pathlib import Path
+import subprocess, sys
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools" / "lib"))
+from paths import repo_root
+from xdg import bin_home, data_home, ensure_bin_home
+
+def main() -> int:
+    root = repo_root()
+    vendor = root / "vendor" / "my-cool-tool"
+    if not vendor.exists():
+        print("Error: upstream source not found; run 'aa submodules' first.")
+        return 1
+    target = data_home() / "my-cool-tool"
+    subprocess.run(["uv", "venv", str(target / "venv")], check=False)
+    subprocess.run(
+        ["uv", "pip", "install", "-e", str(vendor), "--python", str(target / "venv")],
+        check=True,
+    )
+    launcher = bin_home() / "my-cool-tool-mcp"
+    launcher.write_text(
+        "#!/usr/bin/env bash
+"
+        'exec "$HOME/.local/share/my-cool-tool/venv/bin/my-cool-tool" "$@"
+'
+    )
+    launcher.chmod(0o755)
+    ensure_bin_home()
+    print(f"Installed my-cool-tool -> {launcher}")
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 ```
+
+> For a complete reference, mirror an existing installer such as [`tools/install/install_ponytail.py`](tools/install/install_ponytail.py) (Python) or [`tools/install/install_lint.py`](tools/install/install_lint.py) (Rust).
 
 The script must:
 
@@ -244,29 +286,19 @@ Add the tool entry to the `"tools"` array in [`tools/config/manifest.json`](tool
 
 ---
 
-### Step 4: Register in Master Build Script (`tools/build/build-all.sh`)
+### Step 4: Create Uninstaller (Recommended)
 
-Open [`tools/build/build-all.sh`](tools/build/build-all.sh) and append your tool to the build sequence:
-
-```bash
-build_tool "my-cool-tool" "$TOOLS_DIR/my-cool-tool/install.sh"
-```
+There is **no master build script** to update — installers are discovered automatically from `manifest.json`. For clean removals, mirror your installer with `tools/uninstall/uninstall_<tool>.py` (see existing uninstallers under [`tools/uninstall/`](tools/uninstall/)).
 
 ---
 
 ### Step 5: Verify Binary in `~/.local/bin/`
 
-After running `aa install my-cool-tool`, verify the launcher exists in `~/.local/bin/`. The install script handles `~/.local/bin/<binary>` placement automatically via XDG.
+After running `aa install my-cool-tool`, verify the launcher exists in `~/.local/bin/` and that the tool is registered:
 
 ```bash
-TOOLS=(
-  "context7-mcp"
-  "fetch-mcp"
-  "ponytail-mcp"
-  "anytype-mcp"
-  "codegraph-mcp"
-  "my-cool-tool-mcp"   # <-- Add your binary here
-)
+ls -l ~/.local/bin/my-cool-tool-mcp
+aa list
 ```
 
 ---
@@ -291,23 +323,19 @@ If your tool provides an MCP server (`isMcp: true`):
      }
    }
    ```
-3. Add the vendor name to the distribution loop in `generate_config.py`:
-   ```bash
-   for vendor in context7 fetch-mcp ponytail anytype-mcp codegraph my-cool-tool; do
-   ```
+3. No generator edits are required — [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py) derives MCP servers directly from `manifest.json` (`isMcp: true`).
 4. Regenerate the client configuration:
    ```bash
-   arwaky mcp generate
+   aa mcp generate
    ```
 
 ---
 
-### Step 7: Test Installation in Both Paradigms
+### Step 7: Test Installation
 
-Verify installation under both paradigms:
+Verify installation on the host:
 
 ```bash
-# 1. Test installation on host:
 aa install my-cool-tool
 ```
 
@@ -352,38 +380,34 @@ When deprecating or removing an upstream tool, follow this procedure to ensure c
 
 Open [`tools/config/manifest.json`](tools/config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
 
-### Step 2: Remove from Master Build Pipeline
-
-Open [`tools/build/build-all.sh`](tools/build/build-all.sh) and delete the corresponding `build_tool` line:
+### Step 2: Remove Installer & Uninstaller Scripts
+Delete the per-tool scripts under `tools/`:
 ```bash
-# Delete this line:
-build_tool "my-cool-tool" "$TOOLS_DIR/my-cool-tool/install.sh"
+rm -f tools/install/install_my_cool_tool.py
+rm -f tools/uninstall/uninstall_my_cool_tool.py
 ```
 
 ### Step 3: Remove from Local Install
 
 No binary exporter array to maintain — uninstall by removing `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
 
-### Step 4: Remove from MCP Configuration Generator (If Applicable)
-
-In [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py):
-
-- Remove the server block from the JSON template.
-- Remove the vendor name from the distribution loop.
-- Re-run `arwaky mcp generate` to refresh `mcp_servers.generated.json`.
-
-### Step 5: Remove Tool Setup Directory
-
-Delete the tool's recipe directory under `tools/`:
+### Step 4: Regenerate MCP Configuration (If Applicable)
+No generator edits are required — [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py) derives MCP servers from `manifest.json`. After removing the manifest entry, re-run:
 ```bash
-rm -rf tools/my-cool-tool
+aa mcp generate
 ```
 
-### Step 6: Clean Host Binaries & Cache (If Installed)
+### Step 5: Remove Tool Setup Scripts
+Remove any remaining per-tool setup files:
+```bash
+rm -f tools/install/install_my_cool_tool.py tools/uninstall/uninstall_my_cool_tool.py
+```
 
+### Step 6: Uninstall & Clean Host State (If Installed)
 Purge any lingering binaries and share directories from the host:
 ```bash
-aa clean --host
+aa uninstall my-cool-tool
+aa clean
 ```
 
 ### Step 7: De-initialize and Remove Git Submodule
@@ -474,14 +498,14 @@ Before committing code or submitting a Pull Request, verify that all automated c
 ### 1. Run the CI Verification Script
 ```bash
 aa check
-# Equivalent to: ./tools/ci/verify.sh
 ```
 
 The script verifies:
-- **Executable permissions:** All shell scripts under `tools/` have executable bits (`+x`).
-- **JSON validity:** All JSON configurations (manifests, schemas) pass `jq empty`.
-- **ShellCheck:** Bash code adheres to best practices without unquoted variables or syntax hazards.
-- **Submodules status:** All submodules match registered commits.
+- **JSON validity:** All JSON files under `tools/` parse correctly.
+- **Python compile:** Every Python file under `tools/` compiles via `py_compile`.
+- **ShellCheck:** Bash scripts (excluding `tools/skills/`) adhere to best practices when `shellcheck` is installed.
+
+> CI also runs automatically on every push via [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ### 2. Conventional Commit Guidelines
 We follow standard Conventional Commits:

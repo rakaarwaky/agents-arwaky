@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
+from ui import info, ok, warn, err, sub  # type: ignore[import-not-found]
 from xdg import config_home, data_home  # type: ignore[import-untyped]
 
 CONTAINER_NAME = "9router"
@@ -112,7 +113,7 @@ def cmd_service_install():
         run(["loginctl", "enable-linger", os.environ.get("USER", "raka")])
     if container_running() and not service_active():
         e = get_engine()
-        print(f">>> Stopping existing standalone container '{CONTAINER_NAME}'...")
+        print(">>> Stopping existing standalone container '9router'...")
         run([e, "stop", CONTAINER_NAME])
         run([e, "rm", CONTAINER_NAME])
     run(["systemctl", "--user", "daemon-reload"])
@@ -121,9 +122,9 @@ def cmd_service_install():
     if api_ready():
         print(">>> [OK] 9Router daemon installed and active: 9router.service")
         print(f">>> Web Dashboard: http://localhost:{PORT}")
-    else:
-        print(">>> [WARN] Service enabled, but API is still initializing. Check 'aa 9router logs'.")
-    return 0
+        return 0
+    print(">>> [WARN] Service enabled, but API is still initializing. Check 'aa 9router logs'.", file=sys.stderr)
+    return 2
 
 
 def cmd_service_uninstall():
@@ -176,9 +177,9 @@ def cmd_start():
         if api_ready():
             print(">>> [OK] 9Router daemon is active and healthy!")
             print(f">>> Web Dashboard: http://localhost:{PORT}")
-        else:
-            print("Warning: 9Router service started but API health check timed out.", file=sys.stderr)
-        return 0
+            return 0
+        print("Warning: 9Router service started but API health check timed out.", file=sys.stderr)
+        return 2
     engine = get_engine()
     if not engine:
         print("Error: Neither podman nor docker was found. Please install podman.", file=sys.stderr)
@@ -208,9 +209,9 @@ def cmd_start():
     print(f">>> Waiting for 9Router API to be ready at http://127.0.0.1:{PORT}...")
     if api_ready():
         print(">>> [OK] 9Router daemon is active and healthy!")
-    else:
-        print("Warning: API health check timed out. Check 'aa 9router logs'.", file=sys.stderr)
-    return 0
+        return 0
+    print("Warning: API health check timed out. Check 'aa 9router logs'.", file=sys.stderr)
+    return 2
 
 
 def cmd_stop():

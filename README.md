@@ -32,8 +32,7 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
   - [Automated Harness Connector (`aa connect`)](#-automated-harness-connector-aa-connect)
   - [Manual Client Setup Guides](#manual-client-setup-guides)
 - [Developer Workflows](#-developer-workflows--installation-paradigms)
-  - [Interactive Container Shell](#interactive-container-shell)
-  - [Host / Bare-Metal Fallback](#2-host-mode-bare-metal-fallback)
+  - [Local Bare-Metal Mode](#1-local-bare-metal-mode-primary--only)
   - [Quality Gate & CI Verification](#quality-gate--ci-verification)
 - [Security & Sandboxing Model](#-security--sandboxing-model)
 - [Contributing](#-contributing)
@@ -102,15 +101,17 @@ flowchart TB
 
 ```text
 agents-arwaky/
-├── agents-arwaky                # Main Orchestration Entrypoint CLI (alias: aa)
-├── distrobox.ini.bak            # Archived: container spec (no longer used)
-├── mcp_servers.generated.json   # Auto-generated unified MCP client manifest
+├── install.sh                   # CLI launcher installer → ~/.local/bin/{agents-arwaky,aa}
+├── mcp_servers.generated.json   # Auto-generated unified MCP client manifest (gitignored)
 ├── AGENTS.md                    # Operational manual & architecture context for AI agents
 ├── CONTRIBUTING.md              # Contributor workflows (adding/removing vendor tools)
+├── CHANGELOG.md                 # Notable changes per release
 ├── THIRD_PARTY_LICENSES.md      # Upstream licensing compliance records
 ├── LICENSE                      # Project License (MIT)
 │
-├── internal/                    # In-House Autonomous Agents & Tools
+├── tests/                       # Unit tests (envfile, xdg, manifest, …)
+│
+├── internal/                    # In-House Autonomous Agents & Tools (Git submodules)
 │   ├── blender-arwaky/          # Headless 3D pipeline & rendering execution engine
 │   ├── lint-arwaky/             # Rust-based Architecture Enforcement System (AES)
 │   ├── qwen-web-arwaky/         # Playwright-driven browser automation & MCP
@@ -126,14 +127,23 @@ agents-arwaky/
 │   ├── mnemosyne/               # Universal local AI memory layer & temporal graph
 │   └── ponytail/                # Agent architecture patterns & instructions
 │
-└── tools/                       # Orchestration, CI & XDG Infrastructure
-    ├── arwaky/                  # CLI engine implementation & tool manifest
-    ├── build/                   # Master cross-compilation pipeline
-    ├── ci/                      # Quality gates & syntax validation scripts
-    ├── distrobox-archive/        # Archived: old container provisioning scripts
-    ├── lib/                     # Shared bash utilities & XDG path helpers
-    ├── mcp/                     # Multi-client MCP configuration generator
-    └── <vendor-tool>/           # Per-tool installation & wrapper definitions
+└── tools/                       # Orchestration, CI & XDG Infrastructure (Python)
+    ├── cli/                     # Unified CLI entrypoint & dispatcher (arwaky.py)
+    ├── config/                  # SSOT manifest.json, version.txt, daemon env templates
+    ├── lib/                     # Shared Python helpers (xdg, paths, manifest, ui, …)
+    ├── install/                 # Per-tool native installers (install_<tool>.py)
+    ├── uninstall/               # Per-tool uninstallers (uninstall_<tool>.py)
+    ├── mcp/                     # Unified MCP config generator (generate_config.py)
+    ├── connect/                 # Harness connector (connect.py + per-harness adapters)
+    ├── skill/                   # Agent skill manager (skill.py)
+    ├── skills/                  # Provisionable skill packs (SKILL.md, 80+)
+    ├── service/                 # Background service manager (9router, anytype)
+    ├── daemons/                 # Anytype & 9Router daemon managers
+    ├── deploy/                  # Podman/systemd deployment units (Containerfile, .service)
+    ├── backup/                  # Backup/restore manager (+ Google Drive helper)
+    ├── sync/                    # One-shot ecosystem sync (sync_all.py)
+    ├── completion/              # Shell tab-completion generator
+    └── build/                   # Version bump & build utilities
 ```
 
 ---
@@ -165,13 +175,13 @@ can be invoked from any terminal:
 
 ### 3. Verify Host Prerequisites
 
-Ensure [Podman](https://podman.io/) (or Docker) is installed for daemon services:
+Ensure [Podman](https://podman.io/) (or Docker) is installed for the optional background daemons (9Router, Anytype):
 
 ```bash
-aa setup
+aa doctor
 ```
 
-*(Runs an automated prerequisite check and optionally installs dependencies using your host package manager: `apt`, `pacman`, or `dnf`).*
+*(Runs an all-in-one diagnostics pass and reports missing host prerequisites.)*
 
 Required core tools: `git`, `jq`, `curl`, `python3`. Recommended: `cargo` (Rust), `uv` (Python), `node`/`npm`/`pnpm`/`bun` (Node).
 
@@ -216,11 +226,11 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | Command                                  | Purpose                                                                                            | Example                                        |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | `aa status`                              | Display health, installation state, and submodule readiness                                        | `aa status`                                    |
-| `aa doctor`                              | All-in-one ecosystem diagnostics (sandbox, daemons, MCP JSON-RPC ping, harnesses)                 | `aa doctor`                                    |
+| `aa doctor`                              | All-in-one ecosystem diagnostics (toolchains, daemons, MCP config, harnesses)                    | `aa doctor`                                    |
 | `aa service [action] [target]`           | Unified manager for background services (`status`, `start`, `stop`, `restart`, `logs`)              | `aa service status`                            |
 | `aa sync [options]`                      | One-shot ecosystem update (submodules, binary exports, MCP configs, harnesses, and verify)          | `aa sync`                                      |
 | `aa completion [bash\|zsh\|--install]`   | Shell tab completion generator and persistent installer                                            | `aa completion --install`                      |
-| `aa check`                               | Run quality gate verification (executable bits, JSON syntax, shellcheck, submodules)               | `aa check`                                     |
+| `aa check`                               | Run quality gate verification (JSON syntax, Python compile, shellcheck)                           | `aa check`                                     |
 | `aa list`                                | List all registered tools (internal & vendor) with categories                                      | `aa list`                                      |
 | `aa run <tool> [args]`                   | Execute any registered tool on the local host (auto-resolves to PATH or native runner)                   | `aa run context7 --help`                       |
 | `aa install [tool]`                      | Install tools on the local host (native build, no container indirection for CLI tools)                   | `aa install fetch` / `aa install`             |
@@ -229,11 +239,17 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
 | `aa skill list`                          | Discover, audit, and provision skills across all tools                                             | `aa skill list`                                |
 | `aa connect <harness>`                   | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
-| `aa logs <service>`                      | Tail logs for background services (`9router`, `anytype`)                                           | `aa logs 9router`                              |
+| `aa service logs <target>`              | Tail logs for background services (`9router`, `anytype`)                                           | `aa service logs 9router`                      |
 | `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
 | `aa 9router <action>`                    | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                            |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
-| `aa clean [--host|--all]`                | Remove build artifacts, host binaries, or full pristine reset                                      | `aa clean`                                     |
+| `aa clean`                              | Remove build artifacts & generated MCP config                                                     | `aa clean`                                     |
+| `aa uninstall [tool|--all]`           | Remove installed tool binaries, data & config (per-tool uninstallers)                             | `aa uninstall --all`                           |
+| `aa reset`                            | Full factory reset: clean + uninstall + unconnect + unskill                                        | `aa reset`                                     |
+| `aa backup <tool|all> <target>`       | Back up tool state locally or to Google Drive                                                     | `aa backup all gdrive`                         |
+| `aa restore <tool|all> <source>`      | Restore tool state from a backup                                                                  | `aa restore all gdrive`                        |
+| `aa disconnect <harness>`             | Remove MCP & skills from agent harnesses                                                          | `aa disconnect --all`                          |
+| `aa unskill`                          | Remove provisioned skills from the current workspace                                              | `aa unskill`                                   |
 
 > [!TIP]
 > You can use `agents-arwaky` or the short alias `aa` interchangeably for all commands!
@@ -267,7 +283,8 @@ Specialized autonomous agents developed specifically for the `agents-arwaky` eco
 | **[vision-arwaky](internal/vision-arwaky/)**     | `vision-arwaky` (`va`, `vision-arwaky-cli`, `vision-arwaky-mcp`, `vision-arwaky-tui`) | Python /`uv`        | **Yes** (`vision-arwaky-mcp`) | Unified vision intelligence: VLM inspection, OCR extraction, and visual memory.                                                                                                                |
 | **[qwen-web-arwaky](internal/qwen-web-arwaky/)** | `qwen-web-arwaky` (`qwa`, `qwc`, `qwen-web-cli`, `qwen-web-mcp`)                      | Python / Playwright |   **Yes** (`qwen-web-mcp`)   | Browser automation engine with bi-directional MCP interface.                                                                                                                                   |
 | **[blender-arwaky](internal/blender-arwaky/)**   | `blender-arwaky` (`ba`, `blender-mcp`)                                                | Python / Blender    |    **Yes** (`blender-mcp`)    | Headless 3D procedural execution, asset generation, and rendering pipeline.                                                                                                                    |
-| **[anytype-daemon](tools/daemons/)**  | `anytype_daemon.py` (CLI: `aa anytype`)                                               | Bash / Podman       |              No              | Headless Anytype daemon managing local-first encrypted P2P space sync for`anytype-mcp`.                                                                                                        |
+| **[anytype-daemon](tools/daemons/)**  | `anytype_daemon.py` (CLI: `aa anytype`)                                               | Python / Podman     |              No              | Headless Anytype daemon managing local-first encrypted P2P space sync for `anytype-mcp`.                                                                                                        |
+| **[skill](tools/skill/)**            | `skill-manager.sh` (CLI: `aa skill`)                                                | Python              |              No              | Agent skill manager: list, provision & uninstall skills across tools and workspaces.                                                |
 
 ### Curated Upstream Vendor Tools (`vendor/`)
 
@@ -313,7 +330,9 @@ High-performance community tools integrated via Git submodules and sandboxed wit
     "vision": { "command": "vision-arwaky-mcp" },
     "qwen-web": { "command": "qwen-web-mcp" },
     "blender": { "command": "blender-mcp" },
-    "lint": { "command": "lint-arwaky-mcp" }
+    "lint": { "command": "lint-arwaky-mcp" },
+    "workspace": { "command": "workspace-mcp" },
+    "mnemosyne": { "command": "mnemosyne-mcp" }
   }
 }
 ```
@@ -341,7 +360,7 @@ aa anytype space-list
 
 ### 🔗 Automated Harness Connector (`aa connect`)
 
-Instead of manually copying configurations, use `aa connect` to automatically inject all 10 MCP servers and provision 68+ skills into your agent harnesses:
+Instead of manually copying configurations, use `aa connect` to automatically inject all 11 MCP servers and provision 80+ skills into your agent harnesses:
 
 ```bash
 # Connect to specific harness
@@ -518,29 +537,9 @@ aa install
 aa install fetch
 ```
 
-### 2. Host Mode (Bare-Metal Fallback)
-
-If running without container permissions (e.g. nested virtualization restrictions), tools can be compiled directly on the host using native runtimes into standard XDG directories:
-
-```bash
-# Install all tools directly on host:
-aa install --host
-
-# Install a specific tool directly on host:
-aa install fetch --host
-```
-
-### Interactive Container Shell
-
-To inspect the internal toolchains or debug builds inside the sandbox:
-
-```bash
-aa shell
-```
-
 ### Quality Gate & CI Verification
 
-To run automated integrity checks (executable permissions, JSON schema validity, submodules state, and ShellCheck):
+To run automated integrity checks (JSON syntax, Python compilation, and ShellCheck):
 
 ```bash
 aa check
@@ -548,20 +547,18 @@ aa check
 
 > See [**`CONTRIBUTING.md` § Quality Verification & PR Process**](CONTRIBUTING.md#-quality-verification--pr-process) for details on validation checks and commit conventions.
 
-### Clean & Reset Targets
+### Clean, Uninstall & Reset
 
 ```bash
-# Remove build artifacts & generated configurations:
+# Remove build artifacts & generated MCP configuration:
 aa clean
 
-# Remove exported host binaries (~/.local/bin) and data (~/.local/share):
-aa clean --host
+# Remove installed tool binaries, data and config (per-tool uninstallers):
+aa uninstall my-cool-tool
+aa uninstall --all
 
-# Destroy the sandbox container (preserves your code and host config):
-aa destroy
-
-# Deep reset submodules and repository to pristine state:
-aa clean --all
+# Full factory reset (clean + uninstall + unconnect + unskill):
+aa reset
 ```
 
 ---

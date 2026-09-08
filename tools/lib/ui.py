@@ -26,6 +26,11 @@ def log_warning(msg):
     _logger.warning(msg)
 
 
+def set_verbosity(level: str = "info") -> None:
+    """Set logger verbosity: debug|info|warning|error (global -v/-q)."""
+    _logger.setLevel(getattr(_logging, level.upper(), _logging.INFO))
+
+
 _color_override = None
 
 
@@ -46,17 +51,42 @@ def _color_enabled() -> bool:
 
 
 def _c(code: str) -> str:
+    """Lazy color escape — evaluated at call time, not import time."""
     return f"\033[{code}m" if _color_enabled() else ""
 
 
-BOLD = _c("1")
-DIM = _c("2")
-GREEN = _c("0;32")
-BLUE = _c("0;34")
-CYAN = _c("0;36")
-YELLOW = _c("0;33")
-RED = _c("0;31")
-RESET = _c("0")
+# Lazy color accessors: dipanggil saat dipakai, bukan saat import,
+# sehingga set_color_mode()/NO_COLOR/FORCE_COLOR selalu berlaku.
+def BOLD() -> str:
+    return _c("1")
+
+
+def DIM() -> str:
+    return _c("2")
+
+
+def GREEN() -> str:
+    return _c("0;32")
+
+
+def BLUE() -> str:
+    return _c("0;34")
+
+
+def CYAN() -> str:
+    return _c("0;36")
+
+
+def YELLOW() -> str:
+    return _c("0;33")
+
+
+def RED() -> str:
+    return _c("0;31")
+
+
+def RESET() -> str:
+    return _c("0")
 
 
 def _term_width() -> int:
@@ -68,30 +98,35 @@ def _term_width() -> int:
 
 
 def banner() -> None:
-    print(f"{CYAN}{BOLD}   ___                           _          {RESET}")
-    print(f"{CYAN}{BOLD}  / _ | _______    _____ _ / /____ __   {RESET}")
-    print(f"{CYAN}{BOLD} / __ |/ __/ _ \\/\\/ _ `/  '_/ // /   {RESET}")
-    print(f"{CYAN}{BOLD}/_/ |_/_/  \\_/\\_/\\_,_/_/\\_\\\\_, /    {RESET}")
-    print(f"{CYAN}{BOLD}                           /___/     {RESET}")
-    print(f"{DIM} agents-arwaky Unified Tool Orchestrator (Python, per-tool){RESET}")
+    if not sys.stdout.isatty():
+        # Non-TTY: teks polos, hindari ASCII art yang rusak di pipe/log.
+        print("agents-arwaky — Unified Tool Orchestrator")
+        print()
+        return
+    print(f"{CYAN()}{BOLD()}   ___                           _          {RESET()}")
+    print(f"{CYAN()}{BOLD()}  / _ | _______    _____ _ / /____ __   {RESET()}")
+    print(f"{CYAN()}{BOLD()} / __ |/ __/ _ \\/\\/ _ `/  '_/ // /   {RESET()}")
+    print(f"{CYAN()}{BOLD()}/_/ |_/_/  \\_/\\_/\\_,_/_/\\_\\\\_, /    {RESET()}")
+    print(f"{CYAN()}{BOLD()}                           /___/     {RESET()}")
+    print(f"{DIM()} agents-arwaky Unified Tool Orchestrator (Python, per-tool){RESET()}")
     print()
 
 
 def info(msg: str) -> None:
-    print(f"{CYAN}==>{RESET} {BOLD}{msg}{RESET}")
+    print(f"{CYAN()}==>{RESET()} {BOLD()}{msg}{RESET()}")
 
 
 def sub(msg: str) -> None:
-    print(f"  {BLUE}->{RESET} {msg}")
+    print(f"  {BLUE()}->{RESET()} {msg}")
 
 
 def ok(msg: str) -> None:
-    print(f"  {GREEN}[OK]{RESET} {msg}")
+    print(f"  {GREEN()}[OK]{RESET()} {msg}")
 
 
 def warn(msg: str) -> None:
-    print(f"  {YELLOW}[WARN]{RESET} {msg}")
+    print(f"  {YELLOW()}[WARN]{RESET()} {msg}")
 
 
 def err(msg: str) -> None:
-    print(f"  {RED}[FAIL]{RESET} {msg}", file=sys.stderr)
+    print(f"  {RED()}[FAIL]{RESET()} {msg}", file=sys.stderr)
