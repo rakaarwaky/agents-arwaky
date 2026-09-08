@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from utility_launcher_writer import write_uv_launchers  # type: ignore[import-not-found]
+from launcher_writer import write_uv_launchers  # type: ignore[import-not-found]
 
 SRC_DIR = ROOT / "vendor/mnemosyne"
 

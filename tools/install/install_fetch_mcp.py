@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from utility_node_installer import install_node_tool  # type: ignore[import-not-found]
+from node_installer import install_node_tool  # type: ignore[import-not-found]
 
 # Dual MCP/CLI launcher khusus fetch (D-3: custom_launcher_content)
 FETCH_LAUNCHER = """#!/usr/bin/env python3
