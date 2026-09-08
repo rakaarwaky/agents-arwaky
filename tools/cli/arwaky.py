@@ -51,7 +51,11 @@ def _pad(s: str, width: int) -> str:
 
 
 
-from capabilities_tool_resolver import executable_path, find_installer, find_uninstaller  # type: ignore[import-not-found]
+from capabilities_tool_resolver import (  # type: ignore[import-not-found]
+    executable_path,
+    find_installer,
+    find_uninstaller,
+)
 
 # =============================================================================
 # Helpers
