@@ -145,9 +145,9 @@ def cmd_start():
         print(f">>> Waiting for Anytype API on port {PORT}...")
         if api_ready():
             print(f">>> [OK] Anytype daemon is ready at http://127.0.0.1:{PORT}")
-        else:
-            print(">>> [WARN] Container started, but API is still initializing. Check 'aa anytype logs'.")
-        return 0
+            return 0
+        print(">>> [WARN] Container started, but API is still initializing. Check 'aa anytype logs'.", file=sys.stderr)
+        return 2
     # native fallback
     print(">>> Podman not found. Falling back to native background execution...")
     anytype_bin = LOCAL_BIN / "anytype"

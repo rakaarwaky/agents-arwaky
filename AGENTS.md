@@ -48,8 +48,8 @@ When executing or reasoning about this repository, **you must preserve these inv
 
 The repository segregates agent workloads into three primary zones:
 - `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules: `lint-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `blender-arwaky`).
-- `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `ponytail`, `anytype-mcp`, `codegraph`, `9router`).
-- `tools/`: Orchestration CLI (`arwaky`), CI validation, and per-tool installers.
+- `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `ponytail`, `anytype-mcp`, `codegraph`, `9router`, `google-workspace-mcp`, `mnemosyne`).
+- `tools/`: Orchestration CLI (`tools/cli/arwaky.py`), per-tool Python installers/uninstallers, MCP generation, harness connector, skill manager, daemons & CI verification.
 
 > For the comprehensive visual directory tree and system flow diagram, see [**README.md § Architecture**](README.md#-architecture).
 
@@ -63,8 +63,7 @@ When inspecting system health, executing tools, or managing MCP configurations, 
 
 Agents should execute tools via `aa run <tool> [args...]` (or `agents-arwaky run <tool> [args...]`). The CLI resolves execution in order:
 1. Host `PATH` and `~/.local/bin/`.
-2. Native project runners (`cargo`, `uv`, `bun`) for in-house submodules when binary not yet installed.
-3. Native project runners (`cargo`, `uv`, `bun`) for in-house submodules.
+2. Native project runners (`cargo`, `uv`, `bun`) for in-house submodules when the binary is not yet installed.
 
 > For the complete CLI command reference, syntax, and practical examples, see [**README.md § Unified Orchestrator CLI (`agents-arwaky` / `aa`)**](README.md#-unified-orchestrator-cli-arwaky).
 
@@ -97,27 +96,25 @@ When generating code or executing tasks within this repository:
   #!/usr/bin/env bash
   set -euo pipefail
   ```
-- Use `tools/lib/xdg.py` for resolving XDG paths (`xdg_data_dir`, `xdg_config_dir`, `xdg_cache_dir`).
+- Use `tools/lib/xdg.py` for resolving XDG paths (`data_home`, `config_home`, `cache_home`, `bin_home`, `tool_data_dir`, `tool_config_dir`, `tool_cache_dir`).
 - Maintain executable permissions on all `.sh` files (`chmod +x <script>`).
 - Ensure all JSON files match valid JSON syntax (`jq empty <file>`).
 - Avoid bashisms or unquoted variables that fail `shellcheck`.
 
 ### 3. Modifying Upstream Vendor Configurations
 - Upstream tools under `vendor/` should **NOT** have their source code directly modified in this root repository.
-- Customizations, patches, wrapper scripts, and installation recipes belong in `tools/<vendor-tool>/`.
+- Customizations, patches, wrapper scripts, and installation recipes belong in `tools/install/install_<tool>.py` (and `tools/uninstall/uninstall_<tool>.py`).
 - If a vendor tool requires environment configuration (e.g. Anytype API keys), manage it via `.env` or XDG config files, never hardcoded secrets.
 
 ### 4. Running Quality Gates Before Answering
 Before concluding any task that modifies scripts, manifest files, or configurations, agents **MUST** execute:
 ```bash
-./tools/ci/verify.sh
-# or: aa check
+aa check
 ```
-The verification script checks:
-1. Executable bits on all shell scripts under `tools/`.
-2. JSON syntax validity across all JSON files under `tools/`.
-3. ShellCheck linting (if installed).
-4. Submodule status and tracking health.
+The verification checks:
+1. JSON syntax validity across all JSON files under `tools/`.
+2. Python compilation across all Python files under `tools/`.
+3. ShellCheck linting of `tools/` shell scripts (excluding `tools/skills/`), if installed.
 
 ---
 
@@ -132,14 +129,14 @@ The verification script checks:
 | **List active MCP servers** | `aa mcp list` |
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
-| **Execute containerized tool** | `aa run <tool-id> [args]` |
-| **Install via Local Native Build** | `aa install [tool]` |
-| **Install on Host (Bare-Metal)** | `aa install [tool] --host` |
-| **Manage Anytype daemon** | `aa anytype [start\|status\|auth-key\|space-list]` |
-| **Enter container shell** | `aa shell` |
+| **Execute registered tool** | `aa run <tool-id> [args]` |
+| **Install tools (local native build)** | `aa install [tool]` |
+| **Uninstall tools** | `aa uninstall [tool\|--all]` |
+| **Manage Anytype daemon** | `aa anytype [start\|status\|auth-key\|space-join\|space-list]` |
 | **Reset submodules cleanly** | `aa submodules` |
 | **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) |
-| **Clean build artifacts** | `aa clean` (or: `aa clean --all`) |
+| **Clean build artifacts** | `aa clean` |
+| **Full factory reset** | `aa reset` |
 
 ---
 
@@ -148,9 +145,9 @@ The verification script checks:
 - Single Source of Truth Manifest: [`tools/config/manifest.json`](tools/config/manifest.json)
 - Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
 - Shared XDG Helper: [`tools/lib/xdg.py`](tools/lib/xdg.py)
-- Master Build Script: [`tools/build/build-all.sh`](tools/build/build-all.sh)
+- Per-Tool Installers: [`tools/install/`](tools/install/) · Uninstallers: [`tools/uninstall/`](tools/uninstall/)
 - Agent Harness Connector: [`tools/connect/connect.py`](tools/connect/connect.py)
-- CI Verification Gate: [`tools/ci/verify.sh`](tools/ci/verify.sh)
+- CI Verification Gate: [`tools/cli/arwaky.py`](tools/cli/arwaky.py) (`aa check`) + [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Human Documentation & Tool Catalog: [`README.md`](README.md)
 - Upstream Licenses: [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)

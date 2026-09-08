@@ -50,6 +50,18 @@ def _pad(s: str, width: int) -> str:
     return s + " " * max(0, width - len(_ANSI_RE.sub("", s)))
 
 
+def _table_widths(available: int, weights: list[int]) -> list[int]:
+    """Distribute available terminal width across columns by weight."""
+    total_w = sum(weights)
+    widths = []
+    for i, w in enumerate(weights):
+        if i == len(weights) - 1:
+            widths.append(max(1, available - sum(widths)))
+        else:
+            widths.append(max(1, int(available * w / total_w)))
+    return widths
+
+
 
 from tool_resolver import (  # type: ignore[import-not-found]
     executable_path,
@@ -150,6 +162,19 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + unconnect + unskill")
     print(f"  {CYAN()}help{RESET()}                           Show this help")
     print()
+    print(f"{BOLD()}GLOBAL OPTIONS:{RESET()}")
+    print(f"  {CYAN()}--no-color{RESET()} / {CYAN()}--plain{RESET()}         Disable ANSI colors (same as NO_COLOR env)")
+    print(f"  {CYAN()}--force-color{RESET()}                  Force ANSI colors (same as FORCE_COLOR env)")
+    print(f"  {CYAN()}-v{RESET()} / {CYAN()}--verbose{RESET()}              Enable debug logging")
+    print(f"  {CYAN()}-q{RESET()} / {CYAN()}--quiet{RESET()}                Suppress info logs (warnings/errors only)")
+    print()
+    print(f"{BOLD()}EXAMPLES:{RESET()}")
+    print(f"  {CYAN()}aa status{RESET()}                      Show tool health")
+    print(f"  {CYAN()}aa install lint{RESET()}                Install a single tool")
+    print(f"  {CYAN()}aa run lint check .{RESET()}            Run a tool (AES linter)")
+    print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
+    print(f"  {CYAN()}aa backup all gdrive{RESET()}           Backup all tools to Google Drive")
+    print()
     return 0
 
 
@@ -174,9 +199,18 @@ def cmd_status(argv: list[str]) -> int:
         return 0
     banner()
     print(f"{BOLD()}System & Tool Health Status:{RESET()}")
-    print("--------------------------------------------------------------------------------")
-    print(f"{BOLD()}{'TOOL':<14} {'CATEGORY':<10} {'TARGET BINARY':<20} STATUS{RESET()}")
-    print("--------------------------------------------------------------------------------")
+    # Terminal-width-aware column sizing
+    try:
+        import shutil
+        term_w = shutil.get_terminal_size((80, 24)).columns
+    except (OSError, ValueError):
+        term_w = 80
+    available = max(60, term_w - 2)
+    w_tool, w_cat, w_bin, w_status = _table_widths(available, [2, 1, 3, 4])
+    sep = "-" * available
+    print(sep)
+    print(f"{BOLD()}{_pad('TOOL', w_tool)} {_pad('CATEGORY', w_cat)} {_pad('TARGET BINARY', w_bin)} STATUS{RESET()}")
+    print(sep)
     for tool in load_tools():
         cat_color = GREEN() if tool.category == "internal" else CYAN()
         if is_submodule_missing(tool.path):
@@ -189,8 +223,8 @@ def cmd_status(argv: list[str]) -> int:
             status = f"{BLUE()}[OK] Source Ready (Internal){RESET()}"
         else:
             status = f"{YELLOW()}[WARN] Not Installed{RESET()}"
-        print(f"{_pad(tool.id, 14)} {_pad(cat_color + tool.category + RESET, 10)} {_pad(tool.binary, 20)} {status}")
-    print("--------------------------------------------------------------------------------")
+        print(f"{_pad(tool.id, w_tool)} {_pad(cat_color + tool.category + RESET, w_cat)} {_pad(tool.binary, w_bin)} {status}")
+    print(sep)
     return 0
 
 
@@ -237,17 +271,26 @@ def cmd_list(argv: list[str]) -> int:
         return 0
     banner()
     print(f"{BOLD()}Registered Tools in agents-arwaky:{RESET()}")
-    print("--------------------------------------------------------------------------------")
-    print(f"{BOLD()}{'TOOL ID':<14} {'CATEGORY':<10} {'MCP?':<8} {'DESCRIPTION':<45}{RESET()}")
-    print("--------------------------------------------------------------------------------")
+    try:
+        import shutil
+        term_w = shutil.get_terminal_size((80, 24)).columns
+    except (OSError, ValueError):
+        term_w = 80
+    available = max(60, term_w - 2)
+    w_id, w_cat, w_mcp, w_desc = _table_widths(available, [2, 1, 1, 6])
+    sep = "-" * available
+    print(sep)
+    print(f"{BOLD()}{_pad('TOOL ID', w_id)} {_pad('CATEGORY', w_cat)} {_pad('MCP?', w_mcp)} {_pad('DESCRIPTION', w_desc)}{RESET()}")
+    print(sep)
     for tool in load_tools():
         cat_color = GREEN() if tool.category == "internal" else CYAN()
         mcp_label = "Yes" if tool.is_mcp else "No"
+        desc = textwrap.shorten(tool.description, width=w_desc, placeholder='...')
         print(
-            f"{_pad(tool.id, 14)} {_pad(cat_color + tool.category + RESET, 10)} "
-            f"{_pad(mcp_label, 8)} {textwrap.shorten(tool.description, width=45, placeholder='...')}"
+            f"{_pad(tool.id, w_id)} {_pad(cat_color + tool.category + RESET, w_cat)} "
+            f"{_pad(mcp_label, w_mcp)} {desc}"
         )
-    print("--------------------------------------------------------------------------------")
+    print(sep)
     return 0
 
 
@@ -281,13 +324,28 @@ def cmd_run(argv: list[str]) -> int:
     return 1
 
 
+def _confirm(prompt: str, default: str = "n") -> bool:
+    """Safe TTY-aware confirmation prompt. Returns False in non-TTY without --yes."""
+    if not sys.stdin.isatty():
+        return False
+    try:
+        answer = input(prompt).strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return False
+    return answer in ("y", "yes")
+
+
 def cmd_install(argv: list[str]) -> int:
     ensure_path()
     target = argv[0] if argv else "all"
+    has_yes = "--yes" in argv or "-y" in argv
     # Konfirmasi untuk install all (Plan2 P0)
-    if target == "all" and "--yes" not in argv and "-y" not in argv:
-        answer = input("Install ALL tools? [y/N]: ").strip().lower()
-        if answer not in ("y", "yes"):
+    if target == "all" and not has_yes:
+        if not sys.stdin.isatty():
+            err("Non-interactive mode detected. Use --yes to skip confirmation.")
+            return 1
+        if not _confirm("Install ALL tools? [y/N]: "):
             warn("Aborted.")
             return 1
     print(f"{BOLD()}>>> Installing {target} using per-tool Python installers...{RESET()}")
@@ -515,11 +573,14 @@ def uninstall_tool(tool: Tool) -> int:
 
 def cmd_uninstall(argv: list[str]) -> int:
     target = argv[0] if argv else "--all"
+    has_yes = "--yes" in argv or "-y" in argv
     # Konfirmasi untuk uninstall all (Plan2 P0)
-    if target in {"--all", "all"} and "--yes" not in argv and "-y" not in argv:
+    if target in {"--all", "all"} and not has_yes:
+        if not sys.stdin.isatty():
+            err("Non-interactive mode detected. Use --yes to skip confirmation.")
+            return 1
         warn("WARNING: This will remove ALL installed tool binaries, data and config.")
-        answer = input("Type 'uninstall' to continue: ").strip()
-        if answer.lower() != "uninstall":
+        if not _confirm("Type 'uninstall' to continue: "):
             warn("Aborted.")
             return 1
     if target in {"--all", "all"}:
@@ -541,11 +602,14 @@ def cmd_uninstall(argv: list[str]) -> int:
 
 
 def cmd_reset(argv: list[str]) -> int:
-    if "--yes" not in argv:
+    has_yes = "--yes" in argv or "-y" in argv
+    if not has_yes:
+        if not sys.stdin.isatty():
+            err("Non-interactive mode detected. Use --yes to skip confirmation.")
+            return 1
         warn("WARNING: This will wipe installed tool state and reset the repository.")
         warn("This action cannot be undone.")
-        answer = input("Type RESET to continue: ").strip()
-        if answer != "RESET":
+        if not _confirm("Type 'RESET' to continue: "):
             warn("Aborted.")
             return 1
     warn("WARNING: This will wipe installed tool state and reset the repository.")
@@ -617,6 +681,19 @@ def main() -> int:
         import ui  # type: ignore[import-not-found]
         ui.set_color_mode(False)
         argv = [a for a in argv if a not in ("--no-color", "--plain")]
+    if "--force-color" in argv:
+        import ui  # type: ignore[import-not-found]
+        ui.set_color_mode(True)
+        argv = [a for a in argv if a != "--force-color"]
+    # Global verbosity: -v / --verbose, -q / --quiet
+    if "-v" in argv or "--verbose" in argv:
+        import ui  # type: ignore[import-not-found]
+        ui.set_verbosity("debug")
+        argv = [a for a in argv if a not in ("-v", "--verbose")]
+    if "-q" in argv or "--quiet" in argv:
+        import ui  # type: ignore[import-not-found]
+        ui.set_verbosity("warning")
+        argv = [a for a in argv if a not in ("-q", "--quiet")]
     cmd = argv[0]
     rest = argv[1:]
     dispatch = {
