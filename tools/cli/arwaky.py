@@ -62,7 +62,6 @@ def _table_widths(available: int, weights: list[int]) -> list[int]:
     return widths
 
 
-
 from tool_resolver import (  # type: ignore[import-not-found]
     executable_path,
     find_installer,

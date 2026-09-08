@@ -1,6 +1,7 @@
 # Contributing to agents-arwaky
 
 Thank you for your interest in contributing to **agents-arwaky**! This document provides comprehensive, step-by-step guides for contributing code, maintaining the orchestration tooling, and specifically:
+
 - [Adding a New Vendor Tool](#-adding-a-new-vendor-tool-step-by-step)
 - [Removing a Vendor Tool](#-removing-a-vendor-tool-step-by-step)
 - [Updating an Existing Vendor Tool](#-updating-an-existing-vendor-tool)
@@ -78,9 +79,9 @@ cd ../..
 Ensure `.gitmodules` marks the submodule with `ignore = dirty` so local build artifacts inside the submodule don't clutter git status:
 ```ini
 [submodule "vendor/my-cool-tool"]
-	path = vendor/my-cool-tool
-	url = https://github.com/example-org/my-cool-tool.git
-	ignore = dirty
+    path = vendor/my-cool-tool
+    url = https://github.com/example-org/my-cool-tool.git
+    ignore = dirty
 ```
 
 ---
@@ -137,6 +138,129 @@ if __name__ == "__main__":
 
 > For a complete reference, mirror an existing installer such as [`tools/install/install_ponytail.py`](tools/install/install_ponytail.py) (Python) or [`tools/install/install_lint.py`](tools/install/install_lint.py) (Rust).
 
+The script must:
+
+- Start with `#!/usr/bin/env bash` and `set -euo pipefail`.
+- Source `tools/lib/xdg.py`.
+- Install or compile the tool into `$XDG_DATA_HOME/<tool-name>/`.
+- Create an executable wrapper/launcher in `$XDG_BIN_HOME/<binary-name>`.
+
+#### Template A: For Python Tools (via `uv`)
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=/dev/null
+source "$REPO_ROOT/tools/lib/xdg.py"
+
+VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
+TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
+LAUNCHER="$XDG_BIN_HOME/my-cool-tool-mcp"
+
+if [ ! -d "$VENDOR_DIR" ]; then
+  echo "Error: Upstream source not found at $VENDOR_DIR."
+  echo "Run 'git submodule update --init vendor/my-cool-tool' first."
+  exit 1
+fi
+
+echo ">>> Setting up my-cool-tool in XDG Data Directory ($TARGET_DIR)..."
+mkdir -p "$TARGET_DIR"
+
+if command -v uv >/dev/null 2>&1; then
+  if [ ! -d "$TARGET_DIR/venv" ]; then
+    uv venv "$TARGET_DIR/venv"
+  fi
+  echo ">>> Installing dependencies with uv..."
+  uv pip install --quiet -e "$VENDOR_DIR" --python "$TARGET_DIR/venv"
+else
+  echo "Error: uv is required for Python installations." >&2
+  exit 1
+fi
+
+echo ">>> Generating executable launcher at $LAUNCHER..."
+cat <<'EOF' > "$LAUNCHER"
+#!/usr/bin/env bash
+set -euo pipefail
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/my-cool-tool"
+exec "$DATA_DIR/venv/bin/my-cool-tool" "$@"
+EOF
+chmod +x "$LAUNCHER"
+
+echo ">>> Successfully installed my-cool-tool -> $LAUNCHER"
+```
+
+#### Template B: For Node / TypeScript Tools (via `pnpm` or `npm`)
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=/dev/null
+source "$REPO_ROOT/tools/lib/xdg.py"
+
+VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
+TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
+LAUNCHER="$XDG_BIN_HOME/my-cool-tool-mcp"
+
+if [ ! -d "$VENDOR_DIR" ] || [ ! -f "$VENDOR_DIR/package.json" ]; then
+  echo "Error: Upstream source not found at $VENDOR_DIR."
+  exit 1
+fi
+
+echo ">>> Building my-cool-tool..."
+cd "$VENDOR_DIR"
+pnpm install --ignore-scripts
+pnpm run build
+
+mkdir -p "$TARGET_DIR"
+
+echo ">>> Creating launcher at $LAUNCHER..."
+cat <<EOF > "$LAUNCHER"
+#!/usr/bin/env bash
+set -euo pipefail
+exec node "$VENDOR_DIR/dist/index.js" "\$@"
+EOF
+chmod +x "$LAUNCHER"
+
+echo ">>> Successfully installed my-cool-tool -> $LAUNCHER"
+```
+
+#### Template C: For Rust Tools (via `cargo`)
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=/dev/null
+source "$REPO_ROOT/tools/lib/xdg.py"
+
+VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
+TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
+LAUNCHER="$XDG_BIN_HOME/my-cool-tool"
+
+mkdir -p "$TARGET_DIR/bin"
+
+if command -v cargo >/dev/null 2>&1; then
+  echo ">>> Building my-cool-tool from source with cargo..."
+  cargo install --path "$VENDOR_DIR" --root "$TARGET_DIR"
+  cp "$TARGET_DIR/bin/my-cool-tool" "$LAUNCHER"
+  chmod +x "$LAUNCHER"
+else
+  echo "Error: cargo not found." >&2
+  exit 1
+fi
+
+echo ">>> Successfully installed my-cool-tool -> $LAUNCHER"
+```
+
+---
 
 ### Step 3: Register in Manifest (`tools/config/manifest.json`)
 
@@ -253,6 +377,7 @@ aa mcp show
 When deprecating or removing an upstream tool, follow this procedure to ensure clean de-registration with zero dangling references or broken CI checks.
 
 ### Step 1: De-register from Manifest
+
 Open [`tools/config/manifest.json`](tools/config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
 
 ### Step 2: Remove Installer & Uninstaller Scripts
@@ -263,6 +388,7 @@ rm -f tools/uninstall/uninstall_my_cool_tool.py
 ```
 
 ### Step 3: Remove from Local Install
+
 No binary exporter array to maintain — uninstall by removing `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
 
 ### Step 4: Regenerate MCP Configuration (If Applicable)
@@ -285,6 +411,7 @@ aa clean
 ```
 
 ### Step 7: De-initialize and Remove Git Submodule
+
 Use Git to cleanly purge the submodule:
 
 ```bash
@@ -299,10 +426,12 @@ rm -rf .git/modules/vendor/my-cool-tool
 ```
 
 ### Step 8: Update Documentation & Licenses
+
 - Remove the tool entry from [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
 - Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`tools/config/manifest.json`](tools/config/manifest.json).
 
 ### Step 9: Verify Cleanliness
+
 Execute the verification suite to ensure no broken references remain:
 ```bash
 aa check
@@ -351,7 +480,8 @@ The repository hosts several core in-house agents under `internal/`:
 - [`blender-arwaky`](internal/blender-arwaky/) (Python / Blender)
 - [`lint-arwaky`](internal/lint-arwaky/) (Rust)
 
-### In-House Agent Principles:
+### In-House Agent Principles
+
 1. **AES Architecture Standards:**  
    In-house code adheres to the 7-layer Agentic Engineering System (AES). Every file follows `layer_concern_role.<ext>`. Run `arwaky run lint --help` to audit rules.
 2. **Submodule Workflows:**  
