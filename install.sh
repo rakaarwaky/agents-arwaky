@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
-# agents-arwaky — Installer (wajib semua, latest versions, non-interactive)
+# agents-arwaky — Installer (all required, latest versions, non-interactive)
 # =============================================================================
-# Install SEMUA prerequisite versi terbaru otomatis + launcher `aa`.
-# Tidak ada yang optional, tidak ada prompt.
+# Installs ALL prerequisites at latest versions + launcher `aa`.
+# Nothing is optional, no prompts.
 #
 # Usage:
-#   ./install.sh              # install semua
+#   ./install.sh              # install everything
 #   ./install.sh --check      # dry-run only
 # =============================================================================
 set -euo pipefail
@@ -77,7 +77,7 @@ detect_pkg_manager() {
 }
 
 # =============================================================================
-# SECTION 2: System packages via apt/dnf (base OS deps saja)
+# SECTION 2: System packages via apt/dnf (base OS deps only)
 # =============================================================================
 SYS_PACKAGES=(git curl wget ca-certificates gnupg jq)
 VISION_LIBS=(libgl1 tesseract-ocr ffmpeg)
@@ -85,14 +85,14 @@ VISION_LIBS=(libgl1 tesseract-ocr ffmpeg)
 install_pkg() {
   local pkg="$1"
   case "$PKG_MGR" in
-    apt)     dpkg -s "$pkg" &>/dev/null 2>&1 && ok "$pkg (sudah ada)" && return 0 ;;
-    dnf|yum) rpm -q "$pkg" &>/dev/null 2>&1 && ok "$pkg (sudah ada)" && return 0 ;;
-    pacman)  pacman -Qi "$pkg" &>/dev/null 2>&1 && ok "$pkg (sudah ada)" && return 0 ;;
-    apk)     apk info -e "$pkg" &>/dev/null 2>&1 && ok "$pkg (sudah ada)" && return 0 ;;
+    apt)     dpkg -s "$pkg" &>/dev/null 2>&1 && ok "$pkg (already installed)" && return 0 ;;
+    dnf|yum) rpm -q "$pkg" &>/dev/null 2>&1 && ok "$pkg (already installed)" && return 0 ;;
+    pacman)  pacman -Qi "$pkg" &>/dev/null 2>&1 && ok "$pkg (already installed)" && return 0 ;;
+    apk)     apk info -e "$pkg" &>/dev/null 2>&1 && ok "$pkg (already installed)" && return 0 ;;
   esac
   if [[ -z "$PKG_INSTALL" ]]; then return 1; fi
   info "Installing $pkg..."
-  $PKG_INSTALL "$pkg" &>/dev/null && ok "Installed $pkg" || warn "Gagal install $pkg"
+  $PKG_INSTALL "$pkg" &>/dev/null && ok "Installed $pkg" || warn "Failed to install $pkg"
 }
 
 # =============================================================================
@@ -100,19 +100,19 @@ install_pkg() {
 # =============================================================================
 install_python() {
   step "Python (latest)"
-  # Cek apakah sudah >= 3.10
+  # Check if already >= 3.10
   if command -v python3 &>/dev/null; then
     local ver
     ver="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
     local major="${ver%%.*}"
     local minor="${ver#*.}"
     if (( major >= 3 && minor >= 10 )); then
-      ok "Python $ver (sudah memenuhi)"
+      ok "Python $ver (already meets requirement)"
       return 0
     fi
   fi
 
-  # Install versi terbaru via deadsnakes PPA (Ubuntu/Debian)
+  # Install latest via deadsnakes PPA (Ubuntu/Debian)
   if [[ "$PKG_MGR" == "apt" ]]; then
     info "Installing latest Python via deadsnakes PPA..."
     sudo add-apt-repository -y ppa:deadsnakes/ppa 2>/dev/null || true
@@ -120,7 +120,7 @@ install_python() {
     for py in python3.13 python3.12 python3.11 python3.10; do
       if $PKG_INSTALL "$py" 2>/dev/null; then
         ok "Installed $py"
-        # Pastikan python3指向 versi baru
+        # Point python3 to the new version
         sudo update-alternatives --install /usr/bin/python3 python3 "/usr/bin/$py" 1 2>/dev/null || true
         return 0
       fi
@@ -134,7 +134,7 @@ install_python() {
     apk)     $PKG_INSTALL python3 && ok "Installed python3" && return 0 ;;
   esac
 
-  die "Gagal install Python >= 3.10"
+  die "Failed to install Python >= 3.10"
 }
 
 # =============================================================================
@@ -143,16 +143,16 @@ install_python() {
 install_nodejs() {
   step "Node.js (latest LTS via NodeSource)"
 
-  # Cek apakah sudah >= 18
+  # Check if already >= 18
   if command -v node &>/dev/null; then
     local ver
     ver="$(node -v 2>/dev/null | sed 's/v//')"
     local major="${ver%%.*}"
     if (( major >= 18 )); then
-      ok "Node.js v$ver (sudah memenuhi)"
+      ok "Node.js v$ver (already meets requirement)"
       return 0
     fi
-    warn "Node.js v$ver terlalu tua, upgrade..."
+    warn "Node.js v$ver is too old, upgrading..."
   fi
 
   # Install via NodeSource (Debian/Ubuntu)
@@ -178,13 +178,13 @@ install_nodejs() {
     nvm install --lts && ok "Installed Node.js $(node -v) via nvm" && return 0
   fi
 
-  # Fallback: system package (mungkin versi lama)
+  # Fallback: system package (may be outdated)
   case "$PKG_MGR" in
     dnf|yum) $PKG_INSTALL nodejs && ok "Installed nodejs" && return 0 ;;
     pacman)  $PKG_INSTALL nodejs npm && ok "Installed nodejs + npm" && return 0 ;;
   esac
 
-  die "Gagal install Node.js. Manual: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs"
+  die "Failed to install Node.js. Manual: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs"
 }
 
 # =============================================================================
@@ -201,7 +201,7 @@ install_rust() {
   CARGO_ENV="$HOME/.cargo/env"
   [[ -f "$CARGO_ENV" ]] && source "$CARGO_ENV"  # shellcheck disable=SC1090
   command -v cargo &>/dev/null && ok "Rust: $(cargo --version)" && return 0
-  die "Gagal install Rust"
+  die "Failed to install Rust"
 }
 
 # =============================================================================
@@ -217,7 +217,7 @@ install_uv() {
   curl -LsSf https://astral.sh/uv/install.sh | sh
   export PATH="$HOME/.local/bin:$PATH"
   command -v uv &>/dev/null && ok "uv: $(uv --version)" && return 0
-  die "Gagal install uv"
+  die "Failed to install uv"
 }
 
 # =============================================================================
@@ -233,7 +233,7 @@ install_bun() {
   curl -fsSL https://bun.sh/install | bash
   export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"
   command -v bun &>/dev/null && ok "bun: $(bun --version)" && return 0
-  die "Gagal install bun"
+  die "Failed to install bun"
 }
 
 # =============================================================================
@@ -252,7 +252,7 @@ install_pnpm() {
   if command -v npm &>/dev/null; then
     npm install -g pnpm@latest && ok "pnpm: $(pnpm -v)" && return 0
   fi
-  die "Gagal install pnpm"
+  die "Failed to install pnpm"
 }
 
 # =============================================================================
@@ -264,14 +264,14 @@ install_npm() {
     ok "npm: $(npm -v)"
     return 0
   fi
-  # npm biasanya sudah included dengan NodeSource install
+  # npm is usually included with NodeSource install
   case "$PKG_MGR" in
     apt)    $PKG_INSTALL npm 2>/dev/null ;;
     dnf|yum) $PKG_INSTALL npm 2>/dev/null ;;
     pacman) $PKG_INSTALL npm 2>/dev/null ;;
   esac
   command -v npm &>/dev/null && ok "npm: $(npm -v)" && return 0
-  warn "npm tidak ditemukan — mungkin sudah included dengan nodejs"
+  warn "npm not found — may already be bundled with nodejs"
 }
 
 # =============================================================================
@@ -293,7 +293,7 @@ install_all() {
     install_pkg "$pkg"
   done
 
-  # Runtimes — semua via official latest installers
+  # Runtimes — all via official latest installers
   install_python
   install_nodejs
   install_npm
@@ -307,25 +307,34 @@ install_all() {
   if command -v podman &>/dev/null; then
     ok "podman: $(podman --version)"
   else
-    install_pkg podman || warn "podman tidak tersedia"
+    install_pkg podman || warn "podman not available"
   fi
 }
 
 # =============================================================================
 # SECTION 11: Check only
 # =============================================================================
+pkg_installed() {
+  local pkg="$1"
+  case "$PKG_MGR" in
+    apt)     dpkg -s "$pkg" &>/dev/null 2>&1 ;;
+    dnf|yum) rpm -q "$pkg" &>/dev/null 2>&1 ;;
+    pacman)  pacman -Qi "$pkg" &>/dev/null 2>&1 ;;
+    apk)     apk info -e "$pkg" &>/dev/null 2>&1 ;;
+    *)       command -v "$pkg" &>/dev/null ;;
+  esac
+}
+
 check_only() {
-  step "Checking semua prerequisite"
+  step "Checking all prerequisites"
   local fail=0
 
-  # System packages
-  for tool in "${SYS_PACKAGES[@]}"; do
-    command -v "$tool" &>/dev/null && ok "$tool" || { err "$tool tidak ada"; ((fail++)); }
+  # System packages (check via package manager, not command -v)
+  for pkg in "${SYS_PACKAGES[@]}"; do
+    pkg_installed "$pkg" && ok "$pkg" || { err "$pkg not found"; ((fail++)); }
   done
-  for tool in "${VISION_LIBS[@]}"; do
-    command -v "$tool" &>/dev/null 2>/dev/null && ok "$tool" || \
-    dpkg -s "$tool" &>/dev/null 2>&1 && ok "$tool" || \
-    { err "$tool tidak ada"; ((fail++)); }
+  for pkg in "${VISION_LIBS[@]}"; do
+    pkg_installed "$pkg" && ok "$pkg" || { err "$pkg not found"; ((fail++)); }
   done
 
   # Python
@@ -333,27 +342,27 @@ check_only() {
     local pyver
     pyver="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
     local pyminor="${pyver#*.}"
-    (( pyminor >= 10 )) && ok "Python $pyver" || { err "Python $pyver (butuh >= 3.10)"; ((fail++)); }
+    (( pyminor >= 10 )) && ok "Python $pyver" || { err "Python $pyver (requires >= 3.10)"; ((fail++)); }
   else
-    err "python3 tidak ada"; ((fail++))
+    err "python3 not found"; ((fail++))
   fi
 
   # Node.js
   if command -v node &>/dev/null; then
     local nver
     nver="$(node -v | sed 's/v//' | cut -d. -f1)"
-    (( nver >= 18 )) && ok "Node.js $(node -v)" || { err "Node.js $(node -v) (butuh >= 18)"; ((fail++)); }
+    (( nver >= 18 )) && ok "Node.js $(node -v)" || { err "Node.js $(node -v) (requires >= 18)"; ((fail++)); }
   else
-    err "node tidak ada"; ((fail++))
+    err "node not found"; ((fail++))
   fi
 
   # Toolchains
   for tool in npm cargo uv bun pnpm podman; do
-    command -v "$tool" &>/dev/null && ok "$tool" || { err "$tool tidak ada"; ((fail++)); }
+    command -v "$tool" &>/dev/null && ok "$tool" || { err "$tool not found"; ((fail++)); }
   done
 
   echo
-  (( fail == 0 )) && ok "Semua prerequisite terpasang!" || err "$fail prerequisite belum terpasang"
+  (( fail == 0 )) && ok "All prerequisites installed!" || err "$fail prerequisites not installed"
   return $fail
 }
 
@@ -361,7 +370,7 @@ check_only() {
 # SECTION 12: Launcher + submodules
 # =============================================================================
 setup_launcher() {
-  step "Setup launcher"
+  step "Setting up launcher"
   BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
   mkdir -p "$BIN_DIR"
   LAUNCHER="$BIN_DIR/agents-arwaky"
@@ -378,17 +387,17 @@ EOL
   ln -sf "$LAUNCHER" "$BIN_DIR/aa"
   ok "Launcher: $LAUNCHER"
   ok "Alias:    $BIN_DIR/aa"
-  [[ ":$PATH:" != *":$BIN_DIR:"* ]] && warn "$BIN_DIR belum di PATH — tambah ke ~/.bashrc"
+  [[ ":$PATH:" != *":$BIN_DIR:"* ]] && warn "$BIN_DIR is not on your PATH — add to ~/.bashrc"
 }
 
 init_submodules() {
-  step "Init submodules"
-  [[ -d "$ROOT/.git" ]] && git -C "$ROOT" submodule update --init --recursive vendor/ internal/ && ok "Submodules siap" || warn "Skip"
+  step "Initializing submodules"
+  [[ -d "$ROOT/.git" ]] && git -C "$ROOT" submodule update --init --recursive vendor/ internal/ && ok "Submodules ready" || warn "Skipped"
 }
 
 print_summary() {
   echo
-  step "Selesai!"
+  step "Installation complete!"
   echo
   printf "  ${BOLD}Launcher:${RST} %s (alias: aa)\n" "$BIN_DIR/agents-arwaky"
   printf "  ${BOLD}Repo:${RST}     %s\n" "$ROOT"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""agents-arwaky Unified Tool Orchestrator (Python) — pengganti arwaky-cli.sh."""
+"""agents-arwaky Unified Tool Orchestrator (Python) — replaces arwaky-cli.sh."""
 from __future__ import annotations
 
 import json
@@ -308,7 +308,7 @@ def cmd_run(argv: list[str]) -> int:
     if exe:
         os.execvpe(str(exe), [str(exe), *tool_args], os.environ)
     tool_dir = repo_root() / tool.path
-    # Runner dispatch (P5-P1: manifest-driven, bukan hardcoded tool IDs)
+    # Runner dispatch (P5-P1: manifest-driven, not hardcoded tool IDs)
     if tool.category == "internal":
         runner = TOOL_RUNNERS.get(tool.id, "")
         if runner == "cargo" and shutil.which("cargo"):
@@ -343,7 +343,7 @@ def cmd_install(argv: list[str]) -> int:
     ensure_path()
     target = argv[0] if argv else "all"
     has_yes = "--yes" in argv or "-y" in argv
-    # Konfirmasi untuk install all (Plan2 P0)
+    # Confirmation for install all (Plan2 P0)
     if target == "all" and not has_yes:
         if not sys.stdin.isatty():
             err("Non-interactive mode detected. Use --yes to skip confirmation.")
@@ -511,7 +511,7 @@ def cmd_check(argv: list[str]) -> int:
             err(f"Python compile error: {py_file}: {e}")
             errors += 1
     print()
-    # Shellcheck untuk .sh milik kita (exclude tools/skills = salinan submodule upstream)
+    # Shellcheck for our own .sh files (exclude tools/skills = upstream submodule copies)
     sh_files = [
         f for f in (repo_root() / "tools").rglob("*.sh")
         if "node_modules" not in f.parts and "tools/skills" not in f.relative_to(repo_root()).as_posix()
@@ -575,7 +575,7 @@ def uninstall_tool(tool: Tool) -> int:
 def cmd_uninstall(argv: list[str]) -> int:
     target = argv[0] if argv else "--all"
     has_yes = "--yes" in argv or "-y" in argv
-    # Konfirmasi untuk uninstall all (Plan2 P0)
+    # Confirmation for uninstall all (Plan2 P0)
     if target in {"--all", "all"} and not has_yes:
         if not sys.stdin.isatty():
             err("Non-interactive mode detected. Use --yes to skip confirmation.")
@@ -657,13 +657,13 @@ def cmd_sync(argv):
 # Main dispatcher
 # =============================================================================
 def _gen_correlation_id() -> str:
-    """Generate short correlation ID (P1-O4) untuk multi-step ops."""
+    """Generate short correlation ID (P1-O4) for multi-step ops."""
     import uuid
     return uuid.uuid4().hex[:8]
 
 
 def _init_sentry():
-    """Opt-in Sentry error tracking (P1-O2), dikontrol ARWAKY_SENTRY_DSN."""
+    """Opt-in Sentry error tracking (P1-O2), controlled by ARWAKY_SENTRY_DSN."""
     dsn = os.environ.get("ARWAKY_SENTRY_DSN", "")
     if not dsn:
         return

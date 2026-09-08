@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Anytype daemon manager (Python) — pengganti anytype-daemon.sh."""
+"""Anytype daemon manager (Python) — replaces anytype-daemon.sh."""
 from __future__ import annotations
 
 import atexit
@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from envfile import update_env_file  # type: ignore[import-not-found]
+from envfile import update_env_file  # type: ignore[import-untyped]
 from xdg import (  # type: ignore[import-untyped]
     agents_arwaky_config_dir,
     config_home,
@@ -40,11 +40,11 @@ DATA_ROOT = data_home() / "anytype-mcp"
 PID_FILE = state_home() / "anytype-daemon.pid"
 
 
-def run(cmd, **kw):
+def run(cmd, **kw):  # noqa: S603
     return subprocess.run(cmd, check=False, **kw)
 
 
-def out(cmd, **kw):
+def out(cmd, **kw):  # noqa: S603
     return subprocess.run(cmd, capture_output=True, text=True, check=False, **kw).stdout.strip()
 
 
@@ -78,7 +78,7 @@ def api_ready(timeout=90):
 
 
 def image_exists() -> bool:
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603
         ["podman", "image", "exists", IMAGE_NAME],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -163,8 +163,12 @@ def cmd_start():
     DATA_ROOT.mkdir(parents=True, exist_ok=True)
     log_file = DATA_ROOT / "daemon.log"
     with log_file.open("ab") as f:
-        p = subprocess.Popen([str(anytype_bin), "serve", "--listen-address", f"127.0.0.1:{PORT}"],
-                             stdout=f, stderr=f, start_new_session=True)
+        p = subprocess.Popen(  # noqa: S603, S607
+            [str(anytype_bin), "serve", "--listen-address", f"127.0.0.1:{PORT}"],
+            stdout=f,
+            stderr=f,
+            start_new_session=True,
+        )
     _write_pid(p.pid)
     atexit.register(_cleanup_pid)
     print(f">>> Started local Anytype daemon (PID: {p.pid}). Logs: {log_file}")
@@ -176,7 +180,7 @@ def cmd_stop():
         print(f">>> Stopping Anytype daemon container '{CONTAINER_NAME}'...")
         run(["podman", "stop", CONTAINER_NAME])
         return 0
-    # Native mode: gunakan PID file (targeted, bukan pkill)
+    # Native mode: use PID file (targeted, not pkill)
     pid = _read_pid()
     if pid:
         try:
@@ -186,7 +190,7 @@ def cmd_stop():
             print(">>> Anytype daemon process not found (stale PID file).")
         _cleanup_pid()
     elif shutil.which("pkill"):
-        subprocess.run(["pkill", "-f", "anytype serve"], capture_output=True, check=False)
+        subprocess.run(["pkill", "-f", "anytype serve"], capture_output=True, check=False)  # noqa: S603, S607
         print(">>> Anytype daemon stopped.")
     else:
         print(">>> No Anytype daemon PID found and pkill unavailable.")
@@ -244,12 +248,12 @@ def cmd_auth_create(name="agent"):
 def cmd_auth_key(name="arwaky-agent-key"):
     """Generate API key and update .env with ANYTYPE_API_KEY (parse output)."""
     if has_podman() and container_running():
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603
             ["podman", "exec", CONTAINER_NAME, "anytype", "account", "api-key", "create", "--name", name],
             capture_output=True, text=True, check=False,
         )
     elif (LOCAL_BIN / "anytype").exists():
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603, S607
             [str(LOCAL_BIN / "anytype"), "account", "api-key", "create", "--name", name],
             capture_output=True, text=True, check=False,
         )
@@ -261,14 +265,14 @@ def cmd_auth_key(name="arwaky-agent-key"):
         print(result.stderr.strip(), file=sys.stderr)
         return result.returncode
 
-    # Parse API key dari output (token-shaped regex)
+    # Parse API key from output (token-shaped regex)
     api_key = _extract_api_key(result.stdout)
     if not api_key:
         print("Error: could not extract API key from daemon output.", file=sys.stderr)
         return 1
 
-    # Update .env (kanonik $XDG_CONFIG_HOME/agents-arwaky + config repo placeholder;
-    # migrasi legacy: update juga file lama bila masih ada)
+    # Update .env (canonical $XDG_CONFIG_HOME/agents-arwaky + repo config placeholder;
+    # legacy migration: also update old file if it still exists)
     env_candidates = [
         agents_arwaky_config_dir() / "anytype.env",
         ROOT / "tools/config/anytype.env",
@@ -298,7 +302,10 @@ def cmd_space_list():
 
 def cmd_service_install():
     if not has_podman():
-        print("Error: Podman is required to install the systemd container service.", file=sys.stderr)
+        print(
+            "Error: Podman is required to install the systemd container service.",
+            file=sys.stderr,
+        )
         return 1
     UNIT_DIR.mkdir(parents=True, exist_ok=True)
     src = SCRIPT_DIR / "anytype-daemon.service"
@@ -338,28 +345,22 @@ def main(argv):
         return cmd_help()
     action = argv[0]
     rest = argv[1:]
-    if action == "start":
-        return cmd_start()
-    if action == "stop":
-        return cmd_stop()
-    if action == "restart":
-        return cmd_restart()
-    if action == "status":
-        return cmd_status()
-    if action == "logs":
-        return cmd_logs()
-    if action == "auth-create":
-        return cmd_auth_create(rest[0] if rest else "agent")
-    if action == "auth-key":
-        return cmd_auth_key(rest[0] if rest else "arwaky-agent-key")
-    if action == "space-join":
-        return cmd_space_join(rest[0] if rest else "")
-    if action == "space-list":
-        return cmd_space_list()
-    if action == "service-install":
-        return cmd_service_install()
-    if action == "service-status":
-        return cmd_service_status()
+    dispatch = {
+        "start": lambda: cmd_start(),
+        "stop": lambda: cmd_stop(),
+        "restart": lambda: cmd_restart(),
+        "status": lambda: cmd_status(),
+        "logs": lambda: cmd_logs(),
+        "auth-create": lambda: cmd_auth_create(rest[0] if rest else "agent"),
+        "auth-key": lambda: cmd_auth_key(rest[0] if rest else "arwaky-agent-key"),
+        "space-join": lambda: cmd_space_join(rest[0] if rest else ""),
+        "space-list": lambda: cmd_space_list(),
+        "service-install": lambda: cmd_service_install(),
+        "service-status": lambda: cmd_service_status(),
+    }
+    handler = dispatch.get(action)
+    if handler:
+        return handler()
     print(f"Unknown anytype command: {action}", file=sys.stderr)
     return cmd_help()
 

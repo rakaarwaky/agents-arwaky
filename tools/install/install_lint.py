@@ -124,8 +124,8 @@ def main() -> int:
         src = release / b
         if src.exists():
             dst = bin_home() / b
-            # Atomic replace: hindari ETXTBSY bila binary lama sedang dipakai
-            # proses yang berjalan (rename aman; proses lama tetap pakai inode lama).
+            # Atomic replace: avoid ETXTBSY if old binary is still in use
+            # by a running process (rename is safe; old process keeps old inode).
             tmp = dst.with_suffix(dst.suffix + ".tmp")
             shutil.copy2(src, tmp)
             tmp.chmod(0o755)

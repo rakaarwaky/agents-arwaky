@@ -1,6 +1,5 @@
 # agents-arwaky
 
-<div align="center">
 
 ---
 
@@ -222,7 +221,6 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 
 ### Command Reference
 
-
 | Command                                  | Purpose                                                                                            | Example                                        |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | `aa status`                              | Display health, installation state, and submodule readiness                                        | `aa status`                                    |
@@ -244,10 +242,10 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa 9router <action>`                    | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                            |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
 | `aa clean`                              | Remove build artifacts & generated MCP config                                                     | `aa clean`                                     |
-| `aa uninstall [tool|--all]`           | Remove installed tool binaries, data & config (per-tool uninstallers)                             | `aa uninstall --all`                           |
+| `aa uninstall [tool\|--all]`           | Remove installed tool binaries, data & config (per-tool uninstallers)                             | `aa uninstall --all`                           |
 | `aa reset`                            | Full factory reset: clean + uninstall + unconnect + unskill                                        | `aa reset`                                     |
-| `aa backup <tool|all> <target>`       | Back up tool state locally or to Google Drive                                                     | `aa backup all gdrive`                         |
-| `aa restore <tool|all> <source>`      | Restore tool state from a backup                                                                  | `aa restore all gdrive`                        |
+| `aa backup <tool\|all> <target>`       | Back up tool state locally or to Google Drive                                                     | `aa backup all gdrive`                         |
+| `aa restore <tool\|all> <source>`      | Restore tool state from a backup                                                                  | `aa restore all gdrive`                        |
 | `aa disconnect <harness>`             | Remove MCP & skills from agent harnesses                                                          | `aa disconnect --all`                          |
 | `aa unskill`                          | Remove provisioned skills from the current workspace                                              | `aa unskill`                                   |
 
@@ -276,7 +274,6 @@ aa run lint --help
 
 Specialized autonomous agents developed specifically for the `agents-arwaky` ecosystem:
 
-
 | Agent / Tool                                     | Binary & Aliases                                                                      | Language & Stack    |             MCP?             | Description                                                                                                                                                                                    |
 | -------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------- | :-----------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **[lint-arwaky](internal/lint-arwaky/)**         | `lint-arwaky` (`la`, `lac`, `lint-arwaky-cli`, `lint-arwaky-mcp`, `lint-arwaky-tui`)  | Rust                |  **Yes** (`lint-arwaky-mcp`)  | Architecture Enforcement System (AES) validating 24 rules across Rust, Python, TypeScript. Exposes 5 MCP tools:`execute_command`, `get_config`, `health_check`, `list_commands`, `read_skill`. |
@@ -289,7 +286,6 @@ Specialized autonomous agents developed specifically for the `agents-arwaky` eco
 ### Curated Upstream Vendor Tools (`vendor/`)
 
 High-performance community tools integrated via Git submodules and sandboxed with isolated XDG prefixes:
-
 
 | Tool            | Exported Binary                    | Source Repo                                                           |      Protocol      | Focus Area                                                              |
 | ----------------- | ------------------------------------ | ----------------------------------------------------------------------- | :------------------: | ------------------------------------------------------------------------- |
@@ -591,7 +587,7 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
   - Contributing to in-house agents under `internal/`
   - Quality verification gates (`aa check`)
 
-### Quick Pull Request Checklist:
+### Quick Pull Request Checklist
 
 1. Fork the repository & create a feature branch (`git checkout -b feat/my-new-tool`).
 2. Follow the step-by-step workflow in [`CONTRIBUTING.md`](CONTRIBUTING.md).

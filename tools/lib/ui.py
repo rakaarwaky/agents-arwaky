@@ -1,11 +1,11 @@
-"""UI helpers: warna/banner/log (Python)."""
+"""UI helpers: colors/banner/log (Python)."""
 from __future__ import annotations
 
 import logging as _logging
 import os
 import sys
 
-# Structured logging (P1-O1): level + timestamp pada output log
+# Structured logging (P1-O1): level + timestamp on log output
 _logger = _logging.getLogger("agents-arwaky")
 if not _logger.handlers:
     _handler = _logging.StreamHandler()
@@ -58,8 +58,8 @@ def _c(code: str) -> str:
     return f"\033[{code}m" if _color_enabled() else ""
 
 
-# Lazy color accessors: dipanggil saat dipakai, bukan saat import,
-# sehingga set_color_mode()/NO_COLOR/FORCE_COLOR selalu berlaku.
+# Lazy color accessors: evaluated at call time, not import time,
+# so set_color_mode()/NO_COLOR/FORCE_COLOR always take effect.
 def BOLD() -> str:
     return _c("1")
 
@@ -102,7 +102,7 @@ def _term_width() -> int:
 
 def banner() -> None:
     if not sys.stdout.isatty():
-        # Non-TTY: teks polos, hindari ASCII art yang rusak di pipe/log.
+        # Non-TTY: plain text, avoid broken ASCII art in pipe/log.
         print("agents-arwaky — Unified Tool Orchestrator")
         print()
         return

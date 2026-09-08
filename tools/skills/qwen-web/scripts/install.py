@@ -228,7 +228,7 @@ def main() -> None:
     if sys.platform == "win32":
         venv_scripts = get_venv_dir() / "Scripts"
         log(f"👉 To run CLI on Windows, activate venv: {venv_scripts}\\Activate.ps1")
-        log("👉 Then run: qwc --login  atau  qwc --mcp")
+        log("👉 Then run: qwc --login  or  qwc --mcp")
     else:
         log("👉 You can now run 'qwc' or 'qwen-web-cli' from anywhere in your terminal!")
         log("👉 To perform initial session login: qwc --login")

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""fetch-mcp uninstaller (pengganti tools/fetch-mcp/uninstall.sh)."""
+"""fetch-mcp uninstaller (replaces tools/fetch-mcp/uninstall.sh)."""
 from __future__ import annotations
 
 import sys

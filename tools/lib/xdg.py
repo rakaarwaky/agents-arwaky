@@ -1,15 +1,15 @@
-"""XDG Base Directory helpers (Python) — pengganti tools/lib/xdg.sh.
+"""XDG Base Directory helpers (Python) — replaces tools/lib/xdg.sh.
 
-Mengikuti freedesktop.org XDG Base Directory Specification:
+Follows freedesktop.org XDG Base Directory Specification:
     $XDG_DATA_HOME    -> ~/.local/share   (persistent data, per-tool)
     $XDG_CONFIG_HOME  -> ~/.config        (configuration, per-tool)
     $XDG_STATE_HOME   -> ~/.local/state   (state: PID files, history, logs)
     $XDG_CACHE_HOME   -> ~/.cache         (transient: build artifacts, caches)
-    $XDG_RUNTIME_DIR  -> /run/user/<uid>  (sockets/private runtime, jika tersedia)
+    $XDG_RUNTIME_DIR  -> /run/user/<uid>  (sockets/private runtime, if available)
     $XDG_BIN_HOME     -> ~/.local/bin     (de-facto convention user binaries)
 
-Semua helper bersifat pure (tanpa side effect) kecuali yang eksplisit
-*_dir()/ensure_*(). Fallback default mengikuti spec resmi.
+All helpers are pure (no side effects) except explicit
+*_dir()/ensure_*(). Fallback defaults follow the official spec.
 """
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def cache_home() -> Path:
 
 
 def runtime_dir() -> Path | None:
-    """Return $XDG_RUNTIME_DIR jika terdefinisi dan writable, else None."""
+    """Return $XDG_RUNTIME_DIR if defined and writable, else None."""
     raw = os.environ.get("XDG_RUNTIME_DIR")
     if raw:
         p = Path(raw)
@@ -62,12 +62,12 @@ def ensure_bin_home() -> None:
 
 
 def bin_on_path() -> bool:
-    """True jika $XDG_BIN_HOME sudah ada di PATH proses ini."""
+    """True if $XDG_BIN_HOME is already on this process's PATH."""
     return str(bin_home()) in os.environ.get("PATH", "").split(os.pathsep)
 
 
 def ensure_path() -> None:
-    """Prepend $XDG_BIN_HOME ke PATH proses berjalan (bukan shell persist)."""
+    """Prepend $XDG_BIN_HOME to current process PATH (not persistent shell)."""
     b = str(bin_home())
     ensure_bin_home()
     paths = os.environ.get("PATH", "").split(os.pathsep)
@@ -76,9 +76,9 @@ def ensure_path() -> None:
 
 
 def warn_if_bin_not_on_path() -> bool:
-    """Warn sekali jika $XDG_BIN_HOME tidak ada di PATH (berguna utk installer).
+    """Warn once if $XDG_BIN_HOME is not on PATH (useful for installers).
 
-    Return True jika sudah on PATH (aman), False jika perlu ditambahkan user.
+    Return True if already on PATH (safe), False if user needs to add it.
     """
     if bin_on_path():
         return True
@@ -141,7 +141,7 @@ def tool_cache_dir(tool: str) -> Path:
 def agents_arwaky_config_dir() -> Path:
     """Canonical private config dir: $XDG_CONFIG_HOME/agents-arwaky.
 
-    Menyimpan secret/env (.env) per tool dengan mode 0700.
+    Stores secret/env (.env) per tool with mode 0700.
     """
     p = config_home() / "agents-arwaky"
     p.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -149,7 +149,7 @@ def agents_arwaky_config_dir() -> Path:
 
 
 def legacy_agents_arwaky_secret_dir() -> Path:
-    """Lokasi lama ($XDG_DATA_HOME/agents-arwaky/config) utk backward-compat."""
+    """Legacy location ($XDG_DATA_HOME/agents-arwaky/config) for backward-compat."""
     return data_home() / "agents-arwaky" / "config"
 
 
@@ -165,7 +165,7 @@ def agent_secret_candidates(tool: str, repo_config: Path | None = None) -> list[
 
 
 # ---------------------------------------------------------------------------
-# Uninstall helper (single source of truth utk semua uninstaller)
+# Uninstall helper (single source of truth for all uninstallers)
 # ---------------------------------------------------------------------------
 def remove_tool_artifacts(
     tool: str,
@@ -173,10 +173,10 @@ def remove_tool_artifacts(
     *,
     clean_config: bool = True,
 ) -> None:
-    """Hapus semua artifact XDG yang mungkin dibuat installer untuk tool.
+    """Remove all XDG artifacts that installers may have created for a tool.
 
-    Menghapus: launcher + alias di bin, data, cache (termasuk build dir),
-    dan (opsional) config dir. Tidak menyentuh $XDG_STATE_HOME.
+    Removes: launchers + aliases in bin, data, cache (including build dir),
+    and (optionally) config dir. Does not touch $XDG_STATE_HOME.
     """
     for name in launchers:
         (bin_home() / name).unlink(missing_ok=True)
@@ -188,11 +188,11 @@ def remove_tool_artifacts(
 
 
 def atomic_write_text(path: Path, content: str, mode: int = 0o755) -> None:
-    """Tulis file secara atomik (temp + os.replace).
+    """Atomically write file (temp + os.replace).
 
-    Menghindari ETXTBSY ('Text file busy') saat menimpa executable yang
-    sedang dipakai proses berjalan: rename aman karena proses lama tetap
-    memegang inode lama.
+    Avoids ETXTBSY ('Text file busy') when overwriting an executable
+    that is currently running: rename is safe because the old process
+    still holds the old inode.
     """
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(content, encoding="utf-8")

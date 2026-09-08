@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-not-found]
+from xdg import (  # type: ignore[import-untyped]
     atomic_write_text,
     bin_home,
     data_home,

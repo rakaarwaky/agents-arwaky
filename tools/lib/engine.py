@@ -119,8 +119,8 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
         if fmt == "json":
             path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         elif fmt == "jsonc":
-            # Best-effort: pertahankan komentar JSONC asli di luar blok yang diubah.
-            # Jika file asli ada, simpan komentar baris (//) yang berada di luar bagian mcp/mcpServers.
+            # Best-effort: preserve original JSONC comments outside modified blocks.
+            # If original file exists, keep line comments (//) outside mcp/mcpServers sections.
             try:
                 original = path.read_text(encoding="utf-8", errors="replace")
                 comment_lines = [

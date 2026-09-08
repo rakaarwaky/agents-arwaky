@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Unified Backup & Restore (Python) — pengganti backup-manager.sh.
-Memanggil gdrive.py (sudah Python) untuk Google Drive, dan tar data dirs.
+"""Unified Backup & Restore (Python) — replaces backup-manager.sh.
+Calls gdrive.py (Python) for Google Drive, and tars data dirs.
 """
 from __future__ import annotations
 
@@ -74,12 +74,12 @@ def tar_dir(src: Path, dest: Path):
 
 def untar(src: Path, dest: Path):
     dest = dest.resolve()
-    # Verifikasi integritas archive sebelum extract (R-7)
+    # Verify archive integrity before extract (R-7)
     if not tarfile.is_tarfile(src):
         raise ValueError(f"Not a valid tar archive: {src}")
     try:
         with tarfile.open(src, "r:gz") as check_tar:
-            check_tar.getmembers()  # pastikan bisa dibaca penuh
+            check_tar.getmembers()  # ensure full readability
     except (tarfile.TarError, OSError) as e:
         raise ValueError(f"Corrupt or truncated archive {src}: {e}") from e
     with tarfile.open(src, "r:gz") as tar:
@@ -102,7 +102,7 @@ def untar(src: Path, dest: Path):
                     raise ValueError(
                         f"Blocked device node in archive: {member.name}"
                     ) from None
-            # Semua member sudah divalidasi aman (R-7) => extract di sini aman
+            # All members validated safe (R-7) => extraction is safe here
             tar.extractall(dest)
 
 
@@ -121,7 +121,7 @@ def backup_tool(tool: str, dest: str = ""):
     tar_dir(src, archive)
     log_ok(f"{tool} backed up.")
     if upload_to_gdrive:
-        # Argumen list tanpa shell=True; helper path berasal dari repo (S603 ok)
+        # Argument list without shell=True; helper path from repo (S603 ok)
         with _Progress(f"Uploading {archive.name} to Google Drive..."):
             result = subprocess.run(
                 [sys.executable, str(GDRIVE_HELPER), "upload", str(archive)],
@@ -145,7 +145,7 @@ def restore_tool(tool: str, src: str):
     subdir = TOOL_DATA.get(tool, tool)
     target = data_home() / subdir
 
-    # Bersihkan data lama sebelum restore (cegah kontaminasi file stale)
+    # Clean old data before restore (prevent stale file contamination)
     if target.exists():
         log_info(f"Cleaning existing data at {target} before restore...")
         shutil.rmtree(target)

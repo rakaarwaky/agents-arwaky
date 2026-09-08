@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""9Router daemon manager (Python) — pengganti 9router-daemon.sh."""
+"""9Router daemon manager (Python) — replaces 9router-daemon.sh."""
 from __future__ import annotations
 
 import os

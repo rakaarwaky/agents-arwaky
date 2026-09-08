@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Installer anytype-daemon — headless Anytype container daemon (podman + systemd).
 
-Spesifik: anytype-daemon adalah service container (bukan tool binary).
-- Prasyarat: podman/docker
-- service-install: daftarkan unit systemd user (tools/deploy/anytype-daemon.service)
-- launcher `anytype-daemon` + alias `ad` -> tools/daemons/anytype_daemon.py
-- salinan launcher ditaruh di internal-bin (pola yang sama dengan 9router)
+Specifics: anytype-daemon is a container service (not a tool binary).
+- Prerequisite: podman/docker
+- service-install: register systemd user unit (tools/deploy/anytype-daemon.service)
+- Launcher `anytype-daemon` + alias `ad` -> tools/daemons/anytype_daemon.py
+- Launcher copy placed in internal-bin (same pattern as 9router)
 """
 from __future__ import annotations
 
@@ -17,8 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-not-found]
-    atomic_write_text,
+from xdg import (  # type: ignore[import-untyped]
     bin_home,
     data_home,
     ensure_bin_home,
@@ -34,7 +33,7 @@ def _write_launcher(path: Path) -> None:
         "#!/usr/bin/env python3\n"
         "import os, sys\n"
         "from pathlib import Path\n"
-        f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(ROOT))}))\n'
+        f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(ROOT))}))\n'  # noqa: RUF010
         'daemon = root / "tools/daemons/anytype_daemon.py"\n'
         'os.execvpe("python3", ["python3", str(daemon), *sys.argv[1:]], os.environ.copy())\n',
         encoding="utf-8",
@@ -44,8 +43,8 @@ def _write_launcher(path: Path) -> None:
 
 def main() -> int:
     if not shutil.which("podman") and not shutil.which("docker"):
-        print("Warning: podman/docker tidak ditemukan; anytype-daemon dilewati.", file=sys.stderr)
-        print("  Pasang podman lalu jalankan ulang 'aa install anytype-daemon'.", file=sys.stderr)
+        print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
+        print("  Install podman then re-run 'aa install anytype-daemon'.", file=sys.stderr)
         return 0
 
     ensure_bin_home()

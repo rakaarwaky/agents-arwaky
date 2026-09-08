@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from launcher_writer import write_uv_launchers  # type: ignore[import-not-found]
-from xdg import ensure_bin_home  # type: ignore[import-not-found]
+from xdg import ensure_bin_home  # type: ignore[import-untyped]
 
 SRC_REL = "internal/qwen-web-arwaky"
 SRC_DIR = ROOT / SRC_REL

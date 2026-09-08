@@ -268,7 +268,7 @@ def cmd_list(folder_name=DEFAULT_FOLDER_NAME):
     service = get_drive_service()
     folder_id = get_or_create_folder(service, folder_name)
     q = f"'{folder_id}' in parents and trashed = false"
-    # Gunakan list_all_files (pagination-aware, bounded) (P3)
+    # Use list_all_files (pagination-aware, bounded) (P3)
     files = list_all_files(
         service, q, "files(id, name, size, createdTime, webViewLink)"
     )

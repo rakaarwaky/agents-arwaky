@@ -7,7 +7,8 @@ Specifics: context7 is a pnpm workspace, not a regular bun/npm project.
   `dangerouslyAllowAllBuilds: true` in the copied pnpm-workspace.yaml
 - Runtime installed in-place to $XDG_DATA_HOME/context7 (deps are linked
   within the workspace, cannot be copied piecemeal)
-- Launchers: context7-mcp -> packages/mcp/dist/index.js, ctx7 -> packages/cli/dist/index.js
+- Launchers: context7-mcp -> packages/mcp/dist/index.js,
+  ctx7 -> packages/cli/dist/index.js
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-not-found]
+from xdg import (  # type: ignore[import-not-found]  # noqa: E402
     atomic_write_text,
     bin_home,
     data_home,
@@ -43,7 +44,7 @@ LAUNCHERS = {
 
 
 def run(cmd, cwd=None):
-    subprocess.run(cmd, cwd=cwd, check=True)
+    subprocess.run(cmd, cwd=cwd, check=True)  # noqa: S603
 
 
 def main() -> int:

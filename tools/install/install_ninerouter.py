@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-untyped]
+from xdg import (  # type: ignore[import-untyped]  # noqa: E402
     atomic_write_text,
     bin_home,
     data_home,
@@ -31,11 +31,11 @@ def main() -> int:
     daemon_py = TOOL_DIR / "ninerouter_daemon.py"
     print(">>> Setting up 9Router hybrid architecture...")
     if daemon_py.exists():
-        subprocess.run([sys.executable, str(daemon_py), "service-install"], check=False)
+        subprocess.run([sys.executable, str(daemon_py), "service-install"], check=False)  # noqa: S603
     launcher_content = f'''#!/usr/bin/env python3
 import os, sys
 from pathlib import Path
-root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(ROOT))}))
+root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(ROOT)!r}))
 daemon = root / "tools/daemons/ninerouter_daemon.py"
 os.execvpe("python3", ["python3", str(daemon), *sys.argv[1:]], os.environ.copy())
 '''

@@ -18,7 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
-from xdg import (  # type: ignore[import-not-found]
+from xdg import (  # type: ignore[import-not-found]  # noqa: E402
     atomic_write_text,
     bin_home,
     data_home,
@@ -39,7 +39,7 @@ IGNORES = shutil.ignore_patterns(
 
 
 def run(cmd, cwd=None):
-    subprocess.run(cmd, cwd=cwd, check=True)
+    subprocess.run(cmd, cwd=cwd, check=True)  # noqa: S603
 
 
 def _require(tool: str, reason: str) -> bool:

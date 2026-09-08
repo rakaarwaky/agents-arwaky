@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared launcher writer (DRY: 5+ uv/python installers pakai ini)."""
+"""Shared launcher writer (DRY: used by 5+ uv/python installers)."""
 from __future__ import annotations
 
 from pathlib import Path

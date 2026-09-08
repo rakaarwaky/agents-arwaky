@@ -21,23 +21,23 @@ from xdg import (  # type: ignore[import-untyped]
 def main() -> int:
     print(">>> Uninstalling anytype-daemon...")
 
-    # Nonaktifkan systemd user service bila ada
+    # Disable systemd user service if present
     unit = config_home() / "systemd/user/anytype-daemon.service"
     if unit.exists() and shutil.which("systemctl"):
         subprocess.run(["systemctl", "--user", "disable", "--now", "anytype-daemon.service"],
                        check=False, capture_output=True)
         unit.unlink(missing_ok=True)
         subprocess.run(["systemctl", "--user", "daemon-reload"], check=False, capture_output=True)
-        print("  -> systemd service anytype-daemon dihapus")
+        print("  -> systemd service anytype-daemon removed")
 
-    # Launcher + alias ad + salinan internal-bin
+    # Launcher + alias ad + internal-bin copy
     remove_tool_artifacts("anytype-daemon", ["anytype-daemon", "ad"], clean_config=False)
     (data_home() / "agents-arwaky/internal-bin/anytype-daemon").unlink(missing_ok=True)
 
     if "--purge" in sys.argv:
         shutil.rmtree(data_home() / "anytype", ignore_errors=True)
         shutil.rmtree(data_home() / "anytype-mcp", ignore_errors=True)
-        print("  -> data anytype di-purge")
+        print("  -> anytype data purged")
 
     print(">>> anytype-daemon uninstalled.")
     return 0

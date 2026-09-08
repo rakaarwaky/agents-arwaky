@@ -20,6 +20,7 @@ This component provides a dedicated, headless Anytype node (`anytype-cli`) desig
 ## Quick Start
 
 ### 1. Start the Daemon
+
 ```bash
 aa anytype start
 # or:
@@ -27,32 +28,40 @@ aa anytype start
 ```
 
 ### 2. Create a Bot Account for the Agent
+
 ```bash
 aa anytype auth-create "arwaky-agent"
 ```
 
 ### 3. Generate API Key (Auto-updates `.env`)
+
 ```bash
 aa anytype auth-key "mcp-access-key"
 ```
+
 This automatically updates `ANYTYPE_API_KEY` in `.env` and refreshes the MCP configuration.
 
 ### 4. Invite Agent to your Space
+
 In your desktop/mobile Anytype app:
+
 1. Open the Space settings.
 2. Generate an **Invite Link** with appropriate permissions (e.g. Member or Editor).
 3. Have the bot join:
+
 ```bash
 aa anytype space-join "<your-invite-link>"
 ```
 
 ### 5. Check Status
+
 ```bash
 aa anytype status
 aa anytype space-list
 ```
 
 ### 6. (Optional) Auto-start on boot via systemd
+
 ```bash
 aa anytype service-install
 ```
