@@ -171,7 +171,7 @@ def remove_tool_artifacts(
 
     Removes: launchers + aliases in bin, data, cache (including build dir),
     and (optionally) config dir. Does not touch $XDG_STATE_HOME.
-    Also cleans up .venv in source directories (for uv-based tools).
+    Also cleans up .venv and target/ in source directories.
     """
     for name in launchers:
         (bin_home() / name).unlink(missing_ok=True)
@@ -179,13 +179,18 @@ def remove_tool_artifacts(
     shutil.rmtree(tool_cache_path(tool), ignore_errors=True)
     if clean_config:
         shutil.rmtree(tool_config_path(tool), ignore_errors=True)
-    # Clean up .venv in source directories (uv-based tools)
+    # Clean up build artifacts in source directories
     for src_dir in _find_source_dirs(tool):
+        # Clean .venv (uv-based Python tools)
         venv_path = src_dir / ".venv"
         if venv_path.is_symlink():
             venv_path.unlink(missing_ok=True)
         elif venv_path.is_dir():
             shutil.rmtree(venv_path, ignore_errors=True)
+        # Clean target/ (Rust cargo tools)
+        target_path = src_dir / "target"
+        if target_path.is_dir():
+            shutil.rmtree(target_path, ignore_errors=True)
 
 
 def _find_source_dirs(tool: str) -> list[Path]:
