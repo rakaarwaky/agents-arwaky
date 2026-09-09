@@ -5,14 +5,19 @@ import logging as _logging
 import os
 import sys
 
-# Structured logging (P1-O1): level + timestamp on log output
+# Structured logging (P1-O1): level + timestamp + correlation ID on log output
 _logger = _logging.getLogger("agents-arwaky")
 if not _logger.handlers:
     _handler = _logging.StreamHandler()
-    _fmt = (
-        "%(asctime)s %(levelname)s %(message)s"
-    )
+    _fmt = "%(asctime)s %(levelname)s [%(correlation_id)s] %(message)s"
     _handler.setFormatter(_logging.Formatter(_fmt, datefmt="%H:%M:%S"))
+
+    class _CorrelationFilter(_logging.Filter):
+        def filter(self, record):
+            record.correlation_id = os.environ.get("ARWAKY_CORRELATION_ID", "-")
+            return True
+
+    _handler.addFilter(_CorrelationFilter())
     _logger.addHandler(_handler)
     _logger.setLevel(_logging.INFO)
 

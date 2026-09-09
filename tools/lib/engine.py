@@ -213,30 +213,16 @@ def list_mcp_servers(path: Path):
 # Env key helpers
 # ---------------------------------------------------------------------------
 def remove_env_keys(path: Path, keys, dry_run: bool = False) -> list:
-    """Remove `KEY=...` lines from a .env-style file. Returns removed keys."""
-    if not path.exists():
-        return []
-    text = path.read_text(encoding="utf-8", errors="replace")
-    removed = []
-    lines = text.splitlines()
-    kept = []
-    for line in lines:
-        stripped = line.strip()
-        hit = False
-        for k in keys:
-            if stripped.startswith(k + "="):
-                hit = True
-                removed.append(k)
-                break
-        if not hit:
-            kept.append(line)
-    if removed and not dry_run:
-        new_text = "\n".join(kept)
-        if new_text.strip():
-            path.write_text(new_text + "\n", encoding="utf-8")
-        else:
-            path.unlink(missing_ok=True)
-    return removed
+    """Remove `KEY=...` lines from a .env-style file. Returns removed keys.
+
+    Delegates to envfile.remove_env_keys for the core logic.
+    """
+    from envfile import remove_env_keys as _envfile_remove  # local import to avoid circular
+    if dry_run:
+        from envfile import parse_env_file
+        env = parse_env_file(path)
+        return [k for k in keys if k in env]
+    return _envfile_remove(path, keys)
 
 
 # ---------------------------------------------------------------------------
@@ -265,60 +251,8 @@ def arwaky_server_names(repo_root: Path) -> list:
 
 
 # ---------------------------------------------------------------------------
-# CLI entrypoint
+# MCP merge & env helpers (must be before main())
 # ---------------------------------------------------------------------------
-
-def main(argv):
-    if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
-        print(__doc__)
-        return 0
-    cmd = argv[1]
-    if cmd == "remove-mcp-servers":
-        file = Path(argv[2])
-        servers = argv[3:]
-        dry = "--dry-run" in servers
-        servers = [s for s in servers if s != "--dry-run"]
-        removed = remove_mcp_servers(file, servers, dry)
-        print("\n".join(removed))
-        return 0
-    if cmd == "remove-env-keys":
-        file = Path(argv[2])
-        keys = argv[3:]
-        dry = "--dry-run" in keys
-        keys = [k for k in keys if k != "--dry-run"]
-        removed = remove_env_keys(file, keys, dry)
-        print("\n".join(removed))
-        return 0
-    if cmd == "list-mcp-servers":
-        file = Path(argv[2])
-        print("\n".join(list_mcp_servers(file)))
-        return 0
-    if cmd == "merge-mcp-servers":
-        file = Path(argv[2])
-        json_payload = argv[3]
-        force = "--force" in argv
-        servers = json.loads(json_payload)
-        merged = merge_mcp_servers(file, servers, force)
-        print("\n".join(merged))
-        return 0
-    if cmd == "set-env-keys":
-        file = Path(argv[2])
-        json_payload = argv[3]
-        pairs = json.loads(json_payload)
-        set_env_keys(file, pairs)
-        return 0
-    if cmd == "arwaky-server-names":
-        repo = Path(argv[2]) if len(argv) > 2 else Path(os.getcwd())
-        print("\n".join(arwaky_server_names(repo)))
-        return 0
-    print(f"Unknown command: {cmd}", file=sys.stderr)
-    return 1
-
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv))
-
-
 def merge_mcp_servers(path: Path, servers: dict, force: bool = False) -> list:
     """Merge MCP servers into the file's MCP map (fail-closed + backup)."""
     if path.exists():
@@ -382,3 +316,58 @@ def set_env_keys(path: Path, pairs: dict) -> None:
         path.chmod(0o600)
     except OSError:
         pass
+
+
+# ---------------------------------------------------------------------------
+# CLI entrypoint
+# ---------------------------------------------------------------------------
+
+def main(argv):
+    if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
+        print(__doc__)
+        return 0
+    cmd = argv[1]
+    if cmd == "remove-mcp-servers":
+        file = Path(argv[2])
+        servers = argv[3:]
+        dry = "--dry-run" in servers
+        servers = [s for s in servers if s != "--dry-run"]
+        removed = remove_mcp_servers(file, servers, dry)
+        print("\n".join(removed))
+        return 0
+    if cmd == "remove-env-keys":
+        file = Path(argv[2])
+        keys = argv[3:]
+        dry = "--dry-run" in keys
+        keys = [k for k in keys if k != "--dry-run"]
+        removed = remove_env_keys(file, keys, dry)
+        print("\n".join(removed))
+        return 0
+    if cmd == "list-mcp-servers":
+        file = Path(argv[2])
+        print("\n".join(list_mcp_servers(file)))
+        return 0
+    if cmd == "merge-mcp-servers":
+        file = Path(argv[2])
+        json_payload = argv[3]
+        force = "--force" in argv
+        servers = json.loads(json_payload)
+        merged = merge_mcp_servers(file, servers, force)
+        print("\n".join(merged))
+        return 0
+    if cmd == "set-env-keys":
+        file = Path(argv[2])
+        json_payload = argv[3]
+        pairs = json.loads(json_payload)
+        set_env_keys(file, pairs)
+        return 0
+    if cmd == "arwaky-server-names":
+        repo = Path(argv[2]) if len(argv) > 2 else Path(os.getcwd())
+        print("\n".join(arwaky_server_names(repo)))
+        return 0
+    print(f"Unknown command: {cmd}", file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

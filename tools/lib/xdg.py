@@ -38,17 +38,6 @@ def state_home() -> Path:
 def cache_home() -> Path:
     return Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache")))
 
-
-def runtime_dir() -> Path | None:
-    """Return $XDG_RUNTIME_DIR if defined and writable, else None."""
-    raw = os.environ.get("XDG_RUNTIME_DIR")
-    if raw:
-        p = Path(raw)
-        if p.is_dir() and os.access(p, os.W_OK):
-            return p
-    return None
-
-
 def bin_home() -> Path:
     """User binary dir: $XDG_BIN_HOME, default ~/.local/bin (de-facto standard)."""
     return Path(os.environ.get("XDG_BIN_HOME", str(Path.home() / ".local/bin")))

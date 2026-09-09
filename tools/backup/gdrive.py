@@ -305,20 +305,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-def _atomic_write(path, data):
-    """Atomic write: tulis ke temp lalu rename (P4 atomic write)."""
-    import tempfile
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(data)
-        os.replace(tmp, path)
-    except Exception:
-        try:
-            os.unlink(tmp)
-        except OSError:
-            pass
-        raise

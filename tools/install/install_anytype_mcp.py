@@ -140,8 +140,10 @@ def install_daemon() -> int:
     return 0
 
 def is_installed() -> bool:
-    """Check if anytype-mcp is already installed (binary exists)."""
-    return (bin_home() / "anytype-mcp").exists()
+    """Check if anytype (both MCP + daemon) is already installed."""
+    mcp_ok = (bin_home() / "anytype-mcp").exists()
+    daemon_ok = (bin_home() / "anytype-daemon").exists()
+    return mcp_ok and daemon_ok
 
 
 def main() -> int:

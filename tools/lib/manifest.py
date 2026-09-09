@@ -8,12 +8,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-
-def repo_root() -> Path:
-    env_root = os.environ.get("AGENTS_ARWAKY_ROOT")
-    if env_root:
-        return Path(env_root).resolve()
-    return Path(__file__).resolve().parents[2]
+from paths import repo_root  # single source of truth (re-exports for backward compat)
 
 
 def manifest_path() -> Path:

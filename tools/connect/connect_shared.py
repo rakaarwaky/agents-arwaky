@@ -15,6 +15,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
+from skill_names import extract_skill_name, sanitize_skill_name, safe_skill_name, ensure_under  # noqa: E402
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HOME = Path.home()
 
@@ -95,42 +99,8 @@ def remove_env_keys(file: Path, keys, dry_run: bool = False):
 
 
 # --- skills ------------------------------------------------------------------
-def extract_skill_name(skill_md: Path) -> str:
-    """Extract `name:` from SKILL.md frontmatter; fallback to parent dir name."""
-    try:
-        text = skill_md.read_text(encoding="utf-8", errors="replace")
-        m = re.search(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
-        if m:
-            fm = m.group(1)
-            nm = re.search(r"^name:\s*[\"']?(.+?)[\"']?\s*$", fm, re.MULTILINE)
-            if nm:
-                return nm.group(1).strip()
-    except OSError:
-        pass
-    return skill_md.parent.name
-
-
-def sanitize_skill_name(raw: str, fallback: str) -> str:
-    raw = (raw or "").strip().replace("\\", "/")
-    raw = posixpath.basename(raw)
-    name = re.sub(r"[^A-Za-z0-9._-]+", "-", raw).strip(".-")
-    if not name:
-        name = re.sub(r"[^A-Za-z0-9._-]+", "-", fallback).strip(".-") or "skill"
-    return name[:64]
-
-
-def safe_skill_name(skill_md: Path) -> str:
-    return sanitize_skill_name(extract_skill_name(skill_md), skill_md.parent.name)
-
-
-def ensure_under(base: Path, child: Path) -> Path:
-    base_resolved = base.resolve()
-    child_resolved = child.resolve()
-    if child_resolved == base_resolved:
-        return child_resolved
-    if base_resolved not in child_resolved.parents:
-        raise ValueError(f"Refusing path outside target directory: {child_resolved}")
-    return child_resolved
+# extract_skill_name, sanitize_skill_name, safe_skill_name, ensure_under
+# are imported from lib/skill_names.py (single source of truth).
 
 
 def hermes_targets(h: Path):
