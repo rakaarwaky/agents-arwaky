@@ -2,6 +2,7 @@
 """Shell completion generator (Python) — pengganti completion.sh."""
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -12,14 +13,35 @@ sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from xdg import data_home  # type: ignore[import-not-found]
 
-COMMANDS = "status doctor list run install mcp skill connect disconnect unconnect unskill anytype 9router service sync backup restore check submodules clean uninstall reset version completion help"
+COMMANDS = (
+    "status doctor tool skill connect disconnect mcp anytype 9router service "
+    "backup restore check submodules clean reset sync completion version help "
+    # backward-compat verbs (deprecated but still dispatched by cli/arwaky.py)
+    "list run install update uninstall"
+)
 HARNESSES = "--antigravity --hermes --opencode --qwencode --all --force --dry-run --mcp-only --skills-only --env-only"
 SERVICE_ACTIONS = "status start stop restart logs"
 SERVICE_TARGETS = "9router anytype all"
-TOOLS = "context7 fetch ponytail anytype codegraph 9router workspace mnemosyne vision qwen-web lint blender skill"
+TOOL_SUBCOMMANDS = "list run install update uninstall"
+FALLBACK_TOOLS = "context7 fetch ponytail anytype codegraph 9router workspace mnemosyne vision qwen-web lint blender skill"
+
+
+def _tools_from_manifest() -> str:
+    """Single source of truth: manifest.json (static fallback on any error)."""
+    try:
+        manifest_path = ROOT / "tools/config/manifest.json"
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        ids = [t["id"] for t in data.get("tools", []) if t.get("id")]
+        if ids:
+            return " ".join(ids)
+    except Exception:
+        pass
+    return FALLBACK_TOOLS
 
 
 def generate_bash():
+    tools = _tools_from_manifest()
+    tool_subs = TOOL_SUBCOMMANDS
     return f'''# Bash / Zsh completion for agents-arwaky (aa)
 _aa_completion() {{
   local cur prev words cword
@@ -33,18 +55,22 @@ _aa_completion() {{
   local harnesses="{HARNESSES}"
   local service_actions="{SERVICE_ACTIONS}"
   local service_targets="{SERVICE_TARGETS}"
-  local tools="{TOOLS}"
+  local tools="{tools}"
+  local tool_subs="{tool_subs}"
   if [ "$cword" -eq 1 ]; then
     COMPREPLY=( $(compgen -W "$commands" -- "$cur") )
     return 0
   fi
   local first_cmd="${{words[1]}}"
   case "$first_cmd" in
+    tool)
+      if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "$tool_subs" -- "$cur") )
+      elif [ "$cword" -eq 3 ]; then COMPREPLY=( $(compgen -W "$tools" -- "$cur") ); fi ;;
     run)
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "$tools" -- "$cur") ); fi ;;
     install)
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "$tools" -- "$cur") ); fi ;;
-    connect|disconnect|unconnect)
+    connect|disconnect)
       COMPREPLY=( $(compgen -W "$harnesses" -- "$cur") ) ;;
     service)
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "$service_actions" -- "$cur") )
@@ -54,7 +80,7 @@ _aa_completion() {{
     skill|skills)
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "list install uninstall show check sync" -- "$cur") ); fi ;;
     backup|restore)
-      if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "all anytype 9router mnemosyne" -- "$cur") ); fi ;;
+      if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "all anytype 9router mnemosyne list" -- "$cur") ); fi ;;
     clean)
       COMPREPLY=( $(compgen -W "--host --all" -- "$cur") ) ;;
     completion)

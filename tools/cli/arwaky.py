@@ -35,6 +35,8 @@ from ui import (  # type: ignore[import-not-found]
     err,
     info,
     ok,
+    pad as _pad,
+    table_widths as _table_widths,
     warn,
 )
 from xdg import (  # type: ignore[import-untyped]
@@ -46,23 +48,6 @@ from xdg import (  # type: ignore[import-untyped]
 )
 
 _ANSI_RE = re.compile(r"\033\[[0-9;]*m")
-
-
-def _pad(s: str, width: int) -> str:
-    """Pad a possibly-ANSI-colored string to width using visible length."""
-    return s + " " * max(0, width - len(_ANSI_RE.sub("", s)))
-
-
-def _table_widths(available: int, weights: list[int]) -> list[int]:
-    """Distribute available terminal width across columns by weight."""
-    total_w = sum(weights)
-    widths = []
-    for i, w in enumerate(weights):
-        if i == len(weights) - 1:
-            widths.append(max(1, available - sum(widths)))
-        else:
-            widths.append(max(1, int(available * w / total_w)))
-    return widths
 
 
 from tool_resolver import (  # type: ignore[import-not-found]
@@ -671,17 +656,15 @@ def cmd_uninstall(argv: list[str]) -> int:
 
 def cmd_reset(argv: list[str]) -> int:
     has_yes = "--yes" in argv or "-y" in argv
+    warn("WARNING: This will wipe installed tool state and reset the repository.")
+    warn("This action cannot be undone.")
     if not has_yes:
         if not sys.stdin.isatty():
             err("Non-interactive mode detected. Use --yes to skip confirmation.")
             return 1
-        warn("WARNING: This will wipe installed tool state and reset the repository.")
-        warn("This action cannot be undone.")
         if not _confirm("Type 'RESET' to continue: ", accepted=("reset",)):
             warn("Aborted.")
             return 1
-    warn("WARNING: This will wipe installed tool state and reset the repository.")
-    warn("This action cannot be undone.")
     print()
     info("[1/4] clean")
     cmd_clean([])

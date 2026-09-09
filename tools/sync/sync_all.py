@@ -25,16 +25,17 @@ def main(argv):
 
     failures = []
     completed_steps = []
+    skipped_steps = []
 
-    if not no_update:
+    if no_update:
+        skipped_steps.append("update")
+    else:
         info("Step 1: updating tools (pull + reinstall)...")
         if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"),
                 "update", "all", "--yes"]) != 0:
             failures.append("update")
         else:
             completed_steps.append("update")
-    else:
-        completed_steps.append("update")
 
     info("Step 2: generating MCP config...")
     if run([sys.executable, str(ROOT / "tools/mcp/generate_config.py")]) != 0:
@@ -42,13 +43,15 @@ def main(argv):
     else:
         completed_steps.append("mcp-generate")
 
-    if not no_connect:
+    if no_connect:
+        skipped_steps.append("connect")
+    else:
         info("Step 3: reconnecting harnesses...")
         if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"),
                 "connect", "--all"]) != 0:
             failures.append("connect")
-    else:
-        completed_steps.append("connect")
+        else:
+            completed_steps.append("connect")
 
     info("Step 4: verifying...")
     if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"), "check"]) != 0:
@@ -60,13 +63,15 @@ def main(argv):
         warn(f"Sync finished with failures: {', '.join(failures)}")
         warn("Completed steps that may need rollback:")
         reversibility = {
-            "update": "(reversible: re-run 'aa update all')",
+            "update": "(reversible: re-run 'aa tool update all')",
             "mcp-generate": "(reversible: rm mcp_servers.generated.json)",
             "connect": "(reversible: aa disconnect --all)",
             "check": "(no action needed)",
         }
         for s in completed_steps:
             warn(f"  - {s} {reversibility.get(s, '')}")
+        if skipped_steps:
+            warn(f"Skipped by flag (no rollback needed): {', '.join(skipped_steps)}")
         warn("To regenerate MCP: aa mcp generate")
         warn("To reconnect harnesses: aa connect --all")
         return 1

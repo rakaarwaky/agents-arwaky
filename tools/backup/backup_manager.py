@@ -178,13 +178,12 @@ def restore_tool(tool: str, src: str):
         staging.rename(target)
     log_ok(f"{tool} restored to {target}.")
     return 0
-    untar(src_path, target)
-    log_ok(f"{tool} restored to {target}.")
-    return 0
 
 
 def cmd_backup(argv):
     tool = argv[0] if argv else "all"
+    if tool == "list":
+        return cmd_list()
     dest = argv[1] if len(argv) > 1 else ""
     tools = list(TOOL_DATA.keys()) if tool == "all" else [tool]
     rc = 0
@@ -219,9 +218,11 @@ def cmd_restore(argv):
 
 def cmd_list():
     print("Available backup archives:")
-    if BACKUP_STORE.exists():
-        for f in sorted(BACKUP_STORE.glob("*.tar.gz")):
-            print(f"  {f.name}")
+    archives = sorted(BACKUP_STORE.glob("*.tar.gz")) if BACKUP_STORE.exists() else []
+    if not archives:
+        print("  (none found — create one with 'aa backup <tool|all>')")
+    for f in archives:
+        print(f"  {f.name}")
     return 0
 
 

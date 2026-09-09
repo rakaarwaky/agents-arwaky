@@ -26,6 +26,8 @@ from paths import repo_root
 REPO_ROOT = repo_root()
 MANIFEST = REPO_ROOT / "tools/config/manifest.json"
 
+from ui import pad as _pad, table_widths as _table_widths  # type: ignore[import-not-found]
+
 # --- tool registry ------------------------------------------------------------
 def get_registered_tool_ids():
     """Return list of (tool_id, category, description) from manifest."""
@@ -344,28 +346,6 @@ def _term_width():
         return shutil.get_terminal_size((80, 24)).columns
     except (OSError, ValueError):
         return 80
-
-
-def _table_widths(available: int, weights: list[int]) -> list[int]:
-    """Distribute available terminal width across columns by weight."""
-    total_w = sum(weights)
-    widths = []
-    for i, w in enumerate(weights):
-        if i == len(weights) - 1:
-            widths.append(max(1, available - sum(widths)))
-        else:
-            widths.append(max(1, int(available * w / total_w)))
-    return widths
-
-
-def _pad(s: str, width: int) -> str:
-    """Pad a possibly-ANSI-colored string to width using visible length.
-    Truncates with ellipsis if the visible content exceeds the column width."""
-    visible = re.sub(r"\033\[[0-9;]*m", "", s)
-    if len(visible) > width:
-        s = s[: max(0, len(s) - (len(visible) - width) + 1)] + "…"
-        visible = re.sub(r"\033\[[0-9;]*m", "", s)
-    return s + " " * max(0, width - len(visible))
 
 
 # --- list ----------------------------------------------------------------------

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging as _logging
 import os
+import re
 import sys
 
 # Structured logging (P1-O1): level + timestamp + correlation ID on log output
@@ -138,3 +139,41 @@ def warn(msg: str) -> None:
 
 def err(msg: str) -> None:
     print(f"  {RED()}[FAIL]{RESET()} {msg}", file=sys.stderr)
+
+
+_ANSI_RE = re.compile(r"\033\[[0-9;]*m")
+
+
+def _harden_stdio() -> None:
+    """Prevent UnicodeEncodeError crashes under C/POSIX (ASCII) locales."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            if hasattr(stream, "reconfigure"):
+                stream.reconfigure(errors="replace")
+        except (OSError, ValueError):
+            pass
+
+
+_harden_stdio()
+
+
+def pad(s: str, width: int) -> str:
+    """Pad a possibly-ANSI-colored string to width; truncate with ellipsis."""
+    visible = _ANSI_RE.sub("", s)
+    if len(visible) > width:
+        overflow = len(visible) - width + 1
+        s = s[: max(0, len(s) - overflow)] + RESET() + "…"
+        visible = _ANSI_RE.sub("", s)
+    return s + " " * max(0, width - len(visible))
+
+
+def table_widths(available: int, weights: list[int]) -> list[int]:
+    """Distribute available terminal width across columns by weight."""
+    total_w = sum(weights)
+    widths = []
+    for i, w in enumerate(weights):
+        if i == len(weights) - 1:
+            widths.append(max(1, available - sum(widths)))
+        else:
+            widths.append(max(1, int(available * w / total_w)))
+    return widths
