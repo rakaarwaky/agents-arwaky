@@ -13,7 +13,9 @@ import time
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
+from paths import repo_root
+ROOT = repo_root()
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from envfile import update_env_file  # type: ignore[import-untyped]

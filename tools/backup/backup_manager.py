@@ -13,7 +13,9 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
+from paths import repo_root
+ROOT = repo_root()
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from xdg import data_home  # type: ignore[import-untyped]

@@ -21,7 +21,9 @@ import sys as _sys
 _sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
 from skill_names import extract_skill_name, sanitize_skill_name, safe_skill_name, ensure_under  # noqa: E402
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
+from paths import repo_root
+REPO_ROOT = repo_root()
 MANIFEST = REPO_ROOT / "tools/config/manifest.json"
 
 # --- tool registry ------------------------------------------------------------

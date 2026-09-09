@@ -19,7 +19,8 @@ import sys as _sys
 _sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
 from skill_names import extract_skill_name, sanitize_skill_name, safe_skill_name, ensure_under  # noqa: E402
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+from paths import repo_root
+REPO_ROOT = repo_root()
 HOME = Path.home()
 
 sys.path.insert(0, str(REPO_ROOT / "tools" / "lib"))
