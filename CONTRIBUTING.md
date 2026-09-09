@@ -505,7 +505,7 @@ aa check
 The script verifies:
 - **JSON validity:** All JSON files under `tools/` parse correctly.
 - **Python compile:** Every Python file under `tools/` compiles via `py_compile`.
-- **ShellCheck:** Bash scripts (excluding `tools/skills/`) adhere to best practices when `shellcheck` is installed.
+- **ShellCheck:** Bash scripts (excluding `skills/`) adhere to best practices when `shellcheck` is installed.
 
 > CI also runs automatically on every push via [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 

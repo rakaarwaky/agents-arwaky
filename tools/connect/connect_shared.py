@@ -121,7 +121,7 @@ def get_all_skill_files():
     does not return an exhausted generator to later callers.
     """
     seen = set()
-    base = REPO_ROOT / "tools" / "skills"
+    base = REPO_ROOT / "skills"
     if not base.is_dir():
         return ()
     result = []

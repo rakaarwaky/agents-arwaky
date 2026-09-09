@@ -308,12 +308,12 @@ def cmd_list(argv: list[str]) -> int:
 def cmd_run(argv: list[str]) -> int:
     if not argv:
         err("Missing tool name.")
-        print("Usage: aa run <tool-name> [args...]")
+        print("Usage: aa tool run <tool-name> [args...]")
         return 1
     tool = find_tool(argv[0])
     if not tool:
         err(f"Tool '{argv[0]}' not found in manifest.")
-        print("Run 'aa list' to see all available tools.")
+        print("Run 'aa tool list' to see all available tools.")
         return 1
     tool_args = argv[1:]
     exe = executable_path(tool.binary)
@@ -333,9 +333,9 @@ def cmd_run(argv: list[str]) -> int:
     err(f"Binary '{tool.binary}' for tool '{tool.id}' is not installed or runnable.")
     installer = find_installer(tool)
     if installer:
-        print(f"Try running: {BOLD()}aa install {tool.id}{RESET()}")
+        print(f"Try running: {BOLD()}aa tool install {tool.id}{RESET()}")
     else:
-        print(f"No installer available for '{tool.id}'. Try: {BOLD()}aa submodules{RESET()} then {BOLD()}aa run {tool.id}{RESET()}")
+        print(f"No installer available for '{tool.id}'. Try: {BOLD()}aa submodules{RESET()} then {BOLD()}aa tool run {tool.id}{RESET()}")
     return 1
 
 
@@ -576,7 +576,7 @@ def cmd_check(argv: list[str]) -> int:
     # Shellcheck for our own .sh files (exclude tools/skills = upstream submodule copies)
     sh_files = [
         f for f in (repo_root() / "tools").rglob("*.sh")
-        if "node_modules" not in f.parts and "tools/skills" not in f.relative_to(repo_root()).as_posix()
+        if "node_modules" not in f.parts and f.relative_to(repo_root()).parts[0] != "skills"
     ]
     if sh_files:
         if shutil.which("shellcheck"):

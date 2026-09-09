@@ -98,7 +98,7 @@ def _find_skills(base: Path):
 @lru_cache(maxsize=1)
 def _get_all_skills():
     """Shared skill discovery — cached once per process (no per-tool eviction)."""
-    base = REPO_ROOT / "tools" / "skills"
+    base = REPO_ROOT / "skills"
     if not base.is_dir():
         return ()
     return tuple(sorted(
@@ -118,7 +118,7 @@ def get_tool_skills(tool_id):
 
 def resolve_single_skill_file(query):
     """Find a SKILL.md by exact tool/skill name or alias (shared pack only)."""
-    base = REPO_ROOT / "tools" / "skills"
+    base = REPO_ROOT / "skills"
     if not base.is_dir():
         return None
     for p in sorted(base.rglob("SKILL.md")):

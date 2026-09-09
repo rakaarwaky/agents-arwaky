@@ -61,7 +61,7 @@ When inspecting system health, executing tools, or managing MCP configurations, 
 
 ### Tool Execution Dispatcher
 
-Agents should execute tools via `aa run <tool> [args...]` (or `agents-arwaky run <tool> [args...]`). The CLI resolves execution in order:
+Agents should execute tools via `aa tool run <tool> [args...]` (or `agents-arwaky tool run <tool> [args...]`). The CLI resolves execution in order:
 1. Host `PATH` and `~/.local/bin/`.
 2. Native project runners (`cargo`, `uv`, `bun`) for in-house submodules when the binary is not yet installed.
 
@@ -72,7 +72,7 @@ Agents should execute tools via `aa run <tool> [args...]` (or `agents-arwaky run
 ## 📋 Tool & MCP Inventory
 
 - **Machine-Readable SSOT:** [`tools/config/manifest.json`](tools/config/manifest.json) is the single source of truth for all registered internal and vendor tools.
-- **Runtime Discovery:** Use `aa list` to view all registered tools, or `aa mcp list` to inspect active MCP servers.
+- **Runtime Discovery:** Use `aa tool list` to view all registered tools, or `aa mcp list` to inspect active MCP servers.
 - **Detailed Catalog & Documentation:** For tool descriptions, language stacks, upstream repository links, and client integration snippets, see [**README.md § Agent & Tool Catalog**](README.md#-agent--tool-catalog) and [**README.md § MCP Client Integration**](README.md#-mcp-client-integration).
 
 ---
@@ -114,7 +114,7 @@ aa check
 The verification checks:
 1. JSON syntax validity across all JSON files under `tools/`.
 2. Python compilation across all Python files under `tools/`.
-3. ShellCheck linting of `tools/` shell scripts (excluding `tools/skills/`), if installed.
+3. ShellCheck linting of `tools/` shell scripts (excluding `skills/`), if installed.
 
 ---
 

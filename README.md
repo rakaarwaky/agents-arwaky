@@ -76,7 +76,7 @@ flowchart TB
     User --> Harnesses
     CLI -- "aa connect (provisions)" --> XDGSkills
     CLI -- "aa mcp generate" --> XDGConfigs
-    CLI -- "aa install (builds)" --> IsolatedRuntimes
+    CLI -- "aa tool install (builds)" --> IsolatedRuntimes
 
     %% Host-native execution
     Launchers == "Direct host execution" ==> InternalBin
@@ -300,7 +300,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 
 ## 🔌 MCP Client Integration
 
-`agents-arwaky` generates a standardized, unified MCP client configuration file during `aa install` or `aa mcp generate`:
+`agents-arwaky` generates a standardized, unified MCP client configuration file during `aa tool install` or `aa mcp generate`:
 
 📁 File Location: `mcp_servers.generated.json`
 

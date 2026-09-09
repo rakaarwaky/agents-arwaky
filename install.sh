@@ -443,7 +443,7 @@ print_summary() {
   printf "  ${BOLD}Launcher:${RST} %s (alias: aa)\n" "$BIN_DIR/agents-arwaky"
   printf "  ${BOLD}Repo:${RST}     %s\n" "$ROOT"
   echo
-  echo "  Next: source ~/.bashrc && aa doctor && aa install --yes"
+  echo "  Next: source ~/.bashrc && aa doctor && aa tool install --yes"
   echo
 }
 
