@@ -6,16 +6,16 @@ Wants=network-online.target
 [Service]
 Type=simple
 Environment=ANYTYPE_IMAGE=localhost/anytype-daemon:latest
-ExecStartPre=-/usr/bin/podman rm -f anytype-daemon
+ExecStartPre=-/usr/bin/podman stop anytype-daemon
+ExecStartPre=-/usr/bin/podman rm anytype-daemon
 ExecStart=/usr/bin/podman run --rm --name anytype-daemon \
-  --network host \
+  --network=host \
   -v %h/.local/share/anytype-mcp:/data:Z \
   -v %h/.local/share/anytype:/root/.anytype:Z \
-  --restart unless-stopped \
   ${ANYTYPE_IMAGE}
-ExecStop=/usr/bin/podman stop anytype-daemon
-Restart=on-failure
-RestartSec=10
+ExecStop=/usr/bin/podman stop -t 10 anytype-daemon
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=default.target

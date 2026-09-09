@@ -1,5 +1,6 @@
 [Unit]
 Description=9Router AI Gateway (container)
+Documentation=https://github.com/decolua/9router
 After=network-online.target
 Wants=network-online.target
 
@@ -7,19 +8,21 @@ Wants=network-online.target
 Type=simple
 Environment=NINEROUTER_IMAGE=ghcr.io/decolua/9router:latest
 Environment=NINEROUTER_PORT=20128
-ExecStartPre=-/usr/bin/podman rm -f 9router
+Environment=INITIAL_PASSWORD=
+EnvironmentFile=-%h/agents-arwaky/tools/config/ninerouter.env
+ExecStartPre=-/usr/bin/podman stop 9router
+ExecStartPre=-/usr/bin/podman rm 9router
 ExecStart=/usr/bin/podman run --rm --name 9router \
-  -p 20128:20128 \
+  --network=host \
   -v %h/.local/share/9router/data:/app/data:Z \
   -e DATA_DIR=/app/data \
   -e PORT=20128 \
   -e HOSTNAME=0.0.0.0 \
-  --env-file %h/.config/agents-arwaky/ninerouter.env \
-  --restart unless-stopped \
-  ${NINEROUTER_IMAGE}
-ExecStop=/usr/bin/podman stop 9router
-Restart=on-failure
-RestartSec=10
+  -e INITIAL_PASSWORD=${INITIAL_PASSWORD} \
+  ghcr.io/decolua/9router:latest
+ExecStop=/usr/bin/podman stop -t 10 9router
+Restart=always
+RestartSec=5s
 
 [Install]
 WantedBy=default.target
