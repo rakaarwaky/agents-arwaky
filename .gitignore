@@ -65,7 +65,7 @@ models/
 .qwen
 .commandcode/
 .qwen-web/
-
+.agents/plans/
 # Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
 
