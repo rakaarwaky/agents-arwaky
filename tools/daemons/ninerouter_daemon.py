@@ -120,9 +120,8 @@ def generate_password(length: int = 24) -> str:
 def ensure_initial_password(env: dict | None = None) -> str:
     """Generate a strong INITIAL_PASSWORD if unset/weak and persist it.
 
-    Writes to $AGENTS_ARWAKY_ROOT/tools/config/ninerouter.env — the file
-    referenced by the systemd unit's EnvironmentFile — so both the systemd
-    service and standalone `aa 9router start` use the same credential.
+    Writes to $XDG_CONFIG_HOME/agents-arwaky/ninerouter.env (0600) —
+    never inside the repository tree.
     """
     env = env if env is not None else read_env()
     current = env.get("INITIAL_PASSWORD", "")
@@ -134,7 +133,7 @@ def ensure_initial_password(env: dict | None = None) -> str:
         return current  # sudah kuat; pertahankan kredensial yang ada
 
     password = generate_password(24)
-    env_file = ROOT / "tools/config/ninerouter.env"
+    env_file = agents_arwaky_config_dir() / "ninerouter.env"
     lines = []
     replaced = False
     if env_file.exists():
@@ -146,14 +145,15 @@ def ensure_initial_password(env: dict | None = None) -> str:
                 lines.append(line)
     if not replaced:
         lines.append(f'INITIAL_PASSWORD="{password}"')
+    env_file.parent.mkdir(parents=True, exist_ok=True)
     env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     try:
         env_file.chmod(0o600)
     except OSError:
         pass
     print(">>> Generated a strong INITIAL_PASSWORD for 9Router dashboard login.")
-    print(f">>>   Login password: {password}")
-    print(f">>>   Stored in: {env_file}")
+    print(f">>>   Stored in: {env_file} (mode 0600)")
+    print(f">>>   Retrieve with: grep '^INITIAL_PASSWORD=' {env_file}")
     return password
 
 

@@ -116,7 +116,7 @@
       "id": "skill",
       "alias": "skills",
       "category": "internal",
-      "binary": "skill-manager.sh",
+      "binary": "skill.py",
       "isMcp": false,
       "description": "Agent skill manager & workspace provisioner",
       "path": "tools/skill"

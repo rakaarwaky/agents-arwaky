@@ -61,7 +61,7 @@ def main() -> int:
         with ws.open("a", encoding="utf-8") as f:
             f.write("\ndangerouslyAllowAllBuilds: true\n")
 
-    run(["pnpm", "install"], APP_DIR)
+    run(["pnpm", "install", "--frozen-lockfile"], APP_DIR)
     run(["pnpm", "run", "build"], APP_DIR)
 
     ensure_bin_home()

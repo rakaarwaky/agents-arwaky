@@ -62,7 +62,7 @@ def main() -> int:
 
     mcp_dir = APP_DIR / "ponytail-mcp"
     if (mcp_dir / "package.json").exists():
-        run(["npm", "install", "--no-audit", "--no-fund"], mcp_dir)
+        run(["npm", "ci", "--no-audit", "--no-fund"], mcp_dir)
 
     entry = APP_DIR / ENTRY
     if not entry.exists():

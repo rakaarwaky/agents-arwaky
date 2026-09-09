@@ -61,7 +61,7 @@ def main() -> int:
         shutil.rmtree(APP_DIR)
     shutil.copytree(SRC, APP_DIR, ignore=IGNORES)
 
-    run(["npm", "install", "--no-audit", "--no-fund"], APP_DIR)
+    run(["npm", "ci", "--no-audit", "--no-fund"], APP_DIR)
     run(["npm", "run", "build"], APP_DIR)
 
     entry = APP_DIR / ENTRY

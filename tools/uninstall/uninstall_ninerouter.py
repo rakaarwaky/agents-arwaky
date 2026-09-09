@@ -13,6 +13,7 @@ from xdg import (
     agents_arwaky_config_dir,
     bin_home,
     data_home,
+    remove_tool_artifacts,
 )
 
 LAUNCHERS = ["9router"]

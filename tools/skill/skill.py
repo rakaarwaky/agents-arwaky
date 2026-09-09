@@ -428,7 +428,7 @@ def cmd_list(argv):
     print(f"{_pad('TOOL ID', w_id)} {_pad('CATEGORY', w_cat)} {_pad('SKILLS COUNT', w_count)} {_pad('DESCRIPTION', w_desc)}")
     print("-" * available)
     for tid, cat, desc in get_registered_tool_ids():
-        print(f"{_pad(tid, w_id)} {_pad(cat, w_count)} {_pad(str(total_unique), w_count)} {_pad(desc, w_desc)}")
+        print(f"{_pad(tid, w_id)} {_pad(cat, w_cat)} {_pad(str(total_unique), w_count)} {_pad(desc, w_desc)}")
     print("-" * available)
     print(f"Total Tools: {len(get_registered_tool_ids())} | Total Skill Pack (unique): {total_unique}")
     return 0

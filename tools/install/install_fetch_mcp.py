@@ -64,7 +64,7 @@ def main() -> int:
         shutil.rmtree(APP_DIR)
     shutil.copytree(SRC, APP_DIR, ignore=IGNORES)
 
-    run(["bun", "install"], APP_DIR)
+    run(["bun", "install", "--frozen-lockfile"], APP_DIR)
     run(["bun", "run", "build"], APP_DIR)
 
     index_js = APP_DIR / "dist/index.js"

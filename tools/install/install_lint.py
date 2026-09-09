@@ -12,6 +12,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -41,21 +42,25 @@ def _cargo_on_path() -> str | None:
     return None
 def _bootstrap_rustup() -> bool:
     """Install rust toolchain via rustup (non-interactive). Best effort."""
-    if shutil.which("curl"):
-        cmd = ["curl", "--proto", "=https", "--tlsv1.2", "-sSf",
-               "https://sh.rustup.rs", "-o", "/tmp/rustup-init.sh"]
-    elif shutil.which("wget"):
-        cmd = ["wget", "-qO", "/tmp/rustup-init.sh", "https://sh.rustup.rs"]
-    else:
-        print("  Warning: no curl/wget found for rustup bootstrap.", file=sys.stderr)
-        return False
+    fd, script = tempfile.mkstemp(prefix="rustup-init-", suffix=".sh")
+    os.close(fd)
     try:
+        if shutil.which("curl"):
+            cmd = ["curl", "--proto", "=https", "--tlsv1.2", "-sSf",
+                   "https://sh.rustup.rs", "-o", script]
+        elif shutil.which("wget"):
+            cmd = ["wget", "-qO", script, "https://sh.rustup.rs"]
+        else:
+            print("  Warning: no curl/wget found for rustup bootstrap.", file=sys.stderr)
+            return False
         subprocess.run(cmd, check=True, timeout=120)
-        subprocess.run(["sh", "/tmp/rustup-init.sh", "-y", "--no-modify-path"],
+        subprocess.run(["sh", script, "-y", "--no-modify-path"],
                        check=True, timeout=600)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
         print(f"  Warning: rustup bootstrap failed ({e}).", file=sys.stderr)
         return False
+    finally:
+        os.unlink(script)
     return _cargo_on_path() is not None
 _BUILD_DEPS = [
     # (command, apt package)

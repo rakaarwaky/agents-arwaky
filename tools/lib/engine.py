@@ -367,15 +367,16 @@ def set_env_keys(path: Path, pairs: dict) -> None:
     text = path.read_text(encoding="utf-8", errors="replace")
     lines = text.splitlines()
     for key, val in pairs.items():
+        escaped = val.replace('"', '\\"')
         pattern = re.compile(rf"^{re.escape(key)}=")
         replaced = False
         for idx, line in enumerate(lines):
             if pattern.match(line.strip()):
-                lines[idx] = f'{key}="{val}"'
+                lines[idx] = f'{key}="{escaped}"'
                 replaced = True
                 break
         if not replaced:
-            lines.append(f'{key}="{val}"')
+            lines.append(f'{key}="{escaped}"')
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     try:
         path.chmod(0o600)

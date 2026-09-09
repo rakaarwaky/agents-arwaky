@@ -142,16 +142,40 @@ def restore_tool(tool: str, src: str):
     if not src_path.exists() or not src_path.is_file():
         print(f"  \u2717 Archive not found: {src_path}", file=sys.stderr)
         return 1
+    if not tarfile.is_tarfile(src_path):
+        print(f"  \u2717 Not a valid tar archive: {src_path}", file=sys.stderr)
+        return 1
     subdir = TOOL_DATA.get(tool, tool)
     target = data_home() / subdir
 
-    # Clean old data before restore (prevent stale file contamination)
-    if target.exists():
-        log_info(f"Cleaning existing data at {target} before restore...")
-        shutil.rmtree(target)
-    target.mkdir(parents=True, exist_ok=True)
+    # Extract into staging first; only swap once validated (no data loss on corrupt archive).
+    staging = target.with_name(f"{target.name}.restore-{os.getpid()}")
+    if staging.exists():
+        shutil.rmtree(staging)
+    staging.mkdir(parents=True)
+    log_info(f"Restoring {tool} from {src_path} (staged)...")
+    try:
+        untar(src_path, staging)
+    except (ValueError, tarfile.TarError, OSError) as exc:
+        shutil.rmtree(staging, ignore_errors=True)
+        print(f"  \u2717 Restore failed: {exc}", file=sys.stderr)
+        return 1
 
-    log_info(f"Restoring {tool} from {src_path}")
+    # Swap: old data is only removed after staging is proven good.
+    if target.exists():
+        backup_old = target.with_name(f"{target.name}.pre-restore")
+        shutil.rmtree(backup_old, ignore_errors=True)
+        target.rename(backup_old)
+        try:
+            staging.rename(target)
+        except OSError:
+            backup_old.rename(target)  # roll back
+            raise
+        shutil.rmtree(backup_old, ignore_errors=True)
+    else:
+        staging.rename(target)
+    log_ok(f"{tool} restored to {target}.")
+    return 0
     untar(src_path, target)
     log_ok(f"{tool} restored to {target}.")
     return 0
@@ -170,14 +194,22 @@ def cmd_backup(argv):
 
 def cmd_restore(argv):
     if len(argv) < 2:
-        print("Usage: aa restore <tool|all> <archive.tar.gz>", file=sys.stderr)
+        print("Usage: aa restore <tool|all> <archive.tar.gz|backup-dir>", file=sys.stderr)
         return 1
     tool = argv[0]
     archive = argv[1]
     if tool == "all":
+        src_base = Path(archive)
+        if not src_base.is_dir():
+            print("  \u2717 'restore all' expects a backup directory containing per-tool archives.", file=sys.stderr)
+            return 1
         rc = 0
         for t in TOOL_DATA:
-            if restore_tool(t, archive) != 0:
+            matches = sorted(src_base.glob(f"{t}-*.tar.gz"))
+            if not matches:
+                print(f"  Warning: no archive found for {t} in {src_base}, skipping.", file=sys.stderr)
+                continue
+            if restore_tool(t, str(matches[-1])) != 0:
                 rc = 1
         return rc
     return restore_tool(tool, archive)

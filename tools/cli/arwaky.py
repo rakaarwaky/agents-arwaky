@@ -505,6 +505,7 @@ def cmd_unconnect(argv: list[str]) -> int:
     if code != 0:
         return code
     print()
+    return 0
 
 
 def cmd_unskill(argv: list[str]) -> int:
