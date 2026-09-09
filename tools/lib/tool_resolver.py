@@ -26,6 +26,23 @@ def find_installer(tool: Tool):
     return None
 
 
+def update_dir_candidates(tool: Tool) -> list[Path]:
+    overrides = {"workspace": "google-workspace-mcp", "fetch": "fetch-mcp", "anytype": "anytype-mcp", "anytype-daemon": "anytype-mcp", "9router": "ninerouter"}
+    names = []
+    if tool.id in overrides:
+        names.append(overrides[tool.id])
+    names.append(tool.id)
+    names.append(f"{tool.id}-mcp")
+    return [repo_root() / "tools/update" / f"update_{n.replace(chr(45), chr(95))}.py" for n in names if n]
+
+
+def find_updater(tool: Tool):
+    for candidate in update_dir_candidates(tool):
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def uninstall_dir_candidates(tool: Tool) -> list[Path]:
     overrides = {"workspace": "google-workspace-mcp", "fetch": "fetch-mcp", "anytype": "anytype-mcp", "9router": "ninerouter"}
     names = []

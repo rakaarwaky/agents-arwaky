@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-shot ecosystem update (Python) — pengganti sync-all.sh."""
+"""One-shot ecosystem sync (Python) — simplified 4-step flow."""
 from __future__ import annotations
 
 import subprocess
@@ -18,41 +18,37 @@ def run(cmd):
 
 def main(argv):
     no_connect = "--no-connect" in argv
-    no_build = "--no-build" in argv
+    no_update = "--no-update" in argv
     info("Running one-shot ecosystem sync...")
 
     failures = []
     completed_steps = []
 
-    info("Step 1: syncing submodules...")
-    if run(["git", "-C", str(ROOT), "submodule", "update",
-            "--init", "--recursive", "vendor/", "internal/"]) != 0:
-        failures.append("submodules")
+    if not no_update:
+        info("Step 1: updating tools (pull + reinstall)...")
+        if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"),
+                "update", "all", "--yes"]) != 0:
+            failures.append("update")
+        else:
+            completed_steps.append("update")
     else:
-        completed_steps.append("submodules")
+        completed_steps.append("update")
 
-    if not no_build:
-        info("Step 2: building tools...")
-        if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"), "install"]) != 0:
-            failures.append("install")
-    else:
-        completed_steps.append("install")
-
-    info("Step 3: generating MCP config...")
+    info("Step 2: generating MCP config...")
     if run([sys.executable, str(ROOT / "tools/mcp/generate_config.py")]) != 0:
         failures.append("mcp-generate")
     else:
         completed_steps.append("mcp-generate")
 
     if not no_connect:
-        info("Step 4: reconnecting harnesses...")
+        info("Step 3: reconnecting harnesses...")
         if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"),
                 "connect", "--all"]) != 0:
             failures.append("connect")
     else:
         completed_steps.append("connect")
 
-    info("Step 5: verifying...")
+    info("Step 4: verifying...")
     if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"), "check"]) != 0:
         failures.append("check")
     else:
@@ -62,15 +58,13 @@ def main(argv):
         warn(f"Sync finished with failures: {', '.join(failures)}")
         warn("Completed steps that may need rollback:")
         reversibility = {
-            "submodules": "(reversible: git submodule foreach 'git checkout .')",
-            "install": "(manual cleanup needed: re-run 'aa uninstall --all')",
+            "update": "(reversible: re-run 'aa update all')",
             "mcp-generate": "(reversible: rm mcp_servers.generated.json)",
             "connect": "(reversible: aa disconnect --all)",
             "check": "(no action needed)",
         }
         for s in completed_steps:
             warn(f"  - {s} {reversibility.get(s, '')}")
-        warn("To restore submodules: git submodule foreach 'git checkout .'")
         warn("To regenerate MCP: aa mcp generate")
         warn("To reconnect harnesses: aa connect --all")
         return 1

@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
-"""Installer context7 — @upstash/context7 (pnpm monorepo: MCP server + CLI).
+"""Updater context7 — force reinstall @upstash/context7 (pnpm monorepo).
 
-Specifics: context7 is a pnpm workspace, not a regular bun/npm project.
-- Install deps with `pnpm install` (required, lockfile pnpm-lock.yaml)
-- pnpm blocks postinstall deps by default -> allow via
-  `dangerouslyAllowAllBuilds: true` in the copied pnpm-workspace.yaml
-- Runtime installed in-place to $XDG_DATA_HOME/context7 (deps are linked
-  within the workspace, cannot be copied piecemeal)
-- Launchers: context7-mcp -> packages/mcp/dist/index.js,
-  ctx7 -> packages/cli/dist/index.js
+Always removes APP_DIR and rebuilds from source.
 """
 from __future__ import annotations
 
@@ -30,8 +23,6 @@ from xdg import (
 
 SRC = ROOT / "vendor/context7"
 APP_DIR = data_home() / "context7"
-# Vendor artifacts that must not be included: stale node_modules (may contain
-# broken symlinks), git, old build output, etc.
 IGNORES = shutil.ignore_patterns(
     "node_modules", ".git", ".old_modules*", "__pycache__", "mcpb",
     "dist", "target", "*.egg-info", ".venv", "venv", ".next", ".turbo",
@@ -41,17 +32,17 @@ LAUNCHERS = {
     "context7-mcp": "packages/mcp/dist/index.js",
     "ctx7": "packages/cli/dist/index.js",
 }
+
+
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
-def is_installed() -> bool:
-    """Check if context7 is already installed (binary exists)."""
-    return (bin_home() / "context7-mcp").exists()
 
 
 def main() -> int:
-    if is_installed():
-        print(">>> context7 is already installed. Use 'aa update context7' to reinstall.")
-        return 0
+    # Pull latest from remote
+    sys.path.insert(0, str(ROOT / "tools" / "lib"))
+    from git_update import update_submodule
+    update_submodule(ROOT, "vendor/context7")
 
     if not (SRC / "pnpm-workspace.yaml").exists():
         print("Error: context7 source not found (submodule not initialized).", file=sys.stderr)
@@ -60,12 +51,11 @@ def main() -> int:
         print("Error: pnpm is required (context7 is a pnpm workspace).", file=sys.stderr)
         return 1
 
-    print(f">>> Installing context7 (pnpm workspace) into {APP_DIR}...")
+    print(f">>> Updating context7 (pnpm workspace) into {APP_DIR}...")
     if APP_DIR.exists():
         shutil.rmtree(APP_DIR)
     shutil.copytree(SRC, APP_DIR, ignore=IGNORES)
 
-    # pnpm blocks postinstall deps by default -> allow in this copy only
     ws = APP_DIR / "pnpm-workspace.yaml"
     if "dangerouslyAllowAllBuilds" not in ws.read_text(encoding="utf-8", errors="replace"):
         with ws.open("a", encoding="utf-8") as f:
@@ -89,7 +79,9 @@ def main() -> int:
         print(f"  -> {launcher}")
 
     warn_if_bin_not_on_path()
-    print(">>> Successfully installed context7")
+    print(">>> Successfully updated context7")
     return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

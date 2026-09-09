@@ -67,6 +67,7 @@ from tool_resolver import (  # type: ignore[import-not-found]
     executable_path,
     find_installer,
     find_uninstaller,
+    find_updater,
 )
 
 # =============================================================================
@@ -141,7 +142,8 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
     print(f"  {GREEN()}list{RESET()}                           List all registered tools")
     print(f"  {GREEN()}run{RESET()} <tool> [args]              Execute registered tool")
-    print(f"  {GREEN()}install{RESET()} [tool]                 Install tools using per-tool install.py")
+    print(f"  {GREEN()}install{RESET()} [tool]                 Install tools (skip if already installed)")
+    print(f"  {GREEN()}update{RESET()} [tool|all]              Update tools (pull latest + force reinstall)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
     print(f"  {GREEN()}skill{RESET()} [args]                   Skill manager")
     print(f"  {GREEN()}connect{RESET()} [args]                 Harness connector")
@@ -171,6 +173,8 @@ def cmd_help(argv: list[str]) -> int:
     print(f"{BOLD()}EXAMPLES:{RESET()}")
     print(f"  {CYAN()}aa status{RESET()}                      Show tool health")
     print(f"  {CYAN()}aa install lint{RESET()}                Install a single tool")
+    print(f"  {CYAN()}aa update vision{RESET()}               Update a single tool (pull + reinstall)")
+    print(f"  {CYAN()}aa update all{RESET()}                  Update all tools")
     print(f"  {CYAN()}aa run lint check .{RESET()}            Run a tool (AES linter)")
     print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
     print(f"  {CYAN()}aa backup all gdrive{RESET()}           Backup all tools to Google Drive")
@@ -389,6 +393,54 @@ def cmd_install(argv: list[str]) -> int:
         return 1
     print()
     ok("Install finished.")
+    return 0
+
+
+def cmd_update(argv: list[str]) -> int:
+    """Update tools: pull latest from remote + force reinstall."""
+    ensure_path()
+    target = argv[0] if argv else "all"
+    has_yes = "--yes" in argv or "-y" in argv
+    if target == "all" and not has_yes:
+        if not sys.stdin.isatty():
+            err("Non-interactive mode detected. Use --yes to skip confirmation.")
+            return 1
+        if not _confirm("Update ALL tools? [y/N]: "):
+            warn("Aborted.")
+            return 1
+    print(f"{BOLD()}>>> Updating {target} (pull + reinstall)...{RESET()}")
+    tools = load_tools()
+    if target != "all":
+        tool = find_tool(target)
+        if not tool:
+            err(f"Tool '{target}' not found in manifest.")
+            return 1
+        tools = [tool]
+    failed, skipped = [], []
+    total = len(tools)
+    for idx, tool in enumerate(tools, 1):
+        updater = find_updater(tool)
+        if not updater:
+            skipped.append(tool.id)
+            warn(f"No update.py found for {tool.id}")
+            continue
+        print(f"[{idx}/{total}] Updating {tool.id} -> {updater}", flush=True)
+        if run_cmd([sys.executable, str(updater)]) != 0:
+            failed.append(tool.id)
+    if target == "all":
+        gen = repo_root() / "tools" / "mcp" / "generate_config.py"
+        if gen.exists():
+            info("Regenerating MCP configuration...")
+            run_cmd([sys.executable, str(gen)])
+    if skipped:
+        print()
+        warn(f"Skipped (no updater): {', '.join(skipped)}")
+    if failed:
+        print()
+        err(f"Failed: {', '.join(failed)}")
+        return 1
+    print()
+    ok("Update finished.")
     return 0
 
 
@@ -708,7 +760,7 @@ def main() -> int:
     rest = argv[1:]
     dispatch = {
         "status": cmd_status, "doctor": cmd_doctor, "list": cmd_list, "ls": cmd_list,
-        "run": cmd_run, "install": cmd_install, "mcp": cmd_mcp,
+        "run": cmd_run, "install": cmd_install, "update": cmd_update, "mcp": cmd_mcp,
         "skill": cmd_skill, "skills": cmd_skill,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "unconnect": cmd_unconnect, "unskill": cmd_unskill,

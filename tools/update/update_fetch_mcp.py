@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
-"""Installer fetch-mcp — zcaceres/fetch-mcp (TypeScript, bun).
+"""Updater fetch-mcp — force reinstall zcaceres/fetch-mcp (TypeScript, bun).
 
-Specifics: build script uses bun (`bun build src/index.ts src/cli.ts
---outdir dist`), so `bun install` + `bun run build` is required (two lockfiles:
-bun.lock & pnpm-lock.yaml; bun is used for build). Output:
-  - dist/index.js -> MCP server (fetch-mcp, mcp-fetch)
-  - dist/cli.js   -> CLI mode (html/markdown/readable/txt/json/youtube/--help/...)
-Launcher dispatches CLI vs MCP based on the first argument.
+Always removes APP_DIR and rebuilds from source.
 """
 from __future__ import annotations
 
@@ -29,29 +24,30 @@ from xdg import (
 SRC = ROOT / "vendor/fetch-mcp"
 APP_DIR = data_home() / "fetch-mcp"
 
-# First argument meaning "CLI mode" -> run dist/cli.js, otherwise MCP.
 CLI_ARGS = {"html", "markdown", "readable", "txt", "json", "youtube", "--help", "-h", "--version", "-v"}
 
 IGNORES = shutil.ignore_patterns(
     "node_modules", ".git", "__pycache__", "target", "*.egg-info",
     ".venv", "venv", "*.tsbuildinfo",
 )
+
+
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
+
+
 def _require(tool: str, reason: str) -> bool:
     if shutil.which(tool):
         return True
     print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
     return False
-def is_installed() -> bool:
-    """Check if fetch-mcp is already installed (binary exists)."""
-    return (bin_home() / "fetch-mcp").exists()
 
 
 def main() -> int:
-    if is_installed():
-        print(">>> fetch-mcp is already installed. Use 'aa update fetch' to reinstall.")
-        return 0
+    # Pull latest from remote
+    sys.path.insert(0, str(ROOT / "tools" / "lib"))
+    from git_update import update_submodule
+    update_submodule(ROOT, "vendor/fetch-mcp")
 
     if not (SRC / "package.json").exists():
         print("Error: fetch-mcp source not found (submodule not initialized).", file=sys.stderr)
@@ -59,7 +55,7 @@ def main() -> int:
     if not _require("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"):
         return 1
 
-    print(f">>> Installing fetch-mcp into {APP_DIR}...")
+    print(f">>> Updating fetch-mcp into {APP_DIR}...")
     if APP_DIR.exists():
         shutil.rmtree(APP_DIR)
     shutil.copytree(SRC, APP_DIR, ignore=IGNORES)
@@ -91,7 +87,9 @@ def main() -> int:
         print(f"  -> {launcher}")
 
     warn_if_bin_not_on_path()
-    print(">>> Successfully installed fetch-mcp")
+    print(">>> Successfully updated fetch-mcp")
     return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

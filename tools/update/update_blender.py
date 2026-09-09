@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Installer blender — blender-arwaky (Python, XDG compliant).
+"""Updater blender — force reinstall blender-arwaky (Python, XDG compliant).
 
-Creates venv in ~/.local/share/blender-arwaky/venv/ and symlinks to ~/.local/bin/.
+Always rebuilds venv and reinstalls package (unlike install_blender.py which
+skips if venv already exists).
 """
 from __future__ import annotations
 
@@ -39,28 +40,25 @@ def run(cmd, cwd=None):
 
 
 def get_venv_dir() -> Path:
-    """Get XDG-compliant venv directory: ~/.local/share/blender-arwaky/venv/"""
     return tool_data_dir(TOOL_NAME) / "venv"
 
 
 def get_venv_python(venv_dir: Path) -> Path:
-    """Get python binary path inside venv."""
     return venv_dir / "bin" / "python"
 
 
 def ensure_venv() -> Path:
-    """Create venv in XDG data directory if not exists."""
     venv_dir = get_venv_dir()
     python_bin = get_venv_python(venv_dir)
 
     if python_bin.exists():
-        print(f"  [skip] Venv already exists at {venv_dir}")
-        return python_bin
+        print(f"  [update] Recreating venv at {venv_dir}...")
+        shutil.rmtree(venv_dir)
+    else:
+        print(f"  [install] Creating venv at {venv_dir}...")
 
-    print(f"  [install] Creating venv at {venv_dir}...")
     subprocess.run([sys.executable, "-m", "venv", "--without-pip", str(venv_dir)], check=True)
 
-    # Bootstrap pip
     print("  [install] Bootstrapping pip...")
     subprocess.run(
         [str(python_bin), "-m", "ensurepip", "--upgrade"],
@@ -72,11 +70,7 @@ def ensure_venv() -> Path:
     return python_bin
 
 
-
-
-
 def install_package(python_bin: Path) -> None:
-    """Install blender-arwaky package in editable mode."""
     print("  [install] Installing blender-arwaky package...")
     subprocess.run(
         [str(python_bin), "-m", "pip", "install", "-e", str(SRC_DIR)],
@@ -85,14 +79,11 @@ def install_package(python_bin: Path) -> None:
 
 
 def setup_xdg_directories() -> None:
-    """Create XDG directories for blender-arwaky."""
     print("  [install] Creating XDG directories...")
-
     tool_data_dir(TOOL_NAME)
     tool_config_dir(TOOL_NAME)
     tool_state_dir(TOOL_NAME)
     tool_cache_dir(TOOL_NAME)
-
     print(f"  [ok] Data: {tool_data_dir(TOOL_NAME)}")
     print(f"  [ok] Config: {tool_config_dir(TOOL_NAME)}")
     print(f"  [ok] State: {tool_state_dir(TOOL_NAME)}")
@@ -100,7 +91,6 @@ def setup_xdg_directories() -> None:
 
 
 def setup_bin_links(python_bin: Path) -> None:
-    """Create symlinks in ~/.local/bin/ pointing to venv executables."""
     ensure_bin_home()
     local_bin = bin_home()
     venv_bin_dir = python_bin.parent
@@ -121,42 +111,26 @@ def setup_bin_links(python_bin: Path) -> None:
     warn_if_bin_not_on_path()
 
 
-def is_installed() -> bool:
-    """Check if blender-arwaky is already installed (binary exists)."""
-    return (bin_home() / "blender-arwaky").exists()
-
-
 def main() -> int:
-    if is_installed():
-        print(">>> blender-arwaky is already installed. Use 'aa update blender' to reinstall.")
-        return 0
+    print(">>> Updating blender-arwaky (XDG compliant)...")
 
-    print(">>> Installing blender-arwaky (XDG compliant)...")
-
-    if not SRC_DIR.exists():
-        print(f">>> Initializing submodule {SRC_REL}...")
-        run(["git", "-C", str(ROOT), "submodule", "update", "--init", SRC_REL])
+    # Pull latest from remote
+    sys.path.insert(0, str(ROOT / "tools" / "lib"))
+    from git_update import update_submodule
+    update_submodule(ROOT, SRC_REL)
 
     if not SRC_DIR.exists():
         print(f"Error: source not found {SRC_DIR}.", file=sys.stderr)
         return 1
 
-    # 1. Create venv in XDG data directory
     python_bin = ensure_venv()
-
-    # 2. Install package
     install_package(python_bin)
-
-    # 3. Create XDG directories
     setup_xdg_directories()
-
-    # 4. Create launchers
     setup_bin_links(python_bin)
 
-    print("\n>>> Successfully installed blender-arwaky")
+    print("\n>>> Successfully updated blender-arwaky")
     print(f"    Venv: {get_venv_dir()}")
     print(f"    Data: {tool_data_dir(TOOL_NAME)}")
-    print(f"    Run 'blender-arwaky init' to setup workspace symlinks")
     return 0
 
 

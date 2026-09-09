@@ -122,7 +122,16 @@ def setup_bin_links(python_bin: Path) -> None:
     warn_if_bin_not_on_path()
 
 
+def is_installed() -> bool:
+    """Check if vision-arwaky is already installed (binary exists)."""
+    return (bin_home() / "vision-arwaky").exists()
+
+
 def main() -> int:
+    if is_installed():
+        print(">>> vision-arwaky is already installed. Use 'aa update vision' to reinstall.")
+        return 0
+
     print(">>> Installing vision-arwaky (XDG compliant)...")
 
     if not SRC_DIR.exists():

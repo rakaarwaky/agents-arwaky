@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Installer mnemosyne — mnemosyne (Python, uv). MCP entry maps to main CLI."""
+"""Updater mnemosyne — force reinstall mnemosyne (Python, uv).
+
+Always recreates launchers.
+"""
 from __future__ import annotations
 
 import subprocess
@@ -18,21 +21,18 @@ LAUNCHERS = [
     ("mnemosyne", "mnemosyne"),
     ("mnemosyne-mcp", "mnemosyne"),
 ]
+
+
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
-def is_installed() -> bool:
-    """Check if mnemosyne is already installed (binary exists)."""
-    return (bin_home() / "mnemosyne").exists()
 
 
 def main() -> int:
-    if is_installed():
-        print(">>> mnemosyne is already installed. Use 'aa update mnemosyne' to reinstall.")
-        return 0
+    # Pull latest from remote
+    sys.path.insert(0, str(ROOT / "tools" / "lib"))
+    from git_update import update_submodule
+    update_submodule(ROOT, SRC_REL)
 
-    if not SRC_DIR.exists():
-        print(f">>> Initializing submodule {SRC_REL}...", file=sys.stderr)
-        run(["git", "-C", str(ROOT), "submodule", "update", "--init", SRC_REL])
     if not SRC_DIR.exists():
         print(f"Error: source not found {SRC_DIR}.", file=sys.stderr)
         return 1
@@ -41,7 +41,9 @@ def main() -> int:
     created = write_uv_launchers(SRC_REL, LAUNCHERS, root=ROOT)
     for p in created:
         print(f"  -> {p}")
-    print(">>> Successfully installed mnemosyne")
+    print(">>> Successfully updated mnemosyne")
     return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""9Router installer (Python) — hybrid daemon + launcher."""
+"""Updater 9Router — force reinstall hybrid daemon + launcher."""
 from __future__ import annotations
 
 import shutil
@@ -22,21 +22,17 @@ TOOL_DIR = ROOT / "tools/daemons"
 DATA_DIR = data_home() / "9router"
 INTERNAL_BIN = DATA_DIR / "internal-bin"
 LAUNCHER = bin_home() / "9router"
-def is_installed() -> bool:
-    """Check if 9router is already installed (binary exists)."""
-    return (bin_home() / "9router").exists()
 
 
 def main() -> int:
-    if is_installed():
-        print(">>> 9router is already installed. Use 'aa update 9router' to reinstall.")
-        return 0
+    # Pull latest from remote (9router is under tools/daemons, not a submodule)
+    # But we still update the parent repo's submodules if needed
 
     ensure_bin_home()
     ensure_path()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     daemon_py = TOOL_DIR / "ninerouter_daemon.py"
-    print(">>> Setting up 9Router hybrid architecture...")
+    print(">>> Updating 9Router hybrid architecture...")
     if daemon_py.exists():
         subprocess.run(
             [sys.executable, str(daemon_py), "service-install"], check=False
@@ -52,7 +48,9 @@ os.execvpe("python3", ["python3", str(daemon), *sys.argv[1:]], os.environ.copy()
     INTERNAL_BIN.mkdir(parents=True, exist_ok=True)
     shutil.copy2(LAUNCHER, INTERNAL_BIN / "9router")
     (INTERNAL_BIN / "9router").chmod(0o755)
-    print(f">>> Successfully installed 9Router -> {LAUNCHER}")
+    print(f">>> Successfully updated 9Router -> {LAUNCHER}")
     return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

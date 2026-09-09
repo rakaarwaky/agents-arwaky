@@ -149,7 +149,16 @@ def setup_bin_links(python_bin: Path) -> None:
     warn_if_bin_not_on_path()
 
 
+def is_installed() -> bool:
+    """Check if qwen-web-arwaky is already installed (binary exists)."""
+    return (bin_home() / "qwen-web-arwaky").exists()
+
+
 def main() -> int:
+    if is_installed():
+        print(">>> qwen-web-arwaky is already installed. Use 'aa update qwen-web' to reinstall.")
+        return 0
+
     print(">>> Installing qwen-web-arwaky (XDG compliant)...")
 
     if not SRC_DIR.exists():

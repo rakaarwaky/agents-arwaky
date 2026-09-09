@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""Installer lint-arwaky — AES Architecture Linter (Rust, cargo).
+"""Updater lint-arwaky — force rebuild AES Architecture Linter (Rust, cargo).
 
-Specifics: lint-arwaky is built from Rust source (cargo build --release).
-If `cargo` is not found, the installer attempts a non-interactive rustup bootstrap;
-if bootstrap fails, the tool is skipped with a warning (return 0) so that
-`aa install all` completes without crashing.
+Always runs cargo build --release and overwrites binaries.
 """
 from __future__ import annotations
 
@@ -27,10 +24,13 @@ from xdg import (
 
 INTERNAL_DIR = ROOT / "internal/lint-arwaky"
 BINARIES = ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui"]
+
+
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
+
+
 def _cargo_on_path() -> str | None:
-    """Find cargo on PATH or at the default rustup location."""
     found = shutil.which("cargo")
     if found:
         return found
@@ -39,8 +39,9 @@ def _cargo_on_path() -> str | None:
             os.environ["PATH"] = str(cand.parent) + os.pathsep + os.environ.get("PATH", "")
             return str(cand)
     return None
+
+
 def _bootstrap_rustup() -> bool:
-    """Install rust toolchain via rustup (non-interactive). Best effort."""
     if shutil.which("curl"):
         cmd = ["curl", "--proto", "=https", "--tlsv1.2", "-sSf",
                "https://sh.rustup.rs", "-o", "/tmp/rustup-init.sh"]
@@ -57,14 +58,16 @@ def _bootstrap_rustup() -> bool:
         print(f"  Warning: rustup bootstrap failed ({e}).", file=sys.stderr)
         return False
     return _cargo_on_path() is not None
+
+
 _BUILD_DEPS = [
-    # (command, apt package)
     ("cc", "gcc"),
     ("sccache", "sccache"),
     ("mold", "mold"),
 ]
+
+
 def _preflight_build_deps() -> dict:
-    """Ensure build deps are present (apt best-effort via sudo); fallback override env."""
     env = {}
     for cmd, pkg in _BUILD_DEPS:
         if shutil.which(cmd):
@@ -78,7 +81,6 @@ def _preflight_build_deps() -> dict:
         if shutil.which(cmd):
             print(f"  -> {cmd} available.")
         else:
-            # Fallback: disable wrapper/flag that needs this tool.
             if cmd == "sccache":
                 env["CARGO_BUILD_RUSTC_WRAPPER"] = ""
                 print("  -> sccache skipped (RUSTC_WRAPPER empty).", file=sys.stderr)
@@ -87,28 +89,22 @@ def _preflight_build_deps() -> dict:
                 env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER"] = "cc"
                 print("  -> mold skipped (linker=cc).", file=sys.stderr)
     return env
-def is_installed() -> bool:
-    """Check if lint-arwaky is already installed (binary exists)."""
-    return (bin_home() / "lint-arwaky").exists()
 
 
 def main() -> int:
-    if is_installed():
-        print(">>> lint-arwaky is already installed. Use 'aa update lint' to reinstall.")
-        return 0
-
-    if not INTERNAL_DIR.exists() or not (INTERNAL_DIR / "Cargo.toml").exists():
-        run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/lint-arwaky"])
+    # Pull latest from remote
+    sys.path.insert(0, str(ROOT / "tools" / "lib"))
+    from git_update import update_submodule
+    update_submodule(ROOT, "internal/lint-arwaky")
 
     if _cargo_on_path() is None:
         print(">>> cargo not found; attempting rustup bootstrap...", file=sys.stderr)
         if not _bootstrap_rustup():
             print("  Warning: lint-arwaky skipped (Rust toolchain not available).", file=sys.stderr)
-            print("  Re-run 'aa install lint' after installing Rust.", file=sys.stderr)
             return 0
 
     build_env = _preflight_build_deps()
-    build_env["CARGO_INCREMENTAL"] = "0"  # project recommendation for sccache
+    build_env["CARGO_INCREMENTAL"] = "0"
     env = os.environ.copy()
     env.update(build_env)
 
@@ -116,7 +112,6 @@ def main() -> int:
     (config_home() / "lint-arwaky/rules").mkdir(parents=True, exist_ok=True)
     (data_home() / "lint-arwaky/reports").mkdir(parents=True, exist_ok=True)
 
-    # Build in cache directory (XDG spec: transient build artifacts in ~/.cache/)
     cache_dir = cache_home() / "lint-arwaky"
     cache_dir.mkdir(parents=True, exist_ok=True)
     print(f">>> Building lint-arwaky (AES Architecture Linter) into {cache_dir}...")
@@ -127,8 +122,6 @@ def main() -> int:
         src = release / b
         if src.exists():
             dst = bin_home() / b
-            # Atomic replace: avoid ETXTBSY if old binary is still in use
-            # by a running process (rename is safe; old process keeps old inode).
             tmp = dst.with_suffix(dst.suffix + ".tmp")
             shutil.copy2(src, tmp)
             tmp.chmod(0o755)
@@ -138,7 +131,9 @@ def main() -> int:
         lac = bin_home() / "lac"
         lac.unlink(missing_ok=True)
         lac.symlink_to(bin_home() / "lint-arwaky-cli")
-    print(">>> Successfully installed lint-arwaky")
+    print(">>> Successfully updated lint-arwaky")
     return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

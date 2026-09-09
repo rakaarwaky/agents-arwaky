@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""Installer ponytail — @dietrichgebert/ponytail (OpenCode plugin + MCP).
+"""Updater ponytail — force reinstall @dietrichgebert/ponytail (OpenCode plugin + MCP).
 
-Specifics: ponytail has NO build script and no lockfile — so there is no
-build step. Just copy source to $XDG_DATA_HOME/ponytail and install
-ponytail-mcp dependencies (@modelcontextprotocol/sdk, zod) via npm.
-Entry MCP = ponytail-mcp/index.js.
+Always removes APP_DIR and rebuilds from source.
 """
 from __future__ import annotations
 
@@ -27,27 +24,27 @@ SRC = ROOT / "vendor/ponytail"
 APP_DIR = data_home() / "ponytail"
 ENTRY = "ponytail-mcp/index.js"
 
-# Old node_modules in vendor are not copied (may be stale); deps are reinstalled
-# with npm --prefix inside APP_DIR/ponytail-mcp.
 IGNORES = shutil.ignore_patterns(
     "node_modules", ".git", "__pycache__", "*.egg-info", ".venv", "venv",
 )
+
+
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
+
+
 def _require(tool: str, reason: str) -> bool:
     if shutil.which(tool):
         return True
     print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
     return False
-def is_installed() -> bool:
-    """Check if ponytail is already installed (binary exists)."""
-    return (bin_home() / "ponytail-mcp").exists()
 
 
 def main() -> int:
-    if is_installed():
-        print(">>> ponytail is already installed. Use 'aa update ponytail' to reinstall.")
-        return 0
+    # Pull latest from remote
+    sys.path.insert(0, str(ROOT / "tools" / "lib"))
+    from git_update import update_submodule
+    update_submodule(ROOT, "vendor/ponytail")
 
     if not (SRC / "package.json").exists():
         print("Error: ponytail source not found (submodule not initialized).", file=sys.stderr)
@@ -55,7 +52,7 @@ def main() -> int:
     if not _require("npm", "ponytail requires npm (https://nodejs.org)"):
         return 1
 
-    print(f">>> Installing ponytail (no build) into {APP_DIR}...")
+    print(f">>> Updating ponytail into {APP_DIR}...")
     if APP_DIR.exists():
         shutil.rmtree(APP_DIR)
     shutil.copytree(SRC, APP_DIR, ignore=IGNORES)
@@ -82,7 +79,9 @@ def main() -> int:
     print(f"  -> {launcher}")
 
     warn_if_bin_not_on_path()
-    print(">>> Successfully installed ponytail")
+    print(">>> Successfully updated ponytail")
     return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -20,7 +20,16 @@ LAUNCHERS = [
 ]
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
+def is_installed() -> bool:
+    """Check if workspace-mcp is already installed (binary exists)."""
+    return (bin_home() / "workspace-mcp").exists()
+
+
 def main() -> int:
+    if is_installed():
+        print(">>> workspace is already installed. Use 'aa update workspace' to reinstall.")
+        return 0
+
     if not SRC_DIR.exists():
         print(f">>> Initializing submodule {SRC_REL}...", file=sys.stderr)
         run(["git", "-C", str(ROOT), "submodule", "update", "--init", SRC_REL])
