@@ -10,7 +10,7 @@ from xdg import bin_home  # type: ignore[import-untyped]
 
 
 def install_dir_candidates(tool: Tool) -> list[Path]:
-    overrides = {"workspace": "google-workspace-mcp", "fetch": "fetch-mcp", "anytype": "anytype-mcp", "9router": "ninerouter"}
+    overrides = {"workspace": "google-workspace-mcp", "fetch": "fetch-mcp", "anytype": "anytype-mcp", "anytype-daemon": "anytype-mcp", "9router": "ninerouter"}
     names = []
     if tool.id in overrides:
         names.append(overrides[tool.id])

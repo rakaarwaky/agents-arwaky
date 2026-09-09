@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import secrets
 import shutil
+import string
 import subprocess
 import sys
 import time
@@ -109,12 +111,60 @@ def read_env():
     return env
 
 
+def generate_password(length: int = 24) -> str:
+    """Generate a cryptographically strong password (mixed case + digits + symbols)."""
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*()-_=+"
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
+
+def ensure_initial_password(env: dict | None = None) -> str:
+    """Generate a strong INITIAL_PASSWORD if unset/weak and persist it.
+
+    Writes to $AGENTS_ARWAKY_ROOT/tools/config/ninerouter.env — the file
+    referenced by the systemd unit's EnvironmentFile — so both the systemd
+    service and standalone `aa 9router start` use the same credential.
+    """
+    env = env if env is not None else read_env()
+    current = env.get("INITIAL_PASSWORD", "")
+    weak = WEAK_PASSWORDS | {
+        "123456", "12345678", "password123", "qwerty", "your-password",
+        "your-secure-password", "change-me", "changeme",
+    }
+    if current and current not in weak and len(current) >= 16:
+        return current  # sudah kuat; pertahankan kredensial yang ada
+
+    password = generate_password(24)
+    env_file = ROOT / "tools/config/ninerouter.env"
+    lines = []
+    replaced = False
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8", errors="replace").splitlines():
+            if line.strip().startswith("INITIAL_PASSWORD="):
+                lines.append(f'INITIAL_PASSWORD="{password}"')
+                replaced = True
+            else:
+                lines.append(line)
+    if not replaced:
+        lines.append(f'INITIAL_PASSWORD="{password}"')
+    env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    try:
+        env_file.chmod(0o600)
+    except OSError:
+        pass
+    print(">>> Generated a strong INITIAL_PASSWORD for 9Router dashboard login.")
+    print(f">>>   Login password: {password}")
+    print(f">>>   Stored in: {env_file}")
+    return password
+
+
 def cmd_service_install():
     if not shutil.which("podman"):
         print("Error: Podman is required to install the systemd container service.", file=sys.stderr)
         return 1
     UNIT_DIR.mkdir(parents=True, exist_ok=True)
-    src = SCRIPT_DIR / "9router.service"
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_initial_password()
+    src = SCRIPT_DIR / "ninerouter.service"
     if src.exists():
         shutil.copy2(src, UNIT_FILE)
     if shutil.which("loginctl"):
@@ -196,6 +246,7 @@ def cmd_start():
         print(f">>> 9Router daemon container '{CONTAINER_NAME}' is already running.")
         return cmd_status()
     env = read_env()
+    env["INITIAL_PASSWORD"] = ensure_initial_password(env)
     env_args = []
     try:
         env_file = write_container_env(env)
