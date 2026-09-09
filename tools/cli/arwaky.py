@@ -137,49 +137,54 @@ def cmd_version(argv: list[str]) -> int:
 def cmd_help(argv: list[str]) -> int:
     banner()
     print(f"{BOLD()}USAGE:{RESET()}")
-    print("  aa <command> [arguments...]")
+    print("  aa <noun> <verb> [arguments...]")
     print()
     print(f"{BOLD()}PRIMARY COMMANDS:{RESET()}")
     print(f"  {GREEN()}status{RESET()}                         Check health, submodule and binary installation status")
     print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
-    print(f"  {GREEN()}list{RESET()}                           List all registered tools")
-    print(f"  {GREEN()}run{RESET()} <tool> [args]              Execute registered tool")
-    print(f"  {GREEN()}install{RESET()} [tool]                 Install tools (skip if already installed)")
-    print(f"  {GREEN()}update{RESET()} [tool|all]              Update tools (pull latest + force reinstall)")
+    print(f"  {GREEN()}tool{RESET()} <cmd> [args]             Tool management (list|run|install|update|uninstall)")
+    print(f"  {GREEN()}skill{RESET()} <cmd> [args]             Skill management (list|install|uninstall|show|check)")
+    print(f"  {GREEN()}connect{RESET()} [targets]              Connect MCP, skills & env to harnesses")
+    print(f"  {GREEN()}disconnect{RESET()} [targets]           Disconnect harnesses (use --all for all)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
-    print(f"  {GREEN()}skill{RESET()} [args]                   Skill manager")
-    print(f"  {GREEN()}connect{RESET()} [args]                 Harness connector")
-    print(f"  {GREEN()}disconnect{RESET()} [args]              Harness disconnector")
-    print(f"  {GREEN()}unconnect{RESET()}                      Remove agents-arwaky from all harnesses")
-    print(f"  {GREEN()}unskill{RESET()}                        Remove provisioned skills from current workspace")
-    print(f"  {GREEN()}anytype{RESET()} [args]                 Anytype daemon manager")
-    print(f"  {GREEN()}9router{RESET()} [args]                 9Router daemon manager")
-    print(f"  {GREEN()}service{RESET()} [args]                 Service manager")
-    print(f"  {GREEN()}backup{RESET()} [args]                  Backup manager")
-    print(f"  {GREEN()}restore{RESET()} [args]                 Restore manager")
+    print()
+    print(f"{BOLD()}SERVICES & DAEMONS:{RESET()}")
+    print(f"  {GREEN()}anytype{RESET()} <cmd>                  Anytype daemon (start|stop|status|auth-key|...)")
+    print(f"  {GREEN()}9router{RESET()} <cmd>                  9Router daemon (start|stop|status|models|...)")
+    print(f"  {GREEN()}service{RESET()} <cmd>                  Service manager (start|stop|restart|status|logs)")
+    print()
+    print(f"{BOLD()}DATA MANAGEMENT:{RESET()}")
+    print(f"  {GREEN()}backup{RESET()} [args]                  Backup tool data (optionally to Google Drive)")
+    print(f"  {GREEN()}restore{RESET()} [args]                 Restore tool data from archive")
     print()
     print(f"{BOLD()}MAINTENANCE:{RESET()}")
-    print(f"  {CYAN()}check{RESET()}                          Run repository verification (JSON + Python compile)")
+    print(f"  {CYAN()}check{RESET()}                          Repository verification (JSON + Python compile)")
     print(f"  {CYAN()}submodules{RESET()}                     Initialize/update git submodules")
-    print(f"  {CYAN()}clean{RESET()}                          Remove generated artifacts")
-    print(f"  {CYAN()}uninstall{RESET()} [tool|--all]         Remove installed binaries/data (per-tool uninstall.py)")
-    print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + unconnect + unskill")
+    print(f"  {CYAN()}clean{RESET()}                          Remove build artifacts & generated configs")
+    print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + disconnect + unskill")
+    print(f"  {CYAN()}sync{RESET()}                           One-shot ecosystem sync (update + generate + reconnect)")
+    print(f"  {CYAN()}completion{RESET()}                     Shell completion generator")
     print(f"  {CYAN()}help{RESET()}                           Show this help")
     print()
     print(f"{BOLD()}GLOBAL OPTIONS:{RESET()}")
-    print(f"  {CYAN()}--no-color{RESET()} / {CYAN()}--plain{RESET()}         Disable ANSI colors (same as NO_COLOR env)")
-    print(f"  {CYAN()}--force-color{RESET()}                  Force ANSI colors (same as FORCE_COLOR env)")
+    print(f"  {CYAN()}--no-color{RESET()} / {CYAN()}--plain{RESET()}         Disable ANSI colors")
+    print(f"  {CYAN()}--force-color{RESET()}                  Force ANSI colors")
     print(f"  {CYAN()}-v{RESET()} / {CYAN()}--verbose{RESET()}              Enable debug logging")
     print(f"  {CYAN()}-q{RESET()} / {CYAN()}--quiet{RESET()}                Suppress info logs (warnings/errors only)")
     print()
     print(f"{BOLD()}EXAMPLES:{RESET()}")
-    print(f"  {CYAN()}aa status{RESET()}                      Show tool health")
-    print(f"  {CYAN()}aa install lint{RESET()}                Install a single tool")
-    print(f"  {CYAN()}aa update vision{RESET()}               Update a single tool (pull + reinstall)")
-    print(f"  {CYAN()}aa update all{RESET()}                  Update all tools")
-    print(f"  {CYAN()}aa run lint check .{RESET()}            Run a tool (AES linter)")
+    print(f"  {CYAN()}aa tool install lint{RESET()}           Install a single tool")
+    print(f"  {CYAN()}aa tool update vision{RESET()}          Update a single tool (pull + reinstall)")
+    print(f"  {CYAN()}aa tool update all{RESET()}             Update all tools")
+    print(f"  {CYAN()}aa tool run lint check .{RESET()}       Run a tool (AES linter)")
+    print(f"  {CYAN()}aa tool list{RESET()}                   List all registered tools")
+    print(f"  {CYAN()}aa skill install --all{RESET()}         Provision all skills to CWD")
+    print(f"  {CYAN()}aa skill uninstall --target .{RESET()}  Remove skills from CWD")
     print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
+    print(f"  {CYAN()}aa disconnect --all{RESET()}            Disconnect all harnesses")
     print(f"  {CYAN()}aa backup all gdrive{RESET()}           Backup all tools to Google Drive")
+    print()
+    print(f"{BOLD()}BACKWARD COMPAT:{RESET()} {DIM()}('aa install', 'aa run' etc. still work){RESET()}")
     print()
     return 0
 
@@ -497,26 +502,27 @@ def cmd_disconnect(argv: list[str]) -> int:
     return run_cmd([sys.executable, str(script), "disconnect", *argv])
 
 
-def cmd_unconnect(argv: list[str]) -> int:
-    script = repo_root() / "tools" / "connect" / "connect.py"
-    if not script.exists():
-        err("tools/connect/connect.py not found.")
+def cmd_tool(argv: list[str]) -> int:
+    """Tool management: aa tool <list|run|install|update|uninstall> [args]"""
+    if not argv:
+        err("Missing subcommand.")
+        print("Usage: aa tool <list|run|install|update|uninstall> [args]")
         return 1
-    info("Unconnecting agents-arwaky from all harnesses...")
-    code = run_cmd([sys.executable, str(script), "disconnect", "--all"])
-    if code != 0:
-        return code
-    print()
-    return 0
-
-
-def cmd_unskill(argv: list[str]) -> int:
-    script = repo_root() / "tools" / "skill" / "skill.py"
-    if not script.exists():
-        err("tools/skill/skill.py not found.")
+    sub = argv[0]
+    rest = argv[1:]
+    tool_dispatch = {
+        "list": cmd_list, "ls": cmd_list,
+        "run": cmd_run,
+        "install": cmd_install,
+        "update": cmd_update,
+        "uninstall": cmd_uninstall,
+    }
+    handler = tool_dispatch.get(sub)
+    if not handler:
+        err(f"Unknown tool subcommand: {sub}")
+        print(f"Valid: {', '.join(tool_dispatch.keys())}")
         return 1
-    info("Removing provisioned skills from current working directory...")
-    return run_cmd([sys.executable, str(script), "uninstall", "all", "--target", os.getcwd()])
+    return handler(rest)
 
 
 def cmd_anytype(argv: list[str]) -> int:
@@ -686,11 +692,11 @@ def cmd_reset(argv: list[str]) -> int:
         err("Uninstall step failed during reset.")
         return uninstall_rc
     print()
-    info("[3/4] unconnect")
-    cmd_unconnect([])
+    info("[3/4] disconnect --all")
+    cmd_disconnect(["--all"])
     print()
-    info("[4/4] unskill")
-    cmd_unskill([])
+    info("[4/4] skill uninstall (CWD)")
+    cmd_skill(["uninstall", "all", "--target", os.getcwd()])
     print()
     info("Resetting submodules...")
     run_cmd(["git", "-C", str(repo_root()), "submodule", "foreach", "--recursive", "git clean -fd && git checkout ."])
@@ -762,18 +768,21 @@ def main() -> int:
     cmd = argv[0]
     rest = argv[1:]
     dispatch = {
-        "status": cmd_status, "doctor": cmd_doctor, "list": cmd_list, "ls": cmd_list,
-        "run": cmd_run, "install": cmd_install, "update": cmd_update, "mcp": cmd_mcp,
-        "skill": cmd_skill, "skills": cmd_skill,
+        # Meta / status
+        "status": cmd_status, "doctor": cmd_doctor,
+        "check": cmd_check, "submodules": cmd_submodules, "clean": cmd_clean,
+        "reset": cmd_reset, "version": cmd_version, "--version": cmd_version,
+        "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
+        # Core noun-verb (canonical)
+        "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
-        "unconnect": cmd_unconnect, "unskill": cmd_unskill,
+        "mcp": cmd_mcp, "sync": cmd_sync, "completion": cmd_completion,
+        # Daemons & services
         "anytype": cmd_anytype, "9router": cmd_9router, "service": cmd_service,
         "backup": cmd_backup, "restore": cmd_restore,
-        "completion": cmd_completion, "sync": cmd_sync,
-        "check": cmd_check, "submodules": cmd_submodules, "clean": cmd_clean,
-        "uninstall": cmd_uninstall, "reset": cmd_reset,
-        "version": cmd_version, "--version": cmd_version,
-        "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
+        # Backward compat aliases → noun verb (deprecated, prefer aa tool/aa skill)
+        "install": cmd_install, "update": cmd_update, "uninstall": cmd_uninstall,
+        "list": cmd_list, "ls": cmd_list, "run": cmd_run,
     }
     handler = dispatch.get(cmd)
     if not handler:

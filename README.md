@@ -225,29 +225,27 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | `aa status`                              | Display health, installation state, and submodule readiness                                        | `aa status`                                    |
 | `aa doctor`                              | All-in-one ecosystem diagnostics (toolchains, daemons, MCP config, harnesses)                    | `aa doctor`                                    |
+| `aa tool <cmd> [args]`                   | Tool management: `list`, `run`, `install`, `update`, `uninstall`                                    | `aa tool install lint`                         |
+| `aa skill <cmd> [args]`                  | Skill management: `list`, `install`, `uninstall`, `show`, `check`                                   | `aa skill install --all`                       |
+| `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
+| `aa disconnect [targets]`                | Disconnect harnesses (use `--all` to disconnect all)                                                | `aa disconnect --all`                          |
+| `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
+| `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
+| `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
 | `aa service [action] [target]`           | Unified manager for background services (`status`, `start`, `stop`, `restart`, `logs`)              | `aa service status`                            |
 | `aa sync [options]`                      | One-shot ecosystem update (submodules, binary exports, MCP configs, harnesses, and verify)          | `aa sync`                                      |
 | `aa completion [bash\|zsh\|--install]`   | Shell tab completion generator and persistent installer                                            | `aa completion --install`                      |
 | `aa check`                               | Run quality gate verification (JSON syntax, Python compile, shellcheck)                           | `aa check`                                     |
-| `aa list`                                | List all registered tools (internal & vendor) with categories                                      | `aa list`                                      |
-| `aa run <tool> [args]`                   | Execute any registered tool on the local host (auto-resolves to PATH or native runner)                   | `aa run context7 --help`                       |
-| `aa install [tool]`                      | Install tools on the local host (native build, no container indirection for CLI tools)                   | `aa install fetch` / `aa install`             |
-| `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
-| `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
-| `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
-| `aa skill list`                          | Discover, audit, and provision skills across all tools                                             | `aa skill list`                                |
-| `aa connect <harness>`                   | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
-| `aa service logs <target>`              | Tail logs for background services (`9router`, `anytype`)                                           | `aa service logs 9router`                      |
-| `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
-| `aa 9router <action>`                    | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                            |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
 | `aa clean`                              | Remove build artifacts & generated MCP config                                                     | `aa clean`                                     |
-| `aa uninstall [tool\|--all]`           | Remove installed tool binaries, data & config (per-tool uninstallers)                             | `aa uninstall --all`                           |
-| `aa reset`                            | Full factory reset: clean + uninstall + unconnect + unskill                                        | `aa reset`                                     |
+| `aa reset`                            | Full factory reset: clean + uninstall + disconnect + unskill                                       | `aa reset`                                     |
 | `aa backup <tool\|all> <target>`       | Back up tool state locally or to Google Drive                                                     | `aa backup all gdrive`                         |
 | `aa restore <tool\|all> <source>`      | Restore tool state from a backup                                                                  | `aa restore all gdrive`                        |
-| `aa disconnect <harness>`             | Remove MCP & skills from agent harnesses                                                          | `aa disconnect --all`                          |
-| `aa unskill`                          | Remove provisioned skills from the current workspace                                              | `aa unskill`                                   |
+| `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
+| `aa 9router <action>`                    | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                            |
+
+> [!TIP]
+> Backward compat: `aa install`, `aa run`, `aa list`, `aa uninstall`, `aa update` still work as shortcuts.
 
 > [!TIP]
 > You can use `agents-arwaky` or the short alias `aa` interchangeably for all commands!
@@ -256,10 +254,10 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 
 ```bash
 # Codebase indexing with codegraph
-aa run codegraph index .
+aa tool run codegraph index .
 
 # Architecture validation across the repository
-aa run lint --help
+aa tool run lint --help
 
 ```
 
@@ -268,7 +266,7 @@ aa run lint --help
 ## 📦 Agent & Tool Catalog
 
 > [!TIP]
-> The single source of truth (SSOT) for all tool registrations is [`tools/config/manifest.json`](tools/config/manifest.json). You can also run `aa list` or `aa mcp list` to inspect live tool status from the terminal.
+> The single source of truth (SSOT) for all tool registrations is [`tools/config/manifest.json`](tools/config/manifest.json). You can also run `aa tool list` or `aa mcp list` to inspect live tool status from the terminal.
 
 ### Core In-House Agents (`internal/`)
 
@@ -527,10 +525,10 @@ Compiles runtimes and tools directly on host into native XDG prefixes, exporting
 
 ```bash
 # Install all tools in ecosystem:
-aa install
+aa tool install
 
 # Install a specific tool (e.g. fetch, lint, vision, codegraph):
-aa install fetch
+aa tool install fetch
 ```
 
 ### Quality Gate & CI Verification
@@ -550,10 +548,10 @@ aa check
 aa clean
 
 # Remove installed tool binaries, data and config (per-tool uninstallers):
-aa uninstall my-cool-tool
-aa uninstall --all
+aa tool uninstall my-cool-tool
+aa tool uninstall --all
 
-# Full factory reset (clean + uninstall + unconnect + unskill):
+# Full factory reset (clean + uninstall + disconnect + unskill):
 aa reset
 ```
 

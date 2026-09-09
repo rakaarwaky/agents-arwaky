@@ -3,9 +3,12 @@
 Provides functions to:
 - Check if a submodule has newer commits on the remote
 - Pull/update a submodule to the latest commit on its tracked branch
+- Write install provenance stamps for audit/rollback
 """
 from __future__ import annotations
 
+import datetime
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -141,3 +144,26 @@ def update_submodule(repo_root: Path, submodule_path: str) -> bool:
     else:
         print(f"  Warning: pull failed for {submodule_path}", file=sys.stderr)
         return False
+
+
+def write_install_stamp(app_dir: Path, tool: str, submodule_dir: Path) -> None:
+    """Record what was deployed so rollback/audit is possible.
+
+    Writes .arwaky-install.json to the app directory with:
+    - tool name
+    - commit SHA
+    - timestamp
+    """
+    commit = get_current_commit(submodule_dir)
+    stamp = {
+        "tool": tool,
+        "commit": commit or "unknown",
+        "installed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+    try:
+        app_dir.mkdir(parents=True, exist_ok=True)
+        (app_dir / ".arwaky-install.json").write_text(
+            json.dumps(stamp, indent=2) + "\n", encoding="utf-8"
+        )
+    except OSError as exc:
+        print(f"  Warning: could not write install stamp: {exc}", file=sys.stderr)

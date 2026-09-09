@@ -1,25 +1,21 @@
 [Unit]
-Description=Anytype Headless Daemon (Podman)
-Documentation=https://github.com/anyproto/anytype-cli
+Description=Anytype Headless Daemon (container)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-Environment=HOME=%h
-Restart=always
-RestartSec=5s
-ExecStartPre=-/usr/bin/podman stop anytype-daemon
-ExecStartPre=-/usr/bin/podman rm anytype-daemon
-ExecStart=/usr/bin/podman run --name anytype-daemon \
-  --rm \
+Environment=ANYTYPE_IMAGE=localhost/anytype-daemon:latest
+ExecStartPre=-/usr/bin/podman rm -f anytype-daemon
+ExecStart=/usr/bin/podman run --rm --name anytype-daemon \
   --network host \
-  -v %h/.local/share/anytype-daemon/data:/data:Z \
-  -v %h/.local/share/anytype-daemon/dot-anytype:/root/.anytype:Z \
-  -v %h/.local/share/anytype-daemon/config:/root/.config/anytype:Z \
-  -v %h/.local/share/anytype-daemon/share:/root/.local/share/anytype:Z \
-  anytype-daemon:latest
+  -v %h/.local/share/anytype-mcp:/data:Z \
+  -v %h/.local/share/anytype:/root/.anytype:Z \
+  --restart unless-stopped \
+  ${ANYTYPE_IMAGE}
 ExecStop=/usr/bin/podman stop anytype-daemon
+Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=default.target

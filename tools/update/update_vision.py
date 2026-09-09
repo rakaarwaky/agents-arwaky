@@ -32,7 +32,7 @@ def main() -> int:
     print(">>> Updating vision-arwaky (XDG compliant)...")
 
     sys.path.insert(0, str(ROOT / "tools" / "lib"))
-    from git_update import update_submodule
+    from git_update import update_submodule, write_install_stamp
     update_submodule(ROOT, SRC_REL)
 
     if not SRC_DIR.exists():
@@ -43,6 +43,8 @@ def main() -> int:
     install_package(python_bin, SRC_DIR, TOOL_NAME)
     setup_xdg_directories(TOOL_NAME)
     setup_bin_links(python_bin, LAUNCHERS)
+
+    write_install_stamp(python_bin.parent.parent, TOOL_NAME, SRC_DIR)
 
     print("\n>>> Successfully updated vision-arwaky")
     print(f"    Venv: {python_bin.parent}")

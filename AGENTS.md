@@ -40,7 +40,7 @@ When executing or reasoning about this repository, **you must preserve these inv
 4. **Architecture Enforcement System (AES) Compliance:**
    - In-house agents (`internal/lint-arwaky`, `internal/vision-arwaky`, etc.) enforce the AES 7-layer architecture.
    - Every file must adhere to naming rules: `layer_concern_role.<ext>`.
-   - Linters and architecture checks can be triggered with `aa run lint --help` (or `lint-arwaky`) or via `internal/lint-arwaky`.
+   - Linters and architecture checks can be triggered with `aa tool run lint --help` (or `lint-arwaky`) or via `internal/lint-arwaky`.
 
 ---
 
@@ -125,16 +125,18 @@ The verification checks:
 | **Diagnose environment** | `aa doctor` |
 | **Check tool readiness** | `aa status` |
 | **Verify repository integrity** | `aa check` |
-| **List registered tools** | `aa list` |
+| **List registered tools** | `aa tool list` |
 | **List active MCP servers** | `aa mcp list` |
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
-| **Execute registered tool** | `aa run <tool-id> [args]` |
-| **Install tools (local native build)** | `aa install [tool]` |
-| **Uninstall tools** | `aa uninstall [tool\|--all]` |
+| **Execute registered tool** | `aa tool run <tool-id> [args]` |
+| **Install tools (local native build)** | `aa tool install [tool]` |
+| **Update tools** | `aa tool update [tool\|all]` |
+| **Uninstall tools** | `aa tool uninstall [tool\|--all]` |
 | **Manage Anytype daemon** | `aa anytype [start\|status\|auth-key\|space-join\|space-list]` |
 | **Reset submodules cleanly** | `aa submodules` |
 | **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) |
+| **Disconnect harnesses** | `aa disconnect <harness>` (or `aa disconnect --all`) |
 | **Clean build artifacts** | `aa clean` |
 | **Full factory reset** | `aa reset` |
 

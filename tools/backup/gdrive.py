@@ -251,14 +251,31 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     from googleapiclient.http import MediaIoBaseDownload  # type: ignore
+    import random as _random
     request = service.files().get_media(fileId=file_id)
     fh = io.FileIO(str(dest), "wb")
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while not done:
-        _, done = downloader.next_chunk()
-
-    fh.close()
+    try:
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while not done:
+            # R2: retry transient errors during chunk download
+            last_err = None
+            for attempt in range(1, 5):
+                try:
+                    _, done = downloader.next_chunk()
+                    last_err = None
+                    break
+                except Exception as exc:
+                    last_err = exc
+                    if not _is_transient(exc):
+                        raise
+                    if attempt < 4:
+                        wait = min(1.0 * (2 ** attempt) + _random.uniform(0, 1), 10)
+                        time.sleep(wait)
+            if last_err is not None:
+                raise last_err
+    finally:
+        fh.close()
     print(json.dumps({
         "status": "success",
         "file_id": file_id,

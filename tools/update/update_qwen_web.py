@@ -57,7 +57,7 @@ def main() -> int:
     print(">>> Updating qwen-web-arwaky (XDG compliant)...")
 
     sys.path.insert(0, str(ROOT / "tools" / "lib"))
-    from git_update import update_submodule
+    from git_update import update_submodule, write_install_stamp
     update_submodule(ROOT, SRC_REL)
 
     if not SRC_DIR.exists():
@@ -69,6 +69,8 @@ def main() -> int:
     install_playwright(python_bin)
     setup_xdg_directories()
     setup_bin_links(python_bin, LAUNCHERS)
+
+    write_install_stamp(python_bin.parent.parent, TOOL_NAME, SRC_DIR)
 
     print("\n>>> Successfully updated qwen-web-arwaky")
     print(f"    Venv: {python_bin.parent}")

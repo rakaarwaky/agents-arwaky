@@ -45,7 +45,7 @@ Before making changes, please review our core architectural rules:
 
 3. **Provision the environment:**
    ```bash
-   aa install
+   aa tool install
    ```
 
 4. **Verify installation:**
@@ -295,11 +295,11 @@ There is **no master build script** to update — installers are discovered auto
 
 ### Step 5: Verify Binary in `~/.local/bin/`
 
-After running `aa install my-cool-tool`, verify the launcher exists in `~/.local/bin/` and that the tool is registered:
+After running `aa tool install my-cool-tool`, verify the launcher exists in `~/.local/bin/` and that the tool is registered:
 
 ```bash
 ls -l ~/.local/bin/my-cool-tool-mcp
-aa list
+aa tool list
 ```
 
 ---
@@ -337,7 +337,7 @@ If your tool provides an MCP server (`isMcp: true`):
 Verify installation on the host:
 
 ```bash
-aa install my-cool-tool
+aa tool install my-cool-tool
 ```
 
 ---
@@ -362,10 +362,10 @@ Test the integration end-to-end:
 ```bash
 # Check presence in status and catalog
 aa status
-aa list
+aa tool list
 
 # Test execution
-aa run my-cool-tool --help
+aa tool run my-cool-tool --help
 
 # Verify MCP manifest
 aa mcp show
@@ -408,7 +408,7 @@ rm -f tools/install/install_my_cool_tool.py tools/uninstall/uninstall_my_cool_to
 ### Step 6: Uninstall & Clean Host State (If Installed)
 Purge any lingering binaries and share directories from the host:
 ```bash
-aa uninstall my-cool-tool
+aa tool uninstall my-cool-tool
 aa clean
 ```
 
@@ -456,12 +456,12 @@ To upgrade a vendor tool to a newer upstream release or commit:
 
 2. Test the build inside the container:
    ```bash
-   aa install <tool-name>
+   aa tool install <tool-name>
    ```
 
 3. Test execution:
    ```bash
-   aa run <tool-name> --help
+   aa tool run <tool-name> --help
    ```
 
 4. Update the pinned commit SHA in [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
