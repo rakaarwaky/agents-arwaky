@@ -46,6 +46,10 @@
       "id": "codegraph",
       "category": "vendor",
       "binary": "codegraph-mcp",
+      "mcpArgs": [
+        "serve",
+        "--mcp"
+      ],
       "isMcp": true,
       "description": "High-performance codebase intelligence & graph engine",
       "path": "vendor/codegraph"
@@ -72,6 +76,10 @@
       "alias": "mnemosyne-memory",
       "category": "vendor",
       "binary": "mnemosyne-mcp",
+      "mcpBinary": "mnemosyne-mcp",
+      "mcpArgs": [
+        "mcp"
+      ],
       "isMcp": true,
       "description": "Universal AI memory layer (SQLite, temporal graph, episodic recall)",
       "path": "vendor/mnemosyne"
@@ -81,6 +89,7 @@
       "alias": "va",
       "category": "internal",
       "binary": "vision-arwaky",
+      "mcpBinary": "vision-arwaky-mcp",
       "isMcp": true,
       "description": "Unified computer vision MCP (VLM, OCR, visual memory)",
       "path": "internal/vision-arwaky"
@@ -90,6 +99,7 @@
       "alias": "qwa",
       "category": "internal",
       "binary": "qwen-web-arwaky",
+      "mcpBinary": "qwen-web-mcp",
       "isMcp": true,
       "description": "Qwen AI Web Automation CLI & 1:1 MCP Server",
       "path": "internal/qwen-web-arwaky"
@@ -99,6 +109,7 @@
       "alias": "la",
       "category": "internal",
       "binary": "lint-arwaky",
+      "mcpBinary": "lint-arwaky-mcp",
       "isMcp": true,
       "description": "Architecture linter (AES rules) for Rust, Python, TypeScript",
       "path": "internal/lint-arwaky"
@@ -108,6 +119,7 @@
       "alias": "ba",
       "category": "internal",
       "binary": "blender-arwaky",
+      "mcpBinary": "blender-mcp",
       "isMcp": true,
       "description": "Headless 3D execution engine with automated test suites",
       "path": "internal/blender-arwaky"

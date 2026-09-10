@@ -23,6 +23,9 @@ LAUNCHERS = [
     ("mnemosyne", "mnemosyne"),
     ("mnemosyne-mcp", "mnemosyne"),
 ]
+# Keep in sync with tools/install/install_mnemosyne.py: MCP stdio server needs
+# the [mcp] optional-dependency group in the uv runtime.
+UV_ARGS = ["--extra", "mcp"]
 
 
 def run(cmd, cwd=None):
@@ -40,7 +43,7 @@ def main() -> int:
         return 1
 
     ensure_bin_home()
-    created = write_uv_launchers(SRC_REL, LAUNCHERS, root=ROOT)
+    created = write_uv_launchers(SRC_REL, LAUNCHERS, root=ROOT, uv_args=UV_ARGS)
     for p in created:
         print(f"  -> {p}")
     print(">>> Successfully updated mnemosyne")

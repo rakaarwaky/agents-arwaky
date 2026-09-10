@@ -12,7 +12,7 @@ ROOT = repo_root()
 sys.path.insert(0, str(ROOT / "tools" / "lib"))
 
 from launcher_writer import write_uv_launchers
-from xdg import ensure_bin_home
+from xdg import bin_home, ensure_bin_home
 
 SRC_REL = "vendor/mnemosyne"
 SRC_DIR = ROOT / SRC_REL
@@ -20,6 +20,9 @@ LAUNCHERS = [
     ("mnemosyne", "mnemosyne"),
     ("mnemosyne-mcp", "mnemosyne"),
 ]
+# The MCP stdio server lives in the [mcp] optional-dependency group; uv run
+# without it dies with "MCP not installed" (mnemosyne.mcp_server ImportError).
+UV_ARGS = ["--extra", "mcp"]
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 def is_installed() -> bool:
@@ -40,7 +43,7 @@ def main() -> int:
         return 1
 
     ensure_bin_home()
-    created = write_uv_launchers(SRC_REL, LAUNCHERS, root=ROOT)
+    created = write_uv_launchers(SRC_REL, LAUNCHERS, root=ROOT, uv_args=UV_ARGS)
     for p in created:
         print(f"  -> {p}")
     print(">>> Successfully installed mnemosyne")

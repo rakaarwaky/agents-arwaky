@@ -261,7 +261,8 @@ def cmd_exec_anytype(args):
 
 
 def cmd_auth_create(name="agent"):
-    return cmd_exec_anytype(["account", "create", "--name", name])
+    # anytype-cli >=0.3: 'auth create <name>' (was 'account create --name')
+    return cmd_exec_anytype(["auth", "create", name])
 
 
 def cmd_auth_key(name="arwaky-agent-key"):
@@ -269,13 +270,13 @@ def cmd_auth_key(name="arwaky-agent-key"):
     if has_podman() and container_running():
         result = subprocess.run(  # noqa: S603
             ["podman", "exec", CONTAINER_NAME, "anytype",
-             "account", "api-key", "create", "--name", name],
+             "auth", "apikey", "create", name],
             capture_output=True, text=True, check=False,
         )
     elif (LOCAL_BIN / "anytype").exists():
         result = subprocess.run(  # noqa: S603
-            [str(LOCAL_BIN / "anytype"), "account", "api-key",
-             "create", "--name", name],
+            [str(LOCAL_BIN / "anytype"), "auth", "apikey",
+             "create", name],
             capture_output=True, text=True, check=False,
         )
     else:

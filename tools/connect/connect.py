@@ -56,6 +56,36 @@ for _mod in (_register_antigravity, _register_hermes, _register_opencode, _regis
 ALL_HARNESS_IDS = tuple(HARNESSES.keys())
 
 
+def _parse_targets(args):
+    """Parse CLI args into (harness_id_list, unknown_or_None).
+
+    Recognizes: --all, --<harness_id>, --<alias>, or bare harness names.
+    Returns ("help", None) if --help is in args.
+    """
+    if "help" in args or "--help" in args:
+        return [], "help"
+    targets = []
+    unknown = None
+    for a in args:
+        if a in ("--all", "all"):
+            targets.extend(ALL_HARNESS_IDS)
+        elif a.startswith("--"):
+            name = a[2:]
+            if name in HARNESSES:
+                targets.append(name)
+            elif name in ALIASES:
+                targets.append(ALIASES[name])
+            else:
+                unknown = a
+                break
+        elif a in HARNESSES:
+            targets.append(a)
+        elif a in ALIASES:
+            targets.append(ALIASES[a])
+        else:
+            unknown = a
+            break
+    return targets, unknown
 
 
 def cmd_disconnect(args):

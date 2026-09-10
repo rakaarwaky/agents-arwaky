@@ -18,20 +18,24 @@ def write_uv_launchers(
     src_rel: str,
     launchers: list[tuple[str, str]],
     root: Path | None = None,
+    uv_args: list[str] | None = None,
 ) -> list[Path]:
     """Write uv-run launchers for a Python tool.
 
     Args:
         src_rel: Relative path from repo root to tool source (e.g. "internal/vision-arwaky").
         launchers: List of (launcher_name, entry_command) tuples.
-            Each launcher runs: uv run --directory <src_rel> <entry_command>
+            Each launcher runs: uv run <uv_args> --directory <src_rel> <entry_command>
         root: Override repo root (default: resolved from this file's location).
+        uv_args: Extra uv flags inserted before --directory, e.g. ["--extra", "mcp"]
+            to materialize optional dependency groups in the runtime venv.
 
     Returns:
         List of created launcher paths.
     """
     ensure_bin_home()
     baked_root = str(root) if root is not None else str(repo_root())
+    extra = "".join(repr(a) + ", " for a in (uv_args or []))
     created = []
     for name, entry in launchers:
         target = bin_home() / name
@@ -40,7 +44,7 @@ def write_uv_launchers(
             "import os, sys\n"
             "from pathlib import Path\n"
             f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(baked_root)}))\n'
-            f'os.execvpe("uv", ["uv", "run", "--directory", str(root / "{src_rel}"), '
+            f'os.execvpe("uv", ["uv", "run", {extra}"--directory", str(root / "{src_rel}"), '
             f'"{entry}", *sys.argv[1:]], os.environ.copy())\n'
         )
         atomic_write_text(target, content)

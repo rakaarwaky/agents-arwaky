@@ -45,22 +45,21 @@ def main() -> int:
         if not tool.get("isMcp", False):
             continue
         tool_id = tool["id"]
-        binary = tool["binary"]
+        # An MCP server often exposes a dedicated stdio binary that differs
+        # from the CLI binary (e.g. vision-arwaky -> vision-arwaky-mcp).
+        binary = tool.get("mcpBinary") or tool["binary"]
+        entry: dict = {"command": binary}
+        if tool.get("mcpArgs"):
+            entry["args"] = list(tool["mcpArgs"])
         if tool_id == "anytype":
-            config["mcpServers"]["anytype"] = {
-                "command": binary,
-                "env": {
-                    "ANYTYPE_API_BASE_URL": anytype_base,
-                    "OPENAPI_MCP_HEADERS": json.dumps(
-                        {"Authorization": f"Bearer {anytype_key}", "Anytype-Version": "2025-11-08"},
-                        ensure_ascii=False,
-                    ),
-                },
+            entry["env"] = {
+                "ANYTYPE_API_BASE_URL": anytype_base,
+                "OPENAPI_MCP_HEADERS": json.dumps(
+                    {"Authorization": f"Bearer {anytype_key}", "Anytype-Version": "2025-11-08"},
+                    ensure_ascii=False,
+                ),
             }
-        elif tool_id == "codegraph":
-            config["mcpServers"]["codegraph"] = {"command": binary, "args": ["serve", "--mcp"]}
-        else:
-            config["mcpServers"][tool_id] = {"command": binary}
+        config["mcpServers"][tool_id] = entry
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     try:

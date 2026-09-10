@@ -263,6 +263,15 @@ def inject_9router_env(target, dry_run=False):
         return
     pairs = {"NINEROUTER_URL": url, "NINEROUTER_KEY": key}
     m_pairs = {"MNEMOSYNE_DATA_DIR": str(data_home() / "mnemosyne")}
+    # systemd user-session layer wins over harness .env files: some harnesses
+    # (Qwen Code) read dotenv WITHOUT overriding already-exported vars, so a
+    # stale key here shadows every correct key injected below. Keep it in sync.
+    synced_session = False
+    if not dry_run:
+        envd = config_home() / "environment.d/9router.conf"
+        if envd.is_file():
+            engine_set_env(envd, pairs)
+            synced_session = True
     envs = []
     if target == "antigravity":
         envs = [HOME / ".gemini/config/.env"]
@@ -287,6 +296,8 @@ def inject_9router_env(target, dry_run=False):
             engine_set_env(e, pairs)
             engine_set_env(e, m_pairs)
         log_ok(f"Injected NINEROUTER_URL/KEY + MNEMOSYNE_DATA_DIR into {target} environment.")
+        if synced_session:
+            log_ok("Synced ~/.config/environment.d/9router.conf (login-session key layer).")
     else:
         log_sub(f"[DRY-RUN] Would inject env into {target}")
 
