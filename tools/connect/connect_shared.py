@@ -326,5 +326,5 @@ def default_servers_dict():
         "blender": {"command": "blender-mcp"},
         "lint": {"command": "lint-arwaky-mcp"},
         "workspace": {"command": "workspace-mcp"},
-        "mnemosyne": {"command": "mnemosyne-mcp"},
+        "mnemosyne": {"command": "mnemosyne-mcp", "args": ["mcp"]},
     }
