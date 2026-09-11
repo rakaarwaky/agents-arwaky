@@ -21,7 +21,7 @@ ENV_TARGET = "hermes"
 
 
 def connect(force, dry_run, mcp_only, skills_only, env_only):
-    log_header("Connecting to Hermes Agent (Main & Multi-Profiles)...")
+    log_header("Connecting to Hermes Agent (MCP & env: all profiles · Skills: default only)...")
     h = hermes_home()
     servers = load_generated_servers()
     if not skills_only and not env_only:
@@ -34,9 +34,13 @@ def connect(force, dry_run, mcp_only, skills_only, env_only):
             engine_merge_mcp(target_dir / "config.yaml", servers, force)
             log_ok(f"Hermes MCP servers configured in {target_dir / 'config.yaml'}")
     if not mcp_only and not env_only:
-        for label, target_dir in hermes_targets(h):
-            for sf in get_all_skill_files():
-                copy_skill_to_dir(sf, target_dir / "skills", force, dry_run)
+        # Skills are provisioned ONLY into the main/default profile (~/.hermes/skills).
+        # Named profiles under ~/.hermes/profiles/* are task-specific specialists and
+        # must not carry the generalist skill pack. New profiles therefore never
+        # receive skills from `aa connect`.
+        log_sub(f"Target Skills: {h / 'skills'} (default profile only)")
+        for sf in get_all_skill_files():
+            copy_skill_to_dir(sf, h / "skills", force, dry_run)
     if env_only or (not mcp_only and not skills_only):
         inject_9router_env(ENV_TARGET, dry_run)
     log_ok("Hermes connect complete.")

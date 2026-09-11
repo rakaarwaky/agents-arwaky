@@ -10,7 +10,7 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 **`agents-arwaky`** solves this through a **Local Bare-Metal Architecture**:
 
 - ⚡ **Direct Host Execution:** Compilers, dependencies, and runtimes are installed natively on the host. Tools compile to host-native binaries in `~/.local/bin/` via standard Linux XDG integration. Run tools from your host terminal directly.
-- 🤖 **Universal MCP Hub & Skills Provisioner:** Out-of-the-box integration for AI harnesses (Google Antigravity, Hermes Agent with full multi-profile sync, OpenCode, Cursor, Zed) via declarative MCP configs and automated skill provisioning.
+- 🤖 **Universal MCP Hub & Skills Provisioner:** Out-of-the-box integration for AI harnesses (Google Antigravity, Hermes Agent with multi-profile MCP/env sync and default-profile-only skill provisioning, OpenCode, Cursor, Zed) via declarative MCP configs and automated skill provisioning.
 - 🎯 **Unified Orchestration (`agents-arwaky` / `aa` CLI):** One single control point for diagnostics, health checks, execution dispatching, and build pipelines.
 - 🐳 **Daemon-only Containerization:** Only background daemons (9Router, Anytype) run in Podman containers. CLI tools and MCPs are host-native.
 
@@ -359,7 +359,7 @@ Instead of manually copying configurations, use `aa connect` to automatically in
 ```bash
 # Connect to specific harness
 aa connect --antigravity      # Google Antigravity (~/.gemini/antigravity-cli/mcp_config.json & skills/)
-aa connect --hermes           # Hermes Agent (Main profile + auto-detects all multi-profiles)
+aa connect --hermes           # Hermes Agent (MCP & env: all profiles · Skills: default profile only)
 aa connect --opencode         # OpenCode (~/.config/opencode/opencode.jsonc & skills/)
 aa connect --qwencode         # Qwen Code (~/.qwen/settings.json & skills/)
 
