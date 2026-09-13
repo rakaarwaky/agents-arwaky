@@ -91,3 +91,13 @@ tools/config/*.providers.json
 /skills/.curator_state
 /skills/.bundled_manifest
 /skills/skills-lock.json
+
+# Loader alias-indexes: Hermes indexes hyphen names from the underscore pack
+# dirs THROUGH the harness root link (anytype_mcp -> anytype-mcp). Generated
+# noise, regenerates locally; the underscore dir is the tracked canonical.
+/skills/anytype-daemon/
+/skills/anytype-mcp/
+/skills/fetch-mcp/
+/skills/google-workspace-mcp/
+/skills/lint-arwaky/
+/skills/skill-manager/
