@@ -7,6 +7,7 @@ writes back to the single source of truth, and removal only ever drops the
 link — never the pack.
 """
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -23,8 +24,11 @@ SKILL_BODY = "---\nname: {name}\ndescription: test skill\n---\n\nbody\n"
 
 @pytest.fixture
 def pack(tmp_path):
-    """A fake repo pack: <root>/skills/<cat-name>/SKILL.md (+ assets)."""
-    src = tmp_path / "pack" / "demo-skill"
+    """A fake repo layout mirroring agents-arwaky: <tmp>/skills/demo-skill/
+    SKILL.md (+ assets) as the pack, and <tmp>/harness/skills as the dest.
+    REPO_ROOT is patched to <tmp> so the pack-root guard behaves exactly like
+    the real tree."""
+    src = tmp_path / "skills" / "demo-skill"
     src.mkdir(parents=True)
     (src / "SKILL.md").write_text(SKILL_BODY.format(name="demo-skill"))
     (src / "references").mkdir()
@@ -143,6 +147,138 @@ class TestRemoveProvisioned:
         connect_shared.provision_skill_to_dir(src / "SKILL.md", dest_base)
         assert connect_shared.remove_provisioned_skills(dest_base, dry_run=True) == 1
         assert (dest_base / "demo-skill").is_symlink()
+
+
+# ---------------------------------------------------------------------------
+# connect_shared.link_skills_root  (whole-folder symlink: one place to manage)
+# ---------------------------------------------------------------------------
+class TestLinkSkillsRoot:
+    def test_links_when_absent(self, pack, monkeypatch):
+        import connect_shared
+        src, _ = pack
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        dest = src.parents[1] / "harness" / "skills-root-missing"
+        assert connect_shared.link_skills_root(dest, src.parents[0]) is True
+        assert dest.is_symlink() and dest.resolve() == src.parents[0].resolve()
+
+    def test_non_empty_abort_without_force(self, pack, monkeypatch):
+        import connect_shared
+        src, dest_base = pack
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        (dest_base / "native-skill").mkdir()
+        (dest_base / "native-skill" / "SKILL.md").write_text("mine")
+        assert connect_shared.link_skills_root(dest_base, src.parent, force=False) is False
+        assert (dest_base / "native-skill" / "SKILL.md").is_file()  # untouched
+        assert not dest_base.is_symlink()
+
+    def test_force_migrates_leftovers_into_pack(self, pack, monkeypatch):
+        import connect_shared
+        src, dest_base = pack
+        pack_root = src.parent
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        native = dest_base / "native-skill"
+        native.mkdir()
+        (native / "SKILL.md").write_text("mine")
+        assert connect_shared.link_skills_root(dest_base, pack_root, force=True) is True
+        assert dest_base.is_symlink()
+        assert dest_base.resolve() == pack_root.resolve()
+        # leftover moved into the pack and visible THROUGH the link
+        assert (pack_root / "native-skill" / "SKILL.md").read_text() == "mine"
+        assert (dest_base / "native-skill" / "SKILL.md").is_file()
+
+    def test_stale_per_skill_links_are_unlinked(self, pack, monkeypatch):
+        import connect_shared
+        src, dest_base = pack
+        pack_root = src.parent
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        os.symlink(src, dest_base / "demo-skill", target_is_directory=True)
+        assert connect_shared.link_skills_root(dest_base, pack_root, force=True) is True
+        assert dest_base.is_symlink()
+        assert (src / "SKILL.md").is_file()  # old per-skill link source intact
+
+    def test_idempotent(self, pack, monkeypatch):
+        import connect_shared
+        src, dest_base = pack
+        pack_root = src.parent
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        dest_base.rmdir()
+        assert connect_shared.link_skills_root(dest_base, pack_root) is True
+        assert connect_shared.link_skills_root(dest_base, pack_root) is False
+
+    def test_disconnect_unlinks_root_keeps_pack(self, pack, monkeypatch):
+        import connect_shared
+        src, dest_base = pack
+        pack_root = src.parent
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        dest_base.rmdir()
+        connect_shared.link_skills_root(dest_base, pack_root)
+        removed = connect_shared.remove_provisioned_skills(dest_base)
+        assert removed == 1
+        assert not dest_base.is_symlink()
+        assert dest_base.is_dir() and not any(dest_base.iterdir())
+        assert (src / "SKILL.md").is_file()
+
+    def test_stale_identical_copy_is_discarded(self, pack, monkeypatch):
+        """Copy-mode era snapshot still byte-identical to the pack: the copy
+        is dropped and the pack source serves through the root link."""
+        import connect_shared
+        src, dest_base = pack
+        pack_root = src.parent
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        stale = dest_base / "demo-skill"
+        stale.mkdir()
+        shutil.copy2(src / "SKILL.md", stale / "SKILL.md")
+        (stale / "references").mkdir()
+        shutil.copy2(src / "references" / "api.md", stale / "references" / "api.md")
+        assert connect_shared.link_skills_root(dest_base, pack_root, force=True) is True
+        assert not (pack_root / "demo-skill.harness-1").exists()
+        assert (dest_base / "demo-skill" / "references" / "api.md").read_text() == "ref"
+
+    def test_divergent_copy_is_stashed_not_clobbering(self, pack, monkeypatch):
+        """Harness-side edit: never overwrite the pack, stash for review."""
+        import connect_shared
+        src, dest_base = pack
+        pack_root = src.parent
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        stale = dest_base / "demo-skill"
+        stale.mkdir()
+        (stale / "SKILL.md").write_text("LOCAL-EDIT")
+        assert connect_shared.link_skills_root(dest_base, pack_root, force=True) is True
+        assert (pack_root / "demo-skill" / "SKILL.md").read_text() == \
+            SKILL_BODY.format(name="demo-skill")  # pack untouched
+        assert (pack_root / "demo-skill.harness-1" / "SKILL.md").read_text() == "LOCAL-EDIT"
+
+    def test_state_dir_collision_merges_not_renames(self, pack, monkeypatch):
+        """.hub twin in the pack: harness copy wins per-file, no .harness-1 junk."""
+        import connect_shared
+        src, dest_base = pack
+        pack_root = src.parent
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        (pack_root / ".hub").mkdir()
+        (pack_root / ".hub" / "taps.json").write_text("pack-empty")
+        (pack_root / ".hub" / "quarantine").mkdir()
+        h_state = dest_base / ".hub"
+        h_state.mkdir()
+        (h_state / "taps.json").write_text("harness-live")
+        (h_state / "index-cache").mkdir()
+        (h_state / "index-cache" / "idx.json").write_text("cache")
+        assert connect_shared.link_skills_root(dest_base, pack_root, force=True) is True
+        assert dest_base.is_symlink()
+        assert not (pack_root / ".hub.harness-1").exists()
+        assert (pack_root / ".hub" / "taps.json").read_text() == "harness-live"
+        assert (pack_root / ".hub" / "index-cache" / "idx.json").is_file()
+        assert (pack_root / ".hub" / "quarantine").is_dir()  # pack-only kept
+
+    def test_per_skill_ops_blocked_on_linked_root(self, pack, monkeypatch):
+        """Provisioning/removing INTO a linked root must not rmtree pack dirs."""
+        import connect_shared
+        src, dest_base = pack
+        pack_root = src.parent
+        monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
+        dest_base.rmdir()
+        connect_shared.link_skills_root(dest_base, pack_root)
+        assert connect_shared.provision_skill_to_dir(src / "SKILL.md", dest_base) is False
+        assert src.is_dir()  # pack source survived the blocked attempt
 
 
 # ---------------------------------------------------------------------------

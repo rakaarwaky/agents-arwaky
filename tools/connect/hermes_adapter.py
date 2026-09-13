@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 from connect_shared import (  # type: ignore[import-not-found]
+    REPO_ROOT,
     provision_skill_to_dir,
     resolve_skill_link,
+    link_skills_root,
     disconnect_hermes_instance,
     engine_merge_mcp,
     get_all_skill_files,
@@ -37,15 +39,26 @@ def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
             engine_merge_mcp(target_dir / "config.yaml", servers, force)
             log_ok(f"Hermes MCP servers configured in {target_dir / 'config.yaml'}")
     if not mcp_only and not env_only:
-        # Skills are provisioned ONLY into the main/default profile (~/.hermes/skills).
-        # Named profiles under ~/.hermes/profiles/* are task-specific specialists and
-        # must not carry the generalist skill pack. New profiles therefore never
-        # receive skills from `aa connect`.
+        # Skills: the harness skills ROOT becomes a symlink to the pack, so
+        # managing skills happens in exactly one place (agents-arwaky/skills/)
+        # and every linked harness sees additions/removals/edits instantly.
+        # Per-skill linking is the fallback for --copy-skills=False harnesses
+        # that we do not root-link. Hermes profile skills live under the root
+        # link only for the DEFAULT profile; named profiles stay curated copies
+        # (Raka's rule) and are untouched here.
         link = resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills)
-        log_sub(f"Target Skills: {h / 'skills'} (default profile only, "
-                f"{'symlinked to the repo pack' if link else 'copied'})")
-        for sf in get_all_skill_files():
-            provision_skill_to_dir(sf, h / "skills", force, dry_run, link=link)
+        skills_root = h / "skills"
+        if link:
+            log_sub(f"Target Skills: {skills_root} -> {REPO_ROOT / 'skills'} "
+                    f"(whole-root symlink; manage the pack once)")
+            link_skills_root(skills_root, REPO_ROOT / "skills", force, dry_run)
+        else:
+            # Skills are provisioned ONLY into the main/default profile.
+            # Named profiles under ~/.hermes/profiles/* are task-specific
+            # specialists and must not carry the generalist skill pack.
+            log_sub(f"Target Skills: {skills_root} (default profile only, copied)")
+            for sf in get_all_skill_files():
+                provision_skill_to_dir(sf, skills_root, force, dry_run, link=False)
     if env_only or (not mcp_only and not skills_only):
         inject_9router_env(ENV_TARGET, dry_run)
     log_ok("Hermes connect complete.")

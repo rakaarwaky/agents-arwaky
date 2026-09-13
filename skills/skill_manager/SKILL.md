@@ -36,14 +36,21 @@ Two provisioning paths, deliberately different:
   else's clone (and becomes plain text on Windows with `core.symlinks=false`).
   Refresh a copy from the pack with `--force`. `--link` exists for local,
   uncommitted workspaces that want live pack tracking — do not commit it.
-- **`aa connect <harness>` → harness skills dir: SYMLINKS the skill directory
-  to the pack (`skills/<name>/`) by default.** Self-improving agents (Hermes,
-  Qwen Code) then edit *through* the link, so a skill improvement lands in the
-  repo and every linked harness shares it on next read; `aa update`/`git pull`
-  propagates pack changes with zero re-provisioning. Only harnesses verified to
-  follow skill symlinks are linked (per-adapter `SKILL_LINK_VERIFIED`); others
-  keep copies. Escape hatches: `--copy-skills` forces copies everywhere, and
-  `aa disconnect` unlinks without touching the pack source.
+- **`aa connect <harness>` → harness skills dir: the WHOLE folder becomes ONE
+  SYMLINK to the pack (`<harness>/skills -> agents-arwaky/skills`).** There is
+  no per-skill provisioning step at all: add, remove, or edit a skill anywhere
+  in the pack and every linked harness sees it instantly — self-improving
+  agents (Hermes, Qwen Code) edit *through* the link, so their updates land in
+  the repo and all harnesses share them; `aa update`/`git pull` propagates
+  pack changes with zero re-provisioning. Harness runtimes that write state
+  beside their skills (`.hub`, `.usage.json`, curator files, `skills-lock.json`)
+  keep working because the state now lives in the pack — `.gitignore` keeps it
+  out of history. Only harnesses verified to follow the root symlink are
+  linked (per-adapter `SKILL_LINK_VERIFIED`); others fall back to copies.
+  `aa connect --force` migrates an existing skills dir by MOVING leftovers
+  into the pack (never deleting); `--copy-skills` forces copies everywhere;
+  `aa disconnect` unlinks the root (restores an empty real dir) and never
+  touches pack sources.
 
 ## Workspace Target Layout
 

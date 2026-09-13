@@ -20,7 +20,14 @@ from connect_shared import (  # type: ignore[import-not-found]
 HARNESS_ID = "antigravity"
 ALIASES = ("--antigravity", "antigravity", "agy")
 ENV_TARGET = "antigravity"
-# Symlink provisioning gate: CLI not installed on this host; keep copies until a symlink-discovery probe passes.
+# Symlink provisioning gate: NOT yet verified. agy (v1.2.2) exists on this
+# host, but its skill-discovery probe needs an LLM turn (--print) and the
+# account quota is exhausted (429 on 2026-09-13, resets ~7 days out), so we
+# have no evidence agy follows ROOT or per-skill symlinks — keep copies.
+# The adapter mirrors the canonical ~/.gemini/config/skills into
+# ~/.gemini/antigravity{,-cli}/skills via links (pre-existing design); after
+# a clean probe, flip this to True for whole-root provisioning like
+# hermes/qwencode/opencode.
 SKILL_LINK_VERIFIED = False
 
 

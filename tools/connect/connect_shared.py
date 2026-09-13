@@ -135,9 +135,35 @@ def get_all_skill_files():
     return tuple(result)
 
 
+def _skills_root_link_guard(dest_base: Path, action: str) -> bool:
+    """True (and logs) when dest_base IS the linked skills root.
+
+    With the root linked to the pack, per-skill provisioning/removal under it
+    would operate directly on the pack sources — rmtree there deletes real
+    skill packs. Manage the root with link_skills_root / disconnect instead.
+    """
+    pack_root = (REPO_ROOT / "skills").resolve()
+    try:
+        linked = dest_base.is_symlink() and dest_base.resolve() == pack_root
+    except OSError:
+        linked = False
+    if linked:
+        log_warn(f"Skills root {dest_base} is linked to the pack; "
+                 f"per-skill {action} skipped — edit the pack itself.")
+    return linked
+
+
 def remove_provisioned_skills(dest_base: Path, dry_run: bool = False):
     if not dest_base.is_dir():
         return 0
+    if _skills_root_link_guard(dest_base, "removal"):
+        # disconnect of a root-linked harness: drop the link, restore an empty
+        # real dir so the harness starts clean, keep the pack untouched.
+        if not dry_run:
+            dest_base.unlink()
+            dest_base.mkdir(parents=True, exist_ok=True)
+            log_ok(f"Unlinked skills root {dest_base} (pack left intact)")
+        return 1
     removed = 0
     for sf in get_all_skill_files():
         name = safe_skill_name(sf)
@@ -211,6 +237,122 @@ def resolve_skill_link(verified: bool, copy_skills: bool) -> bool:
     return verified and not copy_skills
 
 
+def merge_dir_into(src: Path, dest: Path) -> int:
+    """Union-move every entry of src into dest; src (the live harness copy)
+    wins on same-name files. Returns the number of moved entries. Used when a
+    harness state dir (.hub) already has an empty/older twin in the pack."""
+    moved = 0
+    for child in sorted(src.iterdir()):
+        target = dest / child.name
+        if child.is_dir():
+            if target.exists() and not target.is_dir():
+                target.unlink()
+            target.mkdir(parents=True, exist_ok=True)
+            moved += merge_dir_into(child, target)
+            if not any(child.iterdir()):
+                child.rmdir()
+        else:
+            if target.is_file():
+                target.unlink()
+            shutil.move(str(child), str(target))
+            moved += 1
+    return moved
+
+
+def link_skills_root(dest_root: Path, src_root: Path, force=False, dry_run=False):
+    """Replace a harness's whole skills directory with ONE symlink to the pack.
+
+    The harness's skills dir becomes ``<pack>/skills`` itself, so adding,
+    removing or editing a skill in the pack is instantly visible to every
+    linked harness — no re-provision step at all. This is the strongest form
+    of the self-improvement loop: the pack is the single place to manage.
+
+    Migration safety (``force``): leftover real children in the old dir are
+    MOVED into the pack, never deleted — an identical per-skill symlink (old
+    layout) is just unlinked. Without ``force`` a non-empty dir aborts loudly.
+    State files (.hub, .usage.json, .curator_*, .bundled_manifest) travel with
+    the skills root because the harnesses write runtime state next to their
+    skills; .gitignore keeps them out of the pack's history.
+    """
+    if dest_root.is_symlink():
+        if dest_root.resolve() == src_root.resolve():
+            log_skip(f"Skills root already linked: {dest_root} -> {src_root}")
+            return False
+        if not force:
+            log_err(f"Skills root {dest_root} links to {dest_root.resolve()}, "
+                    f"not the pack. Use --force to replace it.")
+            return False
+        if dry_run:
+            log_sub(f"[DRY-RUN] Would relink skills root {dest_root} -> {src_root}")
+            return True
+        dest_root.unlink()
+    elif dest_root.is_dir():
+        leftovers = []
+        stale_links = []
+        for child in sorted(dest_root.iterdir()):
+            if child.is_symlink():
+                try:
+                    if child.resolve().is_relative_to(src_root):
+                        stale_links.append(child)
+                        continue
+                except OSError:
+                    pass
+                leftovers.append(child)
+            else:
+                leftovers.append(child)
+        if leftovers and not force:
+            log_warn(f"{dest_root} holds {len(leftovers)} item(s) not in the pack "
+                     f"(harness-native skills / state). Nothing was touched. "
+                     f"Re-run with --force to MOVE them into {src_root} first.")
+            for c in leftovers[:8]:
+                log_sub(f"  would move: {c.name}")
+            if len(leftovers) > 8:
+                log_sub(f"  ... and {len(leftovers) - 8} more")
+            return False
+        if dry_run:
+            log_sub(f"[DRY-RUN] Would move {len(leftovers)} item(s) into {src_root}, "
+                    f"unlink {len(stale_links)} old link(s), then link "
+                    f"{dest_root} -> {src_root}")
+            return True
+        src_root.mkdir(parents=True, exist_ok=True)
+        for child in leftovers:
+            target = src_root / child.name
+            if target.exists():
+                if child.is_dir() and target.is_dir():
+                    if child.name.startswith("."):
+                        # state dir (.hub): harness copy is the LIVE one —
+                        # union-merge it into the pack so state keeps working.
+                        merge_dir_into(child, target)
+                        shutil.rmtree(child, ignore_errors=True)
+                        continue
+                    if _copy_matches_pack(child, target):
+                        shutil.rmtree(child)  # pure snapshot; pack is newer
+                        continue
+                if target.exists():
+                    # a real skill diverged (agent edited it in copy-mode) or
+                    # a file collision: never clobber the pack — stash to
+                    # review instead of overwriting.
+                    stamp = 1
+                    while (src_root / f"{child.name}.harness-{stamp}").exists():
+                        stamp += 1
+                    target = src_root / f"{child.name}.harness-{stamp}"
+                    log_warn(f"{child.name} differs from the pack; "
+                             f"stored as {target.name} for review")
+            shutil.move(str(child), str(target))
+        for link in stale_links:
+            link.unlink()
+        dest_root.rmdir()
+    else:
+        if dry_run:
+            log_sub(f"[DRY-RUN] Would link skills root {dest_root} -> {src_root}")
+            return True
+        dest_root.parent.mkdir(parents=True, exist_ok=True)
+    dest_root.symlink_to(src_root, target_is_directory=True)
+    log_ok(f"Skills root linked: {dest_root} -> {src_root} (manage skills once, "
+           f"in the pack)")
+    return True
+
+
 def provision_skill_to_dir(src, dest_base, force=False, dry_run=False, link=True):
     """Provision one skill (SKILL.md + companion assets) into a harness dir.
 
@@ -239,6 +381,8 @@ def provision_skill_to_dir(src, dest_base, force=False, dry_run=False, link=True
         return False
     src_dir = Path(src).parent
     dest_file = dest_dir / "SKILL.md"
+    if link and _skills_root_link_guard(dest_base, "provisioning"):
+        return False
 
     if dry_run:
         how = "link" if link else "copy"

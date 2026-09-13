@@ -10,6 +10,8 @@ from pathlib import Path
 from connect_shared import (  # type: ignore[import-not-found]
     HOME,
     PLACEHOLDER_KEYS,
+    REPO_ROOT,
+    link_skills_root,
     provision_skill_to_dir,
     resolve_skill_link,
     engine_merge_mcp,
@@ -148,8 +150,15 @@ def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
             engine_merge_mcp(settings_file, servers, force)
             log_ok(f"Qwen Code MCP servers configured in {settings_file}")
     if not mcp_only and not env_only:
-        for sf in get_all_skill_files():
-            provision_skill_to_dir(sf, skills_dir, force, dry_run, link=resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills))
+        link = resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills)
+        if link:
+            # whole skills root -> pack: one place to manage, all agents live
+            log_sub(f"Target Skills: {skills_dir} -> {REPO_ROOT / 'skills'} "
+                    f"(whole-root symlink; manage the pack once)")
+            link_skills_root(skills_dir, REPO_ROOT / "skills", force, dry_run)
+        else:
+            for sf in get_all_skill_files():
+                provision_skill_to_dir(sf, skills_dir, force, dry_run, link=False)
     if env_only or (not mcp_only and not skills_only):
         inject_9router_env(ENV_TARGET, dry_run)
         if settings_file.is_file():

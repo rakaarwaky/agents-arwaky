@@ -6,6 +6,8 @@ from pathlib import Path
 
 from connect_shared import (  # type: ignore[import-not-found]
     HOME,
+    REPO_ROOT,
+    link_skills_root,
     provision_skill_to_dir,
     resolve_skill_link,
     engine_merge_mcp,
@@ -24,10 +26,9 @@ HARNESS_ID = "opencode"
 ALIASES = ("--opencode", "opencode")
 ENV_TARGET = "opencode"
 # Symlink provisioning is only enabled for harnesses verified to follow
-# skill-dir symlinks (Hermes and Qwen Code were verified by probe on
-# 2026-09-13). opencode is not installed on this host, so it stays on copies
-# until a probe passes; flip this to True then.
-SKILL_LINK_VERIFIED = False
+# skill-dir symlinks. opencode was verified on 2026-09-13: `opencode debug
+# skill` lists the full pack THROUGH a root-level skills symlink.
+SKILL_LINK_VERIFIED = True
 
 
 def _cfg_dir() -> Path:
@@ -48,8 +49,15 @@ def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
             engine_merge_mcp(cfg_file, servers, force)
             log_ok(f"OpenCode MCP servers configured in {cfg_file}")
     if not mcp_only and not env_only:
-        for sf in get_all_skill_files():
-            provision_skill_to_dir(sf, skills_dir, force, dry_run, link=resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills))
+        link = resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills)
+        if link:
+            # whole skills root -> pack: manage skills once in the repo
+            log_sub(f"Target Skills: {skills_dir} -> {REPO_ROOT / 'skills'} "
+                    f"(whole-root symlink; manage the pack once)")
+            link_skills_root(skills_dir, REPO_ROOT / "skills", force, dry_run)
+        else:
+            for sf in get_all_skill_files():
+                provision_skill_to_dir(sf, skills_dir, force, dry_run, link=False)
     if env_only or (not mcp_only and not skills_only):
         inject_9router_env(ENV_TARGET, dry_run)
     log_ok("OpenCode connect complete.")

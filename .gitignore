@@ -80,3 +80,14 @@ tools/config/*.providers.json
 
 # Large binary: diunduh saat install, bukan di-commit
 **/anytype-bin
+
+# Harness runtime state — the harness skills root is symlinked to ./skills,
+# so these live next to the pack but must never enter git.
+/skills/.hub/
+/skills/.usage.json
+/skills/.usage.json.lock
+/skills/.curator_backups/
+/skills/.curator_ledger.jsonl
+/skills/.curator_state
+/skills/.bundled_manifest
+/skills/skills-lock.json
