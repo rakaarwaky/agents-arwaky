@@ -35,6 +35,19 @@ def safe_skill_name(skill_md: Path) -> str:
     return sanitize_skill_name(extract_skill_name(skill_md), skill_md.parent.name)
 
 
+def safe_child(base: Path, name: str) -> Path:
+    """Lexical ``base / name`` for a provisioned skill dir.
+
+    Unlike ensure_under this never resolves symlinks: a destination that is
+    already a symlink into the skill pack resolves OUTSIDE the harness skills
+    dir, which would make every re-provision fail the containment check.
+    Traversal is blocked by rejecting anything but a single safe component.
+    """
+    if not name or name in (".", "..") or "/" in name or "\\" in name:
+        raise ValueError(f"Refusing unsafe skill name: {name!r}")
+    return base / name
+
+
 def ensure_under(base: Path, child: Path) -> Path:
     """Ensure child path stays inside base. Raises ValueError on traversal."""
     base_resolved = base.resolve()

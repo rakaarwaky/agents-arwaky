@@ -227,7 +227,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa doctor`                              | All-in-one ecosystem diagnostics (toolchains, daemons, MCP config, harnesses)                    | `aa doctor`                                    |
 | `aa tool <cmd> [args]`                   | Tool management: `list`, `run`, `install`, `update`, `uninstall`                                    | `aa tool install lint`                         |
 | `aa skill <cmd> [args]`                  | Skill management: `list`, `install`, `uninstall`, `show`, `check`                                   | `aa skill install --all`                       |
-| `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
+| `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses — skills link to `skills/` (shared self-improvement); `--copy-skills` snapshots instead (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
 | `aa disconnect [targets]`                | Disconnect harnesses (use `--all` to disconnect all)                                                | `aa disconnect --all`                          |
 | `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |

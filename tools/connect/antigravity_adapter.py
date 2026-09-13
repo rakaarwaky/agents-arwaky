@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from connect_shared import (  # type: ignore[import-not-found]
     HOME,
-    copy_skill_to_dir,
+    provision_skill_to_dir,
+    resolve_skill_link,
     engine_merge_mcp,
     get_all_skill_files,
     inject_9router_env,
@@ -19,9 +20,11 @@ from connect_shared import (  # type: ignore[import-not-found]
 HARNESS_ID = "antigravity"
 ALIASES = ("--antigravity", "antigravity", "agy")
 ENV_TARGET = "antigravity"
+# Symlink provisioning gate: CLI not installed on this host; keep copies until a symlink-discovery probe passes.
+SKILL_LINK_VERIFIED = False
 
 
-def connect(force, dry_run, mcp_only, skills_only, env_only):
+def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
     log_header("Connecting to Google Antigravity...")
     cfg_dir = HOME / ".gemini" / "config"
     mcp_file = cfg_dir / "mcp_config.json"
@@ -44,7 +47,7 @@ def connect(force, dry_run, mcp_only, skills_only, env_only):
             log_ok("Antigravity MCP servers configured.")
     if not mcp_only and not env_only:
         for sf in get_all_skill_files():
-            copy_skill_to_dir(sf, skills_dir, force, dry_run)
+            provision_skill_to_dir(sf, skills_dir, force, dry_run, link=resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills))
         for sub in ("antigravity-cli", "antigravity"):
             d = HOME / ".gemini" / sub
             if d.is_dir():

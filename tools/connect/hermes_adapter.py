@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from connect_shared import (  # type: ignore[import-not-found]
-    copy_skill_to_dir,
+    provision_skill_to_dir,
+    resolve_skill_link,
     disconnect_hermes_instance,
     engine_merge_mcp,
     get_all_skill_files,
@@ -18,9 +19,11 @@ from connect_shared import (  # type: ignore[import-not-found]
 HARNESS_ID = "hermes"
 ALIASES = ("--hermes", "hermes")
 ENV_TARGET = "hermes"
+# Symlink provisioning gate: Verified: Hermes walks skills with followlinks and its atomic writes land inside the linked dir.
+SKILL_LINK_VERIFIED = True
 
 
-def connect(force, dry_run, mcp_only, skills_only, env_only):
+def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
     log_header("Connecting to Hermes Agent (MCP & env: all profiles · Skills: default only)...")
     h = hermes_home()
     servers = load_generated_servers()
@@ -38,9 +41,11 @@ def connect(force, dry_run, mcp_only, skills_only, env_only):
         # Named profiles under ~/.hermes/profiles/* are task-specific specialists and
         # must not carry the generalist skill pack. New profiles therefore never
         # receive skills from `aa connect`.
-        log_sub(f"Target Skills: {h / 'skills'} (default profile only)")
+        link = resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills)
+        log_sub(f"Target Skills: {h / 'skills'} (default profile only, "
+                f"{'symlinked to the repo pack' if link else 'copied'})")
         for sf in get_all_skill_files():
-            copy_skill_to_dir(sf, h / "skills", force, dry_run)
+            provision_skill_to_dir(sf, h / "skills", force, dry_run, link=link)
     if env_only or (not mcp_only and not skills_only):
         inject_9router_env(ENV_TARGET, dry_run)
     log_ok("Hermes connect complete.")

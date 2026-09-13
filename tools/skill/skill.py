@@ -19,7 +19,7 @@ from pathlib import Path
 
 import sys as _sys
 _sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
-from skill_names import extract_skill_name, sanitize_skill_name, safe_skill_name, ensure_under  # noqa: E402
+from skill_names import extract_skill_name, sanitize_skill_name, safe_skill_name, safe_child, ensure_under  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
 from paths import repo_root
@@ -131,14 +131,28 @@ def resolve_single_skill_file(query):
     return None
 
 
-def copy_single_skill(source_file, target_dir, custom_dest="", force=False):
-    """Copy one SKILL.md into target workspace (with path containment)."""
+def provision_single_skill(source_file, target_dir, custom_dest="", force=False, link=False):
+    """Provision one skill into a PROJECT workspace as a copy of SKILL.md.
+
+    Copy is the default here on purpose: a project workspace gets committed and
+    pushed, and a symlink to the agents-arwaky checkout is meaningless anywhere
+    else — git stores it as mode 120000 with an absolute target, so a clone on
+    another machine (or Windows with core.symlinks=false) gets a dead link or a
+    plain text file containing a path. Use --link only for local, uncommitted
+    workspaces where live tracking of the pack is worth more than portability.
+
+    Harness provisioning (aa connect) does use links; see
+    connect_shared.provision_skill_to_dir.
+    """
     if not source_file.is_file():
         print(f"  \u2717 Error: Source file not found: {source_file}", file=sys.stderr)
         return False
     name = safe_skill_name(source_file)
+    src_dir = source_file.parent
     if custom_dest:
         if custom_dest.endswith(".md"):
+            # explicit single-file target: a directory link would not match
+            # what the user asked for, so this branch always copies
             dest = Path(custom_dest)
             dest.parent.mkdir(parents=True, exist_ok=True)
             try:
@@ -146,34 +160,90 @@ def copy_single_skill(source_file, target_dir, custom_dest="", force=False):
             except ValueError as exc:
                 print(f"  \u2717 {exc}", file=sys.stderr)
                 return False
-        else:
-            # user-supplied --dest dir is intentionally arbitrary; no containment
-            dest = Path(custom_dest) / name / "SKILL.md"
-            dest.parent.mkdir(parents=True, exist_ok=True)
-        if dest.exists() and not force:
-            print(f"  \u21b7 [SKIP] Already exists: {dest} (use --force to overwrite)")
+            if dest.exists() and not force:
+                print(f"  \u21b7 [SKIP] Already exists: {dest} (use --force to overwrite)")
+                return False
+            shutil.copy2(source_file, dest)
+            print(f"  \u2713 [OK] Provisioned: {dest}")
+            return True
+        dest_dir = Path(custom_dest) / name
+        base = Path(custom_dest)
+    else:
+        base = target_dir / ".agents" / "skills"
+        dest_dir = base / name
+    dest_file = dest_dir / "SKILL.md"
+
+    if link and dest_dir.is_symlink():
+        if dest_dir.resolve() == src_dir.resolve():
+            print(f"  \u21b7 [SKIP] Already linked: {dest_dir}")
             return False
-        shutil.copy2(source_file, dest)
-        print(f"  \u2713 [OK] Provisioned: {dest}")
+        if not force:
+            print(f"  \u21b7 [SKIP] {dest_dir} is a link to {dest_dir.resolve()} (use --force to replace)")
+            return False
+        dest_dir.unlink()
+
+    if link and dest_dir.resolve() == src_dir.resolve():
+        # linking the pack into itself would create a self-referential loop
+        print(f"  \u21b7 [SKIP] Target {dest_dir} is the pack source itself")
+        return False
+
+    if dest_dir.is_dir() and not dest_dir.is_symlink():
+        if not link:
+            if dest_file.exists() and not force:
+                print(f"  \u21b7 [SKIP] Already exists: {dest_file} (use --force to overwrite)")
+                return False
+        elif not _dir_is_empty(dest_dir) and not _copy_matches_pack(dest_dir, src_dir) and not force:
+            print(f"  \u26a0 {dest_dir} differs from the pack; left as a copy (not relinked). "
+                  f"Use --force to replace it with a link to the pack.")
+            return False
+        else:
+            shutil.rmtree(dest_dir)
+
+    if link:
+        base.mkdir(parents=True, exist_ok=True)
+        dest_dir.symlink_to(src_dir, target_is_directory=True)
+        try:
+            shown = src_dir.relative_to(REPO_ROOT)
+        except ValueError:
+            shown = src_dir
+        print(f"  \u2713 [OK] Linked: {dest_dir} -> {shown}")
         return True
-    skills_base = target_dir / ".agents" / "skills"
-    try:
-        dest_dir = ensure_under(skills_base, skills_base / name)
-    except ValueError as exc:
-        print(f"  \u2717 {exc}", file=sys.stderr)
-        return False
-    dest = dest_dir / "SKILL.md"
+
     dest_dir.mkdir(parents=True, exist_ok=True)
-    if dest.exists() and not force:
-        print(f"  \u21b7 [SKIP] Already exists: {dest}")
-        return False
-    shutil.copy2(source_file, dest)
-    print(f"  \u2713 [OK] Provisioned: {dest}")
+    shutil.copy2(source_file, dest_file)
+    print(f"  \u2713 [OK] Provisioned: {dest_file}")
     return True
+
+
+def _dir_is_empty(d: Path) -> bool:
+    try:
+        return not any(d.iterdir())
+    except OSError:
+        return False
+
+
+def _copy_matches_pack(dest_dir: Path, src_dir: Path) -> bool:
+    """True when a provisioned copy is still byte-identical to its pack source."""
+    for f in src_dir.rglob("*"):
+        if f.is_dir() or "__pycache__" in f.parts:
+            continue
+        peer = dest_dir / f.relative_to(src_dir)
+        if not peer.is_file() or peer.read_bytes() != f.read_bytes():
+            return False
+    return True
+
+
+# Backwards-compatible alias (older callers/shell scripts use copy_single_skill)
+def copy_single_skill(source_file, target_dir, custom_dest="", force=False, link=True):
+    return provision_single_skill(source_file, target_dir, custom_dest, force, link)
 
 # --- uninstall (unskill) --------------------------------------------------------
 def remove_single_skill(source_file, target_dir, custom_dest=""):
-    """Remove one provisioned skill (with path containment)."""
+    """Remove one provisioned skill (with path containment).
+
+    A linked skill is removed by unlinking the link only — the pack source
+    under skills/ is what the link points at and must survive.
+    """
     if not source_file.is_file():
         return False
     name = safe_skill_name(source_file)
@@ -187,24 +257,32 @@ def remove_single_skill(source_file, target_dir, custom_dest=""):
                 print(f"  \u21b7 [SKIP] Not found: {p}")
             return True
         d = Path(custom_dest) / name
-        if d.is_dir():
-            shutil.rmtree(d)
-            print(f"  \u2713 [OK] Removed: {d}")
-        else:
-            print(f"  \u21b7 [SKIP] Not found: {d}")
-        return True
+        return _remove_skill_dir(d)
     skills_base = target_dir / ".agents" / "skills"
     try:
         d = ensure_under(skills_base, skills_base / name)
-    except ValueError as exc:
-        print(f"  \u2717 {exc}", file=sys.stderr)
+    except ValueError:
+        # a provisioned link resolves back into the pack, which trips
+        # containment; fall back to the lexical path and remove the link
+        d = safe_child(skills_base, name)
+        if d.is_symlink():
+            return _remove_skill_dir(d)
+        print(f"  \u2717 Refusing path outside target directory: {d}", file=sys.stderr)
         return False
+    return _remove_skill_dir(d)
+
+
+def _remove_skill_dir(d: Path) -> bool:
+    if d.is_symlink():
+        d.unlink()
+        print(f"  \u2713 [OK] Unlinked: {d} (pack source intact)")
+        return True
     if d.is_dir():
         shutil.rmtree(d)
         print(f"  \u2713 [OK] Removed: {d}")
-    else:
-        print(f"  \u21b7 [SKIP] Not found: {d}")
-    return True
+        return True
+    print(f"  \u21b7 [SKIP] Not found: {d}")
+    return False
 
 
 def uninstall_tool_skills(tool_id, target_dir, custom_dest=""):
@@ -283,6 +361,7 @@ def cmd_install(argv):
     target_dir = Path.cwd()
     custom_dest = ""
     force = False
+    link = False
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -292,6 +371,10 @@ def cmd_install(argv):
             custom_dest = argv[i + 1]; i += 2; continue
         if a in ("--force", "-f"):
             force = True; i += 1; continue
+        if a in ("--copy", "--copy-skills"):
+            link = False; i += 1; continue
+        if a in ("--link", "--symlink"):
+            link = True; i += 1; continue
         if not target_name:
             target_name = a
         i += 1
@@ -306,7 +389,7 @@ def cmd_install(argv):
         total = 0
         for tid, _, _ in get_registered_tool_ids():
             for sf in get_tool_skills(tid):
-                if copy_single_skill(sf, target_dir, custom_dest, force):
+                if provision_single_skill(sf, target_dir, custom_dest, force, link):
                     total += 1
         print("------------------------------------------------------------------")
         print(f"\u2713 All {total} ecosystem skills provisioned successfully.")
@@ -323,7 +406,7 @@ def cmd_install(argv):
         print("------------------------------------------------------------------")
         ok = 0
         for sf in skills:
-            if copy_single_skill(sf, target_dir, custom_dest, force):
+            if provision_single_skill(sf, target_dir, custom_dest, force, link):
                 ok += 1
         print("------------------------------------------------------------------")
         print(f"\u2713 Successfully provisioned {ok} skill(s) for tool '{tid}'.")
@@ -332,7 +415,7 @@ def cmd_install(argv):
     sf = resolve_single_skill_file(target_name)
     if sf:
         print(f"Provisioning individual skill '{target_name}'...")
-        copy_single_skill(sf, target_dir, custom_dest, force)
+        provision_single_skill(sf, target_dir, custom_dest, force, link)
         return 0
 
     print(f"Error: Neither tool nor skill named '{target_name}' could be found.")
@@ -482,15 +565,23 @@ def cmd_list_help():
 
 
 def cmd_install_help():
-    print("Usage: aa skill install <tool|skill|all> [--target DIR] [--dest PATH] [--force]")
+    print("Usage: aa skill install <tool|skill|all> [--target DIR] [--dest PATH] [--force] [--link]")
     print()
     print("Install all skills for a tool, a specific skill, or all skills for all tools.")
     print()
+    print("Skills are COPIED into the project workspace: it is meant to be committed")
+    print("and pushed, and a symlink to the agents-arwaky checkout resolves to an")
+    print("absolute path that breaks in anyone else's clone (--force refreshes an")
+    print("existing copy from the pack). For harness-wide skill wiring that DOES")
+    print("share self-improvements via symlinks, use 'aa connect <harness>'.")
+    print()
     print("Options:")
-    print("  <tool|skill|all>  Target tool ID, skill name, or 'all' for everything")
-    print("  --target, -t DIR  Target workspace directory (default: current directory)")
-    print("  --dest, -d PATH   Custom destination path")
-    print("  --force, -f       Overwrite existing skills")
+    print("  <tool|skill|all>    Target tool ID, skill name, or 'all' for everything")
+    print("  --target, -t DIR    Target workspace directory (default: current directory)")
+    print("  --dest, -d PATH     Custom destination path")
+    print("  --force, -f         Overwrite existing skills")
+    print("  --link, --symlink   Symlink the skill dir to the pack (local only; do not commit)")
+    print("  --copy              Explicitly request copies (the default)")
     return 0
 
 

@@ -10,7 +10,8 @@ from pathlib import Path
 from connect_shared import (  # type: ignore[import-not-found]
     HOME,
     PLACEHOLDER_KEYS,
-    copy_skill_to_dir,
+    provision_skill_to_dir,
+    resolve_skill_link,
     engine_merge_mcp,
     get_9router_credentials,
     get_all_skill_files,
@@ -28,6 +29,8 @@ from connect_shared import (  # type: ignore[import-not-found]
 HARNESS_ID = "qwencode"
 ALIASES = ("--qwencode", "qwencode", "--qwen", "qwen", "qwen-code")
 ENV_TARGET = "qwencode"
+# Symlink provisioning gate: Verified by headless probe: qwen -p sees a symlinked skill dir in ~/.qwen/skills.
+SKILL_LINK_VERIFIED = True
 PROVIDER_ID = "my9router"
 ROUTER_ENV_KEY = "NINEROUTER_KEY"
 
@@ -131,7 +134,7 @@ def sync_router_provider(settings_file: Path, url: str, dry_run: bool):
                  f"Check the key with 'aa 9router'.")
 
 
-def connect(force, dry_run, mcp_only, skills_only, env_only):
+def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
     log_header("Connecting to Qwen Code (qwencode)...")
     qwen_home = _qwen_home()
     settings_file = qwen_home / "settings.json"
@@ -146,7 +149,7 @@ def connect(force, dry_run, mcp_only, skills_only, env_only):
             log_ok(f"Qwen Code MCP servers configured in {settings_file}")
     if not mcp_only and not env_only:
         for sf in get_all_skill_files():
-            copy_skill_to_dir(sf, skills_dir, force, dry_run)
+            provision_skill_to_dir(sf, skills_dir, force, dry_run, link=resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills))
     if env_only or (not mcp_only and not skills_only):
         inject_9router_env(ENV_TARGET, dry_run)
         if settings_file.is_file():

@@ -6,7 +6,8 @@ from pathlib import Path
 
 from connect_shared import (  # type: ignore[import-not-found]
     HOME,
-    copy_skill_to_dir,
+    provision_skill_to_dir,
+    resolve_skill_link,
     engine_merge_mcp,
     get_all_skill_files,
     inject_9router_env,
@@ -22,13 +23,18 @@ from connect_shared import (  # type: ignore[import-not-found]
 HARNESS_ID = "opencode"
 ALIASES = ("--opencode", "opencode")
 ENV_TARGET = "opencode"
+# Symlink provisioning is only enabled for harnesses verified to follow
+# skill-dir symlinks (Hermes and Qwen Code were verified by probe on
+# 2026-09-13). opencode is not installed on this host, so it stays on copies
+# until a probe passes; flip this to True then.
+SKILL_LINK_VERIFIED = False
 
 
 def _cfg_dir() -> Path:
     return Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config")) / "opencode"
 
 
-def connect(force, dry_run, mcp_only, skills_only, env_only):
+def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
     log_header("Connecting to OpenCode...")
     cfg = _cfg_dir()
     cfg_file = cfg / "opencode.jsonc"
@@ -43,7 +49,7 @@ def connect(force, dry_run, mcp_only, skills_only, env_only):
             log_ok(f"OpenCode MCP servers configured in {cfg_file}")
     if not mcp_only and not env_only:
         for sf in get_all_skill_files():
-            copy_skill_to_dir(sf, skills_dir, force, dry_run)
+            provision_skill_to_dir(sf, skills_dir, force, dry_run, link=resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills))
     if env_only or (not mcp_only and not skills_only):
         inject_9router_env(ENV_TARGET, dry_run)
     log_ok("OpenCode connect complete.")

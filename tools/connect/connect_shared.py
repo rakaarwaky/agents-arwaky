@@ -17,7 +17,7 @@ from pathlib import Path
 
 import sys as _sys
 _sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
-from skill_names import extract_skill_name, sanitize_skill_name, safe_skill_name, ensure_under  # noqa: E402
+from skill_names import extract_skill_name, sanitize_skill_name, safe_skill_name, safe_child, ensure_under  # noqa: E402
 
 from paths import repo_root
 REPO_ROOT = repo_root()
@@ -140,11 +140,21 @@ def remove_provisioned_skills(dest_base: Path, dry_run: bool = False):
         return 0
     removed = 0
     for sf in get_all_skill_files():
-        name = extract_skill_name(sf)
+        name = safe_skill_name(sf)
         if not name:
             continue
         dest = dest_base / name
-        if dest.is_dir():
+        if dest.is_symlink():
+            # A linked skill: drop the link ONLY. shutil.rmtree refuses to walk
+            # through a symlink, but unlinking the dir link is the intent here —
+            # the pack source under skills/ must never be deleted.
+            if dry_run:
+                log_sub(f"[DRY-RUN] Would unlink skill '{name}' -> {dest.resolve()}")
+            else:
+                dest.unlink()
+                log_ok(f"Unlinked skill '{name}' from {dest_base} (pack source intact)")
+            removed += 1
+        elif dest.is_dir():
             if dry_run:
                 log_sub(f"[DRY-RUN] Would remove skill '{name}' from {dest_base}")
             else:
@@ -193,36 +203,102 @@ def engine_set_env(file, pairs):
     return engine("set-env-keys", str(file), _json.dumps(pairs))
 
 
-def copy_skill_to_dir(src, dest_base, force=False, dry_run=False):
-    """Copy SKILL.md + companion assets (mirrors bash copy_skill_to_dir).
+ASSET_DIRS = ("scripts", "references", "resources", "examples", "templates", "assets")
 
-    Uses safe_skill_name + containment checks so a crafted SKILL.md name
-    cannot write outside the harness skills directory.
+
+def resolve_skill_link(verified: bool, copy_skills: bool) -> bool:
+    """link=True only when the harness is verified to follow skill symlinks."""
+    return verified and not copy_skills
+
+
+def provision_skill_to_dir(src, dest_base, force=False, dry_run=False, link=True):
+    """Provision one skill (SKILL.md + companion assets) into a harness dir.
+
+    link=True (default) symlinks the whole skill DIRECTORY to its pack source
+    under ``skills/``, so a self-improving agent that edits a provisioned skill
+    writes through the link into the repo and every other harness picks the
+    improvement up on its next read. Hermes proves the pattern works: its
+    scanner walks with followlinks and its atomic writes replace the FILE
+    inside the linked dir, keeping the link intact.
+
+    link=False keeps the old snapshot behaviour (copy2 + copytree).
+
+    A pre-existing real copy is only replaced by a link when it is still
+    identical to the pack source, or when ``force`` says so. A copy an agent
+    edited in place gets a loud warning instead of being destroyed: its edits
+    exist nowhere else.
     """
+    if not Path(src).is_file():
+        log_err(f"Source file not found: {src}")
+        return False
     name = safe_skill_name(src)
     try:
-        dest_dir = ensure_under(dest_base, dest_base / name)
+        dest_dir = safe_child(dest_base, name)
     except ValueError as exc:
         log_err(str(exc))
         return False
+    src_dir = Path(src).parent
     dest_file = dest_dir / "SKILL.md"
+
     if dry_run:
-        log_sub(f"[DRY-RUN] Would install skill '{name}' -> {dest_file}")
+        how = "link" if link else "copy"
+        log_sub(f"[DRY-RUN] Would {how} skill '{name}' -> {dest_dir}")
         return True
-    if dest_file.exists() and not force:
-        log_skip(f"Skill '{name}' already exists (use --force to overwrite)")
+
+    if link and dest_dir.is_symlink():
+        if dest_dir.resolve() == src_dir.resolve():
+            log_skip(f"Skill '{name}' already linked to the pack")
+            return False
+        log_err(f"Skill '{name}': {dest_dir} is a link to {dest_dir.resolve()}, "
+                f"not the pack. Fix it manually before re-connecting.")
         return False
-    if dest_dir.exists() and not dest_dir.is_dir():
-        dest_dir.unlink(missing_ok=True)
+
+    if link and dest_dir.resolve() == src_dir.resolve():
+        # provisioning the pack into itself would create a self-referential link
+        log_skip(f"Skill '{name}': target {dest_dir} is the pack source itself")
+        return False
+
+    if dest_dir.is_dir() and not dest_dir.is_symlink():
+        if link:
+            if any(dest_dir.iterdir()) and not _copy_matches_pack(dest_dir, src_dir):
+                if not force:
+                    log_warn(f"Skill '{name}' at {dest_dir} differs from the pack; "
+                             f"left as a copy (not relinked). Re-run with --force to "
+                             f"replace it with a symlink to skills/{src_dir.name}.")
+                    return False
+                log_warn(f"Skill '{name}': --force discards local edits at {dest_dir}")
+            shutil.rmtree(dest_dir)
+        elif dest_file.exists() and not force:
+            log_skip(f"Skill '{name}' already exists (use --force to overwrite)")
+            return False
+        else:
+            shutil.rmtree(dest_dir)
+
+    if link:
+        dest_base.mkdir(parents=True, exist_ok=True)
+        dest_dir.symlink_to(src_dir, target_is_directory=True)
+        log_ok(f"Skill '{name}' linked -> {src_dir.relative_to(REPO_ROOT)}")
+        return True
+
     dest_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest_file)
-    src_dir = src.parent
-    for extra in ("scripts", "references", "resources", "examples"):
+    for extra in ASSET_DIRS:
         e = src_dir / extra
         if e.is_dir():
             shutil.rmtree(dest_dir / extra, ignore_errors=True)
             shutil.copytree(e, dest_dir / extra)
     log_ok(f"Skill '{name}' provisioned")
+    return True
+
+
+def _copy_matches_pack(dest_dir: Path, src_dir: Path) -> bool:
+    """True when a provisioned copy is still byte-identical to its pack source."""
+    for f in src_dir.rglob("*"):
+        if f.is_dir() or "__pycache__" in f.parts:
+            continue
+        peer = dest_dir / f.relative_to(src_dir)
+        if not peer.is_file() or peer.read_bytes() != f.read_bytes():
+            return False
     return True
 
 

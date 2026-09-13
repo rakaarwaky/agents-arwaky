@@ -8,6 +8,10 @@ Supports:
     aa disconnect --antigravity|--hermes|--opencode|--qwencode|--all
     aa disconnect <targets> --dry-run
 
+Skill provisioning links each skill directory to the repo pack under
+``skills/`` by default, so edits made through a harness land in the repo and
+every agent shares them; ``aa connect --copy-skills`` restores snapshots.
+
 Removes agents-arwaky MCP servers, provisioned skills and env vars from
 agent harness paths (NOT the current working directory's .agents/skills —
 that is `aa unskill` / skill-manager).
@@ -123,7 +127,7 @@ def cmd_disconnect(args):
 
 
 def cmd_connect(args):
-    force = dry_run = mcp_only = skills_only = env_only = False
+    force = dry_run = mcp_only = skills_only = env_only = copy_skills = False
     clean_args = []
     for a in args:
         if a == "--force" or a == "-f":
@@ -136,6 +140,8 @@ def cmd_connect(args):
             skills_only = True
         elif a == "--env-only":
             env_only = True
+        elif a == "--copy-skills":
+            copy_skills = True
         else:
             clean_args.append(a)
 
@@ -156,7 +162,7 @@ def cmd_connect(args):
     print("Connecting agents-arwaky to agent harnesses...")
     print("------------------------------------------------------------------")
     for t in targets:
-        HARNESSES[t]["connect"](force, dry_run, mcp_only, skills_only, env_only)
+        HARNESSES[t]["connect"](force, dry_run, mcp_only, skills_only, env_only, copy_skills)
         print()
     print("------------------------------------------------------------------")
     print("\u2713 Connection complete. Agent harnesses are now synchronized with agents-arwaky.")
