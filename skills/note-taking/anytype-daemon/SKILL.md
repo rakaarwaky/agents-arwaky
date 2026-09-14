@@ -28,6 +28,16 @@ Execute daemon commands using the `agents-arwaky` (`aa`) CLI:
 | `aa anytype status` | Check running state, port, and process info | `aa anytype status` |
 | `aa anytype logs` | Tail recent container logs for debugging | `aa anytype logs -f` |
 
+## API Key Pitfall (verified 2026-09)
+
+`aa anytype auth-key` parses the key with a token regex that STRIPS the trailing `=` of the base64 key → daemon returns 401 "invalid api key" forever, even after restart. Correct procedure:
+
+1. `podman exec anytype-daemon anytype auth apikey create "<name>"` — copy the Key verbatim (it ends in `=`).
+2. Verify with REST before wiring clients:
+   `curl -s -H "Authorization: Bearer <KEY>" -H "Anytype-Version: 2025-11-08" http://127.0.0.1:31012/v1/spaces`
+3. Update client configs manually (`~/.config/agents-arwaky/anytype.env`, Hermes via `hermes config set mcp_servers.anytype.env.OPENAPI_MCP_HEADERS ...`). `patch`/direct edit of Hermes config.yaml is blocked; `hermes config set` works.
+4. Duplicate names in `auth apikey list` (old broken keys) are harmless; list shows KEY prefix `...` so compare the tail `=`.
+
 ## Agent Provisioning Workflow
 
 1. **Start the daemon:**

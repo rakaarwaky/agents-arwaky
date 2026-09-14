@@ -76,6 +76,13 @@ hermes config set auxiliary.vision.provider <your_provider>
 hermes config set auxiliary.vision.model <model_name>
 ```
 
+### Stalled stream: "⏳ waiting on <model> — no stream output for Ns … auto-reconnect at Ms"
+- The `auto-reconnect at Ms` number is the **stale-stream detector** patience, NOT `request_timeout_seconds` (that's the HTTP request timeout, a different knob). Raising it makes detection slower, not faster.
+- Local endpoints (base_url on localhost/127.0.0.1) default to **900s**. Change with `hermes config set agent.local_stream_stale_timeout <sec>` (env override: `HERMES_LOCAL_STREAM_STALE_TIMEOUT`).
+- **Pitfall:** `providers.<id>.stale_timeout_seconds` is silently ignored when `model.provider` is `custom:<id>` — the lookup (`get_provider_stale_timeout`) uses the raw prefixed `agent.provider` string and the bare config key `providers.<id>` never matches. For local gateways use `agent.local_stream_stale_timeout` instead.
+- Auto-switch to a backup model when the primary errors: `fallback_providers` (ordered list) in config.yaml; each entry needs `provider` + `model`, optional `base_url`/`key_env`. For a named custom provider use `provider: custom:<id>`. Fires on rate-limit/auth failures and transport errors (timeout/overloaded) after retry_count>=2; stale-kill aborts classify as `timeout` with should_fallback.
+- With `gateway.multiplex_profiles`, each profile reads its own config — apply per profile via `HERMES_HOME=~/.hermes/profiles/<p> hermes config set …`.
+
 ### "Reset permissions" / auto-approving everything
 See `references/security-privacy.md` — wipe the "Always allow" stores, don't touch yolo mode.
 

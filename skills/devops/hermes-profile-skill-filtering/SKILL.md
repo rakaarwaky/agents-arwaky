@@ -25,6 +25,13 @@ Deletion is the brute path and gets rejected.
   persona and is only ever touched on an explicit request — never as a presumed part
   of installing or applying. A stray edit is recoverable: profiles' SOUL.md/config are
   tracked in the `~/.hermes` git repo, `git checkout -- profiles/<p>/SOUL.md` reverts.
+- **A SOUL.md can be silently dead on arrival.** Every context file is scanned for prompt
+  injection at prompt-build time and ONE regex hit blocks the whole file (no warning, no
+  config opt-out), so the persona never loads while the file looks perfect on disk. Always
+  run the scan check in `references/soul-md-injection-scan.md` after writing or editing a
+  persona, and grep `Context file SOUL.md blocked:` in `profiles/<p>/logs/agent.log` before
+  theorising about why a persona is not showing. Fix by rewording the trigger line, never by
+  loosening core.
 
 When the phrasing could mean install or apply, ask one short question before writing
 anything; guessing wrong in either direction costs a full correction round-trip.

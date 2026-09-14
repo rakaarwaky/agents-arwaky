@@ -6,6 +6,14 @@ version: 1.0.0
 
 # Google Workspace MCP Server
 
+## Verified pitfalls (2026-09)
+
+- `mcp__workspace__*` are LOCAL tools: one entry per `tool_call`; parallelize by sending multiple tool_call blocks.
+- `manage_event` + `recurrence` → 400 "Missing time zone definition" if times carry a `+07:00` offset. Fix: wall-clock `YYYY-MM-DDTHH:MM:SS` without offset + `timezone: "Asia/Jakarta"`. Non-recurring events accept offsets.
+- After 3 rejected calls the MCP server auto-pauses ~60s — wait, don't hammer.
+- OAuth tokens: `~/.google_workspace_mcp/credentials/<email>.json`; client secret at `vendor/google-workspace-mcp/client_secret.json`. Restoring from an agents-arwaky backup still needs ONE fresh consent (stored scopes ≠ requested scopes). Backups: `Downloads/Agents-Arwaky-Backups-*/…/workspace/`.
+- Some secondary calendars (e.g. "Study") 404 on event endpoints despite appearing in `list_calendars`; write to primary and label summaries instead.
+
 Google Workspace MCP provides natural language control and tools over Google Workspace services (Gmail, Google Calendar, Google Drive, Docs, Sheets, Slides, Tasks, Forms, Contacts, and Chat) via standardized Model Context Protocol tools.
 
 ## When to Use This Skill

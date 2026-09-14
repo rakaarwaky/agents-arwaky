@@ -63,7 +63,21 @@ qwen -y \
 
 ## Parallel delegation
 
-One background run per repo/worktree — qwen sessions are independent processes; keep to ≤4 concurrent. Give each its own `--worktree` slug when they share a repo.
+One background run per repo/worktree. Give each its own `--worktree` slug when they share a repo.
+
+**Hard cap: ≤2 concurrent `terminal(background=true)` sessions on the linus host.**
+Launching a 3rd silently SIGTERMs/SIGINTs the OLDEST running session. The killed qwen
+run writes NOTHING to its `--output-format json` file (0 bytes) and logs
+`FatalCancellationError` code 130 (or shell `exit=143`) to its stderr log — this looks
+identical to a worker crash, so do not debug the worker: count live sessions first
+(`process(action="list")`). Consequences:
+- Track a strict queue: launch at most 2, relaunch only after one exits and is reviewed.
+- A killed run may still leave PARTIAL work in its worktree (edits before the kill
+  persist; the JSON report does not). Never assume empty worktree == no damage, and
+  never assume a diff == a finished task: re-run the task's verification commands.
+- Recovery for a partial kill = re-delegate with a "FINISH this: the previous run died
+  mid-task, build on the existing uncommitted diff, tests are missing" brief instead of
+  a from-scratch brief. That preserves good partial work and is much faster.
 
 ## Pitfalls
 
@@ -72,7 +86,11 @@ One background run per repo/worktree — qwen sessions are independent processes
 - `-p` positional prompt is preferred; `-p/--prompt` as flag is deprecated but still works in 0.23.
 - Pipe-to-interpreter security scanning flags `qwen ... | python3`; write output to a file and parse it separately.
 - Headless runs do NOT prompt for approval; anything the CLI itself rejects (trust dir, policy) surfaces as `permission_denials` in the JSON — inspect that field when a run mysteriously does nothing.
-- Exit 55 = budget exceeded; report the partial diff rather than re-running the whole thing.
+- Exit 55 / 0-byte JSON = budget exceeded or killed; the diff often still contains COMPLETE work that merely never got committed — review `git status`/`git diff` FIRST and finish gates+commits yourself instead of re-delegating. Commit the verified diff in atomic file-groups with `scripts/split_commit.py --plan plan.json --add-untracked <new,files>` (run from the worktree root); never `git add .`.
+- AES404 beats the brief: a `utility_*.py` may not define a `class`, so a dataclass handed to you for that layer belongs in the domain's `taxonomy_*.py` with only its *instance* left in the utility — otherwise `lint-arwaky-cli scan .` fails CI. Trust the gate over the snippet.
+- CI greps are repo-wide and zero-tolerance: `lint-arwaky-cli scan .` and `bandit -r modules -x "*/tests/*"` must report 0 findings across the WHOLE repo, not just your diff. `ruff format --check` is NOT a gate (develop carries ~95 unformatted files) — never reformat to satisfy it, and note local ruff may be a newer version than CI's pinned one.
+- `--max-wall-time` is a real hard kill: set it >= your realistic estimate (a 5-fix + tests task needed >30m here; a 3-file surgical task <12m). When a run dies mid-commit but the code is done, the cheapest recovery is the reviewer committing the verified diff themselves, not a re-run.
+- New tests that spawn a real external binary (ffmpeg etc.) break CI even when local passes: the binary may be absent on runners, or the test may finally EXPOSE a pre-existing silent gap (plan G7: suite was green because the encode test always skipped). Install the binary in the workflow AND expect newly-enabled tests to reveal real product slowness (e.g. software-GL fallbacks passing probes on GPU-less CI).
 
 ## Verification
 
