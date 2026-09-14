@@ -135,6 +135,20 @@ def get_all_skill_files():
     return tuple(result)
 
 
+def discover_skill_roots():
+    """Directories that directly hold skill folders inside the pack.
+
+    A harness that scans exactly ONE level below each skills root cannot see
+    ``skills/<category>/<skill>/SKILL.md`` until ``skills/<category>`` is itself
+    a registered root, so adding a category folder silently hides its skills.
+    Derived from get_all_skill_files(), so ignored trees (node_modules, venvs,
+    .git) never become roots and empty categories are never registered.
+
+    Returns sorted Paths; the pack root itself appears when a skill sits flat
+    at ``skills/<skill>/SKILL.md``.
+    """
+    return sorted({sf.parent.parent for sf in get_all_skill_files()})
+
 def _skills_root_link_guard(dest_base: Path, action: str) -> bool:
     """True (and logs) when dest_base IS the linked skills root.
 

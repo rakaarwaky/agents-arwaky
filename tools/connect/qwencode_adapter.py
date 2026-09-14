@@ -11,6 +11,7 @@ from connect_shared import (  # type: ignore[import-not-found]
     HOME,
     PLACEHOLDER_KEYS,
     REPO_ROOT,
+    discover_skill_roots,
     link_skills_root,
     provision_skill_to_dir,
     resolve_skill_link,
@@ -21,6 +22,7 @@ from connect_shared import (  # type: ignore[import-not-found]
     load_generated_servers,
     log_header,
     log_ok,
+    log_skip,
     log_sub,
     log_warn,
     remove_env_keys,
@@ -136,6 +138,78 @@ def sync_router_provider(settings_file: Path, url: str, dry_run: bool):
                  f"Check the key with 'aa 9router'.")
 
 
+def _tilde(path: Path) -> str:
+    """Render a path HOME-relative with a ~ prefix, the form settings.json uses."""
+    try:
+        return "~/" + path.relative_to(HOME).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+def _in_pack(entry: str, pack_root: Path) -> bool:
+    """True when a skills.directories entry points at the pack (any spelling)."""
+    try:
+        return Path(os.path.expanduser(entry.strip())).resolve().is_relative_to(pack_root)
+    except OSError:
+        return False
+
+def sync_skill_directories(settings_file: Path, roots, dry_run: bool):
+    """Register every pack category folder as a skills root in settings.json.
+
+    The loader scans exactly ONE level below each skills root, so the whole-root
+    symlink only shows it the category folders themselves: a nested
+    ``skills/<category>/<skill>/SKILL.md`` stays invisible until ``<category>``
+    is registered here. Re-running the connector after a category is added,
+    renamed or deleted is what keeps the pack fully loaded, so the list is
+    rebuilt from disk every time instead of being appended to. Entries that
+    point outside the pack are the user's own roots and are preserved.
+    """
+    pack_root = (REPO_ROOT / "skills").resolve()
+    want = [_tilde(r) for r in roots]
+    try:
+        raw = settings_file.read_text(encoding="utf-8") if settings_file.is_file() else ""
+        settings = json.loads(raw) if raw.strip() else {}
+    except (OSError, ValueError) as exc:
+        log_warn(f"Could not read {settings_file} ({exc}); skill directory sync SKIPPED.")
+        return
+    if not isinstance(settings, dict):
+        log_warn(f"{settings_file} is not a JSON object; skill directory sync SKIPPED.")
+        return
+    skills = settings.setdefault("skills", {})
+    if not isinstance(skills, dict):
+        log_warn("skills is not an object; skill directory sync SKIPPED.")
+        return
+    current = skills.get("directories")
+    if current is not None and not isinstance(current, list):
+        log_warn("skills.directories is not a list; skill directory sync SKIPPED.")
+        return
+    current = [str(d) for d in (current or [])]
+    foreign = [d for d in current if not _in_pack(d, pack_root)]
+    if set(current) == set(foreign) | set(want):
+        log_skip(f"{len(want)} pack skill directories already registered in {settings_file}")
+        return
+    added = [d for d in want if d not in current]
+    dropped = [d for d in current if _in_pack(d, pack_root) and d not in want]
+    if dry_run:
+        log_sub(f"[DRY-RUN] Would register {len(want)} skill directories in "
+                f"{settings_file} (+{len(added)} new, -{len(dropped)} stale)")
+        for d in added:
+            log_sub(f"  + {d}")
+        for d in dropped:
+            log_sub(f"  - {d}")
+        return
+    skills["directories"] = foreign + want
+    settings_file.parent.mkdir(parents=True, exist_ok=True)
+    settings_file.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n",
+                             encoding="utf-8")
+    log_ok(f"Registered {len(want)} skill directories in {settings_file} "
+           f"(+{len(added)} new, -{len(dropped)} stale).")
+    for d in added:
+        log_sub(f"  + {d}")
+    for d in dropped:
+        log_sub(f"  - {d}")
+    if added or dropped:
+        log_sub("Restart any running Qwen Code session to pick the list up.")
+
 def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
     log_header("Connecting to Qwen Code (qwencode)...")
     qwen_home = _qwen_home()
@@ -152,10 +226,10 @@ def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
     if not mcp_only and not env_only:
         link = resolve_skill_link(SKILL_LINK_VERIFIED, copy_skills)
         if link:
-            # whole skills root -> pack: one place to manage, all agents live
             log_sub(f"Target Skills: {skills_dir} -> {REPO_ROOT / 'skills'} "
                     f"(whole-root symlink; manage the pack once)")
             link_skills_root(skills_dir, REPO_ROOT / "skills", force, dry_run)
+            sync_skill_directories(settings_file, discover_skill_roots(), dry_run)
         else:
             for sf in get_all_skill_files():
                 provision_skill_to_dir(sf, skills_dir, force, dry_run, link=False)
@@ -171,6 +245,8 @@ def disconnect(dry_run):
     qwen_home = _qwen_home()
     remove_mcp_servers(qwen_home / "settings.json", dry_run)
     remove_provisioned_skills(qwen_home / "skills", dry_run)
+    # No roots left behind pointing into a pack this harness no longer reads.
+    sync_skill_directories(qwen_home / "settings.json", (), dry_run)
     remove_env_keys(qwen_home / ".env",
                     ["NINEROUTER_URL", "NINEROUTER_KEY", "MNEMOSYNE_DATA_DIR"], dry_run)
     log_ok("Qwen Code disconnect complete.")
