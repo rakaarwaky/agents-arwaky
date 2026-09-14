@@ -42,6 +42,11 @@ When executing or reasoning about this repository, **you must preserve these inv
    - Every file must adhere to naming rules: `layer_concern_role.<ext>`.
    - Linters and architecture checks can be triggered with `aa tool run lint --help` (or `lint-arwaky`) or via `internal/lint-arwaky`.
 
+5. **Skill Pack Nesting & Harness Registration:**
+   - The pack lives at `skills/<category>/<skill>/SKILL.md`; every skill must sit in a semantic category folder.
+   - Qwen Code scans only **one level** below a skills root, so a category folder is invisible until it is itself a registered root. `aa connect --qwencode` derives that list from disk into `skills.directories` and installs a `SessionStart` hook (`arwaky-skill-sync`) that keeps it current; never hand-edit either.
+   - Consequence when triaging "skill not loading": a brand-new category needs one session restart to appear, and `aa check` / the connector log (`+N new`, `-N stale`, or `already registered`) shows what it decided.
+
 ---
 
 ## 🗂️ Repository Architecture Map

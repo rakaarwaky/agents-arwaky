@@ -379,6 +379,10 @@ aa connect --clean            # Remove provisioned skills and MCP entries cleanl
 > **Hermes Multi-Profile Support:** `aa connect --hermes` automatically detects all profiles under `~/.hermes/profiles/<profile>/` (e.g., `currie`, `fangyuan`, `linus`, `tesla`) alongside the main profile, ensuring all agents share the full tool and skill suite.
 > **Environment & Gateway:** `aa connect` also auto-injects `NINEROUTER_URL` and `NINEROUTER_KEY` into harness environments (`.env`) and desktop session configs (`~/.config/environment.d/9router.conf`).
 
+> [!NOTE]
+> **Qwen Code Nested Skills:** Qwen Code scans exactly **one level** below each skills root, so a skill at `skills/<category>/<skill>/SKILL.md` is invisible until `<category>` is itself a registered root. `aa connect --qwencode` handles this: it links `~/.qwen/skills` to the pack root, derives the category list from disk, and writes it to `skills.directories` in `~/.qwen/settings.json` — keeping roots that point outside the pack and dropping entries for categories that are gone. It also installs a `SessionStart` hook (`arwaky-skill-sync`) that re-runs `aa connect --qwencode --skills-only`, so a category added later registers itself without a manual connect; unrelated hooks and roots are left untouched, and a run whose list already matches writes nothing. Because the list is read once at startup and the hook fires after skill discovery, a newly added category becomes live after **one session restart**.
+
+
 ### Manual Client Setup Guides
 
 <details>
