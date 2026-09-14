@@ -138,6 +138,36 @@ def sync_router_provider(settings_file: Path, url: str, dry_run: bool):
                  f"Check the key with 'aa 9router'.")
 
 
+def _read_settings(settings_file: Path):
+    """Parse settings.json, tolerating a fresh install (missing file -> {}).
+
+    Returns (settings, usable). usable=False means the file is unreadable or
+    malformed and must NOT be rewritten — never clobber a config we cannot parse.
+    """
+    try:
+        raw = settings_file.read_text(encoding="utf-8") if settings_file.is_file() else ""
+        settings = json.loads(raw) if raw.strip() else {}
+    except (OSError, ValueError) as exc:
+        log_warn(f"Could not read {settings_file} ({exc}); leaving it untouched.")
+        return None, False
+    if not isinstance(settings, dict):
+        log_warn(f"{settings_file} is not a JSON object; leaving it untouched.")
+        return None, False
+    return settings, True
+
+def _write_settings(settings_file: Path, settings: dict):
+    """Replace settings.json in one step.
+
+    A SessionStart hook now rewrites this file while other Qwen Code sessions
+    may be reading it at their own startup, so write a sibling and rename it
+    over the target: readers see either the old file or the new one, never a
+    truncated middle.
+    """
+    tmp = settings_file.with_name(settings_file.name + ".tmp")
+    tmp.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n",
+                   encoding="utf-8")
+    os.replace(tmp, settings_file)
+
 def _tilde(path: Path) -> str:
     """Render a path HOME-relative with a ~ prefix, the form settings.json uses."""
     try:
@@ -165,14 +195,8 @@ def sync_skill_directories(settings_file: Path, roots, dry_run: bool):
     """
     pack_root = (REPO_ROOT / "skills").resolve()
     want = [_tilde(r) for r in roots]
-    try:
-        raw = settings_file.read_text(encoding="utf-8") if settings_file.is_file() else ""
-        settings = json.loads(raw) if raw.strip() else {}
-    except (OSError, ValueError) as exc:
-        log_warn(f"Could not read {settings_file} ({exc}); skill directory sync SKIPPED.")
-        return
-    if not isinstance(settings, dict):
-        log_warn(f"{settings_file} is not a JSON object; skill directory sync SKIPPED.")
+    settings, usable = _read_settings(settings_file)
+    if not usable:
         return
     skills = settings.setdefault("skills", {})
     if not isinstance(skills, dict):
@@ -199,8 +223,7 @@ def sync_skill_directories(settings_file: Path, roots, dry_run: bool):
         return
     skills["directories"] = foreign + want
     settings_file.parent.mkdir(parents=True, exist_ok=True)
-    settings_file.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n",
-                             encoding="utf-8")
+    _write_settings(settings_file, settings)
     log_ok(f"Registered {len(want)} skill directories in {settings_file} "
            f"(+{len(added)} new, -{len(dropped)} stale).")
     for d in added:
@@ -209,6 +232,112 @@ def sync_skill_directories(settings_file: Path, roots, dry_run: bool):
         log_sub(f"  - {d}")
     if added or dropped:
         log_sub("Restart any running Qwen Code session to pick the list up.")
+
+# Identifies the hook entry this connector owns; found and replaced by name so
+# a moved checkout refreshes its command instead of leaving a dead duplicate.
+SKILL_SYNC_HOOK = "arwaky-skill-sync"
+
+def _skill_sync_command() -> str:
+    """The re-registration command, runnable straight from a hook.
+
+    Absolute script path and no reliance on the `aa` launcher being on this
+    process' PATH; connect_shared puts tools/lib on sys.path itself.
+    """
+    return (f"python3 {(REPO_ROOT / 'tools' / 'connect' / 'connect.py').as_posix()}"
+            f" connect --qwencode --skills-only")
+
+def sync_skill_sync_hook(settings_file: Path, dry_run: bool):
+    """Install (or refresh) the SessionStart hook that re-registers skill roots.
+
+    Qwen Code reads skills.directories once at startup, and this connector
+    measured SessionStart firing ~230ms AFTER skill discovery — so the hook
+    cannot repair the session that runs it, only the next one. That is still
+    what makes the pack self-maintaining: a category folder added at any time
+    is registered by the next session start, and one restart later its skills
+    are live. --skills-only keeps it off MCP, .env and the provider, and the
+    directory sync writes nothing when the list already matches, so running it
+    on every start is cheap and silent.
+    """
+    settings, usable = _read_settings(settings_file)
+    if not usable:
+        return
+    command = _skill_sync_command()
+    hooks = settings.setdefault("hooks", {})
+    if not isinstance(hooks, dict):
+        log_warn("hooks is not an object; skill sync hook SKIPPED.")
+        return
+    starts = hooks.setdefault("SessionStart", [])
+    if not isinstance(starts, list):
+        log_warn("hooks.SessionStart is not a list; skill sync hook SKIPPED.")
+        return
+    for group in starts:
+        if not isinstance(group, dict):
+            continue
+        owned = next((h for h in (group.get("hooks") or [])
+                      if isinstance(h, dict) and h.get("name") == SKILL_SYNC_HOOK), None)
+        if owned is None:
+            continue
+        if owned.get("command") == command:
+            log_skip(f"Skill sync hook already installed in {settings_file}")
+            return
+        if dry_run:
+            log_sub(f"[DRY-RUN] Would refresh the '{SKILL_SYNC_HOOK}' hook command in "
+                    f"{settings_file}")
+            return
+        owned["command"] = command
+        settings_file.parent.mkdir(parents=True, exist_ok=True)
+        _write_settings(settings_file, settings)
+        log_ok(f"Refreshed the '{SKILL_SYNC_HOOK}' hook command in {settings_file}.")
+        return
+    if dry_run:
+        log_sub(f"[DRY-RUN] Would install the '{SKILL_SYNC_HOOK}' SessionStart hook "
+                f"in {settings_file}")
+        return
+    starts.append({
+        "matcher": "*",
+        "hooks": [{
+            "type": "command",
+            "name": SKILL_SYNC_HOOK,
+            "command": command,
+            "timeout": 30000,
+        }],
+    })
+    settings_file.parent.mkdir(parents=True, exist_ok=True)
+    _write_settings(settings_file, settings)
+    log_ok(f"Installed the '{SKILL_SYNC_HOOK}' SessionStart hook in {settings_file}.")
+
+def remove_skill_sync_hook(settings_file: Path, dry_run: bool):
+    """Drop only the hook entry this connector owns; foreign hooks stay."""
+    settings, usable = _read_settings(settings_file)
+    if not usable:
+        return
+    hooks = settings.get("hooks")
+    starts = hooks.get("SessionStart") if isinstance(hooks, dict) else None
+    if not isinstance(starts, list) or not starts:
+        log_skip("No skill sync hook to remove")
+        return
+    kept_groups, removed = [], 0
+    for group in starts:
+        if not isinstance(group, dict):
+            kept_groups.append(group)
+            continue
+        owned, others = [], []
+        for h in (group.get("hooks") or []):
+            (owned if isinstance(h, dict) and h.get("name") == SKILL_SYNC_HOOK
+             else others).append(h)
+        removed += len(owned)
+        if others:
+            kept_groups.append({**group, "hooks": others})
+    if not removed:
+        log_skip("No skill sync hook to remove")
+        return
+    if dry_run:
+        log_sub(f"[DRY-RUN] Would remove {removed} skill sync hook(s) from "
+                f"{settings_file}")
+        return
+    settings["hooks"]["SessionStart"] = kept_groups
+    _write_settings(settings_file, settings)
+    log_ok(f"Removed {removed} skill sync hook(s) from {settings_file}.")
 
 def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
     log_header("Connecting to Qwen Code (qwencode)...")
@@ -230,6 +359,7 @@ def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
                     f"(whole-root symlink; manage the pack once)")
             link_skills_root(skills_dir, REPO_ROOT / "skills", force, dry_run)
             sync_skill_directories(settings_file, discover_skill_roots(), dry_run)
+            sync_skill_sync_hook(settings_file, dry_run)
         else:
             for sf in get_all_skill_files():
                 provision_skill_to_dir(sf, skills_dir, force, dry_run, link=False)
@@ -245,6 +375,7 @@ def disconnect(dry_run):
     qwen_home = _qwen_home()
     remove_mcp_servers(qwen_home / "settings.json", dry_run)
     remove_provisioned_skills(qwen_home / "skills", dry_run)
+    remove_skill_sync_hook(qwen_home / "settings.json", dry_run)
     # No roots left behind pointing into a pack this harness no longer reads.
     sync_skill_directories(qwen_home / "settings.json", (), dry_run)
     remove_env_keys(qwen_home / ".env",
