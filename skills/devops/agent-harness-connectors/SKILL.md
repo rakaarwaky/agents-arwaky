@@ -180,6 +180,12 @@ Migration and safety invariants, all under test in `tools/tests/test_skill_provi
   state dir already has a pack twin, union-merge it file-by-file with the
   harness copy winning (`merge_dir_into`) — renaming to `X.harness-1` silently
   strands live state.
+- Generated alias twins land there too: a loader that indexes hyphen names from
+  underscore pack dirs (`anytype_mcp` -> `anytype-mcp`) writes real hyphen dirs
+  INTO the pack through the root link. gitignore them (underscore dir is the
+  tracked canonical, never commit the twin) — worse, while both exist a bare
+  `skill_view`/skill-name lookup is refused as ambiguous by name collision, so
+  resolve such skills by their full categorized path until the twins are gone.
 - Any per-skill provision/remove targeting a linked root must be REFUSED
   (`_skills_root_link_guard`): its `rmtree` would delete real pack sources.
 - `aa disconnect` unlinks the root and restores an empty real dir; pack sources
@@ -202,6 +208,14 @@ by the agents-arwaky repo).
 Related: the profile skills layout convention (real dirs, no symlinks between
 profiles and the pack) is tracked separately — do not confuse connector output
 with it.
+
+Consequence of the shared root link: every harness session edits the SAME pack
+checkout, so other agent sessions (or the user) can commit — even push — work in
+progress. Before acting on a "commit" request, `git status` + `git log --oneline`
++ `git ls-tree HEAD <paths>` to see what is already in history, and commit only
+the genuine residue; never re-commit a diff you merely see staged. Check
+`git reflog` when commits appear that you did not make, and flag concurrent
+committers to the user instead of silently layering on top.
 
 Rule for pruning irrelevant skills in a named profile (Raka correction):
 DELETE the skill dirs (move to ~/.hermes/.skill-trash/<profile>/), do NOT
