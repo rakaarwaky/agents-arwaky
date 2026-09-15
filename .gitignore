@@ -58,8 +58,11 @@ $RECYCLE.BIN/
 *.log
 
 # Large Model Files
+# Keep the extension global (that's what actually carries weight); the bare
+# `models/` form silently swallowed any source directory named models anywhere
+# in the tree, so the scratch-dir rule is anchored to the repo root.
 *.gguf
-models/
+/models/
 
 # Agents
 .qwen
@@ -91,6 +94,12 @@ tools/config/*.providers.json
 /skills/.curator_state
 /skills/.bundled_manifest
 /skills/skills-lock.json
+
+# A harness run with HOME pointed inside a skill dir leaves `<skill>/.hermes/skills`
+# behind — a link back to this same pack, so the loader sees recursive phantom skills.
+/skills/**/.hermes/
+/skills/**/.qwen/
+/skills/**/.codex/
 
 # Loader alias-indexes: harness loaders index underscore names from the hyphen
 # pack dirs THROUGH the harness root link (anytype-mcp -> anytype_mcp). Generated
