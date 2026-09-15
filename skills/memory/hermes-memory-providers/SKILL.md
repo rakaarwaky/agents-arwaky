@@ -1,16 +1,11 @@
 ---
 name: hermes-memory-providers
-description: "Install and configure Mnemosyne as a Hermes Agent memory provider — local SQLite with vector search, episodic consolidation, and temporal knowledge graphs."
-version: 2.0.0
-author: Mnemosyne
-license: MIT
-platforms: [linux, macos, windows]
+description: Configures Mnemosyne memory for Hermes Agent. Use when setting SQLite vector memory provider.
 metadata:
   hermes:
     tags: [hermes, memory, mnemosyne, plugins, setup]
     related_skills: [mnemosyne, hermes-agent, agent-harness-connectors]
 ---
-
 # Mnemosyne — Hermes Memory Provider
 
 Mnemosyne is a local-first memory layer for AI agents. When deployed as a
@@ -237,7 +232,7 @@ this env var. Check the effective value with `mnemosyne config get <key>` (the
 
 - `mnemosyne` skill — the tool surface, the CLI, storage paths, and the rule for
   which store durable memory belongs in on each harness.
-- `references/repo-dev.md` (in the `mnemosyne` skill) — BEAM schema, the
+- `references/repo-dev.md` in the `mnemosyne` skill (see `mnemosyne` skill's `references/repo-dev.md`) — BEAM schema, the
   sync/surface data model, and the provider's `skip_contexts` gating.
 - `hermes-agent` skill — general Hermes setup, config, and plugin system.
 - `agent-harness-connectors` skill — how `aa connect` registers the MCP server

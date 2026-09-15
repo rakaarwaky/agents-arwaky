@@ -2,7 +2,6 @@
 name: hermes-home-cleanup
 description: Purge traces of an MCP server or skill from ~/.hermes.
 ---
-
 # Hermes Home Cleanup (forensic purge)
 
 Use when asked to "clean all X references from my hermes" / remove an MCP server or
@@ -15,7 +14,7 @@ The provisioning map lives in the `agent-harness-connectors` skill — what `aa 
 writes and where (MCP server map into each harness config, `NINEROUTER_*`/`MNEMOSYNE_*`
 into `<harness>/.env` plus `~/.config/environment.d/`, skills as one root symlink into the
 pack, and the dot-prefixed state files that land beside them). Profile layout and the
-`skills.disabled` mechanism are in `hermes-profiles` (`references/skills-layout.md`,
+`skills.disabled` mechanism are in `hermes-profiles` (`hermes-profiles` skill's `references/skills-layout.md`,
 `references/skill-filtering.md`).
 
 Two facts this procedure depends on, so they are stated here anyway:

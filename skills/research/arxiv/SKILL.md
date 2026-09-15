@@ -1,16 +1,11 @@
 ---
 name: arxiv
-description: "Search arXiv papers by keyword, author, category, or ID."
-version: 1.0.0
-author: Hermes Agent
-license: MIT
-platforms: [linux, macos, windows]
+description: Search arXiv papers by keyword, author, category, or ID.
 metadata:
   hermes:
     tags: [Research, Arxiv, Papers, Academic, Science, API]
     related_skills: [pdf, grounded-citations]
 ---
-
 # arXiv Research
 
 Search and retrieve academic papers from arXiv via their free REST API. No API key, no dependencies — just curl.
@@ -155,7 +150,7 @@ web_extract(urls=["https://arxiv.org/abs/2402.03300"])
 web_extract(urls=["https://arxiv.org/pdf/2402.03300"])
 ```
 
-For local PDF processing, see the `pdf` skill (scanned pages: `pdf/references/ocr-extraction.md`).
+For local PDF processing, see the `pdf` skill (scanned pages: `pdf` skill's `references/ocr-extraction.md`).
 
 ## Common Categories
 

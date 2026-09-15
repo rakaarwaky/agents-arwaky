@@ -1,19 +1,14 @@
 ---
 name: document-to-action-items
-description: "Extract cited obligations, deadlines, tasks from documents."
-version: 0.1.0
-author: Ben Barclay (benbarclay), Hermes Agent
-license: MIT
-platforms: [linux, macos, windows]
+description: Extract cited obligations, deadlines, tasks from documents.
 metadata:
   hermes:
     tags: [Documents, OCR, Action-Items, Deadlines, Extraction]
     related_skills: [pdf, google-workspace]
 ---
-
 # Document to Action Items
 
-Turn documents into cited facts and proposed actions. Extraction is not legal advice, and low-confidence OCR or ambiguous language must remain visible. The `pdf` skill owns extraction mechanics (including scanned pages via its `references/ocr-extraction.md`); this skill owns what happens to the extracted content.
+Turn documents into cited facts and proposed actions. Extraction is not legal advice, and low-confidence OCR or ambiguous language must remain visible. The `pdf` skill owns extraction mechanics (including scanned pages via its `references/ocr-extraction.md` in the `pdf` skill); this skill owns what happens to the extracted content.
 
 ## When to Use
 
@@ -32,7 +27,7 @@ Use `read_file` for local files and `web_extract` for URLs to identify files, ve
 
 ### 2. Extract with provenance
 
-Load `pdf` (scanned pages: its `references/ocr-extraction.md`). Extract text/tables while retaining file and page/section coordinates. For scans, record OCR confidence or visible quality issues. Done when every extracted field can cite its source location.
+Load `pdf` (scanned pages: `pdf` skill's `references/ocr-extraction.md`). Extract text/tables while retaining file and page/section coordinates. For scans, record OCR confidence or visible quality issues. Done when every extracted field can cite its source location.
 
 ### 3. Classify evidence
 
