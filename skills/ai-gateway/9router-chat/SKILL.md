@@ -1,7 +1,10 @@
 ---
 name: 9router-chat
 description: Chat and code via 9Router OpenAI Anthropic streaming. Use when asking LLM, prompts, summarising.
+metadata:
+  tags: []
 ---
+
 # 9Router — Chat
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

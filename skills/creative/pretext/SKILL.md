@@ -1,11 +1,23 @@
 ---
 name: pretext
-description: Build creative browser demos with DOM-free text layout.
+description: "Build creative browser demos with DOM-free text layout."
 metadata:
-  hermes:
-    tags: [creative-coding, typography, pretext, ascii-art, canvas, generative, text-layout, kinetic-typography]
-    related_skills: [p5js, claude-design, excalidraw, architecture-diagram]
+  tags:
+    - creative-coding
+    - typography
+    - pretext
+    - ascii-art
+    - canvas
+    - generative
+    - text-layout
+    - kinetic-typography
+  related_skills:
+    - p5js
+    - claude-design
+    - excalidraw
+    - architecture-diagram
 ---
+
 # Pretext Creative Demos
 
 ## Overview

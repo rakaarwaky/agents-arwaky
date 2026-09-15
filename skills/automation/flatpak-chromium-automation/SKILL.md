@@ -2,8 +2,14 @@
 name: flatpak-chromium-automation
 description: Drive Flatpak Brave/Chromium pages under sandbox paths. Not profile setup.
 metadata:
-  tags: [browser, chromium, brave, flatpak, automation]
+  tags:
+    - browser
+    - chromium
+    - brave
+    - flatpak
+    - automation
 ---
+
 # Automating flatpak-packaged Chromium browsers
 
 ## Which paths the browser process can actually see

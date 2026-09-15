@@ -2,34 +2,49 @@
 name: testing-suite
 description: Generates contract to E2E suites plus benches. Use when adding package tests, coverage, perf.
 metadata:
-  tags: [python, rust, typescript, testing, pytest, cargo, criterion, vitest, contract, unit, integration, e2e, acceptance, smoke, benchmark]
-  triggers:
-    - "create tests"
-    - "create tests python"
-    - "create tests rust"
-    - "add tests"
-    - "add tests python"
-    - "add tests rust"
-    - "create test suite"
-    - "create test suite python"
-    - "create test suite typescript"
-    - "package tests python"
-    - "crate tests rust"
-    - "e2e tests"
-    - "e2e tests python"
-    - "e2e tests rust"
-    - "benchmark"
-    - "benchmark python"
-    - "benchmark rust"
-    - "benchmark typescript"
-    - "increase coverage"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - testing
+    - pytest
+    - cargo
+    - criterion
+    - vitest
+    - contract
+    - unit
+    - integration
+    - e2e
+    - acceptance
+    - smoke
+    - benchmark
+  related_skills:
     - test-driven-development
     - create-capabilities
     - create-agent
     - create-utility
+  triggers:
+    - create tests
+    - create tests python
+    - create tests rust
+    - add tests
+    - add tests python
+    - add tests rust
+    - create test suite
+    - create test suite python
+    - create test suite typescript
+    - package tests python
+    - crate tests rust
+    - e2e tests
+    - e2e tests python
+    - e2e tests rust
+    - benchmark
+    - benchmark python
+    - benchmark rust
+    - benchmark typescript
+    - increase coverage
 ---
+
 # Testing Suite
 
 One test layout for every layer and language: **tests go in `tests/`, benchmarks in `benches/`,

@@ -2,31 +2,41 @@
 name: create-surface
 description: AES surface command and UI scaffolding for Python Rust TS. Use when creating surface files.
 metadata:
-  tags: [python, rust, typescript, aes, surface, smart, utility, passive, di, vo]
-  triggers:
-    - "create surface"
-    - "create surface python"
-    - "create surface rust"
-    - "create surface typescript"
-    - "add surface"
-    - "add surface python"
-    - "add surface rust"
-    - "fix surface structure"
-    - "create command"
-    - "create command python"
-    - "create controller python"
-    - "create controller rust"
-    - "check surface"
-    - "audit surface"
-    - "audit surface python"
-    - "audit surface rust"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - aes
+    - surface
+    - smart
+    - utility
+    - passive
+    - di
+    - vo
+  related_skills:
     - create-agent
     - create-taxonomy
     - create-contract
     - create-root
+  triggers:
+    - create surface
+    - create surface python
+    - create surface rust
+    - create surface typescript
+    - add surface
+    - add surface python
+    - add surface rust
+    - fix surface structure
+    - create command
+    - create command python
+    - create controller python
+    - create controller rust
+    - check surface
+    - audit surface
+    - audit surface python
+    - audit surface rust
 ---
+
 # Create Surface (AES)
 
 The **surface layer is how a human or process drives the system**: CLI commands, controllers,

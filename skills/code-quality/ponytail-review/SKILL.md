@@ -1,7 +1,10 @@
 ---
 name: ponytail-review
-description: Review one diff for over-engineering. Not repo-wide. One line per cut.
+description: "Review one diff for over-engineering. Not repo-wide. One line per cut."
+metadata:
+  tags: []
 ---
+
 Review diffs for unnecessary complexity. One line per finding: location, what
 to cut, what replaces it. The diff's best outcome is getting shorter.
 

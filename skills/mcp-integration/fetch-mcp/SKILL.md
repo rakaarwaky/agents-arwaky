@@ -1,7 +1,10 @@
 ---
 name: fetch-mcp
 description: Scrapes web to markdown with transcripts. Use when extracting articles, HTML, YouTube text.
+metadata:
+  tags: []
 ---
+
 # Fetch MCP Server
 
 Fetch MCP is a specialized web extraction and content scraping server that converts arbitrary URLs into clean, token-efficient formats (Markdown, plain text, extracted readable articles, JSON, and YouTube video transcripts).

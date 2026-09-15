@@ -2,9 +2,19 @@
 name: evaluating-llms-harness
 description: "lm-eval-harness: benchmark LLMs (MMLU, GSM8K, etc.)."
 metadata:
-  hermes:
-    tags: [Evaluation, LM Evaluation Harness, Benchmarking, MMLU, HumanEval, GSM8K, EleutherAI, Model Quality, Academic Benchmarks, Industry Standard]
+  tags:
+    - Evaluation
+    - LM Evaluation Harness
+    - Benchmarking
+    - MMLU
+    - HumanEval
+    - GSM8K
+    - EleutherAI
+    - Model Quality
+    - Academic Benchmarks
+    - Industry Standard
 ---
+
 # lm-evaluation-harness - LLM Benchmarking
 
 ## What's inside

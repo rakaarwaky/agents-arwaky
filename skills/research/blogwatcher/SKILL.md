@@ -1,11 +1,15 @@
 ---
 name: blogwatcher
-description: Monitor blogs and RSS/Atom feeds via blogwatcher-cli tool.
+description: "Monitor blogs and RSS/Atom feeds via blogwatcher-cli tool."
 metadata:
-  hermes:
-    tags: [RSS, Blogs, Feed-Reader, Monitoring]
-    homepage: https://github.com/JulienTant/blogwatcher-cli
+  tags:
+    - RSS
+    - Blogs
+    - Feed-Reader
+    - Monitoring
+  homepage: "https://github.com/JulienTant/blogwatcher-cli"
 ---
+
 # Blogwatcher
 
 Track blog and RSS/Atom feed updates with the `blogwatcher-cli` tool. Supports automatic feed discovery, HTML scraping fallback, OPML import, and read/unread article management.

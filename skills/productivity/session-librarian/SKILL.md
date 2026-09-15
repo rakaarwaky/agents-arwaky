@@ -1,12 +1,18 @@
 ---
 name: session-librarian
-description: "Organize sessions by prompt: find, rename, archive, prune."
+description: Organize sessions by prompt: find, rename, archive, prune.
 metadata:
-  hermes:
-    tags: [Sessions, Organization, Cleanup, Library, Productivity]
-    category: productivity
-    related_skills: [weekly-review-planning]
+  tags:
+    - Sessions
+    - Organization
+    - Cleanup
+    - Library
+    - Productivity
+  related_skills:
+    - weekly-review-planning
+  category: productivity
 ---
+
 # Session Librarian
 
 Manage the user's session library conversationally: find past sessions about a

@@ -1,7 +1,10 @@
 ---
 name: 9router
 description: 9Router AI gateway over OpenAI REST. Use when mentioning 9Router, NINEROUTER_URL, providers.
+metadata:
+  tags: []
 ---
+
 # 9Router
 
 Local/remote AI gateway exposing OpenAI-compatible REST. One key, many providers, auto-fallback.

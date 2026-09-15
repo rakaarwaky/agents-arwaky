@@ -1,7 +1,10 @@
 ---
 name: 9router-video
-description: Generates video via 9Router Grok Imagine jobs. Use when creating text-to-video, image-to-video.
+description: "Generates video via 9Router Grok Imagine jobs. Use when creating text-to-video, image-to-video."
+metadata:
+  tags: []
 ---
+
 # 9Router — Video Generation (xAI Grok Imagine)
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

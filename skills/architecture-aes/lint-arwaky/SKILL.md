@@ -1,29 +1,20 @@
 ---
 name: lint-arwaky
-description: AES architecture linter for Python Rust TS. Use when scanning, fixing AES101-AES506 violations.
+description: "AES architecture linter for Python Rust TS. Use when scanning, fixing AES101-AES506 violations."
 metadata:
-  tags: [python, rust, typescript, lint, aes, compliance, scanning, architecture, mcp, ci, fix]
-  triggers:
-    - "lint arwaky"
-    - "lint arwaky python"
-    - "lint arwaky rust"
-    - "lint arwaky typescript"
-    - "lint code"
-    - "scan project"
-    - "scan python project"
-    - "scan rust project"
-    - "scan typescript project"
-    - "verify aes compliance"
-    - "check compliance"
-    - "aes violations"
-    - "fix architecture violations"
-    - "fix violations"
-    - "scan and fix"
-    - "audit codebase"
-    - "architecture health check"
-    - "ci quality gate"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - lint
+    - aes
+    - compliance
+    - scanning
+    - architecture
+    - mcp
+    - ci
+    - fix
+  related_skills:
     - create-taxonomy
     - create-utility
     - create-contract
@@ -34,7 +25,27 @@ metadata:
     - testing-suite
     - cleanup-consolidate
     - fix-bypass
+  triggers:
+    - lint arwaky
+    - lint arwaky python
+    - lint arwaky rust
+    - lint arwaky typescript
+    - lint code
+    - scan project
+    - scan python project
+    - scan rust project
+    - scan typescript project
+    - verify aes compliance
+    - check compliance
+    - aes violations
+    - fix architecture violations
+    - fix violations
+    - scan and fix
+    - audit codebase
+    - architecture health check
+    - ci quality gate
 ---
+
 # Lint Arwaky (AES Architecture Linter)
 
 Lint Arwaky is a high-speed Rust-based architecture enforcement engine. Structured under the

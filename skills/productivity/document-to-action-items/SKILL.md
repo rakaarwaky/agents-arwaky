@@ -2,10 +2,17 @@
 name: document-to-action-items
 description: Extract cited obligations, deadlines, tasks from documents.
 metadata:
-  hermes:
-    tags: [Documents, OCR, Action-Items, Deadlines, Extraction]
-    related_skills: [pdf, google-workspace]
+  tags:
+    - Documents
+    - OCR
+    - Action-Items
+    - Deadlines
+    - Extraction
+  related_skills:
+    - pdf
+    - google-workspace
 ---
+
 # Document to Action Items
 
 Turn documents into cited facts and proposed actions. Extraction is not legal advice, and low-confidence OCR or ambiguous language must remain visible. The `pdf` skill owns extraction mechanics (including scanned pages via its `references/ocr-extraction.md` in the `pdf` skill); this skill owns what happens to the extracted content.

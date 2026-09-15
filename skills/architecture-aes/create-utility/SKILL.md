@@ -2,33 +2,43 @@
 name: create-utility
 description: AES stateless utility scaffolding for Python Rust TS. Use when creating utility helper files.
 metadata:
-  tags: [python, rust, typescript, aes, utility, shared, stateless, pure-function, domain-agnostic, reusability]
-  triggers:
-    - "create utility"
-    - "create utility python"
-    - "create utility rust"
-    - "create utility typescript"
-    - "add utility"
-    - "add utility python"
-    - "add utility rust"
-    - "extract utility"
-    - "extract utility python"
-    - "extract to utility rust"
-    - "move to utility"
-    - "move to utility rust"
-    - "create helper function"
-    - "create helper function python"
-    - "check utility"
-    - "check utility python"
-    - "audit utility"
-    - "audit utility python"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - aes
+    - utility
+    - shared
+    - stateless
+    - pure-function
+    - domain-agnostic
+    - reusability
+  related_skills:
     - create-taxonomy
     - create-capabilities
     - create-agent
     - cleanup-consolidate
+  triggers:
+    - create utility
+    - create utility python
+    - create utility rust
+    - create utility typescript
+    - add utility
+    - add utility python
+    - add utility rust
+    - extract utility
+    - extract utility python
+    - extract to utility rust
+    - move to utility
+    - move to utility rust
+    - create helper function
+    - create helper function python
+    - check utility
+    - check utility python
+    - audit utility
+    - audit utility python
 ---
+
 # Create Utility (AES)
 
 The **utility layer holds stateless standalone functions**: no class or struct, no `self`/`this`,

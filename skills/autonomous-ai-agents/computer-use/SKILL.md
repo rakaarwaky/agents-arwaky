@@ -2,11 +2,16 @@
 name: computer-use
 description: Drive the desktop in the background without stealing focus.
 metadata:
-  hermes:
-    tags: [computer-use, desktop, automation, gui, cross-platform]
-    category: desktop
-    related_skills: []
+  tags:
+    - computer-use
+    - desktop
+    - automation
+    - gui
+    - cross-platform
+  related_skills: []
+  category: desktop
 ---
+
 # Computer Use (universal, any-model, cross-platform)
 
 You have a `computer_use` tool that drives the user's desktop in the

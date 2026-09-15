@@ -2,10 +2,18 @@
 name: hermes-memory-providers
 description: Configures Mnemosyne memory for Hermes Agent. Use when setting SQLite vector memory provider.
 metadata:
-  hermes:
-    tags: [hermes, memory, mnemosyne, plugins, setup]
-    related_skills: [mnemosyne, hermes-agent, agent-harness-connectors]
+  tags:
+    - hermes
+    - memory
+    - mnemosyne
+    - plugins
+    - setup
+  related_skills:
+    - mnemosyne
+    - hermes-agent
+    - agent-harness-connectors
 ---
+
 # Mnemosyne — Hermes Memory Provider
 
 Mnemosyne is a local-first memory layer for AI agents. When deployed as a

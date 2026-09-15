@@ -1,7 +1,10 @@
 ---
 name: 9router-stt
 description: Transcribes speech to text via 9Router STT. Use when transcribing audio, subtitles, voice input.
+metadata:
+  tags: []
 ---
+
 # 9Router — Speech-to-Text
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

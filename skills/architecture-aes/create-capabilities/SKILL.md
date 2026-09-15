@@ -2,34 +2,44 @@
 name: create-capabilities
 description: AES capability implementation scaffolding for Python Rust TS. Use when creating capability files.
 metadata:
-  tags: [python, rust, typescript, aes, capabilities, protocol, role-naming, 3-block-structure, di, vo]
-  triggers:
-    - "create capabilities"
-    - "create capabilities python"
-    - "create capabilities rust"
-    - "create capabilities typescript"
-    - "add capabilities"
-    - "add capabilities python"
-    - "add capabilities rust"
-    - "fix capabilities structure"
-    - "create protocol"
-    - "create protocol python"
-    - "create protocol rust"
-    - "create protocol typescript"
-    - "capabilities missing protocol"
-    - "validate capabilities logic"
-    - "check capabilities"
-    - "check capabilities python"
-    - "audit capabilities"
-    - "audit capabilities python"
-    - "audit capabilities rust"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - aes
+    - capabilities
+    - protocol
+    - role-naming
+    - 3-block-structure
+    - di
+    - vo
+  related_skills:
     - create-agent
     - create-taxonomy
     - create-contract
     - create-utility
+  triggers:
+    - create capabilities
+    - create capabilities python
+    - create capabilities rust
+    - create capabilities typescript
+    - add capabilities
+    - add capabilities python
+    - add capabilities rust
+    - fix capabilities structure
+    - create protocol
+    - create protocol python
+    - create protocol rust
+    - create protocol typescript
+    - capabilities missing protocol
+    - validate capabilities logic
+    - check capabilities
+    - check capabilities python
+    - audit capabilities
+    - audit capabilities python
+    - audit capabilities rust
 ---
+
 # Create Capabilities (AES)
 
 The **capabilities layer is the concrete implementation of behaviour**: domain rules

@@ -2,10 +2,20 @@
 name: requesting-code-review
 description: "Hermes-only local review via subagents: security, gates, auto-fix. Not PR threads."
 metadata:
-  hermes:
-    tags: [code-review, security, verification, quality, pre-commit, auto-fix]
-    related_skills: [hermes-plan, test-driven-development, github-code-review, coding-agent-delegation]
+  tags:
+    - code-review
+    - security
+    - verification
+    - quality
+    - pre-commit
+    - auto-fix
+  related_skills:
+    - hermes-plan
+    - test-driven-development
+    - github-code-review
+    - coding-agent-delegation
 ---
+
 # Pre-Commit Code Verification
 
 Automated verification pipeline before code lands. Static scans, baseline-aware

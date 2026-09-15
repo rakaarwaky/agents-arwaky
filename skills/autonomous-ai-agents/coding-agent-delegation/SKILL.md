@@ -2,11 +2,23 @@
 name: coding-agent-delegation
 description: Delegates coding to external CLI agents. Use when invoking qwen, codex, claude, opencode.
 metadata:
-  hermes:
-    tags: [coding-agent, delegation, qwen-code, codex, claude-code, opencode, orchestration]
-    category: autonomous-ai-agents
-    related_skills: [hermes-agent, codex, claude-code, opencode, atomic-commit-split]
+  tags:
+    - coding-agent
+    - delegation
+    - qwen-code
+    - codex
+    - claude-code
+    - opencode
+    - orchestration
+  related_skills:
+    - hermes-agent
+    - codex
+    - claude-code
+    - opencode
+    - atomic-commit-split
+  category: "autonomous-ai-agents"
 ---
+
 # Coding Agent Delegation
 
 Drive external coding-agent CLIs (Qwen Code, Codex, Claude Code, opencode) from a

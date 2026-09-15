@@ -1,7 +1,10 @@
 ---
 name: 9router-tts
 description: Converts text to speech via 9Router voices. Use when narrating, voiceover, generating audio.
+metadata:
+  tags: []
 ---
+
 # 9Router — Text-to-Speech
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

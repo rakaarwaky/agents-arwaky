@@ -1,7 +1,10 @@
 ---
 name: 9router-web-fetch
 description: Fetches URLs to markdown via 9Router. Use when scraping pages, extracting articles, reading URLs.
+metadata:
+  tags: []
 ---
+
 # 9Router — Web Fetch
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

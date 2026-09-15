@@ -1,7 +1,10 @@
 ---
 name: no-mistakes
-description: Validates changes via review, tests, lint, CI. Use when running no-mistakes, gating, shipping.
+description: "Validates changes via review, tests, lint, CI. Use when running no-mistakes, gating, shipping."
+metadata:
+  tags: []
 ---
+
 # no-mistakes
 
 `no-mistakes` is a local gate that validates your code changes through a pipeline

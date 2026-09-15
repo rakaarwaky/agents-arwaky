@@ -2,8 +2,14 @@
 name: chromium-profile-provisioning
 description: Create or inspect Brave/Chromium profile dirs and prefs. Not driving pages.
 metadata:
-  tags: [browser, chromium, brave, automation, python]
+  tags:
+    - browser
+    - chromium
+    - brave
+    - automation
+    - python
 ---
+
 # Provisioning Chromium/Brave browser profiles
 
 ## What "a profile exists" actually means

@@ -2,33 +2,45 @@
 name: create-agent
 description: AES agent orchestrator scaffolding for Python Rust TS. Use when creating agent files.
 metadata:
-  tags: [python, rust, typescript, aes, agent, aggregate, orchestrator, structure, 3-block-structure, di, orchestration, vo]
-  triggers:
-    - "create agent"
-    - "create agent python"
-    - "create agent rust"
-    - "create agent typescript"
-    - "add agent"
-    - "add agent python"
-    - "add agent rust"
-    - "fix agent structure"
-    - "create aggregate"
-    - "create aggregate python"
-    - "create aggregate rust"
-    - "create aggregate typescript"
-    - "agent missing aggregate"
-    - "validate agent logic"
-    - "check agent"
-    - "check agent python"
-    - "audit agent"
-    - "audit agent python"
-    - "audit agent rust"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - aes
+    - agent
+    - aggregate
+    - orchestrator
+    - structure
+    - 3-block-structure
+    - di
+    - orchestration
+    - vo
+  related_skills:
     - create-capabilities
     - create-taxonomy
     - create-contract
+  triggers:
+    - create agent
+    - create agent python
+    - create agent rust
+    - create agent typescript
+    - add agent
+    - add agent python
+    - add agent rust
+    - fix agent structure
+    - create aggregate
+    - create aggregate python
+    - create aggregate rust
+    - create aggregate typescript
+    - agent missing aggregate
+    - validate agent logic
+    - check agent
+    - check agent python
+    - audit agent
+    - audit agent python
+    - audit agent rust
 ---
+
 # Create Agent (AES)
 
 The **agent layer performs orchestration only**. It receives a request, calls its aggregate

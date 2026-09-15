@@ -1,7 +1,10 @@
 ---
 name: skill-manager
 description: Discovers and provisions skill guides. Use when inspecting, installing skills across tools.
+metadata:
+  tags: []
 ---
+
 # Skill Manager (aa skill)
 
 The Skill Manager provides skill discovery, integrity auditing, inspection, and automated provisioning of agent skill definitions (`SKILL.md`) from `agents-arwaky`'s internal and vendor tools into client workspaces.

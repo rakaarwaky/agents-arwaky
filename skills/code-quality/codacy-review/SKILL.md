@@ -2,9 +2,11 @@
 name: codacy-review
 description: "Codacy-gated review: local analysis plus dashboard findings. Needs Codacy mention."
 metadata:
-  author: Codacy
+  tags: []
   version: 1.0.0
+  author: Codacy
 ---
+
 # Codacy Review
 
 One skill for the full Codacy workflow: **local analysis**, **cloud queries**, and **PR review**. Two CLIs share credentials at `~/.codacy/credentials`:

@@ -1,7 +1,10 @@
 ---
 name: 9router-embeddings
 description: Generates embeddings via 9Router for RAG and search. Use when embedding text, vectors, similarity.
+metadata:
+  tags: []
 ---
+
 # 9Router — Embeddings
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

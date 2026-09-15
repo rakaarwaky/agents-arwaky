@@ -1,11 +1,18 @@
 ---
 name: codebase-inspection
-description: "Inspect codebases w/ pygount: LOC, languages, ratios."
+description: Inspect codebases w/ pygount: LOC, languages, ratios.
 metadata:
-  hermes:
-    tags: [LOC, Code Analysis, pygount, Codebase, Metrics, Repository]
-    related_skills: [github-repo-management]
+  tags:
+    - LOC
+    - Code Analysis
+    - pygount
+    - Codebase
+    - Metrics
+    - Repository
+  related_skills:
+    - github-repo-management
 ---
+
 # Codebase Inspection with pygount
 
 Analyze repositories for lines of code, language breakdown, file counts, and code-vs-comment ratios using `pygount`.

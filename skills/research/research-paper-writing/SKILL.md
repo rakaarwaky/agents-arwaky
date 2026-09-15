@@ -1,13 +1,32 @@
 ---
 name: research-paper-writing
-description: "Write ML papers for NeurIPS/ICML/ICLR: design→submit."
+description: Write ML papers for NeurIPS/ICML/ICLR: design→submit.
 metadata:
-  hermes:
-    tags: [Research, Paper Writing, Experiments, ML, AI, NeurIPS, ICML, ICLR, ACL, AAAI, COLM, LaTeX, Citations, Statistical Analysis]
-    category: research
-    related_skills: [arxiv, subagent-driven-development, plan]
-    requires_toolsets: [terminal, files]
+  tags:
+    - Research
+    - Paper Writing
+    - Experiments
+    - ML
+    - AI
+    - NeurIPS
+    - ICML
+    - ICLR
+    - ACL
+    - AAAI
+    - COLM
+    - LaTeX
+    - Citations
+    - Statistical Analysis
+  related_skills:
+    - arxiv
+    - subagent-driven-development
+    - plan
+  category: research
+  requires_toolsets:
+    - terminal
+    - files
 ---
+
 # Research Paper Writing Pipeline
 
 End-to-end pipeline for producing publication-ready ML/AI research papers targeting **NeurIPS, ICML, ICLR, ACL, AAAI, and COLM**. This skill covers the full research lifecycle: experiment design, execution, monitoring, analysis, paper writing, review, revision, and submission.

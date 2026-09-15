@@ -1,7 +1,10 @@
 ---
 name: anytype-mcp
 description: Anytype MCP for spaces, objects, notes. Use when querying Anytype local spaces, graph, notes.
+metadata:
+  tags: []
 ---
+
 # Anytype MCP Server
 
 Anytype MCP connects AI agents to Anytype's local-first knowledge graph, allowing querying, reading, creating, and updating objects, notes, collections, and spaces.

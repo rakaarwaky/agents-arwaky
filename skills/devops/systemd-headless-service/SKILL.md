@@ -1,7 +1,10 @@
 ---
 name: systemd-headless-service
 description: Background a TTY/tray app as a 24/7 user systemd service.
+metadata:
+  tags: []
 ---
+
 # systemd Headless Service (user unit)
 
 ## When to use

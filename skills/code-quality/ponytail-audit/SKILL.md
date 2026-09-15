@@ -1,7 +1,10 @@
 ---
 name: ponytail-audit
-description: Repo-wide over-engineering audit with ranked cuts. Not a single-diff review.
+description: "Repo-wide over-engineering audit with ranked cuts. Not a single-diff review."
+metadata:
+  tags: []
 ---
+
 ponytail-review, repo-wide. Scan the whole tree instead of a diff. Rank
 findings biggest cut first.
 

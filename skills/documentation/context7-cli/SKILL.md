@@ -1,7 +1,10 @@
 ---
 name: context7-cli
 description: Operates ctx7 CLI and Context7 MCP registry. Use when mentioning ctx7, context7, installing skills.
+metadata:
+  tags: []
 ---
+
 # ctx7 CLI
 
 The Context7 CLI does three things: fetches up-to-date library documentation, manages AI coding skills, and sets up Context7 MCP for your editor.

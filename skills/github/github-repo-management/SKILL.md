@@ -2,10 +2,19 @@
 name: github-repo-management
 description: Clone/create/fork repos; manage remotes, releases.
 metadata:
-  hermes:
-    tags: [GitHub, Repositories, Git, Releases, Secrets, Configuration]
-    related_skills: [github-auth, github-pr-workflow, github-issues]
+  tags:
+    - GitHub
+    - Repositories
+    - Git
+    - Releases
+    - Secrets
+    - Configuration
+  related_skills:
+    - github-auth
+    - github-pr-workflow
+    - github-issues
 ---
+
 # GitHub Repository Management
 
 Create, clone, fork, configure, and manage GitHub repositories. Prefer `gh`; fall back to `git` + `curl` (details in references/).

@@ -2,11 +2,20 @@
 name: grounded-citations
 description: Ground answers and documents in cited, verifiable sources.
 metadata:
-  hermes:
-    tags: [Research, Citations, Grounding, Sources, Web, Reports]
-    category: research
-    related_skills: [research-paper-writing, arxiv, pdf]
+  tags:
+    - Research
+    - Citations
+    - Grounding
+    - Sources
+    - Web
+    - Reports
+  related_skills:
+    - research-paper-writing
+    - arxiv
+    - pdf
+  category: research
 ---
+
 # Grounded Citations
 
 Every claim taken from an outside source gets an inline numbered citation and a

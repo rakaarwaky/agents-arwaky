@@ -2,9 +2,18 @@
 name: serving-llms-vllm
 description: "vLLM: high-throughput LLM serving, OpenAI API, quantization."
 metadata:
-  hermes:
-    tags: [vLLM, Inference Serving, PagedAttention, Continuous Batching, High Throughput, Production, OpenAI API, Quantization, Tensor Parallelism]
+  tags:
+    - vLLM
+    - Inference Serving
+    - PagedAttention
+    - Continuous Batching
+    - High Throughput
+    - Production
+    - OpenAI API
+    - Quantization
+    - Tensor Parallelism
 ---
+
 # vLLM - High-Performance LLM Serving
 
 ## When to use

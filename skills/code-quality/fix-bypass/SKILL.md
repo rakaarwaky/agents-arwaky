@@ -3,37 +3,35 @@ name: fix-bypass
 description: Fixes bypass suppressions at root cause. Use when cleaning type ignore, noqa, allow, unwrap.
 metadata:
   tags:
-    [
-      python,
-      rust,
-      typescript,
-      bypass,
-      comments,
-      type-hints,
-      refactoring,
-      noqa,
-      aes304,
-      allow,
-      unwrap,
-      ts-ignore,
-    ]
-  triggers:
-    - "fix bypass python"
-    - "remove noqa python"
-    - "remove type ignore python"
-    - "fix bypass rust"
-    - "fix bypass comments rust"
-    - "remove allow rust"
-    - "remove unwrap rust"
-    - "fix bypass typescript"
-    - "remove ts-ignore typescript"
-    - "remove ts-expect-error typescript"
-  dependencies: []
-  related:
+    - python
+    - rust
+    - typescript
+    - bypass
+    - comments
+    - type-hints
+    - refactoring
+    - noqa
+    - aes304
+    - allow
+    - unwrap
+    - ts-ignore
+  related_skills:
     - cleanup-consolidate
     - add-docs
     - lint-arwaky
+  triggers:
+    - fix bypass python
+    - remove noqa python
+    - remove type ignore python
+    - fix bypass rust
+    - fix bypass comments rust
+    - remove allow rust
+    - remove unwrap rust
+    - fix bypass typescript
+    - remove ts-ignore typescript
+    - remove ts-expect-error typescript
 ---
+
 # fix-bypass
 
 **Rule:** Fix the root cause instead of suppressing errors. No bypass comment or unsafe call without justification.

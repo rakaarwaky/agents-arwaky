@@ -2,11 +2,30 @@
 name: hermes-agent
 description: Use, configure, theme, extend, and orchestrate Hermes Agent.
 metadata:
-  hermes:
-    tags: [hermes, setup, configuration, multi-agent, spawning, cli, gateway, bots, bot-mode, features, themes, skins, desktop-plugins, tui-widgets, petdex, development]
-    homepage: https://github.com/NousResearch/hermes-agent
-    related_skills: [claude-code, codex, opencode]
+  tags:
+    - hermes
+    - setup
+    - configuration
+    - multi-agent
+    - spawning
+    - cli
+    - gateway
+    - bots
+    - bot-mode
+    - features
+    - themes
+    - skins
+    - desktop-plugins
+    - tui-widgets
+    - petdex
+    - development
+  related_skills:
+    - claude-code
+    - codex
+    - opencode
+  homepage: "https://github.com/NousResearch/hermes-agent"
 ---
+
 # Hermes Agent
 
 Hermes Agent is an open-source AI agent framework by Nous Research that runs in your terminal, a native desktop app, messaging platforms, and IDEs. It's in the same category as Claude Code (Anthropic), Codex (OpenAI), and OpenClaw — autonomous coding and task-execution agents that use tool calling to interact with your system. Hermes works with any LLM provider (OpenRouter, Anthropic, OpenAI, Google, DeepSeek, xAI, local models, and 20+ others) and runs on Linux, macOS, Windows, and WSL.

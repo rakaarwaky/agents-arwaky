@@ -1,7 +1,10 @@
 ---
 name: vision-arwaky
 description: Image and video intelligence with OCR tracking. Use when analysing images, video, objects.
+metadata:
+  tags: []
 ---
+
 # Vision Arwaky
 
 Vision Arwaky is a Python computer-vision toolkit exposed through a CLI and an MCP server. It provides workspace initialization, image analysis, OCR, screenshot comparison, video processing, scene and motion detection, object tracking, agent-readable timelines, and bounded smart-video understanding.

@@ -1,7 +1,10 @@
 ---
 name: psd-overlay-verification
 description: Use when testing PSD compositor cursor/brush overlays.
+metadata:
+  tags: []
 ---
+
 # PSD Timelapse overlay verification
 
 Use when fixing or testing the interaction overlay (cursor / brush ring) in

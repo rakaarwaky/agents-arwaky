@@ -1,7 +1,10 @@
 ---
 name: ponytail-gain
-description: Show ponytail savings scoreboard (code, cost, speed). One-shot, changes nothing.
+description: "Show ponytail savings scoreboard (code, cost, speed). One-shot, changes nothing."
+metadata:
+  tags: []
 ---
+
 # Ponytail Gain
 
 Display this scoreboard when invoked. One-shot: do NOT change mode, write flag

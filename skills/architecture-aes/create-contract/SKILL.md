@@ -2,33 +2,44 @@
 name: create-contract
 description: AES contract protocol scaffolding for Python Rust TS. Use when creating contract ABC trait files.
 metadata:
-  tags: [python, rust, typescript, aes, contract, protocol, aggregate, abc, trait, interface, vo]
-  triggers:
-    - "create contract"
-    - "create contract python"
-    - "create contract rust"
-    - "create contract typescript"
-    - "add contract"
-    - "add contract python"
-    - "add contract rust"
-    - "create protocol"
-    - "create protocol python"
-    - "create protocol rust"
-    - "create protocol typescript"
-    - "create aggregate"
-    - "create aggregate python"
-    - "create aggregate rust"
-    - "create aggregate typescript"
-    - "contract missing"
-    - "validate contract"
-    - "check contract"
-    - "check contract rust"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - aes
+    - contract
+    - protocol
+    - aggregate
+    - abc
+    - trait
+    - interface
+    - vo
+  related_skills:
     - create-capabilities
     - create-agent
     - create-taxonomy
+  triggers:
+    - create contract
+    - create contract python
+    - create contract rust
+    - create contract typescript
+    - add contract
+    - add contract python
+    - add contract rust
+    - create protocol
+    - create protocol python
+    - create protocol rust
+    - create protocol typescript
+    - create aggregate
+    - create aggregate python
+    - create aggregate rust
+    - create aggregate typescript
+    - contract missing
+    - validate contract
+    - check contract
+    - check contract rust
 ---
+
 # Create Contract (AES)
 
 The **contract layer states public promises and implements nothing**. It is the seam that lets the

@@ -1,12 +1,24 @@
 ---
 name: google-workspace
-description: "Daily Google ops via workspace MCP: Gmail, Drive, Calendar, Docs. For user tasks."
+description: Daily Google ops via workspace MCP: Gmail, Drive, Calendar, Docs. For user tasks.
 metadata:
-  hermes:
-    tags: [Google, Gmail, Calendar, Drive, Sheets, Docs, Slides, Forms, Tasks, Contacts, Chat, OAuth]
-    category: productivity
-    related_skills: []
+  tags:
+    - Google
+    - Gmail
+    - Calendar
+    - Drive
+    - Sheets
+    - Docs
+    - Slides
+    - Forms
+    - Tasks
+    - Contacts
+    - Chat
+    - OAuth
+  related_skills: []
+  category: productivity
 ---
+
 # Google Workspace -- Tool Router
 
 ## References

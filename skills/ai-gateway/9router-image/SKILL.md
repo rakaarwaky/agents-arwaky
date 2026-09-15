@@ -1,7 +1,10 @@
 ---
 name: 9router-image
 description: Generates images via 9Router image models. Use when creating, drawing, rendering pictures, txt2img.
+metadata:
+  tags: []
 ---
+
 # 9Router — Image Generation
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

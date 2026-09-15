@@ -2,10 +2,17 @@
 name: systematic-debugging
 description: Debugs root causes in 4 phases. Use when fixing bugs via read_file, search, delegate_task.
 metadata:
-  hermes:
-    tags: [debugging, troubleshooting, problem-solving, root-cause, investigation]
-    related_skills: [test-driven-development, hermes-plan]
+  tags:
+    - debugging
+    - troubleshooting
+    - problem-solving
+    - root-cause
+    - investigation
+  related_skills:
+    - test-driven-development
+    - hermes-plan
 ---
+
 # Systematic Debugging
 
 ## Overview

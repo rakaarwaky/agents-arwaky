@@ -2,37 +2,49 @@
 name: create-taxonomy
 description: AES taxonomy VO and domain type scaffolding for Python Rust TS. Use when creating taxonomy files.
 metadata:
-  tags: [python, rust, typescript, aes, taxonomy, shared, vo, entity, error, event, constant, primitive-to-vo]
-  triggers:
-    - "create taxonomy"
-    - "create taxonomy python"
-    - "create taxonomy rust"
-    - "create taxonomy typescript"
-    - "add taxonomy"
-    - "move dataclass to taxonomy"
-    - "move dataclass to taxonomy typescript"
-    - "create vo"
-    - "create vo python"
-    - "create vo rust"
-    - "create vo typescript"
-    - "create error taxonomy"
-    - "create error taxonomy python"
-    - "create error taxonomy rust"
-    - "create error taxonomy typescript"
-    - "create constant taxonomy"
-    - "create constant taxonomy python"
-    - "create constant taxonomy rust"
-    - "create constant taxonomy typescript"
-    - "check taxonomy"
-    - "audit taxonomy"
-    - "audit taxonomy python"
-    - "check taxonomy typescript"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - aes
+    - taxonomy
+    - shared
+    - vo
+    - entity
+    - error
+    - event
+    - constant
+    - primitive-to-vo
+  related_skills:
     - create-capabilities
     - create-agent
     - create-contract
+  triggers:
+    - create taxonomy
+    - create taxonomy python
+    - create taxonomy rust
+    - create taxonomy typescript
+    - add taxonomy
+    - move dataclass to taxonomy
+    - move dataclass to taxonomy typescript
+    - create vo
+    - create vo python
+    - create vo rust
+    - create vo typescript
+    - create error taxonomy
+    - create error taxonomy python
+    - create error taxonomy rust
+    - create error taxonomy typescript
+    - create constant taxonomy
+    - create constant taxonomy python
+    - create constant taxonomy rust
+    - create constant taxonomy typescript
+    - check taxonomy
+    - audit taxonomy
+    - audit taxonomy python
+    - check taxonomy typescript
 ---
+
 # Create Taxonomy (AES)
 
 Taxonomy is the **stable language of the domain**: the single source of truth for value objects,

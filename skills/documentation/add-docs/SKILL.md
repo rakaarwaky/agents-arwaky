@@ -3,45 +3,43 @@ name: add-docs
 description: Adds docstrings, doc comments, JSDoc and types. Use when documenting Python, Rust, TS, PRD, FRD.
 metadata:
   tags:
-    [
-      python,
-      rust,
-      typescript,
-      docs,
-      docstring,
-      doc-comments,
-      jsdoc,
-      type-hints,
-      prd,
-      frd,
-      readme,
-      pep257,
-    ]
-  triggers:
-    - "add docs python"
-    - "add docstring python"
-    - "add type hints python"
-    - "add prd python"
-    - "add frd python"
-    - "add package readme python"
-    - "add docs rust"
-    - "add crate readme rust"
-    - "add prd rust"
-    - "add frd rust"
-    - "add doc comments rust"
-    - "document public api rust"
-    - "add docs typescript"
-    - "add jsdoc typescript"
-    - "add type hints typescript"
-    - "add prd typescript"
-    - "add frd typescript"
-    - "add package readme typescript"
-  dependencies: []
-  related:
+    - python
+    - rust
+    - typescript
+    - docs
+    - docstring
+    - doc-comments
+    - jsdoc
+    - type-hints
+    - prd
+    - frd
+    - readme
+    - pep257
+  related_skills:
     - cleanup-consolidate
     - fix-bypass
     - lint-arwaky
+  triggers:
+    - add docs python
+    - add docstring python
+    - add type hints python
+    - add prd python
+    - add frd python
+    - add package readme python
+    - add docs rust
+    - add crate readme rust
+    - add prd rust
+    - add frd rust
+    - add doc comments rust
+    - document public api rust
+    - add docs typescript
+    - add jsdoc typescript
+    - add type hints typescript
+    - add prd typescript
+    - add frd typescript
+    - add package readme typescript
 ---
+
 # add-docs
 
 ## Purpose

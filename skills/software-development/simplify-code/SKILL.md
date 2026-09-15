@@ -1,11 +1,21 @@
 ---
 name: simplify-code
-description: Cleans recent changes via 4-agent sweep. Use when simplifying, reuse, efficiency, conventions.
+description: "Cleans recent changes via 4-agent sweep. Use when simplifying, reuse, efficiency, conventions."
 metadata:
-  hermes:
-    tags: [code-review, cleanup, refactor, delegation, subagent, parallel, simplify]
-    related_skills: [requesting-code-review, test-driven-development, hermes-plan]
+  tags:
+    - code-review
+    - cleanup
+    - refactor
+    - delegation
+    - subagent
+    - parallel
+    - simplify
+  related_skills:
+    - requesting-code-review
+    - test-driven-development
+    - hermes-plan
 ---
+
 # Simplify Code — Parallel Review & Cleanup
 
 Review your recent code changes with four focused reviewers running in

@@ -1,7 +1,10 @@
 ---
 name: blender-arwaky
 description: Blender asset search, scene build and render. Use when scripting Blender, placing GLB, rendering.
+metadata:
+  tags: []
 ---
+
 # BlenderArwaky — Skill Guide
 
 Reference for AI agents using BlenderArwaky. Use the MCP `help` tool or `blender-arwaky help` to read usage guidance.

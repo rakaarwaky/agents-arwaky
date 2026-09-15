@@ -1,7 +1,10 @@
 ---
 name: qwen-web
 description: Send prompts or docs to chat.qwen.ai via qwa/MCP. No API key. Not editing repo.
+metadata:
+  tags: []
 ---
+
 # Qwen Web Automation Skill Guide
 
 Use this skill when an AI agent needs to send prompts or document files to **Qwen AI (`chat.qwen.ai`)** and receive complete responses via MCP tools or CLI commands.

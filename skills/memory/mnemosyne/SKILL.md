@@ -2,8 +2,15 @@
 name: mnemosyne
 description: Local SQLite memory with sync and recall. Use when storing episodic memories, facts, triples.
 metadata:
-  tags: [memory, sqlite, knowledge-graph, cross-harness, episodic, triples]
+  tags:
+    - memory
+    - sqlite
+    - knowledge-graph
+    - cross-harness
+    - episodic
+    - triples
 ---
+
 # Mnemosyne — Universal Agent Memory Layer
 
 Mnemosyne is the unified, 100% local, zero-cloud memory system for

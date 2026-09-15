@@ -2,8 +2,10 @@
 name: coderabbit-review
 description: "CodeRabbit review: local pre-push check plus apply its PR threads. Needs coderabbit."
 metadata:
-  version: "0.1.0"
+  tags: []
+  version: 0.1.0
 ---
+
 # CodeRabbit Review
 
 Two workflows: **local review** (before commit/push) and **PR autofix** (apply CodeRabbit review-thread comments on an open PR).

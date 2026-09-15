@@ -1,7 +1,10 @@
 ---
 name: ponytail-help
-description: Show ponytail modes, skills, commands reference card. One-shot, changes nothing.
+description: "Show ponytail modes, skills, commands reference card. One-shot, changes nothing."
+metadata:
+  tags: []
 ---
+
 # Ponytail Help
 
 Display this reference card when invoked. One-shot, do NOT change mode,

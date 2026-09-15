@@ -1,7 +1,10 @@
 ---
 name: 9router-gateway
-description: "Use when managing, configuring, or debugging the local 9Router AI Gateway service (localhost:20128)."
+description: Use when managing, configuring, or debugging the local 9Router AI Gateway service (localhost:20128).
+metadata:
+  tags: []
 ---
+
 # 9Router AI Gateway (localhost:20128)
 
 ## Architecture Facts

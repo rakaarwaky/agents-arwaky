@@ -3,17 +3,23 @@ name: author-skill-md
 description: Authors SKILL.md files with best practices. Use when creating, structuring, validating skills.
 metadata:
   tags:
-    [skill, agent, authoring, skill-writing, skill-creation, skill-validation]
+    - skill
+    - agent
+    - authoring
+    - skill-writing
+    - skill-creation
+    - skill-validation
+  related_skills:
+    - skill-manager
   triggers:
-    - "create skill"
-    - "write skill"
-    - "improve skill"
-    - "validate skill"
-    - "check skill"
-    - "audit skill"
-  dependencies: []
-  related: [skill-manager]
+    - create skill
+    - write skill
+    - improve skill
+    - validate skill
+    - check skill
+    - audit skill
 ---
+
 # Authoring Skills
 
 ## When to Use

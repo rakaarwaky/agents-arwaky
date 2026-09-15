@@ -2,10 +2,21 @@
 name: ascii-art
 description: "ASCII art: pyfiglet, cowsay, boxes, image-to-ascii."
 metadata:
-  hermes:
-    tags: [ASCII, Art, Banners, Creative, Unicode, Text-Art, pyfiglet, figlet, cowsay, boxes]
-    related_skills: [excalidraw]
+  tags:
+    - ASCII
+    - Art
+    - Banners
+    - Creative
+    - Unicode
+    - Text-Art
+    - pyfiglet
+    - figlet
+    - cowsay
+    - boxes
+  related_skills:
+    - excalidraw
 ---
+
 # ASCII Art Skill
 
 Multiple tools for different ASCII art needs. All tools are local CLI programs or free REST APIs — no API keys required.

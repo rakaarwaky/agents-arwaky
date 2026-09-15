@@ -2,10 +2,15 @@
 name: openhue
 description: Control Philips Hue lights, scenes, rooms via OpenHue CLI.
 metadata:
-  hermes:
-    tags: [Smart-Home, Hue, Lights, IoT, Automation]
-    homepage: https://www.openhue.io/cli
+  tags:
+    - Smart-Home
+    - Hue
+    - Lights
+    - IoT
+    - Automation
+  homepage: https://www.openhue.io/cli
 ---
+
 # OpenHue CLI
 
 Control Philips Hue lights and scenes via a Hue Bridge from the terminal.

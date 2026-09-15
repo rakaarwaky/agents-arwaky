@@ -1,7 +1,10 @@
 ---
 name: hermes-profiles
-description: "Manage Hermes profiles: config, keys, and which skills load."
+description: Manage Hermes profiles: config, keys, and which skills load.
+metadata:
+  tags: []
 ---
+
 # Managing Hermes Profiles
 
 Use for anything scoped to one Hermes profile rather than the whole install: replicating

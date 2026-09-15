@@ -2,8 +2,15 @@
 name: xdg-spec-compliance
 description: Audit and fix XDG Base Directory compliance in a repo.
 metadata:
-  tags: [linux, xdg, packaging, security, python, bash]
+  tags:
+    - linux
+    - xdg
+    - packaging
+    - security
+    - python
+    - bash
 ---
+
 # XDG Base Directory Compliance
 
 Authoritative text: https://specifications.freedesktop.org/basedir/latest/ (v0.8).

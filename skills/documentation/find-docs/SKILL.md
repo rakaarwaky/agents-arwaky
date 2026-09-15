@@ -1,7 +1,10 @@
 ---
 name: find-docs
 description: Fetches library docs and examples via ctx7. Use when asking API syntax, config, migration, usage.
+metadata:
+  tags: []
 ---
+
 # Documentation Lookup
 
 Two transports, same two-step workflow (resolve an ID, then query). Use whichever

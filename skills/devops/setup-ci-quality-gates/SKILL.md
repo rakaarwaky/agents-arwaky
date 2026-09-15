@@ -2,22 +2,36 @@
 name: setup-ci-quality-gates
 description: Sets up CI quality gates and arch checks. Use when creating workflows, branch protection.
 metadata:
-  tags: [ci, github-actions, quality-gates, code-review, coderabbit, codacy, cubic, repowise, rust, python, typescript, self-lint, architecture, aes]
-  triggers:
-    - "setup ci"
-    - "quality gates"
-    - "ci pipeline"
-    - "code review bot"
-    - "architecture enforcement"
-    - "replicate ci"
-    - "branch protection"
-    - "self-lint"
-  dependencies: []
-  related:
+  tags:
+    - ci
+    - github-actions
+    - quality-gates
+    - code-review
+    - coderabbit
+    - codacy
+    - cubic
+    - repowise
+    - rust
+    - python
+    - typescript
+    - self-lint
+    - architecture
+    - aes
+  related_skills:
     - lint-arwaky
     - add-docs
     - testing-suite
+  triggers:
+    - setup ci
+    - quality gates
+    - ci pipeline
+    - code review bot
+    - architecture enforcement
+    - replicate ci
+    - branch protection
+    - self-lint
 ---
+
 # CI Quality Gates System
 
 Replicate the CI setup used by this repo: quality gates enforced by GitHub

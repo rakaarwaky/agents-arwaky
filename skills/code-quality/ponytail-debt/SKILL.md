@@ -1,7 +1,10 @@
 ---
 name: ponytail-debt
 description: "Collect ponytail: shortcut comments into a debt ledger. One-shot report."
+metadata:
+  tags: []
 ---
+
 Every deliberate ponytail shortcut is marked with a `ponytail:` comment naming
 its ceiling and upgrade path. This collects them into one ledger so a deferral
 can't quietly become permanent.

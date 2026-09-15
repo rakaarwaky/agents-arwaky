@@ -2,13 +2,18 @@
 name: teams-meeting-pipeline
 description: Teams meeting summaries, job replay, Graph subscriptions.
 metadata:
-  hermes:
-    tags: [Teams, Microsoft Graph, Meetings, Productivity, Operations]
-    related_docs:
-      - /docs/guides/microsoft-graph-app-registration
-      - /docs/user-guide/messaging/teams-meetings
-      - /docs/guides/operate-teams-meeting-pipeline
+  tags:
+    - Teams
+    - Microsoft Graph
+    - Meetings
+    - Productivity
+    - Operations
+  related_docs:
+    - /docs/guides/microsoft-graph-app-registration
+    - /docs/user-guide/messaging/teams-meetings
+    - /docs/guides/operate-teams-meeting-pipeline
 ---
+
 # Teams Meeting Pipeline
 
 Use this skill whenever the user asks about Microsoft Teams meeting summaries, transcripts, recordings, action items, Graph subscriptions, or any operational question about the Teams meeting pipeline. Works in any language — the triggers below are examples, not an exhaustive list.

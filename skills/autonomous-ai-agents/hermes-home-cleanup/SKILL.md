@@ -1,7 +1,10 @@
 ---
 name: hermes-home-cleanup
 description: Purge traces of an MCP server or skill from ~/.hermes.
+metadata:
+  tags: []
 ---
+
 # Hermes Home Cleanup (forensic purge)
 
 Use when asked to "clean all X references from my hermes" / remove an MCP server or

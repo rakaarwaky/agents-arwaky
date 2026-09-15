@@ -1,7 +1,10 @@
 ---
 name: psd-timelapse-workflow
 description: "Work the psd-timelapse repo: PRD tiers, gates, PR prep."
+metadata:
+  tags: []
 ---
+
 # PSD Timelapse project workflow
 
 Use every session working in the psd-timelapse repo.

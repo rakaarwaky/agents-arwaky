@@ -2,10 +2,22 @@
 name: touchdesigner-mcp
 description: Control TouchDesigner via twozero MCP.
 metadata:
-  hermes:
-    tags: [TouchDesigner, MCP, twozero, creative-coding, real-time-visuals, generative-art, audio-reactive, VJ, installation, GLSL]
-    related_skills: [ascii-video, manim-video]
+  tags:
+    - TouchDesigner
+    - MCP
+    - twozero
+    - creative-coding
+    - real-time-visuals
+    - generative-art
+    - audio-reactive
+    - VJ
+    - installation
+    - GLSL
+  related_skills:
+    - ascii-video
+    - manim-video
 ---
+
 # TouchDesigner Integration (twozero MCP)
 
 ## CRITICAL RULES

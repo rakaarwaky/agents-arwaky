@@ -2,34 +2,44 @@
 name: create-root
 description: AES composition root and entry wiring for Python Rust TS. Use when creating container entry files.
 metadata:
-  tags: [python, rust, typescript, aes, root, container, entry, composition, di, wiring]
-  triggers:
-    - "create root"
-    - "create root python"
-    - "create root rust"
-    - "create root typescript"
-    - "add root"
-    - "add root python"
-    - "add root rust"
-    - "create container"
-    - "create container python"
-    - "create container rust"
-    - "create entry"
-    - "create entry python"
-    - "create entry rust"
-    - "wire dependencies"
-    - "wire dependencies python"
-    - "check root"
-    - "audit root"
-    - "audit root typescript"
-  dependencies: []
-  related:
+  tags:
+    - python
+    - rust
+    - typescript
+    - aes
+    - root
+    - container
+    - entry
+    - composition
+    - di
+    - wiring
+  related_skills:
     - create-capabilities
     - create-agent
     - create-contract
     - create-taxonomy
     - create-surface
+  triggers:
+    - create root
+    - create root python
+    - create root rust
+    - create root typescript
+    - add root
+    - add root python
+    - add root rust
+    - create container
+    - create container python
+    - create container rust
+    - create entry
+    - create entry python
+    - create entry rust
+    - wire dependencies
+    - wire dependencies python
+    - check root
+    - audit root
+    - audit root typescript
 ---
+
 # Create Root (AES)
 
 The **root layer is the composition layer**. It assembles the system: containers bind concrete

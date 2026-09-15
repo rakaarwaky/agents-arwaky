@@ -2,21 +2,22 @@
 name: comfyui
 description: Generate images, video, and audio via diffusion workflows.
 metadata:
-  hermes:
-    tags:
-      - comfyui
-      - image-generation
-      - stable-diffusion
-      - flux
-      - sd3
-      - wan-video
-      - hunyuan-video
-      - creative
-      - generative-ai
-      - video-generation
-    related_skills: [stable-diffusion]
-    category: creative
+  tags:
+    - comfyui
+    - image-generation
+    - stable-diffusion
+    - flux
+    - sd3
+    - wan-video
+    - hunyuan-video
+    - creative
+    - generative-ai
+    - video-generation
+  related_skills:
+    - stable-diffusion
+  category: creative
 ---
+
 # ComfyUI
 
 Generate images, video, audio, and 3D content through ComfyUI using the

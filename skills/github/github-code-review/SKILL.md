@@ -2,10 +2,18 @@
 name: github-code-review
 description: "GitHub PR thread review via gh: fetch diff, inline comments, APPROVE. Not local-diff."
 metadata:
-  hermes:
-    tags: [GitHub, Code-Review, Pull-Requests, Git, Quality, Review-Threads]
-    related_skills: [github-auth, github-pr-workflow]
+  tags:
+    - GitHub
+    - Code-Review
+    - Pull-Requests
+    - Git
+    - Quality
+    - Review-Threads
+  related_skills:
+    - github-auth
+    - github-pr-workflow
 ---
+
 # GitHub Code Review
 
 Drive the GitHub-side review mechanics: read an open PR, post inline comments and a
