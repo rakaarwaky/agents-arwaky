@@ -1,19 +1,12 @@
 ---
 name: google-workspace
-description: >
-  Manages Google Workspace operations across 12 services (Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, Contacts, Chat, Apps Script, Custom Search)
-  through the `workspace` MCP server (tool names `mcp__workspace__*`). Provides tool routing, workflows, and parameter guidance for 114 tools.
-  Triggers for "check my email", "find a file", "schedule a meeting", "update the spreadsheet", "share a doc",
-  "create a presentation", "add a task", "look up a contact", or any mention of Google Workspace services.
-allowed-tools: Bash(workspace-mcp *), Bash(uvx workspace-mcp *), Bash(workspace-cli *), Bash(uv run --directory vendor/google-workspace-mcp *)
-user-invocable: false
+description: "Daily Google ops via workspace MCP: Gmail, Drive, Calendar, Docs. For user tasks."
 metadata:
   hermes:
     tags: [Google, Gmail, Calendar, Drive, Sheets, Docs, Slides, Forms, Tasks, Contacts, Chat, OAuth]
     category: productivity
     related_skills: []
 ---
-
 # Google Workspace -- Tool Router
 
 ## References

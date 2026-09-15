@@ -1,32 +1,30 @@
 ---
 name: cleanup-consolidate
-description: "Find and remove dead code, unused files, stubs, thin wrappers, and duplicates across Python packages, Rust crates, and TypeScript packages, then merge overlapping files into single cohesive modules."
+description: "Removes dead code and merges duplicates. Use when cleaning Python, Rust, TS packages."
 metadata:
   tags:
-    [
-      python,
-      rust,
-      typescript,
-      cleanup,
-      consolidation,
-      bloat,
-      stubs,
-      thin-wrappers,
-      dead-code,
-      orphan,
-      unused-files,
-      merge,
-      deduplication,
-      single-file,
-      single-struct,
-      aes,
-      ruff,
-      vulture,
-      black,
-      eslint,
-      prettier,
-      knip,
-    ]
+    - python
+    - rust
+    - typescript
+    - cleanup
+    - consolidation
+    - bloat
+    - stubs
+    - thin-wrappers
+    - dead-code
+    - orphan
+    - unused-files
+    - merge
+    - deduplication
+    - single-file
+    - single-struct
+    - aes
+    - ruff
+    - vulture
+    - black
+    - eslint
+    - prettier
+    - knip
   triggers:
     - "cleanup python"
     - "clean bloat python"
@@ -79,7 +77,6 @@ metadata:
     - create-capabilities
     - create-agent
 ---
-
 # cleanup-consolidate
 
 Unified codebase cleanup combining **dead code removal** and **file consolidation**. First find and remove dead code, unused files, stubs, thin wrappers, and duplicates. Then detect overlapping files that share the same domain and merge them into single cohesive modules. The result is a cleaner codebase with fewer files, less bloat, and maximum signal-to-noise ratio.
