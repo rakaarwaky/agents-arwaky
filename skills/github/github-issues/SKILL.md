@@ -22,24 +22,16 @@ Create, search, triage, and manage GitHub issues. Each section shows `gh` first,
 
 ### Setup
 
-```bash
-if command -v gh &>/dev/null && gh auth status &>/dev/null; then
-  AUTH="gh"
-else
-  AUTH="git"
-  if [ -z "$GITHUB_TOKEN" ]; then
-    if _hermes_env="${HERMES_HOME:-$HOME/.hermes}/.env"; [ -f "$_hermes_env" ] && grep -q "^GITHUB_TOKEN=" "$_hermes_env"; then
-      GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" "$_hermes_env" | head -1 | cut -d= -f2 | tr -d '\n\r')
-    elif grep -q "github.com" ~/.git-credentials 2>/dev/null; then
-      GITHUB_TOKEN=$(uv run python "${HERMES_HOME:-$HOME/.hermes}/skills/github/github-auth/scripts/git-credential-token.py")
-    fi
-  fi
-fi
+Auth and repo detection live in `github-auth`'s helper — source it rather than
+re-implementing the fallback chain (it also resolves from `~/.qwen`, `~/.hermes`,
+or `~/.config/opencode` roots):
 
-REMOTE_URL=$(git remote get-url origin)
-OWNER_REPO=$(echo "$REMOTE_URL" | sed -E 's|.*github\.com[:/]||; s|\.git$||')
-OWNER=$(echo "$OWNER_REPO" | cut -d/ -f1)
-REPO=$(echo "$OWNER_REPO" | cut -d/ -f2)
+```bash
+for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
+  [ -f "$R/github/github-auth/scripts/gh-env.sh" ] && source "$R/github/github-auth/scripts/gh-env.sh" && break
+done
+AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$GH_REPO"
+[ "$AUTH" = "none" ] && echo "Not authenticated — resolve it with the github-auth skill first"
 ```
 
 ---
@@ -140,42 +132,16 @@ curl -s -X POST \
   }'
 ```
 
-### Bug Report Template
+### Issue Templates
 
-```
-## Bug Description
-<What's happening>
+Fill the skeleton that matches the report, then paste it as `body` (escape newlines for JSON, or use a heredoc with `gh issue create --body-file`):
 
-## Steps to Reproduce
-1. <step>
-2. <step>
+| Kind | Template |
+|------|----------|
+| Bug | [`templates/bug-report.md`](templates/bug-report.md) |
+| Feature | [`templates/feature-request.md`](templates/feature-request.md) |
 
-## Expected Behavior
-<What should happen>
-
-## Actual Behavior
-<What actually happens>
-
-## Environment
-- OS: <os>
-- Version: <version>
-```
-
-### Feature Request Template
-
-```
-## Feature Description
-<What you want>
-
-## Motivation
-<Why this would be useful>
-
-## Proposed Solution
-<How it could work>
-
-## Alternatives Considered
-<Other approaches>
-```
+Keep every heading — a report missing *Steps to Reproduce* or *Environment* costs a round-trip before it can be acted on.
 
 ## 3. Managing Issues
 

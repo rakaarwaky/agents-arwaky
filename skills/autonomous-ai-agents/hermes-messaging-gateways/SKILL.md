@@ -15,6 +15,26 @@ Companion to the `hermes-agent` hub skill (bundled — see it for general gatewa
 3. One process for all bots: `hermes config set gateway.multiplex_profiles true` on the DEFAULT profile, then `hermes gateway restart`. Do NOT run `hermes gateway start` for secondary profiles — hard error while the multiplexer runs.
 4. Verify: `hermes gateway status`, then DM each bot; unknown senders get a pairing code (`hermes pairing approve telegram <CODE>`).
 
+## A profile is only reachable if it declares its channel
+
+Token in `.env` gets the adapter connected; delivery needs the block below in that
+profile's `config.yaml` (copy it into every profile that should receive DMs):
+
+```yaml
+platforms:
+  telegram:
+    enabled: true
+    home_channel:
+      platform: telegram
+      chat_id: '1060253950'
+      name: Raka Arwaky
+      thread_id: '41454'
+      user_id: '1060253950'
+```
+
+Listing a platform under `platforms:` alone is NOT enough. This block lives here and
+nowhere else in the pack — systemd/persistence references point back to it.
+
 ## Pitfalls
 
 - Merely putting `TELEGRAM_BOT_TOKEN` in `.env` auto-enables the platform (`_apply_env_overrides`) — but a platform enabled with NO resolvable token can queue an infinite reconnect loop (multiplex skips empty-token primaries instead, #64674).
@@ -26,4 +46,12 @@ Companion to the `hermes-agent` hub skill (bundled — see it for general gatewa
 
 ## References
 
+- `references/systemd-always-on.md` — **load when the user wants the gateway to survive a
+  crash, an SSH logout, or a PC reboot** ("make gateway always on"). Unit facts, the
+  `hermes gateway install` → `systemctl --user enable` procedure, the stale-want-symlink
+  fix, `loginctl enable-linger`, and the verify commands.
+- `references/multi-bot-telegram-run.md` — verified end-to-end run: 4 Telegram bots → 4
+  profiles via multiplex, with the exact log lines that prove routing.
+- `references/multiplex-late-profile-adoption.md` — a profile added after the multiplexer
+  started answers nothing, and its per-profile unit exits 78/CONFIG. Diagnosis + fix.
 - `references/multiplex-internals.md` — code-path walkthrough (secret scoping, token resolution, handler stamping) with file:line pointers from v0.20.5.

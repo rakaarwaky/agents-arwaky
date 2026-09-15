@@ -1,6 +1,6 @@
 ---
 name: simplify-code
-description: "Parallel 4-agent cleanup of recent code changes."
+description: "Parallel 4-agent cleanup of recent code changes via Hermes `delegate_task` batch mode: reuse, simplification, efficiency, convention sweep. Hermes-specific — under Qwen Code the bundled /simplify command covers the same job in one agent."
 version: 1.1.0
 author: Hermes Agent (inspired by Claude Code /simplify)
 license: MIT
@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [code-review, cleanup, refactor, delegation, subagent, parallel, simplify]
-    related_skills: [requesting-code-review, test-driven-development, plan]
+    related_skills: [requesting-code-review, test-driven-development, hermes-plan]
 ---
 
 # Simplify Code — Parallel Review & Cleanup

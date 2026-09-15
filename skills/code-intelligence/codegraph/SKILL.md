@@ -1,6 +1,6 @@
 ---
 name: codegraph
-description: Fast local code graph engine, symbol search, cross-file references, call hierarchies, and codebase intelligence for AI agents.
+description: Fast local code graph engine, symbol search, cross-file references, call hierarchies, and codebase intelligence for AI agents. Also the maintainer guide for vendored codegraph work — adding a tree-sitter language (Lua, Elixir, Zig, OCaml, ...) and benchmarking retrieval quality with/without codegraph.
 version: 1.0.0
 ---
 
@@ -18,18 +18,10 @@ Activate this skill when:
 
 ## Project Setup & Indexing
 
-Before querying via MCP, the project workspace must be initialized:
-
-```bash
-# Initialize CodeGraph and build the full repository graph
-cd /path/to/project
-aa run codegraph init
-
-# Or manually re-index after substantial file changes
-aa run codegraph index
-```
-
-CodeGraph watches project files automatically and updates the index incrementally on file modifications.
+Querying requires an initialized project index — a per-project `codegraph init`
+(builds the graph in the same step). Indexing and re-indexing commands are the
+orchestrator's (`aa tool run codegraph ...`, see the repo README); the watcher
+keeps the index current afterwards, so do not re-sync by hand mid-session.
 
 ## MCP Tools & Capabilities
 
@@ -54,3 +46,14 @@ aa run codegraph status
 # Inspect symbol definitions
 aa run codegraph query definition "MyService"
 ```
+
+## References
+
+Maintainer-only workflows for the vendored `vendor/codegraph` submodule. Load the
+matching file — do not guess at these procedures:
+
+| Reference | Read it when |
+|---|---|
+| [`references/add-language.md`](references/add-language.md) | Adding/supporting a new tree-sitter language end-to-end: grammar health-check, AST node discovery, the 4-file wiring, extraction verify loop, tests, then benchmarking on 3 real repos. |
+| [`references/evaluating.md`](references/evaluating.md) | Benchmarking/auditing retrieval quality: a with-vs-without-codegraph A/B on a real repo for a chosen codegraph version (local dev build or published npm). |
+

@@ -9,7 +9,7 @@ metadata:
   hermes:
     tags: [Research, Citations, Grounding, Sources, Web, Reports]
     category: research
-    related_skills: [research-paper-writing, arxiv, ocr-and-documents]
+    related_skills: [research-paper-writing, arxiv, pdf]
 ---
 
 # Grounded Citations
@@ -56,7 +56,11 @@ Override per task with `--ledger <path>` or `HERMES_CITATION_LEDGER`.
 ## How to Run
 
 ```bash
-S=~/.hermes/skills/research/grounded-citations/scripts/sources.py
+# Resolve the pack root (it is symlinked under ~/.hermes, ~/.qwen and ~/.config/opencode)
+for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
+  [ -f "$R/research/grounded-citations/scripts/sources.py" ] && break
+done
+S=$R/research/grounded-citations/scripts/sources.py
 
 python "$S" reset                                  # start a clean ledger
 python "$S" add https://example.com/a --title "A"  # prints: [1]
@@ -230,3 +234,11 @@ lists exactly the cited ids with the ledger's URLs, and the cited share of
 source-bearing sentences meets the threshold. Read the warnings even when the
 exit code is 0 — uncited registered sources usually mean a claim lost its
 attribution during editing.
+
+## References
+
+| File | Read when |
+|---|---|
+| `references/citation-formats.md` | Placing the block in a non-markdown target (docx footnotes, LaTeX endnotes, deck source slide) |
+| `references/grounding-rationale.md` | You are about to change the citation wording or ledger mechanics and need the reasoning behind them |
+

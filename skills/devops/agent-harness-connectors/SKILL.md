@@ -205,9 +205,13 @@ Side effect to remember: `~/.hermes` is itself a git repo pushed to
 tracked file under `skills/` shows as deleted plus one untracked link — commit
 that state so the backup repo reflects reality (pack content itself is preserved
 by the agents-arwaky repo).
-Related: the profile skills layout convention (real dirs, no symlinks between
-profiles and the pack) is tracked separately — do not confuse connector output
-with it.
+Related: how a named profile's `skills/` dir ends up pointing at the pack (and what
+that shared root implies for per-profile state) is documented once, in the
+`hermes-profiles` skill (`references/skills-layout.md`). Do not confuse connector
+output with it: `connect` links `~/.hermes/skills` and never touches
+`profiles/<p>/skills`, yet on this host the named profiles are root-linked to the hub
+anyway (`ls -ld ~/.hermes/profiles/*/skills`) — that was a manual migration, so
+profiles do see the generalist pack despite the rule above.
 
 Consequence of the shared root link: every harness session edits the SAME pack
 checkout, so other agent sessions (or the user) can commit — even push — work in
@@ -217,12 +221,15 @@ the genuine residue; never re-commit a diff you merely see staged. Check
 `git reflog` when commits appear that you did not make, and flag concurrent
 committers to the user instead of silently layering on top.
 
-Rule for pruning irrelevant skills in a named profile (Raka correction):
-DELETE the skill dirs (move to ~/.hermes/.skill-trash/<profile>/), do NOT
-just append to `skills.disabled` — disabled-but-present still pollutes the
-profile. Match each SKILL.md description against the profile's SOUL.md role
-before deciding; only delete, never restore bundled upstream into profiles
-that opted out.
+Rule for pruning irrelevant skills in a named profile: add their names to that
+profile's `skills.disabled` list — do NOT delete the dirs or move them to a
+`~/.hermes/.skill-trash/<profile>/` (that path does not exist on this host, and
+nothing reads it). The root link makes the pack shared by every profile and
+harness, so a deletion in one profile deletes it everywhere. The mechanism, the write form the
+CLI actually accepts for a list key, and the KEEP-vs-DISABLE audit are documented once,
+in the `hermes-profiles` skill (`references/skill-filtering.md`) — load that, do not
+improvise here. Match each SKILL.md description against the profile's SOUL.md role before
+deciding; never restore bundled upstream into profiles that opted out.
 
 ## Migration checklist for a provisioning-model change
 
@@ -249,3 +256,7 @@ edit — the linked live host is the test subject:
 - `references/harness-skill-probes.md` — per-harness commands to verify skill
   discovery through a symlinked skills root (the evidence required before
   flipping `SKILL_LINK_VERIFIED`), with each CLI's invocation quirks.
+- `references/mcp-server-registration.md` — Hermes `hermes mcp add` traps the
+  upstream docs do not cover: `--env` must precede `--command`/`--args`, a
+  saved-but-disabled entry is not success, and the raw JSON-RPC-over-stdin way
+  to tell a broken server from a broken registration.

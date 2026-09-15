@@ -1,11 +1,14 @@
 ---
 name: context7-cli
-description: Use the ctx7 CLI to fetch library documentation, manage AI coding skills, and configure Context7 MCP. Activate when the user mentions "ctx7" or "context7", needs current docs for any library, wants to install/search/generate skills, or needs to set up Context7 for their AI coding agent.
+description: Install and operate the ctx7 CLI — configure Context7 MCP for an editor, manage the AI coding skill registry (install/search/suggest/list/remove/generate), and login. Activate when the user mentions "ctx7" or "context7" setup, wants to install or generate skills, or needs Context7 wired into their AI coding agent. For looking up library documentation once wired, use the `find-docs` skill.
 ---
 
 # ctx7 CLI
 
 The Context7 CLI does three things: fetches up-to-date library documentation, manages AI coding skills, and sets up Context7 MCP for your editor.
+
+Doc *lookup* (the resolve-then-query workflow over MCP tools or this CLI) lives in
+the `find-docs` skill; this skill covers the tool itself.
 
 Make sure the CLI is up to date before running commands:
 

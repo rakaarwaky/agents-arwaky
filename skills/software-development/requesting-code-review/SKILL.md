@@ -1,6 +1,6 @@
 ---
 name: requesting-code-review
-description: "Pre-commit review: security scan, quality gates, auto-fix."
+description: "Request a review by dispatching Hermes reviewer subagents (`delegate_task`) over your own diff: security scan, quality gates, auto-fix. Hermes-specific — under Qwen Code the bundled /review skill already does a local-diff review without subagents."
 version: 2.0.0
 author: Hermes Agent (adapted from obra/superpowers + MorAlekss)
 license: MIT
@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [code-review, security, verification, quality, pre-commit, auto-fix]
-    related_skills: [subagent-driven-development, plan, test-driven-development, github-code-review]
+    related_skills: [hermes-plan, test-driven-development, github-code-review, coding-agent-delegation]
 ---
 
 # Pre-Commit Code Verification
@@ -23,7 +23,7 @@ quality gates, an independent reviewer subagent, and an auto-fix loop.
 - After implementing a feature or bug fix, before `git commit` or `git push`
 - When user says "commit", "push", "ship", "done", "verify", or "review before merge"
 - After completing a task with 2+ file edits in a git repo
-- After each task in subagent-driven-development (the two-stage review)
+- After each task of a multi-task plan (the two-stage review — spec compliance, then this)
 
 **Skip for:** documentation-only changes, pure config tweaks, or when user says "skip verification".
 
@@ -260,7 +260,7 @@ element.textContent = userInput;
 
 ## Integration with Other Skills
 
-**subagent-driven-development:** Run this after EACH task as the quality gate.
+**Multi-task plans:** Run this after EACH task as the quality gate.
 The two-stage review (spec compliance + code quality) uses this pipeline.
 
 **test-driven-development:** This pipeline verifies TDD discipline was followed —

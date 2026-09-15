@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# GitHub environment detection helper for Hermes Agent skills.
+# GitHub environment detection helper for skill packs.
 #
 # Usage (via terminal tool):
-#   source skills/github/github-auth/scripts/gh-env.sh
+#   source <skills-root>/github/github-auth/scripts/gh-env.sh
 #
 # After sourcing, these variables are set:
 #   GH_AUTH_METHOD  - "gh", "curl", or "none"
@@ -11,6 +11,11 @@
 #   GH_OWNER        - repo owner  (only if inside a git repo with a github remote)
 #   GH_REPO         - repo name   (only if inside a git repo with a github remote)
 #   GH_OWNER_REPO   - owner/repo  (only if inside a git repo with a github remote)
+
+# Locate this script's own directory so the token helper resolves regardless of
+# which harness rooted the pack (~/.hermes, ~/.qwen, ~/.config/opencode, a repo
+# checkout, or a per-skill symlink farm).
+GH_AUTH_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd -P)"
 
 # --- Auth detection ---
 
@@ -29,7 +34,7 @@ elif _hermes_env="${HERMES_HOME:-$HOME/.hermes}/.env"; [ -f "$_hermes_env" ] && 
         GH_AUTH_METHOD="curl"
     fi
 elif [ -f "$HOME/.git-credentials" ]; then
-    GITHUB_TOKEN=$(uv run python3 "${HERMES_HOME:-$HOME/.hermes}/skills/github/github-auth/scripts/git-credential-token.py")
+    GITHUB_TOKEN=$(uv run python3 "$GH_AUTH_SCRIPT_DIR/git-credential-token.py")
     if [ -n "$GITHUB_TOKEN" ]; then
         GH_AUTH_METHOD="curl"
     fi

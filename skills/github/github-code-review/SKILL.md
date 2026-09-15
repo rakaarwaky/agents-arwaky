@@ -1,19 +1,26 @@
 ---
 name: github-code-review
-description: "Review PRs: diffs, inline comments via gh or REST."
-version: 1.1.0
+description: "GitHub PR review driver: fetch a PR's diff and metadata, post inline review comments and formal APPROVE/REQUEST_CHANGES review threads via gh or REST, then reply to and resolve reviewer threads. NOT a generic local-diff reviewer — for that, use your harness's built-in review (Qwen Code: /review)."
+version: 1.2.0
 author: Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   hermes:
-    tags: [GitHub, Code-Review, Pull-Requests, Git, Quality]
+    tags: [GitHub, Code-Review, Pull-Requests, Git, Quality, Review-Threads]
     related_skills: [github-auth, github-pr-workflow]
 ---
 
 # GitHub Code Review
 
-Perform code reviews on local changes before pushing, or review open PRs on GitHub. Most of this skill uses plain `git` — the `gh`/`curl` split only matters for PR-level interactions.
+Drive the GitHub-side review mechanics: read an open PR, post inline comments and a
+formal review, and reply to review threads. Everything here is `gh` or REST against
+GitHub; the `gh`/`curl` split only matters for PR-level interactions.
+
+**Out of scope:** analyzing a local diff for correctness, security, quality, and
+performance before you push. Every agent harness ships that (Qwen Code: the bundled
+`/review` skill), so this skill deliberately does not restate it — use the built-in
+reviewer, then come here to get the findings onto the PR.
 
 ## Prerequisites
 
@@ -22,108 +29,21 @@ Perform code reviews on local changes before pushing, or review open PRs on GitH
 
 ### Setup (for PR interactions)
 
-```bash
-if command -v gh &>/dev/null && gh auth status &>/dev/null; then
-  AUTH="gh"
-else
-  AUTH="git"
-  if [ -z "$GITHUB_TOKEN" ]; then
-    if _hermes_env="${HERMES_HOME:-$HOME/.hermes}/.env"; [ -f "$_hermes_env" ] && grep -q "^GITHUB_TOKEN=" "$_hermes_env"; then
-      GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" "$_hermes_env" | head -1 | cut -d= -f2 | tr -d '\n\r')
-    elif grep -q "github.com" ~/.git-credentials 2>/dev/null; then
-      GITHUB_TOKEN=$(uv run python "${HERMES_HOME:-$HOME/.hermes}/skills/github/github-auth/scripts/git-credential-token.py")
-    fi
-  fi
-fi
+Auth and repo detection live in `github-auth`'s helper — source it rather than
+re-implementing the fallback chain (it also resolves correctly from `~/.qwen`,
+`~/.hermes`, or `~/.config/opencode` roots):
 
-REMOTE_URL=$(git remote get-url origin)
-OWNER_REPO=$(echo "$REMOTE_URL" | sed -E 's|.*github\.com[:/]||; s|\.git$||')
-OWNER=$(echo "$OWNER_REPO" | cut -d/ -f1)
-REPO=$(echo "$OWNER_REPO" | cut -d/ -f2)
+```bash
+for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
+  [ -f "$R/github/github-auth/scripts/gh-env.sh" ] && source "$R/github/github-auth/scripts/gh-env.sh" && break
+done
+AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$GH_REPO"
+[ "$AUTH" = "none" ] && echo "Not authenticated — resolve it with the github-auth skill first"
 ```
 
 ---
 
-## 1. Reviewing Local Changes (Pre-Push)
-
-This is pure `git` — works everywhere, no API needed.
-
-### Get the Diff
-
-```bash
-# Staged changes (what would be committed)
-git diff --staged
-
-# All changes vs main (what a PR would contain)
-git diff main...HEAD
-
-# File names only
-git diff main...HEAD --name-only
-
-# Stat summary (insertions/deletions per file)
-git diff main...HEAD --stat
-```
-
-### Review Strategy
-
-1. **Get the big picture first:**
-
-```bash
-git diff main...HEAD --stat
-git log main..HEAD --oneline
-```
-
-2. **Review file by file** — use `read_file` on changed files for full context, and the diff to see what changed:
-
-```bash
-git diff main...HEAD -- src/auth/login.py
-```
-
-3. **Check for common issues:**
-
-```bash
-# Debug statements, TODOs, console.logs left behind
-git diff main...HEAD | grep -n "print(\|console\.log\|TODO\|FIXME\|HACK\|XXX\|debugger"
-
-# Large files accidentally staged
-git diff main...HEAD --stat | sort -t'|' -k2 -rn | head -10
-
-# Secrets or credential patterns
-git diff main...HEAD | grep -in "password\|secret\|api_key\|token.*=\|private_key"
-
-# Merge conflict markers
-git diff main...HEAD | grep -n "<<<<<<\|>>>>>>\|======="
-```
-
-4. **Present structured feedback** to the user.
-
-### Review Output Format
-
-When reviewing local changes, present findings in this structure:
-
-```
-## Code Review Summary
-
-### Critical
-- **src/auth.py:45** — SQL injection: user input passed directly to query.
-  Suggestion: Use parameterized queries.
-
-### Warnings
-- **src/models/user.py:23** — Password stored in plaintext. Use bcrypt or argon2.
-- **src/api/routes.py:112** — No rate limiting on login endpoint.
-
-### Suggestions
-- **src/utils/helpers.py:8** — Duplicates logic in `src/core/utils.py:34`. Consolidate.
-- **tests/test_auth.py** — Missing edge case: expired token test.
-
-### Looks Good
-- Clean separation of concerns in the middleware layer
-- Good test coverage for the happy path
-```
-
----
-
-## 2. Reviewing a Pull Request on GitHub
+## 1. Reviewing a Pull Request on GitHub
 
 ### View PR Details
 
@@ -277,66 +197,17 @@ The `line` field refers to the line number in the *new* version of the file. For
 
 ---
 
-## 3. Review Checklist
-
-When performing a code review (local or PR), systematically check:
-
-### Correctness
-- Does the code do what it claims?
-- Edge cases handled (empty inputs, nulls, large data, concurrent access)?
-- Error paths handled gracefully?
-
-### Security
-- No hardcoded secrets, credentials, or API keys
-- Input validation on user-facing inputs
-- No SQL injection, XSS, or path traversal
-- Auth/authz checks where needed
-
-### Code Quality
-- Clear naming (variables, functions, classes)
-- No unnecessary complexity or premature abstraction
-- DRY — no duplicated logic that should be extracted
-- Functions are focused (single responsibility)
-
-### Testing
-- New code paths tested?
-- Happy path and error cases covered?
-- Tests readable and maintainable?
-
-### Performance
-- No N+1 queries or unnecessary loops
-- Appropriate caching where beneficial
-- No blocking operations in async code paths
-
-### Documentation
-- Public APIs documented
-- Non-obvious logic has comments explaining "why"
-- README updated if behavior changed
-
----
-
-## 4. Pre-Push Review Workflow
-
-When the user asks you to "review the code" or "check before pushing":
-
-1. `git diff main...HEAD --stat` — see scope of changes
-2. `git diff main...HEAD` — read the full diff
-3. For each changed file, use `read_file` if you need more context
-4. Apply the checklist above
-5. Present findings in the structured format (Critical / Warnings / Suggestions / Looks Good)
-6. If critical issues found, offer to fix them before the user pushes
-
----
-
-## 5. PR Review Workflow (End-to-End)
+## 2. PR Review Workflow (End-to-End)
 
 When the user asks you to "review PR #N", "look at this PR", or gives you a PR URL, follow this recipe:
 
 ### Step 1: Set up environment
 
 ```bash
-source "${HERMES_HOME:-$HOME/.hermes}/skills/github/github-auth/scripts/gh-env.sh"
-# Or run the inline setup block from the top of this skill
+for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
+  [ -f "$R/github/github-auth/scripts/gh-env.sh" ] && source "$R/github/github-auth/scripts/gh-env.sh" && break
+done
+# Same as the setup block at the top of this skill
 ```
 
 ### Step 2: Gather PR context
@@ -398,9 +269,12 @@ ruff check . 2>&1 | head -30
 # or: eslint, clippy, etc.
 ```
 
-### Step 6: Apply the review checklist (Section 3)
+### Step 6: Analyze the diff
 
-Go through each category: Correctness, Security, Code Quality, Testing, Performance, Documentation.
+Run your harness's built-in review on the checked-out PR diff (Qwen Code: `/review`)
+rather than a hand-rolled checklist — it already covers correctness, security,
+quality, and testing. Record each finding with its file and new-version line number;
+Step 7 needs those coordinates to place inline comments.
 
 ### Step 7: Post the review to GitHub
 

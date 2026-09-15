@@ -1,6 +1,6 @@
 ---
 name: mnemosyne
-description: "Universal local AI memory layer for cross-harness persistence (Antigravity, Hermes, OpenCode). Query and store episodic memories, temporal knowledge graph triples, scratchpad working memory, and shared multi-agent state using SQLite."
+description: "Local SQLite memory layer shared by every harness: store/recall episodic memories, temporal triples, canonical facts, scratchpad, shared surface, plus device sync. Also the rule for which store durable memory belongs in on each harness (Hermes vs Qwen Code vs file-based)."
 version: 1.0.0
 author: agents-arwaky
 license: MIT
@@ -10,95 +10,172 @@ metadata:
 
 # Mnemosyne — Universal Agent Memory Layer
 
-Mnemosyne is the unified, 100% local, zero-cloud memory system for `agents-arwaky`. It provides cross-harness persistence so that **Antigravity**, **Hermes**, and **OpenCode** share a single source of truth for facts, user preferences, architecture decisions, and task continuity.
+Mnemosyne is the unified, 100% local, zero-cloud memory system for
+`agents-arwaky`: one SQLite-backed source of truth for facts, user preferences,
+architecture decisions, and task continuity, reachable from every harness either
+as MCP tools (`mnemosyne_remember`, `mnemosyne_recall`, …) or as the
+`mnemosyne` CLI.
+
+Load the reference file only when you are working on the memory system itself:
+`references/repo-dev.md` (repo, sync server, memory databases, CI, release
+policy, gotchas).
 
 ---
+
+## Durable memory rule
+
+Decide **per harness**, not by habit. Before ANY memory write ask: *"Is this
+durable — would I want it next session?"* If no (current todo list, temp flag),
+keep it in ephemeral/session state. If yes, route it to the store that harness
+actually reads:
+
+| Harness | Where durable memory goes |
+|---|---|
+| **Hermes** | **Mnemosyne** — `mnemosyne_remember` / `mnemosyne store`. Hermes' legacy `memory` tool is a last resort: it has a tiny character cap and no vector recall, so use it only for ephemeral session state, and never for user preferences, credentials, or project conventions. |
+| **Qwen Code** | Its **native file-based memory**: `~/.qwen/memories/` (cross-project, about the user) and `~/.qwen/projects/<project-slug>/memory/` (this project only) — one frontmatter file per memory in a type subdirectory, plus a one-line pointer in that directory's `MEMORY.md`. Do not "fix" this by also writing to Mnemosyne; the harness reads its own files. |
+| Any other harness with its own memory contract (AGENTS.md-style instructions, a native memory dir, a plugin) | Follow **that** harness's native mechanism. Reach for Mnemosyne only for a fact that must be shared *across* harnesses. |
+
+Rules that hold on every harness:
+
+- **Never duplicate a fact into two stores.** One store is authoritative per
+  harness; a second copy silently rots and then contradicts itself on recall.
+  Migrating: save to the new store first, then remove the old entry, so nothing
+  is lost and nothing is doubled.
+- **Scope is the durability switch**: `scope="global"` for anything that must
+  outlive the conversation (and, on Hermes, is the only scope sync ever
+  replicates); `scope="session"` for conversation-local notes. On this host
+  `config.yaml` ships `default_scope: session`, so state the scope explicitly
+  instead of relying on a default.
+- **Importance is the recall switch**: ≥0.7 for anything you want retrieved
+  later, ≥0.9 for identity and standing user preferences. Passive aging is not
+  deletion — correct a known-wrong fact with `mnemosyne_update`, or
+  `mnemosyne_invalidate` it (optionally naming the `replacement_id` so the chain
+  is traceable), or hard-delete with `mnemosyne_forget`.
+- **Wrong-tool reflex is a known failure mode**: if you catch yourself writing a
+  durable fact to a legacy/harness-local memory store (or a file-based memory
+  store to Mnemosyne), cancel the call, redo it against the table above, and
+  clean up the stray entry.
+- Ephemeral scratchpad (`mnemosyne_scratchpad_write`) is for in-task notes only;
+  it is not durable storage.
 
 ## 🧠 Core Memory Types
 
-1. **Episodic & Semantic Memories:**
-   - Long-term facts, decisions, learnings, and context.
-   - Hybrid retrieval: BM25/FTS5 keyword search combined with dense vector embeddings.
-
-2. **Temporal Triples & Knowledge Graph:**
-   - Explicit relational knowledge: `(subject, predicate, object)` with validity windows (`valid_from`, `valid_until`).
-   - Query connected entities, dependency paths, and evolving truths over time.
-
-3. **Scratchpad (Working Memory):**
-   - Fast, ephemeral notes across tool steps within active tasks.
-
-4. **Shared Multi-Agent Memory:**
-   - Distinct namespace for memories visible and actionable across all harnesses and agents.
-
----
+1. **Episodic & Semantic Memories** — long-term facts, decisions, learnings,
+   context. Retrieval is hybrid: dense vector similarity + FTS5/BM25 keyword
+   rank + importance (+ optional temporal boost), weights tunable per query.
+2. **Temporal Triples & Knowledge Graph** — `(subject, predicate, object)` with
+   validity windows (`valid_from`, `valid_until`); `as_of` queries replay what
+   was true on a past date. `mnemosyne_triple_add` **supersedes** the prior fact
+   with the same subject+predicate by default (that is how a fact ends — there is
+   no separate "close the interval" call); pass `supersede=false` only for
+   genuinely multi-valued predicates.
+3. **Canonical self-facts** — one authoritative value per `(category, name)`
+   slot (identity, voice, standing preferences), so restating cannot produce two
+   contradicting copies; a new body supersedes the old one, which is kept as
+   history (`mnemosyne_recall_canonical … include_history=true`).
+4. **Scratchpad (Working Memory)** — fast, ephemeral notes across tool steps.
+5. **Shared Multi-Agent Memory** — a separate surface DB of `global` rows
+   visible to every agent and replicated by `mnemosyne sync` (the sync/surface
+   model is the thing most people get wrong → `references/repo-dev.md`).
 
 ## 🛠️ MCP Tool Reference (`mnemosyne`)
 
-### 1. Episodic & Long-Term Memory
-- `mnemosyne_remember`: Store a memory with content, tags, importance, and optional bank.
-  - Arguments: `content` (string, required), `tags` (array of strings), `importance` (float 0.0-1.0), `bank` (string).
-- `mnemosyne_recall`: Retrieve memories relevant to a query using hybrid search.
-  - Arguments: `query` (string, required), `k` (limit, default 5), `bank` (string), `threshold` (float).
-- `mnemosyne_get`: Fetch a specific memory by its ID.
-- `mnemosyne_update`: Update existing memory text or metadata.
-- `mnemosyne_forget`: Delete or soft-delete a memory by ID.
+Tool names are `mnemosyne_*` on Hermes (provider-registered) and may arrive
+prefixed by your MCP client (e.g. `mcp__mnemosyne__recall`). Do not hardcode a
+tool count — enumerate what your client exposes.
 
-### 2. Cross-Agent Shared Memory
-- `mnemosyne_shared_remember`: Store memory directly into the shared multi-agent bank.
-- `mnemosyne_shared_recall`: Query shared multi-agent knowledge.
-- `mnemosyne_shared_forget`: Remove a shared memory entry.
-- `mnemosyne_shared_stats`: Inspect counts and status of shared memories.
+- **Read / write memories** — `mnemosyne_remember` (`content`, `importance`
+  0.0–1.0, `scope` `session`|`global`, `source`, `veracity`, `valid_until`,
+  `metadata`, `extract_entities`, `extract`), `mnemosyne_recall` (`query`,
+  `limit`, per-query `vec_weight`/`fts_weight`/`importance_weight`/
+  `temporal_weight`, `query_time`, `explain`), `mnemosyne_get`,
+  `mnemosyne_update`, `mnemosyne_invalidate`, `mnemosyne_forget`,
+  `mnemosyne_batch` (atomic `remember`/`update`/`forget`/`invalidate` list,
+  `dry_run` available).
+- **Canonical slots** — `mnemosyne_remember_canonical`,
+  `mnemosyne_recall_canonical`, `mnemosyne_forget_canonical`.
+- **Triples & graph** — `mnemosyne_triple_add`, `mnemosyne_triple_query`
+  (case-insensitive subject; `as_of` for point-in-time), `mnemosyne_graph_query`
+  (BFS from a seed id, `max_hops`/`edge_type`/`min_weight`),
+  `mnemosyne_graph_link`.
+- **Shared surface** — `mnemosyne_shared_remember`, `mnemosyne_shared_recall`,
+  `mnemosyne_shared_forget`, `mnemosyne_shared_stats`.
+- **Scratchpad** — `mnemosyne_scratchpad_write`, `_read`, `_clear`.
+- **Maintenance & trust** — `mnemosyne_stats`, `mnemosyne_sleep`
+  (consolidation; `all_sessions=true` / `force` / `dry_run`),
+  `mnemosyne_diagnose` (deps, DB state, vector-readiness; `repair_vec_working`),
+  `mnemosyne_hygiene_audit` (ranked noise candidates; dry-run only) →
+  `mnemosyne_hygiene_clean` (needs `confirm=true`; `delete`|`archive`|`flag`),
+  `mnemosyne_validate` (attest/update/invalidate/delete a memory you did not
+  author; records validator + note).
 
-### 3. Knowledge Graph & Temporal Triples
-- `mnemosyne_triple_add`: Add a semantic triple:
-  - Example: `subject="agents-arwaky"`, `predicate="uses_harness"`, `object="hermes"`
-- `mnemosyne_triple_query`: Search triples by subject, predicate, or object.
-- `mnemosyne_triple_end`: Close the validity interval of a triple when facts change.
-- `mnemosyne_graph_query`: Traverse graph nodes and outgoing/incoming relationships.
-- `mnemosyne_graph_link`: Create an explicit connection between two memories.
+There is no `mnemosyne_triple_end`: end a fact by re-adding it superseded, or
+give it a `valid_until`.
 
-### 4. Working Memory (Scratchpad)
-- `mnemosyne_scratchpad_write`: Save fast notes for the current session.
-- `mnemosyne_scratchpad_read`: Read current scratchpad contents.
-- `mnemosyne_scratchpad_clear`: Clear working scratchpad.
+## 💻 CLI Usage (`mnemosyne`, or `aa tool run mnemosyne`)
 
-### 5. Maintenance & Hygiene
-- `mnemosyne_stats`: Get memory counts, bank distributions, and storage metrics.
-- `mnemosyne_sleep`: Run offline memory consolidation, decay calculation, and graph refinement.
-- `mnemosyne_diagnose`: Health check and database integrity check.
-
----
-
-## 💻 CLI Usage (`aa run mnemosyne` or `mnemosyne`)
-
-The CLI provides quick management from the command line:
+Arguments are **positional** — there is no `--tags`, and **no `remember`
+subcommand** (`store` is the verb):
 
 ```bash
-# Health check
-mnemosyne doctor
-
-# Remember a fact
-mnemosyne remember "User prefers concise answers and standard library over dependencies." --tags preference,style
-
-# Recall memories
-mnemosyne recall "user preference style"
-
-# View memory statistics
+mnemosyne doctor            # dependency + install check
+mnemosyne diagnose          # DB / vector-search readiness (--dry-run, --repair-vec-working)
+mnemosyne store "User prefers concise answers and standard library over dependencies." preference 0.9
+mnemosyne recall "user preference style" 5
+mnemosyne update <id> "corrected text" 0.8
+mnemosyne delete <id>
 mnemosyne stats
-
-# Consolidate and sleep
 mnemosyne sleep
-
-# Start MCP server manually (stdio)
-mnemosyne mcp
+mnemosyne bank list         # logical banks; they are rows, not directories
+mnemosyne mcp               # start the MCP server (stdio; --transport sse|streamable-http)
 ```
 
----
+Other verbs worth knowing: `export [file.json] [--include-sync-events]`,
+`import <file.json>` (idempotent), `import-hindsight`, `hygiene audit|clean`,
+`reindex`, `backup`/`restore`/`verify`/`backups`, `sync`, `sync-init`,
+`sync-serve`, `sync-status`, `sync-generate-key`, `profile`, `repair`,
+`migrate`, `version`.
+
+Two CLI traps, both verified on this build:
+
+1. **`mnemosyne config` exists but is hidden** — `--help` does not list it, yet
+   `mnemosyne config reload|get|set|migrate` all work. Use `config get <key>` to
+   read the effective value.
+2. **`config set <key> <value>` rewrites `config.yaml` and drops its comments**
+   (the file's own header explaining precedence is the first casualty). Prefer
+   editing the YAML in place, which its header explicitly invites
+   ("edit freely, hot-reload with `mnemosyne config reload`").
 
 ## 🔒 Storage & XDG Paths
 
-All data is stored locally and securely in compliance with the XDG specification:
-- **Database:** `${XDG_DATA_HOME:-$HOME/.local/share}/mnemosyne/mnemosyne.db`
-- **Config & Banks:** `${XDG_CONFIG_HOME:-$HOME/.config}/mnemosyne/`
-- **MCP Launcher:** `${XDG_BIN_HOME:-$HOME/.local/bin}/mnemosyne-mcp`
-- **CLI Launcher:** `${XDG_BIN_HOME:-$HOME/.local/bin}/mnemosyne`
+- **Data dir (everything lives here):**
+  `${XDG_DATA_HOME:-$HOME/.local/share}/mnemosyne/` → `mnemosyne.db` (WAL mode,
+  so `-shm`/`-wal` sidecars appear while a server holds it open), `config.yaml`,
+  and `banks/`. Banks are **logical** (list them with `mnemosyne bank list`;
+  only `default` — the main DB itself — exists on this host); `banks/` stays
+  empty until something creates a named bank, so do not infer the bank set from
+  a directory listing. There is **no** `${XDG_CONFIG_HOME}/mnemosyne/` on this
+  host — do not look for config there.
+- **Precedence:** `config.yaml` > env var > built-in default, and the file pins
+  `data_dir: ~/.local/share/mnemosyne`. That pin means `MNEMOSYNE_DATA_DIR`
+  (which `aa connect` injects into harness `.env` files) does **not** relocate
+  the store by itself — edit `data_dir` in `config.yaml` instead. Many keys need
+  a process restart (`mnemosyne config reload` for a live provider).
+- **Launchers:** `~/.local/bin/mnemosyne` and `~/.local/bin/mnemosyne-mcp` are
+  285-byte **uv wrappers**, not pipx venvs and not copies: each execs
+  `uv run --extra mcp --directory "$AGENTS_ARWAKY_ROOT/vendor/mnemosyne"
+  mnemosyne …` (`AGENTS_ARWAKY_ROOT` defaults to `/home/raka/agents-arwaky`).
+  So editing the vendor checkout changes what the installed command runs, and
+  every invocation prints a harmless
+  `warning: VIRTUAL_ENV=… does not match the project environment path .venv`
+  line from uv.
+- Hermes-side state (`~/.hermes/mnemosyne/data/`) and the provider-plugin install
+  are covered by the `hermes-memory-providers` skill.
+
+## References
+
+- `references/repo-dev.md` — load for any dev/devops task on the mnemosyne repo
+  itself: BEAM schema, the sync/surface data model, test + lint + CI workflow,
+  release policy, contributor norms, and issue-numbered gotchas.
+- `hermes-memory-providers` skill — installing Mnemosyne as a Hermes memory
+  provider, and the built-in MEMORY.md/USER.md contract it replaces.

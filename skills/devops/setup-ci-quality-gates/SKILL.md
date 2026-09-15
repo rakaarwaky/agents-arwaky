@@ -14,12 +14,9 @@ metadata:
     - "self-lint"
   dependencies: []
   related:
-    - lint-arwaky-rust
-    - lint-arwaky-python
-    - lint-arwaky-typescript
-    - repowise-scan
-    - role-quality-analysis
-    - role-tech-lead
+    - lint-arwaky
+    - add-docs
+    - testing-suite
 ---
 
 # CI Quality Gates System

@@ -166,6 +166,7 @@ Key files:
 - `acl.sty` - Style file
 - `acl_natbib.bst` - Bibliography style
 - `acl_latex.tex` - Example document
+- `formatting.md` - The *ACL author kit's own formatting rules (read before the final pass)
 
 ### AAAI 2026
 

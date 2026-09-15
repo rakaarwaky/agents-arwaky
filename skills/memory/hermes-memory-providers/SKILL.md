@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [hermes, memory, mnemosyne, plugins, setup]
-    related_skills: [hermes-agent]
+    related_skills: [mnemosyne, hermes-agent, agent-harness-connectors]
 ---
 
 # Mnemosyne — Hermes Memory Provider
@@ -18,15 +18,21 @@ Hermes memory provider, it replaces the built-in MEMORY.md/USER.md system with
 SQLite-backed vector + FTS5 hybrid search, episodic consolidation, temporal
 knowledge graphs, and optional bidirectional sync.
 
-**100% local. Zero cloud. Sub-millisecond recall.**
+**100% local. Zero cloud.**
 
 ## What It Gives You
 
 - **System prompt injection** — `# Mnemosyne Memory` context block in every prompt
 - **Pre-turn prefetch** — relevant memories injected before each LLM call
 - **Post-turn sync** — conversation turns auto-stored to episodic memory
-- **20 tools** auto-injected into the model's tool surface (remember, recall,
-  sleep, triples, scratchpad, graph, sync, diagnostics, etc.)
+- **Tools** auto-injected into the model's tool surface: the `mnemosyne_*` core
+  family (remember, recall, update, invalidate, forget, triples, graph,
+  scratchpad, stats, sleep, export/import, diagnose, hygiene) **plus**
+  provider-only `mnemosyne_sync_*` and `mnemosyne_persona_*` tools that MCP does
+  not register. Do not quote a tool count — the set grows between releases;
+  enumerate it (`hermes tools`, or what your client exposes) and read
+  `integrations/hermes/src/mnemosyne_hermes/plugin.yaml` in the checkout for the
+  authoritative list.
 - **3 lifecycle hooks** — `pre_llm_call`, `on_session_start`, `post_tool_call`
 - **CLI commands** — `hermes mnemosyne {stats|sleep|inspect|export|import|clear|version}`
 
@@ -126,8 +132,8 @@ You should see `mnemosyne_remember` and `mnemosyne_recall` calls succeed.
 ## MCP vs. Provider Plugin
 
 Mnemosyne ships an MCP server (`mnemosyne mcp`, stdio + SSE + Streamable HTTP
-transports) that exposes **29 tools** — usable with any MCP-compatible client
-(Claude Desktop, etc.):
+transports) that exposes the `mnemosyne_*` tool family — usable with any
+MCP-compatible client (Claude Desktop, etc.):
 
 ```bash
 mnemosyne mcp                              # stdio transport
@@ -171,15 +177,34 @@ hermes mnemosyne version              # Show version
 
 ## Data Location
 
+The provider's own default is under the Hermes home, so each install (and each
+`--hermes-home`, e.g. Docker's `/opt/data`) is isolated:
+
 ```
-~/.hermes/mnemosyne/
+<hermes_home>/mnemosyne/
 └── data/
     ├── mnemosyne.db              # Main SQLite database (WAL mode)
     ├── triples.db                # Standalone TripleStore
-    └── banks/<name>/mnemosyne.db # Named memory banks (per-bank isolation)
+    └── banks/<name>/mnemosyne.db # Named banks (per-profile isolation, off by default)
 ```
 
-Persists across sessions via `~/.hermes/` (including on ephemeral VMs like Fly.io).
+`MNEMOSYNE_DATA_DIR` overrides that default, and `aa connect` writes it into each
+Hermes profile's `.env` — so on a host wired up that way the store is the plain
+XDG one the CLI uses, and this directory may not exist at all. **Never assume;
+ask the install:**
+
+```bash
+mnemosyne config get data_dir          # the path actually resolved
+ls ~/.hermes/mnemosyne ~/.local/share/mnemosyne 2>&1
+```
+
+On this host the store is `~/.local/share/mnemosyne/` and there is **no**
+`~/.hermes/mnemosyne/`. See the `mnemosyne` skill for the layout of that
+directory (banks, surface DB, `config.yaml` and its precedence rules).
+
+Persists across sessions via the Hermes home (including on ephemeral VMs like
+Fly.io) — unless the provider was installed in wrapper mode, in which case the
+data dir lives where `--hermes-home` points.
 
 ## Optional: Host LLM Routing
 
@@ -192,7 +217,10 @@ auxiliary client instead — no extra credentials needed:
 export MNEMOSYNE_HOST_LLM_ENABLED=true
 ```
 
-See `docs/hermes-llm-integration.md` for the full behavior model and config.
+Remember the precedence trap: a key already pinned in `config.yaml` outranks
+this env var. Check the effective value with `mnemosyne config get <key>` (the
+`config` verb is hidden from `--help` but works) and hot-reload with
+`mnemosyne config reload`.
 
 ## Troubleshooting
 
@@ -203,10 +231,14 @@ See `docs/hermes-llm-integration.md` for the full behavior model and config.
 | `hermes mnemosyne stats` → "invalid choice" | Plugin CLI registration didn't load; use `hermes hermes-mnemosyne stats` or relink (Step 2). |
 | Memory not recalled across sessions | Provider loaded but session didn't restart; new sessions pick up the provider. |
 | `mnemosyne_hermes` import error in Docker | Use wrapper mode: `mnemosyne-hermes install --mode wrapper --python <venv>/bin/python`. |
+| Nothing persists / the DB you expected is empty | You are looking at a different data dir. Run `mnemosyne doctor` and read the path it prints — see Data Location above. |
 
 ## References
 
-- [Hermes Integration Guide](../../docs/hermes-integration.md) — canonical setup reference
-- [Hermes Auxiliary LLM Integration](../../docs/hermes-llm-integration.md) — host LLM routing
-- [Mnemosyne vs Hindsight Comparison](../../docs/comparison.md) — architecture and feature comparison
-- `hermes-agent` skill — general Hermes setup, config, and plugin system
+- `mnemosyne` skill — the tool surface, the CLI, storage paths, and the rule for
+  which store durable memory belongs in on each harness.
+- `references/repo-dev.md` (in the `mnemosyne` skill) — BEAM schema, the
+  sync/surface data model, and the provider's `skip_contexts` gating.
+- `hermes-agent` skill — general Hermes setup, config, and plugin system.
+- `agent-harness-connectors` skill — how `aa connect` registers the MCP server
+  and injects `MNEMOSYNE_*` env for each harness.

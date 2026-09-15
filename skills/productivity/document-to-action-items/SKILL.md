@@ -8,12 +8,12 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [Documents, OCR, Action-Items, Deadlines, Extraction]
-    related_skills: [ocr-and-documents, pdf, docx, notion]
+    related_skills: [pdf, google-workspace]
 ---
 
 # Document to Action Items
 
-Turn documents into cited facts and proposed actions. Extraction is not legal advice, and low-confidence OCR or ambiguous language must remain visible. The `ocr-and-documents` / `pdf` / `docx` skills own extraction mechanics; this skill owns what happens to the extracted content.
+Turn documents into cited facts and proposed actions. Extraction is not legal advice, and low-confidence OCR or ambiguous language must remain visible. The `pdf` skill owns extraction mechanics (including scanned pages via its `references/ocr-extraction.md`); this skill owns what happens to the extracted content.
 
 ## When to Use
 
@@ -22,7 +22,7 @@ Turn documents into cited facts and proposed actions. Extraction is not legal ad
 - "Read these scanned forms and structure the data."
 - "Find risks, owners, and follow-ups in these attachments."
 
-Don't use for: plain text extraction with no downstream structuring (load `ocr-and-documents` directly).
+Don't use for: plain text extraction with no downstream structuring (load `pdf` directly).
 
 ## Procedure
 
@@ -32,7 +32,7 @@ Use `read_file` for local files and `web_extract` for URLs to identify files, ve
 
 ### 2. Extract with provenance
 
-Load `ocr-and-documents`, `pdf`, or `docx`. Extract text/tables while retaining file and page/section coordinates. For scans, record OCR confidence or visible quality issues. Done when every extracted field can cite its source location.
+Load `pdf` (scanned pages: its `references/ocr-extraction.md`). Extract text/tables while retaining file and page/section coordinates. For scans, record OCR confidence or visible quality issues. Done when every extracted field can cite its source location.
 
 ### 3. Classify evidence
 

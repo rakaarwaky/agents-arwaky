@@ -275,31 +275,31 @@ curl -s -H "Authorization: token $GITHUB_TOKEN" \
 If git credentials are already configured (via credential.helper store), the token can be extracted:
 
 ```bash
-# Read from git credential store
-uv run python "${HERMES_HOME:-$HOME/.hermes}/skills/github/github-auth/scripts/git-credential-token.py"
+# Read from git credential store — run it from this skill's own scripts/ directory
+# (the pack is symlinked at ~/.hermes/skills, ~/.qwen/skills and ~/.config/opencode/skills,
+# so resolve the root rather than hardcoding one).
+for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
+  [ -f "$R/github/github-auth/scripts/git-credential-token.py" ] && break
+done
+uv run python "$R/github/github-auth/scripts/git-credential-token.py"
 ```
 
 ### Helper: Detect Auth Method
 
-Use this pattern at the start of any GitHub workflow:
+`scripts/gh-env.sh` in this skill is the single implementation — it resolves `gh`
+→ `$GITHUB_TOKEN` → `$HERMES_HOME/.env` → `~/.git-credentials`, and exports
+`GH_AUTH_METHOD`, `GH_OWNER_REPO`, `GH_OWNER`, `GH_REPO`. Source it instead of
+re-implementing the chain:
 
 ```bash
-# Try gh first, fall back to git + curl
-if command -v gh &>/dev/null && gh auth status &>/dev/null; then
-  echo "AUTH_METHOD=gh"
-elif [ -n "$GITHUB_TOKEN" ]; then
-  echo "AUTH_METHOD=curl"
-elif _hermes_env="${HERMES_HOME:-$HOME/.hermes}/.env"; [ -f "$_hermes_env" ] && grep -q "^GITHUB_TOKEN=" "$_hermes_env"; then
-  export GITHUB_TOKEN=$(grep "^GITHUB_TOKEN=" "$_hermes_env" | head -1 | cut -d= -f2 | tr -d '\n\r')
-  echo "AUTH_METHOD=curl"
-elif grep -q "github.com" ~/.git-credentials 2>/dev/null; then
-  export GITHUB_TOKEN=$(uv run python "${HERMES_HOME:-$HOME/.hermes}/skills/github/github-auth/scripts/git-credential-token.py")
-  echo "AUTH_METHOD=curl"
-else
-  echo "AUTH_METHOD=none"
-  echo "Need to set up authentication first"
-fi
+for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
+  [ -f "$R/github/github-auth/scripts/gh-env.sh" ] && source "$R/github/github-auth/scripts/gh-env.sh" && break
+done
+echo "AUTH_METHOD=$GH_AUTH_METHOD"
+echo "OWNER=$GH_OWNER REPO=$GH_REPO"
+[ "$GH_AUTH_METHOD" = "none" ] && echo "Need to set up authentication first"
 ```
+
 
 ---
 
