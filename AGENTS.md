@@ -119,7 +119,29 @@ aa check
 The verification checks:
 1. JSON syntax validity across all JSON files under `tools/`.
 2. Python compilation across all Python files under `tools/`.
-3. ShellCheck linting of `tools/` shell scripts (excluding `skills/`), if installed.
+3. Skill-pack loadability invariants across `skills/` (see below).
+4. ShellCheck linting of `tools/` shell scripts (excluding `skills/`), if installed.
+
+### Skill-pack loadability invariants
+
+Enforced by `tools/lib/skill_pack.py` and reported by both `aa check` and `aa skill check`:
+
+1. **Layout** — every skill is exactly `skills/<category>/<skill>/SKILL.md`. A harness
+   scans one level below a skills root, so anything flatter or deeper never loads.
+2. **Name parity** — frontmatter `name:` equals the containing folder name.
+3. **Description present** — every `SKILL.md` has a non-empty `description:`.
+4. **Names unique** — no two skills in the pack share a `name:`.
+5. **Description budget** — the aggregate byte size of all `description:` values stays
+   under `DESCRIPTION_BUDGET_BYTES`, because every description is injected into every
+   session prompt. Move detail into `<skill>/references/*.md` instead of the description.
+
+Two more catch dead weight: a category folder containing no skill (`empty-category`) and a
+skill folder missing `SKILL.md` (`skill-without-skill-md`).
+
+`aa skill install --prune` deletes provisioned copies under a project's `.agents/skills/`
+that the pack no longer provides. It only removes entries carrying
+`.arwaky-skill.json` provenance (written on every copy) or symlinks that point into
+`skills/`; hand-written skills are always left alone.
 
 ---
 
@@ -135,6 +157,9 @@ The verification checks:
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
 | **Execute registered tool** | `aa tool run <tool-id> [args]` |
+| **Audit per-tool skill coverage** | `aa skill check` |
+| **Provision skills into a project** | `aa skill install <tool\|skill\|all> [--target DIR]` |
+| **Prune stale provisioned skills** | `aa skill install --prune [--target DIR]` |
 | **Install tools (local native build)** | `aa tool install [tool]` |
 | **Update tools** | `aa tool update [tool\|all]` |
 | **Uninstall tools** | `aa tool uninstall [tool\|--all]` |

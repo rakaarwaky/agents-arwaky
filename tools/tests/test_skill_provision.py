@@ -6,6 +6,7 @@ is a LINK into the repo pack (skills/<name>/), so an agent editing it anywhere
 writes back to the single source of truth, and removal only ever drops the
 link — never the pack.
 """
+import json
 import os
 import shutil
 import sys
@@ -335,3 +336,150 @@ class TestSkillCliProvision:
         assert skill_mod.provision_single_skill(evil / "SKILL.md", ws) is True
         assert (ws / ".agents" / "skills" / "escape" / "SKILL.md").is_file()
         assert not (tmp_path / "escape").exists()
+
+
+# ---------------------------------------------------------------------------
+# tools/lib/skill_pack.py — provenance, pruning, loadability audit
+# ---------------------------------------------------------------------------
+@pytest.fixture
+def cat_pack(tmp_path):
+    """A categorized pack (<tmp>/skills/<category>/<skill>/SKILL.md) plus an
+    empty provision target, with skill_pack pointed at it."""
+    import skill_pack
+    pack = tmp_path / "skills"
+    src = pack / "media" / "demo-skill"
+    src.mkdir(parents=True)
+    (src / "SKILL.md").write_text(SKILL_BODY.format(name="demo-skill"))
+    (src / "references").mkdir()
+    (src / "references" / "api.md").write_text("ref")
+    ws = tmp_path / "ws" / ".agents" / "skills"
+    ws.mkdir(parents=True)
+    return skill_pack, pack, src, ws
+
+
+class TestProvenance:
+    def test_copy_records_provenance(self, cat_pack):
+        """--prune is only safe because every copy says where it came from."""
+        import skill as skill_mod
+        skill_pack, pack, src, ws = cat_pack
+        skill_mod.PACK_ROOT = pack
+        assert skill_mod.provision_single_skill(src / "SKILL.md", ws.parents[1]) is True
+        meta = json.loads((ws / "demo-skill" / skill_pack.PROVENANCE_FILE).read_text())
+        assert meta["source"] == "media/demo-skill/SKILL.md"
+        assert meta["category"] == "media"
+        assert meta["name"] == "demo-skill"
+
+    def test_link_writes_no_provenance(self, cat_pack):
+        """A link already points at the pack; writing next to it would land in
+        the repo and pollute the single source of truth."""
+        import skill as skill_mod
+        skill_pack, pack, src, ws = cat_pack
+        skill_mod.PACK_ROOT = pack
+        assert skill_mod.provision_single_skill(src / "SKILL.md", ws.parents[1], link=True) is True
+        assert not (pack / "media" / "demo-skill" / skill_pack.PROVENANCE_FILE).exists()
+
+
+class TestPrune:
+    def test_removes_copy_whose_pack_source_is_gone(self, cat_pack):
+        skill_pack, pack, src, ws = cat_pack
+        stale = ws / "old-skill"
+        stale.mkdir()
+        (stale / "SKILL.md").write_text("gone")
+        (stale / skill_pack.PROVENANCE_FILE).write_text(json.dumps(
+            {"version": 1, "name": "old-skill", "source": "media/old-skill/SKILL.md"}))
+        assert skill_pack.prune_provisioned(ws, pack) == ["old-skill"]
+        assert not stale.exists()
+
+    def test_keeps_hand_written_skill(self, cat_pack):
+        """No provenance means the tool never placed it — never delete it."""
+        skill_pack, pack, _, ws = cat_pack
+        handmade = ws / "my-own-skill"
+        handmade.mkdir()
+        (handmade / "SKILL.md").write_text("mine")
+        assert skill_pack.prune_provisioned(ws, pack) == []
+        assert handmade.is_dir()
+
+    def test_dangling_pack_link_goes_foreign_link_stays(self, cat_pack):
+        skill_pack, pack, _, ws = cat_pack
+        dead = ws / "retired-skill"
+        dead.symlink_to(pack / "media" / "retired-skill", target_is_directory=True)
+        foreign = ws / "elsewhere"
+        foreign.symlink_to(Path("/etc/hostname"))
+        assert skill_pack.prune_provisioned(ws, pack) == ["retired-skill"]
+        assert not dead.exists() and dead.is_symlink() is False
+        assert foreign.is_symlink()
+
+    def test_live_pack_link_survives(self, cat_pack):
+        skill_pack, pack, src, ws = cat_pack
+        (ws / "demo-skill").symlink_to(src, target_is_directory=True)
+        assert skill_pack.prune_provisioned(ws, pack) == []
+        assert (ws / "demo-skill" / "SKILL.md").is_file()
+
+
+class TestPackAudit:
+    def test_clean_pack_has_no_findings(self, cat_pack):
+        skill_pack, pack, _, _ = cat_pack
+        assert skill_pack.audit_pack(pack) == []
+
+    def test_flags_flat_nesting_and_duplicate_names(self, tmp_path):
+        skill_pack = _skill_pack()
+        pack = tmp_path / "skills"
+        for name, body in {
+            "cat/a": "---\nname: a\ndescription: ok\n---\n",
+            "loose": "---\nname: a\ndescription: also a\n---\n",
+            "cat/mismatch": "---\nname: other\ndescription: ok\n---\n",
+            "cat/nodesc": "---\nname: nodesc\ndescription:\n---\n",
+        }.items():
+            folder = pack.joinpath(*name.split("/"))
+            folder.mkdir(parents=True)
+            (folder / "SKILL.md").write_text(body)
+        (pack / "cat" / "no-skill-file").mkdir(parents=True)
+        (pack / "empty-category").mkdir(parents=True)
+        codes = {f.code for f in skill_pack.audit_pack(pack)}
+        assert {"nested-layout", "name-mismatch", "duplicate-name",
+                "description-missing", "empty-category",
+                "skill-without-skill-md"} <= codes
+
+    def test_description_budget_is_enforced(self, tmp_path, monkeypatch):
+        skill_pack = _skill_pack()
+        monkeypatch.setattr(skill_pack, "DESCRIPTION_BUDGET_BYTES", 4)
+        pack = tmp_path / "skills"
+        (pack / "cat" / "a").mkdir(parents=True)
+        (pack / "cat" / "a" / "SKILL.md").write_text(
+            "---\nname: a\ndescription: far too long for the budget\n---\n")
+        assert "description-budget" in {f.code for f in skill_pack.audit_pack(pack)}
+
+    def test_shipped_pack_passes_its_own_gate(self):
+        """The real skills/ tree must satisfy every invariant aa check asserts."""
+        root = Path(__file__).resolve().parents[2]
+        skill_pack = _skill_pack()
+        findings = skill_pack.audit_pack(root / "skills")
+        assert findings == [], [f.code for f in findings]
+
+
+class TestToolResolution:
+    def test_handle_matches_are_word_bounded(self, tmp_path):
+        """'vision' must not be claimed by a skill merely containing 'provisioning'."""
+        import skill as skill_mod
+        pack = tmp_path / "skills" / "media" / "vision-arwaky"
+        pack.mkdir(parents=True)
+        (pack / "SKILL.md").write_text(SKILL_BODY.format(name="vision-arwaky"))
+        noise = tmp_path / "skills" / "automation" / "chromium-profile-provisioning"
+        noise.mkdir(parents=True)
+        (noise / "SKILL.md").write_text(
+            "---\nname: chromium-profile-provisioning\n"
+            "description: Create or inspect Brave/Chromium profile dirs.\n---\n")
+        skill_mod._get_all_skills.cache_clear()
+        skill_mod.REPO_ROOT = tmp_path
+        skill_mod.PACK_ROOT = tmp_path / "skills"
+        try:
+            hits = skill_mod.resolve_tool_skills({"id": "vision", "alias": "va"})
+            assert [p.parent.name for p in hits] == ["vision-arwaky"]
+        finally:
+            skill_mod._get_all_skills.cache_clear()
+
+
+def _skill_pack():
+    import skill_pack
+    return skill_pack
+

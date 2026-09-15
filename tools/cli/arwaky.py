@@ -536,7 +536,7 @@ def cmd_check(argv: list[str]) -> int:
     info("Running Python-based repository verification...")
     errors = 0
     print()
-    print("[1/2] Validating JSON files...")
+    print("[1/4] Validating JSON files...")
     for json_file in (repo_root() / "tools").rglob("*.json"):
         if "node_modules" in json_file.parts:
             continue
@@ -547,7 +547,7 @@ def cmd_check(argv: list[str]) -> int:
             err(f"Invalid JSON: {json_file}: {e}")
             errors += 1
     print()
-    print("[2/2] Compiling Python files...")
+    print("[2/4] Compiling Python files...")
     for py_file in (repo_root() / "tools").rglob("*.py"):
         if "node_modules" in py_file.parts:
             continue
@@ -558,38 +558,63 @@ def cmd_check(argv: list[str]) -> int:
             err(f"Python compile error: {py_file}: {e}")
             errors += 1
     print()
-    # Shellcheck for our own .sh files (exclude tools/skills = upstream submodule copies)
-    sh_files = [
-        f for f in (repo_root() / "tools").rglob("*.sh")
-        if "node_modules" not in f.parts and f.relative_to(repo_root()).parts[0] != "skills"
-    ]
-    if sh_files:
-        if shutil.which("shellcheck"):
-            print("[3/3] Running shellcheck...", flush=True)
-            for f in sh_files:
-                try:
-                    res = subprocess.run(
-                        ["shellcheck", "-x", str(f)],
-                        capture_output=True, text=True, input="", timeout=15, check=False,
-                    )
-                except subprocess.TimeoutExpired:
-                    err(f"shellcheck timeout: {f}")
-                    errors += 1
-                    continue
-                if res.returncode != 0:
-                    # tampilkan ringkas (baris pertama saja)
-                    first = res.stdout.strip().splitlines()[:3]
-                    for line in first:
-                        err(f"shellcheck {f}: {line}")
-                    errors += 1
-        else:
-            warn("shellcheck not installed; skipping .sh lint")
+    errors += _check_skill_pack()
+    print()
+    errors += _check_shell()
     print()
     if errors:
         err(f"Verification FAILED with {errors} errors.")
         return 1
     ok("All verifications PASSED.")
     return 0
+
+
+def _check_skill_pack() -> int:
+    """Gate skills/ on the invariants a harness loader actually depends on."""
+    from skill_pack import DESCRIPTION_BUDGET_BYTES, audit_pack, iter_skill_files  # type: ignore[import-not-found]
+
+    print("[3/4] Validating skill pack loadability...")
+    pack = repo_root() / "skills"
+    findings = audit_pack(pack)
+    total = len(iter_skill_files(pack))
+    for finding in findings:
+        err(f"{finding.code}: {finding.message}")
+    if not findings:
+        ok(f"{total} skills across {len({p.relative_to(pack).parts[0] for p in iter_skill_files(pack)})} categories; names unique, layout loadable")
+    else:
+        info(f"  ({total} SKILL.md files scanned, budget {DESCRIPTION_BUDGET_BYTES} bytes)")
+    return len(findings)
+
+
+def _check_shell() -> int:
+    """Shellcheck for our own .sh files (exclude skills = upstream submodule copies)."""
+    errors = 0
+    sh_files = [
+        f for f in (repo_root() / "tools").rglob("*.sh")
+        if "node_modules" not in f.parts and f.relative_to(repo_root()).parts[0] != "skills"
+    ]
+    if not sh_files:
+        return 0
+    if not shutil.which("shellcheck"):
+        warn("shellcheck not installed; skipping .sh lint")
+        return 0
+    print("[4/4] Running shellcheck...")
+    for f in sh_files:
+        try:
+            res = subprocess.run(
+                ["shellcheck", "-x", str(f)],
+                capture_output=True, text=True, input="", timeout=15, check=False,
+            )
+        except subprocess.TimeoutExpired:
+            err(f"shellcheck timeout: {f}")
+            errors += 1
+            continue
+        if res.returncode != 0:
+            # tampilkan ringkas (baris pertama saja)
+            for line in res.stdout.strip().splitlines()[:3]:
+                err(f"shellcheck {f}: {line}")
+            errors += 1
+    return errors
 
 
 def cmd_submodules(argv: list[str]) -> int:

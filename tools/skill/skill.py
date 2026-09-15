@@ -4,7 +4,7 @@
 Commands:
     aa skill list [tool]
     aa skill check|audit
-    aa skill install|copy|get|add <tool|skill|all> [--target DIR] [--dest PATH] [--force]
+    aa skill install|copy|get|add <tool|skill|all> [--target DIR] [--dest PATH] [--force] [--prune]
     aa skill uninstall|unskill|remove|delete <tool|skill|all> [--target DIR] [--dest PATH]
     aa skill show|cat|view <tool|skill>
     aa skill sync
@@ -23,8 +23,10 @@ from skill_names import extract_skill_name, sanitize_skill_name, safe_skill_name
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "lib"))
 from paths import repo_root
+from skill_pack import audit_pack, prune_provisioned, write_provenance  # noqa: E402
 REPO_ROOT = repo_root()
 MANIFEST = REPO_ROOT / "tools/config/manifest.json"
+PACK_ROOT = REPO_ROOT / "skills"
 
 from ui import pad as _pad, table_widths as _table_widths  # type: ignore[import-not-found]
 
@@ -116,6 +118,46 @@ def get_tool_skills(tool_id):
     across every tool. internal/ and vendor/ submodules are no longer read.
     """
     return _get_all_skills()
+
+
+def _manifest_tools():
+    """Raw tool entries from manifest.json, in manifest order."""
+    if not MANIFEST.exists():
+        return []
+    try:
+        data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return [t for t in data.get("tools", []) if isinstance(t, dict)]
+
+
+def tool_names(tool):
+    """Every handle a manifest tool answers to: id, alias, binaries."""
+    names = set()
+    for key in ("id", "alias", "binary", "mcpBinary"):
+        value = str(tool.get(key) or "").strip().lower()
+        if value:
+            names.add(value)
+    return {n for n in names if len(n) > 2}
+
+
+def resolve_tool_skills(tool):
+    """The subset of the shared pack that documents THIS manifest tool.
+
+    The pack is shared on purpose (one skill tree, every harness), so "skills for
+    a tool" can only mean skills whose name or trigger text points at that tool.
+    Auditing a tool against the whole pack just repeats the same number.
+    """
+    handles = tool_names(tool)
+    # Hyphen-delimited, not word-delimited: the pack names skills 'vision-arwaky',
+    # so 'vision' must match while 'provisioning' must not.
+    patterns = [re.compile(rf"(?<!\w){re.escape(h)}(?!\w)", re.IGNORECASE) for h in handles]
+    dedicated = []
+    for path in _get_all_skills():
+        haystack = f"{path.parent.name} {extract_description(path)}"
+        if any(p.search(haystack) for p in patterns):
+            dedicated.append(path)
+    return dedicated
 
 
 def resolve_single_skill_file(query):
@@ -211,6 +253,9 @@ def provision_single_skill(source_file, target_dir, custom_dest="", force=False,
 
     dest_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source_file, dest_file)
+    # Provenance is what makes `--prune` safe: it separates our copies from
+    # hand-written skills. Links need none — the link already points at the pack.
+    write_provenance(dest_dir, source_file, PACK_ROOT)
     print(f"  \u2713 [OK] Provisioned: {dest_file}")
     return True
 
@@ -356,12 +401,32 @@ def cmd_uninstall(argv):
     return 1
 
 # --- install -------------------------------------------------------------------
+def _provision_base(target_dir: Path, custom_dest: str) -> Path:
+    """Where provisioned skill folders land, mirroring provision_single_skill."""
+    if custom_dest and not custom_dest.endswith(".md"):
+        return Path(custom_dest)
+    return target_dir / ".agents" / "skills"
+
+
+def _report_prune(base: Path) -> None:
+    """Drop provisioned entries the pack no longer provides; leave foreign skills."""
+    removed = prune_provisioned(base, PACK_ROOT)
+    print("------------------------------------------------------------------")
+    if not removed:
+        print(f"Prune: nothing stale under {base}")
+        return
+    for name in removed:
+        print(f"  - [PRUNE] {base / name}")
+    print(f"Prune: removed {len(removed)} provisioned skill(s) the pack no longer provides.")
+
+
 def cmd_install(argv):
     target_name = ""
     target_dir = Path.cwd()
     custom_dest = ""
     force = False
     link = False
+    prune = False
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -371,6 +436,8 @@ def cmd_install(argv):
             custom_dest = argv[i + 1]; i += 2; continue
         if a in ("--force", "-f"):
             force = True; i += 1; continue
+        if a == "--prune":
+            prune = True; i += 1; continue
         if a in ("--copy", "--copy-skills"):
             link = False; i += 1; continue
         if a in ("--link", "--symlink"):
@@ -378,9 +445,17 @@ def cmd_install(argv):
         if not target_name:
             target_name = a
         i += 1
+
+    if prune:
+        # Prune first, then provision: the end state is the pack, exactly.
+        # `--prune` without a target is a valid cleanup-only invocation.
+        _report_prune(_provision_base(target_dir, custom_dest))
+        if not target_name:
+            return 0
+
     if not target_name:
         print("Error: Missing tool or skill name.")
-        print("Usage: aa skill install <tool-name|skill-name|all> [--target <dir>] [--force]")
+        print("Usage: aa skill install <tool-name|skill-name|all> [--target <dir>] [--force] [--prune]")
         return 1
 
     if target_name == "all":
@@ -474,25 +549,41 @@ def cmd_check():
     n_cols = 5
     available = max(40, term_w - 2 - (n_cols - 1))
     w_id, w_cat, w_status, w_count, w_path = _table_widths(available, [2, 1, 1, 1, 5])
-    print("Auditing SKILL.md Readiness across Registered Tools:")
+    print("Auditing the shared skill pack against manifest.json tools:")
     print("-" * available)
-    print(f"{_pad('TOOL ID', w_id)} {_pad('CATEGORY', w_cat)} {_pad('STATUS', w_status)} {_pad('SKILLS COUNT', w_count)} {_pad('SAMPLE PATH', w_path)}")
+    print(f"{_pad('TOOL ID', w_id)} {_pad('CATEGORY', w_cat)} {_pad('STATUS', w_status)} {_pad('OWN SKILLS', w_count)} {_pad('SAMPLE PATH', w_path)}")
     print("-" * available)
-    total_tools = ready = missing = total_skills = 0
-    for tid, cat, _ in get_registered_tool_ids():
-        total_tools += 1
-        skills = get_tool_skills(tid)
-        total_skills += len(skills)
-        if skills:
-            ready += 1
-            sample = str(skills[0]).replace(str(REPO_ROOT) + "/", "")
-            print(f"{_pad(tid, w_id)} {_pad(cat, w_cat)} {_pad('FOUND', w_status)} {_pad(str(len(skills)), w_count)} {_pad(sample, w_path)}")
+    tools = _manifest_tools()
+    documented = shared_only = 0
+    for tool in tools:
+        tid = str(tool.get("id", ""))
+        cat = str(tool.get("category", ""))
+        dedicated = resolve_tool_skills(tool)
+        sample = ""
+        if dedicated:
+            documented += 1
+            status = "DOCUMENTED"
+            sample = str(dedicated[0].relative_to(REPO_ROOT))
         else:
-            missing += 1
-            print(f"{_pad(tid, w_id)} {_pad(cat, w_cat)} {_pad('MISSING', w_status)} {_pad('0 skills', w_count)} {_pad('None', w_path)}")
+            shared_only += 1
+            status = "SHARED-ONLY"
+        source_path = str(tool.get("path", ""))
+        if source_path and not (REPO_ROOT / source_path).exists():
+            status = "PATH MISSING"
+        print(f"{_pad(tid, w_id)} {_pad(cat, w_cat)} {_pad(status, w_status)} {_pad(str(len(dedicated)), w_count)} {_pad(sample, w_path)}")
     print("-" * available)
-    print(f"Total Tools: {total_tools} | Ready: {ready} | Missing: {missing} | Total Skills: {total_skills}")
-    return 0
+    pack_size = len(_get_all_skills())
+    print(f"Total Tools: {len(tools)} | Documented: {documented} | Shared-only: {shared_only}")
+    print(f"Shared pack: {pack_size} SKILL.md (provisioned to every tool; 'aa skill install <tool>' copies all of them)")
+    findings = audit_pack(REPO_ROOT / "skills")
+    if findings:
+        print()
+        print(f"Loadability findings ({len(findings)}):")
+        for finding in findings:
+            print(f"  ! {finding.code}: {finding.message}")
+    else:
+        print("Loadability: clean (layout, names, descriptions, budget)")
+    return 1 if findings else 0
 
 
 # --- show ----------------------------------------------------------------------
@@ -540,9 +631,10 @@ def cmd_help():
     print("  list, ls [tool]             List all tools and their associated skills")
     print("  install, get, copy <name>   Install ALL skills for a tool (or a specific skill)")
     print("  install all, sync           Provision ALL skills for ALL tools")
+    print("  install --prune             Drop provisioned skills the pack no longer provides")
     print("  uninstall, unskill, remove  Remove provisioned skills from CURRENT WORKING DIRECTORY (.agents/skills/)")
     print("  show <name>                 Display the content of a skill's SKILL.md")
-    print("  check                       Audit SKILL.md coverage across all registered tools")
+    print("  check                       Audit per-tool skill coverage and pack loadability")
     print("  help                        Show this help screen")
     print()
     print("SUBCOMMAND HELP:")
@@ -565,7 +657,7 @@ def cmd_list_help():
 
 
 def cmd_install_help():
-    print("Usage: aa skill install <tool|skill|all> [--target DIR] [--dest PATH] [--force] [--link]")
+    print("Usage: aa skill install <tool|skill|all> [--target DIR] [--dest PATH] [--force] [--prune]")
     print()
     print("Install all skills for a tool, a specific skill, or all skills for all tools.")
     print()
@@ -582,6 +674,10 @@ def cmd_install_help():
     print("  --force, -f         Overwrite existing skills")
     print("  --link, --symlink   Symlink the skill dir to the pack (local only; do not commit)")
     print("  --copy              Explicitly request copies (the default)")
+    print("  --prune             Also delete provisioned skills the pack no longer provides.")
+    print("                      Only entries carrying .arwaky-skill.json, or links into the")
+    print("                      pack, are removed — hand-written skills are never touched.")
+    print("                      Alone ('aa skill install --prune') it prunes without installing.")
     return 0
 
 
