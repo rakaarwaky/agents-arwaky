@@ -5,6 +5,10 @@
 .uv-cache/
 .vscode/
 
+# CodeGraph index — local code intelligence, rebuilt per project with `codegraph init`.
+# Unanchored on purpose: submodules carry their own .codegraph/ at their roots.
+.codegraph/
+
 # Python virtual environments & build artifacts
 .venv/
 __pycache__/
