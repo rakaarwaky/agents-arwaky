@@ -213,6 +213,20 @@ Poll with `process(action="poll"/"log")`; on completion read `/tmp/qwen-out-slug
   the file instead.
 - Keep prompts narrow per task: the external agent has its own context budget and
   will silently degrade on mega-tasks; split like a kanban card.
+- **A killed run whose output file is still 0 bytes AND whose `git status` is empty
+  made no edits at all — relaunch from the same brief file, don't try to recover.**
+  Check both signals before deciding; a partial diff is the case that needs the
+  "FINISH this" brief, an empty diff needs only a restart.
+- **Briefs go stale on their own if the base moves — re-measure before relaunch.**
+  When a delegated run is paused/killed and work resumes later, re-run `git fetch`,
+  ff the worktree onto the new base, and re-derive every number/fact baked into the
+  brief (test counts, which items were fixed upstream, open-PR list) before
+  launching; same-day merges routinely invalidate a brief written an hour earlier.
+  A single trivial reviewer-requested tweak to a finished diff goes back to the same
+  worker via `qwen -y --resume <session_id>` rather than a fresh full run.
+- Brief and spec files must not contradict each other (e.g. "exactly 8 columns" vs a
+  7-column header): the worker will follow the spec and flag the brief — audit both
+  before launching.
 - When the brief comes from a plan/review document with an increment or assignment
   table, audit every action ID against that table BEFORE decomposing — items missing
   from the assignment get silently skipped by every worker that follows the table.
@@ -231,7 +245,13 @@ Poll with `process(action="poll"/"log")`; on completion read `/tmp/qwen-out-slug
 3. Child JSON summary parsed: `is_error: false`, nonzero lines changed, no
    lingering permission denials.
 4. Untracked debris (`.venv`, `__pycache__`, scratch briefs in `/tmp`) cleaned or
-   explained.
+   explained. Worker-flagged "incidents" (it wrote a stray path and deleted it) get
+   re-checked with `git status --short` yourself, not taken on word.
+4b. For doc migrations, verify the diff with scripts, not reading: per-file old-vs-new
+   ID-set diff (`git show HEAD:<f> | grep -oE <idregex> | sort -u` vs new) proves no
+   item was lost; grep the banned stale tokens (old counts, old hashes, closed-item
+   states); walk every relative link in the touched files for existence. All three are
+   cheap and catch what skimming misses.
 5. When the user's brief authorizes merge-on-green ("commit, monitor, review, merge
    if CI passes"), the loop is not done at push — it closes only when CI is green on
    the final head, the PR is merged per repo convention, and the merge artifacts are

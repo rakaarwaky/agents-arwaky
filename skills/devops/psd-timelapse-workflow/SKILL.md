@@ -40,6 +40,30 @@ must use the fallback form `${XDG_DATA_HOME:-$HOME/.local/share}/...` — bare
 `$XDG_DATA_HOME` expands to `/...` when unset (it usually is) and the AI
 reviewer flags every such line.
 
+## Backlog docs: format v2 (state tracker, never spec prose)
+
+Each feature `BACKLOG.md` is a header block (`FRD:` link, `Tier:`, `State:`,
+`Next action:` one sentence, `Last verified: develop @ <hash>, <date> — <exact
+command> → <result>`) plus ONE work table:
+`ID | Spec Ref | Work Item | Priority | State | Actual Condition | Depends On`.
+- State is the 8-glyph legend in root `BACKLOG.md`; every state needs a UNIQUE
+  glyph (⬜ Open vs ⏸️ Blocked once shared a glyph and broke grep). Priority is a
+  PRD tier or `—`, never invented severity.
+- Deliberately absent: Owner, Change Log, per-row Updated, a prose "Current
+  Condition" block — git history is the change log and a prose restatement of
+  the table is exactly how rows rot. If the user pastes a generic multi-team
+  backlog template, adopt its state-model ideas (legend, Actual Condition) but
+  keep this shape; the evidence column outvotes template ceremony.
+- Enforce the AGENTS.md DoD rule: a PR that merges a fix updates every backlog
+  row that fix invalidates, in the same PR. On a docs PR, sweep ALL rows whose
+  cited facts the recent merges invalidated (closed items, dead counts) before
+  writing.
+- Backlog numbers go stale within hours — PRs merge the same day. Re-run every
+  cited measurement (`pytest modules/<m>`, dashboard vitest/build) on a worktree
+  at freshly-fetched develop immediately before writing, and put the hash in
+  `Last verified`. Never carry numbers from a previous session or from the
+  branch being edited.
+
 ## Evidence-before-judgment
 
 Never assess whether a branch/worktree/PR is relevant, stale, or ready without first checking the actual diff and test results. Worktrees can contain active WIP that you have not reviewed — an old commit date and an unopened PR say nothing about relevance.
@@ -70,9 +94,19 @@ Run on the worktree scope (e.g. `modules/renderer`), not the whole repo, to avoi
 
 AES and lint-arwaky cover **TypeScript and the frontend modules too**, not just Python/Rust — `lint-arwaky-typescript` documents the full TS command set (`scan`/`fix`/`ci`, workspace `--member`, AES201/403/404 TS rules). Never claim a language is unsupported by the architecture gates without checking the skill library first.
 
+To run `packages/dashboard` tests inside a worktree without reinstalling deps, symlink the main checkout's: `ln -sfn <main-repo>/packages/dashboard/node_modules node_modules`, run `npx vitest run`, and `rm` the symlink before staging — it otherwise shows as untracked debris. `npm test` runs vitest in watch mode headless-unfriendly; `npx vitest run` is the one-shot form.
+
 ## Answer measurement questions with a measured number
 
 "How long does X take?" is answered by running X under a timer and reporting the wall-clock — nothing else. Context, qualifications, and "it depends" prose read as evasion. If it has not been timed, say "measuring now" and measure before answering.
+
+## Pillow decompression bombs escape (OSError, ValueError)
+
+`Image.DecompressionBombError` inherits from bare `Exception` — NOT OSError/ValueError (verified Pillow 12.3.0). Any decode-guard tuple `except (OSError, ValueError)` around PIL leaves a raise path: a PNG whose *declared* IHDR size exceeds 2 * `Image.MAX_IMAGE_PIXELS` raises at `Image.open()` time, before any post-open size check can fire. Catch it explicitly wherever `Image.open`/`load`/`convert` runs in a degrade-to-fallback path, and pin the regression with a fake PNG built via struct+zlib (valid IHDR + truncated IDAT) so no real decode happens in CI. Also: never key a process-global cache by `id()` of a PIL image — CPython recycles freed addresses and keeps the id across in-place pixel edits; key by a blake2b digest of `tobytes()` with mode/size bound in.
+
+## Diagnosing CI hangs with gh
+
+When a pytest job hits the 20-min timeout with no failure output: `gh run view <id> --attempt N --json jobs` to get per-attempt job ids, `gh api repos/<r>/check-runs/<job>/annotations` for the cancel reason, and the `--log` stream's `[ NN%]` progress markers + `Terminate orphan process` lines (grep the `\tRun tests\t` field via `awk -F'\t'`) to pin the last completed test. Exit code 143 = SIGTERM (timeout/replaced); `The operation was canceled.` with an orphaned ffmpeg means a hang mid-suite. Map the hang position to local `pytest --collect-only` test N to identify the culprit. Cross-check a suspected slow test by timing it locally under `taskset -c 0 nice -n 19` before blaming the code.
 
 ## CI runner pitfalls (psd-timelapse)
 
