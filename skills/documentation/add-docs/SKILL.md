@@ -1,6 +1,6 @@
 ---
 name: add-docs
-description: "Add proper docstrings (Python PEP 257), doc comments (Rust ///), and JSDoc/TSDoc comments (TypeScript), plus type annotations and project-level PRD.md/README.md and per-feature FRD.md, following project conventions."
+description: Adds docstrings, doc comments, JSDoc and types. Use when documenting Python, Rust, TS, PRD, FRD.
 metadata:
   tags:
     [
@@ -42,7 +42,6 @@ metadata:
     - fix-bypass
     - lint-arwaky
 ---
-
 # add-docs
 
 ## Purpose

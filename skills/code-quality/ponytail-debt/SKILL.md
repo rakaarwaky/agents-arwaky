@@ -1,10 +1,7 @@
 ---
 name: ponytail-debt
-description: "Harvest every ponytail: shortcut comment into one debt ledger, so deferrals get tracked instead of forgotten. One-shot report."
-homepage: https://github.com/DietrichGebert/ponytail
-license: MIT
+description: "Collect ponytail: shortcut comments into a debt ledger. One-shot report."
 ---
-
 Every deliberate ponytail shortcut is marked with a `ponytail:` comment naming
 its ceiling and upgrade path. This collects them into one ledger so a deferral
 can't quietly become permanent.

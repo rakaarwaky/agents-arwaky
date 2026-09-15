@@ -1,17 +1,12 @@
 ---
 name: coding-agent-delegation
-description: "Delegate coding to an external CLI agent instead of doing it yourself: Qwen Code (`qwen`), Codex, Claude Code, opencode. Owns the launch command and flags (`-y`/yolo approval, `--output-format json`, `--bare`/`--safe-mode`, `--append-system-prompt`, `--resume`, `--worktree`, `--max-wall-time`/`--max-tool-calls` and exit 55, `--json-schema`), the background-session cap and killed-run recovery, and the rule that the child's 'Done' is a self-report, not evidence."
-version: 2.0.0
-author: Hermes Agent
-license: MIT
-platforms: [linux, macos, windows]
+description: Delegates coding to external CLI agents. Use when invoking qwen, codex, claude, opencode.
 metadata:
   hermes:
     tags: [coding-agent, delegation, qwen-code, codex, claude-code, opencode, orchestration]
     category: autonomous-ai-agents
     related_skills: [hermes-agent, codex, claude-code, opencode, atomic-commit-split]
 ---
-
 # Coding Agent Delegation
 
 Drive external coding-agent CLIs (Qwen Code, Codex, Claude Code, opencode) from a

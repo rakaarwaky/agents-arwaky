@@ -1,7 +1,6 @@
 ---
 name: lint-arwaky
-description: "Architecture Enforcement System (AES) linter for Python, Rust, and TypeScript codebases: run the lint-arwaky CLI, TUI, or MCP server to scan, diagnose, fix, and CI-gate AES101-AES506 violations (naming, suffix, import direction, role, quality, bypass, orphan)."
-version: 3.6.1
+description: AES architecture linter for Python Rust TS. Use when scanning, fixing AES101-AES506 violations.
 metadata:
   tags: [python, rust, typescript, lint, aes, compliance, scanning, architecture, mcp, ci, fix]
   triggers:
@@ -36,7 +35,6 @@ metadata:
     - cleanup-consolidate
     - fix-bypass
 ---
-
 # Lint Arwaky (AES Architecture Linter)
 
 Lint Arwaky is a high-speed Rust-based architecture enforcement engine. Structured under the

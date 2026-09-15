@@ -1,16 +1,11 @@
 ---
 name: github-code-review
-description: "GitHub PR review driver: fetch a PR's diff and metadata, post inline review comments and formal APPROVE/REQUEST_CHANGES review threads via gh or REST, then reply to and resolve reviewer threads. NOT a generic local-diff reviewer — for that, use your harness's built-in review (Qwen Code: /review)."
-version: 1.2.0
-author: Hermes Agent
-license: MIT
-platforms: [linux, macos, windows]
+description: "GitHub PR thread review via gh: fetch diff, inline comments, APPROVE. Not local-diff."
 metadata:
   hermes:
     tags: [GitHub, Code-Review, Pull-Requests, Git, Quality, Review-Threads]
     related_skills: [github-auth, github-pr-workflow]
 ---
-
 # GitHub Code Review
 
 Drive the GitHub-side review mechanics: read an open PR, post inline comments and a

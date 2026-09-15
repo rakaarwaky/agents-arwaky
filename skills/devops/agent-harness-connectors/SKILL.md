@@ -1,9 +1,7 @@
 ---
 name: agent-harness-connectors
-description: "Fix aa connect harness auth, MCP wiring, and skill provisioning."
-version: 1.0.0
+description: Fix aa connect harness auth, MCP wiring, and skill provisioning.
 ---
-
 # Harness Connector Debugging (agents-arwaky `aa connect`)
 
 Use when a harness (Qwen Code, Hermes, OpenCode, Antigravity) is still broken

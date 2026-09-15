@@ -1,22 +1,7 @@
 ---
 name: qwen-web
-description: >
-  Automate Qwen AI Web (chat.qwen.ai) with the Qwen3.8-Max intelligence model —
-  zero API keys, persistent browser sessions. Use when an AI agent needs to send
-  prompts, review code, or analyze document attachments via CLI or MCP tools.
-version: 6.0.0
-triggers:
-  - qwen
-  - chat.qwen.ai
-  - prompt automation
-  - code audit
-  - architecture review
-  - deep reasoning
-  - document analysis
-  - no api key
-entry_points: [qwen-web-arwaky, qwa, qwen-web-mcp]
+description: Send prompts or docs to chat.qwen.ai via qwa/MCP. No API key. Not editing repo.
 ---
-
 # Qwen Web Automation Skill Guide
 
 Use this skill when an AI agent needs to send prompts or document files to **Qwen AI (`chat.qwen.ai`)** and receive complete responses via MCP tools or CLI commands.

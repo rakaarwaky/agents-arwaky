@@ -1,17 +1,12 @@
 ---
 name: pdf
 description: Create, read, merge, fill, and secure PDF files.
-version: 1.0.0
-author: Nous Research
-license: MIT
-platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [pdf, documents, forms, reportlab, pypdf, pdfplumber]
     category: productivity
     related_skills: [docx, xlsx, powerpoint, document-to-action-items]
 ---
-
 # PDF Skill
 
 Create PDFs from structured specs, build and fill AcroForm forms (with layout linting and visual overlays), extract text/tables/metadata, merge/split/rotate/watermark/stamp pages, export page images, manage metadata and attachments, and encrypt/decrypt — using pypdf, reportlab, and pdfplumber. Scanned (image-only) PDFs contain no text layer: when a page is image-only, stop and follow `references/ocr-extraction.md` instead of pretending to extract text.

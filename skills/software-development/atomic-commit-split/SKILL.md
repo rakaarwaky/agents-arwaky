@@ -2,7 +2,6 @@
 name: atomic-commit-split
 description: Use when a dirty tree must become an atomic commit series.
 ---
-
 # Atomic commit split
 
 Turn one giant dirty tree into N self-contained commits. For repos where the

@@ -1,10 +1,9 @@
 ---
 name: coderabbit-review
-description: "AI code review with CodeRabbit: run local review before push (coderabbit review --agent) and apply CodeRabbit PR review-thread feedback from GitHub with per-change approval. Use whenever the user asks to review code, review a PR, find bugs/security issues, run coderabbit, or implement CodeRabbit feedback."
+description: "CodeRabbit review: local pre-push check plus apply its PR threads. Needs coderabbit."
 metadata:
   version: "0.1.0"
 ---
-
 # CodeRabbit Review
 
 Two workflows: **local review** (before commit/push) and **PR autofix** (apply CodeRabbit review-thread comments on an open PR).

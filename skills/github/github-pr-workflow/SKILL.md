@@ -1,16 +1,11 @@
 ---
 name: github-pr-workflow
-description: "GitHub PR lifecycle: branch, commit, open, CI, merge. Also carries a GitHub issue end-to-end to a verified PR: duplicate sweep, premise validation, sabotage run, honest CI state."
-version: 1.2.0
-author: Hermes Agent
-license: MIT
-platforms: [linux, macos, windows]
+description: "Run GitHub PR lifecycle: branch, open, CI, merge. Not review itself."
 metadata:
   hermes:
     tags: [GitHub, Pull-Requests, CI/CD, Git, Automation, Merge, Issues]
     related_skills: [github-auth, github-code-review, github-issues, systematic-debugging, test-driven-development, requesting-code-review]
 ---
-
 # GitHub Pull Request Workflow
 
 Complete guide for managing the PR lifecycle. Each section shows the `gh` way first, then the `git` + `curl` fallback for machines without `gh`.

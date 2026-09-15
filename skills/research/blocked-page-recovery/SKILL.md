@@ -1,16 +1,11 @@
 ---
 name: blocked-page-recovery
-description: "Recover blocked/paywalled/WAF'd pages via fallbacks."
-version: 1.0.0
-author: Hermes Agent
-license: MIT
-platforms: [linux, macos, windows]
+description: Recover blocked/paywalled/WAF'd pages via fallbacks.
 metadata:
   hermes:
     tags: [Research, Archives, Wayback, Paywall, WAF, Fallback]
     related_skills: [grounded-citations]
 ---
-
 # Blocked-Page Recovery
 
 When a page won't fetch — 403/429, Cloudflare "Just a moment...", a paywall,

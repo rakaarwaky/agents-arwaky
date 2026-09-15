@@ -1,10 +1,7 @@
 ---
 name: ponytail-audit
-description: "Audit the whole repo for over-engineering. A ranked list of what to delete, simplify, or replace with stdlib or native features."
-homepage: https://github.com/DietrichGebert/ponytail
-license: MIT
+description: Repo-wide over-engineering audit with ranked cuts. Not a single-diff review.
 ---
-
 ponytail-review, repo-wide. Scan the whole tree instead of a diff. Rank
 findings biggest cut first.
 

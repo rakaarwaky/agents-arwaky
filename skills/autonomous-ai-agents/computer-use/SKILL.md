@@ -1,17 +1,12 @@
 ---
 name: computer-use
-description: "Drive the desktop in the background without stealing focus."
-version: 2.0.0
-author: Francesco Bonacci (f-trycua), Hermes Agent
-license: MIT
-platforms: [macos, windows, linux]
+description: Drive the desktop in the background without stealing focus.
 metadata:
   hermes:
     tags: [computer-use, desktop, automation, gui, cross-platform]
     category: desktop
     related_skills: []
 ---
-
 # Computer Use (universal, any-model, cross-platform)
 
 You have a `computer_use` tool that drives the user's desktop in the

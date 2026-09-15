@@ -1,8 +1,7 @@
 ---
 name: 9router-web-search
-description: Web and X search via 9Router /v1/search using Tavily / Exa / Brave / Serper / SearXNG / Google PSE / Linkup / SearchAPI / You.com / Perplexity / Xquik. Use when the user wants to search the web, find articles, or search public X posts.
+description: Searches web and X via 9Router providers. Use when finding articles, web search, X posts.
 ---
-
 # 9Router — Web Search
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

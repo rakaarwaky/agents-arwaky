@@ -1,6 +1,6 @@
 ---
 name: create-root
-description: "Create and validate AES root-layer files — the composition root that wires concrete capabilities to contract protocols/aggregates, and the entry point that bootstraps the application — for Python, Rust, and TypeScript. Use when creating a root file, adding a container or entry point, wiring dependencies / composing a feature, setting up dependency injection, or checking/auditing the root layer in any of those languages."
+description: AES composition root and entry wiring for Python Rust TS. Use when creating container entry files.
 metadata:
   tags: [python, rust, typescript, aes, root, container, entry, composition, di, wiring]
   triggers:
@@ -30,7 +30,6 @@ metadata:
     - create-taxonomy
     - create-surface
 ---
-
 # Create Root (AES)
 
 The **root layer is the composition layer**. It assembles the system: containers bind concrete

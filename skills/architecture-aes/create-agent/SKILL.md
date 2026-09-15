@@ -1,6 +1,6 @@
 ---
 name: create-agent
-description: "Create and validate AES agent-layer files — orchestration-only classes/structs that drive an aggregate contract with zero I/O, zero business logic, and zero domain computation, using the 3-block structure and dependency injection — for Python, Rust, and TypeScript. Use when creating an agent, adding an agent orchestrator, creating or fixing aggregate wiring, an agent missing its aggregate contract, validating agent logic, or checking/auditing agent structure or DI in any of those languages."
+description: AES agent orchestrator scaffolding for Python Rust TS. Use when creating agent files.
 metadata:
   tags: [python, rust, typescript, aes, agent, aggregate, orchestrator, structure, 3-block-structure, di, orchestration, vo]
   triggers:
@@ -29,7 +29,6 @@ metadata:
     - create-taxonomy
     - create-contract
 ---
-
 # Create Agent (AES)
 
 The **agent layer performs orchestration only**. It receives a request, calls its aggregate

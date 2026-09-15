@@ -1,6 +1,6 @@
 ---
 name: create-capabilities
-description: "Create and validate AES capabilities-layer files — concrete implementations of protocol contracts holding business logic and external adaptation — for Python, Rust, and TypeScript. Use when creating a capability, validator, calculator, policy, repository, gateway, client or adapter, adding or fixing a capabilities class/struct, a capability missing its protocol contract, validating capability logic or DI, or checking/auditing the 3-block structure and type limits in any of those languages."
+description: AES capability implementation scaffolding for Python Rust TS. Use when creating capability files.
 metadata:
   tags: [python, rust, typescript, aes, capabilities, protocol, role-naming, 3-block-structure, di, vo]
   triggers:
@@ -30,7 +30,6 @@ metadata:
     - create-contract
     - create-utility
 ---
-
 # Create Capabilities (AES)
 
 The **capabilities layer is the concrete implementation of behaviour**: domain rules

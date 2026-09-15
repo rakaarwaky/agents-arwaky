@@ -1,9 +1,7 @@
 ---
 name: hermes-profiles
 description: "Manage Hermes profiles: config, keys, and which skills load."
-version: 1.0.0
 ---
-
 # Managing Hermes Profiles
 
 Use for anything scoped to one Hermes profile rather than the whole install: replicating

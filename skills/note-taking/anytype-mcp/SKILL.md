@@ -1,9 +1,7 @@
 ---
 name: anytype-mcp
-description: Model Context Protocol (MCP) server for interacting with Anytype local spaces, objects, notes, and graph through natural language.
-version: 1.0.0
+description: Anytype MCP for spaces, objects, notes. Use when querying Anytype local spaces, graph, notes.
 ---
-
 # Anytype MCP Server
 
 Anytype MCP connects AI agents to Anytype's local-first knowledge graph, allowing querying, reading, creating, and updating objects, notes, collections, and spaces.

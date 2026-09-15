@@ -1,9 +1,7 @@
 ---
 name: anytype-daemon
 description: Manage Anytype headless daemon lifecycle, bot accounts, authentication tokens, and P2P space sync.
-version: 1.0.0
 ---
-
 # Anytype Headless Daemon
 
 The Anytype Headless Daemon runs a dedicated local Anytype node in a rootless container or host process. It provides P2P data synchronization and exposes the local HTTP REST API at `127.0.0.1:31012` for `anytype-mcp`.

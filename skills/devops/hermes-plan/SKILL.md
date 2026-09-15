@@ -1,16 +1,11 @@
 ---
 name: hermes-plan
-description: "Hermes-only plan mode: write a markdown plan to .hermes/plans/ and execute nothing. Hermes-specific because it relies on Hermes' backend-aware write_file/read_file/search_files tools and the .hermes/plans workspace convention — other harnesses have their own plan mode (Qwen Code: native plan mode) and should not use this."
-version: 2.1.0
-author: Hermes Agent (writing-craft adapted from obra/superpowers)
-license: MIT
-platforms: [linux, macos, windows]
+description: Hermes-only markdown planning to .hermes/plans. Use when writing plans, executing nothing.
 metadata:
   hermes:
     tags: [planning, plan-mode, implementation, workflow, design, documentation, Hermes]
     related_skills: [coding-agent-delegation, test-driven-development, requesting-code-review]
 ---
-
 # Hermes Plan Mode
 
 Use this skill when the user wants a plan instead of execution *and* you are running

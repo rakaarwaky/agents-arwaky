@@ -1,6 +1,6 @@
 ---
 name: create-contract
-description: "Create and validate AES contract-layer files — pure protocol and aggregate declarations (Python ABC, Rust trait, TypeScript interface) with no implementation, no upward imports, and VO-based signatures — for Python, Rust, and TypeScript. Use when creating a contract, adding a protocol or aggregate, defining an ABC/trait/interface for a capability or agent to implement, a contract missing from a layer, or validating/checking contract signatures and registration in any of those languages."
+description: AES contract protocol scaffolding for Python Rust TS. Use when creating contract ABC trait files.
 metadata:
   tags: [python, rust, typescript, aes, contract, protocol, aggregate, abc, trait, interface, vo]
   triggers:
@@ -29,7 +29,6 @@ metadata:
     - create-agent
     - create-taxonomy
 ---
-
 # Create Contract (AES)
 
 The **contract layer states public promises and implements nothing**. It is the seam that lets the

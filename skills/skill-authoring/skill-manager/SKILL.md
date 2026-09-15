@@ -1,9 +1,7 @@
 ---
 name: skill-manager
-description: Discover, inspect, and provision AI agent skill guides (SKILL.md) across internal and vendor tools to current workspaces.
-version: 1.0.0
+description: Discovers and provisions skill guides. Use when inspecting, installing skills across tools.
 ---
-
 # Skill Manager (aa skill)
 
 The Skill Manager provides skill discovery, integrity auditing, inspection, and automated provisioning of agent skill definitions (`SKILL.md`) from `agents-arwaky`'s internal and vendor tools into client workspaces.

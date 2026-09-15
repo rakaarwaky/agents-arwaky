@@ -1,7 +1,6 @@
 ---
 name: codacy-review
-description: "Codacy quality workflow: local analysis (codacy-analysis), cloud dashboard queries (issues/findings/PR via codacy CLI), and PR code review enriched with Codacy data. Use whenever the user mentions Codacy, wants to check issues or security findings, review a PR with Codacy data, reduce false positives, or interact with Codacy Cloud."
-license: MIT
+description: "Codacy-gated review: local analysis plus dashboard findings. Needs Codacy mention."
 metadata:
   author: Codacy
   version: 1.0.0

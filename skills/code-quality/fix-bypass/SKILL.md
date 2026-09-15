@@ -1,6 +1,6 @@
 ---
 name: fix-bypass
-description: "Fix bypass comments by addressing root causes instead of suppressing errors — Python (type: ignore, noqa), Rust (#[allow], unwrap, expect, panic), TypeScript (@ts-ignore, @ts-expect-error, eslint-disable)."
+description: Fixes bypass suppressions at root cause. Use when cleaning type ignore, noqa, allow, unwrap.
 metadata:
   tags:
     [
@@ -34,7 +34,6 @@ metadata:
     - add-docs
     - lint-arwaky
 ---
-
 # fix-bypass
 
 **Rule:** Fix the root cause instead of suppressing errors. No bypass comment or unsafe call without justification.

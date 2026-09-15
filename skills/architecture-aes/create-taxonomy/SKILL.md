@@ -1,6 +1,6 @@
 ---
 name: create-taxonomy
-description: "Create and validate AES taxonomy-layer files (VOs, entities, errors, events, constants) — the stable domain language with zero behaviour and zero I/O — for Python, Rust, and TypeScript. Use when creating a value object or domain error or constant, moving a dataclass/struct/interface into taxonomy, or checking/auditing taxonomy naming, primitives, and registration in any of those languages."
+description: AES taxonomy VO and domain type scaffolding for Python Rust TS. Use when creating taxonomy files.
 metadata:
   tags: [python, rust, typescript, aes, taxonomy, shared, vo, entity, error, event, constant, primitive-to-vo]
   triggers:
@@ -33,7 +33,6 @@ metadata:
     - create-agent
     - create-contract
 ---
-
 # Create Taxonomy (AES)
 
 Taxonomy is the **stable language of the domain**: the single source of truth for value objects,

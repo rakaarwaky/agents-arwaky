@@ -1,8 +1,7 @@
 ---
 name: 9router-embeddings
-description: Generate vector embeddings via 9Router /v1/embeddings using OpenAI / Gemini / Mistral / Voyage / Nvidia / GitHub embedding models for RAG, semantic search, similarity. Use when the user wants embeddings, vectors, RAG, semantic search, or to embed text.
+description: Generates embeddings via 9Router for RAG and search. Use when embedding text, vectors, similarity.
 ---
-
 # 9Router — Embeddings
 
 Requires `NINEROUTER_URL` (and `NINEROUTER_KEY` if auth enabled). See https://raw.githubusercontent.com/decolua/9router/refs/heads/master/skills/9router/SKILL.md for setup.

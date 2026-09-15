@@ -1,6 +1,6 @@
 ---
 name: testing-suite
-description: "Generate and structure a full test suite — contract, unit, integration, E2E, acceptance, and smoke tests in tests/ with flat prefix naming, plus benchmarks in benches/ — for Python (pytest), Rust (cargo test/criterion), and TypeScript (vitest). Use when adding a new package or crate, raising coverage, preparing a release, validating performance, or setting up E2E and benchmark suites in any of those languages."
+description: Generates contract to E2E suites plus benches. Use when adding package tests, coverage, perf.
 metadata:
   tags: [python, rust, typescript, testing, pytest, cargo, criterion, vitest, contract, unit, integration, e2e, acceptance, smoke, benchmark]
   triggers:
@@ -30,7 +30,6 @@ metadata:
     - create-agent
     - create-utility
 ---
-
 # Testing Suite
 
 One test layout for every layer and language: **tests go in `tests/`, benchmarks in `benches/`,

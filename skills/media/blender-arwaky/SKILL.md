@@ -1,9 +1,7 @@
 ---
 name: blender-arwaky
-description: 3D asset search, AI generation, scene assembly, viewport inspection, and rendering for Blender through the BlenderArwaky CLI and its single-dispatcher MCP server. Use when an agent needs to script or drive a running Blender instance, import/place GLB assets, create primitives, take AI-optimized screenshots, or render a frame.
-version: 1.7.0
+description: Blender asset search, scene build and render. Use when scripting Blender, placing GLB, rendering.
 ---
-
 # BlenderArwaky — Skill Guide
 
 Reference for AI agents using BlenderArwaky. Use the MCP `help` tool or `blender-arwaky help` to read usage guidance.

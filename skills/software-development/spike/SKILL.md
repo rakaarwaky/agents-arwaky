@@ -1,16 +1,11 @@
 ---
 name: spike
-description: "Throwaway experiments to validate an idea before build. Hermes-specific: the spike loop is driven with terminal(), read_file and delegate_task."
-version: 1.0.0
-author: Hermes Agent (adapted from gsd-build/get-shit-done)
-license: MIT
-platforms: [linux, macos, windows]
+description: Runs throwaway validation experiments. Use when testing ideas before build with terminal, delegate.
 metadata:
   hermes:
     tags: [spike, prototype, experiment, feasibility, throwaway, exploration, research, planning, mvp, proof-of-concept]
     related_skills: [sketch, hermes-plan]
 ---
-
 # Spike
 
 Use this skill when the user wants to **feel out an idea** before committing to a real build — validating feasibility, comparing approaches, or surfacing unknowns that no amount of research will answer. Spikes are disposable by design. Throw them away once they've paid their debt.

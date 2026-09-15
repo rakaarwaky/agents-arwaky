@@ -1,16 +1,11 @@
 ---
 name: test-driven-development
-description: "TDD: enforce RED-GREEN-REFACTOR, tests before code. Hermes-specific where it scripts terminal() runs and delegate_task subagents; the red-green-refactor discipline itself is harness-neutral."
-version: 1.1.0
-author: Hermes Agent (adapted from obra/superpowers)
-license: MIT
-platforms: [linux, macos, windows]
+description: Enforces RED-GREEN-REFACTOR tests-first. Use when writing tests before code, terminal runs.
 metadata:
   hermes:
     tags: [testing, tdd, development, quality, red-green-refactor]
     related_skills: [systematic-debugging, hermes-plan]
 ---
-
 # Test-Driven Development (TDD)
 
 ## Overview

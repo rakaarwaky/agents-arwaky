@@ -1,6 +1,6 @@
 ---
 name: create-surface
-description: "Create and validate AES surface-layer files (commands, controllers, pages, hooks, stores, actions, screens, routers, components, views, layouts) under AES406's smart/utility/passive import tiers — no business logic, delegate to aggregate contracts, VO-based state, never swallow errors — for Python, Rust, and TypeScript. Use when creating a surface, adding a command or controller or UI component, fixing surface structure, an entry point that needs to delegate to an aggregate, or checking/auditing surface imports in any of those languages."
+description: AES surface command and UI scaffolding for Python Rust TS. Use when creating surface files.
 metadata:
   tags: [python, rust, typescript, aes, surface, smart, utility, passive, di, vo]
   triggers:
@@ -27,7 +27,6 @@ metadata:
     - create-contract
     - create-root
 ---
-
 # Create Surface (AES)
 
 The **surface layer is how a human or process drives the system**: CLI commands, controllers,

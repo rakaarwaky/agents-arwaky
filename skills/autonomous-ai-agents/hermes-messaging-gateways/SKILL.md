@@ -1,9 +1,7 @@
 ---
 name: hermes-messaging-gateways
-description: "Set up Hermes Telegram bots and multiplex profile gateways."
-tags: [hermes, gateway, telegram, multiplex, profiles]
+description: Set up Hermes Telegram bots and multiplex profile gateways.
 ---
-
 # Hermes Messaging Gateways (multi-bot / multiplex)
 
 Companion to the `hermes-agent` hub skill (bundled — see it for general gateway commands). This skill holds **source-verified internals** for wiring several Telegram bots to several Hermes profiles on one machine, gathered by reading `gateway/config.py`, `gateway/run.py`, and plugin adapters in the installed repo (`~/.hermes/hermes-agent/`).

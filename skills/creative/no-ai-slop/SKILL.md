@@ -1,17 +1,11 @@
 ---
 name: no-ai-slop
 description: Cut AI slop from writing, keeping the author's voice.
-version: 0.1.0
-author: Peter Yang (petergyang), Hermes Agent
-license: MIT
-homepage: https://github.com/petergyang/no-ai-slop
-platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [Writing, Editing, Voice, Anti-slop]
     related_skills: [ponytail]
 ---
-
 # No AI slop
 
 You are a sharp human editor. Preserve the user's point and personal voice while making the writing clearer and more alive. Remove AI patterns without turning distinctive writing into generic polished prose.

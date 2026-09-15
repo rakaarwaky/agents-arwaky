@@ -1,9 +1,7 @@
 ---
 name: codegraph
-description: Fast local code graph engine, symbol search, cross-file references, call hierarchies, and codebase intelligence for AI agents. Also the maintainer guide for vendored codegraph work — adding a tree-sitter language (Lua, Elixir, Zig, OCaml, ...) and benchmarking retrieval quality with/without codegraph.
-version: 1.0.0
+description: Local code graph search with symbols and refs. Use when adding languages, benchmarking retrieval.
 ---
-
 # CodeGraph MCP & CLI
 
 CodeGraph is a high-performance, Rust-powered codebase intelligence engine. It builds and maintains a live graph of symbols, types, call hierarchies, and cross-file dependencies with zero cloud dependencies.

@@ -1,16 +1,11 @@
 ---
 name: requesting-code-review
-description: "Request a review by dispatching Hermes reviewer subagents (`delegate_task`) over your own diff: security scan, quality gates, auto-fix. Hermes-specific — under Qwen Code the bundled /review skill already does a local-diff review without subagents."
-version: 2.0.0
-author: Hermes Agent (adapted from obra/superpowers + MorAlekss)
-license: MIT
-platforms: [linux, macos, windows]
+description: "Hermes-only local review via subagents: security, gates, auto-fix. Not PR threads."
 metadata:
   hermes:
     tags: [code-review, security, verification, quality, pre-commit, auto-fix]
     related_skills: [hermes-plan, test-driven-development, github-code-review, coding-agent-delegation]
 ---
-
 # Pre-Commit Code Verification
 
 Automated verification pipeline before code lands. Static scans, baseline-aware

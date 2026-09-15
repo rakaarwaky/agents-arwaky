@@ -1,10 +1,7 @@
 ---
 name: ponytail-review
-description: "Review a diff for over-engineering. Finds what to delete: reinvented stdlib, needless deps, speculative abstractions. One line per finding."
-homepage: https://github.com/DietrichGebert/ponytail
-license: MIT
+description: Review one diff for over-engineering. Not repo-wide. One line per cut.
 ---
-
 Review diffs for unnecessary complexity. One line per finding: location, what
 to cut, what replaces it. The diff's best outcome is getting shorter.
 

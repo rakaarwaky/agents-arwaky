@@ -1,16 +1,11 @@
 ---
 name: systematic-debugging
-description: "4-phase root cause debugging: understand bugs before fixing. Hermes-specific: its phase actions are written as read_file/search_files/delegate_task calls."
-version: 1.1.0
-author: Hermes Agent (adapted from obra/superpowers)
-license: MIT
-platforms: [linux, macos, windows]
+description: Debugs root causes in 4 phases. Use when fixing bugs via read_file, search, delegate_task.
 metadata:
   hermes:
     tags: [debugging, troubleshooting, problem-solving, root-cause, investigation]
     related_skills: [test-driven-development, hermes-plan]
 ---
-
 # Systematic Debugging
 
 ## Overview

@@ -1,13 +1,9 @@
 ---
 name: mnemosyne
-description: "Local SQLite memory layer shared by every harness: store/recall episodic memories, temporal triples, canonical facts, scratchpad, shared surface, plus device sync. Also the rule for which store durable memory belongs in on each harness (Hermes vs Qwen Code vs file-based)."
-version: 1.0.0
-author: agents-arwaky
-license: MIT
+description: Local SQLite memory with sync and recall. Use when storing episodic memories, facts, triples.
 metadata:
   tags: [memory, sqlite, knowledge-graph, cross-harness, episodic, triples]
 ---
-
 # Mnemosyne — Universal Agent Memory Layer
 
 Mnemosyne is the unified, 100% local, zero-cloud memory system for

@@ -1,6 +1,6 @@
 ---
 name: create-utility
-description: "Create and validate AES utility-layer files — stateless, pure, domain-agnostic free functions reusable by two or more modules, with no class/struct, no contract implementation, and no business rules — for Python, Rust, and TypeScript. Use when creating a utility, adding a helper function, extracting or moving code into the utility layer, deciding helper-vs-utility, or checking/auditing a utility file in any of those languages."
+description: AES stateless utility scaffolding for Python Rust TS. Use when creating utility helper files.
 metadata:
   tags: [python, rust, typescript, aes, utility, shared, stateless, pure-function, domain-agnostic, reusability]
   triggers:
@@ -29,7 +29,6 @@ metadata:
     - create-agent
     - cleanup-consolidate
 ---
-
 # Create Utility (AES)
 
 The **utility layer holds stateless standalone functions**: no class or struct, no `self`/`this`,

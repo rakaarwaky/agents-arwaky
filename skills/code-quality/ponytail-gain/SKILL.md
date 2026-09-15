@@ -1,10 +1,7 @@
 ---
 name: ponytail-gain
-description: "Show ponytail measured impact as a scoreboard: less code, less cost, more speed, from the benchmark medians. One-shot display."
-homepage: https://github.com/DietrichGebert/ponytail
-license: MIT
+description: Show ponytail savings scoreboard (code, cost, speed). One-shot, changes nothing.
 ---
-
 # Ponytail Gain
 
 Display this scoreboard when invoked. One-shot: do NOT change mode, write flag

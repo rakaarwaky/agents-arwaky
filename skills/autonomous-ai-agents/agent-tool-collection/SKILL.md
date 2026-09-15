@@ -1,9 +1,7 @@
 ---
 name: agent-tool-collection
-description: "Add tools to rakaarwaky's agents-arwaky MCP collection."
-version: 1.0.0
+description: Add tools to rakaarwaky's agents-arwaky MCP collection.
 ---
-
 # Agent Tool Collection (agents-arwaky)
 
 User maintains https://github.com/rakaarwaky/agents-arwaky — a personal collection of

@@ -2,7 +2,6 @@
 name: android-emulator-linux-gps
 description: Use when running Android apps on Linux with spoofable GPS.
 ---
-
 # Android emulator on Linux + GPS spoofing
 
 ## Why AOSP emulator, not Waydroid

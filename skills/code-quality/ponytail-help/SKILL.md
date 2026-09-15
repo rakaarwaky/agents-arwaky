@@ -1,10 +1,7 @@
 ---
 name: ponytail-help
-description: "Quick reference for ponytail's modes, skills, and commands. One-shot display."
-homepage: https://github.com/DietrichGebert/ponytail
-license: MIT
+description: Show ponytail modes, skills, commands reference card. One-shot, changes nothing.
 ---
-
 # Ponytail Help
 
 Display this reference card when invoked. One-shot, do NOT change mode,

@@ -1,14 +1,7 @@
 ---
 name: systemd-headless-service
 description: Background a TTY/tray app as a 24/7 user systemd service.
-version: 1
-author: hermes-agent
-license: MIT
-hermes:
-  tags: [systemd, service, headless, autostart, linger]
-  related_skills: [9router-gateway]
 ---
-
 # systemd Headless Service (user unit)
 
 ## When to use

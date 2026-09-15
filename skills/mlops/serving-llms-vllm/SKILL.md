@@ -1,17 +1,10 @@
 ---
 name: serving-llms-vllm
 description: "vLLM: high-throughput LLM serving, OpenAI API, quantization."
-version: 1.0.1
-author: Orchestra Research
-license: MIT
-dependencies: [vllm, torch, transformers]
-platforms: [linux, macos]
 metadata:
   hermes:
     tags: [vLLM, Inference Serving, PagedAttention, Continuous Batching, High Throughput, Production, OpenAI API, Quantization, Tensor Parallelism]
-
 ---
-
 # vLLM - High-Performance LLM Serving
 
 ## When to use

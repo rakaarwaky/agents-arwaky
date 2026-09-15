@@ -1,6 +1,5 @@
 ---
 name: psd-overlay-verification
-category: devops
 description: Use when testing PSD compositor cursor/brush overlays.
 ---
 # PSD Timelapse overlay verification

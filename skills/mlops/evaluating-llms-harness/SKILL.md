@@ -1,17 +1,10 @@
 ---
 name: evaluating-llms-harness
 description: "lm-eval-harness: benchmark LLMs (MMLU, GSM8K, etc.)."
-version: 1.0.1
-author: Orchestra Research
-license: MIT
-dependencies: [lm-eval, transformers, vllm]
-platforms: [linux, macos]
 metadata:
   hermes:
     tags: [Evaluation, LM Evaluation Harness, Benchmarking, MMLU, HumanEval, GSM8K, EleutherAI, Model Quality, Academic Benchmarks, Industry Standard]
-
 ---
-
 # lm-evaluation-harness - LLM Benchmarking
 
 ## What's inside
