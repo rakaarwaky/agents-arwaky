@@ -30,6 +30,7 @@ WARN = "warn"
 _SKIP_PARTS = {
     ".git", ".hg", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".tox", ".venv",
     "__pycache__", "build", "dist", "node_modules", "site-packages", "target", "venv",
+    ".worktree", ".worktrees",
 }
 #: Submodule trees are upstream-owned, so a finding there is noise nobody may act on.
 #: ``include_subtrees=True`` opts back in.
