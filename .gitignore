@@ -109,3 +109,4 @@ tools/config/*.providers.json
 # pack dirs THROUGH the harness root link (anytype-mcp -> anytype_mcp). Generated
 # noise, regenerates locally; the hyphen dir is the tracked canonical.
 /skills/*_*/
+.worktrees/
