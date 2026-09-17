@@ -8,7 +8,7 @@ from modules.shared.src.logging.utility_logging import sub
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
 from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.tool.src.capabilities_tool_install import ToolInstaller
+from modules.installer.src.capabilities_installer import ToolInstaller
 
 
 class ToolUpdater(IToolUpdater):

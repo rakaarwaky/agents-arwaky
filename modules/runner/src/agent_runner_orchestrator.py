@@ -17,7 +17,7 @@ from modules.shared.src.tool.taxonomy_tool_vo import (
     UninstallResult,
     UpdateResult,
 )
-from modules.tool.src.capabilities_tool_install import ToolInstaller
+from modules.installer.src.capabilities_installer import ToolInstaller
 
 
 class ToolOrchestrator(IToolAggregate):

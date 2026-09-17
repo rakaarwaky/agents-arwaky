@@ -11,7 +11,7 @@ from modules.shared.src.logging.utility_logging import BOLD, GREEN, CYAN, RESET,
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.contract_tool_aggregate import IToolAggregate
 from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
-from modules.tool.src.agent_tool_orchestrator import ToolOrchestrator
+from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
 
 
 def _term_width() -> int:
@@ -120,7 +120,7 @@ def cmd_install(args: list[str], orch: IToolAggregate) -> int:
         # TODO(AES): install_all on the ToolInstaller capability is not yet
         # exposed via IToolAggregate; keep the surface a smart type and pull
         # the capability off the concrete ToolOrchestrator.
-        from modules.tool.src.capabilities_tool_install import ToolInstaller
+        from modules.installer.src.capabilities_installer import ToolInstaller
 
         installer = getattr(orch, "_installer", None)
         if isinstance(installer, ToolInstaller):

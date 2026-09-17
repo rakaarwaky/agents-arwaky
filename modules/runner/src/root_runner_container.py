@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 from modules.shared.src.tool.contract_tool_aggregate import IToolAggregate
-from modules.tool.src.agent_tool_orchestrator import ToolOrchestrator
-from modules.tool.src.capabilities_tool_install import ToolInstaller
-from modules.tool.src.capabilities_tool_resolver import ToolResolver
-from modules.tool.src.capabilities_tool_uninstall import ToolUninstaller
-from modules.tool.src.capabilities_tool_update import ToolUpdater
+from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
+from modules.installer.src.capabilities_installer import ToolInstaller
+from modules.runner.src.capabilities_runner import ToolResolver
+from modules.uninstaller.src.capabilities_uninstaller import ToolUninstaller
+from modules.updater.src.capabilities_updater import ToolUpdater
 
 
 class ToolContainer:
@@ -24,6 +24,6 @@ class ToolContainer:
         return self._orchestrator
 
 
-def create_tool_feature() -> IToolAggregate:
+def create_runner_feature() -> IToolAggregate:
     """Fully-wired tool feature aggregate."""
     return ToolContainer().aggregate

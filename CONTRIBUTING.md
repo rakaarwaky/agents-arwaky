@@ -86,9 +86,9 @@ Ensure `.gitmodules` marks the submodule with `ignore = dirty` so local build ar
 
 ---
 
-### Step 2: Implement Tool Runner (AES `modules/tool/`)
+### Step 2: Implement Tool Runner (AES `modules/installer/`)
 
-Install/update/uninstall logic is **data-driven**: `modules/tool/src/capabilities_tool_install.py` (`ToolInstaller`), `capabilities_tool_update.py` (`ToolUpdater`), and `capabilities_tool_uninstall.py` (`ToolUninstaller`) branch on the tool's `runner` field from `manifest.json` — there are no per-tool installer scripts. Add or adjust runner logic in these capability files instead.
+Install/update/uninstall logic is **data-driven**: `modules/installer/src/capabilities_installer.py` (`ToolInstaller`), `modules/updater/src/capabilities_updater.py` (`ToolUpdater`), and `modules/uninstaller/src/capabilities_uninstaller.py` (`ToolUninstaller`) branch on the tool's `runner` field from `manifest.json` — there are no per-tool installer scripts. Add or adjust runner logic in these capability files instead.
 
 Runner behavior requirements:
 
@@ -113,7 +113,7 @@ def install_uv_runner(self, tool: Tool) -> InstallResult:
     return InstallResult.ok(tool.binary)
 ```
 
-> For a complete reference, read the existing runner branches in [`modules/tool/src/capabilities_tool_install.py`](modules/tool/src/capabilities_tool_install.py) (Python `uv`, Rust `cargo`, Node `pnpm`, and MCP variants).
+> For a complete reference, read the existing runner branches in [`modules/installer/src/capabilities_installer.py`](modules/installer/src/capabilities_installer.py) (Python `uv`, Rust `cargo`, Node `pnpm`, and MCP variants).
 
 Bash-based runners (if a tool still ships a script) must:
 
@@ -269,9 +269,9 @@ Add the tool entry to the `"tools"` array in [`tools/config/manifest.json`](tool
 
 ---
 
-### Step 4: Handle Uninstall (AES `modules/tool/`)
+### Step 4: Handle Uninstall (AES `modules/uninstaller/`)
 
-There is **no master build script** to update — uninstall logic lives in [`modules/tool/src/capabilities_tool_uninstall.py`](modules/tool/src/capabilities_tool_uninstall.py) (`ToolUninstaller`), dispatched from the same manifest `runner` field. For clean removals, ensure the runner branch removes `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
+There is **no master build script** to update — uninstall logic lives in [`modules/uninstaller/src/capabilities_uninstaller.py`](modules/uninstaller/src/capabilities_uninstaller.py) (`ToolUninstaller`), dispatched from the same manifest `runner` field. For clean removals, ensure the runner branch removes `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
 
 ---
 
@@ -349,11 +349,11 @@ Open [`tools/config/manifest.json`](tools/config/manifest.json) and remove the o
 
 ### Step 2: Remove Runner Logic (if tool-specific)
 
-If the tool had a custom `runner` branch, remove it from `modules/tool/src/capabilities_tool_install.py` and `capabilities_tool_uninstall.py`:
+If the tool had a custom `runner` branch, remove it from `modules/installer/src/capabilities_installer.py` and `modules/uninstaller/src/capabilities_uninstaller.py`:
 
 ```bash
 # verify no dangling references remain
-grep -rn "my-cool-tool" modules/tool/src/
+grep -rn "my-cool-tool" modules/installer/src/ modules/updater/src/ modules/uninstaller/src/
 ```
 
 ### Step 3: Remove from Local Install
