@@ -1,4 +1,4 @@
 """Uninstaller feature — src."""
-from modules.uninstaller.src.capabilities_uninstaller import ToolUninstaller
+from modules.uninstaller.src.agent_uninstaller_orchestrator import UninstallerOrchestrator
 
-__all__ = ["ToolUninstaller"]
+__all__ = ["UninstallerOrchestrator"]

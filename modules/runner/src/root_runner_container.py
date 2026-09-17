@@ -3,10 +3,10 @@ from __future__ import annotations
 
 from modules.shared.src.tool.contract_tool_aggregate import IToolAggregate
 from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
-from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
 from modules.runner.src.capabilities_runner import ToolResolver
-from modules.uninstaller.src.capabilities_uninstaller import ToolUninstaller
-from modules.updater.src.capabilities_updater import ToolUpdater
+from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
+from modules.uninstaller.src.agent_uninstaller_orchestrator import UninstallerOrchestrator
+from modules.updater.src.agent_updater_orchestrator import UpdaterOrchestrator
 
 
 class ToolContainer:
@@ -15,8 +15,8 @@ class ToolContainer:
     def __init__(self) -> None:
         resolver = ToolResolver()
         installer = InstallerOrchestrator()
-        uninstaller = ToolUninstaller()
-        updater = ToolUpdater(installer=installer)
+        uninstaller = UninstallerOrchestrator()
+        updater = UpdaterOrchestrator()
         self._orchestrator = ToolOrchestrator(resolver, installer, updater, uninstaller)
 
     @property
