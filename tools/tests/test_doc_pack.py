@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 MASTER_BACKLOG = """# BACKLOG — demo workspace
 
@@ -319,7 +319,7 @@ def _codes(findings) -> set[str]:
 
 class TestTextHelpers:
     def test_blank_fenced_preserves_line_numbers(self):
-        from doc_pack import blank_fenced
+        from modules.shared.src.doc_pack.capabilities_doc_pack import blank_fenced
         text = "head\n\n```md\nStatus: inside\n```\n\nafter\n"
         blanked = blank_fenced(text)
         assert len(blanked.splitlines()) == len(text.splitlines())
@@ -327,24 +327,24 @@ class TestTextHelpers:
         assert "after" in blanked
 
     def test_blank_fenced_handles_four_backtick_fence(self):
-        from doc_pack import blank_fenced
+        from modules.shared.src.doc_pack.capabilities_doc_pack import blank_fenced
         text = "````markdown\n```bash\ncargo build\n```\n````\nvisible\n"
         assert "cargo build" not in blank_fenced(text)
         assert "visible" in blank_fenced(text)
 
     def test_parse_tables_reports_line_numbers(self):
-        from doc_pack import parse_tables
+        from modules.shared.src.doc_pack.capabilities_doc_pack import parse_tables
         tables = parse_tables("prose\n\n| A | B |\n|---|---|\n| 1 | 2 |\n")
         assert len(tables) == 1
         assert tables[0].header == ["A", "B"]
         assert tables[0].rows == [(5, ["1", "2"])]
 
     def test_parse_tables_ignores_fenced_tables(self):
-        from doc_pack import parse_tables
+        from modules.shared.src.doc_pack.capabilities_doc_pack import parse_tables
         assert parse_tables("```md\n| A |\n|---|\n| 1 |\n```") == []
 
     def test_find_section_tolerates_decorated_headings(self):
-        from doc_pack import find_section
+        from modules.shared.src.doc_pack.capabilities_doc_pack import find_section
         path = tmp_path_of("## 🔧 Commands\n\nrun it\n")
         assert find_section(path, "Commands") is not None
 
@@ -359,38 +359,38 @@ def tmp_path_of(text: str) -> Path:
 
 class TestSpecStatusBoundary:
     def test_clean_project_has_no_errors(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         findings = errors_only(audit_docs(project))
         assert findings == [], [f"{f.code}: {f.message}" for f in findings]
 
     def test_status_line_in_spec_is_flagged(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         spec = project / "modules" / "alpha" / "FRD.md"
         spec.write_text(spec.read_text() + "\n- [x] FR-001 implemented\n")
         assert "status-in-spec" in _codes(errors_only(audit_docs(project)))
 
     def test_status_inside_a_fenced_template_is_not_flagged(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         spec = project / "modules" / "alpha" / "FRD.md"
         spec.write_text(spec.read_text() + "\n```md\nStatus: Done\n```\n")
         assert "status-in-spec" not in _codes(errors_only(audit_docs(project)))
 
     def test_spec_without_backlog_partner(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         (project / "modules" / "alpha" / "BACKLOG.md").unlink()
         codes = _codes(errors_only(audit_docs(project)))
         assert "spec-without-backlog" in codes
         assert "backlog-without-spec" not in codes
 
     def test_orphan_requirement_id_cited_by_backlog(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         spec = project / "modules" / "alpha" / "FRD.md"
         spec.write_text(spec.read_text().replace("### FR-002: Header parsing", "### FR-009: Header parsing"))
         codes = _codes(errors_only(audit_docs(project)))
         assert "orphan-fr-ref" in codes
 
     def test_duplicate_requirement_id(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         spec = project / "modules" / "alpha" / "FRD.md"
         spec.write_text(spec.read_text().replace("### FR-002: Header parsing", "### FR-001: Header parsing"))
         assert "duplicate-fr-id" in _codes(errors_only(audit_docs(project)))
@@ -398,7 +398,7 @@ class TestSpecStatusBoundary:
 
 class TestBacklogHonesty:
     def test_done_row_without_evidence(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         backlog = project / "modules" / "alpha" / "BACKLOG.md"
         backlog.write_text(backlog.read_text().replace(
             "`pytest tests/test_alpha.py -q` → 4 passed at `a1b2c3d`; skips the CLI path",
@@ -407,25 +407,25 @@ class TestBacklogHonesty:
         assert "done-without-evidence" in _codes(errors_only(audit_docs(project)))
 
     def test_done_row_with_counts_but_no_commit(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         backlog = project / "modules" / "alpha" / "BACKLOG.md"
         backlog.write_text(backlog.read_text().replace("at `a1b2c3d`; skips the CLI path", "at HEAD"))
         assert "done-without-evidence" in _codes(errors_only(audit_docs(project)))
 
     def test_invented_state_word(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         backlog = project / "modules" / "alpha" / "BACKLOG.md"
         backlog.write_text(backlog.read_text().replace("| P0 | Ready |", "| P0 | Mostly-done |"))
         assert "unknown-state" in _codes(errors_only(audit_docs(project)))
 
     def test_state_accepts_a_parenthetical_qualifier(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         backlog = project / "modules" / "alpha" / "BACKLOG.md"
         backlog.write_text(backlog.read_text().replace("| P0 | Ready |", "| P0 | Ready (needs rebase) |"))
         assert "unknown-state" not in _codes(errors_only(audit_docs(project)))
 
     def test_wrong_column_count(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         backlog = project / "modules" / "alpha" / "BACKLOG.md"
         text = backlog.read_text().replace(
             "| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |",
@@ -438,24 +438,24 @@ class TestBacklogHonesty:
         assert "backlog-columns" in codes
 
     def test_state_definitions_must_live_once(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         backlog = project / "modules" / "alpha" / "BACKLOG.md"
         backlog.write_text(backlog.read_text() + "\n## State definitions\n\nDone means finished.\n")
         assert "state-vocab-restated" in _codes(errors_only(audit_docs(project)))
 
     def test_missing_master_backlog(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         (project / "BACKLOG.md").unlink()
         assert "no-master-backlog" in _codes(errors_only(audit_docs(project)))
 
     def test_scenarios_need_evidence_rows(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         backlog = project / "modules" / "alpha" / "BACKLOG.md"
         backlog.write_text(backlog.read_text().replace("## Scenario evidence", "## Other evidence"))
         assert "scenario-without-evidence" in _codes(errors_only(audit_docs(project)))
 
     def test_scenario_count_drift_is_a_warning(self, project):
-        from doc_pack import audit_docs, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, warnings_only
         spec = project / "modules" / "alpha" / "FRD.md"
         spec.write_text(spec.read_text().replace("- header parses", "- header parses\n- empty input raises"))
         assert "scenario-evidence-count" in _codes(warnings_only(audit_docs(project)))
@@ -463,13 +463,13 @@ class TestBacklogHonesty:
 
 class TestPointersAndHygiene:
     def test_dead_link_in_root_doc(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         readme = project / "README.md"
         readme.write_text(readme.read_text() + "\nSee [the guide](docs/guide.md).\n")
         assert "dead-link" in _codes(errors_only(audit_docs(project)))
 
     def test_skill_links_outside_its_folder_are_advisory(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         skill = project / "skills" / "demo"
         skill.mkdir(parents=True)
         (skill / "SKILL.md").write_text(
@@ -481,7 +481,7 @@ class TestPointersAndHygiene:
         assert "references/missing.md" in errors[0].message
 
     def test_reference_file_not_surfaced(self, project):
-        from doc_pack import audit_docs, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, warnings_only
         refs = project / "skills" / "demo" / "references"
         refs.mkdir(parents=True)
         (project / "skills" / "demo" / "SKILL.md").write_text(
@@ -491,7 +491,7 @@ class TestPointersAndHygiene:
         assert "unreferenced-file" in _codes(warnings_only(audit_docs(project)))
 
     def test_dead_link_inside_a_reference_file_is_flagged(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         refs = project / "skills" / "demo" / "references"
         refs.mkdir(parents=True)
         (project / "skills" / "demo" / "SKILL.md").write_text(
@@ -503,7 +503,7 @@ class TestPointersAndHygiene:
         assert "'rules.md'" in hits[0].message
 
     def test_link_written_from_the_skill_root_is_advisory(self, project):
-        from doc_pack import audit_docs, errors_only, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only, warnings_only
         refs = project / "skills" / "demo" / "references"
         refs.mkdir(parents=True)
         (project / "skills" / "demo" / "SKILL.md").write_text(
@@ -516,7 +516,7 @@ class TestPointersAndHygiene:
         assert "dead-link" not in _codes(errors_only(findings))
 
     def test_reference_links_outside_the_skill_folder_are_not_gated(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         refs = project / "skills" / "demo" / "references"
         refs.mkdir(parents=True)
         (project / "skills" / "demo" / "SKILL.md").write_text(
@@ -526,19 +526,19 @@ class TestPointersAndHygiene:
         assert not [f for f in errors_only(audit_docs(project)) if f.path.startswith(str(refs))]
 
     def test_absolute_personal_path(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         agents = project / "AGENTS.md"
         agents.write_text(agents.read_text() + "\nRun /home/dev/tool --check to verify.\n")
         assert "absolute-path" in _codes(errors_only(audit_docs(project)))
 
     def test_env_var_name_is_not_a_secret(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         readme = project / "README.md"
         readme.write_text(readme.read_text() + "\nSet API_KEY=os.environ value first.\n")
         assert "secret-in-docs" not in _codes(errors_only(audit_docs(project)))
 
     def test_literal_secret_is_flagged(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         readme = project / "README.md"
         readme.write_text(readme.read_text() + '\nSet api_key = "sk-live-9f3a7c21b0"\n')
         assert "secret-in-docs" in _codes(errors_only(audit_docs(project)))
@@ -546,7 +546,7 @@ class TestPointersAndHygiene:
 
 class TestCiCommandDrift:
     def test_command_no_ci_runs_is_flagged(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         agents = project / "AGENTS.md"
         agents.write_text(agents.read_text().replace(
             "ruff check tools/                            # matches ci.yml verify",
@@ -555,7 +555,7 @@ class TestCiCommandDrift:
         assert "ci-command-drift" in _codes(errors_only(audit_docs(project)))
 
     def test_labelled_advisory_line_is_allowed(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         agents = project / "AGENTS.md"
         agents.write_text(agents.read_text().replace("mypy tools/\n", "").replace(
             "pytest -q                                    # matches ci.yml verify",
@@ -564,7 +564,7 @@ class TestCiCommandDrift:
         assert "ci-command-drift" not in _codes(errors_only(audit_docs(project)))
 
     def test_no_ci_directory_skips_the_check(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         for path in (project / ".github" / "workflows").glob("*.yml"):
             path.unlink()
         agents = project / "AGENTS.md"
@@ -572,13 +572,13 @@ class TestCiCommandDrift:
         assert "ci-command-drift" not in _codes(errors_only(audit_docs(project)))
 
     def test_commands_outside_the_commands_section_are_not_gated(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         agents = project / "AGENTS.md"
         agents.write_text(agents.read_text() + "\n## Notes\n\n`mypy tools/` type-checks locally.\n")
         assert "ci-command-drift" not in _codes(errors_only(audit_docs(project)))
 
     def test_an_aliased_commands_heading_is_still_gated(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         agents = project / "AGENTS.md"
         text = agents.read_text().replace("## Commands", "## Quick Reference Playbook")
         text = text.replace("ruff check tools/", "mypy tools/")
@@ -592,26 +592,26 @@ class TestCiCommandDrift:
 
 class TestSeverities:
     def test_missing_spec_section_is_an_error(self, project):
-        from doc_pack import audit_docs, errors_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only
         prd = project / "PRD.md"
         prd.write_text(prd.read_text().replace("## User Personas", "## Audience"))
         assert "prd-section-missing" in _codes(errors_only(audit_docs(project)))
 
     def test_missing_readme_section_stays_a_warning(self, project):
-        from doc_pack import audit_docs, errors_only, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only, warnings_only
         readme = project / "README.md"
         readme.write_text(readme.read_text().replace("## License", "## Legal"))
         assert "readme-section-missing" not in _codes(errors_only(audit_docs(project)))
         assert "readme-section-missing" in _codes(warnings_only(audit_docs(project)))
 
     def test_length_budget_is_a_warning(self, project):
-        from doc_pack import audit_docs, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, warnings_only
         # Under the 50-line floor for every doc type -> doc-thin.
         (project / "AGENTS.md").write_text("# demo\n\n## Commands\n\n`pytest -q`\n")
         assert "doc-thin" in _codes(warnings_only(audit_docs(project)))
 
     def test_prd_has_flat_line_budget(self, project):
-        from doc_pack import audit_docs, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, warnings_only
         # 300 lines: within [50, 500] -> no doc-length.
         (project / "PRD.md").write_text("\n".join(f"line {i}" for i in range(300)))
         assert "doc-length" not in _codes(warnings_only(audit_docs(project)))
@@ -620,7 +620,7 @@ class TestSeverities:
         assert "doc-length" in _codes(warnings_only(audit_docs(project)))
 
     def test_frd_has_same_flat_line_budget(self, project):
-        from doc_pack import audit_docs, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, warnings_only
         frd_codes = lambda: {
             f.code for f in warnings_only(audit_docs(project)) if f.path.endswith("FRD.md")
         }
@@ -632,21 +632,21 @@ class TestSeverities:
         assert "doc-length" in frd_codes()
 
     def test_as_strict_promotes_warnings(self, project):
-        from doc_pack import as_strict, audit_docs, errors_only, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import as_strict, audit_docs, errors_only, warnings_only
         (project / "AGENTS.md").write_text("# demo\n\n## Commands\n\n`pytest -q`\n")
         findings = audit_docs(project)
         assert len(errors_only(as_strict(findings))) > len(errors_only(findings))
         assert warnings_only(as_strict(findings)) == []
 
     def test_master_only_section_missing_is_a_warning(self, project):
-        from doc_pack import audit_docs, errors_only, warnings_only
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only, warnings_only
         master = project / "BACKLOG.md"
         master.write_text(master.read_text().replace("## Feature roll-up", "## Roll-up of features"))
         assert "master-section-missing" in _codes(warnings_only(audit_docs(project)))
         assert "master-section-missing" not in _codes(errors_only(audit_docs(project)))
 
     def test_submodule_trees_are_skipped_by_default(self, project):
-        from doc_pack import audit_docs, errors_only, iter_doc_files
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, errors_only, iter_doc_files
         (project / "vendor" / "upstream").mkdir(parents=True)
         (project / "vendor" / "upstream" / "FRD.md").write_text("# FRD — junk\n")
         assert not any("vendor" in path.parts for path in iter_doc_files(project))
@@ -654,7 +654,7 @@ class TestSeverities:
         assert iter_doc_files(project, include_subtrees=True) != iter_doc_files(project)
 
     def test_tool_cache_dirs_are_skipped(self, project):
-        from doc_pack import audit_docs, iter_doc_files
+        from modules.shared.src.doc_pack.capabilities_doc_pack import audit_docs, iter_doc_files
         cache = project / ".pytest_cache"
         cache.mkdir()
         (cache / "README.md").write_text("# pytest cache\n")
@@ -669,7 +669,7 @@ class TestGuideMatchesTheGate:
 
     @staticmethod
     def _contract_rows(text: str) -> list[tuple[str, str]]:
-        from doc_pack import parse_tables
+        from modules.shared.src.doc_pack.capabilities_doc_pack import parse_tables
 
         for table in parse_tables(text):
             header = " ".join(table.header).lower()
@@ -685,7 +685,7 @@ class TestGuideMatchesTheGate:
 
     @staticmethod
     def _same(a: str, b: str) -> bool:
-        from doc_pack import _norm
+        from modules.shared.src.doc_pack.capabilities_doc_pack import _norm
 
         x, y = _norm(a), _norm(b)
         return x == y or x in y or y in x
@@ -695,7 +695,7 @@ class TestGuideMatchesTheGate:
         ("README.md", "readme.md"), ("AGENTS.md", "agents-md.md"),
     ])
     def test_required_rows_equal_the_gate(self, doc, ref):
-        from doc_pack import REQUIRED_SECTIONS
+        from modules.shared.src.doc_pack.capabilities_doc_pack import REQUIRED_SECTIONS
 
         rows = self._contract_rows((self.REFS / ref).read_text(encoding="utf-8"))
         gated = [name for name, flag in rows if flag == "yes"]
@@ -707,7 +707,7 @@ class TestGuideMatchesTheGate:
             assert any(self._same(name, req) for name in gated), f"{doc}: {req!r} is gated by the checker only"
 
     def test_backlog_reference_carries_every_gated_section(self):
-        from doc_pack import MASTER_ONLY_SECTIONS, REQUIRED_SECTIONS
+        from modules.shared.src.doc_pack.capabilities_doc_pack import MASTER_ONLY_SECTIONS, REQUIRED_SECTIONS
 
         text = (self.REFS / "backlog.md").read_text(encoding="utf-8")
         headings = [line.lstrip("#").strip() for line in text.splitlines() if line.startswith("## ")]

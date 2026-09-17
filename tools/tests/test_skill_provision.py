@@ -15,9 +15,9 @@ from pathlib import Path
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT / "lib"))
-sys.path.insert(0, str(_ROOT / "connect"))
-sys.path.insert(0, str(_ROOT / "skill"))
+sys.path.insert(0, str(_ROOT))
+
+
 
 
 SKILL_BODY = "---\nname: {name}\ndescription: test skill\n---\n\nbody\n"
@@ -44,7 +44,7 @@ def pack(tmp_path):
 # ---------------------------------------------------------------------------
 class TestProvisionLink:
     def test_default_links_skill_dir(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         monkeypatch.setattr(connect_shared, "REPO_ROOT", pack[0].parents[1])
         src, dest_base = pack
         ok = connect_shared.provision_skill_to_dir(src / "SKILL.md", dest_base)
@@ -56,7 +56,7 @@ class TestProvisionLink:
 
     def test_edit_through_link_reaches_pack(self, pack, monkeypatch):
         """The self-improvement loop: harness-side write lands in the repo pack."""
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         monkeypatch.setattr(connect_shared, "REPO_ROOT", pack[0].parents[1])
         src, dest_base = pack
         connect_shared.provision_skill_to_dir(src / "SKILL.md", dest_base)
@@ -64,7 +64,7 @@ class TestProvisionLink:
         assert (src / "SKILL.md").read_text() == "IMPROVED"
 
     def test_idempotent_relink_skips(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         monkeypatch.setattr(connect_shared, "REPO_ROOT", pack[0].parents[1])
         src, dest_base = pack
         assert connect_shared.provision_skill_to_dir(src / "SKILL.md", dest_base) is True
@@ -72,7 +72,7 @@ class TestProvisionLink:
         assert (dest_base / "demo-skill").is_symlink()
 
     def test_copy_mode_still_copies(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         monkeypatch.setattr(connect_shared, "REPO_ROOT", pack[0].parents[1])
         src, dest_base = pack
         ok = connect_shared.provision_skill_to_dir(src / "SKILL.md", dest_base, link=False)
@@ -82,7 +82,7 @@ class TestProvisionLink:
         assert (d / "SKILL.md").read_text() == SKILL_BODY.format(name="demo-skill")
 
     def test_identical_copy_is_upgraded_to_link(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         monkeypatch.setattr(connect_shared, "REPO_ROOT", pack[0].parents[1])
         src, dest_base = pack
         connect_shared.provision_skill_to_dir(src / "SKILL.md", dest_base, link=False)
@@ -91,7 +91,7 @@ class TestProvisionLink:
 
     def test_divergent_copy_is_protected(self, pack, monkeypatch):
         """Edited copy without --force: warn, keep it, never destroy the edit."""
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         monkeypatch.setattr(connect_shared, "REPO_ROOT", pack[0].parents[1])
         src, dest_base = pack
         connect_shared.provision_skill_to_dir(src / "SKILL.md", dest_base, link=False)
@@ -105,7 +105,7 @@ class TestProvisionLink:
         assert (dest_base / "demo-skill").is_symlink()
 
     def test_wrong_target_link_is_rejected(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         monkeypatch.setattr(connect_shared, "REPO_ROOT", pack[0].parents[1])
         src, dest_base = pack
         elsewhere = src.parent / "other"
@@ -116,7 +116,7 @@ class TestProvisionLink:
 
     def test_self_pack_link_is_refused(self, pack, monkeypatch):
         """Provisioning the pack into itself must not create a self-loop."""
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, _ = pack
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
         assert connect_shared.provision_skill_to_dir(src / "SKILL.md", src.parent) is False
@@ -128,7 +128,7 @@ class TestProvisionLink:
 # ---------------------------------------------------------------------------
 class TestRemoveProvisioned:
     def test_unlink_keeps_pack_source(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
         monkeypatch.setattr(connect_shared, "get_all_skill_files",
@@ -140,7 +140,7 @@ class TestRemoveProvisioned:
         assert (src / "SKILL.md").is_file()  # pack survived
 
     def test_dry_run_removes_nothing(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
         monkeypatch.setattr(connect_shared, "get_all_skill_files",
@@ -155,7 +155,7 @@ class TestRemoveProvisioned:
 # ---------------------------------------------------------------------------
 class TestLinkSkillsRoot:
     def test_links_when_absent(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, _ = pack
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
         dest = src.parents[1] / "harness" / "skills-root-missing"
@@ -163,7 +163,7 @@ class TestLinkSkillsRoot:
         assert dest.is_symlink() and dest.resolve() == src.parents[0].resolve()
 
     def test_non_empty_abort_without_force(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
         (dest_base / "native-skill").mkdir()
@@ -173,7 +173,7 @@ class TestLinkSkillsRoot:
         assert not dest_base.is_symlink()
 
     def test_force_migrates_leftovers_into_pack(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         pack_root = src.parent
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
@@ -188,7 +188,7 @@ class TestLinkSkillsRoot:
         assert (dest_base / "native-skill" / "SKILL.md").is_file()
 
     def test_stale_per_skill_links_are_unlinked(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         pack_root = src.parent
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
@@ -198,7 +198,7 @@ class TestLinkSkillsRoot:
         assert (src / "SKILL.md").is_file()  # old per-skill link source intact
 
     def test_idempotent(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         pack_root = src.parent
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
@@ -207,7 +207,7 @@ class TestLinkSkillsRoot:
         assert connect_shared.link_skills_root(dest_base, pack_root) is False
 
     def test_disconnect_unlinks_root_keeps_pack(self, pack, monkeypatch):
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         pack_root = src.parent
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
@@ -222,7 +222,7 @@ class TestLinkSkillsRoot:
     def test_stale_identical_copy_is_discarded(self, pack, monkeypatch):
         """Copy-mode era snapshot still byte-identical to the pack: the copy
         is dropped and the pack source serves through the root link."""
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         pack_root = src.parent
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
@@ -237,7 +237,7 @@ class TestLinkSkillsRoot:
 
     def test_divergent_copy_is_stashed_not_clobbering(self, pack, monkeypatch):
         """Harness-side edit: never overwrite the pack, stash for review."""
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         pack_root = src.parent
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
@@ -251,7 +251,7 @@ class TestLinkSkillsRoot:
 
     def test_state_dir_collision_merges_not_renames(self, pack, monkeypatch):
         """.hub twin in the pack: harness copy wins per-file, no .harness-1 junk."""
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         pack_root = src.parent
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
@@ -272,7 +272,7 @@ class TestLinkSkillsRoot:
 
     def test_per_skill_ops_blocked_on_linked_root(self, pack, monkeypatch):
         """Provisioning/removing INTO a linked root must not rmtree pack dirs."""
-        import connect_shared
+        import modules.harness.src.capabilities_harness_shared as connect_shared
         src, dest_base = pack
         pack_root = src.parent
         monkeypatch.setattr(connect_shared, "REPO_ROOT", src.parents[1])
@@ -288,7 +288,7 @@ class TestLinkSkillsRoot:
 class TestSkillCliProvision:
     @pytest.fixture
     def mod(self, pack, monkeypatch):
-        import skill as skill_mod
+        import modules.skill.src.capabilities_skill_registry as skill_mod
         src, _ = pack
         monkeypatch.setattr(skill_mod, "REPO_ROOT", src.parents[1])
         return skill_mod, src
@@ -345,7 +345,7 @@ class TestSkillCliProvision:
 def cat_pack(tmp_path):
     """A categorized pack (<tmp>/skills/<category>/<skill>/SKILL.md) plus an
     empty provision target, with skill_pack pointed at it."""
-    import skill_pack
+    from modules.shared.src.skill_pack import capabilities_skill_pack as skill_pack
     pack = tmp_path / "skills"
     src = pack / "media" / "demo-skill"
     src.mkdir(parents=True)
@@ -360,7 +360,7 @@ def cat_pack(tmp_path):
 class TestProvenance:
     def test_copy_records_provenance(self, cat_pack):
         """--prune is only safe because every copy says where it came from."""
-        import skill as skill_mod
+        import modules.skill.src.capabilities_skill_registry as skill_mod
         skill_pack, pack, src, ws = cat_pack
         skill_mod.PACK_ROOT = pack
         assert skill_mod.provision_single_skill(src / "SKILL.md", ws.parents[1]) is True
@@ -372,7 +372,7 @@ class TestProvenance:
     def test_link_writes_no_provenance(self, cat_pack):
         """A link already points at the pack; writing next to it would land in
         the repo and pollute the single source of truth."""
-        import skill as skill_mod
+        import modules.skill.src.capabilities_skill_registry as skill_mod
         skill_pack, pack, src, ws = cat_pack
         skill_mod.PACK_ROOT = pack
         assert skill_mod.provision_single_skill(src / "SKILL.md", ws.parents[1], link=True) is True
@@ -460,7 +460,7 @@ class TestPackAudit:
 class TestToolResolution:
     def test_handle_matches_are_word_bounded(self, tmp_path):
         """'vision' must not be claimed by a skill merely containing 'provisioning'."""
-        import skill as skill_mod
+        import modules.skill.src.capabilities_skill_registry as skill_mod
         pack = tmp_path / "skills" / "media" / "vision-arwaky"
         pack.mkdir(parents=True)
         (pack / "SKILL.md").write_text(SKILL_BODY.format(name="vision-arwaky"))
@@ -480,6 +480,6 @@ class TestToolResolution:
 
 
 def _skill_pack():
-    import skill_pack
+    from modules.shared.src.skill_pack import capabilities_skill_pack as skill_pack
     return skill_pack
 
