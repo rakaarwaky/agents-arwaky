@@ -17,8 +17,8 @@ from modules.shared.src.paths.utility_paths import repo_root
 
 ROOT = repo_root()
 
-from modules.daemon.src.capabilities_daemon_podman import main as ninerouter_main
-from modules.daemon.src.capabilities_daemon_anytype import main as anytype_main
+from modules.daemon.src.capabilities_ninerouter_daemon import main as ninerouter_main
+from modules.daemon.src.capabilities_anytype_daemon import main as anytype_main
 
 
 def run_py(script, args):

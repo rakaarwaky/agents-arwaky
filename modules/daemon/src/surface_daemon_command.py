@@ -4,8 +4,8 @@ from __future__ import annotations
 import sys
 
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-from modules.daemon.src.capabilities_daemon_anytype import AnytypeDaemonManager
-from modules.daemon.src.capabilities_daemon_podman import PodmanDaemonManager
+from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
 
 
 def cmd_9router(args: list[str], orch: DaemonOrchestrator | None = None, manager: PodmanDaemonManager | None = None) -> int:
