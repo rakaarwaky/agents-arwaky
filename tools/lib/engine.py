@@ -16,6 +16,7 @@ import json
 import os
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 
@@ -30,6 +31,8 @@ def detect_format(path: Path) -> str:
         return "jsonc"
     if name.endswith((".json", ".bak")):
         return "json"
+    if name.endswith(".toml"):
+        return "toml"
     # Fallback: peek content
     try:
         text = path.read_text(encoding="utf-8", errors="replace")[:4096]
@@ -80,7 +83,7 @@ def _strip_jsonc_comments(text: str) -> str:
 
 
 def load_file(path: Path):
-    """Load JSON / JSONC / YAML into a dict. Returns ({}, fmt) on failure."""
+    """Load JSON / JSONC / YAML / TOML into a dict. Returns ({}, fmt) on failure."""
     fmt = detect_format(path)
     text = path.read_text(encoding="utf-8", errors="replace")
     if fmt in ("json", "jsonc"):
@@ -89,6 +92,11 @@ def load_file(path: Path):
         try:
             return json.loads(text), fmt
         except json.JSONDecodeError:
+            return {}, fmt
+    if fmt == "toml":
+        try:
+            return tomllib.loads(text), fmt
+        except Exception:
             return {}, fmt
     # YAML
     data = None
@@ -113,6 +121,76 @@ def load_file(path: Path):
     return {}, fmt
 
 
+def _write_toml_value(val):
+    """Convert a Python value to its TOML representation."""
+    if isinstance(val, bool):
+        return "true" if val else "false"
+    if isinstance(val, int) and not isinstance(val, bool):
+        return str(val)
+    if isinstance(val, float):
+        return str(val)
+    if isinstance(val, str):
+        escaped = val.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped}"'
+    if isinstance(val, list):
+        if not val:
+            return "[]"
+        items = [_write_toml_value(v) for v in val]
+        return "[" + ", ".join(items) + "]"
+    if isinstance(val, dict):
+        if not val:
+            return "{}"
+        parts = []
+        for k, v in val.items():
+            parts.append(f"{_quote_key(k)} = {_write_toml_value(v)}")
+        return "{ " + ", ".join(parts) + " }"
+    return str(val)
+
+def _quote_key(key):
+    if key and all(c.isalnum() or c in ('-', '_') for c in key):
+        return key
+    escaped = key.replace('\\', '\\\\').replace('"', '\\"')
+    return f'"{escaped}"'
+
+def _toml_section(parts):
+    return ".".join(_quote_key(p) for p in parts)
+
+def _write_toml_table(data, parts=()):
+    """Recursively write TOML sections."""
+    lines = []
+    # Emit simple key-values first
+    for key, val in data.items():
+        if isinstance(val, list) and val and all(isinstance(i, dict) for i in val):
+            continue  # array-of-tables handled below
+        if not isinstance(val, dict):
+            lines.append(f"{_quote_key(key)} = {_write_toml_value(val)}")
+    # Handle dict values (nested tables)
+    for key, val in data.items():
+        if not isinstance(val, dict) and not (isinstance(val, list) and val and all(isinstance(i, dict) for i in val)):
+            continue
+        cur = parts + (key,)
+        if isinstance(val, list) and val and all(isinstance(i, dict) for i in val):
+            for item in val:
+                lines.append("")
+                lines.append(f"[[{_toml_section(cur)}]]")
+                for ik, iv in item.items():
+                    lines.append(f"{_quote_key(ik)} = {_write_toml_value(iv)}")
+        elif val and all(isinstance(v, dict) for v in val.values()):
+            # Namespace container (all children are sub-sections) - skip its own header
+            sub = _write_toml_table(val, cur)
+            lines.extend(sub)
+        else:
+            sub = _write_toml_table(val, cur)
+            if sub:
+                lines.append("")
+                lines.append("[" + _toml_section(cur) + "]")
+                lines.extend(sub)
+    return lines
+
+def _write_toml(data):
+    lines = _write_toml_table(data)
+    return "\n".join(lines) + "\n"
+
 def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> bool:
     """Write dict back preserving format. Returns True on success."""
     try:
@@ -133,6 +211,9 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
             if comment_lines:
                 body = "\n".join(comment_lines) + "\n" + body
             path.write_text(body + "\n", encoding="utf-8")
+        elif fmt == "toml":
+            toml_text = _write_toml(data)
+            path.write_text(toml_text, encoding="utf-8")
         elif fmt == "yaml":
             dumped = False
             if preserve_comments:
@@ -160,12 +241,14 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
 # MCP server helpers
 # ---------------------------------------------------------------------------
 def get_mcp_map(data: dict):
-    """Return the dict holding MCP servers (mcpServers or mcp)."""
+    """Return the dict holding MCP servers (mcpServers, mcp, or mcp_servers)."""
     if isinstance(data, dict):
         if isinstance(data.get("mcpServers"), dict):
             return data["mcpServers"], "mcpServers"
         if isinstance(data.get("mcp"), dict):
             return data["mcp"], "mcp"
+        if isinstance(data.get("mcp_servers"), dict):
+            return data["mcp_servers"], "mcp_servers"
     return None, None
 
 
@@ -273,14 +356,15 @@ def merge_mcp_servers(path: Path, servers: dict, force: bool = False) -> list:
         path.write_text("{}", encoding="utf-8")
         data, fmt = {}, "json"
 
-    mcp, _ = get_mcp_map(data)
+    mcp, mcp_key = get_mcp_map(data)
     if mcp is None:
         if isinstance(data, dict):
-            data["mcpServers"] = {}
-            key = "mcpServers"
+            key = "mcp_servers" if fmt == "toml" else "mcpServers"
+            data[key] = {}
+            mcp = data[key]
+            mcp_key = key
         else:
             return []
-        mcp = data[key]
 
     merged = []
     for name, srv in servers.items():

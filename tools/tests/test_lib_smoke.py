@@ -22,7 +22,9 @@ class TestEnvfile:
         env = parse_env_file(env_file)
         assert env["FOO"] == "bar"
         assert env["BAZ"] == "123"
-        assert "EMPTY" not in env  # empty values are skipped
+        # `EMPTY=` yields an explicit empty value, not a skipped key: the caller in
+        # tools/mcp/generate_config.py rejects "" and a placeholder default alike.
+        assert env["EMPTY"] == ""
 
     def test_update_env_file(self, tmp_path):
         from envfile import update_env_file
@@ -57,8 +59,12 @@ class TestEnvfile:
         env2 = tmp_path / "b.env"
         env1.write_text("X=1\n")
         env2.write_text("Y=2\n")
+        # First existing candidate wins; later files are not merged. Matches
+        # tools/mcp/generate_config.py walking XDG then repo .env fallbacks.
         result = load_first_env([env2, env1])
-        assert result["X"] == "1"
+        assert result == {"Y": "2"}
+        assert load_first_env([tmp_path / "missing.env", env1]) == {"X": "1"}
+        assert load_first_env([tmp_path / "missing.env"]) == {}
 
 
 # ---------------------------------------------------------------------------
