@@ -23,7 +23,7 @@ from modules.mcp.src.surface_mcp_command import cmd_mcp
 from modules.service.src.surface_service_command import cmd_service
 from modules.skill.src.surface_skill_command import cmd_skill
 from modules.sync.src.surface_sync_command import cmd_sync
-from modules.tool.src.surface_tool_command import cmd_install, cmd_list, cmd_run, cmd_tool, cmd_uninstall, cmd_update
+from modules.runner.src.surface_runner_command import cmd_install, cmd_list, cmd_run, cmd_tool, cmd_uninstall, cmd_update
 
 HELP_DOC = """agents-arwaky — Unified Tool Orchestrator
 Usage: aa <noun> <verb> [arguments...]
@@ -70,7 +70,7 @@ def _build_ctx() -> dict:
     from modules.service.src.root_service_container import ServiceContainer
     from modules.skill.src.root_skill_container import SkillContainer
     from modules.sync.src.root_sync_container import SyncContainer
-    from modules.tool.src.root_tool_container import ToolContainer
+    from modules.runner.src.root_runner_container import ToolContainer
 
     tool_container = ToolContainer()
     daemon_container = DaemonContainer()
@@ -127,23 +127,23 @@ def _build_ctx() -> dict:
 
 
 def _cmd_tool_list(args, orch) -> int:
-    from modules.tool.src.surface_tool_command import cmd_list
+    from modules.runner.src.surface_runner_command import cmd_list
     return cmd_list(args, orch)
 
 def _cmd_tool_run(args, orch) -> int:
-    from modules.tool.src.surface_tool_command import cmd_run
+    from modules.runner.src.surface_runner_command import cmd_run
     return cmd_run(args, orch)
 
 def _cmd_tool_install(args, orch) -> int:
-    from modules.tool.src.surface_tool_command import cmd_install
+    from modules.runner.src.surface_runner_command import cmd_install
     return cmd_install(args, orch)
 
 def _cmd_tool_update(args, orch) -> int:
-    from modules.tool.src.surface_tool_command import cmd_update
+    from modules.runner.src.surface_runner_command import cmd_update
     return cmd_update(args, orch)
 
 def _cmd_tool_uninstall(args, orch) -> int:
-    from modules.tool.src.surface_tool_command import cmd_uninstall
+    from modules.runner.src.surface_runner_command import cmd_uninstall
     return cmd_uninstall(args, orch)
 
 def _cmd_anytype(args, daemon_container) -> int:

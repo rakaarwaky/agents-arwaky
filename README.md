@@ -128,7 +128,8 @@ agents-arwaky/
 │
 ├── modules/                     # AES 7-layer orchestration (taxonomy→…→root)
 │   ├── shared/src/<domain>/     # Shared domains: xdg, manifest, config, tool, skill, harness, …
-│   ├── tool/  daemon/  service/  mcp/  skill/  harness/  backup/  sync/  check/  doctor/  completion/
+│   ├── installer/  updater/  uninstaller/  runner/    # Tool install/update/uninstall/run (data-driven)
+│   ├── daemon/  service/  mcp/  skill/  harness/  backup/  sync/  check/  doctor/  completion/
 │   └── cli/                     # Composition root wiring all feature modules
 │
 └── tools/                       # Orchestration entrypoint & static config (Python)

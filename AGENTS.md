@@ -113,7 +113,7 @@ Code and CI win over this file; this file wins over `README.md` for agent behavi
 
 ### 3. Modifying Upstream Vendor Configurations
 - Upstream tools under `vendor/` should **NOT** have their source code directly modified in this root repository.
-- Customizations, patches, and per-runner install/uninstall logic belong in `modules/tool/src/` (data-driven `ToolInstaller`/`ToolUninstaller` dispatch keyed on the manifest's `runner` field).
+- Customizations, patches, and per-runner install/update/uninstall logic belong in the dedicated feature modules `modules/installer/`, `modules/updater/`, and `modules/uninstaller/` (data-driven `ToolInstaller`/`ToolUpdater`/`ToolUninstaller` dispatch keyed on the manifest's `runner` field).
 - If a vendor tool requires environment configuration (e.g. Anytype API keys), manage it via `.env` or XDG config files, never hardcoded secrets.
 
 ### 4. Running Quality Gates Before Answering
@@ -191,7 +191,7 @@ that the pack no longer provides. It only removes entries carrying
 - Single Source of Truth Manifest: [`tools/config/manifest.json`](tools/config/manifest.json)
 - Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
 - Shared XDG Helper: [`modules/shared/src/xdg/`](modules/shared/src/xdg/)
-- Tool Install/Update/Uninstall (data-driven): [`modules/tool/src/`](modules/tool/src/)
+- Tool Install/Update/Uninstall (data-driven): [`modules/installer/`](modules/installer/) · [`modules/updater/`](modules/updater/) · [`modules/uninstaller/`](modules/uninstaller/) · Runner & CLI surface: [`modules/runner/`](modules/runner/)
 - Agent Harness Connector: [`modules/harness/src/`](modules/harness/src/)
 - CI Verification Gate: [`tools/cli/arwaky.py`](tools/cli/arwaky.py) (`aa check`) + [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
