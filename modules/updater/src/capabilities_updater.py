@@ -8,7 +8,7 @@ from modules.shared.src.logging.utility_logging import sub
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
 from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.installer.src.capabilities_installer import ToolInstaller
+from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
 
 
 class ToolUpdater(IToolUpdater):
@@ -24,9 +24,9 @@ class ToolUpdater(IToolUpdater):
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, root: Path | None = None, installer: ToolInstaller | None = None) -> None:
+    def __init__(self, root: Path | None = None, installer: InstallerOrchestrator | None = None) -> None:
         self._root = root or repo_root()
-        self._installer = installer or ToolInstaller(self._root)
+        self._installer = installer or InstallerOrchestrator(self._root)
 
     # -- Block 2: Submodule update ---------------------------------------------
     def _pull(self, spec: ToolSpec) -> bool:

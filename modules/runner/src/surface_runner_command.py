@@ -117,13 +117,10 @@ def cmd_install(args: list[str], orch: IToolAggregate) -> int:
         err("Submodule init failed. Run 'aa submodules' manually and retry.")
         return rc
     if target == "all":
-        # TODO(AES): install_all on the ToolInstaller capability is not yet
-        # exposed via IToolAggregate; keep the surface a smart type and pull
-        # the capability off the concrete ToolOrchestrator.
-        from modules.installer.src.capabilities_installer import ToolInstaller
+        from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
 
         installer = getattr(orch, "_installer", None)
-        if isinstance(installer, ToolInstaller):
+        if isinstance(installer, InstallerOrchestrator):
             results = installer.install_all()
         else:
             results = []
