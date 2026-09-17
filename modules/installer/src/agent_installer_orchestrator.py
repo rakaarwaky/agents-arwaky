@@ -8,7 +8,6 @@ from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.contract_tool_protocol import IToolInstaller
 from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
 
-from modules.installer.src.capabilities_anytype_daemon_installer import AnytypeDaemonInstaller
 from modules.installer.src.capabilities_anytype_installer import AnytypeInstaller
 from modules.installer.src.capabilities_blender_installer import BlenderInstaller
 from modules.installer.src.capabilities_codegraph_installer import CodegraphInstaller
@@ -38,7 +37,8 @@ class InstallerOrchestrator(IToolInstaller):
 
     # -- Block 1: Constructor & per-tool registry --------------------------------
     _REGISTRY: dict[str, type] = {
-        "anytype-daemon": AnytypeDaemonInstaller,
+        # anytype-daemon is part of the merged anytype installer
+        "anytype-daemon": AnytypeInstaller,
         "anytype": AnytypeInstaller,
         "blender": BlenderInstaller,
         "codegraph": CodegraphInstaller,
