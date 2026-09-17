@@ -42,7 +42,6 @@ MCP_IGNORES = shutil.ignore_patterns(
 # ---------------------------------------------------------------------------
 # anytype-daemon
 # ---------------------------------------------------------------------------
-DAEMON_TOOL_DIR_REL = "tools/daemons"
 DAEMON_DATA_REL = "anytype-daemon"
 INTERNAL_BIN = "internal-bin"
 
@@ -105,10 +104,12 @@ class AnytypeInstaller(IToolInstaller):
         for d in ("data", "dot-anytype", "config", "share"):
             (data_dir / d).mkdir(parents=True, exist_ok=True)
 
-        daemon_py = root / DAEMON_TOOL_DIR_REL / "anytype_daemon.py"
+        # Delegate to the daemon module's service_install (tools/deploy/anytype-daemon.service)
+        from modules.daemon.src.capabilities_daemon_anytype import AnytypeDaemonManager
+
         print(">>> Setting up anytype-daemon (container + systemd user service)...")
-        if daemon_py.exists():
-            subprocess.run([sys.executable, str(daemon_py), "service-install"], check=False)
+        manager = AnytypeDaemonManager()
+        rc = manager.service_install()
 
         def _write_launcher(path: Path) -> None:
             path.write_text(
@@ -116,8 +117,9 @@ class AnytypeInstaller(IToolInstaller):
                 "import os, sys\n"
                 "from pathlib import Path\n"
                 f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(root))}))\n'
-                'daemon = root / "tools/daemons/anytype_daemon.py"\n'
-                'os.execvpe("python3", ["python3", str(daemon), *sys.argv[1:]], os.environ.copy())\n',
+                "sys.path.insert(0, str(root))\n"
+                'from modules.daemon.src.surface_daemon_command import cmd_anytype\n'
+                'sys.exit(cmd_anytype(sys.argv[1:]))\n',
                 encoding="utf-8",
             )
             path.chmod(0o755)
