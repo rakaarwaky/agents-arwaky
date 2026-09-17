@@ -1,11 +1,11 @@
 ---
 name: coding-agent-delegation
-description: Delegates coding to external CLI agents. Use when invoking qwen, codex, claude, opencode.
+description: Delegates coding to external CLI agents. Use when invoking grok build, codex, claude, opencode.
 metadata:
   tags:
     - coding-agent
     - delegation
-    - qwen-code
+    - grok-build
     - codex
     - claude-code
     - opencode
@@ -21,7 +21,7 @@ metadata:
 
 # Coding Agent Delegation
 
-Drive external coding-agent CLIs (Qwen Code, Codex, Claude Code, opencode) from a
+Drive external coding-agent CLIs (Grok Build, Codex, Claude Code, opencode) from a
 Hermes session via `terminal()` instead of writing implementation code in Hermes
 itself. Use this whenever the user's architecture is "Hermes agent designs/reviews,
 a coding CLI builds" — e.g. a Product Engineer profile that must never touch code
@@ -29,11 +29,12 @@ directly.
 
 This skill owns the whole loop: the generic procedure below plus per-CLI specifics.
 For the bundled per-CLI playbooks (codex, claude-code, opencode) load those skills;
-the `## Qwen Code` section is the complete Qwen playbook, since Hermes ships none.
+the `## Grok Build` section is the complete Grok Build playbook, since Hermes ships
+none.
 
 ## When to Use
 
-- A profile's role says "delegate coding fully to <CLI>" (qwen code, codex, ...).
+- A profile's role says "delegate coding fully to <CLI>" (grok build, codex, ...).
 - Any feature implementation, bug fix, refactor, or test writing that you would
   otherwise code yourself.
 - A coding task is large/autonomous enough that an external agent loop beats doing
@@ -99,62 +100,95 @@ full CLI loop has overhead (tens of seconds of startup, its own context build).
   the code is done and only gates/commits are missing, the cheapest recovery is the
   reviewer committing the verified diff themselves, not a re-run.
 
-## Qwen Code
+## Grok Build
 
-Binary: `qwen` (user install: `~/.local/bin/qwen`; auth is host-level in `~/.qwen`,
-currently `my9router` via 9router — it is NOT the Hermes profile's model config, so
-switching the profile's model doesn't change the worker). Check with `qwen --version`.
+Binary: `grok` (Grok Build CLI, installed at `~/.local/bin/grok`; config/auth live in
+`~/.grok/` — `auth.json`, `config.toml`, sessions in `~/.grok/sessions/`). It is a Rust
+agent CLI, not the Hermes profile's model config, so switching the profile's model
+doesn't change the worker. Check with `grok version`.
 
 ### Launch
 
+The `-p` (single-prompt headless) flag DOES exist and is the correct pattern for
+scripted/delegated runs — no PTY required:
+
 ```bash
-qwen -y \
-  --output-format json \
-  --max-wall-time 30m \
-  --max-tool-calls 120 \
-  -p "<task brief>"
+grok -p "<task brief>" --always-approve --output-format json --no-auto-update
 ```
 
-Foreground for short tasks; for real ones launch background with the output going to
-a file (`2>&1 | tail` is NOT how you read results — the JSON goes to the file):
+Via Hermes `terminal` tool (background, no PTY needed for `-p` mode):
 
 ```
-terminal(command="qwen -y --output-format json --max-wall-time 30m --max-tool-calls 120 -p \"$(cat /tmp/qwen-task-slug.md)\" > /tmp/qwen-out-slug.json 2>/tmp/qwen-err-slug.log; echo exit=$?", workdir="<repo>", background=true)
+terminal(command="grok -p \"$(cat /tmp/grok-task-slug.md)\" --always-approve --output-format json --no-auto-update > /tmp/grok-out-slug.json; echo exit=$?", workdir="<repo>", background=true)
 ```
 
-Poll with `process(action="poll"/"log")`; on completion read `/tmp/qwen-out-slug.json`.
+The JSON object at the end contains the session ID (`sessionId`), final message, and
+stats. Poll with `process(action="poll"/"log")`; read `/tmp/grok-out-slug.json` on completion.
+
+For interactive TUI sessions (when you need the agent dashboard, plan mode, or
+keyboard-driven work): `terminal(command="grok --always-approve", workdir="<repo>", background=true, pty=true)`
+then drive with `process(action="poll"/"write")`.
+
+For ACP/IDE integration: `grok agent stdio` — JSON-RPC over stdin/stdout.
 
 ### Flags
 
 | Flag | Effect |
 |------|--------|
-| `-y` / `--yolo` | Auto-approve all tools (aliases `--approval-mode plan\|default\|auto-edit\|auto\|yolo`). **REQUIRED headless:** without it every `edit`/`write_file`/`run_shell_command` is denied and the run returns a polite "blocked" report — the failure looks like agent incompetence in the JSON. |
-| `--output-format json` | One JSON **array**; parse the **last element** for the summary: `result` (final text), `is_error`, `num_turns`, `duration_ms`, `usage`, `session_id`, `stats.files` (lines added/removed), `stats.tools.byName` (per-tool success/fail + decisions), `permission_denials`. |
-| `--max-wall-time` / `--max-tool-calls` / `--max-session-turns` | Hard run budgets; overrun aborts with **exit 55**. Always set both. `--max-wall-time` is a real hard kill: set it >= your realistic estimate (a 5-fix + tests task needed >30m here; a 3-file surgical task <12m). |
-| `--append-system-prompt "..."` | Inject role/review standards per task without touching the CLI's base prompt (do NOT use `--system-prompt` — it drops qwen's own tool guidance). |
-| `-c/--continue`, `-r/--resume <session_id>` | Follow up in the same session ("pytest failed with X, fix it"). Requires the same cwd; `session_id` comes from the JSON output. |
-| `--worktree [slug]` | Run inside `<repo>/.qwen/worktrees/<slug>/`, keeping the main tree untouched while the agent works. |
-| `--json-schema '@schema.json'` | Force a structured final answer (headless only; registers a `structured_output` tool and ends on the first valid call). Use when you need a machine-readable handoff. |
-| `--bare` / `--safe-mode` | Trim config inheritance. A bare `qwen` run loads the user's `~/.qwen` settings — all MCP servers and skills (observed ~36k prompt tokens, 11 MCP servers, hundreds of slash commands). `--bare` skips implicit auto-discovery; `--safe-mode` strips all customizations. `--exclude-tools` / `--allowed-tools` trim further. |
-| `-o stream-json` (+ `--json-file`/`--input-file`) | Live progress events / bidirectional driving for background monitor loops. |
-| `--include-directories <path>` | Extra dirs in the workspace. |
+| `-p, --single <PROMPT>` | Send one prompt headlessly — the main delegation entry point. |
+| `--output-format json` | One JSON object at the end: `sessionId`, final message, token stats. Parse it. |
+| `--output-format streaming-json` | Newline-delimited JSON events for live progress monitoring. |
+| `--always-approve` (alias `--yolo`) | **REQUIRED headless:** without it every edit/write/run is denied. |
+| `--no-auto-update` | Skip background update checks — always set in CI/scripts. |
+| `-r, --resume [<ID>]` | Resume a session; omit ID for most recent in cwd. Chain calls via `sessionId` from JSON. |
+| `-c, --continue` | Continue the most recent session for the current directory. |
+| `-s, --session-id <UUID>` | Name a NEW session with a supplied UUID (does not resume). |
+| `--fork-session` | Fork a resumed session into a new session ID. |
+| `-w, --worktree [<NAME>]` | Run inside `~/.grok/worktrees/<repo>/<name>/`, keeping the main tree untouched. |
+| `--ref <REF>` | Base the worktree on a branch/tag/commit instead of current HEAD. |
+| `--rules "<text>"` | Append extra rules to the system prompt per-task. Do NOT use `--system-prompt-override` — it replaces Grok's own tool guidance. |
+| `-m, --model <ID>` | Override the model for this run. |
+| `--effort <LEVEL>` | Reasoning effort for reasoning models. |
+| `--max-turns <N>` | Cap agent turns in a single headless run — use this as your budget control. |
+| `--no-plan` / `--no-subagents` / `--no-memory` / `--disable-web-search` | Disable a feature for this session. |
+| `--sandbox <PROFILE>` | Filesystem/network sandboxing profile. |
+| `--cwd <dir>` | Set working directory explicitly. |
+| `--allow <RULE>` / `--deny <RULE>` | Fine-grained permission rules. `deny` always wins over `allow`. |
+| `--tools <LIST>` / `--disallowed-tools <LIST>` | Allow or remove built-in tools. |
+| `--no-alt-screen` | Run inline without TUI fullscreen takeover. |
 
 ### Reading the result
 
-- `permission_denials` non-empty, or `stats.tools.byName.<t>.decisions.reject > 0` →
-  the run was blocked by approval, not by inability. Check that before debugging
-  anything else. Headless runs never prompt: anything the CLI itself rejects (trust
-  dir, policy) surfaces only in that field.
-- `stats.files.totalLinesAdded/Removed == 0` with a "Done" result means nothing was
-  actually written — verify with `git diff`.
-- Treat `stats.tools.byName.*.fail > 0` and `is_error: true` as red flags even when
-  `exit=0`.
-- `-p` positional prompt is preferred (`-p/--prompt` as a flag is deprecated but
-  still works in 0.23).
-- Small fixes: `qwen -y --resume <session_id> -p "<specific fix + error output>"`
-  from the same cwd.
+- JSON output: parse `sessionId` (for resume/chain), the final message text, and token
+  stats. A `sessionId` of `null` or missing means the run failed before session init.
+- **Always verify with `git diff` + `git status` in the repo after the run** — the
+  agent's "done" message is a self-report, never evidence.
+- `grok export <session-id>` produces a Markdown transcript for review.
+- `grok sessions list` / `grok sessions search <query>` find prior sessions.
+- `grok usage` prints token/cost stats for a session.
 
-### Qwen-repo pitfalls (agents-arwaky and similar gated repos)
+### Session resume
+
+```bash
+grok -r                    # resume most recent session in this cwd
+grok -r <session-id>       # resume a specific session
+grok -c                    # same as -r without ID
+grok sessions list         # list recent sessions for this directory
+grok sessions search <q>   # search titles and prompts
+grok export <id> [file]    # export transcript as Markdown
+```
+
+For multi-step automation, chain calls: run 1 → extract `sessionId` from JSON →
+`grok -r <id> -p "<next step>" --output-format json`.
+
+### Budget control
+
+Grok has no `--max-wall-time`/`--max-tool-calls` flags. Use `--max-turns <N>` to cap
+agentic turns. For wall-time enforcement, launch via `terminal(background=true)` and
+kill the process on your own deadline; a killed run's edits persist — verify with
+`git status` before relaunching.
+
+### Grok-repo pitfalls (agents-arwaky and similar gated repos)
 
 - **AES404 beats the brief:** a `utility_*.py` may not define a `class`, so a dataclass
   handed to you for that layer belongs in the domain's `taxonomy_*.py` with only its
@@ -177,10 +211,11 @@ Poll with `process(action="poll"/"log")`; on completion read `/tmp/qwen-out-slug
 
 ## Reusable helper
 
-- `scripts/qwen-run.py <workdir> "<task>" [--budget 15m] [--resume <session-id>] [--bare]`
-  — runs qwen headless with yolo + json output and prints a compact verdict (result
-  text, turns, files changed, tool denials, session-id). Use it for every delegated
-  task so verification fields are always surfaced, not skimmed.
+- `scripts/grok-run.py <workdir> "<task>" [--worktree <slug>] [--resume <session-uuid>]`
+  — runs grok headless with `--always-approve`, launches it in a PTY background
+  terminal, and prints a compact verdict (final message excerpt, files changed via
+  `git diff --stat`, worktree slug, session id). Use it for every delegated task so
+  verification fields are always surfaced, not skimmed.
 - `scripts/split_commit.py --plan plan.json --add-untracked <new,files>` — commits an
   already-verified working tree as the atomic file groups named in `plan.json`
   (`[{"name","message","files"}]`), `git reset -q` between groups, and prints what is
@@ -212,10 +247,10 @@ Poll with `process(action="poll"/"log")`; on completion read `/tmp/qwen-out-slug
   timeout is driven by the same faked clock). Diagnose the harness and put the confirmed
   root cause in the finish brief so the worker fixes it instead of re-diagnosing — and
   forbid it from weakening assertions to get green.
-- A child CLI that creates its own venv/tooling mid-task (observed: qwen
+- A child CLI that creates its own venv/tooling mid-task (observed: grok
   bootstrapped `uv` + `.venv` to run pytest) is fine, but mention residual
   artifacts in the report so the user can decide to clean up.
-- Pipe-heavy one-liners (`qwen ... | python3 -c ...`) trip the security scanner
+- Pipe-heavy one-liners (`grok ... | python3 -c ...`) trip the security scanner
   ("pipe to interpreter", nested-body flags). Write the JSON to a file and parse
   the file instead.
 - Keep prompts narrow per task: the external agent has its own context budget and
@@ -230,7 +265,7 @@ Poll with `process(action="poll"/"log")`; on completion read `/tmp/qwen-out-slug
   brief (test counts, which items were fixed upstream, open-PR list) before
   launching; same-day merges routinely invalidate a brief written an hour earlier.
   A single trivial reviewer-requested tweak to a finished diff goes back to the same
-  worker via `qwen -y --resume <session_id>` rather than a fresh full run.
+  worker via `grok --resume <uuid>` rather than a fresh full run.
 - Brief and spec files must not contradict each other (e.g. "exactly 8 columns" vs a
   7-column header): the worker will follow the spec and flag the brief — audit both
   before launching.
