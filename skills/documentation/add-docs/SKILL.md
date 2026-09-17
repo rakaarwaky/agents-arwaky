@@ -1,6 +1,6 @@
 ---
 name: add-docs
-description: Adds docstrings, doc comments, JSDoc and types. Use when documenting Python, Rust, TS, PRD, FRD.
+description: Adds docstrings, doc comments, JSDoc, types and PRD/FRD/README/BACKLOG/AGENTS docs. Use when documenting Python, Rust, TS modules, or splitting spec from status backlog.
 metadata:
   tags:
     - python
@@ -14,337 +14,227 @@ metadata:
     - prd
     - frd
     - readme
+    - backlog
+    - agents-md
     - pep257
   related_skills:
     - cleanup-consolidate
     - fix-bypass
     - lint-arwaky
   triggers:
-    - add docs python
-    - add docstring python
-    - add type hints python
-    - add prd python
-    - add frd python
-    - add package readme python
-    - add docs rust
-    - add crate readme rust
-    - add prd rust
-    - add frd rust
-    - add doc comments rust
-    - document public api rust
-    - add docs typescript
-    - add jsdoc typescript
-    - add type hints typescript
-    - add prd typescript
-    - add frd typescript
-    - add package readme typescript
+    - add docs
+    - add doc comments
+    - document public api
+    - add docstring
+    - add jsdoc
+    - add type hints
+    - add prd
+    - add frd
+    - add backlog
+    - add backlog md
+    - add feature backlog
+    - add root backlog
+    - add readme
+    - add package readme
+    - add crate readme
+    - add agents md
+    - agents md template
+    - port agents md
+    - prd template
+    - frd template
+    - readme template
+    - backlog template
+    - split spec from status
+    - move status out of frd
+    - audit document invariants
 ---
 
 # add-docs
 
-## Purpose
+> **Purpose**: Route every claim to the correct document, and ensure every public code item is documented.
+> **Audience**: The AI agent executing documentation tasks.
+> **Scope**: Python, Rust, and TypeScript modules; PRD, FRD, README, BACKLOG, and AGENTS files.
 
-Add documentation at correct locations following project conventions — crate/module-level documentation plus native doc comments (`"""` docstrings, `///` doc comments, JSDoc):
+The **aggregate** defines which document exists, where it lives, who reads it, and which claim belongs where.
+Templates, section contracts, exemplars, and per-document craft rules live in [`references/`](references/).
 
-- `PRD.md` — stakeholder alignment (Problem Statement / Goals & Success Metrics / User Personas / Scope / Feature Requirements / Non-functional Requirements).
-- `FRD.md` — engineering specs (Functional Requirements with IDs / API Contract / Integration Points / Test Scenarios).
-- `README.md` — developer onboarding (Quick Start / Architecture / Project Structure / Available Commands / Configuration / Testing / Contributing).
-- Doc comments on all public items, in the language's native form.
+| Document     | Location                                          | Audience                     | Focus                    | Length       | Template                                              |
+|--------------|---------------------------------------------------|------------------------------|--------------------------|--------------|-------------------------------------------------------|
+| `PRD.md`     | Root workspace                                    | Stakeholder, PM, Design, Eng | *What* & *Why*           | 50–500 lines | [references/prd.md](references/prd.md)                |
+| `FRD.md`     | Each feature module/crate/pkg                     | Engineer, QA, Tech Lead      | *How* (functionally)     | 50–500 lines | [references/frd.md](references/frd.md)                |
+| `BACKLOG.md` | Root master + each feature dir, beside its spec   | Engineer, QA, Tech Lead      | *What is true now*       | 50–500 lines | [references/backlog.md](references/backlog.md)        |
+| `README.md`  | Root workspace                                    | Developer (new/existing)     | *How to use/run*         | 50–500 lines | [references/readme.md](references/readme.md)          |
+| `AGENTS.md`  | Root workspace                                    | The agent, every session     | *How to work here safely*| 50–500 lines | [references/agents-md.md](references/agents-md.md)    |
 
-## Document Location Matrix
+**The Document Chain**:
+PRD (what/why) → FRD (how) → BACKLOG (what is true now) → README (how to use) → AGENTS (how to work here).
 
-| Document  | Location                     | Audience                     | Focus                | Length    |
-| --------- | ---------------------------- | ---------------------------- | -------------------- | --------- |
-| PRD.md    | Root workspace               | Stakeholder, PM, Design, Eng | _What_ & _Why_       | 1-2 pages |
-| README.md | Root workspace               | Developer (new/existing)     | _How to use/run_     | 1-2 pages |
-| FRD.md    | Each feature module/crate/pkg | Engineer, QA, Tech Lead      | _How_ (functionally) | 2-5 pages |
+Each file answers exactly one audience's question. A claim in the wrong file is the defect this skill exists to prevent.
+Doc comments on every public item are the sixth deliverable, in the language's native form.
 
-## Rules
+---
 
-- **PRD.md** = Product Requirements Document — **1 per project root** — describes **WHAT** and **WHY** for stakeholders.
-- **README.md** = Developer onboarding — **1 per project root** — describes **HOW TO USE/RUN** for developers.
-- **FRD.md** = Functional Requirements Document — **1 per feature module** (Python/TypeScript) / **1 per feature crate** (Rust) — describes **HOW** (functionally) for engineers.
-- Relationship: **PRD (what/why) → FRD (how) → README (how to use)**. Each serves a different audience.
-- Doc comments MUST explain "what" and "why", not "how" (code shows how).
-- **Python:** all public classes and functions MUST have docstrings (PEP 257).
-- **Rust:** all public structs and methods MUST have `///` doc comments (visible in `cargo doc`); example code in doc comments MUST be valid Rust.
-- **TypeScript:** all public classes and methods MUST have JSDoc docstrings.
+## Invariants
 
-### When to Use
+Every rule is machine-checked by `aa docs check` (implementation: `tools/lib/doc_pack.py`).
+A rule cannot drift from the gate. Cite the code, not this file, when pointing at a rule.
+Each document's required section set is cross-checked against its reference's contract table, so a
+row that stops being enforced is a test failure rather than a silent edit.
 
-- New module/crate/package has no `PRD.md`, `FRD.md`, or `README.md`.
-- Documents are conflated (wrong audience for wrong doc) — split them.
-- Public items lack doc comments, or the doc-comment output (`cargo doc`, typed API surface) is incomplete.
-- The user asks to document a module/crate/package or add docs.
+| Code                                                | Rule                                                                                     |
+|-----------------------------------------------------|------------------------------------------------------------------------------------------|
+| `status-in-spec`                                    | Spec and status never share a file. Specs promise; backlogs report.                      |
+| `spec-without-backlog` / `backlog-without-spec`     | A spec and its backlog are a pair in the same directory.                                 |
+| `no-master-backlog` / `undefined-state-vocab` / `master-section-missing` | One master backlog at root owns the `State`/`Health` vocabulary, the status policy, the roll-up, in-flight branches and risk. |
+| `state-vocab-restated`                              | Definitions live once. Feature files cite them, never repeat them.                       |
+| `done-without-evidence` / `unknown-state`           | Every backlog claim is re-runnable: command + counts + commit hash, and what it excludes.|
+| `duplicate-fr-id` / `orphan-fr-ref`                 | Requirement IDs are unique, stable, and the only thing a backlog row may cite.           |
+| `scenario-without-evidence` / `scenario-evidence-count` | Each test scenario in a spec has one evidence row: Automated / Proxy / Manual / Gap.  |
+| `backlog-columns` / `backlog-row-width`             | The Backlog table keeps its nine columns.                                                |
+| `*-section-missing`                                 | Each document carries the sections its audience needs. Section contracts are in the refs.|
+| `dead-link` / `root-relative-link`                  | Pointers resolve from the file that writes them, not only from the repo or skill root.   |
+| `unreferenced-file`                                 | Every file under a skill's `references/`, `scripts/`, `assets/` is surfaced by SKILL.md.  |
+| `absolute-path` / `secret-in-docs`                 | No machine-specific path and no credential literal in any document.                      |
+| `ci-command-drift`                                  | AGENTS.md commands match CI verbatim or are labelled advisory.                           |
+| `doc-length` / `doc-thin`                           | Each document stays inside the size its audience can read.                               |
 
-### The Fundamental Question
+### The Unchecked Invariants (Language Rules)
 
-> **"Can a stakeholder understand this project's purpose in 30 seconds?"** — If no → Add PRD.md (what/why).
-> **"Can an engineer implement this from the spec?"** — If no → Add FRD.md (how).
-> **"Can a developer clone → build → run in < 10 minutes?"** — If no → Add README.md (how to use).
+The checker cannot parse code intent. Enforce these manually:
+- **Doc comments explain *what* and *why*, never *how*** (the code shows how).
+- **Python**: Public classes and functions need docstrings (PEP 257).
+- **Rust**: Public items need `///` (plain `//` is invisible to `cargo doc`). Examples must compile.
+- **TypeScript**: Public items need JSDoc.
 
-## Detection Patterns (Rust)
+---
 
-### Missing docs (Create)
+## Diagnostic Tree
 
-```
+Ask these questions in order. The first "No" dictates your next action.
+
+1. **Can a stakeholder understand this project's purpose in 30 seconds?**
+   - *No* → Add `PRD.md` (what/why).
+2. **Can an engineer implement this from the spec alone?**
+   - *No* → Add `FRD.md` (how).
+3. **Can a reader tell what is actually true today, and re-run the evidence?**
+   - *No* → Add `BACKLOG.md` (real condition: one master at root, one per feature).
+4. **Can a developer clone, build, and run in under 10 minutes?**
+   - *No* → Add `README.md` (how to use).
+5. **Can an agent work here safely without being told twice?**
+   - *No* → Add `AGENTS.md` (how to work here).
+
+---
+
+## Repository Layout
+
+```text
 project-root/
 ├── PRD.md          # stakeholder alignment (what/why) — 1 per project
 ├── README.md       # developer onboarding (how to use) — 1 per project
+├── AGENTS.md       # operational guide (how the agent works here) — 1 per project
+├── BACKLOG.md      # master real condition — index, definitions, policy, roll-up, risk
 ├── crates/
 │   ├── feature-a/
 │   │   ├── src/
-│   │   └── FRD.md  # engineering specs (how) — per feature crate
+│   │   ├── FRD.md     # engineering specs (how) — per feature crate
+│   │   └── BACKLOG.md # feature real condition — beside its spec
 │   └── feature-b/
 │       ├── src/
-│       └── FRD.md  # engineering specs (how) — per feature crate
+│       ├── FRD.md
+│       └── BACKLOG.md
 ```
 
-### Missing Doc Comments
+Same shape for Python `modules/<feature>/` and TypeScript `packages/<feature>/`.
 
-```rust
-// [BAD] no doc comment — invisible to cargo doc
-// PURPOSE explain file in one sentence
-pub struct ImportOrchestrator {
-    mandatory: Arc<dyn IImportMandatoryProtocol>,
-}
+---
 
-// [OK] /// doc comment — appears in cargo doc
-/// Orchestrates <name-feature>.
-///
-/// Execution order:
-/// 1.
-/// 2.
-/// 3.
-/// 4.
-pub struct ImportOrchestrator {
-    mandatory: Arc<dyn IImportMandatoryProtocol>,
-}
+## Workflow
+
+1. **Analyze**: List feature modules and public items. Run `aa docs check <path>`. The findings are your work list.
+2. **Draft PRD**: Write root `PRD.md` per [references/prd.md](references/prd.md).
+3. **Draft FRDs**: Write `FRD.md` in each feature dir per [references/frd.md](references/frd.md). Move any status found here to step 4.
+4. **Draft Master Backlog**: Write root `BACKLOG.md` per [references/backlog.md](references/backlog.md) (index, definitions, policy, risk).
+5. **Draft Feature Backlogs**: Write one `BACKLOG.md` per feature, beside its spec.
+6. **Draft README**: Write root `README.md` per [references/readme.md](references/readme.md).
+7. **Draft AGENTS**: Write root `AGENTS.md` per [references/agents-md.md](references/agents-md.md).
+8. **Document Code**: Add doc comments to all public items, then add type annotations to all signatures.
+9. **Verify**: Run `aa docs check <path> --strict`. Then run each touched reference's `Verify` block. Finally, verify the code surface.
+
+---
+
+## Verification
+
+### Machine Checks
+
+```bash
+aa docs check .                 # invariant audit of every document
+aa docs check . --strict        # warnings become errors — the minimum bar
+aa docs check . --include-subtrees   # also audit vendor/ and internal/ submodules
 ```
 
-## Templates
+A pass means no claim sits in the wrong file, no pointer is broken, and no `Done` row is unevidenced.
 
-### PRD.md
+### Human Checks
 
-```markdown
-# PRD — <project-name>
+A machine pass does not mean the documents are good. Falsifiable goals, honest exclusions, and a 10-minute Quick Start still need a reader.
 
-> Product Requirements Document. Describes WHAT this project does and WHY.
-> Audience: Stakeholders, PM, Design, Engineering leads.
+### Code Surface Checks
 
-## Problem Statement
+```bash
+cargo doc --open                            # Rust public surface
+npx tsc --noEmit                            # TypeScript signatures
+python -c "import <module>"                 # Python importability + docstrings
 
-<One paragraph: what problem does this project solve?>
-
-## Goals & Success Metrics
-
-- Goal 1: <measurable outcome>
-- Goal 2: <measurable outcome>
-
-## User Personas
-
-- **Persona 1**: <who they are, what they need>
-- **Persona 2**: <...>
-
-## Scope
-
-- In scope: <...>
-- Out of scope: <...>
-
-## Feature Requirements (Prioritized)
-
-### P0 — Must Have
-
-- [ ] <feature with acceptance criteria>
-
-### P1 — Should Have
-
-- [ ] <feature with acceptance criteria>
-
-### P2 — Nice to Have
-
-- [ ] <feature with acceptance criteria>
-
-## Non-functional Requirements (High-level)
-
-- Performance: <...>
-- Security: <...>
-- Scalability: <...>
-
-## Open Questions / Risks
-
-- <question or risk>
+# Check for missing doc comments at the file level
+for f in crates/*/src/lib.rs packages/*/src/index.ts; do
+    head -1 "$f" | grep -qE '^(///|/\*\*)' || echo "NO DOC: $f"
+done
 ```
 
-### FRD.md
+---
 
-```markdown
-# FRD — <feature-name>
-
-> Functional Requirements Document. Describes HOW this feature works functionally.
-> Audience: Engineers, QA, Tech Lead.
-
-## Reference
-
-- PRD: <link to root PRD.md>
-
-## System Overview
-
-<Architecture diagram or high-level description>
-
-## Functional Requirements
-
-### FR-001: <Feature Name>
-
-- **Description**: <what it does>
-- **Input**: <input data>
-- **Output**: <output data>
-- **Business Rules**: <validation logic>
-- **Edge Cases**: <edge case handling>
-- **Error Handling**: <error scenarios>
-
-### FR-002: <Feature Name>
-
-- ...
-
-## API Contract
-
-| Operation | Input | Output | Description |
-|-----------|-------|--------|-------------|
-| `<name>`  | ...   | ...    | ...         |
-
-## Integration Points
-
-- **3rd Party**: <service name, purpose>
-- **Internal**: <service name, purpose>
-
-## Non-functional Requirements (Detailed)
-
-- Performance: <response time, throughput>
-- Security: <auth, encryption, compliance>
-- SLA: <availability, uptime>
-
-## Test Scenarios / QA Checklist
-
-- [ ] <test scenario with expected result>
-
-## Assumptions & Constraints
-
-- <assumption or constraint>
-
-## Glossary
-
-- **Term**: <definition>
-```
-
-### README.md
-
-```markdown
-# <project-name>
-
-> One-liner: what this project does and who it's for.
-
-## Prerequisites
-
-- <see per-language table below>
-- <other dependencies>
-
-## Quick Start
-
-<see per-language table below>
-
-## Architecture
-
-<High-level diagram or link to full docs>
-
-## Project Structure
-
-<see per-language table below>
-
-## Available Scripts / Available Commands
-
-<see per-language table below — Rust titles this section "Available Commands", Python and TypeScript title it "Available Scripts">
-
-## Configuration
-
-<Environment variables, config files>
-
-## Testing
-
-<per-language test command>
-
-## Contributing
-
-<Branching strategy, PR conventions>
-
-## License
-
-<License type>
-```
-
-Per-language README variables:
-
-| Language   | Prerequisites | Quick Start                                                             | Project Structure                                            | Section title         | Command table rows                                                                       |
-| ---------- | ------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------- | ---------------------------------------------------------------------------------------- |
-| Python     | Python 3.10+  | `git clone ...` → `cd <project>` → `pip install -e .` → `python -m <package>` | `modules/feature-a/FRD.md`, `modules/feature-b/FRD.md`       | Available Scripts     | `python -m <package>` = Run the package; `pytest` = Run tests; `ruff check .` = Lint code |
-| Rust       | Rust 1.70+    | `git clone ...` → `cd crates/<name>` → `cargo build` → `cargo run`            | `src/lib.rs`, `src/modules/`                                 | Available Commands    | `cargo build` = Build the crate; `cargo test` = Run tests; `cargo run` = Run the binary   |
-| TypeScript | Node 20+      | `git clone ...` → `cd <project>` → `npm install` → `npm run dev`              | `packages/feature-a/FRD.md`, `packages/feature-b/FRD.md`     | Available Scripts     | `npm run dev` = Start development; `npm run build` = Build for production; `npm test` = Run tests |
-
-Rust templates say `<crate-name>` / "this crate" where the shared template above says `<project-name>` / "this project", and `Build the crate` for the `cargo build` row.
-
-Per-language `## Project Structure` block for the README:
-
-Python:
-
-```
-modules/
-├── feature-a/
-│   └── FRD.md        # feature specs
-├── feature-b/
-│   └── FRD.md        # feature specs
-└── ...
-```
-
-Rust:
-
-```
-src/
-├── lib.rs
-├── modules/
-└── ...
-```
-
-TypeScript:
-
-```
-packages/
-├── feature-a/
-│   └── FRD.md        # feature specs
-├── feature-b/
-│   └── FRD.md        # feature specs
-└── ...
-```
-
-## Docstring Conventions
+## Doc Comment Conventions
 
 ### Python (PEP 257)
 
-Docstrings on all public classes and functions, explaining what/why, with `Args`/`Returns` sections. Verify importability with `python -c "import <module>"`.
+**Rules**: One module-level docstring. `Args` and `Returns` on every public function. Never restate the signature in prose.
 
-### Rust (`///`)
+```python
+"""Value objects for import rules."""
 
-For each public struct and method: convert `//` comments to `///` doc comments, add summary line, add explanation if >10 lines of logic, add `# Example` block if applicable. Use type annotations for all function parameters and return types, traits for abstract behavior, enums for sum types.
+class ImportRuleVO:
+    """An import rule: a path pattern and the message it reports.
+
+    Attributes:
+        pattern: Glob matched against a repo-relative path.
+        message: Human-readable violation text.
+    """
+
+    def check(self, path: str) -> bool:
+        """Return whether *path* violates this rule.
+
+        Args:
+            path: Repo-relative file path to test.
+
+        Returns:
+            True when the path matches the rule's pattern.
+        """
+```
+
+### Rust
+
+**Rules**: Convert `//` to `///` (plain comments are invisible to `cargo doc`). Add a summary line. Explain *why* for logic over 10 lines. Add `# Example` for non-obvious usage. Types on every parameter and return.
 
 ```rust
-/// Taxonomy value objects for import rules.
-
-/// Value object representing an import rule with pattern and message.
-pub struct ImportRuleVO {
-    pattern: String,
-    message: String,
+/// Orchestrates <name-feature>.
+///
+/// Execution order:
+/// 1. Load rules  2. Scan paths  3. Report violations  4. Apply fixes
+pub struct ImportOrchestrator {
+    mandatory: Arc<dyn IImportMandatoryProtocol>,
 }
 
-/// Check if path matches the import rule.
+/// Check whether *path* violates this rule.
 ///
 /// # Arguments
 ///
@@ -352,11 +242,11 @@ pub struct ImportRuleVO {
 ///
 /// # Returns
 ///
-/// `true` if path matches the rule
+/// `true` if the path matches the rule
 ///
 /// # Errors
 ///
-/// Returns `Err` if path is empty
+/// Returns `Err` if `path` is empty
 ///
 /// # Example
 ///
@@ -369,89 +259,57 @@ pub fn check(&self, path: &str) -> Result<bool, Error> {
 }
 ```
 
-A crate-level / module-level `///` comment (the `/// Taxonomy value objects for import rules.` line above) states in one sentence what the file is for. Annotated signature example:
+### TypeScript (JSDoc / TSDoc)
 
-```rust
-pub fn validate(&self, data: &HashMap<String, Value>) -> Result<(bool, String), Error> {
-    // ...
+**Rules**: One-liner at the top of every module. `@param` and `@returns` on every public method. Use named `interface` or `type` aliases for complex shapes instead of inline objects.
+
+```ts
+/** Value objects for import rules. */
+
+/** An import rule: a path pattern and the message it reports. */
+export class ImportRuleVO {
+  /**
+   * @param pattern - Glob matched against a repo-relative path.
+   * @param message - Violation text reported to the user.
+   */
+  constructor(private readonly pattern: string, private readonly message: string) {}
+
+  /**
+   * Report whether a path violates this rule.
+   *
+   * @param path - Repo-relative file path to test.
+   * @returns True when the path matches the pattern.
+   */
+  check(path: string): boolean {
+    return minimatch(path, this.pattern);
+  }
 }
 ```
 
-### TypeScript (JSDoc / TSDoc)
+---
 
-Every module gets a one-liner `/** */` docstring at the top; every class a descriptive docstring; every public method parameter/return documentation (`@param`/`@returns`). All function signatures use type annotations; complex types use interfaces or type aliases.
+## Pre-flight Checklist
 
-## Workflow
+- [ ] `aa docs check <path> --strict` exits 0.
+- [ ] Every required document exists in the correct directory.
+- [ ] Every `Done` backlog row cites a re-run command, a commit hash, and its exclusions.
+- [ ] Documents serve their exact audience (no cross-contamination).
+- [ ] Public code items carry doc comments, and surface checks (`cargo doc`, `tsc`, `import`) are clean.
+- [ ] Every touched reference file had its specific `Verify` block executed.
 
-1. **Analyze** — list feature modules/crates/packages, identify public modules, classes, structs, and functions, check existing docs (PRD.md / README.md / FRD.md / doc comments / type annotations). Rust: list files in `crates/<name>/src/`.
-2. **Create / Fix PRD.md** (project root) per the template above. It MUST contain: Problem Statement, Goals & Success Metrics, User Personas, Scope, Feature Requirements (prioritized), Non-functional Requirements (high-level). Write for non-engineers; avoid technical jargon; use acceptance criteria.
-3. **Create / Fix FRD.md** (each feature module/crate) per the template above. It MUST contain: Reference to PRD, System Overview, Functional Requirements with unique IDs (FR-001, FR-002), API Contract, Integration Points, Test Scenarios. Use precise, unambiguous language; include edge cases and error handling.
-4. **Create / Update README.md** (project root) per the template above. It MUST contain: Quick Start (clone → build → run in < 10 minutes), Architecture, Project Structure, Available Scripts/Commands, Configuration, Testing, Contributing. Keep concise; link to PRD/FRD for details; update when setup changes.
-5. **Add doc comments** to all public items using the language convention above.
-6. **Add type annotations** to all signatures.
-7. **Verify** with the Quick Commands below.
+---
 
-## Quick Commands
+## Common Mistakes (Anti-Patterns)
 
-```bash
-# Rust — check files without doc comments, then build docs
-find crates/ -name "*.rs" | while read f; do
-    head -1 "$f" | grep -q '^///' || echo "NO DOC COMMENT: $f"
-done
-cargo doc --open
-```
+The invariant codes above cover the machine-checkable ones. These need a reader:
 
-```bash
-# TypeScript — check files without docstrings, then type check
-find packages/ -name "*.ts" | while read f; do
-    head -1 "$f" | grep -q '^/\*\*' || echo "NO DOCSTRING: $f"
-done
-npx tsc --noEmit
-```
+**Structural**
+- ❌ **One document for all audiences**: Split by audience. Each file answers one question.
+- ❌ **FRD at the project root**: It belongs with the feature code, beside its backlog.
+- ❌ **One backlog for the whole workspace**: Cross-cutting rows at root, feature rows in the feature dir.
+- ❌ **PRD carrying SQL schemas or API detail**: The PRD audience cannot read them. Move to FRD.
 
-```bash
-# Python — verify the package imports
-python -c "import <module>"
-```
-
-## Checklist
-
-Shared (all languages):
-
-- [ ] PRD.md at project root with Problem Statement, Goals, Personas, Scope, Features.
-- [ ] README.md at project root with Quick Start, Architecture, Commands/Scripts, Testing.
-- [ ] FRD.md in each feature module/crate with Functional Requirements (FR-001 IDs), API Contract.
-- [ ] Documents serve correct audience (PRD=stakeholders, FRD=engineers, README=developers).
-
-Python:
-
-- [ ] All public classes have docstrings.
-- [ ] All public functions have docstrings with Args/Returns.
-
-Rust:
-
-- [ ] All public structs have `///` doc comments.
-- [ ] All public methods have `///` doc comments with Args/Returns/Errors.
-- [ ] All function signatures use type annotations.
-- [ ] Example code in doc comments is valid Rust.
-
-TypeScript (Definition of Done):
-
-- [ ] All modules have one-liner JSDoc docstrings.
-- [ ] All classes have descriptive JSDoc docstrings.
-- [ ] All public methods have parameter/return documentation.
-- [ ] All function signatures use type annotations.
-- [ ] Complex types use interfaces or type aliases.
-
-## Common Mistakes (AVOID)
-
-- ❌ **PRD contains SQL schema or API details** — move to FRD.
-- ❌ **FRD without acceptance criteria** — add testable conditions per FR.
-- ❌ **README = essay 10 pages** — keep concise, link to other docs.
-- ❌ **One document for all audiences** — split by audience.
-- ❌ **Documents "write & forget"** — review each sprint/release.
-- ❌ **FRD in root instead of feature module** — FRD belongs with the feature code.
-- ❌ **Missing module docstrings** — every file needs a one-liner at the top.
-- ❌ **Incomplete parameter documentation** — all parameters must be documented.
-- ❌ **Missing doc comments** (Rust) — every public item needs `///`; `//` is invisible to `cargo doc`.
-- ❌ **Using `@ts-ignore` without reason** (TypeScript) — fix the root cause instead of suppressing errors.
+**Cadence and code surface**
+- ❌ **Documents "write & forget"**: Re-run `aa docs check` each sprint. Drift is silent.
+- ❌ **`//` instead of `///` in Rust**: Plain comments are invisible to the doc generator.
+- ❌ **Missing module docstrings or undocumented parameters**: The generated API surface stays incomplete.
