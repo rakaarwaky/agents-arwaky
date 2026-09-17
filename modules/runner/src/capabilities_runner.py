@@ -53,6 +53,7 @@ class ToolResolver(IToolExecutor):
     # -- Block 2: Executable discovery ----------------------------------------
     def find_executable(self, spec: ToolSpec) -> Path | None:
         """PATH win, then bin_home; internal tools fall back to runner candidates."""
+        # 1:1 port of tools/lib/tool_resolver.py executable_path()
         found = shutil.which(spec.binary)
         if found:
             return Path(found)

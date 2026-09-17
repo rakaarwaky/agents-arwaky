@@ -1,10 +1,10 @@
-"""Lint-arwaky installer (cargo) — port of tools/install/install_lint.py.
+"""Lint-arwaky installer (cargo) — verbatim port of tools/install/install_lint.py.
 
 Builds internal/lint-arwaky with `cargo build --release` into the XDG cache
 directory, atomically installs the five binaries into ~/.local/bin, and wires
 the `lac` alias. If cargo is missing it attempts a best-effort rustup
-bootstrap; if that fails the tool is skipped with a warning (return success)
-so that `aa tool install all` completes without crashing.
+bootstrap; if that fails the tool is skipped with a warning (return 0) so
+that `aa install all` completes without crashing.
 """
 from __future__ import annotations
 
@@ -26,15 +26,14 @@ from modules.shared.src.xdg.utility_xdg_paths import (
     data_home,
 )
 
+ROOT = repo_root()
 
+INTERNAL_DIR = ROOT / "internal/lint-arwaky"
 BINARIES = ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui"]
 
-_BUILD_DEPS = [
-    # (command, apt package)
-    ("cc", "gcc"),
-    ("sccache", "sccache"),
-    ("mold", "mold"),
-]
+
+def run(cmd, cwd=None):
+    subprocess.run(cmd, cwd=cwd, check=True)
 
 
 def _cargo_on_path() -> str | None:
@@ -73,6 +72,14 @@ def _bootstrap_rustup() -> bool:
     return _cargo_on_path() is not None
 
 
+_BUILD_DEPS = [
+    # (command, apt package)
+    ("cc", "gcc"),
+    ("sccache", "sccache"),
+    ("mold", "mold"),
+]
+
+
 def _preflight_build_deps() -> dict:
     """Ensure build deps are present (apt best-effort via sudo); fallback override env."""
     env = {}
@@ -99,65 +106,71 @@ def _preflight_build_deps() -> dict:
     return env
 
 
+def is_installed() -> bool:
+    """Check if lint-arwaky is already installed (binary exists)."""
+    return (bin_home() / "lint-arwaky").exists()
+
+
+def _install_lint() -> int:
+    if is_installed():
+        print(">>> lint-arwaky is already installed. Use 'aa update lint' to reinstall.")
+        return 0
+
+    if not INTERNAL_DIR.exists() or not (INTERNAL_DIR / "Cargo.toml").exists():
+        run(["git", "-C", str(ROOT), "submodule", "update", "--init", "internal/lint-arwaky"])
+
+    if _cargo_on_path() is None:
+        print(">>> cargo not found; attempting rustup bootstrap...", file=sys.stderr)
+        if not _bootstrap_rustup():
+            print("  Warning: lint-arwaky skipped (Rust toolchain not available).", file=sys.stderr)
+            print("  Re-run 'aa install lint' after installing Rust.", file=sys.stderr)
+            return 0
+
+    build_env = _preflight_build_deps()
+    build_env["CARGO_INCREMENTAL"] = "0"  # project recommendation for sccache
+    env = os.environ.copy()
+    env.update(build_env)
+
+    ensure_bin_home()
+    (config_home() / "lint-arwaky/rules").mkdir(parents=True, exist_ok=True)
+    (data_home() / "lint-arwaky/reports").mkdir(parents=True, exist_ok=True)
+
+    # Build in cache directory (XDG spec: transient build artifacts in ~/.cache/)
+    cache_dir = cache_home() / "lint-arwaky"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    print(f">>> Building lint-arwaky (AES Architecture Linter) into {cache_dir}...")
+    env["CARGO_TARGET_DIR"] = str(cache_dir)
+    subprocess.run(["cargo", "build", "--release"], cwd=INTERNAL_DIR, env=env, check=True)
+    release = cache_dir / "release"
+    for b in BINARIES:
+        src = release / b
+        if src.exists():
+            dst = bin_home() / b
+            # Atomic replace: avoid ETXTBSY if old binary is still in use
+            # by a running process (rename is safe; old process keeps old inode).
+            tmp = dst.with_suffix(dst.suffix + ".tmp")
+            shutil.copy2(src, tmp)
+            tmp.chmod(0o755)
+            os.replace(tmp, dst)
+            print(f"  -> {dst}")
+    if (bin_home() / "lint-arwaky-cli").exists():
+        lac = bin_home() / "lac"
+        lac.unlink(missing_ok=True)
+        lac.symlink_to(bin_home() / "lint-arwaky-cli")
+    print(">>> Successfully installed lint-arwaky")
+    return 0
+
+
 class LintInstaller(IToolInstaller):
     """Build internal/lint-arwaky (Rust) and install its binaries to XDG bin."""
 
     def __init__(self, root=None) -> None:
-        self._root = root or repo_root()
+        self._root = root or ROOT
 
     def install(self, spec: ToolSpec) -> InstallResult:
-        root = self._root
-        if (bin_home() / "lint-arwaky").exists():
-            return InstallResult(True, spec.id, "lint-arwaky is already installed")
-
-        internal_dir = root / "internal/lint-arwaky"
-        if not internal_dir.exists() or not (internal_dir / "Cargo.toml").exists():
-            subprocess.run(
-                ["git", "-C", str(root), "submodule", "update", "--init", "internal/lint-arwaky"],
-                check=False,
-            )
-
-        if _cargo_on_path() is None:
-            print(">>> cargo not found; attempting rustup bootstrap...", file=sys.stderr)
-            if not _bootstrap_rustup():
-                print("  Warning: lint-arwaky skipped (Rust toolchain not available).", file=sys.stderr)
-                print("  Re-run 'aa tool install lint' after installing Rust.", file=sys.stderr)
-                return InstallResult(True, spec.id, "skipped (Rust toolchain not available)")
-
-        build_env = _preflight_build_deps()
-        build_env["CARGO_INCREMENTAL"] = "0"  # project recommendation for sccache
-        env = os.environ.copy()
-        env.update(build_env)
-
-        ensure_bin_home()
-        (config_home() / "lint-arwaky/rules").mkdir(parents=True, exist_ok=True)
-        (data_home() / "lint-arwaky/reports").mkdir(parents=True, exist_ok=True)
-
-        # Build in cache directory (XDG spec: transient build artifacts in ~/.cache/)
-        cache_dir = cache_home() / "lint-arwaky"
-        cache_dir.mkdir(parents=True, exist_ok=True)
-        print(f">>> Building lint-arwaky (AES Architecture Linter) into {cache_dir}...")
-        env["CARGO_TARGET_DIR"] = str(cache_dir)
-        try:
-            subprocess.run(["cargo", "build", "--release"], cwd=internal_dir, env=env, check=True)
-        except subprocess.CalledProcessError as exc:
-            return InstallResult(False, spec.id, f"cargo build failed: {exc}")
-
-        release = cache_dir / "release"
-        for b in BINARIES:
-            src = release / b
-            if src.exists():
-                dst = bin_home() / b
-                # Atomic replace: avoid ETXTBSY if old binary is still in use
-                # by a running process (rename is safe; old process keeps old inode).
-                tmp = dst.with_suffix(dst.suffix + ".tmp")
-                shutil.copy2(src, tmp)
-                tmp.chmod(0o755)
-                os.replace(tmp, dst)
-                print(f"  -> {dst}")
-
-        if (bin_home() / "lint-arwaky-cli").exists():
-            lac = bin_home() / "lac"
-            lac.unlink(missing_ok=True)
-            lac.symlink_to(bin_home() / "lint-arwaky-cli")
-        return InstallResult(True, spec.id, "lint-arwaky built and installed")
+        rc = _install_lint()
+        return InstallResult(
+            rc == 0,
+            spec.id,
+            "lint-arwaky installed" if rc == 0 else "lint-arwaky install failed",
+        )

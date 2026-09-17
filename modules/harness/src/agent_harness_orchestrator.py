@@ -1,31 +1,183 @@
-"""Harness agent orchestrator — routes connect/disconnect to per-harness connectors."""
+"""Harness agent orchestrator — routes connect/disconnect to per-harness connectors.
+
+Port of tools/connect/connect.py: the harness registry (P4-A21: adapters
+register themselves), target parsing, the two verbs, and standalone main()
+live here, on top of the per-harness connector classes (IHarnessConnector).
+"""
 from __future__ import annotations
 
 from modules.harness.src.capabilities_harness_antigravity import (
-    ALIASES as ANTIGRAVITY_ALIASES,
+    AntigravityConnector,
+    register as _register_antigravity,  # type: ignore[import-not-found]
 )
 from modules.harness.src.capabilities_harness_grok_build import (
-    ALIASES as GROK_BUILD_ALIASES,
+    GrokBuildConnector,
+    register as _register_grok_build,  # type: ignore[import-not-found]
 )
 from modules.harness.src.capabilities_harness_hermes import (
-    ALIASES as HERMES_ALIASES,
+    HermesConnector,
+    register as _register_hermes,  # type: ignore[import-not-found]
 )
 from modules.harness.src.capabilities_harness_opencode import (
-    ALIASES as OPENCODE_ALIASES,
+    OpencodeConnector,
+    register as _register_opencode,  # type: ignore[import-not-found]
 )
 from modules.harness.src.capabilities_harness_qwencode import (
-    ALIASES as QWENCODE_ALIASES,
+    QwencodeConnector,
+    register as _register_qwencode,  # type: ignore[import-not-found]
 )
+from modules.harness.src.capabilities_harness_shared import log_err
 from modules.shared.src.harness.contract_harness_aggregate import IHarnessAggregate
 from modules.shared.src.harness.contract_harness_protocol import IHarnessConnector
 
-_ALIAS_MAP: dict[str, tuple[str, ...]] = {
-    "antigravity": ANTIGRAVITY_ALIASES,
-    "hermes": HERMES_ALIASES,
-    "opencode": OPENCODE_ALIASES,
-    "qwencode": QWENCODE_ALIASES,
-    "grok-build": GROK_BUILD_ALIASES,
-}
+# --- harness registry (P4-A21: adapters register themselves) -----------------
+HARNESSES: dict[str, dict] = {}
+ALIASES: dict[str, str] = {}
+for _mod in (_register_antigravity, _register_hermes, _register_opencode, _register_qwencode, _register_grok_build):
+    _entry = _mod()
+    HARNESSES[_entry["id"]] = _entry
+    for _alias in _entry["aliases"]:
+        ALIASES[_alias] = _entry["id"]
+ALL_HARNESS_IDS = tuple(HARNESSES.keys())
+
+
+def _parse_targets(args):
+    """Parse CLI args into (harness_id_list, unknown_or_None).
+
+    Recognizes: --all, --<harness_id>, --<alias>, or bare harness names.
+    Returns ("help", None) if --help is in args.
+    """
+    if "help" in args or "--help" in args:
+        return [], "help"
+    targets = []
+    unknown = None
+    for a in args:
+        if a in ("--all", "all"):
+            targets.extend(ALL_HARNESS_IDS)
+        elif a.startswith("--"):
+            name = a[2:]
+            if name in HARNESSES:
+                targets.append(name)
+            elif name in ALIASES:
+                targets.append(ALIASES[name])
+            else:
+                unknown = a
+                break
+        elif a in HARNESSES:
+            targets.append(a)
+        elif a in ALIASES:
+            targets.append(ALIASES[a])
+        else:
+            unknown = a
+            break
+    return targets, unknown
+
+_HELP_DOC = """agents-arwaky Harness Connector / Disconnector \u2014 surface command.
+
+aa disconnect --antigravity|--hermes|--opencode|--qwencode|--grok-build|--all
+aa disconnect <targets> --dry-run
+
+Skill provisioning links each skill directory to the repo pack under
+``skills/`` by default, so edits made through a harness land in the repo and
+every agent shares them; ``aa connect --copy-skills`` restores snapshots.
+
+Removes agents-arwaky MCP servers, provisioned skills and env vars from
+agent harness paths (NOT the current working directory's .agents/skills \u2014
+that is `aa unskill` / skill-manager).
+"""
+
+# --- verb dispatch (port of connect.py) ---------------------------------------
+def cmd_disconnect(args):
+    dry_run = False
+    clean_args = []
+    for a in args:
+        if a == "--dry-run":
+            dry_run = True
+        else:
+            clean_args.append(a)
+
+    targets, unknown = _parse_targets(clean_args)
+    if unknown == "help":
+        print(_HELP_DOC)
+        return 0
+    if unknown is not None:
+        log_err(f"Unknown target or option: {unknown}")
+        return 1
+    if not targets:
+        log_err("No target agent harness specified.")
+        print(_HELP_DOC)
+        return 1
+
+    seen = set()
+    targets = [t for t in targets if not (t in seen or seen.add(t))]
+
+    print("Disconnecting agents-arwaky from agent harnesses...")
+    print("------------------------------------------------------------------")
+    for t in targets:
+        HARNESSES[t]["disconnect"](dry_run)
+        print()
+    print("------------------------------------------------------------------")
+    print("\u2713 Disconnect complete. agents-arwaky entries removed from selected harnesses.")
+    return 0
+
+
+def cmd_connect(args):
+    force = dry_run = mcp_only = skills_only = env_only = copy_skills = False
+    clean_args = []
+    for a in args:
+        if a == "--force" or a == "-f":
+            force = True
+        elif a == "--dry-run":
+            dry_run = True
+        elif a == "--mcp-only":
+            mcp_only = True
+        elif a == "--skills-only":
+            skills_only = True
+        elif a == "--env-only":
+            env_only = True
+        elif a == "--copy-skills":
+            copy_skills = True
+        else:
+            clean_args.append(a)
+
+    targets, unknown = _parse_targets(clean_args)
+    if unknown == "help":
+        print(_HELP_DOC)
+        return 0
+    if unknown is not None:
+        log_err(f"Unknown target or option: {unknown}")
+        return 1
+    if not targets:
+        log_err("No target agent harness specified.")
+        print(_HELP_DOC)
+        return 1
+
+    seen = set()
+    targets = [t for t in targets if not (t in seen or seen.add(t))]
+    print("Connecting agents-arwaky to agent harnesses...")
+    print("------------------------------------------------------------------")
+    for t in targets:
+        HARNESSES[t]["connect"](force, dry_run, mcp_only, skills_only, env_only, copy_skills)
+        print()
+    print("------------------------------------------------------------------")
+    print("\u2713 Connection complete. Agent harnesses are now synchronized with agents-arwaky.")
+    return 0
+
+
+def main(argv):
+    if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
+        print(_HELP_DOC)
+        return 0
+    # Accept both "aa connect/disconnect ..." style and direct calls
+    args = argv[1:]
+    if args and args[0] in ("disconnect", "unconnect"):
+        return cmd_disconnect(args[1:])
+    if args and args[0] == "connect":
+        return cmd_connect(args[1:])
+    if args and args[0] in ALIASES or (args and args[0] in ("--all", "all")):
+        # default action: connect (for backward compat with connect-agent.sh calls)
+        return cmd_connect(args)
+    return cmd_disconnect(args)
 
 
 class HarnessOrchestrator(IHarnessAggregate):
@@ -40,8 +192,8 @@ class HarnessOrchestrator(IHarnessAggregate):
     def __init__(self, connectors: dict[str, IHarnessConnector]) -> None:
         self._connectors = connectors
         self._aliases: dict[str, str] = {}
-        for harness_id, aliases in _ALIAS_MAP.items():
-            for alias in aliases:
+        for harness_id in HARNESSES:
+            for alias in HARNESSES[harness_id]["aliases"]:
                 self._aliases[alias.lstrip("-")] = harness_id
 
     # -- Block 2: Target resolution -------------------------------------------------
@@ -63,29 +215,23 @@ class HarnessOrchestrator(IHarnessAggregate):
     # -- Block 3: Aggregate verb delegation ------------------------------------------
     def connect(self, targets, force: bool = False, dry_run: bool = False, mcp_only: bool = False,
                 skills_only: bool = False, env_only: bool = False, copy_skills: bool = False) -> int:
-        resolved = self.resolve_targets(targets)
-        if not resolved:
-            print("No target agent harness specified.")
-            return 1
-        print("Connecting agents-arwaky to agent harnesses...")
-        print("-" * 66)
-        for tid in resolved:
-            self._connectors[tid].connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills)
-            print()
-        print("-" * 66)
-        print("\u2713 Connection complete. Agent harnesses are now synchronized with agents-arwaky.")
-        return 0
+        args = [str(t) for t in targets]
+        if force:
+            args.append("--force")
+        if dry_run:
+            args.append("--dry-run")
+        if mcp_only:
+            args.append("--mcp-only")
+        if skills_only:
+            args.append("--skills-only")
+        if env_only:
+            args.append("--env-only")
+        if copy_skills:
+            args.append("--copy-skills")
+        return cmd_connect(args)
 
     def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> int:
-        resolved = self.resolve_targets(targets)
-        if not resolved:
-            print("No target agent harness specified.")
-            return 1
-        print("Disconnecting agents-arwaky from agent harnesses...")
-        print("-" * 66)
-        for tid in resolved:
-            self._connectors[tid].disconnect(False, dry_run)
-            print()
-        print("-" * 66)
-        print("\u2713 Disconnect complete. agents-arwaky entries removed from selected harnesses.")
-        return 0
+        args = [str(t) for t in targets]
+        if dry_run:
+            args.append("--dry-run")
+        return cmd_disconnect(args)
