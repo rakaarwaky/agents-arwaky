@@ -129,6 +129,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
     print(f"  {GREEN()}tool{RESET()} <cmd> [args]             Tool management (list|run|install|update|uninstall)")
     print(f"  {GREEN()}skill{RESET()} <cmd> [args]             Skill management (list|install|uninstall|show|check)")
+    print(f"  {GREEN()}docs{RESET()} <cmd> [path]             Document invariants (check [--strict] [--include-subtrees])")
     print(f"  {GREEN()}connect{RESET()} [targets]              Connect MCP, skills & env to harnesses")
     print(f"  {GREEN()}disconnect{RESET()} [targets]           Disconnect harnesses (use --all for all)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
@@ -164,6 +165,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}aa tool run lint check .{RESET()}       Run a tool (AES linter)")
     print(f"  {CYAN()}aa tool list{RESET()}                   List all registered tools")
     print(f"  {CYAN()}aa skill install --all{RESET()}         Provision all skills to CWD")
+    print(f"  {CYAN()}aa docs check .{RESET()}              Audit PRD/FRD/README/BACKLOG/AGENTS invariants")
     print(f"  {CYAN()}aa skill uninstall --target .{RESET()}  Remove skills from CWD")
     print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
     print(f"  {CYAN()}aa disconnect --all{RESET()}            Disconnect all harnesses")
@@ -536,7 +538,7 @@ def cmd_check(argv: list[str]) -> int:
     info("Running Python-based repository verification...")
     errors = 0
     print()
-    print("[1/4] Validating JSON files...")
+    print("[1/5] Validating JSON files...")
     for json_file in (repo_root() / "tools").rglob("*.json"):
         if "node_modules" in json_file.parts:
             continue
@@ -547,7 +549,7 @@ def cmd_check(argv: list[str]) -> int:
             err(f"Invalid JSON: {json_file}: {e}")
             errors += 1
     print()
-    print("[2/4] Compiling Python files...")
+    print("[2/5] Compiling Python files...")
     for py_file in (repo_root() / "tools").rglob("*.py"):
         if "node_modules" in py_file.parts:
             continue
@@ -557,6 +559,8 @@ def cmd_check(argv: list[str]) -> int:
         except (py_compile.PyCompileError, OSError, ValueError) as e:
             err(f"Python compile error: {py_file}: {e}")
             errors += 1
+    print()
+    errors += _check_docs()
     print()
     errors += _check_skill_pack()
     print()
@@ -569,11 +573,77 @@ def cmd_check(argv: list[str]) -> int:
     return 0
 
 
+def _check_docs() -> int:
+    """Gate this repo's documents on the invariants the add-docs skill states in prose.
+
+    Warnings on files under skills/ are counted rather than printed: the pack hosts
+    upstream copies whose shape is not ours to fix.
+    """
+    from doc_pack import audit_docs, errors_only, warnings_only  # type: ignore[import-not-found]
+
+    print("[3/5] Validating document invariants...")
+    root = repo_root()
+    findings = audit_docs(root)
+    problems = errors_only(findings)
+    for finding in problems:
+        err(f"{finding.code} {finding.path}: {finding.message}")
+    surface = [
+        f for f in warnings_only(findings)
+        if not f.path.startswith(f"{root}{os.sep}skills{os.sep}")
+    ]
+    hidden = len(warnings_only(findings)) - len(surface)
+    for finding in surface:
+        warn(f"{finding.code} {finding.path}: {finding.message}")
+    if not findings:
+        ok("every document satisfies the add-docs invariants")
+    elif not problems:
+        ok(f"{len(findings)} advisory finding(s), no errors "
+           f"({len(surface)} in this repo's docs, {hidden} in provisioned skill copies)")
+        info("  list them with 'aa docs check'; gate on them with 'aa docs check --strict'")
+    return len(problems)
+
+
+def cmd_docs(argv: list[str]) -> int:
+    """Audit document invariants: aa docs check [path] [--strict] [--include-subtrees]"""
+    from doc_pack import as_strict, audit_docs, errors_only, iter_doc_files, warnings_only  # type: ignore[import-not-found]
+
+    if not argv or argv[0] != "check":
+        err("Missing subcommand." if not argv else f"Unknown docs subcommand: {argv[0]}")
+        print("Usage: aa docs check [path] [--strict] [--include-subtrees]")
+        return 1
+    args = argv[1:]
+    strict = "--strict" in args
+    include_subtrees = "--include-subtrees" in args or "--include-submodules" in args
+    positional = [a for a in args if not a.startswith("-")]
+    target = Path(positional[0]).resolve() if positional else repo_root()
+    if not target.is_dir():
+        err(f"Not a directory: {target}")
+        return 1
+
+    info(f"Auditing documents under {target} ...")
+    scanned = len(iter_doc_files(target, include_subtrees=include_subtrees))
+    findings = audit_docs(target, include_subtrees=include_subtrees)
+    problems = errors_only(as_strict(findings)) if strict else errors_only(findings)
+    notes = [] if strict else warnings_only(findings)
+    for finding in problems:
+        err(f"{finding.code} {finding.path}: {finding.message}")
+    for finding in notes:
+        warn(f"{finding.code} {finding.path}: {finding.message}")
+    print()
+    if problems:
+        err(f"{len(problems)} error(s), {len(notes)} warning(s) across {scanned} document(s) — "
+            "a claim is in the wrong file, a pointer is broken, or a status assertion has no "
+            "re-runnable evidence")
+        return 1
+    ok(f"{scanned} document(s) scanned: no errors, {len(notes)} warning(s)")
+    return 0
+
+
 def _check_skill_pack() -> int:
     """Gate skills/ on the invariants a harness loader actually depends on."""
     from skill_pack import DESCRIPTION_BUDGET_BYTES, audit_pack, iter_skill_files  # type: ignore[import-not-found]
 
-    print("[3/4] Validating skill pack loadability...")
+    print("[4/5] Validating skill pack loadability...")
     pack = repo_root() / "skills"
     findings = audit_pack(pack)
     total = len(iter_skill_files(pack))
@@ -598,7 +668,7 @@ def _check_shell() -> int:
     if not shutil.which("shellcheck"):
         warn("shellcheck not installed; skipping .sh lint")
         return 0
-    print("[4/4] Running shellcheck...")
+    print("[5/5] Running shellcheck...")
     for f in sh_files:
         try:
             res = subprocess.run(
@@ -783,6 +853,7 @@ def main() -> int:
         "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
         # Core noun-verb (canonical)
         "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
+        "docs": cmd_docs,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "sync": cmd_sync, "completion": cmd_completion,
         # Daemons & services

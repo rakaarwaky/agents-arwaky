@@ -86,6 +86,10 @@ Agents should execute tools via `aa tool run <tool> [args...]` (or `agents-arwak
 
 When generating code or executing tasks within this repository:
 
+### Precedence
+
+Code and CI win over this file; this file wins over `README.md` for agent behaviour; a submodule's own `AGENTS.md` wins inside that submodule.
+
 ### 1. Modifying Code in `internal/` Submodules
 - Internal agents are submodules pointing to separate git repositories.
 - When modifying internal agents, check for repository-specific instructions (e.g. [`internal/lint-arwaky/AGENTS.md`](internal/lint-arwaky/AGENTS.md), [`internal/vision-arwaky/SKILL.md`](internal/vision-arwaky/SKILL.md)).
@@ -119,8 +123,16 @@ aa check
 The verification checks:
 1. JSON syntax validity across all JSON files under `tools/`.
 2. Python compilation across all Python files under `tools/`.
-3. Skill-pack loadability invariants across `skills/` (see below).
-4. ShellCheck linting of `tools/` shell scripts (excluding `skills/`), if installed.
+3. Document invariants across `PRD.md`/`FRD.md`/`README.md`/`BACKLOG.md`/`AGENTS.md` and skill references (see below).
+4. Skill-pack loadability invariants across `skills/` (see below).
+5. ShellCheck linting of `tools/` shell scripts (excluding `skills/`), if installed.
+
+### Document invariants
+
+Enforced by `tools/lib/doc_pack.py`, run inside `aa check`, or directly with
+`aa docs check [path] [--strict] [--include-subtrees]`. `error` gates `aa check`; `--strict`
+also gates warnings. The canonical wording of every rule, keyed by finding code, is
+`skills/documentation/add-docs/SKILL.md` § Invariants — change one, change the other.
 
 ### Skill-pack loadability invariants
 
@@ -158,6 +170,7 @@ that the pack no longer provides. It only removes entries carrying
 | **Regenerate MCP manifest** | `aa mcp generate` |
 | **Execute registered tool** | `aa tool run <tool-id> [args]` |
 | **Audit per-tool skill coverage** | `aa skill check` |
+| **Audit document invariants** | `aa docs check [path] [--strict]` |
 | **Provision skills into a project** | `aa skill install <tool\|skill\|all> [--target DIR]` |
 | **Prune stale provisioned skills** | `aa skill install --prune [--target DIR]` |
 | **Install tools (local native build)** | `aa tool install [tool]` |

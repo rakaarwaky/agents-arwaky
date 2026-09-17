@@ -227,6 +227,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa doctor`                              | All-in-one ecosystem diagnostics (toolchains, daemons, MCP config, harnesses)                    | `aa doctor`                                    |
 | `aa tool <cmd> [args]`                   | Tool management: `list`, `run`, `install`, `update`, `uninstall`                                    | `aa tool install lint`                         |
 | `aa skill <cmd> [args]`                  | Skill management: `list`, `install`, `uninstall`, `show`, `check`                                   | `aa skill install --all`                       |
+| `aa docs check [path]`                   | Audit document invariants across PRD/FRD/README/BACKLOG/AGENTS and skill references; `--strict` also gates warnings | `aa docs check . --strict` |
 | `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses — harness `skills/` becomes a symlink to the pack (manage once in `skills/`); `--copy-skills` snapshots instead (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
 | `aa disconnect [targets]`                | Disconnect harnesses (use `--all` to disconnect all)                                                | `aa disconnect --all`                          |
 | `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
@@ -235,7 +236,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa service [action] [target]`           | Unified manager for background services (`status`, `start`, `stop`, `restart`, `logs`)              | `aa service status`                            |
 | `aa sync [options]`                      | One-shot ecosystem update (submodules, binary exports, MCP configs, harnesses, and verify)          | `aa sync`                                      |
 | `aa completion [bash\|zsh\|--install]`   | Shell tab completion generator and persistent installer                                            | `aa completion --install`                      |
-| `aa check`                               | Run quality gate verification (JSON syntax, Python compile, shellcheck)                           | `aa check`                                     |
+| `aa check`                               | Run quality gate verification (JSON syntax, Python compile, document invariants, skill pack, shellcheck)                                                        | `aa check`                                     |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
 | `aa clean`                              | Remove build artifacts & generated MCP config                                                     | `aa clean`                                     |
 | `aa reset`                            | Full factory reset: clean + uninstall + disconnect + unskill                                       | `aa reset`                                     |

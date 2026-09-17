@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT / "tools" / "lib"))
 from xdg import data_home  # type: ignore[import-not-found]
 
 COMMANDS = (
-    "status doctor tool skill connect disconnect mcp anytype 9router service "
+    "status doctor tool skill docs connect disconnect mcp anytype 9router service "
     "backup restore check submodules clean reset sync completion version help "
     # backward-compat verbs (deprecated but still dispatched by cli/arwaky.py)
     "list run install update uninstall"
@@ -79,6 +79,9 @@ _aa_completion() {{
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "list generate show path" -- "$cur") ); fi ;;
     skill|skills)
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "list install uninstall show check sync" -- "$cur") ); fi ;;
+    docs)
+      if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "check" -- "$cur") )
+      elif [ "$cword" -gt 2 ]; then COMPREPLY=( $(compgen -W "--strict --include-subtrees" -- "$cur") ); fi ;;
     backup|restore)
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "all anytype 9router mnemosyne list" -- "$cur") ); fi ;;
     clean)
