@@ -1,18 +1,16 @@
 """9Router installer (hybrid daemon + launcher) — port of tools/install/install_ninerouter.py.
 
 9Router is a Podman/daemon service, not a compiled binary. The installer:
-- registers the systemd user unit (tools/deploy/ninerouter.service) via
-  `ninerouter_daemon.py service-install`
-- writes a python3 launcher into ~/.local/bin/9router that execs
-  tools/daemons/ninerouter_daemon.py with AGENTS_ARWAKY_ROOT baked in
+- registers the systemd user unit (tools/deploy/ninerouter.service) via the
+  daemon module's PodmanDaemonManager.service_install()
+- writes a python3 launcher into ~/.local/bin/9router that imports
+  modules.daemon.src.surface_daemon_command.cmd_9router with AGENTS_ARWAKY_ROOT baked in
 - mirrors the launcher into $XDG_DATA_HOME/9router/internal-bin/ so the
   daemon container can find it (same pattern as anytype-daemon).
 """
 from __future__ import annotations
 
 import shutil
-import subprocess
-import sys
 
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
@@ -25,7 +23,6 @@ from modules.shared.src.xdg.utility_xdg_atomic_io import (
 from modules.shared.src.xdg.utility_xdg_paths import bin_home, data_home
 
 
-TOOL_DIR_REL = "tools/daemons"
 DATA_DIR_NAME = "9router"
 INTERNAL_BIN = "internal-bin"
 
@@ -46,20 +43,24 @@ class NinerouterInstaller(IToolInstaller):
         data_dir = data_home() / DATA_DIR_NAME
         data_dir.mkdir(parents=True, exist_ok=True)
 
-        daemon_py = root / TOOL_DIR_REL / "ninerouter_daemon.py"
+        # Delegate to the daemon module's service_install (tools/deploy/ninerouter.service)
+        from modules.daemon.src.capabilities_daemon_podman import PodmanDaemonManager
+
         print(">>> Setting up 9Router hybrid architecture...")
-        if daemon_py.exists():
-            subprocess.run(
-                [sys.executable, str(daemon_py), "service-install"],
-                check=False,
-            )
+        manager = PodmanDaemonManager()
+        if shutil.which("podman") is None:
+            return InstallResult(True, spec.id, "9router skipped (podman not found)")
+        rc = manager.service_install()
+        if rc != 0:
+            return InstallResult(True, spec.id, f"9router service-install exited {rc} (see 'aa 9router logs')")
 
         launcher_content = f'''#!/usr/bin/env python3
 import os, sys
 from pathlib import Path
 root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))
-daemon = root / "{TOOL_DIR_REL}/ninerouter_daemon.py"
-os.execvpe("python3", ["python3", str(daemon), *sys.argv[1:]], os.environ.copy())
+sys.path.insert(0, str(root))
+from modules.daemon.src.surface_daemon_command import cmd_9router
+sys.exit(cmd_9router(sys.argv[1:]))
 '''
         launcher = bin_home() / "9router"
         atomic_write_text(launcher, launcher_content)
