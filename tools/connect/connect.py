@@ -5,7 +5,7 @@ Thin dispatch layer: parses CLI args, resolves harness targets through the
 adapter registry, and delegates to per-harness capability modules.
 
 Supports:
-    aa disconnect --antigravity|--hermes|--opencode|--qwencode|--all
+    aa disconnect --antigravity|--hermes|--opencode|--qwencode|--grok-build|--all
     aa disconnect <targets> --dry-run
 
 Skill provisioning links each skill directory to the repo pack under
@@ -48,11 +48,14 @@ from opencode_adapter import (
 from qwencode_adapter import (
     register as _register_qwencode,  # type: ignore[import-not-found]
 )
+from grok_build_adapter import (
+    register as _register_grok_build,  # type: ignore[import-not-found]
+)
 
 # --- harness registry (P4-A21: adapters register themselves) -----------------
 HARNESSES: dict[str, dict] = {}
 ALIASES: dict[str, str] = {}
-for _mod in (_register_antigravity, _register_hermes, _register_opencode, _register_qwencode):
+for _mod in (_register_antigravity, _register_hermes, _register_opencode, _register_qwencode, _register_grok_build):
     _entry = _mod()
     HARNESSES[_entry["id"]] = _entry
     for _alias in _entry["aliases"]:
