@@ -1,4 +1,4 @@
 """Updater feature — src."""
-from modules.updater.src.capabilities_updater import ToolUpdater
+from modules.updater.src.agent_updater_orchestrator import UpdaterOrchestrator
 
-__all__ = ["ToolUpdater"]
+__all__ = ["UpdaterOrchestrator"]
