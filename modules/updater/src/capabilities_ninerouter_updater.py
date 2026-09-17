@@ -46,7 +46,7 @@ class NinerouterUpdater(IToolUpdater):
         data_dir.mkdir(parents=True, exist_ok=True)
 
         # Delegate to the daemon module's service_install (tools/deploy/ninerouter.service)
-        from modules.daemon.src.capabilities_daemon_podman import PodmanDaemonManager
+        from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
 
         print(">>> Updating 9Router hybrid architecture...")
         manager = PodmanDaemonManager()

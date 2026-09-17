@@ -28,7 +28,7 @@ class NinerouterUninstaller(IToolUninstaller):
 
         # Stop daemon if registered (tools/daemons/ninerouter_daemon.py
         # service-uninstall, now provided by the daemon module)
-        from modules.daemon.src.capabilities_daemon_podman import PodmanDaemonManager
+        from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
 
         rc = PodmanDaemonManager().service_uninstall()
         if rc != 0:
