@@ -99,20 +99,21 @@ Code and CI win over this file; this file wins over `README.md` for agent behavi
   - `internal/qwen-web-arwaky`: Python Playwright (`pip install -e .`). Venv at `~/.local/share/qwen-web/venv/`. CLI (`qwen-web-arwaky`, `qwa`, `qwc`), MCP (`qwen-web-mcp`).
   - `internal/blender-arwaky`: Python (`pip install -e .`). Venv at `~/.local/share/blender-arwaky/venv/`. CLI (`blender-arwaky`, `ba`), MCP (`blender-mcp`).
 
-### 2. Modifying Build & Orchestration Scripts in `tools/`
-- Every script in `tools/` must begin with:
+### 2. Modifying Orchestration Code in `modules/` and `tools/`
+- Orchestration code lives in `modules/<feature>/src/` and `modules/shared/src/<domain>/` (AES 7-layer packages); `tools/` retains only the `arwaky.py` launcher, `config/`, `deploy/`, and `tests/`.
+- Every shell script (e.g. under `tools/deploy/`) must begin with:
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
   ```
-- Use `tools/lib/xdg.py` for resolving XDG paths (`data_home`, `config_home`, `cache_home`, `bin_home`, `tool_data_dir`, `tool_config_dir`, `tool_cache_dir`).
+- Resolve XDG paths via `modules.shared.src.xdg` (`data_home`, `config_home`, `cache_home`, `bin_home`, `tool_data_dir`, `tool_config_dir`, `tool_cache_dir`).
 - Maintain executable permissions on all `.sh` files (`chmod +x <script>`).
 - Ensure all JSON files match valid JSON syntax (`jq empty <file>`).
 - Avoid bashisms or unquoted variables that fail `shellcheck`.
 
 ### 3. Modifying Upstream Vendor Configurations
 - Upstream tools under `vendor/` should **NOT** have their source code directly modified in this root repository.
-- Customizations, patches, wrapper scripts, and installation recipes belong in `tools/install/install_<tool>.py` (and `tools/uninstall/uninstall_<tool>.py`).
+- Customizations, patches, and per-runner install/uninstall logic belong in `modules/tool/src/` (data-driven `ToolInstaller`/`ToolUninstaller` dispatch keyed on the manifest's `runner` field).
 - If a vendor tool requires environment configuration (e.g. Anytype API keys), manage it via `.env` or XDG config files, never hardcoded secrets.
 
 ### 4. Running Quality Gates Before Answering
@@ -129,14 +130,14 @@ The verification checks:
 
 ### Document invariants
 
-Enforced by `tools/lib/doc_pack.py`, run inside `aa check`, or directly with
+Enforced by `modules/shared/src/doc_pack/capabilities_doc_pack.py`, run inside `aa check`, or directly with
 `aa docs check [path] [--strict] [--include-subtrees]`. `error` gates `aa check`; `--strict`
 also gates warnings. The canonical wording of every rule, keyed by finding code, is
 `skills/documentation/add-docs/SKILL.md` § Invariants — change one, change the other.
 
 ### Skill-pack loadability invariants
 
-Enforced by `tools/lib/skill_pack.py` and reported by both `aa check` and `aa skill check`:
+Enforced by `modules/shared/src/skill_pack/capabilities_skill_pack.py` and reported by both `aa check` and `aa skill check`:
 
 1. **Layout** — every skill is exactly `skills/<category>/<skill>/SKILL.md`. A harness
    scans one level below a skills root, so anything flatter or deeper never loads.
@@ -189,9 +190,9 @@ that the pack no longer provides. It only removes entries carrying
 
 - Single Source of Truth Manifest: [`tools/config/manifest.json`](tools/config/manifest.json)
 - Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
-- Shared XDG Helper: [`tools/lib/xdg.py`](tools/lib/xdg.py)
-- Per-Tool Installers: [`tools/install/`](tools/install/) · Uninstallers: [`tools/uninstall/`](tools/uninstall/)
-- Agent Harness Connector: [`tools/connect/connect.py`](tools/connect/connect.py)
+- Shared XDG Helper: [`modules/shared/src/xdg/`](modules/shared/src/xdg/)
+- Tool Install/Update/Uninstall (data-driven): [`modules/tool/src/`](modules/tool/src/)
+- Agent Harness Connector: [`modules/harness/src/`](modules/harness/src/)
 - CI Verification Gate: [`tools/cli/arwaky.py`](tools/cli/arwaky.py) (`aa check`) + [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Human Documentation & Tool Catalog: [`README.md`](README.md)
