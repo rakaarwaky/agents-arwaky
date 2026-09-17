@@ -1,4 +1,4 @@
-"""Workspace (google-workspace-mcp) installer (uv) — port of tools/install/install_workspace.py.
+"""Workspace (google-workspace-mcp) installer (uv) — verbatim port of tools/install/install_workspace.py.
 
 vendor/google-workspace-mcp is a Python package run via `uv run` (no venv copy).
 Launchers `workspace-mcp` and `google-workspace-mcp` both point at the same entry.
@@ -6,44 +6,65 @@ Launchers `workspace-mcp` and `google-workspace-mcp` both point at the same entr
 from __future__ import annotations
 
 import subprocess
+import sys
+from pathlib import Path
 
-from modules.shared.src.launcher.capabilities_launcher_writer import write_uv_launchers
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
 from modules.shared.src.tool.contract_tool_protocol import IToolInstaller
+from modules.shared.src.launcher.capabilities_launcher_writer import write_uv_launchers
 from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.xdg.utility_xdg_paths import bin_home
 
+ROOT = repo_root()
 
 SRC_REL = "vendor/google-workspace-mcp"
+SRC_DIR = ROOT / SRC_REL
 LAUNCHERS = [
     ("workspace-mcp", "workspace-mcp"),
     ("google-workspace-mcp", "workspace-mcp"),
 ]
 
 
+def run(cmd, cwd=None):
+    subprocess.run(cmd, cwd=cwd, check=True)
+
+
+def is_installed() -> bool:
+    """Check if workspace-mcp is already installed (binary exists)."""
+    return (bin_home() / "workspace-mcp").exists()
+
+
+def _install_workspace() -> int:
+    if is_installed():
+        print(">>> workspace is already installed. Use 'aa update workspace' to reinstall.")
+        return 0
+
+    if not SRC_DIR.exists():
+        print(f">>> Initializing submodule {SRC_REL}...", file=sys.stderr)
+        run(["git", "-C", str(ROOT), "submodule", "update", "--init", SRC_REL])
+    if not SRC_DIR.exists():
+        print(f"Error: source not found {SRC_DIR}.", file=sys.stderr)
+        return 1
+
+    ensure_bin_home()
+    created = write_uv_launchers(SRC_REL, LAUNCHERS, root=ROOT)
+    for p in created:
+        print(f"  -> {p}")
+    print(">>> Successfully installed google-workspace-mcp")
+    return 0
+
+
 class WorkspaceInstaller(IToolInstaller):
     """Install vendor/google-workspace-mcp via uv-run launchers."""
 
     def __init__(self, root=None) -> None:
-        self._root = root or repo_root()
+        self._root = root or ROOT
 
     def install(self, spec: ToolSpec) -> InstallResult:
-        root = self._root
-        if (bin_home() / "workspace-mcp").exists():
-            return InstallResult(True, spec.id, "workspace is already installed")
-
-        src_dir = root / SRC_REL
-        if not src_dir.exists():
-            subprocess.run(
-                ["git", "-C", str(root), "submodule", "update", "--init", SRC_REL],
-                check=False,
-            )
-        if not src_dir.exists():
-            return InstallResult(False, spec.id, f"source not found {SRC_REL}")
-
-        ensure_bin_home()
-        created = write_uv_launchers(SRC_REL, LAUNCHERS, root=root)
-        for p in created:
-            print(f"  -> {p}")
-        return InstallResult(True, spec.id, "google-workspace-mcp installed")
+        rc = _install_workspace()
+        return InstallResult(
+            rc == 0,
+            spec.id,
+            "google-workspace-mcp installed" if rc == 0 else "google-workspace-mcp install failed",
+        )

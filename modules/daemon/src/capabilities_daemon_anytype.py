@@ -1,4 +1,11 @@
-"""Anytype daemon manager capability — port of tools/daemons/anytype_daemon.py."""
+#!/usr/bin/env python3
+"""Anytype daemon manager (Python) — replaces anytype-daemon.sh.
+
+AES port of tools/daemons/anytype_daemon.py: body kept verbatim; only the
+imports are swapped to their AES equivalents (paths/xdg/envfile) and
+constants defined locally in the original stay local verbatim instead of
+being pulled from modules.shared.src.common.taxonomy_core_constant.
+"""
 from __future__ import annotations
 
 import atexit
@@ -12,9 +19,6 @@ import time
 import urllib.request
 from pathlib import Path
 
-from modules.shared.src.common.taxonomy_core_constant import ANYTYPE_PORT
-from modules.shared.src.daemon.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonStatus
 from modules.shared.src.envfile.utility_envfile import update_env_file
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.xdg.utility_xdg_paths import (
@@ -24,308 +28,413 @@ from modules.shared.src.xdg.utility_xdg_paths import (
     state_home,
 )
 
+ROOT = repo_root()
+
 CONTAINER_NAME = "anytype-daemon"
 IMAGE_NAME = "localhost/anytype-daemon:latest"
+PORT = os.environ.get(
+    "ANYTYPE_API_BASE_URL", "http://127.0.0.1:31012"
+).split(":")[-1].strip("/")
+DATA_DIR = data_home() / "anytype-mcp"
+DOT_ANYTYPE = data_home() / "anytype"
+CONFIG_DIR = config_home() / "anytype"
+SHARE_DIR = data_home() / "anytype" / "share"
+LOCAL_BIN = data_home() / "anytype-mcp/bin"
+SCRIPT_DIR = ROOT / "tools/deploy"
+UNIT_DIR = config_home() / "systemd/user"
+UNIT_FILE = UNIT_DIR / "anytype-daemon.service"
+DATA_ROOT = data_home() / "anytype-mcp"
+PID_FILE = state_home() / "anytype-daemon.pid"
 
 
-def _run(cmd: list[str], **kw: object) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, check=False, **kw)  # noqa: S603
+def run(cmd, **kw):  # noqa: S603
+    return subprocess.run(cmd, check=False, **kw)
 
 
-def _out(cmd: list[str], **kw: object) -> str:
-    return subprocess.run(cmd, capture_output=True, text=True, check=False, **kw).stdout.strip()  # noqa: S603
+def out(cmd, **kw):  # noqa: S603
+    return subprocess.run(
+        cmd, capture_output=True, text=True, check=False, **kw
+    ).stdout.strip()
 
 
-def _has_podman() -> bool:
+def has_podman():
     return shutil.which("podman") is not None
 
 
-def _container_running() -> bool:
-    return _out(["podman", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME]) == "true"
+def container_running():
+    return out(
+        ["podman", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME]
+    ) == "true"
 
 
-def _container_exists() -> bool:
-    return _out(["podman", "ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]) == CONTAINER_NAME
+def container_exists():
+    return out(
+        ["podman", "ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]
+    ) == CONTAINER_NAME
 
 
-class AnytypeDaemonManager(IDaemonManager):
-    """Manage the Anytype headless daemon (podman container or native fallback).
+def api_ready(timeout=90):
+    url = f"http://127.0.0.1:{PORT}"
+    deadline = time.time() + timeout
+    delay = 1.0
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=3) as r:  # noqa: S310
+                if r.status < 400:
+                    return True
+        except (OSError, ValueError):
+            pass
+        # Exponential backoff: 1s, 2s, 4s, 8s... capped at 10s
+        time.sleep(delay)
+        delay = min(delay * 2, 10.0)
+    return False
 
-    # Block 1: Configuration & image handling
-    # Block 2: Container / native lifecycle verbs
-    # Block 3: Status snapshot, logs & anytype-specific verbs
-    """
 
-    # -- Block 1: Configuration & image handling --------------------------------
-    def __init__(self) -> None:
-        self._root = repo_root()
-        self._port = os.environ.get(
-            "ANYTYPE_API_BASE_URL", f"http://127.0.0.1:{ANYTYPE_PORT}"
-        ).split(":")[-1].strip("/")
-        self._data_dir = data_home() / "anytype-mcp"
-        self._dot_anytype = data_home() / "anytype"
-        self._config_dir = config_home() / "anytype"
-        self._share_dir = data_home() / "anytype" / "share"
-        self._local_bin = data_home() / "anytype-mcp/bin"
-        self._script_dir = self._root / "tools/deploy"
-        self._unit_dir = config_home() / "systemd/user"
-        self._unit_file = self._unit_dir / "anytype-daemon.service"
-        self._data_root = data_home() / "anytype-mcp"
-        self._pid_file = state_home() / "anytype-daemon.pid"
+def image_exists() -> bool:
+    return subprocess.run(  # noqa: S603
+        ["podman", "image", "exists", IMAGE_NAME],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    ).returncode == 0
 
-    def _api_ready(self, timeout: int = 90) -> bool:
-        url = f"http://127.0.0.1:{self._port}"
-        deadline = time.time() + timeout
-        delay = 1.0
-        while time.time() < deadline:
-            try:
-                with urllib.request.urlopen(url, timeout=3) as resp:  # noqa: S310
-                    if resp.status < 400:
-                        return True
-            except (OSError, ValueError):
-                pass
-            time.sleep(delay)
-            delay = min(delay * 2, 10.0)
-        return False
 
-    def _image_exists(self) -> bool:
-        return subprocess.run(  # noqa: S603
-            ["podman", "image", "exists", IMAGE_NAME],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
-        ).returncode == 0
+def build_image():
+    print(">>> Building Anytype daemon image...")
+    cwd = SCRIPT_DIR
+    code = run(["podman", "build", "-t", IMAGE_NAME, "."], cwd=cwd).returncode
+    if code != 0:
+        print("Error: failed to build image", file=sys.stderr)
+        sys.exit(1)
 
-    def _build_image(self) -> None:
-        print(">>> Building Anytype daemon image...")
-        code = _run(["podman", "build", "-t", IMAGE_NAME, "."], cwd=self._script_dir).returncode
-        if code != 0:
-            print("Error: failed to build image", file=sys.stderr)
-            sys.exit(1)
 
-    def _ensure_dirs(self) -> None:
-        for directory in (self._data_dir, self._dot_anytype, self._config_dir, self._share_dir):
-            directory.mkdir(parents=True, exist_ok=True)
+def ensure_dirs():
+    for d in (DATA_DIR, DOT_ANYTYPE, CONFIG_DIR, SHARE_DIR):
+        d.mkdir(parents=True, exist_ok=True)
 
-    def _write_pid(self, pid: int) -> None:
-        self._pid_file.parent.mkdir(parents=True, exist_ok=True)
-        self._pid_file.write_text(str(pid), encoding="utf-8")
 
-    def _read_pid(self) -> int | None:
-        if self._pid_file.exists():
-            try:
-                return int(self._pid_file.read_text().strip())
-            except (ValueError, OSError):
-                return None
-        return None
+def _write_pid(pid: int) -> None:
+    PID_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PID_FILE.write_text(str(pid), encoding="utf-8")
 
-    def _cleanup_pid(self) -> None:
-        self._pid_file.unlink(missing_ok=True)
 
-    @staticmethod
-    def _extract_api_key(stdout: str) -> str:
-        """First token-shaped line (API key), else the last non-empty line."""
-        lines = [line.strip() for line in stdout.splitlines() if line.strip()]
-        for line in lines:
-            match = re.search(r"[A-Za-z0-9_\-\.]{20,}", line)
-            if match:
-                return match.group(0)
-        return lines[-1] if lines else ""
+def _read_pid():
+    if PID_FILE.exists():
+        try:
+            return int(PID_FILE.read_text().strip())
+        except (ValueError, OSError):
+            return None
+    return None
 
-    # -- Block 2: Container / native lifecycle verbs ---------------------------
-    def start(self) -> int:
-        if _has_podman():
-            if _container_running():
-                print(f">>> Anytype daemon container '{CONTAINER_NAME}' is already running.")
-                return 0
-            self._ensure_dirs()
-            if _container_exists():
-                print(f">>> Starting existing Anytype container '{CONTAINER_NAME}'...")
-                _run(["podman", "start", CONTAINER_NAME])
-            else:
-                if not self._image_exists():
-                    self._build_image()
-                print(f">>> Launching Anytype daemon container '{CONTAINER_NAME}' on port {self._port}...")
-                _run([
-                    "podman", "run", "-d", "--name", CONTAINER_NAME, "--network", "host",
-                    "--restart", "unless-stopped",
-                    "-v", f"{self._data_dir}:/data:Z",
-                    "-v", f"{self._dot_anytype}:/root/.anytype:Z",
-                    "-v", f"{self._config_dir}:/root/.config/anytype:Z",
-                    "-v", f"{self._share_dir}:/root/.local/share/anytype:Z",
-                    IMAGE_NAME,
-                ])
-            print(f">>> Waiting for Anytype API on port {self._port}...")
-            if self._api_ready():
-                print(f">>> [OK] Anytype daemon is ready at http://127.0.0.1:{self._port}")
-                return 0
-            print(">>> [WARN] Container started, but API is still initializing. "
-                  "Check 'aa anytype logs'.", file=sys.stderr)
-            return 2
-        # native fallback
-        print(">>> Podman not found. Falling back to native background execution...")
-        anytype_bin = self._local_bin / "anytype"
-        if not anytype_bin.exists():
-            print("Error: local anytype binary not found.", file=sys.stderr)
-            return 1
-        self._data_root.mkdir(parents=True, exist_ok=True)
-        log_file = self._data_root / "daemon.log"
-        with log_file.open("ab") as handle:
-            proc = subprocess.Popen(  # noqa: S603, S607
-                [str(anytype_bin), "serve", "--listen-address", f"127.0.0.1:{self._port}"],
-                stdout=handle, stderr=handle, start_new_session=True,
-            )
-        self._write_pid(proc.pid)
-        atexit.register(self._cleanup_pid)
-        print(f">>> Started local Anytype daemon (PID: {proc.pid}). Logs: {log_file}")
-        return 0
 
-    def stop(self) -> int:
-        if _has_podman() and _container_exists():
-            print(f">>> Stopping Anytype daemon container '{CONTAINER_NAME}'...")
-            _run(["podman", "stop", CONTAINER_NAME])
+def _cleanup_pid() -> None:
+    PID_FILE.unlink(missing_ok=True)
+
+
+def _extract_api_key(stdout: str) -> str:
+    """Return first token-shaped line (API key), else last non-empty line."""
+    lines = [ln.strip() for ln in stdout.splitlines() if ln.strip()]
+    for ln in lines:
+        m = re.search(r"[A-Za-z0-9_\-\.]{20,}", ln)
+        if m:
+            return m.group(0)
+    return lines[-1] if lines else ""
+
+
+def cmd_start():
+    if has_podman():
+        if container_running():
+            print(f">>> Anytype daemon container '{CONTAINER_NAME}' is already running.")
             return 0
-        pid = self._read_pid()
-        if pid:
-            try:
-                os.kill(pid, signal.SIGTERM)
-                print(f">>> Sent SIGTERM to Anytype daemon (PID: {pid}).")
-            except ProcessLookupError:
-                print(">>> Anytype daemon process not found (stale PID file).")
-            self._cleanup_pid()
-        elif shutil.which("pkill"):
-            subprocess.run(["pkill", "-f", "anytype serve"], capture_output=True, check=False)  # noqa: S603
-            print(">>> Anytype daemon stopped.")
+        ensure_dirs()
+        if container_exists():
+            print(f">>> Starting existing Anytype container '{CONTAINER_NAME}'...")
+            run(["podman", "start", CONTAINER_NAME])
         else:
-            print(">>> No Anytype daemon PID found and pkill unavailable.")
-        return 0
-
-    def restart(self) -> int:
-        self.stop()
-        time.sleep(1)
-        return self.start()
-
-    # -- Block 3: Status snapshot, logs & anytype-specific verbs ----------------
-    def status(self) -> DaemonStatus:
-        print("==========================================")
-        print(" Anytype Headless Daemon Status")
-        print("==========================================")
-        container_state = "N/A"
-        if _has_podman():
-            if _container_running():
-                container_state = "RUNNING"
-                print(" Container: RUNNING")
-            elif _container_exists():
-                container_state = "STOPPED (exists)"
-                print(" Container: STOPPED (exists)")
-            else:
-                container_state = "NOT FOUND"
-                print(" Container: NOT FOUND")
-        api_ready = self._api_ready(timeout=10)
-        if api_ready:
-            print(f" API: OK (http://127.0.0.1:{self._port})")
-        else:
-            print(" API: not ready")
-        return DaemonStatus(
-            container_state=container_state,
-            service_state="none",
-            api_ready=api_ready,
-            data_dir=str(self._data_dir),
-            ok=api_ready or container_state == "RUNNING",
+            if not image_exists():
+                build_image()
+            print(
+                f">>> Launching Anytype daemon container '{CONTAINER_NAME}' on port {PORT}..."
+            )
+            run([
+                "podman", "run", "-d", "--name", CONTAINER_NAME, "--network", "host",
+                "--restart", "unless-stopped",
+                "-v", f"{DATA_DIR}:/data:Z",
+                "-v", f"{DOT_ANYTYPE}:/root/.anytype:Z",
+                "-v", f"{CONFIG_DIR}:/root/.config/anytype:Z",
+                "-v", f"{SHARE_DIR}:/root/.local/share/anytype:Z",
+                IMAGE_NAME,
+            ])
+        print(f">>> Waiting for Anytype API on port {PORT}...")
+        if api_ready():
+            print(f">>> [OK] Anytype daemon is ready at http://127.0.0.1:{PORT}")
+            return 0
+        print(
+            ">>> [WARN] Container started, but API is still initializing."
+            " Check 'aa anytype logs'.",
+            file=sys.stderr,
         )
-
-    def logs(self) -> int:
-        if _has_podman() and _container_exists():
-            return _run(["podman", "logs", "-f", "--tail", "200", CONTAINER_NAME]).returncode
-        log = self._data_root / "daemon.log"
-        if log.exists():
-            return _run(["tail", "-f", "-n", "200", str(log)]).returncode
-        print("Anytype daemon is not running.")
+        return 2
+    # native fallback
+    print(">>> Podman not found. Falling back to native background execution...")
+    anytype_bin = LOCAL_BIN / "anytype"
+    if not anytype_bin.exists():
+        print("Error: local anytype binary not found.", file=sys.stderr)
         return 1
+    DATA_ROOT.mkdir(parents=True, exist_ok=True)
+    log_file = DATA_ROOT / "daemon.log"
+    with log_file.open("ab") as f:
+        p = subprocess.Popen(  # noqa: S603, S607
+            [str(anytype_bin), "serve", "--listen-address", f"127.0.0.1:{PORT}"],
+            stdout=f,
+            stderr=f,
+            start_new_session=True,
+        )
+    _write_pid(p.pid)
+    atexit.register(_cleanup_pid)
+    print(f">>> Started local Anytype daemon (PID: {p.pid}). Logs: {log_file}")
+    return 0
 
-    def _exec_anytype(self, args: list[str]) -> int:
-        if _has_podman() and _container_running():
-            return _run(["podman", "exec", CONTAINER_NAME, "anytype", *args]).returncode
-        anytype_bin = self._local_bin / "anytype"
-        if anytype_bin.exists():
-            return _run([str(anytype_bin), *args]).returncode
+
+def cmd_stop():
+    if has_podman() and container_exists():
+        print(f">>> Stopping Anytype daemon container '{CONTAINER_NAME}'...")
+        run(["podman", "stop", CONTAINER_NAME])
+        return 0
+    # Native mode: use PID file (targeted, not pkill)
+    pid = _read_pid()
+    if pid:
+        try:
+            os.kill(pid, signal.SIGTERM)
+            print(f">>> Sent SIGTERM to Anytype daemon (PID: {pid}).")
+        except ProcessLookupError:
+            print(">>> Anytype daemon process not found (stale PID file).")
+        _cleanup_pid()
+    elif shutil.which("pkill"):
+        subprocess.run(  # noqa: S603
+            ["pkill", "-f", "anytype serve"], capture_output=True, check=False
+        )
+        print(">>> Anytype daemon stopped.")
+    else:
+        print(">>> No Anytype daemon PID found and pkill unavailable.")
+    return 0
+
+
+def cmd_restart():
+    cmd_stop()
+    time.sleep(1)
+    return cmd_start()
+
+
+def cmd_status():
+    print("==========================================")
+    print(" Anytype Headless Daemon Status")
+    print("==========================================")
+    if has_podman():
+        if container_running():
+            print(" Container: RUNNING")
+        elif container_exists():
+            print(" Container: STOPPED (exists)")
+        else:
+            print(" Container: NOT FOUND")
+    if api_ready(timeout=10):
+        print(f" API: OK (http://127.0.0.1:{PORT})")
+    else:
+        print(" API: not ready")
+    return 0
+
+
+def cmd_logs():
+    if has_podman() and container_exists():
+        return run(["podman", "logs", "-f", "--tail", "200", CONTAINER_NAME]).returncode
+    log = DATA_ROOT / "daemon.log"
+    if log.exists():
+        return run(["tail", "-f", "-n", "200", str(log)]).returncode
+    print("Anytype daemon is not running.")
+    return 1
+
+
+def cmd_exec_anytype(args):
+    if has_podman() and container_running():
+        return run(["podman", "exec", CONTAINER_NAME, "anytype", *args]).returncode
+    anytype_bin = LOCAL_BIN / "anytype"
+    if anytype_bin.exists():
+        return run([str(anytype_bin), *args]).returncode
+    print("Error: Anytype daemon not running and local binary not found.", file=sys.stderr)
+    return 1
+
+
+def cmd_auth_create(name="agent"):
+    # anytype-cli >=0.3: 'auth create <name>' (was 'account create --name')
+    return cmd_exec_anytype(["auth", "create", name])
+
+
+def cmd_auth_key(name="arwaky-agent-key"):
+    """Generate API key and update .env with ANYTYPE_API_KEY (parse output)."""
+    if has_podman() and container_running():
+        result = subprocess.run(  # noqa: S603
+            ["podman", "exec", CONTAINER_NAME, "anytype",
+             "auth", "apikey", "create", name],
+            capture_output=True, text=True, check=False,
+        )
+    elif (LOCAL_BIN / "anytype").exists():
+        result = subprocess.run(  # noqa: S603
+            [str(LOCAL_BIN / "anytype"), "auth", "apikey",
+             "create", name],
+            capture_output=True, text=True, check=False,
+        )
+    else:
         print("Error: Anytype daemon not running and local binary not found.", file=sys.stderr)
         return 1
 
+    if result.returncode != 0:
+        print(result.stderr.strip(), file=sys.stderr)
+        return result.returncode
+
+    # Parse API key from output (token-shaped regex)
+    api_key = _extract_api_key(result.stdout)
+    if not api_key:
+        print("Error: could not extract API key from daemon output.", file=sys.stderr)
+        return 1
+
+    # Update .env (canonical $XDG_CONFIG_HOME/agents-arwaky + repo config placeholder)
+    env_candidates = [
+        agents_arwaky_config_dir() / "anytype.env",
+        ROOT / "tools/config/anytype.env",
+    ]
+    for env_path in env_candidates:
+        env_path.parent.mkdir(parents=True, exist_ok=True)
+        update_env_file(env_path, "ANYTYPE_API_KEY", api_key)
+        print(f"  \u2713 Updated ANYTYPE_API_KEY in {env_path}")
+
+    print(f"  \u2713 API key generated: {name}")
+    return 0
+
+
+def cmd_space_join(link):
+    if not link:
+        print("Error: Missing invite link.", file=sys.stderr)
+        return 1
+    return cmd_exec_anytype(["space", "join", link])
+
+
+def cmd_space_list():
+    return cmd_exec_anytype(["space", "list"])
+
+
+def cmd_service_install():
+    if not has_podman():
+        print(
+            "Error: Podman is required to install the systemd container service.",
+            file=sys.stderr,
+        )
+        return 1
+    UNIT_DIR.mkdir(parents=True, exist_ok=True)
+    src = SCRIPT_DIR / "anytype-daemon.service"
+    if src.exists():
+        shutil.copy2(src, UNIT_FILE)
+    run(["systemctl", "--user", "daemon-reload"])
+    run(["systemctl", "--user", "enable", "--now", "anytype-daemon.service"])
+    print(">>> Anytype daemon installed and started as user systemd service: anytype-daemon.service")
+    return 0
+
+
+def cmd_service_status():
+    return run(["systemctl", "--user", "status", "anytype-daemon.service"]).returncode
+
+
+def cmd_help():
+    print("Usage: aa anytype <command> [arguments...]")
+    print()
+    print("Commands:")
+    print("  start              Start Anytype daemon")
+    print("  stop               Stop Anytype daemon")
+    print("  restart            Restart Anytype daemon")
+    print("  status             Check health and API accessibility")
+    print("  logs               Tail daemon logs")
+    print("  auth-create [name] Create a headless bot account")
+    print("  auth-key [name]    Generate API key for MCP")
+    print("  space-join <link>  Join an Anytype Space via invite link")
+    print("  space-list         List spaces joined by the bot")
+    print("  service-install    Enable auto-start via systemd user unit")
+    print("  service-status     Check systemd user service status")
+    print("  help               Show this help")
+    return 0
+
+
+def main(argv):
+    if not argv or argv[0] in ("help", "-h", "--help"):
+        return cmd_help()
+    action = argv[0]
+    rest = argv[1:]
+    dispatch = {
+        "start": lambda: cmd_start(),
+        "stop": lambda: cmd_stop(),
+        "restart": lambda: cmd_restart(),
+        "status": lambda: cmd_status(),
+        "logs": lambda: cmd_logs(),
+        "auth-create": lambda: cmd_auth_create(rest[0] if rest else "agent"),
+        "auth-key": lambda: cmd_auth_key(rest[0] if rest else "arwaky-agent-key"),
+        "space-join": lambda: cmd_space_join(rest[0] if rest else ""),
+        "space-list": lambda: cmd_space_list(),
+        "service-install": lambda: cmd_service_install(),
+        "service-status": lambda: cmd_service_status(),
+    }
+    handler = dispatch.get(action)
+    if handler:
+        return handler()
+    print(f"Unknown anytype command: {action}", file=sys.stderr)
+    return cmd_help()
+
+
+class AnytypeDaemonManager:
+    """AES facade: exposes the original script verbs by their CLI names.
+
+    Keeps every method the current callers use (start/stop/restart/status/
+    logs/auth_create/auth_key/space_join/space_list/service_install/
+    service_status/help, and the ``main`` dispatch); each body is the
+    original script's verb body.
+    """
+
+    def start(self) -> int:
+        return cmd_start()
+
+    def stop(self) -> int:
+        return cmd_stop()
+
+    def restart(self) -> int:
+        return cmd_restart()
+
+    def status(self) -> int:
+        return cmd_status()
+
+    def logs(self) -> int:
+        return cmd_logs()
+
     def auth_create(self, name: str = "agent") -> int:
-        """'auth create <name>' (anytype-cli >=0.3; was 'account create --name')."""
-        return self._exec_anytype(["auth", "create", name])
+        return cmd_auth_create(name)
 
     def auth_key(self, name: str = "arwaky-agent-key") -> int:
-        """Generate an API key and update .env with ANYTYPE_API_KEY."""
-        if _has_podman() and _container_running():
-            result = subprocess.run(  # noqa: S603
-                ["podman", "exec", CONTAINER_NAME, "anytype", "auth", "apikey", "create", name],
-                capture_output=True, text=True, check=False,
-            )
-        elif (self._local_bin / "anytype").exists():
-            result = subprocess.run(  # noqa: S603
-                [str(self._local_bin / "anytype"), "auth", "apikey", "create", name],
-                capture_output=True, text=True, check=False,
-            )
-        else:
-            print("Error: Anytype daemon not running and local binary not found.", file=sys.stderr)
-            return 1
-        if result.returncode != 0:
-            print(result.stderr.strip(), file=sys.stderr)
-            return result.returncode
-        api_key = self._extract_api_key(result.stdout)
-        if not api_key:
-            print("Error: could not extract API key from daemon output.", file=sys.stderr)
-            return 1
-        env_candidates = [
-            agents_arwaky_config_dir() / "anytype.env",
-            self._root / "tools/config/anytype.env",
-        ]
-        for env_path in env_candidates:
-            env_path.parent.mkdir(parents=True, exist_ok=True)
-            update_env_file(env_path, "ANYTYPE_API_KEY", api_key)
-            print(f"  \u2713 Updated ANYTYPE_API_KEY in {env_path}")
-        print(f"  \u2713 API key generated: {name}")
-        return 0
+        return cmd_auth_key(name)
 
     def space_join(self, link: str) -> int:
-        if not link:
-            print("Error: Missing invite link.", file=sys.stderr)
-            return 1
-        return self._exec_anytype(["space", "join", link])
+        return cmd_space_join(link)
 
     def space_list(self) -> int:
-        return self._exec_anytype(["space", "list"])
+        return cmd_space_list()
 
     def service_install(self) -> int:
-        if not _has_podman():
-            print("Error: Podman is required to install the systemd container service.", file=sys.stderr)
-            return 1
-        self._unit_dir.mkdir(parents=True, exist_ok=True)
-        src = self._script_dir / "anytype-daemon.service"
-        if src.exists():
-            shutil.copy2(src, self._unit_file)
-        _run(["systemctl", "--user", "daemon-reload"])
-        _run(["systemctl", "--user", "enable", "--now", "anytype-daemon.service"])
-        print(">>> Anytype daemon installed and started as user systemd service: anytype-daemon.service")
-        return 0
+        return cmd_service_install()
 
     def service_status(self) -> int:
-        return _run(["systemctl", "--user", "status", "anytype-daemon.service"]).returncode
+        return cmd_service_status()
 
     def help(self) -> int:
-        print("Usage: aa anytype <command> [arguments...]")
-        print()
-        print("Commands:")
-        print("  start              Start Anytype daemon")
-        print("  stop               Stop Anytype daemon")
-        print("  restart            Restart Anytype daemon")
-        print("  status             Check health and API accessibility")
-        print("  logs               Tail daemon logs")
-        print("  auth-create [name] Create a headless bot account")
-        print("  auth-key [name]    Generate API key for MCP")
-        print("  space-join <link>  Join an Anytype Space via invite link")
-        print("  space-list         List spaces joined by the bot")
-        print("  service-install    Enable auto-start via systemd user unit")
-        print("  service-status     Check systemd user service status")
-        print("  help               Show this help")
-        return 0
+        return cmd_help()
+
+    def main(self, argv) -> int:
+        return main(argv)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

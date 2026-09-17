@@ -1,4 +1,4 @@
-"""Fetch-mcp installer (bun) — port of tools/install/install_fetch_mcp.py.
+"""Fetch-mcp installer (bun) — verbatim port of tools/install/install_fetch_mcp.py.
 
 zcaceres/fetch-mcp is a TypeScript project built with bun. Output:
   - dist/index.js -> MCP server (fetch-mcp, mcp-fetch)
@@ -10,6 +10,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
@@ -20,6 +21,10 @@ from modules.shared.src.xdg.utility_xdg_atomic_io import (
 )
 from modules.shared.src.xdg.utility_xdg_paths import bin_home, data_home
 
+ROOT = repo_root()
+
+SRC = ROOT / "vendor/fetch-mcp"
+APP_DIR = data_home() / "fetch-mcp"
 
 # First argument meaning "CLI mode" -> run dist/cli.js, otherwise MCP.
 CLI_ARGS = {"html", "markdown", "readable", "txt", "json", "youtube", "--help", "-h", "--version", "-v"}
@@ -30,56 +35,79 @@ IGNORES = shutil.ignore_patterns(
 )
 
 
+def run(cmd, cwd=None):
+    subprocess.run(cmd, cwd=cwd, check=True)
+
+
+def _require(tool: str, reason: str) -> bool:
+    if shutil.which(tool):
+        return True
+    print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
+    return False
+
+
+def is_installed() -> bool:
+    """Check if fetch-mcp is already installed (binary exists)."""
+    return (bin_home() / "fetch-mcp").exists()
+
+
+def _install_fetch() -> int:
+    if is_installed():
+        print(">>> fetch-mcp is already installed. Use 'aa update fetch' to reinstall.")
+        return 0
+
+    if not (SRC / "package.json").exists():
+        print("Error: fetch-mcp source not found (submodule not initialized).", file=sys.stderr)
+        return 1
+    if not _require("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"):
+        return 1
+
+    print(f">>> Installing fetch-mcp into {APP_DIR}...")
+    if APP_DIR.exists():
+        shutil.rmtree(APP_DIR)
+    shutil.copytree(SRC, APP_DIR, ignore=IGNORES)
+
+    run(["bun", "install", "--frozen-lockfile"], APP_DIR)
+    run(["bun", "run", "build"], APP_DIR)
+
+    index_js = APP_DIR / "dist/index.js"
+    cli_js = APP_DIR / "dist/cli.js"
+    if not index_js.exists() or not cli_js.exists():
+        print(f"  Error: build output incomplete ({index_js}, {cli_js})", file=sys.stderr)
+        return 1
+
+    ensure_bin_home()
+    content = (
+        "#!/usr/bin/env python3\n"
+        "import os, sys\n"
+        f'index_js = r"{index_js}"\n'
+        f'cli_js = r"{cli_js}"\n'
+        "cli = " + repr(sorted(CLI_ARGS)) + "\n"
+        "script = cli_js if (len(sys.argv) > 1 and sys.argv[1] in cli) else index_js\n"
+        'env = os.environ.copy()\n'
+        'os.execvpe("node", ["node", script, *sys.argv[1:]], env)\n'
+    )
+    for name in ("fetch-mcp", "mcp-fetch"):
+        launcher = bin_home() / name
+        launcher.write_text(content, encoding="utf-8")
+        launcher.chmod(0o755)
+        print(f"  -> {launcher}")
+
+    warn_if_bin_not_on_path()
+    print(">>> Successfully installed fetch-mcp")
+    return 0
+
+
 class FetchInstaller(IToolInstaller):
     """Install vendor/fetch-mcp (bun) into XDG data, build, write CLI/MCP dispatch launcher."""
 
     def __init__(self, root=None) -> None:
-        self._root = root or repo_root()
+        self._root = root or ROOT
 
     def install(self, spec: ToolSpec) -> InstallResult:
-        root = self._root
-        if (bin_home() / "fetch-mcp").exists():
-            return InstallResult(True, spec.id, "fetch-mcp is already installed")
-
-        src = root / "vendor/fetch-mcp"
-        if not (src / "package.json").exists():
-            return InstallResult(False, spec.id, "fetch-mcp source not found (submodule not initialized)")
-        if shutil.which("bun") is None:
-            return InstallResult(False, spec.id, "bun is required (curl -fsSL https://bun.sh/install | bash)")
-
-        app_dir = data_home() / "fetch-mcp"
-        print(f">>> Installing fetch-mcp into {app_dir}...")
-        if app_dir.exists():
-            shutil.rmtree(app_dir)
-        shutil.copytree(src, app_dir, ignore=IGNORES)
-
-        try:
-            subprocess.run(["bun", "install", "--frozen-lockfile"], cwd=app_dir, check=True)
-            subprocess.run(["bun", "run", "build"], cwd=app_dir, check=True)
-        except subprocess.CalledProcessError as exc:
-            return InstallResult(False, spec.id, f"bun build failed: {exc}")
-
-        index_js = app_dir / "dist/index.js"
-        cli_js = app_dir / "dist/cli.js"
-        if not index_js.exists() or not cli_js.exists():
-            return InstallResult(False, spec.id, f"build output incomplete ({index_js}, {cli_js})")
-
-        ensure_bin_home()
-        content = (
-            "#!/usr/bin/env python3\n"
-            "import os, sys\n"
-            f'index_js = r"{index_js}"\n'
-            f'cli_js = r"{cli_js}"\n'
-            "cli = " + repr(sorted(CLI_ARGS)) + "\n"
-            "script = cli_js if (len(sys.argv) > 1 and sys.argv[1] in cli) else index_js\n"
-            'env = os.environ.copy()\n'
-            'os.execvpe("node", ["node", script, *sys.argv[1:]], env)\n'
+        rc = _install_fetch()
+        return InstallResult(
+            rc == 0,
+            spec.id,
+            "fetch-mcp installed" if rc == 0 else "fetch-mcp install failed",
         )
-        for name in ("fetch-mcp", "mcp-fetch"):
-            launcher = bin_home() / name
-            launcher.write_text(content, encoding="utf-8")
-            launcher.chmod(0o755)
-            print(f"  -> {launcher}")
-
-        warn_if_bin_not_on_path()
-        return InstallResult(True, spec.id, "fetch-mcp installed")

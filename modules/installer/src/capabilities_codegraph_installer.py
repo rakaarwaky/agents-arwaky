@@ -1,4 +1,4 @@
-"""Codegraph installer (npm) — port of tools/install/install_codegraph.py.
+"""Codegraph installer (npm) — verbatim port of tools/install/install_codegraph.py.
 
 @colbymchenry/codegraph is a TypeScript project built with npm. Lockfile
 package-lock.json -> `npm ci`; build `npm run build` (tsc + copy-assets +
@@ -10,6 +10,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
@@ -21,7 +22,10 @@ from modules.shared.src.xdg.utility_xdg_atomic_io import (
 )
 from modules.shared.src.xdg.utility_xdg_paths import bin_home, data_home
 
+ROOT = repo_root()
 
+SRC = ROOT / "vendor/codegraph"
+APP_DIR = data_home() / "codegraph"
 ENTRY = "dist/bin/codegraph.js"
 LAUNCHERS = ["codegraph-mcp", "codegraph"]
 
@@ -31,50 +35,71 @@ IGNORES = shutil.ignore_patterns(
 )
 
 
+def run(cmd, cwd=None):
+    subprocess.run(cmd, cwd=cwd, check=True)
+
+
+def _require(tool: str, reason: str) -> bool:
+    if shutil.which(tool):
+        return True
+    print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
+    return False
+
+
+def is_installed() -> bool:
+    """Check if codegraph is already installed (binary exists)."""
+    return (bin_home() / "codegraph-mcp").exists()
+
+
+def _install_codegraph() -> int:
+    if is_installed():
+        print(">>> codegraph is already installed. Use 'aa update codegraph' to reinstall.")
+        return 0
+
+    if not (SRC / "package.json").exists():
+        print("Error: codegraph source not found (submodule not initialized).", file=sys.stderr)
+        return 1
+    if not _require("npm", "codegraph requires npm (https://nodejs.org)"):
+        return 1
+
+    print(f">>> Installing codegraph into {APP_DIR}...")
+    if APP_DIR.exists():
+        shutil.rmtree(APP_DIR)
+    shutil.copytree(SRC, APP_DIR, ignore=IGNORES)
+
+    run(["npm", "ci", "--no-audit", "--no-fund"], APP_DIR)
+    run(["npm", "run", "build"], APP_DIR)
+
+    entry = APP_DIR / ENTRY
+    if not entry.exists():
+        print(f"  Error: entry not found {entry}", file=sys.stderr)
+        return 1
+
+    ensure_bin_home()
+    for name in LAUNCHERS:
+        launcher = bin_home() / name
+        atomic_write_text(launcher,
+            "#!/usr/bin/env python3\n"
+            "import os, sys\n"
+            f'entry = r"{entry}"\n'
+            'os.execvpe("node", ["node", entry, *sys.argv[1:]], os.environ.copy())\n')
+        print(f"  -> {launcher}")
+
+    warn_if_bin_not_on_path()
+    print(">>> Successfully installed codegraph")
+    return 0
+
+
 class CodegraphInstaller(IToolInstaller):
     """Install vendor/codegraph (npm) into XDG data, build, write launchers."""
 
     def __init__(self, root=None) -> None:
-        self._root = root or repo_root()
+        self._root = root or ROOT
 
     def install(self, spec: ToolSpec) -> InstallResult:
-        root = self._root
-        if (bin_home() / "codegraph-mcp").exists():
-            return InstallResult(True, spec.id, "codegraph is already installed")
-
-        src = root / "vendor/codegraph"
-        if not (src / "package.json").exists():
-            return InstallResult(False, spec.id, "codegraph source not found (submodule not initialized)")
-        if shutil.which("npm") is None:
-            return InstallResult(False, spec.id, "npm is required (https://nodejs.org)")
-
-        app_dir = data_home() / "codegraph"
-        print(f">>> Installing codegraph into {app_dir}...")
-        if app_dir.exists():
-            shutil.rmtree(app_dir)
-        shutil.copytree(src, app_dir, ignore=IGNORES)
-
-        try:
-            subprocess.run(["npm", "ci", "--no-audit", "--no-fund"], cwd=app_dir, check=True)
-            subprocess.run(["npm", "run", "build"], cwd=app_dir, check=True)
-        except subprocess.CalledProcessError as exc:
-            return InstallResult(False, spec.id, f"npm build failed: {exc}")
-
-        entry = app_dir / ENTRY
-        if not entry.exists():
-            return InstallResult(False, spec.id, f"entry not found {entry}")
-
-        ensure_bin_home()
-        for name in LAUNCHERS:
-            launcher = bin_home() / name
-            atomic_write_text(
-                launcher,
-                "#!/usr/bin/env python3\n"
-                "import os, sys\n"
-                f'entry = r"{entry}"\n'
-                'os.execvpe("node", ["node", entry, *sys.argv[1:]], os.environ.copy())\n',
-            )
-            print(f"  -> {launcher}")
-
-        warn_if_bin_not_on_path()
-        return InstallResult(True, spec.id, "codegraph installed")
+        rc = _install_codegraph()
+        return InstallResult(
+            rc == 0,
+            spec.id,
+            "codegraph installed" if rc == 0 else "codegraph install failed",
+        )

@@ -1,11 +1,12 @@
 """Harness surface — CLI adapters for aa connect / aa disconnect.
 
-Flag parsing ported from tools/connect/connect.py. Target/alias resolution
-and per-connector dispatch happen in the orchestrator.
+Port of tools/connect/connect.py: thin dispatch layer that parses CLI args,
+resolves harness targets through the adapter registry, and delegates to the
+per-harness capability modules via the orchestrator.
 """
 from __future__ import annotations
 
-from modules.harness.src.agent_harness_orchestrator import HarnessOrchestrator
+from modules.harness.src.agent_harness_orchestrator import log_err
 from modules.shared.src.harness.contract_harness_aggregate import IHarnessAggregate
 
 HELP = """agents-arwaky Harness Connector / Disconnector — surface command.
@@ -61,10 +62,10 @@ def cmd_connect(args: list[str], orch: IHarnessAggregate) -> int:
         print(HELP)
         return 0
     if unknown is not None:
-        print(f"Unknown target or option: {unknown}", file=sys.stderr)
+        log_err(f"Unknown target or option: {unknown}")
         return 1
     if not targets:
-        print("No target agent harness specified.", file=sys.stderr)
+        log_err("No target agent harness specified.")
         print(HELP)
         return 1
     return orch.connect(
@@ -92,10 +93,31 @@ def cmd_disconnect(args: list[str], orch: IHarnessAggregate) -> int:
         print(HELP)
         return 0
     if unknown is not None:
-        print(f"Unknown target or option: {unknown}", file=sys.stderr)
+        log_err(f"Unknown target or option: {unknown}")
         return 1
     if not targets:
-        print("No target agent harness specified.", file=sys.stderr)
+        log_err("No target agent harness specified.")
         print(HELP)
         return 1
     return orch.disconnect(targets, dry_run=dry_run)
+
+
+def main(argv, orch: IHarnessAggregate | None = None):
+    """Standalone dispatch — accepts both 'aa connect/disconnect ...' style
+    and direct alias/flag calls (port of connect.py main())."""
+    if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
+        print(HELP)
+        return 0
+    # Accept both "aa connect/disconnect ..." style and direct calls
+    args = argv[1:]
+    if orch is None:
+        from modules.harness.src.root_harness_container import create_harness_feature
+        orch = create_harness_feature()
+    if args and args[0] in ("disconnect", "unconnect"):
+        return cmd_disconnect(args[1:], orch)
+    if args and args[0] == "connect":
+        return cmd_connect(args[1:], orch)
+    if args and args[0] in ("--all", "all"):
+        # default action: connect (for backward compat with connect-agent.sh calls)
+        return cmd_connect(args, orch)
+    return cmd_disconnect(args, orch)

@@ -1,79 +1,137 @@
-"""Service manager capability — unified control over the daemons."""
+#!/usr/bin/env python3
+"""Unified service manager (Python) — pengganti service-manager.sh.
+
+AES port of tools/service/service_manager.py: body kept verbatim; only the
+imports are swapped to their AES equivalents (paths) and the original
+subprocess exec of the two daemon scripts is replaced by direct calls into
+modules/daemon (accepted equivalent; the daemon scripts were deleted by the
+AES refactor and their logic now lives in the daemon module).
+"""
 from __future__ import annotations
 
-from modules.daemon.src.capabilities_daemon_anytype import AnytypeDaemonManager
-from modules.daemon.src.capabilities_daemon_podman import PodmanDaemonManager
-from modules.shared.src.daemon.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.service.contract_service_protocol import IServiceManager
+import subprocess
+import sys
+from pathlib import Path
+
+from modules.shared.src.paths.utility_paths import repo_root
+
+ROOT = repo_root()
+
+from modules.daemon.src.capabilities_daemon_podman import main as ninerouter_main
+from modules.daemon.src.capabilities_daemon_anytype import main as anytype_main
 
 
-class ServiceManager(IServiceManager):
-    """Status / start / stop / restart / logs across the managed daemons.
+def run_py(script, args):
+    return subprocess.run([sys.executable, str(script), *args], check=False).returncode
 
-    Subprocess calls to the daemon modules are replaced by injected
-    IDaemonManager instances.
 
-    # Block 1: Constructor (daemon injection)
-    # Block 2: Target routing
-    # Block 3: Service verbs
+def _run_ninerouter(args):
+    return ninerouter_main(list(args))
+
+
+def _run_anytype(args):
+    return anytype_main(list(args))
+
+
+def cmd_status():
+    print("=========== 9Router ===========")
+    _run_ninerouter(["status"])
+    print()
+    print("=========== Anytype ===========")
+    _run_anytype(["status"])
+    return 0
+
+
+def cmd_start(target="all"):
+    if target in ("9router", "all"):
+        _run_ninerouter(["start"])
+    if target in ("anytype", "all"):
+        _run_anytype(["start"])
+    return 0
+
+
+def cmd_stop(target="all"):
+    if target in ("9router", "all"):
+        _run_ninerouter(["stop"])
+    if target in ("anytype", "all"):
+        _run_anytype(["stop"])
+    return 0
+
+
+def cmd_restart(target="all"):
+    if target in ("9router", "all"):
+        _run_ninerouter(["restart"])
+    if target in ("anytype", "all"):
+        _run_anytype(["restart"])
+    return 0
+
+
+def cmd_logs(target="9router"):
+    if target == "9router":
+        return _run_ninerouter(["logs"])
+    if target == "anytype":
+        return _run_anytype(["logs"])
+    print("Usage: aa service logs <9router|anytype>")
+    return 1
+
+
+def cmd_help():
+    print("Usage: aa service <status|start|stop|restart|logs> [9router|anytype|all]")
+    return 0
+
+
+def main(argv):
+    if not argv or argv[0] in ("help", "-h", "--help"):
+        return cmd_help()
+    action = argv[0]
+    target = argv[1] if len(argv) > 1 else "all"
+    if action == "status":
+        return cmd_status()
+    if action == "start":
+        return cmd_start(target)
+    if action == "stop":
+        return cmd_stop(target)
+    if action == "restart":
+        return cmd_restart(target)
+    if action == "logs":
+        return cmd_logs(target)
+    print(f"Unknown service command: {action}", file=sys.stderr)
+    return cmd_help()
+
+
+class ServiceManager:
+    """AES facade: exposes the original script verbs by their CLI names.
+
+    The optional daemon managers in the constructor are accepted for
+    composition-root wiring compatibility; verb bodies are the original
+    script's top-level verb bodies (they manage the daemons directly).
     """
 
-    # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(
-        self,
-        ninerouter: IDaemonManager,
-        anytype: IDaemonManager,
-    ) -> None:
+    def __init__(self, ninerouter=None, anytype=None) -> None:
         self._ninerouter = ninerouter
         self._anytype = anytype
 
-    # -- Block 2: Target routing -------------------------------------------------
-    def _targets(self, target: str) -> tuple[bool, bool]:
-        do_ninerouter = target in ("9router", "ninerouter", "all")
-        do_anytype = target in ("anytype", "all")
-        return do_ninerouter, do_anytype
-
-    # -- Block 3: Service verbs ---------------------------------------------------
     def status(self) -> int:
-        print("=========== 9Router ===========")
-        self._ninerouter.status()
-        print()
-        print("=========== Anytype ===========")
-        self._anytype.status()
-        return 0
+        return cmd_status()
 
     def start(self, target: str = "all") -> int:
-        do_ninerouter, do_anytype = self._targets(target)
-        if do_ninerouter:
-            self._ninerouter.start()
-        if do_anytype:
-            self._anytype.start()
-        return 0
+        return cmd_start(target)
 
     def stop(self, target: str = "all") -> int:
-        do_ninerouter, do_anytype = self._targets(target)
-        if do_ninerouter:
-            self._ninerouter.stop()
-        if do_anytype:
-            self._anytype.stop()
-        return 0
+        return cmd_stop(target)
 
     def restart(self, target: str = "all") -> int:
-        do_ninerouter, do_anytype = self._targets(target)
-        if do_ninerouter:
-            self._ninerouter.restart()
-        if do_anytype:
-            self._anytype.restart()
-        return 0
+        return cmd_restart(target)
 
     def logs(self, target: str = "9router") -> int:
-        if target in ("9router", "ninerouter"):
-            return self._ninerouter.logs()
-        if target == "anytype":
-            return self._anytype.logs()
-        print("Usage: aa service logs <9router|anytype>")
-        return 1
+        return cmd_logs(target)
 
     def help(self) -> int:
-        print("Usage: aa service <status|start|stop|restart|logs> [9router|anytype|all]")
-        return 0
+        return cmd_help()
+
+    def main(self, argv) -> int:
+        return main(argv)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

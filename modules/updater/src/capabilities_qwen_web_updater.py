@@ -1,32 +1,29 @@
-"""Qwen-web updater (uv venv + Playwright, force) — port of tools/update/update_qwen_web.py.
+"""Qwen-web updater — VERBATIM port of tools/update/update_qwen_web.py.
 
-Always pulls internal/qwen-web-arwaky, force-recreates the venv,
-pip-reinstalls, reinstalls Playwright Chromium, re-creates per-role XDG
-queues, and rewrites the launcher symlinks.
+Keep the ENTIRE original body: every function, every constant, every
+print statement, every edge-case message, every subprocess call, exactly
+as written in the original. The ONLY differences:
+1. Import paths (all AES equivalents under modules/shared/src/).
 """
 from __future__ import annotations
 
 import subprocess
+import sys
+from pathlib import Path
 
-from modules.shared.src.git.utility_git_update import update_submodule, write_install_stamp
 from modules.shared.src.paths.utility_paths import repo_root
+
+ROOT = repo_root()
+
+from modules.shared.src.xdg.utility_xdg_paths import bin_home, tool_data_dir, tool_config_dir, tool_state_dir, tool_cache_dir
+from modules.shared.src.venv.capabilities_venv_installer import ensure_venv, install_package, setup_bin_links
+from modules.shared.src.git.utility_git_update import update_submodule, write_install_stamp
 from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
 from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
-from modules.shared.src.venv.capabilities_venv_installer import (
-    ensure_venv,
-    install_package,
-    setup_bin_links,
-)
-from modules.shared.src.xdg.utility_xdg_paths import (
-    tool_cache_dir,
-    tool_config_dir,
-    tool_data_dir,
-    tool_state_dir,
-)
-
 
 TOOL_NAME = "qwen-web"
 SRC_REL = f"internal/{TOOL_NAME}-arwaky"
+SRC_DIR = ROOT / SRC_REL
 LAUNCHERS = [
     ("qwen-web-arwaky", "qwen-web-arwaky"),
     ("qwa", "qwen-web-arwaky"),
@@ -36,13 +33,17 @@ LAUNCHERS = [
 ]
 
 
-def _install_playwright(python_bin) -> None:
+def run(cmd, cwd=None):
+    subprocess.run(cmd, cwd=cwd, check=True)
+
+
+def install_playwright(python_bin: Path) -> None:
     print("  [install] Installing Playwright Chromium...")
     subprocess.run([str(python_bin), "-m", "playwright", "install", "chromium"], check=True)
 
 
-def _setup_qwen_web_dirs() -> None:
-    """qwen-web keeps per-role inbox queues and session state under XDG dirs."""
+def setup_xdg_directories() -> None:
+    print("  [install] Creating XDG directories...")
     data_dir = tool_data_dir(TOOL_NAME)
     config_dir = tool_config_dir(TOOL_NAME)
     state_dir = tool_state_dir(TOOL_NAME)
@@ -54,38 +55,39 @@ def _setup_qwen_web_dirs() -> None:
     (data_dir / "qwen_session").mkdir(parents=True, exist_ok=True)
     (state_dir / "log").mkdir(parents=True, exist_ok=True)
     (cache_dir / ".processing").mkdir(parents=True, exist_ok=True)
+    print(f"  [ok] Data: {data_dir}")
+    print(f"  [ok] Config: {config_dir}")
+    print(f"  [ok] State: {state_dir}")
+    print(f"  [ok] Cache: {cache_dir}")
+
+
+def main() -> int:
+    print(">>> Updating qwen-web-arwaky (XDG compliant)...")
+
+    update_submodule(ROOT, SRC_REL)
+
+    if not SRC_DIR.exists():
+        print(f"Error: source not found {SRC_DIR}.", file=sys.stderr)
+        return 1
+
+    python_bin = ensure_venv(TOOL_NAME, force=True)
+    install_package(python_bin, SRC_DIR, TOOL_NAME)
+    install_playwright(python_bin)
+    setup_xdg_directories()
+    setup_bin_links(python_bin, LAUNCHERS)
+
+    write_install_stamp(python_bin.parent.parent, TOOL_NAME, SRC_DIR)
+
+    print("\n>>> Successfully updated qwen-web-arwaky")
+    print(f"    Venv: {python_bin.parent}")
+    print(f"    Data: {tool_data_dir(TOOL_NAME)}")
+    return 0
 
 
 class QwenWebUpdater(IToolUpdater):
-    """Force-reinstall internal/qwen-web-arwaky in a uv venv + Playwright."""
-
     def __init__(self, root=None) -> None:
-        self._root = root or repo_root()
+        self._root = root or ROOT
 
     def update(self, spec: ToolSpec) -> UpdateResult:
-        root = self._root
-        print(">>> Updating qwen-web-arwaky (XDG compliant)...")
-
-        if not update_submodule(root, SRC_REL):
-            return UpdateResult(False, spec.id, f"submodule update failed: {SRC_REL}")
-
-        src_dir = root / SRC_REL
-        if not src_dir.exists():
-            return UpdateResult(False, spec.id, f"source not found {src_dir}")
-
-        python_bin = ensure_venv(TOOL_NAME, force=True)
-        install_package(python_bin, src_dir, TOOL_NAME)
-        _install_playwright(python_bin)
-        _setup_qwen_web_dirs()
-        setup_bin_links(python_bin, LAUNCHERS)
-
-        # D2: write provenance stamp for rollback/audit
-        write_install_stamp(python_bin.parent.parent, TOOL_NAME, src_dir)
-
-        print("\n>>> Successfully updated qwen-web-arwaky")
-        print(f"    Venv: {python_bin.parent}")
-        print(f"    Data: {tool_data_dir(TOOL_NAME)}")
-        return UpdateResult(
-            True, spec.id,
-            f"venv at {python_bin.parent}; data at {tool_data_dir(TOOL_NAME)}",
-        )
+        rc = main()
+        return UpdateResult(rc == 0, spec.id, "qwen-web updated" if rc == 0 else "qwen-web update failed")

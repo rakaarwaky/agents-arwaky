@@ -1,4 +1,4 @@
-"""Shared installer primitives for per-tool installer capabilities."""
+"""Shared primitives for per-tool installer/uninstaller/updater capabilities."""
 from __future__ import annotations
 
 import subprocess
@@ -29,7 +29,7 @@ class InstallerBase:
             )
         return (self._root / src_rel).exists()
 
-    # -- Block 2: Result helpers -----------------------------------------------
+    # -- Block 2: Result helpers ------------------------------------------------
     @staticmethod
     def ok(spec: ToolSpec, message: str) -> InstallResult:
         return InstallResult(True, spec.id, message)
