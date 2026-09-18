@@ -15,4 +15,4 @@ class IToolUninstaller(ABC):
     @abstractmethod
     def uninstall(self, spec: ToolSpec) -> UninstallResult:
         """Uninstall the tool described by *spec*; report outcome."""
-        raise NotImplementedError
+        return None

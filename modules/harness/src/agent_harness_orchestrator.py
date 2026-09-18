@@ -1,23 +1,27 @@
 """Harness agent orchestrator — routes connect/disconnect to per-harness connectors.
 
-Port of tools/connect/connect.py: the harness registry (P4-A21: adapters
-register themselves), target parsing, the two verbs, and standalone main()
-live here, on top of the per-harness connector classes (IHarnessConnector).
+Port of tools/connect/connect.py: the harness registry data (P4-A21),
+target parsing, the two verbs and the aggregate delegation live here, on
+top of the per-harness connector classes (IHarnessConnector) — all
+injected by the root composition layer so this agent stays
+capability-import-free (AES201 rule 8).
 """
 from __future__ import annotations
 
-from modules.harness.src.root_harness_connectors import (
+import sys
+
+from modules.harness.src.contract_harness_aggregate import IHarnessAggregate
+from modules.harness.src.contract_harness_protocol import IHarnessConnector
+from modules.harness.src.taxonomy_harness_constant import (
     ALIASES,
     ALL_HARNESS_IDS,
     HARNESSES,
 )
-from modules.harness.src.contract_harness_aggregate import IHarnessAggregate
-from modules.harness.src.contract_harness_protocol import IHarnessConnector
 
 
 def log_err(msg: str) -> None:
-    """Emit a diagnostic line to stderr without importing the shared helper."""
-    print(msg, file=__import__("sys").stderr)
+    """Emit a diagnostic line to stderr."""
+    print(f"  \u2717 {msg}", file=sys.stderr)
 
 
 def _parse_targets(args):
@@ -65,7 +69,65 @@ agent harness paths (NOT the current working directory's .agents/skills \u2014
 that is `aa unskill` / skill-manager).
 """
 
-# --- verb dispatch (port of connect.py) ---------------------------------------
+
+class HarnessOrchestrator(IHarnessAggregate):
+    """Registry of connectors, routed by target harness id/alias.
+
+    # Block 1: Constructor (connector registry)
+    # Block 2: Target resolution
+    # Block 3: Aggregate verb delegation
+    """
+
+    # -- Block 1: Constructor ---------------------------------------------------
+    def __init__(self, connectors: dict[str, IHarnessConnector]) -> None:
+        self._connectors = connectors
+        self._aliases: dict[str, str] = {}
+        for harness_id in HARNESSES:
+            for alias in HARNESSES[harness_id]["aliases"]:
+                self._aliases[alias.lstrip("-")] = harness_id
+
+    # -- Block 2: Target resolution -------------------------------------------------
+    def resolve_targets(self, targets: tuple[str, ...]) -> tuple[str, ...]:
+        """Map raw CLI targets (id/alias) onto canonical ids, deduped, drop unknown."""
+        out: list[str] = []
+        seen: set[str] = set()
+        for target in targets:
+            tid = self._aliases.get(target.lstrip("-"), target)
+            if tid not in self._connectors or tid in seen:
+                continue
+            seen.add(tid)
+            out.append(tid)
+        return tuple(out)
+
+    def all_targets(self) -> tuple[str, ...]:
+        return tuple(self._connectors)
+
+    # -- Block 3: Aggregate verb delegation ------------------------------------------
+    def connect(self, targets, force: bool = False, dry_run: bool = False, mcp_only: bool = False,
+                skills_only: bool = False, env_only: bool = False, copy_skills: bool = False) -> int:
+        args = [str(t) for t in targets]
+        if force:
+            args.append("--force")
+        if dry_run:
+            args.append("--dry-run")
+        if mcp_only:
+            args.append("--mcp-only")
+        if skills_only:
+            args.append("--skills-only")
+        if env_only:
+            args.append("--env-only")
+        if copy_skills:
+            args.append("--copy-skills")
+        return cmd_connect(args)
+
+    def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> int:
+        args = [str(t) for t in targets]
+        if dry_run:
+            args.append("--dry-run")
+        return cmd_disconnect(args)
+
+
+# --- verb dispatch (port of connect.py) ----------------------------------------
 def cmd_disconnect(args):
     dry_run = False
     clean_args = []
@@ -157,60 +219,3 @@ def main(argv):
         # default action: connect (for backward compat with connect-agent.sh calls)
         return cmd_connect(args)
     return cmd_disconnect(args)
-
-
-class HarnessOrchestrator(IHarnessAggregate):
-    """Registry of connectors, routed by target harness id/alias.
-
-    # Block 1: Constructor (connector registry)
-    # Block 2: Target resolution
-    # Block 3: Aggregate verb delegation
-    """
-
-    # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, connectors: dict[str, IHarnessConnector]) -> None:
-        self._connectors = connectors
-        self._aliases: dict[str, str] = {}
-        for harness_id in HARNESSES:
-            for alias in HARNESSES[harness_id]["aliases"]:
-                self._aliases[alias.lstrip("-")] = harness_id
-
-    # -- Block 2: Target resolution -------------------------------------------------
-    def resolve_targets(self, targets: tuple[str, ...]) -> tuple[str, ...]:
-        """Map raw CLI targets (id/alias) onto canonical ids, deduped, drop unknown."""
-        out: list[str] = []
-        seen: set[str] = set()
-        for target in targets:
-            tid = self._aliases.get(target.lstrip("-"), target)
-            if tid not in self._connectors or tid in seen:
-                continue
-            seen.add(tid)
-            out.append(tid)
-        return tuple(out)
-
-    def all_targets(self) -> tuple[str, ...]:
-        return tuple(self._connectors)
-
-    # -- Block 3: Aggregate verb delegation ------------------------------------------
-    def connect(self, targets, force: bool = False, dry_run: bool = False, mcp_only: bool = False,
-                skills_only: bool = False, env_only: bool = False, copy_skills: bool = False) -> int:
-        args = [str(t) for t in targets]
-        if force:
-            args.append("--force")
-        if dry_run:
-            args.append("--dry-run")
-        if mcp_only:
-            args.append("--mcp-only")
-        if skills_only:
-            args.append("--skills-only")
-        if env_only:
-            args.append("--env-only")
-        if copy_skills:
-            args.append("--copy-skills")
-        return cmd_connect(args)
-
-    def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> int:
-        args = [str(t) for t in targets]
-        if dry_run:
-            args.append("--dry-run")
-        return cmd_disconnect(args)

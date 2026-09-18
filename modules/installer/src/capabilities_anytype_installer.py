@@ -18,13 +18,14 @@ from pathlib import Path
 
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.installer.src.contract_tool_installer import IToolInstaller
-from modules.shared.src.utility_xdg_atomic_io import (
+from modules.installer.src.contract_tool_installer_protocol import IToolInstaller
+from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.taxonomy_xdg_atomic_io import (
     ensure_bin_home,
     ensure_path,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.utility_xdg_paths import bin_home, data_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
 
 
 # ---------------------------------------------------------------------------
@@ -46,13 +47,20 @@ DAEMON_DATA_REL = "anytype-daemon"
 INTERNAL_BIN = "internal-bin"
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+
+
+
 class AnytypeInstaller(IToolInstaller):
     """Install both anytype-mcp (bun) and anytype-daemon (container + systemd)."""
 
-    def __init__(self, root=None) -> None:
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def __init__(self, root=None, daemons: 'IDaemonAggregate | None' = None) -> None:
         self._root = root or repo_root()
+        self._daemons = daemons
 
     # -- Block 1: anytype-mcp ----------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def _install_mcp(self, spec: ToolSpec) -> InstallResult:
         root = self._root
         src = root / MCP_SRC_REL
@@ -105,11 +113,10 @@ class AnytypeInstaller(IToolInstaller):
             (data_dir / d).mkdir(parents=True, exist_ok=True)
 
         # Delegate to the daemon module's service_install (modules/daemon/deploy/anytype-daemon.service)
-        from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+        daemons = self._daemons
 
         print(">>> Setting up anytype-daemon (container + systemd user service)...")
-        manager = AnytypeDaemonManager()
-        rc = manager.service_install()
+        rc = daemons.service_install("anytype")
 
         def _write_launcher(path: Path) -> None:
             path.write_text(
@@ -118,7 +125,7 @@ class AnytypeInstaller(IToolInstaller):
                 "from pathlib import Path\n"
                 f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(root))}))\n'
                 "sys.path.insert(0, str(root))\n"
-                'from modules.daemon.src.surface_daemon_command import cmd_anytype\n'
+                'from modules.daemon.src.agent_daemon_verb import cmd_anytype\n'
                 'sys.exit(cmd_anytype(sys.argv[1:]))\n',
                 encoding="utf-8",
             )

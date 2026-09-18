@@ -20,7 +20,6 @@ and ``generate_config`` delegates to ``generate``.
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -28,12 +27,74 @@ from modules.shared.src.utility_envfile import load_first_env
 from modules.mcp.src.contract_mcp_aggregate import IMcpAggregate
 from modules.mcp.src.contract_mcp_protocol import IMcpConfigGenerator
 from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_xdg_paths import (
+from modules.shared.src.taxonomy_xdg_paths import (
     agents_arwaky_config_dir,
     config_home,
 )
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
+    """Read the manifest + env files and write mcp_servers.generated.json.
+
+    # Block 1: Constructor & env resolution
+    # Block 2: Config assembly & generation
+    # Block 3: Aggregate inspection verbs (list/show)
+    """
+
+    # -- Block 1: Constructor & env resolution -----------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def __init__(self) -> None:
+        self._root = repo_root()
+
+    # -- Block 2: Config assembly & generation ------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def generate(self, output: Path) -> int:
+        """Write the unified MCP client config to *output*; returns 0.
+
+        Delegates to the verbatim original ``main()`` above, passing
+        *output* as the explicit target (the original honours
+        ``sys.argv[1]`` exactly this way: "Path(sys.argv[1]) if
+        len(sys.argv) > 1 else ROOT / 'mcp_servers.generated.json'").
+        """
+        original_argv = list(sys.argv)
+        sys.argv = [sys.argv[0], str(output)]
+        try:
+            return main()
+        finally:
+            sys.argv = original_argv
+
+    def generate_config(self, output: Path) -> int:
+        return self.generate(output)
+
+    # -- Block 3: Aggregate inspection verbs ---------------------------------------
+    def list_servers(self) -> list[dict[str, object]]:
+        """MCP-enabled tools from the manifest (original cmd_mcp 'list' logic)."""
+        manifest_path = self._root / "modules/shared/config/manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        servers = []
+        for tool in manifest.get("tools", []):
+            if not tool.get("isMcp", False):
+                continue
+            servers.append({
+                "id": tool["id"],
+                "category": tool.get("category", ""),
+                "description": tool.get("description", ""),
+            })
+        return servers
+
+    def show_server(self) -> int:
+        generated = self._root / "mcp_servers.generated.json"
+        if not generated.exists():
+            print("Configuration file not found. Generating now...")
+            self.generate(generated)
+        if generated.exists():
+            print(f"Path: {generated}")
+            print()
+            print(generated.read_text(encoding="utf-8"))
+            return 0
+        print("Failed to generate MCP configuration.", file=sys.stderr)
+        return 1
 def main() -> int:
     output = Path(sys.argv[1]) if len(sys.argv) > 1 else repo_root() / "mcp_servers.generated.json"
     print("Generating unified MCP client configuration...")
@@ -85,63 +146,3 @@ def main() -> int:
     return 0
 
 
-class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
-    """Read the manifest + env files and write mcp_servers.generated.json.
-
-    # Block 1: Constructor & env resolution
-    # Block 2: Config assembly & generation
-    # Block 3: Aggregate inspection verbs (list/show)
-    """
-
-    # -- Block 1: Constructor & env resolution -----------------------------------
-    def __init__(self) -> None:
-        self._root = repo_root()
-
-    # -- Block 2: Config assembly & generation ------------------------------------
-    def generate(self, output: Path) -> int:
-        """Write the unified MCP client config to *output*; returns 0.
-
-        Delegates to the verbatim original ``main()`` above, passing
-        *output* as the explicit target (the original honours
-        ``sys.argv[1]`` exactly this way: "Path(sys.argv[1]) if
-        len(sys.argv) > 1 else ROOT / 'mcp_servers.generated.json'").
-        """
-        import builtins
-        original_argv = list(sys.argv)
-        sys.argv = [sys.argv[0], str(output)]
-        try:
-            return main()
-        finally:
-            sys.argv = original_argv
-
-    def generate_config(self, output: Path) -> int:
-        return self.generate(output)
-
-    # -- Block 3: Aggregate inspection verbs ---------------------------------------
-    def list_servers(self) -> list[dict[str, object]]:
-        """MCP-enabled tools from the manifest (original cmd_mcp 'list' logic)."""
-        manifest_path = self._root / "modules/shared/config/manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        servers = []
-        for tool in manifest.get("tools", []):
-            if not tool.get("isMcp", False):
-                continue
-            servers.append({
-                "id": tool["id"],
-                "category": tool.get("category", ""),
-                "description": tool.get("description", ""),
-            })
-        return servers
-
-    def show_server(self) -> int:
-        generated = self._root / "mcp_servers.generated.json"
-        if not generated.exists():
-            print("Configuration file not found. Generating now...")
-            self.generate(generated)
-        if generated.exists():
-            print(f"Path: {generated}")
-            print()
-            print(generated.read_text(encoding="utf-8"))
-            return 0
-        print("Failed to generate MCP configuration.", file=sys.stderr)
-        return 1

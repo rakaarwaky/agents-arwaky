@@ -1,11 +1,13 @@
 """Docs check capability — delegates to the shared doc_pack domain."""
 from __future__ import annotations
+from modules.shared.src.taxonomy_doc_vo import DocFinding
+
 
 import os
 from pathlib import Path
 
 from modules.check.src.contract_check_protocol import ICheckRunner
-from modules.check.src.capabilities_doc_pack import (
+from modules.shared.src.utility_doc_pack import (
     DocFinding,
     as_strict,
     audit_docs,
@@ -16,6 +18,8 @@ from modules.shared.src.utility_logging import err, info, ok, warn
 from modules.shared.src.utility_paths import repo_root
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+
 class DocsCheckRunner(ICheckRunner):
     """Audit document invariants via the shared doc_pack domain.
 
@@ -25,10 +29,12 @@ class DocsCheckRunner(ICheckRunner):
     """
 
     # -- Block 1: Configuration ---------------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
 
     # -- Block 2: Audit ------------------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def audit(self, strict: bool = False, include_subtrees: bool = False) -> list[DocFinding]:
         return audit_docs(self._root, include_subtrees=include_subtrees)
 

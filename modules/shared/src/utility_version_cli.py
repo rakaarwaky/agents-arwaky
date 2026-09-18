@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import sys
 
-from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_version import bump, read_version
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_version_vo import bump, read_version
 
 
 def main(argv: list[str]) -> int:
@@ -15,7 +15,7 @@ def main(argv: list[str]) -> int:
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
-    version_file = repo_root() / "config" / "version.txt"
+    version_file = repo_root / "config" / "version.txt"
     version_file.parent.mkdir(parents=True, exist_ok=True)
     version_file.write_text(nxt + "\n", encoding="utf-8")
     print(f"agents-arwaky {cur} -> {nxt}")

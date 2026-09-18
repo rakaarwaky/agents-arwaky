@@ -24,3 +24,19 @@ def cmd_mcp(args: list[str], orch: IMcpAggregate) -> int:
     err(f"Unknown MCP action: {action}")
     print("Valid actions: list, generate, show")
     return 1
+
+
+class McpVerb(IMcpAggregate):
+    """Agent-layer verb surface for the mcp feature (AES405 aggregate implementor)."""
+
+    def __init__(self, agg: IMcpAggregate) -> None:
+        self._agg = agg
+
+    def list_servers(self):
+        return self._agg.list_servers()
+
+    def show_server(self) -> int:
+        return self._agg.show_server()
+
+    def generate_config(self, output):
+        return self._agg.generate_config(output)

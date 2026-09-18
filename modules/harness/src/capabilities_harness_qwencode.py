@@ -1,5 +1,7 @@
 """Qwen Code (qwencode) harness adapter — capabilities layer (P4-A2)."""
 from __future__ import annotations
+from modules.harness.src.taxonomy_harness_vo import HarnessConfig
+
 
 import json
 import os
@@ -7,7 +9,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from modules.harness.src.capabilities_harness_shared import (  # type: ignore[import-not-found]
+from modules.harness.src.utility_harness_shared import (
     HOME,
     PLACEHOLDER_KEYS,
     REPO_ROOT,
@@ -39,7 +41,19 @@ SKILL_LINK_VERIFIED = True
 PROVIDER_ID = "my9router"
 ROUTER_ENV_KEY = "NINEROUTER_KEY"
 
+# ─── Block 1: Class Definition & Constructor ──────────────
 
+class QwencodeConnector(IHarnessConnector):
+    """Module-level connect/disconnect bound to the IHarnessConnector contract."""
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def connect(self, force: bool, dry_run: bool, mcp_only: bool, skills_only: bool, env_only: bool, copy_skills: bool = False) -> None:
+        connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def disconnect(self, force: bool, dry_run: bool) -> None:
+        disconnect(dry_run)
 def _qwen_home() -> Path:
     return Path(os.environ.get("QWEN_HOME", HOME / ".qwen"))
 
@@ -384,17 +398,6 @@ def disconnect(dry_run):
                     ["NINEROUTER_URL", "NINEROUTER_KEY", "MNEMOSYNE_DATA_DIR"], dry_run)
     log_ok("Qwen Code disconnect complete.")
 
-
-class QwencodeConnector(IHarnessConnector):
-    """Module-level connect/disconnect bound to the IHarnessConnector contract."""
-
-    def connect(self, force: bool, dry_run: bool, mcp_only: bool, skills_only: bool, env_only: bool, copy_skills: bool = False) -> None:
-        connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills)
-
-    def disconnect(self, force: bool, dry_run: bool) -> None:
-        disconnect(dry_run)
-
-
 def register() -> dict:
     """Register this harness adapter in the global registry."""
     return {
@@ -404,3 +407,10 @@ def register() -> dict:
         "connect": connect,
         "disconnect": disconnect,
     }
+
+__all__ = ['HarnessConfig']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"HarnessConfig": HarnessConfig}

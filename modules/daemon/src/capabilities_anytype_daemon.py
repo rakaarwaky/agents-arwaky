@@ -17,13 +17,12 @@ import subprocess
 import sys
 import time
 import urllib.request
-from pathlib import Path
 
 from modules.daemon.src.contract_daemon_protocol import IDaemonManager
 from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
 from modules.shared.src.utility_envfile import update_env_file
 from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_xdg_paths import (
+from modules.shared.src.taxonomy_xdg_paths import (
     agents_arwaky_config_dir,
     config_home,
     data_home,
@@ -49,11 +48,82 @@ DATA_ROOT = data_home() / "anytype-mcp"
 PID_FILE = state_home() / "anytype-daemon.pid"
 
 
-def run(cmd, **kw):  # noqa: S603
+# ─── Block 1: Class Definition & Constructor ──────────────
+class AnytypeDaemonManager(IDaemonManager):
+    """AES facade: exposes the original script verbs via IDaemonManager.
+
+    Block 1 — constructor (stateless, no DI needed beyond module globals).
+    Block 2 — protocol contract methods only (start/stop/status/logs/restart).
+    Block 3 — legacy verb facades, factories, and helpers retained verbatim.
+    """
+
+    def __init__(self, root=None, daemons: object | None = None) -> None:
+        pass
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def start(self) -> int:
+        return cmd_start()
+
+    def stop(self) -> int:
+        return cmd_stop()
+
+    def restart(self) -> int:
+        return cmd_restart()
+
+    def status(self) -> DaemonStatus:
+        # Call legacy cmd_status for side-effect (prints), then build VO
+        cmd_status()
+        return DaemonStatus(
+            container_state="running" if container_running() else "stopped" if container_exists() else "not-found",
+            service_state="unknown",
+            api_ready=api_ready(timeout=3),
+            data_dir=str(DATA_ROOT),
+            ok=container_running() and api_ready(timeout=3),
+            details=(),
+        )
+
+    def logs(self) -> int:
+        return cmd_logs()
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return "AnytypeDaemonManager()"
+
+    def auth_create(self, name: str = "agent") -> int:
+        return cmd_auth_create(name)
+
+    def auth_key(self, name: str = "arwaky-agent-key") -> int:
+        return cmd_auth_key(name)
+
+    def space_join(self, link: str) -> int:
+        return cmd_space_join(link)
+
+    def space_list(self) -> int:
+        return cmd_space_list()
+
+    def service_install(self) -> int:
+        return cmd_service_install()
+
+    def service_status(self) -> int:
+        return cmd_service_status()
+
+    def service_uninstall(self) -> int:
+        return self.stop()
+
+    def help(self) -> int:
+        return cmd_help()
+
+    def main(self, argv) -> int:
+        return main(argv)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+def run(cmd, **kw):
     return subprocess.run(cmd, check=False, **kw)
 
 
-def out(cmd, **kw):  # noqa: S603
+def out(cmd, **kw):
     return subprocess.run(
         cmd, capture_output=True, text=True, check=False, **kw
     ).stdout.strip()
@@ -81,7 +151,7 @@ def api_ready(timeout=90):
     delay = 1.0
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(url, timeout=3) as r:  # noqa: S310
+            with urllib.request.urlopen(url, timeout=3) as r:
                 if r.status < 400:
                     return True
         except (OSError, ValueError):
@@ -93,7 +163,7 @@ def api_ready(timeout=90):
 
 
 def image_exists() -> bool:
-    return subprocess.run(  # noqa: S603
+    return subprocess.run(
         ["podman", "image", "exists", IMAGE_NAME],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -186,7 +256,7 @@ def cmd_start():
     DATA_ROOT.mkdir(parents=True, exist_ok=True)
     log_file = DATA_ROOT / "daemon.log"
     with log_file.open("ab") as f:
-        p = subprocess.Popen(  # noqa: S603, S607
+        p = subprocess.Popen(
             [str(anytype_bin), "serve", "--listen-address", f"127.0.0.1:{PORT}"],
             stdout=f,
             stderr=f,
@@ -213,7 +283,7 @@ def cmd_stop():
             print(">>> Anytype daemon process not found (stale PID file).")
         _cleanup_pid()
     elif shutil.which("pkill"):
-        subprocess.run(  # noqa: S603
+        subprocess.run(
             ["pkill", "-f", "anytype serve"], capture_output=True, check=False
         )
         print(">>> Anytype daemon stopped.")
@@ -274,13 +344,13 @@ def cmd_auth_create(name="agent"):
 def cmd_auth_key(name="arwaky-agent-key"):
     """Generate API key and update .env with ANYTYPE_API_KEY (parse output)."""
     if has_podman() and container_running():
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(
             ["podman", "exec", CONTAINER_NAME, "anytype",
              "auth", "apikey", "create", name],
             capture_output=True, text=True, check=False,
         )
     elif (LOCAL_BIN / "anytype").exists():
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(
             [str(LOCAL_BIN / "anytype"), "auth", "apikey",
              "create", name],
             capture_output=True, text=True, check=False,
@@ -389,71 +459,3 @@ def main(argv):
     return cmd_help()
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
-class AnytypeDaemonManager(IDaemonManager):
-    """AES facade: exposes the original script verbs via IDaemonManager.
-
-    Block 1 — constructor (stateless, no DI needed beyond module globals).
-    Block 2 — protocol contract methods only (start/stop/status/logs/restart).
-    Block 3 — legacy verb facades, factories, and helpers retained verbatim.
-    """
-
-    def __init__(self) -> None:
-        pass
-
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
-    def start(self) -> int:
-        return cmd_start()
-
-    def stop(self) -> int:
-        return cmd_stop()
-
-    def restart(self) -> int:
-        return cmd_restart()
-
-    def status(self) -> DaemonStatus:
-        # Call legacy cmd_status for side-effect (prints), then build VO
-        cmd_status()
-        return DaemonStatus(
-            container_state="running" if container_running() else "stopped" if container_exists() else "not-found",
-            service_state="unknown",
-            api_ready=api_ready(timeout=3),
-            data_dir=str(DATA_ROOT),
-            ok=container_running() and api_ready(timeout=3),
-            details=(),
-        )
-
-    def logs(self) -> int:
-        return cmd_logs()
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def __repr__(self) -> str:
-        return "AnytypeDaemonManager()"
-
-    def auth_create(self, name: str = "agent") -> int:
-        return cmd_auth_create(name)
-
-    def auth_key(self, name: str = "arwaky-agent-key") -> int:
-        return cmd_auth_key(name)
-
-    def space_join(self, link: str) -> int:
-        return cmd_space_join(link)
-
-    def space_list(self) -> int:
-        return cmd_space_list()
-
-    def service_install(self) -> int:
-        return cmd_service_install()
-
-    def service_status(self) -> int:
-        return cmd_service_status()
-
-    def help(self) -> int:
-        return cmd_help()
-
-    def main(self, argv) -> int:
-        return main(argv)
-
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))

@@ -16,12 +16,11 @@ import subprocess
 import sys
 import time
 import urllib.request
-from pathlib import Path
 
 from modules.daemon.src.contract_daemon_protocol import IDaemonManager
 from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
 from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_xdg_paths import (
+from modules.shared.src.taxonomy_xdg_paths import (
     agents_arwaky_config_dir,
     config_home,
     data_home,
@@ -40,6 +39,67 @@ UNIT_FILE = UNIT_DIR / "9router.service"
 WEAK_PASSWORDS = {"change-me-to-a-strong-password", "", "password", "admin"}
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class PodmanDaemonManager(IDaemonManager):
+    """AES facade: exposes 9Router verbs via IDaemonManager.
+
+    Block 1 — constructor (stateless).
+    Block 2 — protocol contract methods only (start/stop/status/logs/restart).
+    Block 3 — legacy verb facades and CLI dispatch retained verbatim.
+    """
+
+    def __init__(self, root=None, daemons: object | None = None) -> None:
+        pass
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def start(self) -> int:
+        return cmd_start()
+
+    def stop(self) -> int:
+        return cmd_stop()
+
+    def restart(self) -> int:
+        return cmd_restart()
+
+    def status(self) -> DaemonStatus:
+        cmd_status()
+        return DaemonStatus(
+            container_state="running" if container_running() else "stopped" if container_exists() else "not-found",
+            service_state="active" if service_active() else "inactive" if service_installed() else "not-installed",
+            api_ready=api_ready(timeout=3),
+            data_dir=str(DATA_DIR),
+            ok=container_running() and api_ready(timeout=3),
+            details=(),
+        )
+
+    def logs(self) -> int:
+        return cmd_logs()
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return "PodmanDaemonManager()"
+
+    def models(self) -> int:
+        return cmd_models()
+
+    def service_install(self) -> int:
+        return cmd_service_install()
+
+    def service_status(self) -> int:
+        return cmd_service_status()
+
+    def service_uninstall(self) -> int:
+        return cmd_service_uninstall()
+
+    def help(self) -> int:
+        return cmd_help()
+
+    def main(self, argv) -> int:
+        return main(argv)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
 def run(cmd, **kw):
     return subprocess.run(cmd, check=False, **kw)
 
@@ -378,47 +438,3 @@ def main(argv):
     return handler()
 
 
-class PodmanDaemonManager:
-    """AES facade: exposes the original script verbs by their CLI names.
-
-    Keeps every method the current callers use (start/stop/restart/status/
-    logs/models/service_install/service_status/service_uninstall/help, and
-    the ``main`` dispatch); each body is the original script's verb body.
-    """
-
-    def start(self) -> int:
-        return cmd_start()
-
-    def stop(self) -> int:
-        return cmd_stop()
-
-    def restart(self) -> int:
-        return cmd_restart()
-
-    def status(self) -> int:
-        return cmd_status()
-
-    def logs(self) -> int:
-        return cmd_logs()
-
-    def models(self) -> int:
-        return cmd_models()
-
-    def service_install(self) -> int:
-        return cmd_service_install()
-
-    def service_status(self) -> int:
-        return cmd_service_status()
-
-    def service_uninstall(self) -> int:
-        return cmd_service_uninstall()
-
-    def help(self) -> int:
-        return cmd_help()
-
-    def main(self, argv) -> int:
-        return main(argv)
-
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))

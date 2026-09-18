@@ -1,6 +1,6 @@
 """Skill installer (in-house Python) — exposes the skill manager via a launcher.
 
-The skill manager logic lives in modules/skill/src/ (port of the original
+The skill manager logic lives in modules.skill.src/ (port of the original
 tools/skill/skill.py). This installer writes a python3 launcher into
 $XDG_BIN_HOME that imports the module's surface and runs it, so the
 `skill.py` binary in the manifest resolves to the module implementation.
@@ -8,27 +8,30 @@ $XDG_BIN_HOME that imports the module's surface and runs it, so the
 from __future__ import annotations
 
 import stat
-import subprocess
 
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.installer.src.contract_tool_installer import IToolInstaller
-from modules.shared.src.utility_xdg_atomic_io import (
+from modules.installer.src.contract_tool_installer_protocol import IToolInstaller
+from modules.shared.src.taxonomy_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
     ensure_path,
 )
-from modules.shared.src.utility_xdg_paths import bin_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home
 
 
-SKILL_MODULE_REL = "modules/skill/src/surface_skill_command.py"
+SKILL_MODULE_REL = "modules/skill/src/agent_skill_verb.py"
 
+
+# ─── Block 1: Class Definition & Constructor ──────────────
 
 class SkillInstaller(IToolInstaller):
     """Write a launcher that runs the skill manager from modules/skill/."""
 
     def __init__(self, root=None) -> None:
         self._root = root or repo_root()
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
 
     def install(self, spec: ToolSpec) -> InstallResult:
         root = self._root
@@ -51,9 +54,13 @@ class SkillInstaller(IToolInstaller):
             "from pathlib import Path\n"
             f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))\n'
             "sys.path.insert(0, str(root))\n"
-            'from modules.skill.src.surface_skill_command import cmd_skill\n'
+            'from modules.skill.src.agent_skill_verb import main as cmd_skill\n'
             'from modules.skill.src.root_skill_container import create_skill_feature\n'
             'sys.exit(cmd_skill(sys.argv[1:], create_skill_feature()))\n',
         )
         print(f"  -> {launcher}")
         return InstallResult(True, spec.id, "skill.py launcher wired to modules/skill/")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"

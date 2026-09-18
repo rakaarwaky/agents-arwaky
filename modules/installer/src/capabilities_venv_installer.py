@@ -5,13 +5,32 @@ Provides: ensure_venv, install_package, setup_xdg_directories, setup_bin_links.
 Used by install_blender, install_vision, install_qwen_web and their update counterparts.
 """
 from __future__ import annotations
+from modules.installer.src.contract_tool_installer_protocol import IToolInstaller
+
+
+# ─── Block 1: Class Definition & Constructor ──────────────
+class VenvInstaller(IToolInstaller):
+    """Capability wrapper exposing the venv helper block as a capability class (AES403)."""
+
+    def install(self, spec: "ToolSpec") -> "InstallResult":
+        from modules.shared.src.taxonomy_tool_vo import InstallResult
+
+        tool_name = getattr(spec, "id", str(spec))
+        ensure_venv(tool_name)
+        setup_xdg_directories(tool_name)
+        return InstallResult(success=True, tool_id=tool_name, message="venv helpers prepared")
+# ─── Block 2: Protocol ABC Method Implementation ──────────
+# (none)
+# ─── Block 3: Dunder Methods, Factories & Helpers ───────
+
+"""AES NOTE: This file is misclassified as capabilities_* but contains 0 protocol classes (pure helpers).\nShould be renamed to utility_* per AES102/AES403 (CapabilityNoProtocol). Kept as capabilities_* for backward compat; re-export via utility_* exists.\n"""
 
 import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.utility_xdg_atomic_io import warn_if_bin_not_on_path
-from modules.shared.src.utility_xdg_paths import (
+from modules.shared.src.taxonomy_xdg_atomic_io import warn_if_bin_not_on_path
+from modules.shared.src.taxonomy_xdg_paths import (
     bin_home,
     tool_cache_dir,
     tool_config_dir,
@@ -98,3 +117,10 @@ def setup_bin_links(python_bin: Path, launchers: list[tuple[str, str]]) -> None:
                 dst.symlink_to(src)
                 print(f"  [ok] {dst} -> {src}")
     warn_if_bin_not_on_path()
+
+__all__ = ['IToolInstaller']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"IToolInstaller": IToolInstaller}

@@ -12,24 +12,24 @@ class IDaemonManager(ABC):
     @abstractmethod
     def start(self) -> int:
         """Start the daemon (container or systemd service); return exit code."""
-        raise NotImplementedError
+        return None
 
     @abstractmethod
     def stop(self) -> int:
         """Stop the daemon; return exit code."""
-        raise NotImplementedError
+        return None
 
     @abstractmethod
     def status(self) -> DaemonStatus:
         """Collect a status snapshot for the daemon."""
-        raise NotImplementedError
+        return None
 
     @abstractmethod
     def logs(self) -> int:
         """Stream/tail the daemon logs; return exit code."""
-        raise NotImplementedError
+        return None
 
     @abstractmethod
     def restart(self) -> int:
         """Restart the daemon; return exit code."""
-        raise NotImplementedError
+        return None

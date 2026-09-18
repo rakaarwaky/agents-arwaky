@@ -10,7 +10,7 @@ from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
 from modules.doctor.src.capabilities_doctor_env import EnvDiagnosticRunner
 from modules.doctor.src.capabilities_doctor_tools import ToolsDiagnosticRunner
 from modules.doctor.src.root_doctor_container import DoctorContainer, create_doctor_feature
-from modules.cli.src.surface_doctor_command import cmd_doctor, cmd_status
+from modules.doctor.src.agent_doctor_verb import cmd_doctor, cmd_status
 
 __all__ = [
     "DoctorContainer",

@@ -1,18 +1,16 @@
-"""Shared primitives for per-tool runner capabilities."""
+"""Shared runner capability base class (contract layer — taxonomy-only deps)."""
 from __future__ import annotations
 
 import os
 import shutil
 from pathlib import Path
 
-from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
-from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_xdg_paths import bin_home
-from modules.runner.src.contract_tool_runner import IToolExecutor
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_xdg_paths import bin_home
 from modules.shared.src.taxonomy_tool_vo import ToolSpec
 
 
-class RunnerBase(IToolExecutor):
+class RunnerBase:
     """Common resolver helpers every per-tool runner capability reuses.
 
     # Block 1: Executable discovery (PATH, bin_home, runner candidates)
@@ -20,7 +18,7 @@ class RunnerBase(IToolExecutor):
     """
 
     def __init__(self, root: Path | None = None) -> None:
-        self._root = root or repo_root()
+        self._root = root or repo_root
 
     # -- Block 1: Executable discovery ---------------------------------------------
     def find_executable(self, spec: ToolSpec) -> Path | None:
@@ -46,8 +44,7 @@ class RunnerBase(IToolExecutor):
     def run(self, spec: ToolSpec, args: list[str]) -> int:
         """Run the tool binary (or runner) with args; return 1 when not runnable.
 
-        TODO(AES-CLI): replace os.execvpe with subprocess so the orchestrator
-        can still own post-run reporting.
+        Subprocess-based execution (post-run reporting owned by the orchestrator).
         """
         exe = self.find_executable(spec)
         if exe is not None:

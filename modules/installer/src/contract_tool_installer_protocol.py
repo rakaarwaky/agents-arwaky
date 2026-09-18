@@ -15,4 +15,4 @@ class IToolInstaller(ABC):
     @abstractmethod
     def install(self, spec: ToolSpec) -> InstallResult:
         """Install the tool described by *spec*; report outcome as InstallResult."""
-        raise NotImplementedError
+        return None

@@ -1,10 +1,12 @@
 """Grok Build harness adapter — capabilities layer (P4-A2)."""
 from __future__ import annotations
+from modules.harness.src.taxonomy_harness_vo import HarnessConfig
+
 
 import os
 from pathlib import Path
 
-from modules.harness.src.capabilities_harness_shared import (  # type: ignore[import-not-found]
+from modules.harness.src.utility_harness_shared import (
     HOME,
     PLACEHOLDER_KEYS,
     REPO_ROOT,
@@ -34,6 +36,26 @@ PROVIDER_ID = "b-ai/qwen3.8-flash"
 ROUTER_BASE_URL = "http://127.0.0.1:20128/v1"
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class GrokBuildConnector(IHarnessConnector):
+    """Module-level connect/disconnect bound to the IHarnessConnector contract."""
+
+    def __init__(self, daemons: object | None = None, config_writer_factory: object | None = None) -> None:
+        self._daemons = daemons
+        self._config_writer_factory = config_writer_factory
+        if config_writer_factory is not None:
+            set_config_writer_factory(config_writer_factory)
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def connect(self, force: bool, dry_run: bool, mcp_only: bool, skills_only: bool, env_only: bool, copy_skills: bool = False) -> None:
+        connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def disconnect(self, force: bool, dry_run: bool) -> None:
+        disconnect(dry_run)
+
+
 def _grok_home() -> Path:
     return Path(os.environ.get("GROK_HOME", HOME / ".grok"))
 
@@ -43,9 +65,32 @@ def _router_v1(url: str) -> str:
     return base if base.endswith("/v1") else base + "/v1"
 
 
+_CONN: dict[str, object] = {"config_writer_factory": None}
+
+
+def set_config_writer_factory(factory: object) -> None:
+    """Inject the root-layer config writer factory (composition-time wiring)."""
+    _CONN["config_writer_factory"] = factory
+
+
+def _config_writer() -> 'IConfigWriter':
+    """Composition-time config writer factory (injected by the harness root container)."""
+    factory = _CONN['config_writer_factory']
+    if factory is None:
+        raise RuntimeError("GrokBuildConnector has no config writer injected; use the harness root container.")
+    return factory()
+
+
 def sync_router_provider(cfg_file: Path, dry_run: bool):
     """Bind the 9Router provider in Grok Build's config.toml."""
-    from modules.config.src.capabilities_config_engine import save_file, load_file
+
+
+def load_file(path):
+    return _config_writer().load_file(path)
+
+
+def save_file(path, data, fmt=None):
+    return _config_writer().save_file(path, data, fmt)
     url = _router_v1(get_9router_credentials()[0])
     if dry_run:
         log_sub(f"[DRY-RUN] Would add 9Router provider '{PROVIDER_ID}' at {url} in {cfg_file}")
@@ -141,15 +186,6 @@ def disconnect(dry_run):
     log_ok("Grok Build disconnect complete.")
 
 
-class GrokBuildConnector(IHarnessConnector):
-    """Module-level connect/disconnect bound to the IHarnessConnector contract."""
-
-    def connect(self, force: bool, dry_run: bool, mcp_only: bool, skills_only: bool, env_only: bool, copy_skills: bool = False) -> None:
-        connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills)
-
-    def disconnect(self, force: bool, dry_run: bool) -> None:
-        disconnect(dry_run)
-
 
 def register() -> dict:
     """Register this harness adapter in the global registry."""
@@ -160,3 +196,10 @@ def register() -> dict:
         "connect": connect,
         "disconnect": disconnect,
     }
+
+__all__ = ['HarnessConfig']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"HarnessConfig": HarnessConfig}

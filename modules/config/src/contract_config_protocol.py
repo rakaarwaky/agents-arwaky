@@ -1,5 +1,7 @@
 """Config engine contracts (ABCs) for the AES tools."""
 from __future__ import annotations
+from modules.shared.src.taxonomy_core_vo import Timestamp
+
 
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -43,3 +45,10 @@ class IConfigModifier(ABC):
     @abstractmethod
     def set_env_keys(self, path: Path, pairs: dict) -> None:
         """Set ``KEY=VALUE`` lines in a .env file (create if missing)."""
+
+__all__ = ['Timestamp']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"Timestamp": Timestamp}

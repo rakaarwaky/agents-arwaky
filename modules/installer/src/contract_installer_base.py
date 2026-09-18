@@ -1,12 +1,12 @@
-"""Shared primitives for per-tool installer/uninstaller/updater capabilities."""
+"""Shared installer capability base class (contract layer — taxonomy-only deps)."""
 from __future__ import annotations
 
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.shared.src.utility_xdg_atomic_io import ensure_bin_home, ensure_path
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home, ensure_path
 
 
 class InstallerBase:
@@ -17,7 +17,7 @@ class InstallerBase:
     """
 
     def __init__(self, root: Path | None = None) -> None:
-        self._root = root or repo_root()
+        self._root = root or repo_root
 
     # -- Block 1: Submodule bootstrap ------------------------------------------
     def _ensure_submodule(self, spec: ToolSpec) -> bool:

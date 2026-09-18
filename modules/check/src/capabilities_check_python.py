@@ -1,5 +1,7 @@
 """Python check capability — py_compile across tools/ + modules/."""
 from __future__ import annotations
+from modules.shared.src.taxonomy_doc_vo import DocFinding
+
 
 import py_compile
 from pathlib import Path
@@ -8,6 +10,8 @@ from modules.check.src.contract_check_protocol import ICheckRunner
 from modules.shared.src.utility_logging import err, ok
 from modules.shared.src.utility_paths import repo_root
 
+
+# ─── Block 1: Class Definition & Constructor ──────────────
 
 class PythonCheckRunner(ICheckRunner):
     """py_compile every .py under tools/ and modules/.
@@ -18,9 +22,11 @@ class PythonCheckRunner(ICheckRunner):
     """
 
     # -- Block 1: Configuration ---------------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def _py_files(self) -> list[Path]:
         out: list[Path] = []
         for base in (self._root / "modules",):
@@ -42,3 +48,10 @@ class PythonCheckRunner(ICheckRunner):
                 err(f"Python compile error: {py_file}: {e}")
                 errors += 1
         return errors
+
+__all__ = ['DocFinding']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"DocFinding": DocFinding}

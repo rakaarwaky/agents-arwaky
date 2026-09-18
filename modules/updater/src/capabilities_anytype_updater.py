@@ -19,13 +19,14 @@ from pathlib import Path
 from modules.shared.src.utility_git_update import update_submodule
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.updater.src.contract_tool_updater import IToolUpdater
-from modules.shared.src.utility_xdg_atomic_io import (
+from modules.updater.src.contract_tool_updater_protocol import IToolUpdater
+from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.taxonomy_xdg_atomic_io import (
     ensure_bin_home,
     ensure_path,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.utility_xdg_paths import bin_home, data_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
 
 
 # ---------------------------------------------------------------------------
@@ -47,24 +48,19 @@ DAEMON_DATA_REL = "anytype-daemon"
 INTERNAL_BIN = "internal-bin"
 
 
-def _run(cmd: list[str], cwd: Path | None = None) -> None:
-    subprocess.run(cmd, cwd=cwd, check=True)
-
-
-def _require(tool: str, reason: str) -> bool:
-    if shutil.which(tool):
-        return True
-    print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
-    return False
+# ─── Block 1: Class Definition & Constructor ──────────────
 
 
 class AnytypeUpdater(IToolUpdater):
     """Force-rebuild anytype-mcp (bun) and anytype-daemon (container + systemd)."""
 
-    def __init__(self, root=None) -> None:
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def __init__(self, root=None, daemons: 'IDaemonAggregate | None' = None) -> None:
         self._root = root or repo_root()
+        self._daemons = daemons
 
     # -- Block 1: anytype-mcp ----------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def _update_mcp(self, spec: ToolSpec) -> UpdateResult:
         root = self._root
         src = root / MCP_SRC_REL
@@ -117,10 +113,10 @@ class AnytypeUpdater(IToolUpdater):
             (data_dir / d).mkdir(parents=True, exist_ok=True)
 
         # Delegate to the daemon module's service_install (modules/daemon/deploy/anytype-daemon.service)
-        from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+        daemons = self._daemons
 
         print(">>> Updating anytype-daemon (container + systemd user service)...")
-        rc = AnytypeDaemonManager().service_install()
+        rc = daemons.service_install("anytype")
         if rc != 0:
             print(f"  Warning: anytype-daemon service-install exited {rc}")
 
@@ -131,7 +127,7 @@ class AnytypeUpdater(IToolUpdater):
                 "from pathlib import Path\n"
                 f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(root))}))\n'
                 "sys.path.insert(0, str(root))\n"
-                'from modules.daemon.src.surface_daemon_command import cmd_anytype\n'
+                'from modules.daemon.src.agent_daemon_verb import cmd_anytype\n'
                 'sys.exit(cmd_anytype(sys.argv[1:]))\n',
                 encoding="utf-8",
             )
@@ -160,3 +156,14 @@ class AnytypeUpdater(IToolUpdater):
         if not mcp_result.success:
             return mcp_result
         return self._update_daemon(spec)
+def _run(cmd: list[str], cwd: Path | None = None) -> None:
+    subprocess.run(cmd, cwd=cwd, check=True)
+
+
+def _require(tool: str, reason: str) -> bool:
+    if shutil.which(tool):
+        return True
+    print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
+    return False
+
+

@@ -17,21 +17,35 @@ from modules.shared.src.utility_paths import repo_root
 
 ROOT = repo_root()
 
-from modules.shared.src.utility_xdg_paths import (
+from modules.shared.src.taxonomy_xdg_paths import (
     bin_home,
     cache_home,
     config_home,
     data_home,
 )
-from modules.shared.src.utility_xdg_atomic_io import ensure_bin_home
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.utility_git_update import update_submodule
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.updater.src.contract_tool_updater import IToolUpdater
+from modules.updater.src.contract_tool_updater_protocol import IToolUpdater
 
 INTERNAL_DIR = ROOT / "internal/lint-arwaky"
 BINARIES = ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui"]
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class LintUpdater(IToolUpdater):
+    def __init__(self, root=None) -> None:
+        self._root = root or ROOT
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def update(self, spec: ToolSpec) -> UpdateResult:
+        rc = main()
+        return UpdateResult(rc == 0, spec.id, "lint-arwaky updated" if rc == 0 else "lint-arwaky update failed")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
@@ -139,10 +153,4 @@ def main() -> int:
     return 0
 
 
-class LintUpdater(IToolUpdater):
-    def __init__(self, root=None) -> None:
-        self._root = root or ROOT
 
-    def update(self, spec: ToolSpec) -> UpdateResult:
-        rc = main()
-        return UpdateResult(rc == 0, spec.id, "lint-arwaky updated" if rc == 0 else "lint-arwaky update failed")

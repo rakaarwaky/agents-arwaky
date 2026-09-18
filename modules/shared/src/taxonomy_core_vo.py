@@ -1,6 +1,8 @@
 """Core value objects shared across the AES tool domains."""
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 
 class Timestamp:
     """Frozen float timestamp VO (e.g. install/update stamps)."""
@@ -59,3 +61,18 @@ class ToolId:
 
     def __hash__(self) -> int:
         return hash(self._value)
+
+
+@dataclass(frozen=True)
+class AuditFinding:
+    """One violated document invariant, ready for CLI reporting."""
+
+    code: str
+    message: str
+    path: str = ""
+    severity: str = "error"
+
+    @property
+    def is_error(self) -> bool:
+        return self.severity == "error"
+

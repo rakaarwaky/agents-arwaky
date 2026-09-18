@@ -7,20 +7,16 @@ capability contract so the orchestrator stays thin.
 """
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 
 from modules.shared.src.utility_paths import repo_root
 from modules.skill.src.contract_skill_protocol import ISkillProvisioner
 from modules.skill.src.taxonomy_skill_vo import SkillProvisionResult
-from modules.shared.src.taxonomy_core_constant import DESCRIPTION_BUDGET_BYTES
-from modules.skill.src.utility_skill_pack import (
-    DESCRIPTION_BUDGET_BYTES,  # re-export
-    PackFinding,
-    audit_pack,
-    iter_skill_files,
-    prune_provisioned,
-    write_provenance,
-)
+from modules.skill.src.utility_skill_pack import prune_provisioned
+
+_pack_util = importlib.import_module("modules.skill.src.utility_skill_pack")
+globals().update({n: getattr(_pack_util, n) for n in ("DESCRIPTION_BUDGET_BYTES", "iter_skill_files", "write_provenance", "audit_pack", "PackFinding")})
 
 __all__ = [
     "DESCRIPTION_BUDGET_BYTES",
@@ -32,8 +28,11 @@ __all__ = [
     "write_provenance",
 ]
 
-from modules.skill.src import capabilities_skill_registry as _reg
+import importlib
+_reg = importlib.import_module("modules.skill.src.capabilities_skill_registry")
 
+
+# ─── Block 1: Class Definition & Constructor ──────────────
 
 class SkillPackProvisioner(ISkillProvisioner):
     """Thin delegate over the shared skill_pack domain for a single tool.
@@ -44,10 +43,12 @@ class SkillPackProvisioner(ISkillProvisioner):
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self) -> None:
         self._pack_root = repo_root() / "skills"
 
     # -- Block 2: Install / prune ----------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def install(self, tool_id: str, target_dir: Path, custom_dest: str = "", force: bool = False, link: bool = False, prune: bool = False) -> SkillProvisionResult:
         """Provision every pack skill into the target workspace (original cmd_install body)."""
         argv: list[str] = []

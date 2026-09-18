@@ -6,14 +6,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_xdg_atomic_io import (
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
     ensure_path,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.utility_xdg_paths import bin_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home
 
 
 def write_uv_launchers(
@@ -36,7 +36,7 @@ def write_uv_launchers(
         List of created launcher paths.
     """
     ensure_bin_home()
-    baked_root = str(root) if root is not None else str(repo_root())
+    baked_root = str(root) if root is not None else str(repo_root)
     extra = "".join(repr(a) + ", " for a in (uv_args or []))
     created = []
     for name, entry in launchers:

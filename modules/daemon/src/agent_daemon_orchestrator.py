@@ -1,8 +1,6 @@
 """Daemon agent orchestrator — routes verbs by daemon name."""
 from __future__ import annotations
 
-from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
 from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.daemon.src.contract_daemon_protocol import IDaemonManager
 from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
@@ -19,8 +17,8 @@ class DaemonOrchestrator(IDaemonAggregate):
     # -- Block 1: Constructor ---------------------------------------------------
     def __init__(
         self,
-        ninerouter: PodmanDaemonManager,
-        anytype: AnytypeDaemonManager,
+        ninerouter: IDaemonManager,
+        anytype: IDaemonManager,
     ) -> None:
         self._ninerouter = ninerouter
         self._anytype = anytype
@@ -67,3 +65,21 @@ class DaemonOrchestrator(IDaemonAggregate):
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
         return manager.restart()
+
+    def service_install(self, name: str) -> int:
+        manager = self._manager(name)
+        if manager is None:
+            raise ValueError(f"Unknown daemon: {name}")
+        return manager.service_install()
+
+    def service_uninstall(self, name: str) -> int:
+        manager = self._manager(name)
+        if manager is None:
+            raise ValueError(f"Unknown daemon: {name}")
+        return manager.service_uninstall()
+
+    def service_status(self, name: str) -> int:
+        manager = self._manager(name)
+        if manager is None:
+            raise ValueError(f"Unknown daemon: {name}")
+        return manager.service_status()

@@ -5,7 +5,9 @@ from __future__ import annotations
 class ArwakyError(Exception):
     """Base class for every agents-arwaky domain error."""
 
-    def __init__(self, message: str) -> None:
+    _MESSAGE_FIELD = "message"
+
+    def __init__(self, message: "str") -> None:
         self._message = message
 
     @property

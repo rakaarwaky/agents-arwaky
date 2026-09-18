@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_constant import INSTALL_OVERRIDES
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 
 
 def find_updater_candidate(tool) -> Path | None:
@@ -21,7 +21,7 @@ def find_updater_candidate(tool) -> Path | None:
         names.append(INSTALL_OVERRIDES[tool.id])
     names.append(tool.id)
     names.append(f"{tool.id}-mcp")
-    root = repo_root() / "modules" / "updater" / "src"
+    root = repo_root / "modules" / "updater" / "src"
     for name in names:
         candidate = root / f"capabilities_{name.replace('-', '_')}_updater.py"
         if candidate.exists():

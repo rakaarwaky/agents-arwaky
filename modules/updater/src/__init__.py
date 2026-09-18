@@ -7,6 +7,6 @@ Public API:
 from __future__ import annotations
 
 from modules.updater.src.agent_updater_orchestrator import UpdaterOrchestrator
-from modules.updater.src.contract_tool_updater import IToolUpdater
+from modules.updater.src.contract_tool_updater_protocol import IToolUpdater
 
 __all__ = ["IToolUpdater", "UpdaterOrchestrator"]

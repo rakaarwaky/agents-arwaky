@@ -12,13 +12,13 @@ from pathlib import Path
 
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.installer.src.contract_tool_installer import IToolInstaller
-from modules.installer.src.capabilities_venv_installer import (
+from modules.installer.src.contract_tool_installer_protocol import IToolInstaller
+from modules.installer.src.utility_venv_helpers import (
     ensure_venv,
     install_package,
     setup_bin_links,
 )
-from modules.shared.src.utility_xdg_paths import (
+from modules.shared.src.taxonomy_xdg_paths import (
     bin_home,
     tool_data_dir,
     tool_config_dir,
@@ -40,6 +40,26 @@ LAUNCHERS = [
 ]
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class QwenWebInstaller(IToolInstaller):
+    """Install internal/qwen-web-arwaky via a uv-managed venv + Playwright."""
+
+    def __init__(self, root=None) -> None:
+        self._root = root or ROOT
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def install(self, spec: ToolSpec) -> InstallResult:
+        rc = _install_qwen_web()
+        return InstallResult(
+            rc == 0,
+            spec.id,
+            "qwen-web-arwaky installed" if rc == 0 else "qwen-web-arwaky install failed",
+        )
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
@@ -100,16 +120,4 @@ def _install_qwen_web() -> int:
     return 0
 
 
-class QwenWebInstaller(IToolInstaller):
-    """Install internal/qwen-web-arwaky via a uv-managed venv + Playwright."""
 
-    def __init__(self, root=None) -> None:
-        self._root = root or ROOT
-
-    def install(self, spec: ToolSpec) -> InstallResult:
-        rc = _install_qwen_web()
-        return InstallResult(
-            rc == 0,
-            spec.id,
-            "qwen-web-arwaky installed" if rc == 0 else "qwen-web-arwaky install failed",
-        )
