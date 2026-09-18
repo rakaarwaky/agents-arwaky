@@ -129,7 +129,7 @@ agents-arwaky/
 ├── modules/                     # AES 7-layer orchestration (taxonomy→…→root)
 │   ├── shared/src/<domain>/     # Shared domains: xdg, manifest, config, tool, skill, harness, …
 │   ├── installer/  updater/  uninstaller/  runner/    # Tool install/update/uninstall/run (data-driven)
-│   ├── daemon/  service/  mcp/  skill/  harness/  backup/  sync/  check/  doctor/  completion/
+│   ├── daemon/  service/  mcp/  skill/  harness/  backup/  check/  doctor/  completion/
 │   └── cli/                     # Composition root wiring all feature modules
 │
 └── tools/                       # Orchestration entrypoint & static config (Python)
@@ -228,7 +228,6 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
 | `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
 | `aa service [action] [target]`           | Unified manager for background services (`status`, `start`, `stop`, `restart`, `logs`)              | `aa service status`                            |
-| `aa sync [options]`                      | One-shot ecosystem update (submodules, binary exports, MCP configs, harnesses, and verify)          | `aa sync`                                      |
 | `aa completion [bash\|zsh\|--install]`   | Shell tab completion generator and persistent installer                                            | `aa completion --install`                      |
 | `aa check`                               | Run quality gate verification (JSON syntax, Python compile, document invariants, skill pack, shellcheck)                                                        | `aa check`                                     |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |

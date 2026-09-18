@@ -17,7 +17,7 @@ The only differences are the import swaps to the AES modules:
   - skill_pack      -> modules.skill.src.capabilities_skill_pack
   - paths.repo_root -> modules.shared.src.utility_paths
 
-Delegated verbs (skill/connect/disconnect/daemon/service/backup/sync/
+Delegated verbs (skill/connect/disconnect/daemon/service/backup/
 completion) keep calling the module surface functions, which contain the
 original bodies verbatim (see the module surface docstrings).
 
@@ -38,10 +38,10 @@ import textwrap
 from pathlib import Path
 
 from modules.shared.src.utility_paths import repo_root
+
 ROOT = repo_root()
 
 from modules.shared.src.taxonomy_manifest_vo import Tool
-from modules.shared.src.utility_manifest_reader import find_tool, load_tools, manifest_path
 from modules.shared.src.utility_logging import (
     BLUE,
     BOLD,
@@ -55,25 +55,34 @@ from modules.shared.src.utility_logging import (
     err,
     info,
     ok,
-    pad as _pad,
-    table_widths as _table_widths,
-    warn,
     set_color_mode,
     set_verbosity,
+    warn,
 )
+from modules.shared.src.utility_logging import (
+    pad as _pad,
+)
+from modules.shared.src.utility_logging import (
+    table_widths as _table_widths,
+)
+from modules.shared.src.utility_manifest_reader import (
+    find_tool,
+    load_tools,
+)
+from modules.shared.src.utility_xdg_atomic_io import ensure_path
 from modules.shared.src.utility_xdg_paths import (
     bin_home,
     cache_home,
     config_home,
     data_home,
 )
-from modules.shared.src.utility_xdg_atomic_io import ensure_path
 
 _ANSI_RE = re.compile(r"\033\[[0-9;]*m")
 
 # Runner map per tool (P5-P1: manifest-driven dispatch, avoid hardcoded IDs)
 from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
 from modules.shared.src.taxonomy_tool_vo import ToolSpec
+
 
 # =============================================================================
 # Helpers
@@ -188,7 +197,6 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}submodules{RESET()}                     Initialize/update git submodules")
     print(f"  {CYAN()}clean{RESET()}                          Remove build artifacts & generated configs")
     print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + disconnect + unskill")
-    print(f"  {CYAN()}sync{RESET()}                           One-shot ecosystem sync (update + generate + reconnect)")
     print(f"  {CYAN()}completion{RESET()}                     Shell completion generator")
     print(f"  {CYAN()}help{RESET()}                           Show this help")
     print()
@@ -244,7 +252,7 @@ def cmd_status(argv: list[str]) -> int:
     except (OSError, ValueError):
         term_w = 80
     available = max(60, term_w - 2)
-    w_tool, w_cat, w_bin, w_status = _table_widths(available, [2, 1, 3, 4])
+    w_tool, w_cat, w_bin, _w_status = _table_widths(available, [2, 1, 3, 4])
     sep = "-" * available
     print(sep)
     print(f"{BOLD()}{_pad('TOOL', w_tool)} {_pad('CATEGORY', w_cat)} {_pad('TARGET BINARY', w_bin)} STATUS{RESET()}")
@@ -432,8 +440,8 @@ def cmd_install(argv: list[str]) -> int:
             skipped.append(tool.id)
             warn(f"{tool.id}: {result.message}")
     if target == "all":
-        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         from modules.mcp.src.root_mcp_container import create_mcp_feature
+        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         info("Generating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -483,8 +491,8 @@ def cmd_update(argv: list[str]) -> int:
             skipped.append(tool.id)
             warn(f"{tool.id}: {result.message}")
     if target == "all":
-        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         from modules.mcp.src.root_mcp_container import create_mcp_feature
+        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         info("Regenerating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -534,20 +542,24 @@ def cmd_mcp(argv: list[str]) -> int:
 
 
 def cmd_skill(argv: list[str]) -> int:
-    from modules.skill.src.surface_skill_command import cmd_skill as _skill_surface
     from modules.skill.src.root_skill_container import create_skill_feature
+    from modules.skill.src.surface_skill_command import cmd_skill as _skill_surface
     return _skill_surface(argv, create_skill_feature())
 
 
 def cmd_connect(argv: list[str]) -> int:
-    from modules.harness.src.surface_harness_command import cmd_connect as _harness_connect
     from modules.harness.src.root_harness_container import create_harness_feature
+    from modules.harness.src.surface_harness_command import (
+        cmd_connect as _harness_connect,
+    )
     return _harness_connect(argv, create_harness_feature())
 
 
 def cmd_disconnect(argv: list[str]) -> int:
-    from modules.harness.src.surface_harness_command import cmd_disconnect as _harness_disconnect
     from modules.harness.src.root_harness_container import create_harness_feature
+    from modules.harness.src.surface_harness_command import (
+        cmd_disconnect as _harness_disconnect,
+    )
     return _harness_disconnect(argv, create_harness_feature())
 
 
@@ -585,20 +597,20 @@ def cmd_9router(argv: list[str]) -> int:
 
 
 def cmd_service(argv: list[str]) -> int:
-    from modules.service.src.surface_service_command import cmd_service as _service_cmd
     from modules.service.src.root_service_container import create_service_feature
+    from modules.service.src.surface_service_command import cmd_service as _service_cmd
     return _service_cmd(argv, create_service_feature())
 
 
 def cmd_backup(argv: list[str]) -> int:
-    from modules.backup.src.surface_backup_command import cmd_backup as _backup_cmd
     from modules.backup.src.root_backup_container import create_backup_feature
+    from modules.backup.src.surface_backup_command import cmd_backup as _backup_cmd
     return _backup_cmd(["backup", *argv], create_backup_feature())
 
 
 def cmd_restore(argv: list[str]) -> int:
-    from modules.backup.src.surface_backup_command import cmd_restore as _restore_cmd
     from modules.backup.src.root_backup_container import create_backup_feature
+    from modules.backup.src.surface_backup_command import cmd_restore as _restore_cmd
     return _restore_cmd(["restore", *argv], create_backup_feature())
 
 
@@ -649,7 +661,11 @@ def _check_docs() -> int:
     Warnings on files under skills/ are counted rather than printed: the pack hosts
     upstream copies whose shape is not ours to fix.
     """
-    from modules.check.src.capabilities_doc_pack import audit_docs, errors_only, warnings_only
+    from modules.check.src.capabilities_doc_pack import (
+        audit_docs,
+        errors_only,
+        warnings_only,
+    )
 
     print("[3/5] Validating document invariants...")
     root = repo_root()
@@ -675,7 +691,13 @@ def _check_docs() -> int:
 
 def cmd_docs(argv: list[str]) -> int:
     """Audit document invariants: aa docs check [path] [--strict] [--include-subtrees]"""
-    from modules.check.src.capabilities_doc_pack import as_strict, audit_docs, errors_only, iter_doc_files, warnings_only
+    from modules.check.src.capabilities_doc_pack import (
+        as_strict,
+        audit_docs,
+        errors_only,
+        iter_doc_files,
+        warnings_only,
+    )
 
     if not argv or argv[0] != "check":
         err("Missing subcommand." if not argv else f"Unknown docs subcommand: {argv[0]}")
@@ -711,7 +733,11 @@ def cmd_docs(argv: list[str]) -> int:
 
 def _check_skill_pack() -> int:
     """Gate skills/ on the invariants a harness loader actually depends on."""
-    from modules.skill.src.capabilities_skill_pack import DESCRIPTION_BUDGET_BYTES, audit_pack, iter_skill_files
+    from modules.skill.src.capabilities_skill_pack import (
+        DESCRIPTION_BUDGET_BYTES,
+        audit_pack,
+        iter_skill_files,
+    )
 
     print("[4/5] Validating skill pack loadability...")
     pack = repo_root() / "skills"
@@ -780,7 +806,9 @@ def cmd_clean(argv: list[str]) -> int:
 
 
 def uninstall_tool(tool: Tool) -> int:
-    from modules.uninstaller.src.agent_uninstaller_orchestrator import UninstallerOrchestrator
+    from modules.uninstaller.src.agent_uninstaller_orchestrator import (
+        UninstallerOrchestrator,
+    )
     uninstaller = UninstallerOrchestrator()
     spec = _spec_from_tool(tool)
     info(f"Uninstalling {tool.id}")
@@ -858,14 +886,10 @@ def cmd_reset(argv: list[str]) -> int:
 
 
 def cmd_completion(argv):
-    from modules.completion.src.surface_completion_command import cmd_completion as _completion_cmd
+    from modules.cli.src.surface_completion_command import (
+        cmd_completion as _completion_cmd,
+    )
     return _completion_cmd(list(argv))
-
-
-def cmd_sync(argv):
-    from modules.sync.src.surface_sync_command import cmd_sync as _sync_cmd
-    from modules.sync.src.root_sync_container import create_sync_feature
-    return _sync_cmd(list(argv), create_sync_feature())
 
 
 # =============================================================================

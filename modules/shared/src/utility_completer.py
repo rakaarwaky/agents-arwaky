@@ -7,7 +7,7 @@ from modules.shared.src.utility_paths import repo_root
 
 COMMANDS = (
     "status doctor tool skill docs connect disconnect mcp anytype 9router service "
-    "backup restore check submodules clean reset sync completion version help "
+    "backup restore check submodules clean reset completion version help "
     "list run install update uninstall"
 )
 HARNESSES = "--antigravity --hermes --opencode --qwencode --all --force --dry-run --mcp-only --skills-only --env-only"
@@ -25,7 +25,8 @@ def _tools_from_manifest() -> str:
         ids = [t["id"] for t in data.get("tools", []) if t.get("id")]
         if ids:
             return " ".join(ids)
-    except Exception:
+    except (OSError, json.JSONDecodeError):
+        # Static fallback: completion still works if the manifest is absent/invalid.
         pass
     return FALLBACK_TOOLS
 
@@ -69,7 +70,7 @@ _aa_completion() {{
     mcp)
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "list generate show path" -- "$cur") ); fi ;;
     skill|skills)
-      if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "list install uninstall show check sync" -- "$cur") ); fi ;;
+      if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "list install uninstall show check" -- "$cur") ); fi ;;
     docs)
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "check" -- "$cur") )
       elif [ "$cword" -gt 2 ]; then COMPREPLY=( $(compgen -W "--strict --include-subtrees" -- "$cur") ); fi ;;
@@ -104,9 +105,9 @@ def generate_zsh() -> str:
 
 def install() -> int:
     """Write completions to the XDG data dir and patch ~/.bashrc."""
-    from modules.shared.src.utility_xdg_paths import data_home
-    import sys
     from pathlib import Path
+
+    from modules.shared.src.utility_xdg_paths import data_home
 
     target = data_home() / "bash-completion/completions"
     target.mkdir(parents=True, exist_ok=True)
