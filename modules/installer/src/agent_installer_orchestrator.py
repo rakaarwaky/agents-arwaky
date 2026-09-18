@@ -8,20 +8,6 @@ from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
 from modules.installer.src.contract_tool_installer import IToolInstaller
 
-from modules.installer.src.capabilities_anytype_installer import AnytypeInstaller
-from modules.installer.src.capabilities_blender_installer import BlenderInstaller
-from modules.installer.src.capabilities_codegraph_installer import CodegraphInstaller
-from modules.installer.src.capabilities_context7_installer import Context7Installer
-from modules.installer.src.capabilities_fetch_installer import FetchInstaller
-from modules.installer.src.capabilities_lint_installer import LintInstaller
-from modules.installer.src.capabilities_mnemosyne_installer import MnemosyneInstaller
-from modules.installer.src.capabilities_ninerouter_installer import NinerouterInstaller
-from modules.installer.src.capabilities_ponytail_installer import PonytailInstaller
-from modules.installer.src.capabilities_qwen_web_installer import QwenWebInstaller
-from modules.installer.src.capabilities_skill_installer import SkillInstaller
-from modules.installer.src.capabilities_vision_installer import VisionInstaller
-from modules.installer.src.capabilities_workspace_installer import WorkspaceInstaller
-
 
 def _tool_id(spec: ToolSpec) -> str:
     return spec.id
@@ -30,34 +16,24 @@ def _tool_id(spec: ToolSpec) -> str:
 class InstallerOrchestrator(IToolInstaller):
     """Route install(spec) to the concrete per-tool installer capability.
 
-    # Block 1: Constructor & per-tool registry
+    # Block 1: Constructor (injected registry from root composition layer)
     # Block 2: install dispatch
     # Block 3: install_all loop
     """
 
-    # -- Block 1: Constructor & per-tool registry --------------------------------
-    _REGISTRY: dict[str, type] = {
-        # anytype-daemon is part of the merged anytype installer
-        "anytype-daemon": AnytypeInstaller,
-        "anytype": AnytypeInstaller,
-        "blender": BlenderInstaller,
-        "codegraph": CodegraphInstaller,
-        "context7": Context7Installer,
-        "fetch": FetchInstaller,
-        "lint": LintInstaller,
-        "mnemosyne": MnemosyneInstaller,
-        "9router": NinerouterInstaller,
-        "ponytail": PonytailInstaller,
-        "qwen-web": QwenWebInstaller,
-        "skill": SkillInstaller,
-        "vision": VisionInstaller,
-        "workspace": WorkspaceInstaller,
-    }
-
-    def __init__(self, root: Path | None = None) -> None:
+    # -- Block 1: Constructor ------------------------------------------------------
+    def __init__(
+        self,
+        registry: dict[str, type] | None = None,
+        root: Path | None = None,
+    ) -> None:
         self._root = root or repo_root()
+        if registry is None:
+            from modules.installer.src.root_tool_installer_registry import (
+                INSTALLER_REGISTRY as registry,
+            )
         self._capabilities: dict[str, IToolInstaller] = {
-            tool_id: cls(self._root) for tool_id, cls in self._REGISTRY.items()
+            tool_id: cls(self._root) for tool_id, cls in registry.items()
         }
 
     # -- Block 2: install dispatch ------------------------------------------------
