@@ -17,9 +17,11 @@ modules each implement one aggregate contract and dispatch to a per-harness
 adapter. Providers live in the utility layer as stateless adapters
 (`utility_<provider>_adapter.py`) that own only path resolution, config-format
 writing and env-key mapping. `agent_harness_orchestrator.py` is the single agent:
-it resolves the target harness set from raw CLI tokens and routes each verb to
-its capability. `root_harness_container.py` wires adapters into capabilities via
-a registry keyed on harness id.
+it resolves the target harness set from raw CLI tokens (ids, aliases, `--all`;
+alias table in `taxonomy_harness_constant.py`, deduped, unknown token surfaced
+to the CLI rather than raised) and routes each verb to its capability.
+`root_harness_container.py` wires adapters into capabilities via a registry
+keyed on harness id.
 
 Flow: `aa connect <harness>` → `HarnessOrchestrator` → `ConnectorCapability` →
 per-harness `IHarnessAdapter` → harness home dir (XDG). Adding a harness = adding
@@ -38,8 +40,8 @@ FR-001/FR-002, gated by the adapter's declared custom-API support.
 - **Description**: `connect(harness_ids, opts)` writes the MCP client config, the
   environment entries, and (where supported) the 9Router custom-API wiring for
   each named harness.
-- **Input**: tuple of harness ids, options `force`, `dry_run`, `mcp_only`,
-  `skills_only`, `env_only`, `router`.
+- **Input**: tuple of canonical harness ids (post-resolution), options `force`,
+  `dry_run`, `mcp_only`, `skills_only`, `env_only`, `router`.
 - **Output**: side effects (config + env + router wiring written); exit code to CLI.
 - **Business Rules**: the generated MCP config lists every server in
   `config/manifest.json`; env entries come from the harness adapter's declared
@@ -61,7 +63,7 @@ FR-001/FR-002, gated by the adapter's declared custom-API support.
 
 - **Description**: `disconnect(harness_ids, dry_run)` removes what connect wrote —
   MCP servers, env keys, and router references alike.
-- **Input**: tuple of harness ids, `dry_run: bool`.
+- **Input**: tuple of canonical harness ids, `dry_run: bool`.
 - **Output**: removal side effects; exit code to CLI.
 - **Business Rules**: only generated artifacts are removed — hand-written harness
   config is never touched. Router references are dropped alongside the env keys
@@ -74,7 +76,7 @@ FR-001/FR-002, gated by the adapter's declared custom-API support.
 
 - **Description**: `provision_skills(harness_ids, copy)` makes the repo skill pack
   discoverable by the harness.
-- **Input**: tuple of harness ids, `copy: bool` (link vs snapshot).
+- **Input**: tuple of canonical harness ids, `copy: bool` (link vs snapshot).
 - **Output**: side effects (skill dirs linked/copied, sync hook registered where
   supported); exit code to CLI.
 - **Business Rules**: default is symlink into `skills/` so edits land in the repo
@@ -89,51 +91,38 @@ FR-001/FR-002, gated by the adapter's declared custom-API support.
 - **Error Handling**: a failed link/copy → reported per skill, non-zero overall.
 - **Impl**: `capabilities_harness_skills.py` (`IHarnessSkills`).
 
-### FR-004: Resolve and validate harness targets
-
-- **Description**: `resolve_targets(raw)` maps CLI tokens (ids, aliases, `--all`)
-  onto canonical harness ids, deduped, dropping unknowns.
-- **Input**: raw token tuple from the surface layer.
-- **Output**: `(canonical_ids, unknown_token | None)`.
-- **Business Rules**: alias table and the supported-id set live in
-  `taxonomy_harness_constant.py` (single source); the orchestrator holds no
-  per-provider knowledge. An empty result after resolution is a caller error, not
-  a silent success.
-- **Edge Cases**: `--all` expands to every registered id; a bare unknown token
-  short-circuits with the token returned for the CLI to report.
-- **Error Handling**: none raised — the unknown token is returned for surfacing.
-- **Impl**: `agent_harness_orchestrator.py` (+ taxonomy constants).
-
 ## API Contract
 
-| Operation | Input | Output | Error Shape | impl / intended |
-|-----------|-------|--------|-------------|-----------------|
-| `IHarnessConnector.connect` | harness ids, opts incl. `router` | side effects | non-zero + offending item | intended (absorbs former router setup) |
-| `IHarnessDisconnector.disconnect` | harness ids, `dry_run` | side effects | reported failures | intended (drops router refs with env keys) |
-| `IHarnessSkills.provision_skills` | harness ids, `copy` | side effects | per-skill report | intended |
-| `IHarnessAdapter.*` (utility) | harness home, manifest, pack | config bytes, paths, `supports_custom_api` | raised on bad input | intended (replaces `utility_harness_shared`) |
-| `HarnessOrchestrator.resolve_targets` | raw tokens | ids + unknown | none | impl |
+
+| Operation                         | Input                           | Output                                    | Error Shape               | impl / intended                             |
+| ----------------------------------- | --------------------------------- | ------------------------------------------- | --------------------------- | --------------------------------------------- |
+| `IHarnessConnector.connect`       | harness ids, opts incl.`router` | side effects                              | non-zero + offending item | intended (absorbs former router setup)      |
+| `IHarnessDisconnector.disconnect` | harness ids,`dry_run`           | side effects                              | reported failures         | intended (drops router refs with env keys)  |
+| `IHarnessSkills.provision_skills` | harness ids,`copy`              | side effects                              | per-skill report          | intended                                    |
+| `IHarnessAdapter.*` (utility)     | harness home, manifest, pack    | config bytes, paths,`supports_custom_api` | raised on bad input       | intended (replaces`utility_harness_shared`) |
 
 ## Integration Points
 
-| System | Direction | Purpose | Failure mode |
-|--------|-----------|---------|--------------|
-| `config/manifest.json` | in | server list for MCP config | missing entry → generation error |
-| `modules/skill` (pack) | in | skill provisioning | missing pack → skip with report |
-| `modules/daemon` (9Router) | in | router endpoint for FR-001 router wiring | daemon down → reported, wiring still applied |
-| harness home (XDG) | out | where config + env + skills are written | unwritable home → reported |
-| `modules/cli` surface | in | `aa connect` / `aa disconnect` | pass-through |
+
+| System                     | Direction | Purpose                                  | Failure mode                                  |
+| ---------------------------- | ----------- | ------------------------------------------ | ----------------------------------------------- |
+| `config/manifest.json`     | in        | server list for MCP config               | missing entry → generation error             |
+| `modules/skill` (pack)     | in        | skill provisioning                       | missing pack → skip with report              |
+| `modules/daemon` (9Router) | in        | router endpoint for FR-001 router wiring | daemon down → reported, wiring still applied |
+| harness home (XDG)         | out       | where config + env + skills are written  | unwritable home → reported                   |
+| `modules/cli` surface      | in        | `aa connect` / `aa disconnect`           | pass-through                                  |
 
 ## Non-functional Requirements
 
-| Metric | Target | Measurement method |
-|--------|--------|--------------------|
-| Business-shaped capabilities | exactly 3 capability modules, none named after a provider | file inventory under `modules/harness/src/` |
-| Provider isolation | adding a harness touches only `utility_*_adapter.py` + taxonomy registry | diff scope of a new-harness commit |
-| No cross-capability imports | capabilities import contracts/taxonomy/utility only | `lint-arwaky scan` AES201 = 0 for this module |
-| No shared utility god-file | `utility_harness_shared.py` absent; machinery split between capabilities and adapters | file inventory under `modules/harness/src/` |
-| Idempotent connect | re-running `connect` yields identical config | diff generated config across two runs |
-| Scoped disconnect | only generated artifacts removed | hand-written harness config byte-identical after `disconnect` |
+
+| Metric                       | Target                                                                                | Measurement method                                           |
+| ------------------------------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Business-shaped capabilities | exactly 3 capability modules, none named after a provider                             | file inventory under`modules/harness/src/`                   |
+| Provider isolation           | adding a harness touches only`utility_*_adapter.py` + taxonomy registry               | diff scope of a new-harness commit                           |
+| No cross-capability imports  | capabilities import contracts/taxonomy/utility only                                   | `lint-arwaky scan` AES201 = 0 for this module                |
+| No shared utility god-file   | `utility_harness_shared.py` absent; machinery split between capabilities and adapters | file inventory under`modules/harness/src/`                   |
+| Idempotent connect           | re-running`connect` yields identical config                                           | diff generated config across two runs                        |
+| Scoped disconnect            | only generated artifacts removed                                                      | hand-written harness config byte-identical after`disconnect` |
 
 ## Test Scenarios
 
@@ -156,6 +145,9 @@ FR-001/FR-002, gated by the adapter's declared custom-API support.
 - Router setup emits references to secrets, never their values.
 - There is no fourth "router" capability: router wiring is a clause of connect
   and its mirror clause of disconnect.
+- Target resolution (CLI tokens → canonical ids) is an orchestrator concern
+  described in System Overview, not a functional requirement: it adds no
+  business behaviour beyond parsing.
 
 ## Glossary
 
