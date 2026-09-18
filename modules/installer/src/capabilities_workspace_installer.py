@@ -9,10 +9,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.shared.src.tool.contract_tool_protocol import IToolInstaller
-from modules.shared.src.launcher.capabilities_launcher_writer import write_uv_launchers
+from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.common.tool.taxonomy_tool_vo import InstallResult, ToolSpec
+from modules.shared.src.common.tool.contract_tool_protocol import IToolInstaller
+from modules.shared.src.common.launcher.capabilities_launcher_writer import write_uv_launchers
 from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.xdg.utility_xdg_paths import bin_home
 

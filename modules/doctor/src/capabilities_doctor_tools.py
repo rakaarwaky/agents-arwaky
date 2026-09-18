@@ -17,7 +17,7 @@ from modules.shared.src.logging.utility_logging import (
     pad,
     table_widths,
 )
-from modules.shared.src.manifest.capabilities_manifest_reader import load_tools
+from modules.shared.src.common.manifest.capabilities_manifest_reader import load_tools
 from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
 from modules.shared.src.xdg.utility_xdg_paths import bin_home
 

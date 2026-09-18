@@ -217,7 +217,7 @@ def prune_provisioned(base: Path, pack_root: Path | None = None) -> list[str]:
     if not base.is_dir():
         return removed
     if pack_root is None:
-        from modules.shared.src.paths.utility_paths import repo_root
+        from modules.shared.src.common.paths.utility_paths import repo_root
         pack_root = repo_root() / "skills"
     live = pack_names(pack_root)
     for entry in sorted(base.iterdir()):
@@ -274,6 +274,6 @@ def get_all_skill_files(base: Path | None = None) -> list[Path]:
     When *base* is omitted, the repo's ``skills/`` pack is used.
     """
     if base is None:
-        from modules.shared.src.paths.utility_paths import repo_root
+        from modules.shared.src.common.paths.utility_paths import repo_root
         base = repo_root() / "skills"
     return iter_skill_files(base)

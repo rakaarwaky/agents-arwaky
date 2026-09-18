@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.common.paths.utility_paths import repo_root
 
 # ---------------------------------------------------------------------------
 # Base directories (pure)

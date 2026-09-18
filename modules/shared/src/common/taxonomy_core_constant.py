@@ -6,7 +6,7 @@ Provenance:
 - INSTALL/UNINSTALL_OVERRIDES: modules/runner/src/capabilities_runner.py + modules/shared/src/common
 - IMAGE_NAME/PORT: tools/daemons/ninerouter_daemon.py
 - ANYTYPE_*: modules/mcp/src/capabilities_mcp_generator.py
-- DOC/BACKLOG vocabularies: modules/shared/src/doc_pack/capabilities_doc_pack.py
+- DOC/BACKLOG vocabularies: modules/shared/src/common/doc_pack/capabilities_doc_pack.py
 """
 from __future__ import annotations
 

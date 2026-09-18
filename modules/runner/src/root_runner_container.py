@@ -1,7 +1,7 @@
 """Tool composition root — wires capabilities into the orchestrator."""
 from __future__ import annotations
 
-from modules.shared.src.tool.contract_tool_aggregate import IToolAggregate
+from modules.shared.src.common.tool.contract_tool_aggregate import IToolAggregate
 from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
 from modules.runner.src.capabilities_runner import ToolResolver
 from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator

@@ -1,12 +1,12 @@
 """Shared tool-domain: taxonomy + contracts for tool capabilities."""
-from modules.shared.src.tool.contract_tool_aggregate import IToolAggregate
-from modules.shared.src.tool.contract_tool_protocol import (
+from modules.shared.src.common.tool.contract_tool_aggregate import IToolAggregate
+from modules.shared.src.common.tool.contract_tool_protocol import (
     IToolExecutor,
     IToolInstaller,
     IToolUninstaller,
     IToolUpdater,
 )
-from modules.shared.src.tool.taxonomy_tool_vo import (
+from modules.shared.src.common.tool.taxonomy_tool_vo import (
     InstallResult,
     ToolSpec,
     UninstallResult,

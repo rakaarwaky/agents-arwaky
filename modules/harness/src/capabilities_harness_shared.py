@@ -15,8 +15,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.skill_names.utility_skill_names import (  # noqa: E402
+from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.common.skill_names.utility_skill_names import (  # noqa: E402
     ensure_under,
     extract_skill_name,
     safe_child,
@@ -105,7 +105,7 @@ def remove_env_keys(file: Path, keys, dry_run: bool = False):
 
 # --- skills ------------------------------------------------------------------
 # extract_skill_name, sanitize_skill_name, safe_skill_name, ensure_under
-# are imported from modules/shared/src/skill_names (single source of truth).
+# are imported from modules/shared/src/common/skill_names (single source of truth).
 
 
 def hermes_targets(h: Path):

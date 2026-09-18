@@ -5,7 +5,7 @@ from pathlib import Path
 
 from modules.shared.src.check.contract_check_protocol import ICheckRunner
 from modules.shared.src.logging.utility_logging import err, info, ok
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.common.paths.utility_paths import repo_root
 from modules.shared.src.skill_pack.capabilities_skill_pack import (
     DESCRIPTION_BUDGET_BYTES,
     audit_pack,

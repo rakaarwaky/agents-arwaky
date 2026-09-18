@@ -4,8 +4,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from modules.shared.src.manifest.taxonomy_manifest_vo import Tool
-from modules.shared.src.tool.taxonomy_tool_vo import (
+from modules.shared.src.common.manifest.taxonomy_manifest_vo import Tool
+from modules.shared.src.common.tool.taxonomy_tool_vo import (
     InstallResult,
     ToolSpec,
     UninstallResult,
