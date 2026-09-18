@@ -15,7 +15,7 @@ from modules.shared.src.utility_paths import repo_root
 
 ROOT = repo_root()
 
-from modules.installer.src.capabilities_launcher_writer import write_uv_launchers
+from modules.installer.src.utility_launcher_writer import write_uv_launchers
 from modules.shared.src.utility_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.utility_git_update import update_submodule
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
