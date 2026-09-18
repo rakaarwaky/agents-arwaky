@@ -25,11 +25,11 @@ Last Updated: 2026-09-19
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| HRS-01 | FR-001, FR-002, FR-003 | Per-harness connect/disconnect/skills sweep (5 harnesses) | P1 | Todo | Spec exists; no automated per-harness sweep on the current tree. Re-based on the 3-capability structure. | @raka | HRS-04 | 2026-09-19 |
-| HRS-02 | FR-001 | Shared MCP config + skill provisioning machinery | P1 | Deprecated | `capabilities_harness_shared.py` superseded by HRS-04 split into machinery + leaf adapters. | @raka | None | 2026-09-19 |
-| HRS-03 | FR-001, FR-002, FR-003 | FRD + BACKLOG pair authoring for harness | P1 | Done | FRD rewritten to 3-capability model; this BACKLOG reflects it. | @raka | None | 2026-09-19 |
+| HRS-01 | FR-001, FR-002, FR-003 | Per-harness connect/disconnect/skills sweep (5 harnesses) | P1 | Ready | Spec exists; no automated per-harness sweep on the current tree. Re-based on the 3-capability structure. | @raka | HRS-04 | 2026-09-19 |
+| HRS-02 | FR-001 | Shared MCP config + skill provisioning machinery | P1 | Deferred | `capabilities_harness_shared.py` superseded by HRS-04 split into machinery + leaf adapters. | @raka | None | 2026-09-19 |
+| HRS-03 | FR-001, FR-002, FR-003 | FRD + BACKLOG pair authoring for harness | P1 | Done | Verified by `aa docs check modules/harness` → exit 0 at `8c04e3e`; FRD rewritten to 3-capability model; this BACKLOG reflects it. | @raka | None | 2026-09-19 |
 | HRS-04 | FR-001, FR-002, FR-003 | Restructure harness module to 3 business capabilities + 5 leaf adapters | P1 | In Progress | Brief written; delegating to Grok Build. Scope: delete `utility_harness_shared.py` + 5 `capabilities_harness_<provider>.py`; add `capabilities_harness_{connector,disconnector,skills}.py`, `utility_{hermes,opencode,grok,qwencode,antigravity}_adapter.py`, adapter registry in taxonomy, rewired `root_harness_container.py` + `agent_harness_orchestrator.py`. | @raka | HRS-03 | 2026-09-19 |
-| HRS-05 | FR-001 | Router wiring as connect/disconnect clause | P2 | Todo | Behaviour specified under FR-001/FR-002 (no standalone capability). Implement inside connector/disconnector gated by adapter `supports_custom_api`. | @raka | HRS-04 | 2026-09-19 |
+| HRS-05 | FR-001 | Router wiring as connect/disconnect clause | P2 | Ready | Behaviour specified under FR-001/FR-002 (no standalone capability). Implement inside connector/disconnector gated by adapter `supports_custom_api`. | @raka | HRS-04 | 2026-09-19 |
 
 ## Scenario Evidence (rows)
 

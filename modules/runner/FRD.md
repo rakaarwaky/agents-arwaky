@@ -77,6 +77,25 @@ what the discoverer finds).
 - **Error Handling**: every failure path returns an `int`; nothing raises out of
   `execute` into the CLI surface.
 
+### FR-003: Compose the lifecycle verbs behind a zero-I/O aggregate
+
+- **Description**: `ToolOrchestrator` exposes the four lifecycle verbs
+  (install, update, uninstall, run) as one entry point the CLI surface calls,
+  composing this module's executor with the installer/updater/uninstaller
+  capabilities. It performs no I/O itself — every side effect lives in the
+  capability it delegates to.
+- **Input**: a tool id/query plus per-verb arguments.
+- **Output**: the delegated capability's result (e.g. `int` exit code for `run`).
+- **Business Rules**: the aggregate holds no branching on tool id or runner
+  family; adding a tool is a manifest entry, never an edit here. Unknown ids fail
+  at target resolution before any verb runs. The aggregate survives the
+  discoverer/executor split unchanged — only its executor side rewires.
+- **Edge Cases**: a verb whose capability is unavailable → typed error from the
+  aggregate, not a partial dispatch; `run_tool(spec, args)` forwards straight to
+  `RunnerOrchestrator.run`.
+- **Error Handling**: propagate the delegate's error shape verbatim; the aggregate
+  adds none of its own.
+
 ## API Contract
 
 | Operation | Input | Output | Error Shape | impl / intended |
