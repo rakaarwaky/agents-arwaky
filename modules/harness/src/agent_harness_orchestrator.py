@@ -6,39 +6,18 @@ live here, on top of the per-harness connector classes (IHarnessConnector).
 """
 from __future__ import annotations
 
-from modules.harness.src.capabilities_harness_antigravity import (
-    AntigravityConnector,
-    register as _register_antigravity,  # type: ignore[import-not-found]
+from modules.harness.src.root_harness_connectors import (
+    ALIASES,
+    ALL_HARNESS_IDS,
+    HARNESSES,
 )
-from modules.harness.src.capabilities_harness_grok_build import (
-    GrokBuildConnector,
-    register as _register_grok_build,  # type: ignore[import-not-found]
-)
-from modules.harness.src.capabilities_harness_hermes import (
-    HermesConnector,
-    register as _register_hermes,  # type: ignore[import-not-found]
-)
-from modules.harness.src.capabilities_harness_opencode import (
-    OpencodeConnector,
-    register as _register_opencode,  # type: ignore[import-not-found]
-)
-from modules.harness.src.capabilities_harness_qwencode import (
-    QwencodeConnector,
-    register as _register_qwencode,  # type: ignore[import-not-found]
-)
-from modules.harness.src.capabilities_harness_shared import log_err
 from modules.harness.src.contract_harness_aggregate import IHarnessAggregate
 from modules.harness.src.contract_harness_protocol import IHarnessConnector
 
-# --- harness registry (P4-A21: adapters register themselves) -----------------
-HARNESSES: dict[str, dict] = {}
-ALIASES: dict[str, str] = {}
-for _mod in (_register_antigravity, _register_hermes, _register_opencode, _register_qwencode, _register_grok_build):
-    _entry = _mod()
-    HARNESSES[_entry["id"]] = _entry
-    for _alias in _entry["aliases"]:
-        ALIASES[_alias] = _entry["id"]
-ALL_HARNESS_IDS = tuple(HARNESSES.keys())
+
+def log_err(msg: str) -> None:
+    """Emit a diagnostic line to stderr without importing the shared helper."""
+    print(msg, file=__import__("sys").stderr)
 
 
 def _parse_targets(args):
