@@ -1,4 +1,4 @@
-"""Side-effect XDG I/O helpers, split out from tools/lib/xdg.py."""
+"""Side-effect XDG I/O helpers, split out from tools/lib/xdg.py.\n\nDepends on ``modules.shared.src.xdg.utility_xdg_paths`` for the pure helpers.\n"""
 from __future__ import annotations
 
 import os
@@ -8,10 +8,10 @@ from pathlib import Path
 
 from modules.shared.src.xdg.utility_xdg_paths import (
     bin_home,
-    tool_cache_path,
-    tool_config_path,
-    tool_data_path,
-    _find_source_dirs,
+    tool_cache_dir,
+    tool_config_dir,
+    tool_data_dir,
+    tool_state_dir,
 )
 
 
@@ -43,8 +43,8 @@ def warn_if_bin_not_on_path() -> bool:
     print(
         f"  [WARN] {bin_home()} is not on your PATH.\n"
         f"         Launchers installed there won't be found by your shell.\n"
-        f"         Add it to your profile, e.g.:\n"
-        f"           echo 'export PATH=\"$HOME/.local/bin:$PATH\"' >> ~/.bashrc\n",
+        f"         Add it to your profile, e.g.:\\n"
+        f"           echo 'export PATH=\\\"$HOME/.local/bin:$PATH\\\"' >> ~/.bashrc\\n",
         file=sys.stderr,
     )
     return False
@@ -64,12 +64,18 @@ def remove_tool_artifacts(
     """
     for name in launchers:
         (bin_home() / name).unlink(missing_ok=True)
-    shutil.rmtree(tool_data_path(tool), ignore_errors=True)
-    shutil.rmtree(tool_cache_path(tool), ignore_errors=True)
+    shutil.rmtree(tool_data_dir(tool), ignore_errors=True)
+    shutil.rmtree(tool_cache_dir(tool), ignore_errors=True)
     if clean_config:
-        shutil.rmtree(tool_config_path(tool), ignore_errors=True)
-    # Clean up build artifacts in source directories
-    for src_dir in _find_source_dirs(tool):
+        shutil.rmtree(tool_config_dir(tool), ignore_errors=True)
+    # Clean up build artifacts in source directories — only safe dirs
+    source_candidates = [
+        Path.home() / "projects" / tool,
+        Path.home() / "src" / tool,
+    ]
+    for src_dir in source_candidates:
+        if not src_dir.exists():
+            continue
         # Clean .venv (uv-based Python tools)
         venv_path = src_dir / ".venv"
         if venv_path.is_symlink():

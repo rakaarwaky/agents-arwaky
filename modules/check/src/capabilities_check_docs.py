@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from modules.shared.src.check.contract_check_protocol import ICheckRunner
-from modules.shared.src.common.doc_pack.capabilities_doc_pack import (
+from modules.check.src.capabilities_doc_pack import (
     DocFinding,
     as_strict,
     audit_docs,
@@ -13,7 +13,7 @@ from modules.shared.src.common.doc_pack.capabilities_doc_pack import (
     warnings_only,
 )
 from modules.shared.src.logging.utility_logging import err, info, ok, warn
-from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.paths.utility_paths import repo_root
 
 
 class DocsCheckRunner(ICheckRunner):

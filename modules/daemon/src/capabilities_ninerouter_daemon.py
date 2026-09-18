@@ -18,7 +18,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.xdg.utility_xdg_paths import (
     agents_arwaky_config_dir,
     config_home,

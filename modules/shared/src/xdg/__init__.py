@@ -1,8 +1,9 @@
-"""XDG domain: base-directory path helpers and side-effect I/O."""
+"""XDG domain — pure path helpers + side-effect I/O (P4-A1).\n\nConsumers import from ``modules.shared.src.xdg``.\n"""
 from __future__ import annotations
 
 from modules.shared.src.xdg.utility_xdg_atomic_io import (
     atomic_write_text,
+    bin_home,
     bin_on_path,
     ensure_bin_home,
     ensure_path,
@@ -10,25 +11,20 @@ from modules.shared.src.xdg.utility_xdg_atomic_io import (
     warn_if_bin_not_on_path,
 )
 from modules.shared.src.xdg.utility_xdg_paths import (
-    agent_secret_candidates,
     agents_arwaky_config_dir,
-    bin_home,
     cache_home,
     config_home,
     data_home,
+    ensure_xdg_dirs_exist,
+    runtime_dir,
     state_home,
     tool_cache_dir,
-    tool_cache_path,
     tool_config_dir,
-    tool_config_path,
     tool_data_dir,
-    tool_data_path,
     tool_state_dir,
-    tool_state_path,
 )
 
 __all__ = [
-    "agent_secret_candidates",
     "agents_arwaky_config_dir",
     "atomic_write_text",
     "bin_home",
@@ -38,15 +34,13 @@ __all__ = [
     "data_home",
     "ensure_bin_home",
     "ensure_path",
+    "ensure_xdg_dirs_exist",
     "remove_tool_artifacts",
+    "runtime_dir",
     "state_home",
     "tool_cache_dir",
-    "tool_cache_path",
     "tool_config_dir",
-    "tool_config_path",
     "tool_data_dir",
-    "tool_data_path",
     "tool_state_dir",
-    "tool_state_path",
     "warn_if_bin_not_on_path",
 ]

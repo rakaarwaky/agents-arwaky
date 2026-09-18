@@ -76,7 +76,7 @@ Agents should execute tools via `aa tool run <tool> [args...]` (or `agents-arwak
 
 ## 📋 Tool & MCP Inventory
 
-- **Machine-Readable SSOT:** [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json) is the single source of truth for all registered internal and vendor tools.
+- **Machine-Readable SSOT:** [`config/manifest.json`](config/manifest.json) is the single source of truth for all registered internal and vendor tools.
 - **Runtime Discovery:** Use `aa tool list` to view all registered tools, or `aa mcp list` to inspect active MCP servers.
 - **Detailed Catalog & Documentation:** For tool descriptions, language stacks, upstream repository links, and client integration snippets, see [**README.md § Agent & Tool Catalog**](README.md#-agent--tool-catalog) and [**README.md § MCP Client Integration**](README.md#-mcp-client-integration).
 
@@ -188,7 +188,7 @@ that the pack no longer provides. It only removes entries carrying
 
 ## 📌 Standard Reference Paths
 
-- Single Source of Truth Manifest: [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json)
+- Single Source of Truth Manifest: [`config/manifest.json`](config/manifest.json)
 - Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
 - Shared XDG Helper: [`modules/shared/src/xdg/`](modules/shared/src/xdg/)
 - Tool Install/Update/Uninstall (data-driven): [`modules/installer/`](modules/installer/) · [`modules/updater/`](modules/updater/) · [`modules/uninstaller/`](modules/uninstaller/) · Runner & CLI surface: [`modules/runner/`](modules/runner/)

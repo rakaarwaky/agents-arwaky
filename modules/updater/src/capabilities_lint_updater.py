@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.paths.utility_paths import repo_root
 
 ROOT = repo_root()
 
@@ -24,9 +24,9 @@ from modules.shared.src.xdg.utility_xdg_paths import (
     data_home,
 )
 from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_bin_home
-from modules.shared.src.common.git.utility_git_update import update_submodule
-from modules.shared.src.common.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.shared.src.common.tool.contract_tool_protocol import IToolUpdater
+from modules.shared.src.git.utility_git_update import update_submodule
+from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
 
 INTERNAL_DIR = ROOT / "internal/lint-arwaky"
 BINARIES = ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui"]

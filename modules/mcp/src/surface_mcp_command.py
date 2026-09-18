@@ -5,7 +5,7 @@ from pathlib import Path
 
 from modules.shared.src.logging.utility_logging import BOLD, RESET, err
 from modules.shared.src.mcp.contract_mcp_aggregate import IMcpAggregate
-from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.paths.utility_paths import repo_root
 
 
 def cmd_mcp(args: list[str], orch: IMcpAggregate) -> int:

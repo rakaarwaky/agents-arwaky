@@ -11,15 +11,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.paths.utility_paths import repo_root
 
 ROOT = repo_root()
 
 from modules.shared.src.xdg.utility_xdg_paths import bin_home, tool_data_dir
-from modules.shared.src.venv.capabilities_venv_installer import ensure_venv, install_package, setup_xdg_directories, setup_bin_links
-from modules.shared.src.common.git.utility_git_update import update_submodule, write_install_stamp
-from modules.shared.src.common.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.shared.src.common.tool.contract_tool_protocol import IToolUpdater
+from modules.installer.src.capabilities_venv_installer import ensure_venv, install_package, setup_xdg_directories, setup_bin_links
+from modules.shared.src.git.utility_git_update import update_submodule, write_install_stamp
+from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
 
 TOOL_NAME = "blender-arwaky"
 SRC_REL = f"internal/{TOOL_NAME}"
