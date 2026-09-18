@@ -19,7 +19,7 @@ from pathlib import Path
 
 from modules.shared.src.logging.utility_logging import info, ok, warn
 from modules.shared.src.paths.utility_paths import repo_root
-from modules.sync.contract.contract_sync_protocol import ISyncRunner
+from modules.shared.src.sync.contract_sync_protocol import ISyncRunner
 
 
 ROOT = repo_root()

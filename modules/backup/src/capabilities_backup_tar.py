@@ -19,8 +19,8 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-from modules.backup.contract.contract_backup_protocol import IBackupGateway
-from modules.backup.contract.taxonomy_backup_vo import BackupResult, RestoreResult
+from modules.shared.src.backup.contract_backup_protocol import IBackupGateway
+from modules.shared.src.backup.taxonomy_backup_vo import BackupResult, RestoreResult
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.xdg.utility_xdg_paths import data_home
 

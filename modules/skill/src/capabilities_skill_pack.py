@@ -10,8 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.paths.utility_paths import repo_root
-from modules.skill.contract.contract_skill_protocol import ISkillProvisioner
-from modules.skill.contract.taxonomy_skill_vo import SkillProvisionResult
+from modules.shared.src.skill.contract_skill_protocol import ISkillProvisioner
+from modules.shared.src.skill.taxonomy_skill_vo import SkillProvisionResult
 from modules.shared.src.skill_pack.capabilities_skill_pack import (
     PackFinding,
     prune_provisioned,

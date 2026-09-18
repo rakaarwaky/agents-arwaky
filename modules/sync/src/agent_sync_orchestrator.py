@@ -1,7 +1,7 @@
 """Sync agent orchestrator — thin aggregate over the sync runner."""
 from __future__ import annotations
 
-from modules.sync.contract.contract_sync_aggregate import ISyncAggregate
+from modules.shared.src.sync.contract_sync_aggregate import ISyncAggregate
 from modules.sync.src.capabilities_sync_runner import SyncRunner
 
 

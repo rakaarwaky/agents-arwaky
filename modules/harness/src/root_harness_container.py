@@ -7,8 +7,8 @@ from modules.harness.src.capabilities_harness_grok_build import GrokBuildConnect
 from modules.harness.src.capabilities_harness_hermes import HermesConnector
 from modules.harness.src.capabilities_harness_opencode import OpencodeConnector
 from modules.harness.src.capabilities_harness_qwencode import QwencodeConnector
-from modules.harness.contract.contract_harness_aggregate import IHarnessAggregate
-from modules.harness.contract.contract_harness_protocol import IHarnessConnector
+from modules.shared.src.harness.contract_harness_aggregate import IHarnessAggregate
+from modules.shared.src.harness.contract_harness_protocol import IHarnessConnector
 
 
 class HarnessContainer:
