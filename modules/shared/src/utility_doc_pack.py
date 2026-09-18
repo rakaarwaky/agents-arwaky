@@ -4,9 +4,11 @@ modules.shared.src.taxonomy_core_constant.
 """
 from __future__ import annotations
 
+from modules.shared.src.taxonomy_doc_constant import ERROR, WARN
+from modules.shared.src.taxonomy_doc_vo import DocFinding, Section as _Section, Table
+
 import os
 import re
-from dataclasses import dataclass
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_constant import (
@@ -14,13 +16,11 @@ from modules.shared.src.taxonomy_core_constant import (
     DOC_NAMES,
     EVIDENCED_STATES,
     HEALTH_VOCAB,
-    OWNED_DOCS,
     SPEC_DOCS,
     STATE_VOCAB,
 )
 
-ERROR = "error"
-WARN = "warn"
+# (ERROR/WARN imported from taxonomy_doc_constant)
 
 #: Build/vendored trees that never carry this project's documents.
 _SKIP_PARTS = {
@@ -129,38 +129,8 @@ _PLACEHOLDER_VALUE = re.compile(
 )
 
 
-@dataclass(frozen=True)
-class DocFinding:
-    """One violated document invariant, ready for CLI reporting."""
-
-    code: str
-    message: str
-    path: str = ""
-    severity: str = ERROR
-
-    @property
-    def is_error(self) -> bool:
-        """Whether the finding must be fixed before the documents can be trusted."""
-        return self.severity == ERROR
-
-
-@dataclass(frozen=True)
-class _Section:
-    """A markdown heading and the raw lines under it, up to the next heading."""
-
-    level: int
-    title: str
-    body: str
-    line: int
-
-
-@dataclass(frozen=True)
-class Table:
-    """A parsed markdown table: header cells, ``(line, cells)`` rows, header line."""
-
-    header: list[str]
-    rows: list[tuple[int, list[str]]]
-    line: int
+# Dataclasses DocFinding/_Section/Table now live in the shared taxonomy layer
+# (taxonomy_doc_vo.py); imported at the top of this module.
 
 
 # --- text helpers -------------------------------------------------------------

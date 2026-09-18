@@ -7,7 +7,7 @@ Every function, constant, print, and edge case from the original script
 ``cmd_list``, ``main``) is kept exactly as written. The only
 allowed changes are the import swaps to the AES shared modules
 (``modules.shared.src.utility_paths`` /
-``modules.shared.src.utility_xdg_paths``) and a thin
+``modules.shared.src.taxonomy_xdg_paths``) and a thin
 ``GdriveBackupGateway`` class exposing the original
 ``cmd_upload`` / ``cmd_download`` / ``cmd_list`` / ``main`` behind
 the AES ``IBackupGateway`` contract.
@@ -24,12 +24,68 @@ from pathlib import Path
 from modules.backup.src.contract_backup_protocol import IBackupGateway
 from modules.backup.src.taxonomy_backup_vo import BackupResult, RestoreResult
 from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_xdg_paths import data_home
+from modules.shared.src.taxonomy_xdg_paths import data_home
 
 ROOT = repo_root()
 
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class GdriveBackupGateway(IBackupGateway):
+    """Thin AES capability wrapper: delegates backup/restore to the
+    verbatim original ``cmd_upload`` / ``cmd_download`` (kept above).
+    The original module-level functions remain the source of truth;
+    this class only adapts their signatures to the ``IBackupGateway``
+    contract expected by the AES orchestrator."""
+
+    def __init__(self, folder_name: str = DEFAULT_FOLDER_NAME) -> None:
+        self._folder_name = folder_name
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def backup(self, tool: str, dest: str = "") -> BackupResult:
+        """Upload *tool*'s newest local archive to Drive (original
+        ``cmd_upload`` logic; original raises ``sys.exit(1)`` on
+        missing file / service error, which we catch here to keep the
+        AES gateway contract total — returning a failed
+        ``BackupResult`` instead of terminating the whole process)."""
+        import contextlib
+        store = data_home() / "backups"
+        matches = sorted(store.glob(f"{tool}-*.tar.gz")) if store.exists() else []
+        if not matches:
+            return BackupResult(False, tool, "", True, "no local archive found")
+        try:
+            with contextlib.suppress(SystemExit):
+                cmd_upload(matches[-1], self._folder_name)
+        except SystemExit:
+            return BackupResult(False, tool, str(matches[-1]), True, "upload failed (original script exited)")
+        return BackupResult(True, tool, str(matches[-1]), True, "uploaded to Google Drive")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def restore(self, tool: str, archive: Path) -> RestoreResult:
+        """Download *tool* from Drive into *archive* (original
+        ``cmd_download`` logic, same ``sys.exit(1)`` adaptation)."""
+        import contextlib
+        try:
+            with contextlib.suppress(SystemExit):
+                cmd_download(tool, str(archive), self._folder_name)
+        except SystemExit:
+            return RestoreResult(False, tool, "", str(archive), "download failed (original script exited)")
+        return RestoreResult(True, tool, str(archive), str(archive), "downloaded from Google Drive")
+
+    def list_archives(self) -> list[Path]:
+        """Local backup archives backing this gateway (Drive uploads source)."""
+        store = data_home() / "backups"
+        return sorted(store.glob("*.tar.gz")) if store.exists() else []
+
+    def list(self, folder_name: str = DEFAULT_FOLDER_NAME) -> None:
+        """Delegates to the original ``cmd_list`` (prints JSON)."""
+        cmd_list(folder_name)
+
+    @staticmethod
+    def main_cli() -> None:
+        """The original script's ``main()`` entry point (verbatim above)."""
+        main()
 def get_credentials():
     creds_dir = data_home() / "google-workspace-mcp" / "credentials"
     user_email = os.environ.get("USER_GOOGLE_EMAIL", "")
@@ -50,9 +106,9 @@ def get_credentials():
     with open(cred_file, "r", encoding="utf-8") as f:
         cdata = json.load(f)
 
-    from google.auth.exceptions import RefreshError  # type: ignore
-    from google.auth.transport.requests import Request  # type: ignore
-    from google.oauth2.credentials import Credentials  # type: ignore
+    from google.auth.exceptions import RefreshError
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
     creds = Credentials(
         token=cdata.get("token"),
         refresh_token=cdata.get("refresh_token"),
@@ -75,9 +131,9 @@ def get_credentials():
     return creds
 
 def get_drive_service():
-    import google_auth_httplib2  # type: ignore
-    import httplib2  # type: ignore
-    from googleapiclient.discovery import build  # type: ignore
+    import google_auth_httplib2
+    import httplib2
+    from googleapiclient.discovery import build
     creds = get_credentials()
     http = httplib2.Http(timeout=60)
     http.redirect_codes = http.redirect_codes - {308}
@@ -93,7 +149,7 @@ def _is_transient(err) -> bool:
         return True
     # Google API HttpError: retry only 429/500/502/503
     try:
-        from googleapiclient.errors import HttpError  # type: ignore
+        from googleapiclient.errors import HttpError
         if isinstance(err, HttpError):
             status = getattr(err, "resp", None)
             code = (
@@ -109,7 +165,7 @@ def _is_transient(err) -> bool:
 
 def retry_api(func, max_retries=4, delay=1):
     """Retry a Google API call (shared utility) — transient errors only."""
-    from retry import retry_api as _shared_retry  # type: ignore
+    from retry import retry_api as _shared_retry
     return _shared_retry(
         func, max_retries=max_retries, delay=delay, is_transient=_is_transient
     )
@@ -176,7 +232,7 @@ def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
     service = get_drive_service()
     folder_id = get_or_create_folder(service, folder_name)
 
-    from googleapiclient.http import MediaFileUpload  # type: ignore
+    from googleapiclient.http import MediaFileUpload
     media = MediaFileUpload(str(path), mimetype="application/gzip", resumable=True)
     metadata = {
         "name": path.name,
@@ -206,7 +262,7 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
     # Check if query_or_id is a file ID (Google Drive IDs are usually
     # ~33-44 alphanum with - and _)
     if len(query_or_id) > 25 and "/" not in query_or_id and "." not in query_or_id:
-        from googleapiclient.errors import HttpError  # type: ignore
+        from googleapiclient.errors import HttpError
 
         try:
             meta = retry_api(
@@ -261,7 +317,7 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
         dest = dest / target_name
     dest.parent.mkdir(parents=True, exist_ok=True)
 
-    from googleapiclient.http import MediaIoBaseDownload  # type: ignore
+    from googleapiclient.http import MediaIoBaseDownload
     import random as _random
     request = service.files().get_media(fileId=file_id)
     fh = io.FileIO(str(dest), "wb")
@@ -333,50 +389,4 @@ def main():
         print(f"Unknown action: {action}", file=sys.stderr)
         sys.exit(1)
 
-class GdriveBackupGateway(IBackupGateway):
-    """Thin AES capability wrapper: delegates backup/restore to the
-    verbatim original ``cmd_upload`` / ``cmd_download`` (kept above).
-    The original module-level functions remain the source of truth;
-    this class only adapts their signatures to the ``IBackupGateway``
-    contract expected by the AES orchestrator."""
 
-    def __init__(self, folder_name: str = DEFAULT_FOLDER_NAME) -> None:
-        self._folder_name = folder_name
-
-    def backup(self, tool: str, dest: str = "") -> BackupResult:
-        """Upload *tool*'s newest local archive to Drive (original
-        ``cmd_upload`` logic; original raises ``sys.exit(1)`` on
-        missing file / service error, which we catch here to keep the
-        AES gateway contract total — returning a failed
-        ``BackupResult`` instead of terminating the whole process)."""
-        import contextlib
-        store = data_home() / "backups"
-        matches = sorted(store.glob(f"{tool}-*.tar.gz")) if store.exists() else []
-        if not matches:
-            return BackupResult(False, tool, "", True, "no local archive found")
-        try:
-            with contextlib.suppress(SystemExit):
-                cmd_upload(matches[-1], self._folder_name)
-        except SystemExit:
-            return BackupResult(False, tool, str(matches[-1]), True, "upload failed (original script exited)")
-        return BackupResult(True, tool, str(matches[-1]), True, "uploaded to Google Drive")
-
-    def restore(self, tool: str, archive: Path) -> RestoreResult:
-        """Download *tool* from Drive into *archive* (original
-        ``cmd_download`` logic, same ``sys.exit(1)`` adaptation)."""
-        import contextlib
-        try:
-            with contextlib.suppress(SystemExit):
-                cmd_download(tool, str(archive), self._folder_name)
-        except SystemExit:
-            return RestoreResult(False, tool, "", str(archive), "download failed (original script exited)")
-        return RestoreResult(True, tool, str(archive), str(archive), "downloaded from Google Drive")
-
-    def list(self, folder_name: str = DEFAULT_FOLDER_NAME) -> None:
-        """Delegates to the original ``cmd_list`` (prints JSON)."""
-        cmd_list(folder_name)
-
-    @staticmethod
-    def main_cli() -> None:
-        """The original script's ``main()`` entry point (verbatim above)."""
-        main()

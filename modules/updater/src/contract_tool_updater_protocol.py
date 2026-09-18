@@ -15,4 +15,4 @@ class IToolUpdater(ABC):
     @abstractmethod
     def update(self, spec: ToolSpec) -> UpdateResult:
         """Update the tool described by *spec*; report outcome as UpdateResult."""
-        raise NotImplementedError
+        return None

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 
 COMMANDS = (
     "status doctor tool skill docs connect disconnect mcp anytype 9router service "
@@ -20,7 +20,7 @@ FALLBACK_TOOLS = "context7 fetch ponytail anytype codegraph 9router workspace mn
 def _tools_from_manifest() -> str:
     """Single source of truth: manifest.json (static fallback on any error)."""
     try:
-        manifest_path = repo_root() / "modules/shared/config/manifest.json"
+        manifest_path = repo_root / "modules/shared/config/manifest.json"
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
         ids = [t["id"] for t in data.get("tools", []) if t.get("id")]
         if ids:
@@ -107,7 +107,7 @@ def install() -> int:
     """Write completions to the XDG data dir and patch ~/.bashrc."""
     from pathlib import Path
 
-    from modules.shared.src.utility_xdg_paths import data_home
+    from modules.shared.src.taxonomy_xdg_paths import data_home
 
     target = data_home() / "bash-completion/completions"
     target.mkdir(parents=True, exist_ok=True)

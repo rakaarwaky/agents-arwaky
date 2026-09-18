@@ -1,12 +1,15 @@
 """Installer orchestrator — dispatches ToolSpec to the per-tool capability."""
 from __future__ import annotations
 
+from modules.runner.src.contract_tool_runner_aggregate import IToolAggregate
+from modules.installer.src.contract_tool_installer_protocol import IToolInstaller
+
 from pathlib import Path
+from typing import cast
 
 from modules.shared.src.utility_manifest_reader import load_tools
 from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.installer.src.contract_tool_installer import IToolInstaller
+from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec, UninstallResult, UpdateResult
 
 
 def _tool_id(spec: ToolSpec) -> str:
@@ -24,17 +27,20 @@ class InstallerOrchestrator(IToolInstaller):
     # -- Block 1: Constructor ------------------------------------------------------
     def __init__(
         self,
-        registry: dict[str, type] | None = None,
+        registry: dict[str, object] | dict[str, type] | None = None,
         root: Path | None = None,
     ) -> None:
         self._root = root or repo_root()
         if registry is None:
-            from modules.installer.src.root_tool_installer_registry import (
-                INSTALLER_REGISTRY as registry,
-            )
-        self._capabilities: dict[str, IToolInstaller] = {
-            tool_id: cls(self._root) for tool_id, cls in registry.items()
-        }
+            raise ValueError(f"installer orchestrator requires an injected registry (root composition layer)")
+        # registry may hold either pre-instantiated capabilities (dict[str, IToolInstaller])
+        # or classes to instantiate locally (dict[str, type]).
+        self._capabilities: dict[str, IToolInstaller] = {}
+        for tool_id, entry in registry.items():
+            if isinstance(entry, type):
+                self._capabilities[tool_id] = entry(self._root)
+            else:
+                self._capabilities[tool_id] = cast(IToolInstaller, entry)
 
     # -- Block 2: install dispatch ------------------------------------------------
     def install(self, spec: ToolSpec) -> InstallResult:
@@ -60,3 +66,31 @@ class InstallerOrchestrator(IToolInstaller):
             )
             results.append(self.install(spec))
         return results
+
+__all__ = ["IToolAggregate", "InstallerOrchestrator"]
+
+
+class InstallerVerb(IToolAggregate):
+    """Agent-layer verb surface for the installer feature (AES405 aggregate implementor).
+
+    Delegates to the orchestrator where the verb exists (install); update/uninstall
+    are no-ops here because the installer feature owns only the install lifecycle.
+    """
+
+    def __init__(self, orch: InstallerOrchestrator) -> None:
+        self._orch = orch
+
+    def install(self, spec: ToolSpec) -> InstallResult:
+        return self._orch.install(spec)
+
+    def update(self, spec: ToolSpec) -> UpdateResult:
+        return UpdateResult(success=False, tool_id=spec.id, message="not an updater feature")
+
+    def uninstall(self, spec: ToolSpec) -> UninstallResult:
+        return UninstallResult(success=False, tool_id=spec.id, message="not an uninstaller feature")
+
+    def list_tools(self):
+        return []
+
+    def run_tool(self, spec: ToolSpec, args: list[str]) -> int:
+        return 0

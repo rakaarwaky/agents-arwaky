@@ -9,6 +9,8 @@ CLI usage (standalone):
     python3 -m modules.config.src.capabilities_config_engine remove-mcp-servers <file> <s1> ...
 """
 from __future__ import annotations
+from modules.shared.src.taxonomy_core_vo import Timestamp
+
 
 import json
 import os
@@ -20,6 +22,25 @@ from pathlib import Path
 from modules.config.src.contract_config_protocol import IConfigModifier, IConfigWriter
 from modules.config.src.utility_jsonc import strip_jsonc_comments
 from modules.config.src.utility_toml_write import write_toml
+
+# ─── Block 1: Class Definition & Constructor ──────────────
+class ConfigWriter(IConfigWriter):
+    """Module-level I/O bound to the IConfigWriter contract."""
+
+    def load_file(self, path: Path) -> tuple[dict, str]:
+        return load_file(path)
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def save_file(self, path: Path, data: dict, fmt: str | None = None) -> bool:
+        if fmt is None:
+            fmt = detect_format(path)
+        return save_file(path, data, fmt)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def detect_format(self, path: Path) -> str:
+        return detect_format(path)
+
 
 def detect_format(path: Path) -> str:
     name = path.name.lower()
@@ -61,7 +82,7 @@ def load_file(path: Path):
     # YAML
     data = None
     try:
-        import yaml  # type: ignore
+        import yaml
         data = yaml.safe_load(text) or {}
     except ImportError:
         data = None  # pyyaml not installed; try ruamel below
@@ -71,7 +92,7 @@ def load_file(path: Path):
         return data, fmt
     # ruamel fallback
     try:
-        import ruamel.yaml  # type: ignore
+        import ruamel.yaml
         data = ruamel.yaml.YAML(typ="safe").load(text) or {}
         return data, fmt
     except ImportError:
@@ -108,7 +129,7 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
             dumped = False
             if preserve_comments:
                 try:
-                    import ruamel.yaml  # type: ignore
+                    import ruamel.yaml
                     y = ruamel.yaml.YAML()
                     y.preserve_quotes = True
                     with path.open("w", encoding="utf-8") as f:
@@ -119,7 +140,7 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
                 except ruamel.yaml.YAMLError:
                     dumped = False  # ruamel dump failed; fall back to pyyaml
             if not dumped:
-                import yaml  # type: ignore
+                import yaml
                 with path.open("w", encoding="utf-8") as f:
                     yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
         return True
@@ -296,20 +317,6 @@ def set_env_keys(path: Path, pairs: dict) -> None:
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
-class ConfigWriter(IConfigWriter):
-    """Module-level I/O bound to the IConfigWriter contract."""
-
-    def load_file(self, path: Path) -> tuple[dict, str]:
-        return load_file(path)
-
-    def save_file(self, path: Path, data: dict, fmt: str | None = None) -> bool:
-        if fmt is None:
-            fmt = detect_format(path)
-        return save_file(path, data, fmt)
-
-    def detect_format(self, path: Path) -> str:
-        return detect_format(path)
-
 
 class ConfigModifier(IConfigModifier):
     """Module-level I/O bound to the IConfigModifier contract."""
@@ -382,3 +389,10 @@ if __name__ == "__main__":
 # ---------------------------------------------------------------------------
 # Adapter classes (3-block structure: config -> behavior -> implementation)
 # ---------------------------------------------------------------------------
+
+__all__ = ['Timestamp']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"Timestamp": Timestamp}

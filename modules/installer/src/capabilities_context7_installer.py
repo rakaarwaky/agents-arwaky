@@ -10,17 +10,16 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
-from pathlib import Path
 
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.installer.src.contract_tool_installer import IToolInstaller
-from modules.shared.src.utility_xdg_atomic_io import (
+from modules.installer.src.contract_tool_installer_protocol import IToolInstaller
+from modules.shared.src.taxonomy_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.utility_xdg_paths import bin_home, data_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
 
 ROOT = repo_root()
 
@@ -39,6 +38,26 @@ LAUNCHERS = {
 }
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class Context7Installer(IToolInstaller):
+    """Install vendor/context7 (pnpm workspace) into XDG data, build, write launchers."""
+
+    def __init__(self, root=None) -> None:
+        self._root = root or ROOT
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def install(self, spec: ToolSpec) -> InstallResult:
+        rc = _install_context7()
+        return InstallResult(
+            rc == 0,
+            spec.id,
+            "context7 installed" if rc == 0 else "context7 install failed",
+        )
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
@@ -93,16 +112,4 @@ def _install_context7() -> int:
     return 0
 
 
-class Context7Installer(IToolInstaller):
-    """Install vendor/context7 (pnpm workspace) into XDG data, build, write launchers."""
 
-    def __init__(self, root=None) -> None:
-        self._root = root or ROOT
-
-    def install(self, spec: ToolSpec) -> InstallResult:
-        rc = _install_context7()
-        return InstallResult(
-            rc == 0,
-            spec.id,
-            "context7 installed" if rc == 0 else "context7 install failed",
-        )

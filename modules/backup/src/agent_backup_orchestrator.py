@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
-from modules.backup.src.capabilities_backup_tar import TarBackupGateway, TOOL_DATA
 from modules.backup.src.contract_backup_aggregate import IBackupAggregate
+from modules.backup.src.contract_backup_protocol import IBackupGateway
+from modules.backup.src.taxonomy_backup_constant import TOOL_DATA
 
 
 class BackupOrchestrator(IBackupAggregate):
@@ -17,7 +17,7 @@ class BackupOrchestrator(IBackupAggregate):
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, tar_gateway: TarBackupGateway, gdrive_gateway: GdriveBackupGateway) -> None:
+    def __init__(self, tar_gateway: IBackupGateway, gdrive_gateway: IBackupGateway) -> None:
         self._tar = tar_gateway
         self._gdrive = gdrive_gateway
 
@@ -41,7 +41,7 @@ class BackupOrchestrator(IBackupAggregate):
         if tool == "all":
             src_base = Path(archive)
             if not src_base.is_dir():
-                print(f"  \u2717 'restore all' expects a backup directory containing per-tool archives.", file=sys.stderr)
+                print("  \u2717 'restore all' expects a backup directory containing per-tool archives.", file=sys.stderr)
                 return 1
             rc = 0
             for t in TOOL_DATA:

@@ -16,24 +16,32 @@ import sys
 
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.updater.src.contract_tool_updater import IToolUpdater
-from modules.shared.src.utility_xdg_atomic_io import (
+from modules.updater.src.contract_tool_updater_protocol import IToolUpdater
+from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.taxonomy_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
     ensure_path,
 )
-from modules.shared.src.utility_xdg_paths import bin_home, data_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
 
 
 DATA_DIR_NAME = "9router"
 INTERNAL_BIN = "internal-bin"
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+
+
+
 class NinerouterUpdater(IToolUpdater):
     """Force-reinstall the 9Router hybrid daemon + launcher."""
 
-    def __init__(self, root=None) -> None:
+    def __init__(self, root=None, daemons: 'IDaemonAggregate | None' = None) -> None:
         self._root = root or repo_root()
+        self._daemons = daemons
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
 
     def update(self, spec: ToolSpec) -> UpdateResult:
         root = self._root
@@ -46,10 +54,10 @@ class NinerouterUpdater(IToolUpdater):
         data_dir.mkdir(parents=True, exist_ok=True)
 
         # Delegate to the daemon module's service_install (modules/daemon/deploy/ninerouter.service)
-        from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
 
         print(">>> Updating 9Router hybrid architecture...")
-        manager = PodmanDaemonManager()
+        daemons = self._daemons
+        manager = daemons
         if shutil.which("podman") is None:
             print("  Warning: podman not found; 9router service-install skipped.", file=sys.stderr)
         else:
@@ -62,7 +70,7 @@ import os, sys
 from pathlib import Path
 root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))
 sys.path.insert(0, str(root))
-from modules.daemon.src.surface_daemon_command import cmd_9router
+from modules.daemon.src.agent_daemon_verb import cmd_9router
 sys.exit(cmd_9router(sys.argv[1:]))
 '''
         launcher = bin_home() / "9router"
@@ -74,3 +82,7 @@ sys.exit(cmd_9router(sys.argv[1:]))
         (internal_bin / "9router").chmod(0o755)
         print(f">>> Successfully updated 9Router -> {launcher}")
         return UpdateResult(True, spec.id, "9router updated")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"

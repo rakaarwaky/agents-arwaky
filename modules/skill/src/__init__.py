@@ -8,7 +8,7 @@ from __future__ import annotations
 from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 from modules.skill.src.root_skill_container import SkillContainer, create_skill_feature
-from modules.cli.src.surface_skill_command import cmd_skill
+from modules.skill.src.agent_skill_verb import main as cmd_skill
 
 __all__ = [
     "SkillContainer",

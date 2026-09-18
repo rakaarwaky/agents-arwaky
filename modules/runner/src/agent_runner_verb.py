@@ -2,16 +2,13 @@
 from __future__ import annotations
 
 import json as _json
-import subprocess
 import sys
 import textwrap
 
 from modules.shared.src.utility_manifest_reader import load_tools
 from modules.shared.src.utility_logging import BOLD, GREEN, CYAN, RESET, banner, err, info, ok, pad, table_widths, warn
 from modules.shared.src.utility_paths import repo_root
-from modules.runner.src.contract_tool_runner import IToolAggregate
-from modules.shared.src.utility_xdg_atomic_io import ensure_path
-from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
+from modules.runner.src.contract_tool_runner_aggregate import IToolAggregate
 
 
 def _term_width() -> int:
@@ -96,7 +93,7 @@ def cmd_run(args: list[str], orch: IToolAggregate) -> int:
 
 def cmd_install(args: list[str], orch: IToolAggregate) -> int:
     """aa tool install <tool|all> [--yes] — per-tool installers via the orchestrator."""
-    from modules.shared.src.utility_xdg_atomic_io import ensure_path
+    from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
     has_yes = "--yes" in args or "-y" in args
@@ -148,7 +145,7 @@ def cmd_install(args: list[str], orch: IToolAggregate) -> int:
 
 def cmd_update(args: list[str], orch: IToolAggregate) -> int:
     """aa tool update <tool|all> [--yes] — pull + reinstall."""
-    from modules.shared.src.utility_xdg_atomic_io import ensure_path
+    from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
     has_yes = "--yes" in args or "-y" in args
@@ -243,3 +240,28 @@ def cmd_tool(args: list[str], orch: IToolAggregate) -> int:
         print(f"Valid: {', '.join(dispatch.keys())}")
         return 1
     return handler(rest)
+
+
+from modules.runner.src.contract_tool_runner_aggregate import IToolAggregate
+
+
+class RunnerVerb(IToolAggregate):
+    """Agent-layer verb surface for the runner feature (AES405 aggregate implementor)."""
+
+    def __init__(self, agg: IToolAggregate) -> None:
+        self._agg = agg
+
+    def list_tools(self):
+        return self._agg.list_tools()
+
+    def install(self, spec):
+        return self._agg.install(spec)
+
+    def update(self, spec):
+        return self._agg.update(spec)
+
+    def uninstall(self, spec):
+        return self._agg.uninstall(spec)
+
+    def run_tool(self, spec, args: list[str]) -> int:
+        return self._agg.run_tool(spec, args)

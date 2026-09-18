@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_constant import UNINSTALL_OVERRIDES
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 
 
 def find_uninstaller_candidate(tool) -> Path | None:
@@ -22,7 +22,7 @@ def find_uninstaller_candidate(tool) -> Path | None:
         names.append(UNINSTALL_OVERRIDES[tool.id])
     names.append(tool.id)
     names.append(f"{tool.id}-mcp")
-    root = repo_root() / "modules" / "uninstaller" / "src"
+    root = repo_root / "modules" / "uninstaller" / "src"
     for name in names:
         candidate = root / f"capabilities_{name.replace('-', '_')}_uninstaller.py"
         if candidate.exists():

@@ -1,7 +1,7 @@
 """anytype-daemon uninstaller — strict verbatim port of tools/uninstall/uninstall_anytype_daemon.py.
 
 Every statement of the original script is preserved. Import paths swapped to
-AES equivalents (from xdg -> utility_xdg_paths / utility_xdg_atomic_io). The
+AES equivalents (from xdg -> taxonomy_xdg_paths / taxonomy_xdg_atomic_io). The
 original script's `--purge` argv flag is kept as the accepted `purge` flag
 attribute on this capability (the CLI surface does not expose argv).
 """
@@ -9,17 +9,34 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-import sys
 
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
-from modules.uninstaller.src.contract_tool_uninstaller import IToolUninstaller
-from modules.shared.src.utility_xdg_atomic_io import remove_tool_artifacts
-from modules.shared.src.utility_xdg_paths import config_home, data_home
+from modules.uninstaller.src.contract_tool_uninstaller_protocol import IToolUninstaller
+from modules.shared.src.taxonomy_xdg_atomic_io import remove_tool_artifacts
+from modules.shared.src.taxonomy_xdg_paths import config_home, data_home
 
 ROOT = repo_root()
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class AnytypeDaemonUninstaller(IToolUninstaller):
+    """AES facade over the verbatim original uninstall body."""
+
+    def __init__(self, root=None, daemons: object | None = None) -> None:
+        self._root = root or ROOT
+        self._daemons = daemons
+        self.purge: bool = False
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def uninstall(self, spec: ToolSpec) -> UninstallResult:
+        rc = _uninstall(self.purge)
+        return UninstallResult(rc == 0, spec.id, "anytype-daemon uninstalled (unit + launchers + data)")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
 def _uninstall(purge: bool) -> int:
     print(">>> Uninstalling anytype-daemon...")
 
@@ -45,13 +62,4 @@ def _uninstall(purge: bool) -> int:
     return 0
 
 
-class AnytypeDaemonUninstaller(IToolUninstaller):
-    """AES facade over the verbatim original uninstall body."""
 
-    def __init__(self, root=None) -> None:
-        self._root = root or ROOT
-        self.purge: bool = False
-
-    def uninstall(self, spec: ToolSpec) -> UninstallResult:
-        rc = _uninstall(self.purge)
-        return UninstallResult(rc == 0, spec.id, "anytype-daemon uninstalled (unit + launchers + data)")

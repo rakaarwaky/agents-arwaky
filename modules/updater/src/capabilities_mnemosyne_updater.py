@@ -9,17 +9,16 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from pathlib import Path
 
 from modules.shared.src.utility_paths import repo_root
 
 ROOT = repo_root()
 
 from modules.installer.src.utility_launcher_writer import write_uv_launchers
-from modules.shared.src.utility_xdg_atomic_io import ensure_bin_home
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.utility_git_update import update_submodule
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.updater.src.contract_tool_updater import IToolUpdater
+from modules.updater.src.contract_tool_updater_protocol import IToolUpdater
 
 SRC_REL = "vendor/mnemosyne"
 SRC_DIR = ROOT / SRC_REL
@@ -32,6 +31,20 @@ LAUNCHERS = [
 UV_ARGS = ["--extra", "mcp"]
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class MnemosyneUpdater(IToolUpdater):
+    def __init__(self, root=None) -> None:
+        self._root = root or ROOT
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def update(self, spec: ToolSpec) -> UpdateResult:
+        rc = main()
+        return UpdateResult(rc == 0, spec.id, "mnemosyne updated" if rc == 0 else "mnemosyne update failed")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
@@ -52,10 +65,4 @@ def main() -> int:
     return 0
 
 
-class MnemosyneUpdater(IToolUpdater):
-    def __init__(self, root=None) -> None:
-        self._root = root or ROOT
 
-    def update(self, spec: ToolSpec) -> UpdateResult:
-        rc = main()
-        return UpdateResult(rc == 0, spec.id, "mnemosyne updated" if rc == 0 else "mnemosyne update failed")

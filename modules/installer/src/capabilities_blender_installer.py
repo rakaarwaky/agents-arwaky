@@ -6,18 +6,17 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from pathlib import Path
 
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.installer.src.contract_tool_installer import IToolInstaller
-from modules.installer.src.capabilities_venv_installer import (
+from modules.installer.src.contract_tool_installer_protocol import IToolInstaller
+from modules.installer.src.utility_venv_helpers import (
     ensure_venv,
     install_package,
     setup_xdg_directories,
     setup_bin_links,
 )
-from modules.shared.src.utility_xdg_paths import bin_home, tool_data_dir
+from modules.shared.src.taxonomy_xdg_paths import bin_home, tool_data_dir
 
 ROOT = repo_root()
 
@@ -27,6 +26,26 @@ SRC_DIR = ROOT / SRC_REL
 LAUNCHERS = [("blender-arwaky", "blender-arwaky"), ("ba", "blender-arwaky"), ("blender-mcp", "blender-mcp")]
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+class BlenderInstaller(IToolInstaller):
+    """Install internal/blender-arwaky via a uv-managed venv (XDG compliant)."""
+
+    def __init__(self, root=None) -> None:
+        self._root = root or ROOT
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def install(self, spec: ToolSpec) -> InstallResult:
+        rc = _install_blender()
+        return InstallResult(
+            rc == 0,
+            spec.id,
+            "blender-arwaky installed" if rc == 0 else "blender-arwaky install failed",
+        )
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
 def run(cmd, cwd=None):
     subprocess.run(cmd, cwd=cwd, check=True)
 
@@ -62,16 +81,4 @@ def _install_blender() -> int:
     return 0
 
 
-class BlenderInstaller(IToolInstaller):
-    """Install internal/blender-arwaky via a uv-managed venv (XDG compliant)."""
 
-    def __init__(self, root=None) -> None:
-        self._root = root or ROOT
-
-    def install(self, spec: ToolSpec) -> InstallResult:
-        rc = _install_blender()
-        return InstallResult(
-            rc == 0,
-            spec.id,
-            "blender-arwaky installed" if rc == 0 else "blender-arwaky install failed",
-        )

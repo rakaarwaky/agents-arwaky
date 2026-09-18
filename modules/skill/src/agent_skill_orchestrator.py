@@ -2,14 +2,15 @@
 
 Dispatches every surface verb to the original command handlers, ported
 verbatim from tools/skill/skill.py into
-:mod:`modules.skill.src.capabilities_skill_registry`.
+:mod:`modules.skill.src.capabilities_skill_registry` (injected as
+ISkillRegistry by the root composition layer).
 """
 from __future__ import annotations
+from modules.skill.src.taxonomy_skill_vo import SkillProvisionResult
+
 
 from modules.skill.src.contract_skill_aggregate import ISkillAggregate
-from modules.skill.src.contract_skill_protocol import ISkillProvisioner
-
-from modules.skill.src import capabilities_skill_registry as _reg
+from modules.skill.src.contract_skill_protocol import ISkillProvisioner, ISkillRegistry
 
 
 class SkillOrchestrator(ISkillAggregate):
@@ -21,32 +22,40 @@ class SkillOrchestrator(ISkillAggregate):
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, provisioner: ISkillProvisioner) -> None:
+    def __init__(self, provisioner: ISkillProvisioner, registry: ISkillRegistry) -> None:
         self._provisioner = provisioner
+        self._registry = registry
 
     # -- Block 2: Query verbs -----------------------------------------------------
     def list_skills(self, tool_filter: str = "") -> int:
         """Port of tools/skill/skill.py cmd_list."""
         argv = [tool_filter] if tool_filter else []
-        return _reg.cmd_list(argv)
+        return self._registry.cmd_list(argv)
 
     def check_skills(self) -> int:
         """Port of tools/skill/skill.py cmd_check."""
-        return _reg.cmd_check()
+        return self._registry.cmd_check()
 
     def show_skill(self, query: str) -> int:
         """Port of tools/skill/skill.py cmd_show."""
-        return _reg.cmd_show([query] if query else [])
+        return self._registry.cmd_show([query] if query else [])
 
     # -- Block 3: Mutation verbs ----------------------------------------------------
     def install_skills(self, args: list[str]) -> int:
         """Port of tools/skill/skill.py cmd_install."""
-        return _reg.cmd_install(args)
+        return self._registry.cmd_install(args)
 
     def uninstall_skills(self, args: list[str]) -> int:
         """Port of tools/skill/skill.py cmd_uninstall."""
-        return _reg.cmd_uninstall(args)
+        return self._registry.cmd_uninstall(args)
 
     def sync_skills(self, args: list[str]) -> int:
         """'sync' = install all (alias semantics from tools/skill/skill.py)."""
-        return _reg.cmd_install(["all", *args])
+        return self._registry.cmd_install(["all", *args])
+
+__all__ = ['SkillProvisionResult']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"SkillProvisionResult": SkillProvisionResult}

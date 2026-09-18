@@ -18,8 +18,8 @@ from modules.shared.src.utility_logging import (
     table_widths,
 )
 from modules.shared.src.utility_manifest_reader import load_tools
-from modules.shared.src.utility_xdg_atomic_io import ensure_path
-from modules.shared.src.utility_xdg_paths import bin_home
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
+from modules.shared.src.taxonomy_xdg_paths import bin_home
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -27,10 +27,12 @@ class ToolsDiagnosticRunner(IDiagnosticRunner):
     """Submodule-missing check + binary readiness table."""
 
     # -- Block 1: Configuration ---------------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self) -> None:
         ensure_path()
 
     # -- Block 2: Protocol ABC Method Implementation --------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def run(self, json_mode: bool = False) -> int:
         if json_mode:
             out = []
@@ -81,7 +83,7 @@ class ToolsDiagnosticRunner(IDiagnosticRunner):
         return "ToolsDiagnosticRunner()"
 
 
-def _resolve_executable(binary: str):  # noqa: D103 — Block 3 helper, domain-specific, stateless but single-consumer duplicate to avoid sibling import
+def _resolve_executable(binary: str):
     found = shutil.which(binary)
     if found:
         from pathlib import Path
@@ -95,8 +97,7 @@ def _resolve_executable(binary: str):  # noqa: D103 — Block 3 helper, domain-s
     return None
 
 
-def _is_submodule_missing(path_str: str) -> bool:  # noqa: D103 — duplicated from EnvDiagnosticRunner to satisfy AES forbidden sibling-import rule; shared extraction to utility_git_submodule when ≥2 consumers stabilized
-    from pathlib import Path
+def _is_submodule_missing(path_str: str) -> bool:
 
     from modules.shared.src.utility_paths import repo_root
 

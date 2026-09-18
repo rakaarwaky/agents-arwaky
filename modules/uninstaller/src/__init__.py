@@ -7,6 +7,6 @@ Public API:
 from __future__ import annotations
 
 from modules.uninstaller.src.agent_uninstaller_orchestrator import UninstallerOrchestrator
-from modules.uninstaller.src.contract_tool_uninstaller import IToolUninstaller
+from modules.uninstaller.src.contract_tool_uninstaller_protocol import IToolUninstaller
 
 __all__ = ["IToolUninstaller", "UninstallerOrchestrator"]

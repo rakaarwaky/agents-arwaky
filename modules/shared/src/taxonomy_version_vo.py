@@ -1,29 +1,23 @@
-"""Unified version bump (P1-CI3), moved from tools/build/bump_version.py.
-
-Adaptations from the source:
-- ``repo_root()`` now comes from ``modules.shared.src.utility_paths``
-  instead of a ``sys.path`` hack.
-- :func:`bump` raises :class:`ValueError` for an unknown part instead of
-  ``SystemExit``; the CLI wrapper is expected to translate that into usage.
-"""
+"""Version helpers — taxonomy layer (pure functions, allowed in _vo files)."""
 from __future__ import annotations
 
 import re
 from pathlib import Path
 
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 
+from modules.shared.src.taxonomy_version_constant import DEFAULT_VERSION
 
 def _version_file() -> Path:
-    return repo_root() / "config" / "version.txt"
+    return repo_root / "config" / "version.txt"
 
 
 def read_version() -> str:
-    """Current version from modules/shared/config/version.txt (default 0.1.0)."""
+    """Current version from config/version.txt (default 0.1.0)."""
     version_file = _version_file()
     if version_file.exists():
         return version_file.read_text(encoding="utf-8").strip()
-    return "0.1.0"
+    return DEFAULT_VERSION
 
 
 def bump(current: str, part: str) -> str:

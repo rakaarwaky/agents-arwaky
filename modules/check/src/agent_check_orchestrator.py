@@ -1,5 +1,7 @@
 """Check agent orchestrator — runs all 5 verification checks in sequence."""
 from __future__ import annotations
+from modules.shared.src.taxonomy_doc_vo import DocFinding
+
 
 from modules.check.src.contract_check_aggregate import ICheckAggregate
 from modules.check.src.contract_check_protocol import ICheckRunner
@@ -33,3 +35,10 @@ class CheckOrchestrator(ICheckAggregate):
             return 1
         ok("All verifications PASSED.")
         return 0
+
+__all__ = ['DocFinding']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"DocFinding": DocFinding}

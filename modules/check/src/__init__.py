@@ -13,7 +13,7 @@ from modules.check.src.capabilities_check_python import PythonCheckRunner
 from modules.check.src.capabilities_check_shell import ShellCheckRunner
 from modules.check.src.capabilities_check_skills import SkillsCheckRunner
 from modules.check.src.root_check_container import CheckContainer, create_check_feature
-from modules.cli.src.surface_check_command import cmd_check
+from modules.check.src.agent_check_verb import cmd_check
 
 __all__ = [
     "CheckContainer",

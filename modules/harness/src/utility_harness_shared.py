@@ -8,25 +8,22 @@ from __future__ import annotations
 import functools
 import json as _json
 import os
-import posixpath
-import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_skill_names import (  # noqa: E402
-    ensure_under,
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_skill_vo import (
     extract_skill_name,
     safe_child,
     safe_skill_name,
 )
 
-REPO_ROOT = repo_root()
+REPO_ROOT = repo_root
 HOME = Path.home()
 
-from modules.shared.src.utility_xdg_paths import (  # type: ignore[import-not-found]
+from modules.shared.src.taxonomy_xdg_paths import (
     agents_arwaky_config_dir,
     config_home,
     data_home,

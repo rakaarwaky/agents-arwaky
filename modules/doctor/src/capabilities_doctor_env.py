@@ -15,44 +15,14 @@ from modules.shared.src.utility_logging import (
     ok,
     warn,
 )
-from modules.shared.src.utility_xdg_atomic_io import ensure_path
-from modules.shared.src.utility_xdg_paths import bin_home
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
+from modules.shared.src.taxonomy_xdg_paths import bin_home
 
 REQUIRED = ("git", "jq", "curl", "python3")
 OPTIONAL = ("cargo", "uv", "node", "npm", "bun", "pnpm", "rustc")
 
 
-def _resolve_executable(binary: str):
-    """shutil.which + bin_home executable fallback (from lib/tool_resolver)."""
-    found = shutil.which(binary)
-    if found:
-        from pathlib import Path
-        return Path(found)
-    local = bin_home() / binary
-    if local.exists() and os.access(local, os.X_OK):
-        return local
-    return None
-
-
-def _is_submodule_missing(path_str: str) -> bool:
-    """A submodule path is missing when its target (or .git) does not exist."""
-    from modules.shared.src.utility_paths import repo_root
-    from pathlib import Path
-
-    root = repo_root()
-    target = root / path_str
-    if not target.exists() or not (target / ".git").exists():
-        gitmodules = root / ".gitmodules"
-        if gitmodules.exists():
-            try:
-                text = gitmodules.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                return False
-            return f"path = {path_str}" in text
-        return False
-    return False
-
-
+# ─── Block 1: Class Definition & Constructor ──────────────
 class EnvDiagnosticRunner(IDiagnosticRunner):
     """PATH check, required/optional toolchain, container engine detection.
 
@@ -62,10 +32,12 @@ class EnvDiagnosticRunner(IDiagnosticRunner):
     """
 
     # -- Block 1: Configuration ---------------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self) -> None:
         ensure_path()
 
     # -- Block 2: PATH + toolchain checks -------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def _check_toolchain(self) -> None:
         target_bin = str(bin_home())
         if target_bin in os.environ.get("PATH", "").split(os.pathsep):
@@ -100,3 +72,33 @@ class EnvDiagnosticRunner(IDiagnosticRunner):
         print("-" * 54)
         print(f"{GREEN()}Diagnostics complete.{RESET()}")
         return 0
+def _resolve_executable(binary: str):
+    """shutil.which + bin_home executable fallback (from lib/tool_resolver)."""
+    found = shutil.which(binary)
+    if found:
+        from pathlib import Path
+        return Path(found)
+    local = bin_home() / binary
+    if local.exists() and os.access(local, os.X_OK):
+        return local
+    return None
+
+
+def _is_submodule_missing(path_str: str) -> bool:
+    """A submodule path is missing when its target (or .git) does not exist."""
+    from modules.shared.src.utility_paths import repo_root
+
+    root = repo_root()
+    target = root / path_str
+    if not target.exists() or not (target / ".git").exists():
+        gitmodules = root / ".gitmodules"
+        if gitmodules.exists():
+            try:
+                text = gitmodules.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                return False
+            return f"path = {path_str}" in text
+        return False
+    return False
+
+

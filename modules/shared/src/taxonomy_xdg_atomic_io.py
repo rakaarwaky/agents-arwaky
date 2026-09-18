@@ -1,4 +1,4 @@
-"""Side-effect XDG I/O helpers, split out from tools/lib/xdg.py.\n\nDepends on ``modules.shared.src.utility_xdg_paths`` for the pure helpers.\n"""
+"""Side-effect XDG I/O helpers, split out from tools/lib/xdg.py.\n\nDepends on ``modules.shared.src.taxonomy_xdg_paths`` for the pure helpers.\n"""
 from __future__ import annotations
 
 import os
@@ -6,12 +6,11 @@ import shutil
 import sys
 from pathlib import Path
 
-from modules.shared.src.utility_xdg_paths import (
+from modules.shared.src.taxonomy_xdg_paths import (
     bin_home,
     tool_cache_dir,
     tool_config_dir,
     tool_data_dir,
-    tool_state_dir,
 )
 
 

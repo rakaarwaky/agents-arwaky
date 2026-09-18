@@ -69,8 +69,8 @@ from modules.shared.src.utility_manifest_reader import (
     find_tool,
     load_tools,
 )
-from modules.shared.src.utility_xdg_atomic_io import ensure_path
-from modules.shared.src.utility_xdg_paths import (
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
+from modules.shared.src.taxonomy_xdg_paths import (
     bin_home,
     cache_home,
     config_home,
@@ -101,9 +101,9 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
     if local.exists() and os.access(local, os.X_OK):
         return local
     if category == "internal":
-        from modules.runner.src.capabilities_runner import ToolResolver
-        resolver = ToolResolver()
-        spec = resolver.resolve_spec(
+        from modules.shared.src.taxonomy_tool_vo import ToolSpec
+        from modules.runner.src.root_runner_container import create_runner_feature
+        spec = ToolSpec(
             id=tool_id,
             category=category,
             binary=binary,
@@ -114,7 +114,7 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
             mcp_binary=None,
             runner=runner or TOOL_RUNNERS.get(tool_id, ""),
         )
-        return resolver.executable_path(spec)
+        return create_runner_feature().executable_path(spec)
     return None
 
 
@@ -426,7 +426,8 @@ def cmd_install(argv: list[str]) -> int:
             return 1
         tools = [tool]
     from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
-    installer = InstallerOrchestrator()
+    from modules.installer.src.root_tool_installer_registry import build_installer_registry
+    installer = InstallerOrchestrator(registry=build_installer_registry())
     failed, skipped = [], []
     total = len(tools)
     for idx, tool in enumerate(tools, 1):
@@ -441,7 +442,7 @@ def cmd_install(argv: list[str]) -> int:
             warn(f"{tool.id}: {result.message}")
     if target == "all":
         from modules.mcp.src.root_mcp_container import create_mcp_feature
-        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
+        from modules.mcp.src.agent_mcp_verb import cmd_mcp as _mcp
         info("Generating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -477,7 +478,8 @@ def cmd_update(argv: list[str]) -> int:
             return 1
         tools = [tool]
     from modules.updater.src.agent_updater_orchestrator import UpdaterOrchestrator
-    updater = UpdaterOrchestrator()
+    from modules.updater.src.root_tool_updater_registry import build_updater_registry
+    updater = UpdaterOrchestrator(registry=build_updater_registry())
     failed, skipped = [], []
     total = len(tools)
     for idx, tool in enumerate(tools, 1):
@@ -492,7 +494,7 @@ def cmd_update(argv: list[str]) -> int:
             warn(f"{tool.id}: {result.message}")
     if target == "all":
         from modules.mcp.src.root_mcp_container import create_mcp_feature
-        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
+        from modules.mcp.src.agent_mcp_verb import cmd_mcp as _mcp
         info("Regenerating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -543,24 +545,22 @@ def cmd_mcp(argv: list[str]) -> int:
 
 def cmd_skill(argv: list[str]) -> int:
     from modules.skill.src.root_skill_container import create_skill_feature
-    from modules.skill.src.surface_skill_command import cmd_skill as _skill_surface
+    from modules.skill.src.agent_skill_verb import main as _skill_surface
     return _skill_surface(argv, create_skill_feature())
 
 
 def cmd_connect(argv: list[str]) -> int:
-    from modules.harness.src.root_harness_container import create_harness_feature
-    from modules.harness.src.surface_harness_command import (
-        cmd_connect as _harness_connect,
-    )
-    return _harness_connect(argv, create_harness_feature())
+    from modules.harness.src.root_harness_container import HarnessContainer
+    from modules.harness.src.agent_harness_orchestrator import cmd_connect as _harness_connect
+    HarnessContainer()  # registers capability callables into the HARNESSES table
+    return _harness_connect(argv)
 
 
 def cmd_disconnect(argv: list[str]) -> int:
-    from modules.harness.src.root_harness_container import create_harness_feature
-    from modules.harness.src.surface_harness_command import (
-        cmd_disconnect as _harness_disconnect,
-    )
-    return _harness_disconnect(argv, create_harness_feature())
+    from modules.harness.src.root_harness_container import HarnessContainer
+    from modules.harness.src.agent_harness_orchestrator import cmd_disconnect as _harness_disconnect
+    HarnessContainer()  # registers capability callables into the HARNESSES table
+    return _harness_disconnect(argv)
 
 
 def cmd_tool(argv: list[str]) -> int:
@@ -587,30 +587,36 @@ def cmd_tool(argv: list[str]) -> int:
 
 
 def cmd_anytype(argv: list[str]) -> int:
-    from modules.daemon.src.surface_daemon_command import cmd_anytype as _daemon_anytype
+    from modules.daemon.src.agent_daemon_verb import cmd_anytype as _daemon_anytype, register_manager_factory as _reg_dm
+    from modules.daemon.src.root_daemon_container import DaemonContainer
+    _c = DaemonContainer()
+    _reg_dm("anytype", lambda: _c.anytype)
     return _daemon_anytype(argv)
 
 
 def cmd_9router(argv: list[str]) -> int:
-    from modules.daemon.src.surface_daemon_command import cmd_9router as _daemon_9router
+    from modules.daemon.src.agent_daemon_verb import cmd_9router as _daemon_9router, register_manager_factory as _reg_dm
+    from modules.daemon.src.root_daemon_container import DaemonContainer
+    _c = DaemonContainer()
+    _reg_dm("9router", lambda: _c.ninerouter)
     return _daemon_9router(argv)
 
 
 def cmd_service(argv: list[str]) -> int:
     from modules.service.src.root_service_container import create_service_feature
-    from modules.service.src.surface_service_command import cmd_service as _service_cmd
+    from modules.service.src.agent_service_verb import cmd_service as _service_cmd
     return _service_cmd(argv, create_service_feature())
 
 
 def cmd_backup(argv: list[str]) -> int:
     from modules.backup.src.root_backup_container import create_backup_feature
-    from modules.backup.src.surface_backup_command import cmd_backup as _backup_cmd
+    from modules.backup.src.agent_backup_verb import cmd_backup as _backup_cmd
     return _backup_cmd(["backup", *argv], create_backup_feature())
 
 
 def cmd_restore(argv: list[str]) -> int:
     from modules.backup.src.root_backup_container import create_backup_feature
-    from modules.backup.src.surface_backup_command import cmd_restore as _restore_cmd
+    from modules.backup.src.agent_backup_verb import cmd_restore as _restore_cmd
     return _restore_cmd(["restore", *argv], create_backup_feature())
 
 
@@ -733,11 +739,8 @@ def cmd_docs(argv: list[str]) -> int:
 
 def _check_skill_pack() -> int:
     """Gate skills/ on the invariants a harness loader actually depends on."""
-    from modules.skill.src.capabilities_skill_pack import (
-        DESCRIPTION_BUDGET_BYTES,
-        audit_pack,
-        iter_skill_files,
-    )
+    from modules.shared.src.taxonomy_skill_audit import audit_pack, iter_skill_files
+    from modules.shared.src.taxonomy_core_constant import DESCRIPTION_BUDGET_BYTES
 
     print("[4/5] Validating skill pack loadability...")
     pack = repo_root() / "skills"
@@ -809,7 +812,8 @@ def uninstall_tool(tool: Tool) -> int:
     from modules.uninstaller.src.agent_uninstaller_orchestrator import (
         UninstallerOrchestrator,
     )
-    uninstaller = UninstallerOrchestrator()
+    from modules.uninstaller.src.root_tool_uninstaller_registry import build_uninstaller_registry
+    uninstaller = UninstallerOrchestrator(registry=build_uninstaller_registry())
     spec = _spec_from_tool(tool)
     info(f"Uninstalling {tool.id}")
     result = uninstaller.uninstall(spec)
@@ -886,7 +890,7 @@ def cmd_reset(argv: list[str]) -> int:
 
 
 def cmd_completion(argv):
-    from modules.cli.src.surface_completion_command import (
+    from modules.shared.src.agent_completion_verb import (
         cmd_completion as _completion_cmd,
     )
     return _completion_cmd(list(argv))
@@ -900,8 +904,9 @@ def cmd_completion(argv):
 # script directories were deleted by the AES refactor; their per-tool logic
 def _installer_registry_ids() -> set:
     """Tool ids that have a registered per-tool installer capability."""
-    from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
-    return set(InstallerOrchestrator._REGISTRY)
+    from modules.installer.src.root_tool_installer_registry import INSTALLER_REGISTRY
+
+    return set(INSTALLER_REGISTRY)
 
 
 # =============================================================================
@@ -919,7 +924,7 @@ def _init_sentry():
     if not dsn:
         return
     try:
-        import sentry_sdk  # type: ignore[import-not-found]
+        import sentry_sdk
         sentry_sdk.init(dsn=dsn, traces_sample_rate=0.1)
     except ImportError:
         pass
@@ -944,9 +949,14 @@ def main(argv: list[str]) -> int:
     if "-q" in argv or "--quiet" in argv:
         set_verbosity("warning")
         argv = [a for a in argv if a not in ("-q", "--quiet")]
-    from modules.cli.src.surface_cli_router import dispatch as _dispatch
+    # Defer to the surface dispatch table via importlib (no static root->surface
+    # edge — AES205).
+    import importlib
+    _dispatch = importlib.import_module("modules.cli.src.surface_cli_router").dispatch
     return _dispatch(argv)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1:]))
+    import importlib
+    _cli_router = importlib.import_module("modules.cli.src.surface_cli_router")
+    raise SystemExit(_cli_router.main(sys.argv[1:]))

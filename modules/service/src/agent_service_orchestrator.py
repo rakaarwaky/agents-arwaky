@@ -1,11 +1,14 @@
 """Service agent orchestrator — thin aggregate over the service manager."""
 from __future__ import annotations
+from modules.shared.src.taxonomy_core_vo import Timestamp
 
-from modules.service.src.capabilities_service_manager import ServiceManager
+
+from modules.service.src.contract_service_aggregate import IServiceAggregate
+from modules.service.src.contract_service_protocol import IServiceManager
 
 
-class ServiceOrchestrator:
-    """Delegates every service verb to the injected ServiceManager.
+class ServiceOrchestrator(IServiceAggregate):
+    """Delegates every service verb to the injected IServiceManager.
 
     # Block 1: Constructor
     # Block 2: Verb delegation
@@ -13,7 +16,7 @@ class ServiceOrchestrator:
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, manager: ServiceManager) -> None:
+    def __init__(self, manager: IServiceManager) -> None:
         self._manager = manager
 
     # -- Block 2: Verb delegation ------------------------------------------------
@@ -35,3 +38,10 @@ class ServiceOrchestrator:
     # -- Block 3: Help --------------------------------------------------------------
     def help(self) -> int:
         return self._manager.help()
+
+__all__ = ['Timestamp']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"Timestamp": Timestamp}

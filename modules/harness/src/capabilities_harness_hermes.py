@@ -1,7 +1,9 @@
 """Hermes Agent harness adapter — capabilities layer (P4-A2)."""
 from __future__ import annotations
+from modules.harness.src.taxonomy_harness_vo import HarnessConfig
 
-from modules.harness.src.capabilities_harness_shared import (  # type: ignore[import-not-found]
+
+from modules.harness.src.utility_harness_shared import (
     REPO_ROOT,
     provision_skill_to_dir,
     resolve_skill_link,
@@ -24,6 +26,20 @@ ALIASES = ("--hermes", "hermes")
 ENV_TARGET = "hermes"
 # Symlink provisioning gate: Verified: Hermes walks skills with followlinks and its atomic writes land inside the linked dir.
 SKILL_LINK_VERIFIED = True
+
+
+# ─── Block 1: Class Definition & Constructor ──────────────
+class HermesConnector(IHarnessConnector):
+    """Module-level connect/disconnect bound to the IHarnessConnector contract."""
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def connect(self, force: bool, dry_run: bool, mcp_only: bool, skills_only: bool, env_only: bool, copy_skills: bool = False) -> None:
+        connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def disconnect(self, force: bool, dry_run: bool) -> None:
+        disconnect(dry_run)
 
 
 def connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills=False):
@@ -77,15 +93,6 @@ def disconnect(dry_run):
     log_ok("Hermes disconnect complete.")
 
 
-class HermesConnector(IHarnessConnector):
-    """Module-level connect/disconnect bound to the IHarnessConnector contract."""
-
-    def connect(self, force: bool, dry_run: bool, mcp_only: bool, skills_only: bool, env_only: bool, copy_skills: bool = False) -> None:
-        connect(force, dry_run, mcp_only, skills_only, env_only, copy_skills)
-
-    def disconnect(self, force: bool, dry_run: bool) -> None:
-        disconnect(dry_run)
-
 
 def register() -> dict:
     """Register this harness adapter in the global registry."""
@@ -96,3 +103,10 @@ def register() -> dict:
         "connect": connect,
         "disconnect": disconnect,
     }
+
+__all__ = ['HarnessConfig']
+
+#
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"HarnessConfig": HarnessConfig}

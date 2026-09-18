@@ -6,12 +6,16 @@ from pathlib import Path
 from modules.check.src.contract_check_protocol import ICheckRunner
 from modules.shared.src.utility_logging import err, info, ok
 from modules.shared.src.utility_paths import repo_root
-from modules.skill.src.capabilities_skill_pack import (
-    DESCRIPTION_BUDGET_BYTES,
+from modules.shared.src.taxonomy_skill_audit import (
     audit_pack,
     iter_skill_files,
 )
+from modules.shared.src.taxonomy_core_constant import (
+    DESCRIPTION_BUDGET_BYTES,
+)
 
+
+# ─── Block 1: Class Definition & Constructor ──────────────
 
 class SkillsCheckRunner(ICheckRunner):
     """Gate the skill pack on the loadability invariants.
@@ -22,11 +26,13 @@ class SkillsCheckRunner(ICheckRunner):
     """
 
     # -- Block 1: Configuration ---------------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
         self._pack = self._root / "skills"
 
     # -- Block 2: Audit --------------------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def run(self, strict: bool = False) -> int:
         print("[4/5] Validating skill pack loadability...")
         findings = audit_pack(self._pack)

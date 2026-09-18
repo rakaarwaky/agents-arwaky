@@ -8,11 +8,11 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ManifestParseError
 from modules.shared.src.taxonomy_manifest_vo import Tool
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 
 
 def manifest_path() -> Path:
-    return repo_root() / "config" / "manifest.json"
+    return repo_root / "config" / "manifest.json"
 
 
 @functools.lru_cache(maxsize=1)

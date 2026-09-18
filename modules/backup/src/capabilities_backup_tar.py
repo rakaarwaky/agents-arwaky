@@ -22,7 +22,7 @@ from pathlib import Path
 from modules.backup.src.contract_backup_protocol import IBackupGateway
 from modules.backup.src.taxonomy_backup_vo import BackupResult, RestoreResult
 from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.utility_xdg_paths import data_home
+from modules.shared.src.taxonomy_xdg_paths import data_home
 
 ROOT = repo_root()
 
@@ -38,11 +38,7 @@ TOOL_DATA = {
 }
 
 
-def log_info(msg): print(f"==> {msg}")
-def log_ok(msg):  print(f"  [OK] {msg}")
-def log_warn(msg): print(f"  [WARN] {msg}")
-
-
+# ─── Block 1: Class Definition & Constructor ──────────────
 class _Progress:
     """Simple spinner for long-running operations."""
 
@@ -72,6 +68,12 @@ class _Progress:
         self._stop.set()
         if self._thread:
             self._thread.join(timeout=0.5)
+
+
+def log_info(msg): print(f"==> {msg}")
+def log_ok(msg):  print(f"  [OK] {msg}")
+def log_warn(msg): print(f"  [WARN] {msg}")
+
 
 
 def tar_dir(src: Path, dest: Path):
@@ -265,11 +267,17 @@ class TarBackupGateway(IBackupGateway):
     print statements, edge cases).
     """
 
-    def backup(self, tool: str, dest: str = "") -> int:
-        return cmd_backup([tool] + ([dest] if dest else []))
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
 
-    def restore(self, tool: str, archive: Path) -> int:
-        return cmd_restore([tool, str(archive)])
+    def backup(self, tool: str, dest: str = "") -> BackupResult:
+        rc = cmd_backup([tool] + ([dest] if dest else []))
+        archive = f"{tool}-{datetime.now().strftime('%Y%m%d%H%M%S')}.tar.gz"
+        return BackupResult(rc == 0, tool, archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def restore(self, tool: str, archive: Path) -> RestoreResult:
+        rc = cmd_restore([tool, str(archive)])
+        return RestoreResult(rc == 0, tool, str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
 
     def list_archives(self) -> list[Path]:
         return sorted(BACKUP_STORE.glob("*.tar.gz")) if BACKUP_STORE.exists() else []
