@@ -6,7 +6,7 @@ from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
 from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 from modules.shared.src.taxonomy_manifest_vo import Tool
 from modules.runner.src.contract_tool_runner import IToolAggregate
-from modules.shared.src.contract_tool_protocol import IToolExecutor
+from modules.runner.src.contract_tool_runner import IToolExecutor
 from modules.uninstaller.src.contract_tool_uninstaller import IToolUninstaller
 from modules.updater.src.contract_tool_updater import IToolUpdater
 from modules.shared.src.taxonomy_tool_vo import (

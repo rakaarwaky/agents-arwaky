@@ -9,4 +9,4 @@ from __future__ import annotations
 from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
 from modules.installer.src.contract_tool_installer import IToolInstaller
 
-__all__ = ["InstallerOrchestrator", "IToolInstaller"]
+__all__ = ["IToolInstaller", "InstallerOrchestrator"]

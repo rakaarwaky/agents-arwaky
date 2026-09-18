@@ -10,7 +10,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_venv_protocol import IVenvInstaller
 from modules.shared.src.utility_xdg_atomic_io import warn_if_bin_not_on_path
 from modules.shared.src.utility_xdg_paths import (
     bin_home,
@@ -99,22 +98,3 @@ def setup_bin_links(python_bin: Path, launchers: list[tuple[str, str]]) -> None:
                 dst.symlink_to(src)
                 print(f"  [ok] {dst} -> {src}")
     warn_if_bin_not_on_path()
-
-
-# ---------------------------------------------------------------------------
-# 3-block class (VO -> contract -> capabilities)
-# ---------------------------------------------------------------------------
-class VenvInstaller(IVenvInstaller):
-    """Default IVenvInstaller backed by the module-level venv helpers."""
-
-    def ensure_venv(self, tool_name: str, force: bool = False) -> Path:
-        return ensure_venv(tool_name, force)
-
-    def install_package(self, python_bin: Path, src_dir: Path, tool_name: str) -> None:
-        install_package(python_bin, src_dir, tool_name)
-
-    def setup_xdg_directories(self, tool_name: str) -> None:
-        setup_xdg_directories(tool_name)
-
-    def setup_bin_links(self, python_bin: Path, launchers: list[tuple[str, str]]) -> None:
-        setup_bin_links(python_bin, launchers)

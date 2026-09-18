@@ -1,5 +1,6 @@
-"""Shared launcher writer (DRY: used by 5+ uv/python installers).
-Moved from tools/lib/launcher_writer.py into the launcher domain.
+"""Launcher writer helpers (DRY: used by 5+ uv/python installers).
+
+Moved from tools/lib/launcher_writer.py into the installer feature.
 """
 from __future__ import annotations
 
@@ -12,7 +13,6 @@ from modules.shared.src.utility_xdg_atomic_io import (
     ensure_path,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.contract_launcher_protocol import ILauncherWriter
 from modules.shared.src.utility_xdg_paths import bin_home
 
 
@@ -68,24 +68,3 @@ def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | No
     warn_if_bin_not_on_path()
     ensure_path()
     return launcher
-
-
-# ---------------------------------------------------------------------------
-# 3-block class (VO -> contract -> capabilities)
-# ---------------------------------------------------------------------------
-class LauncherWriter(ILauncherWriter):
-    """Default ILauncherWriter backed by the module-level launcher helpers."""
-
-    def write_uv_launchers(
-        self,
-        src_rel: str,
-        launchers: list[tuple[str, str]],
-        root: Path | None = None,
-        uv_args: list[str] | None = None,
-    ) -> list[Path]:
-        return write_uv_launchers(src_rel, launchers, root, uv_args)
-
-    def write_generic_launcher(
-        self, tool_name: str, content: str, aliases: list[str] | None = None
-    ) -> Path:
-        return write_generic_launcher(tool_name, content, aliases)

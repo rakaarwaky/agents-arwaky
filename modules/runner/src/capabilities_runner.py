@@ -7,7 +7,7 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
 from modules.shared.src.utility_paths import repo_root
-from modules.shared.src.contract_tool_protocol import IToolExecutor
+from modules.runner.src.contract_tool_runner import IToolExecutor
 from modules.shared.src.taxonomy_tool_vo import ToolSpec
 from modules.shared.src.utility_xdg_paths import bin_home
 
