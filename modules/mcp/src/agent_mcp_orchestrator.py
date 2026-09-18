@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
-from modules.mcp.contract.contract_mcp_aggregate import IMcpAggregate
+from modules.shared.src.mcp.contract_mcp_aggregate import IMcpAggregate
 
 
 class McpOrchestrator(IMcpAggregate):

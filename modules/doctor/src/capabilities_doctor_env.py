@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 import shutil
 
-from modules.doctor.contract.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.doctor.contract_doctor_protocol import IDiagnosticRunner
 from modules.shared.src.logging.utility_logging import (
     BOLD,
     DIM,

@@ -4,7 +4,7 @@ from __future__ import annotations
 from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
 from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
 from modules.backup.src.capabilities_backup_tar import TarBackupGateway
-from modules.backup.contract.contract_backup_aggregate import IBackupAggregate
+from modules.shared.src.backup.contract_backup_aggregate import IBackupAggregate
 
 
 class BackupContainer:
