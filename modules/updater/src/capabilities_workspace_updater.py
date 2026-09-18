@@ -19,7 +19,7 @@ from modules.installer.src.capabilities_launcher_writer import write_uv_launcher
 from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.git.utility_git_update import update_submodule
 from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
+from modules.updater.src.contract_tool_updater import IToolUpdater
 
 SRC_REL = "vendor/google-workspace-mcp"
 SRC_DIR = ROOT / SRC_REL

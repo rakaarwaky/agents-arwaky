@@ -9,7 +9,7 @@ import textwrap
 from modules.shared.src.manifest import load_tools
 from modules.shared.src.logging.utility_logging import BOLD, GREEN, CYAN, RESET, banner, err, info, ok, pad, table_widths, warn
 from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool.contract_tool_aggregate import IToolAggregate
+from modules.runner.src.contract_tool_runner import IToolAggregate
 from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
 from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
 
