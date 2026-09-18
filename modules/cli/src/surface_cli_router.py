@@ -11,7 +11,7 @@ feature).
 """
 from __future__ import annotations
 
-from modules.cli.src.root_cli_entry import (
+from modules.root_cli_entry import (
     cmd_check,
     cmd_clean,
     cmd_completion,

@@ -13,7 +13,7 @@ from modules.harness.src.capabilities_harness_hermes import HermesConnector
 from modules.harness.src.capabilities_harness_opencode import OpencodeConnector
 from modules.harness.src.capabilities_harness_qwencode import QwencodeConnector
 from modules.harness.src.root_harness_container import HarnessContainer, create_harness_feature
-from modules.harness.src.surface_harness_command import cmd_connect, cmd_disconnect
+from modules.cli.src.surface_harness_command import cmd_connect, cmd_disconnect
 
 __all__ = [
     "AntigravityConnector",

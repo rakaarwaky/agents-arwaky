@@ -8,7 +8,7 @@ from __future__ import annotations
 from modules.sync.src.agent_sync_orchestrator import SyncOrchestrator
 from modules.sync.src.capabilities_sync_runner import SyncRunner
 from modules.sync.src.root_sync_container import SyncContainer, create_sync_feature
-from modules.sync.src.surface_sync_command import cmd_sync
+from modules.cli.src.surface_sync_command import cmd_sync
 
 __all__ = [
     "SyncContainer",

@@ -80,22 +80,13 @@ project-root/
 │   ├── shared/              ← shared taxonomy + contract + utility types
 │   │   ├── pyproject.toml
 │   │   └── src/
-│   │       ├── __init__.py
-│   │       ├── common/          ← truly shared across ALL features
-│   │       │   └── __init__.py
-│   │       └── <feature>/       ← shared types per feature domain
-│   │           ├── __init__.py
-│   │           ├── taxonomy_<concept>_vo.py
-│   │           ├── taxonomy_<concept>_error.py
-│   │           ├── taxonomy_<concept>_constant.py
-│   │           ├── contract_<concept>_protocol.py
-│   │           ├── contract_<concept>_aggregate.py
-│   │           └── utility_<concept>_<role>.py
 │   │
 │   ├── <feature>/           ← feature module
 │   │   ├── pyproject.toml
 │   │   └── src/
 │   │       ├── __init__.py
+│   │       ├── taxonomy_<concept>_<role>.py
+│   │       ├── utility_<concept>_<role>.py
 │   │       ├── capabilities_<concept>_<role>.py
 │   │       ├── agent_<concept>_orchestrator.py
 │   │       ├── surface_<concept>_<role>.py
@@ -109,10 +100,10 @@ project-root/
 **Key rules:**
 
 - All 7 layers coexist in each feature slice.
-- Taxonomy, contracts, and utilities live under `modules/shared/src/<feature>/`.
-- Capabilities, agent, surface, and root live in the feature module.
+- Shared Taxonomy and utilities live under `modules/shared/src/`.
+- Domain Taxonomy Contract Utility Capabilities, agent, surface,   live in the feature module.
 - Entry points (`root_*_entry.py`) live directly under `modules/` (file, NOT directory).
-- `modules/shared/src/common/` holds types shared across ALL features.
+- `modules/shared/src/` holds types shared across ALL features.
 - Every package directory must have `__init__.py` (barrel file — skipped by lint).
 
 ---
