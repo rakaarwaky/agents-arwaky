@@ -1,5 +1,3 @@
-"""Service-domain protocol contract (capability ABC)."""
-from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
