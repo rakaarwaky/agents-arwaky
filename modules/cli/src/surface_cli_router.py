@@ -12,6 +12,9 @@ feature).
 from __future__ import annotations
 
 from modules.root_cli_entry import (
+    cmd_9router,
+    cmd_anytype,
+    cmd_backup,
     cmd_check,
     cmd_clean,
     cmd_completion,
@@ -20,24 +23,20 @@ from modules.root_cli_entry import (
     cmd_docs,
     cmd_doctor,
     cmd_help,
-    cmd_9router,
     cmd_install,
     cmd_list,
     cmd_mcp,
     cmd_reset,
-    cmd_backup,
     cmd_restore,
     cmd_run,
     cmd_service,
     cmd_skill,
     cmd_status,
     cmd_submodules,
-    cmd_sync,
     cmd_tool,
     cmd_uninstall,
     cmd_update,
     cmd_version,
-    cmd_anytype,
 )
 from modules.shared.src.utility_logging import err
 
@@ -64,7 +63,7 @@ def dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
         "docs": cmd_docs,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
-        "mcp": cmd_mcp, "sync": cmd_sync, "completion": cmd_completion,
+        "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
         "anytype": cmd_anytype, "9router": cmd_9router, "service": cmd_service,
         "backup": cmd_backup, "restore": cmd_restore,

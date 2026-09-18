@@ -1,7 +1,7 @@
 """Completion surface — CLI adapter for aa completion."""
 from __future__ import annotations
 
-from modules.completion.src.utility_completer import generate_bash, generate_zsh, install
+from modules.shared.src.utility_completer import generate_bash, generate_zsh, install
 
 
 def cmd_completion(args: list[str]) -> int:
