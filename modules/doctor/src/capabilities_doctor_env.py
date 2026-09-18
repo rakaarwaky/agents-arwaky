@@ -85,8 +85,9 @@ class EnvDiagnosticRunner(IDiagnosticRunner):
             else:
                 print(f"  {DIM()}[SKIP]{RESET()} {util} not installed (optional)")
 
-    # -- Block 3: Container engine + summary -------------------------------------------
-    def run(self) -> int:
+    # -- Block 2: Protocol implementation -------------------------------------------
+    def run(self, json_mode: bool = False) -> int:
+        _ = json_mode
         banner()
         print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")
         print("-" * 54)

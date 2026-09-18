@@ -4,7 +4,7 @@ from __future__ import annotations
 import json as _json
 import shutil
 
-from modules.doctor.src.capabilities_doctor_env import _is_submodule_missing, _resolve_executable
+from modules.doctor.src.contract_doctor_protocol import IDiagnosticRunner
 from modules.shared.src.utility_logging import (
     BLUE,
     BOLD,
@@ -22,19 +22,15 @@ from modules.shared.src.utility_xdg_atomic_io import ensure_path
 from modules.shared.src.utility_xdg_paths import bin_home
 
 
-class ToolsDiagnosticRunner:
-    """Submodule-missing check + binary readiness table.
-
-    # Block 1: Configuration (json mode)
-    # Block 2: Readiness table
-    # Block 3: Result
-    """
+# ─── Block 1: Class Definition & Constructor ──────────────
+class ToolsDiagnosticRunner(IDiagnosticRunner):
+    """Submodule-missing check + binary readiness table."""
 
     # -- Block 1: Configuration ---------------------------------------------------
     def __init__(self) -> None:
         ensure_path()
 
-    # -- Block 2: Readiness table ----------------------------------------------------
+    # -- Block 2: Protocol ABC Method Implementation --------------------------------
     def run(self, json_mode: bool = False) -> int:
         if json_mode:
             out = []
@@ -79,3 +75,40 @@ class ToolsDiagnosticRunner:
             print(f"{pad(tool.id, w_tool)} {pad(cat_color + tool.category + RESET(), w_cat)} {pad(tool.binary, w_bin)} {status}")
         print(sep)
         return 0
+
+    # -- Block 3: Dunder Methods, Factories & Helpers ----------------------------
+    def __repr__(self) -> str:
+        return "ToolsDiagnosticRunner()"
+
+
+def _resolve_executable(binary: str):  # noqa: D103 — Block 3 helper, domain-specific, stateless but single-consumer duplicate to avoid sibling import
+    found = shutil.which(binary)
+    if found:
+        from pathlib import Path
+
+        return Path(found)
+    local = bin_home() / binary
+    import os
+
+    if local.exists() and os.access(local, os.X_OK):
+        return local
+    return None
+
+
+def _is_submodule_missing(path_str: str) -> bool:  # noqa: D103 — duplicated from EnvDiagnosticRunner to satisfy AES forbidden sibling-import rule; shared extraction to utility_git_submodule when ≥2 consumers stabilized
+    from pathlib import Path
+
+    from modules.shared.src.utility_paths import repo_root
+
+    root = repo_root()
+    target = root / path_str
+    if not target.exists() or not (target / ".git").exists():
+        gitmodules = root / ".gitmodules"
+        if gitmodules.exists():
+            try:
+                text = gitmodules.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                return False
+            return f"path = {path_str}" in text
+        return False
+    return False
