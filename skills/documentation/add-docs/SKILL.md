@@ -76,7 +76,7 @@ Doc comments on every public item are the sixth deliverable, in the language's n
 
 ## Invariants
 
-Every rule is machine-checked by `aa docs check` (implementation: `tools/lib/doc_pack.py`).
+Every rule is machine-checked by `aa docs check` (implementation: `modules/check/src/capabilities_doc_pack.py`, shared engine in `modules/shared/src/utility_doc_pack.py`).
 A rule cannot drift from the gate. Cite the code, not this file, when pointing at a rule.
 Each document's required section set is cross-checked against its reference's contract table, so a
 row that stops being enforced is a test failure rather than a silent edit.
@@ -149,6 +149,8 @@ Same shape for Python `modules/<feature>/` and TypeScript `packages/<feature>/`.
 ---
 
 ## Workflow
+
+0. **Resolve the repo-root anchor first.** `aa docs check` (and every module it loads) resolves the repo root at **import time** by walking up for `config/manifest.json` (`modules/shared/src/utility_paths.py`). If that anchor is missing — a refactored worktree where `config/` was moved, or the audit running out of `modules/shared` — the gate dies with `RuntimeError: agents-arwaky root not found` **before a single finding is produced**. Restore the anchor (`git checkout HEAD -- config/`) or set `AGENTS_ARWAKY_ROOT` to a checkout that has `config/manifest.json` before trusting any audit run. A gate that crashed is not a clean pass.
 
 1. **Analyze**: List feature modules and public items. Run `aa docs check <path>`. The findings are your work list.
 2. **Draft PRD**: Write root `PRD.md` per [references/prd.md](references/prd.md).
@@ -313,3 +315,8 @@ The invariant codes above cover the machine-checkable ones. These need a reader:
 - ❌ **Documents "write & forget"**: Re-run `aa docs check` each sprint. Drift is silent.
 - ❌ **`//` instead of `///` in Rust**: Plain comments are invisible to the doc generator.
 - ❌ **Missing module docstrings or undocumented parameters**: The generated API surface stays incomplete.
+
+**Checker false-freights to dodge when authoring specs** (these bite at draft time, before you run the gate):
+- ❌ **The word "implemented" in a spec file.** `status-in-spec` matches `\b(impl|un)plemented\b` case-insensitively across the *whole* FRD/PRD — so the reference template's `| As Implemented / As Intended |` column and any `implemented` cell header/cell are auto-flagged. Name the column `impl / intended` and use `impl` for the cell. (Same class: `shipped`/`released in v…`, checkbox items, status markers `✅/❌`, progress `%` all trip it.)
+- ❌ **Scenario-evidence rows without a table header.** `check_scenarios` counts evidence via a markdown-table parser that needs a `| Scenario | … |` header + `|---|` separator line; a headerless block of `| … |` rows parses as **0 rows** and reports `0 evidence row(s)` even when the rows are present. Always emit the header row; keep exactly one row per spec scenario, in spec order.
+- ❌ **Scenario bullets containing `<`.** The scenario counter skips any spec bullet whose text contains `<` (placeholder convention), so that scenario needs no evidence row — don't write one, or the count is off by one. Rename `<placeholder>` prose to avoid the silent skip.
