@@ -4,7 +4,6 @@ description: "Work the psd-timelapse repo: PRD tiers, gates, PR prep."
 metadata:
   tags: []
 ---
-
 # PSD Timelapse project workflow
 
 Use every session working in the psd-timelapse repo.
@@ -26,46 +25,11 @@ When the user asks "what's the status of P0?", report progress against the **PRD
 
 ## Specs are implementation-agnostic (standing user rule)
 
-PRD.md and FRD.md must NEVER contain source-code paths, module directory
-references, or code symbols (e.g. `modules/shared/src/...py`,
-`ClassName.method`, test file names) — specs must stay valid across future
-refactors/moves. Constant NAMES and numeric VALUES are contract vocabulary
-and are fine (`BRUSH_MIN_RADIUS = 8.0 px`). Refer to behavior by FR id or
-contract name ("the Canvas Mapping keyframe-delta operation"), not by
-symbol. README/docs-about-current-state may cite paths; PRD/FRD may not.
-Grep added spec lines before PR:
-`git diff origin/develop -- PRD.md 'modules/**/FRD.md' | grep '^+' | grep -E 'modules/|\.py'`.
-When documenting an enum or error-code table, grep each member for emission sites
-outside its definition; a member that is only defined, never raised, must be
-labeled "Reserved — not currently emitted" rather than given a fabricated
-recovery surface consumers can never trigger. Shell-path examples in repo docs
-must use the fallback form `${XDG_DATA_HOME:-$HOME/.local/share}/...` — bare
-`$XDG_DATA_HOME` expands to `/...` when unset (it usually is) and the AI
-reviewer flags every such line.
+PRD.md and FRD.md must NEVER contain source-code paths, module directory references, or code symbols (e.g. `modules/shared/src/...py`, `ClassName.method`, test file names) — specs must stay valid across future refactors/moves. Constant NAMES and numeric VALUES are contract vocabulary and are fine (`BRUSH_MIN_RADIUS = 8.0 px`). Refer to behavior by FR id or contract name ("the Canvas Mapping keyframe-delta operation"), not by symbol. README/docs-about-current-state may cite paths; PRD/FRD may not. Grep added spec lines before PR: `git diff origin/develop -- PRD.md 'modules/**/FRD.md' | grep '^+' | grep -E 'modules/|\\.py'`. When documenting an enum or error-code table, grep each member for emission sites outside its definition; a member that is only defined, never raised, must be labeled "Reserved — not currently emitted" rather than given a fabricated recovery surface consumers can never trigger. Shell-path examples in repo docs must use the fallback form `${XDG_DATA_HOME:-$HOME/.local/share}/...` — bare `$XDG_DATA_HOME` expands to `/...` when unset (it usually is) and the AI reviewer flags every such line.
 
 ## Backlog docs: format v2 (state tracker, never spec prose)
 
-Each feature `BACKLOG.md` is a header block (`FRD:` link, `Tier:`, `State:`,
-`Next action:` one sentence, `Last verified: develop @ <hash>, <date> — <exact
-command> → <result>`) plus ONE work table:
-`ID | Spec Ref | Work Item | Priority | State | Actual Condition | Depends On`.
-- State is the 8-glyph legend in root `BACKLOG.md`; every state needs a UNIQUE
-  glyph (⬜ Open vs ⏸️ Blocked once shared a glyph and broke grep). Priority is a
-  PRD tier or `—`, never invented severity.
-- Deliberately absent: Owner, Change Log, per-row Updated, a prose "Current
-  Condition" block — git history is the change log and a prose restatement of
-  the table is exactly how rows rot. If the user pastes a generic multi-team
-  backlog template, adopt its state-model ideas (legend, Actual Condition) but
-  keep this shape; the evidence column outvotes template ceremony.
-- Enforce the AGENTS.md DoD rule: a PR that merges a fix updates every backlog
-  row that fix invalidates, in the same PR. On a docs PR, sweep ALL rows whose
-  cited facts the recent merges invalidated (closed items, dead counts) before
-  writing.
-- Backlog numbers go stale within hours — PRs merge the same day. Re-run every
-  cited measurement (`pytest modules/<m>`, dashboard vitest/build) on a worktree
-  at freshly-fetched develop immediately before writing, and put the hash in
-  `Last verified`. Never carry numbers from a previous session or from the
-  branch being edited.
+Each feature `BACKLOG.md` is a header block (`FRD:` link, `Tier:`, `State:`, `Next action:` one sentence, `Last verified: develop @ <hash>, <date> — <exact command> → <result>`) plus ONE work table: `ID | Spec Ref | Work Item | Priority | State | Actual Condition | Depends On`. - State is the 8-glyph legend in root `BACKLOG.md`; every state needs a UNIQUE glyph (⬜ Open vs ⏸️ Blocked once shared a glyph and broke grep). Priority is a PRD tier or `—`, never invented severity. - Deliberately absent: Owner, Change Log, per-row Updated, a prose "Current Condition" block — git history is the change log and a prose restatement of the table is exactly how rows rot. If the user pastes a generic multi-team backlog template, adopt its state-model ideas (legend, Actual Condition) but keep this shape; the evidence column outvotes template ceremony. - Enforce the AGENTS.md DoD rule: a PR that merges a fix updates every backlog row that fix invalidates, in the same PR. On a docs PR, sweep ALL rows whose cited facts the recent merges invalidated (closed items, dead counts) before writing. - Backlog numbers go stale within hours — PRs merge the same day. Re-run every cited measurement (`pytest modules/<m>`, dashboard vitest/build) on a worktree at freshly-fetched develop immediately before writing, and put the hash in `Last verified`. Never carry numbers from a previous session or from the branch being edited.
 
 ## Evidence-before-judgment
 
@@ -85,6 +49,19 @@ The AGENTS.md XDG output-path rule (`~/.local/share/psd-timelapse/...`) governs 
 
 When a test fails after your change and you suspect order-coupling or pre-existing breakage, do NOT argue it — run `git worktree add --detach .worktrees/tmp-check origin/develop`, reproduce there, `git worktree remove --force` it, and quote both results in the PR/report. Check whole-suite order too: a file-level standalone failure can pass in the CI shard order.
 
+## Virtual environment (standing rule)
+
+The repo's isolated XDG venv is **not** activated by `uv sync` — sync only resolves and locks dependencies. Before any gate command or test run, activate it explicitly:
+
+```bash
+export UV_PROJECT_ENVIRONMENT="$HOME/.local/share/psd-timelapse/venv"
+source "$UV_PROJECT_ENVIRONMENT/bin/activate"
+```
+
+Run `python --version` and `python -c "import psd_tools"` as a two-line smoke test that the environment is live. If `psd_tools` (or any locked dependency) is importable from the system python but missing from the venv python, the venv is not active — do not re-run `uv sync` and assume it fixed itself; activate first.
+
+Pitfall: a gate command that fails with `ModuleNotFoundError` during collection (e.g. pytest collecting 0 tests with import errors) is usually an unactivated venv, not a code problem. Check `VIRTUAL_ENV` and `python -c "import sys; print(sys.prefix)"` before reading the failure as a real test regression.
+
 ## Quality gates order
 
 When preparing a branch for PR, run gates in this order:
@@ -98,6 +75,20 @@ Run on the worktree scope (e.g. `modules/renderer`), not the whole repo, to avoi
 AES and lint-arwaky cover **TypeScript and the frontend modules too**, not just Python/Rust — `lint-arwaky-typescript` documents the full TS command set (`scan`/`fix`/`ci`, workspace `--member`, AES201/403/404 TS rules). Never claim a language is unsupported by the architecture gates without checking the skill library first.
 
 To run `packages/dashboard` tests inside a worktree without reinstalling deps, symlink the main checkout's: `ln -sfn <main-repo>/packages/dashboard/node_modules node_modules`, run `npx vitest run`, and `rm` the symlink before staging — it otherwise shows as untracked debris. `npm test` runs vitest in watch mode headless-unfriendly; `npx vitest run` is the one-shot form.
+
+## Worktree isolation and tool trust (standing rule)
+
+Do not trust a worktree's IDE/LSP diagnostics as ground truth for import resolution or symbol existence — a freshly-created worktree is not IDE-indexed the way the main checkout is, so hover and "could not be resolved" reports are frequently stale or wrong. The real checkers are `mypy`, `ruff`, and `pytest`; an LSP complaint that those three clear is noise — chase the real checker's output, not the editor's.
+
+Pitfall: when mypy clears an "unknown attribute" or "could not be resolved" LSP diagnostic, treat the LSP output as defeated and move on. Do not add `type: ignore` or refactor the code to satisfy the editor.
+
+## Patch safety (standing rule)
+
+When patching a file, use a single specific match with enough surrounding context, NOT `replace_all` on a multi-line dataclass field list or method definition. The patch tool's expand/collapse matching can silently collapse neighboring field definitions and erase surrounding method bodies when the match spans structurally-similar repeated lines. Prefer: one precise match, or `write_file` the whole file when the edit is large.
+
+## File-write encoding (standing rule)
+
+Do not pass Python source through JSON-stringify-then-write — backslash-escape artifacts (`\"\"\"` literal escapes in docstrings, `\\n` inside string literals) land on disk as real text and break Python parsing. Write clean content directly.
 
 ## Answer measurement questions with a measured number
 
@@ -127,9 +118,6 @@ When a pytest job hits the 20-min timeout with no failure output: `gh run view <
 5. Push branch
 6. Create PR targeting `develop`
 7. Verify CI passes
-8. Address AI-reviewer findings (cubic/CodeRabbit): verify EACH finding against the
-   live code with grep before complying — reviewers are often right but may cite
-   stale commits; fix valid ones in a follow-up commit, push, and post one PR
-   comment stating the grep evidence for fix-vs-reject of each item.
+8. Address AI-reviewer findings (cubic/CodeRabbit): verify EACH finding against the live code with grep before complying — reviewers are often right but may cite stale commits; fix valid ones in a follow-up commit, push, and post one PR comment stating the grep evidence for fix-vs-reject of each item.
 
 For EGL/ctypes mocking patterns in renderer tests, see `references/mock-egl-ctypes.md`.
