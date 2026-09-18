@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UninstallResult
-from modules.shared.src.tool.contract_tool_protocol import IToolUninstaller
+from modules.uninstaller.src.contract_tool_uninstaller import IToolUninstaller
 from modules.shared.src.xdg.utility_xdg_atomic_io import remove_tool_artifacts
 
 ROOT = repo_root()

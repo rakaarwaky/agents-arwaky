@@ -6,7 +6,7 @@ from pathlib import Path
 from modules.shared.src.manifest import load_tools
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.shared.src.tool.contract_tool_protocol import IToolInstaller
+from modules.installer.src.contract_tool_installer import IToolInstaller
 
 from modules.installer.src.capabilities_anytype_installer import AnytypeInstaller
 from modules.installer.src.capabilities_blender_installer import BlenderInstaller

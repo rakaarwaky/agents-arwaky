@@ -1,6 +1,17 @@
-"""Runner feature — src."""
+"""Runner feature: execute tool binaries via feature orchestrator.
+
+Public API:
+- ToolOrchestrator (agent): feature orchestrator
+- ToolResolver (capabilities): tool binary resolution
+- ToolContainer: feature container
+- cmd_tool_surface: CLI command handlers
+- IToolAggregate (contract): feature aggregate protocol
+"""
+from __future__ import annotations
+
 from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
 from modules.runner.src.capabilities_runner import ToolResolver
+from modules.runner.src.contract_tool_runner import IToolAggregate
 from modules.runner.src.root_runner_container import ToolContainer, create_runner_feature
 from modules.runner.src.surface_runner_command import (
     cmd_install,
@@ -12,6 +23,7 @@ from modules.runner.src.surface_runner_command import (
 )
 
 __all__ = [
+    "IToolAggregate",
     "ToolContainer",
     "ToolOrchestrator",
     "ToolResolver",

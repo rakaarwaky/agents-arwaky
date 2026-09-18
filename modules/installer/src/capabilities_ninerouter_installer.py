@@ -14,7 +14,7 @@ import shutil
 
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.shared.src.tool.contract_tool_protocol import IToolInstaller
+from modules.installer.src.contract_tool_installer import IToolInstaller
 from modules.shared.src.xdg.utility_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,

@@ -24,7 +24,7 @@ from modules.shared.src.xdg.utility_xdg_atomic_io import (
 from modules.shared.src.xdg.utility_xdg_paths import bin_home, data_home
 from modules.shared.src.git.utility_git_update import update_submodule
 from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
+from modules.updater.src.contract_tool_updater import IToolUpdater
 
 SRC = ROOT / "vendor/fetch-mcp"
 APP_DIR = data_home() / "fetch-mcp"

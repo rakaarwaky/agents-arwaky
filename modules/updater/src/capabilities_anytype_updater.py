@@ -19,7 +19,7 @@ from pathlib import Path
 from modules.shared.src.git.utility_git_update import update_submodule
 from modules.shared.src.paths.utility_paths import repo_root
 from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
+from modules.updater.src.contract_tool_updater import IToolUpdater
 from modules.shared.src.xdg.utility_xdg_atomic_io import (
     ensure_bin_home,
     ensure_path,

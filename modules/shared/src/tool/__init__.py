@@ -1,14 +1,14 @@
-"""Shared tool-domain: taxonomy + contracts for tool capabilities.\n\nSelf-contained — no references back to ``common.*``.\n"""
+"""Shared tool-domain: taxonomy + executor contract.
+
+Feature-specific protocol contracts live in their respective feature modules:
+- installer: modules.installer.src.contract_tool_installer
+- updater: modules.updater.src.contract_tool_updater
+- uninstaller: modules.uninstaller.src.contract_tool_uninstaller
+- runner: modules.runner.src.contract_tool_runner (aggregate)
+"""
 from __future__ import annotations
 
-from modules.shared.src.common.taxonomy_core_error import ArwakyError
-from modules.shared.src.tool.contract_tool_aggregate import IToolAggregate
-from modules.shared.src.tool.contract_tool_protocol import (
-    IToolExecutor,
-    IToolInstaller,
-    IToolUninstaller,
-    IToolUpdater,
-)
+from modules.shared.src.tool.contract_tool_protocol import IToolExecutor
 from modules.shared.src.tool.taxonomy_tool_vo import (
     InstallResult,
     ToolSpec,
@@ -17,13 +17,8 @@ from modules.shared.src.tool.taxonomy_tool_vo import (
 )
 
 __all__ = [
-    "ArwakyError",
-    "IToolAggregate",
-    "IToolExecutor",
-    "IToolInstaller",
-    "IToolUninstaller",
-    "IToolUpdater",
     "InstallResult",
+    "IToolExecutor",
     "ToolSpec",
     "UninstallResult",
     "UpdateResult",
