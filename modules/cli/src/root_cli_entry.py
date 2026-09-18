@@ -154,8 +154,8 @@ def remove_tool_state(tool: Tool) -> None:
 # Commands
 # =============================================================================
 def cmd_version(argv: list[str]) -> int:
-    """Print version (P1-D6). Reads tools/config/version.txt if present."""
-    vfile = repo_root() / "tools/config/version.txt"
+    """Print version (P1-D6). Reads modules/shared/config/version.txt if present."""
+    vfile = repo_root() / "modules/shared/config/version.txt"
     version = "0.1.0"
     if vfile.exists():
         version = vfile.read_text(encoding="utf-8").strip()
@@ -436,9 +436,10 @@ def cmd_install(argv: list[str]) -> int:
             skipped.append(tool.id)
             warn(f"{tool.id}: {result.message}")
     if target == "all":
-        from modules.mcp.src.surface_mcp_command import cmd_mcp
+        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
+        from modules.mcp.src.root_mcp_container import create_mcp_feature
         info("Generating MCP configuration...")
-        cmd_mcp(["generate"])
+        _mcp(["generate"], create_mcp_feature())
     if skipped:
         print()
         warn(f"Skipped: {', '.join(skipped)}")
@@ -486,9 +487,10 @@ def cmd_update(argv: list[str]) -> int:
             skipped.append(tool.id)
             warn(f"{tool.id}: {result.message}")
     if target == "all":
-        from modules.mcp.src.surface_mcp_command import cmd_mcp
+        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
+        from modules.mcp.src.root_mcp_container import create_mcp_feature
         info("Regenerating MCP configuration...")
-        cmd_mcp(["generate"])
+        _mcp(["generate"], create_mcp_feature())
     if skipped:
         print()
         warn(f"Skipped (no updater): {', '.join(skipped)}")
@@ -504,7 +506,12 @@ def cmd_update(argv: list[str]) -> int:
 def cmd_mcp(argv: list[str]) -> int:
     action = argv[0] if argv else "list"
     generated = repo_root() / "mcp_servers.generated.json"
-    generator = repo_root() / "tools" / "mcp" / "generate_config.py"
+
+    def _generate(target: str | None = None) -> int:
+        from modules.mcp.src.root_mcp_container import create_mcp_feature
+        out = repo_root() / target if target else generated
+        return create_mcp_feature().generate(out)
+
     if action == "list":
         print(f"{BOLD()}MCP-Enabled Tools:{RESET()}")
         for tool in load_tools():
@@ -512,14 +519,12 @@ def cmd_mcp(argv: list[str]) -> int:
                 print(f"  - {tool.id} [{tool.category}]: {tool.description}")
         return 0
     if action == "generate":
-        if generator.exists():
-            return run_cmd([sys.executable, str(generator), *argv[1:]])
-        err("tools/mcp/generate_config.py not found.")
-        return 1
+        target = argv[1] if len(argv) > 1 else None
+        return _generate(target)
     if action in {"show", "path"}:
         if not generated.exists():
             warn("Configuration file not found. Generating now...")
-            run_cmd([sys.executable, str(generator)])
+            _generate()
         if generated.exists():
             print(f"{BOLD()}Path:{RESET()} {generated}")
             print()
@@ -608,7 +613,7 @@ def cmd_check(argv: list[str]) -> int:
     errors = 0
     print()
     print("[1/5] Validating JSON files...")
-    for json_file in (repo_root() / "tools").rglob("*.json"):
+    for json_file in (repo_root() / "modules").rglob("*.json"):
         if "node_modules" in json_file.parts:
             continue
         try:
@@ -619,7 +624,7 @@ def cmd_check(argv: list[str]) -> int:
             errors += 1
     print()
     print("[2/5] Compiling Python files...")
-    for py_file in (repo_root() / "tools").rglob("*.py"):
+    for py_file in (repo_root() / "modules").rglob("*.py"):
         if "node_modules" in py_file.parts:
             continue
         try:
@@ -729,7 +734,7 @@ def _check_shell() -> int:
     """Shellcheck for our own .sh files (exclude skills = upstream submodule copies)."""
     errors = 0
     sh_files = [
-        f for f in (repo_root() / "tools").rglob("*.sh")
+        f for f in (repo_root() / "modules").rglob("*.sh")
         if "node_modules" not in f.parts and f.relative_to(repo_root()).parts[0] != "skills"
     ]
     if not sh_files:

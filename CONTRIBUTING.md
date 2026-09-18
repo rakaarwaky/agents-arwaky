@@ -25,7 +25,7 @@ Before making changes, please review our core architectural rules:
    - Binary launchers are placed into `${XDG_BIN_HOME:-$HOME/.local/bin}` (host) or `${XDG_DATA_HOME}/<tool-name>/internal-bin` (container).
 
 3. **Single Source of Truth (SSOT):**
-   - [`tools/config/manifest.json`](tools/config/manifest.json) is the definitive registry of all tools. Any addition or deletion must update this file.
+   - [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json) is the definitive registry of all tools. Any addition or deletion must update this file.
 
 ---
 
@@ -245,9 +245,9 @@ echo ">>> Successfully installed my-cool-tool -> $LAUNCHER"
 
 ---
 
-### Step 3: Register in Manifest (`tools/config/manifest.json`)
+### Step 3: Register in Manifest (`modules/shared/config/manifest.json`)
 
-Add the tool entry to the `"tools"` array in [`tools/config/manifest.json`](tools/config/manifest.json):
+Add the tool entry to the `"tools"` array in [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json):
 
 ```json
 {
@@ -314,7 +314,7 @@ aa tool install my-cool-tool
    ```markdown
    | `vendor/my-cool-tool` | [example-org/my-cool-tool](https://github.com/example-org/my-cool-tool) | `a1b2c3d4` | MIT License |
    ```
-2. **Catalog Update:** Add a row to the **Curated Upstream Vendor Tools** table in [`README.md`](README.md). Ensure the tool is registered in [`tools/config/manifest.json`](tools/config/manifest.json).
+2. **Catalog Update:** Add a row to the **Curated Upstream Vendor Tools** table in [`README.md`](README.md). Ensure the tool is registered in [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json).
 
 ---
 
@@ -345,7 +345,7 @@ When deprecating or removing an upstream tool, follow this procedure to ensure c
 
 ### Step 1: De-register from Manifest
 
-Open [`tools/config/manifest.json`](tools/config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
+Open [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
 
 ### Step 2: Remove Runner Logic (if tool-specific)
 
@@ -391,7 +391,7 @@ rm -rf .git/modules/vendor/my-cool-tool
 ### Step 7: Update Documentation & Licenses
 
 - Remove the tool entry from [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
-- Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`tools/config/manifest.json`](tools/config/manifest.json).
+- Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json).
 
 ### Step 8: Verify Cleanliness
 
@@ -485,6 +485,6 @@ We follow standard Conventional Commits:
 When submitting a PR, ensure:
 - [ ] Submodule pointers are updated cleanly without detached state conflicts.
 - [ ] New shell scripts include `set -euo pipefail` and executable bits (`chmod +x`).
-- [ ] `tools/config/manifest.json` is updated and validated with `jq`.
+- [ ] `modules/shared/config/manifest.json` is updated and validated with `jq`.
 - [ ] `THIRD_PARTY_LICENSES.md` lists the upstream license and commit.
 - [ ] `aa check` passes with zero errors.

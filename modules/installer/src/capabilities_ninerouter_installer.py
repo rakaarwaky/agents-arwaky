@@ -1,7 +1,7 @@
 """9Router installer (hybrid daemon + launcher) — port of tools/install/install_ninerouter.py.
 
 9Router is a Podman/daemon service, not a compiled binary. The installer:
-- registers the systemd user unit (tools/deploy/ninerouter.service) via the
+- registers the systemd user unit (modules/daemon/deploy/ninerouter.service) via the
   daemon module's PodmanDaemonManager.service_install()
 - writes a python3 launcher into ~/.local/bin/9router that imports
   modules.daemon.src.surface_daemon_command.cmd_9router with AGENTS_ARWAKY_ROOT baked in
@@ -43,7 +43,7 @@ class NinerouterInstaller(IToolInstaller):
         data_dir = data_home() / DATA_DIR_NAME
         data_dir.mkdir(parents=True, exist_ok=True)
 
-        # Delegate to the daemon module's service_install (tools/deploy/ninerouter.service)
+        # Delegate to the daemon module's service_install (modules/daemon/deploy/ninerouter.service)
         from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
 
         print(">>> Setting up 9Router hybrid architecture...")

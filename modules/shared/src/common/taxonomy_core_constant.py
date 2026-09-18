@@ -1,12 +1,12 @@
 """Shared constants for the AES tool domains.
 
 Provenance:
-- SKILL_PACK_*: tools/lib/skill_pack.py
-- TOOL_RUNNERS: tools/cli/arwaky.py
-- INSTALL/UNINSTALL_OVERRIDES: tools/lib/tool_resolver.py
+- SKILL_PACK_*: modules/shared/src/skill_pack/capabilities_skill_pack.py
+- TOOL_RUNNERS: modules/cli/src/root_cli_entry.py
+- INSTALL/UNINSTALL_OVERRIDES: modules/runner/src/capabilities_runner.py + modules/shared/src/common
 - IMAGE_NAME/PORT: tools/daemons/ninerouter_daemon.py
-- ANYTYPE_*: tools/mcp/generate_config.py
-- DOC/BACKLOG vocabularies: tools/lib/doc_pack.py
+- ANYTYPE_*: modules/mcp/src/capabilities_mcp_generator.py
+- DOC/BACKLOG vocabularies: modules/shared/src/doc_pack/capabilities_doc_pack.py
 """
 from __future__ import annotations
 

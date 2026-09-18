@@ -17,7 +17,7 @@ def repo_root() -> Path:
     else:
         root = Path(__file__).resolve().parents[4]
 
-    manifest = root / "tools" / "config" / "manifest.json"
+    manifest = root / "modules" / "shared" / "config" / "manifest.json"
     if not manifest.exists():
         raise RuntimeError(
             f"agents-arwaky root not found at {root}. "

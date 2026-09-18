@@ -261,7 +261,7 @@ aa tool run lint --help
 ## 📦 Agent & Tool Catalog
 
 > [!TIP]
-> The single source of truth (SSOT) for all tool registrations is [`tools/config/manifest.json`](tools/config/manifest.json). You can also run `aa tool list` or `aa mcp list` to inspect live tool status from the terminal.
+> The single source of truth (SSOT) for all tool registrations is [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json). You can also run `aa tool list` or `aa mcp list` to inspect live tool status from the terminal.
 
 ### Core In-House Agents (`internal/`)
 

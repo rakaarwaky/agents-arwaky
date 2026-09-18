@@ -6,9 +6,10 @@ verbatim; only imports were swapped to the AES shared modules:
   tools/lib/ui (info/ok/warn) -> modules.shared.src.logging.utility_logging
 
 The original Step 2 executed the deleted ``tools/mcp/generate_config.py``;
-per the restore rules it now routes through the still-existing CLI
-(``tools/cli/arwaky.py mcp generate``) which delegates to the AES mcp
-module — equivalent behavior (stdout, exit code), no flags to pass through.
+per the restore rules it now routes through the AES CLI entry
+(``python3 -m modules.cli.src.root_cli_entry mcp generate``) which
+delegates to the AES mcp module — equivalent behavior (stdout, exit code),
+no flags to pass through.
 """
 from __future__ import annotations
 
@@ -28,6 +29,11 @@ def run(cmd):
     return subprocess.run(cmd, check=False).returncode  # noqa: S603
 
 
+def _aa(*args):
+    """Run the AES CLI entry in-process as a subprocess (equivalent to 'aa')."""
+    return [sys.executable, "-m", "modules.cli.src.root_cli_entry", *args]
+
+
 def main(argv):
     no_connect = "--no-connect" in argv
     no_update = "--no-update" in argv
@@ -41,15 +47,13 @@ def main(argv):
         skipped_steps.append("update")
     else:
         info("Step 1: updating tools (pull + reinstall)...")
-        if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"),
-                "update", "all", "--yes"]) != 0:
+        if run(_aa("update", "all", "--yes")) != 0:
             failures.append("update")
         else:
             completed_steps.append("update")
 
     info("Step 2: generating MCP config...")
-    if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"),
-            "mcp", "generate"]) != 0:
+    if run(_aa("mcp", "generate")) != 0:
         failures.append("mcp-generate")
     else:
         completed_steps.append("mcp-generate")
@@ -58,14 +62,13 @@ def main(argv):
         skipped_steps.append("connect")
     else:
         info("Step 3: reconnecting harnesses...")
-        if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"),
-                "connect", "--all"]) != 0:
+        if run(_aa("connect", "--all")) != 0:
             failures.append("connect")
         else:
             completed_steps.append("connect")
 
     info("Step 4: verifying...")
-    if run([sys.executable, str(ROOT / "tools/cli/arwaky.py"), "check"]) != 0:
+    if run(_aa("check")) != 0:
         failures.append("check")
     else:
         completed_steps.append("check")

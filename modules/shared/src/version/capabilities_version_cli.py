@@ -15,7 +15,7 @@ def main(argv: list[str]) -> int:
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
-    version_file = repo_root() / "tools" / "config" / "version.txt"
+    version_file = repo_root() / "modules/shared/config/version.txt"
     version_file.parent.mkdir(parents=True, exist_ok=True)
     version_file.write_text(nxt + "\n", encoding="utf-8")
     print(f"agents-arwaky {cur} -> {nxt}")

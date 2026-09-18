@@ -24,10 +24,10 @@ jobs:
           sudo apt-get install -y -qq shellcheck jq
 
       - name: Python compile check
-        run: python -m compileall tools/
+        run: python -m compileall modules/
 
       - name: Ruff lint
-        run: ruff check tools/ --ignore E501 || true
+        run: ruff check modules/ --ignore E501 || true
 
       - name: Dependency audit (pip-audit)
         run: |
@@ -36,14 +36,14 @@ jobs:
 
       - name: JSON validation
         run: |
-          find tools -name "*.json" -not -path "*/node_modules/*" -exec jq empty {} +
+          find modules -name "*.json" -not -path "*/node_modules/*" -exec jq empty {} +
 
       - name: Shellcheck
         run: |
-          find tools -name "*.sh" -not -path "*/node_modules/*" -not -path "*/skills/*" -exec shellcheck -x {} + || true
+          find modules -name "*.sh" -not -path "*/node_modules/*" -not -path "*/skills/*" -exec shellcheck -x {} + || true
 
       - name: aa check (internal gate)
-        run: python3 tools/cli/arwaky.py check
+        run: python3 -m modules.cli check
 
       - name: Submodule integrity
         run: git submodule status

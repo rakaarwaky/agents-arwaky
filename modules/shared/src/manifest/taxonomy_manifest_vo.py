@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Tool:
-    """One entry of tools/config/manifest.json (frozen VO)."""
+    """One entry of modules/shared/config/manifest.json (frozen VO)."""
 
     id: str
     category: str

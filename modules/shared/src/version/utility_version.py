@@ -15,11 +15,11 @@ from modules.shared.src.paths.utility_paths import repo_root
 
 
 def _version_file() -> Path:
-    return repo_root() / "tools" / "config" / "version.txt"
+    return repo_root() / "modules/shared/config/version.txt"
 
 
 def read_version() -> str:
-    """Current version from tools/config/version.txt (default 0.1.0)."""
+    """Current version from modules/shared/config/version.txt (default 0.1.0)."""
     version_file = _version_file()
     if version_file.exists():
         return version_file.read_text(encoding="utf-8").strip()

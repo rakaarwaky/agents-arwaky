@@ -6,7 +6,7 @@ and wrote a launcher that pointed at that script; in the AES layout the
 daemon logic lives in modules/daemon, so this delegates to
 PodmanDaemonManager.service_install() and the launcher imports
 cmd_9router from the daemon surface (same as the installer).
-9Router is not a git submodule (it is daemon tooling under tools/deploy),
+9Router is not a git submodule (it is daemon tooling under modules/daemon/deploy),
 so there is no submodule pull — matching the original comment.
 """
 from __future__ import annotations
@@ -37,7 +37,7 @@ class NinerouterUpdater(IToolUpdater):
 
     def update(self, spec: ToolSpec) -> UpdateResult:
         root = self._root
-        # 9router is under tools/deploy (daemon service unit), not a submodule,
+        # 9router is under modules/daemon/deploy (daemon service unit), not a submodule,
         # so there is nothing to pull — but keep the data dir in place.
 
         ensure_bin_home()
@@ -45,7 +45,7 @@ class NinerouterUpdater(IToolUpdater):
         data_dir = data_home() / DATA_DIR_NAME
         data_dir.mkdir(parents=True, exist_ok=True)
 
-        # Delegate to the daemon module's service_install (tools/deploy/ninerouter.service)
+        # Delegate to the daemon module's service_install (modules/daemon/deploy/ninerouter.service)
         from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
 
         print(">>> Updating 9Router hybrid architecture...")

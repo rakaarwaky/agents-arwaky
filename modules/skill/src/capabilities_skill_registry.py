@@ -35,7 +35,7 @@ from modules.shared.src.skill_names.utility_skill_names import (  # noqa: E402
     sanitize_skill_name,
 )
 REPO_ROOT = repo_root()
-MANIFEST = REPO_ROOT / "tools/config/manifest.json"
+MANIFEST = REPO_ROOT / "modules/shared/config/manifest.json"
 PACK_ROOT = REPO_ROOT / "skills"
 
 from modules.shared.src.logging.utility_logging import pad as _pad, table_widths as _table_widths  # type: ignore[import-not-found]

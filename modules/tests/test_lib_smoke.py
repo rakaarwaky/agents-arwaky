@@ -23,7 +23,7 @@ class TestEnvfile:
         assert env["FOO"] == "bar"
         assert env["BAZ"] == "123"
         # `EMPTY=` yields an explicit empty value, not a skipped key: the caller in
-        # tools/mcp/generate_config.py rejects "" and a placeholder default alike.
+        # modules/mcp generator rejects "" and a placeholder default alike.
         assert env["EMPTY"] == ""
 
     def test_update_env_file(self, tmp_path):
@@ -60,7 +60,7 @@ class TestEnvfile:
         env1.write_text("X=1\n")
         env2.write_text("Y=2\n")
         # First existing candidate wins; later files are not merged. Matches
-        # tools/mcp/generate_config.py walking XDG then repo .env fallbacks.
+        # modules/mcp generator walking XDG then repo .env fallbacks.
         result = load_first_env([env2, env1])
         assert result == {"Y": "2"}
         assert load_first_env([tmp_path / "missing.env", env1]) == {"X": "1"}
@@ -133,7 +133,7 @@ class TestPaths:
         from modules.shared.src.paths.utility_paths import repo_root
         root = repo_root()
         assert root.exists()
-        assert (root / "tools" / "config" / "manifest.json").exists()
+        assert (root / "modules" / "shared" / "config" / "manifest.json").exists()
 
     def test_repo_root_validates_manifest(self):
         from modules.shared.src.paths.utility_paths import repo_root

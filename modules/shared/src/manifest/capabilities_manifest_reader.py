@@ -12,7 +12,7 @@ from modules.shared.src.paths.utility_paths import repo_root
 
 
 def manifest_path() -> Path:
-    return repo_root() / "tools" / "config" / "manifest.json"
+    return repo_root() / "modules" / "shared" / "config" / "manifest.json"
 
 
 @functools.lru_cache(maxsize=1)

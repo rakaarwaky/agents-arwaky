@@ -475,7 +475,7 @@ def get_9router_credentials():
     for cand in (
         agents_arwaky_config_dir() / "ninerouter.env",
         config_home() / "9router/.env",
-        REPO_ROOT / "tools/config/ninerouter.env",
+        REPO_ROOT / "modules/shared/config/ninerouter.env",
     ):
         if cand.is_file():
             try:
