@@ -5,7 +5,7 @@ case, the correlation-id + sentry blocks, the TOOL_RUNNERS run dispatch,
 the manifest-driven tool listing, and the install/update/uninstall "all"
 loops are preserved exactly as written in the original 876-line arwaky.py.
 The only differences are the import swaps to the AES modules:
-  - manifest        -> modules.shared.src.common.manifest.* (Tool, load_tools, find_tool)
+  - manifest        -> modules.shared.src.common.* (Tool, load_tools, find_tool)
   - ui              -> modules.shared.src.logging.utility_logging
   - xdg             -> modules.shared.src.xdg.* (paths + atomic io)
   - tool_resolver.executable_path -> local executable_path() (original
@@ -13,9 +13,9 @@ The only differences are the import swaps to the AES modules:
   - tool_resolver.find_installer/find_updater/find_uninstaller -> local
                    _find_* helpers (original tools/lib/tool_resolver.py
                    bodies verbatim, import-swapped)
-  - doc_pack        -> modules.shared.src.common.doc_pack.capabilities_doc_pack
-  - skill_pack      -> modules.shared.src.skill_pack.capabilities_skill_pack
-  - paths.repo_root -> modules.shared.src.common.paths.utility_paths
+  - doc_pack        -> modules.check.src.capabilities_doc_pack
+  - skill_pack      -> modules.shared.src.skill.capabilities_skill_pack
+  - paths.repo_root -> modules.shared.src.common.utility_paths
 
 Delegated verbs (skill/connect/disconnect/daemon/service/backup/sync/
 completion) keep calling the module surface functions, which contain the
@@ -37,15 +37,11 @@ import sys
 import textwrap
 from pathlib import Path
 
-from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.paths.utility_paths import repo_root
 ROOT = repo_root()
 
-from modules.shared.src.common.manifest.taxonomy_manifest_vo import Tool
-from modules.shared.src.common.manifest.capabilities_manifest_reader import (
-    find_tool,
-    load_tools,
-    manifest_path,
-)
+from modules.shared.src.manifest import Tool
+from modules.shared.src.manifest import find_tool, load_tools, manifest_path
 from modules.shared.src.logging.utility_logging import (
     BLUE,
     BOLD,
@@ -77,7 +73,7 @@ _ANSI_RE = re.compile(r"\033\[[0-9;]*m")
 
 # Runner map per tool (P5-P1: manifest-driven dispatch, avoid hardcoded IDs)
 from modules.shared.src.common.taxonomy_core_constant import TOOL_RUNNERS
-from modules.shared.src.common.tool.taxonomy_tool_vo import ToolSpec
+from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec
 
 # =============================================================================
 # Helpers
@@ -653,7 +649,7 @@ def _check_docs() -> int:
     Warnings on files under skills/ are counted rather than printed: the pack hosts
     upstream copies whose shape is not ours to fix.
     """
-    from modules.shared.src.common.doc_pack.capabilities_doc_pack import audit_docs, errors_only, warnings_only
+    from modules.check.src.capabilities_doc_pack import audit_docs, errors_only, warnings_only
 
     print("[3/5] Validating document invariants...")
     root = repo_root()
@@ -679,7 +675,7 @@ def _check_docs() -> int:
 
 def cmd_docs(argv: list[str]) -> int:
     """Audit document invariants: aa docs check [path] [--strict] [--include-subtrees]"""
-    from modules.shared.src.common.doc_pack.capabilities_doc_pack import as_strict, audit_docs, errors_only, iter_doc_files, warnings_only
+    from modules.check.src.capabilities_doc_pack import as_strict, audit_docs, errors_only, iter_doc_files, warnings_only
 
     if not argv or argv[0] != "check":
         err("Missing subcommand." if not argv else f"Unknown docs subcommand: {argv[0]}")
@@ -715,7 +711,7 @@ def cmd_docs(argv: list[str]) -> int:
 
 def _check_skill_pack() -> int:
     """Gate skills/ on the invariants a harness loader actually depends on."""
-    from modules.shared.src.skill_pack.capabilities_skill_pack import DESCRIPTION_BUDGET_BYTES, audit_pack, iter_skill_files
+    from modules.shared.src.skill.capabilities_skill_pack import DESCRIPTION_BUDGET_BYTES, audit_pack, iter_skill_files
 
     print("[4/5] Validating skill pack loadability...")
     pack = repo_root() / "skills"

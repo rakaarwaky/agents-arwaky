@@ -8,10 +8,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.common.paths.utility_paths import repo_root
-from modules.shared.src.common.tool.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.shared.src.common.tool.contract_tool_protocol import IToolInstaller
-from modules.shared.src.venv.capabilities_venv_installer import (
+from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
+from modules.shared.src.tool.contract_tool_protocol import IToolInstaller
+from modules.installer.src.capabilities_venv_installer import (
     ensure_venv,
     install_package,
     setup_xdg_directories,

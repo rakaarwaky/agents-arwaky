@@ -2,16 +2,16 @@
 from __future__ import annotations
 
 from modules.shared.src.common.taxonomy_core_constant import TOOL_RUNNERS
-from modules.shared.src.common.manifest.capabilities_manifest_reader import find_tool, load_tools
-from modules.shared.src.common.manifest.taxonomy_manifest_vo import Tool
-from modules.shared.src.common.tool.contract_tool_aggregate import IToolAggregate
-from modules.shared.src.common.tool.contract_tool_protocol import (
+from modules.shared.src.manifest import find_tool, load_tools
+from modules.shared.src.manifest import Tool
+from modules.shared.src.tool.contract_tool_aggregate import IToolAggregate
+from modules.shared.src.tool.contract_tool_protocol import (
     IToolExecutor,
     IToolInstaller,
     IToolUninstaller,
     IToolUpdater,
 )
-from modules.shared.src.common.tool.taxonomy_tool_vo import (
+from modules.shared.src.tool.taxonomy_tool_vo import (
     InstallResult,
     ToolSpec,
     UninstallResult,

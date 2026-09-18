@@ -45,7 +45,7 @@ def _router_v1(url: str) -> str:
 
 def sync_router_provider(cfg_file: Path, dry_run: bool):
     """Bind the 9Router provider in Grok Build's config.toml."""
-    from modules.shared.src.config.capabilities_config_engine import save_file, load_file
+    from modules.config.src.capabilities_config_engine import save_file, load_file
     url = _router_v1(get_9router_credentials()[0])
     if dry_run:
         log_sub(f"[DRY-RUN] Would add 9Router provider '{PROVIDER_ID}' at {url} in {cfg_file}")

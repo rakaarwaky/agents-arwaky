@@ -1,4 +1,4 @@
-"""Common core: value objects, errors, shared constants."""
+"""Shared core: value objects, errors, shared constants.\n\nThis is the ONLY thing that stays in ``common/`` — the taxonomy backbone\nthat every other domain imports from.\n"""
 from __future__ import annotations
 
 from modules.shared.src.common.taxonomy_core_constant import (

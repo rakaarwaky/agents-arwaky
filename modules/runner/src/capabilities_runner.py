@@ -6,9 +6,9 @@ import shutil
 from pathlib import Path
 
 from modules.shared.src.common.taxonomy_core_constant import TOOL_RUNNERS
-from modules.shared.src.common.paths.utility_paths import repo_root
-from modules.shared.src.common.tool.contract_tool_protocol import IToolExecutor
-from modules.shared.src.common.tool.taxonomy_tool_vo import ToolSpec
+from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.tool.contract_tool_protocol import IToolExecutor
+from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec
 from modules.shared.src.xdg.utility_xdg_paths import bin_home
 
 

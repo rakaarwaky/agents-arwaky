@@ -36,7 +36,7 @@ def _resolve_executable(binary: str):
 
 def _is_submodule_missing(path_str: str) -> bool:
     """A submodule path is missing when its target (or .git) does not exist."""
-    from modules.shared.src.common.paths.utility_paths import repo_root
+    from modules.shared.src.paths.utility_paths import repo_root
     from pathlib import Path
 
     root = repo_root()

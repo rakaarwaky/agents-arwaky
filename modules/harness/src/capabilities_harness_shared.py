@@ -15,8 +15,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.common.paths.utility_paths import repo_root
-from modules.shared.src.common.skill_names.utility_skill_names import (  # noqa: E402
+from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.skill_names.utility_skill_names import (  # noqa: E402
     ensure_under,
     extract_skill_name,
     safe_child,
@@ -44,7 +44,7 @@ def log_err(msg):    print(f"  \u2717 {msg}", file=sys.stderr)
 
 # --- engine bridge -----------------------------------------------------------
 def engine(*args):
-    """Run the AES config engine (python3 -m modules.shared.src.config.capabilities_config_engine)
+    """Run the AES config engine (python3 -m modules.config.src.capabilities_config_engine)
     and return stdout lines.
 
     Raises RuntimeError on non-zero exit so config failures are not hidden (E2).
@@ -52,7 +52,7 @@ def engine(*args):
     try:
         proc = subprocess.run(
             [sys.executable, "-m",
-             "modules.shared.src.config.capabilities_config_engine", *args],
+             "modules.config.src.capabilities_config_engine", *args],
             capture_output=True, text=True, timeout=30, check=False,
             cwd=str(REPO_ROOT),
         )
@@ -105,7 +105,7 @@ def remove_env_keys(file: Path, keys, dry_run: bool = False):
 
 # --- skills ------------------------------------------------------------------
 # extract_skill_name, sanitize_skill_name, safe_skill_name, ensure_under
-# are imported from modules/shared/src/common/skill_names (single source of truth).
+# are imported from modules/shared/src/skill_names (single source of truth).
 
 
 def hermes_targets(h: Path):

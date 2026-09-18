@@ -11,9 +11,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.common.paths.utility_paths import repo_root
-from modules.shared.src.common.tool.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.shared.src.common.tool.contract_tool_protocol import IToolInstaller
+from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
+from modules.shared.src.tool.contract_tool_protocol import IToolInstaller
 from modules.shared.src.xdg.utility_xdg_atomic_io import (
     ensure_bin_home,
     warn_if_bin_not_on_path,
