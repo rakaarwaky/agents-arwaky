@@ -19,6 +19,8 @@ import time
 import urllib.request
 from pathlib import Path
 
+from modules.daemon.src.contract_daemon_protocol import IDaemonManager
+from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
 from modules.shared.src.utility_envfile import update_env_file
 from modules.shared.src.utility_paths import repo_root
 from modules.shared.src.utility_xdg_paths import (
@@ -387,15 +389,19 @@ def main(argv):
     return cmd_help()
 
 
-class AnytypeDaemonManager:
-    """AES facade: exposes the original script verbs by their CLI names.
+# ─── Block 1: Class Definition & Constructor ──────────────
+class AnytypeDaemonManager(IDaemonManager):
+    """AES facade: exposes the original script verbs via IDaemonManager.
 
-    Keeps every method the current callers use (start/stop/restart/status/
-    logs/auth_create/auth_key/space_join/space_list/service_install/
-    service_status/help, and the ``main`` dispatch); each body is the
-    original script's verb body.
+    Block 1 — constructor (stateless, no DI needed beyond module globals).
+    Block 2 — protocol contract methods only (start/stop/status/logs/restart).
+    Block 3 — legacy verb facades, factories, and helpers retained verbatim.
     """
 
+    def __init__(self) -> None:
+        pass
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def start(self) -> int:
         return cmd_start()
 
@@ -405,11 +411,24 @@ class AnytypeDaemonManager:
     def restart(self) -> int:
         return cmd_restart()
 
-    def status(self) -> int:
-        return cmd_status()
+    def status(self) -> DaemonStatus:
+        # Call legacy cmd_status for side-effect (prints), then build VO
+        cmd_status()
+        return DaemonStatus(
+            container_state="running" if container_running() else "stopped" if container_exists() else "not-found",
+            service_state="unknown",
+            api_ready=api_ready(timeout=3),
+            data_dir=str(DATA_ROOT),
+            ok=container_running() and api_ready(timeout=3),
+            details=(),
+        )
 
     def logs(self) -> int:
         return cmd_logs()
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return "AnytypeDaemonManager()"
 
     def auth_create(self, name: str = "agent") -> int:
         return cmd_auth_create(name)

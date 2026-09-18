@@ -8,6 +8,6 @@ class IDiagnosticRunner(ABC):
     """Capability contract for one diagnostic report."""
 
     @abstractmethod
-    def run(self) -> int:
+    def run(self, json_mode: bool = False) -> int:
         """Run the diagnostic; return exit code."""
         raise NotImplementedError
