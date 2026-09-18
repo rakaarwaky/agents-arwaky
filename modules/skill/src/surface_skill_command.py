@@ -5,7 +5,7 @@ tools/skill/skill.py, verbatim.
 """
 from __future__ import annotations
 
-from modules.shared.src.skill.contract_skill_aggregate import ISkillAggregate
+from modules.skill.contract.contract_skill_aggregate import ISkillAggregate
 
 from modules.skill.src import capabilities_skill_registry as _reg
 

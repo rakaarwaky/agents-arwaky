@@ -7,8 +7,8 @@ from modules.check.src.capabilities_check_json import JsonCheckRunner
 from modules.check.src.capabilities_check_python import PythonCheckRunner
 from modules.check.src.capabilities_check_shell import ShellCheckRunner
 from modules.check.src.capabilities_check_skills import SkillsCheckRunner
-from modules.shared.src.check.contract_check_aggregate import ICheckAggregate
-from modules.shared.src.check.contract_check_protocol import ICheckRunner
+from modules.check.contract.contract_check_aggregate import ICheckAggregate
+from modules.check.contract.contract_check_protocol import ICheckRunner
 
 
 class CheckContainer:

@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.logging.utility_logging import BOLD, RESET, err
-from modules.shared.src.mcp.contract_mcp_aggregate import IMcpAggregate
+from modules.mcp.contract.contract_mcp_aggregate import IMcpAggregate
 from modules.shared.src.paths.utility_paths import repo_root
 
 
