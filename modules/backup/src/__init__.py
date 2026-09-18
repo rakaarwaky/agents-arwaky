@@ -9,7 +9,7 @@ from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
 from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
 from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 from modules.backup.src.root_backup_container import BackupContainer, create_backup_feature
-from modules.backup.src.surface_backup_command import cmd_backup, cmd_restore
+from modules.cli.src.surface_backup_command import cmd_backup, cmd_restore
 
 __all__ = [
     "BackupContainer",

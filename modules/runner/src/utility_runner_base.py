@@ -1,4 +1,4 @@
-"""Tool resolver capability — locates executables and runner candidates."""
+"""Shared primitives for per-tool runner capabilities."""
 from __future__ import annotations
 
 import os
@@ -7,60 +7,30 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
 from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_xdg_paths import bin_home
 from modules.runner.src.contract_tool_runner import IToolExecutor
 from modules.shared.src.taxonomy_tool_vo import ToolSpec
-from modules.shared.src.utility_xdg_paths import bin_home
 
 
-class ToolResolver(IToolExecutor):
-    """Resolve a ToolSpec to a runnable executable and run it in-process.
+class RunnerBase(IToolExecutor):
+    """Common resolver helpers every per-tool runner capability reuses.
 
-    # Block 1: Constructor & spec resolution
-    # Block 2: Executable discovery (bin_home + runner candidates)
-    # Block 3: Execution
+    # Block 1: Executable discovery (PATH, bin_home, runner candidates)
+    # Block 2: Execution (runner-aware execvpe)
     """
 
-    # -- Block 1: Constructor & spec resolution -------------------------------
-    def __init__(self) -> None:
-        self._root = repo_root()
+    def __init__(self, root: Path | None = None) -> None:
+        self._root = root or repo_root()
 
-    def resolve_spec(
-        self,
-        *,
-        id: str,
-        category: str,
-        binary: str,
-        is_mcp: bool,
-        description: str,
-        path: str,
-        alias: str | None,
-        mcp_binary: str | None,
-        runner: str | None = None,
-    ) -> ToolSpec:
-        """Build a ToolSpec; runner falls back to the TOOL_RUNNERS map."""
-        return ToolSpec(
-            id=id,
-            category=category,
-            binary=binary,
-            is_mcp=is_mcp,
-            description=description,
-            path=path,
-            alias=alias,
-            mcp_binary=mcp_binary,
-            runner=runner or TOOL_RUNNERS.get(id, ""),
-        )
-
-    # -- Block 2: Executable discovery ----------------------------------------
+    # -- Block 1: Executable discovery ---------------------------------------------
     def find_executable(self, spec: ToolSpec) -> Path | None:
         """PATH win, then bin_home; internal tools fall back to runner candidates."""
-        # 1:1 port of tools/lib/tool_resolver.py executable_path()
         found = shutil.which(spec.binary)
         if found:
             return Path(found)
         local = bin_home() / spec.binary
         if local.exists() and os.access(local, os.X_OK):
             return local
-        # Runner candidates for internal tools that are source-ready
         if spec.category == "internal":
             tool_dir = self._root / spec.path
             if spec.runner == "cargo" and shutil.which("cargo") and (tool_dir / "Cargo.toml").exists():
@@ -72,11 +42,7 @@ class ToolResolver(IToolExecutor):
                     return Path(spec.id)
         return None
 
-    def executable_path(self, spec: ToolSpec) -> Path | None:
-        """Return the runnable binary path, or None when not installed."""
-        return self.find_executable(spec)
-
-    # -- Block 3: Execution ----------------------------------------------------
+    # -- Block 2: Execution ---------------------------------------------------------
     def run(self, spec: ToolSpec, args: list[str]) -> int:
         """Run the tool binary (or runner) with args; return 1 when not runnable.
 
@@ -88,7 +54,7 @@ class ToolResolver(IToolExecutor):
             tool_dir = self._root / spec.path
             if spec.category == "internal" and spec.runner == "cargo" and exe == tool_dir / "Cargo.toml":
                 os.execvpe("cargo", ["cargo", "run", "--quiet", "--manifest-path",
-                                     str(exe), "--bin", f"{spec.id}-arwaky-cli", "--", *args], os.environ)
+                                     str(exe), "--bin", f"{spec.id}-arwaky-cli", *args], os.environ)
             elif spec.category == "internal" and spec.runner in {"uv", "python"} and exe == tool_dir:
                 os.execvpe("uv", ["uv", "run", "--directory", str(tool_dir), spec.binary, *args], os.environ)
             elif spec.category == "internal" and spec.runner in {"uv", "python"} and exe == Path(spec.id):

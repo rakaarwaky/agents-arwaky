@@ -9,11 +9,11 @@ Public API:
 """
 from __future__ import annotations
 
-from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
-from modules.runner.src.capabilities_runner import ToolResolver
+from modules.runner.src.agent_runner_orchestrator import RunnerOrchestrator, ToolOrchestrator
+from modules.runner.src.utility_runner_base import RunnerBase
 from modules.runner.src.contract_tool_runner import IToolAggregate
 from modules.runner.src.root_runner_container import ToolContainer, create_runner_feature
-from modules.runner.src.surface_runner_command import (
+from modules.cli.src.surface_runner_command import (
     cmd_install,
     cmd_list,
     cmd_run,
@@ -26,7 +26,7 @@ __all__ = [
     "IToolAggregate",
     "ToolContainer",
     "ToolOrchestrator",
-    "ToolResolver",
+    "RunnerOrchestrator",
     "cmd_install",
     "cmd_list",
     "cmd_run",
