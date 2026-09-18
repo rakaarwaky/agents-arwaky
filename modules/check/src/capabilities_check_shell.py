@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.check.contract_check_protocol import ICheckRunner
+from modules.check.contract.contract_check_protocol import ICheckRunner
 from modules.shared.src.logging.utility_logging import err, ok, warn
 from modules.shared.src.paths.utility_paths import repo_root
 

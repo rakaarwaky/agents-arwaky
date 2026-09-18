@@ -7,7 +7,7 @@ per-harness capability modules via the orchestrator.
 from __future__ import annotations
 
 from modules.harness.src.agent_harness_orchestrator import log_err
-from modules.shared.src.harness.contract_harness_aggregate import IHarnessAggregate
+from modules.harness.contract.contract_harness_aggregate import IHarnessAggregate
 
 HELP = """agents-arwaky Harness Connector / Disconnector — surface command.
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonStatus
+from modules.daemon.contract.taxonomy_daemon_vo import DaemonStatus
 
 
 class IDaemonAggregate(ABC):

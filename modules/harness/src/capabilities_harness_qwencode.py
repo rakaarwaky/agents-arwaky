@@ -29,7 +29,7 @@ from modules.harness.src.capabilities_harness_shared import (  # type: ignore[im
     remove_mcp_servers,
     remove_provisioned_skills,
 )
-from modules.shared.src.harness.contract_harness_protocol import IHarnessConnector
+from modules.harness.contract.contract_harness_protocol import IHarnessConnector
 
 HARNESS_ID = "qwencode"
 ALIASES = ("--qwencode", "qwencode", "--qwen", "qwen", "qwen-code")

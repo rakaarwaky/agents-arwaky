@@ -1,7 +1,7 @@
 """Skill composition root — wires the pack provisioner into the orchestrator."""
 from __future__ import annotations
 
-from modules.shared.src.skill.contract_skill_aggregate import ISkillAggregate
+from modules.skill.contract.contract_skill_aggregate import ISkillAggregate
 from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 

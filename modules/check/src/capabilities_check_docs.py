@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from modules.shared.src.check.contract_check_protocol import ICheckRunner
+from modules.check.contract.contract_check_protocol import ICheckRunner
 from modules.shared.src.doc_pack.capabilities_doc_pack import (
     DocFinding,
     as_strict,
