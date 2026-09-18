@@ -6,7 +6,7 @@ through the refactor without a second import-swap pass.
 """
 from __future__ import annotations
 
-from modules.shared.src.doc_pack.utility_doc_pack import (
+from modules.shared.src.utility_doc_pack import (
     ERROR,
     WARN,
     _ALWAYS_GATING,

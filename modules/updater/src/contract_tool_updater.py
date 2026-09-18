@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
 
 
 class IToolUpdater(ABC):

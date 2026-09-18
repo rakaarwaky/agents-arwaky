@@ -21,7 +21,7 @@ Before making changes, please review our core architectural rules:
 
 2. **Strict XDG Base Directory Compliance:**
    - Never write persistent data or cache to the repository directory.
-   - Use [`modules/shared/src/xdg/`](modules/shared/src/xdg/) helpers (`data_home`, `config_home`, `cache_home`, `bin_home`, `tool_data_dir`, `tool_config_dir`).
+   - Use [`modules/shared/src/`](modules/shared/src/) helpers (`data_home`, `config_home`, `cache_home`, `bin_home`, `tool_data_dir`, `tool_config_dir`).
    - Binary launchers are placed into `${XDG_BIN_HOME:-$HOME/.local/bin}` (host) or `${XDG_DATA_HOME}/<tool-name>/internal-bin` (container).
 
 3. **Single Source of Truth (SSOT):**
@@ -94,7 +94,7 @@ Runner behavior requirements:
 
 - Resolve the repository root with `modules.shared.src.paths` (`repo_root()`).
 - Resolve XDG paths with `modules.shared.src.xdg` (`bin_home()`, `data_home()`, `config_home()`, `ensure_bin_home()`).
-- Install or compile the tool into `$XDG_DATA_HOME/<tool>/` and write an executable launcher into `$XDG_BIN_HOME/<binary>` (see `modules/shared/src/launcher/capabilities_launcher_writer.py`).
+- Install or compile the tool into `$XDG_DATA_HOME/<tool>/` and write an executable launcher into `$XDG_BIN_HOME/<binary>` (see `modules/installer/src/capabilities_launcher_writer.py`).
 
 #### Example: Python Tool via `uv` (runner logic inside `capabilities_tool_install.py`)
 

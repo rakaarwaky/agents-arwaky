@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
-from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.daemon.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonStatus
+from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.daemon.src.contract_daemon_protocol import IDaemonManager
+from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
 
 
 class DaemonOrchestrator(IDaemonAggregate):

@@ -27,8 +27,8 @@ from modules.harness.src.capabilities_harness_qwencode import (
     register as _register_qwencode,  # type: ignore[import-not-found]
 )
 from modules.harness.src.capabilities_harness_shared import log_err
-from modules.shared.src.harness.contract_harness_aggregate import IHarnessAggregate
-from modules.shared.src.harness.contract_harness_protocol import IHarnessConnector
+from modules.harness.src.contract_harness_aggregate import IHarnessAggregate
+from modules.harness.src.contract_harness_protocol import IHarnessConnector
 
 # --- harness registry (P4-A21: adapters register themselves) -----------------
 HARNESSES: dict[str, dict] = {}

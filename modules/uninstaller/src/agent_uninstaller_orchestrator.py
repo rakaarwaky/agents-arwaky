@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_paths import repo_root
 from modules.uninstaller.src.contract_tool_uninstaller import IToolUninstaller
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UninstallResult
+from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
 
 from modules.uninstaller.src.capabilities_anytype_daemon_uninstaller import AnytypeDaemonUninstaller
 from modules.uninstaller.src.capabilities_blender_uninstaller import BlenderUninstaller

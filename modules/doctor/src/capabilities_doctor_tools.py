@@ -5,7 +5,7 @@ import json as _json
 import shutil
 
 from modules.doctor.src.capabilities_doctor_env import _is_submodule_missing, _resolve_executable
-from modules.shared.src.logging.utility_logging import (
+from modules.shared.src.utility_logging import (
     BLUE,
     BOLD,
     CYAN,
@@ -17,9 +17,9 @@ from modules.shared.src.logging.utility_logging import (
     pad,
     table_widths,
 )
-from modules.shared.src.manifest import load_tools
-from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
-from modules.shared.src.xdg.utility_xdg_paths import bin_home
+from modules.shared.src.utility_manifest_reader import load_tools
+from modules.shared.src.utility_xdg_atomic_io import ensure_path
+from modules.shared.src.utility_xdg_paths import bin_home
 
 
 class ToolsDiagnosticRunner:

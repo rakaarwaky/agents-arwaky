@@ -1,6 +1,6 @@
 """Skill-pack loadability audit, provisioning provenance, and pruning.
 Moved from tools/lib/skill_pack.py; constants now live in
-modules.shared.src.common.taxonomy_core_constant.
+modules.shared.src.taxonomy_core_constant.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from modules.shared.src.common.taxonomy_core_constant import (
+from modules.shared.src.taxonomy_core_constant import (
     DESCRIPTION_BUDGET_BYTES,
     PROVENANCE_FILE,
     PROVENANCE_VERSION,
@@ -217,7 +217,7 @@ def prune_provisioned(base: Path, pack_root: Path | None = None) -> list[str]:
     if not base.is_dir():
         return removed
     if pack_root is None:
-        from modules.shared.src.paths.utility_paths import repo_root
+        from modules.shared.src.utility_paths import repo_root
         pack_root = repo_root() / "skills"
     live = pack_names(pack_root)
     for entry in sorted(base.iterdir()):
@@ -274,6 +274,6 @@ def get_all_skill_files(base: Path | None = None) -> list[Path]:
     When *base* is omitted, the repo's ``skills/`` pack is used.
     """
     if base is None:
-        from modules.shared.src.paths.utility_paths import repo_root
+        from modules.shared.src.utility_paths import repo_root
         base = repo_root() / "skills"
     return iter_skill_files(base)

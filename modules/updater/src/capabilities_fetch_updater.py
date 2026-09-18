@@ -12,18 +12,18 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_paths import repo_root
 
 ROOT = repo_root()
 
-from modules.shared.src.xdg.utility_xdg_atomic_io import (
+from modules.shared.src.utility_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.xdg.utility_xdg_paths import bin_home, data_home
-from modules.shared.src.git.utility_git_update import update_submodule
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.utility_xdg_paths import bin_home, data_home
+from modules.shared.src.utility_git_update import update_submodule
+from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
 from modules.updater.src.contract_tool_updater import IToolUpdater
 
 SRC = ROOT / "vendor/fetch-mcp"

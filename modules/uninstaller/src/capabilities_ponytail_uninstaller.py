@@ -2,15 +2,15 @@
 
 Every statement of the original standalone script is preserved; only the
 import paths were swapped to the AES equivalents:
-- from paths import repo_root           -> modules.shared.src.common.utility_paths
-- from xdg import remove_tool_artifacts -> modules.shared.src.xdg.utility_xdg_atomic_io
+- from paths import repo_root           -> modules.shared.src.utility_paths
+- from xdg import remove_tool_artifacts -> modules.shared.src.utility_xdg_atomic_io
 """
 from __future__ import annotations
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UninstallResult
+from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
 from modules.uninstaller.src.contract_tool_uninstaller import IToolUninstaller
-from modules.shared.src.xdg.utility_xdg_atomic_io import remove_tool_artifacts
+from modules.shared.src.utility_xdg_atomic_io import remove_tool_artifacts
 
 ROOT = repo_root()
 

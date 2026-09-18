@@ -1,5 +1,8 @@
-"""Shared domains namespace — import via ``modules.shared.src.<domain>``.
+"""Shared flat module namespace — import via ``modules.shared.src.<module>``.
 
-Each domain subpackage re-exports its public taxonomy / contract /
-capability symbols from its own ``__init__.py``.
+All shared taxonomy, contract, and utility modules live directly here:
+
+- taxonomy_*: value objects + domain constants
+- contract_*: capability protocol ABCs
+- utility_*: stateless helpers / I/O utilities
 """

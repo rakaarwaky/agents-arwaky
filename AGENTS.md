@@ -130,14 +130,14 @@ The verification checks:
 
 ### Document invariants
 
-Enforced by `modules/shared/src/doc_pack/capabilities_doc_pack.py`, run inside `aa check`, or directly with
+Enforced by `modules/check/src/capabilities_doc_pack.py`, run inside `aa check`, or directly with
 `aa docs check [path] [--strict] [--include-subtrees]`. `error` gates `aa check`; `--strict`
 also gates warnings. The canonical wording of every rule, keyed by finding code, is
 `skills/documentation/add-docs/SKILL.md` § Invariants — change one, change the other.
 
 ### Skill-pack loadability invariants
 
-Enforced by `modules/shared/src/skill_pack/capabilities_skill_pack.py` and reported by both `aa check` and `aa skill check`:
+Enforced by `modules/skill/src/capabilities_skill_pack.py` and reported by both `aa check` and `aa skill check`:
 
 1. **Layout** — every skill is exactly `skills/<category>/<skill>/SKILL.md`. A harness
    scans one level below a skills root, so anything flatter or deeper never loads.
@@ -190,7 +190,7 @@ that the pack no longer provides. It only removes entries carrying
 
 - Single Source of Truth Manifest: [`config/manifest.json`](config/manifest.json)
 - Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
-- Shared XDG Helper: [`modules/shared/src/xdg/`](modules/shared/src/xdg/)
+- Shared XDG Helper: [`modules/shared/src/`](modules/shared/src/)
 - Tool Install/Update/Uninstall (data-driven): [`modules/installer/`](modules/installer/) · [`modules/updater/`](modules/updater/) · [`modules/uninstaller/`](modules/uninstaller/) · Runner & CLI surface: [`modules/runner/`](modules/runner/)
 - Agent Harness Connector: [`modules/harness/src/`](modules/harness/src/)
 - CI Verification Gate: [`modules/cli`](modules/cli) (`aa check`) + [`.github/workflows/ci.yml`](.github/workflows/ci.yml)

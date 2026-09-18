@@ -3,10 +3,10 @@
 Every function, constant, print, subprocess call, edge case and comment is
 preserved exactly as written in the original script; the only differences are
 the import swaps (tools/lib modules -> modules.shared.src):
-  - paths.repo_root              -> modules.shared.src.common.utility_paths
-  - skill_pack.*                 -> modules.shared.src.skill.capabilities_skill_pack
-  - skill_names.*                -> modules.shared.src.common.utility_skill_names
-  - ui.pad / ui.table_widths     -> modules.shared.src.logging.utility_logging
+  - paths.repo_root              -> modules.shared.src.utility_paths
+  - skill_pack.*                 -> modules.skill.src.capabilities_skill_pack
+  - skill_names.*                -> modules.shared.src.utility_skill_names
+  - ui.pad / ui.table_widths     -> modules.shared.src.utility_logging
 
 The ``if __name__ == "__main__"`` block from the original is dropped: the
 CLI entry point in the AES tree is ``cmd_skill`` in
@@ -21,13 +21,13 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.skill.capabilities_skill_pack import (  # noqa: E402
+from modules.shared.src.utility_paths import repo_root
+from modules.skill.src.capabilities_skill_pack import (  # noqa: E402
     audit_pack,
     prune_provisioned,
     write_provenance,
 )
-from modules.shared.src.skill_names.utility_skill_names import (  # noqa: E402
+from modules.shared.src.utility_skill_names import (  # noqa: E402
     ensure_under,
     extract_skill_name,
     safe_child,
@@ -38,7 +38,7 @@ REPO_ROOT = repo_root()
 MANIFEST = REPO_ROOT / "modules/shared/config/manifest.json"
 PACK_ROOT = REPO_ROOT / "skills"
 
-from modules.shared.src.logging.utility_logging import pad as _pad, table_widths as _table_widths  # type: ignore[import-not-found]
+from modules.shared.src.utility_logging import pad as _pad, table_widths as _table_widths  # type: ignore[import-not-found]
 
 # --- tool registry ------------------------------------------------------------
 def get_registered_tool_ids():

@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_paths import repo_root
 from modules.updater.src.contract_tool_updater import IToolUpdater
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
 
 from modules.updater.src.capabilities_anytype_updater import AnytypeUpdater
 from modules.updater.src.capabilities_blender_updater import BlenderUpdater

@@ -1,7 +1,7 @@
 """Sync composition root — wires the sync runner into the orchestrator."""
 from __future__ import annotations
 
-from modules.shared.src.sync.contract_sync_aggregate import ISyncAggregate
+from modules.sync.src.contract_sync_aggregate import ISyncAggregate
 from modules.sync.src.agent_sync_orchestrator import SyncOrchestrator
 from modules.sync.src.capabilities_sync_runner import SyncRunner
 

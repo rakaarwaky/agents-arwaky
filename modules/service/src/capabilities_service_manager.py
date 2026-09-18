@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_paths import repo_root
 
 ROOT = repo_root()
 

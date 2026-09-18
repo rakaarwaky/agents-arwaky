@@ -9,13 +9,28 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.skill.contract_skill_protocol import ISkillProvisioner
-from modules.shared.src.skill.taxonomy_skill_vo import SkillProvisionResult
-from modules.shared.src.skill.capabilities_skill_pack import (
+from modules.shared.src.utility_paths import repo_root
+from modules.skill.src.contract_skill_protocol import ISkillProvisioner
+from modules.skill.src.taxonomy_skill_vo import SkillProvisionResult
+from modules.shared.src.taxonomy_core_constant import DESCRIPTION_BUDGET_BYTES
+from modules.skill.src.utility_skill_pack import (
+    DESCRIPTION_BUDGET_BYTES,  # re-export
     PackFinding,
+    audit_pack,
+    iter_skill_files,
     prune_provisioned,
+    write_provenance,
 )
+
+__all__ = [
+    "DESCRIPTION_BUDGET_BYTES",
+    "PackFinding",
+    "SkillPackProvisioner",
+    "audit_pack",
+    "iter_skill_files",
+    "prune_provisioned",
+    "write_provenance",
+]
 
 from modules.skill.src import capabilities_skill_registry as _reg
 

@@ -10,9 +10,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.venv.contract_venv_protocol import IVenvInstaller
-from modules.shared.src.xdg.utility_xdg_atomic_io import warn_if_bin_not_on_path
-from modules.shared.src.xdg.utility_xdg_paths import (
+from modules.shared.src.contract_venv_protocol import IVenvInstaller
+from modules.shared.src.utility_xdg_atomic_io import warn_if_bin_not_on_path
+from modules.shared.src.utility_xdg_paths import (
     bin_home,
     tool_cache_dir,
     tool_config_dir,

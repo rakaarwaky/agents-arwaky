@@ -5,15 +5,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.xdg.utility_xdg_atomic_io import (
+from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
     ensure_path,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.launcher.contract_launcher_protocol import ILauncherWriter
-from modules.shared.src.xdg.utility_xdg_paths import bin_home
+from modules.shared.src.contract_launcher_protocol import ILauncherWriter
+from modules.shared.src.utility_xdg_paths import bin_home
 
 
 def write_uv_launchers(
