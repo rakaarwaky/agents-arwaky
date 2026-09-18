@@ -116,7 +116,7 @@ class AnytypeUpdater(IToolUpdater):
         for d in ("data", "dot-anytype", "config", "share"):
             (data_dir / d).mkdir(parents=True, exist_ok=True)
 
-        # Delegate to the daemon module's service_install (tools/deploy/anytype-daemon.service)
+        # Delegate to the daemon module's service_install (modules/daemon/deploy/anytype-daemon.service)
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         print(">>> Updating anytype-daemon (container + systemd user service)...")

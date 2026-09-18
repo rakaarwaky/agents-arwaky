@@ -24,7 +24,7 @@ class ShellCheckRunner(ICheckRunner):
 
     def _sh_files(self) -> list[Path]:
         out: list[Path] = []
-        for base in (self._root / "tools", self._root / "modules"):
+        for base in (self._root / "modules",):
             if base.is_dir():
                 for path in base.rglob("*.sh"):
                     if "node_modules" not in path.parts and path.relative_to(self._root).parts[0] != "skills":

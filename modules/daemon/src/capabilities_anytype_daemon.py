@@ -40,7 +40,7 @@ DOT_ANYTYPE = data_home() / "anytype"
 CONFIG_DIR = config_home() / "anytype"
 SHARE_DIR = data_home() / "anytype" / "share"
 LOCAL_BIN = data_home() / "anytype-mcp/bin"
-SCRIPT_DIR = ROOT / "tools/deploy"
+SCRIPT_DIR = ROOT / "modules/daemon/deploy"
 UNIT_DIR = config_home() / "systemd/user"
 UNIT_FILE = UNIT_DIR / "anytype-daemon.service"
 DATA_ROOT = data_home() / "anytype-mcp"
@@ -300,7 +300,7 @@ def cmd_auth_key(name="arwaky-agent-key"):
     # Update .env (canonical $XDG_CONFIG_HOME/agents-arwaky + repo config placeholder)
     env_candidates = [
         agents_arwaky_config_dir() / "anytype.env",
-        ROOT / "tools/config/anytype.env",
+        ROOT / "modules/shared/config/anytype.env",
     ]
     for env_path in env_candidates:
         env_path.parent.mkdir(parents=True, exist_ok=True)

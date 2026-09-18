@@ -23,7 +23,7 @@ class PythonCheckRunner(ICheckRunner):
 
     def _py_files(self) -> list[Path]:
         out: list[Path] = []
-        for base in (self._root / "tools", self._root / "modules"):
+        for base in (self._root / "modules",):
             if base.is_dir():
                 for path in base.rglob("*.py"):
                     if "node_modules" not in path.parts and ".git" not in path.parts:

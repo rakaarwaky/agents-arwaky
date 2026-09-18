@@ -31,7 +31,7 @@ CONTAINER_NAME = "9router"
 IMAGE_NAME = os.environ.get("NINEROUTER_IMAGE", "ghcr.io/decolua/9router:latest")
 PORT = os.environ.get("NINEROUTER_PORT", "20128")
 DATA_DIR = data_home() / "9router" / "data"
-SCRIPT_DIR = ROOT / "tools/deploy"
+SCRIPT_DIR = ROOT / "modules/daemon/deploy"
 UNIT_DIR = config_home() / "systemd/user"
 UNIT_FILE = UNIT_DIR / "9router.service"
 
@@ -99,7 +99,7 @@ def read_env():
         agents_arwaky_config_dir() / "ninerouter.env",
         secret_dir / "ninerouter.env",
         secret_dir / ".env",
-        ROOT / "tools/config/ninerouter.env",
+        ROOT / "modules/shared/config/ninerouter.env",
     ):
         if cand.exists():
             for line in cand.read_text(encoding="utf-8", errors="replace").splitlines():

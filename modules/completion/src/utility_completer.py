@@ -20,7 +20,7 @@ FALLBACK_TOOLS = "context7 fetch ponytail anytype codegraph 9router workspace mn
 def _tools_from_manifest() -> str:
     """Single source of truth: manifest.json (static fallback on any error)."""
     try:
-        manifest_path = repo_root() / "tools/config/manifest.json"
+        manifest_path = repo_root() / "modules/shared/config/manifest.json"
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
         ids = [t["id"] for t in data.get("tools", []) if t.get("id")]
         if ids:

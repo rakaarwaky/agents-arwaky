@@ -522,7 +522,7 @@ class TestPointersAndHygiene:
         (project / "skills" / "demo" / "SKILL.md").write_text(
             "---\nname: demo\ndescription: demo skill\n---\n\nsee [templates](references/deep.md).\n"
         )
-        (refs / "deep.md").write_text("See [the manifest](../../../tools/config/manifest.json).\n")
+        (refs / "deep.md").write_text("See [the manifest](../../../modules/shared/config/manifest.json).\n")
         assert not [f for f in errors_only(audit_docs(project)) if f.path.startswith(str(refs))]
 
     def test_absolute_personal_path(self, project):

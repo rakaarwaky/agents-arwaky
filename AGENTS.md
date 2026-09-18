@@ -54,7 +54,7 @@ When executing or reasoning about this repository, **you must preserve these inv
 The repository segregates agent workloads into three primary zones:
 - `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules: `lint-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `blender-arwaky`).
 - `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `ponytail`, `anytype-mcp`, `codegraph`, `9router`, `google-workspace-mcp`, `mnemosyne`).
-- `tools/`: Orchestration CLI (`tools/cli/arwaky.py`), per-tool Python installers/uninstallers, MCP generation, harness connector, skill manager, daemons & CI verification.
+- `modules/`: AES 7-layer orchestration — per-feature capability modules (installer, updater, uninstaller, runner, daemon, harness, mcp, skill, sync, service, backup, check, doctor, completion) plus `modules/shared/src/` (XDG, venv, launcher, git, manifest, envfile, config, doc_pack, skill_pack, xdg, version, tool, sync, paths, common) and `modules/cli/` (entry + router).
 
 > For the comprehensive visual directory tree and system flow diagram, see [**README.md § Architecture**](README.md#-architecture).
 
@@ -76,7 +76,7 @@ Agents should execute tools via `aa tool run <tool> [args...]` (or `agents-arwak
 
 ## 📋 Tool & MCP Inventory
 
-- **Machine-Readable SSOT:** [`tools/config/manifest.json`](tools/config/manifest.json) is the single source of truth for all registered internal and vendor tools.
+- **Machine-Readable SSOT:** [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json) is the single source of truth for all registered internal and vendor tools.
 - **Runtime Discovery:** Use `aa tool list` to view all registered tools, or `aa mcp list` to inspect active MCP servers.
 - **Detailed Catalog & Documentation:** For tool descriptions, language stacks, upstream repository links, and client integration snippets, see [**README.md § Agent & Tool Catalog**](README.md#-agent--tool-catalog) and [**README.md § MCP Client Integration**](README.md#-mcp-client-integration).
 
@@ -99,9 +99,9 @@ Code and CI win over this file; this file wins over `README.md` for agent behavi
   - `internal/qwen-web-arwaky`: Python Playwright (`pip install -e .`). Venv at `~/.local/share/qwen-web/venv/`. CLI (`qwen-web-arwaky`, `qwa`, `qwc`), MCP (`qwen-web-mcp`).
   - `internal/blender-arwaky`: Python (`pip install -e .`). Venv at `~/.local/share/blender-arwaky/venv/`. CLI (`blender-arwaky`, `ba`), MCP (`blender-mcp`).
 
-### 2. Modifying Orchestration Code in `modules/` and `tools/`
-- Orchestration code lives in `modules/<feature>/src/` and `modules/shared/src/<domain>/` (AES 7-layer packages); `tools/` retains only the `arwaky.py` launcher, `config/`, `deploy/`, and `tests/`.
-- Every shell script (e.g. under `tools/deploy/`) must begin with:
+### 2. Modifying Orchestration Code in `modules/`
+- Orchestration code lives in `modules/<feature>/src/` and `modules/shared/src/<domain>/` (AES 7-layer packages); the legacy `tools/` tree is fully migrated — static assets live in `modules/shared/config/` (SSOT manifest + env examples + version), `modules/daemon/deploy/` (systemd units + Containerfile), and tests in `modules/tests/`.
+- Every shell script (e.g. under `modules/daemon/deploy/`) must begin with:
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
@@ -122,11 +122,11 @@ Before concluding any task that modifies scripts, manifest files, or configurati
 aa check
 ```
 The verification checks:
-1. JSON syntax validity across all JSON files under `tools/`.
-2. Python compilation across all Python files under `tools/`.
+1. JSON syntax validity across all JSON files under `modules/`.
+2. Python compilation across all Python files under `modules/`.
 3. Document invariants across `PRD.md`/`FRD.md`/`README.md`/`BACKLOG.md`/`AGENTS.md` and skill references (see below).
 4. Skill-pack loadability invariants across `skills/` (see below).
-5. ShellCheck linting of `tools/` shell scripts (excluding `skills/`), if installed.
+5. ShellCheck linting of `modules/` shell scripts (excluding `skills/`), if installed.
 
 ### Document invariants
 
@@ -188,12 +188,12 @@ that the pack no longer provides. It only removes entries carrying
 
 ## 📌 Standard Reference Paths
 
-- Single Source of Truth Manifest: [`tools/config/manifest.json`](tools/config/manifest.json)
+- Single Source of Truth Manifest: [`modules/shared/config/manifest.json`](modules/shared/config/manifest.json)
 - Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
 - Shared XDG Helper: [`modules/shared/src/xdg/`](modules/shared/src/xdg/)
 - Tool Install/Update/Uninstall (data-driven): [`modules/installer/`](modules/installer/) · [`modules/updater/`](modules/updater/) · [`modules/uninstaller/`](modules/uninstaller/) · Runner & CLI surface: [`modules/runner/`](modules/runner/)
 - Agent Harness Connector: [`modules/harness/src/`](modules/harness/src/)
-- CI Verification Gate: [`tools/cli/arwaky.py`](tools/cli/arwaky.py) (`aa check`) + [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+- CI Verification Gate: [`modules/cli`](modules/cli) (`aa check`) + [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Human Documentation & Tool Catalog: [`README.md`](README.md)
 - Upstream Licenses: [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)
