@@ -6,7 +6,7 @@ the manifest-driven tool listing, and the install/update/uninstall "all"
 loops are preserved exactly as written in the original 876-line arwaky.py.
 The only differences are the import swaps to the AES modules:
   - manifest        -> modules.shared.src.common.* (Tool, load_tools, find_tool)
-  - ui              -> modules.shared.src.logging.utility_logging
+  - ui              -> modules.shared.src.utility_logging
   - xdg             -> modules.shared.src.xdg.* (paths + atomic io)
   - tool_resolver.executable_path -> local executable_path() (original
                    body verbatim: shutil.which + bin_home check)
@@ -14,8 +14,8 @@ The only differences are the import swaps to the AES modules:
                    _find_* helpers (original tools/lib/tool_resolver.py
                    bodies verbatim, import-swapped)
   - doc_pack        -> modules.check.src.capabilities_doc_pack
-  - skill_pack      -> modules.shared.src.skill.capabilities_skill_pack
-  - paths.repo_root -> modules.shared.src.common.utility_paths
+  - skill_pack      -> modules.skill.src.capabilities_skill_pack
+  - paths.repo_root -> modules.shared.src.utility_paths
 
 Delegated verbs (skill/connect/disconnect/daemon/service/backup/sync/
 completion) keep calling the module surface functions, which contain the
@@ -37,12 +37,12 @@ import sys
 import textwrap
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_paths import repo_root
 ROOT = repo_root()
 
-from modules.shared.src.manifest import Tool
-from modules.shared.src.manifest import find_tool, load_tools, manifest_path
-from modules.shared.src.logging.utility_logging import (
+from modules.shared.src.taxonomy_manifest_vo import Tool
+from modules.shared.src.utility_manifest_reader import find_tool, load_tools, manifest_path
+from modules.shared.src.utility_logging import (
     BLUE,
     BOLD,
     CYAN,
@@ -61,19 +61,19 @@ from modules.shared.src.logging.utility_logging import (
     set_color_mode,
     set_verbosity,
 )
-from modules.shared.src.xdg.utility_xdg_paths import (
+from modules.shared.src.utility_xdg_paths import (
     bin_home,
     cache_home,
     config_home,
     data_home,
 )
-from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
+from modules.shared.src.utility_xdg_atomic_io import ensure_path
 
 _ANSI_RE = re.compile(r"\033\[[0-9;]*m")
 
 # Runner map per tool (P5-P1: manifest-driven dispatch, avoid hardcoded IDs)
-from modules.shared.src.common.taxonomy_core_constant import TOOL_RUNNERS
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec
+from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
+from modules.shared.src.taxonomy_tool_vo import ToolSpec
 
 # =============================================================================
 # Helpers
@@ -711,7 +711,7 @@ def cmd_docs(argv: list[str]) -> int:
 
 def _check_skill_pack() -> int:
     """Gate skills/ on the invariants a harness loader actually depends on."""
-    from modules.shared.src.skill.capabilities_skill_pack import DESCRIPTION_BUDGET_BYTES, audit_pack, iter_skill_files
+    from modules.skill.src.capabilities_skill_pack import DESCRIPTION_BUDGET_BYTES, audit_pack, iter_skill_files
 
     print("[4/5] Validating skill pack loadability...")
     pack = repo_root() / "skills"

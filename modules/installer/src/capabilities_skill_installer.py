@@ -10,15 +10,15 @@ from __future__ import annotations
 import stat
 import subprocess
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
+from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
 from modules.installer.src.contract_tool_installer import IToolInstaller
-from modules.shared.src.xdg.utility_xdg_atomic_io import (
+from modules.shared.src.utility_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
     ensure_path,
 )
-from modules.shared.src.xdg.utility_xdg_paths import bin_home
+from modules.shared.src.utility_xdg_paths import bin_home
 
 
 SKILL_MODULE_REL = "modules/skill/src/surface_skill_command.py"

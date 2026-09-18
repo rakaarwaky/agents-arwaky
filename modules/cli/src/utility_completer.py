@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_paths import repo_root
 
 COMMANDS = (
     "status doctor tool skill docs connect disconnect mcp anytype 9router service "
@@ -104,7 +104,7 @@ def generate_zsh() -> str:
 
 def install() -> int:
     """Write completions to the XDG data dir and patch ~/.bashrc."""
-    from modules.shared.src.xdg.utility_xdg_paths import data_home
+    from modules.shared.src.utility_xdg_paths import data_home
     import sys
     from pathlib import Path
 

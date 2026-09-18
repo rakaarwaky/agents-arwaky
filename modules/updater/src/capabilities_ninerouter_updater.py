@@ -14,15 +14,15 @@ from __future__ import annotations
 import shutil
 import sys
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
 from modules.updater.src.contract_tool_updater import IToolUpdater
-from modules.shared.src.xdg.utility_xdg_atomic_io import (
+from modules.shared.src.utility_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
     ensure_path,
 )
-from modules.shared.src.xdg.utility_xdg_paths import bin_home, data_home
+from modules.shared.src.utility_xdg_paths import bin_home, data_home
 
 
 DATA_DIR_NAME = "9router"

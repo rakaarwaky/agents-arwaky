@@ -1,9 +1,9 @@
 """Shared constants for the AES tool domains.
 
 Provenance:
-- SKILL_PACK_*: modules/shared/src/skill/capabilities_skill_pack.py
+- SKILL_PACK_*: modules/skill/src/capabilities_skill_pack.py
 - TOOL_RUNNERS: modules/cli/src/root_cli_entry.py
-- INSTALL/UNINSTALL_OVERRIDES: modules/runner/src/capabilities_runner.py + modules/shared/src/common
+- INSTALL/UNINSTALL_OVERRIDES: modules/runner/src/capabilities_runner.py + modules/shared/src (flat)
 - IMAGE_NAME/PORT: tools/daemons/ninerouter_daemon.py
 - ANYTYPE_*: modules/mcp/src/capabilities_mcp_generator.py
 - DOC/BACKLOG vocabularies: modules/check/src/capabilities_doc_pack.py

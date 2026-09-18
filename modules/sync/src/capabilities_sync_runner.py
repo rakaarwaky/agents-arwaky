@@ -2,8 +2,8 @@
 
 One-shot 4-step ecosystem sync. The original script body is preserved
 verbatim; only imports were swapped to the AES shared modules:
-  tools/lib/paths.repo_root -> modules.shared.src.common.utility_paths
-  tools/lib/ui (info/ok/warn) -> modules.shared.src.logging.utility_logging
+  tools/lib/paths.repo_root -> modules.shared.src.utility_paths
+  tools/lib/ui (info/ok/warn) -> modules.shared.src.utility_logging
 
 The original Step 2 executed the deleted ``tools/mcp/generate_config.py``;
 per the restore rules it now routes through the AES CLI entry
@@ -17,9 +17,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.logging.utility_logging import info, ok, warn
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.sync.contract_sync_protocol import ISyncRunner
+from modules.shared.src.utility_logging import info, ok, warn
+from modules.shared.src.utility_paths import repo_root
+from modules.sync.src.contract_sync_protocol import ISyncRunner
 
 
 ROOT = repo_root()

@@ -3,10 +3,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.check.contract_check_protocol import ICheckRunner
-from modules.shared.src.logging.utility_logging import err, info, ok
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.skill.capabilities_skill_pack import (
+from modules.check.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.utility_logging import err, info, ok
+from modules.shared.src.utility_paths import repo_root
+from modules.skill.src.capabilities_skill_pack import (
     DESCRIPTION_BUDGET_BYTES,
     audit_pack,
     iter_skill_files,

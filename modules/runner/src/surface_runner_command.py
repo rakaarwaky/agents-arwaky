@@ -6,11 +6,11 @@ import subprocess
 import sys
 import textwrap
 
-from modules.shared.src.manifest import load_tools
-from modules.shared.src.logging.utility_logging import BOLD, GREEN, CYAN, RESET, banner, err, info, ok, pad, table_widths, warn
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_manifest_reader import load_tools
+from modules.shared.src.utility_logging import BOLD, GREEN, CYAN, RESET, banner, err, info, ok, pad, table_widths, warn
+from modules.shared.src.utility_paths import repo_root
 from modules.runner.src.contract_tool_runner import IToolAggregate
-from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
+from modules.shared.src.utility_xdg_atomic_io import ensure_path
 from modules.runner.src.agent_runner_orchestrator import ToolOrchestrator
 
 
@@ -96,7 +96,7 @@ def cmd_run(args: list[str], orch: IToolAggregate) -> int:
 
 def cmd_install(args: list[str], orch: IToolAggregate) -> int:
     """aa tool install <tool|all> [--yes] — per-tool installers via the orchestrator."""
-    from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
+    from modules.shared.src.utility_xdg_atomic_io import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
     has_yes = "--yes" in args or "-y" in args
@@ -148,7 +148,7 @@ def cmd_install(args: list[str], orch: IToolAggregate) -> int:
 
 def cmd_update(args: list[str], orch: IToolAggregate) -> int:
     """aa tool update <tool|all> [--yes] — pull + reinstall."""
-    from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
+    from modules.shared.src.utility_xdg_atomic_io import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
     has_yes = "--yes" in args or "-y" in args

@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.common.taxonomy_core_constant import INSTALL_OVERRIDES
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.taxonomy_core_constant import INSTALL_OVERRIDES
+from modules.shared.src.utility_paths import repo_root
 
 
 def find_updater_candidate(tool) -> Path | None:

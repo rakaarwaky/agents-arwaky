@@ -4,7 +4,7 @@
 AES port of tools/daemons/ninerouter_daemon.py: body kept verbatim; only the
 imports are swapped to their AES equivalents (paths/xdg) and constants defined
 locally in the original stay local verbatim instead of being pulled from
-modules.shared.src.common.taxonomy_core_constant.
+modules.shared.src.taxonomy_core_constant.
 """
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ import time
 import urllib.request
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.xdg.utility_xdg_paths import (
+from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_xdg_paths import (
     agents_arwaky_config_dir,
     config_home,
     data_home,

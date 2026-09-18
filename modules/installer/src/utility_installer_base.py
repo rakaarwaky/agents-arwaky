@@ -4,9 +4,9 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_bin_home, ensure_path
+from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
+from modules.shared.src.utility_xdg_atomic_io import ensure_bin_home, ensure_path
 
 
 class InstallerBase:

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
 from modules.backup.src.capabilities_backup_tar import TarBackupGateway, TOOL_DATA
-from modules.shared.src.backup.contract_backup_aggregate import IBackupAggregate
+from modules.backup.src.contract_backup_aggregate import IBackupAggregate
 
 
 class BackupOrchestrator(IBackupAggregate):

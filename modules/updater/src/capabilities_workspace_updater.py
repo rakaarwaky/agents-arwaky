@@ -11,14 +11,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_paths import repo_root
 
 ROOT = repo_root()
 
 from modules.installer.src.capabilities_launcher_writer import write_uv_launchers
-from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_bin_home
-from modules.shared.src.git.utility_git_update import update_submodule
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.utility_xdg_atomic_io import ensure_bin_home
+from modules.shared.src.utility_git_update import update_submodule
+from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
 from modules.updater.src.contract_tool_updater import IToolUpdater
 
 SRC_REL = "vendor/google-workspace-mcp"

@@ -6,9 +6,9 @@ import json
 import sys
 from pathlib import Path
 
-from modules.shared.src.common.taxonomy_core_error import ManifestParseError
-from modules.shared.src.manifest.taxonomy_manifest_vo import Tool
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.taxonomy_core_error import ManifestParseError
+from modules.shared.src.taxonomy_manifest_vo import Tool
+from modules.shared.src.utility_paths import repo_root
 
 
 def manifest_path() -> Path:

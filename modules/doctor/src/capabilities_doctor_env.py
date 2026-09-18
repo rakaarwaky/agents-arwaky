@@ -4,8 +4,8 @@ from __future__ import annotations
 import os
 import shutil
 
-from modules.shared.src.doctor.contract_doctor_protocol import IDiagnosticRunner
-from modules.shared.src.logging.utility_logging import (
+from modules.doctor.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.utility_logging import (
     BOLD,
     DIM,
     GREEN,
@@ -15,8 +15,8 @@ from modules.shared.src.logging.utility_logging import (
     ok,
     warn,
 )
-from modules.shared.src.xdg.utility_xdg_atomic_io import ensure_path
-from modules.shared.src.xdg.utility_xdg_paths import bin_home
+from modules.shared.src.utility_xdg_atomic_io import ensure_path
+from modules.shared.src.utility_xdg_paths import bin_home
 
 REQUIRED = ("git", "jq", "curl", "python3")
 OPTIONAL = ("cargo", "uv", "node", "npm", "bun", "pnpm", "rustc")
@@ -36,7 +36,7 @@ def _resolve_executable(binary: str):
 
 def _is_submodule_missing(path_str: str) -> bool:
     """A submodule path is missing when its target (or .git) does not exist."""
-    from modules.shared.src.paths.utility_paths import repo_root
+    from modules.shared.src.utility_paths import repo_root
     from pathlib import Path
 
     root = repo_root()

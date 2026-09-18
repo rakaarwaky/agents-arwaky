@@ -17,9 +17,9 @@ import sys
 import tomllib
 from pathlib import Path
 
-from modules.shared.src.config.contract_config_protocol import IConfigModifier, IConfigWriter
-from modules.shared.src.config.utility_jsonc import strip_jsonc_comments
-from modules.shared.src.config.utility_toml_write import write_toml
+from modules.config.src.contract_config_protocol import IConfigModifier, IConfigWriter
+from modules.config.src.utility_jsonc import strip_jsonc_comments
+from modules.config.src.utility_toml_write import write_toml
 
 def detect_format(path: Path) -> str:
     name = path.name.lower()
@@ -190,9 +190,9 @@ def remove_env_keys(path: Path, keys, dry_run: bool = False) -> list:
 
     Delegates to envfile.remove_env_keys for the core logic.
     """
-    from modules.shared.src.envfile.utility_envfile import remove_env_keys as _envfile_remove
+    from modules.shared.src.utility_envfile import remove_env_keys as _envfile_remove
     if dry_run:
-        from modules.shared.src.envfile.utility_envfile import parse_env_file
+        from modules.shared.src.utility_envfile import parse_env_file
         env = parse_env_file(path)
         return [k for k in keys if k in env]
     return _envfile_remove(path, keys)

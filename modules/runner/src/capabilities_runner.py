@@ -5,11 +5,11 @@ import os
 import shutil
 from pathlib import Path
 
-from modules.shared.src.common.taxonomy_core_constant import TOOL_RUNNERS
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool import IToolExecutor
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec
-from modules.shared.src.xdg.utility_xdg_paths import bin_home
+from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
+from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.contract_tool_protocol import IToolExecutor
+from modules.shared.src.taxonomy_tool_vo import ToolSpec
+from modules.shared.src.utility_xdg_paths import bin_home
 
 
 class ToolResolver(IToolExecutor):

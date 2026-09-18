@@ -1,7 +1,7 @@
 """Unified version bump (P1-CI3), moved from tools/build/bump_version.py.
 
 Adaptations from the source:
-- ``repo_root()`` now comes from ``modules.shared.src.common.utility_paths``
+- ``repo_root()`` now comes from ``modules.shared.src.utility_paths``
   instead of a ``sys.path`` hack.
 - :func:`bump` raises :class:`ValueError` for an unknown part instead of
   ``SystemExit``; the CLI wrapper is expected to translate that into usage.
@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_paths import repo_root
 
 
 def _version_file() -> Path:

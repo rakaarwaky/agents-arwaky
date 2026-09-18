@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from modules.shared.src.check.contract_check_protocol import ICheckRunner
+from modules.check.src.contract_check_protocol import ICheckRunner
 from modules.check.src.capabilities_doc_pack import (
     DocFinding,
     as_strict,
@@ -12,8 +12,8 @@ from modules.check.src.capabilities_doc_pack import (
     errors_only,
     warnings_only,
 )
-from modules.shared.src.logging.utility_logging import err, info, ok, warn
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.utility_logging import err, info, ok, warn
+from modules.shared.src.utility_paths import repo_root
 
 
 class DocsCheckRunner(ICheckRunner):

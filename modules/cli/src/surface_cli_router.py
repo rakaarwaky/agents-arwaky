@@ -39,7 +39,7 @@ from modules.cli.src.root_cli_entry import (
     cmd_version,
     cmd_anytype,
 )
-from modules.shared.src.logging.utility_logging import err
+from modules.shared.src.utility_logging import err
 
 
 def dispatch(argv: list[str], ctx: dict | None = None) -> int:

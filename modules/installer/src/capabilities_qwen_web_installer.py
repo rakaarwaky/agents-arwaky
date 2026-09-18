@@ -10,15 +10,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool.taxonomy_tool_vo import InstallResult, ToolSpec
+from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
 from modules.installer.src.contract_tool_installer import IToolInstaller
 from modules.installer.src.capabilities_venv_installer import (
     ensure_venv,
     install_package,
     setup_bin_links,
 )
-from modules.shared.src.xdg.utility_xdg_paths import (
+from modules.shared.src.utility_xdg_paths import (
     bin_home,
     tool_data_dir,
     tool_config_dir,

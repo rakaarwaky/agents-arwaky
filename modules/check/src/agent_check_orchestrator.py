@@ -1,9 +1,9 @@
 """Check agent orchestrator — runs all 5 verification checks in sequence."""
 from __future__ import annotations
 
-from modules.shared.src.check.contract_check_aggregate import ICheckAggregate
-from modules.shared.src.check.contract_check_protocol import ICheckRunner
-from modules.shared.src.logging.utility_logging import banner, err, info, ok
+from modules.check.src.contract_check_aggregate import ICheckAggregate
+from modules.check.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.utility_logging import banner, err, info, ok
 
 
 class CheckOrchestrator(ICheckAggregate):

@@ -1,6 +1,6 @@
 """Machine checks for the document invariants the ``add-docs`` skill states in prose.
 Moved verbatim from tools/lib/doc_pack.py; shared vocabularies now live in
-modules.shared.src.common.taxonomy_core_constant.
+modules.shared.src.taxonomy_core_constant.
 """
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from modules.shared.src.common.taxonomy_core_constant import (
+from modules.shared.src.taxonomy_core_constant import (
     BACKLOG_COLUMNS,
     DOC_NAMES,
     EVIDENCED_STATES,
