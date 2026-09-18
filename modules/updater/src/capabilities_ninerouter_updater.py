@@ -14,9 +14,9 @@ from __future__ import annotations
 import shutil
 import sys
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.shared.src.tool.contract_tool_protocol import IToolUpdater
+from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.common.tool.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.common.tool.contract_tool_protocol import IToolUpdater
 from modules.shared.src.xdg.utility_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,

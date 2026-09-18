@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.common.taxonomy_core_constant import UNINSTALL_OVERRIDES
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.common.paths.utility_paths import repo_root
 
 
 def find_uninstaller_candidate(tool) -> Path | None:

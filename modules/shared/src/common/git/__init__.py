@@ -1,9 +1,9 @@
 """Git submodule update helpers (moved from tools/lib/git_update.py)."""
 from __future__ import annotations
 
-from modules.shared.src.git.capabilities_git_submodule import GitSubmoduleUpdater
-from modules.shared.src.git.contract_git_protocol import IGitUpdater
-from modules.shared.src.git.utility_git_update import (
+from modules.shared.src.common.git.capabilities_git_submodule import GitSubmoduleUpdater
+from modules.shared.src.common.git.contract_git_protocol import IGitUpdater
+from modules.shared.src.common.git.utility_git_update import (
     fetch_remote,
     get_current_commit,
     get_remote_default_branch,

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.git.contract_git_protocol import IGitUpdater
-from modules.shared.src.git.utility_git_update import (
+from modules.shared.src.common.git.contract_git_protocol import IGitUpdater
+from modules.shared.src.common.git.utility_git_update import (
     get_current_commit,
     has_newer_commits,
     pull_submodule,

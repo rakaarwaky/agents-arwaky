@@ -8,14 +8,14 @@ from pathlib import Path
 def repo_root() -> Path:
     """Resolve and validate the agents-arwaky repository root.
 
-    This module lives at ``modules/shared/src/paths/``, four levels below the
-    repo root, so ``parents[4]`` reaches it. ``AGENTS_ARWAKY_ROOT`` overrides.
+    This module lives at ``modules/shared/src/common/paths/``, six levels below the
+    repo root, so ``parents[5]`` reaches it. ``AGENTS_ARWAKY_ROOT`` overrides.
     """
     env_root = os.environ.get("AGENTS_ARWAKY_ROOT")
     if env_root:
         root = Path(env_root).resolve()
     else:
-        root = Path(__file__).resolve().parents[4]
+        root = Path(__file__).resolve().parents[5]
 
     manifest = root / "modules" / "shared" / "config" / "manifest.json"
     if not manifest.exists():

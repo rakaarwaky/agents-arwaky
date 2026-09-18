@@ -130,13 +130,13 @@ class TestEngine:
 # ---------------------------------------------------------------------------
 class TestPaths:
     def test_repo_root_exists(self):
-        from modules.shared.src.paths.utility_paths import repo_root
+        from modules.shared.src.common.paths.utility_paths import repo_root
         root = repo_root()
         assert root.exists()
         assert (root / "modules" / "shared" / "config" / "manifest.json").exists()
 
     def test_repo_root_validates_manifest(self):
-        from modules.shared.src.paths.utility_paths import repo_root
+        from modules.shared.src.common.paths.utility_paths import repo_root
         root = repo_root()
         # Should not raise (manifest exists)
         assert root.is_dir()
@@ -147,21 +147,21 @@ class TestPaths:
 # ---------------------------------------------------------------------------
 class TestManifest:
     def test_load_tools(self):
-        from modules.shared.src.manifest.capabilities_manifest_reader import load_tools
+        from modules.shared.src.common.manifest.capabilities_manifest_reader import load_tools
         tools = load_tools()
         assert len(tools) > 0
         ids = [t.id for t in tools]
         assert "skill" in ids
 
     def test_find_tool(self):
-        from modules.shared.src.manifest.capabilities_manifest_reader import find_tool
+        from modules.shared.src.common.manifest.capabilities_manifest_reader import find_tool
         tool = find_tool("skill")
         assert tool is not None
         assert tool.id == "skill"
         assert find_tool("nonexistent") is None
 
     def test_tool_fields(self):
-        from modules.shared.src.manifest.capabilities_manifest_reader import load_tools
+        from modules.shared.src.common.manifest.capabilities_manifest_reader import load_tools
         tools = load_tools()
         for t in tools:
             assert t.id, f"Tool missing id: {t}"
@@ -174,20 +174,20 @@ class TestManifest:
 # ---------------------------------------------------------------------------
 class TestSkillNames:
     def test_extract_skill_name(self, tmp_path):
-        from modules.shared.src.skill_names.utility_skill_names import extract_skill_name
+        from modules.shared.src.common.skill_names.utility_skill_names import extract_skill_name
         skill_md = tmp_path / "SKILL.md"
         skill_md.write_text("---\nname: my-skill\n---\n# Hello\n")
         assert extract_skill_name(skill_md) == "my-skill"
 
     def test_extract_skill_name_fallback(self, tmp_path):
-        from modules.shared.src.skill_names.utility_skill_names import extract_skill_name
+        from modules.shared.src.common.skill_names.utility_skill_names import extract_skill_name
         skill_md = tmp_path / "fallback-name" / "SKILL.md"
         skill_md.parent.mkdir(parents=True)
         skill_md.write_text("no frontmatter here")
         assert extract_skill_name(skill_md) == "fallback-name"
 
     def test_sanitize_skill_name(self):
-        from modules.shared.src.skill_names.utility_skill_names import sanitize_skill_name
+        from modules.shared.src.common.skill_names.utility_skill_names import sanitize_skill_name
         assert sanitize_skill_name("my skill!", "fallback") == "my-skill"
         # posixpath.basename strips directory traversal, leaving just "passwd"
         assert sanitize_skill_name("../../../etc/passwd", "fb") == "passwd"
@@ -195,7 +195,7 @@ class TestSkillNames:
         assert sanitize_skill_name("a" * 100, "fb") == "a" * 64
 
     def test_ensure_under(self, tmp_path):
-        from modules.shared.src.skill_names.utility_skill_names import ensure_under
+        from modules.shared.src.common.skill_names.utility_skill_names import ensure_under
         base = tmp_path / "base"
         base.mkdir()
         child = base / "child"

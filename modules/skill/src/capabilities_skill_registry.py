@@ -3,9 +3,9 @@
 Every function, constant, print, subprocess call, edge case and comment is
 preserved exactly as written in the original script; the only differences are
 the import swaps (tools/lib modules -> modules.shared.src):
-  - paths.repo_root              -> modules.shared.src.paths.utility_paths
+  - paths.repo_root              -> modules.shared.src.common.paths.utility_paths
   - skill_pack.*                 -> modules.shared.src.skill_pack.capabilities_skill_pack
-  - skill_names.*                -> modules.shared.src.skill_names.utility_skill_names
+  - skill_names.*                -> modules.shared.src.common.skill_names.utility_skill_names
   - ui.pad / ui.table_widths     -> modules.shared.src.logging.utility_logging
 
 The ``if __name__ == "__main__"`` block from the original is dropped: the
@@ -21,13 +21,13 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.common.paths.utility_paths import repo_root
 from modules.shared.src.skill_pack.capabilities_skill_pack import (  # noqa: E402
     audit_pack,
     prune_provisioned,
     write_provenance,
 )
-from modules.shared.src.skill_names.utility_skill_names import (  # noqa: E402
+from modules.shared.src.common.skill_names.utility_skill_names import (  # noqa: E402
     ensure_under,
     extract_skill_name,
     safe_child,

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import sys
 
-from modules.shared.src.paths.utility_paths import repo_root
-from modules.shared.src.version.utility_version import bump, read_version
+from modules.shared.src.common.paths.utility_paths import repo_root
+from modules.shared.src.common.version.utility_version import bump, read_version
 
 
 def main(argv: list[str]) -> int:

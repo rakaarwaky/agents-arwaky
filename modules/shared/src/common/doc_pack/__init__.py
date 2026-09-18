@@ -1,7 +1,7 @@
 """Document invariant checks (moved verbatim from tools/lib/doc_pack.py)."""
 from __future__ import annotations
 
-from modules.shared.src.doc_pack.capabilities_doc_pack import (
+from modules.shared.src.common.doc_pack.capabilities_doc_pack import (
     DocFinding,
     Table,
     as_strict,

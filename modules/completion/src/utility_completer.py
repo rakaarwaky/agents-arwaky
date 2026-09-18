@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from modules.shared.src.paths.utility_paths import repo_root
+from modules.shared.src.common.paths.utility_paths import repo_root
 
 COMMANDS = (
     "status doctor tool skill docs connect disconnect mcp anytype 9router service "
