@@ -62,7 +62,7 @@ per-daemon capability → Podman/systemd.
 | Podman | out | run the 9Router / Anytype containers | podman missing → non-zero |
 | systemd units + Containerfile (`daemon/deploy/`) | in | deployment artifacts | missing unit → start fails |
 | XDG config (per-daemon `.env`) | in | secrets, endpoint | missing key → `auth-key` pre-condition |
-| `modules/cli` surface | in | `aa anytype` / `aa 9router` | pass-through |
+| `modules/root_cli_entry.py` (root) | in | `aa anytype` / `aa 9router` | pass-through |
 
 ## Non-functional Requirements
 

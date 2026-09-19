@@ -4,7 +4,6 @@
 |---------|------|------|---------|
 | `modules/tools` | P0 | [FRD](modules/tools/FRD.md) | [BACKLOG](modules/tools/BACKLOG.md) |
 | `modules/shared` | P0 | [FRD](modules/shared/FRD.md) | [BACKLOG](modules/shared/BACKLOG.md) |
-| `modules/cli` | P0 | [FRD](modules/cli/FRD.md) | [BACKLOG](modules/cli/BACKLOG.md) |
 | `modules/check` | P0 | [FRD](modules/check/FRD.md) | [BACKLOG](modules/check/BACKLOG.md) |
 | `modules/mcp` | P0 | [FRD](modules/mcp/FRD.md) | [BACKLOG](modules/mcp/BACKLOG.md) |
 | `modules/config` | P1 | [FRD](modules/config/FRD.md) | [BACKLOG](modules/config/BACKLOG.md) |

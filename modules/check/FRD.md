@@ -66,7 +66,7 @@ Flow: CLI surface → `CheckOrchestrator.check(strict)` → for each runner
 |--------|-----------|---------|--------------|
 | `modules/shared` (manifest_reader, paths, doc_pack) | out | anchor root, read manifest, audit docs | repo-root/anchor error |
 | host toolchain (ruff, shellcheck, python compileall) | out | per-domain verification | missing tool → runner reports skip/fail |
-| `modules/cli` surface | in | `aa check [strict]` | none — pass-through |
+| `modules/root_cli_entry.py` (root) | in | `aa check [strict]` | none — pass-through |
 
 ## Non-functional Requirements
 

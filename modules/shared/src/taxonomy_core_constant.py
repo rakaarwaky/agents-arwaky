@@ -2,7 +2,7 @@
 
 Provenance:
 - SKILL_PACK_*: modules/skill/src/capabilities_skill_pack.py
-- TOOL_RUNNERS: modules/cli/src/root_cli_entry.py
+- TOOL_RUNNERS: modules/root_cli_entry.py
 - INSTALL/UNINSTALL_OVERRIDES: modules/runner/src/capabilities_runner.py + modules/shared/src (flat)
 - IMAGE_NAME/PORT: tools/daemons/ninerouter_daemon.py
 - ANYTYPE_*: modules/mcp/src/capabilities_mcp_generator.py

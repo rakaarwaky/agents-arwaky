@@ -27,7 +27,7 @@ Last Updated: 2026-09-19
   multi-method) — tracked, not yet implemented.
 - Blocked: none.
 - Next Action: run the full verification gate (`python3 -m compileall`, import
-  smoke, `python3 -m modules.cli check`, `python3 -m pytest tests/ -q`) and a
+  smoke, `python3 -m modules.root_cli_entry check`, `python3 -m pytest tests/ -q`) and a
   clean-host lifecycle sweep.
 
 ## Backlog
@@ -37,7 +37,7 @@ Last Updated: 2026-09-19
 | TOL-01 | FR-001..004 | Unified tools feature (4 modules → 1) | P0 | Done | 4 protocol classes, 8 verb capability files, 13 plain-class adapters (mechanics via `utility_tool_mechanics`), orchestrator + surface + root container all present; old modules deleted; `root_cli_entry.py` repointed. Evidence: `python3 -m compileall -q modules/tools/` → COMPILE_OK; `python3 -c "import modules.tools"` → import OK; verified at commit `b44f139` (2026-09-19). | @raka | None | 2026-09-19 |
 | TOL-02 | FR-004 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
 | TOL-03 | FR-003 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
-| TOL-04 | FR-001..004 | Fold 8 capability files → 4 verb classes | P2 | In Progress | Merge `capabilities_tools_{provisioner,launcher}.py` → `capabilities_tools_installer.py` (single `install` method, sub-steps inline); same for updater/uninstaller/runner. Update orchestrator + root container wiring. Gate: `compileall` + `python3 -m modules.cli check` green. | @raka | TOL-01 | 2026-09-19 |
+| TOL-04 | FR-001..004 | Fold 8 capability files → 4 verb classes | P2 | In Progress | Merge `capabilities_tools_{provisioner,launcher}.py` → `capabilities_tools_installer.py` (single `install` method, sub-steps inline); same for updater/uninstaller/runner. Update orchestrator + root container wiring. Gate: `compileall` + `python3 -m modules.root_cli_entry check` green. | @raka | TOL-01 | 2026-09-19 |
 
 ## Scenario Evidence (rows)
 
@@ -63,7 +63,7 @@ Last Updated: 2026-09-19
   `taxonomy_xdg_paths`, `taxonomy_xdg_atomic_io`, `utility_git_update`,
   `utility_manifest_reader`, `utility_paths_resolver`.
 - `modules/daemon` — aggregate only, lazy-imported for service install/stop.
-- `modules/cli` — the only external surface; imports `modules.tools` only.
+- `modules/root_cli_entry.py` — the only external surface (single `aa` entry point); imports `modules.tools` only.
 
 ## Release Readiness
 

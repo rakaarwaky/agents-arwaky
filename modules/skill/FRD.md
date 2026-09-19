@@ -84,7 +84,7 @@ itself.
 | `skills/` pack | in | the source of provisioned skills | malformed pack → audit finding |
 | a project's `.agents/skills/` | out | provisioned copies + provenance | unwritable target → reported |
 | harness skill roots | out | registered roots a harness scans | a new category needs one session restart |
-| `modules/cli` surface | in | `aa skill` | pass-through |
+| `modules/root_cli_entry.py` (root) | in | `aa skill` | pass-through |
 
 ## Non-functional Requirements
 

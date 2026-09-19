@@ -61,7 +61,7 @@ against the target unit(s).
 | System | Direction | Purpose | Failure mode |
 | systemd (systemctl) | out | the control plane for the units | no systemd → clear top-level failure |
 | `modules/daemon/deploy/` (units, Containerfile) | in | the artifacts driven | missing unit → per-target row |
-| `modules/cli` surface | in | `aa service` | pass-through |
+| `modules/root_cli_entry.py` (root) | in | `aa service` | pass-through |
 
 ## Non-functional Requirements
 
