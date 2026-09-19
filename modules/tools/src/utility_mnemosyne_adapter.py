@@ -91,7 +91,7 @@ def write_uv_launchers(
     ensure_path()
     return created
 
-ROOT = REPO_ROOT
+ROOT = repo_root
 
 SRC_REL = "vendor/mnemosyne"
 LAUNCHERS = [

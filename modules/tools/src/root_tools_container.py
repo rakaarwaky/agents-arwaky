@@ -16,20 +16,20 @@ The daemon aggregate is imported lazily inside the factory so that importing
 """
 from __future__ import annotations
 
+import modules.tools.src.utility_anytype_adapter as _anytype
+import modules.tools.src.utility_blender_adapter as _blender
+import modules.tools.src.utility_codegraph_adapter as _codegraph
+import modules.tools.src.utility_context7_adapter as _context7
+import modules.tools.src.utility_fetch_adapter as _fetch
+import modules.tools.src.utility_lint_adapter as _lint
+import modules.tools.src.utility_mnemosyne_adapter as _mnemosyne
+import modules.tools.src.utility_ninerouter_adapter as _ninerouter
+import modules.tools.src.utility_ponytail_adapter as _ponytail
+import modules.tools.src.utility_qwen_web_adapter as _qwen_web
+import modules.tools.src.utility_vision_adapter as _vision
+import modules.tools.src.utility_workspace_adapter as _workspace
 from modules.shared.src.utility_paths import repo_root
 from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
-from modules.tools.src.utility_anytype_adapter import AnytypeAdapter, AnytypeDaemonAdapter
-from modules.tools.src.utility_blender_adapter import BlenderAdapter
-from modules.tools.src.utility_codegraph_adapter import CodegraphAdapter
-from modules.tools.src.utility_context7_adapter import Context7Adapter
-from modules.tools.src.utility_fetch_adapter import FetchAdapter
-from modules.tools.src.utility_lint_adapter import LintAdapter
-from modules.tools.src.utility_mnemosyne_adapter import MnemosyneAdapter
-from modules.tools.src.utility_ninerouter_adapter import NinerouterAdapter
-from modules.tools.src.utility_ponytail_adapter import PonytailAdapter
-from modules.tools.src.utility_qwen_web_adapter import QwenWebAdapter
-from modules.tools.src.utility_vision_adapter import VisionAdapter
-from modules.tools.src.utility_workspace_adapter import WorkspaceAdapter
 
 # Root is the only layer allowed to import capabilities_* (AES201 rule 8):
 # the four verb capabilities are constructed here and injected into the
@@ -41,22 +41,23 @@ from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapabili
 from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
 
-#: tool_id -> adapter instance (root composition data; each adapter is a
-#: stateless plain class — no per-registry state, constructed once here).
+#: tool_id -> adapter unit (root composition data). Function-style adapters
+#: register their module (verb dispatch by attribute name); class-style
+#: adapters register a single instance constructed once here.
 TOOLS_REGISTRY: dict[str, object] = {
-    "anytype": AnytypeAdapter(),
-    "anytype-daemon": AnytypeDaemonAdapter(),
-    "blender": BlenderAdapter(),
-    "codegraph": CodegraphAdapter(),
-    "context7": Context7Adapter(),
-    "fetch": FetchAdapter(),
-    "lint": LintAdapter(),
-    "mnemosyne": MnemosyneAdapter(),
-    "9router": NinerouterAdapter(),
-    "ponytail": PonytailAdapter(),
-    "qwen-web": QwenWebAdapter(),
-    "vision": VisionAdapter(),
-    "workspace": WorkspaceAdapter(),
+    "anytype": _anytype.AnytypeAdapter(),
+    "anytype-daemon": _anytype.AnytypeDaemonAdapter(),
+    "blender": _blender,
+    "codegraph": _codegraph,
+    "context7": _context7,
+    "fetch": _fetch,
+    "lint": _lint,
+    "mnemosyne": _mnemosyne,
+    "9router": _ninerouter,
+    "ponytail": _ponytail,
+    "qwen-web": _qwen_web,
+    "vision": _vision,
+    "workspace": _workspace,
 }
 
 
