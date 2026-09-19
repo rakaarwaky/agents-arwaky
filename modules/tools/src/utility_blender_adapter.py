@@ -164,11 +164,6 @@ def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
 
 
 def update(spec, root: Path) -> list[Path]:
-    from modules.shared.src.utility_git_update import (
-        update_submodule,
-        write_install_stamp,
-    )
-
     print(f">>> Updating {TOOL_NAME} (XDG compliant)...")
 
     if not update_submodule(root, SRC_REL):

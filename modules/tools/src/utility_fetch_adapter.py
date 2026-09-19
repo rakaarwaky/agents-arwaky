@@ -156,7 +156,6 @@ def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
 
 
 def update(spec, root: Path) -> list[Path]:
-    from modules.shared.src.utility_git_update import update_submodule
 
     source = root / SRC_REL
     if not update_submodule(root, SRC_REL):
