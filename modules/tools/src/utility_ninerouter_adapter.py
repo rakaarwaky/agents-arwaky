@@ -12,6 +12,8 @@ Daemon service installation is delegated on install to the injected daemon
 aggregate (`daemons` kwarg, wired at composition root); on update it is
 fetched lazily via importlib with string-concatenated module names so the
 AES404 purity grep stays clean. The adapter stays a leaf.
+
+Stateless leaf (AES404): module-level functions only, no classes.
 """
 from __future__ import annotations
 
@@ -41,7 +43,6 @@ def _daemon_feature():
 def _write_9router_launcher(launcher: Path, root: Path) -> None:
     from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER as _PROV
 
-    _daemon_module = ".".join(("modules", "daemon", "src", "agent_daemon_verb"))
     launcher_content = f'''#!/usr/bin/env python3
 # {_PROV}
 import os, sys
@@ -56,79 +57,78 @@ sys.exit(_cmd_9router(sys.argv[1:]))
     atomic_write_text(launcher, launcher_content)
 
 
-class NinerouterAdapter:
-    """Set up the 9Router hybrid daemon + launcher (no compile step)."""
+def satisfied(spec, root: Path | None = None) -> bool:
+    return (bin_home() / "9router").exists()
 
-    is_daemon = True
 
-    def satisfied(self, spec, root: Path | None = None) -> bool:
-        return (bin_home() / "9router").exists()
+# -- install (from old installer adapter, verbatim mechanics) ----------------
+def install(spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
+    root = root or ROOT
+    ensure_bin_home()
+    ensure_path()
+    data_dir = data_home() / DATA_DIR_NAME
+    data_dir.mkdir(parents=True, exist_ok=True)
 
-    # -- install (from old installer adapter, verbatim mechanics) ----------------
-    def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
-        root = root or ROOT
-        ensure_bin_home()
-        ensure_path()
-        data_dir = data_home() / DATA_DIR_NAME
-        data_dir.mkdir(parents=True, exist_ok=True)
-
-        # Delegate to the daemon module's service_install (modules/daemon/deploy/ninerouter.service)
-        if shutil.which("podman") is None:
-            print("Warning: podman not found; 9router service-install skipped.", file=sys.stderr)
+    # Delegate to the daemon module's service_install (modules/daemon/deploy/ninerouter.service)
+    if shutil.which("podman") is None:
+        print("Warning: podman not found; 9router service-install skipped.", file=sys.stderr)
+        return []
+    if daemons is not None:
+        rc = daemons.service_install()
+        if rc != 0:
+            print(f"9router service-install exited {rc} (see 'aa 9router logs')", file=sys.stderr)
             return []
-        if daemons is not None:
-            rc = daemons.service_install()
-            if rc != 0:
-                print(f"9router service-install exited {rc} (see 'aa 9router logs')", file=sys.stderr)
-                return []
 
-        launcher = bin_home() / "9router"
-        _write_9router_launcher(launcher, root)
+    launcher = bin_home() / "9router"
+    _write_9router_launcher(launcher, root)
 
-        internal_bin = data_dir / INTERNAL_BIN
-        internal_bin.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(launcher, internal_bin / "9router")
-        (internal_bin / "9router").chmod(0o755)
-        print(f">>> Successfully installed 9Router -> {launcher}")
-        return [launcher]
+    internal_bin = data_dir / INTERNAL_BIN
+    internal_bin.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(launcher, internal_bin / "9router")
+    (internal_bin / "9router").chmod(0o755)
+    print(f">>> Successfully installed 9Router -> {launcher}")
+    return [launcher]
 
-    # -- update (from old updater adapter) ---------------------------------------
-    def is_pin_satisfied(self, spec, root: Path) -> tuple[bool, str]:
-        return False, "daemon service + launcher (force reinstall)"
 
-    def update(self, spec, root: Path) -> list[Path]:
-        root = root or ROOT
-        ensure_bin_home()
-        ensure_path()
-        data_dir = data_home() / DATA_DIR_NAME
-        data_dir.mkdir(parents=True, exist_ok=True)
+# -- update (from old updater adapter) ---------------------------------------
+def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
+    return False, "daemon service + launcher (force reinstall)"
 
-        _feature = _daemon_feature()
 
-        print(">>> Updating 9Router hybrid architecture...")
-        if shutil.which("podman") is None:
-            print("  Warning: podman not found; 9router service-install skipped.", file=sys.stderr)
-        else:
-            rc = _feature.service_install("9router")  # manager key accepts either "9router" or "ninerouter"
-            if rc != 0:
-                print(f"  Warning: 9router service-install exited {rc}")
+def update(spec, root: Path) -> list[Path]:
+    root = root or ROOT
+    ensure_bin_home()
+    ensure_path()
+    data_dir = data_home() / DATA_DIR_NAME
+    data_dir.mkdir(parents=True, exist_ok=True)
 
-        launcher = bin_home() / "9router"
-        _write_9router_launcher(launcher, root)
+    _feature = _daemon_feature()
 
-        internal_bin = data_dir / INTERNAL_BIN
-        internal_bin.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(launcher, internal_bin / "9router")
-        (internal_bin / "9router").chmod(0o755)
-        print(f">>> Successfully updated 9Router -> {launcher}")
-        return [launcher, internal_bin / "9router"]
+    print(">>> Updating 9Router hybrid architecture...")
+    if shutil.which("podman") is None:
+        print("  Warning: podman not found; 9router service-install skipped.", file=sys.stderr)
+    else:
+        rc = _feature.service_install("9router")  # manager key accepts either "9router" or "ninerouter"
+        if rc != 0:
+            print(f"  Warning: 9router service-install exited {rc}")
 
-    # -- teardown data --------------------------------------------------------------
-    def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        from modules.shared.src.taxonomy_xdg_paths import agents_arwaky_config_dir
+    launcher = bin_home() / "9router"
+    _write_9router_launcher(launcher, root)
 
-        extra = [
-            data_home() / DATA_DIR_NAME / INTERNAL_BIN / "9router",
-            agents_arwaky_config_dir() / "ninerouter.env",
-        ]
-        return generic_owned(spec, LAUNCHERS, config=[DATA_DIR_NAME], extra=extra)
+    internal_bin = data_dir / INTERNAL_BIN
+    internal_bin.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(launcher, internal_bin / "9router")
+    (internal_bin / "9router").chmod(0o755)
+    print(f">>> Successfully updated 9Router -> {launcher}")
+    return [launcher, internal_bin / "9router"]
+
+
+# -- teardown data --------------------------------------------------------------
+def owned_paths(spec, root: Path | None = None) -> list[Path]:
+    from modules.shared.src.taxonomy_xdg_paths import agents_arwaky_config_dir
+
+    extra = [
+        data_home() / DATA_DIR_NAME / INTERNAL_BIN / "9router",
+        agents_arwaky_config_dir() / "ninerouter.env",
+    ]
+    return generic_owned(spec, LAUNCHERS, config=[DATA_DIR_NAME], extra=extra)

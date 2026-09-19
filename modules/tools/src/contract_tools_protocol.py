@@ -36,7 +36,7 @@ class IToolInstaller(ABC):
         """Provision → register launcher → health probe, one verb.
 
         *adapter* is a concrete leaf adapter instance
-        (e.g. `VisionAdapter`, `SkillAdapter`).
+        (e.g. the `vision` or `workspace` adapter modules).
 
         Sub-steps (internal, not separate protocol methods):
         1. Satisfied check gates the idempotent skip; otherwise dispatch
@@ -65,7 +65,7 @@ class IToolUpdater(ABC):
         """Pin check → adapter update → record transition, one verb.
 
         *adapter* is a concrete leaf adapter instance
-        (e.g. `VisionAdapter`, `SkillAdapter`).
+        (e.g. the `vision` or `workspace` adapter modules).
 
         Sub-steps (internal, not separate protocol methods):
         1. Pin comparison first (idempotence); on unsatisfied state
@@ -136,7 +136,7 @@ class IToolRunner(ABC):
 
 __all__ = [
     "IToolInstaller",
-    "IToolUpdater",
-    "IToolUninstaller",
     "IToolRunner",
+    "IToolUninstaller",
+    "IToolUpdater",
 ]

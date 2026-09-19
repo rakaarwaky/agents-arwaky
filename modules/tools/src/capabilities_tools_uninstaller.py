@@ -18,33 +18,29 @@ from __future__ import annotations
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Protocol
 
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
 from modules.shared.src.taxonomy_xdg_atomic_io import remove_tool_artifacts
-from modules.shared.src.taxonomy_xdg_paths import bin_home, config_home
+from modules.shared.src.taxonomy_xdg_paths import (
+    bin_home,
+    config_home,
+    tool_cache_dir,
+    tool_data_dir,
+)
 from modules.tools.src.contract_tools_protocol import IToolUninstaller
-
 from modules.tools.src.taxonomy_tools_constant import (
     DAEMON_NAMES,
     DAEMON_UNIT_TOOLS,
+    KEEP_CONFIG,
     LAUNCHER_NAMES,
 )
 
 
-class _DaemonStopper(Protocol):
-    """Structural type: anything with a service_uninstall(name) -> int method."""
-
-    def service_uninstall(self, name: str) -> int: ...
-
-
-# Tool ids whose XDG config subtree is NOT installer-owned and is kept on
-# removal (anytype-daemon keeps its config: the daemon owns it across updates).
-_KEEP_CONFIG: frozenset[str] = frozenset({"anytype-daemon"})
-
-
-def _stop_daemon(daemons: _DaemonStopper, tool_id: str) -> bool:
+def _stop_daemon(daemons: object, tool_id: str) -> bool:
     """Stop the daemon's service/container before removal.
+
+    *daemons* is anything exposing ``service_uninstall(name) -> int``
+    (structural typing, resolved by the root layer's daemon aggregate).
 
     Returns False when the unit could not be stopped (active-service residual —
     container-isolation invariant: never force-killed). Raises on unknown
@@ -72,8 +68,6 @@ def _extras(owned_paths: list[Path], spec: ToolSpec, launchers: list[str]) -> li
     handled by ``remove_tool_artifacts``; this returns everything else the
     adapter reported (internal-bin copies, env files, daemon unit paths).
     """
-    from modules.shared.src.taxonomy_xdg_paths import tool_data_dir, tool_cache_dir
-
     generic = {bin_home() / name for name in launchers}
     generic.add(tool_data_dir(spec.id))
     generic.add(tool_cache_dir(spec.id))
@@ -96,12 +90,14 @@ def _survivor_reason(path: Path) -> str:
     return "foreign-owner: path reappeared"
 
 
+# ─── Block 1: Class Definition & Constructor ─────────────────────────
 class UninstallerCapability(IToolUninstaller):
     """Business action uninstall(spec, owned_paths, dry_run): remove + verify."""
 
-    def __init__(self, daemons: _DaemonStopper | None = None) -> None:
+    def __init__(self, daemons: object | None = None) -> None:
         self._daemons = daemons
 
+    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
     def uninstall(
         self,
         spec: ToolSpec,
@@ -115,15 +111,13 @@ class UninstallerCapability(IToolUninstaller):
         # gets verified so residuals are surfaced, not hidden.
         return self._verify(spec, result, owned_paths)
 
-    # -- Sub-step 1: remove ----------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _remove(
         self,
         spec: ToolSpec,
         owned_paths: list[Path],
         dry_run: bool = False,
     ) -> UninstallResult:
-        from modules.shared.src.taxonomy_xdg_paths import tool_data_dir, tool_cache_dir
-
         notes: list[str] = []
         removed: list[Path] = []
 
@@ -153,7 +147,7 @@ class UninstallerCapability(IToolUninstaller):
 
         # Generic XDG teardown (launchers, data, cache, optionally config).
         launchers = LAUNCHER_NAMES.get(spec.id, [])
-        clean_config = spec.id not in _KEEP_CONFIG
+        clean_config = spec.id not in KEEP_CONFIG
         if dry_run:
             planned: list[str] = [f"launcher {n}" for n in launchers]
             planned += [f"data {spec.id}", f"cache {spec.id}"]
@@ -186,7 +180,6 @@ class UninstallerCapability(IToolUninstaller):
         success = not any(n.startswith("residual") for n in notes)
         return UninstallResult(success, spec.id, message)
 
-    # -- Sub-step 2: verify ----------------------------------------------------
     def _verify(
         self,
         spec: ToolSpec,

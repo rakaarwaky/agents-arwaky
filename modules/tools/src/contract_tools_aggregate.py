@@ -17,6 +17,7 @@ from modules.shared.src.taxonomy_tool_vo import (
     UninstallResult,
     UpdateResult,
 )
+from modules.tools.src.taxonomy_tools_vo import ExitCode, ToolQuery
 
 
 class IToolsAggregate(ABC):
@@ -28,7 +29,7 @@ class IToolsAggregate(ABC):
         return None
 
     @abstractmethod
-    def resolve_spec(self, query: str) -> ToolSpec | None:
+    def resolve_spec(self, query: ToolQuery) -> ToolSpec | None:
         """Resolve a manifest id / binary / alias into a ToolSpec; None when unknown."""
         return None
 
@@ -48,7 +49,7 @@ class IToolsAggregate(ABC):
         return None
 
     @abstractmethod
-    def run_tool(self, spec: ToolSpec, args: list[str]) -> int:
+    def run_tool(self, spec: ToolSpec, args: list[str]) -> ExitCode:
         """Run the tool; returns the process exit code."""
         return None
 

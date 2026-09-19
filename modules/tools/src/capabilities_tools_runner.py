@@ -26,10 +26,9 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
 from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
-from modules.shared.src.taxonomy_xdg_paths import bin_home
 from modules.shared.src.taxonomy_tool_vo import ToolSpec
+from modules.shared.src.taxonomy_xdg_paths import bin_home
 from modules.tools.src.contract_tools_protocol import IToolRunner
-
 from modules.tools.src.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,
     SENTINEL_EXECUTABLE_GONE,
@@ -57,12 +56,17 @@ def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path)
     return [str(executable), *args]
 
 
+# ─── Block 1: Class Definition & Constructor ─────────────────────────
 class RunnerCapability(IToolRunner):
     """Business action run(spec, args, root): discover + exec, return exit code."""
 
+    def __init__(self, root: Path | None = None) -> None:
+        self._root = root
+
+    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
     def run(self, spec: ToolSpec, args: list[str], root: Path | None = None) -> int:
         # Sub-step 1: discover the concrete launch path; None -> return 1.
-        base = root or repo_root
+        base = root or self._root or repo_root
         exe = self._discover(spec, base)
         if exe is None:
             return 1
@@ -70,7 +74,21 @@ class RunnerCapability(IToolRunner):
         # Sub-step 2: launch and return the child's real exit code.
         return self._execute(spec, exe, args, base)
 
-    # -- Sub-step 1: discovery -------------------------------------------------
+    def discover(self, spec: ToolSpec, root: Path | None = None) -> Path | None:
+        """Public discovery: first valid candidate, resolved; None when absent.
+
+        Read-only: never mutates install state. Used by the agent aggregate
+        for `executable_path` / `find_executable` without reaching execution.
+        """
+        base = root or self._root or repo_root
+        return self._discover(spec, base)
+
+    def execute(self, spec: ToolSpec, executable: Path, args: list[str], root: Path | None = None) -> int:
+        """Public execution of a resolved *executable*; the child's exit code."""
+        base = root or self._root or repo_root
+        return self._execute(spec, executable, args, base)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _discover(self, spec: ToolSpec, root: Path) -> Path | None:
         """First valid candidate in discovery order, resolved; None when absent."""
         for candidate in self._candidates(spec, root):
@@ -120,7 +138,6 @@ class RunnerCapability(IToolRunner):
                         candidates.append(Path(spec.id))
         return candidates
 
-    # -- Sub-step 2: execution -------------------------------------------------
     def _execute(
         self,
         spec: ToolSpec,
@@ -134,7 +151,7 @@ class RunnerCapability(IToolRunner):
         - Broken/permission launch -> the child's code or the sentinel.
         - Long-running daemon -> returns once the start sequence completes.
         """
-        base = root or repo_root
+        base = root or self._root or repo_root
         if not executable.exists():
             print(f"Executable '{executable}' for tool '{spec.id}' vanished between discovery and launch (not installed).", file=sys.stderr)
             return SENTINEL_EXECUTABLE_GONE

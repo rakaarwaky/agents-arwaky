@@ -2,6 +2,8 @@
 
 vendor/google-workspace-mcp is a Python package run via `uv run` (no venv copy).
 Launchers `workspace-mcp` and `google-workspace-mcp` both point at the same entry.
+
+Stateless leaf (AES404): module-level functions only, no classes.
 """
 from __future__ import annotations
 
@@ -18,55 +20,57 @@ LAUNCHERS = [
 ]
 
 
-class WorkspaceAdapter:
-    """Install/update vendor/google-workspace-mcp via uv-run launchers."""
+def _write_launchers(root: Path) -> list[Path]:
+    created = write_uv_launchers(SRC_REL, LAUNCHERS[:1], root=root)
+    for p in created:
+        print(f"  -> {p}")
+    # google-workspace-mcp is a PATH alias for workspace-mcp.
+    alias = symlink_alias(LAUNCHERS[1][0], created[0])
+    print(f"  -> {alias}")
+    created.append(alias)
+    return created
 
-    def satisfied(self, spec, root: Path | None = None) -> bool:
-        from modules.shared.src.taxonomy_xdg_paths import bin_home
-        return (bin_home() / "workspace-mcp").exists()
 
-    def _write_launchers(self, root: Path) -> list[Path]:
-        created = write_uv_launchers(SRC_REL, LAUNCHERS[:1], root=root)
-        for p in created:
-            print(f"  -> {p}")
-        # google-workspace-mcp is a PATH alias for workspace-mcp.
-        alias = symlink_alias(LAUNCHERS[1][0], created[0])
-        print(f"  -> {alias}")
-        created.append(alias)
-        return created
+def satisfied(spec, root: Path | None = None) -> bool:
+    from modules.shared.src.taxonomy_xdg_paths import bin_home
+    return (bin_home() / "workspace-mcp").exists()
 
-    # -- install (from old installer adapter, verbatim mechanics) ----------------
-    def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
-        root = root or ROOT
-        src_dir = root / SRC_REL
 
-        if not ensure_source(root, SRC_REL):
-            raise FileNotFoundError(f"source not found {src_dir}")
+# -- install (from old installer adapter, verbatim mechanics) ----------------
+def install(spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
+    root = root or ROOT
+    src_dir = root / SRC_REL
 
-        created = self._write_launchers(root)
-        print(">>> Successfully installed google-workspace-mcp")
-        return created
+    if not ensure_source(root, SRC_REL):
+        raise FileNotFoundError(f"source not found {src_dir}")
 
-    # -- update (from old updater adapter) ---------------------------------------
-    def is_pin_satisfied(self, spec, root: Path) -> tuple[bool, str]:
-        source = root / SRC_REL
-        if not source.exists():
-            return False, "submodule not initialized"
-        return False, "uv project (rebuild required)"
+    created = _write_launchers(root)
+    print(">>> Successfully installed google-workspace-mcp")
+    return created
 
-    def update(self, spec, root: Path) -> list[Path]:
-        from modules.shared.src.utility_git_update import update_submodule
 
-        source = root / SRC_REL
-        if not update_submodule(root, SRC_REL):
-            raise ToolUpdateError(f"submodule update failed: {SRC_REL}")
-        if not source.exists():
-            raise ToolUpdateError(f"source not found {source}")
+# -- update (from old updater adapter) ---------------------------------------
+def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
+    source = root / SRC_REL
+    if not source.exists():
+        return False, "submodule not initialized"
+    return False, "uv project (rebuild required)"
 
-        created = self._write_launchers(root)
-        print(">>> Successfully updated google-workspace-mcp")
-        return created
 
-    # -- teardown data --------------------------------------------------------------
-    def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return generic_owned(spec, ["workspace-mcp", "google-workspace-mcp"])
+def update(spec, root: Path) -> list[Path]:
+    from modules.shared.src.utility_git_update import update_submodule
+
+    source = root / SRC_REL
+    if not update_submodule(root, SRC_REL):
+        raise ToolUpdateError(f"submodule update failed: {SRC_REL}")
+    if not source.exists():
+        raise ToolUpdateError(f"source not found {source}")
+
+    created = _write_launchers(root)
+    print(">>> Successfully updated google-workspace-mcp")
+    return created
+
+
+# -- teardown data --------------------------------------------------------------
+def owned_paths(spec, root: Path | None = None) -> list[Path]:
+    return generic_owned(spec, ["workspace-mcp", "google-workspace-mcp"])

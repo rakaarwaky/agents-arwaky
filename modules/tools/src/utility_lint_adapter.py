@@ -5,6 +5,8 @@ directory, atomically installs the five binaries into ~/.local/bin, and wires
 the `lac` alias. If cargo is missing it attempts a best-effort rustup
 bootstrap; on install a failure skips the tool with a warning (success) so
 that `aa install all` completes without crashing; on update it raises.
+
+Stateless leaf (AES404): module-level functions only, no classes.
 """
 from __future__ import annotations
 
@@ -97,58 +99,51 @@ def _build_and_install(root: Path, spec, *, raise_on_missing_cargo: bool) -> lis
     return artifacts
 
 
-class LintAdapter:
-    """Build internal/lint-arwaky (Rust) and install its binaries to XDG bin."""
+def satisfied(spec, root: Path | None = None) -> bool:
+    from modules.shared.src.taxonomy_xdg_paths import bin_home
 
-    def satisfied(self, spec, root: Path | None = None) -> bool:
-        from modules.shared.src.taxonomy_xdg_paths import bin_home
+    return (bin_home() / "lint-arwaky").exists()
 
-        return (bin_home() / "lint-arwaky").exists()
 
-    # -- install (from old installer adapter, verbatim mechanics) ----------------
-    def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
-        from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
-        from modules.shared.src.taxonomy_xdg_paths import (
-            bin_home,
-            cache_home,
-            config_home,
-            data_home,
-        )
+# -- install (from old installer adapter, verbatim mechanics) ----------------
+def install(spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
+    root = root or ROOT
+    internal_dir = root / INTERNAL_DIR_REL
 
-        root = root or ROOT
-        internal_dir = root / INTERNAL_DIR_REL
+    if not (internal_dir.exists() and (internal_dir / "Cargo.toml").exists()):
+        run(["git", "-C", str(root), "submodule", "update", "--init", INTERNAL_DIR_REL])
 
-        if not (internal_dir.exists() and (internal_dir / "Cargo.toml").exists()):
-            run(["git", "-C", str(root), "submodule", "update", "--init", INTERNAL_DIR_REL])
+    artifacts = _build_and_install(root, spec, raise_on_missing_cargo=False)
+    if not artifacts:
+        return []
+    print(">>> Successfully installed lint-arwaky")
+    return artifacts
 
-        artifacts = _build_and_install(root, spec, raise_on_missing_cargo=False)
-        if not artifacts:
-            return []
-        print(">>> Successfully installed lint-arwaky")
-        return artifacts
 
-    # -- update (from old updater adapter) ---------------------------------------
-    def is_pin_satisfied(self, spec, root: Path) -> tuple[bool, str]:
-        source = root / INTERNAL_DIR_REL
-        if not source.exists():
-            return False, "submodule not initialized"
-        return False, "cargo release build (rebuild required)"
+# -- update (from old updater adapter) ---------------------------------------
+def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
+    source = root / INTERNAL_DIR_REL
+    if not source.exists():
+        return False, "submodule not initialized"
+    return False, "cargo release build (rebuild required)"
 
-    def update(self, spec, root: Path) -> list[Path]:
-        from modules.shared.src.utility_git_update import update_submodule
 
-        if not update_submodule(root, INTERNAL_DIR_REL):
-            raise ToolUpdateError(f"submodule update failed: {INTERNAL_DIR_REL}")
+def update(spec, root: Path) -> list[Path]:
+    from modules.shared.src.utility_git_update import update_submodule
 
-        created = _build_and_install(root, spec, raise_on_missing_cargo=True)
-        print(">>> Successfully updated lint-arwaky")
-        return created
+    if not update_submodule(root, INTERNAL_DIR_REL):
+        raise ToolUpdateError(f"submodule update failed: {INTERNAL_DIR_REL}")
 
-    # -- teardown data --------------------------------------------------------------
-    def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        from modules.shared.src.taxonomy_xdg_paths import bin_home, config_home, data_home
+    created = _build_and_install(root, spec, raise_on_missing_cargo=True)
+    print(">>> Successfully updated lint-arwaky")
+    return created
 
-        extra = [bin_home() / "lac"]
-        return generic_owned(
-            spec, [name for name, _e in LAUNCHERS], extra=extra
-        )
+
+# -- teardown data --------------------------------------------------------------
+def owned_paths(spec, root: Path | None = None) -> list[Path]:
+    from modules.shared.src.taxonomy_xdg_paths import bin_home, config_home, data_home
+
+    extra = [bin_home() / "lac"]
+    return generic_owned(
+        spec, [name for name, _e in LAUNCHERS], extra=extra
+    )

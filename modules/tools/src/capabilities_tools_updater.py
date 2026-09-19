@@ -19,15 +19,19 @@ import json
 from pathlib import Path
 
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
+from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text
+from modules.shared.src.taxonomy_xdg_paths import state_home
 from modules.tools.src.contract_tools_protocol import IToolUpdater
 
 
+# ─── Block 1: Class Definition & Constructor ─────────────────────────
 class UpdaterCapability(IToolUpdater):
     """Business action update(spec, adapter, dry_run): bump + record transition."""
 
     def __init__(self, root: Path | None = None) -> None:
         self._root = root
 
+    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
     def update(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> UpdateResult:
         # Sub-step 1: pin-comparison → adapter-dispatch → result-capture.
         result = self._bump(spec, adapter, dry_run=dry_run)
@@ -36,7 +40,7 @@ class UpdaterCapability(IToolUpdater):
         result = self._record(spec, result)
         return result
 
-    # -- Sub-step 1: bump ------------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _bump(
         self,
         spec: ToolSpec,
@@ -72,11 +76,7 @@ class UpdaterCapability(IToolUpdater):
             f"{spec.id} updated ({state_desc} → manifest pin); touched: {touched}",
         )
 
-    # -- Sub-step 2: record ----------------------------------------------------
     def _record(self, spec: ToolSpec, update_result: UpdateResult) -> UpdateResult:
-        from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text
-        from modules.shared.src.taxonomy_xdg_paths import state_home
-
         if not update_result.success:
             return UpdateResult(
                 False, spec.id,
