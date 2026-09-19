@@ -2,13 +2,13 @@
 
 Resolves the target tool spec from the manifest (typed error on unknown ids
 BEFORE any capability runs), selects the unified per-tool adapter keyed on
-the manifest `id`, and drives the 4 verb classes in order (each class is
-multi-method, two steps per verb):
+the manifest `id`, and drives the 4 verb classes (each a single public
+method; sub-steps are internal to the verb):
 
-- install   : installer.provision(spec, adapter) -> installer.register_launcher(spec, result)
-- update    : updater.bump(spec, adapter)        -> updater.record(spec, result)
-- uninstall : uninstaller.remove(spec, adapter.owned_paths(spec, root)) -> uninstaller.verify(spec, result)
-- run_tool  : runner.discover(spec, root)        -> runner.execute(spec, exe, args, root)
+- install   : installer.install(spec, adapter)                      (provision + register launcher)
+- update    : updater.update(spec, adapter)                         (bump + record transition)
+- uninstall : uninstaller.uninstall(spec, owned_paths)              (remove + verify residuals)
+- run_tool  : runner.run(spec, args, root)                          (discover + execute)
 
 Adding a tool is a manifest entry plus one unified adapter — no
 orchestrator edit.
@@ -80,23 +80,15 @@ class ToolsOrchestrator(IToolsAggregate):
         self._ADAPTERS.update(registry)
         # Capabilities are business-action modules; the agent drives them in
         # verb order and the root layer is what wires them (AES201 rule 8).
-        from modules.tools.src.capabilities_tools_provisioner import ProvisionerCapability
-        from modules.tools.src.capabilities_tools_launcher import LauncherRegistrarCapability
-        from modules.tools.src.capabilities_tools_bumper import BumperCapability
-        from modules.tools.src.capabilities_tools_recorder import RecorderCapability
-        from modules.tools.src.capabilities_tools_remover import RemoverCapability
-        from modules.tools.src.capabilities_tools_verifier import VerifierCapability
-        from modules.tools.src.capabilities_tools_discoverer import DiscovererCapability
-        from modules.tools.src.capabilities_tools_executor import ExecutorCapability
+        from modules.tools.src.capabilities_tools_installer import InstallerCapability
+        from modules.tools.src.capabilities_tools_updater import UpdaterCapability
+        from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
+        from modules.tools.src.capabilities_tools_runner import RunnerCapability
 
-        self._provisioner = ProvisionerCapability(root=self._root, daemons=self._daemons)
-        self._launcher = LauncherRegistrarCapability(root=self._root)
-        self._bumper = BumperCapability(root=self._root)
-        self._recorder = RecorderCapability()
-        self._remover = RemoverCapability(daemons=self._daemons)
-        self._verifier = VerifierCapability()
-        self._discoverer = DiscovererCapability()
-        self._executor = ExecutorCapability()
+        self._installer = InstallerCapability(root=self._root, daemons=self._daemons)
+        self._updater = UpdaterCapability(root=self._root)
+        self._uninstaller = UninstallerCapability(daemons=self._daemons)
+        self._runner = RunnerCapability()
 
     # -- Adapter selection --------------------------------------------------------
     def _adapter_for(self, spec: ToolSpec) -> object:
@@ -128,8 +120,7 @@ class ToolsOrchestrator(IToolsAggregate):
         return obj
 
     def install(self, spec: ToolSpec) -> InstallResult:
-        self._require(self._provisioner, "install")
-        self._require(self._launcher, "install")
+        self._require(self._installer, "install")
         if find_tool(spec.id) is None:
             raise ToolInstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
         try:
@@ -137,62 +128,44 @@ class ToolsOrchestrator(IToolsAggregate):
         except ToolInstallError as e:
             return InstallResult(False, spec.id, str(e))
 
-        result = self._provisioner.provision(spec, adapter)
-        if not result.success:
-            return result
-        return self._launcher.register_launcher(spec, result)
+        return self._installer.install(spec, adapter, dry_run=False)
 
     def update(self, spec: ToolSpec) -> UpdateResult:
-        self._require(self._bumper, "update")
-        self._require(self._recorder, "update")
+        self._require(self._updater, "update")
         if find_tool(spec.id) is None:
             raise ToolUpdateError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
         adapter = self._adapter_for(spec)
-        bump_result = self._bumper.bump(spec, adapter, dry_run=False, root=self._root)
-        record_result = self._recorder.record(spec, bump_result)
-        if bump_result.success and not record_result.success:
-            return record_result
-        if bump_result.success and record_result.success:
-            return UpdateResult(True, spec.id, record_result.message)
-        return bump_result
+        return self._updater.update(spec, adapter, dry_run=False)
 
     def uninstall(self, spec: ToolSpec) -> UninstallResult:
-        self._require(self._remover, "uninstall")
-        self._require(self._verifier, "uninstall")
+        self._require(self._uninstaller, "uninstall")
         if find_tool(spec.id) is None:
             raise ToolUninstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
         adapter = self._adapter_for(spec)
         owned = adapter.owned_paths(spec, self._root)
-        result = self._remover.remove(spec, owned, dry_run=False)
-        return self._verifier.verify(spec, result, owned_paths=owned)
+        return self._uninstaller.uninstall(spec, owned, dry_run=False)
 
     def run_tool(self, spec: ToolSpec, args: list[str]) -> int:
         """Discover then execute; return the child's real exit code."""
-        exe = self._discoverer.discover(spec, self._root)
-        if exe is None:
-            return 1
-        return self._executor.execute(spec, exe, args, self._root)
+        self._require(self._runner, "run")
+        return self._runner.run(spec, args, self._root)
 
     def executable_path(self, spec: ToolSpec) -> Path | None:
         """Discover the launch path (read-only) for the CLI surface."""
-        return self._discoverer.discover(spec, self._root)
+        return self._runner._discover(spec, self._root)
 
     # -- Direct capability dispatch (capability surfaces) --------------------------
     def provision(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> InstallResult:
-        """FR-001 passthrough to the provisioner capability."""
-        return self._provisioner.provision(spec, adapter, dry_run=dry_run)
-
-    def register_launcher(self, spec: ToolSpec, install_result: InstallResult) -> InstallResult:
-        """FR-002 passthrough to the launcher registrar capability."""
-        return self._launcher.register_launcher(spec, install_result)
+        """FR-001 passthrough to the installer capability."""
+        return self._installer.install(spec, adapter, dry_run=dry_run)
 
     def find_executable(self, spec: ToolSpec) -> Path | None:
         """FR-007: locate the runnable binary for *spec*, or None when not installed."""
-        return self._discoverer.discover(spec, self._root)
+        return self._runner._discover(spec, self._root)
 
     def execute(self, spec: ToolSpec, executable: Path, args: list[str], root: Path | None = None) -> int:
         """FR-008: run a resolved *executable*; return the child's exit code."""
-        return self._executor.execute(spec, executable, args, root or self._root)
+        return self._runner._execute(spec, executable, args, root or self._root)
 
 
 __all__ = ["ToolsOrchestrator"]

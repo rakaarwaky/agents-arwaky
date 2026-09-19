@@ -12,6 +12,9 @@ Merged adapter: installs BOTH components in one command.
 Daemon service installation is delegated to the injected daemon aggregate
 (`daemons` kwarg on install; importlib string-concatenated on update) so the
 adapter stays a leaf (AES404).
+
+`AnytypeDaemonAdapter` is a thin subclass of `AnytypeAdapter` that only runs
+the daemon half — registered for the separate `anytype-daemon` manifest id.
 """
 from __future__ import annotations
 
@@ -229,3 +232,33 @@ class AnytypeAdapter:
             ["anytype-mcp", "anytype-daemon", "ad"],
             extra=[data_home() / DAEMON_DATA_REL / INTERNAL_BIN / "anytype-daemon"],
         )
+
+
+class AnytypeDaemonAdapter(AnytypeAdapter):
+    """Daemon-only adapter for the `anytype-daemon` manifest id.
+
+    Reuses the daemon half of `AnytypeAdapter`; no MCP component.
+    """
+
+    is_daemon = True
+
+    def satisfied(self, spec, root: Path | None = None) -> bool:
+        return (bin_home() / "anytype-daemon").exists()
+
+    def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
+        root = root or ROOT
+        return self._install_daemon(root, daemons)
+
+    def is_pin_satisfied(self, spec, root: Path) -> tuple[bool, str]:
+        return False, "container + systemd (force reinstall)"
+
+    def update(self, spec, root: Path) -> list[Path]:
+        if not (shutil.which("podman") or shutil.which("docker")):
+            print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
+            raise ToolUpdateError("anytype-daemon update skipped (podman/docker not found)")
+        return self._update_daemon(spec, root)
+
+    def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
+        # anytype-daemon keeps its config (the daemon owns it across updates).
+        extra = [data_home() / DAEMON_DATA_REL / INTERNAL_BIN / "anytype-daemon"]
+        return generic_owned(spec, ["anytype-daemon", "ad"], extra=extra)

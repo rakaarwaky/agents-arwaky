@@ -1,10 +1,17 @@
-"""FR-005 capability — remove a tool's owned state (launchers, XDG dirs, daemon units).
+"""FR-005/FR-006 verb — uninstall a tool: remove owned state, verify residuals.
 
-Daemon teardown is delegated to the daemon feature module (container-isolation
-invariant: only 9Router and Anytype are containerized; an active unit that
-refuses to stop becomes a residual, never force-killed). The owned-path set
-is the adapter's ``owned_paths`` (launchers, data/cache trees, extras) plus
-the per-tool daemon-unit flags from the constant table.
+Sub-steps (internal, not separate public methods):
+1. Remove: stop the daemon (if applicable) first — an active unit that
+   refuses to stop becomes a named residual, never force-killed. Then
+   remove launchers + XDG data/cache/config, scoped strictly to the
+   owned set (adapter ``owned_paths`` plus per-tool daemon-unit flags
+   from the constant table).
+2. Verify: a failed removal still gets verified so residuals are
+   surfaced, not hidden. Confirm launchers gone from XDG bin, binary
+   absent from PATH, data/cache subtrees removed, daemon unit absent,
+   and each explicitly-owned path gone. Anything surviving becomes a
+   named residual. Verification failures append to the UninstallResult
+   chain; nothing raises into the CLI surface.
 """
 from __future__ import annotations
 
@@ -16,6 +23,7 @@ from typing import Protocol
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
 from modules.shared.src.taxonomy_xdg_atomic_io import remove_tool_artifacts
 from modules.shared.src.taxonomy_xdg_paths import bin_home, config_home
+from modules.tools.src.contract_tools_protocol import IToolUninstaller
 
 from modules.tools.src.taxonomy_tools_constant import (
     DAEMON_NAMES,
@@ -79,13 +87,41 @@ def _extras(owned_paths: list[Path], spec: ToolSpec, launchers: list[str]) -> li
     return extras
 
 
-class RemoverCapability:
-    """Generic filesystem teardown + optional service stop (FR-005)."""
+def _survivor_reason(path: Path) -> str:
+    """Classify why a path survived removal."""
+    if path.is_dir() and any(path.iterdir()):
+        return "subtree still contains files"
+    if path.is_symlink():
+        return "symlink still present"
+    return "foreign-owner: path reappeared"
+
+
+class UninstallerCapability(IToolUninstaller):
+    """Business action uninstall(spec, owned_paths, dry_run): remove + verify."""
 
     def __init__(self, daemons: _DaemonStopper | None = None) -> None:
         self._daemons = daemons
 
-    def remove(self, spec: ToolSpec, owned_paths: list[Path], dry_run: bool = False) -> UninstallResult:
+    def uninstall(
+        self,
+        spec: ToolSpec,
+        owned_paths: list[Path],
+        dry_run: bool = False,
+    ) -> UninstallResult:
+        # Sub-step 1: generic filesystem teardown + optional service stop.
+        result = self._remove(spec, owned_paths, dry_run=dry_run)
+
+        # Sub-step 2: confirm owned-set removal; a failed removal still
+        # gets verified so residuals are surfaced, not hidden.
+        return self._verify(spec, result, owned_paths)
+
+    # -- Sub-step 1: remove ----------------------------------------------------
+    def _remove(
+        self,
+        spec: ToolSpec,
+        owned_paths: list[Path],
+        dry_run: bool = False,
+    ) -> UninstallResult:
         from modules.shared.src.taxonomy_xdg_paths import tool_data_dir, tool_cache_dir
 
         notes: list[str] = []
@@ -150,5 +186,53 @@ class RemoverCapability:
         success = not any(n.startswith("residual") for n in notes)
         return UninstallResult(success, spec.id, message)
 
+    # -- Sub-step 2: verify ----------------------------------------------------
+    def _verify(
+        self,
+        spec: ToolSpec,
+        uninstall_result: UninstallResult,
+        owned_paths: list[Path] | None = None,
+    ) -> UninstallResult:
+        residuals: list[str] = []
 
-__all__ = ["RemoverCapability"]
+        # Launchers must be gone from XDG bin.
+        for name in LAUNCHER_NAMES.get(spec.id, []):
+            p = bin_home() / name
+            if p.exists():
+                residuals.append(f"launcher {p} ({_survivor_reason(p)})")
+
+        # Binary absent from PATH.
+        if shutil.which(spec.binary) is not None:
+            residuals.append(
+                f"binary {spec.binary} still on PATH (race: reappeared during removal)"
+            )
+
+        # Daemon unit must be absent (inactive is acceptable for the unit file).
+        unit = DAEMON_UNIT_TOOLS.get(spec.id)
+        if unit:
+            unit_path = config_home() / "systemd" / "user" / unit
+            if unit_path.exists():
+                residuals.append(f"daemon unit {unit_path} still present (active-service or race)")
+
+        # Each explicitly-owned path must be gone.
+        for p in (owned_paths or []):
+            if p.exists():
+                residuals.append(f"{p} ({_survivor_reason(p)})")
+
+        if residuals:
+            return UninstallResult(
+                False,
+                spec.id,
+                f"{spec.id}: partial removal — {len(residuals)} residual(s): "
+                + " | ".join(residuals),
+            )
+
+        base = uninstall_result.message
+        if owned_paths:
+            return UninstallResult(
+                True, spec.id, f"{base} — {len(owned_paths)} path(s) verified clean"
+            )
+        return UninstallResult(True, spec.id, f"{base} — verified clean")
+
+
+__all__ = ["UninstallerCapability"]
