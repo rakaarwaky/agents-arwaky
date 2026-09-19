@@ -19,7 +19,6 @@ from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_xdg_paths import bin_home
 from modules.shared.src.taxonomy_tool_vo import ToolSpec
 
-from modules.tools.src.contract_tools_protocol import IToolExecutor
 from modules.tools.src.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,
     SENTINEL_EXECUTABLE_GONE,
@@ -47,7 +46,7 @@ def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path)
     return [str(executable), *args]
 
 
-class ExecutorCapability(IToolExecutor):
+class ExecutorCapability:
     """Launch a resolved executable and return the child's real exit code.
 
     # Block 1: Daemon routing (launcher, never ad hoc)

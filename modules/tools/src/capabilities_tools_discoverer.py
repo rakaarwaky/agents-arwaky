@@ -18,13 +18,12 @@ from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_xdg_paths import bin_home
 from modules.shared.src.taxonomy_tool_vo import ToolSpec
 
-from modules.tools.src.contract_tools_protocol import IToolDiscoverer
 
 #: Sentinel launch marker: internal tools whose launcher is a runner script.
 _INTERNAL_RUNNERS = ("cargo", "uv", "python")
 
 
-class DiscovererCapability(IToolDiscoverer):
+class DiscovererCapability:
     """Resolve the concrete launch path for a ToolSpec (deterministic order).
 
     # Block 1: Candidate generation

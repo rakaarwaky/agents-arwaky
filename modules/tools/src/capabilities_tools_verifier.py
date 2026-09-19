@@ -12,7 +12,6 @@ from pathlib import Path
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
 from modules.shared.src.taxonomy_xdg_paths import bin_home, config_home
 
-from modules.tools.src.contract_tools_protocol import IToolVerifier
 from modules.tools.src.taxonomy_tools_constant import (
     DAEMON_UNIT_TOOLS,
     LAUNCHER_NAMES,
@@ -28,7 +27,7 @@ def _survivor_reason(path: Path) -> str:
     return "foreign-owner: path reappeared"
 
 
-class VerifierCapability(IToolVerifier):
+class VerifierCapability:
     """Confirm owned-set removal and report named residuals (FR-006)."""
 
     def verify(

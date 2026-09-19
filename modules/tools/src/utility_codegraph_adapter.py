@@ -12,7 +12,7 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT, NODE_IGNORES
+from modules.tools.src.utility_tool_mechanics import NODE_IGNORES, ROOT, copy_app, finish_bin, generic_owned, require, run, write_node_launcher
 from modules.tools.src.utility_launcher_writer import symlink_alias
 
 SRC_REL = "vendor/codegraph"
@@ -20,7 +20,7 @@ ENTRY = "dist/bin/codegraph.js"
 LAUNCHERS = ["codegraph-mcp", "codegraph"]
 
 
-class CodegraphAdapter(AdapterBase):
+class CodegraphAdapter:
     """Install/update vendor/codegraph (npm) into XDG data, build, write launchers."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -29,27 +29,27 @@ class CodegraphAdapter(AdapterBase):
     # -- install (from old installer adapter, verbatim mechanics) ----------------
     def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
         root = root or ROOT
-        src = self.ensure_source(root, SRC_REL)
+        src = ensure_source(root, SRC_REL)
         if not (src / "package.json").exists():
             raise FileNotFoundError(f"codegraph source not found (submodule not initialized): {src}")
-        if not self.require("npm", "codegraph requires npm (https://nodejs.org)"):
+        if not require("npm", "codegraph requires npm (https://nodejs.org)"):
             raise FileNotFoundError("npm is required (https://nodejs.org).")
 
         app_dir = data_home() / "codegraph"
         print(f">>> Installing codegraph into {app_dir}...")
-        self.copy_app(src, app_dir, NODE_IGNORES)
+        copy_app(src, app_dir, NODE_IGNORES)
 
-        self.run(["npm", "ci", "--no-audit", "--no-fund"], app_dir)
-        self.run(["npm", "run", "build"], app_dir)
+        run(["npm", "ci", "--no-audit", "--no-fund"], app_dir)
+        run(["npm", "run", "build"], app_dir)
 
         entry = app_dir / ENTRY
         if not entry.exists():
             raise FileNotFoundError(f"entry not found {entry}")
 
         # codegraph-mcp + codegraph both forward to the same entry binary.
-        artifacts = [self.write_node_launcher(LAUNCHERS[0], entry)]
+        artifacts = [write_node_launcher(LAUNCHERS[0], entry)]
         artifacts += [symlink_alias(name, bin_home() / LAUNCHERS[0]) for name in LAUNCHERS[1:]]
-        self.finish_bin()
+        finish_bin()
         print(">>> Successfully installed codegraph")
         return artifacts
 
@@ -68,25 +68,25 @@ class CodegraphAdapter(AdapterBase):
             raise ToolUpdateError(f"submodule update failed: {SRC_REL}")
         if not (source / "package.json").exists():
             raise ToolUpdateError("codegraph source not found (submodule not initialized)")
-        if not self.require("npm", "codegraph requires npm (https://nodejs.org)"):
+        if not require("npm", "codegraph requires npm (https://nodejs.org)"):
             raise ToolUpdateError("codegraph requires npm (https://nodejs.org)")
 
         app_dir = data_home() / "codegraph"
         print(f">>> Updating codegraph into {app_dir}...")
-        self.copy_app(source, app_dir, NODE_IGNORES)
-        self.run(["npm", "ci", "--no-audit", "--no-fund"], app_dir)
-        self.run(["npm", "run", "build"], app_dir)
+        copy_app(source, app_dir, NODE_IGNORES)
+        run(["npm", "ci", "--no-audit", "--no-fund"], app_dir)
+        run(["npm", "run", "build"], app_dir)
 
         entry = app_dir / ENTRY
         if not entry.exists():
             raise ToolUpdateError(f"entry not found {entry}")
 
-        created = [self.write_node_launcher(LAUNCHERS[0], entry)]
+        created = [write_node_launcher(LAUNCHERS[0], entry)]
         created += [symlink_alias(name, bin_home() / LAUNCHERS[0]) for name in LAUNCHERS[1:]]
-        self.finish_bin()
+        finish_bin()
         print(">>> Successfully updated codegraph")
         return created
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(spec, LAUNCHERS)
+        return generic_owned(spec, LAUNCHERS)

@@ -26,7 +26,7 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
     ensure_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, generic_owned
 
 DATA_DIR_NAME = "9router"
 INTERNAL_BIN = "internal-bin"
@@ -56,7 +56,7 @@ sys.exit(_cmd_9router(sys.argv[1:]))
     atomic_write_text(launcher, launcher_content)
 
 
-class NinerouterAdapter(AdapterBase):
+class NinerouterAdapter:
     """Set up the 9Router hybrid daemon + launcher (no compile step)."""
 
     is_daemon = True
@@ -131,4 +131,4 @@ class NinerouterAdapter(AdapterBase):
             data_home() / DATA_DIR_NAME / INTERNAL_BIN / "9router",
             agents_arwaky_config_dir() / "ninerouter.env",
         ]
-        return self.generic_owned(spec, LAUNCHERS, config=[DATA_DIR_NAME], extra=extra)
+        return generic_owned(spec, LAUNCHERS, config=[DATA_DIR_NAME], extra=extra)

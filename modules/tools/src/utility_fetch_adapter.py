@@ -16,7 +16,7 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
 from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, copy_app, ensure_source, generic_owned, require, run
 
 SRC_REL = "vendor/fetch-mcp"
 APP_DIR = data_home() / "fetch-mcp"
@@ -30,7 +30,7 @@ IGNORES = [
 ]
 
 
-class FetchAdapter(AdapterBase):
+class FetchAdapter:
     """Install/update vendor/fetch-mcp (bun) into XDG data, write CLI/MCP dispatch launcher."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -65,17 +65,17 @@ class FetchAdapter(AdapterBase):
     # -- install (from old installer adapter, verbatim mechanics) ----------------
     def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
         root = root or ROOT
-        src = self.ensure_source(root, SRC_REL)
+        src = ensure_source(root, SRC_REL)
         if not (src / "package.json").exists():
             raise FileNotFoundError(f"fetch-mcp source not found (submodule not initialized): {src}")
-        if not self.require("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"):
+        if not require("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"):
             raise FileNotFoundError("bun is required (curl -fsSL https://bun.sh/install | bash).")
 
         print(f">>> Installing fetch-mcp into {APP_DIR}...")
-        self.copy_app(src, APP_DIR, IGNORES)
+        copy_app(src, APP_DIR, IGNORES)
 
-        self.run(["bun", "install", "--frozen-lockfile"], APP_DIR)
-        self.run(["bun", "run", "build"], APP_DIR)
+        run(["bun", "install", "--frozen-lockfile"], APP_DIR)
+        run(["bun", "run", "build"], APP_DIR)
 
         if not (APP_DIR / "dist/index.js").exists() or not (APP_DIR / "dist/cli.js").exists():
             raise FileNotFoundError(f"build output incomplete ({APP_DIR / 'dist/index.js'}, {APP_DIR / 'dist/cli.js'})")
@@ -99,13 +99,13 @@ class FetchAdapter(AdapterBase):
             raise ToolUpdateError(f"submodule update failed: {SRC_REL}")
         if not (source / "package.json").exists():
             raise ToolUpdateError("fetch-mcp source not found (submodule not initialized)")
-        if not self.require("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"):
+        if not require("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"):
             raise ToolUpdateError("fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)")
 
         print(f">>> Updating fetch-mcp into {APP_DIR}...")
-        self.copy_app(source, APP_DIR, IGNORES)
-        self.run(["bun", "install", "--frozen-lockfile"], APP_DIR)
-        self.run(["bun", "run", "build"], APP_DIR)
+        copy_app(source, APP_DIR, IGNORES)
+        run(["bun", "install", "--frozen-lockfile"], APP_DIR)
+        run(["bun", "run", "build"], APP_DIR)
 
         if not (APP_DIR / "dist/index.js").exists() or not (APP_DIR / "dist/cli.js").exists():
             raise ToolUpdateError(f"build output incomplete ({APP_DIR / 'dist/index.js'}, {APP_DIR / 'dist/cli.js'})")
@@ -116,4 +116,4 @@ class FetchAdapter(AdapterBase):
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(spec, ["fetch-mcp", "mcp-fetch"])
+        return generic_owned(spec, ["fetch-mcp", "mcp-fetch"])

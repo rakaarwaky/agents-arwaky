@@ -8,7 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, ensure_source, generic_owned
 from modules.tools.src.utility_launcher_writer import symlink_alias, write_uv_launchers
 
 SRC_REL = "vendor/google-workspace-mcp"
@@ -18,7 +18,7 @@ LAUNCHERS = [
 ]
 
 
-class WorkspaceAdapter(AdapterBase):
+class WorkspaceAdapter:
     """Install/update vendor/google-workspace-mcp via uv-run launchers."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -40,7 +40,7 @@ class WorkspaceAdapter(AdapterBase):
         root = root or ROOT
         src_dir = root / SRC_REL
 
-        if not self.ensure_source(root, SRC_REL):
+        if not ensure_source(root, SRC_REL):
             raise FileNotFoundError(f"source not found {src_dir}")
 
         created = self._write_launchers(root)
@@ -69,4 +69,4 @@ class WorkspaceAdapter(AdapterBase):
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(spec, ["workspace-mcp", "google-workspace-mcp"])
+        return generic_owned(spec, ["workspace-mcp", "google-workspace-mcp"])

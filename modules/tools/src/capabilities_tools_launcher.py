@@ -11,7 +11,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.tools.src.contract_tools_protocol import IToolLauncherRegistrar
 
 
 def _has_provenance(launcher: Path) -> bool:
@@ -23,7 +22,7 @@ def _has_provenance(launcher: Path) -> bool:
     return "arwaky-installer" in head or "AGENTS_ARWAKY_ROOT" in head
 
 
-class LauncherRegistrarCapability(IToolLauncherRegistrar):
+class LauncherRegistrarCapability:
     """Business action FR-002: register_launcher(spec, install_result)."""
 
     def __init__(self, root: Path | None = None) -> None:

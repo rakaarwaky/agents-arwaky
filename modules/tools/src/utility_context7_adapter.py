@@ -12,7 +12,7 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_xdg_paths import data_home
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, copy_app, ensure_source, finish_bin, generic_owned, require, run, write_node_launcher
 
 SRC_REL = "vendor/context7"
 APP_DIR = data_home() / "context7"
@@ -29,7 +29,7 @@ LAUNCHERS = {
 }
 
 
-class Context7Adapter(AdapterBase):
+class Context7Adapter:
     """Install/update vendor/context7 (pnpm workspace) into XDG data, build, write launchers."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -39,14 +39,14 @@ class Context7Adapter(AdapterBase):
     # -- install (from old installer adapter, verbatim mechanics) ----------------
     def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
         root = root or ROOT
-        src = self.ensure_source(root, SRC_REL)
+        src = ensure_source(root, SRC_REL)
         if not (src / "pnpm-workspace.yaml").exists():
             raise FileNotFoundError(f"context7 source not found (submodule not initialized): {src}")
-        if not self.require("pnpm", "context7 is a pnpm workspace"):
+        if not require("pnpm", "context7 is a pnpm workspace"):
             raise FileNotFoundError("pnpm is required (context7 is a pnpm workspace).")
 
         print(f">>> Installing context7 (pnpm workspace) into {APP_DIR}...")
-        self.copy_app(src, APP_DIR, IGNORES)
+        copy_app(src, APP_DIR, IGNORES)
 
         # pnpm blocks postinstall deps by default -> allow in this copy only
         ws = APP_DIR / "pnpm-workspace.yaml"
@@ -54,8 +54,8 @@ class Context7Adapter(AdapterBase):
             with ws.open("a", encoding="utf-8") as f:
                 f.write("\ndangerouslyAllowAllBuilds: true\n")
 
-        self.run(["pnpm", "install", "--frozen-lockfile"], APP_DIR)
-        self.run(["pnpm", "run", "build"], APP_DIR)
+        run(["pnpm", "install", "--frozen-lockfile"], APP_DIR)
+        run(["pnpm", "run", "build"], APP_DIR)
 
         artifacts: list[Path] = []
         for name, entry in LAUNCHERS.items():
@@ -63,9 +63,9 @@ class Context7Adapter(AdapterBase):
             if not target.exists():
                 print(f"  Warning: entry not found {target}", file=sys.stderr)
                 continue
-            artifacts.append(self.write_node_launcher(name, target))
+            artifacts.append(write_node_launcher(name, target))
 
-        self.finish_bin()
+        finish_bin()
         print(">>> Successfully installed context7")
         return artifacts
 
@@ -84,18 +84,18 @@ class Context7Adapter(AdapterBase):
             raise ToolUpdateError(f"submodule update failed: {SRC_REL}")
         if not (source / "pnpm-workspace.yaml").exists():
             raise ToolUpdateError("context7 source not found (submodule not initialized)")
-        if not self.require("pnpm", "context7 is a pnpm workspace"):
+        if not require("pnpm", "context7 is a pnpm workspace"):
             raise ToolUpdateError("pnpm is required (context7 is a pnpm workspace)")
 
         print(f">>> Updating context7 (pnpm workspace) into {APP_DIR}...")
-        self.copy_app(source, APP_DIR, IGNORES)
+        copy_app(source, APP_DIR, IGNORES)
         workspace = APP_DIR / "pnpm-workspace.yaml"
         if "dangerouslyAllowAllBuilds" not in workspace.read_text(encoding="utf-8", errors="replace"):
             with workspace.open("a", encoding="utf-8") as fh:
                 fh.write("\ndangerouslyAllowAllBuilds: true\n")
 
-        self.run(["pnpm", "install", "--frozen-lockfile"], APP_DIR)
-        self.run(["pnpm", "run", "build"], APP_DIR)
+        run(["pnpm", "install", "--frozen-lockfile"], APP_DIR)
+        run(["pnpm", "run", "build"], APP_DIR)
 
         from modules.shared.src.taxonomy_xdg_paths import bin_home
         created: list[Path] = []
@@ -104,12 +104,12 @@ class Context7Adapter(AdapterBase):
             if not target.exists():
                 print(f"  Warning: entry not found {target}", file=sys.stderr)
                 continue
-            created.append(self.write_node_launcher(name, target))
+            created.append(write_node_launcher(name, target))
 
-        self.finish_bin()
+        finish_bin()
         print(">>> Successfully updated context7")
         return created
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(spec, list(LAUNCHERS))
+        return generic_owned(spec, list(LAUNCHERS))

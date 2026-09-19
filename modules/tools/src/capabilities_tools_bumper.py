@@ -10,10 +10,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.tools.src.contract_tools_protocol import IToolAdapter, IToolBumper
 
 
-class BumperCapability(IToolBumper):
+class BumperCapability:
     """Drive the pin-comparison → adapter-dispatch → result-capture flow."""
 
     def __init__(self, root: Path | None = None) -> None:
@@ -22,7 +21,7 @@ class BumperCapability(IToolBumper):
     def bump(
         self,
         spec: ToolSpec,
-        adapter: IToolAdapter,
+        adapter: object,
         dry_run: bool = False,
         *,
         root: Path | None = None,

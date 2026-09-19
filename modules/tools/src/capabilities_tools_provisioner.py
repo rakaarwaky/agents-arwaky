@@ -11,7 +11,6 @@ import subprocess
 from pathlib import Path
 
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.tools.src.contract_tools_protocol import IToolAdapter, IToolProvisioner
 
 
 def _version_probe(binary: str) -> str:
@@ -26,14 +25,14 @@ def _version_probe(binary: str) -> str:
     return out.splitlines()[0] if out else ""
 
 
-class ProvisionerCapability(IToolProvisioner):
+class ProvisionerCapability:
     """Business action FR-001: provision(spec, adapter, dry_run)."""
 
     def __init__(self, root: Path | None = None, daemons=None) -> None:
         self._root = root
         self._daemons = daemons
 
-    def provision(self, spec: ToolSpec, adapter: IToolAdapter, dry_run: bool = False) -> InstallResult:
+    def provision(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> InstallResult:
         root = self._root or None
         if dry_run:
             return InstallResult(

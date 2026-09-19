@@ -11,7 +11,7 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_xdg_paths import bin_home
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, ensure_source, generic_owned
 from modules.tools.src.utility_launcher_writer import write_uv_launchers
 
 SRC_REL = "vendor/mnemosyne"
@@ -24,7 +24,7 @@ LAUNCHERS = [
 UV_ARGS = ["--extra", "mcp"]
 
 
-class MnemosyneAdapter(AdapterBase):
+class MnemosyneAdapter:
     """Install/update vendor/mnemosyne via uv-run launchers with the [mcp] extra."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -40,7 +40,7 @@ class MnemosyneAdapter(AdapterBase):
     def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
         root = root or ROOT
         src_dir = root / SRC_REL
-        if not self.ensure_source(root, SRC_REL):
+        if not ensure_source(root, SRC_REL):
             raise FileNotFoundError(f"source not found {src_dir}")
 
         created = self._write_launchers(root)
@@ -69,4 +69,4 @@ class MnemosyneAdapter(AdapterBase):
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(spec, ["mnemosyne", "mnemosyne-mcp"])
+        return generic_owned(spec, ["mnemosyne", "mnemosyne-mcp"])

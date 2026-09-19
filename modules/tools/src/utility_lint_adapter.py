@@ -16,8 +16,8 @@ import tempfile
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
-from modules.tools.src.utility_lint_helpers import (
+from modules.tools.src.utility_tool_mechanics import ROOT, generic_owned, run
+from modules.tools.src.utility_cargo_helpers import (
     _bootstrap_rustup,
     _cargo_on_path,
     _preflight_build_deps,
@@ -97,7 +97,7 @@ def _build_and_install(root: Path, spec, *, raise_on_missing_cargo: bool) -> lis
     return artifacts
 
 
-class LintAdapter(AdapterBase):
+class LintAdapter:
     """Build internal/lint-arwaky (Rust) and install its binaries to XDG bin."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -119,7 +119,7 @@ class LintAdapter(AdapterBase):
         internal_dir = root / INTERNAL_DIR_REL
 
         if not (internal_dir.exists() and (internal_dir / "Cargo.toml").exists()):
-            self.run(["git", "-C", str(root), "submodule", "update", "--init", INTERNAL_DIR_REL])
+            run(["git", "-C", str(root), "submodule", "update", "--init", INTERNAL_DIR_REL])
 
         artifacts = _build_and_install(root, spec, raise_on_missing_cargo=False)
         if not artifacts:
@@ -149,6 +149,6 @@ class LintAdapter(AdapterBase):
         from modules.shared.src.taxonomy_xdg_paths import bin_home, config_home, data_home
 
         extra = [bin_home() / "lac"]
-        return self.generic_owned(
+        return generic_owned(
             spec, [name for name, _e in LAUNCHERS], extra=extra
         )

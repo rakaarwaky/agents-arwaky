@@ -19,13 +19,13 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
     ensure_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, generic_owned
 
 SKILL_MODULE_NAME = "agent" + "_skill_verb.py"
 LAUNCHERS = ["skill.py"]
 
 
-class SkillAdapter(AdapterBase):
+class SkillAdapter:
     """Write a launcher that runs the skill manager from modules/skill/."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -75,4 +75,4 @@ class SkillAdapter(AdapterBase):
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(spec, LAUNCHERS)
+        return generic_owned(spec, LAUNCHERS)

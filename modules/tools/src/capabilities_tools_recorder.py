@@ -13,10 +13,9 @@ from pathlib import Path
 from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text
 from modules.shared.src.taxonomy_xdg_paths import state_home
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
-from modules.tools.src.contract_tools_protocol import IToolRecorder
 
 
-class RecorderCapability(IToolRecorder):
+class RecorderCapability:
     """Record old→new transitions and keep launcher notes current."""
 
     def record(self, spec: ToolSpec, update_result: UpdateResult) -> UpdateResult:

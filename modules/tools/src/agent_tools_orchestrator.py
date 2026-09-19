@@ -34,11 +34,6 @@ from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 from modules.shared.src.utility_paths import repo_root
 
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
-from modules.tools.src.contract_tools_protocol import (
-    IToolAdapter,
-    IToolDiscoverer,
-    IToolExecutor,
-)
 
 
 def _spec_from_tool(tool: Tool) -> ToolSpec:
@@ -104,7 +99,7 @@ class ToolsOrchestrator(IToolsAggregate):
         self._executor = ExecutorCapability()
 
     # -- Adapter selection --------------------------------------------------------
-    def _adapter_for(self, spec: ToolSpec) -> IToolAdapter:
+    def _adapter_for(self, spec: ToolSpec) -> object:
         cls = self._ADAPTERS.get(spec.id)
         if cls is None:
             registered = sorted(self._ADAPTERS)
@@ -183,7 +178,7 @@ class ToolsOrchestrator(IToolsAggregate):
         return self._discoverer.discover(spec, self._root)
 
     # -- Direct capability dispatch (capability surfaces) --------------------------
-    def provision(self, spec: ToolSpec, adapter: IToolAdapter, dry_run: bool = False) -> InstallResult:
+    def provision(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> InstallResult:
         """FR-001 passthrough to the provisioner capability."""
         return self._provisioner.provision(spec, adapter, dry_run=dry_run)
 
