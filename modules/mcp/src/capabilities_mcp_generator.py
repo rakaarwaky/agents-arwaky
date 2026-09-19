@@ -70,7 +70,7 @@ class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
     # -- Block 3: Aggregate inspection verbs ---------------------------------------
     def list_servers(self) -> list[dict[str, object]]:
         """MCP-enabled tools from the manifest (original cmd_mcp 'list' logic)."""
-        manifest_path = self._root / "modules/shared/config/manifest.json"
+        manifest_path = self._root / "config" / "manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         servers = []
         for tool in manifest.get("tools", []):
@@ -103,7 +103,7 @@ def main() -> int:
     env = load_first_env([
         agents_arwaky_config_dir() / "anytype.env",
         config_home() / "anytype-mcp/.env",
-        repo_root() / "modules/shared/config/anytype.env",
+        repo_root() / "config/anytype.env",
         repo_root() / ".env",
     ])
     anytype_base = env.get("ANYTYPE_API_BASE_URL", "http://127.0.0.1:31012")
@@ -114,7 +114,7 @@ def main() -> int:
         anytype_key = "<YOUR_API_KEY>"
 
     # Single source of truth: manifest.json (Traceability fix — hapus hardcoded dict)
-    manifest_path = repo_root() / "modules/shared/config/manifest.json"
+    manifest_path = repo_root() / "config" / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     config: dict = {"mcpServers": {}}
     for tool in manifest.get("tools", []):

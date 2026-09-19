@@ -161,7 +161,7 @@ def read_env():
         agents_arwaky_config_dir() / "ninerouter.env",
         secret_dir / "ninerouter.env",
         secret_dir / ".env",
-        ROOT / "modules/shared/config/ninerouter.env",
+        ROOT / "config/ninerouter.env",
     ):
         if cand.exists():
             for line in cand.read_text(encoding="utf-8", errors="replace").splitlines():

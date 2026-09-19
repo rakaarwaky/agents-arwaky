@@ -100,7 +100,7 @@ Code and CI win over this file; this file wins over `README.md` for agent behavi
   - `internal/blender-arwaky`: Python (`pip install -e .`). Venv at `~/.local/share/blender-arwaky/venv/`. CLI (`blender-arwaky`, `ba`), MCP (`blender-mcp`).
 
 ### 2. Modifying Orchestration Code in `modules/`
-- Orchestration code lives in `modules/<feature>/src/` and `modules/shared/src/<domain>/` (AES 7-layer packages); the legacy `tools/` tree is fully migrated — static assets live in `modules/shared/config/` (SSOT manifest + env examples + version), `modules/daemon/deploy/` (systemd units + Containerfile), and tests in `modules/tests/`.
+- Orchestration code lives in `modules/<feature>/src/` and `modules/shared/src/<domain>/` (AES 7-layer packages); the legacy `tools/` tree is fully migrated — static assets live in `config/` (SSOT manifest + env examples + version), `modules/daemon/deploy/` (systemd units + Containerfile), and tests in `modules/tests/`.
 - Every shell script (e.g. under `modules/daemon/deploy/`) must begin with:
   ```bash
   #!/usr/bin/env bash

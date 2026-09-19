@@ -23,7 +23,7 @@ from modules.shared.src.taxonomy_skill_vo import (
     safe_child,
     safe_skill_name,
 )
-MANIFEST = REPO_ROOT / "modules/shared/config/manifest.json"
+MANIFEST = REPO_ROOT / "config" / "manifest.json"
 PACK_ROOT = REPO_ROOT / "skills"
 
 

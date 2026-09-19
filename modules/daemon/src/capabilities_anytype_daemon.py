@@ -372,7 +372,7 @@ def cmd_auth_key(name="arwaky-agent-key"):
     # Update .env (canonical $XDG_CONFIG_HOME/agents-arwaky + repo config placeholder)
     env_candidates = [
         agents_arwaky_config_dir() / "anytype.env",
-        ROOT / "modules/shared/config/anytype.env",
+        ROOT / "config/anytype.env",
     ]
     for env_path in env_candidates:
         env_path.parent.mkdir(parents=True, exist_ok=True)

@@ -159,8 +159,8 @@ def remove_tool_state(tool: Tool) -> None:
 # Commands
 # =============================================================================
 def cmd_version(argv: list[str]) -> int:
-    """Print version (P1-D6). Reads modules/shared/config/version.txt if present."""
-    vfile = repo_root() / "modules/shared/config/version.txt"
+    """Print version (P1-D6). Reads config/version.txt if present."""
+    vfile = repo_root() / "config" / "version.txt"
     version = "0.1.0"
     if vfile.exists():
         version = vfile.read_text(encoding="utf-8").strip()
