@@ -8,7 +8,8 @@ from __future__ import annotations
 import stat
 from pathlib import Path
 
-from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER, REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
@@ -48,7 +49,7 @@ def write_uv_launchers(
             f"# {PROVENANCE_MARKER}\n"
             "import os, sys\n"
             "from pathlib import Path\n"
-            f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(baked_root)}))\n'
+            f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {baked_root!r}))\n'
             f'os.execvpe("uv", ["uv", "run", {extra}"--directory", str(root / "{src_rel}"), '
             f'"{entry}", *sys.argv[1:]], os.environ.copy())\n'
         )

@@ -1,6 +1,6 @@
 """FR-001/FR-002 verb — install a tool: provision, register its launcher.
 
-steps :
+Sub-steps (internal, not separate public methods):
 1. Provision: satisfied check gates the idempotent skip; otherwise the
    selected per-tool adapter's install/build sequence runs, with the
    post-install version probe folded in.
@@ -11,14 +11,17 @@ steps :
    no-op success. A failed provision skips registration and folds the
    diagnostic into the InstallResult.
 
-every failure path returns ``InstallResult(success=False, message)``.
+Every failure path returns ``InstallResult(success=False, message)``.
 """
 from __future__ import annotations
 
 import subprocess
 from pathlib import Path
 
+from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home
 from modules.tools.src.contract_tools_protocol import IToolInstaller
 
 
@@ -40,16 +43,18 @@ def _has_provenance(launcher: Path) -> bool:
         head = launcher.open("rb").read(256).decode("utf-8", "replace")
     except OSError:
         return False
-    return "arwaky-installer" in head or "AGENTS_ARWAKY_ROOT" in head
+    return PROVENANCE_MARKER in head
 
 
+# ─── Block 1: Class Definition & Constructor ─────────────────────────
 class InstallerCapability(IToolInstaller):
     """Business action install(spec, adapter, dry_run): provision + register launcher."""
 
-    def __init__(self, root: Path | None = None, daemons=None) -> None:
+    def __init__(self, root: Path | None = None, daemons: object | None = None) -> None:
         self._root = root
         self._daemons = daemons
 
+    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
     def install(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> InstallResult:
         root = self._root or None
         if dry_run:
@@ -83,15 +88,12 @@ class InstallerCapability(IToolInstaller):
         result = self._register_launcher(spec, result)
         return result
 
-    # -- Sub-step 2: launcher registration ------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _register_launcher(
         self,
         spec: ToolSpec,
         install_result: InstallResult,
     ) -> InstallResult:
-        from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
-        from modules.shared.src.taxonomy_xdg_paths import bin_home
-
         if not install_result.success:
             return InstallResult(
                 install_result.success,

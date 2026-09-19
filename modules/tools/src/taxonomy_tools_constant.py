@@ -41,10 +41,13 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
     "9router": ["9router"],
     "ponytail": ["ponytail-mcp"],
     "qwen-web": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
-    "skill": ["skill.py", "skills"],
     "vision": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],
     "workspace": ["workspace-mcp", "google-workspace-mcp"],
 }
+
+# Tool ids whose XDG config subtree is NOT installer-owned and is kept on
+# removal (anytype-daemon keeps its config: the daemon owns it across updates).
+KEEP_CONFIG: frozenset[str] = frozenset({"anytype-daemon"})
 
 # Tool id -> manifest alias (short form; used for alias-targeted operations).
 ALIAS_TABLE: dict[str, str | None] = {
@@ -55,7 +58,6 @@ ALIAS_TABLE: dict[str, str | None] = {
     "qwen-web": "qwa",
     "lint": "la",
     "blender": "ba",
-    "skill": "skills",
 }
 
 
@@ -64,6 +66,7 @@ __all__ = [
     "DAEMON_NAMES",
     "DAEMON_TOOL_IDS",
     "DAEMON_UNIT_TOOLS",
+    "KEEP_CONFIG",
     "LAUNCHER_NAMES",
     "RUNNER_FAMILIES",
     "SENTINEL_EXECUTABLE_GONE",

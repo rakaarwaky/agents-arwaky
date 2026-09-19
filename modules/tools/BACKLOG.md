@@ -88,8 +88,13 @@ Last Updated: 2026-09-19
   `modules/root_cli_entry.py` was repointed to `modules.tools`.
 - 2026-09-19: `utility_adapter_base.py` deleted (AES404 violation: class with
   `self` in utility layer). Method bodies moved to `utility_tool_mechanics.py`
-  (free functions, taxonomy-only imports). 14 leaf adapters now plain classes
+  (free functions, taxonomy-only imports). 13 leaf adapters now plain classes
   calling `tool_mechanics.<fn>(...)` directly. `IToolAdapter` ABC removed from
   `contract_tools_protocol.py`; adapter param typed as `object` with docstring.
 - 2026-09-19: TOL-04 added — fold 8 capability files into 4 verb classes
   (tracker only; not yet implemented).
+- 2026-09-19: `skill` removed from the tools lifecycle. The skill manager is
+  part of `agents-arwaky` itself (`modules/skill`), not an internal or vendor
+  tool: its manifest entry, `utility_skill_adapter.py`, and the `skill`
+  registry/constant keys were deleted. `aa skill …` remains the sole entry
+  point; the 13-tool registry no longer includes skill.

@@ -35,8 +35,7 @@ and are typed as `AdapterBase` in the protocol signatures.
 Per-tool mechanics (package-manager family, build flags, artifact locations,
 launcher sets, daemon delegation) live in the utility layer as **13 unified
 leaf adapters** (one per manifest tool id; the two Anytype ids share one merged
-adapter class — 14 `utility_<tool>_adapter.py` files, `skill` being a
-pure-manifest tool with a launcher-only adapter). Each adapter knows its
+adapter class — 13 `utility_<tool>_adapter.py` files). Each adapter knows its
 tool's `install`, `update`, `is_pin_satisfied`, and `owned_paths` in exactly one
 place — the duplication between the old installer and updater adapter pairs
 (AES305) is eliminated. Shared install helpers (`utility_launcher_writer.py`,
@@ -144,10 +143,10 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| Protocol class count | exactly 4 (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner`); no `IToolAdapter` ABC (adapters typed as `object`; 14 leaf adapters are plain classes calling `utility_tool_mechanics` free functions) | `grep -c "^class ITool" contract_tools_protocol.py` → 4 |
+| Protocol class count | exactly 4 (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner`); no `IToolAdapter` ABC (adapters typed as `object`; 13 leaf adapters are plain classes calling `utility_tool_mechanics` free functions) | `grep -c "^class ITool" contract_tools_protocol.py` → 4 |
 | Utility layer purity (AES404) | no class in `utility_tool_mechanics.py`; imports only `modules.shared.src.taxonomy_*` + stdlib | `grep "^class" utility_tool_mechanics.py` → no match; `grep "from modules" utility_tool_mechanics.py` |
 | Capability file count (target) | 4 verb classes (`capabilities_tools_{installer,updater,uninstaller,runner}.py`), each single-method; currently 8 files (one per sub-step) pending TOL-04 fold | `ls modules/tools/src/capabilities_*.py \| wc -l` → 4 after TOL-04 |
-| Adapter count | 13 tools with a per-tool unified adapter; the two Anytype ids (`anytype`, `anytype-daemon`) share one merged adapter class → 14 `utility_*_adapter.py` files cover the 13-tool registry | count `modules/tools/src/utility_*_adapter.py` manually (`utility_adapter_base.py` excluded by glob) |
+| Adapter count | 13 tools with a per-tool unified adapter; the two Anytype ids (`anytype`, `anytype-daemon`) share one merged adapter class → 13 `utility_*_adapter.py` files cover the 13-tool registry | count `modules/tools/src/utility_*_adapter.py` manually |
 | Adapter purity (AES404) | adapters import only `modules.shared.src.*`, `modules.tools.src.*`, stdlib; daemon delegation via importlib string-concatenated names | grep of adapter import lines |
 | No cross-feature imports | tools imports nothing from sibling feature modules except the lazy daemon aggregate | grep over `modules/tools/src/` |
 | Idempotence / exit-code fidelity / container isolation | second install is a no-op; `run_tool` returns the child's real exit code; daemons launched only through their launcher | code review + smoke |

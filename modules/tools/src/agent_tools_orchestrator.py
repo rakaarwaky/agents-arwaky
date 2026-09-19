@@ -32,8 +32,14 @@ from modules.shared.src.taxonomy_tool_vo import (
 )
 from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 from modules.shared.src.utility_paths import repo_root
-
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
+from modules.tools.src.contract_tools_protocol import (
+    IToolInstaller,
+    IToolRunner,
+    IToolUninstaller,
+    IToolUpdater,
+)
+from modules.tools.src.taxonomy_tools_vo import ExitCode, ToolQuery
 
 
 def _spec_from_tool(tool: Tool) -> ToolSpec:
@@ -58,66 +64,52 @@ class ToolsOrchestrator(IToolsAggregate):
     target resolution before any verb runs; a verb whose capability is
     unwired raises a typed error, never a partial dispatch.
 
-    # Block 1: Constructor (capability wiring + adapter registry)
-    # Block 2: Manifest-driven spec resolution (shared manifest reader)
-    # Block 3: Aggregate verb delegation (install/update/uninstall/run_tool)
     """
 
-    #: tool_id -> unified adapter class (root composition data, injected via registry).
-    _ADAPTERS: dict[str, type] = {}
+    #: tool_id -> adapter module (root composition data, injected via registry).
+    #: Each value is a stateless leaf module (AES404) of bare verb functions.
+    #: Instance-level copy: constructing one orchestrator never leaks entries
+    #: into another (no shared class-state mutation).
+    _ADAPTERS: dict[str, object] = {}
 
     # -- Block 1: Constructor ---------------------------------------------------
     def __init__(
         self,
-        registry: dict[str, type] | None = None,
+        registry: dict[str, object] | None = None,
         root: Path | None = None,
         daemons=None,
+        installer: IToolInstaller | None = None,
+        updater: IToolUpdater | None = None,
+        uninstaller: IToolUninstaller | None = None,
+        runner: IToolRunner | None = None,
     ) -> None:
         self._root = root or repo_root()
         self._daemons = daemons
         if registry is None:
             raise ValueError("tools orchestrator requires an injected registry (root composition layer)")
         self._ADAPTERS.update(registry)
-        # Capabilities are business-action modules; the agent drives them in
-        # verb order and the root layer is what wires them (AES201 rule 8).
-        from modules.tools.src.capabilities_tools_installer import InstallerCapability
-        from modules.tools.src.capabilities_tools_updater import UpdaterCapability
-        from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
-        from modules.tools.src.capabilities_tools_runner import RunnerCapability
+        # AES201/AES405: the agent layer must not import capabilities_* — the
+        # four verb capabilities are injected by the root composition layer
+        # (root_tools_container.create_tools_feature) typed against their
+        # contract protocols (IToolInstaller/IToolUpdater/IToolUninstaller/
+        # IToolRunner). An unwired verb stays None and _require() raises a
+        # typed error on use, never a partial dispatch.
+        self._installer = installer
+        self._updater = updater
+        self._uninstaller = uninstaller
+        self._runner = runner
 
-        self._installer = InstallerCapability(root=self._root, daemons=self._daemons)
-        self._updater = UpdaterCapability(root=self._root)
-        self._uninstaller = UninstallerCapability(daemons=self._daemons)
-        self._runner = RunnerCapability()
-
-    # -- Adapter selection --------------------------------------------------------
-    def _adapter_for(self, spec: ToolSpec) -> object:
-        cls = self._ADAPTERS.get(spec.id)
-        if cls is None:
-            registered = sorted(self._ADAPTERS)
-            raise ToolInstallError(
-                f"no adapter registered for '{spec.id}' (registered: {', '.join(registered)})"
-            )
-        return cls()
-
-    # -- Block 2: Manifest-driven spec resolution --------------------------------
+    # -- Block 2: Manifest-driven spec resolution + aggregate verb delegation -----
     def list_tools(self) -> list[Tool]:
         """All registered tools (manifest reader, no I/O here)."""
         return load_tools()
 
-    def resolve_spec(self, query: str) -> ToolSpec | None:
+    def resolve_spec(self, query: ToolQuery) -> ToolSpec | None:
         """Resolve a manifest id / binary / alias into a ToolSpec; None when unknown."""
         tool = find_tool(query)
         if tool is None:
             return None
         return _spec_from_tool(tool)
-
-    # -- Block 3: Aggregate verb delegation --------------------------------------
-    def _require(self, obj: object, verb: str) -> object:
-        """A verb whose capability is unavailable -> typed error, not a partial dispatch."""
-        if obj is None:
-            raise ToolInstallError(f"{verb} capability is unavailable (not wired)")
-        return obj
 
     def install(self, spec: ToolSpec) -> InstallResult:
         self._require(self._installer, "install")
@@ -145,14 +137,40 @@ class ToolsOrchestrator(IToolsAggregate):
         owned = adapter.owned_paths(spec, self._root)
         return self._uninstaller.uninstall(spec, owned, dry_run=False)
 
-    def run_tool(self, spec: ToolSpec, args: list[str]) -> int:
+    def run_tool(self, spec: ToolSpec, args: list[str]) -> ExitCode:
         """Discover then execute; return the child's real exit code."""
         self._require(self._runner, "run")
         return self._runner.run(spec, args, self._root)
 
     def executable_path(self, spec: ToolSpec) -> Path | None:
         """Discover the launch path (read-only) for the CLI surface."""
-        return self._runner._discover(spec, self._root)
+        self._require(self._runner, "run")
+        return self._runner.discover(spec, self._root)
+
+    # -- Block 3: Private helpers ---------------------------------------------------
+    def _require(self, obj: object, verb: str) -> object:
+        """A verb whose capability is unavailable -> typed error, not a partial dispatch."""
+        if obj is None:
+            raise ToolInstallError(f"{verb} capability is unavailable (not wired)")
+        return obj
+
+    def _adapter_for(self, spec: ToolSpec) -> object:
+        """Return the unified per-tool adapter unit for *spec*.
+
+        Registry values are leaf modules (AES404, module-level verb
+        functions). For ids carrying verb overrides (shared-module ids
+        like `anytype-daemon`), the root layer pre-builds a SimpleNamespace
+        pointing at the module's ``daemon_*`` functions so the capability
+        sees a uniform ``satisfied``/``install``/``update``/``owned_paths``
+        surface.
+        """
+        unit = self._ADAPTERS.get(spec.id)
+        if unit is None:
+            registered = sorted(self._ADAPTERS)
+            raise ToolInstallError(
+                f"no adapter registered for '{spec.id}' (registered: {', '.join(registered)})"
+            )
+        return unit
 
     # -- Direct capability dispatch (capability surfaces) --------------------------
     def provision(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> InstallResult:
@@ -161,11 +179,13 @@ class ToolsOrchestrator(IToolsAggregate):
 
     def find_executable(self, spec: ToolSpec) -> Path | None:
         """FR-007: locate the runnable binary for *spec*, or None when not installed."""
-        return self._runner._discover(spec, self._root)
+        self._require(self._runner, "run")
+        return self._runner.discover(spec, self._root)
 
     def execute(self, spec: ToolSpec, executable: Path, args: list[str], root: Path | None = None) -> int:
         """FR-008: run a resolved *executable*; return the child's exit code."""
-        return self._runner._execute(spec, executable, args, root or self._root)
+        self._require(self._runner, "run")
+        return self._runner.execute(spec, executable, args, root or self._root)
 
 
 __all__ = ["ToolsOrchestrator"]

@@ -9,10 +9,21 @@ import json as _json
 import sys
 import textwrap
 
+from modules.shared.src.utility_logging import (
+    BOLD,
+    CYAN,
+    GREEN,
+    RESET,
+    banner,
+    err,
+    info,
+    ok,
+    pad,
+    table_widths,
+    warn,
+)
 from modules.shared.src.utility_manifest_reader import load_tools
-from modules.shared.src.utility_logging import BOLD, GREEN, CYAN, RESET, banner, err, info, ok, pad, table_widths, warn
 from modules.shared.src.utility_paths import repo_root
-
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
 
 
