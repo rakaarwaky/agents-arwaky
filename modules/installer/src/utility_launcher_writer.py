@@ -1,12 +1,14 @@
-"""Launcher writer helpers (DRY: used by 5+ uv/python installers).
+"""Launcher write mechanics (utility layer) — write/chmod delegated by the launcher capability.
 
-Moved from tools/lib/launcher_writer.py into the installer feature.
+Used by the uv/python and node adapter families; shared importers outside this
+feature (updater) rely on these symbols staying here.
 """
 from __future__ import annotations
 
+import stat
 from pathlib import Path
 
-from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER, REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_xdg_atomic_io import (
     atomic_write_text,
     ensure_bin_home,
@@ -43,6 +45,7 @@ def write_uv_launchers(
         target = bin_home() / name
         content = (
             "#!/usr/bin/env python3\n"
+            f"# {PROVENANCE_MARKER}\n"
             "import os, sys\n"
             "from pathlib import Path\n"
             f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(baked_root)}))\n'
@@ -68,3 +71,59 @@ def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | No
     warn_if_bin_not_on_path()
     ensure_path()
     return launcher
+
+
+def write_node_entry_launcher(name: str, entry: Path, aliases: list[str] | None = None) -> Path:
+    """Write a launcher that execs `node <entry>` in XDG bin. Returns launcher path."""
+    content = (
+        "#!/usr/bin/env python3\n"
+        f"# {PROVENANCE_MARKER}\n"
+        "import os, sys\n"
+        f'entry = r"{entry}"\n'
+        'os.execvpe("node", ["node", entry, *sys.argv[1:]], os.environ.copy())\n'
+    )
+    return write_generic_launcher(name, content, aliases=aliases)
+
+
+def write_python_module_launcher(name: str, launcher_code: str, aliases: list[str] | None = None) -> Path:
+    """Write a python3 launcher baking in arbitrary launcher code. Returns path."""
+    ensure_bin_home()
+    launcher = bin_home() / name
+    content = (
+        "#!/usr/bin/env python3\n"
+        f"# {PROVENANCE_MARKER}\n"
+        "import os, sys\n"
+        f"from pathlib import Path\n{launcher_code}"
+    )
+    atomic_write_text(launcher, content)
+    for alias in (aliases or []):
+        a = bin_home() / alias
+        a.unlink(missing_ok=True)
+        a.symlink_to(launcher)
+    return launcher
+
+
+def symlink_alias(alias: str, target: Path) -> Path:
+    """Symlink *alias* in XDG bin pointing at *target* (idempotent)."""
+    ensure_bin_home()
+    a = bin_home() / alias
+    a.unlink(missing_ok=True)
+    a.symlink_to(target)
+    return a
+
+
+def ensure_executable(path: Path) -> None:
+    """Set the user-executable bit on an existing file."""
+    st = path.stat()
+    if not st.st_mode & stat.S_IXUSR:
+        path.chmod(st.st_mode | stat.S_IXUSR)
+
+
+__all__ = [
+    "ensure_executable",
+    "symlink_alias",
+    "write_generic_launcher",
+    "write_node_entry_launcher",
+    "write_python_module_launcher",
+    "write_uv_launchers",
+]

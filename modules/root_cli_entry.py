@@ -425,9 +425,8 @@ def cmd_install(argv: list[str]) -> int:
             err(f"Tool '{target}' not found in manifest.")
             return 1
         tools = [tool]
-    from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
     from modules.installer.src.root_tool_installer_registry import build_installer_registry
-    installer = InstallerOrchestrator(registry=build_installer_registry())
+    installer = build_installer_registry()
     failed, skipped = [], []
     total = len(tools)
     for idx, tool in enumerate(tools, 1):
@@ -477,9 +476,8 @@ def cmd_update(argv: list[str]) -> int:
             err(f"Tool '{target}' not found in manifest.")
             return 1
         tools = [tool]
-    from modules.updater.src.agent_updater_orchestrator import UpdaterOrchestrator
-    from modules.updater.src.root_tool_updater_registry import build_updater_registry
-    updater = UpdaterOrchestrator(registry=build_updater_registry())
+    from modules.updater.src.root_tool_updater_registry import build_updater_orchestrator
+    updater = build_updater_orchestrator()
     failed, skipped = [], []
     total = len(tools)
     for idx, tool in enumerate(tools, 1):
@@ -550,17 +548,13 @@ def cmd_skill(argv: list[str]) -> int:
 
 
 def cmd_connect(argv: list[str]) -> int:
-    from modules.harness.src.root_harness_container import HarnessContainer
     from modules.harness.src.agent_harness_orchestrator import cmd_connect as _harness_connect
-    HarnessContainer()  # registers capability callables into the HARNESSES table
-    return _harness_connect(argv)
+    return _harness_connect(list(argv))
 
 
 def cmd_disconnect(argv: list[str]) -> int:
-    from modules.harness.src.root_harness_container import HarnessContainer
     from modules.harness.src.agent_harness_orchestrator import cmd_disconnect as _harness_disconnect
-    HarnessContainer()  # registers capability callables into the HARNESSES table
-    return _harness_disconnect(argv)
+    return _harness_disconnect(list(argv))
 
 
 def cmd_tool(argv: list[str]) -> int:
@@ -809,20 +803,16 @@ def cmd_clean(argv: list[str]) -> int:
 
 
 def uninstall_tool(tool: Tool) -> int:
-    from modules.uninstaller.src.agent_uninstaller_orchestrator import (
-        UninstallerOrchestrator,
+    from modules.uninstaller.src.root_tool_uninstaller_registry import (
+        build_uninstaller_orchestrator,
     )
-    from modules.uninstaller.src.root_tool_uninstaller_registry import build_uninstaller_registry
-    uninstaller = UninstallerOrchestrator(registry=build_uninstaller_registry())
+    uninstaller = build_uninstaller_orchestrator()
     spec = _spec_from_tool(tool)
     info(f"Uninstalling {tool.id}")
     result = uninstaller.uninstall(spec)
     if not result.success:
         err(f"{tool.id}: {result.message}")
         return 1
-    if "no uninstaller" in result.message.lower():
-        warn(f"No uninstaller for {tool.id}, removing default state")
-        remove_tool_state(tool)
     return 0
 
 

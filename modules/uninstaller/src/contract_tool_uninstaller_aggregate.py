@@ -1,12 +1,22 @@
-"""Tool-domain aggregate contract re-export for the uninstaller feature."""
+"""Tool-domain uninstaller aggregate contract (AES102 ``_aggregate``).
+
+Stable for the runner's ``ToolOrchestrator``: its ``uninstaller`` capability is
+type-annotated against this module; the orchestrator implements it and the
+aggregate delegates ``uninstall(spec)`` into the uninstaller agent.
+"""
 from __future__ import annotations
 
-from modules.shared.src.taxonomy_tool_vo import UninstallResult
-from modules.runner.src.contract_tool_runner_aggregate import IToolAggregate
+from abc import ABC, abstractmethod
 
-__all__ = ["IToolAggregate"
-    'UninstallResult',
-]
+from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
 
-# Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {'IToolAggregate': IToolAggregate, 'UninstallResult': UninstallResult}
+__all__ = ["IUninstallerAggregate", "UninstallResult"]
+
+
+class IUninstallerAggregate(ABC):
+    """Uninstaller-feature aggregate surface consumed by the tool orchestrator."""
+
+    @abstractmethod
+    def uninstall(self, spec: ToolSpec) -> UninstallResult:
+        """Uninstall one tool spec (remove + verify)."""
+        return None

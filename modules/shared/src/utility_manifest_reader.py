@@ -48,6 +48,7 @@ def load_tools() -> list[Tool]:
             description=item.get("description", ""),
             path=item.get("path", ""),
             alias=item.get("alias"),
+            mcp_binary=item.get("mcpBinary"),
         ))
     return tools
 

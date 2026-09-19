@@ -2,11 +2,22 @@
 
 Public API:
 - InstallerOrchestrator (agent): feature orchestrator
-- IToolInstaller (contract): capability protocol
+- IToolInstaller / IToolProvisioner / IToolLauncherRegistrar / IToolAdapter (contracts)
 """
 from __future__ import annotations
 
 from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
-from modules.installer.src.contract_tool_installer_protocol import IToolInstaller
+from modules.installer.src.contract_tool_installer_protocol import (
+    IToolAdapter,
+    IToolInstaller,
+    IToolLauncherRegistrar,
+    IToolProvisioner,
+)
 
-__all__ = ["IToolInstaller", "InstallerOrchestrator"]
+__all__ = [
+    "IToolAdapter",
+    "IToolInstaller",
+    "IToolLauncherRegistrar",
+    "IToolProvisioner",
+    "InstallerOrchestrator",
+]

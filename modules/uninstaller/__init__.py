@@ -1,9 +1,10 @@
-"""Uninstaller feature — per-tool uninstall capabilities + orchestrator (AES).
+"""Uninstaller feature — generic tool removal (AES).
 
-Each tool has its own concrete capability file carrying the real uninstall
-logic (per-tool launcher lists, tool keys, daemon/secrets cleanup) ported
-from the original tools/uninstall/uninstall_*.py scripts. The orchestrator
-dispatches by tool id.
+Removal is a business action organised into two capabilities:
+- remover: stop daemon (if applicable), remove launchers + XDG state
+- verifier: confirm the owned set is gone, surface named residuals
+
+Per-tool differences are DATA (manifest + XDG layout), not code.
 """
 from modules.uninstaller.src.agent_uninstaller_orchestrator import UninstallerOrchestrator
 

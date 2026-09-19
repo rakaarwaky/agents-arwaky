@@ -1,12 +1,17 @@
-"""Uninstaller feature: data-driven tool removal (AES7 orchestrator).
+"""Uninstaller feature: generic tool removal via two business-action
+capabilities (remover, verifier) + single orchestrator agent.
 
 Public API:
 - UninstallerOrchestrator (agent): feature orchestrator
-- IToolUninstaller (contract): capability protocol
+- IToolUninstaller / IToolRemover / IToolVerifier (contracts)
 """
 from __future__ import annotations
 
 from modules.uninstaller.src.agent_uninstaller_orchestrator import UninstallerOrchestrator
-from modules.uninstaller.src.contract_tool_uninstaller_protocol import IToolUninstaller
+from modules.uninstaller.src.contract_tool_uninstaller_protocol import (
+    IToolRemover,
+    IToolUninstaller,
+    IToolVerifier,
+)
 
-__all__ = ["IToolUninstaller", "UninstallerOrchestrator"]
+__all__ = ["IToolRemover", "IToolUninstaller", "IToolVerifier", "UninstallerOrchestrator"]

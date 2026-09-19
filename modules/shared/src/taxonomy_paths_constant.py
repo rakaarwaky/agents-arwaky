@@ -10,3 +10,6 @@ from pathlib import Path
 
 #: Repository root (walks up from this file's location: modules/shared/src).
 REPO_ROOT: Path = Path(__file__).resolve().parents[3]
+
+#: Provenance marker baked into launcher first lines; foreign files without it are residual.
+PROVENANCE_MARKER = "# arwaky-installer"
