@@ -24,7 +24,6 @@ from modules.tools.src.utility_venv_helpers import (
     ensure_venv,
     install_package,
     setup_bin_links,
-    setup_xdg_directories,
 )
 
 TOOL_NAME = "qwen-web"
@@ -94,7 +93,10 @@ def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
 
 
 def update(spec, root: Path) -> list[Path]:
-    from modules.shared.src.utility_git_update import update_submodule, write_install_stamp
+    from modules.shared.src.utility_git_update import (
+        update_submodule,
+        write_install_stamp,
+    )
 
     print(">>> Updating qwen-web-arwaky (XDG compliant)...")
 

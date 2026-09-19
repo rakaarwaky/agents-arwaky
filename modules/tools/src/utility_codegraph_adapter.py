@@ -9,13 +9,22 @@ Stateless leaf (AES404): module-level functions only, no classes.
 """
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_tool_mechanics import NODE_IGNORES, ROOT, copy_app, ensure_source, finish_bin, generic_owned, require, run, write_node_launcher
 from modules.tools.src.utility_launcher_writer import symlink_alias
+from modules.tools.src.utility_tool_mechanics import (
+    NODE_IGNORES,
+    ROOT,
+    copy_app,
+    ensure_source,
+    finish_bin,
+    generic_owned,
+    require,
+    run,
+    write_node_launcher,
+)
 
 SRC_REL = "vendor/codegraph"
 ENTRY = "dist/bin/codegraph.js"

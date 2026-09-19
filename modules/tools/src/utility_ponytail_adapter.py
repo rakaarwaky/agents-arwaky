@@ -12,7 +12,16 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_xdg_paths import data_home
-from modules.tools.src.utility_tool_mechanics import ROOT, copy_app, ensure_source, finish_bin, generic_owned, require, run, write_node_launcher
+from modules.tools.src.utility_tool_mechanics import (
+    ROOT,
+    copy_app,
+    ensure_source,
+    finish_bin,
+    generic_owned,
+    require,
+    run,
+    write_node_launcher,
+)
 
 SRC_REL = "vendor/ponytail"
 APP_DIR_REL = "ponytail"
@@ -36,7 +45,6 @@ def _build(src: Path) -> None:
 
 
 def _write_launcher() -> Path:
-    from modules.shared.src.taxonomy_xdg_paths import bin_home
     app_dir = data_home() / APP_DIR_REL
     launcher = write_node_launcher("ponytail-mcp", app_dir / ENTRY)
     finish_bin()

@@ -14,16 +14,15 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
-from modules.tools.src.utility_tool_mechanics import ROOT, generic_owned, run
 from modules.tools.src.utility_cargo_helpers import (
     _bootstrap_rustup,
     _cargo_on_path,
     _preflight_build_deps,
 )
+from modules.tools.src.utility_tool_mechanics import ROOT, generic_owned, run
 
 INTERNAL_DIR_REL = "internal/lint-arwaky"
 BINARIES = ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui"]
@@ -141,7 +140,7 @@ def update(spec, root: Path) -> list[Path]:
 
 # -- teardown data --------------------------------------------------------------
 def owned_paths(spec, root: Path | None = None) -> list[Path]:
-    from modules.shared.src.taxonomy_xdg_paths import bin_home, config_home, data_home
+    from modules.shared.src.taxonomy_xdg_paths import bin_home
 
     extra = [bin_home() / "lac"]
     return generic_owned(

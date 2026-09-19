@@ -10,8 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
-from modules.tools.src.utility_tool_mechanics import ROOT, ensure_source, generic_owned
 from modules.tools.src.utility_launcher_writer import symlink_alias, write_uv_launchers
+from modules.tools.src.utility_tool_mechanics import ROOT, ensure_source, generic_owned
 
 SRC_REL = "vendor/google-workspace-mcp"
 LAUNCHERS = [

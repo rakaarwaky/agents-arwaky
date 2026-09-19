@@ -14,7 +14,16 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_xdg_paths import data_home
-from modules.tools.src.utility_tool_mechanics import ROOT, copy_app, ensure_source, finish_bin, generic_owned, require, run, write_node_launcher
+from modules.tools.src.utility_tool_mechanics import (
+    ROOT,
+    copy_app,
+    ensure_source,
+    finish_bin,
+    generic_owned,
+    require,
+    run,
+    write_node_launcher,
+)
 
 SRC_REL = "vendor/context7"
 APP_DIR = data_home() / "context7"
@@ -33,7 +42,6 @@ LAUNCHERS = {
 
 def _write_launchers() -> list[Path]:
     """Write node launchers for every context7 entry point (shared install/update)."""
-    from modules.shared.src.taxonomy_xdg_paths import bin_home
 
     created: list[Path] = []
     for name, entry in LAUNCHERS.items():

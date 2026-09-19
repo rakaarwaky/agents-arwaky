@@ -9,13 +9,20 @@ Stateless leaf (AES404): module-level functions only, no classes.
 """
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
+from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_xdg_atomic_io import (
+    atomic_write_text,
+    ensure_bin_home,
+    ensure_path,
+    warn_if_bin_not_on_path,
+)
 from modules.shared.src.taxonomy_xdg_paths import bin_home
-from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root, PROVENANCE_MARKER
-import subprocess
-from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text, ensure_bin_home, ensure_path, warn_if_bin_not_on_path
+
 
 def ensure_source(root: Path, src_rel: str) -> Path:
     """Ensure `root/src_rel` exists, attempting a git submodule init first."""
