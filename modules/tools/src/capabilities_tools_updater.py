@@ -1,4 +1,4 @@
-"""FR-003/FR-004 verb — update a tool: bump to pin, record the transition.
+"""FR-002 verb — update a tool: bump to pin, record the transition.
 
 Sub-steps (internal, not separate public methods):
 1. Bump: pin comparison first (idempotence); on unsatisfied state the
@@ -15,6 +15,7 @@ Never raises out of ``update`` — every failure path returns
 """
 from __future__ import annotations
 
+import datetime
 import json
 from pathlib import Path
 
@@ -100,7 +101,12 @@ class UpdaterCapability(IToolUpdater):
             atomic_write_text(
                 record_path,
                 json.dumps(
-                    {"tool": spec.id, "message": update_result.message, "recorded_at": "now"},
+                    {
+                        "tool": spec.id,
+                        "message": update_result.message,
+                        # P1-8: real UTC ISO-8601 timestamp, was literal "now".
+                        "recorded_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    },
                     indent=2,
                 ) + "\n",
                 mode=0o644,

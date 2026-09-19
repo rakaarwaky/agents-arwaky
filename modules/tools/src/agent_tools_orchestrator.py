@@ -66,12 +66,6 @@ class ToolsOrchestrator(IToolsAggregate):
 
     """
 
-    #: tool_id -> adapter module (root composition data, injected via registry).
-    #: Each value is a stateless leaf module (AES404) of bare verb functions.
-    #: Instance-level copy: constructing one orchestrator never leaks entries
-    #: into another (no shared class-state mutation).
-    _ADAPTERS: dict[str, object] = {}
-
     # -- Block 1: Constructor ---------------------------------------------------
     def __init__(
         self,
@@ -87,7 +81,9 @@ class ToolsOrchestrator(IToolsAggregate):
         self._daemons = daemons
         if registry is None:
             raise ValueError("tools orchestrator requires an injected registry (root composition layer)")
-        self._ADAPTERS.update(registry)
+        # P0-2: instance-level copy — was a class-level dict mutated via
+        # .update(registry), which leaked entries across orchestrator instances.
+        self._adapters: dict[str, object] = dict(registry)
         # AES201/AES405: the agent layer must not import capabilities_* — the
         # four verb capabilities are injected by the root composition layer
         # (root_tools_container.create_tools_feature) typed against their
@@ -126,15 +122,23 @@ class ToolsOrchestrator(IToolsAggregate):
         self._require(self._updater, "update")
         if find_tool(spec.id) is None:
             raise ToolUpdateError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
-        adapter = self._adapter_for(spec)
+        # P1-1: fold a missing adapter into the result, same as install().
+        try:
+            adapter = self._adapter_for(spec)
+        except ToolInstallError as e:
+            return UpdateResult(False, spec.id, str(e))
         return self._updater.update(spec, adapter, dry_run=False)
 
     def uninstall(self, spec: ToolSpec) -> UninstallResult:
         self._require(self._uninstaller, "uninstall")
         if find_tool(spec.id) is None:
             raise ToolUninstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
-        adapter = self._adapter_for(spec)
-        owned = adapter.owned_paths(spec, self._root)
+        # P1-1: same fold for uninstall; also guard owned_paths.
+        try:
+            adapter = self._adapter_for(spec)
+            owned = adapter.owned_paths(spec, self._root)
+        except (ToolInstallError, OSError) as e:
+            return UninstallResult(False, spec.id, str(e))
         return self._uninstaller.uninstall(spec, owned, dry_run=False)
 
     def run_tool(self, spec: ToolSpec, args: list[str]) -> ExitCode:
@@ -148,10 +152,18 @@ class ToolsOrchestrator(IToolsAggregate):
         return self._runner.discover(spec, self._root)
 
     # -- Block 3: Private helpers ---------------------------------------------------
+    # P1-2: verb-typed error — was always ToolInstallError for every verb.
+    _VERB_ERRORS: dict[str, type[Exception]] = {
+        "install": ToolInstallError,
+        "update": ToolUpdateError,
+        "uninstall": ToolUninstallError,
+        "run": ToolInstallError,  # no ToolRunError in taxonomy_core_error today
+    }
+
     def _require(self, obj: object, verb: str) -> object:
         """A verb whose capability is unavailable -> typed error, not a partial dispatch."""
         if obj is None:
-            raise ToolInstallError(f"{verb} capability is unavailable (not wired)")
+            raise self._VERB_ERRORS[verb](f"{verb} capability is unavailable (not wired)")
         return obj
 
     def _adapter_for(self, spec: ToolSpec) -> object:
@@ -164,28 +176,13 @@ class ToolsOrchestrator(IToolsAggregate):
         sees a uniform ``satisfied``/``install``/``update``/``owned_paths``
         surface.
         """
-        unit = self._ADAPTERS.get(spec.id)
+        unit = self._adapters.get(spec.id)
         if unit is None:
-            registered = sorted(self._ADAPTERS)
+            registered = sorted(self._adapters)
             raise ToolInstallError(
                 f"no adapter registered for '{spec.id}' (registered: {', '.join(registered)})"
             )
         return unit
-
-    # -- Direct capability dispatch (capability surfaces) --------------------------
-    def provision(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> InstallResult:
-        """FR-001 passthrough to the installer capability."""
-        return self._installer.install(spec, adapter, dry_run=dry_run)
-
-    def find_executable(self, spec: ToolSpec) -> Path | None:
-        """FR-007: locate the runnable binary for *spec*, or None when not installed."""
-        self._require(self._runner, "run")
-        return self._runner.discover(spec, self._root)
-
-    def execute(self, spec: ToolSpec, executable: Path, args: list[str], root: Path | None = None) -> int:
-        """FR-008: run a resolved *executable*; return the child's exit code."""
-        self._require(self._runner, "run")
-        return self._runner.execute(spec, executable, args, root or self._root)
 
 
 __all__ = ["ToolsOrchestrator"]

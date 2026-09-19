@@ -1,4 +1,4 @@
-"""FR-007/FR-008 verb — run a tool: discover its executable, then exec it.
+"""FR-004 verb — run a tool: discover its executable, then exec it.
 
 Sub-steps (internal, not separate public methods):
 1. Discover: universal deterministic order, identical for every tool —
@@ -163,16 +163,14 @@ class RunnerCapability(IToolRunner):
                 print(f"Daemon launcher for '{spec.id}' not found under {bin_home()}; start it via its service instead.", file=sys.stderr)
                 return SENTINEL_EXECUTABLE_GONE
 
-        # MCP servers manage their own stdio; plain tools inherit the parent.
-        kwargs: dict = {}
-        if spec.is_mcp:
-            kwargs["stdin"] = subprocess.PIPE
-            kwargs["stdout"] = subprocess.PIPE
-            kwargs["stderr"] = subprocess.STDOUT
-
+        # P0-4: inherit parent stdio for all tools.
+        # Capturing an MCP server's pipes with subprocess.run deadlocks
+        # (the server keeps stdio open indefinitely and its output is never
+        # forwarded to the caller); MCP harnesses spawn their own servers —
+        # `aa tool run` is interactive use.
         try:
             argv = _exec_command(spec, executable, args, base)
-            proc = subprocess.run(argv, check=False, **kwargs)
+            proc = subprocess.run(argv, check=False)
             return proc.returncode
         except (OSError, FileNotFoundError) as exc:
             print(f"Failed to launch '{spec.id}': {exc}", file=sys.stderr)
