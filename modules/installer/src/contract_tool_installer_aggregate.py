@@ -1,16 +1,22 @@
-"""Tool-domain aggregate contracts (AES102 `_aggregate`) — cross-module tool aggregate.
+"""Tool-domain installer aggregate contract (AES102 `_aggregate`).
 
-The runner feature owns the aggregate contract; installer/updater/uninstaller
-agents reference it so the AES202 agent layer requires an aggregate import.
+Stable for the runner's `ToolOrchestrator`: its `installer` capability is
+type-annotated against this module; the orchestrator implements it and the
+aggregate delegates `install(spec)` into the installer agent.
 """
 from __future__ import annotations
 
-from modules.shared.src.taxonomy_tool_vo import InstallResult
-from modules.runner.src.contract_tool_runner_aggregate import IToolAggregate
+from abc import ABC, abstractmethod
 
-__all__ = ["IToolAggregate"
-    'InstallResult',
-]
+from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
 
-# Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {'IToolAggregate': IToolAggregate, 'InstallResult': InstallResult}
+__all__ = ["IInstallerAggregate", "InstallResult"]
+
+
+class IInstallerAggregate(ABC):
+    """Installer-feature aggregate surface consumed by the tool orchestrator."""
+
+    @abstractmethod
+    def install(self, spec: ToolSpec) -> InstallResult:
+        """Install one tool spec (provision + launcher registration)."""
+        return None

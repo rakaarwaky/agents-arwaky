@@ -15,3 +15,4 @@ class Tool:
     description: str
     path: str
     alias: str | None = None
+    mcp_binary: str | None = None

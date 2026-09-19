@@ -1,54 +1,56 @@
-"""Root composition — installer registry wiring per-tool capabilities.
+"""Root composition — installer registry wiring per-tool adapters.
 
 The AES root layer is the only layer allowed to import ``capabilities*``;
-this module centralises the tool_id -> installer-class mapping so that
-``agent_installer_orchestrator`` stays capability-free (AES201 rule 8).
+this module centralises the tool_id -> adapter-class mapping so that
+``agent_installer_orchestrator`` stays adapter-free (AES201 rule 8).
+Daemon-backed adapters (9router/anytype) receive the daemon aggregate here,
+preserving the pre-existing feature-to-feature delegation indirection.
 """
 from __future__ import annotations
 
 from modules.daemon.src.root_daemon_container import create_daemon_feature
-from modules.installer.src.capabilities_anytype_installer import AnytypeInstaller
-from modules.installer.src.capabilities_blender_installer import BlenderInstaller
-from modules.installer.src.capabilities_codegraph_installer import CodegraphInstaller
-from modules.installer.src.capabilities_context7_installer import Context7Installer
-from modules.installer.src.capabilities_fetch_installer import FetchInstaller
-from modules.installer.src.capabilities_lint_installer import LintInstaller
-from modules.installer.src.capabilities_mnemosyne_installer import MnemosyneInstaller
-from modules.installer.src.capabilities_ninerouter_installer import NinerouterInstaller
-from modules.installer.src.capabilities_ponytail_installer import PonytailInstaller
-from modules.installer.src.capabilities_qwen_web_installer import QwenWebInstaller
-from modules.installer.src.capabilities_skill_installer import SkillInstaller
-from modules.installer.src.capabilities_vision_installer import VisionInstaller
-from modules.installer.src.capabilities_workspace_installer import WorkspaceInstaller
+from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
+from modules.installer.src.utility_anytype_adapter import AnytypeAdapter
+from modules.installer.src.utility_blender_adapter import BlenderAdapter
+from modules.installer.src.utility_codegraph_adapter import CodegraphAdapter
+from modules.installer.src.utility_context7_adapter import Context7Adapter
+from modules.installer.src.utility_fetch_adapter import FetchAdapter
+from modules.installer.src.utility_lint_adapter import LintAdapter
+from modules.installer.src.utility_mnemosyne_adapter import MnemosyneAdapter
+from modules.installer.src.utility_ninerouter_adapter import NinerouterAdapter
+from modules.installer.src.utility_ponytail_adapter import PonytailAdapter
+from modules.installer.src.utility_qwen_web_adapter import QwenWebAdapter
+from modules.installer.src.utility_skill_adapter import SkillAdapter
+from modules.installer.src.utility_vision_adapter import VisionAdapter
+from modules.installer.src.utility_workspace_adapter import WorkspaceAdapter
 
-#: tool_id -> concrete per-tool installer class (root composition data).
+#: tool_id -> concrete per-tool adapter class (root composition data).
 INSTALLER_REGISTRY: dict[str, type] = {
-    # anytype-daemon is part of the merged anytype installer
-    "anytype-daemon": AnytypeInstaller,
-    "anytype": AnytypeInstaller,
-    "blender": BlenderInstaller,
-    "codegraph": CodegraphInstaller,
-    "context7": Context7Installer,
-    "fetch": FetchInstaller,
-    "lint": LintInstaller,
-    "mnemosyne": MnemosyneInstaller,
-    "9router": NinerouterInstaller,
-    "ponytail": PonytailInstaller,
-    "qwen-web": QwenWebInstaller,
-    "skill": SkillInstaller,
-    "vision": VisionInstaller,
-    "workspace": WorkspaceInstaller,
+    # anytype-daemon is part of the merged anytype adapter
+    "anytype-daemon": AnytypeAdapter,
+    "anytype": AnytypeAdapter,
+    "blender": BlenderAdapter,
+    "codegraph": CodegraphAdapter,
+    "context7": Context7Adapter,
+    "fetch": FetchAdapter,
+    "lint": LintAdapter,
+    "mnemosyne": MnemosyneAdapter,
+    "9router": NinerouterAdapter,
+    "ponytail": PonytailAdapter,
+    "qwen-web": QwenWebAdapter,
+    "skill": SkillAdapter,
+    "vision": VisionAdapter,
+    "workspace": WorkspaceAdapter,
 }
 
-# Classes whose constructor takes the daemon aggregate (9router/anytype).
+#: Tool ids whose adapters receive the daemon aggregate at install time.
 _DAEMON_TOOLS: frozenset[str] = frozenset({"9router", "anytype", "anytype-daemon"})
 
 
-def build_installer_registry(root=None) -> dict[str, object]:
-    """Instantiate every registered installer, injecting the daemon aggregate
-    where the capability needs it (composition-time wiring, root layer)."""
+def build_installer_registry(root=None) -> InstallerOrchestrator:
+    """Fully-wired installer orchestrator (composition-time wiring, root layer)."""
     daemons = create_daemon_feature()
-    return {
-        tool_id: cls(root, daemons=daemons) if tool_id in _DAEMON_TOOLS else cls(root)
-        for tool_id, cls in INSTALLER_REGISTRY.items()
-    }
+    return InstallerOrchestrator(registry=INSTALLER_REGISTRY, root=root, daemons=daemons)
+
+
+__all__ = ["INSTALLER_REGISTRY", "build_installer_registry"]

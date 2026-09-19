@@ -1,9 +1,9 @@
-"""Updater feature — per-tool updater capabilities + orchestrator (AES).
+"""Updater feature — two business-action capabilities + per-tool leaf adapters.
 
-Each tool has its own concrete capability file carrying the real update
-logic (submodule pull, force rebuild/reinstall, launcher rewrite) ported
-from the original tools/update/update_*.py scripts. The orchestrator
-dispatches by tool id.
+Capabilities: `capabilities_updater_bumper.py` (FR-001) and
+`capabilities_updater_recorder.py` (FR-002). Per-tool update mechanics live in
+stateless leaf adapters (`utility_<tool>_updater.py`), one per manifest id,
+keyed on the manifest `id`. The orchestrator drives bumper then recorder.
 """
 from modules.updater.src.agent_updater_orchestrator import UpdaterOrchestrator
 

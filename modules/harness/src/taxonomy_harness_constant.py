@@ -1,21 +1,22 @@
-"""Harness-domain constants — registry tables (taxonomy layer, AES201 rule 8).
+"""Harness-domain constants — alias table + supported set (taxonomy layer).
 
-Pure data shared with the agent layer. The connect/disconnect callables are
-attached by the per-harness capability modules' register() functions, invoked
-from :mod:`modules.harness.src.root_harness_container` (root layer).
+Pure data: the alias table maps raw CLI tokens (ids / aliases) onto canonical
+harness ids. Unknown tokens are surfaced to the CLI, never raised here.
 """
 from __future__ import annotations
 
-#: harness_id -> {"aliases": [...], "connect": callable, "disconnect": callable}.
-HARNESSES: dict[str, dict] = {
-    "antigravity": {"aliases": ["antigravity"], "connect": None, "disconnect": None},
-    "hermes": {"aliases": ["hermes"], "connect": None, "disconnect": None},
-    "opencode": {"aliases": ["opencode"], "connect": None, "disconnect": None},
-    "qwencode": {"aliases": ["qwencode"], "connect": None, "disconnect": None},
-    "grok-build": {"aliases": ["grok", "grok-build"], "connect": None, "disconnect": None},
+#: canonical harness id -> raw CLI tokens that resolve to it (id itself + aliases).
+HARNESSES: dict[str, tuple[str, ...]] = {
+    "antigravity": ("antigravity", "agy"),
+    "hermes": ("hermes",),
+    "opencode": ("opencode",),
+    "qwencode": ("qwencode", "qwen", "qwen-code"),
+    "grok-build": ("grok-build", "grok"),
 }
+
 ALIASES: dict[str, str] = {}
-for _harness_id, _entry in HARNESSES.items():
-    for _alias in _entry["aliases"]:
-        ALIASES[_alias] = _harness_id
-ALL_HARNESS_IDS = tuple(HARNESSES.keys())
+for _harness_id, _tokens in HARNESSES.items():
+    for _token in _tokens:
+        ALIASES[_token] = _harness_id
+
+ALL_HARNESS_IDS: tuple[str, ...] = tuple(HARNESSES)

@@ -1,33 +1,35 @@
-"""Tool composition root — wires capabilities into the orchestrator."""
+"""Root composition — runner capability wiring + tool-lifecycle aggregate.
+
+The AES root layer is the only layer allowed to import `capabilities*`;
+this module wires the two runner capabilities (discoverer, executor) and
+builds the ToolOrchestrator aggregate by composing the installer /
+updater / uninstaller roots.
+
+The three sibling roots are imported lazily (inside the method that builds
+the aggregate) so that importing `modules.runner` never forces a full
+sibling import at module load — this breaks the runner -> installer /
+updater / uninstaller -> runner partial-init cycle.
+"""
 from __future__ import annotations
 
-from modules.runner.src.contract_tool_runner_aggregate import IToolAggregate
 from modules.runner.src.agent_runner_orchestrator import RunnerOrchestrator, ToolOrchestrator
-from modules.installer.src.agent_installer_orchestrator import InstallerOrchestrator
-from modules.uninstaller.src.agent_uninstaller_orchestrator import UninstallerOrchestrator
-from modules.updater.src.agent_updater_orchestrator import UpdaterOrchestrator
-
-
-class ToolContainer:
-    """Wire the 4 tool capabilities to their contracts and construct the agent."""
-
-    def __init__(self) -> None:
-        from modules.installer.src.root_tool_installer_registry import build_installer_registry
-        from modules.runner.src.root_tool_runner_registry import RUNNER_REGISTRY
-        from modules.uninstaller.src.root_tool_uninstaller_registry import build_uninstaller_registry
-        from modules.updater.src.root_tool_updater_registry import build_updater_registry
-
-        resolver = RunnerOrchestrator(registry=RUNNER_REGISTRY)
-        installer = InstallerOrchestrator(registry=build_installer_registry())
-        uninstaller = UninstallerOrchestrator(registry=build_uninstaller_registry())
-        updater = UpdaterOrchestrator(registry=build_updater_registry())
-        self._orchestrator = ToolOrchestrator(resolver, installer, updater, uninstaller)
-
-    @property
-    def aggregate(self) -> IToolAggregate:
-        return self._orchestrator
+from modules.runner.src.contract_tool_runner_aggregate import IToolAggregate
 
 
 def create_runner_feature() -> IToolAggregate:
-    """Fully-wired tool feature aggregate."""
-    return ToolContainer().aggregate
+    """Fully-wired tool feature aggregate.
+
+    Composition-time wiring only: the runner root composes the installer /
+    updater / uninstaller roots. Each root's registry is already built by
+    its own composition module; here we merely instantiate the orchestrators.
+    """
+    # Deferred so `import modules.runner` does not import sibling roots at load.
+    from modules.installer.src.root_tool_installer_registry import build_installer_registry
+    from modules.updater.src.root_tool_updater_registry import build_updater_orchestrator
+    from modules.uninstaller.src.root_tool_uninstaller_registry import build_uninstaller_orchestrator
+
+    runner = RunnerOrchestrator()
+    installer = build_installer_registry()
+    updater = build_updater_orchestrator()
+    uninstaller = build_uninstaller_orchestrator()
+    return ToolOrchestrator(runner, installer, updater, uninstaller)

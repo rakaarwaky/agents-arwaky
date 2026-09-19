@@ -254,6 +254,12 @@ class RunnerVerb(IToolAggregate):
     def list_tools(self):
         return self._agg.list_tools()
 
+    def resolve_spec(self, query):
+        return self._agg.resolve_spec(query)
+
+    def executable_path(self, spec):
+        return self._agg.executable_path(spec)
+
     def install(self, spec):
         return self._agg.install(spec)
 
