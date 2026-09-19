@@ -23,7 +23,6 @@ from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home, warn_if_b
 
 from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
 # --- inlined git-update helpers (self-contained, no utility-to-utility imports) ---
-import subprocess
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
     """Run a command silently, return result."""

@@ -3,7 +3,6 @@
 Sentinels, daemon-tool ids, runner-family lookup, and the per-tool
 launcher/alias tables shared by the lifecycle capabilities and adapters.
 """
-from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
 
 #: Reserved non-zero exit code: "executable vanished between discovery and launch".
 SENTINEL_EXECUTABLE_GONE = 126
@@ -74,5 +73,4 @@ __all__ = [
     "LAUNCHER_NAMES",
     "RUNNER_FAMILIES",
     "SENTINEL_EXECUTABLE_GONE",
-    "TOOL_RUNNERS",
 ]

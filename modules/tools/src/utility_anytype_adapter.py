@@ -40,7 +40,6 @@ from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text, ensure_bin_home, ensure_path, warn_if_bin_not_on_path
 from modules.shared.src.taxonomy_xdg_paths import bin_home
 # --- inlined git-update helpers (self-contained, no utility-to-utility imports) ---
-import subprocess
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
     """Run a command silently, return result."""

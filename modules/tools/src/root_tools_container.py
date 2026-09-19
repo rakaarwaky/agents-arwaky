@@ -53,30 +53,11 @@ _ANYTYPE_DAEMON = SimpleNamespace(
     owned_paths=_anytype.daemon_owned_paths,
 )
 
-# P0-1 (interim): 9router and qwen-web expose their verbs as methods on
-# NinerouterAdapter / QwenWebAdapter classes, not as module-level functions.
-# Mirror the _ANYTYPE_DAEMON pattern — register a SimpleNamespace over an
-# instance so the capabilities can call adapter.satisfied(...) etc.
-# Follow-up (AES404): convert both classes to module-level functions and
-# register the modules directly, dropping these wrappers.
-_NINEROUTER = _ninerouter.NinerouterAdapter()
-_QWEN_WEB = _qwen_web.QwenWebAdapter()
-
-_NINEROUTER_NS = SimpleNamespace(
-    satisfied=_NINEROUTER.satisfied,
-    install=_NINEROUTER.install,
-    is_pin_satisfied=_NINEROUTER.is_pin_satisfied,
-    update=_NINEROUTER.update,
-    owned_paths=_NINEROUTER.owned_paths,
-)
-
-_QWEN_WEB_NS = SimpleNamespace(
-    satisfied=_QWEN_WEB.satisfied,
-    install=_QWEN_WEB.install,
-    is_pin_satisfied=_QWEN_WEB.is_pin_satisfied,
-    update=_QWEN_WEB.update,
-    owned_paths=_QWEN_WEB.owned_paths,
-)
+# AES404 (P0-1 follow-up): 9router and qwen-web now expose their verbs as
+# module-level functions (stateless utility layer) like the other adapters,
+# so they are registered directly — no instance or SimpleNamespace wrapper.
+# The `is_daemon` flag that lived on NinerouterAdapter is no longer needed:
+# daemon behaviour is driven by DAEMON_TOOL_IDS in taxonomy_tools_constant.
 
 TOOLS_REGISTRY: dict[str, object] = {
     "anytype": _anytype,
@@ -87,9 +68,9 @@ TOOLS_REGISTRY: dict[str, object] = {
     "fetch": _fetch,
     "lint": _lint,
     "mnemosyne": _mnemosyne,
-    "9router": _NINEROUTER_NS,
+    "9router": _ninerouter,
     "ponytail": _ponytail,
-    "qwen-web": _QWEN_WEB_NS,
+    "qwen-web": _qwen_web,
     "vision": _vision,
     "workspace": _workspace,
 }

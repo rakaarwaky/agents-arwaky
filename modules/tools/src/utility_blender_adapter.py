@@ -26,7 +26,6 @@ from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
 # --- inlined git-update helpers (self-contained, no utility-to-utility imports) ---
 import datetime
 import json
-import subprocess
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
     """Run a command silently, return result."""
@@ -221,7 +220,6 @@ def ensure_venv(tool_name: str, force: bool = False) -> Path:
             print(f"  [skip] Venv already exists at {venv_dir}")
             return python_bin
         print(f"  [update] Recreating venv at {venv_dir}...")
-        import shutil
         shutil.rmtree(venv_dir)
     else:
         print(f"  [install] Creating venv at {venv_dir}...")
@@ -242,7 +240,6 @@ def install_package(python_bin: Path, src_dir: Path, tool_name: str) -> None:
 
 def setup_bin_links(python_bin: Path, launchers: list[tuple[str, str]]) -> None:
     """Create symlinks in ~/.local/bin/. launchers = [(name, entrypoint), ...]"""
-    import contextlib
     ensure_bin_home()
     local_bin = bin_home()
     venv_bin_dir = python_bin.parent

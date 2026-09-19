@@ -147,7 +147,11 @@ class ToolsOrchestrator(IToolsAggregate):
         return self._runner.run(spec, args, self._root)
 
     def executable_path(self, spec: ToolSpec) -> Path | None:
-        """Discover the launch path (read-only) for the CLI surface."""
+        """Discover the launch path (read-only) for the CLI surface.
+
+        Still used by root_cli_entry.py's legacy executable_path() helper
+        (P1-6 kept this method; only find_executable/execute were dead).
+        """
         self._require(self._runner, "run")
         return self._runner.discover(spec, self._root)
 

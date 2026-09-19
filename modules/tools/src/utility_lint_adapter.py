@@ -21,7 +21,6 @@ from modules.shared.src.taxonomy_core_error import ToolUpdateError
 # --- inlined helper dependencies (self-contained; AES404: no utility-to-utility imports) ---
 import tempfile
 # --- inlined git-update helpers (self-contained, no utility-to-utility imports) ---
-import subprocess
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
     """Run a command silently, return result."""
@@ -353,7 +352,6 @@ def update(spec, root: Path) -> list[Path]:
 
 # -- teardown data --------------------------------------------------------------
 def owned_paths(spec, root: Path | None = None) -> list[Path]:
-    from modules.shared.src.taxonomy_xdg_paths import bin_home
 
     extra = [bin_home() / "lac"]
     return generic_owned(

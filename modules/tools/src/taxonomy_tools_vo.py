@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from typing import NewType
 
-from modules.shared.src.taxonomy_manifest_vo import Tool
 from modules.shared.src.taxonomy_tool_vo import (
     InstallResult as _InstallResult,
 )
@@ -43,7 +42,6 @@ ExitCode = NewType("ExitCode", int)
 __all__ = [
     "ExitCode",
     "InstallResult",
-    "Tool",
     "ToolQuery",
     "ToolSpec",
     "UninstallResult",
