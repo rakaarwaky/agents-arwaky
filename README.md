@@ -126,23 +126,17 @@ agents-arwaky/
 │   ├── mnemosyne/               # Universal local AI memory layer & temporal graph
 │   └── ponytail/                # Agent architecture patterns & instructions
 │
-└── tools/                       # Orchestration, CI & XDG Infrastructure (Python)
-    ├── cli/                     # Unified CLI entrypoint & dispatcher (arwaky.py)
+├── modules/                     # AES 7-layer orchestration (taxonomy→…→root)
+│   ├── shared/src/<domain>/     # Shared domains: xdg, manifest, config, tool, skill, harness, …
+│   ├── installer/  updater/  uninstaller/  runner/    # Tool install/update/uninstall/run (data-driven)
+│   ├── daemon/  service/  mcp/  skill/  harness/  backup/  check/  doctor/  completion/
+│   └── cli/                     # Composition root wiring all feature modules
+│
+└── tools/                       # Orchestration entrypoint & static config (Python)
+    ├── cli/                     # Unified CLI launcher (arwaky.py)
     ├── config/                  # SSOT manifest.json, version.txt, daemon env templates
-    ├── lib/                     # Shared Python helpers (xdg, paths, manifest, ui, …)
-    ├── install/                 # Per-tool native installers (install_<tool>.py)
-    ├── uninstall/               # Per-tool uninstallers (uninstall_<tool>.py)
-    ├── mcp/                     # Unified MCP config generator (generate_config.py)
-    ├── connect/                 # Harness connector (connect.py + per-harness adapters)
-    ├── skill/                   # Agent skill manager (skill.py)
-    ├── skills/                  # Provisionable skill packs (SKILL.md, 80+)
-    ├── service/                 # Background service manager (9router, anytype)
-    ├── daemons/                 # Anytype & 9Router daemon managers
     ├── deploy/                  # Podman/systemd deployment units (Containerfile, .service)
-    ├── backup/                  # Backup/restore manager (+ Google Drive helper)
-    ├── sync/                    # One-shot ecosystem sync (sync_all.py)
-    ├── completion/              # Shell tab-completion generator
-    └── build/                   # Version bump & build utilities
+    └── tests/                   # Quality-gate test suite (108 tests)
 ```
 
 ---
@@ -234,7 +228,6 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
 | `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
 | `aa service [action] [target]`           | Unified manager for background services (`status`, `start`, `stop`, `restart`, `logs`)              | `aa service status`                            |
-| `aa sync [options]`                      | One-shot ecosystem update (submodules, binary exports, MCP configs, harnesses, and verify)          | `aa sync`                                      |
 | `aa completion [bash\|zsh\|--install]`   | Shell tab completion generator and persistent installer                                            | `aa completion --install`                      |
 | `aa check`                               | Run quality gate verification (JSON syntax, Python compile, document invariants, skill pack, shellcheck)                                                        | `aa check`                                     |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
@@ -267,7 +260,7 @@ aa tool run lint --help
 ## 📦 Agent & Tool Catalog
 
 > [!TIP]
-> The single source of truth (SSOT) for all tool registrations is [`tools/config/manifest.json`](tools/config/manifest.json). You can also run `aa tool list` or `aa mcp list` to inspect live tool status from the terminal.
+> The single source of truth (SSOT) for all tool registrations is [`config/manifest.json`](config/manifest.json). You can also run `aa tool list` or `aa mcp list` to inspect live tool status from the terminal.
 
 ### Core In-House Agents (`internal/`)
 
@@ -279,8 +272,8 @@ Specialized autonomous agents developed specifically for the `agents-arwaky` eco
 | **[vision-arwaky](internal/vision-arwaky/)**     | `vision-arwaky` (`va`, `vision-arwaky-cli`, `vision-arwaky-mcp`, `vision-arwaky-tui`) | Python /`uv`        | **Yes** (`vision-arwaky-mcp`) | Unified vision intelligence: VLM inspection, OCR extraction, and visual memory.                                                                                                                |
 | **[qwen-web-arwaky](internal/qwen-web-arwaky/)** | `qwen-web-arwaky` (`qwa`, `qwc`, `qwen-web-cli`, `qwen-web-mcp`)                      | Python / Playwright |   **Yes** (`qwen-web-mcp`)   | Browser automation engine with bi-directional MCP interface.                                                                                                                                   |
 | **[blender-arwaky](internal/blender-arwaky/)**   | `blender-arwaky` (`ba`, `blender-mcp`)                                                | Python / Blender    |    **Yes** (`blender-mcp`)    | Headless 3D procedural execution, asset generation, and rendering pipeline.                                                                                                                    |
-| **[anytype-daemon](tools/daemons/)**  | `anytype_daemon.py` (CLI: `aa anytype`)                                               | Python / Podman     |              No              | Headless Anytype daemon managing local-first encrypted P2P space sync for `anytype-mcp`.                                                                                                        |
-| **[skill](tools/skill/)**            | `skill-manager.sh` (CLI: `aa skill`)                                                | Python              |              No              | Agent skill manager: list, provision & uninstall skills across tools and workspaces.                                                |
+| **[anytype-daemon](modules/daemon/)**  | `aa anytype` (AES daemon module)   | Python / Podman     |              No              | Headless Anytype daemon managing local-first encrypted P2P space sync for `anytype-mcp`.                                                                                                        |
+| **[skill](modules/skill/)**            | `aa skill` (AES skill module)      | Python              |              No              | Agent skill manager: list, provision & uninstall skills across tools and workspaces.                                                |
 
 ### Curated Upstream Vendor Tools (`vendor/`)
 

@@ -21,11 +21,11 @@ Before making changes, please review our core architectural rules:
 
 2. **Strict XDG Base Directory Compliance:**
    - Never write persistent data or cache to the repository directory.
-   - Use [`tools/lib/xdg.py`](tools/lib/xdg.py) helper functions (`xdg_data_dir`, `xdg_config_dir`, `xdg_cache_dir`).
+   - Use [`modules/shared/src/`](modules/shared/src/) helpers (`data_home`, `config_home`, `cache_home`, `bin_home`, `tool_data_dir`, `tool_config_dir`).
    - Binary launchers are placed into `${XDG_BIN_HOME:-$HOME/.local/bin}` (host) or `${XDG_DATA_HOME}/<tool-name>/internal-bin` (container).
 
 3. **Single Source of Truth (SSOT):**
-   - [`tools/config/manifest.json`](tools/config/manifest.json) is the definitive registry of all tools. Any addition or deletion must update this file.
+   - [`config/manifest.json`](config/manifest.json) is the definitive registry of all tools. Any addition or deletion must update this file.
 
 ---
 
@@ -86,63 +86,39 @@ Ensure `.gitmodules` marks the submodule with `ignore = dirty` so local build ar
 
 ---
 
-### Step 2: Create Tool Installer (`tools/install/install_<tool>.py`)
+### Step 2: Implement Tool Runner (AES `modules/installer/`)
 
-Per-tool installers are **Python scripts**, discovered automatically from the manifest via [`tools/lib/tool_resolver.py`](tools/lib/tool_resolver.py) — there is no central build script to edit. Create `tools/install/install_<tool>.py`:
+Install/update/uninstall logic is **data-driven**: `modules/installer/src/capabilities_installer.py` (`ToolInstaller`), `modules/updater/src/capabilities_updater.py` (`ToolUpdater`), and `modules/uninstaller/src/capabilities_uninstaller.py` (`ToolUninstaller`) branch on the tool's `runner` field from `manifest.json` — there are no per-tool installer scripts. Add or adjust runner logic in these capability files instead.
 
-The installer must:
+Runner behavior requirements:
 
-- Resolve the repository root with [`tools/lib/paths.py`](tools/lib/paths.py) (`repo_root()`).
-- Resolve XDG paths with [`tools/lib/xdg.py`](tools/lib/xdg.py) (`bin_home()`, `data_home()`, `config_home()`, `ensure_bin_home()`).
-- Install or compile the tool into `$XDG_DATA_HOME/<tool>/` and write an executable launcher into `$XDG_BIN_HOME/<binary>` (see [`tools/lib/launcher_writer.py`](tools/lib/launcher_writer.py)).
+- Resolve the repository root with `modules.shared.src.paths` (`repo_root()`).
+- Resolve XDG paths with `modules.shared.src.xdg` (`bin_home()`, `data_home()`, `config_home()`, `ensure_bin_home()`).
+- Install or compile the tool into `$XDG_DATA_HOME/<tool>/` and write an executable launcher into `$XDG_BIN_HOME/<binary>` (see `modules/installer/src/capabilities_launcher_writer.py`).
 
-#### Example: Python Tool via `uv`
+#### Example: Python Tool via `uv` (runner logic inside `capabilities_tool_install.py`)
 
 ```python
-#!/usr/bin/env python3
-"""Install my-cool-tool from vendor/ into XDG prefixes."""
-from pathlib import Path
-import subprocess, sys
-
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools" / "lib"))
-from paths import repo_root
-from xdg import bin_home, data_home, ensure_bin_home
-
-def main() -> int:
+def install_uv_runner(self, tool: Tool) -> InstallResult:
+    """Install a Python tool that ships with its own pyproject.toml."""
     root = repo_root()
-    vendor = root / "vendor" / "my-cool-tool"
+    vendor = root / tool.path
     if not vendor.exists():
-        print("Error: upstream source not found; run 'aa submodules' first.")
-        return 1
-    target = data_home() / "my-cool-tool"
-    subprocess.run(["uv", "venv", str(target / "venv")], check=False)
-    subprocess.run(
-        ["uv", "pip", "install", "-e", str(vendor), "--python", str(target / "venv")],
-        check=True,
-    )
-    launcher = bin_home() / "my-cool-tool-mcp"
-    launcher.write_text(
-        "#!/usr/bin/env bash
-"
-        'exec "$HOME/.local/share/my-cool-tool/venv/bin/my-cool-tool" "$@"
-'
-    )
-    launcher.chmod(0o755)
+        return InstallResult.fail("upstream source not found; run 'aa submodules' first")
+    target = tool_data_dir(tool.id)
+    run(["uv", "venv", str(target / "venv")])
+    run(["uv", "pip", "install", "-e", str(vendor), "--python", str(target / "venv")])
+    write_launcher(bin_home() / tool.binary, f"{target}/venv/bin/{tool.binary}")
     ensure_bin_home()
-    print(f"Installed my-cool-tool -> {launcher}")
-    return 0
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    return InstallResult.ok(tool.binary)
 ```
 
-> For a complete reference, mirror an existing installer such as [`tools/install/install_ponytail.py`](tools/install/install_ponytail.py) (Python) or [`tools/install/install_lint.py`](tools/install/install_lint.py) (Rust).
+> For a complete reference, read the existing runner branches in [`modules/installer/src/capabilities_installer.py`](modules/installer/src/capabilities_installer.py) (Python `uv`, Rust `cargo`, Node `pnpm`, and MCP variants).
 
-The script must:
+Bash-based runners (if a tool still ships a script) must:
 
 - Start with `#!/usr/bin/env bash` and `set -euo pipefail`.
-- Source `tools/lib/xdg.py`.
+- Resolve XDG paths via `modules.shared.src.xdg` (Python) or export `XDG_*` variables inline.
 - Install or compile the tool into `$XDG_DATA_HOME/<tool-name>/`.
 - Create an executable wrapper/launcher in `$XDG_BIN_HOME/<binary-name>`.
 
@@ -155,7 +131,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$REPO_ROOT/tools/lib/xdg.py"
+# XDG defaults (mirrors modules.shared.src.xdg)
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
 VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
 TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
@@ -202,7 +180,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$REPO_ROOT/tools/lib/xdg.py"
+# XDG defaults (mirrors modules.shared.src.xdg)
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
 VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
 TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
@@ -240,7 +220,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$REPO_ROOT/tools/lib/xdg.py"
+# XDG defaults (mirrors modules.shared.src.xdg)
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
 VENDOR_DIR="$REPO_ROOT/vendor/my-cool-tool"
 TARGET_DIR="$XDG_DATA_HOME/my-cool-tool"
@@ -263,9 +245,9 @@ echo ">>> Successfully installed my-cool-tool -> $LAUNCHER"
 
 ---
 
-### Step 3: Register in Manifest (`tools/config/manifest.json`)
+### Step 3: Register in Manifest (`modules/shared/config/manifest.json`)
 
-Add the tool entry to the `"tools"` array in [`tools/config/manifest.json`](tools/config/manifest.json):
+Add the tool entry to the `"tools"` array in [`config/manifest.json`](config/manifest.json):
 
 ```json
 {
@@ -287,9 +269,9 @@ Add the tool entry to the `"tools"` array in [`tools/config/manifest.json`](tool
 
 ---
 
-### Step 4: Create Uninstaller (Recommended)
+### Step 4: Handle Uninstall (AES `modules/uninstaller/`)
 
-There is **no master build script** to update — installers are discovered automatically from `manifest.json`. For clean removals, mirror your installer with `tools/uninstall/uninstall_<tool>.py` (see existing uninstallers under [`tools/uninstall/`](tools/uninstall/)).
+There is **no master build script** to update — uninstall logic lives in [`modules/uninstaller/src/capabilities_uninstaller.py`](modules/uninstaller/src/capabilities_uninstaller.py) (`ToolUninstaller`), dispatched from the same manifest `runner` field. For clean removals, ensure the runner branch removes `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
 
 ---
 
@@ -308,23 +290,7 @@ aa tool list
 
 If your tool provides an MCP server (`isMcp: true`):
 
-1. Edit [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py) to include the server definition inside the JSON template:
-   ```json
-   "my-cool-tool": {
-     "command": "my-cool-tool-mcp"
-   }
-   ```
-2. If your tool needs arguments or environment variables:
-   ```json
-   "my-cool-tool": {
-     "command": "my-cool-tool-mcp",
-     "args": ["serve"],
-     "env": {
-       "SOME_KEY": "some_value"
-     }
-   }
-   ```
-3. No generator edits are required — [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py) derives MCP servers directly from `manifest.json` (`isMcp: true`).
+1. No generator edits are required — [`modules/mcp/src/capabilities_mcp_generator.py`](modules/mcp/src/capabilities_mcp_generator.py) derives MCP servers directly from `manifest.json` (`isMcp: true`).
 4. Regenerate the client configuration:
    ```bash
    aa mcp generate
@@ -348,7 +314,7 @@ aa tool install my-cool-tool
    ```markdown
    | `vendor/my-cool-tool` | [example-org/my-cool-tool](https://github.com/example-org/my-cool-tool) | `a1b2c3d4` | MIT License |
    ```
-2. **Catalog Update:** Add a row to the **Curated Upstream Vendor Tools** table in [`README.md`](README.md). Ensure the tool is registered in [`tools/config/manifest.json`](tools/config/manifest.json).
+2. **Catalog Update:** Add a row to the **Curated Upstream Vendor Tools** table in [`README.md`](README.md). Ensure the tool is registered in [`config/manifest.json`](config/manifest.json).
 
 ---
 
@@ -379,14 +345,15 @@ When deprecating or removing an upstream tool, follow this procedure to ensure c
 
 ### Step 1: De-register from Manifest
 
-Open [`tools/config/manifest.json`](tools/config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
+Open [`config/manifest.json`](config/manifest.json) and remove the object matching the tool's ID from `.tools[]`. Ensure the remaining JSON is valid.
 
-### Step 2: Remove Installer & Uninstaller Scripts
+### Step 2: Remove Runner Logic (if tool-specific)
 
-Delete the per-tool scripts under `tools/`:
+If the tool had a custom `runner` branch, remove it from `modules/installer/src/capabilities_installer.py` and `modules/uninstaller/src/capabilities_uninstaller.py`:
+
 ```bash
-rm -f tools/install/install_my_cool_tool.py
-rm -f tools/uninstall/uninstall_my_cool_tool.py
+# verify no dangling references remain
+grep -rn "my-cool-tool" modules/installer/src/ modules/updater/src/ modules/uninstaller/src/
 ```
 
 ### Step 3: Remove from Local Install
@@ -394,25 +361,19 @@ rm -f tools/uninstall/uninstall_my_cool_tool.py
 No binary exporter array to maintain — uninstall by removing `~/.local/bin/<binary>` and `~/.local/share/<tool>/`.
 
 ### Step 4: Regenerate MCP Configuration (If Applicable)
-No generator edits are required — [`tools/mcp/generate_config.py`](tools/mcp/generate_config.py) derives MCP servers from `manifest.json`. After removing the manifest entry, re-run:
+No generator edits are required — [`modules/mcp/src/capabilities_mcp_generator.py`](modules/mcp/src/capabilities_mcp_generator.py) derives MCP servers from `manifest.json`. After removing the manifest entry, re-run:
 ```bash
 aa mcp generate
 ```
 
-### Step 5: Remove Tool Setup Scripts
-Remove any remaining per-tool setup files:
-```bash
-rm -f tools/install/install_my_cool_tool.py tools/uninstall/uninstall_my_cool_tool.py
-```
-
-### Step 6: Uninstall & Clean Host State (If Installed)
+### Step 5: Uninstall & Clean Host State (If Installed)
 Purge any lingering binaries and share directories from the host:
 ```bash
 aa tool uninstall my-cool-tool
 aa clean
 ```
 
-### Step 7: De-initialize and Remove Git Submodule
+### Step 6: De-initialize and Remove Git Submodule
 
 Use Git to cleanly purge the submodule:
 
@@ -427,12 +388,12 @@ git rm -f vendor/my-cool-tool
 rm -rf .git/modules/vendor/my-cool-tool
 ```
 
-### Step 8: Update Documentation & Licenses
+### Step 7: Update Documentation & Licenses
 
 - Remove the tool entry from [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
-- Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`tools/config/manifest.json`](tools/config/manifest.json).
+- Remove the tool row from the catalog table in [`README.md`](README.md) and de-register from [`config/manifest.json`](config/manifest.json).
 
-### Step 9: Verify Cleanliness
+### Step 8: Verify Cleanliness
 
 Execute the verification suite to ensure no broken references remain:
 ```bash
@@ -524,6 +485,6 @@ We follow standard Conventional Commits:
 When submitting a PR, ensure:
 - [ ] Submodule pointers are updated cleanly without detached state conflicts.
 - [ ] New shell scripts include `set -euo pipefail` and executable bits (`chmod +x`).
-- [ ] `tools/config/manifest.json` is updated and validated with `jq`.
+- [ ] `modules/shared/config/manifest.json` is updated and validated with `jq`.
 - [ ] `THIRD_PARTY_LICENSES.md` lists the upstream license and commit.
 - [ ] `aa check` passes with zero errors.
