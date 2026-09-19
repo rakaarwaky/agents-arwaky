@@ -34,14 +34,85 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
     warn_if_bin_not_on_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_tool_mechanics import (
-    NODE_IGNORES,
-    ROOT,
-    copy_app,
-    generic_owned,
-    run,
-    write_node_launcher,
-)
+
+# --- inlined helper dependencies (self-contained; AES404: no utility-to-utility imports) ---
+from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
+from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text, ensure_bin_home, ensure_path, warn_if_bin_not_on_path
+from modules.shared.src.taxonomy_xdg_paths import bin_home
+
+NODE_IGNORES = [
+    "node_modules", ".git", "__pycache__", "target", "*.egg-info",
+    ".venv", "venv", "*.tsbuildinfo",
+]
+
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
+
+ROOT = REPO_ROOT
+
+def copy_app(src: Path, app_dir: Path, ignore_patterns: list[str]) -> None:
+    """Replace *app_dir* with a copy of *src*, dropping the listed patterns."""
+    ignore = shutil.ignore_patterns(*ignore_patterns)
+    if app_dir.exists():
+        shutil.rmtree(app_dir)
+    shutil.copytree(src, app_dir, ignore=ignore)
+
+def generic_owned(
+    spec,
+    launcher_names: list[str],
+    *,
+    extra: list[Path] | None = None,
+    config: list[str] | None = None,
+) -> list[Path]:
+    """Generic XDG owned set for one tool: bin launchers + data + cache.
+
+    Adapters extend it with tool-specific extras (internal-bin copies,
+    env files, daemon units) via *extra* and with installer-owned
+    config subtrees (``config_home() / name``) via *config*.
+    """
+    from modules.shared.src.taxonomy_xdg_paths import cache_home, config_home, data_home
+
+    paths: list[Path] = [bin_home() / name for name in launcher_names]
+    paths.append(data_home() / spec.id)
+    paths.append(cache_home() / spec.id)
+    for name in config or []:
+        paths.append(config_home() / name)
+    paths.extend(extra or [])
+    return paths
+
+def run(cmd: list[str], cwd: Path | str | None = None) -> None:
+    """Run with check=True; raises subprocess.CalledProcessError on failure."""
+    subprocess.run(cmd, cwd=str(cwd) if cwd else None, check=True)
+
+def write_node_launcher(name: str, entry: Path) -> Path:
+    """Write a node entry launcher via the shared launcher writer."""
+    # inlined: write_node_entry_launcher is defined below in this same file
+    launcher = write_node_entry_launcher(name, entry)
+    print(f"  -> {launcher}")
+    return launcher
+
+def write_node_entry_launcher(name: str, entry: Path, aliases: list[str] | None = None) -> Path:
+    """Write a launcher that execs `node <entry>` in XDG bin. Returns launcher path."""
+    content = (
+        "#!/usr/bin/env python3\n"
+        f"# {PROVENANCE_MARKER}\n"
+        "import os, sys\n"
+        f'entry = r"{entry}"\n'
+        'os.execvpe("node", ["node", entry, *sys.argv[1:]], os.environ.copy())\n'
+    )
+    return write_generic_launcher(name, content, aliases=aliases)
+
+def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | None = None) -> Path:
+    """Write a generic launcher with aliases. Returns launcher path."""
+    ensure_bin_home()
+    launcher = bin_home() / tool_name
+    atomic_write_text(launcher, content)
+    for alias in (aliases or []):
+        a = bin_home() / alias
+        a.unlink(missing_ok=True)
+        a.symlink_to(launcher)
+    warn_if_bin_not_on_path()
+    ensure_path()
+    return launcher
 
 # ---------------------------------------------------------------------------
 # anytype-mcp
