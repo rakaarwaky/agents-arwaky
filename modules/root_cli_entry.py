@@ -21,10 +21,10 @@ Delegated verbs (skill/connect/disconnect/daemon/service/backup/
 completion) keep calling the module surface functions, which contain the
 original bodies verbatim (see the module surface docstrings).
 
-The dispatch table itself lives in
-:mod:`modules.cli.src.surface_cli_router`; ``main`` below mirrors the
-original ``main()`` exactly (sentry + correlation id + global-flag
-stripping + dispatch-table routing + unknown-command fallback).
+The dispatch table and ``main`` entry point live in this module — the single
+``aa`` binary entry point (sentry + correlation id + global-flag stripping +
+dispatch-table routing + unknown-command fallback), ported verbatim from the
+original ``tools/cli/arwaky.py`` ``main()``.
 """
 from __future__ import annotations
 
@@ -900,6 +900,39 @@ def _installer_registry_ids() -> set:
 # =============================================================================
 # Main dispatcher (original main() body, verbatim)
 # =============================================================================
+def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
+    """Route argv[0] to the right verb handler (1:1 port of the surface table)."""
+    if not argv:
+        return cmd_help([])
+    cmd = argv[0]
+    rest = argv[1:]
+    dispatch_table = {
+        # Meta / status
+        "status": cmd_status, "doctor": cmd_doctor,
+        "check": cmd_check, "submodules": cmd_submodules, "clean": cmd_clean,
+        "reset": cmd_reset, "version": cmd_version, "--version": cmd_version,
+        "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
+        # Core noun-verb (canonical)
+        "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
+        "docs": cmd_docs,
+        "connect": cmd_connect, "disconnect": cmd_disconnect,
+        "mcp": cmd_mcp, "completion": cmd_completion,
+        # Daemons & services
+        "anytype": cmd_anytype, "9router": cmd_9router, "service": cmd_service,
+        "backup": cmd_backup, "restore": cmd_restore,
+        # Backward compat aliases → noun verb (deprecated, prefer aa tool/aa skill)
+        "install": cmd_install, "update": cmd_update, "uninstall": cmd_uninstall,
+        "list": cmd_list, "ls": cmd_list, "run": cmd_run,
+    }
+    handler = dispatch_table.get(cmd)
+    if not handler:
+        err(f"Unknown command: {cmd}")
+        print()
+        cmd_help([])
+        return 1
+    return handler(rest)
+
+
 def _gen_correlation_id() -> str:
     """Generate short correlation ID (P1-O4) for multi-step ops."""
     import uuid
@@ -937,10 +970,6 @@ def main(argv: list[str]) -> int:
     if "-q" in argv or "--quiet" in argv:
         set_verbosity("warning")
         argv = [a for a in argv if a not in ("-q", "--quiet")]
-    # Defer to the surface dispatch table via importlib (no static root->surface
-    # edge — AES205).
-    import importlib
-    _dispatch = importlib.import_module("modules.cli.src.surface_cli_router").dispatch
     return _dispatch(argv)
 
 

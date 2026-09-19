@@ -70,7 +70,7 @@ archive under the XDG data dir.
 | System | Direction | Purpose | Failure mode |
 | `modules/shared` (xdg_paths) | in | tool data/cache dirs to archive | missing XDG home → paths error |
 | host filesystem / Google Drive | out | archive storage | unwritable dest / Drive auth fail → non-zero |
-| `modules/cli` surface | in | `aa backup` | pass-through |
+| `modules/root_cli_entry.py` (root) | in | `aa backup` | pass-through |
 
 ## Non-functional Requirements
 

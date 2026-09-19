@@ -60,7 +60,7 @@ report per check, one exit code.
 | System | Direction | Purpose | Failure mode |
 | host (python, git, pkg managers, XDG) | in | env probes | missing toolchain → FAIL row |
 | `config/manifest.json` | in | tool list for readiness | missing entry → skipped |
-| `modules/cli` surface | in | `aa doctor` | pass-through |
+| `modules/root_cli_entry.py` (root) | in | `aa doctor` | pass-through |
 
 ## Non-functional Requirements
 
