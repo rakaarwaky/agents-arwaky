@@ -12,18 +12,22 @@
 
 The installer owns bare-metal installation of every tool registered in
 `config/manifest.json`. Capabilities are organised by **business action**, not by
-tool or runner family: two `capabilities_installer_<action>.py` modules implement
-the aggregate contract. Per-runner mechanics (cargo / uv / bun / pnpm / npm /
-pip-venv command sequences, cache dirs, build flags, artifact locations) live in
-the utility layer as stateless leaf adapters (`utility_<runner>_adapter.py`) that
-know only how to drive one package-manager family and where it puts its artifacts.
-`agent_installer_orchestrator.py` is the single agent: it resolves the target tool
-set from the manifest, selects the adapter keyed on the manifest's `runner` field,
-and drives the capabilities in order. Adding a tool is a manifest entry, never a
-new module; adding a runner family is one new adapter.
+tool: two `capabilities_installer_<action>.py` modules implement the aggregate
+contract. Per-tool mechanics (the exact command sequence a given tool needs — its
+package-manager family, cache dirs, build flags, artifact locations, entry points,
+optional extras) live in the utility layer as stateless leaf adapters named after
+the tool (`utility_<tool>_adapter.py`, e.g. `utility_mnemosyne_adapter.py`,
+`utility_context7_adapter.py`). Each adapter knows how to install exactly one tool
+and nothing else; shared primitives (copytree, atomic binary install, launcher
+write, venv create, XDG path resolution) stay in `modules/shared` and are called by
+the adapters rather than duplicated. `agent_installer_orchestrator.py` is the
+single agent: it resolves the target tool set from the manifest, selects the
+adapter keyed on the manifest's `id`, and drives the capabilities in order. Adding
+a tool is a manifest entry plus one new per-tool adapter; there is no generic
+runner-family adapter.
 
 Flow: CLI surface → `ToolOrchestrator.install(spec)` → `InstallerOrchestrator`
-(manifest read, adapter selection) → `capabilities_installer_provisioner.py`
+(manifest read, adapter selection by id) → `capabilities_installer_provisioner.py`
 (satisfied check → build/install via the selected adapter) →
 `capabilities_installer_launcher.py` (XDG bin registration) → report.
 
@@ -40,9 +44,9 @@ under XDG bin is what the runner later discovers).
 
 - **Description**: `provision(spec, adapter)` ensures the tool named by a
   `ToolSpec` exists on the host at the version/commit the manifest pins, invoking
-  the supplied runner adapter only when needed.
+  the supplied per-tool adapter only when needed.
 - **Input**: `ToolSpec` (id, category, binary, path, runner, is_mcp, alias,
-  mcp_binary), a selected `IRunnerAdapter`, dry-run flag.
+  mcp_binary), a selected `IToolAdapter`, dry-run flag.
 - **Output**: `InstallResult` (success flag, message, artifact paths touched,
   skip reason when idempotent).
 - **Business Rules**: first step is a satisfied check — if the installed binary
@@ -55,8 +59,8 @@ under XDG bin is what the runner later discovers).
   side effects. Post-install health probe (`<binary> --version` agreement with
   the pin) is the final step of this flow, folded into the same business action.
 - **Edge Cases**: unknown id → orchestrator-level typed error, no capability
-  invoked; unsupported `runner` value → typed error naming the runner and the
-  registered set; adapter present but toolchain missing on host →
+  invoked; a manifest tool with no registered adapter → typed error naming the id
+  and the registered set; adapter present but its toolchain missing on host →
   `InstallResult(success=False)` with the adapter's captured diagnostic.
 - **Error Handling**: every failure path returns
   `InstallResult(success=False, message)`; the capability never raises out of
@@ -86,57 +90,63 @@ under XDG bin is what the runner later discovers).
 
 ## API Contract
 
-| Operation | Input | Output | Error Shape | impl / intended |
-|-----------|-------|--------|-------------|------------------------------|
-| `IToolProvisioner.provision` | `ToolSpec, IRunnerAdapter, bool` | `InstallResult` | `InstallResult(success=False, message)` | intended |
-| `IToolLauncherRegistrar.register_launcher` | `ToolSpec, InstallResult` | launcher paths / skip note | folded into `InstallResult` | intended |
-| `IRunnerAdapter.install` | spec fields, XDG dirs | artifact paths | raised `AdapterError` caught by provisioner | intended |
-| `InstallerOrchestrator._ADAPTERS` | dict[str, type] keyed on runner | adapter classes | typed error on unknown runner | intended |
+
+| Operation                                  | Input                       | Output                     | Error Shape                                | impl / intended |
+| -------------------------------------------- | ---------------------------------- | ---------------------------- | -------------------------------------------- | ----------------- |
+| `IToolProvisioner.provision`               | `ToolSpec, IToolAdapter, bool` | `InstallResult`            | `InstallResult(success=False, message)`    | intended        |
+| `IToolLauncherRegistrar.register_launcher` | `ToolSpec, InstallResult`        | launcher paths / skip note | folded into `InstallResult`                 | intended        |
+| `IToolAdapter.install`                     | spec fields, XDG dirs            | artifact paths             | raised `AdapterError` caught by provisioner | intended        |
+| `InstallerOrchestrator._ADAPTERS`          | dict[str, type] keyed on tool id | adapter classes            | typed error on unknown id                  | intended        |
 
 ## Integration Points
 
-| System | Direction | Purpose | Failure mode |
-|--------|-----------|---------|--------------|
-| `config/manifest.json` | in | tool ids, runner, binary, path, alias | missing entry → orchestrator typed error |
-| `modules/shared` (xdg_paths, venv, retry, launcher_writer) | out | path resolution, venv create, shell-out, launcher write mechanics | XDG home unset → paths error |
-| `modules/runner` (ToolOrchestrator aggregate) | in | single `install(spec)` call | none — pass-through |
-| host package managers (cargo, uv, bun, pnpm, npm, pip) | out | actual install work, behind adapters | command not found → `InstallResult` failure |
+
+| System                                                     | Direction | Purpose                                                           | Failure mode                                |
+| ------------------------------------------------------------ | ----------- | ------------------------------------------------------------------- | --------------------------------------------- |
+| `config/manifest.json`                                     | in        | tool ids, runner, binary, path, alias                             | missing entry → orchestrator typed error   |
+| `modules/shared` (xdg_paths, venv, retry, launcher_writer) | out       | path resolution, venv create, shell-out, launcher write mechanics | XDG home unset → paths error               |
+| `modules/runner` (ToolOrchestrator aggregate)              | in        | single `install(spec)` call                                        | none — pass-through                        |
+| host package managers (cargo, uv, bun, pnpm, npm, pip)     | out       | actual install work, driven by each per-tool adapter              | command not found → `InstallResult` failure |
 
 ## Non-functional Requirements
 
-| Metric | Target | Measurement method |
-|--------|--------|--------------------|
-| Capability count | exactly 2 capability modules (`provisioner`, `launcher`); zero per-tool/per-runner capability files | `ls modules/installer/src/capabilities_*.py` |
-| Adapter purity | adapters are leaf utilities: no imports from capabilities/agent/root/contract layers | grep over `modules/installer/src/utility_*_adapter.py` returns empty |
-| No cross-module coupling | installer imports nothing from `modules/runner/` | import-graph check / grep |
-| Install determinism | same manifest pin → same binary path, re-runnable | `aa tool install <id>` twice on a clean XDG, compare `which <binary>` |
-| Idempotence | re-install of a satisfied pin is a no-op success; adapter never invoked | run `aa tool install <id>` twice; second run reports no action |
-| No repo writes | install never writes under the repo root | after install, `git status --porcelain` in worktree is clean |
+
+| Metric                   | Target                                                                                              | Measurement method                                                    |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Capability count         | exactly 2 capability modules (`provisioner`, `launcher`); zero per-tool capability files (per-tool mechanics live in utilities, not capabilities) | `ls modules/installer/src/capabilities_*.py`                          |
+| Adapter granularity      | one `utility_<tool>_adapter.py` per manifest tool id; no generic runner-family adapter                | `ls modules/installer/src/utility_*_adapter.py` vs manifest id count  |
+| Adapter purity           | adapters are leaf utilities: no imports from capabilities/agent/root/contract layers                | grep over `modules/installer/src/utility_*_adapter.py` returns empty   |
+| No cross-module coupling | installer imports nothing from `modules/runner/`                                                     | import-graph check / grep                                             |
+| Install determinism      | same manifest pin → same binary path, re-runnable                                                  | `aa tool install <id>` twice on a clean XDG, compare `which <binary>` |
+| Idempotence              | re-install of a satisfied pin is a no-op success; adapter never invoked                             | run `aa tool install <id>` twice; second run reports no action         |
+| No repo writes           | install never writes under the repo root                                                            | after install, `git status --porcelain` in worktree is clean           |
 
 ## Test Scenarios
 
-- Installing a known tool id on a clean host yields a working binary on PATH via its runner adapter.
+- Installing a known tool id on a clean host yields a working binary on PATH via its per-tool adapter.
 - Installing an unknown tool id fails with a typed error at the orchestrator, not a crash.
 - Re-installing a satisfied tool id is idempotent — the adapter is never invoked.
-- A tool whose manifest `runner` has no registered adapter fails with a typed error naming the runner.
+- A manifest tool with no registered adapter fails with a typed error naming the id.
 - Dry-run provisioning reports the planned adapter call and leaves the filesystem untouched.
 - After install, the launcher (and each alias) exists under XDG bin and forwards args to the resolved binary.
 - A foreign launcher without a provenance marker at the target path is reported as residual, not overwritten.
 
 ## Assumptions & Constraints
 
-- Host is Linux bare-metal with the per-runner toolchain preinstalled (P0 invariant).
+- Host is Linux bare-metal with the per-tool toolchain preinstalled (P0 invariant).
 - `config/manifest.json` is present at the resolved repo root (anchor for `repo_root()`).
 - XDG dirs are resolvable; live secrets are never read from the repo tree.
 - Update and uninstall are separate feature modules (`modules/updater`,
   `modules/uninstaller`); this FRD covers the zero-to-installed transition only.
 - Migration state: today's 14 per-tool `capabilities_<tool>_installer.py` and the
-  god-file `utility_installer_base.py` are superseded by this model; the
-  restructure is tracked in BACKLOG.md, not performed by this document.
+  god-file `utility_installer_base.py` are superseded by this model — the per-tool
+  mechanics move from the capability layer into per-tool leaf adapters, and the
+  capability layer collapses to the two business actions. The restructure is
+  tracked in BACKLOG.md, not performed by this document.
 
 ## Glossary
 
-- **runner family**: the host package-manager a tool installs through (cargo / uv / bun / pnpm / npm / pip-venv). Distinct from `modules/runner/`, which executes installed tools.
-- **adapter**: a stateless leaf utility that knows one runner family's command sequence and artifact locations.
+- **per-tool adapter**: a stateless leaf utility (`utility_<tool>_adapter.py`) that knows how to install exactly one manifest tool — its package-manager sequence, cache dirs, build flags, and artifact locations. Distinct from a hypothetical generic runner-family adapter, which this design does not use.
+- **runner family**: the host package-manager a tool installs through (cargo / uv / bun / pnpm / npm / pip-venv). Recorded on the manifest entry and honoured inside the tool's own adapter; distinct from `modules/runner/`, which executes installed tools.
 - **manifest pin**: the committed submodule commit a tool's `path` points at.
 - **satisfied check**: comparison of installed binary/version against the manifest pin that gates idempotent skip.
