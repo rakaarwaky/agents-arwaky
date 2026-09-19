@@ -13,8 +13,7 @@ from __future__ import annotations
 
 from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
-from modules.tools.src.utility_anytype_adapter import AnytypeAdapter
-from modules.tools.src.utility_anytype_daemon_adapter import AnytypeDaemonAdapter
+from modules.tools.src.utility_anytype_adapter import AnytypeAdapter, AnytypeDaemonAdapter
 from modules.tools.src.utility_blender_adapter import BlenderAdapter
 from modules.tools.src.utility_codegraph_adapter import CodegraphAdapter
 from modules.tools.src.utility_context7_adapter import Context7Adapter
