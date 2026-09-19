@@ -1,13 +1,14 @@
-"""Tools orchestrator — single agent driving the 8 lifecycle capabilities.
+"""Tools orchestrator — single agent driving the 4 verb capability classes.
 
 Resolves the target tool spec from the manifest (typed error on unknown ids
 BEFORE any capability runs), selects the unified per-tool adapter keyed on
-the manifest `id`, and drives the 8 business capabilities in verb order:
+the manifest `id`, and drives the 4 verb classes in order (each class is
+multi-method, two steps per verb):
 
-- install   : provisioner.provision(spec, adapter) -> launcher.register_launcher(spec, result)
-- update    : bumper.bump(spec, adapter)           -> recorder.record(spec, result)
-- uninstall : remover.remove(spec, adapter.owned_paths(spec, root)) -> verifier.verify(spec, result)
-- run_tool  : discoverer.discover(spec, root)       -> executor.execute(...)
+- install   : installer.provision(spec, adapter) -> installer.register_launcher(spec, result)
+- update    : updater.bump(spec, adapter)        -> updater.record(spec, result)
+- uninstall : uninstaller.remove(spec, adapter.owned_paths(spec, root)) -> uninstaller.verify(spec, result)
+- run_tool  : runner.discover(spec, root)        -> runner.execute(spec, exe, args, root)
 
 Adding a tool is a manifest entry plus one unified adapter — no
 orchestrator edit.

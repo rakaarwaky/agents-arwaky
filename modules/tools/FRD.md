@@ -14,9 +14,18 @@
 The tools feature owns the full lifecycle of every tool registered in
 `config/manifest.json`: install, update, uninstall, and run. One agent
 (`agent_tools_orchestrator.py`, the `ToolsOrchestrator` zero-I/O aggregate)
-drives **8 capabilities organised as 4 business-action pairs** (install:
-provisioner → launcher; update: bumper → recorder; uninstall: remover →
-verifier; run: discoverer → executor).
+drives **4 capability classes**, one per business-action verb, each
+exposing the verb's step-pair as multiple methods on the same class:
+
+- `InstallerCapability` — `provision(spec, adapter)` + `register_launcher(spec, install_result)`
+- `UpdaterCapability`   — `bump(spec, adapter)` + `record(spec, update_result)`
+- `UninstallerCapability` — `remove(spec, owned_paths)` + `verify(spec, uninstall_result)`
+- `RunnerCapability`    — `discover(spec, root)` + `execute(spec, exe, args, root)`
+
+Each step-pair is a sequential pipeline: the second method runs only after
+the first succeeds. One class per verb keeps the concern boundary identical
+to before (AES504); folding to 4 classes instead of 8 files is a flat
+concern-based choice, not an architectural one.
 
 Per-tool mechanics (package-manager family, build flags, artifact locations,
 launcher sets, daemon delegation) live in the utility layer as **13 unified
@@ -28,11 +37,12 @@ place — the duplication between the old installer and updater adapter pairs
 (AES305) is eliminated. Shared install helpers (`utility_launcher_writer.py`,
 `utility_venv_helpers.py`, `utility_adapter_base.py`, `utility_lint_helpers.py`)
 stay leaves called by the adapters. Adding a tool is one manifest entry plus one
-unified adapter; the orchestrator, capabilities, and aggregate are never edited.
+unified adapter; the orchestrator, capability classes, and aggregate are never
+edited.
 
 Flow: CLI surface (`surface_tools_command.py`) → `ToolsOrchestrator.<verb>(spec)`
 → adapter selection by id (via the root-injected registry) → the verb's two
-capabilities in order → report.
+methods (step-pair) on the capability class in order → report.
 
 Target-resolution rules (agent-layer concern, not a capability): an unknown id
 fails with a typed error (from shared `taxonomy_core_error`) **before any
@@ -98,14 +108,14 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 
 | Operation | Input | Output |
 |-----------|-------|--------|
-| `IToolProvisioner.provision` | `ToolSpec, IToolAdapter, bool` | `InstallResult` |
-| `IToolLauncherRegistrar.register_launcher` | `ToolSpec, InstallResult` | `InstallResult` |
-| `IToolBumper.bump` | `ToolSpec, IToolAdapter, bool` | `UpdateResult` |
-| `IToolRecorder.record` | `ToolSpec, UpdateResult` | `UpdateResult` |
-| `IToolRemover.remove` | `ToolSpec, list[Path], bool` | `UninstallResult` |
-| `IToolVerifier.verify` | `ToolSpec, UninstallResult, list[Path]` | `UninstallResult` |
-| `IToolDiscoverer.discover` | `ToolSpec` | `Path \| None` |
-| `IToolExecutor.execute` | `ToolSpec, Path, list[str]` | `int` exit code |
+| `IToolInstaller.provision` | `ToolSpec, IToolAdapter, bool` | `InstallResult` |
+| `IToolInstaller.register_launcher` | `ToolSpec, InstallResult` | `InstallResult` |
+| `IToolUpdater.bump` | `ToolSpec, IToolAdapter, bool` | `UpdateResult` |
+| `IToolUpdater.record` | `ToolSpec, UpdateResult` | `UpdateResult` |
+| `IToolUninstaller.remove` | `ToolSpec, list[Path], bool` | `UninstallResult` |
+| `IToolUninstaller.verify` | `ToolSpec, UninstallResult, list[Path]` | `UninstallResult` |
+| `IToolRunner.discover` | `ToolSpec, Path \| None` | `Path \| None` |
+| `IToolRunner.execute` | `ToolSpec, Path, list[str]` | `int` exit code |
 | `IToolsAggregate.{install,update,uninstall,run_tool}` | `ToolSpec[, list[str]]` | verb result / int |
 | `IToolsAggregate.{resolve_spec,executable_path,list_tools}` | query/spec/— | `ToolSpec\|None` / `Path\|None` / `list[Tool]` |
 | `IToolAdapter.{install,update,is_pin_satisfied,owned_paths,satisfied}` | per adapter | artifact paths / pin state / owned set |
@@ -123,7 +133,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| Capability count | exactly 8 (provisioner, launcher, bumper, recorder, remover, verifier, discoverer, executor); zero per-tool capability files | `ls modules/tools/src/capabilities_*.py \| wc -l` → 8 |
+| Capability count | exactly 4 verb classes (`capabilities_tools_installer.py`, `capabilities_tools_updater.py`, `capabilities_tools_uninstaller.py`, `capabilities_tools_runner.py`), each multi-method (2); zero per-tool capability files | `ls modules/tools/src/capabilities_*.py \| wc -l` → 4 |
 | Adapter count | 13 tools with a per-tool unified adapter; the two Anytype ids (`anytype`, `anytype-daemon`) share one merged adapter class → 14 `utility_*_adapter.py` files cover the 13-tool registry | count `modules/tools/src/utility_*_adapter.py` manually (`utility_adapter_base.py` excluded by glob) |
 | Adapter purity (AES404) | adapters import only `modules.shared.src.*`, `modules.tools.src.*`, stdlib; daemon delegation via importlib string-concatenated names | grep of adapter import lines |
 | No cross-feature imports | tools imports nothing from sibling feature modules except the lazy daemon aggregate | grep over `modules/tools/src/` |

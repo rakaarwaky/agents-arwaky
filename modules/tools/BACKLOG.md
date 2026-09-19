@@ -14,8 +14,10 @@ Last Updated: 2026-09-19
 ## Current Condition
 
 - Done: the four lifecycle features (installer, updater, uninstaller, runner)
-  are merged into a single `modules/tools` feature: 8 business-action
-  capabilities, one `ToolsOrchestrator` aggregate, 13 unified per-tool adapters
+  are merged into a single `modules/tools` feature: 4 verb capability classes
+  (`InstallerCapability`, `UpdaterCapability`, `UninstallerCapability`,
+  `RunnerCapability` — each multi-method, two methods per verb), one
+  `ToolsOrchestrator` aggregate, 13 unified per-tool adapters
   (install + update + pin + owned-teardown data in one place per tool), and the
   CLI surface ported from the runner verb to `surface_tools_command.py`.
 - In Progress: none.
@@ -28,7 +30,7 @@ Last Updated: 2026-09-19
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| TOL-01 | FR-001..008 | Unified tools feature (4 modules → 1) | P0 | QA | 8 `capabilities_tools_*.py`, 13 `utility_<tool>_adapter.py`, `agent_tools_orchestrator.py`, `surface_tools_command.py`, `root_tools_container.py` all present; old modules deleted; `modules/root_cli_entry.py` repointed to `modules.tools`. | @raka | None | 2026-09-19 |
+| TOL-01 | FR-001..008 | Unified tools feature (4 modules → 1) | P0 | Done | 4 `capabilities_tools_{installer,updater,uninstaller,runner}.py` verb classes, 13 `utility_<tool>_adapter.py`, `agent_tools_orchestrator.py`, `surface_tools_command.py`, `root_tools_container.py` all present; old modules deleted; `modules/root_cli_entry.py` repointed to `modules.tools`. | @raka | None | 2026-09-19 |
 | TOL-02 | FR-008 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
 | TOL-03 | FR-005..006 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
 
@@ -69,7 +71,7 @@ Last Updated: 2026-09-19
 ## Deferred
 
 - Intentionally out of scope for the merged `modules/tools` release.
-- No new per-tool capability files (would violate the 8-capability invariant).
+- No new per-tool capability files (would violate the 4-verb-class invariant).
 - Cross-feature capability sharing beyond the lazy daemon aggregate.
 
 ## Change Log

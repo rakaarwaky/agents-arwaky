@@ -1,6 +1,6 @@
 """Tool-domain capability + adapter contracts (AES102 `_protocol`).
 
-Implemented by the eight business-action capabilities and the unified
+Implemented by the four verb capability classes and the unified
 per-tool leaf adapters; consumed by the `ToolsOrchestrator` agent.
 
 The adapter ABC is deliberately per-tool but multi-verb: a single
