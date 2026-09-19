@@ -13,35 +13,38 @@
 The updater owns version/commit bumps of every registered tool. Capabilities are
 organised by **business action**, not by tool or runner family: two
 `capabilities_updater_<action>.py` modules implement the aggregate contract.
-Per-runner mechanics (cargo / uv / bun / pnpm / npm / pip-venv update sequences,
-submodule pointer bumps, cache refresh) live in the utility layer as stateless
-leaf adapters (`utility_<runner>_adapter.py`) shared with the installer — the
-same adapter knows both how to install and how to update its runner family.
+Per-tool update mechanics (the exact command sequence, submodule pointer bump,
+cache refresh and artifact locations that apply to *that* tool) live in the
+utility layer as stateless leaf adapters (`utility_<tool>_updater.py`) — one per
+manifest tool id, keyed on the manifest's `id`, mirroring the installer's
+adapter granularity. Each adapter knows only its own tool's update procedure;
+there is no generic package-manager-family adapter and no adapter sharing with
+the installer (each module owns its own leaf utilities).
 `agent_updater_orchestrator.py` is the single agent: it resolves the target tool
-set from the manifest, selects the adapter keyed on the manifest's `runner` field,
-and drives the capabilities. Adding a tool is a manifest entry, never a new module;
-adding a runner family is one new adapter.
+set from the manifest, selects the adapter keyed on the manifest's `id` field,
+and drives the capabilities. Adding a tool is a manifest entry plus one new
+per-tool updater adapter.
 
 Flow: CLI surface → `ToolOrchestrator.update(spec)` → `UpdaterOrchestrator`
-(manifest read, adapter selection) → `capabilities_updater_bumper.py`
+(manifest read, adapter selection by id) → `capabilities_updater_bumper.py`
 (pin comparison → update via the selected adapter) →
 `capabilities_updater_recorder.py` (version-transition log) → report.
 
 Target-resolution rules (agent-layer concern, not a capability): an omitted id
 means all manifest tools; an unknown id fails with a typed error before any
-capability runs; aliases resolve through the manifest reader. The updater shares
-the installer's runner adapters but has no dependency on `modules/installer/` or
-`modules/runner/`.
+capability runs; aliases resolve through the manifest reader. The updater has no
+dependency on `modules/installer/`, `modules/updater/` internals across modules,
+or `modules/runner/`.
 
 ## Functional Requirements
 
 ### FR-001: Bump a tool to its manifest pin
 
 - **Description**: `bump(spec, adapter)` brings the tool named by a `ToolSpec`
-  to the version/commit the manifest pins, invoking the supplied runner adapter
-  only when the current state differs from the target.
+  to the version/commit the manifest pins, invoking the supplied per-tool
+  adapter only when the current state differs from the target.
 - **Input**: `ToolSpec` (id, category, binary, path, runner), a selected
-  `IRunnerAdapter`, dry-run flag.
+  `IToolUpdaterAdapter`, dry-run flag.
 - **Output**: `UpdateResult` (success flag, message, old→new version where known,
   paths touched, skip reason when already satisfied).
 - **Business Rules**: first step is a pin-comparison check — if the installed
@@ -53,10 +56,10 @@ the installer's runner adapters but has no dependency on `modules/installer/` or
   with zero side effects. When the binary path changes between versions, the
   recorder (FR-002) updates the launcher accordingly.
 - **Edge Cases**: unknown id → orchestrator-level typed error, no capability
-  invoked; unsupported `runner` value → typed error naming the runner and the
-  registered set; tool not installed → update still valid (install-then-update
-  semantics owned by the runner family, reported as such); pin unchanged →
-  idempotent success with no version movement.
+  invoked; manifest tool with no registered per-tool adapter → typed error
+  naming the id and the registered set; tool not installed → update still valid
+  (install-then-update semantics owned by that tool's adapter, reported as such);
+  pin unchanged → idempotent success with no version movement.
 - **Error Handling**: every failure path returns
   `UpdateResult(success=False, message)`; the capability never raises out of
   `bump`.
@@ -84,28 +87,28 @@ the installer's runner adapters but has no dependency on `modules/installer/` or
 
 | Operation | Input | Output | Error Shape | impl / intended |
 |-----------|-------|--------|-------------|------------------------------|
-| `IToolBumper.bump` | `ToolSpec, IRunnerAdapter, bool` | `UpdateResult` | `UpdateResult(success=False, message)` | intended |
+| `IToolBumper.bump` | `ToolSpec, IToolUpdaterAdapter, bool` | `UpdateResult` | `UpdateResult(success=False, message)` | intended |
 | `IToolRecorder.record` | `ToolSpec, UpdateResult` | transition log / skip note | folded into `UpdateResult` | intended |
-| `IRunnerAdapter.update` | spec fields, XDG dirs | artifact paths | raised `AdapterError` caught by bumper | intended |
-| `UpdaterOrchestrator._ADAPTERS` | dict[str, type] keyed on runner | adapter classes | typed error on unknown runner | intended |
+| `IToolUpdaterAdapter.update` | spec fields, XDG dirs | artifact paths | raised `AdapterError` caught by bumper | intended |
+| `UpdaterOrchestrator._ADAPTERS` | dict[str, type] keyed on manifest id | adapter classes | typed error on unknown id | intended |
 
 ## Integration Points
 
 | System | Direction | Purpose | Failure mode |
 |--------|-----------|---------|--------------|
-| `config/manifest.json` | in | target pin per tool | missing entry → orchestrator typed error |
+| `config/manifest.json` | in | target pin + tool id per tool | missing entry → orchestrator typed error |
 | `modules/shared` (xdg_paths, git_submodule, retry, launcher_writer) | out | submodule bump, path resolution, launcher rewrite | stale submodule state → sync failure |
-| `modules/installer` (shared adapters) | in | same `IRunnerAdapter` implementations | none — adapters are leaf utilities, no cross-module import |
+| host package managers (cargo, uv, bun, pnpm, npm, pip) | out | actual update work, behind per-tool adapters | command not found → `UpdateResult` failure |
 | `modules/runner` (ToolOrchestrator aggregate) | in | single `update(spec)` call | none — pass-through |
-| host package managers (cargo, uv, bun, pnpm, npm, pip) | out | actual update work, behind adapters | command not found → `UpdateResult` failure |
 
 ## Non-functional Requirements
 
 | Metric | Target | Measurement method |
 |--------|--------|--------------------|
-| Capability count | exactly 2 capability modules (`bumper`, `recorder`); zero per-tool/per-runner capability files | `ls modules/updater/src/capabilities_*.py` |
-| Adapter purity | adapters are leaf utilities: no imports from capabilities/agent/root/contract layers | grep over `modules/updater/src/utility_*_adapter.py` returns empty |
-| Adapter sharing | updater uses the same adapter classes as installer (imported from a shared location or duplicated per AES leaf rule) | inspect adapter import sites |
+| Capability count | exactly 2 capability modules (`bumper`, `recorder`); zero per-tool capability files (per-tool mechanics live in utilities, not capabilities) | `ls modules/updater/src/capabilities_*.py` |
+| Adapter granularity | one `utility_<tool>_updater.py` per manifest tool id; no generic runner-family adapter | `ls modules/updater/src/utility_*_updater.py` vs manifest id count |
+| Adapter purity | adapters are leaf utilities: no imports from capabilities/agent/root/contract layers | grep over `modules/updater/src/utility_*_updater.py` returns empty |
+| No cross-module coupling | updater imports nothing from `modules/installer/` or `modules/runner/`; no shared adapter classes with the installer | import-graph check / grep |
 | Idempotence | update to an already-satisfied pin is a no-op success | `aa tool update <id>` twice; second reports no movement |
 | No repo writes | update never commits to the main repo tree | `git status --porcelain` clean after update in the worktree |
 
@@ -114,6 +117,7 @@ the installer's runner adapters but has no dependency on `modules/installer/` or
 - Updating an installed tool to a newer manifest pin moves the binary/submodule and reports old→new.
 - Updating a tool whose pin is already satisfied is an idempotent success — the adapter is never invoked.
 - Updating an unknown tool id fails with a typed error at the orchestrator, not a crash.
+- A manifest tool with no registered per-tool updater adapter fails with a typed error naming the id.
 - Dry-run updating reports the planned adapter call and leaves the filesystem untouched.
 - After update, if the binary path changed, the launcher under XDG bin points to the new location.
 
@@ -125,13 +129,15 @@ the installer's runner adapters but has no dependency on `modules/installer/` or
 - Install and uninstall are separate feature modules (`modules/installer`,
   `modules/uninstaller`); this FRD covers the version-bump transition only.
 - Migration state: today's 12 per-tool `capabilities_<tool>_updater.py` and the
-  god-file `utility_installer_base.py` (shared with installer) are superseded by
-  this model; the restructure is tracked in BACKLOG.md, not performed by this
-  document.
+  god-file `utility_installer_base.py` are superseded by this model; each tool's
+  mechanics move into its own updater-owned leaf adapter, so the installer's
+  god-file is no longer imported here. The restructure is tracked in BACKLOG.md,
+  not performed by this document.
 
 ## Glossary
 
-- **runner family**: the host package-manager a tool updates through (cargo / uv / bun / pnpm / npm / pip-venv). Distinct from `modules/runner/`, which executes installed tools.
-- **adapter**: a stateless leaf utility that knows one runner family's command sequence and artifact locations. Shared between installer and updater.
+- **per-tool updater adapter**: a stateless leaf utility (`utility_<tool>_updater.py`)
+  that knows one manifest tool's update command sequence and artifact locations.
+  Keyed on the manifest `id`; owned solely by the updater module.
 - **manifest pin**: the committed submodule commit a tool's `path` points at.
 - **pin comparison**: check of installed version/commit against the manifest pin that gates idempotent skip.
