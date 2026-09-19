@@ -5,7 +5,7 @@ import os
 import shutil
 
 from modules.doctor.src.contract_doctor_protocol import IDiagnosticRunner
-from modules.shared.src.utility_logging import (
+from modules.shared.src.utility_logging_setup import (
     BOLD,
     DIM,
     GREEN,
@@ -86,7 +86,7 @@ def _resolve_executable(binary: str):
 
 def _is_submodule_missing(path_str: str) -> bool:
     """A submodule path is missing when its target (or .git) does not exist."""
-    from modules.shared.src.utility_paths import repo_root
+    from modules.shared.src.utility_paths_resolver import repo_root
 
     root = repo_root()
     target = root / path_str

@@ -43,7 +43,7 @@ jobs:
           find modules -name "*.sh" -not -path "*/node_modules/*" -not -path "*/skills/*" -exec shellcheck -x {} + || true
 
       - name: aa check (internal gate)
-        run: python3 -m modules.cli check
+        run: python3 -m modules.root_cli_entry check
 
       - name: Submodule integrity
         run: git submodule status

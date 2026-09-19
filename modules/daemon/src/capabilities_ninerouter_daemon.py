@@ -19,7 +19,7 @@ import urllib.request
 
 from modules.daemon.src.contract_daemon_protocol import IDaemonManager
 from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_xdg_paths import (
     agents_arwaky_config_dir,
     config_home,

@@ -7,8 +7,8 @@ import json
 from pathlib import Path
 
 from modules.check.src.contract_check_protocol import ICheckRunner
-from modules.shared.src.utility_logging import err, ok
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_logging_setup import err, ok
+from modules.shared.src.utility_paths_resolver import repo_root
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

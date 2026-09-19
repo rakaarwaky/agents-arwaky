@@ -49,7 +49,7 @@ class UpdaterCapability(IToolUpdater):
     ) -> UpdateResult:
         base = self._root
         if base is None:
-            from modules.shared.src.utility_paths import repo_root
+            from modules.shared.src.utility_paths_resolver import repo_root
             base = repo_root()
         satisfied, state_desc = adapter.is_pin_satisfied(spec, base)
         if satisfied:

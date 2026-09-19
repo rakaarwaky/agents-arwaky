@@ -28,7 +28,7 @@ import modules.tools.src.utility_ponytail_adapter as _ponytail
 import modules.tools.src.utility_qwen_web_adapter as _qwen_web
 import modules.tools.src.utility_vision_adapter as _vision
 import modules.tools.src.utility_workspace_adapter as _workspace
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_paths_resolver import repo_root
 from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
 # Root is the only layer allowed to import capabilities_* (AES201 rule 8):

@@ -14,8 +14,8 @@ from modules.shared.src.utility_doc_pack import (
     errors_only,
     warnings_only,
 )
-from modules.shared.src.utility_logging import err, info, ok, warn
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_logging_setup import err, info, ok, warn
+from modules.shared.src.utility_paths_resolver import repo_root
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

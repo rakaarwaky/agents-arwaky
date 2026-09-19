@@ -5,7 +5,7 @@ from modules.shared.src.taxonomy_doc_vo import DocFinding
 
 from modules.check.src.contract_check_aggregate import ICheckAggregate
 from modules.check.src.contract_check_protocol import ICheckRunner
-from modules.shared.src.utility_logging import banner, err, info, ok
+from modules.shared.src.utility_logging_setup import banner, err, info, ok
 
 
 class CheckOrchestrator(ICheckAggregate):
