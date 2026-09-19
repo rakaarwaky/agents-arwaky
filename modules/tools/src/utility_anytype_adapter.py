@@ -28,7 +28,7 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
     warn_if_bin_not_on_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT, NODE_IGNORES
+from modules.tools.src.utility_tool_mechanics import NODE_IGNORES, ROOT, copy_app, generic_owned, run, write_node_launcher
 
 # ---------------------------------------------------------------------------
 # anytype-mcp
@@ -65,7 +65,7 @@ def _write_daemon_launcher(path: Path, root: Path) -> None:
     path.chmod(0o755)
 
 
-class AnytypeAdapter(AdapterBase):
+class AnytypeAdapter:
     """Install both anytype-mcp (bun) and anytype-daemon (container + systemd)."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -81,17 +81,17 @@ class AnytypeAdapter(AdapterBase):
 
         app_dir = data_home() / MCP_APP_REL
         print(f">>> Installing anytype-mcp into {app_dir}...")
-        self.copy_app(src, app_dir, NODE_IGNORES)
+        copy_app(src, app_dir, NODE_IGNORES)
 
-        self.run(["bun", "install", "--frozen-lockfile"], app_dir)
-        self.run(["bun", "run", "build"], app_dir)
+        run(["bun", "install", "--frozen-lockfile"], app_dir)
+        run(["bun", "run", "build"], app_dir)
 
         entry = app_dir / MCP_ENTRY
         if not entry.exists():
             raise FileNotFoundError(f"entry not found {entry}")
 
         ensure_bin_home()
-        launcher = self.write_node_launcher("anytype-mcp", entry)
+        launcher = write_node_launcher("anytype-mcp", entry)
         warn_if_bin_not_on_path()
         print(">>> Successfully installed anytype-mcp")
         return [launcher]
@@ -224,7 +224,7 @@ class AnytypeAdapter(AdapterBase):
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(
+        return generic_owned(
             spec,
             ["anytype-mcp", "anytype-daemon", "ad"],
             extra=[data_home() / DAEMON_DATA_REL / INTERNAL_BIN / "anytype-daemon"],

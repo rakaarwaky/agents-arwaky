@@ -14,13 +14,17 @@ Last Updated: 2026-09-19
 ## Current Condition
 
 - Done: the four lifecycle features (installer, updater, uninstaller, runner)
-  are merged into a single `modules/tools` feature: 4 verb capability classes
-  (`InstallerCapability`, `UpdaterCapability`, `UninstallerCapability`,
-  `RunnerCapability` — each multi-method, two methods per verb), one
-  `ToolsOrchestrator` aggregate, 13 unified per-tool adapters
-  (install + update + pin + owned-teardown data in one place per tool), and the
-  CLI surface ported from the runner verb to `surface_tools_command.py`.
-- In Progress: none.
+  are merged into a single `modules/tools` feature: 4 protocol classes
+  (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner` — one
+  public method each; sub-steps internal), 8 verb capability files
+  (`capabilities_tools_{provisioner,launcher,bumper,recorder,remover,verifier,
+  discoverer,executor}.py`, plain classes, no ABC base), 13 unified per-tool
+  adapters (plain classes, no `AdapterBase`; mechanics via
+  `utility_tool_mechanics` free functions), one `ToolsOrchestrator` aggregate,
+  and the CLI surface ported from the runner verb to `surface_tools_command.py`.
+- In Progress: TOL-04 fold the 8 capability files into 4 verb classes
+  (one `capabilities_tools_{installer,updater,uninstaller,runner}.py` each,
+  multi-method) — tracked, not yet implemented.
 - Blocked: none.
 - Next Action: run the full verification gate (`python3 -m compileall`, import
   smoke, `python3 -m modules.cli check`, `python3 -m pytest tests/ -q`) and a
@@ -30,18 +34,19 @@ Last Updated: 2026-09-19
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| TOL-01 | FR-001..008 | Unified tools feature (4 modules → 1) | P0 | Done | 4 `capabilities_tools_{installer,updater,uninstaller,runner}.py` verb classes, 13 `utility_<tool>_adapter.py`, `agent_tools_orchestrator.py`, `surface_tools_command.py`, `root_tools_container.py` all present; old modules deleted; `modules/root_cli_entry.py` repointed to `modules.tools`. | @raka | None | 2026-09-19 |
-| TOL-02 | FR-008 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
-| TOL-03 | FR-005..006 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
+| TOL-01 | FR-001..004 | Unified tools feature (4 modules → 1) | P0 | Done | 4 protocol classes, 8 verb capability files, 13 plain-class adapters (mechanics via `utility_tool_mechanics`), orchestrator + surface + root container all present; old modules deleted; `root_cli_entry.py` repointed. Evidence: `python3 -m compileall -q modules/tools/` → COMPILE_OK; `python3 -c "import modules.tools"` → import OK; verified at commit `b44f139` (2026-09-19). | @raka | None | 2026-09-19 |
+| TOL-02 | FR-004 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
+| TOL-03 | FR-003 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
+| TOL-04 | FR-001..004 | Fold 8 capability files → 4 verb classes | P2 | In Progress | Merge `capabilities_tools_{provisioner,launcher}.py` → `capabilities_tools_installer.py` (single `install` method, sub-steps inline); same for updater/uninstaller/runner. Update orchestrator + root container wiring. Gate: `compileall` + `python3 -m modules.cli check` green. | @raka | TOL-01 | 2026-09-19 |
 
 ## Scenario Evidence (rows)
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| Install: run twice → second is a no-op; dry-run leaves the filesystem untouched. | Gap | — | not yet asserted on a clean host | unverified |
-| Update: pin satisfied → skip; unsatisfied → bump + record; re-record is a no-op. | Gap | — | not yet asserted on a clean host | unverified |
-| Uninstall: clean removal; active daemon unit → named residual, never force-killed. | Gap | — | TOL-03 residual sweep pending | unverified |
-| Run: exit-code fidelity across 0/1/127; vanished executable → sentinel 126; unknown id → typed error before any capability; alias → resolved spec. | Manual | — | TOL-02 clean-host `aa tool run` sweep | unverified |
+| FR-001 Install: run twice → second is a no-op; dry-run leaves the filesystem untouched. | Gap | — | not yet asserted on a clean host | unverified |
+| FR-002 Update: pin satisfied → skip; unsatisfied → bump + record; re-record is a no-op. | Gap | — | not yet asserted on a clean host | unverified |
+| FR-003 Uninstall: clean removal; active daemon unit → named residual, never force-killed. | Gap | — | TOL-03 residual sweep pending | unverified |
+| FR-004 Run: exit-code fidelity across 0/1/127; vanished executable → sentinel 126; unknown id → typed error before any capability; alias → resolved spec. | Manual | — | TOL-02 clean-host `aa tool run` sweep | unverified |
 
 ## Blockers
 
@@ -81,3 +86,10 @@ Last Updated: 2026-09-19
   document and `modules/tools/FRD.md` and deleted with their directories.
 - TOL-01 moved to QA on 2026-09-19 after the module tree landed and
   `modules/root_cli_entry.py` was repointed to `modules.tools`.
+- 2026-09-19: `utility_adapter_base.py` deleted (AES404 violation: class with
+  `self` in utility layer). Method bodies moved to `utility_tool_mechanics.py`
+  (free functions, taxonomy-only imports). 14 leaf adapters now plain classes
+  calling `tool_mechanics.<fn>(...)` directly. `IToolAdapter` ABC removed from
+  `contract_tools_protocol.py`; adapter param typed as `object` with docstring.
+- 2026-09-19: TOL-04 added — fold 8 capability files into 4 verb classes
+  (tracker only; not yet implemented).

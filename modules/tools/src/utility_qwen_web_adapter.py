@@ -17,7 +17,7 @@ from modules.shared.src.taxonomy_xdg_paths import (
     tool_data_dir,
     tool_state_dir,
 )
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, ensure_source, generic_owned
 from modules.tools.src.utility_venv_helpers import (
     ensure_venv,
     install_package,
@@ -57,7 +57,7 @@ def _setup_qwen_web_dirs() -> None:
     print(f"  [ok] Cache: {cache_dir}")
 
 
-class QwenWebAdapter(AdapterBase):
+class QwenWebAdapter:
     """Install/update internal/qwen-web-arwaky via a uv-managed venv + Playwright."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -69,7 +69,7 @@ class QwenWebAdapter(AdapterBase):
         src_dir = root / SRC_REL
 
         print(">>> Installing qwen-web-arwaky (XDG compliant)...")
-        if not self.ensure_source(root, SRC_REL):
+        if not ensure_source(root, SRC_REL):
             raise FileNotFoundError(f"source not found {src_dir}")
 
         python_bin = ensure_venv(TOOL_NAME, force=False)
@@ -118,7 +118,7 @@ class QwenWebAdapter(AdapterBase):
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(
+        return generic_owned(
             spec,
             [name for name, _e in LAUNCHERS],
             extra=[tool_config_dir(TOOL_NAME), tool_state_dir(TOOL_NAME), tool_cache_dir(TOOL_NAME)],

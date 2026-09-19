@@ -17,7 +17,6 @@ from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
 from modules.shared.src.taxonomy_xdg_atomic_io import remove_tool_artifacts
 from modules.shared.src.taxonomy_xdg_paths import bin_home, config_home
 
-from modules.tools.src.contract_tools_protocol import IToolRemover
 from modules.tools.src.taxonomy_tools_constant import (
     DAEMON_NAMES,
     DAEMON_UNIT_TOOLS,
@@ -80,7 +79,7 @@ def _extras(owned_paths: list[Path], spec: ToolSpec, launchers: list[str]) -> li
     return extras
 
 
-class RemoverCapability(IToolRemover):
+class RemoverCapability:
     """Generic filesystem teardown + optional service stop (FR-005)."""
 
     def __init__(self, daemons: _DaemonStopper | None = None) -> None:

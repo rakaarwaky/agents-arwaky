@@ -20,7 +20,7 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
     ensure_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, generic_owned
 
 DAEMON_DATA_REL = "anytype-daemon"
 INTERNAL_BIN = "internal-bin"
@@ -48,7 +48,7 @@ def _write_daemon_launcher(path: Path, root: Path) -> None:
     path.chmod(0o755)
 
 
-class AnytypeDaemonAdapter(AdapterBase):
+class AnytypeDaemonAdapter:
     """Install/update the Anytype headless container daemon + launchers."""
 
     is_daemon = True
@@ -127,4 +127,4 @@ class AnytypeDaemonAdapter(AdapterBase):
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
         # anytype-daemon keeps its config (the daemon owns it across updates).
         extra = [data_home() / DAEMON_DATA_REL / INTERNAL_BIN / "anytype-daemon"]
-        return self.generic_owned(spec, [name for name, _e in LAUNCHERS], extra=extra)
+        return generic_owned(spec, [name for name, _e in LAUNCHERS], extra=extra)

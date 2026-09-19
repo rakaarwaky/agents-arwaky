@@ -9,7 +9,7 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_xdg_paths import bin_home
-from modules.tools.src.utility_adapter_base import AdapterBase, ROOT
+from modules.tools.src.utility_tool_mechanics import ROOT, ensure_source, generic_owned
 from modules.tools.src.utility_venv_helpers import (
     ensure_venv,
     install_package,
@@ -27,7 +27,7 @@ LAUNCHERS = [
 ]
 
 
-class VisionAdapter(AdapterBase):
+class VisionAdapter:
     """Install/update internal/vision-arwaky via a uv-managed venv (XDG compliant)."""
 
     def satisfied(self, spec, root: Path | None = None) -> bool:
@@ -40,7 +40,7 @@ class VisionAdapter(AdapterBase):
         root = root or ROOT
         src_dir = root / SRC_REL
 
-        if not self.ensure_source(root, SRC_REL):
+        if not ensure_source(root, SRC_REL):
             raise FileNotFoundError(f"source not found {src_dir}")
 
         python_bin = ensure_venv(TOOL_NAME, force=False)
@@ -85,4 +85,4 @@ class VisionAdapter(AdapterBase):
 
     # -- teardown data --------------------------------------------------------------
     def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return self.generic_owned(spec, [name for name, _e in LAUNCHERS])
+        return generic_owned(spec, [name for name, _e in LAUNCHERS])
