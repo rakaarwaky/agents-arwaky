@@ -12,13 +12,20 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
+from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_xdg_atomic_io import (
     ensure_bin_home,
     warn_if_bin_not_on_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
-from modules.tools.src.utility_tool_mechanics import ROOT, copy_app, ensure_source, generic_owned, require, run
+from modules.tools.src.utility_tool_mechanics import (
+    ROOT,
+    copy_app,
+    ensure_source,
+    generic_owned,
+    require,
+    run,
+)
 
 SRC_REL = "vendor/fetch-mcp"
 APP_DIR = data_home() / "fetch-mcp"

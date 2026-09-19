@@ -13,8 +13,11 @@ Daemon service installation is delegated to the injected daemon aggregate
 (`daemons` kwarg on install; importlib string-concatenated on update) so the
 adapter stays a leaf (AES404).
 
-`AnytypeDaemonAdapter` is a thin subclass of `AnytypeAdapter` that only runs
-the daemon half — registered for the separate `anytype-daemon` manifest id.
+The daemon-only verb functions (`daemon_install` / `daemon_update` /
+`daemon_satisfied` / `daemon_owned_paths`) cover the separate `anytype-daemon`
+manifest id — they reuse the daemon half of the merged adapter.
+
+Stateless leaf (AES404): module-level functions only, no classes.
 """
 from __future__ import annotations
 
@@ -31,7 +34,14 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
     warn_if_bin_not_on_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_tool_mechanics import NODE_IGNORES, ROOT, copy_app, generic_owned, run, write_node_launcher
+from modules.tools.src.utility_tool_mechanics import (
+    NODE_IGNORES,
+    ROOT,
+    copy_app,
+    generic_owned,
+    run,
+    write_node_launcher,
+)
 
 # ---------------------------------------------------------------------------
 # anytype-mcp
@@ -59,7 +69,7 @@ def _write_daemon_launcher(path: Path, root: Path) -> None:
         "#!/usr/bin/env python3\n"
         "import os, sys\n"
         "from pathlib import Path\n"
-        f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {repr(str(root))}))\n'
+        f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))\n'
         "sys.path.insert(0, str(root))\n"
         f"from {DAEMON_VERB_MODULE} import cmd_anytype\n"
         "sys.exit(cmd_anytype(sys.argv[1:]))\n",
@@ -68,197 +78,196 @@ def _write_daemon_launcher(path: Path, root: Path) -> None:
     path.chmod(0o755)
 
 
-class AnytypeAdapter:
-    """Install both anytype-mcp (bun) and anytype-daemon (container + systemd)."""
-
-    def satisfied(self, spec, root: Path | None = None) -> bool:
-        return (bin_home() / "anytype-mcp").exists() and (bin_home() / "anytype-daemon").exists()
-
-    # -- anytype-mcp -------------------------------------------------------------
-    def _install_mcp(self, root: Path) -> list[Path]:
-        src = root / MCP_SRC_REL
-        if not (src / "package.json").exists():
-            raise FileNotFoundError("anytype-mcp source not found (submodule not initialized)")
-        if shutil.which("bun") is None:
-            raise FileNotFoundError("bun is required (curl -fsSL https://bun.sh/install | bash)")
-
-        app_dir = data_home() / MCP_APP_REL
-        print(f">>> Installing anytype-mcp into {app_dir}...")
-        copy_app(src, app_dir, NODE_IGNORES)
-
-        run(["bun", "install", "--frozen-lockfile"], app_dir)
-        run(["bun", "run", "build"], app_dir)
-
-        entry = app_dir / MCP_ENTRY
-        if not entry.exists():
-            raise FileNotFoundError(f"entry not found {entry}")
-
-        ensure_bin_home()
-        launcher = write_node_launcher("anytype-mcp", entry)
-        warn_if_bin_not_on_path()
-        print(">>> Successfully installed anytype-mcp")
-        return [launcher]
-
-    # -- anytype-daemon ----------------------------------------------------------
-    def _install_daemon(self, root: Path, daemons) -> list[Path]:
-        if shutil.which("podman") is None and shutil.which("docker") is None:
-            print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
-            print("  Install podman then re-run 'aa tool install anytype'.", file=sys.stderr)
-            return []
-
-        ensure_bin_home()
-        ensure_path()
-        data_dir = data_home() / DAEMON_DATA_REL
-        # Create volume-mount folders first so the systemd unit can start (24/7)
-        for d in VOLUME_DIRS:
-            (data_dir / d).mkdir(parents=True, exist_ok=True)
-
-        # Delegate to the daemon module's service_install (modules/daemon/deploy/anytype-daemon.service)
-        if daemons is not None:
-            daemons.service_install("anytype")
-
-        launcher = bin_home() / "anytype-daemon"
-        _write_daemon_launcher(launcher, root)
-        alias = bin_home() / "ad"
-        alias.unlink(missing_ok=True)
-        alias.symlink_to(launcher)
-
-        internal_bin = data_dir / INTERNAL_BIN
-        internal_bin.mkdir(parents=True, exist_ok=True)
-        _write_daemon_launcher(internal_bin / "anytype-daemon", root)
-
-        print(f">>> Successfully installed anytype-daemon -> {launcher} (alias ad)")
-        return [launcher, alias, internal_bin / "anytype-daemon"]
-
-    # -- install both --------------------------------------------------------------
-    def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
-        root = root or ROOT
-        mcp_result = self._install_mcp(root)
-        daemon_result = self._install_daemon(root, daemons)
-        return mcp_result + daemon_result
-
-    # -- update (from old updater adapters) ---------------------------------------
-    def is_pin_satisfied(self, spec, root: Path) -> tuple[bool, str]:
-        source = root / MCP_SRC_REL
-        if not (source / "package.json").exists():
-            return False, "submodule not initialized"
-        return False, "bun mcp + container daemon (force rebuild)"
-
-    def update(self, spec, root: Path) -> list[Path]:
-        from modules.shared.src.utility_git_update import update_submodule
-
-        if not update_submodule(root, MCP_SRC_REL):
-            raise ToolUpdateError(f"submodule update failed: {MCP_SRC_REL}")
-
-        mcp_artifacts = self._update_mcp(spec, root)
-        if not shutil.which("podman") and not shutil.which("docker"):
-            print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
-            return mcp_artifacts
-        return mcp_artifacts + self._update_daemon(spec, root)
-
-    # -- anytype-mcp update --------------------------------------------------------
-    def _update_mcp(self, spec, root: Path) -> list[Path]:
-        src = root / MCP_SRC_REL
-        if not (src / "package.json").exists():
-            raise ToolUpdateError("anytype-mcp source not found (submodule not initialized)")
-        if not shutil.which("bun"):
-            raise ToolUpdateError("bun is required for anytype-mcp")
-
-        app_dir = data_home() / MCP_APP_REL
-        print(f">>> Updating anytype-mcp into {app_dir}...")
-        if app_dir.exists():
-            shutil.rmtree(app_dir)
-        shutil.copytree(src, app_dir, ignore=shutil.ignore_patterns(*NODE_IGNORES))
-
-        self._run(["bun", "install", "--frozen-lockfile"], app_dir)
-        self._run(["bun", "run", "build"], app_dir)
-
-        entry = app_dir / MCP_ENTRY
-        if not entry.exists():
-            raise ToolUpdateError(f"entry not found {entry}")
-
-        ensure_bin_home()
-        launcher = bin_home() / "anytype-mcp"
-        launcher.write_text(
-            "#!/usr/bin/env python3\n"
-            "import os, sys\n"
-            f'entry = r"{entry}"\n'
-            'os.execvpe("node", ["node", entry, *sys.argv[1:]], os.environ.copy())\n',
-            encoding="utf-8",
-        )
-        launcher.chmod(0o755)
-        print(f"  -> {launcher}")
-
-        warn_if_bin_not_on_path()
-        print(">>> Successfully updated anytype-mcp")
-        return [launcher]
-
-    # -- anytype-daemon update -------------------------------------------------------
-    def _update_daemon(self, spec, root: Path) -> list[Path]:
-        ensure_bin_home()
-        ensure_path()
-        data_dir = data_home() / DAEMON_DATA_REL
-        for d in VOLUME_DIRS:
-            (data_dir / d).mkdir(parents=True, exist_ok=True)
-
-        _feature = _daemon_feature()
-
-        print(">>> Updating anytype-daemon (container + systemd user service)...")
-        rc = _feature.service_install("anytype")
-        if rc != 0:
-            print(f"  Warning: anytype-daemon service-install exited {rc}")
-
-        launcher = bin_home() / "anytype-daemon"
-        _write_daemon_launcher(launcher, root)
-        alias = bin_home() / "ad"
-        alias.unlink(missing_ok=True)
-        alias.symlink_to(launcher)
-
-        internal_bin = data_dir / INTERNAL_BIN
-        internal_bin.mkdir(parents=True, exist_ok=True)
-        _write_daemon_launcher(internal_bin / "anytype-daemon", root)
-
-        print(f">>> Successfully updated anytype-daemon -> {launcher} (alias ad)")
-        return [launcher, alias, internal_bin / "anytype-daemon"]
-
-    @staticmethod
-    def _run(cmd: list[str], cwd: Path | None = None) -> None:
-        subprocess.run(cmd, cwd=cwd, check=True)
-
-    # -- teardown data --------------------------------------------------------------
-    def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        return generic_owned(
-            spec,
-            ["anytype-mcp", "anytype-daemon", "ad"],
-            extra=[data_home() / DAEMON_DATA_REL / INTERNAL_BIN / "anytype-daemon"],
-        )
+def _run(cmd: list[str], cwd: Path | None = None) -> None:
+    subprocess.run(cmd, cwd=cwd, check=True)
 
 
-class AnytypeDaemonAdapter(AnytypeAdapter):
-    """Daemon-only adapter for the `anytype-daemon` manifest id.
+def _install_mcp(root: Path) -> list[Path]:
+    src = root / MCP_SRC_REL
+    if not (src / "package.json").exists():
+        raise FileNotFoundError("anytype-mcp source not found (submodule not initialized)")
+    if shutil.which("bun") is None:
+        raise FileNotFoundError("bun is required (curl -fsSL https://bun.sh/install | bash)")
 
-    Reuses the daemon half of `AnytypeAdapter`; no MCP component.
-    """
+    app_dir = data_home() / MCP_APP_REL
+    print(f">>> Installing anytype-mcp into {app_dir}...")
+    copy_app(src, app_dir, NODE_IGNORES)
 
-    is_daemon = True
+    run(["bun", "install", "--frozen-lockfile"], app_dir)
+    run(["bun", "run", "build"], app_dir)
 
-    def satisfied(self, spec, root: Path | None = None) -> bool:
-        return (bin_home() / "anytype-daemon").exists()
+    entry = app_dir / MCP_ENTRY
+    if not entry.exists():
+        raise FileNotFoundError(f"entry not found {entry}")
 
-    def install(self, spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
-        root = root or ROOT
-        return self._install_daemon(root, daemons)
+    ensure_bin_home()
+    launcher = write_node_launcher("anytype-mcp", entry)
+    warn_if_bin_not_on_path()
+    print(">>> Successfully installed anytype-mcp")
+    return [launcher]
 
-    def is_pin_satisfied(self, spec, root: Path) -> tuple[bool, str]:
-        return False, "container + systemd (force reinstall)"
 
-    def update(self, spec, root: Path) -> list[Path]:
-        if not (shutil.which("podman") or shutil.which("docker")):
-            print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
-            raise ToolUpdateError("anytype-daemon update skipped (podman/docker not found)")
-        return self._update_daemon(spec, root)
+def _install_daemon(root: Path, daemons) -> list[Path]:
+    if shutil.which("podman") is None and shutil.which("docker") is None:
+        print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
+        print("  Install podman then re-run 'aa tool install anytype'.", file=sys.stderr)
+        return []
 
-    def owned_paths(self, spec, root: Path | None = None) -> list[Path]:
-        # anytype-daemon keeps its config (the daemon owns it across updates).
-        extra = [data_home() / DAEMON_DATA_REL / INTERNAL_BIN / "anytype-daemon"]
-        return generic_owned(spec, ["anytype-daemon", "ad"], extra=extra)
+    ensure_bin_home()
+    ensure_path()
+    data_dir = data_home() / DAEMON_DATA_REL
+    # Create volume-mount folders first so the systemd unit can start (24/7)
+    for d in VOLUME_DIRS:
+        (data_dir / d).mkdir(parents=True, exist_ok=True)
+
+    # Delegate to the daemon module's service_install (modules/daemon/deploy/anytype-daemon.service)
+    if daemons is not None:
+        daemons.service_install("anytype")
+
+    launcher = bin_home() / "anytype-daemon"
+    _write_daemon_launcher(launcher, root)
+    alias = bin_home() / "ad"
+    alias.unlink(missing_ok=True)
+    alias.symlink_to(launcher)
+
+    internal_bin = data_dir / INTERNAL_BIN
+    internal_bin.mkdir(parents=True, exist_ok=True)
+    _write_daemon_launcher(internal_bin / "anytype-daemon", root)
+
+    print(f">>> Successfully installed anytype-daemon -> {launcher} (alias ad)")
+    return [launcher, alias, internal_bin / "anytype-daemon"]
+
+
+def _update_mcp(spec, root: Path) -> list[Path]:
+    src = root / MCP_SRC_REL
+    if not (src / "package.json").exists():
+        raise ToolUpdateError("anytype-mcp source not found (submodule not initialized)")
+    if not shutil.which("bun"):
+        raise ToolUpdateError("bun is required for anytype-mcp")
+
+    app_dir = data_home() / MCP_APP_REL
+    print(f">>> Updating anytype-mcp into {app_dir}...")
+    if app_dir.exists():
+        shutil.rmtree(app_dir)
+    shutil.copytree(src, app_dir, ignore=shutil.ignore_patterns(*NODE_IGNORES))
+
+    _run(["bun", "install", "--frozen-lockfile"], app_dir)
+    _run(["bun", "run", "build"], app_dir)
+
+    entry = app_dir / MCP_ENTRY
+    if not entry.exists():
+        raise ToolUpdateError(f"entry not found {entry}")
+
+    ensure_bin_home()
+    launcher = bin_home() / "anytype-mcp"
+    launcher.write_text(
+        "#!/usr/bin/env python3\n"
+        "import os, sys\n"
+        f'entry = r"{entry}"\n'
+        'os.execvpe("node", ["node", entry, *sys.argv[1:]], os.environ.copy())\n',
+        encoding="utf-8",
+    )
+    launcher.chmod(0o755)
+    print(f"  -> {launcher}")
+
+    warn_if_bin_not_on_path()
+    print(">>> Successfully updated anytype-mcp")
+    return [launcher]
+
+
+def _update_daemon(spec, root: Path) -> list[Path]:
+    ensure_bin_home()
+    ensure_path()
+    data_dir = data_home() / DAEMON_DATA_REL
+    for d in VOLUME_DIRS:
+        (data_dir / d).mkdir(parents=True, exist_ok=True)
+
+    _feature = _daemon_feature()
+
+    print(">>> Updating anytype-daemon (container + systemd user service)...")
+    rc = _feature.service_install("anytype")
+    if rc != 0:
+        print(f"  Warning: anytype-daemon service-install exited {rc}")
+
+    launcher = bin_home() / "anytype-daemon"
+    _write_daemon_launcher(launcher, root)
+    alias = bin_home() / "ad"
+    alias.unlink(missing_ok=True)
+    alias.symlink_to(launcher)
+
+    internal_bin = data_dir / INTERNAL_BIN
+    internal_bin.mkdir(parents=True, exist_ok=True)
+    _write_daemon_launcher(internal_bin / "anytype-daemon", root)
+
+    print(f">>> Successfully updated anytype-daemon -> {launcher} (alias ad)")
+    return [launcher, alias, internal_bin / "anytype-daemon"]
+
+
+# -- merged install (anytype-mcp + anytype-daemon) ------------------------------
+def install(spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
+    root = root or ROOT
+    mcp_result = _install_mcp(root)
+    daemon_result = _install_daemon(root, daemons)
+    return mcp_result + daemon_result
+
+
+# -- update (from old updater adapters) ---------------------------------------
+def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
+    source = root / MCP_SRC_REL
+    if not (source / "package.json").exists():
+        return False, "submodule not initialized"
+    return False, "bun mcp + container daemon (force rebuild)"
+
+
+def update(spec, root: Path) -> list[Path]:
+    from modules.shared.src.utility_git_update import update_submodule
+
+    if not update_submodule(root, MCP_SRC_REL):
+        raise ToolUpdateError(f"submodule update failed: {MCP_SRC_REL}")
+
+    mcp_artifacts = _update_mcp(spec, root)
+    if not shutil.which("podman") and not shutil.which("docker"):
+        print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
+        return mcp_artifacts
+    return mcp_artifacts + _update_daemon(spec, root)
+
+
+# -- teardown data --------------------------------------------------------------
+def owned_paths(spec, root: Path | None = None) -> list[Path]:
+    return generic_owned(
+        spec,
+        ["anytype-mcp", "anytype-daemon", "ad"],
+        extra=[data_home() / DAEMON_DATA_REL / INTERNAL_BIN / "anytype-daemon"],
+    )
+
+
+# -- anytype-mcp: satisfied check ------------------------------------------------
+def satisfied(spec, root: Path | None = None) -> bool:
+    return (bin_home() / "anytype-mcp").exists() and (bin_home() / "anytype-daemon").exists()
+
+
+# -- daemon-only verbs (anytype-daemon manifest id) ------------------------------
+def daemon_satisfied(spec, root: Path | None = None) -> bool:
+    return (bin_home() / "anytype-daemon").exists()
+
+
+def daemon_install(spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
+    root = root or ROOT
+    return _install_daemon(root, daemons)
+
+
+def daemon_is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
+    return False, "container + systemd (force reinstall)"
+
+
+def daemon_update(spec, root: Path) -> list[Path]:
+    if not (shutil.which("podman") or shutil.which("docker")):
+        print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
+        raise ToolUpdateError("anytype-daemon update skipped (podman/docker not found)")
+    return _update_daemon(spec, root)
+
+
+def daemon_owned_paths(spec, root: Path | None = None) -> list[Path]:
+    # anytype-daemon keeps its config (the daemon owns it across updates).
+    extra = [data_home() / DAEMON_DATA_REL / INTERNAL_BIN / "anytype-daemon"]
+    return generic_owned(spec, ["anytype-daemon", "ad"], extra=extra)

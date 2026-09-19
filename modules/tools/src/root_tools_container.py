@@ -1,7 +1,7 @@
 """Root composition — tools feature wiring + lifecycle aggregate.
 
 The AES root layer is the only layer allowed to import ``capabilities*``;
-this module centralises the tool_id -> adapter-instance mapping so that
+this module centralises the tool_id -> adapter-module mapping so that
 ``agent_tools_orchestrator`` stays adapter-free (AES201 rule 8). Adapters
 carry no per-registry state: each is constructed once here and shared
 across orchestrator instances; the daemon aggregate is passed to
@@ -40,13 +40,22 @@ from modules.tools.src.capabilities_tools_runner import RunnerCapability
 from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
 from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
+from types import SimpleNamespace
 
-#: tool_id -> adapter unit (root composition data). Function-style adapters
-#: register their module (verb dispatch by attribute name); class-style
-#: adapters register a single instance constructed once here.
+#: tool_id -> adapter module (root composition data; each is a stateless
+#: leaf of module-level verb functions). The `anytype-daemon` id routes its
+#: verbs to the `daemon_*` leaf functions via a namespace object.
+_ANYTYPE_DAEMON = SimpleNamespace(
+    satisfied=_anytype.daemon_satisfied,
+    install=_anytype.daemon_install,
+    is_pin_satisfied=_anytype.daemon_is_pin_satisfied,
+    update=_anytype.daemon_update,
+    owned_paths=_anytype.daemon_owned_paths,
+)
+
 TOOLS_REGISTRY: dict[str, object] = {
-    "anytype": _anytype.AnytypeAdapter(),
-    "anytype-daemon": _anytype.AnytypeDaemonAdapter(),
+    "anytype": _anytype,
+    "anytype-daemon": _ANYTYPE_DAEMON,
     "blender": _blender,
     "codegraph": _codegraph,
     "context7": _context7,

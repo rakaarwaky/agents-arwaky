@@ -44,7 +44,7 @@ def install(spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
     print("\n>>> Successfully installed blender-arwaky")
     print(f"    Venv: {python_bin.parent}")
     print(f"    Data: {tool_data_dir(TOOL_NAME)}")
-    print(f"    Run 'blender-arwaky init' to setup workspace symlinks")
+    print("    Run 'blender-arwaky init' to setup workspace symlinks")
     return [python_bin]
 
 
@@ -57,7 +57,10 @@ def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
 
 
 def update(spec, root: Path) -> list[Path]:
-    from modules.shared.src.utility_git_update import update_submodule, write_install_stamp
+    from modules.shared.src.utility_git_update import (
+        update_submodule,
+        write_install_stamp,
+    )
 
     print(f">>> Updating {TOOL_NAME} (XDG compliant)...")
 
