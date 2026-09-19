@@ -11,13 +11,118 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_xdg_paths import bin_home
-from modules.tools.src.utility_tool_mechanics import ROOT, ensure_source, generic_owned
-from modules.tools.src.utility_venv_helpers import (
-    ensure_venv,
-    install_package,
-    setup_bin_links,
-    setup_xdg_directories,
-)
+
+# --- inlined helper deps (self-contained, no utility-to-utility imports) ---
+import contextlib
+import shutil
+import subprocess
+import sys
+from modules.shared.src.taxonomy_xdg_atomic_io import warn_if_bin_not_on_path
+from modules.shared.src.taxonomy_xdg_paths import tool_cache_dir, tool_config_dir, tool_data_dir, tool_state_dir
+
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
+
+ROOT = REPO_ROOT
+
+def ensure_source(root: Path, src_rel: str) -> Path:
+    """Ensure `root/src_rel` exists, attempting a git submodule init first."""
+    src = root / src_rel
+    if not src.exists():
+        print(f">>> Initializing submodule {src_rel}...")
+        subprocess.run(
+            ["git", "-C", str(root), "submodule", "update", "--init", src_rel],
+            check=False,
+        )
+    return src
+
+def generic_owned(
+    spec,
+    launcher_names: list[str],
+    *,
+    extra: list[Path] | None = None,
+    config: list[str] | None = None,
+) -> list[Path]:
+    """Generic XDG owned set for one tool: bin launchers + data + cache.
+
+    Adapters extend it with tool-specific extras (internal-bin copies,
+    env files, daemon units) via *extra* and with installer-owned
+    config subtrees (``config_home() / name``) via *config*.
+    """
+    from modules.shared.src.taxonomy_xdg_paths import cache_home, config_home, data_home
+
+    paths: list[Path] = [bin_home() / name for name in launcher_names]
+    paths.append(data_home() / spec.id)
+    paths.append(cache_home() / spec.id)
+    for name in config or []:
+        paths.append(config_home() / name)
+    paths.extend(extra or [])
+    return paths
+
+def ensure_venv(tool_name: str, force: bool = False) -> Path:
+    """Create venv in XDG data directory. If force=True, recreate even if exists."""
+    venv_dir = get_venv_dir(tool_name)
+    python_bin = get_venv_python(venv_dir)
+
+    if python_bin.exists():
+        if not force:
+            print(f"  [skip] Venv already exists at {venv_dir}")
+            return python_bin
+        print(f"  [update] Recreating venv at {venv_dir}...")
+        import shutil
+        shutil.rmtree(venv_dir)
+    else:
+        print(f"  [install] Creating venv at {venv_dir}...")
+
+    subprocess.run([sys.executable, "-m", "venv", "--without-pip", str(venv_dir)], check=True)
+    print("  [install] Bootstrapping pip...")
+    subprocess.run([str(get_venv_python(venv_dir)), "-m", "ensurepip", "--upgrade"], check=True)
+    python_bin = get_venv_python(venv_dir)
+    print(f"  [ok] Venv created: {python_bin}")
+    return python_bin
+
+def install_package(python_bin: Path, src_dir: Path, tool_name: str) -> None:
+    print(f"  [install] Installing {tool_name} package...")
+    subprocess.run(
+        [str(python_bin), "-m", "pip", "install", "-e", str(src_dir)],
+        check=True,
+    )
+
+def setup_bin_links(python_bin: Path, launchers: list[tuple[str, str]]) -> None:
+    """Create symlinks in ~/.local/bin/. launchers = [(name, entrypoint), ...]"""
+    import contextlib
+    ensure_bin_home()
+    local_bin = bin_home()
+    venv_bin_dir = python_bin.parent
+    print(f"  [install] Creating launchers in {local_bin}...")
+    for name, _entry in launchers:
+        src = venv_bin_dir / name
+        dst = local_bin / name
+        if src.exists():
+            if dst.is_symlink() or dst.exists():
+                with contextlib.suppress(OSError):
+                    dst.unlink()
+            with contextlib.suppress(OSError):
+                dst.symlink_to(src)
+                print(f"  [ok] {dst} -> {src}")
+    warn_if_bin_not_on_path()
+
+def setup_xdg_directories(tool_name: str) -> None:
+    print(f"  [install] Creating XDG directories for {tool_name}...")
+    tool_data_dir(tool_name)
+    tool_config_dir(tool_name)
+    tool_state_dir(tool_name)
+    tool_cache_dir(tool_name)
+    print(f"  [ok] Data: {tool_data_dir(tool_name)}")
+    print(f"  [ok] Config: {tool_config_dir(tool_name)}")
+    print(f"  [ok] State: {tool_state_dir(tool_name)}")
+    print(f"  [ok] Cache: {tool_cache_dir(tool_name)}")
+
+def get_venv_dir(tool_name: str) -> Path:
+    """XDG-compliant venv directory: ~/.local/share/<tool>/venv/"""
+    return tool_data_dir(tool_name) / "venv"
+
+def get_venv_python(venv_dir: Path) -> Path:
+    return venv_dir / "bin" / "python"
 
 TOOL_NAME = "vision-arwaky"
 SRC_REL = f"internal/{TOOL_NAME}"

@@ -18,14 +18,68 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
     warn_if_bin_not_on_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_tool_mechanics import (
-    ROOT,
-    copy_app,
-    ensure_source,
-    generic_owned,
-    require,
-    run,
-)
+
+# --- inlined helper dependencies (self-contained; AES404: no utility-to-utility imports) ---
+import shutil
+import subprocess
+import sys
+from modules.shared.src.taxonomy_xdg_paths import bin_home
+
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
+
+ROOT = REPO_ROOT
+
+def copy_app(src: Path, app_dir: Path, ignore_patterns: list[str]) -> None:
+    """Replace *app_dir* with a copy of *src*, dropping the listed patterns."""
+    ignore = shutil.ignore_patterns(*ignore_patterns)
+    if app_dir.exists():
+        shutil.rmtree(app_dir)
+    shutil.copytree(src, app_dir, ignore=ignore)
+
+def ensure_source(root: Path, src_rel: str) -> Path:
+    """Ensure `root/src_rel` exists, attempting a git submodule init first."""
+    src = root / src_rel
+    if not src.exists():
+        print(f">>> Initializing submodule {src_rel}...")
+        subprocess.run(
+            ["git", "-C", str(root), "submodule", "update", "--init", src_rel],
+            check=False,
+        )
+    return src
+
+def generic_owned(
+    spec,
+    launcher_names: list[str],
+    *,
+    extra: list[Path] | None = None,
+    config: list[str] | None = None,
+) -> list[Path]:
+    """Generic XDG owned set for one tool: bin launchers + data + cache.
+
+    Adapters extend it with tool-specific extras (internal-bin copies,
+    env files, daemon units) via *extra* and with installer-owned
+    config subtrees (``config_home() / name``) via *config*.
+    """
+    from modules.shared.src.taxonomy_xdg_paths import cache_home, config_home, data_home
+
+    paths: list[Path] = [bin_home() / name for name in launcher_names]
+    paths.append(data_home() / spec.id)
+    paths.append(cache_home() / spec.id)
+    for name in config or []:
+        paths.append(config_home() / name)
+    paths.extend(extra or [])
+    return paths
+
+def require(tool: str, reason: str = "") -> bool:
+    """True when *tool* is on PATH; otherwise print the missing-tool diagnostic."""
+    if shutil.which(tool):
+        return True
+    print(f"Error: {tool} not found in PATH. {reason}", file=sys.stderr)
+    return False
+
+def run(cmd: list[str], cwd: Path | str | None = None) -> None:
+    """Run with check=True; raises subprocess.CalledProcessError on failure."""
+    subprocess.run(cmd, cwd=str(cwd) if cwd else None, check=True)
 
 SRC_REL = "vendor/fetch-mcp"
 APP_DIR = data_home() / "fetch-mcp"

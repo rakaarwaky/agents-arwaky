@@ -28,7 +28,6 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
     ensure_path,
 )
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
-from modules.tools.src.utility_tool_mechanics import ROOT, generic_owned
 
 DATA_DIR_NAME = "9router"
 INTERNAL_BIN = "internal-bin"
@@ -50,6 +49,36 @@ from pathlib import Path
 root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))
 sys.path.insert(0, str(root))
 import importlib as _il
+
+# --- inlined helper dependencies (self-contained; AES404: no utility-to-utility imports) ---
+from modules.shared.src.taxonomy_xdg_paths import bin_home
+
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
+
+ROOT = REPO_ROOT
+
+def generic_owned(
+    spec,
+    launcher_names: list[str],
+    *,
+    extra: list[Path] | None = None,
+    config: list[str] | None = None,
+) -> list[Path]:
+    """Generic XDG owned set for one tool: bin launchers + data + cache.
+
+    Adapters extend it with tool-specific extras (internal-bin copies,
+    env files, daemon units) via *extra* and with installer-owned
+    config subtrees (``config_home() / name``) via *config*.
+    """
+    from modules.shared.src.taxonomy_xdg_paths import cache_home, config_home, data_home
+
+    paths: list[Path] = [bin_home() / name for name in launcher_names]
+    paths.append(data_home() / spec.id)
+    paths.append(cache_home() / spec.id)
+    for name in config or []:
+        paths.append(config_home() / name)
+    paths.extend(extra or [])
+    return paths
 _dv = _il.import_module('modules.daemon.src.' + 'agent' + '_daemon_verb')
 _cmd_9router = getattr(_dv, 'cmd_' + '9router')
 sys.exit(_cmd_9router(sys.argv[1:]))

@@ -10,8 +10,112 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
-from modules.tools.src.utility_launcher_writer import symlink_alias, write_uv_launchers
-from modules.tools.src.utility_tool_mechanics import ROOT, ensure_source, generic_owned
+
+# --- inlined helper deps (self-contained, no utility-to-utility imports) ---
+import subprocess
+from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
+from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER, REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text, ensure_bin_home, ensure_path, warn_if_bin_not_on_path
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
+
+def symlink_alias(alias: str, target: Path) -> Path:
+    """Symlink *alias* in XDG bin pointing at *target* (idempotent)."""
+    ensure_bin_home()
+    a = bin_home() / alias
+    a.unlink(missing_ok=True)
+    a.symlink_to(target)
+    return a
+
+def write_uv_launchers(
+    src_rel: str,
+    launchers: list[tuple[str, str]],
+    root: Path | None = None,
+    uv_args: list[str] | None = None,
+) -> list[Path]:
+    """Write uv-run launchers for a Python tool.
+
+    Args:
+        src_rel: Relative path from repo root to tool source (e.g. "internal/vision-arwaky").
+        launchers: List of (launcher_name, entry_command) tuples.
+            Each launcher runs: uv run <uv_args> --directory <src_rel> <entry_command>
+        root: Override repo root (default: resolved from this file's location).
+        uv_args: Extra uv flags inserted before --directory, e.g. ["--extra", "mcp"]
+            to materialize optional dependency groups in the runtime venv.
+
+    Returns:
+        List of created launcher paths.
+    """
+    ensure_bin_home()
+    baked_root = str(root) if root is not None else str(repo_root)
+    extra = "".join(repr(a) + ", " for a in (uv_args or []))
+    created = []
+    for name, entry in launchers:
+        target = bin_home() / name
+        content = (
+            "#!/usr/bin/env python3\n"
+            f"# {PROVENANCE_MARKER}\n"
+            "import os, sys\n"
+            "from pathlib import Path\n"
+            f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {baked_root!r}))\n'
+            f'os.execvpe("uv", ["uv", "run", {extra}"--directory", str(root / "{src_rel}"), '
+            f'"{entry}", *sys.argv[1:]], os.environ.copy())\n'
+        )
+        atomic_write_text(target, content)
+        created.append(target)
+    warn_if_bin_not_on_path()
+    ensure_path()
+    return created
+
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
+
+ROOT = REPO_ROOT
+
+def ensure_source(root: Path, src_rel: str) -> Path:
+    """Ensure `root/src_rel` exists, attempting a git submodule init first."""
+    src = root / src_rel
+    if not src.exists():
+        print(f">>> Initializing submodule {src_rel}...")
+        subprocess.run(
+            ["git", "-C", str(root), "submodule", "update", "--init", src_rel],
+            check=False,
+        )
+    return src
+
+def generic_owned(
+    spec,
+    launcher_names: list[str],
+    *,
+    extra: list[Path] | None = None,
+    config: list[str] | None = None,
+) -> list[Path]:
+    """Generic XDG owned set for one tool: bin launchers + data + cache.
+
+    Adapters extend it with tool-specific extras (internal-bin copies,
+    env files, daemon units) via *extra* and with installer-owned
+    config subtrees (``config_home() / name``) via *config*.
+    """
+    from modules.shared.src.taxonomy_xdg_paths import cache_home, config_home, data_home
+
+    paths: list[Path] = [bin_home() / name for name in launcher_names]
+    paths.append(data_home() / spec.id)
+    paths.append(cache_home() / spec.id)
+    for name in config or []:
+        paths.append(config_home() / name)
+    paths.extend(extra or [])
+    return paths
+
+def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | None = None) -> Path:
+    """Write a generic launcher with aliases. Returns launcher path."""
+    ensure_bin_home()
+    launcher = bin_home() / tool_name
+    atomic_write_text(launcher, content)
+    for alias in (aliases or []):
+        a = bin_home() / alias
+        a.unlink(missing_ok=True)
+        a.symlink_to(launcher)
+    warn_if_bin_not_on_path()
+    ensure_path()
+    return launcher
 
 SRC_REL = "vendor/google-workspace-mcp"
 LAUNCHERS = [
