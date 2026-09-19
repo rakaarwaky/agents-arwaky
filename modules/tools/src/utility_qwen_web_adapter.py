@@ -195,7 +195,6 @@ class QwenWebAdapter:
         return False, "venv/pip + Playwright (rebuild required)"
 
     def update(self, spec, root: Path) -> list[Path]:
-        from modules.shared.src.utility_git_update import update_submodule, write_install_stamp
 
         print(">>> Updating qwen-web-arwaky (XDG compliant)...")
 

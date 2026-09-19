@@ -291,7 +291,6 @@ def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
 
 
 def update(spec, root: Path) -> list[Path]:
-    from modules.shared.src.utility_git_update import update_submodule
 
     if not update_submodule(root, MCP_SRC_REL):
         raise ToolUpdateError(f"submodule update failed: {MCP_SRC_REL}")
