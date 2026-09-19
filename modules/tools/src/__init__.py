@@ -1,7 +1,8 @@
 """Tools feature — unified install / update / uninstall / run (AES).
 
 The four former features (installer, updater, uninstaller, runner) are
-merged here: eight business-action capabilities, one agent orchestrator,
+merged here: four verb capability classes (install/update/uninstall/run,
+each multi-method), one agent orchestrator,
 thirteen unified per-tool adapters (one per manifest tool id), and the
 zero-I/O `ToolsOrchestrator` aggregate.
 """
