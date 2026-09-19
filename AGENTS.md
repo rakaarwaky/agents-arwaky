@@ -92,7 +92,7 @@ Code and CI win over this file; this file wins over `README.md` for agent behavi
 
 ### 1. Modifying Code in `internal/` Submodules
 - Internal agents are submodules pointing to separate git repositories.
-- When modifying internal agents, check for repository-specific instructions (e.g. [`internal/lint-arwaky/AGENTS.md`](internal/lint-arwaky/AGENTS.md), [`internal/vision-arwaky/SKILL.md`](internal/vision-arwaky/SKILL.md)).
+- When modifying internal agents, check for repository-specific instructions (e.g. [`internal/lint-arwaky/AGENTS.md`](internal/lint-arwaky/AGENTS.md), [`internal/vision-arwaky/`](internal/vision-arwaky/)).
 - Respect the language toolchain of each submodule:
   - `internal/lint-arwaky`: Rust (`cargo fmt`, `cargo clippy`, `cargo nextest`). Provides CLI (`lint-arwaky`, `la`, `lac`), TUI (`lint-arwaky-tui`), and MCP server (`lint-arwaky-mcp`) exposing `execute_command`, `get_config`, `health_check`, `list_commands`, `read_skill`.
   - `internal/vision-arwaky`: Python (`pip install -e .`). Venv at `~/.local/share/vision-arwaky/venv/`. CLI (`vision-arwaky`, `va`), MCP (`vision-arwaky-mcp`).
