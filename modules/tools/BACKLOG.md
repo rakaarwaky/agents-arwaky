@@ -1,0 +1,81 @@
+# Feature Backlog: tools
+
+FRD: [FRD.md](FRD.md)
+Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
+State: root § State Definitions
+Health: root § State Definitions
+Last Updated: 2026-09-19
+
+> Supersedes the BACKLOGs of the four former modules: `modules/installer/BACKLOG.md`,
+> `modules/updater/BACKLOG.md`, `modules/uninstaller/BACKLOG.md`,
+> `modules/runner/BACKLOG.md` — all four module directories were merged into
+> this one and deleted.
+
+## Current Condition
+
+- Done: the four lifecycle features (installer, updater, uninstaller, runner)
+  are merged into a single `modules/tools` feature: 8 business-action
+  capabilities, one `ToolsOrchestrator` aggregate, 13 unified per-tool adapters
+  (install + update + pin + owned-teardown data in one place per tool), and the
+  CLI surface ported from the runner verb to `surface_tools_command.py`.
+- In Progress: none.
+- Blocked: none.
+- Next Action: run the full verification gate (`python3 -m compileall`, import
+  smoke, `python3 -m modules.cli check`, `python3 -m pytest tests/ -q`) and a
+  clean-host lifecycle sweep.
+
+## Backlog
+
+| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
+|----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
+| TOL-01 | FR-001..008 | Unified tools feature (4 modules → 1) | P0 | QA | 8 `capabilities_tools_*.py`, 13 `utility_<tool>_adapter.py`, `agent_tools_orchestrator.py`, `surface_tools_command.py`, `root_tools_container.py` all present; old modules deleted; `modules/root_cli_entry.py` repointed to `modules.tools`. | @raka | None | 2026-09-19 |
+| TOL-02 | FR-008 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
+| TOL-03 | FR-005..006 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
+
+## Scenario Evidence (rows)
+
+| Scenario | Kind | Test file | Test name | Last verified |
+|----------|------|-----------|-----------|---------------|
+| Install: run twice → second is a no-op; dry-run leaves the filesystem untouched. | Gap | — | not yet asserted on a clean host | unverified |
+| Update: pin satisfied → skip; unsatisfied → bump + record; re-record is a no-op. | Gap | — | not yet asserted on a clean host | unverified |
+| Uninstall: clean removal; active daemon unit → named residual, never force-killed. | Gap | — | TOL-03 residual sweep pending | unverified |
+| Run: exit-code fidelity across 0/1/127; vanished executable → sentinel 126; unknown id → typed error before any capability; alias → resolved spec. | Manual | — | TOL-02 clean-host `aa tool run` sweep | unverified |
+
+## Blockers
+
+- None recorded.
+- Daemon tools (9Router, Anytype daemon) are gated on a Podman container for
+  their service units; a stopped-from-stopping unit becomes a named residual,
+  never a forced kill (container-isolation invariant).
+
+## Dependencies
+
+- `config/manifest.json` (repo-root SSOT, resolved via `repo_root()`) — tool
+  ids, runner family, binary, alias, mcp_binary.
+- `modules/shared/src` — `taxonomy_tool_vo`, `taxonomy_core_error`,
+  `taxonomy_xdg_paths`, `taxonomy_xdg_atomic_io`, `utility_git_update`,
+  `utility_manifest_reader`, `utility_paths`.
+- `modules/daemon` — aggregate only, lazy-imported for service install/stop.
+- `modules/cli` — the only external surface; imports `modules.tools` only.
+
+## Release Readiness
+
+- Gated on TOL-01 (feature QA): full verification gate green and a clean-host
+  lifecycle sweep (install → update → run → uninstall) with exit-code fidelity
+  asserted.
+- No release-blocking defects open; residual sweep (TOL-03) is P1 and does not
+  gate the release of the merged feature.
+
+## Deferred
+
+- Intentionally out of scope for the merged `modules/tools` release.
+- No new per-tool capability files (would violate the 8-capability invariant).
+- Cross-feature capability sharing beyond the lazy daemon aggregate.
+
+## Change Log
+
+- 2026-09-19: `modules/{installer,updater,uninstaller,runner}` merged into
+  `modules/tools`; the four old BACKLOG/FRD files are superseded by this
+  document and `modules/tools/FRD.md` and deleted with their directories.
+- TOL-01 moved to QA on 2026-09-19 after the module tree landed and
+  `modules/root_cli_entry.py` was repointed to `modules.tools`.

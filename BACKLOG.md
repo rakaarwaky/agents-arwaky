@@ -2,10 +2,7 @@
 
 | Feature | Tier | Spec | Backlog |
 |---------|------|------|---------|
-| `modules/installer` | P0 | [FRD](modules/installer/FRD.md) | [BACKLOG](modules/installer/BACKLOG.md) |
-| `modules/updater` | P0 | [FRD](modules/updater/FRD.md) | [BACKLOG](modules/updater/BACKLOG.md) |
-| `modules/uninstaller` | P0 | [FRD](modules/uninstaller/FRD.md) | [BACKLOG](modules/uninstaller/BACKLOG.md) |
-| `modules/runner` | P0 | [FRD](modules/runner/FRD.md) | [BACKLOG](modules/runner/BACKLOG.md) |
+| `modules/tools` | P0 | [FRD](modules/tools/FRD.md) | [BACKLOG](modules/tools/BACKLOG.md) |
 | `modules/shared` | P0 | [FRD](modules/shared/FRD.md) | [BACKLOG](modules/shared/BACKLOG.md) |
 | `modules/cli` | P0 | [FRD](modules/cli/FRD.md) | [BACKLOG](modules/cli/BACKLOG.md) |
 | `modules/check` | P0 | [FRD](modules/check/FRD.md) | [BACKLOG](modules/check/BACKLOG.md) |
@@ -13,7 +10,7 @@
 | `modules/config` | P1 | [FRD](modules/config/FRD.md) | [BACKLOG](modules/config/BACKLOG.md) |
 | `modules/daemon` | P1 | [FRD](modules/daemon/FRD.md) | [BACKLOG](modules/daemon/BACKLOG.md) |
 | `modules/doctor` | P1 | [FRD](modules/doctor/FRD.md) | [BACKLOG](modules/doctor/BACKLOG.md) |
-| `modules/harness` | P1 | [FRD](modules/harness/FRD.md) | [BACKLOG](modules/harness/BACKLOG.md) |
+| `modules/harness` | P1 | — (module absent in this worktree; connector lives in `modules/shared/src/`) | — |
 | `modules/service` | P1 | [FRD](modules/service/FRD.md) | [BACKLOG](modules/service/BACKLOG.md) |
 | `modules/skill` | P1 | [FRD](modules/skill/FRD.md) | [BACKLOG](modules/skill/BACKLOG.md) |
 | `modules/backup` | P2 | [FRD](modules/backup/FRD.md) | [BACKLOG](modules/backup/BACKLOG.md) |

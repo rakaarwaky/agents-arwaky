@@ -102,7 +102,7 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
         return local
     if category == "internal":
         from modules.shared.src.taxonomy_tool_vo import ToolSpec
-        from modules.runner.src.root_runner_container import create_runner_feature
+        from modules.tools.src.root_tools_container import create_tools_feature
         spec = ToolSpec(
             id=tool_id,
             category=category,
@@ -114,7 +114,7 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
             mcp_binary=None,
             runner=runner or TOOL_RUNNERS.get(tool_id, ""),
         )
-        return create_runner_feature().executable_path(spec)
+        return create_tools_feature().executable_path(spec)
     return None
 
 
@@ -425,8 +425,8 @@ def cmd_install(argv: list[str]) -> int:
             err(f"Tool '{target}' not found in manifest.")
             return 1
         tools = [tool]
-    from modules.installer.src.root_tool_installer_registry import build_installer_registry
-    installer = build_installer_registry()
+    from modules.tools.src.root_tools_container import create_tools_feature
+    installer = create_tools_feature()
     failed, skipped = [], []
     total = len(tools)
     for idx, tool in enumerate(tools, 1):
@@ -476,8 +476,8 @@ def cmd_update(argv: list[str]) -> int:
             err(f"Tool '{target}' not found in manifest.")
             return 1
         tools = [tool]
-    from modules.updater.src.root_tool_updater_registry import build_updater_orchestrator
-    updater = build_updater_orchestrator()
+    from modules.tools.src.root_tools_container import create_tools_feature
+    updater = create_tools_feature()
     failed, skipped = [], []
     total = len(tools)
     for idx, tool in enumerate(tools, 1):
@@ -803,10 +803,8 @@ def cmd_clean(argv: list[str]) -> int:
 
 
 def uninstall_tool(tool: Tool) -> int:
-    from modules.uninstaller.src.root_tool_uninstaller_registry import (
-        build_uninstaller_orchestrator,
-    )
-    uninstaller = build_uninstaller_orchestrator()
+    from modules.tools.src.root_tools_container import create_tools_feature
+    uninstaller = create_tools_feature()
     spec = _spec_from_tool(tool)
     info(f"Uninstalling {tool.id}")
     result = uninstaller.uninstall(spec)
@@ -894,9 +892,9 @@ def cmd_completion(argv):
 # script directories were deleted by the AES refactor; their per-tool logic
 def _installer_registry_ids() -> set:
     """Tool ids that have a registered per-tool installer capability."""
-    from modules.installer.src.root_tool_installer_registry import INSTALLER_REGISTRY
+    from modules.tools.src.root_tools_container import TOOLS_REGISTRY
 
-    return set(INSTALLER_REGISTRY)
+    return set(TOOLS_REGISTRY)
 
 
 # =============================================================================
