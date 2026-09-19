@@ -4,8 +4,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.check.src.contract_check_protocol import ICheckRunner
-from modules.shared.src.utility_logging import err, info, ok
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_logging_setup import err, info, ok
+from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_skill_audit import (
     audit_pack,
     iter_skill_files,

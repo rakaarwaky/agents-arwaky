@@ -37,12 +37,12 @@ import sys
 import textwrap
 from pathlib import Path
 
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_paths_resolver import repo_root
 
 ROOT = repo_root()
 
 from modules.shared.src.taxonomy_manifest_vo import Tool
-from modules.shared.src.utility_logging import (
+from modules.shared.src.utility_logging_setup import (
     BLUE,
     BOLD,
     CYAN,
@@ -59,10 +59,10 @@ from modules.shared.src.utility_logging import (
     set_verbosity,
     warn,
 )
-from modules.shared.src.utility_logging import (
+from modules.shared.src.utility_logging_setup import (
     pad as _pad,
 )
-from modules.shared.src.utility_logging import (
+from modules.shared.src.utility_logging_setup import (
     table_widths as _table_widths,
 )
 from modules.shared.src.utility_manifest_reader import (
@@ -945,6 +945,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    import importlib
-    _cli_router = importlib.import_module("modules.cli.src.surface_cli_router")
-    raise SystemExit(_cli_router.main(sys.argv[1:]))
+    raise SystemExit(main(sys.argv[1:]))

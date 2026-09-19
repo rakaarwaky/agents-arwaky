@@ -61,7 +61,7 @@ Last Updated: 2026-09-19
   ids, runner family, binary, alias, mcp_binary.
 - `modules/shared/src` — `taxonomy_tool_vo`, `taxonomy_core_error`,
   `taxonomy_xdg_paths`, `taxonomy_xdg_atomic_io`, `utility_git_update`,
-  `utility_manifest_reader`, `utility_paths`.
+  `utility_manifest_reader`, `utility_paths_resolver`.
 - `modules/daemon` — aggregate only, lazy-imported for service install/stop.
 - `modules/cli` — the only external surface; imports `modules.tools` only.
 

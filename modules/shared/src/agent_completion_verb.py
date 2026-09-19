@@ -1,7 +1,7 @@
 """Completion surface — CLI adapter for aa completion."""
 from __future__ import annotations
 
-from modules.shared.src.utility_completer import generate_bash, generate_zsh, install
+from modules.shared.src.utility_completion_generator import generate_bash, generate_zsh, install
 
 
 def cmd_completion(args: list[str]) -> int:
@@ -26,7 +26,7 @@ class CompletionVerb(ICompletionAggregate):
     """Agent-layer verb surface for the completion feature (AES405 aggregate implementor)."""
 
     def __init__(self) -> None:
-        from modules.shared.src.utility_completer import generate_bash, generate_zsh, install
+        from modules.shared.src.utility_completion_generator import generate_bash, generate_zsh, install
 
         self._generate_bash = generate_bash
         self._generate_zsh = generate_zsh

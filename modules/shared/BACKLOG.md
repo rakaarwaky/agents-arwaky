@@ -22,7 +22,7 @@ Last Updated: 2026-09-18
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
 | SHR-01 | FR-001, FR-002, FR-003 | Path/manifest/XDG utility contracts stable and tested | P0 | QA | 24 flat modules at `5556fd5`; import OK; `aa check` PASSED. Unit coverage in `tests/` (`test_envfile`, `test_manifest`, `test_xdg`) outstanding as a migrated suite (root WS-06). | @raka | None | 2026-09-18 |
-| SHR-02 | FR-001 | `repo_root()` anchor discovery + `AGENTS_ARWAKY_ROOT` hint | P0 | Done | `utility_paths.py` at `5556fd5`; honored by every module's root resolution. | @raka | None | 2026-09-18 |
+| SHR-02 | FR-001 | `repo_root()` anchor discovery + `AGENTS_ARWAKY_ROOT` hint | P0 | Done | `utility_paths_resolver.py` at `5556fd5`; honored by every module's root resolution. | @raka | None | 2026-09-18 |
 | SHR-03 | FR-001–FR-003 | FRD + BACKLOG pair authoring for shared | P0 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
 
 ## Scenario Evidence

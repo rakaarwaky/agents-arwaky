@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.utility_logging import BOLD, RESET, err
+from modules.shared.src.utility_logging_setup import BOLD, RESET, err
 from modules.mcp.src.contract_mcp_aggregate import IMcpAggregate
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_paths_resolver import repo_root
 
 
 def cmd_mcp(args: list[str], orch: IMcpAggregate) -> int:

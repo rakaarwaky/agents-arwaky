@@ -15,7 +15,7 @@ comments (`.jsonc`) and TOML — without corrupting comments or key order.
 `capabilities_config_engine.py` implements `IConfigWriter` (`load_file`,
 `save_file`, `detect_format`) and `IConfigModifier` (`remove_mcp_servers`,
 `remove_env_keys`, `list_mcp_servers`, all with `dry_run` support); helpers
-`utility_jsonc.py` and `utility_toml_write.py` own the round-trip-safe
+`utility_jsonc_parser.py` and `utility_toml_write.py` own the round-trip-safe
 serialization.
 
 Flow: `aa connect --prune` / `aa disconnect` → `ConfigEngine` → comment-safe

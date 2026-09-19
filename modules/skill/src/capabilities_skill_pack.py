@@ -10,7 +10,7 @@ from __future__ import annotations
 import importlib
 from pathlib import Path
 
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_paths_resolver import repo_root
 from modules.skill.src.contract_skill_protocol import ISkillProvisioner
 from modules.skill.src.taxonomy_skill_vo import SkillProvisionResult
 from modules.skill.src.utility_skill_pack import prune_provisioned

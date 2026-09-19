@@ -41,7 +41,7 @@ from modules.root_cli_entry import (
     _gen_correlation_id,
     _init_sentry,
 )
-from modules.shared.src.utility_logging import err, set_color_mode, set_verbosity
+from modules.shared.src.utility_logging_setup import err, set_color_mode, set_verbosity
 
 
 def dispatch(argv: list[str], ctx: dict | None = None) -> int:

@@ -23,7 +23,7 @@ from pathlib import Path
 
 from modules.backup.src.contract_backup_protocol import IBackupGateway
 from modules.backup.src.taxonomy_backup_vo import BackupResult, RestoreResult
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_xdg_paths import data_home
 
 ROOT = repo_root()

@@ -9,7 +9,7 @@ import json as _json
 import sys
 import textwrap
 
-from modules.shared.src.utility_logging import (
+from modules.shared.src.utility_logging_setup import (
     BOLD,
     CYAN,
     GREEN,
@@ -23,7 +23,7 @@ from modules.shared.src.utility_logging import (
     warn,
 )
 from modules.shared.src.utility_manifest_reader import load_tools
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_paths_resolver import repo_root
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
 
 

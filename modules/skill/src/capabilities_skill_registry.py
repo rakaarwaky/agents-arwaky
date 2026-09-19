@@ -14,7 +14,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
-from modules.shared.src.utility_logging import pad as _pad, table_widths as _table_widths
+from modules.shared.src.utility_logging_setup import pad as _pad, table_widths as _table_widths
 from modules.skill.src.utility_skill_pack import write_provenance
 
 

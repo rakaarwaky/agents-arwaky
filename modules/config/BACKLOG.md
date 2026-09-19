@@ -8,7 +8,7 @@ Last Updated: 2026-09-18
 
 ## Current Condition
 
-- Done: `ConfigEngine` (`IConfigWriter` + `IConfigModifier`) + `utility_jsonc` / `utility_toml_write` at `5556fd5`; import OK; `aa check` PASSED at `5556fd5`.
+- Done: `ConfigEngine` (`IConfigWriter` + `IConfigModifier`) + `utility_jsonc_parser` / `utility_toml_write` at `5556fd5`; import OK; `aa check` PASSED at `5556fd5`.
 - In Progress: config-03 — FRD/BACKLOG pair authoring (this file).
 - Blocked: none.
 - Next Action: close this pair; then CFG-01 sweep (JSONC round-trip + dry-run purity).

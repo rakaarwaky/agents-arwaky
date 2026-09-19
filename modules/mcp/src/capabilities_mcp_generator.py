@@ -23,10 +23,10 @@ import json
 import sys
 from pathlib import Path
 
-from modules.shared.src.utility_envfile import load_first_env
+from modules.shared.src.utility_envfile_parser import load_first_env
 from modules.mcp.src.contract_mcp_aggregate import IMcpAggregate
 from modules.mcp.src.contract_mcp_protocol import IMcpConfigGenerator
-from modules.shared.src.utility_paths import repo_root
+from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_xdg_paths import (
     agents_arwaky_config_dir,
     config_home,

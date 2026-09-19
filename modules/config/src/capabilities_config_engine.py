@@ -20,7 +20,7 @@ import tomllib
 from pathlib import Path
 
 from modules.config.src.contract_config_protocol import IConfigModifier, IConfigWriter
-from modules.config.src.utility_jsonc import strip_jsonc_comments
+from modules.config.src.utility_jsonc_parser import strip_jsonc_comments
 from modules.config.src.utility_toml_write import write_toml
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -211,9 +211,9 @@ def remove_env_keys(path: Path, keys, dry_run: bool = False) -> list:
 
     Delegates to envfile.remove_env_keys for the core logic.
     """
-    from modules.shared.src.utility_envfile import remove_env_keys as _envfile_remove
+    from modules.shared.src.utility_envfile_parser import remove_env_keys as _envfile_remove
     if dry_run:
-        from modules.shared.src.utility_envfile import parse_env_file
+        from modules.shared.src.utility_envfile_parser import parse_env_file
         env = parse_env_file(path)
         return [k for k in keys if k in env]
     return _envfile_remove(path, keys)
