@@ -1,4 +1,4 @@
-"""FR-005/FR-006 verb — uninstall a tool: remove owned state, verify residuals.
+"""FR-003 verb — uninstall a tool: remove owned state, verify residuals.
 
 Sub-steps (internal, not separate public methods):
 1. Remove: stop the daemon (if applicable) first — an active unit that
@@ -51,7 +51,8 @@ def _stop_daemon(daemons: object, tool_id: str) -> bool:
     if rc == 0:
         return True
     unit = DAEMON_UNIT_TOOLS.get(tool_id)
-    if unit and (config_home() / "systemd" / "user" / unit).exists():
+    # P1-4: never invoke systemctl when it is absent (FileNotFoundError guard).
+    if unit and shutil.which("systemctl") and (config_home() / "systemd" / "user" / unit).exists():
         active = subprocess.run(
             ["systemctl", "--user", "is-active", unit],
             capture_output=True, text=True, check=False,
@@ -128,7 +129,9 @@ class UninstallerCapability(IToolUninstaller):
             else:
                 try:
                     stopped = _stop_daemon(self._daemons, spec.id)
-                except (ValueError, AttributeError) as exc:
+                # P1-4: FileNotFoundError (no systemctl), KeyError (daemon table
+                # miss) and OSError must become named residuals, never CLI exceptions.
+                except (ValueError, AttributeError, KeyError, OSError) as exc:
                     notes.append(f"residual: daemon stop failed ({exc})")
                     stopped = False
                 if stopped:

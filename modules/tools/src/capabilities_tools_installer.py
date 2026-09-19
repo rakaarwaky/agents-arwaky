@@ -64,8 +64,12 @@ class InstallerCapability(IToolInstaller):
                 f"[dry-run] would invoke {type(adapter).__name__}.install for {spec.id}",
             )
 
-        if adapter.satisfied(spec, root):
-            return InstallResult(True, spec.id, "satisfied (no action needed)")
+        # P1-3: the satisfied check must not raise out of the verb.
+        try:
+            if adapter.satisfied(spec, root):
+                return InstallResult(True, spec.id, "satisfied (no action needed)")
+        except Exception as e:
+            return InstallResult(False, spec.id, f"satisfied-check failure: {e}")
 
         try:
             adapter.install(spec, root, daemons=self._daemons)

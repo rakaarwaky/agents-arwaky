@@ -22,7 +22,6 @@ from modules.shared.src.utility_logging_setup import (
     table_widths,
     warn,
 )
-from modules.shared.src.utility_manifest_reader import load_tools
 from modules.shared.src.utility_paths_resolver import repo_root
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
 
@@ -76,7 +75,13 @@ def cmd_list(args: list[str], orch: IToolsAggregate) -> int:
 
 
 def cmd_run(args: list[str], orch: IToolsAggregate) -> int:
-    """aa tool run <tool> [args...] — run the binary in-process."""
+    """aa tool run <tool> [args...] — run the binary via the aggregate.
+
+    P0-3: delegates entirely to orch.run_tool(); the duplicated
+    cargo/uv/python os.execvpe dispatch (and its uncaught-OSError
+    crash path) is removed. Exit-code fidelity, sentinel 126, and
+    MCP stdio handling live in RunnerCapability.
+    """
     if not args:
         err("Missing tool name.")
         print("Usage: aa tool run <tool-name> [args...]")
@@ -87,24 +92,9 @@ def cmd_run(args: list[str], orch: IToolsAggregate) -> int:
         print("Run 'aa tool list' to see all available tools.")
         return 1
     tool_args = args[1:]
-    exe = orch.executable_path(spec)
-    if exe:
-        import os
-        import shutil
-
-        tool_dir = repo_root() / spec.path
-        if spec.category == "internal" and spec.runner == "cargo" and exe.name == "Cargo.toml":
-            os.execvpe("cargo", ["cargo", "run", "--quiet", "--manifest-path", str(exe),
-                                 "--bin", f"{spec.id}-arwaky-cli", "--", *tool_args], os.environ)
-        if spec.category == "internal" and spec.runner in {"uv", "python"} and exe == tool_dir:
-            if shutil.which("uv"):
-                os.execvpe("uv", ["uv", "run", "--directory", str(tool_dir), spec.binary, *tool_args], os.environ)
-            elif shutil.which("python3"):
-                os.execvpe("python3", ["python3", "-m", spec.id, *tool_args], os.environ)
-        os.execvpe(str(exe), [str(exe), *tool_args], os.environ)
-    err(f"Binary '{spec.binary}' for tool '{spec.id}' is not installed or runnable.")
-    print(f"Try running: {BOLD()}aa tool install {spec.id}{RESET()}")
-    return 1
+    # All dispatch/exec/error semantics live in RunnerCapability:
+    # discovery order, sentinel 126, MCP stdio, child exit-code passthrough.
+    return orch.run_tool(spec, tool_args)
 
 
 def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
@@ -168,13 +158,18 @@ def cmd_update(args: list[str], orch: IToolsAggregate) -> int:
             return 1
     print(f"{BOLD()}>>> Updating {target} (pull + reinstall)...{RESET()}")
     if target == "all":
-        for tool in load_tools():
+        failed: list[str] = []
+        for tool in orch.list_tools():
             spec = orch.resolve_spec(tool.id)
             if spec is None:
                 continue
             result = orch.update(spec)
             if not result.success:
                 err(result.message)
+                failed.append(tool.id)
+        if failed:
+            err(f"Update failed for: {', '.join(failed)}")
+            return 1
         ok("Update finished.")
         return 0
     spec = orch.resolve_spec(target)
@@ -201,10 +196,18 @@ def cmd_uninstall(args: list[str], orch: IToolsAggregate) -> int:
         if not _confirm("Type 'uninstall' to continue: ", accepted=("uninstall",)):
             warn("Aborted.")
             return 1
+    elif target not in {"--all", "all"} and not has_yes:
+        # P1-14: single-tool uninstall gets the same TTY/--yes guard as --all.
+        if not sys.stdin.isatty():
+            err("Non-interactive mode detected. Use --yes to skip confirmation.")
+            return 1
+        if not _confirm(f"Uninstall '{target}'? [y/N]: "):
+            warn("Aborted.")
+            return 1
     if target in {"--all", "all"}:
         info("Uninstalling all tools...")
         failed = []
-        for tool in load_tools():
+        for tool in orch.list_tools():
             spec = orch.resolve_spec(tool.id)
             if spec is None:
                 continue
