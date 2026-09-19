@@ -49,14 +49,7 @@ from pathlib import Path
 root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))
 sys.path.insert(0, str(root))
 import importlib as _il
-
-# --- inlined helper dependencies (self-contained; AES404: no utility-to-utility imports) ---
-from modules.shared.src.taxonomy_xdg_paths import bin_home
-
-from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
-
-ROOT = REPO_ROOT
-
+# --- inlined helper deps (self-contained, no utility-to-utility imports) ---from modules.shared.src.taxonomy_paths_constant import REPO_ROOTfrom modules.shared.src.taxonomy_xdg_paths import bin_homeROOT = REPO_ROOT
 def generic_owned(
     spec,
     launcher_names: list[str],
