@@ -129,6 +129,26 @@ def update(spec, root: Path) -> list[Path]:
 
 # -- teardown data --------------------------------------------------------------
 
+def generic_owned(
+    spec,
+    launcher_names: list[str],
+    *,
+    extra: list[Path] | None = None,
+    config: list[str] | None = None,
+) -> list[Path]:
+    """Generic XDG owned set for one tool: bin launchers + data + cache."""
+    from modules.shared.src.taxonomy_xdg_paths import bin_home, cache_home, config_home, data_home
+
+    paths: list[Path] = [bin_home() / name for name in launcher_names]
+    paths.append(data_home() / spec.id)
+    paths.append(cache_home() / spec.id)
+    for name in config or []:
+        paths.append(config_home() / name)
+    paths.extend(extra or [])
+    return paths
+
+
+
 def owned_paths(spec, root: Path | None = None) -> list[Path]:
     from modules.shared.src.taxonomy_xdg_paths import agents_arwaky_config_dir
 
