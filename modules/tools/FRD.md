@@ -28,16 +28,12 @@ to that one method, not exposed as separate protocol methods:
 - `IToolRunner.run(spec, args, root) -> int`
   — discover executable + execute + return child exit code, one verb
 
-No `IToolAdapter` ABC: adapters are units (a `SimpleNamespace` of verb
-callables) reached only through `IToolAdapterFacade`, implemented by
-`ToolAdapterFacade` in `capabilities_tools_adapter.py`.
+No `IToolAdapter` ABC: adapters are units reached only through
+`IToolAdapterFacade` (the single facade protocol for all per-tool verbs).
 
 Per-tool mechanics (package-manager family, build flags, artifact locations,
 launcher sets, daemon delegation) live in **one capability file,
-`capabilities_tools_adapter.py`** (a registered AES301 exception: a deliberate
-god object, 12 per-tool adapters + shared mechanics collapsed into a single
-file — the 13 per-tool `utility_<tool>_adapter.py` modules and
-`utility_tool_mechanics.py` were deleted). Each adapter unit knows its tool's
+`capabilities_tools_adapter.py`**. Each adapter unit knows its tool's
 `install`, `update`, `is_pin_satisfied`, and `owned_paths` in exactly one
 place. Adding a tool is one manifest entry plus one adapter unit in that file;
 the orchestrator, verb capability classes, and aggregate are never edited.
