@@ -83,11 +83,19 @@ def create_tools_feature(root=None) -> IToolsAggregate:
     does not force a sibling daemon import at module load.
     """
     from modules.daemon.src.root_daemon_container import create_daemon_feature
+    from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
 
     daemons = create_daemon_feature()
     resolved = root or repo_root()
-    installer = InstallerCapability(root=resolved, daemons=daemons)
-    updater = UpdaterCapability(root=resolved)
+    # P1-7: the adapter facade is the single API pipeline over all 13 leaf
+    # adapters + shared mechanics; wired here and injected into the verb
+    # capabilities (dependency inversion: capabilities depend on the
+    # IToolAdapterFacade protocol, not the concrete ToolAdapterFacade).
+    adapter_facade = ToolAdapterFacade(
+        registry=TOOLS_REGISTRY, daemons=daemons, root=resolved
+    )
+    installer = InstallerCapability(root=resolved, daemons=daemons, adapter_facade=adapter_facade)
+    updater = UpdaterCapability(root=resolved, adapter_facade=adapter_facade)
     uninstaller = UninstallerCapability(daemons=daemons)
     runner = RunnerCapability(root=resolved)
     return ToolsOrchestrator(
@@ -98,6 +106,7 @@ def create_tools_feature(root=None) -> IToolsAggregate:
         updater=updater,
         uninstaller=uninstaller,
         runner=runner,
+        adapter_facade=adapter_facade,
     )
 
 

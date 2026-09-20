@@ -20,6 +20,8 @@ from modules.shared.src.taxonomy_core_error import ToolUpdateError
 
 # --- inlined helper dependencies (self-contained; AES404: no utility-to-utility imports) ---
 import tempfile
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home, cache_home, config_home, data_home
 # --- inlined git-update helpers (self-contained, no utility-to-utility imports) ---
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:

@@ -28,6 +28,8 @@ from modules.shared.src.taxonomy_xdg_atomic_io import (
 from modules.shared.src.taxonomy_xdg_paths import bin_home, data_home
 from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
 from modules.shared.src.taxonomy_xdg_paths import bin_home
+from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text, ensure_bin_home, ensure_path
+from modules.shared.src.taxonomy_xdg_paths import agents_arwaky_config_dir
 
 # --- inlined helper deps (self-contained, no utility-to-utility imports) ---
 ROOT = REPO_ROOT

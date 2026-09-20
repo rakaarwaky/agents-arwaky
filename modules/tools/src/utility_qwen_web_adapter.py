@@ -26,6 +26,8 @@ from modules.shared.src.taxonomy_xdg_paths import tool_data_dir
 # --- inlined git-update helpers (self-contained, no utility-to-utility imports) ---
 import datetime
 import json
+from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
+from modules.shared.src.taxonomy_xdg_paths import bin_home, cache_home, config_home, data_home, tool_cache_dir, tool_config_dir, tool_state_dir
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
     """Run a command silently, return result."""

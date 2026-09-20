@@ -23,6 +23,7 @@ from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text, ensure_
 from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home, warn_if_bin_not_on_path
 from modules.shared.src.taxonomy_xdg_paths import bin_home
+from modules.shared.src.taxonomy_xdg_paths import cache_home, config_home
 # --- inlined git-update helpers (self-contained, no utility-to-utility imports) ---
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:

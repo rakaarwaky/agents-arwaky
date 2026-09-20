@@ -19,9 +19,11 @@ import datetime
 import json
 from pathlib import Path
 
+from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
 from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text
 from modules.shared.src.taxonomy_xdg_paths import state_home
+from modules.tools.src.contract_tools_adapter_protocol import IToolAdapterFacade
 from modules.tools.src.contract_tools_protocol import IToolUpdater
 
 
@@ -29,13 +31,19 @@ from modules.tools.src.contract_tools_protocol import IToolUpdater
 class UpdaterCapability(IToolUpdater):
     """Business action update(spec, adapter, dry_run): bump + record transition."""
 
-    def __init__(self, root: Path | None = None) -> None:
+    def __init__(self, root: Path | None = None,
+                 adapter_facade: IToolAdapterFacade | None = None) -> None:
         self._root = root
+        # P1-7: verb calls route through the injected adapter facade.
+        self._facade = adapter_facade
 
     # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
-    def update(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> UpdateResult:
+    def update(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> UpdateResult:
+        facade = self._facade
+        if facade is None:
+            raise ToolUpdateError("adapter facade is not wired (root composition layer)")
         # Sub-step 1: pin-comparison → adapter-dispatch → result-capture.
-        result = self._bump(spec, adapter, dry_run=dry_run)
+        result = self._bump(spec, facade, dry_run=dry_run)
 
         # Sub-step 2: record transition only after a successful bump.
         result = self._record(spec, result)
@@ -52,7 +60,7 @@ class UpdaterCapability(IToolUpdater):
         if base is None:
             from modules.shared.src.utility_paths_resolver import repo_root
             base = repo_root()
-        satisfied, state_desc = adapter.is_pin_satisfied(spec, base)
+        satisfied, state_desc = adapter.is_pin_satisfied(spec)
         if satisfied:
             return UpdateResult(
                 True, spec.id,

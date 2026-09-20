@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
 from modules.shared.src.taxonomy_core_error import (
     ToolInstallError,
     ToolUninstallError,
@@ -32,6 +31,7 @@ from modules.shared.src.taxonomy_tool_vo import (
 )
 from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 from modules.shared.src.utility_paths_resolver import repo_root
+from modules.tools.src.contract_tools_adapter_protocol import IToolAdapterFacade
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
 from modules.tools.src.contract_tools_protocol import (
     IToolInstaller,
@@ -53,7 +53,7 @@ def _spec_from_tool(tool: Tool) -> ToolSpec:
         path=tool.path,
         alias=tool.alias,
         mcp_binary=getattr(tool, "mcp_binary", None),
-        runner=TOOL_RUNNERS.get(tool.id, ""),
+        runner=getattr(tool, "runner", None),
     )
 
 
@@ -76,6 +76,7 @@ class ToolsOrchestrator(IToolsAggregate):
         updater: IToolUpdater | None = None,
         uninstaller: IToolUninstaller | None = None,
         runner: IToolRunner | None = None,
+        adapter_facade: IToolAdapterFacade | None = None,
     ) -> None:
         self._root = root or repo_root()
         self._daemons = daemons
@@ -83,7 +84,14 @@ class ToolsOrchestrator(IToolsAggregate):
             raise ValueError("tools orchestrator requires an injected registry (root composition layer)")
         # P0-2: instance-level copy — was a class-level dict mutated via
         # .update(registry), which leaked entries across orchestrator instances.
-        self._adapters: dict[str, object] = dict(registry)
+        # The registry is consumed only by `resolve`-style lookups; verb
+        # calls route through the injected adapter facade (P1-7).
+        self._registry: dict[str, object] = dict(registry)
+        # P1-7: the adapter facade is the single API pipeline over all 13
+        # leaf adapters + shared mechanics. The verb capabilities already
+        # route through it; the orchestrator keeps it for its uninstall()
+        # owned_paths call (read-only, no I/O).
+        self._facade = adapter_facade
         # AES201/AES405: the agent layer must not import capabilities_* — the
         # four verb capabilities are injected by the root composition layer
         # (root_tools_container.create_tools_feature) typed against their
@@ -111,34 +119,25 @@ class ToolsOrchestrator(IToolsAggregate):
         self._require(self._installer, "install")
         if find_tool(spec.id) is None:
             raise ToolInstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
-        try:
-            adapter = self._adapter_for(spec)
-        except ToolInstallError as e:
-            return InstallResult(False, spec.id, str(e))
-
-        return self._installer.install(spec, adapter, dry_run=False)
+        # P1-1/P1-7: verb calls route through the injected adapter facade
+        # (single API pipeline); a missing adapter folds into the result.
+        return self._installer.install(spec, None, dry_run=False)
 
     def update(self, spec: ToolSpec) -> UpdateResult:
         self._require(self._updater, "update")
         if find_tool(spec.id) is None:
             raise ToolUpdateError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
         # P1-1: fold a missing adapter into the result, same as install().
-        try:
-            adapter = self._adapter_for(spec)
-        except ToolInstallError as e:
-            return UpdateResult(False, spec.id, str(e))
-        return self._updater.update(spec, adapter, dry_run=False)
+        return self._updater.update(spec, None, dry_run=False)
 
     def uninstall(self, spec: ToolSpec) -> UninstallResult:
         self._require(self._uninstaller, "uninstall")
         if find_tool(spec.id) is None:
             raise ToolUninstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
-        # P1-1: same fold for uninstall; also guard owned_paths.
-        try:
-            adapter = self._adapter_for(spec)
-            owned = adapter.owned_paths(spec, self._root)
-        except (ToolInstallError, OSError) as e:
-            return UninstallResult(False, spec.id, str(e))
+        # P1-1/P1-7: owned_paths routed through the injected adapter facade.
+        if self._facade is None:
+            raise ToolUninstallError("adapter facade is unavailable (not wired)")
+        owned = self._facade.owned_paths(spec, self._root)
         return self._uninstaller.uninstall(spec, owned, dry_run=False)
 
     def run_tool(self, spec: ToolSpec, args: list[str]) -> ExitCode:
@@ -169,24 +168,6 @@ class ToolsOrchestrator(IToolsAggregate):
         if obj is None:
             raise self._VERB_ERRORS[verb](f"{verb} capability is unavailable (not wired)")
         return obj
-
-    def _adapter_for(self, spec: ToolSpec) -> object:
-        """Return the unified per-tool adapter unit for *spec*.
-
-        Registry values are leaf modules (AES404, module-level verb
-        functions). For ids carrying verb overrides (shared-module ids
-        like `anytype-daemon`), the root layer pre-builds a SimpleNamespace
-        pointing at the module's ``daemon_*`` functions so the capability
-        sees a uniform ``satisfied``/``install``/``update``/``owned_paths``
-        surface.
-        """
-        unit = self._adapters.get(spec.id)
-        if unit is None:
-            registered = sorted(self._adapters)
-            raise ToolInstallError(
-                f"no adapter registered for '{spec.id}' (registered: {', '.join(registered)})"
-            )
-        return unit
 
 
 __all__ = ["ToolsOrchestrator"]
