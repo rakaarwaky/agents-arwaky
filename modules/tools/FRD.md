@@ -28,21 +28,15 @@ to that one method, not exposed as separate protocol methods:
 - `IToolRunner.run(spec, args, root) -> int`
   — discover executable + execute + return child exit code, one verb
 
-No `IToolAdapter` ABC: the 13 per-tool adapters inherit from
-`AdapterBase` (a concrete, non-ABC helper in `utility_adapter_base.py`)
-and are typed as `AdapterBase` in the protocol signatures.
+No `IToolAdapter` ABC: adapters are units reached only through
+`IToolAdapterFacade` (the single facade protocol for all per-tool verbs).
 
 Per-tool mechanics (package-manager family, build flags, artifact locations,
-launcher sets, daemon delegation) live in the utility layer as **13 unified
-leaf adapters** (one per manifest tool id; the two Anytype ids share one merged
-adapter class — 13 `utility_<tool>_adapter.py` files). Each adapter knows its
-tool's `install`, `update`, `is_pin_satisfied`, and `owned_paths` in exactly one
-place — the duplication between the old installer and updater adapter pairs
-(AES305) is eliminated. Shared install helpers (`utility_launcher_writer.py`,
-`utility_venv_helpers.py`, `utility_adapter_base.py`, `utility_cargo_helpers.py`)
-stay leaves called by the adapters. Adding a tool is one manifest entry plus one
-unified adapter; the orchestrator, capability classes, and aggregate are never
-edited.
+launcher sets, daemon delegation) live in **one capability file,
+`capabilities_tools_adapter.py`**. Each adapter unit knows its tool's
+`install`, `update`, `is_pin_satisfied`, and `owned_paths` in exactly one
+place. Adding a tool is one manifest entry plus one adapter unit in that file;
+the orchestrator, verb capability classes, and aggregate are never edited.
 
 Flow: CLI surface (`surface_tools_command.py`) → `ToolsOrchestrator.<verb>(spec)`
 → adapter selection by id (via the root-injected registry) → the verb's
@@ -122,13 +116,13 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 
 | Operation | Input | Output |
 |-----------|-------|--------|
-| `IToolInstaller.install` | `ToolSpec, AdapterBase, bool` | `InstallResult` |
-| `IToolUpdater.update` | `ToolSpec, AdapterBase, bool` | `UpdateResult` |
+| `IToolInstaller.install` | `ToolSpec, IToolAdapterFacade, bool` | `InstallResult` |
+| `IToolUpdater.update` | `ToolSpec, IToolAdapterFacade, bool` | `UpdateResult` |
 | `IToolUninstaller.uninstall` | `ToolSpec, list[Path], bool` | `UninstallResult` |
 | `IToolRunner.run` | `ToolSpec, list[str], Path \| None` | `int` exit code |
 | `IToolsAggregate.{install,update,uninstall,run_tool}` | `ToolSpec[, list[str]]` | verb result / int |
 | `IToolsAggregate.{resolve_spec,executable_path,list_tools}` | query/spec/— | `ToolSpec\|None` / `Path\|None` / `list[Tool]` |
-| `AdapterBase.{install,update,is_pin_satisfied,owned_paths,satisfied}` | per adapter | artifact paths / pin state / owned set |
+| `IToolAdapterFacade.{resolve,is_registered,satisfied,is_pin_satisfied,install,update,owned_paths}` | per tool | adapter unit / artifact paths / pin state / owned set |
 
 ## Integration Points
 
@@ -143,11 +137,11 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| Protocol class count | exactly 4 (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner`); no `IToolAdapter` ABC (adapters typed as `object`; 13 leaf adapters are plain classes calling `utility_tool_mechanics` free functions) | `grep -c "^class ITool" contract_tools_protocol.py` → 4 |
-| Utility layer purity (AES404) | no class in `utility_tool_mechanics.py`; imports only `modules.shared.src.taxonomy_*` + stdlib | `grep "^class" utility_tool_mechanics.py` → no match; `grep "from modules" utility_tool_mechanics.py` |
-| Capability file count (target) | 4 verb classes (`capabilities_tools_{installer,updater,uninstaller,runner}.py`), each single-method; currently 8 files (one per sub-step) pending TOL-04 fold | `ls modules/tools/src/capabilities_*.py \| wc -l` → 4 after TOL-04 |
-| Adapter count | 13 tools with a per-tool unified adapter; the two Anytype ids (`anytype`, `anytype-daemon`) share one merged adapter class → 13 `utility_*_adapter.py` files cover the 13-tool registry | count `modules/tools/src/utility_*_adapter.py` manually |
-| Adapter purity (AES404) | adapters import only `modules.shared.src.*`, `modules.tools.src.*`, stdlib; daemon delegation via importlib string-concatenated names | grep of adapter import lines |
+| Protocol class count | exactly 4 (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner`) + `IToolAdapterFacade`; no `IToolAdapter` ABC — adapter units are `SimpleNamespace` objects reached only through the facade | `grep -c "^class ITool" contract_tools_protocol.py contract_tools_adapter_protocol.py` → 4 + 1 |
+| God object (AES301 exception) | `capabilities_tools_adapter.py` is the single registered >1000-line exception; every other file under `modules/tools/src/` stays within the 1000-line budget | `lint_arwaky.config.yaml` AES301 `exceptions:` lists only `capabilities_tools_adapter.py` |
+| Capability file count | 4 verb classes (`capabilities_tools_{installer,updater,uninstaller,runner}.py`) + 1 adapter file (`capabilities_tools_adapter.py`); TOL-04 fold complete | `ls modules/tools/src/capabilities_tools_*.py` → 5 files |
+| Adapter count | 13 registered tool ids; the two Anytype ids (`anytype`, `anytype-daemon`) have separate registry entries over shared daemon mechanics → 13 adapter units in `_ADAPTER_UNITS` | `python3 -c "from modules.tools.src.capabilities_tools_adapter import _ADAPTER_UNITS; print(len(_ADAPTER_UNITS))"` → 13 |
+| Adapter purity | `capabilities_tools_adapter.py` imports only `modules.shared.src.*` + stdlib (no sibling feature modules); daemon delegation via the injected daemon aggregate | grep of import lines in `capabilities_tools_adapter.py` |
 | No cross-feature imports | tools imports nothing from sibling feature modules except the lazy daemon aggregate | grep over `modules/tools/src/` |
 | Idempotence / exit-code fidelity / container isolation | second install is a no-op; `run_tool` returns the child's real exit code; daemons launched only through their launcher | code review + smoke |
 
@@ -167,6 +161,6 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 `modules/installer/FRD.md` (provisioner + launcher), `modules/updater/FRD.md` (bumper + recorder), `modules/uninstaller/FRD.md` (remover + verifier), `modules/runner/FRD.md` (discoverer + executor, ToolOrchestrator aggregate) — all four directories deleted; their FRD/BACKLOG files are superseded by this document and `modules/tools/BACKLOG.md`.
 ## Glossary
 
-- **unified adapter**: one `utility_<tool>_adapter.py` class knowing a tool's install, update, pin-comparison, and owned-teardown data in a single place; typed as `AdapterBase` (no `IToolAdapter` ABC).
+- **adapter unit**: one `_ADAPTER_UNITS` entry (a `SimpleNamespace` of verb callables) knowing a tool's install, update, pin-comparison, and owned-teardown data in a single place, inside `capabilities_tools_adapter.py` (no `IToolAdapter` ABC; reached only through `IToolAdapterFacade`).
 - **residual**: state that could not be removed, reported not skipped; **sentinel 126**: "executable vanished between discovery and launch".
 - **sub-step**: a verb-internal operation (e.g. launcher registration inside `install`, version recording inside `update`) that is not exposed as a separate protocol method.

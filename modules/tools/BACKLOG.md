@@ -16,15 +16,13 @@ Last Updated: 2026-09-19
 - Done: the four lifecycle features (installer, updater, uninstaller, runner)
   are merged into a single `modules/tools` feature: 4 protocol classes
   (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner` — one
-  public method each; sub-steps internal), 8 verb capability files
-  (`capabilities_tools_{provisioner,launcher,bumper,recorder,remover,verifier,
-  discoverer,executor}.py`, plain classes, no ABC base), 13 unified per-tool
-  adapters (plain classes, no `AdapterBase`; mechanics via
-  `utility_tool_mechanics` free functions), one `ToolsOrchestrator` aggregate,
-  and the CLI surface ported from the runner verb to `surface_tools_command.py`.
-- In Progress: TOL-04 fold the 8 capability files into 4 verb classes
-  (one `capabilities_tools_{installer,updater,uninstaller,runner}.py` each,
-  multi-method) — tracked, not yet implemented.
+  public method each; sub-steps internal), 4 verb capability files
+  (`capabilities_tools_{installer,updater,uninstaller,runner}.py`), 13
+  unified per-tool adapter units (one `capabilities_tools_adapter.py` — a
+  registered AES301 god-object exception; all `utility_*` adapter modules
+  deleted), `IToolAdapterFacade` protocol + `ToolAdapterFacade`, one
+  `ToolsOrchestrator` aggregate, and the CLI surface
+  `surface_tools_command.py`.
 - Blocked: none.
 - Next Action: run the full verification gate (`python3 -m compileall`, import
   smoke, `python3 -m modules.root_cli_entry check`, `python3 -m pytest tests/ -q`) and a
@@ -37,7 +35,7 @@ Last Updated: 2026-09-19
 | TOL-01 | FR-001..004 | Unified tools feature (4 modules → 1) | P0 | Done | 4 protocol classes, 8 verb capability files, 13 plain-class adapters (mechanics via `utility_tool_mechanics`), orchestrator + surface + root container all present; old modules deleted; `root_cli_entry.py` repointed. Evidence: `python3 -m compileall -q modules/tools/` → COMPILE_OK; `python3 -c "import modules.tools"` → import OK; verified at commit `b44f139` (2026-09-19). | @raka | None | 2026-09-19 |
 | TOL-02 | FR-004 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
 | TOL-03 | FR-003 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
-| TOL-04 | FR-001..004 | Fold 8 capability files → 4 verb classes | P2 | In Progress | Merge `capabilities_tools_{provisioner,launcher}.py` → `capabilities_tools_installer.py` (single `install` method, sub-steps inline); same for updater/uninstaller/runner. Update orchestrator + root container wiring. Gate: `compileall` + `python3 -m modules.root_cli_entry check` green. | @raka | TOL-01 | 2026-09-19 |
+| TOL-04 | FR-001..004 | Fold 8 capability files → 4 verb classes | P2 | Done | `capabilities_tools_{provisioner,launcher,bumper,recorder,remover,verifier,discoverer,executor}.py` merged into `capabilities_tools_{installer,updater,uninstaller,runner}.py`; orchestrator + root container rewired through `IToolAdapterFacade`. Adapter consolidation: 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py` deleted, mechanics inlined into `capabilities_tools_adapter.py` (AES301 exception registered in `lint_arwaky.config.yaml`). Gate: `python3 -m compileall -q modules/` + `python3 -m modules.root_cli_entry check`. Evidence: both re-run at commit `63921af` → COMPILE_OK + All verifications PASSED (2026-09-20). | @raka | TOL-01 | 2026-09-20 |
 
 ## Scenario Evidence (rows)
 
@@ -93,6 +91,11 @@ Last Updated: 2026-09-19
   `contract_tools_protocol.py`; adapter param typed as `object` with docstring.
 - 2026-09-19: TOL-04 added — fold 8 capability files into 4 verb classes
   (tracker only; not yet implemented).
+- 2026-09-20: TOL-04 completed — 8 capability files folded into 4 verb
+  classes; 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py`
+  deleted with mechanics inlined into `capabilities_tools_adapter.py`
+  (registered AES301 exception). `IToolAdapterFacade` + `ToolAdapterFacade`
+  added; root container exposes `TOOLS_REGISTRY`.
 - 2026-09-19: `skill` removed from the tools lifecycle. The skill manager is
   part of `agents-arwaky` itself (`modules/skill`), not an internal or vendor
   tool: its manifest entry, `utility_skill_adapter.py`, and the `skill`
