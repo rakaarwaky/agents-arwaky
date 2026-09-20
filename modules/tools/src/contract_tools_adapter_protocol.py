@@ -7,13 +7,11 @@ It deliberately replaces the previous "registry of adapter modules +
 each capability resolves its own adapter + inlined shared helpers"
 scattering with one injected facade so:
 
-- adapters stay leaf `utility_*` modules (AES404: stateless functions,
-  no cross-utility imports — they cannot import the shared mechanics
-  module, since AES201 forbids utility -> utility);
-- the shared mechanics live in one `utility_tool_mechanics` module and
-  are reached only through this facade (capability layer may import
-  utility, AES201);
-- a new tool is still one manifest entry + one leaf adapter module;
+- the per-tool adapter units and shared mechanics all live in one
+  capability file, `capabilities_tools_adapter.py` (registered god
+  object, AES301 exception) with no `utility_*` adapter modules —
+  reached only through this facade;
+- a new tool is one manifest entry + one adapter unit in that file;
   nothing else changes.
 
 The protocol is implemented by `capabilities_tools_adapter`

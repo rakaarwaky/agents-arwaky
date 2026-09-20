@@ -16,18 +16,7 @@ The daemon aggregate is imported lazily inside the factory so that importing
 """
 from __future__ import annotations
 
-import modules.tools.src.utility_anytype_adapter as _anytype
-import modules.tools.src.utility_blender_adapter as _blender
-import modules.tools.src.utility_codegraph_adapter as _codegraph
-import modules.tools.src.utility_context7_adapter as _context7
-import modules.tools.src.utility_fetch_adapter as _fetch
-import modules.tools.src.utility_lint_adapter as _lint
-import modules.tools.src.utility_mnemosyne_adapter as _mnemosyne
-import modules.tools.src.utility_ninerouter_adapter as _ninerouter
-import modules.tools.src.utility_ponytail_adapter as _ponytail
-import modules.tools.src.utility_qwen_web_adapter as _qwen_web
-import modules.tools.src.utility_vision_adapter as _vision
-import modules.tools.src.utility_workspace_adapter as _workspace
+import modules.tools.src.capabilities_tools_adapter as _god
 from modules.shared.src.utility_paths_resolver import repo_root
 from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
@@ -42,15 +31,16 @@ from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
 from types import SimpleNamespace
 
-#: tool_id -> adapter module (root composition data; each is a stateless
-#: leaf of module-level verb functions). The `anytype-daemon` id routes its
-#: verbs to the `daemon_*` leaf functions via a namespace object.
+#: tool_id -> adapter unit (root composition data; each unit is a
+#: stateless namespace of verb functions living in the god-object
+#: `capabilities_tools_adapter`). The `anytype-daemon` id routes its
+#: verbs to the `anytype_daemon_*` leaf functions via a namespace object.
 _ANYTYPE_DAEMON = SimpleNamespace(
-    satisfied=_anytype.daemon_satisfied,
-    install=_anytype.daemon_install,
-    is_pin_satisfied=_anytype.daemon_is_pin_satisfied,
-    update=_anytype.daemon_update,
-    owned_paths=_anytype.daemon_owned_paths,
+    satisfied=_god.anytype_daemon_satisfied,
+    install=_god.anytype_daemon_install,
+    is_pin_satisfied=_god.anytype_daemon_is_pin_satisfied,
+    update=_god.anytype_daemon_update,
+    owned_paths=_god.anytype_daemon_owned_paths,
 )
 
 # AES404 (P0-1 follow-up): 9router and qwen-web now expose their verbs as
@@ -60,19 +50,19 @@ _ANYTYPE_DAEMON = SimpleNamespace(
 # daemon behaviour is driven by DAEMON_TOOL_IDS in taxonomy_tools_constant.
 
 TOOLS_REGISTRY: dict[str, object] = {
-    "anytype": _anytype,
+    "anytype": _god._ADAPTER_UNITS["anytype"],
     "anytype-daemon": _ANYTYPE_DAEMON,
-    "blender": _blender,
-    "codegraph": _codegraph,
-    "context7": _context7,
-    "fetch": _fetch,
-    "lint": _lint,
-    "mnemosyne": _mnemosyne,
-    "9router": _ninerouter,
-    "ponytail": _ponytail,
-    "qwen-web": _qwen_web,
-    "vision": _vision,
-    "workspace": _workspace,
+    "blender": _god._ADAPTER_UNITS["blender"],
+    "codegraph": _god._ADAPTER_UNITS["codegraph"],
+    "context7": _god._ADAPTER_UNITS["context7"],
+    "fetch": _god._ADAPTER_UNITS["fetch"],
+    "lint": _god._ADAPTER_UNITS["lint"],
+    "mnemosyne": _god._ADAPTER_UNITS["mnemosyne"],
+    "9router": _god._ADAPTER_UNITS["9router"],
+    "ponytail": _god._ADAPTER_UNITS["ponytail"],
+    "qwen-web": _god._ADAPTER_UNITS["qwen-web"],
+    "vision": _god._ADAPTER_UNITS["vision"],
+    "workspace": _god._ADAPTER_UNITS["workspace"],
 }
 
 
