@@ -23,8 +23,7 @@ from modules.shared.src.taxonomy_core_error import ToolUpdateError
 from modules.shared.src.taxonomy_tool_vo import ToolSpec, UpdateResult
 from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text
 from modules.shared.src.taxonomy_xdg_paths import state_home
-from modules.tools.src.contract_tools_adapter_protocol import IToolAdapterFacade
-from modules.tools.src.contract_tools_protocol import IToolUpdater
+from modules.tools.src.contract_tools_protocol import IToolAdapterFacade, IToolUpdater
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────

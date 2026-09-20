@@ -53,7 +53,7 @@ from modules.shared.src.taxonomy_xdg_paths import (
     tool_data_dir,
     tool_state_dir,
 )
-from modules.tools.src.contract_tools_adapter_protocol import IToolAdapterFacade
+from modules.tools.src.contract_tools_protocol import IToolAdapterFacade
 from modules.tools.src.taxonomy_tools_constant import LAUNCHER_NAMES
 
 

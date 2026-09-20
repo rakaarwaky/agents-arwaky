@@ -23,8 +23,7 @@ from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
 from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.taxonomy_xdg_paths import bin_home
-from modules.tools.src.contract_tools_adapter_protocol import IToolAdapterFacade
-from modules.tools.src.contract_tools_protocol import IToolInstaller
+from modules.tools.src.contract_tools_protocol import IToolAdapterFacade, IToolInstaller
 
 
 def _version_probe(binary: str) -> str:

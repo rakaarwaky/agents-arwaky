@@ -31,9 +31,9 @@ from modules.shared.src.taxonomy_tool_vo import (
 )
 from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.tools.src.contract_tools_adapter_protocol import IToolAdapterFacade
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
 from modules.tools.src.contract_tools_protocol import (
+    IToolAdapterFacade,
     IToolInstaller,
     IToolRunner,
     IToolUninstaller,
