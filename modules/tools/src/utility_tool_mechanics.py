@@ -1,24 +1,46 @@
-"""Workspace (google-workspace-mcp) adapter (uv) — unified install + update + teardown.
+"""Shared per-tool adapter mechanics (P1-7 dedup) — stateless utility helpers.
 
-vendor/google-workspace-mcp is a Python package run via `uv run` (no venv copy).
-Launchers `workspace-mcp` and `google-workspace-mcp` both point at the same entry.
+Centralizes the git-submodule update block, XDG owned-set helper,
+install-stamp writer, and submodule source-init that were inlined into
+every `utility_*_adapter.py` under `modules/tools` (the 9 AES305
+duplicate-code violations). The `capabilities_tools_adapter` facade
+imports this module instead of re-inlining ~150 lines each.
 
-Stateless leaf (AES404): module-level functions only, no classes.
+Layer note (AES201): a `utility` file may not import another `utility`
+file, so adapters (leaf utility modules) never import this module
+directly; the `capability` layer *is* allowed to import `utility`,
+which is why the dedup path that satisfies AES201 routes through
+`capabilities_tools_adapter` (which imports this module) plus a
+`contract_tools_adapter_protocol` ABC; the capability is wired by the
+root container and injected. This module itself stays a leaf (imports
+`taxonomy` only, as `utility` files must) and defines stateless
+module-level functions only (AES404: no classes in the utility layer).
+
+The git-update functions are a verbatim mirror of
+`modules/shared/src/utility_git_update.py`; `has_newer_commits` was also
+fixed in one place here: the original inlined copies called
+`git log --oneline <a>..<b> --count`, but `--count` is not a `log`
+flag (it is a `rev-list` flag), so that check never matched and the
+fallback path was always used. The consolidated function uses
+`git rev-list --count` so the fast path works.
 """
 from __future__ import annotations
 
+import datetime
+import json
+import subprocess
+import sys
 from pathlib import Path
 
-from modules.shared.src.taxonomy_core_error import ToolUpdateError
-
-# --- inlined helper deps (self-contained, no utility-to-utility imports) ---
-import subprocess
-from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
-from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER, REPO_ROOT as repo_root
-from modules.shared.src.taxonomy_xdg_atomic_io import atomic_write_text, ensure_bin_home, ensure_path, warn_if_bin_not_on_path
-from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
+from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
 from modules.shared.src.taxonomy_xdg_paths import bin_home, cache_home, config_home, data_home
-# --- inlined git-update helpers (self-contained, no utility-to-utility imports) ---
+
+#: Repo root, used as the default for git operations (taxonomy constant
+#: so the utility layer stays AES201-legal).
+ROOT: Path = REPO_ROOT
+
+# ── Git submodule update block (verbatim mirror of utility_git_update) ─
+
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
     """Run a command silently, return result."""
@@ -27,12 +49,14 @@ def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedPr
         capture_output=True, text=True,
     )
 
+
 def get_current_commit(submodule_dir: Path) -> str | None:
     """Get current HEAD commit hash of a submodule."""
     r = run_quiet(["git", "rev-parse", "HEAD"], cwd=submodule_dir)
     if r.returncode == 0:
         return r.stdout.strip()
     return None
+
 
 def get_remote_default_branch(submodule_dir: Path) -> str | None:
     """Detect the default branch of the remote (main, master, etc.)."""
@@ -54,10 +78,12 @@ def get_remote_default_branch(submodule_dir: Path) -> str | None:
             return branch
     return None
 
+
 def fetch_remote(submodule_dir: Path) -> bool:
     """Fetch latest from remote. Returns True if successful."""
     r = run_quiet(["git", "fetch", "--quiet"], cwd=submodule_dir)
     return r.returncode == 0
+
 
 def has_newer_commits(submodule_dir: Path) -> tuple[bool, str | None, str | None]:
     """Check if remote has newer commits than local.
@@ -81,12 +107,12 @@ def has_newer_commits(submodule_dir: Path) -> tuple[bool, str | None, str | None
     if remote_commit == local:
         return False, local, remote_commit
 
-    # Check if remote is ahead
+    # Check if remote is ahead (P1-7: `--count` is a rev-list flag, not a log flag).
     r = run_quiet(
-        ["git", "log", "--oneline", f"{local}..{remote_commit}", "--count"],
+        ["git", "rev-list", "--count", f"{local}..{remote_commit}"],
         cwd=submodule_dir,
     )
-    if r.returncode == 0 and r.stdout.strip():
+    if r.returncode == 0 and r.stdout.strip() not in ("", "0"):
         return True, local, remote_commit
 
     # Fallback: use merge-base
@@ -96,6 +122,7 @@ def has_newer_commits(submodule_dir: Path) -> tuple[bool, str | None, str | None
 
     return False, local, remote_commit
 
+
 def pull_submodule(submodule_dir: Path) -> bool:
     """Pull latest commits for the submodule. Returns True if successful."""
     branch = get_remote_default_branch(submodule_dir)
@@ -104,6 +131,7 @@ def pull_submodule(submodule_dir: Path) -> bool:
 
     r = run_quiet(["git", "checkout", f"origin/{branch}"], cwd=submodule_dir)
     return r.returncode == 0
+
 
 def update_submodule(repo_root: Path, submodule_path: str) -> bool:
     """Full update workflow: fetch, check, pull a submodule.
@@ -145,57 +173,32 @@ def update_submodule(repo_root: Path, submodule_path: str) -> bool:
         print(f"  Warning: pull failed for {submodule_path}", file=sys.stderr)
         return False
 
-def symlink_alias(alias: str, target: Path) -> Path:
-    """Symlink *alias* in XDG bin pointing at *target* (idempotent)."""
-    ensure_bin_home()
-    a = bin_home() / alias
-    a.unlink(missing_ok=True)
-    a.symlink_to(target)
-    return a
 
-def write_uv_launchers(
-    src_rel: str,
-    launchers: list[tuple[str, str]],
-    root: Path | None = None,
-    uv_args: list[str] | None = None,
-) -> list[Path]:
-    """Write uv-run launchers for a Python tool.
+# ── Install stamp / source-init / owned-set helpers ────────────────────
 
-    Args:
-        src_rel: Relative path from repo root to tool source (e.g. "internal/vision-arwaky").
-        launchers: List of (launcher_name, entry_command) tuples.
-            Each launcher runs: uv run <uv_args> --directory <src_rel> <entry_command>
-        root: Override repo root (default: resolved from this file's location).
-        uv_args: Extra uv flags inserted before --directory, e.g. ["--extra", "mcp"]
-            to materialize optional dependency groups in the runtime venv.
 
-    Returns:
-        List of created launcher paths.
+def write_install_stamp(app_dir: Path, tool: str, submodule_dir: Path) -> None:
+    """Record what was deployed so rollback/audit is possible.
+
+    Writes .arwaky-install.json to the app directory with:
+    - tool name
+    - commit SHA
+    - timestamp
     """
-    ensure_bin_home()
-    baked_root = str(root) if root is not None else str(repo_root)
-    extra = "".join(repr(a) + ", " for a in (uv_args or []))
-    created = []
-    for name, entry in launchers:
-        target = bin_home() / name
-        content = (
-            "#!/usr/bin/env python3\n"
-            f"# {PROVENANCE_MARKER}\n"
-            "import os, sys\n"
-            "from pathlib import Path\n"
-            f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {baked_root!r}))\n'
-            f'os.execvpe("uv", ["uv", "run", {extra}"--directory", str(root / "{src_rel}"), '
-            f'"{entry}", *sys.argv[1:]], os.environ.copy())\n'
+    commit = get_current_commit(submodule_dir)
+    stamp = {
+        "tool": tool,
+        "commit": commit or "unknown",
+        "installed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+    try:
+        app_dir.mkdir(parents=True, exist_ok=True)
+        (app_dir / ".arwaky-install.json").write_text(
+            json.dumps(stamp, indent=2) + "\n", encoding="utf-8"
         )
-        atomic_write_text(target, content)
-        created.append(target)
-    warn_if_bin_not_on_path()
-    ensure_path()
-    return created
+    except OSError as exc:
+        print(f"  Warning: could not write install stamp: {exc}", file=sys.stderr)
 
-from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
-
-ROOT = REPO_ROOT
 
 def ensure_source(root: Path, src_rel: str) -> Path:
     """Ensure `root/src_rel` exists, attempting a git submodule init first."""
@@ -207,6 +210,7 @@ def ensure_source(root: Path, src_rel: str) -> Path:
             check=False,
         )
     return src
+
 
 def generic_owned(
     spec,
@@ -221,8 +225,6 @@ def generic_owned(
     env files, daemon units) via *extra* and with installer-owned
     config subtrees (``config_home() / name``) via *config*.
     """
-    from modules.shared.src.taxonomy_xdg_paths import cache_home, config_home, data_home
-
     paths: list[Path] = [bin_home() / name for name in launcher_names]
     paths.append(data_home() / spec.id)
     paths.append(cache_home() / spec.id)
@@ -231,76 +233,17 @@ def generic_owned(
     paths.extend(extra or [])
     return paths
 
-def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | None = None) -> Path:
-    """Write a generic launcher with aliases. Returns launcher path."""
-    ensure_bin_home()
-    launcher = bin_home() / tool_name
-    atomic_write_text(launcher, content)
-    for alias in (aliases or []):
-        a = bin_home() / alias
-        a.unlink(missing_ok=True)
-        a.symlink_to(launcher)
-    warn_if_bin_not_on_path()
-    ensure_path()
-    return launcher
 
-SRC_REL = "vendor/google-workspace-mcp"
-LAUNCHERS = [
-    ("workspace-mcp", "workspace-mcp"),
-    ("google-workspace-mcp", "workspace-mcp"),
+__all__ = [
+    "ROOT",
+    "run_quiet",
+    "get_current_commit",
+    "get_remote_default_branch",
+    "fetch_remote",
+    "has_newer_commits",
+    "pull_submodule",
+    "update_submodule",
+    "write_install_stamp",
+    "ensure_source",
+    "generic_owned",
 ]
-
-
-def _write_launchers(root: Path) -> list[Path]:
-    created = write_uv_launchers(SRC_REL, LAUNCHERS[:1], root=root)
-    for p in created:
-        print(f"  -> {p}")
-    # google-workspace-mcp is a PATH alias for workspace-mcp.
-    alias = symlink_alias(LAUNCHERS[1][0], created[0])
-    print(f"  -> {alias}")
-    created.append(alias)
-    return created
-
-
-def satisfied(spec, root: Path | None = None) -> bool:
-    from modules.shared.src.taxonomy_xdg_paths import bin_home
-    return (bin_home() / "workspace-mcp").exists()
-
-
-# -- install (from old installer adapter, verbatim mechanics) ----------------
-def install(spec, root: Path = ROOT, *, daemons=None) -> list[Path]:
-    root = root or ROOT
-    src_dir = root / SRC_REL
-
-    if not ensure_source(root, SRC_REL):
-        raise FileNotFoundError(f"source not found {src_dir}")
-
-    created = _write_launchers(root)
-    print(">>> Successfully installed google-workspace-mcp")
-    return created
-
-
-# -- update (from old updater adapter) ---------------------------------------
-def is_pin_satisfied(spec, root: Path) -> tuple[bool, str]:
-    source = root / SRC_REL
-    if not source.exists():
-        return False, "submodule not initialized"
-    return False, "uv project (rebuild required)"
-
-
-def update(spec, root: Path) -> list[Path]:
-
-    source = root / SRC_REL
-    if not update_submodule(root, SRC_REL):
-        raise ToolUpdateError(f"submodule update failed: {SRC_REL}")
-    if not source.exists():
-        raise ToolUpdateError(f"source not found {source}")
-
-    created = _write_launchers(root)
-    print(">>> Successfully updated google-workspace-mcp")
-    return created
-
-
-# -- teardown data --------------------------------------------------------------
-def owned_paths(spec, root: Path | None = None) -> list[Path]:
-    return generic_owned(spec, ["workspace-mcp", "google-workspace-mcp"])

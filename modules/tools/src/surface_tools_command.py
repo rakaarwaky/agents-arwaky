@@ -34,6 +34,11 @@ def _term_width() -> int:
         return 80
 
 
+def _has_help(args: list[str]) -> bool:
+    """A2: intercept -h/--help before target resolution in every subcommand."""
+    return any(a in ("-h", "--help") for a in args)
+
+
 def _confirm(prompt: str, accepted: tuple[str, ...] = ("y", "yes")) -> bool:
     """TTY-aware confirmation; False in non-TTY without --yes."""
     if not sys.stdin.isatty():
@@ -82,6 +87,9 @@ def cmd_run(args: list[str], orch: IToolsAggregate) -> int:
     crash path) is removed. Exit-code fidelity, sentinel 126, and
     MCP stdio handling live in RunnerCapability.
     """
+    if _has_help(args):
+        print("Usage: aa tool run <tool-name> [args...]")
+        return 0
     if not args:
         err("Missing tool name.")
         print("Usage: aa tool run <tool-name> [args...]")
@@ -99,6 +107,9 @@ def cmd_run(args: list[str], orch: IToolsAggregate) -> int:
 
 def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
     """aa tool install <tool|all> [--yes] — per-tool installers via the orchestrator."""
+    if _has_help(args):
+        print("Usage: aa tool install <tool|all> [--yes]")
+        return 0
     from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
@@ -145,6 +156,9 @@ def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
 
 def cmd_update(args: list[str], orch: IToolsAggregate) -> int:
     """aa tool update <tool|all> [--yes] — pull + reinstall."""
+    if _has_help(args):
+        print("Usage: aa tool update <tool|all> [--yes]")
+        return 0
     from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
@@ -186,6 +200,9 @@ def cmd_update(args: list[str], orch: IToolsAggregate) -> int:
 
 def cmd_uninstall(args: list[str], orch: IToolsAggregate) -> int:
     """aa tool uninstall <tool|--all> [--yes] — remove launchers + XDG artifacts."""
+    if _has_help(args):
+        print("Usage: aa tool uninstall <tool|--all> [--yes]")
+        return 0
     target = args[0] if args and args[0] not in ("--yes", "-y") else "--all"
     has_yes = "--yes" in args or "-y" in args
     if target in {"--all", "all"} and not has_yes:

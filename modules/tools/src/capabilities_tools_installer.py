@@ -18,10 +18,12 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+from modules.shared.src.taxonomy_core_error import ToolInstallError
 from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
 from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
 from modules.shared.src.taxonomy_xdg_paths import bin_home
+from modules.tools.src.contract_tools_adapter_protocol import IToolAdapterFacade
 from modules.tools.src.contract_tools_protocol import IToolInstaller
 
 
@@ -50,29 +52,42 @@ def _has_provenance(launcher: Path) -> bool:
 class InstallerCapability(IToolInstaller):
     """Business action install(spec, adapter, dry_run): provision + register launcher."""
 
-    def __init__(self, root: Path | None = None, daemons: object | None = None) -> None:
+    def __init__(self, root: Path | None = None, daemons: object | None = None,
+                 adapter_facade: IToolAdapterFacade | None = None) -> None:
         self._root = root
         self._daemons = daemons
+        # P1-7: verb calls now route through the injected adapter facade
+        # (single API pipeline) instead of the raw registry unit.
+        self._facade = adapter_facade
 
     # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
-    def install(self, spec: ToolSpec, adapter: object, dry_run: bool = False) -> InstallResult:
+    def install(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> InstallResult:
+        """Install via the injected adapter facade (single API pipeline).
+
+        `adapter` is kept for the IToolInstaller signature (a capability
+        may pass a registry unit for the dry-run message), but all verb
+        calls resolve through `self._facade` when wired.
+        """
+        facade = self._facade
+        if facade is None:
+            raise ToolInstallError("adapter facade is not wired (root composition layer)")
         root = self._root or None
         if dry_run:
             return InstallResult(
                 True,
                 spec.id,
-                f"[dry-run] would invoke {type(adapter).__name__}.install for {spec.id}",
+                f"[dry-run] would invoke {type(adapter or facade).__name__}.install for {spec.id}",
             )
 
         # P1-3: the satisfied check must not raise out of the verb.
         try:
-            if adapter.satisfied(spec, root):
+            if facade.satisfied(spec):
                 return InstallResult(True, spec.id, "satisfied (no action needed)")
         except Exception as e:
             return InstallResult(False, spec.id, f"satisfied-check failure: {e}")
 
         try:
-            adapter.install(spec, root, daemons=self._daemons)
+            facade.install(spec, root, daemons=self._daemons)
         except Exception as e:
             return InstallResult(False, spec.id, f"adapter failure: {e}")
 

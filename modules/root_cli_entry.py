@@ -341,37 +341,24 @@ def cmd_list(argv: list[str]) -> int:
 
 
 def cmd_run(argv: list[str]) -> int:
+    """aa tool run <tool> [args...] — run the binary via the aggregate.
+
+    Delegates entirely to IToolsAggregate.run_tool(); exit-code fidelity,
+    sentinel 126, and MCP stdio handling live in RunnerCapability.
+    """
     if not argv:
         err("Missing tool name.")
         print("Usage: aa tool run <tool-name> [args...]")
         return 1
     tool = find_tool(argv[0])
-    if not tool:
+    if tool is None:
         err(f"Tool '{argv[0]}' not found in manifest.")
         print("Run 'aa tool list' to see all available tools.")
         return 1
-    tool_args = argv[1:]
-    exe = executable_path(tool.binary, category=tool.category, tool_id=tool.id)
-    if exe:
-        os.execvpe(str(exe), [str(exe), *tool_args], os.environ)
-    tool_dir = repo_root() / tool.path
-    # Runner dispatch (P5-P1: manifest-driven, not hardcoded tool IDs)
-    if tool.category == "internal":
-        runner = TOOL_RUNNERS.get(tool.id, "")
-        if runner == "cargo" and shutil.which("cargo"):
-            os.execvpe("cargo", ["cargo", "run", "--quiet", "--manifest-path",
-                                 str(tool_dir / "Cargo.toml"), "--bin", "lint-arwaky-cli", "--", *tool_args], os.environ)
-        if runner in {"uv", "python"} and shutil.which("uv"):
-            os.execvpe("uv", ["uv", "run", "--directory", str(tool_dir), tool.binary, *tool_args], os.environ)
-        if runner == "uv" and not shutil.which("uv") and shutil.which("python3"):
-            os.execvpe("python3", ["python3", "-m", tool.id, *tool_args], os.environ)
-    err(f"Binary '{tool.binary}' for tool '{tool.id}' is not installed or runnable.")
-    has_installer = tool.id in _installer_registry_ids()
-    if has_installer:
-        print(f"Try running: {BOLD()}aa tool install {tool.id}{RESET()}")
-    else:
-        print(f"No installer available for '{tool.id}'. Try: {BOLD()}aa submodules{RESET()} then {BOLD()}aa tool run {tool.id}{RESET()}")
-    return 1
+    from modules.tools.src.root_tools_container import create_tools_feature
+    spec = _spec_from_tool(tool)
+    orch = create_tools_feature()
+    return orch.run_tool(spec, argv[1:])
 
 
 def _confirm(prompt: str, accepted: tuple = ("y", "yes")) -> bool:
@@ -558,26 +545,19 @@ def cmd_disconnect(argv: list[str]) -> int:
 
 
 def cmd_tool(argv: list[str]) -> int:
-    """Tool management: aa tool <list|run|install|update|uninstall> [args]"""
-    if not argv:
-        err("Missing subcommand.")
-        print("Usage: aa tool <list|run|install|update|uninstall> [args]")
-        return 1
-    sub = argv[0]
-    rest = argv[1:]
-    tool_dispatch = {
-        "list": cmd_list, "ls": cmd_list,
-        "run": cmd_run,
-        "install": cmd_install,
-        "update": cmd_update,
-        "uninstall": cmd_uninstall,
-    }
-    handler = tool_dispatch.get(sub)
-    if not handler:
-        err(f"Unknown tool subcommand: {sub}")
-        print(f"Valid: {', '.join(tool_dispatch.keys())}")
-        return 1
-    return handler(rest)
+    """Tool management: aa tool <list|run|install|update|uninstall> [args]
+
+    Delegates to the module's CLI surface (surface_tools_command); this entry
+    stays a thin router (AES506). The surface owns arg parsing + aggregate
+    calls so the tool verb lives in one place.
+    """
+    from modules.tools.src.surface_tools_command import cmd_tool as _tools_surface
+    return _tools_surface(argv, _tool_orch())
+
+
+def _tool_orch():
+    from modules.tools.src.root_tools_container import create_tools_feature
+    return create_tools_feature()
 
 
 def cmd_anytype(argv: list[str]) -> int:
