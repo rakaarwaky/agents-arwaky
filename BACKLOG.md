@@ -81,14 +81,14 @@ Cross-cutting and workspace-level rows only. Feature rows live beside each featu
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|----------|-------|-------------------|-------|--------------|---------|
-| WS-01 | — | Migrate legacy `tools/` into AES 7-layer `modules/` (P0-P4) | P0 | Done | `tools/` tree absent in worktree; 16/16 feature packages import; `aa check` → All verifications PASSED. | @raka | None | 2026-09-23 |
-| WS-02 | — | Runner split per-tool (registry dispatch + RunnerBase + 14 per-tool capabilities) | P0 | Done | Capabilities and runner merged into `modules/tools/src/`; AES + ruff clean at tip. | @raka | WS-01 | 2026-09-23 |
-| WS-03 | — | Surface command consolidation into per-feature packages only | P0 | Done | Surfaces live at `modules/<feature>/src/surface_*_command.py`; no `modules/cli`. | @raka | WS-01 | 2026-09-23 |
-| WS-04 | — | FRD + BACKLOG pair for each module | P0 | In Progress | Pairs written; gate `aa docs check .` → 0 errors at tip. | @raka | WS-01 | 2026-09-23 |
+| WS-01 | — | Migrate legacy `tools/` into AES 7-layer `modules/` (P0-P4) | P0 | Done | Gate: `python3 -m modules.root_cli_entry check` → All verifications PASSED at `b9c8c62`; excludes live `.env` and legacy `tools/tests/`. | @raka | None | 2026-09-23 |
+| WS-02 | — | Runner split per-tool (registry dispatch + RunnerBase + 14 per-tool capabilities) | P0 | Done | Gate: `lint-arwaky scan modules` → 0 violations at `b9c8c62`; runner lives in `modules/tools/src/`. | @raka | WS-01 | 2026-09-23 |
+| WS-03 | — | Surface command consolidation into per-feature packages only | P0 | Done | Gate: `find modules -name 'surface_*.py'` → all under `modules/<feature>/src/` at `b9c8c62`; no `modules/cli`. | @raka | WS-01 | 2026-09-23 |
+| WS-04 | — | FRD + BACKLOG pair for each module | P0 | In Progress | Pairs written; gate `aa docs check .` → 0 errors at `320c422`. | @raka | WS-01 | 2026-09-23 |
 | WS-05 | — | Decide operator-local secrets location (live `.env` vs XDG config) after migration | P1 | Blocked | `config/` holds only `.env.example` + `manifest.json` + `version.txt`; live env files untracked. | @raka | None | 2026-09-22 |
-| WS-06 | — | Migrate `tools/tests/` into `modules/tests/` | P1 | Deferred | 4 worktree tests in `modules/tests/`; old suite not yet ported. | @raka | WS-01 | 2026-09-23 |
-| WS-07 | — | Merge `refactor/aes-tools` into main, deleting legacy `tools/` there | P0 | Done | Merged; legacy `tools/` tree gone; AES + ruff + gates green on main. | @raka | WS-04, WS-08 | 2026-09-23 |
-| WS-08 | — | Fix CI entry-point drift (`modules.cli` → `root_cli_entry`) | P0 | Done | CI runs `python3 -m modules.root_cli_entry check`; `aa check` green. | @raka | WS-03 | 2026-09-23 |
+| WS-06 | — | Migrate `tools/tests/` into `modules/tests/` | P1 | Deferred | 4 worktree tests in `tests/`; old suite not yet ported. | @raka | WS-01 | 2026-09-23 |
+| WS-07 | — | Merge `refactor/aes-tools` into main, deleting legacy `tools/` there | P0 | Done | Gate: `git log --oneline -1` → merge on main at `b9c8c62`; legacy `tools/` gone; AES + ruff green. | @raka | WS-04, WS-08 | 2026-09-23 |
+| WS-08 | — | Fix CI entry-point drift (`modules.cli` → `root_cli_entry`) | P0 | Done | Gate: `grep root_cli_entry .github/workflows/ci.yml` → 2 hits at `b9c8c62`; `aa check` green. | @raka | WS-03 | 2026-09-23 |
 
 ## Blockers
 

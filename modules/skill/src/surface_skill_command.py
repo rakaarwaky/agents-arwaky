@@ -228,17 +228,16 @@ def cmd_list(argv):
 
 
 # --- check ---------------------------------------------------------------------
-def cmd_check():
+def cmd_check(argv=None):
+    argv = list(argv or [])
+    json_mode = "--json" in argv
     term_w = _term_width()
     n_cols = 5
     available = max(40, term_w - 2 - (n_cols - 1))
     w_id, w_cat, w_status, w_count, w_path = _table_widths(available, [2, 1, 1, 1, 5])
-    print("Auditing the shared skill pack against manifest.json tools:")
-    print("-" * available)
-    print(f"{_pad('TOOL ID', w_id)} {_pad('CATEGORY', w_cat)} {_pad('STATUS', w_status)} {_pad('OWN SKILLS', w_count)} {_pad('SAMPLE PATH', w_path)}")
-    print("-" * available)
     tools = _manifest_tools()
     documented = shared_only = 0
+    rows = []
     for tool in tools:
         tid = str(tool.get("id", ""))
         cat = str(tool.get("category", ""))
@@ -254,12 +253,41 @@ def cmd_check():
         source_path = str(tool.get("path", ""))
         if source_path and not (REPO_ROOT / source_path).exists():
             status = "PATH MISSING"
-        print(f"{_pad(tid, w_id)} {_pad(cat, w_cat)} {_pad(status, w_status)} {_pad(str(len(dedicated)), w_count)} {_pad(sample, w_path)}")
-    print("-" * available)
+        rows.append({
+            "id": tid,
+            "category": cat,
+            "status": status,
+            "own_skills": len(dedicated),
+            "sample": sample,
+        })
     pack_size = len(_get_all_skills())
+    findings = audit_pack(REPO_ROOT / "skills")
+    if json_mode:
+        import json as _json
+        out = {
+            "tools": rows,
+            "totals": {
+                "tools": len(tools),
+                "documented": documented,
+                "shared_only": shared_only,
+                "pack_size": pack_size,
+            },
+            "loadability": [
+                {"code": f.code, "message": f.message} for f in findings
+            ],
+            "ok": not findings,
+        }
+        print(_json.dumps(out, indent=2, ensure_ascii=False))
+        return 1 if findings else 0
+    print("Auditing the shared skill pack against manifest.json tools:")
+    print("-" * available)
+    print(f"{_pad('TOOL ID', w_id)} {_pad('CATEGORY', w_cat)} {_pad('STATUS', w_status)} {_pad('OWN SKILLS', w_count)} {_pad('SAMPLE PATH', w_path)}")
+    print("-" * available)
+    for row in rows:
+        print(f"{_pad(row['id'], w_id)} {_pad(row['category'], w_cat)} {_pad(row['status'], w_status)} {_pad(str(row['own_skills']), w_count)} {_pad(row['sample'], w_path)}")
+    print("-" * available)
     print(f"Total Tools: {len(tools)} | Documented: {documented} | Shared-only: {shared_only}")
     print(f"Shared pack: {pack_size} SKILL.md (provisioned to every tool; 'aa skill install <tool>' copies all of them)")
-    findings = audit_pack(REPO_ROOT / "skills")
     if findings:
         print()
         print(f"Loadability findings ({len(findings)}):")
@@ -318,7 +346,7 @@ def cmd_help():
     print("  install --prune             Drop provisioned skills the pack no longer provides")
     print("  uninstall, unskill, remove  Remove provisioned skills from CURRENT WORKING DIRECTORY (.agents/skills/)")
     print("  show <name>                 Display the content of a skill's SKILL.md")
-    print("  check                       Audit per-tool skill coverage and pack loadability")
+    print("  check [--json]              Audit per-tool skill coverage and pack loadability")
     print("  help                        Show this help screen")
     print()
     print("SUBCOMMAND HELP:")
@@ -405,7 +433,7 @@ def main(argv: list[str], orch: object | None = None) -> int:
     if action in ("list", "ls"):
         return cmd_list(rest)
     if action in ("check", "audit"):
-        return cmd_check()
+        return cmd_check(rest)
     if action in ("install", "copy", "get", "add"):
         return cmd_install(rest)
     if action in ("uninstall", "remove", "unskill", "delete"):

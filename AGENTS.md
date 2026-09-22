@@ -189,7 +189,7 @@ that the pack no longer provides. It only removes entries carrying
 ## 📌 Standard Reference Paths
 
 - Single Source of Truth Manifest: [`config/manifest.json`](config/manifest.json)
-- Unified MCP Manifest: [`mcp_servers.generated.json`](mcp_servers.generated.json)
+- Unified MCP Manifest: `mcp_servers.generated.json` (gitignored; regenerate with `aa mcp generate`)
 - Shared XDG Helper: [`modules/shared/src/`](modules/shared/src/)
 - Tool Install/Update/Uninstall/Run (data-driven): [`modules/tools/`](modules/tools/) · CLI entry: [`modules/root_cli_entry.py`](modules/root_cli_entry.py) (`aa tool …`)
 - Agent Harness Connector: [`modules/shared/src/`](modules/shared/src/)

@@ -250,10 +250,15 @@ def cmd_uninstall(args: list[str], orch: IToolsAggregate) -> int:
 
 def cmd_tool(args: list[str], orch: IToolsAggregate) -> int:
     """aa tool <list|run|install|update|uninstall> [args]"""
-    if not args:
-        err("Missing subcommand.")
+    if not args or args[0] in ("-h", "--help", "help"):
         print("Usage: aa tool <list|run|install|update|uninstall> [args]")
-        return 1
+        print()
+        print("  list, ls [tool]     List registered tools (add --json for machine output)")
+        print("  run <tool> [args]   Execute a registered tool")
+        print("  install <tool|all> [--yes]")
+        print("  update <tool|all> [--yes]")
+        print("  uninstall <tool|--all> [--yes]")
+        return 0
     sub_cmd = args[0]
     rest = args[1:]
     dispatch = {

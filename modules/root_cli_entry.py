@@ -178,9 +178,10 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}tool{RESET()} <cmd> [args]             Tool management (list|run|install|update|uninstall)")
     print(f"  {GREEN()}skill{RESET()} <cmd> [args]             Skill management (list|install|uninstall|show|check)")
     print(f"  {GREEN()}docs{RESET()} <cmd> [path]             Document invariants (check [--strict] [--include-subtrees])")
-    print(f"  {GREEN()}connect{RESET()} [targets]              Connect MCP, skills & env to harnesses")
-    print(f"  {GREEN()}disconnect{RESET()} [targets]           Disconnect harnesses (use --all for all)")
+    print(f"  {GREEN()}connect{RESET()} --<harness>|--all     Connect MCP, skills & env to harnesses")
+    print(f"  {GREEN()}disconnect{RESET()} --<harness>|--all  Disconnect harnesses (use --all for all)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
+    print(f"  {GREEN()}completion{RESET()} [bash|zsh]          Print shell completion script")
     print()
     print(f"{BOLD()}SERVICES & DAEMONS:{RESET()}")
     print(f"  {GREEN()}anytype{RESET()} <cmd>                  Anytype daemon (start|stop|status|auth-key|...)")
@@ -466,7 +467,15 @@ def cmd_update(argv: list[str]) -> int:
 
 
 def cmd_mcp(argv: list[str]) -> int:
-    action = argv[0] if argv else "list"
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print("Usage: aa mcp <list|generate|show> [path] [--json]")
+        print()
+        print("  list                Enumerate MCP-enabled tools")
+        print("  generate [path]     Rebuild mcp_servers.generated.json")
+        print("  show                Inspect the generated unified manifest")
+        print("  list --json         Machine-readable server list")
+        return 0
+    action = argv[0]
     generated = repo_root() / "mcp_servers.generated.json"
 
     def _generate(target: str | None = None) -> int:
@@ -475,13 +484,22 @@ def cmd_mcp(argv: list[str]) -> int:
         return create_mcp_feature().generate(out)
 
     if action == "list":
+        if "--json" in argv:
+            import json as _json
+            servers = [
+                {"id": t.id, "category": t.category, "description": t.description}
+                for t in load_tools()
+                if t.is_mcp
+            ]
+            print(_json.dumps(servers, indent=2, ensure_ascii=False))
+            return 0
         print(f"{BOLD()}MCP-Enabled Tools:{RESET()}")
         for tool in load_tools():
             if tool.is_mcp:
                 print(f"  - {tool.id} [{tool.category}]: {tool.description}")
         return 0
     if action == "generate":
-        target = argv[1] if len(argv) > 1 else None
+        target = argv[1] if len(argv) > 1 and not argv[1].startswith("-") else None
         return _generate(target)
     if action in {"show", "path"}:
         if not generated.exists():
@@ -519,6 +537,30 @@ def cmd_disconnect(argv: list[str]) -> int:
         cmd_disconnect as _harness_disconnect,
     )
     return _harness_disconnect(list(argv), create_harness_feature)
+
+
+def cmd_completion(argv: list[str]) -> int:
+    """Print a bash/zsh completion script for the aa CLI."""
+    from modules.shared.src.utility_shell_completion import (
+        bash_completion,
+        zsh_completion,
+    )
+
+    shell = argv[0] if argv else "bash"
+    if shell in ("-h", "--help", "help"):
+        print("Usage: aa completion [bash|zsh]")
+        print()
+        print("  bash    Source in ~/.bashrc:  eval \"$(aa completion bash)\"")
+        print("  zsh     Source in ~/.zshrc:   eval \"$(aa completion zsh)\"")
+        return 0
+    if shell == "bash":
+        print(bash_completion())
+        return 0
+    if shell == "zsh":
+        print(zsh_completion())
+        return 0
+    err(f"Unknown shell: {shell} (expected bash or zsh)")
+    return 1
 
 
 def cmd_tool(argv: list[str]) -> int:
@@ -637,7 +679,7 @@ def _check_docs() -> int:
 
 
 def cmd_docs(argv: list[str]) -> int:
-    """Audit document invariants: aa docs check [path] [--strict] [--include-subtrees]"""
+    """Audit document invariants: aa docs check [path] [--strict] [--include-subtrees] [--json]"""
     from modules.check.src.capabilities_doc_pack import (
         as_strict,
         audit_docs,
@@ -646,24 +688,43 @@ def cmd_docs(argv: list[str]) -> int:
         warnings_only,
     )
 
-    if not argv or argv[0] != "check":
-        err("Missing subcommand." if not argv else f"Unknown docs subcommand: {argv[0]}")
-        print("Usage: aa docs check [path] [--strict] [--include-subtrees]")
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print("Usage: aa docs check [path] [--strict] [--include-subtrees] [--json]")
+        print()
+        print("  --strict             Gate warnings as errors too")
+        print("  --include-subtrees   Recurse into nested doc trees")
+        print("  --json               Machine-readable findings")
+        return 0 if argv and argv[0] in ("-h", "--help", "help") else 1
+    if argv[0] != "check":
+        err(f"Unknown docs subcommand: {argv[0]}")
+        print("Usage: aa docs check [path] [--strict] [--include-subtrees] [--json]")
         return 1
     args = argv[1:]
     strict = "--strict" in args
     include_subtrees = "--include-subtrees" in args or "--include-submodules" in args
+    json_mode = "--json" in args
     positional = [a for a in args if not a.startswith("-")]
     target = Path(positional[0]).resolve() if positional else repo_root()
     if not target.is_dir():
         err(f"Not a directory: {target}")
         return 1
 
-    info(f"Auditing documents under {target} ...")
+    if not json_mode:
+        info(f"Auditing documents under {target} ...")
     scanned = len(iter_doc_files(target, include_subtrees=include_subtrees))
     findings = audit_docs(target, include_subtrees=include_subtrees)
     problems = errors_only(as_strict(findings)) if strict else errors_only(findings)
     notes = [] if strict else warnings_only(findings)
+    if json_mode:
+        import json as _json
+        out = {
+            "scanned": scanned,
+            "errors": [{"code": f.code, "path": f.path, "message": f.message} for f in problems],
+            "warnings": [{"code": f.code, "path": f.path, "message": f.message} for f in notes],
+            "ok": not problems,
+        }
+        print(_json.dumps(out, indent=2, ensure_ascii=False))
+        return 1 if problems else 0
     for finding in problems:
         err(f"{finding.code} {finding.path}: {finding.message}")
     for finding in notes:
@@ -856,7 +917,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
         "docs": cmd_docs,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
-        "mcp": cmd_mcp,
+        "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
         "anytype": cmd_anytype, "omniroute": cmd_omniroute, "service": cmd_service,
         "backup": cmd_backup, "restore": cmd_restore,
