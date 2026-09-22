@@ -30,7 +30,6 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Callable
 
 from modules.shared.src.taxonomy_core_error import ToolUpdateError
@@ -54,7 +53,33 @@ from modules.shared.src.taxonomy_xdg_paths import (
     tool_state_dir,
 )
 from modules.tools.src.contract_tools_protocol import IToolAdapterFacade
-from modules.tools.src.taxonomy_tools_constant import LAUNCHER_NAMES
+from modules.tools.src.taxonomy_tools_constant import (
+    ANYTYPE_DAEMON_DATA_REL,
+    ANYTYPE_INTERNAL_BIN,
+    ANYTYPE_MCP_APP_REL,
+    ANYTYPE_MCP_ENTRY,
+    ANYTYPE_MCP_SRC_REL,
+    ANYTYPE_VOLUME_DIRS,
+    CONTEXT7_LAUNCHER_ENTRIES,
+    FALLBACK_REMOTE_BRANCHES,
+    FETCH_CLI_ARGS,
+    INSTALL_STAMP_FILENAME,
+    LAUNCHER_NAMES,
+    LINT_BINARIES,
+    LINT_BUILD_DEPS,
+    LINT_INTERNAL_DIR_REL,
+    LINT_LAUNCHERS,
+    NODE_IGNORES,
+    OMNIROUTE_DATA_DIR_NAME,
+    OMNIROUTE_INTERNAL_BIN,
+    OMNIROUTE_LAUNCHERS,
+    PNPM_DANGEROUS_ALLOW,
+    QWEN_ROLE_DIRS,
+    QWEN_TOOL_NAME,
+    ROOT_ENV_VAR,
+    TOOL_VERB_PREFIXES,
+)
+from modules.tools.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 
 
 class ToolAdapterFacade(IToolAdapterFacade):
@@ -193,10 +218,6 @@ def _make_update(lifecycle_fn: Callable) -> Callable:
 # Pure utilities (single copy)
 # ---------------------------------------------------------------------------
 ROOT = REPO_ROOT
-_NODE_IGNORES = [
-    "node_modules", ".git", "__pycache__", "target", "*.egg-info",
-    ".venv", "venv", "*.tsbuildinfo",
-]
 
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
@@ -222,7 +243,7 @@ def get_remote_default_branch(submodule_dir: Path) -> str | None:
         parts = ref.split("/")
         if len(parts) >= 4:
             return parts[-1]
-    for branch in ("main", "master", "dev"):
+    for branch in FALLBACK_REMOTE_BRANCHES:
         r3 = run_quiet(
             ["git", "rev-parse", "--verify", f"refs/remotes/{remote}/{branch}"],
             cwd=submodule_dir,
@@ -305,7 +326,7 @@ def write_install_stamp(app_dir: Path, tool: str, submodule_dir: Path) -> None:
     }
     try:
         app_dir.mkdir(parents=True, exist_ok=True)
-        (app_dir / ".arwaky-install.json").write_text(
+        (app_dir / INSTALL_STAMP_FILENAME).write_text(
             json.dumps(stamp, indent=2) + "\n", encoding="utf-8"
         )
     except OSError as exc:
@@ -428,7 +449,7 @@ def write_uv_launchers(
             f"# {PROVENANCE_MARKER}\n"
             "import os, sys\n"
             "from pathlib import Path\n"
-            f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {baked_root!r}))\n'
+            f'root = Path(os.environ.get("{ROOT_ENV_VAR}", {baked_root!r}))\n'
             f'os.execvpe("uv", ["uv", "run", {extra}"--directory", str(root / "{src_rel}"), '
             f'"{entry}", *sys.argv[1:]], os.environ.copy())\n'
         )
@@ -635,7 +656,6 @@ def _uv_project_lifecycle(
 # ---------------------------------------------------------------------------
 # Centralized tool configuration (DRY core)
 # ---------------------------------------------------------------------------
-QWEN_TOOL_NAME = "qwen-web"
 
 
 def _qwen_post_install(python_bin: Path, source: Path) -> None:
@@ -644,7 +664,7 @@ def _qwen_post_install(python_bin: Path, source: Path) -> None:
     data_dir = tool_data_dir(QWEN_TOOL_NAME)
     state_dir = tool_state_dir(QWEN_TOOL_NAME)
     cache_dir = tool_cache_dir(QWEN_TOOL_NAME)
-    for role in ("role-architect", "role-business-analyst", "role-tech-lead"):
+    for role in QWEN_ROLE_DIRS:
         (data_dir / "input" / role / "done").mkdir(parents=True, exist_ok=True)
         (data_dir / "input" / role / "failed").mkdir(parents=True, exist_ok=True)
     (data_dir / "output").mkdir(parents=True, exist_ok=True)
@@ -656,155 +676,152 @@ def _qwen_post_install(python_bin: Path, source: Path) -> None:
     print(f"  [ok] Cache: {cache_dir}")
 
 
-SIMPLE_TOOLS_CONFIG = {
-    "blender": {
-        "lifecycle": "uv_venv",
-        "src_rel": "internal/blender-arwaky",
-        "tool_name": "blender-arwaky",
-        "launchers": [
+SIMPLE_TOOLS_CONFIG: dict[str, ToolLifecycleConfig] = {
+    "blender": ToolLifecycleConfig(
+        lifecycle="uv_venv",
+        src_rel="internal/blender-arwaky",
+        tool_name="blender-arwaky",
+        launchers=(
             ("blender-arwaky", "blender-arwaky"),
             ("ba", "blender-arwaky"),
             ("blender-mcp", "blender-mcp"),
-        ],
-        "pin_reason": "venv/pip (rebuild required)",
-        "satisfied_bin": "blender-arwaky",
-        "init_message": "Run 'blender-arwaky init' to setup workspace symlinks",
-    },
-    "vision": {
-        "lifecycle": "uv_venv",
-        "src_rel": "internal/vision-arwaky",
-        "tool_name": "vision-arwaky",
-        "launchers": [
+        ),
+        pin_reason="venv/pip (rebuild required)",
+        satisfied_bin="blender-arwaky",
+        init_message="Run 'blender-arwaky init' to setup workspace symlinks",
+    ),
+    "vision": ToolLifecycleConfig(
+        lifecycle="uv_venv",
+        src_rel="internal/vision-arwaky",
+        tool_name="vision-arwaky",
+        launchers=(
             ("vision-arwaky", "vision-arwaky-cli"),
             ("vision-arwaky-cli", "vision-arwaky-cli"),
             ("va", "vision-arwaky-cli"),
             ("vision-arwaky-mcp", "vision-arwaky-mcp"),
-        ],
-        "pin_reason": "venv/pip (rebuild required)",
-        "satisfied_bin": "vision-arwaky",
-        "init_message": "Run 'vision-arwaky-cli init' to setup workspace symlinks",
-    },
-    "qwen-web": {
-        "lifecycle": "uv_venv",
-        "src_rel": f"internal/{QWEN_TOOL_NAME}-arwaky",
-        "tool_name": QWEN_TOOL_NAME,
-        "launchers": [
+        ),
+        pin_reason="venv/pip (rebuild required)",
+        satisfied_bin="vision-arwaky",
+        init_message="Run 'vision-arwaky-cli init' to setup workspace symlinks",
+    ),
+    "qwen-web": ToolLifecycleConfig(
+        lifecycle="uv_venv",
+        src_rel=f"internal/{QWEN_TOOL_NAME}-arwaky",
+        tool_name=QWEN_TOOL_NAME,
+        launchers=(
             ("qwen-web-arwaky", "qwen-web-arwaky"),
             ("qwa", "qwen-web-arwaky"),
             ("qwen-web-cli", "qwen-web-arwaky"),
             ("qwen-web-mcp", "qwen-web-mcp"),
             ("qwc", "qwen-web-arwaky"),
-        ],
-        "pin_reason": "venv/pip + Playwright (rebuild required)",
-        "satisfied_bin": "qwen-web-arwaky",
-        "init_message": "Run 'qwc init' to setup workspace symlinks",
-        "post_install_hook": _qwen_post_install,
-        "extra_paths_fn": lambda: [
+        ),
+        pin_reason="venv/pip + Playwright (rebuild required)",
+        satisfied_bin="qwen-web-arwaky",
+        init_message="Run 'qwc init' to setup workspace symlinks",
+        post_install_hook=_qwen_post_install,
+        extra_paths_fn=lambda: [
             tool_config_dir(QWEN_TOOL_NAME),
             tool_state_dir(QWEN_TOOL_NAME),
             tool_cache_dir(QWEN_TOOL_NAME),
         ],
-    },
-    "mnemosyne": {
-        "lifecycle": "uv_project",
-        "src_rel": "vendor/mnemosyne",
-        "tool_name": "mnemosyne",
-        "launchers": [("mnemosyne", "mnemosyne"), ("mnemosyne-mcp", "mnemosyne")],
-        "pin_reason": "uv project (rebuild required)",
-        "satisfied_bin": "mnemosyne",
-        "uv_args": ["--extra", "mcp"],
-    },
-    "workspace": {
-        "lifecycle": "uv_project",
-        "src_rel": "vendor/google-workspace-mcp",
-        "tool_name": "google-workspace-mcp",
-        "launchers": [("workspace-mcp", "workspace-mcp"), ("google-workspace-mcp", "workspace-mcp")],
-        "pin_reason": "uv project (rebuild required)",
-        "satisfied_bin": "workspace-mcp",
+    ),
+    "mnemosyne": ToolLifecycleConfig(
+        lifecycle="uv_project",
+        src_rel="vendor/mnemosyne",
+        tool_name="mnemosyne",
+        launchers=(("mnemosyne", "mnemosyne"), ("mnemosyne-mcp", "mnemosyne")),
+        pin_reason="uv project (rebuild required)",
+        satisfied_bin="mnemosyne",
+        uv_args=("--extra", "mcp"),
+    ),
+    "workspace": ToolLifecycleConfig(
+        lifecycle="uv_project",
+        src_rel="vendor/google-workspace-mcp",
+        tool_name="google-workspace-mcp",
+        launchers=(("workspace-mcp", "workspace-mcp"), ("google-workspace-mcp", "workspace-mcp")),
+        pin_reason="uv project (rebuild required)",
+        satisfied_bin="workspace-mcp",
         # google-workspace-mcp adalah alias PATH dari workspace-mcp.
-        "alias_second_to_first": True,
-    },
-    "codegraph": {
-        "lifecycle": "node",
-        "src_rel": "vendor/codegraph",
-        "app_name": "codegraph",
-        "entry": "dist/bin/codegraph.js",
-        "launchers": ["codegraph-mcp", "codegraph"],
-        "pin_reason": "npm workspace (rebuild required)",
-        "satisfied_bin": "codegraph-mcp",
-        "requires": ("npm", "codegraph requires npm (https://nodejs.org)"),
-        "install_cmd": ["npm", "ci", "--no-audit", "--no-fund"],
-        "build_cmd": ["npm", "run", "build"],
-    },
-    "context7": {
-        "lifecycle": "node",
-        "src_rel": "vendor/context7",
-        "app_name": "context7",
-        "launchers": ["context7-mcp", "ctx7"],
-        "ignores": [
+        alias_second_to_first=True,
+    ),
+    "codegraph": ToolLifecycleConfig(
+        lifecycle="node",
+        src_rel="vendor/codegraph",
+        app_name="codegraph",
+        entry="dist/bin/codegraph.js",
+        launchers=("codegraph-mcp", "codegraph"),
+        pin_reason="npm workspace (rebuild required)",
+        satisfied_bin="codegraph-mcp",
+        requires=("npm", "codegraph requires npm (https://nodejs.org)"),
+        install_cmd=("npm", "ci", "--no-audit", "--no-fund"),
+        build_cmd=("npm", "run", "build"),
+    ),
+    "context7": ToolLifecycleConfig(
+        lifecycle="node",
+        src_rel="vendor/context7",
+        app_name="context7",
+        launchers=("context7-mcp", "ctx7"),
+        ignores=(
             "node_modules", ".git", ".old_modules*", "__pycache__", "mcpb",
             "dist", "target", "*.egg-info", ".venv", "venv", ".next", ".turbo",
-        ],
-        "src_marker": "pnpm-workspace.yaml",
-        "pin_reason": "pnpm workspace (rebuild required)",
-        "satisfied_bin": "context7-mcp",
-        "requires": ("pnpm", "context7 is a pnpm workspace"),
-        "install_cmd": ["pnpm", "install", "--frozen-lockfile"],
-        "build_cmd": ["pnpm", "run", "build"],
-    },
-    "fetch": {
-        "lifecycle": "node",
-        "src_rel": "vendor/fetch-mcp",
-        "app_name": "fetch-mcp",
-        "launchers": ["fetch-mcp", "mcp-fetch"],
-        "ignores": [
-            "node_modules", ".git", "__pycache__", "target", "*.egg-info",
-            ".venv", "venv", "*.tsbuildinfo",
-        ],
-        "pin_reason": "bun workspace (rebuild required)",
-        "satisfied_bin": "fetch-mcp",
-        "requires": ("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"),
-        "install_cmd": ["bun", "install", "--frozen-lockfile"],
-        "build_cmd": ["bun", "run", "build"],
-    },
-    "ponytail": {
-        "lifecycle": "node",
-        "src_rel": "vendor/ponytail",
-        "app_name": "ponytail",
-        "launchers": ["ponytail-mcp"],
-        "entry": "ponytail-mcp/index.js",
-        "ignores": ["node_modules", ".git", "__pycache__", "*.egg-info", ".venv", "venv"],
-        "pin_reason": "npm workspace (rebuild required)",
-        "satisfied_bin": "ponytail-mcp",
-        "requires": ("npm", "ponytail requires npm (https://nodejs.org)"),
-    },
+        ),
+        src_marker="pnpm-workspace.yaml",
+        pin_reason="pnpm workspace (rebuild required)",
+        satisfied_bin="context7-mcp",
+        requires=("pnpm", "context7 is a pnpm workspace"),
+        install_cmd=("pnpm", "install", "--frozen-lockfile"),
+        build_cmd=("pnpm", "run", "build"),
+    ),
+    "fetch": ToolLifecycleConfig(
+        lifecycle="node",
+        src_rel="vendor/fetch-mcp",
+        app_name="fetch-mcp",
+        launchers=tuple(LAUNCHER_NAMES["fetch"]),
+        ignores=NODE_IGNORES,
+        pin_reason="bun workspace (rebuild required)",
+        satisfied_bin="fetch-mcp",
+        requires=("bun", "fetch-mcp requires bun (curl -fsSL https://bun.sh/install | bash)"),
+        install_cmd=("bun", "install", "--frozen-lockfile"),
+        build_cmd=("bun", "run", "build"),
+    ),
+    "ponytail": ToolLifecycleConfig(
+        lifecycle="node",
+        src_rel="vendor/ponytail",
+        app_name="ponytail",
+        launchers=("ponytail-mcp",),
+        entry="ponytail-mcp/index.js",
+        ignores=("node_modules", ".git", "__pycache__", "*.egg-info", ".venv", "venv"),
+        pin_reason="npm workspace (rebuild required)",
+        satisfied_bin="ponytail-mcp",
+        requires=("npm", "ponytail requires npm (https://nodejs.org)"),
+    ),
 }
 
 
 # ---------------------------------------------------------------------------
 # Tool adapter factory (auto-generate unit dari config)
 # ---------------------------------------------------------------------------
-def _build_adapter_unit(name: str, config: dict) -> SimpleNamespace:
+def _build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
     """Build complete adapter unit dari configuration."""
-    lifecycle = config["lifecycle"]
-    src_rel = config["src_rel"]
-    tool_name = config.get("tool_name", name)
-    launchers = config["launchers"]
-    pin_reason = config.get("pin_reason", "rebuild required")
-    satisfied_bin = config.get("satisfied_bin")
+    lifecycle = config.lifecycle
+    src_rel = config.src_rel
+    tool_name = config.tool_name or name
+    launchers = list(config.launchers)
+    pin_reason = config.pin_reason
+    satisfied_bin = config.satisfied_bin
 
     satisfied = _make_satisfied(satisfied_bin)
     is_pin_satisfied = _make_pin_check(src_rel, pin_reason)
     owned_paths = _make_owned(
         launchers,
-        extra=config.get("extra_paths"),
-        config=config.get("config_dirs"),
-        extra_fn=config.get("extra_paths_fn"),
+        extra=list(config.extra_paths) if config.extra_paths else None,
+        config=list(config.config_dirs) if config.config_dirs else None,
+        extra_fn=config.extra_paths_fn,
     )
 
     if lifecycle == "uv_venv":
-        post_install = config.get("post_install_hook")
-        init_msg = config.get("init_message", "")
+        post_install = config.post_install_hook
+        init_msg = config.init_message
 
         def install(spec, root=ROOT, *, daemons=None):
             return _uv_venv_lifecycle(
@@ -819,8 +836,8 @@ def _build_adapter_unit(name: str, config: dict) -> SimpleNamespace:
             )
 
     elif lifecycle == "uv_project":
-        uv_args = config.get("uv_args")
-        alias_second = config.get("alias_second_to_first", False)
+        uv_args = list(config.uv_args) if config.uv_args else None
+        alias_second = config.alias_second_to_first
 
         def write_launchers(root):
             targets = launchers[:1] if alias_second else launchers
@@ -840,13 +857,13 @@ def _build_adapter_unit(name: str, config: dict) -> SimpleNamespace:
             return _uv_project_lifecycle("update", root, src_rel, tool_name, write_launchers)
 
     elif lifecycle == "node":
-        app_name = config.get("app_name", tool_name)
-        entry = config.get("entry")
-        ignores = config.get("ignores", _NODE_IGNORES)
-        requires = config.get("requires")
-        src_marker = config.get("src_marker", "package.json")
-        install_cmd = config.get("install_cmd") or []
-        build_cmd = config.get("build_cmd") or []
+        app_name = config.app_name or tool_name
+        entry = config.entry
+        ignores = list(config.ignores) if config.ignores else list(NODE_IGNORES)
+        requires = config.requires
+        src_marker = config.src_marker
+        install_cmd = list(config.install_cmd)
+        build_cmd = list(config.build_cmd)
         post_copy_hook: Callable[[Path], None] | None = None
 
         if name == "codegraph":
@@ -859,14 +876,9 @@ def _build_adapter_unit(name: str, config: dict) -> SimpleNamespace:
                 created += [symlink_alias(n, bin_home() / launchers[0]) for n in launchers[1:]]
                 return created
         elif name == "context7":
-            ctx_launchers = {
-                "context7-mcp": "packages/mcp/dist/index.js",
-                "ctx7": "packages/cli/dist/index.js",
-            }
-
             def write_launchers(app_dir, is_update):
                 created = []
-                for lname, lentry in ctx_launchers.items():
+                for lname, lentry in CONTEXT7_LAUNCHER_ENTRIES.items():
                     target = app_dir / lentry
                     if target.exists():
                         created.append(write_node_launcher(lname, target))
@@ -876,15 +888,10 @@ def _build_adapter_unit(name: str, config: dict) -> SimpleNamespace:
 
             def post_copy_hook(app_dir):
                 ws = app_dir / "pnpm-workspace.yaml"
-                if "dangerouslyAllowAllBuilds" not in ws.read_text(encoding="utf-8", errors="replace"):
+                if PNPM_DANGEROUS_ALLOW not in ws.read_text(encoding="utf-8", errors="replace"):
                     with ws.open("a", encoding="utf-8") as f:
-                        f.write("\ndangerouslyAllowAllBuilds: true\n")
+                        f.write(f"\n{PNPM_DANGEROUS_ALLOW}: true\n")
         elif name == "fetch":
-            fetch_cli_args = {
-                "html", "markdown", "readable", "txt", "json", "youtube",
-                "--help", "-h", "--version", "-v",
-            }
-
             def write_launchers(app_dir, is_update):
                 index_js = app_dir / "dist/index.js"
                 cli_js = app_dir / "dist/cli.js"
@@ -898,7 +905,7 @@ def _build_adapter_unit(name: str, config: dict) -> SimpleNamespace:
                     "import os, sys\n"
                     f'index_js = r"{index_js}"\n'
                     f'cli_js = r"{cli_js}"\n'
-                    "cli = " + repr(sorted(fetch_cli_args)) + "\n"
+                    "cli = " + repr(sorted(FETCH_CLI_ARGS)) + "\n"
                     "script = cli_js if (len(sys.argv) > 1 and sys.argv[1] in cli) else index_js\n"
                     "env = os.environ.copy()\n"
                     'os.execvpe("node", ["node", script, *sys.argv[1:]], env)\n'
@@ -950,7 +957,7 @@ def _build_adapter_unit(name: str, config: dict) -> SimpleNamespace:
     else:
         raise ValueError(f"unknown lifecycle {lifecycle!r} for tool {name!r}")
 
-    return SimpleNamespace(
+    return AdapterUnit(
         satisfied=satisfied,
         install=install,
         update=update,
@@ -963,12 +970,6 @@ def _build_adapter_unit(name: str, config: dict) -> SimpleNamespace:
 # Complex tools (implementasi custom + factories)
 # ---------------------------------------------------------------------------
 # anytype (bun MCP + container daemon) — unified lifecycle
-ANYTYPE_MCP_SRC_REL = "vendor/anytype-mcp"
-ANYTYPE_MCP_APP_REL = "anytype-mcp"
-ANYTYPE_MCP_ENTRY = "bin/cli.mjs"
-ANYTYPE_DAEMON_DATA_REL = "anytype-daemon"
-ANYTYPE_INTERNAL_BIN = "internal-bin"
-ANYTYPE_VOLUME_DIRS = ("data", "dot-anytype", "config", "share")
 
 
 def _anytype_daemon_feature():
@@ -982,9 +983,9 @@ def _anytype_write_daemon_launcher(path: Path, root: Path) -> None:
         "#!/usr/bin/env python3\n"
         "import os, sys\n"
         "from pathlib import Path\n"
-        f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))\n'
-        "sys.path.insert(0, str(root))\n"
-        f"from {_daemon_verb} import cmd_anytype\n"
+            f'root = Path(os.environ.get("{ROOT_ENV_VAR}", {str(root)!r}))\n'
+            "sys.path.insert(0, str(root))\n"
+            f"from {_daemon_verb} import cmd_anytype\n"
         "sys.exit(cmd_anytype(sys.argv[1:]))\n",
         encoding="utf-8",
     )
@@ -1045,7 +1046,7 @@ def _anytype_combined_lifecycle(action: str, root: Path, daemons=None) -> list[P
     mcp_result = _node_tool_lifecycle(
         action, root, ANYTYPE_MCP_SRC_REL, ANYTYPE_MCP_APP_REL,
         ["bun", "install", "--frozen-lockfile"], ["bun", "run", "build"],
-        _NODE_IGNORES, ("bun", "bun is required (curl -fsSL https://bun.sh/install | bash)"),
+        list(NODE_IGNORES), ("bun", "bun is required (curl -fsSL https://bun.sh/install | bash)"),
         "package.json", _anytype_mcp_launchers,
     )
     if not (shutil.which("podman") or shutil.which("docker")):
@@ -1075,18 +1076,6 @@ anytype_daemon_update = _make_update(_anytype_daemon_lifecycle)
 
 
 # lint (cargo — rustup bootstrap + atomic install)
-LINT_INTERNAL_DIR_REL = "internal/lint-arwaky"
-LINT_BINARIES = ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui"]
-LINT_LAUNCHERS = [
-    ("lint-arwaky", "lint-arwaky"),
-    ("la", "la"),
-    ("lint-arwaky-cli", "lint-arwaky-cli"),
-    ("lint-arwaky-mcp", "lint-arwaky-mcp"),
-    ("lint-arwaky-tui", "lint-arwaky-tui"),
-    ("lac", "lac"),
-]
-# NOTE: leaf lama merujuk `_BUILD_DEPS` tanpa definisi (NameError) — didefinisikan di sini.
-LINT_BUILD_DEPS: tuple[tuple[str, str], ...] = (("sccache", "sccache"), ("mold", "mold"))
 
 
 def _lint_bootstrap_rustup() -> bool:
@@ -1225,9 +1214,6 @@ def lint_update(spec, root):
 
 
 # omniroute (host-native daemon + launcher)
-OMNIROUTE_DATA_DIR_NAME = "omniroute"
-OMNIROUTE_INTERNAL_BIN = "internal-bin"
-OMNIROUTE_LAUNCHERS = ["omniroute"]
 
 
 def _omniroute_daemon_feature():
@@ -1241,7 +1227,7 @@ def _omniroute_write_launcher(launcher: Path, root: Path) -> None:
         f"# {PROVENANCE_MARKER}\n"
         "import os, sys\n"
         "from pathlib import Path\n"
-        f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))\n'
+        f'root = Path(os.environ.get("{ROOT_ENV_VAR}", {str(root)!r}))\n'
         "sys.path.insert(0, str(root))\n"
         "import importlib as _il\n"
         "_dv = _il.import_module('modules.daemon.src.' + 'agent' + '_daemon_verb')\n"
@@ -1303,8 +1289,8 @@ omniroute_update = _make_update(_omniroute_lifecycle)
 # ---------------------------------------------------------------------------
 # Registry (dibangun dari config + complex tools)
 # ---------------------------------------------------------------------------
-def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> SimpleNamespace:
-    return SimpleNamespace(
+def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> AdapterUnit:
+    return AdapterUnit(
         satisfied=satisfied,
         install=install,
         update=update,
@@ -1313,7 +1299,7 @@ def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> Simpl
     )
 
 
-_ADAPTER_UNITS: dict[str, SimpleNamespace] = {
+_ADAPTER_UNITS: dict[str, AdapterUnit] = {
     name: _build_adapter_unit(name, cfg)
     for name, cfg in SIMPLE_TOOLS_CONFIG.items()
 }
@@ -1354,18 +1340,7 @@ TOOLS_REGISTRY: dict[str, object] = dict(_ADAPTER_UNITS)
 
 # Backward-compat: nama verb per-tool untuk config-driven tools (qwen-web,
 # blender, vision, mnemosyne, workspace, codegraph, context7, fetch, ponytail).
-_TOOL_PREFIXES = {
-    "blender": "blender",
-    "vision": "vision",
-    "qwen-web": "qwen_web",
-    "mnemosyne": "mnemosyne",
-    "workspace": "workspace",
-    "codegraph": "codegraph",
-    "context7": "context7",
-    "fetch": "fetch",
-    "ponytail": "ponytail",
-}
-for _tid, _prefix in _TOOL_PREFIXES.items():
+for _tid, _prefix in TOOL_VERB_PREFIXES.items():
     _ns = _ADAPTER_UNITS[_tid]
     globals()[f"{_prefix}_satisfied"] = _ns.satisfied
     globals()[f"{_prefix}_install"] = _ns.install
@@ -1395,8 +1370,6 @@ __all__ = [
     "lint_is_pin_satisfied", "lint_owned_paths",
     "mnemosyne_satisfied", "mnemosyne_install", "mnemosyne_update",
     "mnemosyne_is_pin_satisfied", "mnemosyne_owned_paths",
-    "ninerouter_satisfied", "ninerouter_install", "ninerouter_update",
-    "ninerouter_is_pin_satisfied", "ninerouter_owned_paths",
     "ponytail_satisfied", "ponytail_install", "ponytail_update",
     "ponytail_is_pin_satisfied", "ponytail_owned_paths",
     "qwen_web_satisfied", "qwen_web_install", "qwen_web_update",

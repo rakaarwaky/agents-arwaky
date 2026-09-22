@@ -137,7 +137,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| Protocol class count | exactly 4 (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner`) + `IToolAdapterFacade`; no `IToolAdapter` ABC — adapter units are `SimpleNamespace` objects reached only through the facade | `grep -c "^class ITool" contract_tools_protocol.py` → 5 |
+| Protocol class count | exactly 4 (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner`) + `IToolAdapterFacade`; no `IToolAdapter` ABC — adapter units are `AdapterUnit` VOs reached only through the facade | `grep -c "^class ITool" contract_tools_protocol.py` → 5 |
 | God object (AES301 exception) | `capabilities_tools_adapter.py` is the single registered >1000-line exception; every other file under `modules/tools/src/` stays within the 1000-line budget | `lint_arwaky.config.yaml` AES301 `exceptions:` lists only `capabilities_tools_adapter.py` |
 | Capability file count | 4 verb classes (`capabilities_tools_{installer,updater,uninstaller,runner}.py`) + 1 adapter file (`capabilities_tools_adapter.py`); TOL-04 fold complete | `ls modules/tools/src/capabilities_tools_*.py` → 5 files |
 | Adapter count | 13 registered tool ids; the two Anytype ids (`anytype`, `anytype-daemon`) have separate registry entries over shared daemon mechanics → 13 adapter units in `_ADAPTER_UNITS` | `python3 -c "from modules.tools.src.capabilities_tools_adapter import _ADAPTER_UNITS; print(len(_ADAPTER_UNITS))"` → 13 |
@@ -161,6 +161,6 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 `modules/installer/FRD.md` (provisioner + launcher), `modules/updater/FRD.md` (bumper + recorder), `modules/uninstaller/FRD.md` (remover + verifier), `modules/runner/FRD.md` (discoverer + executor, ToolOrchestrator aggregate) — all four directories deleted; their FRD/BACKLOG files are superseded by this document and `modules/tools/BACKLOG.md`.
 ## Glossary
 
-- **adapter unit**: one `_ADAPTER_UNITS` entry (a `SimpleNamespace` of verb callables) knowing a tool's install, update, pin-comparison, and owned-teardown data in a single place, inside `capabilities_tools_adapter.py` (no `IToolAdapter` ABC; reached only through `IToolAdapterFacade`).
+- **adapter unit**: one `_ADAPTER_UNITS` entry (an `AdapterUnit` VO of verb callables) knowing a tool's install, update, pin-comparison, and owned-teardown data in a single place, inside `capabilities_tools_adapter.py` (no `IToolAdapter` ABC; reached only through `IToolAdapterFacade`).
 - **residual**: state that could not be removed, reported not skipped; **sentinel 126**: "executable vanished between discovery and launch".
 - **sub-step**: a verb-internal operation (e.g. launcher registration inside `install`, version recording inside `update`) that is not exposed as a separate protocol method.

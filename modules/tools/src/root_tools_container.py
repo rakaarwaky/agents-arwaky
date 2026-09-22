@@ -29,13 +29,13 @@ from modules.tools.src.capabilities_tools_runner import RunnerCapability
 from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
 from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 from modules.tools.src.contract_tools_aggregate import IToolsAggregate
-from types import SimpleNamespace
+from modules.tools.src.taxonomy_tools_vo import AdapterUnit
 
 #: tool_id -> adapter unit (root composition data; each unit is a
-#: stateless namespace of verb functions living in the god-object
+#: stateless `AdapterUnit` VO of verb functions living in the god-object
 #: `capabilities_tools_adapter`). The `anytype-daemon` id routes its
-#: verbs to the `anytype_daemon_*` leaf functions via a namespace object.
-_ANYTYPE_DAEMON = SimpleNamespace(
+#: verbs to the `anytype_daemon_*` leaf functions via a unit object.
+_ANYTYPE_DAEMON = AdapterUnit(
     satisfied=_god.anytype_daemon_satisfied,
     install=_god.anytype_daemon_install,
     is_pin_satisfied=_god.anytype_daemon_is_pin_satisfied,
@@ -45,7 +45,7 @@ _ANYTYPE_DAEMON = SimpleNamespace(
 
 # AES404 (P0-1 follow-up): omniroute and qwen-web now expose their verbs as
 # module-level functions (stateless utility layer) like the other adapters,
-# so they are registered directly — no instance or SimpleNamespace wrapper.
+# so they are registered directly — no instance or namespace wrapper.
 # The `is_daemon` flag that lived on NinerouterAdapter is no longer needed:
 # daemon behaviour is driven by DAEMON_TOOL_IDS in taxonomy_tools_constant.
 
