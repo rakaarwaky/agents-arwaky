@@ -1,0 +1,20 @@
+[Unit]
+Description=OmniRoute AI Gateway (host-native)
+Documentation=https://github.com/diegosouzapw/OmniRoute
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Environment=PORT=7777
+Environment=HOSTNAME=0.0.0.0
+Environment=NODE_ENV=production
+EnvironmentFile=-%h/.config/agents-arwaky/omniroute.env
+WorkingDirectory=%h/.omniroute
+ExecStart=/usr/bin/env omniroute serve --port 7777
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

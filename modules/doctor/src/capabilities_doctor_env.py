@@ -68,7 +68,7 @@ class EnvDiagnosticRunner(IDiagnosticRunner):
         if engine:
             ok(f"Container engine: {engine}")
         else:
-            warn("Podman/Docker not found (only needed for 9router & anytype daemons)")
+            warn("Podman/Docker not found (only needed for anytype daemons)")
         print("-" * 54)
         print(f"{GREEN()}Diagnostics complete.{RESET()}")
         return 0

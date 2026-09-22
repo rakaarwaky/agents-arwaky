@@ -12,7 +12,7 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 - ⚡ **Direct Host Execution:** Compilers, dependencies, and runtimes are installed natively on the host. Tools compile to host-native binaries in `~/.local/bin/` via standard Linux XDG integration. Run tools from your host terminal directly.
 - 🤖 **Universal MCP Hub & Skills Provisioner:** Out-of-the-box integration for AI harnesses (Google Antigravity, Hermes Agent with multi-profile MCP/env sync and default-profile-only skill provisioning, OpenCode, Cursor, Zed) via declarative MCP configs and automated skill provisioning.
 - 🎯 **Unified Orchestration (`agents-arwaky` / `aa` CLI):** One single control point for diagnostics, health checks, execution dispatching, and build pipelines.
-- 🐳 **Daemon-only Containerization:** Only background daemons (9Router, Anytype) run in Podman containers. CLI tools and MCPs are host-native.
+- 🐳 **Containerized Daemons:** Anytype runs in a Podman container. OmniRoute runs host-native (no container). CLI tools and MCPs are host-native.
 
 ---
 
@@ -63,7 +63,7 @@ flowchart TB
 
         subgraph AgentsAndTools["Managed Agent & Vendor Engines"]
             InternalAgents["Internal Agents:\nlint-arwaky • vision-arwaky • qwen-web • blender"]
-            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • ponytail • fetch • 9router"]
+            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • ponytail • fetch • omniroute"]
         end
     end
 
@@ -93,7 +93,7 @@ flowchart TB
 
     %% Daemons & Services
     AgentsAndTools -. "anytype-mcp (HTTP :31012)" .-> AnytypeDaemon
-    Harnesses -. "AI Requests via 9Router (HTTP Gateway)" .-> VendorTools
+    Harnesses -. "AI Requests via OmniRoute (HTTP Gateway)" .-> VendorTools
 ```
 
 ### Directory Layout
@@ -117,7 +117,7 @@ agents-arwaky/
 │   └── vision-arwaky/           # Computer vision MCP (VLM, OCR, visual memory)
 │
 ├── vendor/                      # Pinned Upstream Repositories (Git Submodules)
-│   ├── 9router/                 # Local AI routing gateway & token saver
+│   ├── omniroute/               # Local AI routing gateway (host-native)
 │   ├── anytype-mcp/             # Anytype desktop & sync integration
 │   ├── codegraph/               # Codebase intelligence & graph query engine
 │   ├── context7/                # Upstash documentation & context retrieval
@@ -168,7 +168,9 @@ can be invoked from any terminal:
 
 ### 3. Verify Host Prerequisites
 
-Ensure [Podman](https://podman.io/) (or Docker) is installed for the optional background daemons (9Router, Anytype):
+Ensure [Podman](https://podman.io/) (or Docker) is installed for the optional Anytype daemon:
+
+OmniRoute is host-native — no container required. Install it with `npm install -g omniroute`:
 
 ```bash
 aa doctor
@@ -236,7 +238,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa backup <tool\|all> <target>`       | Back up tool state locally or to Google Drive                                                     | `aa backup all gdrive`                         |
 | `aa restore <tool\|all> <source>`      | Restore tool state from a backup                                                                  | `aa restore all gdrive`                        |
 | `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
-| `aa 9router <action>`                    | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                            |
+| `aa omniroute <action>`                  | Manage OmniRoute local AI gateway, daemon & models                                                   | `aa omniroute status`                           |
 
 > [!TIP]
 > Backward compat: `aa install`, `aa run`, `aa list`, `aa uninstall`, `aa update` still work as shortcuts.
@@ -286,7 +288,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **fetch-mcp**   | `fetch-mcp`, `mcp-fetch`           | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)           |     MCP Server     | Resilient web scraping, HTML cleaning, and Markdown transformation.     |
 | **ponytail**    | `ponytail-mcp`                     | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) |     MCP Server     | Senior-developer prompt instructions and agent behavioral patterns.     |
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
-| **9router**     | `9router`                          | [decolua/9router](https://github.com/decolua/9router)                 | CLI / HTTP Gateway | Local AI routing gateway, token saver (RTK), and 40+ provider fallback. |
+| **omniroute**   | `omniroute`                        | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)  | HTTP Gateway       | Local AI routing gateway, 350+ providers, 1200+ models. Host-native, no container. |
 | **workspace**   | `workspace-mcp`                    | [taylorwilsdon/google_workspace_mcp](https://github.com/taylorwilsdon/google_workspace_mcp) | MCP Server | Google Workspace full integration (Gmail, Drive, Docs, Sheets, Chat).   |
 | **mnemosyne**   | `mnemosyne`, `mnemosyne-mcp`       | [mnemosyne-oss/mnemosyne](https://github.com/mnemosyne-oss/mnemosyne) | CLI / MCP / Plugin | Universal SQLite memory, temporal knowledge graph & multi-harness sync. |
 
@@ -365,13 +367,13 @@ aa connect --all --force      # Overwrite existing skill files and MCP entries
 aa connect --all --dry-run    # Preview changes without modifying files
 aa connect --all --mcp-only   # Configure only MCP servers (skip skills)
 aa connect --all --skills-only# Provision only skills (skip MCP)
-aa connect --all --env-only   # Inject only 9router environment variables
+aa connect --all --env-only   # Inject only omniroute environment variables
 aa connect --clean            # Remove provisioned skills and MCP entries cleanly
 ```
 
 > [!NOTE]
 > **Hermes Multi-Profile Support:** `aa connect --hermes` automatically detects all profiles under `~/.hermes/profiles/<profile>/` (e.g., `currie`, `fangyuan`, `linus`, `tesla`) alongside the main profile, ensuring all agents share the full tool and skill suite.
-> **Environment & Gateway:** `aa connect` also auto-injects `NINEROUTER_URL` and `NINEROUTER_KEY` into harness environments (`.env`) and desktop session configs (`~/.config/environment.d/9router.conf`).
+> **Environment & Gateway:** `aa connect` also auto-injects `OMNIROUTE_URL` and `OMNIROUTE_KEY` into harness environments (`.env`) and desktop session configs (`~/.config/environment.d/omniroute.conf`).
 
 > [!NOTE]
 > **Qwen Code Nested Skills:** Qwen Code scans exactly **one level** below each skills root, so a skill at `skills/<category>/<skill>/SKILL.md` is invisible until `<category>` is itself a registered root. `aa connect --qwencode` handles this: it links `~/.qwen/skills` to the pack root, derives the category list from disk, and writes it to `skills.directories` in `~/.qwen/settings.json` — keeping roots that point outside the pack and dropping entries for categories that are gone. It also installs a `SessionStart` hook (`arwaky-skill-sync`) that re-runs `aa connect --qwencode --skills-only`, so a category added later registers itself without a manual connect; unrelated hooks and roots are left untouched, and a run whose list already matches writes nothing. Because the list is read once at startup and the hook fires after skill discovery, a newly added category becomes live after **one session restart**.
@@ -563,7 +565,7 @@ aa reset
   - Host executable wrappers reside in `${XDG_BIN_HOME}/` (`~/.local/bin/`) as native launchers.
   - Configurations reside in `${XDG_CONFIG_HOME}/<tool>/` (`~/.config/<tool>/`).
   - Data and reports reside in `${XDG_DATA_HOME}/<tool>/` (`~/.local/share/<tool>/`).
-- **Daemon-only Containerization:** Only background services (9Router, Anytype) run in Podman rootless containers — they are the only containerized layer. Your host OS `/usr` and root filesystems remain untouched by toolchain installations.
+- **Daemon-only Containerization:** Anytype runs in a Podman rootless container — the only containerized layer. OmniRoute runs host-native. Your host OS `/usr` and root filesystems remain untouched by toolchain installations.
 - **Submodule Isolation:** Upstream codebases are strictly tracked via Git submodules at pinned commits, preventing unsolicited upstream drift.
 
 > [!NOTE]

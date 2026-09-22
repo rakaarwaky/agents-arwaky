@@ -6,15 +6,15 @@ import json
 from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
 
 COMMANDS = (
-    "status doctor tool skill docs connect disconnect mcp anytype 9router service "
+    "status doctor tool skill docs connect disconnect mcp anytype omniroute service "
     "backup restore check submodules clean reset completion version help "
     "list run install update uninstall"
 )
 HARNESSES = "--antigravity --hermes --opencode --qwencode --all --force --dry-run --mcp-only --skills-only --env-only"
 SERVICE_ACTIONS = "status start stop restart logs"
-SERVICE_TARGETS = "9router anytype all"
+SERVICE_TARGETS = "omniroute anytype all"
 TOOL_SUBCOMMANDS = "list run install update uninstall"
-FALLBACK_TOOLS = "context7 fetch ponytail anytype codegraph 9router workspace mnemosyne vision qwen-web lint blender skill"
+FALLBACK_TOOLS = "context7 fetch ponytail anytype codegraph omniroute workspace mnemosyne vision qwen-web lint blender skill"
 
 
 def _tools_from_manifest() -> str:
@@ -75,7 +75,7 @@ _aa_completion() {{
       if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "check" -- "$cur") )
       elif [ "$cword" -gt 2 ]; then COMPREPLY=( $(compgen -W "--strict --include-subtrees" -- "$cur") ); fi ;;
     backup|restore)
-      if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "all anytype 9router mnemosyne list" -- "$cur") ); fi ;;
+      if [ "$cword" -eq 2 ]; then COMPREPLY=( $(compgen -W "all anytype omniroute mnemosyne list" -- "$cur") ); fi ;;
     clean)
       COMPREPLY=( $(compgen -W "--host --all" -- "$cur") ) ;;
     completion)

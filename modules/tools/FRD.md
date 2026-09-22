@@ -130,7 +130,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 |--------|-----------|---------|--------------|
 | `config/manifest.json` | in | tool ids, binary, alias, mcp_binary, runner | missing entry → typed error before any verb |
 | `modules/shared` (manifest_reader, xdg_paths, tool_vo, git_update) | out | spec resolution, launchers, pins, submodules | repo-root/anchor error |
-| `modules/daemon` (aggregate) | out (lazy) | daemon service install/stop for 9router/anytype | unit active → residual |
+| `modules/daemon` (aggregate) | out (lazy) | daemon service install/stop for omniroute/anytype | unit active → residual |
 | `modules/root_cli_entry.py` + host XDG bin/PATH | in | `aa tool <list\|run\|install\|update\|uninstall>`; executables | not installed → `None` |
 
 ## Non-functional Requirements

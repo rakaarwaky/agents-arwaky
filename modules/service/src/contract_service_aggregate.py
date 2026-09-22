@@ -31,7 +31,7 @@ class IServiceAggregate(ABC):
         return None
 
     @abstractmethod
-    def logs(self, target: str = "9router") -> int:
+    def logs(self, target: str = "omniroute") -> int:
         """Tail service logs."""
         return None
 

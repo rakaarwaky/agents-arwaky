@@ -1,4 +1,4 @@
-"""Daemon surface — CLI adapters for aa anytype / aa 9router.
+"""Daemon surface — CLI adapters for aa anytype / aa omniroute.
 
 The concrete daemon managers are constructed by the composition root (root layer)
 and injected into these verbs; this module stays free of root/capability imports.
@@ -28,9 +28,9 @@ def _manager(name: str) -> IDaemonManager:
     return factory()
 
 
-def cmd_9router(args: list[str], orch: DaemonOrchestrator | None = None, manager: IDaemonManager | None = None) -> int:
-    """aa 9router <command> — start|stop|restart|status|logs|models|service-*|help."""
-    mgr = manager or _manager("9router")
+def cmd_omniroute(args: list[str], orch: DaemonOrchestrator | None = None, manager: IDaemonManager | None = None) -> int:
+    """aa omniroute <command> — start|stop|restart|status|logs|models|service-*|help."""
+    mgr = manager or _manager("omniroute")
     if not args or args[0] in ("help", "-h", "--help"):
         return mgr.help()
     action = args[0]
@@ -47,7 +47,7 @@ def cmd_9router(args: list[str], orch: DaemonOrchestrator | None = None, manager
     }
     handler = dispatch.get(action)
     if not handler:
-        print(f"Unknown 9router command: {action}", file=sys.stderr)
+        print(f"Unknown omniroute command: {action}", file=sys.stderr)
         return mgr.help()
     return handler()
 

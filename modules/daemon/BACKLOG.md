@@ -21,7 +21,7 @@ Last Updated: 2026-09-18
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
 | DMN-01 | FR-001, FR-002 | Daemon lifecycle + auth-key | P1 | QA | 2 capabilities + contract at `5556fd5`; import OK. Live Podman sweep outstanding (needs host + WS-05). | @raka | WS-05 | 2026-09-18 |
-| DMN-02 | FR-001 | Deploy assets (systemd units, Containerfile) | P1 | Done | `modules/daemon/deploy/` ships `anytype-daemon.service`, `ninerouter.service`, `Containerfile` at `5556fd5`. | @raka | None | 2026-09-18 |
+| DMN-02 | FR-001 | Deploy assets (systemd units, Containerfile) | P1 | Done | `modules/daemon/deploy/` ships `anytype-daemon.service`, `omniroute.service`, `Containerfile` at `5556fd5`. | @raka | None | 2026-09-18 |
 | DMN-03 | FR-001, FR-002 | FRD + BACKLOG pair authoring for daemon | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
 
 ## Scenario Evidence (rows)

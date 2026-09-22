@@ -8,7 +8,7 @@ launcher/alias tables shared by the lifecycle capabilities and adapters.
 SENTINEL_EXECUTABLE_GONE = 126
 
 #: Tool ids that are long-running daemons (container isolation invariant).
-DAEMON_TOOL_IDS: frozenset[str] = frozenset({"9router", "anytype", "anytype-daemon"})
+DAEMON_TOOL_IDS: frozenset[str] = frozenset({"omniroute", "anytype", "anytype-daemon"})
 
 #: Runner families a tool installs through (cargo / uv / bun / pnpm / npm / pip-venv).
 RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
@@ -17,7 +17,7 @@ RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
 # P1-5: the merged `anytype` id owns the daemon half too — uninstall must
 # stop the unit (or name it as a residual), not just delete its launcher.
 DAEMON_UNIT_TOOLS: dict[str, str] = {
-    "9router": "9router.service",
+    "omniroute": "omniroute.service",
     "anytype": "anytype-daemon.service",
     "anytype-daemon": "anytype-daemon.service",
 }
@@ -25,7 +25,7 @@ DAEMON_UNIT_TOOLS: dict[str, str] = {
 # Tool id -> daemon feature name (keyed on manifest id; "anytype-daemon"
 # routes to the "anytype" daemon manager in the daemon orchestrator).
 DAEMON_NAMES: dict[str, str] = {
-    "9router": "9router",
+    "omniroute": "omniroute",
     "anytype": "anytype",
     "anytype-daemon": "anytype",
 }
@@ -41,7 +41,7 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
     "fetch": ["fetch-mcp", "mcp-fetch"],
     "lint": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "mnemosyne": ["mnemosyne", "mnemosyne-mcp"],
-    "9router": ["9router"],
+    "omniroute": ["omniroute"],
     "ponytail": ["ponytail-mcp"],
     "qwen-web": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
     "vision": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],

@@ -27,7 +27,7 @@ class IServiceManager(ABC):
         return None
 
     @abstractmethod
-    def logs(self, target: str = "9router") -> int:
+    def logs(self, target: str = "omniroute") -> int:
         """Tail logs of the target daemon; return exit code."""
         return None
 

@@ -1224,21 +1224,18 @@ def lint_update(spec, root):
     return created
 
 
-# 9router (hybrid daemon + launcher)
-NINEROUTER_DATA_DIR_NAME = "9router"
-NINEROUTER_INTERNAL_BIN = "internal-bin"
-NINEROUTER_LAUNCHERS = ["9router"]
+# omniroute (host-native daemon + launcher)
+OMNIROUTE_DATA_DIR_NAME = "omniroute"
+OMNIROUTE_INTERNAL_BIN = "internal-bin"
+OMNIROUTE_LAUNCHERS = ["omniroute"]
 
 
-def _ninerouter_daemon_feature():
+def _omniroute_daemon_feature():
     _daemon_root = ".".join(("modules", "daemon", "src", "root_daemon_container"))
     return importlib.import_module(_daemon_root).create_daemon_feature()
 
 
-def _ninerouter_write_launcher(launcher: Path, root: Path) -> None:
-    # Tanpa triple-quote: template launcher ditulis sebagai konkatenasi
-    # string biasa agar highlighter IDE tidak salah mengira isi di bawahnya
-    # sebagai string yang belum ditutup.
+def _omniroute_write_launcher(launcher: Path, root: Path) -> None:
     content = (
         "#!/usr/bin/env python3\n"
         f"# {PROVENANCE_MARKER}\n"
@@ -1248,65 +1245,59 @@ def _ninerouter_write_launcher(launcher: Path, root: Path) -> None:
         "sys.path.insert(0, str(root))\n"
         "import importlib as _il\n"
         "_dv = _il.import_module('modules.daemon.src.' + 'agent' + '_daemon_verb')\n"
-        "_cmd_9router = getattr(_dv, 'cmd_' + '9router')\n"
-        "sys.exit(_cmd_9router(sys.argv[1:]))\n"
+        "_cmd_omniroute = getattr(_dv, 'cmd_' + 'omniroute')\n"
+        "sys.exit(_cmd_omniroute(sys.argv[1:]))\n"
     )
     atomic_write_text(launcher, content)
     launcher.chmod(0o755)
 
 
-def _ninerouter_lifecycle(action: str, root: Path, daemons) -> list[Path]:
+def _omniroute_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     is_update = action == "update"
     verb_ed = "updated" if is_update else "installed"
     ensure_bin_home()
     ensure_path()
-    data_dir = data_home() / NINEROUTER_DATA_DIR_NAME
+    data_dir = data_home() / OMNIROUTE_DATA_DIR_NAME
     data_dir.mkdir(parents=True, exist_ok=True)
 
     if is_update:
-        _feature = _ninerouter_daemon_feature()
-        print(">>> Updating 9Router hybrid architecture...")
-        if shutil.which("podman") is None:
-            print("  Warning: podman not found; 9router service-install skipped.", file=sys.stderr)
-        else:
-            rc = _feature.service_install("9router")
-            if rc != 0:
-                print(f"  Warning: 9router service-install exited {rc}")
+        _feature = _omniroute_daemon_feature()
+        print(">>> Updating OmniRoute host-native service...")
+        rc = _feature.service_install("omniroute")
+        if rc != 0:
+            print(f"  Warning: omniroute service-install exited {rc}")
     else:
-        if shutil.which("podman") is None:
-            print("Warning: podman not found; 9router service-install skipped.", file=sys.stderr)
-            return []
         if daemons is not None:
             rc = daemons.service_install()
             if rc != 0:
-                print(f"9router service-install exited {rc} (see 'aa 9router logs')", file=sys.stderr)
+                print(f"omniroute service-install exited {rc} (see 'aa omniroute logs')", file=sys.stderr)
                 return []
 
-    launcher = bin_home() / "9router"
-    _ninerouter_write_launcher(launcher, root)
-    internal_bin = data_dir / NINEROUTER_INTERNAL_BIN
+    launcher = bin_home() / "omniroute"
+    _omniroute_write_launcher(launcher, root)
+    internal_bin = data_dir / OMNIROUTE_INTERNAL_BIN
     internal_bin.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(launcher, internal_bin / "9router")
-    (internal_bin / "9router").chmod(0o755)
-    print(f">>> Successfully {verb_ed} 9Router -> {launcher}")
+    shutil.copy2(launcher, internal_bin / "omniroute")
+    (internal_bin / "omniroute").chmod(0o755)
+    print(f">>> Successfully {verb_ed} OmniRoute -> {launcher}")
 
     if is_update:
-        return [launcher, internal_bin / "9router"]
+        return [launcher, internal_bin / "omniroute"]
     return [launcher]
 
 
-ninerouter_satisfied = _make_satisfied("9router")
-ninerouter_is_pin_satisfied = _make_pin_check("", "daemon service + launcher (force reinstall)")
-ninerouter_owned_paths = _make_owned(
-    NINEROUTER_LAUNCHERS,
-    config=[NINEROUTER_DATA_DIR_NAME],
+omniroute_satisfied = _make_satisfied("omniroute")
+omniroute_is_pin_satisfied = _make_pin_check("", "daemon service + launcher (force reinstall)")
+omniroute_owned_paths = _make_owned(
+    OMNIROUTE_LAUNCHERS,
+    config=[OMNIROUTE_DATA_DIR_NAME],
     extra=lambda: [
-        data_home() / NINEROUTER_DATA_DIR_NAME / NINEROUTER_INTERNAL_BIN / "9router",
-        agents_arwaky_config_dir() / "ninerouter.env",
+        data_home() / OMNIROUTE_DATA_DIR_NAME / OMNIROUTE_INTERNAL_BIN / "omniroute",
+        agents_arwaky_config_dir() / "omniroute.env",
     ],
 )
-ninerouter_install = _make_install(_ninerouter_lifecycle)
-ninerouter_update = _make_update(_ninerouter_lifecycle)
+omniroute_install = _make_install(_omniroute_lifecycle)
+omniroute_update = _make_update(_omniroute_lifecycle)
 
 
 # ---------------------------------------------------------------------------
@@ -1349,12 +1340,12 @@ _ADAPTER_UNITS.update({
         is_pin_satisfied=lint_is_pin_satisfied,
         owned_paths=lint_owned_paths,
     ),
-    "9router": _unit(
-        satisfied=ninerouter_satisfied,
-        install=ninerouter_install,
-        update=ninerouter_update,
-        is_pin_satisfied=ninerouter_is_pin_satisfied,
-        owned_paths=ninerouter_owned_paths,
+    "omniroute": _unit(
+        satisfied=omniroute_satisfied,
+        install=omniroute_install,
+        update=omniroute_update,
+        is_pin_satisfied=omniroute_is_pin_satisfied,
+        owned_paths=omniroute_owned_paths,
     ),
 })
 

@@ -26,26 +26,26 @@ For a `modelProviders.openai[]` entry:
 - `env` in settings.json seeds process env, so a wizard-stored
   `QWEN_CUSTOM_API_KEY_OPENAI_<hashed-url>` entry competes with `~/.qwen/.env`.
 - A variable already in the inherited process env wins over `~/.qwen/.env`
-  (dotenv does not override): a stale `NINEROUTER_KEY` exported from
-  `~/.config/environment.d/9router.conf` at login silently shadows the correct
+  (dotenv does not override): a stale `OMNIROUTE_KEY` exported from
+  `~/.config/environment.d/omniroute.conf` at login silently shadows the correct
   value in the file, so every fresh terminal 401s despite perfect config.
 
 ## Working 9Router binding
 
 ```json
 {
-  "model": { "name": "my9router", "baseUrl": "http://127.0.0.1:20128/v1" },
+  "model": { "name": "omniroute", "baseUrl": "http://127.0.0.1:7777/v1" },
   "modelProviders": { "openai": [ {
-      "id": "my9router", "name": "my9router",
-      "baseUrl": "http://127.0.0.1:20128/v1",
-      "envKey": "NINEROUTER_KEY" } ] },
+      "id": "omniroute", "name": "omniroute",
+      "baseUrl": "http://127.0.0.1:7777/v1",
+      "envKey": "OMNIROUTE_KEY" } ] },
   "security": { "auth": { "selectedType": "openai" } }
 }
 ```
 
-`NINEROUTER_KEY` comes from `~/.qwen/.env`, written by
+`OMNIROUTE_KEY` comes from `~/.qwen/.env`, written by
 `aa connect qwen`, which also rewrites the login-session layer
-`~/.config/environment.d/9router.conf` so inherited exports cannot shadow it.
+`~/.config/environment.d/omniroute.conf` so inherited exports cannot shadow it.
 Keep NO `env` block in settings.json for that provider — if
 the `/auth` Custom Provider wizard added one, remove it, or a rotated router key
 will 401 while `.env` looks correct.
@@ -62,7 +62,7 @@ list (that is the command-name issue in the parent skill, not auth).
 ## Connector side
 
 `tools/connect/qwencode_adapter.py` → `sync_router_provider()` runs after
-`inject_9router_env()`: it binds the `my9router` entry to `NINEROUTER_KEY`,
+`inject_omniroute_env()`: it binds the `omniroute` entry to `OMNIROUTE_KEY`,
 normalizes `baseUrl` to `<router>/v1`, sets `model.name`/`model.baseUrl`, drops
 any `QWEN_CUSTOM_API_KEY_*` inline shadow, then does a live
 `POST /v1/chat/completions` probe with the effective key and logs pass/fail.

@@ -7,7 +7,7 @@ carry no per-registry state: each is constructed once here and shared
 across orchestrator instances; the daemon aggregate is passed to
 ``install`` explicitly, never held on the adapter.
 
-Daemon-backed adapters (9router/anytype/anytype-daemon) receive the daemon
+Daemon-backed adapters (omniroute/anytype/anytype-daemon) receive the daemon
 aggregate here, preserving the pre-existing feature-to-feature delegation
 indirection.
 
@@ -43,7 +43,7 @@ _ANYTYPE_DAEMON = SimpleNamespace(
     owned_paths=_god.anytype_daemon_owned_paths,
 )
 
-# AES404 (P0-1 follow-up): 9router and qwen-web now expose their verbs as
+# AES404 (P0-1 follow-up): omniroute and qwen-web now expose their verbs as
 # module-level functions (stateless utility layer) like the other adapters,
 # so they are registered directly — no instance or SimpleNamespace wrapper.
 # The `is_daemon` flag that lived on NinerouterAdapter is no longer needed:
@@ -58,7 +58,7 @@ TOOLS_REGISTRY: dict[str, object] = {
     "fetch": _god._ADAPTER_UNITS["fetch"],
     "lint": _god._ADAPTER_UNITS["lint"],
     "mnemosyne": _god._ADAPTER_UNITS["mnemosyne"],
-    "9router": _god._ADAPTER_UNITS["9router"],
+    "omniroute": _god._ADAPTER_UNITS["omniroute"],
     "ponytail": _god._ADAPTER_UNITS["ponytail"],
     "qwen-web": _god._ADAPTER_UNITS["qwen-web"],
     "vision": _god._ADAPTER_UNITS["vision"],

@@ -39,9 +39,9 @@ systemctl --user start <name>.service
 Verify survive-crash: `kill -9 $(pgrep -f <pattern>)` then re-check `is-active` + port.
 
 ## Steps that actually matter
-1. **Find the real process name & port first** — `ss -ltnp | grep <port>` and read the process. Don't assume the app from the port number alone (e.g. port 20128 is used by both "OmniRoute" and a separate "9router" app; deleting the wrong one breaks the user's setup).
+1. **Find the real process name & port first** — `ss -ltnp | grep <port>` and read the process. Don't assume the app from the port number alone (e.g. port 7777 is used by "OmniRoute"; deleting the wrong one breaks the user's setup).
 2. **Inspect how it launches** — read the CLI entry (`read_file` on the binary, `cli.js`): does it read PORT/HOST from env? Does it spawn a child server (`detached: true`) then `return`? If the parent exits, systemd sees the service stop and the child may be killed too.
-3. **Pass the headless/background flag** if the app has one (e.g. `9router --tray --skip-update`). Without it, a TTY-less parent often self-exits.
+3. **Pass the headless/background flag** if the app has one (e.g. `omniroute serve --port 7777 --no-open`). Without it, a TTY-less parent often self-exits.
 4. **Set MemoryMax high enough** — first boot frequently compiles native modules (e.g. `better-sqlite3` via node-gyp) and boots a framework (Next.js), spiking ~1.5GB. Use `MemoryMax=3G` to avoid the OOM killer wiping the instance (and sometimes the shell) mid-build.
 5. **Wait long enough before checking** — 30–60s, not 5s. A fresh `next-server` + native build can take that long before the port listens.
 6. **Linger** — confirm `loginctl show-user <user> | grep Linger=yes` so the user service runs with no active login session. If `no`, `sudo loginctl enable-linger <user>`.

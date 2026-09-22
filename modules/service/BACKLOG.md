@@ -25,7 +25,7 @@ Last Updated: 2026-09-18
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| `aa service start 9router` starts only that unit and reports its state. | Manual | — | `aa service start 9router` + `status` | `5556fd5` |
+| `aa service start omniroute` starts only that unit and reports its state. | Manual | — | `aa service start omniroute` + `status` | `5556fd5` |
 | `aa service status` reports both units' states without changing anything. | Proxy | manual | `aa service status` + systemctl state unchanged | `5556fd5` |
 | `aa service start all` with one missing unit reports that unit and still processes the other. | Gap | — | — | `5556fd5` (no automated test yet) |
 

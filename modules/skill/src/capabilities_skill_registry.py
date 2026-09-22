@@ -47,7 +47,7 @@ def normalize_tool_id(query):
     """Resolve alias -> canonical tool id. Returns None if unknown."""
     alias = {
         "lint": "lint", "lint-arwaky": "lint", "la": "lint", "lac": "lint",
-        "9router": "9router",
+        "omniroute": "omniroute",
         "ponytail": "ponytail", "ponytail-mcp": "ponytail",
         "context7": "context7", "context7-mcp": "context7",
         "codegraph": "codegraph", "codegraph-mcp": "codegraph",

@@ -32,7 +32,7 @@ class ServiceOrchestrator(IServiceAggregate):
     def restart(self, target: str = "all") -> int:
         return self._manager.restart(target)
 
-    def logs(self, target: str = "9router") -> int:
+    def logs(self, target: str = "omniroute") -> int:
         return self._manager.logs(target)
 
     # -- Block 3: Help --------------------------------------------------------------

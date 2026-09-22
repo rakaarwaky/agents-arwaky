@@ -55,12 +55,12 @@
       "path": "vendor/codegraph"
     },
     {
-      "id": "9router",
+      "id": "omniroute",
       "category": "vendor",
-      "binary": "9router",
+      "binary": "omniroute",
       "isMcp": false,
-      "description": "Local AI routing gateway & token saver (40+ providers)",
-      "path": "vendor/9router"
+      "description": "Local AI routing gateway & token saver (host-native, 350+ providers)",
+      "path": "vendor/omniroute"
     },
     {
       "id": "workspace",

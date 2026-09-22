@@ -30,18 +30,18 @@ INSTALL_OVERRIDES = {
     "fetch": "fetch-mcp",
     "anytype": "anytype-mcp",
     "anytype-daemon": "anytype-mcp",
-    "9router": "ninerouter",
+    "omniroute": "omniroute",
 }
 UNINSTALL_OVERRIDES = {
     "workspace": "google-workspace-mcp",
     "fetch": "fetch-mcp",
     "anytype": "anytype-mcp",
-    "9router": "ninerouter",
+    "omniroute": "omniroute",
 }
 
 # --- daemons (was daemons/ninerouter_daemon.py) --------------------------------
-IMAGE_NAME = "ghcr.io/decolua/9router:latest"
-PORT = "20128"
+OMNIROUTE_PORT = "7777"
+PORT = "7777"
 
 # --- anytype (was mcp/generate_config.py) ---------------------------------------
 ANYTYPE_PORT = "31012"

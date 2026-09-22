@@ -46,7 +46,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 - **In scope**: bare-metal host toolchain installation (Rust/cargo, Node/npm/pnpm,
   Bun, Python/uv), per-tool XDG data/cache layout, the unified `aa` orchestrator
   CLI, AES 7-layer module architecture, in-house agent submodules, pinned vendor
-  submodules, Podman containers for the 9Router and Anytype daemons, the
+  submodules, the OmniRoute (host-native) and Anytype (Podman) daemons, the
   agent-skill pack, and doc-invariant gating.
 - **Out of scope**: cloud provisioning, a package manager for the host itself,
   Windows/macOS host support (Linux-first), GUI tooling, and any feature that
@@ -71,7 +71,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 
 ### P1 — Should Have
 
-- Daemon lifecycle (9Router, Anytype) with health, API-key, and space join/list.
+- Daemon lifecycle (OmniRoute host-native, Anytype Podman) with health, API-key, and space join/list.
   Acceptance: `aa anytype start` then `aa anytype health` reports ready.
 - Document and skill-pack audit. Acceptance: `aa skill check` reports coverage
   and `aa docs check` reports invariants.

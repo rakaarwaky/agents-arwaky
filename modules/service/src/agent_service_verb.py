@@ -7,7 +7,7 @@ from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
 
 
 def cmd_service(args: list[str], orch: ServiceOrchestrator) -> int:
-    """aa service <status|start|stop|restart|logs> [9router|anytype|all]."""
+    """aa service <status|start|stop|restart|logs> [omniroute|anytype|all]."""
     if not args or args[0] in ("help", "-h", "--help"):
         return orch.help()
     action = args[0]
@@ -47,7 +47,7 @@ class ServiceVerb(IServiceAggregate):
     def restart(self, target: str = "all") -> int:
         return self._agg.restart(target)
 
-    def logs(self, target: str = "9router") -> int:
+    def logs(self, target: str = "omniroute") -> int:
         return self._agg.logs(target)
 
     def help(self) -> int:

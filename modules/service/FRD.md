@@ -13,7 +13,7 @@
 The service feature manages systemd units for the daemons:
 `agent_service_orchestrator.py` implements `IServiceManager`
 (`capabilities_service_manager.py`) over `contract_service_protocol.py` —
-`status`, `start`, `stop`, `restart`, `logs`, each targeting `9router`,
+`status`, `start`, `stop`, `restart`, `logs`, each targeting `omniroute`,
 `anytype`, or `all`. The units themselves live in `modules/daemon/deploy/`
 (`*.service`, `Containerfile`); this module only drives systemctl against them.
 
@@ -25,7 +25,7 @@ against the target unit(s).
 ### FR-001: Drive daemon systemd units
 
 - **Description**: `start/stop/restart(target)` act on the named unit or all.
-- **Input**: `target: str` (`"9router"` | `"anytype"` | `"all"`).
+- **Input**: `target: str` (`"omniroute"` | `"anytype"` | `"all"`).
 - **Output**: `int` exit code.
 - **Business Rules**: an unknown target is a clear error naming the valid set.
   `all` fans out over both known units; one failing unit does not abort the
@@ -72,7 +72,7 @@ against the target unit(s).
 
 ## Test Scenarios
 
-- `aa service start 9router` starts only that unit and reports its state.
+- `aa service start omniroute` starts only that unit and reports its state.
 - `aa service status` reports both units' states without changing anything.
 - `aa service start all` with one missing unit reports that unit and still
   processes the other.
@@ -86,6 +86,6 @@ against the target unit(s).
 
 ## Glossary
 
-- **unit**: a systemd service (9router, anytype).
+- **unit**: a systemd service (omniroute, anytype).
 - **target**: the `systemctl` argument — one unit or `all`.
 

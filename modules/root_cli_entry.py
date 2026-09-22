@@ -185,7 +185,7 @@ def cmd_help(argv: list[str]) -> int:
     print()
     print(f"{BOLD()}SERVICES & DAEMONS:{RESET()}")
     print(f"  {GREEN()}anytype{RESET()} <cmd>                  Anytype daemon (start|stop|status|auth-key|...)")
-    print(f"  {GREEN()}9router{RESET()} <cmd>                  9Router daemon (start|stop|status|models|...)")
+    print(f"  {GREEN()}omniroute{RESET()} <cmd>                 OmniRoute daemon (start|stop|status|models|...)")
     print(f"  {GREEN()}service{RESET()} <cmd>                  Service manager (start|stop|restart|status|logs)")
     print()
     print(f"{BOLD()}DATA MANAGEMENT:{RESET()}")
@@ -300,7 +300,7 @@ def cmd_doctor(argv: list[str]) -> int:
     if engine:
         ok(f"Container engine: {engine}")
     else:
-        warn("Podman/Docker not found (only needed for 9router & anytype daemons)")
+        warn("Podman/Docker not found (only needed for anytype daemon)")
     print("------------------------------------------------------")
     print(f"{GREEN()}Diagnostics complete.{RESET()}")
     return 0
@@ -568,12 +568,12 @@ def cmd_anytype(argv: list[str]) -> int:
     return _daemon_anytype(argv)
 
 
-def cmd_9router(argv: list[str]) -> int:
-    from modules.daemon.src.agent_daemon_verb import cmd_9router as _daemon_9router, register_manager_factory as _reg_dm
+def cmd_omniroute(argv: list[str]) -> int:
+    from modules.daemon.src.agent_daemon_verb import cmd_omniroute as _daemon_omniroute, register_manager_factory as _reg_dm
     from modules.daemon.src.root_daemon_container import DaemonContainer
     _c = DaemonContainer()
-    _reg_dm("9router", lambda: _c.ninerouter)
-    return _daemon_9router(argv)
+    _reg_dm("omniroute", lambda: _c.omniroute)
+    return _daemon_omniroute(argv)
 
 
 def cmd_service(argv: list[str]) -> int:
@@ -898,7 +898,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
-        "anytype": cmd_anytype, "9router": cmd_9router, "service": cmd_service,
+        "anytype": cmd_anytype, "omniroute": cmd_omniroute, "service": cmd_service,
         "backup": cmd_backup, "restore": cmd_restore,
         # Backward compat aliases → noun verb (deprecated, prefer aa tool/aa skill)
         "install": cmd_install, "update": cmd_update, "uninstall": cmd_uninstall,

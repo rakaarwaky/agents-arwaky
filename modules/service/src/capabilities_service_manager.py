@@ -63,7 +63,7 @@ class ServiceManager(IServiceManager):
     def restart(self, target: str = "all") -> int:
         return cmd_restart(target)
 
-    def logs(self, target: str = "9router") -> int:
+    def logs(self, target: str = "omniroute") -> int:
         return cmd_logs(target)
 
     def help(self) -> int:
@@ -77,8 +77,8 @@ if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
 
 
-def _run_ninerouter(args: list[str]) -> int:
-    return _daemons().start_daemon("9router") if args and args[0] == "start" else _daemon_main("9router", args)
+def _run_omniroute(args: list[str]) -> int:
+    return _daemons().start_daemon("omniroute") if args and args[0] == "start" else _daemon_main("omniroute", args)
 
 
 def _run_anytype(args: list[str]) -> int:
@@ -103,8 +103,8 @@ def _daemon_main(name: str, args: list[str]) -> int:
 
 
 def cmd_status() -> int:
-    print("=========== 9Router ===========")
-    _run_ninerouter(["status"])
+    print("=========== OmniRoute ===========")
+    _run_omniroute(["status"])
     print()
     print("=========== Anytype ===========")
     _run_anytype(["status"])
@@ -112,40 +112,40 @@ def cmd_status() -> int:
 
 
 def cmd_start(target: str = "all") -> int:
-    if target in ("9router", "all"):
-        _run_ninerouter(["start"])
+    if target in ("omniroute", "all"):
+        _run_omniroute(["start"])
     if target in ("anytype", "all"):
         _run_anytype(["start"])
     return 0
 
 
 def cmd_stop(target: str = "all") -> int:
-    if target in ("9router", "all"):
-        _run_ninerouter(["stop"])
+    if target in ("omniroute", "all"):
+        _run_omniroute(["stop"])
     if target in ("anytype", "all"):
         _run_anytype(["stop"])
     return 0
 
 
 def cmd_restart(target: str = "all") -> int:
-    if target in ("9router", "all"):
-        _run_ninerouter(["restart"])
+    if target in ("omniroute", "all"):
+        _run_omniroute(["restart"])
     if target in ("anytype", "all"):
         _run_anytype(["restart"])
     return 0
 
 
-def cmd_logs(target: str = "9router") -> int:
-    if target == "9router":
-        return _run_ninerouter(["logs"])
+def cmd_logs(target: str = "omniroute") -> int:
+    if target == "omniroute":
+        return _run_omniroute(["logs"])
     if target == "anytype":
         return _run_anytype(["logs"])
-    print("Usage: aa service logs <9router|anytype>")
+    print("Usage: aa service logs <omniroute|anytype>")
     return 1
 
 
 def cmd_help() -> int:
-    print("Usage: aa service <status|start|stop|restart|logs> [9router|anytype|all]")
+    print("Usage: aa service <status|start|stop|restart|logs> [omniroute|anytype|all]")
     return 0
 
 

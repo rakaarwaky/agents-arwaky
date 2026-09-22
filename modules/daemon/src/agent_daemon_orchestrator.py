@@ -17,14 +17,13 @@ class DaemonOrchestrator(IDaemonAggregate):
     # -- Block 1: Constructor ---------------------------------------------------
     def __init__(
         self,
-        ninerouter: IDaemonManager,
+        omniroute: IDaemonManager,
         anytype: IDaemonManager,
     ) -> None:
-        self._ninerouter = ninerouter
+        self._omniroute = omniroute
         self._anytype = anytype
         self._managers: dict[str, IDaemonManager] = {
-            "9router": ninerouter,
-            "ninerouter": ninerouter,
+            "omniroute": omniroute,
             "anytype": anytype,
         }
 
@@ -33,7 +32,7 @@ class DaemonOrchestrator(IDaemonAggregate):
         return self._managers.get(name.lower())
 
     def known_daemons(self) -> tuple[str, ...]:
-        return ("9router", "anytype")
+        return ("omniroute", "anytype")
 
     # -- Block 3: Aggregate verb delegation --------------------------------------
     def start_daemon(self, name: str) -> int:

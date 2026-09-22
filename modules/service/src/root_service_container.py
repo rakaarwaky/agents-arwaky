@@ -7,7 +7,7 @@ service manager, avoiding a root->root import between composition layers.
 from __future__ import annotations
 
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-from modules.daemon.src.capabilities_ninerouter_daemon import PodmanDaemonManager
+from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
 from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
@@ -18,8 +18,8 @@ from modules.service.src.contract_service_aggregate import IServiceAggregate
 class DaemonAggregateAdapter(IDaemonAggregate):
     """IDaemonAggregate implementation over the two concrete daemon managers."""
 
-    def __init__(self, ninerouter: PodmanDaemonManager, anytype: AnytypeDaemonManager) -> None:
-        self._managers = {"9router": ninerouter, "anytype": anytype}
+    def __init__(self, omniroute: PodmanDaemonManager, anytype: AnytypeDaemonManager) -> None:
+        self._managers = {"omniroute": omniroute, "anytype": anytype}
 
     def _mgr(self, name: str):
         return self._managers[name]
@@ -60,3 +60,8 @@ class ServiceContainer:
     @property
     def manager(self) -> ServiceManager:
         return self._manager
+
+def cmd_service(args: list[str], orch: ServiceOrchestrator) -> int:
+    """aa service <status|start|stop|restart|logs> [omniroute|anytype|all]."""
+    if not args or args[0] in ("help", "-h", "--help"):
+        return orch.help()

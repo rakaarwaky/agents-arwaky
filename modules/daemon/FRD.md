@@ -10,16 +10,16 @@
 
 ## System Overview
 
-The daemon feature manages the two containerized services: 9Router (Podman) and
-Anytype headless (Podman). `agent_daemon_orchestrator.py` dispatches to
-`capabilities_ninerouter_daemon.py` and `capabilities_anytype_daemon.py`, each
-implementing `IDaemonManager` (`contract_daemon_protocol.py`: `start`, `stop`,
-`status`, `logs`, `restart`). Deploy assets (`modules/daemon/deploy/`) hold the
-systemd units and the `Containerfile`; XDG config holds per-daemon `.env`
-secrets.
+The daemon feature manages two gateway services: OmniRoute (host-native, no
+container) and Anytype headless (Podman). `agent_daemon_orchestrator.py`
+dispatches to `capabilities_omniroute_daemon.py` and
+`capabilities_anytype_daemon.py`, each implementing `IDaemonManager`
+(`contract_daemon_protocol.py`: `start`, `stop`, `status`, `logs`, `restart`).
+Deploy assets (`modules/daemon/deploy/`) hold the systemd units and the
+`Containerfile`; XDG config holds per-daemon `.env` secrets.
 
-Flow: `aa anytype <verb>` / `aa 9router <verb>` → `DaemonOrchestrator` →
-per-daemon capability → Podman/systemd.
+Flow: `aa anytype <verb>` / `aa omniroute <verb>` → `DaemonOrchestrator` →
+per-daemon capability → systemd/process-manager.
 
 ## Functional Requirements
 
