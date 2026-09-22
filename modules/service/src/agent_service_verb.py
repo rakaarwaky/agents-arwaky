@@ -27,6 +27,7 @@ def cmd_service(args: list[str], orch: ServiceOrchestrator) -> int:
 
 
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
+from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 
 class ServiceVerb(IServiceAggregate):
@@ -35,20 +36,20 @@ class ServiceVerb(IServiceAggregate):
     def __init__(self, agg: IServiceAggregate) -> None:
         self._agg = agg
 
-    def status(self) -> int:
+    def status(self) -> ExitCode:
         return self._agg.status()
 
-    def start(self, target: str = "all") -> int:
+    def start(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
         return self._agg.start(target)
 
-    def stop(self, target: str = "all") -> int:
+    def stop(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
         return self._agg.stop(target)
 
-    def restart(self, target: str = "all") -> int:
+    def restart(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
         return self._agg.restart(target)
 
-    def logs(self, target: str = "omniroute") -> int:
+    def logs(self, target: ServiceTarget = ServiceTarget("omniroute")) -> ExitCode:
         return self._agg.logs(target)
 
-    def help(self) -> int:
+    def help(self) -> ExitCode:
         return self._agg.help()

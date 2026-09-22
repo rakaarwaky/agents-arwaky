@@ -12,7 +12,7 @@ from pathlib import Path
 
 from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.contract_skill_protocol import ISkillProvisioner
-from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
+from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult, ToolFilter
 from modules.shared.src.utility_skill_pack import prune_provisioned
 
 _pack_util = importlib.import_module("modules.shared.src.utility_skill_pack")
@@ -49,12 +49,12 @@ class SkillPackProvisioner(ISkillProvisioner):
 
     # -- Block 2: Install / prune ----------------------------------------------------
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def install(self, tool_id: str, target_dir: Path, custom_dest: str = "", force: bool = False, link: bool = False, prune: bool = False) -> SkillProvisionResult:
+    def install(self, tool_id: ToolFilter, target_dir: Path, custom_dest: str = "", force: bool = False, link: bool = False, prune: bool = False) -> SkillProvisionResult:
         """Provision every pack skill into the target workspace (original cmd_install body)."""
         argv: list[str] = []
         if prune:
             argv.append("--prune")
-        argv.append(tool_id)
+        argv.append(str(tool_id))
         argv += ["--target", str(target_dir)]
         if custom_dest:
             argv += ["--dest", custom_dest]

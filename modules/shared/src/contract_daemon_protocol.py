@@ -3,19 +3,19 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
 
 
 class IDaemonManager(ABC):
     """Capability contract for managing a single containerized daemon."""
 
     @abstractmethod
-    def start(self) -> int:
+    def start(self) -> ExitCode:
         """Start the daemon (container or systemd service); return exit code."""
         return None
 
     @abstractmethod
-    def stop(self) -> int:
+    def stop(self) -> ExitCode:
         """Stop the daemon; return exit code."""
         return None
 
@@ -25,11 +25,16 @@ class IDaemonManager(ABC):
         return None
 
     @abstractmethod
-    def logs(self) -> int:
+    def logs(self) -> ExitCode:
         """Stream/tail the daemon logs; return exit code."""
         return None
 
     @abstractmethod
-    def restart(self) -> int:
+    def restart(self) -> ExitCode:
         """Restart the daemon; return exit code."""
         return None
+
+__all__ = ['DaemonStatus', 'ExitCode', 'IDaemonManager']
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {"DaemonStatus": DaemonStatus, "ExitCode": ExitCode, "IDaemonManager": IDaemonManager}

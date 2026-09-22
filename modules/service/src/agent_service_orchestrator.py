@@ -1,6 +1,6 @@
 """Service agent orchestrator — thin aggregate over the service manager."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_common_vo import Timestamp
+from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
@@ -20,28 +20,26 @@ class ServiceOrchestrator(IServiceAggregate):
         self._manager = manager
 
     # -- Block 2: Verb delegation ------------------------------------------------
-    def status(self) -> int:
-        return self._manager.status()
+    def status(self) -> ExitCode:
+        return ExitCode(self._manager.status())
 
-    def start(self, target: str = "all") -> int:
-        return self._manager.start(target)
+    def start(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+        return ExitCode(self._manager.start(target))
 
-    def stop(self, target: str = "all") -> int:
-        return self._manager.stop(target)
+    def stop(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+        return ExitCode(self._manager.stop(target))
 
-    def restart(self, target: str = "all") -> int:
-        return self._manager.restart(target)
+    def restart(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+        return ExitCode(self._manager.restart(target))
 
-    def logs(self, target: str = "omniroute") -> int:
-        return self._manager.logs(target)
+    def logs(self, target: ServiceTarget = ServiceTarget("omniroute")) -> ExitCode:
+        return ExitCode(self._manager.logs(target))
 
     # -- Block 3: Help --------------------------------------------------------------
-    def help(self) -> int:
-        return self._manager.help()
+    def help(self) -> ExitCode:
+        return ExitCode(self._manager.help())
 
-__all__ = ['Timestamp']
-
-#
+__all__ = ['ExitCode', 'ServiceTarget']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"Timestamp": Timestamp}
+_layer_symbols = {"ExitCode": ExitCode, "ServiceTarget": ServiceTarget}

@@ -2,6 +2,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import NewType
+
+
+#: Process or command exit code (0 = success, non-zero = failure).
+ExitCode = NewType("ExitCode", int)
+
+#: Daemon name used as a routing key in the aggregate ("omniroute", "anytype").
+DaemonName = NewType("DaemonName", str)
 
 
 @dataclass(frozen=True)

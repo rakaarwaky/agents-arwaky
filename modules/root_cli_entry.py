@@ -17,8 +17,8 @@ The only differences are the import swaps to the AES modules:
   - skill_pack      -> modules.skill.src.capabilities_skill_pack
   - paths.repo_root -> modules.shared.src.utility_paths
 
-Delegated verbs (skill/connect/disconnect/daemon/service/backup/
-completion) keep calling the module surface functions, which contain the
+Delegated verbs (skill/connect/disconnect/daemon/service/backup)
+keep calling the module surface functions, which contain the
 original bodies verbatim (see the module surface docstrings).
 
 The dispatch table and ``main`` entry point live in this module — the single
@@ -197,7 +197,6 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}submodules{RESET()}                     Initialize/update git submodules")
     print(f"  {CYAN()}clean{RESET()}                          Remove build artifacts & generated configs")
     print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + disconnect + unskill")
-    print(f"  {CYAN()}completion{RESET()}                     Shell completion generator")
     print(f"  {CYAN()}help{RESET()}                           Show this help")
     print()
     print(f"{BOLD()}GLOBAL OPTIONS:{RESET()}")
@@ -275,35 +274,8 @@ def cmd_status(argv: list[str]) -> int:
 
 
 def cmd_doctor(argv: list[str]) -> int:
-    ensure_path()
-    banner()
-    print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")
-    print("------------------------------------------------------")
-    target_bin = str(bin_home())
-    if target_bin in os.environ.get("PATH", "").split(os.pathsep):
-        ok(f"PATH includes {target_bin}")
-    else:
-        warn(f"PATH does not include {target_bin}")
-    for util in ["git", "jq", "curl", "python3"]:
-        p = shutil.which(util)
-        if p:
-            ok(f"{util}: {p}")
-        else:
-            err(f"{util} is required")
-    for util in ["cargo", "uv", "node", "npm", "bun", "pnpm", "rustc"]:
-        p = shutil.which(util)
-        if p:
-            ok(f"{util}: {p}")
-        else:
-            print(f"  {DIM()}[SKIP]{RESET()} {util} not installed (optional)")
-    engine = shutil.which("podman") or shutil.which("docker")
-    if engine:
-        ok(f"Container engine: {engine}")
-    else:
-        warn("Podman/Docker not found (only needed for anytype daemon)")
-    print("------------------------------------------------------")
-    print(f"{GREEN()}Diagnostics complete.{RESET()}")
-    return 0
+    from modules.doctor.src.root_doctor_container import create_doctor_feature
+    return create_doctor_feature().doctor(json_mode="--json" in argv)
 
 
 def cmd_list(argv: list[str]) -> int:
@@ -558,6 +530,22 @@ def cmd_tool(argv: list[str]) -> int:
 def _tool_orch():
     from modules.tools.src.root_tools_container import create_tools_feature
     return create_tools_feature()
+
+
+def _config_feature():
+    from modules.config.src.root_config_container import config_modifier, config_writer
+    return config_writer(), config_modifier()
+
+
+def _doctor_feature():
+    """Doctor feature aggregate (reachable composition root for AES502)."""
+    from modules.doctor.src.root_doctor_container import create_doctor_feature
+    return create_doctor_feature()
+
+
+def _doctor_feature_compat():
+    """Backward-compat shim for _doctor_feature() call sites."""
+    return _doctor_feature()
 
 
 def cmd_anytype(argv: list[str]) -> int:
@@ -823,13 +811,6 @@ def cmd_reset(argv: list[str]) -> int:
     return 0
 
 
-def cmd_completion(argv):
-    from modules.shared.src.agent_completion_verb import (
-        cmd_completion as _completion_cmd,
-    )
-    return _completion_cmd(list(argv))
-
-
 # =============================================================================
 # Tool resolver (original tools/lib/tool_resolver.py bodies, import-swapped)
 # =============================================================================
@@ -862,7 +843,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
         "docs": cmd_docs,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
-        "mcp": cmd_mcp, "completion": cmd_completion,
+        "mcp": cmd_mcp,
         # Daemons & services
         "anytype": cmd_anytype, "omniroute": cmd_omniroute, "service": cmd_service,
         "backup": cmd_backup, "restore": cmd_restore,

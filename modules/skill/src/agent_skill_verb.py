@@ -413,6 +413,7 @@ def main(argv: list[str], orch: object | None = None) -> int:
 
 
 from modules.shared.src.contract_skill_protocol import ISkillRegistry
+from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
 
 
 class SkillRegistryAdapter(ISkillRegistry):
@@ -427,17 +428,17 @@ class SkillRegistryAdapter(ISkillRegistry):
         from modules.skill.src import capabilities_skill_registry as _reg
         self._reg = _reg
 
-    def cmd_list(self, argv: list[str]) -> int:
-        return self._reg.cmd_list(argv)
+    def cmd_list(self, argv: SkillArgs) -> ExitCode:
+        return ExitCode(self._reg.cmd_list(argv))
 
-    def cmd_check(self) -> int:
-        return self._reg.cmd_check()
+    def cmd_check(self) -> ExitCode:
+        return ExitCode(self._reg.cmd_check())
 
-    def cmd_show(self, argv: list[str]) -> int:
-        return self._reg.cmd_show(argv)
+    def cmd_show(self, argv: SkillArgs) -> ExitCode:
+        return ExitCode(self._reg.cmd_show(argv))
 
-    def cmd_install(self, argv: list[str]) -> int:
-        return self._reg.cmd_install(argv)
+    def cmd_install(self, argv: SkillArgs) -> ExitCode:
+        return ExitCode(self._reg.cmd_install(argv))
 
-    def cmd_uninstall(self, argv: list[str]) -> int:
-        return self._reg.cmd_uninstall(argv)
+    def cmd_uninstall(self, argv: SkillArgs) -> ExitCode:
+        return ExitCode(self._reg.cmd_uninstall(argv))

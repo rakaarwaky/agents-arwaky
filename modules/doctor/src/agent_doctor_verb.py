@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
 from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
+from modules.shared.src.taxonomy_common_vo import ExitCode
 
 
 class DoctorVerb(IDoctorAggregate):
@@ -11,10 +12,10 @@ class DoctorVerb(IDoctorAggregate):
     def __init__(self, orch: DoctorOrchestrator) -> None:
         self._orch = orch
 
-    def doctor(self, json_mode: bool = False) -> int:
+    def doctor(self, json_mode: bool = False) -> ExitCode:
         return self._orch.doctor(json_mode=json_mode)
 
-    def status(self, json_mode: bool = False) -> int:
+    def status(self, json_mode: bool = False) -> ExitCode:
         return self._orch.status(json_mode=json_mode)
 
 

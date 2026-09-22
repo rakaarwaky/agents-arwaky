@@ -31,6 +31,7 @@ from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     config_home,
 )
+from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServerInfo
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -49,7 +50,7 @@ class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
 
     # -- Block 2: Config assembly & generation ------------------------------------
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def generate(self, output: Path) -> int:
+    def generate(self, output: Path) -> ExitCode:
         """Write the unified MCP client config to *output*; returns 0.
 
         Delegates to the verbatim original ``main()`` above, passing
@@ -60,15 +61,15 @@ class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
         original_argv = list(sys.argv)
         sys.argv = [sys.argv[0], str(output)]
         try:
-            return main()
+            return ExitCode(main())
         finally:
             sys.argv = original_argv
 
-    def generate_config(self, output: Path) -> int:
+    def generate_config(self, output: Path) -> ExitCode:
         return self.generate(output)
 
     # -- Block 3: Aggregate inspection verbs ---------------------------------------
-    def list_servers(self) -> list[dict[str, object]]:
+    def list_servers(self) -> list[McpServerInfo]:
         """MCP-enabled tools from the manifest (original cmd_mcp 'list' logic)."""
         manifest_path = self._root / "config" / "manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -76,14 +77,14 @@ class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
         for tool in manifest.get("tools", []):
             if not tool.get("isMcp", False):
                 continue
-            servers.append({
-                "id": tool["id"],
-                "category": tool.get("category", ""),
-                "description": tool.get("description", ""),
-            })
+            servers.append(McpServerInfo(
+                id=tool["id"],
+                category=tool.get("category", ""),
+                description=tool.get("description", ""),
+            ))
         return servers
 
-    def show_server(self) -> int:
+    def show_server(self) -> ExitCode:
         generated = self._root / "mcp_servers.generated.json"
         if not generated.exists():
             print("Configuration file not found. Generating now...")
@@ -92,9 +93,9 @@ class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
             print(f"Path: {generated}")
             print()
             print(generated.read_text(encoding="utf-8"))
-            return 0
+            return ExitCode(0)
         print("Failed to generate MCP configuration.", file=sys.stderr)
-        return 1
+        return ExitCode(1)
 def main() -> int:
     output = Path(sys.argv[1]) if len(sys.argv) > 1 else repo_root() / "mcp_servers.generated.json"
     print("Generating unified MCP client configuration...")

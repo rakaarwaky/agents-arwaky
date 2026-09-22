@@ -6,8 +6,13 @@ verbatim from tools/skill/skill.py into
 ISkillRegistry by the root composition layer).
 """
 from __future__ import annotations
-from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
-
+from modules.shared.src.taxonomy_skill_vo import (
+    ExitCode,
+    SkillArgs,
+    SkillProvisionResult,
+    SkillQuery,
+    ToolFilter,
+)
 
 from modules.shared.src.contract_skill_aggregate import ISkillAggregate
 from modules.shared.src.contract_skill_protocol import ISkillProvisioner, ISkillRegistry
@@ -27,35 +32,39 @@ class SkillOrchestrator(ISkillAggregate):
         self._registry = registry
 
     # -- Block 2: Query verbs -----------------------------------------------------
-    def list_skills(self, tool_filter: str = "") -> int:
+    def list_skills(self, tool_filter: ToolFilter = ToolFilter("")) -> ExitCode:
         """Port of tools/skill/skill.py cmd_list."""
-        argv = [tool_filter] if tool_filter else []
-        return self._registry.cmd_list(argv)
+        argv = SkillArgs([str(tool_filter)] if tool_filter else [])
+        return ExitCode(self._registry.cmd_list(argv))
 
-    def check_skills(self) -> int:
+    def check_skills(self) -> ExitCode:
         """Port of tools/skill/skill.py cmd_check."""
-        return self._registry.cmd_check()
+        return ExitCode(self._registry.cmd_check())
 
-    def show_skill(self, query: str) -> int:
+    def show_skill(self, query: SkillQuery = SkillQuery("")) -> ExitCode:
         """Port of tools/skill/skill.py cmd_show."""
-        return self._registry.cmd_show([query] if query else [])
+        return ExitCode(self._registry.cmd_show(SkillArgs([str(query)] if query else [])))
 
     # -- Block 3: Mutation verbs ----------------------------------------------------
-    def install_skills(self, args: list[str]) -> int:
+    def install_skills(self, args: SkillArgs) -> ExitCode:
         """Port of tools/skill/skill.py cmd_install."""
-        return self._registry.cmd_install(args)
+        return ExitCode(self._registry.cmd_install(args))
 
-    def uninstall_skills(self, args: list[str]) -> int:
+    def uninstall_skills(self, args: SkillArgs) -> ExitCode:
         """Port of tools/skill/skill.py cmd_uninstall."""
-        return self._registry.cmd_uninstall(args)
+        return ExitCode(self._registry.cmd_uninstall(args))
 
-    def sync_skills(self, args: list[str]) -> int:
+    def sync_skills(self, args: SkillArgs) -> ExitCode:
         """'sync' = install all (alias semantics from tools/skill/skill.py)."""
-        return self._registry.cmd_install(["all", *args])
+        return ExitCode(self._registry.cmd_install(SkillArgs(["all", *list(args)])))
 
-__all__ = ['SkillProvisionResult']
-
-#
+__all__ = ['ExitCode', 'SkillArgs', 'SkillProvisionResult', 'SkillQuery', 'ToolFilter']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"SkillProvisionResult": SkillProvisionResult}
+_layer_symbols = {
+    "ExitCode": ExitCode,
+    "SkillArgs": SkillArgs,
+    "SkillProvisionResult": SkillProvisionResult,
+    "SkillQuery": SkillQuery,
+    "ToolFilter": ToolFilter,
+}

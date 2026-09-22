@@ -1,6 +1,6 @@
 """Doctor agent orchestrator — routes doctor/status diagnostics."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_common_vo import Timestamp
+from modules.shared.src.taxonomy_common_vo import ExitCode, Timestamp
 
 
 from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
@@ -21,17 +21,17 @@ class DoctorOrchestrator(IDoctorAggregate):
         self._tools = tools_runner
 
     # -- Block 2: doctor/status routing -------------------------------------------
-    def doctor(self, json_mode: bool = False) -> int:
-        rc = self._env.run(json_mode=json_mode)
-        rc |= self._tools.run(json_mode=json_mode)
-        return rc
+    def doctor(self, json_mode: bool = False) -> ExitCode:
+        rc = int(self._env.run(json_mode=json_mode))
+        rc |= int(self._tools.run(json_mode=json_mode))
+        return ExitCode(rc)
 
-    def status(self, json_mode: bool = False) -> int:
+    def status(self, json_mode: bool = False) -> ExitCode:
         return self._tools.run(json_mode=json_mode)
 
-__all__ = ['Timestamp']
+__all__ = ['ExitCode', 'Timestamp']
 
 #
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"Timestamp": Timestamp}
+_layer_symbols = {"ExitCode": ExitCode, "Timestamp": Timestamp}

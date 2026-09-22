@@ -20,6 +20,13 @@ import tomllib
 from pathlib import Path
 
 from modules.shared.src.contract_config_protocol import IConfigModifier, IConfigWriter
+from modules.shared.src.taxonomy_common_vo import (
+    ConfigData,
+    ConfigFormat,
+    ConfigTuple,
+    EnvPairs,
+    McpServersMap,
+)
 from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
 from modules.shared.src.utility_toml_write import write_toml
 
@@ -27,19 +34,20 @@ from modules.shared.src.utility_toml_write import write_toml
 class ConfigWriter(IConfigWriter):
     """Module-level I/O bound to the IConfigWriter contract."""
 
-    def load_file(self, path: Path) -> tuple[dict, str]:
-        return load_file(path)
+    def load_file(self, path: Path) -> ConfigTuple:
+        data, fmt = load_file(path)
+        return (ConfigData(data), ConfigFormat(fmt))
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
 
-    def save_file(self, path: Path, data: dict, fmt: str | None = None) -> bool:
+    def save_file(self, path: Path, data: ConfigData, fmt: ConfigFormat | None = None) -> bool:
         if fmt is None:
-            fmt = detect_format(path)
+            fmt = ConfigFormat(detect_format(path))
         return save_file(path, data, fmt)
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def detect_format(self, path: Path) -> str:
-        return detect_format(path)
+    def detect_format(self, path: Path) -> ConfigFormat:
+        return ConfigFormat(detect_format(path))
 
 
 def detect_format(path: Path) -> str:
@@ -330,10 +338,10 @@ class ConfigModifier(IConfigModifier):
     def list_mcp_servers(self, path: Path) -> list[str]:
         return list_mcp_servers(path)
 
-    def merge_mcp_servers(self, path: Path, servers: dict, force: bool = False) -> list[str]:
+    def merge_mcp_servers(self, path: Path, servers: McpServersMap, force: bool = False) -> list[str]:
         return merge_mcp_servers(path, servers, force)
 
-    def set_env_keys(self, path: Path, pairs: dict) -> None:
+    def set_env_keys(self, path: Path, pairs: EnvPairs) -> None:
         set_env_keys(path, pairs)
 def main(argv):
     if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):

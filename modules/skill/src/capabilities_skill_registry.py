@@ -1,4 +1,5 @@
 from modules.shared.src.contract_skill_protocol import ISkillRegistry
+from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
 """Skill provisioning registry — pure helpers (manifest lookups, unpack/unlink, audit).
 
 Shared, stateless helpers for the skill verb commands: tool/skill lookup from
@@ -357,29 +358,29 @@ class SkillRegistry(ISkillRegistry):
     agent verb layer; their registry-side operations use the helpers here).
     """
 
-    def cmd_list(self, argv: list[str]) -> int:
+    def cmd_list(self, argv: SkillArgs) -> ExitCode:
         print(f"\u2713 Skill registry: {len(get_registered_tool_ids())} tools registered.")
-        return 0
+        return ExitCode(0)
 
-    def cmd_check(self) -> int:
+    def cmd_check(self) -> ExitCode:
         from modules.shared.src.taxonomy_common_vo import audit_pack
 
         findings = audit_pack(Path("."))
         for f in findings:
             print(f"  [WARN] {f}")
-        return 0
+        return ExitCode(0)
 
-    def cmd_show(self, argv: list[str]) -> int:
+    def cmd_show(self, argv: SkillArgs) -> ExitCode:
         print("Skill registry: use 'aa skill show <tool|skill>' for details.")
-        return 0
+        return ExitCode(0)
 
-    def cmd_install(self, argv: list[str]) -> int:
+    def cmd_install(self, argv: SkillArgs) -> ExitCode:
         print("Skill install: use 'aa skill install <tool>' for full provisioning.")
-        return 0
+        return ExitCode(0)
 
-    def cmd_uninstall(self, argv: list[str]) -> int:
+    def cmd_uninstall(self, argv: SkillArgs) -> ExitCode:
         print("Skill uninstall: use 'aa skill uninstall <tool>' for full removal.")
-        return 0
+        return ExitCode(0)
 
 
 __all__ = ['ISkillRegistry', 'SkillRegistry']

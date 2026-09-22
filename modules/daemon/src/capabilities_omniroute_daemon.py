@@ -22,6 +22,7 @@ from modules.shared.src.taxonomy_common_vo import (
     config_home,
     data_home,
 )
+from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
 ROOT = repo_root()
 
@@ -132,14 +133,14 @@ class PodmanDaemonManager(IDaemonManager):
         pass
 
     # ─── Protocol ABC methods ──────────────────────────────────
-    def start(self) -> int:
-        return cmd_start()
+    def start(self) -> ExitCode:
+        return ExitCode(cmd_start())
 
-    def stop(self) -> int:
-        return cmd_stop()
+    def stop(self) -> ExitCode:
+        return ExitCode(cmd_stop())
 
-    def restart(self) -> int:
-        return cmd_restart()
+    def restart(self) -> ExitCode:
+        return ExitCode(cmd_restart())
 
     def status(self) -> DaemonStatus:
         cmd_status()
@@ -152,24 +153,24 @@ class PodmanDaemonManager(IDaemonManager):
             details=(),
         )
 
-    def logs(self) -> int:
-        return cmd_logs()
+    def logs(self) -> ExitCode:
+        return ExitCode(cmd_logs())
 
     # ─── Legacy verb facades ───────────────────────────────────
     def models(self) -> int:
         return cmd_models()
 
-    def service_install(self) -> int:
-        return cmd_service_install()
+    def service_install(self) -> ExitCode:
+        return ExitCode(cmd_service_install())
 
-    def service_status(self) -> int:
-        return cmd_service_status()
+    def service_status(self) -> ExitCode:
+        return ExitCode(cmd_service_status())
 
-    def service_uninstall(self) -> int:
-        return cmd_service_uninstall()
+    def service_uninstall(self) -> ExitCode:
+        return ExitCode(cmd_service_uninstall())
 
-    def help(self) -> int:
-        return cmd_help()
+    def help(self) -> ExitCode:
+        return ExitCode(cmd_help())
 
     def main(self, argv) -> int:
         return main(argv)

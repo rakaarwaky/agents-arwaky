@@ -9,7 +9,7 @@ from __future__ import annotations
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
+from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus, ExitCode
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
 from modules.service.src.capabilities_service_manager import ServiceManager
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
@@ -21,22 +21,22 @@ class DaemonAggregateAdapter(IDaemonAggregate):
     def __init__(self, omniroute: PodmanDaemonManager, anytype: AnytypeDaemonManager) -> None:
         self._managers = {"omniroute": omniroute, "anytype": anytype}
 
-    def _mgr(self, name: str):
+    def _mgr(self, name: DaemonName):
         return self._managers[name]
 
-    def start_daemon(self, name: str) -> int:
+    def start_daemon(self, name: DaemonName) -> ExitCode:
         return self._mgr(name).start()
 
-    def stop_daemon(self, name: str) -> int:
+    def stop_daemon(self, name: DaemonName) -> ExitCode:
         return self._mgr(name).stop()
 
-    def status_daemon(self, name: str) -> DaemonStatus:
+    def status_daemon(self, name: DaemonName) -> DaemonStatus:
         return self._mgr(name).status()
 
-    def logs_daemon(self, name: str) -> int:
+    def logs_daemon(self, name: DaemonName) -> ExitCode:
         return self._mgr(name).logs()
 
-    def restart_daemon(self, name: str) -> int:
+    def restart_daemon(self, name: DaemonName) -> ExitCode:
         return self._mgr(name).restart()
 
 

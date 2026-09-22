@@ -14,7 +14,7 @@ def cmd_mcp(args: list[str], orch: IMcpAggregate) -> int:
     if action == "list":
         print(f"{BOLD()}MCP-Enabled Tools:{RESET()}")
         for server in orch.list_servers():
-            print(f"  - {server['id']} [{server['category']}]: {server['description']}")
+            print(f"  - {server.id} [{server.category}]: {server.description}")
         return 0
     if action == "generate":
         target = Path(args[1]) if len(args) > 1 else repo_root() / "mcp_servers.generated.json"
@@ -35,7 +35,7 @@ class McpVerb(IMcpAggregate):
     def list_servers(self):
         return self._agg.list_servers()
 
-    def show_server(self) -> int:
+    def show_server(self):
         return self._agg.show_server()
 
     def generate_config(self, output):

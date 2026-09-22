@@ -2,10 +2,29 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import NewType
 
 import posixpath
 import re
 from pathlib import Path
+
+#: Process or command exit code (0 = success, non-zero = failure).
+ExitCode = NewType("ExitCode", int)
+
+#: Tool filter query string for skill listing.
+ToolFilter = NewType("ToolFilter", str)
+
+#: Skill name query string for skill show/install.
+SkillQuery = NewType("SkillQuery", str)
+
+#: Skill command argument list.
+SkillArgs = NewType("SkillArgs", list)
+
+#: Tool identifier accepted by skill provisioning verbs.
+SkillToolId = NewType("SkillToolId", str)
+
+#: Optional destination directory override for skill provisioning.
+SkillDest = NewType("SkillDest", str)
 
 def extract_skill_name(skill_md: Path) -> str:
     """Extract `name:` from SKILL.md frontmatter; fallback to parent dir name."""

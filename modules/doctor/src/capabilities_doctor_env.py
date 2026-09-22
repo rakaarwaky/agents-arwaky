@@ -15,7 +15,7 @@ from modules.shared.src.utility_logging_setup import (
     ok,
     warn,
 )
-from modules.shared.src.taxonomy_common_vo import ensure_path
+from modules.shared.src.taxonomy_common_vo import ExitCode, ensure_path
 from modules.shared.src.taxonomy_common_vo import bin_home
 
 REQUIRED = ("git", "jq", "curl", "python3")
@@ -58,7 +58,7 @@ class EnvDiagnosticRunner(IDiagnosticRunner):
                 print(f"  {DIM()}[SKIP]{RESET()} {util} not installed (optional)")
 
     # -- Block 2: Protocol implementation -------------------------------------------
-    def run(self, json_mode: bool = False) -> int:
+    def run(self, json_mode: bool = False) -> ExitCode:
         _ = json_mode
         banner()
         print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")
@@ -71,7 +71,7 @@ class EnvDiagnosticRunner(IDiagnosticRunner):
             warn("Podman/Docker not found (only needed for anytype daemons)")
         print("-" * 54)
         print(f"{GREEN()}Diagnostics complete.{RESET()}")
-        return 0
+        return ExitCode(0)
 def _resolve_executable(binary: str):
     """shutil.which + bin_home executable fallback (from lib/tool_resolver)."""
     found = shutil.which(binary)

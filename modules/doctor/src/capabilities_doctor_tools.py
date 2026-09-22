@@ -18,7 +18,7 @@ from modules.shared.src.utility_logging_setup import (
     table_widths,
 )
 from modules.shared.src.utility_manifest_reader import load_tools
-from modules.shared.src.taxonomy_common_vo import ensure_path
+from modules.shared.src.taxonomy_common_vo import ExitCode, ensure_path
 from modules.shared.src.taxonomy_common_vo import bin_home
 
 
@@ -33,7 +33,7 @@ class ToolsDiagnosticRunner(IDiagnosticRunner):
 
     # -- Block 2: Protocol ABC Method Implementation --------------------------------
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def run(self, json_mode: bool = False) -> int:
+    def run(self, json_mode: bool = False) -> ExitCode:
         if json_mode:
             out = []
             for tool in load_tools():
@@ -49,7 +49,7 @@ class ToolsDiagnosticRunner(IDiagnosticRunner):
                     state = "not-installed"
                 out.append({"id": tool.id, "category": tool.category, "binary": tool.binary, "status": state})
             print(_json.dumps(out, indent=2, ensure_ascii=False))
-            return 0
+            return ExitCode(0)
         banner()
         print(f"{BOLD()}System & Tool Health Status:{RESET()}")
         try:
@@ -76,7 +76,7 @@ class ToolsDiagnosticRunner(IDiagnosticRunner):
                 status = f"{YELLOW()}[WARN] Not Installed{RESET()}"
             print(f"{pad(tool.id, w_tool)} {pad(cat_color + tool.category + RESET(), w_cat)} {pad(tool.binary, w_bin)} {status}")
         print(sep)
-        return 0
+        return ExitCode(0)
 
     # -- Block 3: Dunder Methods, Factories & Helpers ----------------------------
     def __repr__(self) -> str:

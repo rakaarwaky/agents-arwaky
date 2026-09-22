@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
+from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus, ExitCode
 
 
 class DaemonOrchestrator(IDaemonAggregate):
@@ -28,57 +28,67 @@ class DaemonOrchestrator(IDaemonAggregate):
         }
 
     # -- Block 2: Verb routing ---------------------------------------------------
-    def _manager(self, name: str) -> IDaemonManager | None:
+    def _manager(self, name: DaemonName) -> IDaemonManager | None:
         return self._managers.get(name.lower())
 
     def known_daemons(self) -> tuple[str, ...]:
         return ("omniroute", "anytype")
 
     # -- Block 3: Aggregate verb delegation --------------------------------------
-    def start_daemon(self, name: str) -> int:
+    def start_daemon(self, name: DaemonName) -> ExitCode:
         manager = self._manager(name)
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
-        return manager.start()
+        return ExitCode(manager.start())
 
-    def stop_daemon(self, name: str) -> int:
+    def stop_daemon(self, name: DaemonName) -> ExitCode:
         manager = self._manager(name)
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
-        return manager.stop()
+        return ExitCode(manager.stop())
 
-    def status_daemon(self, name: str) -> DaemonStatus:
+    def status_daemon(self, name: DaemonName) -> DaemonStatus:
         manager = self._manager(name)
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
         return manager.status()
 
-    def logs_daemon(self, name: str) -> int:
+    def logs_daemon(self, name: DaemonName) -> ExitCode:
         manager = self._manager(name)
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
-        return manager.logs()
+        return ExitCode(manager.logs())
 
-    def restart_daemon(self, name: str) -> int:
+    def restart_daemon(self, name: DaemonName) -> ExitCode:
         manager = self._manager(name)
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
-        return manager.restart()
+        return ExitCode(manager.restart())
 
-    def service_install(self, name: str) -> int:
+    def service_install(self, name: DaemonName) -> ExitCode:
         manager = self._manager(name)
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
-        return manager.service_install()
+        return ExitCode(manager.service_install())
 
-    def service_uninstall(self, name: str) -> int:
+    def service_uninstall(self, name: DaemonName) -> ExitCode:
         manager = self._manager(name)
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
-        return manager.service_uninstall()
+        return ExitCode(manager.service_uninstall())
 
-    def service_status(self, name: str) -> int:
+    def service_status(self, name: DaemonName) -> ExitCode:
         manager = self._manager(name)
         if manager is None:
             raise ValueError(f"Unknown daemon: {name}")
-        return manager.service_status()
+        return ExitCode(manager.service_status())
+
+__all__ = ['DaemonName', 'DaemonStatus', 'DaemonOrchestrator', 'ExitCode', 'IDaemonAggregate', 'IDaemonManager']
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {
+    "DaemonName": DaemonName,
+    "DaemonOrchestrator": DaemonOrchestrator,
+    "DaemonStatus": DaemonStatus,
+    "ExitCode": ExitCode,
+}

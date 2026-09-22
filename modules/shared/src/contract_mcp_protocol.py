@@ -1,6 +1,6 @@
 """MCP-domain protocol contract (capability ABC)."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_mcp_vo import McpServer
+from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServer
 
 
 from abc import ABC, abstractmethod
@@ -11,13 +11,11 @@ class IMcpConfigGenerator(ABC):
     """Capability contract for generating the unified MCP client config."""
 
     @abstractmethod
-    def generate(self, output: Path) -> int:
+    def generate(self, output: Path) -> ExitCode:
         """Write the generated MCP config to *output*; return exit code."""
         return None
 
-__all__ = ['McpServer']
-
-#
+__all__ = ['ExitCode', 'IMcpConfigGenerator', 'McpServer']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"McpServer": McpServer}
+_layer_symbols = {"ExitCode": ExitCode, "IMcpConfigGenerator": IMcpConfigGenerator, "McpServer": McpServer}

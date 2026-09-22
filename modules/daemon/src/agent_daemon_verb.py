@@ -11,6 +11,7 @@ from typing import Callable
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_daemon_protocol import IDaemonManager
+from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus, ExitCode
 
 #: factory name -> manager callable, injected by the composition root.
 _MANAGER_FACTORY: dict[str, Callable[[], IDaemonManager]] = {}
@@ -85,17 +86,17 @@ class DaemonVerb(IDaemonAggregate):
     def __init__(self, agg: IDaemonAggregate) -> None:
         self._agg = agg
 
-    def start_daemon(self, name: str) -> int:
+    def start_daemon(self, name: DaemonName) -> ExitCode:
         return self._agg.start_daemon(name)
 
-    def stop_daemon(self, name: str) -> int:
+    def stop_daemon(self, name: DaemonName) -> ExitCode:
         return self._agg.stop_daemon(name)
 
-    def status_daemon(self, name: str):
+    def status_daemon(self, name: DaemonName) -> DaemonStatus:
         return self._agg.status_daemon(name)
 
-    def logs_daemon(self, name: str) -> int:
+    def logs_daemon(self, name: DaemonName) -> ExitCode:
         return self._agg.logs_daemon(name)
 
-    def restart_daemon(self, name: str) -> int:
+    def restart_daemon(self, name: DaemonName) -> ExitCode:
         return self._agg.restart_daemon(name)

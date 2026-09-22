@@ -19,7 +19,7 @@ import time
 import urllib.request
 
 from modules.shared.src.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
 from modules.shared.src.utility_envfile_parser import update_env_file
 from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_common_vo import (
@@ -61,14 +61,14 @@ class AnytypeDaemonManager(IDaemonManager):
         pass
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
-    def start(self) -> int:
-        return cmd_start()
+    def start(self) -> ExitCode:
+        return ExitCode(cmd_start())
 
-    def stop(self) -> int:
-        return cmd_stop()
+    def stop(self) -> ExitCode:
+        return ExitCode(cmd_stop())
 
-    def restart(self) -> int:
-        return cmd_restart()
+    def restart(self) -> ExitCode:
+        return ExitCode(cmd_restart())
 
     def status(self) -> DaemonStatus:
         # Call legacy cmd_status for side-effect (prints), then build VO
@@ -82,8 +82,8 @@ class AnytypeDaemonManager(IDaemonManager):
             details=(),
         )
 
-    def logs(self) -> int:
-        return cmd_logs()
+    def logs(self) -> ExitCode:
+        return ExitCode(cmd_logs())
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def __repr__(self) -> str:
@@ -101,13 +101,13 @@ class AnytypeDaemonManager(IDaemonManager):
     def space_list(self) -> int:
         return cmd_space_list()
 
-    def service_install(self) -> int:
-        return cmd_service_install()
+    def service_install(self) -> ExitCode:
+        return ExitCode(cmd_service_install())
 
-    def service_status(self) -> int:
-        return cmd_service_status()
+    def service_status(self) -> ExitCode:
+        return ExitCode(cmd_service_status())
 
-    def service_uninstall(self) -> int:
+    def service_uninstall(self) -> ExitCode:
         return self.stop()
 
     def help(self) -> int:

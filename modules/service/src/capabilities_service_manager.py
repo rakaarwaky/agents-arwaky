@@ -8,7 +8,7 @@ aggregate (composition root) and injected; the module-level cmd_* functions
 fall back to a lazily-built aggregate only when called standalone.
 """
 from __future__ import annotations
-from modules.shared.src.taxonomy_common_vo import Timestamp
+from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 
 import sys
@@ -48,26 +48,26 @@ class ServiceManager(IServiceManager):
         """Return the injected daemon aggregate (composition-time wiring)."""
         return self._daemons
 
-    def status(self) -> int:
-        return cmd_status()
+    def status(self) -> ExitCode:
+        return ExitCode(cmd_status())
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
 
-    def start(self, target: str = "all") -> int:
-        return cmd_start(target)
+    def start(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+        return ExitCode(cmd_start(str(target)))
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def stop(self, target: str = "all") -> int:
-        return cmd_stop(target)
+    def stop(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+        return ExitCode(cmd_stop(str(target)))
 
-    def restart(self, target: str = "all") -> int:
-        return cmd_restart(target)
+    def restart(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+        return ExitCode(cmd_restart(str(target)))
 
-    def logs(self, target: str = "omniroute") -> int:
-        return cmd_logs(target)
+    def logs(self, target: ServiceTarget = ServiceTarget("omniroute")) -> ExitCode:
+        return ExitCode(cmd_logs(str(target)))
 
-    def help(self) -> int:
-        return cmd_help()
+    def help(self) -> ExitCode:
+        return ExitCode(cmd_help())
 
     def main(self, argv) -> int:
         return main(argv)
@@ -167,9 +167,7 @@ def main(argv: list[str]) -> int:
     print(f"Unknown service command: {action}", file=sys.stderr)
     return cmd_help()
 
-__all__ = ['Timestamp']
-
-#
+__all__ = ['ExitCode', 'IServiceManager', 'ServiceManager', 'ServiceTarget']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"Timestamp": Timestamp}
+_layer_symbols = {"ExitCode": ExitCode, "IServiceManager": IServiceManager, "ServiceManager": ServiceManager, "ServiceTarget": ServiceTarget}

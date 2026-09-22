@@ -554,3 +554,25 @@ def audit_pack(base: Path) -> list[PackFinding]:
                 ))
 
     return findings
+
+
+# --- Shared VO types for contracts (AES402 compliance) ------------------------
+from typing import NewType
+
+#: Process or command exit code (0 = success, non-zero = failure).
+ExitCode = NewType("ExitCode", int)
+
+#: Raw or parsed configuration data mapping.
+ConfigData = NewType("ConfigData", dict)
+
+#: Configuration file format ("yaml", "jsonc", "json", "toml").
+ConfigFormat = NewType("ConfigFormat", str)
+
+#: Tuple of (data, format) loaded from a configuration file.
+ConfigTuple = tuple[ConfigData, ConfigFormat]
+
+#: Mapping of environment key-value pairs.
+EnvPairs = NewType("EnvPairs", dict)
+
+#: Mapping of MCP server specifications.
+McpServersMap = NewType("McpServersMap", dict)
