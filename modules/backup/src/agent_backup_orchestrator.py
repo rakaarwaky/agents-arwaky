@@ -1,11 +1,13 @@
 """Backup agent orchestrator — routes backup/restore across gateways."""
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
-from modules.backup.src.contract_backup_aggregate import IBackupAggregate
-from modules.backup.src.contract_backup_protocol import IBackupGateway
-from modules.backup.src.taxonomy_backup_constant import TOOL_DATA
+from modules.shared.src.contract_backup_aggregate import IBackupAggregate
+from modules.shared.src.contract_backup_protocol import IBackupGateway
+from modules.shared.src.taxonomy_backup_constant import TOOL_DATA
+from modules.shared.src.taxonomy_backup_vo import BackupToolQuery, ExitCode
 
 
 class BackupOrchestrator(IBackupAggregate):
@@ -22,7 +24,7 @@ class BackupOrchestrator(IBackupAggregate):
         self._gdrive = gdrive_gateway
 
     # -- Block 2: Backup routing ---------------------------------------------------
-    def backup(self, tool: str, dest: str = "") -> int:
+    def backup(self, tool: BackupToolQuery, dest: str = "") -> ExitCode:
         """Backup *tool* (or all tools); gdrive upload when dest starts with 'gdrive'."""
         if tool == "all":
             rc = 0
@@ -34,10 +36,8 @@ class BackupOrchestrator(IBackupAggregate):
         return 0 if self._tar.backup(tool, dest).success else 1
 
     # -- Block 3: Restore routing & listing -----------------------------------------
-    def restore(self, tool: str, archive: str) -> int:
+    def restore(self, tool: BackupToolQuery, archive: str) -> ExitCode:
         """Restore *tool* from a local archive, a backup dir, or gdrive."""
-        import sys
-
         if tool == "all":
             src_base = Path(archive)
             if not src_base.is_dir():
@@ -54,7 +54,7 @@ class BackupOrchestrator(IBackupAggregate):
             return rc
         return 0 if self._tar.restore(tool, Path(archive)).success else 1
 
-    def list_archives(self) -> int:
+    def list_archives(self) -> ExitCode:
         print("Available backup archives:")
         archives = self._tar.list_archives()
         if not archives:
@@ -63,7 +63,7 @@ class BackupOrchestrator(IBackupAggregate):
             print(f"  {f.name}")
         return 0
 
-    def help(self) -> int:
+    def help(self) -> ExitCode:
         print("Usage: aa backup <tool|all> [dest|gdrive]")
         print("       aa restore <tool|all> <archive.tar.gz>")
         print("       aa backup list")

@@ -9,8 +9,8 @@ import sys
 from typing import Callable
 
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.daemon.src.contract_daemon_protocol import IDaemonManager
+from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.contract_daemon_protocol import IDaemonManager
 
 #: factory name -> manager callable, injected by the composition root.
 _MANAGER_FACTORY: dict[str, Callable[[], IDaemonManager]] = {}

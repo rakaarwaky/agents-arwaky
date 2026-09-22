@@ -1,9 +1,9 @@
 """Daemon agent orchestrator — routes verbs by daemon name."""
 from __future__ import annotations
 
-from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.daemon.src.contract_daemon_protocol import IDaemonManager
-from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
+from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.contract_daemon_protocol import IDaemonManager
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 
 
 class DaemonOrchestrator(IDaemonAggregate):

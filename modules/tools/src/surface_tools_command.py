@@ -23,7 +23,7 @@ from modules.shared.src.utility_logging_setup import (
     warn,
 )
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.tools.src.contract_tools_aggregate import IToolsAggregate
+from modules.shared.src.contract_tools_aggregate import IToolsAggregate
 
 
 def _term_width() -> int:
@@ -110,7 +110,7 @@ def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
     if _has_help(args):
         print("Usage: aa tool install <tool|all> [--yes]")
         return 0
-    from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
+    from modules.shared.src.taxonomy_common_vo import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
     has_yes = "--yes" in args or "-y" in args
@@ -159,7 +159,7 @@ def cmd_update(args: list[str], orch: IToolsAggregate) -> int:
     if _has_help(args):
         print("Usage: aa tool update <tool|all> [--yes]")
         return 0
-    from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
+    from modules.shared.src.taxonomy_common_vo import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
     has_yes = "--yes" in args or "-y" in args

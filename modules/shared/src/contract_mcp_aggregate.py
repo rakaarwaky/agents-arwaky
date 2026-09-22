@@ -1,6 +1,6 @@
 """MCP-domain aggregate contract (agent orchestrator ABC)."""
 from __future__ import annotations
-from modules.mcp.src.taxonomy_mcp_vo import McpServer
+from modules.shared.src.taxonomy_mcp_vo import McpServer
 
 
 from abc import ABC, abstractmethod

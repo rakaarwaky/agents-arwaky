@@ -4,7 +4,7 @@
 AES port of tools/daemons/anytype_daemon.py: body kept verbatim; only the
 imports are swapped to their AES equivalents (paths/xdg/envfile) and
 constants defined locally in the original stay local verbatim instead of
-being pulled from modules.shared.src.taxonomy_core_constant.
+being pulled from modules.shared.src.taxonomy_common_constant.
 """
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ import sys
 import time
 import urllib.request
 
-from modules.daemon.src.contract_daemon_protocol import IDaemonManager
-from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
+from modules.shared.src.contract_daemon_protocol import IDaemonManager
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 from modules.shared.src.utility_envfile_parser import update_env_file
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.shared.src.taxonomy_xdg_paths import (
+from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     config_home,
     data_home,

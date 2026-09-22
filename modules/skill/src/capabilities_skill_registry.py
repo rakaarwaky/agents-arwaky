@@ -1,4 +1,4 @@
-from modules.skill.src.contract_skill_protocol import ISkillRegistry
+from modules.shared.src.contract_skill_protocol import ISkillRegistry
 """Skill provisioning registry — pure helpers (manifest lookups, unpack/unlink, audit).
 
 Shared, stateless helpers for the skill verb commands: tool/skill lookup from
@@ -13,9 +13,9 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-from modules.shared.src.taxonomy_paths_constant import REPO_ROOT
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.utility_logging_setup import pad as _pad, table_widths as _table_widths
-from modules.skill.src.utility_skill_pack import write_provenance
+from modules.shared.src.utility_skill_pack import write_provenance
 
 
 from modules.shared.src.taxonomy_skill_vo import (
@@ -362,7 +362,7 @@ class SkillRegistry(ISkillRegistry):
         return 0
 
     def cmd_check(self) -> int:
-        from modules.shared.src.taxonomy_skill_audit import audit_pack
+        from modules.shared.src.taxonomy_common_vo import audit_pack
 
         findings = audit_pack(Path("."))
         for f in findings:

@@ -24,12 +24,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
-from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
-from modules.shared.src.taxonomy_tool_vo import ToolSpec
-from modules.shared.src.taxonomy_xdg_paths import bin_home
-from modules.tools.src.contract_tools_protocol import IToolRunner
-from modules.tools.src.taxonomy_tools_constant import (
+from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_common_vo import ToolSpec
+from modules.shared.src.taxonomy_common_vo import bin_home
+from modules.shared.src.contract_tools_protocol import IToolRunner
+from modules.shared.src.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,
     SENTINEL_EXECUTABLE_GONE,
 )

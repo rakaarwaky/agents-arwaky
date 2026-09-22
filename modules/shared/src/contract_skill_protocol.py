@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from modules.skill.src.taxonomy_skill_vo import SkillProvisionResult
+from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
 
 
 class ISkillProvisioner(ABC):

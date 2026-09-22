@@ -1,6 +1,6 @@
 """Doctor-domain protocol contract (capability ABC)."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_core_vo import Timestamp
+from modules.shared.src.taxonomy_common_vo import Timestamp
 
 
 from abc import ABC, abstractmethod

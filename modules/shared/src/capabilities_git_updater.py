@@ -1,6 +1,6 @@
 """Git submodule updater capability — default IGitUpdater over git utility functions."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_core_vo import Timestamp
+from modules.shared.src.taxonomy_common_vo import Timestamp
 
 from pathlib import Path
 

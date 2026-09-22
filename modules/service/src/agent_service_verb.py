@@ -26,7 +26,7 @@ def cmd_service(args: list[str], orch: ServiceOrchestrator) -> int:
     return orch.help()
 
 
-from modules.service.src.contract_service_aggregate import IServiceAggregate
+from modules.shared.src.contract_service_aggregate import IServiceAggregate
 
 
 class ServiceVerb(IServiceAggregate):

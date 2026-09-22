@@ -18,12 +18,12 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.taxonomy_core_error import ToolInstallError
-from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER
-from modules.shared.src.taxonomy_tool_vo import InstallResult, ToolSpec
-from modules.shared.src.taxonomy_xdg_atomic_io import ensure_bin_home
-from modules.shared.src.taxonomy_xdg_paths import bin_home
-from modules.tools.src.contract_tools_protocol import IToolAdapterFacade, IToolInstaller
+from modules.shared.src.taxonomy_common_error import ToolInstallError
+from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
+from modules.shared.src.taxonomy_common_vo import InstallResult, ToolSpec
+from modules.shared.src.taxonomy_common_vo import ensure_bin_home
+from modules.shared.src.taxonomy_common_vo import bin_home
+from modules.shared.src.contract_tools_protocol import IToolAdapterFacade, IToolInstaller
 
 
 def _version_probe(binary: str) -> str:

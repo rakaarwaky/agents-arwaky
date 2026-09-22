@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
 
 COMMANDS = (
     "status doctor tool skill docs connect disconnect mcp anytype omniroute service "
@@ -107,7 +107,7 @@ def install() -> int:
     """Write completions to the XDG data dir and patch ~/.bashrc."""
     from pathlib import Path
 
-    from modules.shared.src.taxonomy_xdg_paths import data_home
+    from modules.shared.src.taxonomy_common_vo import data_home
 
     target = data_home() / "bash-completion/completions"
     target.mkdir(parents=True, exist_ok=True)

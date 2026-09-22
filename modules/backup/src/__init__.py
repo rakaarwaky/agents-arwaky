@@ -9,9 +9,9 @@ re-export cycle (AES205).
 from __future__ import annotations
 
 from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
-from modules.backup.src.agent_backup_verb import cmd_backup, cmd_restore
 from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
 from modules.backup.src.capabilities_backup_tar import TarBackupGateway
+from modules.backup.src.surface_backup_command import cmd_backup, cmd_restore
 
 __all__ = [
     "BackupOrchestrator",

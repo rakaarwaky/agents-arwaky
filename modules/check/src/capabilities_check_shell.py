@@ -1,13 +1,14 @@
 """Shell check capability — shellcheck for our own .sh files."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_doc_vo import DocFinding
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_vo import DocFinding
 
 
 import shutil
 import subprocess
 from pathlib import Path
 
-from modules.check.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.contract_check_protocol import ICheckRunner
 from modules.shared.src.utility_logging_setup import err, warn
 from modules.shared.src.utility_paths_resolver import repo_root
 
@@ -38,13 +39,13 @@ class ShellCheckRunner(ICheckRunner):
         return out
 
     # -- Block 2: shellcheck execution --------------------------------------------------
-    def run(self, strict: bool = False) -> int:
+    def run(self, strict: bool = False) -> CheckExitCode:
         sh_files = self._sh_files()
         if not sh_files:
-            return 0
+            return CheckExitCode(0)
         if not shutil.which("shellcheck"):
             warn("shellcheck not installed; skipping .sh lint")
-            return 0
+            return CheckExitCode(0)
         print("[5/5] Running shellcheck...")
         errors = 0
         for f in sh_files:
@@ -61,11 +62,11 @@ class ShellCheckRunner(ICheckRunner):
                 for line in res.stdout.strip().splitlines()[:3]:
                     err(f"shellcheck {f}: {line}")
                 errors += 1
-        return errors
+        return CheckExitCode(errors)
 
-__all__ = ['DocFinding']
+__all__ = ['CheckExitCode', 'DocFinding']
 
 #
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"DocFinding": DocFinding}
+_layer_symbols = {"CheckExitCode": CheckExitCode, "DocFinding": DocFinding}

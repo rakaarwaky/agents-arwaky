@@ -43,7 +43,7 @@ Flow: CLI surface (`surface_tools_command.py`) → `ToolsOrchestrator.<verb>(spe
 single capability method → report.
 
 Target-resolution rules (agent-layer concern, not a capability): an unknown id
-fails with a typed error (from shared `taxonomy_core_error`) **before any
+fails with a typed error (from shared `taxonomy_common_error`) **before any
 capability runs**; aliases resolve through the shared manifest reader. A verb
 whose capability is unwired raises a typed error, never a partial dispatch.
 

@@ -20,16 +20,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NewType
 
-from modules.shared.src.taxonomy_tool_vo import (
+from modules.shared.src.taxonomy_common_vo import (
     InstallResult as _InstallResult,
 )
-from modules.shared.src.taxonomy_tool_vo import (
+from modules.shared.src.taxonomy_common_vo import (
     ToolSpec as _ToolSpec,
 )
-from modules.shared.src.taxonomy_tool_vo import (
+from modules.shared.src.taxonomy_common_vo import (
     UninstallResult as _UninstallResult,
 )
-from modules.shared.src.taxonomy_tool_vo import (
+from modules.shared.src.taxonomy_common_vo import (
     UpdateResult as _UpdateResult,
 )
 

@@ -41,7 +41,7 @@ from modules.shared.src.utility_paths_resolver import repo_root
 
 ROOT = repo_root()
 
-from modules.shared.src.taxonomy_manifest_vo import Tool
+from modules.shared.src.taxonomy_common_vo import Tool
 from modules.shared.src.utility_logging_setup import (
     BLUE,
     BOLD,
@@ -69,8 +69,8 @@ from modules.shared.src.utility_manifest_reader import (
     find_tool,
     load_tools,
 )
-from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
-from modules.shared.src.taxonomy_xdg_paths import (
+from modules.shared.src.taxonomy_common_vo import ensure_path
+from modules.shared.src.taxonomy_common_vo import (
     bin_home,
     cache_home,
     config_home,
@@ -80,8 +80,8 @@ from modules.shared.src.taxonomy_xdg_paths import (
 _ANSI_RE = re.compile(r"\033\[[0-9;]*m")
 
 # Runner map per tool (P5-P1: manifest-driven dispatch, avoid hardcoded IDs)
-from modules.shared.src.taxonomy_core_constant import TOOL_RUNNERS
-from modules.shared.src.taxonomy_tool_vo import ToolSpec
+from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
+from modules.shared.src.taxonomy_common_vo import ToolSpec
 
 
 # =============================================================================
@@ -101,7 +101,7 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
     if local.exists() and os.access(local, os.X_OK):
         return local
     if category == "internal":
-        from modules.shared.src.taxonomy_tool_vo import ToolSpec
+        from modules.shared.src.taxonomy_common_vo import ToolSpec
         from modules.tools.src.root_tools_container import create_tools_feature
         spec = ToolSpec(
             id=tool_id,
@@ -584,55 +584,21 @@ def cmd_service(argv: list[str]) -> int:
 
 def cmd_backup(argv: list[str]) -> int:
     from modules.backup.src.root_backup_container import create_backup_feature
-    from modules.backup.src.agent_backup_verb import cmd_backup as _backup_cmd
+    from modules.backup.src.surface_backup_command import cmd_backup as _backup_cmd
     return _backup_cmd(["backup", *argv], create_backup_feature())
 
 
 def cmd_restore(argv: list[str]) -> int:
     from modules.backup.src.root_backup_container import create_backup_feature
-    from modules.backup.src.agent_backup_verb import cmd_restore as _restore_cmd
+    from modules.backup.src.surface_backup_command import cmd_restore as _restore_cmd
     return _restore_cmd(["restore", *argv], create_backup_feature())
 
 
 def cmd_check(argv: list[str]) -> int:
-    import py_compile
-    banner()
-    info("Running Python-based repository verification...")
-    errors = 0
-    print()
-    print("[1/5] Validating JSON files...")
-    for json_file in (repo_root() / "modules").rglob("*.json"):
-        if "node_modules" in json_file.parts:
-            continue
-        try:
-            json.loads(json_file.read_text(encoding="utf-8"))
-            ok(str(json_file.relative_to(repo_root())))
-        except (OSError, ValueError) as e:
-            err(f"Invalid JSON: {json_file}: {e}")
-            errors += 1
-    print()
-    print("[2/5] Compiling Python files...")
-    for py_file in (repo_root() / "modules").rglob("*.py"):
-        if "node_modules" in py_file.parts:
-            continue
-        try:
-            py_compile.compile(str(py_file), doraise=True)
-            ok(str(py_file.relative_to(repo_root())))
-        except (py_compile.PyCompileError, OSError, ValueError) as e:
-            err(f"Python compile error: {py_file}: {e}")
-            errors += 1
-    print()
-    errors += _check_docs()
-    print()
-    errors += _check_skill_pack()
-    print()
-    errors += _check_shell()
-    print()
-    if errors:
-        err(f"Verification FAILED with {errors} errors.")
-        return 1
-    ok("All verifications PASSED.")
-    return 0
+    """Run all 5 repository-verification checks via the check feature aggregate."""
+    from modules.check.src.root_check_container import create_check_feature
+    from modules.check.src.surface_check_command import cmd_check as _check_cmd
+    return _check_cmd(argv, create_check_feature())
 
 
 def _check_docs() -> int:
@@ -713,8 +679,8 @@ def cmd_docs(argv: list[str]) -> int:
 
 def _check_skill_pack() -> int:
     """Gate skills/ on the invariants a harness loader actually depends on."""
-    from modules.shared.src.taxonomy_skill_audit import audit_pack, iter_skill_files
-    from modules.shared.src.taxonomy_core_constant import DESCRIPTION_BUDGET_BYTES
+    from modules.shared.src.taxonomy_common_vo import audit_pack, iter_skill_files
+    from modules.shared.src.taxonomy_common_constant import DESCRIPTION_BUDGET_BYTES
 
     print("[4/5] Validating skill pack loadability...")
     pack = repo_root() / "skills"

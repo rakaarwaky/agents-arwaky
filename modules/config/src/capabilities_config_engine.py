@@ -9,7 +9,7 @@ CLI usage (standalone):
     python3 -m modules.config.src.capabilities_config_engine remove-mcp-servers <file> <s1> ...
 """
 from __future__ import annotations
-from modules.shared.src.taxonomy_core_vo import Timestamp
+from modules.shared.src.taxonomy_common_vo import Timestamp
 
 
 import json
@@ -19,9 +19,9 @@ import sys
 import tomllib
 from pathlib import Path
 
-from modules.config.src.contract_config_protocol import IConfigModifier, IConfigWriter
-from modules.config.src.utility_jsonc_parser import strip_jsonc_comments
-from modules.config.src.utility_toml_write import write_toml
+from modules.shared.src.contract_config_protocol import IConfigModifier, IConfigWriter
+from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
+from modules.shared.src.utility_toml_write import write_toml
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class ConfigWriter(IConfigWriter):

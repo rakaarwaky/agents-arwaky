@@ -412,7 +412,7 @@ def main(argv: list[str], orch: object | None = None) -> int:
 # ─── Block 3: Dunder Methods, Factories & Helpers ───────
 
 
-from modules.skill.src.contract_skill_protocol import ISkillRegistry
+from modules.shared.src.contract_skill_protocol import ISkillRegistry
 
 
 class SkillRegistryAdapter(ISkillRegistry):

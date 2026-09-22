@@ -16,7 +16,10 @@ gateway (`capabilities_backup_tar.py`) and a Google-Drive gateway
 (`capabilities_backup_gdrive.py`). `agent_backup_orchestrator.py` implements
 `IBackupAggregate` (`backup`, `restore`, `list_archives`) over
 `IBackupGateway` capabilities; `taxonomy_backup_vo.py` carries the archive
-metadata.
+metadata plus the identity VOs (`BackupToolQuery`, `BackupDestination`,
+`ExitCode`) that keep primitive `str`/`int` out of the contract signatures
+(AES402). `surface_backup_command.py` is the CLI surface adapter for
+`aa backup` / `aa restore`.
 
 Flow: `aa backup <verb>` → `BackupOrchestrator` → chosen gateway → tar/Drive
 archive under the XDG data dir.
@@ -60,10 +63,10 @@ archive under the XDG data dir.
 ## API Contract
 
 | Operation | Input | Output | Error Shape | impl / intended |
-| `IBackupAggregate.backup` | `tool, dest` | `int` + archive path | non-zero + message | impl |
-| `IBackupAggregate.restore` | `tool, archive` | `int` | non-zero + message | impl |
-| `IBackupAggregate.list_archives` | — | `int` + listing | non-zero | impl |
-| `IBackupGateway.backup/restore` | `tool, dest/archive` | `int` | non-zero | impl |
+| `IBackupAggregate.backup` | `tool: BackupToolQuery, dest: BackupDestination` | `ExitCode` + archive path | non-zero + message | impl |
+| `IBackupAggregate.restore` | `tool: BackupToolQuery, archive: str` | `ExitCode` | non-zero + message | impl |
+| `IBackupAggregate.list_archives` | — | `ExitCode` + listing | non-zero | impl |
+| `IBackupGateway.backup/restore` | `tool: BackupToolQuery, dest: BackupDestination / archive: Path` | `BackupResult` / `RestoreResult` | VO success=False + message | impl |
 
 ## Integration Points
 

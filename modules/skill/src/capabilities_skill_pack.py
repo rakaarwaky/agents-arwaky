@@ -11,11 +11,11 @@ import importlib
 from pathlib import Path
 
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.skill.src.contract_skill_protocol import ISkillProvisioner
-from modules.skill.src.taxonomy_skill_vo import SkillProvisionResult
-from modules.skill.src.utility_skill_pack import prune_provisioned
+from modules.shared.src.contract_skill_protocol import ISkillProvisioner
+from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
+from modules.shared.src.utility_skill_pack import prune_provisioned
 
-_pack_util = importlib.import_module("modules.skill.src.utility_skill_pack")
+_pack_util = importlib.import_module("modules.shared.src.utility_skill_pack")
 globals().update({n: getattr(_pack_util, n) for n in ("DESCRIPTION_BUDGET_BYTES", "iter_skill_files", "write_provenance", "audit_pack", "PackFinding")})
 
 __all__ = [

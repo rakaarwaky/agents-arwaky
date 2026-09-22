@@ -6,11 +6,11 @@ verbatim from tools/skill/skill.py into
 ISkillRegistry by the root composition layer).
 """
 from __future__ import annotations
-from modules.skill.src.taxonomy_skill_vo import SkillProvisionResult
+from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
 
 
-from modules.skill.src.contract_skill_aggregate import ISkillAggregate
-from modules.skill.src.contract_skill_protocol import ISkillProvisioner, ISkillRegistry
+from modules.shared.src.contract_skill_aggregate import ISkillAggregate
+from modules.shared.src.contract_skill_protocol import ISkillProvisioner, ISkillRegistry
 
 
 class SkillOrchestrator(ISkillAggregate):

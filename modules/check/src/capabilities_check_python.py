@@ -1,12 +1,13 @@
 """Python check capability — py_compile across tools/ + modules/."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_doc_vo import DocFinding
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_vo import DocFinding
 
 
 import py_compile
 from pathlib import Path
 
-from modules.check.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.contract_check_protocol import ICheckRunner
 from modules.shared.src.utility_logging_setup import err, ok
 from modules.shared.src.utility_paths_resolver import repo_root
 
@@ -36,8 +37,8 @@ class PythonCheckRunner(ICheckRunner):
                         out.append(path)
         return out
 
-    # -- Block 2: Compilation ---------------------------------------------------------
-    def run(self, strict: bool = False) -> int:
+    # -- Block 2: Compilation -------------------------------------------------------
+    def run(self, strict: bool = False) -> CheckExitCode:
         print("[2/5] Compiling Python files...")
         errors = 0
         for py_file in self._py_files():
@@ -47,11 +48,11 @@ class PythonCheckRunner(ICheckRunner):
             except (py_compile.PyCompileError, OSError, ValueError) as e:
                 err(f"Python compile error: {py_file}: {e}")
                 errors += 1
-        return errors
+        return CheckExitCode(errors)
 
-__all__ = ['DocFinding']
+__all__ = ['CheckExitCode', 'DocFinding']
 
 #
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"DocFinding": DocFinding}
+_layer_symbols = {"CheckExitCode": CheckExitCode, "DocFinding": DocFinding}

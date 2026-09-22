@@ -53,4 +53,5 @@ None.
 
 | Date | Change | By |
 |------|--------|----|
+| 2026-09-22 | AES102 + AES402 remediation: moved `agent_backup_verb.py` to `surface_backup_command.py`, added taxonomy VOs (`BackupToolQuery`, `BackupDestination`, `ExitCode`), updated contracts to pass AES402; `aa check` PASSED. | @raka |
 | 2026-09-18 | FRD/BACKLOG pair created during WS-04 doc sweep at `5556fd5`. | @raka |

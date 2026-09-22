@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import sys
 
-from modules.shared.src.taxonomy_paths_constant import REPO_ROOT as repo_root
-from modules.shared.src.taxonomy_version_vo import bump, read_version
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_common_vo import bump, read_version
 
 
 def main(argv: list[str]) -> int:

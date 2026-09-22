@@ -64,7 +64,7 @@ re-export `__init__.py` is gone. Replace each with imports from the actual files
 ```python
 # old: from modules.shared.src.manifest import Tool, find_tool, load_tools
 # new:
-from modules.shared.src.taxonomy_manifest_vo import Tool
+from modules.shared.src.taxonomy_common_vo import Tool
 from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 ```
 

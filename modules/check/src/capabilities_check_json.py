@@ -1,12 +1,13 @@
 """JSON check capability — validates all JSON files under tools/ + configs."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_doc_vo import DocFinding
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_vo import DocFinding
 
 
 import json
 from pathlib import Path
 
-from modules.check.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.contract_check_protocol import ICheckRunner
 from modules.shared.src.utility_logging_setup import err, ok
 from modules.shared.src.utility_paths_resolver import repo_root
 
@@ -37,7 +38,7 @@ class JsonCheckRunner(ICheckRunner):
         return out
 
     # -- Block 2: Validation ---------------------------------------------------------
-    def run(self, strict: bool = False) -> int:
+    def run(self, strict: bool = False) -> CheckExitCode:
         print("[1/5] Validating JSON files...")
         errors = 0
         for json_file in self._json_files():
@@ -47,11 +48,11 @@ class JsonCheckRunner(ICheckRunner):
             except (OSError, ValueError) as e:
                 err(f"Invalid JSON: {json_file}: {e}")
                 errors += 1
-        return errors
+        return CheckExitCode(errors)
 
-__all__ = ['DocFinding']
+__all__ = ['CheckExitCode', 'DocFinding']
 
 #
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"DocFinding": DocFinding}
+_layer_symbols = {"CheckExitCode": CheckExitCode, "DocFinding": DocFinding}

@@ -7,7 +7,7 @@ Every function, constant, print, and edge case from the original script
 ``cmd_list``, ``main``) is kept exactly as written. The only
 allowed changes are the import swaps to the AES shared modules
 (``modules.shared.src.utility_paths`` /
-``modules.shared.src.taxonomy_xdg_paths``) and a thin
+``modules.shared.src.taxonomy_common_vo``) and a thin
 ``GdriveBackupGateway`` class exposing the original
 ``cmd_upload`` / ``cmd_download`` / ``cmd_list`` / ``main`` behind
 the AES ``IBackupGateway`` contract.
@@ -21,10 +21,10 @@ import sys
 import time
 from pathlib import Path
 
-from modules.backup.src.contract_backup_protocol import IBackupGateway
-from modules.backup.src.taxonomy_backup_vo import BackupResult, RestoreResult
+from modules.shared.src.contract_backup_protocol import IBackupGateway
+from modules.shared.src.taxonomy_backup_vo import BackupResult, RestoreResult
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.shared.src.taxonomy_xdg_paths import data_home
+from modules.shared.src.taxonomy_common_vo import data_home
 
 ROOT = repo_root()
 

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
-from modules.doctor.src.contract_doctor_aggregate import IDoctorAggregate
+from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
 
 
 class DoctorVerb(IDoctorAggregate):

@@ -19,16 +19,16 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.taxonomy_tool_vo import ToolSpec, UninstallResult
-from modules.shared.src.taxonomy_xdg_atomic_io import remove_tool_artifacts
-from modules.shared.src.taxonomy_xdg_paths import (
+from modules.shared.src.taxonomy_common_vo import ToolSpec, UninstallResult
+from modules.shared.src.taxonomy_common_vo import remove_tool_artifacts
+from modules.shared.src.taxonomy_common_vo import (
     bin_home,
     config_home,
     tool_cache_dir,
     tool_data_dir,
 )
-from modules.tools.src.contract_tools_protocol import IToolUninstaller
-from modules.tools.src.taxonomy_tools_constant import (
+from modules.shared.src.contract_tools_protocol import IToolUninstaller
+from modules.shared.src.taxonomy_tools_constant import (
     DAEMON_NAMES,
     DAEMON_UNIT_TOOLS,
     KEEP_CONFIG,

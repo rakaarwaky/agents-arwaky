@@ -1,17 +1,17 @@
 """Machine checks for the document invariants the ``add-docs`` skill states in prose.
 Moved verbatim from tools/lib/doc_pack.py; shared vocabularies now live in
-modules.shared.src.taxonomy_core_constant.
+modules.shared.src.taxonomy_common_constant.
 """
 from __future__ import annotations
 
-from modules.shared.src.taxonomy_doc_constant import ERROR, WARN
-from modules.shared.src.taxonomy_doc_vo import DocFinding, Section as _Section, Table
+from modules.shared.src.taxonomy_common_constant import ERROR, WARN
+from modules.shared.src.taxonomy_common_vo import DocFinding, Section as _Section, Table
 
 import os
 import re
 from pathlib import Path
 
-from modules.shared.src.taxonomy_core_constant import (
+from modules.shared.src.taxonomy_common_constant import (
     BACKLOG_COLUMNS,
     DOC_NAMES,
     EVIDENCED_STATES,
@@ -20,7 +20,7 @@ from modules.shared.src.taxonomy_core_constant import (
     STATE_VOCAB,
 )
 
-# (ERROR/WARN imported from taxonomy_doc_constant)
+# (ERROR/WARN imported from taxonomy_common_constant)
 
 #: Build/vendored trees that never carry this project's documents.
 _SKIP_PARTS = {
@@ -130,7 +130,7 @@ _PLACEHOLDER_VALUE = re.compile(
 
 
 # Dataclasses DocFinding/_Section/Table now live in the shared taxonomy layer
-# (taxonomy_doc_vo.py); imported at the top of this module.
+# (taxonomy_common_vo.py); imported at the top of this module.
 
 
 # --- text helpers -------------------------------------------------------------

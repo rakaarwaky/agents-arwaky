@@ -1,4 +1,8 @@
-"""Domain error hierarchy for the AES tools (all derive from ArwakyError)."""
+"""Domain error hierarchy for the AES tools (all derive from ArwakyError).
+
+Non-feature taxonomy errors; feature-specific errors belong in
+``taxonomy_<feature>_error``.
+"""
 from __future__ import annotations
 
 

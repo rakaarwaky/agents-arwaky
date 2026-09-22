@@ -8,13 +8,13 @@ aggregate (composition root) and injected; the module-level cmd_* functions
 fall back to a lazily-built aggregate only when called standalone.
 """
 from __future__ import annotations
-from modules.shared.src.taxonomy_core_vo import Timestamp
+from modules.shared.src.taxonomy_common_vo import Timestamp
 
 
 import sys
 
-from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.service.src.contract_service_protocol import IServiceManager
+from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.contract_service_protocol import IServiceManager
 
 _DAEMON_AGGREGATE: IDaemonAggregate | None = None
 

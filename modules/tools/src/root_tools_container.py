@@ -28,8 +28,8 @@ from modules.tools.src.capabilities_tools_installer import InstallerCapability
 from modules.tools.src.capabilities_tools_runner import RunnerCapability
 from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
 from modules.tools.src.capabilities_tools_updater import UpdaterCapability
-from modules.tools.src.contract_tools_aggregate import IToolsAggregate
-from modules.tools.src.taxonomy_tools_vo import AdapterUnit
+from modules.shared.src.contract_tools_aggregate import IToolsAggregate
+from modules.shared.src.taxonomy_tools_vo import AdapterUnit
 
 #: tool_id -> adapter unit (root composition data; each unit is a
 #: stateless `AdapterUnit` VO of verb functions living in the god-object

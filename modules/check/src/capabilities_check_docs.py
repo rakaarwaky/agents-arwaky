@@ -1,12 +1,13 @@
 """Docs check capability — delegates to the shared doc_pack domain."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_doc_vo import DocFinding
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_vo import DocFinding
 
 
 import os
 from pathlib import Path
 
-from modules.check.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.contract_check_protocol import ICheckRunner
 from modules.shared.src.utility_doc_pack import (
     DocFinding,
     as_strict,
@@ -39,7 +40,7 @@ class DocsCheckRunner(ICheckRunner):
         return audit_docs(self._root, include_subtrees=include_subtrees)
 
     # -- Block 3: Report ------------------------------------------------------------
-    def run(self, strict: bool = False) -> int:
+    def run(self, strict: bool = False) -> CheckExitCode:
         print("[3/5] Validating document invariants...")
         findings = self.audit(strict=strict)
         problems = errors_only(as_strict(findings)) if strict else errors_only(findings)
@@ -54,4 +55,4 @@ class DocsCheckRunner(ICheckRunner):
         elif not problems:
             ok(f"{len(findings)} advisory finding(s), no errors")
             info("  list them with 'aa docs check'; gate on them with 'aa docs check --strict'")
-        return len(problems)
+        return CheckExitCode(len(problems))

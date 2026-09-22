@@ -15,10 +15,10 @@ import time
 import urllib.error
 import urllib.request
 
-from modules.daemon.src.contract_daemon_protocol import IDaemonManager
-from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
+from modules.shared.src.contract_daemon_protocol import IDaemonManager
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.shared.src.taxonomy_xdg_paths import (
+from modules.shared.src.taxonomy_common_vo import (
     config_home,
     data_home,
 )

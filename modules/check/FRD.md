@@ -29,7 +29,7 @@ Flow: CLI surface → `CheckOrchestrator.check(strict)` → for each runner
 - **Description**: `check(strict)` runs every registered runner and returns a
   single exit code.
 - **Input**: `strict: bool` (False = warnings tolerated, True = warnings fail).
-- **Output**: `int` exit code (0 = pass, non-zero = fail).
+- **Output**: `CheckExitCode` (0 = pass, non-zero = fail).
 - **Business Rules**: runners are independent (no shared mutable state); the
   aggregate fails if any runner returns non-zero, or returns a warning under
   `strict=True`. Runner order is stable and deterministic.
@@ -56,8 +56,8 @@ Flow: CLI surface → `CheckOrchestrator.check(strict)` → for each runner
 
 | Operation | Input | Output | Error Shape | impl / intended |
 |-----------|-------|--------|-------------|------------------------------|
-| `ICheckAggregate.check` | `strict: bool` | `int` exit code | non-zero + logged runner results | impl |
-| `ICheckRunner.run` | `strict: bool` | `int` | non-zero + findings | impl |
+| `ICheckAggregate.check` | `strict: bool` | `CheckExitCode` exit code | non-zero + logged runner results | impl |
+| `ICheckRunner.run` | `strict: bool` | `CheckExitCode` | non-zero + findings | impl |
 | `CheckOrchestrator.__init__` | `list[ICheckRunner]` | — | — | impl |
 
 ## Integration Points

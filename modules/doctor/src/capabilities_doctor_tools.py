@@ -4,7 +4,7 @@ from __future__ import annotations
 import json as _json
 import shutil
 
-from modules.doctor.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.contract_doctor_protocol import IDiagnosticRunner
 from modules.shared.src.utility_logging_setup import (
     BLUE,
     BOLD,
@@ -18,8 +18,8 @@ from modules.shared.src.utility_logging_setup import (
     table_widths,
 )
 from modules.shared.src.utility_manifest_reader import load_tools
-from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
-from modules.shared.src.taxonomy_xdg_paths import bin_home
+from modules.shared.src.taxonomy_common_vo import ensure_path
+from modules.shared.src.taxonomy_common_vo import bin_home
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

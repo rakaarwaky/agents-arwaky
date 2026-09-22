@@ -17,13 +17,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.taxonomy_core_error import (
+from modules.shared.src.taxonomy_common_error import (
     ToolInstallError,
     ToolUninstallError,
     ToolUpdateError,
 )
-from modules.shared.src.taxonomy_manifest_vo import Tool
-from modules.shared.src.taxonomy_tool_vo import (
+from modules.shared.src.taxonomy_common_vo import Tool
+from modules.shared.src.taxonomy_common_vo import (
     InstallResult,
     ToolSpec,
     UninstallResult,
@@ -31,15 +31,15 @@ from modules.shared.src.taxonomy_tool_vo import (
 )
 from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.tools.src.contract_tools_aggregate import IToolsAggregate
-from modules.tools.src.contract_tools_protocol import (
+from modules.shared.src.contract_tools_aggregate import IToolsAggregate
+from modules.shared.src.contract_tools_protocol import (
     IToolAdapterFacade,
     IToolInstaller,
     IToolRunner,
     IToolUninstaller,
     IToolUpdater,
 )
-from modules.tools.src.taxonomy_tools_vo import ExitCode, ToolQuery
+from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolQuery
 
 
 def _spec_from_tool(tool: Tool) -> ToolSpec:
@@ -160,7 +160,7 @@ class ToolsOrchestrator(IToolsAggregate):
         "install": ToolInstallError,
         "update": ToolUpdateError,
         "uninstall": ToolUninstallError,
-        "run": ToolInstallError,  # no ToolRunError in taxonomy_core_error today
+        "run": ToolInstallError,  # no ToolRunError in taxonomy_common_error today
     }
 
     def _require(self, obj: object, verb: str) -> object:

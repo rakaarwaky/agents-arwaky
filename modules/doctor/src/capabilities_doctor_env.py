@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 import shutil
 
-from modules.doctor.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.contract_doctor_protocol import IDiagnosticRunner
 from modules.shared.src.utility_logging_setup import (
     BOLD,
     DIM,
@@ -15,8 +15,8 @@ from modules.shared.src.utility_logging_setup import (
     ok,
     warn,
 )
-from modules.shared.src.taxonomy_xdg_atomic_io import ensure_path
-from modules.shared.src.taxonomy_xdg_paths import bin_home
+from modules.shared.src.taxonomy_common_vo import ensure_path
+from modules.shared.src.taxonomy_common_vo import bin_home
 
 REQUIRED = ("git", "jq", "curl", "python3")
 OPTIONAL = ("cargo", "uv", "node", "npm", "bun", "pnpm", "rustc")

@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
-from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.daemon.src.taxonomy_daemon_vo import DaemonStatus
+from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
 from modules.service.src.capabilities_service_manager import ServiceManager
-from modules.service.src.contract_service_aggregate import IServiceAggregate
+from modules.shared.src.contract_service_aggregate import IServiceAggregate
 
 
 class DaemonAggregateAdapter(IDaemonAggregate):

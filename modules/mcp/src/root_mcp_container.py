@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
 from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
-from modules.mcp.src.contract_mcp_aggregate import IMcpAggregate
+from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
 
 
 class McpContainer:

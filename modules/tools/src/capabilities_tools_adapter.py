@@ -32,16 +32,16 @@ import tempfile
 from pathlib import Path
 from typing import Callable
 
-from modules.shared.src.taxonomy_core_error import ToolUpdateError
-from modules.shared.src.taxonomy_paths_constant import PROVENANCE_MARKER, REPO_ROOT
-from modules.shared.src.taxonomy_tool_vo import ToolSpec
-from modules.shared.src.taxonomy_xdg_atomic_io import (
+from modules.shared.src.taxonomy_common_error import ToolUpdateError
+from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER, REPO_ROOT
+from modules.shared.src.taxonomy_common_vo import ToolSpec
+from modules.shared.src.taxonomy_common_vo import (
     atomic_write_text,
     ensure_bin_home,
     ensure_path,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.taxonomy_xdg_paths import (
+from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     bin_home,
     cache_home,
@@ -52,8 +52,8 @@ from modules.shared.src.taxonomy_xdg_paths import (
     tool_data_dir,
     tool_state_dir,
 )
-from modules.tools.src.contract_tools_protocol import IToolAdapterFacade
-from modules.tools.src.taxonomy_tools_constant import (
+from modules.shared.src.contract_tools_protocol import IToolAdapterFacade
+from modules.shared.src.taxonomy_tools_constant import (
     ANYTYPE_DAEMON_DATA_REL,
     ANYTYPE_INTERNAL_BIN,
     ANYTYPE_MCP_APP_REL,
@@ -79,7 +79,7 @@ from modules.tools.src.taxonomy_tools_constant import (
     ROOT_ENV_VAR,
     TOOL_VERB_PREFIXES,
 )
-from modules.tools.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
+from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 
 
 class ToolAdapterFacade(IToolAdapterFacade):

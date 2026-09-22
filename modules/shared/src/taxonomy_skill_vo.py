@@ -1,6 +1,8 @@
 """Shared skill-name helpers (AES taxonomy layer, _vo: pure functions allowed)."""
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import posixpath
 import re
 from pathlib import Path
@@ -55,3 +57,22 @@ def ensure_under(base: Path, child: Path) -> Path:
     if base_resolved not in child_resolved.parents:
         raise ValueError(f"Refusing path outside target directory: {child_resolved}")
     return child_resolved
+
+
+@dataclass(frozen=True)
+class SkillInfo:
+    """Registration row for a tool: id, category, description."""
+
+    tool_id: str
+    category: str
+    description: str
+
+
+@dataclass(frozen=True)
+class SkillProvisionResult:
+    """Outcome of provisioning/unprovisioning skills for one tool."""
+
+    success: bool
+    tool_id: str
+    provisioned: int
+    message: str

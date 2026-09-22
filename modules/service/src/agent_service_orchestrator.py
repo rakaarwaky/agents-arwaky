@@ -1,10 +1,10 @@
 """Service agent orchestrator — thin aggregate over the service manager."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_core_vo import Timestamp
+from modules.shared.src.taxonomy_common_vo import Timestamp
 
 
-from modules.service.src.contract_service_aggregate import IServiceAggregate
-from modules.service.src.contract_service_protocol import IServiceManager
+from modules.shared.src.contract_service_aggregate import IServiceAggregate
+from modules.shared.src.contract_service_protocol import IServiceManager
 
 
 class ServiceOrchestrator(IServiceAggregate):

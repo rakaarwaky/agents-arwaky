@@ -31,7 +31,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from modules.shared.src.taxonomy_tool_vo import (
+from modules.shared.src.taxonomy_common_vo import (
     InstallResult,
     ToolSpec,
     UninstallResult,

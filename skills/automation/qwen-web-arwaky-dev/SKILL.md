@@ -132,7 +132,7 @@ directly with `uv run python -c` + `Path(tempfile.mkdtemp())`.
 
 - Slot count is derived, not declared per place:
   `NUM_SLOTS = max(2, int(DEFAULT_MAX_WORKERS))`, with `DEFAULT_MAX_WORKERS`
-  in `modules/shared/src/taxonomy_core_constant.py`. Changing that one
+  in `modules/shared/src/taxonomy_common_constant.py`. Changing that one
   constant scales tabs, keybindings and the worker pool — never hardcode a
   slot count or write per-slot `action_*` methods. Emit bindings from a
   comprehension and funnel the actions through one `_switch_to_slot(n)`.

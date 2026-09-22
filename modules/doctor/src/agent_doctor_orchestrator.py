@@ -1,10 +1,10 @@
 """Doctor agent orchestrator — routes doctor/status diagnostics."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_core_vo import Timestamp
+from modules.shared.src.taxonomy_common_vo import Timestamp
 
 
-from modules.doctor.src.contract_doctor_aggregate import IDoctorAggregate
-from modules.doctor.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
+from modules.shared.src.contract_doctor_protocol import IDiagnosticRunner
 
 
 class DoctorOrchestrator(IDoctorAggregate):

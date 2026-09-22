@@ -10,14 +10,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from modules.shared.src.taxonomy_manifest_vo import Tool
-from modules.shared.src.taxonomy_tool_vo import (
+from modules.shared.src.taxonomy_common_vo import Tool
+from modules.shared.src.taxonomy_common_vo import (
     InstallResult,
     ToolSpec,
     UninstallResult,
     UpdateResult,
 )
-from modules.tools.src.taxonomy_tools_vo import ExitCode, ToolQuery
+from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolQuery
 
 
 class IToolsAggregate(ABC):

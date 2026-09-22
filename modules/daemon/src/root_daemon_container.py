@@ -4,7 +4,7 @@ from __future__ import annotations
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
-from modules.daemon.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 
 
 class DaemonContainer:

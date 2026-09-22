@@ -1,7 +1,13 @@
-"""Backup-domain value objects for the AES backup feature."""
+"""Backup-domain value objects for the AES backup feature.
+
+`BackupToolQuery` and `ExitCode` keep primitive `str`/`int` out of the
+contract signatures (AES402), following the same NewType identity-VO
+pattern as `modules.shared.src.taxonomy_tools_vo`.
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import NewType
 
 
 @dataclass(frozen=True)
@@ -24,3 +30,25 @@ class RestoreResult:
     archive: str
     target: str
     message: str
+
+
+#: Manifest / CLI tool identifier accepted by a backup/restore call.
+BackupToolQuery = NewType("BackupToolQuery", str)
+
+#: Destination descriptor (e.g. "gdrive" or local path) for backup archives.
+BackupDestination = NewType("BackupDestination", str)
+
+#: Archive path or identifier string for restore operations.
+BackupArchive = NewType("BackupArchive", str)
+
+#: Process exit code returned by a backup/restore/list/help verb.
+ExitCode = NewType("ExitCode", int)
+
+__all__ = [
+    "BackupArchive",
+    "BackupDestination",
+    "BackupResult",
+    "BackupToolQuery",
+    "ExitCode",
+    "RestoreResult",
+]
