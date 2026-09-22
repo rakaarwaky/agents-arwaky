@@ -9,6 +9,7 @@ import json as _json
 import sys
 import textwrap
 
+from modules.shared.src.contract_tools_aggregate import IToolsAggregate
 from modules.shared.src.utility_logging_setup import (
     BOLD,
     CYAN,
@@ -23,7 +24,6 @@ from modules.shared.src.utility_logging_setup import (
     warn,
 )
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.shared.src.contract_tools_aggregate import IToolsAggregate
 
 
 def _term_width() -> int:

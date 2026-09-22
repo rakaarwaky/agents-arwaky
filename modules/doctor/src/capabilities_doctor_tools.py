@@ -5,6 +5,7 @@ import json as _json
 import shutil
 
 from modules.shared.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.taxonomy_common_vo import ExitCode, bin_home, ensure_path
 from modules.shared.src.utility_logging_setup import (
     BLUE,
     BOLD,
@@ -18,8 +19,6 @@ from modules.shared.src.utility_logging_setup import (
     table_widths,
 )
 from modules.shared.src.utility_manifest_reader import load_tools
-from modules.shared.src.taxonomy_common_vo import ExitCode, ensure_path
-from modules.shared.src.taxonomy_common_vo import bin_home
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -54,7 +53,7 @@ class ToolsDiagnosticRunner(IDiagnosticRunner):
         except (OSError, ValueError):
             term_w = 80
         available = max(60, term_w - 2)
-        w_tool, w_cat, w_bin, w_status = table_widths(available, [2, 1, 3, 4])
+        w_tool, w_cat, w_bin, _w_status = table_widths(available, [2, 1, 3, 4])
         sep = "-" * available
         print(sep)
         print(f"{BOLD()}{pad('TOOL', w_tool)} {pad('CATEGORY', w_cat)} {pad('TARGET BINARY', w_bin)} STATUS{RESET()}")

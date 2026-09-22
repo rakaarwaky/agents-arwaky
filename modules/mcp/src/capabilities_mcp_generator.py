@@ -23,15 +23,15 @@ import json
 import sys
 from pathlib import Path
 
-from modules.shared.src.utility_envfile_parser import load_first_env
 from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
 from modules.shared.src.contract_mcp_protocol import IMcpConfigGenerator
-from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     config_home,
 )
 from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServerInfo
+from modules.shared.src.utility_envfile_parser import load_first_env
+from modules.shared.src.utility_paths_resolver import repo_root
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

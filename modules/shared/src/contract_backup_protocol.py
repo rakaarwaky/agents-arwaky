@@ -1,14 +1,15 @@
 """Backup-domain protocol contract (capability ABC)."""
 from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from pathlib import Path
+
 from modules.shared.src.taxonomy_backup_vo import (
     BackupDestination,
     BackupResult,
     BackupToolQuery,
     RestoreResult,
 )
-
-from abc import ABC, abstractmethod
-from pathlib import Path
 
 
 class IBackupGateway(ABC):
@@ -31,7 +32,6 @@ class IBackupGateway(ABC):
 
 __all__ = ['BackupResult']
 
-#
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {"BackupResult": BackupResult}

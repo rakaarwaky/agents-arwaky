@@ -16,13 +16,12 @@ import urllib.error
 import urllib.request
 
 from modules.shared.src.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
-from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_common_vo import (
     config_home,
     data_home,
 )
-from modules.shared.src.taxonomy_daemon_vo import ExitCode
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
+from modules.shared.src.utility_paths_resolver import repo_root
 
 ROOT = repo_root()
 
@@ -79,7 +78,7 @@ def api_ready(timeout=90) -> bool:
     delay = 1.0
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(url, timeout=3) as r:
+            with urllib.request.urlopen(url, timeout=3):
                 return True
         except urllib.error.HTTPError as e:
             # 401/403 = auth required (normal state), server is up
@@ -176,10 +175,6 @@ class PodmanDaemonManager(IDaemonManager):
         return main(argv)
 
 
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
-
-
 def cmd_service_install():
     binary = _omniroute_binary()
     if binary is None:
@@ -250,10 +245,10 @@ def cmd_start():
         run(["systemctl", "--user", "start", "omniroute.service"])
         print(f">>> Waiting for OmniRoute API to be ready at http://127.0.0.1:{PORT}...")
         if api_ready():
-            print(f">>> [OK] OmniRoute daemon is active and healthy!")
+            print(">>> [OK] OmniRoute daemon is active and healthy!")
             print(f">>> Web Dashboard: http://localhost:{PORT}")
             return 0
-        print(f"Warning: OmniRoute service started but API health check timed out. Check 'aa omniroute logs'.", file=sys.stderr)
+        print("Warning: OmniRoute service started but API health check timed out. Check 'aa omniroute logs'.", file=sys.stderr)
         return 2
     binary = _omniroute_binary()
     if binary is None:
@@ -273,7 +268,7 @@ def cmd_start():
     print(f">>> Process PID: {proc.pid}")
     print(f">>> Waiting for OmniRoute API to be ready at http://127.0.0.1:{PORT}...")
     if api_ready():
-        print(f">>> [OK] OmniRoute daemon is active and healthy!")
+        print(">>> [OK] OmniRoute daemon is active and healthy!")
         print(f">>> Web Dashboard: http://localhost:{PORT}")
         return 0
     print(f"Warning: API health check timed out. Check logs in {DATA_DIR / 'logs'}.", file=sys.stderr)
@@ -372,3 +367,8 @@ def main(argv):
         print(f"Unknown omniroute command: {action}", file=sys.stderr)
         return cmd_help()
     return handler()
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+
+

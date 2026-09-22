@@ -1,14 +1,11 @@
 """Skill-pack provisioning (provenance + pruning) — skill feature utility.
 
-Pure audit primitives (iter_skill_files, audit_pack, PackFinding, ...) now
-live in the shared taxonomy layer (:mod:`modules.shared.src.taxonomy_common_vo`)
-so other features can use them without a capabilities->capabilities edge
-(AES201). This module re-exports them and keeps the I/O-bound
-write_provenance / prune_provisioned helpers.
+Pure audit primitives (iter_skill_files, audit_pack, PackFinding) live in the
+shared taxonomy layer (:mod:`modules.shared.src.taxonomy_common_vo`). This
+module keeps only the I/O-bound write_provenance / prune_provisioned helpers.
 """
 from __future__ import annotations
 
-import importlib
 import json
 import shutil
 from pathlib import Path
@@ -17,17 +14,8 @@ from modules.shared.src.taxonomy_common_constant import (
     PROVENANCE_FILE,
     PROVENANCE_VERSION,
 )
-from modules.shared.src.taxonomy_common_constant import DESCRIPTION_BUDGET_BYTES as _DESCRIPTION_BUDGET_BYTES
-DESCRIPTION_BUDGET_BYTES = _DESCRIPTION_BUDGET_BYTES  # re-exported via __all__
-
-_audit_mod = importlib.import_module("modules.shared.src.taxonomy_common_vo")
-globals().update({n: getattr(_audit_mod, n) for n in ("PackFinding", "audit_pack", "iter_skill_files")})
 
 __all__ = [
-    "DESCRIPTION_BUDGET_BYTES",
-    "PackFinding",
-    "audit_pack",
-    "iter_skill_files",
     "prune_provisioned",
     "write_provenance",
 ]

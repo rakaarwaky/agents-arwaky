@@ -1,22 +1,20 @@
 """Shell check capability — shellcheck for our own .sh files."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
-from modules.shared.src.taxonomy_common_vo import DocFinding
-
 
 import shutil
 import subprocess
 from pathlib import Path
 
 from modules.shared.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_vo import DocFinding
 from modules.shared.src.utility_logging_setup import err, warn
 from modules.shared.src.utility_paths_resolver import repo_root
-
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 
 class ShellCheckRunner(ICheckRunner):
-    """Run shellcheck on tools/**/*.sh (upstream skills/ excluded)."""
+    """Run shellcheck on modules/**/*.sh (upstream skills/ excluded)."""
 
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
@@ -59,7 +57,6 @@ class ShellCheckRunner(ICheckRunner):
 
 __all__ = ['CheckExitCode', 'DocFinding']
 
-#
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {"CheckExitCode": CheckExitCode, "DocFinding": DocFinding}

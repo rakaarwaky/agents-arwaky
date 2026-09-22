@@ -18,19 +18,25 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_error import ToolInstallError
+from modules.shared.src.contract_tools_protocol import (
+    IToolAdapterFacade,
+    IToolInstaller,
+)
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
-from modules.shared.src.taxonomy_common_vo import InstallResult, ToolSpec
-from modules.shared.src.taxonomy_common_vo import ensure_bin_home
-from modules.shared.src.taxonomy_common_vo import bin_home
-from modules.shared.src.contract_tools_protocol import IToolAdapterFacade, IToolInstaller
+from modules.shared.src.taxonomy_common_error import ToolInstallError
+from modules.shared.src.taxonomy_common_vo import (
+    InstallResult,
+    ToolSpec,
+    bin_home,
+    ensure_bin_home,
+)
 
 
 def _version_probe(binary: str) -> str:
     """Capture `<binary> --version` output for the health probe; "" on any failure."""
     try:
         proc = subprocess.run(
-            [binary, "--version"], capture_output=True, text=True, timeout=60
+            [binary, "--version"], capture_output=True, text=True, timeout=60, check=False
         )
     except (OSError, subprocess.SubprocessError):
         return ""

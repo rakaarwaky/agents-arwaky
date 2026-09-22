@@ -21,12 +21,11 @@ can authenticate.
 | Skills | the whole skills dir becomes ONE symlink to `agents-arwaky/skills/` (verified harnesses: hermes, qwencode, opencode; per-skill copies elsewhere) | `<harness>/skills` | named-profile skill dirs |
 | Env | `OMNIROUTE_URL`, `OMNIROUTE_KEY`, `MNEMOSYNE_DATA_DIR` | `<harness>/.env` + `~/.config/environment.d/omniroute.conf` | the harness's own provider/model config |
 
-Code: `tools/connect/connect.py` (dispatch + adapter registry),
-`tools/connect/<harness>_adapter.py` (per-harness), `tools/connect/connect_shared.py`
-(`inject_omniroute_env`, `get_omniroute_credentials`, `engine_merge_mcp`,
-`link_skills_root`, `provision_skill_to_dir`, `resolve_skill_link`,
-`merge_dir_into`, `remove_provisioned_skills`),
-`tools/lib/engine.py` (the JSON/JSONC/YAML mutator the adapters shell out to).
+Code: `modules/harness/src/surface_harness_command.py` (dispatch),
+`modules/harness/src/utility_*_adapter.py` (per-harness),
+`modules/harness/src/capabilities_harness_connector.py` (`connect`, env injection,
+skill root linking), `modules/config/src/capabilities_config_engine.py`
+(the JSON/JSONC/YAML mutator the connectors shell out to).
 
 ## Golden rule: env != provider binding
 
@@ -58,9 +57,10 @@ the 401 — not a stale harness session.
    and `systemctl --user show-environment | grep OMNIROUTE` — and compare the
    prefix against the live key; an inherited export beats the `.env` file.
 2. Find the authoritative live key: `~/.omniroute/.env`
-   (`get_omniroute_credentials()` reads that, then `~/.omniroute/.env`, then
-   `~/.omniroute/.env`). Treat `sk-your-omniroute-consumer-key-here` and
-   `<YOUR_API_KEY>` as placeholders (`PLACEHOLDER_KEYS` in connect_shared.py).
+   (`get_9router_credentials()` in `capabilities_harness_connector.py` reads
+   env candidates, then `~/.omniroute/.env`). Treat `sk-your-9router-consumer-key-here` and
+   `<YOUR_API_KEY>` as placeholders (`_PLACEHOLDER_KEYS` in
+   `capabilities_harness_connector.py`).
 3. Probe each candidate key against the router directly. Only the live one
    returns 200; the stale one returns 401 `invalid_api_key`. This identifies
    which key the client holds without reading harness logs:
@@ -93,18 +93,20 @@ the 401 — not a stale harness session.
   router is up, NOT that a key is valid — always probe `chat/completions` with
   the bearer header when testing keys.
 - **A passing `aa check` is not proof the change works.** The repo gate only
-  validates JSON syntax, compiles Python under `tools/`, and shellchecks scripts.
+  validates JSON syntax, compiles Python under `modules/`, and shellchecks scripts.
   Prove a connector change by re-writing the harness settings back into the
   broken state, running `aa connect <harness>`, and confirming the repair plus a
   live router check in the connect output.
-- **Generic config mutation belongs in `engine.py`, not the adapter.** Adapters
-  are thin per-harness dispatch; anything reusable across harnesses (env writing,
-  MCP merging, credential lookup) goes in `connect_shared.py`, and JSON/JSONC/YAML
-  edits go through `engine.py` subcommands so comment preservation is not lost.
-  A provider-binding sync that is specific to one harness's schema may live in
-  that harness's adapter (as qwencode's does) provided it only read-modify-writes
-  a plain-JSON file the connector owns — never hand-edit YAML or JSONC there,
-  and add an `engine.py` subcommand instead once a second harness needs it.
+- **Generic config mutation belongs in the config capability, not the adapter.**
+  Adapters are thin per-harness dispatch; anything reusable across harnesses
+  (env writing, MCP merging, credential lookup) goes in the harness
+  capabilities or `modules/config/src/capabilities_config_engine.py`, and
+  JSON/JSONC/YAML edits go through that engine so comment preservation is not
+  lost. A provider-binding sync that is specific to one harness's schema may
+  live in that harness's adapter (as qwencode's does) provided it only
+  read-modify-writes a plain-JSON file the connector owns — never hand-edit
+  YAML or JSONC there, and add an engine helper instead once a second harness
+  needs it.
 - **Mirror the guarded path shape in test fixtures.** A guard that compares a
   destination against `<REPO_ROOT>/skills` never fires for a fixture built at
   `<tmp>/pack/<name>/` — the test passes vacuously while the dangerous path
@@ -142,8 +144,8 @@ Separate failure from auth. Compare the `command` values in
 entry may name the plain CLI (`lint-arwaky`) when the stdio MCP server is a
 different binary (`lint-arwaky-mcp`). A CLI invoked over stdio prints usage and
 exits, which surfaces as "MCP server(s) failed to start: …". The generator reads
-the tool registry in `tools/config/manifest.json`, so fix the command mapping
-there or in `tools/mcp/generate_config.py`, then `aa mcp generate`. Placeholder
+the tool registry in `config/manifest.json`, so fix the command mapping
+there or in `modules/mcp/src/`, then `aa mcp generate`. Placeholder
 harness env values (e.g. an Anytype `Bearer <YOUR_API_KEY>`) also fail, and are a
 credential gap, not a connector bug.
 
@@ -154,10 +156,10 @@ to the pack: `~/.hermes/skills -> agents-arwaky/skills`, `~/.qwen/skills ->` the
 same. There is no per-skill provisioning step, so adding, removing, or editing a
 skill in the pack is instantly visible to every linked harness with zero re-run,
 and a self-improving agent's edit writes through the link straight into the repo
-(a pack `git diff` is the proof). Implemented by `link_skills_root()` in
-`connect_shared.py`, gated per adapter by `SKILL_LINK_VERIFIED` (hermes,
-qwencode, opencode True; antigravity False until its probe passes — probe
-commands per harness live in `references/harness-skill-probes.md`);
+(a pack `git diff` is the proof). Implemented by `_link_skills_root()` in
+`capabilities_harness_skills.py`, gated per adapter by `skill_link_verified`
+(hermes, qwencode, opencode True; antigravity False until its probe passes —
+probe commands per harness live in `references/harness-skill-probes.md`);
 `--copy-skills` falls back to per-skill copies for any harness.
 
 Contrast: `aa skill install` into a PROJECT `.agents/skills/` always COPIES —
@@ -165,7 +167,8 @@ projects get pushed and git stores absolute-path symlinks as dead mode-120000
 blobs in other clones (plain text on Windows with `core.symlinks=false`);
 `--link` exists only for uncommitted local workspaces.
 
-Migration and safety invariants, all under test in `tools/tests/test_skill_provision.py`:
+Migration and safety invariants, enforced by `prune_provisioned` /
+`write_provenance` in `modules/shared/src/utility_skill_pack.py`:
 - Non-empty existing skills dir ABORTS and lists what it would move; `--force`
   MIGRATES with per-entry collision semantics — never clobbers the pack:
   dot-prefixed STATE dirs (`.hub`) are union-merged file-by-file with the
@@ -179,7 +182,7 @@ Migration and safety invariants, all under test in `tools/tests/test_skill_provi
   `.curator_*`, `.bundled_manifest`, `skills-lock.json`) lands in the pack root,
   so it MUST be in `.gitignore` or harness state pollutes skill history. When a
   state dir already has a pack twin, union-merge it file-by-file with the
-  harness copy winning (`merge_dir_into`) — renaming to `X.harness-1` silently
+  harness copy winning (`_merge_dir_into`) — renaming to `X.harness-1` silently
   strands live state.
 - Generated alias twins land there too: a loader that indexes hyphen names from
   underscore pack dirs (`anytype_mcp` -> `anytype-mcp`) writes real hyphen dirs
@@ -188,7 +191,7 @@ Migration and safety invariants, all under test in `tools/tests/test_skill_provi
   `skill_view`/skill-name lookup is refused as ambiguous by name collision, so
   resolve such skills by their full categorized path until the twins are gone.
 - Any per-skill provision/remove targeting a linked root must be REFUSED
-  (`_skills_root_link_guard`): its `rmtree` would delete real pack sources.
+  (link guard): its `rmtree` would delete real pack sources.
 - `aa disconnect` unlinks the root and restores an empty real dir; pack sources
   survive. `rmtree`/`unlink` on a symlink never follows it, so removal is safe.
 
@@ -196,11 +199,11 @@ Migration and safety invariants, all under test in `tools/tests/test_skill_provi
 profile, and MCP/env merge into all of them. Skills must NOT. Raka's rule:
 named profiles (currie/fangyuan/linus, ...) are task-specific specialists, so
 linking/copying the generalist arwaky skill pack into them adds irrelevant
-skills. `hermes_adapter.connect()` therefore acts on `~/.hermes/skills` once —
-`link_skills_root` in link mode, one `provision_skill_to_dir` per pack skill in
+skills. The harness skills capability therefore acts on `~/.hermes/skills` once —
+`_link_skills_root` in link mode, one `_provision_skill` per pack skill in
 copy mode — instead of looping `hermes_targets`, and `disconnect` still purges
 profiles (leftover pack copies from the old behaviour are removable via
-`remove_provisioned_skills`).
+`prune_provisioned`).
 Side effect to remember: `~/.hermes` is itself a git repo pushed to
 `rakaarwaky/hermes-backup`; once its skills dir is a single symlink, every
 tracked file under `skills/` shows as deleted plus one untracked link — commit

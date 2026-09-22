@@ -40,7 +40,14 @@ from modules.shared.src.utility_paths_resolver import repo_root
 
 ROOT = repo_root()
 
-from modules.shared.src.taxonomy_common_vo import Tool
+from modules.shared.src.taxonomy_common_vo import (
+    Tool,
+    bin_home,
+    cache_home,
+    config_home,
+    data_home,
+    ensure_path,
+)
 from modules.shared.src.utility_logging_setup import (
     BLUE,
     BOLD,
@@ -67,13 +74,6 @@ from modules.shared.src.utility_logging_setup import (
 from modules.shared.src.utility_manifest_reader import (
     find_tool,
     load_tools,
-)
-from modules.shared.src.taxonomy_common_vo import ensure_path
-from modules.shared.src.taxonomy_common_vo import (
-    bin_home,
-    cache_home,
-    config_home,
-    data_home,
 )
 
 _ANSI_RE = re.compile(r"\033\[[0-9;]*m")
@@ -506,13 +506,19 @@ def cmd_skill(argv: list[str]) -> int:
 
 
 def cmd_connect(argv: list[str]) -> int:
-    from modules.harness.src.agent_harness_orchestrator import cmd_connect as _harness_connect
-    return _harness_connect(list(argv))
+    from modules.harness.src.root_harness_container import create_harness_feature
+    from modules.harness.src.surface_harness_command import (
+        cmd_connect as _harness_connect,
+    )
+    return _harness_connect(list(argv), create_harness_feature)
 
 
 def cmd_disconnect(argv: list[str]) -> int:
-    from modules.harness.src.agent_harness_orchestrator import cmd_disconnect as _harness_disconnect
-    return _harness_disconnect(list(argv))
+    from modules.harness.src.root_harness_container import create_harness_feature
+    from modules.harness.src.surface_harness_command import (
+        cmd_disconnect as _harness_disconnect,
+    )
+    return _harness_disconnect(list(argv), create_harness_feature)
 
 
 def cmd_tool(argv: list[str]) -> int:
@@ -548,16 +554,24 @@ def _doctor_feature_compat():
 
 
 def cmd_anytype(argv: list[str]) -> int:
-    from modules.daemon.src.surface_daemon_command import cmd_anytype as _daemon_anytype, register_manager_factory as _reg_dm
     from modules.daemon.src.root_daemon_container import DaemonContainer
+    from modules.daemon.src.surface_daemon_command import cmd_anytype as _daemon_anytype
+    from modules.daemon.src.surface_daemon_command import (
+        register_manager_factory as _reg_dm,
+    )
     _c = DaemonContainer()
     _reg_dm("anytype", lambda: _c.anytype)
     return _daemon_anytype(argv)
 
 
 def cmd_omniroute(argv: list[str]) -> int:
-    from modules.daemon.src.surface_daemon_command import cmd_omniroute as _daemon_omniroute, register_manager_factory as _reg_dm
     from modules.daemon.src.root_daemon_container import DaemonContainer
+    from modules.daemon.src.surface_daemon_command import (
+        cmd_omniroute as _daemon_omniroute,
+    )
+    from modules.daemon.src.surface_daemon_command import (
+        register_manager_factory as _reg_dm,
+    )
     _c = DaemonContainer()
     _reg_dm("omniroute", lambda: _c.omniroute)
     return _daemon_omniroute(argv)
@@ -666,8 +680,8 @@ def cmd_docs(argv: list[str]) -> int:
 
 def _check_skill_pack() -> int:
     """Gate skills/ on the invariants a harness loader actually depends on."""
-    from modules.shared.src.taxonomy_common_vo import audit_pack, iter_skill_files
     from modules.shared.src.taxonomy_common_constant import DESCRIPTION_BUDGET_BYTES
+    from modules.shared.src.taxonomy_common_vo import audit_pack, iter_skill_files
 
     print("[4/5] Validating skill pack loadability...")
     pack = repo_root() / "skills"

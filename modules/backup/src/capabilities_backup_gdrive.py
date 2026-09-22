@@ -23,8 +23,8 @@ from pathlib import Path
 
 from modules.shared.src.contract_backup_protocol import IBackupGateway
 from modules.shared.src.taxonomy_backup_vo import BackupResult, RestoreResult
-from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_common_vo import data_home
+from modules.shared.src.utility_paths_resolver import repo_root
 
 ROOT = repo_root()
 
@@ -317,8 +317,9 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
         dest = dest / target_name
     dest.parent.mkdir(parents=True, exist_ok=True)
 
-    from googleapiclient.http import MediaIoBaseDownload
     import random as _random
+
+    from googleapiclient.http import MediaIoBaseDownload
     request = service.files().get_media(fileId=file_id)
     fh = io.FileIO(str(dest), "wb")
     try:
@@ -390,3 +391,7 @@ def main():
         sys.exit(1)
 
 
+
+
+if __name__ == "__main__":
+    main()

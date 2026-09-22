@@ -16,18 +16,19 @@ import signal
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 
 from modules.shared.src.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
-from modules.shared.src.utility_envfile_parser import update_env_file
-from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     config_home,
     data_home,
     state_home,
 )
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
+from modules.shared.src.utility_envfile_parser import update_env_file
+from modules.shared.src.utility_paths_resolver import repo_root
 
 ROOT = repo_root()
 
@@ -71,14 +72,31 @@ class AnytypeDaemonManager(IDaemonManager):
         return ExitCode(cmd_restart())
 
     def status(self) -> DaemonStatus:
-        # Call legacy cmd_status for side-effect (prints), then build VO
-        cmd_status()
+        # Probe once, print once — the legacy cmd_status path re-probed the
+        # API up to three times with backoff and stalled `aa anytype status`.
+        running = container_running()
+        exists = container_exists() if not running else True
+        ready = api_ready(timeout=3)
+        print("==========================================")
+        print(" Anytype Headless Daemon Status")
+        print("==========================================")
+        if has_podman():
+            if running:
+                print(" Container: RUNNING")
+            elif exists:
+                print(" Container: STOPPED (exists)")
+            else:
+                print(" Container: NOT FOUND")
+        if ready:
+            print(f" API: OK (http://127.0.0.1:{PORT})")
+        else:
+            print(" API: not ready")
         return DaemonStatus(
-            container_state="running" if container_running() else "stopped" if container_exists() else "not-found",
+            container_state="running" if running else "stopped" if exists else "not-found",
             service_state="unknown",
-            api_ready=api_ready(timeout=3),
+            api_ready=ready,
             data_dir=str(DATA_ROOT),
-            ok=container_running() and api_ready(timeout=3),
+            ok=running and ready,
             details=(),
         )
 
@@ -117,8 +135,6 @@ class AnytypeDaemonManager(IDaemonManager):
         return main(argv)
 
 
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
 def run(cmd, **kw):
     return subprocess.run(cmd, check=False, **kw)
 
@@ -154,10 +170,17 @@ def api_ready(timeout=90):
             with urllib.request.urlopen(url, timeout=3) as r:
                 if r.status < 400:
                     return True
+        except urllib.error.HTTPError as e:
+            # Any HTTP status (even 404 on /) proves the daemon answered.
+            if e.code < 500:
+                return True
         except (OSError, ValueError):
             pass
         # Exponential backoff: 1s, 2s, 4s, 8s... capped at 10s
-        time.sleep(delay)
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            break
+        time.sleep(min(delay, remaining))
         delay = min(delay * 2, 10.0)
     return False
 
@@ -458,4 +481,5 @@ def main(argv):
     print(f"Unknown anytype command: {action}", file=sys.stderr)
     return cmd_help()
 
-
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

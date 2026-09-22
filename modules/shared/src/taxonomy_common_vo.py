@@ -17,8 +17,10 @@ from modules.shared.src.taxonomy_common_constant import (
     DEFAULT_VERSION,
     DESCRIPTION_BUDGET_BYTES,
     ERROR,
-    REPO_ROOT as repo_root,
     SKILL_FILE,
+)
+from modules.shared.src.taxonomy_common_constant import (
+    REPO_ROOT as repo_root,
 )
 
 # --- core VOs ------------------------------------------------------------------
@@ -576,3 +578,6 @@ EnvPairs = NewType("EnvPairs", dict)
 
 #: Mapping of MCP server specifications.
 McpServersMap = NewType("McpServersMap", dict)
+
+#: Domain message VO — wraps a human-readable error string (AES401/AES402).
+ErrorMessage = NewType("ErrorMessage", str)

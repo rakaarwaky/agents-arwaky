@@ -1,9 +1,15 @@
 """Skill-domain aggregate contract (agent orchestrator ABC)."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs, SkillProvisionResult, SkillQuery, ToolFilter
-
 
 from abc import ABC, abstractmethod
+
+from modules.shared.src.taxonomy_skill_vo import (
+    ExitCode,
+    SkillArgs,
+    SkillProvisionResult,
+    SkillQuery,
+    ToolFilter,
+)
 
 
 class ISkillAggregate(ABC):

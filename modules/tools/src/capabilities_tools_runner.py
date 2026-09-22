@@ -24,11 +24,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
-from modules.shared.src.taxonomy_common_vo import ToolSpec
-from modules.shared.src.taxonomy_common_vo import bin_home
 from modules.shared.src.contract_tools_protocol import IToolRunner
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
+from modules.shared.src.taxonomy_common_vo import ToolSpec, bin_home
 from modules.shared.src.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,
     SENTINEL_EXECUTABLE_GONE,
@@ -130,12 +129,11 @@ class RunnerCapability(IToolRunner):
             runner = spec.runner or TOOL_RUNNERS.get(spec.id, "")
             if runner == "cargo" and shutil.which("cargo") and (tool_dir / "Cargo.toml").exists():
                 candidates.append(tool_dir / "Cargo.toml")
-            if runner in ("uv", "python"):
-                if tool_dir.exists():
-                    if shutil.which("uv"):
-                        candidates.append(tool_dir)
-                    elif shutil.which("python3"):
-                        candidates.append(Path(spec.id))
+            if runner in ("uv", "python") and tool_dir.exists():
+                if shutil.which("uv"):
+                    candidates.append(tool_dir)
+                elif shutil.which("python3"):
+                    candidates.append(Path(spec.id))
         return candidates
 
     def _execute(

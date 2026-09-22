@@ -1,21 +1,19 @@
-"""Python check capability — py_compile across tools/ + modules/."""
+"""Python check capability — py_compile across modules/."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
-from modules.shared.src.taxonomy_common_vo import DocFinding
-
 
 import py_compile
 from pathlib import Path
 
 from modules.shared.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_vo import DocFinding
 from modules.shared.src.utility_logging_setup import err, ok
 from modules.shared.src.utility_paths_resolver import repo_root
-
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 
 class PythonCheckRunner(ICheckRunner):
-    """py_compile every .py under tools/ and modules/."""
+    """py_compile every .py under modules/."""
 
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
@@ -45,7 +43,6 @@ class PythonCheckRunner(ICheckRunner):
 
 __all__ = ['CheckExitCode', 'DocFinding']
 
-#
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {"CheckExitCode": CheckExitCode, "DocFinding": DocFinding}

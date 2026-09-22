@@ -1,10 +1,9 @@
 """Service agent orchestrator — thin aggregate over the service manager."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
-
 
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
 from modules.shared.src.contract_service_protocol import IServiceManager
+from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 
 class ServiceOrchestrator(IServiceAggregate):

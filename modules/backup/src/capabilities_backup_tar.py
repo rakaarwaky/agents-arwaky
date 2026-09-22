@@ -16,18 +16,19 @@ import subprocess
 import sys
 import tarfile
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from modules.shared.src.contract_backup_protocol import IBackupGateway
 from modules.shared.src.taxonomy_backup_vo import BackupResult, RestoreResult
-from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.taxonomy_common_vo import data_home
+from modules.shared.src.utility_paths_resolver import repo_root
 
 ROOT = repo_root()
 
 BACKUP_STORE = data_home() / "backups"
-GDRIVE_HELPER = ROOT / "tools/backup/gdrive.py"
+# gdrive gateway lives in the AES backup feature; invoked as a module entry.
+GDRIVE_HELPER = "-m:modules.backup.src.capabilities_backup_gdrive"
 
 # tool -> data subdir (relative to XDG_DATA_HOME)
 TOOL_DATA = {
@@ -125,16 +126,22 @@ def backup_tool(tool: str, dest: str = ""):
     if not src.exists():
         print(f"  \u26a0 No data for {tool} at {src}, skipping.")
         return 0
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     archive = store / f"{tool}-{ts}.tar.gz"
     log_info(f"Backing up {tool} -> {archive}")
     tar_dir(src, archive)
     log_ok(f"{tool} backed up.")
     if upload_to_gdrive:
-        # Argument list without shell=True; helper path from repo (S603 ok)
+        # Argument list without shell=True; helper runs in-process as a module
+        target, _, mod = GDRIVE_HELPER.partition(":")
+        cmd = (
+            [sys.executable, target, mod, "upload", str(archive)]
+            if target == "-m"
+            else [sys.executable, target, "upload", str(archive)]
+        )
         with _Progress(f"Uploading {archive.name} to Google Drive..."):
             result = subprocess.run(
-                [sys.executable, str(GDRIVE_HELPER), "upload", str(archive)],
+                cmd,
                 capture_output=True, text=True, check=False,
             )
         if result.returncode != 0:
@@ -271,7 +278,7 @@ class TarBackupGateway(IBackupGateway):
 
     def backup(self, tool: str, dest: str = "") -> BackupResult:
         rc = cmd_backup([tool] + ([dest] if dest else []))
-        archive = f"{tool}-{datetime.now().strftime('%Y%m%d%H%M%S')}.tar.gz"
+        archive = f"{tool}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.tar.gz"
         return BackupResult(rc == 0, tool, archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────

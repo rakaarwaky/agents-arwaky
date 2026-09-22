@@ -1,10 +1,10 @@
 """MCP-domain protocol contract (capability ABC)."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServer
-
 
 from abc import ABC, abstractmethod
 from pathlib import Path
+
+from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServer
 
 
 class IMcpConfigGenerator(ABC):

@@ -54,7 +54,7 @@ When executing or reasoning about this repository, **you must preserve these inv
 The repository segregates agent workloads into three primary zones:
 - `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules: `lint-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `blender-arwaky`).
 - `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `ponytail`, `anytype-mcp`, `codegraph`, `omniroute`, `google-workspace-mcp`, `mnemosyne`).
-- `modules/`: AES 7-layer orchestration — per-feature capability modules (installer, updater, uninstaller, runner, daemon, harness, mcp, skill, service, backup, check, doctor) plus `modules/shared/src/` (XDG, venv, launcher, git, manifest, envfile, config, doc_pack, skill_pack, xdg, version, tool, paths, common) and `modules/cli/` (entry + router).
+- `modules/`: AES 7-layer orchestration — per-feature capability modules (tools, daemon, harness, mcp, skill, service, backup, check, doctor) plus `modules/shared/src/` (XDG, venv, launcher, git, manifest, envfile, config, doc_pack, skill_pack, xdg, version, tool, paths, common) and `modules/root_cli_entry.py` (CLI entry + router).
 
 > For the comprehensive visual directory tree and system flow diagram, see [**README.md § Architecture**](README.md#-architecture).
 

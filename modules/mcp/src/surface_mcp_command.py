@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.utility_logging_setup import BOLD, RESET, err
 from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
+from modules.shared.src.utility_logging_setup import BOLD, RESET, err
 from modules.shared.src.utility_paths_resolver import repo_root
 
 

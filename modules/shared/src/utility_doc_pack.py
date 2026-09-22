@@ -4,9 +4,6 @@ modules.shared.src.taxonomy_common_constant.
 """
 from __future__ import annotations
 
-from modules.shared.src.taxonomy_common_constant import ERROR, WARN
-from modules.shared.src.taxonomy_common_vo import DocFinding, Section as _Section, Table
-
 import os
 import re
 from pathlib import Path
@@ -14,11 +11,15 @@ from pathlib import Path
 from modules.shared.src.taxonomy_common_constant import (
     BACKLOG_COLUMNS,
     DOC_NAMES,
+    ERROR,
     EVIDENCED_STATES,
     HEALTH_VOCAB,
     SPEC_DOCS,
     STATE_VOCAB,
+    WARN,
 )
+from modules.shared.src.taxonomy_common_vo import DocFinding, Table
+from modules.shared.src.taxonomy_common_vo import Section as _Section
 
 # (ERROR/WARN imported from taxonomy_common_constant)
 

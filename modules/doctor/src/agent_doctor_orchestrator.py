@@ -1,10 +1,9 @@
 """Doctor agent orchestrator — routes doctor/status diagnostics."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_common_vo import ExitCode, Timestamp
-
 
 from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
 from modules.shared.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.taxonomy_common_vo import ExitCode, Timestamp
 
 
 class DoctorOrchestrator(IDoctorAggregate):
@@ -31,7 +30,6 @@ class DoctorOrchestrator(IDoctorAggregate):
 
 __all__ = ['ExitCode', 'Timestamp']
 
-#
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {"ExitCode": ExitCode, "Timestamp": Timestamp}

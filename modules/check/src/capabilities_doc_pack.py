@@ -6,18 +6,18 @@ through the refactor without a second import-swap pass.
 """
 from __future__ import annotations
 
-
 import importlib
-
 
 _doc_pack = importlib.import_module("modules.shared.src.utility_doc_pack")
 globals().update({n: getattr(_doc_pack, n) for n in dir(_doc_pack) if not n.startswith("__")})
 
 from modules.shared.src.taxonomy_check_vo import CheckExitCode
 from modules.shared.src.taxonomy_common_vo import DocFinding
+
 __all__ = [n for n in dir(_doc_pack) if not n.startswith("__")] + ["CheckExitCode", "DocFinding"]
 
 from modules.shared.src.contract_check_protocol import ICheckRunner
+
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class DocPackRunner(ICheckRunner):

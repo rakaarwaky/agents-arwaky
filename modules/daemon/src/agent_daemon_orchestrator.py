@@ -83,7 +83,7 @@ class DaemonOrchestrator(IDaemonAggregate):
             raise ValueError(f"Unknown daemon: {name}")
         return ExitCode(manager.service_status())
 
-__all__ = ['DaemonName', 'DaemonStatus', 'DaemonOrchestrator', 'ExitCode', 'IDaemonAggregate', 'IDaemonManager']
+__all__ = ['DaemonName', 'DaemonOrchestrator', 'DaemonStatus', 'ExitCode', 'IDaemonAggregate', 'IDaemonManager']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {

@@ -29,30 +29,28 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
-from modules.shared.src.taxonomy_common_error import ToolUpdateError
+from modules.shared.src.contract_tools_protocol import IToolAdapterFacade
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER, REPO_ROOT
-from modules.shared.src.taxonomy_common_vo import ToolSpec
+from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
-    atomic_write_text,
-    ensure_bin_home,
-    ensure_path,
-    warn_if_bin_not_on_path,
-)
-from modules.shared.src.taxonomy_common_vo import (
+    ToolSpec,
     agents_arwaky_config_dir,
+    atomic_write_text,
     bin_home,
     cache_home,
     config_home,
     data_home,
+    ensure_bin_home,
+    ensure_path,
     tool_cache_dir,
     tool_config_dir,
     tool_data_dir,
     tool_state_dir,
+    warn_if_bin_not_on_path,
 )
-from modules.shared.src.contract_tools_protocol import IToolAdapterFacade
 from modules.shared.src.taxonomy_tools_constant import (
     ANYTYPE_DAEMON_DATA_REL,
     ANYTYPE_INTERNAL_BIN,
@@ -322,7 +320,7 @@ def write_install_stamp(app_dir: Path, tool: str, submodule_dir: Path) -> None:
     stamp = {
         "tool": tool,
         "commit": get_current_commit(submodule_dir) or "unknown",
-        "installed_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "installed_at": datetime.datetime.now(datetime.UTC).isoformat(),
     }
     try:
         app_dir.mkdir(parents=True, exist_ok=True)
@@ -1040,9 +1038,8 @@ def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
 
 def _anytype_combined_lifecycle(action: str, root: Path, daemons=None) -> list[Path]:
     """Unified lifecycle: MCP + daemon dalam satu function."""
-    if action == "update":
-        if not update_submodule(root, ANYTYPE_MCP_SRC_REL):
-            raise ToolUpdateError(f"submodule update failed: {ANYTYPE_MCP_SRC_REL}")
+    if action == "update" and not update_submodule(root, ANYTYPE_MCP_SRC_REL):
+        raise ToolUpdateError(f"submodule update failed: {ANYTYPE_MCP_SRC_REL}")
     mcp_result = _node_tool_lifecycle(
         action, root, ANYTYPE_MCP_SRC_REL, ANYTYPE_MCP_APP_REL,
         ["bun", "install", "--frozen-lockfile"], ["bun", "run", "build"],
@@ -1217,7 +1214,7 @@ def lint_update(spec, root):
 
 
 def _omniroute_daemon_feature():
-    _daemon_root = ".".join(("modules", "daemon", "src", "root_daemon_container"))
+    _daemon_root = "modules.daemon.src.root_daemon_container"
     return importlib.import_module(_daemon_root).create_daemon_feature()
 
 
@@ -1354,28 +1351,24 @@ __all__ = [
     "TOOLS_REGISTRY",
     "_ADAPTER_UNITS",
     "ToolAdapterFacade",
-    "anytype_satisfied", "anytype_install", "anytype_update",
-    "anytype_is_pin_satisfied", "anytype_owned_paths",
-    "anytype_daemon_satisfied", "anytype_daemon_install", "anytype_daemon_update",
-    "anytype_daemon_is_pin_satisfied", "anytype_daemon_owned_paths",
-    "blender_satisfied", "blender_install", "blender_update",
-    "blender_is_pin_satisfied", "blender_owned_paths",
-    "codegraph_satisfied", "codegraph_install", "codegraph_update",
-    "codegraph_is_pin_satisfied", "codegraph_owned_paths",
-    "context7_satisfied", "context7_install", "context7_update",
-    "context7_is_pin_satisfied", "context7_owned_paths",
-    "fetch_satisfied", "fetch_install", "fetch_update",
-    "fetch_is_pin_satisfied", "fetch_owned_paths",
-    "lint_satisfied", "lint_install", "lint_update",
-    "lint_is_pin_satisfied", "lint_owned_paths",
-    "mnemosyne_satisfied", "mnemosyne_install", "mnemosyne_update",
-    "mnemosyne_is_pin_satisfied", "mnemosyne_owned_paths",
-    "ponytail_satisfied", "ponytail_install", "ponytail_update",
-    "ponytail_is_pin_satisfied", "ponytail_owned_paths",
-    "qwen_web_satisfied", "qwen_web_install", "qwen_web_update",
-    "qwen_web_is_pin_satisfied", "qwen_web_owned_paths",
-    "vision_satisfied", "vision_install", "vision_update",
-    "vision_is_pin_satisfied", "vision_owned_paths",
-    "workspace_satisfied", "workspace_install", "workspace_update",
-    "workspace_is_pin_satisfied", "workspace_owned_paths",
+    "anytype_daemon_install",
+    "anytype_daemon_is_pin_satisfied",
+    "anytype_daemon_owned_paths",
+    "anytype_daemon_satisfied",
+    "anytype_daemon_update",
+    "anytype_install",
+    "anytype_is_pin_satisfied",
+    "anytype_owned_paths",
+    "anytype_satisfied",
+    "anytype_update",
+    "lint_install",
+    "lint_is_pin_satisfied",
+    "lint_owned_paths",
+    "lint_satisfied",
+    "lint_update",
 ]
+# Per-tool verb names bound via globals() above (TOOL_VERB_PREFIXES keys).
+for _tid, _prefix in TOOL_VERB_PREFIXES.items():
+    for _verb in ("satisfied", "install", "update", "is_pin_satisfied", "owned_paths"):
+        __all__.append(f"{_prefix}_{_verb}")
+del _tid, _prefix, _verb

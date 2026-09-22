@@ -1,11 +1,10 @@
 """MCP agent orchestrator — aggregates the MCP config generator."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServer, McpServerInfo
-
 
 from pathlib import Path
 
 from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
+from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServer, McpServerInfo
 
 
 class McpOrchestrator(IMcpAggregate):

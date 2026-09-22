@@ -1,12 +1,11 @@
 """Shared skill-name helpers (AES taxonomy layer, _vo: pure functions allowed)."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import NewType
-
 import posixpath
 import re
+from dataclasses import dataclass
 from pathlib import Path
+from typing import NewType
 
 #: Process or command exit code (0 = success, non-zero = failure).
 ExitCode = NewType("ExitCode", int)

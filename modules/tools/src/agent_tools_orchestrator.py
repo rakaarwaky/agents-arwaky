@@ -16,21 +16,8 @@ orchestrator edit.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import ClassVar
 
-from modules.shared.src.taxonomy_common_error import (
-    ToolInstallError,
-    ToolUninstallError,
-    ToolUpdateError,
-)
-from modules.shared.src.taxonomy_common_vo import Tool
-from modules.shared.src.taxonomy_common_vo import (
-    InstallResult,
-    ToolSpec,
-    UninstallResult,
-    UpdateResult,
-)
-from modules.shared.src.utility_manifest_reader import find_tool, load_tools
-from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.contract_tools_aggregate import IToolsAggregate
 from modules.shared.src.contract_tools_protocol import (
     IToolAdapterFacade,
@@ -39,7 +26,21 @@ from modules.shared.src.contract_tools_protocol import (
     IToolUninstaller,
     IToolUpdater,
 )
+from modules.shared.src.taxonomy_common_error import (
+    ToolInstallError,
+    ToolUninstallError,
+    ToolUpdateError,
+)
+from modules.shared.src.taxonomy_common_vo import (
+    InstallResult,
+    Tool,
+    ToolSpec,
+    UninstallResult,
+    UpdateResult,
+)
 from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolQuery
+from modules.shared.src.utility_manifest_reader import find_tool, load_tools
+from modules.shared.src.utility_paths_resolver import repo_root
 
 
 def _spec_from_tool(tool: Tool) -> ToolSpec:
@@ -156,7 +157,7 @@ class ToolsOrchestrator(IToolsAggregate):
 
     # -- Block 3: Private helpers ---------------------------------------------------
     # P1-2: verb-typed error — was always ToolInstallError for every verb.
-    _VERB_ERRORS: dict[str, type[Exception]] = {
+    _VERB_ERRORS: ClassVar[dict[str, type[Exception]]] = {
         "install": ToolInstallError,
         "update": ToolUpdateError,
         "uninstall": ToolUninstallError,

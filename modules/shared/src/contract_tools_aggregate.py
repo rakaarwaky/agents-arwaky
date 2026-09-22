@@ -10,9 +10,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_vo import Tool
 from modules.shared.src.taxonomy_common_vo import (
     InstallResult,
+    Tool,
     ToolSpec,
     UninstallResult,
     UpdateResult,

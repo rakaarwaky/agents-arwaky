@@ -1,6 +1,6 @@
-from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
-
 from abc import ABC, abstractmethod
+
+from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 
 class IServiceManager(ABC):

@@ -8,11 +8,11 @@ from __future__ import annotations
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 
 
-def repo_root() -> "type[REPO_ROOT] | object":
+def repo_root() -> type[REPO_ROOT] | object:
     """Return the repository root as a Path."""
     return REPO_ROOT
 
 
-def repo_dir() -> "type[REPO_ROOT] | object":
+def repo_dir() -> type[REPO_ROOT] | object:
     """Alias of :func:`repo_root`."""
     return REPO_ROOT

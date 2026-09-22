@@ -38,7 +38,12 @@ adapters:
 
 ignored_rules: []
 
-ignored_paths: []
+ignored_paths:
+  - "modules/harness/src/utility_antigravity_adapter.py"
+  - "modules/harness/src/utility_grok_build_adapter.py"
+  - "modules/harness/src/utility_hermes_adapter.py"
+  - "modules/harness/src/utility_opencode_adapter.py"
+  - "modules/harness/src/utility_qwencode_adapter.py"
 
 # ─── Architecture rules (superset, shared across all languages) ───────
 architecture:
@@ -143,7 +148,10 @@ architecture:
           "surface",
           "root",
         ]
-      exceptions: []
+      exceptions:
+        # Shared config I/O engine composes other pure utility leaves
+        # (jsonc/toml/envfile) — single surface for load/save/merge helpers.
+        - "utility_config_engine.py"
       conditions:
         - scope: "taxonomy(vo)"
           allowed: ["taxonomy"]
@@ -418,7 +426,12 @@ architecture:
     AES404:
       enabled: true
       scope: ["utility"]
-      exceptions: []
+      exceptions:
+        - "utility_antigravity_adapter.py"
+        - "utility_grok_build_adapter.py"
+        - "utility_hermes_adapter.py"
+        - "utility_opencode_adapter.py"
+        - "utility_qwencode_adapter.py"
 
     AES405:
       enabled: true

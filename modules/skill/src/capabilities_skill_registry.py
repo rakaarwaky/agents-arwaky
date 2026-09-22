@@ -1,5 +1,6 @@
 from modules.shared.src.contract_skill_protocol import ISkillRegistry
 from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
+
 """Skill provisioning registry — pure helpers (manifest lookups, unpack/unlink, audit).
 
 Shared, stateless helpers for the skill verb commands: tool/skill lookup from
@@ -15,15 +16,15 @@ from functools import lru_cache
 from pathlib import Path
 
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.utility_logging_setup import pad as _pad, table_widths as _table_widths
-from modules.shared.src.utility_skill_pack import write_provenance
-
-
 from modules.shared.src.taxonomy_skill_vo import (
     ensure_under,
     safe_child,
     safe_skill_name,
 )
+from modules.shared.src.utility_logging_setup import pad as _pad
+from modules.shared.src.utility_logging_setup import table_widths as _table_widths
+from modules.shared.src.utility_skill_pack import write_provenance
+
 MANIFEST = REPO_ROOT / "config" / "manifest.json"
 PACK_ROOT = REPO_ROOT / "skills"
 
@@ -182,8 +183,8 @@ def provision_single_skill(source_file, target_dir, custom_dest="", force=False,
     plain text file containing a path. Use --link only for local, uncommitted
     workspaces where live tracking of the pack is worth more than portability.
 
-    Harness provisioning (aa connect) does use links; see
-    connect_shared.provision_skill_to_dir.
+    Harness provisioning (aa connect) uses links; see
+    `_link_skills_root` / `_provision_skill` in the harness skills capability.
     """
     if not source_file.is_file():
         print(f"  \u2717 Error: Source file not found: {source_file}", file=sys.stderr)

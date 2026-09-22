@@ -5,20 +5,22 @@ Non-feature taxonomy errors; feature-specific errors belong in
 """
 from __future__ import annotations
 
+from modules.shared.src.taxonomy_common_vo import ErrorMessage
+
 
 class ArwakyError(Exception):
     """Base class for every agents-arwaky domain error."""
 
     _MESSAGE_FIELD = "message"
 
-    def __init__(self, message: "str") -> None:
+    def __init__(self, message: ErrorMessage) -> None:
         self._message = message
 
     @property
-    def message(self) -> str:
+    def message(self) -> ErrorMessage:
         return self._message
 
-    def __str__(self) -> str:
+    def __str__(self) -> ErrorMessage:
         return self._message
 
 

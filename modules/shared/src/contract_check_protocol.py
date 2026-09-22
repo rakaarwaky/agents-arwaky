@@ -1,10 +1,10 @@
 """Check-domain protocol contract (capability ABC)."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
-from modules.shared.src.taxonomy_common_vo import DocFinding
-
 
 from abc import ABC, abstractmethod
+
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_vo import DocFinding
 
 
 class ICheckRunner(ABC):

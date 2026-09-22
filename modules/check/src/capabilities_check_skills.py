@@ -1,21 +1,19 @@
 """Skills check capability — delegates to the shared skill_pack domain."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
-
 
 from pathlib import Path
 
 from modules.shared.src.contract_check_protocol import ICheckRunner
-from modules.shared.src.utility_logging_setup import err, info, ok
-from modules.shared.src.utility_paths_resolver import repo_root
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_constant import (
+    DESCRIPTION_BUDGET_BYTES,
+)
 from modules.shared.src.taxonomy_common_vo import (
     audit_pack,
     iter_skill_files,
 )
-from modules.shared.src.taxonomy_common_constant import (
-    DESCRIPTION_BUDGET_BYTES,
-)
-
+from modules.shared.src.utility_logging_setup import err, info, ok
+from modules.shared.src.utility_paths_resolver import repo_root
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 
@@ -43,7 +41,6 @@ class SkillsCheckRunner(ICheckRunner):
 
 __all__ = ['CheckExitCode']
 
-#
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {"CheckExitCode": CheckExitCode}

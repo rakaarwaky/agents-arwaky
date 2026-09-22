@@ -1,11 +1,10 @@
 """Check agent orchestrator — runs all 5 verification checks in sequence."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
-from modules.shared.src.taxonomy_common_vo import DocFinding
-
 
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
 from modules.shared.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_common_vo import DocFinding
 from modules.shared.src.utility_logging_setup import banner, err, info, ok
 
 
@@ -39,7 +38,6 @@ class CheckOrchestrator(ICheckAggregate):
 
 __all__ = ['CheckExitCode', 'DocFinding']
 
-#
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {"CheckExitCode": CheckExitCode, "DocFinding": DocFinding}

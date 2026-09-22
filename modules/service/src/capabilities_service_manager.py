@@ -8,13 +8,12 @@ aggregate (composition root) and injected; the module-level cmd_* functions
 fall back to a lazily-built aggregate only when called standalone.
 """
 from __future__ import annotations
-from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
-
 
 import sys
 
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_service_protocol import IServiceManager
+from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 _DAEMON_AGGREGATE: IDaemonAggregate | None = None
 
@@ -71,10 +70,6 @@ class ServiceManager(IServiceManager):
 
     def main(self, argv) -> int:
         return main(argv)
-
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
 
 
 def _run_omniroute(args: list[str]) -> int:
@@ -171,3 +166,8 @@ __all__ = ['ExitCode', 'IServiceManager', 'ServiceManager', 'ServiceTarget']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {"ExitCode": ExitCode, "IServiceManager": IServiceManager, "ServiceManager": ServiceManager, "ServiceTarget": ServiceTarget}
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+
+

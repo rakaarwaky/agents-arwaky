@@ -19,11 +19,14 @@ import datetime
 import json
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_error import ToolUpdateError
-from modules.shared.src.taxonomy_common_vo import ToolSpec, UpdateResult
-from modules.shared.src.taxonomy_common_vo import atomic_write_text
-from modules.shared.src.taxonomy_common_vo import state_home
 from modules.shared.src.contract_tools_protocol import IToolAdapterFacade, IToolUpdater
+from modules.shared.src.taxonomy_common_error import ToolUpdateError
+from modules.shared.src.taxonomy_common_vo import (
+    ToolSpec,
+    UpdateResult,
+    atomic_write_text,
+    state_home,
+)
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
@@ -112,7 +115,7 @@ class UpdaterCapability(IToolUpdater):
                         "tool": spec.id,
                         "message": update_result.message,
                         # P1-8: real UTC ISO-8601 timestamp, was literal "now".
-                        "recorded_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        "recorded_at": datetime.datetime.now(datetime.UTC).isoformat(),
                     },
                     indent=2,
                 ) + "\n",

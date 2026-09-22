@@ -1,13 +1,11 @@
 """Docs check capability — delegates to the shared doc_pack domain."""
 from __future__ import annotations
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
-from modules.shared.src.taxonomy_common_vo import DocFinding
-
 
 import os
 from pathlib import Path
 
 from modules.shared.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.taxonomy_check_vo import CheckExitCode
 from modules.shared.src.utility_doc_pack import (
     DocFinding,
     as_strict,
@@ -17,7 +15,6 @@ from modules.shared.src.utility_doc_pack import (
 )
 from modules.shared.src.utility_logging_setup import err, info, ok, warn
 from modules.shared.src.utility_paths_resolver import repo_root
-
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 

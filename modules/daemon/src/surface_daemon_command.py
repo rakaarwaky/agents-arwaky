@@ -6,7 +6,7 @@ and injected into these verbs; this module stays free of root/capability imports
 from __future__ import annotations
 
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
@@ -39,7 +39,7 @@ def cmd_omniroute(args: list[str], orch: DaemonOrchestrator | None = None, manag
         "start": mgr.start,
         "stop": mgr.stop,
         "restart": mgr.restart,
-        "status": lambda: mgr.status(),
+        "status": lambda: ExitCode(0 if mgr.status().ok else 1),
         "logs": mgr.logs,
         "models": mgr.models,
         "service-install": mgr.service_install,
@@ -64,7 +64,7 @@ def cmd_anytype(args: list[str], orch: DaemonOrchestrator | None = None, manager
         "start": lambda: mgr.start(),
         "stop": lambda: mgr.stop(),
         "restart": lambda: mgr.restart(),
-        "status": lambda: mgr.status(),
+        "status": lambda: ExitCode(0 if mgr.status().ok else 1),
         "logs": lambda: mgr.logs(),
         "auth-create": lambda: mgr.auth_create(rest[0] if rest else "agent"),
         "auth-key": lambda: mgr.auth_key(rest[0] if rest else "arwaky-agent-key"),

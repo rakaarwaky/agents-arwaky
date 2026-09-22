@@ -8,19 +8,30 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from modules.skill.src.capabilities_skill_registry import (
-    PACK_ROOT,
-    extract_description,
-    get_registered_tool_ids,
-    get_tool_skills,
-    remove_single_skill,
-    uninstall_tool_skills,
-    _pad,
-    _table_widths,
-)
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.taxonomy_common_vo import audit_pack
 from modules.shared.src.taxonomy_skill_vo import (
     extract_skill_name,
 )
+from modules.shared.src.utility_skill_pack import prune_provisioned
+from modules.skill.src.capabilities_skill_registry import (
+    PACK_ROOT,
+    _get_all_skills,
+    _manifest_tools,
+    _pad,
+    _table_widths,
+    extract_description,
+    get_registered_tool_ids,
+    get_tool_skills,
+    normalize_tool_id,
+    provision_single_skill,
+    remove_single_skill,
+    resolve_single_skill_file,
+    resolve_tool_skills,
+    uninstall_tool_skills,
+)
+
+
 def cmd_uninstall(argv):
     target_name = ""
     target_dir = Path.cwd()
@@ -421,8 +432,8 @@ class SkillRegistryAdapter(ISkillRegistry):
     """
 
     def __init__(self) -> None:
-        from modules.skill.src import capabilities_skill_registry as _reg
-        self._reg = _reg
+        import importlib
+        self._reg = importlib.import_module("modules.skill.src.capabilities_skill_registry")
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
     def cmd_list(self, argv: SkillArgs) -> ExitCode:
