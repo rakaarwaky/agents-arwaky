@@ -21,21 +21,13 @@ from modules.shared.src.taxonomy_common_constant import (
 
 
 class SkillsCheckRunner(ICheckRunner):
-    """Gate the skill pack on the loadability invariants.
+    """Gate the skill pack on the loadability invariants."""
 
-    # Block 1: Configuration
-    # Block 2: Audit
-    # Block 3: Report
-    """
-
-    # -- Block 1: Configuration ---------------------------------------------------
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
         self._pack = self._root / "skills"
 
-    # -- Block 2: Audit --------------------------------------------------------------
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def run(self, strict: bool = False) -> CheckExitCode:
         print("[4/5] Validating skill pack loadability...")
         findings = audit_pack(self._pack)

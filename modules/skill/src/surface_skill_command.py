@@ -406,16 +406,12 @@ def main(argv: list[str], orch: object | None = None) -> int:
     print(f"Unknown skill command: {action}")
     return cmd_help()
 
-# (no protocol class — pure helpers, see AES NOTE: should be utility_*)
-# ─── Block 2: Protocol ABC Method Implementation ──────────
-# (none)
-# ─── Block 3: Dunder Methods, Factories & Helpers ───────
-
 
 from modules.shared.src.contract_skill_protocol import ISkillRegistry
 from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
 class SkillRegistryAdapter(ISkillRegistry):
     """ISkillRegistry implementation wrapping the module-level cmd_* functions.
 
@@ -428,6 +424,7 @@ class SkillRegistryAdapter(ISkillRegistry):
         from modules.skill.src import capabilities_skill_registry as _reg
         self._reg = _reg
 
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def cmd_list(self, argv: SkillArgs) -> ExitCode:
         return ExitCode(self._reg.cmd_list(argv))
 

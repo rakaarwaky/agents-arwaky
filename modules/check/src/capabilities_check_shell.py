@@ -16,29 +16,12 @@ from modules.shared.src.utility_paths_resolver import repo_root
 # ─── Block 1: Class Definition & Constructor ──────────────
 
 class ShellCheckRunner(ICheckRunner):
-    """Run shellcheck on tools/**/*.sh (upstream skills/ excluded).
+    """Run shellcheck on tools/**/*.sh (upstream skills/ excluded)."""
 
-    # Block 1: Configuration (file discovery)
-    # Block 2: shellcheck execution
-    # Block 3: Result
-    """
-
-    # -- Block 1: Configuration ---------------------------------------------------
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def _sh_files(self) -> list[Path]:
-        out: list[Path] = []
-        for base in (self._root / "modules",):
-            if base.is_dir():
-                for path in base.rglob("*.sh"):
-                    if "node_modules" not in path.parts and path.relative_to(self._root).parts[0] != "skills":
-                        out.append(path)
-        return out
-
-    # -- Block 2: shellcheck execution --------------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def run(self, strict: bool = False) -> CheckExitCode:
         sh_files = self._sh_files()
         if not sh_files:
@@ -63,6 +46,16 @@ class ShellCheckRunner(ICheckRunner):
                     err(f"shellcheck {f}: {line}")
                 errors += 1
         return CheckExitCode(errors)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def _sh_files(self) -> list[Path]:
+        out: list[Path] = []
+        for base in (self._root / "modules",):
+            if base.is_dir():
+                for path in base.rglob("*.sh"):
+                    if "node_modules" not in path.parts and path.relative_to(self._root).parts[0] != "skills":
+                        out.append(path)
+        return out
 
 __all__ = ['CheckExitCode', 'DocFinding']
 

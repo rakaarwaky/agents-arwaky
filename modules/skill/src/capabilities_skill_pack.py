@@ -35,20 +35,12 @@ _reg = importlib.import_module("modules.skill.src.capabilities_skill_registry")
 # ─── Block 1: Class Definition & Constructor ──────────────
 
 class SkillPackProvisioner(ISkillProvisioner):
-    """Thin delegate over the shared skill_pack domain for a single tool.
+    """Thin delegate over the shared skill_pack domain for a single tool."""
 
-    # Block 1: Constructor
-    # Block 2: Install / prune
-    # Block 3: Audit
-    """
-
-    # -- Block 1: Constructor ---------------------------------------------------
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self) -> None:
         self._pack_root = repo_root() / "skills"
 
-    # -- Block 2: Install / prune ----------------------------------------------------
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def install(self, tool_id: ToolFilter, target_dir: Path, custom_dest: str = "", force: bool = False, link: bool = False, prune: bool = False) -> SkillProvisionResult:
         """Provision every pack skill into the target workspace (original cmd_install body)."""
         argv: list[str] = []
@@ -70,7 +62,7 @@ class SkillPackProvisioner(ISkillProvisioner):
         removed = prune_provisioned(base, _reg.PACK_ROOT)
         return SkillProvisionResult(True, "pack", len(removed), f"removed {len(removed)} stale provisioned skill(s)")
 
-    # -- Block 3: Audit --------------------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def audit(self) -> list[PackFinding]:
         """Pack loadability findings; empty means clean."""
         return _reg.audit_pack(self._pack_root)

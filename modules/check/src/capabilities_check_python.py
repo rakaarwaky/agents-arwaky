@@ -15,29 +15,12 @@ from modules.shared.src.utility_paths_resolver import repo_root
 # ─── Block 1: Class Definition & Constructor ──────────────
 
 class PythonCheckRunner(ICheckRunner):
-    """py_compile every .py under tools/ and modules/.
+    """py_compile every .py under tools/ and modules/."""
 
-    # Block 1: Configuration (file discovery)
-    # Block 2: Compilation
-    # Block 3: Result
-    """
-
-    # -- Block 1: Configuration ---------------------------------------------------
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def _py_files(self) -> list[Path]:
-        out: list[Path] = []
-        for base in (self._root / "modules",):
-            if base.is_dir():
-                for path in base.rglob("*.py"):
-                    if "node_modules" not in path.parts and ".git" not in path.parts:
-                        out.append(path)
-        return out
-
-    # -- Block 2: Compilation -------------------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def run(self, strict: bool = False) -> CheckExitCode:
         print("[2/5] Compiling Python files...")
         errors = 0
@@ -49,6 +32,16 @@ class PythonCheckRunner(ICheckRunner):
                 err(f"Python compile error: {py_file}: {e}")
                 errors += 1
         return CheckExitCode(errors)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def _py_files(self) -> list[Path]:
+        out: list[Path] = []
+        for base in (self._root / "modules",):
+            if base.is_dir():
+                for path in base.rglob("*.py"):
+                    if "node_modules" not in path.parts and ".git" not in path.parts:
+                        out.append(path)
+        return out
 
 __all__ = ['CheckExitCode', 'DocFinding']
 

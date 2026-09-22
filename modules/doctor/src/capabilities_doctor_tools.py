@@ -26,13 +26,10 @@ from modules.shared.src.taxonomy_common_vo import bin_home
 class ToolsDiagnosticRunner(IDiagnosticRunner):
     """Submodule-missing check + binary readiness table."""
 
-    # -- Block 1: Configuration ---------------------------------------------------
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self) -> None:
         ensure_path()
 
-    # -- Block 2: Protocol ABC Method Implementation --------------------------------
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def run(self, json_mode: bool = False) -> ExitCode:
         if json_mode:
             out = []
@@ -78,7 +75,7 @@ class ToolsDiagnosticRunner(IDiagnosticRunner):
         print(sep)
         return ExitCode(0)
 
-    # -- Block 3: Dunder Methods, Factories & Helpers ----------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def __repr__(self) -> str:
         return "ToolsDiagnosticRunner()"
 

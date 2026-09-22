@@ -36,20 +36,12 @@ from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServerInfo
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
-    """Read the manifest + env files and write mcp_servers.generated.json.
+    """Read the manifest + env files and write mcp_servers.generated.json."""
 
-    # Block 1: Constructor & env resolution
-    # Block 2: Config assembly & generation
-    # Block 3: Aggregate inspection verbs (list/show)
-    """
-
-    # -- Block 1: Constructor & env resolution -----------------------------------
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self) -> None:
         self._root = repo_root()
 
-    # -- Block 2: Config assembly & generation ------------------------------------
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def generate(self, output: Path) -> ExitCode:
         """Write the unified MCP client config to *output*; returns 0.
 
@@ -68,7 +60,7 @@ class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
     def generate_config(self, output: Path) -> ExitCode:
         return self.generate(output)
 
-    # -- Block 3: Aggregate inspection verbs ---------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def list_servers(self) -> list[McpServerInfo]:
         """MCP-enabled tools from the manifest (original cmd_mcp 'list' logic)."""
         manifest_path = self._root / "config" / "manifest.json"

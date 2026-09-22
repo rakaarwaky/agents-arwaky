@@ -24,19 +24,27 @@ OPTIONAL = ("cargo", "uv", "node", "npm", "bun", "pnpm", "rustc")
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class EnvDiagnosticRunner(IDiagnosticRunner):
-    """PATH check, required/optional toolchain, container engine detection.
+    """PATH check, required/optional toolchain, container engine detection."""
 
-    # Block 1: Configuration
-    # Block 2: PATH + toolchain checks
-    # Block 3: Container engine + summary
-    """
-
-    # -- Block 1: Configuration ---------------------------------------------------
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def __init__(self) -> None:
         ensure_path()
 
-    # -- Block 2: PATH + toolchain checks -------------------------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def run(self, json_mode: bool = False) -> ExitCode:
+        _ = json_mode
+        banner()
+        print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")
+        print("-" * 54)
+        self._check_toolchain()
+        engine = shutil.which("podman") or shutil.which("docker")
+        if engine:
+            ok(f"Container engine: {engine}")
+        else:
+            warn("Podman/Docker not found (only needed for anytype daemons)")
+        print("-" * 54)
+        print(f"{GREEN()}Diagnostics complete.{RESET()}")
+        return ExitCode(0)
+
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def _check_toolchain(self) -> None:
         target_bin = str(bin_home())
@@ -56,22 +64,6 @@ class EnvDiagnosticRunner(IDiagnosticRunner):
                 ok(f"{util}: {path}")
             else:
                 print(f"  {DIM()}[SKIP]{RESET()} {util} not installed (optional)")
-
-    # -- Block 2: Protocol implementation -------------------------------------------
-    def run(self, json_mode: bool = False) -> ExitCode:
-        _ = json_mode
-        banner()
-        print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")
-        print("-" * 54)
-        self._check_toolchain()
-        engine = shutil.which("podman") or shutil.which("docker")
-        if engine:
-            ok(f"Container engine: {engine}")
-        else:
-            warn("Podman/Docker not found (only needed for anytype daemons)")
-        print("-" * 54)
-        print(f"{GREEN()}Diagnostics complete.{RESET()}")
-        return ExitCode(0)
 def _resolve_executable(binary: str):
     """shutil.which + bin_home executable fallback (from lib/tool_resolver)."""
     found = shutil.which(binary)
