@@ -5,7 +5,7 @@ from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
 Shared, stateless helpers for the skill verb commands: tool/skill lookup from
 the manifest, skill unpack/link/unlink operations, and pack audit. The
 stateful verb commands themselves live in
-:mod:`modules.skill.src.agent_skill_verb`.
+:mod:`modules.skill.src.surface_skill_command`.
 """
 import json
 import re

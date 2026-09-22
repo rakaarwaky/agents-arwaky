@@ -8,7 +8,7 @@ from __future__ import annotations
 from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
 from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
 from modules.mcp.src.root_mcp_container import McpContainer, create_mcp_feature
-from modules.mcp.src.agent_mcp_verb import cmd_mcp
+from modules.mcp.src.surface_mcp_command import cmd_mcp
 
 __all__ = [
     "McpConfigGenerator",

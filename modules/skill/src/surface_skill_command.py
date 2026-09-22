@@ -1,4 +1,4 @@
-"""Skill verb commands — aa skill list|show|install|check|help|uninstall.
+"""Skill command surface — aa skill list|show|install|check|help|uninstall.
 
 1:1 verbatim port of the verb bodies from tools/skill/skill.py; pure helpers
 live in :mod:`modules.skill.src.capabilities_skill_registry`.
@@ -417,7 +417,7 @@ from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
 
 
 class SkillRegistryAdapter(ISkillRegistry):
-    """ISkillRegistry implementation wrapping the module-level cmd_* verbs.
+    """ISkillRegistry implementation wrapping the module-level cmd_* functions.
 
     Lets the root composition layer inject a concrete registry object
     into :class:`modules.skill.src.agent_skill_orchestrator.SkillOrchestrator`

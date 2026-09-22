@@ -1,4 +1,4 @@
-"""Doctor surface — CLI adapters for aa doctor / aa status (agent-layer verb, AES405)."""
+"""Doctor surface — CLI adapters for aa doctor / aa status."""
 from __future__ import annotations
 
 from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
@@ -7,7 +7,7 @@ from modules.shared.src.taxonomy_common_vo import ExitCode
 
 
 class DoctorVerb(IDoctorAggregate):
-    """Agent-layer CLI verb surface for the doctor feature (AES405 aggregate implementor)."""
+    """CLI command surface for the doctor feature."""
 
     def __init__(self, orch: DoctorOrchestrator) -> None:
         self._orch = orch

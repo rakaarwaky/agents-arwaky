@@ -4,6 +4,7 @@ from __future__ import annotations
 from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
 from modules.doctor.src.capabilities_doctor_env import EnvDiagnosticRunner
 from modules.doctor.src.capabilities_doctor_tools import ToolsDiagnosticRunner
+from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
 
 
 class DoctorContainer:
@@ -15,7 +16,7 @@ class DoctorContainer:
         self._orchestrator = DoctorOrchestrator(env_runner, tools_runner)
 
     @property
-    def aggregate(self) -> DoctorOrchestrator:
+    def aggregate(self) -> IDoctorAggregate:
         return self._orchestrator
 
 

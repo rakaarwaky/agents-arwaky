@@ -28,7 +28,6 @@ original ``tools/cli/arwaky.py`` ``main()``.
 """
 from __future__ import annotations
 
-import json
 import os
 import re
 import shutil
@@ -400,7 +399,7 @@ def cmd_install(argv: list[str]) -> int:
             warn(f"{tool.id}: {result.message}")
     if target == "all":
         from modules.mcp.src.root_mcp_container import create_mcp_feature
-        from modules.mcp.src.agent_mcp_verb import cmd_mcp as _mcp
+        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         info("Generating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -451,7 +450,7 @@ def cmd_update(argv: list[str]) -> int:
             warn(f"{tool.id}: {result.message}")
     if target == "all":
         from modules.mcp.src.root_mcp_container import create_mcp_feature
-        from modules.mcp.src.agent_mcp_verb import cmd_mcp as _mcp
+        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         info("Regenerating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -502,7 +501,7 @@ def cmd_mcp(argv: list[str]) -> int:
 
 def cmd_skill(argv: list[str]) -> int:
     from modules.skill.src.root_skill_container import create_skill_feature
-    from modules.skill.src.agent_skill_verb import main as _skill_surface
+    from modules.skill.src.surface_skill_command import main as _skill_surface
     return _skill_surface(argv, create_skill_feature())
 
 
@@ -549,7 +548,7 @@ def _doctor_feature_compat():
 
 
 def cmd_anytype(argv: list[str]) -> int:
-    from modules.daemon.src.agent_daemon_verb import cmd_anytype as _daemon_anytype, register_manager_factory as _reg_dm
+    from modules.daemon.src.surface_daemon_command import cmd_anytype as _daemon_anytype, register_manager_factory as _reg_dm
     from modules.daemon.src.root_daemon_container import DaemonContainer
     _c = DaemonContainer()
     _reg_dm("anytype", lambda: _c.anytype)
@@ -557,7 +556,7 @@ def cmd_anytype(argv: list[str]) -> int:
 
 
 def cmd_omniroute(argv: list[str]) -> int:
-    from modules.daemon.src.agent_daemon_verb import cmd_omniroute as _daemon_omniroute, register_manager_factory as _reg_dm
+    from modules.daemon.src.surface_daemon_command import cmd_omniroute as _daemon_omniroute, register_manager_factory as _reg_dm
     from modules.daemon.src.root_daemon_container import DaemonContainer
     _c = DaemonContainer()
     _reg_dm("omniroute", lambda: _c.omniroute)
@@ -566,7 +565,7 @@ def cmd_omniroute(argv: list[str]) -> int:
 
 def cmd_service(argv: list[str]) -> int:
     from modules.service.src.root_service_container import create_service_feature
-    from modules.service.src.agent_service_verb import cmd_service as _service_cmd
+    from modules.service.src.surface_service_command import cmd_service as _service_cmd
     return _service_cmd(argv, create_service_feature())
 
 

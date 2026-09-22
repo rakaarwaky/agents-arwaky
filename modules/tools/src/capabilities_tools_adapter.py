@@ -978,7 +978,7 @@ def _anytype_daemon_feature():
 
 
 def _anytype_write_daemon_launcher(path: Path, root: Path) -> None:
-    _daemon_verb = "modules" + "." + "daemon" + "." + "src" + "." + "agent_daemon_verb"
+    _daemon_verb = "modules" + "." + "daemon" + "." + "src" + "." + "surface_daemon_command"
     path.write_text(
         "#!/usr/bin/env python3\n"
         "import os, sys\n"
