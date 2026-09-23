@@ -14,13 +14,18 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
-from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckOnly
+from modules.shared.src.taxonomy_check_vo import (
+    CHECK_SCOPES,
+    CheckExitCode,
+    CheckOnly,
+)
 from modules.shared.src.taxonomy_common_vo import DocFinding
+from modules.shared.src.utility_logging_setup import banner, err, info, ok
 
 _USAGE = """Usage: aa check [all|docs|skill] [path] [--include-subtrees] [--json]
 
   all (default)       Run every registered runner (docs + skill)
-  docs                Document invariants only (PRD/FRD/README/BACKLOG/AGENTS)
+  docs                Document invariants only (PRD/ROADMAP/FRD/README/BACKLOG/AGENTS)
   skill               Skill-pack loadability only (skills/<category>/<skill>/SKILL.md)
   path                Audit only documents under this directory (docs scope only)
   --include-subtrees  Also audit vendor/ and internal/ subtrees (docs only)
@@ -121,7 +126,7 @@ def cmd_check(args: list[str], orch: ICheckAggregate) -> int:
         print(_USAGE)
         return 1
     scope = (positional[0] if positional else "all").lower()
-    if scope not in ("all", "docs", "doc", "skill", "skills"):
+    if scope not in CHECK_SCOPES:
         print(f"Unknown check scope: {positional[0]!r}", flush=True)
         print(_USAGE)
         return 1
@@ -138,6 +143,15 @@ def cmd_check(args: list[str], orch: ICheckAggregate) -> int:
             target, include_subtrees=include_subtrees, json_mode=json_mode
         )
     only: CheckOnly | None = None if scope == "all" else CheckOnly(scope)
-    return int(orch.check(only=only))
+    banner()
+    info("Running Python-based repository verification...")
+    print()
+    code = int(orch.check(only=only))
+    print()
+    if code:
+        err(f"Verification FAILED with {code} errors.")
+    else:
+        ok("All verifications PASSED.")
+    return code
 
 __all__ = ['CheckAction', 'cmd_check']

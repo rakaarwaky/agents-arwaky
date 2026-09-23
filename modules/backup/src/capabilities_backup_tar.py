@@ -20,6 +20,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from modules.shared.src.contract_backup_protocol import IBackupProtocol
+from modules.shared.src.taxonomy_backup_constant import TOOL_DATA
 from modules.shared.src.taxonomy_backup_vo import (
     BackupDestination,
     BackupResult,
@@ -34,14 +35,6 @@ ROOT = repo_root()
 BACKUP_STORE = data_home() / "backups"
 # gdrive gateway lives in the AES backup feature; invoked as a module entry.
 GDRIVE_HELPER = "-m:modules.backup.src.capabilities_backup_gdrive"
-
-# tool -> data subdir (relative to XDG_DATA_HOME)
-TOOL_DATA = {
-    "anytype": "anytype-mcp",
-    "omniroute": "omniroute",
-    "mnemosyne": "mnemosyne",
-    "google-workspace": "google-workspace-mcp",
-}
 
 #: Module-level default for the protocol ``dest`` (B008: no call in defaults).
 _DEFAULT_DEST = BackupDestination("")
@@ -67,7 +60,7 @@ class TarBackupGateway(IBackupProtocol):
         dest: BackupDestination = _DEFAULT_DEST,
         archive: str = "",
     ) -> object:
-        """Dispatch *op* (archive / restore / list) to the concrete helpers."""
+        """Dispatch *op* (archive / restore / list / list_print / status / help)."""
         if op == "archive":
             if not tool:
                 return BackupResult(False, "", "", False, "archive op requires a tool")
@@ -78,6 +71,17 @@ class TarBackupGateway(IBackupProtocol):
             return self.restore(str(tool), Path(archive))
         if op == "list":
             return self.list_archives()
+        if op == "list_print":
+            return cmd_list()
+        if op == "status":
+            exists = BACKUP_STORE.is_dir()
+            count = len(list(BACKUP_STORE.glob("*.tar.gz"))) if exists else 0
+            print(f"Backup store: {BACKUP_STORE}")
+            print(f"  exists: {'yes' if exists else 'no'}")
+            print(f"  archives: {count}")
+            return 0
+        if op == "help":
+            return cmd_help()
         return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
 
     def backup(self, tool: str, dest: str = "") -> BackupResult:

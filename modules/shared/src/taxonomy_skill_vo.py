@@ -19,6 +19,9 @@ SkillQuery = NewType("SkillQuery", str)
 #: Skill command argument list.
 SkillArgs = NewType("SkillArgs", list)
 
+#: Operation token dispatched through ``ISkillProtocol.execute``.
+SkillOp = NewType("SkillOp", str)
+
 #: Tool identifier accepted by skill provisioning actions.
 SkillToolId = NewType("SkillToolId", str)
 
@@ -29,6 +32,10 @@ SkillDest = NewType("SkillDest", str)
 FILTER_EMPTY: ToolFilter = ToolFilter("")
 QUERY_EMPTY: SkillQuery = SkillQuery("")
 ARGS_EMPTY: SkillArgs = SkillArgs([])
+SKILL_EMPTY: SkillQuery = SkillQuery("")
+
+#: Optional skill/tool name argument for a skill op.
+SkillName = NewType("SkillName", str)
 
 def extract_skill_name(skill_md: Path) -> str:
     """Extract `name:` from SKILL.md frontmatter; fallback to parent dir name."""
@@ -99,3 +106,25 @@ class SkillProvisionResult:
     tool_id: str
     provisioned: int
     message: str
+
+
+__all__ = [
+    "ARGS_EMPTY",
+    "FILTER_EMPTY",
+    "QUERY_EMPTY",
+    "ExitCode",
+    "SkillArgs",
+    "SkillDest",
+    "SkillInfo",
+    "SkillName",
+    "SkillOp",
+    "SkillProvisionResult",
+    "SkillQuery",
+    "SkillToolId",
+    "ToolFilter",
+    "extract_skill_name",
+    "safe_child",
+    "safe_skill_name",
+    "sanitize_skill_name",
+    "ensure_under",
+]

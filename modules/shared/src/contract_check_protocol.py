@@ -27,8 +27,13 @@ class ICheckProtocol(ABC):
         """
         ...
 
-__all__ = ['CheckExitCode', 'DocFinding']
+__all__ = ['CheckExitCode', 'CheckScope', 'DocFinding', 'ICheckProtocol']
 
 #
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"CheckExitCode": CheckExitCode, "DocFinding": DocFinding}
+_layer_symbols = {
+    "CheckExitCode": CheckExitCode,
+    "CheckScope": CheckScope,
+    "DocFinding": DocFinding,
+    "ICheckProtocol": ICheckProtocol,
+}

@@ -7,8 +7,9 @@ import sys
 from pathlib import Path
 
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
+from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
 from modules.shared.src.taxonomy_common_error import ManifestParseError
-from modules.shared.src.taxonomy_common_vo import Tool
+from modules.shared.src.taxonomy_common_vo import Tool, ToolSpec
 
 
 def manifest_path() -> Path:
@@ -66,3 +67,18 @@ def find_tool(query: str) -> Tool | None:
         ):
             return tool
     return None
+
+
+def spec_from_tool(tool: Tool) -> ToolSpec:
+    """Build a ToolSpec from a manifest Tool (runner from TOOL_RUNNERS)."""
+    return ToolSpec(
+        id=tool.id,
+        category=tool.category,
+        binary=tool.binary,
+        is_mcp=tool.is_mcp,
+        description=tool.description,
+        path=tool.path,
+        alias=tool.alias,
+        mcp_binary=tool.mcp_binary,
+        runner=TOOL_RUNNERS.get(tool.id, ""),
+    )

@@ -13,6 +13,9 @@ McpServerId = NewType("McpServerId", str)
 #: Client-config alias written by ``generate_alias``.
 McpAlias = NewType("McpAlias", str)
 
+#: Operation token dispatched through ``IMcpProtocol.execute``.
+McpOp = NewType("McpOp", str)
+
 
 @dataclass(frozen=True)
 class McpServer:
@@ -33,4 +36,4 @@ class McpServerInfo:
     description: str
 
 
-__all__ = ["ExitCode", "McpAlias", "McpServer", "McpServerId", "McpServerInfo"]
+__all__ = ["ExitCode", "McpAlias", "McpOp", "McpServer", "McpServerId", "McpServerInfo"]

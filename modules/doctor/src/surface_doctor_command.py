@@ -1,6 +1,7 @@
 """Doctor surface — CLI adapters for aa doctor / aa status."""
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 
 from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
@@ -9,7 +10,7 @@ from modules.shared.src.taxonomy_common_vo import ExitCode
 
 
 class DoctorAction(IDoctorAggregate):
-    """CLI command surface for the doctor feature."""
+    """CLI command surface for the doctor feature (owns report rendering)."""
 
     def __init__(self, orch: DoctorOrchestrator) -> None:
         self._orch = orch
@@ -25,7 +26,19 @@ class DoctorAction(IDoctorAggregate):
         report: object,
         flags: Mapping[str, bool | str] | None = None,
     ) -> ExitCode:
-        return self._orch.report(report, flags)
+        """Render *report* as JSON or text (surface owns I/O)."""
+        if (flags or {}).get("json"):
+            print(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+            return ExitCode(0)
+        if isinstance(report, Mapping):
+            for key, value in report.items():
+                print(f"{key}: {value}")
+        elif isinstance(report, list):
+            for item in report:
+                print(f"- {item}")
+        else:
+            print(report)
+        return ExitCode(0)
 
 
 def _flags(args: list[str]) -> dict[str, bool]:

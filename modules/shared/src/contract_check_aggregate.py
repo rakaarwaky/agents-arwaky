@@ -8,7 +8,7 @@ from modules.shared.src.taxonomy_check_vo import (
     CheckOnly,
     CheckSummary,
 )
-from modules.shared.src.taxonomy_common_vo import DocFinding
+from modules.shared.src.taxonomy_common_vo import DocFinding, DocFindings
 
 
 class ICheckAggregate(ABC):
@@ -35,12 +35,12 @@ class ICheckAggregate(ABC):
         ...
 
     @abstractmethod
-    def summary(self, findings: list[DocFinding]) -> CheckSummary:
+    def summary(self, findings: DocFindings) -> CheckSummary:
         """Collapse *findings* into one digest line."""
         ...
 
 
-__all__ = ['CheckExitCode', 'CheckOnly', 'CheckSummary', 'DocFinding']
+__all__ = ['CheckExitCode', 'CheckOnly', 'CheckSummary', 'DocFinding', 'DocFindings', 'ICheckAggregate']
 
 #
 # Layer-symbol registry (runtime reference for harness/loader introspection).
@@ -49,4 +49,6 @@ _layer_symbols = {
     "CheckOnly": CheckOnly,
     "CheckSummary": CheckSummary,
     "DocFinding": DocFinding,
+    "DocFindings": DocFindings,
+    "ICheckAggregate": ICheckAggregate,
 }

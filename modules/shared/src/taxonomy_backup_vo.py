@@ -44,13 +44,21 @@ DEST_DEFAULT: BackupDestination = BackupDestination("")
 #: Archive path or identifier string for restore operations.
 BackupArchive = NewType("BackupArchive", str)
 
+#: Module-level singleton for default archive argument (B008).
+ARCHIVE_DEFAULT: BackupArchive = BackupArchive("")
+
+#: Operation token dispatched through ``IBackupProtocol.execute``.
+BackupOp = NewType("BackupOp", str)
+
 #: Process exit code returned by a backup/restore/list/help action.
 ExitCode = NewType("ExitCode", int)
 
 __all__ = [
+    "ARCHIVE_DEFAULT",
     "DEST_DEFAULT",
     "BackupArchive",
     "BackupDestination",
+    "BackupOp",
     "BackupResult",
     "BackupToolQuery",
     "ExitCode",

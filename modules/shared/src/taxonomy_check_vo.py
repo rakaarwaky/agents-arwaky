@@ -21,5 +21,14 @@ CheckScope = NewType("CheckScope", str)
 #: One-line digest summarizing a set of findings.
 CheckSummary = NewType("CheckSummary", str)
 
-__all__ = ["CheckExitCode", "CheckOnly", "CheckScope", "CheckSummary"]
+#: CLI scope aliases → runner ``name`` (surface + orchestrator share this map).
+CHECK_SCOPES: dict[str, str] = {
+    "all": "",
+    "docs": "docs",
+    "doc": "docs",
+    "skill": "skill",
+    "skills": "skill",
+}
+
+__all__ = ["CHECK_SCOPES", "CheckExitCode", "CheckOnly", "CheckScope", "CheckSummary"]
 

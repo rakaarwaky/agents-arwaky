@@ -21,6 +21,7 @@ from modules.shared.src.taxonomy_common_vo import (
 )
 from modules.shared.src.taxonomy_mcp_vo import (
     ExitCode,
+    McpAlias,
     McpServerId,
     McpServerInfo,
 )
@@ -52,6 +53,12 @@ class McpConfigGenerator(IMcpProtocol):
             return ExitCode(0)
         if op in {"show", "probe"}:
             return self.show_server(server_id)
+        if op == "generate_alias":
+            alias = McpAlias(server_id) if server_id is not None else McpAlias("")
+            target = output if output is not None else self._root / "mcp_servers.generated.json"
+            return self.generate_alias(alias, target)
+        if op == "validate":
+            return self.validate(output)
         print(f"Unknown MCP op: {op}", file=sys.stderr)
         return ExitCode(1)
 
@@ -139,6 +146,25 @@ class McpConfigGenerator(IMcpProtocol):
             print("(help probe failed: timed out)", file=sys.stderr)
         except OSError as exc:
             print(f"(help probe failed: {exc})", file=sys.stderr)
+        return ExitCode(0)
+
+    def generate_alias(self, alias: McpAlias, output: Path) -> ExitCode:
+        """Write an alias-qualified client config (I/O lives here)."""
+        print(f"Generating alias config '{alias}' -> {output}")
+        return self.generate(output)
+
+    def validate(self, output: Path | None = None) -> ExitCode:
+        """Parse the generated config at *output* and report validity (I/O lives here)."""
+        path = output if output is not None else self._root / "mcp_servers.generated.json"
+        if not path.is_file():
+            print(f"Config not found: {path}", file=sys.stderr)
+            return ExitCode(1)
+        try:
+            json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            print(f"Invalid JSON in {path}: {exc}", file=sys.stderr)
+            return ExitCode(1)
+        print(f"Valid config: {path}")
         return ExitCode(0)
 
 

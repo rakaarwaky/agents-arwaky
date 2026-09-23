@@ -18,7 +18,7 @@ from modules.shared.src.taxonomy_common_vo import (
     UninstallResult,
     UpdateResult,
 )
-from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolQuery
+from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolArgs, ToolQuery
 
 
 class IToolsAggregate(ABC):
@@ -45,7 +45,7 @@ class IToolsAggregate(ABC):
         """Uninstall a single tool spec (remove + verify)."""
         ...
     @abstractmethod
-    def run(self, spec: ToolSpec, args: list[str]) -> ExitCode:
+    def run(self, spec: ToolSpec, args: ToolArgs) -> ExitCode:
         """Run the tool; returns the child's process exit code (fidelity)."""
         ...
     @abstractmethod
@@ -56,6 +56,16 @@ class IToolsAggregate(ABC):
 __all__ = [
     "IToolsAggregate",
     "InstallResult",
+    "ToolArgs",
     "UninstallResult",
     "UpdateResult",
 ]
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {
+    "IToolsAggregate": IToolsAggregate,
+    "InstallResult": InstallResult,
+    "ToolArgs": ToolArgs,
+    "UninstallResult": UninstallResult,
+    "UpdateResult": UpdateResult,
+}

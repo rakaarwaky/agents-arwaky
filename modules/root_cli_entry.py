@@ -347,17 +347,8 @@ def _confirm(prompt: str, accepted: tuple = ("y", "yes")) -> bool:
 
 def _spec_from_tool(tool) -> ToolSpec:
     """Build a ToolSpec for the orchestrators from a manifest Tool."""
-    return ToolSpec(
-        id=tool.id,
-        category=tool.category,
-        binary=tool.binary,
-        is_mcp=tool.is_mcp,
-        description=tool.description,
-        path=tool.path,
-        alias=tool.alias,
-        mcp_binary=getattr(tool, "mcp_binary", None),
-        runner=TOOL_RUNNERS.get(tool.id, ""),
-    )
+    from modules.shared.src.utility_manifest_reader import spec_from_tool
+    return spec_from_tool(tool)
 
 
 def cmd_install(argv: list[str]) -> int:

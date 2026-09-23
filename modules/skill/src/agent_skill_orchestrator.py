@@ -7,33 +7,46 @@ concrete capability object by the root composition layer).
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Protocol
 
 from modules.shared.src.contract_skill_aggregate import ISkillAggregate
+from modules.shared.src.contract_skill_protocol import ISkillProtocol
 from modules.shared.src.taxonomy_skill_vo import (
     FILTER_EMPTY,
     QUERY_EMPTY,
     ExitCode,
     SkillArgs,
-    SkillProvisionResult,
     SkillQuery,
     ToolFilter,
 )
 
 
+class _SkillRegistry(Protocol):
+    """Registry surface the orchestrator drives (named ops beyond ``execute``)."""
+
+    def list(self, argv: SkillArgs) -> ExitCode: ...
+    def check(self) -> ExitCode: ...
+    def show(self, argv: SkillArgs) -> ExitCode: ...
+    def install(self, argv: SkillArgs) -> ExitCode: ...
+    def uninstall(self, argv: SkillArgs) -> ExitCode: ...
+    def sync(self, argv: SkillArgs) -> ExitCode: ...
+    def execute(
+        self,
+        op: str,
+        skill: str | None = None,
+        target: Path | None = None,
+    ) -> ExitCode: ...
+
+
+# ─── Block 1: Class Definition & Constructor ──────────────
 class SkillOrchestrator(ISkillAggregate):
-    """Routing of skill surface actions to the capabilities (original bodies).
+    """Routing of skill surface actions to the capabilities (original bodies)."""
 
-    # Block 1: Constructor
-    # Block 2: Query actions (list/check/show)
-    # Block 3: Mutation actions (install/uninstall/sync)
-    """
-
-    # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, provisioner: object, registry: object) -> None:
+    def __init__(self, provisioner: ISkillProtocol, registry: _SkillRegistry) -> None:
         self._provisioner = provisioner
         self._registry = registry
 
-    # -- Block 2: Query actions -----------------------------------------------------
+    # ─── Block 2: Aggregate Method Implementation ──────────
     def list(self, tool_filter: ToolFilter = FILTER_EMPTY) -> ExitCode:
         """Port of tools/skill/skill.py cmd_list."""
         argv = SkillArgs([str(tool_filter)] if tool_filter else [])
@@ -47,7 +60,6 @@ class SkillOrchestrator(ISkillAggregate):
         """Port of tools/skill/skill.py cmd_show."""
         return ExitCode(self._registry.show(SkillArgs([str(query)] if query else [])))
 
-    # -- Block 3: Mutation actions ----------------------------------------------------
     def install(self, args: SkillArgs) -> ExitCode:
         """Port of tools/skill/skill.py cmd_install."""
         return ExitCode(self._registry.install(args))
@@ -60,7 +72,7 @@ class SkillOrchestrator(ISkillAggregate):
         """'sync' = install all (alias semantics from tools/skill/skill.py)."""
         return ExitCode(self._registry.sync(args))
 
-    # -- Block 4: Protocol dispatch ----------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     def execute(
         self,
         op: str,
@@ -72,13 +84,23 @@ class SkillOrchestrator(ISkillAggregate):
             return ExitCode(self._provisioner.execute(op, skill, target))
         return ExitCode(self._registry.execute(op, skill, target))
 
-__all__ = ['ExitCode', 'SkillArgs', 'SkillProvisionResult', 'SkillQuery', 'ToolFilter']
+    def __repr__(self) -> str:
+        return "SkillOrchestrator()"
+
+
+__all__ = [
+    "ExitCode",
+    "ISkillAggregate",
+    "ISkillProtocol",
+    "SkillArgs",
+    "SkillQuery",
+    "ToolFilter",
+]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
     "SkillArgs": SkillArgs,
-    "SkillProvisionResult": SkillProvisionResult,
     "SkillQuery": SkillQuery,
     "ToolFilter": ToolFilter,
 }

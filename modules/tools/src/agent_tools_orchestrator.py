@@ -36,35 +36,23 @@ from modules.shared.src.taxonomy_common_vo import (
     UpdateResult,
 )
 from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolQuery
-from modules.shared.src.utility_manifest_reader import find_tool, load_tools
+from modules.shared.src.utility_manifest_reader import (
+    find_tool,
+    load_tools,
+    spec_from_tool,
+)
 from modules.shared.src.utility_paths_resolver import repo_root
 
 
-def _spec_from_tool(tool: Tool) -> ToolSpec:
-    """Build a ToolSpec from a manifest Tool (mcp_binary populated by the reader)."""
-    return ToolSpec(
-        id=tool.id,
-        category=tool.category,
-        binary=tool.binary,
-        is_mcp=tool.is_mcp,
-        description=tool.description,
-        path=tool.path,
-        alias=tool.alias,
-        mcp_binary=getattr(tool, "mcp_binary", None),
-        runner=getattr(tool, "runner", None),
-    )
-
-
+# ─── Block 1: Class Definition & Constructor ──────────────
 class ToolsOrchestrator(IToolsAggregate):
     """Zero-I/O aggregate over all tool-lifecycle capabilities.
 
     The single entry point the CLI surface calls. Unknown ids fail at
     target resolution before any action runs; an action whose capability is
     unwired raises a typed error, never a partial dispatch.
-
     """
 
-    # -- Block 1: Constructor ---------------------------------------------------
     def __init__(
         self,
         registry: dict[str, object] | None = None,
@@ -101,7 +89,7 @@ class ToolsOrchestrator(IToolsAggregate):
         self._uninstaller = uninstaller
         self._runner = runner
 
-    # -- Block 2: Manifest-driven spec resolution + aggregate action delegation -----
+    # ─── Block 2: Aggregate Method Implementation ──────────
     def list(self) -> list[Tool]:
         """All registered tools (manifest reader, no I/O here)."""
         return load_tools()
@@ -111,7 +99,7 @@ class ToolsOrchestrator(IToolsAggregate):
         tool = find_tool(query)
         if tool is None:
             return None
-        return _spec_from_tool(tool)
+        return spec_from_tool(tool)
 
     def install(self, spec: ToolSpec) -> InstallResult:
         self._require(self._installer, "install")
@@ -155,7 +143,7 @@ class ToolsOrchestrator(IToolsAggregate):
         self._require(self._runner, "run")
         return self._runner.execute("discover", spec=spec)
 
-    # -- Block 3: Private helpers ---------------------------------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     # P1-2: action-typed error — was always ToolInstallError for every action.
     _ACTION_ERRORS: ClassVar[dict[str, type[Exception]]] = {
         "install": ToolInstallError,
@@ -169,6 +157,9 @@ class ToolsOrchestrator(IToolsAggregate):
         if obj is None:
             raise self._ACTION_ERRORS[action](f"{action} capability is unavailable (not wired)")
         return obj
+
+    def __repr__(self) -> str:
+        return "ToolsOrchestrator()"
 
 
 __all__ = ["ToolsOrchestrator"]

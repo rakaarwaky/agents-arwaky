@@ -33,20 +33,15 @@ _USAGE = (
 )
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
 class ConfigOrchestrator(IConfigAggregate):
-    """Config agent: aggregate facade over writer + modifier capabilities.
+    """Config agent: aggregate facade over writer + modifier capabilities."""
 
-    # Block 1: Constructor (capability injection)
-    # Block 2: Read ops (load, save, inspect)
-    # Block 3: Mutating ops (merge, set_env, remove) + help
-    """
-
-    # -- Block 1: Constructor ---------------------------------------------------
     def __init__(self, writer: IConfigProtocol, modifier: IConfigProtocol) -> None:
         self._writer = writer
         self._modifier = modifier
 
-    # -- Block 2: Read ops -------------------------------------------------------
+    # ─── Block 2: Aggregate Method Implementation ──────────
     def load(self, path: Path) -> ConfigTuple:
         """Load via the writer capability; returns ``(data, format)``."""
         return self._writer.execute("load", path)
@@ -74,7 +69,6 @@ class ConfigOrchestrator(IConfigAggregate):
             "servers": list(servers or []),
         })
 
-    # -- Block 3: Mutating ops + help --------------------------------------------
     def merge_servers(
         self,
         path: Path,
@@ -102,3 +96,7 @@ class ConfigOrchestrator(IConfigAggregate):
 
     def help(self) -> HelpText:
         return HelpText(_USAGE)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    def __repr__(self) -> str:
+        return "ConfigOrchestrator()"

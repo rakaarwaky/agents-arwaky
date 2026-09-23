@@ -39,9 +39,8 @@ class IBackupAggregate(ABC):
 
 __all__ = ["BackupResult", "IBackupAggregate"]
 
-
-#: Per-tool backup result cache (populated by orchestrators; layer wiring).
-_BACKUP_RESULT_CACHE: dict[str, BackupResult] = {}
-
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"BackupResult": BackupResult}
+_layer_symbols = {
+    "BackupResult": BackupResult,
+    "IBackupAggregate": IBackupAggregate,
+}

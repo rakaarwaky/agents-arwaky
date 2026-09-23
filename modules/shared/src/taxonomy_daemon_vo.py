@@ -13,6 +13,9 @@ DaemonName = NewType("DaemonName", str)
 #: systemd user-unit filename the unit ops act on ("omniroute.service", ...).
 DaemonUnit = NewType("DaemonUnit", str)
 
+#: Operation token dispatched through ``IDaemonProtocol.execute``.
+DaemonOp = NewType("DaemonOp", str)
+
 
 @dataclass(frozen=True)
 class DaemonConfig:
@@ -37,3 +40,13 @@ class DaemonStatus:
     data_dir: str
     ok: bool
     details: tuple[str, ...] = field(default=())
+
+
+__all__ = [
+    "DaemonConfig",
+    "DaemonName",
+    "DaemonOp",
+    "DaemonStatus",
+    "DaemonUnit",
+    "ExitCode",
+]

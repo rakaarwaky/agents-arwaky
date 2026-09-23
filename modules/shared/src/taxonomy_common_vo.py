@@ -589,6 +589,15 @@ HelpText = NewType("HelpText", str)
 #: Read-only config inspection snapshot (path, format, data, servers).
 ConfigSnapshot = NewType("ConfigSnapshot", dict)
 
+#: Operation token dispatched through ``IConfigProtocol.execute``.
+ConfigOp = NewType("ConfigOp", str)
+
+#: Named config/server/env keys accepted by a remove or merge call.
+ConfigKeys = NewType("ConfigKeys", list)
+
+#: Aggregated document-invariant findings (audit output bag).
+DocFindings = NewType("DocFindings", list)
+
 
 # --- markdown/text helpers (shared by doc_pack / doc_hygiene utilities) --------
 
