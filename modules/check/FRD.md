@@ -35,7 +35,7 @@ scope, every finding gates, and the process exit equals the aggregate exit.
   included, gates, with no advisory tier and no flag to disable it;
   `aa check docs` runs this audit alone, and `aa check docs [path]` scopes
   the same engine to one directory.
-- **Edge Cases**: feature spec without a backlog → `spec-without-backlog`;
+- **Edge Cases**: feature FRD without a sibling backlog → `spec-without-backlog`;
   FRD/BACKLOG under a shared kernel → `feature-doc-in-shared`; source-file
   name in PRD/FRD → `spec-source-path`; restated state vocabulary in a
   feature backlog → `state-vocab-restated`; a `Done` row without command +

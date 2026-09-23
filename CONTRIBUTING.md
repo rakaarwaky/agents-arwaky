@@ -464,7 +464,7 @@ aa check
 ```
 
 The script verifies:
-- **Document invariants:** PRD/FRD/README/BACKLOG/AGENTS chain and skill references pass the add-docs rules.
+- **Document invariants:** PRD/ROADMAP/FRD/README/BACKLOG/AGENTS chain and skill references pass the add-docs rules.
 - **Skill-pack loadability:** `skills/` layout, name parity, and description budget hold.
 
 > CI also runs automatically on every push via [`.github/workflows/ci.yml`](.github/workflows/ci.yml).

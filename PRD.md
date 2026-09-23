@@ -2,7 +2,7 @@
 
 > Product Requirements Document. Describes WHAT this project does and WHY.
 > Audience: Stakeholders, PM, Design, Engineering leads.
-> Real condition lives in [BACKLOG.md](BACKLOG.md); this file is specification only.
+> Real condition lives in [ROADMAP.md](ROADMAP.md) (workspace) + each feature's `BACKLOG.md`; this file is specification only.
 
 ## Problem Statement
 

@@ -211,7 +211,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}aa tool run lint check .{RESET()}       Run a tool (AES linter)")
     print(f"  {CYAN()}aa tool list{RESET()}                   List all registered tools")
     print(f"  {CYAN()}aa skill install --all{RESET()}         Provision all skills to CWD")
-    print(f"  {CYAN()}aa check docs .{RESET()}               Audit PRD/FRD/README/BACKLOG/AGENTS invariants")
+    print(f"  {CYAN()}aa check docs .{RESET()}               Audit PRD/ROADMAP/FRD/README/BACKLOG/AGENTS invariants")
     print(f"  {CYAN()}aa check skill{RESET()}                Audit skills/ pack loadability")
     print(f"  {CYAN()}aa skill uninstall --target .{RESET()}  Remove skills from CWD")
     print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")

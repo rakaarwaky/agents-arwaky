@@ -27,8 +27,9 @@ the root file (ROADMAP.md). Feature backlogs cite them; they never repeat
 them (`state-vocab-restated`, `undefined-state-vocab`).
 2. **Feature backlogs carry file-specific content only.** No policy prose, no
 state tables, no copied paragraphs from the root.
-3. **Every feature has both.** A spec and a backlog must exist beside each
-other (`spec-without-backlog`, `backlog-without-spec`). Non-feature folders
+3. **Every feature has both.** An `FRD.md` and a `BACKLOG.md` must exist beside
+each other (`spec-without-backlog`, `backlog-without-spec`). The root `PRD.md`
+pairs with root `ROADMAP.md`, not a sibling `BACKLOG.md`. Non-feature folders
 (`modules/shared`) are exempt — neither file exists there; either file under
 `shared/` fails with `feature-doc-in-shared`.
 4. **ID scopes are explicit.** Each feature uses its own prefix

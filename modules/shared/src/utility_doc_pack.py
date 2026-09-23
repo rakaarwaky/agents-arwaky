@@ -187,11 +187,13 @@ def _under_shared(path: Path) -> bool:
 
 
 def check_spec_pairing(root: Path) -> list[DocFinding]:
-    """Rule *every spec has a partner backlog, and one root master owns the definitions*.
+    """Rule *each FRD has a sibling backlog, and one root master owns the definitions*.
 
-    Also forbids feature docs under a ``shared/`` kernel folder
-    (``feature-doc-in-shared``): shared is not a feature, so it has no pair
-    (HOW-TO-MAKE-FRD § Scope).
+    The document chain is PRD → ROADMAP → FRD → BACKLOG: root ``PRD.md`` pairs
+    with the root master (already required by ``no-master-backlog``), while a
+    feature ``FRD.md`` pairs with a sibling ``BACKLOG.md``. Also forbids feature
+    docs under a ``shared/`` kernel folder (``feature-doc-in-shared``): shared is
+    not a feature, so it has no pair (HOW-TO-MAKE-FRD § Scope).
     """
     findings: list[DocFinding] = []
     docs = iter_doc_files(root)
@@ -218,6 +220,10 @@ def check_spec_pairing(root: Path) -> list[DocFinding]:
     for spec in specs:
         if _under_shared(spec):
             continue
+        if spec.name == "PRD.md":
+            # Root PRD's status lives in the root master (ROADMAP), not a
+            # sibling BACKLOG; master presence is no-master-backlog above.
+            continue
         partner = spec.parent / "BACKLOG.md"
         if not partner.is_file():
             findings.append(DocFinding(
@@ -225,7 +231,7 @@ def check_spec_pairing(root: Path) -> list[DocFinding]:
                 f"{spec.name} has no BACKLOG.md beside it, so its status has nowhere to go",
                 str(spec.parent),
             ))
-        elif spec.name == "FRD.md" and "BACKLOG" not in blank_fenced(_read(spec)).upper():
+        elif "BACKLOG" not in blank_fenced(_read(spec)).upper():
             findings.append(DocFinding(
                 "unlinked-spec",
                 "FRD.md never links BACKLOG.md; the Reference section keeps spec and status "

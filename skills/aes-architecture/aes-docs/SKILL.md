@@ -98,7 +98,7 @@ row that stops being enforced is a test failure rather than a silent edit.
 | Code                                                                     | Rule                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `status-in-spec` / `spec-source-path`                                       | Spec and status never share a file. Specs promise; backlogs report. Specs are stateless — no `.py`/`.rs`/`.ts` file names (HOW-TO Rule 9). |
-| `spec-without-backlog` / `backlog-without-spec` / `feature-doc-in-shared` | A spec and its backlog are a pair in the same **feature** directory. Kernel folders (`modules/shared`) are not features: either file under `shared/` fails with `feature-doc-in-shared` (HOW-TO-MAKE-FRD § Scope). |
+| `spec-without-backlog` / `backlog-without-spec` / `feature-doc-in-shared` | An **FRD** and its backlog are a pair in the same **feature** directory (root PRD pairs with root ROADMAP, not a sibling BACKLOG). Kernel folders (`modules/shared`) are not features: either file under `shared/` fails with `feature-doc-in-shared` (HOW-TO-MAKE-FRD § Scope). |
 | `no-master-backlog` / `undefined-state-vocab` / `master-section-missing` | One root master owns the `State`/`Health` vocabulary, the status policy, the roll-up, in-flight branches and risk (`ROADMAP.md`; legacy root `BACKLOG.md` accepted during migration). |
 | `state-vocab-restated`                                                   | Definitions live once. Feature files cite them, never repeat them.                                                                                                                    |
 | `done-without-evidence` / `unknown-state`                                | Every backlog claim is re-runnable: command + counts + commit hash, and what it excludes.                                                                                             |
@@ -251,4 +251,12 @@ The invariant codes above cover the machine-checkable ones. These need a reader:
 - **The word "implemented" in a spec file.** `status-in-spec` matches `\b(impl|un)plemented\b` case-insensitively across the *whole* FRD/PRD — so the reference template's `| As Implemented / As Intended |` column and any `implemented` cell header/cell are auto-flagged. Name the column `impl / intended` and use `impl` for the cell. (Same class: `shipped`/`released in v…`, checkbox items, status markers checkmark / cross status markers, progress `%` all trip it.)
 - **Scenario-evidence rows without a table header.** `check_scenarios` counts evidence via a markdown-table parser that needs a `| Scenario | … |` header + `|---|` separator line; a headerless block of `| … |` rows parses as **0 rows** and reports `0 evidence row(s)` even when the rows are present. Always emit the header row; keep exactly one row per spec scenario, in spec order.
 - **Scenario bullets containing `<`.** The scenario counter skips any spec bullet whose text contains `<` (placeholder convention), so that scenario needs no evidence row — don't write one, or the count is off by one. Rename `<placeholder>` prose to avoid the silent skip.
+
+---
+
+## Related Skills
+
+- `aes-lint-arwaky`
+- `cleanup-consolidate`
+- `fix-bypass`
 

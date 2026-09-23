@@ -2,7 +2,7 @@
 
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
-State / Health: values from root [BACKLOG.md](../../BACKLOG.md) — do not redefine here.
+State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
 Last Updated: 2026-09-23
 
 ## Current Condition

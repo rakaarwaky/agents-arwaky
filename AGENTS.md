@@ -122,7 +122,7 @@ Before concluding any task that modifies scripts, manifest files, or configurati
 aa check
 ```
 The verification checks:
-1. Document invariants across `PRD.md`/`FRD.md`/`README.md`/`BACKLOG.md`/`AGENTS.md` and skill references (see below).
+1. Document invariants across `PRD.md`/`ROADMAP.md`/`FRD.md`/`README.md`/`BACKLOG.md`/`AGENTS.md` and skill references (see below).
 2. Skill-pack loadability invariants across `skills/` (see below).
 
 ### Document invariants
