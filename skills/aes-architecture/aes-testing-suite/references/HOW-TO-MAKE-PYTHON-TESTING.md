@@ -89,9 +89,6 @@ modules/<name>/
 
 ---
 
-
----
-
 ## Dogfood / Integration Pipeline Tests
 
 For tests that exercise actual CLI commands against live services/sessions:

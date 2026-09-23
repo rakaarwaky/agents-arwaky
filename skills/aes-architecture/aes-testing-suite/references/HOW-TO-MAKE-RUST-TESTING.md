@@ -101,9 +101,6 @@ Registering a benchmark requires the `[[bench]]` block above **and** workflow st
 
 ---
 
-
----
-
 ## Dogfood / Integration Pipeline Tests
 
 For tests that exercise actual CLI commands against live services/sessions:
