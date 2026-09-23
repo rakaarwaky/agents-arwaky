@@ -11,14 +11,21 @@
 >
 > **Length**: 50–500 lines
 >
-> **Not a feature → no BACKLOG.** Kernel / shared layers (e.g.
-> `modules/shared`) are not features: they have **no `FRD.md` and no
-> `BACKLOG.md`**. Creating either under `shared/` fails the gate with
-> `feature-doc-in-shared`.
+> **Not a feature → no BACKLOG.** 一个文件夹只有在包含 `agent_*_orchestrator` 文件时，才被视为有效的 feature folder。没有 orchestrator 的文件夹不是 feature，不需要也不应该创建 `FRD.md` 和 `BACKLOG.md`。kernel / shared 层（如 `modules/shared`）没有 orchestrator，因此它们**没有 `FRD.md` 也没有 `BACKLOG.md`**。在 `shared/` 下创建任一文件会通过 `feature-doc-in-shared` 失败。
 
 ---
 
 ## Rules
+
+
+
+## Workflow
+
+1. **Create file** → `BACKLOG.md` in feature directory.
+2. **Section: Current Condition** — document baseline state.
+3. **Section: Backlog** — list items with status (New/In Progress/Done).
+4. **Section: Scenario Evidence** — link to tests/passing gates.
+5. **Verify** → `aa check docs` passes; all sections present.
 
 Five rules. Each one prevents a specific failure mode.
 
@@ -28,10 +35,13 @@ them (`state-vocab-restated`, `undefined-state-vocab`).
 2. **Feature backlogs carry file-specific content only.** No policy prose, no
 state tables, no copied paragraphs from the root.
 3. **Every feature has both.** An `FRD.md` and a `BACKLOG.md` must exist beside
-each other (`spec-without-backlog`, `backlog-without-spec`). The root `PRD.md`
-pairs with root `ROADMAP.md`, not a sibling `BACKLOG.md`. Non-feature folders
-(`modules/shared`) are exempt — neither file exists there; either file under
-`shared/` fails with `feature-doc-in-shared`.
+each other (`spec-without-backlog`, `backlog-without-spec`). A folder is only
+considered a valid **feature folder** if it contains an
+`agent_*_orchestrator` file — without an orchestrator, it is not a feature and
+must not carry either document. The root `PRD.md` pairs with root
+`ROADMAP.md`, not a sibling `BACKLOG.md`. Non-feature folders (those without
+an `agent_*_orchestrator`, e.g. `modules/shared`) are exempt — neither file
+exists there; either file under such a folder fails with `feature-doc-in-shared`.
 4. **ID scopes are explicit.** Each feature uses its own prefix
 (`RENDER-01`, `SCRIPT-01`). A row citing `FR-006` is checked against the
 spec (`orphan-fr-id`).
@@ -40,6 +50,24 @@ contain a backtick code span naming a command and a commit hash
 (`done-without-evidence`).
 
 ---
+
+
+
+## Workflow
+
+1. **Create file** → `BACKLOG.md` in feature directory.
+2. **Section: Current Condition** — document baseline state.
+3. **Section: Backlog** — list items with status (New/In Progress/Done).
+4. **Section: Scenario Evidence** — link to tests/passing gates.
+5. **Verify** → `aa check docs` passes; all sections present.
+
+## Workflow
+
+1. **Create file** → `BACKLOG.md` in feature directory.
+2. **Section: Current Condition** — document baseline state.
+3. **Section: Backlog** — list items with status (New/In Progress/Done).
+4. **Section: Scenario Evidence** — link to tests/passing gates.
+5. **Verify** → `aa check docs` passes; all sections present.
 
 ## Template
 

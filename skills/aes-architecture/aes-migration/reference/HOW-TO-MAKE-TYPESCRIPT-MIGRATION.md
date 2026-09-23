@@ -14,6 +14,20 @@
 
 ## Rules
 
+
+
+## Workflow
+
+1. **Phase 0 — Audit** — run `lint-arwaky-cli scan .`; record baseline.
+2. **Phase 1 — Taxonomy** — extract VOs, errors, constants.
+3. **Phase 2 — Contract** — create protocol (1 method) + aggregate (many exports).
+4. **Phase 3 — Utility** — extract stateless helpers to shared.
+5. **Phase 4 — Capabilities** — implement protocols with business logic.
+6. **Phase 5 — Agent** — implement aggregate, delegate to capabilities.
+7. **Phase 6 — Surface** — map I/O, call aggregate.
+8. **Phase 7 — Root** — wire containers, bootstrap entry.
+9. **Phase 8 — Verify** — full scan → 0 violations; compile clean.
+
 Nine rules. Each one governs one migration phase.
 
 1. **Phase 0 first — audit before touching anything.** Run `lint-arwaky-cli scan .`; record baseline violations to choose strategy.
@@ -27,6 +41,8 @@ Nine rules. Each one governs one migration phase.
 9. **Verify at every phase.** `lint-arwaky-cli scan <layer-dir>` → 0 before moving to next phase.
 
 ---
+
+
 
 ## Template
 

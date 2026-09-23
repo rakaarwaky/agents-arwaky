@@ -17,6 +17,17 @@
 
 ## Rules
 
+
+
+## Workflow
+
+1. **Create file** → `README.md` at repo or package root.
+2. **Section: Title** — project/tool name.
+3. **Section: Quick Start** — 3–5 commands to get running.
+4. **Section: Architecture** — diagram or layer description.
+5. **Section: Commands** — CLI reference.
+6. **Verify** → `aa check docs` passes; quick start works.
+
 1. **The test is time, not completeness.** Clone → install → build → run
 in under 10 minutes. If the Quick Start cannot clear that, the
 missing step is the bug in this file.
@@ -28,6 +39,26 @@ pinned. Optional tooling listed as required teaches readers to
 distrust the list.
 
 ---
+
+
+
+## Workflow
+
+1. **Create file** → `README.md` at repo or package root.
+2. **Section: Title** — project/tool name.
+3. **Section: Quick Start** — 3–5 commands to get running.
+4. **Section: Architecture** — diagram or layer description.
+5. **Section: Commands** — CLI reference.
+6. **Verify** → `aa check docs` passes; quick start works.
+
+## Workflow
+
+1. **Create file** → `README.md` at repo or package root.
+2. **Section: Title** — project/tool name.
+3. **Section: Quick Start** — 3–5 commands to get running.
+4. **Section: Architecture** — diagram or layer description.
+5. **Section: Commands** — CLI reference.
+6. **Verify** → `aa check docs` passes; quick start works.
 
 ## Template
 

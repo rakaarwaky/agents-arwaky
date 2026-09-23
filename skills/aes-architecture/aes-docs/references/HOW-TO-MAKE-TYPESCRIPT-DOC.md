@@ -37,6 +37,14 @@ Six rules. Each one prevents a specific failure mode.
 
 ---
 
+## Workflow
+
+1. **Create file** — module docstring at top of source file.
+2. **Write Purpose** — one-line module job.
+3. **Write Audience** — who reads this.
+4. **Write Scope** — what the module covers.
+5. **Verify** → `aa check docs` passes; doc present.
+
 ## Template
 
 Copy, fill, delete nothing.

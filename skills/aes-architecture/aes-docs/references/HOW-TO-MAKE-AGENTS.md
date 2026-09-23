@@ -16,6 +16,16 @@
 
 ## Rules
 
+
+
+## Workflow
+
+1. **Determine context** — Agent config for single tool or multi-agent system.
+2. **Create file** → `.agents/agents/<name>.md`.
+3. **Write frontmatter** — name, description, persona, tools.
+4. **Write system prompt** — behavior rules, guardrails, response format.
+5. **Verify** → validate YAML frontmatter; check agent loads without error.
+
 1. **Commands must match CI.** Every printed command must be
  copy-pasteable and identical to the CI gate.
 2. **No absolute personal paths.** Use `$HOME`, `${workspaceFolder}`,
@@ -30,6 +40,24 @@
 7. **Respect the length budget.** Target 50–500 lines.
 
 ---
+
+
+
+## Workflow
+
+1. **Determine context** — Agent config for single tool or multi-agent system.
+2. **Create file** → `.agents/agents/<name>.md`.
+3. **Write frontmatter** — name, description, persona, tools.
+4. **Write system prompt** — behavior rules, guardrails, response format.
+5. **Verify** → validate YAML frontmatter; check agent loads without error.
+
+## Workflow
+
+1. **Determine context** — Agent config for single tool or multi-agent system.
+2. **Create file** → `.agents/agents/<name>.md`.
+3. **Write frontmatter** — name, description, persona, tools.
+4. **Write system prompt** — behavior rules, guardrails, response format.
+5. **Verify** → validate YAML frontmatter; check agent loads without error.
 
 ## Template
 

@@ -51,6 +51,15 @@ the document survives every refactor (`spec-source-path`).
 
 ---
 
+## Workflow
+
+1. **Create file** → `FRD.md` in feature directory.
+2. **Section: System Overview** — one-paragraph context.
+3. **Section: Functional Requirements** — numbered FRs with scenario tables.
+4. **Section: API Contract** — request/response shapes.
+5. **Section: Test Scenarios** — scenarios with acceptance criteria.
+6. **Verify** → `aa check docs` passes; FR table has all required columns.
+
 ## Template
 
 Copy, fill, delete nothing.

@@ -43,6 +43,15 @@ Seven rules. Each one prevents a specific failure mode.
 
 ---
 
+## Workflow
+
+1. **Determine suffix** — `_protocol` (inward, one method) or `_aggregate` (outward, many methods).
+2. **Create file** → `contract_<concept>_<suffix>.py`.
+3. **Draft protocol** — One class, one `@abstractmethod`, body is `...`.
+4. **Draft aggregate** — One class, one method per export, body is `...`.
+5. **Register** in shared `__init__.py` with `__all__` + `_layer_symbols`.
+6. **Verify** → `lint-arwaky-cli scan <contract-dir>`.
+
 ## Template
 
 Copy, fill, delete nothing.
