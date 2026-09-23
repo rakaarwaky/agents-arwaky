@@ -5,9 +5,6 @@
 >
 > **Audience**: Engineers and agents reading rustdoc output.
 >
-> **Boundary**: Doc comments explain *what* and *why*, never *how* —
-> the code shows how. Plain `//` is invisible to `cargo doc`.
->
 > **Scope**: Module, struct/enum/trait, function, and method docs on
 > the crate's public surface.
 >
@@ -24,18 +21,18 @@
 Six rules. Each one prevents a specific failure mode.
 
 1. **Convert `//` to `///`.** Plain comments never appear in rustdoc;
-   a public item documented only with `//` is undocumented.
+ a public item documented only with `//` is undocumented.
 2. **Doc comments explain *what* and *why*, never *how*.** The body
-   is the *how*; a second copy goes stale.
+ is the *how*; a second copy goes stale.
 3. **Summary line first.** One sentence before any `#` section, so
-   list views stay useful.
+ list views stay useful.
 4. **Explain *why* for logic over 10 lines**, next to the branch or
-   invariant — not a step-by-step restatement of the lines.
+ invariant — not a step-by-step restatement of the lines.
 5. **`# Example` for non-obvious usage.** Examples must compile
-   (`cargo test --doc`). Prefer a short doctest over prose.
+ (`cargo test --doc`). Prefer a short doctest over prose.
 6. **Types on every parameter and return in the prose only when the
-   signature is unclear.** Prefer the signature; document units,
-   edge cases, and failure modes.
+ signature is unclear.** Prefer the signature; document units,
+ edge cases, and failure modes.
 
 ---
 
@@ -84,14 +81,14 @@ pub fn check(&self, path: &str) -> Result<bool, Error> {
 Every public item is required to carry the rows that apply. Each
 exists for one reason.
 
-| Section | Why it belongs here |
-| --- | --- |
-| Module doc (`//!` or `//!` file header) (required) | Orients the reader before any type. |
-| Item summary (required) | One sentence: what the item is or does. Watch for restating the identifier. |
-| Structure notes (rec) | Execution order or invariants for types that orchestrate. Skip for plain data. |
-| `# Arguments` (rec) | Documents parameters whose meaning is not in the type. |
-| `# Returns` / `# Errors` (rec) | The contract callers depend on. Required when the fn returns `Result`. |
-| `# Example` (rec) | Proves the API is usable as documented. Skip only for trivial accessors. |
+| Section                                            | Why it belongs here                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Module doc (`//!` or `//!` file header) (required) | Orients the reader before any type.                                            |
+| Item summary (required)                            | One sentence: what the item is or does. Watch for restating the identifier.    |
+| Structure notes (rec)                              | Execution order or invariants for types that orchestrate. Skip for plain data. |
+| `# Arguments` (rec)                                | Documents parameters whose meaning is not in the type.                         |
+| `# Returns` / `# Errors` (rec)                     | The contract callers depend on. Required when the fn returns `Result`.         |
+| `# Example` (rec)                                  | Proves the API is usable as documented. Skip only for trivial accessors.       |
 
 ---
 

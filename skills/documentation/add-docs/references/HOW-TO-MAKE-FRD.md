@@ -19,19 +19,22 @@ Eight rules. Each one prevents a specific failure mode.
 
 1. **Requirement IDs are the contract.** `FR-<name>-<number>`,
   unique within the feature and stable forever.
- 
+
 2. **A requirement is testable, or it is a wish.**
  State input, output, business rules, edge cases, error handling.
-3. **The API contract is exact.** method, inputs, outputs, errors, events. 
-4. **Scenarios are stated here; evidence lives in the backlog.**One scenario per bullet , so `scenario-evidence-count`can match them
+3. **The API contract is exact.** method, inputs, outputs, errors, events.
+4. **Scenarios are stated here; evidence lives in the backlog.**
+ One scenario per bullet, so `scenario-evidence-count` can match them.
 5. **Non-functional numbers live here.**
  The PRD says "fast." This file says *what* the feature guarantees and
  *how* you measure it.
 6. **Assumptions and constraints are written down.**
  Every implicit assumption is a requirement someone discovers later and
  calls a bug.
-7. **Cross-link the pair** in `## Reference`.A reader landing on either file must immediately see promise and claim.
-8. **No description of current behaviour.** A paragraph about what the source does today is a second copy of the code and always staler.
+7. **Cross-link the pair** in `## Reference`. A reader landing on either
+ file must immediately see promise and claim.
+8. **No description of current behaviour.** A paragraph about what the
+ source does today is a second copy of the code and always staler.
 
 ---
 
@@ -110,7 +113,6 @@ Copy, fill, delete nothing.
 Every section is required unless marked optional. Each exists for one
 reason.
 
-
 | Section                       | Why it belongs here                               |
 | ----------------------------- | ------------------------------------------------- |
 | Reference                     | Separates spec promise from backlog claim.        |
@@ -123,7 +125,6 @@ reason.
 | Assumptions &amp; Constraints | Implicit requirements made explicit.              |
 | Glossary                      | One meaning per term; rows and code agree.        |
 
-
 ---
 
 ## Verify
@@ -132,4 +133,3 @@ reason.
 aa docs check . --strict
 # Checks: IDs, orphan refs, scenario coverage, status leak, sections, links.
 ```
-

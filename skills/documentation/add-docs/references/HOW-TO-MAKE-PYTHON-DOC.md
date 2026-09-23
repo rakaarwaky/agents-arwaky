@@ -5,9 +5,6 @@
 >
 > **Audience**: Engineers and agents reading generated or source docs.
 >
-> **Boundary**: Doc comments explain *what* and *why*, never *how* —
-> the code shows how.
->
 > **Scope**: Module, class, function, and method docstrings (PEP 257)
 > under a package's public surface.
 >
@@ -24,18 +21,18 @@
 Six rules. Each one prevents a specific failure mode.
 
 1. **Module-level docstring is mandatory.** First statement of every
-   public module. One sentence on the module's job; no changelog.
+ public module. One sentence on the module's job; no changelog.
 2. **Doc comments explain *what* and *why*, never *how*.** Restating
-   the next three lines of code wastes the reader's time.
+ the next three lines of code wastes the reader's time.
 3. **Never restate the signature in prose.** `Args` names match the
-   parameters; do not repeat types already in the annotation when the
-   annotation says it better.
+ parameters; do not repeat types already in the annotation when the
+ annotation says it better.
 4. **Public classes and functions always get docstrings** (PEP 257).
-   Private helpers (`_name`) may omit them when the name is enough.
+ Private helpers (`_name`) may omit them when the name is enough.
 5. **`Args` and `Returns` on every public function** whose parameters
-   or return value are not obvious from the type hints alone.
+ or return value are not obvious from the type hints alone.
 6. **No status claims.** Docstrings never say implemented / shipped /
-   N% done — that lives in `BACKLOG.md` (`status-in-spec`).
+ N% done — that lives in `BACKLOG.md` (`status-in-spec`).
 
 ---
 
@@ -72,14 +69,14 @@ class ImportRuleVO:
 Every public item is required to carry the rows that apply. Each
 exists for one reason.
 
-| Section | Why it belongs here |
-| --- | --- |
-| Module docstring (required) | Names the module's job before any import. |
-| Class summary (required) | One sentence: what an instance is. Watch for restating the class name. |
-| Attributes (rec) | Documents fields whose names do not carry the meaning. Skip when properties are self-describing. |
-| Method summary (required) | One sentence: what a call does. Watch for "This method…" throat-clearing. |
-| Args (rec) | Explains non-obvious parameters. Skip when every arg is named for its type alone. |
-| Returns / Raises (rec) | States the contract the caller depends on. Skip only when the return type is `None` and nothing can fail. |
+| Section                     | Why it belongs here                                                                                       |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Module docstring (required) | Names the module's job before any import.                                                                 |
+| Class summary (required)    | One sentence: what an instance is. Watch for restating the class name.                                    |
+| Attributes (rec)            | Documents fields whose names do not carry the meaning. Skip when properties are self-describing.          |
+| Method summary (required)   | One sentence: what a call does. Watch for "This method…" throat-clearing.                                 |
+| Args (rec)                  | Explains non-obvious parameters. Skip when every arg is named for its type alone.                         |
+| Returns / Raises (rec)      | States the contract the caller depends on. Skip only when the return type is `None` and nothing can fail. |
 
 ---
 

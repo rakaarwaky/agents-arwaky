@@ -85,20 +85,18 @@ See `CONTRIBUTING.md`
 Every section is required unless marked optional. Each exists for one
 reason.
 
-
-| Section                               | Why it belongs here                                                                    |
-| ------------------------------------- | -------------------------------------------------------------------------------------- |
-| One-liner (rec)                       | Decides in five seconds whether to keep reading. Watch for restating the project name. |
-| Prerequisites (required)              | Prevents a build failure with no cause. Watch for optional tooling listed as required. |
-| Quick Start (required)                | The 10-minute promise. Watch for steps that assume state the reader lacks.             |
-| Architecture (required)               | Delegate to \`ARCHITECHTURE.md\` file                                                  |
-| Project Structure (required)          | Teaches where specs and backlogs live. Watch for every generated file listed.          |
-| Available Scripts/Commands (required) | The daily loop, as CI runs it. Watch for flags that differ from the CI job.            |
-| Configuration (required)              | What to set before the first run. Watch for values, secrets, or real hostnames.        |
-| Testing (required)                    | Delegate to \`TESTING.md\` file                                                        |
-| Contributing (required)               | Delegate to \`CONTRIBUTING.md\` file                                                   |
-| License (required)                    | Delegate to \`LICENSE\` file                                                           |
-
+| Section                    | Why it belongs here                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| One-liner                  | Decides in five seconds whether to keep reading. Watch for restating the project name. |
+| Prerequisites              | Prevents a build failure with no cause. Watch for optional tooling listed as required. |
+| Quick Start                | The 10-minute promise. Watch for steps that assume state the reader lacks.             |
+| Architecture               | Delegate to \`ARCHITECHTURE.md\` file                                                  |
+| Project Structure          | Teaches where specs and backlogs live. Watch for every generated file listed.          |
+| Available Scripts/Commands | The daily loop, as CI runs it. Watch for flags that differ from the CI job.            |
+| Configuration              | What to set before the first run. Watch for values, secrets, or real hostnames.        |
+| Testing                    | Delegate to \`TESTING.md\` file                                                        |
+| Contributing               | Delegate to \`CONTRIBUTING.md\` file                                                   |
+| License                    | Delegate to \`LICENSE\` file                                                           |
 
 ---
 
@@ -108,4 +106,3 @@ reason.
 aa docs check . --strict
 # Checks: readme-section-missing, dead-link, absolute-path, secret-in-docs, doc-length.
 ```
-

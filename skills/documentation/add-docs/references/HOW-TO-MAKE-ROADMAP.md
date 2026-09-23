@@ -63,7 +63,7 @@ State / Health: vocabulary below. Last Updated: <YYYY-MM-DD>
 
 | Health | Meaning |
 |---|---|
-| On Track | No threat to tier. |
+| On Track | No threat to the gate. |
 | At Risk | Gaps may miss the gate. |
 | Blocked | Cannot proceed. |
 | Ready for QA | Open rows clear; sweep left. |
@@ -78,43 +78,11 @@ State / Health: vocabulary below. Last Updated: <YYYY-MM-DD>
 
 ## Feature Roll-up
 
-Index + state in one table (links = the feature index).
+One table: every feature. Feature detail stays in each feature's BACKLOG.
 
-| Feature | Tier | Spec | Backlog | State | Health | Next |
-|---|---|---|---|---|---|---|
-| modules/<a> | P0 | [FRD](modules/<a>/FRD.md) | [BACKLOG](modules/<a>/BACKLOG.md) | In Progress | On Track | <SCOPE>-01 |
-
-## Backlog
-
-Workspace / cross-cutting rows only.
-
-| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
-|---|---|---|---:|---|---|---|---|---|
-| WS-01 | — | <item> | — | Ready | <evidence> | Unassigned | None | <YYYY-MM-DD> |
-
-## Blockers
-
-<None | blocker + what clears it>
-
-## Dependencies
-
-<None | cross-feature wait + decision>
-
-## Release Readiness
-
-| Area | Status | Notes |
-|---|---|---|
-| P0 / gates | <State> | <IDs or counts at <commit>> |
-
-## Deferred
-
-<None | item + reason>
-
-## Change Log
-
-| Date | Change | By |
-|---|---|---|
-| <YYYY-MM-DD> | <change + PR/commit> | @<owner> |
+| ID | Item | Priority | Spec | Backlog | State | Health | Owner | Next | Updated |
+|---|---|---|---|---|---|---|---|---|---|
+| modules/<a> | Feature | P0 | [FRD](modules/<a>/FRD.md) | [BACKLOG](modules/<a>/BACKLOG.md) | In Progress | On Track | — | <SCOPE>-01 | <YYYY-MM-DD> |
 
 ## Branches in Flight
 
@@ -134,21 +102,14 @@ Workspace / cross-cutting rows only.
 Every section is required unless marked optional. Each exists for one
 reason.
 
-| Section            | Why it belongs here                                          |
-| ------------------ | ------------------------------------------------------------ |
-| Feature index      | Shows every feature, its spec, and its backlog in one place. |
-| Current Condition  | Gives workspace-level truth before detail.                   |
-| State Definitions  | Single source of truth for all states and health values.     |
-| Status Policy      | Single source of truth for verification and ID prefixes.     |
-| Feature Roll-up    | Shows state and health across features.                      |
-| Backlog            | Cross-cutting and workspace-level rows only.                 |
-| Blockers           | Workspace blockers, not feature-local noise.                 |
-| Dependencies       | Cross-feature dependencies and decisions.                    |
-| Release Readiness  | Workspace definition of deployment ready.                    |
-| Deferred           | Workspace-level deferrals.                                   |
-| Change Log         | Workspace-level changes.                                     |
-| Branches in Flight | One place to see active branches and their owned rows.       |
-| Risk Register      | One place to record what could ship broken.                  |
+| Section            | Why it belongs here                                                |
+| ------------------ | ------------------------------------------------------------------ |
+| Current Condition  | Workspace truth in one glance.                                     |
+| State Definitions  | SSOT for state + health vocabulary. Feature backlogs cite it.      |
+| Status Policy      | SSOT for verification + ID prefixes.                               |
+| Feature Roll-up    | Index + state + `WS-*` in one place; feature rows stay in BACKLOG. |
+| Branches in Flight | Active branches and the rows they own.                             |
+| Risk Register      | Workspace-level what-could-ship-broken.                            |
 
 ---
 

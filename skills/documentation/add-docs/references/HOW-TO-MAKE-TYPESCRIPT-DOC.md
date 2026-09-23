@@ -6,9 +6,6 @@
 > **Audience**: Engineers and agents reading IDE hover and generated
 > API docs.
 >
-> **Boundary**: Doc comments explain *what* and *why*, never *how* —
-> the code shows how.
->
 > **Scope**: Module headers, exported classes/functions, and public
 > methods under the package's public surface.
 >
@@ -25,18 +22,18 @@
 Six rules. Each one prevents a specific failure mode.
 
 1. **One-liner at the top of every module.** `/** … */` before the
-   first export; no changelog, no status.
+ first export; no changelog, no status.
 2. **Doc comments explain *what* and *why*, never *how*.** Restating
-   the implementation trains readers to skip docs.
+ the implementation trains readers to skip docs.
 3. **`@param` and `@returns` on every public method** whose meaning
-   is not already obvious from the parameter name and type.
+ is not already obvious from the parameter name and type.
 4. **Named `interface` or `type` aliases for complex shapes** instead
-   of inline object literals — the alias gets the doc, not each
-   accidental field.
+ of inline object literals — the alias gets the doc, not each
+ accidental field.
 5. **Public exports always carry a doc comment.** An `export` with no
-   `/**` is an undocumented public API.
+ `/**` is an undocumented public API.
 6. **No status claims.** Never implemented / shipped / N% done —
-   that lives in `BACKLOG.md` (`status-in-spec`).
+ that lives in `BACKLOG.md` (`status-in-spec`).
 
 ---
 
@@ -74,13 +71,13 @@ export class ImportRuleVO {
 Every public item is required to carry the rows that apply. Each
 exists for one reason.
 
-| Section | Why it belongs here |
-| --- | --- |
-| Module one-liner (required) | Names the module's job before any export. |
-| Export summary (required) | One sentence: what the export is or does. Watch for restating the identifier. |
-| `@param` (rec) | Explains non-obvious parameters. Skip when the name and type fully say it. |
-| `@returns` (rec) | States the contract the caller depends on. Skip for `void`. |
-| Named type alias (rec) | Gives complex object shapes one documented name. Skip for one-field bags. |
+| Section                     | Why it belongs here                                                           |
+| --------------------------- | ----------------------------------------------------------------------------- |
+| Module one-liner (required) | Names the module's job before any export.                                     |
+| Export summary (required)   | One sentence: what the export is or does. Watch for restating the identifier. |
+| `@param` (rec)              | Explains non-obvious parameters. Skip when the name and type fully say it.    |
+| `@returns` (rec)            | States the contract the caller depends on. Skip for `void`.                   |
+| Named type alias (rec)      | Gives complex object shapes one documented name. Skip for one-field bags.     |
 
 ---
 

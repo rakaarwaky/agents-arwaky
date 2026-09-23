@@ -5,8 +5,6 @@
 >
 > **Audience**: Engineers, QA, Tech Lead.
 >
-> **Boundary**: Specs promise; backlogs report. Two files, never merged.
->
 > **Scope**: One BACKLOG.md per feature folder.
 >
 > **Location**: Inside the feature's directory
@@ -20,18 +18,18 @@
 Five rules. Each one prevents a specific failure mode.
 
 1. **Definitions live once.** State vocabulary and status policy belong in
- the root file (ROADMAP.md). Feature backlogs cite them; they never repeat
- them (`state-vocab-restated`, `undefined-state-vocab`).
+the root file (ROADMAP.md). Feature backlogs cite them; they never repeat
+them (`state-vocab-restated`, `undefined-state-vocab`).
 2. **Feature backlogs carry file-specific content only.** No policy prose, no
- state tables, no copied paragraphs from the root.
+state tables, no copied paragraphs from the root.
 3. **Every feature has both.** A spec and a backlog must exist beside each
- other (`spec-without-backlog`, `backlog-without-spec`).
+other (`spec-without-backlog`, `backlog-without-spec`).
 4. **ID scopes are explicit.** Each feature uses its own prefix
- (`RENDER-01`, `SCRIPT-01`). A row citing `FR-006` is checked against the
- spec (`orphan-fr-id`).
+(`RENDER-01`, `SCRIPT-01`). A row citing `FR-006` is checked against the
+spec (`orphan-fr-id`).
 5. **Status is verified, not self-reported.** A Done or Released row must
- contain a backtick code span naming a command and a commit hash
- (`done-without-evidence`).
+contain a backtick code span naming a command and a commit hash
+(`done-without-evidence`).
 
 ---
 

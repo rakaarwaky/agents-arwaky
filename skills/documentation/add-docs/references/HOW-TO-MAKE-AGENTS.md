@@ -3,45 +3,31 @@
 > **Purpose**: Tell the AI agent how to work safely, what commands to run,
 > and what counts as done.
 >
-> **Audience**: The AI agent in the next session (with no memory of this
-> one).
->
-> **Boundary**: Not a README (for humans), not a spec (PRD/FRD), not a
-> status log (BACKLOG).
+> **Audience**: The AI agent in the next session
 >
 > **Scope**: Operational constraints, commands, security, and git
 > workflows.
 >
 > **Location**: Project root.
 >
-> **Length**: 50–500 lines (flat budget shared by every document type).
-> Every line is loaded into context; keep only what changes agent
-> behavior.
+> **Length**: 50–500 lines
 
 ---
 
 ## Rules
 
-Seven rules. Each one prevents a specific failure mode.
-
 1. **Commands must match CI.** Every printed command must be
- copy-pasteable and identical to the CI gate (`ci-command-drift`). If a
- command has no CI gate, mark it `# advisory`.
-2. **No absolute personal paths.** Use `$HOME`, `${workspaceFolder}`, or
- repo-relative paths (`absolute-path`). A hardcoded `/home/<user>` is a
- bug.
-3. **No secrets or credentials.** Never put tokens, passwords, or keys in
- examples, todo files, or logs (`secret-in-docs`). Reference environment
- variable names, never their values.
-4. **Do not restate specs or backlogs.** Link to `PRD.md`, `FRD.md`, and
- `BACKLOG.md`. Copied requirements drift. Use the `Precedence` ladder to
- settle disagreements.
-5. **Mark optional sections clearly.** Do not force fake sections (like
- pipeline diagrams) just to fill a template.
+ copy-pasteable and identical to the CI gate.
+2. **No absolute personal paths.** Use `$HOME`, `${workspaceFolder}`,
+ or repo-relative paths (`absolute-path`).
+3. **No secrets or credentials.** Never put tokens, passwords, or
+ keys in this file.
+4. **Do not restate to other documents.** Use link instead.
+5. **Mark optional sections clearly.** Do not force fake sections
+ like pipeline diagrams just to fill a template.
 6. **Name every placeholder.** Use `<base-branch>`, `<state-dir>`,
- `<runtime>`. Porting should be a find-and-replace, not a rewrite.
-7. **Respect the length budget.** Target 50–500 lines. If it is over 500,
- you are teaching instead of constraining.
+ `<runtime>`.
+7. **Respect the length budget.** Target 50–500 lines.
 
 ---
 
@@ -49,7 +35,7 @@ Seven rules. Each one prevents a specific failure mode.
 
 Copy, fill, delete nothing.
 
-````markdown
+```markdown
 ---
 trigger: always
 description: "<Project> operational guide. <Authoritative doc> wins on ambiguity."
@@ -58,18 +44,11 @@ description: "<Project> operational guide. <Authoritative doc> wins on ambiguity
 
 ## User Context
 
-
 - Preferences: <response style, e.g., concise, technical, direct>
 
 ## Precedence
 
 1. Safety rules.
-2. Explicit user approval in the current session.
-3. Spec documents (`PRD.md`, `FRD.md`, project rule docs).
-4. `AGENTS.md` defaults.
-
-If two documents conflict, follow the higher-ranked source. If still
-unclear, ask.
 
 ## Security
 
@@ -108,10 +87,10 @@ is missing or stale, ask before destructive changes.
 
 ## Runtime
 
-- Language: <Language + pinned version>.
-- Environment: <Where it lives and how it is created>.
-- Artifacts: <Where they go. Never use `/tmp` for build output a
-  reviewer must find>.
+- Language: `<Language + pinned version>`.
+- Environment: `<Where it lives and how it is created>`.
+- Artifacts: `<Where they go. Never use /tmp for build output a
+  reviewer must find>`.
 
 ```bash
 <version probe, e.g., python --version>
@@ -125,9 +104,9 @@ OUTPUT = <artifact + locked spec values, e.g., format, size, rate>
 
 ## Pipeline
 
-<A> → <B> → <C> → <D>
- <one word per stage>
-   orchestrated by <controller>
+`<A>` → `<B>` → `<C>` → `<D>`
+`<one word per stage>`
+`orchestrated by <controller>`
 
 ## Git Workflow
 
@@ -172,7 +151,7 @@ Merge strategy: <which prefixes squash, which rebase onto `<base-branch>`>.
 <single-package test command>                       # one unit
 <single-file test command>                          # one file
 
-# Lint / types / architecture — each line must match the CI job it mirrors
+# Lint / types / architecture —
 <formatter/linter>                                  # matches ci.yml <job name>
 <type checker, exact config-file flags>
 <architecture scanner>
@@ -202,10 +181,7 @@ A change is done when:
 Use this section when editing prose, docs, PR descriptions, or release
 notes. Do not apply it to code identifiers, commands, or config keys.
 
-Goal: preserve the writer's point, voice, and edge. Remove AI slop
-without flattening the prose.
-
-- Preserve voice: vocabulary, cadence, bluntness, humor, strong
+- Preserve voice: vocabulary, cadence, bluntness, strong
   opinions. Make the minimum effective edit.
 - Lead with the point. Keep concrete facts: names, dates, numbers,
   mechanisms.
@@ -215,23 +191,17 @@ without flattening the prose.
 - Do not invent claims, sources, stats, or examples. Ask if unclear.
 - Cut: throat-clearing openers, self-answered questions, fake-profound
   endings, importance puffery, weasel attribution.
-- Avoid AI cliches: delve, leverage, utilize, streamline, robust,
-  seamless, cutting-edge, transformative, empower, supercharge, harness,
-  elevate, embark, realm, tapestry, beacon, multifaceted, meticulous,
-  intricate, paramount, game changer, paradigm shift, ever-evolving.
 - Formatting: no emoji unless requested. Bold only for labels or
   warnings. Code formatting for commands, paths, and variables. Lists
   only for parallel items.
 
-## Documentation Split
-
-Spec: `PRD.md` → `FRD.md`. Condition: `ROADMAP.md` + feature `BACKLOG.md`.
-Policy: `ROADMAP.md` Status Policy. Detail: see Related Documents.
-
 ## Related Documents
 
-- `<doc>` (`<path>`): <one line on what it answers>.
-````
+- `<doc>` (`<path>`): `<one line on what it answers>`.
+
+```text
+<related file list, or delete this fence>
+```
 
 ---
 
@@ -240,24 +210,24 @@ Policy: `ROADMAP.md` Status Policy. Detail: see Related Documents.
 Every section is required unless marked optional. Each exists for one
 reason.
 
-| Section                        | Why it belongs here                                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| Frontmatter (rec)              | Loads the file unconditionally in rule-style harnesses. Skip when harness discovers plain `AGENTS.md`.       |
-| User Context (rec)             | Sets response style without the user restating it. Skip when linters, not prose, enforce style here.         |
-| Precedence (required)          | Settles doc conflicts deterministically. Top rung is safety. Never skip.                                     |
-| Security (required)            | Names the approval list and untrusted-input handling. Never skip.                                            |
-| Memory (rec)                   | State that is not written down does not survive the session. Skip when project keeps no cross-session state. |
-| Session Start (rec)            | Fixes "agent edited the wrong worktree" at the door. Skip in single-file throwaway repo.                     |
-| Runtime (rec)                  | Version pin + env isolation. Skip when nothing here is version-pinned.                                       |
-| Quick Facts (optional)         | One I/O contract with locked values. Skip when no fixed input/output artifact.                               |
-| Pipeline (optional)            | Stage order and controller in one glance. Skip when not pipeline-shaped.                                     |
-| Git Workflow (rec)             | Where work lands, which branch, how a PR is opened. Skip when not a git-hosted repo.                         |
-| Commands (required)            | The gates, verbatim as CI runs them. Highest-value section. Never skip.                                      |
-| Guided Skills (optional)       | Points at repo-shipped skills. Skip when repo ships no skills.                                               |
-| Definition of Done (required)  | Converts "finished" into a checkable list. Never skip.                                                       |
-| Writing Style (optional)       | Prose rules for docs/PRs. Compress inline rather than split. Skip when prose is out of scope.                |
-| Documentation Split (optional) | The spec/status boundary in one place. Skip when repo has no spec/backlog split.                             |
-| Related Documents (required)   | One line per doc: what it answers. Never skip.                                                               |
+| Section              | Why it belongs here                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Frontmatter          | Loads the file unconditionally in rule-style harnesses. Skip when harness discovers plain `AGENTS.md`.       |
+| User Context         | Sets response style without the user restating it. Skip when linters, not prose, enforce style here.         |
+| Precedence           | Settles doc conflicts deterministically. Top rung is safety. Never skip.                                     |
+| Security             | Names the approval list and untrusted-input handling. Never skip.                                            |
+| Memory               | State that is not written down does not survive the session. Skip when project keeps no cross-session state. |
+| Session Start        | Fixes "agent edited the wrong worktree" at the door. Skip in single-file throwaway repo.                     |
+| Runtime              | Version pin + env isolation. Skip when nothing here is version-pinned.                                       |
+| Quick Facts          | One I/O contract with locked values. Skip when no fixed input/output artifact.                               |
+| Pipeline             | Stage order and controller in one glance. Skip when not pipeline-shaped.                                     |
+| Git Workflow         | Where work lands, which branch, how a PR is opened. Skip when not a git-hosted repo.                         |
+| Commands             | The gates, verbatim as CI runs them. Highest-value section. Never skip.                                      |
+| Guided Skills        | Points at repo-shipped skills. Skip when repo ships no skills.                                               |
+| Definition of Done   | Converts "finished" into a checkable list. Never skip.                                                       |
+| Writing Style        | Prose rules for docs/PRs. Compress inline rather than split. Skip when prose is out of scope.                |
+| Documentation Split  | The spec/status boundary in one place. Skip when repo has no spec/backlog split.                             |
+| Related Documents    | One line per doc: what it answers. Never skip.                                                               |
 
 ---
 
