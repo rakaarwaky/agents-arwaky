@@ -598,6 +598,15 @@ ConfigKeys = NewType("ConfigKeys", list)
 #: Aggregated document-invariant findings (audit output bag).
 DocFindings = NewType("DocFindings", list)
 
+#: Flag bag for doctor diagnostics (``json`` toggle, ``mode`` selector).
+DoctorFlags = NewType("DoctorFlags", dict)
+
+#: Polymorphic doctor report payload rendered by the report action.
+DoctorReport = NewType("DoctorReport", object)
+
+#: Tuple of manifest tools returned by ``IToolsAggregate.list``.
+ToolList = NewType("ToolList", list)
+
 
 # --- markdown/text helpers (shared by doc_pack / doc_hygiene utilities) --------
 
@@ -657,3 +666,67 @@ def is_resolvable_link(target: str) -> bool:
     if target.startswith(("#", "/", "http://", "https://", "mailto:", "tel:")):
         return False
     return not any(bad in target for bad in ("<", ">", "*", "...", "$", "{", "%"))
+
+
+__all__ = [
+    "DEFAULT_VERSION",
+    "DESCRIPTION_BUDGET_BYTES",
+    "SKILL_FILE",
+    "AuditFinding",
+    "ConfigData",
+    "ConfigFormat",
+    "ConfigKeys",
+    "ConfigOp",
+    "ConfigSnapshot",
+    "ConfigTuple",
+    "DocFinding",
+    "DocFindings",
+    "DoctorFlags",
+    "DoctorReport",
+    "EnvPairs",
+    "ErrorMessage",
+    "ExitCode",
+    "HelpText",
+    "InstallResult",
+    "LauncherSpec",
+    "McpServersMap",
+    "PackFinding",
+    "Section",
+    "Timestamp",
+    "Tool",
+    "ToolId",
+    "ToolList",
+    "ToolSpec",
+    "UninstallResult",
+    "UpdateResult",
+    "VenvInfo",
+    "agents_arwaky_config_dir",
+    "audit_pack",
+    "bin_home",
+    "bin_on_path",
+    "blank_fenced",
+    "bump",
+    "cache_home",
+    "config_home",
+    "data_home",
+    "ensure_bin_home",
+    "ensure_path",
+    "is_resolvable_link",
+    "iter_skill_files",
+    "markdown_links",
+    "norm_md_heading",
+    "numbered_lines",
+    "pack_names",
+    "read_md_text",
+    "read_version",
+    "remove_tool_artifacts",
+    "repo_root",
+    "skill_description",
+    "skill_name",
+    "state_home",
+    "tool_cache_dir",
+    "tool_config_dir",
+    "tool_data_dir",
+    "tool_state_dir",
+    "warn_if_bin_not_on_path",
+]

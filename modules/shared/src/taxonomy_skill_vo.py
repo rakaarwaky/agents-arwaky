@@ -28,14 +28,14 @@ SkillToolId = NewType("SkillToolId", str)
 #: Optional destination directory override for skill provisioning.
 SkillDest = NewType("SkillDest", str)
 
+#: Optional skill/tool name argument for a skill op.
+SkillName = NewType("SkillName", str)
+
 #: Module-level singletons for default arguments (B008).
 FILTER_EMPTY: ToolFilter = ToolFilter("")
 QUERY_EMPTY: SkillQuery = SkillQuery("")
 ARGS_EMPTY: SkillArgs = SkillArgs([])
-SKILL_EMPTY: SkillQuery = SkillQuery("")
-
-#: Optional skill/tool name argument for a skill op.
-SkillName = NewType("SkillName", str)
+SKILL_EMPTY: SkillName = SkillName("")
 
 def extract_skill_name(skill_md: Path) -> str:
     """Extract `name:` from SKILL.md frontmatter; fallback to parent dir name."""
@@ -112,6 +112,7 @@ __all__ = [
     "ARGS_EMPTY",
     "FILTER_EMPTY",
     "QUERY_EMPTY",
+    "SKILL_EMPTY",
     "ExitCode",
     "SkillArgs",
     "SkillDest",
@@ -122,9 +123,9 @@ __all__ = [
     "SkillQuery",
     "SkillToolId",
     "ToolFilter",
+    "ensure_under",
     "extract_skill_name",
     "safe_child",
     "safe_skill_name",
     "sanitize_skill_name",
-    "ensure_under",
 ]

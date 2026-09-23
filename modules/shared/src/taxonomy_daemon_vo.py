@@ -16,6 +16,9 @@ DaemonUnit = NewType("DaemonUnit", str)
 #: Operation token dispatched through ``IDaemonProtocol.execute``.
 DaemonOp = NewType("DaemonOp", str)
 
+#: Tuple of daemon names returned by ``IDaemonAggregate.list_known``.
+DaemonNames = NewType("DaemonNames", tuple)
+
 
 @dataclass(frozen=True)
 class DaemonConfig:
@@ -45,6 +48,7 @@ class DaemonStatus:
 __all__ = [
     "DaemonConfig",
     "DaemonName",
+    "DaemonNames",
     "DaemonOp",
     "DaemonStatus",
     "DaemonUnit",

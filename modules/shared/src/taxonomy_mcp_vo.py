@@ -16,6 +16,9 @@ McpAlias = NewType("McpAlias", str)
 #: Operation token dispatched through ``IMcpProtocol.execute``.
 McpOp = NewType("McpOp", str)
 
+#: Tuple of server-info rows returned by ``IMcpAggregate.list_servers``.
+McpServerInfos = NewType("McpServerInfos", list)
+
 
 @dataclass(frozen=True)
 class McpServer:
@@ -36,4 +39,4 @@ class McpServerInfo:
     description: str
 
 
-__all__ = ["ExitCode", "McpAlias", "McpOp", "McpServer", "McpServerId", "McpServerInfo"]
+__all__ = ["ExitCode", "McpAlias", "McpOp", "McpServer", "McpServerId", "McpServerInfo", "McpServerInfos"]
