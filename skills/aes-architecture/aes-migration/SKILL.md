@@ -44,9 +44,9 @@ This skill is a **router** — it points at language-specific migration guides u
 
 | Language | Playbook | Source |
 | -------- | -------- | ------ |
-| Python   | Phase-based migration workflow | [reference/MIGRATION_PYTHON.md](reference/MIGRATION_PYTHON.md) |
-| Rust     | Phase-based migration workflow | [reference/MIGRATION_RUST.md](reference/MIGRATION_RUST.md) |
-| TypeScript | Phase-based migration workflow | [reference/MIGRATION_TYPESCRIPT.md](reference/MIGRATION_TYPESCRIPT.md) |
+| Python   | Phase-based migration workflow | [reference/HOW-TO-MAKE-PYTHON-MIGRATION.md](reference/HOW-TO-MAKE-PYTHON-MIGRATION.md) |
+| Rust     | Phase-based migration workflow | [reference/HOW-TO-MAKE-RUST-MIGRATION.md](reference/HOW-TO-MAKE-RUST-MIGRATION.md) |
+| TypeScript | Phase-based migration workflow | [reference/HOW-TO-MAKE-TYPESCRIPT-MIGRATION.md](reference/HOW-TO-MAKE-TYPESCRIPT-MIGRATION.md) |
 
 **The dependency model:**
 
@@ -111,7 +111,7 @@ Ask these questions in order. The first "No" dictates your next action.
 
 ## Workflow
 
-1. **Load the language playbook**: Python → `reference/MIGRATION_PYTHON.md`, Rust → `reference/MIGRATION_RUST.md`, TypeScript → `reference/MIGRATION_TYPESCRIPT.md`.
+1. **Load the language playbook**: Python → `reference/HOW-TO-MAKE-PYTHON-MIGRATION.md`, Rust → `reference/HOW-TO-MAKE-RUST-MIGRATION.md`, TypeScript → `reference/HOW-TO-MAKE-TYPESCRIPT-MIGRATION.md`.
 2. **Phase 0 — Audit**: Run `lint-arwaky-cli scan .`; categorize violations by layer; choose strategy.
 3. **Phase 1 — Taxonomy**: Extract VOs, errors, constants; register in shared barrel.
 4. **Phase 2 — Contract**: Create `I<Concept>Protocol` (1 method) and `I<Concept>Aggregate` (many methods); register.
@@ -161,7 +161,7 @@ richness, and "only methods outer layers call" still need a reader (layer HOW-TU
 ## Pre-flight Checklist
 
 - [ ] `lint-arwaky-cli scan .` baseline captured.
-- [ ] Language playbook loaded (`MIGRATION_PYTHON.md` / `MIGRATION_RUST.md` / `MIGRATION_TYPESCRIPT.md`).
+- [ ] Language playbook loaded (`HOW-TO-MAKE-PYTHON-MIGRATION.md` / `HOW-TO-MAKE-RUST-MIGRATION.md` / `HOW-TO-MAKE-TYPESCRIPT-MIGRATION.md`).
 - [ ] Each layer skill consulted: `aes-taxonomy`, `aes-contract`, `aes-utility`, `aes-capabilities`, `aes-agent`, `aes-surface`, `aes-root`.
 - [ ] Every touched layer's `Verify` block executed.
 - [ ] Protocol = one method for one feature; aggregate = one method per export (manual).
