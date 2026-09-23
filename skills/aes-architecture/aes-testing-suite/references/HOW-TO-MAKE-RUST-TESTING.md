@@ -101,6 +101,24 @@ Registering a benchmark requires the `[[bench]]` block above **and** workflow st
 
 ---
 
+
+---
+
+## Dogfood / Integration Pipeline Tests
+
+For tests that exercise actual CLI commands against live services/sessions:
+
+1. **Place** in `tests/integration/` or project-equivalent directory.
+2. **Name** with `integration_` prefix (e.g., `integration_pipeline.py`).
+3. **Always provide skip logic** — check for required credentials/sessions before running.
+4. **Structure tests first** — verify command exists without external deps.
+5. **Functional tests second** — run actual pipeline with real inputs.
+6. **Use fixtures** — create temporary test files, cleanup after.
+7. **Never require login in CI** — skip gracefully when deps unavailable.
+
+See [HOW-TO-MAKE-DOGFOOD-TESTS.md](HOW-TO-MAKE-DOGFOOD-TESTS.md) for complete template.
+
+
 ## Verify
 
 ```bash

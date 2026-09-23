@@ -61,6 +61,12 @@ Rules, templates, section contracts, and Verify blocks live in the language HOW-
 | Rust | Test suite | Flat prefix naming; tests/ + benches/; no inline tests | [references/HOW-TO-MAKE-RUST-TESTING.md](references/HOW-TO-MAKE-RUST-TESTING.md) |
 | TypeScript | Test suite | Flat prefix naming; tests/ + benches/; no inline tests | [references/HOW-TO-MAKE-TYPESCRIPT-TESTING.md](references/HOW-TO-MAKE-TYPESCRIPT-TESTING.md) |
 
+### Specialized Test Types
+
+| Type | Description | HOW-TO |
+|------|-------------|--------|
+| Dogfood / Integration Pipeline | Real end-to-end tests with live sessions/services | [references/HOW-TO-MAKE-DOGFOOD-TESTS.md](references/HOW-TO-MAKE-DOGFOOD-TESTS.md) |
+
 **The test chain:**
 
 `contract_` (seam exists) → `unit_` / `integration_` (behaviour + wiring) → `smoke_` / `e2e_` / `acceptance_` (app + requirement) → `bench_` (nightly)
