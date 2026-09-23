@@ -1,10 +1,14 @@
-# AES Migration Guide — TypeScript (v1.1.0)
+# HOW TO MAKE MIGRATION TYPESCRIPT
 
-> Skill-driven migration workflow for TypeScript/JavaScript projects to AES
-> architecture. Each phase delegates to a dedicated skill in `.agents/skills/`.
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for layer rules and
-[README.md](README.md) for project usage.
+> **Purpose**: Guide phased migration of legacy TypeScript/JavaScript projects into AES layered architecture — taxonomy → contract → utility → capabilities → agent → surface → root.
+>
+> **Audience**: Agents and engineers executing a migration to AES.
+>
+> **Scope**: Phase-based migration workflow for TypeScript projects; references layer skills for execution.
+>
+> **Location**: Project root; each phase operates on a layer directory.
+>
+> **Length**: 9 phases (0–8); total duration depends on violation count.
 
 ---
 
