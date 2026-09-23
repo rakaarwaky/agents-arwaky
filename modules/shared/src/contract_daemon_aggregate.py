@@ -1,9 +1,13 @@
-"""Daemon-domain aggregate contract (agent orchestrator ABC)."""
+"""Daemon-domain aggregate contract (agent orchestrator ABC).
+
+The aggregate is the export surface: one method per consumer operation
+(lifecycle, enumeration, systemd unit actions). Capabilities implement
+``IDaemonProtocol.execute``; the agent orchestrator implements this ABC.
+"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.contract_daemon_protocol import IDaemonControlProtocol
 from modules.shared.src.taxonomy_daemon_vo import (
     DaemonName,
     DaemonNames,
@@ -13,12 +17,37 @@ from modules.shared.src.taxonomy_daemon_vo import (
 )
 
 
-class IDaemonAggregate(IDaemonControlProtocol, ABC):
+class IDaemonAggregate(ABC):
     """Aggregate routing daemon lifecycle, enumeration, and unit actions."""
 
     @abstractmethod
     def list_known(self) -> DaemonNames:
         """Canonical daemon ids the orchestrator manages."""
+        ...
+
+    @abstractmethod
+    def start(self, name: DaemonName) -> ExitCode:
+        """Start the named daemon; return exit code."""
+        ...
+
+    @abstractmethod
+    def stop(self, name: DaemonName) -> ExitCode:
+        """Stop the named daemon; return exit code."""
+        ...
+
+    @abstractmethod
+    def restart(self, name: DaemonName) -> ExitCode:
+        """Restart the named daemon; return exit code."""
+        ...
+
+    @abstractmethod
+    def status(self, name: DaemonName) -> DaemonStatus:
+        """Health snapshot for the named daemon."""
+        ...
+
+    @abstractmethod
+    def logs(self, name: DaemonName) -> ExitCode:
+        """Tail the named daemon's logs; return exit code."""
         ...
 
     @abstractmethod

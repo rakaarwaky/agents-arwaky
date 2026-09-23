@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import sys
 
-from modules.shared.src.contract_daemon_protocol import IDaemonControlProtocol
+from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_service_protocol import IServiceProtocol
 from modules.shared.src.taxonomy_service_vo import (
     TARGET_ALL,
@@ -21,10 +21,10 @@ from modules.shared.src.taxonomy_service_vo import (
     ServiceTarget,
 )
 
-_DAEMON_AGGREGATE: IDaemonControlProtocol | None = None
+_DAEMON_AGGREGATE: IDaemonAggregate | None = None
 
 
-def _daemons() -> IDaemonControlProtocol:
+def _daemons() -> IDaemonAggregate:
     """Daemon control surface: set by the service root container at construction."""
     if _DAEMON_AGGREGATE is None:
         raise RuntimeError(
@@ -38,19 +38,19 @@ def _daemons() -> IDaemonControlProtocol:
 class ServiceManager(IServiceProtocol):
     """AES facade: exposes the original script actions by their CLI names.
 
-    The optional daemon control protocol in the constructor is accepted for
+    The optional daemon aggregate in the constructor is accepted for
     composition-root wiring; action bodies route through it.
     """
 
-    def __init__(self, daemons: IDaemonControlProtocol | None = None) -> None:
+    def __init__(self, daemons: IDaemonAggregate | None = None) -> None:
         global _DAEMON_AGGREGATE
         if daemons is not None:
             _DAEMON_AGGREGATE = daemons
         self._daemons = daemons
 
     @property
-    def aggregate(self) -> IDaemonControlProtocol | None:
-        """Return the injected daemon control (composition-time wiring)."""
+    def aggregate(self) -> IDaemonAggregate | None:
+        """Return the injected daemon aggregate (composition-time wiring)."""
         return self._daemons
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────

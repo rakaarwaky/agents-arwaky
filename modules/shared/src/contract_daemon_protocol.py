@@ -1,10 +1,8 @@
-"""Daemon-domain protocol contracts (capability ABCs).
+"""Daemon-domain protocol contract (capability ABC).
 
-One feature → one protocol ABC (HOW-TO rule 3). ``IDaemonProtocol`` is the
-single-method capability surface every daemon manager implements;
-``IDaemonControlProtocol`` is a composite DI type of the five leaf control
-protocols (no methods of its own) so the service capability can depend on a
-narrow multi-daemon control surface without importing the aggregate.
+Exactly one method per feature (`execute`). Consumers (service manager,
+daemon surface) talk through this single dispatch; the aggregate layer
+provides the richer export surface.
 """
 from __future__ import annotations
 
@@ -41,79 +39,13 @@ class IDaemonProtocol(ABC):
         ...
 
 
-class IDaemonStartProtocol(ABC):
-    """FR: start the named daemon."""
-
-    @abstractmethod
-    def start(self, name: DaemonName) -> ExitCode:
-        """Start *name*; return exit code."""
-        ...
-
-
-class IDaemonStopProtocol(ABC):
-    """FR: stop the named daemon."""
-
-    @abstractmethod
-    def stop(self, name: DaemonName) -> ExitCode:
-        """Stop *name*; return exit code."""
-        ...
-
-
-class IDaemonRestartProtocol(ABC):
-    """FR: restart the named daemon."""
-
-    @abstractmethod
-    def restart(self, name: DaemonName) -> ExitCode:
-        """Restart *name*; return exit code."""
-        ...
-
-
-class IDaemonStatusProtocol(ABC):
-    """FR: report health of the named daemon."""
-
-    @abstractmethod
-    def status(self, name: DaemonName) -> DaemonStatus:
-        """Health snapshot for *name*."""
-        ...
-
-
-class IDaemonLogsProtocol(ABC):
-    """FR: tail logs of the named daemon."""
-
-    @abstractmethod
-    def logs(self, name: DaemonName) -> ExitCode:
-        """Tail *name*'s logs; return exit code."""
-        ...
-
-
-class IDaemonControlProtocol(
-    IDaemonStartProtocol,
-    IDaemonStopProtocol,
-    IDaemonRestartProtocol,
-    IDaemonStatusProtocol,
-    IDaemonLogsProtocol,
-    ABC,
-):
-    """Composite DI surface: five leaf control protocols (no methods of its own).
-
-    Implemented by the daemon aggregate / orchestrator; consumed by the
-    service capability so it imports only from ``*_protocol`` (HOW-TO).
-    """
-
-
 __all__ = [
     'DaemonName',
     'DaemonOp',
     'DaemonStatus',
     'DaemonUnit',
     'ExitCode',
-    'IDaemonControlProtocol',
-    'IDaemonLogsProtocol',
     'IDaemonProtocol',
-    'IDaemonRestartProtocol',
-    'IDaemonStartProtocol',
-    'IDaemonStatusProtocol',
-    'IDaemonStopProtocol',
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
@@ -123,11 +55,5 @@ _layer_symbols = {
     "DaemonStatus": DaemonStatus,
     "DaemonUnit": DaemonUnit,
     "ExitCode": ExitCode,
-    "IDaemonControlProtocol": IDaemonControlProtocol,
-    "IDaemonLogsProtocol": IDaemonLogsProtocol,
     "IDaemonProtocol": IDaemonProtocol,
-    "IDaemonRestartProtocol": IDaemonRestartProtocol,
-    "IDaemonStartProtocol": IDaemonStartProtocol,
-    "IDaemonStatusProtocol": IDaemonStatusProtocol,
-    "IDaemonStopProtocol": IDaemonStopProtocol,
 }
