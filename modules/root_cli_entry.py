@@ -638,7 +638,7 @@ def cmd_restore(argv: list[str]) -> int:
 
 
 def cmd_check(argv: list[str]) -> int:
-    """Run all 5 repository-verification checks via the check feature aggregate."""
+    """Run all 2 repository-verification checks (docs, skills) via the check feature aggregate."""
     from modules.check.src.root_check_container import create_check_feature
     from modules.check.src.surface_check_command import cmd_check as _check_cmd
     return _check_cmd(argv, create_check_feature())
@@ -656,7 +656,7 @@ def _check_docs() -> int:
         warnings_only,
     )
 
-    print("[3/5] Validating document invariants...")
+    print("[1/2] Validating document invariants...")
     root = repo_root()
     findings = audit_docs(root)
     problems = errors_only(findings)
@@ -744,7 +744,7 @@ def _check_skill_pack() -> int:
     from modules.shared.src.taxonomy_common_constant import DESCRIPTION_BUDGET_BYTES
     from modules.shared.src.taxonomy_common_vo import audit_pack, iter_skill_files
 
-    print("[4/5] Validating skill pack loadability...")
+    print("[2/2] Validating skill pack loadability...")
     pack = repo_root() / "skills"
     findings = audit_pack(pack)
     total = len(iter_skill_files(pack))
@@ -755,37 +755,6 @@ def _check_skill_pack() -> int:
     else:
         info(f"  ({total} SKILL.md files scanned, budget {DESCRIPTION_BUDGET_BYTES} bytes)")
     return len(findings)
-
-
-def _check_shell() -> int:
-    """Shellcheck for our own .sh files (exclude skills = upstream submodule copies)."""
-    errors = 0
-    sh_files = [
-        f for f in (repo_root() / "modules").rglob("*.sh")
-        if "node_modules" not in f.parts and f.relative_to(repo_root()).parts[0] != "skills"
-    ]
-    if not sh_files:
-        return 0
-    if not shutil.which("shellcheck"):
-        warn("shellcheck not installed; skipping .sh lint")
-        return 0
-    print("[5/5] Running shellcheck...")
-    for f in sh_files:
-        try:
-            res = subprocess.run(
-                ["shellcheck", "-x", str(f)],
-                capture_output=True, text=True, input="", timeout=15, check=False,
-            )
-        except subprocess.TimeoutExpired:
-            err(f"shellcheck timeout: {f}")
-            errors += 1
-            continue
-        if res.returncode != 0:
-            # tampilkan ringkas (baris pertama saja)
-            for line in res.stdout.strip().splitlines()[:3]:
-                err(f"shellcheck {f}: {line}")
-            errors += 1
-    return errors
 
 
 def cmd_submodules(argv: list[str]) -> int:

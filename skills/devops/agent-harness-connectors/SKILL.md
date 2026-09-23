@@ -93,8 +93,8 @@ the 401 — not a stale harness session.
   router is up, NOT that a key is valid — always probe `chat/completions` with
   the bearer header when testing keys.
 - **A passing `aa check` is not proof the change works.** The repo gate only
-  validates JSON syntax, compiles Python under `modules/`, and shellchecks scripts.
-  Prove a connector change by re-writing the harness settings back into the
+  validates document invariants and skill-pack loadability — not connector
+  behavior. Prove a connector change by re-writing the harness settings back into the
   broken state, running `aa connect <harness>`, and confirming the repair plus a
   live router check in the connect output.
 - **Generic config mutation belongs in the config capability, not the adapter.**

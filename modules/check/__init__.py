@@ -1,4 +1,4 @@
-"""Check feature package — repo integrity gates (JSON, Python, docs, skills, shell).
+"""Check feature package — repo integrity gates (docs, skills).
 
 Public re-exports: orchestrator + container.
 """

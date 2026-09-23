@@ -230,7 +230,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
 | `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
 | `aa service [action] [target]`           | Unified manager for background services (`status`, `start`, `stop`, `restart`, `logs`)              | `aa service status`                            |
-| `aa check`                               | Run quality gate verification (JSON syntax, Python compile, document invariants, skill pack, shellcheck)                                                        | `aa check`                                     |
+| `aa check`                               | Run quality gate verification (document invariants, skill pack)                                                        | `aa check`                                     |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
 | `aa clean`                              | Remove build artifacts & generated MCP config                                                     | `aa clean`                                     |
 | `aa reset`                            | Full factory reset: clean + uninstall + disconnect + unskill                                       | `aa reset`                                     |
@@ -532,7 +532,7 @@ aa tool install fetch
 
 ### Quality Gate & CI Verification
 
-To run automated integrity checks (JSON syntax, Python compilation, and ShellCheck):
+To run automated integrity checks (document invariants and skill-pack loadability):
 
 ```bash
 aa check

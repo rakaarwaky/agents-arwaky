@@ -44,9 +44,7 @@ Copy, fill, delete nothing.
 
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md), if applicable
-State: cite root ROADMAP.md state vocabulary. Do not repeat definitions here.
-Health: cite root ROADMAP.md health vocabulary. Do not repeat definitions
-here.
+State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
 Last Updated: <YYYY-MM-DD>
 
 ## Current Condition

@@ -39,105 +39,92 @@ Copy, fill, delete nothing.
 ```markdown
 # ROADMAP — <workspace name>
 
-| Feature | Tier | Spec | Backlog |
-|---|---|---|---|
-| modules/<a> | P0 | [FRD](modules/<a>/FRD.md) | [BACKLOG](modules/<a>/BACKLOG.md) |
-
-State: cite State vocabulary definitions below
-Health: cite Health vocabulary definitions below
-Last Updated: <YYYY-MM-DD>
+State / Health: vocabulary below. Last Updated: <YYYY-MM-DD>
 
 ## Current Condition
 
-- Done: <workspace-level evidence>
-- In Progress: <None | item>
-- Blocked: <None | item>
-- Next Action: <the open row IDs that move the workspace forward>
+- Done: <evidence> · In Progress: <None | item> · Blocked: <None | item>
+- Next: <open row IDs>
 
 ## State Definitions
 
 | State | Meaning |
 |---|---|
-| Idea | Captured, not yet examined; no spec exists for it. |
-| Refinement | Being specced; a spec or product decision is needed first. |
-| Ready | Specified enough to start; nobody has started it. |
-| In Progress | Someone is in it now. |
-| Blocked | Cannot proceed; name the blocker in Actual Condition. |
-| In Review | PR open, awaiting review/CI. |
-| QA | Implemented; awaiting a verification pass against evidence. |
-| Done | Evidenced complete — cites the command/commit/PR. |
-| Released | Done and shipped in a release. |
-| Deferred | Intentionally out of current scope; reason in Actual Condition. |
+| Idea | Not examined; no spec. |
+| Refinement | Being specced. |
+| Ready | Specified; not started. |
+| In Progress | Active now. |
+| Blocked | Name the blocker in Actual Condition. |
+| In Review | PR open. |
+| QA | Awaiting verification pass. |
+| Done | Command + commit evidence. |
+| Released | Shipped. |
+| Deferred | Out of scope; reason in Actual Condition. |
 
 | Health | Meaning |
 |---|---|
-| On Track | Nothing threatens the tier's scope. |
-| At Risk | Open gaps could compromise the tier's gate. |
-| Blocked | Work cannot proceed; name the blocker. |
-| Ready for QA | No open backlog items; a verification sweep is outstanding. |
-| Ready for Release | All evidence for the feature is recorded. |
+| On Track | No threat to tier. |
+| At Risk | Gaps may miss the gate. |
+| Blocked | Cannot proceed. |
+| Ready for QA | Open rows clear; sweep left. |
+| Ready for Release | Evidence recorded. |
 | Released | Shipped. |
 
 ## Status Policy
 
-- Status is verified, not self-reported.
-- A row reaches Done only after someone re-ran the evidence command and
-  read its output.
-- A recorded verification names a commit hash, not "today".
-- A PR that merges a fix updates every backlog row that fix invalidates,
-  in the same PR.
-
-| Scope | Prefix | Example |
-|---|---|---|
-| Workspace / cross-cutting | WS- | WS-01 |
-| Feature <a> | <SCOPE_A>- | <SCOPE_A>-01 |
+- Verified, not self-reported: re-run command; cite commit hash (not "today").
+- Same PR updates every backlog row the change invalidates.
+- Prefixes: workspace `WS-` · feature `<SCOPE>-` (feature rows stay in their BACKLOG).
 
 ## Feature Roll-up
 
-| Feature | Tier | State | Health | Next Action |
-|---|---|---|---|---|
-| modules/<a> | P0 | In Progress | On Track | <SCOPE>-01 — <one line> |
+Index + state in one table (links = the feature index).
+
+| Feature | Tier | Spec | Backlog | State | Health | Next |
+|---|---|---|---|---|---|---|
+| modules/<a> | P0 | [FRD](modules/<a>/FRD.md) | [BACKLOG](modules/<a>/BACKLOG.md) | In Progress | On Track | <SCOPE>-01 |
 
 ## Backlog
 
+Workspace / cross-cutting rows only.
+
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |---|---|---|---:|---|---|---|---|---|
-| WS-01 | — | <cross-cutting item> | — | Ready | <evidence> | Unassigned | None | <YYYY-MM-DD> |
+| WS-01 | — | <item> | — | Ready | <evidence> | Unassigned | None | <YYYY-MM-DD> |
 
 ## Blockers
 
-<None | each blocker>
+<None | blocker + what clears it>
 
 ## Dependencies
 
-<Which rows across features wait on which, and on what decision>
+<None | cross-feature wait + decision>
 
 ## Release Readiness
 
 | Area | Status | Notes |
 |---|---|---|
-| All P0 done | Done | <gate rows that remain open, by ID> |
-| Tests pass, lint clean | In Progress | <counts at <commit>> |
+| P0 / gates | <State> | <IDs or counts at <commit>> |
 
 ## Deferred
 
-<Item + reason for the deferral>
+<None | item + reason>
 
 ## Change Log
 
 | Date | Change | By |
 |---|---|---|
-| <YYYY-MM-DD> | <workspace-level change, with PR number and commit> | @<owner> |
+| <YYYY-MM-DD> | <change + PR/commit> | @<owner> |
 
 ## Branches in Flight
 
 | Branch | Backlog IDs | State |
 |---|---|---|
-| <prefix>/<name> | <IDs> | merged as PR #<n> (<commit>) |
+| <prefix>/<name> | <IDs> | <state / PR #n> |
 
 ## Risk Register
 
-- Risk: <what could ship broken>. Mitigation: <the row that closes it>.
+- Risk: <what ships broken>. Mitigation: <row ID>.
 ```
 
 ---

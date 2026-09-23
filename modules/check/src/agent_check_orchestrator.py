@@ -1,4 +1,4 @@
-"""Check agent orchestrator — runs all 5 verification checks in sequence."""
+"""Check agent orchestrator — runs all 2 verification checks in sequence."""
 from __future__ import annotations
 
 from modules.shared.src.contract_check_aggregate import ICheckAggregate

@@ -8,9 +8,9 @@ Last Updated: 2026-09-18
 
 ## Current Condition
 
-- Done: `CheckOrchestrator` + 5 check runners (json, python, shell, docs,
-  skills) + `ICheckRunner`/`ICheckAggregate` contracts at `5556fd5`;
-  `aa check` → All verifications PASSED at `5556fd5`.
+- Done: `CheckOrchestrator` + 2 check runners (docs, skills) + `ICheckRunner`/
+  `ICheckAggregate` contracts; json/python/shell runners removed (delegated to
+  CI + lint-arwaky); `aa check` → All verifications PASSED.
 - In Progress: CHK-03 — FRD/BACKLOG pair authoring (this file).
 - Blocked: none.
 - Next Action: CHK-03 — close this pair; then CHK-01 strict sweep
@@ -60,3 +60,4 @@ None.
 | Date | Change | By |
 |------|--------|----|
 | 2026-09-18 | FRD/BACKLOG pair created during WS-04 doc sweep at `5556fd5`. | @raka |
+| 2026-09-23 | Removed json/python/shell runners; gate now docs + skills only. | @raka |

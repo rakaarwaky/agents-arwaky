@@ -27,7 +27,7 @@ class SkillsCheckRunner(ICheckRunner):
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
     def run(self, strict: bool = False) -> CheckExitCode:
-        print("[4/5] Validating skill pack loadability...")
+        print("[2/2] Validating skill pack loadability...")
         findings = audit_pack(self._pack)
         total = len(iter_skill_files(self._pack))
         for finding in findings:

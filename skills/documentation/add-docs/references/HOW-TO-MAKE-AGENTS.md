@@ -225,30 +225,12 @@ without flattening the prose.
 
 ## Documentation Split
 
-- `FRD.md` and `PRD.md`: specification only. No status, no
-  "implemented", no checkbox state.
-- `BACKLOG.md`: real condition. One per feature folder, plus a root
-  `BACKLOG.md`.
-- Status moves only with evidence someone re-ran, per the policy in
-  `BACKLOG.md`.
+Spec: `PRD.md` → `FRD.md`. Condition: `ROADMAP.md` + feature `BACKLOG.md`.
+Policy: `ROADMAP.md` Status Policy. Detail: see Related Documents.
 
 ## Related Documents
 
 - `<doc>` (`<path>`): <one line on what it answers>.
-
-## Per-Ecosystem Variables
-
-| Placeholder | Python (uv) | Node/TypeScript | Rust |
-|---|---|---|---|
-| version probe | `python --version` | `node --version` | `rustc --version` |
-| env setup | `export UV_PROJECT_ENVIRONMENT="$HOME/.../venv" && uv sync` | `npm ci` | `cargo fetch` |
-| whole-workspace tests | `pytest <pkg-root>/` | `npm test --workspaces` | `cargo test --workspace` |
-| one unit | `cd <pkg> && pytest` | `cd packages/<p> && npm test` | `cargo test -p <crate>` |
-| one file | `cd <pkg> && pytest tests/<file>.py` | `npx vitest run <file>` | `cargo test <filter>` |
-| lint | `ruff check <paths>` | `npm run lint` | `cargo clippy --all-targets` |
-| types | `mypy --config-file <ini> <paths>` | `npx tsc --noEmit` | `cargo check` |
-| format gate | `ruff format --check <paths>` | `npx prettier --check .` | `cargo fmt --check` |
-| arch scan | `<scanner> scan <paths>` | same CLI, package paths | `cargo tree -d` + `<scanner>` |
 ````
 
 ---

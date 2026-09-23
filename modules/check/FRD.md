@@ -16,8 +16,7 @@ verification runners aggregated into one exit code. `CheckOrchestrator`
 `contract_check_aggregate.py`) takes a list of `ICheckRunner` capabilities
 (`contract_check_protocol.py`) and runs each; the aggregate is non-strict by
 default and becomes strict (warnings fail the gate) via `check(strict=True)`.
-Capability modules: JSON validation, Python compile, shell check, doc-pack
-invariant audit, and skill-pack audit.
+Capability modules: doc-pack invariant audit and skill-pack audit.
 
 Flow: CLI surface → `CheckOrchestrator.check(strict)` → for each runner
 `run(strict)` → any non-zero (or warning-in-strict) fails the gate.
@@ -64,8 +63,7 @@ Flow: CLI surface → `CheckOrchestrator.check(strict)` → for each runner
 
 | System | Direction | Purpose | Failure mode |
 |--------|-----------|---------|--------------|
-| `modules/shared` (manifest_reader, paths, doc_pack) | out | anchor root, read manifest, audit docs | repo-root/anchor error |
-| host toolchain (ruff, shellcheck, python compileall) | out | per-domain verification | missing tool → runner reports skip/fail |
+| `modules/shared` (manifest_reader, paths, doc_pack, skill_pack) | out | anchor root, read manifest, audit docs and skills | repo-root/anchor error |
 | `modules/root_cli_entry.py` (root) | in | `aa check [strict]` | none — pass-through |
 
 ## Non-functional Requirements
@@ -86,8 +84,6 @@ Flow: CLI surface → `CheckOrchestrator.check(strict)` → for each runner
 ## Assumptions & Constraints
 
 - Runs from a checkout that has `config/manifest.json` (repo-root anchor).
-- External linters (ruff, shellcheck) may be absent on a minimal host; a missing
-  tool is reported as skip/fail per the runner, not a crash.
 
 ## Glossary
 

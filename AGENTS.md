@@ -122,11 +122,8 @@ Before concluding any task that modifies scripts, manifest files, or configurati
 aa check
 ```
 The verification checks:
-1. JSON syntax validity across all JSON files under `modules/`.
-2. Python compilation across all Python files under `modules/`.
-3. Document invariants across `PRD.md`/`FRD.md`/`README.md`/`BACKLOG.md`/`AGENTS.md` and skill references (see below).
-4. Skill-pack loadability invariants across `skills/` (see below).
-5. ShellCheck linting of `modules/` shell scripts (excluding `skills/`), if installed.
+1. Document invariants across `PRD.md`/`FRD.md`/`README.md`/`BACKLOG.md`/`AGENTS.md` and skill references (see below).
+2. Skill-pack loadability invariants across `skills/` (see below).
 
 ### Document invariants
 
