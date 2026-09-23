@@ -1,4 +1,9 @@
-"""Docs check capability — delegates to the shared doc_pack domain."""
+"""Docs check capability — delegates to the shared doc_pack domain.
+
+Aligns with the add-docs golden standard under
+``skills/documentation/add-docs/references/HOW-TO-MAKE-*.md``:
+PRD → ROADMAP (root master) → FRD → feature BACKLOG → README → AGENTS.
+"""
 from __future__ import annotations
 
 import os
@@ -26,7 +31,7 @@ class DocsCheckRunner(ICheckRunner):
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
     def run(self, strict: bool = False) -> CheckExitCode:
-        print("[3/5] Validating document invariants...")
+        print("[1/2] Validating document invariants (PRD/ROADMAP/FRD/BACKLOG/README/AGENTS)...")
         findings = self.audit(strict=strict)
         problems = errors_only(as_strict(findings)) if strict else errors_only(findings)
         surface = [f for f in warnings_only(findings)

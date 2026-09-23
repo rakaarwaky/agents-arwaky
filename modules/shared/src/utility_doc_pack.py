@@ -38,7 +38,7 @@ _OWNERSHIP_SKIP_DIRS = {"vendor", "internal"}
 #: copies): a broken pointer is a broken pointer whoever wrote the file.
 _ALWAYS_GATING = {"dead-link"}
 
-#: Sections that may exist only in the root master backlog, per references/backlog.md.
+#: Sections that may exist only in the root master, per references/HOW-TO-MAKE-ROADMAP.md.
 MASTER_ONLY_SECTIONS = (
     "State definitions", "Status policy", "Feature roll-up",
     "Branches in flight", "Risk register",
@@ -49,19 +49,23 @@ MASTER_ONLY_SECTIONS = (
 _COMMANDS_HEADINGS = ("Commands", "Command Reference", "Available Commands",
                       "Available Scripts", "Quick Reference Playbook")
 
-#: Section contract, mirroring references/{prd,frd,readme,backlog,agents-md}.md.
+#: Section contract, mirroring references/HOW-TO-MAKE-{prd,roadmap,frd,readme,backlog,agents}.md.
 REQUIRED_SECTIONS = {
-    "PRD.md": ("Problem Statement", "Goals", "Personas", "Scope",
+    "PRD.md": ("Problem Statement", "Goals", "User Personas", "Scope",
                "Feature Requirements", "Non-functional", "Open Questions"),
+    "ROADMAP.md": ("Current Condition", "State Definitions", "Status Policy",
+                   "Feature Roll-up", "Backlog", "Blockers", "Dependencies",
+                   "Release Readiness", "Deferred", "Change Log",
+                   "Branches in Flight", "Risk Register"),
     "FRD.md": ("Reference", "System Overview", "Functional Requirements",
                "API Contract", "Integration Points", "Non-functional",
-               "Test Scenarios", "Assumptions"),
+               "Test Scenarios", "Assumptions", "Glossary"),
     "README.md": ("Prerequisites", "Quick Start", "Architecture", "Project Structure",
                   "Available Scripts", "Configuration", "Testing", "Contributing", "License"),
     "AGENTS.md": ("Precedence", "Security", "Commands", "Definition of Done",
                   "Related Documents"),
-    "BACKLOG.md": ("Current Condition", "Backlog", "Blockers", "Dependencies",
-                   "Release Readiness", "Deferred", "Change Log"),
+    "BACKLOG.md": ("Current Condition", "Backlog", "Scenario Evidence", "Blockers",
+                   "Dependencies", "Release Readiness", "Deferred", "Change Log"),
 }
 #: Canonical contract section -> heading fragments that satisfy it. Repos head the same
 #: obligation differently, so the check is on the information being present, not on one
@@ -69,16 +73,26 @@ REQUIRED_SECTIONS = {
 _SECTION_ALIASES = {
     "Available Scripts": ("Available Scripts", "Available Commands", "Commands",
                           "Developer Workflows", "Orchestrator CLI"),
+    "Branches in Flight": ("Branches in Flight", "Branches", "In Flight"),
     "Commands": _COMMANDS_HEADINGS,
     "Configuration": ("Configuration", "Config", "Environment"),
+    "Current Condition": ("Current Condition", "Current Status", "Condition"),
     "Definition of Done": ("Definition of Done", "Quality Gates", "Done Criteria",
                            "Verification"),
+    "Feature Roll-up": ("Feature Roll-up", "Feature Rollup", "Roll-up", "Rollup"),
+    "Glossary": ("Glossary", "Terms", "Definitions"),
+    "Open Questions": ("Open Questions", "Open Questions / Risks", "Risks",
+                       "Open Questions and Risks"),
     "Precedence": ("Precedence", "Priority Order", "When Documents Disagree"),
     "Project Structure": ("Project Structure", "Repository Structure", "Repo Layout",
                           "Directory Layout", "Architecture Map"),
     "Quick Start": ("Quick Start", "Quickstart", "Getting Started", "Installation"),
     "Related Documents": ("Related Documents", "Reference Paths", "See Also"),
+    "Risk Register": ("Risk Register", "Risks"),
+    "Scenario Evidence": ("Scenario Evidence", "Evidence"),
     "Security": ("Security", "Guardrails", "Safety"),
+    "State Definitions": ("State Definitions", "States", "State Vocabulary"),
+    "Status Policy": ("Status Policy", "Verification Policy"),
     "Testing": ("Testing", "Test Suite", "Tests"),
     "Contributing": ("Contributing", "How to Contribute", "Contributor Guide"),
 }
@@ -92,7 +106,7 @@ _HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*$", re.MULTILINE)
 _HEADING_LINE = re.compile(r"^(#{1,6})\s+(.*)$")
 _FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
 
-#: Claims that belong in BACKLOG.md, never in a spec.
+#: Claims that belong in BACKLOG.md / ROADMAP.md, never in a spec.
 _STATUS_LEAKS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"^\s*[-*]\s*\[[ xX]\]"), "a checkbox task item"),
     (re.compile(r"^\s*\**\s*status\s*\**\s*:", re.IGNORECASE), "a Status: field"),
@@ -268,6 +282,19 @@ def _is_resolvable(target: str) -> bool:
 
 
 # --- placement and status invariants -----------------------------------------
+def root_master(root: Path) -> Path | None:
+    """The root file that owns shared policy.
+
+    ``ROADMAP.md`` is the standard (references/HOW-TO-MAKE-ROADMAP.md); a legacy root
+    ``BACKLOG.md`` is accepted during migration and treated as the same master.
+    """
+    for name in ("ROADMAP.md", "BACKLOG.md"):
+        candidate = root / name
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 def check_spec_status_leak(path: Path) -> list[DocFinding]:
     """Rule *Spec and status never share a file*."""
     findings: list[DocFinding] = []
@@ -285,17 +312,17 @@ def check_spec_status_leak(path: Path) -> list[DocFinding]:
 
 
 def check_spec_pairing(root: Path) -> list[DocFinding]:
-    """Rule *every spec has a partner backlog, and one master owns the definitions*."""
+    """Rule *every spec has a partner backlog, and one root master owns the definitions*."""
     findings: list[DocFinding] = []
     docs = iter_doc_files(root)
-    master = root / "BACKLOG.md"
+    master = root_master(root)
     specs = [path for path in docs if path.name in SPEC_DOCS]
-    if specs and not master.is_file():
+    if specs and master is None:
         findings.append(DocFinding(
             "no-master-backlog",
-            f"{len(specs)} spec file(s) but no root BACKLOG.md to own the State/Health "
-            "vocabulary and status policy",
-            str(master),
+            f"{len(specs)} spec file(s) but no root ROADMAP.md (or legacy root "
+            "BACKLOG.md) to own the State/Health vocabulary and status policy",
+            str(root / "ROADMAP.md"),
         ))
     for spec in specs:
         partner = spec.parent / "BACKLOG.md"
@@ -324,10 +351,10 @@ def check_spec_pairing(root: Path) -> list[DocFinding]:
 
 
 def check_state_vocabulary(root: Path) -> list[DocFinding]:
-    """Rule *definitions live once, in the master root file*."""
+    """Rule *definitions live once, in the root master file*."""
     findings: list[DocFinding] = []
-    master = root / "BACKLOG.md"
-    if master.is_file():
+    master = root_master(root)
+    if master is not None:
         # The vocabulary may sit in any section (Health usually shares State definitions),
         # so the invariant is that each term is defined somewhere in the master file.
         prose = _norm(blank_fenced(_read(master)))
@@ -335,7 +362,7 @@ def check_state_vocabulary(root: Path) -> list[DocFinding]:
             if _norm(term) not in prose:
                 findings.append(DocFinding(
                     "undefined-state-vocab",
-                    f"master backlog never defines {term!r}; feature files cite this "
+                    f"root master never defines {term!r}; feature files cite this "
                     "vocabulary and cannot define it themselves",
                     str(master),
                     severity=WARN,
@@ -344,7 +371,7 @@ def check_state_vocabulary(root: Path) -> list[DocFinding]:
             if find_section(master, title) is None:
                 findings.append(DocFinding(
                     "master-section-missing",
-                    f"root master backlog has no {title!r} section; this is the one place that "
+                    f"root master has no {title!r} section; this is the one place that "
                     "answers it workspace-wide, so no feature file may hold it instead",
                     str(master),
                     severity=WARN,
@@ -355,12 +382,12 @@ def check_state_vocabulary(root: Path) -> list[DocFinding]:
         headings = _norm(" ".join(
             m.group(2) for m in _HEADING.finditer(blank_fenced(_read(backlog)))
         ))
-        restated = [t for t in ("State definitions", "Status policy") if _norm(t) in headings]
+        restated = [t for t in MASTER_ONLY_SECTIONS if _norm(t) in headings]
         if restated:
             findings.append(DocFinding(
                 "state-vocab-restated",
                 f"feature backlog carries its own {' and '.join(restated)} section; those live "
-                "once, in the root master backlog",
+                "once, in the root master (ROADMAP.md)",
                 str(backlog),
             ))
     return findings
@@ -401,7 +428,7 @@ def check_backlog_rows(backlog: Path) -> list[DocFinding]:
                 findings.append(DocFinding(
                     "unknown-state",
                     f"row state {state!r} is not in the master vocabulary; use one of "
-                    f"{', '.join(STATE_VOCAB)} or add the term to the root file",
+                    f"{', '.join(STATE_VOCAB)} or add the term to ROADMAP.md",
                     f"{backlog}:{line}",
                 ))
             if (state.title() in EVIDENCED_STATES and condition_at is not None
@@ -667,6 +694,7 @@ def check_length_budget(path: Path) -> list[DocFinding]:
     # table row is one line regardless of how many cells it holds.
     budgets = {
         "PRD.md": ("lines", 50, 500),
+        "ROADMAP.md": ("lines", 50, 500),
         "README.md": ("lines", 50, 500),
         "BACKLOG.md": ("lines", 50, 500),
         "AGENTS.md": ("lines", 50, 500),
@@ -707,8 +735,8 @@ def iter_doc_files(root: Path, *, include_subtrees: bool = False) -> list[Path]:
             upstream submodules in this ecosystem and skipped by default.
 
     Returns:
-        Sorted ``PRD.md``/``FRD.md``/``README.md``/``AGENTS.md``/``BACKLOG.md``/``SKILL.md``
-        paths, ignoring build and dependency trees.
+        Sorted ``PRD.md``/``ROADMAP.md``/``FRD.md``/``README.md``/``AGENTS.md``/
+        ``BACKLOG.md``/``SKILL.md`` paths, ignoring build and dependency trees.
     """
     names = frozenset((*DOC_NAMES, "SKILL.md"))
     found: list[Path] = []
@@ -752,6 +780,10 @@ def audit_docs(root: Path, *, include_subtrees: bool = False) -> list[DocFinding
             raw.extend(check_hygiene(path))
             raw.extend(check_length_budget(path))
         for title in _missing_sections(blank_fenced(_read(path)), path.name):
+            # Scenario Evidence is a feature-backlog obligation (HOW-TO-MAKE-BACKLOG);
+            # a root master BACKLOG follows the ROADMAP contract instead.
+            if path.name == "BACKLOG.md" and path.parent == root and title == "Scenario Evidence":
+                continue
             raw.append(DocFinding(
                 f"{path.name[:-3].lower()}-section-missing",
                 f"no {title!r} section; the section contract marks it required",
@@ -764,7 +796,7 @@ def audit_docs(root: Path, *, include_subtrees: bool = False) -> list[DocFinding
             raw.extend(check_scenarios(path, path.parent / "BACKLOG.md"))
         elif path.name == "PRD.md":
             raw.extend(check_spec_status_leak(path))
-        elif path.name == "BACKLOG.md":
+        elif path.name in ("BACKLOG.md", "ROADMAP.md"):
             raw.extend(check_backlog_rows(path))
         if path.name == "AGENTS.md":
             raw.extend(check_command_drift(path, ci_text))

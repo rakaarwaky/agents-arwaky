@@ -48,11 +48,11 @@ ANYTYPE_BASE_URL = "http://127.0.0.1:31012"
 
 # --- doc pack ------------------------------------------------------------------
 SPEC_DOCS = ("PRD.md", "FRD.md")
-DOC_NAMES = ("PRD.md", "FRD.md", "README.md", "AGENTS.md", "BACKLOG.md")
+DOC_NAMES = ("PRD.md", "ROADMAP.md", "FRD.md", "README.md", "AGENTS.md", "BACKLOG.md")
 #: Documents this repo authors; findings on anything else are advisory.
 OWNED_DOCS = (*DOC_NAMES, "SKILL.md")
 
-#: The state vocabulary, which lives once in the root master backlog.
+#: The state vocabulary, which lives once in the root master (ROADMAP.md).
 STATE_VOCAB = (
     "Idea", "Refinement", "Ready", "In Progress", "Blocked", "In Review",
     "QA", "Done", "Released", "Deferred",
@@ -63,7 +63,7 @@ HEALTH_VOCAB = (
 #: States that assert finished work, and therefore owe evidence.
 EVIDENCED_STATES = frozenset({"Done", "Released"})
 
-#: Column order a ``Backlog`` table must keep, per references/backlog.md.
+#: Column order a ``Backlog`` table must keep, per references/HOW-TO-MAKE-BACKLOG.md.
 BACKLOG_COLUMNS = (
     "ID", "FRD Ref", "Work Item", "Priority", "State",
     "Actual Condition", "Owner", "Dependencies", "Updated",
