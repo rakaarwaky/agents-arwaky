@@ -16,9 +16,11 @@ metadata:
     - orchestration
     - vo
   related_skills:
+    - lint-arwaky
     - create-capabilities
     - create-taxonomy
     - create-contract
+    - create-surface
   triggers:
     - create agent
     - create agent python
@@ -41,75 +43,118 @@ metadata:
     - audit agent rust
 ---
 
-# Create Agent (AES)
+# create-agent
 
-The **agent layer performs orchestration only**. It receives a request, calls its aggregate
-contract, and returns shared VOs. It never touches the filesystem, network, or database; it never
-computes domain values; it never stores domain data locally.
+> **Purpose**: Scaffold AES agent orchestrators — orchestration only: call the aggregate, return shared VOs, zero I/O and zero computation.
+> **Audience**: The agent creating or validating an agent orchestrator file.
+> **Scope**: Python, Rust, and TypeScript `agent_<domain>_orchestrator` files — one aggregate, 3-block structure.
 
-Naming (AES101/AES102): `agent_<domain>_orchestrator.<ext>` — `_orchestrator` is the only allowed
-suffix. It implements exactly one contract aggregate.
+The **aggregate** decides which suffix, which imports, and which structure apply.
+Rules, templates, section contracts, and Verify blocks live in the language HOW-TUs under [`references/`](references/).
 
-Read `references/python.md`, `references/rust.md`, or `references/typescript.md` for that
-language's import lists, 3-block layout, templates, and verify command.
+| Language | Focus | Body rule | HOW-TO |
+| -------- | ----- | --------- | ------ |
+| Python | Orchestrator | One aggregate; 3-block; zero I/O/computation | [references/HOW-TO-MAKE-PYTHON-AGENT.md](references/HOW-TO-MAKE-PYTHON-AGENT.md) |
+| Rust | Orchestrator | One aggregate; 3-block; zero I/O/computation | [references/HOW-TO-MAKE-RUST-AGENT.md](references/HOW-TO-MAKE-RUST-AGENT.md) |
+| TypeScript | Orchestrator | One aggregate; 3-block; zero I/O/computation | [references/HOW-TO-MAKE-TYPESCRIPT-AGENT.md](references/HOW-TO-MAKE-TYPESCRIPT-AGENT.md) |
 
-## Language split
+**The layer chain:**
 
-| Language   | Aggregate contract        | DI mechanism                | Register / verify                |
-| ------------ | --------------------------- | ----------------------------- | ---------------------------------- |
-| Python     | ABC in `contract_*`       | Constructor param (ABC)     | `__init__.py`, `python -c "import <module>"` |
-| Rust       | Trait in `contract_*`     | `Arc<dyn I<Name>Aggregate>` | `mod.rs`, `cargo check -p <crate-name>` |
-| TypeScript | Interface in `contract_*` | Constructor param (interface) | `index.ts`, `npx tsc --noEmit`   |
+`contract_*_aggregate` (created via create-contract) → **agent implements** → surface / root call the agent
 
-Forbidden in every language: importing `capabilities_*`, other `agent_*`, or any `surface_*`;
-and language I/O APIs (`open()`/`Path()`/`os.*`/HTTP+DB clients, `std::fs`/`reqwest`/`sqlx`,
-`fs.*`/`fetch`/`axios`). Allowed: control flow, error propagation, awaiting/consuming injected
-dependencies, collecting results into shared VOs.
+Each file answers one layer's job. A method or import in the wrong layer is the defect this skill exists to prevent.
 
-## 3-Block structure (mandatory order)
+---
 
-1. **Block 1 — Type definition & constructor:** the struct/class and its injected dependencies.
-2. **Block 2 — Aggregate method implementation:** only methods declared by the aggregate contract.
-3. **Block 3 — Constructors, standard-protocol methods, factories, private helpers.**
+## Invariants
 
-Placement rule: anything that is a free/module-level function or a pure static with no access to
-the type is **extracted to `*_utility`**; anything bound to the instance, a factory, or a dunder /
-`Display` / `toString` goes to Block 3; contract methods go to Block 2.
+Every rule is machine-checked by `lint-arwaky-cli scan <layer-path>` (see each HOW-TO § Verify).
+A rule cannot drift from the gate. Cite the linter, not this file, when pointing at a rule.
 
-## Hard rules
+| Layer | Rule |
+| ----- | ---- |
+| Naming | File `agent_<domain>_orchestrator` — `_orchestrator` is the only suffix (AES101/AES102). |
+| Structure | 3-block order: Block 1 type+injected deps → Block 2 aggregate methods only → Block 3 factories/dunders/helpers. ≥1 aggregate, ≤3 types (AES405). |
+| Imports | Shared contracts/taxonomy/utility only — never capabilities, siblings, surface (AES201). |
+| Behaviour | No I/O, no arithmetic/parsing/normalisation, no local domain data, no magic constants, no silently discarded errors. |
+| DI | Injected aggregate only (`Arc<dyn Trait>` in Rust); shared VOs in signatures. |
+| Register | Shared barrel so the root can compose the agent. |
+| Verify | `lint-arwaky-cli scan <layer-path>` → 0. Language compile is fallback only. |
 
-1. **No computation.** Arithmetic, totals, averages, folds/reduces, parsing, and normalization
-   belong to capabilities. Iterating to call an injected dependency and routing its result is fine.
-2. **No local domain data.** Domain types come from taxonomy VOs; behaviour comes from the
-   aggregate contract. No raw primitives in signatures (`str`/`int`/`float`, `String`/`i32`/`f64`,
-   `string`/`number`) — booleans only as semantic toggles.
-3. **Never silently discard an error.** No `... or ""`, `unwrap_or_default()`, or `?? ""` on a
-   result. Analysis orchestration returns a collection of result VOs with per-item handling;
-   execution orchestration returns a result type (`Result[...]` / `Result<...>` / thrown error).
-   I/O failures are mapped by capabilities; the agent only wraps them into a VO.
-4. **No magic constants** — literals live in taxonomy `_constant` files.
-5. **Size limits (AES405/AES301):** at least one aggregate implementation, at most 3 types per
-   file. Rust: generic aggregate methods must be object-safe or gated `where Self: Sized`.
-6. **Register** the agent in the crate/package barrel so it can be composed by the root layer.
+Split details, templates, and Section Contract tables: **read the language HOW-TO** — do not restate them here.
+
+---
+
+## Diagnostic Tree
+
+Ask these questions in order. The first "No" dictates your next action.
+
+1. **Is this orchestration only — or does it compute / touch I/O / hold domain data?**
+   - *Computes/I-O/data* → move to capabilities / taxonomy / utility.
+2. **Does an `_aggregate` contract exist?**
+   - *No* → create it first with `create-contract`.
+3. **Block 2 only aggregate methods? ≥1 aggregate? ≤3 types?**
+   - *No* → restructure to 1→2→3; extract free functions to utility.
+4. **Any silently discarded errors or raw primitives in signatures?**
+   - *Yes* → propagate/`Result`; wrap primitives in VOs.
+5. **Does `lint-arwaky-cli scan <layer-path>` exit 0?**
+   - *No* → fix findings, re-scan.
+
+---
 
 ## Workflow
 
-1. Confirm the work is orchestration only — move computation to capabilities, data to taxonomy.
-2. If no aggregate contract exists, create it with `create-contract` first.
-3. Implement the 3 blocks from the language reference template.
-4. Inject dependencies (Python/TS constructor param, Rust `Arc<dyn Trait>`); no direct construction.
-5. Check imports, I/O, computation, error handling, and primitives against the rules above.
-6. Register in `__init__.py` / `mod.rs` / `index.ts` and run the verify command.
+1. Confirm orchestration only — computation → capabilities, domain data → taxonomy, pure helpers → utility.
+2. Ensure an `_aggregate` contract exists — if missing, run `create-contract` first.
+3. Resolve the feature agent dir. Run `lint-arwaky-cli scan <layer-path>` — findings are your work list.
+4. Implement the 3 blocks from the language HOW-TO § Template / § Section Contract; inject the aggregate via DI.
+5. Check imports, I/O, computation, error handling, and primitives against HOW-TO § Rules.
+6. Register in the shared barrel, verify with `lint-arwaky-cli scan`, then compose via `create-root` / consume via `create-surface`.
 
-## Checklist
+---
 
-- [ ] File is `agent_<domain>_orchestrator` (only `_orchestrator` suffix allowed).
-- [ ] Block 1 → 2 → 3 order followed; Block 2 contains ONLY aggregate contract methods.
-- [ ] Block 3 holds constructors, standard-protocol methods, factories, private helpers.
-- [ ] ≥1 type implements the aggregate contract; ≤3 types total.
-- [ ] No local domain data; DI through the injected contract; shared VOs only.
-- [ ] Zero I/O, zero business logic, zero domain computation.
-- [ ] No forbidden imports (capabilities, other agents, surface).
-- [ ] No silently discarded errors, no raw primitives in contracts, no magic constants.
-- [ ] Rust only: `Arc<dyn Trait>` DI, generic methods object-safe or `where Self: Sized`.
-- [ ] Registered in `__init__.py` / `mod.rs` / `index.ts`; verify command passes.
+## Verification
+
+### Machine Checks
+
+```bash
+lint-arwaky-cli scan <layer-path>   # AES101/102, AES201–205, AES401–406 → must be 0
+# Fallback only: language compile (python -c import / cargo check / npx tsc --noEmit)
+```
+
+A pass means naming, imports, primitives, and roles are clean. Structural judgement
+(tier choice, block order, helper-vs-utility, "orchestration only") is **manual** — see HOW-TO § Rules.
+
+### Human Checks
+
+A machine pass does not mean the file is right. Layer purpose, structural order, and
+"only what this layer may do" still need a reader (HOW-TO § Rules).
+
+---
+
+## Pre-flight Checklist
+
+- [ ] `lint-arwaky-cli scan <layer-path>` exits 0.
+- [ ] Every touched HOW-TO's `Verify` block was executed.
+- [ ] File registered in `__init__.py` / `mod.rs` / `index.ts`.
+- [ ] Language fallback compile clean if the HOW-TO lists it.
+- [ ] Related skills considered for the next layer up/down.
+
+---
+
+## Common Mistakes (Anti-Patterns)
+
+The linter covers naming, imports, and primitives. These need a reader (HOW-TO § Rules):
+
+- **Computation or I/O in the agent**: arithmetic/parsing/FS/network belong below the agent layer.
+- **Silently discarded errors**: no `or ""` / `unwrap_or_default()` / `?? ""` on results.
+- **Agent implements protocol instead of aggregate (or both)**: exactly one aggregate, 3-block order.
+- **Restating HOW-TO rules in SKILL.md**: delegate — this file only routes.
+
+---
+
+## Related Skills
+
+- `create-contract`
+- `create-capabilities`
+- `create-surface`

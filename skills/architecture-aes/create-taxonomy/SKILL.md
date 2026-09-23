@@ -16,9 +16,11 @@ metadata:
     - constant
     - primitive-to-vo
   related_skills:
+    - lint-arwaky
     - create-capabilities
     - create-agent
     - create-contract
+    - create-utility
   triggers:
     - create taxonomy
     - create taxonomy python
@@ -45,71 +47,116 @@ metadata:
     - check taxonomy typescript
 ---
 
-# Create Taxonomy (AES)
+# create-taxonomy
 
-Taxonomy is the **stable language of the domain**: the single source of truth for value objects,
-entities, errors, events, and constants. It is the bottom AES layer — it may reference nothing
-above it, carries no behaviour beyond its own invariants, and performs no I/O.
+> **Purpose**: Scaffold AES taxonomy files (VO / entity / error / event / constant) — the stable language of the domain.
+> **Audience**: The agent creating or validating a taxonomy file.
+> **Scope**: Python, Rust, and TypeScript `taxonomy_<domain>_<suffix>` files in the shared domain.
 
-Read `references/python.md`, `references/rust.md`, or `references/typescript.md` for the
-templates, suffix tables, and verify commands of the language you are writing.
+The **aggregate** decides which suffix, which imports, and which structure apply.
+Rules, templates, section contracts, and Verify blocks live in the language HOW-TUs under [`references/`](references/).
 
-## Language split
+| Language | Focus | Body rule | HOW-TO |
+| -------- | ----- | --------- | ------ |
+| Python | Taxonomy VO / entity / error / event / constant | Strict suffix set; no I/O; no upward imports | [references/HOW-TO-MAKE-PYTHON-TAXONOMY.md](references/HOW-TO-MAKE-PYTHON-TAXONOMY.md) |
+| Rust | Taxonomy VO / entity / error / event / constant | Strict suffix set; no I/O; no upward imports | [references/HOW-TO-MAKE-RUST-TAXONOMY.md](references/HOW-TO-MAKE-RUST-TAXONOMY.md) |
+| TypeScript | Taxonomy VO / entity / error / event / constant | Strict suffix set; no I/O; no upward imports | [references/HOW-TO-MAKE-TYPESCRIPT-TAXONOMY.md](references/HOW-TO-MAKE-TYPESCRIPT-TAXONOMY.md) |
 
-| Language   | Source root                 | Extension | Register in    | Verify                       | Forbidden runtime refs                              |
-| ------------ | ----------------------------- | ----------- | ---------------- | -------------------------------- | ----------------------------------------------------- |
-| Python     | `modules/shared/src/<domain>/` | `.py`     | `__init__.py`  | `python -c "import <module>"`  | `open()`/`Path()`/`os.*`/`requests.*`/DB clients |
-| Rust       | `crates/shared/src/<domain>/`  | `.rs`     | `mod.rs`       | `cargo check -p <crate-name>`  | `std::fs`/`reqwest`/`sqlx`/`rusqlite`               |
-| TypeScript | `packages/shared/src/<domain>/` | `.ts`     | `index.ts`     | `npx tsc --noEmit`             | `fs.*`/`fetch`/database                             |
+**The layer chain:**
 
-## File naming (AES101)
+`taxonomy_*_vo|entity|error|event|constant` (bottom layer) → contract → capabilities → agent → surface → root
 
-`taxonomy_<domain>_<suffix>.<ext>` — lowercase, underscore-separated, minimum 3 words.
-Strict suffix set for taxonomy: `_vo`, `_entity`, `_error`, `_event`, `_constant`
-(`_utility` files belong to the Utility layer, not taxonomy).
+Each file answers one layer's job. A method or import in the wrong layer is the defect this skill exists to prevent.
 
-| Type         | Holds                                   | Constraint                                       |
-| -------------- | ----------------------------------------- | ------------------------------------------------ |
-| Value Object | A single validated, immutable value     | Validate on construction; no I/O               |
-| Entity       | Something with identity                 | Identity field must be a VO, not a raw primitive |
-| Error        | A domain failure                        | Language error base type; VO payload fields only |
-| Event        | A fact that happened                  | Immutable; VO payload fields                     |
-| Constant     | Compile-time literal (config, limits) | Pure literal values only — no functions, no I/O |
+---
 
-## Hard rules
+## Invariants
 
-1. **No upward imports.** Never import from capabilities, agents, surface, root, or contracts.
-   Import other taxonomy types and the standard library only.
-2. **No I/O.** No filesystem, network, or database access in VOs, entities, errors, events,
-   or constants.
-3. **No primitives for domain fields** (AES401). A VO field must not be a raw string, int,
-   float, or their collection form — wrap it in another VO. Composite VOs use other VOs.
-   Booleans are allowed only as semantic toggles.
-4. **Validate on construction.** A VO cannot exist in an invalid state: the constructor (or
-   `new()` / `__post_init__`) rejects bad input.
-5. **Constants stay literal.** Pure values only; computed values go to the Utility layer.
-6. **Immutable.** Public fields are read-only / `final` / have no setters.
-7. **Register the file** in the shared barrel (`__init__.py` / `mod.rs` / `index.ts`) or the
-   module is dead code.
+Every rule is machine-checked by `lint-arwaky-cli scan <layer-path>` (see each HOW-TO § Verify).
+A rule cannot drift from the gate. Cite the linter, not this file, when pointing at a rule.
+
+| Layer | Rule |
+| ----- | ---- |
+| Naming | File `taxonomy_<domain>_<suffix>` — suffix strictly `_vo`/`_entity`/`_error`/`_event`/`_constant` (AES101/AES102). |
+| Imports | Taxonomy + stdlib only — never capabilities, agents, surface, root, contracts; no I/O (AES201). |
+| Primitives | Domain fields wrap VOs — no raw `str`/`int`/`float`/`String`/`string`/`number` for domain values (AES401). |
+| Construction | VOs validate on construction; immutable; constants are pure literals. |
+| Register | Shared barrel: `__init__.py` / `mod.rs` / `index.ts`. |
+| Verify | `lint-arwaky-cli scan <layer-path>` → 0. Language compile is fallback only. |
+
+Split details, templates, and Section Contract tables: **read the language HOW-TO** — do not restate them here.
+
+---
+
+## Diagnostic Tree
+
+Ask these questions in order. The first "No" dictates your next action.
+
+1. **Is this a domain value, identity, failure, fact, or literal?**
+   - *Value* → `_vo`; *identity* → `_entity`; *failure* → `_error`; *fact* → `_event`; *literal* → `_constant`.
+2. **Does the file import anything above taxonomy or touch I/O?**
+   - *Yes* → strip the import / move I/O to capabilities or utility.
+3. **Are domain fields raw primitives?**
+   - *Yes* → wrap each in a VO (AES401).
+4. **Is the file registered in the shared barrel?**
+   - *No* → register; else the module is dead code.
+5. **Does `lint-arwaky-cli scan <layer-path>` exit 0?**
+   - *No* → fix findings, re-scan.
+
+---
 
 ## Workflow
 
-1. Determine the type (VO / Entity / Error / Event / Constant).
-2. Create `taxonomy_<domain>_<type>` with the language extension in the shared source root.
-3. Apply the type template from your language reference.
-4. Register in the shared barrel.
-5. Run the language verify command from the table above.
+1. Resolve the shared taxonomy dir beside contracts.
+2. Determine type (VO / Entity / Error / Event / Constant). Run `lint-arwaky-cli scan <layer-path>` — findings are your work list.
+3. Draft the file from the language HOW-TO § Template / § Section Contract.
+4. Register in `__init__.py` / `mod.rs` / `index.ts`.
+5. Verify with `lint-arwaky-cli scan <layer-path>` (HOW-TO § Verify), then wire through `create-contract` / `create-capabilities` as needed.
 
-## Checklist
+---
 
-- [ ] File name is `taxonomy_<domain>_<type>` with a strict-suffix ending and ≥3 words.
-- [ ] Correct suffix for the content type.
-- [ ] VOs validate on construction; composite VOs use other VOs (no raw primitives).
-- [ ] VOs are immutable; expose the value through a read-only accessor.
-- [ ] Errors use the language error base (`Exception` / `std::error::Error` + `Display` / `extends Error`).
-- [ ] Constants are pure literal values.
-- [ ] Events/Entities payloads are VOs; entities carry an identity VO.
-- [ ] No import from capabilities, agents, surface, root, contracts.
-- [ ] No I/O, network, or database in taxonomy files.
-- [ ] Registered in `__init__.py` / `mod.rs` / `index.ts`.
-- [ ] Verify command passes (`python -c "import ..."`, `cargo check -p ...`, `npx tsc --noEmit`).
+## Verification
+
+### Machine Checks
+
+```bash
+lint-arwaky-cli scan <layer-path>   # AES101/102, AES201–205, AES401–406 → must be 0
+# Fallback only: language compile (python -c import / cargo check / npx tsc --noEmit)
+```
+
+A pass means naming, imports, primitives, and roles are clean. Structural judgement
+(tier choice, block order, helper-vs-utility, "orchestration only") is **manual** — see HOW-TO § Rules.
+
+### Human Checks
+
+A machine pass does not mean the file is right. Layer purpose, structural order, and
+"only what this layer may do" still need a reader (HOW-TO § Rules).
+
+---
+
+## Pre-flight Checklist
+
+- [ ] `lint-arwaky-cli scan <layer-path>` exits 0.
+- [ ] Every touched HOW-TO's `Verify` block was executed.
+- [ ] File registered in `__init__.py` / `mod.rs` / `index.ts`.
+- [ ] Language fallback compile clean if the HOW-TO lists it.
+- [ ] Related skills considered for the next layer up/down.
+
+---
+
+## Common Mistakes (Anti-Patterns)
+
+The linter covers naming, imports, and primitives. These need a reader (HOW-TO § Rules):
+
+- **Primitives in domain fields**: wrap in a VO (AES401).
+- **I/O or upward imports in taxonomy**: forbidden — move to capabilities/utility.
+- **Computed "constants"**: pure literals only; computed values go to Utility.
+- **Restating HOW-TO rules in SKILL.md**: delegate — this file only routes.
+
+---
+
+## Related Skills
+
+- `create-contract`
+- `create-utility`
+- `create-capabilities`

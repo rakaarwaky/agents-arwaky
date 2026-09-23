@@ -14,6 +14,7 @@ metadata:
     - domain-agnostic
     - reusability
   related_skills:
+    - lint-arwaky
     - create-taxonomy
     - create-capabilities
     - create-agent
@@ -39,67 +40,117 @@ metadata:
     - audit utility python
 ---
 
-# Create Utility (AES)
+# create-utility
 
-The **utility layer holds stateless standalone functions**: no class or struct, no `self`/`this`,
-no contract implementation, no domain rules. It sits beside taxonomy as shared, reusable
-mechanics (serialization, path handling, formatting, hashing).
+> **Purpose**: Scaffold AES utility files — stateless, domain-agnostic free functions shared across layers.
+> **Audience**: The agent creating or validating a utility file.
+> **Scope**: Python, Rust, and TypeScript `utility_<domain>_<role>` files — no class/struct/impl.
 
-Naming (AES101/AES102): `utility_<domain>_<role>.<ext>`. The suffix set is **flexible** — any role
-name that describes the file's technical responsibility — but these endings are **forbidden**
-(AES102): `_vo`, `_entity`, `_error`, `_event`, `_constant`, `_protocol`, `_aggregate`.
+The **aggregate** decides which suffix, which imports, and which structure apply.
+Rules, templates, section contracts, and Verify blocks live in the language HOW-TUs under [`references/`](references/).
 
-**Import rule (all languages): taxonomy only.** Capabilities, agents, surface, and contract are
-forbidden; Rust additionally forbids importing another utility module.
+| Language | Focus | Body rule | HOW-TO |
+| -------- | ----- | --------- | ------ |
+| Python | Stateless free functions | No class/struct/impl; taxonomy-only imports | [references/HOW-TO-MAKE-PYTHON-UTILITY.md](references/HOW-TO-MAKE-PYTHON-UTILITY.md) |
+| Rust | Stateless free functions | No class/struct/impl; taxonomy-only imports | [references/HOW-TO-MAKE-RUST-UTILITY.md](references/HOW-TO-MAKE-RUST-UTILITY.md) |
+| TypeScript | Stateless free functions | No class/struct/impl; taxonomy-only imports | [references/HOW-TO-MAKE-TYPESCRIPT-UTILITY.md](references/HOW-TO-MAKE-TYPESCRIPT-UTILITY.md) |
 
-## Role naming
+**The layer chain:**
 
-Utility role suffixes are unlimited. The role name is chosen based on demand and must describe the
-technical responsibility and concern of the file.
+`utility_*` (beside taxonomy) → used by capabilities / agent / surface — never imports them
 
-## Rules (AES404 — Utility Role)
+Each file answers one layer's job. A method or import in the wrong layer is the defect this skill exists to prevent.
 
-1. **Structure:** free/module-level functions only — no `class` (Python), no `struct`/`impl`/trait
-   (Rust), no `class` (TypeScript).
-2. **State & side effects:** stateless and deterministic — no `random`/`datetime.now()` (Python),
-   no `Math.random()`/`Date.now()` (TypeScript), no global mutable state. Side effects are limited
-   to domain-agnostic operations (e.g. serialization, hashing, file IO in Python/TS).
-3. **Domain awareness:** domain-agnostic — no business rules, no knowledge of layer names.
-4. **Reusability:** used by ≥2 modules. A single-consumer function stays a private helper where it
-   is used.
-5. **I/O:** allowed only when 1–4 all hold (Rust states this explicitly: "I/O is allowed").
+---
 
-Keep as a private helper if **any** of: uses instance state, domain-specific, single consumer.
-Extract into utility only if **all** of: no instance state, pure or I/O-safe, domain-agnostic,
-≥2 consumers.
+## Invariants
 
-## Language split
+Every rule is machine-checked by `lint-arwaky-cli scan <layer-path>` (see each HOW-TO § Verify).
+A rule cannot drift from the gate. Cite the linter, not this file, when pointing at a rule.
 
-| Language   | Form                        | No-go constructs              | Register in   | Verify                       |
-| ------------ | ----------------------------- | -------------------------------- | ---------------- | -------------------------------- |
-| Python     | module-level `def`          | `class`, `self`, `@staticmethod` side tables | `__init__.py` | `python -c "import <module>"`  |
-| Rust       | `pub fn` free function      | `struct`, `impl`, traits       | `mod.rs`      | `cargo check -p <crate-name>`  |
-| TypeScript | `export function`           | `class`, `this`                | `index.ts`    | `npx tsc --noEmit`             |
+| Layer | Rule |
+| ----- | ---- |
+| Naming | File `utility_<domain>_<role>` — suffix flexible; forbidden: `_vo`/`_entity`/`_error`/`_event`/`_constant`/`_protocol`/`_aggregate` (AES101/AES102). |
+| Structure | Free / module-level / exported functions only — no class, no `struct`/`impl`/trait, no `self`/`this` (AES404). |
+| State | Stateless and deterministic — no `random`/`now()`/`Math.random()`/`Date.now()`, no global mutable state. |
+| Domain | Domain-agnostic — no business rules, no layer-name knowledge; ≥2 consumers (else keep as private helper). |
+| Imports | Taxonomy only — never capabilities, agent, surface, contract (Rust: not other utilities) (AES201). |
+| Register | Shared barrel: `__init__.py` / `mod.rs` / `index.ts`. |
+| Verify | `lint-arwaky-cli scan <layer-path>` → 0. Language compile is fallback only. |
 
-Read `references/python.md`, `references/rust.md`, or `references/typescript.md` for the file
-template (doc-comment style differs) and the language-specific rule wording.
+Split details, templates, and Section Contract tables: **read the language HOW-TO** — do not restate them here.
+
+---
+
+## Diagnostic Tree
+
+Ask these questions in order. The first "No" dictates your next action.
+
+1. **Is the function stateless, domain-agnostic, and used by ≥2 modules?**
+   - *No* → keep as a private helper where it is used.
+2. **Does it use instance state or contain business rules?**
+   - *Yes* → belongs in capabilities, not utility.
+3. **Does the file define a class/struct/impl?**
+   - *Yes* → strip to free functions only.
+4. **Does it import above taxonomy?**
+   - *Yes* → remove (AES201).
+5. **Does `lint-arwaky-cli scan <layer-path>` exit 0?**
+   - *No* → fix findings, re-scan.
+
+---
 
 ## Workflow
 
-1. Confirm the function is stateless, domain-agnostic, and has ≥2 consumers.
-2. Create `utility_<domain>_<role>.<ext>` from the language template.
-3. Move constants it needs to `taxonomy_<domain>_constant`; keep business rules in capabilities.
-4. Register in `__init__.py` / `mod.rs` / `index.ts`.
-5. Run the verify command.
+1. Confirm stateless, domain-agnostic, ≥2 consumers (else keep private helper).
+2. Resolve the shared utility dir beside taxonomy. Run `lint-arwaky-cli scan <layer-path>`.
+3. Draft free functions from the language HOW-TO § Template / § Section Contract.
+4. Move needed literals to `taxonomy_*_constant`; keep business rules in capabilities.
+5. Register in `__init__.py` / `mod.rs` / `index.ts`, then verify with `lint-arwaky-cli scan`.
 
-## Checklist
+---
 
-- [ ] File is `utility_<domain>_<role>` with a non-forbidden role suffix.
-- [ ] Only free / module-level / exported functions — no class, struct, `impl`, or trait.
-- [ ] No instance state (`self` / `&self` / `this`) and no global mutable state.
-- [ ] Pure and deterministic, or I/O justified as domain-agnostic.
-- [ ] No business rules or layer-name knowledge.
-- [ ] Used by ≥2 modules (not a single-consumer helper).
-- [ ] Imports taxonomy only — nothing from capabilities, agent, surface, contract (Rust: not from other utilities).
-- [ ] No magic constants — literals belong in `taxonomy_*_constant`.
-- [ ] Registered in the shared barrel; verify command passes.
+## Verification
+
+### Machine Checks
+
+```bash
+lint-arwaky-cli scan <layer-path>   # AES101/102, AES201–205, AES401–406 → must be 0
+# Fallback only: language compile (python -c import / cargo check / npx tsc --noEmit)
+```
+
+A pass means naming, imports, primitives, and roles are clean. Structural judgement
+(tier choice, block order, helper-vs-utility, "orchestration only") is **manual** — see HOW-TO § Rules.
+
+### Human Checks
+
+A machine pass does not mean the file is right. Layer purpose, structural order, and
+"only what this layer may do" still need a reader (HOW-TO § Rules).
+
+---
+
+## Pre-flight Checklist
+
+- [ ] `lint-arwaky-cli scan <layer-path>` exits 0.
+- [ ] Every touched HOW-TO's `Verify` block was executed.
+- [ ] File registered in `__init__.py` / `mod.rs` / `index.ts`.
+- [ ] Language fallback compile clean if the HOW-TO lists it.
+- [ ] Related skills considered for the next layer up/down.
+
+---
+
+## Common Mistakes (Anti-Patterns)
+
+The linter covers naming, imports, and primitives. These need a reader (HOW-TO § Rules):
+
+- **Class / `self` / `this` / `struct` / `impl` in utility**: free functions only.
+- **Domain-specific or single-consumer helper extracted here**: keep private until ≥2 consumers.
+- **Imports from capabilities/agent/surface/contract**: forbidden (AES201).
+- **Restating HOW-TO rules in SKILL.md**: delegate — this file only routes.
+
+---
+
+## Related Skills
+
+- `create-taxonomy`
+- `create-capabilities`
+- `cleanup-consolidate`

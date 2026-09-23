@@ -14,6 +14,7 @@ metadata:
     - di
     - vo
   related_skills:
+    - lint-arwaky
     - create-agent
     - create-taxonomy
     - create-contract
@@ -40,86 +41,118 @@ metadata:
     - audit capabilities rust
 ---
 
-# Create Capabilities (AES)
+# create-capabilities
 
-The **capabilities layer is the concrete implementation of behaviour**: domain rules
-(validating, calculating, classifying…) and external adaptation (repositories, gateways,
-clients). It implements contract **protocols** and is consumed by agents or the root container —
-never by other capabilities.
+> **Purpose**: Scaffold AES capability files — concrete protocol implementations (domain rules + external adaptation).
+> **Audience**: The agent creating or validating a capability file.
+> **Scope**: Python, Rust, and TypeScript `capabilities_<domain>_<role>` files — 3-block structure, ≥1 protocol implementor, ≤3 types.
 
-Naming: `capabilities_<domain>_<role>.<ext>`. Suffixes are flexible but **forbidden** names apply
-(AES102): no `_vo`, `_entity`, `_error`, `_event`, `_constant`, `_constants`, `_protocol`,
-`_aggregate`, `_utility` — those roles belong to other layers.
+The **aggregate** decides which suffix, which imports, and which structure apply.
+Rules, templates, section contracts, and Verify blocks live in the language HOW-TUs under [`references/`](references/).
 
-Read `references/python.md`, `references/rust.md`, or `references/typescript.md` for that
-language's templates, structure-rule wording, and verify command.
+| Language | Focus | Body rule | HOW-TO |
+| -------- | ----- | --------- | ------ |
+| Python | Protocol implementation | 3-block; ≥1 protocol; ≤3 types | [references/HOW-TO-MAKE-PYTHON-CAPABILITIES.md](references/HOW-TO-MAKE-PYTHON-CAPABILITIES.md) |
+| Rust | Protocol implementation | 3-block; ≥1 protocol; ≤3 types | [references/HOW-TO-MAKE-RUST-CAPABILITIES.md](references/HOW-TO-MAKE-RUST-CAPABILITIES.md) |
+| TypeScript | Protocol implementation | 3-block; ≥1 protocol; ≤3 types | [references/HOW-TO-MAKE-TYPESCRIPT-CAPABILITIES.md](references/HOW-TO-MAKE-TYPESCRIPT-CAPABILITIES.md) |
 
-## Role naming
+**The layer chain:**
 
-- **Internal (domain logic):** validator, assessor, calculator, resolver, classifier, selector,
-  mapper, transformer, policy, enricher, evaluator, analyzer, scorer, grader, ranker, filter,
-  checker, reviewer, approver, rejector
-- **External (adaptation):** repository, gateway, client, provider, fetcher, reader, writer,
-  scanner, executor, publisher, subscriber, adapter, connector, uploader, downloader, sender,
-  receiver, dispatcher, watcher, monitor
+`contract_*_protocol` (created via create-contract) → **capabilities implement** → agent / root consume
 
-## Import rules (all languages)
+Each file answers one layer's job. A method or import in the wrong layer is the defect this skill exists to prevent.
 
-**Allowed:** Taxonomy, Contract (`_protocol` only), Utility.
-**Forbidden:** `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants.
-Capabilities must not depend on each other; shared needs go through a contract or the root container.
+---
 
-## Structure rules (AES403)
+## Invariants
 
-1. Internal helper types with no contract implementation → allowed.
-2. **≥1 type must implement a protocol contract** — otherwise flag `CapabilityNoProtocol`.
-3. **At most 3 types per file** (Python classes; Rust struct+enum; TS class+interface+enum,
-   excluding `type` aliases). A capability never implements a protocol *and* an aggregate.
+Every rule is machine-checked by `lint-arwaky-cli scan <layer-path>` (see each HOW-TO § Verify).
+A rule cannot drift from the gate. Cite the linter, not this file, when pointing at a rule.
 
-## 3-Block structure (mandatory order)
+| Layer | Rule |
+| ----- | ---- |
+| Naming | File `capabilities_<domain>_<role>` — role from internal/external naming lists; forbidden suffixes `_vo`/`_entity`/`_error`/`_event`/`_constant`/`_protocol`/`_aggregate`/`_utility` (AES101/AES102). |
+| Structure | 3-block order: Block 1 type+ctor → Block 2 protocol methods only → Block 3 factories/dunders/helpers. ≥1 protocol implementor, ≤3 types (AES403). |
+| Imports | Taxonomy + `_protocol` contracts + utility only — never agents, siblings, surface, local domain models (AES201–AES205). |
+| DI | Protocol interfaces only (`Arc<dyn Trait>` in Rust); shared VOs in fields/signatures. |
+| Helpers | Stateless domain-agnostic ≥2-consumer functions move to Utility; constants to `taxonomy_*_constant`. |
+| Register | Shared barrel: `__init__.py` / `mod.rs` / `index.ts`. |
+| Verify | `lint-arwaky-cli scan <layer-path>` → 0. Language compile is fallback only. |
 
-1. **Block 1** — type definition & constructor / struct fields.
-2. **Block 2** — protocol method implementations only.
-3. **Block 3** — constructors/factories, standard-protocol methods (`__repr__`, `Display`,
-   `toString`), private helpers.
+Split details, templates, and Section Contract tables: **read the language HOW-TO** — do not restate them here.
 
-## Helper vs Utility
+---
 
-Keep a function in Block 3 if **any** of: it uses instance state, is domain-specific, has a single
-consumer, or acts as a constructor/factory.
-Extract it to the Utility layer only if **all** of: no instance state, pure/deterministic (or
-domain-agnostic I/O such as serialization), domain-agnostic, ≥2 consumers.
+## Diagnostic Tree
 
-## Language split
+Ask these questions in order. The first "No" dictates your next action.
 
-| Language   | Contract form          | DI mechanism                | Verify                       |
-| ------------ | ------------------------ | ----------------------------- | -------------------------------- |
-| Python     | `I<Name>Protocol(ABC)` | Constructor param (ABC)     | `python -c "import <module>"`  |
-| Rust       | `trait I<Name>Protocol` | `Arc<dyn I<Name>Protocol>`  | `cargo check -p <crate-name>`  |
-| TypeScript | `interface I<Name>Protocol` | Constructor param (interface) | `npx tsc --noEmit`           |
+1. **Is this protocol behaviour (not orchestration, data, or mechanics)?**
+   - *No* → route to agent / taxonomy / utility instead.
+2. **Does a `_protocol` contract exist for this behaviour?**
+   - *No* → create it first with `create-contract`.
+3. **Block 2 contain only protocol methods? ≥1 implementor? ≤3 types?**
+   - *No* → restructure to 1→2→3; split or extract helpers.
+4. **Any forbidden imports or local domain models?**
+   - *Yes* → strip; shared needs go through contract or root.
+5. **Does `lint-arwaky-cli scan <layer-path>` exit 0?**
+   - *No* → fix findings, re-scan.
 
-Fields and signatures use shared VOs; constants live in `taxonomy_<domain>_constant`; low-level
-reusable stateless operations move to Utility. Rust helpers must be private or `pub(crate)`.
+---
 
 ## Workflow
 
-1. Confirm the work is protocol behaviour (not orchestration, data, or mechanics).
-2. Check the file references a `_protocol` contract — if missing, flag `CapabilityNoProtocol`.
-3. Create the missing contract with `create-contract`.
-4. Implement the 3 blocks from the language reference template.
-5. Enforce AES403: ≥1 protocol implementor, ≤3 types, DI via protocols, shared VOs.
-6. Remove forbidden imports, inter-capability dependencies, and local domain models.
-7. Register in `__init__.py` / `mod.rs` / `index.ts` and run the verify command.
+1. Confirm the work is protocol behaviour (not orchestration / data / mechanics).
+2. Ensure a `_protocol` contract exists — if missing, run `create-contract` first.
+3. Resolve the feature capability dir. Run `lint-arwaky-cli scan <layer-path>` — findings are your work list.
+4. Implement the 3 blocks from the language HOW-TO § Template / § Section Contract.
+5. Strip forbidden imports / inter-capability deps / local domain models; move constants and pure helpers out.
+6. Register in the shared barrel, verify with `lint-arwaky-cli scan`, then wire via `create-agent` / `create-root`.
 
-## Checklist
+---
 
-- [ ] File is `capabilities_<domain>_<role>` and the role comes from the naming lists.
-- [ ] Block 1 → 2 → 3 order followed (Rust: with explicit `// Block N:` comments).
-- [ ] Block 2 contains ONLY protocol contract method implementations.
-- [ ] ≥1 type implements a protocol contract; ≤3 total types in the file.
-- [ ] Imports only from taxonomy, `_protocol` contracts, and utility.
-- [ ] No local domain models, no agent or sibling-capability imports.
-- [ ] DI through protocol interfaces (`Arc<dyn Trait>` in Rust); shared VOs in fields/signatures.
-- [ ] Constants moved to `taxonomy_<domain>_constant`; low-level ops moved to Utility.
-- [ ] Rust only: helpers private or `pub(crate)`, not fully `pub` without justification.
-- [ ] Registered in the shared barrel; verify command passes.
+## Verification
+
+### Machine Checks
+
+```bash
+lint-arwaky-cli scan <layer-path>   # AES101/102, AES201–205, AES401–406 → must be 0
+# Fallback only: language compile (python -c import / cargo check / npx tsc --noEmit)
+```
+
+A pass means naming, imports, primitives, and roles are clean. Structural judgement
+(tier choice, block order, helper-vs-utility, "orchestration only") is **manual** — see HOW-TO § Rules.
+
+### Human Checks
+
+A machine pass does not mean the file is right. Layer purpose, structural order, and
+"only what this layer may do" still need a reader (HOW-TO § Rules).
+
+---
+
+## Pre-flight Checklist
+
+- [ ] `lint-arwaky-cli scan <layer-path>` exits 0.
+- [ ] Every touched HOW-TO's `Verify` block was executed.
+- [ ] File registered in `__init__.py` / `mod.rs` / `index.ts`.
+- [ ] Language fallback compile clean if the HOW-TO lists it.
+- [ ] Related skills considered for the next layer up/down.
+
+---
+
+## Common Mistakes (Anti-Patterns)
+
+The linter covers naming, imports, and primitives. These need a reader (HOW-TO § Rules):
+
+- **Missing protocol**: flag `CapabilityNoProtocol` and run `create-contract` first.
+- **Block order wrong or Block 2 polluted**: protocol methods only in Block 2; 1→2→3.
+- **Capabilities importing each other**: shared needs go through contract or root, not sibling imports.
+- **Restating HOW-TO rules in SKILL.md**: delegate — this file only routes.
+
+---
+
+## Related Skills
+
+- `create-contract`
+- `create-utility`
+- `create-agent`

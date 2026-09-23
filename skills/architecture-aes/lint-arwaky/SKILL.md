@@ -48,145 +48,119 @@ metadata:
 
 # Lint Arwaky (AES Architecture Linter)
 
-Lint Arwaky is a high-speed Rust-based architecture enforcement engine. Structured under the
-Agentic Engineering System (AES) specification, it enforces layer boundaries, naming
-conventions, import directions, and role boundaries across Rust, Python, and TypeScript
-codebases.
+> **Purpose**: Scan, diagnose, and fix AES101–AES506 violations, then re-verify to zero —
+> using `lint-arwaky-cli` as the primary architecture gate (language compile/lint is fallback).
+>
+> **Audience**: Agents and engineers enforcing the AES 7-layer architecture in Python, Rust, or
+> TypeScript codebases.
+>
+> **Scope**: Shared CLI/MCP surface, per-language HOW-TOs, AES fix routing, verification to 0.
+> Not: writing new layers (use `create-*`), test/bench naming (use `testing-suite`).
 
-## When to Use This Skill
+## Language routing
 
-Activate this skill when:
+| Language | HOW-TO | Use when |
+| -------- | ------ | -------- |
+| All (shared CLI, MCP, exit codes, AES101 naming) | [`references/HOW-TO-USE-LINT-COMMANDS.md`](references/HOW-TO-USE-LINT-COMMANDS.md) | Invoking scan/fix/ci, aliases, flags, MCP tools, layer matrix |
+| Python | [`references/HOW-TO-USE-LINT-PYTHON.md`](references/HOW-TO-USE-LINT-PYTHON.md) | `modules/`, `py_compile` / Ruff / Mypy verify, `__init__.py` barrel |
+| Rust | [`references/HOW-TO-USE-LINT-RUST.md`](references/HOW-TO-USE-LINT-RUST.md) | `crates/`, `cargo check` / clippy / nextest verify, `mod.rs` barrel |
+| TypeScript | [`references/HOW-TO-USE-LINT-TYPESCRIPT.md`](references/HOW-TO-USE-LINT-TYPESCRIPT.md) | `packages/`, `tsc` / ESLint / vitest verify, `index.ts` barrel |
+| Fix routing (every AES code) | [`references/HOW-TO-USE-LINT-ROUTING.md`](references/HOW-TO-USE-LINT-ROUTING.md) | Mapping a finding to its fix + owning `create-*` skill |
 
-- Creating, modifying, or refactoring files in AES-governed repositories.
-- Verifying layer boundaries and dependency rules before submitting pull requests.
-- Diagnosing architecture violations, orphan files, or illegal upward/circular imports.
-- Running automated CI quality gates or architecture health checks.
+Read the HOW-TO for the active language before fixing. Do not restate flags, subcommands, or
+the fix table here — they live in the HOW-TOs.
 
-## AES 7-Layer Hierarchy & Naming Contract
+## Layer chain
 
-Every source file must follow `<layer>_<concern>_<role>.<ext>` (AES101: lowercase, at least
-three underscore-separated words; verbatim exceptions such as `main.rs`, `lib.rs`, `mod.rs`,
-`__init__.py`, `index.ts`, `root_cli_main_entry.rs`).
+Bottom-up; a layer may only depend on layers below it:
 
-The 7 strictly-ordered layers, **bottom-up** (a layer may only depend on layers below it):
+`taxonomy_` → `utility_` → `contract_` → `capabilities_` → `agent_` → `surface_` → `root_`
 
-| # | Layer prefix   | Purpose                                             | Example                    |
-| - | ---------------- | ----------------------------------------------------- | ---------------------------- |
-| 1 | `taxonomy_`    | value objects, entities, errors, events, constants  | `taxonomy_status_type.py`  |
-| 2 | `utility_`     | pure, stateless helpers                             | `utility_hash_helper.py`   |
-| 3 | `contract_`    | protocols, aggregates, schemas, DTOs                | `contract_payload_model.py`|
-| 4 | `capabilities_`| domain logic and business rules                     | `capabilities_task_executor.py` |
-| 5 | `agent_`       | orchestration across subsystems                       | `agent_billing_orchestrator.rs` |
-| 6 | `surface_`     | CLI / MCP / REST / TUI / GUI adapters                 | `surface_cli_adapter.py`   |
-| 7 | `root_`        | entry points and composition containers             | `root_main_entry.py`       |
+Naming: `<layer>_<concern>_<role>.<ext>` (AES101). Legal suffixes per layer: AES102 matrix in
+the routing HOW-TO. `tests/` / `benches/` are **not** AES layers (see `testing-suite`).
 
-*Core invariant:* upper layers may only depend downward. Lower layers may never import upper
-layers.
+## Invariants
 
-**`test` is not a layer.** Test and benchmark files live in `tests/` and `benches/` and follow
-their own naming convention — see the `testing-suite` skill.
+| Invariant | Rule | Read |
+| --------- | ---- | ---- |
+| Primary gate | `lint-arwaky-cli scan` (AES101–506) → 0; language compile is fallback only | Commands + language HOW-TO |
+| Direction | Upper layers import downward only; never upward (AES201 CRITICAL) | Routing HOW-TO |
+| Role purity | Protocol = one method per feature; aggregate = many exports, one per feature (not dump-all) | Routing + `create-contract` |
+| Auto-fix set | Only AES101 / AES203 / AES304 via `fix` (`--dry-run` first); AES201/205 manual | Routing HOW-TO |
+| Barrel after rename | AES101 rename → update `__init__.py` / `mod.rs` / `index.ts` or it becomes AES501–506 | Language HOW-TO |
+| Done | Re-scan to **0** + language verify pass; exit code is the gate (`0`/`1`/`2`) | Commands HOW-TO |
 
-## Invoking the Linter
+## Diagnostic tree
+
+```
+Scan failed or findings non-zero?
+├─ exit 2 → config/parse → lint_arwaky.config.yaml / path → fix config, re-run
+├─ exit 1, findings present
+│  ├─ CRITICAL 🔴 AES201 / AES205 / AES304 → structural; route via HOW-TO-USE-LINT-ROUTING.md (create-contract / fix-bypass)
+│  ├─ HIGH 🟡 AES101–102, AES202, AES301–303, AES401–403, AES406, AES505–506 → fix / create-{layer}
+│  ├─ MEDIUM/LOW 🟢 AES203–204, AES305, AES404–405, AES501–504 → fix or cleanup-consolidate
+│  └─ After each AES101 rename → barrel update (language HOW-TO) or orphan reappears
+└─ exit 0 but code unhealthy → language verify failed → HOW-TO-USE-LINT-<LANG>.md pipeline
+```
+
+## Workflow
+
+1. **Pre-flight** — codebase must build/parse in its own language (language HOW-TO). Violations
+   on broken code are unreliable.
+2. **Scan** — `lint-arwaky-cli scan <target-path> --format json` (shared flags:
+   `HOW-TO-USE-LINT-COMMANDS.md`). Triage CRITICAL → HIGH → MEDIUM/LOW.
+3. **Diagnose** — per finding: AES code, layer prefix, auto-fixable?, root cause. Full table:
+   `references/HOW-TO-USE-LINT-ROUTING.md`.
+4. **Fix** — auto: `lint-arwaky-cli fix <path>` (`--dry-run`, optional `--filter`). Manual:
+   route via HOW-TO-USE-LINT-ROUTING.md to the owning `create-*` skill.
+5. **Verify** — re-scan to 0, then language verify pipeline (HOW-TO-USE-LINT-<LANG>.md).
+6. **Commit** — only when asked: `fix: resolve <N> AES violations (<rules>)`.
+
+## Verification
+
+### Machine
 
 ```bash
-# Repo convention: through the agents-arwaky orchestrator
-aa tool run lint scan .
-aa tool run lint check src/modules/
-aa tool run lint fix .
-aa tool run lint ci . --threshold 80
+# Primary AES gate — must exit 0 with no findings
+lint-arwaky-cli scan <target-path> --format json
+echo "exit=$?"   # 0 pass · 1 violations · 2 config/parse error
 
-# Equivalent direct-binary forms (also reachable as `lac`)
-lint-arwaky-cli scan .
-lac fix . --dry-run
+# Family isolation while iterating
+lint-arwaky-cli import <path> --filter AES201
+lint-arwaky-cli role <path> --filter AES403
+lint-arwaky-cli orphan <path> --format json
 ```
 
-### Shell aliases
+### Human
 
-| Alias | Target Binary     | Description                               | Example Usage                       |
-| :---- | :---------------- | :---------------------------------------- | :------------------------------------ |
-| `lac` | `lint-arwaky-cli` | Primary CLI gatekeeper & scanner          | `lac scan .`, `lac fix`, `lac doctor` |
-| `lat` | `lint-arwaky-tui` | Terminal User Interface (TUI) dashboard   | `lat`                               |
-| `lam` | `lint-arwaky-mcp` | MCP Server (STDIO backend for AI clients) | Configured in Claude / Cursor / Windsurf |
+- [ ] Pre-flight build/import/typecheck passed **before** trusting the scan.
+- [ ] CRITICAL (AES201/205/304) fixed before cosmetics.
+- [ ] Every fix applied from the routing HOW-TO row (or auto-fix set), not a hand-rolled edit.
+- [ ] Barrel/`mod.rs`/`index.ts` updated after every AES101 rename.
+- [ ] Re-scan reports **0** AES violations (exit 0).
+- [ ] Language verify pipeline (HOW-TO-USE-LINT-<LANG>.md) also green.
 
-### Global CLI Options
+## Pre-flight checklist
 
-| Option | Long Flag              | Description                                                                             |
-| :----- | :--------------------- | :-------------------------------------------------------------------------------------- |
-| `-v` | `--verbose`          | Enable debug logging and detailed diagnostic traces.                                    |
-| `-q` | `--quiet`            | Minimize console output (suppress non-error messages).                                  |
-| `-o` | `--output-dir <DIR>` | Directory to save generated reports (overrides active configuration).                   |
-|      | `--filter <CODE>`    | Filter scan results by specific AES rule code (e.g. `AES101`, `AES301`, `AES401`). |
-| `-h` | `--help`             | Print help information for the CLI or a specific subcommand.                            |
-| `-V` | `--version`          | Print CLI binary version.                                                               |
+- [ ] Target path correct (`modules/` | `crates/` | `packages/`).
+- [ ] Language build/parse clean (see language HOW-TO).
+- [ ] Shared invocation chosen (`aa tool run lint …` or `lint-arwaky-cli` / `lac`).
+- [ ] `--format` explicit if output is consumed by a pipeline or report file.
 
-## Commands & Subcommands
+## Common mistakes
 
-| Command                              | Purpose                                                                     |
-| -------------------------------------- | ------------------------------------------------------------------------------ |
-| `scan` / `check [PATH]`            | Run all linters; `--format` text / json / sarif / junit, `--member <NAME>`, `--filter <CODE>`, `-o <DIR>` |
-| `fix [PATH]`                       | Apply safe automatic fixes; `--dry-run`, `--filter <CODE>`                |
-| `ci [PATH]`                        | Quality gate; `--threshold <SCORE>` (default 80, exit 1 below it), `--format` |
-| `quality`/`import`/`naming`/`role`/`orphan`/`external` | Run one linter family in isolation (same flags as `scan`; `orphan` accepts `--member`) |
-| `security [PATH]`                  | Code security issues (Bandit / `cargo audit` / ESLint security)             |
-| `dependencies [PATH]`              | Third-party CVE scan of the lockfile/manifest                              |
-| `watch [PATH]`                     | Re-lint on file save                                                       |
-| `install-hook` / `uninstall-hook`  | Manage the Git pre-commit integration                                    |
-| `init` / `install`                 | Write `lint_arwaky.config.yaml` / install external adapter binaries       |
-| `config-show` / `adapters` / `mcp-config` | Print active rules, enabled adapters, MCP client JSON                     |
-| `doctor` / `version`               | Environment diagnostics / binary version                                 |
+| Mistake | Correct approach |
+| ------- | ---------------- |
+| Skipping pre-flight; trusting findings on broken code | Build/import first — violations on red builds are noise. |
+| Auto-fixing AES201/205 with `fix` | Only AES101/203/304 auto-fix; AES201/205 manual via `create-contract`. |
+| AES101 rename without barrel/`mod.rs`/`index.ts` update | Re-export immediately — otherwise AES501–506 orphan. |
+| Declaring done at "mostly clean" | Done = re-scan **0** + language verify; exit code is the gate. |
+| Parsing stdout instead of exit code for CI | Gate on `0`/`1`/`2`; stdout is not the contract. |
+| Re-guessing fix rows from memory | Consult `HOW-TO-USE-LINT-ROUTING.md` every time. |
+| Treating `tests/`/`benches/` as AES layers | They follow `testing-suite` naming, not AES101–102. |
 
-```bash
-# Per-rule targeting and reporting
-lint-arwaky-cli scan . --format json --filter AES201
-lint-arwaky-cli orphan crates/ --member shared_common --format json
-lint-arwaky-cli fix modules/ --dry-run --filter AES101
+## Related skills
 
-# Reports go to the XDG data dir
-lint-arwaky-cli scan crates/ --format sarif \
-  > ~/.local/share/lint-arwaky/reports/scan_rust.sarif
-```
-
-See `references/python.md`, `references/rust.md`, `references/typescript.md` for the
-per-language flags, adapters, native tooling commands, and verify pipelines.
-
-## MCP Server Tools Reference (`lint-arwaky-mcp`)
-
-`lint-arwaky-mcp` exposes 5 JSON-RPC 2.0 tools over STDIO for AI clients (Claude Code, Cursor,
-Windsurf, Hermes):
-
-| Tool Name           | Description                               | Arguments / Parameters                                                                                                       |
-| :------------------ | :---------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| `execute_command` | Execute any CLI command action            | `action` (required: `"scan"`, `"check"`, `"fix"`, `"security"`, `"doctor"`, …), `args` (optional JSON object, e.g. `{"path": "/abs/path"}`) |
-| `list_commands`   | List available CLI commands catalog       | `domain` (optional filter, e.g. `"setup"`, `"check"`)                                                                     |
-| `read_skill`      | Read `SKILL.md` documentation by section | `section` (optional: header name to extract)                                                                              |
-| `health_check`    | Check MCP server & adapter health         | None (0 parameters)                                                                                                          |
-| `get_config`      | Get active architecture config            | `path` (optional), `language` (optional: `"rust"`, `"python"`, `"javascript"`)                                          |
-
-```json
-{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"execute_command","arguments":{"action":"scan","args":{"path":"/abs/path/to/crates"}}}}
-{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"health_check","arguments":{}}}
-```
-
-## Scan → Diagnose → Fix → Verify Workflow
-
-1. **Pre-flight** — make sure the codebase builds in its own language (see the language
-   reference). Violations reported on broken code are unreliable.
-2. **Scan** — `lint-arwaky-cli scan <target-path> --format json > /tmp/arwaky-scan.json`, then
-   triage CRITICAL first: 🔴 AES201, AES205, AES304 → 🟡 AES101–102, AES202, AES301–303,
-   AES401–403, AES406, AES505–506 → 🟢 AES203–204, AES305, AES404–405, AES501–504.
-3. **Diagnose** — for each violation: which rule, which layer (file prefix), what the message
-   says, whether it is auto-fixable (AES101 rename, AES203 unused import, AES304 bypass → yes;
-   AES201 wrong dependency → manual), and the root cause (naming, wrong import, missing
-   implementation, dead code).
-4. **Fix** — auto: `lint-arwaky-cli fix <target-path>` (add `--dry-run` first, `--filter AES101`
-   to scope). Manual: follow `references/rule-routing.md`, which maps every AES code to the
-   remediation and the `create-*` skill that owns that layer.
-5. **Verify** — re-scan to 0 violations, then run the language build/import/lint checks in the
-   matching reference file.
-6. **Commit** — `git add -A && git commit -m "fix: resolve <N> AES violations (<rules>)"`.
-
-## Exit Codes
-
-- `0`: All architecture rules and layer constraints passed.
-- `1`: Architectural violations detected (blocks merge/quality gates).
-- `2`: Configuration or parse errors.
+`create-taxonomy` · `create-utility` · `create-contract` · `create-capabilities` ·
+`create-agent` · `create-surface` · `create-root` · `testing-suite` · `cleanup-consolidate` ·
+`fix-bypass`

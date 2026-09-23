@@ -14,6 +14,7 @@ metadata:
     - di
     - wiring
   related_skills:
+    - lint-arwaky
     - create-capabilities
     - create-agent
     - create-contract
@@ -40,62 +41,118 @@ metadata:
     - audit root typescript
 ---
 
-# Create Root (AES)
+# create-root
 
-The **root layer is the composition layer**. It assembles the system: containers bind concrete
-capabilities to contract types, entry points compose the containers and start the process. Root is
-the only layer allowed to depend on everything below it, and the only layer permitted to
-*construct* implementations.
+> **Purpose**: Scaffold AES composition roots — containers wire capabilities to contracts; entries bootstrap and start the process.
+> **Audience**: The agent creating or validating a container or entry file.
+> **Scope**: Python, Rust, and TypeScript `root_<concept>_<container|entry>` files (plus documented barrel/entry exceptions).
 
-Naming (AES101/AES102): `root_<concept>_<suffix>.<ext>` with strictly `_container` or `_entry`.
-Documented naming exceptions (verbatim from `internal/lint-arwaky/RULES_AES.md`):
-**Exceptions:** `main.rs`, `lib.rs`, `mod.rs`, `root_cli_main_entry.rs`, `root_mcp_main_entry.rs`, `root_tui_main_entry.rs`, `root_composition_container.rs`, `__init__.py`, `index.ts`, `index.js`, barrel/entry files.
+The **aggregate** decides which suffix, which imports, and which structure apply.
+Rules, templates, section contracts, and Verify blocks live in the language HOW-TUs under [`references/`](references/).
 
-## Two root roles
+| Language | Focus | Body rule | HOW-TO |
+| -------- | ----- | --------- | ------ |
+| Python | Container / entry | Wires only; no business/orchestration logic | [references/HOW-TO-MAKE-PYTHON-ROOT.md](references/HOW-TO-MAKE-PYTHON-ROOT.md) |
+| Rust | Container / entry | Wires only; no business/orchestration logic | [references/HOW-TO-MAKE-RUST-ROOT.md](references/HOW-TO-MAKE-RUST-ROOT.md) |
+| TypeScript | Container / entry | Wires only; no business/orchestration logic | [references/HOW-TO-MAKE-TYPESCRIPT-ROOT.md](references/HOW-TO-MAKE-TYPESCRIPT-ROOT.md) |
 
-| Role        | Suffix       | Responsibility                                    |
-| ------------- | -------------- | --------------------------------------------------- |
-| Container   | `_container` | Wire one feature's Capabilities to Contracts      |
-| Entry       | `_entry`     | Bootstrap application, compose feature containers |
+**The layer chain:**
 
-## Hard rules (Definition of Done, all languages)
+root (constructs everything below) → agent / surface / capabilities / contract / utility / taxonomy — nothing below imports root
 
-1. Correct suffix: `_container` or `_entry`.
-2. Container wires capabilities to contract protocols/aggregates; Entry bootstraps the
-   application and composes feature containers.
-3. Root may instantiate and wire components — that is its whole job.
-4. **No business logic.** Domain rules live in capabilities.
-5. **No orchestration policy.** Sequencing lives in the agent layer.
-6. **No technical parsing or UI behaviour.** Parsing → utility/capabilities; UI → surface.
-7. Verify command passes.
+Each file answers one layer's job. A method or import in the wrong layer is the defect this skill exists to prevent.
 
-## Language split
+---
 
-| Language   | Wiring target                       | Register      | Verify                       |
-| ------------ | ------------------------------------- | --------------- | -------------------------------- |
-| Python     | Contract ABCs / aggregates            | package `__init__.py` if public | `python -c "import <module>"`  |
-| Rust       | Contract traits via `Arc::new(impl)` exposed as `Arc<dyn Trait>` | crate `mod.rs`  | `cargo check -p <crate-name>`  |
-| TypeScript | Contract interfaces                 | `index.ts`    | `npx tsc --noEmit`             |
+## Invariants
 
-Read `references/python.md`, `references/rust.md`, or `references/typescript.md` for that
-language's per-role Definition of Done wording and workflow.
+Every rule is machine-checked by `lint-arwaky-cli scan <layer-path>` (see each HOW-TO § Verify).
+A rule cannot drift from the gate. Cite the linter, not this file, when pointing at a rule.
+
+| Layer | Rule |
+| ----- | ---- |
+| Naming | File `root_<concept>_container` or `root_<concept>_entry` (AES101/AES102). Documented exceptions: `main.rs`, `lib.rs`, `mod.rs`, `__init__.py`, `index.ts`, barrel/entry files, etc. |
+| Roles | Container: wire one feature's capabilities to contracts. Entry: bootstrap the app and compose feature containers. |
+| Privilege | Root may instantiate and wire components — that is its job; the only layer allowed to depend on everything below. |
+| Behaviour | No business logic, no orchestration policy, no technical parsing, no UI behaviour — those live in capabilities / agent / utility / surface. |
+| Register | `mod.rs` / `index.ts` / package barrel as required. |
+| Verify | `lint-arwaky-cli scan <layer-path>` → 0. Language compile is fallback only. |
+
+Split details, templates, and Section Contract tables: **read the language HOW-TO** — do not restate them here.
+
+---
+
+## Diagnostic Tree
+
+Ask these questions in order. The first "No" dictates your next action.
+
+1. **Container or Entry?**
+   - *Wire one feature* → `_container`; *bootstrap all* → `_entry`.
+2. **Does the file contain business / orchestration / parsing / UI logic?**
+   - *Yes* → move down to capabilities / agent / utility / surface.
+3. **Are bindings exposed as contracts (not concretions)?**
+   - *Concretions leak* → bind to protocol/aggregate types (`Arc<dyn Trait>` in Rust).
+4. **Does anything below root import from root?**
+   - *Yes* → invert: root depends downward only.
+5. **Does `lint-arwaky-cli scan <layer-path>` exit 0?**
+   - *No* → fix findings, re-scan.
+
+---
 
 ## Workflow
 
-1. Determine role — Container (wire one feature) or Entry (bootstrap all)?
-2. Create `root_<concept>_<suffix>.<ext>`.
-3. Wire dependencies: instantiate capabilities, bind them to contract types/aggregates.
-4. Register the module (`mod.rs` for Rust, `index.ts` for TypeScript; Python needs no barrel
-   step for private modules).
+1. Determine role — Container (wire one feature) or Entry (bootstrap all).
+2. Resolve the package top. Run `lint-arwaky-cli scan <layer-path>` — findings are your work list.
+3. Create `root_<concept>_<suffix>` from the language HOW-TO § Template / § Section Contract.
+4. Wire dependencies: instantiate capabilities, bind them to contract protocol/aggregate types.
 5. Compose: the entry builds every container and starts the surface or CLI loop.
-6. Run the verify command.
+6. Register the module, verify with `lint-arwaky-cli scan`.
 
-## Checklist
+---
 
-- [ ] File is `root_<concept>_container` or `root_<concept>_entry` (or a documented exception name).
-- [ ] Container wires capabilities to contract protocols/traits/interfaces and aggregates.
-- [ ] Entry bootstraps the application and composes feature containers only.
-- [ ] No business logic, no orchestration policy, no parsing, no UI behaviour.
-- [ ] Rust only: bindings use `Arc<dyn Trait>` so agents/surfaces see contracts, not concretions.
-- [ ] Nothing below root imports from root (it is the top of the dependency arrow).
-- [ ] Registered where required; verify command passes.
+## Verification
+
+### Machine Checks
+
+```bash
+lint-arwaky-cli scan <layer-path>   # AES101/102, AES201–205, AES401–406 → must be 0
+# Fallback only: language compile (python -c import / cargo check / npx tsc --noEmit)
+```
+
+A pass means naming, imports, primitives, and roles are clean. Structural judgement
+(tier choice, block order, helper-vs-utility, "orchestration only") is **manual** — see HOW-TO § Rules.
+
+### Human Checks
+
+A machine pass does not mean the file is right. Layer purpose, structural order, and
+"only what this layer may do" still need a reader (HOW-TO § Rules).
+
+---
+
+## Pre-flight Checklist
+
+- [ ] `lint-arwaky-cli scan <layer-path>` exits 0.
+- [ ] Every touched HOW-TO's `Verify` block was executed.
+- [ ] File registered in `__init__.py` / `mod.rs` / `index.ts`.
+- [ ] Language fallback compile clean if the HOW-TO lists it.
+- [ ] Related skills considered for the next layer up/down.
+
+---
+
+## Common Mistakes (Anti-Patterns)
+
+The linter covers naming, imports, and primitives. These need a reader (HOW-TO § Rules):
+
+- **Business / orchestration / parsing / UI logic in root**: forbidden — route down a layer.
+- **Concretions visible above root**: bind to contracts so agents/surfaces see interfaces, not classes.
+- **Wrong suffix / undocumented name**: `_container` or `_entry` only (exceptions listed in HOW-TO).
+- **Restating HOW-TO rules in SKILL.md**: delegate — this file only routes.
+
+---
+
+## Related Skills
+
+- `create-capabilities`
+- `create-agent`
+- `create-surface`
+- `create-contract`
