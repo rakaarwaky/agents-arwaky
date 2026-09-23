@@ -92,6 +92,7 @@ class IDaemonControlProtocol(
     IDaemonRestartProtocol,
     IDaemonStatusProtocol,
     IDaemonLogsProtocol,
+    ABC,
 ):
     """Composite DI surface: five leaf control protocols (no methods of its own).
 

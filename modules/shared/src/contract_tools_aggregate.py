@@ -13,7 +13,7 @@ from pathlib import Path
 
 from modules.shared.src.taxonomy_common_vo import (
     InstallResult,
-    Tool,
+    ToolList,
     ToolSpec,
     UninstallResult,
     UpdateResult,
@@ -25,7 +25,7 @@ class IToolsAggregate(ABC):
     """Zero-I/O aggregate over all tool-lifecycle capabilities."""
 
     @abstractmethod
-    def list(self) -> list[Tool]:
+    def list(self) -> ToolList:
         """Return every registered tool from the manifest."""
         ...
     @abstractmethod
@@ -57,6 +57,7 @@ __all__ = [
     "IToolsAggregate",
     "InstallResult",
     "ToolArgs",
+    "ToolList",
     "UninstallResult",
     "UpdateResult",
 ]
@@ -66,6 +67,7 @@ _layer_symbols = {
     "IToolsAggregate": IToolsAggregate,
     "InstallResult": InstallResult,
     "ToolArgs": ToolArgs,
+    "ToolList": ToolList,
     "UninstallResult": UninstallResult,
     "UpdateResult": UpdateResult,
 }

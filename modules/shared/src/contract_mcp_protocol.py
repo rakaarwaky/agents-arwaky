@@ -4,7 +4,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServer, McpServerId
+from modules.shared.src.taxonomy_mcp_vo import (
+    ExitCode,
+    McpOp,
+    McpServer,
+    McpServerId,
+)
 
 
 class IMcpProtocol(ABC):
@@ -13,7 +18,7 @@ class IMcpProtocol(ABC):
     @abstractmethod
     def execute(
         self,
-        op: str,
+        op: McpOp,
         output: Path | None = None,
         server_id: McpServerId | None = None,
     ) -> ExitCode:
@@ -27,12 +32,13 @@ class IMcpProtocol(ABC):
         ...
 
 
-__all__ = ['ExitCode', 'IMcpProtocol', 'McpServer', 'McpServerId']
+__all__ = ['ExitCode', 'IMcpProtocol', 'McpOp', 'McpServer', 'McpServerId']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
     "IMcpProtocol": IMcpProtocol,
+    "McpOp": McpOp,
     "McpServer": McpServer,
     "McpServerId": McpServerId,
 }

@@ -8,7 +8,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from modules.shared.src.taxonomy_skill_vo import ExitCode
+from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillName, SkillOp
 
 
 class ISkillProtocol(ABC):
@@ -17,8 +17,8 @@ class ISkillProtocol(ABC):
     @abstractmethod
     def execute(
         self,
-        op: str,
-        skill: str | None = None,
+        op: SkillOp,
+        skill: SkillName | None = None,
         target: Path | None = None,
     ) -> ExitCode:
         """Run one skill *op* (``provision`` | ``audit`` | ``query`` | ``remove`` | ``sync``); return exit code.
@@ -34,10 +34,14 @@ class ISkillProtocol(ABC):
 __all__ = [
     "ExitCode",
     "ISkillProtocol",
+    "SkillName",
+    "SkillOp",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
     "ISkillProtocol": ISkillProtocol,
+    "SkillName": SkillName,
+    "SkillOp": SkillOp,
 }

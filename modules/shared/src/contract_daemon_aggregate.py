@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from modules.shared.src.contract_daemon_protocol import IDaemonControlProtocol
 from modules.shared.src.taxonomy_daemon_vo import (
     DaemonName,
+    DaemonNames,
     DaemonStatus,
     DaemonUnit,
     ExitCode,
@@ -16,7 +17,7 @@ class IDaemonAggregate(IDaemonControlProtocol, ABC):
     """Aggregate routing daemon lifecycle, enumeration, and unit actions."""
 
     @abstractmethod
-    def list_known(self) -> tuple[DaemonName, ...]:
+    def list_known(self) -> DaemonNames:
         """Canonical daemon ids the orchestrator manages."""
         ...
 
@@ -36,11 +37,12 @@ class IDaemonAggregate(IDaemonControlProtocol, ABC):
         ...
 
 
-__all__ = ['DaemonName', 'DaemonStatus', 'DaemonUnit', 'ExitCode', 'IDaemonAggregate']
+__all__ = ['DaemonName', 'DaemonNames', 'DaemonStatus', 'DaemonUnit', 'ExitCode', 'IDaemonAggregate']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "DaemonName": DaemonName,
+    "DaemonNames": DaemonNames,
     "DaemonStatus": DaemonStatus,
     "DaemonUnit": DaemonUnit,
     "ExitCode": ExitCode,

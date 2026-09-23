@@ -11,6 +11,7 @@ from pathlib import Path
 from modules.shared.src.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,
+    ConfigKeys,
     ConfigSnapshot,
     ConfigTuple,
     EnvPairs,
@@ -42,7 +43,7 @@ class IConfigAggregate(ABC):
         self,
         path: Path,
         servers: McpServersMap,
-    ) -> list[str]:
+    ) -> ConfigKeys:
         """Merge MCP server entries into the file; returns merged names."""
         ...
 
@@ -55,9 +56,9 @@ class IConfigAggregate(ABC):
     def remove_entries(
         self,
         path: Path,
-        keys: list[str],
+        keys: ConfigKeys,
         dry_run: bool = False,
-    ) -> list[str]:
+    ) -> ConfigKeys:
         """Drop named server or env entries; dry-run reports without writing."""
         ...
 
@@ -75,6 +76,7 @@ class IConfigAggregate(ABC):
 __all__ = [
     "ConfigData",
     "ConfigFormat",
+    "ConfigKeys",
     "ConfigSnapshot",
     "ConfigTuple",
     "EnvPairs",
@@ -87,6 +89,7 @@ __all__ = [
 _layer_symbols = {
     "ConfigData": ConfigData,
     "ConfigFormat": ConfigFormat,
+    "ConfigKeys": ConfigKeys,
     "ConfigSnapshot": ConfigSnapshot,
     "ConfigTuple": ConfigTuple,
     "EnvPairs": EnvPairs,

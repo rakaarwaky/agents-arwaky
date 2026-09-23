@@ -2,32 +2,42 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
 
-from modules.shared.src.taxonomy_common_vo import ExitCode, Timestamp
+from modules.shared.src.taxonomy_common_vo import (
+    DoctorFlags,
+    DoctorReport,
+    ExitCode,
+    Timestamp,
+)
 
 
 class IDoctorAggregate(ABC):
     """Aggregate over all doctor diagnostic capabilities."""
 
     @abstractmethod
-    def diagnose(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+    def diagnose(self, flags: DoctorFlags | None = None) -> ExitCode:
         """Run the full environment + readiness diagnosis; return exit code."""
         ...
     @abstractmethod
-    def readiness(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+    def readiness(self, flags: DoctorFlags | None = None) -> ExitCode:
         """Report tool readiness rows; return exit code."""
         ...
     @abstractmethod
     def report(
         self,
-        report: object,
-        flags: Mapping[str, bool | str] | None = None,
+        report: DoctorReport,
+        flags: DoctorFlags | None = None,
     ) -> ExitCode:
         """Render *report* as text, or JSON under the ``json`` flag."""
         ...
 
-__all__ = ['ExitCode', 'IDoctorAggregate', 'Timestamp']
+__all__ = ['DoctorFlags', 'DoctorReport', 'ExitCode', 'IDoctorAggregate', 'Timestamp']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"ExitCode": ExitCode, "IDoctorAggregate": IDoctorAggregate, "Timestamp": Timestamp}
+_layer_symbols = {
+    "DoctorFlags": DoctorFlags,
+    "DoctorReport": DoctorReport,
+    "ExitCode": ExitCode,
+    "IDoctorAggregate": IDoctorAggregate,
+    "Timestamp": Timestamp,
+}

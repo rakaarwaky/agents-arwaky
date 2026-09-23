@@ -10,6 +10,7 @@ from modules.shared.src.taxonomy_mcp_vo import (
     McpServer,
     McpServerId,
     McpServerInfo,
+    McpServerInfos,
 )
 
 
@@ -17,7 +18,7 @@ class IMcpAggregate(ABC):
     """Aggregate over MCP listing, inspection, generation and validation."""
 
     @abstractmethod
-    def list_servers(self) -> list[McpServerInfo]:
+    def list_servers(self) -> McpServerInfos:
         """List MCP-enabled tools (id, category, description) without writing."""
         ...
     @abstractmethod

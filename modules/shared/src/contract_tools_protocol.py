@@ -18,7 +18,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_common_vo import ToolSpec
-from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolQuery
+from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolArgs, ToolQuery, ToolsOp
 
 
 class IToolsProtocol(ABC):
@@ -27,11 +27,11 @@ class IToolsProtocol(ABC):
     @abstractmethod
     def execute(
         self,
-        op: str,
+        op: ToolsOp,
         spec: ToolSpec | None = None,
         query: ToolQuery | None = None,
-        args: list[str] | None = None,
-    ) -> object:
+        args: ToolArgs | None = None,
+    ) -> ExitCode | ToolSpec | None:
         """Run one tools operation under *op*; return its result or exit code.
 
         Args:
@@ -54,10 +54,16 @@ class IToolsProtocol(ABC):
 __all__ = [
     "ExitCode",
     "IToolsProtocol",
+    "ToolArgs",
+    "ToolQuery",
+    "ToolsOp",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
     "IToolsProtocol": IToolsProtocol,
+    "ToolArgs": ToolArgs,
+    "ToolQuery": ToolQuery,
+    "ToolsOp": ToolsOp,
 }
