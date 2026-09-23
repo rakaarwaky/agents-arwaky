@@ -53,6 +53,22 @@ JSONC / TOML rewrite → harness config path.
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `IConfigLoadProtocol.load_file` | `path: Path` | `ConfigTuple` | `ConfigParseError` | — | Load config data + raw text |
+| `IConfigSaveProtocol.save_file` | `path: Path`, `data: ConfigData`, `fmt: ConfigFormat\|None` | `bool` | unwriteable path → `False` | — | Persist data in detected/explicit format |
+| `IConfigDetectFormatProtocol.detect_format` | `path: Path` | `ConfigFormat` | — | — | Detect JSON/JSONC/TOML from path + content |
+| `IConfigRemoveMcpProtocol.remove_mcp_servers` | `path`, `servers: list[str]`, `dry_run: bool=False` | `list[str]` removed | — | — | Drop named MCP servers (or report under dry-run) |
+| `IConfigRemoveEnvKeysProtocol.remove_env_keys` | `path`, `keys: list[str]`, `dry_run: bool=False` | `list[str]` removed | — | — | Drop named env keys (or report under dry-run) |
+| `IConfigListMcpProtocol.list_mcp_servers` | `path: Path` | `list[str]` | — | — | Read-only list of MCP servers |
+| `IConfigMergeMcpProtocol.merge_mcp_servers` | `path`, `servers: McpServersMap`, `force: bool=False` | `list[str]` merged | — | — | Merge server map into the config file |
+| `IConfigSetEnvKeysProtocol.set_env_keys` | `path`, `pairs: EnvPairs` | `None` | unwriteable path → failure | — | Upsert env key/value pairs |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `ConfigWriter.load_file` | `path: Path` | `tuple[dict, str]` | `ConfigParseError` | — | Load config data + raw text |

@@ -71,6 +71,22 @@ itself.
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `ISkillInstallProtocol.install` | `tool_id: ToolFilter`, `target_dir: Path`, `custom_dest`, `force`, `link`, `prune` | `SkillProvisionResult` | non-zero on copy failure | — | Provision skills into a target |
+| `ISkillPruneProtocol.prune` | `target_dir: Path`, `custom_dest` | `SkillProvisionResult` | non-zero | — | Remove stale provisioned copies |
+| `ISkillAuditProtocol.audit` | — | `list[str]` | non-zero | — | Audit pack loadability findings |
+| `ISkillListProtocol.cmd_list` | `argv: SkillArgs` | `ExitCode` | — | listing | List pack skills (optional tool filter) |
+| `ISkillCheckProtocol.cmd_check` | — | `ExitCode` | non-zero on error findings | findings | Check pack loadability |
+| `ISkillShowProtocol.cmd_show` | `argv: SkillArgs` | `ExitCode` | non-zero on miss | skill body | Show one SKILL.md |
+| `ISkillInstallCmdProtocol.cmd_install` | `argv: SkillArgs` | `ExitCode` | non-zero on copy failure | — | CLI install entry |
+| `ISkillUninstallCmdProtocol.cmd_uninstall` | `argv: SkillArgs` | `ExitCode` | non-zero | — | CLI uninstall entry (`--prune` safe) |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `SkillOrchestrator.list_skills` | `tool_filter: ToolFilter=''` | `ExitCode` + listing | — | — | List pack skills (optional tool filter) |

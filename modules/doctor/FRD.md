@@ -53,6 +53,15 @@ report per check, one exit code.
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `IDoctorProtocol.run` | `json_mode: bool=False` | `ExitCode` | hard fail → non-zero; row-level FAILs keep exit 0 | PASS/FAIL rows or JSON | Run one diagnostic pass |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `DoctorOrchestrator.doctor` | `json_mode: bool=False` | `ExitCode` | hard fail → non-zero; row-level FAILs keep exit 0 | PASS/FAIL rows or JSON | Full environment diagnostics |

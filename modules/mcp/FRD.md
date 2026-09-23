@@ -52,6 +52,15 @@ server list → client config file.
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `IMcpConfigProtocol.generate` | `output: Path` | `ExitCode` | non-zero + message | path written | Write MCP config to *output* |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `McpOrchestrator.list_servers` | — | `list[McpServerInfo]` | — | server rows | Report every registered MCP server |

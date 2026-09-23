@@ -51,6 +51,20 @@ against the target unit(s).
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `IServiceStatusProtocol.status` | — | `ExitCode` | failed unit → non-zero | unit states | Read-only status of one/all units |
+| `IServiceStartProtocol.start` | `target: ServiceTarget='all'` | `ExitCode` | non-zero + unit error | — | Start one target or all |
+| `IServiceStopProtocol.stop` | `target: ServiceTarget='all'` | `ExitCode` | non-zero + unit error | — | Stop one target or all |
+| `IServiceRestartProtocol.restart` | `target: ServiceTarget='all'` | `ExitCode` | non-zero | — | Restart one target or all |
+| `IServiceLogsProtocol.logs` | `target: ServiceTarget='omniroute'` | `ExitCode` | non-zero | log lines | Tail logs for a unit |
+| `IServiceHelpProtocol.help` | — | `ExitCode` + usage | — | — | Print CLI usage and valid targets |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `ServiceOrchestrator.status` | — | `ExitCode` + table | failed unit → non-zero | unit states | Read-only status of all units |

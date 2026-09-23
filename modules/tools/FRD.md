@@ -112,6 +112,22 @@ raises a typed error, never a partial dispatch.
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `IToolInstallProtocol.install` | `spec: ToolSpec`, `adapter`, `dry_run=False` | `InstallResult` | non-zero on failure | — | Install one tool |
+| `IToolUpdateProtocol.update` | `spec: ToolSpec`, `adapter`, `dry_run=False` | `UpdateResult` | non-zero on failure | — | Update one tool |
+| `IToolUninstallProtocol.uninstall` | `spec: ToolSpec`, `owned_paths`, `dry_run=False` | `UninstallResult` | non-zero / residual unit | — | Uninstall one tool |
+| `IToolRunProtocol.run` | `spec: ToolSpec`, `args: list[str]`, `root: Path\|None` | `ExitCode` | 126 vanished / 127 unknown | child stdio | Execute a registered tool |
+| `IToolResolveProtocol.resolve` | `spec: ToolSpec` | adapter object | unknown id → error | — | Resolve spec to its runner adapter |
+| `IToolIsRegisteredProtocol.is_registered` | `spec: ToolSpec` | `bool` | — | — | Manifest registration probe |
+| `IToolSatisfiedProtocol.satisfied` | `spec: ToolSpec` | `bool` | — | — | Binary present + runnable probe |
+| `IToolIsPinSatisfiedProtocol.is_pin_satisfied` | `spec: ToolSpec` | `tuple[bool, str]` | — | — | Pin matches installed binary |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `ToolsOrchestrator.list_tools` | — | `list[Tool]` | manifest parse error | tool rows | All registered tools (manifest reader) |

@@ -25,10 +25,13 @@
 unique within the feature and stable forever.
 2. **A requirement is testable, or it is a wish.**
 State input, output, business rules, edge cases, error handling.
-3. **The API contract mirrors the orchestrator.** One row per public method
-the feature's agent exposes (the feature orchestrator, or the capability
-aggregate when there is no orchestrator). Columns: Method, Input, Output,
-Error, Event, Description — real signatures, not invented capability names.
+3. **The API contract is two tables under one section.** `Protocol API`
+holds one row per leaf capability method (the one-method protocols the
+feature implements). `Aggregate API` holds one row per public method the
+feature's agent exposes (the feature orchestrator, or the capability
+aggregate when there is no orchestrator). Columns for both tables:
+Method, Input, Output, Error, Event, Description — real signatures, not
+invented capability names.
 4. **Scenarios are stated here; evidence lives in the backlog.**
 One scenario per bullet, so `scenario-evidence-count` can match them.
 5. **Non-functional numbers live here.**
@@ -83,9 +86,17 @@ Copy, fill, delete nothing.
 
 ## API Contract
 
+### Protocol API
+
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| <operation> | <input | >output>  | <error>| <event> | <one sentence> |
+| <leaf method> | <input> | <output> | <error> | <event> | <one sentence> |
+
+### Aggregate API
+
+| Method | Input | Output | Error | Event | Description |
+|--------|-------|--------|-------|-------|-------------|
+| <operation> | <input> | <output> | <error> | <event> | <one sentence> |
 
 
 ## Integration Points
@@ -128,7 +139,7 @@ reason.
 | Reference                     | Separates spec promise from backlog claim.        |
 | System Overview               | Orients the reader before details begin.          |
 | Functional Requirements       | The testable promise                              |
-| API Contract                  | What integrators build against.                   |
+| API Contract                  | Protocol + Aggregate surfaces integrators build against. |
 | Integration Points            | Names every outside system that can fail you.     |
 | Non-functional Requirements   | Feature-level numbers the PRD deliberately omits. |
 | Test Scenarios                | Promises the backlog must evidence.               |

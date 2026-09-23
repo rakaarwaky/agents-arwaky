@@ -678,10 +678,22 @@ def check_frd_template(path: Path) -> list[DocFinding]:
             ))
 
     # --- Rule 3 / template table shapes ---------------------------------------
-    findings.extend(_table_shape(
-        find_section(path, "API Contract"), _API_COLUMNS,
-        code="api-contract-shape", label="API Contract", spec=path,
-    ))
+    # API Contract is one section with two required tables: Protocol + Aggregate.
+    for label in ("Protocol API", "Aggregate API"):
+        section = find_section(path, label)
+        if section is None:
+            findings.append(DocFinding(
+                "api-contract-shape",
+                f"API Contract has no {label} subsection; the template splits the "
+                "contract into Protocol API (leaf methods) and Aggregate API "
+                "(orchestrator / capability aggregate exports) (HOW-TO Rule 3)",
+                str(path),
+            ))
+            continue
+        findings.extend(_table_shape(
+            section, _API_COLUMNS,
+            code="api-contract-shape", label=label, spec=path,
+        ))
     findings.extend(_table_shape(
         find_section(path, "Integration Points"), _INTEGRATION_COLUMNS,
         code="integration-shape", label="Integration Points", spec=path,

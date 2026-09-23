@@ -60,6 +60,17 @@ archive under the XDG data dir.
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `IBackupProtocol.backup` | `tool: BackupToolQuery`, `dest: BackupDestination=''` | `BackupResult` | non-zero + gateway failure message | — | Backup one tool or `all` to the store |
+| `IRestoreProtocol.restore` | `tool: BackupToolQuery`, `archive: Path` | `RestoreResult` | non-zero + missing archive/dir message | — | Restore from local archive / store / gdrive |
+| `IListArchivesProtocol.list_archives` | — | `list[Path]` | non-zero | — | List archives under the backup store |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `BackupOrchestrator.backup` | `tool: BackupToolQuery`, `dest: str=''` | `ExitCode` | non-zero + gateway failure message | — | Route backup (tar / gdrive) for one tool or `all` |

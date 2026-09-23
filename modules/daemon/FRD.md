@@ -51,6 +51,19 @@ per-daemon manager → systemd/process-manager.
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `IDaemonStartProtocol.start` | — | `ExitCode` | non-zero + unit error | — | Start one daemon container/unit |
+| `IDaemonStopProtocol.stop` | — | `ExitCode` | non-zero | — | Stop one daemon |
+| `IDaemonStatusProtocol.status` | — | `DaemonStatus` | absent → unknown status value | — | Report running/absent state |
+| `IDaemonLogsProtocol.logs` | — | `ExitCode` | non-zero | log lines | Tail daemon logs |
+| `IDaemonRestartProtocol.restart` | — | `ExitCode` | non-zero | — | Restart one daemon |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `DaemonOrchestrator.known_daemons` | — | `tuple[str, …]` | — | — | Canonical daemon ids the orchestrator manages |

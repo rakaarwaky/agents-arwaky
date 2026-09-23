@@ -72,12 +72,18 @@ duplicate `name:` across categories → `duplicate-name`.
 
 ## API Contract
 
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `ICheckRunner.run` (docs) | — | `CheckExitCode(len(problems))` | any finding → non-zero (strict-only) | progress; findings `code path: message` | Capability: document invariant audit (FR-CHECK-001) |
+| `ICheckRunner.run` (skill) | — | `CheckExitCode(len(findings))` | any pack finding → non-zero; empty pack → `pack-missing` | progress; findings; counts | Capability: skill pack loadability audit (FR-CHECK-002) |
+
+### Aggregate API
 
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `CheckOrchestrator.check` | `only: str\|None=None` | `CheckExitCode(0\|1)` | unknown scope → non-zero; any runner error → 1 | banner; `[i/n]` steps; final `PASSED` / `FAILED with N errors` | Surface: `aa check [all\|docs\|skill]` |
-| `DocsCheckRunner.run` | — | `CheckExitCode(len(problems))` | any finding → non-zero (strict-only; no advisory tier) | progress `Validating document invariants…`; findings `code path: message` | Capability: `aa check docs` (FR-CHECK-001) |
-| `SkillsCheckRunner.run` | — | `CheckExitCode(len(findings))` | any pack finding → non-zero; empty pack → `pack-missing` | progress `Validating skill pack loadability…`; findings; skill + category count | Capability: `aa check skill` (FR-CHECK-002) |
 
 ## Integration Points
 

@@ -90,6 +90,17 @@ FR-HARNESS-001/FR-HARNESS-002, gated by the adapter's declared custom-API suppor
 
 
 ## API Contract
+
+### Protocol API
+
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `IHarnessConnectProtocol.connect` | `targets`, `force=False`, `dry_run=False`, `mcp_only=False`, `skills_only=False`, `env_only=False`, `router=False`, `copy_skills=False` | `ExitCode` | non-zero + offending harness | — | Connect targets to a harness |
+| `IHarnessDisconnectProtocol.disconnect` | `targets`, `dry_run=False` | `ExitCode` | reported failures → non-zero | — | Disconnect targets from a harness |
+| `IHarnessSkillsProtocol.provision_skills` | `targets`, `copy=False`, `dry_run=False` | `ExitCode` | per-skill failure → non-zero | — | Provision pack skills into a harness |
+
+### Aggregate API
+
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `HarnessOrchestrator.resolve_targets` | `targets: tuple[str, …]` | `tuple[str, …]` canonical ids | unknown tokens dropped (CLI reports) | — | Map id / alias / `--all` → canonical ids, deduped |
