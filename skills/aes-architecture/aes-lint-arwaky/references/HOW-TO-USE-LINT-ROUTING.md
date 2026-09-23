@@ -49,16 +49,16 @@ AES401–403, AES406, AES505–506 → 🟢 **MEDIUM/LOW** AES203–204, AES305,
 
 | Rule (name) | What it checks | Fix approach | Skill to use |
 | ----------- | -------------- | ------------ | ------------ |
-| AES101 (Naming Convention) | Filename is `<layer>_<concern>_<role>.<ext>`, lowercase, ≥3 words | Rename, then update barrel/`mod.rs`/`__init__.py` | `create-{layer}` |
-| AES102 (Suffix/Prefix Rules) | Final suffix is legal for the layer (matrix below) | Change suffix (and therefore the role) to a legal one | `create-{layer}` |
+| AES101 (Naming Convention) | Filename is `<layer>_<concern>_<role>.<ext>`, lowercase, ≥3 words | Rename, then update barrel/`mod.rs`/`__init__.py` | `aes-{layer}` |
+| AES102 (Suffix/Prefix Rules) | Final suffix is legal for the layer (matrix below) | Change suffix (and therefore the role) to a legal one | `aes-{layer}` |
 | AES201 (Forbidden Import) | A layer imports a layer it must not (matrix below) | Remove the cross-layer import; depend on a contract protocol/aggregate injected via DI | `aes-contract` |
-| AES202 (Mandatory Import) | A required import is missing (e.g. capabilities must import `contract(*_protocol)`) | Add the required import/type | `create-{layer}` |
+| AES202 (Mandatory Import) | A required import is missing (e.g. capabilities must import `contract(*_protocol)`) | Add the required import/type | `aes-{layer}` |
 | AES203 (Unused Import) | Imported symbol never used | `lint-arwaky-cli fix <path> --filter AES203` | — |
 | AES204 (Dummy Import) | Import kept only to satisfy a linter, with stub usage | Remove the dummy import and its stub | `fix-bypass` |
 | AES205 (Circular Import) | Two files/layers import each other | Extract the shared type or trait downward into `taxonomy` or `contract`; both sides import that | `aes-contract` |
 | AES301 (File Maximum Limit) | File exceeds the layer's max lines | Split by responsibility | `cleanup-consolidate` |
 | AES302 (File Minimum Limit) | File is below the minimum size | Merge into the parent module or delete | `cleanup-consolidate` |
-| AES303 (Mandatory Definition) | File has no class/struct/enum/trait of its own | Add the definition the filename promises | `create-{layer}` |
+| AES303 (Mandatory Definition) | File has no class/struct/enum/trait of its own | Add the definition the filename promises | `aes-{layer}` |
 | AES304 (Bypass Comment) | `noqa`, `type: ignore`, `#[allow]`, `@ts-ignore`, `eslint-disable` … | Fix the root cause and delete the suppression | `fix-bypass` |
 | AES305 (Duplication Code) | Same logic repeated across files | Extract shared logic into a pure utility | `aes-utility` |
 | AES401 (Taxonomy Role) | `_constant` purity; primitives in `_entity`/`_error`/`_event` | Replace primitives with taxonomy VOs | `aes-taxonomy` |
