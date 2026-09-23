@@ -115,7 +115,7 @@ For tests that exercise actual CLI commands against live services/sessions:
 6. **Use fixtures** — create temporary test files, cleanup after.
 7. **Never require login in CI** — skip gracefully when deps unavailable.
 
-See [HOW-TO-MAKE-DOGFOOD-TESTS.md](HOW-TO-MAKE-DOGFOOD-TESTS.md) for complete template.
+Dogfood tests are covered inline above; they skip in CI when services unavailable.
 
 
 ## Verify
