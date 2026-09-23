@@ -84,6 +84,7 @@ class ConfigWriter(IConfigProtocol):
         return write_toml(data)
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
 class ConfigModifier(IConfigProtocol):
     """Merge / env-set / removal / list capability (single-execute dispatcher)."""
 

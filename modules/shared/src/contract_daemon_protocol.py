@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
+from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus, ExitCode
 
 
 class IDaemonProtocol(ABC):
@@ -28,7 +28,32 @@ class IDaemonProtocol(ABC):
         ...
 
 
-__all__ = ['DaemonStatus', 'ExitCode', 'IDaemonProtocol']
+class IDaemonControlProtocol(ABC):
+    """Narrow multi-daemon control surface (start/stop/restart/status/logs).
+
+    Implemented by the daemon aggregate / orchestrator; consumed by the
+    service capability so it imports only from ``*_protocol`` (HOW-TO).
+    """
+
+    @abstractmethod
+    def start(self, name: DaemonName) -> ExitCode: ...
+    @abstractmethod
+    def stop(self, name: DaemonName) -> ExitCode: ...
+    @abstractmethod
+    def restart(self, name: DaemonName) -> ExitCode: ...
+    @abstractmethod
+    def status(self, name: DaemonName) -> DaemonStatus: ...
+    @abstractmethod
+    def logs(self, name: DaemonName) -> ExitCode: ...
+
+
+__all__ = ['DaemonName', 'DaemonStatus', 'ExitCode', 'IDaemonControlProtocol', 'IDaemonProtocol']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"DaemonStatus": DaemonStatus, "ExitCode": ExitCode, "IDaemonProtocol": IDaemonProtocol}
+_layer_symbols = {
+    "DaemonName": DaemonName,
+    "DaemonStatus": DaemonStatus,
+    "ExitCode": ExitCode,
+    "IDaemonControlProtocol": IDaemonControlProtocol,
+    "IDaemonProtocol": IDaemonProtocol,
+}

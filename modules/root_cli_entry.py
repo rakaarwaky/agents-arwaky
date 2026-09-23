@@ -31,12 +31,12 @@ from __future__ import annotations
 import os
 import re
 import shutil
-import subprocess
 import sys
 import textwrap
 from pathlib import Path
 
 from modules.shared.src.utility_paths_resolver import repo_root
+from modules.shared.src.utility_process_runner import run_cmd as _run_cmd_util
 
 ROOT = repo_root()
 
@@ -119,7 +119,7 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
 
 def run_cmd(cmd: list[str]) -> int:
     try:
-        return subprocess.run(cmd, check=False).returncode
+        return _run_cmd_util(cmd).returncode
     except FileNotFoundError:
         err(f"Command not found: {cmd[0]}")
         return 127

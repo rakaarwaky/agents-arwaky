@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import sys
 
-from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.contract_daemon_protocol import IDaemonControlProtocol
 from modules.shared.src.contract_service_protocol import IServiceProtocol
 from modules.shared.src.taxonomy_service_vo import (
     TARGET_ALL,
@@ -21,14 +21,14 @@ from modules.shared.src.taxonomy_service_vo import (
     ServiceTarget,
 )
 
-_DAEMON_AGGREGATE: IDaemonAggregate | None = None
+_DAEMON_AGGREGATE: IDaemonControlProtocol | None = None
 
 
-def _daemons() -> IDaemonAggregate:
-    """Daemon aggregate cache: set by the service root container at construction."""
+def _daemons() -> IDaemonControlProtocol:
+    """Daemon control surface: set by the service root container at construction."""
     if _DAEMON_AGGREGATE is None:
         raise RuntimeError(
-            "ServiceManager has no daemon aggregate injected; use "
+            "ServiceManager has no daemon control injected; use "
             "create_service_feature() (root composition) instead of a bare constructor call."
         )
     return _DAEMON_AGGREGATE
@@ -38,21 +38,22 @@ def _daemons() -> IDaemonAggregate:
 class ServiceManager(IServiceProtocol):
     """AES facade: exposes the original script actions by their CLI names.
 
-    The optional daemon aggregate in the constructor is accepted for
+    The optional daemon control protocol in the constructor is accepted for
     composition-root wiring; action bodies route through it.
     """
 
-    def __init__(self, daemons: IDaemonAggregate | None = None) -> None:
+    def __init__(self, daemons: IDaemonControlProtocol | None = None) -> None:
         global _DAEMON_AGGREGATE
         if daemons is not None:
             _DAEMON_AGGREGATE = daemons
         self._daemons = daemons
 
     @property
-    def aggregate(self) -> IDaemonAggregate:
-        """Return the injected daemon aggregate (composition-time wiring)."""
+    def aggregate(self) -> IDaemonControlProtocol | None:
+        """Return the injected daemon control (composition-time wiring)."""
         return self._daemons
 
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def execute(self, op: ServiceOp, unit: ServiceTarget = TARGET_ALL) -> ExitCode:
         if op == "status":
             return self.status()
@@ -68,15 +69,16 @@ class ServiceManager(IServiceProtocol):
             return self.help()
         raise ValueError(f"Unknown service op: {op}")
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return "ServiceManager()"
+
     def status(self) -> ExitCode:
         return ExitCode(cmd_status())
-
-    # ─── Block 2: Internal action methods (routed by execute) ──────────
 
     def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return ExitCode(cmd_start(str(target)))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return ExitCode(cmd_stop(str(target)))
 

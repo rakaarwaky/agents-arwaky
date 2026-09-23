@@ -20,6 +20,10 @@ from modules.shared.src.utility_logging_setup import (
     table_widths,
 )
 from modules.shared.src.utility_manifest_reader import load_tools
+from modules.shared.src.utility_tool_resolve import (
+    is_submodule_missing,
+    resolve_executable,
+)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -35,9 +39,9 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
         if json_mode:
             out = []
             for tool in load_tools():
-                if _is_submodule_missing(tool.path):
+                if is_submodule_missing(tool.path):
                     state = "submodule-missing"
-                elif _resolve_executable(tool.binary):
+                elif resolve_executable(tool.binary):
                     state = "installed"
                 elif (bin_home() / tool.binary).exists():
                     state = "ready"
@@ -62,9 +66,9 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
         print(sep)
         for tool in load_tools():
             cat_color = GREEN() if tool.category == "internal" else CYAN()
-            if _is_submodule_missing(tool.path):
+            if is_submodule_missing(tool.path):
                 status = f"{RED()}[FAIL] Submodule Missing{RESET()}"
-            elif _resolve_executable(tool.binary):
+            elif resolve_executable(tool.binary):
                 status = f"{GREEN()}[OK] Installed ({tool.binary}){RESET()}"
             elif (bin_home() / tool.binary).exists():
                 status = f"{GREEN()}[OK] Ready ({bin_home()}){RESET()}"
@@ -79,35 +83,3 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def __repr__(self) -> str:
         return "ToolsDiagnosticRunner()"
-
-
-def _resolve_executable(binary: str):
-    found = shutil.which(binary)
-    if found:
-        from pathlib import Path
-
-        return Path(found)
-    local = bin_home() / binary
-    import os
-
-    if local.exists() and os.access(local, os.X_OK):
-        return local
-    return None
-
-
-def _is_submodule_missing(path_str: str) -> bool:
-
-    from modules.shared.src.utility_paths_resolver import repo_root
-
-    root = repo_root()
-    target = root / path_str
-    if not target.exists() or not (target / ".git").exists():
-        gitmodules = root / ".gitmodules"
-        if gitmodules.exists():
-            try:
-                text = gitmodules.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                return False
-            return f"path = {path_str}" in text
-        return False
-    return False

@@ -7,15 +7,17 @@ from __future__ import annotations
 
 import json
 import os
-import sys
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from modules.harness.src.contract_harness_protocol import IHarnessProtocol
-from modules.harness.src.taxonomy_harness_constant import ALL_HARNESS_IDS
-from modules.harness.src.taxonomy_harness_vo import (
-    ExitCode,
-    UnsupportedHarnessError,
+from modules.harness.src.taxonomy_harness_vo import DisconnectOpts, ExitCode
+from modules.harness.src.utility_harness_log import (
+    log_err,
+    log_header,
+    log_ok,
+    log_skip,
+    log_sub,
+    log_warn,
 )
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import iter_skill_files
@@ -27,62 +29,15 @@ from modules.shared.src.utility_config_engine import (
     save_file,
 )
 
-LOG_SUB = lambda msg: print(f"  -> {msg}")
-LOG_OK = lambda msg: print(f"  ✓ {msg}")
-LOG_SKIP = lambda msg: print(f"  ⟳ {msg}")
-LOG_WARN = lambda msg: print(f"  ⚠ {msg}")
-LOG_ERR = lambda msg: print(f"  ✗ {msg}", file=sys.stderr)
 
-
-def _log_header(msg: str) -> None:
-    print(f"==> {msg}")
-
-
-def _log_sub(msg: str) -> None:
-    print(f"  -> {msg}")
-
-
-def _log_ok(msg: str) -> None:
-    print(f"  \u2713 {msg}")
-
-
-def _log_skip(msg: str) -> None:
-    print(f"  \u21bb {msg}")
-
-
-def _log_warn(msg: str) -> None:
-    print(f"  \u26a0 {msg}")
-
-
-def _log_err(msg: str) -> None:
-    print(f"  \u2717 {msg}", file=sys.stderr)
-
-
-@dataclass
-class DisconnectOpts:
-    dry_run: bool = False
-    adapters: dict[str, object] = field(default_factory=dict, repr=False)
-
-    def adapter(self, harness_id: str):
-        try:
-            return self.adapters[harness_id]
-        except KeyError:
-            raise UnsupportedHarnessError(harness_id, ALL_HARNESS_IDS) from None
-
-
+# ─── Block 1: Class Definition & Constructor ──────────────
 class HarnessDisconnector(IHarnessProtocol):
-    """Registry-keyed disconnect capability (composition root injects adapters).
+    """Registry-keyed disconnect capability (composition root injects adapters)."""
 
-    # Block 1: Constructor
-    # Block 2: Protocol ABC Method Implementation
-    # Block 3: Dunder Methods, Factories & Helpers
-    """
-
-    # -- Block 1: Constructor ---------------------------------------------------
     def __init__(self, adapters: dict[str, object]) -> None:
         self._adapters = adapters
 
-    # -- Block 2: Protocol ABC Method Implementation ----------------------------
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def execute(self, op: str, targets: tuple[str, ...],
                 flags: dict[str, bool] | None = None) -> ExitCode:
         """Dispatch the ``disconnect`` op over *targets*; return exit code."""
@@ -91,7 +46,7 @@ class HarnessDisconnector(IHarnessProtocol):
         flags = flags or {}
         return ExitCode(self.disconnect(targets, dry_run=flags.get("dry_run", False)))
 
-    # -- Block 3: Dunder Methods, Factories & Helpers ----------------------------
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def disconnect(self, harness_ids: tuple[str, ...], dry_run: bool = False) -> int:
         """FR-002: remove MCP servers, env keys, and router references.
 
@@ -104,27 +59,26 @@ class HarnessDisconnector(IHarnessProtocol):
             failures += self._disconnect_one(harness_id, adapter, opts)
         return 1 if failures else 0
 
-    # -- Block 3: Dunder Methods, Factories & Helpers ----------------------------
     def _disconnect_one(self, harness_id: str, adapter, opts: DisconnectOpts) -> int:
-        _log_header(f"Disconnecting from {adapter.display}...")
+        log_header(f"Disconnecting from {adapter.display}...")
         failures = 0
         servers = arwaky_server_names(Path(REPO_ROOT))
         for label, target_dir in adapter.mcp_targets():
             cfg = adapter.mcp_config_file(target_dir)
             if cfg.exists():
                 if opts.dry_run:
-                    _log_sub(f"[DRY-RUN] Would remove agents-arwaky MCP servers from {cfg}")
+                    log_sub(f"[DRY-RUN] Would remove agents-arwaky MCP servers from {cfg}")
                 else:
                     try:
                         removed = remove_mcp_servers(cfg, servers, opts.dry_run)
                     except (OSError, ValueError) as exc:
-                        _log_err(f"{harness_id}: MCP removal from {cfg} failed: {exc}")
+                        log_err(f"{harness_id}: MCP removal from {cfg} failed: {exc}")
                         failures += 1
                         continue
                     if removed:
-                        _log_ok(f"Removed agents-arwaky MCP servers from {cfg}")
+                        log_ok(f"Removed agents-arwaky MCP servers from {cfg}")
                     else:
-                        _log_skip(f"No agents-arwaky MCP servers found in {cfg}")
+                        log_skip(f"No agents-arwaky MCP servers found in {cfg}")
         _remove_skill_provisioned(adapter.skills_dir(), opts.dry_run)
         _remove_router_refs(harness_id, adapter, opts)
         for env_file in adapter.env_files():
@@ -132,15 +86,37 @@ class HarnessDisconnector(IHarnessProtocol):
                 try:
                     removed = remove_env_keys(env_file, list(adapter.env_keys), opts.dry_run)
                 except OSError as exc:
-                    _log_err(f"{harness_id}: env removal from {env_file} failed (read-only?): {exc}")
+                    log_err(f"{harness_id}: env removal from {env_file} failed (read-only?): {exc}")
                     failures += 1
                 else:
                     if removed and not opts.dry_run:
-                        _log_ok(f"Removed env keys {removed} from {env_file}")
+                        log_ok(f"Removed env keys {removed} from {env_file}")
                     elif opts.dry_run:
-                        _log_sub(f"[DRY-RUN] Would remove env keys from {env_file}")
-        _log_ok(f"{adapter.display} disconnect complete.")
+                        log_sub(f"[DRY-RUN] Would remove env keys from {env_file}")
+        log_ok(f"{adapter.display} disconnect complete.")
         return failures
+
+    def __repr__(self) -> str:
+        return "HarnessDisconnector()"
+
+
+def _copy_matches_pack(dest_dir: Path, src_dir: Path) -> bool:
+    """True when a provisioned copy is still byte-identical to its pack source."""
+    for f in src_dir.rglob("*"):
+        if f.is_dir() or "__pycache__" in f.parts:
+            continue
+        peer = dest_dir / f.relative_to(src_dir)
+        if not peer.is_file() or peer.read_bytes() != f.read_bytes():
+            return False
+    return True
+
+
+def _in_pack(entry: str, pack_root: Path) -> bool:
+    """True when a skills.directories entry points at the pack (any spelling)."""
+    try:
+        return Path(os.path.expanduser(entry.strip())).resolve().is_relative_to(pack_root)
+    except OSError:
+        return False
 
 
 def _remove_skill_provisioned(dest_base: Path, dry_run: bool) -> None:
@@ -155,10 +131,10 @@ def _remove_skill_provisioned(dest_base: Path, dry_run: bool) -> None:
         return
     if dest_base.is_symlink():
         if dry_run:
-            _log_sub(f"[DRY-RUN] Would unlink skills root {dest_base}")
+            log_sub(f"[DRY-RUN] Would unlink skills root {dest_base}")
             return
         dest_base.unlink()
-        _log_ok(f"Unlinked skills root {dest_base} (pack left intact)")
+        log_ok(f"Unlinked skills root {dest_base} (pack left intact)")
         return
     pack_root = (REPO_ROOT / "skills").resolve()
     removed = 0
@@ -167,35 +143,24 @@ def _remove_skill_provisioned(dest_base: Path, dry_run: bool) -> None:
         dest = dest_base / name
         if dest.is_symlink():
             if dry_run:
-                _log_sub(f"[DRY-RUN] Would unlink skill '{name}' -> {dest.resolve()}")
+                log_sub(f"[DRY-RUN] Would unlink skill '{name}' -> {dest.resolve()}")
                 continue
             dest.unlink()
-            _log_ok(f"Unlinked skill '{name}' from {dest_base} (pack source intact)")
+            log_ok(f"Unlinked skill '{name}' from {dest_base} (pack source intact)")
             removed += 1
         elif dest.is_dir():
             # Only delete when the copy matches the pack (pure snapshot or
             # provenance-carrying) — a divergent hand-written skill stays.
             if _copy_matches_pack(dest, skill_md.parent):
                 if dry_run:
-                    _log_sub(f"[DRY-RUN] Would remove skill '{name}' from {dest_base}")
+                    log_sub(f"[DRY-RUN] Would remove skill '{name}' from {dest_base}")
                     continue
                 import shutil
                 shutil.rmtree(dest)
-                _log_ok(f"Removed skill '{name}' from {dest_base}")
+                log_ok(f"Removed skill '{name}' from {dest_base}")
                 removed += 1
     if removed:
-        _log_ok(f"{removed} skill(s) removed from {dest_base}")
-
-
-def _copy_matches_pack(dest_dir: Path, src_dir: Path) -> bool:
-    """True when a provisioned copy is still byte-identical to its pack source."""
-    for f in src_dir.rglob("*"):
-        if f.is_dir() or "__pycache__" in f.parts:
-            continue
-        peer = dest_dir / f.relative_to(src_dir)
-        if not peer.is_file() or peer.read_bytes() != f.read_bytes():
-            return False
-    return True
+        log_ok(f"{removed} skill(s) removed from {dest_base}")
 
 
 def _remove_router_refs(harness_id: str, adapter, opts: DisconnectOpts) -> None:
@@ -216,7 +181,7 @@ def _remove_router_refs(harness_id: str, adapter, opts: DisconnectOpts) -> None:
         try:
             data, fmt = load_file(cfg_file)
         except (OSError, ValueError) as exc:
-            _log_warn(f"Could not read {cfg_file} ({exc}); router ref removal SKIPPED.")
+            log_warn(f"Could not read {cfg_file} ({exc}); router ref removal SKIPPED.")
             return
         provider_id = adapter.router_provider_id
         models = data.get("models")
@@ -229,15 +194,15 @@ def _remove_router_refs(harness_id: str, adapter, opts: DisconnectOpts) -> None:
             model.pop(provider_id, None)
             changed = True
         if not changed:
-            _log_skip(f"No router references found in {cfg_file}")
+            log_skip(f"No router references found in {cfg_file}")
             return
         if opts.dry_run:
-            _log_sub(f"[DRY-RUN] Would remove router provider '{provider_id}' from {cfg_file}")
+            log_sub(f"[DRY-RUN] Would remove router provider '{provider_id}' from {cfg_file}")
             return
         if not save_file(cfg_file, data, fmt):
-            _log_err(f"{harness_id}: failed to remove router refs from {cfg_file}")
+            log_err(f"{harness_id}: failed to remove router refs from {cfg_file}")
             return
-        _log_ok(f"Removed router provider '{provider_id}' from {cfg_file}")
+        log_ok(f"Removed router provider '{provider_id}' from {cfg_file}")
     elif kind == "settings-jsonc":
         settings_file = adapter.mcp_config_file()
         if not settings_file.is_file():
@@ -246,7 +211,7 @@ def _remove_router_refs(harness_id: str, adapter, opts: DisconnectOpts) -> None:
             raw = settings_file.read_text(encoding="utf-8")
             settings = json.loads(raw) if raw.strip() else {}
         except (OSError, ValueError) as exc:
-            _log_warn(f"Could not read {settings_file} ({exc}); router ref removal SKIPPED.")
+            log_warn(f"Could not read {settings_file} ({exc}); router ref removal SKIPPED.")
             return
         if not isinstance(settings, dict):
             return
@@ -303,21 +268,15 @@ def _remove_router_refs(harness_id: str, adapter, opts: DisconnectOpts) -> None:
                 if not hooks:
                     settings.pop("hooks", None)
         if not removed:
-            _log_skip(f"No router/skill references found in {settings_file}")
+            log_skip(f"No router/skill references found in {settings_file}")
             return
         if opts.dry_run:
-            _log_sub(f"[DRY-RUN] Would remove router/skill references from {settings_file}")
+            log_sub(f"[DRY-RUN] Would remove router/skill references from {settings_file}")
             return
         settings_file.parent.mkdir(parents=True, exist_ok=True)
         tmp = settings_file.with_name(settings_file.name + ".tmp")
         tmp.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         os.replace(tmp, settings_file)
-        _log_ok(f"Removed {removed} router/skill reference(s) from {settings_file}")
+        log_ok(f"Removed {removed} router/skill reference(s) from {settings_file}")
 
 
-def _in_pack(entry: str, pack_root: Path) -> bool:
-    """True when a skills.directories entry points at the pack (any spelling)."""
-    try:
-        return Path(os.path.expanduser(entry.strip())).resolve().is_relative_to(pack_root)
-    except OSError:
-        return False

@@ -44,6 +44,10 @@ class SkillsCheckRunner(ICheckProtocol):
             info(f"  ({total} SKILL.md files scanned, budget {DESCRIPTION_BUDGET_BYTES} bytes)")
         return CheckExitCode(len(findings))
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return "SkillsCheckRunner()"
+
 __all__ = ['CheckExitCode']
 
 

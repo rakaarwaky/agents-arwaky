@@ -48,6 +48,59 @@ _DEFAULT_DEST = BackupDestination("")
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
+class TarBackupGateway(IBackupProtocol):
+    """tar/untar backup & restore with progress spinner + optional gdrive upload.
+
+    Thin AES capability wrapper around the unchanged original script
+    functions above; the original ``backup_tool`` / ``restore_tool`` /
+    ``cmd_*`` functions remain the source of truth and are simply
+    delegated to, preserving their exact behaviour (return codes,
+    print statements, edge cases).
+    """
+
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def execute(
+        self,
+        op: str,
+        tool: BackupToolQuery | None = None,
+        dest: BackupDestination = _DEFAULT_DEST,
+        archive: str = "",
+    ) -> object:
+        """Dispatch *op* (archive / restore / list) to the concrete helpers."""
+        if op == "archive":
+            if not tool:
+                return BackupResult(False, "", "", False, "archive op requires a tool")
+            return self.backup(str(tool), str(dest))
+        if op == "restore":
+            if not tool:
+                return RestoreResult(False, "", archive, "", "restore op requires a tool")
+            return self.restore(str(tool), Path(archive))
+        if op == "list":
+            return self.list_archives()
+        return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
+
+    def backup(self, tool: str, dest: str = "") -> BackupResult:
+        rc = cmd_backup([tool] + ([dest] if dest else []))
+        archive = f"{tool}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.tar.gz"
+        return BackupResult(rc == 0, tool, archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def restore(self, tool: str, archive: Path) -> RestoreResult:
+        rc = cmd_restore([tool, str(archive)])
+        return RestoreResult(rc == 0, tool, str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
+
+    def list_archives(self) -> list[Path]:
+        return sorted(BACKUP_STORE.glob("*.tar.gz")) if BACKUP_STORE.exists() else []
+
+    def help(self) -> int:
+        return cmd_help()
+
+    def main_cli(self, argv: list[str]) -> int:
+        """Original script's ``main`` entry point (kept as-is above)."""
+        return main(argv)
+
+
 class _Progress:
     """Simple spinner for long-running operations."""
 
@@ -280,54 +333,3 @@ def main(argv):
     return cmd_help()
 
 
-class TarBackupGateway(IBackupProtocol):
-    """tar/untar backup & restore with progress spinner + optional gdrive upload.
-
-    Thin AES capability wrapper around the unchanged original script
-    functions above; the original ``backup_tool`` / ``restore_tool`` /
-    ``cmd_*`` functions remain the source of truth and are simply
-    delegated to, preserving their exact behaviour (return codes,
-    print statements, edge cases).
-    """
-
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
-
-    def execute(
-        self,
-        op: str,
-        tool: BackupToolQuery | None = None,
-        dest: BackupDestination = _DEFAULT_DEST,
-        archive: str = "",
-    ) -> object:
-        """Dispatch *op* (archive / restore / list) to the concrete helpers."""
-        if op == "archive":
-            if not tool:
-                return BackupResult(False, "", "", False, "archive op requires a tool")
-            return self.backup(str(tool), str(dest))
-        if op == "restore":
-            if not tool:
-                return RestoreResult(False, "", archive, "", "restore op requires a tool")
-            return self.restore(str(tool), Path(archive))
-        if op == "list":
-            return self.list_archives()
-        return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
-
-    def backup(self, tool: str, dest: str = "") -> BackupResult:
-        rc = cmd_backup([tool] + ([dest] if dest else []))
-        archive = f"{tool}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.tar.gz"
-        return BackupResult(rc == 0, tool, archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def restore(self, tool: str, archive: Path) -> RestoreResult:
-        rc = cmd_restore([tool, str(archive)])
-        return RestoreResult(rc == 0, tool, str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
-
-    def list_archives(self) -> list[Path]:
-        return sorted(BACKUP_STORE.glob("*.tar.gz")) if BACKUP_STORE.exists() else []
-
-    def help(self) -> int:
-        return cmd_help()
-
-    def main_cli(self, argv: list[str]) -> int:
-        """Original script's ``main`` entry point (kept as-is above)."""
-        return main(argv)

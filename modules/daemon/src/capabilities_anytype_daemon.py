@@ -22,31 +22,33 @@ import urllib.request
 from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
-    config_home,
-    data_home,
-    state_home,
+)
+from modules.shared.src.taxonomy_daemon_constant import (
+    ANYTYPE_CONFIG_DIR,
+    CONTAINER_NAME,
+    DATA_DIR,
+    DATA_ROOT,
+    DOT_ANYTYPE,
+    IMAGE_NAME,
+    LOCAL_BIN,
+    PID_FILE,
+    ROOT,
+    SHARE_DIR,
+    UNIT_DIR,
+)
+from modules.shared.src.taxonomy_daemon_constant import (
+    ANYTYPE_PORT as PORT,
+)
+from modules.shared.src.taxonomy_daemon_constant import (
+    ANYTYPE_SCRIPT_DIR as SCRIPT_DIR,
+)
+from modules.shared.src.taxonomy_daemon_constant import (
+    ANYTYPE_UNIT_FILE as UNIT_FILE,
 )
 from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
 from modules.shared.src.utility_envfile_parser import update_env_file
-from modules.shared.src.utility_paths_resolver import repo_root
-
-ROOT = repo_root()
-
-CONTAINER_NAME = "anytype-daemon"
-IMAGE_NAME = "localhost/anytype-daemon:latest"
-PORT = os.environ.get(
-    "ANYTYPE_API_BASE_URL", "http://127.0.0.1:31012"
-).split(":")[-1].strip("/")
-DATA_DIR = data_home() / "anytype-mcp"
-DOT_ANYTYPE = data_home() / "anytype"
-CONFIG_DIR = config_home() / "anytype"
-SHARE_DIR = data_home() / "anytype" / "share"
-LOCAL_BIN = data_home() / "anytype-mcp/bin"
-SCRIPT_DIR = ROOT / "modules/daemon/deploy"
-UNIT_DIR = config_home() / "systemd/user"
-UNIT_FILE = UNIT_DIR / "anytype-daemon.service"
-DATA_ROOT = data_home() / "anytype-mcp"
-PID_FILE = state_home() / "anytype-daemon.pid"
+from modules.shared.src.utility_process_runner import cmd_out as out
+from modules.shared.src.utility_process_runner import run_cmd as run
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -169,16 +171,6 @@ class AnytypeDaemonManager(IDaemonProtocol):
         return main(argv)
 
 
-def run(cmd, **kw):
-    return subprocess.run(cmd, check=False, **kw)
-
-
-def out(cmd, **kw):
-    return subprocess.run(
-        cmd, capture_output=True, text=True, check=False, **kw
-    ).stdout.strip()
-
-
 def has_podman():
     return shutil.which("podman") is not None
 
@@ -238,7 +230,7 @@ def build_image():
 
 
 def ensure_dirs():
-    for d in (DATA_DIR, DOT_ANYTYPE, CONFIG_DIR, SHARE_DIR):
+    for d in (DATA_DIR, DOT_ANYTYPE, ANYTYPE_CONFIG_DIR, SHARE_DIR):
         d.mkdir(parents=True, exist_ok=True)
 
 
@@ -290,7 +282,7 @@ def cmd_start():
                 "--restart", "unless-stopped",
                 "-v", f"{DATA_DIR}:/data:Z",
                 "-v", f"{DOT_ANYTYPE}:/root/.anytype:Z",
-                "-v", f"{CONFIG_DIR}:/root/.config/anytype:Z",
+                "-v", f"{ANYTYPE_CONFIG_DIR}:/root/.config/anytype:Z",
                 "-v", f"{SHARE_DIR}:/root/.local/share/anytype:Z",
                 IMAGE_NAME,
             ])

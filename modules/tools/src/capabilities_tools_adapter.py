@@ -80,10 +80,10 @@ from modules.shared.src.taxonomy_tools_constant import (
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 
 
+# ─── Block 1: Class Definition & Constructor ──────────────
 class ToolAdapterFacade(IToolsProtocol):
     """God-object facade: one injected object holding all 13 tool actions."""
 
-    # ─── Block 1: Class Definition & Constructor ─────────────────────
     def __init__(
         self,
         registry: dict[str, object] | None = None,

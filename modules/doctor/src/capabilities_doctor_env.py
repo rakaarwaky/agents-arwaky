@@ -18,7 +18,9 @@ from modules.shared.src.utility_logging_setup import (
     warn,
 )
 
+#: Required toolchain binaries every host must provide.
 REQUIRED = ("git", "jq", "curl", "python3")
+#: Optional toolchain binaries (reported, never failed).
 OPTIONAL = ("cargo", "uv", "node", "npm", "bun", "pnpm", "rustc")
 
 
@@ -64,33 +66,8 @@ class EnvDiagnosticRunner(IDoctorProtocol):
                 ok(f"{util}: {path}")
             else:
                 print(f"  {DIM()}[SKIP]{RESET()} {util} not installed (optional)")
-def _resolve_executable(binary: str):
-    """shutil.which + bin_home executable fallback (from lib/tool_resolver)."""
-    found = shutil.which(binary)
-    if found:
-        from pathlib import Path
-        return Path(found)
-    local = bin_home() / binary
-    if local.exists() and os.access(local, os.X_OK):
-        return local
-    return None
 
-
-def _is_submodule_missing(path_str: str) -> bool:
-    """A submodule path is missing when its target (or .git) does not exist."""
-    from modules.shared.src.utility_paths_resolver import repo_root
-
-    root = repo_root()
-    target = root / path_str
-    if not target.exists() or not (target / ".git").exists():
-        gitmodules = root / ".gitmodules"
-        if gitmodules.exists():
-            try:
-                text = gitmodules.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                return False
-            return f"path = {path_str}" in text
-        return False
-    return False
+    def __repr__(self) -> str:
+        return "EnvDiagnosticRunner()"
 
 

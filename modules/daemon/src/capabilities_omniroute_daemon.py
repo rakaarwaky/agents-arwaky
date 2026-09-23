@@ -20,108 +20,27 @@ from modules.shared.src.taxonomy_common_vo import (
     config_home,
     data_home,
 )
+from modules.shared.src.taxonomy_daemon_constant import (
+    DATA_DIR,
+    PORT,
+    ROOT,
+    UNIT_DIR,
+    UNIT_FILE,
+    WEAK_PASSWORDS,
+)
 from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
-from modules.shared.src.utility_paths_resolver import repo_root
-
-ROOT = repo_root()
-
-PORT = os.environ.get("OMNIROUTE_PORT", "7777")
-DATA_DIR = data_home() / "omniroute"
-UNIT_DIR = config_home() / "systemd/user"
-UNIT_FILE = UNIT_DIR / "omniroute.service"
-
-WEAK_PASSWORDS = {"change-me-to-a-strong-password", "", "password", "admin"}
+from modules.shared.src.utility_process_runner import cmd_out, run_cmd
 
 
-def run(cmd, **kw):
-    return subprocess.run(cmd, check=False, **kw)
+def _run(cmd, **kw):
+    return run_cmd(cmd, **kw)
 
 
-def out(cmd, **kw):
-    return subprocess.run(cmd, capture_output=True, text=True, check=False, **kw).stdout.strip()
+def _out(cmd, **kw) -> str:
+    return cmd_out(cmd, **kw)
 
 
-def _omniroute_binary() -> str | None:
-    """Find the omniroute CLI on PATH or in the XDG bin dir."""
-    found = shutil.which("omniroute")
-    if found:
-        return found
-    candidates = [
-        config_home() / "omniroute" / "bin" / "omniroute",
-        data_home() / "omniroute" / "bin" / "omniroute",
-        data_home() / "local" / "bin" / "omniroute",
-    ]
-    for c in candidates:
-        if c.exists():
-            return str(c)
-    return None
-
-
-def process_running() -> bool:
-    """Check if an omniroute process is active or port is listening."""
-    pid_out = out(["pgrep", "-f", "omniroute.*serve"])
-    if pid_out.strip():
-        return True
-    # Fall back to checking whether the port is listening
-    import socket
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(1)
-            return s.connect_ex(("127.0.0.1", int(PORT))) == 0
-    except OSError:
-        return False
-
-
-def api_ready(timeout=90) -> bool:
-    url = f"http://127.0.0.1:{PORT}/v1/models"
-    deadline = time.time() + timeout
-    delay = 1.0
-    while time.time() < deadline:
-        try:
-            with urllib.request.urlopen(url, timeout=3):
-                return True
-        except urllib.error.HTTPError as e:
-            # 401/403 = auth required (normal state), server is up
-            if e.code in (401, 403):
-                return True
-            # any other response proves the HTTP layer is alive
-            return True
-        except (OSError, ValueError):
-            pass
-        time.sleep(delay)
-        delay = min(delay * 2, 10.0)
-    return False
-
-
-def service_installed() -> bool:
-    return UNIT_FILE.exists()
-
-
-def service_active() -> bool:
-    return out(["systemctl", "--user", "is-active", "omniroute.service"]) == "active"
-
-
-def read_env() -> dict:
-    env = {}
-    secret_dir = config_home() / "omniroute"
-    for cand in (
-        secret_dir / "omniroute.env",
-        secret_dir / ".env",
-    ):
-        if cand.exists():
-            for line in cand.read_text(encoding="utf-8", errors="replace").splitlines():
-                if "=" in line and not line.strip().startswith("#"):
-                    k, v = line.split("=", 1)
-                    env[k.strip()] = v.strip().strip('"').strip("'")
-            break
-    pwd = env.get("INITIAL_PASSWORD", "")
-    if pwd in WEAK_PASSWORDS and pwd:
-        print("  ⚠ Warning: INITIAL_PASSWORD is a known-weak/placeholder value.", file=sys.stderr)
-        print("    Set a strong password in $XDG_CONFIG_HOME/omniroute/omniroute.env", file=sys.stderr)
-    return env
-
-
-# ─── PodmanDaemonManager class (retained for API compatibility) ──────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class PodmanDaemonManager(IDaemonProtocol):
     """AES facade: exposes OmniRoute host-native daemon actions via IDaemonProtocol.
 
@@ -131,7 +50,7 @@ class PodmanDaemonManager(IDaemonProtocol):
     def __init__(self, root=None, daemons: object | None = None) -> None:
         pass
 
-    # ─── Protocol ABC methods ──────────────────────────────────
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
     def execute(
         self,
         op: str,
@@ -183,7 +102,10 @@ class PodmanDaemonManager(IDaemonProtocol):
     def logs(self) -> ExitCode:
         return ExitCode(cmd_logs())
 
-    # ─── Legacy action facades ───────────────────────────────────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return "PodmanDaemonManager()"
+
     def models(self) -> int:
         return cmd_models()
 
@@ -201,6 +123,85 @@ class PodmanDaemonManager(IDaemonProtocol):
 
     def main(self, argv) -> int:
         return main(argv)
+
+
+def _omniroute_binary() -> str | None:
+    """Find the omniroute CLI on PATH or in the XDG bin dir."""
+    found = shutil.which("omniroute")
+    if found:
+        return found
+    candidates = [
+        config_home() / "omniroute" / "bin" / "omniroute",
+        data_home() / "omniroute" / "bin" / "omniroute",
+        data_home() / "local" / "bin" / "omniroute",
+    ]
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    return None
+
+
+def process_running() -> bool:
+    """Check if an omniroute process is active or port is listening."""
+    pid_out = _out(["pgrep", "-f", "omniroute.*serve"])
+    if pid_out.strip():
+        return True
+    import socket
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(1)
+            return s.connect_ex(("127.0.0.1", int(PORT))) == 0
+    except OSError:
+        return False
+
+
+def api_ready(timeout=90) -> bool:
+    url = f"http://127.0.0.1:{PORT}/v1/models"
+    deadline = time.time() + timeout
+    delay = 1.0
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=3):
+                return True
+        except urllib.error.HTTPError as e:
+            # 401/403 = auth required (normal state), server is up
+            if e.code in (401, 403):
+                return True
+            # any other response proves the HTTP layer is alive
+            return True
+        except (OSError, ValueError):
+            pass
+        time.sleep(delay)
+        delay = min(delay * 2, 10.0)
+    return False
+
+
+def service_installed() -> bool:
+    return UNIT_FILE.exists()
+
+
+def service_active() -> bool:
+    return _out(["systemctl", "--user", "is-active", "omniroute.service"]) == "active"
+
+
+def read_env() -> dict:
+    env = {}
+    secret_dir = config_home() / "omniroute"
+    for cand in (
+        secret_dir / "omniroute.env",
+        secret_dir / ".env",
+    ):
+        if cand.exists():
+            for line in cand.read_text(encoding="utf-8", errors="replace").splitlines():
+                if "=" in line and not line.strip().startswith("#"):
+                    k, v = line.split("=", 1)
+                    env[k.strip()] = v.strip().strip('"').strip("'")
+            break
+    pwd = env.get("INITIAL_PASSWORD", "")
+    if pwd in WEAK_PASSWORDS and pwd:
+        print("  ⚠ Warning: INITIAL_PASSWORD is a known-weak/placeholder value.", file=sys.stderr)
+        print("    Set a strong password in $XDG_CONFIG_HOME/omniroute/omniroute.env", file=sys.stderr)
+    return env
 
 
 def cmd_service_install():
@@ -236,9 +237,9 @@ WantedBy=default.target
 """
         UNIT_FILE.write_text(unit_content, encoding="utf-8")
     if shutil.which("loginctl"):
-        run(["loginctl", "enable-linger", os.environ.get("USER", "raka")])
-    run(["systemctl", "--user", "daemon-reload"])
-    run(["systemctl", "--user", "enable", "--now", "omniroute.service"])
+        _run(["loginctl", "enable-linger", os.environ.get("USER", "raka")])
+    _run(["systemctl", "--user", "daemon-reload"])
+    _run(["systemctl", "--user", "enable", "--now", "omniroute.service"])
     print(f">>> Waiting for OmniRoute API to be ready at http://127.0.0.1:{PORT}...")
     if api_ready():
         print(f">>> [OK] OmniRoute daemon installed and active: omniroute.service (port {PORT})")
@@ -251,9 +252,9 @@ WantedBy=default.target
 def cmd_service_uninstall():
     if UNIT_FILE.exists():
         print(">>> Disabling and stopping omniroute.service...")
-        run(["systemctl", "--user", "disable", "--now", "omniroute.service"])
+        _run(["systemctl", "--user", "disable", "--now", "omniroute.service"])
         UNIT_FILE.unlink(missing_ok=True)
-        run(["systemctl", "--user", "daemon-reload"])
+        _run(["systemctl", "--user", "daemon-reload"])
         print(">>> OmniRoute systemd user service removed.")
     else:
         print(">>> OmniRoute systemd service is not installed.")
@@ -262,7 +263,7 @@ def cmd_service_uninstall():
 
 def cmd_service_status():
     if service_installed():
-        return run(["systemctl", "--user", "status", "omniroute.service"]).returncode
+        return _run(["systemctl", "--user", "status", "omniroute.service"]).returncode
     print("OmniRoute systemd service is not installed (run 'aa omniroute service-install').")
     return 0
 
@@ -270,7 +271,7 @@ def cmd_service_status():
 def cmd_start():
     if service_installed():
         print(f">>> Starting OmniRoute via systemd service (omniroute.service, port {PORT})...")
-        run(["systemctl", "--user", "start", "omniroute.service"])
+        _run(["systemctl", "--user", "start", "omniroute.service"])
         print(f">>> Waiting for OmniRoute API to be ready at http://127.0.0.1:{PORT}...")
         if api_ready():
             print(">>> [OK] OmniRoute daemon is active and healthy!")
@@ -306,12 +307,12 @@ def cmd_start():
 def cmd_stop():
     if service_installed():
         print(">>> Stopping OmniRoute via systemd service...")
-        run(["systemctl", "--user", "stop", "omniroute.service"])
+        _run(["systemctl", "--user", "stop", "omniroute.service"])
         print(">>> OmniRoute service stopped.")
         return 0
     if process_running():
         print(">>> Stopping OmniRoute process...")
-        run(["pkill", "-f", "omniroute.*serve"])
+        _run(["pkill", "-f", "omniroute.*serve"])
         time.sleep(2)
         print(">>> OmniRoute stopped.")
     else:
@@ -343,7 +344,7 @@ def cmd_status():
 
 def cmd_logs():
     if service_installed():
-        return run(["systemctl", "--user", "status", "omniroute.service", "-n", "200"]).returncode
+        return _run(["systemctl", "--user", "status", "omniroute.service", "-n", "200"]).returncode
     log_file = DATA_DIR / "logs" / "omniroute.log"
     if log_file.exists():
         print(log_file.read_text(encoding="utf-8", errors="replace")[-20000:])
@@ -396,7 +397,6 @@ def main(argv):
         return cmd_help()
     return handler()
 
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
-
-

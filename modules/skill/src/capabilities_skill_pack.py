@@ -1,25 +1,30 @@
-"""Skill pack provisioning capability — delegates to the shared skill_pack domain.
+"""Skill pack provisioning capability — delegates to shared skill_pack helpers.
 
-All pack logic (install/prune/check/audit, provenance, loadability) lives in
-:mod:`modules.skill.src.capabilities_skill_registry` — a 1:1 exact port of
-``tools/skill/skill.py``. This module adapts it to the single
+Pack logic (provision/remove/prune/audit) lives in
+:mod:`modules.skill.src.utility_skill_registry` (utility layer, shared with the
+skill surface under AES201). This module adapts it to the single
 ``ISkillProtocol`` capability contract so the orchestrator stays thin.
 """
 from __future__ import annotations
 
-import importlib
 import sys
 from pathlib import Path
 
 from modules.shared.src.contract_skill_protocol import ISkillProtocol
-from modules.shared.src.taxonomy_common_vo import PackFinding
+from modules.shared.src.taxonomy_common_vo import PackFinding, audit_pack
 from modules.shared.src.taxonomy_skill_vo import (
     ExitCode,
     SkillProvisionResult,
     ToolFilter,
 )
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.skill.src.utility_skill_pack import prune_provisioned
+from modules.skill.src.utility_skill_registry import (
+    PACK_ROOT,
+    get_tool_skills,
+    provision_base,
+    provision_single_skill,
+    prune_provisioned,
+)
 
 __all__ = [
     "PackFinding",
@@ -27,11 +32,8 @@ __all__ = [
     "prune_provisioned",
 ]
 
-_reg = importlib.import_module("modules.skill.src.capabilities_skill_registry")
-
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-
 class SkillPackProvisioner(ISkillProtocol):
     """Thin delegate over the shared skill_pack domain for a single tool."""
 
@@ -60,28 +62,44 @@ class SkillPackProvisioner(ISkillProtocol):
         print(f"Unknown skill op: {op}", file=sys.stderr)
         return ExitCode(1)
 
-    def install(self, tool_id: ToolFilter, target_dir: Path, custom_dest: str = "", force: bool = False, link: bool = False, prune: bool = False) -> SkillProvisionResult:
-        """Provision every pack skill into the target workspace (original cmd_install body)."""
-        argv: list[str] = []
+    def install(
+        self,
+        tool_id: ToolFilter,
+        target_dir: Path,
+        custom_dest: str = "",
+        force: bool = False,
+        link: bool = False,
+        prune: bool = False,
+    ) -> SkillProvisionResult:
+        """Provision every pack skill into the target workspace."""
         if prune:
-            argv.append("--prune")
-        argv.append(str(tool_id))
-        argv += ["--target", str(target_dir)]
-        if custom_dest:
-            argv += ["--dest", custom_dest]
-        if force:
-            argv.append("--force")
-        if link:
-            argv.append("--link")
-        rc = _reg.cmd_install(argv)
-        return SkillProvisionResult(rc == 0, tool_id, 0, f"install exit code {rc}")
-
-    def prune(self, target_dir: Path, custom_dest: str = "") -> SkillProvisionResult:
-        base = _reg._provision_base(target_dir, custom_dest)
-        removed = prune_provisioned(base, _reg.PACK_ROOT)
-        return SkillProvisionResult(True, "pack", len(removed), f"removed {len(removed)} stale provisioned skill(s)")
+            self.prune(target_dir, custom_dest)
+        skills = get_tool_skills(str(tool_id)) if str(tool_id) != "all" else get_tool_skills("all")
+        ok = 0
+        for sf in skills:
+            if provision_single_skill(sf, target_dir, custom_dest, force, link):
+                ok += 1
+        return SkillProvisionResult(
+            ok > 0 or not skills,
+            tool_id,
+            ok,
+            f"provisioned {ok} skill(s)",
+        )
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def __repr__(self) -> str:
+        return "SkillPackProvisioner()"
+
+    def prune(self, target_dir: Path, custom_dest: str = "") -> SkillProvisionResult:
+        base = provision_base(target_dir, custom_dest)
+        removed = prune_provisioned(base, PACK_ROOT)
+        # prune_provisioned returns a count (int) in current utility; older
+        # call sites treated it as a list — normalise both shapes.
+        n = removed if isinstance(removed, int) else len(removed)
+        return SkillProvisionResult(
+            True, "pack", n, f"removed {n} stale provisioned skill(s)"
+        )
+
     def audit(self) -> list[PackFinding]:
         """Pack loadability findings; empty means clean."""
-        return _reg.audit_pack(self._pack_root)
+        return audit_pack(self._pack_root)

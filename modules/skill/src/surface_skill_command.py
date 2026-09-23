@@ -1,7 +1,7 @@
 """Skill command surface — aa skill list|show|install|check|help|uninstall.
 
 1:1 exact port of the action bodies from tools/skill/skill.py; pure helpers
-live in :mod:`modules.skill.src.capabilities_skill_registry`.
+live in :mod:`modules.skill.src.utility_skill_registry`.
 """
 from __future__ import annotations
 
@@ -13,23 +13,27 @@ from modules.shared.src.taxonomy_common_vo import audit_pack
 from modules.shared.src.taxonomy_skill_vo import (
     extract_skill_name,
 )
-from modules.skill.src.capabilities_skill_registry import (
+from modules.shared.src.utility_logging_setup import (
+    pad as _pad,
+)
+from modules.shared.src.utility_logging_setup import (
+    table_widths as _table_widths,
+)
+from modules.skill.src.utility_skill_registry import (
     PACK_ROOT,
     _get_all_skills,
     _manifest_tools,
-    _pad,
-    _table_widths,
     extract_description,
     get_registered_tool_ids,
     get_tool_skills,
     normalize_tool_id,
     provision_single_skill,
+    prune_provisioned,
     remove_single_skill,
     resolve_single_skill_file,
     resolve_tool_skills,
     uninstall_tool_skills,
 )
-from modules.skill.src.utility_skill_pack import prune_provisioned
 
 
 def cmd_uninstall(argv):
