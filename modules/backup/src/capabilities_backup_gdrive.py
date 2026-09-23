@@ -1,4 +1,4 @@
-"""Google Drive backup gateway — VERBATIM port of tools/backup/gdrive.py.
+"""Google Drive backup gateway — EXACT port of tools/backup/gdrive.py.
 
 Every function, constant, print, and edge case from the original script
 (``get_credentials``, ``get_drive_service``, ``_is_transient``,
@@ -33,7 +33,7 @@ DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 # ─── Block 1: Class Definition & Constructor ──────────────
 class GdriveBackupGateway(IBackupGateway):
     """Thin AES capability wrapper: delegates backup/restore to the
-    verbatim original ``cmd_upload`` / ``cmd_download`` (kept above).
+    unchanged original ``cmd_upload`` / ``cmd_download`` (kept above).
     The original module-level functions remain the source of truth;
     this class only adapts their signatures to the ``IBackupGateway``
     contract expected by the AES orchestrator."""
@@ -84,7 +84,7 @@ class GdriveBackupGateway(IBackupGateway):
 
     @staticmethod
     def main_cli() -> None:
-        """The original script's ``main()`` entry point (verbatim above)."""
+        """The original script's ``main()`` entry point (as-is above)."""
         main()
 def get_credentials():
     creds_dir = data_home() / "google-workspace-mcp" / "credentials"

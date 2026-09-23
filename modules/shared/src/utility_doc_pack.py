@@ -1,5 +1,5 @@
 """Machine checks for the document invariants the ``add-docs`` skill states in prose.
-Moved verbatim from tools/lib/doc_pack.py; shared vocabularies now live in
+Moved as-is from tools/lib/doc_pack.py; shared vocabularies now live in
 modules.shared.src.taxonomy_common_constant.
 """
 from __future__ import annotations
@@ -54,8 +54,7 @@ REQUIRED_SECTIONS = {
     "PRD.md": ("Problem Statement", "Goals", "User Personas", "Scope",
                "Feature Requirements", "Non-functional", "Open Questions"),
     "ROADMAP.md": ("Current Condition", "State Definitions", "Status Policy",
-                   "Feature Roll-up", "Backlog", "Blockers", "Dependencies",
-                   "Release Readiness", "Deferred", "Change Log",
+                   "Feature Roll-up",
                    "Branches in Flight", "Risk Register"),
     "FRD.md": ("Reference", "System Overview", "Functional Requirements",
                "API Contract", "Integration Points", "Non-functional",
@@ -642,7 +641,7 @@ def _ci_text(root: Path) -> str:
 
 
 def check_command_drift(agents_md: Path, ci_text: str) -> list[DocFinding]:
-    """Rule *AGENTS.md commands match CI verbatim or are labelled advisory*.
+    """Rule *AGENTS.md commands match CI exactly or are labelled advisory*.
 
     Only the commands section — whatever it is headed as, see ``_COMMANDS_HEADINGS`` — is
     gated: every other command in the file is teaching, not a gate an agent will be

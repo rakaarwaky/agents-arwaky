@@ -1,4 +1,4 @@
-"""FR-003 verb — uninstall a tool: remove owned state, verify residuals.
+"""FR-003 action — uninstall a tool: remove owned state, verify residuals.
 
 Sub-steps (internal, not separate public methods):
 1. Remove: stop the daemon (if applicable) first — an active unit that

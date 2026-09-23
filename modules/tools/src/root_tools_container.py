@@ -23,7 +23,7 @@ from modules.shared.src.utility_paths_resolver import repo_root
 from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
 # Root is the only layer allowed to import capabilities_* (AES201 rule 8):
-# the four verb capabilities are constructed here and injected into the
+# the four action capabilities are constructed here and injected into the
 # agent orchestrator (which must stay capabilities-free). Importing them
 # here also wires them for the AES503 orphan check.
 from modules.tools.src.capabilities_tools_installer import InstallerCapability
@@ -32,9 +32,9 @@ from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapabili
 from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 
 #: tool_id -> adapter unit (root composition data; each unit is a
-#: stateless `AdapterUnit` VO of verb functions living in the god-object
+#: stateless `AdapterUnit` VO of action functions living in the god-object
 #: `capabilities_tools_adapter`). The `anytype-daemon` id routes its
-#: verbs to the `anytype_daemon_*` leaf functions via a unit object.
+#: actions to the `anytype_daemon_*` leaf functions via a unit object.
 _ANYTYPE_DAEMON = AdapterUnit(
     satisfied=_god.anytype_daemon_satisfied,
     install=_god.anytype_daemon_install,
@@ -43,7 +43,7 @@ _ANYTYPE_DAEMON = AdapterUnit(
     owned_paths=_god.anytype_daemon_owned_paths,
 )
 
-# AES404 (P0-1 follow-up): omniroute and qwen-web now expose their verbs as
+# AES404 (P0-1 follow-up): omniroute and qwen-web now expose their actions as
 # module-level functions (stateless utility layer) like the other adapters,
 # so they are registered directly — no instance or namespace wrapper.
 # The `is_daemon` flag that lived on NinerouterAdapter is no longer needed:
@@ -78,7 +78,7 @@ def create_tools_feature(root=None) -> IToolsAggregate:
     daemons = create_daemon_feature()
     resolved = root or repo_root()
     # P1-7: the adapter facade is the single API pipeline over all 13 leaf
-    # adapters + shared mechanics; wired here and injected into the verb
+    # adapters + shared mechanics; wired here and injected into the action
     # capabilities (dependency inversion: capabilities depend on the
     # IToolAdapterFacade protocol, not the concrete ToolAdapterFacade).
     adapter_facade = ToolAdapterFacade(

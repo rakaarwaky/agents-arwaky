@@ -19,7 +19,7 @@ SkillQuery = NewType("SkillQuery", str)
 #: Skill command argument list.
 SkillArgs = NewType("SkillArgs", list)
 
-#: Tool identifier accepted by skill provisioning verbs.
+#: Tool identifier accepted by skill provisioning actions.
 SkillToolId = NewType("SkillToolId", str)
 
 #: Optional destination directory override for skill provisioning.

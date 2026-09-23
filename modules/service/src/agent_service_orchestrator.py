@@ -7,10 +7,10 @@ from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 
 class ServiceOrchestrator(IServiceAggregate):
-    """Delegates every service verb to the injected IServiceManager.
+    """Delegates every service action to the injected IServiceManager.
 
     # Block 1: Constructor
-    # Block 2: Verb delegation
+    # Block 2: Action delegation
     # Block 3: Help
     """
 
@@ -18,7 +18,7 @@ class ServiceOrchestrator(IServiceAggregate):
     def __init__(self, manager: IServiceManager) -> None:
         self._manager = manager
 
-    # -- Block 2: Verb delegation ------------------------------------------------
+    # -- Block 2: Action delegation ------------------------------------------------
     def status(self) -> ExitCode:
         return ExitCode(self._manager.status())
 

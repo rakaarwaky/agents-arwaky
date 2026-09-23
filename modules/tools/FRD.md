@@ -14,37 +14,37 @@
 The tools feature owns the full lifecycle of every tool registered in
 `config/manifest.json`: install, update, uninstall, and run. One agent
 (`agent_tools_orchestrator.py`, the `ToolsOrchestrator` zero-I/O aggregate)
-drives **4 protocol classes**, one per business-action verb, each with a
-**single public method**. The verb's sub-steps (launcher registration, version
+drives **4 protocol classes**, one per business action, each with a
+**single public method**. The action's sub-steps (launcher registration, version
 recording, residual verification, executable discovery) are internal
 to that one method, not exposed as separate protocol methods:
 
 - `IToolInstaller.install(spec, adapter, dry_run) -> InstallResult`
-  — provision + register launcher + health probe, one verb
+  — provision + register launcher + health probe, one action
 - `IToolUpdater.update(spec, adapter, dry_run) -> UpdateResult`
-  — pin check + adapter update + record transition, one verb
+  — pin check + adapter update + record transition, one action
 - `IToolUninstaller.uninstall(spec, owned_paths, dry_run) -> UninstallResult`
-  — stop daemon + remove owned paths + verify residual, one verb
+  — stop daemon + remove owned paths + verify residual, one action
 - `IToolRunner.run(spec, args, root) -> int`
-  — discover executable + execute + return child exit code, one verb
+  — discover executable + execute + return child exit code, one action
 
 No `IToolAdapter` ABC: adapters are units reached only through
-`IToolAdapterFacade` (the single facade protocol for all per-tool verbs).
+`IToolAdapterFacade` (the single facade protocol for all per-tool actions).
 
 Per-tool mechanics (package-manager family, build flags, artifact locations,
 launcher sets, daemon delegation) live in **one capability file,
 `capabilities_tools_adapter.py`**. Each adapter unit knows its tool's
 `install`, `update`, `is_pin_satisfied`, and `owned_paths` in exactly one
 place. Adding a tool is one manifest entry plus one adapter unit in that file;
-the orchestrator, verb capability classes, and aggregate are never edited.
+the orchestrator, action capability classes, and aggregate are never edited.
 
-Flow: CLI surface (`surface_tools_command.py`) → `ToolsOrchestrator.<verb>(spec)`
-→ adapter selection by id (via the root-injected registry) → the verb's
+Flow: CLI surface (`surface_tools_command.py`) → `ToolsOrchestrator.<action>(spec)`
+→ adapter selection by id (via the root-injected registry) → the action's
 single capability method → report.
 
 Target-resolution rules (agent-layer concern, not a capability): an unknown id
 fails with a typed error (from shared `taxonomy_common_error`) **before any
-capability runs**; aliases resolve through the shared manifest reader. A verb
+capability runs**; aliases resolve through the shared manifest reader. An action
 whose capability is unwired raises a typed error, never a partial dispatch.
 
 ## Functional Requirements
@@ -60,7 +60,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
   manifest alias under `~/.local/bin`. A stale foreign launcher (no
   provenance marker) is reported as a residual, never overwritten; a correct
   launcher already in place is a no-op success.
-- **Internal to the verb:** both sub-steps run inside `install()`; on
+- **Internal to the action:** both sub-steps run inside `install()`; on
   provision failure the launcher step is skipped and the `InstallResult`
   carries the diagnostic. The `InstallResult` returned to the CLI is the
   final state after both sub-steps.
@@ -74,7 +74,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
   version-transition record under the tool's XDG state dir. Idempotent:
   re-recording the same transition is a no-op. Recording failures are
   folded into the result, never raised.
-- **Internal to the verb:** both sub-steps run inside `update()`; a failed
+- **Internal to the action:** both sub-steps run inside `update()`; a failed
   bump yields no record. The `UpdateResult` returned to the CLI reflects
   the combined outcome.
 
@@ -91,7 +91,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
   data/cache subtrees removed, daemon unit absent. Anything surviving
   becomes a named residual (path + why it survived). Nothing raises into
   the CLI surface — verification failures append to the `UninstallResult`.
-- **Internal to the verb:** both sub-steps run inside `uninstall()`; a
+- **Internal to the action:** both sub-steps run inside `uninstall()`; a
   failed removal still gets verified so residuals are surfaced, not
   hidden. The `UninstallResult` returned to the CLI carries all named
   residuals.
@@ -108,7 +108,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
   discovery and launch". Daemons are invoked through their launcher, never
   spawned ad hoc. Every failure path returns an int; nothing raises out of
   `run`.
-- **Internal to the verb:** both sub-steps run inside `run()`; discovery
+- **Internal to the action:** both sub-steps run inside `run()`; discovery
   failure returns `1` without reaching execution. The int returned to the
   CLI is the child's real exit code (or sentinel 126).
 
@@ -120,7 +120,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 | `IToolUpdater.update` | `ToolSpec, IToolAdapterFacade, bool` | `UpdateResult` |
 | `IToolUninstaller.uninstall` | `ToolSpec, list[Path], bool` | `UninstallResult` |
 | `IToolRunner.run` | `ToolSpec, list[str], Path \| None` | `int` exit code |
-| `IToolsAggregate.{install,update,uninstall,run_tool}` | `ToolSpec[, list[str]]` | verb result / int |
+| `IToolsAggregate.{install,update,uninstall,run_tool}` | `ToolSpec[, list[str]]` | action result / int |
 | `IToolsAggregate.{resolve_spec,executable_path,list_tools}` | query/spec/— | `ToolSpec\|None` / `Path\|None` / `list[Tool]` |
 | `IToolAdapterFacade.{resolve,is_registered,satisfied,is_pin_satisfied,install,update,owned_paths}` | per tool | adapter unit / artifact paths / pin state / owned set |
 
@@ -128,7 +128,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 
 | System | Direction | Purpose | Failure mode |
 |--------|-----------|---------|--------------|
-| `config/manifest.json` | in | tool ids, binary, alias, mcp_binary, runner | missing entry → typed error before any verb |
+| `config/manifest.json` | in | tool ids, binary, alias, mcp_binary, runner | missing entry → typed error before any action |
 | `modules/shared` (manifest_reader, xdg_paths, tool_vo, git_update) | out | spec resolution, launchers, pins, submodules | repo-root/anchor error |
 | `modules/daemon` (aggregate) | out (lazy) | daemon service install/stop for omniroute/anytype | unit active → residual |
 | `modules/root_cli_entry.py` + host XDG bin/PATH | in | `aa tool <list\|run\|install\|update\|uninstall>`; executables | not installed → `None` |
@@ -139,7 +139,7 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 |--------|--------|-------------|
 | Protocol class count | exactly 4 (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner`) + `IToolAdapterFacade`; no `IToolAdapter` ABC — adapter units are `AdapterUnit` VOs reached only through the facade | `grep -c "^class ITool" contract_tools_protocol.py` → 5 |
 | God object (AES301 exception) | `capabilities_tools_adapter.py` is the single registered >1000-line exception; every other file under `modules/tools/src/` stays within the 1000-line budget | `lint_arwaky.config.yaml` AES301 `exceptions:` lists only `capabilities_tools_adapter.py` |
-| Capability file count | 4 verb classes (`capabilities_tools_{installer,updater,uninstaller,runner}.py`) + 1 adapter file (`capabilities_tools_adapter.py`); TOL-04 fold complete | `ls modules/tools/src/capabilities_tools_*.py` → 5 files |
+| Capability file count | 4 action classes (`capabilities_tools_{installer,updater,uninstaller,runner}.py`) + 1 adapter file (`capabilities_tools_adapter.py`); TOL-04 fold complete | `ls modules/tools/src/capabilities_tools_*.py` → 5 files |
 | Adapter count | 13 registered tool ids; the two Anytype ids (`anytype`, `anytype-daemon`) have separate registry entries over shared daemon mechanics → 13 adapter units in `_ADAPTER_UNITS` | `python3 -c "from modules.tools.src.capabilities_tools_adapter import _ADAPTER_UNITS; print(len(_ADAPTER_UNITS))"` → 13 |
 | Adapter purity | `capabilities_tools_adapter.py` imports only `modules.shared.src.*` + stdlib (no sibling feature modules); daemon delegation via the injected daemon aggregate | grep of import lines in `capabilities_tools_adapter.py` |
 | No cross-feature imports | tools imports nothing from sibling feature modules except the lazy daemon aggregate | grep over `modules/tools/src/` |
@@ -161,6 +161,6 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 `modules/installer/FRD.md` (provisioner + launcher), `modules/updater/FRD.md` (bumper + recorder), `modules/uninstaller/FRD.md` (remover + verifier), `modules/runner/FRD.md` (discoverer + executor, ToolOrchestrator aggregate) — all four directories deleted; their FRD/BACKLOG files are superseded by this document and `modules/tools/BACKLOG.md`.
 ## Glossary
 
-- **adapter unit**: one `_ADAPTER_UNITS` entry (an `AdapterUnit` VO of verb callables) knowing a tool's install, update, pin-comparison, and owned-teardown data in a single place, inside `capabilities_tools_adapter.py` (no `IToolAdapter` ABC; reached only through `IToolAdapterFacade`).
+- **adapter unit**: one `_ADAPTER_UNITS` entry (an `AdapterUnit` VO of action callables) knowing a tool's install, update, pin-comparison, and owned-teardown data in a single place, inside `capabilities_tools_adapter.py` (no `IToolAdapter` ABC; reached only through `IToolAdapterFacade`).
 - **residual**: state that could not be removed, reported not skipped; **sentinel 126**: "executable vanished between discovery and launch".
-- **sub-step**: a verb-internal operation (e.g. launcher registration inside `install`, version recording inside `update`) that is not exposed as a separate protocol method.
+- **sub-step**: an action-internal operation (e.g. launcher registration inside `install`, version recording inside `update`) that is not exposed as a separate protocol method.

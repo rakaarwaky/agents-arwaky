@@ -9,8 +9,8 @@ from modules.shared.src.contract_check_aggregate import ICheckAggregate
 from modules.shared.src.taxonomy_check_vo import CheckExitCode
 
 
-class CheckVerb(ICheckAggregate):
-    """CLI verb surface for the check feature (surface layer, AES405 aggregate implementor)."""
+class CheckAction(ICheckAggregate):
+    """CLI action surface for the check feature (surface layer, AES405 aggregate implementor)."""
 
     def __init__(self, orch: ICheckAggregate) -> None:
         self._orch = orch
@@ -24,4 +24,4 @@ def cmd_check(args: list[str], orch: ICheckAggregate) -> int:
     strict = "--strict" in args
     return int(orch.check(strict=strict))
 
-__all__ = ['CheckVerb', 'cmd_check']
+__all__ = ['CheckAction', 'cmd_check']

@@ -1,6 +1,6 @@
-"""CLI entry point — 1:1 verbatim port of tools/cli/arwaky.py.
+"""CLI entry point — 1:1 exact port of tools/cli/arwaky.py.
 
-Every command-table entry, per-verb validation message, help string, edge
+Every command-table entry, per-action validation message, help string, edge
 case, the correlation-id + sentry blocks, the TOOL_RUNNERS run dispatch,
 the manifest-driven tool listing, and the install/update/uninstall "all"
 loops are preserved exactly as written in the original 876-line arwaky.py.
@@ -9,21 +9,21 @@ The only differences are the import swaps to the AES modules:
   - ui              -> modules.shared.src.utility_logging
   - xdg             -> modules.shared.src.xdg.* (paths + atomic io)
   - tool_resolver.executable_path -> local executable_path() (original
-                   body verbatim: shutil.which + bin_home check)
+                   body as-is: shutil.which + bin_home check)
   - tool_resolver.find_installer/find_updater/find_uninstaller -> local
                    _find_* helpers (original tools/lib/tool_resolver.py
-                   bodies verbatim, import-swapped)
-  - doc_pack        -> modules.check.src.capabilities_doc_pack
+                   bodies as-is, import-swapped)
+  - doc_pack        -> modules.shared.src.utility_doc_pack
   - skill_pack      -> modules.skill.src.capabilities_skill_pack
   - paths.repo_root -> modules.shared.src.utility_paths
 
-Delegated verbs (skill/connect/disconnect/daemon/service/backup)
+Delegated actions (skill/connect/disconnect/daemon/service/backup)
 keep calling the module surface functions, which contain the
-original bodies verbatim (see the module surface docstrings).
+original bodies as-is (see the module surface docstrings).
 
 The dispatch table and ``main`` entry point live in this module — the single
 ``aa`` binary entry point (sentry + correlation id + global-flag stripping +
-dispatch-table routing + unknown-command fallback), ported verbatim from the
+dispatch-table routing + unknown-command fallback), ported as-is from the
 original ``tools/cli/arwaky.py`` ``main()``.
 """
 from __future__ import annotations
@@ -90,7 +90,7 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
     """Port of tools/lib/tool_resolver.py executable_path() (shutil.which + bin_home check).
 
     For internal tools the runner candidates come from the runner module's
-    ToolResolver (capabilities_runner), which is a verbatim port of the
+    ToolResolver (capabilities_runner), which is an exact port of the
     tool_resolver runner-candidate logic.
     """
     found = shutil.which(binary)
@@ -170,7 +170,7 @@ def cmd_version(argv: list[str]) -> int:
 def cmd_help(argv: list[str]) -> int:
     banner()
     print(f"{BOLD()}USAGE:{RESET()}")
-    print("  aa <noun> <verb> [arguments...]")
+    print("  aa <noun> <action> [arguments...]")
     print()
     print(f"{BOLD()}PRIMARY COMMANDS:{RESET()}")
     print(f"  {GREEN()}status{RESET()}                         Check health, submodule and binary installation status")
@@ -568,7 +568,7 @@ def cmd_tool(argv: list[str]) -> int:
 
     Delegates to the module's CLI surface (surface_tools_command); this entry
     stays a thin router (AES506). The surface owns arg parsing + aggregate
-    calls so the tool verb lives in one place.
+    calls so the tool action lives in one place.
     """
     from modules.tools.src.surface_tools_command import cmd_tool as _tools_surface
     return _tools_surface(argv, _tool_orch())
@@ -650,7 +650,7 @@ def _check_docs() -> int:
     Warnings on files under skills/ are counted rather than printed: the pack hosts
     upstream copies whose shape is not ours to fix.
     """
-    from modules.check.src.capabilities_doc_pack import (
+    from modules.shared.src.utility_doc_pack import (
         audit_docs,
         errors_only,
         warnings_only,
@@ -680,7 +680,7 @@ def _check_docs() -> int:
 
 def cmd_docs(argv: list[str]) -> int:
     """Audit document invariants: aa docs check [path] [--strict] [--include-subtrees] [--json]"""
-    from modules.check.src.capabilities_doc_pack import (
+    from modules.shared.src.utility_doc_pack import (
         as_strict,
         audit_docs,
         errors_only,
@@ -868,10 +868,10 @@ def _installer_registry_ids() -> set:
 
 
 # =============================================================================
-# Main dispatcher (original main() body, verbatim)
+# Main dispatcher (original main() body, as-is)
 # =============================================================================
 def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
-    """Route argv[0] to the right verb handler (1:1 port of the surface table)."""
+    """Route argv[0] to the right action handler (1:1 port of the surface table)."""
     if not argv:
         return cmd_help([])
     cmd = argv[0]
@@ -882,7 +882,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "check": cmd_check, "submodules": cmd_submodules, "clean": cmd_clean,
         "reset": cmd_reset, "version": cmd_version, "--version": cmd_version,
         "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
-        # Core noun-verb (canonical)
+        # Core noun-action (canonical)
         "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
         "docs": cmd_docs,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
@@ -890,7 +890,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         # Daemons & services
         "anytype": cmd_anytype, "omniroute": cmd_omniroute, "service": cmd_service,
         "backup": cmd_backup, "restore": cmd_restore,
-        # Backward compat aliases → noun verb (deprecated, prefer aa tool/aa skill)
+        # Backward compat aliases → noun action (deprecated, prefer aa tool/aa skill)
         "install": cmd_install, "update": cmd_update, "uninstall": cmd_uninstall,
         "list": cmd_list, "ls": cmd_list, "run": cmd_run,
     }

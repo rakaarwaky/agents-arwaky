@@ -18,7 +18,7 @@ dispatches to `capabilities_omniroute_daemon.py` and
 Deploy assets (`modules/daemon/deploy/`) hold the systemd units and the
 `Containerfile`; XDG config holds per-daemon `.env` secrets.
 
-Flow: `aa anytype <verb>` / `aa omniroute <verb>` → `DaemonOrchestrator` →
+Flow: `aa anytype <action>` / `aa omniroute <action>` → `DaemonOrchestrator` →
 per-daemon capability → systemd/process-manager.
 
 ## Functional Requirements

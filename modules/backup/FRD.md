@@ -21,7 +21,7 @@ metadata plus the identity VOs (`BackupToolQuery`, `BackupDestination`,
 (AES402). `surface_backup_command.py` is the CLI surface adapter for
 `aa backup` / `aa restore`.
 
-Flow: `aa backup <verb>` → `BackupOrchestrator` → chosen gateway → tar/Drive
+Flow: `aa backup <action>` → `BackupOrchestrator` → chosen gateway → tar/Drive
 archive under the XDG data dir.
 
 ## Functional Requirements

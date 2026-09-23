@@ -109,7 +109,7 @@ row that stops being enforced is a test failure rather than a silent edit.
 | `dead-link` / `root-relative-link`                                       | Pointers resolve from the file that writes them, not only from the repo or skill root.                                                                                                |
 | `unreferenced-file`                                                      | Every file under a skill's `references/`, `scripts/`, `assets/` is surfaced by SKILL.md.                                                                                              |
 | `absolute-path` / `secret-in-docs`                                       | No machine-specific path and no credential literal in any document.                                                                                                                   |
-| `ci-command-drift`                                                       | AGENTS.md commands match CI verbatim or are labelled advisory.                                                                                                                        |
+| `ci-command-drift`                                                       | AGENTS.md commands match CI exactly or are labelled advisory.                                                                                                                        |
 | `doc-length` / `doc-thin`                                                | Each document stays inside the size its audience can read.                                                                                                                            |
 
 

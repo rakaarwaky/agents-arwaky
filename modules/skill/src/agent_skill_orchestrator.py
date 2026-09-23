@@ -1,7 +1,7 @@
 """Skill agent orchestrator — coordinates registry + pack provisioner.
 
-Dispatches every surface verb to the original command handlers, ported
-verbatim from tools/skill/skill.py into
+Dispatches every surface action to the original command handlers, ported
+as-is from tools/skill/skill.py into
 :mod:`modules.skill.src.capabilities_skill_registry` (injected as
 ISkillRegistry by the root composition layer).
 """
@@ -19,11 +19,11 @@ from modules.shared.src.taxonomy_skill_vo import (
 
 
 class SkillOrchestrator(ISkillAggregate):
-    """Routing of skill surface verbs to the capabilities (original bodies).
+    """Routing of skill surface actions to the capabilities (original bodies).
 
     # Block 1: Constructor
-    # Block 2: Query verbs (list/check/show)
-    # Block 3: Mutation verbs (install/uninstall/sync)
+    # Block 2: Query actions (list/check/show)
+    # Block 3: Mutation actions (install/uninstall/sync)
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
@@ -31,7 +31,7 @@ class SkillOrchestrator(ISkillAggregate):
         self._provisioner = provisioner
         self._registry = registry
 
-    # -- Block 2: Query verbs -----------------------------------------------------
+    # -- Block 2: Query actions -----------------------------------------------------
     def list_skills(self, tool_filter: ToolFilter = ToolFilter("")) -> ExitCode:
         """Port of tools/skill/skill.py cmd_list."""
         argv = SkillArgs([str(tool_filter)] if tool_filter else [])
@@ -45,7 +45,7 @@ class SkillOrchestrator(ISkillAggregate):
         """Port of tools/skill/skill.py cmd_show."""
         return ExitCode(self._registry.cmd_show(SkillArgs([str(query)] if query else [])))
 
-    # -- Block 3: Mutation verbs ----------------------------------------------------
+    # -- Block 3: Mutation actions ----------------------------------------------------
     def install_skills(self, args: SkillArgs) -> ExitCode:
         """Port of tools/skill/skill.py cmd_install."""
         return ExitCode(self._registry.cmd_install(args))

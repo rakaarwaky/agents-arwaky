@@ -42,8 +42,8 @@ def cmd_mcp(args: list[str], orch: IMcpAggregate) -> int:
     return 1
 
 
-class McpVerb(IMcpAggregate):
-    """Agent-layer verb surface for the mcp feature (AES405 aggregate implementor)."""
+class McpAction(IMcpAggregate):
+    """Agent-layer action surface for the mcp feature (AES405 aggregate implementor)."""
 
     def __init__(self, agg: IMcpAggregate) -> None:
         self._agg = agg

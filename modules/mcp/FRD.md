@@ -18,7 +18,7 @@ Generation reads every registered tool from `config/manifest.json` and emits a
 client config (JSONC) a harness can load; `aa mcp generate` writes it, `aa mcp
 list/show` report.
 
-Flow: `aa mcp <verb>` → `McpOrchestrator` → generator → manifest-derived
+Flow: `aa mcp <action>` → `McpOrchestrator` → generator → manifest-derived
 server list → client config file.
 
 ## Functional Requirements

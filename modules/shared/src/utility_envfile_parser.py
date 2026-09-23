@@ -1,4 +1,4 @@
-"""Helper baca/tulis .env files (Python) — moved verbatim from tools/lib/envfile.py."""
+"""Helper baca/tulis .env files (Python) — moved as-is from tools/lib/envfile.py."""
 from __future__ import annotations
 
 from collections.abc import Iterable

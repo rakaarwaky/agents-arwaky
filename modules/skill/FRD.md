@@ -19,7 +19,7 @@ implements `ISkillAggregate` (`list_skills`, `check_skills`, `install_skills`,
 `skills/<category>/<skill>/SKILL.md`; every skill sits in a semantic category
 folder, and the harness scans one level below a registered skills root.
 
-Flow: `aa skill <verb>` → `SkillOrchestrator` → registry/pack capability →
+Flow: `aa skill <action>` → `SkillOrchestrator` → registry/pack capability →
 skill files under a project's `.agents/skills/` (provisioned) or the pack
 itself.
 

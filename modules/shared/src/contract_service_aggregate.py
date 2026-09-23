@@ -7,7 +7,7 @@ from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 
 class IServiceAggregate(ABC):
-    """Aggregate over all service-management verbs."""
+    """Aggregate over all service-management actions."""
 
     @abstractmethod
     def status(self) -> ExitCode:

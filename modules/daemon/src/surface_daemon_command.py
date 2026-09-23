@@ -1,7 +1,7 @@
 """Daemon surface — CLI adapters for aa anytype / aa omniroute.
 
 The concrete daemon managers are constructed by the composition root (root layer)
-and injected into these verbs; this module stays free of root/capability imports.
+and injected into these actions; this module stays free of root/capability imports.
 """
 from __future__ import annotations
 
@@ -80,8 +80,8 @@ def cmd_anytype(args: list[str], orch: DaemonOrchestrator | None = None, manager
     return mgr.help()
 
 
-class DaemonVerb(IDaemonAggregate):
-    """Agent-layer verb surface for the daemon feature (AES405 aggregate implementor)."""
+class DaemonAction(IDaemonAggregate):
+    """Agent-layer action surface for the daemon feature (AES405 aggregate implementor)."""
 
     def __init__(self, agg: IDaemonAggregate) -> None:
         self._agg = agg

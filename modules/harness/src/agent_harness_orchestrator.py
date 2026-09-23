@@ -2,7 +2,7 @@
 
 Resolves raw CLI tokens (ids, aliases, ``--all``) to canonical harness ids
 using the alias table in :mod:`taxonomy_harness_constant`, dedupes, and
-surfaces unknown tokens to the CLI instead of raising. Each verb is routed
+surfaces unknown tokens to the CLI instead of raising. Each action is routed
 to its capability; the adapter registry is injected by the root layer.
 """
 from __future__ import annotations
@@ -18,11 +18,11 @@ from modules.harness.src.taxonomy_harness_vo import ExitCode
 
 
 class HarnessOrchestrator(IHarnessAggregate):
-    """Resolve raw CLI tokens and route each verb to its capability.
+    """Resolve raw CLI tokens and route each action to its capability.
 
     # Block 1: Constructor (capability injection)
     # Block 2: Target resolution
-    # Block 3: Verb routing
+    # Block 3: Action routing
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
@@ -56,11 +56,11 @@ class HarnessOrchestrator(IHarnessAggregate):
     def all_targets(self) -> tuple[str, ...]:
         return tuple(ALL_HARNESS_IDS)
 
-    # -- Block 3: Verb routing ---------------------------------------------------
+    # -- Block 3: Action routing ---------------------------------------------------
     def connect(self, targets: tuple[str, ...], force: bool = False, dry_run: bool = False,
                 mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
                 router: bool = False, copy_skills: bool = False) -> ExitCode:
-        """Route the connect verb to the connector capability."""
+        """Route the connect action to the connector capability."""
         resolved = self.resolve_targets(targets)
         return ExitCode(self._connector.connect(
             resolved,
@@ -69,12 +69,12 @@ class HarnessOrchestrator(IHarnessAggregate):
         ))
 
     def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> ExitCode:
-        """Route the disconnect verb to the disconnector capability."""
+        """Route the disconnect action to the disconnector capability."""
         resolved = self.resolve_targets(targets)
         return ExitCode(self._disconnector.disconnect(resolved, dry_run=dry_run))
 
     def provision_skills(self, targets: tuple[str, ...], copy: bool = False, dry_run: bool = False) -> ExitCode:
-        """Route the provision_skills verb to the skills capability."""
+        """Route the provision_skills action to the skills capability."""
         resolved = self.resolve_targets(targets)
         return ExitCode(self._skills.provision_skills(resolved, copy=copy, dry_run=dry_run))
 

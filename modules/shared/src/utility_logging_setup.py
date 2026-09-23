@@ -1,5 +1,5 @@
 """UI helpers: colors/banner/log (Python).
-Moved verbatim from tools/lib/ui.py (logging domain)."""
+Moved as-is from tools/lib/ui.py (logging domain)."""
 from __future__ import annotations
 
 import logging as _logging

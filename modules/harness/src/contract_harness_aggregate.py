@@ -1,6 +1,6 @@
 """Harness-domain aggregate contract (agent orchestrator ABC).
 
-The single agent routes each verb (connect / disconnect / provision_skills)
+The single agent routes each action (connect / disconnect / provision_skills)
 to its capability after resolving raw CLI tokens to canonical harness ids.
 """
 from __future__ import annotations

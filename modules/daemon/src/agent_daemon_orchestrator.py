@@ -1,4 +1,4 @@
-"""Daemon agent orchestrator — routes verbs by daemon name."""
+"""Daemon agent orchestrator — routes actions by daemon name."""
 from __future__ import annotations
 
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
@@ -7,11 +7,11 @@ from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus, Exit
 
 
 class DaemonOrchestrator(IDaemonAggregate):
-    """Route daemon verbs to the named manager (zero I/O).
+    """Route daemon actions to the named manager (zero I/O).
 
     # Block 1: Constructor (manager registry)
-    # Block 2: Verb routing helpers
-    # Block 3: Aggregate verb delegation
+    # Block 2: Action routing helpers
+    # Block 3: Aggregate action delegation
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
@@ -27,14 +27,14 @@ class DaemonOrchestrator(IDaemonAggregate):
             "anytype": anytype,
         }
 
-    # -- Block 2: Verb routing ---------------------------------------------------
+    # -- Block 2: Action routing ---------------------------------------------------
     def _manager(self, name: DaemonName) -> IDaemonManager | None:
         return self._managers.get(name.lower())
 
     def known_daemons(self) -> tuple[str, ...]:
         return ("omniroute", "anytype")
 
-    # -- Block 3: Aggregate verb delegation --------------------------------------
+    # -- Block 3: Aggregate action delegation --------------------------------------
     def start_daemon(self, name: DaemonName) -> ExitCode:
         manager = self._manager(name)
         if manager is None:

@@ -7,10 +7,10 @@ local VOs below keep primitive `str`/`int`/bare `dict` out of the
 capability signatures (AES402):
 
 - `ToolQuery`: manifest id / binary / alias text a spec is resolved from.
-- `ExitCode`: process exit code returned by the run verb.
+- `ExitCode`: process exit code returned by the run action.
 - `ToolLifecycleConfig`: immutable install recipe of a config-driven tool
   (extracted from the adapter's `SIMPLE_TOOLS_CONFIG` dicts).
-- `AdapterUnit`: the five verb callables registered per tool id
+- `AdapterUnit`: the five action callables registered per tool id
   (replaces the adapter's ad-hoc `SimpleNamespace` units).
 """
 from __future__ import annotations
@@ -43,7 +43,7 @@ UpdateResult = _UpdateResult
 #: Manifest lookup text (id / binary / alias). Identity at runtime.
 ToolQuery = NewType("ToolQuery", str)
 
-#: Process exit code from the run verb. Identity at runtime.
+#: Process exit code from the run action. Identity at runtime.
 ExitCode = NewType("ExitCode", int)
 
 
@@ -85,7 +85,7 @@ class ToolLifecycleConfig:
 
 @dataclass(frozen=True)
 class AdapterUnit:
-    """The five adapter verb callables registered for one tool id."""
+    """The five adapter action callables registered for one tool id."""
 
     satisfied: Callable[..., bool]
     install: Callable[..., list[Path]]

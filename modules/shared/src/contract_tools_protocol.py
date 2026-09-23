@@ -1,9 +1,9 @@
 """Tool-domain capability contracts (AES102 `_protocol`).
 
-Five ABCs in one module: four verb ABCs (installer / updater /
-uninstaller / runner), one verb per business-action, plus
-`IToolAdapterFacade` — the single API surface the verb capabilities
-call to reach a tool's per-adapter verb functions.
+Five ABCs in one module: four action ABCs (installer / updater /
+uninstaller / runner), one action per business-action, plus
+`IToolAdapterFacade` — the single API surface the action capabilities
+call to reach a tool's per-adapter action functions.
 
 `IToolAdapterFacade` deliberately replaces the previous "registry of
 adapter modules + each capability resolves its own adapter + inlined
@@ -18,7 +18,7 @@ shared helpers" scattering with one injected facade so:
 
 The facade protocol is implemented by `capabilities_tools_adapter`
 (`ToolAdapterFacade`), wired by the root container and injected into
-the four verb capabilities (dependency inversion: capabilities depend
+the four action capabilities (dependency inversion: capabilities depend
 on this protocol, not on the concrete facade).
 
 The adapter parameter on ``IToolInstaller.install`` /
@@ -49,7 +49,7 @@ class IToolInstaller(ABC):
         adapter: object,
         dry_run: bool = False,
     ) -> InstallResult:
-        """Provision → register launcher → health probe, one verb.
+        """Provision → register launcher → health probe, one action.
 
         *adapter* is a concrete leaf adapter instance
         (e.g. the `vision` or `workspace` adapter modules).
@@ -78,7 +78,7 @@ class IToolUpdater(ABC):
         adapter: object,
         dry_run: bool = False,
     ) -> UpdateResult:
-        """Pin check → adapter update → record transition, one verb.
+        """Pin check → adapter update → record transition, one action.
 
         *adapter* is a concrete leaf adapter instance
         (e.g. the `vision` or `workspace` adapter modules).
@@ -106,7 +106,7 @@ class IToolUninstaller(ABC):
         owned_paths: list[Path],
         dry_run: bool = False,
     ) -> UninstallResult:
-        """Stop daemon → remove owned paths → verify residuals, one verb.
+        """Stop daemon → remove owned paths → verify residuals, one action.
 
         Sub-steps (internal, not separate protocol methods):
         1. Stop the daemon (if applicable) first; an active unit that
@@ -133,7 +133,7 @@ class IToolRunner(ABC):
         args: list[str],
         root: Path | None = None,
     ) -> int:
-        """Discover → execute → return the child's real exit code, one verb.
+        """Discover → execute → return the child's real exit code, one action.
 
         Sub-steps (internal, not separate protocol methods):
         1. Discover in a universal deterministic order: XDG bin launcher
@@ -153,12 +153,12 @@ class IToolRunner(ABC):
 class IToolAdapterFacade(ABC):
     """Standardized single-API pipeline over all per-tool adapters.
 
-    One verb per business action, each returning the value the calling
+    One action per business action, each returning the value the calling
     capability needs. `satisfied` / `owned_paths` are read-only;
     `install` / `update` mutate (or dry-run) XDG state.
 
     Nothing here raises for an unknown tool id: `resolve` returns `None`
-    and the verb methods are only called after a successful resolve.
+    and the action methods are only called after a successful resolve.
     """
 
     @abstractmethod
@@ -166,7 +166,7 @@ class IToolAdapterFacade(ABC):
         """Return the per-tool adapter unit for *spec*, or None when unregistered.
 
         For shared-module ids (`anytype-daemon`) the unit is a namespace
-        over the module's `daemon_*` leaf functions, so the verb surface
+        over the module's `daemon_*` leaf functions, so the action surface
         is uniform across every registered tool.
         """
         return None

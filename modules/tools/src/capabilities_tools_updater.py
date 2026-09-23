@@ -1,4 +1,4 @@
-"""FR-002 verb — update a tool: bump to pin, record the transition.
+"""FR-002 action — update a tool: bump to pin, record the transition.
 
 Sub-steps (internal, not separate public methods):
 1. Bump: pin comparison first (idempotence); on unsatisfied state the
@@ -36,7 +36,7 @@ class UpdaterCapability(IToolUpdater):
     def __init__(self, root: Path | None = None,
                  adapter_facade: IToolAdapterFacade | None = None) -> None:
         self._root = root
-        # P1-7: verb calls route through the injected adapter facade.
+        # P1-7: action calls route through the injected adapter facade.
         self._facade = adapter_facade
 
     # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────

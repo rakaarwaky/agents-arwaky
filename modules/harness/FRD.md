@@ -19,7 +19,7 @@ adapter. Providers live in the utility layer as stateless adapters
 writing and env-key mapping. `agent_harness_orchestrator.py` is the single agent:
 it resolves the target harness set from raw CLI tokens (ids, aliases, `--all`;
 alias table in `taxonomy_harness_constant.py`, deduped, unknown token surfaced
-to the CLI rather than raised) and routes each verb to its capability.
+to the CLI rather than raised) and routes each action to its capability.
 `root_harness_container.py` wires adapters into capabilities via a registry
 keyed on harness id.
 
@@ -131,7 +131,7 @@ FR-001/FR-002, gated by the adapter's declared custom-API support.
 - `aa connect --router grok-build` wires 9Router only if the adapter declares custom-API support; otherwise reports the skip.
 - `aa connect` for an unknown harness fails with a message naming the supported harnesses.
 - `aa disconnect --dry-run` reports what would be removed (MCP, env, router refs) and changes nothing.
-- A new harness added as `utility_<x>_adapter.py` + one registry entry passes all above verbs with zero capability edits.
+- A new harness added as `utility_<x>_adapter.py` + one registry entry passes all above actions with zero capability edits.
 
 ## Assumptions & Constraints
 

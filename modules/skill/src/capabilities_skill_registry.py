@@ -3,9 +3,9 @@ from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
 
 """Skill provisioning registry — pure helpers (manifest lookups, unpack/unlink, audit).
 
-Shared, stateless helpers for the skill verb commands: tool/skill lookup from
+Shared, stateless helpers for the skill action commands: tool/skill lookup from
 the manifest, skill unpack/link/unlink operations, and pack audit. The
-stateful verb commands themselves live in
+stateful action commands themselves live in
 :mod:`modules.skill.src.surface_skill_command`.
 """
 import json
@@ -356,7 +356,7 @@ class SkillRegistry(ISkillRegistry):
 
     Delegates to the pure provisioning helpers defined in this module
     (cmd_uninstall/cmd_install/cmd_list/cmd_check/cmd_show live in the
-    agent verb layer; their registry-side operations use the helpers here).
+    agent action layer; their registry-side operations use the helpers here).
     """
 
     def cmd_list(self, argv: SkillArgs) -> ExitCode:

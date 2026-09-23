@@ -11,7 +11,7 @@ class McpOrchestrator(IMcpAggregate):
     """Pure delegation to the injected generator.
 
     # Block 1: Constructor
-    # Block 2: Aggregate verb delegation
+    # Block 2: Aggregate action delegation
     # Block 3: Default output resolution
     """
 
@@ -19,7 +19,7 @@ class McpOrchestrator(IMcpAggregate):
     def __init__(self, generator: IMcpAggregate) -> None:
         self._generator = generator
 
-    # -- Block 2: Aggregate verb delegation ----------------------------------------
+    # -- Block 2: Aggregate action delegation ----------------------------------------
     def list_servers(self) -> list[McpServerInfo]:
         return self._generator.list_servers()
 

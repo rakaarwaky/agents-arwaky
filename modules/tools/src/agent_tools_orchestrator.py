@@ -1,9 +1,9 @@
-"""Tools orchestrator — single agent driving the 4 verb capability classes.
+"""Tools orchestrator — single agent driving the 4 action capability classes.
 
 Resolves the target tool spec from the manifest (typed error on unknown ids
 BEFORE any capability runs), selects the unified per-tool adapter keyed on
-the manifest `id`, and drives the 4 verb classes (each a single public
-method; sub-steps are internal to the verb):
+the manifest `id`, and drives the 4 action classes (each a single public
+method; sub-steps are internal to the action):
 
 - install   : installer.install(spec, adapter)                      (provision + register launcher)
 - update    : updater.update(spec, adapter)                         (bump + record transition)
@@ -62,7 +62,7 @@ class ToolsOrchestrator(IToolsAggregate):
     """Zero-I/O aggregate over all tool-lifecycle capabilities.
 
     The single entry point the CLI surface calls. Unknown ids fail at
-    target resolution before any verb runs; a verb whose capability is
+    target resolution before any action runs; an action whose capability is
     unwired raises a typed error, never a partial dispatch.
 
     """
@@ -85,26 +85,26 @@ class ToolsOrchestrator(IToolsAggregate):
             raise ValueError("tools orchestrator requires an injected registry (root composition layer)")
         # P0-2: instance-level copy — was a class-level dict mutated via
         # .update(registry), which leaked entries across orchestrator instances.
-        # The registry is consumed only by `resolve`-style lookups; verb
+        # The registry is consumed only by `resolve`-style lookups; action
         # calls route through the injected adapter facade (P1-7).
         self._registry: dict[str, object] = dict(registry)
         # P1-7: the adapter facade is the single API pipeline over all 13
-        # leaf adapters + shared mechanics. The verb capabilities already
+        # leaf adapters + shared mechanics. The action capabilities already
         # route through it; the orchestrator keeps it for its uninstall()
         # owned_paths call (read-only, no I/O).
         self._facade = adapter_facade
         # AES201/AES405: the agent layer must not import capabilities_* — the
-        # four verb capabilities are injected by the root composition layer
+        # four action capabilities are injected by the root composition layer
         # (root_tools_container.create_tools_feature) typed against their
         # contract protocols (IToolInstaller/IToolUpdater/IToolUninstaller/
-        # IToolRunner). An unwired verb stays None and _require() raises a
+        # IToolRunner). An unwired action stays None and _require() raises a
         # typed error on use, never a partial dispatch.
         self._installer = installer
         self._updater = updater
         self._uninstaller = uninstaller
         self._runner = runner
 
-    # -- Block 2: Manifest-driven spec resolution + aggregate verb delegation -----
+    # -- Block 2: Manifest-driven spec resolution + aggregate action delegation -----
     def list_tools(self) -> list[Tool]:
         """All registered tools (manifest reader, no I/O here)."""
         return load_tools()
@@ -120,7 +120,7 @@ class ToolsOrchestrator(IToolsAggregate):
         self._require(self._installer, "install")
         if find_tool(spec.id) is None:
             raise ToolInstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
-        # P1-1/P1-7: verb calls route through the injected adapter facade
+        # P1-1/P1-7: action calls route through the injected adapter facade
         # (single API pipeline); a missing adapter folds into the result.
         return self._installer.install(spec, None, dry_run=False)
 
@@ -156,18 +156,18 @@ class ToolsOrchestrator(IToolsAggregate):
         return self._runner.discover(spec, self._root)
 
     # -- Block 3: Private helpers ---------------------------------------------------
-    # P1-2: verb-typed error — was always ToolInstallError for every verb.
-    _VERB_ERRORS: ClassVar[dict[str, type[Exception]]] = {
+    # P1-2: action-typed error — was always ToolInstallError for every action.
+    _ACTION_ERRORS: ClassVar[dict[str, type[Exception]]] = {
         "install": ToolInstallError,
         "update": ToolUpdateError,
         "uninstall": ToolUninstallError,
         "run": ToolInstallError,  # no ToolRunError in taxonomy_common_error today
     }
 
-    def _require(self, obj: object, verb: str) -> object:
-        """A verb whose capability is unavailable -> typed error, not a partial dispatch."""
+    def _require(self, obj: object, action: str) -> object:
+        """An action whose capability is unavailable -> typed error, not a partial dispatch."""
         if obj is None:
-            raise self._VERB_ERRORS[verb](f"{verb} capability is unavailable (not wired)")
+            raise self._ACTION_ERRORS[action](f"{action} capability is unavailable (not wired)")
         return obj
 
 

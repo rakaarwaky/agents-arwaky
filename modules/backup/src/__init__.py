@@ -1,6 +1,6 @@
 """Backup feature — public symbols.
 
-Re-exports the orchestrator, gateways, and verb entry points so feature
+Re-exports the orchestrator, gateways, and action entry points so feature
 consumers can import from ``modules.backup`` directly. The composition
 root (``root_backup_container``) is imported by callers directly, not
 re-exported here, to keep the agent/capability package free of a root

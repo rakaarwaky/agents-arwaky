@@ -1,6 +1,6 @@
 """Skill command surface — aa skill list|show|install|check|help|uninstall.
 
-1:1 verbatim port of the verb bodies from tools/skill/skill.py; pure helpers
+1:1 exact port of the action bodies from tools/skill/skill.py; pure helpers
 live in :mod:`modules.skill.src.capabilities_skill_registry`.
 """
 from __future__ import annotations

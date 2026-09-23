@@ -30,8 +30,8 @@ from modules.shared.src.contract_service_aggregate import IServiceAggregate
 from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
 
 
-class ServiceVerb(IServiceAggregate):
-    """Agent-layer verb surface for the service feature (AES405 aggregate implementor)."""
+class ServiceAction(IServiceAggregate):
+    """Agent-layer action surface for the service feature (AES405 aggregate implementor)."""
 
     def __init__(self, agg: IServiceAggregate) -> None:
         self._agg = agg

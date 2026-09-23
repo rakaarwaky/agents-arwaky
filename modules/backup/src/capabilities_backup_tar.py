@@ -1,4 +1,4 @@
-"""Tar backup gateway — VERBATIM port of tools/backup/backup_manager.py.
+"""Tar backup gateway — EXACT port of tools/backup/backup_manager.py.
 
 The original script's logic (tar_dir, untar, backup_tool, restore_tool,
 cmd_backup, cmd_restore, cmd_list, cmd_help, main) is kept exactly as
@@ -267,7 +267,7 @@ def main(argv):
 class TarBackupGateway(IBackupGateway):
     """tar/untar backup & restore with progress spinner + optional gdrive upload.
 
-    Thin AES capability wrapper around the verbatim original script
+    Thin AES capability wrapper around the unchanged original script
     functions above; the original ``backup_tool`` / ``restore_tool`` /
     ``cmd_*`` functions remain the source of truth and are simply
     delegated to, preserving their exact behaviour (return codes,
@@ -293,5 +293,5 @@ class TarBackupGateway(IBackupGateway):
         return cmd_help()
 
     def main_cli(self, argv: list[str]) -> int:
-        """Original script's ``main`` entry point (kept verbatim above)."""
+        """Original script's ``main`` entry point (kept as-is above)."""
         return main(argv)

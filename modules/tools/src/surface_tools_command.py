@@ -1,6 +1,6 @@
 """Tool CLI surface — command handlers for `aa tool` / `aa install|update|uninstall`.
 
-Ported from the runner verb surface; surface files use the AES `command`
+Ported from the runner action surface; surface files use the AES `command`
 suffix (AES102). All side effects are delegated to the IToolsAggregate.
 """
 from __future__ import annotations

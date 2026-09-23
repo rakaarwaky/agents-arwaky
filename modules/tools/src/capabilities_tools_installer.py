@@ -1,4 +1,4 @@
-"""FR-001/FR-002 verb — install a tool: provision, register its launcher.
+"""FR-001/FR-002 action — install a tool: provision, register its launcher.
 
 Sub-steps (internal, not separate public methods):
 1. Provision: satisfied check gates the idempotent skip; otherwise the
@@ -61,7 +61,7 @@ class InstallerCapability(IToolInstaller):
                  adapter_facade: IToolAdapterFacade | None = None) -> None:
         self._root = root
         self._daemons = daemons
-        # P1-7: verb calls now route through the injected adapter facade
+        # P1-7: action calls now route through the injected adapter facade
         # (single API pipeline) instead of the raw registry unit.
         self._facade = adapter_facade
 
@@ -70,7 +70,7 @@ class InstallerCapability(IToolInstaller):
         """Install via the injected adapter facade (single API pipeline).
 
         `adapter` is kept for the IToolInstaller signature (a capability
-        may pass a registry unit for the dry-run message), but all verb
+        may pass a registry unit for the dry-run message), but all action
         calls resolve through `self._facade` when wired.
         """
         facade = self._facade
@@ -84,7 +84,7 @@ class InstallerCapability(IToolInstaller):
                 f"[dry-run] would invoke {type(adapter or facade).__name__}.install for {spec.id}",
             )
 
-        # P1-3: the satisfied check must not raise out of the verb.
+        # P1-3: the satisfied check must not raise out of the action.
         try:
             if facade.satisfied(spec):
                 return InstallResult(True, spec.id, "satisfied (no action needed)")

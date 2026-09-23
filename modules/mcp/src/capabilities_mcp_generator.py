@@ -1,4 +1,4 @@
-"""MCP config generator — VERBATIM port of tools/mcp/generate_config.py.
+"""MCP config generator — EXACT port of tools/mcp/generate_config.py.
 
 The entire original ``main()`` body (env-file resolution via
 ``load_first_env``, anytype API-key warning, manifest-driven server
@@ -10,7 +10,7 @@ methods — it exposes a single ``main()`` function — so the
 ``IMcpConfigGenerator`` / ``IMcpAggregate`` contracts expected by the
 AES orchestrator (``generate(output)``, ``list_servers()``,
 ``show_server()``, ``generate_config(output)``) are adapted around
-that verbatim body: ``generate`` executes it directly (the original
+that as-is body: ``generate`` executes it directly (the original
 ``main`` already honours ``sys.argv[1]`` as an explicit target and
 otherwise defaults to ``ROOT / "mcp_servers.generated.json"``),
 ``list_servers`` / ``show_server`` reuse the original manifest-driven
@@ -45,7 +45,7 @@ class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
     def generate(self, output: Path) -> ExitCode:
         """Write the unified MCP client config to *output*; returns 0.
 
-        Delegates to the verbatim original ``main()`` above, passing
+        Delegates to the unchanged original ``main()`` above, passing
         *output* as the explicit target (the original honours
         ``sys.argv[1]`` exactly this way: "Path(sys.argv[1]) if
         len(sys.argv) > 1 else ROOT / 'mcp_servers.generated.json'").

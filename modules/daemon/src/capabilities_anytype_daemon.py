@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Anytype daemon manager (Python) — replaces anytype-daemon.sh.
 
-AES port of tools/daemons/anytype_daemon.py: body kept verbatim; only the
+AES port of tools/daemons/anytype_daemon.py: body kept as-is; only the
 imports are swapped to their AES equivalents (paths/xdg/envfile) and
-constants defined locally in the original stay local verbatim instead of
+constants defined locally in the original stay local as-is instead of
 being pulled from modules.shared.src.taxonomy_common_constant.
 """
 from __future__ import annotations
@@ -51,11 +51,11 @@ PID_FILE = state_home() / "anytype-daemon.pid"
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class AnytypeDaemonManager(IDaemonManager):
-    """AES facade: exposes the original script verbs via IDaemonManager.
+    """AES facade: exposes the original script actions via IDaemonManager.
 
     Block 1 — constructor (stateless, no DI needed beyond module globals).
     Block 2 — protocol contract methods only (start/stop/status/logs/restart).
-    Block 3 — legacy verb facades, factories, and helpers retained verbatim.
+    Block 3 — legacy action facades, factories, and helpers retained as-is.
     """
 
     def __init__(self, root=None, daemons: object | None = None) -> None:

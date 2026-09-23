@@ -16,7 +16,7 @@ Last Updated: 2026-09-19
 - Done: the four lifecycle features (installer, updater, uninstaller, runner)
   are merged into a single `modules/tools` feature: 4 protocol classes
   (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner` — one
-  public method each; sub-steps internal), 4 verb capability files
+  public method each; sub-steps internal), 4 action capability files
   (`capabilities_tools_{installer,updater,uninstaller,runner}.py`), 13
   unified per-tool adapter units (one `capabilities_tools_adapter.py` — a
   registered AES301 god-object exception; all `utility_*` adapter modules
@@ -32,10 +32,10 @@ Last Updated: 2026-09-19
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| TOL-01 | FR-001..004 | Unified tools feature (4 modules → 1) | P0 | Done | 4 protocol classes, 8 verb capability files, 13 plain-class adapters (mechanics via `utility_tool_mechanics`), orchestrator + surface + root container all present; old modules deleted; `root_cli_entry.py` repointed. Evidence: `python3 -m compileall -q modules/tools/` → COMPILE_OK; `python3 -c "import modules.tools"` → import OK; verified at commit `b44f139` (2026-09-19). | @raka | None | 2026-09-19 |
+| TOL-01 | FR-001..004 | Unified tools feature (4 modules → 1) | P0 | Done | 4 protocol classes, 8 action capability files, 13 plain-class adapters (mechanics via `utility_tool_mechanics`), orchestrator + surface + root container all present; old modules deleted; `root_cli_entry.py` repointed. Evidence: `python3 -m compileall -q modules/tools/` → COMPILE_OK; `python3 -c "import modules.tools"` → import OK; verified at commit `b44f139` (2026-09-19). | @raka | None | 2026-09-19 |
 | TOL-02 | FR-004 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
 | TOL-03 | FR-003 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
-| TOL-04 | FR-001..004 | Fold 8 capability files → 4 verb classes | P2 | Done | `capabilities_tools_{provisioner,launcher,bumper,recorder,remover,verifier,discoverer,executor}.py` merged into `capabilities_tools_{installer,updater,uninstaller,runner}.py`; orchestrator + root container rewired through `IToolAdapterFacade`. Adapter consolidation: 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py` deleted, mechanics inlined into `capabilities_tools_adapter.py` (AES301 exception registered in `lint_arwaky.config.yaml`). Gate: `python3 -m compileall -q modules/` + `python3 -m modules.root_cli_entry check`. Evidence: both re-run at commit `63921af` → COMPILE_OK + All verifications PASSED (2026-09-20). | @raka | TOL-01 | 2026-09-20 |
+| TOL-04 | FR-001..004 | Fold 8 capability files → 4 action classes | P2 | Done | `capabilities_tools_{provisioner,launcher,bumper,recorder,remover,verifier,discoverer,executor}.py` merged into `capabilities_tools_{installer,updater,uninstaller,runner}.py`; orchestrator + root container rewired through `IToolAdapterFacade`. Adapter consolidation: 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py` deleted, mechanics inlined into `capabilities_tools_adapter.py` (AES301 exception registered in `lint_arwaky.config.yaml`). Gate: `python3 -m compileall -q modules/` + `python3 -m modules.root_cli_entry check`. Evidence: both re-run at commit `63921af` → COMPILE_OK + All verifications PASSED (2026-09-20). | @raka | TOL-01 | 2026-09-20 |
 
 ## Scenario Evidence (rows)
 
@@ -74,7 +74,7 @@ Last Updated: 2026-09-19
 ## Deferred
 
 - Intentionally out of scope for the merged `modules/tools` release.
-- No new per-tool capability files (would violate the 4-verb-class invariant).
+- No new per-tool capability files (would violate the 4-action-class invariant).
 - Cross-feature capability sharing beyond the lazy daemon aggregate.
 
 ## Change Log
@@ -89,9 +89,9 @@ Last Updated: 2026-09-19
   (free functions, taxonomy-only imports). 13 leaf adapters now plain classes
   calling `tool_mechanics.<fn>(...)` directly. `IToolAdapter` ABC removed from
   `contract_tools_protocol.py`; adapter param typed as `object` with docstring.
-- 2026-09-19: TOL-04 added — fold 8 capability files into 4 verb classes
+- 2026-09-19: TOL-04 added — fold 8 capability files into 4 action classes
   (tracker only; not yet implemented).
-- 2026-09-20: TOL-04 completed — 8 capability files folded into 4 verb
+- 2026-09-20: TOL-04 completed — 8 capability files folded into 4 action
   classes; 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py`
   deleted with mechanics inlined into `capabilities_tools_adapter.py`
   (registered AES301 exception). `IToolAdapterFacade` + `ToolAdapterFacade`

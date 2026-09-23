@@ -1,7 +1,7 @@
 """Skill pack provisioning capability — delegates to the shared skill_pack domain.
 
 All pack logic (install/prune/check/audit, provenance, loadability) lives in
-:mod:`modules.skill.src.capabilities_skill_registry` — a 1:1 verbatim port of
+:mod:`modules.skill.src.capabilities_skill_registry` — a 1:1 exact port of
 ``tools/skill/skill.py``. This module adapts it to the ``ISkillProvisioner``
 capability contract so the orchestrator stays thin.
 """

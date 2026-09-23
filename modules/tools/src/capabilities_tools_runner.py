@@ -1,4 +1,4 @@
-"""FR-004 verb — run a tool: discover its executable, then exec it.
+"""FR-004 action — run a tool: discover its executable, then exec it.
 
 Sub-steps (internal, not separate public methods):
 1. Discover: universal deterministic order, identical for every tool —
@@ -35,7 +35,7 @@ from modules.shared.src.taxonomy_tools_constant import (
 
 
 def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path) -> list[str]:
-    """Build the argv for the subprocess exec (runner-aware, verbatim port)."""
+    """Build the argv for the subprocess exec (runner-aware, exact port)."""
     tool_dir = root / spec.path
     runner = spec.runner or TOOL_RUNNERS.get(spec.id, "")
     names = [spec.mcp_binary, spec.binary] if spec.is_mcp and spec.mcp_binary else [spec.binary]

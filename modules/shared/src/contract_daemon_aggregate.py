@@ -7,7 +7,7 @@ from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus, Exit
 
 
 class IDaemonAggregate(ABC):
-    """Aggregate routing daemon verbs by daemon name."""
+    """Aggregate routing daemon actions by daemon name."""
 
     @abstractmethod
     def start_daemon(self, name: DaemonName) -> ExitCode:

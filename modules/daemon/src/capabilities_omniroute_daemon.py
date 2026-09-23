@@ -123,7 +123,7 @@ def read_env() -> dict:
 
 # ─── PodmanDaemonManager class (retained for API compatibility) ──────────
 class PodmanDaemonManager(IDaemonManager):
-    """AES facade: exposes OmniRoute host-native daemon verbs via IDaemonManager.
+    """AES facade: exposes OmniRoute host-native daemon actions via IDaemonManager.
 
     No container engine required.
     """
@@ -155,7 +155,7 @@ class PodmanDaemonManager(IDaemonManager):
     def logs(self) -> ExitCode:
         return ExitCode(cmd_logs())
 
-    # ─── Legacy verb facades ───────────────────────────────────
+    # ─── Legacy action facades ───────────────────────────────────
     def models(self) -> int:
         return cmd_models()
 

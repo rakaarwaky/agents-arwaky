@@ -1,6 +1,6 @@
 """Tool-domain aggregate contract (AES102 `_aggregate`).
 
-`IToolsAggregate` is the zero-I/O composition of the four lifecycle verbs
+`IToolsAggregate` is the zero-I/O composition of the four lifecycle actions
 (install, update, uninstall, run) plus manifest target resolution. It is
 the single entry point the CLI surface calls; `ToolsOrchestrator`
 implements it and delegates every side effect to a capability.

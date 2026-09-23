@@ -6,7 +6,7 @@ from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
 from modules.shared.src.taxonomy_common_vo import ExitCode
 
 
-class DoctorVerb(IDoctorAggregate):
+class DoctorAction(IDoctorAggregate):
     """CLI command surface for the doctor feature."""
 
     def __init__(self, orch: DoctorOrchestrator) -> None:

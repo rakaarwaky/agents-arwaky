@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unified service manager (Python) — pengganti service-manager.sh.
 
-AES port of tools/service/service_manager.py: verb bodies kept; the original
+AES port of tools/service/service_manager.py: action bodies kept; the original
 subprocess exec of the two daemon scripts is replaced by direct calls into
 modules/daemon. The daemon managers are resolved via the daemon feature
 aggregate (composition root) and injected; the module-level cmd_* functions
@@ -30,10 +30,10 @@ def _daemons() -> IDaemonAggregate:
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class ServiceManager(IServiceManager):
-    """AES facade: exposes the original script verbs by their CLI names.
+    """AES facade: exposes the original script actions by their CLI names.
 
     The optional daemon aggregate in the constructor is accepted for
-    composition-root wiring; verb bodies route through it.
+    composition-root wiring; action bodies route through it.
     """
 
     def __init__(self, daemons: IDaemonAggregate | None = None) -> None:
@@ -82,16 +82,16 @@ def _run_anytype(args: list[str]) -> int:
 
 def _daemon_main(name: str, args: list[str]) -> int:
     agg = _daemons()
-    verb = (args[0] if args else "help").lower()
-    if verb == "start":
+    action = (args[0] if args else "help").lower()
+    if action == "start":
         return agg.start_daemon(name)
-    if verb == "stop":
+    if action == "stop":
         return agg.stop_daemon(name)
-    if verb == "restart":
+    if action == "restart":
         return agg.restart_daemon(name)
-    if verb == "logs":
+    if action == "logs":
         return agg.logs_daemon(name)
-    if verb == "status":
+    if action == "status":
         agg.status_daemon(name)
         return 0
     return 0

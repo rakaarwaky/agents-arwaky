@@ -134,8 +134,8 @@ OMNIROUTE_DATA_DIR_NAME = "omniroute"
 OMNIROUTE_INTERNAL_BIN = "internal-bin"
 OMNIROUTE_LAUNCHERS: tuple[str, ...] = ("omniroute",)
 
-#: Adapter verb-prefix table for config-driven tools (backward-compat globals).
-TOOL_VERB_PREFIXES: dict[str, str] = {
+#: Adapter action-prefix table for config-driven tools (backward-compat globals).
+TOOL_ACTION_PREFIXES: dict[str, str] = {
     "blender": "blender",
     "vision": "vision",
     "qwen-web": "qwen_web",
@@ -179,5 +179,5 @@ __all__ = [
     "ROOT_ENV_VAR",
     "RUNNER_FAMILIES",
     "SENTINEL_EXECUTABLE_GONE",
-    "TOOL_VERB_PREFIXES",
+    "TOOL_ACTION_PREFIXES",
 ]

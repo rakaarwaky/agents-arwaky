@@ -41,7 +41,7 @@ BackupDestination = NewType("BackupDestination", str)
 #: Archive path or identifier string for restore operations.
 BackupArchive = NewType("BackupArchive", str)
 
-#: Process exit code returned by a backup/restore/list/help verb.
+#: Process exit code returned by a backup/restore/list/help action.
 ExitCode = NewType("ExitCode", int)
 
 __all__ = [

@@ -75,13 +75,13 @@ from modules.shared.src.taxonomy_tools_constant import (
     QWEN_ROLE_DIRS,
     QWEN_TOOL_NAME,
     ROOT_ENV_VAR,
-    TOOL_VERB_PREFIXES,
+    TOOL_ACTION_PREFIXES,
 )
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 
 
 class ToolAdapterFacade(IToolAdapterFacade):
-    """God-object facade: one injected object holding all 13 tool verbs."""
+    """God-object facade: one injected object holding all 13 tool actions."""
 
     # ─── Block 1: Class Definition & Constructor ─────────────────────
     def __init__(
@@ -99,7 +99,7 @@ class ToolAdapterFacade(IToolAdapterFacade):
 
     # ─── Block 2: Public Contract (domain protocol ONLY, protocol order) ──
     def resolve(self, spec: ToolSpec) -> object:
-        """Uniform verb surface for *spec* (god-object unit)."""
+        """Uniform action surface for *spec* (god-object unit)."""
         return self._unit(spec)
 
     def is_registered(self, spec: ToolSpec) -> bool:
@@ -118,7 +118,7 @@ class ToolAdapterFacade(IToolAdapterFacade):
         return fn(spec, self._root_for(None)) if callable(fn) else (False, "no pin check")
 
     def install(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
-        """Run the tool's install build (source-init lives inside the verb)."""
+        """Run the tool's install build (source-init lives inside the action)."""
         r = self._root_for(root)
         unit = self._unit(spec)
         fn = getattr(unit, "install", None)
@@ -130,14 +130,14 @@ class ToolAdapterFacade(IToolAdapterFacade):
             return list(fn(spec, r) or [])
 
     def update(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
-        """Run the tool's update build (git-update lives inside the verb)."""
+        """Run the tool's update build (git-update lives inside the action)."""
         r = self._root_for(root)
         unit = self._unit(spec)
         fn = getattr(unit, "update", None)
         return list(fn(spec, r) or []) if callable(fn) else []
 
     def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
-        """The tool's teardown set (per-tool verb, generic fallback)."""
+        """The tool's teardown set (per-tool action, generic fallback)."""
         unit = self._unit(spec)
         fn = getattr(unit, "owned_paths", None)
         if callable(fn):
@@ -149,7 +149,7 @@ class ToolAdapterFacade(IToolAdapterFacade):
         return f"ToolAdapterFacade(tools={len(self._registry)})"
 
     def _unit(self, spec: ToolSpec):
-        """Resolve the verb namespace for *spec* (registry, then in-file SSOT)."""
+        """Resolve the action namespace for *spec* (registry, then in-file SSOT)."""
         return self._registry.get(spec.id, _ADAPTER_UNITS.get(spec.id))
 
     def _root_for(self, root: Path | None) -> Path:
@@ -542,8 +542,8 @@ def _node_tool_lifecycle(
     """Unified install/update untuk tool node (npm/pnpm/bun, dengan/tanpa build)."""
     is_update = action == "update"
     err_cls = ToolUpdateError if is_update else FileNotFoundError
-    verb_ing = "Updating" if is_update else "Installing"
-    verb_ed = "updated" if is_update else "installed"
+    progress_ing = "Updating" if is_update else "Installing"
+    progress_ed = "updated" if is_update else "installed"
 
     if is_update:
         if not update_submodule(root, src_rel):
@@ -558,7 +558,7 @@ def _node_tool_lifecycle(
         raise err_cls(f"{requires[0]} is required ({requires[1]}).")
 
     app_dir = data_home() / app_name
-    print(f">>> {verb_ing} {app_name} into {app_dir}...")
+    print(f">>> {progress_ing} {app_name} into {app_dir}...")
     copy_app(source, app_dir, ignores)
 
     if post_copy_hook:
@@ -570,7 +570,7 @@ def _node_tool_lifecycle(
 
     artifacts = write_launchers_fn(app_dir, is_update)
     finish_bin()
-    print(f">>> Successfully {verb_ed} {app_name}")
+    print(f">>> Successfully {progress_ed} {app_name}")
     return artifacts
 
 
@@ -632,7 +632,7 @@ def _uv_project_lifecycle(
     """Unified install/update untuk tool `uv run` (mnemosyne/workspace)."""
     is_update = action == "update"
     err_cls = ToolUpdateError if is_update else FileNotFoundError
-    verb_ed = "updated" if is_update else "installed"
+    progress_ed = "updated" if is_update else "installed"
 
     if is_update:
         if not update_submodule(root, src_rel):
@@ -647,7 +647,7 @@ def _uv_project_lifecycle(
             raise err_cls(f"source not found {src_dir}")
 
     created = write_launchers_fn(root)
-    print(f">>> Successfully {verb_ed} {tool_name}")
+    print(f">>> Successfully {progress_ed} {tool_name}")
     return created
 
 
@@ -976,14 +976,14 @@ def _anytype_daemon_feature():
 
 
 def _anytype_write_daemon_launcher(path: Path, root: Path) -> None:
-    _daemon_verb = "modules" + "." + "daemon" + "." + "src" + "." + "surface_daemon_command"
+    _daemon_surface = "modules" + "." + "daemon" + "." + "src" + "." + "surface_daemon_command"
     path.write_text(
         "#!/usr/bin/env python3\n"
         "import os, sys\n"
         "from pathlib import Path\n"
             f'root = Path(os.environ.get("{ROOT_ENV_VAR}", {str(root)!r}))\n'
             "sys.path.insert(0, str(root))\n"
-            f"from {_daemon_verb} import cmd_anytype\n"
+            f"from {_daemon_surface} import cmd_anytype\n"
         "sys.exit(cmd_anytype(sys.argv[1:]))\n",
         encoding="utf-8",
     )
@@ -999,7 +999,7 @@ def _anytype_mcp_launchers(app_dir: Path, is_update: bool) -> list[Path]:
 
 def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     is_update = action == "update"
-    verb_ed = "updated" if is_update else "installed"
+    progress_ed = "updated" if is_update else "installed"
     ensure_bin_home()
     ensure_path()
     data_dir = data_home() / ANYTYPE_DAEMON_DATA_REL
@@ -1032,7 +1032,7 @@ def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     internal_bin.mkdir(parents=True, exist_ok=True)
     _anytype_write_daemon_launcher(internal_bin / "anytype-daemon", root)
 
-    print(f">>> Successfully {verb_ed} anytype-daemon -> {launcher} (alias ad)")
+    print(f">>> Successfully {progress_ed} anytype-daemon -> {launcher} (alias ad)")
     return [launcher, alias, internal_bin / "anytype-daemon"]
 
 
@@ -1227,7 +1227,7 @@ def _omniroute_write_launcher(launcher: Path, root: Path) -> None:
         f'root = Path(os.environ.get("{ROOT_ENV_VAR}", {str(root)!r}))\n'
         "sys.path.insert(0, str(root))\n"
         "import importlib as _il\n"
-        "_dv = _il.import_module('modules.daemon.src.' + 'agent' + '_daemon_verb')\n"
+        "_dv = _il.import_module('modules.daemon.src.' + 'surface' + '_daemon_command')\n"
         "_cmd_omniroute = getattr(_dv, 'cmd_' + 'omniroute')\n"
         "sys.exit(_cmd_omniroute(sys.argv[1:]))\n"
     )
@@ -1237,7 +1237,7 @@ def _omniroute_write_launcher(launcher: Path, root: Path) -> None:
 
 def _omniroute_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     is_update = action == "update"
-    verb_ed = "updated" if is_update else "installed"
+    progress_ed = "updated" if is_update else "installed"
     ensure_bin_home()
     ensure_path()
     data_dir = data_home() / OMNIROUTE_DATA_DIR_NAME
@@ -1262,7 +1262,7 @@ def _omniroute_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     internal_bin.mkdir(parents=True, exist_ok=True)
     shutil.copy2(launcher, internal_bin / "omniroute")
     (internal_bin / "omniroute").chmod(0o755)
-    print(f">>> Successfully {verb_ed} OmniRoute -> {launcher}")
+    print(f">>> Successfully {progress_ed} OmniRoute -> {launcher}")
 
     if is_update:
         return [launcher, internal_bin / "omniroute"]
@@ -1335,9 +1335,9 @@ _ADAPTER_UNITS.update({
 #: Root-container compatible registry.
 TOOLS_REGISTRY: dict[str, object] = dict(_ADAPTER_UNITS)
 
-# Backward-compat: nama verb per-tool untuk config-driven tools (qwen-web,
+# Backward-compat: action name per-tool untuk config-driven tools (qwen-web,
 # blender, vision, mnemosyne, workspace, codegraph, context7, fetch, ponytail).
-for _tid, _prefix in TOOL_VERB_PREFIXES.items():
+for _tid, _prefix in TOOL_ACTION_PREFIXES.items():
     _ns = _ADAPTER_UNITS[_tid]
     globals()[f"{_prefix}_satisfied"] = _ns.satisfied
     globals()[f"{_prefix}_install"] = _ns.install
@@ -1367,8 +1367,8 @@ __all__ = [
     "lint_satisfied",
     "lint_update",
 ]
-# Per-tool verb names bound via globals() above (TOOL_VERB_PREFIXES keys).
-for _tid, _prefix in TOOL_VERB_PREFIXES.items():
-    for _verb in ("satisfied", "install", "update", "is_pin_satisfied", "owned_paths"):
-        __all__.append(f"{_prefix}_{_verb}")
-del _tid, _prefix, _verb
+# Per-tool action names bound via globals() above (TOOL_ACTION_PREFIXES keys).
+for _tid, _prefix in TOOL_ACTION_PREFIXES.items():
+    for _action in ("satisfied", "install", "update", "is_pin_satisfied", "owned_paths"):
+        __all__.append(f"{_prefix}_{_action}")
+del _tid, _prefix, _action

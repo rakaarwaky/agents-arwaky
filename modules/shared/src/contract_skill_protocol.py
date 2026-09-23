@@ -34,7 +34,7 @@ class ISkillProvisioner(ABC):
 
 
 class ISkillRegistry(ABC):
-    """Contract for the skill registry verb dispatch (injected by root)."""
+    """Contract for the skill registry action dispatch (injected by root)."""
 
     @abstractmethod
     def cmd_list(self, argv: SkillArgs) -> ExitCode:

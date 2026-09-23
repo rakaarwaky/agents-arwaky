@@ -13,7 +13,7 @@ from modules.shared.src.taxonomy_skill_vo import (
 
 
 class ISkillAggregate(ABC):
-    """Aggregate over the skill manager surface verbs."""
+    """Aggregate over the skill manager surface actions."""
 
     @abstractmethod
     def list_skills(self, tool_filter: ToolFilter = ToolFilter("")) -> ExitCode:

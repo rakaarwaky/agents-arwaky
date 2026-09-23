@@ -17,7 +17,7 @@ The service feature manages systemd units for the daemons:
 `anytype`, or `all`. The units themselves live in `modules/daemon/deploy/`
 (`*.service`, `Containerfile`); this module only drives systemctl against them.
 
-Flow: `aa service <verb> [target]` → `ServiceOrchestrator` → `systemctl`
+Flow: `aa service <action> [target]` → `ServiceOrchestrator` → `systemctl`
 against the target unit(s).
 
 ## Functional Requirements
@@ -81,7 +81,7 @@ against the target unit(s).
 
 - This module drives existing units; it does not author them (that is the
   daemon feature's deploy assets).
-- systemctl must be present; on a non-systemd host the verbs fail clearly at
+- systemctl must be present; on a non-systemd host the actions fail clearly at
   the top level.
 
 ## Glossary

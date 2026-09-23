@@ -39,7 +39,7 @@ Last Updated: 2026-09-19
 | `aa connect --router grok-build` wires 9Router only when the adapter declares custom-API support; otherwise reports the skip. | Gap | — | — | not yet implemented |
 | `aa disconnect --dry-run` reports what would be removed (MCP, env, router refs) and changes nothing. | Gap | — | — | `5556fd5` (no automated test yet) |
 | `aa connect` for an unknown harness fails with a message naming the supported harnesses. | Gap | — | — | `5556fd5` (no automated test yet) |
-| A new harness added as one `utility_<x>_adapter.py` + one registry entry passes all verbs with zero capability edits. | Gap | — | — | not yet verified |
+| A new harness added as one `utility_<x>_adapter.py` + one registry entry passes all actions with zero capability edits. | Gap | — | — | not yet verified |
 
 ## Blockers
 
