@@ -90,13 +90,13 @@ Copy, fill, delete nothing.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| <leaf method> | <input> | <output> | <error> | <event> | <one sentence> |
+| <method> | <input> | <output> | <error> | <event> | <one sentence> |
 
 ### Aggregate API
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| <operation> | <input> | <output> | <error> | <event> | <one sentence> |
+| <method>  | <input> | <output> | <error> | <event> | <one sentence> |
 
 
 ## Integration Points
