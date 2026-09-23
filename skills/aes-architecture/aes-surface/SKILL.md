@@ -115,7 +115,8 @@ Ask these questions in order. The first "No" dictates your next action.
 ```bash
 lint-arwaky-cli scan <layer-path>   # AES101/102, AES201–205, AES401–406 → must be 0
 # Fallback only: language compile (python -c import / cargo check / npx tsc --noEmit)
-```
+
+```text
 
 A pass means naming, imports, primitives, and roles are clean. Structural judgement
 (tier choice, block order, helper-vs-utility, "orchestration only") is **manual** — see HOW-TO § Rules.

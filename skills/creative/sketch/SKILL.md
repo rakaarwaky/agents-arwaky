@@ -41,9 +41,10 @@ If `gsd-sketch` shows up as a sibling skill (installed via `npx get-shit-done-cc
 
 ## Core method
 
-```
+```text
 intake  →  variants  →  head-to-head  →  pick winner (or iterate)
-```
+
+```text
 
 ### 1. Intake (skip if the user already gave you enough)
 
@@ -71,7 +72,7 @@ Pick one axis and pull apart from it. Two variants that differ only in accent co
 
 **Variant naming:** describe the stance, not the number.
 
-```
+```text
 sketches/
 ├── 001-calm-editorial/
 │   ├── index.html
@@ -82,7 +83,8 @@ sketches/
 └── 001-playful-split/
     ├── index.html
     └── README.md
-```
+
+```text
 
 ### 3. Make them real HTML
 
@@ -98,10 +100,11 @@ Open it in a browser. If it looks broken, fix it before showing the user.
 
 **Verify variants visually — use Hermes' browser tools.** Don't just write HTML and hope it renders; load each variant and look at it:
 
-```
+```text
 browser_navigate(url="file:///absolute/path/to/sketches/001-calm-editorial/index.html")
 browser_vision(question="Does this layout look clean and readable? Any visible bugs (overlapping text, unstyled elements, broken images)?")
-```
+
+```text
 
 `browser_vision` returns an AI description of what's actually on the page plus a screenshot path — catches layout bugs that pure source inspection misses (e.g. a font import that silently failed, a flex container that collapsed). Fix and re-navigate until each variant looks right.
 
@@ -119,7 +122,8 @@ browser_vision(question="Does this layout look clean and readable? Any visible b
     line-height: 1.5;
   }
 </style>
-```
+
+```text
 
 ### 4. Variant README
 
@@ -143,7 +147,8 @@ One sentence on the principle driving this variant.
 
 ### Best for
 - The kind of user or use case this variant actually serves
-```
+
+```text
 
 ### 5. Head-to-head
 
@@ -160,7 +165,8 @@ After all variants are built, present them as a comparison. Don't just list — 
 | Feel | Calm, trusted | Sharp, tool-like | Inviting, energetic |
 
 **My take:** Utilitarian dense for power users, calm editorial for content-forward audiences. Playful split is weakest — tries to do both and commits to neither.
-```
+
+```text
 
 Let the user pick a winner, or combine two into a hybrid, or ask for another round.
 
@@ -179,7 +185,8 @@ If the user has an existing theme (colors, fonts, tokens), put shared tokens in 
   --font-display: "Inter", sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, sans-serif;
 }
-```
+
+```text
 
 Don't over-tokenize a throwaway sketch — three colors and one font is usually enough.
 
@@ -214,13 +221,14 @@ Propose 2-4 named candidates. Let the user pick.
 
 **Typical tool sequence for one variant:**
 
-```
+```text
 terminal("mkdir -p sketches/001-calm-editorial")
 write_file("sketches/001-calm-editorial/index.html", "<!doctype html>...")
 write_file("sketches/001-calm-editorial/README.md", "## Variant: Calm editorial\n...")
 browser_navigate(url="file://$(pwd)/sketches/001-calm-editorial/index.html")
 browser_vision(question="How does this look? Any obvious layout issues?")
-```
+
+```text
 
 Repeat for each variant, then present the comparison table.
 

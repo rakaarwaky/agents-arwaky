@@ -79,7 +79,8 @@ PR opened / pushed
         ├─ strict: true (must be up to date)
         ├─ non_fast_forward + deletion: blocked
         └─ auto-merge workflow (squash) merges when all pass
-```
+
+```text
 
 ## 1. GitHub Actions workflow (.github/workflows/ci.yml)
 
@@ -121,7 +122,8 @@ codes=$(./target/release/lint-arwaky-cli scan workspaces-bad 2>&1 \
   | grep -oP "AES\d+" | sort -u | wc -l)
 echo "Unique codes: ${codes:-0}"
 [ "${codes:-0}" -ge 24 ]
-```
+
+```text
 
 Use `cargo build --release` (or `--bin lint-arwaky-cli`) before these
 steps so the binary exists under `./target/release/`.
@@ -173,7 +175,8 @@ jobs:
           gh pr merge "$PR_NUMBER" --auto --squash \
             --subject "$PR_TITLE" || \
             echo "Auto-merge not available yet — a later event will retry."
-```
+
+```text
 
 Use env vars (not inline interpolation) to avoid command injection through
 PR metadata.
@@ -200,7 +203,8 @@ exclude_paths:
 - "crates/*/tests/**"
 - "scripts/**"
 - "tools/**"
-```
+
+```text
 
 - Custom AI instructions in `.github/instructions/codacy.instructions.md`
   (org/repo defaults, run `codacy_cli_analyze` after edits, trivy after
@@ -233,7 +237,8 @@ bot:
     mode: advisory
     min_new_file_score: 7.0
     block_on_introduced: false
-```
+
+```text
 
 Also configure `.repowiseIgnore` (committed) + `.repowise/config.yaml`
 exclude_patterns so fixture code is never indexed; `.repowise/health-rules.json`
@@ -249,7 +254,8 @@ bash scripts/gates.sh          # fmt + clippy + self-lint + AES codes + tests
 CARGO_INCREMENTAL=0 cargo clippy --workspace --all-targets -- -D warnings
 cargo nextest run --workspace --lib --tests
 lint-arwaky-cli check .        # whole repo, must be 0 violations
-```
+
+```text
 
 ## 6. Supporting workflows
 

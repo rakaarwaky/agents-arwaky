@@ -28,7 +28,8 @@ missing index, not a broken wiring:
 
 ```bash
 codegraph status <project-path>     # "⚠ Not initialized" ⇒ nothing to query from
-```
+
+```text
 
 - `init` is a write to the repository (creates untracked `.codegraph/`) — ask before running
   it in someone else's tree, and check whether `.gitignore` covers it.
@@ -69,7 +70,8 @@ codegraph impact <symbol>              # blast radius of changing it
 codegraph affected src/foo.py src/bar.py   # test files touched by these changes
 codegraph files                        # indexed tree
 codegraph ui                           # browse the graph in a browser
-```
+
+```text
 
 Each subcommand takes `--path` / `-p` for another project and `--help` for its own flags.
 
@@ -82,4 +84,3 @@ matching file — do not guess at these procedures:
 |---|---|
 | [`references/add-language.md`](references/add-language.md) | Adding/supporting a new tree-sitter language end-to-end: grammar health-check, AST node discovery, the 4-file wiring, extraction verify loop, tests, then benchmarking on 3 real repos. |
 | [`references/evaluating.md`](references/evaluating.md) | Benchmarking/auditing retrieval quality: a with-vs-without-codegraph A/B on a real repo for a chosen codegraph version (local dev build or published npm). |
-

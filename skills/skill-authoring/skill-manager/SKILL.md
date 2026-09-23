@@ -12,6 +12,7 @@ The Skill Manager provides skill discovery, integrity auditing, inspection, and 
 ## When to Use This Skill
 
 Activate this skill when:
+
 - Discovering what agent skills and tool capabilities exist within the `agents-arwaky` ecosystem.
 - Provisioning tool usage guidelines to a workspace (`.agents/skills/<name>/SKILL.md`).
 - Checking whether all registered tools have complete and valid `SKILL.md` documentation.
@@ -56,6 +57,7 @@ Two provisioning paths, deliberately different:
 ## Workspace Target Layout
 
 When `aa skill install <name>` runs, it provisions the skill exclusively to the standard AI agent location:
+
 - `.agents/skills/<name>/SKILL.md` (OpenClaw / Claude / Antigravity / AES standard)
 
 Custom destination paths can be specified with `--dest <custom_path>`.

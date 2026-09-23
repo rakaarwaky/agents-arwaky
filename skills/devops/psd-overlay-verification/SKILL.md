@@ -89,6 +89,7 @@ must show a tight ~600–1000 px localized cluster at the mapped position.
 ## Overlay POSITION verification (t_9f672973, commit e89f4a4)
 
 PM-mandated loop order — never burn wall-clock on full MP4 renders to iterate:
+
 1. Single composited frames via `render_scene_software(frame)` for the gate
    frames. Localise the painted overlay WITHOUT color heuristics: render the
    frame, then render `dataclasses.replace(frame, layers=without
@@ -133,6 +134,7 @@ before the drag starts (f210 on sycan) — sweep drag gates from f211.
   numeric gates and say so in the handoff instead of blocking.
 
 ## Evidence this worked (2026-09-10, PR #44; 2026-09-11, PR #45 + t_9f672973;
+
 2026-09-11, t_e5769cda: 125 tracking tests red→green, acceptance probe PASS
 with d_model=0.0px at f211–313 on acceptance-v4.mp4)
 

@@ -30,6 +30,7 @@ Two facts this procedure depends on, so they are stated here anyway:
   from config is a stale entry — report it as stale, not as live.
 
 ## Purge procedure (finding ALL traces)
+
 1. Build a **name-variant regex**: `x[-_.]?y` AND the glued form `xy` — the
    skills hub index cache (`skills/.hub/index-cache/hermes-index.json`) stores
    normalized display names ("Leanctx Integration") that a hyphen-only grep
@@ -51,6 +52,7 @@ Two facts this procedure depends on, so they are stated here anyway:
    point, and the user prefers being asked over guessing.
 
 ## Editing the JSON stores
+
 - Load/dump with Python (`json.load` → mutate → `json.dump`) — never sed/regex
   on JSON; removing a server from `mcp_schema_cache.json` or a skill from
   `.usage.json` is a dict pop; in `hermes-index.json` the entry lives in the
@@ -59,6 +61,7 @@ Two facts this procedure depends on, so they are stated here anyway:
   ~90k-entry skills index is restorable.
 
 ## Pitfalls
+
 - **Keep each terminal command small and single-purpose.** A long `;`-chained
   one-liner of greps/echoes trips the hardline blocklist for oversized inline
   payloads; the rejected command is written to
@@ -67,4 +70,3 @@ Two facts this procedure depends on, so they are stated here anyway:
   `execute_code` Python instead of chained shell.
 - Grepping a giant single-line JSON with `grep -A/-B` returns the whole file;
   use `re.finditer(r'.{60}name.{100}', text)` in Python for context windows.
-

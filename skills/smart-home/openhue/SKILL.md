@@ -26,7 +26,8 @@ curl -sL "https://github.com/openhue/openhue-cli/releases/latest/download/openhu
 
 # macOS
 brew install openhue/cli/openhue-cli
-```
+
+```text
 
 First run requires pressing the button on your Hue Bridge to pair. The bridge must be on the same local network.
 
@@ -46,7 +47,8 @@ First run requires pressing the button on your Hue Bridge to pair. The bridge mu
 openhue get light       # List all lights
 openhue get room        # List all rooms
 openhue get scene       # List all scenes
-```
+
+```text
 
 ### Control Lights
 
@@ -64,7 +66,8 @@ openhue set light "Bedroom Lamp" --on --temperature 300
 # Color (by name or hex)
 openhue set light "Bedroom Lamp" --on --color red
 openhue set light "Bedroom Lamp" --on --rgb "#FF5500"
-```
+
+```text
 
 ### Control Rooms
 
@@ -74,14 +77,16 @@ openhue set room "Bedroom" --off
 
 # Set room brightness
 openhue set room "Bedroom" --on --brightness 30
-```
+
+```text
 
 ### Scenes
 
 ```bash
 openhue set scene "Relax" --room "Bedroom"
 openhue set scene "Concentrate" --room "Office"
-```
+
+```text
 
 ## Quick Presets
 
@@ -99,7 +104,8 @@ openhue set room "Living Room" --on --brightness 10
 openhue set room "Bedroom" --off
 openhue set room "Office" --off
 openhue set room "Living Room" --off
-```
+
+```text
 
 ## Notes
 

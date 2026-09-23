@@ -31,7 +31,8 @@ platforms:
       name: Raka Arwaky
       thread_id: '41454'
       user_id: '1060253950'
-```
+
+```text
 
 Listing a platform under `platforms:` alone is NOT enough. This block lives here and
 nowhere else in the pack — systemd/persistence references point back to it.

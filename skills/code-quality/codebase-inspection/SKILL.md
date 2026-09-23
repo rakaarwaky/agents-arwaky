@@ -29,7 +29,8 @@ Analyze repositories for lines of code, language breakdown, file counts, and cod
 
 ```bash
 pip install --break-system-packages pygount 2>/dev/null || pip install pygount
-```
+
+```text
 
 ## 1. Basic Summary (Most Common)
 
@@ -40,7 +41,8 @@ cd /path/to/repo
 pygount --format=summary \
   --folders-to-skip=".git,node_modules,venv,.venv,__pycache__,.cache,dist,build,.next,.tox,.eggs,*.egg-info" \
   .
-```
+
+```text
 
 **IMPORTANT:** Always use `--folders-to-skip` to exclude dependency/build directories, otherwise pygount will crawl them and take a very long time or hang.
 
@@ -57,7 +59,8 @@ Adjust based on the project type:
 
 # General catch-all
 --folders-to-skip=".git,node_modules,venv,.venv,__pycache__,.cache,dist,build,.next,.tox,vendor,third_party"
-```
+
+```text
 
 ## 3. Filter by Specific Language
 
@@ -67,7 +70,8 @@ pygount --suffix=py --format=summary .
 
 # Only count Python and YAML
 pygount --suffix=py,yaml,yml --format=summary .
-```
+
+```text
 
 ## 4. Detailed File-by-File Output
 
@@ -77,7 +81,8 @@ pygount --folders-to-skip=".git,node_modules,venv" .
 
 # Sort by code lines (pipe through sort)
 pygount --folders-to-skip=".git,node_modules,venv" . | sort -t$'\t' -k1 -nr | head -20
-```
+
+```text
 
 ## 5. Output Formats
 
@@ -90,11 +95,13 @@ pygount --format=json .
 
 # Pipe-friendly: Language, file count, code, docs, empty, string
 pygount --format=summary . 2>/dev/null
-```
+
+```text
 
 ## 6. Interpreting Results
 
 The summary table columns:
+
 - **Language** — detected programming language
 - **Files** — number of files of that language
 - **Code** — lines of actual code (executable/declarative)
@@ -102,6 +109,7 @@ The summary table columns:
 - **%** — percentage of total
 
 Special pseudo-languages:
+
 - `__empty__` — empty files
 - `__binary__` — binary files (images, compiled, etc.)
 - `__generated__` — auto-generated files (detected heuristically)

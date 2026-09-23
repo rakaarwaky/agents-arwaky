@@ -19,7 +19,8 @@ One skill for the full Codacy workflow: **local analysis**, **cloud queries**, a
 ```bash
 codacy info                     # verify Cloud CLI auth
 codacy-analysis --help 2>&1 | head -1
-```
+
+```text
 
 Auth: `codacy login` or `export CODACY_API_TOKEN=<token>` (token from Codacy > My Account > Access Management > API Tokens). Both CLIs share the same session. Inside a repo, provider/org/repo are auto-detected from the git remote — most commands work with short forms like `codacy issues`.
 
@@ -31,7 +32,8 @@ codacy-analysis analyze --pr --output-format json          # changes vs PR targe
 codacy-analysis analyze --diff --output-format json        # changes vs merge base
 codacy-analysis analyze --staged --output-format json      # staged only
 codacy-analysis analyze --tool Ruff --files "src/**/*.ts" --output-format json
-```
+
+```text
 
 Use `--install-dependencies` to fetch missing tool binaries (installed under `~/.codacy/`). Exit codes: 0 = clean, 1 = issues found, 2 = execution error. Parse `.issues[]` with severity/file; check `.capability.unavailable` for tools only available in Cloud.
 
@@ -47,7 +49,8 @@ codacy finding <findingId>                         # single finding (CVE data, a
 codacy repository                                  # dashboard: metrics, PRs, issues
 codacy repository --reanalyze-and-wait             # trigger reanalysis, block until done
 codacy tools / codacy patterns <tool>              # inspect enabled tools/patterns
-```
+
+```text
 
 Handle noise (false positives):
 
@@ -55,7 +58,8 @@ Handle noise (false positives):
 codacy issue <issueId> --ignore --ignore-reason FalsePositive --ignore-comment "..."
 codacy issues --severities Minor --categories CodeStyle --ignore   # bulk ignore
 codacy issue <issueId> --unignore
-```
+
+```text
 
 Config changes (enable/disable tools/patterns) only take effect after the next analysis — trigger `--reanalyze-and-wait` or wait for the next commit.
 

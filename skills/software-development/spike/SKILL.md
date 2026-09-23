@@ -38,11 +38,12 @@ If `gsd-spike` shows up as a sibling skill (installed via `npx get-shit-done-cc 
 
 Regardless of scale, every spike follows this loop:
 
-```
+```text
 decompose  →  research  →  build  →  verdict
    ↑__________________________________________↓
                   iterate on findings
-```
+
+```text
 
 ### 1. Decompose
 
@@ -55,6 +56,7 @@ Break the user's idea into **2-5 independent feasibility questions**. Each quest
 | 002b | pdf-parse-camelot | Given a multi-page PDF, when parsed with camelot, then structured text is extractable | Medium |
 
 **Spike types:**
+
 - **standard** — one approach answering one question
 - **comparison** — same question, different approaches (shared number, letter suffix `a`/`b`/`c`)
 
@@ -95,7 +97,7 @@ For libraries without docs pages, clone and read their `README.md` / `examples/`
 
 One directory per spike. Keep it standalone.
 
-```
+```text
 spikes/
 ├── 001-websocket-streaming/
 │   ├── README.md
@@ -106,7 +108,8 @@ spikes/
 └── 002b-pdf-parse-camelot/
     ├── README.md
     └── parse.py
-```
+
+```text
 
 **Bias toward something the user can interact with.** Spikes fail when the only output is a log line that says "it works." The user wants to *feel* the spike working. Default choices, in order of preference:
 
@@ -121,22 +124,24 @@ spikes/
 
 **Building one spike** — a typical tool sequence:
 
-```
+```text
 terminal("mkdir -p spikes/001-websocket-streaming")
 write_file("spikes/001-websocket-streaming/README.md", "# 001: websocket-streaming\n\n...")
 write_file("spikes/001-websocket-streaming/main.py", "...")
 terminal("cd spikes/001-websocket-streaming && python main.py")
 # Observe output, iterate.
-```
+
+```text
 
 **Parallel comparison spikes (002a / 002b) — delegate.** When two approaches can run in parallel and both need real engineering (not 10-line prototypes), fan out with `delegate_task`:
 
-```
+```text
 delegate_task(tasks=[
     {"goal": "Build 002a-pdf-parse-pdfjs: ...", "toolsets": ["terminal", "file", "web"]},
     {"goal": "Build 002b-pdf-parse-camelot: ...", "toolsets": ["terminal", "file", "web"]},
 ])
-```
+
+```text
 
 Each subagent returns its own verdict; you write the head-to-head.
 
@@ -158,7 +163,8 @@ Each spike's `README.md` closes with:
 
 ### Recommendation for the real build
 - ...
-```
+
+```text
 
 **VALIDATED** = the core question was answered yes, with evidence.
 **PARTIAL** = it works under constraints X, Y, Z — document them.
@@ -179,7 +185,8 @@ When two approaches answer the same question (002a / 002b), build them **back to
 | Handles rotated text | no | yes |
 
 **Winner:** pdfjs for our use case. Camelot if we need table-first extraction later.
-```
+
+```text
 
 ## Frontier mode (picking what to spike next)
 

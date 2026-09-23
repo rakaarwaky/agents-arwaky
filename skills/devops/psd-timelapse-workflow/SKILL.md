@@ -56,7 +56,8 @@ The repo's isolated XDG venv is **not** activated by `uv sync` — sync only res
 ```bash
 export UV_PROJECT_ENVIRONMENT="$HOME/.local/share/psd-timelapse/venv"
 source "$UV_PROJECT_ENVIRONMENT/bin/activate"
-```
+
+```text
 
 Run `python --version` and `python -c "import psd_tools"` as a two-line smoke test that the environment is live. If `psd_tools` (or any locked dependency) is importable from the system python but missing from the venv python, the venv is not active — do not re-run `uv sync` and assume it fixed itself; activate first.
 
@@ -65,6 +66,7 @@ Pitfall: a gate command that fails with `ModuleNotFoundError` during collection 
 ## Quality gates order
 
 When preparing a branch for PR, run gates in this order:
+
 1. `pytest <scope>` — tests pass
 2. `ruff check <scope>` — lint clean
 3. `mypy <scope>` — type check passes

@@ -30,9 +30,10 @@ metadata:
 
 ## Architecture
 
-```
+```text
 Hermes Agent -> MCP (Streamable HTTP) -> twozero.tox (port 40404) -> TD Python
-```
+
+```text
 
 36 native tools. Free plugin (no payment/license — confirmed April 2026).
 Context-aware (knows selected OP, current network).
@@ -47,9 +48,11 @@ for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.con
   [ -f "$R/creative/touchdesigner-mcp/scripts/setup.sh" ] && break
 done
 bash "$R/creative/touchdesigner-mcp/scripts/setup.sh"
-```
+
+```text
 
 The script will:
+
 1. Check if TD is running
 2. Download twozero.tox if not already cached
 3. Add `twozero_td` MCP server to Hermes config (if missing)
@@ -63,9 +66,11 @@ The script will:
 3. **Restart Hermes session** to pick up the new MCP server
 
 After setup, verify:
+
 ```bash
 nc -z 127.0.0.1 40404 && echo "twozero MCP: READY"
-```
+
+```text
 
 ## Environment Notes
 
@@ -77,12 +82,13 @@ nc -z 127.0.0.1 40404 && echo "twozero MCP: READY"
 
 ### Step 0: Discover (before building anything)
 
-```
+```text
 Call td_get_par_info with op_type for each type you plan to use.
 Call td_get_hints with the topic you're building (e.g. "glsl", "audio reactive", "feedback").
 Call td_get_focus to see where the user is and what's selected.
 Call td_get_network to see what already exists.
-```
+
+```text
 
 No temp nodes, no cleanup. This replaces the old discovery dance entirely.
 
@@ -92,11 +98,12 @@ No temp nodes, no cleanup. This replaces the old discovery dance entirely.
 
 Use `td_create_operator` for each node (handles viewport positioning automatically):
 
-```
+```text
 td_create_operator(type="noiseTOP", parent="/project1", name="bg", parameters={"resolutionw": 1280, "resolutionh": 720})
 td_create_operator(type="levelTOP", parent="/project1", name="brightness")
 td_create_operator(type="nullTOP", parent="/project1", name="out")
-```
+
+```text
 
 For bulk creation or wiring, use `td_execute_python`:
 
@@ -111,21 +118,24 @@ for name, optype in [('bg', noiseTOP), ('fx', levelTOP), ('out', nullTOP)]:
 for i in range(len(nodes)-1):
     op(nodes[i]).outputConnectors[0].connect(op(nodes[i+1]).inputConnectors[0])
 result = {'created': nodes}
-```
+
+```text
 
 ### Step 2: Set Parameters
 
 Prefer the native tool (validates params, won't crash):
 
-```
+```text
 td_set_operator_pars(path="/project1/bg", parameters={"roughness": 0.6, "monochrome": true})
-```
+
+```text
 
 For expressions or modes, use `td_execute_python`:
 
 ```python
 op('/project1/time_driver').par.colorr.expr = "absTime.seconds % 1000.0"
-```
+
+```text
 
 ### Step 3: Wire
 
@@ -133,21 +143,24 @@ Use `td_execute_python` — no native wire tool exists:
 
 ```python
 op('/project1/bg').outputConnectors[0].connect(op('/project1/fx').inputConnectors[0])
-```
+
+```text
 
 ### Step 4: Verify
 
-```
+```text
 td_get_errors(path="/project1", recursive=true)
 td_get_perf()
 td_get_operator_info(path="/project1/out", detail="full")
-```
+
+```text
 
 ### Step 5: Display / Capture
 
-```
+```text
 td_get_screenshot(path="/project1/out")
-```
+
+```text
 
 Or open a window via script:
 
@@ -156,11 +169,13 @@ win = op('/project1').create(windowCOMP, 'display')
 win.par.winop = op('/project1/out').path
 win.par.winw = 1280; win.par.winh = 720
 win.par.winopen.pulse()
-```
+
+```text
 
 ## MCP Tool Quick Reference
 
 **Core (use these most):**
+
 | Tool | What |
 |------|------|
 | `td_execute_python` | Run arbitrary Python in TD. Full API access. |
@@ -175,6 +190,7 @@ win.par.winopen.pulse()
 | `td_get_focus` | What network is open, what's selected |
 
 **Read/Write:**
+
 | Tool | What |
 |------|------|
 | `td_read_dat` | Read DAT text content |
@@ -183,6 +199,7 @@ win.par.winopen.pulse()
 | `td_read_textport` | Read TD console output |
 
 **Visual:**
+
 | Tool | What |
 |------|------|
 | `td_get_screenshot` | Capture one OP viewer to file |
@@ -191,12 +208,14 @@ win.par.winopen.pulse()
 | `td_navigate_to` | Jump network editor to an OP |
 
 **Search:**
+
 | Tool | What |
 |------|------|
 | `td_find_op` | Find ops by name/type across project |
 | `td_search` | Search code, expressions, string params |
 
 **System:**
+
 | Tool | What |
 |------|------|
 | `td_get_perf` | Performance profiling (FPS, slow ops) |
@@ -207,6 +226,7 @@ win.par.winopen.pulse()
 | `td_clear_textport` | Clear console before debug session |
 
 **Input Automation:**
+
 | Tool | What |
 |------|------|
 | `td_input_execute` | Send mouse/keyboard to TD |
@@ -221,13 +241,15 @@ The table above covers the 32 tools used in typical creative workflows. The rema
 ## Key Implementation Rules
 
 **GLSL time:** No `uTDCurrentTime` in GLSL TOP. Use the Values page:
+
 ```python
 # Call td_get_par_info(op_type="glslTOP") first to confirm param names
 td_set_operator_pars(path="/project1/shader", parameters={"value0name": "uTime"})
 # Then set expression via script:
 # op('/project1/shader').par.value0.expr = "absTime.seconds"
 # In GLSL: uniform float uTime;
-```
+
+```text
 
 Fallback: Constant TOP in `rgba32float` format (8-bit clamps to 0-1, freezing the shader).
 
@@ -257,7 +279,8 @@ rec.par.file = '/tmp/output.mov'
 rec.par.videocodec = 'prores'  # Apple ProRes — NOT license-restricted on macOS
 rec.par.record = True   # start
 # rec.par.record = False  # stop (call separately later)
-```
+
+```text
 
 H.264/H.265/AV1 need Commercial license. Use `prores` on macOS or `mjpa` as fallback.
 Extract frames: `ffmpeg -i /tmp/output.mov -vframes 120 /tmp/frames/frame_%06d.png`
@@ -275,7 +298,7 @@ Extract frames: `ffmpeg -i /tmp/output.mov -vframes 120 /tmp/frames/frame_%06d.p
 
 ### Correct signal chain (tested April 2026)
 
-```
+```text
 AudioFileIn CHOP (playmode=sequential)
   → AudioSpectrum CHOP (FFT=512, outputmenu=setmanually, outlength=256, timeslice=ON)
   → Math CHOP (gain=10)
@@ -284,7 +307,8 @@ AudioFileIn CHOP (playmode=sequential)
 
 Constant TOP (rgba32float, time) → GLSL TOP input 0
 GLSL TOP → Null TOP → MovieFileOut
-```
+
+```text
 
 ### Critical audio-reactive rules (empirically verified)
 
@@ -311,7 +335,8 @@ float mid  = (texture(sTD2DInputs[1], vec2(0.2, 0.25)).r +
               texture(sTD2DInputs[1], vec2(0.35, 0.25)).r) / 2.0;
 float hi   = (texture(sTD2DInputs[1], vec2(0.6, 0.25)).r +
               texture(sTD2DInputs[1], vec2(0.8, 0.25)).r) / 2.0;
-```
+
+```text
 
 See `references/network-patterns.md` for complete build scripts + shader code.
 

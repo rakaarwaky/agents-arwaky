@@ -21,6 +21,7 @@ metadata:
 ## When to Use This Skill
 
 Use Weights & Biases (W&B) when you need to:
+
 - **Track ML experiments** with automatic metric logging
 - **Visualize training** in real-time dashboards
 - **Compare runs** across hyperparameters and configurations
@@ -42,7 +43,8 @@ wandb login
 
 # Or set API key programmatically
 export WANDB_API_KEY=your_api_key_here
-```
+
+```text
 
 ## Minimal Quick Start
 
@@ -53,7 +55,8 @@ run = wandb.init(project="my-project", config={"lr": 0.001, "epochs": 10})
 for epoch in range(10):
     wandb.log({"epoch": epoch, "train/loss": train_loss, "val/loss": val_loss})
 wandb.finish()
-```
+
+```text
 
 Full PyTorch loop, config tracking, and metric patterns:
 [references/tracking-basics.md](references/tracking-basics.md)

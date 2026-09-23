@@ -77,11 +77,12 @@ hermes doctor
 hermes desktop                 # launch the native desktop app (alias: hermes gui)
 hermes dashboard               # web admin panel + embedded chat
 hermes proxy                   # OpenAI-compatible local proxy backed by your OAuth provider
-```
+
+```text
 
 ## Key Paths
 
-```
+```text
 ~/.hermes/config.yaml       Main configuration (settings — never secrets)
 ~/.hermes/.env              API keys and secrets ONLY (under $HERMES_HOME if set)
 $HERMES_HOME/skills/        Installed skills
@@ -94,7 +95,8 @@ $HERMES_HOME/skills/        Installed skills
 ~/.hermes/logs/             Gateway and error logs
 ~/.hermes/auth.json         OAuth tokens and credential pools
 ~/.hermes/hermes-agent/     Source code (if git-installed)
-```
+
+```text
 
 Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile is active, resolve the real home from `$HERMES_HOME` — never hardcode `~/.hermes`.
 
@@ -146,18 +148,19 @@ Run additional Hermes processes as fully independent subprocesses — separate s
 
 ### One-Shot Mode
 
-```
+```text
 terminal(command="hermes chat -q 'Research GRPO papers and write summary to ~/research/grpo.md'", timeout=300)
 
 # Background for long tasks:
 terminal(command="hermes chat -q 'Set up CI/CD for ~/myapp'", background=true)
-```
+
+```text
 
 ### Interactive PTY Mode (via tmux)
 
 Hermes uses prompt_toolkit, which requires a real terminal. Use tmux for interactive spawning:
 
-```
+```text
 # Start
 terminal(command="tmux new-session -d -s agent1 -x 120 -y 40 'hermes'", timeout=10)
 
@@ -172,11 +175,12 @@ terminal(command="tmux send-keys -t agent1 'Add rate limiting middleware' Enter"
 
 # Exit
 terminal(command="tmux send-keys -t agent1 '/exit' Enter && sleep 2 && tmux kill-session -t agent1", timeout=10)
-```
+
+```text
 
 ### Multi-Agent Coordination
 
-```
+```text
 # Agent A: backend
 terminal(command="tmux new-session -d -s backend -x 120 -y 40 'hermes -w'", timeout=10)
 terminal(command="sleep 8 && tmux send-keys -t backend 'Build REST API for user management' Enter", timeout=15)
@@ -188,17 +192,19 @@ terminal(command="sleep 8 && tmux send-keys -t frontend 'Build React dashboard f
 # Check progress, relay context between them
 terminal(command="tmux capture-pane -t backend -p | tail -30", timeout=5)
 terminal(command="tmux send-keys -t frontend 'Here is the API schema from the backend agent: ...' Enter", timeout=5)
-```
+
+```text
 
 ### Session Resume
 
-```
+```text
 # Resume most recent session
 terminal(command="tmux new-session -d -s resumed 'hermes --continue'", timeout=10)
 
 # Resume specific session
 terminal(command="tmux new-session -d -s resumed 'hermes --resume 20260225_143052_a1b2c3'", timeout=10)
-```
+
+```text
 
 ### Tips
 

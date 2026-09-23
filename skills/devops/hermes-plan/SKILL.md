@@ -37,6 +37,7 @@ For this turn, you are planning only.
 Write a markdown plan that is concrete and actionable.
 
 Include, when relevant:
+
 - Goal
 - Current context / assumptions
 - Proposed approach
@@ -50,6 +51,7 @@ If the task is code-related, include exact file paths, likely test targets, and 
 ## Save location
 
 Save the plan with `write_file` under:
+
 - `.hermes/plans/YYYY-MM-DD_HHMMSS-<slug>.md`
 
 Treat that as relative to the active working directory / backend workspace. Hermes file tools are backend-aware, so using this relative path keeps the plan with the workspace on local, docker, ssh, modal, and daytona backends.
@@ -81,12 +83,14 @@ Assume the implementer is a skilled developer but knows almost nothing about the
 ## When a Full Implementation Plan Helps
 
 **Always use before:**
+
 - Implementing multi-step features
 - Breaking down complex requirements
 - Handing the work to an external coding CLI (`coding-agent-delegation`) or to
   Hermes' own `delegate_task` subagents
 
 **Don't skip when:**
+
 - Feature seems simple (assumptions cause bugs)
 - You plan to implement it yourself (future you needs guidance)
 - Working alone (documentation matters)
@@ -96,6 +100,7 @@ Assume the implementer is a skilled developer but knows almost nothing about the
 **Each task = 2-5 minutes of focused work.**
 
 Every step is one action:
+
 - "Write the failing test" — step
 - "Run it to make sure it fails" — step
 - "Implement the minimal code to make the test pass" — step
@@ -103,12 +108,15 @@ Every step is one action:
 - "Commit" — step
 
 **Too big:**
+
 ```markdown
 ### Task 1: Build authentication system
 [50 lines of code across 5 files]
-```
+
+```text
 
 **Right size:**
+
 ```markdown
 ### Task 1: Create User model with email field
 [10 lines, 1 file]
@@ -118,7 +126,8 @@ Every step is one action:
 
 ### Task 3: Create password hashing utility
 [15 lines, 1 file]
-```
+
+```text
 
 ## Plan Document Structure
 
@@ -140,7 +149,8 @@ Every plan MUST start with:
 **Tech Stack:** [Key technologies/libraries]
 
 ---
-```
+
+```text
 
 ### Task Structure
 
@@ -162,7 +172,8 @@ Each task follows this format:
 def test_specific_behavior():
     result = function(input)
     assert result == expected
-```
+
+```text
 
 **Step 2: Run test to verify failure**
 
@@ -174,7 +185,8 @@ Expected: FAIL — "function not defined"
 ```python
 def function(input):
     return expected
-```
+
+```text
 
 **Step 4: Run test to verify pass**
 
@@ -186,7 +198,9 @@ Expected: PASS
 ```bash
 git add tests/path/test.py src/path/file.py
 git commit -m "feat: add specific feature"
-```
+
+```text
+
 ````
 
 ## Writing Process
@@ -194,6 +208,7 @@ git commit -m "feat: add specific feature"
 ### Step 1: Understand Requirements
 
 Read and understand:
+
 - Feature requirements
 - Design documents or user description
 - Acceptance criteria
@@ -215,11 +230,13 @@ search_files("*.py", target="files", path="tests/")
 
 # Read key files
 read_file("src/app.py")
-```
+
+```text
 
 ### Step 3: Design Approach
 
 Decide:
+
 - Architecture pattern
 - File organization
 - Dependencies needed
@@ -228,6 +245,7 @@ Decide:
 ### Step 4: Write Tasks
 
 Create tasks in order:
+
 1. Setup/infrastructure
 2. Core functionality (TDD for each)
 3. Edge cases
@@ -237,6 +255,7 @@ Create tasks in order:
 ### Step 5: Add Complete Details
 
 For each task, include:
+
 - **Exact file paths** (not "the config file" but `src/config/settings.py`)
 - **Complete code examples** (not "add validation" but the actual code)
 - **Exact commands** with expected output
@@ -245,6 +264,7 @@ For each task, include:
 ### Step 6: Review the Plan
 
 Check:
+
 - [ ] Tasks are sequential and logical
 - [ ] Each task is bite-sized (2-5 min)
 - [ ] File paths are exact
@@ -279,11 +299,13 @@ class User:
     def __init__(self, name, email):
         self.name = name
         self.email = email
-```
+
+```text
 
 ### TDD (Test-Driven Development)
 
 Every task that produces code should include the full TDD cycle:
+
 1. Write failing test
 2. Run to verify failure
 3. Write minimal code
@@ -294,10 +316,12 @@ See `test-driven-development` skill for details.
 ### Frequent Commits
 
 Commit after every task:
+
 ```bash
 git add [files]
 git commit -m "type: description"
-```
+
+```text
 
 ## Common Mistakes
 
@@ -331,6 +355,7 @@ proceed?"**
 
 When executing, delegate one worker per task — Hermes `delegate_task`, or an external
 coding CLI via the `coding-agent-delegation` skill (Qwen Code, Codex, Claude Code):
+
 - Fresh subagent / fresh CLI run per task with full context (`--resume` only for fixes)
 - Spec compliance review after each task
 - Code quality review after spec passes
@@ -338,7 +363,7 @@ coding CLI via the `coding-agent-delegation` skill (Qwen Code, Codex, Claude Cod
 
 ## Remember
 
-```
+```text
 Bite-sized tasks (2-5 min each)
 Exact file paths
 Complete code (copy-pasteable)
@@ -346,6 +371,7 @@ Exact commands with expected output
 Verification steps
 DRY, YAGNI, TDD
 Frequent commits
-```
+
+```text
 
 **A good plan makes implementation obvious.**

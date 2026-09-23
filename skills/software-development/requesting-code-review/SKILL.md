@@ -39,7 +39,8 @@ quality gates, an independent reviewer subagent, and an auto-fix loop.
 
 ```bash
 git diff --cached
-```
+
+```text
 
 If empty, try `git diff` then `git diff HEAD~1 HEAD`.
 
@@ -47,10 +48,12 @@ If `git diff --cached` is empty but `git diff` shows changes, tell the user to
 `git add <files>` first. If still empty, run `git status` — nothing to verify.
 
 If the diff exceeds 15,000 characters, split by file:
+
 ```bash
 git diff --name-only
 git diff HEAD -- specific_file.py
-```
+
+```text
 
 ## Step 2 — Static security scan
 
@@ -71,7 +74,8 @@ git diff --cached | grep "^+" | grep -E "pickle\.loads?\("
 
 # SQL injection (string formatting in queries)
 git diff --cached | grep "^+" | grep -E "execute\(f\"|\.format\(.*SELECT|\.format\(.*INSERT"
-```
+
+```text
 
 ## Step 3 — Baseline tests and linting
 
@@ -80,6 +84,7 @@ count BEFORE your changes as **baseline_failures** (stash changes, run, pop).
 Only NEW failures introduced by your changes block the commit.
 
 **Test frameworks** (auto-detect by project files):
+
 ```bash
 # Python (pytest)
 python -m pytest --tb=no -q 2>&1 | tail -5
@@ -92,9 +97,11 @@ cargo test 2>&1 | tail -5
 
 # Go
 go test ./... 2>&1 | tail -5
-```
+
+```text
 
 **Linting and type checking** (run only if installed):
+
 ```bash
 # Python
 which ruff && ruff check . 2>&1 | tail -10
@@ -104,12 +111,13 @@ which mypy && mypy . --ignore-missing-imports 2>&1 | tail -10
 which npx && npx eslint . 2>&1 | tail -10
 which npx && npx tsc --noEmit 2>&1 | tail -10
 
-# Rust
+# Rust (2)
 cargo clippy -- -D warnings 2>&1 | tail -10
 
-# Go
+# Go (2)
 which go && go vet ./... 2>&1 | tail -10
-```
+
+```text
 
 **Baseline comparison:** If baseline was clean and your changes introduce failures,
 that's a regression. If baseline already had failures, only count NEW ones.
@@ -176,7 +184,8 @@ Return ONLY this JSON:
     context="Independent code review. Return only JSON verdict.",
     toolsets=["terminal"]
 )
-```
+
+```text
 
 ## Step 6 — Evaluate results
 
@@ -186,7 +195,7 @@ Combine results from Steps 2, 3, and 5.
 
 **Any failures:** Report what failed, then proceed to Step 7 (auto-fix).
 
-```
+```text
 VERIFICATION FAILED
 
 Security issues: [list from static scan + reviewer]
@@ -194,7 +203,8 @@ Logic errors: [list from reviewer]
 Regressions: [new test failures vs baseline]
 New lint errors: [details]
 Suggestions (non-blocking): [list]
-```
+
+```text
 
 ## Step 7 — Auto-fix loop
 
@@ -222,9 +232,11 @@ Fix each issue precisely. Describe what you changed and why.""",
     context="Fix only the reported issues. Do not change anything else.",
     toolsets=["terminal", "file"]
 )
-```
+
+```text
 
 After the fix agent completes, re-run Steps 1-6 (full verification cycle).
+
 - Passed: proceed to Step 8
 - Failed and attempts < 2: repeat Step 7
 - Failed after 2 attempts: escalate to user with the remaining issues and
@@ -236,13 +248,15 @@ If verification passed:
 
 ```bash
 git add -A && git commit -m "[verified] <description>"
-```
+
+```text
 
 The `[verified]` prefix indicates an independent reviewer approved this change.
 
 ## Reference: Common Patterns to Flag
 
-### Python
+### Python (2)
+
 ```python
 # Bad: SQL injection
 cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
@@ -253,15 +267,18 @@ cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
 os.system(f"ls {user_input}")
 # Good: safe subprocess
 subprocess.run(["ls", user_input], check=True)
-```
+
+```text
 
 ### JavaScript
+
 ```javascript
 // Bad: XSS
 element.innerHTML = userInput;
 // Good: safe
 element.textContent = userInput;
-```
+
+```text
 
 ## Integration with Other Skills
 

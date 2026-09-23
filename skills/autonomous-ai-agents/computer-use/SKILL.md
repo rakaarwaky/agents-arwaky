@@ -36,19 +36,21 @@ planned cua-driver follow-up, so currently point Hermes at the resulting
 
 **Step 1 — Capture first.** Almost every task starts with:
 
-```
+```text
 computer_use(action="capture", mode="som", app="<the app you're driving>")
-```
+
+```text
 
 Returns a screenshot with numbered overlays on every interactable
 element AND an AX-tree index like:
 
-```
+```text
 #1  AXButton 'Back' @ (12, 80, 28, 28) [Chrome]
 #2  AXTextField 'Address bar' @ (80, 80, 900, 32) [Chrome]
 #7  Link 'Sign In' @ (900, 420, 80, 24) [Chrome]
 ...
-```
+
+```text
 
 The role names match the host platform's accessibility framework
 (`AXButton` on macOS, `Button` on Windows UIA, `push button` on Linux
@@ -57,9 +59,10 @@ AT-SPI) — treat them as labels, not as strict types.
 **Step 2 — Click by element index.** This is the single most important
 habit:
 
-```
+```text
 computer_use(action="click", element=7)
-```
+
+```text
 
 Much more reliable than pixel coordinates for every model. Claude was
 trained on both; other models are often only reliable with indices.
@@ -67,9 +70,10 @@ trained on both; other models are often only reliable with indices.
 **Step 3 — Verify.** After any state-changing action, re-capture. You
 can save a round-trip by asking for the post-action capture inline:
 
-```
+```text
 computer_use(action="click", element=7, capture_after=True)
-```
+
+```text
 
 ## Capture modes
 
@@ -81,7 +85,7 @@ computer_use(action="click", element=7, capture_after=True)
 
 ## Actions
 
-```
+```text
 capture           mode=som|vision|ax   app=…  (default: current app)
 click             element=N     OR     coordinate=[x, y]    button=left|right|middle
 double_click      element=N     OR     coordinate=[x, y]
@@ -94,7 +98,8 @@ key               keys="<save shortcut>" | "return" | "escape" | "<modifier>+t"
 wait              seconds=0.5
 list_apps
 focus_app         app="<app name>"   raise_window=false   (default: don't raise)
-```
+
+```text
 
 All actions accept optional `capture_after=True` to get a follow-up
 screenshot in the same tool call. All actions that target an element
@@ -112,6 +117,7 @@ but that is the first rung, not the only one. Every input action returns a
 structured verdict; read it and climb only when the driver tells you to.
 
 Returned fields (present when the driver supports them):
+
 - `effect`: `"confirmed"` (driver read the result back — done), `"unverifiable"`
   (delivered, but confirm it yourself by re-capturing), or `"suspected_noop"`
   (ran but almost certainly did nothing).
@@ -154,12 +160,13 @@ Walk it in order:
    DBus/CLI interface. Never loop the ladder against a surface that
    verifiably swallows synthetic input.
 
-```
+```text
 computer_use(action="click", element=7)
 # → {effect: "suspected_noop", escalation: {recommended: "foreground", ...}}
 computer_use(action="click", element=7, delivery_mode="foreground")
 # → {effect: "unverifiable", path: "x11_pixel_fg"}   then re-capture to confirm
-```
+
+```text
 
 **Escalate to foreground as a REACTION to a returned signal, never as a
 prediction** from the app being Electron/Chromium/GTK. A confirmed effect is
@@ -259,31 +266,35 @@ shortcut to use.
 
 Prefer element indices:
 
-```
+```text
 computer_use(action="drag", from_element=3, to_element=17)
-```
+
+```text
 
 For a rubber-band selection on empty canvas, use coordinates:
 
-```
+```text
 computer_use(action="drag",
              from_coordinate=[100, 200],
              to_coordinate=[400, 500])
-```
+
+```text
 
 ## Scroll
 
 Scroll the viewport under an element (most common):
 
-```
+```text
 computer_use(action="scroll", direction="down", amount=5, element=12)
-```
+
+```text
 
 Or at a specific point:
 
-```
+```text
 computer_use(action="scroll", direction="down", amount=3, coordinate=[500, 400])
-```
+
+```text
 
 ## Managing what's focused
 
@@ -360,9 +371,10 @@ cua-driver team ships and maintains for every other agent harness.
 
 To link the cua-driver skill pack into your skill space:
 
-```
+```text
 cua-driver skills install
-```
+
+```text
 
 You'll then have access to:
 

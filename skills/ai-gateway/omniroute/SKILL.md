@@ -15,7 +15,8 @@ Local AI gateway exposing OpenAI-compatible REST. One endpoint, 359 providers
 ```bash
 export OMNIROUTE_URL="http://localhost:7777"
 export OMNIROUTE_KEY="sk-..."          # from ~/.omniroute/storage.sqlite api_keys table, or dashboard
-```
+
+```text
 
 All requests: `${OMNIROUTE_URL}/v1/...` with header
 `Authorization: Bearer ${OMNIROUTE_KEY}`.
@@ -27,7 +28,8 @@ providers are configured.
 
 ```bash
 curl -H "Authorization: Bearer $OMNIROUTE_KEY" $OMNIROUTE_URL/v1/models
-```
+
+```text
 
 Use `data[].id` as `model` field in requests. Combos appear with
 `owned_by:"combo"`.

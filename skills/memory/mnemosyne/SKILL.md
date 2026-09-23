@@ -131,7 +131,8 @@ mnemosyne stats
 mnemosyne sleep
 mnemosyne bank list         # logical banks; they are rows, not directories
 mnemosyne mcp               # start the MCP server (stdio; --transport sse|streamable-http)
-```
+
+```text
 
 Other verbs worth knowing: `export [file.json] [--include-sync-events]`,
 `import <file.json>` (idempotent), `import-hindsight`, `hygiene audit|clean`,

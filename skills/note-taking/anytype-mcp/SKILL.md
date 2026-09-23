@@ -12,6 +12,7 @@ Anytype MCP connects AI agents to Anytype's local-first knowledge graph, allowin
 ## When to Use This Skill
 
 Activate this skill when:
+
 - Searching for existing knowledge, notes, documentation, or tasks within Anytype.
 - Creating or editing pages, bookmarks, notes, or tasks in an Anytype space.
 - Inspecting space members, object types, templates, and relation properties.
@@ -28,7 +29,8 @@ aa anytype status
 
 # Start daemon if not active
 aa anytype start
-```
+
+```text
 
 ## Primary Tools
 
@@ -45,10 +47,15 @@ aa anytype start
 ## Authentication Configuration
 
 Authentication headers are managed via `.env` at repository root or XDG config:
+
 ```bash
 OPENAPI_MCP_HEADERS='{"Authorization":"Bearer <ANYTYPE_API_KEY>", "Anytype-Version":"2025-11-08"}'
-```
+
+```text
+
 To generate or refresh agent keys automatically:
+
 ```bash
 aa anytype auth-key "mcp-agent-key"
-```
+
+```text

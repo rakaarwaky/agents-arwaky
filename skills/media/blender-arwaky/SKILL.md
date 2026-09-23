@@ -34,13 +34,15 @@ Sections: `tools`, `commands` (all actions with CLI↔MCP mapping), `workflows`,
   "action": "action_name",
   "args": {"param": "value"}
 }
-```
+
+```text
 
 ### `list_commands`
 
 ```json
 {"domain": "scene"}  // or "object", "viewport", "render", "io", "infrastructure", "all"
-```
+
+```text
 
 ---
 
@@ -51,7 +53,8 @@ Sections: `tools`, `commands` (all actions with CLI↔MCP mapping), `workflows`,
 Setiap aksi punya sub-command sendiri dengan argument khusus:
 
 **Workspace Setup & Lifecycle**
-```
+
+```text
 blender-arwaky init [--dir <path>] [--force]
 blender-arwaky launch --filepath <path> [--mode gui|headless] [--port <port>]
 blender-arwaky close --filepath <path> [--force]
@@ -60,54 +63,69 @@ blender-arwaky launch-blender --filepath <path> [--mode interface|headless] [--p
 blender-arwaky shutdown-blender [--force]
 blender-arwaky get-runtime-status
 blender-arwaky register-executable [--path <path>]
-```
+
+```text
 
 **Scene**
-```
+
+```text
 blender-arwaky get-scene-info
 blender-arwaky cleanup-scene --mode all|objects|meshes
 blender-arwaky setup-environment --hdri-id <id> [--strength <float>]
-```
+
+```text
 
 **Object**
-```
+
+```text
 blender-arwaky get-object-info --object-name <object_name>
 blender-arwaky create-primitive --primitive-type SPHERE|CUBE|CYLINDER|PLANE|CONE|TORUS [--location X Y Z] [--scale X Y Z] [--name <name>]
 blender-arwaky set-object-transform --object-name <object_name> [--location X Y Z] [--rotation X Y Z] [--scale X Y Z]
 blender-arwaky delete-object --object-name <object_name>
 blender-arwaky set-material --name <object_name> --material <material_name>
 blender-arwaky apply-modifier --name <object_name> --modifier <modifier_name>
-```
+
+```text
 
 **Viewport & Render**
-```
+
+```text
 blender-arwaky get-viewport-screenshot --output <path> [--max-size <px>] [--view-angle PERSPECTIVE|TOP|FRONT|SIDE] [--shading-mode WIREFRAME|SOLID|MATERIAL|RENDERED] [--show-overlays]
 blender-arwaky render --output <path> [--resolution-x <px>] [--resolution-y <px>]
-```
+
+```text
 
 **Import / Export / Asset**
-```
+
+```text
 blender-arwaky import-glb --file-path <path> [--object-name <object_name>]
 blender-arwaky export-model --object-name <object_name> --file-path <path> [--export-format glb|fbx|obj]
 blender-arwaky place-asset --asset-id <id> [--location x,y,z] [--rotation x,y,z] [--scale x,y,z]
-```
+
+```text
 
 **Job**
-```
+
+```text
 blender-arwaky get-task-status --task-id <id>
 blender-arwaky cancel-task --task-id <id>
-```
+
+```text
 
 **Config**
-```
+
+```text
 blender-arwaky get-config [--key <key>]
 blender-arwaky set-config --key <key> --value <value>
-```
+
+```text
 
 **Code Execution**
-```
+
+```text
 blender-arwaky execute-blender-code --code '<python code>'
-```
+
+```text
 
 ### MCP
 
@@ -163,41 +181,47 @@ MCP workflows use `execute_command(action=..., args=...)`; CLI workflows use `bl
 
 ```python
 execute_command(action="get_scene_info")
-```
+
+```text
 
 ### Create and Position Object
 
 ```python
 execute_command(action="create_primitive", args={"primitive_type": "SPHERE", "location": [0, 0, 0]})
 execute_command(action="set_object_transform", args={"object_name": "Sphere", "location": [2, 0, 1]})
-```
+
+```text
 
 ### AI-Optimized Viewport Analysis
 
 ```python
 execute_command(action="get_viewport_screenshot", args={"view_angle": "TOP", "shading": "WIREFRAME", "focus_object": "Table"})
 execute_command(action="get_viewport_screenshot", args={"view_angle": "FRONT", "shading": "MATERIAL"})
-```
+
+```text
 
 ### Import and Place Asset
 
 ```python
 execute_command(action="import_glb", args={"file_path": "/path/to/model.glb"})
 execute_command(action="place_asset", args={"asset_id": "model", "location": [0, 0, 0]})
-```
+
+```text
 
 ### Submit Render and Check Status
 
 ```python
 execute_command(action="render", args={"output_path": "/tmp/frame.png", "resolution_x": 1920, "resolution_y": 1080})
 execute_command(action="get_task_status", args={"task_id": "<returned_task_id>"})
-```
+
+```text
 
 ### Custom Blender Code
 
 ```python
 execute_command(action="execute_blender_code", args={"code": "import bpy; bpy.ops.mesh.primitive_monkey_add()"})
-```
+
+```text
 
 ---
 
@@ -217,6 +241,7 @@ execute_command(action="execute_blender_code", args={"code": "import bpy; bpy.op
 | `sketchfab.py` | Sketchfab integration |
 
 **Key points:**
+
 - Auto-starts on Blender load (30 retries × 2s)
 - TCP server on port 9876
 - Headless mode requires active camera for screenshots

@@ -79,7 +79,8 @@ curl -s http://127.0.0.1:8188/system_stats 2>/dev/null && echo "server: running"
 
 # Can this machine run ComfyUI locally? (GPU/VRAM/disk check)
 python scripts/hardware_check.py
-```
+
+```text
 
 If nothing is installed, ask **Local vs Cloud first**
 (see [references/setup-onboarding.md](references/setup-onboarding.md)) — but
@@ -90,7 +91,8 @@ always run the hardware check before a local install.
 ```bash
 python scripts/health_check.py
 # → JSON: comfy_cli on PATH? server reachable? at least one checkpoint? smoke-test passes?
-```
+
+```text
 
 ## Core Workflow
 
@@ -106,7 +108,8 @@ Node types and param mapping: [references/workflow-format.md](references/workflo
 ```bash
 python scripts/extract_schema.py workflow_api.json --summary-only
 python scripts/extract_schema.py workflow_api.json
-```
+
+```text
 
 ### Step 3: Run with parameters
 
@@ -140,7 +143,8 @@ python scripts/run_batch.py \
   --args '{"prompt": "abstract"}' \
   --count 8 --randomize-seed --parallel 3 \
   --output-dir ./outputs/batch
-```
+
+```text
 
 `-1` for `seed` (or `--randomize-seed`) generates a fresh random seed per run.
 

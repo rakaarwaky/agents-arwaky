@@ -118,7 +118,7 @@ Use this after the rewrite. Answer each check with pass or fail. If any check fa
 
 For detect requests, make sure the response names each pattern found with a quoted line and a short fix, without rewriting the draft.
 
-### Editing principles
+### Editing principles (2)
 
 1. Does the edit preserve the user's point without adding claims, examples, stats, quotes, or opinions?
 2. Does it preserve the writer's distinctive vocabulary, cadence, bluntness, humor, uncertainty, digressions, and level of polish?
@@ -132,11 +132,11 @@ For detect requests, make sure the response names each pattern found with a quot
 10. Does the edit keep useful edge and preserve structure unless the structure was hurting the piece?
 11. Are genuinely tangled sentences fixed while clear spoken cadence, fragments, and changes in pace remain intact?
 
-### Words to cut
+### Words to cut (2)
 
 1. Are banned words, filler phrases, often-empty adverbs, and inflated claims removed unless quoted as examples?
 
-### Patterns to cut
+### Patterns to cut (2)
 
 1. Are binary contrasts, negative listings, rhetorical setups, and throat-clearing openers removed?
 2. Are faux-insight setups, colon reveals, superficial analysis, fake-strong verbs, synonym cycling, dramatic fragments, and robotic rhythm fixed?

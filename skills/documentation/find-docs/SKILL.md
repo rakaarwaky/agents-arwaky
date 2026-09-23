@@ -23,7 +23,8 @@ Context7 was unavailable and flag the answer as unverified.
 ```bash
 # MCP: resolve-library-id(libraryName="Next.js", query="app router middleware setup")
 npx ctx7@latest library "Next.js" "How to set up app router with middleware"
-```
+
+```text
 
 Skip this step only when the user already gave an ID in `/org/project` or
 `/org/project/version` form.
@@ -50,7 +51,8 @@ query refinement rather than guessing.
 ```bash
 # MCP: query-docs(libraryId="/vercel/next.js", query="app router middleware setup")
 npx ctx7@latest docs /vercel/next.js "How to add authentication middleware to app router"
-```
+
+```text
 
 Be specific, and keep one concept per query. If the question spans several
 concepts (routing *and* auth *and* caching), resolve once then make a separate

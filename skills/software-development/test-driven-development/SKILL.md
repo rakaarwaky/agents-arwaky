@@ -26,12 +26,14 @@ Write the test first. Watch it fail. Write minimal code to pass.
 ## When to Use
 
 **Always:**
+
 - New features
 - Bug fixes
 - Refactoring
 - Behavior changes
 
 **Exceptions (ask the user first):**
+
 - Throwaway prototypes
 - Generated code
 - Configuration files
@@ -40,13 +42,15 @@ Thinking "skip TDD just this once"? Stop. That's rationalization.
 
 ## The Iron Law
 
-```
+```text
 NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
+
+```text
 
 Write code before the test? Delete it. Start over.
 
 **No exceptions:**
+
 - Don't keep it as "reference"
 - Don't "adapt" it while writing tests
 - Don't look at it
@@ -61,6 +65,7 @@ Implement fresh from tests. Period.
 Write one minimal test showing what should happen.
 
 **Good test:**
+
 ```python
 def test_retries_failed_operations_3_times():
     attempts = 0
@@ -75,20 +80,26 @@ def test_retries_failed_operations_3_times():
 
     assert result == 'success'
     assert attempts == 3
-```
+
+```text
+
 Clear name, tests real behavior, one thing.
 
 **Bad test:**
+
 ```python
 def test_retry_works():
     mock = MagicMock()
     mock.side_effect = [Exception(), Exception(), 'success']
     result = retry_operation(mock)
     assert result == 'success'  # What about retry count? Timing?
-```
+
+```text
+
 Vague name, tests mock not real code.
 
 **Requirements:**
+
 - One behavior per test
 - Clear descriptive name ("and" in name? Split it)
 - Real code, not mocks (unless truly unavoidable)
@@ -101,9 +112,11 @@ Vague name, tests mock not real code.
 ```bash
 # Use terminal tool to run the specific test
 pytest tests/test_feature.py::test_specific_behavior -v
-```
+
+```text
 
 Confirm:
+
 - Test fails (not errors from typos)
 - Failure message is expected
 - Fails because the feature is missing
@@ -117,22 +130,27 @@ Confirm:
 Write the simplest code to pass the test. Nothing more.
 
 **Good:**
+
 ```python
 def add(a, b):
     return a + b  # Nothing extra
-```
+
+```text
 
 **Bad:**
+
 ```python
 def add(a, b):
     result = a + b
     logging.info(f"Adding {a} + {b} = {result}")  # Extra!
     return result
-```
+
+```text
 
 Don't add features, refactor other code, or "improve" beyond the test.
 
 **Cheating is OK in GREEN:**
+
 - Hardcode return values
 - Copy-paste
 - Duplicate code
@@ -150,9 +168,11 @@ pytest tests/test_feature.py::test_specific_behavior -v
 
 # Then run ALL tests to check for regressions
 pytest tests/ -q
-```
+
+```text
 
 Confirm:
+
 - Test passes
 - Other tests still pass
 - Output pristine (no errors, warnings)
@@ -164,6 +184,7 @@ Confirm:
 ### REFACTOR — Clean Up
 
 After green only:
+
 - Remove duplication
 - Improve names
 - Extract helpers
@@ -192,7 +213,8 @@ RIGHT:
   RED→GREEN: test1→impl1
   RED→GREEN: test2→impl2
   RED→GREEN: test3→impl3
-```
+
+```text
 
 A tracer bullet is one end-to-end behavior slice. It proves the path works, teaches you about the interface, and keeps each next test grounded in what you just learned.
 
@@ -201,6 +223,7 @@ A tracer bullet is one end-to-end behavior slice. It proves the path works, teac
 **"I'll write tests after to verify it works"**
 
 Tests written after code pass immediately. Passing immediately proves nothing:
+
 - Might test the wrong thing
 - Might test implementation, not behavior
 - Might miss edge cases you forgot
@@ -211,6 +234,7 @@ Test-first forces you to see the test fail, proving it actually tests something.
 **"I already manually tested all the edge cases"**
 
 Manual testing is ad-hoc. You think you tested everything but:
+
 - No record of what you tested
 - Can't re-run when code changes
 - Easy to forget cases under pressure
@@ -221,6 +245,7 @@ Automated tests are systematic. They run the same way every time.
 **"Deleting X hours of work is wasteful"**
 
 Sunk cost fallacy. The time is already gone. Your choice now:
+
 - Delete and rewrite with TDD (high confidence)
 - Keep it and add tests after (low confidence, likely bugs)
 
@@ -229,6 +254,7 @@ The "waste" is keeping code you can't trust.
 **"TDD is dogmatic, being pragmatic means adapting"**
 
 TDD IS pragmatic:
+
 - Finds bugs before commit (faster than debugging after)
 - Prevents regressions (tests catch breaks immediately)
 - Documents behavior (tests show how to use code)
@@ -316,7 +342,8 @@ terminal("pytest tests/test_feature.py::test_name -v")
 
 # Full suite — verify no regressions
 terminal("pytest tests/ -q")
-```
+
+```text
 
 ### With delegate_task
 
@@ -339,7 +366,8 @@ delegate_task(
     """,
     toolsets=['terminal', 'file']
 )
-```
+
+```text
 
 ### With systematic-debugging
 
@@ -356,9 +384,10 @@ Never fix bugs without a test.
 
 ## Final Rule
 
-```
+```text
 Production code → test exists and failed first
 Otherwise → not TDD
-```
+
+```text
 
 No exceptions without the user's explicit permission.

@@ -108,7 +108,8 @@ shared-domain/                  # modules/shared/src | crates/shared/src | packa
 ├── taxonomy_<concept>_vo.*     # VOs the contract signatures use
 ├── contract_<concept>_protocol.*  # one method / one feature
 └── contract_<concept>_aggregate.* # many methods / one per export
-```
+
+```text
 
 Same shape for Python (`_protocol.py`), Rust (`_protocol.rs`), and TypeScript (`_protocol.ts`).
 
@@ -135,7 +136,8 @@ lint-arwaky-cli scan <contract-dir>   # AES101/102, AES201–205, AES402, role �
 # python -c "import <shared_package>.contract_<concept>_<suffix>"
 # cargo check -p <crate-name>
 # npx tsc --noEmit
-```
+
+```text
 
 A pass means naming, layer imports, primitives, and roles are clean. The split standard
 (one method / feature, many exports) is **manual** — the linter does not count methods.

@@ -34,7 +34,8 @@ for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.con
 done
 AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$GH_REPO"
 [ "$AUTH" = "none" ] && echo "Not authenticated — resolve it with the github-auth skill first"
-```
+
+```text
 
 ---
 
@@ -48,7 +49,8 @@ gh issue list --state open --label "bug"
 gh issue list --assignee @me
 gh issue list --search "authentication error" --state all
 gh issue view 42
-```
+
+```text
 
 **With curl:**
 
@@ -96,7 +98,8 @@ curl -s \
 import sys, json
 for i in json.load(sys.stdin)['items']:
     print(f\"#{i['number']}  {i['state']:6}  {i['title']}\")"
-```
+
+```text
 
 ## 2. Creating Issues
 
@@ -118,7 +121,8 @@ After logging in, users always land on /dashboard.
 Respect the ?next= query parameter." \
   --label "bug,backend" \
   --assignee "username"
-```
+
+```text
 
 **With curl:**
 
@@ -132,7 +136,8 @@ curl -s -X POST \
     "labels": ["bug", "backend"],
     "assignees": ["username"]
   }'
-```
+
+```text
 
 ### Issue Templates
 
@@ -154,7 +159,8 @@ Keep every heading — a report missing *Steps to Reproduce* or *Environment* co
 ```bash
 gh issue edit 42 --add-label "priority:high,bug"
 gh issue edit 42 --remove-label "needs-triage"
-```
+
+```text
 
 **With curl:**
 
@@ -178,7 +184,8 @@ curl -s \
 import sys, json
 for l in json.load(sys.stdin):
     print(f\"  {l['name']:30}  {l.get('description', '')}\")"
-```
+
+```text
 
 ### Assignment
 
@@ -187,7 +194,8 @@ for l in json.load(sys.stdin):
 ```bash
 gh issue edit 42 --add-assignee username
 gh issue edit 42 --add-assignee @me
-```
+
+```text
 
 **With curl:**
 
@@ -196,7 +204,8 @@ curl -s -X POST \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/issues/42/assignees \
   -d '{"assignees": ["username"]}'
-```
+
+```text
 
 ### Commenting
 
@@ -204,7 +213,8 @@ curl -s -X POST \
 
 ```bash
 gh issue comment 42 --body "Investigated — root cause is in auth middleware. Working on a fix."
-```
+
+```text
 
 **With curl:**
 
@@ -213,7 +223,8 @@ curl -s -X POST \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/issues/42/comments \
   -d '{"body": "Investigated — root cause is in auth middleware. Working on a fix."}'
-```
+
+```text
 
 ### Closing and Reopening
 
@@ -223,7 +234,8 @@ curl -s -X POST \
 gh issue close 42
 gh issue close 42 --reason "not planned"
 gh issue reopen 42
-```
+
+```text
 
 **With curl:**
 
@@ -239,17 +251,19 @@ curl -s -X PATCH \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/issues/42 \
   -d '{"state": "open"}'
-```
+
+```text
 
 ### Linking Issues to PRs
 
 Issues are automatically closed when a PR merges with the right keywords in the body:
 
-```
+```text
 Closes #42
 Fixes #42
 Resolves #42
-```
+
+```text
 
 To create a branch from an issue:
 
@@ -257,14 +271,16 @@ To create a branch from an issue:
 
 ```bash
 gh issue develop 42 --checkout
-```
+
+```text
 
 **With git (manual equivalent):**
 
 ```bash
 git checkout main && git pull origin main
 git checkout -b fix/issue-42-login-redirect
-```
+
+```text
 
 ## 4. Issue Triage Workflow
 
@@ -285,7 +301,8 @@ import sys, json
 for i in json.load(sys.stdin):
     if 'pull_request' not in i:
         print(f\"#{i['number']}  {i['title']}\")"
-```
+
+```text
 
 2. **Read and categorize** each issue (view details, understand the bug/feature)
 
@@ -305,7 +322,8 @@ For batch operations, combine API calls with shell scripting:
 # Close all issues with a specific label
 gh issue list --label "wontfix" --json number --jq '.[].number' | \
   xargs -I {} gh issue close {} --reason "not planned"
-```
+
+```text
 
 **With curl:**
 
@@ -322,7 +340,8 @@ curl -s \
       -d '{"state": "closed", "state_reason": "not_planned"}'
     echo "Closed #$num"
   done
-```
+
+```text
 
 ## Quick Reference Table
 

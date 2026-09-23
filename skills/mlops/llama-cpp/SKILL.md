@@ -64,28 +64,33 @@ Prefer URL workflows before asking for `hf`, Python, or custom scripts.
 ```bash
 # macOS / Linux (simplest)
 brew install llama.cpp
-```
+
+```text
 
 ```bash
 winget install llama.cpp
-```
+
+```text
 
 ```bash
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
 cmake -B build
 cmake --build build --config Release
-```
+
+```text
 
 ### Run directly from the Hugging Face Hub
 
 ```bash
 llama-cli -hf bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0
-```
+
+```text
 
 ```bash
 llama-server -hf bartowski/Llama-3.2-3B-Instruct-GGUF:Q8_0
-```
+
+```text
 
 ### Run an exact GGUF file from the Hub
 
@@ -96,7 +101,8 @@ llama-server \
     --hf-repo microsoft/Phi-3-mini-4k-instruct-gguf \
     --hf-file Phi-3-mini-4k-instruct-q4.gguf \
     -c 4096
-```
+
+```text
 
 ### OpenAI-compatible server check
 
@@ -108,7 +114,8 @@ curl http://localhost:8080/v1/chat/completions \
       {"role": "user", "content": "Write a limerick about Python exceptions"}
     ]
   }'
-```
+
+```text
 
 ## Python bindings (llama-cpp-python)
 
@@ -128,7 +135,8 @@ llm = Llama(
 
 out = llm("What is machine learning?", max_tokens=256, temperature=0.7)
 print(out["choices"][0]["text"])
-```
+
+```text
 
 ### Chat + streaming
 
@@ -152,7 +160,8 @@ print(resp["choices"][0]["message"]["content"])
 # Streaming
 for chunk in llm("Explain quantum computing:", max_tokens=256, stream=True):
     print(chunk["choices"][0]["text"], end="", flush=True)
-```
+
+```text
 
 ### Embeddings
 
@@ -160,7 +169,8 @@ for chunk in llm("Explain quantum computing:", max_tokens=256, stream=True):
 llm = Llama(model_path="./model-q4_k_m.gguf", embedding=True, n_gpu_layers=35)
 vec = llm.embed("This is a test sentence.")
 print(f"Embedding dimension: {len(vec)}")
-```
+
+```text
 
 You can also load a GGUF straight from the Hub:
 
@@ -170,7 +180,8 @@ llm = Llama.from_pretrained(
     filename="*Q4_K_M.gguf",
     n_gpu_layers=35,
 )
-```
+
+```text
 
 ## Choosing a quant
 
@@ -215,7 +226,8 @@ https://huggingface.co/models?search=<term>&apps=llama.cpp&num_parameters=min:0,
 https://huggingface.co/<repo>?local-app=llama.cpp
 https://huggingface.co/api/models/<repo>/tree/main?recursive=true
 https://huggingface.co/<repo>/tree/main
-```
+
+```text
 
 ## Output format
 
@@ -231,7 +243,8 @@ Other GGUFs:
 Source URLs:
 - <local-app URL>
 - <tree API URL>
-```
+
+```text
 
 ## References
 

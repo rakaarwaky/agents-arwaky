@@ -29,6 +29,7 @@ triggers:
 > **Scope**: Python, Rust, and TypeScript HOW-TO files with consistent structure.
 
 This skill generates HOW-TO files with the standard AES structure:
+
 - Header with Purpose, Audience, Scope, Location, Length
 - Rules section
 - Workflow section
@@ -86,7 +87,8 @@ Every HOW-TO file must follow this structure:
 ## Verify
 
 <commands to validate the output>
-```
+
+```text
 
 ---
 
@@ -124,7 +126,8 @@ Every HOW-TO file must follow this structure:
 > **Scope**: <language> `_<pattern>` files in the shared domain.
 > **Location**: Shared domain package next to <related layer>.
 > **Length**: <expected size>.
-```
+
+```text
 
 ### For Documentation Skills (PRD, FRD, BACKLOG, etc.)
 
@@ -136,7 +139,8 @@ Every HOW-TO file must follow this structure:
 > **Scope**: One <doc type> per <scope>.
 > **Location**: <where file lives>.
 > **Length**: <size range>.
-```
+
+```text
 
 ### For Migration Skills
 
@@ -148,7 +152,8 @@ Every HOW-TO file must follow this structure:
 > **Scope**: Phase-based migration workflow for <language> projects.
 > **Location**: Project root; each phase operates on a layer directory.
 > **Length**: 9 phases (0–8); total duration depends on violation count.
-```
+
+```text
 
 ---
 
@@ -172,7 +177,7 @@ cat > skills/<skill-name>/references/HOW-TO-MAKE-PYTHON-LOGGER.md << 'EOF'
 
 ---
 
-## Rules
+## Rules (2)
 
 1. **Suffix is strictly `_logger`.** File: `utility_<domain>_logger.py`.
 2. **Free functions only** — no class, no state, no I/O beyond stdout/stderr.
@@ -180,14 +185,14 @@ cat > skills/<skill-name>/references/HOW-TO-MAKE-PYTHON-LOGGER.md << 'EOF'
 4. **≥2 consumers** — extract only when multiple modules need it.
 5. **Register** in shared `__init__.py`.
 
-## Workflow
+## Workflow (2)
 
 1. Identify reusable logging pattern across ≥2 modules.
 2. Create `utility_<domain>_logger.py` with free functions.
 3. Register in shared barrel.
 4. Verify: `lint-arwaky-cli scan <layer-path>`.
 
-## Template
+## Template (2)
 
 ```python
 """<Domain> logging helpers — stateless, domain-agnostic."""
@@ -201,9 +206,10 @@ def log_debug(msg: str) -> None:
 def log_info(msg: str) -> None:
     """Print info message to stdout."""
     print(f"[INFO] {msg}")
-```
 
-## Section Contract
+```text
+
+## Section Contract (2)
 
 | Section | Why it belongs here |
 | ------- | ------------------- |
@@ -212,14 +218,17 @@ def log_info(msg: str) -> None:
 | Free functions only | Utility layer cannot have class/state (AES404). |
 | Register in barrel | Makes importable without private module access. |
 
-## Verify
+## Verify (2)
 
 ```bash
 lint-arwaky-cli scan modules/shared/src
 python -c "from modules.shared.src.utility_<domain>_logger import log_debug; print('ok')"
-```
+
+```text
+
 EOF
-```
+
+```text
 
 ---
 
@@ -234,7 +243,8 @@ python3 -m modules.root_cli_entry check docs skills/<skill-name>
 # Verify structure
 grep "^## " skills/<skill-name>/references/HOW-TO-MAKE-*.md
 # Expected: ## Rules, ## Workflow, ## Template, ## Section Contract, ## Verify
-```
+
+```text
 
 ---
 

@@ -22,19 +22,21 @@ ladder, cheapest first.
 
 ## The ladder
 
-```
+```text
 1. Wayback Machine  — archive.org "available" API  (snapshot + timestamp)
 2. archive.today    — domain rotation: archive.ph → .md → .li → .is
 3. Jina Reader      — only if JINA_API_KEY is set  (live server-side render)
 4. API-first pivot  — look for /api/, /graphql, .json, or RSS on the same host
 5. Real browser     — browser tool as the last, most expensive resort
-```
+
+```text
 
 Run it in one shot with the bundled script:
 
 ```bash
 python3 scripts/recover_page.py "https://example.com/blocked-article" --json
-```
+
+```text
 
 The script tries each route in order, validates every body (see "Fake
 successes" below), and prints the first genuine hit with its provenance.
@@ -60,13 +62,15 @@ snapshot is context, not an answer — say so explicitly and note its age.
 # Discovery: returns closest snapshot URL + timestamp as JSON
 curl -sL "https://archive.org/wayback/available?url={URL}"
 # Then fetch archived_snapshots.closest.url
-```
+
+```text
 
 For enumerating many snapshots (or recovering deleted pages), the CDX index:
 
 ```bash
 curl -sL "https://web.archive.org/cdx/search/cdx?url={URL}&output=json&limit=10"
-```
+
+```text
 
 CDX intermittently returns 503 under load — if it does, fall back to the
 `available` API; don't retry-hammer it.
@@ -84,7 +88,8 @@ for d in archive.ph archive.md archive.li archive.is; do
   curl -sL --max-time 20 "https://$d/newest/{URL}" -o /tmp/page.html \
     -w "%{http_code}" && break
 done
-```
+
+```text
 
 **Validate the body, not the status code** — a 429 still ships several KB of
 rate-limit HTML that looks like a success to a size check alone.
@@ -97,7 +102,8 @@ required:
 
 ```bash
 curl -s -H "Authorization: Bearer $JINA_API_KEY" "https://r.jina.ai/{URL}"
-```
+
+```text
 
 Handles JS SPAs that archives can't. Skip this route entirely when the env
 var is unset.

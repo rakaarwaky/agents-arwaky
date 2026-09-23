@@ -61,7 +61,8 @@ workspace-mcp --transport streamable-http &
 workspace-cli list
 workspace-cli call search_gmail_messages query="is:unread" max_results=5
 # Override the target with WORKSPACE_MCP_URL; `uv run --directory vendor/google-workspace-mcp workspace-cli ...` if not on PATH.
-```
+
+```text
 
 Server-side flags worth knowing (all documented in [references/server-options.md](references/server-options.md)):
 
@@ -69,7 +70,8 @@ Server-side flags worth knowing (all documented in [references/server-options.md
 aa tool run workspace-mcp --help        # or: workspace-mcp --help
 workspace-mcp --tool-tier core          # fewer tools, fewer tokens
 workspace-mcp --read-only               # read-only scopes, write tools disabled
-```
+
+```text
 
 For any tool, read the matching `references/<service>.md` before calling it. Only use
 parameters documented there — do not invent parameters.
@@ -80,12 +82,15 @@ Auth is already configured on this host if `~/.google_workspace_mcp/credentials/
 exists. Walk the user through setup only when a tool call fails with a credential error.
 
 ### 1. Create OAuth credentials
+
 Direct the user to [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+
 - Create OAuth 2.0 Client ID (Desktop application type)
 - Enable the Google APIs they need (Gmail, Drive, Calendar, etc.)
 - Copy the Client ID and Client Secret
 
 ### 2. Make the client secret visible to the server process
+
 Do not ask the user to paste secrets into the conversation. Either point the server at a
 downloaded JSON file with `GOOGLE_CLIENT_SECRET_PATH`, or put the id/secret in the `env` block
 of the harness config that **launches** the server — for Qwen Code that is
@@ -96,6 +101,7 @@ because the `workspace-mcp` launcher runs the server from that directory. `vendo
 submodule: treat that file as machine-local config, never a thing to edit or commit.
 
 ### 3. Authenticate
+
 - **MCP mode**: call `start_google_auth` to open the browser OAuth flow
 - **CLI mode**: run any tool through a streamable-http server -- the first invocation opens the OAuth flow
 - Credentials are cached in `~/.google_workspace_mcp/credentials/<email>.json` (override with
@@ -313,28 +319,33 @@ Parameters: `user_google_email` (string, optional), `service_name` (string, requ
 ## Common Workflows
 
 ### Daily / morning brief
+
 Load [references/daily-brief.md](references/daily-brief.md) and follow it: resolve the day window in
 the account's timezone, fetch events (all calendars, accepted + tentative + all-day), pull only the
 mail that changes preparation or priority, link mail to meetings without guessing, then present the
 brief in its fixed order. Nothing is drafted or created until the user approves it.
 
 ### Reply to an email
+
 1. `search_gmail_messages` -- find the email
 2. `get_gmail_message_content` -- read it (get `message_id` and `thread_id`)
 3. `send_gmail_message` -- reply using `thread_id`; omit reply headers to target the latest non-draft, non-trash message with an RFC `Message-ID`
 
 ### Find and share a file
+
 1. `search_drive_files` -- find the file
 2. `manage_drive_access` -- share it
 3. `get_drive_shareable_link` -- get the link
 
 ### Read and update a spreadsheet
+
 1. `get_spreadsheet_info` -- get sheet names
 2. `read_sheet_values` -- read current data
 3. `modify_sheet_values` -- write updated data
 4. `read_sheet_values` -- verify the update
 
 ### Create a formatted document
+
 1. `create_doc` -- create the doc
 2. `modify_doc_text` -- add text with formatting
 3. `insert_doc_elements` -- add tables, lists, page breaks
@@ -342,11 +353,13 @@ brief in its fixed order. Nothing is drafted or created until the user approves 
 5. `get_doc_as_markdown` -- verify the result
 
 ### Process email attachments
+
 1. `search_gmail_messages` -- find the email
 2. `get_gmail_message_content` -- get attachment metadata
 3. `get_gmail_attachment_content` -- download the attachment
 
 ### Edit a Google Doc
+
 1. `get_doc_as_markdown` -- read current content
 2. `inspect_doc_structure` -- find insertion points and indices
 3. `modify_doc_text` / `insert_doc_elements` -- make changes

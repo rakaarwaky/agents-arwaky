@@ -37,7 +37,8 @@ docker run --rm -v blogwatcher-cli:/data -e BLOGWATCHER_DB=/data/blogwatcher-cli
 
 # Host bind mount
 docker run --rm -v /path/on/host:/data -e BLOGWATCHER_DB=/data/blogwatcher-cli.db ghcr.io/julientant/blogwatcher-cli scan
-```
+
+```text
 
 ### Migrating from the original blogwatcher
 
@@ -45,7 +46,8 @@ If upgrading from `Hyaxia/blogwatcher`, move your database:
 
 ```bash
 mv ~/.blogwatcher/blogwatcher.db ~/.blogwatcher-cli/blogwatcher-cli.db
-```
+
+```text
 
 The binary name changed from `blogwatcher` to `blogwatcher-cli`.
 
@@ -87,7 +89,7 @@ All flags can be set via environment variables with the `BLOGWATCHER_` prefix:
 
 ## Example Output
 
-```
+```text
 $ blogwatcher-cli blogs
 Tracked blogs (1):
 
@@ -95,9 +97,10 @@ Tracked blogs (1):
     URL: https://xkcd.com
     Feed: https://xkcd.com/atom.xml
     Last scanned: 2026-04-03 10:30
-```
 
-```
+```text
+
+```text
 $ blogwatcher-cli scan
 Scanning 1 blog(s)...
 
@@ -105,9 +108,10 @@ Scanning 1 blog(s)...
     Source: RSS | Found: 4 | New: 4
 
 Found 4 new article(s) total!
-```
 
-```
+```text
+
+```text
 $ blogwatcher-cli articles
 Unread articles (2):
 
@@ -122,7 +126,8 @@ Unread articles (2):
        URL: https://xkcd.com/3094/
        Published: 2026-04-01
        Categories: Comics
-```
+
+```text
 
 ## Notes
 

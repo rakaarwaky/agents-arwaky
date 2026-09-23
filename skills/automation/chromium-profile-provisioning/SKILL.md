@@ -15,6 +15,7 @@ metadata:
 ## What "a profile exists" actually means
 
 A profile is real only when BOTH agree:
+
   * a directory (e.g. `Profile 9`) under the user-data dir,
   * its registration in `Local State` → `profile.info_cache` (plus
     `profiles_order` for the picker and `metrics.next_bucket_index` so the
@@ -75,6 +76,7 @@ assert nothing new appeared in the tree) instead of testing only the happy path.
 4. Serialize `Local State` as compact JSON (`separators=(',',':')`) at 0600.
 
 Correctness traps:
+
   * Match existing profiles CASE-INSENSITIVELY (`profile 1` vs registered
     `Profile 1`) — Chromium does, and creating a sibling causes picker chaos.
   * Resolve names against BOTH the `info_cache` folder key and its `name`

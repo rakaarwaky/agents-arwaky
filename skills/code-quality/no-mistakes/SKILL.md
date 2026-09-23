@@ -82,9 +82,12 @@ that a reviewer reading only the diff would not know.
 Run the pipeline and decide on its findings as they come up:
 
 1. Start the run. It blocks until the first decision point or the end:
+
    ```sh
    no-mistakes axi run --intent "<what the user set out to accomplish>"
-   ```
+
+```text
+
    `axi run` and every `axi respond` block synchronously - the review, test,
    and CI steps can each take **several minutes**, so a single call may not
    return for a while. That is normal; allow a long timeout and do not cancel
@@ -102,6 +105,7 @@ Run the pipeline and decide on its findings as they come up:
      [Escalate `ask-user` findings](#escalate-ask-user-findings) below.
 
    Choose one response:
+
    ```sh
    # accept the step as-is and continue
    no-mistakes axi respond --action approve
@@ -111,7 +115,9 @@ Run the pipeline and decide on its findings as they come up:
 
    # skip this step
    no-mistakes axi respond --action skip
-   ```
+
+```text
+
    While a run is active, never fix findings by editing the code yourself -
    the pipeline owns both the findings and the fixes. Your job at a gate is to
    decide and respond; `--action fix` has the pipeline apply the fix and
@@ -181,7 +187,8 @@ no-mistakes axi               # home view: active run, recent runs, next steps
 no-mistakes axi status        # full detail of the active (or most recent) run
 no-mistakes axi logs --step <name> --full   # full log output of one step
 no-mistakes axi abort         # cancel the active run
-```
+
+```text
 
 ## Reading the output
 
@@ -194,7 +201,7 @@ A `gate:` waiting on you looks roughly like this - a `gate:` line naming the
 step, a `findings[N]{...}:` table with one row per finding, and a `help[N]:`
 list of next commands:
 
-```
+```text
 gate: review
 findings[2]{id,severity,file,description,action}:
   r1,medium,internal/pipeline/executor.go,Error from os.Remove is ignored,auto-fix
@@ -202,7 +209,8 @@ findings[2]{id,severity,file,description,action}:
 help[2]:
   no-mistakes axi respond --action fix --findings r1
   no-mistakes axi respond --action approve
-```
+
+```text
 
 Read the `action` column per row: decide `r1` (auto-fix) on your own
 judgment - `respond --action fix --findings r1` hands it to the pipeline to

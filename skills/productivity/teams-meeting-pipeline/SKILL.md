@@ -23,6 +23,7 @@ Everything operator-facing is a `hermes teams-pipeline` subcommand run via the t
 ## When to use this skill
 
 The user is asking to:
+
 - summarize a Teams meeting / extract action items / pull meeting notes
 - check pipeline status, inspect a stored meeting job, or see recent meetings
 - replay / re-run a stored job that failed or needs a fresh summary
@@ -32,6 +33,7 @@ The user is asking to:
 - set up automated subscription renewal (see pitfall below)
 
 Multilingual trigger examples (not exhaustive):
+
 - English: "summarize the Teams meeting", "pipeline status", "replay job X"
 - Turkish: "Teams meeting özetle", "action item çıkar", "toplantı notu", "pipeline durumu", "replay job"
 
@@ -43,7 +45,8 @@ Before using the pipeline, verify these are set in `${HERMES_HOME:-~/.hermes}/.e
 MSGRAPH_TENANT_ID=...
 MSGRAPH_CLIENT_ID=...
 MSGRAPH_CLIENT_SECRET=...
-```
+
+```text
 
 If any are missing, direct the user to the Azure app registration guide at `/docs/guides/microsoft-graph-app-registration` — they need an Azure AD app registration with admin-consented Graph application permissions before the pipeline will work.
 
@@ -59,7 +62,8 @@ hermes teams-pipeline list                  # recent meeting jobs
 hermes teams-pipeline list --status failed  # only failed jobs
 hermes teams-pipeline show <job-id>         # full detail of one job
 hermes teams-pipeline subscriptions         # current Graph webhook subscriptions
-```
+
+```text
 
 ### Re-running / debugging
 
@@ -68,7 +72,8 @@ hermes teams-pipeline run <job-id>          # replay a stored job (re-summarize,
 hermes teams-pipeline fetch --meeting-id <id>   # dry-run: resolve meeting + transcript without persisting
 hermes teams-pipeline fetch --join-web-url "<url>"   # dry-run by join URL
 hermes teams-pipeline fetch --join-web-url "<url>" --organizer-user-id <id>   # organizer-scoped lookup (required for /meet/ short URLs)
-```
+
+```text
 
 ### Subscription management
 
@@ -82,7 +87,8 @@ hermes teams-pipeline renew-subscription <sub-id> --expiration <iso-8601>
 hermes teams-pipeline delete-subscription <sub-id>
 hermes teams-pipeline maintain-subscriptions            # renew near-expiry ones
 hermes teams-pipeline maintain-subscriptions --dry-run  # show what would be renewed
-```
+
+```text
 
 ## Decision tree for common asks
 
@@ -96,6 +102,7 @@ hermes teams-pipeline maintain-subscriptions --dry-run  # show what would be ren
 Microsoft Graph caps webhook subscriptions at 72 hours and **will not auto-renew them**. If `maintain-subscriptions` is not scheduled, meeting notifications silently stop arriving 3 days after any manual subscription creation.
 
 When the user reports "the pipeline worked yesterday but nothing is arriving today":
+
 1. Run `hermes teams-pipeline subscriptions` — if it's empty or all entries show `expirationDateTime` in the past, that's the cause.
 2. Recreate with `subscribe` as shown above.
 3. **Set up automated renewal immediately** via `hermes cron add`, a systemd timer, or plain crontab. The operator runbook at `/docs/guides/operate-teams-meeting-pipeline#automating-subscription-renewal-required-for-production` has all three options. 12-hour interval is safe (6x headroom against the 72h limit).
@@ -109,6 +116,7 @@ When the user reports "the pipeline worked yesterday but nothing is arriving tod
 ## Related docs
 
 Point the user to these when they need more depth than this skill covers:
+
 - Azure app registration walkthrough: `/docs/guides/microsoft-graph-app-registration`
 - Full pipeline setup: `/docs/user-guide/messaging/teams-meetings`
 - Operator runbook (renewal automation, troubleshooting, go-live checklist): `/docs/guides/operate-teams-meeting-pipeline`

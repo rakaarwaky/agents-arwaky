@@ -13,7 +13,6 @@ Vision Arwaky is a Python computer-vision toolkit exposed through a CLI and an M
 
 The repository uses three documentation levels with different audiences:
 
-
 | Document                 | Audience                       | Focus                                                                            |
 | -------------------------- | -------------------------------- | ---------------------------------------------------------------------------------- |
 | [`PRD.md`](PRD.md)       | Stakeholders and product teams | Product problem, goals, scope, metrics, and risks                                |
@@ -23,7 +22,6 @@ The repository uses three documentation levels with different audiences:
 Feature FRDs are available for [shared](modules/shared/FRD.md), [system](modules/system/FRD.md), [image](modules/image/FRD.md), [video](modules/video/FRD.md), [CLI](modules/cli/FRD.md), and [MCP](modules/mcp/FRD.md).
 
 ## Entry points
-
 
 | Command             | Purpose                                          |
 | --------------------- | -------------------------------------------------- |
@@ -36,7 +34,6 @@ Use `uv run <command>` during development when the project is managed by `uv`.
 ## MCP tools
 
 The MCP server exposes six tools:
-
 
 | Tool                   | Purpose                                         |
 | ------------------------ | ------------------------------------------------- |
@@ -60,7 +57,8 @@ backend: external
 external:
   url: "http://localhost:8080/v1"
   model: "llava"
-```
+
+```text
 
 The repository does not bundle a model. External mode requires a reachable endpoint and an appropriate vision-capable model. Set credentials through `LLAMA_API_KEY` or `~/.config/vision-arwaky/config.yaml`; never commit an API key to the repository.
 
@@ -70,7 +68,8 @@ The repository does not bundle a model. External mode requires a reachable endpo
 init
   [target_dir] (optional, default: .)
   Initialize .vision-arwaky symlinks to XDG and create .agents/skills/vision-arwaky/SKILL.md.
-```
+
+```text
 
 ## CLI reference: image
 
@@ -89,7 +88,8 @@ compare
   --image1 PATH
   --image2 PATH
   Compare two screenshots and report perceptual differences.
-```
+
+```text
 
 ## CLI reference: video
 
@@ -123,15 +123,14 @@ analyze-video
   --video PATH
   --prompt TEXT (optional)
   Analyze bounded key frames with a VLM and synthesize a short summary.
-```
+
+```text
 
 Smart-video analysis combines scene-change, motion, and uniform sampling. It caps selected frames at 12, bounds the summary prompt, handles per-frame VLM failure with fallback descriptions, and removes temporary frame files after execution.
-
 
 ## Configuration and system dependencies
 
 The project reads configuration through `utility_config_handler`. Keep machine-specific paths and credentials outside version control. Use `LLAMA_API_URL`, `LLAMA_API_KEY`, and `LLAMA_MODEL` for environment overrides. The standard runtime paths are:
-
 
 | Resource                 | Typical location                           |
 | -------------------------- | -------------------------------------------- |
@@ -150,7 +149,8 @@ On Debian or Ubuntu:
 ```bash
 sudo apt-get update
 sudo apt-get install -y ffmpeg libgl1 tesseract-ocr
-```
+
+```text
 
 ## Development verification
 
@@ -159,7 +159,8 @@ From the repository root:
 ```bash
 uv sync
 bash scripts/gates.sh
-```
+
+```text
 
 The gates run Ruff formatting, Ruff lint, Mypy, pytest, and `lint-arwaky-cli scan .`. CI additionally builds the package and runs pytest on Python 3.12 and 3.13.
 

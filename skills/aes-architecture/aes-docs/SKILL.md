@@ -60,7 +60,6 @@ metadata:
 The **aggregate** defines which document exists, where it lives, who reads it, and which claim belongs where.
 Templates, section contracts, exemplars, and per-document craft rules live in [`references/`](references/).
 
-
 | Document     | Location                          | Audience                     | Focus                                | Length       | Template                                                               |
 | ------------ | --------------------------------- | ---------------------------- | ------------------------------------ | ------------ | ---------------------------------------------------------------------- |
 | `PRD.md`     | Root workspace                    | Stakeholder, PM, Design, Eng | *What* &amp; *Why*                   | 50–500 lines | [references/HOW-TO-MAKE-PRD.md](references/HOW-TO-MAKE-PRD.md)         |
@@ -78,7 +77,6 @@ Templates, section contracts, exemplars, and per-document craft rules live in [`
 | Rust       | `///` + rustdoc sections       | [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md) |
 | TypeScript | JSDoc / TSDoc                  | [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md) |
 
-
 **The Document Chain**:  
 PRD → ROADMAP  → FRD → BACKLOG → README→ AGENTS
 
@@ -93,7 +91,6 @@ Every rule is machine-checked by `aa check docs` (capability: `modules/check/src
 A rule cannot drift from the gate. Cite the code, not this file, when pointing at a rule.
 Each document's required section set is cross-checked against its reference's contract table, so a
 row that stops being enforced is a test failure rather than a silent edit.
-
 
 | Code                                                                     | Rule                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -115,7 +112,6 @@ row that stops being enforced is a test failure rather than a silent edit.
 | `absolute-path` / `secret-in-docs`                                       | No machine-specific path and no credential literal in any document.                                                                                                                   |
 | `ci-command-drift`                                                       | AGENTS.md commands match CI exactly or are labelled advisory.                                                                                                                        |
 | `doc-length` / `doc-thin`                                                | Each document stays inside the size its audience can read.                                                                                                                            |
-
 
 ### Unchecked Invariants (Language Rules)
 
@@ -165,7 +161,8 @@ project-root/
 │   │   ├── FRD.md
 │   │   └── BACKLOG.md
 │   └── shared/        # kernel — NO FRD.md / BACKLOG.md (feature-doc-in-shared)
-```
+
+```text
 
 Same shape for Python `modules/<feature>/` and TypeScript `packages/<feature>/`.
 Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md` still accepted), not in a feature backlog.
@@ -198,7 +195,8 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 ```bash
 aa check docs .                 # invariant audit of every document (strict; every finding gates)
 aa check docs . --include-subtrees   # also audit vendor/ and internal/ submodules
-```
+
+```text
 
 A pass means no claim sits in the wrong file, no pointer is broken, and no `Done` row is unevidenced.
 
@@ -259,4 +257,3 @@ The invariant codes above cover the machine-checkable ones. These need a reader:
 - `aes-lint-arwaky`
 - `cleanup-consolidate`
 - `fix-bypass`
-

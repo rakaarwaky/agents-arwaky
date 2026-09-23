@@ -45,7 +45,8 @@ All without touching Hermes core — deployed purely through the plugin director
 
 ```bash
 hermes memory status     # See active provider and installed plugins
-```
+
+```text
 
 ## Install
 
@@ -53,7 +54,8 @@ hermes memory status     # See active provider and installed plugins
 
 ```bash
 pip install mnemosyne-hermes
-```
+
+```text
 
 Debian/Trixie users (bare pip blocked): use a venv first:
 
@@ -61,7 +63,8 @@ Debian/Trixie users (bare pip blocked): use a venv first:
 python3 -m venv ~/.hermes/hermes-agent/venv
 source ~/.hermes/hermes-agent/venv/bin/activate
 pip install mnemosyne-hermes
-```
+
+```text
 
 `mnemosyne-hermes` wraps the core `mnemosyne-memory` library with the plugin
 manifest and entry points Hermes needs. It does not pull embeddings or LLM
@@ -77,7 +80,8 @@ deps — pair it with one of:
 
 ```bash
 mnemosyne-hermes install
-```
+
+```text
 
 This creates the symlink `~/.hermes/plugins/mnemosyne/ → <installed package>`
 so Hermes discovers it on startup.
@@ -89,14 +93,16 @@ survives image rebuilds:
 mnemosyne-hermes install --mode wrapper --python /path/to/venv/bin/python --hermes-home /opt/data
 mnemosyne-hermes status --hermes-home /opt/data
 hermes gateway restart
-```
+
+```text
 
 ### Step 3 — Activate
 
 ```bash
 hermes config set memory.provider mnemosyne
 hermes memory setup
-```
+
+```text
 
 ### Step 4 — (Optional) Disable built-in memory
 
@@ -108,7 +114,8 @@ running alongside it. To make Mnemosyne the sole memory system, edit
 memory:
   memory_enabled: false
   user_profile_enabled: false
-```
+
+```text
 
 Do **NOT** run `hermes tools disable memory` — that also kills all 20
 Mnemosyne-registered tools.
@@ -118,13 +125,15 @@ Mnemosyne-registered tools.
 ```bash
 hermes memory status       # Should show "Provider: mnemosyne"
 hermes mnemosyne stats     # Working + episodic memory counts
-```
+
+```text
 
 Test in a conversation:
 
 ```bash
 hermes chat -q "Remember that I love apples. What do I love?"
-```
+
+```text
 
 You should see `mnemosyne_remember` and `mnemosyne_recall` calls succeed.
 
@@ -142,7 +151,8 @@ MCP-compatible client (Claude Desktop, etc.):
 mnemosyne mcp                              # stdio transport
 mnemosyne mcp --transport sse --port 8080  # SSE transport
 mnemosyne mcp --transport streamable-http --port 8080  # native MCP http transport
-```
+
+```text
 
 **For Hermes, prefer the provider plugin over MCP.** The provider plugin
 gives deeper integration that MCP cannot: the `pre_llm_call` context
@@ -155,13 +165,15 @@ fallback for non-Hermes agents.
 ```bash
 hermes memory off          # Disable external provider, revert to built-in
 hermes memory setup        # Or use the interactive picker
-```
+
+```text
 
 Or manually:
 
 ```bash
 hermes config set memory.provider memory
-```
+
+```text
 
 Then restart Hermes.
 
@@ -176,20 +188,22 @@ hermes mnemosyne export --output backup.json
 hermes mnemosyne import --input backup.json
 hermes mnemosyne clear                # Clear scratchpad
 hermes mnemosyne version              # Show version
-```
+
+```text
 
 ## Data Location
 
 The provider's own default is under the Hermes home, so each install (and each
 `--hermes-home`, e.g. Docker's `/opt/data`) is isolated:
 
-```
+```text
 <hermes_home>/mnemosyne/
 └── data/
     ├── mnemosyne.db              # Main SQLite database (WAL mode)
     ├── triples.db                # Standalone TripleStore
     └── banks/<name>/mnemosyne.db # Named banks (per-profile isolation, off by default)
-```
+
+```text
 
 `MNEMOSYNE_DATA_DIR` overrides that default, and `aa connect` writes it into each
 Hermes profile's `.env` — so on a host wired up that way the store is the plain
@@ -199,7 +213,8 @@ ask the install:**
 ```bash
 mnemosyne config get data_dir          # the path actually resolved
 ls ~/.hermes/mnemosyne ~/.local/share/mnemosyne 2>&1
-```
+
+```text
 
 On this host the store is `~/.local/share/mnemosyne/` and there is **no**
 `~/.hermes/mnemosyne/`. See the `mnemosyne` skill for the layout of that
@@ -218,7 +233,8 @@ auxiliary client instead — no extra credentials needed:
 
 ```bash
 export MNEMOSYNE_HOST_LLM_ENABLED=true
-```
+
+```text
 
 Remember the precedence trap: a key already pinned in `config.yaml` outranks
 this env var. Check the effective value with `mnemosyne config get <key>` (the

@@ -31,7 +31,8 @@ Query read-only:
 ```bash
 DB="$HOME/.omniroute/storage.sqlite"
 sqlite3 "file:$DB?mode=ro" ".tables"
-```
+
+```text
 
 ## Authentication
 
@@ -42,17 +43,23 @@ sqlite3 "file:$DB?mode=ro" ".tables"
 ## Diagnostic Workflow
 
 1. **Check service status:**
+
    ```bash
    systemctl --user status omniroute.service
-   ```
+
+```text
+
    Restart: `systemctl --user restart omniroute.service`
 
 2. **Confirm the API endpoint is alive:**
+
    ```bash
    curl -s http://localhost:7777/v1/models | jq '.data[].id'
-   ```
+
+```text
 
 3. **Test chat completion with API key:**
+
    ```bash
    curl -s -X POST http://localhost:7777/v1/chat/completions \
      -H "Content-Type: application/json" \
@@ -62,9 +69,12 @@ sqlite3 "file:$DB?mode=ro" ".tables"
        "messages": [{"role": "user", "content": "ping"}],
        "max_tokens": 20
      }'
-   ```
+
+```text
 
 4. **Inspect recent logs:**
+
    ```bash
    journalctl --user -u omniroute.service -n 50 --no-pager
-   ```
+
+```text

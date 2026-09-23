@@ -34,7 +34,8 @@ End-to-end pipeline for producing publication-ready ML/AI research papers target
 This is **not a linear pipeline** — it is an iterative loop. Results trigger new experiments. Reviews trigger new analysis. The agent must handle these feedback loops.
 
 <!-- ascii-guard-ignore -->
-```
+
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    RESEARCH PAPER PIPELINE                  │
 │                                                             │
@@ -52,7 +53,8 @@ This is **not a linear pipeline** — it is an iterative loop. Results trigger n
 │  Phase 4: Analysis ─────► (feeds back to Phase 2 or 5)     │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
-```
+
+```text
 <!-- ascii-guard-ignore-end -->
 
 ---
@@ -60,6 +62,7 @@ This is **not a linear pipeline** — it is an iterative loop. Results trigger n
 ## When To Use This Skill
 
 Use this skill when:
+
 - **Starting a new research paper** from an existing codebase or idea
 - **Designing and running experiments** to support paper claims
 - **Writing or revising** any section of a research paper

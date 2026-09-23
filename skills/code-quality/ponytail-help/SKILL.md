@@ -45,14 +45,18 @@ Say "stop ponytail" or "normal mode". Resume anytime with `/ponytail`.
 Default mode = `full`, auto-active every session. Change it:
 
 **Environment variable** (highest priority):
+
 ```bash
 export PONYTAIL_DEFAULT_MODE=ultra
-```
+
+```text
 
 **Config file** (`~/.config/ponytail/config.json`, Windows: `%APPDATA%\ponytail\config.json`):
+
 ```json
 { "defaultMode": "lite" }
-```
+
+```text
 
 Set `"off"` to disable auto-activation on session start, activate manually
 with `/ponytail` when wanted.

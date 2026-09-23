@@ -72,7 +72,8 @@ git diff --staged                 # "staged changes"
 git diff HEAD~1                    # "the last commit"
 git diff main...HEAD              # "this branch" / "my PR"
 git diff -- src/foo.py            # specific file(s)
-```
+
+```text
 
 If `git diff` and `git diff HEAD` are both empty and there's no git repo or no
 changes, fall back to the files the user explicitly named or that were
@@ -105,15 +106,19 @@ wider codebase. Each reviewer gets `terminal`, `file`, and `search`
 toolsets (so they can `git`, `read_file`, and `search_files`/grep).
 
 Tell each reviewer to:
+
 - Search the existing codebase for evidence (don't reason from the diff alone).
 - **Apply Chesterton's Fence:** before flagging anything for removal, run
   `git blame` on the line to understand why it exists. If you can't determine
   the original purpose, mark it `confidence: low` — don't guess.
 - Report findings as structured output with the concrete cost, confidence,
   and risk:
-  ```
+
+```text
   file:line → problem → cost (what's duplicated/wasted/harder to maintain) → suggested fix | confidence: high/medium/low | risk: SAFE/CAREFUL/RISKY
-  ```
+
+```text
+
   The **cost** field forces each finding to justify itself — a finding that
   can't articulate what the problem actually costs is probably a nit.
   - **SAFE** = proven not to affect behavior (unused imports, commented-out

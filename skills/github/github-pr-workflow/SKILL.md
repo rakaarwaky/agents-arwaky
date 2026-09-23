@@ -40,7 +40,8 @@ for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.con
 done
 AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$GH_REPO"
 echo "Using: $AUTH"; echo "Owner: $OWNER, Repo: $REPO"
-```
+
+```text
 
 ---
 
@@ -55,9 +56,11 @@ git checkout main && git pull origin main
 
 # Create and switch to a new branch
 git checkout -b feat/add-user-authentication
-```
+
+```text
 
 Branch naming conventions:
+
 - `feat/description` — new features
 - `fix/description` — bug fixes
 - `refactor/description` — code restructuring
@@ -79,14 +82,17 @@ git commit -m "feat: add JWT-based user authentication
 - Add User model with password hashing
 - Add auth middleware for protected routes
 - Add unit tests for auth flow"
-```
+
+```text
 
 Commit message format (Conventional Commits):
-```
+
+```text
 type(scope): short description
 
 Longer explanation if needed. Wrap at 72 characters.
-```
+
+```text
 
 Types: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `perf`
 
@@ -96,7 +102,8 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `perf`
 
 ```bash
 git push -u origin HEAD
-```
+
+```text
 
 ### Create the PR
 
@@ -113,7 +120,8 @@ gh pr create \
 - [ ] Unit tests pass
 
 Closes #42"
-```
+
+```text
 
 Options: `--draft`, `--reviewer user1,user2`, `--label "enhancement"`, `--base develop`
 
@@ -134,7 +142,8 @@ curl -s -X POST \
     \"head\": \"$BRANCH\",
     \"base\": \"main\"
   }"
-```
+
+```text
 
 The response JSON includes the PR `number` — save it for later commands.
 
@@ -152,7 +161,8 @@ gh pr checks
 
 # Watch until all checks finish (polls every 10s)
 gh pr checks --watch
-```
+
+```text
 
 **With git + curl:**
 
@@ -180,7 +190,8 @@ import sys, json
 data = json.load(sys.stdin)
 for cr in data.get('check_runs', []):
     print(f\"  {cr['name']}: {cr['status']} / {cr['conclusion'] or 'pending'}\")"
-```
+
+```text
 
 ### Poll Until Complete (git + curl)
 
@@ -198,7 +209,8 @@ for i in $(seq 1 20); do
   fi
   sleep 30
 done
-```
+
+```text
 
 ## 5. Auto-Fixing CI Failures
 
@@ -214,7 +226,8 @@ gh run list --branch $(git branch --show-current) --limit 5
 
 # View failed logs
 gh run view <RUN_ID> --log-failed
-```
+
+```text
 
 **With git + curl:**
 
@@ -238,7 +251,8 @@ curl -s -L \
   https://api.github.com/repos/$OWNER/$REPO/actions/runs/$RUN_ID/logs \
   -o /tmp/ci-logs.zip
 cd /tmp && unzip -o ci-logs.zip -d ci-logs && cat ci-logs/*.txt
-```
+
+```text
 
 ### Step 2: Fix and Push
 
@@ -248,7 +262,8 @@ After identifying the issue, use file tools (`patch`, `write_file`) to fix it:
 git add <fixed_files>
 git commit -m "fix: resolve CI failure in <check_name>"
 git push
-```
+
+```text
 
 ### Step 3: Verify
 
@@ -275,7 +290,8 @@ gh pr merge --squash --delete-branch
 
 # Enable auto-merge (merges when all checks pass)
 gh pr merge --auto --squash --delete-branch
-```
+
+```text
 
 **With git + curl:**
 
@@ -298,7 +314,8 @@ git push origin --delete $BRANCH
 # Switch back to main locally
 git checkout main && git pull origin main
 git branch -d $BRANCH
-```
+
+```text
 
 Merge methods: `"merge"` (merge commit), `"squash"`, `"rebase"`
 
@@ -316,7 +333,8 @@ curl -s -X POST \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/graphql \
   -d "{\"query\": \"mutation { enablePullRequestAutoMerge(input: {pullRequestId: \\\"$PR_NODE_ID\\\", mergeMethod: SQUASH}) { clientMutationId } }\"}"
-```
+
+```text
 
 ## 7. Complete Workflow Example
 
@@ -344,7 +362,8 @@ git push -u origin HEAD
 # 7. Monitor CI (see Section 4)
 
 # 8. Merge when green (see Section 6)
-```
+
+```text
 
 ## Taking an Issue to a PR
 

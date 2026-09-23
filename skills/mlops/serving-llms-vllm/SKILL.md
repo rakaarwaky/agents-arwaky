@@ -25,11 +25,14 @@ Use when deploying production LLM APIs, optimizing inference latency/throughput,
 vLLM achieves 24x higher throughput than standard transformers through PagedAttention (block-based KV cache) and continuous batching (mixing prefill/decode requests).
 
 **Installation**:
+
 ```bash
 pip install vllm
-```
+
+```text
 
 **Basic offline inference**:
+
 ```python
 from vllm import LLM, SamplingParams
 
@@ -38,9 +41,11 @@ sampling = SamplingParams(temperature=0.7, max_tokens=256)
 
 outputs = llm.generate(["Explain quantum computing"], sampling)
 print(outputs[0].outputs[0].text)
-```
+
+```text
 
 **OpenAI-compatible server**:
+
 ```bash
 vllm serve meta-llama/Meta-Llama-3-8B-Instruct
 
@@ -53,7 +58,8 @@ print(client.chat.completions.create(
     messages=[{'role': 'user', 'content': 'Hello!'}]
 ).choices[0].message.content)
 "
-```
+
+```text
 
 ## Common workflows
 
@@ -61,14 +67,15 @@ print(client.chat.completions.create(
 
 Copy this checklist and track progress:
 
-```
+```text
 Deployment Progress:
 - [ ] Step 1: Configure server settings
 - [ ] Step 2: Test with limited traffic
 - [ ] Step 3: Enable monitoring
 - [ ] Step 4: Deploy to production
 - [ ] Step 5: Verify performance metrics
-```
+
+```text
 
 **Step 1: Configure server settings**
 
@@ -95,7 +102,8 @@ vllm serve meta-llama/Meta-Llama-3-8B-Instruct \
   --enable-prefix-caching \
   --port 8000 \
   --host 0.0.0.0
-```
+
+```text
 
 **Step 2: Test with limited traffic**
 
@@ -107,7 +115,8 @@ pip install locust
 
 # Create test_load.py with sample requests
 # Run: locust -f test_load.py --host http://localhost:8000
-```
+
+```text
 
 Verify TTFT (time to first token) < 500ms and throughput > 100 req/sec.
 
@@ -117,9 +126,11 @@ vLLM exposes Prometheus metrics at `/metrics` on the API port (default 8000):
 
 ```bash
 curl http://localhost:8000/metrics | grep vllm
-```
+
+```text
 
 Key metrics to monitor:
+
 - `vllm:time_to_first_token_seconds` - Latency
 - `vllm:num_requests_running` - Active requests
 - `vllm:gpu_cache_usage_perc` - KV cache utilization
@@ -135,11 +146,13 @@ docker run --gpus all -p 8000:8000 \
   --model meta-llama/Meta-Llama-3-8B-Instruct \
   --gpu-memory-utilization 0.9 \
   --enable-prefix-caching
-```
+
+```text
 
 **Step 5: Verify performance metrics**
 
 Check that deployment meets targets:
+
 - TTFT < 500ms (for short prompts)
 - Throughput > target req/sec
 - GPU utilization > 80%
@@ -151,13 +164,14 @@ For processing large datasets without server overhead.
 
 Copy this checklist:
 
-```
+```text
 Batch Processing:
 - [ ] Step 1: Prepare input data
 - [ ] Step 2: Configure LLM engine
 - [ ] Step 3: Run batch inference
 - [ ] Step 4: Process results
-```
+
+```text
 
 **Step 1: Prepare input data**
 
@@ -168,7 +182,8 @@ with open("prompts.txt") as f:
     prompts = [line.strip() for line in f]
 
 print(f"Loaded {len(prompts)} prompts")
-```
+
+```text
 
 **Step 2: Configure LLM engine**
 
@@ -188,7 +203,8 @@ sampling = SamplingParams(
     max_tokens=512,
     stop=["</s>", "\n\n"]
 )
-```
+
+```text
 
 **Step 3: Run batch inference**
 
@@ -200,7 +216,8 @@ outputs = llm.generate(prompts, sampling)
 
 # vLLM handles batching internally
 # No need to manually chunk prompts
-```
+
+```text
 
 **Step 4: Process results**
 
@@ -223,19 +240,21 @@ with open("results.jsonl", "w") as f:
         f.write(json.dumps(result) + "\n")
 
 print(f"Processed {len(results)} prompts")
-```
+
+```text
 
 ### Workflow 3: Quantized model serving
 
 Fit large models in limited GPU memory.
 
-```
+```text
 Quantization Setup:
 - [ ] Step 1: Choose quantization method
 - [ ] Step 2: Find or create quantized model
 - [ ] Step 3: Launch with quantization flag
 - [ ] Step 4: Verify accuracy
-```
+
+```text
 
 **Step 1: Choose quantization method**
 
@@ -250,7 +269,8 @@ Use pre-quantized models from HuggingFace:
 ```bash
 # Search for AWQ models
 # Example: TheBloke/Llama-2-70B-AWQ
-```
+
+```text
 
 **Step 3: Launch with quantization flag**
 
@@ -262,7 +282,8 @@ vllm serve TheBloke/Llama-2-70B-AWQ \
   --gpu-memory-utilization 0.95
 
 # Results: 70B model in ~40GB VRAM
-```
+
+```text
 
 **Step 4: Verify accuracy**
 
@@ -271,11 +292,13 @@ Test outputs match expected quality:
 ```python
 # Compare quantized vs non-quantized responses
 # Verify task-specific performance unchanged
-```
+
+```text
 
 ## When to use vs alternatives
 
 **Use vLLM when:**
+
 - Deploying production LLM APIs (100+ req/sec)
 - Serving OpenAI-compatible endpoints
 - Limited GPU memory but need large models
@@ -283,6 +306,7 @@ Test outputs match expected quality:
 - Need low latency with high throughput
 
 **Use alternatives instead:**
+
 - **llama.cpp**: CPU/edge inference, single-user
 - **HuggingFace transformers**: Research, prototyping, one-off generation
 - **TensorRT-LLM**: NVIDIA-only, need absolute maximum performance
@@ -293,58 +317,74 @@ Test outputs match expected quality:
 **Issue: Out of memory during model loading**
 
 Reduce memory usage:
+
 ```bash
 vllm serve MODEL \
   --gpu-memory-utilization 0.7 \
   --max-model-len 4096
-```
+
+```text
 
 Or use quantization:
+
 ```bash
 vllm serve MODEL --quantization awq
-```
+
+```text
 
 **Issue: Slow first token (TTFT > 1 second)**
 
 Enable prefix caching for repeated prompts:
+
 ```bash
 vllm serve MODEL --enable-prefix-caching
-```
+
+```text
 
 For long prompts, enable chunked prefill:
+
 ```bash
 vllm serve MODEL --enable-chunked-prefill
-```
+
+```text
 
 **Issue: Model not found error**
 
 Use `--trust-remote-code` for custom models:
+
 ```bash
 vllm serve MODEL --trust-remote-code
-```
+
+```text
 
 **Issue: Low throughput (<50 req/sec)**
 
 Increase concurrent sequences:
+
 ```bash
 vllm serve MODEL --max-num-seqs 512
-```
+
+```text
 
 Check GPU utilization with `nvidia-smi` - should be >80%.
 
 **Issue: Inference slower than expected**
 
 Verify tensor parallelism uses power of 2 GPUs:
+
 ```bash
 vllm serve MODEL --tensor-parallel-size 4  # Not 3
-```
+
+```text
 
 Enable speculative decoding for faster generation (pass config as JSON;
 `--speculative-model` was removed in favor of `--speculative-config`):
+
 ```bash
 vllm serve MODEL \
   --speculative-config '{"model": "DRAFT_MODEL", "num_speculative_tokens": 5, "method": "draft_model"}'
-```
+
+```text
 
 ## Advanced topics
 
@@ -370,6 +410,3 @@ Supported platforms: NVIDIA (primary), AMD ROCm, Intel GPUs, TPUs
 - GitHub: https://github.com/vllm-project/vllm
 - Paper: "Efficient Memory Management for Large Language Model Serving with PagedAttention" (SOSP 2023)
 - Community: https://discuss.vllm.ai
-
-
-

@@ -65,6 +65,7 @@ empty). Wait for the user's go-ahead. Exception: a single rename the user
 explicitly dictated can be done directly.
 
 ④ **Act with the safest primitive.**
+
 - Prefer `archive` (reversible soft-hide) over `delete`/`prune`.
 - Always run destructive commands with `--dry-run` first and show the output,
   then re-run with `--yes` after confirmation.

@@ -25,9 +25,10 @@ Random fixes waste time and create new bugs. Quick patches mask underlying issue
 
 ## The Iron Law
 
-```
+```text
 NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
-```
+
+```text
 
 If you haven't completed Phase 1, you cannot propose fixes.
 
@@ -40,6 +41,7 @@ When a clean repro is hard, spend disproportionate effort building the loop. Gue
 ## When to Use
 
 Use for ANY technical issue:
+
 - Test failures
 - Bugs in production
 - Unexpected behavior
@@ -48,6 +50,7 @@ Use for ANY technical issue:
 - Integration issues
 
 **Use this ESPECIALLY when:**
+
 - Under time pressure (emergencies make guessing tempting)
 - "Just one quick fix" seems obvious
 - You've already tried multiple fixes
@@ -55,6 +58,7 @@ Use for ANY technical issue:
 - You don't fully understand the issue
 
 **Don't skip when:**
+
 - Issue seems simple (simple bugs have root causes too)
 - You're in a hurry (rushing guarantees rework)
 - Someone wants it fixed NOW (systematic is faster than thrashing)
@@ -118,7 +122,8 @@ python scripts/repro_bug.py
 
 # Or run a high-repetition flaky repro
 for i in {1..100}; do pytest tests/test_flake.py::test_name -q || break; done
-```
+
+```text
 
 ### 3. Check Recent Changes
 
@@ -137,7 +142,8 @@ git diff
 
 # Changes in specific file
 git log -p --follow src/problematic_file.py | head -100
-```
+
+```text
 
 ### 4. Gather Evidence in Multi-Component Systems
 
@@ -146,6 +152,7 @@ git log -p --follow src/problematic_file.py | head -100
 **BEFORE proposing fixes, add diagnostic instrumentation:**
 
 For EACH component boundary:
+
 - Log what data enters the component
 - Log what data exits the component
 - Verify environment/config propagation
@@ -172,7 +179,8 @@ search_files("function_name(", path="src/", file_glob="*.py")
 
 # Find where the variable is set
 search_files("variable_name\\s*=", path="src/", file_glob="*.py")
-```
+
+```text
 
 ### Phase 1 Completion Checklist
 
@@ -208,7 +216,8 @@ Done when removing any remaining element makes the loop go green. A minimal repr
 
 ```python
 search_files("similar_pattern", path="src/", file_glob="*.py")
-```
+
+```text
 
 ### 2. Compare Against References
 
@@ -292,7 +301,8 @@ pytest tests/test_module.py::test_regression -v
 
 # Run full suite — no regressions
 pytest tests/ -q
-```
+
+```text
 
 ### 4. If Fix Doesn't Work — The Rule of Three
 
@@ -305,11 +315,13 @@ pytest tests/ -q
 ### 5. If 3+ Fixes Failed: Question Architecture
 
 **Pattern indicating an architectural problem:**
+
 - Each fix reveals new shared state/coupling in a different place
 - Fixes require "massive refactoring" to implement
 - Each fix creates new symptoms elsewhere
 
 **STOP and question fundamentals:**
+
 - Is this pattern fundamentally sound?
 - Are we "sticking with it through sheer inertia"?
 - Should we refactor the architecture vs. continue fixing symptoms?
@@ -323,6 +335,7 @@ This is NOT a failed hypothesis — this is a wrong architecture.
 ## Red Flags — STOP and Follow Process
 
 If you catch yourself thinking:
+
 - "Quick fix for now, investigate later"
 - "Just try changing X and see if it works"
 - "Add multiple changes, run tests"
@@ -392,11 +405,13 @@ delegate_task(
     """,
     toolsets=['terminal', 'file']
 )
-```
+
+```text
 
 ### With test-driven-development
 
 When fixing bugs:
+
 1. Write a test that reproduces the bug (RED)
 2. Debug systematically to find root cause
 3. Fix the root cause (GREEN)
@@ -405,6 +420,7 @@ When fixing bugs:
 ## Real-World Impact
 
 From debugging sessions:
+
 - Systematic approach: 15-30 minutes to fix
 - Random fixes approach: 2-3 hours of thrashing
 - First-time fix rate: 95% vs 40%

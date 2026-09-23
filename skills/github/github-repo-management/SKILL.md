@@ -35,7 +35,8 @@ for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.con
 done
 AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$GH_REPO"
 [ "$AUTH" = "none" ] && echo "Not authenticated — resolve it with the github-auth skill first"
-```
+
+```text
 
 ---
 

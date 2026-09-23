@@ -114,13 +114,15 @@ scripted/delegated runs — no PTY required:
 
 ```bash
 grok -p "<task brief>" --always-approve --output-format json --no-auto-update
-```
+
+```text
 
 Via Hermes `terminal` tool (background, no PTY needed for `-p` mode):
 
-```
+```text
 terminal(command="grok -p \"$(cat /tmp/grok-task-slug.md)\" --always-approve --output-format json --no-auto-update > /tmp/grok-out-slug.json; echo exit=$?", workdir="<repo>", background=true)
-```
+
+```text
 
 The JSON object at the end contains the session ID (`sessionId`), final message, and
 stats. Poll with `process(action="poll"/"log")`; read `/tmp/grok-out-slug.json` on completion.
@@ -176,7 +178,8 @@ grok -c                    # same as -r without ID
 grok sessions list         # list recent sessions for this directory
 grok sessions search <q>   # search titles and prompts
 grok export <id> [file]    # export transcript as Markdown
-```
+
+```text
 
 For multi-step automation, chain calls: run 1 → extract `sessionId` from JSON →
 `grok -r <id> -p "<next step>" --output-format json`.

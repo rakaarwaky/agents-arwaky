@@ -16,13 +16,15 @@ Make sure the CLI is up to date before running commands:
 
 ```bash
 npm install -g ctx7@latest
-```
+
+```text
 
 Or run directly without installing:
 
 ```bash
 npx ctx7@latest <command>
-```
+
+```text
 
 ## What this skill covers
 
@@ -50,7 +52,8 @@ ctx7 skills generate                  # Generate a custom skill with AI (require
 ctx7 setup                            # Configure Context7 MCP (interactive)
 ctx7 login                            # Log in for higher rate limits + skill generation
 ctx7 whoami                           # Check current login status
-```
+
+```text
 
 ## Authentication
 
@@ -59,7 +62,8 @@ ctx7 login               # Opens browser for OAuth
 ctx7 login --no-browser  # Prints URL instead of opening browser
 ctx7 logout              # Clear stored tokens
 ctx7 whoami              # Show current login status (name + email)
-```
+
+```text
 
 Most commands work without login. Exceptions: `skills generate` always requires it; `ctx7 setup` requires it unless `--api-key` or `--oauth` is passed. Login also unlocks higher rate limits on docs commands.
 
@@ -67,7 +71,8 @@ Set an API key via environment variable to skip interactive login entirely:
 
 ```bash
 export CONTEXT7_API_KEY=your_key
-```
+
+```text
 
 ## Common Mistakes
 

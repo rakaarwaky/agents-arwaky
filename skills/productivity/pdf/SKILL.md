@@ -64,7 +64,8 @@ python scripts/pdf_page_image.py doc.pdf --pages 1-3 --dpi 150 --out-dir imgs/
 python scripts/pdf_meta.py doc.pdf --set-meta --title "T" --author "A" -o out.pdf
 python scripts/pdf_meta.py doc.pdf --attach data.csv -o out.pdf
 python scripts/pdf_meta.py doc.pdf --list-attachments | --extract-attachments dir/
-```
+
+```text
 
 ## Quick Reference
 

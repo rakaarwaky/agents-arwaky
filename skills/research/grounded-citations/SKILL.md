@@ -72,7 +72,8 @@ python "$S" add https://example.com/b --title "B"  # prints: [2]
 python "$S" list                                   # ledger table
 python "$S" render                                 # Sources: block
 python "$S" verify draft.md                        # catch bad citations
-```
+
+```text
 
 `add` is idempotent and URL-normalized: the same page always returns the same
 id within a ledger, so ids stay stable across many search/extract rounds.
@@ -107,9 +108,10 @@ prevent.
 ③ **Write cite-while-drafting.** Place the bracketed id(s) immediately after
 each sentence the source supports:
 
-```
+```text
 Ice floats because it is less dense than liquid water.[1][2]
-```
+
+```text
 
 - No space before the bracket; each id in its own brackets.
 - Max 3 ids per sentence. Cite per sentence, not one dump at the end.
@@ -145,7 +147,8 @@ text to a file and attach the sentence(s) that carry each claim:
 
 ```bash
 python "$S" quote 1 --text "Ice is about 9% less dense than liquid water." --from page1.txt
-```
+
+```text
 
 The quote is rejected unless it appears verbatim in the evidence text
 (insensitive to whitespace, case, and markdown markup — inline links like
@@ -158,9 +161,10 @@ you don't have to reproduce link syntax or escaped asterisks in your quote.
 ② **Flag model-knowledge claims with `[unverified]`.** A load-bearing claim
 you could not source gets an explicit marker instead of a citation:
 
-```
+```text
 The refactor likely predates the 2.0 release.[unverified]
-```
+
+```text
 
 `verify --min-coverage` counts `[unverified]` sentences as covered — the goal
 is declared provenance for every claim, not a citation on every sentence.
@@ -178,7 +182,8 @@ corroboration.
 ```bash
 python "$S" verify report.md --evidence --min-coverage 0.5
 python "$S" render --style evidence --replace-in report.md
-```
+
+```text
 
 `--evidence` fails the draft if any cited source has no attached quote. The
 `evidence` render style prints each source's quotes beneath its URL, so the
@@ -231,7 +236,8 @@ and read the `info: stats:` line to see the counts before picking a number.
 
 ```bash
 python "$S" verify report.md --strict --min-coverage 0.5
-```
+
+```text
 
 Green means: every `[n]` in the draft exists in the ledger, the Sources block
 lists exactly the cited ids with the ledger's URLs, and the cited share of
@@ -245,7 +251,6 @@ attribution during editing.
 |---|---|
 | `references/citation-formats.md` | Placing the block in a non-markdown target (docx footnotes, LaTeX endnotes, deck source slide) |
 | `references/grounding-rationale.md` | You are about to change the citation wording or ledger mechanics and need the reasoning behind them |
-
 
 ## Scripts
 

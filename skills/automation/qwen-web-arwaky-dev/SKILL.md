@@ -109,6 +109,7 @@ repo enforces AES layer boundaries; the violations that bite during UI work:
   gate on them.
 
 Extraction recipe (when AES406 fires on a surface):
+
 1. Add an abstract protocol `IXxxProtocol(ABC)` to
    `modules/shared/src/contract_core_protocol.py` with the method(s) you will
    move; append its name to that file's `__all__`.
@@ -190,7 +191,8 @@ when that folder appears, add a VOLUME line to `podman.sh`:
 ```bash
 VOLUMES="... \
          -v "\${REPO_ROOT}/.agents/finding:/root/.local/share/qwen-web/finding:Z""
-```
+
+```text
 
 so the folder appears inside the container at
 `/root/.local/share/qwen-web/finding/` and the TUI file picker can browse it.

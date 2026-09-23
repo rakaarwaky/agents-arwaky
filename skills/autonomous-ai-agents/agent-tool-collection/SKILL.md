@@ -14,13 +14,14 @@ the established pattern below.
 
 ## Wrapper layout convention
 
-```
+```text
 <tool>-arwaky/
 ├── <upstream>/         # git submodule of the upstream project
 ├── script/install.sh   # local build into dist/
 ├── *_local.json        # ready-made stdio MCP client config snippet
 └── README.md           # purpose, prerequisites, config examples
-```
+
+```text
 
 ## Steps to add a new tool
 

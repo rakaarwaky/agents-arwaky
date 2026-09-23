@@ -12,6 +12,7 @@ The Anytype Headless Daemon runs a dedicated local Anytype node in a rootless co
 ## When to Use This Skill
 
 Activate this skill when:
+
 - Starting, stopping, or verifying the health of the local Anytype background daemon.
 - Setting up a bot account for AI agents to interact with Anytype spaces.
 - Generating or rotating API authentication keys for MCP integrations.
@@ -42,28 +43,39 @@ Execute daemon commands using the `agents-arwaky` (`aa`) CLI:
 ## Agent Provisioning Workflow
 
 1. **Start the daemon:**
+
    ```bash
    aa anytype start
-   ```
+
+```text
 
 2. **Create a dedicated bot account for the agent:**
+
    ```bash
    aa anytype auth-create "arwaky-bot"
-   ```
+
+```text
 
 3. **Generate an API key:**
+
    ```bash
    aa anytype auth-key "agent-mcp-key"
-   ```
+
+```text
+
    *(This automatically updates `.env` with `ANYTYPE_API_KEY`)*
 
 4. **Join target space:**
    In your Anytype desktop/mobile app, generate an invite link for your space, then:
+
    ```bash
    aa anytype space-join "<your-invite-link>"
-   ```
+
+```text
 
 5. **Verify membership:**
+
    ```bash
    aa anytype space-list
-   ```
+
+```text

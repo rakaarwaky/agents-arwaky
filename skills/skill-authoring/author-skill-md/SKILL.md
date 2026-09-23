@@ -42,7 +42,8 @@ Create a single SKILL.md with valid frontmatter, then add concise markdown body.
 name: your-skill-name
 description: What it does and when to use it. Third person. Include trigger terms.
 ---
-```
+
+```text
 
 ## Core rules
 
@@ -69,7 +70,6 @@ Self-hosted harnesses are looser — e.g. in-repo Hermes skills *require* `versi
 `author`, `license`, `platforms` and `metadata.hermes.{tags, related_skills}` on top of
 `name` + `description` (`references/hermes-upstream-repo.md`). Match the field set the
 target's validator actually enforces; survey 2-3 sibling skills in the tree first.
-
 
 | Field         | Required | Constraints                                                                                                                                 |
 | --------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -105,32 +105,35 @@ Each skill directory contains exactly ONE `SKILL.md` at the root. Nested `SKILL.
 
 ### Simple skill
 
-```
+```text
 my-skill/
 └── SKILL.md
-```
+
+```text
 
 ### Complex skill (progressive disclosure)
 
-```
+```text
 my-skill/
 ├── SKILL.md              # Overview + links (under 500 lines)
 ├── reference.md          # API/method details
 ├── examples.md           # Input/output pairs
 └── scripts/
     └── validate.py       # Executed, not loaded into context
-```
+
+```text
 
 ### Domain-organized skill
 
-```
+```text
 my-skill/
 ├── SKILL.md
 └── reference/
     ├── domain-a.md
     ├── domain-b.md
     └── domain-c.md
-```
+
+```text
 
 All reference files link directly from SKILL.md. Never nest references deeper than one level.
 
@@ -138,14 +141,15 @@ All reference files link directly from SKILL.md. Never nest references deeper th
 
 For multi-step tasks, provide a checklist:
 
-```
+```text
 Task Progress:
 - [ ] Step 1: [action]
 - [ ] Step 2: [action]
 - [ ] Step 3: [validate]
 - [ ] Step 4: [execute]
 - [ ] Step 5: [verify]
-```
+
+```text
 
 Add feedback loops: run validator → fix errors → repeat. Only proceed when validation passes.
 

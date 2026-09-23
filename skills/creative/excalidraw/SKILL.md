@@ -41,7 +41,8 @@ Wrap your elements array in the standard `.excalidraw` envelope and save with `w
     "viewBackgroundColor": "#ffffff"
   }
 }
-```
+
+```text
 
 Save to any path, e.g. `~/diagrams/my_diagram.excalidraw`.
 
@@ -51,7 +52,8 @@ Run the upload script (located in this skill's `scripts/` directory) via termina
 
 ```bash
 python skills/creative/excalidraw/scripts/upload.py ~/diagrams/my_diagram.excalidraw
-```
+
+```text
 
 This uploads to excalidraw.com (no account needed) and prints a shareable URL. Requires the `cryptography` pip package (`pip install cryptography`).
 
@@ -60,9 +62,11 @@ This uploads to excalidraw.com (no account needed) and prints a shareable URL. R
 ## Element Format Reference
 
 ### Required Fields (all elements)
+
 `type`, `id` (unique string), `x`, `y`, `width`, `height`
 
 ### Defaults (skip these -- they're applied automatically)
+
 - `strokeColor`: `"#1e1e1e"`
 - `backgroundColor`: `"transparent"`
 - `fillStyle`: `"solid"`
@@ -75,21 +79,28 @@ Canvas background is white.
 ### Element Types
 
 **Rectangle**:
+
 ```json
 { "type": "rectangle", "id": "r1", "x": 100, "y": 100, "width": 200, "height": 100 }
-```
+
+```text
+
 - `roundness: { "type": 3 }` for rounded corners
 - `backgroundColor: "#a5d8ff"`, `fillStyle: "solid"` for filled
 
 **Ellipse**:
+
 ```json
 { "type": "ellipse", "id": "e1", "x": 100, "y": 100, "width": 150, "height": 150 }
-```
+
+```text
 
 **Diamond**:
+
 ```json
 { "type": "diamond", "id": "d1", "x": 100, "y": 100, "width": 150, "height": 150 }
-```
+
+```text
 
 **Labeled shape (container binding)** -- create a text element bound to the shape:
 
@@ -98,6 +109,7 @@ Canvas background is white.
 > use the container binding approach below.
 
 The shape needs `boundElements` listing the text, and the text needs `containerId` pointing back:
+
 ```json
 { "type": "rectangle", "id": "r1", "x": 100, "y": 100, "width": 200, "height": 80,
   "roundness": { "type": 3 }, "backgroundColor": "#a5d8ff", "fillStyle": "solid",
@@ -106,7 +118,9 @@ The shape needs `boundElements` listing the text, and the text needs `containerI
   "text": "Hello", "fontSize": 20, "fontFamily": 1, "strokeColor": "#1e1e1e",
   "textAlign": "center", "verticalAlign": "middle",
   "containerId": "r1", "originalText": "Hello", "autoResize": true }
-```
+
+```text
+
 - Works on rectangle, ellipse, diamond
 - Text is auto-centered by Excalidraw when `containerId` is set
 - The text `x`/`y`/`width`/`height` are approximate -- Excalidraw recalculates them on load
@@ -114,6 +128,7 @@ The shape needs `boundElements` listing the text, and the text needs `containerI
 - Always include `fontFamily: 1` (Virgil/hand-drawn font)
 
 **Labeled arrow** -- same container binding approach:
+
 ```json
 { "type": "arrow", "id": "a1", "x": 300, "y": 150, "width": 200, "height": 0,
   "points": [[0,0],[200,0]], "endArrowhead": "arrow",
@@ -122,21 +137,28 @@ The shape needs `boundElements` listing the text, and the text needs `containerI
   "text": "connects", "fontSize": 16, "fontFamily": 1, "strokeColor": "#1e1e1e",
   "textAlign": "center", "verticalAlign": "middle",
   "containerId": "a1", "originalText": "connects", "autoResize": true }
-```
+
+```text
 
 **Standalone text** (titles and annotations only -- no container):
+
 ```json
 { "type": "text", "id": "t1", "x": 150, "y": 138, "text": "Hello", "fontSize": 20,
   "fontFamily": 1, "strokeColor": "#1e1e1e", "originalText": "Hello", "autoResize": true }
-```
+
+```text
+
 - `x` is the LEFT edge. To center at position `cx`: `x = cx - (text.length * fontSize * 0.5) / 2`
 - Do NOT rely on `textAlign` or `width` for positioning
 
 **Arrow**:
+
 ```json
 { "type": "arrow", "id": "a1", "x": 300, "y": 150, "width": 200, "height": 0,
   "points": [[0,0],[200,0]], "endArrowhead": "arrow" }
-```
+
+```text
+
 - `points`: `[dx, dy]` offsets from element `x`, `y`
 - `endArrowhead`: `null` | `"arrow"` | `"bar"` | `"dot"` | `"triangle"`
 - `strokeStyle`: `"solid"` (default) | `"dashed"` | `"dotted"`
@@ -150,11 +172,13 @@ The shape needs `boundElements` listing the text, and the text needs `containerI
   "startBinding": { "elementId": "r1", "fixedPoint": [1, 0.5] },
   "endBinding": { "elementId": "r2", "fixedPoint": [0, 0.5] }
 }
-```
+
+```text
 
 `fixedPoint` coordinates: `top=[0.5,0]`, `bottom=[0.5,1]`, `left=[0,0.5]`, `right=[1,0.5]`
 
 ### Drawing Order (z-order)
+
 - Array order = z-order (first = back, last = front)
 - Emit progressively: background zones → shape → its bound text → its arrows → next shape
 - BAD: all rectangles, then all texts, then all arrows
@@ -164,12 +188,14 @@ The shape needs `boundElements` listing the text, and the text needs `containerI
 ### Sizing Guidelines
 
 **Font sizes:**
+
 - Minimum `fontSize`: **16** for body text, labels, descriptions
 - Minimum `fontSize`: **20** for titles and headings
 - Minimum `fontSize`: **14** for secondary annotations only (sparingly)
 - NEVER use `fontSize` below 14
 
 **Element sizes:**
+
 - Minimum shape size: 120x60 for labeled rectangles/ellipses
 - Leave 20-30px gaps between elements minimum
 - Prefer fewer, larger elements over many tiny ones
@@ -189,10 +215,9 @@ See `references/colors.md` for full color tables. Quick reference:
 | Storage / Data | Light Teal | `#c3fae8` |
 
 ### Tips
+
 - Use the color palette consistently across the diagram
 - **Text contrast is CRITICAL** -- never use light gray on white backgrounds. Minimum text color on white: `#757575`
 - Do NOT use emoji in text -- they don't render in Excalidraw's font
 - For dark mode diagrams, see `references/dark-mode.md`
 - For larger examples, see `references/examples.md`
-
-

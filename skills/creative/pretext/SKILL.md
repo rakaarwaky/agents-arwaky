@@ -31,6 +31,7 @@ This skill exists so Hermes can make **cool demos** with it — the kind people 
 ## When to Use
 
 Use when the user asks for:
+
 - A "pretext demo" / "cool pretext thing" / "text-as-X"
 - Text flowing around a moving shape (hero sections, editorial layouts, animated long-form pages)
 - ASCII-art effects using **real words or prose**, not monospace rasters
@@ -41,6 +42,7 @@ Use when the user asks for:
 - Anything that would require knowing line breaks *before* rendering
 
 Don't use for:
+
 - Static SVG/HTML pages where CSS already solves layout — just use CSS
 - Rich text editors, general inline formatting engines (pretext is intentionally narrow)
 - Image → text (use `ascii-art` / `ascii-video` skills)
@@ -76,7 +78,8 @@ import {
   measureLineStats, walkLineRanges,  // stats without string allocation
 } from "https://esm.sh/@chenglou/pretext@0.0.6";
 </script>
-```
+
+```text
 
 Pin the version. `@0.0.6` at time of writing — check [npm](https://www.npmjs.com/package/@chenglou/pretext) for the latest if demo behavior is off.
 
@@ -89,9 +92,11 @@ Almost everything reduces to one of these two shapes. Learn both.
 ```js
 const prepared = prepare(text, "16px Inter");
 const { height, lineCount } = layout(prepared, 320, 20);
-```
+
+```text
 
 You still let the browser draw the text. Pretext just tells you how tall the box will be at a given width, **without** a DOM read. Use for:
+
 - Virtualized lists where rows contain wrapping text
 - Masonry with precise card heights
 - "Does this label fit?" dev-time checks
@@ -107,9 +112,11 @@ const { lines } = layoutWithLines(prepared, 320, 26);
 for (let i = 0; i < lines.length; i++) {
   ctx.fillText(lines[i].text, 0, i * 26);
 }
-```
+
+```text
 
 This is where the creative work lives. You own the drawing, so you can:
+
 - Render to canvas, SVG, WebGL, or any coordinate system
 - Substitute per-glyph transforms (rotation, jitter, scale, opacity)
 - Use line metadata (width, grapheme positions) as geometry
@@ -128,7 +135,8 @@ while (true) {
   cursor = range.end;
   y += lineHeight;
 }
-```
+
+```text
 
 This is the most important pattern in the whole library. It's what unlocks "text flowing around a dragged sprite" — the demo that went viral on X.
 
@@ -164,10 +172,13 @@ See `templates/donut-orbit.html` and `templates/hello-orb-flow.html` for working
 3. **Swap the corpus** for something intentional to the brief. Real prose, 10-100 sentences, no lorem.
 4. **Tune the aesthetic** — font, palette, composition, interaction. This is the work; don't skip it.
 5. **Verify locally**:
+
    ```sh
    cd <dir-with-html> && python -m http.server 8765
    # then open http://localhost:8765/<file>.html
-   ```
+
+```text
+
 6. **Check the console** — pretext will throw if `prepareWithSegments` is called with a bad font string; `Intl.Segmenter` is available in every modern browser.
 7. **Show the user the file path**, not just the code — they want to open it.
 

@@ -50,7 +50,7 @@ This skill is a **router** — it points at language-specific migration guides u
 
 **The dependency model:**
 
-```
+```text
 root ── wires ──→ agent / surface / capabilities
                   │               │              │
                   ▼               ▼              ▼
@@ -60,7 +60,8 @@ root ── wires ──→ agent / surface / capabilities
             taxonomy (VOs, entities, errors, events, constants)
                   ▲
             utility ── imports only taxonomy ──┘
-```
+
+```text
 
 Each layer answers one concern. A method or import in the wrong layer is the defect this skill exists to prevent.
 
@@ -146,7 +147,8 @@ lint-arwaky-cli scan .   # must be 0
 python -m compileall -q <modules>   # Python fallback
 cargo check --workspace                    # Rust fallback
 npx tsc --noEmit                           # TypeScript fallback
-```
+
+```text
 
 A pass means naming, layer imports, primitives, and roles are clean. Structural judgement
 (3-block order, orchestration purity, DI wiring) is **manual** — see language HOW-TO § Rules.

@@ -12,6 +12,7 @@ Fetch MCP is a specialized web extraction and content scraping server that conve
 ## When to Use This Skill
 
 Activate this skill when:
+
 - Reading content from external web pages, blogs, or documentation URLs.
 - Converting noisy web pages with advertisements and boilerplate into clean Markdown articles.
 - Fetching structured JSON payloads from REST API endpoints without invoking heavy browsers.
@@ -46,4 +47,5 @@ aa run fetch-mcp fetch_readable "https://example.com/article"
 
 # Extract YouTube transcript
 aa run fetch-mcp fetch_youtube_transcript "https://www.youtube.com/watch?v=VIDEO_ID"
-```
+
+```text

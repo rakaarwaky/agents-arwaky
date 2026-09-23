@@ -175,7 +175,6 @@ A machine pass does not mean the suite is right. Requirement coverage, smoke bud
 - [ ] Coverage meets 70/60/50 for capabilities/agent/utility.
 - [ ] Related skills considered for the layer under test.
 
-
 ---
 
 ## Common Mistakes (Anti-Patterns)
@@ -189,7 +188,6 @@ The runner covers green/red. These need a reader (HOW-TO § Rules):
 - **Dogfood tests without skip logic**: must auto-skip in CI when service unavailable; never break CI.
 - **Acceptance tests without FRD/PRD IDs**: requirement traceability is the point.
 - **Restating HOW-TO rules in SKILL.md**: delegate — this file only routes.
-
 
 ---
 

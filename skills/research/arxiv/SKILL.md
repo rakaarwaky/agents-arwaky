@@ -35,7 +35,8 @@ The API returns Atom XML. Parse with `grep`/`sed` or pipe through `python` for c
 
 ```bash
 curl -s "https://export.arxiv.org/api/query?search_query=all:GRPO+reinforcement+learning&max_results=5"
-```
+
+```text
 
 ### Clean output (parse XML to readable format)
 
@@ -58,7 +59,8 @@ for i, entry in enumerate(root.findall('a:entry', ns)):
     print(f'   PDF: https://arxiv.org/pdf/{arxiv_id}')
     print()
 "
-```
+
+```text
 
 ## Search Query Syntax
 
@@ -73,7 +75,7 @@ for i, entry in enumerate(root.findall('a:entry', ns)):
 
 ### Boolean operators
 
-```
+```text
 # AND (default when using +)
 search_query=all:transformer+attention
 
@@ -88,7 +90,8 @@ search_query=ti:"chain+of+thought"
 
 # Combined
 search_query=au:hinton+AND+cat:cs.LG
-```
+
+```text
 
 ## Sort and Pagination
 
@@ -102,7 +105,8 @@ search_query=au:hinton+AND+cat:cs.LG
 ```bash
 # Latest 10 papers in cs.AI
 curl -s "https://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=10"
-```
+
+```text
 
 ## Fetching Specific Papers
 
@@ -112,13 +116,15 @@ curl -s "https://export.arxiv.org/api/query?id_list=2402.03300"
 
 # Multiple papers
 curl -s "https://export.arxiv.org/api/query?id_list=2402.03300,2401.12345,2403.00001"
-```
+
+```text
 
 ## BibTeX Generation
 
 After fetching metadata for a paper, generate a BibTeX entry:
 
 {% raw %}
+
 ```bash
 curl -s "https://export.arxiv.org/api/query?id_list=1706.03762" | python -c "
 import sys, xml.etree.ElementTree as ET
@@ -143,20 +149,23 @@ print(f'  primaryClass  = {{{primary}}},')
 print(f'  url       = {{https://arxiv.org/abs/{raw_id}}}')
 print('}')
 "
-```
+
+```text
+
 {% endraw %}
 
 ## Reading Paper Content
 
 After finding a paper, read it:
 
-```
+```text
 # Abstract page (fast, metadata + abstract)
 web_extract(urls=["https://arxiv.org/abs/2402.03300"])
 
 # Full paper (PDF → markdown via Firecrawl)
 web_extract(urls=["https://arxiv.org/pdf/2402.03300"])
-```
+
+```text
 
 For local PDF processing, see the `pdf` skill (scanned pages: `pdf` skill's `references/ocr-extraction.md`).
 
@@ -186,7 +195,8 @@ python scripts/search_arxiv.py --author "Yann LeCun" --max 5
 python scripts/search_arxiv.py --category cs.AI --sort date
 python scripts/search_arxiv.py --id 2402.03300
 python scripts/search_arxiv.py --id 2402.03300,2401.12345
-```
+
+```text
 
 No dependencies — uses only Python stdlib.
 
@@ -199,30 +209,34 @@ arXiv doesn't provide citation data or recommendations. Use the **Semantic Schol
 ### Get paper details + citations
 
 ```bash
-# By arXiv ID
+# By arXiv ID (2)
 curl -s "https://api.semanticscholar.org/graph/v1/paper/arXiv:2402.03300?fields=title,authors,citationCount,referenceCount,influentialCitationCount,year,abstract" | python -m json.tool
 
 # By Semantic Scholar paper ID or DOI
 curl -s "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1234/example?fields=title,citationCount"
-```
+
+```text
 
 ### Get citations OF a paper (who cited it)
 
 ```bash
 curl -s "https://api.semanticscholar.org/graph/v1/paper/arXiv:2402.03300/citations?fields=title,authors,year,citationCount&limit=10" | python -m json.tool
-```
+
+```text
 
 ### Get references FROM a paper (what it cites)
 
 ```bash
 curl -s "https://api.semanticscholar.org/graph/v1/paper/arXiv:2402.03300/references?fields=title,authors,year,citationCount&limit=10" | python -m json.tool
-```
+
+```text
 
 ### Search papers (alternative to arXiv search, returns JSON)
 
 ```bash
 curl -s "https://api.semanticscholar.org/graph/v1/paper/search?query=GRPO+reinforcement+learning&limit=5&fields=title,authors,year,citationCount,externalIds" | python -m json.tool
-```
+
+```text
 
 ### Get paper recommendations
 
@@ -230,13 +244,15 @@ curl -s "https://api.semanticscholar.org/graph/v1/paper/search?query=GRPO+reinfo
 curl -s -X POST "https://api.semanticscholar.org/recommendations/v1/papers/" \
   -H "Content-Type: application/json" \
   -d '{"positivePaperIds": ["arXiv:2402.03300"], "negativePaperIds": []}' | python -m json.tool
-```
+
+```text
 
 ### Author profile
 
 ```bash
 curl -s "https://api.semanticscholar.org/graph/v1/author/search?query=Yann+LeCun&fields=name,hIndex,citationCount,paperCount" | python -m json.tool
-```
+
+```text
 
 ### Useful Semantic Scholar fields
 
@@ -280,6 +296,7 @@ curl -s "https://api.semanticscholar.org/graph/v1/author/search?query=Yann+LeCun
 ## Withdrawn Papers
 
 Papers can be withdrawn after submission. When this happens:
+
 - The `<summary>` field contains a withdrawal notice (look for "withdrawn" or "retracted")
 - Metadata fields may be incomplete
 - Always check the summary before treating a result as a valid paper

@@ -138,13 +138,14 @@ Detect same-purpose / same-domain / split-functionality file groups → pick the
 
 ## Report Format (both phases)
 
-```
+```text
 ## Cleanup Report: <unit>
 ### Summary            # files scanned, items analyzed, counts per category found
 ### Per-File Findings  # per file: | Item | Type | Lines | Verdict | Reason |
 ### Items Requiring Manual Review   # ambiguous / INVESTIGATE categories
 ### Formatting Fixes (auto-applied) # format-only changes needing no approval
-```
+
+```text
 
 Every finding carries a Verdict (KEEP / REMOVE / DELETE / INVESTIGATE) and a one-line Reason. Each reference contains a fully worked example table for its language.
 

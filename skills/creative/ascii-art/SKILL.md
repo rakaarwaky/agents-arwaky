@@ -29,7 +29,8 @@ Render text as large ASCII art banners. 571 built-in fonts.
 
 ```bash
 pip install pyfiglet --break-system-packages -q
-```
+
+```text
 
 ### Usage
 
@@ -37,7 +38,8 @@ pip install pyfiglet --break-system-packages -q
 python -m pyfiglet "YOUR TEXT" -f slant
 python -m pyfiglet "TEXT" -f doom -w 80    # Set width
 python -m pyfiglet --list_fonts             # List all 571 fonts
-```
+
+```text
 
 ### Recommended fonts
 
@@ -77,9 +79,10 @@ curl -s "https://asciified.thelicato.io/api/v2/ascii?text=Hello&font=Banner3"
 
 # List all available fonts (returns JSON array)
 curl -s "https://asciified.thelicato.io/api/v2/fonts"
-```
 
-### Tips
+```text
+
+### Tips (2)
 
 - URL-encode spaces as `+` in the text parameter
 - The response is plain text ASCII art — no JSON wrapping, ready to display
@@ -90,14 +93,15 @@ curl -s "https://asciified.thelicato.io/api/v2/fonts"
 
 Classic tool that wraps text in a speech bubble with an ASCII character.
 
-### Setup
+### Setup (2)
 
 ```bash
 sudo apt install cowsay -y    # Debian/Ubuntu
 # brew install cowsay         # macOS
-```
 
-### Usage
+```text
+
+### Usage (2)
 
 ```bash
 cowsay "Hello World"
@@ -106,7 +110,8 @@ cowsay -f dragon "Rawr!"          # Dragon
 cowsay -f stegosaurus "Roar!"     # Stegosaurus
 cowthink "Hmm..."                  # Thought bubble
 cowsay -l                          # List all characters
-```
+
+```text
 
 ### Available characters (50+)
 
@@ -128,20 +133,22 @@ cowsay -s "Stoned"     # *_* eyes
 cowsay -w "Wired"      # O_O eyes
 cowsay -e "OO" "Msg"   # Custom eyes
 cowsay -T "U " "Msg"   # Custom tongue
-```
+
+```text
 
 ## Tool 4: Boxes (Decorative Borders)
 
 Draw decorative ASCII art borders/frames around any text. 70+ built-in designs.
 
-### Setup
+### Setup (3)
 
 ```bash
 sudo apt install boxes -y    # Debian/Ubuntu
 # brew install boxes         # macOS
-```
 
-### Usage
+```text
+
+### Usage (3)
 
 ```bash
 echo "Hello World" | boxes                    # Default box
@@ -155,7 +162,8 @@ echo "Hello World" | boxes -d c-cmt           # C-style comment
 echo "Hello World" | boxes -d html-cmt        # HTML comment
 echo "Hello World" | boxes -a c               # Center text
 boxes -l                                       # List all 70+ designs
-```
+
+```text
 
 ### Combine with pyfiglet or asciified
 
@@ -163,20 +171,22 @@ boxes -l                                       # List all 70+ designs
 python -m pyfiglet "HERMES" -f slant | boxes -d stone
 # Or without pyfiglet installed:
 curl -s "https://asciified.thelicato.io/api/v2/ascii?text=HERMES&font=Slant" | boxes -d stone
-```
+
+```text
 
 ## Tool 5: TOIlet (Colored Text Art)
 
 Like pyfiglet but with ANSI color effects and visual filters. Great for terminal eye candy.
 
-### Setup
+### Setup (4)
 
 ```bash
 sudo apt install toilet toilet-fonts -y    # Debian/Ubuntu
 # brew install toilet                      # macOS
-```
 
-### Usage
+```text
+
+### Usage (4)
 
 ```bash
 toilet "Hello World"                    # Basic text art
@@ -187,7 +197,8 @@ toilet -F border "Bordered"             # Add border
 toilet -F border --gay "Fancy!"         # Combined effects
 toilet -f pagga "Block"                 # Block-style font (unique to toilet)
 toilet -F list                          # List available filters
-```
+
+```text
 
 ### Filters
 
@@ -205,7 +216,8 @@ Convert images (PNG, JPEG, GIF, WEBP) to ASCII art.
 # Install
 sudo snap install ascii-image-converter
 # OR: go install github.com/TheZoraiz/ascii-image-converter@latest
-```
+
+```text
 
 ```bash
 ascii-image-converter image.png                  # Basic
@@ -215,7 +227,8 @@ ascii-image-converter image.png -b               # Braille characters
 ascii-image-converter image.png -n               # Negative/inverted
 ascii-image-converter https://url/image.jpg      # Direct URL
 ascii-image-converter image.png --save-txt out   # Save as text
-```
+
+```text
 
 ### Option B: jp2a (lightweight, JPEG only)
 
@@ -223,7 +236,8 @@ ascii-image-converter image.png --save-txt out   # Save as text
 sudo apt install jp2a -y
 jp2a --width=80 image.jpg
 jp2a --colors image.jpg              # Colorized
-```
+
+```text
 
 ## Tool 7: Search Pre-Made ASCII Art
 
@@ -239,7 +253,8 @@ Large collection of classic ASCII art organized by subject. Art is inside HTML `
 
 ```bash
 curl -s 'https://ascii.co.uk/art/cat' -o /tmp/ascii_art.html
-```
+
+```text
 
 **Step 2 — Extract art from pre tags:**
 
@@ -254,9 +269,11 @@ for art in arts:
     if len(clean) > 30:
         print(clean)
         print('\n---\n')
-```
+
+```text
 
 **Available subjects** (use as URL path):
+
 - Animals: `cat`, `dog`, `horse`, `bird`, `fish`, `dragon`, `snake`, `rabbit`, `elephant`, `dolphin`, `butterfly`, `owl`, `wolf`, `bear`, `penguin`, `turtle`
 - Objects: `car`, `ship`, `airplane`, `rocket`, `guitar`, `computer`, `coffee`, `beer`, `cake`, `house`, `castle`, `sword`, `crown`, `key`
 - Nature: `tree`, `flower`, `sun`, `moon`, `star`, `mountain`, `ocean`, `rainbow`
@@ -264,6 +281,7 @@ for art in arts:
 - Holidays: `christmas`, `halloween`, `valentine`
 
 **Tips:**
+
 - Preserve artist signatures/initials — important etiquette
 - Multiple art pieces per page — pick the best one for the user
 - Works reliably via curl, no JavaScript needed
@@ -274,7 +292,8 @@ Returns a random GitHub Octocat with a wise quote. No auth needed.
 
 ```bash
 curl -s https://api.github.com/octocat
-```
+
+```text
 
 ## Tool 8: Fun ASCII Utilities (via curl)
 
@@ -285,7 +304,8 @@ These free services return ASCII art directly — great for fun extras.
 ```bash
 curl -s "qrenco.de/Hello+World"
 curl -s "qrenco.de/https://example.com"
-```
+
+```text
 
 ### Weather as ASCII Art
 
@@ -293,7 +313,8 @@ curl -s "qrenco.de/https://example.com"
 curl -s "wttr.in/London"          # Full weather report with ASCII graphics
 curl -s "wttr.in/Moon"            # Moon phase in ASCII art
 curl -s "v2.wttr.in/London"       # Detailed version
-```
+
+```text
 
 ## Tool 9: LLM-Generated Custom Art (Fallback)
 

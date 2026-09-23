@@ -63,7 +63,8 @@ Bypass forms: `# type: ignore`, `# noqa`.
 ```bash
 grep -rn "type: ignore" modules/*/src/
 grep -rn "noqa" modules/*/src/
-```
+
+```text
 
 **Fix root cause:**
 
@@ -75,7 +76,8 @@ grep -rn "noqa" modules/*/src/
 ```bash
 python -m mypy modules/ --ignore-missing-imports
 pycodestyle modules/ --max-line-length=88
-```
+
+```text
 
 ### Verification Checklist
 
@@ -101,7 +103,7 @@ pycodestyle modules/ --max-line-length=88
 - File has bypass comments
 - File uses unwrap/expect/panic
 
-### Workflow
+### Workflow (2)
 
 **Step 1: Find Bypass Comments** — Read code and find bypass comments and unsafe calls.
 
@@ -131,7 +133,8 @@ Bypass forms: `@ts-ignore`, `@ts-expect-error`, `// eslint-disable`.
 grep -rn "@ts-ignore" packages/*/src/
 grep -rn "@ts-expect-error" packages/*/src/
 grep -rn "eslint-disable" packages/*/src/
-```
+
+```text
 
 **Fix root cause:**
 
@@ -144,9 +147,10 @@ grep -rn "eslint-disable" packages/*/src/
 ```bash
 npx tsc --noEmit
 npx eslint packages/ --max-warnings 0
-```
 
-### Verification Checklist
+```text
+
+### Verification Checklist (2)
 
 - [ ] All `@ts-ignore` removed (or justified with explanation).
 - [ ] All `@ts-expect-error` removed (or justified with explanation).

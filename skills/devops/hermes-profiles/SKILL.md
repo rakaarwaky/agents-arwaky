@@ -40,7 +40,8 @@ done
 
 # 3. Verify each profile actually got the block
 grep -n -A4 "^auxiliary:" ~/.hermes/profiles/*/config.yaml
-```
+
+```text
 
 ## Pitfalls
 

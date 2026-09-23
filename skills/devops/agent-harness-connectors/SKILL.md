@@ -64,12 +64,15 @@ the 401 — not a stale harness session.
 3. Probe each candidate key against the router directly. Only the live one
    returns 200; the stale one returns 401 `invalid_api_key`. This identifies
    which key the client holds without reading harness logs:
+
    ```bash
    curl -s -o /tmp/r.json -w '%{http_code}\n' -X POST \
      http://127.0.0.1:20128/v1/chat/completions \
      -H 'Content-Type: application/json' -H "Authorization: Bearer $KEY" \
      -d '{"model":"omniroute","messages":[{"role":"user","content":"ping"}],"max_tokens":5}'
-   ```
+
+```text
+
 4. Fix the BINDING, not just the key value: point the provider entry's `envKey`
    at the variable the connector actually maintains (`OMNIROUTE_KEY`), and
    delete the wizard's inline copy so it can never shadow `.env` again after a
@@ -169,6 +172,7 @@ blobs in other clones (plain text on Windows with `core.symlinks=false`);
 
 Migration and safety invariants, enforced by `prune_provisioned` /
 `write_provenance` in `modules/skill/src/utility_skill_pack.py`:
+
 - Non-empty existing skills dir ABORTS and lists what it would move; `--force`
   MIGRATES with per-entry collision semantics — never clobbers the pack:
   dot-prefixed STATE dirs (`.hub`) are union-merged file-by-file with the
@@ -220,7 +224,7 @@ profiles do see the generalist pack despite the rule above.
 Consequence of the shared root link: every harness session edits the SAME pack
 checkout, so other agent sessions (or the user) can commit — even push — work in
 progress. Before acting on a "commit" request, `git status` + `git log --oneline`
-+ `git ls-tree HEAD <paths>` to see what is already in history, and commit only
+- `git ls-tree HEAD <paths>` to see what is already in history, and commit only
 the genuine residue; never re-commit a diff you merely see staged. Check
 `git reflog` when commits appear that you did not make, and flag concurrent
 committers to the user instead of silently layering on top.
@@ -239,6 +243,7 @@ deciding; never restore bundled upstream into profiles that opted out.
 
 Changing how skills reach a harness is a real-host migration, not just a code
 edit — the linked live host is the test subject:
+
 1. Add the guard first, then the mechanism, then wire adapters one at a time,
    flipping a per-adapter gate only after an end-to-end probe on the real CLI.
 2. Run `aa connect <harness> --skills-only --dry-run` to enumerate every item the

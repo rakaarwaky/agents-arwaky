@@ -92,7 +92,7 @@ the routing HOW-TO. `tests/` / `benches/` are **not** AES layers (see `aes-testi
 
 ## Diagnostic Tree
 
-```
+```text
 Scan failed or findings non-zero?
 ├─ exit 2 → config/parse → lint_arwaky.config.yaml / path → fix config, re-run
 ├─ exit 1, findings present
@@ -101,7 +101,8 @@ Scan failed or findings non-zero?
 │  ├─ MEDIUM/LOW 🟢 AES203–204, AES305, AES404–405, AES501–504 → fix or cleanup-consolidate
 │  └─ After each AES101 rename → barrel update (language HOW-TO) or orphan reappears
 └─ exit 0 but code unhealthy → language verify failed → HOW-TO-USE-LINT-<LANG>.md pipeline
-```
+
+```text
 
 ## Workflow
 
@@ -129,7 +130,8 @@ echo "exit=$?"   # 0 pass · 1 violations · 2 config/parse error
 lint-arwaky-cli import <path> --filter AES201
 lint-arwaky-cli role <path> --filter AES403
 lint-arwaky-cli orphan <path> --format json
-```
+
+```text
 
 ### Human Checks
 
