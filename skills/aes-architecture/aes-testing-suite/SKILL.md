@@ -67,15 +67,9 @@ Rules, templates, section contracts, and Verify blocks live in the language HOW-
 | Rust | Test suite | Flat prefix naming; tests/ + benches/; no inline tests | [references/HOW-TO-MAKE-RUST-TESTING.md](references/HOW-TO-MAKE-RUST-TESTING.md) |
 | TypeScript | Test suite | Flat prefix naming; tests/ + benches/; no inline tests | [references/HOW-TO-MAKE-TYPESCRIPT-TESTING.md](references/HOW-TO-MAKE-TYPESCRIPT-TESTING.md) |
 
-### Specialized Test Types
-
-| Type | Description | HOW-TO |
-| ------ | ------------- | -------- |
-| Dogfood / Integration Pipeline | Real end-to-end tests with live sessions/services | [references/HOW-TO-MAKE-DOGFOOD-TESTS.md](references/HOW-TO-MAKE-DOGFOOD-TESTS.md) |
-
 **The test chain:**
 
-`contract_` (seam exists) → `unit_` / `integration_` (behaviour + wiring) → `smoke_` / `e2e_` / `acceptance_` (app + requirement) → `bench_` (nightly)
+`contract_` (seam exists) → `unit_` / `integration_` (behaviour + wiring) → `dogfood_` (live service validation, skip in CI) → `smoke_` / `e2e_` / `acceptance_` (app + requirement) → `bench_` (nightly)
 
 Each prefix answers one question. A test in the wrong directory or with the wrong prefix is the defect this skill exists to prevent.
 
@@ -107,6 +101,7 @@ Test-type reference (prefix · directory · scope · speed · runs when):
 | `contract_` | tests/ | Protocol/trait/interface impl exists | ms | Every PR |
 | `unit_` | tests/ | One public function | ms | Every PR |
 | `integration_` | tests/ | Module / crate / package + DI wiring | ms–s | Every PR |
+| `dogfood_` | tests/ | CLI against live service/session; skip if unavailable | s–min | Local only; skip CI |
 | `smoke_` | tests/ | App boots + responds | <5s | Every PR |
 | `e2e_` | tests/ | Full request lifecycle | s | Every PR (critical path) |
 | `acceptance_` | tests/ | Business requirement met | s | Every PR / release gate |
@@ -141,7 +136,7 @@ Ask these questions in order. The first "No" dictates your next action.
 
 1. Analyze module / crate / package structure and identify untested public API.
 2. Write `contract_` (seam), then `unit_` (happy / edge / error), then `integration_` (real DI).
-3. Write `smoke_`, `e2e_`, and `acceptance_` mapped to FRD/PRD IDs.
+3. Write `dogfood_` (live service; skip gracefully in CI), then `smoke_`, `e2e_`, and `acceptance_` mapped to FRD/PRD IDs.
 4. Write `bench_<subject>` in `benches/` (Rust: also register `[[bench]]` in `Cargo.toml`).
 5. Run the language verify command, then confirm coverage targets met.
 
@@ -191,6 +186,7 @@ The runner covers green/red. These need a reader (HOW-TO § Rules):
 - **Subdirectories under `tests/`**: the prefix IS the folder — keep it flat.
 - **Hand-rolled timing loops**: use `pytest-benchmark` / `criterion` / `vitest/benchmark`.
 - **Mocked integration tests**: integration uses the real DI wiring; e2e asserts on real output.
+- **Dogfood tests without skip logic**: must auto-skip in CI when service unavailable; never break CI.
 - **Acceptance tests without FRD/PRD IDs**: requirement traceability is the point.
 - **Restating HOW-TO rules in SKILL.md**: delegate — this file only routes.
 
