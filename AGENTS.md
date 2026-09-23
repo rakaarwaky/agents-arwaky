@@ -127,7 +127,7 @@ The verification checks:
 
 ### Document invariants
 
-Enforced by `modules/check/src/capabilities_doc_pack.py`, run inside `aa check`, or directly with
+Enforced by `modules/check/src/capabilities_check_docs.py` (engine: `modules/shared/src/utility_doc_pack.py`), run inside `aa check`, or directly with
 `aa docs check [path] [--strict] [--include-subtrees]`. `error` gates `aa check`; `--strict`
 also gates warnings. The canonical wording of every rule, keyed by finding code, is
 `skills/documentation/add-docs/SKILL.md` § Invariants — change one, change the other.
