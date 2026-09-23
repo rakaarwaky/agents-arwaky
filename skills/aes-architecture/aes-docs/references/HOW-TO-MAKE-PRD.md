@@ -19,14 +19,6 @@
 
 
 
-## Workflow
-
-1. **Create file** → `PRD.md` at repo root or feature directory.
-2. **Section: Problem Statement** — one paragraph describing the gap.
-3. **Section: Goals & Success Metrics** — measurable outcomes.
-4. **Section: Scope** — in-scope vs out-of-scope.
-5. **Section: Feature Requirements** — high-level capabilities.
-6. **Verify** → `aa check docs` passes; goals are measurable.
 
 Eight rules. Each one prevents a specific failure mode.
 
@@ -77,14 +69,6 @@ a feature's `## Test Scenarios` that proves it.
 
 
 
-## Workflow
-
-1. **Create file** → `PRD.md` at repo root or feature directory.
-2. **Section: Problem Statement** — one paragraph describing the gap.
-3. **Section: Goals & Success Metrics** — measurable outcomes.
-4. **Section: Scope** — in-scope vs out-of-scope.
-5. **Section: Feature Requirements** — high-level capabilities.
-6. **Verify** → `aa check docs` passes; goals are measurable.
 
 ## Workflow
 

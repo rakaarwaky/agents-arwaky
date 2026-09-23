@@ -19,13 +19,6 @@
 
 
 
-## Workflow
-
-1. **Create file** → `BACKLOG.md` in feature directory.
-2. **Section: Current Condition** — document baseline state.
-3. **Section: Backlog** — list items with status (New/In Progress/Done).
-4. **Section: Scenario Evidence** — link to tests/passing gates.
-5. **Verify** → `aa check docs` passes; all sections present.
 
 Five rules. Each one prevents a specific failure mode.
 
@@ -53,13 +46,6 @@ contain a backtick code span naming a command and a commit hash
 
 
 
-## Workflow
-
-1. **Create file** → `BACKLOG.md` in feature directory.
-2. **Section: Current Condition** — document baseline state.
-3. **Section: Backlog** — list items with status (New/In Progress/Done).
-4. **Section: Scenario Evidence** — link to tests/passing gates.
-5. **Verify** → `aa check docs` passes; all sections present.
 
 ## Workflow
 

@@ -20,13 +20,6 @@
 
 
 
-## Workflow
-
-1. **Create file** → `ROADMAP.md` at repo root.
-2. **Section: Current State** — where we are now.
-3. **Section: Roadmap** — phased milestones with dates.
-4. **Section: Status Policy** — how to update progress.
-5. **Verify** → `aa check docs` passes; all phases have status.
 
 Four rules. Each one prevents a specific failure mode.
 
@@ -44,13 +37,6 @@ Four rules. Each one prevents a specific failure mode.
 
 
 
-## Workflow
-
-1. **Create file** → `ROADMAP.md` at repo root.
-2. **Section: Current State** — where we are now.
-3. **Section: Roadmap** — phased milestones with dates.
-4. **Section: Status Policy** — how to update progress.
-5. **Verify** → `aa check docs` passes; all phases have status.
 
 ## Workflow
 

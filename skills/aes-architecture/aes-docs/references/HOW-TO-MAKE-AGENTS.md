@@ -18,13 +18,6 @@
 
 
 
-## Workflow
-
-1. **Determine context** — Agent config for single tool or multi-agent system.
-2. **Create file** → `.agents/agents/<name>.md`.
-3. **Write frontmatter** — name, description, persona, tools.
-4. **Write system prompt** — behavior rules, guardrails, response format.
-5. **Verify** → validate YAML frontmatter; check agent loads without error.
 
 1. **Commands must match CI.** Every printed command must be
  copy-pasteable and identical to the CI gate.
@@ -43,13 +36,6 @@
 
 
 
-## Workflow
-
-1. **Determine context** — Agent config for single tool or multi-agent system.
-2. **Create file** → `.agents/agents/<name>.md`.
-3. **Write frontmatter** — name, description, persona, tools.
-4. **Write system prompt** — behavior rules, guardrails, response format.
-5. **Verify** → validate YAML frontmatter; check agent loads without error.
 
 ## Workflow
 
