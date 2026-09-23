@@ -1,7 +1,7 @@
 """Skill provisioning registry capability — SkillRegistry behind ISkillProtocol.
 
 Pure helpers (manifest lookups, unpack/unlink, discovery) live in
-:mod:`modules.skill.src.utility_skill_registry` so the skill surface can
+:mod:`modules.shared.src.utility_skill_registry` so the skill surface can
 import them without touching the capability layer (AES201 surface rule).
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from modules.shared.src.contract_skill_protocol import ISkillProtocol
 from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
-from modules.skill.src.utility_skill_registry import get_registered_tool_ids
+from modules.shared.src.utility_skill_registry import get_registered_tool_ids
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

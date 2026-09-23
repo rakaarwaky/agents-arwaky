@@ -9,11 +9,11 @@ from modules.harness.src.agent_harness_orchestrator import HarnessOrchestrator
 from modules.harness.src.capabilities_harness_connector import HarnessConnector
 from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
 from modules.harness.src.capabilities_harness_skills import HarnessSkills
-from modules.harness.src.utility_antigravity_adapter import AntigravityAdapter
-from modules.harness.src.utility_grok_build_adapter import GrokBuildAdapter
-from modules.harness.src.utility_hermes_adapter import HermesAdapter
-from modules.harness.src.utility_opencode_adapter import OpencodeAdapter
-from modules.harness.src.utility_qwencode_adapter import QwencodeAdapter
+from modules.shared.src.utility_antigravity_adapter import AntigravityAdapter
+from modules.shared.src.utility_grok_build_adapter import GrokBuildAdapter
+from modules.shared.src.utility_hermes_adapter import HermesAdapter
+from modules.shared.src.utility_opencode_adapter import OpencodeAdapter
+from modules.shared.src.utility_qwencode_adapter import QwencodeAdapter
 from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
 from modules.shared.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 

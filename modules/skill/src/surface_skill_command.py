@@ -1,7 +1,7 @@
 """Skill command surface — aa skill list|show|install|check|help|uninstall.
 
 1:1 exact port of the action bodies from tools/skill/skill.py; pure helpers
-live in :mod:`modules.skill.src.utility_skill_registry`.
+live in :mod:`modules.shared.src.utility_skill_registry`.
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from modules.shared.src.utility_logging_setup import (
 from modules.shared.src.utility_logging_setup import (
     table_widths as _table_widths,
 )
-from modules.skill.src.utility_skill_registry import (
+from modules.shared.src.utility_skill_registry import (
     PACK_ROOT,
     _get_all_skills,
     _manifest_tools,

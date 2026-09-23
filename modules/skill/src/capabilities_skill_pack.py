@@ -1,7 +1,7 @@
 """Skill pack provisioning capability — delegates to shared skill_pack helpers.
 
 Pack logic (provision/remove/prune/audit) lives in
-:mod:`modules.skill.src.utility_skill_registry` (utility layer, shared with the
+:mod:`modules.shared.src.utility_skill_registry` (utility layer, shared with the
 skill surface under AES201). This module adapts it to the single
 ``ISkillProtocol`` capability contract so the orchestrator stays thin.
 """
@@ -18,7 +18,7 @@ from modules.shared.src.taxonomy_skill_vo import (
     ToolFilter,
 )
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.skill.src.utility_skill_registry import (
+from modules.shared.src.utility_skill_registry import (
     PACK_ROOT,
     get_tool_skills,
     provision_base,

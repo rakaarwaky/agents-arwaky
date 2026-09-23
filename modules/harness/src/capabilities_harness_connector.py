@@ -13,7 +13,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from modules.harness.src.utility_harness_log import (
+from modules.shared.src.utility_harness_log import (
     log_err,
     log_header,
     log_ok,
