@@ -4,10 +4,19 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import NewType
 
-from modules.harness.src.taxonomy_harness_constant import ALL_HARNESS_IDS
+from modules.shared.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 
 #: Process or command exit code (0 = success, non-zero = failure).
 ExitCode = NewType("ExitCode", int)
+
+#: Operation token dispatched through ``IHarnessProtocol.execute``.
+HarnessOp = NewType("HarnessOp", str)
+
+#: Resolved harness id tuple accepted by connect / disconnect / provision.
+HarnessTargets = NewType("HarnessTargets", tuple)
+
+#: Boolean option bag for a harness action (scope toggles only).
+HarnessFlags = NewType("HarnessFlags", dict)
 
 
 class HarnessVo:
@@ -103,6 +112,9 @@ __all__ = [
     "DisconnectOpts",
     "ExitCode",
     "HarnessConfig",
+    "HarnessFlags",
+    "HarnessOp",
+    "HarnessTargets",
     "HarnessVo",
     "RouterCredentials",
     "SkillsOpts",

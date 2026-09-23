@@ -13,9 +13,19 @@ from modules.shared.src.contract_check_protocol import ICheckProtocol
 from modules.shared.src.contract_config_aggregate import IConfigAggregate
 from modules.shared.src.contract_config_protocol import IConfigProtocol
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
+from modules.shared.src.contract_daemon_protocol import (
+    IDaemonControlProtocol,
+    IDaemonLogsProtocol,
+    IDaemonProtocol,
+    IDaemonRestartProtocol,
+    IDaemonStartProtocol,
+    IDaemonStatusProtocol,
+    IDaemonStopProtocol,
+)
 from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
 from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
+from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
+from modules.shared.src.contract_harness_protocol import IHarnessProtocol
 from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
 from modules.shared.src.contract_mcp_protocol import IMcpProtocol
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
@@ -33,9 +43,17 @@ __all__ = [
     "IConfigAggregate",
     "IConfigProtocol",
     "IDaemonAggregate",
+    "IDaemonControlProtocol",
+    "IDaemonLogsProtocol",
     "IDaemonProtocol",
+    "IDaemonRestartProtocol",
+    "IDaemonStartProtocol",
+    "IDaemonStatusProtocol",
+    "IDaemonStopProtocol",
     "IDoctorAggregate",
     "IDoctorProtocol",
+    "IHarnessAggregate",
+    "IHarnessProtocol",
     "IMcpAggregate",
     "IMcpProtocol",
     "IServiceAggregate",

@@ -13,19 +13,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from modules.harness.src.contract_harness_protocol import (
-    IHarnessAdapter,
-    IHarnessConfigFilesProtocol,
-    IHarnessCredentialCandidatesProtocol,
-    IHarnessEnvFilesProtocol,
-    IHarnessHomeProtocol,
-    IHarnessMcpConfigFileProtocol,
-    IHarnessMcpTargetsProtocol,
-    IHarnessProtocol,
-    IHarnessSessionConfFilesProtocol,
-    IHarnessSkillsDirProtocol,
-)
-from modules.harness.src.taxonomy_harness_vo import (
+from modules.shared.src.contract_harness_protocol import IHarnessProtocol
+from modules.shared.src.taxonomy_harness_vo import (
     ConnectOpts,
     ExitCode,
     RouterCredentials,
@@ -228,85 +217,6 @@ class HarnessConnector(IHarnessProtocol):
 
     def __repr__(self) -> str:
         return "HarnessConnector()"
-
-
-class BoundAdapter(IHarnessAdapter, IHarnessHomeProtocol, IHarnessConfigFilesProtocol, IHarnessEnvFilesProtocol, IHarnessMcpConfigFileProtocol, IHarnessMcpTargetsProtocol, IHarnessSkillsDirProtocol, IHarnessSessionConfFilesProtocol, IHarnessCredentialCandidatesProtocol):
-    """Capabilities-layer binding of a utility leaf to the adapter protocols (AES502)."""
-
-    def __init__(self, leaf: object) -> None:
-        self._leaf = leaf
-
-    @property
-    def id(self) -> str:
-        return self._leaf.id
-
-    @property
-    def aliases(self) -> tuple[str, ...]:
-        return self._leaf.aliases
-
-    @property
-    def display(self) -> str:
-        return self._leaf.display
-
-    @property
-    def skill_link_verified(self) -> bool:
-        return self._leaf.skill_link_verified
-
-    @property
-    def supports_mcp(self) -> bool:
-        return self._leaf.supports_mcp
-
-    @property
-    def supports_env(self) -> bool:
-        return self._leaf.supports_env
-
-    @property
-    def supports_custom_api(self) -> bool:
-        return self._leaf.supports_custom_api
-
-    @property
-    def custom_api_kind(self) -> str:
-        return self._leaf.custom_api_kind
-
-    @property
-    def router_provider_id(self) -> str:
-        return self._leaf.router_provider_id
-
-    @property
-    def env_key(self) -> str:
-        return self._leaf.env_key
-
-    @property
-    def mcp_key(self) -> str:
-        return self._leaf.mcp_key
-
-    @property
-    def env_keys(self) -> tuple[str, ...]:
-        return self._leaf.env_keys
-
-    def home(self) -> Path:
-        return self._leaf.home()
-
-    def config_files(self) -> tuple[Path, ...]:
-        return self._leaf.config_files()
-
-    def env_files(self) -> tuple[Path, ...]:
-        return self._leaf.env_files()
-
-    def mcp_config_file(self, target_dir: Path | None = None) -> Path:
-        return self._leaf.mcp_config_file(target_dir)
-
-    def mcp_targets(self) -> tuple[tuple[str, Path], ...]:
-        return self._leaf.mcp_targets()
-
-    def skills_dir(self) -> Path:
-        return self._leaf.skills_dir()
-
-    def session_conf_files(self) -> tuple[Path, ...]:
-        return self._leaf.session_conf_files()
-
-    def credential_candidates(self) -> tuple[Path, ...]:
-        return self._leaf.credential_candidates()
 
 
 def _router_v1(url: str) -> str:

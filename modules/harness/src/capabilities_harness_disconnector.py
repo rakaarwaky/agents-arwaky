@@ -9,8 +9,8 @@ import json
 import os
 from pathlib import Path
 
-from modules.harness.src.contract_harness_protocol import IHarnessProtocol
-from modules.harness.src.taxonomy_harness_vo import DisconnectOpts, ExitCode
+from modules.shared.src.contract_harness_protocol import IHarnessProtocol
+from modules.shared.src.taxonomy_harness_vo import DisconnectOpts, ExitCode
 from modules.harness.src.utility_harness_log import (
     log_err,
     log_header,

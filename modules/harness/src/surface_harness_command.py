@@ -9,8 +9,8 @@ from __future__ import annotations
 import sys
 from collections.abc import Callable
 
-from modules.harness.src.contract_harness_aggregate import IHarnessAggregate
-from modules.harness.src.taxonomy_harness_constant import (
+from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
+from modules.shared.src.taxonomy_harness_constant import (
     ALIASES,
     ALL_HARNESS_IDS,
     HARNESSES,
