@@ -21,6 +21,8 @@
 
 ## Rules
 
+0. **Not a feature → no FRD.** A folder is only a valid feature folder when it contains an `agent_*_orchestrator` file. Folders without an orchestrator are not features and must not carry `FRD.md` or `BACKLOG.md`. Cross-cutting kernel / shared layers (e.g. `modules/shared`) have no orchestrator and therefore have **no `FRD.md` and no `BACKLOG.md`**. Creating either under `shared/` fails the gate with `feature-doc-in-shared`. Pairing (`spec-without-backlog` / `backlog-without-spec`) applies only to feature folders.
+
 1. **Requirement IDs are the contract.** `FR-<name>-<number>`,
 unique within the feature and stable forever.
 2. **A requirement is testable, or it is a wish.**

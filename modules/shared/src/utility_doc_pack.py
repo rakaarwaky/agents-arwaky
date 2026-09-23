@@ -186,6 +186,25 @@ def _under_shared(path: Path) -> bool:
     return "shared" in path.parts[:-1]
 
 
+def _folder_has_orchestrator(folder: Path) -> bool:
+    """Check if *folder* contains an agent orchestrator file.
+
+    Returns True if the folder or any of its immediate subdirectories contains
+    a file matching ``agent_*_orchestrator`` pattern. This is used to determine
+    whether a folder qualifies as a valid feature folder (HOW-TO-MAKE-FRD § Scope).
+    """
+    import re
+    orchestrator_pattern = re.compile(r'^agent_.*_orchestrator\.(py|rs|ts)$')
+    for item in folder.iterdir():
+        if item.is_file() and orchestrator_pattern.match(item.name):
+            return True
+        if item.is_dir():
+            for sub_item in item.iterdir():
+                if sub_item.is_file() and orchestrator_pattern.match(sub_item.name):
+                    return True
+    return False
+
+
 def check_spec_pairing(root: Path) -> list[DocFinding]:
     """Rule *each FRD has a sibling backlog, and one root master owns the definitions*.
 
@@ -198,17 +217,38 @@ def check_spec_pairing(root: Path) -> list[DocFinding]:
     findings: list[DocFinding] = []
     docs = iter_doc_files(root)
     master = root_master(root)
+
+    # Track which folders contain feature docs to check for orchestrator presence
+    feature_doc_folders: set[Path] = set()
     for path in docs:
-        if path.name in ("FRD.md", "BACKLOG.md") and _under_shared(path):
+        if path.name in ("FRD.md", "BACKLOG.md"):
+            feature_doc_folders.add(path.parent)
+            if _under_shared(path):
+                findings.append(DocFinding(
+                    "feature-doc-in-shared",
+                    f"{path.name} under shared/ — kernel folders are not features and "
+                    "must not carry an FRD/BACKLOG pair (HOW-TO-MAKE-FRD § Scope)",
+                    str(path),
+                ))
+
+    # Check that every folder with FRD/BACKLOG has an orchestrator
+    for folder in feature_doc_folders:
+        if _under_shared(folder):
+            continue
+        if not _folder_has_orchestrator(folder):
             findings.append(DocFinding(
-                "feature-doc-in-shared",
-                f"{path.name} under shared/ — kernel folders are not features and "
-                "must not carry an FRD/BACKLOG pair (HOW-TO-MAKE-FRD § Scope)",
-                str(path),
+                "feature-without-orchestrator",
+                f"Folder {folder.name}/ has FRD.md/BACKLOG.md but no "
+                "agent_*_orchestrator file — only folders with an orchestrator "
+                "are valid features and may carry doc pairs (HOW-TO-MAKE-FRD § Scope)",
+                str(folder),
             ))
+
     specs = [
         path for path in docs
-        if path.name in SPEC_DOCS and not (_under_shared(path) and path.name == "FRD.md")
+        if path.name in SPEC_DOCS
+        and not _under_shared(path)
+        and _folder_has_orchestrator(path.parent)
     ]
     if specs and master is None:
         findings.append(DocFinding(

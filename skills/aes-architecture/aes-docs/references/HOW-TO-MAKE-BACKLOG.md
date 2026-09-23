@@ -11,14 +11,11 @@
 >
 > **Length**: 50–500 lines
 >
-> **Not a feature → no BACKLOG.** 一个文件夹只有在包含 `agent_*_orchestrator` 文件时，才被视为有效的 feature folder。没有 orchestrator 的文件夹不是 feature，不需要也不应该创建 `FRD.md` 和 `BACKLOG.md`。kernel / shared 层（如 `modules/shared`）没有 orchestrator，因此它们**没有 `FRD.md` 也没有 `BACKLOG.md`**。在 `shared/` 下创建任一文件会通过 `feature-doc-in-shared` 失败。
+> **Not a feature → no BACKLOG.** A folder is only a valid feature folder when it contains an `agent_*_orchestrator` file. Folders without an orchestrator are not features and must not carry `FRD.md` or `BACKLOG.md`. Kernel / shared layers (e.g. `modules/shared`) have no orchestrator and therefore have **no `FRD.md` and no `BACKLOG.md`**. Creating either under `shared/` fails the gate with `feature-doc-in-shared`.
 
 ---
 
 ## Rules
-
-
-
 
 Five rules. Each one prevents a specific failure mode.
 
