@@ -43,6 +43,12 @@ UpdateResult = _UpdateResult
 #: Manifest lookup text (id / binary / alias). Identity at runtime.
 ToolQuery = NewType("ToolQuery", str)
 
+#: Operation token dispatched through ``IToolsProtocol.execute``.
+ToolsOp = NewType("ToolsOp", str)
+
+#: Process argument list accepted by the run action.
+ToolArgs = NewType("ToolArgs", list)
+
 #: Process exit code from the run action. Identity at runtime.
 ExitCode = NewType("ExitCode", int)
 
@@ -98,9 +104,11 @@ __all__ = [
     "AdapterUnit",
     "ExitCode",
     "InstallResult",
+    "ToolArgs",
     "ToolLifecycleConfig",
     "ToolQuery",
     "ToolSpec",
+    "ToolsOp",
     "UninstallResult",
     "UpdateResult",
 ]

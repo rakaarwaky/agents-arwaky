@@ -12,6 +12,8 @@ from pathlib import Path
 from modules.shared.src.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,
+    ConfigKeys,
+    ConfigOp,
     ConfigTuple,
     EnvPairs,
     McpServersMap,
@@ -25,10 +27,10 @@ class IConfigProtocol(ABC):
     @abstractmethod
     def execute(
         self,
-        op: str,
+        op: ConfigOp,
         path: Path,
-        payload: dict | None = None,
-    ) -> ConfigTuple | bool | list[str] | dict | ConfigFormat | None:
+        payload: ConfigData | None = None,
+    ) -> ConfigTuple | bool | ConfigKeys | ConfigData | ConfigFormat | None:
         """Dispatch *op* against *path* with *payload*; return the op's result."""
         ...
 
@@ -36,6 +38,8 @@ class IConfigProtocol(ABC):
 __all__ = [
     "ConfigData",
     "ConfigFormat",
+    "ConfigKeys",
+    "ConfigOp",
     "ConfigTuple",
     "EnvPairs",
     "IConfigProtocol",
@@ -47,6 +51,8 @@ __all__ = [
 _layer_symbols = {
     "ConfigData": ConfigData,
     "ConfigFormat": ConfigFormat,
+    "ConfigKeys": ConfigKeys,
+    "ConfigOp": ConfigOp,
     "ConfigTuple": ConfigTuple,
     "EnvPairs": EnvPairs,
     "IConfigProtocol": IConfigProtocol,
