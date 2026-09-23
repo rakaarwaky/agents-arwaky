@@ -3,7 +3,12 @@ from __future__ import annotations
 
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
 from modules.shared.src.contract_check_protocol import ICheckProtocol
-from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckOnly
+from modules.shared.src.taxonomy_check_vo import (
+    CheckExitCode,
+    CheckOnly,
+    CheckScope,
+    CheckSummary,
+)
 from modules.shared.src.taxonomy_common_vo import DocFinding
 from modules.shared.src.utility_logging_setup import banner, err, info, ok
 
@@ -33,6 +38,7 @@ class CheckOrchestrator(ICheckAggregate):
     def check(self, only: CheckOnly | None = None) -> CheckExitCode:
         banner()
         info("Running Python-based repository verification...")
+        scope = (only or "").strip().lower() or "all"
         runners = self._select(only)
         if not runners:
             err(f"Unknown check scope: {only!r} (expected docs | skill | all)")
@@ -43,7 +49,7 @@ class CheckOrchestrator(ICheckAggregate):
         for index, runner in enumerate(runners, 1):
             title = getattr(runner, "title", None) or f"Validating {runner.name}..."
             print(f"[{index}/{total}] {title}")
-            errors += int(runner.run())
+            errors += int(runner.execute(CheckScope(scope)))
         print()
         # -- Block 3: Result shaping ---------------------------------------------------
         if errors:
@@ -51,6 +57,23 @@ class CheckOrchestrator(ICheckAggregate):
             return CheckExitCode(1)
         ok("All verifications PASSED.")
         return CheckExitCode(0)
+
+    def check_docs(self) -> CheckExitCode:
+        """Run only the document-invariant audit."""
+        return self.check(CheckOnly("docs"))
+
+    def check_skill(self) -> CheckExitCode:
+        """Run only the skill-pack audit."""
+        return self.check(CheckOnly("skill"))
+
+    def summary(self, findings: list[DocFinding]) -> CheckSummary:
+        """Collapse *findings* into one digest line."""
+        if not findings:
+            return CheckSummary("0 findings")
+        codes = sorted({finding.code for finding in findings})
+        return CheckSummary(
+            f"{len(findings)} finding(s) in {len(codes)} code(s): {', '.join(codes)}"
+        )
 
     def _select(self, only: CheckOnly | None) -> list[ICheckProtocol]:
         """Filter *runners* by CLI scope; empty/``all`` keeps the full sequence."""
@@ -64,8 +87,21 @@ class CheckOrchestrator(ICheckAggregate):
             return list(self._runners)
         return [r for r in self._runners if getattr(r, "name", "") == key]
 
-__all__ = ['CHECK_SCOPES', 'CheckExitCode', 'CheckOnly', 'DocFinding']
+__all__ = [
+    'CHECK_SCOPES',
+    'CheckExitCode',
+    'CheckOnly',
+    'CheckScope',
+    'CheckSummary',
+    'DocFinding',
+]
 
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"CheckExitCode": CheckExitCode, "CheckOnly": CheckOnly, "DocFinding": DocFinding}
+_layer_symbols = {
+    "CheckExitCode": CheckExitCode,
+    "CheckOnly": CheckOnly,
+    "CheckScope": CheckScope,
+    "CheckSummary": CheckSummary,
+    "DocFinding": DocFinding,
+}

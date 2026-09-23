@@ -15,5 +15,11 @@ CheckExitCode = NewType("CheckExitCode", int)
 #: Selective-run scope: ``docs`` | ``skill`` | ``all`` (or empty = all).
 CheckOnly = NewType("CheckOnly", str)
 
-__all__ = ["CheckExitCode", "CheckOnly"]
+#: Requested gate scope token (``all`` | ``docs`` | ``skill``).
+CheckScope = NewType("CheckScope", str)
+
+#: One-line digest summarizing a set of findings.
+CheckSummary = NewType("CheckSummary", str)
+
+__all__ = ["CheckExitCode", "CheckOnly", "CheckScope", "CheckSummary"]
 

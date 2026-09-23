@@ -446,35 +446,57 @@ def main(argv: list[str], orch: object | None = None) -> int:
     return cmd_help()
 
 
-from modules.shared.src.contract_skill_protocol import ISkillRegistry
-from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
+from modules.shared.src.contract_skill_protocol import ISkillProtocol
+from modules.shared.src.taxonomy_skill_vo import ARGS_EMPTY, ExitCode, SkillArgs
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class SkillRegistryAdapter(ISkillRegistry):
-    """ISkillRegistry implementation wrapping the module-level cmd_* functions.
+class SkillRegistryAdapter(ISkillProtocol):
+    """ISkillProtocol implementation wrapping the module-level cmd_* functions.
 
     Lets the root composition layer inject a concrete registry object
     into :class:`modules.skill.src.agent_skill_orchestrator.SkillOrchestrator`
     without the agent importing the capabilities module (AES201 rule 8).
     """
 
-    def __init__(self) -> None:
-        import importlib
-        self._reg = importlib.import_module("modules.skill.src.capabilities_skill_registry")
+    def execute(
+        self,
+        op: str,
+        skill: str | None = None,
+        target: Path | None = None,
+    ) -> ExitCode:
+        """Dispatch one skill op to the aggregate-named methods below."""
+        argv = SkillArgs([arg for arg in (skill, str(target) if target is not None else None) if arg])
+        if op == "list":
+            return self.list(argv)
+        if op == "check":
+            return self.check()
+        if op == "show":
+            return self.show(argv)
+        if op == "install":
+            return self.install(argv)
+        if op == "uninstall":
+            return self.uninstall(argv)
+        if op == "sync":
+            return self.sync(argv)
+        print(f"Unknown skill op: {op}", file=sys.stderr)
+        return ExitCode(1)
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
-    def cmd_list(self, argv: SkillArgs) -> ExitCode:
-        return ExitCode(self._reg.cmd_list(argv))
+    # ─── Block 2: Aggregate-named registry surface ──────────
+    def list(self, argv: SkillArgs) -> ExitCode:
+        return ExitCode(cmd_list(list(argv)))
 
-    def cmd_check(self) -> ExitCode:
-        return ExitCode(self._reg.cmd_check())
+    def check(self, argv: SkillArgs = ARGS_EMPTY) -> ExitCode:
+        return ExitCode(cmd_check(list(argv)))
 
-    def cmd_show(self, argv: SkillArgs) -> ExitCode:
-        return ExitCode(self._reg.cmd_show(argv))
+    def show(self, argv: SkillArgs) -> ExitCode:
+        return ExitCode(cmd_show(list(argv)))
 
-    def cmd_install(self, argv: SkillArgs) -> ExitCode:
-        return ExitCode(self._reg.cmd_install(argv))
+    def install(self, argv: SkillArgs) -> ExitCode:
+        return ExitCode(cmd_install(list(argv)))
 
-    def cmd_uninstall(self, argv: SkillArgs) -> ExitCode:
-        return ExitCode(self._reg.cmd_uninstall(argv))
+    def uninstall(self, argv: SkillArgs) -> ExitCode:
+        return ExitCode(cmd_uninstall(list(argv)))
+
+    def sync(self, argv: SkillArgs = ARGS_EMPTY) -> ExitCode:
+        return ExitCode(cmd_install(["all", *list(argv)]))

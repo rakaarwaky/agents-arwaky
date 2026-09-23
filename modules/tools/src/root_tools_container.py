@@ -80,7 +80,7 @@ def create_tools_feature(root=None) -> IToolsAggregate:
     # P1-7: the adapter facade is the single API pipeline over all 13 leaf
     # adapters + shared mechanics; wired here and injected into the action
     # capabilities (dependency inversion: capabilities depend on the
-    # IToolAdapterFacade protocol, not the concrete ToolAdapterFacade).
+    # IToolsProtocol contract, not the concrete ToolAdapterFacade).
     adapter_facade = ToolAdapterFacade(
         registry=TOOLS_REGISTRY, daemons=daemons, root=resolved
     )

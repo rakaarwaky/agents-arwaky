@@ -1,14 +1,17 @@
-"""Tools orchestrator — single agent driving the 4 action capability classes.
+"""Tools orchestrator — single agent driving the action capability classes.
 
 Resolves the target tool spec from the manifest (typed error on unknown ids
 BEFORE any capability runs), selects the unified per-tool adapter keyed on
-the manifest `id`, and drives the 4 action classes (each a single public
-method; sub-steps are internal to the action):
+the manifest `id`, and dispatches every aggregate action to its capability
+through the single protocol method `execute(op, spec, query, args)`:
 
-- install   : installer.install(spec, adapter)                      (provision + register launcher)
-- update    : updater.update(spec, adapter)                         (bump + record transition)
-- uninstall : uninstaller.uninstall(spec, owned_paths)              (remove + verify residuals)
-- run_tool  : runner.run(spec, args, root)                          (discover + execute)
+- list           : manifest reader → registered tools
+- resolve        : query (id / binary / alias) → spec | None
+- install        : execute("install", spec)                 (provision + launcher)
+- update         : execute("update", spec)                  (bump + record)
+- uninstall      : execute("uninstall", spec, owned paths)  (remove + verify)
+- run            : execute("run", spec, args)               (discover + exec)
+- executable_path: execute("discover", spec)                (read-only path)
 
 Adding a tool is a manifest entry plus one unified adapter — no
 orchestrator edit.
@@ -19,13 +22,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from modules.shared.src.contract_tools_aggregate import IToolsAggregate
-from modules.shared.src.contract_tools_protocol import (
-    IToolAdapterFacade,
-    IToolInstallProtocol,
-    IToolRunProtocol,
-    IToolUninstallProtocol,
-    IToolUpdateProtocol,
-)
+from modules.shared.src.contract_tools_protocol import IToolsProtocol
 from modules.shared.src.taxonomy_common_error import (
     ToolInstallError,
     ToolUninstallError,
@@ -73,11 +70,11 @@ class ToolsOrchestrator(IToolsAggregate):
         registry: dict[str, object] | None = None,
         root: Path | None = None,
         daemons=None,
-        installer: IToolInstallProtocol | None = None,
-        updater: IToolUpdateProtocol | None = None,
-        uninstaller: IToolUninstallProtocol | None = None,
-        runner: IToolRunProtocol | None = None,
-        adapter_facade: IToolAdapterFacade | None = None,
+        installer: IToolsProtocol | None = None,
+        updater: IToolsProtocol | None = None,
+        uninstaller: IToolsProtocol | None = None,
+        runner: IToolsProtocol | None = None,
+        adapter_facade: IToolsProtocol | None = None,
     ) -> None:
         self._root = root or repo_root()
         self._daemons = daemons
@@ -91,25 +88,25 @@ class ToolsOrchestrator(IToolsAggregate):
         # P1-7: the adapter facade is the single API pipeline over all 13
         # leaf adapters + shared mechanics. The action capabilities already
         # route through it; the orchestrator keeps it for its uninstall()
-        # owned_paths call (read-only, no I/O).
+        # owned_paths call (read-only, no I/O) via facade.execute("owned_paths").
         self._facade = adapter_facade
         # AES201/AES405: the agent layer must not import capabilities_* — the
-        # four action capabilities are injected by the root composition layer
-        # (root_tools_container.create_tools_feature) typed against their
-        # contract protocols (IToolInstallProtocol/IToolUpdateProtocol/IToolUninstallProtocol/
-        # IToolRunProtocol). An unwired action stays None and _require() raises a
-        # typed error on use, never a partial dispatch.
+        # action capabilities are injected by the root composition layer
+        # (root_tools_container.create_tools_feature) typed against the single
+        # IToolsProtocol contract (execute(op, spec, query, args)). An unwired
+        # action stays None and _require() raises a typed error on use, never
+        # a partial dispatch.
         self._installer = installer
         self._updater = updater
         self._uninstaller = uninstaller
         self._runner = runner
 
     # -- Block 2: Manifest-driven spec resolution + aggregate action delegation -----
-    def list_tools(self) -> list[Tool]:
+    def list(self) -> list[Tool]:
         """All registered tools (manifest reader, no I/O here)."""
         return load_tools()
 
-    def resolve_spec(self, query: ToolQuery) -> ToolSpec | None:
+    def resolve(self, query: ToolQuery) -> ToolSpec | None:
         """Resolve a manifest id / binary / alias into a ToolSpec; None when unknown."""
         tool = find_tool(query)
         if tool is None:
@@ -120,31 +117,34 @@ class ToolsOrchestrator(IToolsAggregate):
         self._require(self._installer, "install")
         if find_tool(spec.id) is None:
             raise ToolInstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
-        # P1-1/P1-7: action calls route through the injected adapter facade
-        # (single API pipeline); a missing adapter folds into the result.
-        return self._installer.install(spec, None, dry_run=False)
+        # P1-1/P1-7: action calls dispatch through the capability's single
+        # protocol method; a missing adapter folds into the result.
+        return self._installer.execute("install", spec=spec)
 
     def update(self, spec: ToolSpec) -> UpdateResult:
         self._require(self._updater, "update")
         if find_tool(spec.id) is None:
             raise ToolUpdateError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
         # P1-1: fold a missing adapter into the result, same as install().
-        return self._updater.update(spec, None, dry_run=False)
+        return self._updater.execute("update", spec=spec)
 
     def uninstall(self, spec: ToolSpec) -> UninstallResult:
         self._require(self._uninstaller, "uninstall")
         if find_tool(spec.id) is None:
             raise ToolUninstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
-        # P1-1/P1-7: owned_paths routed through the injected adapter facade.
+        # P1-1/P1-7: owned_paths routed through the injected adapter facade's
+        # execute("owned_paths"); the capability tears down exactly that set.
         if self._facade is None:
             raise ToolUninstallError("adapter facade is unavailable (not wired)")
-        owned = self._facade.owned_paths(spec, self._root)
-        return self._uninstaller.uninstall(spec, owned, dry_run=False)
+        owned = self._facade.execute("owned_paths", spec=spec) or []
+        return self._uninstaller.execute(
+            "uninstall", spec=spec, args=[str(p) for p in owned]
+        )
 
-    def run_tool(self, spec: ToolSpec, args: list[str]) -> ExitCode:
+    def run(self, spec: ToolSpec, args: list[str]) -> ExitCode:
         """Discover then execute; return the child's real exit code."""
         self._require(self._runner, "run")
-        return self._runner.run(spec, args, self._root)
+        return self._runner.execute("run", spec=spec, args=args)
 
     def executable_path(self, spec: ToolSpec) -> Path | None:
         """Discover the launch path (read-only) for the CLI surface.
@@ -153,7 +153,7 @@ class ToolsOrchestrator(IToolsAggregate):
         (P1-6 kept this method; only find_executable/execute were dead).
         """
         self._require(self._runner, "run")
-        return self._runner.discover(spec, self._root)
+        return self._runner.execute("discover", spec=spec)
 
     # -- Block 3: Private helpers ---------------------------------------------------
     # P1-2: action-typed error — was always ToolInstallError for every action.

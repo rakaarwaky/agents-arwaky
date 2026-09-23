@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_backup_vo import (
+    DEST_DEFAULT,
     BackupArchive,
     BackupDestination,
     BackupResult,
@@ -16,7 +17,7 @@ class IBackupAggregate(ABC):
     """Aggregate over backup/restore orchestration."""
 
     @abstractmethod
-    def backup(self, tool: BackupToolQuery, dest: BackupDestination = BackupDestination("")) -> ExitCode:
+    def backup(self, tool: BackupToolQuery, dest: BackupDestination = DEST_DEFAULT) -> ExitCode:
         """Back up *tool* (or all tools); return exit code."""
         ...
     @abstractmethod
@@ -26,6 +27,10 @@ class IBackupAggregate(ABC):
     @abstractmethod
     def list_archives(self) -> ExitCode:
         """List available local backup archives; return exit code."""
+        ...
+    @abstractmethod
+    def status_store(self) -> ExitCode:
+        """Report backup store path / existence / archive count; return exit code."""
         ...
     @abstractmethod
     def help(self) -> ExitCode:

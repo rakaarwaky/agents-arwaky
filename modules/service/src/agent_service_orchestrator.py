@@ -2,12 +2,18 @@
 from __future__ import annotations
 
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
-from modules.shared.src.contract_service_protocol import IServiceManager
-from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
+from modules.shared.src.contract_service_protocol import IServiceProtocol
+from modules.shared.src.taxonomy_service_vo import (
+    TARGET_ALL,
+    TARGET_OMNIROUTE,
+    ExitCode,
+    ServiceOp,
+    ServiceTarget,
+)
 
 
 class ServiceOrchestrator(IServiceAggregate):
-    """Delegates every service action to the injected IServiceManager.
+    """Delegates every service action to the injected IServiceProtocol.
 
     # Block 1: Constructor
     # Block 2: Action delegation
@@ -15,28 +21,28 @@ class ServiceOrchestrator(IServiceAggregate):
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, manager: IServiceManager) -> None:
+    def __init__(self, manager: IServiceProtocol) -> None:
         self._manager = manager
 
     # -- Block 2: Action delegation ------------------------------------------------
     def status(self) -> ExitCode:
-        return ExitCode(self._manager.status())
+        return ExitCode(int(self._manager.execute(ServiceOp("status"))))
 
-    def start(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
-        return ExitCode(self._manager.start(target))
+    def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        return ExitCode(int(self._manager.execute(ServiceOp("start"), target)))
 
-    def stop(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
-        return ExitCode(self._manager.stop(target))
+    def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        return ExitCode(int(self._manager.execute(ServiceOp("stop"), target)))
 
-    def restart(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
-        return ExitCode(self._manager.restart(target))
+    def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        return ExitCode(int(self._manager.execute(ServiceOp("restart"), target)))
 
-    def logs(self, target: ServiceTarget = ServiceTarget("omniroute")) -> ExitCode:
-        return ExitCode(self._manager.logs(target))
+    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
+        return ExitCode(int(self._manager.execute(ServiceOp("logs"), target)))
 
     # -- Block 3: Help --------------------------------------------------------------
     def help(self) -> ExitCode:
-        return ExitCode(self._manager.help())
+        return ExitCode(int(self._manager.execute(ServiceOp("help"))))
 
 __all__ = ['ExitCode', 'ServiceTarget']
 

@@ -14,9 +14,9 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from modules.harness.src.contract_harness_protocol import IHarnessSkillsProtocol
+from modules.harness.src.contract_harness_protocol import IHarnessProtocol
 from modules.harness.src.taxonomy_harness_constant import ALL_HARNESS_IDS
-from modules.harness.src.taxonomy_harness_vo import UnsupportedHarnessError
+from modules.harness.src.taxonomy_harness_vo import ExitCode, UnsupportedHarnessError
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import iter_skill_files
 from modules.shared.src.taxonomy_skill_vo import safe_skill_name
@@ -71,7 +71,7 @@ class SkillsOpts:
             raise UnsupportedHarnessError(harness_id, ALL_HARNESS_IDS) from None
 
 
-class HarnessSkills(IHarnessSkillsProtocol):
+class HarnessSkills(IHarnessProtocol):
     """Registry-keyed skills provisioning (composition root injects adapters).
 
     # Block 1: Constructor
@@ -84,6 +84,20 @@ class HarnessSkills(IHarnessSkillsProtocol):
         self._adapters = adapters
 
     # -- Block 2: Protocol ABC Method Implementation ----------------------------
+    def execute(self, op: str, targets: tuple[str, ...],
+                flags: dict[str, bool] | None = None) -> ExitCode:
+        """Dispatch the ``provision_skills`` op over *targets*; return exit code."""
+        if op != "provision_skills":
+            raise ValueError(f"HarnessSkills does not handle op {op!r}")
+        flags = flags or {}
+        return ExitCode(self.provision_skills(
+            targets,
+            copy=flags.get("copy", False),
+            dry_run=flags.get("dry_run", False),
+            force=flags.get("force", False),
+        ))
+
+    # -- Block 3: Dunder Methods, Factories & Helpers ----------------------------
     def provision_skills(self, harness_ids: tuple[str, ...], copy: bool = False,
                          dry_run: bool = False, force: bool = False) -> int:
         """FR-003: link or copy the pack into each harness's skill dir.

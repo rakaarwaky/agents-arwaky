@@ -8,3 +8,10 @@ ExitCode = NewType("ExitCode", int)
 
 #: Service target name ("omniroute", "anytype", "all").
 ServiceTarget = NewType("ServiceTarget", str)
+
+#: Service operation token routed through the protocol (status/start/stop/...).
+ServiceOp = NewType("ServiceOp", str)
+
+#: Module-level singletons for default arguments (B008).
+TARGET_ALL: ServiceTarget = ServiceTarget("all")
+TARGET_OMNIROUTE: ServiceTarget = ServiceTarget("omniroute")

@@ -2,7 +2,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckOnly
+
+from modules.shared.src.taxonomy_check_vo import (
+    CheckExitCode,
+    CheckOnly,
+    CheckSummary,
+)
 from modules.shared.src.taxonomy_common_vo import DocFinding
 
 
@@ -19,9 +24,29 @@ class ICheckAggregate(ABC):
         """
         ...
 
+    @abstractmethod
+    def check_docs(self) -> CheckExitCode:
+        """Run only the document-invariant audit; every finding gates."""
+        ...
 
-__all__ = ['CheckExitCode', 'CheckOnly', 'DocFinding']
+    @abstractmethod
+    def check_skill(self) -> CheckExitCode:
+        """Run only the skill-pack audit; every finding gates."""
+        ...
+
+    @abstractmethod
+    def summary(self, findings: list[DocFinding]) -> CheckSummary:
+        """Collapse *findings* into one digest line."""
+        ...
+
+
+__all__ = ['CheckExitCode', 'CheckOnly', 'CheckSummary', 'DocFinding']
 
 #
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"CheckExitCode": CheckExitCode, "CheckOnly": CheckOnly, "DocFinding": DocFinding}
+_layer_symbols = {
+    "CheckExitCode": CheckExitCode,
+    "CheckOnly": CheckOnly,
+    "CheckSummary": CheckSummary,
+    "DocFinding": DocFinding,
+}

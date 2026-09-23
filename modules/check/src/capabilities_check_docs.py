@@ -9,9 +9,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.contract_check_protocol import ICheckProtocol
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckScope
+from modules.shared.src.utility_doc_hygiene import audit_hygiene
 from modules.shared.src.utility_doc_pack import (
     DocFinding,
+    as_strict,
     audit_docs,
     errors_only,
 )
@@ -32,7 +34,8 @@ class DocsCheckRunner(ICheckProtocol):
         self._root = root or repo_root()
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
-    def run(self) -> CheckExitCode:
+    def execute(self, scope: CheckScope) -> CheckExitCode:
+        """Run the document audit; *scope* routing happens in the orchestrator."""
         findings = self.audit()
         problems = errors_only(findings)
         for finding in problems:
@@ -43,4 +46,12 @@ class DocsCheckRunner(ICheckProtocol):
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def audit(self, include_subtrees: bool = False) -> list[DocFinding]:
-        return audit_docs(self._root, include_subtrees=include_subtrees)
+        # AES201: utilities must not import each other; capabilities composes them.
+        merged = (
+            audit_docs(self._root, include_subtrees=include_subtrees)
+            + audit_hygiene(self._root, include_subtrees=include_subtrees)
+        )
+        return sorted(
+            set(as_strict(merged)),
+            key=lambda f: (f.path, f.code, f.message),
+        )

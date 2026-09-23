@@ -4,6 +4,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_skill_vo import (
+    FILTER_EMPTY,
+    QUERY_EMPTY,
     ExitCode,
     SkillArgs,
     SkillProvisionResult,
@@ -16,27 +18,27 @@ class ISkillAggregate(ABC):
     """Aggregate over the skill manager surface actions."""
 
     @abstractmethod
-    def list_skills(self, tool_filter: ToolFilter = ToolFilter("")) -> ExitCode:
+    def list(self, tool_filter: ToolFilter = FILTER_EMPTY) -> ExitCode:
         """List tools and their skills; return exit code."""
         ...
     @abstractmethod
-    def check_skills(self) -> ExitCode:
+    def check(self) -> ExitCode:
         """Audit per-tool skill coverage and pack loadability; return exit code."""
         ...
     @abstractmethod
-    def install_skills(self, args: SkillArgs) -> ExitCode:
+    def install(self, args: SkillArgs) -> ExitCode:
         """Parse *args* and provision skills (install/copy/get/add/sync)."""
         ...
     @abstractmethod
-    def uninstall_skills(self, args: SkillArgs) -> ExitCode:
+    def uninstall(self, args: SkillArgs) -> ExitCode:
         """Parse *args* and remove provisioned skills (uninstall/unskill/remove/delete)."""
         ...
     @abstractmethod
-    def show_skill(self, query: SkillQuery = SkillQuery("")) -> ExitCode:
+    def show(self, query: SkillQuery = QUERY_EMPTY) -> ExitCode:
         """Display a skill's SKILL.md; return exit code."""
         ...
     @abstractmethod
-    def sync_skills(self, args: SkillArgs) -> ExitCode:
+    def sync(self, args: SkillArgs) -> ExitCode:
         """Provision all skills for all tools; return exit code."""
         ...
 

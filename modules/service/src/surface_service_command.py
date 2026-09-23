@@ -23,11 +23,17 @@ def cmd_service(args: list[str], orch: ServiceOrchestrator) -> int:
     if action == "logs":
         return orch.logs(target)
     print(f"Unknown service command: {action}", file=sys.stderr)
-    return orch.help()
+    orch.help()
+    return 1
 
 
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
-from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
+from modules.shared.src.taxonomy_service_vo import (
+    TARGET_ALL,
+    TARGET_OMNIROUTE,
+    ExitCode,
+    ServiceTarget,
+)
 
 
 class ServiceAction(IServiceAggregate):
@@ -39,16 +45,16 @@ class ServiceAction(IServiceAggregate):
     def status(self) -> ExitCode:
         return self._agg.status()
 
-    def start(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+    def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return self._agg.start(target)
 
-    def stop(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+    def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return self._agg.stop(target)
 
-    def restart(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+    def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return self._agg.restart(target)
 
-    def logs(self, target: ServiceTarget = ServiceTarget("omniroute")) -> ExitCode:
+    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
         return self._agg.logs(target)
 
     def help(self) -> ExitCode:

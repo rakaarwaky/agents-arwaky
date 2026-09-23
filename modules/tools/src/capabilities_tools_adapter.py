@@ -1,11 +1,11 @@
-"""Capability — GOD OBJECT unified per-tool adapter (implements IToolAdapterFacade).
+"""Capability — GOD OBJECT unified per-tool adapter (implements IToolsProtocol).
 
 Maximum DRY: top-level factories + config-driven generation + unified lifecycles.
 
 Skill structure (`create-capabilities`, AES403) — honoured in-file:
 
 - Role `adapter` is an allowed external role; exactly 1 class
-  (`ToolAdapterFacade`) implements the `IToolAdapterFacade` protocol
+  (`ToolAdapterFacade`) implements the `IToolsProtocol` protocol
   (≥1 implementor, ≤3 types). Imports are taxonomy + `_protocol`
   contract only — no `agent_*`, no sibling `capabilities_*`, no
   `surface_*`, no local domain models.
@@ -32,7 +32,7 @@ import tempfile
 from collections.abc import Callable
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolAdapterFacade
+from modules.shared.src.contract_tools_protocol import IToolsProtocol
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER, REPO_ROOT
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
@@ -80,7 +80,7 @@ from modules.shared.src.taxonomy_tools_constant import (
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 
 
-class ToolAdapterFacade(IToolAdapterFacade):
+class ToolAdapterFacade(IToolsProtocol):
     """God-object facade: one injected object holding all 13 tool actions."""
 
     # ─── Block 1: Class Definition & Constructor ─────────────────────
@@ -98,6 +98,47 @@ class ToolAdapterFacade(IToolAdapterFacade):
         self._root = root
 
     # ─── Block 2: Public Contract (domain protocol ONLY, protocol order) ──
+    def execute(
+        self,
+        op: str,
+        spec: ToolSpec | None = None,
+        query: object | None = None,
+        args: list[str] | None = None,
+    ) -> object:
+        """Single protocol entry: dispatch *op* to the facade's shared mechanics."""
+        if op == "owned_paths":
+            if spec is None:
+                raise ToolUpdateError("facade got op='owned_paths' without a spec")
+            root = Path(args[0]) if args else None
+            return self.owned_paths(spec, root)
+        if op == "resolve":
+            if spec is None:
+                raise ToolUpdateError("facade got op='resolve' without a spec")
+            return self.resolve(spec)
+        if op == "install":
+            if spec is None:
+                raise ToolUpdateError("facade got op='install' without a spec")
+            root = Path(args[0]) if args else None
+            return self.install(spec, root)
+        if op == "update":
+            if spec is None:
+                raise ToolUpdateError("facade got op='update' without a spec")
+            root = Path(args[0]) if args else None
+            return self.update(spec, root)
+        if op == "satisfied":
+            if spec is None:
+                raise ToolUpdateError("facade got op='satisfied' without a spec")
+            return self.satisfied(spec)
+        if op == "is_pin_satisfied":
+            if spec is None:
+                raise ToolUpdateError("facade got op='is_pin_satisfied' without a spec")
+            return self.is_pin_satisfied(spec)
+        if op == "is_registered":
+            if spec is None:
+                raise ToolUpdateError("facade got op='is_registered' without a spec")
+            return self.is_registered(spec)
+        raise ToolUpdateError(f"unsupported facade op {op!r}")
+
     def resolve(self, spec: ToolSpec) -> object:
         """Uniform action surface for *spec* (god-object unit)."""
         return self._unit(spec)
@@ -1009,12 +1050,12 @@ def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     if is_update:
         _feature = _anytype_daemon_feature()
         print(">>> Updating anytype-daemon (container + systemd user service)...")
-        rc = _feature.service_install("anytype")
+        rc = _feature.install_unit("anytype-daemon.service")
         if rc != 0:
             print(f"  Warning: anytype-daemon service-install exited {rc}")
     else:
         if daemons is not None:
-            rc = daemons.service_install("anytype")
+            rc = daemons.install_unit("anytype-daemon.service")
             if rc != 0:
                 raise ToolUpdateError(f"anytype-daemon service-install exited {rc}")
         elif shutil.which("podman") is None and shutil.which("docker") is None:
@@ -1246,12 +1287,12 @@ def _omniroute_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     if is_update:
         _feature = _omniroute_daemon_feature()
         print(">>> Updating OmniRoute host-native service...")
-        rc = _feature.service_install("omniroute")
+        rc = _feature.install_unit("omniroute.service")
         if rc != 0:
             print(f"  Warning: omniroute service-install exited {rc}")
     else:
         if daemons is not None:
-            rc = daemons.service_install()
+            rc = daemons.install_unit("omniroute.service")
             if rc != 0:
                 print(f"omniroute service-install exited {rc} (see 'aa omniroute logs')", file=sys.stderr)
                 return []

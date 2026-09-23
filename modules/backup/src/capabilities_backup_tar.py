@@ -3,10 +3,10 @@
 The original script's logic (tar_dir, untar, backup_tool, restore_tool,
 cmd_backup, cmd_restore, cmd_list, cmd_help, main) is kept exactly as
 written, with only the module-level constants relocated into a class
-(``TarBackupGateway``) to satisfy the AES capability contract
-(``IBackupGateway``) and the import paths swapped to the AES shared
-modules. The original script's ``main(argv)`` CLI entry point is kept
-as the module-level function ``main`` at the bottom of this file.
+(``TarBackupGateway``) to satisfy the AES capability layer and the import
+paths swapped to the AES shared modules. The original script's
+``main(argv)`` CLI entry point is kept as the module-level function
+``main`` at the bottom of this file.
 """
 from __future__ import annotations
 
@@ -19,8 +19,13 @@ import threading
 from datetime import UTC, datetime
 from pathlib import Path
 
-from modules.shared.src.contract_backup_protocol import IBackupGateway
-from modules.shared.src.taxonomy_backup_vo import BackupResult, RestoreResult
+from modules.shared.src.contract_backup_protocol import IBackupProtocol
+from modules.shared.src.taxonomy_backup_vo import (
+    BackupDestination,
+    BackupResult,
+    BackupToolQuery,
+    RestoreResult,
+)
 from modules.shared.src.taxonomy_common_vo import data_home
 from modules.shared.src.utility_paths_resolver import repo_root
 
@@ -37,6 +42,9 @@ TOOL_DATA = {
     "mnemosyne": "mnemosyne",
     "google-workspace": "google-workspace-mcp",
 }
+
+#: Module-level default for the protocol ``dest`` (B008: no call in defaults).
+_DEFAULT_DEST = BackupDestination("")
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -179,18 +187,26 @@ def restore_tool(tool: str, src: str):
         return 1
 
     # Swap: old data is only removed after staging is proven good.
+    # Archives are rooted at the tool dir (arcname = src.name), so the
+    # extracted content sits one level down; unwrap it or the restored
+    # state lands nested (target/target/...).
+    content = staging / target.name
+    if not content.is_dir():
+        content = staging  # tolerate archives rooted at the extraction dir
     if target.exists():
         backup_old = target.with_name(f"{target.name}.pre-restore")
         shutil.rmtree(backup_old, ignore_errors=True)
         target.rename(backup_old)
         try:
-            staging.rename(target)
+            content.rename(target)
         except OSError:
             backup_old.rename(target)  # roll back
+            shutil.rmtree(staging, ignore_errors=True)
             raise
         shutil.rmtree(backup_old, ignore_errors=True)
     else:
-        staging.rename(target)
+        content.rename(target)
+    shutil.rmtree(staging, ignore_errors=True)
     log_ok(f"{tool} restored to {target}.")
     return 0
 
@@ -264,7 +280,7 @@ def main(argv):
     return cmd_help()
 
 
-class TarBackupGateway(IBackupGateway):
+class TarBackupGateway(IBackupProtocol):
     """tar/untar backup & restore with progress spinner + optional gdrive upload.
 
     Thin AES capability wrapper around the unchanged original script
@@ -275,6 +291,26 @@ class TarBackupGateway(IBackupGateway):
     """
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def execute(
+        self,
+        op: str,
+        tool: BackupToolQuery | None = None,
+        dest: BackupDestination = _DEFAULT_DEST,
+        archive: str = "",
+    ) -> object:
+        """Dispatch *op* (archive / restore / list) to the concrete helpers."""
+        if op == "archive":
+            if not tool:
+                return BackupResult(False, "", "", False, "archive op requires a tool")
+            return self.backup(str(tool), str(dest))
+        if op == "restore":
+            if not tool:
+                return RestoreResult(False, "", archive, "", "restore op requires a tool")
+            return self.restore(str(tool), Path(archive))
+        if op == "list":
+            return self.list_archives()
+        return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
 
     def backup(self, tool: str, dest: str = "") -> BackupResult:
         rc = cmd_backup([tool] + ([dest] if dest else []))

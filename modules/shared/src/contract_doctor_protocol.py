@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 
 from modules.shared.src.taxonomy_common_vo import ExitCode, Timestamp
 
@@ -10,8 +11,8 @@ class IDoctorProtocol(ABC):
     """Capability contract for one diagnostic report."""
 
     @abstractmethod
-    def run(self, json_mode: bool = False) -> ExitCode:
-        """Run the diagnostic; return exit code."""
+    def execute(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        """Run one diagnostic pass under *flags* (``json``, ``mode``); return exit code."""
         ...
 
 __all__ = ['ExitCode', 'IDoctorProtocol', 'Timestamp']

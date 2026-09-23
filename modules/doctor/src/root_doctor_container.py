@@ -21,5 +21,5 @@ class DoctorContainer:
 
 
 def create_doctor_feature() -> DoctorOrchestrator:
-    """Fully-wired doctor feature aggregate."""
+    """Fully-wired doctor feature aggregate (diagnose/readiness/report)."""
     return DoctorContainer().aggregate

@@ -11,9 +11,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from modules.harness.src.contract_harness_protocol import IHarnessDisconnectProtocol
+from modules.harness.src.contract_harness_protocol import IHarnessProtocol
 from modules.harness.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 from modules.harness.src.taxonomy_harness_vo import (
+    ExitCode,
     UnsupportedHarnessError,
 )
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
@@ -69,7 +70,7 @@ class DisconnectOpts:
             raise UnsupportedHarnessError(harness_id, ALL_HARNESS_IDS) from None
 
 
-class HarnessDisconnector(IHarnessDisconnectProtocol):
+class HarnessDisconnector(IHarnessProtocol):
     """Registry-keyed disconnect capability (composition root injects adapters).
 
     # Block 1: Constructor
@@ -82,6 +83,15 @@ class HarnessDisconnector(IHarnessDisconnectProtocol):
         self._adapters = adapters
 
     # -- Block 2: Protocol ABC Method Implementation ----------------------------
+    def execute(self, op: str, targets: tuple[str, ...],
+                flags: dict[str, bool] | None = None) -> ExitCode:
+        """Dispatch the ``disconnect`` op over *targets*; return exit code."""
+        if op != "disconnect":
+            raise ValueError(f"HarnessDisconnector does not handle op {op!r}")
+        flags = flags or {}
+        return ExitCode(self.disconnect(targets, dry_run=flags.get("dry_run", False)))
+
+    # -- Block 3: Dunder Methods, Factories & Helpers ----------------------------
     def disconnect(self, harness_ids: tuple[str, ...], dry_run: bool = False) -> int:
         """FR-002: remove MCP servers, env keys, and router references.
 

@@ -1,4 +1,4 @@
-from modules.shared.src.contract_skill_protocol import ISkillRegistry
+from modules.shared.src.contract_skill_protocol import ISkillProtocol
 from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
 
 """Skill provisioning registry — pure helpers (manifest lookups, unpack/unlink, audit).
@@ -351,16 +351,39 @@ def uninstall_tool_skills(tool_id, target_dir, custom_dest=""):
 
 # Capability class implementing the skill registry protocol (AES403: capabilities
 # must implement at least one protocol/contract parent class).
-class SkillRegistry(ISkillRegistry):
-    """Module-level registry facade implementing ISkillRegistry (AES403).
+class SkillRegistry(ISkillProtocol):
+    """Module-level registry facade implementing ISkillProtocol (AES403).
 
     Delegates to the pure provisioning helpers defined in this module
     (cmd_uninstall/cmd_install/cmd_list/cmd_check/cmd_show live in the
     agent action layer; their registry-side operations use the helpers here).
     """
 
+    def execute(
+        self,
+        op: str,
+        skill: str | None = None,
+        target: Path | None = None,
+    ) -> ExitCode:
+        """Dispatch one skill op (``list`` | ``check`` | ``show`` | ``install`` | ``uninstall`` | ``sync``)."""
+        argv = SkillArgs([arg for arg in (skill, str(target) if target is not None else None) if arg])
+        if op == "list":
+            return self.cmd_list(argv)
+        if op == "check":
+            return self.cmd_check()
+        if op == "show":
+            return self.cmd_show(argv)
+        if op == "install":
+            return self.cmd_install(argv)
+        if op == "uninstall":
+            return self.cmd_uninstall(argv)
+        if op == "sync":
+            return self.cmd_install(SkillArgs(["all", *list(argv)]))
+        print(f"Unknown skill op: {op}", file=sys.stderr)
+        return ExitCode(1)
+
     def cmd_list(self, argv: SkillArgs) -> ExitCode:
-        print(f"\u2713 Skill registry: {len(get_registered_tool_ids())} tools registered.")
+        print(f"✓ Skill registry: {len(get_registered_tool_ids())} tools registered.")
         return ExitCode(0)
 
     def cmd_check(self) -> ExitCode:
@@ -384,7 +407,7 @@ class SkillRegistry(ISkillRegistry):
         return ExitCode(0)
 
 
-__all__ = ['ISkillRegistry', 'SkillRegistry']
+__all__ = ['ISkillProtocol', 'SkillRegistry']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"ISkillRegistry": ISkillRegistry, "SkillRegistry": SkillRegistry, "_pad": _pad, "_table_widths": _table_widths}
+_layer_symbols = {"ISkillProtocol": ISkillProtocol, "SkillRegistry": SkillRegistry, "_pad": _pad, "_table_widths": _table_widths}

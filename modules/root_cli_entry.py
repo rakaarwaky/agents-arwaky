@@ -275,7 +275,7 @@ def cmd_status(argv: list[str]) -> int:
 
 def cmd_doctor(argv: list[str]) -> int:
     from modules.doctor.src.root_doctor_container import create_doctor_feature
-    return create_doctor_feature().doctor(json_mode="--json" in argv)
+    return create_doctor_feature().diagnose({"json": "--json" in argv})
 
 
 def cmd_list(argv: list[str]) -> int:
@@ -315,7 +315,7 @@ def cmd_list(argv: list[str]) -> int:
 def cmd_run(argv: list[str]) -> int:
     """aa tool run <tool> [args...] — run the binary via the aggregate.
 
-    Delegates entirely to IToolsAggregate.run_tool(); exit-code fidelity,
+    Delegates entirely to IToolsAggregate.run(); exit-code fidelity,
     sentinel 126, and MCP stdio handling live in RunnerCapability.
     """
     if not argv:
@@ -330,7 +330,7 @@ def cmd_run(argv: list[str]) -> int:
     from modules.tools.src.root_tools_container import create_tools_feature
     spec = _spec_from_tool(tool)
     orch = create_tools_feature()
-    return orch.run_tool(spec, argv[1:])
+    return orch.run(spec, argv[1:])
 
 
 def _confirm(prompt: str, accepted: tuple = ("y", "yes")) -> bool:
@@ -468,20 +468,23 @@ def cmd_update(argv: list[str]) -> int:
 
 def cmd_mcp(argv: list[str]) -> int:
     if not argv or argv[0] in ("-h", "--help", "help"):
-        print("Usage: aa mcp <list|generate|show> [path] [--json]")
+        print("Usage: aa mcp <list|generate|show> [path|server_id] [--json]")
         print()
         print("  list                Enumerate MCP-enabled tools")
         print("  generate [path]     Rebuild mcp_servers.generated.json")
-        print("  show                Inspect the generated unified manifest")
+        print("  show [server_id]    Inspect the config, or probe one server")
         print("  list --json         Machine-readable server list")
         return 0
     action = argv[0]
     generated = repo_root() / "mcp_servers.generated.json"
 
-    def _generate(target: str | None = None) -> int:
+    def _feature():
         from modules.mcp.src.root_mcp_container import create_mcp_feature
+        return create_mcp_feature()
+
+    def _generate(target: str | None = None) -> int:
         out = repo_root() / target if target else generated
-        return create_mcp_feature().generate(out)
+        return _feature().generate(out)
 
     if action == "list":
         if "--json" in argv:
@@ -502,6 +505,11 @@ def cmd_mcp(argv: list[str]) -> int:
         target = argv[1] if len(argv) > 1 and not argv[1].startswith("-") else None
         return _generate(target)
     if action in {"show", "path"}:
+        raw = argv[1] if len(argv) > 1 and not argv[1].startswith("-") else None
+        if raw is not None:
+            from modules.shared.src.taxonomy_mcp_vo import McpServerId
+
+            return _feature().show_server(McpServerId(raw))
         if not generated.exists():
             warn("Configuration file not found. Generating now...")
             _generate()
@@ -513,7 +521,7 @@ def cmd_mcp(argv: list[str]) -> int:
         err("Failed to generate MCP configuration.")
         return 1
     err(f"Unknown MCP action: {action}")
-    print("Valid actions: list, generate, show")
+    print("Valid actions: list, generate, show, alias, validate")
     return 1
 
 
@@ -521,6 +529,12 @@ def cmd_skill(argv: list[str]) -> int:
     from modules.skill.src.root_skill_container import create_skill_feature
     from modules.skill.src.surface_skill_command import main as _skill_surface
     return _skill_surface(argv, create_skill_feature())
+
+
+def cmd_config(argv: list[str]) -> int:
+    from modules.config.src.root_config_container import create_config_feature
+    from modules.config.src.surface_config_command import cmd_config as _config_surface
+    return _config_surface(list(argv), create_config_feature())
 
 
 def cmd_connect(argv: list[str]) -> int:
@@ -617,6 +631,49 @@ def cmd_omniroute(argv: list[str]) -> int:
     _c = DaemonContainer()
     _reg_dm("omniroute", lambda: _c.omniroute)
     return _daemon_omniroute(argv)
+
+
+def cmd_daemon(argv: list[str]) -> int:
+    """aa daemon <id> <action> — list|status|start|… for a managed daemon."""
+    from modules.daemon.src.root_daemon_container import create_daemon_feature
+
+    orch = create_daemon_feature()
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        names = ", ".join(str(n) for n in orch.list_known())
+        print("Usage: aa daemon <omniroute|anytype> <start|stop|restart|status|logs|help>")
+        print(f"Known daemons: {names}")
+        return 0
+    daemon_id = argv[0]
+    known = {str(n) for n in orch.list_known()}
+    if daemon_id not in known:
+        err(f"Unknown daemon: {daemon_id}")
+        print(f"Known daemons: {', '.join(sorted(known))}")
+        return 1
+    action = argv[1] if len(argv) > 1 else "status"
+    rest = argv[2:]
+    if action in ("start", "stop", "restart", "logs", "help"):
+        result = getattr(orch, action)(daemon_id)
+        return int(result)
+    if action == "status":
+        from modules.daemon.src.root_daemon_container import DaemonContainer
+        from modules.daemon.src.surface_daemon_command import (
+            cmd_anytype as _any,
+        )
+        from modules.daemon.src.surface_daemon_command import (
+            cmd_omniroute as _omni,
+        )
+        from modules.daemon.src.surface_daemon_command import (
+            register_manager_factory as _reg_dm,
+        )
+
+        _c = DaemonContainer()
+        _reg_dm("anytype", lambda: _c.anytype)
+        _reg_dm("omniroute", lambda: _c.omniroute)
+        fn = _omni if daemon_id == "omniroute" else _any
+        return fn(["status", *rest])
+    err(f"Unknown daemon action: {action}")
+    print("Valid actions: start, stop, restart, status, logs, help")
+    return 1
 
 
 def cmd_service(argv: list[str]) -> int:
@@ -771,10 +828,12 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
         # Core noun-action (canonical)
         "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
+        "config": cmd_config,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
         "anytype": cmd_anytype, "omniroute": cmd_omniroute, "service": cmd_service,
+        "daemon": cmd_daemon,
         "backup": cmd_backup, "restore": cmd_restore,
         # Backward compat aliases → noun action (deprecated, prefer aa tool/aa skill)
         "install": cmd_install, "update": cmd_update, "uninstall": cmd_uninstall,

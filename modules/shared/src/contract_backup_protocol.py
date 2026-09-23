@@ -1,71 +1,45 @@
-"""Backup-domain protocol contract (one feature per capability ABC).
+"""Backup-domain protocol contract (one feature, one capability ABC).
 
-Gateways (tar, gdrive) implement every feature ABC; injectors may type a full
-gateway as the composite ``IBackupGateway`` (composition only — no methods of
-its own).
+A single ``execute`` method dispatches every backup capability — archive,
+restore, list — by operation (status/help stay on the aggregate); injectors
+may type any gateway or adapter that can run an operation as
+``IBackupProtocol``.
 """
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 from modules.shared.src.taxonomy_backup_vo import (
+    DEST_DEFAULT,
     BackupDestination,
     BackupResult,
     BackupToolQuery,
-    RestoreResult,
 )
 
 
 class IBackupProtocol(ABC):
-    """FR: back up one tool's data dir via this gateway."""
+    """FR: run one backup operation through this gateway/adapter."""
 
     @abstractmethod
-    def backup(self, tool: BackupToolQuery, dest: BackupDestination = BackupDestination("")) -> BackupResult:
-        """Back up *tool*'s data dir (optionally to *dest*); return the result VO."""
+    def execute(
+        self,
+        op: str,
+        tool: BackupToolQuery | None = None,
+        dest: BackupDestination = DEST_DEFAULT,
+        archive: str = "",
+    ) -> object:
+        """Dispatch *op* (archive / restore / list) with the optional
+        *tool* / *dest* / *archive* arguments; return the operation result
+        (result object or archive / list path).
+        """
         ...
 
 
-class IRestoreProtocol(ABC):
-    """FR: restore one tool's data dir from an archive via this gateway."""
-
-    @abstractmethod
-    def restore(self, tool: BackupToolQuery, archive: Path) -> RestoreResult:
-        """Restore *tool*'s data dir from *archive*; return the result VO."""
-        ...
-
-
-class IListArchivesProtocol(ABC):
-    """FR: list local backup archives available on this gateway."""
-
-    @abstractmethod
-    def list_archives(self) -> list[Path]:
-        """List available local backup archives for this gateway."""
-        ...
-
-
-class IBackupGateway(
-    IBackupProtocol,
-    IRestoreProtocol,
-    IListArchivesProtocol,
-):
-    """Composite DI type: full backup-gateway surface (no methods of its own)."""
-
-
-__all__ = [
-    "BackupResult",
-    "IBackupGateway",
-    "IBackupProtocol",
-    "IListArchivesProtocol",
-    "IRestoreProtocol",
-]
+__all__ = ["BackupResult", "IBackupProtocol"]
 
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "BackupResult": BackupResult,
-    "IBackupGateway": IBackupGateway,
     "IBackupProtocol": IBackupProtocol,
-    "IListArchivesProtocol": IListArchivesProtocol,
-    "IRestoreProtocol": IRestoreProtocol,
 }

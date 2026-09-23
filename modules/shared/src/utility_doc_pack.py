@@ -1,6 +1,8 @@
 """Machine checks for the document invariants the ``add-docs`` skill states in prose.
-Moved as-is from tools/lib/doc_pack.py; shared vocabularies now live in
-modules.shared.src.taxonomy_common_constant.
+
+Shared vocabularies and markdown helpers live in taxonomy; pointer/hygiene/budget
+checks live in ``utility_doc_hygiene`` (AES301 split). AES201: utility imports
+taxonomy only — capabilities/surface compose both utilities.
 """
 from __future__ import annotations
 
@@ -9,213 +11,51 @@ import re
 from pathlib import Path
 
 from modules.shared.src.taxonomy_common_constant import (
+    _ALWAYS_GATING,
+    _API_COLUMNS,
+    _CODE_SPAN,
+    _COMMITS,
+    _FR_FIELDS,
+    _FR_HEADING,
+    _FR_HEADING_LOOSE,
+    _FR_ID,
+    _FRD_SECTION_ORDER,
+    _HEADING,
+    _INTEGRATION_COLUMNS,
+    _NFR_COLUMNS,
+    _OWNERSHIP_SKIP_DIRS,
+    _SECTION_ALIASES,
+    _SKIP_PARTS,
+    _SOFT_SECTIONS,
+    _SOURCE_EXT,
+    _STATUS_LEAKS,
     BACKLOG_COLUMNS,
     DOC_NAMES,
     ERROR,
     EVIDENCED_STATES,
     HEALTH_VOCAB,
+    MASTER_ONLY_SECTIONS,
+    REPO_ROOT,
+    REQUIRED_SECTIONS,
     SPEC_DOCS,
     STATE_VOCAB,
     WARN,
 )
-from modules.shared.src.taxonomy_common_vo import DocFinding, Table
+from modules.shared.src.taxonomy_common_vo import (
+    DocFinding,
+    Table,
+    blank_fenced,
+)
 from modules.shared.src.taxonomy_common_vo import Section as _Section
-from modules.shared.src.utility_paths_resolver import repo_root
-
-# (ERROR/WARN imported from taxonomy_common_constant)
-
-#: Build/vendored trees that never carry this project's documents.
-_SKIP_PARTS = {
-    ".git", ".hg", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".tox", ".venv",
-    "__pycache__", "build", "dist", "node_modules", "site-packages", "target", "venv",
-    ".worktree", ".worktrees",
-}
-#: Submodule trees are upstream-owned, so a finding there is noise nobody may act on.
-#: ``include_subtrees=True`` opts back in.
-_OWNERSHIP_SKIP_DIRS = {"vendor", "internal"}
-
-
-#: Findings that stay gating even on files the pack merely hosts (upstream ``SKILL.md``
-#: copies): a broken pointer is a broken pointer whoever wrote the file.
-_ALWAYS_GATING = {"dead-link"}
-
-#: Sections that may exist only in the root master, per references/HOW-TO-MAKE-ROADMAP.md.
-MASTER_ONLY_SECTIONS = (
-    "State definitions", "Status policy", "Feature roll-up",
-    "Branches in flight", "Risk register",
+from modules.shared.src.taxonomy_common_vo import (
+    norm_md_heading as _norm,
 )
-
-#: Headings that hold the runnable commands. Both the section contract and the CI-drift
-#: check use this list, so a repo may head that section either way and still be gated.
-_COMMANDS_HEADINGS = ("Commands", "Command Reference", "Available Commands",
-                      "Available Scripts", "Quick Reference Playbook")
-
-#: Section contract, mirroring references/HOW-TO-MAKE-{prd,roadmap,frd,readme,backlog,agents}.md.
-REQUIRED_SECTIONS = {
-    "PRD.md": ("Problem Statement", "Goals", "User Personas", "Scope",
-               "Feature Requirements", "Non-functional", "Open Questions"),
-    "ROADMAP.md": ("Current Condition", "State Definitions", "Status Policy",
-                   "Feature Roll-up",
-                   "Branches in Flight", "Risk Register"),
-    "FRD.md": ("Reference", "System Overview", "Functional Requirements",
-               "API Contract", "Integration Points", "Non-functional",
-               "Test Scenarios", "Assumptions", "Glossary"),
-    "README.md": ("Prerequisites", "Quick Start", "Architecture", "Project Structure",
-                  "Available Scripts", "Configuration", "Testing", "Contributing", "License"),
-    "AGENTS.md": ("Precedence", "Security", "Commands", "Definition of Done",
-                  "Related Documents"),
-    "BACKLOG.md": ("Current Condition", "Backlog", "Scenario Evidence", "Blockers",
-                   "Dependencies", "Release Readiness", "Deferred", "Change Log"),
-}
-#: Canonical contract section -> heading fragments that satisfy it. Repos head the same
-#: obligation differently, so the check is on the information being present, not on one
-#: spelling. The templates in the add-docs references still show the canonical name first.
-_SECTION_ALIASES = {
-    "Available Scripts": ("Available Scripts", "Available Commands", "Commands",
-                          "Developer Workflows", "Orchestrator CLI"),
-    "Branches in Flight": ("Branches in Flight", "Branches", "In Flight"),
-    "Commands": _COMMANDS_HEADINGS,
-    "Configuration": ("Configuration", "Config", "Environment"),
-    "Current Condition": ("Current Condition", "Current Status", "Condition"),
-    "Definition of Done": ("Definition of Done", "Quality Gates", "Done Criteria",
-                           "Verification"),
-    "Feature Roll-up": ("Feature Roll-up", "Feature Rollup", "Roll-up", "Rollup"),
-    "Glossary": ("Glossary", "Terms", "Definitions"),
-    "Open Questions": ("Open Questions", "Open Questions / Risks", "Risks",
-                       "Open Questions and Risks"),
-    "Precedence": ("Precedence", "Priority Order", "When Documents Disagree"),
-    "Project Structure": ("Project Structure", "Repository Structure", "Repo Layout",
-                          "Directory Layout", "Architecture Map"),
-    "Quick Start": ("Quick Start", "Quickstart", "Getting Started", "Installation"),
-    "Related Documents": ("Related Documents", "Reference Paths", "See Also"),
-    "Risk Register": ("Risk Register", "Risks"),
-    "Scenario Evidence": ("Scenario Evidence", "Evidence"),
-    "Security": ("Security", "Guardrails", "Safety"),
-    "State Definitions": ("State Definitions", "States", "State Vocabulary"),
-    "Status Policy": ("Status Policy", "Verification Policy"),
-    "Testing": ("Testing", "Test Suite", "Tests"),
-    "Contributing": ("Contributing", "How to Contribute", "Contributor Guide"),
-}
-#: Sections a harness may legitimately not need, whatever the contract table says.
-_SOFT_SECTIONS = {"README.md", "AGENTS.md"}
-
-_COMMITS = re.compile(r"\b[0-9a-f]{7,40}\b")
-_CODE_SPAN = re.compile(r"`[^`\n]+`")
-_FR_ID = re.compile(r"\bFR-(?:[A-Za-z0-9]+-)?\d+\b")
-_HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*$", re.MULTILINE)
-_HEADING_LINE = re.compile(r"^(#{1,6})\s+(.*)$")
-_FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
-
-#: HOW-TO-MAKE-FRD Rule 1: ``FR-<FEATURENAME>-<number>`` (name segment required).
-_FR_HEADING = re.compile(r"^#{2,5}\s+(FR-([A-Za-z0-9]+)-(\d+)):\s+(\S.*)$")
-#: Loose heading that still looks like an FR but violates Rule 1 / shape.
-_FR_HEADING_LOOSE = re.compile(r"^#{2,5}\s+(FR-\S+)")
-#: Rule 2 — every requirement states these six fields.
-_FR_FIELDS = ("Description", "Input", "Output", "Business Rules", "Edge Cases", "Error Handling")
-#: Rule 3 — API Contract column order is exact.
-_API_COLUMNS = ("Method", "Input", "Output", "Error", "Event", "Description")
-#: Template — Integration Points / Non-functional column contracts.
-_INTEGRATION_COLUMNS = ("System", "Direction", "Purpose", "Failure mode")
-_NFR_COLUMNS = ("Metric", "Target", "Measurement method")
-#: Template section order (HOW-TO-MAKE-FRD § Template).
-_FRD_SECTION_ORDER = (
-    "Reference", "System Overview", "Functional Requirements",
-    "API Contract", "Integration Points", "Non-functional",
-    "Test Scenarios", "Assumptions", "Glossary",
+from modules.shared.src.taxonomy_common_vo import (
+    numbered_lines as _lines,
 )
-
-#: Claims that belong in BACKLOG.md / ROADMAP.md, never in a spec.
-_STATUS_LEAKS: tuple[tuple[re.Pattern[str], str], ...] = (
-    (re.compile(r"^\s*[-*]\s*\[[ xX]\]"), "a checkbox task item"),
-    (re.compile(r"^\s*\**\s*status\s*\**\s*:", re.IGNORECASE), "a Status: field"),
-    (re.compile(r"\b(?:implemented|unimplemented|partially implemented)\b", re.IGNORECASE),
-     "implementation state"),
-    (re.compile(r"\b(?:shipped|released|deployed) in v\w*\b", re.IGNORECASE), "release state"),
-    (re.compile(r"^\s*(?:✅|❌|🟢|🔴|✔️|✖)"), "a status marker"),
-    (re.compile(r"\b\d+\s*%\s*(?:complete|done)", re.IGNORECASE), "a progress percentage"),
+from modules.shared.src.taxonomy_common_vo import (
+    read_md_text as _read,
 )
-
-#: HOW-TO-MAKE-FRD Rule 9 — stateless specs never name source files.
-_SOURCE_EXT = re.compile(
-    r"(?<![\w.-])(?:[A-Za-z0-9_]+/)*[A-Za-z0-9_.<>{}*-]+\.(?:py|rs|ts|tsx)(?![\w-])"
-)
-
-#: Gate binaries a document is allowed to print, used for CI-command drift.
-_GATE_COMMANDS = (
-    "pytest", "ruff", "mypy", "bandit", "black", "cargo", "clippy", "npm", "pnpm",
-    "yarn", "npx", "tsc", "shellcheck", "jq", "make",
-)
-_ADVISORY = re.compile(r"advisory|not gated|no ci|local only|local-only", re.IGNORECASE)
-
-_ABSOLUTE_PATH = re.compile(
-    r"(?<![\w.])/(?:home|users|mnt|volumes|root)/[a-z0-9_.-]+|\bc:\\users",
-    re.IGNORECASE,
-)
-_SECRET_KEY = re.compile(
-    r"\b(?:api[_-]?key|secret|token|password|passwd|credential)s?\b\s*[:=]\s*",
-    re.IGNORECASE,
-)
-_SECRET_VALUE = re.compile(
-    r"""(?:(?P<q>["'])(?P<quoted>[^"'\s]{8,})(?P=q)|(?P<bare>[A-Za-z0-9_\-./+]{8,}))""",
-    re.VERBOSE,
-)
-#: Values that name a lookup or an obvious stand-in rather than a real secret. Kept
-#: case-sensitive so an all-caps env var name is exempt but `hunter2pass` is not.
-_PLACEHOLDER_VALUE = re.compile(
-    r"^(?:[A-Z][A-Z0-9_]{3,}|<.*>|\$\{?.*|os\.env.*|[Ee]xample.*|[Yy]our.*"
-    r"|[Pp]laceholder.*|[Cc]hangeme.*|[Xx]+.*|[Dd]ummy.*|[Ss]ample.*)$"
-)
-
-
-# Dataclasses DocFinding/_Section/Table now live in the shared taxonomy layer
-# (taxonomy_common_vo.py); imported at the top of this module.
-
-
-# --- text helpers -------------------------------------------------------------
-def _read(path: Path) -> str:
-    try:
-        return path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return ""
-
-
-def _norm(text: str) -> str:
-    """Lowercase and strip punctuation/emoji, so heading matching tolerates decoration."""
-    return re.sub(r"[^a-z0-9 ]", "", text.lower()).strip()
-
-
-def blank_fenced(text: str) -> str:
-    """Return *text* with fenced code bodies replaced by blank lines.
-
-    Line count and numbering are preserved, so a caller can still report a line.
-
-    Args:
-        text: Markdown source.
-
-    Returns:
-        The same number of lines, with anything inside a ``` or ~~~ fence emptied.
-    """
-    out: list[str] = []
-    fence = ""
-    for line in text.splitlines():
-        stripped = line.strip()
-        if not fence:
-            match = _FENCE.match(line)
-            if match:
-                fence = match.group(1)
-                out.append("")
-                continue
-            out.append(line)
-            continue
-        if stripped.startswith(fence[0] * len(fence)) and set(stripped) <= {fence[0]}:
-            fence = ""
-        out.append("")
-    return "\n".join(out)
-
-
-def _lines(text: str) -> list[tuple[int, str]]:
-    """1-based ``(line, content)`` pairs."""
-    return list(enumerate(text.splitlines(), start=1))
 
 
 def sections(path: Path) -> list[_Section]:
@@ -288,22 +128,6 @@ def parse_tables(text: str) -> list[Table]:
     return tables
 
 
-def md_links(text: str) -> list[tuple[str, int]]:
-    """``(target, line)`` for every markdown link outside a fenced block."""
-    out: list[tuple[str, int]] = []
-    for number, line in _lines(blank_fenced(text)):
-        for match in re.finditer(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)", line):
-            out.append((match.group(1), number))
-    return out
-
-
-def _is_resolvable(target: str) -> bool:
-    """Whether *target* is a real relative path rather than an anchor, URL or placeholder."""
-    if target.startswith(("#", "/", "http://", "https://", "mailto:", "tel:")):
-        return False
-    return not any(bad in target for bad in ("<", ">", "*", "...", "$", "{", "%"))
-
-
 # --- placement and status invariants -----------------------------------------
 def root_master(root: Path) -> Path | None:
     """The root file that owns shared policy.
@@ -317,7 +141,7 @@ def root_master(root: Path) -> Path | None:
     outside the repository keeps anchoring at its own *root*.
     """
     anchor = root
-    repo = Path(repo_root())
+    repo = REPO_ROOT
     try:
         root.resolve().relative_to(repo.resolve())
     except ValueError:
@@ -798,220 +622,6 @@ def check_scenarios(spec: Path, backlog: Path | None) -> list[DocFinding]:
     return []
 
 
-# --- pointers, hygiene, budgets ---------------------------------------------
-def check_links(path: Path, *, skill_local_only: bool = False) -> list[DocFinding]:
-    """Rule *every pointer a document tells the reader to follow resolves*."""
-    findings: list[DocFinding] = []
-    for target, number in md_links(_read(path)):
-        if not _is_resolvable(target):
-            continue
-        if skill_local_only and not target.startswith(("references/", "scripts/", "assets/")):
-            continue
-        bare = target.split("#", 1)[0]
-        if not (path.parent / bare).exists():
-            findings.append(DocFinding(
-                "dead-link",
-                f"line {number} links {target!r}, which does not resolve",
-                f"{path}:{number}",
-            ))
-    return findings
-
-
-def check_surface_links(skill_md: Path) -> list[DocFinding]:
-    """Rule *a skill surfaces every file under* ``references/`` */*scripts/``*, so an
-    agent is actually told to open it, and every skill-internal pointer resolves."""
-    findings: list[DocFinding] = []
-    raw = _read(skill_md)
-    surfaced = {target for target, _ in md_links(raw)}
-    skill_dir = skill_md.parent
-    refs = skill_dir / "references"
-    # SKILL.md's own local links are covered by check_links; the reference files it
-    # hands agents to are not scanned anywhere else, so their pointers are checked here.
-    for doc in sorted(refs.glob("*.md")) if refs.is_dir() else []:
-        findings.extend(_check_internal_links(doc, skill_dir))
-    for sub in ("references", "scripts", "assets"):
-        folder = skill_md.parent / sub
-        if not folder.is_dir():
-            continue
-        for asset in sorted(folder.rglob("*")):
-            if not asset.is_file() or asset.suffix.lower() not in {".md", ".py", ".sh", ".json", ".txt"}:
-                continue
-            rel = str(asset.relative_to(skill_md.parent))
-            # A script named in a command block is surfaced too, not only a markdown link.
-            if rel in surfaced or asset.name in surfaced or asset.name in raw:
-                continue
-            findings.append(DocFinding(
-                "unreferenced-file",
-                f"{rel} is not linked from {skill_md.name}, so no agent is ever told to open it",
-                str(asset),
-                severity=WARN,
-            ))
-    return findings
-
-
-def _check_internal_links(doc: Path, skill_dir: Path) -> list[DocFinding]:
-    """Flag relative links from *doc* that aim inside *skill_dir* but land nowhere.
-
-    A pointer out of the skill (another repo file, a URL) is not this rule's business —
-    the skill pack hosts upstream copies whose external links are not ours to fix.
-
-    Two shapes look alike and are not: a link written relative to the skill root instead
-    of the file resolves for an agent whose working directory is the skill, so it is
-    advisory; one that resolves from neither is a broken pointer nobody can follow.
-    """
-    findings: list[DocFinding] = []
-    for target, number in md_links(_read(doc)):
-        if not _is_resolvable(target):
-            continue
-        bare = target.split("#", 1)[0]
-        if not bare:
-            continue
-        resolved = (doc.parent / bare).resolve()
-        root = skill_dir.resolve()
-        if not (root in resolved.parents or resolved == root):
-            continue
-        if resolved.exists():
-            continue
-        if (root / bare).exists():
-            findings.append(DocFinding(
-                "root-relative-link",
-                f"{doc.name}:{number} links {target!r} from the skill root while the file sits "
-                f"in {doc.parent.name}/; prefix it with '../' so a reader standing here can "
-                "follow it",
-                f"{doc}:{number}",
-                severity=WARN,
-            ))
-            continue
-        findings.append(DocFinding(
-            "dead-link",
-            f"{doc.name}:{number} links {target!r} inside the skill folder, which does not "
-            "resolve; an agent following it reads nothing",
-            f"{doc}:{number}",
-        ))
-    return findings
-
-
-def check_hygiene(path: Path) -> list[DocFinding]:
-    """Rules *no absolute personal path* and *no secret*, in any owned document."""
-    findings: list[DocFinding] = []
-    for number, line in _lines(blank_fenced(_read(path))):
-        if _ABSOLUTE_PATH.search(line):
-            findings.append(DocFinding(
-                "absolute-path",
-                f"line {number} hardcodes a machine path ({line.strip()[:60]!r}); use $HOME "
-                "or a repo-relative path",
-                f"{path}:{number}",
-            ))
-        secret = _secret_value(line)
-        if secret:
-            findings.append(DocFinding(
-                "secret-in-docs",
-                f"line {number} assigns a literal value ({secret[:24]!r}) to a credential-ish "
-                "key; reference the variable name, never the value",
-                f"{path}:{number}",
-            ))
-    return findings
-
-
-def _secret_value(line: str) -> str:
-    """The literal on the right of a credential-looking assignment, or an empty string."""
-    key = _SECRET_KEY.search(line)
-    if not key:
-        return ""
-    value = _SECRET_VALUE.match(line, key.end())
-    if not value:
-        return ""
-    text = value.group("quoted") or value.group("bare") or ""
-    return "" if _PLACEHOLDER_VALUE.match(text) else text
-
-
-def _ci_text(root: Path) -> str:
-    workflows = root / ".github" / "workflows"
-    return "\n".join(_read(f) for f in sorted(workflows.glob("*.yml"))) if workflows.is_dir() else ""
-
-
-def check_command_drift(agents_md: Path, ci_text: str) -> list[DocFinding]:
-    """Rule *AGENTS.md commands match CI exactly or are labelled advisory*.
-
-    Only the commands section — whatever it is headed as, see ``_COMMANDS_HEADINGS`` — is
-    gated: every other command in the file is teaching, not a gate an agent will be
-    judged on.
-    """
-    if not ci_text:
-        return []
-    findings: list[DocFinding] = []
-    in_commands = False
-    commands_level = 0
-    fence = ""
-    for number, line in _lines(_read(agents_md)):
-        heading = _HEADING_LINE.match(line) if not fence else None
-        if heading:
-            level = len(heading.group(1))
-            title = _norm(heading.group(2))
-            if any(_norm(alias) in title for alias in _COMMANDS_HEADINGS):
-                in_commands, commands_level = True, level
-            elif in_commands and level <= commands_level:
-                in_commands = False
-        marker = _FENCE.match(line)
-        if marker:
-            if not fence:
-                fence = marker.group(1)
-            elif marker.group(1)[0] == fence[0] and len(marker.group(1)) >= len(fence):
-                fence = ""
-            continue
-        stripped = line.strip()
-        if not fence or not in_commands or not stripped or stripped.startswith("#"):
-            continue
-        if _ADVISORY.search(stripped):
-            continue
-        for gate in _GATE_COMMANDS:
-            if re.search(rf"(?<![\w-]){re.escape(gate)}(?![\w-])", stripped) and not re.search(
-                    rf"(?<![\w-]){re.escape(gate)}(?![\w-])", ci_text):
-                findings.append(DocFinding(
-                    "ci-command-drift",
-                    f"line {number} prints {gate!r} but no CI job runs it; agents will either "
-                    "report false breakage or skip the gate — match CI or label it advisory",
-                    f"{agents_md}:{number}",
-                ))
-    return findings
-
-
-def check_length_budget(path: Path) -> list[DocFinding]:
-    """Rule *each document stays inside the size its audience can read*."""
-    # Flat line budget for every document type: 50-line floor (catches gutted
-    # docs), 500-line cap (catches bloat). Line counts, not words: a wide
-    # table row is one line regardless of how many cells it holds.
-    budgets = {
-        "PRD.md": ("lines", 50, 500),
-        "ROADMAP.md": ("lines", 50, 500),
-        "README.md": ("lines", 50, 500),
-        "BACKLOG.md": ("lines", 50, 500),
-        "AGENTS.md": ("lines", 50, 500),
-        "FRD.md": ("lines", 50, 500),
-    }
-    budget = budgets.get(path.name)
-    if not budget:
-        return []
-    unit, low, high = budget
-    text = _read(path)
-    count = len(text.splitlines()) if unit == "lines" else len(text.split())
-    if count > high:
-        return [DocFinding(
-            "doc-length",
-            f"{count} {unit} is over the {high}-{unit} budget for {path.name}; compress in "
-            "place rather than splitting a section the reader must choose to open",
-            str(path),
-            severity=WARN,
-        )]
-    if count < low:
-        return [DocFinding(
-            "doc-thin",
-            f"{count} {unit} is under the {low}-{unit} floor for {path.name}; sections are "
-            "probably missing rather than concise",
-            str(path),
-            severity=WARN,
-        )]
-    return []
 
 
 # --- orchestration ------------------------------------------------------------
@@ -1059,15 +669,10 @@ def audit_docs(root: Path, *, include_subtrees: bool = False) -> list[DocFinding
     """
     findings: list[DocFinding] = []
     docs = iter_doc_files(root, include_subtrees=include_subtrees)
-    ci_text = _ci_text(root)
 
     for path in docs:
         gating = _owns_finding(path)
         raw: list[DocFinding] = []
-        raw.extend(check_links(path, skill_local_only=not gating))
-        if gating:
-            raw.extend(check_hygiene(path))
-            raw.extend(check_length_budget(path))
         for title in _missing_sections(blank_fenced(_read(path)), path.name):
             # Scenario Evidence is a feature-backlog obligation (HOW-TO-MAKE-BACKLOG);
             # a root master BACKLOG follows the ROADMAP contract instead.
@@ -1088,10 +693,6 @@ def audit_docs(root: Path, *, include_subtrees: bool = False) -> list[DocFinding
             raw.extend(check_spec_status_leak(path))
         elif path.name in ("BACKLOG.md", "ROADMAP.md"):
             raw.extend(check_backlog_rows(path))
-        if path.name == "AGENTS.md":
-            raw.extend(check_command_drift(path, ci_text))
-        if path.name == "SKILL.md":
-            raw.extend(check_surface_links(path))
         if not gating:
             # The pack ships upstream SKILL.md copies: only their own local pointers are
             # ours to enforce, so everything else about them stays advisory.

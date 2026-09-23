@@ -9,8 +9,8 @@ allowed changes are the import swaps to the AES shared modules
 (``modules.shared.src.utility_paths`` /
 ``modules.shared.src.taxonomy_common_vo``) and a thin
 ``GdriveBackupGateway`` class exposing the original
-``cmd_upload`` / ``cmd_download`` / ``cmd_list`` / ``main`` behind
-the AES ``IBackupGateway`` contract.
+``cmd_upload`` / ``cmd_download`` / ``cmd_list`` / ``main`` as AES
+capability methods.
 """
 from __future__ import annotations
 
@@ -21,8 +21,13 @@ import sys
 import time
 from pathlib import Path
 
-from modules.shared.src.contract_backup_protocol import IBackupGateway
-from modules.shared.src.taxonomy_backup_vo import BackupResult, RestoreResult
+from modules.shared.src.contract_backup_protocol import IBackupProtocol
+from modules.shared.src.taxonomy_backup_vo import (
+    BackupDestination,
+    BackupResult,
+    BackupToolQuery,
+    RestoreResult,
+)
 from modules.shared.src.taxonomy_common_vo import data_home
 from modules.shared.src.utility_paths_resolver import repo_root
 
@@ -30,18 +35,40 @@ ROOT = repo_root()
 
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 
+#: Module-level default for the protocol ``dest`` (B008: no call in defaults).
+_DEFAULT_DEST = BackupDestination("")
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class GdriveBackupGateway(IBackupGateway):
+class GdriveBackupGateway(IBackupProtocol):
     """Thin AES capability wrapper: delegates backup/restore to the
     unchanged original ``cmd_upload`` / ``cmd_download`` (kept above).
     The original module-level functions remain the source of truth;
-    this class only adapts their signatures to the ``IBackupGateway``
-    contract expected by the AES orchestrator."""
+    this class only adapts their signatures for the AES orchestrator."""
 
     def __init__(self, folder_name: str = DEFAULT_FOLDER_NAME) -> None:
         self._folder_name = folder_name
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
+
+    def execute(
+        self,
+        op: str,
+        tool: BackupToolQuery | None = None,
+        dest: BackupDestination = _DEFAULT_DEST,
+        archive: str = "",
+    ) -> object:
+        """Dispatch *op* (archive / restore / list) to the concrete helpers."""
+        if op == "archive":
+            if not tool:
+                return BackupResult(False, "", "", False, "archive op requires a tool")
+            return self.backup(str(tool), str(dest))
+        if op == "restore":
+            if not tool:
+                return RestoreResult(False, "", archive, "", "restore op requires a tool")
+            return self.restore(str(tool), Path(archive))
+        if op == "list":
+            return self.list_archives()
+        return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
 
     def backup(self, tool: str, dest: str = "") -> BackupResult:
         """Upload *tool*'s newest local archive to Drive (original

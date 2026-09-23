@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from modules.shared.src.taxonomy_common_constant import (
+    _FENCE,
     DEFAULT_VERSION,
     DESCRIPTION_BUDGET_BYTES,
     ERROR,
@@ -581,3 +582,69 @@ McpServersMap = NewType("McpServersMap", dict)
 
 #: Domain message VO — wraps a human-readable error string (AES401/AES402).
 ErrorMessage = NewType("ErrorMessage", str)
+
+#: Help / usage text returned by an aggregate's ``help`` method.
+HelpText = NewType("HelpText", str)
+
+#: Read-only config inspection snapshot (path, format, data, servers).
+ConfigSnapshot = NewType("ConfigSnapshot", dict)
+
+
+# --- markdown/text helpers (shared by doc_pack / doc_hygiene utilities) --------
+
+
+def read_md_text(path: Path) -> str:
+    """File contents of *path*, or an empty string when unreadable."""
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
+def norm_md_heading(text: str) -> str:
+    """Lowercase and strip punctuation/emoji so heading matching tolerates decoration."""
+    return re.sub(r"[^a-z0-9 ]", "", text.lower()).strip()
+
+
+def blank_fenced(text: str) -> str:
+    """Return *text* with fenced code bodies replaced by blank lines.
+
+    Line count and numbering are preserved, so a caller can still report a line.
+    """
+    out: list[str] = []
+    fence = ""
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not fence:
+            match = _FENCE.match(line)
+            if match:
+                fence = match.group(1)
+                out.append("")
+                continue
+            out.append(line)
+            continue
+        if stripped.startswith(fence[0] * len(fence)) and set(stripped) <= {fence[0]}:
+            fence = ""
+        out.append("")
+    return "\n".join(out)
+
+
+def numbered_lines(text: str) -> list[tuple[int, str]]:
+    """1-based ``(line, content)`` pairs."""
+    return list(enumerate(text.splitlines(), start=1))
+
+
+def markdown_links(text: str) -> list[tuple[str, int]]:
+    """``(target, line)`` for every markdown link outside a fenced block."""
+    out: list[tuple[str, int]] = []
+    for number, line in numbered_lines(blank_fenced(text)):
+        for match in re.finditer(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)", line):
+            out.append((match.group(1), number))
+    return out
+
+
+def is_resolvable_link(target: str) -> bool:
+    """Whether *target* is a real relative path rather than an anchor, URL or placeholder."""
+    if target.startswith(("#", "/", "http://", "https://", "mailto:", "tel:")):
+        return False
+    return not any(bad in target for bad in ("<", ">", "*", "...", "$", "{", "%"))

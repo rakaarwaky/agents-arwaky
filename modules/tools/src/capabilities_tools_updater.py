@@ -19,7 +19,7 @@ import datetime
 import json
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolAdapterFacade, IToolUpdateProtocol
+from modules.shared.src.contract_tools_protocol import IToolsProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
@@ -30,16 +30,32 @@ from modules.shared.src.taxonomy_common_vo import (
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
-class UpdaterCapability(IToolUpdateProtocol):
-    """Business action update(spec, adapter, dry_run): bump + record transition."""
+class UpdaterCapability(IToolsProtocol):
+    """Business action update(spec, dry_run): bump + record transition."""
 
     def __init__(self, root: Path | None = None,
-                 adapter_facade: IToolAdapterFacade | None = None) -> None:
+                 adapter_facade: object | None = None) -> None:
         self._root = root
         # P1-7: action calls route through the injected adapter facade.
         self._facade = adapter_facade
 
     # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    def execute(
+        self,
+        op: str,
+        spec: ToolSpec | None = None,
+        query: object | None = None,
+        args: list[str] | None = None,
+    ) -> object:
+        """Single protocol entry: dispatch *op* to the update action."""
+        if op != "update" or spec is None:
+            raise ToolUpdateError(
+                f"updater capability got op={op!r} (expected 'update' with a spec)"
+            )
+        dry_run = bool(args and "dry-run" in args)
+        adapter = query if query is not None else None
+        return self.update(spec, adapter=adapter, dry_run=dry_run)
+
     def update(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> UpdateResult:
         facade = self._facade
         if facade is None:

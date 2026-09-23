@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json as _json
 import shutil
+from collections.abc import Mapping
 
 from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
 from modules.shared.src.taxonomy_common_vo import ExitCode, bin_home, ensure_path
@@ -29,7 +30,8 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
         ensure_path()
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
-    def run(self, json_mode: bool = False) -> ExitCode:
+    def execute(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        json_mode = bool((flags or {}).get("json"))
         if json_mode:
             out = []
             for tool in load_tools():

@@ -1,15 +1,17 @@
 """Skill agent orchestrator — coordinates registry + pack provisioner.
 
 Dispatches every surface action to the original command handlers, ported
-as-is from tools/skill/skill.py into
-:mod:`modules.skill.src.capabilities_skill_registry` (injected as
-ISkillRegistry by the root composition layer).
+as-is from tools/skill/skill.py into the registry adapter (injected as a
+concrete capability object by the root composition layer).
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 from modules.shared.src.contract_skill_aggregate import ISkillAggregate
-from modules.shared.src.contract_skill_protocol import ISkillProvisioner, ISkillRegistry
 from modules.shared.src.taxonomy_skill_vo import (
+    FILTER_EMPTY,
+    QUERY_EMPTY,
     ExitCode,
     SkillArgs,
     SkillProvisionResult,
@@ -27,36 +29,48 @@ class SkillOrchestrator(ISkillAggregate):
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, provisioner: ISkillProvisioner, registry: ISkillRegistry) -> None:
+    def __init__(self, provisioner: object, registry: object) -> None:
         self._provisioner = provisioner
         self._registry = registry
 
     # -- Block 2: Query actions -----------------------------------------------------
-    def list_skills(self, tool_filter: ToolFilter = ToolFilter("")) -> ExitCode:
+    def list(self, tool_filter: ToolFilter = FILTER_EMPTY) -> ExitCode:
         """Port of tools/skill/skill.py cmd_list."""
         argv = SkillArgs([str(tool_filter)] if tool_filter else [])
-        return ExitCode(self._registry.cmd_list(argv))
+        return ExitCode(self._registry.list(argv))
 
-    def check_skills(self) -> ExitCode:
+    def check(self) -> ExitCode:
         """Port of tools/skill/skill.py cmd_check."""
-        return ExitCode(self._registry.cmd_check())
+        return ExitCode(self._registry.check())
 
-    def show_skill(self, query: SkillQuery = SkillQuery("")) -> ExitCode:
+    def show(self, query: SkillQuery = QUERY_EMPTY) -> ExitCode:
         """Port of tools/skill/skill.py cmd_show."""
-        return ExitCode(self._registry.cmd_show(SkillArgs([str(query)] if query else [])))
+        return ExitCode(self._registry.show(SkillArgs([str(query)] if query else [])))
 
     # -- Block 3: Mutation actions ----------------------------------------------------
-    def install_skills(self, args: SkillArgs) -> ExitCode:
+    def install(self, args: SkillArgs) -> ExitCode:
         """Port of tools/skill/skill.py cmd_install."""
-        return ExitCode(self._registry.cmd_install(args))
+        return ExitCode(self._registry.install(args))
 
-    def uninstall_skills(self, args: SkillArgs) -> ExitCode:
+    def uninstall(self, args: SkillArgs) -> ExitCode:
         """Port of tools/skill/skill.py cmd_uninstall."""
-        return ExitCode(self._registry.cmd_uninstall(args))
+        return ExitCode(self._registry.uninstall(args))
 
-    def sync_skills(self, args: SkillArgs) -> ExitCode:
+    def sync(self, args: SkillArgs) -> ExitCode:
         """'sync' = install all (alias semantics from tools/skill/skill.py)."""
-        return ExitCode(self._registry.cmd_install(SkillArgs(["all", *list(args)])))
+        return ExitCode(self._registry.sync(args))
+
+    # -- Block 4: Protocol dispatch ----------------------------------------------------
+    def execute(
+        self,
+        op: str,
+        skill: str | None = None,
+        target: Path | None = None,
+    ) -> ExitCode:
+        """Dispatch one skill op to the provisioner or registry capability."""
+        if op in {"provision", "prune", "remove", "audit"}:
+            return ExitCode(self._provisioner.execute(op, skill, target))
+        return ExitCode(self._registry.execute(op, skill, target))
 
 __all__ = ['ExitCode', 'SkillArgs', 'SkillProvisionResult', 'SkillQuery', 'ToolFilter']
 

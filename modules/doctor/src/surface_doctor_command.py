@@ -1,6 +1,8 @@
 """Doctor surface — CLI adapters for aa doctor / aa status."""
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
 from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
 from modules.shared.src.taxonomy_common_vo import ExitCode
@@ -12,19 +14,29 @@ class DoctorAction(IDoctorAggregate):
     def __init__(self, orch: DoctorOrchestrator) -> None:
         self._orch = orch
 
-    def doctor(self, json_mode: bool = False) -> ExitCode:
-        return self._orch.doctor(json_mode=json_mode)
+    def diagnose(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        return self._orch.diagnose(flags)
 
-    def status(self, json_mode: bool = False) -> ExitCode:
-        return self._orch.status(json_mode=json_mode)
+    def readiness(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        return self._orch.readiness(flags)
+
+    def report(
+        self,
+        report: object,
+        flags: Mapping[str, bool | str] | None = None,
+    ) -> ExitCode:
+        return self._orch.report(report, flags)
+
+
+def _flags(args: list[str]) -> dict[str, bool]:
+    return {"json": "--json" in args}
 
 
 def cmd_doctor(args: list[str], orch: DoctorOrchestrator) -> int:
-    """aa doctor — environment diagnostics."""
-    return orch.doctor()
+    """aa doctor — environment + readiness diagnostics."""
+    return orch.diagnose(_flags(args))
 
 
 def cmd_status(args: list[str], orch: DoctorOrchestrator) -> int:
     """aa status [--json] — tool readiness table."""
-    json_mode = "--json" in args
-    return orch.status(json_mode=json_mode)
+    return orch.readiness(_flags(args))

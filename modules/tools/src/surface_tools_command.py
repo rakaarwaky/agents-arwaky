@@ -56,7 +56,7 @@ def cmd_list(args: list[str], orch: IToolsAggregate) -> int:
     if "--json" in args:
         tools = [
             {"id": t.id, "category": t.category, "isMcp": t.is_mcp, "description": t.description, "binary": t.binary}
-            for t in orch.list_tools()
+            for t in orch.list()
         ]
         print(_json.dumps(tools, indent=2, ensure_ascii=False))
         return 0
@@ -69,7 +69,7 @@ def cmd_list(args: list[str], orch: IToolsAggregate) -> int:
     print(sep)
     print(f"{BOLD()}{pad('TOOL ID', w_id)} {pad('CATEGORY', w_cat)} {pad('MCP?', w_mcp)} {pad('DESCRIPTION', w_desc)}{RESET()}")
     print(sep)
-    for tool in orch.list_tools():
+    for tool in orch.list():
         cat_color = GREEN() if tool.category == "internal" else CYAN()
         mcp_label = "Yes" if tool.is_mcp else "No"
         desc = textwrap.shorten(tool.description, width=w_desc, placeholder="...")
@@ -82,7 +82,7 @@ def cmd_list(args: list[str], orch: IToolsAggregate) -> int:
 def cmd_run(args: list[str], orch: IToolsAggregate) -> int:
     """aa tool run <tool> [args...] — run the binary via the aggregate.
 
-    P0-3: delegates entirely to orch.run_tool(); the duplicated
+    P0-3: delegates entirely to orch.run(); the duplicated
     cargo/uv/python os.execvpe dispatch (and its uncaught-OSError
     crash path) is removed. Exit-code fidelity, sentinel 126, and
     MCP stdio handling live in RunnerCapability.
@@ -94,7 +94,7 @@ def cmd_run(args: list[str], orch: IToolsAggregate) -> int:
         err("Missing tool name.")
         print("Usage: aa tool run <tool-name> [args...]")
         return 1
-    spec = orch.resolve_spec(args[0])
+    spec = orch.resolve(args[0])
     if spec is None:
         err(f"Tool '{args[0]}' not found in manifest.")
         print("Run 'aa tool list' to see all available tools.")
@@ -102,7 +102,7 @@ def cmd_run(args: list[str], orch: IToolsAggregate) -> int:
     tool_args = args[1:]
     # All dispatch/exec/error semantics live in RunnerCapability:
     # discovery order, sentinel 126, MCP stdio, child exit-code passthrough.
-    return orch.run_tool(spec, tool_args)
+    return orch.run(spec, tool_args)
 
 
 def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
@@ -132,9 +132,9 @@ def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
         return rc
     if target == "all":
         results = [
-            orch.install(orch.resolve_spec(tool.id))
-            for tool in orch.list_tools()
-            if orch.resolve_spec(tool.id) is not None
+            orch.install(orch.resolve(tool.id))
+            for tool in orch.list()
+            if orch.resolve(tool.id) is not None
         ]
         failed = [r.tool_id for r in results if not r.success]
         if failed:
@@ -142,7 +142,7 @@ def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
             return 1
         ok("Install finished.")
         return 0
-    spec = orch.resolve_spec(target)
+    spec = orch.resolve(target)
     if spec is None:
         err(f"Tool '{target}' not found in manifest.")
         return 1
@@ -173,8 +173,8 @@ def cmd_update(args: list[str], orch: IToolsAggregate) -> int:
     print(f"{BOLD()}>>> Updating {target} (pull + reinstall)...{RESET()}")
     if target == "all":
         failed: list[str] = []
-        for tool in orch.list_tools():
-            spec = orch.resolve_spec(tool.id)
+        for tool in orch.list():
+            spec = orch.resolve(tool.id)
             if spec is None:
                 continue
             result = orch.update(spec)
@@ -186,7 +186,7 @@ def cmd_update(args: list[str], orch: IToolsAggregate) -> int:
             return 1
         ok("Update finished.")
         return 0
-    spec = orch.resolve_spec(target)
+    spec = orch.resolve(target)
     if spec is None:
         err(f"Tool '{target}' not found in manifest.")
         return 1
@@ -224,8 +224,8 @@ def cmd_uninstall(args: list[str], orch: IToolsAggregate) -> int:
     if target in {"--all", "all"}:
         info("Uninstalling all tools...")
         failed = []
-        for tool in orch.list_tools():
-            spec = orch.resolve_spec(tool.id)
+        for tool in orch.list():
+            spec = orch.resolve(tool.id)
             if spec is None:
                 continue
             result = orch.uninstall(spec)
@@ -236,7 +236,7 @@ def cmd_uninstall(args: list[str], orch: IToolsAggregate) -> int:
             return 1
         ok("All tools uninstalled.")
         return 0
-    spec = orch.resolve_spec(target)
+    spec = orch.resolve(target)
     if spec is None:
         err(f"Tool '{target}' not found in manifest.")
         return 1

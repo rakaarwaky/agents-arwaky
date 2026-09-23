@@ -24,16 +24,25 @@ class BackupCommand(IBackupAggregate):
     def list_archives(self) -> ExitCode:
         return self._orch.list_archives()
 
+    def status_store(self) -> ExitCode:
+        return self._orch.status_store()
+
     def help(self) -> ExitCode:
         return self._orch.help()
 
 
 def cmd_backup(args: list[str], orch: IBackupAggregate) -> int:
-    """aa backup <tool|all> [dest|gdrive] | aa backup list."""
+    """aa backup <tool|all> [dest|gdrive] | aa backup list | aa backup status."""
+    # The root entry prepends the command noun; strip it so args[0] is the
+    # first user token (tool / list / status / help) for both call shapes.
+    if args and args[0] == "backup":
+        args = args[1:]
     if not args or args[0] in ("help", "-h", "--help"):
         return orch.help()
     if args[0] == "list":
         return orch.list_archives()
+    if args[0] == "status":
+        return orch.status_store()
     tool = BackupToolQuery(args[0])
     dest = args[1] if len(args) > 1 else ""
     return orch.backup(tool, dest)
@@ -41,6 +50,8 @@ def cmd_backup(args: list[str], orch: IBackupAggregate) -> int:
 
 def cmd_restore(args: list[str], orch: IBackupAggregate) -> int:
     """aa restore <tool|all> [src] | aa restore help."""
+    if args and args[0] == "restore":
+        args = args[1:]
     if not args or args[0] in ("help", "-h", "--help"):
         return orch.help()
     tool = BackupToolQuery(args[0])

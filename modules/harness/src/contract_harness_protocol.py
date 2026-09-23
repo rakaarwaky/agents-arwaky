@@ -1,10 +1,12 @@
-"""Harness-domain protocol contracts (capability + adapter ABCs).
+"""Harness-domain protocol contracts (one capability ABC + adapter surface).
 
-The capability layer is business-action shaped (FRD API Contract table);
-adapters are stateless utility leaves owning one provider's paths,
-config format, env keys, and the custom-API support flag. Each path
-helper is its own one-feature ABC; injectors may type a full adapter
-as the composite ``IHarnessAdapter`` (composition only).
+The capability layer exposes exactly ONE method — ``execute(op, targets,
+flags?)`` — covering connect, disconnect, and skill provisioning (FRD
+Protocol API). Everything after it is the internal adapter surface:
+path-leaf ABCs and the composite ``IHarnessAdapter`` (composition only;
+not part of the FRD Protocol API). Adapters are stateless utility leaves
+owning one provider's paths, config format, env keys, and the
+custom-API support flag.
 """
 from __future__ import annotations
 
@@ -14,33 +16,18 @@ from pathlib import Path
 from modules.harness.src.taxonomy_harness_vo import ExitCode
 
 
-class IHarnessConnectProtocol(ABC):
-    """FR-001: connect a harness — MCP config, env entries, router wiring."""
+class IHarnessProtocol(ABC):
+    """Single capability method covering connect / disconnect / provision.
+
+    FR-HARNESS-001, FR-HARNESS-002, and FR-HARNESS-003 dispatch through
+    *op* (``connect`` | ``disconnect`` | ``provision_skills``) over
+    resolved *targets*, with an optional *flags* bag.
+    """
 
     @abstractmethod
-    def connect(self, harness_ids: tuple[str, ...], force: bool = False, dry_run: bool = False,
-                mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
-                router: bool = False, copy_skills: bool = False) -> ExitCode:
-        """Write the generated artifacts; return exit code (0 = success)."""
-        ...
-
-
-class IHarnessDisconnectProtocol(ABC):
-    """FR-002: disconnect a harness — remove what connect wrote."""
-
-    @abstractmethod
-    def disconnect(self, harness_ids: tuple[str, ...], dry_run: bool = False) -> ExitCode:
-        """Remove generated artifacts; return exit code (0 = success)."""
-        ...
-
-
-class IHarnessSkillsProtocol(ABC):
-    """FR-003: provision the skill pack into a harness's skill dir."""
-
-    @abstractmethod
-    def provision_skills(self, harness_ids: tuple[str, ...], copy: bool = False,
-                        dry_run: bool = False, force: bool = False) -> ExitCode:
-        """Link or copy the pack; return exit code (0 = success)."""
+    def execute(self, op: str, targets: tuple[str, ...],
+                flags: dict[str, bool] | None = None) -> ExitCode:
+        """Run *op* over *targets*; return exit code (0 = success)."""
         ...
 
 
@@ -150,16 +137,14 @@ __all__ = [
     "ExitCode",
     "IHarnessAdapter",
     "IHarnessConfigFilesProtocol",
-    "IHarnessConnectProtocol",
     "IHarnessCredentialCandidatesProtocol",
-    "IHarnessDisconnectProtocol",
     "IHarnessEnvFilesProtocol",
     "IHarnessHomeProtocol",
     "IHarnessMcpConfigFileProtocol",
     "IHarnessMcpTargetsProtocol",
+    "IHarnessProtocol",
     "IHarnessSessionConfFilesProtocol",
     "IHarnessSkillsDirProtocol",
-    "IHarnessSkillsProtocol",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
@@ -167,14 +152,12 @@ _layer_symbols = {
     "ExitCode": ExitCode,
     "IHarnessAdapter": IHarnessAdapter,
     "IHarnessConfigFilesProtocol": IHarnessConfigFilesProtocol,
-    "IHarnessConnectProtocol": IHarnessConnectProtocol,
     "IHarnessCredentialCandidatesProtocol": IHarnessCredentialCandidatesProtocol,
-    "IHarnessDisconnectProtocol": IHarnessDisconnectProtocol,
     "IHarnessEnvFilesProtocol": IHarnessEnvFilesProtocol,
     "IHarnessHomeProtocol": IHarnessHomeProtocol,
     "IHarnessMcpConfigFileProtocol": IHarnessMcpConfigFileProtocol,
     "IHarnessMcpTargetsProtocol": IHarnessMcpTargetsProtocol,
+    "IHarnessProtocol": IHarnessProtocol,
     "IHarnessSessionConfFilesProtocol": IHarnessSessionConfFilesProtocol,
     "IHarnessSkillsDirProtocol": IHarnessSkillsDirProtocol,
-    "IHarnessSkillsProtocol": IHarnessSkillsProtocol,
 }

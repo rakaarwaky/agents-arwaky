@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckScope
 from modules.shared.src.taxonomy_common_vo import DocFinding
 
 
@@ -14,8 +14,17 @@ class ICheckProtocol(ABC):
     name: str = ""
 
     @abstractmethod
-    def run(self) -> CheckExitCode:
-        """Run the check strictly (every finding gates); return the error count."""
+    def execute(self, scope: CheckScope) -> CheckExitCode:
+        """Run this capability for *scope* strictly (every finding gates).
+
+        Args:
+            scope: Requested gate scope — ``all``, ``docs`` or ``skill``.
+                The orchestrator routes the scope to the matching
+                capability; one method covers every scope.
+
+        Returns:
+            Error count wrapped as the gate exit code.
+        """
         ...
 
 __all__ = ['CheckExitCode', 'DocFinding']

@@ -19,7 +19,7 @@ import time
 import urllib.error
 import urllib.request
 
-from modules.shared.src.contract_daemon_protocol import IDaemonManager
+from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     config_home,
@@ -50,11 +50,11 @@ PID_FILE = state_home() / "anytype-daemon.pid"
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class AnytypeDaemonManager(IDaemonManager):
-    """AES facade: exposes the original script actions via IDaemonManager.
+class AnytypeDaemonManager(IDaemonProtocol):
+    """AES facade: exposes the original script actions via IDaemonProtocol.
 
     Block 1 — constructor (stateless, no DI needed beyond module globals).
-    Block 2 — protocol contract methods only (start/stop/status/logs/restart).
+    Block 2 — protocol contract (execute) + lifecycle/unit methods it routes to.
     Block 3 — legacy action facades, factories, and helpers retained as-is.
     """
 
@@ -62,6 +62,40 @@ class AnytypeDaemonManager(IDaemonManager):
         pass
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def execute(
+        self,
+        op: str,
+        name: str | None = None,
+        unit: str | None = None,
+    ) -> DaemonStatus | ExitCode:
+        if op == "start":
+            return self.start()
+        if op == "stop":
+            return self.stop()
+        if op == "restart":
+            return self.restart()
+        if op == "status":
+            return self.status()
+        if op == "logs":
+            return self.logs()
+        if op == "install_unit":
+            return self.install_unit()
+        if op == "remove_unit":
+            return self.remove_unit()
+        if op == "unit_status":
+            return self.unit_status()
+        if op == "auth-create":
+            return ExitCode(self.auth_create(name or "agent"))
+        if op == "auth-key":
+            return ExitCode(self.auth_key(name or "arwaky-agent-key"))
+        if op == "space-join":
+            return ExitCode(self.space_join(name or ""))
+        if op == "space-list":
+            return ExitCode(self.space_list())
+        if op == "help":
+            return ExitCode(self.help())
+        raise ValueError(f"Unknown daemon op: {op}")
+
     def start(self) -> ExitCode:
         return ExitCode(cmd_start())
 
@@ -119,13 +153,13 @@ class AnytypeDaemonManager(IDaemonManager):
     def space_list(self) -> int:
         return cmd_space_list()
 
-    def service_install(self) -> ExitCode:
+    def install_unit(self) -> ExitCode:
         return ExitCode(cmd_service_install())
 
-    def service_status(self) -> ExitCode:
+    def unit_status(self) -> ExitCode:
         return ExitCode(cmd_service_status())
 
-    def service_uninstall(self) -> ExitCode:
+    def remove_unit(self) -> ExitCode:
         return self.stop()
 
     def help(self) -> int:

@@ -1,8 +1,5 @@
 # FRD — daemon
 
-> Functional Requirements Document. Describes HOW this feature works functionally.
-> Audience: Engineers, QA, Tech Lead.
-
 
 ## Reference
 
@@ -12,42 +9,87 @@
 
 ## System Overview
 
-The daemon feature manages two gateway services: OmniRoute (host-native, no
-container) and Anytype headless (Podman). The daemon orchestrator exposes
-lifecycle operations — start, stop, status, logs, restart — plus systemd
-service install/uninstall/status for each known daemon. Deploy assets hold
-the systemd units and container definition; XDG config holds per-daemon
-environment secrets.
-
-Flow: `aa anytype <action>` / `aa omniroute <action>` → daemon orchestrator →
-per-daemon manager → systemd/process-manager.
+The daemon feature manages two gateway daemons: OmniRoute (host-native, no
+container) and Anytype headless (Podman). One protocol method —
+`execute(op, ...)` — covers lifecycle, enumeration, and systemd unit
+operations on a daemon capability; the aggregate (`list_known`, `start`,
+`stop`, `restart`, `status`, `logs`, `install_unit`, `remove_unit`,
+`unit_status`) routes each call by daemon id and exposes every path to the
+CLI. Flow: `aa anytype <action>` / `aa omniroute <action>` → daemon surface →
+orchestrator aggregate → daemon capability (`execute`) → systemd / Podman /
+host process. Deploy assets hold the systemd units and container definition;
+XDG config holds per-daemon environment secrets. The service feature reaches
+unit install/remove through an integration to this aggregate rather than its
+own unit code.
 
 
 ## Functional Requirements
 
-### FR-DAEMON-001: Manage the lifecycle of a daemon
+### FR-DAEMON-001: Manage the lifecycle of one daemon
 
-- **Description**: `start/stop/restart/status/logs` on a daemon capability.
-- **Input**: none (daemon identity is fixed by the capability).
-- **Output**: `int` exit code (start/stop/logs/restart), `DaemonStatus` (status).
-- **Business Rules**: `status` reports running/stopped/unknown without side
-  effects. Start is idempotent when the container is already up. Secrets are read
-  from XDG config, never from the repo tree.
-- **Edge Cases**: daemon not installed → `status` reports unknown, `start`
-  reports a clear error; Podman unavailable → non-zero with the error captured.
-- **Error Handling**: non-zero exit with captured stderr; no raw exceptions.
+- **Description**: start, stop, restart, status, and logs for one managed
+  daemon, routed by daemon id through the aggregate to the daemon's
+  capability under the single protocol method `execute`.
+- **Input**: daemon id from the aggregate (`start`, `stop`, `restart`,
+  `status`, `logs`); an operation token for the protocol call.
+- **Output**: `ExitCode` for start/stop/restart/logs; a `DaemonStatus`
+  snapshot for status.
+- **Business Rules**: status reports running/stopped/unknown without side
+  effects; start is idempotent when the daemon is already up; secrets are
+  read from XDG config, never from the repo tree.
+- **Edge Cases**: daemon not installed → status reports unknown, start
+  reports a clear error; Podman or the host binary missing → non-zero with
+  the error captured; unknown daemon id → reported error, no crash.
+- **Error Handling**: non-zero exit with captured stderr; no raw exceptions
+  cross the surface.
 
-### FR-DAEMON-002: Authorize the Anytype daemon with an API key
+### FR-DAEMON-002: Authorize Anytype with an API key
 
-- **Description**: `aa anytype auth-key` generates/verifies the API key against
-  the daemon and persists it to XDG config.
-- **Input**: daemon endpoint (from XDG config).
-- **Output**: exit code; key written to XDG config on success.
-- **Business Rules**: the key is written only to XDG config; it is never logged
-  or committed.
-- **Edge Cases**: daemon not running → `auth-key` reports the pre-condition,
-  does not crash.
-- **Error Handling**: pre-condition failures are reported messages, exit non-zero.
+- **Description**: `aa anytype auth-create` / `auth-key` generate an account
+  or API key against the Anytype daemon and persist the key to XDG config.
+- **Input**: optional account/key name from the CLI; the daemon endpoint
+  comes from XDG config.
+- **Output**: exit code; the key written to XDG config on success.
+- **Business Rules**: the key is written only to XDG config; it is never
+  logged or committed to the repo tree.
+- **Edge Cases**: daemon not running → auth reports the pre-condition and
+  does not crash; key output unparseable → non-zero with a clear message.
+- **Error Handling**: pre-condition and parse failures are reported
+  messages, exit non-zero.
+
+### FR-DAEMON-003: Enumerate the managed daemons
+
+- **Description**: `list_known` returns the canonical daemon ids the
+  orchestrator manages.
+- **Input**: none.
+- **Output**: the tuple of daemon ids — `omniroute` and `anytype`.
+- **Business Rules**: enumeration is pure — no side effects, independent of
+  whether any daemon is running or installed; the returned ids are exactly
+  the ones the aggregate accepts for routing.
+- **Edge Cases**: called with both daemons stopped or uninstalled → still
+  returns both ids; a routing id absent from the list → unknown-daemon
+  error at the routing call, not during enumeration.
+- **Error Handling**: enumeration itself cannot fail; unknown ids surface
+  only when used for routing.
+
+### FR-DAEMON-004: Install and remove a daemon's systemd unit
+
+- **Description**: `install_unit`, `remove_unit`, and `unit_status` manage
+  the per-daemon systemd user unit from this feature's deploy assets; the
+  service feature reaches these through an integration, not its own unit
+  code.
+- **Input**: the daemon's unit from the CLI or from the service feature.
+- **Output**: `ExitCode` for install/remove; the unit install/active state
+  for `unit_status`.
+- **Business Rules**: unit files come from the deploy assets shipped with
+  this feature; install reloads the user manager and enables the unit;
+  remove disables and deletes it; unit operations never touch repo-tree
+  state.
+- **Edge Cases**: unit already installed → install re-copies and succeeds;
+  unit not installed → remove reports so and still succeeds; `systemctl`
+  missing → non-zero with the error captured.
+- **Error Handling**: non-zero with captured systemd/deploy errors; no raw
+  exceptions cross the surface.
 
 
 ## API Contract
@@ -55,58 +97,71 @@ per-daemon manager → systemd/process-manager.
 ### Protocol API
 
 | Method | Input | Output | Error | Event | Description |
-|---|---|---|---|---|---|
-| `IDaemonStartProtocol.start` | — | `ExitCode` | non-zero + unit error | — | Start one daemon container/unit |
-| `IDaemonStopProtocol.stop` | — | `ExitCode` | non-zero | — | Stop one daemon |
-| `IDaemonStatusProtocol.status` | — | `DaemonStatus` | absent → unknown status value | — | Report running/absent state |
-| `IDaemonLogsProtocol.logs` | — | `ExitCode` | non-zero | log lines | Tail daemon logs |
-| `IDaemonRestartProtocol.restart` | — | `ExitCode` | non-zero | — | Restart one daemon |
+|--------|-------|--------|-------|-------|-------------|
+| `execute` | `op`, `name?`, `unit?` | `ExitCode` or `DaemonStatus` | non-zero | — | one method covers lifecycle, enumeration, and unit ops |
 
 ### Aggregate API
 
 | Method | Input | Output | Error | Event | Description |
-|---|---|---|---|---|---|
-| `DaemonOrchestrator.known_daemons` | — | `tuple[str, …]` | — | — | Canonical daemon ids the orchestrator manages |
-| `DaemonOrchestrator.start_daemon` | `name: DaemonName` | `ExitCode` | non-zero + podman/unit error | — | Start one daemon container/unit |
-| `DaemonOrchestrator.stop_daemon` | `name: DaemonName` | `ExitCode` | non-zero | — | Stop one daemon |
-| `DaemonOrchestrator.status_daemon` | `name: DaemonName` | `DaemonStatus` | absent → unknown status value | — | Report running/absent state |
-| `DaemonOrchestrator.logs_daemon` | `name: DaemonName` | `ExitCode` | non-zero | log lines | Tail daemon logs |
-| `DaemonOrchestrator.restart_daemon` | `name: DaemonName` | `ExitCode` | non-zero | — | Restart one daemon |
-| `DaemonOrchestrator.service_install` | `name: DaemonName` | `ExitCode` | non-zero + systemd error | — | Install the daemon's systemd unit |
-| `DaemonOrchestrator.service_uninstall` | `name: DaemonName` | `ExitCode` | non-zero | — | Remove the daemon's systemd unit |
-| `DaemonOrchestrator.service_status` | `name: DaemonName` | `ExitCode` | non-zero | unit state | Report unit install/active state |
+|--------|-------|--------|-------|-------|-------------|
+| `list_known` | — | `tuple[DaemonName, …]` | — | — | Canonical daemon ids the orchestrator manages |
+| `start` | `name: DaemonName` | `ExitCode` | non-zero + podman/unit error | — | Start one daemon |
+| `stop` | `name: DaemonName` | `ExitCode` | non-zero | — | Stop one daemon |
+| `restart` | `name: DaemonName` | `ExitCode` | non-zero | — | Restart one daemon |
+| `status` | `name: DaemonName` | `DaemonStatus` | absent → unknown status value | — | Report running/absent state |
+| `logs` | `name: DaemonName` | `ExitCode` | non-zero | log lines | Tail daemon logs |
+| `install_unit` | `unit` | `ExitCode` | non-zero + systemd error | — | Install the daemon's user unit |
+| `remove_unit` | `unit` | `ExitCode` | non-zero | — | Remove the daemon's user unit |
+| `unit_status` | `unit` | `ExitCode` | non-zero | unit state | Report unit install/active state |
 
 ## Integration Points
 
 | System | Direction | Purpose | Failure mode |
-|--------|-----------|---------|--------------|
-| Podman | out | run the 9Router / Anytype containers | podman missing → non-zero |
-| systemd units + Containerfile (`daemon/deploy/`) | in | deployment artifacts | missing unit → start fails |
-| XDG config (per-daemon `.env`) | in | secrets, endpoint | missing key → `auth-key` pre-condition |
-| root CLI (`aa`) | in | `aa anytype` / `aa omniroute` | pass-through |
+| -------- | --------- | --------- | ------------ |
+| Podman | out | run the Anytype container (OmniRoute is host-native) | podman missing → native fallback or non-zero |
+| systemd user units + deploy assets | out | install, remove, and query per-daemon user units | systemctl or unit missing → non-zero |
+| XDG config (per-daemon env) | in | secrets and endpoints for auth flows | missing key → auth pre-condition failure |
+| root CLI (`aa anytype` / `aa omniroute`) | in | routes CLI verbs to the daemon capability | unknown verb → usage + non-zero |
+| service feature | in | reuses the daemon aggregate for unit install/remove/status | integration unavailable → non-zero |
+
 
 ## Non-functional Requirements
 
 | Metric | Target | Measurement method |
-|--------|--------|--------------------|
-| No repo secrets | no `.env` with real secrets in the tree | `git status` clean; only `.env.example` tracked at `5556fd5` |
-| Idempotent start | starting a running container is a no-op | `start` twice; second reports already running |
+| -------- | -------- | --------- |
+| No repo secrets | no real secrets tracked in the tree | `git status --porcelain` clean after auth flows; only placeholder examples tracked |
+| Idempotent start | starting a running daemon is a no-op | run start twice; second reports already running, exit 0 |
+| Idempotent unit install | re-installing an installed unit succeeds | run `install_unit` twice; `unit_status` still reports active |
+| Unknown-daemon safety | unknown id errors at routing, never crashes | route a bogus id → reported error, no traceback |
+
 
 ## Test Scenarios
 
-- `aa anytype start` on a host with Podman brings the container up; `status` reports running.
-- `aa anytype status` when the daemon is absent reports unknown, exit 0.
-- `auth-key` writes the key to XDG config and never to the repo tree.
+- Starting an Anytype daemon that is already running reports it is already running and exits 0 without a second launch.
+- Starting a daemon on a host without Podman falls back to native execution or reports a clear non-zero error with no traceback.
+- `auth-key` writes the generated key to XDG config only; the repo tree stays clean after the run.
+- `auth-key` while the daemon is stopped reports the pre-condition and exits non-zero instead of crashing.
+- `list_known` returns both managed daemon ids (omniroute and anytype) independent of run state.
+- Enumerating daemons on a host where neither daemon is running still reports both ids.
+- `install_unit` for a daemon enables its user unit and a following `unit_status` reports it active.
+- `remove_unit` deletes a daemon's user unit so a following `unit_status` reports it not installed.
 
 
 ## Assumptions & Constraints
 
-- Only 9Router and Anytype are containerized (container-isolation invariant);
-  every other tool is bare-metal.
-- Secrets live in XDG config or `.env`, referenced by name, never committed.
+- Only Anytype is containerized (Podman); OmniRoute is host-native — the
+  container-isolation invariant is unchanged.
+- Secrets live in XDG config, referenced by name, never committed.
+- systemd unit operations stay in this feature's aggregate; the service
+  feature integrates rather than duplicating unit code.
 
 
 ## Glossary
 
-- **daemon**: a Podman container service (9Router, Anytype).
-- **DaemonStatus**: running / stopped / unknown.
+- **daemon**: a managed gateway service — Anytype headless (Podman) or
+  OmniRoute (host-native).
+- **daemon id**: the canonical routing token (`omniroute`, `anytype`).
+- **DaemonStatus**: a snapshot — running / stopped / unknown plus API
+  readiness.
+- **unit**: a systemd user service installed from this feature's deploy
+  assets.

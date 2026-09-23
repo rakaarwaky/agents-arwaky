@@ -24,9 +24,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolRunProtocol
+from modules.shared.src.contract_tools_protocol import IToolsProtocol
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
+from modules.shared.src.taxonomy_common_error import ToolInstallError
 from modules.shared.src.taxonomy_common_vo import ToolSpec, bin_home
 from modules.shared.src.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,
@@ -57,13 +58,33 @@ def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path)
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
-class RunnerCapability(IToolRunProtocol):
+class RunnerCapability(IToolsProtocol):
     """Business action run(spec, args, root): discover + exec, return exit code."""
 
     def __init__(self, root: Path | None = None) -> None:
         self._root = root
 
     # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    def execute(
+        self,
+        op: str,
+        spec: ToolSpec | None = None,
+        query: object | None = None,
+        args: list[str] | None = None,
+    ) -> object:
+        """Single protocol entry: dispatch *op* to run or discover."""
+        if spec is None:
+            raise ToolInstallError(
+                f"runner capability got op={op!r} (expected a spec target)"
+            )
+        if op == "run":
+            return self.run(spec, list(args or []))
+        if op == "discover":
+            return self.discover(spec)
+        raise ToolInstallError(
+            f"unsupported runner op {op!r} (expected 'run' or 'discover')"
+        )
+
     def run(self, spec: ToolSpec, args: list[str], root: Path | None = None) -> ExitCode:
         # Sub-step 1: discover the concrete launch path; None -> return 1.
         base = root or self._root or repo_root
@@ -78,15 +99,10 @@ class RunnerCapability(IToolRunProtocol):
         """Public discovery: first valid candidate, resolved; None when absent.
 
         Read-only: never mutates install state. Used by the agent aggregate
-        for `executable_path` / `find_executable` without reaching execution.
+        for `executable_path` without reaching execution.
         """
         base = root or self._root or repo_root
         return self._discover(spec, base)
-
-    def execute(self, spec: ToolSpec, executable: Path, args: list[str], root: Path | None = None) -> int:
-        """Public execution of a resolved *executable*; the child's exit code."""
-        base = root or self._root or repo_root
-        return self._execute(spec, executable, args, base)
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _discover(self, spec: ToolSpec, root: Path) -> Path | None:

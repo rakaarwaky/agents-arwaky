@@ -1,7 +1,9 @@
-"""Config engine capability — IConfigWriter / IConfigModifier implementations.
+"""Config engine capability — writer + modifier behind a single ``execute``.
 
 Pure I/O helpers live in :mod:`modules.shared.src.utility_config_engine`
-(utility layer, shared with harness capabilities under AES201).
+(utility layer, shared with harness capabilities under AES201). Both classes
+implement the collapsed ``IConfigProtocol.execute`` dispatcher; the config
+agent is their only caller.
 """
 from __future__ import annotations
 
@@ -10,7 +12,7 @@ import os
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_config_protocol import IConfigModifier, IConfigWriter
+from modules.shared.src.contract_config_protocol import IConfigProtocol
 from modules.shared.src.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,
@@ -35,21 +37,43 @@ from modules.shared.src.utility_toml_write import write_toml
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class ConfigWriter(IConfigWriter):
-    """Module-level I/O bound to the IConfigWriter contract."""
+class ConfigWriter(IConfigProtocol):
+    """Load / detect / save capability (single-execute dispatcher)."""
 
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def execute(
+        self,
+        op: str,
+        path: Path,
+        payload: dict | None = None,
+    ) -> ConfigTuple | bool | ConfigFormat:
+        if op == "load":
+            return self.load_file(path)
+        if op == "save":
+            body = payload or {}
+            fmt = body.get("fmt")
+            if fmt is not None:
+                fmt = ConfigFormat(fmt)
+            return self.save_file(path, ConfigData(body.get("data", {})), fmt)
+        if op == "detect_format":
+            return self.detect_format(path)
+        raise ValueError(f"ConfigWriter does not support op {op!r}")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def load_file(self, path: Path) -> ConfigTuple:
         data, fmt = load_file(path)
         return (ConfigData(data), ConfigFormat(fmt))
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
-
-    def save_file(self, path: Path, data: ConfigData, fmt: ConfigFormat | None = None) -> bool:
+    def save_file(
+        self,
+        path: Path,
+        data: ConfigData,
+        fmt: ConfigFormat | None = None,
+    ) -> bool:
         if fmt is None:
             fmt = ConfigFormat(detect_format(path))
         return save_file(path, data, fmt)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def detect_format(self, path: Path) -> ConfigFormat:
         return ConfigFormat(detect_format(path))
 
@@ -60,23 +84,72 @@ class ConfigWriter(IConfigWriter):
         return write_toml(data)
 
 
-class ConfigModifier(IConfigModifier):
-    """Module-level I/O bound to the IConfigModifier contract."""
+class ConfigModifier(IConfigProtocol):
+    """Merge / env-set / removal / list capability (single-execute dispatcher)."""
 
-    def remove_mcp_servers(self, path: Path, servers: list[str], dry_run: bool = False) -> list[str]:
+    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    def execute(
+        self,
+        op: str,
+        path: Path,
+        payload: dict | None = None,
+    ) -> list[str] | None:
+        if op == "merge_servers":
+            body = payload or {}
+            return self.merge_mcp_servers(
+                path,
+                McpServersMap(body.get("servers", {})),
+                bool(body.get("force", False)),
+            )
+        if op == "set_env":
+            body = payload or {}
+            return self.set_env_keys(path, EnvPairs(body.get("pairs", {})))
+        if op == "remove_entries":
+            body = payload or {}
+            keys = list(body.get("keys", ()))
+            dry = bool(body.get("dry_run", False))
+            if self._looks_like_env(path):
+                return self.remove_env_keys(path, keys, dry)
+            return self.remove_mcp_servers(path, keys, dry)
+        if op == "list_servers":
+            return self.list_mcp_servers(path)
+        raise ValueError(f"ConfigModifier does not support op {op!r}")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    def remove_mcp_servers(
+        self,
+        path: Path,
+        servers: list[str],
+        dry_run: bool = False,
+    ) -> list[str]:
         return remove_mcp_servers(path, servers, dry_run)
 
-    def remove_env_keys(self, path: Path, keys: list[str], dry_run: bool = False) -> list[str]:
+    def remove_env_keys(
+        self,
+        path: Path,
+        keys: list[str],
+        dry_run: bool = False,
+    ) -> list[str]:
         return remove_env_keys(path, keys, dry_run)
 
     def list_mcp_servers(self, path: Path) -> list[str]:
         return list_mcp_servers(path)
 
-    def merge_mcp_servers(self, path: Path, servers: McpServersMap, force: bool = False) -> list[str]:
+    def merge_mcp_servers(
+        self,
+        path: Path,
+        servers: McpServersMap,
+        force: bool = False,
+    ) -> list[str]:
         return merge_mcp_servers(path, servers, force)
 
     def set_env_keys(self, path: Path, pairs: EnvPairs) -> None:
         set_env_keys(path, pairs)
+
+    @staticmethod
+    def _looks_like_env(path: Path) -> bool:
+        name = path.name.lower()
+        return name.startswith(".env") or name.endswith(".env")
 
 
 def main(argv):
@@ -137,8 +210,7 @@ __all__ = [
     "ConfigTuple",
     "ConfigWriter",
     "EnvPairs",
-    "IConfigModifier",
-    "IConfigWriter",
+    "IConfigProtocol",
     "McpServersMap",
     "Timestamp",
     "arwaky_server_names",
@@ -161,8 +233,7 @@ _layer_symbols = {
     "ConfigTuple": ConfigTuple,
     "ConfigWriter": ConfigWriter,
     "EnvPairs": EnvPairs,
-    "IConfigModifier": IConfigModifier,
-    "IConfigWriter": IConfigWriter,
+    "IConfigProtocol": IConfigProtocol,
     "McpServersMap": McpServersMap,
     "Timestamp": Timestamp,
 }

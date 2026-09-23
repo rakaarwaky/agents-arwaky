@@ -4,43 +4,46 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-09-19
+Last Updated: 2026-09-23
 
 ## Current Condition
 
-- Done: `IHarnessConnector` contract + 5 provider-named capabilities +
-  `agent_harness_orchestrator.py` + shared generation logic at `5556fd5`;
-  import OK; `aa check` PASSED at `5556fd5`. FRD rewritten to the 3-capability
-  business-action model (connector / disconnector / skills; router wiring folded
-  into connect+disconnect).
-- In Progress: HRS-04 — restructure `modules/harness/src/` to the 3-capability
-  model: split `utility_harness_shared.py` into machinery + 5 leaf adapters,
-  replace the 5 provider-named capabilities with 3 business-named ones, rewire
-  orchestrator + container.
+- Done: FRD realigned to the single-`execute` Protocol design (4 FRs,
+  8 scenarios) and the capability protocols collapsed into one
+  `execute` with `all_targets` on the aggregate; gates green —
+  `python3 -m compileall -q modules/harness` +
+  `python3 -m modules.root_cli_entry check docs modules/harness`
+  → 0 findings at `f87a775`.
+- In Progress: none (protocol-collapse slice complete).
 - Blocked: none.
-- Next Action: HRS-04 implementation (delegated); then HRS-01 connect sweep per
-  harness against the new structure.
+- Next Action: HRS-01 — per-harness connect/disconnect/skills sweep
+  (5 harnesses) against the collapsed structure.
 
 ## Backlog
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| HRS-01 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Per-harness connect/disconnect/skills sweep (5 harnesses) | P1 | Ready | Spec exists; no automated per-harness sweep on the current tree. Re-based on the 3-capability structure. | @raka | HRS-04 | 2026-09-19 |
-| HRS-02 | FR-HARNESS-001 | Shared MCP config + skill provisioning machinery | P1 | Deferred | `capabilities_harness_shared.py` superseded by HRS-04 split into machinery + leaf adapters. | @raka | None | 2026-09-19 |
-| HRS-03 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | FRD + BACKLOG pair authoring for harness | P1 | Done | Verified by `aa check docs modules/harness` → exit 0 at `8c04e3e`; FRD rewritten to 3-capability model; this BACKLOG reflects it. | @raka | None | 2026-09-19 |
-| HRS-04 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Restructure harness module to 3 business capabilities + 5 leaf adapters | P1 | In Progress | Brief written; delegating to Grok Build. Scope: delete `utility_harness_shared.py` + 5 `capabilities_harness_<provider>.py`; add `capabilities_harness_{connector,disconnector,skills}.py`, `utility_{hermes,opencode,grok,qwencode,antigravity}_adapter.py`, adapter registry in taxonomy, rewired `root_harness_container.py` + `agent_harness_orchestrator.py`. | @raka | HRS-03 | 2026-09-19 |
-| HRS-05 | FR-HARNESS-001 | Router wiring as connect/disconnect clause | P2 | Ready | Behaviour specified under FR-HARNESS-001/FR-HARNESS-002 (no standalone capability). Implement inside connector/disconnector gated by adapter `supports_custom_api`. | @raka | HRS-04 | 2026-09-19 |
+| HRS-01 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Per-harness connect/disconnect/skills sweep (5 harnesses) | P1 | Ready | FRD now states 8 scenarios; no automated per-harness sweep on the current tree. | @raka | HRS-06 | 2026-09-23 |
+| HRS-02 | FR-HARNESS-001 | Shared MCP config + skill provisioning machinery | P1 | Deferred | `capabilities_harness_shared.py` superseded by the machinery + leaf-adapter split (HRS-04). | @raka | None | 2026-09-19 |
+| HRS-03 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003, FR-HARNESS-004 | FRD + BACKLOG pair authoring for harness | P1 | Done | `python3 -m modules.root_cli_entry check docs modules/harness` → 0 findings at `f87a775`. | @raka | None | 2026-09-23 |
+| HRS-04 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Restructure harness module to 3 business capabilities + 5 leaf adapters | P1 | Done | `python3 -m compileall -q modules/harness` → 0 at `f87a775`; connector/disconnector/skills + 5 leaf adapters on the tree. | @raka | HRS-03 | 2026-09-23 |
+| HRS-05 | FR-HARNESS-001, FR-HARNESS-002 | Router wiring as connect/disconnect clause | P2 | Ready | Clause specified under FR-HARNESS-001/FR-HARNESS-002 and gated by the adapter custom-API flag; behaviour sweep owed under HRS-01. | @raka | HRS-04 | 2026-09-19 |
+| HRS-06 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003, FR-HARNESS-004 | Collapse capability protocols to one `execute` method; aggregate gains `all_targets` | P1 | Done | `python3 -m compileall -q modules/harness` + `python3 -m modules.root_cli_entry check docs modules/harness` → 0 findings at `f87a775`. | @raka | HRS-04 | 2026-09-23 |
 
-## Scenario Evidence (rows)
+## Scenario Evidence
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| `aa connect hermes` generates an MCP config listing every manifest server and provisions the skill pack. | Manual | — | `aa connect hermes` + diff generated config | `5556fd5` |
-| `aa connect --skills-only qwencode` provisions skills without touching MCP config. | Gap | — | — | not yet verified |
-| `aa connect --router grok-build` wires 9Router only when the adapter declares custom-API support; otherwise reports the skip. | Gap | — | — | not yet implemented |
-| `aa connect` for an unknown harness fails with a message naming the supported harnesses. | Gap | — | — | `5556fd5` (no automated test yet) |
-| `aa disconnect --dry-run` reports what would be removed (MCP, env, router refs) and changes nothing. | Gap | — | — | `5556fd5` (no automated test yet) |
-| A new harness added as one provider adapter + one registry entry passes all above actions with zero capability edits. | Gap | — | — | not yet verified |
+| `aa connect hermes` writes an MCP config listing every manifest server and provisions the skill pack. | Manual | — | `aa connect hermes` + diff generated config | `5556fd5` |
+| `aa connect --router grok-build` wires the local router only when the adapter declares custom-API support; otherwise reports the skip. | Gap | — | — | not yet verified |
+| `aa disconnect --dry-run` reports what would be removed (MCP servers, env keys, router refs) and changes nothing. | Manual | — | `python3 -m modules.root_cli_entry disconnect --opencode --dry-run` → exit 0, all steps DRY-RUN | `f87a775` |
+| Disconnecting a harness that was never connected is an idempotent no-op that exits 0. | Gap | — | — | not yet verified |
+| `aa connect --skills-only qwencode` provisions the skill pack without touching MCP config. | Gap | — | — | not yet verified |
+| Provisioning into a harness with no skill dir skips it with a report while remaining targets continue. | Gap | — | — | not yet verified |
+| `aa connect --all` targets every supported harness id in a single run. | Gap | — | — | not yet verified |
+| An unknown harness token fails with a message naming the supported harness set. | Manual | — | `python3 -m modules.root_cli_entry connect --notaharness` → exit 1, supported set named | `f87a775` |
+
+Kind values: Automated, Proxy, Manual, Gap.
 
 ## Blockers
 
@@ -56,9 +59,9 @@ migrated test suite). Router wiring depends on `modules/daemon` exposing the
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Tests | Todo | No automated coverage on the new structure yet; HRS-01 sweep pending |
-| Type gate | Todo | `aa check` must pass after HRS-04 lands |
-| Docs | Done | HRS-03 closed (FRD + BACKLOG aligned to 3-capability model) |
+| Tests | Todo | No automated per-harness coverage; HRS-01 sweep pending |
+| Scenario evidence | Done | 8 of 8 scenarios mapped (3 Manual, 5 Gap) |
+| Docs | Done | FRD realigned to 1-row Protocol + 5-row Aggregate; `check docs modules/harness` → 0 findings at `f87a775` |
 
 ## Deferred
 
@@ -70,3 +73,4 @@ None.
 |------|--------|----|
 | 2026-09-18 | FRD/BACKLOG pair created during WS-04 doc sweep at `5556fd5`. | @raka |
 | 2026-09-19 | FRD rewritten to 3 business capabilities (connector/disconnector/skills); router setup folded into connect/disconnect. BACKLOG rebased: HRS-02 deprecated, HRS-03 closed, HRS-04 opened (restructure), HRS-05 added (router clause). | @raka |
+| 2026-09-23 | Protocol collapsed to a single `execute` row; FRD rewritten to 4 FRs / 8 scenarios with `all_targets` on the aggregate; scenario evidence synced 8 of 8; HRS-04 + HRS-06 closed at `f87a775`. | @raka |

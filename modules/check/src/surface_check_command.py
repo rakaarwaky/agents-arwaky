@@ -15,6 +15,7 @@ from pathlib import Path
 
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
 from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckOnly
+from modules.shared.src.taxonomy_common_vo import DocFinding
 
 _USAGE = """Usage: aa check [all|docs|skill] [path] [--include-subtrees] [--json]
 
@@ -43,6 +44,15 @@ class CheckAction(ICheckAggregate):
     def check(self, only: CheckOnly | None = None) -> CheckExitCode:
         return self._orch.check(only=only)
 
+    def check_docs(self) -> CheckExitCode:
+        return self._orch.check_docs()
+
+    def check_skill(self) -> CheckExitCode:
+        return self._orch.check_skill()
+
+    def summary(self, findings: list[DocFinding]) -> str:
+        return self._orch.summary(findings)
+
 
 def _docs_audit(
     target: str | None, *, include_subtrees: bool, json_mode: bool
@@ -51,7 +61,9 @@ def _docs_audit(
 
     Strict is the default: every finding, warning included, is an error.
     """
+    from modules.shared.src.utility_doc_hygiene import audit_hygiene
     from modules.shared.src.utility_doc_pack import (
+        as_strict,
         audit_docs,
         errors_only,
         iter_doc_files,
@@ -66,7 +78,13 @@ def _docs_audit(
     if not json_mode:
         info(f"Auditing documents under {root} ...")
     scanned = len(iter_doc_files(root, include_subtrees=include_subtrees))
-    findings = audit_docs(root, include_subtrees=include_subtrees)
+    findings = sorted(
+        set(as_strict(
+            audit_docs(root, include_subtrees=include_subtrees)
+            + audit_hygiene(root, include_subtrees=include_subtrees)
+        )),
+        key=lambda f: (f.path, f.code, f.message),
+    )
     problems = errors_only(findings)
     if json_mode:
         import json as _json

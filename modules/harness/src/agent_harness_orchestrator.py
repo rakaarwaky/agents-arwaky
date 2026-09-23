@@ -3,16 +3,13 @@
 Resolves raw CLI tokens (ids, aliases, ``--all``) to canonical harness ids
 using the alias table in :mod:`taxonomy_harness_constant`, dedupes, and
 surfaces unknown tokens to the CLI instead of raising. Each action is routed
-to its capability; the adapter registry is injected by the root layer.
+through its capability's single ``execute`` method; the adapter registry is
+injected by the root layer.
 """
 from __future__ import annotations
 
 from modules.harness.src.contract_harness_aggregate import IHarnessAggregate
-from modules.harness.src.contract_harness_protocol import (
-    IHarnessConnectProtocol,
-    IHarnessDisconnectProtocol,
-    IHarnessSkillsProtocol,
-)
+from modules.harness.src.contract_harness_protocol import IHarnessProtocol
 from modules.harness.src.taxonomy_harness_constant import ALIASES, ALL_HARNESS_IDS
 from modules.harness.src.taxonomy_harness_vo import ExitCode
 
@@ -28,9 +25,9 @@ class HarnessOrchestrator(IHarnessAggregate):
     # -- Block 1: Constructor ---------------------------------------------------
     def __init__(
         self,
-        connector: IHarnessConnectProtocol,
-        disconnector: IHarnessDisconnectProtocol,
-        skills: IHarnessSkillsProtocol,
+        connector: IHarnessProtocol,
+        disconnector: IHarnessProtocol,
+        skills: IHarnessProtocol,
     ) -> None:
         self._connector = connector
         self._disconnector = disconnector
@@ -54,40 +51,43 @@ class HarnessOrchestrator(IHarnessAggregate):
         return tuple(out)
 
     def all_targets(self) -> tuple[str, ...]:
+        """Every supported harness id (canonical)."""
         return tuple(ALL_HARNESS_IDS)
 
     # -- Block 3: Action routing ---------------------------------------------------
     def connect(self, targets: tuple[str, ...], force: bool = False, dry_run: bool = False,
                 mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
                 router: bool = False, copy_skills: bool = False) -> ExitCode:
-        """Route the connect action to the connector capability."""
+        """Route the connect action through the connector's execute."""
         resolved = self.resolve_targets(targets)
-        return ExitCode(self._connector.connect(
-            resolved,
-            force=force, dry_run=dry_run, mcp_only=mcp_only, skills_only=skills_only,
-            env_only=env_only, router=router, copy_skills=copy_skills,
-        ))
+        return self._connector.execute("connect", resolved, {
+            "force": force,
+            "dry_run": dry_run,
+            "mcp_only": mcp_only,
+            "skills_only": skills_only,
+            "env_only": env_only,
+            "router": router,
+            "copy_skills": copy_skills,
+        })
 
     def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> ExitCode:
-        """Route the disconnect action to the disconnector capability."""
+        """Route the disconnect action through the disconnector's execute."""
         resolved = self.resolve_targets(targets)
-        return ExitCode(self._disconnector.disconnect(resolved, dry_run=dry_run))
+        return self._disconnector.execute("disconnect", resolved, {"dry_run": dry_run})
 
     def provision_skills(self, targets: tuple[str, ...], copy: bool = False, dry_run: bool = False) -> ExitCode:
-        """Route the provision_skills action to the skills capability."""
+        """Route the provision_skills action through the skills capability's execute."""
         resolved = self.resolve_targets(targets)
-        return ExitCode(self._skills.provision_skills(resolved, copy=copy, dry_run=dry_run))
+        return self._skills.execute("provision_skills", resolved,
+                                    {"copy": copy, "dry_run": dry_run})
 
 
-__all__ = ["ExitCode", "HarnessOrchestrator", "IHarnessAggregate",
-           "IHarnessConnectProtocol", "IHarnessDisconnectProtocol", "IHarnessSkillsProtocol"]
+__all__ = ["ExitCode", "HarnessOrchestrator", "IHarnessAggregate", "IHarnessProtocol"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
     "HarnessOrchestrator": HarnessOrchestrator,
     "IHarnessAggregate": IHarnessAggregate,
-    "IHarnessConnectProtocol": IHarnessConnectProtocol,
-    "IHarnessDisconnectProtocol": IHarnessDisconnectProtocol,
-    "IHarnessSkillsProtocol": IHarnessSkillsProtocol,
+    "IHarnessProtocol": IHarnessProtocol,
 }

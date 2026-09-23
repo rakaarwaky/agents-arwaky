@@ -12,8 +12,14 @@ from __future__ import annotations
 import sys
 
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.contract_service_protocol import IServiceManager
-from modules.shared.src.taxonomy_service_vo import ExitCode, ServiceTarget
+from modules.shared.src.contract_service_protocol import IServiceProtocol
+from modules.shared.src.taxonomy_service_vo import (
+    TARGET_ALL,
+    TARGET_OMNIROUTE,
+    ExitCode,
+    ServiceOp,
+    ServiceTarget,
+)
 
 _DAEMON_AGGREGATE: IDaemonAggregate | None = None
 
@@ -29,7 +35,7 @@ def _daemons() -> IDaemonAggregate:
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class ServiceManager(IServiceManager):
+class ServiceManager(IServiceProtocol):
     """AES facade: exposes the original script actions by their CLI names.
 
     The optional daemon aggregate in the constructor is accepted for
@@ -47,22 +53,37 @@ class ServiceManager(IServiceManager):
         """Return the injected daemon aggregate (composition-time wiring)."""
         return self._daemons
 
+    def execute(self, op: ServiceOp, unit: ServiceTarget = TARGET_ALL) -> ExitCode:
+        if op == "status":
+            return self.status()
+        if op == "start":
+            return self.start(ServiceTarget(str(unit)))
+        if op == "stop":
+            return self.stop(ServiceTarget(str(unit)))
+        if op == "restart":
+            return self.restart(ServiceTarget(str(unit)))
+        if op == "logs":
+            return self.logs(ServiceTarget(str(unit)) if str(unit) != "all" else ServiceTarget("omniroute"))
+        if op == "help":
+            return self.help()
+        raise ValueError(f"Unknown service op: {op}")
+
     def status(self) -> ExitCode:
         return ExitCode(cmd_status())
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Internal action methods (routed by execute) ──────────
 
-    def start(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+    def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return ExitCode(cmd_start(str(target)))
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
-    def stop(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+    def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return ExitCode(cmd_stop(str(target)))
 
-    def restart(self, target: ServiceTarget = ServiceTarget("all")) -> ExitCode:
+    def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return ExitCode(cmd_restart(str(target)))
 
-    def logs(self, target: ServiceTarget = ServiceTarget("omniroute")) -> ExitCode:
+    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
         return ExitCode(cmd_logs(str(target)))
 
     def help(self) -> ExitCode:
@@ -73,7 +94,7 @@ class ServiceManager(IServiceManager):
 
 
 def _run_omniroute(args: list[str]) -> int:
-    return _daemons().start_daemon("omniroute") if args and args[0] == "start" else _daemon_main("omniroute", args)
+    return int(_daemons().start("omniroute")) if args and args[0] == "start" else _daemon_main("omniroute", args)
 
 
 def _run_anytype(args: list[str]) -> int:
@@ -84,15 +105,15 @@ def _daemon_main(name: str, args: list[str]) -> int:
     agg = _daemons()
     action = (args[0] if args else "help").lower()
     if action == "start":
-        return agg.start_daemon(name)
+        return int(agg.start(name))
     if action == "stop":
-        return agg.stop_daemon(name)
+        return int(agg.stop(name))
     if action == "restart":
-        return agg.restart_daemon(name)
+        return int(agg.restart(name))
     if action == "logs":
-        return agg.logs_daemon(name)
+        return int(agg.logs(name))
     if action == "status":
-        agg.status_daemon(name)
+        agg.status(name)
         return 0
     return 0
 
@@ -160,12 +181,13 @@ def main(argv: list[str]) -> int:
     if action == "logs":
         return cmd_logs(target)
     print(f"Unknown service command: {action}", file=sys.stderr)
-    return cmd_help()
+    cmd_help()
+    return 1
 
-__all__ = ['ExitCode', 'IServiceManager', 'ServiceManager', 'ServiceTarget']
+__all__ = ['ExitCode', 'IServiceProtocol', 'ServiceManager', 'ServiceOp', 'ServiceTarget']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"ExitCode": ExitCode, "IServiceManager": IServiceManager, "ServiceManager": ServiceManager, "ServiceTarget": ServiceTarget}
+_layer_symbols = {"ExitCode": ExitCode, "IServiceProtocol": IServiceProtocol, "ServiceManager": ServiceManager, "ServiceOp": ServiceOp, "ServiceTarget": ServiceTarget}
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

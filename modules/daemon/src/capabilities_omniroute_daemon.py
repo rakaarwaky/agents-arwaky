@@ -15,7 +15,7 @@ import time
 import urllib.error
 import urllib.request
 
-from modules.shared.src.contract_daemon_protocol import IDaemonManager
+from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 from modules.shared.src.taxonomy_common_vo import (
     config_home,
     data_home,
@@ -68,7 +68,7 @@ def process_running() -> bool:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(1)
             return s.connect_ex(("127.0.0.1", int(PORT))) == 0
-    except Exception:
+    except OSError:
         return False
 
 
@@ -122,8 +122,8 @@ def read_env() -> dict:
 
 
 # ─── PodmanDaemonManager class (retained for API compatibility) ──────────
-class PodmanDaemonManager(IDaemonManager):
-    """AES facade: exposes OmniRoute host-native daemon actions via IDaemonManager.
+class PodmanDaemonManager(IDaemonProtocol):
+    """AES facade: exposes OmniRoute host-native daemon actions via IDaemonProtocol.
 
     No container engine required.
     """
@@ -132,6 +132,34 @@ class PodmanDaemonManager(IDaemonManager):
         pass
 
     # ─── Protocol ABC methods ──────────────────────────────────
+    def execute(
+        self,
+        op: str,
+        name: str | None = None,
+        unit: str | None = None,
+    ) -> DaemonStatus | ExitCode:
+        if op == "start":
+            return self.start()
+        if op == "stop":
+            return self.stop()
+        if op == "restart":
+            return self.restart()
+        if op == "status":
+            return self.status()
+        if op == "logs":
+            return self.logs()
+        if op == "install_unit":
+            return self.install_unit()
+        if op == "remove_unit":
+            return self.remove_unit()
+        if op == "unit_status":
+            return self.unit_status()
+        if op == "models":
+            return ExitCode(self.models())
+        if op == "help":
+            return self.help()
+        raise ValueError(f"Unknown daemon op: {op}")
+
     def start(self) -> ExitCode:
         return ExitCode(cmd_start())
 
@@ -159,13 +187,13 @@ class PodmanDaemonManager(IDaemonManager):
     def models(self) -> int:
         return cmd_models()
 
-    def service_install(self) -> ExitCode:
+    def install_unit(self) -> ExitCode:
         return ExitCode(cmd_service_install())
 
-    def service_status(self) -> ExitCode:
+    def unit_status(self) -> ExitCode:
         return ExitCode(cmd_service_status())
 
-    def service_uninstall(self) -> ExitCode:
+    def remove_unit(self) -> ExitCode:
         return ExitCode(cmd_service_uninstall())
 
     def help(self) -> ExitCode:

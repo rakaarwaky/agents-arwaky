@@ -38,6 +38,9 @@ BackupToolQuery = NewType("BackupToolQuery", str)
 #: Destination descriptor (e.g. "gdrive" or local path) for backup archives.
 BackupDestination = NewType("BackupDestination", str)
 
+#: Module-level singleton for default argument (B008).
+DEST_DEFAULT: BackupDestination = BackupDestination("")
+
 #: Archive path or identifier string for restore operations.
 BackupArchive = NewType("BackupArchive", str)
 
@@ -45,6 +48,7 @@ BackupArchive = NewType("BackupArchive", str)
 ExitCode = NewType("ExitCode", int)
 
 __all__ = [
+    "DEST_DEFAULT",
     "BackupArchive",
     "BackupDestination",
     "BackupResult",

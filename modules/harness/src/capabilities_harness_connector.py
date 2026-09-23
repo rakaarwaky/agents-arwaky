@@ -18,18 +18,18 @@ from pathlib import Path
 from modules.harness.src.contract_harness_protocol import (
     IHarnessAdapter,
     IHarnessConfigFilesProtocol,
-    IHarnessConnectProtocol,
     IHarnessCredentialCandidatesProtocol,
     IHarnessEnvFilesProtocol,
     IHarnessHomeProtocol,
     IHarnessMcpConfigFileProtocol,
     IHarnessMcpTargetsProtocol,
+    IHarnessProtocol,
     IHarnessSessionConfFilesProtocol,
     IHarnessSkillsDirProtocol,
-    IHarnessSkillsProtocol,
 )
 from modules.harness.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 from modules.harness.src.taxonomy_harness_vo import (
+    ExitCode,
     RouterCredentials,
     UnsupportedHarnessError,
 )
@@ -248,7 +248,7 @@ def daemon_running(daemon_status_fn) -> bool:
     return bool(running)
 
 
-class HarnessConnector(IHarnessConnectProtocol):
+class HarnessConnector(IHarnessProtocol):
     """Registry-keyed connect capability (composition root injects adapters).
 
     # Block 1: Constructor (adapter registry + config writer + daemon probe)
@@ -261,13 +261,31 @@ class HarnessConnector(IHarnessConnectProtocol):
         self,
         adapters: dict[str, object],
         daemon_status_fn=None,
-        skills: IHarnessSkillsProtocol | None = None,
+        skills: IHarnessProtocol | None = None,
     ) -> None:
         self._adapters = adapters
         self._daemon_status_fn = daemon_status_fn
         self._skills = skills
 
     # -- Block 2: Protocol ABC Method Implementation ----------------------------
+    def execute(self, op: str, targets: tuple[str, ...],
+                flags: dict[str, bool] | None = None) -> ExitCode:
+        """Dispatch the ``connect`` op over *targets*; return exit code."""
+        if op != "connect":
+            raise ValueError(f"HarnessConnector does not handle op {op!r}")
+        flags = flags or {}
+        return ExitCode(self.connect(
+            targets,
+            force=flags.get("force", False),
+            dry_run=flags.get("dry_run", False),
+            mcp_only=flags.get("mcp_only", False),
+            skills_only=flags.get("skills_only", False),
+            env_only=flags.get("env_only", False),
+            router=flags.get("router", False),
+            copy_skills=flags.get("copy_skills", False),
+        ))
+
+    # -- Block 3: Dunder Methods, Factories & Helpers ----------------------------
     def connect(self, harness_ids: tuple[str, ...], force: bool = False, dry_run: bool = False,
                 mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
                 router: bool = False, copy_skills: bool = False) -> int:
@@ -316,10 +334,10 @@ class HarnessConnector(IHarnessConnectProtocol):
         if self._skills is None:
             _log_warn(f"{harness_id}: skills capability not injected; skill provisioning SKIPPED.")
             return 0
-        return self._skills.provision_skills(
-            (harness_id,), copy=opts.copy_skills,
-            dry_run=opts.dry_run, force=opts.force,
-        )
+        return int(self._skills.execute(
+            "provision_skills", (harness_id,),
+            {"copy": opts.copy_skills, "dry_run": opts.dry_run, "force": opts.force},
+        ))
 
     def _connect_mcp(self, harness_id: str, adapter, opts: ConnectOpts, servers: dict) -> int:
         if opts.dry_run:

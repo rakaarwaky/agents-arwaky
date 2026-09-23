@@ -19,7 +19,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolUninstallProtocol
+from modules.shared.src.contract_tools_protocol import IToolsProtocol
+from modules.shared.src.taxonomy_common_error import ToolUninstallError
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
     UninstallResult,
@@ -30,7 +31,6 @@ from modules.shared.src.taxonomy_common_vo import (
     tool_data_dir,
 )
 from modules.shared.src.taxonomy_tools_constant import (
-    DAEMON_NAMES,
     DAEMON_UNIT_TOOLS,
     KEEP_CONFIG,
     LAUNCHER_NAMES,
@@ -40,15 +40,15 @@ from modules.shared.src.taxonomy_tools_constant import (
 def _stop_daemon(daemons: object, tool_id: str) -> bool:
     """Stop the daemon's service/container before removal.
 
-    *daemons* is anything exposing ``service_uninstall(name) -> int``
+    *daemons* is anything exposing ``remove_unit(unit) -> int``
     (structural typing, resolved by the root layer's daemon aggregate).
 
     Returns False when the unit could not be stopped (active-service residual —
     container-isolation invariant: never force-killed). Raises on unknown
     daemon names, which the caller folds into a residual.
     """
-    daemon_name = DAEMON_NAMES[tool_id]
-    rc = daemons.service_uninstall(daemon_name)
+    unit = DAEMON_UNIT_TOOLS[tool_id]
+    rc = daemons.remove_unit(unit)
     if rc == 0:
         return True
     unit = DAEMON_UNIT_TOOLS.get(tool_id)
@@ -93,13 +93,32 @@ def _survivor_reason(path: Path) -> str:
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
-class UninstallerCapability(IToolUninstallProtocol):
+class UninstallerCapability(IToolsProtocol):
     """Business action uninstall(spec, owned_paths, dry_run): remove + verify."""
 
     def __init__(self, daemons: object | None = None) -> None:
         self._daemons = daemons
 
     # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    def execute(
+        self,
+        op: str,
+        spec: ToolSpec | None = None,
+        query: object | None = None,
+        args: list[str] | None = None,
+    ) -> object:
+        """Single protocol entry: dispatch *op* to the uninstall action.
+
+        *args* carries the owned-path strings resolved by the caller.
+        """
+        if op != "uninstall" or spec is None:
+            raise ToolUninstallError(
+                f"uninstaller capability got op={op!r} (expected 'uninstall' with a spec)"
+            )
+        owned_paths = [Path(a) for a in (args or [])]
+        dry_run = bool(args and "dry-run" in args)
+        return self.uninstall(spec, owned_paths, dry_run=dry_run)
+
     def uninstall(
         self,
         spec: ToolSpec,

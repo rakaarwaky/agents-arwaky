@@ -1,89 +1,97 @@
-"""Daemon agent orchestrator — routes actions by daemon name."""
+"""Daemon agent orchestrator — routes actions by daemon name or unit."""
 from __future__ import annotations
 
+from typing import ClassVar
+
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus, ExitCode
+from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
+from modules.shared.src.taxonomy_daemon_vo import (
+    DaemonName,
+    DaemonStatus,
+    DaemonUnit,
+    ExitCode,
+)
 
 
 class DaemonOrchestrator(IDaemonAggregate):
-    """Route daemon actions to the named manager (zero I/O).
+    """Route daemon actions to the named capability (zero I/O).
 
-    # Block 1: Constructor (manager registry)
+    # Block 1: Constructor (capability registry)
     # Block 2: Action routing helpers
     # Block 3: Aggregate action delegation
     """
 
+    #: systemd unit filename → daemon id (unit ops accept either form).
+    _UNIT_DAEMON: ClassVar[dict[str, str]] = {
+        "omniroute.service": "omniroute",
+        "anytype-daemon.service": "anytype",
+        "anytype.service": "anytype",
+    }
+
     # -- Block 1: Constructor ---------------------------------------------------
     def __init__(
         self,
-        omniroute: IDaemonManager,
-        anytype: IDaemonManager,
+        omniroute: IDaemonProtocol,
+        anytype: IDaemonProtocol,
     ) -> None:
         self._omniroute = omniroute
         self._anytype = anytype
-        self._managers: dict[str, IDaemonManager] = {
+        self._managers: dict[str, IDaemonProtocol] = {
             "omniroute": omniroute,
             "anytype": anytype,
         }
 
     # -- Block 2: Action routing ---------------------------------------------------
-    def _manager(self, name: DaemonName) -> IDaemonManager | None:
-        return self._managers.get(name.lower())
+    def _manager(self, name: DaemonName) -> IDaemonProtocol | None:
+        return self._managers.get(str(name).lower())
 
-    def known_daemons(self) -> tuple[str, ...]:
-        return ("omniroute", "anytype")
+    def _require(self, name: DaemonName) -> IDaemonProtocol:
+        manager = self._manager(name)
+        if manager is None:
+            raise ValueError(f"Unknown daemon: {name}")
+        return manager
+
+    def _for_unit(self, unit: str) -> IDaemonProtocol:
+        key = unit if unit.endswith(".service") else f"{unit}.service"
+        daemon = self._UNIT_DAEMON.get(key) or self._UNIT_DAEMON.get(unit)
+        if daemon is None and unit in self._managers:
+            daemon = unit
+        if daemon is None:
+            raise ValueError(f"Unknown unit: {unit}")
+        return self._require(DaemonName(daemon))
+
+    def list_known(self) -> tuple[DaemonName, ...]:
+        return (DaemonName("omniroute"), DaemonName("anytype"))
 
     # -- Block 3: Aggregate action delegation --------------------------------------
-    def start_daemon(self, name: DaemonName) -> ExitCode:
-        manager = self._manager(name)
-        if manager is None:
-            raise ValueError(f"Unknown daemon: {name}")
-        return ExitCode(manager.start())
+    def start(self, name: DaemonName) -> ExitCode:
+        return ExitCode(int(self._require(name).execute("start")))
 
-    def stop_daemon(self, name: DaemonName) -> ExitCode:
-        manager = self._manager(name)
-        if manager is None:
-            raise ValueError(f"Unknown daemon: {name}")
-        return ExitCode(manager.stop())
+    def stop(self, name: DaemonName) -> ExitCode:
+        return ExitCode(int(self._require(name).execute("stop")))
 
-    def status_daemon(self, name: DaemonName) -> DaemonStatus:
-        manager = self._manager(name)
-        if manager is None:
-            raise ValueError(f"Unknown daemon: {name}")
-        return manager.status()
+    def restart(self, name: DaemonName) -> ExitCode:
+        return ExitCode(int(self._require(name).execute("restart")))
 
-    def logs_daemon(self, name: DaemonName) -> ExitCode:
-        manager = self._manager(name)
-        if manager is None:
-            raise ValueError(f"Unknown daemon: {name}")
-        return ExitCode(manager.logs())
+    def status(self, name: DaemonName) -> DaemonStatus:
+        result = self._require(name).execute("status")
+        if not isinstance(result, DaemonStatus):
+            raise TypeError(f"status op for {name!r} did not return a DaemonStatus")
+        return result
 
-    def restart_daemon(self, name: DaemonName) -> ExitCode:
-        manager = self._manager(name)
-        if manager is None:
-            raise ValueError(f"Unknown daemon: {name}")
-        return ExitCode(manager.restart())
+    def logs(self, name: DaemonName) -> ExitCode:
+        return ExitCode(int(self._require(name).execute("logs")))
 
-    def service_install(self, name: DaemonName) -> ExitCode:
-        manager = self._manager(name)
-        if manager is None:
-            raise ValueError(f"Unknown daemon: {name}")
-        return ExitCode(manager.service_install())
+    def install_unit(self, unit: DaemonUnit) -> ExitCode:
+        return ExitCode(int(self._for_unit(unit).execute("install_unit", unit=unit)))
 
-    def service_uninstall(self, name: DaemonName) -> ExitCode:
-        manager = self._manager(name)
-        if manager is None:
-            raise ValueError(f"Unknown daemon: {name}")
-        return ExitCode(manager.service_uninstall())
+    def remove_unit(self, unit: DaemonUnit) -> ExitCode:
+        return ExitCode(int(self._for_unit(unit).execute("remove_unit", unit=unit)))
 
-    def service_status(self, name: DaemonName) -> ExitCode:
-        manager = self._manager(name)
-        if manager is None:
-            raise ValueError(f"Unknown daemon: {name}")
-        return ExitCode(manager.service_status())
+    def unit_status(self, unit: DaemonUnit) -> ExitCode:
+        return ExitCode(int(self._for_unit(unit).execute("unit_status", unit=unit)))
 
-__all__ = ['DaemonName', 'DaemonOrchestrator', 'DaemonStatus', 'ExitCode', 'IDaemonAggregate', 'IDaemonManager']
+__all__ = ['DaemonName', 'DaemonOrchestrator', 'DaemonStatus', 'ExitCode', 'IDaemonAggregate', 'IDaemonProtocol']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {

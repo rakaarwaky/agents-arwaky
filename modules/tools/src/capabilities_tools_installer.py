@@ -18,10 +18,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import (
-    IToolAdapterFacade,
-    IToolInstallProtocol,
-)
+from modules.shared.src.contract_tools_protocol import IToolsProtocol
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_error import ToolInstallError
 from modules.shared.src.taxonomy_common_vo import (
@@ -54,11 +51,11 @@ def _has_provenance(launcher: Path) -> bool:
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
-class InstallerCapability(IToolInstallProtocol):
-    """Business action install(spec, adapter, dry_run): provision + register launcher."""
+class InstallerCapability(IToolsProtocol):
+    """Business action install(spec, dry_run): provision + register launcher."""
 
     def __init__(self, root: Path | None = None, daemons: object | None = None,
-                 adapter_facade: IToolAdapterFacade | None = None) -> None:
+                 adapter_facade: object | None = None) -> None:
         self._root = root
         self._daemons = daemons
         # P1-7: action calls now route through the injected adapter facade
@@ -66,12 +63,28 @@ class InstallerCapability(IToolInstallProtocol):
         self._facade = adapter_facade
 
     # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    def execute(
+        self,
+        op: str,
+        spec: ToolSpec | None = None,
+        query: object | None = None,
+        args: list[str] | None = None,
+    ) -> object:
+        """Single protocol entry: dispatch *op* to the install action."""
+        if op != "install" or spec is None:
+            raise ToolInstallError(
+                f"installer capability got op={op!r} (expected 'install' with a spec)"
+            )
+        dry_run = bool(args and "dry-run" in args)
+        adapter = query if query is not None else None
+        return self.install(spec, adapter=adapter, dry_run=dry_run)
+
     def install(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> InstallResult:
         """Install via the injected adapter facade (single API pipeline).
 
-        `adapter` is kept for the IToolInstallProtocol signature (a capability
-        may pass a registry unit for the dry-run message), but all action
-        calls resolve through `self._facade` when wired.
+        `adapter` may be a registry unit passed through for the dry-run
+        message, but all action calls resolve through `self._facade`
+        when wired.
         """
         facade = self._facade
         if facade is None:

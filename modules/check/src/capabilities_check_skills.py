@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.contract_check_protocol import ICheckProtocol
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckScope
 from modules.shared.src.taxonomy_common_constant import (
     DESCRIPTION_BUDGET_BYTES,
 )
@@ -31,7 +31,8 @@ class SkillsCheckRunner(ICheckProtocol):
         self._pack = self._root / "skills"
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
-    def run(self) -> CheckExitCode:
+    def execute(self, scope: CheckScope) -> CheckExitCode:
+        """Run the skill-pack audit; *scope* routing happens in the orchestrator."""
         findings = audit_pack(self._pack)
         total = len(iter_skill_files(self._pack))
         for finding in findings:

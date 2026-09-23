@@ -10,6 +10,9 @@ ExitCode = NewType("ExitCode", int)
 #: Daemon name used as a routing key in the aggregate ("omniroute", "anytype").
 DaemonName = NewType("DaemonName", str)
 
+#: systemd user-unit filename the unit ops act on ("omniroute.service", ...).
+DaemonUnit = NewType("DaemonUnit", str)
+
 
 @dataclass(frozen=True)
 class DaemonConfig:

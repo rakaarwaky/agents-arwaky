@@ -10,74 +10,83 @@ from collections.abc import Callable
 
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.contract_daemon_protocol import IDaemonManager
-from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus, ExitCode
+from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
+from modules.shared.src.taxonomy_daemon_vo import (
+    DaemonName,
+    DaemonStatus,
+    DaemonUnit,
+    ExitCode,
+)
 
 #: factory name -> manager callable, injected by the composition root.
-_MANAGER_FACTORY: dict[str, Callable[[], IDaemonManager]] = {}
+_MANAGER_FACTORY: dict[str, Callable[[], IDaemonProtocol]] = {}
+
+#: unit ops that need the manager's unit filename.
+_UNIT_OPS = frozenset({"install_unit", "remove_unit", "unit_status"})
+
+#: CLI verb -> protocol op.
+_OPS: dict[str, str] = {
+    "start": "start",
+    "stop": "stop",
+    "restart": "restart",
+    "status": "status",
+    "logs": "logs",
+    "help": "help",
+    "models": "models",
+    "auth-create": "auth-create",
+    "auth-key": "auth-key",
+    "space-join": "space-join",
+    "space-list": "space-list",
+    "service-install": "install_unit",
+    "service-status": "unit_status",
+    "service-uninstall": "remove_unit",
+}
 
 
-def register_manager_factory(name: str, factory: Callable[[], IDaemonManager]) -> None:
+def register_manager_factory(name: str, factory: Callable[[], IDaemonProtocol]) -> None:
     """Register a manager factory for *name* (composition root only)."""
     _MANAGER_FACTORY[name] = factory
 
 
-def _manager(name: str) -> IDaemonManager:
+def _manager(name: str) -> IDaemonProtocol:
     factory = _MANAGER_FACTORY.get(name)
     if factory is None:
         raise RuntimeError(f"no daemon manager factory registered for {name!r}")
     return factory()
 
 
-def cmd_omniroute(args: list[str], orch: DaemonOrchestrator | None = None, manager: IDaemonManager | None = None) -> int:
-    """aa omniroute <command> — start|stop|restart|status|logs|models|service-*|help."""
-    mgr = manager or _manager("omniroute")
+def _dispatch(
+    mgr: IDaemonProtocol,
+    args: list[str],
+    *,
+    unit: str,
+    label: str,
+) -> int:
     if not args or args[0] in ("help", "-h", "--help"):
-        return mgr.help()
-    action = args[0]
-    dispatch = {
-        "start": mgr.start,
-        "stop": mgr.stop,
-        "restart": mgr.restart,
-        "status": lambda: ExitCode(0 if mgr.status().ok else 1),
-        "logs": mgr.logs,
-        "models": mgr.models,
-        "service-install": mgr.service_install,
-        "service-status": mgr.service_status,
-        "service-uninstall": mgr.service_uninstall,
-    }
-    handler = dispatch.get(action)
-    if not handler:
-        print(f"Unknown omniroute command: {action}", file=sys.stderr)
-        return mgr.help()
-    return handler()
-
-
-def cmd_anytype(args: list[str], orch: DaemonOrchestrator | None = None, manager: IDaemonManager | None = None) -> int:
-    """aa anytype <command> — start|stop|restart|status|logs|auth-*|space-*|service-*|help."""
-    mgr = manager or _manager("anytype")
-    if not args or args[0] in ("help", "-h", "--help"):
-        return mgr.help()
+        return int(mgr.execute("help"))
     action = args[0]
     rest = args[1:]
-    dispatch = {
-        "start": lambda: mgr.start(),
-        "stop": lambda: mgr.stop(),
-        "restart": lambda: mgr.restart(),
-        "status": lambda: ExitCode(0 if mgr.status().ok else 1),
-        "logs": lambda: mgr.logs(),
-        "auth-create": lambda: mgr.auth_create(rest[0] if rest else "agent"),
-        "auth-key": lambda: mgr.auth_key(rest[0] if rest else "arwaky-agent-key"),
-        "space-join": lambda: mgr.space_join(rest[0] if rest else ""),
-        "space-list": lambda: mgr.space_list(),
-        "service-install": lambda: mgr.service_install(),
-        "service-status": lambda: mgr.service_status(),
-    }
-    handler = dispatch.get(action)
-    if handler:
-        return handler()
-    print(f"Unknown anytype command: {action}", file=sys.stderr)
-    return mgr.help()
+    op = _OPS.get(action)
+    if op is None:
+        print(f"Unknown {label} command: {action}", file=sys.stderr)
+        return int(mgr.execute("help"))
+    name = rest[0] if rest else None
+    result = mgr.execute(op, name=name, unit=unit if op in _UNIT_OPS else None)
+    if isinstance(result, DaemonStatus):
+        return 0 if result.ok else 1
+    return int(result)
+
+
+def cmd_omniroute(args: list[str], orch: DaemonOrchestrator | None = None, manager: IDaemonProtocol | None = None) -> int:
+    """aa omniroute <command> — start|stop|restart|status|logs|models|service-*|help."""
+    mgr = manager or _manager("omniroute")
+    return _dispatch(mgr, args, unit="omniroute.service", label="omniroute")
+
+
+def cmd_anytype(args: list[str], orch: DaemonOrchestrator | None = None, manager: IDaemonProtocol | None = None) -> int:
+    """aa anytype <command> — start|stop|restart|status|logs|auth-*|space-*|service-*|help."""
+    mgr = manager or _manager("anytype")
+    return _dispatch(mgr, args, unit="anytype-daemon.service", label="anytype")
 
 
 class DaemonAction(IDaemonAggregate):
@@ -86,17 +95,29 @@ class DaemonAction(IDaemonAggregate):
     def __init__(self, agg: IDaemonAggregate) -> None:
         self._agg = agg
 
-    def start_daemon(self, name: DaemonName) -> ExitCode:
-        return self._agg.start_daemon(name)
+    def list_known(self) -> tuple[DaemonName, ...]:
+        return self._agg.list_known()
 
-    def stop_daemon(self, name: DaemonName) -> ExitCode:
-        return self._agg.stop_daemon(name)
+    def start(self, name: DaemonName) -> ExitCode:
+        return self._agg.start(name)
 
-    def status_daemon(self, name: DaemonName) -> DaemonStatus:
-        return self._agg.status_daemon(name)
+    def stop(self, name: DaemonName) -> ExitCode:
+        return self._agg.stop(name)
 
-    def logs_daemon(self, name: DaemonName) -> ExitCode:
-        return self._agg.logs_daemon(name)
+    def restart(self, name: DaemonName) -> ExitCode:
+        return self._agg.restart(name)
 
-    def restart_daemon(self, name: DaemonName) -> ExitCode:
-        return self._agg.restart_daemon(name)
+    def status(self, name: DaemonName) -> DaemonStatus:
+        return self._agg.status(name)
+
+    def logs(self, name: DaemonName) -> ExitCode:
+        return self._agg.logs(name)
+
+    def install_unit(self, unit: DaemonUnit) -> ExitCode:
+        return self._agg.install_unit(unit)
+
+    def remove_unit(self, unit: DaemonUnit) -> ExitCode:
+        return self._agg.remove_unit(unit)
+
+    def unit_status(self, unit: DaemonUnit) -> ExitCode:
+        return self._agg.unit_status(unit)

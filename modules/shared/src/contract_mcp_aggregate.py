@@ -4,31 +4,47 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from modules.shared.src.taxonomy_mcp_vo import ExitCode, McpServer, McpServerInfo
+from modules.shared.src.taxonomy_mcp_vo import (
+    ExitCode,
+    McpAlias,
+    McpServer,
+    McpServerId,
+    McpServerInfo,
+)
 
 
 class IMcpAggregate(ABC):
-    """Aggregate over MCP config listing, inspection and generation."""
+    """Aggregate over MCP listing, inspection, generation and validation."""
 
     @abstractmethod
     def list_servers(self) -> list[McpServerInfo]:
-        """List MCP-enabled tools (id, category, description)."""
+        """List MCP-enabled tools (id, category, description) without writing."""
         ...
     @abstractmethod
-    def show_server(self) -> ExitCode:
-        """Print the generated MCP config path and contents; return exit code."""
+    def show_server(self, server_id: McpServerId | None = None) -> ExitCode:
+        """Probe one server's help/schema, or show the generated config; return exit code."""
         ...
     @abstractmethod
-    def generate_config(self, output: Path) -> ExitCode:
-        """Regenerate the unified MCP config; return exit code."""
+    def generate(self, output: Path) -> ExitCode:
+        """Write the unified MCP config to *output* (the only write path); return exit code."""
+        ...
+    @abstractmethod
+    def generate_alias(self, alias: McpAlias, output: Path) -> ExitCode:
+        """Write an alias-qualified client config to *output* via the same generator (optional)."""
+        ...
+    @abstractmethod
+    def validate(self, output: Path | None = None) -> ExitCode:
+        """Parse the generated config at *output* and report validity (optional)."""
         ...
 
-__all__ = ['ExitCode', 'IMcpAggregate', 'McpServer', 'McpServerInfo']
+__all__ = ['ExitCode', 'IMcpAggregate', 'McpAlias', 'McpServer', 'McpServerId', 'McpServerInfo']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
     "IMcpAggregate": IMcpAggregate,
+    "McpAlias": McpAlias,
     "McpServer": McpServer,
+    "McpServerId": McpServerId,
     "McpServerInfo": McpServerInfo,
 }

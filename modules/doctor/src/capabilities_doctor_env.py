@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import shutil
+from collections.abc import Mapping
 
 from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
 from modules.shared.src.taxonomy_common_vo import ExitCode, bin_home, ensure_path
@@ -29,8 +30,8 @@ class EnvDiagnosticRunner(IDoctorProtocol):
         ensure_path()
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
-    def run(self, json_mode: bool = False) -> ExitCode:
-        _ = json_mode
+    def execute(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        _ = flags
         banner()
         print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")
         print("-" * 54)
