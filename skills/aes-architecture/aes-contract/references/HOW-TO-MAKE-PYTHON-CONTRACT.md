@@ -24,9 +24,13 @@ Seven rules. Each one prevents a specific failure mode.
    `I<Name>Aggregate`. File: `contract_<concept>_<suffix>.py`.
 2. **ABC only — `@abstractmethod`, body is `...` or `pass`.** Never real code, never
    private-helper signatures, never convenience API (`AES101`/`AES102`).
-3. **Protocol = exactly one method for one feature.** Each feature/capability gets a
-   single uniform method (e.g. `run(...)` or the feature verb once). Same shape for
-   every capability in the domain — no second method, no helpers on the ABC.
+3. **Protocol file = exactly ONE class + ONE method. Never more.** Each
+   `contract_<concept>_protocol.py` declares a single ABC (`I<Name>Protocol`) with a
+   single `@abstractmethod` for one feature. No second method, no helper methods, no
+   second ABC/class in the same file — not even a small leaf/interface. A second
+   feature is a second protocol *file* (`contract_<other>_protocol.py`), never a
+   second class or method inside this one. Same shape for every capability in the
+   domain. Only the `_aggregate` may hold many methods.
 4. **Aggregate = many methods, one per exported consumer operation.** The aggregate is
    the **export surface**: every action the CLI/surface/root may call appears as its
    own method (`list_*`, `install_*`, `check_*`, `backup`, `restore`, …). Rich, typed,
@@ -60,10 +64,11 @@ class I<Name>Protocol(ABC):
         ...
 ```
 
-**One feature → one method.** A second feature is a *second protocol ABC* (or a second
-capability implementing the same shape), never a second method bolted onto the same
-protocol. Naming: match the feature (`run`, `generate`, `install`, …) — still exactly
-one abstract method per protocol file/class.
+**One file → one class → one method.** Violations: a second `@abstractmethod`, a
+second `class` in the same file (including adapter/leaf ABCs), or an `execute(op, …)`
+that dispatches multiple features behind one name. Each of those is a *new protocol
+file* (or a second capability implementing the same one-method shape). Naming: match
+the feature (`run`, `generate`, `install`, …).
 
 ### Aggregate ABC — many methods, one per export
 
@@ -110,7 +115,7 @@ Every contract file is required to carry the rows that apply. Each exists for on
 | ----------------------------- | -------------------------------------------------------------------------- |
 | Module docstring (required)   | Names the contract's role: capability ABC or export/aggregate ABC.         |
 | Suffix in file + class name   | AES101/AES102 resolve `_protocol` vs `_aggregate` from the name.           |
-| Protocol: one method / feature | Fan-out stays uniform; each feature is one capability, one ABC method.     |
+| Protocol: 1 file = 1 class = 1 method | Fan-out stays uniform; extra class/method → new protocol file, never this one. |
 | Aggregate: one method / export | Surface/root exports stay typed and discoverable; no dump-all entry.        |
 | Abstract methods only         | Outer layers depend on promises, not behaviour.                            |
 | Shared VOs in signatures      | Domain values stay opaque across layers; no primitive leakage.             |
@@ -127,7 +132,8 @@ lint-arwaky-cli scan <contract-dir>
 # Checks: AES101/AES102 (filename contract_<concept>_{protocol,aggregate}),
 # AES201–AES205 (layer imports: no impl-layer imports; protocol ≠ aggregate import),
 # AES402 (no primitives in signatures), role rules (contract ↔ capabilities/agent/surface).
-# Manual (not machine-checked): protocol = exactly one method for one feature;
+# Manual (not machine-checked): protocol file = exactly 1 class + 1 method
+# (no second ABC, no second method, no multi-feature execute dispatch);
 # aggregate = one method per consumer export (many exports, not a single execute()).
 # Fallback compile gate: python -c "import <shared_package>.contract_<concept>_<suffix>".
 ```

@@ -25,9 +25,13 @@ Seven rules. Each one prevents a specific failure mode.
    `I<Name>Aggregate`. File: `contract_<concept>_<suffix>.ts`.
 2. **`export interface` only — no class implementations.** Never private-helper
    signatures, never convenience API (`AES101`/`AES102`).
-3. **Protocol = exactly one method for one feature.** Each feature/capability gets a
-   single uniform method. Same shape for every capability in the domain — no second
-   method, no helpers on the interface.
+3. **Protocol file = exactly ONE interface + ONE method. Never more.** Each
+   `contract_<concept>_protocol.ts` declares a single `export interface I<Name>Protocol`
+   with a single method for one feature. No second method, no helper methods, no second
+   interface/type in the same file — not even a small leaf. A second feature is a second
+   protocol *file* (`contract_<other>_protocol.ts`), never a second interface or method
+   inside this one. Same shape for every capability in the domain. Only the `_aggregate`
+   may hold many methods.
 4. **Aggregate = many methods, one per exported consumer operation.** The aggregate is
    the **export surface**: every action the CLI/surface/root may call appears as its
    own method. Rich, typed, one row per export — not a single dump-all `execute()`.
@@ -55,9 +59,11 @@ export interface I<Name>Protocol {
 }
 ```
 
-**One feature → one method.** A second feature is a *second protocol interface* (or a
-second capability implementing the same shape), never a second method bolted onto the
-same protocol.
+**One file → one interface → one method.** Violations: a second method on the
+interface, a second `export interface`/type in the same file (including adapter/leaf
+interfaces), or an `execute(op, …)` that dispatches multiple features behind one name.
+Each of those is a *new protocol file* (or a second capability implementing the same
+one-method shape).
 
 ### Aggregate interface — many methods, one per export
 
@@ -97,7 +103,7 @@ Every contract file is required to carry the rows that apply. Each exists for on
 | ------------------------------ | ------------------------------------------------------------------------ |
 | Module docstring (required)    | Names the contract's role: capability interface or export/aggregate.     |
 | Suffix in file + type name     | AES101/AES102 resolve `_protocol` vs `_aggregate` from the name.         |
-| Protocol: one method / feature | Fan-out stays uniform; each feature is one capability, one method.       |
+| Protocol: 1 file = 1 interface = 1 method | Fan-out stays uniform; extra interface/method → new protocol file, never this one. |
 | Aggregate: one method / export | Surface/root exports stay typed and discoverable; no dump-all entry.      |
 | Signature-only interface       | Outer layers depend on promises, not behaviour.                          |
 | Shared VOs in signatures       | Domain values stay opaque across layers; no primitive leakage.           |
@@ -113,7 +119,8 @@ lint-arwaky-cli scan <contract-dir>
 # Checks: AES101/AES102 (filename contract_<concept>_{protocol,aggregate}),
 # AES201–AES205 (layer imports: no impl-layer imports; protocol ≠ aggregate import),
 # AES402 (no primitives in signatures), role rules (contract ↔ capabilities/agent/surface).
-# Manual (not machine-checked): protocol = exactly one method for one feature;
+# Manual (not machine-checked): protocol file = exactly 1 interface + 1 method
+# (no second interface, no second method, no multi-feature execute dispatch);
 # aggregate = one method per consumer export (many exports, not a single execute());
 # interface signature-only (no class implementation).
 # Fallback compile gate: npx tsc --noEmit.
