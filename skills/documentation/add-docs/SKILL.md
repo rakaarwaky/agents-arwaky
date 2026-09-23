@@ -70,6 +70,14 @@ Templates, section contracts, exemplars, and per-document craft rules live in [`
 | `README.md`  | Root workspace                    | Developer (new/existing)     | *How to use/run*                     | 50–500 lines | [references/HOW-TO-MAKE-README.md](references/HOW-TO-MAKE-README.md)   |
 | `AGENTS.md`  | Root workspace                    | The agent, every session     | *How to work here safely*            | 50–500 lines | [references/HOW-TO-MAKE-AGENTS.md](references/HOW-TO-MAKE-AGENTS.md)   |
 
+**Code surface (doc comments)** — same Rules / Template / Section Contract / Verify shape:
+
+| Language   | Focus                          | Template |
+| ---------- | ------------------------------ | -------- |
+| Python     | PEP 257 docstrings             | [references/HOW-TO-MAKE-PYTHON-DOC.md](references/HOW-TO-MAKE-PYTHON-DOC.md) |
+| Rust       | `///` + rustdoc sections       | [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md) |
+| TypeScript | JSDoc / TSDoc                  | [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md) |
+
 
 **The Document Chain**:  
 PRD → ROADMAP  → FRD → BACKLOG → README→ AGENTS
@@ -87,32 +95,32 @@ Each document's required section set is cross-checked against its reference's co
 row that stops being enforced is a test failure rather than a silent edit.
 
 
-| Code                                                                     | Rule                                                                                                                                                                                                           |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status-in-spec`                                                         | Spec and status never share a file. Specs promise; backlogs report.                                                                                                                                            |
-| `spec-without-backlog` / `backlog-without-spec`                          | A spec and its backlog are a pair in the same directory.                                                                                                                                                       |
+| Code                                                                     | Rule                                                                                                                                                                                  |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status-in-spec`                                                         | Spec and status never share a file. Specs promise; backlogs report.                                                                                                                   |
+| `spec-without-backlog` / `backlog-without-spec`                          | A spec and its backlog are a pair in the same directory.                                                                                                                              |
 | `no-master-backlog` / `undefined-state-vocab` / `master-section-missing` | One root master owns the `State`/`Health` vocabulary, the status policy, the roll-up, in-flight branches and risk (`ROADMAP.md`; legacy root `BACKLOG.md` accepted during migration). |
-| `state-vocab-restated`                                                   | Definitions live once. Feature files cite them, never repeat them.                                                                                                                                             |
-| `done-without-evidence` / `unknown-state`                                | Every backlog claim is re-runnable: command + counts + commit hash, and what it excludes.                                                                                                                      |
-| `duplicate-fr-id` / `orphan-fr-ref`                                      | Requirement IDs are unique, stable, and the only thing a backlog row may cite.                                                                                                                                 |
-| `scenario-without-evidence` / `scenario-evidence-count`                  | Each test scenario in a spec has one evidence row: Automated / Proxy / Manual / Gap.                                                                                                                           |
-| `backlog-columns` / `backlog-row-width`                                  | The Backlog table keeps its nine columns.                                                                                                                                                                      |
-| `*-section-missing`                                                      | Each document carries the sections its audience needs. Section contracts are in the refs.                                                                                                                      |
-| `dead-link` / `root-relative-link`                                       | Pointers resolve from the file that writes them, not only from the repo or skill root.                                                                                                                         |
-| `unreferenced-file`                                                      | Every file under a skill's `references/`, `scripts/`, `assets/` is surfaced by SKILL.md.                                                                                                                       |
-| `absolute-path` / `secret-in-docs`                                       | No machine-specific path and no credential literal in any document.                                                                                                                                            |
-| `ci-command-drift`                                                       | AGENTS.md commands match CI verbatim or are labelled advisory.                                                                                                                                                 |
-| `doc-length` / `doc-thin`                                                | Each document stays inside the size its audience can read.                                                                                                                                                     |
+| `state-vocab-restated`                                                   | Definitions live once. Feature files cite them, never repeat them.                                                                                                                    |
+| `done-without-evidence` / `unknown-state`                                | Every backlog claim is re-runnable: command + counts + commit hash, and what it excludes.                                                                                             |
+| `duplicate-fr-id` / `orphan-fr-ref`                                      | Requirement IDs are unique, stable, and the only thing a backlog row may cite.                                                                                                        |
+| `scenario-without-evidence` / `scenario-evidence-count`                  | Each test scenario in a spec has one evidence row: Automated / Proxy / Manual / Gap.                                                                                                  |
+| `backlog-columns` / `backlog-row-width`                                  | The Backlog table keeps its nine columns.                                                                                                                                             |
+| `*-section-missing`                                                      | Each document carries the sections its audience needs. Section contracts are in the refs.                                                                                             |
+| `dead-link` / `root-relative-link`                                       | Pointers resolve from the file that writes them, not only from the repo or skill root.                                                                                                |
+| `unreferenced-file`                                                      | Every file under a skill's `references/`, `scripts/`, `assets/` is surfaced by SKILL.md.                                                                                              |
+| `absolute-path` / `secret-in-docs`                                       | No machine-specific path and no credential literal in any document.                                                                                                                   |
+| `ci-command-drift`                                                       | AGENTS.md commands match CI verbatim or are labelled advisory.                                                                                                                        |
+| `doc-length` / `doc-thin`                                                | Each document stays inside the size its audience can read.                                                                                                                            |
 
 
-### The Unchecked Invariants (Language Rules)
+### Unchecked Invariants (Language Rules)
 
-The checker cannot parse code intent. Enforce these manually:
+The checker cannot parse code intent. Enforce these manually (contracts live in the language refs above):
 
 - **Doc comments explain *what* and *why*, never *how*** (the code shows how).
-- **Python**: Public classes and functions need docstrings (PEP 257).
-- **Rust**: Public items need `///` (plain `//` is invisible to `cargo doc`). Examples must compile.
-- **TypeScript**: Public items need JSDoc.
+- **Python**: Public classes and functions need docstrings (PEP 257) — [references/HOW-TO-MAKE-PYTHON-DOC.md](references/HOW-TO-MAKE-PYTHON-DOC.md).
+- **Rust**: Public items need `///` (plain `//` is invisible to `cargo doc`). Examples must compile — [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md).
+- **TypeScript**: Public items need JSDoc — [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md).
 
 ---
 
@@ -143,7 +151,7 @@ project-root/
 ├── ROADMAP.md      # feature index, shared policy, workspace condition — 1 per project
 ├── README.md       # developer onboarding (how to use) — 1 per project
 ├── AGENTS.md       # operational guide (how the agent works here) — 1 per project
-├── crates/
+├── crates|modules|packages/
 │   ├── feature-a/
 │   │   ├── src/
 │   │   ├── FRD.md     # engineering specs (how) — per feature crate
@@ -161,16 +169,20 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 
 ## Workflow
 
-1. **Resolve the repo-root anchor first.** `aa docs check` (and every module it loads) resolves the repo root at **import time** by walking up for `config/manifest.json` (`modules/shared/src/utility_paths.py`). If that anchor is missing — a refactored worktree where `config/` was moved, or the audit running out of `modules/shared` — the gate dies with `RuntimeError: agents-arwaky root not found` **before a single finding is produced**. Restore the anchor (`git checkout HEAD -- config/`) or set `AGENTS_ARWAKY_ROOT` to a checkout that has `config/manifest.json` before trusting any audit run. A gate that crashed is not a clean pass.
+1. **Resolve the repo-root anchor first.** `aa docs check` 
 2. **Analyze**: List feature modules and public items. Run `aa docs check <path>`. The findings are your work list.
 3. **Draft PRD**: Write root `PRD.md` per [references/HOW-TO-MAKE-PRD.md](references/HOW-TO-MAKE-PRD.md).
-4. **Draft Roadmap**: Write root `ROADMAP.md` per [references/HOW-TO-MAKE-ROADMAP.md](references/HOW-TO-MAKE-ROADMAP.md) (index, definitions, policy, risk).
-5. **Draft FRDs**: Write `FRD.md` in each feature dir per [references/HOW-TO-MAKE-FRD.md](references/HOW-TO-MAKE-FRD.md). Move any status found here to step 5.
+4. **Draft Roadmap**: Write root `ROADMAP.md` per [references/HOW-TO-MAKE-ROADMAP.md](references/HOW-TO-MAKE-ROADMAP.md)
+5. **Draft FRDs**: Write `FRD.md` in each feature dir per [references/HOW-TO-MAKE-FRD.md](references/HOW-TO-MAKE-FRD.md).
 6. **Draft Feature Backlogs**: Write one `BACKLOG.md` per feature, beside its spec, per [references/HOW-TO-MAKE-BACKLOG.md](references/HOW-TO-MAKE-BACKLOG.md).
 7. **Draft README**: Write root `README.md` per [references/HOW-TO-MAKE-README.md](references/HOW-TO-MAKE-README.md).
 8. **Draft AGENTS**: Write root `AGENTS.md` per [references/HOW-TO-MAKE-AGENTS.md](references/HOW-TO-MAKE-AGENTS.md).
-9. **Document Code**: Add doc comments to all public items, then add type annotations to all signatures.
-10. **Verify**: Run `aa docs check <path> --strict`. Then run each touched reference's `Verify` block. Finally, verify the code surface.
+9. **Document Code**: Add doc comments to all public items per language —
+   [references/HOW-TO-MAKE-PYTHON-DOC.md](references/HOW-TO-MAKE-PYTHON-DOC.md),
+   [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md),
+   [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md) —
+   then add type annotations to all signatures.
+10. **Verify**: Run `aa docs check <path> --strict`. Then each touched reference's `Verify` block (including the language doc ref).
 
 ---
 
@@ -190,113 +202,15 @@ A pass means no claim sits in the wrong file, no pointer is broken, and no `Done
 
 A machine pass does not mean the documents are good. Falsifiable goals, honest exclusions, and a 10-minute Quick Start still need a reader.
 
-### Code Surface Checks
-
-```bash
-cargo doc --open                            # Rust public surface
-npx tsc --noEmit                            # TypeScript signatures
-python -c "import <module>"                 # Python importability + docstrings
-
-# Check for missing doc comments at the file level
-for f in crates/*/src/lib.rs packages/*/src/index.ts; do
-    head -1 "$f" | grep -qE '^(///|/\*\*)' || echo "NO DOC: $f"
-done
-```
-
 ---
 
-## Doc Comment Conventions
+### Doc Comment Conventions
 
-### Python (PEP 257)
+Per-language rules, templates, section contracts, and Verify blocks:
 
-**Rules**: One module-level docstring. `Args` and `Returns` on every public function. Never restate the signature in prose.
-
-```python
-"""Value objects for import rules."""
-
-class ImportRuleVO:
-    """An import rule: a path pattern and the message it reports.
-
-    Attributes:
-        pattern: Glob matched against a repo-relative path.
-        message: Human-readable violation text.
-    """
-
-    def check(self, path: str) -> bool:
-        """Return whether *path* violates this rule.
-
-        Args:
-            path: Repo-relative file path to test.
-
-        Returns:
-            True when the path matches the rule's pattern.
-        """
-```
-
-### Rust
-
-**Rules**: Convert `//` to `///` (plain comments are invisible to `cargo doc`). Add a summary line. Explain *why* for logic over 10 lines. Add `# Example` for non-obvious usage. Types on every parameter and return.
-
-```rust
-/// Orchestrates <name-feature>.
-///
-/// Execution order:
-/// 1. Load rules  2. Scan paths  3. Report violations  4. Apply fixes
-pub struct ImportOrchestrator {
-    mandatory: Arc<dyn IImportMandatoryProtocol>,
-}
-
-/// Check whether *path* violates this rule.
-///
-/// # Arguments
-///
-/// * `path` - File path to check
-///
-/// # Returns
-///
-/// `true` if the path matches the rule
-///
-/// # Errors
-///
-/// Returns `Err` if `path` is empty
-///
-/// # Example
-///
-/// ```
-/// let rule = ImportRuleVO::new("*.test.ts", "Test file");
-/// assert!(rule.check("foo.test.ts"));
-/// ```
-pub fn check(&self, path: &str) -> Result<bool, Error> {
-    // ...
-}
-```
-
-### TypeScript (JSDoc / TSDoc)
-
-**Rules**: One-liner at the top of every module. `@param` and `@returns` on every public method. Use named `interface` or `type` aliases for complex shapes instead of inline objects.
-
-```ts
-/** Value objects for import rules. */
-
-/** An import rule: a path pattern and the message it reports. */
-export class ImportRuleVO {
-  /**
-   * @param pattern - Glob matched against a repo-relative path.
-   * @param message - Violation text reported to the user.
-   */
-  constructor(private readonly pattern: string, private readonly message: string) {}
-
-  /**
-   * Report whether a path violates this rule.
-   *
-   * @param path - Repo-relative file path to test.
-   * @returns True when the path matches the pattern.
-   */
-  check(path: string): boolean {
-    return minimatch(path, this.pattern);
-  }
-}
-```
+- Python (PEP 257): [references/HOW-TO-MAKE-PYTHON-DOC.md](references/HOW-TO-MAKE-PYTHON-DOC.md)
+- Rust (`///` / rustdoc): [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md)
+- TypeScript (JSDoc / TSDoc): [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md)
 
 ---
 
@@ -317,20 +231,20 @@ The invariant codes above cover the machine-checkable ones. These need a reader:
 
 **Structural**
 
-- ❌ **One document for all audiences**: Split by audience. Each file answers one question.
-- ❌ **FRD at the project root**: It belongs with the feature code, beside its backlog.
-- ❌ **Feature backlog carrying workspace rows or restating root policy**: Cross-cutting rows and State/Health definitions live once in `ROADMAP.md` (root master).
-- ❌ **PRD carrying SQL schemas or API detail**: The PRD audience cannot read them. Move to FRD.
+- **One document for all audiences**: Split by audience. Each file answers one question.
+- **FRD at the project root**: It belongs with the feature code, beside its backlog.
+- **Feature backlog carrying workspace rows or restating root policy**: Cross-cutting rows and State/Health definitions live once in `ROADMAP.md` (root master).
+- **PRD carrying SQL schemas or API detail**: The PRD audience cannot read them. Move to FRD.
 
 **Cadence and code surface**
 
-- ❌ **Documents "write &amp; forget"**: Re-run `aa docs check` each sprint. Drift is silent.
-- ❌ **`//` instead of `///` in Rust**: Plain comments are invisible to the doc generator.
-- ❌ **Missing module docstrings or undocumented parameters**: The generated API surface stays incomplete.
+- **Documents "write &amp; forget"**: Re-run `aa docs check` each sprint. Drift is silent.
+- **`//` instead of `///` in Rust**: Plain comments are invisible to the doc generator.
+- **Missing module docstrings or undocumented parameters**: The generated API surface stays incomplete.
 
 **Checker false-freights to dodge when authoring specs** (these bite at draft time, before you run the gate):
 
-- ❌ **The word "implemented" in a spec file.** `status-in-spec` matches `\b(impl|un)plemented\b` case-insensitively across the *whole* FRD/PRD — so the reference template's `| As Implemented / As Intended |` column and any `implemented` cell header/cell are auto-flagged. Name the column `impl / intended` and use `impl` for the cell. (Same class: `shipped`/`released in v…`, checkbox items, status markers `✅/❌`, progress `%` all trip it.)
-- ❌ **Scenario-evidence rows without a table header.** `check_scenarios` counts evidence via a markdown-table parser that needs a `| Scenario | … |` header + `|---|` separator line; a headerless block of `| … |` rows parses as **0 rows** and reports `0 evidence row(s)` even when the rows are present. Always emit the header row; keep exactly one row per spec scenario, in spec order.
-- ❌ **Scenario bullets containing `<`.** The scenario counter skips any spec bullet whose text contains `<` (placeholder convention), so that scenario needs no evidence row — don't write one, or the count is off by one. Rename `<placeholder>` prose to avoid the silent skip.
+- **The word "implemented" in a spec file.** `status-in-spec` matches `\b(impl|un)plemented\b` case-insensitively across the *whole* FRD/PRD — so the reference template's `| As Implemented / As Intended |` column and any `implemented` cell header/cell are auto-flagged. Name the column `impl / intended` and use `impl` for the cell. (Same class: `shipped`/`released in v…`, checkbox items, status markers checkmark / cross status markers, progress `%` all trip it.)
+- **Scenario-evidence rows without a table header.** `check_scenarios` counts evidence via a markdown-table parser that needs a `| Scenario | … |` header + `|---|` separator line; a headerless block of `| … |` rows parses as **0 rows** and reports `0 evidence row(s)` even when the rows are present. Always emit the header row; keep exactly one row per spec scenario, in spec order.
+- **Scenario bullets containing `<`.** The scenario counter skips any spec bullet whose text contains `<` (placeholder convention), so that scenario needs no evidence row — don't write one, or the count is off by one. Rename `<placeholder>` prose to avoid the silent skip.
 
