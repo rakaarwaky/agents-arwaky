@@ -12,8 +12,6 @@ import os
 import shutil
 from pathlib import Path
 
-from modules.shared.src.contract_harness_protocol import IHarnessProtocol
-from modules.shared.src.taxonomy_harness_vo import ExitCode, SkillsOpts
 from modules.harness.src.utility_harness_log import (
     log_err,
     log_header,
@@ -22,8 +20,10 @@ from modules.harness.src.utility_harness_log import (
     log_sub,
     log_warn,
 )
+from modules.shared.src.contract_harness_protocol import IHarnessProtocol
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import iter_skill_files
+from modules.shared.src.taxonomy_harness_vo import ExitCode, SkillsOpts
 from modules.shared.src.taxonomy_skill_vo import safe_skill_name
 
 _ASSET_DIRS = ("scripts", "references", "resources", "examples", "templates", "assets")

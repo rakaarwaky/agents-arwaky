@@ -9,7 +9,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.taxonomy_harness_vo import ExitCode, HarnessFlags, HarnessOp, HarnessTargets
+from modules.shared.src.taxonomy_harness_vo import (
+    ExitCode,
+    HarnessFlags,
+    HarnessOp,
+    HarnessTargets,
+)
 
 
 class IHarnessProtocol(ABC):
