@@ -12,12 +12,11 @@ class IDoctorAggregate(ABC):
     @abstractmethod
     def doctor(self, json_mode: bool = False) -> ExitCode:
         """Run the full doctor suite; return exit code."""
-        return ExitCode(0)
-
+        ...
     @abstractmethod
     def status(self, json_mode: bool = False) -> ExitCode:
         """Report tool/daemon status; return exit code."""
-        return ExitCode(0)
+        ...
 
 __all__ = ['ExitCode', 'IDoctorAggregate', 'Timestamp']
 

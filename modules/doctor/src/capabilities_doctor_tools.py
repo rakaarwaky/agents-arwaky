@@ -4,7 +4,7 @@ from __future__ import annotations
 import json as _json
 import shutil
 
-from modules.shared.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
 from modules.shared.src.taxonomy_common_vo import ExitCode, bin_home, ensure_path
 from modules.shared.src.utility_logging_setup import (
     BLUE,
@@ -22,7 +22,7 @@ from modules.shared.src.utility_manifest_reader import load_tools
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class ToolsDiagnosticRunner(IDiagnosticRunner):
+class ToolsDiagnosticRunner(IDoctorProtocol):
     """Submodule-missing check + binary readiness table."""
 
     def __init__(self) -> None:

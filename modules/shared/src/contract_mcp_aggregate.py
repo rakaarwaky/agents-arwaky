@@ -13,17 +13,15 @@ class IMcpAggregate(ABC):
     @abstractmethod
     def list_servers(self) -> list[McpServerInfo]:
         """List MCP-enabled tools (id, category, description)."""
-        return None
-
+        ...
     @abstractmethod
     def show_server(self) -> ExitCode:
         """Print the generated MCP config path and contents; return exit code."""
-        return None
-
+        ...
     @abstractmethod
     def generate_config(self, output: Path) -> ExitCode:
         """Regenerate the unified MCP config; return exit code."""
-        return None
+        ...
 
 __all__ = ['ExitCode', 'IMcpAggregate', 'McpServer', 'McpServerInfo']
 

@@ -1,9 +1,9 @@
 """Tool-domain capability contracts (AES102 `_protocol`).
 
-Five ABCs in one module: four action ABCs (installer / updater /
-uninstaller / runner), one action per business-action, plus
-`IToolAdapterFacade` — the single API surface the action capabilities
-call to reach a tool's per-adapter action functions.
+Four one-feature action ABCs (installer / updater / uninstaller / runner) plus
+the adapter-facade feature ABCs. Capabilities inject only what they need; a
+full facade is typed as the composite ``IToolAdapterFacade`` (composition
+only — no methods of its own).
 
 `IToolAdapterFacade` deliberately replaces the previous "registry of
 adapter modules + each capability resolves its own adapter + inlined
@@ -21,8 +21,8 @@ The facade protocol is implemented by `capabilities_tools_adapter`
 the four action capabilities (dependency inversion: capabilities depend
 on this protocol, not on the concrete facade).
 
-The adapter parameter on ``IToolInstaller.install`` /
-``IToolUpdater.update`` is typed ``object`` — a concrete leaf adapter
+The adapter parameter on ``IToolInstallProtocol.install`` /
+``IToolUpdateProtocol.update`` is typed ``object`` — a concrete leaf adapter
 instance. The protocol layer stays free of any utility-layer import,
 so no forward reference or TYPE_CHECKING import is needed.
 """
@@ -37,9 +37,10 @@ from modules.shared.src.taxonomy_common_vo import (
     UninstallResult,
     UpdateResult,
 )
+from modules.shared.src.taxonomy_tools_vo import ExitCode
 
 
-class IToolInstaller(ABC):
+class IToolInstallProtocol(ABC):
     """FR-001: install a tool to its manifest pin, register its launcher."""
 
     @abstractmethod
@@ -65,10 +66,10 @@ class IToolInstaller(ABC):
         Every failure path returns InstallResult(success=False, message);
         nothing raises out.
         """
-        return None
+        ...
 
 
-class IToolUpdater(ABC):
+class IToolUpdateProtocol(ABC):
     """FR-002: bring a tool to its manifest pin, record the transition."""
 
     @abstractmethod
@@ -93,10 +94,10 @@ class IToolUpdater(ABC):
         Every failure path returns UpdateResult(success=False, message);
         nothing raises out. A failed bump yields no record.
         """
-        return None
+        ...
 
 
-class IToolUninstaller(ABC):
+class IToolUninstallProtocol(ABC):
     """FR-003: remove a tool's owned state, verify residuals."""
 
     @abstractmethod
@@ -120,10 +121,10 @@ class IToolUninstaller(ABC):
         A failed removal still gets verified so residuals are surfaced,
         not hidden. Nothing raises into the CLI surface.
         """
-        return None
+        ...
 
 
-class IToolRunner(ABC):
+class IToolRunProtocol(ABC):
     """FR-004: discover a tool's executable and run it, returning exit code."""
 
     @abstractmethod
@@ -132,7 +133,7 @@ class IToolRunner(ABC):
         spec: ToolSpec,
         args: list[str],
         root: Path | None = None,
-    ) -> int:
+    ) -> ExitCode:
         """Discover → execute → return the child's real exit code, one action.
 
         Sub-steps (internal, not separate protocol methods):
@@ -145,21 +146,13 @@ class IToolRunner(ABC):
            spawned ad hoc. Sentinel 126 is reserved for "executable
            vanished between discovery and launch".
 
-        Every failure path returns an int; nothing raises out.
+        Every failure path returns an ExitCode; nothing raises out.
         """
-        return 0
+        ...
 
 
-class IToolAdapterFacade(ABC):
-    """Standardized single-API pipeline over all per-tool adapters.
-
-    One action per business action, each returning the value the calling
-    capability needs. `satisfied` / `owned_paths` are read-only;
-    `install` / `update` mutate (or dry-run) XDG state.
-
-    Nothing here raises for an unknown tool id: `resolve` returns `None`
-    and the action methods are only called after a successful resolve.
-    """
+class IToolResolveProtocol(ABC):
+    """FR: resolve a ToolSpec to its per-tool adapter unit."""
 
     @abstractmethod
     def resolve(self, spec: ToolSpec) -> object:
@@ -169,43 +162,104 @@ class IToolAdapterFacade(ABC):
         over the module's `daemon_*` leaf functions, so the action surface
         is uniform across every registered tool.
         """
-        return None
+        ...
+
+
+class IToolIsRegisteredProtocol(ABC):
+    """FR: report whether *spec.id* has an adapter unit."""
 
     @abstractmethod
     def is_registered(self, spec: ToolSpec) -> bool:
         """True when *spec.id* has an adapter unit in the registry."""
-        return False
+        ...
+
+
+class IToolSatisfiedProtocol(ABC):
+    """FR: probe whether the tool is already at its pin."""
 
     @abstractmethod
     def satisfied(self, spec: ToolSpec) -> bool:
         """Adapter's idempotence probe (True when the tool is already at pin)."""
-        return False
+        ...
+
+
+class IToolIsPinSatisfiedProtocol(ABC):
+    """FR: pin-check for the updater (satisfied flag + reason)."""
 
     @abstractmethod
     def is_pin_satisfied(self, spec: ToolSpec) -> tuple[bool, str]:
         """Adapter's pin-check for the updater (True, reason) when satisfied."""
-        return (False, "unknown")
+        ...
+
+
+class IToolAdapterInstallProtocol(ABC):
+    """FR: run the adapter's install sequence."""
 
     @abstractmethod
     def install(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
         """Run the adapter's install sequence; return created/updated paths."""
-        return []
+        ...
+
+
+class IToolAdapterUpdateProtocol(ABC):
+    """FR: run the adapter's update sequence."""
 
     @abstractmethod
     def update(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
         """Run the adapter's update sequence; return created/updated paths."""
-        return []
+        ...
+
+
+class IToolOwnedPathsProtocol(ABC):
+    """FR: list the adapter's owned XDG paths for *spec*."""
 
     @abstractmethod
     def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
         """The adapter's owned XDG set (launchers + data + config + extras)."""
-        return []
+        ...
+
+
+class IToolAdapterFacade(
+    IToolResolveProtocol,
+    IToolIsRegisteredProtocol,
+    IToolSatisfiedProtocol,
+    IToolIsPinSatisfiedProtocol,
+    IToolAdapterInstallProtocol,
+    IToolAdapterUpdateProtocol,
+    IToolOwnedPathsProtocol,
+):
+    """Composite DI type: full adapter-facade surface (no methods of its own)."""
 
 
 __all__ = [
+    "ExitCode",
     "IToolAdapterFacade",
-    "IToolInstaller",
-    "IToolRunner",
-    "IToolUninstaller",
-    "IToolUpdater",
+    "IToolAdapterInstallProtocol",
+    "IToolAdapterUpdateProtocol",
+    "IToolInstallProtocol",
+    "IToolIsPinSatisfiedProtocol",
+    "IToolIsRegisteredProtocol",
+    "IToolOwnedPathsProtocol",
+    "IToolResolveProtocol",
+    "IToolRunProtocol",
+    "IToolSatisfiedProtocol",
+    "IToolUninstallProtocol",
+    "IToolUpdateProtocol",
 ]
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {
+    "ExitCode": ExitCode,
+    "IToolAdapterFacade": IToolAdapterFacade,
+    "IToolAdapterInstallProtocol": IToolAdapterInstallProtocol,
+    "IToolAdapterUpdateProtocol": IToolAdapterUpdateProtocol,
+    "IToolInstallProtocol": IToolInstallProtocol,
+    "IToolIsPinSatisfiedProtocol": IToolIsPinSatisfiedProtocol,
+    "IToolIsRegisteredProtocol": IToolIsRegisteredProtocol,
+    "IToolOwnedPathsProtocol": IToolOwnedPathsProtocol,
+    "IToolResolveProtocol": IToolResolveProtocol,
+    "IToolRunProtocol": IToolRunProtocol,
+    "IToolSatisfiedProtocol": IToolSatisfiedProtocol,
+    "IToolUninstallProtocol": IToolUninstallProtocol,
+    "IToolUpdateProtocol": IToolUpdateProtocol,
+}

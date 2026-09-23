@@ -7,7 +7,7 @@ comment / edge case) is kept exactly as written, with only the
 import paths swapped to the AES shared modules. The original module
 has no separate ``list_servers`` / ``show_server`` / ``generate_config``
 methods — it exposes a single ``main()`` function — so the
-``IMcpConfigGenerator`` / ``IMcpAggregate`` contracts expected by the
+``IMcpConfigProtocol`` / ``IMcpAggregate`` contracts expected by the
 AES orchestrator (``generate(output)``, ``list_servers()``,
 ``show_server()``, ``generate_config(output)``) are adapted around
 that as-is body: ``generate`` executes it directly (the original
@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
-from modules.shared.src.contract_mcp_protocol import IMcpConfigGenerator
+from modules.shared.src.contract_mcp_protocol import IMcpConfigProtocol
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     config_home,
@@ -35,7 +35,7 @@ from modules.shared.src.utility_paths_resolver import repo_root
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class McpConfigGenerator(IMcpConfigGenerator, IMcpAggregate):
+class McpConfigGenerator(IMcpConfigProtocol, IMcpAggregate):
     """Read the manifest + env files and write mcp_servers.generated.json."""
 
     def __init__(self) -> None:

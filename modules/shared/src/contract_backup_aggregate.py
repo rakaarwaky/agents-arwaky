@@ -18,17 +18,19 @@ class IBackupAggregate(ABC):
     @abstractmethod
     def backup(self, tool: BackupToolQuery, dest: BackupDestination = BackupDestination("")) -> ExitCode:
         """Back up *tool* (or all tools); return exit code."""
-        return None
-
+        ...
     @abstractmethod
     def restore(self, tool: BackupToolQuery, archive: BackupArchive) -> ExitCode:
         """Restore *tool* from *archive*; return exit code."""
-        return None
-
+        ...
     @abstractmethod
     def list_archives(self) -> ExitCode:
         """List available local backup archives; return exit code."""
-        return None
+        ...
+    @abstractmethod
+    def help(self) -> ExitCode:
+        """Print backup/restore usage; return exit code."""
+        ...
 
 __all__ = ["BackupResult", "IBackupAggregate"]
 

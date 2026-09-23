@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from modules.harness.src.contract_harness_aggregate import IHarnessAggregate
 from modules.harness.src.contract_harness_protocol import (
-    IHarnessConnector,
-    IHarnessDisconnector,
-    IHarnessSkills,
+    IHarnessConnectProtocol,
+    IHarnessDisconnectProtocol,
+    IHarnessSkillsProtocol,
 )
 from modules.harness.src.taxonomy_harness_constant import ALIASES, ALL_HARNESS_IDS
 from modules.harness.src.taxonomy_harness_vo import ExitCode
@@ -28,9 +28,9 @@ class HarnessOrchestrator(IHarnessAggregate):
     # -- Block 1: Constructor ---------------------------------------------------
     def __init__(
         self,
-        connector: IHarnessConnector,
-        disconnector: IHarnessDisconnector,
-        skills: IHarnessSkills,
+        connector: IHarnessConnectProtocol,
+        disconnector: IHarnessDisconnectProtocol,
+        skills: IHarnessSkillsProtocol,
     ) -> None:
         self._connector = connector
         self._disconnector = disconnector
@@ -80,14 +80,14 @@ class HarnessOrchestrator(IHarnessAggregate):
 
 
 __all__ = ["ExitCode", "HarnessOrchestrator", "IHarnessAggregate",
-           "IHarnessConnector", "IHarnessDisconnector", "IHarnessSkills"]
+           "IHarnessConnectProtocol", "IHarnessDisconnectProtocol", "IHarnessSkillsProtocol"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
     "HarnessOrchestrator": HarnessOrchestrator,
     "IHarnessAggregate": IHarnessAggregate,
-    "IHarnessConnector": IHarnessConnector,
-    "IHarnessDisconnector": IHarnessDisconnector,
-    "IHarnessSkills": IHarnessSkills,
+    "IHarnessConnectProtocol": IHarnessConnectProtocol,
+    "IHarnessDisconnectProtocol": IHarnessDisconnectProtocol,
+    "IHarnessSkillsProtocol": IHarnessSkillsProtocol,
 }

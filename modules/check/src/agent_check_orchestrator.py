@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
-from modules.shared.src.contract_check_protocol import ICheckRunner
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.contract_check_protocol import ICheckProtocol
+from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckOnly
 from modules.shared.src.taxonomy_common_vo import DocFinding
 from modules.shared.src.utility_logging_setup import banner, err, info, ok
 
@@ -26,11 +26,11 @@ class CheckOrchestrator(ICheckAggregate):
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, runners: list[ICheckRunner]) -> None:
+    def __init__(self, runners: list[ICheckProtocol]) -> None:
         self._runners = runners
 
     # -- Block 2: check() sequence ---------------------------------------------------
-    def check(self, only: str | None = None) -> CheckExitCode:
+    def check(self, only: CheckOnly | None = None) -> CheckExitCode:
         banner()
         info("Running Python-based repository verification...")
         runners = self._select(only)
@@ -52,7 +52,7 @@ class CheckOrchestrator(ICheckAggregate):
         ok("All verifications PASSED.")
         return CheckExitCode(0)
 
-    def _select(self, only: str | None) -> list[ICheckRunner]:
+    def _select(self, only: CheckOnly | None) -> list[ICheckProtocol]:
         """Filter *runners* by CLI scope; empty/``all`` keeps the full sequence."""
         if only is None or only == "":
             return list(self._runners)
@@ -64,8 +64,8 @@ class CheckOrchestrator(ICheckAggregate):
             return list(self._runners)
         return [r for r in self._runners if getattr(r, "name", "") == key]
 
-__all__ = ['CHECK_SCOPES', 'CheckExitCode', 'DocFinding']
+__all__ = ['CHECK_SCOPES', 'CheckExitCode', 'CheckOnly', 'DocFinding']
 
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"CheckExitCode": CheckExitCode, "DocFinding": DocFinding}
+_layer_symbols = {"CheckExitCode": CheckExitCode, "CheckOnly": CheckOnly, "DocFinding": DocFinding}

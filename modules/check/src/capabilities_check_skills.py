@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.contract_check_protocol import ICheckProtocol
 from modules.shared.src.taxonomy_check_vo import CheckExitCode
 from modules.shared.src.taxonomy_common_constant import (
     DESCRIPTION_BUDGET_BYTES,
@@ -18,7 +18,7 @@ from modules.shared.src.utility_paths_resolver import repo_root
 # ─── Block 1: Class Definition & Constructor ──────────────
 
 
-class SkillsCheckRunner(ICheckRunner):
+class SkillsCheckRunner(ICheckProtocol):
     """Gate the skill pack on the loadability invariants."""
 
     #: CLI key for ``aa check skill``.

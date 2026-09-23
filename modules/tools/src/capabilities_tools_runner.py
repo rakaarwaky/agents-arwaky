@@ -24,7 +24,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolRunner
+from modules.shared.src.contract_tools_protocol import IToolRunProtocol
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
 from modules.shared.src.taxonomy_common_vo import ToolSpec, bin_home
@@ -32,6 +32,7 @@ from modules.shared.src.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,
     SENTINEL_EXECUTABLE_GONE,
 )
+from modules.shared.src.taxonomy_tools_vo import ExitCode
 
 
 def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path) -> list[str]:
@@ -56,22 +57,22 @@ def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path)
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
-class RunnerCapability(IToolRunner):
+class RunnerCapability(IToolRunProtocol):
     """Business action run(spec, args, root): discover + exec, return exit code."""
 
     def __init__(self, root: Path | None = None) -> None:
         self._root = root
 
     # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
-    def run(self, spec: ToolSpec, args: list[str], root: Path | None = None) -> int:
+    def run(self, spec: ToolSpec, args: list[str], root: Path | None = None) -> ExitCode:
         # Sub-step 1: discover the concrete launch path; None -> return 1.
         base = root or self._root or repo_root
         exe = self._discover(spec, base)
         if exe is None:
-            return 1
+            return ExitCode(1)
 
         # Sub-step 2: launch and return the child's real exit code.
-        return self._execute(spec, exe, args, base)
+        return ExitCode(self._execute(spec, exe, args, base))
 
     def discover(self, spec: ToolSpec, root: Path | None = None) -> Path | None:
         """Public discovery: first valid candidate, resolved; None when absent.

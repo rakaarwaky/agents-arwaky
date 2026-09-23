@@ -17,8 +17,16 @@ from pathlib import Path
 
 from modules.harness.src.contract_harness_protocol import (
     IHarnessAdapter,
-    IHarnessConnector,
-    IHarnessSkills,
+    IHarnessConfigFilesProtocol,
+    IHarnessConnectProtocol,
+    IHarnessCredentialCandidatesProtocol,
+    IHarnessEnvFilesProtocol,
+    IHarnessHomeProtocol,
+    IHarnessMcpConfigFileProtocol,
+    IHarnessMcpTargetsProtocol,
+    IHarnessSessionConfFilesProtocol,
+    IHarnessSkillsDirProtocol,
+    IHarnessSkillsProtocol,
 )
 from modules.harness.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 from modules.harness.src.taxonomy_harness_vo import (
@@ -88,8 +96,8 @@ class ConnectOpts:
             raise UnsupportedHarnessError(harness_id, ALL_HARNESS_IDS) from None
 
 
-class BoundAdapter(IHarnessAdapter):
-    """Capabilities-layer binding of a utility leaf to the adapter protocol (AES502)."""
+class BoundAdapter(IHarnessAdapter, IHarnessHomeProtocol, IHarnessConfigFilesProtocol, IHarnessEnvFilesProtocol, IHarnessMcpConfigFileProtocol, IHarnessMcpTargetsProtocol, IHarnessSkillsDirProtocol, IHarnessSessionConfFilesProtocol, IHarnessCredentialCandidatesProtocol):
+    """Capabilities-layer binding of a utility leaf to the adapter protocols (AES502)."""
 
     def __init__(self, leaf: object) -> None:
         self._leaf = leaf
@@ -240,7 +248,7 @@ def daemon_running(daemon_status_fn) -> bool:
     return bool(running)
 
 
-class HarnessConnector(IHarnessConnector):
+class HarnessConnector(IHarnessConnectProtocol):
     """Registry-keyed connect capability (composition root injects adapters).
 
     # Block 1: Constructor (adapter registry + config writer + daemon probe)
@@ -253,7 +261,7 @@ class HarnessConnector(IHarnessConnector):
         self,
         adapters: dict[str, object],
         daemon_status_fn=None,
-        skills: IHarnessSkills | None = None,
+        skills: IHarnessSkillsProtocol | None = None,
     ) -> None:
         self._adapters = adapters
         self._daemon_status_fn = daemon_status_fn

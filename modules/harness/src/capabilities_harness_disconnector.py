@@ -11,7 +11,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from modules.harness.src.contract_harness_protocol import IHarnessDisconnector
+from modules.harness.src.contract_harness_protocol import IHarnessDisconnectProtocol
 from modules.harness.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 from modules.harness.src.taxonomy_harness_vo import (
     UnsupportedHarnessError,
@@ -69,7 +69,7 @@ class DisconnectOpts:
             raise UnsupportedHarnessError(harness_id, ALL_HARNESS_IDS) from None
 
 
-class HarnessDisconnector(IHarnessDisconnector):
+class HarnessDisconnector(IHarnessDisconnectProtocol):
     """Registry-keyed disconnect capability (composition root injects adapters).
 
     # Block 1: Constructor

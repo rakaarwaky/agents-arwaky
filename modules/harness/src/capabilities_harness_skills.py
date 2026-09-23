@@ -14,7 +14,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from modules.harness.src.contract_harness_protocol import IHarnessSkills
+from modules.harness.src.contract_harness_protocol import IHarnessSkillsProtocol
 from modules.harness.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 from modules.harness.src.taxonomy_harness_vo import UnsupportedHarnessError
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
@@ -71,7 +71,7 @@ class SkillsOpts:
             raise UnsupportedHarnessError(harness_id, ALL_HARNESS_IDS) from None
 
 
-class HarnessSkills(IHarnessSkills):
+class HarnessSkills(IHarnessSkillsProtocol):
     """Registry-keyed skills provisioning (composition root injects adapters).
 
     # Block 1: Constructor

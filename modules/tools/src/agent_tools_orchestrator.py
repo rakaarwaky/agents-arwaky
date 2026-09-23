@@ -21,10 +21,10 @@ from typing import ClassVar
 from modules.shared.src.contract_tools_aggregate import IToolsAggregate
 from modules.shared.src.contract_tools_protocol import (
     IToolAdapterFacade,
-    IToolInstaller,
-    IToolRunner,
-    IToolUninstaller,
-    IToolUpdater,
+    IToolInstallProtocol,
+    IToolRunProtocol,
+    IToolUninstallProtocol,
+    IToolUpdateProtocol,
 )
 from modules.shared.src.taxonomy_common_error import (
     ToolInstallError,
@@ -73,10 +73,10 @@ class ToolsOrchestrator(IToolsAggregate):
         registry: dict[str, object] | None = None,
         root: Path | None = None,
         daemons=None,
-        installer: IToolInstaller | None = None,
-        updater: IToolUpdater | None = None,
-        uninstaller: IToolUninstaller | None = None,
-        runner: IToolRunner | None = None,
+        installer: IToolInstallProtocol | None = None,
+        updater: IToolUpdateProtocol | None = None,
+        uninstaller: IToolUninstallProtocol | None = None,
+        runner: IToolRunProtocol | None = None,
         adapter_facade: IToolAdapterFacade | None = None,
     ) -> None:
         self._root = root or repo_root()
@@ -96,8 +96,8 @@ class ToolsOrchestrator(IToolsAggregate):
         # AES201/AES405: the agent layer must not import capabilities_* — the
         # four action capabilities are injected by the root composition layer
         # (root_tools_container.create_tools_feature) typed against their
-        # contract protocols (IToolInstaller/IToolUpdater/IToolUninstaller/
-        # IToolRunner). An unwired action stays None and _require() raises a
+        # contract protocols (IToolInstallProtocol/IToolUpdateProtocol/IToolUninstallProtocol/
+        # IToolRunProtocol). An unwired action stays None and _require() raises a
         # typed error on use, never a partial dispatch.
         self._installer = installer
         self._updater = updater

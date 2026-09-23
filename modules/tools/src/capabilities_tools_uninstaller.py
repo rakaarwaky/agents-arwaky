@@ -19,7 +19,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolUninstaller
+from modules.shared.src.contract_tools_protocol import IToolUninstallProtocol
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
     UninstallResult,
@@ -93,7 +93,7 @@ def _survivor_reason(path: Path) -> str:
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
-class UninstallerCapability(IToolUninstaller):
+class UninstallerCapability(IToolUninstallProtocol):
     """Business action uninstall(spec, owned_paths, dry_run): remove + verify."""
 
     def __init__(self, daemons: object | None = None) -> None:

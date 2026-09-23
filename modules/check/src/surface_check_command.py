@@ -14,7 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
-from modules.shared.src.taxonomy_check_vo import CheckExitCode
+from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckOnly
 
 _USAGE = """Usage: aa check [all|docs|skill] [path] [--include-subtrees] [--json]
 
@@ -40,7 +40,7 @@ class CheckAction(ICheckAggregate):
     def __init__(self, orch: ICheckAggregate) -> None:
         self._orch = orch
 
-    def check(self, only: str | None = None) -> CheckExitCode:
+    def check(self, only: CheckOnly | None = None) -> CheckExitCode:
         return self._orch.check(only=only)
 
 
@@ -119,7 +119,7 @@ def cmd_check(args: list[str], orch: ICheckAggregate) -> int:
         return _docs_audit(
             target, include_subtrees=include_subtrees, json_mode=json_mode
         )
-    only: str | None = None if scope == "all" else scope
+    only: CheckOnly | None = None if scope == "all" else CheckOnly(scope)
     return int(orch.check(only=only))
 
 __all__ = ['CheckAction', 'cmd_check']

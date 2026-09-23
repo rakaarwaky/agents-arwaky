@@ -12,27 +12,23 @@ class IDaemonAggregate(ABC):
     @abstractmethod
     def start_daemon(self, name: DaemonName) -> ExitCode:
         """Start the named daemon."""
-        return None
-
+        ...
     @abstractmethod
     def stop_daemon(self, name: DaemonName) -> ExitCode:
         """Stop the named daemon."""
-        return None
-
+        ...
     @abstractmethod
     def status_daemon(self, name: DaemonName) -> DaemonStatus:
         """Status snapshot for the named daemon."""
-        return None
-
+        ...
     @abstractmethod
     def logs_daemon(self, name: DaemonName) -> ExitCode:
         """Tail logs of the named daemon."""
-        return None
-
+        ...
     @abstractmethod
     def restart_daemon(self, name: DaemonName) -> ExitCode:
         """Restart the named daemon."""
-        return None
+        ...
 
 __all__ = ['DaemonName', 'DaemonStatus', 'ExitCode', 'IDaemonAggregate']
 

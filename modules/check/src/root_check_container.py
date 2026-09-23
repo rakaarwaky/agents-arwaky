@@ -5,14 +5,14 @@ from modules.check.src.agent_check_orchestrator import CheckOrchestrator
 from modules.check.src.capabilities_check_docs import DocsCheckRunner
 from modules.check.src.capabilities_check_skills import SkillsCheckRunner
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
-from modules.shared.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.contract_check_protocol import ICheckProtocol
 
 
 class CheckContainer:
     """Construct the 2 check runners and the orchestrator."""
 
     def __init__(self) -> None:
-        runners: list[ICheckRunner] = [
+        runners: list[ICheckProtocol] = [
             DocsCheckRunner(),
             SkillsCheckRunner(),
         ]

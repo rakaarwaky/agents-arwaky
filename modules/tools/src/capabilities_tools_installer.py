@@ -20,7 +20,7 @@ from pathlib import Path
 
 from modules.shared.src.contract_tools_protocol import (
     IToolAdapterFacade,
-    IToolInstaller,
+    IToolInstallProtocol,
 )
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_error import ToolInstallError
@@ -54,7 +54,7 @@ def _has_provenance(launcher: Path) -> bool:
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
-class InstallerCapability(IToolInstaller):
+class InstallerCapability(IToolInstallProtocol):
     """Business action install(spec, adapter, dry_run): provision + register launcher."""
 
     def __init__(self, root: Path | None = None, daemons: object | None = None,
@@ -69,7 +69,7 @@ class InstallerCapability(IToolInstaller):
     def install(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> InstallResult:
         """Install via the injected adapter facade (single API pipeline).
 
-        `adapter` is kept for the IToolInstaller signature (a capability
+        `adapter` is kept for the IToolInstallProtocol signature (a capability
         may pass a registry unit for the dry-run message), but all action
         calls resolve through `self._facade` when wired.
         """

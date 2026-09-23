@@ -19,7 +19,7 @@ import datetime
 import json
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolAdapterFacade, IToolUpdater
+from modules.shared.src.contract_tools_protocol import IToolAdapterFacade, IToolUpdateProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
@@ -30,7 +30,7 @@ from modules.shared.src.taxonomy_common_vo import (
 
 
 # ─── Block 1: Class Definition & Constructor ─────────────────────────
-class UpdaterCapability(IToolUpdater):
+class UpdaterCapability(IToolUpdateProtocol):
     """Business action update(spec, adapter, dry_run): bump + record transition."""
 
     def __init__(self, root: Path | None = None,

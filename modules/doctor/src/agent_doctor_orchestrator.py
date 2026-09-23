@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
-from modules.shared.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
 from modules.shared.src.taxonomy_common_vo import ExitCode, Timestamp
 
 
@@ -15,7 +15,7 @@ class DoctorOrchestrator(IDoctorAggregate):
     """
 
     # -- Block 1: Constructor ---------------------------------------------------
-    def __init__(self, env_runner: IDiagnosticRunner, tools_runner: IDiagnosticRunner) -> None:
+    def __init__(self, env_runner: IDoctorProtocol, tools_runner: IDoctorProtocol) -> None:
         self._env = env_runner
         self._tools = tools_runner
 

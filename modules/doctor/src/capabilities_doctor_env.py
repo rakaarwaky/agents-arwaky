@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 import shutil
 
-from modules.shared.src.contract_doctor_protocol import IDiagnosticRunner
+from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
 from modules.shared.src.taxonomy_common_vo import ExitCode, bin_home, ensure_path
 from modules.shared.src.utility_logging_setup import (
     BOLD,
@@ -22,7 +22,7 @@ OPTIONAL = ("cargo", "uv", "node", "npm", "bun", "pnpm", "rustc")
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class EnvDiagnosticRunner(IDiagnosticRunner):
+class EnvDiagnosticRunner(IDoctorProtocol):
     """PATH check, required/optional toolchain, container engine detection."""
 
     def __init__(self) -> None:

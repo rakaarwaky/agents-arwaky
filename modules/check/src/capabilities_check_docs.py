@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.contract_check_protocol import ICheckRunner
+from modules.shared.src.contract_check_protocol import ICheckProtocol
 from modules.shared.src.taxonomy_check_vo import CheckExitCode
 from modules.shared.src.utility_doc_pack import (
     DocFinding,
@@ -20,7 +20,7 @@ from modules.shared.src.utility_paths_resolver import repo_root
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 
-class DocsCheckRunner(ICheckRunner):
+class DocsCheckRunner(ICheckProtocol):
     """Audit document invariants via the shared doc_pack domain."""
 
     #: CLI key for ``aa check docs``.
