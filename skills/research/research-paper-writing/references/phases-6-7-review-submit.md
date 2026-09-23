@@ -67,7 +67,7 @@ Each reviewer can refine their review after seeing the meta-review. Use an early
 
 **Model selection for reviewing**: Reviewing is best done with the strongest available model, even if you wrote the paper with a cheaper one. The reviewer model should be chosen independently from the writing model.
 
-**Few-shot calibration**: If available, include 1-2 real published reviews from the target venue as examples. This dramatically improves score calibration. See [references/reviewer-guidelines.md](references/reviewer-guidelines.md) for example reviews.
+**Few-shot calibration**: If available, include 1-2 real published reviews from the target venue as examples. This dramatically improves score calibration. See [references/reviewer-guidelines.md](../references/reviewer-guidelines.md) for example reviews.
 
 ### Step 6.1b: Visual Review Pass (VLM)
 
@@ -168,7 +168,7 @@ paper/
 
 Every venue has mandatory checklists. Complete them carefully — incomplete checklists can result in desk rejection.
 
-See [references/checklists.md](references/checklists.md) for:
+See [references/checklists.md](../references/checklists.md) for:
 - NeurIPS 16-item paper checklist
 - ICML broader impact + reproducibility
 - ICLR LLM disclosure policy

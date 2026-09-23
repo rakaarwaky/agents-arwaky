@@ -16,29 +16,6 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 
 ---
 
-## 📑 Table of Contents
-
-- [Architecture](#-architecture)
-  - [System Flow](#system-flow)
-  - [Directory Layout](#directory-layout)
-- [Quickstart in 60 Seconds](#-quickstart-in-60-seconds)
-- [Unified Orchestrator CLI (`agents-arwaky` / `aa`)](#-unified-orchestrator-cli-agents-arwaky--aa)
-- [Agent & Tool Catalog](#-agent--tool-catalog)
-  - [Core In-House Agents (`internal/`)](#core-in-house-agents-internal)
-  - [Curated Upstream Vendor Tools (`vendor/`)](#curated-upstream-vendor-tools-vendor)
-- [MCP Client Integration](#-mcp-client-integration)
-  - [Anytype Headless Daemon](#-anytype-headless-daemon-podman)
-  - [Automated Harness Connector (`aa connect`)](#-automated-harness-connector-aa-connect)
-  - [Manual Client Setup Guides](#manual-client-setup-guides)
-- [Developer Workflows](#-developer-workflows--installation-paradigms)
-  - [Local Bare-Metal Mode](#1-local-bare-metal-mode-primary--only)
-  - [Quality Gate & CI Verification](#quality-gate--ci-verification)
-- [Security & Sandboxing Model](#-security--sandboxing-model)
-- [Contributing](#-contributing)
-- [License & Attribution](#-license--attribution)
-
----
-
 ## 🏛️ Architecture
 
 ### System Flow
@@ -223,14 +200,14 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa doctor`                              | All-in-one ecosystem diagnostics (toolchains, daemons, MCP config, harnesses)                    | `aa doctor`                                    |
 | `aa tool <cmd> [args]`                   | Tool management: `list`, `run`, `install`, `update`, `uninstall`                                    | `aa tool install lint`                         |
 | `aa skill <cmd> [args]`                  | Skill management: `list`, `install`, `uninstall`, `show`, `check`                                   | `aa skill install --all`                       |
-| `aa docs check [path]`                   | Audit document invariants across PRD/FRD/README/BACKLOG/AGENTS and skill references; `--strict` also gates warnings | `aa docs check . --strict` |
+| `aa check [all\|docs\|skill]`              | Run quality gate (all runners, or `docs` / `skill` alone); warnings gate alongside errors | `aa check` · `aa check docs` · `aa check skill` |
+| `aa check docs [path]`                   | Document invariants across PRD/FRD/README/BACKLOG/AGENTS and skill references, scoped to `[path]`; every finding gates, `--json` emits findings, `--include-subtrees` audits vendor/internal | `aa check docs .` |
 | `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses — harness `skills/` becomes a symlink to the pack (manage once in `skills/`); `--copy-skills` snapshots instead (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
 | `aa disconnect [targets]`                | Disconnect harnesses (use `--all` to disconnect all)                                                | `aa disconnect --all`                          |
 | `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
 | `aa mcp generate`                        | Rebuild unified client configuration (`mcp_servers.generated.json`)                                | `aa mcp generate`                              |
 | `aa service [action] [target]`           | Unified manager for background services (`status`, `start`, `stop`, `restart`, `logs`)              | `aa service status`                            |
-| `aa check`                               | Run quality gate verification (document invariants, skill pack)                                                        | `aa check`                                     |
 | `aa submodules`                          | Cleanly initialize or update all git submodules                                                    | `aa submodules`                                |
 | `aa clean`                              | Remove build artifacts & generated MCP config                                                     | `aa clean`                                     |
 | `aa reset`                            | Full factory reset: clean + uninstall + disconnect + unskill                                       | `aa reset`                                     |
@@ -240,10 +217,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa omniroute <action>`                  | Manage OmniRoute local AI gateway, daemon & models                                                   | `aa omniroute status`                           |
 
 > [!TIP]
-> Backward compat: `aa install`, `aa run`, `aa list`, `aa uninstall`, `aa update` still work as shortcuts.
-
-> [!TIP]
-> You can use `agents-arwaky` or the short alias `aa` interchangeably for all commands!
+> Use `agents-arwaky` or the short alias `aa` interchangeably. Backward-compat shortcuts (`aa install`, `aa run`, …) still work.
 
 ### Practical Examples
 
@@ -380,137 +354,18 @@ aa connect --clean            # Remove provisioned skills and MCP entries cleanl
 
 ### Manual Client Setup Guides
 
-<details>
-<summary><b>🤖 Google Antigravity (AGY CLI / IDE)</b></summary>
+Prefer `aa connect <harness>` (injects every server + skills). Manual one-liners:
 
-Add the servers to your `~/.gemini/antigravity-cli/mcp_config.json` or run `aa connect --antigravity`:
+| Harness | Config path | Command |
+|---|---|---|
+| Antigravity | `~/.gemini/antigravity-cli/mcp_config.json` | `aa connect --antigravity` |
+| Hermes | `~/.hermes/config.yaml` (+ profiles) | `aa connect --hermes` |
+| OpenCode | `~/.config/opencode/opencode.jsonc` | `aa connect --opencode` |
+| Qwen Code | `~/.qwen/settings.json` | `aa connect --qwencode` |
+| Cursor | `.cursor/mcp.json` | register servers manually |
+| Zed | `~/.config/zed/settings.json` | register `context_servers` manually |
 
-```json
-{
-  "mcpServers": {
-    "lint": { "command": "lint-arwaky-mcp" },
-    "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
-    "context7": { "command": "context7-mcp" },
-    "fetch": { "command": "fetch-mcp" },
-    "ponytail": { "command": "ponytail-mcp" },
-    "vision": { "command": "vision-arwaky-mcp" },
-    "qwen-web": { "command": "qwen-web-mcp" },
-    "blender": { "command": "blender-mcp" }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>🪶 Hermes Agent (Multi-Profile)</b></summary>
-
-Hermes configuration uses `~/.hermes/config.yaml` and profile-specific paths `~/.hermes/profiles/<profile>/config.yaml`. Run `aa connect --hermes` to configure automatically, or register under the `mcp_servers` section:
-
-```yaml
-mcp_servers:
-  lint:
-    command: lint-arwaky-mcp
-  codegraph:
-    command: codegraph-mcp
-    args: ["serve", "--mcp"]
-  context7:
-    command: context7-mcp
-  fetch:
-    command: fetch-mcp
-  ponytail:
-    command: ponytail-mcp
-  vision:
-    command: vision-arwaky-mcp
-  qwen-web:
-    command: qwen-web-mcp
-  blender:
-    command: blender-mcp
-```
-
-</details>
-
-<details>
-<summary><b>💻 OpenCode</b></summary>
-
-Add to `~/.config/opencode/opencode.jsonc` or run `aa connect --opencode`:
-
-```jsonc
-{
-  "mcp": {
-    "lint": { "type": "local", "command": ["lint-arwaky-mcp"] },
-    "codegraph": { "type": "local", "command": ["codegraph-mcp", "serve", "--mcp"] },
-    "context7": { "type": "local", "command": ["context7-mcp"] },
-    "fetch": { "type": "local", "command": ["fetch-mcp"] },
-    "ponytail": { "type": "local", "command": ["ponytail-mcp"] },
-    "vision": { "type": "local", "command": ["vision-arwaky-mcp"] },
-    "qwen-web": { "type": "local", "command": ["qwen-web-mcp"] },
-    "blender": { "type": "local", "command": ["blender-mcp"] }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>🤖 Qwen Code (qwencode)</b></summary>
-
-Add to `~/.qwen/settings.json` or run `aa connect --qwencode`:
-
-```json
-{
-  "mcpServers": {
-    "lint": { "command": "lint-arwaky-mcp" },
-    "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
-    "context7": { "command": "context7-mcp" },
-    "fetch": { "command": "fetch-mcp" },
-    "ponytail": { "command": "ponytail-mcp" },
-    "vision": { "command": "vision-arwaky-mcp" },
-    "qwen-web": { "command": "qwen-web-mcp" },
-    "blender": { "command": "blender-mcp" },
-    "workspace": { "command": "workspace-mcp" },
-    "mnemosyne": { "command": "mnemosyne-mcp" }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>⚡ Cursor</b></summary>
-
-Add to `.cursor/mcp.json` or Cursor Global Settings > MCP:
-
-```json
-{
-  "mcpServers": {
-    "lint": { "command": "lint-arwaky-mcp" },
-    "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
-    "context7": { "command": "context7-mcp" },
-    "fetch": { "command": "fetch-mcp" }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary><b>🟦 Zed Editor</b></summary>
-
-Add to `~/.config/zed/settings.json`:
-
-```json
-{
-  "context_servers": {
-    "lint": { "command": "lint-arwaky-mcp" },
-    "codegraph": { "command": "codegraph-mcp", "args": ["serve", "--mcp"] },
-    "context7": { "command": "context7-mcp" },
-    "fetch": { "command": "fetch-mcp" }
-  }
-}
-```
-
-</details>
+Each entry is `{ "command": "<tool>-mcp" }` (codegraph adds `args: ["serve", "--mcp"]`).
 
 ---
 
@@ -532,26 +387,18 @@ aa tool install fetch
 
 ### Quality Gate & CI Verification
 
-To run automated integrity checks (document invariants and skill-pack loadability):
-
 ```bash
-aa check
+aa check   # document invariants + skill-pack loadability
 ```
 
-> See [**`CONTRIBUTING.md` § Quality Verification & PR Process**](CONTRIBUTING.md#-quality-verification--pr-process) for details on validation checks and commit conventions.
+> See [**`CONTRIBUTING.md` § Quality Verification**](CONTRIBUTING.md#-quality-verification--pr-process).
 
 ### Clean, Uninstall & Reset
 
 ```bash
-# Remove build artifacts & generated MCP configuration:
-aa clean
-
-# Remove installed tool binaries, data and config (per-tool uninstallers):
-aa tool uninstall my-cool-tool
-aa tool uninstall --all
-
-# Full factory reset (clean + uninstall + disconnect + unskill):
-aa reset
+aa clean                         # artifacts + generated MCP config
+aa tool uninstall --all          # remove installed tools
+aa reset                         # full factory reset
 ```
 
 ---
@@ -559,16 +406,34 @@ aa reset
 ## 🔒 Security & Sandboxing Model
 
 - **Local Bare-Metal Execution:** Tools compile and run directly on the host OS — no container indirection for CLI tools or MCPs.
-- **XDG Conformance & Storage Isolation:**
-  - Compiled binaries reside in `${XDG_DATA_HOME}/<tool>/` (`~/.local/share/<tool>/`).
-  - Host executable wrappers reside in `${XDG_BIN_HOME}/` (`~/.local/bin/`) as native launchers.
-  - Configurations reside in `${XDG_CONFIG_HOME}/<tool>/` (`~/.config/<tool>/`).
-  - Data and reports reside in `${XDG_DATA_HOME}/<tool>/` (`~/.local/share/<tool>/`).
+- **XDG Conformance & Storage Isolation:** binaries → `${XDG_DATA_HOME}/<tool>/`, launchers → `${XDG_BIN_HOME}/`, configs → `${XDG_CONFIG_HOME}/<tool>/`, data/reports → `${XDG_DATA_HOME}/<tool>/`.
 - **Daemon-only Containerization:** Anytype runs in a Podman rootless container — the only containerized layer. OmniRoute runs host-native. Your host OS `/usr` and root filesystems remain untouched by toolchain installations.
 - **Submodule Isolation:** Upstream codebases are strictly tracked via Git submodules at pinned commits, preventing unsolicited upstream drift.
 
 > [!NOTE]
 > For the complete technical specifications on XDG storage paths, container isolation contracts, and Architecture Enforcement System (AES) rules, see [**`AGENTS.md` § System Philosophy & Core Invariants**](AGENTS.md#-system-philosophy--core-invariants).
+
+---
+
+
+## Configuration
+
+Environment and config live under XDG paths — see [AGENTS.md § XDG Base Directory Compliance](AGENTS.md#-xdg-base-directory-compliance).
+Names only (never values):
+
+- `${XDG_CONFIG_HOME:-$HOME/.config}/<tool>/` — tool config
+- `${XDG_DATA_HOME:-$HOME/.local/share}/<tool>/` — tool data
+- `.env` at repo root — secrets (gitignored)
+
+## Testing
+
+```bash
+aa check        # document + skill-pack gate (CI runs this)
+aa skill check  # skill-pack loadability alone
+aa doctor       # host readiness
+```
+
+See [CONTRIBUTING.md § Quality Verification](CONTRIBUTING.md#-quality-verification--pr-process).
 
 ---
 

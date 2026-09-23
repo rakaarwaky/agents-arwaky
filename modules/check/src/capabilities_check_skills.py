@@ -21,13 +21,17 @@ from modules.shared.src.utility_paths_resolver import repo_root
 class SkillsCheckRunner(ICheckRunner):
     """Gate the skill pack on the loadability invariants."""
 
+    #: CLI key for ``aa check skill``.
+    name = "skill"
+    #: Progress line printed by the orchestrator (step index is prefixed there).
+    title = "Validating skill pack loadability..."
+
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
         self._pack = self._root / "skills"
 
     # ─── Block 2: Protocol ABC Method Implementation ──────────
-    def run(self, strict: bool = False) -> CheckExitCode:
-        print("[2/2] Validating skill pack loadability...")
+    def run(self) -> CheckExitCode:
         findings = audit_pack(self._pack)
         total = len(iter_skill_files(self._pack))
         for finding in findings:

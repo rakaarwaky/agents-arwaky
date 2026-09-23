@@ -253,7 +253,7 @@ If you cannot verify a citation:
 
 **Always tell the scientist**: "I've marked [X] citations as placeholders that need verification."
 
-See [references/citation-workflow.md](references/citation-workflow.md) for complete API documentation and the full `CitationManager` class.
+See [references/citation-workflow.md](../references/citation-workflow.md) for complete API documentation and the full `CitationManager` class.
 
 ### Step 1.4: Organize Related Work
 

@@ -135,3 +135,7 @@ Turning a document into cited obligations, deadlines, or proposed actions is a d
 - After metadata/attachment edits: `pdf_read.py --meta` / `pdf_meta.py --list-attachments`, and re-extract an attachment to byte-compare.
 - After encrypt: `--meta` shows `"encrypted": true` and opening without a password fails; after decrypt, text extraction matches the original.
 - For anything visual (watermarks, flattened forms), render and inspect with `vision_analyze`.
+
+## Scripts
+
+- `_raster.py`

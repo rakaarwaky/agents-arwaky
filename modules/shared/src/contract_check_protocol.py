@@ -10,9 +10,12 @@ from modules.shared.src.taxonomy_common_vo import DocFinding
 class ICheckRunner(ABC):
     """Capability contract for one repository-verification check."""
 
+    #: Stable CLI key for selective runs — ``docs`` | ``skill``.
+    name: str = ""
+
     @abstractmethod
-    def run(self, strict: bool = False) -> CheckExitCode:
-        """Run the check; return the number of errors found."""
+    def run(self) -> CheckExitCode:
+        """Run the check strictly (every finding gates); return the error count."""
         return None
 
 __all__ = ['CheckExitCode', 'DocFinding']

@@ -17,9 +17,9 @@ Last Updated: 2026-09-18
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| MCP-01 | FR-001 | Manifest-driven client config generation | P0 | QA | Generator + aggregate present at `5556fd5`; import OK; `aa check` PASSED. Entry-count sweep outstanding. | @raka | None | 2026-09-18 |
-| MCP-02 | FR-002 | Read-only server list/show | P0 | Done | `list_servers` / `show_server` at `5556fd5`. | @raka | None | 2026-09-18 |
-| MCP-03 | FR-001, FR-002 | FRD + BACKLOG pair authoring for mcp | P0 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
+| MCP-01 | FR-MCP-001 | Manifest-driven client config generation | P0 | QA | Generator + aggregate present at `5556fd5`; import OK; `aa check` PASSED. Entry-count sweep outstanding. | @raka | None | 2026-09-18 |
+| MCP-02 | FR-MCP-002 | Read-only server list/show | P0 | Done | `list_servers` / `show_server` at `5556fd5`. | @raka | None | 2026-09-18 |
+| MCP-03 | FR-MCP-001, FR-MCP-002 | FRD + BACKLOG pair authoring for mcp | P0 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
 
 ## Scenario Evidence (rows)
 

@@ -17,9 +17,9 @@ Last Updated: 2026-09-18
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| SVC-01 | FR-001, FR-002 | Drive + inspect daemon systemd units | P1 | QA | Manager + contract present at `5556fd5`; import OK; `aa check` PASSED. Live systemctl sweep outstanding. | @raka | None | 2026-09-18 |
-| SVC-02 | FR-001 | Fan-out over `all` without false abort | P1 | Done | per-unit independent reporting at `5556fd5`. | @raka | None | 2026-09-18 |
-| SVC-03 | FR-001, FR-002 | FRD + BACKLOG pair authoring for service | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
+| SVC-01 | FR-SERVICE-001, FR-SERVICE-002 | Drive + inspect daemon systemd units | P1 | QA | Manager + contract present at `5556fd5`; import OK; `aa check` PASSED. Live systemctl sweep outstanding. | @raka | None | 2026-09-18 |
+| SVC-02 | FR-SERVICE-001 | Fan-out over `all` without false abort | P1 | Done | per-unit independent reporting at `5556fd5`. | @raka | None | 2026-09-18 |
+| SVC-03 | FR-SERVICE-001, FR-SERVICE-002 | FRD + BACKLOG pair authoring for service | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
 
 ## Scenario Evidence (rows)
 

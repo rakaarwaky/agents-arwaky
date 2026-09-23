@@ -17,16 +17,16 @@ Last Updated: 2026-09-18
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| DOC-01 | FR-001, FR-002 | Env + tools diagnostic runners | P1 | QA | 2 runners present at `5556fd5`; import OK; `aa check` PASSED. Live `aa doctor` sweep outstanding. | @raka | None | 2026-09-18 |
-| DOC-02 | FR-001 | Bounded, read-only probes | P1 | Done | per-probe timeout + no-mutation semantics at `5556fd5`. | @raka | None | 2026-09-18 |
-| DOC-03 | FR-001, FR-002 | FRD + BACKLOG pair authoring for doctor | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
+| DOC-01 | FR-DOCTOR-001, FR-DOCTOR-002 | Env + tools diagnostic runners | P1 | QA | 2 runners present at `5556fd5`; import OK; `aa check` PASSED. Live `aa doctor` sweep outstanding. | @raka | None | 2026-09-18 |
+| DOC-02 | FR-DOCTOR-001 | Bounded, read-only probes | P1 | Done | per-probe timeout + no-mutation semantics at `5556fd5`. | @raka | None | 2026-09-18 |
+| DOC-03 | FR-DOCTOR-001, FR-DOCTOR-002 | FRD + BACKLOG pair authoring for doctor | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
 
 ## Scenario Evidence (rows)
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
 | `aa doctor` on a healthy host prints all-PASS and exits 0. | Proxy | manual | `python -m modules.root_cli_entry doctor` on this host | `5556fd5` |
-| `aa doctor` with a missing toolchain marks that row FAIL (exit 0 unless strict). | Gap | — | — | `5556fd5` (no automated test yet) |
+| `aa doctor` with a missing toolchain marks that row FAIL (exit 0; row-level only). | Gap | — | — | `5556fd5` (no automated test yet) |
 | The run is read-only: no package is installed and no file is written. | Gap | — | — | `5556fd5` (no automated test yet) |
 
 ## Blockers

@@ -17,9 +17,9 @@ Last Updated: 2026-09-18
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| SKL-01 | FR-001 | Provision + prune skills with provenance | P1 | QA | install/prune capabilities present at `5556fd5`; `aa check` loadability green at `5556fd5`. Scratch-target round-trip outstanding. | @raka | None | 2026-09-18 |
-| SKL-02 | FR-002 | Pack loadability audit (layout/name/description) | P1 | Done | `aa check` skill-pack gate at `5556fd5` → 99 skills, names unique, layout loadable. | @raka | None | 2026-09-18 |
-| SKL-03 | FR-001–FR-003 | FRD + BACKLOG pair authoring for skill | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
+| SKL-01 | FR-SKILL-001 | Provision + prune skills with provenance | P1 | QA | install/prune capabilities present at `5556fd5`; `aa check` loadability green at `5556fd5`. Scratch-target round-trip outstanding. | @raka | None | 2026-09-18 |
+| SKL-02 | FR-SKILL-002 | Pack loadability audit (layout/name/description) | P1 | Done | `aa check` skill-pack gate at `5556fd5` → 99 skills, names unique, layout loadable. | @raka | None | 2026-09-18 |
+| SKL-03 | FR-SKILL-001–FR-SKILL-003 | FRD + BACKLOG pair authoring for skill | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
 
 ## Scenario Evidence (rows)
 

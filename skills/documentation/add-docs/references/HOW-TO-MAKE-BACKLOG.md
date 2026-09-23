@@ -10,6 +10,11 @@
 > **Location**: Inside the feature's directory
 >
 > **Length**: 50–500 lines
+>
+> **Not a feature → no BACKLOG.** Kernel / shared layers (e.g.
+> `modules/shared`) are not features: they have **no `FRD.md` and no
+> `BACKLOG.md`**. Creating either under `shared/` fails the gate with
+> `feature-doc-in-shared`.
 
 ---
 
@@ -23,7 +28,9 @@ them (`state-vocab-restated`, `undefined-state-vocab`).
 2. **Feature backlogs carry file-specific content only.** No policy prose, no
 state tables, no copied paragraphs from the root.
 3. **Every feature has both.** A spec and a backlog must exist beside each
-other (`spec-without-backlog`, `backlog-without-spec`).
+other (`spec-without-backlog`, `backlog-without-spec`). Non-feature folders
+(`modules/shared`) are exempt — neither file exists there; either file under
+`shared/` fails with `feature-doc-in-shared`.
 4. **ID scopes are explicit.** Each feature uses its own prefix
 (`RENDER-01`, `SCRIPT-01`). A row citing `FR-006` is checked against the
 spec (`orphan-fr-id`).
@@ -117,6 +124,6 @@ reason.
 ## Verify
 
 ```bash
-aa docs check . --strict
+aa check docs .
 # Checks: pairing, columns, unknown states, unevidenced Done, scenario coverage.
 ```

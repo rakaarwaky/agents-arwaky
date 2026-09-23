@@ -23,7 +23,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 | 1 | One-command tool lifecycle: install, update, uninstall of any registered tool resolves from a single manifest, not per-tool scripts scattered by hand | `aa tool install <id>` succeeds for every tool id in `config/manifest.json` on a clean host | 100% of manifest tools |
 | 2 | One-command harness connection: MCP config and skill provisioning for every supported harness is generated and verified | `aa connect --all` exits 0 and `aa mcp list` reports every server in the manifest as reachable | 100% of servers |
 | 3 | Architecture compliance is machine-checked: every module obeys AES 7-layer naming, flat shared layout, no contract in shared | `aa check` exits 0 on the tree | 0 errors |
-| 4 | Real-condition is tracked per feature: a spec row and a backlog row exist together, and every `Done` claim cites a re-runnable command + commit | `aa docs check . --strict` exits 0 | 0 errors |
+| 4 | Real-condition is tracked per feature: a spec row and a backlog row exist together, and every `Done` claim cites a re-runnable command + commit | `aa check docs .` exits 0 | 0 errors |
 | 5 | New-tool onboarding is a single-file data change: adding a tool to the manifest produces a working install/update/uninstall/runner | a new manifest entry passes `aa check` and `aa tool install <id>` without new module code | 1 tool = 0 new modules |
 
 ## User Personas
@@ -66,7 +66,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
   `aa connect <harness>` exits 0 and `aa mcp list` reports the servers.
 - Enforce AES 7-layer architecture and flat shared layout. Acceptance: `aa check`
   exits 0 on the tree and fails on a layer violation.
-- Track doc real-condition with invariants. Acceptance: `aa docs check . --strict`
+- Track doc real-condition with invariants. Acceptance: `aa check docs .`
   exits 0 and reports `done-without-evidence` for an unevidenced row.
 
 ### P1 — Should Have
@@ -74,7 +74,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 - Daemon lifecycle (OmniRoute host-native, Anytype Podman) with health, API-key, and space join/list.
   Acceptance: `aa anytype start` then `aa anytype health` reports ready.
 - Document and skill-pack audit. Acceptance: `aa skill check` reports coverage
-  and `aa docs check` reports invariants.
+  and `aa check docs` reports invariants.
 - Reset/clean of build artifacts and per-tool state. Acceptance: `aa clean`
   removes artifacts and `aa status` reflects the clean state.
 
@@ -89,8 +89,8 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 
 | Category | Commitment | Detail lives in |
 |----------|-----------|-----------------|
-| Determinism | `aa check` and `aa docs check` produce identical findings on identical trees | `modules/check/FRD.md` |
-| XDG hygiene | No tool writes persistent data outside its XDG dirs; repo root stays clean | `modules/shared/FRD.md` |
+| Determinism | `aa check` and `aa check docs` produce identical findings on identical trees | `modules/check/FRD.md` |
+| XDG hygiene | No tool writes persistent data outside its XDG dirs; repo root stays clean | `modules/shared` (kernel; no FRD — see HOW-TO-MAKE-FRD) |
 | Security | No secrets committed; daemon credentials live in `.env`/XDG only | `modules/daemon/FRD.md` |
 | Submodule integrity | Pinned submodule commits are never mutated by a tool run | `modules/AGENTS.md` precedence |
 
@@ -100,4 +100,4 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 |---|-----------------|-------|----------|--------|
 | 1 | `tools/` legacy tree still live in the main repo until the `refactor/aes-tools` branch merges; both entry points coexist | @raka | at branch merge | open |
 | 2 | Config static files moved to `modules/shared/config/`; live `.env` files are not tracked — where do operator-local secrets live on a fresh clone? | @raka | before P1 | open |
-| 3 | `aa docs check` only audits `modules/` + root; `skills/` sub-skill READMEs carry their own (weaker) section contract — do they need a separate gate? | @raka | before P2 | open |
+| 3 | `aa check docs` only audits `modules/` + root; `skills/` sub-skill READMEs carry their own (weaker) section contract — do they need a separate gate? | @raka | before P2 | open |

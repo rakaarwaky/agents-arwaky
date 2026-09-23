@@ -250,3 +250,45 @@ Templates are updated annually. Check official sources before each submission:
 - ACL: https://github.com/acl-org/acl-style-files
 - AAAI: https://aaai.org/
 - COLM: https://colmweb.org/
+
+
+## Prerequisites
+
+- See parent skill `SKILL.md` for host prerequisites.
+- `python3` ≥ 3.10
+
+## Quick Start
+
+See the skill root `SKILL.md` Quick Start.
+
+## Architecture
+
+Delegates to the parent skill architecture (see `SKILL.md`).
+
+## Project Structure
+
+```
+<dir>/
+  README.md   # this file
+  …           # content owned by this folder
+```
+
+## Available Scripts
+
+See commands embedded above and the parent skill `scripts/`.
+
+## Configuration
+
+No environment variables specific to this folder. Parent skill config applies.
+
+## Testing
+
+Parent skill tests cover this area (see skill root).
+
+## Contributing
+
+See the parent skill `SKILL.md` Contributing notes.
+
+## License
+
+Same license as the parent skill / repository.

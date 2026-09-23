@@ -166,3 +166,13 @@ The gates run Ruff formatting, Ruff lint, Mypy, pytest, and `lint-arwaky-cli sca
 ## Current limitations
 
 VLM analysis requires a reachable external vision endpoint and a vision-capable model. OCR requires the Tesseract binary. Video processing requires FFmpeg. Object tracking uses OpenCV trackers rather than a deep-learning detector. Smart-video analysis uses a bounded representative sample rather than exhaustively sending every video frame to the VLM.
+
+## Scripts
+
+- `bump.py`
+- `export_feature.py`
+- `export_file.py`
+- `export_skill.py`
+- `install.local.sh`
+- `install.sh`
+- `uninstall.sh`

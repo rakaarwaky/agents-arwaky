@@ -17,9 +17,9 @@ Last Updated: 2026-09-18
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| CFG-01 | FR-001, FR-002 | Comment-safe JSONC/TOML load + modify | P1 | QA | Engine present at `5556fd5`; import OK; `aa check` PASSED. Round-trip + dry-run sweep outstanding. | @raka | None | 2026-09-18 |
-| CFG-02 | FR-002 | `dry_run`-safe removal of MCP servers / env keys | P1 | Done | `remove_mcp_servers` / `remove_env_keys` carry `dry_run` at `5556fd5`. | @raka | None | 2026-09-18 |
-| CFG-03 | FR-001, FR-002 | FRD + BACKLOG pair authoring for config | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
+| CFG-01 | FR-CONFIG-001, FR-CONFIG-002 | Comment-safe JSONC/TOML load + modify | P1 | QA | Engine present at `5556fd5`; import OK; `aa check` PASSED. Round-trip + dry-run sweep outstanding. | @raka | None | 2026-09-18 |
+| CFG-02 | FR-CONFIG-002 | `dry_run`-safe removal of MCP servers / env keys | P1 | Done | `remove_mcp_servers` / `remove_env_keys` carry `dry_run` at `5556fd5`. | @raka | None | 2026-09-18 |
+| CFG-03 | FR-CONFIG-001, FR-CONFIG-002 | FRD + BACKLOG pair authoring for config | P1 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
 
 ## Scenario Evidence (rows)
 

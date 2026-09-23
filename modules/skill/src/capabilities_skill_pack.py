@@ -14,7 +14,7 @@ from modules.shared.src.contract_skill_protocol import ISkillProvisioner
 from modules.shared.src.taxonomy_common_vo import PackFinding
 from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult, ToolFilter
 from modules.shared.src.utility_paths_resolver import repo_root
-from modules.shared.src.utility_skill_pack import prune_provisioned
+from modules.skill.src.utility_skill_pack import prune_provisioned
 
 __all__ = [
     "PackFinding",

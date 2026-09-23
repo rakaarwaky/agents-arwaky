@@ -246,3 +246,7 @@ attribution during editing.
 | `references/citation-formats.md` | Placing the block in a non-markdown target (docx footnotes, LaTeX endnotes, deck source slide) |
 | `references/grounding-rationale.md` | You are about to change the citation wording or ledger mechanics and need the reasoning behind them |
 
+
+## Scripts
+
+- `_hermes_home.py`

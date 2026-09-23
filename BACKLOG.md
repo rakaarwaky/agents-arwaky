@@ -3,7 +3,7 @@
 | Feature | Tier | Spec | Backlog |
 |---------|------|------|---------|
 | `modules/tools` | P0 | [FRD](modules/tools/FRD.md) | [BACKLOG](modules/tools/BACKLOG.md) |
-| `modules/shared` | P0 | [FRD](modules/shared/FRD.md) | [BACKLOG](modules/shared/BACKLOG.md) |
+| `modules/shared` | P0 | — (kernel, not a feature) | — (no pair; see HOW-TO-MAKE-FRD) |
 | `modules/check` | P0 | [FRD](modules/check/FRD.md) | [BACKLOG](modules/check/BACKLOG.md) |
 | `modules/mcp` | P0 | [FRD](modules/mcp/FRD.md) | [BACKLOG](modules/mcp/BACKLOG.md) |
 | `modules/config` | P1 | [FRD](modules/config/FRD.md) | [BACKLOG](modules/config/BACKLOG.md) |
@@ -24,8 +24,9 @@ Last Updated: 2026-09-23
   on main; CI entry fixed to `modules.root_cli_entry`; `lint-arwaky scan
   modules` → 0 violations; `ruff check modules/ tests/ --ignore E501` →
   intentional-only (B008 VO defaults, BLE001 probe excepts); `aa check` →
-  All verifications PASSED; `aa docs check .` → 0 errors; 10/10 unit tests.
-- In Progress: WS-04 — FRD/BACKLOG pairs completion.
+  All verifications PASSED (strict-only, 0 findings); `aa check docs .` → 0;
+  10/10 unit tests; all 10 feature FRD/BACKLOG pairs HOW-TO-clean.
+- In Progress: none for docs (WS-04 docs slice closed by strict-only sweep).
 - Blocked: WS-05 (live `.env` home undecided).
 - Next Action: WS-05 (name XDG path for live env), then WS-06 (port remaining
   legacy tests into `tests/`).
@@ -71,7 +72,7 @@ Last Updated: 2026-09-23
 | Feature | Tier | State | Health | Next Action |
 |---------|------|-------|--------|-------------|
 | `modules/tools` | P0 | Done | On Track | AES + ruff clean; `aa check` green |
-| `modules/check` | P0 | In Progress | At Risk | CHK-03 — FRD/BACKLOG pair still open (WS-04) |
+| `modules/check` | P0 | Done | On Track | Strict-only gate green; keep `aa check` at 0 findings |
 | `modules/daemon` | P1 | QA | On Track | DMN-03 — verification sweep outstanding |
 | `modules/harness` | P1 | QA | On Track | HRS-03 — verification sweep outstanding |
 
@@ -84,7 +85,7 @@ Cross-cutting and workspace-level rows only. Feature rows live beside each featu
 | WS-01 | — | Migrate legacy `tools/` into AES 7-layer `modules/` (P0-P4) | P0 | Done | Gate: `python3 -m modules.root_cli_entry check` → All verifications PASSED at `b9c8c62`; excludes live `.env` and legacy `tools/tests/`. | @raka | None | 2026-09-23 |
 | WS-02 | — | Runner split per-tool (registry dispatch + RunnerBase + 14 per-tool capabilities) | P0 | Done | Gate: `lint-arwaky scan modules` → 0 violations at `b9c8c62`; runner lives in `modules/tools/src/`. | @raka | WS-01 | 2026-09-23 |
 | WS-03 | — | Surface command consolidation into per-feature packages only | P0 | Done | Gate: `find modules -name 'surface_*.py'` → all under `modules/<feature>/src/` at `b9c8c62`; no `modules/cli`. | @raka | WS-01 | 2026-09-23 |
-| WS-04 | — | FRD + BACKLOG pair for each module | P0 | In Progress | Pairs written; gate `aa docs check .` → 0 errors at `320c422`. | @raka | WS-01 | 2026-09-23 |
+| WS-04 | — | FRD + BACKLOG pair for each module | P0 | Done | Pairs written + strict-only sweep; gate `aa check docs .` → 0 findings at `fffcd17` (working tree). | @raka | WS-01 | 2026-09-23 |
 | WS-05 | — | Decide operator-local secrets location (live `.env` vs XDG config) after migration | P1 | Blocked | `config/` holds only `.env.example` + `manifest.json` + `version.txt`; live env files untracked. | @raka | None | 2026-09-22 |
 | WS-06 | — | Migrate `tools/tests/` into `modules/tests/` | P1 | Deferred | 4 worktree tests in `tests/`; old suite not yet ported. | @raka | WS-01 | 2026-09-23 |
 | WS-07 | — | Merge `refactor/aes-tools` into main, deleting legacy `tools/` there | P0 | Done | Gate: `git log --oneline -1` → merge on main at `b9c8c62`; legacy `tools/` gone; AES + ruff green. | @raka | WS-04, WS-08 | 2026-09-23 |
@@ -110,7 +111,7 @@ Definition of "deployment ready":
 | All P0 done | Done | WS-01…WS-04, WS-07, WS-08 closed |
 | All P1 done + verified | Ready | WS-05 (env decision), WS-06 (tests) open |
 | Tests pass, lint clean, build works | Done | `aa check` PASSED; `lint-arwaky scan modules` → 0; ruff intentional-only; 10/10 tests |
-| Docs complete | In Progress | WS-04 in flight; 91 doc-check warnings remain (advisory, mostly research templates) |
+| Docs complete | Done | Strict-only `aa check docs .` → 0 findings (all pairs HOW-TO-clean; no advisory tier) |
 
 ## Deferred
 
@@ -124,6 +125,7 @@ Definition of "deployment ready":
 | 2026-09-18 | Root BACKLOG created (spec/status split, master index, roll-up, risk register) as part of WS-04 doc sweep at `5556fd5`. | @raka |
 | 2026-09-18 | Runner per-tool split, surface consolidation, contract decentralization merged into branch tip `5556fd5`. | @raka |
 | 2026-09-23 | AES scan → 0, ruff reduced to intentional-only, ConnectOpts `adapters` field fixed, stale `tools/`/`modules/cli` docs refreshed; WS-07/WS-08 closed. | @raka |
+| 2026-09-23 | Strict-only doc gate: 91 findings fixed, `--strict` flag removed, all pairs HOW-TO-clean; `aa check` → 0 findings; WS-04 docs slice closed. | @raka |
 
 ## Branches in Flight
 

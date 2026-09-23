@@ -11,8 +11,13 @@ class ICheckAggregate(ABC):
     """Aggregate over all repository-verification checks."""
 
     @abstractmethod
-    def check(self, strict: bool = False) -> CheckExitCode:
-        """Run every check in sequence; return exit code (1 if any errors)."""
+    def check(self, only: str | None = None) -> CheckExitCode:
+        """Run checks in sequence strictly (every finding gates); return exit code.
+
+        Args:
+            only: Run a single capability by runner ``name`` (``docs`` | ``skill``);
+                ``None``/``"all"`` runs every registered runner.
+        """
         return None
 
 __all__ = ['CheckExitCode', 'DocFinding']

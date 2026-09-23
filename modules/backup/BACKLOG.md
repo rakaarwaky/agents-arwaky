@@ -17,9 +17,9 @@ Last Updated: 2026-09-18
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| BKP-01 | FR-001, FR-002 | tar + gdrive backup/restore gateways | P2 | QA | 2 gateways present at `5556fd5`; import OK; `aa check` PASSED. End-to-end tar round-trip outstanding. | @raka | None | 2026-09-18 |
-| BKP-02 | FR-003 | Archive listing (read-only) | P2 | Done | `list_archives` read-only scan at `5556fd5`. | @raka | None | 2026-09-18 |
-| BKP-03 | FR-001–FR-003 | FRD + BACKLOG pair authoring for backup | P2 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
+| BKP-01 | FR-BACKUP-001, FR-BACKUP-002 | tar + gdrive backup/restore gateways | P2 | QA | 2 gateways present at `5556fd5`; import OK; `aa check` PASSED. End-to-end tar round-trip outstanding. | @raka | None | 2026-09-18 |
+| BKP-02 | FR-BACKUP-003 | Archive listing (read-only) | P2 | Done | `list_archives` read-only scan at `5556fd5`. | @raka | None | 2026-09-18 |
+| BKP-03 | FR-BACKUP-001–FR-BACKUP-003 | FRD + BACKLOG pair authoring for backup | P2 | In Progress | Files written in this sweep. | @raka | None | 2026-09-18 |
 
 ## Scenario Evidence (rows)
 

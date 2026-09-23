@@ -177,7 +177,6 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
     print(f"  {GREEN()}tool{RESET()} <cmd> [args]             Tool management (list|run|install|update|uninstall)")
     print(f"  {GREEN()}skill{RESET()} <cmd> [args]             Skill management (list|install|uninstall|show|check)")
-    print(f"  {GREEN()}docs{RESET()} <cmd> [path]             Document invariants (check [--strict] [--include-subtrees])")
     print(f"  {GREEN()}connect{RESET()} --<harness>|--all     Connect MCP, skills & env to harnesses")
     print(f"  {GREEN()}disconnect{RESET()} --<harness>|--all  Disconnect harnesses (use --all for all)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
@@ -193,7 +192,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}restore{RESET()} [args]                 Restore tool data from archive")
     print()
     print(f"{BOLD()}MAINTENANCE:{RESET()}")
-    print(f"  {CYAN()}check{RESET()}                          Repository verification (JSON + Python compile)")
+    print(f"  {GREEN()}check{RESET()} <scope> [args]          Repository verification (all|docs|skill; warnings gate)")
     print(f"  {CYAN()}submodules{RESET()}                     Initialize/update git submodules")
     print(f"  {CYAN()}clean{RESET()}                          Remove build artifacts & generated configs")
     print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + disconnect + unskill")
@@ -212,7 +211,8 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}aa tool run lint check .{RESET()}       Run a tool (AES linter)")
     print(f"  {CYAN()}aa tool list{RESET()}                   List all registered tools")
     print(f"  {CYAN()}aa skill install --all{RESET()}         Provision all skills to CWD")
-    print(f"  {CYAN()}aa docs check .{RESET()}              Audit PRD/FRD/README/BACKLOG/AGENTS invariants")
+    print(f"  {CYAN()}aa check docs .{RESET()}               Audit PRD/FRD/README/BACKLOG/AGENTS invariants")
+    print(f"  {CYAN()}aa check skill{RESET()}                Audit skills/ pack loadability")
     print(f"  {CYAN()}aa skill uninstall --target .{RESET()}  Remove skills from CWD")
     print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
     print(f"  {CYAN()}aa disconnect --all{RESET()}            Disconnect all harnesses")
@@ -638,123 +638,10 @@ def cmd_restore(argv: list[str]) -> int:
 
 
 def cmd_check(argv: list[str]) -> int:
-    """Run all 2 repository-verification checks (docs, skills) via the check feature aggregate."""
+    """aa check [all|docs|skill] [path] [--include-subtrees] [--json] — route through the check feature surface."""
     from modules.check.src.root_check_container import create_check_feature
     from modules.check.src.surface_check_command import cmd_check as _check_cmd
     return _check_cmd(argv, create_check_feature())
-
-
-def _check_docs() -> int:
-    """Gate this repo's documents on the invariants the add-docs skill states in prose.
-
-    Warnings on files under skills/ are counted rather than printed: the pack hosts
-    upstream copies whose shape is not ours to fix.
-    """
-    from modules.shared.src.utility_doc_pack import (
-        audit_docs,
-        errors_only,
-        warnings_only,
-    )
-
-    print("[1/2] Validating document invariants...")
-    root = repo_root()
-    findings = audit_docs(root)
-    problems = errors_only(findings)
-    for finding in problems:
-        err(f"{finding.code} {finding.path}: {finding.message}")
-    surface = [
-        f for f in warnings_only(findings)
-        if not f.path.startswith(f"{root}{os.sep}skills{os.sep}")
-    ]
-    hidden = len(warnings_only(findings)) - len(surface)
-    for finding in surface:
-        warn(f"{finding.code} {finding.path}: {finding.message}")
-    if not findings:
-        ok("every document satisfies the add-docs invariants")
-    elif not problems:
-        ok(f"{len(findings)} advisory finding(s), no errors "
-           f"({len(surface)} in this repo's docs, {hidden} in provisioned skill copies)")
-        info("  list them with 'aa docs check'; gate on them with 'aa docs check --strict'")
-    return len(problems)
-
-
-def cmd_docs(argv: list[str]) -> int:
-    """Audit document invariants: aa docs check [path] [--strict] [--include-subtrees] [--json]"""
-    from modules.shared.src.utility_doc_pack import (
-        as_strict,
-        audit_docs,
-        errors_only,
-        iter_doc_files,
-        warnings_only,
-    )
-
-    if not argv or argv[0] in ("-h", "--help", "help"):
-        print("Usage: aa docs check [path] [--strict] [--include-subtrees] [--json]")
-        print()
-        print("  --strict             Gate warnings as errors too")
-        print("  --include-subtrees   Recurse into nested doc trees")
-        print("  --json               Machine-readable findings")
-        return 0 if argv and argv[0] in ("-h", "--help", "help") else 1
-    if argv[0] != "check":
-        err(f"Unknown docs subcommand: {argv[0]}")
-        print("Usage: aa docs check [path] [--strict] [--include-subtrees] [--json]")
-        return 1
-    args = argv[1:]
-    strict = "--strict" in args
-    include_subtrees = "--include-subtrees" in args or "--include-submodules" in args
-    json_mode = "--json" in args
-    positional = [a for a in args if not a.startswith("-")]
-    target = Path(positional[0]).resolve() if positional else repo_root()
-    if not target.is_dir():
-        err(f"Not a directory: {target}")
-        return 1
-
-    if not json_mode:
-        info(f"Auditing documents under {target} ...")
-    scanned = len(iter_doc_files(target, include_subtrees=include_subtrees))
-    findings = audit_docs(target, include_subtrees=include_subtrees)
-    problems = errors_only(as_strict(findings)) if strict else errors_only(findings)
-    notes = [] if strict else warnings_only(findings)
-    if json_mode:
-        import json as _json
-        out = {
-            "scanned": scanned,
-            "errors": [{"code": f.code, "path": f.path, "message": f.message} for f in problems],
-            "warnings": [{"code": f.code, "path": f.path, "message": f.message} for f in notes],
-            "ok": not problems,
-        }
-        print(_json.dumps(out, indent=2, ensure_ascii=False))
-        return 1 if problems else 0
-    for finding in problems:
-        err(f"{finding.code} {finding.path}: {finding.message}")
-    for finding in notes:
-        warn(f"{finding.code} {finding.path}: {finding.message}")
-    print()
-    if problems:
-        err(f"{len(problems)} error(s), {len(notes)} warning(s) across {scanned} document(s) — "
-            "a claim is in the wrong file, a pointer is broken, or a status assertion has no "
-            "re-runnable evidence")
-        return 1
-    ok(f"{scanned} document(s) scanned: no errors, {len(notes)} warning(s)")
-    return 0
-
-
-def _check_skill_pack() -> int:
-    """Gate skills/ on the invariants a harness loader actually depends on."""
-    from modules.shared.src.taxonomy_common_constant import DESCRIPTION_BUDGET_BYTES
-    from modules.shared.src.taxonomy_common_vo import audit_pack, iter_skill_files
-
-    print("[2/2] Validating skill pack loadability...")
-    pack = repo_root() / "skills"
-    findings = audit_pack(pack)
-    total = len(iter_skill_files(pack))
-    for finding in findings:
-        err(f"{finding.code}: {finding.message}")
-    if not findings:
-        ok(f"{total} skills across {len({p.relative_to(pack).parts[0] for p in iter_skill_files(pack)})} categories; names unique, layout loadable")
-    else:
-        info(f"  ({total} SKILL.md files scanned, budget {DESCRIPTION_BUDGET_BYTES} bytes)")
-    return len(findings)
 
 
 def cmd_submodules(argv: list[str]) -> int:
@@ -884,7 +771,6 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
         # Core noun-action (canonical)
         "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
-        "docs": cmd_docs,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services

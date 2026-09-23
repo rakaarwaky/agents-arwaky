@@ -299,3 +299,7 @@ kill the process on your own deadline; a killed run's edits persist — verify w
    the final head, the PR is merged per repo convention, and the merge artifacts are
    cleaned (main checkout fast-forwarded, worktree removed, branch deleted). Poll CI
    to a terminal state within the session; never hand back a red or pending run.
+
+## Scripts
+
+- `qwen-run.py`

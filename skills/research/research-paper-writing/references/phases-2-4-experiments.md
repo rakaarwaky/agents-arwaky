@@ -71,7 +71,7 @@ analyze_results.py             # Statistical analysis
 make_charts.py                 # Visualization
 ```
 
-See [references/experiment-patterns.md](references/experiment-patterns.md) for complete design patterns, cron monitoring, and error recovery.
+See [references/experiment-patterns.md](../references/experiment-patterns.md) for complete design patterns, cron monitoring, and error recovery.
 
 ### Step 2.5: Design Human Evaluation (If Applicable)
 
@@ -110,7 +110,7 @@ Many NLP, HCI, and alignment papers require human evaluation as primary or compl
 - Annotation interface description or screenshot (appendix)
 - Total annotation time
 
-See [references/human-evaluation.md](references/human-evaluation.md) for complete guide including statistical tests for human eval data, crowdsourcing quality control patterns, and IRB guidance.
+See [references/human-evaluation.md](../references/human-evaluation.md) for complete guide including statistical tests for human eval data, crowdsourcing quality control patterns, and IRB guidance.
 
 ---
 
@@ -240,7 +240,7 @@ Always compute:
 - **Pairwise tests**: McNemar's test for comparing two methods
 - **Effect sizes**: Cohen's d or h for practical significance
 
-See [references/experiment-patterns.md](references/experiment-patterns.md) for complete implementations of McNemar's test, bootstrapped CIs, and Cohen's h.
+See [references/experiment-patterns.md](../references/experiment-patterns.md) for complete implementations of McNemar's test, bootstrapped CIs, and Cohen's h.
 
 ### Step 4.3: Identify the Story
 
@@ -418,6 +418,6 @@ When refining the paper itself through autoreason:
 | Overfitting (code) | High public-test pass, low private-test pass | Use structured analysis, not just test feedback |
 | Broken judges | Parsing failures reduce panel below 3 | Fix parser before continuing |
 
-See [references/autoreason-methodology.md](references/autoreason-methodology.md) for complete prompts, Borda scoring details, model selection guide, scope constraint design patterns, and compute budget reference.
+See [references/autoreason-methodology.md](../references/autoreason-methodology.md) for complete prompts, Borda scoring details, model selection guide, scope constraint design patterns, and compute budget reference.
 
 ---

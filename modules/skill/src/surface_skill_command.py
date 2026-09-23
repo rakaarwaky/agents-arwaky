@@ -13,7 +13,6 @@ from modules.shared.src.taxonomy_common_vo import audit_pack
 from modules.shared.src.taxonomy_skill_vo import (
     extract_skill_name,
 )
-from modules.shared.src.utility_skill_pack import prune_provisioned
 from modules.skill.src.capabilities_skill_registry import (
     PACK_ROOT,
     _get_all_skills,
@@ -30,6 +29,7 @@ from modules.skill.src.capabilities_skill_registry import (
     resolve_tool_skills,
     uninstall_tool_skills,
 )
+from modules.skill.src.utility_skill_pack import prune_provisioned
 
 
 def cmd_uninstall(argv):

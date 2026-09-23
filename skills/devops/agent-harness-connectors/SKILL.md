@@ -168,7 +168,7 @@ blobs in other clones (plain text on Windows with `core.symlinks=false`);
 `--link` exists only for uncommitted local workspaces.
 
 Migration and safety invariants, enforced by `prune_provisioned` /
-`write_provenance` in `modules/shared/src/utility_skill_pack.py`:
+`write_provenance` in `modules/skill/src/utility_skill_pack.py`:
 - Non-empty existing skills dir ABORTS and lists what it would move; `--force`
   MIGRATES with per-entry collision semantics — never clobbers the pack:
   dot-prefixed STATE dirs (`.hub`) are union-merged file-by-file with the

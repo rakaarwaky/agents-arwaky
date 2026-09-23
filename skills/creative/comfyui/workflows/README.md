@@ -84,3 +84,88 @@ The `ckpt_name`, `vae_name`, `lora_name`, `unet_name`, etc. are all exposed
 as controllable parameters by `extract_schema.py` — discover what's installed
 with `comfy model list` (local) or `curl /api/experiment/models/checkpoints`
 (cloud).
+
+## Prerequisites
+
+- A local ComfyUI install **or** a Comfy Cloud API key (`COMFY_CLOUD_API_KEY`)
+- The models listed in the table above — verify with `check_deps.py`
+
+## Architecture
+
+Each file is a ComfyUI **API-format** graph: top-level keys are node IDs with
+`class_type`. `run_workflow.py` injects `--args` by node input name, submits the
+graph (local WebSocket or cloud HTTP), then downloads whatever output nodes
+produced into `--output-dir`.
+
+## Project Structure
+
+| Path | Role |
+|------|------|
+| `*.json` | Ready-to-run API-format workflow graphs |
+| `../scripts/run_workflow.py` | Runner: arg injection, submit, download |
+| `../scripts/extract_schema.py` | Lists a workflow's tweakable inputs |
+| `../scripts/check_deps.py` | Verifies required models/nodes before a run |
+
+## Available Scripts
+
+- `run_workflow.py` — run a workflow with `--args` JSON injection
+- `extract_schema.py` — inspect tweakable parameters (`--summary-only`)
+- `check_deps.py` — verify required models/nodes are installed
+
+## Configuration
+
+No config file: behaviour is flags and environment — `--workflow`, `--args`,
+`--output-dir`, `--host`, `--timeout`, plus `COMFY_CLOUD_API_KEY` for cloud runs.
+
+## Testing
+
+Dry-validate before generating: `extract_schema.py <file> --summary-only`
+(tweakable inputs) and `check_deps.py <file>` (missing models/nodes).
+
+## Contributing
+
+New workflow? Keep it API format, list its required models and min VRAM in the
+table above, and verify it with `check_deps.py` before adding it.
+
+## License
+
+Example graphs ship with the ComfyUI skill pack; model files remain under their
+upstream providers' licenses.
+
+
+## Prerequisites
+
+- See parent skill `SKILL.md` for host prerequisites.
+- `python3` ≥ 3.10
+
+## Architecture
+
+Delegates to the parent skill architecture (see `SKILL.md`).
+
+## Project Structure
+
+```
+<dir>/
+  README.md   # this file
+  …           # content owned by this folder
+```
+
+## Available Scripts
+
+See commands embedded above and the parent skill `scripts/`.
+
+## Configuration
+
+No environment variables specific to this folder. Parent skill config applies.
+
+## Testing
+
+Parent skill tests cover this area (see skill root).
+
+## Contributing
+
+See the parent skill `SKILL.md` Contributing notes.
+
+## License
+
+Same license as the parent skill / repository.

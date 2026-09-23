@@ -20,6 +20,7 @@ from modules.shared.src.taxonomy_common_constant import (
 )
 from modules.shared.src.taxonomy_common_vo import DocFinding, Table
 from modules.shared.src.taxonomy_common_vo import Section as _Section
+from modules.shared.src.utility_paths_resolver import repo_root
 
 # (ERROR/WARN imported from taxonomy_common_constant)
 
@@ -100,10 +101,28 @@ _SOFT_SECTIONS = {"README.md", "AGENTS.md"}
 
 _COMMITS = re.compile(r"\b[0-9a-f]{7,40}\b")
 _CODE_SPAN = re.compile(r"`[^`\n]+`")
-_FR_ID = re.compile(r"\bFR-\d+\b")
+_FR_ID = re.compile(r"\bFR-(?:[A-Za-z0-9]+-)?\d+\b")
 _HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*$", re.MULTILINE)
 _HEADING_LINE = re.compile(r"^(#{1,6})\s+(.*)$")
 _FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
+
+#: HOW-TO-MAKE-FRD Rule 1: ``FR-<FEATURENAME>-<number>`` (name segment required).
+_FR_HEADING = re.compile(r"^#{2,5}\s+(FR-([A-Za-z0-9]+)-(\d+)):\s+(\S.*)$")
+#: Loose heading that still looks like an FR but violates Rule 1 / shape.
+_FR_HEADING_LOOSE = re.compile(r"^#{2,5}\s+(FR-\S+)")
+#: Rule 2 — every requirement states these six fields.
+_FR_FIELDS = ("Description", "Input", "Output", "Business Rules", "Edge Cases", "Error Handling")
+#: Rule 3 — API Contract column order is exact.
+_API_COLUMNS = ("Method", "Input", "Output", "Error", "Event", "Description")
+#: Template — Integration Points / Non-functional column contracts.
+_INTEGRATION_COLUMNS = ("System", "Direction", "Purpose", "Failure mode")
+_NFR_COLUMNS = ("Metric", "Target", "Measurement method")
+#: Template section order (HOW-TO-MAKE-FRD § Template).
+_FRD_SECTION_ORDER = (
+    "Reference", "System Overview", "Functional Requirements",
+    "API Contract", "Integration Points", "Non-functional",
+    "Test Scenarios", "Assumptions", "Glossary",
+)
 
 #: Claims that belong in BACKLOG.md / ROADMAP.md, never in a spec.
 _STATUS_LEAKS: tuple[tuple[re.Pattern[str], str], ...] = (
@@ -114,6 +133,11 @@ _STATUS_LEAKS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\b(?:shipped|released|deployed) in v\w*\b", re.IGNORECASE), "release state"),
     (re.compile(r"^\s*(?:✅|❌|🟢|🔴|✔️|✖)"), "a status marker"),
     (re.compile(r"\b\d+\s*%\s*(?:complete|done)", re.IGNORECASE), "a progress percentage"),
+)
+
+#: HOW-TO-MAKE-FRD Rule 9 — stateless specs never name source files.
+_SOURCE_EXT = re.compile(
+    r"(?<![\w.-])(?:[A-Za-z0-9_]+/)*[A-Za-z0-9_.<>{}*-]+\.(?:py|rs|ts|tsx)(?![\w-])"
 )
 
 #: Gate binaries a document is allowed to print, used for CI-command drift.
@@ -286,16 +310,29 @@ def root_master(root: Path) -> Path | None:
 
     ``ROADMAP.md`` is the standard (references/HOW-TO-MAKE-ROADMAP.md); a legacy root
     ``BACKLOG.md`` is accepted during migration and treated as the same master.
+
+    Anchoring is workspace-wide: when *root* sits inside the repository (a path-scoped
+    audit such as ``modules/check``), the master resolves from the repo root so a
+    feature's own ``BACKLOG.md`` is never mistaken for the workspace master. An audit
+    outside the repository keeps anchoring at its own *root*.
     """
+    anchor = root
+    repo = Path(repo_root())
+    try:
+        root.resolve().relative_to(repo.resolve())
+    except ValueError:
+        pass
+    else:
+        anchor = repo
     for name in ("ROADMAP.md", "BACKLOG.md"):
-        candidate = root / name
+        candidate = anchor / name
         if candidate.is_file():
             return candidate
     return None
 
 
 def check_spec_status_leak(path: Path) -> list[DocFinding]:
-    """Rule *Spec and status never share a file*."""
+    """Rule *Spec and status never share a file*; specs also stay stateless."""
     findings: list[DocFinding] = []
     for number, line in _lines(blank_fenced(_read(path))):
         for pattern, label in _STATUS_LEAKS:
@@ -307,15 +344,46 @@ def check_spec_status_leak(path: Path) -> list[DocFinding]:
                     f"{path}:{number}",
                 ))
                 break
+        if path.name in ("FRD.md", "PRD.md"):
+            match = _SOURCE_EXT.search(line)
+            if match:
+                findings.append(DocFinding(
+                    "spec-source-path",
+                    f"line {number} names source file {match.group(0)!r} — specs are "
+                    "stateless: refer to roles and behaviour, never .py/.rs/.ts files "
+                    "(HOW-TO Rule 9)",
+                    f"{path}:{number}",
+                ))
     return findings
 
 
+def _under_shared(path: Path) -> bool:
+    """True when *path* lives under a directory named ``shared`` (kernel, not a feature)."""
+    return "shared" in path.parts[:-1]
+
+
 def check_spec_pairing(root: Path) -> list[DocFinding]:
-    """Rule *every spec has a partner backlog, and one root master owns the definitions*."""
+    """Rule *every spec has a partner backlog, and one root master owns the definitions*.
+
+    Also forbids feature docs under a ``shared/`` kernel folder
+    (``feature-doc-in-shared``): shared is not a feature, so it has no pair
+    (HOW-TO-MAKE-FRD § Scope).
+    """
     findings: list[DocFinding] = []
     docs = iter_doc_files(root)
     master = root_master(root)
-    specs = [path for path in docs if path.name in SPEC_DOCS]
+    for path in docs:
+        if path.name in ("FRD.md", "BACKLOG.md") and _under_shared(path):
+            findings.append(DocFinding(
+                "feature-doc-in-shared",
+                f"{path.name} under shared/ — kernel folders are not features and "
+                "must not carry an FRD/BACKLOG pair (HOW-TO-MAKE-FRD § Scope)",
+                str(path),
+            ))
+    specs = [
+        path for path in docs
+        if path.name in SPEC_DOCS and not (_under_shared(path) and path.name == "FRD.md")
+    ]
     if specs and master is None:
         findings.append(DocFinding(
             "no-master-backlog",
@@ -324,6 +392,8 @@ def check_spec_pairing(root: Path) -> list[DocFinding]:
             str(root / "ROADMAP.md"),
         ))
     for spec in specs:
+        if _under_shared(spec):
+            continue
         partner = spec.parent / "BACKLOG.md"
         if not partner.is_file():
             findings.append(DocFinding(
@@ -340,6 +410,8 @@ def check_spec_pairing(root: Path) -> list[DocFinding]:
                 severity=WARN,
             ))
     for backlog in (p for p in docs if p.name == "BACKLOG.md" and p != master):
+        if _under_shared(backlog):
+            continue
         if not any((backlog.parent / name).is_file() for name in SPEC_DOCS):
             findings.append(DocFinding(
                 "backlog-without-spec",
@@ -452,7 +524,7 @@ def check_fr_ids(spec: Path, backlog: Path | None) -> list[DocFinding]:
     text = blank_fenced(_read(spec))
     defined: dict[str, int] = {}
     for number, line in _lines(text):
-        match = re.match(r"^#{2,5}\s+(FR-\d+)\b", line)
+        match = re.match(r"^#{2,5}\s+(FR-(?:[A-Za-z0-9]+-)?\d+)\b", line)
         if match:
             identifier = match.group(1)
             if identifier in defined:
@@ -476,6 +548,212 @@ def check_fr_ids(spec: Path, backlog: Path | None) -> list[DocFinding]:
                 "the row it grounds cannot be verified",
                 str(backlog),
             ))
+    return findings
+
+
+def _table_shape(
+    section: _Section | None,
+    columns: tuple[str, ...],
+    *,
+    code: str,
+    label: str,
+    spec: Path,
+    require_rows: bool = True,
+) -> list[DocFinding]:
+    """First table under *section* must carry *columns* (exact order) and optional rows."""
+    if section is None:
+        return []
+    tables = parse_tables(section.body)
+    if not tables:
+        return [DocFinding(
+            code,
+            f"{label} has no markdown table; the template contract is a table with "
+            f"columns {' | '.join(columns)}",
+            str(spec),
+        )]
+    table = tables[0]
+    header = tuple(cell.strip() for cell in table.header)
+    wanted = tuple(columns)
+    # Tolerate case only; order and spelling are the contract.
+    if tuple(h.lower() for h in header) != tuple(w.lower() for w in wanted):
+        return [DocFinding(
+            code,
+            f"{label} table columns are {' | '.join(header) or '(none)'!s}; "
+            f"template requires exactly {' | '.join(wanted)}",
+            f"{spec}:{table.line}",
+        )]
+    if require_rows and not table.rows:
+        return [DocFinding(
+            code,
+            f"{label} table has a header but zero data rows; fill at least one row "
+            "or the section is a placeholder",
+            f"{spec}:{table.line}",
+        )]
+    return []
+
+
+def _section_line_map(path: Path) -> dict[str, int]:
+    """Normalized section title → first heading line, for order checks."""
+    out: dict[str, int] = {}
+    for section in sections(path):
+        key = _norm(section.title)
+        if key and key not in out:
+            out[key] = section.line
+    return out
+
+
+def check_frd_template(path: Path) -> list[DocFinding]:
+    """HOW-TO-MAKE-FRD template contract: IDs, FR fields, table shapes, section order.
+
+    Enforces Rules 1–3, 5–7 and the template's section order / table headers on a
+    single ``FRD.md``. Structural violations gate (ERROR); callers may still promote
+    warnings with ``as_strict``.
+    """
+    findings: list[DocFinding] = []
+    text = blank_fenced(_read(path))
+    feature = path.parent.name
+
+    # --- Rule 1: FR-<FEATURENAME>-<number>: <imperative name> -----------------
+    fr_lines: list[tuple[int, str, re.Match[str] | None]] = []
+    for number, line in _lines(text):
+        if not _FR_HEADING_LOOSE.match(line):
+            continue
+        strict = _FR_HEADING.match(line)
+        fr_lines.append((number, line, strict))
+        if strict is None:
+            findings.append(DocFinding(
+                "fr-id-format",
+                f"line {number} heading {line.strip()[:80]!r} must be "
+                f"'### FR-{feature.upper()}-NNN: <short imperative name>' "
+                "(HOW-TO Rule 1: FR-<FEATURENAME>-<number>)",
+                f"{path}:{number}",
+            ))
+            continue
+        _identifier, name, _num, title = strict.groups()
+        if name.upper() != feature.upper().replace("-", ""):
+            # Feature folder is the FEATURENAME segment (check → CHECK).
+            expected = feature.upper().replace("-", "")
+            if name.upper() != expected:
+                findings.append(DocFinding(
+                    "fr-id-format",
+                    f"line {number} uses feature segment {name!r} but this FRD lives under "
+                    f"{feature!r}; use FR-{expected}-{_num}",
+                    f"{path}:{number}",
+                ))
+        if len(title.strip()) < 3:
+            findings.append(DocFinding(
+                "fr-id-format",
+                f"line {number} FR heading needs a short imperative name after the colon",
+                f"{path}:{number}",
+            ))
+
+    if not fr_lines:
+        findings.append(DocFinding(
+            "fr-id-format",
+            "no '### FR-…' headings under Functional Requirements; "
+            "each requirement is a heading per HOW-TO Rule 1",
+            f"{path}",
+        ))
+
+    # --- Rule 2: six fields on every FR block ---------------------------------
+    sections_list = sections(path)
+    for index, section in enumerate(sections_list):
+        # sections() stores title without leading #s — re-match raw title
+        raw = f"### {section.title}"
+        if not _FR_HEADING_LOOSE.match(raw):
+            continue
+        # Body ends at the next heading of any level (sections() already slices).
+        # Collect fields only until a non-field bullet run ends after all found fields.
+        body = section.body
+        missing = [field for field in _FR_FIELDS if f"**{field}**" not in body]
+        # Avoid flagging a trailing non-FR section that absorbed nothing: body of an FR
+        # is everything until the next heading, which is correct for ### FR blocks.
+        if section.level >= 3 and _FR_HEADING_LOOSE.match(raw) and missing:
+            findings.append(DocFinding(
+                "fr-fields-missing",
+                f"{section.title.split(':', 1)[0].strip()} is missing "
+                f"{', '.join(missing)}; HOW-TO Rule 2 requires Description, Input, "
+                "Output, Business Rules, Edge Cases, Error Handling",
+                f"{path}:{section.line}",
+            ))
+
+    # --- Rule 3 / template table shapes ---------------------------------------
+    findings.extend(_table_shape(
+        find_section(path, "API Contract"), _API_COLUMNS,
+        code="api-contract-shape", label="API Contract", spec=path,
+    ))
+    findings.extend(_table_shape(
+        find_section(path, "Integration Points"), _INTEGRATION_COLUMNS,
+        code="integration-shape", label="Integration Points", spec=path,
+    ))
+    # Rule 5: numbers live here — table present with Target + measurement.
+    findings.extend(_table_shape(
+        find_section(path, "Non-functional"), _NFR_COLUMNS,
+        code="nfr-shape", label="Non-functional Requirements", spec=path,
+    ))
+
+    # --- Rule 7: Reference cross-links ----------------------------------------
+    ref = find_section(path, "Reference")
+    if ref is not None:
+        if not re.search(r"\bPRD\b", ref.body, re.IGNORECASE):
+            findings.append(DocFinding(
+                "reference-crosslink",
+                "Reference section must link the root PRD (HOW-TO Rule 7); "
+                "promise and claim stay one hop apart",
+                f"{path}:{ref.line}",
+            ))
+        if not re.search(r"BACKLOG", ref.body, re.IGNORECASE):
+            findings.append(DocFinding(
+                "reference-crosslink",
+                "Reference section must link BACKLOG.md (HOW-TO Rule 7)",
+                f"{path}:{ref.line}",
+            ))
+
+    # --- Template section order -----------------------------------------------
+    order_index: list[tuple[int, str]] = []
+    line_map = _section_line_map(path)
+    for title in _FRD_SECTION_ORDER:
+        key = _norm(title)
+        line = None
+        for found_key, found_line in line_map.items():
+            if key in found_key or found_key in key:
+                line = found_line
+                break
+        if line is None:
+            continue  # missing section already reported by *-section-missing
+        order_index.append((line, title))
+    ordered = [title for _, title in sorted(order_index)]
+    expected_present = [t for t in _FRD_SECTION_ORDER
+                        if any(_norm(t) in k or k in _norm(t) for k in line_map)]
+    if ordered != expected_present:
+        findings.append(DocFinding(
+            "section-order",
+            f"FRD sections appear as {', '.join(ordered)}; template order is "
+            f"{', '.join(expected_present)}",
+            str(path),
+        ))
+
+    # --- Rule 6 / template: prose sections are non-empty ----------------------
+    for title, code, hint in (
+        ("Test Scenarios", "scenario-empty",
+         "at least one '- scenario' bullet (Rule 4)"),
+        ("Assumptions", "assumption-empty",
+         "at least one '- assumption' bullet (Rule 6)"),
+        ("Glossary", "glossary-empty",
+         "at least one '- **Term**: definition' bullet"),
+    ):
+        section = find_section(path, title)
+        if section is None:
+            continue
+        body = blank_fenced(section.body)
+        bullets = [ln for ln in body.splitlines() if re.match(r"^\s*[-*]\s+\S", ln)]
+        if not bullets:
+            findings.append(DocFinding(
+                code,
+                f"{title} has no bullet items; the template requires {hint}",
+                f"{path}:{section.line}",
+            ))
+
     return findings
 
 
@@ -793,6 +1071,7 @@ def audit_docs(root: Path, *, include_subtrees: bool = False) -> list[DocFinding
             raw.extend(check_spec_status_leak(path))
             raw.extend(check_fr_ids(path, path.parent / "BACKLOG.md"))
             raw.extend(check_scenarios(path, path.parent / "BACKLOG.md"))
+            raw.extend(check_frd_template(path))
         elif path.name == "PRD.md":
             raw.extend(check_spec_status_leak(path))
         elif path.name in ("BACKLOG.md", "ROADMAP.md"):
@@ -812,7 +1091,8 @@ def audit_docs(root: Path, *, include_subtrees: bool = False) -> list[DocFinding
 
     findings.extend(check_spec_pairing(root))
     findings.extend(check_state_vocabulary(root))
-    return sorted(set(findings), key=lambda f: (f.path, f.code, f.message))
+    # Strict is the only mode: every finding gates; there is no advisory tier.
+    return as_strict(sorted(set(findings), key=lambda f: (f.path, f.code, f.message)))
 
 
 def errors_only(findings: list[DocFinding]) -> list[DocFinding]:

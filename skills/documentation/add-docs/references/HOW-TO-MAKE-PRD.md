@@ -150,7 +150,7 @@ reason.
 ## Verify
 
 ```bash
-aa docs check . --strict
+aa check docs .
 # Checks: placement, sections, links, length, hygiene.
 # Manual: every Goal has a number; no impl detail (grep CREATE TABLE|POST /|fn |interface);
 # out-of-scope non-empty; every P0 has acceptance criteria.

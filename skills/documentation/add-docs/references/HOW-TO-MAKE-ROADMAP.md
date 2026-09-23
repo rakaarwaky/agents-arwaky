@@ -116,6 +116,6 @@ reason.
 ## Verify
 
 ```bash
-aa docs check . --strict
+aa check docs .
 # Checks: master root presence, feature pairing, unknown states, missing sections.
 ```

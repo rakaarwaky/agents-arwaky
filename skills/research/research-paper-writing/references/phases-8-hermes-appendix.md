@@ -86,7 +86,7 @@ ACL venues have distinct submission types:
 
 ## Paper Types Beyond Empirical ML
 
-The main pipeline above targets empirical ML papers. Other paper types require different structures and evidence standards. See [references/paper-types.md](references/paper-types.md) for detailed guidance on each type.
+The main pipeline above targets empirical ML papers. Other paper types require different structures and evidence standards. See [references/paper-types.md](../references/paper-types.md) for detailed guidance on each type.
 
 ### Theory Papers
 
@@ -346,7 +346,7 @@ Understanding what reviewers look for helps focus effort:
 - 2: Reject — technical flaws
 - 1: Strong Reject — known results or ethics issues
 
-See [references/reviewer-guidelines.md](references/reviewer-guidelines.md) for detailed guidelines, common concerns, and rebuttal strategies.
+See [references/reviewer-guidelines.md](../references/reviewer-guidelines.md) for detailed guidelines, common concerns, and rebuttal strategies.
 
 ---
 
@@ -362,9 +362,9 @@ See [references/reviewer-guidelines.md](references/reviewer-guidelines.md) for d
 | Scope creep in experiments | Every experiment must map to a specific claim. Cut experiments that don't. |
 | Paper rejected, need to resubmit | See Conference Resubmission in Phase 7. Address reviewer concerns without referencing reviews. |
 | Missing broader impact statement | See Step 5.10. Most venues require it. "No negative impacts" is almost never credible. |
-| Human eval criticized as weak | See Step 2.5 and [references/human-evaluation.md](references/human-evaluation.md). Report agreement metrics, annotator details, compensation. |
+| Human eval criticized as weak | See Step 2.5 and [references/human-evaluation.md](../references/human-evaluation.md). Report agreement metrics, annotator details, compensation. |
 | Reviewers question reproducibility | Release code (Step 7.9), document all hyperparameters, include seeds and compute details. |
-| Theory paper lacks intuition | Add proof sketches with plain-language explanations before formal proofs. See [references/paper-types.md](references/paper-types.md). |
+| Theory paper lacks intuition | Add proof sketches with plain-language explanations before formal proofs. See [references/paper-types.md](../references/paper-types.md). |
 | Results are negative/null | See Phase 4.3 on handling negative results. Consider workshops, TMLR, or reframing as analysis. |
 
 ---
@@ -373,21 +373,21 @@ See [references/reviewer-guidelines.md](references/reviewer-guidelines.md) for d
 
 | Document | Contents |
 |----------|----------|
-| [references/writing-guide.md](references/writing-guide.md) | Gopen & Swan 7 principles, Perez micro-tips, Lipton word choice, Steinhardt precision, figure design |
-| [references/citation-workflow.md](references/citation-workflow.md) | Citation APIs, Python code, CitationManager class, BibTeX management |
-| [references/checklists.md](references/checklists.md) | NeurIPS 16-item, ICML, ICLR, ACL requirements, universal pre-submission checklist |
-| [references/reviewer-guidelines.md](references/reviewer-guidelines.md) | Evaluation criteria, scoring, common concerns, rebuttal template |
-| [references/sources.md](references/sources.md) | Complete bibliography of all writing guides, conference guidelines, APIs |
-| [references/experiment-patterns.md](references/experiment-patterns.md) | Experiment design patterns, evaluation protocols, monitoring, error recovery |
-| [references/autoreason-methodology.md](references/autoreason-methodology.md) | Autoreason loop, strategy selection, model guide, prompts, scope constraints, Borda scoring |
-| [references/human-evaluation.md](references/human-evaluation.md) | Human evaluation design, annotation guidelines, agreement metrics, crowdsourcing QC, IRB guidance |
-| [references/paper-types.md](references/paper-types.md) | Theory papers (proof writing, theorem structure), survey papers, benchmark papers, position papers |
+| [references/writing-guide.md](../references/writing-guide.md) | Gopen & Swan 7 principles, Perez micro-tips, Lipton word choice, Steinhardt precision, figure design |
+| [references/citation-workflow.md](../references/citation-workflow.md) | Citation APIs, Python code, CitationManager class, BibTeX management |
+| [references/checklists.md](../references/checklists.md) | NeurIPS 16-item, ICML, ICLR, ACL requirements, universal pre-submission checklist |
+| [references/reviewer-guidelines.md](../references/reviewer-guidelines.md) | Evaluation criteria, scoring, common concerns, rebuttal template |
+| [references/sources.md](../references/sources.md) | Complete bibliography of all writing guides, conference guidelines, APIs |
+| [references/experiment-patterns.md](../references/experiment-patterns.md) | Experiment design patterns, evaluation protocols, monitoring, error recovery |
+| [references/autoreason-methodology.md](../references/autoreason-methodology.md) | Autoreason loop, strategy selection, model guide, prompts, scope constraints, Borda scoring |
+| [references/human-evaluation.md](../references/human-evaluation.md) | Human evaluation design, annotation guidelines, agreement metrics, crowdsourcing QC, IRB guidance |
+| [references/paper-types.md](../references/paper-types.md) | Theory papers (proof writing, theorem structure), survey papers, benchmark papers, position papers |
 
 ### LaTeX Templates
 
 Templates in `templates/` for: **NeurIPS 2025**, **ICML 2026**, **ICLR 2026**, **ACL**, **AAAI 2026**, **COLM 2025**.
 
-See [templates/README.md](templates/README.md) for compilation instructions.
+See [templates/README.md](../templates/README.md) for compilation instructions.
 
 ### Key External Sources
 

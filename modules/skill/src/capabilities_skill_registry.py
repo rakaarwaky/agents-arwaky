@@ -23,7 +23,7 @@ from modules.shared.src.taxonomy_skill_vo import (
 )
 from modules.shared.src.utility_logging_setup import pad as _pad
 from modules.shared.src.utility_logging_setup import table_widths as _table_widths
-from modules.shared.src.utility_skill_pack import write_provenance
+from modules.skill.src.utility_skill_pack import write_provenance
 
 MANIFEST = REPO_ROOT / "config" / "manifest.json"
 PACK_ROOT = REPO_ROOT / "skills"

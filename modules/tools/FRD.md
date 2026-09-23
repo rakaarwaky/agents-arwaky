@@ -3,146 +3,144 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
+
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature.
-- Supersedes: `modules/{installer,updater,uninstaller,runner}/FRD.md` (detail in § Supersedes)
+- Supersedes: installer / updater / uninstaller / runner feature specs (detail in § Supersedes)
+
 
 ## System Overview
 
 The tools feature owns the full lifecycle of every tool registered in
-`config/manifest.json`: install, update, uninstall, and run. One agent
-(`agent_tools_orchestrator.py`, the `ToolsOrchestrator` zero-I/O aggregate)
-drives **4 protocol classes**, one per business action, each with a
-**single public method**. The action's sub-steps (launcher registration, version
-recording, residual verification, executable discovery) are internal
-to that one method, not exposed as separate protocol methods:
+the tool manifest: install, update, uninstall, and run. One zero-I/O tools
+orchestrator drives **4 protocol contracts**, one per business action, each
+with a **single public method**. Sub-steps (launcher registration, version
+recording, residual verification, executable discovery) stay internal to
+that one method and are not separate protocol methods:
 
-- `IToolInstaller.install(spec, adapter, dry_run) -> InstallResult`
-  — provision + register launcher + health probe, one action
-- `IToolUpdater.update(spec, adapter, dry_run) -> UpdateResult`
-  — pin check + adapter update + record transition, one action
-- `IToolUninstaller.uninstall(spec, owned_paths, dry_run) -> UninstallResult`
-  — stop daemon + remove owned paths + verify residual, one action
-- `IToolRunner.run(spec, args, root) -> int`
-  — discover executable + execute + return child exit code, one action
+- **install** → provision + register launcher + health probe, one action
+- **update** → pin check + adapter update + record transition, one action
+- **uninstall** → stop daemon + remove owned paths + verify residual, one action
+- **run** → discover executable + execute + return child exit code, one action
 
-No `IToolAdapter` ABC: adapters are units reached only through
-`IToolAdapterFacade` (the single facade protocol for all per-tool actions).
+There is no separate adapter ABC: per-tool adapters are reached only
+through a single tool-adapter facade (all per-tool actions).
 
 Per-tool mechanics (package-manager family, build flags, artifact locations,
-launcher sets, daemon delegation) live in **one capability file,
-`capabilities_tools_adapter.py`**. Each adapter unit knows its tool's
-`install`, `update`, `is_pin_satisfied`, and `owned_paths` in exactly one
-place. Adding a tool is one manifest entry plus one adapter unit in that file;
-the orchestrator, action capability classes, and aggregate are never edited.
+launcher sets, daemon delegation) live in **one adapter capability**. Each
+adapter unit knows its tool's install, update, pin-comparison, and
+owned-teardown data in exactly one place. Adding a tool is one manifest
+entry plus one adapter unit; the orchestrator and action capabilities are
+never edited.
 
-Flow: CLI surface (`surface_tools_command.py`) → `ToolsOrchestrator.<action>(spec)`
-→ adapter selection by id (via the root-injected registry) → the action's
-single capability method → report.
+Flow: CLI `aa tool <action>` → tools orchestrator `<action>(spec)` →
+adapter selection by id (composition-root registry) → the action's single
+capability method → report.
 
-Target-resolution rules (agent-layer concern, not a capability): an unknown id
-fails with a typed error (from shared `taxonomy_common_error`) **before any
-capability runs**; aliases resolve through the shared manifest reader. An action
-whose capability is unwired raises a typed error, never a partial dispatch.
+Target-resolution rules (orchestrator concern, not a capability): an unknown
+id fails with a typed error **before any capability runs**; aliases resolve
+through the shared manifest reader. An action whose capability is unwired
+raises a typed error, never a partial dispatch.
+
 
 ## Functional Requirements
 
-### FR-001: Install a tool (`IToolInstaller.install`)
-- **Provision** (sub-step): satisfied check gates the idempotent skip;
-  otherwise dispatch the selected adapter's `install` sequence; capture
-  diagnostics into `InstallResult` instead of raising. Dry-run reports the
-  planned invocation with zero side effects. Post-install health probe
-  (`<binary> --version` agreement) is folded in. Daemon-backed adapters
-  receive the injected daemon aggregate.
-- **Register launcher** (sub-step): one launcher per binary plus one per
-  manifest alias under `~/.local/bin`. A stale foreign launcher (no
-  provenance marker) is reported as a residual, never overwritten; a correct
-  launcher already in place is a no-op success.
-- **Internal to the action:** both sub-steps run inside `install()`; on
-  provision failure the launcher step is skipped and the `InstallResult`
-  carries the diagnostic. The `InstallResult` returned to the CLI is the
-  final state after both sub-steps.
+### FR-TOOLS-001: Install a tool (`IToolInstaller.install`)
 
-### FR-002: Update a tool (`IToolUpdater.update`)
-- **Bump** (sub-step): pin comparison first (idempotence); on unsatisfied
-  state dispatch the adapter's `update` sequence; capture adapter
-  diagnostics into `UpdateResult` without raising. Dry-run reports the
-  planned invocation with zero side effects.
-- **Record transition** (sub-step): after a successful bump, write a
-  version-transition record under the tool's XDG state dir. Idempotent:
-  re-recording the same transition is a no-op. Recording failures are
-  folded into the result, never raised.
-- **Internal to the action:** both sub-steps run inside `update()`; a failed
-  bump yields no record. The `UpdateResult` returned to the CLI reflects
-  the combined outcome.
+- **Description**: `install(spec, adapter, dry_run)` provisions a tool and
+  registers its launchers as one idempotent action.
+- **Input**: `ToolSpec`, `IToolAdapterFacade`, `dry_run: bool`.
+- **Output**: `InstallResult` (diagnostics + residual info, never raises).
+- **Business Rules**: satisfied check skips re-install; dry-run reports the
+  planned invocation with zero side effects; post-install health probe
+  (`<binary> --version`) is folded in; daemon-backed adapters use the injected
+  daemon aggregate; one launcher per binary plus one per manifest alias under
+  `~/.local/bin`.
+- **Edge Cases**: foreign launcher without provenance → residual, never
+  overwritten; correct launcher already in place → no-op success; provision
+  failure skips the launcher step and carries the diagnostic in `InstallResult`.
+- **Error Handling**: no raise into the CLI; failures surface as
+  `InstallResult` diagnostics and a non-zero exit for the surface.
 
-### FR-003: Uninstall a tool (`IToolUninstaller.uninstall`)
-- **Remove owned state** (sub-step): stop the daemon (if applicable) first,
-  then remove launchers + XDG data/cache/config. Scoped strictly to the
-  owned set from `adapter.owned_paths` — the single source of per-tool
-  teardown data. An active unit that refuses to stop becomes a named
-  residual, never force-killed (container-isolation invariant).
-  Idempotent: uninstalling an absent tool is a "nothing to do" success.
-  Dry-run reports planned deletions with zero side effects.
-- **Verify residuals** (sub-step): after removal (success or partial),
-  check that launchers are gone from XDG bin, binary absent from PATH,
-  data/cache subtrees removed, daemon unit absent. Anything surviving
-  becomes a named residual (path + why it survived). Nothing raises into
-  the CLI surface — verification failures append to the `UninstallResult`.
-- **Internal to the action:** both sub-steps run inside `uninstall()`; a
-  failed removal still gets verified so residuals are surfaced, not
-  hidden. The `UninstallResult` returned to the CLI carries all named
-  residuals.
+### FR-TOOLS-002: Update a tool (`IToolUpdater.update`)
 
-### FR-004: Run a tool (`IToolRunner.run`)
-- **Discover** (sub-step): universal deterministic order, identical for
-  every tool: XDG bin launcher → host PATH → per-tool install dir. MCP
-  tools resolve through `mcp_binary` first. Read-only: never mutates
-  install state, never invokes a package manager. No candidate → return
-  `1` (caller decides the message).
-- **Execute** (sub-step): plain subprocess exec of the discovered path with
-  forwarded args. Exit-code fidelity: return the child's real exit code.
-  A distinct sentinel (126) is reserved for "executable vanished between
-  discovery and launch". Daemons are invoked through their launcher, never
-  spawned ad hoc. Every failure path returns an int; nothing raises out of
-  `run`.
-- **Internal to the action:** both sub-steps run inside `run()`; discovery
-  failure returns `1` without reaching execution. The int returned to the
-  CLI is the child's real exit code (or sentinel 126).
+- **Description**: `update(spec, adapter, dry_run)` bumps a tool when the pin
+  is unsatisfied and records the version transition as one action.
+- **Input**: `ToolSpec`, `IToolAdapterFacade`, `dry_run: bool`.
+- **Output**: `UpdateResult` (combined bump + record outcome).
+- **Business Rules**: pin comparison first (idempotent skip when satisfied);
+  dry-run reports with zero side effects; after a successful bump, write a
+  version-transition record under the tool's XDG state dir; re-recording the
+  same transition is a no-op.
+- **Edge Cases**: pin already satisfied → skip with no record; failed bump →
+  no record; recording failure folds into the result, never raised.
+- **Error Handling**: adapter/recorder problems become `UpdateResult`
+  diagnostics; nothing raises out of `update()`.
+
+### FR-TOOLS-003: Uninstall a tool (`IToolUninstaller.uninstall`)
+
+- **Description**: `uninstall(spec, owned_paths, dry_run)` stops the daemon
+  (if any), removes owned paths, and verifies residuals as one action.
+- **Input**: `ToolSpec`, `list[Path]` owned paths, `dry_run: bool`.
+- **Output**: `UninstallResult` (named residuals + outcome).
+- **Business Rules**: scope is only `adapter.owned_paths`; active units that
+  refuse to stop become named residuals (never force-killed); uninstalling an
+  absent tool is a "nothing to do" success; dry-run reports planned deletions
+  with zero side effects.
+- **Edge Cases**: partial removal still runs verification so residuals are
+  surfaced; missing tool → clean success.
+- **Error Handling**: verification failures append to `UninstallResult`;
+  nothing raises into the CLI surface.
+
+### FR-TOOLS-004: Run a tool (`IToolRunner.run`)
+
+- **Description**: `run(spec, args, root)` discovers the executable, executes
+  it, and returns the child's exit code.
+- **Input**: `ToolSpec`, `list[str]` args, optional `Path` root.
+- **Output**: `int` child exit code (or sentinel 126).
+- **Business Rules**: discovery order is XDG bin launcher → host PATH →
+  per-tool install dir (MCP tools try `mcp_binary` first); discovery is
+  read-only; exit-code fidelity — return the child's real code; daemons launch
+  only through their launcher.
+- **Edge Cases**: no candidate → return `1` (caller messages); executable
+  vanishes between discovery and launch → sentinel `126`; unknown id → typed
+  error before any capability runs.
+- **Error Handling**: every failure path returns an int; nothing raises out of
+  `run()`.
+
 
 ## API Contract
-
-| Operation | Input | Output |
-|-----------|-------|--------|
-| `IToolInstaller.install` | `ToolSpec, IToolAdapterFacade, bool` | `InstallResult` |
-| `IToolUpdater.update` | `ToolSpec, IToolAdapterFacade, bool` | `UpdateResult` |
-| `IToolUninstaller.uninstall` | `ToolSpec, list[Path], bool` | `UninstallResult` |
-| `IToolRunner.run` | `ToolSpec, list[str], Path \| None` | `int` exit code |
-| `IToolsAggregate.{install,update,uninstall,run_tool}` | `ToolSpec[, list[str]]` | action result / int |
-| `IToolsAggregate.{resolve_spec,executable_path,list_tools}` | query/spec/— | `ToolSpec\|None` / `Path\|None` / `list[Tool]` |
-| `IToolAdapterFacade.{resolve,is_registered,satisfied,is_pin_satisfied,install,update,owned_paths}` | per tool | adapter unit / artifact paths / pin state / owned set |
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `ToolsOrchestrator.list_tools` | — | `list[Tool]` | manifest parse error | tool rows | All registered tools (manifest reader) |
+| `ToolsOrchestrator.resolve_spec` | `query: ToolQuery` | `ToolSpec \| None` | unknown id → `None` | — | Resolve id / binary / alias → `ToolSpec` |
+| `ToolsOrchestrator.install` | `spec: ToolSpec` | `InstallResult` | non-zero on failure | — | Install one tool |
+| `ToolsOrchestrator.update` | `spec: ToolSpec` | `UpdateResult` | non-zero on failure | — | Update one tool |
+| `ToolsOrchestrator.uninstall` | `spec: ToolSpec` | `UninstallResult` | non-zero / residual unit | — | Uninstall one tool |
+| `ToolsOrchestrator.run_tool` | `spec: ToolSpec`, `args: list[str]` | `ExitCode` (child's) | 126 vanished / 127 unknown | child stdio | Discover then execute; exit-code fidelity |
+| `ToolsOrchestrator.executable_path` | `spec: ToolSpec` | `Path \| None` | not installed → `None` | — | Read-only launch path discovery |
 
 ## Integration Points
 
 | System | Direction | Purpose | Failure mode |
 |--------|-----------|---------|--------------|
-| `config/manifest.json` | in | tool ids, binary, alias, mcp_binary, runner | missing entry → typed error before any action |
-| `modules/shared` (manifest_reader, xdg_paths, tool_vo, git_update) | out | spec resolution, launchers, pins, submodules | repo-root/anchor error |
-| `modules/daemon` (aggregate) | out (lazy) | daemon service install/stop for omniroute/anytype | unit active → residual |
-| `modules/root_cli_entry.py` + host XDG bin/PATH | in | `aa tool <list\|run\|install\|update\|uninstall>`; executables | not installed → `None` |
+| tool manifest (SSOT) | in | tool ids, binary, alias, mcp_binary, runner | missing entry → typed error before any action |
+| shared kernel (manifest reader, XDG paths, tool VO, git update) | out | spec resolution, launchers, pins, submodules | repo-root/anchor error |
+| daemon feature (aggregate) | out (lazy) | daemon service install/stop for omniroute/anytype | unit active → residual |
+| root CLI (`aa`) + host XDG bin/PATH | in | `aa tool <list\|run\|install\|update\|uninstall>`; executables | not installed → `None` |
 
 ## Non-functional Requirements
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Protocol class count | exactly 4 (`IToolInstaller`, `IToolUpdater`, `IToolUninstaller`, `IToolRunner`) + `IToolAdapterFacade`; no `IToolAdapter` ABC — adapter units are `AdapterUnit` VOs reached only through the facade | `grep -c "^class ITool" contract_tools_protocol.py` → 5 |
-| God object (AES301 exception) | `capabilities_tools_adapter.py` is the single registered >1000-line exception; every other file under `modules/tools/src/` stays within the 1000-line budget | `lint_arwaky.config.yaml` AES301 `exceptions:` lists only `capabilities_tools_adapter.py` |
-| Capability file count | 4 action classes (`capabilities_tools_{installer,updater,uninstaller,runner}.py`) + 1 adapter file (`capabilities_tools_adapter.py`); TOL-04 fold complete | `ls modules/tools/src/capabilities_tools_*.py` → 5 files |
-| Adapter count | 13 registered tool ids; the two Anytype ids (`anytype`, `anytype-daemon`) have separate registry entries over shared daemon mechanics → 13 adapter units in `_ADAPTER_UNITS` | `python3 -c "from modules.tools.src.capabilities_tools_adapter import _ADAPTER_UNITS; print(len(_ADAPTER_UNITS))"` → 13 |
-| Adapter purity | `capabilities_tools_adapter.py` imports only `modules.shared.src.*` + stdlib (no sibling feature modules); daemon delegation via the injected daemon aggregate | grep of import lines in `capabilities_tools_adapter.py` |
-| No cross-feature imports | tools imports nothing from sibling feature modules except the lazy daemon aggregate | grep over `modules/tools/src/` |
+| Metric | Target | Measurement method |
+|--------|--------|--------------------|
+| Protocol class count | exactly 4 action protocols + 1 adapter facade; no separate adapter ABC — adapters are value objects reached only through the facade | count public action + facade protocols → 5 |
+| God object (AES301 exception) | the adapter capability is the single registered >1000-line exception; every other module file stays within the 1000-line budget | lint AES301 exceptions list has exactly one tools entry |
+| Capability file count | 4 action capability modules + 1 adapter capability; TOL-04 fold complete | count capability modules for tools → 5 |
+| Adapter count | 13 registered tool ids; the two Anytype ids have separate registry entries over shared daemon mechanics → 13 adapter units | count adapter registry entries → 13 |
+| Adapter purity | the adapter capability imports only shared kernel + stdlib (no sibling feature modules); daemon delegation via the injected daemon aggregate | import graph of the adapter capability |
+| No cross-feature imports | tools imports nothing from sibling feature modules except the lazy daemon aggregate | import graph of the tools module |
 | Idempotence / exit-code fidelity / container isolation | second install is a no-op; `run_tool` returns the child's real exit code; daemons launched only through their launcher | code review + smoke |
 
 ## Test Scenarios
@@ -152,15 +150,18 @@ whose capability is unwired raises a typed error, never a partial dispatch.
 - Uninstall: clean removal; active daemon unit → named residual, never force-killed.
 - Run: exit-code fidelity across 0/1/127; vanished executable → sentinel 126; unknown id → typed error before any capability; alias → resolved spec.
 
-## Assumptions
 
-- Host is bare-metal XDG-compliant; only 9Router/Anytype run in Podman. `config/manifest.json` (repo root) is the SSOT via `repo_root()`; verification is read-only, no real host installs.
+## Assumptions & Constraints
+
+- Host is bare-metal XDG-compliant; only 9Router/Anytype run in Podman. The tool manifest (repo root) is the SSOT; verification is read-only, no real host installs.
+
 
 ## Supersedes
 
-`modules/installer/FRD.md` (provisioner + launcher), `modules/updater/FRD.md` (bumper + recorder), `modules/uninstaller/FRD.md` (remover + verifier), `modules/runner/FRD.md` (discoverer + executor, ToolOrchestrator aggregate) — all four directories deleted; their FRD/BACKLOG files are superseded by this document and `modules/tools/BACKLOG.md`.
+Installer, updater, uninstaller, and runner feature specs (provisioner + launcher, bumper + recorder, remover + verifier, discoverer + executor) are superseded by this document and the tools backlog; those directories no longer exist.
+
 ## Glossary
 
-- **adapter unit**: one `_ADAPTER_UNITS` entry (an `AdapterUnit` VO of action callables) knowing a tool's install, update, pin-comparison, and owned-teardown data in a single place, inside `capabilities_tools_adapter.py` (no `IToolAdapter` ABC; reached only through `IToolAdapterFacade`).
+- **adapter unit**: one registry entry (a value object of action callables) knowing a tool's install, update, pin-comparison, and owned-teardown data in a single place (no separate adapter ABC; reached only through the tool-adapter facade).
 - **residual**: state that could not be removed, reported not skipped; **sentinel 126**: "executable vanished between discovery and launch".
 - **sub-step**: an action-internal operation (e.g. launcher registration inside `install`, version recording inside `update`) that is not exposed as a separate protocol method.

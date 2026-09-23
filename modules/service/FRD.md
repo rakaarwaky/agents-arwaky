@@ -3,26 +3,28 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
+
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
 
+
 ## System Overview
 
-The service feature manages systemd units for the daemons:
-`agent_service_orchestrator.py` implements `IServiceManager`
-(`capabilities_service_manager.py`) over `contract_service_protocol.py` —
-`status`, `start`, `stop`, `restart`, `logs`, each targeting `omniroute`,
-`anytype`, or `all`. The units themselves live in `modules/daemon/deploy/`
-(`*.service`, `Containerfile`); this module only drives systemctl against them.
+The service feature manages systemd units for the daemons. The service
+orchestrator exposes status, start, stop, restart, logs, and help, each
+targeting `omniroute`, `anytype`, or `all`. Unit definitions are deploy
+assets owned by the daemon feature; this module only drives the host
+service manager against them.
 
-Flow: `aa service <action> [target]` → `ServiceOrchestrator` → `systemctl`
+Flow: `aa service <action> [target]` → service orchestrator → systemctl
 against the target unit(s).
+
 
 ## Functional Requirements
 
-### FR-001: Drive daemon systemd units
+### FR-SERVICE-001: Drive daemon systemd units
 
 - **Description**: `start/stop/restart(target)` act on the named unit or all.
 - **Input**: `target: str` (`"omniroute"` | `"anytype"` | `"all"`).
@@ -35,7 +37,7 @@ against the target unit(s).
   clear failure, not per-unit noise.
 - **Error Handling**: non-zero with the unit and the systemctl error captured.
 
-### FR-002: Inspect daemon service state
+### FR-SERVICE-002: Inspect daemon service state
 
 - **Description**: `status()` reports each unit's running/stopped state;
   `logs(target)` tails its journal.
@@ -47,25 +49,29 @@ against the target unit(s).
   the status path; a missing unit's log → clear "no such unit" note.
 - **Error Handling**: read probes that fail are reported, not raised.
 
-## API Contract
 
-| Operation | Input | Output | Error Shape | impl / intended |
-| `IServiceManager.start` | `target` | `int` | non-zero + unit error | impl |
-| `IServiceManager.stop` | `target` | `int` | non-zero + unit error | impl |
-| `IServiceManager.restart` | `target` | `int` | non-zero | impl |
-| `IServiceManager.status` | — | `int` + table | non-zero | impl |
-| `IServiceManager.logs` | `target` | `int` | non-zero | impl |
+## API Contract
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `ServiceOrchestrator.status` | — | `ExitCode` + table | failed unit → non-zero | unit states | Read-only status of all units |
+| `ServiceOrchestrator.start` | `target: ServiceTarget='all'` | `ExitCode` | non-zero + unit error | — | Start one target or all |
+| `ServiceOrchestrator.stop` | `target: ServiceTarget='all'` | `ExitCode` | non-zero + unit error | — | Stop one target or all |
+| `ServiceOrchestrator.restart` | `target: ServiceTarget='all'` | `ExitCode` | non-zero | — | Restart one target or all |
+| `ServiceOrchestrator.logs` | `target: ServiceTarget='omniroute'` | `ExitCode` | non-zero | log lines | Tail logs for a unit |
+| `ServiceOrchestrator.help` | — | `ExitCode` + usage | — | — | Print CLI usage and valid targets |
 
 ## Integration Points
 
 | System | Direction | Purpose | Failure mode |
+|--------|-----------|---------|--------------|
 | systemd (systemctl) | out | the control plane for the units | no systemd → clear top-level failure |
-| `modules/daemon/deploy/` (units, Containerfile) | in | the artifacts driven | missing unit → per-target row |
-| `modules/root_cli_entry.py` (root) | in | `aa service` | pass-through |
+| daemon deploy assets (units, container definition) | in | the artifacts driven | missing unit → per-target row |
+| root CLI (`aa`) | in | `aa service` | pass-through |
 
 ## Non-functional Requirements
 
 | Metric | Target | Measurement method |
+|--------|--------|--------------------|
 | No false abort | one failing unit in `all` does not stop the others | fan-out reports each unit independently |
 | Read-only status/logs | `status`/`logs` never change unit state | systemctl state unchanged after the call |
 | Target validation | unknown target is a named error, not a crash | `start <bogus>` → error lists valid targets |
@@ -77,12 +83,14 @@ against the target unit(s).
 - `aa service start all` with one missing unit reports that unit and still
   processes the other.
 
+
 ## Assumptions & Constraints
 
 - This module drives existing units; it does not author them (that is the
   daemon feature's deploy assets).
 - systemctl must be present; on a non-systemd host the actions fail clearly at
   the top level.
+
 
 ## Glossary
 

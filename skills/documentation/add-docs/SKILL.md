@@ -65,8 +65,8 @@ Templates, section contracts, exemplars, and per-document craft rules live in [`
 | ------------ | --------------------------------- | ---------------------------- | ------------------------------------ | ------------ | ---------------------------------------------------------------------- |
 | `PRD.md`     | Root workspace                    | Stakeholder, PM, Design, Eng | *What* &amp; *Why*                   | 50–500 lines | [references/HOW-TO-MAKE-PRD.md](references/HOW-TO-MAKE-PRD.md)         |
 | `ROADMAP.md` | Root workspace (exactly one)      | Tech Lead, PM, Engineers     | *Index, policy, workspace condition* | 50–500 lines | [references/HOW-TO-MAKE-ROADMAP.md](references/HOW-TO-MAKE-ROADMAP.md) |
-| `FRD.md`     | Each feature module/crate/pkg     | Engineer, QA, Tech Lead      | *How* (functionally)                 | 50–500 lines | [references/HOW-TO-MAKE-FRD.md](references/HOW-TO-MAKE-FRD.md)         |
-| `BACKLOG.md` | Each feature dir, beside its spec | Engineer, QA, Tech Lead      | *What is true now*                   | 50–500 lines | [references/HOW-TO-MAKE-BACKLOG.md](references/HOW-TO-MAKE-BACKLOG.md) |
+| `FRD.md`     | Each **feature** module/crate/pkg (not `shared/`) | Engineer, QA, Tech Lead      | *How* (functionally)                 | 50–500 lines | [references/HOW-TO-MAKE-FRD.md](references/HOW-TO-MAKE-FRD.md)         |
+| `BACKLOG.md` | Each **feature** dir, beside its spec (not `shared/`) | Engineer, QA, Tech Lead      | *What is true now*                   | 50–500 lines | [references/HOW-TO-MAKE-BACKLOG.md](references/HOW-TO-MAKE-BACKLOG.md) |
 | `README.md`  | Root workspace                    | Developer (new/existing)     | *How to use/run*                     | 50–500 lines | [references/HOW-TO-MAKE-README.md](references/HOW-TO-MAKE-README.md)   |
 | `AGENTS.md`  | Root workspace                    | The agent, every session     | *How to work here safely*            | 50–500 lines | [references/HOW-TO-MAKE-AGENTS.md](references/HOW-TO-MAKE-AGENTS.md)   |
 
@@ -89,7 +89,7 @@ Doc comments on every public item are the sixth deliverable, in the language's n
 
 ## Invariants
 
-Every rule is machine-checked by `aa docs check` (capability: `modules/check/src/capabilities_check_docs.py`, shared engine in `modules/shared/src/utility_doc_pack.py`).
+Every rule is machine-checked by `aa check docs` (capability: `modules/check/src/capabilities_check_docs.py`, shared engine in `modules/shared/src/utility_doc_pack.py`).
 A rule cannot drift from the gate. Cite the code, not this file, when pointing at a rule.
 Each document's required section set is cross-checked against its reference's contract table, so a
 row that stops being enforced is a test failure rather than a silent edit.
@@ -97,12 +97,16 @@ row that stops being enforced is a test failure rather than a silent edit.
 
 | Code                                                                     | Rule                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status-in-spec`                                                         | Spec and status never share a file. Specs promise; backlogs report.                                                                                                                   |
-| `spec-without-backlog` / `backlog-without-spec`                          | A spec and its backlog are a pair in the same directory.                                                                                                                              |
+| `status-in-spec` / `spec-source-path`                                       | Spec and status never share a file. Specs promise; backlogs report. Specs are stateless — no `.py`/`.rs`/`.ts` file names (HOW-TO Rule 9). |
+| `spec-without-backlog` / `backlog-without-spec` / `feature-doc-in-shared` | A spec and its backlog are a pair in the same **feature** directory. Kernel folders (`modules/shared`) are not features: either file under `shared/` fails with `feature-doc-in-shared` (HOW-TO-MAKE-FRD § Scope). |
 | `no-master-backlog` / `undefined-state-vocab` / `master-section-missing` | One root master owns the `State`/`Health` vocabulary, the status policy, the roll-up, in-flight branches and risk (`ROADMAP.md`; legacy root `BACKLOG.md` accepted during migration). |
 | `state-vocab-restated`                                                   | Definitions live once. Feature files cite them, never repeat them.                                                                                                                    |
 | `done-without-evidence` / `unknown-state`                                | Every backlog claim is re-runnable: command + counts + commit hash, and what it excludes.                                                                                             |
 | `duplicate-fr-id` / `orphan-fr-ref`                                      | Requirement IDs are unique, stable, and the only thing a backlog row may cite.                                                                                                        |
+| `fr-id-format` / `fr-fields-missing`                                     | FRD Rule 1–2: `FR-<FEATURENAME>-NNN: <imperative name>`; each FR states Description, Input, Output, Business Rules, Edge Cases, Error Handling.                                         |
+| `api-contract-shape` / `integration-shape` / `nfr-shape`                 | FRD Rule 3/5 + template: API rows are the orchestrator's public methods (`agent_*_orchestrator`); Integration Points and Non-functional tables keep their exact columns and at least one data row. |
+| `reference-crosslink` / `section-order`                                  | FRD Rule 7 + template: Reference links PRD and BACKLOG; sections follow HOW-TO-MAKE-FRD order.                                                                                         |
+| `scenario-empty` / `assumption-empty` / `glossary-empty`                 | FRD Rule 4/6 + template: Test Scenarios, Assumptions, and Glossary each carry bullet items — not empty placeholders.                                                                     |
 | `scenario-without-evidence` / `scenario-evidence-count`                  | Each test scenario in a spec has one evidence row: Automated / Proxy / Manual / Gap.                                                                                                  |
 | `backlog-columns` / `backlog-row-width`                                  | The Backlog table keeps its nine columns.                                                                                                                                             |
 | `*-section-missing`                                                      | Each document carries the sections its audience needs. Section contracts are in the refs.                                                                                             |
@@ -156,10 +160,11 @@ project-root/
 │   │   ├── src/
 │   │   ├── FRD.md     # engineering specs (how) — per feature crate
 │   │   └── BACKLOG.md # feature real condition — beside its spec
-│   └── feature-b/
-│       ├── src/
-│       ├── FRD.md
-│       └── BACKLOG.md
+│   ├── feature-b/
+│   │   ├── src/
+│   │   ├── FRD.md
+│   │   └── BACKLOG.md
+│   └── shared/        # kernel — NO FRD.md / BACKLOG.md (feature-doc-in-shared)
 ```
 
 Same shape for Python `modules/<feature>/` and TypeScript `packages/<feature>/`.
@@ -169,8 +174,8 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 
 ## Workflow
 
-1. **Resolve the repo-root anchor first.** `aa docs check` 
-2. **Analyze**: List feature modules and public items. Run `aa docs check <path>`. The findings are your work list.
+1. **Resolve the repo-root anchor first.** `aa check docs` 
+2. **Analyze**: List feature modules and public items. Run `aa check docs <path>`. The findings are your work list.
 3. **Draft PRD**: Write root `PRD.md` per [references/HOW-TO-MAKE-PRD.md](references/HOW-TO-MAKE-PRD.md).
 4. **Draft Roadmap**: Write root `ROADMAP.md` per [references/HOW-TO-MAKE-ROADMAP.md](references/HOW-TO-MAKE-ROADMAP.md)
 5. **Draft FRDs**: Write `FRD.md` in each feature dir per [references/HOW-TO-MAKE-FRD.md](references/HOW-TO-MAKE-FRD.md).
@@ -182,7 +187,7 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
    [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md),
    [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md) —
    then add type annotations to all signatures.
-10. **Verify**: Run `aa docs check <path> --strict`. Then each touched reference's `Verify` block (including the language doc ref).
+10. **Verify**: Run `aa check docs <path>`. Then each touched reference's `Verify` block (including the language doc ref).
 
 ---
 
@@ -191,9 +196,8 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 ### Machine Checks
 
 ```bash
-aa docs check .                 # invariant audit of every document
-aa docs check . --strict        # warnings become errors — the minimum bar
-aa docs check . --include-subtrees   # also audit vendor/ and internal/ submodules
+aa check docs .                 # invariant audit of every document (strict; every finding gates)
+aa check docs . --include-subtrees   # also audit vendor/ and internal/ submodules
 ```
 
 A pass means no claim sits in the wrong file, no pointer is broken, and no `Done` row is unevidenced.
@@ -216,7 +220,7 @@ Per-language rules, templates, section contracts, and Verify blocks:
 
 ## Pre-flight Checklist
 
-- [ ] `aa docs check <path> --strict` exits 0.
+- [ ] `aa check docs <path>` exits 0.
 - [ ] Every required document exists in the correct directory.
 - [ ] Every `Done` backlog row cites a re-run command, a commit hash, and its exclusions.
 - [ ] Documents serve their exact audience (no cross-contamination).
@@ -238,7 +242,7 @@ The invariant codes above cover the machine-checkable ones. These need a reader:
 
 **Cadence and code surface**
 
-- **Documents "write &amp; forget"**: Re-run `aa docs check` each sprint. Drift is silent.
+- **Documents "write &amp; forget"**: Re-run `aa check docs` each sprint. Drift is silent.
 - **`//` instead of `///` in Rust**: Plain comments are invisible to the doc generator.
 - **Missing module docstrings or undocumented parameters**: The generated API surface stays incomplete.
 

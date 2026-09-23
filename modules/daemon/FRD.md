@@ -3,27 +3,29 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
+
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
 
+
 ## System Overview
 
 The daemon feature manages two gateway services: OmniRoute (host-native, no
-container) and Anytype headless (Podman). `agent_daemon_orchestrator.py`
-dispatches to `capabilities_omniroute_daemon.py` and
-`capabilities_anytype_daemon.py`, each implementing `IDaemonManager`
-(`contract_daemon_protocol.py`: `start`, `stop`, `status`, `logs`, `restart`).
-Deploy assets (`modules/daemon/deploy/`) hold the systemd units and the
-`Containerfile`; XDG config holds per-daemon `.env` secrets.
+container) and Anytype headless (Podman). The daemon orchestrator exposes
+lifecycle operations — start, stop, status, logs, restart — plus systemd
+service install/uninstall/status for each known daemon. Deploy assets hold
+the systemd units and container definition; XDG config holds per-daemon
+environment secrets.
 
-Flow: `aa anytype <action>` / `aa omniroute <action>` → `DaemonOrchestrator` →
-per-daemon capability → systemd/process-manager.
+Flow: `aa anytype <action>` / `aa omniroute <action>` → daemon orchestrator →
+per-daemon manager → systemd/process-manager.
+
 
 ## Functional Requirements
 
-### FR-001: Manage the lifecycle of a daemon
+### FR-DAEMON-001: Manage the lifecycle of a daemon
 
 - **Description**: `start/stop/restart/status/logs` on a daemon capability.
 - **Input**: none (daemon identity is fixed by the capability).
@@ -35,7 +37,7 @@ per-daemon capability → systemd/process-manager.
   reports a clear error; Podman unavailable → non-zero with the error captured.
 - **Error Handling**: non-zero exit with captured stderr; no raw exceptions.
 
-### FR-002: Authorize the Anytype daemon with an API key
+### FR-DAEMON-002: Authorize the Anytype daemon with an API key
 
 - **Description**: `aa anytype auth-key` generates/verifies the API key against
   the daemon and persists it to XDG config.
@@ -47,13 +49,19 @@ per-daemon capability → systemd/process-manager.
   does not crash.
 - **Error Handling**: pre-condition failures are reported messages, exit non-zero.
 
-## API Contract
 
-| Operation | Input | Output | Error Shape | impl / intended |
-|-----------|-------|--------|-------------|------------------------------|
-| `IDaemonManager.start/stop/restart` | — | `int` | non-zero + message | impl |
-| `IDaemonManager.status` | — | `DaemonStatus` | — | impl |
-| `IDaemonManager.logs` | — | `int` | non-zero | impl |
+## API Contract
+| Method | Input | Output | Error | Event | Description |
+|---|---|---|---|---|---|
+| `DaemonOrchestrator.known_daemons` | — | `tuple[str, …]` | — | — | Canonical daemon ids the orchestrator manages |
+| `DaemonOrchestrator.start_daemon` | `name: DaemonName` | `ExitCode` | non-zero + podman/unit error | — | Start one daemon container/unit |
+| `DaemonOrchestrator.stop_daemon` | `name: DaemonName` | `ExitCode` | non-zero | — | Stop one daemon |
+| `DaemonOrchestrator.status_daemon` | `name: DaemonName` | `DaemonStatus` | absent → unknown status value | — | Report running/absent state |
+| `DaemonOrchestrator.logs_daemon` | `name: DaemonName` | `ExitCode` | non-zero | log lines | Tail daemon logs |
+| `DaemonOrchestrator.restart_daemon` | `name: DaemonName` | `ExitCode` | non-zero | — | Restart one daemon |
+| `DaemonOrchestrator.service_install` | `name: DaemonName` | `ExitCode` | non-zero + systemd error | — | Install the daemon's systemd unit |
+| `DaemonOrchestrator.service_uninstall` | `name: DaemonName` | `ExitCode` | non-zero | — | Remove the daemon's systemd unit |
+| `DaemonOrchestrator.service_status` | `name: DaemonName` | `ExitCode` | non-zero | unit state | Report unit install/active state |
 
 ## Integration Points
 
@@ -62,7 +70,7 @@ per-daemon capability → systemd/process-manager.
 | Podman | out | run the 9Router / Anytype containers | podman missing → non-zero |
 | systemd units + Containerfile (`daemon/deploy/`) | in | deployment artifacts | missing unit → start fails |
 | XDG config (per-daemon `.env`) | in | secrets, endpoint | missing key → `auth-key` pre-condition |
-| `modules/root_cli_entry.py` (root) | in | `aa anytype` / `aa 9router` | pass-through |
+| root CLI (`aa`) | in | `aa anytype` / `aa omniroute` | pass-through |
 
 ## Non-functional Requirements
 
@@ -77,11 +85,13 @@ per-daemon capability → systemd/process-manager.
 - `aa anytype status` when the daemon is absent reports unknown, exit 0.
 - `auth-key` writes the key to XDG config and never to the repo tree.
 
+
 ## Assumptions & Constraints
 
 - Only 9Router and Anytype are containerized (container-isolation invariant);
   every other tool is bare-metal.
 - Secrets live in XDG config or `.env`, referenced by name, never committed.
+
 
 ## Glossary
 

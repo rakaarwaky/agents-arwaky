@@ -204,3 +204,7 @@ Use `python scripts/health_check.py` to run the whole list at once. Manual:
 | `references/rest-api.md` | REST + WebSocket endpoints and payload schemas |
 | `references/workflow-format.md` | API-format JSON, node types, param mapping |
 | `references/template-integrity.md` | Converting official templates from editor to API format |
+
+## Scripts
+
+- `_common.py`

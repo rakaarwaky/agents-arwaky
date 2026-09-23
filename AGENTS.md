@@ -127,14 +127,14 @@ The verification checks:
 
 ### Document invariants
 
-Enforced by `modules/check/src/capabilities_check_docs.py` (engine: `modules/shared/src/utility_doc_pack.py`), run inside `aa check`, or directly with
-`aa docs check [path] [--strict] [--include-subtrees]`. `error` gates `aa check`; `--strict`
-also gates warnings. The canonical wording of every rule, keyed by finding code, is
+Enforced by `modules/check/src/capabilities_check_docs.py` (engine: `modules/shared/src/utility_doc_pack.py`), run inside `aa check` / `aa check docs`, or directly with
+`aa check docs [path] [--include-subtrees] [--json]`. Every finding gates `aa check`,
+warning-level included — there is no advisory tier and no `--strict` flag. The canonical wording of every rule, keyed by finding code, is
 `skills/documentation/add-docs/SKILL.md` § Invariants — change one, change the other.
 
 ### Skill-pack loadability invariants
 
-Enforced by `modules/skill/src/capabilities_skill_pack.py` and reported by both `aa check` and `aa skill check`:
+Enforced by `modules/skill/src/capabilities_skill_pack.py` and reported by both `aa check` / `aa check skill` and `aa skill check`:
 
 1. **Layout** — every skill is exactly `skills/<category>/<skill>/SKILL.md`. A harness
    scans one level below a skills root, so anything flatter or deeper never loads.
@@ -161,14 +161,14 @@ that the pack no longer provides. It only removes entries carrying
 |---|---|
 | **Diagnose environment** | `aa doctor` |
 | **Check tool readiness** | `aa status` |
-| **Verify repository integrity** | `aa check` |
+| **Verify repository integrity** | `aa check` (or `aa check docs` / `aa check skill`) |
 | **List registered tools** | `aa tool list` |
 | **List active MCP servers** | `aa mcp list` |
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
 | **Execute registered tool** | `aa tool run <tool-id> [args]` |
 | **Audit per-tool skill coverage** | `aa skill check` |
-| **Audit document invariants** | `aa docs check [path] [--strict]` |
+| **Audit document invariants** | `aa check docs [path] [--include-subtrees] [--json]` |
 | **Provision skills into a project** | `aa skill install <tool\|skill\|all> [--target DIR]` |
 | **Prune stale provisioned skills** | `aa skill install --prune [--target DIR]` |
 | **Install tools (local native build)** | `aa tool install [tool]` |

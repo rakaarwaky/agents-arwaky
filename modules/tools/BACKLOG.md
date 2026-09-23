@@ -32,19 +32,19 @@ Last Updated: 2026-09-19
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| TOL-01 | FR-001..004 | Unified tools feature (4 modules → 1) | P0 | Done | 4 protocol classes, 8 action capability files, 13 plain-class adapters (mechanics via `utility_tool_mechanics`), orchestrator + surface + root container all present; old modules deleted; `root_cli_entry.py` repointed. Evidence: `python3 -m compileall -q modules/tools/` → COMPILE_OK; `python3 -c "import modules.tools"` → import OK; verified at commit `b44f139` (2026-09-19). | @raka | None | 2026-09-19 |
-| TOL-02 | FR-004 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
-| TOL-03 | FR-003 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
-| TOL-04 | FR-001..004 | Fold 8 capability files → 4 action classes | P2 | Done | `capabilities_tools_{provisioner,launcher,bumper,recorder,remover,verifier,discoverer,executor}.py` merged into `capabilities_tools_{installer,updater,uninstaller,runner}.py`; orchestrator + root container rewired through `IToolAdapterFacade`. Adapter consolidation: 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py` deleted, mechanics inlined into `capabilities_tools_adapter.py` (AES301 exception registered in `lint_arwaky.config.yaml`). Gate: `python3 -m compileall -q modules/` + `python3 -m modules.root_cli_entry check`. Evidence: both re-run at commit `63921af` → COMPILE_OK + All verifications PASSED (2026-09-20). | @raka | TOL-01 | 2026-09-20 |
+| TOL-01 | FR-TOOLS-001..004 | Unified tools feature (4 modules → 1) | P0 | Done | 4 protocol classes, 8 action capability files, 13 plain-class adapters (mechanics via `utility_tool_mechanics`), orchestrator + surface + root container all present; old modules deleted; `root_cli_entry.py` repointed. Evidence: `python3 -m compileall -q modules/tools/` → COMPILE_OK; `python3 -c "import modules.tools"` → import OK; verified at commit `b44f139` (2026-09-19). | @raka | None | 2026-09-19 |
+| TOL-02 | FR-TOOLS-004 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified. | @raka | TOL-01 | 2026-09-19 |
+| TOL-03 | FR-TOOLS-003 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units. | @raka | TOL-01 | 2026-09-19 |
+| TOL-04 | FR-TOOLS-001..004 | Fold 8 capability files → 4 action classes | P2 | Done | `capabilities_tools_{provisioner,launcher,bumper,recorder,remover,verifier,discoverer,executor}.py` merged into `capabilities_tools_{installer,updater,uninstaller,runner}.py`; orchestrator + root container rewired through `IToolAdapterFacade`. Adapter consolidation: 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py` deleted, mechanics inlined into `capabilities_tools_adapter.py` (AES301 exception registered in `lint_arwaky.config.yaml`). Gate: `python3 -m compileall -q modules/` + `python3 -m modules.root_cli_entry check`. Evidence: both re-run at commit `63921af` → COMPILE_OK + All verifications PASSED (2026-09-20). | @raka | TOL-01 | 2026-09-20 |
 
 ## Scenario Evidence (rows)
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| FR-001 Install: run twice → second is a no-op; dry-run leaves the filesystem untouched. | Gap | — | not yet asserted on a clean host | unverified |
-| FR-002 Update: pin satisfied → skip; unsatisfied → bump + record; re-record is a no-op. | Gap | — | not yet asserted on a clean host | unverified |
-| FR-003 Uninstall: clean removal; active daemon unit → named residual, never force-killed. | Gap | — | TOL-03 residual sweep pending | unverified |
-| FR-004 Run: exit-code fidelity across 0/1/127; vanished executable → sentinel 126; unknown id → typed error before any capability; alias → resolved spec. | Manual | — | TOL-02 clean-host `aa tool run` sweep | unverified |
+| FR-TOOLS-001 Install: run twice → second is a no-op; dry-run leaves the filesystem untouched. | Gap | — | not yet asserted on a clean host | unverified |
+| FR-TOOLS-002 Update: pin satisfied → skip; unsatisfied → bump + record; re-record is a no-op. | Gap | — | not yet asserted on a clean host | unverified |
+| FR-TOOLS-003 Uninstall: clean removal; active daemon unit → named residual, never force-killed. | Gap | — | TOL-03 residual sweep pending | unverified |
+| FR-TOOLS-004 Run: exit-code fidelity across 0/1/127; vanished executable → sentinel 126; unknown id → typed error before any capability; alias → resolved spec. | Manual | — | TOL-02 clean-host `aa tool run` sweep | unverified |
 
 ## Blockers
 

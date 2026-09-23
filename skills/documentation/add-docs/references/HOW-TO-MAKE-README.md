@@ -103,6 +103,6 @@ reason.
 ## Verify
 
 ```bash
-aa docs check . --strict
+aa check docs .
 # Checks: readme-section-missing, dead-link, absolute-path, secret-in-docs, doc-length.
 ```
