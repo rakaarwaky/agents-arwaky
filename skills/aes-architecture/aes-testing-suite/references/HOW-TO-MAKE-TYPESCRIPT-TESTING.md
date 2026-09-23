@@ -22,7 +22,7 @@
 ### Naming rules
 
 Pattern: `<type>_<subject>.ts` in `tests/`, `bench_<subject>.ts` in `benches/`.
-Prefixes: `contract_`, `unit_`, `integration_`, `smoke_`, `e2e_`, `acceptance_`, `bench_`.
+Prefixes: `contract_`, `unit_`, `integration_`, `dogfood_`, `smoke_`, `e2e_`, `acceptance_`, `bench_`.
 
 ### Language rules
 
@@ -45,7 +45,7 @@ Prefixes: `contract_`, `unit_`, `integration_`, `smoke_`, `e2e_`, `acceptance_`,
 
 1. Analyze package / app structure.
 2. Write `tests/contract_<package>.ts`, `tests/unit_<package>_<module>.ts`, `tests/integration_<package>.ts`.
-3. Write `tests/smoke_<app>.ts`, `tests/e2e_<flow>.ts`, `tests/acceptance_<FRD_ID>.ts`.
+3. Write `tests/dogfood_<pipeline>.ts` (requires live session), then `tests/smoke_<app>.ts`, `tests/e2e_<flow>.ts`, `tests/acceptance_<FRD_ID>.ts`.
 4. Write `benches/bench_<subject>.ts`.
 5. Run `npx vitest run`, then verify coverage targets met.
 
@@ -63,6 +63,7 @@ packages/<name>/
 │   ├── contract_<package>.ts
 │   ├── unit_<package>_<module>.ts
 │   ├── integration_<package>.ts
+│   ├── dogfood_<pipeline>.ts
 │   ├── smoke_<app>.ts
 │   ├── e2e_<flow>.ts
 │   └── acceptance_<FRD_ID>.ts
@@ -97,6 +98,8 @@ export default defineConfig({
 | Contract test proves class/interface implementation exists. | Catches unimplemented seams before behaviour tests. |
 | Unit tests cover happy path, edge cases, and error paths. | The baseline every PR must carry. |
 | Integration test builds the real DI wiring; e2e asserts on real output. | Proves composition, not mocks. |
+| Dogfood test runs against live service/session; skips when unavailable. | Real-end-to-end validation without mocks; CI-safe with skipif. |
+| Dogfood test runs against live service/session; skips when unavailable. | Real-end-to-end validation without mocks; CI-safe with skipif. |
 | Acceptance tests reference FRD/PRD IDs; smoke runs in <5s. | Requirement traceability plus a fast boot gate. |
 | `vitest.config.ts` includes `tests/`, excludes `benches/`. | Test runs and benchmark runs never mix. |
 | Benchmarks use `vitest/benchmark`, not manual timing loops. | Comparable, stable numbers across runs. |

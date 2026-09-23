@@ -22,7 +22,7 @@
 ### Naming rules
 
 Pattern: `<type>_<subject>.py` in `tests/`, `bench_<subject>.py` in `benches/`.
-Prefixes: `contract_`, `unit_`, `integration_`, `smoke_`, `e2e_`, `acceptance_`, `bench_`.
+Prefixes: `contract_`, `unit_`, `integration_`, `dogfood_`, `smoke_`, `e2e_`, `acceptance_`, `bench_`.
 
 ### Language rules
 
@@ -45,7 +45,7 @@ Prefixes: `contract_`, `unit_`, `integration_`, `smoke_`, `e2e_`, `acceptance_`,
 
 1. Analyze module / app structure.
 2. Write `tests/contract_<module>.py`, `tests/unit_<module>_<subject>.py`, `tests/integration_<module>.py`.
-3. Write `tests/smoke_<app>.py`, `tests/e2e_<flow>.py`, `tests/acceptance_<FRD_ID>.py`.
+3. Write `tests/dogfood_<pipeline>.py` (requires live session), then `tests/smoke_<app>.py`, `tests/e2e_<flow>.py`, `tests/acceptance_<FRD_ID>.py`.
 4. Write `benches/bench_<subject>.py`.
 5. Run `pytest --tb=short`, then verify coverage targets met.
 
@@ -63,6 +63,7 @@ modules/<name>/
 │   ├── contract_<module>.py
 │   ├── unit_<module>_<subject>.py
 │   ├── integration_<module>.py
+│   ├── dogfood_<pipeline>.py
 │   ├── smoke_<app>.py
 │   ├── e2e_<flow>.py
 │   └── acceptance_<FRD_ID>.py
@@ -82,6 +83,8 @@ modules/<name>/
 | Contract test proves protocol/class implementation exists. | Catches unimplemented seams before behaviour tests. |
 | Unit tests cover happy path, edge cases, and error paths. | The baseline every PR must carry. |
 | Integration test builds the real DI wiring; e2e asserts on real output. | Proves composition, not mocks. |
+| Dogfood test runs against live service/session; skips when unavailable. | Real-end-to-end validation without mocks; CI-safe with skipif. |
+| Dogfood test runs against live service/session; skips when unavailable. | Real-end-to-end validation without mocks; CI-safe with skipif. |
 | Acceptance tests reference FRD/PRD IDs; smoke runs in <5s. | Requirement traceability plus a fast boot gate. |
 | Benchmarks use `pytest-benchmark`, not manual timing loops. | Comparable, stable numbers across runs. |
 | Coverage meets 70/60/50 for capabilities/agent/utility. | Per-layer floor before merge. |

@@ -3,6 +3,7 @@ name: aes-testing-suite
 description: Generates contract to E2E suites plus benches. Use when adding package tests, coverage, perf.
 metadata:
   tags:
+
     - python
     - rust
     - typescript
@@ -18,13 +19,17 @@ metadata:
     - acceptance
     - smoke
     - benchmark
+
   related_skills:
+
     - test-driven-development
     - aes-capabilities
     - aes-agent
     - aes-utility
     - aes-lint-arwaky
+
   triggers:
+
     - create tests
     - create tests python
     - create tests rust
@@ -44,6 +49,7 @@ metadata:
     - benchmark rust
     - benchmark typescript
     - increase coverage
+
 ---
 
 # aes-testing-suite
@@ -64,7 +70,7 @@ Rules, templates, section contracts, and Verify blocks live in the language HOW-
 ### Specialized Test Types
 
 | Type | Description | HOW-TO |
-|------|-------------|--------|
+| ------ | ------------- | -------- |
 | Dogfood / Integration Pipeline | Real end-to-end tests with live sessions/services | [references/HOW-TO-MAKE-DOGFOOD-TESTS.md](references/HOW-TO-MAKE-DOGFOOD-TESTS.md) |
 
 **The test chain:**
@@ -149,8 +155,10 @@ Ask these questions in order. The first "No" dictates your next action.
 pytest --tb=short                                   # Python
 cargo test --workspace                              # Rust
 npx vitest run                                      # TypeScript
+
 # Plus per HOW-TO: pytest-benchmark / cargo bench / vitest bench, and coverage (Python/TS).
-```
+
+```text
 
 A pass means every suite is green. Prefix discipline, real-vs-mock wiring, and FRD/PRD mapping are **manual** — see HOW-TO § Rules.
 
@@ -172,6 +180,7 @@ A machine pass does not mean the suite is right. Requirement coverage, smoke bud
 - [ ] Coverage meets 70/60/50 for capabilities/agent/utility.
 - [ ] Related skills considered for the layer under test.
 
+
 ---
 
 ## Common Mistakes (Anti-Patterns)
@@ -185,6 +194,7 @@ The runner covers green/red. These need a reader (HOW-TO § Rules):
 - **Acceptance tests without FRD/PRD IDs**: requirement traceability is the point.
 - **Restating HOW-TO rules in SKILL.md**: delegate — this file only routes.
 
+
 ---
 
 ## Related Skills
@@ -194,3 +204,4 @@ The runner covers green/red. These need a reader (HOW-TO § Rules):
 - `aes-utility`
 - `aes-lint-arwaky`
 - `test-driven-development`
+

@@ -22,7 +22,7 @@
 ### Naming rules
 
 Pattern: `<type>_<subject>.rs` in `tests/`, `bench_<subject>.rs` in `benches/`.
-Prefixes: `contract_`, `unit_`, `integration_`, `smoke_`, `e2e_`, `acceptance_`, `bench_`.
+Prefixes: `contract_`, `unit_`, `integration_`, `dogfood_`, `smoke_`, `e2e_`, `acceptance_`, `bench_`.
 
 ### Language rules
 
@@ -45,7 +45,7 @@ Prefixes: `contract_`, `unit_`, `integration_`, `smoke_`, `e2e_`, `acceptance_`,
 
 1. Analyze crate / app structure.
 2. Write `tests/contract_<crate>.rs`, `tests/unit_<crate>_<module>.rs`, `tests/integration_<crate>.rs`.
-3. Write `tests/smoke_<app>.rs`, `tests/e2e_<flow>.rs`, `tests/acceptance_<FR_id>.rs`.
+3. Write `tests/dogfood_<pipeline>.rs` (requires live session), then `tests/smoke_<app>.rs`, `tests/e2e_<flow>.rs`, `tests/acceptance_<FR_id>.rs`.
 4. Write `benches/bench_<subject>.rs` + register in `Cargo.toml`.
 5. Run `cargo test --workspace`, then verify coverage targets met.
 
@@ -94,6 +94,8 @@ Registering a benchmark requires the `[[bench]]` block above **and** workflow st
 | Contract test proves trait implementation exists. | Catches unimplemented seams before behaviour tests. |
 | Unit tests cover happy path, edge cases, and error paths. | The baseline every PR must carry. |
 | Integration test builds the real DI wiring; e2e asserts on real output. | Proves composition, not mocks. |
+| Dogfood test runs against live service/session; skips when unavailable. | Real-end-to-end validation without mocks; CI-safe with skipif. |
+| Dogfood test runs against live service/session; skips when unavailable. | Real-end-to-end validation without mocks; CI-safe with skipif. |
 | Acceptance tests reference FRD/PRD IDs; smoke runs in <5s. | Requirement traceability plus a fast boot gate. |
 | Benchmarks use `criterion` + `[[bench]]` registered in `Cargo.toml`. | Comparable, stable numbers; `cargo bench` discovers the target. |
 | Coverage meets 70/60/50 for capabilities/agent/utility. | Per-layer floor before merge. |
