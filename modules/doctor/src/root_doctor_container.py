@@ -20,6 +20,6 @@ class DoctorContainer:
         return self._orchestrator
 
 
-def create_doctor_feature() -> DoctorOrchestrator:
+def create_doctor_feature() -> IDoctorAggregate:
     """Fully-wired doctor feature aggregate (diagnose/readiness/report)."""
     return DoctorContainer().aggregate
