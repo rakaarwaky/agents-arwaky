@@ -19,7 +19,7 @@ can authenticate.
 |---|---|---|---|
 | MCP servers | merged server map | harness settings/config file | whether those commands start |
 | Skills | the whole skills dir becomes ONE symlink to `agents-arwaky/skills/` (verified harnesses: hermes, qwencode, opencode; per-skill copies elsewhere) | `<harness>/skills` | named-profile skill dirs |
-| Env | `OMNIROUTE_URL`, `OMNIROUTE_KEY`, `MNEMOSYNE_DATA_DIR` | `<harness>/.env` + `~/.config/environment.d/omniroute.conf` | the harness's own provider/model config |
+| Env | `NINEROUTER_URL`, `NINEROUTER_KEY`, `MNEMOSYNE_DATA_DIR` | `<harness>/.env` + `~/.config/environment.d/9router.conf` | the harness's own provider/model config |
 
 Code: `modules/harness/src/surface_harness_command.py` (dispatch),
 `modules/harness/src/utility_*_adapter.py` (per-harness),
@@ -29,7 +29,7 @@ skill root linking), `modules/config/src/capabilities_config_engine.py`
 
 ## Golden rule: env != provider binding
 
-`inject_omniroute_env` only writes `<harness>/.env`. Most harnesses resolve a
+`inject_9router_env` only writes `<harness>/.env`. Most harnesses resolve a
 provider credential as `process.env[envKey]` where `envKey` comes from the
 provider entry in their settings file. If that entry points at a different
 variable — typically a key captured earlier by the harness's interactive
@@ -44,21 +44,21 @@ already present in the process environment, and the systemd user session injects
 `~/.config/environment.d/*.conf` exports into EVERY new terminal at login. After
 a router-key rotation, every terminal in that session carries the dead export
 while all on-disk files look right and the agent's own headless tests pass (they
-spawn from a different environment). `inject_omniroute_env` syncs environment.d
+spawn from a different environment). `inject_9router_env` syncs environment.d
 too; if that file exists and connect has not re-run since the rotation, that is
 the 401 — not a stale harness session.
 
 ## Debug sequence for a 401 / auth failure
 
 1. Enumerate every key the harness could be sending — grep the harness home for
-   `OMNIROUTE_KEY`, `API_KEY`, `envKey`, and any inline key the wizard stored:
+   `NINEROUTER_KEY`, `API_KEY`, `envKey`, and any inline key the wizard stored:
    `grep -rn 'sk-' ~/.<harness>/settings.json ~/.<harness>/.env`. Also capture
-   what a fresh login shell actually exports — `bash -lc 'echo $OMNIROUTE_KEY'`
-   and `systemctl --user show-environment | grep OMNIROUTE` — and compare the
+   what a fresh login shell actually exports — `bash -lc 'echo $NINEROUTER_KEY'`
+   and `systemctl --user show-environment | grep NINEROUTER` — and compare the
    prefix against the live key; an inherited export beats the `.env` file.
-2. Find the authoritative live key: `~/.omniroute/.env`
+2. Find the authoritative live key: `~/.config/agents-arwaky/ninerouter.env`
    (`get_9router_credentials()` in `capabilities_harness_connector.py` reads
-   env candidates, then `~/.omniroute/.env`). Treat `sk-your-9router-consumer-key-here` and
+   env candidates, then `~/.config/agents-arwaky/ninerouter.env`). Treat `sk-your-9router-consumer-key-here` and
    `<YOUR_API_KEY>` as placeholders (`_PLACEHOLDER_KEYS` in
    `capabilities_harness_connector.py`).
 3. Probe each candidate key against the router directly. Only the live one
@@ -69,12 +69,12 @@ the 401 — not a stale harness session.
    curl -s -o /tmp/r.json -w '%{http_code}\n' -X POST \
      http://127.0.0.1:20128/v1/chat/completions \
      -H 'Content-Type: application/json' -H "Authorization: Bearer $KEY" \
-     -d '{"model":"omniroute","messages":[{"role":"user","content":"ping"}],"max_tokens":5}'
+     -d '{"model":"my9router","messages":[{"role":"user","content":"ping"}],"max_tokens":5}'
 
 ```text
 
 4. Fix the BINDING, not just the key value: point the provider entry's `envKey`
-   at the variable the connector actually maintains (`OMNIROUTE_KEY`), and
+   at the variable the connector actually maintains (`NINEROUTER_KEY`), and
    delete the wizard's inline copy so it can never shadow `.env` again after a
    key rotation. Rewriting only the stale value re-breaks on the next rotation.
 5. Verify end to end by running the harness headless, not by re-reading config:
