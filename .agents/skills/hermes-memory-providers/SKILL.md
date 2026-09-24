@@ -1,0 +1,263 @@
+---
+name: hermes-memory-providers
+description: Configures Mnemosyne memory for Hermes Agent. Use when setting SQLite vector memory provider.
+metadata:
+  tags:
+    - hermes
+    - memory
+    - mnemosyne
+    - plugins
+    - setup
+  related_skills:
+    - mnemosyne
+    - hermes-agent
+    - agent-harness-connectors
+---
+
+# Mnemosyne — Hermes Memory Provider
+
+Mnemosyne is a local-first memory layer for AI agents. When deployed as a
+Hermes memory provider, it replaces the built-in MEMORY.md/USER.md system with
+SQLite-backed vector + FTS5 hybrid search, episodic consolidation, temporal
+knowledge graphs, and optional bidirectional sync.
+
+**100% local. Zero cloud.**
+
+## What It Gives You
+
+- **System prompt injection** — `# Mnemosyne Memory` context block in every prompt
+- **Pre-turn prefetch** — relevant memories injected before each LLM call
+- **Post-turn sync** — conversation turns auto-stored to episodic memory
+- **Tools** auto-injected into the model's tool surface: the `mnemosyne_*` core
+  family (remember, recall, update, invalidate, forget, triples, graph,
+  scratchpad, stats, sleep, export/import, diagnose, hygiene) **plus**
+  provider-only `mnemosyne_sync_*` and `mnemosyne_persona_*` tools that MCP does
+  not register. Do not quote a tool count — the set grows between releases;
+  enumerate it (`hermes tools`, or what your client exposes) and read
+  `integrations/hermes/src/mnemosyne_hermes/plugin.yaml` in the checkout for the
+  authoritative list.
+- **3 lifecycle hooks** — `pre_llm_call`, `on_session_start`, `post_tool_call`
+- **CLI commands** — `hermes mnemosyne {stats|sleep|inspect|export|import|clear|version}`
+
+All without touching Hermes core — deployed purely through the plugin directory.
+
+## Quick Check
+
+```bash
+hermes memory status     # See active provider and installed plugins
+
+```text
+
+## Install
+
+### Step 1 — Install the package
+
+```bash
+pip install mnemosyne-hermes
+
+```text
+
+Debian/Trixie users (bare pip blocked): use a venv first:
+
+```bash
+python3 -m venv ~/.hermes/hermes-agent/venv
+source ~/.hermes/hermes-agent/venv/bin/activate
+pip install mnemosyne-hermes
+
+```text
+
+`mnemosyne-hermes` wraps the core `mnemosyne-memory` library with the plugin
+manifest and entry points Hermes needs. It does not pull embeddings or LLM
+deps — pair it with one of:
+
+| Extra | When | RAM |
+|-------|------|-----|
+| *(core only)* | Raspberry Pi, remote embedding API | ~50 MB |
+| `mnemosyne-memory[embeddings]` | Local vector search (fastembed ONNX) | ~800 MB |
+| `mnemosyne-memory[all]` | Local embeddings + local LLM consolidation | ~1.5 GB |
+
+### Step 2 — Link the plugin
+
+```bash
+mnemosyne-hermes install
+
+```text
+
+This creates the symlink `~/.hermes/plugins/mnemosyne/ → <installed package>`
+so Hermes discovers it on startup.
+
+**Docker / read-only venv** — use persistent wrapper mode so the plugin
+survives image rebuilds:
+
+```bash
+mnemosyne-hermes install --mode wrapper --python /path/to/venv/bin/python --hermes-home /opt/data
+mnemosyne-hermes status --hermes-home /opt/data
+hermes gateway restart
+
+```text
+
+### Step 3 — Activate
+
+```bash
+hermes config set memory.provider mnemosyne
+hermes memory setup
+
+```text
+
+### Step 4 — (Optional) Disable built-in memory
+
+Mnemosyne is additive by default — the built-in MEMORY.md/USER.md keeps
+running alongside it. To make Mnemosyne the sole memory system, edit
+`~/.hermes/config.yaml`:
+
+```yaml
+memory:
+  memory_enabled: false
+  user_profile_enabled: false
+
+```text
+
+Do **NOT** run `hermes tools disable memory` — that also kills all 20
+Mnemosyne-registered tools.
+
+### Step 5 — Verify
+
+```bash
+hermes memory status       # Should show "Provider: mnemosyne"
+hermes mnemosyne stats     # Working + episodic memory counts
+
+```text
+
+Test in a conversation:
+
+```bash
+hermes chat -q "Remember that I love apples. What do I love?"
+
+```text
+
+You should see `mnemosyne_remember` and `mnemosyne_recall` calls succeed.
+
+> If `hermes mnemosyne stats` gives "invalid choice: 'mnemosyne'", the plugin
+> CLI registration didn't load. Use `hermes hermes-mnemosyne stats` as a
+> fallback, or re-run Step 2 to relink.
+
+## MCP vs. Provider Plugin
+
+Mnemosyne ships an MCP server (`mnemosyne mcp`, stdio + SSE + Streamable HTTP
+transports) that exposes the `mnemosyne_*` tool family — usable with any
+MCP-compatible client (Claude Desktop, etc.):
+
+```bash
+mnemosyne mcp                              # stdio transport
+mnemosyne mcp --transport sse --port 8080  # SSE transport
+mnemosyne mcp --transport streamable-http --port 8080  # native MCP http transport
+
+```text
+
+**For Hermes, prefer the provider plugin over MCP.** The provider plugin
+gives deeper integration that MCP cannot: the `pre_llm_call` context
+injection hook, `on_session_start` initialization, `post_tool_call` memory
+capture, and the `hermes mnemosyne` CLI subcommands. MCP is a generic
+fallback for non-Hermes agents.
+
+## Switching Back
+
+```bash
+hermes memory off          # Disable external provider, revert to built-in
+hermes memory setup        # Or use the interactive picker
+
+```text
+
+Or manually:
+
+```bash
+hermes config set memory.provider memory
+
+```text
+
+Then restart Hermes.
+
+## CLI Commands
+
+```bash
+hermes mnemosyne stats                # Current session stats
+hermes mnemosyne stats --global       # Stats across all sessions
+hermes mnemosyne inspect "query"      # Search memories
+hermes mnemosyne sleep                # Run consolidation (working → episodic)
+hermes mnemosyne export --output backup.json
+hermes mnemosyne import --input backup.json
+hermes mnemosyne clear                # Clear scratchpad
+hermes mnemosyne version              # Show version
+
+```text
+
+## Data Location
+
+The provider's own default is under the Hermes home, so each install (and each
+`--hermes-home`, e.g. Docker's `/opt/data`) is isolated:
+
+```text
+<hermes_home>/mnemosyne/
+└── data/
+    ├── mnemosyne.db              # Main SQLite database (WAL mode)
+    ├── triples.db                # Standalone TripleStore
+    └── banks/<name>/mnemosyne.db # Named banks (per-profile isolation, off by default)
+
+```text
+
+`MNEMOSYNE_DATA_DIR` overrides that default, and `aa connect` writes it into each
+Hermes profile's `.env` — so on a host wired up that way the store is the plain
+XDG one the CLI uses, and this directory may not exist at all. **Never assume;
+ask the install:**
+
+```bash
+mnemosyne config get data_dir          # the path actually resolved
+ls ~/.hermes/mnemosyne ~/.local/share/mnemosyne 2>&1
+
+```text
+
+On this host the store is `~/.local/share/mnemosyne/` and there is **no**
+`~/.hermes/mnemosyne/`. See the `mnemosyne` skill for the layout of that
+directory (banks, surface DB, `config.yaml` and its precedence rules).
+
+Persists across sessions via the Hermes home (including on ephemeral VMs like
+Fly.io) — unless the provider was installed in wrapper mode, in which case the
+data dir lives where `--hermes-home` points.
+
+## Optional: Host LLM Routing
+
+Mnemosyne's consolidation (`sleep`) and fact extraction can use a local GGUF or
+a remote OpenAI-compatible API. Hermes users with OAuth-backed providers
+(e.g. `openai-codex`) can route those LLM calls through Hermes' authenticated
+auxiliary client instead — no extra credentials needed:
+
+```bash
+export MNEMOSYNE_HOST_LLM_ENABLED=true
+
+```text
+
+Remember the precedence trap: a key already pinned in `config.yaml` outranks
+this env var. Check the effective value with `mnemosyne config get <key>` (the
+`config` verb is hidden from `--help` but works) and hot-reload with
+`mnemosyne config reload`.
+
+## Troubleshooting
+
+| Symptom | Cause / Fix |
+|---------|-------------|
+| `hermes memory status` shows built-in only | Provider not loaded; restart Hermes after install. |
+| Plugin listed but `unavailable` | Missing Python deps in Hermes' venv; `pip install mnemosyne-hermes` in that venv. |
+| `hermes mnemosyne stats` → "invalid choice" | Plugin CLI registration didn't load; use `hermes hermes-mnemosyne stats` or relink (Step 2). |
+| Memory not recalled across sessions | Provider loaded but session didn't restart; new sessions pick up the provider. |
+| `mnemosyne_hermes` import error in Docker | Use wrapper mode: `mnemosyne-hermes install --mode wrapper --python <venv>/bin/python`. |
+| Nothing persists / the DB you expected is empty | You are looking at a different data dir. Run `mnemosyne doctor` and read the path it prints — see Data Location above. |
+
+## References
+
+- `mnemosyne` skill — the tool surface, the CLI, storage paths, and the rule for
+  which store durable memory belongs in on each harness.
+- `references/repo-dev.md` in the `mnemosyne` skill (see `mnemosyne` skill's `references/repo-dev.md`) — BEAM schema, the
+  sync/surface data model, and the provider's `skip_contexts` gating.
+- `hermes-agent` skill — general Hermes setup, config, and plugin system.
+- `agent-harness-connectors` skill — how `aa connect` registers the MCP server
+  and injects `MNEMOSYNE_*` env for each harness.
