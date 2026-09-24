@@ -28,6 +28,9 @@ from modules.shared.src.taxonomy_skill_vo import (
 
 MANIFEST = REPO_ROOT / "config" / "manifest.json"
 PACK_ROOT = REPO_ROOT / "skills"
+# Companion dirs linked from SKILL.md; keep in sync with harness _ASSET_DIRS
+# so relative references/ (etc.) resolve after project provisioning.
+_ASSET_DIRS = ("scripts", "references", "resources", "examples", "templates", "assets")
 
 
 def get_registered_tool_ids():
@@ -48,7 +51,7 @@ def normalize_tool_id(query):
     """Resolve alias -> canonical tool id. Returns None if unknown."""
     alias = {
         "lint": "lint", "lint-arwaky": "lint", "la": "lint", "lac": "lint",
-        "omniroute": "omniroute",
+        "9router": "9router",
         "ponytail": "ponytail", "ponytail-mcp": "ponytail",
         "context7": "context7", "context7-mcp": "context7",
         "codegraph": "codegraph", "codegraph-mcp": "codegraph",
@@ -231,7 +234,8 @@ def provision_single_skill(source_file, target_dir, custom_dest="", force=False,
     if dest_dir.is_dir() and not dest_dir.is_symlink():
         if not link:
             if dest_file.exists() and not force:
-                print(f"  \u21b7 [SKIP] Already exists: {dest_file} (use --force to overwrite)")
+                _copy_skill_assets(src_dir, dest_dir)
+                print(f"  ↷ [SKIP] Already exists: {dest_file} (use --force to overwrite)")
                 return False
         elif not _dir_is_empty(dest_dir) and not copy_matches_pack(dest_dir, src_dir) and not force:
             print(f"  \u26a0 {dest_dir} differs from the pack; left as a copy (not relinked). "
@@ -252,11 +256,22 @@ def provision_single_skill(source_file, target_dir, custom_dest="", force=False,
 
     dest_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source_file, dest_file)
+    _copy_skill_assets(src_dir, dest_dir)
     # Provenance is what makes `--prune` safe: it separates our copies from
     # hand-written skills. Links need none — the link already points at the pack.
     write_provenance(dest_dir, source_file, PACK_ROOT)
-    print(f"  \u2713 [OK] Provisioned: {dest_file}")
+    print(f"  ✓ [OK] Provisioned: {dest_file}")
     return True
+
+
+def _copy_skill_assets(src_dir: Path, dest_dir: Path) -> None:
+    """Copy pack companion dirs so relative SKILL.md links resolve in the copy."""
+    for extra in _ASSET_DIRS:
+        e = src_dir / extra
+        if not e.is_dir():
+            continue
+        shutil.rmtree(dest_dir / extra, ignore_errors=True)
+        shutil.copytree(e, dest_dir / extra)
 
 
 def _dir_is_empty(d: Path) -> bool:
