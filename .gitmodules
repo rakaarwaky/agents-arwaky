@@ -42,7 +42,7 @@
 	path = vendor/mnemosyne
 	url = https://github.com/mnemosyne-oss/mnemosyne.git
 	ignore = dirty
-[submodule "vendor/omniroute"]
-	path = vendor/omniroute
-	url = https://github.com/diegosouzapw/OmniRoute.git
+[submodule "vendor/9router"]
+	path = vendor/9router
+	url = https://github.com/decolua/9router.git
 	ignore = dirty
