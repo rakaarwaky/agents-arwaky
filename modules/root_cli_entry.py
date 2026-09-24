@@ -35,6 +35,7 @@ import sys
 import textwrap
 from pathlib import Path
 
+from modules.shared.src.utility_git_submodule import init_submodules
 from modules.shared.src.utility_paths_resolver import repo_root
 from modules.shared.src.utility_process_runner import run_cmd as _run_cmd_util
 
@@ -184,7 +185,7 @@ def cmd_help(argv: list[str]) -> int:
     print()
     print(f"{BOLD()}SERVICES & DAEMONS:{RESET()}")
     print(f"  {GREEN()}anytype{RESET()} <cmd>                  Anytype daemon (start|stop|status|auth-key|...)")
-    print(f"  {GREEN()}omniroute{RESET()} <cmd>                 OmniRoute daemon (start|stop|status|models|...)")
+    print(f"  {GREEN()}9router{RESET()} <cmd>                  9Router daemon (start|stop|status|models|...)")
     print(f"  {GREEN()}service{RESET()} <cmd>                  Service manager (start|stop|restart|status|logs)")
     print()
     print(f"{BOLD()}DATA MANAGEMENT:{RESET()}")
@@ -364,7 +365,7 @@ def cmd_install(argv: list[str]) -> int:
             warn("Aborted.")
             return 1
     print(f"{BOLD()}>>> Installing {target} using per-tool Python installers...{RESET()}")
-    rc = run_cmd(["git", "-C", str(repo_root()), "submodule", "update", "--init", "vendor/", "internal/"])
+    rc = init_submodules(repo_root(), ("vendor/", "internal/"))
     if rc != 0:
         err("Submodule init failed. Run 'aa submodules' manually and retry.")
         return rc
@@ -611,17 +612,17 @@ def cmd_anytype(argv: list[str]) -> int:
     return _daemon_anytype(argv)
 
 
-def cmd_omniroute(argv: list[str]) -> int:
+def cmd_9router(argv: list[str]) -> int:
     from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.daemon.src.surface_daemon_command import (
-        cmd_omniroute as _daemon_omniroute,
+        cmd_9router as _daemon_9router,
     )
     from modules.daemon.src.surface_daemon_command import (
         register_manager_factory as _reg_dm,
     )
     _c = DaemonContainer()
-    _reg_dm("omniroute", lambda: _c.omniroute)
-    return _daemon_omniroute(argv)
+    _reg_dm("9router", lambda: _c.ninerouter)
+    return _daemon_9router(argv)
 
 
 def cmd_daemon(argv: list[str]) -> int:
@@ -631,7 +632,7 @@ def cmd_daemon(argv: list[str]) -> int:
     orch = create_daemon_feature()
     if not argv or argv[0] in ("-h", "--help", "help"):
         names = ", ".join(str(n) for n in orch.list_known())
-        print("Usage: aa daemon <omniroute|anytype> <start|stop|restart|status|logs|help>")
+        print("Usage: aa daemon <9router|anytype> <start|stop|restart|status|logs|help>")
         print(f"Known daemons: {names}")
         return 0
     daemon_id = argv[0]
@@ -648,10 +649,10 @@ def cmd_daemon(argv: list[str]) -> int:
     if action == "status":
         from modules.daemon.src.root_daemon_container import DaemonContainer
         from modules.daemon.src.surface_daemon_command import (
-            cmd_anytype as _any,
+            cmd_9router as _ni,
         )
         from modules.daemon.src.surface_daemon_command import (
-            cmd_omniroute as _omni,
+            cmd_anytype as _any,
         )
         from modules.daemon.src.surface_daemon_command import (
             register_manager_factory as _reg_dm,
@@ -659,8 +660,8 @@ def cmd_daemon(argv: list[str]) -> int:
 
         _c = DaemonContainer()
         _reg_dm("anytype", lambda: _c.anytype)
-        _reg_dm("omniroute", lambda: _c.omniroute)
-        fn = _omni if daemon_id == "omniroute" else _any
+        _reg_dm("9router", lambda: _c.ninerouter)
+        fn = _ni if daemon_id == "9router" else _any
         return fn(["status", *rest])
     err(f"Unknown daemon action: {action}")
     print("Valid actions: start, stop, restart, status, logs, help")
@@ -694,7 +695,7 @@ def cmd_check(argv: list[str]) -> int:
 
 def cmd_submodules(argv: list[str]) -> int:
     info("Initializing and updating all submodules...")
-    code = run_cmd(["git", "-C", str(repo_root()), "submodule", "update", "--init", "--recursive", "vendor/", "internal/"])
+    code = init_submodules(repo_root(), ("vendor/", "internal/"), recursive=True)
     if code == 0:
         ok("Submodules ready.")
     return code
@@ -823,7 +824,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
-        "anytype": cmd_anytype, "omniroute": cmd_omniroute, "service": cmd_service,
+        "anytype": cmd_anytype, "9router": cmd_9router, "service": cmd_service,
         "daemon": cmd_daemon,
         "backup": cmd_backup, "restore": cmd_restore,
         # Backward compat aliases → noun action (deprecated, prefer aa tool/aa skill)

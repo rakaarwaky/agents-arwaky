@@ -7,10 +7,10 @@ from typing import NewType
 #: Process or command exit code (0 = success, non-zero = failure).
 ExitCode = NewType("ExitCode", int)
 
-#: Daemon name used as a routing key in the aggregate ("omniroute", "anytype").
+#: Daemon name used as a routing key in the aggregate ("9router", "anytype").
 DaemonName = NewType("DaemonName", str)
 
-#: systemd user-unit filename the unit ops act on ("omniroute.service", ...).
+#: systemd user-unit filename the unit ops act on ("9router.service", ...).
 DaemonUnit = NewType("DaemonUnit", str)
 
 #: Operation token dispatched through ``IDaemonProtocol.execute``.

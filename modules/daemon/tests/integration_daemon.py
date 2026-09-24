@@ -30,16 +30,16 @@ def test_orchestrator_start_anytype():
         assert result == 0
 
 
-def test_orchestrator_stop_omniroute():
-    """IT-DAEMON-003: Orchestrator.stop dispatches to PodmanDaemonManager."""
+def test_orchestrator_stop_9router():
+    """IT-DAEMON-003: Orchestrator.stop dispatches to NinerouterDaemonManager."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.shared.src.taxonomy_daemon_vo import DaemonName
 
     container = DaemonContainer()
     with patch.object(
-        container.omniroute, 'execute', return_value=0
+        container.ninerouter, 'execute', return_value=0
     ) as mock_exec:
-        result = container.aggregate.stop(DaemonName("omniroute"))
+        result = container.aggregate.stop(DaemonName("9router"))
         mock_exec.assert_called_once_with("stop")
         assert result == 0
 
@@ -78,16 +78,16 @@ def test_orchestrator_status_anytype():
         assert result == expected
 
 
-def test_orchestrator_logs_omniroute():
-    """IT-DAEMON-006: Orchestrator.logs dispatches to PodmanDaemonManager."""
+def test_orchestrator_logs_9router():
+    """IT-DAEMON-006: Orchestrator.logs dispatches to NinerouterDaemonManager."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.shared.src.taxonomy_daemon_vo import DaemonName
 
     container = DaemonContainer()
     with patch.object(
-        container.omniroute, 'execute', return_value=0
+        container.ninerouter, 'execute', return_value=0
     ) as mock_exec:
-        result = container.aggregate.logs(DaemonName("omniroute"))
+        result = container.aggregate.logs(DaemonName("9router"))
         mock_exec.assert_called_once_with("logs")
         assert result == 0
 
@@ -113,10 +113,10 @@ def test_orchestrator_remove_unit():
 
     container = DaemonContainer()
     with patch.object(
-        container.omniroute, 'execute', return_value=0
+        container.ninerouter, 'execute', return_value=0
     ) as mock_exec:
-        result = container.aggregate.remove_unit(DaemonUnit("omniroute.service"))
-        mock_exec.assert_called_once_with("remove_unit", unit="omniroute.service")
+        result = container.aggregate.remove_unit(DaemonUnit("9router.service"))
+        mock_exec.assert_called_once_with("remove_unit", unit="9router.service")
         assert result == 0
 
 
@@ -174,12 +174,12 @@ def test_anytype_execute_with_various_ops():
         assert result == expected
 
 
-def test_podman_execute_with_various_ops():
-    """IT-DAEMON-011: PodmanDaemonManager.execute handles multiple ops."""
-    from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+def test_ninerouter_execute_with_various_ops():
+    """IT-DAEMON-011: NinerouterDaemonManager.execute handles multiple ops."""
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
     from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 
-    manager = PodmanDaemonManager()
+    manager = NinerouterDaemonManager()
 
     ops_to_test = [
         ("start", lambda: patch.object(manager, 'start', return_value=0)),
@@ -223,7 +223,7 @@ def test_full_feature_wiring():
     # Verify we can call list_known
     known = aggregate.list_known()
     assert len(known) == 2
-    assert any(str(name) == "omniroute" for name in known)
+    assert any(str(name) == "9router" for name in known)
     assert any(str(name) == "anytype" for name in known)
 
 

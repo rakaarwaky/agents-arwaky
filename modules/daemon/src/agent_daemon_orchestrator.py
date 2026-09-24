@@ -19,19 +19,19 @@ class DaemonOrchestrator(IDaemonAggregate):
 
     def __init__(
         self,
-        omniroute: IDaemonProtocol,
+        ninerouter: IDaemonProtocol,
         anytype: IDaemonProtocol,
     ) -> None:
-        self._omniroute = omniroute
+        self._ninerouter = ninerouter
         self._anytype = anytype
         self._managers: dict[str, IDaemonProtocol] = {
-            "omniroute": omniroute,
+            "9router": ninerouter,
             "anytype": anytype,
         }
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def list_known(self) -> tuple[DaemonName, ...]:
-        return (DaemonName("omniroute"), DaemonName("anytype"))
+        return (DaemonName("9router"), DaemonName("anytype"))
 
     def start(self, name: DaemonName) -> ExitCode:
         return ExitCode(int(self._require(name).execute("start")))
@@ -63,7 +63,7 @@ class DaemonOrchestrator(IDaemonAggregate):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     #: systemd unit filename → daemon id (unit ops accept either form).
     _UNIT_DAEMON: ClassVar[dict[str, str]] = {
-        "omniroute.service": "omniroute",
+        "9router.service": "9router",
         "anytype-daemon.service": "anytype",
         "anytype.service": "anytype",
     }

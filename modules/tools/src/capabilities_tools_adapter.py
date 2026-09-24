@@ -13,8 +13,9 @@ Skill structure (`create-capabilities`, AES403) — honoured in-file:
   constructor), Block 2 (protocol methods ONLY, in protocol order),
   Block 3 (`__repr__` + private instance helpers). Module-level
   factories / lifecycles / config below are the Block 3 helpers —
-  kept in-file by explicit request instead of `utility_*`
-  (Helper-vs-Utility: domain-specific, single consumer).
+  kept in-file by Helper-vs-Utility (domain-specific / single
+  consumer). Git/submodule mechanics live in
+  `utility_git_submodule` (≥2 consumers: root CLI + tools surface).
 - Known deviation: AES301 FILE_TOO_LARGE is registered as an exception
   in `lint_arwaky.config.yaml`; everything else scans clean.
 """
@@ -59,7 +60,6 @@ from modules.shared.src.taxonomy_tools_constant import (
     ANYTYPE_MCP_SRC_REL,
     ANYTYPE_VOLUME_DIRS,
     CONTEXT7_LAUNCHER_ENTRIES,
-    FALLBACK_REMOTE_BRANCHES,
     FETCH_CLI_ARGS,
     INSTALL_STAMP_FILENAME,
     LAUNCHER_NAMES,
@@ -67,10 +67,10 @@ from modules.shared.src.taxonomy_tools_constant import (
     LINT_BUILD_DEPS,
     LINT_INTERNAL_DIR_REL,
     LINT_LAUNCHERS,
+    NINEROUTER_DATA_DIR_NAME,
+    NINEROUTER_INTERNAL_BIN,
+    NINEROUTER_LAUNCHERS,
     NODE_IGNORES,
-    OMNIROUTE_DATA_DIR_NAME,
-    OMNIROUTE_INTERNAL_BIN,
-    OMNIROUTE_LAUNCHERS,
     PNPM_DANGEROUS_ALLOW,
     QWEN_ROLE_DIRS,
     QWEN_TOOL_NAME,
@@ -78,6 +78,11 @@ from modules.shared.src.taxonomy_tools_constant import (
     TOOL_ACTION_PREFIXES,
 )
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
+from modules.shared.src.utility_git_submodule import (
+    ensure_source,
+    get_current_commit,
+    update_submodule,
+)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -254,106 +259,9 @@ def _make_update(lifecycle_fn: Callable) -> Callable:
 
 
 # ---------------------------------------------------------------------------
-# Pure utilities (single copy)
+# Pure utilities (single copy) — git/submodule helpers → utility_git_submodule
 # ---------------------------------------------------------------------------
 ROOT = REPO_ROOT
-
-
-def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
-    """Run a command silently, return result."""
-    return subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True)
-
-
-def get_current_commit(submodule_dir: Path) -> str | None:
-    """Get current HEAD commit hash of a submodule."""
-    r = run_quiet(["git", "rev-parse", "HEAD"], cwd=submodule_dir)
-    return r.stdout.strip() if r.returncode == 0 else None
-
-
-def get_remote_default_branch(submodule_dir: Path) -> str | None:
-    """Detect the default branch of the remote (main, master, etc.)."""
-    r = run_quiet(["git", "remote", "show"], cwd=submodule_dir)
-    if r.returncode != 0 or not r.stdout.strip():
-        return None
-    remote = r.stdout.strip().split("\n")[0]
-    r2 = run_quiet(["git", "symbolic-ref", f"refs/remotes/{remote}/HEAD"], cwd=submodule_dir)
-    if r2.returncode == 0:
-        ref = r2.stdout.strip()
-        parts = ref.split("/")
-        if len(parts) >= 4:
-            return parts[-1]
-    for branch in FALLBACK_REMOTE_BRANCHES:
-        r3 = run_quiet(
-            ["git", "rev-parse", "--verify", f"refs/remotes/{remote}/{branch}"],
-            cwd=submodule_dir,
-        )
-        if r3.returncode == 0:
-            return branch
-    return None
-
-
-def fetch_remote(submodule_dir: Path) -> bool:
-    """Fetch latest from remote. Returns True if successful."""
-    return run_quiet(["git", "fetch", "--quiet"], cwd=submodule_dir).returncode == 0
-
-
-def has_newer_commits(submodule_dir: Path) -> tuple[bool, str | None, str | None]:
-    """Check if remote has newer commits than local.
-
-    Returns:
-        (has_updates, local_commit, remote_commit)
-    """
-    local = get_current_commit(submodule_dir)
-    if not local:
-        return False, None, None
-    branch = get_remote_default_branch(submodule_dir)
-    if not branch:
-        return False, local, None
-    remote = run_quiet(["git", "rev-parse", f"origin/{branch}"], cwd=submodule_dir)
-    if remote.returncode != 0:
-        return False, local, None
-    remote_commit = remote.stdout.strip()
-    if remote_commit == local:
-        return False, local, remote_commit
-    # NOTE: `--count` is a rev-list flag, not a log flag.
-    r = run_quiet(["git", "rev-list", "--count", f"{local}..{remote_commit}"], cwd=submodule_dir)
-    if r.returncode == 0 and r.stdout.strip() not in ("", "0"):
-        return True, local, remote_commit
-    mb = run_quiet(["git", "merge-base", local, remote_commit], cwd=submodule_dir)
-    if mb.returncode == 0 and mb.stdout.strip() == local:
-        return True, local, remote_commit
-    return False, local, remote_commit
-
-
-def pull_submodule(submodule_dir: Path) -> bool:
-    """Pull latest commits for the submodule. Returns True if successful."""
-    branch = get_remote_default_branch(submodule_dir) or "main"
-    return run_quiet(["git", "checkout", f"origin/{branch}"], cwd=submodule_dir).returncode == 0
-
-
-def update_submodule(repo_root: Path, submodule_path: str) -> bool:
-    """Full update workflow: fetch, check, pull a submodule."""
-    submodule_dir = repo_root / submodule_path
-    if not submodule_dir.exists() or not (submodule_dir / ".git").exists():
-        r = run_quiet(
-            ["git", "-C", str(repo_root), "submodule", "update", "--init", submodule_path],
-        )
-        return r.returncode == 0
-    if not fetch_remote(submodule_dir):
-        print(f"  Warning: fetch failed for {submodule_path}", file=sys.stderr)
-        return False
-    has_updates, local, remote = has_newer_commits(submodule_dir)
-    short_local = (local[:8] + "...") if local and len(local) > 8 else local
-    if not has_updates:
-        print(f"  [skip] {submodule_path} is up to date ({short_local})")
-        return True
-    short_remote = (remote[:8] + "...") if remote and len(remote) > 8 else remote
-    print(f"  [update] {submodule_path}: {short_local} -> {short_remote}")
-    if pull_submodule(submodule_dir):
-        print(f"  [ok] {submodule_path} updated successfully")
-        return True
-    print(f"  Warning: pull failed for {submodule_path}", file=sys.stderr)
-    return False
 
 
 def write_install_stamp(app_dir: Path, tool: str, submodule_dir: Path) -> None:
@@ -370,18 +278,6 @@ def write_install_stamp(app_dir: Path, tool: str, submodule_dir: Path) -> None:
         )
     except OSError as exc:
         print(f"  Warning: could not write install stamp: {exc}", file=sys.stderr)
-
-
-def ensure_source(root: Path, src_rel: str) -> Path:
-    """Ensure `root/src_rel` exists, attempting a git submodule init first."""
-    src = root / src_rel
-    if not src.exists():
-        print(f">>> Initializing submodule {src_rel}...")
-        subprocess.run(
-            ["git", "-C", str(root), "submodule", "update", "--init", src_rel],
-            check=False,
-        )
-    return src
 
 
 def generic_owned(
@@ -1251,15 +1147,15 @@ def lint_update(spec, root):
     return created
 
 
-# omniroute (host-native daemon + launcher)
+# 9router (host-native daemon + launcher)
 
 
-def _omniroute_daemon_feature():
+def _ninerouter_daemon_feature():
     _daemon_root = "modules.daemon.src.root_daemon_container"
     return importlib.import_module(_daemon_root).create_daemon_feature()
 
 
-def _omniroute_write_launcher(launcher: Path, root: Path) -> None:
+def _ninerouter_write_launcher(launcher: Path, root: Path) -> None:
     content = (
         "#!/usr/bin/env python3\n"
         f"# {PROVENANCE_MARKER}\n"
@@ -1269,59 +1165,59 @@ def _omniroute_write_launcher(launcher: Path, root: Path) -> None:
         "sys.path.insert(0, str(root))\n"
         "import importlib as _il\n"
         "_dv = _il.import_module('modules.daemon.src.' + 'surface' + '_daemon_command')\n"
-        "_cmd_omniroute = getattr(_dv, 'cmd_' + 'omniroute')\n"
-        "sys.exit(_cmd_omniroute(sys.argv[1:]))\n"
+        "_cmd_9router = getattr(_dv, 'cmd_' + '9router')\n"
+        "sys.exit(_cmd_9router(sys.argv[1:]))\n"
     )
     atomic_write_text(launcher, content)
     launcher.chmod(0o755)
 
 
-def _omniroute_lifecycle(action: str, root: Path, daemons) -> list[Path]:
+def _ninerouter_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     is_update = action == "update"
     progress_ed = "updated" if is_update else "installed"
     ensure_bin_home()
     ensure_path()
-    data_dir = data_home() / OMNIROUTE_DATA_DIR_NAME
+    data_dir = data_home() / NINEROUTER_DATA_DIR_NAME
     data_dir.mkdir(parents=True, exist_ok=True)
 
     if is_update:
-        _feature = _omniroute_daemon_feature()
-        print(">>> Updating OmniRoute host-native service...")
-        rc = _feature.install_unit("omniroute.service")
+        _feature = _ninerouter_daemon_feature()
+        print(">>> Updating 9Router host-native service...")
+        rc = _feature.install_unit("9router.service")
         if rc != 0:
-            print(f"  Warning: omniroute service-install exited {rc}")
+            print(f"  Warning: 9router service-install exited {rc}")
     else:
         if daemons is not None:
-            rc = daemons.install_unit("omniroute.service")
+            rc = daemons.install_unit("9router.service")
             if rc != 0:
-                print(f"omniroute service-install exited {rc} (see 'aa omniroute logs')", file=sys.stderr)
+                print(f"9router service-install exited {rc} (see 'aa 9router logs')", file=sys.stderr)
                 return []
 
-    launcher = bin_home() / "omniroute"
-    _omniroute_write_launcher(launcher, root)
-    internal_bin = data_dir / OMNIROUTE_INTERNAL_BIN
+    launcher = bin_home() / "9router"
+    _ninerouter_write_launcher(launcher, root)
+    internal_bin = data_dir / NINEROUTER_INTERNAL_BIN
     internal_bin.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(launcher, internal_bin / "omniroute")
-    (internal_bin / "omniroute").chmod(0o755)
-    print(f">>> Successfully {progress_ed} OmniRoute -> {launcher}")
+    shutil.copy2(launcher, internal_bin / "9router")
+    (internal_bin / "9router").chmod(0o755)
+    print(f">>> Successfully {progress_ed} 9Router -> {launcher}")
 
     if is_update:
-        return [launcher, internal_bin / "omniroute"]
+        return [launcher, internal_bin / "9router"]
     return [launcher]
 
 
-omniroute_satisfied = _make_satisfied("omniroute")
-omniroute_is_pin_satisfied = _make_pin_check("", "daemon service + launcher (force reinstall)")
-omniroute_owned_paths = _make_owned(
-    OMNIROUTE_LAUNCHERS,
-    config=[OMNIROUTE_DATA_DIR_NAME],
+ninerouter_satisfied = _make_satisfied("9router")
+ninerouter_is_pin_satisfied = _make_pin_check("", "daemon service + launcher (force reinstall)")
+ninerouter_owned_paths = _make_owned(
+    NINEROUTER_LAUNCHERS,
+    config=[NINEROUTER_DATA_DIR_NAME],
     extra=lambda: [
-        data_home() / OMNIROUTE_DATA_DIR_NAME / OMNIROUTE_INTERNAL_BIN / "omniroute",
-        agents_arwaky_config_dir() / "omniroute.env",
+        data_home() / NINEROUTER_DATA_DIR_NAME / NINEROUTER_INTERNAL_BIN / "9router",
+        agents_arwaky_config_dir() / "ninerouter.env",
     ],
 )
-omniroute_install = _make_install(_omniroute_lifecycle)
-omniroute_update = _make_update(_omniroute_lifecycle)
+ninerouter_install = _make_install(_ninerouter_lifecycle)
+ninerouter_update = _make_update(_ninerouter_lifecycle)
 
 
 # ---------------------------------------------------------------------------
@@ -1364,12 +1260,12 @@ _ADAPTER_UNITS.update({
         is_pin_satisfied=lint_is_pin_satisfied,
         owned_paths=lint_owned_paths,
     ),
-    "omniroute": _unit(
-        satisfied=omniroute_satisfied,
-        install=omniroute_install,
-        update=omniroute_update,
-        is_pin_satisfied=omniroute_is_pin_satisfied,
-        owned_paths=omniroute_owned_paths,
+    "9router": _unit(
+        satisfied=ninerouter_satisfied,
+        install=ninerouter_install,
+        update=ninerouter_update,
+        is_pin_satisfied=ninerouter_is_pin_satisfied,
+        owned_paths=ninerouter_owned_paths,
     ),
 })
 

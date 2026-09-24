@@ -20,13 +20,13 @@ def test_anytype_daemon_manager_class_exists():
     assert hasattr(AnytypeDaemonManager, 'execute')
 
 
-def test_podman_daemon_manager_class_exists():
-    """CP-DAEMON-003: PodmanDaemonManager class exists."""
-    from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+def test_ninerouter_daemon_manager_class_exists():
+    """CP-DAEMON-003: NinerouterDaemonManager class exists."""
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 
-    assert PodmanDaemonManager is not None
-    assert hasattr(PodmanDaemonManager, '__init__')
-    assert hasattr(PodmanDaemonManager, 'execute')
+    assert NinerouterDaemonManager is not None
+    assert hasattr(NinerouterDaemonManager, '__init__')
+    assert hasattr(NinerouterDaemonManager, 'execute')
 
 
 def test_anytype_implements_idaemonprotocol():
@@ -38,12 +38,12 @@ def test_anytype_implements_idaemonprotocol():
     assert isinstance(manager, IDaemonProtocol)
 
 
-def test_podman_implements_idaemonprotocol():
-    """CP-DAEMON-005: PodmanDaemonManager implements IDaemonProtocol."""
-    from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+def test_ninerouter_implements_idaemonprotocol():
+    """CP-DAEMON-005: NinerouterDaemonManager implements IDaemonProtocol."""
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
     from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 
-    manager = PodmanDaemonManager()
+    manager = NinerouterDaemonManager()
     assert isinstance(manager, IDaemonProtocol)
 
 
@@ -55,11 +55,11 @@ def test_anytype_execute_method_exists():
     assert callable(manager.execute)
 
 
-def test_podman_execute_method_exists():
-    """CP-DAEMON-007: PodmanDaemonManager has execute method."""
-    from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+def test_ninerouter_execute_method_exists():
+    """CP-DAEMON-007: NinerouterDaemonManager has execute method."""
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 
-    manager = PodmanDaemonManager()
+    manager = NinerouterDaemonManager()
     assert callable(manager.execute)
 
 
@@ -77,11 +77,11 @@ def test_orchestrator_implements_idaemonaggregate():
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
     from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-    from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 
-    omniroute = PodmanDaemonManager()
+    ninerouter = NinerouterDaemonManager()
     anytype = AnytypeDaemonManager()
-    orchestrator = DaemonOrchestrator(omniroute, anytype)
+    orchestrator = DaemonOrchestrator(ninerouter, anytype)
     assert isinstance(orchestrator, IDaemonAggregate)
 
 

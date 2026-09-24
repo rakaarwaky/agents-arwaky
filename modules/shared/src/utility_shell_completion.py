@@ -4,7 +4,7 @@ from __future__ import annotations
 COMMANDS = (
     "status doctor check submodules clean reset version help "
     "tool skill skills connect disconnect mcp completion "
-    "anytype omniroute service backup restore "
+    "anytype 9router service backup restore "
     "install update uninstall list ls run"
 )
 

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_service_vo import (
     TARGET_ALL,
-    TARGET_OMNIROUTE,
+    TARGET_9ROUTER,
     ExitCode,
     ServiceTarget,
 )
@@ -31,7 +31,7 @@ class IServiceAggregate(ABC):
         """Restart the named service(s)."""
         ...
     @abstractmethod
-    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
+    def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
         """Tail service logs."""
         ...
     @abstractmethod

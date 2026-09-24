@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 
 
@@ -11,10 +11,10 @@ class DaemonContainer:
     """Construct both daemon managers and the routing orchestrator."""
 
     def __init__(self) -> None:
-        omniroute = PodmanDaemonManager()
+        ninerouter = NinerouterDaemonManager()
         anytype = AnytypeDaemonManager()
-        self._orchestrator = DaemonOrchestrator(omniroute, anytype)
-        self._omniroute = omniroute
+        self._orchestrator = DaemonOrchestrator(ninerouter, anytype)
+        self._ninerouter = ninerouter
         self._anytype = anytype
 
     @property
@@ -22,11 +22,11 @@ class DaemonContainer:
         return self._orchestrator
 
     @property
-    def omniroute(self) -> PodmanDaemonManager:
-        return self._omniroute
+    def ninerouter(self) -> IDaemonAggregate:
+        return self._ninerouter
 
     @property
-    def anytype(self) -> AnytypeDaemonManager:
+    def anytype(self) -> IDaemonAggregate:
         return self._anytype
 
 

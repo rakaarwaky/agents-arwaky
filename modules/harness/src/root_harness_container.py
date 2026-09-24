@@ -23,10 +23,10 @@ def _daemon_status_fn():
 
     Imported lazily so the harness feature has no hard dependency on the
     daemon module; a down daemon is reported, and the rest of connect still
-    lands (FR-001 failure mode). OmniRoute replaced the old 9Router daemon.
+    lands (FR-001 failure mode). 9Router runs host-native (no Podman).
     """
     try:
-        from modules.daemon.src.capabilities_omniroute_daemon import (
+        from modules.daemon.src.capabilities_9router_daemon import (
             api_ready,
             process_running,
         )

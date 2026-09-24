@@ -9,13 +9,13 @@
 
 ## System Overview
 
-The daemon feature manages two gateway daemons: OmniRoute (host-native, no
+The daemon feature manages two gateway daemons: 9Router (host-native, no
 container) and Anytype headless (Podman). One protocol method —
 `execute(op, ...)` — covers lifecycle, enumeration, and systemd unit
 operations on a daemon capability; the aggregate (`list_known`, `start`,
 `stop`, `restart`, `status`, `logs`, `install_unit`, `remove_unit`,
 `unit_status`) routes each call by daemon id and exposes every path to the
-CLI. Flow: `aa anytype <action>` / `aa omniroute <action>` → daemon surface →
+CLI. Flow: `aa anytype <action>` / `aa 9router <action>` → daemon surface →
 orchestrator aggregate → daemon capability (`execute`) → systemd / Podman /
 host process. Deploy assets hold the systemd units and container definition;
 XDG config holds per-daemon environment secrets. The service feature reaches
@@ -62,7 +62,7 @@ own unit code.
 - **Description**: `list_known` returns the canonical daemon ids the
   orchestrator manages.
 - **Input**: none.
-- **Output**: the tuple of daemon ids — `omniroute` and `anytype`.
+- **Output**: the tuple of daemon ids — `9router` and `anytype`.
 - **Business Rules**: enumeration is pure — no side effects, independent of
   whether any daemon is running or installed; the returned ids are exactly
   the ones the aggregate accepts for routing.
@@ -118,10 +118,10 @@ own unit code.
 
 | System | Direction | Purpose | Failure mode |
 | -------- | --------- | --------- | ------------ |
-| Podman | out | run the Anytype container (OmniRoute is host-native) | podman missing → native fallback or non-zero |
+| Podman | out | run the Anytype container (9Router is host-native) | podman missing → native fallback or non-zero |
 | systemd user units + deploy assets | out | install, remove, and query per-daemon user units | systemctl or unit missing → non-zero |
 | XDG config (per-daemon env) | in | secrets and endpoints for auth flows | missing key → auth pre-condition failure |
-| root CLI (`aa anytype` / `aa omniroute`) | in | routes CLI verbs to the daemon capability | unknown verb → usage + non-zero |
+| root CLI (`aa anytype` / `aa 9router`) | in | routes CLI verbs to the daemon capability | unknown verb → usage + non-zero |
 | service feature | in | reuses the daemon aggregate for unit install/remove/status | integration unavailable → non-zero |
 
 
@@ -141,7 +141,7 @@ own unit code.
 - Starting a daemon on a host without Podman falls back to native execution or reports a clear non-zero error with no traceback.
 - `auth-key` writes the generated key to XDG config only; the repo tree stays clean after the run.
 - `auth-key` while the daemon is stopped reports the pre-condition and exits non-zero instead of crashing.
-- `list_known` returns both managed daemon ids (omniroute and anytype) independent of run state.
+- `list_known` returns both managed daemon ids (9router and anytype) independent of run state.
 - Enumerating daemons on a host where neither daemon is running still reports both ids.
 - `install_unit` for a daemon enables its user unit and a following `unit_status` reports it active.
 - `remove_unit` deletes a daemon's user unit so a following `unit_status` reports it not installed.
@@ -149,7 +149,7 @@ own unit code.
 
 ## Assumptions & Constraints
 
-- Only Anytype is containerized (Podman); OmniRoute is host-native — the
+- Only Anytype is containerized (Podman); 9Router is host-native — the
   container-isolation invariant is unchanged.
 - Secrets live in XDG config, referenced by name, never committed.
 - systemd unit operations stay in this feature's aggregate; the service
@@ -159,8 +159,8 @@ own unit code.
 ## Glossary
 
 - **daemon**: a managed gateway service — Anytype headless (Podman) or
-  OmniRoute (host-native).
-- **daemon id**: the canonical routing token (`omniroute`, `anytype`).
+  9Router (host-native).
+- **daemon id**: the canonical routing token (`9router`, `anytype`).
 - **DaemonStatus**: a snapshot — running / stopped / unknown plus API
   readiness.
 - **unit**: a systemd user service installed from this feature's deploy

@@ -15,7 +15,7 @@ When executing or reasoning about this repository, **you must preserve these inv
    - All toolchains (Rust/Cargo, Node/npm/pnpm, Bun, Python/uv, system C-libraries) are installed and executed directly on the host.
    - Tools are compiled to host-native binaries and exported to `~/.local/bin/` (XDG compliant).
    - Per-tool data & caches follow XDG: `${XDG_DATA_HOME:-$HOME/.local/share}/<tool>/`, `${XDG_CONFIG_HOME:-$HOME/.config}/<tool>/`.
-   - Anytype runs in a Podman container; OmniRoute runs host-native (no container). They are the only background services.
+   - Anytype runs in a Podman container; 9Router runs host-native (no container). They are the only background services.
 
 2. **XDG Base Directory Compliance:**
    - Adhere strictly to the Linux XDG Base Directory specification.
@@ -53,7 +53,7 @@ When executing or reasoning about this repository, **you must preserve these inv
 
 The repository segregates agent workloads into three primary zones:
 - `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules: `lint-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `blender-arwaky`).
-- `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `ponytail`, `anytype-mcp`, `codegraph`, `omniroute`, `google-workspace-mcp`, `mnemosyne`).
+- `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `ponytail`, `anytype-mcp`, `codegraph`, `9router`, `google-workspace-mcp`, `mnemosyne`).
 - `modules/`: AES 7-layer orchestration — per-feature capability modules (tools, daemon, harness, mcp, skill, service, backup, check, doctor) plus `modules/shared/src/` (XDG, venv, launcher, git, manifest, envfile, config, doc_pack, skill_pack, xdg, version, tool, paths, common) and `modules/root_cli_entry.py` (CLI entry + router).
 
 > For the comprehensive visual directory tree and system flow diagram, see [**README.md § Architecture**](README.md#-architecture).
@@ -62,7 +62,7 @@ The repository segregates agent workloads into three primary zones:
 
 ## ⚡ Primary Agent Interface: `agents-arwaky` (`aa`) CLI
 
-When inspecting system health, executing tools, or managing MCP configurations, **always use the `agents-arwaky` (alias `aa`) CLI**. It resolves execution context on the local host (Anytype in Podman; OmniRoute host-native).
+When inspecting system health, executing tools, or managing MCP configurations, **always use the `agents-arwaky` (alias `aa`) CLI**. It resolves execution context on the local host (Anytype in Podman; 9Router host-native).
 
 ### Tool Execution Dispatcher
 

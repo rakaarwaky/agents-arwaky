@@ -10,6 +10,7 @@ import sys
 import textwrap
 
 from modules.shared.src.contract_tools_aggregate import IToolsAggregate
+from modules.shared.src.utility_git_submodule import init_submodules
 from modules.shared.src.utility_logging_setup import (
     BOLD,
     CYAN,
@@ -122,11 +123,7 @@ def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
             warn("Aborted.")
             return 1
     print(f"{BOLD()}>>> Installing {target} using per-tool Python installers...{RESET()}")
-    import subprocess
-    rc = subprocess.run(
-        ["git", "-C", str(repo_root()), "submodule", "update", "--init", "vendor/", "internal/"],
-        check=False,
-    ).returncode
+    rc = init_submodules(repo_root(), ("vendor/", "internal/"))
     if rc != 0:
         err("Submodule init failed. Run 'aa submodules' manually and retry.")
         return rc

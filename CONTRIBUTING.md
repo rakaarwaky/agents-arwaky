@@ -17,7 +17,7 @@ Before making changes, please review our core architectural rules:
 1. **Local Bare-Metal Execution:**
    - All toolchains (Node, Rust, Python, Bun, C-compilers) are installed and executed directly on the host.
    - Tools are compiled to host-native binaries and exported to `~/.local/bin/` (XDG compliant).
-   - Daemon services (9Router, Anytype) run in dedicated Podman containers — they are the only containerized layer.
+   - Daemon services: 9Router is host-native; Anytype runs in a Podman container — the only containerized layer.
 
 2. **Strict XDG Base Directory Compliance:**
    - Never write persistent data or cache to the repository directory.
@@ -41,7 +41,7 @@ Before making changes, please review our core architectural rules:
    ```bash
    aa doctor
    ```
-   *(Checks host toolchains and the optional 9Router & Anytype daemons. There is no containerized development layer — everything builds natively on the host).*
+   *(Checks host toolchains and the optional 9Router & Anytype daemons. Only Anytype is containerized; 9Router and toolchains run natively on the host).*
 
 3. **Provision the environment:**
    ```bash

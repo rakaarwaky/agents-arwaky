@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
 from modules.service.src.capabilities_service_manager import ServiceManager
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
@@ -26,13 +26,13 @@ class DaemonAggregateAdapter(IDaemonAggregate):
     """IDaemonAggregate implementation over the two concrete daemon managers."""
 
     _UNIT_DAEMON: ClassVar[dict[str, str]] = {
-        "omniroute.service": "omniroute",
+        "9router.service": "9router",
         "anytype-daemon.service": "anytype",
         "anytype.service": "anytype",
     }
 
-    def __init__(self, omniroute: PodmanDaemonManager, anytype: AnytypeDaemonManager) -> None:
-        self._managers = {"omniroute": omniroute, "anytype": anytype}
+    def __init__(self, ninerouter: NinerouterDaemonManager, anytype: AnytypeDaemonManager) -> None:
+        self._managers = {"9router": ninerouter, "anytype": anytype}
 
     def _mgr(self, name: DaemonName):
         return self._managers[str(name).lower()]
@@ -47,7 +47,7 @@ class DaemonAggregateAdapter(IDaemonAggregate):
         return self._managers[daemon]
 
     def list_known(self) -> tuple[DaemonName, ...]:
-        return (DaemonName("omniroute"), DaemonName("anytype"))
+        return (DaemonName("9router"), DaemonName("anytype"))
 
     def start(self, name: DaemonName) -> ExitCode:
         return ExitCode(int(self._mgr(name).execute("start")))
@@ -77,16 +77,11 @@ class DaemonAggregateAdapter(IDaemonAggregate):
         return ExitCode(int(self._for_unit(unit).execute("unit_status", unit=unit)))
 
 
-def create_service_feature() -> IServiceAggregate:
-    """Fully-wired service feature aggregate."""
-    return ServiceContainer().aggregate
-
-
 class ServiceContainer:
     """Composition root: wires daemon managers into the service orchestrator."""
 
     def __init__(self) -> None:
-        self._daemons = DaemonAggregateAdapter(PodmanDaemonManager(), AnytypeDaemonManager())
+        self._daemons = DaemonAggregateAdapter(NinerouterDaemonManager(), AnytypeDaemonManager())
         self._manager = ServiceManager(daemons=self._daemons)
         self._orchestrator = ServiceOrchestrator(manager=self._manager)
 
@@ -98,7 +93,7 @@ class ServiceContainer:
     def manager(self) -> ServiceManager:
         return self._manager
 
-def cmd_service(args: list[str], orch: ServiceOrchestrator) -> int:
-    """aa service <status|start|stop|restart|logs> [omniroute|anytype|all]."""
-    if not args or args[0] in ("help", "-h", "--help"):
-        return orch.help()
+
+def create_service_feature() -> IServiceAggregate:
+    """Fully-wired service feature aggregate."""
+    return ServiceContainer().aggregate

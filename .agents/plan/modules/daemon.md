@@ -63,7 +63,7 @@ Pola HOW-TO; Protocol **1 baris**; 4 FR × 6 field; 8 scenario; Rule 8–9.
 | `modules/shared/src/contract_daemon_aggregate.py` | `IDaemonAggregate` | `start_daemon`…`restart_daemon` (5) — **tanpa** unit/enum di kontrak |
 | `modules/daemon/src/agent_daemon_orchestrator.py` | `DaemonOrchestrator` | + `known_daemons`, `service_install/uninstall/status` |
 | `modules/daemon/src/capabilities_anytype_daemon.py` | `AnytypeDaemonManager` | lifecycle + auth + space + unit |
-| `modules/daemon/src/capabilities_omniroute_daemon.py` | `PodmanDaemonManager` | lifecycle + models + unit |
+| `modules/daemon/src/capabilities_9router_daemon.py` | `NinerouterDaemonManager` | lifecycle + models + unit |
 | `modules/daemon/src/surface_daemon_command.py` | `DaemonAction` | 5 method aggregate |
 | `modules/daemon/src/root_daemon_container.py` | `DaemonContainer` | wire |
 | `modules/service/src/root_service_container.py` | `DaemonAggregateAdapter` | implements `IDaemonAggregate` |

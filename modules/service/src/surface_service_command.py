@@ -7,7 +7,7 @@ from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
 
 
 def cmd_service(args: list[str], orch: ServiceOrchestrator) -> int:
-    """aa service <status|start|stop|restart|logs> [omniroute|anytype|all]."""
+    """aa service <status|start|stop|restart|logs> [9router|anytype|all]."""
     if not args or args[0] in ("help", "-h", "--help"):
         return orch.help()
     action = args[0]
@@ -30,7 +30,7 @@ def cmd_service(args: list[str], orch: ServiceOrchestrator) -> int:
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
 from modules.shared.src.taxonomy_service_vo import (
     TARGET_ALL,
-    TARGET_OMNIROUTE,
+    TARGET_9ROUTER,
     ExitCode,
     ServiceTarget,
 )
@@ -54,7 +54,7 @@ class ServiceAction(IServiceAggregate):
     def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return self._agg.restart(target)
 
-    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
+    def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
         return self._agg.logs(target)
 
     def help(self) -> ExitCode:

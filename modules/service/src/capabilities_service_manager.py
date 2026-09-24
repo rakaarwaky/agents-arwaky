@@ -15,7 +15,7 @@ from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_service_protocol import IServiceProtocol
 from modules.shared.src.taxonomy_service_vo import (
     TARGET_ALL,
-    TARGET_OMNIROUTE,
+    TARGET_9ROUTER,
     ExitCode,
     ServiceOp,
     ServiceTarget,
@@ -64,7 +64,7 @@ class ServiceManager(IServiceProtocol):
         if op == "restart":
             return self.restart(ServiceTarget(str(unit)))
         if op == "logs":
-            return self.logs(ServiceTarget(str(unit)) if str(unit) != "all" else ServiceTarget("omniroute"))
+            return self.logs(ServiceTarget(str(unit)) if str(unit) != "all" else ServiceTarget("9router"))
         if op == "help":
             return self.help()
         raise ValueError(f"Unknown service op: {op}")
@@ -85,7 +85,7 @@ class ServiceManager(IServiceProtocol):
     def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return ExitCode(cmd_restart(str(target)))
 
-    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
+    def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
         return ExitCode(cmd_logs(str(target)))
 
     def help(self) -> ExitCode:
@@ -95,8 +95,8 @@ class ServiceManager(IServiceProtocol):
         return main(argv)
 
 
-def _run_omniroute(args: list[str]) -> int:
-    return int(_daemons().start("omniroute")) if args and args[0] == "start" else _daemon_main("omniroute", args)
+def _run_9router(args: list[str]) -> int:
+    return int(_daemons().start("9router")) if args and args[0] == "start" else _daemon_main("9router", args)
 
 
 def _run_anytype(args: list[str]) -> int:
@@ -121,8 +121,8 @@ def _daemon_main(name: str, args: list[str]) -> int:
 
 
 def cmd_status() -> int:
-    print("=========== OmniRoute ===========")
-    _run_omniroute(["status"])
+    print("=========== 9Router ===========")
+    _run_9router(["status"])
     print()
     print("=========== Anytype ===========")
     _run_anytype(["status"])
@@ -130,40 +130,40 @@ def cmd_status() -> int:
 
 
 def cmd_start(target: str = "all") -> int:
-    if target in ("omniroute", "all"):
-        _run_omniroute(["start"])
+    if target in ("9router", "all"):
+        _run_9router(["start"])
     if target in ("anytype", "all"):
         _run_anytype(["start"])
     return 0
 
 
 def cmd_stop(target: str = "all") -> int:
-    if target in ("omniroute", "all"):
-        _run_omniroute(["stop"])
+    if target in ("9router", "all"):
+        _run_9router(["stop"])
     if target in ("anytype", "all"):
         _run_anytype(["stop"])
     return 0
 
 
 def cmd_restart(target: str = "all") -> int:
-    if target in ("omniroute", "all"):
-        _run_omniroute(["restart"])
+    if target in ("9router", "all"):
+        _run_9router(["restart"])
     if target in ("anytype", "all"):
         _run_anytype(["restart"])
     return 0
 
 
-def cmd_logs(target: str = "omniroute") -> int:
-    if target == "omniroute":
-        return _run_omniroute(["logs"])
+def cmd_logs(target: str = "9router") -> int:
+    if target == "9router":
+        return _run_9router(["logs"])
     if target == "anytype":
         return _run_anytype(["logs"])
-    print("Usage: aa service logs <omniroute|anytype>")
+    print("Usage: aa service logs <9router|anytype>")
     return 1
 
 
 def cmd_help() -> int:
-    print("Usage: aa service <status|start|stop|restart|logs> [omniroute|anytype|all]")
+    print("Usage: aa service <status|start|stop|restart|logs> [9router|anytype|all]")
     return 0
 
 

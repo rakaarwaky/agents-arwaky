@@ -3,16 +3,22 @@ from __future__ import annotations
 
 
 def test_service_manager_execution():
-    """IT-SERVICE-001: ServiceManager executes without errors."""
+    """IT-SERVICE-001: ServiceManager status routes through injected aggregate (mocked)."""
+    from unittest.mock import MagicMock, patch
+
+    from modules.service.src import capabilities_service_manager as csm
     from modules.service.src.capabilities_service_manager import ServiceManager
     from modules.shared.src.taxonomy_service_vo import ServiceOp
 
     manager = ServiceManager()
-    try:
+    mock_agg = MagicMock()
+    mock_agg.status.return_value = 0
+    with patch.object(csm, "_DAEMON_AGGREGATE", mock_agg):
         result = manager.execute(ServiceOp("status"))
         assert result is not None
-    except Exception:
-        pass
+        assert mock_agg.status.call_count == 2
+        mock_agg.status.assert_any_call("9router")
+        mock_agg.status.assert_any_call("anytype")
 
 
 def test_service_orchestrator_creation():

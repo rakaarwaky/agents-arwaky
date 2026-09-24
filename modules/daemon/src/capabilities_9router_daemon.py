@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""OmniRoute daemon manager (Python) — host-native, no container.
+"""9Router daemon manager (Python) — host-native, no container.
 
-Replaces the 9router PodmanDaemonManager. Runs the OmniRoute gateway
-directly on the host via the `omniroute` CLI (npm global install),
-with a systemd user service for 24/7 operation. No Podman required.
+Runs the 9Router gateway directly on the host via the `9router` CLI
+(npm global install), with a systemd user service for 24/7 operation.
+No Podman required.
 """
 from __future__ import annotations
 
@@ -41,8 +41,8 @@ def _out(cmd, **kw) -> str:
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class PodmanDaemonManager(IDaemonProtocol):
-    """AES facade: exposes OmniRoute host-native daemon actions via IDaemonProtocol.
+class NinerouterDaemonManager(IDaemonProtocol):
+    """AES facade: exposes 9Router host-native daemon actions via IDaemonProtocol.
 
     No container engine required.
     """
@@ -104,7 +104,7 @@ class PodmanDaemonManager(IDaemonProtocol):
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def __repr__(self) -> str:
-        return "PodmanDaemonManager()"
+        return "NinerouterDaemonManager()"
 
     def models(self) -> int:
         return cmd_models()
@@ -125,15 +125,15 @@ class PodmanDaemonManager(IDaemonProtocol):
         return main(argv)
 
 
-def _omniroute_binary() -> str | None:
-    """Find the omniroute CLI on PATH or in the XDG bin dir."""
-    found = shutil.which("omniroute")
+def _9router_binary() -> str | None:
+    """Find the 9router CLI on PATH or in the XDG bin dir."""
+    found = shutil.which("9router")
     if found:
         return found
     candidates = [
-        config_home() / "omniroute" / "bin" / "omniroute",
-        data_home() / "omniroute" / "bin" / "omniroute",
-        data_home() / "local" / "bin" / "omniroute",
+        config_home() / "9router" / "bin" / "9router",
+        data_home() / "9router" / "bin" / "9router",
+        data_home() / "local" / "bin" / "9router",
     ]
     for c in candidates:
         if c.exists():
@@ -142,21 +142,26 @@ def _omniroute_binary() -> str | None:
 
 
 def process_running() -> bool:
-    """Check if an omniroute process is active or port is listening."""
-    pid_out = _out(["pgrep", "-f", "omniroute.*serve"])
-    if pid_out.strip():
-        return True
+    """True when the 9router server is up (port listens or CLI process lives).
+
+    Prefer the port: `pgrep -f 9router` also matches status shells and this
+    module's own command line, so it is only a secondary signal.
+    """
     import socket
+
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(1)
-            return s.connect_ex(("127.0.0.1", int(PORT))) == 0
+            if s.connect_ex(("127.0.0.1", int(PORT))) == 0:
+                return True
     except OSError:
-        return False
+        pass
+    pid_out = _out(["pgrep", "-f", r"bin/9router( |$)"])
+    return bool(pid_out.strip())
 
 
 def api_ready(timeout=90) -> bool:
-    url = f"http://127.0.0.1:{PORT}/v1/models"
+    url = f"http://127.0.0.1:{PORT}/api/health"
     deadline = time.time() + timeout
     delay = 1.0
     while time.time() < deadline:
@@ -181,14 +186,15 @@ def service_installed() -> bool:
 
 
 def service_active() -> bool:
-    return _out(["systemctl", "--user", "is-active", "omniroute.service"]) == "active"
+    return _out(["systemctl", "--user", "is-active", "9router.service"]) == "active"
 
 
 def read_env() -> dict:
     env = {}
-    secret_dir = config_home() / "omniroute"
+    secret_dir = config_home() / "9router"
     for cand in (
-        secret_dir / "omniroute.env",
+        config_home() / "agents-arwaky" / "ninerouter.env",
+        secret_dir / "9router.env",
         secret_dir / ".env",
     ):
         if cand.exists():
@@ -200,35 +206,39 @@ def read_env() -> dict:
     pwd = env.get("INITIAL_PASSWORD", "")
     if pwd in WEAK_PASSWORDS and pwd:
         print("  ⚠ Warning: INITIAL_PASSWORD is a known-weak/placeholder value.", file=sys.stderr)
-        print("    Set a strong password in $XDG_CONFIG_HOME/omniroute/omniroute.env", file=sys.stderr)
+        print("    Set a strong password in $XDG_CONFIG_HOME/agents-arwaky/ninerouter.env", file=sys.stderr)
     return env
 
 
 def cmd_service_install():
-    binary = _omniroute_binary()
+    binary = _9router_binary()
     if binary is None:
-        print("Error: 'omniroute' binary not found on PATH. Install with:", file=sys.stderr)
-        print("  npm install -g omniroute", file=sys.stderr)
+        print("Error: '9router' binary not found on PATH. Install with:", file=sys.stderr)
+        print("  npm install -g 9router", file=sys.stderr)
         return 1
     UNIT_DIR.mkdir(parents=True, exist_ok=True)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    src = ROOT / "modules/daemon/deploy/omniroute.service"
+    src = ROOT / "modules/daemon/deploy/9router.service"
     if src.exists():
         shutil.copy2(src, UNIT_FILE)
     else:
         # Write a minimal unit file in-place
         unit_content = f"""\
 [Unit]
-Description=OmniRoute AI Gateway (host-native, no container)
+Description=9Router AI Gateway (host-native, no container)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
 Environment=HOME=%h
-EnvironmentFile=-%h/.config/omniroute/omniroute.env
-WorkingDirectory=%h/.omniroute
-ExecStart={binary} serve --port {PORT} --no-open
+Environment=PORT={PORT}
+Environment=HOSTNAME=0.0.0.0
+Environment=NODE_ENV=production
+Environment=PATH=%h/.local/share/nodejs/node-v24.11.0-linux-x64/bin:%h/.local/bin:/usr/local/bin:/usr/bin
+EnvironmentFile=-%h/.config/agents-arwaky/ninerouter.env
+WorkingDirectory=%h/.9router
+ExecStart={binary} --port {PORT} --no-browser --skip-update
 Restart=always
 RestartSec=5s
 
@@ -239,65 +249,65 @@ WantedBy=default.target
     if shutil.which("loginctl"):
         _run(["loginctl", "enable-linger", os.environ.get("USER", "raka")])
     _run(["systemctl", "--user", "daemon-reload"])
-    _run(["systemctl", "--user", "enable", "--now", "omniroute.service"])
-    print(f">>> Waiting for OmniRoute API to be ready at http://127.0.0.1:{PORT}...")
+    _run(["systemctl", "--user", "enable", "--now", "9router.service"])
+    print(f">>> Waiting for 9Router API to be ready at http://127.0.0.1:{PORT}...")
     if api_ready():
-        print(f">>> [OK] OmniRoute daemon installed and active: omniroute.service (port {PORT})")
+        print(f">>> [OK] 9Router daemon installed and active: 9router.service (port {PORT})")
         print(f">>> Web Dashboard: http://localhost:{PORT}")
         return 0
-    print(">>> [WARN] Service enabled, but API is still initializing. Check 'aa omniroute logs'.", file=sys.stderr)
+    print(">>> [WARN] Service enabled, but API is still initializing. Check 'aa 9router logs'.", file=sys.stderr)
     return 2
 
 
 def cmd_service_uninstall():
     if UNIT_FILE.exists():
-        print(">>> Disabling and stopping omniroute.service...")
-        _run(["systemctl", "--user", "disable", "--now", "omniroute.service"])
+        print(">>> Disabling and stopping 9router.service...")
+        _run(["systemctl", "--user", "disable", "--now", "9router.service"])
         UNIT_FILE.unlink(missing_ok=True)
         _run(["systemctl", "--user", "daemon-reload"])
-        print(">>> OmniRoute systemd user service removed.")
+        print(">>> 9Router systemd user service removed.")
     else:
-        print(">>> OmniRoute systemd service is not installed.")
+        print(">>> 9Router systemd service is not installed.")
     return 0
 
 
 def cmd_service_status():
     if service_installed():
-        return _run(["systemctl", "--user", "status", "omniroute.service"]).returncode
-    print("OmniRoute systemd service is not installed (run 'aa omniroute service-install').")
+        return _run(["systemctl", "--user", "status", "9router.service"]).returncode
+    print("9Router systemd service is not installed (run 'aa 9router service-install').")
     return 0
 
 
 def cmd_start():
     if service_installed():
-        print(f">>> Starting OmniRoute via systemd service (omniroute.service, port {PORT})...")
-        _run(["systemctl", "--user", "start", "omniroute.service"])
-        print(f">>> Waiting for OmniRoute API to be ready at http://127.0.0.1:{PORT}...")
+        print(f">>> Starting 9Router via systemd service (9router.service, port {PORT})...")
+        _run(["systemctl", "--user", "start", "9router.service"])
+        print(f">>> Waiting for 9Router API to be ready at http://127.0.0.1:{PORT}...")
         if api_ready():
-            print(">>> [OK] OmniRoute daemon is active and healthy!")
+            print(">>> [OK] 9Router daemon is active and healthy!")
             print(f">>> Web Dashboard: http://localhost:{PORT}")
             return 0
-        print("Warning: OmniRoute service started but API health check timed out. Check 'aa omniroute logs'.", file=sys.stderr)
+        print("Warning: 9Router service started but API health check timed out. Check 'aa 9router logs'.", file=sys.stderr)
         return 2
-    binary = _omniroute_binary()
+    binary = _9router_binary()
     if binary is None:
-        print("Error: 'omniroute' binary not found. Install with: npm install -g omniroute", file=sys.stderr)
+        print("Error: '9router' binary not found. Install with: npm install -g 9router", file=sys.stderr)
         return 1
     if process_running():
-        print(f">>> OmniRoute is already running (port {PORT}).")
+        print(f">>> 9Router is already running (port {PORT}).")
         return cmd_status()
-    print(f">>> Starting OmniRoute host-native on port {PORT}...")
+    print(f">>> Starting 9Router host-native on port {PORT}...")
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     proc = subprocess.Popen(
-        [binary, "serve", "--port", PORT, "--no-open"],
+        [binary, "--port", PORT, "--no-browser", "--skip-update"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         start_new_session=True,
     )
     print(f">>> Process PID: {proc.pid}")
-    print(f">>> Waiting for OmniRoute API to be ready at http://127.0.0.1:{PORT}...")
+    print(f">>> Waiting for 9Router API to be ready at http://127.0.0.1:{PORT}...")
     if api_ready():
-        print(">>> [OK] OmniRoute daemon is active and healthy!")
+        print(">>> [OK] 9Router daemon is active and healthy!")
         print(f">>> Web Dashboard: http://localhost:{PORT}")
         return 0
     print(f"Warning: API health check timed out. Check logs in {DATA_DIR / 'logs'}.", file=sys.stderr)
@@ -306,17 +316,18 @@ def cmd_start():
 
 def cmd_stop():
     if service_installed():
-        print(">>> Stopping OmniRoute via systemd service...")
-        _run(["systemctl", "--user", "stop", "omniroute.service"])
-        print(">>> OmniRoute service stopped.")
+        print(">>> Stopping 9Router via systemd service...")
+        _run(["systemctl", "--user", "stop", "9router.service"])
+        print(">>> 9Router service stopped.")
         return 0
     if process_running():
-        print(">>> Stopping OmniRoute process...")
-        _run(["pkill", "-f", "omniroute.*serve"])
+        print(">>> Stopping 9Router process...")
+        # Match the real binary only — bare "9router" also hits this shell.
+        _run(["pkill", "-f", r"bin/9router( |$)"])
         time.sleep(2)
-        print(">>> OmniRoute stopped.")
+        print(">>> 9Router stopped.")
     else:
-        print(">>> OmniRoute is not running.")
+        print(">>> 9Router is not running.")
     return 0
 
 
@@ -327,13 +338,13 @@ def cmd_restart():
 
 
 def cmd_status():
-    print(f"OmniRoute Status (port {PORT}):")
+    print(f"9Router Status (port {PORT}):")
     if process_running():
         print("  Process: RUNNING")
     else:
         print("  Process: STOPPED")
     if service_installed():
-        print(f"  systemd: {'ACTIVE' if service_active() else 'INACTIVE'} (omniroute.service)")
+        print(f"  systemd: {'ACTIVE' if service_active() else 'INACTIVE'} (9router.service)")
     if api_ready(timeout=10):
         print(f"  API: OK (http://127.0.0.1:{PORT})")
     else:
@@ -344,12 +355,12 @@ def cmd_status():
 
 def cmd_logs():
     if service_installed():
-        return _run(["systemctl", "--user", "status", "omniroute.service", "-n", "200"]).returncode
-    log_file = DATA_DIR / "logs" / "omniroute.log"
+        return _run(["systemctl", "--user", "status", "9router.service", "-n", "200"]).returncode
+    log_file = DATA_DIR / "logs" / "9router.log"
     if log_file.exists():
         print(log_file.read_text(encoding="utf-8", errors="replace")[-20000:])
         return 0
-    print("OmniRoute is not installed/running. No log file found.")
+    print("9Router is not installed/running. No log file found.")
     return 1
 
 
@@ -365,12 +376,12 @@ def cmd_models():
 
 
 def cmd_help():
-    print(f"Usage: aa omniroute <command> [args...]  (port {PORT})")
+    print(f"Usage: aa 9router <command> [args...]  (port {PORT})")
     print()
     print("Commands:")
-    print("  start              Start OmniRoute daemon (host-native)")
-    print("  stop               Stop OmniRoute daemon")
-    print("  restart           Restart OmniRoute daemon")
+    print("  start              Start 9Router daemon (host-native)")
+    print("  stop               Stop 9Router daemon")
+    print("  restart           Restart 9Router daemon")
     print("  status            Show process status and API health")
     print("  logs              Show service logs")
     print("  models            List available AI models")
@@ -393,7 +404,7 @@ def main(argv):
     }
     handler = dispatch.get(action)
     if not handler:
-        print(f"Unknown omniroute command: {action}", file=sys.stderr)
+        print(f"Unknown 9router command: {action}", file=sys.stderr)
         return cmd_help()
     return handler()
 

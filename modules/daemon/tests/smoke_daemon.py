@@ -14,11 +14,11 @@ def test_import_daemon_capabilities():
     """SM-DAEMON-002: daemon capability modules can be imported."""
     from modules.daemon.src import (
         capabilities_anytype_daemon,
-        capabilities_omniroute_daemon,
+        capabilities_9router_daemon,
     )
 
     assert capabilities_anytype_daemon is not None
-    assert capabilities_omniroute_daemon is not None
+    assert capabilities_9router_daemon is not None
 
 
 def test_import_daemon_orchestrator():
@@ -69,28 +69,28 @@ def test_anytype_manager_instantiates():
     assert repr(manager) == "AnytypeDaemonManager()"
 
 
-def test_podman_manager_instantiates():
-    """SM-DAEMON-009: PodmanDaemonManager instantiates quickly."""
-    from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+def test_ninerouter_manager_instantiates():
+    """SM-DAEMON-009: NinerouterDaemonManager instantiates quickly."""
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 
     start = time.time()
-    manager = PodmanDaemonManager()
+    manager = NinerouterDaemonManager()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
-    assert repr(manager) == "PodmanDaemonManager()"
+    assert repr(manager) == "NinerouterDaemonManager()"
 
 
 def test_orchestrator_instantiates():
     """SM-DAEMON-010: DaemonOrchestrator instantiates quickly."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-    from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 
     start = time.time()
-    omniroute = PodmanDaemonManager()
+    ninerouter = NinerouterDaemonManager()
     anytype = AnytypeDaemonManager()
-    orchestrator = DaemonOrchestrator(omniroute, anytype)
+    orchestrator = DaemonOrchestrator(ninerouter, anytype)
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"

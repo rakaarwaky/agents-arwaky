@@ -8,10 +8,10 @@ import pytest
 def test_dogfood_daemon_pipeline():
     """DOG-DAEMON-001: Basic dogfood check for daemon module."""
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-    from modules.daemon.src.capabilities_omniroute_daemon import PodmanDaemonManager
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 
     anytype = AnytypeDaemonManager()
-    omniroute = PodmanDaemonManager()
+    ninerouter = NinerouterDaemonManager()
 
     assert hasattr(anytype, 'execute')
-    assert hasattr(omniroute, 'execute')
+    assert hasattr(ninerouter, 'execute')

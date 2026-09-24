@@ -32,11 +32,11 @@ Last Updated: 2026-09-23
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| `aa service start omniroute` starts only that unit and reports its state. | Manual | — | `aa service start omniroute` + `status` | `5556fd5` |
+| `aa service start 9router` starts only that unit and reports its state. | Manual | — | `aa service start 9router` + `status` | `5556fd5` |
 | `aa service start all` with one missing unit reports that unit and still processes the other. | Gap | — | not asserted with a deliberately missing unit | — |
 | `aa service status` reports both units' states without changing anything. | Proxy | manual | `aa service status` + systemctl state unchanged | `5556fd5` |
 | Status with one daemon stopped reports it stopped and still prints the other row. | Gap | — | needs one unit stopped on purpose | — |
-| `aa service logs omniroute` tails that unit's log lines. | Manual | — | `aa service logs omniroute` on a host with the unit present | `5556fd5` |
+| `aa service logs 9router` tails that unit's log lines. | Manual | — | `aa service logs 9router` on a host with the unit present | `5556fd5` |
 | `aa service logs` for an unknown target reports a clear error naming the valid targets. | Proxy | `modules/service/src/capabilities_service_manager.py` | `cmd_logs` unknown-target path | `f87a775` |
 | `aa service help` prints usage listing the valid actions and targets. | Proxy | manual | `python3 -m modules.root_cli_entry service help` | `f87a775` |
 | An unknown action such as `aa service bogus` prints usage and exits non-zero. | Proxy | manual | `python3 -m modules.root_cli_entry service bogus` → usage + non-zero | `f87a775` |

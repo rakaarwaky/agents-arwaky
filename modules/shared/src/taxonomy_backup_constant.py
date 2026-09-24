@@ -3,7 +3,7 @@
 #: tool id -> XDG data subdirectory (relative to XDG_DATA_HOME) covered by backup.
 TOOL_DATA: dict[str, str] = {
     "anytype": "anytype-mcp",
-    "omniroute": "omniroute",
+    "9router": "9router",
     "mnemosyne": "mnemosyne",
     "google-workspace": "google-workspace-mcp",
 }

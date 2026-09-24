@@ -15,5 +15,5 @@ python_functions = ["test_*"]
 "modules/tools/src/capabilities_tools_updater.py" = ["BLE001"]
 "modules/harness/src/capabilities_harness_connector.py" = ["BLE001"]
 "modules/shared/src/utility_config_engine.py" = ["BLE001"]
-"modules/daemon/src/capabilities_omniroute_daemon.py" = ["BLE001"]
+"modules/daemon/src/capabilities_9router_daemon.py" = ["BLE001"]
 

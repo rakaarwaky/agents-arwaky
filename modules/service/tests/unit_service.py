@@ -1,6 +1,11 @@
 """Unit tests for modules/service — test individual functions and methods."""
 from __future__ import annotations
 
+from unittest.mock import patch
+
+from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
+from modules.service.src.capabilities_service_manager import ServiceManager
+
 
 class TestServiceManager:
     """Tests for ServiceManager class."""
@@ -83,30 +88,36 @@ class TestServiceOrchestrator:
 
     def test_status_delegates(self):
         """UT-SERVICE-010: status delegates to manager."""
-        from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceManager
-
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
-        result = orch.status()
-        assert result is not None
+        with patch.object(manager, "execute", return_value=0) as mock_exec:
+            result = orch.status()
+            mock_exec.assert_called_once()
+            assert result == 0
 
     def test_start_delegates(self):
-        """UT-SERVICE-011: start delegates to manager."""
-        from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceManager
-
+        """UT-SERVICE-011: start delegates to manager (never hits live systemctl)."""
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
-        result = orch.start()
-        assert result is not None
+        with patch.object(manager, "execute", return_value=0) as mock_exec:
+            result = orch.start()
+            mock_exec.assert_called_once()
+            assert result == 0
 
     def test_stop_delegates(self):
-        """UT-SERVICE-012: stop delegates to manager."""
-        from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceManager
-
+        """UT-SERVICE-012: stop delegates to manager (never hits live systemctl)."""
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
-        result = orch.stop()
-        assert result is not None
+        with patch.object(manager, "execute", return_value=0) as mock_exec:
+            result = orch.stop()
+            mock_exec.assert_called_once()
+            assert result == 0
+
+    def test_restart_delegates(self):
+        """UT-SERVICE-013: restart delegates to manager (never hits live systemctl)."""
+        manager = ServiceManager()
+        orch = ServiceOrchestrator(manager)
+        with patch.object(manager, "execute", return_value=0) as mock_exec:
+            result = orch.restart()
+            mock_exec.assert_called_once()
+            assert result == 0

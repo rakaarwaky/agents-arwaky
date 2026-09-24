@@ -5,7 +5,7 @@ from modules.shared.src.contract_service_aggregate import IServiceAggregate
 from modules.shared.src.contract_service_protocol import IServiceProtocol
 from modules.shared.src.taxonomy_service_vo import (
     TARGET_ALL,
-    TARGET_OMNIROUTE,
+    TARGET_9ROUTER,
     ExitCode,
     ServiceOp,
     ServiceTarget,
@@ -32,7 +32,7 @@ class ServiceOrchestrator(IServiceAggregate):
     def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         return ExitCode(int(self._manager.execute(ServiceOp("restart"), target)))
 
-    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
+    def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
         return ExitCode(int(self._manager.execute(ServiceOp("logs"), target)))
 
     def help(self) -> ExitCode:

@@ -10,7 +10,7 @@ the lifecycle capabilities and the adapter (extracted from
 SENTINEL_EXECUTABLE_GONE = 126
 
 #: Tool ids that are long-running daemons (container isolation invariant).
-DAEMON_TOOL_IDS: frozenset[str] = frozenset({"omniroute", "anytype", "anytype-daemon"})
+DAEMON_TOOL_IDS: frozenset[str] = frozenset({"9router", "anytype", "anytype-daemon"})
 
 #: Runner families a tool installs through (cargo / uv / bun / pnpm / npm / pip-venv).
 RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
@@ -19,7 +19,7 @@ RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
 # P1-5: the merged `anytype` id owns the daemon half too — uninstall must
 # stop the unit (or name it as a residual), not just delete its launcher.
 DAEMON_UNIT_TOOLS: dict[str, str] = {
-    "omniroute": "omniroute.service",
+    "9router": "9router.service",
     "anytype": "anytype-daemon.service",
     "anytype-daemon": "anytype-daemon.service",
 }
@@ -27,7 +27,7 @@ DAEMON_UNIT_TOOLS: dict[str, str] = {
 # Tool id -> daemon feature name (keyed on manifest id; "anytype-daemon"
 # routes to the "anytype" daemon manager in the daemon orchestrator).
 DAEMON_NAMES: dict[str, str] = {
-    "omniroute": "omniroute",
+    "9router": "9router",
     "anytype": "anytype",
     "anytype-daemon": "anytype",
 }
@@ -43,7 +43,7 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
     "fetch": ["fetch-mcp", "mcp-fetch"],
     "lint": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "mnemosyne": ["mnemosyne", "mnemosyne-mcp"],
-    "omniroute": ["omniroute"],
+    "9router": ["9router"],
     "ponytail": ["ponytail-mcp"],
     "qwen-web": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
     "vision": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],
@@ -129,10 +129,10 @@ LINT_LAUNCHERS: tuple[tuple[str, str], ...] = (
 #: NOTE: leaf lama merujuk `_BUILD_DEPS` tanpa definisi (NameError) — didefinisikan di sini.
 LINT_BUILD_DEPS: tuple[tuple[str, str], ...] = (("sccache", "sccache"), ("mold", "mold"))
 
-# ── omniroute (host-native daemon + launcher) ──
-OMNIROUTE_DATA_DIR_NAME = "omniroute"
-OMNIROUTE_INTERNAL_BIN = "internal-bin"
-OMNIROUTE_LAUNCHERS: tuple[str, ...] = ("omniroute",)
+# ── 9router (host-native daemon + launcher) ──
+NINEROUTER_DATA_DIR_NAME = "9router"
+NINEROUTER_INTERNAL_BIN = "internal-bin"
+NINEROUTER_LAUNCHERS: tuple[str, ...] = ("9router",)
 
 #: Adapter action-prefix table for config-driven tools (backward-compat globals).
 TOOL_ACTION_PREFIXES: dict[str, str] = {
@@ -170,9 +170,9 @@ __all__ = [
     "LINT_INTERNAL_DIR_REL",
     "LINT_LAUNCHERS",
     "NODE_IGNORES",
-    "OMNIROUTE_DATA_DIR_NAME",
-    "OMNIROUTE_INTERNAL_BIN",
-    "OMNIROUTE_LAUNCHERS",
+    "NINEROUTER_DATA_DIR_NAME",
+    "NINEROUTER_INTERNAL_BIN",
+    "NINEROUTER_LAUNCHERS",
     "PNPM_DANGEROUS_ALLOW",
     "QWEN_ROLE_DIRS",
     "QWEN_TOOL_NAME",
