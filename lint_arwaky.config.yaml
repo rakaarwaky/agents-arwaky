@@ -39,11 +39,6 @@ adapters:
 ignored_rules: []
 
 ignored_paths:
-  - "modules/harness/src/utility_antigravity_adapter.py"
-  - "modules/harness/src/utility_grok_build_adapter.py"
-  - "modules/harness/src/utility_hermes_adapter.py"
-  - "modules/harness/src/utility_opencode_adapter.py"
-  - "modules/harness/src/utility_qwencode_adapter.py"
 
 # ─── Architecture rules (superset, shared across all languages) ───────
 architecture:
