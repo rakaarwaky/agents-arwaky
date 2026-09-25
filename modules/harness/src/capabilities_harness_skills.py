@@ -36,7 +36,7 @@ class HarnessSkills(IHarnessProtocol):
     def __init__(self, adapters: dict[str, object]) -> None:
         self._adapters = adapters
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, op: str, targets: tuple[str, ...],
                 flags: dict[str, bool] | None = None) -> ExitCode:
         """Dispatch the ``provision_skills`` op over *targets*; return exit code."""
@@ -50,7 +50,7 @@ class HarnessSkills(IHarnessProtocol):
             force=flags.get("force", False),
         ))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def provision_skills(self, harness_ids: tuple[str, ...], copy: bool = False,
                          dry_run: bool = False, force: bool = False) -> int:
         """FR-003: link or copy the pack into each harness's skill dir.

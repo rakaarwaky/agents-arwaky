@@ -67,7 +67,7 @@ export class Capabilities<Name> implements I<Name>Protocol {
         // Value fields use shared VOs
     }
 
-    // ─── Block 2: Public Contract (domain protocol ONLY) ──
+    // ─── Block 2: Protocol Method Implementation ──────────────
     methodName(param: <VO>): void {
         // domain behavior
     }
@@ -97,17 +97,19 @@ export interface I<Name>Protocol {
 
 ## Section Contract
 
-| Check | Why it belongs here |
-| ----- | ------------------- |
-| Block 1 → 2 → 3 order followed. | Required by AES layer rules and the linter; missing it is a defect. |
-| Block 2: ONLY protocol interface method implementations. | Required by AES layer rules and the linter; missing it is a defect. |
-| ≥1 class implements protocol interface; ≤3 total types. | Required by AES layer rules and the linter; missing it is a defect. |
-| Imports from `_protocol` module only. | Required by AES layer rules and the linter; missing it is a defect. |
-| No local domain models, no agent/capability imports. | Required by AES layer rules and the linter; missing it is a defect. |
+
+| Check                                                             | Why it belongs here                                                 |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Block 1 → 2 → 3 order followed.                                   | Required by AES layer rules and the linter; missing it is a defect. |
+| Block 2: ONLY protocol interface method implementations.          | Required by AES layer rules and the linter; missing it is a defect. |
+| ≥1 class implements protocol interface; ≤3 total types.           | Required by AES layer rules and the linter; missing it is a defect. |
+| Imports from `_protocol` module only.                             | Required by AES layer rules and the linter; missing it is a defect. |
+| No local domain models, no agent/capability imports.              | Required by AES layer rules and the linter; missing it is a defect. |
 | DI via protocol interfaces; shared VOs for fields and signatures. | Required by AES layer rules and the linter; missing it is a defect. |
-| Constants → `taxonomy_<domain>_constant.ts`. | Required by AES layer rules and the linter; missing it is a defect. |
-| Low-level ops → Utility. | Required by AES layer rules and the linter; missing it is a defect. |
-| `npx tsc --noEmit` passes. | Required by AES layer rules and the linter; missing it is a defect. |
+| Constants → `taxonomy_<domain>_constant.ts`.                      | Required by AES layer rules and the linter; missing it is a defect. |
+| Low-level ops → Utility.                                          | Required by AES layer rules and the linter; missing it is a defect. |
+| `npx tsc --noEmit` passes.                                        | Required by AES layer rules and the linter; missing it is a defect. |
+
 
 ---
 
@@ -120,3 +122,4 @@ lint-arwaky-cli scan <layer-path>
 # Manual (not machine-checked): 3-block order; Block 2 only protocol methods; helper-vs-utility matrix; role naming lists.
 # Fallback compile gate: npx tsc --noEmit
 ```
+

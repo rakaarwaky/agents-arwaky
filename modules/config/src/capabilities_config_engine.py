@@ -40,7 +40,7 @@ from modules.shared.src.utility_toml_write import write_toml
 class ConfigWriter(IConfigProtocol):
     """Load / detect / save capability (single-execute dispatcher)."""
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -59,7 +59,10 @@ class ConfigWriter(IConfigProtocol):
             return self.detect_format(path)
         raise ValueError(f"ConfigWriter does not support op {op!r}")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "ConfigWriter()"
+
     def load_file(self, path: Path) -> ConfigTuple:
         data, fmt = load_file(path)
         return (ConfigData(data), ConfigFormat(fmt))
@@ -88,7 +91,7 @@ class ConfigWriter(IConfigProtocol):
 class ConfigModifier(IConfigProtocol):
     """Merge / env-set / removal / list capability (single-execute dispatcher)."""
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -116,7 +119,10 @@ class ConfigModifier(IConfigProtocol):
             return self.list_mcp_servers(path)
         raise ValueError(f"ConfigModifier does not support op {op!r}")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "ConfigModifier()"
+
     def remove_mcp_servers(
         self,
         path: Path,

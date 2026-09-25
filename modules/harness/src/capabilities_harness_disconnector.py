@@ -37,7 +37,7 @@ class HarnessDisconnector(IHarnessProtocol):
     def __init__(self, adapters: dict[str, object]) -> None:
         self._adapters = adapters
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, op: str, targets: tuple[str, ...],
                 flags: dict[str, bool] | None = None) -> ExitCode:
         """Dispatch the ``disconnect`` op over *targets*; return exit code."""
@@ -46,7 +46,7 @@ class HarnessDisconnector(IHarnessProtocol):
         flags = flags or {}
         return ExitCode(self.disconnect(targets, dry_run=flags.get("dry_run", False)))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def disconnect(self, harness_ids: tuple[str, ...], dry_run: bool = False) -> int:
         """FR-002: remove MCP servers, env keys, and router references.
 

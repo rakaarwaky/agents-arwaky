@@ -30,7 +30,7 @@ class SkillsCheckRunner(ICheckProtocol):
         self._root = root or repo_root()
         self._pack = self._root / "skills"
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, scope: CheckScope) -> CheckExitCode:
         """Run the skill-pack audit; *scope* routing happens in the orchestrator."""
         findings = audit_pack(self._pack)
@@ -44,7 +44,7 @@ class SkillsCheckRunner(ICheckProtocol):
             info(f"  ({total} SKILL.md files scanned, budget {DESCRIPTION_BUDGET_BYTES} bytes)")
         return CheckExitCode(len(findings))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "SkillsCheckRunner()"
 

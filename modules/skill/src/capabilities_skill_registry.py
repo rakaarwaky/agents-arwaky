@@ -26,7 +26,7 @@ class SkillRegistry(ISkillProtocol):
     def __init__(self) -> None:
         pass
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -50,7 +50,7 @@ class SkillRegistry(ISkillProtocol):
         print(f"Unknown skill op: {op}", file=sys.stderr)
         return ExitCode(1)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "SkillRegistry()"
 

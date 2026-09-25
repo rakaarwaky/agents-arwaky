@@ -40,7 +40,7 @@ class SkillPackProvisioner(ISkillProtocol):
     def __init__(self) -> None:
         self._pack_root = repo_root() / "skills"
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -62,6 +62,7 @@ class SkillPackProvisioner(ISkillProtocol):
         print(f"Unknown skill op: {op}", file=sys.stderr)
         return ExitCode(1)
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def install(
         self,
         tool_id: ToolFilter,
@@ -86,7 +87,6 @@ class SkillPackProvisioner(ISkillProtocol):
             f"provisioned {ok} skill(s)",
         )
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def __repr__(self) -> str:
         return "SkillPackProvisioner()"
 

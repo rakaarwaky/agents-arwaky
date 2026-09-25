@@ -53,7 +53,7 @@ class ServiceManager(IServiceProtocol):
         """Return the injected daemon aggregate (composition-time wiring)."""
         return self._daemons
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, op: ServiceOp, unit: ServiceTarget = TARGET_ALL) -> ExitCode:
         if op == "status":
             return self.status()
@@ -69,7 +69,7 @@ class ServiceManager(IServiceProtocol):
             return self.help()
         raise ValueError(f"Unknown service op: {op}")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "ServiceManager()"
 

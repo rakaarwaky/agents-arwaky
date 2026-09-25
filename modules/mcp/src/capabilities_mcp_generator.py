@@ -36,7 +36,7 @@ class McpConfigGenerator(IMcpProtocol):
     def __init__(self) -> None:
         self._root = repo_root()
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -62,7 +62,10 @@ class McpConfigGenerator(IMcpProtocol):
         print(f"Unknown MCP op: {op}", file=sys.stderr)
         return ExitCode(1)
 
-    # ─── Block 3: Internal concrete capability methods ────────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "McpConfigGenerator()"
+
     def generate(self, output: Path) -> ExitCode:
         """Write the unified MCP client config to *output*; return exit code.
 

@@ -33,7 +33,7 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
     def __init__(self) -> None:
         ensure_path()
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
         json_mode = bool((flags or {}).get("json"))
         if json_mode:
@@ -80,6 +80,6 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
         print(sep)
         return ExitCode(0)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "ToolsDiagnosticRunner()"

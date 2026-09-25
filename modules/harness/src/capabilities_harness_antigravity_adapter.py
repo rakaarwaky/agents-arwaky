@@ -22,14 +22,14 @@ from modules.shared.src.taxonomy_harness_vo import ExitCode
 from modules.shared.src.utility_harness_mechanics import dispatch_provider_op
 
 
-# ─── Block 1: Class Definition & Constructor ─────────────────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class AntigravityHarnessAdapter(IHarnessProtocol):
     """Antigravity provider behind the harness protocol (AES403 implementor)."""
 
     def __init__(self, units: dict[str, object] | None = None) -> None:
         self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
 
-    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -39,7 +39,7 @@ class AntigravityHarnessAdapter(IHarnessProtocol):
         """Dispatch a provider-scoped op against this file's antigravity unit."""
         return dispatch_provider_op(self._units, op, targets, flags, label="antigravity adapter")
 
-    # ─── Block 3: Dunder Methods ─────────────────────────────────────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return f"AntigravityHarnessAdapter(providers={len(self._units)})"
 

@@ -33,7 +33,7 @@ class DocsCheckRunner(ICheckProtocol):
     def __init__(self, root: Path | None = None) -> None:
         self._root = root or repo_root()
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, scope: CheckScope) -> CheckExitCode:
         """Run the document audit; *scope* routing happens in the orchestrator."""
         findings = self.audit()
@@ -44,7 +44,10 @@ class DocsCheckRunner(ICheckProtocol):
             ok("every document satisfies the add-docs invariants")
         return CheckExitCode(len(problems))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "DocsCheckRunner()"
+
     def audit(self, include_subtrees: bool = False) -> list[DocFinding]:
         # AES201: utilities must not import each other; capabilities composes them.
         merged = (

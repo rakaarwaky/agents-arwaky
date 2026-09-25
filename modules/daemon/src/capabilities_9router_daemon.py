@@ -50,7 +50,7 @@ class NinerouterDaemonManager(IDaemonProtocol):
     def __init__(self, root=None, daemons: object | None = None) -> None:
         pass
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -79,6 +79,7 @@ class NinerouterDaemonManager(IDaemonProtocol):
             return self.help()
         raise ValueError(f"Unknown daemon op: {op}")
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def start(self) -> ExitCode:
         return ExitCode(cmd_start())
 
@@ -102,7 +103,6 @@ class NinerouterDaemonManager(IDaemonProtocol):
     def logs(self) -> ExitCode:
         return ExitCode(cmd_logs())
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def __repr__(self) -> str:
         return "NinerouterDaemonManager()"
 

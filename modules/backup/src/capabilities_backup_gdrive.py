@@ -48,7 +48,7 @@ class GdriveBackupGateway(IBackupProtocol):
     def __init__(self, folder_name: str = DEFAULT_FOLDER_NAME) -> None:
         self._folder_name = folder_name
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
 
     def execute(
         self,
@@ -70,6 +70,7 @@ class GdriveBackupGateway(IBackupProtocol):
             return self.list_archives()
         return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def backup(self, tool: str, dest: str = "") -> BackupResult:
         """Upload *tool*'s newest local archive to Drive (original
         ``cmd_upload`` logic; original raises ``sys.exit(1)`` on
@@ -88,7 +89,6 @@ class GdriveBackupGateway(IBackupProtocol):
             return BackupResult(False, tool, str(matches[-1]), True, "upload failed (original script exited)")
         return BackupResult(True, tool, str(matches[-1]), True, "uploaded to Google Drive")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def restore(self, tool: str, archive: Path) -> RestoreResult:
         """Download *tool* from Drive into *archive* (original
         ``cmd_download`` logic, same ``sys.exit(1)`` adaptation)."""
@@ -109,8 +109,11 @@ class GdriveBackupGateway(IBackupProtocol):
         """Delegates to the original ``cmd_list`` (prints JSON)."""
         cmd_list(folder_name)
 
+    def __repr__(self) -> str:
+        return "GdriveBackupGateway()"
+
     @staticmethod
-    def main_cli() -> None:
+    def main(argv: list[str] | None = None) -> None:
         """The original script's ``main()`` entry point (as-is above)."""
         main()
 def get_credentials():

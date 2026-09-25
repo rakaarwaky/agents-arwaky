@@ -92,14 +92,14 @@ def _survivor_reason(path: Path) -> str:
     return "foreign-owner: path reappeared"
 
 
-# ─── Block 1: Class Definition & Constructor ─────────────────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class UninstallerCapability(IToolsProtocol):
     """Business action uninstall(spec, owned_paths, dry_run): remove + verify."""
 
     def __init__(self, daemons: object | None = None) -> None:
         self._daemons = daemons
 
-    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -119,6 +119,10 @@ class UninstallerCapability(IToolsProtocol):
         dry_run = bool(args and "dry-run" in args)
         return self.uninstall(spec, owned_paths, dry_run=dry_run)
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "UninstallerCapability()"
+
     def uninstall(
         self,
         spec: ToolSpec,
@@ -132,7 +136,6 @@ class UninstallerCapability(IToolsProtocol):
         # gets verified so residuals are surfaced, not hidden.
         return self._verify(spec, result, owned_paths)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _remove(
         self,
         spec: ToolSpec,

@@ -50,7 +50,7 @@ def _has_provenance(launcher: Path) -> bool:
     return PROVENANCE_MARKER in head
 
 
-# ─── Block 1: Class Definition & Constructor ─────────────────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class InstallerCapability(IToolsProtocol):
     """Business action install(spec, dry_run): provision + register launcher."""
 
@@ -62,7 +62,7 @@ class InstallerCapability(IToolsProtocol):
         # (single API pipeline) instead of the raw registry unit.
         self._facade = adapter_facade
 
-    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -78,6 +78,10 @@ class InstallerCapability(IToolsProtocol):
         dry_run = bool(args and "dry-run" in args)
         adapter = query if query is not None else None
         return self.install(spec, adapter=adapter, dry_run=dry_run)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "InstallerCapability()"
 
     def install(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> InstallResult:
         """Install via the injected adapter facade (single API pipeline).
@@ -125,7 +129,6 @@ class InstallerCapability(IToolsProtocol):
         result = self._register_launcher(spec, result)
         return result
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _register_launcher(
         self,
         spec: ToolSpec,

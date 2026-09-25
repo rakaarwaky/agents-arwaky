@@ -64,7 +64,7 @@ class HarnessConnector(IHarnessProtocol):
         self._daemon_status_fn = daemon_status_fn
         self._skills = skills
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, op: str, targets: tuple[str, ...],
                 flags: dict[str, bool] | None = None) -> ExitCode:
         """Dispatch the ``connect`` op over *targets*; return exit code."""
@@ -82,7 +82,7 @@ class HarnessConnector(IHarnessProtocol):
             copy_skills=flags.get("copy_skills", False),
         ))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def connect(self, harness_ids: tuple[str, ...], force: bool = False, dry_run: bool = False,
                 mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
                 router: bool = False, copy_skills: bool = False) -> int:

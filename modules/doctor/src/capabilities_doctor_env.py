@@ -31,7 +31,7 @@ class EnvDiagnosticRunner(IDoctorProtocol):
     def __init__(self) -> None:
         ensure_path()
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
         _ = flags
         banner()
@@ -47,7 +47,7 @@ class EnvDiagnosticRunner(IDoctorProtocol):
         print(f"{GREEN()}Diagnostics complete.{RESET()}")
         return ExitCode(0)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _check_toolchain(self) -> None:
         target_bin = str(bin_home())
         if target_bin in os.environ.get("PATH", "").split(os.pathsep):

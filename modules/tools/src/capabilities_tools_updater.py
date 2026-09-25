@@ -29,7 +29,7 @@ from modules.shared.src.taxonomy_common_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ─────────────────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class UpdaterCapability(IToolsProtocol):
     """Business action update(spec, dry_run): bump + record transition."""
 
@@ -39,7 +39,7 @@ class UpdaterCapability(IToolsProtocol):
         # P1-7: action calls route through the injected adapter facade.
         self._facade = adapter_facade
 
-    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -56,6 +56,10 @@ class UpdaterCapability(IToolsProtocol):
         adapter = query if query is not None else None
         return self.update(spec, adapter=adapter, dry_run=dry_run)
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "UpdaterCapability()"
+
     def update(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> UpdateResult:
         facade = self._facade
         if facade is None:
@@ -67,7 +71,6 @@ class UpdaterCapability(IToolsProtocol):
         result = self._record(spec, result)
         return result
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _bump(
         self,
         spec: ToolSpec,

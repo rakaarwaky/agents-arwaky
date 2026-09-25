@@ -51,7 +51,7 @@ class TarBackupGateway(IBackupProtocol):
     print statements, edge cases).
     """
 
-    # ─── Block 2: Protocol ABC Method Implementation ──────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
 
     def execute(
         self,
@@ -84,12 +84,12 @@ class TarBackupGateway(IBackupProtocol):
             return cmd_help()
         return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def backup(self, tool: str, dest: str = "") -> BackupResult:
         rc = cmd_backup([tool] + ([dest] if dest else []))
         archive = f"{tool}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.tar.gz"
         return BackupResult(rc == 0, tool, archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───────
     def restore(self, tool: str, archive: Path) -> RestoreResult:
         rc = cmd_restore([tool, str(archive)])
         return RestoreResult(rc == 0, tool, str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
@@ -100,7 +100,10 @@ class TarBackupGateway(IBackupProtocol):
     def help(self) -> int:
         return cmd_help()
 
-    def main_cli(self, argv: list[str]) -> int:
+    def __repr__(self) -> str:
+        return "TarBackupGateway()"
+
+    def main(self, argv: list[str]) -> int:
         """Original script's ``main`` entry point (kept as-is above)."""
         return main(argv)
 

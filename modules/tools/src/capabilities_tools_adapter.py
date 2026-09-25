@@ -26,7 +26,7 @@ from modules.shared.src.taxonomy_tools_constant import LAUNCHER_NAMES
 from modules.shared.src.utility_tool_mechanics import ROOT, generic_owned
 
 
-# ─── Block 1: Class Definition & Constructor ─────────────────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class ToolAdapterFacade(IToolsProtocol):
     """Unified facade: one injected object holding every tool's actions."""
 
@@ -40,7 +40,7 @@ class ToolAdapterFacade(IToolsProtocol):
         self._daemons = daemons
         self._root = root
 
-    # ─── Block 2: Public Contract (domain protocol ONLY, protocol order) ──
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -82,6 +82,7 @@ class ToolAdapterFacade(IToolsProtocol):
             return self.is_registered(spec)
         raise ToolUpdateError(f"unsupported facade op {op!r}")
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def resolve(self, spec: ToolSpec) -> object:
         """Uniform action surface for *spec* (unit lookup)."""
         return self._unit(spec)
@@ -128,7 +129,6 @@ class ToolAdapterFacade(IToolsProtocol):
             return list(fn(spec, self._root_for(root)) or [])
         return generic_owned(spec, LAUNCHER_NAMES.get(spec.id, [spec.id]))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def __repr__(self) -> str:
         return f"ToolAdapterFacade(tools={len(self._registry)})"
 

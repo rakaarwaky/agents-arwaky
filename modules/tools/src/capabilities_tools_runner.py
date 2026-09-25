@@ -57,14 +57,14 @@ def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path)
     return [str(executable), *args]
 
 
-# ─── Block 1: Class Definition & Constructor ─────────────────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class RunnerCapability(IToolsProtocol):
     """Business action run(spec, args, root): discover + exec, return exit code."""
 
     def __init__(self, root: Path | None = None) -> None:
         self._root = root
 
-    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -85,6 +85,10 @@ class RunnerCapability(IToolsProtocol):
             f"unsupported runner op {op!r} (expected 'run' or 'discover')"
         )
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "RunnerCapability()"
+
     def run(self, spec: ToolSpec, args: list[str], root: Path | None = None) -> ExitCode:
         # Sub-step 1: discover the concrete launch path; None -> return 1.
         base = root or self._root or repo_root
@@ -104,7 +108,6 @@ class RunnerCapability(IToolsProtocol):
         base = root or self._root or repo_root
         return self._discover(spec, base)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ────────────────
     def _discover(self, spec: ToolSpec, root: Path) -> Path | None:
         """First valid candidate in discovery order, resolved; None when absent."""
         for candidate in self._candidates(spec, root):

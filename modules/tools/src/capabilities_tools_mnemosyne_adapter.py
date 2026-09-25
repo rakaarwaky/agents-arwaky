@@ -16,14 +16,14 @@ from modules.shared.src.utility_tool_mechanics import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ─────────────────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class MnemosyneToolsAdapter(IToolsProtocol):
     """Mnemosyne actions behind the tools protocol (AES403 implementor)."""
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
 
-    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
         self,
         op: str,
@@ -34,7 +34,7 @@ class MnemosyneToolsAdapter(IToolsProtocol):
         """Dispatch *op* against this file's mnemosyne unit."""
         return dispatch_unit_op(self._units, op, spec, query, args, label="mnemosyne adapter")
 
-    # ─── Block 3: Dunder Methods ─────────────────────────────────────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return f"MnemosyneToolsAdapter(tools={len(self._units)})"
 
