@@ -113,12 +113,12 @@ class TestHarnessLeafAdapters:
 
     def test_execute_unknown_harness_id_raises(self):
         """UT-HARNESS-012: an unregistered id raises the typed harness error."""
-        from modules.harness.src.capabilities_harness_antigravity_adapter import (
-            AntigravityHarnessAdapter,
+        from modules.harness.src.capabilities_harness_hermes_adapter import (
+            HermesHarnessAdapter,
         )
         from modules.shared.src.taxonomy_harness_vo import UnsupportedHarnessError
 
-        adapter = AntigravityHarnessAdapter()
+        adapter = HermesHarnessAdapter()
         with pytest.raises(UnsupportedHarnessError):
             adapter.execute("supported", ("not-a-harness",), {})
 

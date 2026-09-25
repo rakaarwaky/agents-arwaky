@@ -14,9 +14,6 @@ from modules.harness.src.capabilities_harness_skills import HarnessSkills
 # Root is the only layer allowed to import capabilities_* (AES201): every
 # provider leaf is registered here and injected into the capabilities.
 # Importing them here also wires them for the AES503 orphan check.
-from modules.harness.src.capabilities_harness_antigravity_adapter import (
-    ADAPTER_UNITS as _ANTIGRAVITY_UNITS,
-)
 from modules.harness.src.capabilities_harness_grok_build_adapter import (
     ADAPTER_UNITS as _GROK_BUILD_UNITS,
 )
@@ -26,20 +23,15 @@ from modules.harness.src.capabilities_harness_hermes_adapter import (
 from modules.harness.src.capabilities_harness_opencode_adapter import (
     ADAPTER_UNITS as _OPENCODE_UNITS,
 )
-from modules.harness.src.capabilities_harness_qwencode_adapter import (
-    ADAPTER_UNITS as _QWENCODE_UNITS,
-)
 from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
 from modules.shared.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 
 #: harness_id → provider spec (root composition data; each spec owns one
 #: provider's paths, config format, env keys, and custom-API flag).
 HARNESS_REGISTRY: dict[str, object] = {
-    **_ANTIGRAVITY_UNITS,
     **_GROK_BUILD_UNITS,
     **_HERMES_UNITS,
     **_OPENCODE_UNITS,
-    **_QWENCODE_UNITS,
 }
 
 

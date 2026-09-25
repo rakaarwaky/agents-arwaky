@@ -18,10 +18,10 @@ from modules.shared.src.taxonomy_harness_constant import (
 
 _HELP_DOC = """agents-arwaky Harness Connector / Disconnector — surface command.
 
-aa connect --antigravity|--hermes|--opencode|--qwencode|--grok-build|--all
+aa connect --hermes|--opencode|--grok-build|--all
    [options: --force --dry-run --mcp-only --skills-only --env-only
              --router --copy-skills]
-aa disconnect --antigravity|--hermes|--opencode|--qwencode|--grok-build|--all
+aa disconnect --hermes|--opencode|--grok-build|--all
    [options: --dry-run]
 
 Skill provisioning links each skill directory to the repo pack under

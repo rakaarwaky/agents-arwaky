@@ -7,10 +7,8 @@ from __future__ import annotations
 
 #: canonical harness id -> raw CLI tokens that resolve to it (id itself + aliases).
 HARNESSES: dict[str, tuple[str, ...]] = {
-    "antigravity": ("antigravity", "agy"),
     "hermes": ("hermes",),
     "opencode": ("opencode",),
-    "qwencode": ("qwencode", "qwen", "qwen-code"),
     "grok-build": ("grok-build", "grok"),
 }
 

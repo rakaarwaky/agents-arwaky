@@ -1,4 +1,4 @@
-"""Harness feature package — connect agent harnesses (Antigravity, Hermes, OpenCode, Qwen Code, Grok Build).
+"""Harness feature package — connect agent harnesses (Hermes, OpenCode, Grok Build).
 
 Public re-exports: orchestrator + CLI surface. The composition root
 (``root_harness_container``) is imported by callers directly, not re-exported

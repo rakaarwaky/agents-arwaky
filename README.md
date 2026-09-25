@@ -10,7 +10,7 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 **`agents-arwaky`** solves this through a **Local Bare-Metal Architecture**:
 
 - ⚡ **Direct Host Execution:** Compilers, dependencies, and runtimes are installed natively on the host. Tools compile to host-native binaries in `~/.local/bin/` via standard Linux XDG integration. Run tools from your host terminal directly.
-- 🤖 **Universal MCP Hub & Skills Provisioner:** Out-of-the-box integration for AI harnesses (Google Antigravity, Hermes Agent with multi-profile MCP/env sync and default-profile-only skill provisioning, OpenCode, Cursor, Zed) via declarative MCP configs and automated skill provisioning.
+- 🤖 **Universal MCP Hub & Skills Provisioner:** Out-of-the-box integration for AI harnesses (Hermes Agent with multi-profile MCP/env sync and default-profile-only skill provisioning, OpenCode, Cursor, Zed) via declarative MCP configs and automated skill provisioning.
 - 🎯 **Unified Orchestration (`agents-arwaky` / `aa` CLI):** One single control point for diagnostics, health checks, execution dispatching, and build pipelines.
 - 🐳 **Containerized Daemons:** Anytype runs in a Podman container. 9Router runs host-native (no container). CLI tools and MCPs are host-native.
 
@@ -24,7 +24,7 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 flowchart TB
     subgraph HostOS["Host Operating System (Linux)"]
         User["User / Developer"]
-        Harnesses["AI Agent Harnesses & IDEs\n(Antigravity • Hermes Multi-Profiles • OpenCode • Cursor • Zed)"]
+        Harnesses["AI Agent Harnesses & IDEs\n(Hermes Multi-Profiles • OpenCode • Cursor • Zed)"]
         CLI["Orchestrator CLI: 'aa' / 'agents-arwaky'\n(~/.local/bin/aa)"]
       
         subgraph XDGShared["Shared Host Storage ($HOME Bind-Mount)"]
@@ -198,11 +198,11 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | `aa status`                              | Display health, installation state, and submodule readiness                                        | `aa status`                                    |
 | `aa doctor`                              | All-in-one ecosystem diagnostics (toolchains, daemons, MCP config, harnesses)                    | `aa doctor`                                    |
-| `aa tool <cmd> [args]`                   | Tool management: `list`, `run`, `install`, `update`, `uninstall`                                    | `aa tool install lint`                         |
+| `aa tool <cmd> [args]`                   | Tool management: `list`, `run`, `install`, `update`, `uninstall`                                    | `aa tool install lint-arwaky`                   |
 | `aa skill <cmd> [args]`                  | Skill management: `list`, `install`, `uninstall`, `show`, `check`                                   | `aa skill install --all`                       |
 | `aa check [all\|docs\|skill]`              | Run quality gate (all runners, or `docs` / `skill` alone); warnings gate alongside errors | `aa check` · `aa check docs` · `aa check skill` |
 | `aa check docs [path]`                   | Document invariants across PRD/ROADMAP/FRD/README/BACKLOG/AGENTS and skill references, scoped to `[path]`; every finding gates, `--json` emits findings, `--include-subtrees` audits vendor/internal | `aa check docs .` |
-| `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses — harness `skills/` becomes a symlink to the pack (manage once in `skills/`); `--copy-skills` snapshots instead (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) | `aa connect --all`                             |
+| `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses — harness `skills/` becomes a symlink to the pack (manage once in `skills/`); `--copy-skills` snapshots instead (`--hermes`, `--opencode`, `--grok-build`, `--all`) | `aa connect --all`                             |
 | `aa disconnect [targets]`                | Disconnect harnesses (use `--all` to disconnect all)                                                | `aa disconnect --all`                          |
 | `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
 | `aa mcp show`                            | Inspect current generated unified MCP client manifest                                              | `aa mcp show`                                  |
@@ -226,7 +226,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 aa tool run codegraph index .
 
 # Architecture validation across the repository
-aa tool run lint --help
+aa tool run lint-arwaky --help
 
 ```
 
@@ -327,10 +327,9 @@ Instead of manually copying configurations, use `aa connect` to automatically in
 
 ```bash
 # Connect to specific harness
-aa connect --antigravity      # Google Antigravity (~/.gemini/antigravity-cli/mcp_config.json & skills/)
 aa connect --hermes           # Hermes Agent (MCP & env: all profiles · Skills: default profile only)
 aa connect --opencode         # OpenCode (~/.config/opencode/opencode.jsonc & skills/)
-aa connect --qwencode         # Qwen Code (~/.qwen/settings.json & skills/)
+aa connect --grok-build       # Grok Build (~/.grok/config.toml & skills/)
 
 # Connect to all supported harnesses at once
 aa connect --all
@@ -348,9 +347,6 @@ aa connect --clean            # Remove provisioned skills and MCP entries cleanl
 > **Hermes Multi-Profile Support:** `aa connect --hermes` automatically detects all profiles under `~/.hermes/profiles/<profile>/` (e.g., `currie`, `fangyuan`, `linus`, `tesla`) alongside the main profile, ensuring all agents share the full tool and skill suite.
 > **Environment & Gateway:** `aa connect` also auto-injects `NINEROUTER_URL` and `NINEROUTER_KEY` into harness environments (`.env`) and desktop session configs (`~/.config/environment.d/9router.conf`).
 
-> [!NOTE]
-> **Qwen Code Nested Skills:** Qwen Code scans exactly **one level** below each skills root, so a skill at `skills/<category>/<skill>/SKILL.md` is invisible until `<category>` is itself a registered root. `aa connect --qwencode` handles this: it links `~/.qwen/skills` to the pack root, derives the category list from disk, and writes it to `skills.directories` in `~/.qwen/settings.json` — keeping roots that point outside the pack and dropping entries for categories that are gone. It also installs a `SessionStart` hook (`arwaky-skill-sync`) that re-runs `aa connect --qwencode --skills-only`, so a category added later registers itself without a manual connect; unrelated hooks and roots are left untouched, and a run whose list already matches writes nothing. Because the list is read once at startup and the hook fires after skill discovery, a newly added category becomes live after **one session restart**.
-
 
 ### Manual Client Setup Guides
 
@@ -358,10 +354,8 @@ Prefer `aa connect <harness>` (injects every server + skills). Manual one-liners
 
 | Harness | Config path | Command |
 |---|---|---|
-| Antigravity | `~/.gemini/antigravity-cli/mcp_config.json` | `aa connect --antigravity` |
 | Hermes | `~/.hermes/config.yaml` (+ profiles) | `aa connect --hermes` |
 | OpenCode | `~/.config/opencode/opencode.jsonc` | `aa connect --opencode` |
-| Qwen Code | `~/.qwen/settings.json` | `aa connect --qwencode` |
 | Cursor | `.cursor/mcp.json` | register servers manually |
 | Zed | `~/.config/zed/settings.json` | register `context_servers` manually |
 

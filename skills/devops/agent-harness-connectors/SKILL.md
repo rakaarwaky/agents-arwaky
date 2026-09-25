@@ -7,7 +7,7 @@ metadata:
 
 # Harness Connector Debugging (agents-arwaky `aa connect`)
 
-Use when a harness (Qwen Code, Hermes, OpenCode, Antigravity) is still broken
+Use when a harness (Hermes, OpenCode, Grok Build) is still broken
 after `aa connect` — 401 Invalid API key, wrong model endpoint, or MCP servers
 failing to start.
 
@@ -18,7 +18,7 @@ can authenticate.
 | Layer | What connect writes | Where | What it does NOT touch |
 |---|---|---|---|
 | MCP servers | merged server map | harness settings/config file | whether those commands start |
-| Skills | the whole skills dir becomes ONE symlink to `agents-arwaky/skills/` (verified harnesses: hermes, qwencode, opencode; per-skill copies elsewhere) | `<harness>/skills` | named-profile skill dirs |
+| Skills | the whole skills dir becomes ONE symlink to `agents-arwaky/skills/` (verified harnesses: hermes, opencode, grok-build; per-skill copies elsewhere) | `<harness>/skills` | named-profile skill dirs |
 | Env | `NINEROUTER_URL`, `NINEROUTER_KEY`, `MNEMOSYNE_DATA_DIR` | `<harness>/.env` + `~/.config/environment.d/9router.conf` | the harness's own provider/model config |
 
 Code: `modules/harness/src/surface_harness_command.py` (dispatch),
@@ -78,20 +78,19 @@ the 401 — not a stale harness session.
    delete the wizard's inline copy so it can never shadow `.env` again after a
    key rotation. Rewriting only the stale value re-breaks on the next rotation.
 5. Verify end to end by running the harness headless, not by re-reading config:
-   `qwen -p "sapa singkat" --yolo` (see `references/qwen-code.md` for the
-   equivalent on other harnesses and for the exact settings.json shape).
+   `grok -p "sapa singkat" --always-approve --output-format json` (see
+   `references/harness-skill-probes.md` for the per-harness equivalent).
 
 ## Pitfalls
 
-- **Inline keys shadow env.** Interactive provider-setup wizards store the key in
-  the settings file itself (Qwen Code: `settings.env["QWEN_CUSTOM_API_KEY_<…>"]`,
-  keyed by a hash of the baseUrl). Deleting or rebinding it is part of the fix;
-  leaving it means `.env` changes have no effect.
-- **baseUrl must match exactly**, including `127.0.0.1` vs `localhost`. Qwen
-  matches provider entries by `id` + `baseUrl`; a persisted `model.baseUrl` that
-  no longer matches emits "Persisted model.baseUrl … no longer matches any
-  provider" and silently picks the first id match. Normalize both sides
-  (`_router_v1`: strip trailing slash, append `/v1`) and write `model.baseUrl`.
+- **Inline keys shadow env.** Provider entries whose schema has no env-key
+  reference carry the key inline (OpenCode: `provider.<name>.options.apiKey`,
+  written by the connector and chmod 600 for that reason). Deleting or rebinding
+  it is part of the fix; leaving it means `.env` changes have no effect.
+- **baseUrl must match exactly**, including `127.0.0.1` vs `localhost`. A
+  persisted model baseUrl that no longer matches a provider entry silently
+  picks another id match. Normalize both sides (`_router_v1`: strip trailing
+  slash, append `/v1`) and write the harness's model baseUrl too.
 - **`/v1/models` answers without auth.** 200 on the models endpoint proves the
   router is up, NOT that a key is valid — always probe `chat/completions` with
   the bearer header when testing keys.
@@ -106,7 +105,7 @@ the 401 — not a stale harness session.
   capabilities or `modules/config/src/capabilities_config_engine.py`, and
   JSON/JSONC/YAML edits go through that engine so comment preservation is not
   lost. A provider-binding sync that is specific to one harness's schema may
-  live in that harness's adapter (as qwencode's does) provided it only
+  live in that harness's adapter provided it only
   read-modify-writes a plain-JSON file the connector owns — never hand-edit
   YAML or JSONC there, and add an engine helper instead once a second harness
   needs it.
@@ -155,14 +154,14 @@ credential gap, not a connector bug.
 ## Skill provisioning: the whole skills root IS the pack (default profile only)
 
 `aa connect <harness>` replaces the harness's skills DIRECTORY with one symlink
-to the pack: `~/.hermes/skills -> agents-arwaky/skills`, `~/.qwen/skills ->` the
+to the pack: `~/.hermes/skills -> agents-arwaky/skills`, `~/.grok/skills ->` the
 same. There is no per-skill provisioning step, so adding, removing, or editing a
 skill in the pack is instantly visible to every linked harness with zero re-run,
 and a self-improving agent's edit writes through the link straight into the repo
 (a pack `git diff` is the proof). Implemented by `_link_skills_root()` in
 `capabilities_harness_skills.py`, gated per adapter by `skill_link_verified`
-(hermes, qwencode, opencode True; antigravity False until its probe passes —
-probe commands per harness live in `references/harness-skill-probes.md`);
+(hermes, opencode, grok-build); per-harness probe commands live in
+`references/harness-skill-probes.md`;
 `--copy-skills` falls back to per-skill copies for any harness.
 
 Contrast: `aa skill install` into a PROJECT `.agents/skills/` always COPIES —
@@ -250,7 +249,7 @@ edit — the linked live host is the test subject:
    migration would move, and inventory non-pack children (harness-native skills
    and dot-file state) before committing to `--force`.
 3. After each `--force` run verify all three: the link (`ls -ld`), discovery
-   through it (`hermes skills list`, headless `qwen` probe), and that the pack's
+   through it (`hermes skills list`, headless `grok` probe), and that the pack's
    `git status` shows no runtime state leaking in (gitignore the state files in
    the same change).
 4. Expect a crash mid-migration to leave the tree half-moved (children already
@@ -259,9 +258,6 @@ edit — the linked live host is the test subject:
 
 ## References
 
-- `references/qwen-code.md` — Qwen Code (`qwa`/`qwen`) settings.json provider
-  schema, where its bundled docs live, key-resolution chain, headless verify
-  command, and the connector's provider-sync step.
 - `references/harness-skill-probes.md` — per-harness commands to verify skill
   discovery through a symlinked skills root (the evidence required before
   flipping `SKILL_LINK_VERIFIED`), with each CLI's invocation quirks.

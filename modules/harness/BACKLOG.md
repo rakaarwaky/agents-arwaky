@@ -34,7 +34,7 @@ Last Updated: 2026-09-25
 | HRS-04 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Restructure harness module to 3 business capabilities + 5 leaf adapters | P1 | Done | `python3 -m compileall -q modules/harness` → 0 at `f87a775`; connector/disconnector/skills + 5 leaf adapters on the tree. | @raka | HRS-03 | 2026-09-23 |
 | HRS-05 | FR-HARNESS-001, FR-HARNESS-002 | Router wiring as connect/disconnect clause | P2 | Ready | Clause specified under FR-HARNESS-001/FR-HARNESS-002 and gated by the adapter custom-API flag; behaviour sweep owed under HRS-01. | @raka | HRS-04 | 2026-09-19 |
 | HRS-06 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003, FR-HARNESS-004 | Collapse capability protocols to one `execute` method; aggregate gains `all_targets` | P1 | Done | `python3 -m compileall -q modules/harness` + `python3 -m modules.root_cli_entry check docs modules/harness` → 0 findings at `f87a775`. | @raka | HRS-04 | 2026-09-23 |
-| HRS-07 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Provider leaves serve `IHarnessProtocol`; registry wired in the composition root | P1 | Done | `python3 -m pytest modules/harness/tests -q` → 35 passed + `lint-arwaky-cli scan modules/harness` → 0 at `fef1b90`; five leaves inherit the protocol and `HARNESS_REGISTRY` covers every supported id. | @raka | HRS-04 | 2026-09-25 |
+| HRS-07 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Provider leaves serve `IHarnessProtocol`; registry wired in the composition root | P1 | Done | `python3 -m pytest modules/harness/tests -q` → 35 passed + `lint-arwaky-cli scan modules/harness` → 0 at `fef1b90`; three leaves inherit the protocol and `HARNESS_REGISTRY` covers every supported id. | @raka | HRS-04 | 2026-09-25 |
 
 ## Scenario Evidence
 
@@ -44,7 +44,7 @@ Last Updated: 2026-09-25
 | `aa connect --router grok-build` wires the local router only when the adapter declares custom-API support; otherwise reports the skip. | Gap | — | — | not yet verified |
 | `aa disconnect --dry-run` reports what would be removed (MCP servers, env keys, router refs) and changes nothing. | Manual | — | `python3 -m modules.root_cli_entry disconnect --opencode --dry-run` → exit 0, all steps DRY-RUN | `f87a775` |
 | Disconnecting a harness that was never connected is an idempotent no-op that exits 0. | Gap | — | — | not yet verified |
-| `aa connect --skills-only qwencode` provisions the skill pack without touching MCP config. | Gap | — | — | not yet verified |
+| `aa connect --skills-only hermes` provisions the skill pack without touching MCP config. | Gap | — | — | not yet verified |
 | Provisioning into a harness with no skill dir skips it with a report while remaining targets continue. | Gap | — | — | not yet verified |
 | `aa connect --all` targets every supported harness id in a single run. | Gap | — | — | not yet verified |
 | An unknown harness token fails with a message naming the supported harness set. | Manual | — | `python3 -m modules.root_cli_entry connect --notaharness` → exit 1, supported set named | `f87a775` |

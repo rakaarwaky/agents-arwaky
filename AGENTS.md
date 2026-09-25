@@ -40,12 +40,11 @@ When executing or reasoning about this repository, **you must preserve these inv
 4. **Architecture Enforcement System (AES) Compliance:**
    - In-house agents (`internal/lint-arwaky`, `internal/vision-arwaky`, etc.) enforce the AES 7-layer architecture.
    - Every file must adhere to naming rules: `layer_concern_role.<ext>`.
-   - Linters and architecture checks can be triggered with `aa tool run lint --help` (or `lint-arwaky`) or via `internal/lint-arwaky`.
+   - Linters and architecture checks can be triggered with `aa tool run lint-arwaky --help` (or the legacy `lint`) or via `internal/lint-arwaky`.
 
 5. **Skill Pack Nesting & Harness Registration:**
    - The pack lives at `skills/<category>/<skill>/SKILL.md`; every skill must sit in a semantic category folder.
-   - Qwen Code scans only **one level** below a skills root, so a category folder is invisible until it is itself a registered root. `aa connect --qwencode` derives that list from disk into `skills.directories` and installs a `SessionStart` hook (`arwaky-skill-sync`) that keeps it current; never hand-edit either.
-   - Consequence when triaging "skill not loading": a brand-new category needs one session restart to appear, and `aa check` / the connector log (`+N new`, `-N stale`, or `already registered`) shows what it decided.
+   - `aa connect <harness>` provisions that tree into each registered harness; `aa check skill` enforces the layout.
 
 ---
 
@@ -176,7 +175,7 @@ that the pack no longer provides. It only removes entries carrying
 | **Uninstall tools** | `aa tool uninstall [tool\|--all]` |
 | **Manage Anytype daemon** | `aa anytype [start\|status\|auth-key\|space-join\|space-list]` |
 | **Reset submodules cleanly** | `aa submodules` |
-| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (`--antigravity`, `--hermes`, `--opencode`, `--qwencode`, `--all`) |
+| **Connect MCP & Skills to Harnesses** | `aa connect <harness>` (`--hermes`, `--opencode`, `--grok-build`, `--all`) |
 | **Disconnect harnesses** | `aa disconnect <harness>` (or `aa disconnect --all`) |
 | **Clean build artifacts** | `aa clean` |
 | **Full factory reset** | `aa reset` |

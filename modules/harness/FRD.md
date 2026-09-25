@@ -13,7 +13,7 @@
 ## System Overview
 
 The harness feature wires the tool ecosystem into AI coding harnesses (Hermes,
-OpenCode, Grok Build, Qwen Code, Antigravity). Capabilities are organised by
+OpenCode, Grok Build). Capabilities are organised by
 business action — connect, disconnect, skill provisioning — and each provider
 is a stateless leaf adapter owning only its paths, config format, env keys, and
 custom-API flag. Each leaf also answers the provider-scoped ops of the harness
@@ -162,7 +162,7 @@ of disconnect — never a separate business action.
 - `aa connect --router grok-build` wires the local router only when the adapter declares custom-API support; otherwise reports the skip.
 - `aa disconnect --dry-run` reports what would be removed (MCP servers, env keys, router refs) and changes nothing.
 - Disconnecting a harness that was never connected is an idempotent no-op that exits 0.
-- `aa connect --skills-only qwencode` provisions the skill pack without touching MCP config.
+- `aa connect --skills-only hermes` provisions the skill pack without touching MCP config.
 - Provisioning into a harness with no skill dir skips it with a report while remaining targets continue.
 - `aa connect --all` targets every supported harness id in a single run.
 - An unknown harness token fails with a message naming the supported harness set.
@@ -185,7 +185,7 @@ of disconnect — never a separate business action.
 
 ## Glossary
 
-- **harness**: an AI coding agent that discovers MCP servers and skills (Hermes, OpenCode, Grok Build, Qwen Code, Antigravity).
+- **harness**: an AI coding agent that discovers MCP servers and skills (Hermes, OpenCode, Grok Build).
 - **canonical target**: a resolved harness id after alias and `--all` expansion — the only form actions operate on.
 - **provisioning**: linking or copying the skill pack into the harness's skill dir.
 - **adapter**: a stateless utility that knows one provider's paths, config format, and env keys.

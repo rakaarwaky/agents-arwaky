@@ -3,8 +3,8 @@
 **True source of truth = `~/agents-arwaky/skills/`** (git repo, remote
 `rakaarwaky/agents-arwaky`). `~/.hermes/skills` is itself a symlink into it, created by
 `aa connect` (`tools/connect/`, symlink provisioning). Deliberate design: edits by any
-agent anywhere write through the chain into the repo, and every harness (Hermes, Qwen
-Code, OpenCode, Antigravity) reads the same tree.
+agent anywhere write through the chain into the repo, and every harness (Hermes,
+OpenCode, Grok Build) reads the same tree.
 
 Chain (current, since 2026-09-14 11:53): `profiles/<p>/skills` -> `~/.hermes/skills` ->
 `~/agents-arwaky/skills` (real files). The WHOLE root skills dir is one symlink per

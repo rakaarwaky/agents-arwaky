@@ -33,34 +33,3 @@ target), plus project `.opencode/skill(s)/` and external `~/.claude/skills`,
 Count entries before/after swapping the dir for a symlink to quantify the
 result (built-in + global dumps can be huge; parse, never grep the human view).
 
-## qwen code
-
-LLM-turn probe (needs working router auth):
-
-```bash
-qwen --yolo -p "is there a skill named 'X'? answer YES or NO only"
-```
-
-Qwen scans the top level of `~/.qwen/skills/` — a symlinked skill DIR and a
-symlinked skills ROOT are both followed. Name a skill that exists ONLY in the
-pack (not in any copy-era snapshot at that path), or the YES proves nothing.
-
-## antigravity (agy)
-
-LLM-turn probe only — no deterministic skill listing subcommand
-(`agy skills` is not a command). Quirks:
-
-- `--print` is greedy: `agy --print 'prompt' --dangerously-skip-permissions`
-  swallows the NEXT flag as the prompt. Bind it: `agy --print='...'`.
-- Needs stdin detached (`</dev/null`) and a moment to boot its language server.
-- Failures show as `error: interrupted`; check
-  `~/.gemini/antigravity-cli/cli.log` for the real cause (e.g. quota
-  RESOURCE_EXHAUSTED 429 with a reset ETA in the message).
-- Canonical dir is `~/.gemini/config/skills`; the adapter mirrors it via
-  symlinks at `~/.gemini/antigravity/skills` and
-  `~/.gemini/antigravity-cli/skills` (pre-existing design — the mirror itself
-  proves agy follows dir symlinks one hop out, but the ROOT at
-  `config/skills` still needs its own probe).
-- When quota blocks the probe, keep the gate False and record the exact
-  flip procedure in the `SKILL_LINK_VERIFIED` comment; do not flip on
-  borrowed evidence.

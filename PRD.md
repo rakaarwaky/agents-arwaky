@@ -10,7 +10,7 @@ An operator maintaining a polyglot AI-tool ecosystem (Rust linters, Python MCP
 servers, npm/bun/pnpm upstreams, in-house agents, 2 daemons, and an agent-skill
 pack) faces three daily failures. First, every tool needs its own install/update/
 uninstall path, so adding one tool means a new script plus a new entry in a dozen
-places. Second, AI coding harnesses (Hermes, OpenCode, Grok Build, Qwen Code)
+places. Second, AI coding harnesses (Hermes, OpenCode, Grok Build)
 each discover MCP servers and skills differently, so "connect everything" is
 re-litigated by hand. Third, the architecture layering (7 AES layers, naming
 conventions, per-tool XDG paths) is enforced in the agent's head, not in the

@@ -55,9 +55,6 @@ def test_harness_connectors_implement_protocol():
 
 def test_harness_leaf_adapters_implement_protocol():
     """CP-HARNESS-007: every provider leaf implements IHarnessProtocol (AES403)."""
-    from modules.harness.src.capabilities_harness_antigravity_adapter import (
-        AntigravityHarnessAdapter,
-    )
     from modules.harness.src.capabilities_harness_grok_build_adapter import (
         GrokBuildHarnessAdapter,
     )
@@ -67,17 +64,12 @@ def test_harness_leaf_adapters_implement_protocol():
     from modules.harness.src.capabilities_harness_opencode_adapter import (
         OpencodeHarnessAdapter,
     )
-    from modules.harness.src.capabilities_harness_qwencode_adapter import (
-        QwencodeHarnessAdapter,
-    )
     from modules.shared.src.contract_harness_protocol import IHarnessProtocol
 
     leaf_classes = (
-        AntigravityHarnessAdapter,
         GrokBuildHarnessAdapter,
         HermesHarnessAdapter,
         OpencodeHarnessAdapter,
-        QwencodeHarnessAdapter,
     )
 
     for adapter_cls in leaf_classes:

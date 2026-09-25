@@ -18,7 +18,7 @@ def bash_completion() -> str:
         case "${{COMP_WORDS[1]}}" in
             tool) COMPREPLY=( $(compgen -W "list ls run install update uninstall" -- "$cur") ) ;;
             skill|skills) COMPREPLY=( $(compgen -W "list ls install uninstall show check sync help" -- "$cur") ) ;;
-            connect|disconnect) COMPREPLY=( $(compgen -W "--antigravity --hermes --opencode --qwencode --all" -- "$cur") ) ;;
+            connect|disconnect) COMPREPLY=( $(compgen -W "--hermes --opencode --grok-build --all" -- "$cur") ) ;;
             mcp) COMPREPLY=( $(compgen -W "list generate show" -- "$cur") ) ;;
             completion) COMPREPLY=( $(compgen -W "bash zsh" -- "$cur") ) ;;
             service) COMPREPLY=( $(compgen -W "start stop restart status" -- "$cur") ) ;;
@@ -40,7 +40,7 @@ _aa() {{
         case "${{words[2]}}" in
             tool) _values 'sub' list ls run install update uninstall ;;
             skill|skills) _values 'sub' list ls install uninstall show check sync help ;;
-            connect|disconnect) _values 'flag' --antigravity --hermes --opencode --qwencode --all ;;
+            connect|disconnect) _values 'flag' --hermes --opencode --grok-build --all ;;
             mcp) _values 'sub' list generate show ;;
             completion) _values 'shell' bash zsh ;;
             service) _values 'sub' start stop restart status ;;
