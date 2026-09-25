@@ -367,7 +367,7 @@ def cmd_list_help():
     print("List all registered tools and their associated skills, or filter by tool.")
     print()
     print("Options:")
-    print("  tool              Optional tool ID to filter (e.g., 'lint', 'vision')")
+    print("  tool              Optional tool ID to filter (e.g., 'lint-arwaky', 'vision-arwaky')")
     print("  --all             Show all tools (default behavior)")
     return 0
 

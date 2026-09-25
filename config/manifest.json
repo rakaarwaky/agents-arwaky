@@ -85,8 +85,11 @@
       "path": "vendor/mnemosyne"
     },
     {
-      "id": "vision",
+      "id": "vision-arwaky",
       "alias": "va",
+      "aliases": [
+        "vision"
+      ],
       "category": "internal",
       "binary": "vision-arwaky",
       "mcpBinary": "vision-arwaky-mcp",
@@ -95,8 +98,11 @@
       "path": "internal/vision-arwaky"
     },
     {
-      "id": "qwen-web",
+      "id": "qwen-web-arwaky",
       "alias": "qwa",
+      "aliases": [
+        "qwen-web"
+      ],
       "category": "internal",
       "binary": "qwen-web-arwaky",
       "mcpBinary": "qwen-web-mcp",
@@ -105,8 +111,11 @@
       "path": "internal/qwen-web-arwaky"
     },
     {
-      "id": "lint",
+      "id": "lint-arwaky",
       "alias": "la",
+      "aliases": [
+        "lint"
+      ],
       "category": "internal",
       "binary": "lint-arwaky",
       "mcpBinary": "lint-arwaky-mcp",
@@ -115,8 +124,11 @@
       "path": "internal/lint-arwaky"
     },
     {
-      "id": "blender",
+      "id": "blender-arwaky",
       "alias": "ba",
+      "aliases": [
+        "blender"
+      ],
       "category": "internal",
       "binary": "blender-arwaky",
       "mcpBinary": "blender-mcp",

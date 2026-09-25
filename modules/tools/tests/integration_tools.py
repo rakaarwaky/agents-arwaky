@@ -52,9 +52,9 @@ def test_tools_orchestrator_resolve_known_tool():
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
-    spec = orch.resolve("lint")
+    spec =    orch.resolve("lint-arwaky")
     assert spec is not None
-    assert spec.id == "lint"
+    assert spec.id == "lint-arwaky"
 
 
 def test_tools_orchestrator_resolve_unknown():
@@ -73,7 +73,7 @@ def test_tools_orchestrator_install_requires_installer():
     from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec = orch.resolve("lint")
+    spec =    orch.resolve("lint-arwaky")
     if spec is None:
         return
 
@@ -91,7 +91,7 @@ def test_tools_orchestrator_update_requires_updater():
     from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec = orch.resolve("lint")
+    spec =    orch.resolve("lint-arwaky")
     if spec is None:
         return
 
@@ -109,7 +109,7 @@ def test_tools_orchestrator_uninstall_requires_uninstaller():
     from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec = orch.resolve("lint")
+    spec =    orch.resolve("lint-arwaky")
     if spec is None:
         return
 
@@ -127,7 +127,7 @@ def test_tools_orchestrator_run_requires_runner():
     from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec = orch.resolve("lint")
+    spec =    orch.resolve("lint-arwaky")
     if spec is None:
         return
 
@@ -145,7 +145,7 @@ def test_tools_orchestrator_executable_path_requires_runner():
     from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec = orch.resolve("lint")
+    spec =    orch.resolve("lint-arwaky")
     if spec is None:
         return
 
@@ -177,7 +177,7 @@ def test_adapter_facade_execute():
 
     facade = ToolAdapterFacade()
     spec = ToolSpec(
-        id="lint",
+        id="lint-arwaky",
         category="dev",
         binary="lint-arwaky",
         is_mcp=False,

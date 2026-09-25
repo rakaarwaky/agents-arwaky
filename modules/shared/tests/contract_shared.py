@@ -20,7 +20,7 @@ def test_manifest_reader_exports_find_tool():
     from modules.shared.src.utility_manifest_reader import find_tool
 
     assert callable(find_tool)
-    result = find_tool("lint")
+    result = find_tool("lint-arwaky")
     assert result is None or hasattr(result, "id")
 
 

@@ -236,6 +236,7 @@ Environment=PORT={PORT}
 Environment=HOSTNAME=0.0.0.0
 Environment=NODE_ENV=production
 Environment=PATH=%h/.local/share/nodejs/node-v24.11.0-linux-x64/bin:%h/.local/bin:/usr/local/bin:/usr/bin
+Environment=DATA_DIR=%h/.local/share/9router/data
 EnvironmentFile=-%h/.config/agents-arwaky/ninerouter.env
 WorkingDirectory=%h/.9router
 ExecStart={binary} --port {PORT} --no-browser --skip-update

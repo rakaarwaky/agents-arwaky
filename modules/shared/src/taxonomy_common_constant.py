@@ -18,10 +18,10 @@ SKILL_FILE = "SKILL.md"
 # --- tool dispatch -------------------------------------------------------------
 #: Runner map per tool (manifest-driven dispatch, avoid hardcoded IDs)
 TOOL_RUNNERS = {
-    "lint": "cargo",
-    "vision": "uv",
-    "qwen-web": "uv",
-    "blender": "uv",
+    "lint-arwaky": "cargo",
+    "vision-arwaky": "uv",
+    "qwen-web-arwaky": "uv",
+    "blender-arwaky": "uv",
 }
 
 #: Tool resolver overrides (arg value -> manifest tool id)

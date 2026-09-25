@@ -9,9 +9,9 @@ def test_manifest_e2e_workflow():
     tools = load_tools()
     assert len(tools) >= 10
 
-    lint_tool = find_tool("lint")
+    lint_tool = find_tool("lint-arwaky")
     assert lint_tool is not None
-    assert lint_tool.id == "lint"
+    assert lint_tool.id == "lint-arwaky"
 
 
 def test_envfile_e2e_workflow():

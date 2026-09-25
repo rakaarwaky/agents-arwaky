@@ -60,10 +60,13 @@ class OpencodeAdapter:
     skill_link_verified: bool = True
     supports_mcp: bool = True
     supports_env: bool = True
-    # OpenCode has no known config-format hook for a custom API provider.
-    supports_custom_api: bool = False
-    custom_api_kind: str = ""
-    router_provider_id: str = ""
+    # OpenCode supports OpenAI-compatible providers via opencode.json's
+    # provider.<id> block (verified 2026-09-25: existing 9router entry with
+    # combo models my9router / 9vision).
+    supports_custom_api: bool = True
+    custom_api_kind: str = "opencode-json"
+    router_provider_id: str = "my9router"
+    router_provider_name: str = "9router"
     env_key: str = "NINEROUTER_KEY"
     mcp_key: str = "mcp"
     env_keys: tuple[str, ...] = ("NINEROUTER_URL", "NINEROUTER_KEY", "MNEMOSYNE_DATA_DIR")

@@ -40,7 +40,7 @@
 ## Workflow
 
 1. **Determine context** — Agent config for single tool or multi-agent system.
-2. **Create file** → `.agents/agents/<name>.md`.
+2. **Create file** → `` `.agents/agents/<name>.md` ``.
 3. **Write frontmatter** — name, description, persona, tools.
 4. **Write system prompt** — behavior rules, guardrails, response format.
 5. **Verify** → validate YAML frontmatter; check agent loads without error.
@@ -49,7 +49,7 @@
 
 Copy, fill, delete nothing.
 
-```markdown
+~~~~markdown
 ---
 trigger: always
 description: "<Project> operational guide. <Authoritative doc> wins on ambiguity."
@@ -216,6 +216,8 @@ notes. Do not apply it to code identifiers, commands, or config keys.
 ```text
 <related file list, or delete this fence>
 ```
+
+~~~~
 
 ---
 

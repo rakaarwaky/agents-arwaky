@@ -63,7 +63,7 @@ class HermesAdapter:
     # 9Router custom-API wiring writes provider entries into config.yaml.
     supports_custom_api: bool = True
     custom_api_kind: str = "router-env"
-    router_provider_id: str = "b-ai/qwen3.8-flash"
+    router_provider_id: str = "my9router"
     env_key: str = "NINEROUTER_KEY"
     mcp_key: str = "mcpServers"
     # Keys the disconnector drops (incl. router refs installed with env keys).

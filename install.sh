@@ -404,7 +404,53 @@ check_only() {
 }
 
 # =============================================================================
-# SECTION 12: Launcher + submodules
+# SECTION 12: XDG config seeding (repo config/ -> ~/.config/agents-arwaky)
+# =============================================================================
+seed_xdg_configs() {
+  step "Seeding XDG configs"
+  local conf_dir="${XDG_CONFIG_HOME:-$HOME/.config}/agents-arwaky"
+  mkdir -p "$conf_dir"
+  # Repo reference configs -> XDG config home. Never overwrite a live config.
+  local src dst name
+  for name in ninerouter.env anytype.env ninerouter.providers.json; do
+    src="$ROOT/config/$name"
+    dst="$conf_dir/$name"
+    if [[ ! -f "$src" ]]; then
+      warn "repo config missing: $src"
+      continue
+    fi
+    if [[ -f "$dst" ]]; then
+      ok "$dst (already present, left untouched)"
+    else
+      cp "$src" "$dst" && chmod 600 "$dst" && ok "Seeded $dst"
+    fi
+  done
+
+  # Login-session env layer (NINEROUTER_URL/KEY) consumed by every harness.
+  local env_d="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d"
+  local session_conf="$env_d/9router.conf"
+  mkdir -p "$env_d"
+  if [[ -f "$session_conf" ]]; then
+    ok "$session_conf (already present, left untouched)"
+    return 0
+  fi
+  local url key
+  url="$(grep -E '^NINEROUTER_URL=' "$conf_dir/ninerouter.env" 2>/dev/null | head -1 | cut -d= -f2- || true)"
+  key="$(grep -E '^NINEROUTER_KEY=' "$conf_dir/ninerouter.env" 2>/dev/null | head -1 | cut -d= -f2- || true)"
+  if [[ -n "$key" ]]; then
+    {
+      printf 'NINEROUTER_URL=%s\n' "${url:-http://127.0.0.1:20128}"
+      printf 'NINEROUTER_KEY=%s\n' "$key"
+    } > "$session_conf"
+    chmod 600 "$session_conf"
+    ok "Seeded $session_conf"
+  else
+    warn "NINEROUTER_KEY missing in $conf_dir/ninerouter.env; session env not seeded"
+  fi
+}
+
+# =============================================================================
+# SECTION 13: Launcher + submodules
 # =============================================================================
 setup_launcher() {
   step "Setting up launcher"
@@ -417,12 +463,12 @@ setup_launcher() {
 set -euo pipefail
 ROOT="$ROOT"
 export AGENTS_ARWAKY_ROOT="\$ROOT"
-export PYTHONPATH="\$ROOT/tools/lib\${PYTHONPATH:+:\${PYTHONPATH}}"
+export PYTHONPATH="\$ROOT\${PYTHONPATH:+:\${PYTHONPATH}}"
 VENV_DIR="\$ROOT/.venv"
 if [[ -f "\$VENV_DIR/bin/activate" ]]; then
   source "\$VENV_DIR/bin/activate"
 fi
-exec python3 "\$ROOT/tools/cli/arwaky.py" "\$@"
+exec python3 "\$ROOT/modules/root_cli_entry.py" "\$@"
 EOL
   chmod +x "$LAUNCHER"
   ln -sf "$LAUNCHER" "$BIN_DIR/aa"
@@ -459,6 +505,7 @@ main() {
   $CHECK_ONLY && { check_only; exit $?; }
 
   install_all
+  seed_xdg_configs
   setup_launcher
   init_submodules
   print_summary

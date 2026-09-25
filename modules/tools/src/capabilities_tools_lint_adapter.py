@@ -232,7 +232,7 @@ def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> Adapt
 
 #: tool_id → unit for lint-arwaky (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "lint": _unit(
+    "lint-arwaky": _unit(
         satisfied=lint_satisfied,
         install=lint_install,
         update=lint_update,

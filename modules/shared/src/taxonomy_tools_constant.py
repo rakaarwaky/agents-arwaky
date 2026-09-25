@@ -37,16 +37,16 @@ DAEMON_NAMES: dict[str, str] = {
 LAUNCHER_NAMES: dict[str, list[str]] = {
     "anytype": ["anytype-mcp", "anytype-daemon", "ad"],
     "anytype-daemon": ["anytype-daemon", "ad"],
-    "blender": ["blender-arwaky", "ba", "blender-mcp"],
+    "blender-arwaky": ["blender-arwaky", "ba", "blender-mcp"],
     "codegraph": ["codegraph-mcp", "codegraph"],
     "context7": ["context7-mcp", "ctx7"],
     "fetch": ["fetch-mcp", "mcp-fetch"],
-    "lint": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
+    "lint-arwaky": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "mnemosyne": ["mnemosyne", "mnemosyne-mcp"],
     "9router": ["9router"],
     "ponytail": ["ponytail-mcp"],
-    "qwen-web": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
-    "vision": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],
+    "qwen-web-arwaky": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
+    "vision-arwaky": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],
     "workspace": ["workspace-mcp", "google-workspace-mcp"],
 }
 
@@ -59,10 +59,10 @@ ALIAS_TABLE: dict[str, str | None] = {
     "anytype-daemon": "ad",
     "workspace": "google-workspace",
     "mnemosyne": "mnemosyne-memory",
-    "vision": "va",
-    "qwen-web": "qwa",
-    "lint": "la",
-    "blender": "ba",
+    "vision-arwaky": "va",
+    "qwen-web-arwaky": "qwa",
+    "lint-arwaky": "la",
+    "blender-arwaky": "ba",
 }
 
 # ── Adapter recipe literals (extracted from capabilities_tools_adapter.py) ──
@@ -73,7 +73,8 @@ NODE_IGNORES: tuple[str, ...] = (
     ".venv", "venv", "*.tsbuildinfo",
 )
 
-#: Canonical registered name of the qwen-web tool.
+#: Base name of the qwen-web tool: XDG dirs are `<base>`, the checkout is
+#: `internal/<base>-arwaky`. Not a manifest id — do not fold into the rename.
 QWEN_TOOL_NAME = "qwen-web"
 
 #: First-line env var every generated launcher reads for the repo root.

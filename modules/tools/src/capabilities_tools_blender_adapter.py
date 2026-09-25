@@ -58,7 +58,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "blender": build_adapter_unit("blender", CONFIG),
+    "blender-arwaky": build_adapter_unit("blender-arwaky", CONFIG),
 }
 
 

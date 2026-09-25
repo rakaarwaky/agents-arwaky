@@ -50,16 +50,18 @@ def get_registered_tool_ids():
 def normalize_tool_id(query):
     """Resolve alias -> canonical tool id. Returns None if unknown."""
     alias = {
-        "lint": "lint", "lint-arwaky": "lint", "la": "lint", "lac": "lint",
+        "lint-arwaky": "lint-arwaky", "lint": "lint-arwaky",
+        "la": "lint-arwaky", "lac": "lint-arwaky",
         "9router": "9router",
         "ponytail": "ponytail", "ponytail-mcp": "ponytail",
         "context7": "context7", "context7-mcp": "context7",
         "codegraph": "codegraph", "codegraph-mcp": "codegraph",
         "anytype": "anytype", "anytype-mcp": "anytype", "anytype-daemon": "anytype",
         "fetch": "fetch", "fetch-mcp": "fetch",
-        "vision": "vision", "vision-arwaky": "vision", "va": "vision",
-        "qwen-web": "qwen-web", "qwen-web-arwaky": "qwen-web", "qwa": "qwen-web", "qwc": "qwen-web",
-        "blender": "blender", "blender-arwaky": "blender", "ba": "blender",
+        "vision-arwaky": "vision-arwaky", "vision": "vision-arwaky", "va": "vision-arwaky",
+        "qwen-web-arwaky": "qwen-web-arwaky", "qwen-web": "qwen-web-arwaky",
+        "qwa": "qwen-web-arwaky", "qwc": "qwen-web-arwaky",
+        "blender-arwaky": "blender-arwaky", "blender": "blender-arwaky", "ba": "blender-arwaky",
         "skill": "skill", "skills": "skill", "skill-manager": "skill",
         "workspace": "workspace", "workspace-mcp": "workspace", "google-workspace": "workspace",
         "mnemosyne": "mnemosyne", "mnemosyne-memory": "mnemosyne", "mnemosyne-mcp": "mnemosyne",

@@ -41,10 +41,10 @@ _PLACEHOLDER_KEYS = {"sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "cha
 
 _FALLBACK_MCP_COMMANDS = {
     "codegraph": "codegraph-mcp",
-    "vision": "vision-arwaky-mcp",
-    "qwen-web": "qwen-web-mcp",
-    "blender": "blender-mcp",
-    "lint": "lint-arwaky-mcp",
+    "vision-arwaky": "vision-arwaky-mcp",
+    "qwen-web-arwaky": "qwen-web-mcp",
+    "blender-arwaky": "blender-mcp",
+    "lint-arwaky": "lint-arwaky-mcp",
     "workspace": "workspace-mcp",
     "mnemosyne": "mnemosyne-mcp",
 }
@@ -209,6 +209,8 @@ class HarnessConnector(IHarnessProtocol):
             return _connect_router_toml(adapter, url, key, opts)
         if kind == "settings-jsonc":
             return _connect_router_settings(adapter, url, key, opts)
+        if kind == "opencode-json":
+            return _connect_router_opencode(adapter, url, key, opts)
         if kind == "router-env":
             log_skip(f"{adapter.id}: custom-API is env-only (NINEROUTER_URL/KEY); no config-file provider entry to write.")
             return 0
@@ -222,6 +224,14 @@ class HarnessConnector(IHarnessProtocol):
 def _router_v1(url: str) -> str:
     base = url.rstrip("/")
     return base if base.endswith("/v1") else base + "/v1"
+
+
+def _resolve_combo_model(adapter) -> str:
+    """The model id harnesses send: MAIN_COMBO env override, else the adapter
+    default (a 9Router combo name like ``my9router``), never a raw upstream
+    model id — combos are the stable user-facing alias."""
+    combo = os.environ.get("MAIN_COMBO", "").strip()
+    return combo or adapter.router_provider_id
 
 
 def _get_9router_credentials(candidates) -> RouterCredentials:
@@ -282,7 +292,7 @@ def _daemon_running(daemon_status_fn) -> bool:
 
 
 def _mirror_mcp_links(harness_id: str, adapter, cfg: Path, target_dir: Path) -> None:
-    """Antigravity only: mirror mcp_config.json into the sub-tool homes."""
+    """Mirror mcp_config.json into the adapter's declared sub-tool homes."""
     mirror = getattr(adapter, "mirror_dirs", ())
     if not mirror:
         return
@@ -328,7 +338,13 @@ def _probe_router(v1_url: str, key: str, model: str, adapter_id: str) -> int:
 
 
 def _connect_router_toml(adapter, url: str, key: str, opts: ConnectOpts) -> int:
-    """Bind the 9Router provider in a TOML harness config (Grok Build shape)."""
+    """Bind the 9Router combo provider in a TOML harness config.
+
+    Grok Build's verified shape: ``[model_providers.<name>]`` carries the
+    endpoint + ``env_key`` and ``[model.<combo>]`` references it via
+    ``model_provider``. Existing ``[model.*]`` tables are preserved —
+    only the missing combo entry is added (never a wholesale rewrite).
+    """
     cfg_file = adapter.mcp_config_file()
     if not cfg_file.exists():
         log_warn(f"{cfg_file} not found; provider sync SKIPPED.")
@@ -339,29 +355,55 @@ def _connect_router_toml(adapter, url: str, key: str, opts: ConnectOpts) -> int:
     except (OSError, ValueError) as exc:
         log_warn(f"Could not read {cfg_file} ({exc}); provider sync SKIPPED.")
         return 0
-    provider_id = adapter.router_provider_id
+    combo = _resolve_combo_model(adapter)
+    provider_name = getattr(adapter, "router_provider_name", "9router")
     v1 = _router_v1(url)
-    data.setdefault("models", {})["default"] = provider_id
-    data["model"] = {provider_id: {
-        "model": provider_id,
+    providers = data.setdefault("model_providers", {})
+    existing_provider = providers.get(provider_name)
+    changed = (
+        existing_provider != {
+            "base_url": v1,
+            "api_backend": "chat_completions",
+            "env_key": adapter.env_key,
+        }
+        or data.get("models", {}).get("default") != combo
+        or "model" not in data or combo not in data["model"]
+    )
+    if opts.dry_run:
+        log_sub(
+            f"[DRY-RUN] Would bind 9Router combo '{combo}' at {v1} in {cfg_file}"
+            if changed
+            else f"[DRY-RUN] Combo '{combo}' already bound in {cfg_file}"
+        )
+        return 0
+    # Provider entry (endpoint + env reference; never an inline key).
+    providers[provider_name] = {
         "base_url": v1,
-        "name": provider_id,
+        "api_backend": "chat_completions",
         # Reference the key via env, never inline it into the config file.
         "env_key": adapter.env_key,
-        "api_backend": "responses",
-    }}
-    if opts.dry_run:
-        log_sub(f"[DRY-RUN] Would bind 9Router provider '{provider_id}' at {v1} in {cfg_file}")
-        return 0
+    }
+    # Model entry for the combo (add-only; user's other [model.*] survive).
+    model = data.setdefault("model", {})
+    if combo not in model:
+        model[combo] = {}
+    model[combo].update({
+        "model": combo,
+        "name": combo,
+        "model_provider": provider_name,
+        "context_window": model[combo].get("context_window", 262144),
+    })
+    # Default model follows the combo unless the user pinned another one.
+    data.setdefault("models", {}).setdefault("default", combo)
     if not save_file(cfg_file, data, fmt):
         log_err(f"{adapter.id}: failed to write provider entry in {cfg_file}")
         return 1
-    log_ok(f"9Router provider '{provider_id}' bound to {adapter.env_key} at {v1}.")
-    return _probe_router(v1, key, provider_id, adapter.id)
+    log_ok(f"9Router combo '{combo}' bound to {adapter.env_key} at {v1}.")
+    return _probe_router(v1, key, combo, adapter.id)
 
 
 def _connect_router_settings(adapter, url: str, key: str, opts: ConnectOpts) -> int:
-    """Bind the 9Router provider in a JSON settings file (Qwen Code shape)."""
+    """Bind the 9Router provider in a single-file JSON settings file."""
     settings_file = adapter.mcp_config_file()
     provider_id = adapter.router_provider_id
     v1 = _router_v1(url)
@@ -418,5 +460,59 @@ def _connect_router_settings(adapter, url: str, key: str, opts: ConnectOpts) -> 
     os.replace(tmp, settings_file)
     log_ok(f"Provider '{model}' bound to {adapter.env_key} at {v1}.")
     return _probe_router(v1, key, model, adapter.id)
+
+
+def _connect_router_opencode(adapter, url: str, key: str, opts: ConnectOpts) -> int:
+    """Bind the 9Router combo provider in OpenCode's opencode.json.
+
+    Verified shape: ``provider.<name>`` with npm ``@ai-sdk/openai-compatible``,
+    ``options.baseURL``/``options.apiKey`` and a per-model ``models`` map.
+    An existing provider block is updated in place; user models are kept.
+    """
+    settings_file = adapter.mcp_config_file()
+    try:
+        raw = settings_file.read_text(encoding="utf-8") if settings_file.is_file() else ""
+        settings = json.loads(raw) if raw.strip() else {}
+    except (OSError, ValueError) as exc:
+        log_warn(f"Could not read {settings_file} ({exc}); provider sync SKIPPED.")
+        return 0
+    if not isinstance(settings, dict):
+        log_warn(f"{settings_file} is not a JSON object; provider sync SKIPPED.")
+        return 0
+    combo = _resolve_combo_model(adapter)
+    provider_name = getattr(adapter, "router_provider_name", "9router")
+    v1 = _router_v1(url)
+    providers = settings.setdefault("provider", {})
+    block = providers.setdefault(provider_name, {
+        "npm": "@ai-sdk/openai-compatible",
+        "name": "9Router (local, offline)",
+    })
+    block.setdefault("npm", "@ai-sdk/openai-compatible")
+    block.setdefault("name", "9Router (local, offline)")
+    options = block.setdefault("options", {})
+    models = block.setdefault("models", {})
+    changed = (options.get("baseURL") != v1 or "apiKey" not in options
+               or combo not in models
+               or settings.get("model") != f"{provider_name}/{combo}")
+    if opts.dry_run:
+        log_sub(
+            f"[DRY-RUN] Would bind OpenCode provider '{provider_name}' combo '{combo}' at {v1}"
+            if changed
+            else f"[DRY-RUN] Combo '{combo}' already bound in {settings_file}"
+        )
+        return 0
+    options["baseURL"] = v1
+    options["apiKey"] = key
+    models.setdefault(combo, {"name": combo})
+    settings["model"] = f"{provider_name}/{combo}"
+    settings_file.parent.mkdir(parents=True, exist_ok=True)
+    tmp = settings_file.with_name(settings_file.name + ".tmp")
+    tmp.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    os.replace(tmp, settings_file)
+    # OpenCode's schema has no env-key reference; the inline apiKey makes the
+    # file secret-bearing, so restrict it to the owner.
+    settings_file.chmod(0o600)
+    log_ok(f"OpenCode provider '{provider_name}' combo '{combo}' bound at {v1}.")
+    return _probe_router(v1, key, combo, adapter.id)
 
 

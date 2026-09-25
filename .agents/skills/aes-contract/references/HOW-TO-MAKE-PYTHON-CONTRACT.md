@@ -21,27 +21,26 @@
 Seven rules. Each one prevents a specific failure mode.
 
 1. **Suffix is strictly `_protocol` or `_aggregate`.** Type names: `I<Name>Protocol`,
-   `I<Name>Aggregate`. File: `contract_<concept>_<suffix>.py`.
+ `I<Name>Aggregate`. File: `contract_<concept>_<suffix>.py`.
 2. **ABC only — `@abstractmethod`, body is `...` or `pass`.** Never real code, never
-   private-helper signatures, never convenience API (`AES101`/`AES102`).
+ private-helper signatures, never convenience API (`AES101`/`AES102`).
 3. **Protocol file = exactly ONE class + ONE method. Never more.** Each
-   `contract_<concept>_protocol.py` declares a single ABC (`I<Name>Protocol`) with a
-   single `@abstractmethod` for one feature. No second method, no helper methods, no
-   second ABC/class in the same file — not even a small leaf/interface. A second
-   feature is a second protocol *file* (`contract_<other>_protocol.py`), never a
-   second class or method inside this one. Same shape for every capability in the
-   domain. Only the `_aggregate` may hold many methods.
+ `contract_<concept>_protocol.py` declares a single ABC (`I<Name>Protocol`) with a
+ single `@abstractmethod` for one feature. No second method, no helper methods, no
+ second ABC/class in the same file — not even a small leaf/interface. A second
+ feature is a second protocol *file* (`contract_<other>_protocol.py`), never a
+ second class or method inside this one. Same shape for every capability in the
+ domain. Only the `_aggregate` may hold many methods.
 4. **Aggregate = many methods, one per exported consumer operation.** The aggregate is
-   the **export surface**: every action the CLI/surface/root may call appears as its
-   own method (`list_*`, `install_*`, `check_*`, `backup`, `restore`, …). Rich, typed,
-   one row per export — not a single dump-all `execute()`.
+ the **export surface**: every action the CLI/API/MCP/surface/root may call appears as its own method . Rich, typed,
+ one row per export — not a single dump-all `execute()`.
 5. **Allowed imports: taxonomy types and other contract types only.** Capabilities,
-   agents, surface, root invert the dependency arrow (`AES201`/`AES205`).
+ agents, surface, root invert the dependency arrow (`AES201`/`AES205`).
 6. **Signatures use shared VOs** — no `str`/`int`/`float`/`list[str]`/`dict` for domain
-   values. `bool` allowed for semantic toggles only. All methods fully type-annotated;
-   inherit `abc.ABC`.
+ values. `bool` allowed for semantic toggles only. All methods fully type-annotated;
+ inherit `abc.ABC`.
 7. **Register in shared `__init__.py`** with `__all__` + `_layer_symbols` for harness
-   introspection.
+ introspection.
 
 ---
 
@@ -120,17 +119,19 @@ the matching one-method protocol feature — not a flag on a mega `execute()`.
 
 Every contract file is required to carry the rows that apply. Each exists for one reason.
 
-| Section                       | Why it belongs here                                                        |
-| ----------------------------- | -------------------------------------------------------------------------- |
-| Module docstring (required)   | Names the contract's role: capability ABC or export/aggregate ABC.         |
-| Suffix in file + class name   | AES101/AES102 resolve `_protocol` vs `_aggregate` from the name.           |
+
+| Section                               | Why it belongs here                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------ |
+| Module docstring (required)           | Names the contract's role: capability ABC or export/aggregate ABC.             |
+| Suffix in file + class name           | AES101/AES102 resolve `_protocol` vs `_aggregate` from the name.               |
 | Protocol: 1 file = 1 class = 1 method | Fan-out stays uniform; extra class/method → new protocol file, never this one. |
-| Aggregate: one method / export | Surface/root exports stay typed and discoverable; no dump-all entry.        |
-| Abstract methods only         | Outer layers depend on promises, not behaviour.                            |
-| Shared VOs in signatures      | Domain values stay opaque across layers; no primitive leakage.             |
-| No impl-layer imports         | Keeps the dependency arrow (capabilities → contract ← agent).              |
-| `__all__` + `_layer_symbols`  | Harness/loader introspection and explicit public surface.                  |
-| Register in shared `__init__` | Importable without reaching into private modules.                          |
+| Aggregate: one method / export        | Surface/root exports stay typed and discoverable; no dump-all entry.           |
+| Abstract methods only                 | Outer layers depend on promises, not behaviour.                                |
+| Shared VOs in signatures              | Domain values stay opaque across layers; no primitive leakage.                 |
+| No impl-layer imports                 | Keeps the dependency arrow (capabilities → contract ← agent).                  |
+| `__all__` + `_layer_symbols`          | Harness/loader introspection and explicit public surface.                      |
+| Register in shared `__init__`         | Importable without reaching into private modules.                              |
+
 
 ---
 
@@ -146,3 +147,4 @@ lint-arwaky-cli scan <contract-dir>
 # aggregate = one method per consumer export (many exports, not a single execute()).
 # Fallback compile gate: python -c "import <shared_package>.contract_<concept>_<suffix>".
 ```
+

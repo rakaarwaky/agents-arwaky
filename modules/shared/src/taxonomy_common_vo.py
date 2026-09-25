@@ -115,6 +115,7 @@ class Tool:
     description: str
     path: str
     alias: str | None = None
+    aliases: tuple[str, ...] = ()
     mcp_binary: str | None = None
 
 
@@ -131,6 +132,7 @@ class ToolSpec:
     alias: str | None
     mcp_binary: str | None
     runner: str
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

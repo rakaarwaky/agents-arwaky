@@ -21,9 +21,9 @@ def test_find_tool_by_id():
     """IT-SHARED-002: find_tool finds by exact id match."""
     from modules.shared.src.utility_manifest_reader import find_tool
 
-    tool = find_tool("lint")
+    tool = find_tool("lint-arwaky")
     assert tool is not None
-    assert tool.id == "lint"
+    assert tool.id == "lint-arwaky"
 
 
 def test_find_tool_by_binary():
@@ -32,7 +32,7 @@ def test_find_tool_by_binary():
 
     tool = find_tool("lint-arwaky")
     assert tool is not None
-    assert tool.id == "lint"
+    assert tool.id == "lint-arwaky"
 
 
 def test_find_tool_by_alias():
@@ -41,7 +41,7 @@ def test_find_tool_by_alias():
 
     tool = find_tool("la")
     assert tool is not None
-    assert tool.id == "lint"
+    assert tool.id == "lint-arwaky"
 
 
 def test_find_tool_missing():
@@ -66,7 +66,8 @@ def test_find_tool_whitespace():
 
     tool = find_tool("  lint  ")
     assert tool is not None
-    assert tool.id == "lint"
+    # Legacy id still resolves to the canonical one.
+    assert tool.id == "lint-arwaky"
 
 
 def test_skill_registry_returns_skills():
@@ -84,18 +85,18 @@ def test_normalize_tool_id_alias():
     from modules.shared.src.utility_skill_registry import normalize_tool_id
 
     result = normalize_tool_id("la")
-    assert result == "lint"
+    assert result == "lint-arwaky"
 
     result = normalize_tool_id("va")
-    assert result == "vision"
+    assert result == "vision-arwaky"
 
 
 def test_normalize_tool_id_exact():
     """IT-SHARED-010: normalize_tool_id returns id for exact match."""
     from modules.shared.src.utility_skill_registry import normalize_tool_id
 
-    result = normalize_tool_id("lint")
-    assert result == "lint"
+    result = normalize_tool_id("lint-arwaky")
+    assert result == "lint-arwaky"
 
 
 def test_normalize_tool_id_unknown():

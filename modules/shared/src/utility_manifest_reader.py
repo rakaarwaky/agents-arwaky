@@ -49,13 +49,14 @@ def load_tools() -> list[Tool]:
             description=item.get("description", ""),
             path=item.get("path", ""),
             alias=item.get("alias"),
+            aliases=tuple(item.get("aliases") or ()),
             mcp_binary=item.get("mcpBinary"),
         ))
     return tools
 
 
 def find_tool(query: str) -> Tool | None:
-    """Find a tool by id, binary name, or alias."""
+    """Find a tool by id, binary name, alias, or legacy alias."""
     query = query.strip()
     if not query:
         return None
@@ -64,6 +65,7 @@ def find_tool(query: str) -> Tool | None:
             query == tool.id
             or query == tool.binary
             or (tool.alias and query == tool.alias)
+            or query in tool.aliases
         ):
             return tool
     return None
@@ -81,4 +83,5 @@ def spec_from_tool(tool: Tool) -> ToolSpec:
         alias=tool.alias,
         mcp_binary=tool.mcp_binary,
         runner=TOOL_RUNNERS.get(tool.id, ""),
+        aliases=tool.aliases,
     )

@@ -58,10 +58,12 @@ class GrokBuildAdapter:
     skill_link_verified: bool = True
     supports_mcp: bool = True
     supports_env: bool = True
-    # Custom-API wiring binds the 9Router provider into config.toml's model table.
+    # Custom-API wiring binds the 9Router combo provider into config.toml
+    # ([model_providers.<id>] + [model.<combo>], Grok Build's verified shape).
     supports_custom_api: bool = True
     custom_api_kind: str = "config-toml"
-    router_provider_id: str = "b-ai/qwen3.8-flash"
+    router_provider_id: str = "my9router"
+    router_provider_name: str = "9router"
     env_key: str = "NINEROUTER_KEY"
     mcp_key: str = "mcp_servers"
     env_keys: tuple[str, ...] = ("NINEROUTER_URL", "NINEROUTER_KEY", "MNEMOSYNE_DATA_DIR")

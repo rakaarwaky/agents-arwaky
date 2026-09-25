@@ -78,7 +78,7 @@ pub struct Capabilities<NameCapability> {
     policy: <NamePolicy>VO,
 }
 
-// ─── Block 2: Public Contract (domain protocol ONLY) ──────
+// ─── Block 2: Protocol Trait Implementation ───────────────
 impl I<NameCapability>Protocol for Capabilities<NameCapability> {
     fn execute(&self, input: &<DomainVO>) -> Vec<<ResultVO>> {
         let mut results = Vec::new();
@@ -114,18 +114,20 @@ impl Capabilities<NameCapability> {
 
 ## Section Contract
 
-| Check | Why it belongs here |
-| ----- | ------------------- |
-| Block 1 → 2 → 3 order followed with explicit comments. | Required by AES layer rules and the linter; missing it is a defect. |
-| Block 2: ONLY `impl I<Name>Protocol for ...`. | Required by AES layer rules and the linter; missing it is a defect. |
-| ≥1 struct implements protocol trait; ≤3 total struct+enum. | Required by AES layer rules and the linter; missing it is a defect. |
-| Imports from `_protocol` module or Utility only. | Required by AES layer rules and the linter; missing it is a defect. |
-| No local domain models, no agent/capability imports. | Required by AES layer rules and the linter; missing it is a defect. |
-| `Arc<dyn Trait>` for DI; shared VOs for fields and trait signatures. | Required by AES layer rules and the linter; missing it is a defect. |
-| Constants → `taxonomy_<domain>_constant.rs`. | Required by AES layer rules and the linter; missing it is a defect. |
+
+| Check                                                                                         | Why it belongs here                                                 |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Block 1 → 2 → 3 order followed with explicit comments.                                        | Required by AES layer rules and the linter; missing it is a defect. |
+| Block 2: ONLY `impl I<Name>Protocol for ...`.                                                 | Required by AES layer rules and the linter; missing it is a defect. |
+| ≥1 struct implements protocol trait; ≤3 total struct+enum.                                    | Required by AES layer rules and the linter; missing it is a defect. |
+| Imports from `_protocol` module or Utility only.                                              | Required by AES layer rules and the linter; missing it is a defect. |
+| No local domain models, no agent/capability imports.                                          | Required by AES layer rules and the linter; missing it is a defect. |
+| `Arc<dyn Trait>` for DI; shared VOs for fields and trait signatures.                          | Required by AES layer rules and the linter; missing it is a defect. |
+| Constants → `taxonomy_<domain>_constant.rs`.                                                  | Required by AES layer rules and the linter; missing it is a defect. |
 | Helper functions in Block 3 are `private` or `pub(crate)` (not fully `pub` unless justified). | Required by AES layer rules and the linter; missing it is a defect. |
-| Low-level, reusable, stateless ops → moved to Utility. | Required by AES layer rules and the linter; missing it is a defect. |
-| `cargo check -p <crate-name>` passes. | Required by AES layer rules and the linter; missing it is a defect. |
+| Low-level, reusable, stateless ops → moved to Utility.                                        | Required by AES layer rules and the linter; missing it is a defect. |
+| `cargo check -p <crate-name>` passes.                                                         | Required by AES layer rules and the linter; missing it is a defect. |
+
 
 ---
 
@@ -138,3 +140,4 @@ lint-arwaky-cli scan <layer-path>
 # Manual (not machine-checked): 3-block order; Block 2 only protocol methods; helper-vs-utility matrix; role naming lists.
 # Fallback compile gate: cargo check -p <crate-name>
 ```
+

@@ -94,7 +94,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "qwen-web": build_adapter_unit("qwen-web", CONFIG),
+    "qwen-web-arwaky": build_adapter_unit("qwen-web-arwaky", CONFIG),
 }
 
 

@@ -59,7 +59,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "vision": build_adapter_unit("vision", CONFIG),
+    "vision-arwaky": build_adapter_unit("vision-arwaky", CONFIG),
 }
 
 
