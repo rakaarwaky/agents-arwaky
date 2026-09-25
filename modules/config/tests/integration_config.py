@@ -8,7 +8,7 @@ from pathlib import Path
 
 def test_config_load_save_roundtrip_json():
     """IT-CONFIG-001: Full load/save roundtrip on JSON file."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
@@ -34,7 +34,7 @@ def test_config_load_save_roundtrip_json():
 
 def test_config_detect_format_various():
     """IT-CONFIG-002: detect_format identifies JSON, TOML, YAML correctly."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -54,7 +54,8 @@ def test_config_detect_format_various():
 def test_config_orchestrator_full_workflow():
     """IT-CONFIG-003: End-to-end orchestrator workflow with real files."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
@@ -85,7 +86,8 @@ def test_config_orchestrator_full_workflow():
 def test_config_env_integration():
     """IT-CONFIG-004: Full env file set/remove workflow."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
@@ -118,7 +120,8 @@ def test_config_env_integration():
 def test_config_orchestrator_inspect():
     """IT-CONFIG-005: inspect returns complete snapshot."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
@@ -143,7 +146,8 @@ def test_config_orchestrator_inspect():
 def test_config_dry_run_remove():
     """IT-CONFIG-006: remove_entries dry-run reports without writing."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
@@ -167,7 +171,8 @@ def test_config_dry_run_remove():
 def test_config_command_integration():
     """IT-CONFIG-007: ConfigCommand surface integrates with orchestrator."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.surface_config_command import ConfigCommand
 
     writer = ConfigWriter()

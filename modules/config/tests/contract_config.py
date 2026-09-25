@@ -12,7 +12,7 @@ def test_config_protocol_exists():
 
 def test_config_writer_class_exists():
     """CP-CONFIG-002: ConfigWriter class exists and is instantiable."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     assert isinstance(writer, ConfigWriter)
@@ -21,7 +21,7 @@ def test_config_writer_class_exists():
 
 def test_config_modifier_class_exists():
     """CP-CONFIG-003: ConfigModifier class exists and is instantiable."""
-    from modules.config.src.capabilities_config_engine import ConfigModifier
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     modifier = ConfigModifier()
     assert isinstance(modifier, ConfigModifier)
@@ -31,7 +31,7 @@ def test_config_modifier_class_exists():
 def test_config_orchestrator_class_exists():
     """CP-CONFIG-004: ConfigOrchestrator class exists and is instantiable."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter, ConfigModifier
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
@@ -48,7 +48,7 @@ def test_config_orchestrator_class_exists():
 
 def test_config_writer_implements_protocol():
     """CP-CONFIG-005: ConfigWriter implements IConfigProtocol execute."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.contract_config_protocol import IConfigProtocol
 
     writer = ConfigWriter()
@@ -59,7 +59,7 @@ def test_config_writer_implements_protocol():
 
 def test_config_modifier_implements_protocol():
     """CP-CONFIG-006: ConfigModifier implements IConfigProtocol execute."""
-    from modules.config.src.capabilities_config_engine import ConfigModifier
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.shared.src.contract_config_protocol import IConfigProtocol
 
     modifier = ConfigModifier()
@@ -72,7 +72,7 @@ def test_config_orchestrator_implements_aggregate():
     """CP-CONFIG-007: ConfigOrchestrator implements IConfigAggregate."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.shared.src.contract_config_aggregate import IConfigAggregate
-    from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter, ConfigModifier
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
@@ -116,7 +116,7 @@ def test_cmd_config_function_exists():
 
 def test_config_agent_exports():
     """CP-CONFIG-012: Config module exports required symbols."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter, ConfigModifier
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.surface_config_command import ConfigCommand, cmd_config
     from modules.config.src.root_config_container import ConfigContainer, create_config_feature

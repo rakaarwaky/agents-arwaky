@@ -12,14 +12,14 @@ class TestConfigWriter:
 
     def test_init(self):
         """UT-CONFIG-001: ConfigWriter initializes without args."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         assert writer is not None
 
     def test_execute_load_op(self):
         """UT-CONFIG-002: execute('load') dispatches to load_file."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -37,7 +37,7 @@ class TestConfigWriter:
 
     def test_execute_save_op(self):
         """UT-CONFIG-003: execute('save') dispatches to save_file."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
         writer = ConfigWriter()
@@ -56,7 +56,7 @@ class TestConfigWriter:
 
     def test_execute_detect_format_op(self):
         """UT-CONFIG-004: execute('detect_format') dispatches to detect_format."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -72,7 +72,7 @@ class TestConfigWriter:
 
     def test_execute_invalid_op_raises(self):
         """UT-CONFIG-005: execute raises ValueError for unknown op."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         try:
@@ -83,7 +83,7 @@ class TestConfigWriter:
 
     def test_load_file(self):
         """UT-CONFIG-006: load_file returns ConfigTuple with data and format."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -101,7 +101,7 @@ class TestConfigWriter:
 
     def test_save_file_json(self):
         """UT-CONFIG-007: save_file writes JSON correctly."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
         writer = ConfigWriter()
@@ -119,7 +119,7 @@ class TestConfigWriter:
 
     def test_detect_format_json(self):
         """UT-CONFIG-008: detect_format identifies JSON."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -135,7 +135,7 @@ class TestConfigWriter:
 
     def test_detect_format_toml(self):
         """UT-CONFIG-009: detect_format identifies TOML."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
@@ -151,7 +151,7 @@ class TestConfigWriter:
 
     def test_normalize_jsonc(self):
         """UT-CONFIG-010: normalize_jsonc strips comments."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         result = writer.normalize_jsonc('{"key": "value"} // comment')
@@ -160,7 +160,7 @@ class TestConfigWriter:
 
     def test_dumps_toml(self):
         """UT-CONFIG-011: dumps_toml serializes dict to TOML string."""
-        from modules.config.src.capabilities_config_engine import ConfigWriter
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         data = {"key": "value", "number": 42}
@@ -175,14 +175,14 @@ class TestConfigModifier:
 
     def test_init(self):
         """UT-CONFIG-012: ConfigModifier initializes without args."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         assert modifier is not None
 
     def test_execute_merge_servers_op(self):
         """UT-CONFIG-013: execute('merge_servers') dispatches correctly."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -199,7 +199,7 @@ class TestConfigModifier:
 
     def test_execute_set_env_op(self):
         """UT-CONFIG-014: execute('set_env') dispatches correctly."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
@@ -217,7 +217,7 @@ class TestConfigModifier:
 
     def test_execute_list_servers_op(self):
         """UT-CONFIG-015: execute('list_servers') dispatches correctly."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -233,7 +233,7 @@ class TestConfigModifier:
 
     def test_execute_invalid_op_raises(self):
         """UT-CONFIG-016: execute raises ValueError for unknown op."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         try:
@@ -244,7 +244,7 @@ class TestConfigModifier:
 
     def test_remove_mcp_servers(self):
         """UT-CONFIG-017: remove_mcp_servers returns removed server names."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -260,7 +260,7 @@ class TestConfigModifier:
 
     def test_remove_env_keys(self):
         """UT-CONFIG-018: remove_env_keys returns removed key names."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
@@ -278,7 +278,7 @@ class TestConfigModifier:
 
     def test_list_mcp_servers(self):
         """UT-CONFIG-019: list_mcp_servers returns server names."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -295,7 +295,7 @@ class TestConfigModifier:
 
     def test_looks_like_env_true(self):
         """UT-CONFIG-020: _looks_like_env returns True for .env files."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         assert modifier._looks_like_env(Path(".env")) is True
@@ -304,7 +304,7 @@ class TestConfigModifier:
 
     def test_looks_like_env_false(self):
         """UT-CONFIG-021: _looks_like_env returns False for non-env files."""
-        from modules.config.src.capabilities_config_engine import ConfigModifier
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         assert modifier._looks_like_env(Path("config.json")) is False
@@ -317,7 +317,8 @@ class TestConfigOrchestrator:
     def test_init(self):
         """UT-CONFIG-022: ConfigOrchestrator stores writer and modifier."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         writer = ConfigWriter()
         modifier = ConfigModifier()
@@ -328,7 +329,8 @@ class TestConfigOrchestrator:
     def test_load(self):
         """UT-CONFIG-023: load delegates to writer.execute('load')."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         writer = MagicMock()
         writer.execute.return_value = ({"key": "value"}, "json")
@@ -342,7 +344,8 @@ class TestConfigOrchestrator:
     def test_save(self):
         """UT-CONFIG-024: save delegates to writer.execute('save')."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
         from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
         writer = MagicMock()
@@ -359,7 +362,8 @@ class TestConfigOrchestrator:
     def test_help(self):
         """UT-CONFIG-025: help returns usage text."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         writer = ConfigWriter()
         modifier = ConfigModifier()
@@ -373,7 +377,8 @@ class TestConfigOrchestrator:
     def test_repr(self):
         """UT-CONFIG-026: __repr__ returns descriptive string."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         writer = ConfigWriter()
         modifier = ConfigModifier()
@@ -388,7 +393,8 @@ class TestConfigSurface:
         """UT-CONFIG-027: ConfigCommand stores orchestrator reference."""
         from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         writer = ConfigWriter()
         modifier = ConfigModifier()
@@ -400,7 +406,8 @@ class TestConfigSurface:
         """UT-CONFIG-028: ConfigCommand.load delegates to orchestrator."""
         from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         writer = MagicMock()
         writer.execute.return_value = ({"key": "value"}, "json")
@@ -415,7 +422,8 @@ class TestConfigSurface:
         """UT-CONFIG-029: ConfigCommand.help delegates to orchestrator."""
         from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         writer = ConfigWriter()
         modifier = ConfigModifier()

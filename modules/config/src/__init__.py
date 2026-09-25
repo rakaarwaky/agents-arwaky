@@ -9,7 +9,8 @@ here, to keep the agent/capability package free of a root re-export cycle
 from __future__ import annotations
 
 from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+from modules.config.src.capabilities_config_modifier import ConfigModifier
+from modules.config.src.capabilities_config_writer import ConfigWriter
 from modules.config.src.surface_config_command import ConfigCommand, cmd_config
 
 __all__ = [

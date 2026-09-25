@@ -18,13 +18,13 @@ def test_import_config_src():
 
 def test_import_config_writer():
     """SM-CONFIG-003: ConfigWriter can be imported."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     assert ConfigWriter is not None
 
 
 def test_import_config_modifier():
     """SM-CONFIG-004: ConfigModifier can be imported."""
-    from modules.config.src.capabilities_config_engine import ConfigModifier
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
     assert ConfigModifier is not None
 
 
@@ -62,7 +62,7 @@ def test_import_config_aggregate():
 
 def test_config_writer_instantiation_quick():
     """SM-CONFIG-010: ConfigWriter instantiation completes within 1 second."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     start = time.time()
     writer = ConfigWriter()
@@ -74,7 +74,7 @@ def test_config_writer_instantiation_quick():
 
 def test_config_modifier_instantiation_quick():
     """SM-CONFIG-011: ConfigModifier instantiation completes within 1 second."""
-    from modules.config.src.capabilities_config_engine import ConfigModifier
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     start = time.time()
     modifier = ConfigModifier()
@@ -87,7 +87,8 @@ def test_config_modifier_instantiation_quick():
 def test_config_orchestrator_instantiation_quick():
     """SM-CONFIG-012: ConfigOrchestrator instantiation completes within 1 second."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     start = time.time()
     writer = ConfigWriter()

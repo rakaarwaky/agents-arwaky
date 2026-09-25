@@ -8,14 +8,14 @@ from pathlib import Path
 
 def bench_config_writer_instantiation(benchmark):
     """BENCH-CONFIG-001: ConfigWriter instantiation performance."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     benchmark(ConfigWriter)
 
 
 def bench_config_modifier_instantiation(benchmark):
     """BENCH-CONFIG-002: ConfigModifier instantiation performance."""
-    from modules.config.src.capabilities_config_engine import ConfigModifier
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     benchmark(ConfigModifier)
 
@@ -23,7 +23,8 @@ def bench_config_modifier_instantiation(benchmark):
 def bench_config_orchestrator_instantiation(benchmark):
     """BENCH-CONFIG-003: ConfigOrchestrator instantiation performance."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigWriter, ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     def _create():
         writer = ConfigWriter()
@@ -42,7 +43,7 @@ def bench_config_container_instantiation(benchmark):
 
 def bench_detect_format_json(benchmark):
     """BENCH-CONFIG-005: detect_format on JSON file."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -56,7 +57,7 @@ def bench_detect_format_json(benchmark):
 
 def bench_detect_format_toml(benchmark):
     """BENCH-CONFIG-006: detect_format on TOML file."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
@@ -70,7 +71,7 @@ def bench_detect_format_toml(benchmark):
 
 def bench_load_json_file(benchmark):
     """BENCH-CONFIG-007: load_file on JSON."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -84,7 +85,7 @@ def bench_load_json_file(benchmark):
 
 def bench_load_toml_file(benchmark):
     """BENCH-CONFIG-008: load_file on TOML."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.toml', delete=False) as f:
@@ -98,7 +99,7 @@ def bench_load_toml_file(benchmark):
 
 def bench_save_json_file(benchmark):
     """BENCH-CONFIG-009: save_file on JSON."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
@@ -119,7 +120,7 @@ def bench_save_json_file(benchmark):
 
 def bench_list_mcp_servers_empty(benchmark):
     """BENCH-CONFIG-010: list_mcp_servers on empty config."""
-    from modules.config.src.capabilities_config_engine import ConfigModifier
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     modifier = ConfigModifier()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -133,7 +134,7 @@ def bench_list_mcp_servers_empty(benchmark):
 
 def bench_merge_servers(benchmark):
     """BENCH-CONFIG-011: merge_mcp_servers performance."""
-    from modules.config.src.capabilities_config_engine import ConfigModifier
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     modifier = ConfigModifier()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -152,7 +153,7 @@ def bench_merge_servers(benchmark):
 
 def bench_set_env_keys(benchmark):
     """BENCH-CONFIG-012: set_env_keys performance."""
-    from modules.config.src.capabilities_config_engine import ConfigModifier
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     modifier = ConfigModifier()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
@@ -172,7 +173,8 @@ def bench_set_env_keys(benchmark):
 def bench_orchestrator_inspect(benchmark):
     """BENCH-CONFIG-013: ConfigOrchestrator.inspect performance."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
@@ -190,7 +192,8 @@ def bench_orchestrator_inspect(benchmark):
 def bench_help_text(benchmark):
     """BENCH-CONFIG-014: ConfigOrchestrator.help performance."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
@@ -201,7 +204,7 @@ def bench_help_text(benchmark):
 
 def bench_execute_load(benchmark):
     """BENCH-CONFIG-015: execute('load') dispatcher performance."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -215,7 +218,7 @@ def bench_execute_load(benchmark):
 
 def bench_execute_save(benchmark):
     """BENCH-CONFIG-016: execute('save') dispatcher performance."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
@@ -233,7 +236,7 @@ def bench_execute_save(benchmark):
 
 def bench_normalize_jsonc(benchmark):
     """BENCH-CONFIG-017: normalize_jsonc performance."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     sample = '{"key": "value"} // comment' * 100
@@ -243,7 +246,7 @@ def bench_normalize_jsonc(benchmark):
 
 def bench_dumps_toml(benchmark):
     """BENCH-CONFIG-018: dumps_toml serialization performance."""
-    from modules.config.src.capabilities_config_engine import ConfigWriter
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     data = {

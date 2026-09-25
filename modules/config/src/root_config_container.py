@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-from modules.config.src.capabilities_config_engine import ConfigModifier, ConfigWriter
+from modules.config.src.capabilities_config_modifier import ConfigModifier
+from modules.config.src.capabilities_config_writer import ConfigWriter
 from modules.shared.src.contract_config_aggregate import IConfigAggregate
 from modules.shared.src.contract_config_protocol import IConfigProtocol
 

@@ -1,9 +1,8 @@
-"""Config engine capability — writer + modifier behind a single ``execute``.
+"""Config modifier capability — merge / set env / remove / list MCP & env entries.
 
-Pure I/O helpers live in :mod:`modules.shared.src.utility_config_engine`
-(utility layer, shared with harness capabilities under AES201). Both classes
-implement the collapsed ``IConfigProtocol.execute`` dispatcher; the config
-agent is their only caller.
+Thin AES capability wrapping the shared config kernel. The config agent
+(``agent_config_orchestrator``) is the only caller; no I/O outside the
+injected protocol. ``main`` provides a standalone CLI for the same operations.
 """
 from __future__ import annotations
 
@@ -14,83 +13,17 @@ from pathlib import Path
 
 from modules.shared.src.contract_config_protocol import IConfigProtocol
 from modules.shared.src.taxonomy_common_vo import (
-    ConfigData,
-    ConfigFormat,
-    ConfigTuple,
     EnvPairs,
     McpServersMap,
-    Timestamp,
 )
 from modules.shared.src.utility_config_engine import (
     arwaky_server_names,
-    detect_format,
     list_mcp_servers,
-    load_file,
     merge_mcp_servers,
     remove_env_keys,
     remove_mcp_servers,
-    save_file,
     set_env_keys,
 )
-from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
-from modules.shared.src.utility_toml_write import write_toml
-
-
-# ─── Block 1: Class Definition & Constructor ──────────────
-class ConfigWriter(IConfigProtocol):
-    """Load / detect / save capability (single-execute dispatcher)."""
-
-    # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        path: Path,
-        payload: dict | None = None,
-    ) -> ConfigTuple | bool | ConfigFormat:
-        """Dispatcher for load/save/detect_format operations."""
-        if op == "load":
-            return self.load_file(path)
-        if op == "save":
-            body = payload or {}
-            fmt = body.get("fmt")
-            if fmt is not None:
-                fmt = ConfigFormat(fmt)
-            return self.save_file(path, ConfigData(body.get("data", {})), fmt)
-        if op == "detect_format":
-            return self.detect_format(path)
-        raise ValueError(f"ConfigWriter does not support op {op!r}")
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return "ConfigWriter()"
-
-    def load_file(self, path: Path) -> ConfigTuple:
-        """Load a config file and return ``(data, format)``."""
-        data, fmt = load_file(path)
-        return (ConfigData(data), ConfigFormat(fmt))
-
-    def save_file(
-        self,
-        path: Path,
-        data: ConfigData,
-        fmt: ConfigFormat | None = None,
-    ) -> bool:
-        """Save *data* to *path*, detecting format when *fmt* is None."""
-        if fmt is None:
-            fmt = ConfigFormat(detect_format(path))
-        return save_file(path, data, fmt)
-
-    def detect_format(self, path: Path) -> ConfigFormat:
-        """Detect the config format of *path* and wrap it as ``ConfigFormat``."""
-        return ConfigFormat(detect_format(path))
-
-    def normalize_jsonc(self, text: str) -> str:
-        """Strip JSONC comments from *text*."""
-        return strip_jsonc_comments(text)
-
-    def dumps_toml(self, data) -> str:
-        """Serialize *data* to a TOML string."""
-        return write_toml(data)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -167,6 +100,7 @@ class ConfigModifier(IConfigProtocol):
 
     @staticmethod
     def _looks_like_env(path: Path) -> bool:
+        """Return whether *path* is an env-style ``KEY=VALUE`` file by name."""
         name = path.name.lower()
         return name.startswith(".env") or name.endswith(".env")
 
@@ -224,36 +158,14 @@ if __name__ == "__main__":
 
 
 __all__ = [
-    "ConfigData",
-    "ConfigFormat",
     "ConfigModifier",
-    "ConfigTuple",
-    "ConfigWriter",
-    "EnvPairs",
-    "IConfigProtocol",
-    "McpServersMap",
-    "Timestamp",
-    "arwaky_server_names",
-    "detect_format",
-    "list_mcp_servers",
-    "load_file",
     "main",
-    "merge_mcp_servers",
-    "remove_env_keys",
-    "remove_mcp_servers",
-    "save_file",
-    "set_env_keys",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
-    "ConfigData": ConfigData,
-    "ConfigFormat": ConfigFormat,
     "ConfigModifier": ConfigModifier,
-    "ConfigTuple": ConfigTuple,
-    "ConfigWriter": ConfigWriter,
     "EnvPairs": EnvPairs,
     "IConfigProtocol": IConfigProtocol,
     "McpServersMap": McpServersMap,
-    "Timestamp": Timestamp,
 }
