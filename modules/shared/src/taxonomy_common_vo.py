@@ -6,6 +6,7 @@ doc_vo, xdg_paths, xdg_atomic_io, skill_audit. Feature-specific VOs live in
 """
 from __future__ import annotations
 
+import datetime
 import os
 import re
 import shutil
@@ -160,6 +161,15 @@ class UninstallResult:
 
 
 # --- version helpers (pure functions, allowed in _vo files) -------------------
+
+
+def utc_now_iso() -> str:
+    """Current UTC time as an ISO-8601 string (install/update stamps).
+
+    Lives in taxonomy so utilities stay clock-free (aes-utility: no
+    `datetime.now()` inside utility modules).
+    """
+    return datetime.datetime.now(datetime.UTC).isoformat()
 
 
 def _version_file() -> Path:
@@ -728,5 +738,6 @@ __all__ = [
     "tool_config_dir",
     "tool_data_dir",
     "tool_state_dir",
+    "utc_now_iso",
     "warn_if_bin_not_on_path",
 ]

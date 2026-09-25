@@ -147,6 +147,9 @@ architecture:
         # Shared config I/O engine composes other pure utility leaves
         # (jsonc/toml/envfile) — single surface for load/save/merge helpers.
         - "utility_config_engine.py"
+        # Tool install mechanics compose utility_git_submodule (source-init /
+        # update) for the node-family lifecycle shared by every tools adapter.
+        - "utility_tool_mechanics.py"
       conditions:
         - scope: "taxonomy(vo)"
           allowed: ["taxonomy"]
@@ -345,11 +348,7 @@ architecture:
       scope:
         ["taxonomy", "contract", "utility", "capabilities", "agent", "surface"]
       max_lines: 1000
-      exceptions:
-        # Deliberate god object: 12 per-tool adapters merged into 1
-        # capabilities file (single-file requirement); all other rules
-        # scan clean.
-        - "capabilities_tools_adapter.py"
+      exceptions: []
 
     AES302:
       enabled: true

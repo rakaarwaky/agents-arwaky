@@ -1,68 +1,88 @@
 """Root composition — tools feature wiring + lifecycle aggregate.
 
 The AES root layer is the only layer allowed to import ``capabilities*``;
-this module centralises the tool_id -> adapter-module mapping so that
+this module centralises the tool_id -> adapter-unit mapping so that
 ``agent_tools_orchestrator`` stays adapter-free (AES201 rule 8). Adapters
-carry no per-registry state: each is constructed once here and shared
+carry no per-registry state: each unit is constructed once here and shared
 across orchestrator instances; the daemon aggregate is passed to
 ``install`` explicitly, never held on the adapter.
 
-Daemon-backed adapters (9router/anytype/anytype-daemon) receive the daemon
-aggregate here, preserving the pre-existing feature-to-feature delegation
-indirection.
+Every tool id lives in a sibling capability module — the nine
+config-driven providers (blender / vision / qwen-web / mnemosyne /
+workspace / codegraph / context7 / fetch / ponytail) plus anytype, lint,
+and 9router — each exporting ``ADAPTER_UNITS``; all are merged into the
+single ``TOOLS_REGISTRY`` below.
 
 The daemon aggregate is imported lazily inside the factory so that importing
 ``modules.tools`` never forces a sibling daemon import at module load.
 """
 from __future__ import annotations
 
-import modules.tools.src.capabilities_tools_adapter as _god
 from modules.shared.src.contract_tools_aggregate import IToolsAggregate
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit
 from modules.shared.src.utility_paths_resolver import repo_root
 from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
 # Root is the only layer allowed to import capabilities_* (AES201 rule 8):
-# the four action capabilities are constructed here and injected into the
+# every adapter capability is constructed here and injected into the
 # agent orchestrator (which must stay capabilities-free). Importing them
 # here also wires them for the AES503 orphan check.
+from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
+from modules.tools.src.capabilities_tools_anytype_adapter import (
+    ADAPTER_UNITS as _ANYTYPE_UNITS,
+)
+from modules.tools.src.capabilities_tools_blender_adapter import (
+    ADAPTER_UNITS as _BLENDER_UNITS,
+)
+from modules.tools.src.capabilities_tools_codegraph_adapter import (
+    ADAPTER_UNITS as _CODEGRAPH_UNITS,
+)
+from modules.tools.src.capabilities_tools_context7_adapter import (
+    ADAPTER_UNITS as _CONTEXT7_UNITS,
+)
+from modules.tools.src.capabilities_tools_fetch_adapter import (
+    ADAPTER_UNITS as _FETCH_UNITS,
+)
 from modules.tools.src.capabilities_tools_installer import InstallerCapability
+from modules.tools.src.capabilities_tools_lint_adapter import (
+    ADAPTER_UNITS as _LINT_UNITS,
+)
+from modules.tools.src.capabilities_tools_mnemosyne_adapter import (
+    ADAPTER_UNITS as _MNEMOSYNE_UNITS,
+)
+from modules.tools.src.capabilities_tools_ninerouter_adapter import (
+    ADAPTER_UNITS as _NINEROUTER_UNITS,
+)
+from modules.tools.src.capabilities_tools_ponytail_adapter import (
+    ADAPTER_UNITS as _PONYTAIL_UNITS,
+)
+from modules.tools.src.capabilities_tools_qwen_web_adapter import (
+    ADAPTER_UNITS as _QWEN_WEB_UNITS,
+)
 from modules.tools.src.capabilities_tools_runner import RunnerCapability
 from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
 from modules.tools.src.capabilities_tools_updater import UpdaterCapability
-
-#: tool_id -> adapter unit (root composition data; each unit is a
-#: stateless `AdapterUnit` VO of action functions living in the god-object
-#: `capabilities_tools_adapter`). The `anytype-daemon` id routes its
-#: actions to the `anytype_daemon_*` leaf functions via a unit object.
-_ANYTYPE_DAEMON = AdapterUnit(
-    satisfied=_god.anytype_daemon_satisfied,
-    install=_god.anytype_daemon_install,
-    is_pin_satisfied=_god.anytype_daemon_is_pin_satisfied,
-    update=_god.anytype_daemon_update,
-    owned_paths=_god.anytype_daemon_owned_paths,
+from modules.tools.src.capabilities_tools_vision_adapter import (
+    ADAPTER_UNITS as _VISION_UNITS,
+)
+from modules.tools.src.capabilities_tools_workspace_adapter import (
+    ADAPTER_UNITS as _WORKSPACE_UNITS,
 )
 
-# AES404 (P0-1 follow-up): 9router and qwen-web now expose their actions as
-# module-level functions (stateless utility layer) like the other adapters,
-# so they are registered directly — no instance or namespace wrapper.
-# The `is_daemon` flag that lived on NinerouterAdapter is no longer needed:
-# daemon behaviour is driven by DAEMON_TOOL_IDS in taxonomy_tools_constant.
-
+#: tool_id -> adapter unit (root composition data; each unit is a
+#: stateless `AdapterUnit` VO of action functions).
 TOOLS_REGISTRY: dict[str, object] = {
-    "anytype": _god._ADAPTER_UNITS["anytype"],
-    "anytype-daemon": _ANYTYPE_DAEMON,
-    "blender": _god._ADAPTER_UNITS["blender"],
-    "codegraph": _god._ADAPTER_UNITS["codegraph"],
-    "context7": _god._ADAPTER_UNITS["context7"],
-    "fetch": _god._ADAPTER_UNITS["fetch"],
-    "lint": _god._ADAPTER_UNITS["lint"],
-    "mnemosyne": _god._ADAPTER_UNITS["mnemosyne"],
-    "9router": _god._ADAPTER_UNITS["9router"],
-    "ponytail": _god._ADAPTER_UNITS["ponytail"],
-    "qwen-web": _god._ADAPTER_UNITS["qwen-web"],
-    "vision": _god._ADAPTER_UNITS["vision"],
-    "workspace": _god._ADAPTER_UNITS["workspace"],
+    **_ANYTYPE_UNITS,
+    **_BLENDER_UNITS,
+    **_CODEGRAPH_UNITS,
+    **_CONTEXT7_UNITS,
+    **_FETCH_UNITS,
+    **_LINT_UNITS,
+    **_MNEMOSYNE_UNITS,
+    **_NINEROUTER_UNITS,
+    **_PONYTAIL_UNITS,
+    **_QWEN_WEB_UNITS,
+    **_VISION_UNITS,
+    **_WORKSPACE_UNITS,
 }
 
 
@@ -73,7 +93,6 @@ def create_tools_feature(root=None) -> IToolsAggregate:
     does not force a sibling daemon import at module load.
     """
     from modules.daemon.src.root_daemon_container import create_daemon_feature
-    from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
 
     daemons = create_daemon_feature()
     resolved = root or repo_root()

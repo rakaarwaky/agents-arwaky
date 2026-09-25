@@ -9,7 +9,7 @@ capability signatures (AES402):
 - `ToolQuery`: manifest id / binary / alias text a spec is resolved from.
 - `ExitCode`: process exit code returned by the run action.
 - `ToolLifecycleConfig`: immutable install recipe of a config-driven tool
-  (extracted from the adapter's `SIMPLE_TOOLS_CONFIG` dicts).
+  (one per provider `capabilities_tools_<tool>_adapter` module).
 - `AdapterUnit`: the five action callables registered per tool id
   (replaces the adapter's ad-hoc `SimpleNamespace` units).
 """
@@ -84,6 +84,10 @@ class ToolLifecycleConfig:
     src_marker: str = "package.json"
     install_cmd: tuple[str, ...] = ()
     build_cmd: tuple[str, ...] = ()
+    #: Per-tool node writer override (default: single `entry` launcher).
+    node_write_launchers_fn: Callable[[Path, bool], list[Path]] | None = None
+    #: Per-tool post-copy hook (e.g. pnpm flag append, npm ci bootstrap).
+    node_post_copy_hook: Callable[[Path], None] | None = None
     # teardown extras (any family)
     extra_paths: tuple[Path, ...] | None = None
     config_dirs: tuple[str, ...] | None = None

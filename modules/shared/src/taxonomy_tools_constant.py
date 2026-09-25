@@ -134,19 +134,6 @@ NINEROUTER_DATA_DIR_NAME = "9router"
 NINEROUTER_INTERNAL_BIN = "internal-bin"
 NINEROUTER_LAUNCHERS: tuple[str, ...] = ("9router",)
 
-#: Adapter action-prefix table for config-driven tools (backward-compat globals).
-TOOL_ACTION_PREFIXES: dict[str, str] = {
-    "blender": "blender",
-    "vision": "vision",
-    "qwen-web": "qwen_web",
-    "mnemosyne": "mnemosyne",
-    "workspace": "workspace",
-    "codegraph": "codegraph",
-    "context7": "context7",
-    "fetch": "fetch",
-    "ponytail": "ponytail",
-}
-
 
 __all__ = [
     "ALIAS_TABLE",
@@ -169,15 +156,14 @@ __all__ = [
     "LINT_BUILD_DEPS",
     "LINT_INTERNAL_DIR_REL",
     "LINT_LAUNCHERS",
-    "NODE_IGNORES",
     "NINEROUTER_DATA_DIR_NAME",
     "NINEROUTER_INTERNAL_BIN",
     "NINEROUTER_LAUNCHERS",
+    "NODE_IGNORES",
     "PNPM_DANGEROUS_ALLOW",
     "QWEN_ROLE_DIRS",
     "QWEN_TOOL_NAME",
     "ROOT_ENV_VAR",
     "RUNNER_FAMILIES",
     "SENTINEL_EXECUTABLE_GONE",
-    "TOOL_ACTION_PREFIXES",
 ]
