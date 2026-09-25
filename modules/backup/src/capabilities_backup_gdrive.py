@@ -106,7 +106,7 @@ class GdriveBackupGateway(IBackupProtocol):
         return sorted(store.glob("*.tar.gz")) if store.exists() else []
 
     def list(self, folder_name: str = DEFAULT_FOLDER_NAME) -> None:
-        """Delegates to the original ``cmd_list`` (prints JSON)."""
+        """List Drive archives in *folder_name* by delegating to cmd_list."""
         cmd_list(folder_name)
 
     def __repr__(self) -> str:
@@ -117,6 +117,7 @@ class GdriveBackupGateway(IBackupProtocol):
         """The original script's ``main()`` entry point (as-is above)."""
         main()
 def get_credentials():
+    """Load and refresh Google Workspace credentials from XDG data dir."""
     creds_dir = data_home() / "google-workspace-mcp" / "credentials"
     user_email = os.environ.get("USER_GOOGLE_EMAIL", "")
 
@@ -161,6 +162,7 @@ def get_credentials():
     return creds
 
 def get_drive_service():
+    """Build a Google Drive v3 API service using stored credentials."""
     import google_auth_httplib2
     import httplib2
     from googleapiclient.discovery import build
@@ -194,7 +196,7 @@ def _is_transient(err) -> bool:
 
 
 def retry_api(func, max_retries=4, delay=1):
-    """Retry a Google API call (shared utility) — transient errors only."""
+    """Retry a Google API call — transient errors only."""
     from retry import retry_api as _shared_retry
     return _shared_retry(
         func, max_retries=max_retries, delay=delay, is_transient=_is_transient
@@ -231,6 +233,7 @@ def list_all_files(service, query, fields, max_pages: int = 50):
 
 
 def get_or_create_folder(service, folder_name=DEFAULT_FOLDER_NAME):
+    """Find the named Google Drive folder or create it when missing."""
     query = (
         f"name = '{escape_drive_query(folder_name)}' "
         "and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
@@ -254,6 +257,7 @@ def get_or_create_folder(service, folder_name=DEFAULT_FOLDER_NAME):
     return folder.get("id")
 
 def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
+    """Upload a local tar.gz archive to Google Drive."""
     path = Path(local_path).resolve()
     if not path.exists():
         print(f"Error: Local file not found: {path}", file=sys.stderr)
@@ -284,6 +288,7 @@ def cmd_upload(local_path, folder_name=DEFAULT_FOLDER_NAME):
     }, indent=2))
 
 def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME):
+    """Download a Drive archive by file ID or name into *destination_path*."""
     service = get_drive_service()
 
     file_id = None
@@ -382,6 +387,7 @@ def cmd_download(query_or_id, destination_path, folder_name=DEFAULT_FOLDER_NAME)
     }, indent=2))
 
 def cmd_list(folder_name=DEFAULT_FOLDER_NAME):
+    """List backup archives on Google Drive in *folder_name* (prints JSON)."""
     service = get_drive_service()
     folder_id = get_or_create_folder(service, folder_name)
     q = f"'{folder_id}' in parents and trashed = false"
@@ -392,6 +398,7 @@ def cmd_list(folder_name=DEFAULT_FOLDER_NAME):
     print(json.dumps(files, indent=2))
 
 def main():
+    """CLI entry point for the gdrive backup module (upload/download/list)."""
     if len(sys.argv) < 2:
         print("Usage: gdrive.py <upload|download|list> [args...]", file=sys.stderr)
         sys.exit(1)

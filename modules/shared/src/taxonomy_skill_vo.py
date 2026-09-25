@@ -62,6 +62,7 @@ def sanitize_skill_name(raw: str, fallback: str) -> str:
 
 
 def safe_skill_name(skill_md: Path) -> str:
+    """Return a sanitised directory-safe name for *skill_md*."""
     return sanitize_skill_name(extract_skill_name(skill_md), skill_md.parent.name)
 
 

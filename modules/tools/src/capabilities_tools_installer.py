@@ -55,12 +55,12 @@ class InstallerCapability(IToolsProtocol):
     """Business action install(spec, dry_run): provision + register launcher."""
 
     def __init__(self, root: Path | None = None, daemons: object | None = None,
-                 adapter_facade: object | None = None) -> None:
+                 registry: dict[str, object] | None = None) -> None:
         self._root = root
         self._daemons = daemons
-        # P1-7: action calls now route through the injected adapter facade
-        # (single API pipeline) instead of the raw registry unit.
-        self._facade = adapter_facade
+        # P1-7: action calls route through the injected registry directly
+        # (single API pipeline) instead of going through an adapter facade.
+        self._registry = dict(registry) if registry is not None else {}
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
@@ -78,38 +78,45 @@ class InstallerCapability(IToolsProtocol):
         dry_run = bool(args and "dry-run" in args)
         adapter = query if query is not None else None
         return self.install(spec, adapter=adapter, dry_run=dry_run)
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "InstallerCapability()"
 
     def install(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> InstallResult:
-        """Install via the injected adapter facade (single API pipeline).
+        """Install via the injected registry (single API pipeline).
 
         `adapter` may be a registry unit passed through for the dry-run
-        message, but all action calls resolve through `self._facade`
+        message, but all action calls resolve directly from `self._registry`
         when wired.
         """
-        facade = self._facade
-        if facade is None:
-            raise ToolInstallError("adapter facade is not wired (root composition layer)")
+        registry = self._registry
+        if not registry:
+            raise ToolInstallError("adapter registry is not wired (root composition layer)")
         root = self._root or None
         if dry_run:
             return InstallResult(
                 True,
                 spec.id,
-                f"[dry-run] would invoke {type(adapter or facade).__name__}.install for {spec.id}",
+                f"[dry-run] would invoke install for {spec.id}",
             )
 
         # P1-3: the satisfied check must not raise out of the action.
+        unit = registry.get(spec.id)
+        if unit is None:
+            return InstallResult(False, spec.id, f"no adapter unit registered for {spec.id!r}")
         try:
-            if facade.satisfied(spec):
+            satisfied_fn = getattr(unit, "satisfied", None)
+            if callable(satisfied_fn) and satisfied_fn(spec, root):
                 return InstallResult(True, spec.id, "satisfied (no action needed)")
         except Exception as e:
             return InstallResult(False, spec.id, f"satisfied-check failure: {e}")
 
         try:
-            facade.install(spec, root, daemons=self._daemons)
+            install_fn = getattr(unit, "install", None)
+            if callable(install_fn):
+                try:
+                    install_fn(spec, root, daemons=self._daemons)
+                except TypeError:
+                    install_fn(spec, root)
         except Exception as e:
             return InstallResult(False, spec.id, f"adapter failure: {e}")
 

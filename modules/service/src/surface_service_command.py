@@ -40,22 +40,29 @@ class ServiceAction(IServiceAggregate):
     """Agent-layer action surface for the service feature (AES405 aggregate implementor)."""
 
     def __init__(self, agg: IServiceAggregate) -> None:
+        """Store the underlying service aggregate for delegation."""
         self._agg = agg
 
     def status(self) -> ExitCode:
+        """Query daemon health for the configured service targets."""
         return self._agg.status()
 
     def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Start the requested service target(s)."""
         return self._agg.start(target)
 
     def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Stop the requested service target(s)."""
         return self._agg.stop(target)
 
     def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Restart the requested service target(s)."""
         return self._agg.restart(target)
 
     def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
+        """Stream logs for the requested service target(s)."""
         return self._agg.logs(target)
 
     def help(self) -> ExitCode:
+        """Print the service command usage summary."""
         return self._agg.help()

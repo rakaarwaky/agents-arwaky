@@ -40,12 +40,6 @@ def test_import_capabilities_runner():
     assert RunnerCapability is not None
 
 
-def test_import_capabilities_adapter():
-    """SM-TOOLS-007: ToolAdapterFacade can be imported."""
-    from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
-    assert ToolAdapterFacade is not None
-
-
 def test_import_agent_orchestrator():
     """SM-TOOLS-008: ToolsOrchestrator can be imported."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
@@ -144,11 +138,3 @@ def test_tool_registry_accessible():
 
     assert isinstance(TOOLS_REGISTRY, dict)
     assert len(TOOLS_REGISTRY) > 0
-
-
-def test_adapter_facade_creation():
-    """SM-TOOLS-017: ToolAdapterFacade can be created."""
-    from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
-
-    facade = ToolAdapterFacade()
-    assert facade is not None

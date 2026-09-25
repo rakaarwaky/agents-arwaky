@@ -95,6 +95,7 @@ def _parse_targets_and_flags(args: list[str], flags_spec: tuple[str, ...],
 
 
 def cmd_connect(args: list[str], feature_factory: _FeatureFactory) -> int:
+    """Parse argv and invoke the orchestrator connect action; return exit code."""
     if "help" in args or "--help" in args:
         print(_HELP_DOC)
         return 0
@@ -125,6 +126,7 @@ def cmd_connect(args: list[str], feature_factory: _FeatureFactory) -> int:
 
 
 def cmd_disconnect(args: list[str], feature_factory: _FeatureFactory) -> int:
+    """Parse argv and invoke the orchestrator disconnect action; return exit code."""
     if "help" in args or "--help" in args:
         print(_HELP_DOC)
         return 0
@@ -148,6 +150,7 @@ def cmd_disconnect(args: list[str], feature_factory: _FeatureFactory) -> int:
 
 
 def main(argv: list[str], feature_factory: _FeatureFactory) -> int:
+    """Top-level entry: route argv to connect or disconnect."""
     if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
         print(_HELP_DOC)
         return 0

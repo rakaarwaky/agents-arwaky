@@ -91,6 +91,15 @@ class SkillPackProvisioner(ISkillProtocol):
         return "SkillPackProvisioner()"
 
     def prune(self, target_dir: Path, custom_dest: str = "") -> SkillProvisionResult:
+        """Remove provisioned skill entries the pack no longer provides.
+
+        Args:
+            target_dir: Workspace root where provisioned skills were copied.
+            custom_dest: Alternative destination path used during provisioning.
+
+        Returns:
+            Result reporting how many stale entries were removed.
+        """
         base = provision_base(target_dir, custom_dest)
         removed = prune_provisioned(base, PACK_ROOT)
         # prune_provisioned returns a count (int) in current utility; older

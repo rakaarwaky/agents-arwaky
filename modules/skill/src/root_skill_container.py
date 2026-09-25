@@ -17,6 +17,7 @@ class SkillContainer:
 
     @property
     def aggregate(self) -> ISkillAggregate:
+        """The fully-wired skill feature aggregate ready for the CLI surface."""
         return self._orchestrator
 
 

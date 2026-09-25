@@ -71,6 +71,7 @@ class HarnessContainer:
 
     # -- Block 1: Constructor ---------------------------------------------------
     def __init__(self) -> None:
+        """Compose the connector, disconnector, skills, and orchestrator."""
         adapters = _adapters()
         # Router endpoint resolution comes from the daemon feature; the
         # connector treats an absent daemon as "reported, wiring still applied".
@@ -85,6 +86,7 @@ class HarnessContainer:
 
     @property
     def aggregate(self) -> IHarnessAggregate:
+        """Return the fully-wired orchestrator as the harness aggregate."""
         return self._orchestrator
 
 

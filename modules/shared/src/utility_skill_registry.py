@@ -89,6 +89,7 @@ def extract_description(skill_md):
 
 
 def _find_skills(base: Path):
+    """Iterate SKILL.md files under *base*, skipping common build dirs."""
     if not base.exists():
         return []
     out = []
@@ -337,6 +338,7 @@ def remove_single_skill(source_file, target_dir, custom_dest=""):
 
 
 def _remove_skill_dir(d: Path) -> bool:
+    """Remove a provisioned skill directory (symlink or real dir)."""
     if d.is_symlink():
         d.unlink()
         print(f"  \u2713 [OK] Unlinked: {d} (pack source intact)")
@@ -350,6 +352,7 @@ def _remove_skill_dir(d: Path) -> bool:
 
 
 def uninstall_tool_skills(tool_id, target_dir, custom_dest=""):
+    """Remove all provisioned skills for *tool_id*; returns the count removed."""
     skills = get_tool_skills(tool_id)
     total = len(skills)
     if total == 0:

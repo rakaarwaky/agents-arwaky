@@ -24,6 +24,7 @@ class HarnessOrchestrator(IHarnessAggregate):
         disconnector: IHarnessProtocol,
         skills: IHarnessProtocol,
     ) -> None:
+        """Compose the three capabilities behind the orchestrator interface."""
         self._connector = connector
         self._disconnector = disconnector
         self._skills = skills

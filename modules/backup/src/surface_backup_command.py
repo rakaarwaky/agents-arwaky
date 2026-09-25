@@ -16,18 +16,23 @@ class BackupCommand(IBackupAggregate):
         self._orch = orch
 
     def backup(self, tool: BackupToolQuery, dest: str = "") -> ExitCode:
+        """Delegate backup to the orchestrator."""
         return self._orch.backup(tool, dest)
 
     def restore(self, tool: BackupToolQuery, archive: str) -> ExitCode:
+        """Delegate restore to the orchestrator."""
         return self._orch.restore(tool, archive)
 
     def list_archives(self) -> ExitCode:
+        """Delegate listing archives to the orchestrator."""
         return self._orch.list_archives()
 
     def status_store(self) -> ExitCode:
+        """Delegate status check to the orchestrator."""
         return self._orch.status_store()
 
     def help(self) -> ExitCode:
+        """Delegate help display to the orchestrator."""
         return self._orch.help()
 
 

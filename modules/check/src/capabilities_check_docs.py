@@ -49,6 +49,7 @@ class DocsCheckRunner(ICheckProtocol):
         return "DocsCheckRunner()"
 
     def audit(self, include_subtrees: bool = False) -> list[DocFinding]:
+        """Audit document invariants and hygiene, returning sorted unique findings."""
         # AES201: utilities must not import each other; capabilities composes them.
         merged = (
             audit_docs(self._root, include_subtrees=include_subtrees)

@@ -10,6 +10,7 @@ COMMANDS = (
 
 
 def bash_completion() -> str:
+    """Return the complete-able bash script for the aa CLI."""
     return f"""_aa_completions() {{
     local cur="${{COMP_WORDS[COMP_CWORD]}}"
     if [[ ${{COMP_CWORD}} -eq 1 ]]; then
@@ -30,6 +31,7 @@ complete -F _aa_completions aa agents-arwaky"""
 
 
 def zsh_completion() -> str:
+    """Return the complete-able zsh script for the aa CLI."""
     return f"""#compdef aa agents-arwaky
 _aa() {{
     local -a commands

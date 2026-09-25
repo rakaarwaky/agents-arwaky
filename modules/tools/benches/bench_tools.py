@@ -60,20 +60,6 @@ def bench_orchestrator_with_dependencies():
     return elapsed
 
 
-def bench_adapter_facade_creation():
-    """Benchmark: create ToolAdapterFacade."""
-    from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
-
-    iterations = 1000
-    start = time.perf_counter()
-    for _ in range(iterations):
-        ToolAdapterFacade()
-    elapsed = time.perf_counter() - start
-
-    print(f"Create facade x{iterations}: {elapsed:.4f}s ({elapsed/iterations*1000:.3f}ms each)")
-    return elapsed
-
-
 def bench_manifest_resolution():
     """Benchmark: resolve tool specs from manifest."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
@@ -98,8 +84,8 @@ def bench_execute_dispatch():
     from modules.shared.src.taxonomy_common_vo import ToolSpec
 
     iterations = 1000
-    facade = MagicMock()
-    installer = InstallerCapability(adapter_facade=facade)
+    registry = {"test": MagicMock()}
+    installer = InstallerCapability(registry=registry)
     spec = ToolSpec(
         id="test",
         category="dev",
@@ -128,7 +114,6 @@ if __name__ == "__main__":
     bench_capability_instantiation()
     bench_orchestrator_creation()
     bench_orchestrator_with_dependencies()
-    bench_adapter_facade_creation()
     bench_manifest_resolution()
     bench_execute_dispatch()
     print("=" * 60)

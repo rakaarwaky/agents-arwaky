@@ -31,10 +31,12 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
     """Submodule-missing check + binary readiness table."""
 
     def __init__(self) -> None:
+        """Prepare the XDG bin home required for binary lookups."""
         ensure_path()
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        """Print a tool readiness table or JSON summary and return exit code 0."""
         json_mode = bool((flags or {}).get("json"))
         if json_mode:
             out = []

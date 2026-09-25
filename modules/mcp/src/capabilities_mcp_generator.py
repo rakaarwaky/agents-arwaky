@@ -172,6 +172,7 @@ class McpConfigGenerator(IMcpProtocol):
 
 
 def main() -> int:
+    """CLI entry point that generates the unified MCP client configuration file."""
     output = Path(sys.argv[1]) if len(sys.argv) > 1 else repo_root() / "mcp_servers.generated.json"
     print("Generating unified MCP client configuration...")
     print(f"Target: {output}")

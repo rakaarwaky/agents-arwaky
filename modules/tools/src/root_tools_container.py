@@ -26,7 +26,6 @@ from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 # every adapter capability is constructed here and injected into the
 # agent orchestrator (which must stay capabilities-free). Importing them
 # here also wires them for the AES503 orphan check.
-from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
 from modules.tools.src.capabilities_tools_anytype_adapter import (
     ADAPTER_UNITS as _ANYTYPE_UNITS,
 )
@@ -96,15 +95,12 @@ def create_tools_feature(root=None) -> IToolsAggregate:
 
     daemons = create_daemon_feature()
     resolved = root or repo_root()
-    # P1-7: the adapter facade is the single API pipeline over all 13 leaf
+    # P1-7: the registry is the single API pipeline over all 13 leaf
     # adapters + shared mechanics; wired here and injected into the action
     # capabilities (dependency inversion: capabilities depend on the
-    # IToolsProtocol contract, not the concrete ToolAdapterFacade).
-    adapter_facade = ToolAdapterFacade(
-        registry=TOOLS_REGISTRY, daemons=daemons, root=resolved
-    )
-    installer = InstallerCapability(root=resolved, daemons=daemons, adapter_facade=adapter_facade)
-    updater = UpdaterCapability(root=resolved, adapter_facade=adapter_facade)
+    # IToolsProtocol contract, not on a concrete adapter class).
+    installer = InstallerCapability(root=resolved, daemons=daemons, registry=TOOLS_REGISTRY)
+    updater = UpdaterCapability(root=resolved, registry=TOOLS_REGISTRY)
     uninstaller = UninstallerCapability(daemons=daemons)
     runner = RunnerCapability(root=resolved)
     return ToolsOrchestrator(
@@ -115,7 +111,6 @@ def create_tools_feature(root=None) -> IToolsAggregate:
         updater=updater,
         uninstaller=uninstaller,
         runner=runner,
-        adapter_facade=adapter_facade,
     )
 
 

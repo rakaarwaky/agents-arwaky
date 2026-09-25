@@ -37,6 +37,7 @@ from modules.shared.src.utility_skill_registry import (
 
 
 def cmd_uninstall(argv):
+    """Remove provisioned skills (by tool, skill, or all) from a target workspace."""
     target_name = ""
     target_dir = Path.cwd()
     custom_dest = ""
@@ -109,6 +110,7 @@ def _report_prune(base: Path) -> None:
 
 
 def cmd_install(argv):
+    """Install skills (by tool, skill, or all) into a target workspace."""
     target_name = ""
     target_dir = Path.cwd()
     custom_dest = ""
@@ -187,6 +189,7 @@ def cmd_install(argv):
 
 
 def _term_width():
+    """Return the current terminal column width, defaulting to 80."""
     try:
         import shutil
         return shutil.get_terminal_size((80, 24)).columns
@@ -196,6 +199,7 @@ def _term_width():
 
 # --- list ----------------------------------------------------------------------
 def cmd_list(argv):
+    """List tools and their available skills, optionally filtered by tool id."""
     tool_filter = argv[0] if argv else ""
     pack = get_tool_skills("all")  # satu pack user di tools/skills/
     total_unique = len(pack)
@@ -233,6 +237,7 @@ def cmd_list(argv):
 
 # --- check ---------------------------------------------------------------------
 def cmd_check(argv=None):
+    """Audit per-tool skill coverage and pack loadability; optional JSON output."""
     argv = list(argv or [])
     json_mode = "--json" in argv
     term_w = _term_width()
@@ -304,6 +309,7 @@ def cmd_check(argv=None):
 
 # --- show ----------------------------------------------------------------------
 def cmd_show(argv):
+    """Display the SKILL.md content for a tool or individual skill."""
     query = argv[0] if argv else ""
     if not query:
         print("Error: Missing tool or skill name.")
@@ -340,6 +346,7 @@ def cmd_show(argv):
 
 # --- help & main ---------------------------------------------------------------
 def cmd_help():
+    """Print the top-level help screen for the skill subcommand."""
     print("agents-arwaky Skill Manager (aa skill)")
     print("Discover, inspect and provision AI agent skills.")
     print()
@@ -362,6 +369,7 @@ def cmd_help():
 
 
 def cmd_list_help():
+    """Print help for the 'aa skill list' subcommand."""
     print("Usage: aa skill list [tool]")
     print()
     print("List all registered tools and their associated skills, or filter by tool.")
@@ -373,6 +381,7 @@ def cmd_list_help():
 
 
 def cmd_install_help():
+    """Print help for the 'aa skill install' subcommand."""
     print("Usage: aa skill install <tool|skill|all> [--target DIR] [--dest PATH] [--force] [--prune]")
     print()
     print("Install all skills for a tool, a specific skill, or all skills for all tools.")
@@ -398,6 +407,7 @@ def cmd_install_help():
 
 
 def cmd_uninstall_help():
+    """Print help for the 'aa skill uninstall' subcommand."""
     print("Usage: aa skill uninstall <tool|skill|all> [--target DIR] [--dest PATH]")
     print()
     print("Remove provisioned skills from the target workspace.")
@@ -410,6 +420,7 @@ def cmd_uninstall_help():
 
 
 def cmd_show_help():
+    """Print help for the 'aa skill show' subcommand."""
     print("Usage: aa skill show <tool|skill>")
     print()
     print("Display the content of a skill's SKILL.md file.")
@@ -420,6 +431,7 @@ def cmd_show_help():
 
 
 def main(argv: list[str], orch: object | None = None) -> int:
+    """Dispatch a top-level skill subcommand and return an exit code."""
     if not argv or argv[0] in ("-h", "--help", "help"):
         return cmd_help()
     action = argv[0]
@@ -488,19 +500,25 @@ class SkillRegistryAdapter(ISkillProtocol):
 
     # ─── Block 2: Aggregate-named registry surface ──────────
     def list(self, argv: SkillArgs) -> ExitCode:
+        """List skills for tools, wrapping the module-level cmd_list."""
         return ExitCode(cmd_list(list(argv)))
 
     def check(self, argv: SkillArgs = ARGS_EMPTY) -> ExitCode:
+        """Audit the shared skill pack loadability, wrapping cmd_check."""
         return ExitCode(cmd_check(list(argv)))
 
     def show(self, argv: SkillArgs) -> ExitCode:
+        """Display a skill's content, wrapping cmd_show."""
         return ExitCode(cmd_show(list(argv)))
 
     def install(self, argv: SkillArgs) -> ExitCode:
+        """Provision skills into a target workspace, wrapping cmd_install."""
         return ExitCode(cmd_install(list(argv)))
 
     def uninstall(self, argv: SkillArgs) -> ExitCode:
+        """Remove provisioned skills from a target workspace, wrapping cmd_uninstall."""
         return ExitCode(cmd_uninstall(list(argv)))
 
     def sync(self, argv: SkillArgs = ARGS_EMPTY) -> ExitCode:
+        """Alias for installing all skills across all tools."""
         return ExitCode(cmd_install(["all", *list(argv)]))

@@ -16,6 +16,7 @@ if not _logger.handlers:
 
     class _CorrelationFilter(_logging.Filter):
         def filter(self, record):
+            """Attach the correlation id to every log record from the ARWAKY_CORRELATION_ID env var."""
             record.correlation_id = os.environ.get("ARWAKY_CORRELATION_ID", "-")
             return True
 
@@ -25,15 +26,15 @@ if not _logger.handlers:
 
 
 def log_debug(msg):
-    _logger.debug(msg)
+    """Write a DEBUG-level message through the agents-arwaky logger."""
 
 
 def log_info(msg):
-    _logger.info(msg)
+    """Write an INFO-level message through the agents-arwaky logger."""
 
 
 def log_warning(msg):
-    _logger.warning(msg)
+    """Write a WARNING-level message through the agents-arwaky logger."""
 
 
 def set_verbosity(level: str = "info") -> None:
@@ -68,38 +69,47 @@ def _c(code: str) -> str:
 # Lazy color accessors: evaluated at call time, not import time,
 # so set_color_mode()/NO_COLOR/FORCE_COLOR always take effect.
 def BOLD() -> str:
+    """Return the ANSI escape for bold weight (empty when colour is disabled)."""
     return _c("1")
 
 
 def DIM() -> str:
+    """Return the ANSI escape for faint/dim weight."""
     return _c("2")
 
 
 def GREEN() -> str:
+    """Return the ANSI escape for green foreground."""
     return _c("0;32")
 
 
 def BLUE() -> str:
+    """Return the ANSI escape for blue foreground."""
     return _c("0;34")
 
 
 def CYAN() -> str:
+    """Return the ANSI escape for cyan foreground."""
     return _c("0;36")
 
 
 def YELLOW() -> str:
+    """Return the ANSI escape for yellow foreground."""
     return _c("0;33")
 
 
 def RED() -> str:
+    """Return the ANSI escape for red foreground."""
     return _c("0;31")
 
 
 def RESET() -> str:
+    """Return the ANSI escape that resets all attributes."""
     return _c("0")
 
 
 def _term_width() -> int:
+    """Current terminal width in columns, with a safe fallback."""
     try:
         import shutil
         return shutil.get_terminal_size((80, 24)).columns
@@ -108,6 +118,7 @@ def _term_width() -> int:
 
 
 def banner() -> None:
+    """Print the agents-arwaky ASCII-art banner (plain text on non-TTY)."""
     if not sys.stdout.isatty():
         # Non-TTY: plain text, avoid broken ASCII art in pipe/log.
         print("agents-arwaky — Unified Tool Orchestrator")
@@ -123,22 +134,27 @@ def banner() -> None:
 
 
 def info(msg: str) -> None:
+    """Print a cyan '==>' styled heading to stdout."""
     print(f"{CYAN()}==>{RESET()} {BOLD()}{msg}{RESET()}")
 
 
 def sub(msg: str) -> None:
+    """Print a blue '->' indented message to stdout."""
     print(f"  {BLUE()}->{RESET()} {msg}")
 
 
 def ok(msg: str) -> None:
+    """Print a green '[OK]' confirmation message to stdout."""
     print(f"  {GREEN()}[OK]{RESET()} {msg}")
 
 
 def warn(msg: str) -> None:
+    """Print a yellow '[WARN]' warning message to stdout."""
     print(f"  {YELLOW()}[WARN]{RESET()} {msg}")
 
 
 def err(msg: str) -> None:
+    """Print a red '[FAIL]' error message to stderr."""
     print(f"  {RED()}[FAIL]{RESET()} {msg}", file=sys.stderr)
 
 

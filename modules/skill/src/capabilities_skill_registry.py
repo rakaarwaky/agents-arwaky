@@ -55,10 +55,12 @@ class SkillRegistry(ISkillProtocol):
         return "SkillRegistry()"
 
     def cmd_list(self, argv: SkillArgs) -> ExitCode:
+        """Report the count of tools registered in the shared pack."""
         print(f"✓ Skill registry: {len(get_registered_tool_ids())} tools registered.")
         return ExitCode(0)
 
     def cmd_check(self) -> ExitCode:
+        """Audit pack loadability and print any findings."""
         from modules.shared.src.taxonomy_common_vo import audit_pack
 
         findings = audit_pack(Path("."))
@@ -67,14 +69,17 @@ class SkillRegistry(ISkillProtocol):
         return ExitCode(0)
 
     def cmd_show(self, argv: SkillArgs) -> ExitCode:
+        """Point the caller to the CLI surface for skill detail views."""
         print("Skill registry: use 'aa skill show <tool|skill>' for details.")
         return ExitCode(0)
 
     def cmd_install(self, argv: SkillArgs) -> ExitCode:
+        """Point the caller to the CLI surface for full provisioning."""
         print("Skill install: use 'aa skill install <tool>' for full provisioning.")
         return ExitCode(0)
 
     def cmd_uninstall(self, argv: SkillArgs) -> ExitCode:
+        """Point the caller to the CLI surface for full removal."""
         print("Skill uninstall: use 'aa skill uninstall <tool>' for full removal.")
         return ExitCode(0)
 

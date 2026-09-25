@@ -60,16 +60,21 @@ class McpAction(IMcpAggregate):
         self._agg = agg
 
     def list_servers(self):
+        """Return metadata for every registered MCP-enabled tool."""
         return self._agg.list_servers()
 
     def show_server(self, server_id: McpServerId | None = None):
+        """Show the generated config or probe one server's help/schema."""
         return self._agg.show_server(server_id)
 
     def generate(self, output):
+        """Build the unified MCP client config at *output*."""
         return self._agg.generate(output)
 
     def generate_alias(self, alias: McpAlias, output):
+        """Write an alias-qualified client config via the same generator."""
         return self._agg.generate_alias(alias, output)
 
     def validate(self, output=None):
+        """Parse the generated config at *output* and report validity."""
         return self._agg.validate(output)

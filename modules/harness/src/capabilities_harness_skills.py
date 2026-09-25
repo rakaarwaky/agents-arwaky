@@ -34,6 +34,7 @@ class HarnessSkills(IHarnessProtocol):
     """Registry-keyed skills provisioning (composition root injects adapters)."""
 
     def __init__(self, adapters: dict[str, object]) -> None:
+        """Store the adapter registry for per-harness-id provisioning."""
         self._adapters = adapters
 
     # ─── Block 2: Protocol Method Implementation ──────────────

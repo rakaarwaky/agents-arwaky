@@ -15,6 +15,7 @@ from modules.shared.src.utility_toml_write import write_toml
 
 
 def detect_format(path: Path) -> str:
+    """Heuristic guess for the config format from name or content."""
     name = path.name.lower()
     if name.endswith((".yaml", ".yml")):
         return "yaml"
@@ -75,6 +76,7 @@ def load_file(path: Path):
 
 
 def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> bool:
+    """Write *data* back to *path* preserving its format. Returns True on success."""
     """Write dict back preserving format. Returns True on success."""
     try:
         if fmt == "json":
@@ -124,7 +126,7 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
 # MCP server helpers
 # ---------------------------------------------------------------------------
 def get_mcp_map(data: dict):
-    """Return the dict holding MCP servers (mcpServers, mcp, or mcp_servers)."""
+    """Return the dict holding MCP servers and its canonical key name."""
     if isinstance(data, dict):
         if isinstance(data.get("mcpServers"), dict):
             return data["mcpServers"], "mcpServers"
@@ -166,6 +168,7 @@ def remove_mcp_servers(path: Path, servers, dry_run: bool = False) -> list:
 
 
 def list_mcp_servers(path: Path):
+    """List all registered MCP server names in *path*; empty list if absent."""
     if not path.exists():
         return []
     data, _ = load_file(path)
@@ -224,6 +227,7 @@ def arwaky_server_names(repo_root: Path) -> list:
 # ---------------------------------------------------------------------------
 def merge_mcp_servers(path: Path, servers: dict, force: bool = False) -> list:
     """Merge MCP servers into the file's MCP map (fail-closed + backup)."""
+    """Merge MCP servers into the file's MCP map (fail-closed + backup)."""
     if path.exists():
         original_text = path.read_text(encoding="utf-8", errors="replace")
         data, fmt = load_file(path)
@@ -263,6 +267,7 @@ def merge_mcp_servers(path: Path, servers: dict, force: bool = False) -> list:
 
 
 def set_env_keys(path: Path, pairs: dict) -> None:
+    """Set KEY=VALUE lines in a .env file (create if missing)."""
     """Set KEY=VALUE lines in a .env file (create if missing)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     if not path.exists():

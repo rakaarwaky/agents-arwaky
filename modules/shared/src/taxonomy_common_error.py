@@ -18,6 +18,7 @@ class ArwakyError(Exception):
 
     @property
     def message(self) -> ErrorMessage:
+        """The human-readable error string carried by this exception."""
         return self._message
 
     def __str__(self) -> ErrorMessage:

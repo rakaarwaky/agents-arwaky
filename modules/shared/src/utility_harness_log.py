@@ -9,27 +9,27 @@ import sys
 
 
 def log_header(msg: str) -> None:
-    print(f"==> {msg}")
+    """Print a section-header line to stdout."""
 
 
 def log_sub(msg: str) -> None:
-    print(f"  -> {msg}")
+    """Print a sub-item line to stdout."""
 
 
 def log_ok(msg: str) -> None:
-    print(f"  ✓ {msg}")
+    """Print a green checkmark confirmation line to stdout."""
 
 
 def log_skip(msg: str) -> None:
-    print(f"  ⟳ {msg}")
+    """Print a skip/unchanged line to stdout."""
 
 
 def log_warn(msg: str) -> None:
-    print(f"  ⚠ {msg}")
+    """Print a yellow warning line to stdout."""
 
 
 def log_err(msg: str) -> None:
-    print(f"  ✗ {msg}", file=sys.stderr)
+    """Print a red error line to stderr."""
 
 
 __all__ = [

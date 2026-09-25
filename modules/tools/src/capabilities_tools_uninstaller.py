@@ -129,6 +129,7 @@ class UninstallerCapability(IToolsProtocol):
         owned_paths: list[Path],
         dry_run: bool = False,
     ) -> UninstallResult:
+        """Remove owned tool state and verify no residuals remain."""
         # Sub-step 1: generic filesystem teardown + optional service stop.
         result = self._remove(spec, owned_paths, dry_run=dry_run)
 

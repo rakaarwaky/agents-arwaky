@@ -29,10 +29,12 @@ class EnvDiagnosticRunner(IDoctorProtocol):
     """PATH check, required/optional toolchain, container engine detection."""
 
     def __init__(self) -> None:
+        """Prepare the XDG bin home required for binary lookups."""
         ensure_path()
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        """Check PATH, toolchain binaries, and container engine availability."""
         _ = flags
         banner()
         print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")

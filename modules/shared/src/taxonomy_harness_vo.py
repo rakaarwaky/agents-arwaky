@@ -71,6 +71,7 @@ class ConnectOpts(HarnessVo):
     adapters: dict[str, object] = field(default_factory=dict, repr=False)
 
     def adapter(self, harness_id: str):
+        """Return the adapter registered for *harness_id*, or raise."""
         try:
             return self.adapters[harness_id]
         except KeyError:
@@ -85,6 +86,7 @@ class DisconnectOpts(HarnessVo):
     adapters: dict[str, object] = field(default_factory=dict, repr=False)
 
     def adapter(self, harness_id: str):
+        """Return the adapter registered for *harness_id*, or raise."""
         try:
             return self.adapters[harness_id]
         except KeyError:
@@ -101,6 +103,7 @@ class SkillsOpts(HarnessVo):
     adapters: dict[str, object] = field(default_factory=dict, repr=False)
 
     def adapter(self, harness_id: str):
+        """Return the adapter registered for *harness_id*, or raise."""
         try:
             return self.adapters[harness_id]
         except KeyError:

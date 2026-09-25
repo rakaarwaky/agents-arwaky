@@ -40,6 +40,7 @@ class Timestamp:
 
     @property
     def value(self) -> float:
+        """The underlying float timestamp."""
         return self._value
 
     def __str__(self) -> str:
@@ -70,6 +71,7 @@ class ToolId:
 
     @property
     def value(self) -> str:
+        """The underlying string tool identifier."""
         return self._value
 
     def __str__(self) -> str:
@@ -98,6 +100,7 @@ class AuditFinding:
 
     @property
     def is_error(self) -> bool:
+        """True when this finding must be fixed before documents pass validation."""
         return self.severity == "error"
 
 
@@ -330,6 +333,7 @@ def agents_arwaky_config_dir() -> Path:
 
 
 def ensure_bin_home() -> None:
+    """Create the XDG_BIN_HOME directory if it does not already exist."""
     bin_home().mkdir(parents=True, exist_ok=True)
 
 
@@ -447,10 +451,12 @@ def _frontmatter_value(text: str, field: str) -> str:
 
 
 def skill_name(skill_md: Path) -> str:
+    """Extract the frontmatter ``name:`` field from *skill_md*."""
     return _frontmatter_value(_read(skill_md), "name")
 
 
 def skill_description(skill_md: Path) -> str:
+    """Extract the frontmatter ``description:`` field from *skill_md*."""
     return _frontmatter_value(_read(skill_md), "description")
 
 

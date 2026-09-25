@@ -47,33 +47,42 @@ class DaemonAggregateAdapter(IDaemonAggregate):
         return self._managers[daemon]
 
     def list_known(self) -> tuple[DaemonName, ...]:
+        """List the daemon names known to this service container."""
         return (DaemonName("9router"), DaemonName("anytype"))
 
     def start(self, name: DaemonName) -> ExitCode:
+        """Start the named daemon and return its exit code."""
         return ExitCode(int(self._mgr(name).execute("start")))
 
     def stop(self, name: DaemonName) -> ExitCode:
+        """Stop the named daemon and return its exit code."""
         return ExitCode(int(self._mgr(name).execute("stop")))
 
     def restart(self, name: DaemonName) -> ExitCode:
+        """Restart the named daemon and return its exit code."""
         return ExitCode(int(self._mgr(name).execute("restart")))
 
     def status(self, name: DaemonName) -> DaemonStatus:
+        """Return the current status of the named daemon."""
         result = self._mgr(name).execute("status")
         if not isinstance(result, DaemonStatus):
             raise TypeError(f"status op for {name!r} did not return a DaemonStatus")
         return result
 
     def logs(self, name: DaemonName) -> ExitCode:
+        """Stream logs for the named daemon and return its exit code."""
         return ExitCode(int(self._mgr(name).execute("logs")))
 
     def install_unit(self, unit: DaemonUnit) -> ExitCode:
+        """Install a systemd unit for the given daemon unit and return its exit code."""
         return ExitCode(int(self._for_unit(unit).execute("install_unit", unit=unit)))
 
     def remove_unit(self, unit: DaemonUnit) -> ExitCode:
+        """Remove a systemd unit for the given daemon unit and return its exit code."""
         return ExitCode(int(self._for_unit(unit).execute("remove_unit", unit=unit)))
 
     def unit_status(self, unit: DaemonUnit) -> ExitCode:
+        """Query the status of a systemd unit and return its exit code."""
         return ExitCode(int(self._for_unit(unit).execute("unit_status", unit=unit)))
 
 
@@ -87,10 +96,12 @@ class ServiceContainer:
 
     @property
     def aggregate(self) -> IServiceAggregate:
+        """Expose the service orchestrator as the feature's public aggregate."""
         return self._orchestrator
 
     @property
     def manager(self) -> ServiceManager:
+        """Expose the service manager for direct delegation."""
         return self._manager
 
 

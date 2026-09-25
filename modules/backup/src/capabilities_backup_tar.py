@@ -86,18 +86,22 @@ class TarBackupGateway(IBackupProtocol):
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def backup(self, tool: str, dest: str = "") -> BackupResult:
+        """Create a tar.gz archive of *tool* data, optionally uploading to Drive."""
         rc = cmd_backup([tool] + ([dest] if dest else []))
         archive = f"{tool}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.tar.gz"
         return BackupResult(rc == 0, tool, archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
 
     def restore(self, tool: str, archive: Path) -> RestoreResult:
+        """Restore *tool* data from a local tar.gz *archive*."""
         rc = cmd_restore([tool, str(archive)])
         return RestoreResult(rc == 0, tool, str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
 
     def list_archives(self) -> list[Path]:
+        """Return sorted list of local tar.gz backup archives."""
         return sorted(BACKUP_STORE.glob("*.tar.gz")) if BACKUP_STORE.exists() else []
 
     def help(self) -> int:
+        """Show backup usage information."""
         return cmd_help()
 
     def __repr__(self) -> str:
@@ -139,19 +143,28 @@ class _Progress:
             self._thread.join(timeout=0.5)
 
 
-def log_info(msg): print(f"==> {msg}")
-def log_ok(msg):  print(f"  [OK] {msg}")
-def log_warn(msg): print(f"  [WARN] {msg}")
+def log_info(msg):
+    """Print an informational log message prefixed with ==>."""
+    print(f"==> {msg}")
 
+def log_ok(msg):
+    """Print an informational log message prefixed with [OK]."""
+    print(f"  [OK] {msg}")
+
+def log_warn(msg):
+    """Print an informational log message prefixed with [WARN]."""
+    print(f"  [WARN] {msg}")
 
 
 def tar_dir(src: Path, dest: Path):
+    """Archive *src* directory into a gzip-compressed tar at *dest*."""
     file_count = sum(1 for _ in src.rglob("*") if _.is_file())
     with _Progress(f"Archiving {src.name} ({file_count} files)..."), tarfile.open(dest, "w:gz") as tar:
         tar.add(src, arcname=src.name)
 
 
 def untar(src: Path, dest: Path):
+    """Safely extract tar.gz *src* into *dest*, rejecting traversal and symlinks."""
     dest = dest.resolve()
     # Verify archive integrity before extract (R-7)
     if not tarfile.is_tarfile(src):
@@ -186,6 +199,7 @@ def untar(src: Path, dest: Path):
 
 
 def backup_tool(tool: str, dest: str = ""):
+    """Back up *tool* data to BACKUP_STORE, optionally uploading to gdrive."""
     upload_to_gdrive = dest == "gdrive" or dest.startswith("gdrive:")
     store = BACKUP_STORE
     store.mkdir(parents=True, exist_ok=True)
@@ -223,6 +237,7 @@ def backup_tool(tool: str, dest: str = ""):
 
 
 def restore_tool(tool: str, src: str):
+    """Restore *tool* data from tar.gz *src* via staged extraction and swap."""
     src_path = Path(src)
     if not src_path.exists() or not src_path.is_file():
         print(f"  \u2717 Archive not found: {src_path}", file=sys.stderr)
@@ -272,6 +287,7 @@ def restore_tool(tool: str, src: str):
 
 
 def cmd_backup(argv):
+    """Run backup for one or all tools, optionally targeting gdrive."""
     tool = argv[0] if argv else "all"
     if tool == "list":
         return cmd_list()
@@ -285,6 +301,7 @@ def cmd_backup(argv):
 
 
 def cmd_restore(argv):
+    """Run restore for one tool or all tools from an archive or backup dir."""
     if len(argv) < 2:
         print("Usage: aa restore <tool|all> <archive.tar.gz|backup-dir>", file=sys.stderr)
         return 1
@@ -308,6 +325,7 @@ def cmd_restore(argv):
 
 
 def cmd_list():
+    """Print available backup archives to stdout."""
     print("Available backup archives:")
     archives = sorted(BACKUP_STORE.glob("*.tar.gz")) if BACKUP_STORE.exists() else []
     if not archives:
@@ -318,6 +336,7 @@ def cmd_list():
 
 
 def cmd_help():
+    """Print backup usage information to stdout."""
     print("Usage: aa backup <tool|all> [dest|gdrive]")
     print("       aa restore <tool|all> <archive.tar.gz>")
     print("       aa backup list")
@@ -326,6 +345,7 @@ def cmd_help():
 
 
 def main(argv):
+    """CLI entry point for the tar backup module (backup/restore/list/help)."""
     if not argv or argv[0] in ("help", "-h", "--help"):
         return cmd_help()
     if argv[0] == "list":

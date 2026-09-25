@@ -35,6 +35,7 @@ class HarnessDisconnector(IHarnessProtocol):
     """Registry-keyed disconnect capability (composition root injects adapters)."""
 
     def __init__(self, adapters: dict[str, object]) -> None:
+        """Store the adapter registry for per-harness-id lookups."""
         self._adapters = adapters
 
     # ─── Block 2: Protocol Method Implementation ──────────────

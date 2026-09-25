@@ -201,6 +201,7 @@ lint_owned_paths = make_owned(
 
 
 def lint_install(spec, root=ROOT, *, daemons=None):
+    """Install lint-arwaky: bootstrap rustup if needed, cargo build, install binaries."""
     root = root or ROOT
     internal_dir = root / LINT_INTERNAL_DIR_REL
     if not (internal_dir.exists() and (internal_dir / "Cargo.toml").exists()):
@@ -213,6 +214,7 @@ def lint_install(spec, root=ROOT, *, daemons=None):
 
 
 def lint_update(spec, root):
+    """Update lint-arwaky submodule and rebuild via cargo release."""
     if not update_submodule(root, LINT_INTERNAL_DIR_REL):
         raise ToolUpdateError(f"submodule update failed: {LINT_INTERNAL_DIR_REL}")
     created = _lint_build_and_install(root, raise_on_missing_cargo=True)

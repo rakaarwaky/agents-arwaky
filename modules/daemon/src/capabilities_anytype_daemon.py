@@ -70,6 +70,13 @@ class AnytypeDaemonManager(IDaemonProtocol):
         name: str | None = None,
         unit: str | None = None,
     ) -> DaemonStatus | ExitCode:
+        """Dispatch a protocol op to the matching action method.
+
+        Args:
+            op: protocol verb; unknown values raise ValueError.
+            name: optional target name (e.g. auth account or space link).
+            unit: accepted but unused for this capability.
+        """
         if op == "start":
             return self.start()
         if op == "stop":
@@ -100,15 +107,19 @@ class AnytypeDaemonManager(IDaemonProtocol):
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def start(self) -> ExitCode:
+        """Start the daemon container (or native fallback) and wait for API."""
         return ExitCode(cmd_start())
 
     def stop(self) -> ExitCode:
+        """Stop the running daemon container or native process."""
         return ExitCode(cmd_stop())
 
     def restart(self) -> ExitCode:
+        """Restart the daemon by stopping then starting it again."""
         return ExitCode(cmd_restart())
 
     def status(self) -> DaemonStatus:
+        """Probe container state and API readiness into a DaemonStatus."""
         # Probe once, print once — the legacy cmd_status path re-probed the
         # API up to three times with backoff and stalled `aa anytype status`.
         running = container_running()
@@ -138,56 +149,70 @@ class AnytypeDaemonManager(IDaemonProtocol):
         )
 
     def logs(self) -> ExitCode:
+        """Show recent container or native log output."""
         return ExitCode(cmd_logs())
 
     def __repr__(self) -> str:
         return "AnytypeDaemonManager()"
 
     def auth_create(self, name: str = "agent") -> int:
+        """Create a headless bot account with the given *name*."""
         return cmd_auth_create(name)
 
     def auth_key(self, name: str = "arwaky-agent-key") -> int:
+        """Generate an API key for *name* and persist it into the .env file."""
         return cmd_auth_key(name)
 
     def space_join(self, link: str) -> int:
+        """Join the Anytype Space identified by invite *link*."""
         return cmd_space_join(link)
 
     def space_list(self) -> int:
+        """List all spaces joined by the daemon's bot account."""
         return cmd_space_list()
 
     def install_unit(self) -> ExitCode:
+        """Enable and start the anytype-daemon.service systemd user unit."""
         return ExitCode(cmd_service_install())
 
     def unit_status(self) -> ExitCode:
+        """Report systemd state of the anytype-daemon.service unit."""
         return ExitCode(cmd_service_status())
 
     def remove_unit(self) -> ExitCode:
+        """Disable and stop the systemd service (also stops the daemon)."""
         return self.stop()
 
     def help(self) -> int:
+        """Print usage information for the anytype daemon sub-commands."""
         return cmd_help()
 
     def main(self, argv) -> int:
+        """Entry point: dispatch CLI args to the matching command."""
         return main(argv)
 
 
 def has_podman():
+    """True when the podman CLI is available on PATH."""
     return shutil.which("podman") is not None
 
 
 def container_running():
+    """True when the Anytype daemon container is currently up."""
     return out(
         ["podman", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME]
     ) == "true"
 
 
 def container_exists():
+    """True when a container with CONTAINER_NAME exists (running or stopped)."""
     return out(
         ["podman", "ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]
     ) == CONTAINER_NAME
 
 
 def api_ready(timeout=90):
+    """Poll the daemon HTTP port until it answers or *timeout* seconds elapse."""
     url = f"http://127.0.0.1:{PORT}"
     deadline = time.time() + timeout
     delay = 1.0
@@ -212,6 +237,7 @@ def api_ready(timeout=90):
 
 
 def image_exists() -> bool:
+    """True when the Anytype daemon Podman image is already pulled."""
     return subprocess.run(
         ["podman", "image", "exists", IMAGE_NAME],
         stdout=subprocess.DEVNULL,
@@ -221,6 +247,7 @@ def image_exists() -> bool:
 
 
 def build_image():
+    """Build the Anytype daemon container image from the deploy script."""
     print(">>> Building Anytype daemon image...")
     cwd = SCRIPT_DIR
     code = run(["podman", "build", "-t", IMAGE_NAME, "."], cwd=cwd).returncode
@@ -230,6 +257,7 @@ def build_image():
 
 
 def ensure_dirs():
+    """Create all XDG data and config directories required by the daemon."""
     for d in (DATA_DIR, DOT_ANYTYPE, ANYTYPE_CONFIG_DIR, SHARE_DIR):
         d.mkdir(parents=True, exist_ok=True)
 
@@ -240,6 +268,7 @@ def _write_pid(pid: int) -> None:
 
 
 def _read_pid():
+    """Read the Anytype daemon PID from the PID file, returning None on failure."""
     if PID_FILE.exists():
         try:
             return int(PID_FILE.read_text().strip())
@@ -263,6 +292,7 @@ def _extract_api_key(stdout: str) -> str:
 
 
 def cmd_start():
+    """Start the daemon via Podman or native fallback and wait for API readiness."""
     if has_podman():
         if container_running():
             print(f">>> Anytype daemon container '{CONTAINER_NAME}' is already running.")
@@ -318,6 +348,7 @@ def cmd_start():
 
 
 def cmd_stop():
+    """Stop the daemon container or native process, cleaning up the PID file."""
     if has_podman() and container_exists():
         print(f">>> Stopping Anytype daemon container '{CONTAINER_NAME}'...")
         run(["podman", "stop", CONTAINER_NAME])
@@ -342,12 +373,14 @@ def cmd_stop():
 
 
 def cmd_restart():
+    """Stop then start the daemon, waiting 1s for the process to exit."""
     cmd_stop()
     time.sleep(1)
     return cmd_start()
 
 
 def cmd_status():
+    """Print container, API, and data-dir status of the daemon."""
     print("==========================================")
     print(" Anytype Headless Daemon Status")
     print("==========================================")
@@ -366,6 +399,7 @@ def cmd_status():
 
 
 def cmd_logs():
+    """Tail the container journal or native log file (last 200 lines)."""
     if has_podman() and container_exists():
         return run(["podman", "logs", "-f", "--tail", "200", CONTAINER_NAME]).returncode
     log = DATA_ROOT / "daemon.log"
@@ -376,6 +410,7 @@ def cmd_logs():
 
 
 def cmd_exec_anytype(args):
+    """Run an anytype subcommand inside the running container or local binary."""
     if has_podman() and container_running():
         return run(["podman", "exec", CONTAINER_NAME, "anytype", *args]).returncode
     anytype_bin = LOCAL_BIN / "anytype"
@@ -386,6 +421,7 @@ def cmd_exec_anytype(args):
 
 
 def cmd_auth_create(name="agent"):
+    """Create a headless bot account with the given *name*."""
     # anytype-cli >=0.3: 'auth create <name>' (was 'account create --name')
     return cmd_exec_anytype(["auth", "create", name])
 
@@ -433,6 +469,7 @@ def cmd_auth_key(name="arwaky-agent-key"):
 
 
 def cmd_space_join(link):
+    """Join the Anytype Space identified by the invite *link*."""
     if not link:
         print("Error: Missing invite link.", file=sys.stderr)
         return 1
@@ -440,10 +477,12 @@ def cmd_space_join(link):
 
 
 def cmd_space_list():
+    """List all Anytype Spaces joined by the daemon's bot account."""
     return cmd_exec_anytype(["space", "list"])
 
 
 def cmd_service_install():
+    """Create and enable the anytype-daemon.service systemd user unit."""
     if not has_podman():
         print(
             "Error: Podman is required to install the systemd container service.",
@@ -461,10 +500,12 @@ def cmd_service_install():
 
 
 def cmd_service_status():
+    """Show systemd state of the anytype-daemon.service unit."""
     return run(["systemctl", "--user", "status", "anytype-daemon.service"]).returncode
 
 
 def cmd_help():
+    """Print usage and list available sub-commands for the Anytype daemon."""
     print("Usage: aa anytype <command> [arguments...]")
     print()
     print("Commands:")
@@ -484,6 +525,7 @@ def cmd_help():
 
 
 def main(argv):
+    """Dispatch CLI args to the matching sub-command handler."""
     if not argv or argv[0] in ("help", "-h", "--help"):
         return cmd_help()
     action = argv[0]

@@ -120,14 +120,6 @@ def test_orchestrator_has_required_methods():
     assert hasattr(ToolsOrchestrator, "executable_path")
 
 
-def test_adapter_facade_implements_protocol():
-    """CP-TOOLS-016: ToolAdapterFacade implements IToolsProtocol."""
-    from modules.shared.src.contract_tools_protocol import IToolsProtocol
-    from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
-
-    assert issubclass(ToolAdapterFacade, IToolsProtocol)
-
-
 def test_error_classes_are_defined():
     """CP-TOOLS-017: Domain error classes exist."""
     from modules.shared.src.taxonomy_common_error import (

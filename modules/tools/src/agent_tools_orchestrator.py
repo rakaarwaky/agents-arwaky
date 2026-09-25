@@ -62,7 +62,6 @@ class ToolsOrchestrator(IToolsAggregate):
         updater: IToolsProtocol | None = None,
         uninstaller: IToolsProtocol | None = None,
         runner: IToolsProtocol | None = None,
-        adapter_facade: IToolsProtocol | None = None,
     ) -> None:
         self._root = root or repo_root()
         self._daemons = daemons
@@ -70,14 +69,10 @@ class ToolsOrchestrator(IToolsAggregate):
             raise ValueError("tools orchestrator requires an injected registry (root composition layer)")
         # P0-2: instance-level copy — was a class-level dict mutated via
         # .update(registry), which leaked entries across orchestrator instances.
-        # The registry is consumed only by `resolve`-style lookups; action
-        # calls route through the injected adapter facade (P1-7).
+        # The registry is consumed by owned_paths lookups in uninstall() and
+        # by resolver-style queries; action calls route through the injected
+        # capabilities (dependency inversion via IToolsProtocol).
         self._registry: dict[str, object] = dict(registry)
-        # P1-7: the adapter facade is the single API pipeline over all 13
-        # leaf adapters + shared mechanics. The action capabilities already
-        # route through it; the orchestrator keeps it for its uninstall()
-        # owned_paths call (read-only, no I/O) via facade.execute("owned_paths").
-        self._facade = adapter_facade
         # AES201/AES405: the agent layer must not import capabilities_* — the
         # action capabilities are injected by the root composition layer
         # (root_tools_container.create_tools_feature) typed against the single
@@ -102,6 +97,7 @@ class ToolsOrchestrator(IToolsAggregate):
         return spec_from_tool(tool)
 
     def install(self, spec: ToolSpec) -> InstallResult:
+        """Install the tool (provision + launcher registration) via the installer capability."""
         self._require(self._installer, "install")
         if find_tool(spec.id) is None:
             raise ToolInstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
@@ -110,6 +106,7 @@ class ToolsOrchestrator(IToolsAggregate):
         return self._installer.execute("install", spec=spec)
 
     def update(self, spec: ToolSpec) -> UpdateResult:
+        """Update the tool to its manifest pin and record the transition."""
         self._require(self._updater, "update")
         if find_tool(spec.id) is None:
             raise ToolUpdateError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
@@ -117,14 +114,15 @@ class ToolsOrchestrator(IToolsAggregate):
         return self._updater.execute("update", spec=spec)
 
     def uninstall(self, spec: ToolSpec) -> UninstallResult:
+        """Uninstall the tool (remove owned paths + verify no residuals)."""
         self._require(self._uninstaller, "uninstall")
         if find_tool(spec.id) is None:
             raise ToolUninstallError(f"unknown tool id or alias '{spec.id}' (not in manifest)")
-        # P1-1/P1-7: owned_paths routed through the injected adapter facade's
-        # execute("owned_paths"); the capability tears down exactly that set.
-        if self._facade is None:
-            raise ToolUninstallError("adapter facade is unavailable (not wired)")
-        owned = self._facade.execute("owned_paths", spec=spec) or []
+        # P1-1: owned_paths resolved directly from the injected registry;
+        # the capability tears down exactly that set.
+        unit = self._registry.get(spec.id)
+        owned_fn = getattr(unit, "owned_paths", None)
+        owned: list[Path] = list(owned_fn(spec, self._root) or []) if callable(owned_fn) else []
         return self._uninstaller.execute(
             "uninstall", spec=spec, args=[str(p) for p in owned]
         )

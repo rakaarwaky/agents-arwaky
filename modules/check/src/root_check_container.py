@@ -20,6 +20,7 @@ class CheckContainer:
 
     @property
     def aggregate(self) -> ICheckAggregate:
+        """Expose the check orchestrator as the feature's public aggregate."""
         return self._orchestrator
 
 

@@ -28,24 +28,31 @@ class ConfigCommand(IConfigAggregate):
         self._orch = orch
 
     def load(self, path: Path):
+        """Load config data from *path* via the orchestrator."""
         return self._orch.load(path)
 
     def save(self, path, data, fmt=None):
+        """Save *data* to *path* via the orchestrator, optionally overriding *fmt*."""
         return self._orch.save(path, data, fmt)
 
     def merge_servers(self, path, servers):
+        """Merge *servers* into the config at *path* via the orchestrator."""
         return self._orch.merge_servers(path, servers)
 
     def set_env(self, path, pairs):
+        """Upsert *pairs* into the env file at *path* via the orchestrator."""
         return self._orch.set_env(path, pairs)
 
     def remove_entries(self, path, keys, dry_run=False):
+        """Remove named entries from *path* via the orchestrator, optionally dry-run."""
         return self._orch.remove_entries(path, keys, dry_run)
 
     def inspect(self, path: Path) -> ConfigSnapshot:
+        """Return a read-only snapshot of the config at *path* via the orchestrator."""
         return self._orch.inspect(path)
 
     def help(self) -> HelpText:
+        """Return usage text via the orchestrator."""
         return self._orch.help()
 
 

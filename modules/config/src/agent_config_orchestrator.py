@@ -95,6 +95,7 @@ class ConfigOrchestrator(IConfigAggregate):
         )
 
     def help(self) -> HelpText:
+        """Return usage text for the config CLI surface."""
         return HelpText(_USAGE)
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────

@@ -25,6 +25,7 @@ class CheckOrchestrator(ICheckAggregate):
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def check(self, only: CheckOnly | None = None) -> CheckExitCode:
+        """Run checks across all registered runners, optionally scoped by *only*."""
         scope = (only or "").strip().lower() or "all"
         runners = self._select(only)
         if not runners:

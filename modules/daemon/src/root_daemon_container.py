@@ -19,14 +19,17 @@ class DaemonContainer:
 
     @property
     def aggregate(self) -> IDaemonAggregate:
+        """The fully-wired DaemonOrchestrator."""
         return self._orchestrator
 
     @property
     def ninerouter(self) -> IDaemonAggregate:
+        """The NinerouterDaemonManager facade."""
         return self._ninerouter
 
     @property
     def anytype(self) -> IDaemonAggregate:
+        """The AnytypeDaemonManager facade."""
         return self._anytype
 
 

@@ -28,6 +28,7 @@ class HermesHarnessAdapter(IHarnessProtocol):
     """Hermes provider behind the harness protocol (AES403 implementor)."""
 
     def __init__(self, units: dict[str, object] | None = None) -> None:
+        """Hold the provider spec registry; fall back to the default when absent."""
         self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
 
     # ─── Block 2: Protocol Method Implementation ──────────────
@@ -71,12 +72,15 @@ class HermesAdapter:
     skill_sync_commands: tuple[str, ...] = ()
 
     def home(self) -> Path:
+        """Resolve the Hermes harness home directory."""
         return Path.home() / ".hermes"
 
     def config_files(self) -> tuple[Path, ...]:
+        """Return the config files used by the Hermes harness."""
         return (self.home() / "config.yaml",)
 
     def env_files(self) -> tuple[Path, ...]:
+        """Return the environment files consumed by the Hermes harness, including per-profile .env files."""
         h = self.home()
         files = [h / ".env"]
         profiles = h / "profiles"
@@ -94,9 +98,11 @@ class HermesAdapter:
         return tuple(targets)
 
     def mcp_config_file(self, target_dir: Path | None = None) -> Path:
+        """Return the path to the Hermes MCP configuration file."""
         return (target_dir or self.home()) / "config.yaml"
 
     def skills_dir(self) -> Path:
+        """Return the skills directory for the Hermes harness."""
         return self.home() / "skills"
 
     def session_conf_files(self) -> tuple[Path, ...]:
@@ -104,6 +110,7 @@ class HermesAdapter:
         return (config_home() / "environment.d/9router.conf",)
 
     def credential_candidates(self) -> tuple[Path, ...]:
+        """Return candidate credential files searched by the Hermes harness."""
         return (
             agents_arwaky_config_dir() / "ninerouter.env",
             config_home() / "9router/.env",

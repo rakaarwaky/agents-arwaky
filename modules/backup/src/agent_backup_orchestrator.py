@@ -37,6 +37,7 @@ class BackupOrchestrator(IBackupAggregate):
         return ExitCode(1)
 
     def list_archives(self) -> ExitCode:
+        """List available backup archives via the tar gateway (read-only)."""
         return ExitCode(int(self._tar.execute("list_print") or 0))
 
     def status_store(self) -> ExitCode:
@@ -44,6 +45,7 @@ class BackupOrchestrator(IBackupAggregate):
         return ExitCode(int(self._tar.execute("status") or 0))
 
     def help(self) -> ExitCode:
+        """Show backup usage information via the tar gateway."""
         return ExitCode(int(self._tar.execute("help") or 0))
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────

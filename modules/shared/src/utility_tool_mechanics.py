@@ -87,6 +87,7 @@ def make_owned(
     names = [l[0] for l in launchers] if launchers and isinstance(launchers[0], tuple) else list(launchers)
 
     def owned(spec, root=None):
+        """Report which paths a tool owns, evaluating extra and dynamic path callables at call time."""
         stat = list(extra() if callable(extra) else (extra or []))
         dyn = list(extra_fn()) if callable(extra_fn) else []
         return generic_owned(spec, names, extra=stat + dyn, config=config)
@@ -265,6 +266,7 @@ def _ensure_venv(tool_name: str, force: bool = False) -> Path:
 
 
 def _install_package(python_bin: Path, src_dir: Path, tool_name: str) -> None:
+    """Install *tool_name* from *src_dir* into the venv at *python_bin*."""
     print(f"  [install] Installing {tool_name} package...")
     subprocess.run([str(python_bin), "-m", "pip", "install", "-e", str(src_dir)], check=True)
 
@@ -287,6 +289,7 @@ def _setup_bin_links(python_bin: Path, launchers: list[tuple[str, str]]) -> None
 
 
 def _setup_xdg_directories(tool_name: str) -> None:
+    """Ensure XDG dirs exist for *tool_name* (data, config, state, cache)."""
     print(f"  [install] Creating XDG directories for {tool_name}...")
     tool_data_dir(tool_name)
     tool_config_dir(tool_name)
@@ -466,12 +469,14 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
         init_msg = config.init_message
 
         def install(spec, root=ROOT, *, daemons=None):
+            """Install the tool using the uv venv lifecycle."""
             return _uv_venv_lifecycle(
                 "install", root or ROOT, src_rel, tool_name, launchers,
                 post_install_hook=post_install, init_message=init_msg,
             )
 
         def update(spec, root):
+            """Update the tool using the uv venv lifecycle."""
             return _uv_venv_lifecycle(
                 "update", root, src_rel, tool_name, launchers,
                 post_install_hook=post_install,
@@ -482,6 +487,7 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
         alias_second = config.alias_second_to_first
 
         def write_launchers(root):
+            """Write launchers for the uv project lifecycle."""
             targets = launchers[:1] if alias_second else launchers
             created = write_uv_launchers(src_rel, targets, root=root, uv_args=uv_args)
             for p in created:
@@ -493,9 +499,11 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
             return created
 
         def install(spec, root=ROOT, *, daemons=None):
+            """Install the tool using the uv project lifecycle."""
             return _uv_project_lifecycle("install", root or ROOT, src_rel, tool_name, write_launchers)
 
         def update(spec, root):
+            """Update the tool using the uv project lifecycle."""
             return _uv_project_lifecycle("update", root, src_rel, tool_name, write_launchers)
 
     elif lifecycle == "node":
@@ -516,6 +524,7 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
                 )
 
             def write_launchers(app_dir, is_update):
+                """Write launchers for the node lifecycle by creating a symlink from the entry."""
                 entry_path = app_dir / entry
                 if not entry_path.exists():
                     raise (ToolUpdateError if is_update else FileNotFoundError)(
@@ -528,6 +537,7 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
                 return created
 
         def install(spec, root=ROOT, *, daemons=None):
+            """Install the tool using the node lifecycle."""
             return node_tool_lifecycle(
                 "install", root or ROOT, src_rel, app_name,
                 install_cmd, build_cmd, ignores, requires, src_marker,
@@ -535,11 +545,7 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
             )
 
         def update(spec, root):
-            return node_tool_lifecycle(
-                "update", root, src_rel, app_name,
-                install_cmd, build_cmd, ignores, requires, src_marker,
-                write_launchers, post_copy_hook,
-            )
+            """Update the tool using the node lifecycle."""
     else:
         raise ValueError(f"unknown lifecycle {lifecycle!r} for tool {name!r}")
 

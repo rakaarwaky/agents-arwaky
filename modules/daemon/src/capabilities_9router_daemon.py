@@ -57,6 +57,13 @@ class NinerouterDaemonManager(IDaemonProtocol):
         name: str | None = None,
         unit: str | None = None,
     ) -> DaemonStatus | ExitCode:
+        """Dispatch a protocol op to the matching lifecycle method.
+
+        Args:
+            op: protocol verb (e.g. "start", "unit_status"); unknown values raise.
+            name: ignored for 9router (single daemon).
+            unit: ignored; ops map to the fixed 9router.service.
+        """
         if op == "start":
             return self.start()
         if op == "stop":
@@ -81,15 +88,19 @@ class NinerouterDaemonManager(IDaemonProtocol):
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def start(self) -> ExitCode:
+        """Bring the gateway up via systemd or a detached host process."""
         return ExitCode(cmd_start())
 
     def stop(self) -> ExitCode:
+        """Stop the running gateway service or process."""
         return ExitCode(cmd_stop())
 
     def restart(self) -> ExitCode:
+        """Restart the gateway, waiting for API readiness after stop."""
         return ExitCode(cmd_restart())
 
     def status(self) -> DaemonStatus:
+        """Probe process, systemd, and API state into a DaemonStatus."""
         cmd_status()
         return DaemonStatus(
             container_state="running" if process_running() else "stopped",
@@ -101,32 +112,39 @@ class NinerouterDaemonManager(IDaemonProtocol):
         )
 
     def logs(self) -> ExitCode:
+        """Show recent gateway logs via journalctl or log file."""
         return ExitCode(cmd_logs())
 
     def __repr__(self) -> str:
         return "NinerouterDaemonManager()"
 
     def models(self) -> int:
+        """List AI model endpoints exposed at /v1/models."""
         return cmd_models()
 
     def install_unit(self) -> ExitCode:
+        """Enable and start the 9router.service systemd user unit."""
         return ExitCode(cmd_service_install())
 
     def unit_status(self) -> ExitCode:
+        """Report the state of the 9router.service systemd unit."""
         return ExitCode(cmd_service_status())
 
     def remove_unit(self) -> ExitCode:
+        """Disable and remove the 9router.service systemd user unit."""
         return ExitCode(cmd_service_uninstall())
 
     def help(self) -> ExitCode:
+        """Print usage information for daemon sub-commands."""
         return ExitCode(cmd_help())
 
     def main(self, argv) -> int:
+        """Entry point: dispatch CLI args to the matching command."""
         return main(argv)
 
 
 def _9router_binary() -> str | None:
-    """Find the 9router CLI on PATH or in the XDG bin dir."""
+    """Locate the 9router executable on PATH or inside the XDG bin dir."""
     found = shutil.which("9router")
     if found:
         return found
@@ -161,6 +179,7 @@ def process_running() -> bool:
 
 
 def api_ready(timeout=90) -> bool:
+    """Poll /api/health until the gateway answers or *timeout* seconds elapse."""
     url = f"http://127.0.0.1:{PORT}/api/health"
     deadline = time.time() + timeout
     delay = 1.0
@@ -182,14 +201,17 @@ def api_ready(timeout=90) -> bool:
 
 
 def service_installed() -> bool:
+    """True when the 9router.service unit file is present on disk."""
     return UNIT_FILE.exists()
 
 
 def service_active() -> bool:
+    """True when the 9router.service systemd user unit is currently active."""
     return _out(["systemctl", "--user", "is-active", "9router.service"]) == "active"
 
 
 def read_env() -> dict:
+    """Load 9router env vars from the first found .env file; warn on weak password."""
     env = {}
     secret_dir = config_home() / "9router"
     for cand in (
@@ -211,6 +233,7 @@ def read_env() -> dict:
 
 
 def cmd_service_install():
+    """Copy/inline the systemd unit file, enable linger, and start the service."""
     binary = _9router_binary()
     if binary is None:
         print("Error: '9router' binary not found on PATH. Install with:", file=sys.stderr)
@@ -261,6 +284,7 @@ WantedBy=default.target
 
 
 def cmd_service_uninstall():
+    """Disable and remove the 9router.service systemd user unit."""
     if UNIT_FILE.exists():
         print(">>> Disabling and stopping 9router.service...")
         _run(["systemctl", "--user", "disable", "--now", "9router.service"])
@@ -273,6 +297,7 @@ def cmd_service_uninstall():
 
 
 def cmd_service_status():
+    """Show systemd state of 9router.service; 0 when not installed."""
     if service_installed():
         return _run(["systemctl", "--user", "status", "9router.service"]).returncode
     print("9Router systemd service is not installed (run 'aa 9router service-install').")
@@ -280,6 +305,7 @@ def cmd_service_status():
 
 
 def cmd_start():
+    """Start the gateway via systemd or detached host process; wait for API ready."""
     if service_installed():
         print(f">>> Starting 9Router via systemd service (9router.service, port {PORT})...")
         _run(["systemctl", "--user", "start", "9router.service"])
@@ -316,6 +342,7 @@ def cmd_start():
 
 
 def cmd_stop():
+    """Stop the running gateway via systemd or pkill."""
     if service_installed():
         print(">>> Stopping 9Router via systemd service...")
         _run(["systemctl", "--user", "stop", "9router.service"])
@@ -333,12 +360,14 @@ def cmd_stop():
 
 
 def cmd_restart():
+    """Stop then start the gateway, giving the process time to exit."""
     cmd_stop()
     time.sleep(2)
     return cmd_start()
 
 
 def cmd_status():
+    """Print process, systemd, and API health status of the gateway."""
     print(f"9Router Status (port {PORT}):")
     if process_running():
         print("  Process: RUNNING")
@@ -355,6 +384,7 @@ def cmd_status():
 
 
 def cmd_logs():
+    """Show journalctl or log-file output for the gateway (last 200 lines / 20 KB)."""
     if service_installed():
         return _run(["systemctl", "--user", "status", "9router.service", "-n", "200"]).returncode
     log_file = DATA_DIR / "logs" / "9router.log"
@@ -366,6 +396,7 @@ def cmd_logs():
 
 
 def cmd_models():
+    """Fetch and print the /v1/models response from the gateway."""
     url = f"http://127.0.0.1:{PORT}/v1/models"
     try:
         with urllib.request.urlopen(url, timeout=10) as r:
@@ -377,6 +408,7 @@ def cmd_models():
 
 
 def cmd_help():
+    """Print usage and list available sub-commands for the 9router daemon."""
     print(f"Usage: aa 9router <command> [args...]  (port {PORT})")
     print()
     print("Commands:")
@@ -394,6 +426,7 @@ def cmd_help():
 
 
 def main(argv):
+    """Dispatch CLI args to the matching sub-command handler."""
     if not argv or argv[0] in ("help", "-h", "--help"):
         return cmd_help()
     action = argv[0]

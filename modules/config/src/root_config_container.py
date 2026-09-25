@@ -27,6 +27,7 @@ class ConfigContainer:
 
     @property
     def aggregate(self) -> IConfigAggregate:
+        """Expose the config orchestrator as the feature's public aggregate."""
         return self._orchestrator
 
 

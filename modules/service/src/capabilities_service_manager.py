@@ -55,6 +55,7 @@ class ServiceManager(IServiceProtocol):
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(self, op: ServiceOp, unit: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Dispatch a service operation to the matching action method."""
         if op == "status":
             return self.status()
         if op == "start":
@@ -74,36 +75,46 @@ class ServiceManager(IServiceProtocol):
         return "ServiceManager()"
 
     def status(self) -> ExitCode:
+        """Return the current status of all registered daemons."""
         return ExitCode(cmd_status())
 
     def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Start the specified daemon(s) and return their exit code."""
         return ExitCode(cmd_start(str(target)))
 
     def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Stop the specified daemon(s) and return their exit code."""
         return ExitCode(cmd_stop(str(target)))
 
     def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Restart the specified daemon(s) and return their exit code."""
         return ExitCode(cmd_restart(str(target)))
 
     def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
+        """Stream logs for the specified daemon and return its exit code."""
         return ExitCode(cmd_logs(str(target)))
 
     def help(self) -> ExitCode:
+        """Print usage information for the service manager."""
         return ExitCode(cmd_help())
 
     def main(self, argv) -> int:
+        """Run the service manager CLI entry point with the given arguments."""
         return main(argv)
 
 
 def _run_9router(args: list[str]) -> int:
+    """Run the 9Router daemon helper, starting it if the first arg is 'start'."""
     return int(_daemons().start("9router")) if args and args[0] == "start" else _daemon_main("9router", args)
 
 
 def _run_anytype(args: list[str]) -> int:
+    """Run the Anytype daemon helper."""
     return _daemon_main("anytype", args)
 
 
 def _daemon_main(name: str, args: list[str]) -> int:
+    """Route daemon CLI arguments to the injected daemon aggregate."""
     agg = _daemons()
     action = (args[0] if args else "help").lower()
     if action == "start":
@@ -121,6 +132,7 @@ def _daemon_main(name: str, args: list[str]) -> int:
 
 
 def cmd_status() -> int:
+    """Print status for all registered services."""
     print("=========== 9Router ===========")
     _run_9router(["status"])
     print()
@@ -130,6 +142,7 @@ def cmd_status() -> int:
 
 
 def cmd_start(target: str = "all") -> int:
+    """Start the requested service target(s)."""
     if target in ("9router", "all"):
         _run_9router(["start"])
     if target in ("anytype", "all"):
@@ -138,6 +151,7 @@ def cmd_start(target: str = "all") -> int:
 
 
 def cmd_stop(target: str = "all") -> int:
+    """Stop the requested service target(s)."""
     if target in ("9router", "all"):
         _run_9router(["stop"])
     if target in ("anytype", "all"):
@@ -146,6 +160,7 @@ def cmd_stop(target: str = "all") -> int:
 
 
 def cmd_restart(target: str = "all") -> int:
+    """Restart the requested service target(s)."""
     if target in ("9router", "all"):
         _run_9router(["restart"])
     if target in ("anytype", "all"):
@@ -154,6 +169,7 @@ def cmd_restart(target: str = "all") -> int:
 
 
 def cmd_logs(target: str = "9router") -> int:
+    """Print logs for the requested service target(s)."""
     if target == "9router":
         return _run_9router(["logs"])
     if target == "anytype":
@@ -163,11 +179,13 @@ def cmd_logs(target: str = "9router") -> int:
 
 
 def cmd_help() -> int:
+    """Print the service command usage summary."""
     print("Usage: aa service <status|start|stop|restart|logs> [9router|anytype|all]")
     return 0
 
 
 def main(argv: list[str]) -> int:
+    """Entry point for standalone service command execution."""
     if not argv or argv[0] in ("help", "-h", "--help"):
         return cmd_help()
     action = argv[0]

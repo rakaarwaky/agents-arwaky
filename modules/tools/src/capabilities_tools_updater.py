@@ -34,10 +34,10 @@ class UpdaterCapability(IToolsProtocol):
     """Business action update(spec, dry_run): bump + record transition."""
 
     def __init__(self, root: Path | None = None,
-                 adapter_facade: object | None = None) -> None:
+                 registry: dict[str, object] | None = None) -> None:
         self._root = root
-        # P1-7: action calls route through the injected adapter facade.
-        self._facade = adapter_facade
+        # P1-7: action calls route through the injected registry directly.
+        self._registry = dict(registry) if registry is not None else {}
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def execute(
@@ -61,11 +61,12 @@ class UpdaterCapability(IToolsProtocol):
         return "UpdaterCapability()"
 
     def update(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> UpdateResult:
-        facade = self._facade
-        if facade is None:
-            raise ToolUpdateError("adapter facade is not wired (root composition layer)")
+        """Bump the tool to its manifest pin and record the transition."""
+        registry = self._registry
+        if not registry:
+            raise ToolUpdateError("adapter registry is not wired (root composition layer)")
         # Sub-step 1: pin-comparison → adapter-dispatch → result-capture.
-        result = self._bump(spec, facade, dry_run=dry_run)
+        result = self._bump(spec, registry, dry_run=dry_run)
 
         # Sub-step 2: record transition only after a successful bump.
         result = self._record(spec, result)
@@ -74,14 +75,18 @@ class UpdaterCapability(IToolsProtocol):
     def _bump(
         self,
         spec: ToolSpec,
-        adapter: object,
+        registry: dict[str, object],
         dry_run: bool = False,
     ) -> UpdateResult:
         base = self._root
         if base is None:
             from modules.shared.src.utility_paths_resolver import repo_root
             base = repo_root()
-        satisfied, state_desc = adapter.is_pin_satisfied(spec)
+        unit = registry.get(spec.id)
+        if unit is None:
+            return UpdateResult(False, spec.id, f"no adapter unit registered for {spec.id!r}")
+        pin_fn = getattr(unit, "is_pin_satisfied", None)
+        satisfied, state_desc = pin_fn(spec, base) if callable(pin_fn) else (False, "no pin check")
         if satisfied:
             return UpdateResult(
                 True, spec.id,
@@ -91,12 +96,12 @@ class UpdaterCapability(IToolsProtocol):
         if dry_run:
             return UpdateResult(
                 True, spec.id,
-                f"[dry-run] would update {spec.id}: {state_desc} → manifest pin "
-                f"(adapter={adapter.__class__.__name__})",
+                f"[dry-run] would update {spec.id}: {state_desc} → manifest pin",
             )
 
         try:
-            artifacts = adapter.update(spec, base)
+            update_fn = getattr(unit, "update", None)
+            artifacts = list(update_fn(spec, base) or []) if callable(update_fn) else []
         except Exception as exc:  # adapter raises; bump folds it in
             return UpdateResult(False, spec.id, f"adapter failure: {exc}")
 

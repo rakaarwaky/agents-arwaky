@@ -13,6 +13,7 @@ from modules.shared.src.taxonomy_common_vo import Tool, ToolSpec
 
 
 def manifest_path() -> Path:
+    """Absolute path to the repo's config/manifest.json."""
     return repo_root / "config" / "manifest.json"
 
 
@@ -56,6 +57,7 @@ def load_tools() -> list[Tool]:
 
 
 def find_tool(query: str) -> Tool | None:
+    """Find a tool by id, binary name, alias, or legacy alias."""
     """Find a tool by id, binary name, alias, or legacy alias."""
     query = query.strip()
     if not query:

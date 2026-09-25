@@ -28,6 +28,7 @@ class OpencodeHarnessAdapter(IHarnessProtocol):
     """OpenCode provider behind the harness protocol (AES403 implementor)."""
 
     def __init__(self, units: dict[str, object] | None = None) -> None:
+        """Hold the provider spec registry; fall back to the default when absent."""
         self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
 
     # ─── Block 2: Protocol Method Implementation ──────────────
@@ -73,15 +74,19 @@ class OpencodeAdapter:
     skill_sync_commands: tuple[str, ...] = ()
 
     def home(self) -> Path:
+        """Resolve the OpenCode harness home directory."""
         return tool_config_dir("opencode")
 
     def config_files(self) -> tuple[Path, ...]:
+        """Return the config files used by the OpenCode harness."""
         return (self.home() / "opencode.jsonc",)
 
     def mcp_config_file(self, target_dir: Path | None = None) -> Path:
+        """Return the path to the OpenCode MCP configuration file."""
         return (target_dir or self.home()) / "opencode.jsonc"
 
     def env_files(self) -> tuple[Path, ...]:
+        """Return the environment files consumed by the OpenCode harness."""
         files = [self.home() / ".env"]
         legacy = Path.home() / ".opencode"
         if legacy.is_dir():
@@ -89,15 +94,19 @@ class OpencodeAdapter:
         return tuple(files)
 
     def mcp_targets(self) -> tuple[tuple[str, Path], ...]:
+        """Return the MCP server targets known to the OpenCode harness."""
         return (("OpenCode", self.home()),)
 
     def skills_dir(self) -> Path:
+        """Return the skills directory for the OpenCode harness."""
         return self.home() / "skills"
 
     def session_conf_files(self) -> tuple[Path, ...]:
+        """Return session configuration files referenced by the OpenCode harness."""
         return (config_home() / "environment.d/9router.conf",)
 
     def credential_candidates(self) -> tuple[Path, ...]:
+        """Return candidate credential files searched by the OpenCode harness."""
         return (
             agents_arwaky_config_dir() / "ninerouter.env",
             config_home() / "9router/.env",

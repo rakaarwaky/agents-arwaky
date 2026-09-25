@@ -11,12 +11,14 @@ class DoctorContainer:
     """Construct the two diagnostic runners and the orchestrator."""
 
     def __init__(self) -> None:
+        """Compose the two diagnostic runners and the orchestrator."""
         env_runner = EnvDiagnosticRunner()
         tools_runner = ToolsDiagnosticRunner()
         self._orchestrator = DoctorOrchestrator(env_runner, tools_runner)
 
     @property
     def aggregate(self) -> IDoctorAggregate:
+        """Return the fully-wired orchestrator as the doctor aggregate."""
         return self._orchestrator
 
 

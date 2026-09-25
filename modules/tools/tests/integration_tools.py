@@ -170,29 +170,6 @@ def test_create_tools_feature():
         pass
 
 
-def test_adapter_facade_execute():
-    """IT-TOOLS-012: ToolAdapterFacade.execute dispatches correctly."""
-    from modules.tools.src.capabilities_tools_adapter import ToolAdapterFacade
-    from modules.shared.src.taxonomy_common_vo import ToolSpec
-
-    facade = ToolAdapterFacade()
-    spec = ToolSpec(
-        id="lint-arwaky",
-        category="dev",
-        binary="lint-arwaky",
-        is_mcp=False,
-        description="AES linter",
-        path="internal/lint-arwaky",
-        alias="la",
-        mcp_binary=None,
-        runner="cargo",
-    )
-
-    # Test satisfied check
-    result = facade.execute("satisfied", spec=spec)
-    assert isinstance(result, bool)
-
-
 def test_tools_registry_exists():
     """IT-TOOLS-013: TOOLS_REGISTRY contains expected tools."""
     from modules.tools.src.root_tools_container import TOOLS_REGISTRY

@@ -90,6 +90,7 @@ class RunnerCapability(IToolsProtocol):
         return "RunnerCapability()"
 
     def run(self, spec: ToolSpec, args: list[str], root: Path | None = None) -> ExitCode:
+        """Discover the executable and launch it; return the child's exit code."""
         # Sub-step 1: discover the concrete launch path; None -> return 1.
         base = root or self._root or repo_root
         exe = self._discover(spec, base)

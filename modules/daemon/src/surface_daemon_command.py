@@ -96,28 +96,37 @@ class DaemonAction(IDaemonAggregate):
         self._agg = agg
 
     def list_known(self) -> tuple[DaemonName, ...]:
+        """Names of the daemons this action surface can route to."""
         return self._agg.list_known()
 
     def start(self, name: DaemonName) -> ExitCode:
+        """Start the named daemon; delegates to the underlying aggregate."""
         return self._agg.start(name)
 
     def stop(self, name: DaemonName) -> ExitCode:
+        """Stop the named daemon; delegates to the underlying aggregate."""
         return self._agg.stop(name)
 
     def restart(self, name: DaemonName) -> ExitCode:
+        """Restart the named daemon; delegates to the underlying aggregate."""
         return self._agg.restart(name)
 
     def status(self, name: DaemonName) -> DaemonStatus:
+        """Query daemon state; delegates to the underlying aggregate."""
         return self._agg.status(name)
 
     def logs(self, name: DaemonName) -> ExitCode:
+        """Tail daemon logs; delegates to the underlying aggregate."""
         return self._agg.logs(name)
 
     def install_unit(self, unit: DaemonUnit) -> ExitCode:
+        """Install the systemd user unit; delegates to the underlying aggregate."""
         return self._agg.install_unit(unit)
 
     def remove_unit(self, unit: DaemonUnit) -> ExitCode:
+        """Remove the systemd user unit; delegates to the underlying aggregate."""
         return self._agg.remove_unit(unit)
 
     def unit_status(self, unit: DaemonUnit) -> ExitCode:
+        """Report systemd state of *unit*; delegates to the underlying aggregate."""
         return self._agg.unit_status(unit)

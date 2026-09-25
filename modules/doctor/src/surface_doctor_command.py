@@ -13,12 +13,15 @@ class DoctorAction(IDoctorAggregate):
     """CLI command surface for the doctor feature (owns report rendering)."""
 
     def __init__(self, orch: DoctorOrchestrator) -> None:
+        """Hold the orchestrator reference for surface method delegation."""
         self._orch = orch
 
     def diagnose(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        """Delegate diagnosis to the orchestrator (no I/O at this layer)."""
         return self._orch.diagnose(flags)
 
     def readiness(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+        """Delegate readiness check to the orchestrator (no I/O at this layer)."""
         return self._orch.readiness(flags)
 
     def report(
@@ -42,6 +45,7 @@ class DoctorAction(IDoctorAggregate):
 
 
 def _flags(args: list[str]) -> dict[str, bool]:
+    """Convert argv flag tokens into a boolean flags dict."""
     return {"json": "--json" in args}
 
 

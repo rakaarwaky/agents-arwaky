@@ -60,6 +60,7 @@ class HarnessConnector(IHarnessProtocol):
         daemon_status_fn=None,
         skills: IHarnessProtocol | None = None,
     ) -> None:
+        """Compose the adapter registry with optional daemon and skills capabilities."""
         self._adapters = adapters
         self._daemon_status_fn = daemon_status_fn
         self._skills = skills

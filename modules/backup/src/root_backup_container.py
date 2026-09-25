@@ -17,6 +17,7 @@ class BackupContainer:
 
     @property
     def aggregate(self) -> IBackupAggregate:
+        """Return the wired BackupOrchestrator as IBackupAggregate."""
         return self._orchestrator
 
 

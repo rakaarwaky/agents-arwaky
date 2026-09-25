@@ -4,6 +4,7 @@ from __future__ import annotations
 
 def write_toml_value(val) -> str:
     """Convert a Python value to its TOML representation."""
+    """Convert a Python value to its TOML representation."""
     if isinstance(val, bool):
         return "true" if val else "false"
     if isinstance(val, int) and not isinstance(val, bool):
@@ -29,6 +30,7 @@ def write_toml_value(val) -> str:
 
 
 def quote_key(key) -> str:
+    """Quote a TOML key only when it contains non-alphanumeric characters."""
     if key and all(c.isalnum() or c in ('-', '_') for c in key):
         return key
     escaped = key.replace('\\', '\\\\').replace('"', '\\"')
@@ -36,6 +38,7 @@ def quote_key(key) -> str:
 
 
 def toml_section(parts) -> str:
+    """Join *parts* into a dotted TOML table path."""
     return ".".join(quote_key(p) for p in parts)
 
 
@@ -73,5 +76,6 @@ def write_toml_table(data, parts=()):
 
 
 def write_toml(data) -> str:
+    """Render a dict as a TOML string."""
     lines = write_toml_table(data)
     return "\n".join(lines) + "\n"

@@ -6,6 +6,11 @@ from pathlib import Path
 
 
 def parse_env_file(path: Path) -> dict[str, str]:
+    """Parse a .env-style file (``KEY=VALUE`` lines) into a dict.
+
+    Quoted values are unescaped in-place so callers get plain strings;
+    comments and blank lines are skipped.
+    """
     env: dict[str, str] = {}
     if not path.exists():
         return env
@@ -33,6 +38,7 @@ def parse_env_file(path: Path) -> dict[str, str]:
 
 
 def load_first_env(candidates: Iterable[Path]) -> dict[str, str]:
+    """Return the parsed dict for the first existing candidate, or an empty dict."""
     for candidate in candidates:
         c = Path(candidate)
         if c.exists():
@@ -41,6 +47,7 @@ def load_first_env(candidates: Iterable[Path]) -> dict[str, str]:
 
 
 def update_env_file(path: Path, key: str, value: str) -> None:
+    """Set ``KEY="VALUE"`` in a .env-style file, creating it if absent."""
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = []
     if path.exists():

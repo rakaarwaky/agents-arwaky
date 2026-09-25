@@ -15,6 +15,7 @@ class McpContainer:
 
     @property
     def aggregate(self) -> IMcpAggregate:
+        """Expose the MCP orchestrator as the feature's public aggregate."""
         return self._orchestrator
 
 

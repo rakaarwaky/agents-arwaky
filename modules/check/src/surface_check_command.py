@@ -47,15 +47,19 @@ class CheckAction(ICheckAggregate):
         self._orch = orch
 
     def check(self, only: CheckOnly | None = None) -> CheckExitCode:
+        """Delegate check to the orchestrator, optionally scoped by *only*."""
         return self._orch.check(only=only)
 
     def check_docs(self) -> CheckExitCode:
+        """Delegate docs check to the orchestrator."""
         return self._orch.check_docs()
 
     def check_skill(self) -> CheckExitCode:
+        """Delegate skill check to the orchestrator."""
         return self._orch.check_skill()
 
     def summary(self, findings: list[DocFinding]) -> str:
+        """Delegate summary generation to the orchestrator."""
         return self._orch.summary(findings)
 
 

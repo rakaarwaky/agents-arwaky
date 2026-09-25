@@ -47,6 +47,7 @@ class ConfigWriter(IConfigProtocol):
         path: Path,
         payload: dict | None = None,
     ) -> ConfigTuple | bool | ConfigFormat:
+        """Dispatcher for load/save/detect_format operations."""
         if op == "load":
             return self.load_file(path)
         if op == "save":
@@ -64,6 +65,7 @@ class ConfigWriter(IConfigProtocol):
         return "ConfigWriter()"
 
     def load_file(self, path: Path) -> ConfigTuple:
+        """Load a config file and return ``(data, format)``."""
         data, fmt = load_file(path)
         return (ConfigData(data), ConfigFormat(fmt))
 
@@ -73,17 +75,21 @@ class ConfigWriter(IConfigProtocol):
         data: ConfigData,
         fmt: ConfigFormat | None = None,
     ) -> bool:
+        """Save *data* to *path*, detecting format when *fmt* is None."""
         if fmt is None:
             fmt = ConfigFormat(detect_format(path))
         return save_file(path, data, fmt)
 
     def detect_format(self, path: Path) -> ConfigFormat:
+        """Detect the config format of *path* and wrap it as ``ConfigFormat``."""
         return ConfigFormat(detect_format(path))
 
     def normalize_jsonc(self, text: str) -> str:
+        """Strip JSONC comments from *text*."""
         return strip_jsonc_comments(text)
 
     def dumps_toml(self, data) -> str:
+        """Serialize *data* to a TOML string."""
         return write_toml(data)
 
 
@@ -98,6 +104,7 @@ class ConfigModifier(IConfigProtocol):
         path: Path,
         payload: dict | None = None,
     ) -> list[str] | None:
+        """Dispatcher for merge_servers/set_env/remove_entries/list_servers operations."""
         if op == "merge_servers":
             body = payload or {}
             return self.merge_mcp_servers(
@@ -129,6 +136,7 @@ class ConfigModifier(IConfigProtocol):
         servers: list[str],
         dry_run: bool = False,
     ) -> list[str]:
+        """Remove named MCP servers from *path*, optionally dry-run."""
         return remove_mcp_servers(path, servers, dry_run)
 
     def remove_env_keys(
@@ -137,9 +145,11 @@ class ConfigModifier(IConfigProtocol):
         keys: list[str],
         dry_run: bool = False,
     ) -> list[str]:
+        """Remove named env keys from *path*, optionally dry-run."""
         return remove_env_keys(path, keys, dry_run)
 
     def list_mcp_servers(self, path: Path) -> list[str]:
+        """Return the list of MCP server names in *path*."""
         return list_mcp_servers(path)
 
     def merge_mcp_servers(
@@ -148,9 +158,11 @@ class ConfigModifier(IConfigProtocol):
         servers: McpServersMap,
         force: bool = False,
     ) -> list[str]:
+        """Merge *servers* into *path*, returning merged server names."""
         return merge_mcp_servers(path, servers, force)
 
     def set_env_keys(self, path: Path, pairs: EnvPairs) -> None:
+        """Upsert *pairs* into the env file at *path*."""
         set_env_keys(path, pairs)
 
     @staticmethod
@@ -160,6 +172,7 @@ class ConfigModifier(IConfigProtocol):
 
 
 def main(argv):
+    """Entry point for standalone execution of ConfigModifier operations."""
     if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
         print(__doc__)
         return 0

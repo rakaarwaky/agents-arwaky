@@ -21,21 +21,27 @@ class ServiceOrchestrator(IServiceAggregate):
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def status(self) -> ExitCode:
+        """Query the current status of all registered daemons."""
         return ExitCode(int(self._manager.execute(ServiceOp("status"))))
 
     def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Start the specified daemon(s) and return their exit code."""
         return ExitCode(int(self._manager.execute(ServiceOp("start"), target)))
 
     def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Stop the specified daemon(s) and return their exit code."""
         return ExitCode(int(self._manager.execute(ServiceOp("stop"), target)))
 
     def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
+        """Restart the specified daemon(s) and return their exit code."""
         return ExitCode(int(self._manager.execute(ServiceOp("restart"), target)))
 
     def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
+        """Stream logs for the specified daemon and return its exit code."""
         return ExitCode(int(self._manager.execute(ServiceOp("logs"), target)))
 
     def help(self) -> ExitCode:
+        """Print usage information for the service manager."""
         return ExitCode(int(self._manager.execute(ServiceOp("help"))))
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
