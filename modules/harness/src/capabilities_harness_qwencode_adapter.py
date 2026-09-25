@@ -1,4 +1,9 @@
-"""Qwen Code (qwencode) harness leaf adapter (utility layer) — provider paths/keys only.
+"""Qwen Code (qwencode) harness leaf adapter (capabilities layer) — provider data + protocol.
+
+Implements `IHarnessProtocol` (AES403) and exports the `qwencode` provider spec
+merged into `HARNESS_REGISTRY` by the root container. Provider data lives in
+`QwencodeAdapter`; the protocol implementor routes the provider-scoped ops
+(`supported` / `satisfied`) through `utility_harness_mechanics`.
 
 Leaf: imports stdlib + modules/shared only. The provider's settings.json
 structure (skills.directories, SessionStart hooks, modelProviders entries)
@@ -11,13 +16,41 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from modules.shared.src.contract_harness_protocol import IHarnessProtocol
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     config_home,
     data_home,
 )
+from modules.shared.src.taxonomy_harness_vo import ExitCode
+from modules.shared.src.utility_harness_mechanics import dispatch_provider_op
 
 
+# ─── Block 1: Class Definition & Constructor ─────────────────────────
+class QwencodeHarnessAdapter(IHarnessProtocol):
+    """Qwen Code provider behind the harness protocol (AES403 implementor)."""
+
+    def __init__(self, units: dict[str, object] | None = None) -> None:
+        self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
+
+    # ─── Block 2: Public Contract (domain protocol ONLY) ─────────────
+    def execute(
+        self,
+        op: str,
+        targets: tuple[str, ...],
+        flags: dict[str, bool] | None = None,
+    ) -> ExitCode:
+        """Dispatch a provider-scoped op against this file's qwencode unit."""
+        return dispatch_provider_op(self._units, op, targets, flags, label="qwencode adapter")
+
+    # ─── Block 3: Dunder Methods ─────────────────────────────────────
+    def __repr__(self) -> str:
+        return f"QwencodeHarnessAdapter(providers={len(self._units)})"
+
+
+# ---------------------------------------------------------------------------
+# Provider spec (one registered instance per harness id)
+# ---------------------------------------------------------------------------
 def _home() -> Path:
     return Path(os.environ.get("QWEN_HOME", Path.home() / ".qwen"))
 
@@ -85,3 +118,16 @@ class QwencodeAdapter:
             config_home() / "9router/.env",
             data_home() / "agents-arwaky/ninerouter.env",
         )
+
+
+SPEC = QwencodeAdapter()
+
+#: harness_id → provider spec (merged by root_harness_container).
+ADAPTER_UNITS: dict[str, object] = {SPEC.id: SPEC}
+
+
+__all__ = [
+    "ADAPTER_UNITS",
+    "QwencodeAdapter",
+    "QwencodeHarnessAdapter",
+]

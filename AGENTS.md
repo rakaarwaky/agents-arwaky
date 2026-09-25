@@ -130,7 +130,7 @@ The verification checks:
 Enforced by `modules/check/src/capabilities_check_docs.py` (engine: `modules/shared/src/utility_doc_pack.py`), run inside `aa check` / `aa check docs`, or directly with
 `aa check docs [path] [--include-subtrees] [--json]`. Every finding gates `aa check`,
 warning-level included — there is no advisory tier and no `--strict` flag. The canonical wording of every rule, keyed by finding code, is
-`skills/documentation/add-docs/SKILL.md` § Invariants — change one, change the other.
+`skills/aes-architecture/aes-docs/SKILL.md` § Invariants — change one, change the other.
 
 ### Skill-pack loadability invariants
 
@@ -189,7 +189,7 @@ that the pack no longer provides. It only removes entries carrying
 - Unified MCP Manifest: `mcp_servers.generated.json` (gitignored; regenerate with `aa mcp generate`)
 - Shared XDG Helper: [`modules/shared/src/`](modules/shared/src/)
 - Tool Install/Update/Uninstall/Run (data-driven): [`modules/tools/`](modules/tools/) · CLI entry: [`modules/root_cli_entry.py`](modules/root_cli_entry.py) (`aa tool …`)
-- Agent Harness Connector: [`modules/shared/src/`](modules/shared/src/)
+- Agent Harness Connector: [`modules/harness/src/`](modules/harness/src/) (`aa connect` / `aa disconnect`; per-harness leaves implement `IHarnessProtocol`)
 - CI Verification Gate: [`modules/root_cli_entry.py`](modules/root_cli_entry.py) (`aa check`) + [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Human Documentation & Tool Catalog: [`README.md`](README.md)

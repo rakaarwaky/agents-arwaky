@@ -51,3 +51,43 @@ def test_harness_connectors_implement_protocol():
     assert isinstance(connector, IHarnessProtocol)
     assert isinstance(disconnector, IHarnessProtocol)
     assert isinstance(skills, IHarnessProtocol)
+
+
+def test_harness_leaf_adapters_implement_protocol():
+    """CP-HARNESS-007: every provider leaf implements IHarnessProtocol (AES403)."""
+    from modules.harness.src.capabilities_harness_antigravity_adapter import (
+        AntigravityHarnessAdapter,
+    )
+    from modules.harness.src.capabilities_harness_grok_build_adapter import (
+        GrokBuildHarnessAdapter,
+    )
+    from modules.harness.src.capabilities_harness_hermes_adapter import (
+        HermesHarnessAdapter,
+    )
+    from modules.harness.src.capabilities_harness_opencode_adapter import (
+        OpencodeHarnessAdapter,
+    )
+    from modules.harness.src.capabilities_harness_qwencode_adapter import (
+        QwencodeHarnessAdapter,
+    )
+    from modules.shared.src.contract_harness_protocol import IHarnessProtocol
+
+    leaf_classes = (
+        AntigravityHarnessAdapter,
+        GrokBuildHarnessAdapter,
+        HermesHarnessAdapter,
+        OpencodeHarnessAdapter,
+        QwencodeHarnessAdapter,
+    )
+
+    for adapter_cls in leaf_classes:
+        assert issubclass(adapter_cls, IHarnessProtocol)
+        assert isinstance(adapter_cls(), IHarnessProtocol)
+
+
+def test_harness_registry_wires_every_supported_id():
+    """CP-HARNESS-008: the root registry carries one leaf per supported id."""
+    from modules.harness.src.root_harness_container import HARNESS_REGISTRY
+    from modules.shared.src.taxonomy_harness_constant import ALL_HARNESS_IDS
+
+    assert sorted(HARNESS_REGISTRY) == sorted(ALL_HARNESS_IDS)

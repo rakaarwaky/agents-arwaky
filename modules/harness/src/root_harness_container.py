@@ -1,7 +1,8 @@
-"""Harness composition root — wires the adapter registry into the three capabilities.
+"""Harness composition root — wires the leaf-adapter registry into the three capabilities.
 
-Adding a harness = one new ``utility_<provider>_adapter.py`` leaf + one
-entry in the ``ADAPTERS`` registry below. No capability or agent change.
+Adding a harness = one new ``capabilities_harness_<provider>_adapter.py``
+leaf + its ``ADAPTER_UNITS`` entry in ``HARNESS_REGISTRY`` below. No
+capability or agent change.
 """
 from __future__ import annotations
 
@@ -9,13 +10,37 @@ from modules.harness.src.agent_harness_orchestrator import HarnessOrchestrator
 from modules.harness.src.capabilities_harness_connector import HarnessConnector
 from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
 from modules.harness.src.capabilities_harness_skills import HarnessSkills
-from modules.shared.src.utility_antigravity_adapter import AntigravityAdapter
-from modules.shared.src.utility_grok_build_adapter import GrokBuildAdapter
-from modules.shared.src.utility_hermes_adapter import HermesAdapter
-from modules.shared.src.utility_opencode_adapter import OpencodeAdapter
-from modules.shared.src.utility_qwencode_adapter import QwencodeAdapter
+
+# Root is the only layer allowed to import capabilities_* (AES201): every
+# provider leaf is registered here and injected into the capabilities.
+# Importing them here also wires them for the AES503 orphan check.
+from modules.harness.src.capabilities_harness_antigravity_adapter import (
+    ADAPTER_UNITS as _ANTIGRAVITY_UNITS,
+)
+from modules.harness.src.capabilities_harness_grok_build_adapter import (
+    ADAPTER_UNITS as _GROK_BUILD_UNITS,
+)
+from modules.harness.src.capabilities_harness_hermes_adapter import (
+    ADAPTER_UNITS as _HERMES_UNITS,
+)
+from modules.harness.src.capabilities_harness_opencode_adapter import (
+    ADAPTER_UNITS as _OPENCODE_UNITS,
+)
+from modules.harness.src.capabilities_harness_qwencode_adapter import (
+    ADAPTER_UNITS as _QWENCODE_UNITS,
+)
 from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
 from modules.shared.src.taxonomy_harness_constant import ALL_HARNESS_IDS
+
+#: harness_id → provider spec (root composition data; each spec owns one
+#: provider's paths, config format, env keys, and custom-API flag).
+HARNESS_REGISTRY: dict[str, object] = {
+    **_ANTIGRAVITY_UNITS,
+    **_GROK_BUILD_UNITS,
+    **_HERMES_UNITS,
+    **_OPENCODE_UNITS,
+    **_QWENCODE_UNITS,
+}
 
 
 def _daemon_status_fn():
@@ -40,19 +65,8 @@ def _daemon_status_fn():
 
 
 def _adapters() -> dict[str, object]:
-    """Registry keyed on harness id: one leaf adapter per provider."""
-    a = AntigravityAdapter()
-    g = GrokBuildAdapter()
-    h = HermesAdapter()
-    o = OpencodeAdapter()
-    q = QwencodeAdapter()
-    registry: dict[str, object] = {
-        a.id: a,
-        g.id: g,
-        h.id: h,
-        o.id: o,
-        q.id: q,
-    }
+    """Registry keyed on harness id: one provider leaf per harness."""
+    registry = dict(HARNESS_REGISTRY)
     # Sanity: every id in the taxonomy table has an adapter.
     missing = [i for i in ALL_HARNESS_IDS if i not in registry]
     if missing:

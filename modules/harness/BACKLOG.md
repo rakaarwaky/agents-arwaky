@@ -4,7 +4,7 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-09-23
+Last Updated: 2026-09-25
 
 ## Current Condition
 
@@ -14,7 +14,12 @@ Last Updated: 2026-09-23
   `python3 -m compileall -q modules/harness` +
   `python3 -m modules.root_cli_entry check docs modules/harness`
   → 0 findings at `f87a775`.
-- In Progress: none (protocol-collapse slice complete).
+- Done: provider leaves moved into the harness capability layer and wired
+  through `HARNESS_REGISTRY` in the composition root, each serving
+  `IHarnessProtocol` (`supported` / `satisfied`) via shared mechanics; gates
+  green — `python3 -m pytest modules/harness/tests -q` (35 passed) +
+  `lint-arwaky-cli scan modules/harness` → 0 at `fef1b90`.
+- In Progress: none (leaf-protocol slice complete).
 - Blocked: none.
 - Next Action: HRS-01 — per-harness connect/disconnect/skills sweep
   (5 harnesses) against the collapsed structure.
@@ -29,6 +34,7 @@ Last Updated: 2026-09-23
 | HRS-04 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Restructure harness module to 3 business capabilities + 5 leaf adapters | P1 | Done | `python3 -m compileall -q modules/harness` → 0 at `f87a775`; connector/disconnector/skills + 5 leaf adapters on the tree. | @raka | HRS-03 | 2026-09-23 |
 | HRS-05 | FR-HARNESS-001, FR-HARNESS-002 | Router wiring as connect/disconnect clause | P2 | Ready | Clause specified under FR-HARNESS-001/FR-HARNESS-002 and gated by the adapter custom-API flag; behaviour sweep owed under HRS-01. | @raka | HRS-04 | 2026-09-19 |
 | HRS-06 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003, FR-HARNESS-004 | Collapse capability protocols to one `execute` method; aggregate gains `all_targets` | P1 | Done | `python3 -m compileall -q modules/harness` + `python3 -m modules.root_cli_entry check docs modules/harness` → 0 findings at `f87a775`. | @raka | HRS-04 | 2026-09-23 |
+| HRS-07 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Provider leaves serve `IHarnessProtocol`; registry wired in the composition root | P1 | Done | `python3 -m pytest modules/harness/tests -q` → 35 passed + `lint-arwaky-cli scan modules/harness` → 0 at `fef1b90`; five leaves inherit the protocol and `HARNESS_REGISTRY` covers every supported id. | @raka | HRS-04 | 2026-09-25 |
 
 ## Scenario Evidence
 

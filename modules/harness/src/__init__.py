@@ -1,10 +1,11 @@
 """Harness feature — public symbols.
 
-Re-exports the orchestrator, the three business-action capabilities, the
-CLI surface, and the leaf adapters so feature consumers can import from
-``modules.harness`` directly. The composition root (``root_harness_container``)
-is imported by callers directly, not re-exported here, to keep the
-agent/capability package free of a root re-export cycle (AES205).
+Re-exports the orchestrator, the three business-action capabilities, and the
+CLI surface so feature consumers can import from ``modules.harness`` directly.
+The per-harness provider leaves are wired by the composition root
+(``root_harness_container``), which is imported by callers directly rather than
+re-exported here, to keep the agent/capability package free of a root
+re-export cycle (AES205).
 """
 from __future__ import annotations
 

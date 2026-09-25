@@ -420,12 +420,7 @@ architecture:
     AES404:
       enabled: true
       scope: ["utility"]
-      exceptions:
-        - "utility_antigravity_adapter.py"
-        - "utility_grok_build_adapter.py"
-        - "utility_hermes_adapter.py"
-        - "utility_opencode_adapter.py"
-        - "utility_qwencode_adapter.py"
+      exceptions: []
 
     AES405:
       enabled: true

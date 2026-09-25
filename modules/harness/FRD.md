@@ -15,10 +15,14 @@
 The harness feature wires the tool ecosystem into AI coding harnesses (Hermes,
 OpenCode, Grok Build, Qwen Code, Antigravity). Capabilities are organised by
 business action — connect, disconnect, skill provisioning — and each provider
-is a stateless adapter owning only its paths, config format, env keys, and
-custom-API flag. The harness orchestrator is the single agent: it resolves raw
-CLI tokens (ids, aliases, `--all`) to canonical targets and routes each action
-through one capability protocol method.
+is a stateless leaf adapter owning only its paths, config format, env keys, and
+custom-API flag. Each leaf also answers the provider-scoped ops of the harness
+protocol — `supported` (does this provider take part in the requested scope?)
+and `satisfied` (is its declared surface already in place?) — while the
+cross-cutting work stays in the three capabilities: one MCP manifest, one
+credential resolution, one skill pack. The harness orchestrator is the single
+agent: it resolves raw CLI tokens (ids, aliases, `--all`) to canonical targets
+and routes each action through one capability protocol method.
 
 Flow: `aa connect <harness>` → harness orchestrator → capability → per-harness
 adapter → harness home (XDG). Adding a harness = one adapter + one registry
@@ -120,6 +124,7 @@ of disconnect — never a separate business action.
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
 | `execute` | `op`, `targets`, `flags?` | result / resolved | non-zero | — | One method covers connect, disconnect, and skill provisioning |
+| `execute` (provider leaf) | `op`, `targets`, `flags?` | `ExitCode` | unknown op → `ValueError`; unregistered id → typed error | — | Provider-scoped ops `supported` / `satisfied` over one harness unit |
 
 ### Aggregate API
 
@@ -165,7 +170,8 @@ of disconnect — never a separate business action.
 
 ## Assumptions & Constraints
 
-- Capabilities are business actions; providers are stateless utility adapters.
+- Capabilities are business actions; providers are stateless leaf adapters in
+  the feature's capability layer, each serving the provider-scoped protocol ops.
   Adapters are leaves — they never import another adapter; dispatch lives in
   the capability or the composition root.
 - Each harness's skill-directory location, config format, env-key map, and
