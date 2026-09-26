@@ -13,7 +13,7 @@ def test_dogfood_check_pipeline():
     docs = DocsCheckRunner()
     skills = SkillsCheckRunner()
 
-    assert hasattr(docs, 'execute')
-    assert hasattr(skills, 'execute')
+    assert hasattr(docs, 'run')
+    assert hasattr(skills, 'run')
     assert docs.name == "docs"
     assert skills.name == "skill"

@@ -24,10 +24,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsProtocol
+from modules.shared.src.contract_tools_protocol import IToolsRunnerProtocol
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
-from modules.shared.src.taxonomy_common_error import ToolInstallError
 from modules.shared.src.taxonomy_common_vo import ToolSpec, bin_home
 from modules.shared.src.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,
@@ -58,33 +57,13 @@ def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class RunnerCapability(IToolsProtocol):
+class RunnerCapability(IToolsRunnerProtocol):
     """Business action run(spec, args, root): discover + exec, return exit code."""
 
     def __init__(self, root: Path | None = None) -> None:
         self._root = root
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        spec: ToolSpec | None = None,
-        query: object | None = None,
-        args: list[str] | None = None,
-    ) -> object:
-        """Single protocol entry: dispatch *op* to run or discover."""
-        if spec is None:
-            raise ToolInstallError(
-                f"runner capability got op={op!r} (expected a spec target)"
-            )
-        if op == "run":
-            return self.run(spec, list(args or []))
-        if op == "discover":
-            return self.discover(spec)
-        raise ToolInstallError(
-            f"unsupported runner op {op!r} (expected 'run' or 'discover')"
-        )
-
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "RunnerCapability()"

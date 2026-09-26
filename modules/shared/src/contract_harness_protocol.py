@@ -1,9 +1,10 @@
-"""Harness-domain protocol contract (single capability ABC).
+"""Harness-domain protocol contract (rich capability ABC).
 
-Exactly one class + one method: ``execute(op, targets, flags?)`` covers
-connect, disconnect, and skill provisioning (FRD Protocol API). All three
-capabilities implement this same protocol. Adapters are stateless utility
-leaves (duck-typed objects) — they are not contract protocols.
+Every operation the harness capabilities expose is a named method with its
+own typed signature. Capabilities implement the whole protocol; an op they
+do not own is ``NotImplementedError``. Adapters are stateless leaf provider
+leaves — they implement the protocol with ``NotImplementedError`` bodies for
+all three operations.
 """
 from __future__ import annotations
 
@@ -11,34 +12,43 @@ from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_harness_vo import (
     ExitCode,
-    HarnessFlags,
-    HarnessOp,
     HarnessTargets,
 )
 
 
 class IHarnessProtocol(ABC):
-    """Single capability method covering connect / disconnect / provision.
+    """Capability contract for harness operations: connect, disconnect, provision_skills.
 
-    FR-HARNESS-001, FR-HARNESS-002, and FR-HARNESS-003 dispatch through
-    *op* (``connect`` | ``disconnect`` | ``provision_skills``) over
-    resolved *targets*, with an optional *flags* bag.
+    FR-HARNESS-001, FR-HARNESS-002, and FR-HARNESS-003 are one named method
+    each. Every capability (HarnessConnector, HarnessDisconnector, HarnessSkills)
+    implements the whole protocol; an op it does not own is
+    ``NotImplementedError``.
     """
 
     @abstractmethod
-    def execute(self, op: HarnessOp, targets: HarnessTargets,
-                flags: HarnessFlags | None = None) -> ExitCode:
-        """Run *op* over *targets*; return exit code (0 = success)."""
+    def connect(self, targets: HarnessTargets, force: bool, dry_run: bool,
+                mcp_only: bool, skills_only: bool, env_only: bool,
+                router: bool, copy_skills: bool) -> ExitCode:
+        """FR-001: connect to the resolved harness targets; return exit code."""
+        ...
+
+    @abstractmethod
+    def disconnect(self, targets: HarnessTargets, dry_run: bool) -> ExitCode:
+        """FR-002: disconnect from the resolved harness targets; return exit code."""
+        ...
+
+    @abstractmethod
+    def provision_skills(self, targets: HarnessTargets, copy: bool, dry_run: bool,
+                         force: bool = False) -> ExitCode:
+        """FR-003: provision the skill pack into the resolved harness targets; return exit code."""
         ...
 
 
-__all__ = ["ExitCode", "HarnessFlags", "HarnessOp", "HarnessTargets", "IHarnessProtocol"]
+__all__ = ["ExitCode", "IHarnessProtocol", "HarnessTargets"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
-    "HarnessFlags": HarnessFlags,
-    "HarnessOp": HarnessOp,
     "HarnessTargets": HarnessTargets,
     "IHarnessProtocol": IHarnessProtocol,
 }

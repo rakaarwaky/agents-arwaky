@@ -1,45 +1,30 @@
-"""Service-domain aggregate contract (agent orchestrator ABC)."""
+"""Service-domain aggregate contract (agent orchestrator ABC).
+
+Single entry point over the service feature: the surface, root, CLI and MCP
+call ``execute`` with a request and get a response back. The agent behind the
+aggregate routes each ``op`` to the matching protocol method.
+"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.taxonomy_service_vo import (
-    TARGET_ALL,
-    TARGET_9ROUTER,
-    ExitCode,
-    ServiceTarget,
-)
+from modules.shared.src.taxonomy_service_vo import ServiceRequest, ServiceResponse
 
 
 class IServiceAggregate(ABC):
-    """Aggregate over all service-management actions."""
+    """Single entry point over service management; the agent dispatches internally."""
 
     @abstractmethod
-    def status(self) -> ExitCode:
-        """Status of all services."""
-        ...
-    @abstractmethod
-    def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
-        """Start the named service(s)."""
-        ...
-    @abstractmethod
-    def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
-        """Stop the named service(s)."""
-        ...
-    @abstractmethod
-    def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
-        """Restart the named service(s)."""
-        ...
-    @abstractmethod
-    def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
-        """Tail service logs."""
-        ...
-    @abstractmethod
-    def help(self) -> ExitCode:
-        """Print usage."""
+    def execute(self, request: ServiceRequest) -> ServiceResponse:
+        """Run the request the surface/root/CLI/MCP asked for; return the response."""
         ...
 
-__all__ = ['ExitCode', 'IServiceAggregate', 'ServiceTarget']
+
+__all__ = ["IServiceAggregate", "ServiceRequest", "ServiceResponse"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"ExitCode": ExitCode, "IServiceAggregate": IServiceAggregate, "ServiceTarget": ServiceTarget}
+_layer_symbols = {
+    "IServiceAggregate": IServiceAggregate,
+    "ServiceRequest": ServiceRequest,
+    "ServiceResponse": ServiceResponse,
+}

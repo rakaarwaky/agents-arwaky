@@ -1,8 +1,10 @@
 """Check surface — CLI adapter for aa check (AES102 `command` suffix).
 
-Scope runs delegate to the ICheckAggregate; the docs path/json/subtree audit
-runs directly against the shared engine (smart surfaces may import Utility
-layer files). This module stays free of agent/capability imports (AES205).
+Builds a typed ``CheckRequest`` from the raw CLI tokens and calls the
+aggregate's single ``execute``; the agent routes it to the right capability
+method. The docs path/json/subtree audit runs directly against the shared
+engine (smart surfaces may import Utility layer files). Rendering and token
+parsing stay on the surface (AES406).
 
 Standard scopes (HOW-TO / operator contract):
   aa check                    — every runner (docs + skill)
@@ -16,10 +18,10 @@ from pathlib import Path
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
 from modules.shared.src.taxonomy_check_vo import (
     CHECK_SCOPES,
-    CheckExitCode,
-    CheckOnly,
+    CheckRequest,
+    CheckResponse,
+    CheckScope,
 )
-from modules.shared.src.taxonomy_common_vo import DocFinding
 from modules.shared.src.utility_logging_setup import banner, err, info, ok
 
 _USAGE = """Usage: aa check [all|docs|skill] [path] [--include-subtrees] [--json]
@@ -41,26 +43,15 @@ Examples:
 
 
 class CheckAction(ICheckAggregate):
-    """CLI action surface for the check feature (surface layer, AES405 aggregate implementor)."""
+    """Aggregate implementor wrapping another aggregate (surface-layer facade)."""
 
-    def __init__(self, orch: ICheckAggregate) -> None:
-        self._orch = orch
+    def __init__(self, agg: ICheckAggregate) -> None:
+        """Store the underlying check aggregate for delegation."""
+        self._agg = agg
 
-    def check(self, only: CheckOnly | None = None) -> CheckExitCode:
-        """Delegate check to the orchestrator, optionally scoped by *only*."""
-        return self._orch.check(only=only)
-
-    def check_docs(self) -> CheckExitCode:
-        """Delegate docs check to the orchestrator."""
-        return self._orch.check_docs()
-
-    def check_skill(self) -> CheckExitCode:
-        """Delegate skill check to the orchestrator."""
-        return self._orch.check_skill()
-
-    def summary(self, findings: list[DocFinding]) -> str:
-        """Delegate summary generation to the orchestrator."""
-        return self._orch.summary(findings)
+    def execute(self, request: CheckRequest) -> CheckResponse:
+        """Delegate the request to the wrapped aggregate unchanged."""
+        return self._agg.execute(request)
 
 
 def _docs_audit(
@@ -146,11 +137,12 @@ def cmd_check(args: list[str], orch: ICheckAggregate) -> int:
         return _docs_audit(
             target, include_subtrees=include_subtrees, json_mode=json_mode
         )
-    only: CheckOnly | None = None if scope == "all" else CheckOnly(scope)
+    request = CheckRequest(CheckScope(scope))
     banner()
     info("Running Python-based repository verification...")
     print()
-    code = int(orch.check(only=only))
+    response = orch.execute(request)
+    code = int(response.exit_code)
     print()
     if code:
         err(f"Verification FAILED with {code} errors.")
@@ -158,4 +150,4 @@ def cmd_check(args: list[str], orch: ICheckAggregate) -> int:
         ok("All verifications PASSED.")
     return code
 
-__all__ = ['CheckAction', 'cmd_check']
+__all__ = ["CheckAction", "cmd_check"]

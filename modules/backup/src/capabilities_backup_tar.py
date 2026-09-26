@@ -22,9 +22,14 @@ from pathlib import Path
 from modules.shared.src.contract_backup_protocol import IBackupProtocol
 from modules.shared.src.taxonomy_backup_constant import TOOL_DATA
 from modules.shared.src.taxonomy_backup_vo import (
+    ARCHIVE_DEFAULT,
+    BackupArchive,
     BackupDestination,
+    BackupOutcome,
     BackupResult,
     BackupToolQuery,
+    DEST_DEFAULT,
+    ExitCode,
     RestoreResult,
 )
 from modules.shared.src.taxonomy_common_vo import data_home
@@ -35,9 +40,6 @@ ROOT = repo_root()
 BACKUP_STORE = data_home() / "backups"
 # gdrive gateway lives in the AES backup feature; invoked as a module entry.
 GDRIVE_HELPER = "-m:modules.backup.src.capabilities_backup_gdrive"
-
-#: Module-level default for the protocol ``dest`` (B008: no call in defaults).
-_DEFAULT_DEST = BackupDestination("")
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -53,57 +55,36 @@ class TarBackupGateway(IBackupProtocol):
 
     # ─── Block 2: Protocol Method Implementation ──────────────
 
-    def execute(
-        self,
-        op: str,
-        tool: BackupToolQuery | None = None,
-        dest: BackupDestination = _DEFAULT_DEST,
-        archive: str = "",
-    ) -> object:
-        """Dispatch *op* (archive / restore / list / list_print / status / help)."""
-        if op == "archive":
-            if not tool:
-                return BackupResult(False, "", "", False, "archive op requires a tool")
-            return self.backup(str(tool), str(dest))
-        if op == "restore":
-            if not tool:
-                return RestoreResult(False, "", archive, "", "restore op requires a tool")
-            return self.restore(str(tool), Path(archive))
-        if op == "list":
-            return self.list_archives()
-        if op == "list_print":
-            return cmd_list()
-        if op == "status":
-            exists = BACKUP_STORE.is_dir()
-            count = len(list(BACKUP_STORE.glob("*.tar.gz"))) if exists else 0
-            print(f"Backup store: {BACKUP_STORE}")
-            print(f"  exists: {'yes' if exists else 'no'}")
-            print(f"  archives: {count}")
-            return 0
-        if op == "help":
-            return cmd_help()
-        return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
+    def backup(self, tool: BackupToolQuery, dest: BackupDestination = DEST_DEFAULT) -> BackupResult:
+        """Create a tar.gz archive of *tool* data, optionally uploading to Drive."""
+        rc = cmd_backup([str(tool)] + ([str(dest)] if str(dest) else []))
+        archive = f"{tool}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.tar.gz"
+        return BackupResult(rc == 0, str(tool), archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
+
+    def restore(self, tool: BackupToolQuery, archive: BackupArchive = ARCHIVE_DEFAULT) -> RestoreResult:
+        """Restore *tool* data from a local tar.gz *archive*."""
+        rc = cmd_restore([str(tool), str(archive)])
+        return RestoreResult(rc == 0, str(tool), str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
+
+    def list_archives(self) -> BackupOutcome:
+        """Return the archives visible to this gateway plus their print lines."""
+        lines = cmd_list()
+        return BackupOutcome(success=True, tool_id="", result=ExitCode(lines))
+
+    def status(self) -> ExitCode:
+        """Report the backup store path, existence, and archive count."""
+        exists = BACKUP_STORE.is_dir()
+        count = len(list(BACKUP_STORE.glob("*.tar.gz"))) if exists else 0
+        print(f"Backup store: {BACKUP_STORE}")
+        print(f"  exists: {'yes' if exists else 'no'}")
+        print(f"  archives: {count}")
+        return ExitCode(0)
+
+    def help(self) -> ExitCode:
+        """Show backup usage information."""
+        return ExitCode(cmd_help())
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def backup(self, tool: str, dest: str = "") -> BackupResult:
-        """Create a tar.gz archive of *tool* data, optionally uploading to Drive."""
-        rc = cmd_backup([tool] + ([dest] if dest else []))
-        archive = f"{tool}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.tar.gz"
-        return BackupResult(rc == 0, tool, archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
-
-    def restore(self, tool: str, archive: Path) -> RestoreResult:
-        """Restore *tool* data from a local tar.gz *archive*."""
-        rc = cmd_restore([tool, str(archive)])
-        return RestoreResult(rc == 0, tool, str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
-
-    def list_archives(self) -> list[Path]:
-        """Return sorted list of local tar.gz backup archives."""
-        return sorted(BACKUP_STORE.glob("*.tar.gz")) if BACKUP_STORE.exists() else []
-
-    def help(self) -> int:
-        """Show backup usage information."""
-        return cmd_help()
-
     def __repr__(self) -> str:
         return "TarBackupGateway()"
 
@@ -147,9 +128,11 @@ def log_info(msg):
     """Print an informational log message prefixed with ==>."""
     print(f"==> {msg}")
 
+
 def log_ok(msg):
     """Print an informational log message prefixed with [OK]."""
     print(f"  [OK] {msg}")
+
 
 def log_warn(msg):
     """Print an informational log message prefixed with [WARN]."""
@@ -206,7 +189,7 @@ def backup_tool(tool: str, dest: str = ""):
     subdir = TOOL_DATA.get(tool, tool)
     src = data_home() / subdir
     if not src.exists():
-        print(f"  \u26a0 No data for {tool} at {src}, skipping.")
+        print(f"  ⚠ No data for {tool} at {src}, skipping.")
         return 0
     ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     archive = store / f"{tool}-{ts}.tar.gz"
@@ -240,10 +223,10 @@ def restore_tool(tool: str, src: str):
     """Restore *tool* data from tar.gz *src* via staged extraction and swap."""
     src_path = Path(src)
     if not src_path.exists() or not src_path.is_file():
-        print(f"  \u2717 Archive not found: {src_path}", file=sys.stderr)
+        print(f"  ✗ Archive not found: {src_path}", file=sys.stderr)
         return 1
     if not tarfile.is_tarfile(src_path):
-        print(f"  \u2717 Not a valid tar archive: {src_path}", file=sys.stderr)
+        print(f"  ✗ Not a valid tar archive: {src_path}", file=sys.stderr)
         return 1
     subdir = TOOL_DATA.get(tool, tool)
     target = data_home() / subdir
@@ -251,14 +234,14 @@ def restore_tool(tool: str, src: str):
     # Extract into staging first; only swap once validated (no data loss on corrupt archive).
     staging = target.with_name(f"{target.name}.restore-{os.getpid()}")
     if staging.exists():
-        shutil.rmtree(staging)
+        shutil.rmtree(staging, ignore_errors=True)
     staging.mkdir(parents=True)
     log_info(f"Restoring {tool} from {src_path} (staged)...")
     try:
         untar(src_path, staging)
     except (ValueError, tarfile.TarError, OSError) as exc:
         shutil.rmtree(staging, ignore_errors=True)
-        print(f"  \u2717 Restore failed: {exc}", file=sys.stderr)
+        print(f"  ✗ Restore failed: {exc}", file=sys.stderr)
         return 1
 
     # Swap: old data is only removed after staging is proven good.
@@ -310,7 +293,7 @@ def cmd_restore(argv):
     if tool == "all":
         src_base = Path(archive)
         if not src_base.is_dir():
-            print("  \u2717 'restore all' expects a backup directory containing per-tool archives.", file=sys.stderr)
+            print("  ✗ 'restore all' expects a backup directory containing per-tool archives.", file=sys.stderr)
             return 1
         rc = 0
         for t in TOOL_DATA:
@@ -358,5 +341,3 @@ def main(argv):
         return cmd_restore(rest)
     print(f"Unknown backup command: {action}", file=sys.stderr)
     return cmd_help()
-
-

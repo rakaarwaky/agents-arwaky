@@ -1,4 +1,10 @@
-"""Check-domain protocol contract (capability ABC)."""
+"""Check-domain protocol contract (capability ABC).
+
+Pure capability ABC: every operation the unified check runners expose has
+its own named method with its own typed signature. Consumers never see
+this method list — the aggregate routes each request to the matching
+protocol method.
+"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -10,11 +16,8 @@ from modules.shared.src.taxonomy_common_vo import DocFinding
 class ICheckProtocol(ABC):
     """Capability contract for one repository-verification check."""
 
-    #: Stable CLI key for selective runs — ``docs`` | ``skill``.
-    name: str = ""
-
     @abstractmethod
-    def execute(self, scope: CheckScope) -> CheckExitCode:
+    def run(self, scope: CheckScope) -> CheckExitCode:
         """Run this capability for *scope* strictly (every finding gates).
 
         Args:
@@ -27,9 +30,9 @@ class ICheckProtocol(ABC):
         """
         ...
 
-__all__ = ['CheckExitCode', 'CheckScope', 'DocFinding', 'ICheckProtocol']
 
-#
+__all__ = ["CheckExitCode", "CheckScope", "DocFinding", "ICheckProtocol"]
+
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "CheckExitCode": CheckExitCode,

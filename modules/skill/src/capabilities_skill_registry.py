@@ -1,4 +1,4 @@
-"""Skill provisioning registry capability — SkillRegistry behind ISkillProtocol.
+"""Skill provisioning registry capability — SkillRegistry behind ISkillRegistryProtocol.
 
 Pure helpers (manifest lookups, unpack/unlink, discovery) live in
 :mod:`modules.shared.src.utility_skill_registry` so the skill surface can
@@ -9,14 +9,14 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_skill_protocol import ISkillProtocol
+from modules.shared.src.contract_skill_protocol import ISkillRegistryProtocol
 from modules.shared.src.taxonomy_skill_vo import ExitCode, SkillArgs
 from modules.shared.src.utility_skill_registry import get_registered_tool_ids
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class SkillRegistry(ISkillProtocol):
-    """Module-level registry facade implementing ISkillProtocol (AES403).
+class SkillRegistry(ISkillRegistryProtocol):
+    """Module-level registry facade implementing ISkillRegistryProtocol (AES403).
 
     Delegates to the pure provisioning helpers in utility_skill_registry
     (cmd_uninstall/cmd_install/cmd_list/cmd_check/cmd_show live in the
@@ -27,39 +27,12 @@ class SkillRegistry(ISkillProtocol):
         pass
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        skill: str | None = None,
-        target: Path | None = None,
-    ) -> ExitCode:
-        """Dispatch one skill op (``list`` | ``check`` | ``show`` | ``install`` | ``uninstall`` | ``sync``)."""
-        argv = SkillArgs([arg for arg in (skill, str(target) if target is not None else None) if arg])
-        if op == "list":
-            return self.cmd_list(argv)
-        if op == "check":
-            return self.cmd_check()
-        if op == "show":
-            return self.cmd_show(argv)
-        if op == "install":
-            return self.cmd_install(argv)
-        if op == "uninstall":
-            return self.cmd_uninstall(argv)
-        if op == "sync":
-            return self.cmd_install(SkillArgs(["all", *list(argv)]))
-        print(f"Unknown skill op: {op}", file=sys.stderr)
-        return ExitCode(1)
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return "SkillRegistry()"
-
-    def cmd_list(self, argv: SkillArgs) -> ExitCode:
+    def list(self, tool_filter: str = "") -> ExitCode:
         """Report the count of tools registered in the shared pack."""
         print(f"✓ Skill registry: {len(get_registered_tool_ids())} tools registered.")
         return ExitCode(0)
 
-    def cmd_check(self) -> ExitCode:
+    def check(self) -> ExitCode:
         """Audit pack loadability and print any findings."""
         from modules.shared.src.taxonomy_common_vo import audit_pack
 
@@ -68,27 +41,36 @@ class SkillRegistry(ISkillProtocol):
             print(f"  [WARN] {f}")
         return ExitCode(0)
 
-    def cmd_show(self, argv: SkillArgs) -> ExitCode:
+    def show(self, query: str = "") -> ExitCode:
         """Point the caller to the CLI surface for skill detail views."""
         print("Skill registry: use 'aa skill show <tool|skill>' for details.")
         return ExitCode(0)
 
-    def cmd_install(self, argv: SkillArgs) -> ExitCode:
+    def install(self, args: SkillArgs) -> ExitCode:
         """Point the caller to the CLI surface for full provisioning."""
         print("Skill install: use 'aa skill install <tool>' for full provisioning.")
         return ExitCode(0)
 
-    def cmd_uninstall(self, argv: SkillArgs) -> ExitCode:
+    def uninstall(self, args: SkillArgs) -> ExitCode:
         """Point the caller to the CLI surface for full removal."""
         print("Skill uninstall: use 'aa skill uninstall <tool>' for full removal.")
         return ExitCode(0)
 
+    def sync(self, args: SkillArgs) -> ExitCode:
+        """Point the caller to the CLI surface for a sync (alias for install all)."""
+        print("Skill sync: use 'aa skill sync' for full provisioning.")
+        return ExitCode(0)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "SkillRegistry()"
+
 
 # Re-export surface for any residual legacy import sites (surface repointed at utility).
 __all__ = [
-    "ISkillProtocol",
+    "ISkillRegistryProtocol",
     "SkillRegistry",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"ISkillProtocol": ISkillProtocol, "SkillRegistry": SkillRegistry}
+_layer_symbols = {"ISkillRegistryProtocol": ISkillRegistryProtocol, "SkillRegistry": SkillRegistry}

@@ -38,18 +38,15 @@ class HarnessSkills(IHarnessProtocol):
         self._adapters = adapters
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(self, op: str, targets: tuple[str, ...],
-                flags: dict[str, bool] | None = None) -> ExitCode:
-        """Dispatch the ``provision_skills`` op over *targets*; return exit code."""
-        if op != "provision_skills":
-            raise ValueError(f"HarnessSkills does not handle op {op!r}")
-        flags = flags or {}
-        return ExitCode(self.provision_skills(
-            targets,
-            copy=flags.get("copy", False),
-            dry_run=flags.get("dry_run", False),
-            force=flags.get("force", False),
-        ))
+    def connect(self, targets: tuple[str, ...], force: bool = False, dry_run: bool = False,
+                mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
+                router: bool = False, copy_skills: bool = False) -> int:
+        """Op not owned by this capability."""
+        raise NotImplementedError("HarnessSkills does not implement connect")
+
+    def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> int:
+        """Op not owned by this capability."""
+        raise NotImplementedError("HarnessSkills does not implement disconnect")
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def provision_skills(self, harness_ids: tuple[str, ...], copy: bool = False,
@@ -73,6 +70,19 @@ class HarnessSkills(IHarnessProtocol):
             adapter = opts.adapter(harness_id)
             failures += self._provision_one(harness_id, adapter, opts, skill_files, pack_root)
         return 1 if failures else 0
+
+    def execute(self, op: str, targets: tuple[str, ...],
+                flags: dict[str, bool] | None = None) -> ExitCode:
+        """Backward-compat dispatch wrapper around the named protocol method."""
+        if op != "provision_skills":
+            raise ValueError(f"HarnessSkills does not handle op {op!r}")
+        flags = flags or {}
+        return ExitCode(self.provision_skills(
+            targets,
+            copy=flags.get("copy", False),
+            dry_run=flags.get("dry_run", False),
+            force=flags.get("force", False),
+        ))
 
     def _provision_one(self, harness_id, adapter, opts: SkillsOpts, skill_files, pack_root) -> int:
         log_header(f"Provisioning skills into {adapter.display}...")

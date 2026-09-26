@@ -23,7 +23,6 @@ from pathlib import Path
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER, REPO_ROOT
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
-    ToolSpec,
     atomic_write_text,
     bin_home,
     cache_home,
@@ -558,52 +557,11 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
     )
 
 
-# ---------------------------------------------------------------------------
-# Shared protocol dispatcher (per-provider IToolsProtocol.execute bodies)
-# ---------------------------------------------------------------------------
-def dispatch_unit_op(
-    units: dict[str, AdapterUnit],
-    op: str,
-    spec: ToolSpec | None = None,
-    query: object | None = None,
-    args: list[str] | None = None,
-    *,
-    label: str,
-) -> object:
-    """Dispatch one `IToolsProtocol.execute` call against *units*.
-
-    Shared body of every provider adapter's `execute`: resolve the unit
-    for *spec*, then route `satisfied` / `is_pin_satisfied` /
-    `owned_paths` / `install` / `update` (install retries without the
-    injected `daemons` kwarg when the unit rejects it).
-    """
-    if spec is None:
-        raise ToolUpdateError(f"{label} got op={op!r} without a spec")
-    unit = units.get(spec.id)
-    if unit is None:
-        raise ToolUpdateError(f"{label} has no unit for {spec.id!r}")
-    root = Path(args[0]) if args else None
-    if op == "satisfied":
-        return unit.satisfied(spec, root)
-    if op == "is_pin_satisfied":
-        return unit.is_pin_satisfied(spec, root or ROOT)
-    if op == "owned_paths":
-        return unit.owned_paths(spec, root or ROOT)
-    if op == "install":
-        try:
-            return list(unit.install(spec, root or ROOT, daemons=query) or [])
-        except TypeError:
-            return list(unit.install(spec, root or ROOT) or [])
-    if op == "update":
-        return list(unit.update(spec, root or ROOT) or [])
-    raise ToolUpdateError(f"unsupported {label} op {op!r}")
-
 
 __all__ = [
     "ROOT",
     "build_adapter_unit",
     "copy_app",
-    "dispatch_unit_op",
     "finish_bin",
     "generic_owned",
     "make_install",

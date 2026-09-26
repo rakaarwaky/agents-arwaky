@@ -18,7 +18,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsProtocol
+from modules.shared.src.contract_tools_protocol import IToolsInstallerProtocol
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_error import ToolInstallError
 from modules.shared.src.taxonomy_common_vo import (
@@ -51,7 +51,7 @@ def _has_provenance(launcher: Path) -> bool:
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class InstallerCapability(IToolsProtocol):
+class InstallerCapability(IToolsInstallerProtocol):
     """Business action install(spec, dry_run): provision + register launcher."""
 
     def __init__(self, root: Path | None = None, daemons: object | None = None,
@@ -63,21 +63,6 @@ class InstallerCapability(IToolsProtocol):
         self._registry = dict(registry) if registry is not None else {}
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        spec: ToolSpec | None = None,
-        query: object | None = None,
-        args: list[str] | None = None,
-    ) -> object:
-        """Single protocol entry: dispatch *op* to the install action."""
-        if op != "install" or spec is None:
-            raise ToolInstallError(
-                f"installer capability got op={op!r} (expected 'install' with a spec)"
-            )
-        dry_run = bool(args and "dry-run" in args)
-        adapter = query if query is not None else None
-        return self.install(spec, adapter=adapter, dry_run=dry_run)
     def __repr__(self) -> str:
         return "InstallerCapability()"
 

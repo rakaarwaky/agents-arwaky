@@ -462,63 +462,40 @@ def main(argv: list[str], orch: object | None = None) -> int:
     return cmd_help()
 
 
-from modules.shared.src.contract_skill_protocol import ISkillProtocol
-from modules.shared.src.taxonomy_skill_vo import ARGS_EMPTY, ExitCode, SkillArgs
+from modules.shared.src.contract_skill_protocol import ISkillRegistryProtocol
+from modules.shared.src.taxonomy_skill_vo import ARGS_EMPTY, FILTER_EMPTY, QUERY_EMPTY, ExitCode, SkillArgs, ToolFilter
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class SkillRegistryAdapter(ISkillProtocol):
-    """ISkillProtocol implementation wrapping the module-level cmd_* functions.
+class SkillRegistryAdapter(ISkillRegistryProtocol):
+    """ISkillRegistryProtocol implementation wrapping the module-level cmd_* functions.
 
     Lets the root composition layer inject a concrete registry object
     into :class:`modules.skill.src.agent_skill_orchestrator.SkillOrchestrator`
     without the agent importing the capabilities module (AES201 rule 8).
     """
 
-    def execute(
-        self,
-        op: str,
-        skill: str | None = None,
-        target: Path | None = None,
-    ) -> ExitCode:
-        """Dispatch one skill op to the aggregate-named methods below."""
-        argv = SkillArgs([arg for arg in (skill, str(target) if target is not None else None) if arg])
-        if op == "list":
-            return self.list(argv)
-        if op == "check":
-            return self.check()
-        if op == "show":
-            return self.show(argv)
-        if op == "install":
-            return self.install(argv)
-        if op == "uninstall":
-            return self.uninstall(argv)
-        if op == "sync":
-            return self.sync(argv)
-        print(f"Unknown skill op: {op}", file=sys.stderr)
-        return ExitCode(1)
-
-    # ─── Block 2: Aggregate-named registry surface ──────────
-    def list(self, argv: SkillArgs) -> ExitCode:
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    def list(self, tool_filter: ToolFilter = FILTER_EMPTY) -> ExitCode:
         """List skills for tools, wrapping the module-level cmd_list."""
-        return ExitCode(cmd_list(list(argv)))
+        return ExitCode(cmd_list([str(tool_filter)] if str(tool_filter) else []))
 
-    def check(self, argv: SkillArgs = ARGS_EMPTY) -> ExitCode:
+    def check(self) -> ExitCode:
         """Audit the shared skill pack loadability, wrapping cmd_check."""
-        return ExitCode(cmd_check(list(argv)))
+        return ExitCode(cmd_check([]))
 
-    def show(self, argv: SkillArgs) -> ExitCode:
+    def show(self, query: str = QUERY_EMPTY) -> ExitCode:
         """Display a skill's content, wrapping cmd_show."""
-        return ExitCode(cmd_show(list(argv)))
+        return ExitCode(cmd_show([str(query)] if str(query) else []))
 
-    def install(self, argv: SkillArgs) -> ExitCode:
+    def install(self, args: SkillArgs) -> ExitCode:
         """Provision skills into a target workspace, wrapping cmd_install."""
-        return ExitCode(cmd_install(list(argv)))
+        return ExitCode(cmd_install(list(args)))
 
-    def uninstall(self, argv: SkillArgs) -> ExitCode:
+    def uninstall(self, args: SkillArgs) -> ExitCode:
         """Remove provisioned skills from a target workspace, wrapping cmd_uninstall."""
-        return ExitCode(cmd_uninstall(list(argv)))
+        return ExitCode(cmd_uninstall(list(args)))
 
-    def sync(self, argv: SkillArgs = ARGS_EMPTY) -> ExitCode:
+    def sync(self, args: SkillArgs = ARGS_EMPTY) -> ExitCode:
         """Alias for installing all skills across all tools."""
-        return ExitCode(cmd_install(["all", *list(argv)]))
+        return ExitCode(cmd_install(["all", *list(args)]))

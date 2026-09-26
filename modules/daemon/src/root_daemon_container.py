@@ -23,13 +23,13 @@ class DaemonContainer:
         return self._orchestrator
 
     @property
-    def ninerouter(self) -> IDaemonAggregate:
-        """The NinerouterDaemonManager facade."""
+    def ninerouter(self):
+        """The NinerouterDaemonManager instance."""
         return self._ninerouter
 
     @property
-    def anytype(self) -> IDaemonAggregate:
-        """The AnytypeDaemonManager facade."""
+    def anytype(self):
+        """The AnytypeDaemonManager instance."""
         return self._anytype
 
 

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import tempfile
-from unittest.mock import MagicMock, patch
 
 
 class TestMcpConfigGenerator:
@@ -16,14 +15,6 @@ class TestMcpConfigGenerator:
         generator = McpConfigGenerator()
         assert generator is not None
         assert generator._root is not None
-
-    def test_execute_method_exists(self):
-        """UT-MCP-002: execute method exists."""
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
-
-        generator = McpConfigGenerator()
-        assert hasattr(generator, 'execute')
-        assert callable(getattr(generator, 'execute'))
 
     def test_list_servers_method_exists(self):
         """UT-MCP-003: list_servers method exists."""
@@ -70,27 +61,29 @@ class TestMcpOrchestrator:
         orch = McpOrchestrator(generator)
         assert orch is not None
 
-    def test_list_servers_delegates(self):
-        """UT-MCP-008: list_servers delegates to generator."""
+    def test_execute_list_delegates(self):
+        """UT-MCP-008: execute with op=list delegates to generator.list_servers."""
         from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
         from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+        from modules.shared.src.taxonomy_mcp_vo import McpOp, McpRequest
 
         generator = McpConfigGenerator()
         orch = McpOrchestrator(generator)
-        result = orch.list_servers()
+        result = orch.execute(McpRequest(McpOp("list")))
         assert isinstance(result, list)
 
-    def test_generate_method_delegates(self):
-        """UT-MCP-009: generate delegates to generator."""
+    def test_execute_generate_delegates(self):
+        """UT-MCP-009: execute with op=generate delegates to generator.generate."""
         from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
         from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+        from modules.shared.src.taxonomy_mcp_vo import McpOp, McpRequest
 
         generator = McpConfigGenerator()
         orch = McpOrchestrator(generator)
         with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
             path = Path(f.name)
         try:
-            orch.generate(path)
+            orch.execute(McpRequest(McpOp("generate"), output=path))
             assert path.exists()
         finally:
             path.unlink(missing_ok=True)

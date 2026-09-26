@@ -43,15 +43,28 @@ def test_doctor_orchestrator_exists():
     assert DoctorOrchestrator is not None
 
 
-def test_doctor_execute_method_exists():
-    """CP-DOCTOR-006: Doctor runners have execute method."""
+def test_doctor_run_method_exists():
+    """CP-DOCTOR-006: Doctor runners have run method."""
     from modules.doctor.src.capabilities_doctor_env import EnvDiagnosticRunner
     from modules.doctor.src.capabilities_doctor_tools import ToolsDiagnosticRunner
 
     env = EnvDiagnosticRunner()
     tools = ToolsDiagnosticRunner()
 
-    assert hasattr(env, 'execute')
-    assert hasattr(tools, 'execute')
-    assert callable(getattr(env, 'execute'))
-    assert callable(getattr(tools, 'execute'))
+    assert hasattr(env, 'run')
+    assert hasattr(tools, 'run')
+    assert callable(getattr(env, 'run'))
+    assert callable(getattr(tools, 'run'))
+
+
+def test_doctor_aggregate_declares_only_execute():
+    """CP-DOCTOR-007: the aggregate exposes exactly one abstract method."""
+    from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
+
+    abstract = {
+        name
+        for name in vars(IDoctorAggregate)
+        if callable(getattr(IDoctorAggregate, name, None))
+        and getattr(getattr(IDoctorAggregate, name), "__isabstractmethod__", False)
+    }
+    assert abstract == {"execute"}

@@ -13,5 +13,5 @@ def test_dogfood_service_pipeline():
     manager = ServiceManager()
     orch = ServiceOrchestrator(manager)
 
-    assert hasattr(manager, 'execute')
-    assert hasattr(orch, 'status')
+    assert hasattr(manager, 'status')
+    assert hasattr(orch, 'execute')

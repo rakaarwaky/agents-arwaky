@@ -66,6 +66,7 @@ from modules.tools.src.capabilities_tools_vision_adapter import (
 from modules.tools.src.capabilities_tools_workspace_adapter import (
     ADAPTER_UNITS as _WORKSPACE_UNITS,
 )
+# All imports above feed TOOLS_REGISTRY at module load time; each is consumed.
 
 #: tool_id -> adapter unit (root composition data; each unit is a
 #: stateless `AdapterUnit` VO of action functions).
@@ -97,8 +98,8 @@ def create_tools_feature(root=None) -> IToolsAggregate:
     resolved = root or repo_root()
     # P1-7: the registry is the single API pipeline over all 13 leaf
     # adapters + shared mechanics; wired here and injected into the action
-    # capabilities (dependency inversion: capabilities depend on the
-    # IToolsProtocol contract, not on a concrete adapter class).
+    # capabilities (dependency inversion: capabilities depend on their
+    # rich protocol class, not on a concrete adapter class).
     installer = InstallerCapability(root=resolved, daemons=daemons, registry=TOOLS_REGISTRY)
     updater = UpdaterCapability(root=resolved, registry=TOOLS_REGISTRY)
     uninstaller = UninstallerCapability(daemons=daemons)

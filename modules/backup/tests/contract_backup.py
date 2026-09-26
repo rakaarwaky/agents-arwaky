@@ -22,22 +22,26 @@ def test_backup_vo_classes_exist():
     assert BackupOrchestrator is not None
 
 
-def test_tartape_gateway_implements_protocol():
-    """CP-BACKUP-003: TarBackupGateway implements IBackupProtocol."""
+def test_tar_gateway_implements_protocol():
+    """CP-BACKUP-003: TarBackupGateway implements the rich IBackupProtocol."""
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
     from modules.shared.src.contract_backup_protocol import IBackupProtocol
 
     gateway = TarBackupGateway()
     assert isinstance(gateway, IBackupProtocol)
+    for method in ("backup", "restore", "list_archives", "status", "help"):
+        assert callable(getattr(gateway, method))
 
 
 def test_gdrive_gateway_implements_protocol():
-    """CP-BACKUP-004: GdriveBackupGateway implements IBackupProtocol."""
+    """CP-BACKUP-004: GdriveBackupGateway implements the rich IBackupProtocol."""
     from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
     from modules.shared.src.contract_backup_protocol import IBackupProtocol
 
     gateway = GdriveBackupGateway()
     assert isinstance(gateway, IBackupProtocol)
+    for method in ("backup", "restore", "list_archives", "status", "help"):
+        assert callable(getattr(gateway, method))
 
 
 def test_backup_orchestrator_exists():
@@ -59,29 +63,26 @@ def test_backup_constants_defined():
     assert DEFAULT_FOLDER_NAME == "Agents-Arwaky-Backups"
 
 
-def test_backup_execute_method_exists():
-    """CP-BACKUP-007: Gateway classes have execute method."""
+def test_backup_protocol_has_no_execute_dispatch():
+    """CP-BACKUP-007: gateways expose rich named methods, not an execute(op) bag."""
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
     from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
 
     tar = TarBackupGateway()
     gdrive = GdriveBackupGateway()
 
-    assert hasattr(tar, 'execute')
-    assert hasattr(gdrive, 'execute')
-    assert callable(getattr(tar, 'execute'))
-    assert callable(getattr(gdrive, 'execute'))
+    assert not hasattr(tar, "execute")
+    assert not hasattr(gdrive, "execute")
 
 
-def test_backup_orchestrator_methods():
-    """CP-BACKUP-008: BackupOrchestrator has required methods."""
-    from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
-    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
+def test_backup_aggregate_declares_only_execute():
+    """CP-BACKUP-008: the aggregate exposes exactly one abstract method."""
+    from modules.shared.src.contract_backup_aggregate import IBackupAggregate
 
-    orchestrator = BackupOrchestrator(TarBackupGateway(), TarBackupGateway())
-
-    assert hasattr(orchestrator, 'backup')
-    assert hasattr(orchestrator, 'restore')
-    assert hasattr(orchestrator, 'list_archives')
-    assert hasattr(orchestrator, 'status_store')
-    assert hasattr(orchestrator, 'help')
+    abstract = {
+        name
+        for name in vars(IBackupAggregate)
+        if callable(getattr(IBackupAggregate, name, None))
+        and getattr(getattr(IBackupAggregate, name), "__isabstractmethod__", False)
+    }
+    assert abstract == {"execute"}

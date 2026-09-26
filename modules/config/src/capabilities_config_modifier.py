@@ -2,7 +2,9 @@
 
 Thin AES capability wrapping the shared config kernel. The config agent
 (``agent_config_orchestrator``) is the only caller; no I/O outside the
-injected protocol. ``main`` provides a standalone CLI for the same operations.
+injected protocol. Implements the whole ``IConfigProtocol``; the operations
+owned by the writer capability are refused rather than silently accepted.
+``main`` provides a standalone CLI for the same operations.
 """
 from __future__ import annotations
 
@@ -13,7 +15,13 @@ from pathlib import Path
 
 from modules.shared.src.contract_config_protocol import IConfigProtocol
 from modules.shared.src.taxonomy_common_vo import (
+    ConfigData,
+    ConfigFormat,
+    ConfigKeys,
+    ConfigSnapshot,
+    ConfigTuple,
     EnvPairs,
+    HelpText,
     McpServersMap,
 )
 from modules.shared.src.utility_config_engine import (
@@ -28,36 +36,61 @@ from modules.shared.src.utility_config_engine import (
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class ConfigModifier(IConfigProtocol):
-    """Merge / env-set / removal / list capability (single-execute dispatcher)."""
+    """Merge / env-set / removal / list capability (the mutating half of the protocol)."""
+
+    def __init__(self, usage: HelpText | None = None) -> None:
+        self._usage = usage if usage is not None else HelpText("")
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
+    def load(self, path: Path) -> ConfigTuple:
+        """Refuse: reading belongs to the writer capability."""
+        raise NotImplementedError("load is owned by ConfigWriter")
+
+    def save(
         self,
-        op: str,
         path: Path,
-        payload: dict | None = None,
-    ) -> list[str] | None:
-        """Dispatcher for merge_servers/set_env/remove_entries/list_servers operations."""
-        if op == "merge_servers":
-            body = payload or {}
-            return self.merge_mcp_servers(
-                path,
-                McpServersMap(body.get("servers", {})),
-                bool(body.get("force", False)),
-            )
-        if op == "set_env":
-            body = payload or {}
-            return self.set_env_keys(path, EnvPairs(body.get("pairs", {})))
-        if op == "remove_entries":
-            body = payload or {}
-            keys = list(body.get("keys", ()))
-            dry = bool(body.get("dry_run", False))
-            if self._looks_like_env(path):
-                return self.remove_env_keys(path, keys, dry)
-            return self.remove_mcp_servers(path, keys, dry)
-        if op == "list_servers":
-            return self.list_mcp_servers(path)
-        raise ValueError(f"ConfigModifier does not support op {op!r}")
+        data: ConfigData,
+        fmt: ConfigFormat | None = None,
+    ) -> bool:
+        """Refuse: writing belongs to the writer capability."""
+        raise NotImplementedError("save is owned by ConfigWriter")
+
+    def merge_servers(
+        self,
+        path: Path,
+        servers: McpServersMap,
+    ) -> ConfigKeys:
+        """Merge *servers* into *path*; returns merged server names."""
+        return self.merge_mcp_servers(path, servers)
+
+    def set_env(self, path: Path, pairs: EnvPairs) -> None:
+        """Upsert *pairs* into the env file at *path*."""
+        self.set_env_keys(path, pairs)
+
+    def remove_entries(
+        self,
+        path: Path,
+        keys: ConfigKeys,
+        dry_run: bool = False,
+    ) -> ConfigKeys:
+        """Drop named entries from *path*; env or MCP depending on the file name."""
+        return self.remove_mcp_servers(
+            path,
+            list(keys),
+            dry_run,
+        ) if not self._looks_like_env(path) else self.remove_env_keys(
+            path,
+            list(keys),
+            dry_run,
+        )
+
+    def inspect(self, path: Path) -> ConfigSnapshot:
+        """Refuse: snapshotting belongs to the writer capability."""
+        raise NotImplementedError("inspect is owned by ConfigWriter")
+
+    def help(self) -> HelpText:
+        """Return the usage text the agent injected."""
+        return self._usage
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:

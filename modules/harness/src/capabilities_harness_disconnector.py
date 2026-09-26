@@ -39,15 +39,12 @@ class HarnessDisconnector(IHarnessProtocol):
         self._adapters = adapters
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(self, op: str, targets: tuple[str, ...],
-                flags: dict[str, bool] | None = None) -> ExitCode:
-        """Dispatch the ``disconnect`` op over *targets*; return exit code."""
-        if op != "disconnect":
-            raise ValueError(f"HarnessDisconnector does not handle op {op!r}")
-        flags = flags or {}
-        return ExitCode(self.disconnect(targets, dry_run=flags.get("dry_run", False)))
+    def connect(self, targets: tuple[str, ...], force: bool = False, dry_run: bool = False,
+                mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
+                router: bool = False, copy_skills: bool = False) -> int:
+        """Op not owned by this capability."""
+        raise NotImplementedError("HarnessDisconnector does not implement connect")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def disconnect(self, harness_ids: tuple[str, ...], dry_run: bool = False) -> int:
         """FR-002: remove MCP servers, env keys, and router references.
 
@@ -96,6 +93,19 @@ class HarnessDisconnector(IHarnessProtocol):
                         log_sub(f"[DRY-RUN] Would remove env keys from {env_file}")
         log_ok(f"{adapter.display} disconnect complete.")
         return failures
+
+    def provision_skills(self, targets: tuple[str, ...], copy: bool = False, dry_run: bool = False,
+                         force: bool = False) -> int:
+        """Op not owned by this capability."""
+        raise NotImplementedError("HarnessDisconnector does not implement provision_skills")
+
+    def execute(self, op: str, targets: tuple[str, ...],
+                flags: dict[str, bool] | None = None) -> ExitCode:
+        """Backward-compat dispatch wrapper around the named protocol method."""
+        if op != "disconnect":
+            raise ValueError(f"HarnessDisconnector does not handle op {op!r}")
+        flags = flags or {}
+        return ExitCode(self.disconnect(targets, dry_run=flags.get("dry_run", False)))
 
     def __repr__(self) -> str:
         return "HarnessDisconnector()"

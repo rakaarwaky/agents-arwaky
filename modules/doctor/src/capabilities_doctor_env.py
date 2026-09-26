@@ -33,7 +33,7 @@ class EnvDiagnosticRunner(IDoctorProtocol):
         ensure_path()
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
+    def run(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
         """Check PATH, toolchain binaries, and container engine availability."""
         _ = flags
         banner()

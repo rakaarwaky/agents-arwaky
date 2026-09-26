@@ -1,54 +1,30 @@
-"""Check-domain aggregate contract (agent orchestrator ABC)."""
+"""Check-domain aggregate contract (agent orchestrator ABC).
+
+Single entry point over the check feature: the surface, root, CLI and MCP
+call ``execute`` with a request and get a response back. The agent behind
+the aggregate routes each ``scope`` to the matching protocol method.
+"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.taxonomy_check_vo import (
-    CheckExitCode,
-    CheckOnly,
-    CheckSummary,
-)
-from modules.shared.src.taxonomy_common_vo import DocFinding, DocFindings
+from modules.shared.src.taxonomy_check_vo import CheckRequest, CheckResponse
 
 
 class ICheckAggregate(ABC):
-    """Aggregate over all repository-verification checks."""
+    """Single entry point over check verification; the agent dispatches internally."""
 
     @abstractmethod
-    def check(self, only: CheckOnly | None = None) -> CheckExitCode:
-        """Run checks in sequence strictly (every finding gates); return exit code.
-
-        Args:
-            only: Run a single capability by runner ``name`` (``docs`` | ``skill``);
-                ``None``/``"all"`` runs every registered runner.
-        """
-        ...
-
-    @abstractmethod
-    def check_docs(self) -> CheckExitCode:
-        """Run only the document-invariant audit; every finding gates."""
-        ...
-
-    @abstractmethod
-    def check_skill(self) -> CheckExitCode:
-        """Run only the skill-pack audit; every finding gates."""
-        ...
-
-    @abstractmethod
-    def summary(self, findings: DocFindings) -> CheckSummary:
-        """Collapse *findings* into one digest line."""
+    def execute(self, request: CheckRequest) -> CheckResponse:
+        """Run the request the surface/root/CLI/MCP asked for; return the response."""
         ...
 
 
-__all__ = ['CheckExitCode', 'CheckOnly', 'CheckSummary', 'DocFinding', 'DocFindings', 'ICheckAggregate']
+__all__ = ["CheckRequest", "CheckResponse", "ICheckAggregate"]
 
-#
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
-    "CheckExitCode": CheckExitCode,
-    "CheckOnly": CheckOnly,
-    "CheckSummary": CheckSummary,
-    "DocFinding": DocFinding,
-    "DocFindings": DocFindings,
+    "CheckRequest": CheckRequest,
+    "CheckResponse": CheckResponse,
     "ICheckAggregate": ICheckAggregate,
 }

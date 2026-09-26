@@ -54,13 +54,15 @@ def test_config_detect_format_various():
 def test_config_orchestrator_full_workflow():
     """IT-CONFIG-003: End-to-end orchestrator workflow with real files."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_modifier import ConfigModifier
-    from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
+    from modules.shared.src.taxonomy_common_vo import (
+        ConfigData,
+        ConfigFormat,
+        ConfigOp,
+        ConfigRequest,
+        McpServersMap,
+    )
 
-    writer = ConfigWriter()
-    modifier = ConfigModifier()
-    orch = ConfigOrchestrator(writer, modifier)
+    orch = ConfigOrchestrator()
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         f.write('{}')
@@ -68,17 +70,30 @@ def test_config_orchestrator_full_workflow():
         path = Path(f.name)
 
     try:
-        saved = orch.save(path, ConfigData({"mcpServers": {}}), ConfigFormat("json"))
-        assert saved is True
+        saved = orch.execute(
+            ConfigRequest(
+                ConfigOp("save"),
+                path=path,
+                data=ConfigData({"mcpServers": {}}),
+                fmt=ConfigFormat("json"),
+            )
+        )
+        assert saved.success is True
 
-        snap = orch.inspect(path)
-        assert snap["format"] == "json"
+        snap = orch.execute(ConfigRequest(ConfigOp("inspect"), path=path))
+        assert snap.data["format"] == "json"
 
-        merged = orch.merge_servers(path, {"my-server": {"url": "http://example.com"}})
-        assert "my-server" in merged
+        merged = orch.execute(
+            ConfigRequest(
+                ConfigOp("merge_servers"),
+                path=path,
+                servers=McpServersMap({"my-server": {"url": "http://example.com"}}),
+            )
+        )
+        assert "my-server" in merged.data
 
-        servers = orch.inspect(path)
-        assert "my-server" in servers["servers"]
+        servers = orch.execute(ConfigRequest(ConfigOp("inspect"), path=path))
+        assert "my-server" in servers.data["servers"]
     finally:
         path.unlink(missing_ok=True)
 
@@ -86,12 +101,14 @@ def test_config_orchestrator_full_workflow():
 def test_config_env_integration():
     """IT-CONFIG-004: Full env file set/remove workflow."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_modifier import ConfigModifier
-    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.shared.src.taxonomy_common_vo import (
+        ConfigKeys,
+        ConfigOp,
+        ConfigRequest,
+        EnvPairs,
+    )
 
-    writer = ConfigWriter()
-    modifier = ConfigModifier()
-    orch = ConfigOrchestrator(writer, modifier)
+    orch = ConfigOrchestrator()
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
         f.write("# initial\nKEY1=value1\n")
@@ -99,7 +116,14 @@ def test_config_env_integration():
         path = Path(f.name)
 
     try:
-        orch.set_env(path, {"KEY2": "value2", "KEY3": "value3"})
+        set_result = orch.execute(
+            ConfigRequest(
+                ConfigOp("set_env"),
+                path=path,
+                pairs=EnvPairs({"KEY2": "value2", "KEY3": "value3"}),
+            )
+        )
+        assert set_result.success is True
 
         content = path.read_text()
         assert "KEY1=value1" in content
@@ -107,8 +131,10 @@ def test_config_env_integration():
         assert "KEY2=" in content
         assert "KEY3=" in content
 
-        removed = orch.remove_entries(path, ["KEY2"])
-        assert "KEY2" in removed
+        removed = orch.execute(
+            ConfigRequest(ConfigOp("remove_entries"), path=path, keys=ConfigKeys(["KEY2"]))
+        )
+        assert "KEY2" in removed.data
 
         content = path.read_text()
         assert "KEY2" not in content
@@ -118,15 +144,11 @@ def test_config_env_integration():
 
 
 def test_config_orchestrator_inspect():
-    """IT-CONFIG-005: inspect returns complete snapshot."""
+    """IT-CONFIG-005: execute(inspect) returns a complete snapshot."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_modifier import ConfigModifier
-    from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
+    from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
-    writer = ConfigWriter()
-    modifier = ConfigModifier()
-    orch = ConfigOrchestrator(writer, modifier)
+    orch = ConfigOrchestrator()
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         f.write('{"mcpServers": {"server1": {"url": "http://test"}}}')
@@ -134,7 +156,9 @@ def test_config_orchestrator_inspect():
         path = Path(f.name)
 
     try:
-        snap = orch.inspect(path)
+        result = orch.execute(ConfigRequest(ConfigOp("inspect"), path=path))
+        assert result.success is True
+        snap = result.data
         assert snap["path"] == str(path)
         assert snap["format"] == "json"
         assert snap["data"] == {"mcpServers": {"server1": {"url": "http://test"}}}
@@ -144,14 +168,11 @@ def test_config_orchestrator_inspect():
 
 
 def test_config_dry_run_remove():
-    """IT-CONFIG-006: remove_entries dry-run reports without writing."""
+    """IT-CONFIG-006: execute(remove_entries, dry_run) reports without writing."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_modifier import ConfigModifier
-    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.shared.src.taxonomy_common_vo import ConfigKeys, ConfigOp, ConfigRequest
 
-    writer = ConfigWriter()
-    modifier = ConfigModifier()
-    orch = ConfigOrchestrator(writer, modifier)
+    orch = ConfigOrchestrator()
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         f.write(json.dumps({"mcpServers": {"server1": {}, "server2": {}}}))
@@ -159,8 +180,15 @@ def test_config_dry_run_remove():
         path = Path(f.name)
 
     try:
-        removed = orch.remove_entries(path, ["server1"], dry_run=True)
-        assert "server1" in removed
+        result = orch.execute(
+            ConfigRequest(
+                ConfigOp("remove_entries"),
+                path=path,
+                keys=ConfigKeys(["server1"]),
+                dry_run=True,
+            )
+        )
+        assert "server1" in result.data
 
         content = json.loads(path.read_text())
         assert "server1" in content["mcpServers"]
@@ -169,16 +197,12 @@ def test_config_dry_run_remove():
 
 
 def test_config_command_integration():
-    """IT-CONFIG-007: ConfigCommand surface integrates with orchestrator."""
+    """IT-CONFIG-007: the CLI surface routes every verb through the aggregate."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_modifier import ConfigModifier
-    from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.config.src.surface_config_command import ConfigCommand
+    from modules.config.src.surface_config_command import ConfigCommand, cmd_config
+    from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
-    writer = ConfigWriter()
-    modifier = ConfigModifier()
-    orch = ConfigOrchestrator(writer, modifier)
-    cmd = ConfigCommand(orch)
+    cmd = ConfigCommand(ConfigOrchestrator())
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         f.write('{}')
@@ -186,12 +210,12 @@ def test_config_command_integration():
         path = Path(f.name)
 
     try:
-        snap = cmd.inspect(path)
-        assert snap is not None
-        assert snap["format"] == "json"
+        snap = cmd.execute(ConfigRequest(ConfigOp("inspect"), path=path))
+        assert snap.success is True
+        assert snap.data["format"] == "json"
 
-        help_text = cmd.help()
-        assert "Usage: aa config" in str(help_text)
+        assert cmd.execute(ConfigRequest(ConfigOp("help"))).success is True
+        assert cmd_config(["inspect", str(path)], cmd) == 0
     finally:
         path.unlink(missing_ok=True)
 
@@ -200,10 +224,13 @@ def test_config_container_wiring():
     """IT-CONFIG-008: ConfigContainer produces fully wired feature."""
     from modules.config.src.root_config_container import ConfigContainer
     from modules.shared.src.contract_config_aggregate import IConfigAggregate
+    from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
     container = ConfigContainer()
     aggregate = container.aggregate
     assert isinstance(aggregate, IConfigAggregate)
+    # The aggregate is the one door: exactly one abstract method.
+    assert IConfigAggregate.__abstractmethods__ == frozenset({"execute"})
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         f.write('{}')
@@ -211,7 +238,8 @@ def test_config_container_wiring():
         path = Path(f.name)
 
     try:
-        snap = aggregate.inspect(path)
-        assert snap["format"] == "json"
+        snap = aggregate.execute(ConfigRequest(ConfigOp("inspect"), path=path))
+        assert snap.success is True
+        assert snap.data["format"] == "json"
     finally:
         path.unlink(missing_ok=True)

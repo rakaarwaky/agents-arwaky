@@ -1,8 +1,8 @@
-"""Config capability contract — a single ``execute`` method.
+"""Config-domain capability protocol — one named method per operation.
 
-Every config capability (writer, modifier) implements this one ABC; the
-config agent calls ``execute(op, path, payload)`` for all six ops. One
-method replaces the former leaf/composite protocol lattice.
+Pure capability ABC: every config operation is a distinct typed method so the
+agent can call the right one without a dispatch bag. The root CLI and surface
+layer talk to the aggregate, not this protocol directly.
 """
 from __future__ import annotations
 
@@ -13,25 +13,64 @@ from modules.shared.src.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,
     ConfigKeys,
-    ConfigOp,
+    ConfigSnapshot,
     ConfigTuple,
     EnvPairs,
+    HelpText,
     McpServersMap,
-    Timestamp,
 )
 
 
 class IConfigProtocol(ABC):
-    """Single-method contract for every config capability."""
+    """Capability contract for config: one method per operation."""
 
     @abstractmethod
-    def execute(
+    def load(self, path: Path) -> ConfigTuple:
+        """Read *path*; returns ``(data, format)``."""
+        ...
+
+    @abstractmethod
+    def save(
         self,
-        op: ConfigOp,
         path: Path,
-        payload: ConfigData | None = None,
-    ) -> ConfigTuple | bool | ConfigKeys | ConfigData | ConfigFormat | None:
-        """Dispatch *op* against *path* with *payload*; return the op's result."""
+        data: ConfigData,
+        fmt: ConfigFormat | None = None,
+    ) -> bool:
+        """Write *data* to *path* in *fmt* (or detected); True on success."""
+        ...
+
+    @abstractmethod
+    def merge_servers(
+        self,
+        path: Path,
+        servers: McpServersMap,
+    ) -> ConfigKeys:
+        """Merge *servers* into the file; returns merged names."""
+        ...
+
+    @abstractmethod
+    def set_env(self, path: Path, pairs: EnvPairs) -> None:
+        """Upsert KEY=VALUE pairs into an env-style file."""
+        ...
+
+    @abstractmethod
+    def remove_entries(
+        self,
+        path: Path,
+        keys: ConfigKeys,
+        dry_run: bool = False,
+    ) -> ConfigKeys:
+        """Drop named server or env entries; dry-run reports without writing."""
+        ...
+
+    @abstractmethod
+    def inspect(self, path: Path) -> ConfigSnapshot:
+        """Read-only snapshot: format, data, and server names."""
+        ...
+
+    @abstractmethod
+    def help(self) -> HelpText:
+        """Usage text for every config op."""
         ...
 
 
@@ -39,12 +78,12 @@ __all__ = [
     "ConfigData",
     "ConfigFormat",
     "ConfigKeys",
-    "ConfigOp",
+    "ConfigSnapshot",
     "ConfigTuple",
     "EnvPairs",
+    "HelpText",
     "IConfigProtocol",
     "McpServersMap",
-    "Timestamp",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
@@ -52,10 +91,10 @@ _layer_symbols = {
     "ConfigData": ConfigData,
     "ConfigFormat": ConfigFormat,
     "ConfigKeys": ConfigKeys,
-    "ConfigOp": ConfigOp,
+    "ConfigSnapshot": ConfigSnapshot,
     "ConfigTuple": ConfigTuple,
     "EnvPairs": EnvPairs,
+    "HelpText": HelpText,
     "IConfigProtocol": IConfigProtocol,
     "McpServersMap": McpServersMap,
-    "Timestamp": Timestamp,
 }

@@ -1,27 +1,25 @@
-"""Config agent orchestrator — routes the six config ops to two capabilities.
+"""Config agent orchestrator — routes every config op to the owning capability.
 
-Implements ``IConfigAggregate`` (the 7 bare methods) by composing two
-injected ``IConfigProtocol`` capabilities (writer + modifier) through their
-single ``execute`` dispatcher.
+Implements ``IConfigAggregate``: a single ``execute`` entry point that the
+surface, root CLI and MCP call with a typed ``ConfigRequest``. Dispatch lives
+here, against the two rich ``IConfigProtocol`` capabilities (writer +
+modifier), each of which implements the whole protocol.
 """
 from __future__ import annotations
 
-from pathlib import Path
-
+from modules.config.src.capabilities_config_modifier import ConfigModifier
+from modules.config.src.capabilities_config_writer import ConfigWriter
 from modules.shared.src.contract_config_aggregate import IConfigAggregate
 from modules.shared.src.contract_config_protocol import IConfigProtocol
 from modules.shared.src.taxonomy_common_vo import (
-    ConfigData,
-    ConfigFormat,
-    ConfigSnapshot,
-    ConfigTuple,
-    EnvPairs,
+    ConfigOp,
+    ConfigRequest,
+    ConfigResult,
     HelpText,
-    McpServersMap,
 )
 
 #: Usage text returned by ``help`` and printed by the surface on unknown ops.
-_USAGE = (
+_USAGE = HelpText(
     "Usage: aa config <op> ...\n"
     "  load PATH                    Read config; print data + detected format\n"
     "  save PATH DATA [--fmt FMT]   Write DATA (JSON) back in detected/explicit format\n"
@@ -35,69 +33,57 @@ _USAGE = (
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class ConfigOrchestrator(IConfigAggregate):
-    """Config agent: aggregate facade over writer + modifier capabilities."""
+    """Config agent: single-execute aggregate over writer + modifier capabilities."""
 
-    def __init__(self, writer: IConfigProtocol, modifier: IConfigProtocol) -> None:
-        self._writer = writer
-        self._modifier = modifier
+    def __init__(
+        self,
+        writer: IConfigProtocol | None = None,
+        modifier: IConfigProtocol | None = None,
+    ) -> None:
+        self._writer = writer if writer is not None else ConfigWriter(_USAGE)
+        self._modifier = modifier if modifier is not None else ConfigModifier(_USAGE)
 
     # ─── Block 2: Aggregate Method Implementation ──────────
-    def load(self, path: Path) -> ConfigTuple:
-        """Load via the writer capability; returns ``(data, format)``."""
-        return self._writer.execute("load", path)
-
-    def save(
-        self,
-        path: Path,
-        data: ConfigData,
-        fmt: ConfigFormat | None = None,
-    ) -> bool:
-        """Save via the writer capability; True on success."""
-        payload: dict = {"data": dict(data)}
-        if fmt is not None:
-            payload["fmt"] = fmt
-        return self._writer.execute("save", path, payload)
-
-    def inspect(self, path: Path) -> ConfigSnapshot:
-        """Read-only snapshot: format, data, and server names."""
-        data, fmt = self._writer.execute("load", path)
-        servers = self._modifier.execute("list_servers", path)
-        return ConfigSnapshot({
-            "path": str(path),
-            "format": str(fmt),
-            "data": dict(data),
-            "servers": list(servers or []),
-        })
-
-    def merge_servers(
-        self,
-        path: Path,
-        servers: McpServersMap,
-    ) -> list[str]:
-        """Merge MCP servers via the modifier capability; returns merged names."""
-        return self._modifier.execute("merge_servers", path, {"servers": dict(servers)})
-
-    def set_env(self, path: Path, pairs: EnvPairs) -> None:
-        """Upsert env pairs via the modifier capability."""
-        self._modifier.execute("set_env", path, {"pairs": dict(pairs)})
-
-    def remove_entries(
-        self,
-        path: Path,
-        keys: list[str],
-        dry_run: bool = False,
-    ) -> list[str]:
-        """Drop named entries (env or server) via the modifier capability."""
-        return self._modifier.execute(
-            "remove_entries",
-            path,
-            {"keys": list(keys), "dry_run": dry_run},
-        )
-
-    def help(self) -> HelpText:
-        """Return usage text for the config CLI surface."""
-        return HelpText(_USAGE)
+    def execute(self, request: ConfigRequest) -> ConfigResult:
+        """Route *request* to the owning capability; return the response."""
+        op = ConfigOp(request.op)
+        try:
+            if op == "load":
+                return ConfigResult(True, self._writer.load(request.path))
+            if op == "save":
+                ok = self._writer.save(request.path, request.data, request.fmt)
+                return ConfigResult(ok, None, "" if ok else "save failed")
+            if op == "merge_servers":
+                merged = self._modifier.merge_servers(request.path, request.servers)
+                return ConfigResult(True, merged)
+            if op == "set_env":
+                self._modifier.set_env(request.path, request.pairs)
+                return ConfigResult(True)
+            if op == "remove_entries":
+                removed = self._modifier.remove_entries(
+                    request.path,
+                    request.keys,
+                    request.dry_run,
+                )
+                return ConfigResult(True, removed)
+            if op == "inspect":
+                return ConfigResult(True, self._writer.inspect(request.path))
+            if op == "help":
+                return ConfigResult(True, self._writer.help())
+        except Exception as exc:  # the surface reports the failure to the caller
+            return ConfigResult(False, None, str(exc))
+        return ConfigResult(False, None, f"Unknown config op: {op}")
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     def __repr__(self) -> str:
         return "ConfigOrchestrator()"
+
+
+__all__ = [
+    "ConfigOrchestrator",
+]
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {
+    "ConfigOrchestrator": ConfigOrchestrator,
+}

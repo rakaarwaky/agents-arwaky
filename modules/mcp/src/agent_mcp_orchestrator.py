@@ -1,80 +1,64 @@
-"""MCP agent orchestrator — aggregates the MCP config generator."""
+"""MCP agent orchestrator — single-execute aggregate over the config generator.
+
+Routes each ``McpRequest.op`` to the matching rich protocol method on the
+injected generator, then wraps the result in a ``McpResponse``.
+"""
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Protocol
 
 from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
+from modules.shared.src.contract_mcp_protocol import IMcpProtocol
 from modules.shared.src.taxonomy_mcp_vo import (
     ExitCode,
     McpAlias,
-    McpServer,
+    McpOp,
+    McpRequest,
+    McpResponse,
     McpServerId,
-    McpServerInfo,
 )
-
-
-class _McpGenerator(Protocol):
-    """Structural view of the internal generator methods the orchestrator drives."""
-
-    def list_servers(self) -> list[McpServerInfo]:
-        """Return metadata for every registered MCP-enabled tool."""
-        ...
-    def show_server(self, server_id: McpServerId | None = None) -> ExitCode:
-        """Show the generated config or probe one server's help/schema."""
-        ...
-    def generate(self, output: Path) -> ExitCode:
-        """Build the unified MCP client config at *output*."""
-        ...
-    def generate_alias(self, alias: McpAlias, output: Path) -> ExitCode:
-        """Write an alias-qualified client config via the same generator."""
-        ...
-    def validate(self, output: Path | None = None) -> ExitCode:
-        """Parse the generated config at *output* and report validity."""
-        ...
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class McpOrchestrator(IMcpAggregate):
-    """Pure delegation to the injected generator (zero I/O)."""
+    """Single entry point over the MCP generator; dispatch happens here."""
 
-    def __init__(self, generator: _McpGenerator) -> None:
+    def __init__(self, generator: IMcpProtocol) -> None:
         """Inject the generator the orchestrator delegates to."""
         self._generator = generator
 
     # ─── Block 2: Aggregate Method Implementation ──────────
-    def list_servers(self) -> list[McpServerInfo]:
-        """Return metadata for every registered MCP-enabled tool."""
-        return self._generator.list_servers()
-
-    def show_server(self, server_id: McpServerId | None = None) -> ExitCode:
-        """Show the generated config or probe one server's help/schema."""
-        return ExitCode(int(self._generator.show_server(server_id)))
-
-    def generate(self, output: Path) -> ExitCode:
-        """Build the unified MCP client config at *output*."""
-        return ExitCode(int(self._generator.generate(output)))
-
-    def generate_alias(self, alias: McpAlias, output: Path) -> ExitCode:
-        """Write an alias-qualified client config via the same generator."""
-        return ExitCode(int(self._generator.generate_alias(alias, output)))
-
-    def validate(self, output: Path | None = None) -> ExitCode:
-        """Parse the generated config at *output* and report validity."""
-        return ExitCode(int(self._generator.validate(output)))
+    def execute(self, request: McpRequest) -> McpResponse:
+        """Route *request* to the matching protocol method; return the response."""
+        op = McpOp(str(request.op))
+        output = request.output
+        if op == "list":
+            return McpResponse(self._generator.list_servers())
+        if op == "generate":
+            return McpResponse(
+                self._generator.generate(output) if output is not None else ExitCode(1)
+            )
+        if op in {"show", "probe", "path"}:
+            return McpResponse(self._generator.show_server(request.server_id))
+        if op == "alias":
+            if request.alias is None or output is None:
+                return McpResponse(ExitCode(1))
+            return McpResponse(self._generator.generate_alias(McpAlias(str(request.alias)), Path(output)))
+        if op == "validate":
+            return McpResponse(self._generator.validate(output))
+        return McpResponse(ExitCode(1))
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     def __repr__(self) -> str:
         return "McpOrchestrator()"
 
 
-__all__ = ["ExitCode", "McpAlias", "McpServer", "McpServerId", "McpServerInfo"]
+__all__ = ["McpOrchestrator", "McpRequest", "McpResponse", "McpServerId"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
-    "ExitCode": ExitCode,
-    "McpAlias": McpAlias,
-    "McpServer": McpServer,
+    "McpOrchestrator": McpOrchestrator,
+    "McpRequest": McpRequest,
+    "McpResponse": McpResponse,
     "McpServerId": McpServerId,
-    "McpServerInfo": McpServerInfo,
 }

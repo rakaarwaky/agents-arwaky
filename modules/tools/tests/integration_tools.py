@@ -4,6 +4,15 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock
 
+from modules.shared.src.taxonomy_common_vo import ToolSpec
+from modules.shared.src.taxonomy_tools_vo import (
+    ToolArgs,
+    ToolQuery,
+    ToolRequest,
+    ToolResponse,
+    ToolsOp,
+)
+
 
 def test_tools_orchestrator_creation():
     """IT-TOOLS-001: ToolsOrchestrator can be created with injected dependencies."""
@@ -39,118 +48,126 @@ def test_tools_orchestrator_missing_registry_raises():
 
 
 def test_tools_orchestrator_list():
-    """IT-TOOLS-003: list() returns tools from manifest."""
+    """IT-TOOLS-003: execute(list) returns the tool list."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
-    tools = orch.list()
-    assert isinstance(tools, list)
+    response = orch.execute(ToolRequest(ToolsOp("list")))
+    assert response.tools is not None
+    assert len(response.tools) >= 10
 
 
 def test_tools_orchestrator_resolve_known_tool():
-    """IT-TOOLS-004: resolve() finds known tools."""
+    """IT-TOOLS-004: execute(resolve) finds known tools."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
-    spec =    orch.resolve("lint-arwaky")
-    assert spec is not None
-    assert spec.id == "lint-arwaky"
+    response = orch.execute(ToolRequest(ToolsOp("resolve"), query=ToolQuery("lint-arwaky")))
+    assert response.spec is not None
+    assert response.spec.id == "lint-arwaky"
 
 
 def test_tools_orchestrator_resolve_unknown():
-    """IT-TOOLS-005: resolve() returns None for unknown tool."""
+    """IT-TOOLS-005: execute(resolve) returns None for unknown tool."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
-    spec = orch.resolve("nonexistent-tool-12345")
-    assert spec is None
+    response = orch.execute(
+        ToolRequest(ToolsOp("resolve"), query=ToolQuery("nonexistent-tool-12345"))
+    )
+    assert response.spec is None
 
 
 def test_tools_orchestrator_install_requires_installer():
-    """IT-TOOLS-006: install() raises when installer not wired."""
+    """IT-TOOLS-006: install raises when installer not wired."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
     from modules.shared.src.taxonomy_common_error import ToolInstallError
-    from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec =    orch.resolve("lint-arwaky")
+    spec = orch.execute(
+        ToolRequest(ToolsOp("resolve"), query=ToolQuery("lint-arwaky"))
+    ).spec
     if spec is None:
-        return
+        raise AssertionError("lint-arwaky must be in manifest")
 
     try:
-        orch.install(spec)
+        orch.execute(ToolRequest(ToolsOp("install"), spec=spec))
         assert False, "Should have raised ToolInstallError"
     except ToolInstallError:
         pass
 
 
 def test_tools_orchestrator_update_requires_updater():
-    """IT-TOOLS-007: update() raises when updater not wired."""
+    """IT-TOOLS-007: update raises when updater not wired."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
     from modules.shared.src.taxonomy_common_error import ToolUpdateError
-    from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec =    orch.resolve("lint-arwaky")
+    spec = orch.execute(
+        ToolRequest(ToolsOp("resolve"), query=ToolQuery("lint-arwaky"))
+    ).spec
     if spec is None:
-        return
+        raise AssertionError("lint-arwaky must be in manifest")
 
     try:
-        orch.update(spec)
+        orch.execute(ToolRequest(ToolsOp("update"), spec=spec))
         assert False, "Should have raised ToolUpdateError"
     except ToolUpdateError:
         pass
 
 
 def test_tools_orchestrator_uninstall_requires_uninstaller():
-    """IT-TOOLS-008: uninstall() raises when uninstaller not wired."""
+    """IT-TOOLS-008: uninstall raises when uninstaller not wired."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
     from modules.shared.src.taxonomy_common_error import ToolUninstallError
-    from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec =    orch.resolve("lint-arwaky")
+    spec = orch.execute(
+        ToolRequest(ToolsOp("resolve"), query=ToolQuery("lint-arwaky"))
+    ).spec
     if spec is None:
-        return
+        raise AssertionError("lint-arwaky must be in manifest")
 
     try:
-        orch.uninstall(spec)
+        orch.execute(ToolRequest(ToolsOp("uninstall"), spec=spec))
         assert False, "Should have raised ToolUninstallError"
     except ToolUninstallError:
         pass
 
 
 def test_tools_orchestrator_run_requires_runner():
-    """IT-TOOLS-009: run() raises when runner not wired."""
+    """IT-TOOLS-009: run raises when runner not wired."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
     from modules.shared.src.taxonomy_common_error import ToolInstallError
-    from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec =    orch.resolve("lint-arwaky")
+    spec = orch.execute(
+        ToolRequest(ToolsOp("resolve"), query=ToolQuery("lint-arwaky"))
+    ).spec
     if spec is None:
-        return
+        raise AssertionError("lint-arwaky must be in manifest")
 
     try:
-        orch.run(spec, [])
+        orch.execute(ToolRequest(ToolsOp("run"), spec=spec, args=ToolArgs([])))
         assert False, "Should have raised ToolInstallError"
     except ToolInstallError:
         pass
 
 
 def test_tools_orchestrator_executable_path_requires_runner():
-    """IT-TOOLS-010: executable_path() raises when runner not wired."""
+    """IT-TOOLS-010: executable_path raises when runner not wired."""
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
     from modules.shared.src.taxonomy_common_error import ToolInstallError
-    from modules.shared.src.utility_manifest_reader import find_tool, spec_from_tool
 
     orch = ToolsOrchestrator(registry={})
-    spec =    orch.resolve("lint-arwaky")
+    spec = orch.execute(
+        ToolRequest(ToolsOp("resolve"), query=ToolQuery("lint-arwaky"))
+    ).spec
     if spec is None:
-        return
+        raise AssertionError("lint-arwaky must be in manifest")
 
     try:
-        orch.executable_path(spec)
+        orch.execute(ToolRequest(ToolsOp("executable_path"), spec=spec))
         assert False, "Should have raised ToolInstallError"
     except ToolInstallError:
         pass
@@ -159,15 +176,14 @@ def test_tools_orchestrator_executable_path_requires_runner():
 def test_create_tools_feature():
     """IT-TOOLS-011: create_tools_feature returns a wired aggregate."""
     from modules.tools.src.root_tools_container import create_tools_feature
+    from modules.shared.src.contract_tools_aggregate import IToolsAggregate
 
-    try:
-        feature = create_tools_feature()
-        assert feature is not None
-        assert hasattr(feature, "list")
-        assert hasattr(feature, "resolve")
-        assert hasattr(feature, "install")
-    except Exception:
-        pass
+    feature = create_tools_feature()
+    assert isinstance(feature, IToolsAggregate)
+    # The aggregate's single entry point routes every verb.
+    response = feature.execute(ToolRequest(ToolsOp("list")))
+    assert isinstance(response, ToolResponse)
+    assert len(response.tools) >= 10
 
 
 def test_tools_registry_exists():
@@ -184,3 +200,13 @@ def test_orchestrator_repr():
 
     orch = ToolsOrchestrator(registry={})
     assert repr(orch) == "ToolsOrchestrator()"
+
+
+def test_execute_is_the_only_public_method():
+    """IT-TOOLS-015: the aggregate surface has exactly one public method."""
+    from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
+
+    orch = ToolsOrchestrator(registry={})
+    for attr in ("list", "resolve", "install", "update", "uninstall", "run",
+                 "executable_path"):
+        assert not hasattr(orch, attr) or attr in ("execute",), f"unexpected {attr}"

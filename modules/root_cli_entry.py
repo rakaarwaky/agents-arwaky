@@ -114,7 +114,11 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
             mcp_binary=None,
             runner=runner or TOOL_RUNNERS.get(tool_id, ""),
         )
-        return create_tools_feature().executable_path(spec)
+        from modules.shared.src.taxonomy_tools_vo import ToolRequest, ToolsOp
+        found = create_tools_feature().execute(
+            ToolRequest(ToolsOp("executable_path"), spec=spec)
+        ).executable
+        return Path(found) if found is not None else None
     return None
 
 
@@ -276,7 +280,9 @@ def cmd_status(argv: list[str]) -> int:
 
 def cmd_doctor(argv: list[str]) -> int:
     from modules.doctor.src.root_doctor_container import create_doctor_feature
-    return create_doctor_feature().diagnose({"json": "--json" in argv})
+    from modules.shared.src.taxonomy_common_vo import DoctorFlags, DoctorOp, DoctorRequest
+    request = DoctorRequest(DoctorOp("diagnose"), flags=DoctorFlags({"json": "--json" in argv}))
+    return int(create_doctor_feature().execute(request).exit_code)
 
 
 def cmd_list(argv: list[str]) -> int:
@@ -316,7 +322,7 @@ def cmd_list(argv: list[str]) -> int:
 def cmd_run(argv: list[str]) -> int:
     """aa tool run <tool> [args...] — run the binary via the aggregate.
 
-    Delegates entirely to IToolsAggregate.run(); exit-code fidelity,
+    Delegates entirely to the tools aggregate's execute; exit-code fidelity,
     sentinel 126, and MCP stdio handling live in RunnerCapability.
     """
     if not argv:
@@ -329,9 +335,12 @@ def cmd_run(argv: list[str]) -> int:
         print("Run 'aa tool list' to see all available tools.")
         return 1
     from modules.tools.src.root_tools_container import create_tools_feature
+    from modules.shared.src.taxonomy_tools_vo import ToolArgs, ToolRequest, ToolsOp
     spec = _spec_from_tool(tool)
     orch = create_tools_feature()
-    return orch.run(spec, argv[1:])
+    return int(orch.execute(
+        ToolRequest(ToolsOp("run"), spec=spec, args=ToolArgs(argv[1:]))
+    ).run)
 
 
 def _confirm(prompt: str, accepted: tuple = ("y", "yes")) -> bool:
@@ -434,7 +443,8 @@ def cmd_update(argv: list[str]) -> int:
     for idx, tool in enumerate(tools, 1):
         spec = _spec_from_tool(tool)
         print(f"[{idx}/{total}] Updating {tool.id}", flush=True)
-        result = updater.update(spec)
+        from modules.shared.src.taxonomy_tools_vo import ToolRequest, ToolsOp
+        result = updater.execute(ToolRequest(ToolsOp("update"), spec=spec)).update
         if not result.success:
             failed.append(tool.id)
             err(f"{tool.id}: {result.message}")
@@ -720,7 +730,8 @@ def uninstall_tool(tool: Tool) -> int:
     uninstaller = create_tools_feature()
     spec = _spec_from_tool(tool)
     info(f"Uninstalling {tool.id}")
-    result = uninstaller.uninstall(spec)
+    from modules.shared.src.taxonomy_tools_vo import ToolRequest, ToolsOp
+    result = uninstaller.execute(ToolRequest(ToolsOp("uninstall"), spec=spec)).uninstall
     if not result.success:
         err(f"{tool.id}: {result.message}")
         return 1

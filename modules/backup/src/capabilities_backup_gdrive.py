@@ -23,9 +23,14 @@ from pathlib import Path
 
 from modules.shared.src.contract_backup_protocol import IBackupProtocol
 from modules.shared.src.taxonomy_backup_vo import (
+    ARCHIVE_DEFAULT,
+    BackupArchive,
     BackupDestination,
+    BackupOutcome,
     BackupResult,
     BackupToolQuery,
+    DEST_DEFAULT,
+    ExitCode,
     RestoreResult,
 )
 from modules.shared.src.taxonomy_common_vo import data_home
@@ -34,9 +39,6 @@ from modules.shared.src.utility_paths_resolver import repo_root
 ROOT = repo_root()
 
 DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
-
-#: Module-level default for the protocol ``dest`` (B008: no call in defaults).
-_DEFAULT_DEST = BackupDestination("")
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class GdriveBackupGateway(IBackupProtocol):
@@ -50,28 +52,7 @@ class GdriveBackupGateway(IBackupProtocol):
 
     # ─── Block 2: Protocol Method Implementation ──────────────
 
-    def execute(
-        self,
-        op: str,
-        tool: BackupToolQuery | None = None,
-        dest: BackupDestination = _DEFAULT_DEST,
-        archive: str = "",
-    ) -> object:
-        """Dispatch *op* (archive / restore / list) to the concrete helpers."""
-        if op == "archive":
-            if not tool:
-                return BackupResult(False, "", "", False, "archive op requires a tool")
-            return self.backup(str(tool), str(dest))
-        if op == "restore":
-            if not tool:
-                return RestoreResult(False, "", archive, "", "restore op requires a tool")
-            return self.restore(str(tool), Path(archive))
-        if op == "list":
-            return self.list_archives()
-        return BackupResult(False, str(tool or ""), "", False, f"unknown op {op!r}")
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def backup(self, tool: str, dest: str = "") -> BackupResult:
+    def backup(self, tool: BackupToolQuery, dest: BackupDestination = DEST_DEFAULT) -> BackupResult:
         """Upload *tool*'s newest local archive to Drive (original
         ``cmd_upload`` logic; original raises ``sys.exit(1)`` on
         missing file / service error, which we catch here to keep the
@@ -81,29 +62,37 @@ class GdriveBackupGateway(IBackupProtocol):
         store = data_home() / "backups"
         matches = sorted(store.glob(f"{tool}-*.tar.gz")) if store.exists() else []
         if not matches:
-            return BackupResult(False, tool, "", True, "no local archive found")
+            return BackupResult(False, str(tool), "", True, "no local archive found")
         try:
             with contextlib.suppress(SystemExit):
                 cmd_upload(matches[-1], self._folder_name)
         except SystemExit:
-            return BackupResult(False, tool, str(matches[-1]), True, "upload failed (original script exited)")
-        return BackupResult(True, tool, str(matches[-1]), True, "uploaded to Google Drive")
+            return BackupResult(False, str(tool), str(matches[-1]), True, "upload failed (original script exited)")
+        return BackupResult(True, str(tool), str(matches[-1]), True, "uploaded to Google Drive")
 
-    def restore(self, tool: str, archive: Path) -> RestoreResult:
+    def restore(self, tool: BackupToolQuery, archive: BackupArchive = ARCHIVE_DEFAULT) -> RestoreResult:
         """Download *tool* from Drive into *archive* (original
         ``cmd_download`` logic, same ``sys.exit(1)`` adaptation)."""
         import contextlib
         try:
             with contextlib.suppress(SystemExit):
-                cmd_download(tool, str(archive), self._folder_name)
+                cmd_download(str(tool), str(archive), self._folder_name)
         except SystemExit:
-            return RestoreResult(False, tool, "", str(archive), "download failed (original script exited)")
-        return RestoreResult(True, tool, str(archive), str(archive), "downloaded from Google Drive")
+            return RestoreResult(False, str(tool), "", str(archive), "download failed (original script exited)")
+        return RestoreResult(True, str(tool), str(archive), str(archive), "downloaded from Google Drive")
 
-    def list_archives(self) -> list[Path]:
+    def list_archives(self) -> BackupOutcome:
         """Local backup archives backing this gateway (Drive uploads source)."""
         store = data_home() / "backups"
-        return sorted(store.glob("*.tar.gz")) if store.exists() else []
+        return BackupOutcome(success=True, tool_id="", result=sorted(store.glob("*.tar.gz")) if store.exists() else [])
+
+    def status(self) -> ExitCode:
+        """gdrive gateway has no local store status; exit 0."""
+        return ExitCode(0)
+
+    def help(self) -> ExitCode:
+        """gdrive gateway has no separate help text; exit 0."""
+        return ExitCode(0)
 
     def list(self, folder_name: str = DEFAULT_FOLDER_NAME) -> None:
         """List Drive archives in *folder_name* by delegating to cmd_list."""

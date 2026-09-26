@@ -31,7 +31,7 @@ class SkillsCheckRunner(ICheckProtocol):
         self._pack = self._root / "skills"
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(self, scope: CheckScope) -> CheckExitCode:
+    def run(self, scope: CheckScope) -> CheckExitCode:
         """Run the skill-pack audit; *scope* routing happens in the orchestrator."""
         findings = audit_pack(self._pack)
         total = len(iter_skill_files(self._pack))
@@ -48,8 +48,8 @@ class SkillsCheckRunner(ICheckProtocol):
     def __repr__(self) -> str:
         return "SkillsCheckRunner()"
 
-__all__ = ['CheckExitCode']
 
+__all__ = ["CheckExitCode"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {"CheckExitCode": CheckExitCode}

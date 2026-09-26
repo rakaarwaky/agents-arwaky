@@ -45,7 +45,7 @@ from modules.shared.src.taxonomy_daemon_constant import (
 from modules.shared.src.taxonomy_daemon_constant import (
     ANYTYPE_UNIT_FILE as UNIT_FILE,
 )
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, DaemonUnit, ExitCode
 from modules.shared.src.utility_envfile_parser import update_env_file
 from modules.shared.src.utility_process_runner import cmd_out as out
 from modules.shared.src.utility_process_runner import run_cmd as run
@@ -56,7 +56,7 @@ class AnytypeDaemonManager(IDaemonProtocol):
     """AES facade: exposes the original script actions via IDaemonProtocol.
 
     Block 1 — constructor (stateless, no DI needed beyond module globals).
-    Block 2 — protocol contract (execute) + lifecycle/unit methods it routes to.
+    Block 2 — protocol contract: one method per daemon operation.
     Block 3 — legacy action facades, factories, and helpers retained as-is.
     """
 
@@ -64,46 +64,20 @@ class AnytypeDaemonManager(IDaemonProtocol):
         pass
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        name: str | None = None,
-        unit: str | None = None,
-    ) -> DaemonStatus | ExitCode:
-        """Dispatch a protocol op to the matching action method.
+    def install_unit(self, unit: DaemonUnit) -> ExitCode:
+        """Enable and start the anytype-daemon.service systemd user unit."""
+        del unit  # Anytype owns a single unit; the caller passes it for routing
+        return ExitCode(cmd_service_install())
 
-        Args:
-            op: protocol verb; unknown values raise ValueError.
-            name: optional target name (e.g. auth account or space link).
-            unit: accepted but unused for this capability.
-        """
-        if op == "start":
-            return self.start()
-        if op == "stop":
-            return self.stop()
-        if op == "restart":
-            return self.restart()
-        if op == "status":
-            return self.status()
-        if op == "logs":
-            return self.logs()
-        if op == "install_unit":
-            return self.install_unit()
-        if op == "remove_unit":
-            return self.remove_unit()
-        if op == "unit_status":
-            return self.unit_status()
-        if op == "auth-create":
-            return ExitCode(self.auth_create(name or "agent"))
-        if op == "auth-key":
-            return ExitCode(self.auth_key(name or "arwaky-agent-key"))
-        if op == "space-join":
-            return ExitCode(self.space_join(name or ""))
-        if op == "space-list":
-            return ExitCode(self.space_list())
-        if op == "help":
-            return ExitCode(self.help())
-        raise ValueError(f"Unknown daemon op: {op}")
+    def remove_unit(self, unit: DaemonUnit) -> ExitCode:
+        """Disable and stop the systemd service (also stops the daemon)."""
+        del unit  # Anytype owns a single unit; the caller passes it for routing
+        return self.stop()
+
+    def unit_status(self, unit: DaemonUnit) -> ExitCode:
+        """Report systemd state of the anytype-daemon.service unit."""
+        del unit  # Anytype owns a single unit; the caller passes it for routing
+        return ExitCode(cmd_service_status())
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def start(self) -> ExitCode:
@@ -170,18 +144,6 @@ class AnytypeDaemonManager(IDaemonProtocol):
     def space_list(self) -> int:
         """List all spaces joined by the daemon's bot account."""
         return cmd_space_list()
-
-    def install_unit(self) -> ExitCode:
-        """Enable and start the anytype-daemon.service systemd user unit."""
-        return ExitCode(cmd_service_install())
-
-    def unit_status(self) -> ExitCode:
-        """Report systemd state of the anytype-daemon.service unit."""
-        return ExitCode(cmd_service_status())
-
-    def remove_unit(self) -> ExitCode:
-        """Disable and stop the systemd service (also stops the daemon)."""
-        return self.stop()
 
     def help(self) -> int:
         """Print usage information for the anytype daemon sub-commands."""

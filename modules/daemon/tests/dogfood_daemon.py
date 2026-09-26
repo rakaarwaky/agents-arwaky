@@ -13,5 +13,11 @@ def test_dogfood_daemon_pipeline():
     anytype = AnytypeDaemonManager()
     ninerouter = NinerouterDaemonManager()
 
-    assert hasattr(anytype, 'execute')
-    assert hasattr(ninerouter, 'execute')
+    assert not hasattr(anytype, 'execute')
+    assert not hasattr(ninerouter, 'execute')
+    for m in (anytype, ninerouter):
+        for method in ("start", "stop", "restart", "status", "logs",
+                      "install_unit", "remove_unit", "unit_status"):
+            assert callable(getattr(m, method))
+    assert repr(anytype) == "AnytypeDaemonManager()"
+    assert repr(ninerouter) == "NinerouterDaemonManager()"

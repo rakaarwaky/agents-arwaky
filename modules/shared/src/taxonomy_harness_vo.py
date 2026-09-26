@@ -24,6 +24,23 @@ class HarnessVo:
 
 
 @dataclass(frozen=True)
+class HarnessRequest(HarnessVo):
+    """Immutable request carrying the op, targets, and optional flags."""
+
+    op: HarnessOp
+    targets: HarnessTargets
+    flags: HarnessFlags | None = None
+
+
+@dataclass(frozen=True)
+class HarnessResponse(HarnessVo):
+    """Immutable response carrying the exit code and an optional message."""
+
+    exit_code: ExitCode
+    message: str = ""
+
+
+@dataclass(frozen=True)
 class HarnessConfig(HarnessVo):
     """Registration row for an agent harness connector (taxonomy data)."""
 
@@ -117,6 +134,8 @@ __all__ = [
     "HarnessConfig",
     "HarnessFlags",
     "HarnessOp",
+    "HarnessRequest",
+    "HarnessResponse",
     "HarnessTargets",
     "HarnessVo",
     "RouterCredentials",

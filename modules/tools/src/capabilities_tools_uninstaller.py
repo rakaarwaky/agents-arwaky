@@ -19,8 +19,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsProtocol
-from modules.shared.src.taxonomy_common_error import ToolUninstallError
+from modules.shared.src.contract_tools_protocol import IToolsUninstallerProtocol
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
     UninstallResult,
@@ -93,31 +92,15 @@ def _survivor_reason(path: Path) -> str:
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class UninstallerCapability(IToolsProtocol):
+class UninstallerCapability(IToolsUninstallerProtocol):
     """Business action uninstall(spec, owned_paths, dry_run): remove + verify."""
 
     def __init__(self, daemons: object | None = None) -> None:
         self._daemons = daemons
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        spec: ToolSpec | None = None,
-        query: object | None = None,
-        args: list[str] | None = None,
-    ) -> object:
-        """Single protocol entry: dispatch *op* to the uninstall action.
-
-        *args* carries the owned-path strings resolved by the caller.
-        """
-        if op != "uninstall" or spec is None:
-            raise ToolUninstallError(
-                f"uninstaller capability got op={op!r} (expected 'uninstall' with a spec)"
-            )
-        owned_paths = [Path(a) for a in (args or [])]
-        dry_run = bool(args and "dry-run" in args)
-        return self.uninstall(spec, owned_paths, dry_run=dry_run)
+    def __repr__(self) -> str:
+        return "UninstallerCapability()"
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
@@ -126,12 +109,12 @@ class UninstallerCapability(IToolsProtocol):
     def uninstall(
         self,
         spec: ToolSpec,
-        owned_paths: list[Path],
+        owned_paths: list[Path] | None = None,
         dry_run: bool = False,
     ) -> UninstallResult:
         """Remove owned tool state and verify no residuals remain."""
         # Sub-step 1: generic filesystem teardown + optional service stop.
-        result = self._remove(spec, owned_paths, dry_run=dry_run)
+        result = self._remove(spec, list(owned_paths) if owned_paths else [], dry_run=dry_run)
 
         # Sub-step 2: confirm owned-set removal; a failed removal still
         # gets verified so residuals are surfaced, not hidden.

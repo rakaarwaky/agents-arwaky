@@ -1,4 +1,8 @@
-"""Daemon agent orchestrator — routes actions by daemon name or unit."""
+"""Daemon agent orchestrator — single-execute aggregate over the daemon managers.
+
+Dispatches each ``DaemonRequest.op`` to the matching rich protocol method on
+the injected managers, then wraps the result in a ``DaemonOutcome``.
+"""
 from __future__ import annotations
 
 from typing import ClassVar
@@ -7,10 +11,16 @@ from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 from modules.shared.src.taxonomy_daemon_vo import (
     DaemonName,
-    DaemonStatus,
+    DaemonOp,
+    DaemonOutcome,
+    DaemonRequest,
+    DaemonResponse,
     DaemonUnit,
     ExitCode,
 )
+
+#: Daemon ids the orchestrator can route to, in listing order.
+_KNOWN: tuple[DaemonName, ...] = (DaemonName("9router"), DaemonName("anytype"))
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -20,54 +30,35 @@ class DaemonOrchestrator(IDaemonAggregate):
     def __init__(
         self,
         ninerouter: IDaemonProtocol,
-        anytype: IDaemonProtocol,
+        anytype: IDaemonProtocol | None = None,
     ) -> None:
         self._ninerouter = ninerouter
         self._anytype = anytype
-        self._managers: dict[str, IDaemonProtocol] = {
-            "9router": ninerouter,
-            "anytype": anytype,
-        }
+        self._managers: dict[str, IDaemonProtocol] = {"9router": ninerouter}
+        if anytype is not None:
+            self._managers["anytype"] = anytype
 
     # ─── Block 2: Aggregate Method Implementation ──────────
-    def list_known(self) -> tuple[DaemonName, ...]:
-        """Names of the daemons this orchestrator can route to."""
-        return (DaemonName("9router"), DaemonName("anytype"))
-
-    def start(self, name: DaemonName) -> ExitCode:
-        """Start the named daemon; returns the capability's exit code."""
-        return ExitCode(int(self._require(name).execute("start")))
-
-    def stop(self, name: DaemonName) -> ExitCode:
-        """Stop the named daemon; returns the capability's exit code."""
-        return ExitCode(int(self._require(name).execute("stop")))
-
-    def restart(self, name: DaemonName) -> ExitCode:
-        """Restart the named daemon; returns the capability's exit code."""
-        return ExitCode(int(self._require(name).execute("restart")))
-
-    def status(self, name: DaemonName) -> DaemonStatus:
-        """Query the named daemon and validate its DaemonStatus payload."""
-        result = self._require(name).execute("status")
-        if not isinstance(result, DaemonStatus):
-            raise TypeError(f"status op for {name!r} did not return a DaemonStatus")
-        return result
-
-    def logs(self, name: DaemonName) -> ExitCode:
-        """Tail the named daemon's logs; returns the capability's exit code."""
-        return ExitCode(int(self._require(name).execute("logs")))
-
-    def install_unit(self, unit: DaemonUnit) -> ExitCode:
-        """Install the systemd user unit for the daemon owning *unit*."""
-        return ExitCode(int(self._for_unit(unit).execute("install_unit", unit=unit)))
-
-    def remove_unit(self, unit: DaemonUnit) -> ExitCode:
-        """Remove the systemd user unit for the daemon owning *unit*."""
-        return ExitCode(int(self._for_unit(unit).execute("remove_unit", unit=unit)))
-
-    def unit_status(self, unit: DaemonUnit) -> ExitCode:
-        """Report systemd state of *unit* for the owning daemon."""
-        return ExitCode(int(self._for_unit(unit).execute("unit_status", unit=unit)))
+    def execute(self, request: DaemonRequest) -> DaemonResponse:
+        """Route *request* to the matching protocol method; return the response."""
+        op = DaemonOp(str(request.op))
+        if op == "start":
+            return _from_exit(self._require(_name(request)).start())
+        if op == "stop":
+            return _from_exit(self._require(_name(request)).stop())
+        if op == "restart":
+            return _from_exit(self._require(_name(request)).restart())
+        if op == "status":
+            return _from_status(self._require(_name(request)).status())
+        if op == "logs":
+            return _from_exit(self._require(_name(request)).logs())
+        if op == "install_unit":
+            return _from_exit(self._for_unit(_unit(request)).install_unit(_unit(request)))
+        if op == "remove_unit":
+            return _from_exit(self._for_unit(_unit(request)).remove_unit(_unit(request)))
+        if op == "unit_status":
+            return _from_exit(self._for_unit(_unit(request)).unit_status(_unit(request)))
+        raise ValueError(f"Unknown daemon op: {op}")
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     #: systemd unit filename → daemon id (unit ops accept either form).
@@ -76,6 +67,11 @@ class DaemonOrchestrator(IDaemonAggregate):
         "anytype-daemon.service": "anytype",
         "anytype.service": "anytype",
     }
+
+    @property
+    def known(self) -> tuple[DaemonName, ...]:
+        """Names of the daemons this orchestrator can route to."""
+        return _KNOWN
 
     def _manager(self, name: DaemonName) -> IDaemonProtocol | None:
         return self._managers.get(str(name).lower())
@@ -99,10 +95,43 @@ class DaemonOrchestrator(IDaemonAggregate):
         return "DaemonOrchestrator()"
 
 
+def _name(request: DaemonRequest) -> DaemonName:
+    """Read the daemon name a request routes to; fall back to the first known id."""
+    if request.name is None:
+        return _KNOWN[0]
+    return DaemonName(str(request.name))
+
+
+def _unit(request: DaemonRequest) -> DaemonUnit:
+    """Read the unit a request routes to; fall back to the first known unit."""
+    if request.unit is None:
+        return DaemonUnit("9router.service")
+    return DaemonUnit(str(request.unit))
+
+
+def _from_exit(code: ExitCode) -> DaemonOutcome:
+    """Wrap an exit code in an outcome carrying no status snapshot."""
+    return DaemonOutcome(success=code == 0, exit_code=int(code), message="")
+
+
+def _from_status(status) -> DaemonOutcome:
+    """Wrap a DaemonStatus snapshot in an outcome."""
+    return DaemonOutcome(
+        success=status.ok,
+        exit_code=0 if status.ok else 1,
+        status=status,
+        message="",
+    )
+
+
 __all__ = [
     "DaemonName",
+    "DaemonOp",
     "DaemonOrchestrator",
-    "DaemonStatus",
+    "DaemonOutcome",
+    "DaemonRequest",
+    "DaemonResponse",
+    "DaemonUnit",
     "ExitCode",
     "IDaemonAggregate",
     "IDaemonProtocol",
@@ -111,7 +140,11 @@ __all__ = [
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "DaemonName": DaemonName,
+    "DaemonOp": DaemonOp,
     "DaemonOrchestrator": DaemonOrchestrator,
-    "DaemonStatus": DaemonStatus,
+    "DaemonOutcome": DaemonOutcome,
+    "DaemonRequest": DaemonRequest,
+    "DaemonResponse": DaemonResponse,
+    "DaemonUnit": DaemonUnit,
     "ExitCode": ExitCode,
 }

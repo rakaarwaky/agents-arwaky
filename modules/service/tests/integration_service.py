@@ -8,17 +8,21 @@ def test_service_manager_execution():
 
     from modules.service.src import capabilities_service_manager as csm
     from modules.service.src.capabilities_service_manager import ServiceManager
-    from modules.shared.src.taxonomy_service_vo import ServiceOp
+    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonOutcome, DaemonRequest
 
     manager = ServiceManager()
     mock_agg = MagicMock()
-    mock_agg.status.return_value = 0
+    mock_agg.execute.return_value = DaemonOutcome(success=True, exit_code=0)
     with patch.object(csm, "_DAEMON_AGGREGATE", mock_agg):
-        result = manager.execute(ServiceOp("status"))
+        result = manager.status()
         assert result is not None
-        assert mock_agg.status.call_count == 2
-        mock_agg.status.assert_any_call("9router")
-        mock_agg.status.assert_any_call("anytype")
+        assert mock_agg.execute.call_count == 2
+        mock_agg.execute.assert_any_call(
+            DaemonRequest(DaemonOp("status"), name=DaemonName("9router"))
+        )
+        mock_agg.execute.assert_any_call(
+            DaemonRequest(DaemonOp("status"), name=DaemonName("anytype"))
+        )
 
 
 def test_service_orchestrator_creation():

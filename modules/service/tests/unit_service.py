@@ -5,6 +5,11 @@ from unittest.mock import patch
 
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
 from modules.service.src.capabilities_service_manager import ServiceManager
+from modules.shared.src.taxonomy_service_vo import (
+    ServiceOp,
+    ServiceRequest,
+    ServiceTarget,
+)
 
 
 class TestServiceManager:
@@ -16,14 +21,6 @@ class TestServiceManager:
 
         manager = ServiceManager()
         assert manager is not None
-
-    def test_execute_method_exists(self):
-        """UT-SERVICE-002: execute method exists."""
-        from modules.service.src.capabilities_service_manager import ServiceManager
-
-        manager = ServiceManager()
-        assert hasattr(manager, 'execute')
-        assert callable(getattr(manager, 'execute'))
 
     def test_status_method_exists(self):
         """UT-SERVICE-003: status method exists."""
@@ -86,38 +83,38 @@ class TestServiceOrchestrator:
         orch = ServiceOrchestrator(manager)
         assert orch is not None
 
-    def test_status_delegates(self):
-        """UT-SERVICE-010: status delegates to manager."""
+    def test_execute_status_delegates(self):
+        """UT-SERVICE-010: execute dispatches status to the manager."""
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
-        with patch.object(manager, "execute", return_value=0) as mock_exec:
-            result = orch.status()
-            mock_exec.assert_called_once()
-            assert result == 0
+        with patch.object(manager, "status", return_value=0) as mock_fn:
+            result = orch.execute(ServiceRequest(ServiceOp("status")))
+            mock_fn.assert_called_once()
+            assert int(result) == 0
 
-    def test_start_delegates(self):
-        """UT-SERVICE-011: start delegates to manager (never hits live systemctl)."""
+    def test_execute_start_delegates(self):
+        """UT-SERVICE-011: execute dispatches start to the manager (never hits live systemctl)."""
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
-        with patch.object(manager, "execute", return_value=0) as mock_exec:
-            result = orch.start()
-            mock_exec.assert_called_once()
-            assert result == 0
+        with patch.object(manager, "start", return_value=0) as mock_fn:
+            result = orch.execute(ServiceRequest(ServiceOp("start"), target=ServiceTarget("all")))
+            mock_fn.assert_called_once_with(ServiceTarget("all"))
+            assert int(result) == 0
 
-    def test_stop_delegates(self):
-        """UT-SERVICE-012: stop delegates to manager (never hits live systemctl)."""
+    def test_execute_stop_delegates(self):
+        """UT-SERVICE-012: execute dispatches stop to the manager (never hits live systemctl)."""
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
-        with patch.object(manager, "execute", return_value=0) as mock_exec:
-            result = orch.stop()
-            mock_exec.assert_called_once()
-            assert result == 0
+        with patch.object(manager, "stop", return_value=0) as mock_fn:
+            result = orch.execute(ServiceRequest(ServiceOp("stop"), target=ServiceTarget("9router")))
+            mock_fn.assert_called_once_with(ServiceTarget("9router"))
+            assert int(result) == 0
 
-    def test_restart_delegates(self):
-        """UT-SERVICE-013: restart delegates to manager (never hits live systemctl)."""
+    def test_execute_restart_delegates(self):
+        """UT-SERVICE-013: execute dispatches restart to the manager."""
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
-        with patch.object(manager, "execute", return_value=0) as mock_exec:
-            result = orch.restart()
-            mock_exec.assert_called_once()
-            assert result == 0
+        with patch.object(manager, "restart", return_value=0) as mock_fn:
+            result = orch.execute(ServiceRequest(ServiceOp("restart")))
+            mock_fn.assert_called_once()
+            assert int(result) == 0

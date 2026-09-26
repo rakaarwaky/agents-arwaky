@@ -19,7 +19,7 @@ import datetime
 import json
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsProtocol
+from modules.shared.src.contract_tools_protocol import IToolsUpdaterProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
@@ -30,7 +30,7 @@ from modules.shared.src.taxonomy_common_vo import (
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class UpdaterCapability(IToolsProtocol):
+class UpdaterCapability(IToolsUpdaterProtocol):
     """Business action update(spec, dry_run): bump + record transition."""
 
     def __init__(self, root: Path | None = None,
@@ -40,22 +40,6 @@ class UpdaterCapability(IToolsProtocol):
         self._registry = dict(registry) if registry is not None else {}
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        spec: ToolSpec | None = None,
-        query: object | None = None,
-        args: list[str] | None = None,
-    ) -> object:
-        """Single protocol entry: dispatch *op* to the update action."""
-        if op != "update" or spec is None:
-            raise ToolUpdateError(
-                f"updater capability got op={op!r} (expected 'update' with a spec)"
-            )
-        dry_run = bool(args and "dry-run" in args)
-        adapter = query if query is not None else None
-        return self.update(spec, adapter=adapter, dry_run=dry_run)
-
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "UpdaterCapability()"
