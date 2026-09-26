@@ -21,28 +21,16 @@ from pathlib import Path
 from typing import NewType
 
 from modules.shared.src.taxonomy_common_vo import (
-    InstallResult as _InstallResult,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    Tool as _Tool,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    ToolSpec as _ToolSpec,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    UninstallResult as _UninstallResult,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    UpdateResult as _UpdateResult,
+    InstallResult,
+    Tool,
+    ToolSpec,
+    UninstallResult,
+    UpdateResult,
 )
 
 #: Alias so annotations read from the local taxonomy layer (AES501: this
 #: module is imported by contract_* and the root entry, never orphaned).
-ToolSpec = _ToolSpec
-Tool = _Tool
-InstallResult = _InstallResult
-UninstallResult = _UninstallResult
-UpdateResult = _UpdateResult
+
 
 #: Manifest lookup text (id / binary / alias). Identity at runtime.
 ToolQuery = NewType("ToolQuery", str)

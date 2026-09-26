@@ -2,19 +2,19 @@
 Moved as-is from tools/lib/ui.py (logging domain)."""
 from __future__ import annotations
 
-import logging as _logging
+import logging
 import os
 import re
 import sys
 
 # Structured logging (P1-O1): level + timestamp + correlation ID on log output
-_logger = _logging.getLogger("agents-arwaky")
+_logger = logging.getLogger("agents-arwaky")
 if not _logger.handlers:
-    _handler = _logging.StreamHandler()
+    _handler = logging.StreamHandler()
     _fmt = "%(asctime)s %(levelname)s [%(correlation_id)s] %(message)s"
-    _handler.setFormatter(_logging.Formatter(_fmt, datefmt="%H:%M:%S"))
+    _handler.setFormatter(logging.Formatter(_fmt, datefmt="%H:%M:%S"))
 
-    class _CorrelationFilter(_logging.Filter):
+    class _CorrelationFilter(logging.Filter):
         def filter(self, record):
             """Attach the correlation id to every log record from the ARWAKY_CORRELATION_ID env var."""
             record.correlation_id = os.environ.get("ARWAKY_CORRELATION_ID", "-")
@@ -22,7 +22,7 @@ if not _logger.handlers:
 
     _handler.addFilter(_CorrelationFilter())
     _logger.addHandler(_handler)
-    _logger.setLevel(_logging.INFO)
+    _logger.setLevel(logging.INFO)
 
 
 def log_debug(msg):
@@ -39,7 +39,7 @@ def log_warning(msg):
 
 def set_verbosity(level: str = "info") -> None:
     """Set logger verbosity: debug|info|warning|error (global -v/-q)."""
-    _logger.setLevel(getattr(_logging, level.upper(), _logging.INFO))
+    _logger.setLevel(getattr(logging, level.upper(), logging.INFO))
 
 
 _color_override = None
