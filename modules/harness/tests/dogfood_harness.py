@@ -15,6 +15,6 @@ def test_dogfood_harness_pipeline():
     disconnector = HarnessDisconnector({})
     skills = HarnessSkills({})
 
-    assert hasattr(connector, 'execute')
-    assert hasattr(disconnector, 'execute')
-    assert hasattr(skills, 'execute')
+    assert hasattr(connector, 'connect')
+    assert hasattr(disconnector, 'disconnect')
+    assert hasattr(skills, 'provision_skills')

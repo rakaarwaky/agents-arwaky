@@ -49,9 +49,13 @@ def test_import_config_command():
 
 
 def test_import_config_protocol():
-    """SM-CONFIG-008: IConfigProtocol can be imported."""
-    from modules.shared.src.contract_config_protocol import IConfigProtocol
-    assert IConfigProtocol is not None
+    """SM-CONFIG-008: both config seam ABCs can be imported."""
+    from modules.shared.src.contract_config_protocol import (
+        IConfigReaderProtocol,
+        IConfigModifierProtocol,
+    )
+    assert IConfigReaderProtocol is not None
+    assert IConfigModifierProtocol is not None
 
 
 def test_import_config_aggregate():

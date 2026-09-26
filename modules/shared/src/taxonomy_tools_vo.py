@@ -21,28 +21,16 @@ from pathlib import Path
 from typing import NewType
 
 from modules.shared.src.taxonomy_common_vo import (
-    InstallResult as _InstallResult,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    Tool as _Tool,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    ToolSpec as _ToolSpec,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    UninstallResult as _UninstallResult,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    UpdateResult as _UpdateResult,
+    InstallResult,
+    Tool,
+    ToolSpec,
+    UninstallResult,
+    UpdateResult,
 )
 
 #: Alias so annotations read from the local taxonomy layer (AES501: this
 #: module is imported by contract_* and the root entry, never orphaned).
-ToolSpec = _ToolSpec
-Tool = _Tool
-InstallResult = _InstallResult
-UninstallResult = _UninstallResult
-UpdateResult = _UpdateResult
+
 
 #: Manifest lookup text (id / binary / alias). Identity at runtime.
 ToolQuery = NewType("ToolQuery", str)
@@ -52,6 +40,12 @@ ToolsOp = NewType("ToolsOp", str)
 
 #: Process argument list accepted by the run action.
 ToolArgs = NewType("ToolArgs", list)
+
+#: Path list reported by owned_paths / install / update (AES402 VO).
+ToolPaths = NewType("ToolPaths", list)
+
+#: (satisfied, reason) pair returned by is_pin_satisfied.
+PinCheck = NewType("PinCheck", tuple)
 
 #: Process exit code from the run action. Identity at runtime.
 ExitCode = NewType("ExitCode", int)
@@ -138,10 +132,10 @@ class AdapterUnit:
     """The five adapter action callables registered for one tool id."""
 
     satisfied: Callable[..., bool]
-    install: Callable[..., list[Path]]
-    update: Callable[..., list[Path]]
-    is_pin_satisfied: Callable[..., tuple[bool, str]]
-    owned_paths: Callable[..., list[Path]]
+    install: Callable[..., ToolPaths]
+    update: Callable[..., ToolPaths]
+    is_pin_satisfied: Callable[..., PinCheck]
+    owned_paths: Callable[..., ToolPaths]
 
 
 __all__ = [
@@ -149,13 +143,16 @@ __all__ = [
     "ExitCode",
     "InstallResult",
     "Tool",
+    "PinCheck",
     "ToolArgs",
     "ToolExecutable",
+    "ToolPaths",
     "ToolLifecycleConfig",
     "ToolQuery",
     "ToolRequest",
     "ToolResponse",
     "ToolSpec",
+    "ToolPaths",
     "ToolsOp",
     "UninstallResult",
     "UpdateResult",

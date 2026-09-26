@@ -1,6 +1,6 @@
 """Capability — 9router tool adapter (host-native daemon + launcher).
 
-Implements `IToolsAdapterProtocol` (AES403) and exports the `9router`
+Exports the `9router`
 `AdapterUnit` merged into `TOOLS_REGISTRY` by the root container.
 Shared mechanics live in `utility_tool_mechanics`.
 """
@@ -11,11 +11,9 @@ import shutil
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
-from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
-    ToolSpec,
     agents_arwaky_config_dir,
     atomic_write_text,
     bin_home,
@@ -31,7 +29,6 @@ from modules.shared.src.taxonomy_tools_constant import (
 )
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit
 from modules.shared.src.utility_tool_mechanics import (
-    ROOT,
     make_install,
     make_owned,
     make_pin_check,
@@ -39,50 +36,15 @@ from modules.shared.src.utility_tool_mechanics import (
     make_update,
 )
 
-
 # ─── Block 1: Class Definition & Constructor ──────────────
-class NinerouterToolsAdapter(IToolsAdapterProtocol):
+class NinerouterToolsAdapter(ToolsAdapterBody):
     """9router actions behind the tools adapter protocol (AES403 implementor)."""
 
+    _display = '9router'
+
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
-        self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
-
-    # ─── Block 2: Protocol Method Implementation ──────────────
-    def _unit_for(self, spec: ToolSpec) -> AdapterUnit:
-        """Look up the adapter unit that owns *spec*."""
-        unit = self._units.get(spec.id)
-        if unit is None:
-            raise ToolUpdateError(f"9router adapter has no unit for {spec.id!r}")
-        return unit
-
-    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
-        """True when *spec*'s unit reports installed state."""
-        return self._unit_for(spec).satisfied(spec, root)
-
-    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> tuple[bool, str]:
-        """Return (satisfied, reason) against the manifest pin."""
-        return self._unit_for(spec).is_pin_satisfied(spec, root or ROOT)
-
-    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
-        """Return the paths this adapter owns for *spec*."""
-        return list(self._unit_for(spec).owned_paths(spec, root or ROOT) or [])
-
-    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> list[Path]:
-        """Install or build *spec*; return the created paths."""
-        unit = self._unit_for(spec)
-        try:
-            return list(unit.install(spec, root, daemons=daemons) or [])
-        except TypeError:
-            return list(unit.install(spec, root) or [])
-
-    def update(self, spec: ToolSpec, root: Path) -> list[Path]:
-        """Update *spec* to the manifest pin; return the rebuilt paths."""
-        return list(self._unit_for(spec).update(spec, root) or [])
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return f"NinerouterToolsAdapter(tools={len(self._units)})"
-
+        """Default to this adapter's own unit registry when *units* is omitted."""
+        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
 
 # ---------------------------------------------------------------------------
 # Lifecycle helpers (host-native daemon service + launcher)
@@ -90,7 +52,6 @@ class NinerouterToolsAdapter(IToolsAdapterProtocol):
 def _ninerouter_daemon_feature():
     _daemon_root = "modules.daemon.src.root_daemon_container"
     return importlib.import_module(_daemon_root).create_daemon_feature()
-
 
 def _ninerouter_write_launcher(launcher: Path, root: Path) -> None:
     content = (
@@ -107,7 +68,6 @@ def _ninerouter_write_launcher(launcher: Path, root: Path) -> None:
     )
     atomic_write_text(launcher, content)
     launcher.chmod(0o755)
-
 
 def _ninerouter_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     is_update = action == "update"
@@ -142,7 +102,6 @@ def _ninerouter_lifecycle(action: str, root: Path, daemons) -> list[Path]:
         return [launcher, internal_bin / "9router"]
     return [launcher]
 
-
 ninerouter_satisfied = make_satisfied("9router")
 ninerouter_is_pin_satisfied = make_pin_check("", "daemon service + launcher (force reinstall)")
 ninerouter_owned_paths = make_owned(
@@ -156,7 +115,6 @@ ninerouter_owned_paths = make_owned(
 ninerouter_install = make_install(_ninerouter_lifecycle)
 ninerouter_update = make_update(_ninerouter_lifecycle)
 
-
 def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> AdapterUnit:
     return AdapterUnit(
         satisfied=satisfied,
@@ -165,7 +123,6 @@ def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> Adapt
         is_pin_satisfied=is_pin_satisfied,
         owned_paths=owned_paths,
     )
-
 
 #: tool_id → unit for 9router (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
@@ -177,7 +134,6 @@ ADAPTER_UNITS: dict[str, AdapterUnit] = {
         owned_paths=ninerouter_owned_paths,
     ),
 }
-
 
 __all__ = [
     "ADAPTER_UNITS",

@@ -76,11 +76,7 @@ class HarnessContainer:
         # Router endpoint resolution comes from the daemon feature; the
         # connector treats an absent daemon as "reported, wiring still applied".
         skills = HarnessSkills(adapters)
-        connector = HarnessConnector(
-            adapters,
-            daemon_status_fn=_daemon_status_fn(),
-            skills=skills,
-        )
+        connector = HarnessConnector(adapters, daemon_status_fn=_daemon_status_fn())
         disconnector = HarnessDisconnector(adapters)
         self._orchestrator = HarnessOrchestrator(connector, disconnector, skills)
 

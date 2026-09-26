@@ -2,46 +2,35 @@
 
 Implements ``IConfigAggregate``: a single ``execute`` entry point that the
 surface, root CLI and MCP call with a typed ``ConfigRequest``. Dispatch lives
-here, against the two rich ``IConfigProtocol`` capabilities (writer +
-modifier), each of which implements the whole protocol.
+here, against the two seam capabilities (reader + modifier), each of which
+implements its own protocol. Both are injected by the composition root — the
+agent layer depends on the contracts, never on the concrete capabilities.
 """
 from __future__ import annotations
 
-from modules.config.src.capabilities_config_modifier import ConfigModifier
-from modules.config.src.capabilities_config_writer import ConfigWriter
 from modules.shared.src.contract_config_aggregate import IConfigAggregate
-from modules.shared.src.contract_config_protocol import IConfigProtocol
+from modules.shared.src.contract_config_protocol import (
+    IConfigModifierProtocol,
+    IConfigReaderProtocol,
+)
 from modules.shared.src.taxonomy_common_vo import (
     ConfigOp,
     ConfigRequest,
     ConfigResult,
-    HelpText,
-)
-
-#: Usage text returned by ``help`` and printed by the surface on unknown ops.
-_USAGE = HelpText(
-    "Usage: aa config <op> ...\n"
-    "  load PATH                    Read config; print data + detected format\n"
-    "  save PATH DATA [--fmt FMT]   Write DATA (JSON) back in detected/explicit format\n"
-    "  merge_servers PATH SERVERS   Merge SERVERS (JSON map) into the MCP config\n"
-    "  set_env PATH PAIRS           Upsert PAIRS (JSON map) into the env file\n"
-    "  remove_entries PATH KEYS...  Drop named server/env entries (--dry-run supported)\n"
-    "  inspect PATH                 Print a read-only snapshot (format, data, servers)\n"
-    "  help                         Print this usage\n"
 )
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class ConfigOrchestrator(IConfigAggregate):
-    """Config agent: single-execute aggregate over writer + modifier capabilities."""
+    """Config agent: single-execute aggregate over reader + modifier seams."""
 
     def __init__(
         self,
-        writer: IConfigProtocol | None = None,
-        modifier: IConfigProtocol | None = None,
+        writer: IConfigReaderProtocol,
+        modifier: IConfigModifierProtocol,
     ) -> None:
-        self._writer = writer if writer is not None else ConfigWriter(_USAGE)
-        self._modifier = modifier if modifier is not None else ConfigModifier(_USAGE)
+        self._writer = writer
+        self._modifier = modifier
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def execute(self, request: ConfigRequest) -> ConfigResult:

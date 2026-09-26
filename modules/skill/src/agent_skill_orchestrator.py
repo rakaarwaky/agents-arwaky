@@ -13,7 +13,6 @@ from modules.shared.src.contract_skill_protocol import (
     ISkillProvisionProtocol,
     ISkillRegistryProtocol,
 )
-from modules.shared.src.taxonomy_common_vo import PackFinding
 from modules.shared.src.taxonomy_skill_vo import (
     ARGS_EMPTY,
     FILTER_EMPTY,

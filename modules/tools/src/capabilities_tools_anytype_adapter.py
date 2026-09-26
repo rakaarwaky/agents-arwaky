@@ -1,6 +1,6 @@
 """Capability — anytype tool adapter (bun MCP + container daemon).
 
-Implements `IToolsAdapterProtocol` (AES403) and exports the `anytype` /
+Exports the `anytype` /
 `anytype-daemon` `AdapterUnit`s merged into `TOOLS_REGISTRY` by the root
 container. Shared mechanics live in `utility_tool_mechanics`.
 """
@@ -11,10 +11,9 @@ import shutil
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
-    ToolSpec,
     bin_home,
     data_home,
     ensure_bin_home,
@@ -32,7 +31,6 @@ from modules.shared.src.taxonomy_tools_constant import (
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit
 from modules.shared.src.utility_git_submodule import update_submodule
 from modules.shared.src.utility_tool_mechanics import (
-    ROOT,
     make_install,
     make_multi_satisfied,
     make_owned,
@@ -43,50 +41,15 @@ from modules.shared.src.utility_tool_mechanics import (
     write_node_launcher,
 )
 
-
 # ─── Block 1: Class Definition & Constructor ──────────────
-class AnytypeToolsAdapter(IToolsAdapterProtocol):
-    """Anytype actions behind the tools adapter protocol (AES403 implementor)."""
+class AnytypeToolsAdapter(ToolsAdapterBody):
+    """anytype actions behind the tools adapter protocol (AES403 implementor)."""
+
+    _display = 'anytype'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
-        self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
-
-    # ─── Block 2: Protocol Method Implementation ──────────────
-    def _unit_for(self, spec: ToolSpec) -> AdapterUnit:
-        """Look up the adapter unit that owns *spec*."""
-        unit = self._units.get(spec.id)
-        if unit is None:
-            raise ToolUpdateError(f"anytype adapter has no unit for {spec.id!r}")
-        return unit
-
-    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
-        """True when *spec*'s unit reports installed state."""
-        return self._unit_for(spec).satisfied(spec, root)
-
-    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> tuple[bool, str]:
-        """Return (satisfied, reason) against the manifest pin."""
-        return self._unit_for(spec).is_pin_satisfied(spec, root or ROOT)
-
-    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
-        """Return the paths this adapter owns for *spec*."""
-        return list(self._unit_for(spec).owned_paths(spec, root or ROOT) or [])
-
-    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> list[Path]:
-        """Install or build *spec*; return the created paths."""
-        unit = self._unit_for(spec)
-        try:
-            return list(unit.install(spec, root, daemons=daemons) or [])
-        except TypeError:
-            return list(unit.install(spec, root) or [])
-
-    def update(self, spec: ToolSpec, root: Path) -> list[Path]:
-        """Update *spec* to the manifest pin; return the rebuilt paths."""
-        return list(self._unit_for(spec).update(spec, root) or [])
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return f"AnytypeToolsAdapter(tools={len(self._units)})"
-
+        """Default to this adapter's own unit registry when *units* is omitted."""
+        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
 
 # ---------------------------------------------------------------------------
 # Lifecycle helpers
@@ -94,7 +57,6 @@ class AnytypeToolsAdapter(IToolsAdapterProtocol):
 def _anytype_daemon_feature():
     _daemon_root = "modules" + "." + "daemon" + "." + "src" + "." + "root_daemon_container"
     return importlib.import_module(_daemon_root).create_daemon_feature()
-
 
 def _anytype_write_daemon_launcher(path: Path, root: Path) -> None:
     _daemon_surface = "modules" + "." + "daemon" + "." + "src" + "." + "surface_daemon_command"
@@ -110,13 +72,11 @@ def _anytype_write_daemon_launcher(path: Path, root: Path) -> None:
     )
     path.chmod(0o755)
 
-
 def _anytype_mcp_launchers(app_dir: Path, is_update: bool) -> list[Path]:
     entry = app_dir / ANYTYPE_MCP_ENTRY
     if not entry.exists():
         raise (ToolUpdateError if is_update else FileNotFoundError)(f"entry not found {entry}")
     return [write_node_launcher("anytype-mcp", entry)]
-
 
 def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     is_update = action == "update"
@@ -156,7 +116,6 @@ def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     print(f">>> Successfully {progress_ed} anytype-daemon -> {launcher} (alias ad)")
     return [launcher, alias, internal_bin / "anytype-daemon"]
 
-
 def _anytype_combined_lifecycle(action: str, root: Path, daemons=None) -> list[Path]:
     """Unified lifecycle: MCP + daemon dalam satu function."""
     if action == "update" and not update_submodule(root, ANYTYPE_MCP_SRC_REL):
@@ -171,7 +130,6 @@ def _anytype_combined_lifecycle(action: str, root: Path, daemons=None) -> list[P
         print("Warning: podman/docker not found; anytype-daemon skipped.", file=sys.stderr)
         return mcp_result
     return mcp_result + _anytype_daemon_lifecycle(action, root, daemons)
-
 
 anytype_satisfied = make_multi_satisfied(["anytype-mcp", "anytype-daemon"])
 anytype_is_pin_satisfied = make_pin_check(
@@ -192,7 +150,6 @@ anytype_daemon_owned_paths = make_owned(
 anytype_daemon_install = make_install(_anytype_daemon_lifecycle)
 anytype_daemon_update = make_update(_anytype_daemon_lifecycle)
 
-
 def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> AdapterUnit:
     return AdapterUnit(
         satisfied=satisfied,
@@ -201,7 +158,6 @@ def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> Adapt
         is_pin_satisfied=is_pin_satisfied,
         owned_paths=owned_paths,
     )
-
 
 #: tool_id → unit for the anytype feature (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
@@ -220,7 +176,6 @@ ADAPTER_UNITS: dict[str, AdapterUnit] = {
         owned_paths=anytype_daemon_owned_paths,
     ),
 }
-
 
 __all__ = [
     "ADAPTER_UNITS",

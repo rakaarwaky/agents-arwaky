@@ -28,21 +28,11 @@ from modules.shared.src.taxonomy_common_constant import (
 from modules.shared.src.taxonomy_common_vo import (
     DocFinding,
     blank_fenced,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    is_resolvable_link as _is_resolvable,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    markdown_links as md_links,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    norm_md_heading as _norm,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    numbered_lines as _lines,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    read_md_text as _read,
+    is_resolvable_link,
+    markdown_links,
+    norm_md_heading,
+    numbered_lines,
+    read_md_text,
 )
 
 
@@ -50,8 +40,8 @@ from modules.shared.src.taxonomy_common_vo import (
 def check_links(path: Path, *, skill_local_only: bool = False) -> list[DocFinding]:
     """Rule *every pointer a document tells the reader to follow resolves*."""
     findings: list[DocFinding] = []
-    for target, number in md_links(_read(path)):
-        if not _is_resolvable(target):
+    for target, number in markdown_links(read_md_text(path)):
+        if not is_resolvable_link(target):
             continue
         if skill_local_only and not target.startswith(("references/", "scripts/", "assets/")):
             continue
@@ -69,8 +59,8 @@ def check_surface_links(skill_md: Path) -> list[DocFinding]:
     """Rule *a skill surfaces every file under* ``references/`` */*scripts/``*, so an
     agent is actually told to open it, and every skill-internal pointer resolves."""
     findings: list[DocFinding] = []
-    raw = _read(skill_md)
-    surfaced = {target for target, _ in md_links(raw)}
+    raw = read_md_text(skill_md)
+    surfaced = {target for target, _ in markdown_links(raw)}
     skill_dir = skill_md.parent
     refs = skill_dir / "references"
     # SKILL.md's own local links are covered by check_links; the reference files it
@@ -108,8 +98,8 @@ def _check_internal_links(doc: Path, skill_dir: Path) -> list[DocFinding]:
     advisory; one that resolves from neither is a broken pointer nobody can follow.
     """
     findings: list[DocFinding] = []
-    for target, number in md_links(_read(doc)):
-        if not _is_resolvable(target):
+    for target, number in markdown_links(read_md_text(doc)):
+        if not is_resolvable_link(target):
             continue
         bare = target.split("#", 1)[0]
         if not bare:
@@ -142,7 +132,7 @@ def _check_internal_links(doc: Path, skill_dir: Path) -> list[DocFinding]:
 def check_hygiene(path: Path) -> list[DocFinding]:
     """Rules *no absolute personal path* and *no secret*, in any owned document."""
     findings: list[DocFinding] = []
-    for number, line in _lines(blank_fenced(_read(path))):
+    for number, line in numbered_lines(blank_fenced(read_md_text(path))):
         if _ABSOLUTE_PATH.search(line):
             findings.append(DocFinding(
                 "absolute-path",
@@ -175,7 +165,7 @@ def _secret_value(line: str) -> str:
 
 def _ci_text(root: Path) -> str:
     workflows = root / ".github" / "workflows"
-    return "\n".join(_read(f) for f in sorted(workflows.glob("*.yml"))) if workflows.is_dir() else ""
+    return "\n".join(read_md_text(f) for f in sorted(workflows.glob("*.yml"))) if workflows.is_dir() else ""
 
 
 def check_command_drift(agents_md: Path, ci_text: str) -> list[DocFinding]:
@@ -191,12 +181,12 @@ def check_command_drift(agents_md: Path, ci_text: str) -> list[DocFinding]:
     in_commands = False
     commands_level = 0
     fence = ""
-    for number, line in _lines(_read(agents_md)):
+    for number, line in numbered_lines(read_md_text(agents_md)):
         heading = _HEADING_LINE.match(line) if not fence else None
         if heading:
             level = len(heading.group(1))
-            title = _norm(heading.group(2))
-            if any(_norm(alias) in title for alias in _COMMANDS_HEADINGS):
+            title = norm_md_heading(heading.group(2))
+            if any(norm_md_heading(alias) in title for alias in _COMMANDS_HEADINGS):
                 in_commands, commands_level = True, level
             elif in_commands and level <= commands_level:
                 in_commands = False
@@ -241,7 +231,7 @@ def check_length_budget(path: Path) -> list[DocFinding]:
     if not budget:
         return []
     unit, low, high = budget
-    text = _read(path)
+    text = read_md_text(path)
     count = len(text.splitlines()) if unit == "lines" else len(text.split())
     if count > high:
         return [DocFinding(

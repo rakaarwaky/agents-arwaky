@@ -65,12 +65,12 @@ def load_file(path: Path):
         return data, fmt
     # ruamel fallback
     try:
-        import ruamel.yaml
-        data = ruamel.yaml.YAML(typ="safe").load(text) or {}
+        from ruamel import yaml
+        data = yaml.YAML(typ="safe").load(text) or {}
         return data, fmt
     except ImportError:
         pass  # ruamel not installed
-    except ruamel.yaml.YAMLError:
+    except yaml.YAMLError:
         pass  # malformed YAML
     return {}, fmt
 
@@ -103,15 +103,15 @@ def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> boo
             dumped = False
             if preserve_comments:
                 try:
-                    import ruamel.yaml
-                    y = ruamel.yaml.YAML()
+                    from ruamel import yaml
+                    y = yaml.YAML()
                     y.preserve_quotes = True
                     with path.open("w", encoding="utf-8") as f:
                         y.dump(data, f)
                     dumped = True
                 except ImportError:
                     dumped = False  # ruamel unavailable; fall back to pyyaml
-                except ruamel.yaml.YAMLError:
+                except yaml.YAMLError:
                     dumped = False  # ruamel dump failed; fall back to pyyaml
             if not dumped:
                 import yaml
@@ -187,13 +187,13 @@ def remove_env_keys(path: Path, keys, dry_run: bool = False) -> list:
     Delegates to envfile.remove_env_keys for the core logic.
     """
     from modules.shared.src.utility_envfile_parser import (
-        remove_env_keys as _envfile_remove,
+        parse_env_file,
+        remove_env_keys,
     )
     if dry_run:
-        from modules.shared.src.utility_envfile_parser import parse_env_file
         env = parse_env_file(path)
         return [k for k in keys if k in env]
-    return _envfile_remove(path, keys)
+    return remove_env_keys(path, keys)
 
 
 # ---------------------------------------------------------------------------

@@ -20,8 +20,6 @@ from modules.shared.src.taxonomy_common_constant import (
     DESCRIPTION_BUDGET_BYTES,
     ERROR,
     SKILL_FILE,
-)
-from modules.shared.src.taxonomy_common_constant import (
     REPO_ROOT as repo_root,
 )
 

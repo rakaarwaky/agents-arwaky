@@ -34,21 +34,25 @@ class TestHarnessConnector:
         connector = HarnessConnector({}, daemon_status_fn=status_fn)
         assert connector._daemon_status_fn == status_fn
 
-    def test_execute_method_exists(self):
-        """UT-HARNESS-004: execute method exists."""
-        from modules.harness.src.capabilities_harness_connector import HarnessConnector
-
-        connector = HarnessConnector({})
-        assert hasattr(connector, 'execute')
-        assert callable(getattr(connector, 'execute'))
-
     def test_connect_method_exists(self):
-        """UT-HARNESS-005: connect method exists."""
+        """UT-HARNESS-004: the connect seam declares the named method."""
         from modules.harness.src.capabilities_harness_connector import HarnessConnector
+        from modules.shared.src.contract_harness_protocol import IHarnessConnectProtocol
 
         connector = HarnessConnector({})
-        assert hasattr(connector, 'connect')
+        assert isinstance(connector, IHarnessConnectProtocol)
         assert callable(getattr(connector, 'connect'))
+
+    def test_provision_clause_delegates_to_injected_skills(self):
+        """UT-HARNESS-004b: connect provisions skills via the injected seam."""
+        from unittest.mock import MagicMock
+
+        from modules.harness.src.capabilities_harness_connector import HarnessConnector
+
+        skills = MagicMock()
+        skills.provision_skills.return_value = 0
+        connector = HarnessConnector({}, skills=skills)
+        assert connector._skills is skills
 
 
 class TestHarnessDisconnector:
@@ -61,13 +65,14 @@ class TestHarnessDisconnector:
         disconnector = HarnessDisconnector({})
         assert disconnector is not None
 
-    def test_execute_method_exists(self):
-        """UT-HARNESS-007: execute method exists."""
+    def test_disconnect_method_exists(self):
+        """UT-HARNESS-006: the disconnect seam declares the named method."""
         from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+        from modules.shared.src.contract_harness_protocol import IHarnessDisconnectProtocol
 
         disconnector = HarnessDisconnector({})
-        assert hasattr(disconnector, 'execute')
-        assert callable(getattr(disconnector, 'execute'))
+        assert isinstance(disconnector, IHarnessDisconnectProtocol)
+        assert callable(getattr(disconnector, 'disconnect'))
 
 
 class TestHarnessSkills:
@@ -80,13 +85,14 @@ class TestHarnessSkills:
         skills = HarnessSkills({})
         assert skills is not None
 
-    def test_execute_method_exists(self):
-        """UT-HARNESS-009: execute method exists."""
+    def test_provision_skills_method_exists(self):
+        """UT-HARNESS-008: the skills seam declares the named method."""
         from modules.harness.src.capabilities_harness_skills import HarnessSkills
+        from modules.shared.src.contract_harness_protocol import IHarnessSkillsProtocol
 
         skills = HarnessSkills({})
-        assert hasattr(skills, 'execute')
-        assert callable(getattr(skills, 'execute'))
+        assert isinstance(skills, IHarnessSkillsProtocol)
+        assert callable(getattr(skills, 'provision_skills'))
 
 
 class TestHarnessLeafAdapters:

@@ -10,14 +10,23 @@ def test_dogfood_config_pipeline():
     from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
 
-    from modules.shared.src.contract_config_protocol import IConfigProtocol
+    from modules.shared.src.contract_config_protocol import (
+        IConfigReaderProtocol,
+        IConfigModifierProtocol,
+    )
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
 
-    # Capabilities expose the rich protocol; neither carries a dispatch bag.
+    # Each capability exposes its own named-method seam; neither carries a
+    # dispatch bag, and neither implements the other's seam.
     for cap in (writer, modifier):
-        assert isinstance(cap, IConfigProtocol)
         assert not hasattr(cap, 'execute')
-        for name in IConfigProtocol.__abstractmethods__:
-            assert callable(getattr(cap, name))
+
+    assert isinstance(writer, IConfigReaderProtocol)
+    for name in IConfigReaderProtocol.__abstractmethods__:
+        assert callable(getattr(writer, name))
+
+    assert isinstance(modifier, IConfigModifierProtocol)
+    for name in IConfigModifierProtocol.__abstractmethods__:
+        assert callable(getattr(modifier, name))

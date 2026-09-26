@@ -3,21 +3,30 @@ from __future__ import annotations
 
 
 def test_config_protocol_exists():
-    """CP-CONFIG-001: IConfigProtocol ABC is importable and rich (one method per op)."""
-    from modules.shared.src.contract_config_protocol import IConfigProtocol
+    """CP-CONFIG-001: IConfigReaderProtocol and IConfigModifierProtocol are importable."""
+    from modules.shared.src.contract_config_protocol import (
+        IConfigReaderProtocol,
+        IConfigModifierProtocol,
+    )
 
-    assert IConfigProtocol is not None
-    for op in (
-        "load",
-        "save",
-        "merge_servers",
-        "set_env",
-        "remove_entries",
-        "inspect",
-        "help",
-    ):
-        assert hasattr(IConfigProtocol, op)
-    assert not hasattr(IConfigProtocol, "execute")
+    assert IConfigReaderProtocol is not None
+    assert IConfigModifierProtocol is not None
+
+
+def test_config_reader_seam_has_read_ops():
+    """CP-CONFIG-001b: the reader seam carries load/save/inspect/help."""
+    from modules.shared.src.contract_config_protocol import IConfigReaderProtocol
+
+    for op in ("load", "save", "inspect", "help"):
+        assert hasattr(IConfigReaderProtocol, op), op
+
+
+def test_config_modifier_seam_has_mutating_ops():
+    """CP-CONFIG-001c: the modifier seam carries merge/set/remove/help."""
+    from modules.shared.src.contract_config_protocol import IConfigModifierProtocol
+
+    for op in ("merge_servers", "set_env", "remove_entries", "help"):
+        assert hasattr(IConfigModifierProtocol, op), op
 
 
 def test_config_aggregate_has_single_execute():
@@ -84,42 +93,47 @@ def test_config_orchestrator_class_exists():
     assert repr(orch) == "ConfigOrchestrator()"
 
 
-def test_config_writer_implements_protocol():
-    """CP-CONFIG-007: ConfigWriter implements the whole IConfigProtocol."""
+def test_config_writer_implements_reader_seam():
+    """CP-CONFIG-007: ConfigWriter implements the reader seam and nothing more."""
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.contract_config_protocol import IConfigProtocol
+    from modules.shared.src.contract_config_protocol import (
+        IConfigModifierProtocol,
+        IConfigReaderProtocol,
+    )
 
     writer = ConfigWriter()
-    assert isinstance(writer, IConfigProtocol)
-    for op in (
-        "load",
-        "save",
-        "merge_servers",
-        "set_env",
-        "remove_entries",
-        "inspect",
-        "help",
-    ):
+    assert isinstance(writer, IConfigReaderProtocol)
+    for op in ("load", "save", "inspect", "help"):
         assert callable(getattr(writer, op))
+    assert not isinstance(writer, IConfigModifierProtocol)
 
 
-def test_config_modifier_implements_protocol():
-    """CP-CONFIG-008: ConfigModifier implements the whole IConfigProtocol."""
+def test_config_modifier_implements_modifier_seam():
+    """CP-CONFIG-008: ConfigModifier implements the modifier seam and nothing more."""
     from modules.config.src.capabilities_config_modifier import ConfigModifier
-    from modules.shared.src.contract_config_protocol import IConfigProtocol
+    from modules.shared.src.contract_config_protocol import (
+        IConfigModifierProtocol,
+        IConfigReaderProtocol,
+    )
 
     modifier = ConfigModifier()
-    assert isinstance(modifier, IConfigProtocol)
-    for op in (
-        "load",
-        "save",
-        "merge_servers",
-        "set_env",
-        "remove_entries",
-        "inspect",
-        "help",
-    ):
+    assert isinstance(modifier, IConfigModifierProtocol)
+    for op in ("merge_servers", "set_env", "remove_entries", "help"):
         assert callable(getattr(modifier, op))
+    assert not isinstance(modifier, IConfigReaderProtocol)
+
+
+def test_no_config_capability_carries_a_stub():
+    """CP-CONFIG-016: no config capability raises NotImplementedError (AES304/Rule 4)."""
+    from pathlib import Path
+
+    config_src = Path("modules/config/src")
+    offenders = [
+        f.name
+        for f in config_src.glob("*.py")
+        if "raise NotImplementedError" in f.read_text()
+    ]
+    assert offenders == [], f"NotImplementedError stubs remain in: {offenders}"
 
 
 def test_config_orchestrator_implements_aggregate():
