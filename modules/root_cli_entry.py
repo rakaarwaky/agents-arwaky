@@ -484,9 +484,13 @@ def cmd_mcp(argv: list[str]) -> int:
         from modules.mcp.src.root_mcp_container import create_mcp_feature
         return create_mcp_feature()
 
+    def _request(op, **fields):
+        from modules.shared.src.taxonomy_mcp_vo import McpOp, McpRequest
+        return _feature().execute(McpRequest(McpOp(op), **fields))
+
     def _generate(target: str | None = None) -> int:
         out = repo_root() / target if target else generated
-        return _feature().generate(out)
+        return int(_request("generate", output=out))
 
     if action == "list":
         if "--json" in argv:
@@ -510,8 +514,7 @@ def cmd_mcp(argv: list[str]) -> int:
         raw = argv[1] if len(argv) > 1 and not argv[1].startswith("-") else None
         if raw is not None:
             from modules.shared.src.taxonomy_mcp_vo import McpServerId
-
-            return _feature().show_server(McpServerId(raw))
+            return int(_request("show", server_id=McpServerId(raw)))
         if not generated.exists():
             warn("Configuration file not found. Generating now...")
             _generate()
