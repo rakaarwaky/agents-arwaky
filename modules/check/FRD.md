@@ -9,13 +9,15 @@
 
 ## System Overview
 
-The check feature is the repository quality gate behind `aa check`: one
-protocol method, `execute(scope)`, covers every audit, and the aggregate
-(`check`, `check_docs`, `check_skill`, `summary`) exposes each path to the
-CLI. Flow: root CLI → check aggregate → document-invariant audit and/or
-skill-pack audit (fixed order: docs, then skill) → shared audit engines →
-findings collapsed into one exit code. Either audit runs alone via its
-scope, every finding gates, and the process exit equals the aggregate exit.
+The check feature is the repository quality gate behind `aa check`: the
+capability protocol declares one method per audit (`run(scope)` on
+`ICheckProtocol`), and the aggregate (`check`, `check_docs`, `check_skill`,
+`summary`) exposes each path to the CLI through its single
+`execute(request) → response` entry point. Flow: root CLI → check aggregate
+→ document-invariant audit and/or skill-pack audit (fixed order: docs, then
+skill) → shared audit engines → findings collapsed into one exit code.
+Either audit runs alone via its scope, every finding gates, and the process
+exit equals the aggregate exit.
 
 
 ## Functional Requirements
@@ -97,7 +99,7 @@ scope, every finding gates, and the process exit equals the aggregate exit.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `execute` | `scope` (`all\|docs\|skill`) | exit + findings | non-zero gate | — | one method covers docs + skill audit |
+| `run` | `scope` (`all\|docs\|skill`) | exit code | non-zero gate | — | one method per audit capability; one method covers the docs + skill audit |
 
 ### Aggregate API
 

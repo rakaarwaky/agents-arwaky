@@ -3,17 +3,17 @@
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
-Last Updated: 2026-09-23
+Last Updated: 2026-09-26
 
 ## Current Condition
 
-- Done: protocol `execute(scope)` + aggregate `check` / `check_docs` /
-  `check_skill` / `summary` wired through orchestrator and surface;
-  strict-only gate green for this feature — `check docs modules/check`
-  → 0 findings and `check skill` → PASSED (92 skills / 20 categories)
-  at `f87a775`; FRD carries 3 FRs (`FR-CHECK-001`–`FR-CHECK-003`)
-  with 6 scenarios.
-- In Progress: none (redesign slice complete).
+- Done: `ICheckProtocol` is a rich ABC (one named method per audit path —
+  `check`, `check_docs`, `check_skill`, `summary`) — no dispatch bag, no
+  `execute(scope)` envelope. Aggregate still exposes a single `execute`
+  entry point for the surface/CLI call site. Gate: `lint-arwaky-cli scan
+  modules/check` → 0 violations; `python3 -m pytest modules/check -q` → 37
+  passed at `6df9f21`; `aa check` reports 100 skills across 21 categories.
+- In Progress: none.
 - Blocked: none.
 - Next Action: keep `aa check` green as docs evolve (CHK-01 closed).
 
@@ -21,9 +21,9 @@ Last Updated: 2026-09-23
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| CHK-01 | FR-CHECK-001, FR-CHECK-002, FR-CHECK-003 | Gate aggregation + docs + skills runners | P0 | Done | Gate: `python3 -m modules.root_cli_entry check` dispatches docs `[1/2]` then skill `[2/2]`; strict-only (engine promotes every finding at exit; no `--strict` flag, no advisory tier); skill step PASSED at `f87a775`. | @raka | None | 2026-09-23 |
+| CHK-01 | FR-CHECK-001, FR-CHECK-002, FR-CHECK-003 | Gate aggregation + docs + skills runners | P0 | Done | Gate: `python3 -m modules.root_cli_entry check` dispatches docs `[1/2]` then skill `[2/2]`; strict-only (engine promotes every finding at exit; no `--strict` flag, no advisory tier); skill step PASSED at `6df9f21`. | @raka | None | 2026-09-26 |
 | CHK-02 | FR-CHECK-001 | Document invariant audit (`aa check docs`) | P0 | Done | Gate: `python3 -m modules.root_cli_entry check docs modules/check` → 0 findings (2 documents) at `f87a775`. | @raka | None | 2026-09-23 |
-| CHK-04 | FR-CHECK-002 | Skill-pack loadability runner (`aa check skill`) | P0 | Done | `python3 -m modules.root_cli_entry check skill` → PASSED, 92 skills across 20 categories at `f87a775`. | @raka | None | 2026-09-23 |
+| CHK-04 | FR-CHECK-002 | Skill-pack loadability runner (`aa check skill`) | P0 | Done | `python3 -m modules.root_cli_entry check skill` → PASSED, 100 skills across 21 categories at `6df9f21`. | @raka | None | 2026-09-26 |
 | CHK-03 | FR-CHECK-001–FR-CHECK-003 | FRD + BACKLOG pair authoring / template alignment for check | P0 | Done | `python3 -m modules.root_cli_entry check docs modules/check` → 0 errors at `f87a775`; `check_frd_template` clean. | @raka | None | 2026-09-23 |
 | CHK-05 | FR-CHECK-001, FR-CHECK-002, FR-CHECK-003 | Standard CLI scopes `aa check docs` / `aa check skill` | P0 | Done | `python3 -m modules.root_cli_entry check skill` + `check docs` smoke scopes at `f87a775`; unknown scope → usage exit 1. | @raka | None | 2026-09-23 |
 
@@ -52,7 +52,7 @@ None — strict gate (CHK-01) is closed; research-template README findings clear
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Tests | Done | `check docs modules/check` → 0 findings and `check skill` → PASSED at `f87a775`; full gate dispatches `[1/2]`/`[2/2]` |
+| Tests | Done | `check docs modules/check` → 0 findings and `check skill` → PASSED at `6df9f21`; full gate dispatches `[1/2]`/`[2/2]` |
 | Scenario evidence | Done | 6 of 6 scenarios mapped (6 Proxy) |
 | Docs | Done | FRD rewritten to the approved redesign plan; pair matches HOW-TO (CHK-03) |
 

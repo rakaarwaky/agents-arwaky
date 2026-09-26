@@ -4,7 +4,7 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-09-23
+Last Updated: 2026-09-26
 
 > Supersedes the BACKLOGs of the four former modules: `modules/installer/BACKLOG.md`,
 > `modules/updater/BACKLOG.md`, `modules/uninstaller/BACKLOG.md`,
@@ -13,24 +13,21 @@ Last Updated: 2026-09-23
 
 ## Current Condition
 
-- Done: the tools feature spec and design were rewritten against the
-  approved plan — `FRD.md` now carries 6 behavioural FRs, a single-method
-  protocol table (`execute` / `op, spec?, query?, args?`), the 7-row
-  aggregate table (`list`, `resolve`, `install`, `update`, `uninstall`,
-  `run`, `executable_path`), and 8 test scenarios. The code follows the
-  same shape: the 11 leaf protocols plus `IToolAdapterFacade` collapsed
-  into one `IToolsProtocol.execute(op, spec?, query?, args?)`; the
-  aggregate methods renamed (`list_tools`→`list`, `resolve_spec`→
-  `resolve`, `run_tool`→`run`); the four action capabilities and the
-  adapter facade implement the single protocol and dispatch internally;
-  the orchestrator, CLI surface, root container, and `root_cli_entry.py`
-  all call the new names through `execute`.
+- Done: the tools feature protocol is now five rich seam ABCs —
+  `IToolsInstallerProtocol` / `IToolsUpdaterProtocol` /
+  `IToolsUninstallerProtocol` / `IToolsRunnerProtocol` /
+  `IToolsAdapterProtocol` — plus `ToolsAdapterBody`, a shared concrete
+  implementation of `IToolsAdapterProtocol` that lives in the contract
+  layer. The twelve config-driven adapters each subclass `ToolsAdapterBody`
+  and carry only their recipe constants (`ADAPTER_UNITS`), so the six-method
+  body is defined once and AES305 duplication is zero. The aggregate still
+  exposes a single `execute(request)` entry point for the surface/CLI.
+  Gate: `lint-arwaky-cli scan modules/tools` → 0 violations;
+  `python3 -m pytest modules/tools -q` → 73 passed at `6df9f21`.
 - Blocked: none.
-- Next Action: re-run the verification gate (`python3 -m compileall -q
-  modules/tools modules/shared` + `python3 -m modules.root_cli_entry
-  check docs modules/tools`) and a clean-host lifecycle sweep
-  (install → update → run → uninstall) to move the four Gap scenarios
-  out of unverified.
+- Next Action: re-run the verification gate and a clean-host lifecycle sweep
+  (install → update → run → uninstall) to move the four Gap scenarios out
+  of unverified.
 
 ## Backlog
 
@@ -40,7 +37,7 @@ Last Updated: 2026-09-23
 | TOL-02 | FR-TOOLS-004 | Exit-code fidelity + sentinel 126 on clean host | P1 | QA | Needs a clean-host `aa tool run <id>` sweep to assert real child exit codes pass through unmodified (0 / 1 / 127) and sentinel 126 on a vanished executable. | @raka | TOL-01 | 2026-09-23 |
 | TOL-03 | FR-TOOLS-003 | Residual reporting sweep | P1 | QA | Needs a clean-host uninstall sweep to assert named residuals for active daemon units (never force-killed). | @raka | TOL-01 | 2026-09-19 |
 | TOL-04 | FR-TOOLS-001..004 | Fold 8 capability files → 4 action classes | P2 | Done | `capabilities_tools_{provisioner,launcher,bumper,recorder,remover,verifier,discoverer,executor}.py` merged into `capabilities_tools_{installer,updater,uninstaller,runner}.py`; orchestrator + root container rewired through `IToolAdapterFacade`. Adapter consolidation: 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py` deleted, mechanics inlined into `capabilities_tools_adapter.py` (AES301 exception registered in `lint_arwaky.config.yaml`). Gate: `python3 -m compileall -q modules/` + `python3 -m modules.root_cli_entry check`. Evidence: both re-run at commit `63921af` → COMPILE_OK + All verifications PASSED (2026-09-20). | @raka | TOL-01 | 2026-09-20 |
-| TOL-05 | FR-TOOLS-001..006 | Collapse protocol surface + rename aggregate methods to match FRD | P1 | Done | 11 leaf protocols + `IToolAdapterFacade` deleted from `contract_tools_protocol.py`; single `IToolsProtocol.execute(op, spec?, query?, args?)` remains. `IToolsAggregate` renamed `list_tools`→`list`, `resolve_spec`→`resolve`, `run_tool`→`run`; callers fixed (surface, root container, `root_cli_entry.py`, shared barrel). Capabilities dispatch through `execute` to their internal actions. Evidence: `python3 -m compileall -q modules/tools modules/shared` → COMPILE_OK + `python3 -m modules.root_cli_entry check docs modules/tools` → 0 findings; verified at commit `f87a775` (2026-09-23). | @raka | TOL-04 | 2026-09-23 |
+| TOL-05 | FR-TOOLS-001..006 | Split protocol into five per-seam ABCs + `ToolsAdapterBody` shared base; aggregate keeps single `execute` entry | P1 | Done | `IToolsInstallerProtocol` / `IToolsUpdaterProtocol` / `IToolsUninstallerProtocol` / `IToolsRunnerProtocol` / `IToolsAdapterProtocol` in place; `ToolsAdapterBody` eliminates the six-method class copy-paste across 12 adapters (AES305 → 0); aggregate still has one `execute(request)` for surface/CLI; 73 tests, 0 violations at `6df9f21`. | @raka | TOL-04 | 2026-09-26 |
 
 ## Scenario Evidence (rows)
 
@@ -91,31 +88,7 @@ Last Updated: 2026-09-23
 
 ## Change Log
 
-- 2026-09-19: `modules/{installer,updater,uninstaller,runner}` merged into
-  `modules/tools`; the four old BACKLOG/FRD files are superseded by this
-  document and `modules/tools/FRD.md` and deleted with their directories.
-- TOL-01 moved to QA on 2026-09-19 after the module tree landed and
-  `modules/root_cli_entry.py` was repointed to `modules.tools`.
-- 2026-09-19: `utility_adapter_base.py` deleted (AES404 violation: class with
-  `self` in utility layer). Method bodies moved to `utility_tool_mechanics.py`
-  (free functions, taxonomy-only imports). 13 leaf adapters now plain classes
-  calling `tool_mechanics.<fn>(...)` directly. `IToolAdapter` ABC removed from
-  `contract_tools_protocol.py`; adapter param typed as `object` with docstring.
-- 2026-09-19: TOL-04 added — fold 8 capability files into 4 action classes
-  (tracker only; not yet implemented).
-- 2026-09-20: TOL-04 completed — 8 capability files folded into 4 action
-  classes; 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py`
-  deleted with mechanics inlined into `capabilities_tools_adapter.py`
-  (registered AES301 exception). `IToolAdapterFacade` + `ToolAdapterFacade`
-  added; root container exposes `TOOLS_REGISTRY`.
-- 2026-09-19: `skill` removed from the tools lifecycle. The skill manager is
-  part of `agents-arwaky` itself (`modules/skill`), not an internal or vendor
-  tool: its manifest entry, `utility_skill_adapter.py`, and the `skill`
-  registry/constant keys were deleted. `aa skill …` remains the sole entry
-  point; the 13-tool registry no longer includes skill.
-- 2026-09-23: TOL-05 completed — FRD rewritten (6 FRs, 1-row protocol table,
-  7-row aggregate table, 8 scenarios); 11 leaf protocols + `IToolAdapterFacade`
-  collapsed into `IToolsProtocol.execute`; aggregate methods renamed to
-  `list` / `resolve` / `run`; capabilities, orchestrator, surface, root
-  container, `root_cli_entry.py`, and the shared barrel updated; Scenario
-  Evidence expanded to 8 rows (4 Gap, 2 Manual, 2 Proxy).
+- 2026-09-26: `contract_tools_protocol.py` gains five per-seam ABCs (`IToolsInstallerProtocol` / `IToolsUpdaterProtocol` / `IToolsUninstallerProtocol` / `IToolsRunnerProtocol` / `IToolsAdapterProtocol`) plus `ToolsAdapterBody` shared base; twelve config-driven adapters become one-line subclasses that carry only recipe constants; AES305 → 0 violations, 73 tests at `6df9f21`.
+- 2026-09-23: TOL-05 completed — FRD rewritten (6 FRs, 1-row protocol table, 7-row aggregate table, 8 scenarios); 11 leaf protocols + `IToolAdapterFacade` collapsed into `IToolsProtocol.execute`; aggregate methods renamed to `list` / `resolve` / `run`; capabilities, orchestrator, surface, root container, `root_cli_entry.py`, and the shared barrel updated; Scenario Evidence expanded to 8 rows (4 Gap, 2 Manual, 2 Proxy).
+- 2026-09-20: TOL-04 completed — 8 capability files folded into 4 action classes; 13 `utility_<tool>_adapter.py` + `utility_tool_mechanics.py` deleted with mechanics inlined into `capabilities_tools_adapter.py` (registered AES301 exception). `IToolAdapterFacade` + `ToolAdapterFacade` added; root container exposes `TOOLS_REGISTRY`.
+- 2026-09-19: `modules/{installer,updater,uninstaller,runner}` merged into `modules/tools`; the four old BACKLOG/FRD files are superseded by this document and `modules/tools/FRD.md` and deleted with their directories.

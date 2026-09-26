@@ -4,15 +4,21 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-09-23
+Last Updated: 2026-09-26
 
 ## Current Condition
 
-- Done: verify green in the working tree at `f87a775` —
-  `python3 -m compileall -q modules/config modules/shared`,
-  `python3 -m modules.root_cli_entry check docs modules/config` → 0 findings,
-  and the `create_config_feature` import; CFG-02 dry-run removal at `5556fd5`.
-- In Progress: CFG-01 round-trip / dry-run sweep through the new aggregate;
+- Done: `IConfigProtocol` split into two seam ABCs — `IConfigReaderProtocol`
+  (`load` / `save` / `inspect` / `help`) and `IConfigModifierProtocol`
+  (`merge_servers` / `set_env` / `remove_entries` / `help`). `ConfigWriter`
+  implements the reader seam and `ConfigModifier` the modifier seam, each
+  completely, so the six `raise NotImplementedError` stubs are gone
+  (AES304 / Rule 4). `ConfigOrchestrator` no longer imports the concrete
+  capabilities — both are injected by `root_config_container.py`, which also
+  owns the usage text (clears AES201). Gate: `lint-arwaky-cli scan
+  modules/config` → 0 violations; `python3 -m pytest modules/config -q` →
+  73 passed at `6df9f21`.
+- In Progress: CFG-01 round-trip / dry-run sweep through the aggregate;
   CFG-04 live execute-path exercise.
 - Blocked: none.
 - Next Action: run the CFG-01 sweep (load→save round trip + dry-run purity)
@@ -22,10 +28,10 @@ Last Updated: 2026-09-23
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| CFG-01 | FR-CONFIG-001, FR-CONFIG-002 | Comment-safe JSON / JSONC / TOML load + save | P1 | QA | Kernel + engine present since `5556fd5`; `python3 -m compileall -q modules/config modules/shared` clean and `create_config_feature` import OK in the working tree; round-trip sweep outstanding. | @raka | CFG-04 | 2026-09-23 |
+| CFG-01 | FR-CONFIG-001, FR-CONFIG-002 | Comment-safe JSON / JSONC / TOML load + save | P1 | QA | `ConfigWriter` implements `IConfigReaderProtocol` (`load`/`save`/`inspect`/`help`); `python3 -m compileall -q modules/config modules/shared` clean, `create_config_feature` import OK, 73 config tests pass at `6df9f21`; live round-trip sweep still outstanding. | @raka | CFG-04 | 2026-09-26 |
 | CFG-02 | FR-CONFIG-005 | `dry_run`-safe removal of MCP servers / env keys | P1 | Done | `remove_mcp_servers` / `remove_env_keys` carry `dry_run` at `5556fd5`. | @raka | None | 2026-09-18 |
 | CFG-03 | FR-CONFIG-001–FR-CONFIG-006 | FRD + BACKLOG pair authoring for config (redesign template) | P1 | Done | `python3 -m modules.root_cli_entry check docs modules/config` → 0 findings at `f87a775` (working tree). | @raka | None | 2026-09-23 |
-| CFG-04 | FR-CONFIG-001–FR-CONFIG-006 | Collapse protocol to one `execute` method; new config agent aggregate, orchestrator, and `aa config` surface | P1 | QA | `python3 -m compileall -q modules/config modules/shared` clean; `python3 -c "from modules.config.src.root_config_container import create_config_feature"` → OK in the working tree; live execute-path sweep outstanding. | @raka | None | 2026-09-23 |
+| CFG-04 | FR-CONFIG-001–FR-CONFIG-006 | Split `IConfigProtocol` into per-seam reader + modifier ABCs; `ConfigOrchestrator` drops direct capability imports | P1 | QA | `IConfigReaderProtocol` + `IConfigModifierProtocol` in place; `ConfigWriter` owns the reader seam only, `ConfigModifier` the modifier seam only, both fully implemented (zero `NotImplementedError` stubs, 73 tests pass, 0 lint violations at `6df9f21`). | @raka | None | 2026-09-26 |
 
 ## Scenario Evidence
 
@@ -70,5 +76,5 @@ None.
 
 | Date | Change | By |
 |------|--------|----|
-| 2026-09-18 | FRD/BACKLOG pair created during WS-04 doc sweep at `5556fd5`. | @raka |
+| 2026-09-26 | `IConfigProtocol` split into `IConfigReaderProtocol` + `IConfigModifierProtocol`; `ConfigWriter` owns reader seam only, `ConfigModifier` owns modifier seam only; both fully implemented — zero AES304 stubs, 73 tests, 0 lint violations at `6df9f21`. | @raka |
 | 2026-09-23 | Redesign: FRD rebuilt around a single-execute protocol + config agent (6 FRs, 12 scenarios); protocol collapsed to `execute` with new aggregate, orchestrator, and `aa config` surface; scenario evidence synced 12 of 12. | @raka |

@@ -73,7 +73,11 @@ manifest-derived server list → report or client config file.
 
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
-| `execute` | `op`, `output?`, `server_id?` | config / listing / probe | non-zero | — | One method covers generate, list, and probe |
+| `generate` | `output` (`Path`) | `ExitCode` | non-zero | — | Build the unified MCP client config at `output` |
+| `list_servers` | — | `McpServerInfos` | — | — | Return metadata for every registered MCP-enabled tool |
+| `show_server` | `server_id` (`McpServerId`?) | `ExitCode` | non-zero | — | Show the generated config or probe one server's help/schema |
+| `generate_alias` | `alias` (`McpAlias`), `output` (`Path`) | `ExitCode` | non-zero | — | Write an alias-qualified client config via the same generator |
+| `validate` | `output` (`Path`?) | `ExitCode` | non-zero | — | Parse the generated config and report validity |
 
 ### Aggregate API
 

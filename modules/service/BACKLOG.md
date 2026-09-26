@@ -3,19 +3,20 @@
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
-Last Updated: 2026-09-23
+Last Updated: 2026-09-26
 
 ## Current Condition
 
-- Done: FRD/BACKLOG redesigned per the approved plan — single-execute
-  protocol (`IServiceProtocol.execute(op, unit)`), aggregate keeps its 6
-  methods (`status`/`start`/`stop`/`restart`/`logs`/`help`), 4 FRs,
-  8 scenarios; `check docs modules/service` → 0 findings and `compileall`
-  clean at `f87a775`; daemon aggregate integration (install/remove via
-  the daemon feature) wired through `DaemonAggregateAdapter`.
+- Done: FRD/BACKLOG redesigned per the approved plan — rich `IServiceProtocol`
+  ABC (one named method per operation: `status` / `start` / `stop` /
+  `restart` / `logs` / `help`) replacing the old `execute(op, unit)` dispatch
+  bag; aggregate keeps its 6 methods; 4 FRs, 8 scenarios;
+  `check docs modules/service` → 0 findings and `compileall` clean at
+  `6df9f21`; daemon aggregate integration (install/remove via the daemon
+  feature) wired through `DaemonAggregateAdapter`.
 - In Progress: none (redesign slice complete).
-- Blocked: none for docs/code; live systemctl sweep still needs a host
-  run for drive/status paths.
+- Blocked: none for docs/code; live systemctl sweep still needs a host run
+  for drive/status paths.
 - Next Action: SVC-01 live systemctl sweep (start/status/logs on a host
   with the user units); keep `check docs modules/service` green.
 
@@ -26,7 +27,7 @@ Last Updated: 2026-09-23
 | SVC-01 | FR-SERVICE-001, FR-SERVICE-002, FR-SERVICE-003 | Drive + inspect + tail daemon systemd units | P1 | QA | Manager + protocol + aggregate in place; import OK. Live systemctl sweep outstanding. | @raka | WS-05 | 2026-09-23 |
 | SVC-02 | FR-SERVICE-001 | Fan-out over `all` without false abort | P1 | Done | per-unit independent reporting path at `5556fd5`. | @raka | None | 2026-09-18 |
 | SVC-03 | FR-SERVICE-001, FR-SERVICE-002, FR-SERVICE-003, FR-SERVICE-004 | FRD + BACKLOG pair authoring for service | P1 | Done | `check docs modules/service` → 0 findings (2 documents) at `f87a775`. | @raka | None | 2026-09-23 |
-| SVC-04 | FR-SERVICE-001, FR-SERVICE-002, FR-SERVICE-003, FR-SERVICE-004 | Single-execute protocol redesign | P0 | Done | `python3 -m compileall -q modules/service` → 0 at `f87a775`; `IServiceProtocol.execute(op, unit)` replaces 6 leaf protocols; orchestrator routes every aggregate call through `execute`. | @raka | None | 2026-09-23 |
+| SVC-04 | FR-SERVICE-001, FR-SERVICE-002, FR-SERVICE-003, FR-SERVICE-004 | Rich per-operation `IServiceProtocol` redesign | P0 | Done | `python3 -m compileall -q modules/service` → 0 at `6df9f21`; `IServiceProtocol` now declares one named method per operation (status/start/stop/restart/logs/help) instead of a single `execute(op, unit)` dispatch; aggregate routes each call to the named method. | @raka | None | 2026-09-26 |
 
 ## Scenario Evidence
 
