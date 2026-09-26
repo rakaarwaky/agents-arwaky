@@ -108,3 +108,6 @@ tools/config/*.providers.json
 # noise, regenerates locally; the hyphen dir is the tracked canonical.
 /skills/*_*/
 .worktrees/
+
+# qwen-web-arwaky local worktrees (feature-modules etc.) — untracked local clones
+/internal/qwen-web-arwaky-worktrees/
