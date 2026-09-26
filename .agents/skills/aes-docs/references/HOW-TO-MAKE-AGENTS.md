@@ -28,8 +28,8 @@
 4. **Do not restate to other documents.** Use link instead.
 5. **Mark optional sections clearly.** Do not force fake sections
  like pipeline diagrams just to fill a template.
-6. **Name every placeholder.** Use `<base-branch>`, `<state-dir>`,
- `<runtime>`.
+6. **Name every placeholder.** Use `` `<base-branch>` ``, `` `<state-dir>` ``,
+ `` `<runtime>` ``.
 7. **Respect the length budget.** Target 50–500 lines.
 
 ---
@@ -52,13 +52,13 @@ Copy, fill, delete nothing.
 ~~~~markdown
 ---
 trigger: always
-description: "<Project> operational guide. <Authoritative doc> wins on ambiguity."
+description: "`<Project>` operational guide. `<Authoritative doc>` wins on ambiguity."
 ---
-# <Project Name>
+# `<Project Name>`
 
 ## User Context
 
-- Preferences: <response style, e.g., concise, technical, direct>
+- Preferences: `<response style, e.g., concise, technical, direct>`
 
 ## Precedence
 
@@ -107,14 +107,14 @@ is missing or stale, ask before destructive changes.
   reviewer must find>`.
 
 ```bash
-<version probe, e.g., python --version>
-<env setup, e.g., export UV_PROJECT_ENVIRONMENT="$HOME/.local/share/<project>/venv" && uv sync>
+`<version probe, e.g., python --version>`
+`<env setup, e.g., export UV_PROJECT_ENVIRONMENT="$HOME/.local/share/<project>/venv" && uv sync>`
 ```
 
 ## Quick Facts
 
-INPUT  = <artifact + what it carries>
-OUTPUT = <artifact + locked spec values, e.g., format, size, rate>
+INPUT  = `<artifact + what it carries>`
+OUTPUT = `<artifact + locked spec values, e.g., format, size, rate>`
 
 ## Pipeline
 
@@ -131,16 +131,16 @@ Exceptions require explicit user approval.
 Branch prefixes: `<type>/`, ...
 
 ```bash
-git worktree add -b <branch-name> <worktree-dir>/<branch-name> origin/<base-branch>
-cd <worktree-dir>/<branch-name>
+git worktree add -b `<branch-name>` `<worktree-dir>`/`<branch-name>` origin/`<base-branch>`
+cd `<worktree-dir>`/`<branch-name>`
 
 # Run the checks under Commands, then:
 git add .
-git commit -m "<type>: <short description>"
-git push -u origin <branch-name>
+git commit -m "`<type>`: `<short description>`"
+git push -u origin `<branch-name>`
 
-gh pr create --base <base-branch> --head <branch-name> \
-  --title "<type>: <short description>" \
+gh pr create --base `<base-branch>` --head `<branch-name>` \
+  --title "`<type>`: `<short description>`" \
   --body "$(cat <<'PRBODY'
 What changed:
 PRBODY
@@ -151,25 +151,25 @@ After merge:
 
 ```bash
 cd ../..
-git worktree remove <worktree-dir>/<branch-name>
-git branch -d <branch-name>
+git worktree remove `<worktree-dir>`/`<branch-name>`
+git branch -d `<branch-name>`
 ```
 
-Merge strategy: <which prefixes squash, which rebase onto `<base-branch>`>.
+Merge strategy: `<which prefixes squash, which rebase onto <base-branch>>`.
 
 ## Commands
 
 ```bash
 # Tests
-<whole-workspace test command>                      # what it covers
-<single-package test command>                       # one unit
-<single-file test command>                          # one file
+`<whole-workspace test command>`                      # what it covers
+`<single-package test command>`                       # one unit
+`<single-file test command>`                          # one file
 
 # Lint / types / architecture —
-<formatter/linter>                                  # matches ci.yml <job name>
-<type checker, exact config-file flags>
-<architecture scanner>
-<dry-run variant, if the fixer is destructive>
+`<formatter/linter>`                                  # matches ci.yml `<job name>`
+`<type checker, exact config-file flags>`
+`<architecture scanner>`
+`<dry-run variant, if the fixer is destructive>`
 ```
 
 ## Guided Skills
@@ -214,7 +214,7 @@ notes. Do not apply it to code identifiers, commands, or config keys.
 - `<doc>` (`<path>`): `<one line on what it answers>`.
 
 ```text
-<related file list, or delete this fence>
+`<related file list, or delete this fence>`
 ```
 
 ~~~~
