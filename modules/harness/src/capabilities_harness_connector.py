@@ -21,7 +21,10 @@ from modules.shared.src.utility_harness_log import (
     log_sub,
     log_warn,
 )
-from modules.shared.src.contract_harness_protocol import IHarnessProtocol
+from modules.shared.src.contract_harness_protocol import (
+    IHarnessConnectProtocol,
+    IHarnessSkillsProtocol,
+)
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import data_home
 from modules.shared.src.taxonomy_harness_vo import (
@@ -51,14 +54,14 @@ _FALLBACK_MCP_COMMANDS = {
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class HarnessConnector(IHarnessProtocol):
+class HarnessConnector(IHarnessConnectProtocol):
     """Registry-keyed connect capability (composition root injects adapters)."""
 
     def __init__(
         self,
         adapters: dict[str, object],
         daemon_status_fn=None,
-        skills: IHarnessProtocol | None = None,
+        skills: IHarnessSkillsProtocol | None = None,
     ) -> None:
         """Compose the adapter registry with optional daemon and skills capabilities."""
         self._adapters = adapters
@@ -107,32 +110,6 @@ class HarnessConnector(IHarnessProtocol):
                 failures += self._connect_router(harness_id, adapter, opts)
         log_ok(f"{adapter.display} connect complete.")
         return failures
-
-    def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> int:
-        """Op not owned by this capability."""
-        raise NotImplementedError("HarnessConnector does not implement disconnect")
-
-    def provision_skills(self, targets: tuple[str, ...], copy: bool = False, dry_run: bool = False,
-                         force: bool = False) -> int:
-        """Op not owned by this capability."""
-        raise NotImplementedError("HarnessConnector does not implement provision_skills")
-
-    def execute(self, op: str, targets: tuple[str, ...],
-                flags: dict[str, bool] | None = None) -> ExitCode:
-        """Backward-compat dispatch wrapper around the named protocol method."""
-        if op != "connect":
-            raise ValueError(f"HarnessConnector does not handle op {op!r}")
-        flags = flags or {}
-        return ExitCode(self.connect(
-            targets,
-            force=flags.get("force", False),
-            dry_run=flags.get("dry_run", False),
-            mcp_only=flags.get("mcp_only", False),
-            skills_only=flags.get("skills_only", False),
-            env_only=flags.get("env_only", False),
-            router=flags.get("router", False),
-            copy_skills=flags.get("copy_skills", False),
-        ))
 
     def _connect_skills(self, harness_id: str, adapter, opts: ConnectOpts) -> int:
         """FR-003 clause of connect: provision the pack into the harness."""

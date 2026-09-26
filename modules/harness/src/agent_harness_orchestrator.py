@@ -9,7 +9,11 @@ is injected by the root layer.
 from __future__ import annotations
 
 from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
-from modules.shared.src.contract_harness_protocol import IHarnessProtocol
+from modules.shared.src.contract_harness_protocol import (
+    IHarnessConnectProtocol,
+    IHarnessDisconnectProtocol,
+    IHarnessSkillsProtocol,
+)
 from modules.shared.src.taxonomy_harness_constant import ALIASES, ALL_HARNESS_IDS
 from modules.shared.src.taxonomy_harness_vo import (
     ExitCode,
@@ -25,9 +29,9 @@ class HarnessOrchestrator(IHarnessAggregate):
 
     def __init__(
         self,
-        connector: IHarnessProtocol,
-        disconnector: IHarnessProtocol,
-        skills: IHarnessProtocol,
+        connector: IHarnessConnectProtocol,
+        disconnector: IHarnessDisconnectProtocol,
+        skills: IHarnessSkillsProtocol,
     ) -> None:
         """Compose the three capabilities behind the orchestrator interface."""
         self._connector = connector
@@ -95,7 +99,9 @@ __all__ = [
     "HarnessRequest",
     "HarnessResponse",
     "IHarnessAggregate",
-    "IHarnessProtocol",
+    "IHarnessConnectProtocol",
+    "IHarnessDisconnectProtocol",
+    "IHarnessSkillsProtocol",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
@@ -105,5 +111,7 @@ _layer_symbols = {
     "HarnessRequest": HarnessRequest,
     "HarnessResponse": HarnessResponse,
     "IHarnessAggregate": IHarnessAggregate,
-    "IHarnessProtocol": IHarnessProtocol,
+    "IHarnessConnectProtocol": IHarnessConnectProtocol,
+    "IHarnessDisconnectProtocol": IHarnessDisconnectProtocol,
+    "IHarnessSkillsProtocol": IHarnessSkillsProtocol,
 }

@@ -1,10 +1,10 @@
-"""Config modifier capability — merge / set env / remove / list MCP & env entries.
+"""Config modifier capability — merge / set env / remove.
 
 Thin AES capability wrapping the shared config kernel. The config agent
 (``agent_config_orchestrator``) is the only caller; no I/O outside the
-injected protocol. Implements the whole ``IConfigProtocol``; the operations
-owned by the writer capability are refused rather than silently accepted.
-``main`` provides a standalone CLI for the same operations.
+injected protocol. Implements ``IConfigModifierProtocol`` exclusively — the
+read operations live on ``ConfigWriter`` under its own seam. ``main``
+provides a standalone CLI for the same operations.
 """
 from __future__ import annotations
 
@@ -13,13 +13,9 @@ import os
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_config_protocol import IConfigProtocol
+from modules.shared.src.contract_config_protocol import IConfigModifierProtocol
 from modules.shared.src.taxonomy_common_vo import (
-    ConfigData,
-    ConfigFormat,
     ConfigKeys,
-    ConfigSnapshot,
-    ConfigTuple,
     EnvPairs,
     HelpText,
     McpServersMap,
@@ -35,26 +31,13 @@ from modules.shared.src.utility_config_engine import (
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class ConfigModifier(IConfigProtocol):
-    """Merge / env-set / removal / list capability (the mutating half of the protocol)."""
+class ConfigModifier(IConfigModifierProtocol):
+    """Merge / env-set / removal capability."""
 
     def __init__(self, usage: HelpText | None = None) -> None:
         self._usage = usage if usage is not None else HelpText("")
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def load(self, path: Path) -> ConfigTuple:
-        """Refuse: reading belongs to the writer capability."""
-        raise NotImplementedError("load is owned by ConfigWriter")
-
-    def save(
-        self,
-        path: Path,
-        data: ConfigData,
-        fmt: ConfigFormat | None = None,
-    ) -> bool:
-        """Refuse: writing belongs to the writer capability."""
-        raise NotImplementedError("save is owned by ConfigWriter")
-
     def merge_servers(
         self,
         path: Path,
@@ -83,10 +66,6 @@ class ConfigModifier(IConfigProtocol):
             list(keys),
             dry_run,
         )
-
-    def inspect(self, path: Path) -> ConfigSnapshot:
-        """Refuse: snapshotting belongs to the writer capability."""
-        raise NotImplementedError("inspect is owned by ConfigWriter")
 
     def help(self) -> HelpText:
         """Return the usage text the agent injected."""
@@ -199,6 +178,6 @@ __all__ = [
 _layer_symbols = {
     "ConfigModifier": ConfigModifier,
     "EnvPairs": EnvPairs,
-    "IConfigProtocol": IConfigProtocol,
+    "IConfigModifierProtocol": IConfigModifierProtocol,
     "McpServersMap": McpServersMap,
 }

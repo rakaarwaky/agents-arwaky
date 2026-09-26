@@ -17,10 +17,10 @@ from modules.shared.src.utility_harness_log import (
     log_sub,
     log_warn,
 )
-from modules.shared.src.contract_harness_protocol import IHarnessProtocol
+from modules.shared.src.contract_harness_protocol import IHarnessDisconnectProtocol
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import iter_skill_files
-from modules.shared.src.taxonomy_harness_vo import DisconnectOpts, ExitCode
+from modules.shared.src.taxonomy_harness_vo import DisconnectOpts
 from modules.shared.src.utility_config_engine import (
     arwaky_server_names,
     load_file,
@@ -31,7 +31,7 @@ from modules.shared.src.utility_config_engine import (
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class HarnessDisconnector(IHarnessProtocol):
+class HarnessDisconnector(IHarnessDisconnectProtocol):
     """Registry-keyed disconnect capability (composition root injects adapters)."""
 
     def __init__(self, adapters: dict[str, object]) -> None:
@@ -39,11 +39,6 @@ class HarnessDisconnector(IHarnessProtocol):
         self._adapters = adapters
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def connect(self, targets: tuple[str, ...], force: bool = False, dry_run: bool = False,
-                mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
-                router: bool = False, copy_skills: bool = False) -> int:
-        """Op not owned by this capability."""
-        raise NotImplementedError("HarnessDisconnector does not implement connect")
 
     def disconnect(self, harness_ids: tuple[str, ...], dry_run: bool = False) -> int:
         """FR-002: remove MCP servers, env keys, and router references.
@@ -94,18 +89,6 @@ class HarnessDisconnector(IHarnessProtocol):
         log_ok(f"{adapter.display} disconnect complete.")
         return failures
 
-    def provision_skills(self, targets: tuple[str, ...], copy: bool = False, dry_run: bool = False,
-                         force: bool = False) -> int:
-        """Op not owned by this capability."""
-        raise NotImplementedError("HarnessDisconnector does not implement provision_skills")
-
-    def execute(self, op: str, targets: tuple[str, ...],
-                flags: dict[str, bool] | None = None) -> ExitCode:
-        """Backward-compat dispatch wrapper around the named protocol method."""
-        if op != "disconnect":
-            raise ValueError(f"HarnessDisconnector does not handle op {op!r}")
-        flags = flags or {}
-        return ExitCode(self.disconnect(targets, dry_run=flags.get("dry_run", False)))
 
     def __repr__(self) -> str:
         return "HarnessDisconnector()"

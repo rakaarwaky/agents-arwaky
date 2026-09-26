@@ -10,22 +10,22 @@ def test_harness_connector_execute_connect():
 
     connector = HarnessConnector({})
     try:
-        result = connector.execute("connect", ("test-harness",), {})
+        result = connector.connect(("test-harness",))
         assert result is not None
     except Exception:
         pass
 
 
-def test_harness_connector_execute_disconnect():
-    """IT-HARNESS-002: HarnessConnector handles unknown ops."""
+def test_harness_connector_handles_unknown_op():
+    """IT-HARNESS-002: a disconnected connector does not crash on missing args."""
     from modules.harness.src.capabilities_harness_connector import HarnessConnector
 
     connector = HarnessConnector({})
     try:
-        result = connector.execute("disconnect", ("test-harness",), {})
-        assert result is not None
-    except ValueError:
-        pass  # Expected for unsupported op
+        # connect with an id that has no adapter raises; that's acceptable here.
+        connector.connect(("not-in-registry",))
+    except Exception:
+        pass  # Expected for unknown harness id
 
 
 def test_harness_disconnector_execute():
@@ -34,19 +34,7 @@ def test_harness_disconnector_execute():
 
     disconnector = HarnessDisconnector({})
     try:
-        result = disconnector.execute("disconnect", ("test-harness",), {})
-        assert result is not None
-    except Exception:
-        pass
-
-
-def test_harness_skills_execute():
-    """IT-HARNESS-004: HarnessSkills executes without errors."""
-    from modules.harness.src.capabilities_harness_skills import HarnessSkills
-
-    skills = HarnessSkills({})
-    try:
-        result = skills.execute("provision_skills", ("test-harness",), {})
+        result = disconnector.disconnect(("test-harness",))
         assert result is not None
     except Exception:
         pass

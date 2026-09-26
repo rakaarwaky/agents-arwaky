@@ -70,14 +70,14 @@ class TestConfigWriter:
             path.unlink(missing_ok=True)
 
     def test_implements_whole_protocol(self):
-        """UT-CONFIG-005: ConfigWriter implements every IConfigProtocol method."""
+        """UT-CONFIG-005: ConfigWriter implements every IConfigReaderProtocol method."""
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.shared.src.contract_config_protocol import IConfigProtocol
+        from modules.shared.src.contract_config_protocol import IConfigReaderProtocol
 
         writer = ConfigWriter()
-        assert isinstance(writer, IConfigProtocol)
+        assert isinstance(writer, IConfigReaderProtocol)
         # Instantiating proves no abstract method is left unimplemented.
-        for name in IConfigProtocol.__abstractmethods__:
+        for name in IConfigReaderProtocol.__abstractmethods__:
             assert callable(getattr(writer, name))
 
     def test_load_file(self):
@@ -231,13 +231,13 @@ class TestConfigModifier:
             path.unlink(missing_ok=True)
 
     def test_implements_whole_protocol(self):
-        """UT-CONFIG-016: ConfigModifier implements every IConfigProtocol method."""
+        """UT-CONFIG-016: ConfigModifier implements every IConfigModifierProtocol method."""
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.shared.src.contract_config_protocol import IConfigProtocol
+        from modules.shared.src.contract_config_protocol import IConfigModifierProtocol
 
         modifier = ConfigModifier()
-        assert isinstance(modifier, IConfigProtocol)
-        for name in IConfigProtocol.__abstractmethods__:
+        assert isinstance(modifier, IConfigModifierProtocol)
+        for name in IConfigModifierProtocol.__abstractmethods__:
             assert callable(getattr(modifier, name))
 
     def test_remove_mcp_servers(self):
@@ -374,9 +374,11 @@ class TestConfigOrchestrator:
         """UT-CONFIG-025: execute(help) returns usage text."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
+        from modules.shared.src.taxonomy_common_vo import HelpText
 
-        orch = ConfigOrchestrator()
+        orch = ConfigOrchestrator(ConfigWriter(HelpText("Usage: aa config\n  load PATH\n  save PATH\n")), ConfigModifier())
         result = orch.execute(ConfigRequest(ConfigOp("help")))
         assert result.success is True
         assert "Usage: aa config" in str(result.data)
@@ -433,9 +435,11 @@ class TestConfigSurface:
         """UT-CONFIG-029: the help op flows through the aggregate's execute."""
         from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest, HelpText
 
-        cmd = ConfigCommand(ConfigOrchestrator())
+        cmd = ConfigCommand(ConfigOrchestrator(ConfigWriter(HelpText("Usage: aa config\n  load PATH\n")), ConfigModifier()))
         result = cmd.execute(ConfigRequest(ConfigOp("help")))
         assert result.success is True
         assert "Usage: aa config" in str(result.data)
