@@ -12,7 +12,6 @@ from modules.shared.src.taxonomy_common_vo import (
     DoctorRequest,
     DoctorResponse,
     ExitCode,
-    Timestamp,
 )
 
 
