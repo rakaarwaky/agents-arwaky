@@ -41,6 +41,18 @@ class OpencodeHarnessAdapter(IHarnessProtocol):
         """Dispatch a provider-scoped op against this file's opencode unit."""
         return dispatch_provider_op(self._units, op, targets, flags, label="opencode adapter")
 
+    def connect(self, targets: tuple[str, ...], force: bool = False, dry_run: bool = False,
+                mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
+                router: bool = False, copy_skills: bool = False) -> int:
+        raise NotImplementedError("OpencodeHarnessAdapter does not implement connect")
+
+    def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> int:
+        raise NotImplementedError("OpencodeHarnessAdapter does not implement disconnect")
+
+    def provision_skills(self, targets: tuple[str, ...], copy: bool = False, dry_run: bool = False,
+                         force: bool = False) -> int:
+        raise NotImplementedError("OpencodeHarnessAdapter does not implement provision_skills")
+
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return f"OpencodeHarnessAdapter(providers={len(self._units)})"

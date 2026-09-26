@@ -13,10 +13,10 @@ DaemonName = NewType("DaemonName", str)
 #: systemd user-unit filename the unit ops act on ("9router.service", ...).
 DaemonUnit = NewType("DaemonUnit", str)
 
-#: Operation token dispatched through ``IDaemonProtocol.execute``.
+#: Operation token carried by a DaemonRequest (lifecycle, unit ops, ...).
 DaemonOp = NewType("DaemonOp", str)
 
-#: Tuple of daemon names returned by ``IDaemonAggregate.list_known``.
+#: Tuple of daemon names the orchestrator can route to.
 DaemonNames = NewType("DaemonNames", tuple)
 
 
@@ -45,11 +45,42 @@ class DaemonStatus:
     details: tuple[str, ...] = field(default=())
 
 
+@dataclass(frozen=True)
+class DaemonRequest:
+    """One daemon request the surface/root/CLI hands to the aggregate.
+
+    Every consumer verb of the daemon feature is a value of ``op``; the
+    aggregate dispatches to the matching protocol method internally, so the
+    aggregate keeps a single ``execute`` entry point.
+    """
+
+    op: DaemonOp
+    name: DaemonName | None = None
+    unit: DaemonUnit | None = None
+
+
+@dataclass(frozen=True)
+class DaemonOutcome:
+    """Result of one daemon request: outcome flag, exit code, status, message."""
+
+    success: bool
+    exit_code: int | None = None
+    status: DaemonStatus | None = None
+    message: str = ""
+
+
+#: Daemon response envelope returned by ``IDaemonAggregate.execute``.
+DaemonResponse = DaemonOutcome
+
+
 __all__ = [
     "DaemonConfig",
     "DaemonName",
     "DaemonNames",
     "DaemonOp",
+    "DaemonOutcome",
+    "DaemonRequest",
+    "DaemonResponse",
     "DaemonStatus",
     "DaemonUnit",
     "ExitCode",

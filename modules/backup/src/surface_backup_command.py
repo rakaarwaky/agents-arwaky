@@ -1,39 +1,21 @@
 """Backup surface — CLI adapters for aa backup / aa restore.
 
-AES surface-layer command adapter: one class implementing the aggregate
-surface while staying free of root/capability/agent imports (AES201/AES205).
+AES surface-layer command adapter: builds a typed ``BackupRequest`` from the
+raw CLI tokens and calls the aggregate's single ``execute``; the agent
+routes it to the right capability method. Rendering and token parsing
+stay on the surface (AES406).
 """
 from __future__ import annotations
 
 from modules.shared.src.contract_backup_aggregate import IBackupAggregate
-from modules.shared.src.taxonomy_backup_vo import BackupToolQuery, ExitCode
-
-
-class BackupCommand(IBackupAggregate):
-    """CLI surface command for the backup feature (surface layer, AES406)."""
-
-    def __init__(self, orch: IBackupAggregate) -> None:
-        self._orch = orch
-
-    def backup(self, tool: BackupToolQuery, dest: str = "") -> ExitCode:
-        """Delegate backup to the orchestrator."""
-        return self._orch.backup(tool, dest)
-
-    def restore(self, tool: BackupToolQuery, archive: str) -> ExitCode:
-        """Delegate restore to the orchestrator."""
-        return self._orch.restore(tool, archive)
-
-    def list_archives(self) -> ExitCode:
-        """Delegate listing archives to the orchestrator."""
-        return self._orch.list_archives()
-
-    def status_store(self) -> ExitCode:
-        """Delegate status check to the orchestrator."""
-        return self._orch.status_store()
-
-    def help(self) -> ExitCode:
-        """Delegate help display to the orchestrator."""
-        return self._orch.help()
+from modules.shared.src.taxonomy_backup_vo import (
+    BackupArchive,
+    BackupDestination,
+    BackupOp,
+    BackupRequest,
+    BackupResponse,
+    BackupToolQuery,
+)
 
 
 def cmd_backup(args: list[str], orch: IBackupAggregate) -> int:
@@ -43,14 +25,14 @@ def cmd_backup(args: list[str], orch: IBackupAggregate) -> int:
     if args and args[0] == "backup":
         args = args[1:]
     if not args or args[0] in ("help", "-h", "--help"):
-        return orch.help()
+        return int(orch.execute(BackupRequest(BackupOp("help"))))
     if args[0] == "list":
-        return orch.list_archives()
+        return int(orch.execute(BackupRequest(BackupOp("list"))))
     if args[0] == "status":
-        return orch.status_store()
+        return int(orch.execute(BackupRequest(BackupOp("status"))))
     tool = BackupToolQuery(args[0])
-    dest = args[1] if len(args) > 1 else ""
-    return orch.backup(tool, dest)
+    dest = BackupDestination(args[1] if len(args) > 1 else "")
+    return int(orch.execute(BackupRequest(BackupOp("backup"), tool=tool, dest=dest)))
 
 
 def cmd_restore(args: list[str], orch: IBackupAggregate) -> int:
@@ -58,8 +40,7 @@ def cmd_restore(args: list[str], orch: IBackupAggregate) -> int:
     if args and args[0] == "restore":
         args = args[1:]
     if not args or args[0] in ("help", "-h", "--help"):
-        return orch.help()
+        return int(orch.execute(BackupRequest(BackupOp("help"))))
     tool = BackupToolQuery(args[0])
-    src = args[1] if len(args) > 1 else ""
-    return orch.restore(tool, src)
-
+    archive = BackupArchive(args[1] if len(args) > 1 else "")
+    return int(orch.execute(BackupRequest(BackupOp("restore"), tool=tool, archive=archive)))

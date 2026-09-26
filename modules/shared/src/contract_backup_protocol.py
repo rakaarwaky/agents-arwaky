@@ -1,8 +1,10 @@
-"""Backup-domain protocol contract (one feature, one capability ABC).
+"""Backup-domain protocol contract (capability ABC).
 
-A single ``execute`` method dispatches every backup capability — archive,
-restore, list, list_print, status, help — by operation; injectors may type
-any gateway or adapter that can run an operation as ``IBackupProtocol``.
+Pure capability ABC: one abstract method per backup operation a gateway
+exposes — archive, restore, list, status, help. Each method carries its
+own typed return, so a gateway implementor never narrows a union and never
+dispatches behind an ``execute(op, …)`` bag. Consumers never see this
+method list; the aggregate dispatches to it.
 """
 from __future__ import annotations
 
@@ -13,53 +15,67 @@ from modules.shared.src.taxonomy_backup_vo import (
     DEST_DEFAULT,
     BackupArchive,
     BackupDestination,
-    BackupOp,
+    BackupOutcome,
     BackupResult,
     BackupToolQuery,
     ExitCode,
+    RestoreResult,
 )
 
 
 class IBackupProtocol(ABC):
-    """FR: run one backup operation through this gateway/adapter."""
+    """Capability contract for backup gateways: one method per operation."""
 
     @abstractmethod
-    def execute(
-        self,
-        op: BackupOp,
-        tool: BackupToolQuery | None = None,
-        dest: BackupDestination = DEST_DEFAULT,
-        archive: BackupArchive = ARCHIVE_DEFAULT,
-    ) -> BackupResult | ExitCode:
-        """Dispatch *op* (archive | restore | list | list_print | status | help) with the optional
-        *tool* / *dest* / *archive* arguments; return the operation result
-        (result object, archive list, or int status/help exit code).
-        """
+    def backup(self, tool: BackupToolQuery, dest: BackupDestination = DEST_DEFAULT) -> BackupResult:
+        """Archive *tool*'s XDG state into *dest*; return the backup result."""
+        ...
+
+    @abstractmethod
+    def restore(self, tool: BackupToolQuery, archive: BackupArchive = ARCHIVE_DEFAULT) -> RestoreResult:
+        """Restore *tool*'s XDG state from *archive*; return the restore result."""
+        ...
+
+    @abstractmethod
+    def list_archives(self) -> BackupOutcome:
+        """Return the archives visible to this gateway plus their print lines."""
+        ...
+
+    @abstractmethod
+    def status(self) -> ExitCode:
+        """Report the backup store path, existence, and archive count; return exit code."""
+        ...
+
+    @abstractmethod
+    def help(self) -> ExitCode:
+        """Print backup/restore usage; return exit code."""
         ...
 
 
 __all__ = [
     "ARCHIVE_DEFAULT",
-    "DEST_DEFAULT",
     "BackupArchive",
     "BackupDestination",
-    "BackupOp",
+    "BackupOutcome",
     "BackupResult",
     "BackupToolQuery",
     "ExitCode",
     "IBackupProtocol",
+    "RestoreResult",
+    "DEST_DEFAULT",
 ]
 
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ARCHIVE_DEFAULT": ARCHIVE_DEFAULT,
-    "DEST_DEFAULT": DEST_DEFAULT,
     "BackupArchive": BackupArchive,
     "BackupDestination": BackupDestination,
-    "BackupOp": BackupOp,
+    "BackupOutcome": BackupOutcome,
     "BackupResult": BackupResult,
     "BackupToolQuery": BackupToolQuery,
     "ExitCode": ExitCode,
     "IBackupProtocol": IBackupProtocol,
+    "RestoreResult": RestoreResult,
+    "DEST_DEFAULT": DEST_DEFAULT,
 }

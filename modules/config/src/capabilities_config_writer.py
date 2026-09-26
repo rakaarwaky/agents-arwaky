@@ -2,7 +2,8 @@
 
 Thin AES capability wrapping the shared config kernel. The config agent
 (``agent_config_orchestrator``) is the only caller; no I/O outside the
-injected protocol.
+injected protocol. Implements the whole ``IConfigProtocol``; the operations
+owned by the modifier capability are refused rather than silently accepted.
 """
 from __future__ import annotations
 
@@ -12,10 +13,16 @@ from modules.shared.src.contract_config_protocol import IConfigProtocol
 from modules.shared.src.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,
+    ConfigKeys,
+    ConfigSnapshot,
     ConfigTuple,
+    EnvPairs,
+    HelpText,
+    McpServersMap,
 )
 from modules.shared.src.utility_config_engine import (
     detect_format,
+    list_mcp_servers,
     load_file,
     save_file,
 )
@@ -25,27 +32,59 @@ from modules.shared.src.utility_toml_write import write_toml
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class ConfigWriter(IConfigProtocol):
-    """Load / detect / save capability (single-execute dispatcher)."""
+    """Load / detect / save capability (the reader/writer half of the protocol)."""
+
+    def __init__(self, usage: HelpText | None = None) -> None:
+        self._usage = usage if usage is not None else HelpText("")
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
+    def load(self, path: Path) -> ConfigTuple:
+        """Read *path*; returns ``(data, format)``."""
+        return self.load_file(path)
+
+    def save(
         self,
-        op: str,
         path: Path,
-        payload: dict | None = None,
-    ) -> ConfigTuple | bool | ConfigFormat:
-        """Dispatcher for load/save/detect_format operations."""
-        if op == "load":
-            return self.load_file(path)
-        if op == "save":
-            body = payload or {}
-            fmt = body.get("fmt")
-            if fmt is not None:
-                fmt = ConfigFormat(fmt)
-            return self.save_file(path, ConfigData(body.get("data", {})), fmt)
-        if op == "detect_format":
-            return self.detect_format(path)
-        raise ValueError(f"ConfigWriter does not support op {op!r}")
+        data: ConfigData,
+        fmt: ConfigFormat | None = None,
+    ) -> bool:
+        """Write *data* to *path*, detecting the format when *fmt* is None."""
+        return self.save_file(path, data, fmt)
+
+    def merge_servers(
+        self,
+        path: Path,
+        servers: McpServersMap,
+    ) -> ConfigKeys:
+        """Refuse: server merging belongs to the modifier capability."""
+        raise NotImplementedError("merge_servers is owned by ConfigModifier")
+
+    def set_env(self, path: Path, pairs: EnvPairs) -> None:
+        """Refuse: env upsert belongs to the modifier capability."""
+        raise NotImplementedError("set_env is owned by ConfigModifier")
+
+    def remove_entries(
+        self,
+        path: Path,
+        keys: ConfigKeys,
+        dry_run: bool = False,
+    ) -> ConfigKeys:
+        """Refuse: entry removal belongs to the modifier capability."""
+        raise NotImplementedError("remove_entries is owned by ConfigModifier")
+
+    def inspect(self, path: Path) -> ConfigSnapshot:
+        """Read-only snapshot: path, format, data, and server names."""
+        data, fmt = self.load(path)
+        return ConfigSnapshot({
+            "path": str(path),
+            "format": str(fmt),
+            "data": dict(data),
+            "servers": list(list_mcp_servers(path) or []),
+        })
+
+    def help(self) -> HelpText:
+        """Return the usage text the agent injected."""
+        return self._usage
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:

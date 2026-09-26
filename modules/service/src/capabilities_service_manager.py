@@ -13,11 +13,11 @@ import sys
 
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_service_protocol import IServiceProtocol
+from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
 from modules.shared.src.taxonomy_service_vo import (
     TARGET_ALL,
     TARGET_9ROUTER,
     ExitCode,
-    ServiceOp,
     ServiceTarget,
 )
 
@@ -54,49 +54,32 @@ class ServiceManager(IServiceProtocol):
         return self._daemons
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(self, op: ServiceOp, unit: ServiceTarget = TARGET_ALL) -> ExitCode:
-        """Dispatch a service operation to the matching action method."""
-        if op == "status":
-            return self.status()
-        if op == "start":
-            return self.start(ServiceTarget(str(unit)))
-        if op == "stop":
-            return self.stop(ServiceTarget(str(unit)))
-        if op == "restart":
-            return self.restart(ServiceTarget(str(unit)))
-        if op == "logs":
-            return self.logs(ServiceTarget(str(unit)) if str(unit) != "all" else ServiceTarget("9router"))
-        if op == "help":
-            return self.help()
-        raise ValueError(f"Unknown service op: {op}")
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return "ServiceManager()"
-
     def status(self) -> ExitCode:
-        """Return the current status of all registered daemons."""
+        """Report the health of every registered service. Return the exit code."""
         return ExitCode(cmd_status())
 
     def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
-        """Start the specified daemon(s) and return their exit code."""
+        """Start the named service(s). Return the exit code."""
         return ExitCode(cmd_start(str(target)))
 
     def stop(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
-        """Stop the specified daemon(s) and return their exit code."""
+        """Stop the named service(s). Return the exit code."""
         return ExitCode(cmd_stop(str(target)))
 
     def restart(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
-        """Restart the specified daemon(s) and return their exit code."""
+        """Restart the named service(s). Return the exit code."""
         return ExitCode(cmd_restart(str(target)))
 
     def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
-        """Stream logs for the specified daemon and return its exit code."""
+        """Stream the named service's logs. Return the exit code."""
         return ExitCode(cmd_logs(str(target)))
 
     def help(self) -> ExitCode:
-        """Print usage information for the service manager."""
+        """Print the service command usage. Return the exit code."""
         return ExitCode(cmd_help())
+
+    def __repr__(self) -> str:
+        return "ServiceManager()"
 
     def main(self, argv) -> int:
         """Run the service manager CLI entry point with the given arguments."""
@@ -117,17 +100,12 @@ def _daemon_main(name: str, args: list[str]) -> int:
     """Route daemon CLI arguments to the injected daemon aggregate."""
     agg = _daemons()
     action = (args[0] if args else "help").lower()
-    if action == "start":
-        return int(agg.start(name))
-    if action == "stop":
-        return int(agg.stop(name))
-    if action == "restart":
-        return int(agg.restart(name))
-    if action == "logs":
-        return int(agg.logs(name))
+    if action in ("start", "stop", "restart", "logs"):
+        request = DaemonRequest(DaemonOp(action), name=DaemonName(name))
+        return int(agg.execute(request).exit_code or 0)
     if action == "status":
-        agg.status(name)
-        return 0
+        result = agg.execute(DaemonRequest(DaemonOp("status"), name=DaemonName(name)))
+        return 0 if result.status and result.status.ok else 1
     return 0
 
 
@@ -204,12 +182,10 @@ def main(argv: list[str]) -> int:
     cmd_help()
     return 1
 
-__all__ = ['ExitCode', 'IServiceProtocol', 'ServiceManager', 'ServiceOp', 'ServiceTarget']
+__all__ = ["ExitCode", "IServiceProtocol", "ServiceManager", "ServiceTarget"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"ExitCode": ExitCode, "IServiceProtocol": IServiceProtocol, "ServiceManager": ServiceManager, "ServiceOp": ServiceOp, "ServiceTarget": ServiceTarget}
+_layer_symbols = {"ExitCode": ExitCode, "IServiceProtocol": IServiceProtocol, "ServiceManager": ServiceManager, "ServiceTarget": ServiceTarget}
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
-
-

@@ -11,9 +11,10 @@ def test_check_protocol_exists():
 
 def test_check_vo_classes_exist():
     """CP-CHECK-002: Check VO classes are defined."""
-    from modules.shared.src.taxonomy_check_vo import CheckExitCode, CheckScope
+    from modules.shared.src.taxonomy_check_vo import CheckRequest, CheckResponse, CheckScope
 
-    assert CheckExitCode is not None
+    assert CheckRequest is not None
+    assert CheckResponse is not None
     assert CheckScope is not None
 
 
@@ -39,7 +40,7 @@ def test_check_orchestrator_exists():
 
 
 def test_check_runner_implements_protocol():
-    """CP-CHECK-006: Check runners implement ICheckProtocol."""
+    """CP-CHECK-006: Check runners implement the rich ICheckProtocol."""
     from modules.check.src.capabilities_check_docs import DocsCheckRunner
     from modules.check.src.capabilities_check_skills import SkillsCheckRunner
     from modules.shared.src.contract_check_protocol import ICheckProtocol
@@ -51,15 +52,28 @@ def test_check_runner_implements_protocol():
     assert isinstance(skills_runner, ICheckProtocol)
 
 
-def test_check_execute_method_exists():
-    """CP-CHECK-007: Check runners have execute method."""
+def test_check_run_method_exists():
+    """CP-CHECK-007: Check runners have run method."""
     from modules.check.src.capabilities_check_docs import DocsCheckRunner
     from modules.check.src.capabilities_check_skills import SkillsCheckRunner
 
     docs = DocsCheckRunner()
     skills = SkillsCheckRunner()
 
-    assert hasattr(docs, 'execute')
-    assert hasattr(skills, 'execute')
-    assert callable(getattr(docs, 'execute'))
-    assert callable(getattr(skills, 'execute'))
+    assert hasattr(docs, 'run')
+    assert hasattr(skills, 'run')
+    assert callable(getattr(docs, 'run'))
+    assert callable(getattr(skills, 'run'))
+
+
+def test_check_aggregate_declares_only_execute():
+    """CP-CHECK-008: the aggregate exposes exactly one abstract method."""
+    from modules.shared.src.contract_check_aggregate import ICheckAggregate
+
+    abstract = {
+        name
+        for name in vars(ICheckAggregate)
+        if callable(getattr(ICheckAggregate, name, None))
+        and getattr(getattr(ICheckAggregate, name), "__isabstractmethod__", False)
+    }
+    assert abstract == {"execute"}

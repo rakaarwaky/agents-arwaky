@@ -37,31 +37,6 @@ class McpConfigGenerator(IMcpProtocol):
         self._root = repo_root()
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        output: Path | None = None,
-        server_id: McpServerId | None = None,
-    ) -> ExitCode:
-        """Dispatch one MCP op (``generate`` | ``list`` | ``show``) to internal methods."""
-        if op == "generate":
-            target = output if output is not None else self._root / "mcp_servers.generated.json"
-            return self.generate(target)
-        if op == "list":
-            for server in self.list_servers():
-                print(f"  - {server.id} [{server.category}]: {server.description}")
-            return ExitCode(0)
-        if op in {"show", "probe"}:
-            return self.show_server(server_id)
-        if op == "generate_alias":
-            alias = McpAlias(server_id) if server_id is not None else McpAlias("")
-            target = output if output is not None else self._root / "mcp_servers.generated.json"
-            return self.generate_alias(alias, target)
-        if op == "validate":
-            return self.validate(output)
-        print(f"Unknown MCP op: {op}", file=sys.stderr)
-        return ExitCode(1)
-
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "McpConfigGenerator()"

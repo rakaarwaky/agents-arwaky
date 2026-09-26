@@ -9,12 +9,17 @@ from __future__ import annotations
 import sys
 from collections.abc import Callable
 
-from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
+from modules.shared.src.contract_harness_aggregate import (
+    HarnessRequest,
+    HarnessResponse,
+    IHarnessAggregate,
+)
 from modules.shared.src.taxonomy_harness_constant import (
     ALIASES,
     ALL_HARNESS_IDS,
     HARNESSES,
 )
+from modules.shared.src.taxonomy_harness_vo import HarnessFlags, HarnessOp, HarnessTargets
 
 _HELP_DOC = """agents-arwaky Harness Connector / Disconnector — surface command.
 
@@ -35,7 +40,6 @@ that is `aa unskill` / skill-manager).
 
 _CONNECT_FLAGS = ("force", "dry-run", "mcp-only", "skills-only", "env-only", "router", "copy-skills")
 _DISCONNECT_FLAGS = ("dry-run",)
-
 
 _FeatureFactory = Callable[[], IHarnessAggregate]
 
@@ -111,16 +115,15 @@ def cmd_connect(args: list[str], feature_factory: _FeatureFactory) -> int:
     orch = feature_factory()
     print("Connecting agents-arwaky to agent harnesses...")
     print("------------------------------------------------------------------")
-    rc = orch.connect(
-        tuple(targets),
-        force=flags["force"], dry_run=flags["dry_run"],
-        mcp_only=flags["mcp_only"], skills_only=flags["skills_only"],
-        env_only=flags["env_only"], router=flags["router"],
-        copy_skills=flags["copy_skills"],
+    request = HarnessRequest(
+        op=HarnessOp("connect"),
+        targets=HarnessTargets(tuple(targets)),
+        flags=HarnessFlags(flags),
     )
+    response: HarnessResponse = orch.execute(request)
     print("------------------------------------------------------------------")
-    if rc:
-        return rc
+    if response.exit_code:
+        return int(response.exit_code)
     print("\u2713 Connection complete. Agent harnesses are now synchronized with agents-arwaky.")
     return 0
 
@@ -141,10 +144,15 @@ def cmd_disconnect(args: list[str], feature_factory: _FeatureFactory) -> int:
     orch = feature_factory()
     print("Disconnecting agents-arwaky from agent harnesses...")
     print("------------------------------------------------------------------")
-    rc = orch.disconnect(tuple(targets), dry_run=flags["dry_run"])
+    request = HarnessRequest(
+        op=HarnessOp("disconnect"),
+        targets=HarnessTargets(tuple(targets)),
+        flags=HarnessFlags(flags),
+    )
+    response: HarnessResponse = orch.execute(request)
     print("------------------------------------------------------------------")
-    if rc:
-        return rc
+    if response.exit_code:
+        return int(response.exit_code)
     print("\u2713 Disconnect complete. agents-arwaky entries removed from selected harnesses.")
     return 0
 

@@ -607,11 +607,44 @@ HelpText = NewType("HelpText", str)
 #: Read-only config inspection snapshot (path, format, data, servers).
 ConfigSnapshot = NewType("ConfigSnapshot", dict)
 
-#: Operation token dispatched through ``IConfigProtocol.execute``.
+#: Operation token carried by a ``ConfigRequest`` (``load``/``save``/``merge_servers``/...).
 ConfigOp = NewType("ConfigOp", str)
 
 #: Named config/server/env keys accepted by a remove or merge call.
 ConfigKeys = NewType("ConfigKeys", list)
+
+
+@dataclass(frozen=True)
+class ConfigRequest:
+    """One config request the surface/root/CLI hands to the aggregate.
+
+    Every consumer verb of the config feature is a value of ``op``; the
+    aggregate dispatches to the matching protocol method internally, so the
+    aggregate keeps a single ``execute`` entry point.
+    """
+
+    op: ConfigOp
+    path: Path | None = None
+    data: ConfigData | None = None
+    fmt: ConfigFormat | None = None
+    servers: McpServersMap | None = None
+    pairs: EnvPairs | None = None
+    keys: ConfigKeys | None = None
+    dry_run: bool = False
+
+
+@dataclass(frozen=True)
+class ConfigResult:
+    """Config domain result VO returned by ``IConfigAggregate.execute``.
+
+    Carries a success flag plus an optional payload whose shape depends on
+    the op; ``message`` is a human-readable error string on failure.
+    """
+
+    success: bool
+    data: object | None = None
+    message: str = ""
+
 
 #: Aggregated document-invariant findings (audit output bag).
 DocFindings = NewType("DocFindings", list)
@@ -624,6 +657,36 @@ DoctorReport = NewType("DoctorReport", object)
 
 #: Tuple of manifest tools returned by ``IToolsAggregate.list``.
 ToolList = NewType("ToolList", list)
+
+#: Doctor operation token carried by a DoctorRequest (``diagnose``/``readiness``/``report``).
+DoctorOp = NewType("DoctorOp", str)
+
+
+@dataclass(frozen=True)
+class DoctorRequest:
+    """One doctor request the surface/root/CLI hands to the aggregate.
+
+    Every consumer verb of the doctor feature is a value of ``op``; the
+    aggregate routes internally to the matching protocol method, so the
+    aggregate keeps a single ``execute`` entry point.
+    """
+
+    op: DoctorOp
+    flags: DoctorFlags | None = None
+    report: DoctorReport | None = None
+
+
+@dataclass(frozen=True)
+class DoctorResponse:
+    """Envelope returned by ``IDoctorAggregate.execute``.
+
+    ``success`` and ``exit_code`` carry the diagnostic outcome; ``report``
+    carries the optional payload a request produced (empty for pure checks).
+    """
+
+    success: bool
+    exit_code: ExitCode
+    report: DoctorReport | None = None
 
 
 # --- markdown/text helpers (shared by doc_pack / doc_hygiene utilities) --------
@@ -695,12 +758,17 @@ __all__ = [
     "ConfigFormat",
     "ConfigKeys",
     "ConfigOp",
+    "ConfigRequest",
+    "ConfigResult",
     "ConfigSnapshot",
     "ConfigTuple",
     "DocFinding",
     "DocFindings",
     "DoctorFlags",
+    "DoctorOp",
     "DoctorReport",
+    "DoctorRequest",
+    "DoctorResponse",
     "EnvPairs",
     "ErrorMessage",
     "ExitCode",

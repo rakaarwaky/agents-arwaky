@@ -23,9 +23,18 @@ from modules.shared.src.contract_mcp_protocol import IMcpProtocol
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
 from modules.shared.src.contract_service_protocol import IServiceProtocol
 from modules.shared.src.contract_skill_aggregate import ISkillAggregate
-from modules.shared.src.contract_skill_protocol import ISkillProtocol
+from modules.shared.src.contract_skill_protocol import (
+    ISkillProvisionProtocol,
+    ISkillRegistryProtocol,
+)
 from modules.shared.src.contract_tools_aggregate import IToolsAggregate
-from modules.shared.src.contract_tools_protocol import IToolsProtocol
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    IToolsInstallerProtocol,
+    IToolsRunnerProtocol,
+    IToolsUninstallerProtocol,
+    IToolsUpdaterProtocol,
+)
 
 __all__ = [
     "IBackupAggregate",
@@ -45,7 +54,12 @@ __all__ = [
     "IServiceAggregate",
     "IServiceProtocol",
     "ISkillAggregate",
-    "ISkillProtocol",
+    "ISkillProvisionProtocol",
+    "ISkillRegistryProtocol",
+    "IToolsAdapterProtocol",
     "IToolsAggregate",
-    "IToolsProtocol",
+    "IToolsInstallerProtocol",
+    "IToolsRunnerProtocol",
+    "IToolsUninstallerProtocol",
+    "IToolsUpdaterProtocol",
 ]

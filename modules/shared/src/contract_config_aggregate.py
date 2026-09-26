@@ -1,99 +1,34 @@
-"""Config aggregate contract — the 7 bare methods exposed to the root CLI.
+"""Config-domain aggregate contract — single ``execute`` entry point.
 
-The config agent orchestrator and the ``aa config`` surface both implement
-this ABC; the root CLI routes each token to the matching method.
+The root CLI and surface layer call ``execute`` with a ``ConfigRequest`` and
+get a ``ConfigResult`` back. The orchestrator behind this interface routes each
+``op`` to the matching protocol method on the injected capabilities.
 """
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 
-from modules.shared.src.taxonomy_common_vo import (
-    ConfigData,
-    ConfigFormat,
-    ConfigKeys,
-    ConfigSnapshot,
-    ConfigTuple,
-    EnvPairs,
-    HelpText,
-    McpServersMap,
-)
+from modules.shared.src.taxonomy_common_vo import ConfigRequest, ConfigResult
 
 
 class IConfigAggregate(ABC):
-    """Aggregate surface the root CLI dispatches into (AES405)."""
+    """Single entry point over config management; the agent dispatches internally."""
 
     @abstractmethod
-    def load(self, path: Path) -> ConfigTuple:
-        """Read the config file; returns ``(data, format)``."""
-        ...
-
-    @abstractmethod
-    def save(
-        self,
-        path: Path,
-        data: ConfigData,
-        fmt: ConfigFormat | None = None,
-    ) -> bool:
-        """Write *data* back preserving format; True on success."""
-        ...
-
-    @abstractmethod
-    def merge_servers(
-        self,
-        path: Path,
-        servers: McpServersMap,
-    ) -> ConfigKeys:
-        """Merge MCP server entries into the file; returns merged names."""
-        ...
-
-    @abstractmethod
-    def set_env(self, path: Path, pairs: EnvPairs) -> None:
-        """Upsert KEY=VALUE pairs into an env-style file (create if missing)."""
-        ...
-
-    @abstractmethod
-    def remove_entries(
-        self,
-        path: Path,
-        keys: ConfigKeys,
-        dry_run: bool = False,
-    ) -> ConfigKeys:
-        """Drop named server or env entries; dry-run reports without writing."""
-        ...
-
-    @abstractmethod
-    def inspect(self, path: Path) -> ConfigSnapshot:
-        """Read-only snapshot: format, data, and server names."""
-        ...
-
-    @abstractmethod
-    def help(self) -> HelpText:
-        """Print (or return) usage for every config op."""
+    def execute(self, request: ConfigRequest) -> ConfigResult:
+        """Run the request the surface/root/CLI/MCP asked for; return the response."""
         ...
 
 
 __all__ = [
-    "ConfigData",
-    "ConfigFormat",
-    "ConfigKeys",
-    "ConfigSnapshot",
-    "ConfigTuple",
-    "EnvPairs",
-    "HelpText",
     "IConfigAggregate",
-    "McpServersMap",
+    "ConfigRequest",
+    "ConfigResult",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
-    "ConfigData": ConfigData,
-    "ConfigFormat": ConfigFormat,
-    "ConfigKeys": ConfigKeys,
-    "ConfigSnapshot": ConfigSnapshot,
-    "ConfigTuple": ConfigTuple,
-    "EnvPairs": EnvPairs,
-    "HelpText": HelpText,
     "IConfigAggregate": IConfigAggregate,
-    "McpServersMap": McpServersMap,
+    "ConfigRequest": ConfigRequest,
+    "ConfigResult": ConfigResult,
 }

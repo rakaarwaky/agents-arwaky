@@ -1,42 +1,36 @@
-"""Doctor-domain aggregate contract (agent orchestrator ABC)."""
+"""Doctor-domain aggregate contract (agent orchestrator ABC).
+
+Single entry point over the doctor feature: the surface, root and CLI call
+``execute`` with a request and get a response back. The agent behind the
+aggregate routes each ``op`` to the matching protocol method.
+"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_common_vo import (
-    DoctorFlags,
-    DoctorReport,
+    DoctorRequest,
+    DoctorResponse,
     ExitCode,
     Timestamp,
 )
 
 
 class IDoctorAggregate(ABC):
-    """Aggregate over all doctor diagnostic capabilities."""
+    """Single entry point over doctor diagnostics; the agent dispatches internally."""
 
     @abstractmethod
-    def diagnose(self, flags: DoctorFlags | None = None) -> ExitCode:
-        """Run the full environment + readiness diagnosis; return exit code."""
-        ...
-    @abstractmethod
-    def readiness(self, flags: DoctorFlags | None = None) -> ExitCode:
-        """Report tool readiness rows; return exit code."""
-        ...
-    @abstractmethod
-    def report(
-        self,
-        report: DoctorReport,
-        flags: DoctorFlags | None = None,
-    ) -> ExitCode:
-        """Render *report* as text, or JSON under the ``json`` flag."""
+    def execute(self, request: DoctorRequest) -> DoctorResponse:
+        """Run the request the surface/root/CLI asked for; return the response."""
         ...
 
-__all__ = ['DoctorFlags', 'DoctorReport', 'ExitCode', 'IDoctorAggregate', 'Timestamp']
+
+__all__ = ['DoctorRequest', 'DoctorResponse', 'ExitCode', 'IDoctorAggregate', 'Timestamp']
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
-    "DoctorFlags": DoctorFlags,
-    "DoctorReport": DoctorReport,
+    "DoctorRequest": DoctorRequest,
+    "DoctorResponse": DoctorResponse,
     "ExitCode": ExitCode,
     "IDoctorAggregate": IDoctorAggregate,
     "Timestamp": Timestamp,

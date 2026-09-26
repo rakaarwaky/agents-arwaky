@@ -1,69 +1,129 @@
-"""Tool-domain capability contract (AES102 `_protocol`).
+"""Tool-domain capability contracts (AES102 `_protocol`).
 
-One abstract method — ``execute`` — covers every tools capability:
-install, update, uninstall, run, resolve, and discover. A capability
-receives an operation token plus the optional target, query, and
-arguments it needs, and returns the operation's result (an exit code for
-``run``).
-
-The former leaf protocols (install / update / uninstall / run / resolve,
-the registration and satisfaction probes, and the adapter facade) are
-collapsed into this single method: each capability dispatches internally
-on *op*, and the agent orchestrator routes every aggregate action
-through ``execute``. Capabilities keep their concrete action methods as
-internal detail — the protocol surface stays one method.
+One file for the tools feature. Each class below is one capability seam:
+a class carries every method that capability implements, with one concrete
+return type each, so a capability implements its class outright and never
+carries stubs.
 """
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 
-from modules.shared.src.taxonomy_common_vo import ToolSpec
-from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolArgs, ToolQuery, ToolsOp
+from modules.shared.src.taxonomy_common_vo import (
+    InstallResult,
+    ToolList,
+    ToolSpec,
+    UninstallResult,
+    UpdateResult,
+)
+from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolQuery
 
 
-class IToolsProtocol(ABC):
-    """Single-method capability contract for the tools feature."""
+class IToolsInstallerProtocol(ABC):
+    """Install action: provision + register launcher."""
 
     @abstractmethod
-    def execute(
+    def install(
         self,
-        op: ToolsOp,
-        spec: ToolSpec | None = None,
-        query: ToolQuery | None = None,
-        args: ToolArgs | None = None,
-    ) -> ExitCode | ToolSpec | None:
-        """Run one tools operation under *op*; return its result or exit code.
+        spec: ToolSpec,
+        adapter: object | None = None,
+        dry_run: bool = False,
+    ) -> InstallResult:
+        """Provision *spec* via its adapter, register launchers."""
+        ...
 
-        Args:
-            op: Operation token — ``install``, ``update``, ``uninstall``,
-                ``run``, ``resolve``, ``discover`` (adapter sub-ops such
-                as ``owned_paths`` stay internal to the capability).
-            spec: Resolved target tool specification, when the op needs one.
-            query: Raw query (id / binary / alias), when the op resolves.
-            args: Argument list — run args, owned-path strings, or flags.
 
-        Returns:
-            The op's result object, or an ``ExitCode`` for ``run``.
-            A failed / non-zero result signals the error to the caller;
-            unexpected ops raise a typed domain error (contract breach,
-            never a partial dispatch).
-        """
+class IToolsUpdaterProtocol(ABC):
+    """Update action: bump to manifest pin + record transition."""
+
+    @abstractmethod
+    def update(
+        self,
+        spec: ToolSpec,
+        adapter: object | None = None,
+        dry_run: bool = False,
+    ) -> UpdateResult:
+        """Bump *spec* to its pin and record the transition."""
+        ...
+
+
+class IToolsUninstallerProtocol(ABC):
+    """Uninstall action: remove owned paths + verify residuals."""
+
+    @abstractmethod
+    def uninstall(
+        self,
+        spec: ToolSpec,
+        owned_paths: list[Path] | None = None,
+    ) -> UninstallResult:
+        """Remove *spec*'s owned paths and report residuals."""
+        ...
+
+
+class IToolsRunnerProtocol(ABC):
+    """Run action: discover executable then exec it."""
+
+    @abstractmethod
+    def run(self, spec: ToolSpec, args: list[str]) -> ExitCode:
+        """Execute the discovered binary with *args*; return the exit code."""
+        ...
+
+    @abstractmethod
+    def discover(self, spec: ToolSpec) -> Path | None:
+        """Discover the launch path for *spec*; None when absent."""
+        ...
+
+
+class IToolsAdapterProtocol(ABC):
+    """Adapter seam: probes and lifecycle hooks exposed per tool unit."""
+
+    @abstractmethod
+    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
+        """True when the installed binary satisfies the manifest."""
+        ...
+
+    @abstractmethod
+    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> tuple[bool, str]:
+        """(satisfied, reason) against the manifest pin."""
+        ...
+
+    @abstractmethod
+    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
+        """Paths owned by this adapter's install."""
+        ...
+
+    @abstractmethod
+    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> list[Path]:
+        """Install/build into *root*; returns created paths."""
+        ...
+
+    @abstractmethod
+    def update(self, spec: ToolSpec, root: Path) -> list[Path]:
+        """Update to the manifest pin; returns rebuilt paths."""
         ...
 
 
 __all__ = [
     "ExitCode",
-    "IToolsProtocol",
-    "ToolArgs",
+    "IToolsAdapterProtocol",
+    "IToolsInstallerProtocol",
+    "IToolsRunnerProtocol",
+    "IToolsUninstallerProtocol",
+    "IToolsUpdaterProtocol",
+    "ToolList",
     "ToolQuery",
-    "ToolsOp",
+    "ToolSpec",
 ]
 
-# Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "ExitCode": ExitCode,
-    "IToolsProtocol": IToolsProtocol,
-    "ToolArgs": ToolArgs,
+    "IToolsAdapterProtocol": IToolsAdapterProtocol,
+    "IToolsInstallerProtocol": IToolsInstallerProtocol,
+    "IToolsRunnerProtocol": IToolsRunnerProtocol,
+    "IToolsUninstallerProtocol": IToolsUninstallerProtocol,
+    "IToolsUpdaterProtocol": IToolsUpdaterProtocol,
+    "ToolList": ToolList,
     "ToolQuery": ToolQuery,
-    "ToolsOp": ToolsOp,
+    "ToolSpec": ToolSpec,
 }

@@ -13,5 +13,5 @@ def test_dogfood_mcp_pipeline():
     generator = McpConfigGenerator()
     orch = McpOrchestrator(generator)
 
-    assert hasattr(generator, 'execute')
-    assert hasattr(orch, 'list_servers')
+    assert hasattr(generator, 'generate')
+    assert hasattr(orch, 'execute')

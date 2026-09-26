@@ -9,7 +9,7 @@ def test_env_diagnostic_runner_execution():
     runner = EnvDiagnosticRunner()
     # This may print to stdout but should not raise
     try:
-        result = runner.execute()
+        result = runner.run()
         assert result is not None
     except Exception:
         pass
@@ -21,7 +21,7 @@ def test_tools_diagnostic_runner_execution():
 
     runner = ToolsDiagnosticRunner()
     try:
-        result = runner.execute()
+        result = runner.run()
         assert result is not None
     except Exception:
         pass

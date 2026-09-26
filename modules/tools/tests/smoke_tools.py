@@ -54,12 +54,25 @@ def test_import_root_container():
 
 
 def test_import_contract_protocols():
-    """SM-TOOLS-010: contract protocols can be imported."""
-    from modules.shared.src.contract_tools_protocol import IToolsProtocol
+    """SM-TOOLS-010: contract protocols and the aggregate can be imported."""
     from modules.shared.src.contract_tools_aggregate import IToolsAggregate
+    from modules.shared.src.contract_tools_protocol import (
+        IToolsAdapterProtocol,
+        IToolsInstallerProtocol,
+        IToolsRunnerProtocol,
+        IToolsUninstallerProtocol,
+        IToolsUpdaterProtocol,
+    )
 
-    assert IToolsProtocol is not None
     assert IToolsAggregate is not None
+    for protocol in (
+        IToolsAdapterProtocol,
+        IToolsInstallerProtocol,
+        IToolsRunnerProtocol,
+        IToolsUninstallerProtocol,
+        IToolsUpdaterProtocol,
+    ):
+        assert protocol is not None
 
 
 def test_import_common_vos():

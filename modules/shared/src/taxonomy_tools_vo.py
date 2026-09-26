@@ -16,12 +16,15 @@ capability signatures (AES402):
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NewType
 
 from modules.shared.src.taxonomy_common_vo import (
     InstallResult as _InstallResult,
+)
+from modules.shared.src.taxonomy_common_vo import (
+    Tool as _Tool,
 )
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec as _ToolSpec,
@@ -36,6 +39,7 @@ from modules.shared.src.taxonomy_common_vo import (
 #: Alias so annotations read from the local taxonomy layer (AES501: this
 #: module is imported by contract_* and the root entry, never orphaned).
 ToolSpec = _ToolSpec
+Tool = _Tool
 InstallResult = _InstallResult
 UninstallResult = _UninstallResult
 UpdateResult = _UpdateResult
@@ -43,7 +47,7 @@ UpdateResult = _UpdateResult
 #: Manifest lookup text (id / binary / alias). Identity at runtime.
 ToolQuery = NewType("ToolQuery", str)
 
-#: Operation token dispatched through ``IToolsProtocol.execute``.
+#: Legacy op token; new contracts route each verb to a named rich method.
 ToolsOp = NewType("ToolsOp", str)
 
 #: Process argument list accepted by the run action.
@@ -51,6 +55,42 @@ ToolArgs = NewType("ToolArgs", list)
 
 #: Process exit code from the run action. Identity at runtime.
 ExitCode = NewType("ExitCode", int)
+
+#: Concrete path (or None) discovered by the runner.
+ToolExecutable = NewType("ToolExecutable", Path)
+
+
+@dataclass(frozen=True)
+class ToolRequest:
+    """One tools request the surface/root/CLI hands to the aggregate.
+
+    Every consumer verb of the tools feature is a value of ``op``; the
+    aggregate dispatches to the matching rich protocol method internally,
+    so the aggregate keeps a single ``execute`` entry point.
+    """
+
+    op: ToolsOp
+    query: ToolQuery = ToolQuery("")
+    spec: ToolSpec | None = None
+    args: ToolArgs = field(default_factory=lambda: ToolArgs([]))
+    owned: tuple[Path, ...] = ()
+
+
+@dataclass(frozen=True)
+class ToolResponse:
+    """Tools response envelope returned by ``IToolsAggregate.execute``.
+
+    Each op fills the field its own result shape needs; the aggregate
+    surfaces the op-specific payload to the caller.
+    """
+
+    spec: ToolSpec | None = None
+    tools: tuple[Tool, ...] = ()
+    executable: ToolExecutable | None = None
+    install: InstallResult | None = None
+    update: UpdateResult | None = None
+    uninstall: UninstallResult | None = None
+    run: ExitCode | None = None
 
 
 @dataclass(frozen=True)
@@ -108,9 +148,13 @@ __all__ = [
     "AdapterUnit",
     "ExitCode",
     "InstallResult",
+    "Tool",
     "ToolArgs",
+    "ToolExecutable",
     "ToolLifecycleConfig",
     "ToolQuery",
+    "ToolRequest",
+    "ToolResponse",
     "ToolSpec",
     "ToolsOp",
     "UninstallResult",

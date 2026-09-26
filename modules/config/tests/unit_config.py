@@ -17,26 +17,26 @@ class TestConfigWriter:
         writer = ConfigWriter()
         assert writer is not None
 
-    def test_execute_load_op(self):
-        """UT-CONFIG-002: execute('load') dispatches to load_file."""
+    def test_load_uses_rich_method(self):
+        """UT-CONFIG-002: load() is the named protocol method; there is no execute()."""
         from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
+        assert not hasattr(writer, "execute")
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             f.write('{"key": "value"}')
             f.flush()
             path = Path(f.name)
 
         try:
-            result = writer.execute("load", path)
-            data, fmt = result
+            data, fmt = writer.load(path)
             assert data["key"] == "value"
             assert fmt == "json"
         finally:
             path.unlink(missing_ok=True)
 
-    def test_execute_save_op(self):
-        """UT-CONFIG-003: execute('save') dispatches to save_file."""
+    def test_save_uses_rich_method(self):
+        """UT-CONFIG-003: save() is the named protocol method."""
         from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
@@ -47,39 +47,38 @@ class TestConfigWriter:
             path = Path(f.name)
 
         try:
-            data = ConfigData({"new_key": "new_value"})
-            fmt = ConfigFormat("json")
-            result = writer.execute("save", path, {"data": dict(data), "fmt": fmt})
+            result = writer.save(path, ConfigData({"new_key": "new_value"}), ConfigFormat("json"))
             assert result is True
         finally:
             path.unlink(missing_ok=True)
 
-    def test_execute_detect_format_op(self):
-        """UT-CONFIG-004: execute('detect_format') dispatches to detect_format."""
+    def test_inspect_returns_snapshot(self):
+        """UT-CONFIG-004: inspect() is the named read-only protocol method."""
         from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            f.write('{}')
+            f.write('{"key": "value"}')
             f.flush()
             path = Path(f.name)
 
         try:
-            result = writer.execute("detect_format", path)
-            assert result == "json"
+            snap = writer.inspect(path)
+            assert snap["format"] == "json"
+            assert snap["path"] == str(path)
         finally:
             path.unlink(missing_ok=True)
 
-    def test_execute_invalid_op_raises(self):
-        """UT-CONFIG-005: execute raises ValueError for unknown op."""
+    def test_implements_whole_protocol(self):
+        """UT-CONFIG-005: ConfigWriter implements every IConfigProtocol method."""
         from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.shared.src.contract_config_protocol import IConfigProtocol
 
         writer = ConfigWriter()
-        try:
-            writer.execute("unknown_op", Path("/tmp/test.json"))
-            assert False, "Should have raised ValueError"
-        except ValueError as exc:
-            assert "unknown_op" in str(exc)
+        assert isinstance(writer, IConfigProtocol)
+        # Instantiating proves no abstract method is left unimplemented.
+        for name in IConfigProtocol.__abstractmethods__:
+            assert callable(getattr(writer, name))
 
     def test_load_file(self):
         """UT-CONFIG-006: load_file returns ConfigTuple with data and format."""
@@ -180,25 +179,25 @@ class TestConfigModifier:
         modifier = ConfigModifier()
         assert modifier is not None
 
-    def test_execute_merge_servers_op(self):
-        """UT-CONFIG-013: execute('merge_servers') dispatches correctly."""
+    def test_merge_servers_rich_method(self):
+        """UT-CONFIG-013: merge_servers() is the named protocol method."""
         from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
+        assert not hasattr(modifier, "execute")
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             f.write(json.dumps({"mcpServers": {}}))
             f.flush()
             path = Path(f.name)
 
         try:
-            servers = {"test-server": {"url": "http://test"}}
-            result = modifier.execute("merge_servers", path, {"servers": servers})
-            assert isinstance(result, list)
+            result = modifier.merge_servers(path, {"test-server": {"url": "http://test"}})
+            assert "test-server" in result
         finally:
             path.unlink(missing_ok=True)
 
-    def test_execute_set_env_op(self):
-        """UT-CONFIG-014: execute('set_env') dispatches correctly."""
+    def test_set_env_rich_method(self):
+        """UT-CONFIG-014: set_env() is the named protocol method."""
         from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
@@ -208,39 +207,38 @@ class TestConfigModifier:
             path = Path(f.name)
 
         try:
-            modifier.execute("set_env", path, {"pairs": {"KEY": "value"}})
+            modifier.set_env(path, {"KEY": "value"})
             # Verify env file was updated
             content = path.read_text()
             assert 'KEY="value"' in content or "KEY=value" in content
         finally:
             path.unlink(missing_ok=True)
 
-    def test_execute_list_servers_op(self):
-        """UT-CONFIG-015: execute('list_servers') dispatches correctly."""
+    def test_list_mcp_servers_rich_method(self):
+        """UT-CONFIG-015: list_mcp_servers() is the named read method."""
         from modules.config.src.capabilities_config_modifier import ConfigModifier
 
         modifier = ConfigModifier()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            f.write('{}')
+            f.write(json.dumps({"mcpServers": {"a": {}}}))
             f.flush()
             path = Path(f.name)
 
         try:
-            result = modifier.execute("list_servers", path)
+            result = modifier.list_mcp_servers(path)
             assert isinstance(result, list)
         finally:
             path.unlink(missing_ok=True)
 
-    def test_execute_invalid_op_raises(self):
-        """UT-CONFIG-016: execute raises ValueError for unknown op."""
+    def test_implements_whole_protocol(self):
+        """UT-CONFIG-016: ConfigModifier implements every IConfigProtocol method."""
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.shared.src.contract_config_protocol import IConfigProtocol
 
         modifier = ConfigModifier()
-        try:
-            modifier.execute("unknown", Path("/tmp/test.json"))
-            assert False, "Should have raised ValueError"
-        except ValueError as exc:
-            assert "unknown" in str(exc)
+        assert isinstance(modifier, IConfigProtocol)
+        for name in IConfigProtocol.__abstractmethods__:
+            assert callable(getattr(modifier, name))
 
     def test_remove_mcp_servers(self):
         """UT-CONFIG-017: remove_mcp_servers returns removed server names."""
@@ -326,53 +324,64 @@ class TestConfigOrchestrator:
         assert orch._writer is writer
         assert orch._modifier is modifier
 
-    def test_load(self):
-        """UT-CONFIG-023: load delegates to writer.execute('load')."""
+    def test_execute_load_routes_to_writer(self):
+        """UT-CONFIG-023: execute(load) routes to writer.load."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
         writer = MagicMock()
-        writer.execute.return_value = ({"key": "value"}, "json")
+        writer.load.return_value = ({"key": "value"}, "json")
         modifier = ConfigModifier()
         orch = ConfigOrchestrator(writer, modifier)
 
-        result = orch.load(Path("/tmp/test.json"))
-        assert result == ({"key": "value"}, "json")
-        writer.execute.assert_called_once_with("load", Path("/tmp/test.json"))
+        result = orch.execute(ConfigRequest(ConfigOp("load"), path=Path("/tmp/test.json")))
+        assert result.success is True
+        assert result.data == ({"key": "value"}, "json")
+        writer.load.assert_called_once_with(Path("/tmp/test.json"))
 
-    def test_save(self):
-        """UT-CONFIG-024: save delegates to writer.execute('save')."""
+    def test_aggregate_declares_one_method(self):
+        """UT-CONFIG-023b: IConfigAggregate declares exactly one method, execute."""
+        from modules.shared.src.contract_config_aggregate import IConfigAggregate
+
+        assert IConfigAggregate.__abstractmethods__ == frozenset({"execute"})
+
+    def test_execute_save_routes_to_writer(self):
+        """UT-CONFIG-024: execute(save) routes to writer.save."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
+        from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat, ConfigOp, ConfigRequest
 
         writer = MagicMock()
-        writer.execute.return_value = True
+        writer.save.return_value = True
         modifier = ConfigModifier()
         orch = ConfigOrchestrator(writer, modifier)
 
-        result = orch.save(Path("/tmp/test.json"), ConfigData({"key": "value"}), ConfigFormat("json"))
-        assert result is True
-        writer.execute.assert_called_once()
-        call_args = writer.execute.call_args
-        assert call_args[0][0] == "save"
+        result = orch.execute(
+            ConfigRequest(
+                ConfigOp("save"),
+                path=Path("/tmp/test.json"),
+                data=ConfigData({"key": "value"}),
+                fmt=ConfigFormat("json"),
+            )
+        )
+        assert result.success is True
+        writer.save.assert_called_once()
 
-    def test_help(self):
-        """UT-CONFIG-025: help returns usage text."""
+    def test_execute_help_returns_usage(self):
+        """UT-CONFIG-025: execute(help) returns usage text."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
-        writer = ConfigWriter()
-        modifier = ConfigModifier()
-        orch = ConfigOrchestrator(writer, modifier)
-
-        result = orch.help()
-        assert "Usage: aa config" in str(result)
-        assert "load" in str(result)
-        assert "save" in str(result)
+        orch = ConfigOrchestrator()
+        result = orch.execute(ConfigRequest(ConfigOp("help")))
+        assert result.success is True
+        assert "Usage: aa config" in str(result.data)
+        assert "load" in str(result.data)
+        assert "save" in str(result.data)
 
     def test_repr(self):
         """UT-CONFIG-026: __repr__ returns descriptive string."""
@@ -402,33 +411,31 @@ class TestConfigSurface:
         cmd = ConfigCommand(orch)
         assert cmd._orch is orch
 
-    def test_load_delegates(self):
-        """UT-CONFIG-028: ConfigCommand.load delegates to orchestrator."""
+    def test_execute_delegates_to_aggregate(self):
+        """UT-CONFIG-028: ConfigCommand.execute delegates to the wrapped aggregate."""
         from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest, ConfigResult
 
-        writer = MagicMock()
-        writer.execute.return_value = ({"key": "value"}, "json")
-        modifier = ConfigModifier()
-        orch = ConfigOrchestrator(writer, modifier)
+        orch = MagicMock()
+        orch.execute.return_value = ConfigResult(True, ({"key": "value"}, "json"))
         cmd = ConfigCommand(orch)
 
-        result = cmd.load(Path("/tmp/test.json"))
-        assert result == ({"key": "value"}, "json")
+        result = cmd.execute(ConfigRequest(ConfigOp("load"), path=Path("/tmp/test.json")))
+        assert result is orch.execute.return_value
+        orch.execute.assert_called_once()
+        # Named verbs are gone from the surface; only execute remains.
+        for gone in ("load", "save", "help"):
+            assert not hasattr(cmd, gone)
 
     def test_help_delegates(self):
-        """UT-CONFIG-029: ConfigCommand.help delegates to orchestrator."""
+        """UT-CONFIG-029: the help op flows through the aggregate's execute."""
         from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
-        writer = ConfigWriter()
-        modifier = ConfigModifier()
-        orch = ConfigOrchestrator(writer, modifier)
-        cmd = ConfigCommand(orch)
-
-        result = cmd.help()
-        assert "Usage: aa config" in str(result)
+        cmd = ConfigCommand(ConfigOrchestrator())
+        result = cmd.execute(ConfigRequest(ConfigOp("help")))
+        assert result.success is True
+        assert "Usage: aa config" in str(result.data)

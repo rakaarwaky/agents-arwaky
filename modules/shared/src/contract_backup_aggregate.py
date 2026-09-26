@@ -1,46 +1,35 @@
-"""Backup-domain aggregate contract (agent orchestrator ABC)."""
+"""Backup-domain aggregate contract (agent orchestrator ABC).
+
+Single entry point over the backup feature: the surface, root, CLI and MCP
+call ``execute`` with a request and get a response back. The agent behind
+the aggregate routes each ``op`` to the matching protocol method.
+"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_backup_vo import (
-    DEST_DEFAULT,
-    BackupArchive,
-    BackupDestination,
-    BackupResult,
-    BackupToolQuery,
-    ExitCode,
+    BackupOutcome,
+    BackupRequest,
+    BackupResponse,
 )
 
 
 class IBackupAggregate(ABC):
-    """Aggregate over backup/restore orchestration."""
+    """Single entry point over backup/restore orchestration."""
 
     @abstractmethod
-    def backup(self, tool: BackupToolQuery, dest: BackupDestination = DEST_DEFAULT) -> ExitCode:
-        """Back up *tool* (or all tools); return exit code."""
-        ...
-    @abstractmethod
-    def restore(self, tool: BackupToolQuery, archive: BackupArchive) -> ExitCode:
-        """Restore *tool* from *archive*; return exit code."""
-        ...
-    @abstractmethod
-    def list_archives(self) -> ExitCode:
-        """List available local backup archives; return exit code."""
-        ...
-    @abstractmethod
-    def status_store(self) -> ExitCode:
-        """Report backup store path / existence / archive count; return exit code."""
-        ...
-    @abstractmethod
-    def help(self) -> ExitCode:
-        """Print backup/restore usage; return exit code."""
+    def execute(self, request: BackupRequest) -> BackupResponse:
+        """Run the request the surface/root/CLI/MCP asked for; return the response."""
         ...
 
-__all__ = ["BackupResult", "IBackupAggregate"]
+
+__all__ = ["BackupOutcome", "BackupRequest", "BackupResponse", "IBackupAggregate"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
-    "BackupResult": BackupResult,
+    "BackupOutcome": BackupOutcome,
+    "BackupRequest": BackupRequest,
+    "BackupResponse": BackupResponse,
     "IBackupAggregate": IBackupAggregate,
 }

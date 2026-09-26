@@ -1,4 +1,10 @@
-"""Check agent orchestrator — runs all 2 verification checks in sequence."""
+"""Check agent orchestrator — single-execute aggregate over the check runners.
+
+Resolves each ``CheckRequest.scope`` to the matching protocol method on the
+injected runners, then wraps the aggregated gate result in a
+``CheckResponse``. Rendering (banner, progress, pass/fail lines) lives on
+the surface.
+"""
 from __future__ import annotations
 
 from modules.shared.src.contract_check_aggregate import ICheckAggregate
@@ -6,7 +12,8 @@ from modules.shared.src.contract_check_protocol import ICheckProtocol
 from modules.shared.src.taxonomy_check_vo import (
     CHECK_SCOPES,
     CheckExitCode,
-    CheckOnly,
+    CheckRequest,
+    CheckResponse,
     CheckScope,
     CheckSummary,
 )
@@ -15,33 +22,32 @@ from modules.shared.src.taxonomy_common_vo import DocFinding
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class CheckOrchestrator(ICheckAggregate):
-    """Sequence the check capabilities, aggregate their error counts.
+    """Single entry point over all repository-verification checks; dispatches internally.
 
-    Rendering (banner, progress, pass/fail lines) lives on the surface.
+    Scope selection and response assembly live here, so the aggregate keeps
+    a single ``execute`` door the surface knocks on.
     """
 
     def __init__(self, runners: list[ICheckProtocol]) -> None:
         self._runners = runners
 
     # ─── Block 2: Aggregate Method Implementation ──────────
-    def check(self, only: CheckOnly | None = None) -> CheckExitCode:
-        """Run checks across all registered runners, optionally scoped by *only*."""
-        scope = (only or "").strip().lower() or "all"
-        runners = self._select(only)
+    def execute(self, request: CheckRequest) -> CheckResponse:
+        """Run the runners matching *request*.scope; return the gate response."""
+        scope = CheckScope((request.scope or "").strip().lower())
+        runners = self._select(scope)
         if not runners:
-            return CheckExitCode(1)
+            return CheckResponse(CheckExitCode(1), CheckSummary("0 findings"))
         errors = 0
         for runner in runners:
-            errors += int(runner.execute(CheckScope(scope)))
-        return CheckExitCode(1 if errors else 0)
-
-    def check_docs(self) -> CheckExitCode:
-        """Run only the document-invariant audit."""
-        return self.check(CheckOnly("docs"))
-
-    def check_skill(self) -> CheckExitCode:
-        """Run only the skill-pack audit."""
-        return self.check(CheckOnly("skill"))
+            errors += int(runner.run(scope))
+        if not errors:
+            return CheckResponse(
+                CheckExitCode(0), CheckSummary(f"0 findings across {len(runners)} runner(s)")
+            )
+        return CheckResponse(
+            CheckExitCode(1), CheckSummary(f"{errors} error(s) across {len(runners)} runner(s)")
+        )
 
     def summary(self, findings: list[DocFinding]) -> CheckSummary:
         """Collapse *findings* into one digest line."""
@@ -53,11 +59,11 @@ class CheckOrchestrator(ICheckAggregate):
         )
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
-    def _select(self, only: CheckOnly | None) -> list[ICheckProtocol]:
-        """Filter *runners* by CLI scope; empty/``all`` keeps the full sequence."""
-        if only is None or only == "":
+    def _select(self, scope: CheckScope) -> list[ICheckProtocol]:
+        """Filter the registered runners by CLI scope; empty/``all`` keeps the full sequence."""
+        if not scope:
             return list(self._runners)
-        key = CHECK_SCOPES.get(only.strip().lower())
+        key = CHECK_SCOPES.get(scope)
         if key is None:
             return []
         if key == "":
@@ -71,7 +77,8 @@ class CheckOrchestrator(ICheckAggregate):
 __all__ = [
     "CHECK_SCOPES",
     "CheckExitCode",
-    "CheckOnly",
+    "CheckRequest",
+    "CheckResponse",
     "CheckScope",
     "CheckSummary",
     "DocFinding",
@@ -80,7 +87,8 @@ __all__ = [
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
     "CheckExitCode": CheckExitCode,
-    "CheckOnly": CheckOnly,
+    "CheckRequest": CheckRequest,
+    "CheckResponse": CheckResponse,
     "CheckScope": CheckScope,
     "CheckSummary": CheckSummary,
     "DocFinding": DocFinding,

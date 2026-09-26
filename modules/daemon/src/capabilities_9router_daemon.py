@@ -28,7 +28,7 @@ from modules.shared.src.taxonomy_daemon_constant import (
     UNIT_FILE,
     WEAK_PASSWORDS,
 )
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, ExitCode
+from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, DaemonUnit, ExitCode
 from modules.shared.src.utility_process_runner import cmd_out, run_cmd
 
 
@@ -51,40 +51,20 @@ class NinerouterDaemonManager(IDaemonProtocol):
         pass
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(
-        self,
-        op: str,
-        name: str | None = None,
-        unit: str | None = None,
-    ) -> DaemonStatus | ExitCode:
-        """Dispatch a protocol op to the matching lifecycle method.
+    def install_unit(self, unit: DaemonUnit) -> ExitCode:
+        """Enable and start the 9router.service systemd user unit."""
+        del unit  # 9Router owns a single unit; the caller passes it for routing
+        return ExitCode(cmd_service_install())
 
-        Args:
-            op: protocol verb (e.g. "start", "unit_status"); unknown values raise.
-            name: ignored for 9router (single daemon).
-            unit: ignored; ops map to the fixed 9router.service.
-        """
-        if op == "start":
-            return self.start()
-        if op == "stop":
-            return self.stop()
-        if op == "restart":
-            return self.restart()
-        if op == "status":
-            return self.status()
-        if op == "logs":
-            return self.logs()
-        if op == "install_unit":
-            return self.install_unit()
-        if op == "remove_unit":
-            return self.remove_unit()
-        if op == "unit_status":
-            return self.unit_status()
-        if op == "models":
-            return ExitCode(self.models())
-        if op == "help":
-            return self.help()
-        raise ValueError(f"Unknown daemon op: {op}")
+    def remove_unit(self, unit: DaemonUnit) -> ExitCode:
+        """Disable and remove the 9router.service systemd user unit."""
+        del unit  # 9Router owns a single unit; the caller passes it for routing
+        return ExitCode(cmd_service_uninstall())
+
+    def unit_status(self, unit: DaemonUnit) -> ExitCode:
+        """Report the state of the 9router.service systemd unit."""
+        del unit  # 9Router owns a single unit; the caller passes it for routing
+        return ExitCode(cmd_service_status())
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def start(self) -> ExitCode:
@@ -121,18 +101,6 @@ class NinerouterDaemonManager(IDaemonProtocol):
     def models(self) -> int:
         """List AI model endpoints exposed at /v1/models."""
         return cmd_models()
-
-    def install_unit(self) -> ExitCode:
-        """Enable and start the 9router.service systemd user unit."""
-        return ExitCode(cmd_service_install())
-
-    def unit_status(self) -> ExitCode:
-        """Report the state of the 9router.service systemd unit."""
-        return ExitCode(cmd_service_status())
-
-    def remove_unit(self) -> ExitCode:
-        """Disable and remove the 9router.service systemd user unit."""
-        return ExitCode(cmd_service_uninstall())
 
     def help(self) -> ExitCode:
         """Print usage information for daemon sub-commands."""

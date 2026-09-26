@@ -1,7 +1,15 @@
 """Integration tests for modules/daemon — real wiring and command interactions."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
+from modules.shared.src.taxonomy_daemon_vo import (
+    DaemonName,
+    DaemonOp,
+    DaemonRequest,
+    DaemonStatus,
+    DaemonUnit,
+)
 
 
 def test_container_creation():
@@ -17,49 +25,49 @@ def test_container_creation():
 
 
 def test_orchestrator_start_anytype():
-    """IT-DAEMON-002: Orchestrator.start dispatches to AnytypeDaemonManager."""
+    """IT-DAEMON-002: Orchestrator.execute(start) routes to AnytypeDaemonManager.start."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName
+    from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.anytype, 'execute', return_value=0
-    ) as mock_exec:
-        result = container.aggregate.start(DaemonName("anytype"))
-        mock_exec.assert_called_once_with("start")
-        assert result == 0
+        container.anytype, 'start', return_value=ExitCode(0)
+    ) as mock_start:
+        result = container.aggregate.execute(DaemonRequest(DaemonOp("start"), name=DaemonName("anytype")))
+        mock_start.assert_called_once()
+        assert result.exit_code == 0
 
 
 def test_orchestrator_stop_9router():
-    """IT-DAEMON-003: Orchestrator.stop dispatches to NinerouterDaemonManager."""
+    """IT-DAEMON-003: Orchestrator.execute(stop) routes to NinerouterDaemonManager.stop."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName
+    from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.ninerouter, 'execute', return_value=0
-    ) as mock_exec:
-        result = container.aggregate.stop(DaemonName("9router"))
-        mock_exec.assert_called_once_with("stop")
-        assert result == 0
+        container.ninerouter, 'stop', return_value=ExitCode(0)
+    ) as mock_stop:
+        result = container.aggregate.execute(DaemonRequest(DaemonOp("stop"), name=DaemonName("9router")))
+        mock_stop.assert_called_once()
+        assert result.exit_code == 0
 
 
 def test_orchestrator_restart_anytype():
-    """IT-DAEMON-004: Orchestrator.restart dispatches to AnytypeDaemonManager."""
+    """IT-DAEMON-004: Orchestrator.execute(restart) routes to AnytypeDaemonManager.restart."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName
+    from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.anytype, 'execute', return_value=0
-    ) as mock_exec:
-        result = container.aggregate.restart(DaemonName("anytype"))
-        mock_exec.assert_called_once_with("restart")
-        assert result == 0
+        container.anytype, 'restart', return_value=ExitCode(0)
+    ) as mock_restart:
+        result = container.aggregate.execute(DaemonRequest(DaemonOp("restart"), name=DaemonName("anytype")))
+        mock_restart.assert_called_once()
+        assert result.exit_code == 0
 
 
 def test_orchestrator_status_anytype():
-    """IT-DAEMON-005: Orchestrator.status returns DaemonStatus."""
+    """IT-DAEMON-005: Orchestrator.execute(status) returns a DaemonStatus."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus
 
@@ -72,197 +80,183 @@ def test_orchestrator_status_anytype():
         ok=True,
     )
     with patch.object(
-        container.anytype, 'execute', return_value=expected
+        container.anytype, 'status', return_value=expected
     ):
-        result = container.aggregate.status(DaemonName("anytype"))
-        assert result == expected
+        result = container.aggregate.execute(DaemonRequest(DaemonOp("status"), name=DaemonName("anytype")))
+        assert result.status == expected
 
 
 def test_orchestrator_logs_9router():
-    """IT-DAEMON-006: Orchestrator.logs dispatches to NinerouterDaemonManager."""
+    """IT-DAEMON-006: Orchestrator.execute(logs) routes to NinerouterDaemonManager.logs."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName
+    from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.ninerouter, 'execute', return_value=0
-    ) as mock_exec:
-        result = container.aggregate.logs(DaemonName("9router"))
-        mock_exec.assert_called_once_with("logs")
-        assert result == 0
+        container.ninerouter, 'logs', return_value=ExitCode(0)
+    ) as mock_logs:
+        result = container.aggregate.execute(DaemonRequest(DaemonOp("logs"), name=DaemonName("9router")))
+        mock_logs.assert_called_once()
+        assert result.exit_code == 0
 
 
 def test_orchestrator_install_unit():
-    """IT-DAEMON-007: Orchestrator.install_unit dispatches to manager."""
+    """IT-DAEMON-007: Orchestrator.execute(install_unit) routes to manager.install_unit."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
+    from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.anytype, 'execute', return_value=0
-    ) as mock_exec:
-        result = container.aggregate.install_unit(DaemonUnit("anytype-daemon.service"))
-        mock_exec.assert_called_once_with("install_unit", unit="anytype-daemon.service")
-        assert result == 0
+        container.anytype, 'install_unit', return_value=ExitCode(0)
+    ) as mock_install:
+        result = container.aggregate.execute(
+            DaemonRequest(DaemonOp("install_unit"), unit=DaemonUnit("anytype-daemon.service"))
+        )
+        mock_install.assert_called_once_with(DaemonUnit("anytype-daemon.service"))
+        assert result.exit_code == 0
 
 
 def test_orchestrator_remove_unit():
-    """IT-DAEMON-008: Orchestrator.remove_unit dispatches to manager."""
+    """IT-DAEMON-008: Orchestrator.execute(remove_unit) routes to manager.remove_unit."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
+    from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.ninerouter, 'execute', return_value=0
-    ) as mock_exec:
-        result = container.aggregate.remove_unit(DaemonUnit("9router.service"))
-        mock_exec.assert_called_once_with("remove_unit", unit="9router.service")
-        assert result == 0
+        container.ninerouter, 'remove_unit', return_value=ExitCode(0)
+    ) as mock_remove:
+        result = container.aggregate.execute(
+            DaemonRequest(DaemonOp("remove_unit"), unit=DaemonUnit("9router.service"))
+        )
+        mock_remove.assert_called_once_with(DaemonUnit("9router.service"))
+        assert result.exit_code == 0
 
 
 def test_orchestrator_unit_status():
-    """IT-DAEMON-009: Orchestrator.unit_status dispatches to manager."""
+    """IT-DAEMON-009: Orchestrator.execute(unit_status) routes to manager.unit_status."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
+    from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.anytype, 'execute', return_value=0
-    ) as mock_exec:
-        result = container.aggregate.unit_status(DaemonUnit("anytype-daemon.service"))
-        mock_exec.assert_called_once_with("unit_status", unit="anytype-daemon.service")
-        assert result == 0
+        container.anytype, 'unit_status', return_value=ExitCode(0)
+    ) as mock_us:
+        result = container.aggregate.execute(
+            DaemonRequest(DaemonOp("unit_status"), unit=DaemonUnit("anytype-daemon.service"))
+        )
+        mock_us.assert_called_once_with(DaemonUnit("anytype-daemon.service"))
+        assert result.exit_code == 0
 
 
-def test_anytype_execute_with_various_ops():
-    """IT-DAEMON-010: AnytypeDaemonManager.execute handles multiple ops."""
+def test_anytype_rich_protocol_methods():
+    """IT-DAEMON-010: AnytypeDaemonManager has all rich protocol methods."""
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+    from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
     from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 
     manager = AnytypeDaemonManager()
+    assert isinstance(manager, IDaemonProtocol)
+    assert not hasattr(manager, "execute")
 
-    ops_to_test = [
-        ("start", lambda: patch.object(manager, 'start', return_value=0)),
-        ("stop", lambda: patch.object(manager, 'stop', return_value=0)),
-        ("restart", lambda: patch.object(manager, 'restart', return_value=0)),
-        ("logs", lambda: patch.object(manager, 'logs', return_value=0)),
-        ("install_unit", lambda: patch.object(manager, 'install_unit', return_value=0)),
-        ("remove_unit", lambda: patch.object(manager, 'remove_unit', return_value=0)),
-        ("unit_status", lambda: patch.object(manager, 'unit_status', return_value=0)),
-        ("auth-create", lambda: patch.object(manager, 'auth_create', return_value=0)),
-        ("auth-key", lambda: patch.object(manager, 'auth_key', return_value=0)),
-        ("space-join", lambda: patch.object(manager, 'space_join', return_value=0)),
-        ("space-list", lambda: patch.object(manager, 'space_list', return_value=0)),
-        ("help", lambda: patch.object(manager, 'help', return_value=0)),
-    ]
+    # Each method is callable (may raise at runtime; we only verify the shape).
+    for method in ("start", "stop", "restart", "logs",
+                   "install_unit", "remove_unit", "unit_status"):
+        assert callable(getattr(manager, method))
 
-    for op, patcher in ops_to_test:
-        with patcher():
-            result = manager.execute(op)
-            assert result == 0, f"Expected 0 for op={op}, got {result}"
-
-    # Status op returns DaemonStatus, not 0
-    expected = DaemonStatus(
-        container_state="running",
-        service_state="active",
-        api_ready=True,
-        data_dir="/test",
-        ok=True,
-    )
-    with patch.object(manager, 'status', return_value=expected):
-        result = manager.execute("status")
-        assert result == expected
+    with patch.object(manager, "status", return_value=DaemonStatus(
+        container_state="stopped", service_state="inactive", api_ready=False,
+        data_dir="", ok=False,
+    )):
+        result = manager.status()
+        assert isinstance(result, DaemonStatus)
 
 
-def test_ninerouter_execute_with_various_ops():
-    """IT-DAEMON-011: NinerouterDaemonManager.execute handles multiple ops."""
+def test_ninerouter_rich_protocol_methods():
+    """IT-DAEMON-011: NinerouterDaemonManager has all rich protocol methods."""
     from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
     from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 
     manager = NinerouterDaemonManager()
+    assert isinstance(manager, IDaemonProtocol)
+    assert not hasattr(manager, "execute")
 
-    ops_to_test = [
-        ("start", lambda: patch.object(manager, 'start', return_value=0)),
-        ("stop", lambda: patch.object(manager, 'stop', return_value=0)),
-        ("restart", lambda: patch.object(manager, 'restart', return_value=0)),
-        ("logs", lambda: patch.object(manager, 'logs', return_value=0)),
-        ("models", lambda: patch.object(manager, 'models', return_value=0)),
-        ("install_unit", lambda: patch.object(manager, 'install_unit', return_value=0)),
-        ("remove_unit", lambda: patch.object(manager, 'remove_unit', return_value=0)),
-        ("unit_status", lambda: patch.object(manager, 'unit_status', return_value=0)),
-        ("help", lambda: patch.object(manager, 'help', return_value=0)),
-    ]
+    for method in ("start", "stop", "restart", "logs",
+                   "install_unit", "remove_unit", "unit_status"):
+        assert callable(getattr(manager, method))
 
-    for op, patcher in ops_to_test:
-        with patcher():
-            result = manager.execute(op)
-            assert result == 0, f"Expected 0 for op={op}, got {result}"
-
-    # Status op returns DaemonStatus
-    expected = DaemonStatus(
-        container_state="running",
-        service_state="active",
-        api_ready=True,
-        data_dir="/test",
-        ok=True,
-    )
-    with patch.object(manager, 'status', return_value=expected):
-        result = manager.execute("status")
-        assert result == expected
+    with patch.object(manager, "status", return_value=DaemonStatus(
+        container_state="stopped", service_state="inactive", api_ready=False,
+        data_dir="", ok=False,
+    )):
+        result = manager.status()
+        assert isinstance(result, DaemonStatus)
 
 
 def test_full_feature_wiring():
     """IT-DAEMON-012: Full feature wiring from create_daemon_feature."""
     from modules.daemon.src.root_daemon_container import create_daemon_feature
     from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName
+    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
 
     aggregate = create_daemon_feature()
     assert isinstance(aggregate, IDaemonAggregate)
 
-    # Verify we can call list_known
-    known = aggregate.list_known()
-    assert len(known) == 2
-    assert any(str(name) == "9router" for name in known)
-    assert any(str(name) == "anytype" for name in known)
+    # The orchestrator exposes .known, not list_known.
+    assert len(aggregate.known) == 2
+    names = {str(n) for n in aggregate.known}
+    assert "9router" in names
+    assert "anytype" in names
+
+    # execute still routes: a real status call returns an outcome, whatever the daemon state.
+    result = aggregate.execute(
+        DaemonRequest(DaemonOp("status"), name=DaemonName("anytype"))
+    )
+    assert result.exit_code in (0, 1)
+    assert result.status is not None
 
 
 def test_surface_command_integration():
-    """IT-DAEMON-013: DaemonAction integrates with DaemonContainer."""
+    """IT-DAEMON-013: DaemonAction integrates with DaemonContainer via execute."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.daemon.src.surface_daemon_command import DaemonAction
+    from modules.shared.src.taxonomy_daemon_vo import DaemonOp, DaemonRequest
 
     container = DaemonContainer()
     action = DaemonAction(container.aggregate)
     assert action is not None
-    assert hasattr(action, 'list_known')
-    assert hasattr(action, 'start')
-    assert hasattr(action, 'stop')
+    assert callable(action.execute)
+    # Old named methods are gone from the aggregate surface.
+    assert not hasattr(action, 'list_known')
+    assert not hasattr(action, 'start')
+    assert not hasattr(action, 'stop')
 
 
 def test_execute_with_name_argument():
-    """IT-DAEMON-014: execute passes name argument to capability methods."""
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+    """IT-DAEMON-014: execute passes name into the request; manager receives start()."""
+    from modules.daemon.src.root_daemon_container import DaemonContainer
+    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
 
-    manager = AnytypeDaemonManager()
-    with patch.object(manager, 'auth_create', return_value=0) as mock_auth:
-        manager.execute("auth-create", name="test-agent")
-        mock_auth.assert_called_once_with("test-agent")
-
-    with patch.object(manager, 'auth_key', return_value=0) as mock_key:
-        manager.execute("auth-key", name="my-key")
-        mock_key.assert_called_once_with("my-key")
+    container = DaemonContainer()
+    with patch.object(container.anytype, "start", return_value=0) as mock_start:
+        result = container.aggregate.execute(
+            DaemonRequest(DaemonOp("start"), name=DaemonName("anytype"))
+        )
+        mock_start.assert_called_once()
+        assert result.exit_code == 0
 
 
 def test_execute_with_unit_argument():
-    """IT-DAEMON-015: execute passes unit argument to capability methods."""
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+    """IT-DAEMON-015: execute passes unit into the request; manager receives unit argument."""
+    from modules.daemon.src.root_daemon_container import DaemonContainer
+    from modules.shared.src.taxonomy_daemon_vo import DaemonOp, DaemonRequest, DaemonUnit
 
-    manager = AnytypeDaemonManager()
-    with patch.object(manager, 'install_unit', return_value=0) as mock_install:
-        manager.execute("install_unit")
-        mock_install.assert_called_once()
-
-    with patch.object(manager, 'unit_status', return_value=0) as mock_status:
-        manager.execute("unit_status")
-        mock_status.assert_called_once()
+    container = DaemonContainer()
+    with patch.object(
+        container.anytype, 'install_unit', return_value=0
+    ) as mock_install:
+        result = container.aggregate.execute(
+            DaemonRequest(DaemonOp("install_unit"), unit=DaemonUnit("anytype-daemon.service"))
+        )
+        mock_install.assert_called_once_with(DaemonUnit("anytype-daemon.service"))
+        assert result.exit_code == 0

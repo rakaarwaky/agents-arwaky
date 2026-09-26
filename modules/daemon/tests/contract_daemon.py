@@ -3,12 +3,14 @@ from __future__ import annotations
 
 
 def test_idaemonprotocol_exists():
-    """CP-DAEMON-001: IDaemonProtocol exists as an ABC."""
+    """CP-DAEMON-001: IDaemonProtocol exists as an ABC with rich methods."""
     from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 
     assert IDaemonProtocol is not None
-    assert hasattr(IDaemonProtocol, 'execute')
     assert hasattr(IDaemonProtocol, '__abstractmethods__')
+    for method in ("start", "stop", "restart", "status", "logs",
+                   "install_unit", "remove_unit", "unit_status"):
+        assert hasattr(IDaemonProtocol, method)
 
 
 def test_anytype_daemon_manager_class_exists():
@@ -17,7 +19,7 @@ def test_anytype_daemon_manager_class_exists():
 
     assert AnytypeDaemonManager is not None
     assert hasattr(AnytypeDaemonManager, '__init__')
-    assert hasattr(AnytypeDaemonManager, 'execute')
+    assert not hasattr(AnytypeDaemonManager, 'execute')
 
 
 def test_ninerouter_daemon_manager_class_exists():
@@ -26,11 +28,11 @@ def test_ninerouter_daemon_manager_class_exists():
 
     assert NinerouterDaemonManager is not None
     assert hasattr(NinerouterDaemonManager, '__init__')
-    assert hasattr(NinerouterDaemonManager, 'execute')
+    assert not hasattr(NinerouterDaemonManager, 'execute')
 
 
 def test_anytype_implements_idaemonprotocol():
-    """CP-DAEMON-004: AnytypeDaemonManager implements IDaemonProtocol."""
+    """CP-DAEMON-004: AnytypeDaemonManager implements the rich IDaemonProtocol."""
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
     from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 
@@ -39,7 +41,7 @@ def test_anytype_implements_idaemonprotocol():
 
 
 def test_ninerouter_implements_idaemonprotocol():
-    """CP-DAEMON-005: NinerouterDaemonManager implements IDaemonProtocol."""
+    """CP-DAEMON-005: NinerouterDaemonManager implements the rich IDaemonProtocol."""
     from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
     from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 
@@ -47,20 +49,24 @@ def test_ninerouter_implements_idaemonprotocol():
     assert isinstance(manager, IDaemonProtocol)
 
 
-def test_anytype_execute_method_exists():
-    """CP-DAEMON-006: AnytypeDaemonManager has execute method."""
+def test_anytype_exposes_rich_methods():
+    """CP-DAEMON-006: AnytypeDaemonManager exposes rich protocol methods."""
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
     manager = AnytypeDaemonManager()
-    assert callable(manager.execute)
+    for method in ("start", "stop", "restart", "status", "logs",
+                   "install_unit", "remove_unit", "unit_status"):
+        assert callable(getattr(manager, method))
 
 
-def test_ninerouter_execute_method_exists():
-    """CP-DAEMON-007: NinerouterDaemonManager has execute method."""
+def test_ninerouter_exposes_rich_methods():
+    """CP-DAEMON-007: NinerouterDaemonManager exposes rich protocol methods."""
     from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 
     manager = NinerouterDaemonManager()
-    assert callable(manager.execute)
+    for method in ("start", "stop", "restart", "status", "logs",
+                   "install_unit", "remove_unit", "unit_status"):
+        assert callable(getattr(manager, method))
 
 
 def test_orchestrator_class_exists():
@@ -69,7 +75,11 @@ def test_orchestrator_class_exists():
 
     assert DaemonOrchestrator is not None
     assert hasattr(DaemonOrchestrator, '__init__')
-    assert hasattr(DaemonOrchestrator, 'list_known')
+    assert hasattr(DaemonOrchestrator, 'execute')
+    # Old named methods are gone.
+    assert not hasattr(DaemonOrchestrator, 'list_known')
+    assert not hasattr(DaemonOrchestrator, 'start')
+    assert not hasattr(DaemonOrchestrator, 'status')
 
 
 def test_orchestrator_implements_idaemonaggregate():

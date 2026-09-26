@@ -34,7 +34,7 @@ class DocsCheckRunner(ICheckProtocol):
         self._root = root or repo_root()
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def execute(self, scope: CheckScope) -> CheckExitCode:
+    def run(self, scope: CheckScope) -> CheckExitCode:
         """Run the document audit; *scope* routing happens in the orchestrator."""
         findings = self.audit()
         problems = errors_only(findings)
@@ -59,3 +59,12 @@ class DocsCheckRunner(ICheckProtocol):
             set(as_strict(merged)),
             key=lambda f: (f.path, f.code, f.message),
         )
+
+
+__all__ = ["CheckExitCode", "DocFinding"]
+
+# Layer-symbol registry (runtime reference for harness/loader introspection).
+_layer_symbols = {
+    "CheckExitCode": CheckExitCode,
+    "DocFinding": DocFinding,
+}

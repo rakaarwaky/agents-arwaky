@@ -16,14 +16,16 @@ from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
 from modules.shared.src.taxonomy_daemon_vo import (
     DaemonName,
-    DaemonStatus,
+    DaemonOp,
+    DaemonOutcome,
+    DaemonRequest,
+    DaemonResponse,
     DaemonUnit,
-    ExitCode,
 )
 
 
 class DaemonAggregateAdapter(IDaemonAggregate):
-    """IDaemonAggregate implementation over the two concrete daemon managers."""
+    """Single-execute IDaemonAggregate over the two concrete daemon managers."""
 
     _UNIT_DAEMON: ClassVar[dict[str, str]] = {
         "9router.service": "9router",
@@ -46,44 +48,38 @@ class DaemonAggregateAdapter(IDaemonAggregate):
             raise ValueError(f"Unknown unit: {unit}")
         return self._managers[daemon]
 
-    def list_known(self) -> tuple[DaemonName, ...]:
-        """List the daemon names known to this service container."""
-        return (DaemonName("9router"), DaemonName("anytype"))
+    def execute(self, request: DaemonRequest) -> DaemonResponse:
+        """Route *request* to the matching manager method; return the outcome."""
+        op = DaemonOp(str(request.op))
+        name = DaemonName(str(request.name)) if request.name else DaemonName("9router")
+        unit = DaemonUnit(str(request.unit)) if request.unit else DaemonUnit("9router.service")
+        if op == "start":
+            return _exit(self._mgr(name).start())
+        if op == "stop":
+            return _exit(self._mgr(name).stop())
+        if op == "restart":
+            return _exit(self._mgr(name).restart())
+        if op == "status":
+            return _status(self._mgr(name).status())
+        if op == "logs":
+            return _exit(self._mgr(name).logs())
+        if op == "install_unit":
+            return _exit(self._for_unit(str(unit)).install_unit(unit))
+        if op == "remove_unit":
+            return _exit(self._for_unit(str(unit)).remove_unit(unit))
+        if op == "unit_status":
+            return _exit(self._for_unit(str(unit)).unit_status(unit))
+        raise ValueError(f"Unknown daemon op: {op}")
 
-    def start(self, name: DaemonName) -> ExitCode:
-        """Start the named daemon and return its exit code."""
-        return ExitCode(int(self._mgr(name).execute("start")))
 
-    def stop(self, name: DaemonName) -> ExitCode:
-        """Stop the named daemon and return its exit code."""
-        return ExitCode(int(self._mgr(name).execute("stop")))
+def _exit(code) -> DaemonOutcome:
+    """Wrap an exit code in a DaemonOutcome carrying no status snapshot."""
+    return DaemonOutcome(success=code == 0, exit_code=int(code), message="")
 
-    def restart(self, name: DaemonName) -> ExitCode:
-        """Restart the named daemon and return its exit code."""
-        return ExitCode(int(self._mgr(name).execute("restart")))
 
-    def status(self, name: DaemonName) -> DaemonStatus:
-        """Return the current status of the named daemon."""
-        result = self._mgr(name).execute("status")
-        if not isinstance(result, DaemonStatus):
-            raise TypeError(f"status op for {name!r} did not return a DaemonStatus")
-        return result
-
-    def logs(self, name: DaemonName) -> ExitCode:
-        """Stream logs for the named daemon and return its exit code."""
-        return ExitCode(int(self._mgr(name).execute("logs")))
-
-    def install_unit(self, unit: DaemonUnit) -> ExitCode:
-        """Install a systemd unit for the given daemon unit and return its exit code."""
-        return ExitCode(int(self._for_unit(unit).execute("install_unit", unit=unit)))
-
-    def remove_unit(self, unit: DaemonUnit) -> ExitCode:
-        """Remove a systemd unit for the given daemon unit and return its exit code."""
-        return ExitCode(int(self._for_unit(unit).execute("remove_unit", unit=unit)))
-
-    def unit_status(self, unit: DaemonUnit) -> ExitCode:
-        """Query the status of a systemd unit and return its exit code."""
-        return ExitCode(int(self._for_unit(unit).execute("unit_status", unit=unit)))
+def _status(snap) -> DaemonOutcome:
+    """Wrap a DaemonStatus snapshot in a DaemonOutcome."""
+    return DaemonOutcome(success=snap.ok, exit_code=0 if snap.ok else 1, status=snap, message="")
 
 
 class ServiceContainer:

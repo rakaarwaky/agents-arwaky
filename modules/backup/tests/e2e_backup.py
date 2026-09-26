@@ -1,25 +1,25 @@
 """E2E tests for modules/backup — full backup workflow tests."""
 from __future__ import annotations
 
+from unittest.mock import patch
+
+from modules.shared.src.taxonomy_backup_vo import BackupOp, BackupRequest
+
 
 def test_backup_e2e_workflow():
     """E2E-BACKUP-001: Full backup orchestration workflow."""
-    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
     from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
+    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     tar = TarBackupGateway()
     orchestrator = BackupOrchestrator(tar, tar)
 
-    # Test backup method exists and is callable
-    assert hasattr(orchestrator, 'backup')
-    assert hasattr(orchestrator, 'restore')
-    assert hasattr(orchestrator, 'list_archives')
-    assert hasattr(orchestrator, 'status_store')
-    assert hasattr(orchestrator, 'help')
+    # The aggregate is a single entry point.
+    assert callable(orchestrator.execute)
 
-    # Test list_archives returns something (can be list or 0)
-    result = orchestrator.list_archives()
-    assert result is not None
+    with patch("modules.backup.src.capabilities_backup_tar.cmd_list", return_value=0):
+        result = orchestrator.execute(BackupRequest(BackupOp("list")))
+    assert result.result == 0
 
 
 def test_gdrive_e2e_workflow():
@@ -28,6 +28,6 @@ def test_gdrive_e2e_workflow():
 
     gdrive = GdriveBackupGateway()
 
-    # Test execute dispatch
-    result = gdrive.execute("list")
-    assert result is not None
+    # The gateway exposes rich named methods, not an execute(op) bag.
+    for method in ("backup", "restore", "list_archives", "status", "help"):
+        assert callable(getattr(gdrive, method))

@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import posixpath
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NewType
+
+from modules.shared.src.taxonomy_common_vo import PackFinding
 
 #: Process or command exit code (0 = success, non-zero = failure).
 ExitCode = NewType("ExitCode", int)
@@ -19,7 +21,7 @@ SkillQuery = NewType("SkillQuery", str)
 #: Skill command argument list.
 SkillArgs = NewType("SkillArgs", list)
 
-#: Operation token dispatched through ``ISkillProtocol.execute``.
+#: Operation token carried by a SkillRequest.
 SkillOp = NewType("SkillOp", str)
 
 #: Tool identifier accepted by skill provisioning actions.
@@ -36,6 +38,32 @@ FILTER_EMPTY: ToolFilter = ToolFilter("")
 QUERY_EMPTY: SkillQuery = SkillQuery("")
 ARGS_EMPTY: SkillArgs = SkillArgs([])
 SKILL_EMPTY: SkillName = SkillName("")
+DEST_EMPTY: SkillDest = SkillDest("")
+
+#: Skill request envelope — single shape the aggregate accepts.
+@dataclass(frozen=True)
+class SkillRequest:
+    """One skill request the surface/root/CLI hands to the aggregate."""
+
+    op: SkillOp
+    skill: SkillName | None = None
+    target: Path | None = None
+    custom_dest: str = ""
+    force: bool = False
+    link: bool = False
+    prune: bool = False
+    tool_filter: ToolFilter = FILTER_EMPTY
+    query: SkillQuery = QUERY_EMPTY
+    args: SkillArgs = field(default_factory=lambda: SkillArgs([]))
+
+@dataclass(frozen=True)
+class SkillResponse:
+    """Skill response envelope returned by ``ISkillAggregate.execute``."""
+
+    result: ExitCode
+    message: str = ""
+    findings: tuple[PackFinding, ...] = ()
+
 
 def extract_skill_name(skill_md: Path) -> str:
     """Extract `name:` from SKILL.md frontmatter; fallback to parent dir name."""
@@ -120,9 +148,11 @@ __all__ = [
     "SkillInfo",
     "SkillName",
     "SkillOp",
+    "SkillRequest",
+    "SkillResponse",
+    "SkillToolId",
     "SkillProvisionResult",
     "SkillQuery",
-    "SkillToolId",
     "ToolFilter",
     "ensure_under",
     "extract_skill_name",

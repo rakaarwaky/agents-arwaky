@@ -13,5 +13,5 @@ def test_dogfood_doctor_pipeline():
     env = EnvDiagnosticRunner()
     tools = ToolsDiagnosticRunner()
 
-    assert hasattr(env, 'execute')
-    assert hasattr(tools, 'execute')
+    assert hasattr(env, 'run')
+    assert hasattr(tools, 'run')

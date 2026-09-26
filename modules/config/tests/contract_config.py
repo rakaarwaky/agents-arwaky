@@ -1,78 +1,133 @@
-"""Contract tests for modules/config — prove protocol/interface implementations exist."""
+"""Contract tests for modules/config — prove protocol/aggregate implementations exist."""
 from __future__ import annotations
 
 
 def test_config_protocol_exists():
-    """CP-CONFIG-001: IConfigProtocol ABC exists and is importable."""
+    """CP-CONFIG-001: IConfigProtocol ABC is importable and rich (one method per op)."""
     from modules.shared.src.contract_config_protocol import IConfigProtocol
 
     assert IConfigProtocol is not None
-    assert hasattr(IConfigProtocol, "execute")
+    for op in (
+        "load",
+        "save",
+        "merge_servers",
+        "set_env",
+        "remove_entries",
+        "inspect",
+        "help",
+    ):
+        assert hasattr(IConfigProtocol, op)
+    assert not hasattr(IConfigProtocol, "execute")
+
+
+def test_config_aggregate_has_single_execute():
+    """CP-CONFIG-002: IConfigAggregate exposes exactly one ``execute`` entry point."""
+    from modules.shared.src.contract_config_aggregate import IConfigAggregate
+
+    assert callable(IConfigAggregate.execute)
+    abstract = {
+        name
+        for name in vars(IConfigAggregate)
+        if getattr(getattr(IConfigAggregate, name), "__isabstractmethod__", False)
+    }
+    assert abstract == {"execute"}
+
+
+def test_config_request_and_result_vos():
+    """CP-CONFIG-003: ConfigRequest/ConfigResult VOs carry the aggregate payload."""
+    from pathlib import Path
+
+    from modules.shared.src.taxonomy_common_vo import ConfigRequest, ConfigResult
+
+    request = ConfigRequest("load", path=Path("/tmp/x.json"))
+    assert request.op == "load"
+    assert request.path == Path("/tmp/x.json")
+    assert request.dry_run is False
+
+    result = ConfigResult(True, {"a": 1})
+    assert result.success is True
+    assert result.data == {"a": 1}
+    assert result.message == ""
 
 
 def test_config_writer_class_exists():
-    """CP-CONFIG-002: ConfigWriter class exists and is instantiable."""
+    """CP-CONFIG-004: ConfigWriter class exists and is instantiable."""
     from modules.config.src.capabilities_config_writer import ConfigWriter
 
     writer = ConfigWriter()
     assert isinstance(writer, ConfigWriter)
-    assert callable(writer.execute)
+    assert callable(writer.load)
+    assert callable(writer.save)
 
 
 def test_config_modifier_class_exists():
-    """CP-CONFIG-003: ConfigModifier class exists and is instantiable."""
+    """CP-CONFIG-005: ConfigModifier class exists and is instantiable."""
     from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     modifier = ConfigModifier()
     assert isinstance(modifier, ConfigModifier)
-    assert callable(modifier.execute)
+    assert callable(modifier.merge_servers)
+    assert callable(modifier.set_env)
 
 
 def test_config_orchestrator_class_exists():
-    """CP-CONFIG-004: ConfigOrchestrator class exists and is instantiable."""
+    """CP-CONFIG-006: ConfigOrchestrator class exists and is instantiable."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter, ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
     orch = ConfigOrchestrator(writer, modifier)
     assert isinstance(orch, ConfigOrchestrator)
-    assert callable(orch.load)
-    assert callable(orch.save)
-    assert callable(orch.inspect)
-    assert callable(orch.merge_servers)
-    assert callable(orch.set_env)
-    assert callable(orch.remove_entries)
-    assert callable(orch.help)
+    assert callable(orch.execute)
+    assert repr(orch) == "ConfigOrchestrator()"
 
 
 def test_config_writer_implements_protocol():
-    """CP-CONFIG-005: ConfigWriter implements IConfigProtocol execute."""
+    """CP-CONFIG-007: ConfigWriter implements the whole IConfigProtocol."""
     from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.contract_config_protocol import IConfigProtocol
 
     writer = ConfigWriter()
     assert isinstance(writer, IConfigProtocol)
-    assert hasattr(writer, "execute")
-    assert callable(writer.execute)
+    for op in (
+        "load",
+        "save",
+        "merge_servers",
+        "set_env",
+        "remove_entries",
+        "inspect",
+        "help",
+    ):
+        assert callable(getattr(writer, op))
 
 
 def test_config_modifier_implements_protocol():
-    """CP-CONFIG-006: ConfigModifier implements IConfigProtocol execute."""
+    """CP-CONFIG-008: ConfigModifier implements the whole IConfigProtocol."""
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.shared.src.contract_config_protocol import IConfigProtocol
 
     modifier = ConfigModifier()
     assert isinstance(modifier, IConfigProtocol)
-    assert hasattr(modifier, "execute")
-    assert callable(modifier.execute)
+    for op in (
+        "load",
+        "save",
+        "merge_servers",
+        "set_env",
+        "remove_entries",
+        "inspect",
+        "help",
+    ):
+        assert callable(getattr(modifier, op))
 
 
 def test_config_orchestrator_implements_aggregate():
-    """CP-CONFIG-007: ConfigOrchestrator implements IConfigAggregate."""
+    """CP-CONFIG-009: ConfigOrchestrator implements IConfigAggregate."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.shared.src.contract_config_aggregate import IConfigAggregate
-    from modules.config.src.capabilities_config_writer import ConfigWriter, ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
@@ -81,7 +136,7 @@ def test_config_orchestrator_implements_aggregate():
 
 
 def test_config_container_provides_feature():
-    """CP-CONFIG-008: ConfigContainer provides IConfigAggregate feature."""
+    """CP-CONFIG-010: ConfigContainer provides IConfigAggregate feature."""
     from modules.config.src.root_config_container import ConfigContainer
     from modules.shared.src.contract_config_aggregate import IConfigAggregate
 
@@ -91,7 +146,7 @@ def test_config_container_provides_feature():
 
 
 def test_create_config_feature_provides_aggregate():
-    """CP-CONFIG-009: create_config_feature returns IConfigAggregate."""
+    """CP-CONFIG-011: create_config_feature returns IConfigAggregate."""
     from modules.config.src.root_config_container import create_config_feature
     from modules.shared.src.contract_config_aggregate import IConfigAggregate
 
@@ -100,23 +155,26 @@ def test_create_config_feature_provides_aggregate():
 
 
 def test_config_surface_command_class_exists():
-    """CP-CONFIG-010: ConfigCommand surface class exists."""
+    """CP-CONFIG-012: ConfigCommand surface class exists and implements the aggregate."""
     from modules.config.src.surface_config_command import ConfigCommand
+    from modules.shared.src.contract_config_aggregate import IConfigAggregate
 
-    assert ConfigCommand is not None
     assert hasattr(ConfigCommand, "__init__")
+    assert issubclass(ConfigCommand, IConfigAggregate)
+    assert callable(ConfigCommand.execute)
 
 
 def test_cmd_config_function_exists():
-    """CP-CONFIG-011: cmd_config entry function exists."""
+    """CP-CONFIG-013: cmd_config entry function exists."""
     from modules.config.src.surface_config_command import cmd_config
 
     assert callable(cmd_config)
 
 
 def test_config_agent_exports():
-    """CP-CONFIG-012: Config module exports required symbols."""
-    from modules.config.src.capabilities_config_writer import ConfigWriter, ConfigModifier
+    """CP-CONFIG-014: Config module exports required symbols."""
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.surface_config_command import ConfigCommand, cmd_config
     from modules.config.src.root_config_container import ConfigContainer, create_config_feature
@@ -131,7 +189,7 @@ def test_config_agent_exports():
 
 
 def test_config_module_level_exports():
-    """CP-CONFIG-013: modules.config package exports public symbols."""
+    """CP-CONFIG-015: modules.config package exports public symbols."""
     import modules.config
 
     assert hasattr(modules.config, "ConfigOrchestrator")
