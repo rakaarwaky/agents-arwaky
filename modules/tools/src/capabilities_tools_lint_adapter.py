@@ -1,6 +1,6 @@
 """Capability — lint-arwaky tool adapter (cargo release build).
 
-Implements `IToolsAdapterProtocol` (AES403) and exports the `lint`
+Exports the `lint`
 `AdapterUnit` merged into `TOOLS_REGISTRY` by the root container.
 Shared mechanics live in `utility_tool_mechanics`.
 """
@@ -13,10 +13,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
-    ToolSpec,
     bin_home,
     cache_home,
     config_home,
@@ -39,50 +38,15 @@ from modules.shared.src.utility_tool_mechanics import (
     run,
 )
 
-
 # ─── Block 1: Class Definition & Constructor ──────────────
-class LintToolsAdapter(IToolsAdapterProtocol):
-    """Lint actions behind the tools adapter protocol (AES403 implementor)."""
+class LintToolsAdapter(ToolsAdapterBody):
+    """lint actions behind the tools adapter protocol (AES403 implementor)."""
+
+    _display = 'lint'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
-        self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
-
-    # ─── Block 2: Protocol Method Implementation ──────────────
-    def _unit_for(self, spec: ToolSpec) -> AdapterUnit:
-        """Look up the adapter unit that owns *spec*."""
-        unit = self._units.get(spec.id)
-        if unit is None:
-            raise ToolUpdateError(f"lint adapter has no unit for {spec.id!r}")
-        return unit
-
-    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
-        """True when *spec*'s unit reports installed state."""
-        return self._unit_for(spec).satisfied(spec, root)
-
-    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> tuple[bool, str]:
-        """Return (satisfied, reason) against the manifest pin."""
-        return self._unit_for(spec).is_pin_satisfied(spec, root or ROOT)
-
-    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
-        """Return the paths this adapter owns for *spec*."""
-        return list(self._unit_for(spec).owned_paths(spec, root or ROOT) or [])
-
-    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> list[Path]:
-        """Install or build *spec*; return the created paths."""
-        unit = self._unit_for(spec)
-        try:
-            return list(unit.install(spec, root, daemons=daemons) or [])
-        except TypeError:
-            return list(unit.install(spec, root) or [])
-
-    def update(self, spec: ToolSpec, root: Path) -> list[Path]:
-        """Update *spec* to the manifest pin; return the rebuilt paths."""
-        return list(self._unit_for(spec).update(spec, root) or [])
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return f"LintToolsAdapter(tools={len(self._units)})"
-
+        """Default to this adapter's own unit registry when *units* is omitted."""
+        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
 
 # ---------------------------------------------------------------------------
 # Build helpers (cargo — rustup bootstrap + atomic install)
@@ -109,7 +73,6 @@ def _lint_bootstrap_rustup() -> bool:
         os.unlink(script)
     return _lint_cargo_on_path() is not None
 
-
 def _lint_cargo_on_path() -> str | None:
     """Find cargo on PATH or at the default rustup location."""
     found = shutil.which("cargo")
@@ -120,7 +83,6 @@ def _lint_cargo_on_path() -> str | None:
             os.environ["PATH"] = str(cand.parent) + os.pathsep + os.environ.get("PATH", "")
             return str(cand)
     return None
-
 
 def _lint_preflight_build_deps() -> dict:
     """Ensure build deps are present (apt best-effort via sudo); fallback override env."""
@@ -145,7 +107,6 @@ def _lint_preflight_build_deps() -> dict:
                 env["CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER"] = "cc"
                 print("  -> mold skipped (linker=cc).", file=sys.stderr)
     return env
-
 
 def _lint_build_and_install(root: Path, *, raise_on_missing_cargo: bool) -> list[Path]:
     """Cargo release build into XDG cache + atomic binary install + `lac` alias."""
@@ -194,13 +155,11 @@ def _lint_build_and_install(root: Path, *, raise_on_missing_cargo: bool) -> list
         artifacts.append(lac)
     return artifacts
 
-
 lint_satisfied = make_satisfied("lint-arwaky")
 lint_is_pin_satisfied = make_pin_check(
     LINT_INTERNAL_DIR_REL, "cargo release build (rebuild required)")
 lint_owned_paths = make_owned(
     LINT_LAUNCHERS, extra=lambda: [bin_home() / "lac"])
-
 
 def lint_install(spec, root=ROOT, *, daemons=None):
     """Install lint-arwaky: bootstrap rustup if needed, cargo build, install binaries."""
@@ -214,7 +173,6 @@ def lint_install(spec, root=ROOT, *, daemons=None):
     print(">>> Successfully installed lint-arwaky")
     return artifacts
 
-
 def lint_update(spec, root):
     """Update lint-arwaky submodule and rebuild via cargo release."""
     if not update_submodule(root, LINT_INTERNAL_DIR_REL):
@@ -222,7 +180,6 @@ def lint_update(spec, root):
     created = _lint_build_and_install(root, raise_on_missing_cargo=True)
     print(">>> Successfully updated lint-arwaky")
     return created
-
 
 def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> AdapterUnit:
     return AdapterUnit(
@@ -232,7 +189,6 @@ def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> Adapt
         is_pin_satisfied=is_pin_satisfied,
         owned_paths=owned_paths,
     )
-
 
 #: tool_id → unit for lint-arwaky (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
@@ -244,7 +200,6 @@ ADAPTER_UNITS: dict[str, AdapterUnit] = {
         owned_paths=lint_owned_paths,
     ),
 }
-
 
 __all__ = [
     "ADAPTER_UNITS",
