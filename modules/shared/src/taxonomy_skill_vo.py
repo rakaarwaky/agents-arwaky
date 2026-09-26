@@ -33,12 +33,16 @@ SkillDest = NewType("SkillDest", str)
 #: Optional skill/tool name argument for a skill op.
 SkillName = NewType("SkillName", str)
 
+#: Pack loadability findings (empty list = clean).
+PackFindingList = NewType("PackFindingList", list)
+
 #: Module-level singletons for default arguments (B008).
 FILTER_EMPTY: ToolFilter = ToolFilter("")
 QUERY_EMPTY: SkillQuery = SkillQuery("")
 ARGS_EMPTY: SkillArgs = SkillArgs([])
 SKILL_EMPTY: SkillName = SkillName("")
 DEST_EMPTY: SkillDest = SkillDest("")
+PACK_FINDINGS_EMPTY: PackFindingList = PackFindingList([])
 
 #: Skill request envelope — single shape the aggregate accepts.
 @dataclass(frozen=True)

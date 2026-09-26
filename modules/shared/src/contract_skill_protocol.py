@@ -23,6 +23,7 @@ from modules.shared.src.taxonomy_skill_vo import (
     FILTER_EMPTY,
     QUERY_EMPTY,
     ExitCode,
+    PackFindingList,
     SkillArgs,
     SkillDest,
     SkillProvisionResult,
@@ -59,7 +60,7 @@ class ISkillProvisionProtocol(ABC):
         ...
 
     @abstractmethod
-    def audit(self) -> list[PackFinding]:
+    def audit(self) -> PackFindingList:
         """Pack loadability findings; an empty list means the pack is clean."""
         ...
 
@@ -106,6 +107,7 @@ __all__ = [
     "ISkillProvisionProtocol",
     "ISkillRegistryProtocol",
     "PackFinding",
+    "PackFindingList",
     "SkillArgs",
     "SkillDest",
     "SkillProvisionResult",
@@ -122,6 +124,7 @@ _layer_symbols = {
     "ISkillProvisionProtocol": ISkillProvisionProtocol,
     "ISkillRegistryProtocol": ISkillRegistryProtocol,
     "PackFinding": PackFinding,
+    "PackFindingList": PackFindingList,
     "SkillArgs": SkillArgs,
     "SkillDest": SkillDest,
     "SkillProvisionResult": SkillProvisionResult,

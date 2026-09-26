@@ -17,7 +17,7 @@ from modules.shared.src.taxonomy_common_vo import (
     UninstallResult,
     UpdateResult,
 )
-from modules.shared.src.taxonomy_tools_vo import ExitCode, ToolQuery
+from modules.shared.src.taxonomy_tools_vo import ExitCode, PinCheck, ToolArgs, ToolPaths, ToolQuery
 
 
 class IToolsInstallerProtocol(ABC):
@@ -55,7 +55,7 @@ class IToolsUninstallerProtocol(ABC):
     def uninstall(
         self,
         spec: ToolSpec,
-        owned_paths: list[Path] | None = None,
+        owned_paths: ToolPaths | None = None,
     ) -> UninstallResult:
         """Remove *spec*'s owned paths and report residuals."""
         ...
@@ -65,7 +65,7 @@ class IToolsRunnerProtocol(ABC):
     """Run action: discover executable then exec it."""
 
     @abstractmethod
-    def run(self, spec: ToolSpec, args: list[str]) -> ExitCode:
+    def run(self, spec: ToolSpec, args: ToolArgs) -> ExitCode:
         """Execute the discovered binary with *args*; return the exit code."""
         ...
 
@@ -84,22 +84,22 @@ class IToolsAdapterProtocol(ABC):
         ...
 
     @abstractmethod
-    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> tuple[bool, str]:
+    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> PinCheck:
         """(satisfied, reason) against the manifest pin."""
         ...
 
     @abstractmethod
-    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
+    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> ToolPaths:
         """Paths owned by this adapter's install."""
         ...
 
     @abstractmethod
-    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> list[Path]:
+    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> ToolPaths:
         """Install/build into *root*; returns created paths."""
         ...
 
     @abstractmethod
-    def update(self, spec: ToolSpec, root: Path) -> list[Path]:
+    def update(self, spec: ToolSpec, root: Path) -> ToolPaths:
         """Update to the manifest pin; returns rebuilt paths."""
         ...
 
@@ -111,7 +111,10 @@ __all__ = [
     "IToolsRunnerProtocol",
     "IToolsUninstallerProtocol",
     "IToolsUpdaterProtocol",
+    "PinCheck",
+    "ToolArgs",
     "ToolList",
+    "ToolPaths",
     "ToolQuery",
     "ToolSpec",
 ]
@@ -123,7 +126,10 @@ _layer_symbols = {
     "IToolsRunnerProtocol": IToolsRunnerProtocol,
     "IToolsUninstallerProtocol": IToolsUninstallerProtocol,
     "IToolsUpdaterProtocol": IToolsUpdaterProtocol,
+    "PinCheck": PinCheck,
+    "ToolArgs": ToolArgs,
     "ToolList": ToolList,
+    "ToolPaths": ToolPaths,
     "ToolQuery": ToolQuery,
     "ToolSpec": ToolSpec,
 }
