@@ -18,31 +18,37 @@
 
 ## Rules
 
-Seven rules. Each one prevents a specific failure mode.a
+Seven rules. Each one prevents a specific failure mode.
 
 1. **Suffix is strictly** `_protocol` **or** `_aggregate`**.** Type names: `I<Name>Protocol`,  
-`I<Name>Aggregate`. File: `contract_<concept>_<suffix>.rs`.
+ `I<Name>Aggregate`. File: `contract_<concept>_<suffix>.rs`.
 2. `pub trait` **only — methods end with** `;`**, no bodies.** Never default  
-implementations, never private-helper signatures (`AES101`/`AES102`).
+ implementations, never private-helper signatures (`AES101`/`AES102`).
 3. **One file per feature, one trait per capability seam, each trait rich.** A  
-`_protocol` file for a feature with several capabilities declares one `pub trait` per  
-seam — `I<Injector>Protocol`, `I<Sender>Protocol`, `I<Stream>Protocol` — side by side  
-in the same file. Each trait carries **every** method its capability implements, each  
-with its own named signature and **one concrete return type**. Never `execute(op, …)`  
-dispatch, never an untyped argument bag, never an enum return spanning several value  
-shapes.
+ `_protocol` file for a feature with several capabilities declares one `pub trait` per  
+ seam — `I<Injector>Protocol`, `I<Sender>Protocol`, `I<Stream>Protocol` — side by side  
+ in the same file. Each trait carries **every** method its capability implements, each  
+ with its own named signature and **one concrete return type**. Never `execute(op, …)`  
+ dispatch, never an untyped argument bag, never an enum return spanning several value  
+ shapes.
 4. **A capability implements exactly one trait, and all of it.** Because each trait is  
-scoped to one capability's own operations, a trait is never partially implemented: it  
-declares only the methods that capability owns, and that capability defines every one  
-of them. This is why a single file per feature is enough — no per-method splitting, and  
-no unimplemented stubs.
+ scoped to one capability's own operations, a trait is never partially implemented: it  
+ declares only the methods that capability owns, and that capability defines every one  
+ of them. This is why a single file per feature is enough — no per-method splitting, and  
+ no unimplemented stubs.
 5. **Aggregate = exactly one method.** The aggregate is the single entry point the  
-surface/root/CLI/MCP calls. All consumer verbs live in the agent, which dispatches to  
-the rich protocol traits. A dump-all `execute(op, …)` aggregate is the violation here.
-6. **Signatures use shared VOs** — no `String`/`i32`..`u64`/`f32`/`f64`/`Vec<String>` for  
-domain values. `bool` and `&str` (non-domain input) allowed with care. No enum return  
-spanning several value shapes; when operations genuinely differ in return type, they are  
-separate methods. Trait object-safe (`where Self: Sized`) and `Send + Sync` bounded.
+ surface/root/CLI/MCP calls. All consumer verbs live in the agent, which dispatches to  
+ the rich protocol traits. A dump-all `execute(op, …)` aggregate is the violation here.
+6. **Signatures use shared VOs.** Domain values must not be `String`, `i32`–`u64`,
+   `f32`/`f64`, `Vec<String>`, `bool`, or `&str` — wrap them in a taxonomy-defined VO
+   before they appear in a signature. `bool` is permitted only for semantic toggles or
+   predicates (e.g. `enabled: bool`), never for domain quantities. `&str` is permitted
+   only in non-domain positions such as log messages or display strings. Enums are not
+   banned; the ban targets primitive leakage. A multi-variant response enum on the
+   aggregate is correct and expected — each variant must hold VO-wrapped values, not
+   raw primitives. Protocol methods keep one concrete VO return type; the aggregate
+   response enum is the sanctioned way to carry heterogeneous results across one
+   `execute()` entry point. Protocol traits are object-safe and `Send + Sync` bounded.
 7. **Register in shared** `mod.rs` so the pair is importable.
 
 ---
@@ -50,12 +56,12 @@ separate methods. Trait object-safe (`where Self: Sized`) and `Send + Sync` boun
 ## Workflow
 
 1. **Determine suffix** — `_protocol` (inward, rich traits) or `_aggregate` (outward, one  
-method).
+ method).
 2. **List the feature's capability seams** — group the feature's operations by the  
-capability that owns them. One group becomes one trait.
+ capability that owns them. One group becomes one trait.
 3. **Create file** → `contract_<concept>_<suffix>.rs`, one trait per seam.
 4. **Draft each trait** — every method its capability implements, one concrete return  
-type each.
+ type each.
 5. **Register** in shared `mod.rs`.
 6. **Verify** → `lint-arwaky-cli scan <contract-dir>`.
 
@@ -150,7 +156,8 @@ Every contract file is required to carry the rows that apply. Each exists for on
 | Suffix in file + trait names             | AES101/AES102 resolve `_protocol` vs `_aggregate` from the name.                   |
 | One file per feature                     | All seams of a feature live together; consumers import from one module.            |
 | One trait per capability seam            | A trait lists only what its capability owns, so implementation is always complete. |
-| Rich named methods, one return type each | Each operation stays typed and discoverable; no dispatch bag, no union return.     |
+| Rich named methods, one return type each | Protocol traits: each method has one VO return; no dispatch bag. Aggregate: one
+   `execute()` method whose response is a taxonomy-defined enum of VOs.     |
 | Method signatures only (`;`)             | Outer layers depend on promises, not behaviour.                                    |
 | `Send + Sync` + object-safe              | Trait objects cross thread/task boundaries without surprises.                      |
 | Aggregate: exactly one method            | Consumers depend on one stable entry point, not a shifting method list.            |
@@ -174,7 +181,9 @@ lint-arwaky-cli scan <contract-dir>
 #     result shapes);
 #   - each capability implements one trait from this file, and implements all of it
 #     (a partial implementation cannot compile — build each capability to prove it);
-#   - the aggregate declares exactly one method; traits are object-safe, Send + Sync,
+#   - the aggregate declares exactly one `execute()` method; its response type is a
+#     taxonomy-defined VO enum (each variant holds VO-wrapped values, not primitives).
+#   - protocol traits are object-safe (`where Self: Sized`), `Send + Sync` bounded,
 #     with no default bodies.
 # Fallback compile gate: cargo check -p <crate-name>.
 ```
