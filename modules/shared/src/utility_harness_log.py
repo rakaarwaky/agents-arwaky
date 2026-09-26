@@ -5,7 +5,6 @@ no instance state, no side effects beyond stdout/stderr writes.
 """
 from __future__ import annotations
 
-import sys
 
 
 def log_header(msg: str) -> None:
