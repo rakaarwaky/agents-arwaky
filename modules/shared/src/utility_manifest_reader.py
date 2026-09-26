@@ -6,8 +6,10 @@ import json
 import sys
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
-from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT, TOOL_RUNNERS
+
+#: Repo root resolved from the constant module (XDG-compliant anchor).
+repo_root = REPO_ROOT
 from modules.shared.src.taxonomy_common_error import ManifestParseError
 from modules.shared.src.taxonomy_common_vo import Tool, ToolSpec
 

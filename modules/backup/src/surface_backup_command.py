@@ -13,7 +13,6 @@ from modules.shared.src.taxonomy_backup_vo import (
     BackupDestination,
     BackupOp,
     BackupRequest,
-    BackupResponse,
     BackupToolQuery,
 )
 

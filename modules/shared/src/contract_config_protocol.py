@@ -1,8 +1,12 @@
-"""Config-domain capability protocol — one named method per operation.
+"""Config-domain capability protocol — one ABC per seam.
 
-Pure capability ABC: every config operation is a distinct typed method so the
-agent can call the right one without a dispatch bag. The root CLI and surface
-layer talk to the aggregate, not this protocol directly.
+Pure capability ABCs: every config operation is a distinct typed method so the
+agent can call the right one without a dispatch bag. Two seams exist because
+reading and mutating a config file touch disjoint code paths in the shared
+kernel; splitting them keeps each capability self-contained.
+
+- ``IConfigReaderProtocol`` — read / write / inspect / help.
+- ``IConfigModifierProtocol`` — merge / set-env / remove.
 """
 from __future__ import annotations
 
@@ -21,8 +25,8 @@ from modules.shared.src.taxonomy_common_vo import (
 )
 
 
-class IConfigProtocol(ABC):
-    """Capability contract for config: one method per operation."""
+class IConfigReaderProtocol(ABC):
+    """Reader seam: load, save, inspect, help."""
 
     @abstractmethod
     def load(self, path: Path) -> ConfigTuple:
@@ -38,6 +42,20 @@ class IConfigProtocol(ABC):
     ) -> bool:
         """Write *data* to *path* in *fmt* (or detected); True on success."""
         ...
+
+    @abstractmethod
+    def inspect(self, path: Path) -> ConfigSnapshot:
+        """Read-only snapshot: format, data, and server names."""
+        ...
+
+    @abstractmethod
+    def help(self) -> HelpText:
+        """Usage text for every config op."""
+        ...
+
+
+class IConfigModifierProtocol(ABC):
+    """Modifier seam: merge servers, set env, remove entries."""
 
     @abstractmethod
     def merge_servers(
@@ -64,11 +82,6 @@ class IConfigProtocol(ABC):
         ...
 
     @abstractmethod
-    def inspect(self, path: Path) -> ConfigSnapshot:
-        """Read-only snapshot: format, data, and server names."""
-        ...
-
-    @abstractmethod
     def help(self) -> HelpText:
         """Usage text for every config op."""
         ...
@@ -82,7 +95,8 @@ __all__ = [
     "ConfigTuple",
     "EnvPairs",
     "HelpText",
-    "IConfigProtocol",
+    "IConfigReaderProtocol",
+    "IConfigModifierProtocol",
     "McpServersMap",
 ]
 
@@ -95,6 +109,7 @@ _layer_symbols = {
     "ConfigTuple": ConfigTuple,
     "EnvPairs": EnvPairs,
     "HelpText": HelpText,
-    "IConfigProtocol": IConfigProtocol,
+    "IConfigReaderProtocol": IConfigReaderProtocol,
+    "IConfigModifierProtocol": IConfigModifierProtocol,
     "McpServersMap": McpServersMap,
 }

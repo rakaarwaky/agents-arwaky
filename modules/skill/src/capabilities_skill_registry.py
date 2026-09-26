@@ -6,7 +6,6 @@ import them without touching the capability layer (AES201 surface rule).
 """
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 from modules.shared.src.contract_skill_protocol import ISkillRegistryProtocol

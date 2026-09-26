@@ -12,8 +12,8 @@ from pathlib import Path
 from modules.shared.src.taxonomy_mcp_vo import (
     ExitCode,
     McpAlias,
-    McpServerInfo,
     McpServerId,
+    McpServerInfos,
 )
 
 
@@ -26,7 +26,7 @@ class IMcpProtocol(ABC):
         ...
 
     @abstractmethod
-    def list_servers(self) -> list[McpServerInfo]:
+    def list_servers(self) -> McpServerInfos:
         """Return metadata for every registered MCP-enabled tool."""
         ...
 
@@ -50,8 +50,8 @@ __all__ = [
     "ExitCode",
     "IMcpProtocol",
     "McpAlias",
-    "McpServerInfo",
     "McpServerId",
+    "McpServerInfos",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
@@ -59,6 +59,6 @@ _layer_symbols = {
     "ExitCode": ExitCode,
     "IMcpProtocol": IMcpProtocol,
     "McpAlias": McpAlias,
-    "McpServerInfo": McpServerInfo,
     "McpServerId": McpServerId,
+    "McpServerInfos": McpServerInfos,
 }

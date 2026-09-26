@@ -1,6 +1,6 @@
 """Capability — qwen-web tool adapter (uv_venv + Playwright recipe).
 
-Implements `IToolsAdapterProtocol` (AES403) and exports the `qwen-web`
+Exports the `qwen-web`
 `AdapterUnit` merged into `TOOLS_REGISTRY` by the root container.
 Recipe lives in `ToolLifecycleConfig`; the Playwright/XDG post-install
 hook and shared mechanics live in this file /
@@ -9,12 +9,9 @@ hook and shared mechanics live in this file /
 from __future__ import annotations
 
 import subprocess
-from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
-from modules.shared.src.taxonomy_common_error import ToolUpdateError
+from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
 from modules.shared.src.taxonomy_common_vo import (
-    ToolSpec,
     tool_cache_dir,
     tool_config_dir,
     tool_data_dir,
@@ -23,54 +20,18 @@ from modules.shared.src.taxonomy_common_vo import (
 from modules.shared.src.taxonomy_tools_constant import QWEN_ROLE_DIRS, QWEN_TOOL_NAME
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 from modules.shared.src.utility_tool_mechanics import (
-    ROOT,
     build_adapter_unit,
 )
 
-
 # ─── Block 1: Class Definition & Constructor ──────────────
-class QwenWebToolsAdapter(IToolsAdapterProtocol):
+class QwenWebToolsAdapter(ToolsAdapterBody):
     """qwen-web actions behind the tools adapter protocol (AES403 implementor)."""
 
+    _display = 'qwen-web'
+
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
-        self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
-
-    # ─── Block 2: Protocol Method Implementation ──────────────
-    def _unit_for(self, spec: ToolSpec) -> AdapterUnit:
-        """Look up the adapter unit that owns *spec*."""
-        unit = self._units.get(spec.id)
-        if unit is None:
-            raise ToolUpdateError(f"qwen-web adapter has no unit for {spec.id!r}")
-        return unit
-
-    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
-        """True when *spec*'s unit reports installed state."""
-        return self._unit_for(spec).satisfied(spec, root)
-
-    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> tuple[bool, str]:
-        """Return (satisfied, reason) against the manifest pin."""
-        return self._unit_for(spec).is_pin_satisfied(spec, root or ROOT)
-
-    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> list[Path]:
-        """Return the paths this adapter owns for *spec*."""
-        return list(self._unit_for(spec).owned_paths(spec, root or ROOT) or [])
-
-    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> list[Path]:
-        """Install or build *spec*; return the created paths."""
-        unit = self._unit_for(spec)
-        try:
-            return list(unit.install(spec, root, daemons=daemons) or [])
-        except TypeError:
-            return list(unit.install(spec, root) or [])
-
-    def update(self, spec: ToolSpec, root: Path) -> list[Path]:
-        """Update *spec* to the manifest pin; return the rebuilt paths."""
-        return list(self._unit_for(spec).update(spec, root) or [])
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return f"QwenWebToolsAdapter(tools={len(self._units)})"
-
+        """Default to this adapter's own unit registry when *units* is omitted."""
+        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
 
 # ---------------------------------------------------------------------------
 # Recipe (uv_venv lifecycle + Playwright post-install)
@@ -91,7 +52,6 @@ def _qwen_post_install(python_bin, source) -> None:
     print(f"  [ok] Data: {data_dir}")
     print(f"  [ok] State: {state_dir}")
     print(f"  [ok] Cache: {cache_dir}")
-
 
 CONFIG = ToolLifecycleConfig(
     lifecycle="uv_venv",
@@ -119,7 +79,6 @@ CONFIG = ToolLifecycleConfig(
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
     "qwen-web-arwaky": build_adapter_unit("qwen-web-arwaky", CONFIG),
 }
-
 
 __all__ = [
     "ADAPTER_UNITS",

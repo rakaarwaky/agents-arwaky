@@ -45,27 +45,21 @@ from modules.shared.src.taxonomy_common_vo import (
     DocFinding,
     Table,
     blank_fenced,
-)
-from modules.shared.src.taxonomy_common_vo import Section as _Section
-from modules.shared.src.taxonomy_common_vo import (
-    norm_md_heading as _norm,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    numbered_lines as _lines,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    read_md_text as _read,
+    Section,
+    norm_md_heading,
+    numbered_lines,
+    read_md_text,
 )
 
 
-def sections(path: Path) -> list[_Section]:
+def sections(path: Path) -> list[Section]:
     """Every heading in *path* with its body and starting line."""
-    text = _read(path)
+    text = read_md_text(path)
     matches = list(_HEADING.finditer(text))
-    found: list[_Section] = []
+    found: list[Section] = []
     for index, match in enumerate(matches):
         end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
-        found.append(_Section(
+        found.append(Section(
             level=len(match.group(1)),
             title=match.group(2),
             body=text[match.end():end],
@@ -74,22 +68,22 @@ def sections(path: Path) -> list[_Section]:
     return found
 
 
-def find_section(path: Path, title: str) -> _Section | None:
+def find_section(path: Path, title: str) -> Section | None:
     """The first section whose heading contains *title*, ignoring decoration."""
-    wanted = _norm(title)
+    wanted = norm_md_heading(title)
     for section in sections(path):
-        if wanted and wanted in _norm(section.title):
+        if wanted and wanted in norm_md_heading(section.title):
             return section
     return None
 
 
 def _missing_sections(text: str, doc: str) -> list[str]:
     """Required headings of *doc* that the text does not carry."""
-    headings = _norm(" ".join(m.group(2) for m in _HEADING.finditer(text)))
+    headings = norm_md_heading(" ".join(m.group(2) for m in _HEADING.finditer(text)))
     missing: list[str] = []
     for title in REQUIRED_SECTIONS.get(doc, ()):
         candidates = _SECTION_ALIASES.get(title, (title,))
-        if not any(_norm(cand) in headings for cand in candidates):
+        if not any(norm_md_heading(cand) in headings for cand in candidates):
             missing.append(title)
     return missing
 
@@ -158,7 +152,7 @@ def root_master(root: Path) -> Path | None:
 def check_spec_status_leak(path: Path) -> list[DocFinding]:
     """Rule *Spec and status never share a file*; specs also stay stateless."""
     findings: list[DocFinding] = []
-    for number, line in _lines(blank_fenced(_read(path))):
+    for number, line in numbered_lines(blank_fenced(read_md_text(path))):
         for pattern, label in _STATUS_LEAKS:
             if pattern.search(line):
                 findings.append(DocFinding(
@@ -271,7 +265,7 @@ def check_spec_pairing(root: Path) -> list[DocFinding]:
                 f"{spec.name} has no BACKLOG.md beside it, so its status has nowhere to go",
                 str(spec.parent),
             ))
-        elif "BACKLOG" not in blank_fenced(_read(spec)).upper():
+        elif "BACKLOG" not in blank_fenced(read_md_text(spec)).upper():
             findings.append(DocFinding(
                 "unlinked-spec",
                 "FRD.md never links BACKLOG.md; the Reference section keeps spec and status "
@@ -298,9 +292,9 @@ def check_state_vocabulary(root: Path) -> list[DocFinding]:
     if master is not None:
         # The vocabulary may sit in any section (Health usually shares State definitions),
         # so the invariant is that each term is defined somewhere in the master file.
-        prose = _norm(blank_fenced(_read(master)))
+        prose = norm_md_heading(blank_fenced(read_md_text(master)))
         for term in (*STATE_VOCAB, *HEALTH_VOCAB):
-            if _norm(term) not in prose:
+            if norm_md_heading(term) not in prose:
                 findings.append(DocFinding(
                     "undefined-state-vocab",
                     f"root master never defines {term!r}; feature files cite this "
@@ -320,10 +314,10 @@ def check_state_vocabulary(root: Path) -> list[DocFinding]:
     for backlog in iter_doc_files(root):
         if backlog.name != "BACKLOG.md" or backlog == master:
             continue
-        headings = _norm(" ".join(
-            m.group(2) for m in _HEADING.finditer(blank_fenced(_read(backlog)))
+        headings = norm_md_heading(" ".join(
+            m.group(2) for m in _HEADING.finditer(blank_fenced(read_md_text(backlog)))
         ))
-        restated = [t for t in MASTER_ONLY_SECTIONS if _norm(t) in headings]
+        restated = [t for t in MASTER_ONLY_SECTIONS if norm_md_heading(t) in headings]
         if restated:
             findings.append(DocFinding(
                 "state-vocab-restated",
@@ -336,14 +330,14 @@ def check_state_vocabulary(root: Path) -> list[DocFinding]:
 
 def _state_is_known(state: str) -> bool:
     """Whether *state* is a documented value, allowing a parenthetical qualifier."""
-    head = _norm(re.split(r"[(—(]", state)[0])
-    return any(head == _norm(term) for term in STATE_VOCAB)
+    head = norm_md_heading(re.split(r"[(—(]", state)[0])
+    return any(head == norm_md_heading(term) for term in STATE_VOCAB)
 
 
 def check_backlog_rows(backlog: Path) -> list[DocFinding]:
     """Rules *the Backlog table keeps nine columns* and *every claim is re-runnable*."""
     findings: list[DocFinding] = []
-    for table in parse_tables(_read(backlog)):
+    for table in parse_tables(read_md_text(backlog)):
         lowered = [cell.lower() for cell in table.header]
         if "work item" not in lowered:
             continue
@@ -391,9 +385,9 @@ def _row_has_evidence(condition: str) -> bool:
 def check_fr_ids(spec: Path, backlog: Path | None) -> list[DocFinding]:
     """Rules *requirement IDs are unique* and *a backlog may cite only what is specified*."""
     findings: list[DocFinding] = []
-    text = blank_fenced(_read(spec))
+    text = blank_fenced(read_md_text(spec))
     defined: dict[str, int] = {}
-    for number, line in _lines(text):
+    for number, line in numbered_lines(text):
         match = re.match(r"^#{2,5}\s+(FR-(?:[A-Za-z0-9]+-)?\d+)\b", line)
         if match:
             identifier = match.group(1)
@@ -410,7 +404,7 @@ def check_fr_ids(spec: Path, backlog: Path | None) -> list[DocFinding]:
         section = find_section(spec, "Functional Requirements")
         defined = {i: 0 for i in _FR_ID.findall(section.body if section else "")}
     if backlog is not None and backlog.is_file():
-        cited = set(_FR_ID.findall(blank_fenced(_read(backlog))))
+        cited = set(_FR_ID.findall(blank_fenced(read_md_text(backlog))))
         for identifier in sorted(cited - set(defined)):
             findings.append(DocFinding(
                 "orphan-fr-ref",
@@ -422,7 +416,7 @@ def check_fr_ids(spec: Path, backlog: Path | None) -> list[DocFinding]:
 
 
 def _table_shape(
-    section: _Section | None,
+    section: Section | None,
     columns: tuple[str, ...],
     *,
     code: str,
@@ -466,7 +460,7 @@ def _section_line_map(path: Path) -> dict[str, int]:
     """Normalized section title → first heading line, for order checks."""
     out: dict[str, int] = {}
     for section in sections(path):
-        key = _norm(section.title)
+        key = norm_md_heading(section.title)
         if key and key not in out:
             out[key] = section.line
     return out
@@ -480,16 +474,16 @@ def check_frd_template(path: Path) -> list[DocFinding]:
     warnings with ``as_strict``.
     """
     findings: list[DocFinding] = []
-    text = blank_fenced(_read(path))
+    text = blank_fenced(read_md_text(path))
     feature = path.parent.name
 
     # --- Rule 1: FR-<FEATURENAME>-<number>: <imperative name> -----------------
-    fr_lines: list[tuple[int, str, re.Match[str] | None]] = []
-    for number, line in _lines(text):
+    frnumbered_lines: list[tuple[int, str, re.Match[str] | None]] = []
+    for number, line in numbered_lines(text):
         if not _FR_HEADING_LOOSE.match(line):
             continue
         strict = _FR_HEADING.match(line)
-        fr_lines.append((number, line, strict))
+        frnumbered_lines.append((number, line, strict))
         if strict is None:
             findings.append(DocFinding(
                 "fr-id-format",
@@ -517,7 +511,7 @@ def check_frd_template(path: Path) -> list[DocFinding]:
                 f"{path}:{number}",
             ))
 
-    if not fr_lines:
+    if not frnumbered_lines:
         findings.append(DocFinding(
             "fr-id-format",
             "no '### FR-…' headings under Functional Requirements; "
@@ -595,7 +589,7 @@ def check_frd_template(path: Path) -> list[DocFinding]:
     order_index: list[tuple[int, str]] = []
     line_map = _section_line_map(path)
     for title in _FRD_SECTION_ORDER:
-        key = _norm(title)
+        key = norm_md_heading(title)
         line = None
         for found_key, found_line in line_map.items():
             if key in found_key or found_key in key:
@@ -606,7 +600,7 @@ def check_frd_template(path: Path) -> list[DocFinding]:
         order_index.append((line, title))
     ordered = [title for _, title in sorted(order_index)]
     expected_present = [t for t in _FRD_SECTION_ORDER
-                        if any(_norm(t) in k or k in _norm(t) for k in line_map)]
+                        if any(norm_md_heading(t) in k or k in norm_md_heading(t) for k in line_map)]
     if ordered != expected_present:
         findings.append(DocFinding(
             "section-order",
@@ -719,7 +713,7 @@ def audit_docs(root: Path, *, include_subtrees: bool = False) -> list[DocFinding
     for path in docs:
         gating = _owns_finding(path)
         raw: list[DocFinding] = []
-        for title in _missing_sections(blank_fenced(_read(path)), path.name):
+        for title in _missing_sections(blank_fenced(read_md_text(path)), path.name):
             # Scenario Evidence is a feature-backlog obligation (HOW-TO-MAKE-BACKLOG);
             # a root master BACKLOG follows the ROADMAP contract instead.
             if path.name == "BACKLOG.md" and path.parent == root and title == "Scenario Evidence":

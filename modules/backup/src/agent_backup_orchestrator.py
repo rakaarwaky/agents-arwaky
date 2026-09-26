@@ -15,7 +15,6 @@ from modules.shared.src.taxonomy_backup_vo import (
     BackupRequest,
     BackupResponse,
     BackupToolQuery,
-    ExitCode,
 )
 
 

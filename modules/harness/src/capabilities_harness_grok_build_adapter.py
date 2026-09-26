@@ -1,6 +1,6 @@
 """Grok Build harness leaf adapter (capabilities layer) — provider data + protocol.
 
-Implements `IHarnessProtocol` (AES403) and exports the `grok-build` provider
+Implements `IHarnessProviderProtocol` (AES403) and exports the `grok-build` provider
 spec merged into `HARNESS_REGISTRY` by the root container. Provider data lives
 in `GrokBuildAdapter`; the protocol implementor routes the provider-scoped ops
 (`supported` / `satisfied`) through `utility_harness_mechanics`.
@@ -13,7 +13,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-from modules.shared.src.contract_harness_protocol import IHarnessProtocol
+from modules.shared.src.contract_harness_protocol import IHarnessProviderProtocol
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
     config_home,
@@ -24,7 +24,7 @@ from modules.shared.src.utility_harness_mechanics import dispatch_provider_op
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class GrokBuildHarnessAdapter(IHarnessProtocol):
+class GrokBuildHarnessAdapter(IHarnessProviderProtocol):
     """Grok Build provider behind the harness protocol (AES403 implementor)."""
 
     def __init__(self, units: dict[str, object] | None = None) -> None:
@@ -41,17 +41,6 @@ class GrokBuildHarnessAdapter(IHarnessProtocol):
         """Dispatch a provider-scoped op against this file's grok-build unit."""
         return dispatch_provider_op(self._units, op, targets, flags, label="grok-build adapter")
 
-    def connect(self, targets: tuple[str, ...], force: bool = False, dry_run: bool = False,
-                mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
-                router: bool = False, copy_skills: bool = False) -> int:
-        raise NotImplementedError("GrokBuildHarnessAdapter does not implement connect")
-
-    def disconnect(self, targets: tuple[str, ...], dry_run: bool = False) -> int:
-        raise NotImplementedError("GrokBuildHarnessAdapter does not implement disconnect")
-
-    def provision_skills(self, targets: tuple[str, ...], copy: bool = False, dry_run: bool = False,
-                         force: bool = False) -> int:
-        raise NotImplementedError("GrokBuildHarnessAdapter does not implement provision_skills")
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
