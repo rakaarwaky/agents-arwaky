@@ -1,0 +1,166 @@
+# HOW TO MAKE TAXONOMY RUST
+
+> **Purpose**: Define the stable language of the domain: value objects, entities, errors, events, and constants.
+>
+> **Audience**: Agents and engineers scaffolding AES taxonomy files in the shared domain.
+>
+> **Scope**: Python, Rust, and TypeScript `taxonomy_<domain>_<suffix>` files — suffixes `_vo`, `_entity`, `_error`, `_event`, `_constant` only.
+>
+> **Location**: Shared domain source root next to contracts (`modules/shared/src/<domain>/` | `crates/shared/src/<domain>/` | `packages/shared/src/<domain>/`), registered in the shared barrel.
+>
+> **Length**: One type per file; no I/O, no upward imports, no primitives for domain fields.
+
+---
+
+## Rules
+
+### Import rules
+
+**Allowed imports:** other taxonomy types, std.
+**Forbidden:** capabilities, agents, surface, root, contracts, `std::fs`/network/database (in VOs/entities/errors/events/constants).
+
+### File-name suffix table
+
+
+| Suffix         | Content                | Key constraint                               |
+| -------------- | ---------------------- | -------------------------------------------- |
+| `_vo.rs`       | Value Objects          | Validate in`new()`, immutable fields, no I/O |
+| `_entity.rs`   | Entities with identity | Identity VO field required                   |
+| `_error.rs`    | Domain errors          | Implement`std::error::Error` + `Display`     |
+| `_event.rs`    | Domain events          | Immutable, VO payload fields                 |
+| `_constant.rs` | Compile-time constants | `pub const` only — no functions              |
+
+
+### VO primitive rules (AES401)
+
+Forbidden for domain fields: `String`, `i32`..`u64`, `f32`/`f64`, `Vec<String>`.
+`bool` and `&str` (for non-domain borrowed input) allowed with care.
+
+### Workflow
+
+1. Determine type (VO/Entity/Error/Event/Constant/Utility).
+2. Create `taxonomy_<domain>_<type>.rs` in `shared/src/<domain>/`.
+3. VOs: `fn new(...) -> Result<Self, DomainError>` or invariant check in `new`.
+4. Errors: impl `std::error::Error` + `Display`.
+5. Constants: `pub const NAME: Type = value;` only.
+6. Register in `mod.rs`.
+7. `cargo check -p <crate-name>`.
+
+---
+
+## Template
+
+### Value Object
+
+```rust
+use crate::common::taxonomy_validation_error::ValidationError;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct <Name>(String);
+
+impl <Name> {
+    pub fn new(value: impl Into<String>) -> Result<Self, ValidationError> {
+        let value = value.into();
+        if value.trim().is_empty() {
+            return Err(ValidationError::empty("<Name>"));
+        }
+        Ok(Self(value))
+    }
+
+    pub fn value(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Display for <Name> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+```
+
+### Entity
+
+```rust
+use crate::common::taxonomy_validation_error::ValidationError;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct <Name>(String);
+
+impl <Name> {
+    pub fn new(value: impl Into<String>) -> Result<Self, ValidationError> {
+        let value = value.into();
+        if value.trim().is_empty() {
+            return Err(ValidationError::empty("<Name>"));
+        }
+        Ok(Self(value))
+    }
+
+    pub fn value(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Display for <Name> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+```
+
+### Error
+
+```rust
+use thiserror::Error;
+
+use crate::<domain>::taxonomy_<name>_vo::<VO>;
+
+#[derive(Debug, Error)]
+pub enum <Name>Error {
+    #[error("Error message: {0}")]
+    Variant(#[source] std::io::Error),
+}
+```
+
+### Constants
+
+```rust
+/// Default value description.
+pub const <NAME>_DEFAULT: f64 = 24.0;
+
+/// Minimum value description.
+pub const <NAME>_MIN: f64 = 0.5;
+
+/// Filename constant.
+pub const <NAME>_FILENAME: &str = "file.json";
+```
+
+---
+
+## Section Contract
+
+
+| Check                                                                          | Why it belongs here                                                 |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Correct suffix.                                                                | Required by AES layer rules and the linter; missing it is a defect. |
+| VOs validate on construction; composite VOs use other VOs (no raw primitives). | Required by AES layer rules and the linter; missing it is a defect. |
+| Errors implement `std::error::Error`.                                          | Required by AES layer rules and the linter; missing it is a defect. |
+| Constants are `pub const` pure literal values.                                 | Required by AES layer rules and the linter; missing it is a defect. |
+| No import from capabilities, agents, surface, root, contracts.                 | Required by AES layer rules and the linter; missing it is a defect. |
+| No I/O, network, or database in taxonomy files.                                | Required by AES layer rules and the linter; missing it is a defect. |
+| Registered in shared `mod.rs`.                                                 | Required by AES layer rules and the linter; missing it is a defect. |
+| `cargo check -p <crate-name>` passes.                                          | Required by AES layer rules and the linter; missing it is a defect. |
+
+
+---
+
+## Verify
+
+```bash
+lint-arwaky-cli scan <layer-path>
+# Checks: AES101/AES102 (filename + suffix), AES201–AES205 (layer imports),
+# AES401–AES406 (role/primitive/structure rules for this layer).
+# Manual (not machine-checked): VO validates on construction; constants are pure literals; no I/O.
+# Fallback compile gate: cargo check -p <crate-name>
+```
+

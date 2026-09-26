@@ -5,6 +5,10 @@
 .uv-cache/
 .vscode/
 
+# CodeGraph index — local code intelligence, rebuilt per project with `codegraph init`.
+# Unanchored on purpose: submodules carry their own .codegraph/ at their roots.
+.codegraph/
+
 # Python virtual environments & build artifacts
 .venv/
 __pycache__/
@@ -41,13 +45,11 @@ tools/anytype-mcp/daemon/anytype
 .env
 .env.*
 .dev.vars
-tools/*/env
-tools/*/.env
-!tools/*/env.example
-!tools/*/.env.example
-tools/*/providers.json
-tools/*/provider.json
-!tools/*/providers.example.json
+config/*/env
+config/*/.env
+config/ninerouter.providers.json
+config/ninerouter.env
+config/anytype.env
 
 # Windows OS files
 Thumbs.db
@@ -58,13 +60,17 @@ $RECYCLE.BIN/
 *.log
 
 # Large Model Files
+# Keep the extension global (that's what actually carries weight); the bare
+# `models/` form silently swallowed any source directory named models anywhere
+# in the tree, so the scratch-dir rule is anchored to the repo root.
 *.gguf
-models/
+/models/
 
 # Agents
 .qwen
 .commandcode/
-
+.qwen-web/
+.agents/plans/
 # Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
 
@@ -79,3 +85,26 @@ tools/config/*.providers.json
 
 # Large binary: diunduh saat install, bukan di-commit
 **/anytype-bin
+
+# Harness runtime state — the harness skills root is symlinked to ./skills,
+# so these live next to the pack but must never enter git.
+/skills/.hub/
+/skills/.usage.json
+/skills/.usage.json.lock
+/skills/.curator_backups/
+/skills/.curator_ledger.jsonl
+/skills/.curator_state
+/skills/.bundled_manifest
+/skills/skills-lock.json
+
+# A harness run with HOME pointed inside a skill dir leaves `<skill>/.hermes/skills`
+# behind — a link back to this same pack, so the loader sees recursive phantom skills.
+/skills/**/.hermes/
+/skills/**/.qwen/
+/skills/**/.codex/
+
+# Loader alias-indexes: harness loaders index underscore names from the hyphen
+# pack dirs THROUGH the harness root link (anytype-mcp -> anytype_mcp). Generated
+# noise, regenerates locally; the hyphen dir is the tracked canonical.
+/skills/*_*/
+.worktrees/

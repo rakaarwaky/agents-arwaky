@@ -1,0 +1,11 @@
+---
+exclude_paths:
+  - "tools/skills/**"
+
+tools:
+  ruff:
+    enabled: true
+    config:
+      per-file-ignores:
+        "tools/install/*.py" = ["E402", "S603"]
+        "tools/uninstall/*.py" = ["E402", "S603"]

@@ -1,0 +1,19 @@
+[tool.ruff]
+target-version = "py313"
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "modules"]
+python_files = ["test_*.py", "contract_*.py", "unit_*.py", "integration_*.py", "dogfood_*.py", "smoke_*.py", "e2e_*.py", "acceptance_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.ruff.lint.per-file-ignores]
+"tools/install/*.py" = ["E402", "S603"]
+"tools/uninstall/*.py" = ["E402", "S603"]
+# Intentional broad catches: adapter/probe failures must degrade, never raise.
+"modules/tools/src/capabilities_tools_installer.py" = ["BLE001"]
+"modules/tools/src/capabilities_tools_updater.py" = ["BLE001"]
+"modules/harness/src/capabilities_harness_connector.py" = ["BLE001"]
+"modules/shared/src/utility_config_engine.py" = ["BLE001"]
+"modules/daemon/src/capabilities_9router_daemon.py" = ["BLE001"]
+

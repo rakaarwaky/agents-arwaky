@@ -1,0 +1,61 @@
+"""Domain error hierarchy for the AES tools (all derive from ArwakyError).
+
+Non-feature taxonomy errors; feature-specific errors belong in
+``taxonomy_<feature>_error``.
+"""
+from __future__ import annotations
+
+from modules.shared.src.taxonomy_common_vo import ErrorMessage
+
+
+class ArwakyError(Exception):
+    """Base class for every agents-arwaky domain error."""
+
+    _MESSAGE_FIELD = "message"
+
+    def __init__(self, message: ErrorMessage) -> None:
+        self._message = message
+
+    @property
+    def message(self) -> ErrorMessage:
+        """The human-readable error string carried by this exception."""
+        return self._message
+
+    def __str__(self) -> ErrorMessage:
+        return self._message
+
+
+class ToolInstallError(ArwakyError):
+    """Raised when a tool install fails."""
+
+
+class ToolUpdateError(ArwakyError):
+    """Raised when a tool update fails."""
+
+
+class ToolUninstallError(ArwakyError):
+    """Raised when a tool uninstall fails."""
+
+
+class ManifestParseError(ArwakyError):
+    """Raised when the tool manifest cannot be parsed."""
+
+
+class DaemonStartError(ArwakyError):
+    """Raised when a daemon container fails to start."""
+
+
+class DaemonStopError(ArwakyError):
+    """Raised when a daemon container fails to stop."""
+
+
+class SkillProvisionError(ArwakyError):
+    """Raised when skill provisioning/pruning fails."""
+
+
+class ConfigWriteError(ArwakyError):
+    """Raised when a harness config file cannot be written."""
+
+
+class GitUpdateError(ArwakyError):
+    """Raised when a git submodule update fails."""

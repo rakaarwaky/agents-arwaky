@@ -1,11 +1,12 @@
-"""Unit tests untuk tools/lib/envfile.py (P5-P1)."""
-import sys
+"""Unit tests untuk modules/shared/src/utility_envfile_parser.py."""
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools/lib"))
-
-from envfile import update_env_file, parse_env_file, remove_env_keys
+from modules.shared.src.utility_envfile_parser import (
+    parse_env_file,
+    remove_env_keys,
+    update_env_file,
+)
 
 
 def test_roundtrip_simple():
@@ -30,23 +31,23 @@ def test_update_existing():
         update_env_file(f, "A", "1")
         update_env_file(f, "A", "2")
         env = parse_env_file(f)
-        assert env["A"] == "2", "update should overwrite"
+        assert env["A"] == "2", "update-in-place failed"
 
 
-def test_remove_env_keys():
+def test_remove_keys():
     with tempfile.TemporaryDirectory() as d:
         f = Path(d) / ".env"
-        update_env_file(f, "A", "1")
-        update_env_file(f, "B", "2")
-        removed = remove_env_keys(f, ["A"])
-        assert "A" in removed
+        update_env_file(f, "KEEP", "1")
+        update_env_file(f, "DROP", "2")
+        remove_env_keys(f, ["DROP"])
         env = parse_env_file(f)
-        assert "A" not in env and env["B"] == "2"
+        assert "DROP" not in env, "remove_env_keys failed"
+        assert env.get("KEEP") == "1", "keep key lost"
 
 
 if __name__ == "__main__":
     test_roundtrip_simple()
     test_roundtrip_quoted_value()
     test_update_existing()
-    test_remove_env_keys()
+    test_remove_keys()
     print("test_envfile.py: ALL PASSED")

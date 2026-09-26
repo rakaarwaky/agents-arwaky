@@ -18,6 +18,17 @@ All notable changes to this project are documented in this file.
 - zsh completion generation.
 - `--json` output for `status`, `list`, `doctor`.
 
+### Changed
+- **XDG Standardization**: All internal tools now follow consistent XDG Base Directory paths:
+  - Venv: `~/.local/share/<tool>/venv/` (not in source directory)
+  - Config: `~/.config/<tool>/`
+  - Cache: `~/.cache/<tool>/`
+  - State: `~/.local/state/<tool>/`
+- **Install scripts rewritten**: `install_blender.py`, `install_vision.py`, `install_qwen_web.py` now create venv in XDG data directory using pip (not uv run).
+- **Uninstall scripts standardized**: All 4 internal tools use same XDG pattern with `TOOL_NAME`, `BIN_DIR`, `DATA_DIR`, `CONFIG_DIR`, `CACHE_DIR`, `STATE_DIR`.
+- **lint-arwaky install consolidated**: Merged 4 install scripts (`install.local.sh`, `install.remote.sh`, `install.global.sh`, `install.dev.sh`) into single `install.sh` with `--local`, `--global`, `--remote`, `--dev` flags.
+- **Venv symlinks moved to init**: `.venv`/`venv` symlinks in source directories are now created during `<tool> init`, not during install.
+
 ### Fixed
 - Resolved lint violations across the orchestration layer (Ruff/Mypy/Pylance/Codacy).
 - Env file quote round-trip escaping.
