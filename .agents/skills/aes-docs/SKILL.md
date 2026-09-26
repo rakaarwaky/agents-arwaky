@@ -68,6 +68,8 @@ Templates, section contracts, exemplars, and per-document craft rules live in [`
 | `BACKLOG.md` | Each **feature** dir, beside its spec (not `shared/`) | Engineer, QA, Tech Lead      | *What is true now*                   | 50–500 lines | [references/HOW-TO-MAKE-BACKLOG.md](references/HOW-TO-MAKE-BACKLOG.md) |
 | `README.md`  | Root workspace                    | Developer (new/existing)     | *How to use/run*                     | 50–500 lines | [references/HOW-TO-MAKE-README.md](references/HOW-TO-MAKE-README.md)   |
 | `AGENTS.md`  | Root workspace                    | The agent, every session     | *How to work here safely*            | 50–500 lines | [references/HOW-TO-MAKE-AGENTS.md](references/HOW-TO-MAKE-AGENTS.md)   |
+| `ARCHITECTURE.md` | Root workspace                | Engineer, Tech Lead, agent   | *Layer boundaries and allowed dependencies* | 50–500 lines | [references/HOW-TO-MAKE-ARCHITECTURE.md](references/HOW-TO-MAKE-ARCHITECTURE.md) |
+| `CONTRIBUTING.md` | Root workspace                | New and existing contributor | *How to set up and ship a change*   | 50–500 lines | [references/HOW-TO-MAKE-CONTRIBUTING.md](references/HOW-TO-MAKE-CONTRIBUTING.md) |
 
 **Code surface (doc comments)** — same Rules / Template / Section Contract / Verify shape:
 
@@ -140,6 +142,10 @@ Ask these questions in order. The first "No" dictates your next action.
    - *No* → Add `README.md` (how to use).
 6. **Can an agent work here safely without being told twice?**
    - *No* → Add `AGENTS.md` (how to work here).
+7. **Can a new engineer tell which layer a file belongs in, and what it may import?**
+   - *No* → Add `ARCHITECTURE.md` (layer boundaries).
+8. **Can a first-time contributor set up the project and open a passing PR?**
+   - *No* → Add `CONTRIBUTING.md` (how to ship a change).
 
 ---
 
@@ -151,6 +157,8 @@ project-root/
 ├── ROADMAP.md      # feature index, shared policy, workspace condition — 1 per project
 ├── README.md       # developer onboarding (how to use) — 1 per project
 ├── AGENTS.md       # operational guide (how the agent works here) — 1 per project
+├── ARCHITECTURE.md # layer boundaries and allowed dependencies — 1 per project
+├── CONTRIBUTING.md # contributor setup, contribution paths, PR gates — 1 per project
 ├── crates|modules|packages/
 │   ├── feature-a/
 │   │   ├── src/
@@ -179,12 +187,14 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 6. **Draft Feature Backlogs**: Write one `BACKLOG.md` per feature, beside its spec, per [references/HOW-TO-MAKE-BACKLOG.md](references/HOW-TO-MAKE-BACKLOG.md).
 7. **Draft README**: Write root `README.md` per [references/HOW-TO-MAKE-README.md](references/HOW-TO-MAKE-README.md).
 8. **Draft AGENTS**: Write root `AGENTS.md` per [references/HOW-TO-MAKE-AGENTS.md](references/HOW-TO-MAKE-AGENTS.md).
-9. **Document Code**: Add doc comments to all public items per language —
+9. **Draft ARCHITECTURE**: Write root `ARCHITECTURE.md` per [references/HOW-TO-MAKE-ARCHITECTURE.md](references/HOW-TO-MAKE-ARCHITECTURE.md) — required when the workspace has more than one layer beyond shared.
+10. **Draft CONTRIBUTING**: Write root `CONTRIBUTING.md` per [references/HOW-TO-MAKE-CONTRIBUTING.md](references/HOW-TO-MAKE-CONTRIBUTING.md) — required when the repo accepts external contributions. One section per contribution path the project actually supports; delete the rest.
+11. **Document Code**: Add doc comments to all public items per language —
    [references/HOW-TO-MAKE-PYTHON-DOC.md](references/HOW-TO-MAKE-PYTHON-DOC.md),
    [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md),
    [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md) —
    then add type annotations to all signatures.
-10. **Verify**: Run `aa check docs <path>`. Then each touched reference's `Verify` block (including the language doc ref).
+12. **Verify**: Run `aa check docs <path>`. Then each touched reference's `Verify` block (including the language doc ref).
 
 ---
 

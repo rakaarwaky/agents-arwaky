@@ -99,7 +99,11 @@ data home.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `execute` | `op`, `tool?`, `dest?`/`archive?` | result / list path | non-zero | — | one method covers archive, restore, list |
+| `backup` | `tool` (`BackupToolQuery`), `dest` (`BackupDestination` = default) | `BackupResult` | gateway error → non-zero | — | Archive the tool's XDG state into `dest` |
+| `restore` | `tool` (`BackupToolQuery`), `archive` (`BackupArchive` = default) | `RestoreResult` | gateway error → non-zero | — | Restore the tool's XDG state from `archive` |
+| `list_archives` | — | `BackupOutcome` | — | — | Return the archives visible to this gateway plus print lines |
+| `status` | — | `ExitCode` | non-zero | — | Report the backup store path, existence, and archive count |
+| `help` | — | `ExitCode` | non-zero | — | Print backup/restore usage |
 
 ### Aggregate API
 

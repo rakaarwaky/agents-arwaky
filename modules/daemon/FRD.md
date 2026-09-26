@@ -98,7 +98,14 @@ own unit code.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `execute` | `op`, `name?`, `unit?` | `ExitCode` or `DaemonStatus` | non-zero | — | one method covers lifecycle, enumeration, and unit ops |
+| `start` | — | `ExitCode` | non-zero | — | Start the daemon and wait for readiness |
+| `stop` | — | `ExitCode` | non-zero | — | Stop the running daemon |
+| `restart` | — | `ExitCode` | non-zero | — | Restart the daemon, waiting for readiness after the stop |
+| `status` | — | `DaemonStatus` | — | — | Probe process, systemd, and API state |
+| `logs` | — | `ExitCode` | non-zero | — | Show the daemon's recent logs |
+| `install_unit` | `unit` (`DaemonUnit`) | `ExitCode` | non-zero | — | Install and enable the systemd user unit |
+| `remove_unit` | `unit` (`DaemonUnit`) | `ExitCode` | non-zero | — | Disable and remove the systemd user unit |
+| `unit_status` | `unit` (`DaemonUnit`) | `ExitCode` | non-zero | — | Report the systemd state of the unit |
 
 ### Aggregate API
 

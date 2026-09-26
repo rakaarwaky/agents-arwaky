@@ -85,7 +85,12 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `execute` | `op`, `unit` | exit + result | non-zero | — | one method covers drive, status, logs, usage |
+| `status` | — | `ExitCode` | non-zero | — | Report the state of every known unit |
+| `start` | `target` (`ServiceTarget` = all) | `ExitCode` | non-zero | — | Start the requested unit(s) |
+| `stop` | `target` (`ServiceTarget` = all) | `ExitCode` | non-zero | — | Stop the requested unit(s) |
+| `restart` | `target` (`ServiceTarget` = all) | `ExitCode` | non-zero | — | Restart the requested unit(s) |
+| `logs` | `target` (`ServiceTarget` = 9router) | `ExitCode` | non-zero | — | Tail the requested unit's log lines |
+| `help` | — | `ExitCode` | non-zero | — | Print usage listing the valid actions and targets |
 
 ### Aggregate API
 

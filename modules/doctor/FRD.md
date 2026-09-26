@@ -67,7 +67,7 @@ runners → per-check pass/fail rows, one exit code.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `execute` | `flags` (`json`, mode) | report | hard fail → non-zero | — | one method covers diagnosis env + readiness |
+| `run` | `flags` (`json`, mode) | `ExitCode` | hard fail → non-zero | — | one method per diagnostic pass (env + tools runners) |
 
 ### Aggregate API
 
