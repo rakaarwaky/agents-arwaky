@@ -4,10 +4,18 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-09-26
+Last Updated: 2026-09-27
 
 ## Current Condition
 
+- Done: `aa skill update` (SKL-08) — pulls internal submodule skill homes
+  (`crates/skills/`, `modules/skills/`, `packages/skills/`, legacy
+  `.agents/skills/` fallback) into the shared pack, writes per-skill
+  `.arwaky-skill-update.json` provenance sidecars, dedups multi-source
+  collisions by source-home priority, and adds a drift gate to
+  `aa check skill`. 13 sources merge cleanly on the current tree
+  (11 AES skills from lint-arwaky plus the `vision-arwaky` and `qwen-web`
+  tool guides). 77 tests pass; `lac scan modules/` → 0 violations.
 - Done: `ISkillProtocol` split into two seam ABCs — `ISkillProvisionProtocol`
   (`provision` / `prune` / `audit`) and `ISkillRegistryProtocol`
   (`list` / `check` / `show` / `install` / `uninstall` / `sync`). The
@@ -31,6 +39,7 @@ Last Updated: 2026-09-26
 | SKL-05 | FR-SKILL-004 | Install / uninstall through the CLI surface | P1 | Done | `python3 -m modules.root_cli_entry skill install testing-suite --target …` then `skill uninstall testing-suite --target …` → provisioned then removed, pack intact at `f87a775`. | @raka | SKL-01 | 2026-09-23 |
 | SKL-06 | FR-SKILL-005 | Re-sync the pack (install all / sync) | P2 | Done | `python3 -m modules.root_cli_entry skill sync --target …` → all 92 pack skills provisioned at `f87a775`. | @raka | SKL-05 | 2026-09-23 |
 | SKL-07 | FR-SKILL-001, FR-SKILL-002, FR-SKILL-003, FR-SKILL-004, FR-SKILL-005 | Split protocol into per-seam `ISkillProvisionProtocol` + `ISkillRegistryProtocol`; aggregate retains single `execute` entry | P1 | Done | `python3 -m compileall -q modules/skill modules/shared` clean + `lint-arwaky-cli scan modules/skill` → 0 violations + `python3 -m modules.root_cli_entry check docs modules/skill` → 0 findings at `6df9f21`; 68 tests pass. | @raka | None | 2026-09-26 |
+| SKL-08 | FR-SKILL-006 | `aa skill update`: pull internal submodule skills into the shared pack, with provenance sidecar + dedup + drift check | P1 | Done | `python3 -m modules.root_cli_entry skill update --dry-run` → 13 sources (11 AES from `crates/skills/`, `vision-arwaky`, `qwen-web`); `aa skill update --force` → merged 13; second run → "already current"; `aa check skill` → loadability clean + in-sync message; `lac scan modules/` → 0 violations; 77 tests pass at `0d59ebc`. | @raka | SKL-07 | 2026-09-27 |
 
 ## Scenario Evidence
 

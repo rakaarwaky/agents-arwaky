@@ -14,6 +14,10 @@ from modules.shared.src.taxonomy_common_vo import (
 )
 from modules.shared.src.utility_logging_setup import err, info, ok
 from modules.shared.src.utility_paths_resolver import repo_root
+from modules.shared.src.utility_skill_update import (
+    audit_update_drift,
+    discover_skill_sources,
+)
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 
@@ -34,15 +38,20 @@ class SkillsCheckRunner(ICheckProtocol):
     def run(self, scope: CheckScope) -> CheckExitCode:
         """Run the skill-pack audit; *scope* routing happens in the orchestrator."""
         findings = audit_pack(self._pack)
+        drift = audit_update_drift(
+            self._pack, discover_skill_sources(self._pack, self._root)
+        )
+        all_findings = findings + drift
         total = len(iter_skill_files(self._pack))
-        for finding in findings:
+        for finding in all_findings:
             err(f"{finding.code}: {finding.message}")
-        if not findings:
+        if not all_findings:
             categories = {p.relative_to(self._pack).parts[0] for p in iter_skill_files(self._pack)}
-            ok(f"{total} skills across {len(categories)} categories; names unique, layout loadable")
+            ok(f"{total} skills across {len(categories)} categories; names unique, "
+               "layout loadable, internal modules in sync")
         else:
             info(f"  ({total} SKILL.md files scanned, budget {DESCRIPTION_BUDGET_BYTES} bytes)")
-        return CheckExitCode(len(findings))
+        return CheckExitCode(len(all_findings))
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:

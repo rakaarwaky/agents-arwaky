@@ -181,7 +181,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}status{RESET()}                         Check health, submodule and binary installation status")
     print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
     print(f"  {GREEN()}tool{RESET()} <cmd> [args]             Tool management (list|run|install|update|uninstall)")
-    print(f"  {GREEN()}skill{RESET()} <cmd> [args]             Skill management (list|install|uninstall|show|check)")
+    print(f"  {GREEN()}skill{RESET()} <cmd> [args]             Skill management (list|install|uninstall|update|show|check)")
     print(f"  {GREEN()}connect{RESET()} --<harness>|--all     Connect MCP, skills & env to harnesses")
     print(f"  {GREEN()}disconnect{RESET()} --<harness>|--all  Disconnect harnesses (use --all for all)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
@@ -216,6 +216,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}aa tool run lint check .{RESET()}       Run a tool (AES linter)")
     print(f"  {CYAN()}aa tool list{RESET()}                   List all registered tools")
     print(f"  {CYAN()}aa skill install --all{RESET()}         Provision all skills to CWD")
+    print(f"  {CYAN()}aa skill update{RESET()}                 Pull internal submodule skills into the pack")
     print(f"  {CYAN()}aa check docs .{RESET()}               Audit PRD/ROADMAP/FRD/README/BACKLOG/AGENTS invariants")
     print(f"  {CYAN()}aa check skill{RESET()}                Audit skills/ pack loadability")
     print(f"  {CYAN()}aa skill uninstall --target .{RESET()}  Remove skills from CWD")
@@ -280,7 +281,11 @@ def cmd_status(argv: list[str]) -> int:
 
 def cmd_doctor(argv: list[str]) -> int:
     from modules.doctor.src.root_doctor_container import create_doctor_feature
-    from modules.shared.src.taxonomy_common_vo import DoctorFlags, DoctorOp, DoctorRequest
+    from modules.shared.src.taxonomy_common_vo import (
+        DoctorFlags,
+        DoctorOp,
+        DoctorRequest,
+    )
     request = DoctorRequest(DoctorOp("diagnose"), flags=DoctorFlags({"json": "--json" in argv}))
     return int(create_doctor_feature().execute(request).exit_code)
 
@@ -334,8 +339,8 @@ def cmd_run(argv: list[str]) -> int:
         err(f"Tool '{argv[0]}' not found in manifest.")
         print("Run 'aa tool list' to see all available tools.")
         return 1
-    from modules.tools.src.root_tools_container import create_tools_feature
     from modules.shared.src.taxonomy_tools_vo import ToolArgs, ToolRequest, ToolsOp
+    from modules.tools.src.root_tools_container import create_tools_feature
     spec = _spec_from_tool(tool)
     orch = create_tools_feature()
     return int(orch.execute(
