@@ -189,8 +189,6 @@ def cmd_install(argv):
     return 1
 
 
-from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
-
 _SKILL_UPDATE = SkillUpdateCapability()
 
 
@@ -544,7 +542,14 @@ def main(argv: list[str], orch: object | None = None) -> int:
 
 
 from modules.shared.src.contract_skill_protocol import ISkillRegistryProtocol
-from modules.shared.src.taxonomy_skill_vo import ARGS_EMPTY, FILTER_EMPTY, QUERY_EMPTY, ExitCode, SkillArgs, ToolFilter
+from modules.shared.src.taxonomy_skill_vo import (
+    ARGS_EMPTY,
+    FILTER_EMPTY,
+    QUERY_EMPTY,
+    ExitCode,
+    SkillArgs,
+    ToolFilter,
+)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

@@ -23,6 +23,8 @@ Last Updated: 2026-09-27
   surface/CLI call sites are unchanged; only the internal seam shape changed.
   Gate: `lint-arwaky-cli scan modules/skill` → 0 violations;
   `python3 -m pytest modules/skill -q` → 68 passed at `6df9f21`.
+- In Progress: none.
+- Blocked: none.
 - Next Action: SKL-01 prune round-trip (stale provenance entry removed from
   a nested target; layout + path of the prune walk still outstanding).
 
