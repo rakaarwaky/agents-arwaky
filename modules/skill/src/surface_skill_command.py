@@ -34,6 +34,7 @@ from modules.shared.src.utility_skill_registry import (
     resolve_tool_skills,
     uninstall_tool_skills,
 )
+from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
 
 
 def cmd_uninstall(argv):
@@ -186,6 +187,80 @@ def cmd_install(argv):
     print(f"Error: Neither tool nor skill named '{target_name}' could be found.")
     print("Run 'aa skill list' to see all available tools and skills.")
     return 1
+
+
+from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
+
+_SKILL_UPDATE = SkillUpdateCapability()
+
+
+def SKILL_UPDATE_CAPABILITY():
+    """Module-level updater instance shared across surface calls."""
+    return _SKILL_UPDATE
+
+
+def cmd_update(argv):
+    """Merge internal submodule skills into the shared pack (FR-SKILL-006).
+
+    Flags: ``--tool <id>`` scope, ``--dry-run`` plan only, ``--force`` overwrite
+    a pack skill whose bytes differ from its source.
+    """
+    tool_id = ""
+    dry_run = False
+    force = False
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in ("--tool", "-t"):
+            tool_id = argv[i + 1] if i + 1 < len(argv) else ""
+            i += 2
+            continue
+        if a == "--dry-run":
+            dry_run = True; i += 1; continue
+        if a in ("--force", "-f"):
+            force = True; i += 1; continue
+        if not tool_id and not a.startswith("-"):
+            tool_id = a
+        i += 1
+
+    print("Usage: aa skill update [--tool <id>] [--dry-run] [--force]")
+    print()
+    print("Merges the skills shipped inside each internal module's skill home")
+    print("(crates/skills, modules/skills, packages/skills, or the legacy")
+    print(".agents/skills) into the shared skills/ pack, so a harness always")
+    print("sees the freshest version of every in-house tool guide.")
+    print()
+
+    result = SKILL_UPDATE_CAPABILITY().update(
+        tool_id=tool_id, dry_run=dry_run, force=force
+    )
+    if result.message:
+        print(result.message)
+    return 0 if result.success else 1
+
+
+def cmd_update_help():
+    """Print help for the 'aa skill update' subcommand."""
+    print("Usage: aa skill update [--tool <id>] [--dry-run] [--force]")
+    print()
+    print("Pull each internal module's skills into the shared skills/ pack.")
+    print()
+    print("Sources, probed in order per manifest tool with category 'internal':")
+    print("  1. <path>/crates/skills/      (Rust: internal/lint-arwaky)")
+    print("  2. <path>/modules/skills/      (Python: blender, qwen-web, vision)")
+    print("  3. <path>/packages/skills/     (TypeScript)")
+    print("  4. <path>/.agents/skills/      (legacy fallback)")
+    print()
+    print("Options:")
+    print("  --tool, -t ID   Limit the merge to one manifest tool id")
+    print("  --dry-run       Print the plan without writing anything")
+    print("  --force, -f     Overwrite pack skills whose bytes differ from source")
+    print("                  (without it, a differing skill reports CONFLICT)")
+    print()
+    print("Each merged skill gets a .arwaky-skill-update.json sidecar recording its")
+    print("submodule source. That file is distinct from .arwaky-skill.json, so")
+    print("'aa skill install --prune' never removes an update-sourced skill.")
+    return 0
 
 
 def _term_width():
@@ -355,6 +430,7 @@ def cmd_help():
     print("  install, get, copy <name>   Install ALL skills for a tool (or a specific skill)")
     print("  install all, sync           Provision ALL skills for ALL tools")
     print("  install --prune             Drop provisioned skills the pack no longer provides")
+    print("  update [--tool <id>]        Pull internal module skills into the pack")
     print("  uninstall, unskill, remove  Remove provisioned skills from CURRENT WORKING DIRECTORY (.agents/skills/)")
     print("  show <name>                 Display the content of a skill's SKILL.md")
     print("  check [--json]              Audit per-tool skill coverage and pack loadability")
@@ -363,6 +439,7 @@ def cmd_help():
     print("SUBCOMMAND HELP:")
     print("  aa skill list --help        Show list-specific options")
     print("  aa skill install --help     Show install-specific options")
+    print("  aa skill update --help      Show update-specific options")
     print("  aa skill uninstall --help   Show uninstall-specific options")
     print("  aa skill show --help        Show show-specific options")
     return 0
@@ -446,6 +523,8 @@ def main(argv: list[str], orch: object | None = None) -> int:
             return cmd_uninstall_help()
         if action in ("show", "cat", "view"):
             return cmd_show_help()
+        if action in ("update", "refresh", "pull"):
+            return cmd_update_help()
     if action in ("list", "ls"):
         return cmd_list(rest)
     if action in ("check", "audit"):
@@ -456,6 +535,8 @@ def main(argv: list[str], orch: object | None = None) -> int:
         return cmd_uninstall(rest)
     if action == "sync":
         return cmd_install(["all", *rest])
+    if action in ("update", "refresh", "pull"):
+        return cmd_update(rest)
     if action in ("show", "cat", "view"):
         return cmd_show(rest)
     print(f"Unknown skill command: {action}")

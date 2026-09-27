@@ -1,7 +1,7 @@
 """Skill agent orchestrator — single-execute aggregate over registry + provisioner.
 
-Routes each ``SkillRequest.op`` to the matching capability role (registry or
-provisioner) and wraps the result in a ``SkillResponse``.
+Routes each ``SkillRequest.op`` to the matching capability role (registry,
+provisioner, or updater) and wraps the result in a ``SkillResponse``.
 """
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from modules.shared.src.contract_skill_protocol import (
     ISkillProvisionProtocol,
     ISkillRegistryProtocol,
 )
+from modules.shared.src.contract_skill_update_protocol import ISkillUpdateProtocol
 from modules.shared.src.taxonomy_skill_vo import (
     ARGS_EMPTY,
     FILTER_EMPTY,
@@ -46,9 +47,11 @@ class SkillOrchestrator(ISkillAggregate):
         self,
         provisioner: ISkillProvisionProtocol,
         registry: ISkillRegistryProtocol | _SkillRegistry,
+        updater: ISkillUpdateProtocol | None = None,
     ) -> None:
         self._provisioner = provisioner
         self._registry = registry
+        self._updater = updater
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def execute(self, request: SkillRequest) -> SkillResponse:
@@ -65,6 +68,8 @@ class SkillOrchestrator(ISkillAggregate):
             return SkillResponse(
                 self._registry.show(SkillQuery(str(request.query)) if request.query else QUERY_EMPTY)
             )
+        if op == "update":
+            return self._execute_update(request)
         if op in {"install", "uninstall", "sync"}:
             args = SkillArgs(list(request.args) if request.args else [])
             result = getattr(self._registry, op)(args)
@@ -90,6 +95,26 @@ class SkillOrchestrator(ISkillAggregate):
         return SkillResponse(ExitCode(1))
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    def _execute_update(self, request: SkillRequest) -> SkillResponse:
+        """Route an ``update`` op to the updater capability.
+
+        Args:
+            request: Envelope whose ``args`` carry the update flags parsed by the
+                surface (tool id, ``--dry-run``, ``--force``).
+
+        Returns:
+            Response carrying the update exit code and a summary message.
+        """
+        if self._updater is None:
+            return SkillResponse(ExitCode(1), "skill update capability is not wired")
+        args = list(request.args) if request.args else []
+        result = self._updater.update(
+            tool_id=str(request.tool_filter) if request.tool_filter != FILTER_EMPTY else "",
+            dry_run="--dry-run" in args,
+            force=request.force,
+        )
+        return SkillResponse(ExitCode(0 if result.success else 1), result.message)
+
     def __repr__(self) -> str:
         return "SkillOrchestrator()"
 

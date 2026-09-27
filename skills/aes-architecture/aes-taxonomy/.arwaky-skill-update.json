@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "update_source": "internal/lint-arwaky/crates/skills/aes-taxonomy/SKILL.md",
+  "submodule": "lint-arwaky",
+  "submodule_home": "crates/skills",
+  "skill": "aes-taxonomy",
+  "updated_at": "2026-09-27T07:55:37.148639+00:00"
+}

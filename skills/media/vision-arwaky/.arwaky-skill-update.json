@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "update_source": "internal/vision-arwaky/.agents/skills/vision-arwaky/SKILL.md",
+  "submodule": "vision-arwaky",
+  "submodule_home": ".agents/skills",
+  "skill": "vision-arwaky",
+  "updated_at": "2026-09-27T07:55:37.153089+00:00"
+}

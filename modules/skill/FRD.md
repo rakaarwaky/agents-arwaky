@@ -108,6 +108,30 @@ a project's `.agents/skills/` (provisioned copies) or the pack itself.
 - **Error Handling**: any copy failure exits non-zero; successes already
   written remain in place.
 
+### FR-SKILL-006: Pull internal submodule skills into the pack
+
+- **Description**: update discovers each internal tool's skill home
+  (`crates/skills`, `modules/skills`, `packages/skills`, or the legacy
+  `.agents/skills` fallback) and merges the freshest copy into the shared
+  `skills/` pack, stamping each merge with upstream provenance.
+- **Input**: optional tool-id filter, `--dry-run` flag, `--force` flag.
+- **Output**: exit code; one line per source skill reporting the outcome;
+  a human-readable summary line.
+- **Business Rules**: the submodule source is the source of truth; without
+  `--force` a differing pack skill reports `CONFLICT` and is left alone;
+  Finder-style duplicate folders (`Foo copy/`) are skipped at discovery;
+  the legacy `.agents/skills/` fallback is treated as a provisioned pack copy
+  — only the tool's own skill guide (a folder whose name matches the tool id
+  or an alias) is treated as a source there.
+- **Edge Cases**: a tool with no discoverable skill home is skipped
+  silently; a tool filter that matches nothing exits 0 with a zero-plan
+  message; two submodules claiming the same skill name is resolved by
+  source-home priority (`crates/skills` > `modules/skills` >
+  `packages/skills` > `.agents/skills`).
+- **Error Handling**: a copy failure is reported per skill and the run
+  continues; any conflict or error makes the exit code non-zero unless
+  `--dry-run` is set (dry-run always exits 0).
+
 
 ## API Contract
 
@@ -127,6 +151,7 @@ a project's `.agents/skills/` (provisioned copies) or the pack itself.
 | `install` | `scope`, `target` | result lines | copy failure → non-zero | provision lines | Provision pack skills into a project workspace |
 | `uninstall` | `target`, `prune?` | result lines | unknown scope → non-zero | removal lines | Remove provisioned copies from a workspace |
 | `sync` | `target` | result lines | copy failure → non-zero | provision lines | Re-provision the full pack for every tool |
+| `update` | `tool?`, `flags` | result lines | conflict/error → non-zero | merge lines | Pull internal submodule skills into the pack |
 
 ## Integration Points
 

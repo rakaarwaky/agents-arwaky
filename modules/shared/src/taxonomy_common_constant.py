@@ -15,6 +15,14 @@ PROVENANCE_VERSION = 1
 DESCRIPTION_BUDGET_BYTES = 16_200
 SKILL_FILE = "SKILL.md"
 
+# --- skill update provenance ---------------------------------------------------
+#: Sidecar recording which submodule source a pack skill was pulled from.
+#: Separate from :data:`PROVENANCE_FILE` so ``aa skill install --prune`` does
+#: not remove update-sourced skills (prune only touches entries carrying the
+#: original provenance marker or links into the pack).
+UPDATE_PROVENANCE_FILE = ".arwaky-skill-update.json"
+UPDATE_PROVENANCE_VERSION = 1
+
 # --- tool dispatch -------------------------------------------------------------
 #: Runner map per tool (manifest-driven dispatch, avoid hardcoded IDs)
 TOOL_RUNNERS = {

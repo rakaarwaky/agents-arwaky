@@ -44,6 +44,7 @@ tools/anytype-mcp/daemon/anytype
 # Environment and local configs
 .env
 .env.*
+!.env.example
 .dev.vars
 config/*/env
 config/*/.env
