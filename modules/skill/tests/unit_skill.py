@@ -306,6 +306,112 @@ class TestSkillRegistryAdapter:
             assert result == 0
 
 
+class TestSkillUpdateCapability:
+    """Tests for SkillUpdateCapability."""
+
+    def test_repr(self):
+        """UT-SKILL-040: SkillUpdateCapability repr is descriptive."""
+        from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
+
+        updater = SkillUpdateCapability()
+        assert repr(updater) == "SkillUpdateCapability()"
+
+    def test_update_dry_run_success(self):
+        """UT-SKILL-041: dry-run reports planned merges without writing."""
+        from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
+        from modules.shared.src.taxonomy_skill_update_vo import UpdateResult
+
+        updater = SkillUpdateCapability()
+        result = updater.update(dry_run=True)
+        assert isinstance(result, UpdateResult)
+        assert result.success is True
+
+    def test_update_with_tool_filter(self):
+        """UT-SKILL-042: scoping to one tool leaves the others untouched."""
+        from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
+
+        updater = SkillUpdateCapability()
+        result = updater.update(tool_id="no-such-tool", dry_run=True)
+        assert result.merged == 0
+
+    def test_update_reports_no_sources(self):
+        """UT-SKILL-043: a tool filter that matches nothing exits 0, not an error."""
+        from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
+
+        updater = SkillUpdateCapability()
+        result = updater.update(tool_id="definitely-not-a-tool", dry_run=True)
+        assert result.success is True
+        assert result.merged == 0
+
+
+class TestSkillUpdateUtility:
+    """Tests for the skill-update utility helpers (via the real pack layout)."""
+
+    def test_discover_skill_sources_no_conflict(self):
+        """UT-SKILL-044: discovery returns unique skill names after dedup."""
+        from modules.shared.src.utility_skill_update import (
+            deduplicate_sources,
+            discover_skill_sources,
+        )
+        from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+
+        pack_root = REPO_ROOT / "skills"
+        entries = discover_skill_sources(pack_root, REPO_ROOT)
+        winners, conflicts = deduplicate_sources(entries)
+        names = [w.skill_name for w in winners]
+        assert len(names) == len(set(names)), f"duplicate names after dedup: {names}"
+        # One winner per unique skill name; each collision reports its losers.
+        assert len(winners) == len({e.skill_name for e in entries})
+        assert len(entries) - len(winners) == sum(
+            c.count(",") + 1 for c in conflicts
+        )
+
+    def test_pack_category_preserves_existing(self):
+        """UT-SKILL-045: an existing pack skill keeps its category after an update."""
+        from modules.shared.src.utility_skill_update import pack_category
+        from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+
+        pack_root = REPO_ROOT / "skills"
+        assert pack_category(pack_root, "vision-arwaky") == "media"
+        assert pack_category(pack_root, "qwen-web") == "automation"
+
+    def test_pack_category_defaults_to_internal_tools(self):
+        """UT-SKILL-046: a new skill falls into the default internal-tools category."""
+        from modules.shared.src.utility_skill_update import pack_category
+        from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+
+        pack_root = REPO_ROOT / "skills"
+        assert pack_category(pack_root, "no-such-skill-ever") == "internal-tools"
+
+    def test_copy_suffix_filter(self):
+        """UT-SKILL-047: Finder-style duplicate folders are skipped at discovery."""
+        from modules.shared.src.utility_skill_update import _COPY_SUFFIX
+
+        assert _COPY_SUFFIX.search("codacy-review copy")
+        assert _COPY_SUFFIX.search("qwen-web copy 2")
+        assert not _COPY_SUFFIX.search("codacy-review")
+        assert not _COPY_SUFFIX.search("qwen-web")
+
+    def test_owned_names_includes_aliases(self):
+        """UT-SKILL-048: tool aliases are part of the legacy-ownership set."""
+        from modules.shared.src.utility_skill_update import _owned_names
+        from modules.shared.src.taxonomy_common_vo import Tool
+
+        tool = Tool(
+            id="qwen-web-arwaky",
+            category="internal",
+            binary="qwen-web-arwaky",
+            is_mcp=True,
+            description="",
+            path="internal/qwen-web-arwaky",
+            alias="qwa",
+            aliases=("qwen-web",),
+        )
+        assert "qwen-web" in _owned_names(tool)
+        assert "qwa" in _owned_names(tool)
+        assert "qwen-web-arwaky" in _owned_names(tool)
+
+
 class TestMainEntry:
     """Tests for main entry point."""
 

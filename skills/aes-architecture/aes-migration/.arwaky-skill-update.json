@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "update_source": "/home/raka/agents-arwaky/internal/lint-arwaky/crates/skills/aes-migration/SKILL.md",
+  "submodule": "lint-arwaky",
+  "submodule_home": "crates/skills",
+  "skill": "aes-migration",
+  "updated_at": "2026-09-27T07:26:26.328890+00:00"
+}
