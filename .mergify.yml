@@ -44,7 +44,7 @@ pull_request_rules:
   - name: label-manifest-or-env
     description: Tag PRs that touch the tool manifest or XDG config paths
     conditions:
-      - 'file~=^(config/manifest.json|modules/shared/src/xdg/|modules/shared/src/envfile)'
+      - 'files ~= ^(config/manifest.json|modules/shared/src/xdg/|modules/shared/src/envfile)'
     actions:
       label:
         add: [manifest]
@@ -52,7 +52,7 @@ pull_request_rules:
   - name: label-agents-md
     description: Flag PRs that touch the agent operating manual
     conditions:
-      - 'file~=^AGENTS\.md'
+      - 'files ~= ^AGENTS\.md'
     actions:
       label:
         add: [docs]
@@ -60,7 +60,7 @@ pull_request_rules:
   - name: label-skill-pack
     description: Tag PRs that add, remove, or reshape skills
     conditions:
-      - "file~=^skills/"
+      - "files ~= ^skills/"
     actions:
       label:
         add: [skills]
@@ -68,7 +68,7 @@ pull_request_rules:
   - name: label-internal-agent
     description: Flag PRs that touch in-house agent submodules
     conditions:
-      - "file~=^internal/"
+      - "files ~= ^internal/"
     actions:
       label:
         add: [internal-agent]
@@ -76,7 +76,7 @@ pull_request_rules:
   - name: label-vendor-pinning
     description: Flag PRs that update a vendor submodule pin
     conditions:
-      - 'file~=^vendor/.*\.gitmodules$'
+      - 'files ~= ^vendor/.*\.gitmodules$'
     actions:
       label:
         add: [vendor]
