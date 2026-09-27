@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "update_source": "/home/raka/agents-arwaky/internal/lint-arwaky/crates/skills/aes-testing-suite/SKILL.md",
+  "update_source": "internal/lint-arwaky/crates/skills/aes-testing-suite/SKILL.md",
   "submodule": "lint-arwaky",
   "submodule_home": "crates/skills",
   "skill": "aes-testing-suite",
-  "updated_at": "2026-09-27T07:26:26.337827+00:00"
+  "updated_at": "2026-09-27T07:55:37.149931+00:00"
 }

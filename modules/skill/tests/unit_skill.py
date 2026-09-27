@@ -411,6 +411,23 @@ class TestSkillUpdateUtility:
         assert "qwa" in _owned_names(tool)
         assert "qwen-web-arwaky" in _owned_names(tool)
 
+    def test_recorded_source_normalizes_to_relative(self):
+        """UT-SKILL-049: absolute paths are stored repo-relative so the
+        sidecar survives re-clones and git worktrees."""
+        from modules.shared.src.utility_skill_update import _recorded_source, REPO_ROOT
+        from pathlib import Path
+
+        inside = REPO_ROOT / "internal/lint-arwaky/crates/skills/aes-agent/SKILL.md"
+        assert _recorded_source(str(inside)) == str(inside.relative_to(REPO_ROOT))
+        # A path already relative (e.g. a symlink target) is returned as-is.
+        rel = "internal/lint-arwaky/crates/skills/aes-agent/SKILL.md"
+        assert _recorded_source(rel) == rel
+        # A path outside the repo cannot be made relative; it is kept as-is
+        # rather than raising, so audit_update_drift resolves to REPO_ROOT
+        # and falls back to a missing-file drift finding instead of a crash.
+        outside = "/tmp/scratch/SKILL.md"
+        assert _recorded_source(outside) == outside
+
 
 class TestMainEntry:
     """Tests for main entry point."""

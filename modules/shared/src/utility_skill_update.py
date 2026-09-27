@@ -256,7 +256,7 @@ def _pack_has_current_provenance(dest_dir: Path, entry: SourceSkillEntry) -> boo
     """
     data = read_update_provenance(dest_dir)
     return (
-        data.get("update_source") == entry.source_path
+        data.get("update_source") == _recorded_source(entry.source_path)
         and data.get("submodule") == entry.tool_id
     )
 
@@ -321,6 +321,21 @@ def iter_update_marked(pack_root: Path) -> list[Path]:
     )
 
 
+def _recorded_source(source_path: str) -> str:
+    """Normalize *source_path* to a repo-relative POSIX path for the sidecar.
+
+    An absolute path would pin the record to one machine and one checkout, so
+    a second clone or a git worktree would resolve the recorded source to a
+    different (or missing) file and report false drift. Recording the path
+    relative to :data:`REPO_ROOT` keeps the sidecar portable; the reader joins
+    it back against the repo it is running in.
+    """
+    try:
+        return Path(source_path).resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return source_path
+
+
 def write_update_provenance(dest_dir: Path, entry: SourceSkillEntry) -> None:
     """Record which submodule a pack skill was pulled from.
 
@@ -331,7 +346,7 @@ def write_update_provenance(dest_dir: Path, entry: SourceSkillEntry) -> None:
     """
     payload = {
         "version": UPDATE_PROVENANCE_VERSION,
-        "update_source": entry.source_path,
+        "update_source": _recorded_source(entry.source_path),
         "submodule": entry.tool_id,
         "submodule_home": entry.relative_source,
         "skill": entry.skill_name,
@@ -382,6 +397,22 @@ def merge_skill_into_pack(
     return "merged"
 
 
+def _resolve_source(recorded: str, pack_root: Path) -> Path:
+    """Join a repo-relative recorded source back to the repo it runs in.
+
+    ``write_update_provenance`` stores :data:`update_source` as a
+    ``REPO_ROOT``-relative POSIX path so the sidecar survives re-clones and
+    git worktrees. ``audit_update_drift`` runs from a checkout whose own
+    :data:`REPO_ROOT` may differ from the one that wrote the record, so the
+    path is re-anchored to the *current* :data:`REPO_ROOT` before the
+    byte comparison.
+    """
+    p = Path(recorded)
+    if p.is_absolute():
+        return p
+    return REPO_ROOT / p
+
+
 def audit_update_drift(
     pack_root: Path, sources: list[SourceSkillEntry]
 ) -> list[PackFinding]:
@@ -398,7 +429,7 @@ def audit_update_drift(
         skill = str(data.get("skill", skill_dir.name))
         if not recorded:
             continue
-        src_md = Path(recorded)
+        src_md = _resolve_source(recorded, pack_root)
         dest_md = skill_dir / SKILL_FILE
         if not src_md.is_file():
             findings.append(PackFinding(
