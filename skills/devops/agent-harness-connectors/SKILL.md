@@ -94,7 +94,7 @@ the 401 — not a stale harness session.
 - **`/v1/models` answers without auth.** 200 on the models endpoint proves the
   router is up, NOT that a key is valid — always probe `chat/completions` with
   the bearer header when testing keys.
-- **A passing `aa check` is not proof the change works.** The repo gate only
+- **A passing `aa skill check` is not proof the change works.** The repo gate only
   validates document invariants and skill-pack loadability — not connector
   behavior. Prove a connector change by re-writing the harness settings back into the
   broken state, running `aa connect <harness>`, and confirming the repair plus a

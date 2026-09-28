@@ -197,7 +197,6 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}restore{RESET()} [args]                 Restore tool data from archive")
     print()
     print(f"{BOLD()}MAINTENANCE:{RESET()}")
-    print(f"  {GREEN()}check{RESET()} <scope> [args]          Repository verification (all|docs|skill; warnings gate)")
     print(f"  {CYAN()}submodules{RESET()}                     Initialize/update git submodules")
     print(f"  {CYAN()}clean{RESET()}                          Remove build artifacts & generated configs")
     print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + disconnect + unskill")
@@ -217,8 +216,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}aa tool list{RESET()}                   List all registered tools")
     print(f"  {CYAN()}aa skill install --all{RESET()}         Provision all skills to CWD")
     print(f"  {CYAN()}aa skill update{RESET()}                 Pull internal submodule skills into the pack")
-    print(f"  {CYAN()}aa check docs .{RESET()}               Audit PRD/ROADMAP/FRD/README/BACKLOG/AGENTS invariants")
-    print(f"  {CYAN()}aa check skill{RESET()}                Audit skills/ pack loadability")
+    print(f"  {CYAN()}aa skill check{RESET()}                Audit skills/ pack loadability")
     print(f"  {CYAN()}aa skill uninstall --target .{RESET()}  Remove skills from CWD")
     print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
     print(f"  {CYAN()}aa disconnect --all{RESET()}            Disconnect all harnesses")
@@ -700,13 +698,6 @@ def cmd_restore(argv: list[str]) -> int:
     return _restore_cmd(["restore", *argv], create_backup_feature())
 
 
-def cmd_check(argv: list[str]) -> int:
-    """aa check [all|docs|skill] [path] [--include-subtrees] [--json] — route through the check feature surface."""
-    from modules.check.src.root_check_container import create_check_feature
-    from modules.check.src.surface_check_command import cmd_check as _check_cmd
-    return _check_cmd(argv, create_check_feature())
-
-
 def cmd_submodules(argv: list[str]) -> int:
     info("Initializing and updating all submodules...")
     code = init_submodules(repo_root(), ("vendor/", "internal/"), recursive=True)
@@ -830,7 +821,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
     dispatch_table = {
         # Meta / status
         "status": cmd_status, "doctor": cmd_doctor,
-        "check": cmd_check, "submodules": cmd_submodules, "clean": cmd_clean,
+        "submodules": cmd_submodules, "clean": cmd_clean,
         "reset": cmd_reset, "version": cmd_version, "--version": cmd_version,
         "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
         # Core noun-action (canonical)

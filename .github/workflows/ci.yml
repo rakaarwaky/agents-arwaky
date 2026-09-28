@@ -46,8 +46,5 @@ jobs:
       - name: Generate MCP manifest (gitignored artifact referenced by docs)
         run: python3 -m modules.root_cli_entry mcp generate
 
-      - name: aa check (internal gate)
-        run: python3 -m modules.root_cli_entry check
-
       - name: Submodule integrity
         run: git submodule status

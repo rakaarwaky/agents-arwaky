@@ -200,8 +200,6 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa doctor`                              | All-in-one ecosystem diagnostics (toolchains, daemons, MCP config, harnesses)                    | `aa doctor`                                    |
 | `aa tool <cmd> [args]`                   | Tool management: `list`, `run`, `install`, `update`, `uninstall`                                    | `aa tool install lint-arwaky`                   |
 | `aa skill <cmd> [args]`                  | Skill management: `list`, `install`, `uninstall`, `update`, `show`, `check`                          | `aa skill install --all` · `aa skill update`  |
-| `aa check [all\|docs\|skill]`              | Run quality gate (all runners, or `docs` / `skill` alone); warnings gate alongside errors | `aa check` · `aa check docs` · `aa check skill` |
-| `aa check docs [path]`                   | Document invariants across PRD/ROADMAP/FRD/README/BACKLOG/AGENTS and skill references, scoped to `[path]`; every finding gates, `--json` emits findings, `--include-subtrees` audits vendor/internal | `aa check docs .` |
 | `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses — harness `skills/` becomes a symlink to the pack (manage once in `skills/`); `--copy-skills` snapshots instead (`--hermes`, `--opencode`, `--grok-build`, `--all`) | `aa connect --all`                             |
 | `aa disconnect [targets]`                | Disconnect harnesses (use `--all` to disconnect all)                                                | `aa disconnect --all`                          |
 | `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
@@ -381,10 +379,6 @@ aa tool install fetch
 
 ### Quality Gate & CI Verification
 
-```bash
-aa check   # document invariants + skill-pack loadability
-```
-
 > See [**`CONTRIBUTING.md` § Quality Verification**](CONTRIBUTING.md#-quality-verification--pr-process).
 
 ### Clean, Uninstall & Reset
@@ -422,7 +416,6 @@ Names only (never values):
 ## Testing
 
 ```bash
-aa check        # document + skill-pack gate (CI runs this)
 aa skill check  # skill-pack loadability alone
 aa doctor       # host readiness
 ```
@@ -441,7 +434,7 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
   - Cleanly removing or deprecating vendor tools
   - Upgrading upstream submodules
   - Contributing to in-house agents under `internal/`
-  - Quality verification gates (`aa check`)
+  - Quality verification gates (see CONTRIBUTING.md)
 
 ### Quick Pull Request Checklist
 
@@ -449,7 +442,7 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
 2. Follow the step-by-step workflow in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 3. Run verification before committing:
    ```bash
-   aa check
+   python3 -m compileall modules/
    ```
 4. Commit using conventional commits (`git commit -m "feat(vendor): add my-new-tool"`).
 5. Open a Pull Request.

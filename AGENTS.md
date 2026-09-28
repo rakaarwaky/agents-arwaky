@@ -44,7 +44,7 @@ When executing or reasoning about this repository, **you must preserve these inv
 
 5. **Skill Pack Nesting & Harness Registration:**
    - The pack lives at `skills/<category>/<skill>/SKILL.md`; every skill must sit in a semantic category folder.
-   - `aa connect <harness>` provisions that tree into each registered harness; `aa check skill` enforces the layout.
+   - `aa connect <harness>` provisions that tree into each registered harness; `aa skill check` enforces the layout.
 
 ---
 
@@ -53,7 +53,7 @@ When executing or reasoning about this repository, **you must preserve these inv
 The repository segregates agent workloads into three primary zones:
 - `internal/`: In-house autonomous agents developed under the AES 7-layer architecture (Git submodules: `lint-arwaky`, `vision-arwaky`, `qwen-web-arwaky`, `blender-arwaky`).
 - `vendor/`: Curated, pinned upstream community tools and MCP servers (Git submodules: `context7`, `fetch-mcp`, `ponytail`, `anytype-mcp`, `codegraph`, `9router`, `google-workspace-mcp`, `mnemosyne`).
-- `modules/`: AES 7-layer orchestration — per-feature capability modules (tools, daemon, harness, mcp, skill, service, backup, check, doctor) plus `modules/shared/src/` (XDG, venv, launcher, git, manifest, envfile, config, doc_pack, skill_pack, xdg, version, tool, paths, common) and `modules/root_cli_entry.py` (CLI entry + router).
+- `modules/`: AES 7-layer orchestration — per-feature capability modules (tools, daemon, harness, mcp, skill, service, backup, doctor) plus `modules/shared/src/` (XDG, venv, launcher, git, manifest, envfile, config, doc_pack, skill_pack, xdg, version, tool, paths, common) and `modules/root_cli_entry.py` (CLI entry + router).
 
 > For the comprehensive visual directory tree and system flow diagram, see [**README.md § Architecture**](README.md#-architecture).
 
@@ -116,24 +116,15 @@ Code and CI win over this file; this file wins over `README.md` for agent behavi
 - If a vendor tool requires environment configuration (e.g. Anytype API keys), manage it via `.env` or XDG config files, never hardcoded secrets.
 
 ### 4. Running Quality Gates Before Answering
-Before concluding any task that modifies scripts, manifest files, or configurations, agents **MUST** execute:
+Before concluding any task that modifies scripts, manifest files, or configurations, agents **MUST** run the CI-equivalent steps locally:
 ```bash
-aa check
+python3 -m compileall modules/
+find modules -name "*.json" -not -path "*/node_modules/*" -exec jq empty {} +
 ```
-The verification checks:
-1. Document invariants across `PRD.md`/`ROADMAP.md`/`FRD.md`/`README.md`/`BACKLOG.md`/`AGENTS.md` and skill references (see below).
-2. Skill-pack loadability invariants across `skills/` (see below).
-
-### Document invariants
-
-Enforced by `modules/check/src/capabilities_check_docs.py` (engine: `modules/shared/src/utility_doc_pack.py`), run inside `aa check` / `aa check docs`, or directly with
-`aa check docs [path] [--include-subtrees] [--json]`. Every finding gates `aa check`,
-warning-level included — there is no advisory tier and no `--strict` flag. The canonical wording of every rule, keyed by finding code, is
-`skills/aes-architecture/aes-docs/SKILL.md` § Invariants — change one, change the other.
 
 ### Skill-pack loadability invariants
 
-Enforced by `modules/skill/src/capabilities_skill_pack.py` and reported by both `aa check` / `aa check skill` and `aa skill check`:
+Enforced by `modules/skill/src/capabilities_skill_pack.py` and reported by `aa skill check`:
 
 1. **Layout** — every skill is exactly `skills/<category>/<skill>/SKILL.md`. A harness
    scans one level below a skills root, so anything flatter or deeper never loads.
@@ -160,14 +151,12 @@ that the pack no longer provides. It only removes entries carrying
 |---|---|
 | **Diagnose environment** | `aa doctor` |
 | **Check tool readiness** | `aa status` |
-| **Verify repository integrity** | `aa check` (or `aa check docs` / `aa check skill`) |
 | **List registered tools** | `aa tool list` |
 | **List active MCP servers** | `aa mcp list` |
 | **Inspect MCP server schema** | `aa mcp show` |
 | **Regenerate MCP manifest** | `aa mcp generate` |
 | **Execute registered tool** | `aa tool run <tool-id> [args]` |
 | **Audit per-tool skill coverage** | `aa skill check` |
-| **Audit document invariants** | `aa check docs [path] [--include-subtrees] [--json]` |
 | **Provision skills into a project** | `aa skill install <tool\|skill\|all> [--target DIR]` |
 | **Prune stale provisioned skills** | `aa skill install --prune [--target DIR]` |
 | **Install tools (local native build)** | `aa tool install [tool]` |
@@ -189,7 +178,7 @@ that the pack no longer provides. It only removes entries carrying
 - Shared XDG Helper: [`modules/shared/src/`](modules/shared/src/)
 - Tool Install/Update/Uninstall/Run (data-driven): [`modules/tools/`](modules/tools/) · CLI entry: [`modules/root_cli_entry.py`](modules/root_cli_entry.py) (`aa tool …`)
 - Agent Harness Connector: [`modules/harness/src/`](modules/harness/src/) (`aa connect` / `aa disconnect`; per-harness leaves implement `IHarnessProtocol`)
-- CI Verification Gate: [`modules/root_cli_entry.py`](modules/root_cli_entry.py) (`aa check`) + [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+- CI Verification Gate: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 - Developer & Contributor Guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - Human Documentation & Tool Catalog: [`README.md`](README.md)
 - Upstream Licenses: [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md)

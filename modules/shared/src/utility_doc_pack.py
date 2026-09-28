@@ -130,9 +130,9 @@ def root_master(root: Path) -> Path | None:
     ``BACKLOG.md`` is accepted during migration and treated as the same master.
 
     Anchoring is workspace-wide: when *root* sits inside the repository (a path-scoped
-    audit such as ``modules/check``), the master resolves from the repo root so a
-    feature's own ``BACKLOG.md`` is never mistaken for the workspace master. An audit
-    outside the repository keeps anchoring at its own *root*.
+    audit), the master resolves from the repo root so a feature's own ``BACKLOG.md``
+    is never mistaken for the workspace master. An audit outside the repository keeps
+    anchoring at its own *root*.
     """
     anchor = root
     repo = REPO_ROOT
