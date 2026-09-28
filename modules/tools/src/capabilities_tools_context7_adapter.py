@@ -10,30 +10,34 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import (
-    IToolsAdapterProtocol,
-    ToolsAdapterBody,
-)
+from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_tools_constant import (
     CONTEXT7_LAUNCHER_ENTRIES,
     PNPM_DANGEROUS_ALLOW,
 )
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
+from modules.shared.src.taxonomy_tools_vo import (
+    AdapterUnit,
+    ToolLifecycleConfig,
+)
 from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
     write_node_launcher,
 )
+from modules.shared.src.utility_tools_adapter_body import with_adapter_protocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class Context7ToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
+@with_adapter_protocol
+class Context7ToolsAdapter(IToolsAdapterProtocol):
     """context7 actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'context7'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
-        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+        self._units = dict(ADAPTER_UNITS) if units is None else units
+
+
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     @property

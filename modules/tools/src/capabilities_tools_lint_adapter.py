@@ -13,10 +13,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import (
-    IToolsAdapterProtocol,
-    ToolsAdapterBody,
-)
+from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     bin_home,
@@ -31,7 +28,9 @@ from modules.shared.src.taxonomy_tools_constant import (
     LINT_INTERNAL_DIR_REL,
     LINT_LAUNCHERS,
 )
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit
+from modules.shared.src.taxonomy_tools_vo import (
+    AdapterUnit,
+)
 from modules.shared.src.utility_git_submodule import update_submodule
 from modules.shared.src.utility_tool_mechanics import (
     ROOT,
@@ -40,17 +39,21 @@ from modules.shared.src.utility_tool_mechanics import (
     make_satisfied,
     run,
 )
+from modules.shared.src.utility_tools_adapter_body import with_adapter_protocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class LintToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
+@with_adapter_protocol
+class LintToolsAdapter(IToolsAdapterProtocol):
     """lint actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'lint'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
-        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+        self._units = dict(ADAPTER_UNITS) if units is None else units
+
+
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     @property

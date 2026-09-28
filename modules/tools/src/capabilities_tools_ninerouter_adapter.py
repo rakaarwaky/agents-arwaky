@@ -11,10 +11,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import (
-    IToolsAdapterProtocol,
-    ToolsAdapterBody,
-)
+from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
@@ -30,7 +27,9 @@ from modules.shared.src.taxonomy_tools_constant import (
     NINEROUTER_LAUNCHERS,
     ROOT_ENV_VAR,
 )
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit
+from modules.shared.src.taxonomy_tools_vo import (
+    AdapterUnit,
+)
 from modules.shared.src.utility_tool_mechanics import (
     make_install,
     make_owned,
@@ -38,17 +37,21 @@ from modules.shared.src.utility_tool_mechanics import (
     make_satisfied,
     make_update,
 )
+from modules.shared.src.utility_tools_adapter_body import with_adapter_protocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class NinerouterToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
+@with_adapter_protocol
+class NinerouterToolsAdapter(IToolsAdapterProtocol):
     """9router actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = '9router'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
-        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+        self._units = dict(ADAPTER_UNITS) if units is None else units
+
+
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     @property
