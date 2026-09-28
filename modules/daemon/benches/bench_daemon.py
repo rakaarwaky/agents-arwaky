@@ -19,8 +19,8 @@ def bench_podman_manager_init(benchmark):
 def bench_orchestrator_init(benchmark):
     """BENCH-DAEMON-003: Benchmark DaemonOrchestrator initialization."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
     from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
     def _init():
         ninerouter = NinerouterDaemonManager()

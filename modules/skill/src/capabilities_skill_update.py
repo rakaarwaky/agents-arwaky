@@ -24,10 +24,6 @@ from modules.shared.src.utility_skill_update import (
 )
 
 
-def _log(message: str, stream=None) -> None:
-    print(message, file=stream if stream is not None else sys.stdout)
-
-
 # ─── Block 1: Class Definition & Constructor ──────────────
 class SkillUpdateCapability(ISkillUpdateProtocol):
     """Merges internal submodule skill homes into the shared pack."""
@@ -99,6 +95,8 @@ class SkillUpdateCapability(ISkillUpdateProtocol):
     def __repr__(self) -> str:
         return "SkillUpdateCapability()"
 
+def _log(message: str, stream=None) -> None:
+    print(message, file=stream if stream is not None else sys.stdout)
 
 __all__ = ["SkillUpdateCapability"]
 

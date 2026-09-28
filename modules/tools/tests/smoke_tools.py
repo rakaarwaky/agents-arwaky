@@ -48,7 +48,10 @@ def test_import_agent_orchestrator():
 
 def test_import_root_container():
     """SM-TOOLS-009: root_tools_container can be imported."""
-    from modules.tools.src.root_tools_container import create_tools_feature, TOOLS_REGISTRY
+    from modules.tools.src.root_tools_container import (
+        TOOLS_REGISTRY,
+        create_tools_feature,
+    )
     assert create_tools_feature is not None
     assert TOOLS_REGISTRY is not None
 
@@ -94,8 +97,8 @@ def test_import_common_errors():
     """SM-TOOLS-012: domain errors can be imported."""
     from modules.shared.src.taxonomy_common_error import (
         ToolInstallError,
-        ToolUpdateError,
         ToolUninstallError,
+        ToolUpdateError,
     )
 
     assert ToolInstallError is not None
@@ -106,9 +109,9 @@ def test_import_common_errors():
 def test_capability_instantiation_quick():
     """SM-TOOLS-013: Capabilities can be instantiated quickly."""
     from modules.tools.src.capabilities_tools_installer import InstallerCapability
-    from modules.tools.src.capabilities_tools_updater import UpdaterCapability
-    from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
     from modules.tools.src.capabilities_tools_runner import RunnerCapability
+    from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
+    from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 
     start = time.time()
     InstallerCapability()

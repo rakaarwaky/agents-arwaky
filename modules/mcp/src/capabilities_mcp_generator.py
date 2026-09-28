@@ -37,10 +37,6 @@ class McpConfigGenerator(IMcpProtocol):
         self._root = repo_root()
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return "McpConfigGenerator()"
-
     def generate(self, output: Path) -> ExitCode:
         """Write the unified MCP client config to *output*; return exit code.
 
@@ -144,6 +140,10 @@ class McpConfigGenerator(IMcpProtocol):
             return ExitCode(1)
         print(f"Valid config: {path}")
         return ExitCode(0)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "McpConfigGenerator()"
 
 
 def main() -> int:

@@ -6,9 +6,11 @@ import time
 
 def test_import_mcp_modules():
     """SM-MCP-001: MCP modules can be imported."""
-    from modules.mcp.src import capabilities_mcp_generator
-    from modules.mcp.src import agent_mcp_orchestrator
-    from modules.mcp.src import root_mcp_container
+    from modules.mcp.src import (
+        agent_mcp_orchestrator,
+        capabilities_mcp_generator,
+        root_mcp_container,
+    )
 
     assert capabilities_mcp_generator is not None
     assert agent_mcp_orchestrator is not None
@@ -28,8 +30,8 @@ def test_mcp_generator_init_quick():
 
 def test_mcp_orchestrator_init_quick():
     """SM-MCP-003: McpOrchestrator initialization is quick."""
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
     from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
+    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
 
     start = time.time()
     generator = McpConfigGenerator()

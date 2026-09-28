@@ -169,7 +169,7 @@ class ToolsOrchestrator(IToolsAggregate):
         return "ToolsOrchestrator()"
 
 
-__all__ = ["ToolsOrchestrator", "ToolRequest", "ToolResponse"]
+__all__ = ["ToolRequest", "ToolResponse", "ToolsOrchestrator"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {

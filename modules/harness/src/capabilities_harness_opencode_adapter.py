@@ -115,10 +115,10 @@ class OpencodeAdapter:
         )
 
 
-SPEC = OpencodeAdapter()
+spec = OpencodeAdapter()
 
 #: harness_id → provider spec (merged by root_harness_container).
-ADAPTER_UNITS: dict[str, object] = {SPEC.id: SPEC}
+ADAPTER_UNITS: dict[str, object] = {spec.id: spec}
 
 
 __all__ = [

@@ -315,8 +315,8 @@ class TestConfigOrchestrator:
     def test_init(self):
         """UT-CONFIG-022: ConfigOrchestrator stores writer and modifier."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         modifier = ConfigModifier()
@@ -327,8 +327,8 @@ class TestConfigOrchestrator:
     def test_execute_load_routes_to_writer(self):
         """UT-CONFIG-023: execute(load) routes to writer.load."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
         writer = MagicMock()
@@ -350,9 +350,14 @@ class TestConfigOrchestrator:
     def test_execute_save_routes_to_writer(self):
         """UT-CONFIG-024: execute(save) routes to writer.save."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat, ConfigOp, ConfigRequest
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.shared.src.taxonomy_common_vo import (
+            ConfigData,
+            ConfigFormat,
+            ConfigOp,
+            ConfigRequest,
+        )
 
         writer = MagicMock()
         writer.save.return_value = True
@@ -375,8 +380,11 @@ class TestConfigOrchestrator:
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
-        from modules.shared.src.taxonomy_common_vo import HelpText
+        from modules.shared.src.taxonomy_common_vo import (
+            ConfigOp,
+            ConfigRequest,
+            HelpText,
+        )
 
         orch = ConfigOrchestrator(ConfigWriter(HelpText("Usage: aa config\n  load PATH\n  save PATH\n")), ConfigModifier())
         result = orch.execute(ConfigRequest(ConfigOp("help")))
@@ -388,8 +396,8 @@ class TestConfigOrchestrator:
     def test_repr(self):
         """UT-CONFIG-026: __repr__ returns descriptive string."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
 
         writer = ConfigWriter()
         modifier = ConfigModifier()
@@ -402,10 +410,10 @@ class TestConfigSurface:
 
     def test_init(self):
         """UT-CONFIG-027: ConfigCommand stores orchestrator reference."""
-        from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.surface_config_command import ConfigCommand
 
         writer = ConfigWriter()
         modifier = ConfigModifier()
@@ -415,10 +423,14 @@ class TestConfigSurface:
 
     def test_execute_delegates_to_aggregate(self):
         """UT-CONFIG-028: ConfigCommand.execute delegates to the wrapped aggregate."""
-        from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest, ConfigResult
+        from modules.config.src.surface_config_command import ConfigCommand
+        from modules.shared.src.taxonomy_common_vo import (
+            ConfigOp,
+            ConfigRequest,
+            ConfigResult,
+        )
 
         orch = MagicMock()
         orch.execute.return_value = ConfigResult(True, ({"key": "value"}, "json"))
@@ -433,11 +445,15 @@ class TestConfigSurface:
 
     def test_help_delegates(self):
         """UT-CONFIG-029: the help op flows through the aggregate's execute."""
-        from modules.config.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest, HelpText
+        from modules.config.src.capabilities_config_writer import ConfigWriter
+        from modules.config.src.surface_config_command import ConfigCommand
+        from modules.shared.src.taxonomy_common_vo import (
+            ConfigOp,
+            ConfigRequest,
+            HelpText,
+        )
 
         cmd = ConfigCommand(ConfigOrchestrator(ConfigWriter(HelpText("Usage: aa config\n  load PATH\n")), ConfigModifier()))
         result = cmd.execute(ConfigRequest(ConfigOp("help")))

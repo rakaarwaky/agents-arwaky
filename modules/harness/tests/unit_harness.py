@@ -60,15 +60,21 @@ class TestHarnessDisconnector:
 
     def test_init_creates_disconnector(self):
         """UT-HARNESS-006: HarnessDisconnector initializes correctly."""
-        from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+        from modules.harness.src.capabilities_harness_disconnector import (
+            HarnessDisconnector,
+        )
 
         disconnector = HarnessDisconnector({})
         assert disconnector is not None
 
     def test_disconnect_method_exists(self):
         """UT-HARNESS-006: the disconnect seam declares the named method."""
-        from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
-        from modules.shared.src.contract_harness_protocol import IHarnessDisconnectProtocol
+        from modules.harness.src.capabilities_harness_disconnector import (
+            HarnessDisconnector,
+        )
+        from modules.shared.src.contract_harness_protocol import (
+            IHarnessDisconnectProtocol,
+        )
 
         disconnector = HarnessDisconnector({})
         assert isinstance(disconnector, IHarnessDisconnectProtocol)

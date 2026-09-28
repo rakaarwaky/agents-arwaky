@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import NewType
 
+
 @dataclass(frozen=True)
 class BackupResult:
     """Outcome of a backup operation for one tool."""
@@ -88,6 +89,7 @@ BackupResponse = NewType("BackupResponse", BackupOutcome)
 
 __all__ = [
     "ARCHIVE_DEFAULT",
+    "DEST_DEFAULT",
     "BackupArchive",
     "BackupDestination",
     "BackupOp",
@@ -97,7 +99,6 @@ __all__ = [
     "BackupResult",
     "BackupToolQuery",
     "BackupValue",
-    "DEST_DEFAULT",
     "ExitCode",
     "RestoreResult",
 ]

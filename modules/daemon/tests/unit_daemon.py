@@ -111,7 +111,9 @@ class TestNinerouterRichProtocol:
 
     def test_start_method_exists(self):
         """UT-DAEMON-011: start() method exists and is callable."""
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_9router_daemon import (
+            NinerouterDaemonManager,
+        )
 
         manager = NinerouterDaemonManager()
         with patch.object(manager, 'start', return_value=0):
@@ -120,7 +122,9 @@ class TestNinerouterRichProtocol:
 
     def test_status_method_exists(self):
         """UT-DAEMON-012: status() method exists and is callable."""
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_9router_daemon import (
+            NinerouterDaemonManager,
+        )
         from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 
         manager = NinerouterDaemonManager()
@@ -133,7 +137,9 @@ class TestNinerouterRichProtocol:
 
     def test_install_unit_method_exists(self):
         """UT-DAEMON-013: install_unit() method exists and is callable."""
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_9router_daemon import (
+            NinerouterDaemonManager,
+        )
         from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
 
         manager = NinerouterDaemonManager()
@@ -148,7 +154,9 @@ class TestDaemonAggregateNoExecuteMethod:
     def test_orchestrator_has_single_execute(self):
         """UT-DAEMON-014: DaemonOrchestrator has a single execute() method."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_9router_daemon import (
+            NinerouterDaemonManager,
+        )
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         orch = DaemonOrchestrator(NinerouterDaemonManager(), AnytypeDaemonManager())
@@ -220,7 +228,9 @@ class TestDaemonOrchestrator:
     def test_init_stores_managers(self):
         """UT-DAEMON-023: DaemonOrchestrator stores injected managers."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_9router_daemon import (
+            NinerouterDaemonManager,
+        )
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         orch = DaemonOrchestrator(NinerouterDaemonManager(), AnytypeDaemonManager())
@@ -230,7 +240,9 @@ class TestDaemonOrchestrator:
     def test_execute_routes_to_correct_manager(self):
         """UT-DAEMON-024: DaemonOrchestrator.execute routes by op + name."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_9router_daemon import (
+            NinerouterDaemonManager,
+        )
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
         from modules.shared.src.taxonomy_daemon_vo import (
             DaemonName,

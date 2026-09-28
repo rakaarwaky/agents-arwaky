@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import subprocess
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_vo import (
     tool_cache_dir,
     tool_config_dir,
@@ -18,20 +18,28 @@ from modules.shared.src.taxonomy_common_vo import (
     tool_state_dir,
 )
 from modules.shared.src.taxonomy_tools_constant import QWEN_ROLE_DIRS, QWEN_TOOL_NAME
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
+from modules.shared.src.taxonomy_tools_vo import (
+    AdapterUnit,
+    ToolLifecycleConfig,
+)
 from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
 )
+from modules.shared.src.utility_tools_adapter_body import with_adapter_protocol
+
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class QwenWebToolsAdapter(ToolsAdapterBody):
+@with_adapter_protocol
+class QwenWebToolsAdapter(IToolsAdapterProtocol):
     """qwen-web actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'qwen-web'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
-        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+        self._units = dict(ADAPTER_UNITS) if units is None else units
+
+
 
 # ---------------------------------------------------------------------------
 # Recipe (uv_venv lifecycle + Playwright post-install)
@@ -53,7 +61,7 @@ def _qwen_post_install(python_bin, source) -> None:
     print(f"  [ok] State: {state_dir}")
     print(f"  [ok] Cache: {cache_dir}")
 
-CONFIG = ToolLifecycleConfig(
+config = ToolLifecycleConfig(
     lifecycle="uv_venv",
     src_rel=f"internal/{QWEN_TOOL_NAME}-arwaky",
     tool_name=QWEN_TOOL_NAME,
@@ -77,7 +85,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "qwen-web-arwaky": build_adapter_unit("qwen-web-arwaky", CONFIG),
+    "qwen-web-arwaky": build_adapter_unit("qwen-web-arwaky", config),
 }
 
 __all__ = [

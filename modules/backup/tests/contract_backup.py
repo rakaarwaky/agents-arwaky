@@ -13,9 +13,9 @@ def test_backup_protocol_exists():
 
 def test_backup_vo_classes_exist():
     """CP-BACKUP-002: Backup VO classes are defined."""
-    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
-    from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
     from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
+    from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
+    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     assert TarBackupGateway is not None
     assert GdriveBackupGateway is not None
@@ -53,8 +53,8 @@ def test_backup_orchestrator_exists():
 
 def test_backup_constants_defined():
     """CP-BACKUP-006: Backup module constants are defined."""
-    from modules.backup.src.capabilities_backup_tar import BACKUP_STORE, GDRIVE_HELPER
     from modules.backup.src.capabilities_backup_gdrive import DEFAULT_FOLDER_NAME
+    from modules.backup.src.capabilities_backup_tar import BACKUP_STORE, GDRIVE_HELPER
 
     assert BACKUP_STORE is not None
     assert isinstance(BACKUP_STORE, Path)
@@ -65,8 +65,8 @@ def test_backup_constants_defined():
 
 def test_backup_protocol_has_no_execute_dispatch():
     """CP-BACKUP-007: gateways expose rich named methods, not an execute(op) bag."""
-    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
     from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
+    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     tar = TarBackupGateway()
     gdrive = GdriveBackupGateway()

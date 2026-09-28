@@ -54,8 +54,8 @@ def test_config_detect_format_various():
 def test_config_orchestrator_full_workflow():
     """IT-CONFIG-003: End-to-end orchestrator workflow with real files."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.taxonomy_common_vo import (
         ConfigData,
         ConfigFormat,
@@ -103,8 +103,8 @@ def test_config_orchestrator_full_workflow():
 def test_config_env_integration():
     """IT-CONFIG-004: Full env file set/remove workflow."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.taxonomy_common_vo import (
         ConfigKeys,
         ConfigOp,
@@ -150,8 +150,8 @@ def test_config_env_integration():
 def test_config_orchestrator_inspect():
     """IT-CONFIG-005: execute(inspect) returns a complete snapshot."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
     orch = ConfigOrchestrator(ConfigWriter(), ConfigModifier())
@@ -176,9 +176,13 @@ def test_config_orchestrator_inspect():
 def test_config_dry_run_remove():
     """IT-CONFIG-006: execute(remove_entries, dry_run) reports without writing."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
-    from modules.shared.src.taxonomy_common_vo import ConfigKeys, ConfigOp, ConfigRequest
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.shared.src.taxonomy_common_vo import (
+        ConfigKeys,
+        ConfigOp,
+        ConfigRequest,
+    )
 
     orch = ConfigOrchestrator(ConfigWriter(), ConfigModifier())
 
@@ -207,8 +211,8 @@ def test_config_dry_run_remove():
 def test_config_command_integration():
     """IT-CONFIG-007: the CLI surface routes every verb through the aggregate."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.surface_config_command import ConfigCommand, cmd_config
     from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 

@@ -156,14 +156,18 @@ class TestUninstallerCapability:
 
     def test_init_with_defaults(self):
         """UT-TOOLS-014: UninstallerCapability initializes with defaults."""
-        from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
+        from modules.tools.src.capabilities_tools_uninstaller import (
+            UninstallerCapability,
+        )
 
         uninstaller = UninstallerCapability()
         assert uninstaller._daemons is None
 
     def test_init_with_daemons(self):
         """UT-TOOLS-015: UninstallerCapability initializes with daemons."""
-        from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
+        from modules.tools.src.capabilities_tools_uninstaller import (
+            UninstallerCapability,
+        )
 
         daemons = MagicMock()
         uninstaller = UninstallerCapability(daemons=daemons)
@@ -171,7 +175,9 @@ class TestUninstallerCapability:
 
     def test_has_no_execute_bag(self):
         """UT-TOOLS-016: the uninstaller exposes uninstall(), never execute(op)."""
-        from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
+        from modules.tools.src.capabilities_tools_uninstaller import (
+            UninstallerCapability,
+        )
 
         assert not hasattr(UninstallerCapability, "execute")
         assert callable(UninstallerCapability.uninstall)
@@ -179,7 +185,9 @@ class TestUninstallerCapability:
     def test_uninstall_returns_result(self):
         """UT-TOOLS-017: uninstall(spec) returns an UninstallResult."""
         from modules.shared.src.taxonomy_common_vo import UninstallResult
-        from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
+        from modules.tools.src.capabilities_tools_uninstaller import (
+            UninstallerCapability,
+        )
 
         uninstaller = UninstallerCapability()
         result = uninstaller.uninstall(_spec())
@@ -187,7 +195,9 @@ class TestUninstallerCapability:
 
     def test_uninstall_tolerates_missing_owned_paths(self):
         """UT-TOOLS-018: uninstall(spec) works with owned_paths omitted."""
-        from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
+        from modules.tools.src.capabilities_tools_uninstaller import (
+            UninstallerCapability,
+        )
 
         uninstaller = UninstallerCapability()
         result = uninstaller.uninstall(_spec(), None)

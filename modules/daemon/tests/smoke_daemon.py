@@ -13,8 +13,8 @@ def test_import_daemon_module():
 def test_import_daemon_capabilities():
     """SM-DAEMON-002: daemon capability modules can be imported."""
     from modules.daemon.src import (
-        capabilities_anytype_daemon,
         capabilities_9router_daemon,
+        capabilities_anytype_daemon,
     )
 
     assert capabilities_anytype_daemon is not None
@@ -44,7 +44,7 @@ def test_import_daemon_surface():
 
 def test_import_daemon_protocol():
     """SM-DAEMON-006: daemon protocol contract can be imported."""
-    from modules.shared.src import contract_daemon_protocol, contract_daemon_aggregate
+    from modules.shared.src import contract_daemon_aggregate, contract_daemon_protocol
 
     assert contract_daemon_protocol is not None
     assert contract_daemon_aggregate is not None
@@ -84,8 +84,8 @@ def test_ninerouter_manager_instantiates():
 def test_orchestrator_instantiates():
     """SM-DAEMON-010: DaemonOrchestrator instantiates quickly."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
     from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
     start = time.time()
     ninerouter = NinerouterDaemonManager()
@@ -124,12 +124,12 @@ def test_create_feature_quickly():
 def test_helper_functions_importable():
     """SM-DAEMON-013: Helper functions are importable."""
     from modules.daemon.src.capabilities_anytype_daemon import (
+        _extract_api_key,
         api_ready,
         container_exists,
         container_running,
         has_podman,
         image_exists,
-        _extract_api_key,
     )
 
     assert callable(api_ready)

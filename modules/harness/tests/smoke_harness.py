@@ -6,11 +6,13 @@ import time
 
 def test_import_harness_modules():
     """SM-HARNESS-001: Harness modules can be imported."""
-    from modules.harness.src import capabilities_harness_connector
-    from modules.harness.src import capabilities_harness_disconnector
-    from modules.harness.src import capabilities_harness_skills
-    from modules.harness.src import agent_harness_orchestrator
-    from modules.harness.src import root_harness_container
+    from modules.harness.src import (
+        agent_harness_orchestrator,
+        capabilities_harness_connector,
+        capabilities_harness_disconnector,
+        capabilities_harness_skills,
+        root_harness_container,
+    )
 
     assert capabilities_harness_connector is not None
     assert capabilities_harness_disconnector is not None
@@ -32,7 +34,9 @@ def test_harness_connector_init_quick():
 
 def test_harness_disconnector_init_quick():
     """SM-HARNESS-003: HarnessDisconnector initialization is quick."""
-    from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+    from modules.harness.src.capabilities_harness_disconnector import (
+        HarnessDisconnector,
+    )
 
     start = time.time()
     disconnector = HarnessDisconnector({})

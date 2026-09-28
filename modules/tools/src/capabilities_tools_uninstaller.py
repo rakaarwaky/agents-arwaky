@@ -36,62 +36,6 @@ from modules.shared.src.taxonomy_tools_constant import (
 )
 
 
-def _stop_daemon(daemons: object, tool_id: str) -> bool:
-    """Stop the daemon's service/container before removal.
-
-    *daemons* is anything exposing ``remove_unit(unit) -> int``
-    (structural typing, resolved by the root layer's daemon aggregate).
-
-    Returns False when the unit could not be stopped (active-service residual —
-    container-isolation invariant: never force-killed). Raises on unknown
-    daemon names, which the caller folds into a residual.
-    """
-    unit = DAEMON_UNIT_TOOLS[tool_id]
-    rc = daemons.remove_unit(unit)
-    if rc == 0:
-        return True
-    unit = DAEMON_UNIT_TOOLS.get(tool_id)
-    # P1-4: never invoke systemctl when it is absent (FileNotFoundError guard).
-    if unit and shutil.which("systemctl") and (config_home() / "systemd" / "user" / unit).exists():
-        active = subprocess.run(
-            ["systemctl", "--user", "is-active", unit],
-            capture_output=True, text=True, check=False,
-        ).stdout.strip()
-        if active == "active":
-            return False
-    return True
-
-
-def _extras(owned_paths: list[Path], spec: ToolSpec, launchers: list[str]) -> list[Path]:
-    """Adapter-owned paths beyond the generic launcher/data/cache teardown.
-
-    The generic part (bin launchers, data, cache, optionally config) is
-    handled by ``remove_tool_artifacts``; this returns everything else the
-    adapter reported (internal-bin copies, env files, daemon unit paths).
-    """
-    generic = {bin_home() / name for name in launchers}
-    generic.add(tool_data_dir(spec.id))
-    generic.add(tool_cache_dir(spec.id))
-    seen: set[Path] = set()
-    extras: list[Path] = []
-    for p in owned_paths:
-        if p in generic or p in seen:
-            continue
-        seen.add(p)
-        extras.append(p)
-    return extras
-
-
-def _survivor_reason(path: Path) -> str:
-    """Classify why a path survived removal."""
-    if path.is_dir() and any(path.iterdir()):
-        return "subtree still contains files"
-    if path.is_symlink():
-        return "symlink still present"
-    return "foreign-owner: path reappeared"
-
-
-# ─── Block 1: Class Definition & Constructor ──────────────
 class UninstallerCapability(IToolsUninstallerProtocol):
     """Business action uninstall(spec, owned_paths, dry_run): remove + verify."""
 
@@ -99,13 +43,6 @@ class UninstallerCapability(IToolsUninstallerProtocol):
         self._daemons = daemons
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def __repr__(self) -> str:
-        return "UninstallerCapability()"
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return "UninstallerCapability()"
-
     def uninstall(
         self,
         spec: ToolSpec,
@@ -237,5 +174,58 @@ class UninstallerCapability(IToolsUninstallerProtocol):
             )
         return UninstallResult(True, spec.id, f"{base} — verified clean")
 
+def _extras(owned_paths: list[Path], spec: ToolSpec, launchers: list[str]) -> list[Path]:
+    """Adapter-owned paths beyond the generic launcher/data/cache teardown.
+
+    The generic part (bin launchers, data, cache, optionally config) is
+    handled by ``remove_tool_artifacts``; this returns everything else the
+    adapter reported (internal-bin copies, env files, daemon unit paths).
+    """
+    generic = {bin_home() / name for name in launchers}
+    generic.add(tool_data_dir(spec.id))
+    generic.add(tool_cache_dir(spec.id))
+    seen: set[Path] = set()
+    extras: list[Path] = []
+    for p in owned_paths:
+        if p in generic or p in seen:
+            continue
+        seen.add(p)
+        extras.append(p)
+    return extras
+
+
+def _survivor_reason(path: Path) -> str:
+    """Classify why a path survived removal."""
+    if path.is_dir() and any(path.iterdir()):
+        return "subtree still contains files"
+    if path.is_symlink():
+        return "symlink still present"
+    return "foreign-owner: path reappeared"
+
+
+def _stop_daemon(daemons: object, tool_id: str) -> bool:
+    """Stop the daemon's service/container before removal.
+
+    *daemons* is anything exposing ``remove_unit(unit) -> int``
+    (structural typing, resolved by the root layer's daemon aggregate).
+
+    Returns False when the unit could not be stopped (active-service residual —
+    container-isolation invariant: never force-killed). Raises on unknown
+    daemon names, which the caller folds into a residual.
+    """
+    unit = DAEMON_UNIT_TOOLS[tool_id]
+    rc = daemons.remove_unit(unit)
+    if rc == 0:
+        return True
+    unit = DAEMON_UNIT_TOOLS.get(tool_id)
+    # P1-4: never invoke systemctl when it is absent (FileNotFoundError guard).
+    if unit and shutil.which("systemctl") and (config_home() / "systemd" / "user" / unit).exists():
+        active = subprocess.run(
+            ["systemctl", "--user", "is-active", unit],
+            capture_output=True, text=True, check=False,
+        ).stdout.strip()
+        if active == "active":
+            return False
+    return True
 
 __all__ = ["UninstallerCapability"]

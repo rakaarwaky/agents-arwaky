@@ -103,30 +103,6 @@ def bench_extract_skill_name(benchmark):
         benchmark(extract_skill_name, skill_file)
 
 
-def bench_sections(benchmark):
-    """BENCH-SHARED-010: sections performance."""
-    from modules.shared.src.utility_doc_pack import sections
-
-    content = "\n".join(f"## Section {i}\n\nContent for section {i}" for i in range(100))
-
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:
-        f.write(content)
-        f.flush()
-        path = Path(f.name)
-
-    benchmark(sections, path)
-    path.unlink(missing_ok=True)
-
-
-def bench_audit_docs(benchmark):
-    """BENCH-SHARED-011: audit_docs performance."""
-    from modules.shared.src.utility_doc_pack import audit_docs
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        path = Path(tmpdir)
-        benchmark(audit_docs, path)
-
-
 def bench_resolve_executable(benchmark):
     """BENCH-SHARED-012: resolve_executable performance."""
     from modules.shared.src.utility_tool_resolve import resolve_executable
@@ -146,23 +122,3 @@ def bench_get_registered_tool_ids(benchmark):
     from modules.shared.src.utility_skill_registry import get_registered_tool_ids
 
     benchmark(get_registered_tool_ids)
-
-
-def bench_parse_tables(benchmark):
-    """BENCH-SHARED-015: parse_tables performance."""
-    from modules.shared.src.utility_doc_pack import parse_tables
-
-    content = """# Table Test
-
-| A | B |
-|---|---|
-| 1 | 2 |
-| 3 | 4 |
-
-| C | D |
-|---|---|
-| 5 | 6 |
-| 7 | 8 |
-"""
-
-    benchmark(parse_tables, content)

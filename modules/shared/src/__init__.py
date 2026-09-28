@@ -8,8 +8,6 @@ All shared taxonomy, contract, and utility modules live directly here:
 """
 from modules.shared.src.contract_backup_aggregate import IBackupAggregate
 from modules.shared.src.contract_backup_protocol import IBackupProtocol
-from modules.shared.src.contract_check_aggregate import ICheckAggregate
-from modules.shared.src.contract_check_protocol import ICheckProtocol
 from modules.shared.src.contract_config_aggregate import IConfigAggregate
 from modules.shared.src.contract_config_protocol import (
     IConfigModifierProtocol,
@@ -47,8 +45,6 @@ from modules.shared.src.contract_tools_protocol import (
 __all__ = [
     "IBackupAggregate",
     "IBackupProtocol",
-    "ICheckAggregate",
-    "ICheckProtocol",
     "IConfigAggregate",
     "IConfigModifierProtocol",
     "IConfigReaderProtocol",

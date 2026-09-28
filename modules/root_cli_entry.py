@@ -279,7 +279,11 @@ def cmd_status(argv: list[str]) -> int:
 
 def cmd_doctor(argv: list[str]) -> int:
     from modules.doctor.src.root_doctor_container import create_doctor_feature
-    from modules.shared.src.taxonomy_common_vo import DoctorFlags, DoctorOp, DoctorRequest
+    from modules.shared.src.taxonomy_common_vo import (
+        DoctorFlags,
+        DoctorOp,
+        DoctorRequest,
+    )
     request = DoctorRequest(DoctorOp("diagnose"), flags=DoctorFlags({"json": "--json" in argv}))
     return int(create_doctor_feature().execute(request).exit_code)
 
@@ -333,8 +337,8 @@ def cmd_run(argv: list[str]) -> int:
         err(f"Tool '{argv[0]}' not found in manifest.")
         print("Run 'aa tool list' to see all available tools.")
         return 1
-    from modules.tools.src.root_tools_container import create_tools_feature
     from modules.shared.src.taxonomy_tools_vo import ToolArgs, ToolRequest, ToolsOp
+    from modules.tools.src.root_tools_container import create_tools_feature
     spec = _spec_from_tool(tool)
     orch = create_tools_feature()
     return int(orch.execute(

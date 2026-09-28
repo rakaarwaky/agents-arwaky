@@ -23,8 +23,8 @@ def bench_config_modifier_instantiation(benchmark):
 def bench_config_orchestrator_instantiation(benchmark):
     """BENCH-CONFIG-003: ConfigOrchestrator instantiation performance."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     def _create():
         writer = ConfigWriter()

@@ -13,20 +13,16 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from modules.shared.src.utility_harness_log import (
-    log_err,
-    log_header,
-    log_ok,
-    log_skip,
-    log_sub,
-    log_warn,
-)
 from modules.shared.src.contract_harness_protocol import (
     IHarnessConnectProtocol,
     IHarnessSkillsProtocol,
 )
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import data_home
+from modules.shared.src.taxonomy_harness_constant import (
+    FALLBACK_MCP_COMMANDS,
+    PLACEHOLDER_KEYS,
+)
 from modules.shared.src.taxonomy_harness_vo import (
     ConnectOpts,
     ExitCode,
@@ -39,18 +35,14 @@ from modules.shared.src.utility_config_engine import (
     save_file,
     set_env_keys,
 )
-
-_PLACEHOLDER_KEYS = {"sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "change-me", ""}
-
-_FALLBACK_MCP_COMMANDS = {
-    "codegraph": "codegraph-mcp",
-    "vision-arwaky": "vision-arwaky-mcp",
-    "qwen-web-arwaky": "qwen-web-mcp",
-    "blender-arwaky": "blender-mcp",
-    "lint-arwaky": "lint-arwaky-mcp",
-    "workspace": "workspace-mcp",
-    "mnemosyne": "mnemosyne-mcp",
-}
+from modules.shared.src.utility_harness_log import (
+    log_err,
+    log_header,
+    log_ok,
+    log_skip,
+    log_sub,
+    log_warn,
+)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -145,7 +137,7 @@ class HarnessConnector(IHarnessConnectProtocol):
     def _connect_env(self, adapter, opts: ConnectOpts) -> int:
         creds = _get_9router_credentials(adapter.credential_candidates())
         url, key = creds.url, creds.key
-        if not key or key in _PLACEHOLDER_KEYS:
+        if not key or key in PLACEHOLDER_KEYS:
             log_warn(
                 f"No active 9Router API Key found (empty/placeholder); env injection "
                 f"SKIPPED for {adapter.id}. Run 'aa 9router' to configure."
@@ -239,7 +231,7 @@ def _get_9router_credentials(candidates) -> RouterCredentials:
             elif line.startswith("NINEROUTER_KEY="):
                 router_key = line.split("=", 1)[1].strip().strip('"\'')
         # Break only for a non-placeholder key; later candidates may still apply.
-        if router_key and router_key not in _PLACEHOLDER_KEYS:
+        if router_key and router_key not in PLACEHOLDER_KEYS:
             break
     return RouterCredentials(url=router_url, key=router_key)
 
@@ -256,7 +248,7 @@ def _load_generated_servers() -> dict[str, dict]:
         except (OSError, ValueError) as exc:
             log_warn(f"Could not read {gen} ({exc}); using default servers.")
     return {
-        name: {"command": _FALLBACK_MCP_COMMANDS.get(name, f"{name}-mcp")}
+        name: {"command": FALLBACK_MCP_COMMANDS.get(name, f"{name}-mcp")}
         for name in arwaky_server_names(Path(REPO_ROOT))
     }
 
@@ -300,7 +292,7 @@ def _probe_router(v1_url: str, key: str, model: str, adapter_id: str) -> int:
 
     Secret (the key) is sent as a header only, never written into any config.
     """
-    if not key or key in _PLACEHOLDER_KEYS:
+    if not key or key in PLACEHOLDER_KEYS:
         log_warn(f"No active 9Router key to verify provider for {adapter_id}.")
         return 0
     req = urllib.request.Request(

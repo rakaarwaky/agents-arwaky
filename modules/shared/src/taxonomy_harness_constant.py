@@ -18,3 +18,35 @@ for _harness_id, _tokens in HARNESSES.items():
         ALIASES[_token] = _harness_id
 
 ALL_HARNESS_IDS: tuple[str, ...] = tuple(HARNESSES)
+
+#: Credential values that stand in for a real 9Router key; env injection and
+#: the live probe both skip a key equal to one of these.
+PLACEHOLDER_KEYS: frozenset[str] = frozenset({
+    "sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "change-me", "",
+})
+
+#: Server id -> launcher command used when mcp_servers.generated.json is
+#: absent, so `aa connect` still writes a runnable command per server.
+FALLBACK_MCP_COMMANDS: dict[str, str] = {
+    "codegraph": "codegraph-mcp",
+    "vision-arwaky": "vision-arwaky-mcp",
+    "qwen-web-arwaky": "qwen-web-mcp",
+    "blender-arwaky": "blender-mcp",
+    "lint-arwaky": "lint-arwaky-mcp",
+    "workspace": "workspace-mcp",
+    "mnemosyne": "mnemosyne-mcp",
+}
+
+#: Per-skill sub-directories copied alongside SKILL.md on snapshot installs.
+ASSET_DIRS: tuple[str, ...] = (
+    "scripts", "references", "resources", "examples", "templates", "assets",
+)
+
+__all__ = [
+    "ALIASES",
+    "ALL_HARNESS_IDS",
+    "ASSET_DIRS",
+    "FALLBACK_MCP_COMMANDS",
+    "HARNESSES",
+    "PLACEHOLDER_KEYS",
+]

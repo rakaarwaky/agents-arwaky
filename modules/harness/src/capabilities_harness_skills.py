@@ -12,6 +12,12 @@ import os
 import shutil
 from pathlib import Path
 
+from modules.shared.src.contract_harness_protocol import IHarnessSkillsProtocol
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.taxonomy_common_vo import iter_skill_files
+from modules.shared.src.taxonomy_harness_constant import ASSET_DIRS
+from modules.shared.src.taxonomy_harness_vo import SkillsOpts
+from modules.shared.src.taxonomy_skill_vo import safe_skill_name
 from modules.shared.src.utility_harness_log import (
     log_err,
     log_header,
@@ -20,13 +26,6 @@ from modules.shared.src.utility_harness_log import (
     log_sub,
     log_warn,
 )
-from modules.shared.src.contract_harness_protocol import IHarnessSkillsProtocol
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.taxonomy_common_vo import iter_skill_files
-from modules.shared.src.taxonomy_harness_vo import SkillsOpts
-from modules.shared.src.taxonomy_skill_vo import safe_skill_name
-
-_ASSET_DIRS = ("scripts", "references", "resources", "examples", "templates", "assets")
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -171,7 +170,7 @@ def _provision_skill(src: Path, dest_base: Path, force: bool, dry_run: bool) -> 
             return True
     dest_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dest_dir / "SKILL.md")
-    for extra in _ASSET_DIRS:
+    for extra in ASSET_DIRS:
         e = src_dir / extra
         if e.is_dir():
             shutil.rmtree(dest_dir / extra, ignore_errors=True)
