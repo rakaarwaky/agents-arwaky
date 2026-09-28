@@ -35,7 +35,10 @@ class ConfigOrchestrator(IConfigAggregate):
     # ─── Block 2: Aggregate Method Implementation ──────────
     def execute(self, request: ConfigRequest) -> ConfigResult:
         """Route *request* to the owning capability; return the response."""
-        op = ConfigOp(request.op)
+        try:
+            op = ConfigOp(request.op)
+        except ValueError:
+            return ConfigResult(False, None, f"Unknown config op: {request.op}")
         try:
             if op == "load":
                 return ConfigResult(True, self._writer.load(request.path))
@@ -59,7 +62,7 @@ class ConfigOrchestrator(IConfigAggregate):
                 return ConfigResult(True, self._writer.inspect(request.path))
             if op == "help":
                 return ConfigResult(True, self._writer.help())
-        except Exception as exc:  # the surface reports the failure to the caller
+        except (OSError, RuntimeError) as exc:
             return ConfigResult(False, None, str(exc))
         return ConfigResult(False, None, f"Unknown config op: {op}")
 

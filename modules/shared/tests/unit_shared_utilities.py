@@ -178,7 +178,7 @@ class TestDocFinding:
 
     def test_doc_finding_default_severity(self):
         """UT-SHARED-016: DocFinding defaults to ERROR severity."""
-        from modules.shared.src.taxonomy_common_vo import DocFinding, ERROR
+        from modules.shared.src.taxonomy_common_vo import ERROR, DocFinding
 
         finding = DocFinding(code="TEST-001", message="test")
         assert finding.severity == ERROR
@@ -312,7 +312,10 @@ class TestUpdateEnvFile:
 
     def test_update_adds_key(self):
         """UT-SHARED-027: update_env_file adds new key."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("")
@@ -324,7 +327,10 @@ class TestUpdateEnvFile:
 
     def test_update_overwrites_existing(self):
         """UT-SHARED-028: update_env_file overwrites existing key."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("KEY=old\n")
@@ -336,7 +342,10 @@ class TestUpdateEnvFile:
 
     def test_update_escaped_quotes(self):
         """UT-SHARED-029: update_env_file escapes quotes in values."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("")
@@ -352,7 +361,11 @@ class TestRemoveEnvKeys:
 
     def test_remove_single_key(self):
         """UT-SHARED-030: remove_env_keys removes single key."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, remove_env_keys, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            remove_env_keys,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("KEY1=value1\n")
@@ -366,7 +379,11 @@ class TestRemoveEnvKeys:
 
     def test_remove_multiple_keys(self):
         """UT-SHARED-031: remove_env_keys removes multiple keys."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, remove_env_keys, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            remove_env_keys,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("KEY1=value1\n")
@@ -383,7 +400,11 @@ class TestRemoveEnvKeys:
 
     def test_remove_nonexistent_key(self):
         """UT-SHARED-032: remove_env_keys handles nonexistent key."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, remove_env_keys, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            remove_env_keys,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("KEY1=value1\n")
@@ -595,10 +616,11 @@ class TestReadVersion:
 
     def test_read_version_existing(self):
         """UT-SHARED-052: read_version returns version from file."""
-        from modules.shared.src.taxonomy_common_vo import read_version
-        from modules.shared.src import taxonomy_common_constant
-        from pathlib import Path
         import tempfile
+        from pathlib import Path
+
+        from modules.shared.src import taxonomy_common_constant
+        from modules.shared.src.taxonomy_common_vo import read_version
 
         # Create a temp dir with config/version.txt
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -625,8 +647,8 @@ class TestReadVersion:
 
     def test_read_version_missing(self):
         """UT-SHARED-053: read_version returns default when file missing."""
-        from modules.shared.src.taxonomy_common_vo import read_version
         from modules.shared.src import taxonomy_common_constant
+        from modules.shared.src.taxonomy_common_vo import read_version
 
         with tempfile.TemporaryDirectory() as tmpdir:
             with patch.object(taxonomy_common_constant, 'REPO_ROOT', Path(tmpdir)):

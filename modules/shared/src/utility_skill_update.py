@@ -29,8 +29,8 @@ from modules.shared.src.taxonomy_common_vo import (
     skill_name,
     utc_now_iso,
 )
-from modules.shared.src.taxonomy_skill_vo import sanitize_skill_name
 from modules.shared.src.taxonomy_skill_update_vo import SourceSkillEntry
+from modules.shared.src.taxonomy_skill_vo import sanitize_skill_name
 
 #: Manifest is the discovery driver; read it directly so a utility file never
 #: imports another utility (AES201).
@@ -305,7 +305,6 @@ def deduplicate_sources(
         else:
             group.sort(key=lambda e: _source_priority(e.relative_source))
             winners.append(group[0])
-            losers = group[1:]
             conflicts.append(
                 f"'{name}' exists in {len(group)} source(s): "
                 + ", ".join(f"{e.tool_id}({e.relative_source})" for e in group)

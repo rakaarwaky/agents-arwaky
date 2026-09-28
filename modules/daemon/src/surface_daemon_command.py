@@ -171,7 +171,7 @@ __all__ = [
     "DaemonRequest",
     "DaemonResponse",
     "DaemonUnit",
-    "cmd_anytype",
     "cmd_9router",
+    "cmd_anytype",
     "register_manager_factory",
 ]

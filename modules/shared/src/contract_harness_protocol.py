@@ -73,11 +73,11 @@ class IHarnessProviderProtocol(ABC):
 
 __all__ = [
     "ExitCode",
+    "HarnessTargets",
     "IHarnessConnectProtocol",
     "IHarnessDisconnectProtocol",
     "IHarnessProviderProtocol",
     "IHarnessSkillsProtocol",
-    "HarnessTargets",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).

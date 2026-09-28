@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 
 

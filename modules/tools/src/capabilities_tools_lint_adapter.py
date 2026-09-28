@@ -13,7 +13,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     bin_home,
@@ -38,8 +41,9 @@ from modules.shared.src.utility_tool_mechanics import (
     run,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class LintToolsAdapter(ToolsAdapterBody):
+class LintToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """lint actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'lint'
@@ -47,6 +51,17 @@ class LintToolsAdapter(ToolsAdapterBody):
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
         super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    @property
+    def display(self) -> str:
+        """Tool-id label used in lifecycle error messages."""
+        return self._display
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}()"
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
 
 # ---------------------------------------------------------------------------
 # Build helpers (cargo — rustup bootstrap + atomic install)

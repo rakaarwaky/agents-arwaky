@@ -14,7 +14,6 @@ def test_import_utility_modules():
     """SM-SHARED-002: utility modules can be imported."""
     from modules.shared.src import (
         utility_config_engine,
-        utility_doc_pack,
         utility_envfile_parser,
         utility_jsonc_parser,
         utility_manifest_reader,
@@ -25,7 +24,6 @@ def test_import_utility_modules():
     )
 
     assert utility_config_engine is not None
-    assert utility_doc_pack is not None
     assert utility_envfile_parser is not None
     assert utility_jsonc_parser is not None
     assert utility_manifest_reader is not None
@@ -55,8 +53,6 @@ def test_import_contracts():
     from modules.shared.src import (
         contract_backup_aggregate,
         contract_backup_protocol,
-        contract_check_aggregate,
-        contract_check_protocol,
         contract_config_aggregate,
         contract_config_protocol,
         contract_daemon_aggregate,
@@ -93,7 +89,10 @@ def test_manifest_loads_quickly():
 
 def test_skill_registry_quick():
     """SM-SHARED-006: Skill registry operations complete within 5 seconds."""
-    from modules.shared.src.utility_skill_registry import get_all_skills, get_registered_tool_ids
+    from modules.shared.src.utility_skill_registry import (
+        get_all_skills,
+        get_registered_tool_ids,
+    )
 
     start = time.time()
     skills = get_all_skills()

@@ -11,7 +11,10 @@ import shutil
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_vo import (
     agents_arwaky_config_dir,
@@ -36,8 +39,9 @@ from modules.shared.src.utility_tool_mechanics import (
     make_update,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class NinerouterToolsAdapter(ToolsAdapterBody):
+class NinerouterToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """9router actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = '9router'
@@ -45,6 +49,17 @@ class NinerouterToolsAdapter(ToolsAdapterBody):
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
         super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    @property
+    def display(self) -> str:
+        """Tool-id label used in lifecycle error messages."""
+        return self._display
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}()"
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
 
 # ---------------------------------------------------------------------------
 # Lifecycle helpers (host-native daemon service + launcher)

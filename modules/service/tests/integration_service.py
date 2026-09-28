@@ -8,7 +8,12 @@ def test_service_manager_execution():
 
     from modules.service.src import capabilities_service_manager as csm
     from modules.service.src.capabilities_service_manager import ServiceManager
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonOutcome, DaemonRequest
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonName,
+        DaemonOp,
+        DaemonOutcome,
+        DaemonRequest,
+    )
 
     manager = ServiceManager()
     mock_agg = MagicMock()

@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
 from modules.service.src.capabilities_service_manager import ServiceManager
 from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate

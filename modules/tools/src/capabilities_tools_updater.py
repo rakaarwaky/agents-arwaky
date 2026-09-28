@@ -40,10 +40,6 @@ class UpdaterCapability(IToolsUpdaterProtocol):
         self._registry = dict(registry) if registry is not None else {}
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return "UpdaterCapability()"
-
     def update(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> UpdateResult:
         """Bump the tool to its manifest pin and record the transition."""
         registry = self._registry
@@ -55,6 +51,10 @@ class UpdaterCapability(IToolsUpdaterProtocol):
         # Sub-step 2: record transition only after a successful bump.
         result = self._record(spec, result)
         return result
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "UpdaterCapability()"
 
     def _bump(
         self,

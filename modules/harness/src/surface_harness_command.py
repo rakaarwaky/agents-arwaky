@@ -19,7 +19,11 @@ from modules.shared.src.taxonomy_harness_constant import (
     ALL_HARNESS_IDS,
     HARNESSES,
 )
-from modules.shared.src.taxonomy_harness_vo import HarnessFlags, HarnessOp, HarnessTargets
+from modules.shared.src.taxonomy_harness_vo import (
+    HarnessFlags,
+    HarnessOp,
+    HarnessTargets,
+)
 
 _HELP_DOC = """agents-arwaky Harness Connector / Disconnector — surface command.
 

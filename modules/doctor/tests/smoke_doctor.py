@@ -6,10 +6,12 @@ import time
 
 def test_import_doctor_modules():
     """SM-DOCTOR-001: Doctor modules can be imported."""
-    from modules.doctor.src import capabilities_doctor_env
-    from modules.doctor.src import capabilities_doctor_tools
-    from modules.doctor.src import agent_doctor_orchestrator
-    from modules.doctor.src import root_doctor_container
+    from modules.doctor.src import (
+        agent_doctor_orchestrator,
+        capabilities_doctor_env,
+        capabilities_doctor_tools,
+        root_doctor_container,
+    )
 
     assert capabilities_doctor_env is not None
     assert capabilities_doctor_tools is not None

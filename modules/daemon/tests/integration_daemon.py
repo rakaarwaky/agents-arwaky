@@ -14,8 +14,8 @@ from modules.shared.src.taxonomy_daemon_vo import (
 
 def test_container_creation():
     """IT-DAEMON-001: DaemonContainer creates working orchestrator."""
-    from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
+    from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 
     container = DaemonContainer()
@@ -197,7 +197,11 @@ def test_full_feature_wiring():
     """IT-DAEMON-012: Full feature wiring from create_daemon_feature."""
     from modules.daemon.src.root_daemon_container import create_daemon_feature
     from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonName,
+        DaemonOp,
+        DaemonRequest,
+    )
 
     aggregate = create_daemon_feature()
     assert isinstance(aggregate, IDaemonAggregate)
@@ -235,7 +239,11 @@ def test_surface_command_integration():
 def test_execute_with_name_argument():
     """IT-DAEMON-014: execute passes name into the request; manager receives start()."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonName,
+        DaemonOp,
+        DaemonRequest,
+    )
 
     container = DaemonContainer()
     with patch.object(container.anytype, "start", return_value=0) as mock_start:
@@ -249,7 +257,11 @@ def test_execute_with_name_argument():
 def test_execute_with_unit_argument():
     """IT-DAEMON-015: execute passes unit into the request; manager receives unit argument."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonOp, DaemonRequest, DaemonUnit
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonOp,
+        DaemonRequest,
+        DaemonUnit,
+    )
 
     container = DaemonContainer()
     with patch.object(

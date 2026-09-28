@@ -95,8 +95,8 @@ __all__ = [
     "ConfigTuple",
     "EnvPairs",
     "HelpText",
-    "IConfigReaderProtocol",
     "IConfigModifierProtocol",
+    "IConfigReaderProtocol",
     "McpServersMap",
 ]
 

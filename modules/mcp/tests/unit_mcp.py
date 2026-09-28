@@ -1,8 +1,8 @@
 """Unit tests for modules/mcp — test individual functions and methods."""
 from __future__ import annotations
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 class TestMcpConfigGenerator:

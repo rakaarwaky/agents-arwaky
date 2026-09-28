@@ -94,8 +94,8 @@ def test_skill_orchestrator_execute_delegates():
     """CP-SKILL-008: SkillOrchestrator.execute routes to provisioner or registry."""
     from unittest.mock import MagicMock
 
-    from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
     from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest, SkillToolId
+    from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 
     provisioner = MagicMock()
     provisioner.provision.return_value.success = True

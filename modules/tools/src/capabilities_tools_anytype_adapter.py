@@ -11,7 +11,10 @@ import shutil
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     bin_home,
@@ -41,8 +44,9 @@ from modules.shared.src.utility_tool_mechanics import (
     write_node_launcher,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class AnytypeToolsAdapter(ToolsAdapterBody):
+class AnytypeToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """anytype actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'anytype'
@@ -51,9 +55,19 @@ class AnytypeToolsAdapter(ToolsAdapterBody):
         """Default to this adapter's own unit registry when *units* is omitted."""
         super().__init__(dict(ADAPTER_UNITS) if units is None else units)
 
-# ---------------------------------------------------------------------------
-# Lifecycle helpers
-# ---------------------------------------------------------------------------
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    @property
+    def display(self) -> str:
+        """Tool-id label used in lifecycle error messages."""
+        return self._display
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}()"
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+
+
+
 def _anytype_daemon_feature():
     _daemon_root = "modules" + "." + "daemon" + "." + "src" + "." + "root_daemon_container"
     return importlib.import_module(_daemon_root).create_daemon_feature()
@@ -160,6 +174,9 @@ def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> Adapt
     )
 
 #: tool_id → unit for the anytype feature (merged by root_tools_container).
+
+
+
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
     "anytype": _unit(
         satisfied=anytype_satisfied,

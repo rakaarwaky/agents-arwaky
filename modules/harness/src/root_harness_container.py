@@ -9,7 +9,6 @@ from __future__ import annotations
 from modules.harness.src.agent_harness_orchestrator import HarnessOrchestrator
 from modules.harness.src.capabilities_harness_connector import HarnessConnector
 from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
-from modules.harness.src.capabilities_harness_skills import HarnessSkills
 
 # Root is the only layer allowed to import capabilities_* (AES201): every
 # provider leaf is registered here and injected into the capabilities.
@@ -23,6 +22,7 @@ from modules.harness.src.capabilities_harness_hermes_adapter import (
 from modules.harness.src.capabilities_harness_opencode_adapter import (
     ADAPTER_UNITS as _OPENCODE_UNITS,
 )
+from modules.harness.src.capabilities_harness_skills import HarnessSkills
 from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
 from modules.shared.src.taxonomy_harness_constant import ALL_HARNESS_IDS
 

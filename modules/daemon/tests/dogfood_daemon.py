@@ -7,8 +7,8 @@ import pytest
 @pytest.mark.dogfood
 def test_dogfood_daemon_pipeline():
     """DOG-DAEMON-001: Basic dogfood check for daemon module."""
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
     from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
     anytype = AnytypeDaemonManager()
     ninerouter = NinerouterDaemonManager()

@@ -54,6 +54,7 @@ class IBackupProtocol(ABC):
 
 __all__ = [
     "ARCHIVE_DEFAULT",
+    "DEST_DEFAULT",
     "BackupArchive",
     "BackupDestination",
     "BackupOutcome",
@@ -62,7 +63,6 @@ __all__ = [
     "ExitCode",
     "IBackupProtocol",
     "RestoreResult",
-    "DEST_DEFAULT",
 ]
 
 

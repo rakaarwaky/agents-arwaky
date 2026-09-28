@@ -35,8 +35,8 @@ def test_mcp_generator_implements_protocol():
 def test_mcp_orchestrator_implements_aggregate():
     """CP-MCP-005: McpOrchestrator implements IMcpAggregate."""
     from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-    from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
     from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+    from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
 
     generator = McpConfigGenerator()
     orchestrator = McpOrchestrator(generator)

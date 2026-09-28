@@ -30,7 +30,9 @@ def test_harness_connector_handles_unknown_op():
 
 def test_harness_disconnector_execute():
     """IT-HARNESS-003: HarnessDisconnector executes without errors."""
-    from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+    from modules.harness.src.capabilities_harness_disconnector import (
+        HarnessDisconnector,
+    )
 
     disconnector = HarnessDisconnector({})
     try:

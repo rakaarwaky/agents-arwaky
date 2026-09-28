@@ -26,8 +26,8 @@ class TestSkillPackProvisioner:
 
     def test_install_returns_success_result(self):
         """UT-SKILL-007: install returns SkillProvisionResult."""
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
+        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = SkillPackProvisioner()
         with patch('modules.skill.src.capabilities_skill_pack.get_tool_skills', return_value=[]):
@@ -38,8 +38,8 @@ class TestSkillPackProvisioner:
 
     def test_install_counts_provisioned(self):
         """UT-SKILL-008: install counts successfully provisioned skills."""
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
+        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = SkillPackProvisioner()
         mock_skills = [Path("/tmp/skills/a/SKILL.md"), Path("/tmp/skills/b/SKILL.md")]
@@ -50,8 +50,8 @@ class TestSkillPackProvisioner:
 
     def test_prune_returns_result(self):
         """UT-SKILL-009: prune returns SkillProvisionResult."""
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
+        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = SkillPackProvisioner()
         with patch('modules.skill.src.capabilities_skill_pack.provision_base', return_value=Path("/tmp/base")):
@@ -89,9 +89,9 @@ class TestSkillOrchestrator:
 
     def test_execute_list_delegates_to_registry(self):
         """UT-SKILL-012: execute(list) delegates to registry.list."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -102,9 +102,9 @@ class TestSkillOrchestrator:
 
     def test_execute_check_delegates_to_registry(self):
         """UT-SKILL-013: execute(check) delegates to registry.check."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -115,9 +115,9 @@ class TestSkillOrchestrator:
 
     def test_execute_show_delegates_to_registry(self):
         """UT-SKILL-014: execute(show) delegates to registry.show."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -128,9 +128,13 @@ class TestSkillOrchestrator:
 
     def test_execute_install_delegates_to_registry(self):
         """UT-SKILL-015: execute(install) delegates to registry.install."""
+        from modules.shared.src.taxonomy_skill_vo import (
+            SkillArgs,
+            SkillOp,
+            SkillRequest,
+        )
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -141,9 +145,13 @@ class TestSkillOrchestrator:
 
     def test_execute_uninstall_delegates_to_registry(self):
         """UT-SKILL-016: execute(uninstall) delegates to registry.uninstall."""
+        from modules.shared.src.taxonomy_skill_vo import (
+            SkillArgs,
+            SkillOp,
+            SkillRequest,
+        )
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -154,9 +162,13 @@ class TestSkillOrchestrator:
 
     def test_execute_sync_delegates_to_registry(self):
         """UT-SKILL-017: execute(sync) delegates to registry.sync."""
+        from modules.shared.src.taxonomy_skill_vo import (
+            SkillArgs,
+            SkillOp,
+            SkillRequest,
+        )
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -167,9 +179,9 @@ class TestSkillOrchestrator:
 
     def test_execute_provision_delegates_to_provisioner(self):
         """UT-SKILL-018: execute(provision) delegates to provisioner."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = MagicMock()
         provisioner.provision.return_value.success = True
@@ -181,9 +193,9 @@ class TestSkillOrchestrator:
 
     def test_execute_prune_delegates_to_provisioner(self):
         """UT-SKILL-019: execute(prune) delegates to provisioner."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = MagicMock()
         provisioner.prune.return_value.success = True
@@ -195,9 +207,9 @@ class TestSkillOrchestrator:
 
     def test_execute_audit_delegates_to_provisioner(self):
         """UT-SKILL-020: execute(audit) delegates to provisioner.audit."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = MagicMock()
         provisioner.audit.return_value = []
@@ -209,9 +221,9 @@ class TestSkillOrchestrator:
 
     def test_execute_remove_aliases_prune(self):
         """UT-SKILL-021: execute('prune') delegates to provisioner.prune."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = MagicMock()
         provisioner.prune.return_value.success = True
@@ -223,9 +235,9 @@ class TestSkillOrchestrator:
 
     def test_execute_list_delegates_to_registry(self):
         """UT-SKILL-022: execute(list) delegates to registry.list."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -318,8 +330,8 @@ class TestSkillUpdateCapability:
 
     def test_update_dry_run_success(self):
         """UT-SKILL-041: dry-run reports planned merges without writing."""
-        from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
         from modules.shared.src.taxonomy_skill_update_vo import UpdateResult
+        from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
 
         updater = SkillUpdateCapability()
         result = updater.update(dry_run=True)
@@ -349,11 +361,11 @@ class TestSkillUpdateUtility:
 
     def test_discover_skill_sources_no_conflict(self):
         """UT-SKILL-044: discovery returns unique skill names after dedup."""
+        from modules.shared.src.taxonomy_common_constant import REPO_ROOT
         from modules.shared.src.utility_skill_update import (
             deduplicate_sources,
             discover_skill_sources,
         )
-        from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 
         pack_root = REPO_ROOT / "skills"
         entries = discover_skill_sources(pack_root, REPO_ROOT)
@@ -368,8 +380,8 @@ class TestSkillUpdateUtility:
 
     def test_pack_category_preserves_existing(self):
         """UT-SKILL-045: an existing pack skill keeps its category after an update."""
-        from modules.shared.src.utility_skill_update import pack_category
         from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+        from modules.shared.src.utility_skill_update import pack_category
 
         pack_root = REPO_ROOT / "skills"
         assert pack_category(pack_root, "vision-arwaky") == "media"
@@ -377,8 +389,8 @@ class TestSkillUpdateUtility:
 
     def test_pack_category_defaults_to_internal_tools(self):
         """UT-SKILL-046: a new skill falls into the default internal-tools category."""
-        from modules.shared.src.utility_skill_update import pack_category
         from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+        from modules.shared.src.utility_skill_update import pack_category
 
         pack_root = REPO_ROOT / "skills"
         assert pack_category(pack_root, "no-such-skill-ever") == "internal-tools"
@@ -394,8 +406,8 @@ class TestSkillUpdateUtility:
 
     def test_owned_names_includes_aliases(self):
         """UT-SKILL-048: tool aliases are part of the legacy-ownership set."""
-        from modules.shared.src.utility_skill_update import _owned_names
         from modules.shared.src.taxonomy_common_vo import Tool
+        from modules.shared.src.utility_skill_update import _owned_names
 
         tool = Tool(
             id="qwen-web-arwaky",
@@ -414,8 +426,9 @@ class TestSkillUpdateUtility:
     def test_recorded_source_normalizes_to_relative(self):
         """UT-SKILL-049: absolute paths are stored repo-relative so the
         sidecar survives re-clones and git worktrees."""
-        from modules.shared.src.utility_skill_update import _recorded_source, REPO_ROOT
         from pathlib import Path
+
+        from modules.shared.src.utility_skill_update import REPO_ROOT, _recorded_source
 
         inside = REPO_ROOT / "internal/lint-arwaky/crates/skills/aes-agent/SKILL.md"
         assert _recorded_source(str(inside)) == str(inside.relative_to(REPO_ROOT))

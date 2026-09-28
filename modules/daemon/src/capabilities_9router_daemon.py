@@ -32,14 +32,6 @@ from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, DaemonUnit, Exit
 from modules.shared.src.utility_process_runner import cmd_out, run_cmd
 
 
-def _run(cmd, **kw):
-    return run_cmd(cmd, **kw)
-
-
-def _out(cmd, **kw) -> str:
-    return cmd_out(cmd, **kw)
-
-
 # ─── Block 1: Class Definition & Constructor ──────────────
 class NinerouterDaemonManager(IDaemonProtocol):
     """AES facade: exposes 9Router host-native daemon actions via IDaemonProtocol.
@@ -109,6 +101,14 @@ class NinerouterDaemonManager(IDaemonProtocol):
     def main(self, argv) -> int:
         """Entry point: dispatch CLI args to the matching command."""
         return main(argv)
+
+
+def _run(cmd, **kw):
+    return run_cmd(cmd, **kw)
+
+
+def _out(cmd, **kw) -> str:
+    return cmd_out(cmd, **kw)
 
 
 def _9router_binary() -> str | None:

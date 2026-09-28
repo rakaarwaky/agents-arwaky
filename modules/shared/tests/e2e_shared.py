@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_manifest_e2e_workflow():
     """E2E-SHARED-001: Full manifest load and tool find workflow."""
-    from modules.shared.src.utility_manifest_reader import load_tools, find_tool
+    from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 
     tools = load_tools()
     assert len(tools) >= 10
@@ -18,7 +18,12 @@ def test_envfile_e2e_workflow():
     """E2E-SHARED-002: Full envfile read/update/remove workflow."""
     import tempfile
     from pathlib import Path
-    from modules.shared.src.utility_envfile_parser import parse_env_file, update_env_file, remove_env_keys
+
+    from modules.shared.src.utility_envfile_parser import (
+        parse_env_file,
+        remove_env_keys,
+        update_env_file,
+    )
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
         f.write("")
@@ -43,8 +48,14 @@ def test_envfile_e2e_workflow():
 def test_xdg_paths_e2e_workflow():
     """E2E-SHARED-003: Full XDG path resolution workflow."""
     from modules.shared.src.taxonomy_common_vo import (
-        data_home, config_home, cache_home, state_home, bin_home,
-        tool_data_dir, tool_config_dir, tool_cache_dir
+        bin_home,
+        cache_home,
+        config_home,
+        data_home,
+        state_home,
+        tool_cache_dir,
+        tool_config_dir,
+        tool_data_dir,
     )
 
     assert data_home().is_absolute()

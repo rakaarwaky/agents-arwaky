@@ -42,7 +42,7 @@ distrust the list.
 3. **Section: Quick Start** — 3–5 commands to get running.
 4. **Section: Architecture** — diagram or layer description.
 5. **Section: Commands** — CLI reference.
-6. **Verify** → `aa check docs` passes; quick start works.
+6. **Verify** → manual review of the invariant table passes; quick start works.
 
 ## Template
 
@@ -118,6 +118,5 @@ reason.
 ## Verify
 
 ```bash
-aa check docs .
 # Checks: readme-section-missing, dead-link, absolute-path, secret-in-docs, doc-length.
 ```

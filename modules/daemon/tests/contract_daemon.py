@@ -85,9 +85,9 @@ def test_orchestrator_class_exists():
 def test_orchestrator_implements_idaemonaggregate():
     """CP-DAEMON-009: DaemonOrchestrator implements IDaemonAggregate."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
     from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 
     ninerouter = NinerouterDaemonManager()
     anytype = AnytypeDaemonManager()

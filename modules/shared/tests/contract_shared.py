@@ -68,39 +68,13 @@ def test_xdg_helpers_export_functions():
 
 def test_tool_resolve_exports_functions():
     """CP-SHARED-005: tool resolver exports required functions."""
-    from modules.shared.src.utility_tool_resolve import is_submodule_missing, resolve_executable
+    from modules.shared.src.utility_tool_resolve import (
+        is_submodule_missing,
+        resolve_executable,
+    )
 
     assert callable(resolve_executable)
     assert callable(is_submodule_missing)
-
-
-def test_doc_pack_exports_functions():
-    """CP-SHARED-006: doc pack exports required functions."""
-    from modules.shared.src.utility_doc_pack import (
-        audit_docs,
-        check_backlog_rows,
-        check_frd_template,
-        check_fr_ids,
-        check_spec_pairing,
-        check_spec_status_leak,
-        check_state_vocabulary,
-        find_section,
-        iter_doc_files,
-        parse_tables,
-        sections,
-    )
-
-    assert callable(audit_docs)
-    assert callable(check_backlog_rows)
-    assert callable(check_frd_template)
-    assert callable(check_fr_ids)
-    assert callable(check_spec_pairing)
-    assert callable(check_spec_status_leak)
-    assert callable(check_state_vocabulary)
-    assert callable(find_section)
-    assert callable(iter_doc_files)
-    assert callable(parse_tables)
-    assert callable(sections)
 
 
 def test_config_engine_exports_functions():
@@ -238,15 +212,15 @@ def test_common_error_hierarchy_exists():
     """CP-SHARED-013: domain error classes form expected hierarchy."""
     from modules.shared.src.taxonomy_common_error import (
         ArwakyError,
+        ConfigWriteError,
         DaemonStartError,
         DaemonStopError,
         GitUpdateError,
         ManifestParseError,
         SkillProvisionError,
-        ConfigWriteError,
         ToolInstallError,
-        ToolUpdateError,
         ToolUninstallError,
+        ToolUpdateError,
     )
 
     assert issubclass(ToolInstallError, ArwakyError)

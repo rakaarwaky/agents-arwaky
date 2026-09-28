@@ -6,9 +6,11 @@ import time
 
 def test_import_service_modules():
     """SM-SERVICE-001: Service modules can be imported."""
-    from modules.service.src import capabilities_service_manager
-    from modules.service.src import agent_service_orchestrator
-    from modules.service.src import root_service_container
+    from modules.service.src import (
+        agent_service_orchestrator,
+        capabilities_service_manager,
+        root_service_container,
+    )
 
     assert capabilities_service_manager is not None
     assert agent_service_orchestrator is not None
@@ -28,8 +30,8 @@ def test_service_manager_init_quick():
 
 def test_service_orchestrator_init_quick():
     """SM-SERVICE-003: ServiceOrchestrator initialization is quick."""
-    from modules.service.src.capabilities_service_manager import ServiceManager
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
+    from modules.service.src.capabilities_service_manager import ServiceManager
 
     start = time.time()
     manager = ServiceManager()

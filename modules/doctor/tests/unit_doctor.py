@@ -105,7 +105,11 @@ class TestDoctorOrchestrator:
 
     def test_execute_diagnose_passes_flags(self):
         """UT-DOCTOR-010: diagnose forwards the request flags to each runner."""
-        from modules.shared.src.taxonomy_common_vo import DoctorFlags, DoctorOp, DoctorRequest
+        from modules.shared.src.taxonomy_common_vo import (
+            DoctorFlags,
+            DoctorOp,
+            DoctorRequest,
+        )
 
         orch, env, tools = self._orch()
         flags = DoctorFlags({"json": True})

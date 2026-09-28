@@ -66,6 +66,7 @@ from modules.tools.src.capabilities_tools_vision_adapter import (
 from modules.tools.src.capabilities_tools_workspace_adapter import (
     ADAPTER_UNITS as _WORKSPACE_UNITS,
 )
+
 # All imports above feed TOOLS_REGISTRY at module load time; each is consumed.
 
 #: tool_id -> adapter unit (root composition data; each unit is a

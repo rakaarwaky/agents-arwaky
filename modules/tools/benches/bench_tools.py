@@ -9,9 +9,9 @@ from unittest.mock import MagicMock
 def bench_capability_instantiation():
     """Benchmark: instantiate all capability classes."""
     from modules.tools.src.capabilities_tools_installer import InstallerCapability
-    from modules.tools.src.capabilities_tools_updater import UpdaterCapability
-    from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
     from modules.tools.src.capabilities_tools_runner import RunnerCapability
+    from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
+    from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 
     iterations = 1000
     start = time.perf_counter()
@@ -62,8 +62,8 @@ def bench_orchestrator_with_dependencies():
 
 def bench_manifest_resolution():
     """Benchmark: resolve tool specs from manifest."""
-    from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
     from modules.shared.src.utility_manifest_reader import load_tools
+    from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     tools = load_tools()
     iterations = min(100, len(tools))
@@ -81,8 +81,8 @@ def bench_manifest_resolution():
 
 def bench_execute_dispatch():
     """Benchmark: execute() dispatch overhead."""
-    from modules.tools.src.capabilities_tools_installer import InstallerCapability
     from modules.shared.src.taxonomy_common_vo import ToolSpec
+    from modules.tools.src.capabilities_tools_installer import InstallerCapability
 
     iterations = 1000
     registry = {"test": MagicMock()}

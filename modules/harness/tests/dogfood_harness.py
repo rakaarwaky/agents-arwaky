@@ -8,7 +8,9 @@ import pytest
 def test_dogfood_harness_pipeline():
     """DOG-HARNESS-001: Basic dogfood check for harness module."""
     from modules.harness.src.capabilities_harness_connector import HarnessConnector
-    from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+    from modules.harness.src.capabilities_harness_disconnector import (
+        HarnessDisconnector,
+    )
     from modules.harness.src.capabilities_harness_skills import HarnessSkills
 
     connector = HarnessConnector({})
