@@ -82,7 +82,7 @@ repoint to `modules/<feature>/src/<contract>`.
 
 - `python -m compileall modules/ -q` — zero syntax errors.
 - Import smoke-test every feature package: `importlib.import_module(f"modules.{feat}.src")`.
-- Run the project's quality gate (`aa check`).
+- Run the project's quality gate (`aa skill check`).
 - Grep for stale docstring/comment path mentions (`modules/shared/src/<domain>`)
   in `AGENTS.md`, `CONTRIBUTING.md`, and `.py` docstrings — fix those too.
 

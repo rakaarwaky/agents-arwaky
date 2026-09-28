@@ -50,7 +50,7 @@ contain a backtick code span naming a command and a commit hash
 2. **Section: Current Condition** — document baseline state.
 3. **Section: Backlog** — list items with status (New/In Progress/Done).
 4. **Section: Scenario Evidence** — link to tests/passing gates.
-5. **Verify** → `aa check docs` passes; all sections present.
+5. **Verify** → manual review of the invariant table passes; all sections present.
 
 ## Template
 
@@ -136,6 +136,5 @@ reason.
 ## Verify
 
 ```bash
-aa check docs .
 # Checks: pairing, columns, unknown states, unevidenced Done, scenario coverage.
 ```

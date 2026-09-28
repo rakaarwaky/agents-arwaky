@@ -250,6 +250,5 @@ reason.
 ## Verify
 
 ```bash
-aa check docs .
 # Checks: agents-section-missing, ci-command-drift, absolute-path, secret-in-docs, dead-link, doc-length.
 ```

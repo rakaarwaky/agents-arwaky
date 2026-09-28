@@ -89,10 +89,9 @@ Doc comments on every public item are the sixth deliverable, in the language's n
 
 ## Invariants
 
-Every rule is machine-checked by `aa check docs` (capability: `modules/check/src/capabilities_check_docs.py`, shared engine in `modules/shared/src/utility_doc_pack.py`).
-A rule cannot drift from the gate. Cite the code, not this file, when pointing at a rule.
-Each document's required section set is cross-checked against its reference's contract table, so a
-row that stops being enforced is a test failure rather than a silent edit.
+Invariants are codified in this file's reference rules and in [references/HOW-TO-MAKE-*.md](references/).
+Enforcement is manual review plus the language-agnostic checks listed in the Diagnostic Tree.
+A rule cannot drift from the gate. Cite the rule code, not this file, when pointing at a rule.
 
 | Code                                                                     | Rule                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -179,8 +178,8 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 
 ## Workflow
 
-1. **Resolve the repo-root anchor first.** `aa check docs` 
-2. **Analyze**: List feature modules and public items. Run `aa check docs <path>`. The findings are your work list.
+1. **Resolve the repo-root anchor first.** Review [references/HOW-TO-MAKE-*.md](references/) for each target document.
+2. **Analyze**: List feature modules and public items. Read the invariant tables above; use them as your work list.
 3. **Draft PRD**: Write root `PRD.md` per [references/HOW-TO-MAKE-PRD.md](references/HOW-TO-MAKE-PRD.md).
 4. **Draft Roadmap**: Write root `ROADMAP.md` per [references/HOW-TO-MAKE-ROADMAP.md](references/HOW-TO-MAKE-ROADMAP.md)
 5. **Draft FRDs**: Write `FRD.md` in each feature dir per [references/HOW-TO-MAKE-FRD.md](references/HOW-TO-MAKE-FRD.md).
@@ -194,7 +193,7 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
    [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md),
    [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md) —
    then add type annotations to all signatures.
-12. **Verify**: Run `aa check docs <path>`. Then each touched reference's `Verify` block (including the language doc ref).
+12. **Verify**: Walk the invariant table above for each touched document. Then run each touched reference's `Verify` block (including the language doc ref).
 
 ---
 
@@ -202,11 +201,13 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 
 ### Machine Checks
 
-```bash
-aa check docs .                 # invariant audit of every document (strict; every finding gates)
-aa check docs . --include-subtrees   # also audit vendor/ and internal/ submodules
+Skill-pack loadability is still machine-checked:
 
-```text
+```bash
+aa skill check
+```
+
+Document invariants are reviewed against the tables in this skill's reference files.
 
 A pass means no claim sits in the wrong file, no pointer is broken, and no `Done` row is unevidenced.
 
@@ -228,7 +229,7 @@ Per-language rules, templates, section contracts, and Verify blocks:
 
 ## Pre-flight Checklist
 
-- [ ] `aa check docs <path>` exits 0.
+- [ ] Every touched document satisfies the invariant codes above.
 - [ ] Every required document exists in the correct directory.
 - [ ] Every `Done` backlog row cites a re-run command, a commit hash, and its exclusions.
 - [ ] Documents serve their exact audience (no cross-contamination).
@@ -250,11 +251,11 @@ The invariant codes above cover the machine-checkable ones. These need a reader:
 
 **Cadence and code surface**
 
-- **Documents "write &amp; forget"**: Re-run `aa check docs` each sprint. Drift is silent.
+- **Documents "write &amp; forget"**: Re-review the invariant table each sprint. Drift is silent.
 - **`//` instead of `///` in Rust**: Plain comments are invisible to the doc generator.
 - **Missing module docstrings or undocumented parameters**: The generated API surface stays incomplete.
 
-**Checker false-freights to dodge when authoring specs** (these bite at draft time, before you run the gate):
+**Checker false-freights to dodge when authoring specs** (these bite at draft time, before review):
 
 - **The word "implemented" in a spec file.** `status-in-spec` matches `\b(impl|un)plemented\b` case-insensitively across the *whole* FRD/PRD — so the reference template's `| As Implemented / As Intended |` column and any `implemented` cell header/cell are auto-flagged. Name the column `impl / intended` and use `impl` for the cell. (Same class: `shipped`/`released in v…`, checkbox items, status markers checkmark / cross status markers, progress `%` all trip it.)
 - **Scenario-evidence rows without a table header.** `check_scenarios` counts evidence via a markdown-table parser that needs a `| Scenario | … |` header + `|---|` separator line; a headerless block of `| … |` rows parses as **0 rows** and reports `0 evidence row(s)` even when the rows are present. Always emit the header row; keep exactly one row per spec scenario, in spec order.
