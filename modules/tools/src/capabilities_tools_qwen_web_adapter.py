@@ -10,7 +10,10 @@ from __future__ import annotations
 
 import subprocess
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_common_vo import (
     tool_cache_dir,
     tool_config_dir,
@@ -23,8 +26,9 @@ from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class QwenWebToolsAdapter(ToolsAdapterBody):
+class QwenWebToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """qwen-web actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'qwen-web'
@@ -53,7 +57,7 @@ def _qwen_post_install(python_bin, source) -> None:
     print(f"  [ok] State: {state_dir}")
     print(f"  [ok] Cache: {cache_dir}")
 
-CONFIG = ToolLifecycleConfig(
+config = ToolLifecycleConfig(
     lifecycle="uv_venv",
     src_rel=f"internal/{QWEN_TOOL_NAME}-arwaky",
     tool_name=QWEN_TOOL_NAME,
@@ -77,7 +81,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "qwen-web-arwaky": build_adapter_unit("qwen-web-arwaky", CONFIG),
+    "qwen-web-arwaky": build_adapter_unit("qwen-web-arwaky", config),
 }
 
 __all__ = [

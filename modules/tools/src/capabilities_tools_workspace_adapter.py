@@ -7,14 +7,18 @@ Recipe lives in `ToolLifecycleConfig`; shared mechanics live in
 """
 from __future__ import annotations
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class WorkspaceToolsAdapter(ToolsAdapterBody):
+class WorkspaceToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """workspace actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'workspace'
@@ -26,7 +30,7 @@ class WorkspaceToolsAdapter(ToolsAdapterBody):
 # ---------------------------------------------------------------------------
 # Recipe (uv_project lifecycle; google-workspace-mcp aliases workspace-mcp)
 # ---------------------------------------------------------------------------
-CONFIG = ToolLifecycleConfig(
+config = ToolLifecycleConfig(
     lifecycle="uv_project",
     src_rel="vendor/google-workspace-mcp",
     tool_name="google-workspace-mcp",
@@ -39,7 +43,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "workspace": build_adapter_unit("workspace", CONFIG),
+    "workspace": build_adapter_unit("workspace", config),
 }
 
 __all__ = [

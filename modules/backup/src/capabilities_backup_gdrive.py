@@ -22,23 +22,20 @@ import time
 from pathlib import Path
 
 from modules.shared.src.contract_backup_protocol import IBackupProtocol
+from modules.shared.src.taxonomy_backup_constant import DEFAULT_FOLDER_NAME
 from modules.shared.src.taxonomy_backup_vo import (
     ARCHIVE_DEFAULT,
+    DEST_DEFAULT,
     BackupArchive,
     BackupDestination,
     BackupOutcome,
     BackupResult,
     BackupToolQuery,
-    DEST_DEFAULT,
     ExitCode,
     RestoreResult,
 )
 from modules.shared.src.taxonomy_common_vo import data_home
-from modules.shared.src.utility_paths_resolver import repo_root
 
-ROOT = repo_root()
-
-DEFAULT_FOLDER_NAME = "Agents-Arwaky-Backups"
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class GdriveBackupGateway(IBackupProtocol):

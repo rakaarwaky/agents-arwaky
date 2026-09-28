@@ -7,14 +7,18 @@ Recipe lives in `ToolLifecycleConfig`; shared mechanics live in
 """
 from __future__ import annotations
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class VisionToolsAdapter(ToolsAdapterBody):
+class VisionToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """vision actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'vision'
@@ -26,7 +30,7 @@ class VisionToolsAdapter(ToolsAdapterBody):
 # ---------------------------------------------------------------------------
 # Recipe (uv_venv lifecycle)
 # ---------------------------------------------------------------------------
-CONFIG = ToolLifecycleConfig(
+config = ToolLifecycleConfig(
     lifecycle="uv_venv",
     src_rel="internal/vision-arwaky",
     tool_name="vision-arwaky",
@@ -43,7 +47,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "vision-arwaky": build_adapter_unit("vision-arwaky", CONFIG),
+    "vision-arwaky": build_adapter_unit("vision-arwaky", config),
 }
 
 __all__ = [

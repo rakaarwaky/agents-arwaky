@@ -9,7 +9,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
@@ -23,8 +26,9 @@ from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class FetchToolsAdapter(ToolsAdapterBody):
+class FetchToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """fetch actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'fetch'
@@ -65,7 +69,7 @@ def _fetch_write_launchers(app_dir: Path, is_update: bool) -> list[Path]:
     warn_if_bin_not_on_path()
     return artifacts
 
-CONFIG = ToolLifecycleConfig(
+config = ToolLifecycleConfig(
     lifecycle="node",
     src_rel="vendor/fetch-mcp",
     app_name="fetch-mcp",
@@ -80,7 +84,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "fetch": build_adapter_unit("fetch", CONFIG),
+    "fetch": build_adapter_unit("fetch", config),
 }
 
 __all__ = [

@@ -7,14 +7,18 @@ generic `build_adapter_unit` default (entry launcher + symlinks).
 """
 from __future__ import annotations
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class CodegraphToolsAdapter(ToolsAdapterBody):
+class CodegraphToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """codegraph actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'codegraph'
@@ -26,7 +30,7 @@ class CodegraphToolsAdapter(ToolsAdapterBody):
 # ---------------------------------------------------------------------------
 # Recipe (node lifecycle)
 # ---------------------------------------------------------------------------
-CONFIG = ToolLifecycleConfig(
+config = ToolLifecycleConfig(
     lifecycle="node",
     src_rel="vendor/codegraph",
     app_name="codegraph",
@@ -41,7 +45,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "codegraph": build_adapter_unit("codegraph", CONFIG),
+    "codegraph": build_adapter_unit("codegraph", config),
 }
 
 __all__ = [

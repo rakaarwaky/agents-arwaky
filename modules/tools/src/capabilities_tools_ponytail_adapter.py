@@ -10,15 +10,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import (
+    IToolsAdapterProtocol,
+    ToolsAdapterBody,
+)
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
     run,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
-class PonytailToolsAdapter(ToolsAdapterBody):
+class PonytailToolsAdapter(ToolsAdapterBody, IToolsAdapterProtocol):
     """ponytail actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'ponytail'
@@ -35,7 +39,7 @@ def _ponytail_post_copy(app_dir: Path) -> None:
     if (mcp_dir / "package.json").exists():
         run(["npm", "ci", "--no-audit", "--no-fund"], mcp_dir)
 
-CONFIG = ToolLifecycleConfig(
+config = ToolLifecycleConfig(
     lifecycle="node",
     src_rel="vendor/ponytail",
     app_name="ponytail",
@@ -50,7 +54,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "ponytail": build_adapter_unit("ponytail", CONFIG),
+    "ponytail": build_adapter_unit("ponytail", config),
 }
 
 __all__ = [
