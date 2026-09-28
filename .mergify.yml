@@ -133,6 +133,7 @@ priority_rules:
       - label=urgent
     priority: high
 
+    allow_checks_interruption: true
   - name: default-priority
     conditions:
       - -label=urgent
