@@ -51,6 +51,11 @@ config/*/.env
 config/ninerouter.providers.json
 config/ninerouter.env
 config/anytype.env
+# salinan LOCAL bersih dari config live sering tercopy ke *.example.json dengan
+# token asli (OAuth/refresh/API key). File *.example.json HARUS placeholder saja;
+# un-ignore satu-satu supaya file example baru tidak lolos default.
+config/*.example.json
+!config/ninerouter.providers.example.json
 
 # Windows OS files
 Thumbs.db
@@ -87,8 +92,17 @@ tools/config/*.providers.json
 # Large binary: diunduh saat install, bukan di-commit
 **/anytype-bin
 
+# Provisioned skill copies under .agents/skills/ are runtime state (written by
+# `aa skill install` with .arwaky-skill.json provenance); canonical source is ./skills.
+.agents/skills/
+
+# Backup/verification residue a skill-sync run leaves beside the canonical file.
+/skills/**/SKILL.md.bak
+/skills/**/SKILL.md.sha256
+
 # Harness runtime state — the harness skills root is symlinked to ./skills,
 # so these live next to the pack but must never enter git.
+/skills/.locks/
 /skills/.hub/
 /skills/.usage.json
 /skills/.usage.json.lock
