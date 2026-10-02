@@ -1,0 +1,152 @@
+modules/shared/src/contract_skill_update_protocol.py
+  h_16053b17f89e22 4-6
+modules/shared/src/utility_skill_update.py
+  h_16053b17f89e22 9-11,43-45,47-49,61-64,67-78,300-306,317-318
+modules/skill/BACKLOG.md
+  h_16053b17f89e22 11-13,19-20,43
+modules/skill/FRD.md
+  h_16053b17f89e22 114-115,130-131
+modules/skill/src/capabilities_skill_update.py
+  h_16053b17f89e22 4-5
+modules/skill/src/surface_skill_command.py
+  h_16053b17f89e22 227-230,248-252
+modules/skill/tests/unit_skill.py
+  h_16053b17f89e22 433,436
+skills/aes-architecture/aes-agent/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-agent/SKILL.md
+  h_16053b17f89e22 52,88-130
+skills/aes-architecture/aes-agent/references/HOW-TO-MAKE-PYTHON-AGENT.md
+  h_16053b17f89e22 56,58-60,82,86-88,91-97
+skills/aes-architecture/aes-agent/references/HOW-TO-MAKE-RUST-AGENT.md
+  h_16053b17f89e22 59,61-63,90,92-93,97,99-105
+skills/aes-architecture/aes-agent/references/HOW-TO-MAKE-TYPESCRIPT-AGENT.md
+  h_16053b17f89e22 58,60-63,85,89-90,93-100
+skills/aes-architecture/aes-capabilities/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-capabilities/SKILL.md
+  h_16053b17f89e22 50-66,90,102-146,151-152,209-210
+skills/aes-architecture/aes-capabilities/references/HOW-TO-MAKE-PYTHON-CAPABILITIES.md
+  h_16053b17f89e22 17-31,64,115-141,151-155
+skills/aes-architecture/aes-capabilities/references/HOW-TO-MAKE-RUST-CAPABILITIES.md
+  h_16053b17f89e22 17-31,72,119-122,134-160,170-176
+skills/aes-architecture/aes-capabilities/references/HOW-TO-MAKE-TYPESCRIPT-CAPABILITIES.md
+  h_16053b17f89e22 17-31,63,115-141,151-155
+skills/aes-architecture/aes-contract/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-contract/SKILL.md
+  h_16053b17f89e22 49-50,60,74-76,82-97,108-111,124-125,137-138,157-159,163-165,173,183-184,189-207
+skills/aes-architecture/aes-contract/references/HOW-TO-MAKE-PYTHON-CONTRACT.md
+  h_16053b17f89e22 3,8,11,14-16,24,26,28-55,62-68,76,79-86,89-93,96-97,100-103,106-107,110-111,114-117,119-120,123-157,159-160,162-166,169-172,180-192,203-210,214-230
+skills/aes-architecture/aes-contract/references/HOW-TO-MAKE-RUST-CONTRACT.md
+  h_16053b17f89e22 3,8,13-15,23-56,62-69,76,79-85,88-95,98-99,101-103,105-106,108-118,120,122-129,131-133,137-140,156-169,180-190,193-210
+skills/aes-architecture/aes-contract/references/HOW-TO-MAKE-TYPESCRIPT-CONTRACT.md
+  h_16053b17f89e22 3,6,9,12,15-17,25-57,63-70,77,80,82-111,115-116,118-121,123,125-126,128-131,133,135-137,141-144,152-163,174-183,186-203
+skills/aes-architecture/aes-docs/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-docs/SKILL.md
+  h_16053b17f89e22 3,22-23,53-55,61,76,96-99,166,187-188,197-198,203,212,235,248,255,257,261,272-273
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-AGENTS.md
+  h_16053b17f89e22 14-15,31,33-35,43-48,79-80,89-90,92,197,259,261-262
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-ARCHITECTURE.md
+  h_16053b17f89e22 53,96,98-103,111,113-119,126,136-137,329
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-BACKLOG.md
+  h_16053b17f89e22 3-4,8,10,14-17,30-34,49,72-74,120,122,125-126,135
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-CONTRIBUTING.md
+  h_16053b17f89e22 61,102,105,109-111,115-117,173-174,195
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-DATA.md
+  h_16053b17f89e22 1-100
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-DESIGN.md
+  h_16053b17f89e22 1-262
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-FRD.md
+  h_16053b17f89e22 31-82,109,150,156,186-190,202-203,206,210-212,217-218
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-PRD.md
+  h_16053b17f89e22 51,74,162
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-PYTHON-DOC.md
+  h_16053b17f89e22 45
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-README.md
+  h_16053b17f89e22 39,115
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-ROADMAP.md
+  h_16053b17f89e22 41,127
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-RUST-DOC.md
+  h_16053b17f89e22 45
+skills/aes-architecture/aes-docs/references/HOW-TO-MAKE-TYPESCRIPT-DOC.md
+  h_16053b17f89e22 46
+skills/aes-architecture/aes-lint-arwaky/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-lint-arwaky/SKILL.md
+  h_16053b17f89e22 26-27,99,101,167-168
+skills/aes-architecture/aes-lint-arwaky/references/HOW-TO-USE-LINT-COMMANDS.md
+  h_16053b17f89e22 29,37-38,86,88,94,100,103-114,147,149
+skills/aes-architecture/aes-lint-arwaky/references/HOW-TO-USE-LINT-PYTHON.md
+  h_16053b17f89e22 51,74-75,92-94
+skills/aes-architecture/aes-lint-arwaky/references/HOW-TO-USE-LINT-ROUTING.md
+  h_16053b17f89e22 12,30-33,59,61-62,64,67,72,90,113-114
+skills/aes-architecture/aes-lint-arwaky/references/HOW-TO-USE-LINT-RUST.md
+  h_16053b17f89e22 74-75,102
+skills/aes-architecture/aes-lint-arwaky/references/HOW-TO-USE-LINT-TYPESCRIPT.md
+  h_16053b17f89e22 75-76,97
+skills/aes-architecture/aes-migration/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-migration/SKILL.md
+  h_16053b17f89e22 43,47-49,79,104-105,115,118,158-160,170,181-182
+skills/aes-architecture/aes-migration/reference/HOW-TO-MAKE-PYTHON-MIGRATION.md
+  h_16053b17f89e22 17,19-27,33,67-68,71-73,76,79-84,87,90-93,95,117-119,122-123,127-129,132,148-153,176
+skills/aes-architecture/aes-migration/reference/HOW-TO-MAKE-RUST-MIGRATION.md
+  h_16053b17f89e22 17,19-27,33,65-66,69-79,83,85,109-110,113-115,119-122,126,142-147,181-182
+skills/aes-architecture/aes-migration/reference/HOW-TO-MAKE-TYPESCRIPT-MIGRATION.md
+  h_16053b17f89e22 17,19-27,33,67,70-80,84,86,109-111,113-114,118-121,133-141,170-171
+skills/aes-architecture/aes-root/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-root/SKILL.md
+  h_16053b17f89e22 50,137-138
+skills/aes-architecture/aes-surface/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-surface/SKILL.md
+  h_16053b17f89e22 47,83-133
+skills/aes-architecture/aes-surface/references/HOW-TO-MAKE-PYTHON-SURFACE.md
+  h_16053b17f89e22 49,76-77
+skills/aes-architecture/aes-surface/references/HOW-TO-MAKE-RUST-SURFACE.md
+  h_16053b17f89e22 85-86
+skills/aes-architecture/aes-surface/references/HOW-TO-MAKE-TYPESCRIPT-SURFACE.md
+  h_16053b17f89e22 77-78
+skills/aes-architecture/aes-taxonomy/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-taxonomy/SKILL.md
+  h_16053b17f89e22 52,56,67,75-77,81,84,93-109,114-115,130
+skills/aes-architecture/aes-taxonomy/references/HOW-TO-MAKE-PYTHON-TAXONOMY.md
+  h_16053b17f89e22 7,17,58,68,73-79,87-93,104-105,121-122,163-167,186,193-194,198,200,202,204,210,219,227,232-234,243,250-271,280-282,285,291,352,365,380,439,470,481-484,521,550-707,713,719,781-786,790-791,795-797,807-808,813,825,827-829,878-881,894,900
+skills/aes-architecture/aes-taxonomy/references/HOW-TO-MAKE-RUST-TAXONOMY.md
+  h_16053b17f89e22 7,17,64,74,79-85,93-99,110-111,127-128,167-172,191,198-199,203,205,207,209,215,224,232,237-240,249,256-275,283-285,356,375,407-408,418-420,422,427,429,451-452,462,464,469,471,490,501-504,516,518,522,524,543,560,578-704,710,762-768,770-775,784-785,790,802,804-805,851-852,854
+skills/aes-architecture/aes-taxonomy/references/HOW-TO-MAKE-TYPESCRIPT-TAXONOMY.md
+  h_16053b17f89e22 7,19,57,67,72-78,86-92,103-104,120-121,160-165,184,191-192,196,198,200,202,208,217,225,231-233,242,249-267,275-277,340,354,384,415,443,454-457,479,491,504-604,610,662-671,680-681,686,698,700-702,749-750,752
+skills/aes-architecture/aes-testing-suite/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-testing-suite/SKILL.md
+  h_16053b17f89e22 25,151
+skills/aes-architecture/aes-testing-suite/references/HOW-TO-MAKE-PYTHON-TESTING.md
+  h_16053b17f89e22 27,39,46,66
+skills/aes-architecture/aes-testing-suite/references/HOW-TO-MAKE-RUST-TESTING.md
+  h_16053b17f89e22 27,38,45,65,103,176,201
+skills/aes-architecture/aes-utility/.arwaky-skill-update.json
+  h_16053b17f89e22 3,5,7
+skills/aes-architecture/aes-utility/SKILL.md
+  h_16053b17f89e22 21,47-51,53-65,70-72,90,93,101-117,123-126,179,190
+skills/aes-architecture/aes-utility/references/HOW-TO-MAKE-PYTHON-UTILITY.md
+  h_16053b17f89e22 17-31,35-37,39-45,81-83,118
+skills/aes-architecture/aes-utility/references/HOW-TO-MAKE-RUST-UTILITY.md
+  h_16053b17f89e22 17-31,36-39,41-42,44-45,76,97,114-116
+skills/aes-architecture/aes-utility/references/HOW-TO-MAKE-TYPESCRIPT-UTILITY.md
+  h_16053b17f89e22 17-31,35-39,41-45,64,88,105-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3a11c5dc98d1658e867fcd4a5e8670fcd16710d8",
+  "prompts": {},
+  "humans": {
+    "h_16053b17f89e22": {
+      "author": "rakaarwaky <arwaky90@gmail.com>"
+    }
+  }
+}
