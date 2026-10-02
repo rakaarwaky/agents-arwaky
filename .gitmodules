@@ -46,3 +46,7 @@
 	path = vendor/9router
 	url = https://github.com/decolua/9router.git
 	ignore = dirty
+[submodule "vendor/omniroute"]
+	path = vendor/omniroute
+	url = https://github.com/diegosouzapw/OmniRoute.git
+	ignore = dirty

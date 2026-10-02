@@ -10,7 +10,9 @@ the lifecycle capabilities and the adapter (extracted from
 SENTINEL_EXECUTABLE_GONE = 126
 
 #: Tool ids that are long-running daemons (container isolation invariant).
-DAEMON_TOOL_IDS: frozenset[str] = frozenset({"9router", "anytype", "anytype-daemon"})
+DAEMON_TOOL_IDS: frozenset[str] = frozenset(
+    {"9router", "anytype", "anytype-daemon", "omniroute"}
+)
 
 #: Runner families a tool installs through (cargo / uv / bun / pnpm / npm / pip-venv).
 RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
@@ -20,6 +22,7 @@ RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
 # stop the unit (or name it as a residual), not just delete its launcher.
 DAEMON_UNIT_TOOLS: dict[str, str] = {
     "9router": "9router.service",
+    "omniroute": "omniroute.service",
     "anytype": "anytype-daemon.service",
     "anytype-daemon": "anytype-daemon.service",
 }
@@ -28,6 +31,7 @@ DAEMON_UNIT_TOOLS: dict[str, str] = {
 # routes to the "anytype" daemon manager in the daemon orchestrator).
 DAEMON_NAMES: dict[str, str] = {
     "9router": "9router",
+    "omniroute": "omniroute",
     "anytype": "anytype",
     "anytype-daemon": "anytype",
 }
@@ -44,6 +48,7 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
     "lint-arwaky": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "mnemosyne": ["mnemosyne", "mnemosyne-mcp"],
     "9router": ["9router"],
+    "omniroute": ["omniroute"],
     "ponytail": ["ponytail-mcp"],
     "qwen-web-arwaky": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
     "vision-arwaky": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],
@@ -135,6 +140,20 @@ NINEROUTER_DATA_DIR_NAME = "9router"
 NINEROUTER_INTERNAL_BIN = "internal-bin"
 NINEROUTER_LAUNCHERS: tuple[str, ...] = ("9router",)
 
+# ── OmniRoute (host-native daemon + launcher) ──
+OMNIROUTE_DATA_DIR_NAME = "omniroute"
+OMNIROUTE_INTERNAL_BIN = "internal-bin"
+OMNIROUTE_LAUNCHERS: tuple[str, ...] = ("omniroute",)
+#: Pinned upstream checkout; the submodule is the version SSOT.
+OMNIROUTE_SRC_REL = "vendor/omniroute"
+#: npm distribution the runtime is installed from. Upstream needs
+#: ``>=22.22.2 <23 || >=24.0.0 <27``; the host carries Node 24.
+OMNIROUTE_NPM_SPEC = "omniroute@3.8.51"
+#: Upstream default ports are 20128/20129/20132; 20128 collides with 9Router, so
+#: the daemon module allocates 20139/20140/20141 instead.
+OMNIROUTE_UNIT_FILE_NAME = "omniroute.service"
+OMNIROUTE_ENV_FILENAME = "omniroute.env"
+
 
 __all__ = [
     "ALIAS_TABLE",
@@ -160,6 +179,13 @@ __all__ = [
     "NINEROUTER_DATA_DIR_NAME",
     "NINEROUTER_INTERNAL_BIN",
     "NINEROUTER_LAUNCHERS",
+    "OMNIROUTE_DATA_DIR_NAME",
+    "OMNIROUTE_ENV_FILENAME",
+    "OMNIROUTE_INTERNAL_BIN",
+    "OMNIROUTE_LAUNCHERS",
+    "OMNIROUTE_NPM_SPEC",
+    "OMNIROUTE_SRC_REL",
+    "OMNIROUTE_UNIT_FILE_NAME",
     "NODE_IGNORES",
     "PNPM_DANGEROUS_ALLOW",
     "QWEN_ROLE_DIRS",

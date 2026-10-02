@@ -190,6 +190,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"{BOLD()}SERVICES & DAEMONS:{RESET()}")
     print(f"  {GREEN()}anytype{RESET()} <cmd>                  Anytype daemon (start|stop|status|auth-key|...)")
     print(f"  {GREEN()}9router{RESET()} <cmd>                  9Router daemon (start|stop|status|models|...)")
+    print(f"  {GREEN()}omniroute{RESET()} <cmd>                OmniRoute daemon (start|stop|status|models|...)")
     print(f"  {GREEN()}service{RESET()} <cmd>                  Service manager (start|stop|restart|status|logs)")
     print()
     print(f"{BOLD()}DATA MANAGEMENT:{RESET()}")
@@ -641,18 +642,33 @@ def cmd_9router(argv: list[str]) -> int:
     return _daemon_9router(argv)
 
 
+def cmd_omniroute(argv: list[str]) -> int:
+    from modules.daemon.src.root_daemon_container import DaemonContainer
+    from modules.daemon.src.surface_daemon_command import (
+        cmd_omniroute as _daemon_omniroute,
+    )
+    from modules.daemon.src.surface_daemon_command import (
+        register_manager_factory as _reg_dm,
+    )
+    _c = DaemonContainer()
+    _reg_dm("omniroute", lambda: _c.omniroute)
+    return _daemon_omniroute(argv)
+
+
 def cmd_daemon(argv: list[str]) -> int:
     """aa daemon <id> <action> — list|status|start|… for a managed daemon."""
-    from modules.daemon.src.root_daemon_container import create_daemon_feature
+    from modules.daemon.src.root_daemon_container import DaemonContainer, create_daemon_feature
+    from modules.daemon.src.surface_daemon_command import register_manager_factory as _reg_dm
+    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
 
     orch = create_daemon_feature()
+    known = {str(n) for n in orch.known}
     if not argv or argv[0] in ("-h", "--help", "help"):
-        names = ", ".join(str(n) for n in orch.list_known())
-        print("Usage: aa daemon <9router|anytype> <start|stop|restart|status|logs|help>")
+        names = ", ".join(str(n) for n in orch.known)
+        print("Usage: aa daemon <9router|anytype|omniroute> <start|stop|restart|status|logs|help>")
         print(f"Known daemons: {names}")
         return 0
     daemon_id = argv[0]
-    known = {str(n) for n in orch.list_known()}
     if daemon_id not in known:
         err(f"Unknown daemon: {daemon_id}")
         print(f"Known daemons: {', '.join(sorted(known))}")
@@ -660,24 +676,23 @@ def cmd_daemon(argv: list[str]) -> int:
     action = argv[1] if len(argv) > 1 else "status"
     rest = argv[2:]
     if action in ("start", "stop", "restart", "logs", "help"):
-        result = getattr(orch, action)(daemon_id)
-        return int(result)
+        # The aggregate exposes a single `execute`; the verb is the request op.
+        outcome = orch.execute(
+            DaemonRequest(op=DaemonOp(action), name=DaemonName(daemon_id))
+        )
+        return int(outcome.exit_code or 0)
     if action == "status":
-        from modules.daemon.src.root_daemon_container import DaemonContainer
-        from modules.daemon.src.surface_daemon_command import (
-            cmd_9router as _ni,
-        )
-        from modules.daemon.src.surface_daemon_command import (
-            cmd_anytype as _any,
-        )
-        from modules.daemon.src.surface_daemon_command import (
-            register_manager_factory as _reg_dm,
-        )
-
         _c = DaemonContainer()
         _reg_dm("anytype", lambda: _c.anytype)
         _reg_dm("9router", lambda: _c.ninerouter)
-        fn = _ni if daemon_id == "9router" else _any
+        _reg_dm("omniroute", lambda: _c.omniroute)
+        from modules.daemon.src import surface_daemon_command as _dv
+
+        fn = {
+            "9router": _dv.cmd_9router,
+            "anytype": _dv.cmd_anytype,
+            "omniroute": _dv.cmd_omniroute,
+        }[daemon_id]
         return fn(["status", *rest])
     err(f"Unknown daemon action: {action}")
     print("Valid actions: start, stop, restart, status, logs, help")
@@ -834,7 +849,8 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
-        "anytype": cmd_anytype, "9router": cmd_9router, "service": cmd_service,
+        "anytype": cmd_anytype, "9router": cmd_9router, "omniroute": cmd_omniroute,
+        "service": cmd_service,
         "daemon": cmd_daemon,
         "backup": cmd_backup, "restore": cmd_restore,
         # Backward compat aliases → noun action (deprecated, prefer aa tool/aa skill)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import config_home, data_home, state_home
@@ -18,6 +19,28 @@ DATA_DIR = data_home() / "9router"
 #: systemd user unit directory and 9Router unit path.
 UNIT_DIR = config_home() / "systemd/user"
 UNIT_FILE = UNIT_DIR / "9router.service"
+
+#: OmniRoute listen port (env-overridable). This is the port the pre-existing
+#: installation already used, and its state at ``~/.omniroute`` is bound to it:
+#: moving the port changes nothing about the data, but rotating
+#: ``STORAGE_ENCRYPTION_KEY`` would make every stored provider credential
+#: unreadable, so the key in that file is never regenerated here.
+#:
+#: OmniRoute serves dashboard and API from a single port unless ``API_PORT`` /
+#: ``DASHBOARD_PORT`` are set separately (see ``bin/cli/commands/serve.mjs`` in
+#: the pinned checkout); the existing config sets neither, so one port is used.
+OMNIROUTE_PORT = os.environ.get("OMNIROUTE_PORT", "7777")
+OMNIROUTE_HOST = os.environ.get("OMNIROUTE_HOST", "127.0.0.1")
+
+#: OmniRoute XDG layout. Upstream keeps its own working directory at
+#: ``~/.omniroute`` and reads ``.env`` from there — that is where the live
+#: ``storage.sqlite`` (provider connections, API keys, usage history) and the
+#: matching ``STORAGE_ENCRYPTION_KEY`` live, so it is the only correct location
+#: to point the unit at.
+OMNIROUTE_DATA_DIR = Path.home() / ".omniroute"
+OMNIROUTE_CONFIG_DIR = OMNIROUTE_DATA_DIR
+OMNIROUTE_ENV_FILE = OMNIROUTE_DATA_DIR / ".env"
+OMNIROUTE_UNIT_FILE = UNIT_DIR / "omniroute.service"
 
 #: Known-weak / placeholder INITIAL_PASSWORD values (warn on install).
 WEAK_PASSWORDS = frozenset(

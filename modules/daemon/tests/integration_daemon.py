@@ -207,10 +207,11 @@ def test_full_feature_wiring():
     assert isinstance(aggregate, IDaemonAggregate)
 
     # The orchestrator exposes .known, not list_known.
-    assert len(aggregate.known) == 2
+    assert len(aggregate.known) == 3
     names = {str(n) for n in aggregate.known}
     assert "9router" in names
     assert "anytype" in names
+    assert "omniroute" in names
 
     # execute still routes: a real status call returns an outcome, whatever the daemon state.
     result = aggregate.execute(

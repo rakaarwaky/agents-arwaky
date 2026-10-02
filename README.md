@@ -40,7 +40,7 @@ flowchart TB
 
         subgraph AgentsAndTools["Managed Agent & Vendor Engines"]
             InternalAgents["Internal Agents:\nlint-arwaky • vision-arwaky • qwen-web • blender"]
-            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • ponytail • fetch • 9router"]
+            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • ponytail • fetch • 9router • omniroute"]
         end
     end
 
@@ -95,6 +95,7 @@ agents-arwaky/
 │
 ├── vendor/                      # Pinned Upstream Repositories (Git Submodules)
 │   ├── 9router/                 # Local AI routing gateway (host-native)
+│   ├── omniroute/               # Free-first AI gateway (host-native, port 7777)
 │   ├── anytype-mcp/             # Anytype desktop & sync integration
 │   ├── codegraph/               # Codebase intelligence & graph query engine
 │   ├── context7/                # Upstash documentation & context retrieval
@@ -213,6 +214,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa restore <tool\|all> <source>`      | Restore tool state from a backup                                                                  | `aa restore all gdrive`                        |
 | `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
 | `aa 9router <action>`                  | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                           |
+| `aa omniroute <action>`                | Manage OmniRoute free AI gateway, daemon & models                                                 | `aa omniroute status`                         |
 
 > [!TIP]
 > Use `agents-arwaky` or the short alias `aa` interchangeably. Backward-compat shortcuts (`aa install`, `aa run`, …) still work.
@@ -260,6 +262,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **ponytail**    | `ponytail-mcp`                     | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) |     MCP Server     | Senior-developer prompt instructions and agent behavioral patterns.     |
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
 | **9router**     | `9router`                          | [decolua/9router](https://github.com/decolua/9router)                | HTTP Gateway       | Local AI routing gateway, multi-provider, auto-fallback. Host-native, no container. |
+| **omniroute**   | `omniroute`                        | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | HTTP Gateway       | Free-first AI gateway: 350+ providers, 150+ free tiers, `auto/best-*` combos. Host-native, no Docker. State in `~/.omniroute/`. |
 | **workspace**   | `workspace-mcp`                    | [taylorwilsdon/google_workspace_mcp](https://github.com/taylorwilsdon/google_workspace_mcp) | MCP Server | Google Workspace full integration (Gmail, Drive, Docs, Sheets, Chat).   |
 | **mnemosyne**   | `mnemosyne`, `mnemosyne-mcp`       | [mnemosyne-oss/mnemosyne](https://github.com/mnemosyne-oss/mnemosyne) | CLI / MCP / Plugin | Universal SQLite memory, temporal knowledge graph & multi-harness sync. |
 

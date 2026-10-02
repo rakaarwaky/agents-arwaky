@@ -14,6 +14,7 @@ from modules.shared.src.taxonomy_common_vo import data_home
 TOOL_DATA: dict[str, str] = {
     "anytype": "anytype-mcp",
     "9router": "9router",
+    "omniroute": "omniroute",
     "mnemosyne": "mnemosyne",
     "google-workspace": "google-workspace-mcp",
 }

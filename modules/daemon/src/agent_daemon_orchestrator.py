@@ -20,7 +20,11 @@ from modules.shared.src.taxonomy_daemon_vo import (
 )
 
 #: Daemon ids the orchestrator can route to, in listing order.
-_KNOWN: tuple[DaemonName, ...] = (DaemonName("9router"), DaemonName("anytype"))
+_KNOWN: tuple[DaemonName, ...] = (
+    DaemonName("9router"),
+    DaemonName("anytype"),
+    DaemonName("omniroute"),
+)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -31,12 +35,16 @@ class DaemonOrchestrator(IDaemonAggregate):
         self,
         ninerouter: IDaemonProtocol,
         anytype: IDaemonProtocol | None = None,
+        omniroute: IDaemonProtocol | None = None,
     ) -> None:
         self._ninerouter = ninerouter
         self._anytype = anytype
+        self._omniroute = omniroute
         self._managers: dict[str, IDaemonProtocol] = {"9router": ninerouter}
         if anytype is not None:
             self._managers["anytype"] = anytype
+        if omniroute is not None:
+            self._managers["omniroute"] = omniroute
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def execute(self, request: DaemonRequest) -> DaemonResponse:
@@ -66,6 +74,7 @@ class DaemonOrchestrator(IDaemonAggregate):
         "9router.service": "9router",
         "anytype-daemon.service": "anytype",
         "anytype.service": "anytype",
+        "omniroute.service": "omniroute",
     }
 
     @property

@@ -51,6 +51,9 @@ from modules.tools.src.capabilities_tools_mnemosyne_adapter import (
 from modules.tools.src.capabilities_tools_ninerouter_adapter import (
     ADAPTER_UNITS as _NINEROUTER_UNITS,
 )
+from modules.tools.src.capabilities_tools_omniroute_adapter import (
+    ADAPTER_UNITS as _OMNIROUTE_UNITS,
+)
 from modules.tools.src.capabilities_tools_ponytail_adapter import (
     ADAPTER_UNITS as _PONYTAIL_UNITS,
 )
@@ -80,6 +83,7 @@ TOOLS_REGISTRY: dict[str, object] = {
     **_LINT_UNITS,
     **_MNEMOSYNE_UNITS,
     **_NINEROUTER_UNITS,
+    **_OMNIROUTE_UNITS,
     **_PONYTAIL_UNITS,
     **_QWEN_WEB_UNITS,
     **_VISION_UNITS,

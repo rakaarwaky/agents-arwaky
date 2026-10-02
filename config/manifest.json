@@ -63,6 +63,14 @@
       "path": "vendor/9router"
     },
     {
+      "id": "omniroute",
+      "category": "vendor",
+      "binary": "omniroute",
+      "isMcp": false,
+      "description": "Free AI gateway, 350+ providers with 150+ free tiers, auto-fallback (host-native, no Docker)",
+      "path": "vendor/omniroute"
+    },
+    {
       "id": "workspace",
       "alias": "google-workspace",
       "category": "vendor",

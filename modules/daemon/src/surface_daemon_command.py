@@ -151,6 +151,22 @@ def cmd_anytype(
     )
 
 
+def cmd_omniroute(
+    args: list[str],
+    orch: IDaemonAggregate | None = None,
+    manager: IDaemonProtocol | None = None,
+) -> int:
+    """aa omniroute <command> — start|stop|restart|status|logs|models|service-*|help."""
+    return _dispatch(
+        orch,
+        manager or _manager("omniroute"),
+        args,
+        name=DaemonName("omniroute"),
+        unit=DaemonUnit("omniroute.service"),
+        label="omniroute",
+    )
+
+
 class DaemonAction(IDaemonAggregate):
     """Aggregate implementor wrapping another aggregate (surface-layer facade)."""
 
@@ -173,5 +189,6 @@ __all__ = [
     "DaemonUnit",
     "cmd_9router",
     "cmd_anytype",
+    "cmd_omniroute",
     "register_manager_factory",
 ]
