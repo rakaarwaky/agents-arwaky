@@ -18,9 +18,6 @@
 
 ## Rules
 
-
-
-
 Four rules. Each one prevents a specific failure mode.
 
 1. **Single source of truth.** State vocabulary, Health vocabulary, and
@@ -35,16 +32,13 @@ Four rules. Each one prevents a specific failure mode.
 
 ---
 
-
-
-
 ## Workflow
 
 1. **Create file** → `ROADMAP.md` at repo root.
 2. **Section: Current State** — where we are now.
 3. **Section: Roadmap** — phased milestones with dates.
 4. **Section: Status Policy** — how to update progress.
-5. **Verify** → manual review of the invariant table passes; all phases have status.
+5. **Verify** → `lint-arwaky-cli docs` passes; all phases have status.
 
 ## Template
 
@@ -130,5 +124,6 @@ reason.
 ## Verify
 
 ```bash
+lint-arwaky-cli docs .
 # Checks: master root presence, feature pairing, unknown states, missing sections.
 ```

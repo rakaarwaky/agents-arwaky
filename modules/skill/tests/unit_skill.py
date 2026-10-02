@@ -430,10 +430,10 @@ class TestSkillUpdateUtility:
 
         from modules.shared.src.utility_skill_update import REPO_ROOT, _recorded_source
 
-        inside = REPO_ROOT / "internal/lint-arwaky/crates/skills/aes-agent/SKILL.md"
+        inside = REPO_ROOT / "internal/lint-arwaky/crates/shared/skills/aes-agent/SKILL.md"
         assert _recorded_source(str(inside)) == str(inside.relative_to(REPO_ROOT))
         # A path already relative (e.g. a symlink target) is returned as-is.
-        rel = "internal/lint-arwaky/crates/skills/aes-agent/SKILL.md"
+        rel = "internal/lint-arwaky/crates/shared/skills/aes-agent/SKILL.md"
         assert _recorded_source(rel) == rel
         # A path outside the repo cannot be made relative; it is kept as-is
         # rather than raising, so audit_update_drift resolves to REPO_ROOT

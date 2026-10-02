@@ -17,9 +17,6 @@
 
 ## Rules
 
-
-
-
 Eight rules. Each one prevents a specific failure mode.
 
 1. **No implementation detail.** SQL schemas, API signatures, class
@@ -51,7 +48,7 @@ sentence.
 | Section      | Weak                            | Falsifiable                                                                                                                              |
 | ------------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | Problem      | "Documentation is inefficient." | "Six documents describe one feature and disagree about what is finished; telling whether `FR-006` shipped requires reading the source."  |
-| Goal         | "Docs should be high quality."  | "Manual review confirms every `Done` backlog row cites a command and commit hash."                                                 |
+| Goal         | "Docs should be high quality."  | "`aa check` fails any repo where a `Done` backlog row cites no command and commit hash."                                                 |
 | Feature      | "P0 — good documentation."      | "P0 — the checker reports every invariant by file and line. Acceptance: exit 1 on a status line in an `FRD.md`, exit 0 on a clean tree." |
 | Out of scope | *(empty)*                       | "Out of scope: rendering or publishing docs; the checker only reads and reports."                                                        |
 | Persona      | "Users."                        | "The agent writing the docs in a fresh session, with no memory of the last one."                                                         |
@@ -67,9 +64,6 @@ a feature's `## Test Scenarios` that proves it.
 
 ---
 
-
-
-
 ## Workflow
 
 1. **Create file** → `PRD.md` at repo root or feature directory.
@@ -77,7 +71,7 @@ a feature's `## Test Scenarios` that proves it.
 3. **Section: Goals & Success Metrics** — measurable outcomes.
 4. **Section: Scope** — in-scope vs out-of-scope.
 5. **Section: Feature Requirements** — high-level capabilities.
-6. **Verify** → manual review of the invariant table passes; goals are measurable.
+6. **Verify** → `lint-arwaky-cli docs` passes; goals are measurable.
 
 ## Template
 
@@ -165,6 +159,7 @@ reason.
 ## Verify
 
 ```bash
+lint-arwaky-cli docs .
 # Checks: placement, sections, links, length, hygiene.
 # Manual: every Goal has a number; no impl detail (grep CREATE TABLE|POST /|fn |interface);
 # out-of-scope non-empty; every P0 has acceptance criteria.

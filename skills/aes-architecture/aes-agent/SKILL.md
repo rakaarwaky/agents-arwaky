@@ -49,7 +49,7 @@ metadata:
 > **Audience**: The agent creating or validating an agent orchestrator file.
 > **Scope**: Python, Rust, and TypeScript `agent_<domain>_orchestrator` files — one aggregate, 3-block structure.
 
-The **aggregate** decides which suffix, which imports, and which structure apply.
+The **layer** decides which suffix, which imports, and which structure apply.
 Rules, templates, section contracts, and Verify blocks live in the language HOW-TUs under [`references/`](references/).
 
 | Language | Focus | Body rule | HOW-TO |
@@ -82,6 +82,49 @@ A rule cannot drift from the gate. Cite the linter, not this file, when pointing
 | Verify | `lint-arwaky-cli scan <layer-path>` → 0. Language compile is fallback only. |
 
 Split details, templates, and Section Contract tables: **read the language HOW-TO** — do not restate them here.
+
+---
+
+## Placement (AES702, AES703)
+
+An `agent_*_orchestrator` file belongs in a **feature folder** — a subdirectory of a member
+directory (`crates/`, `modules/`, `packages/`) that is neither `shared/` nor a surface folder:
+
+```text
+crates/<feature_name>/src/agent_<domain>_orchestrator.rs    # Rust
+modules/<feature_name>/src/agent_<domain>_orchestrator.py  # Python
+packages/<feature_name>/src/agent_<domain>_orchestrator.ts # TypeScript
+```
+
+A feature folder is defined as a folder holding at least one `agent_*_orchestrator` and one
+`capabilities_*` file. If a folder holds only capabilities without an agent of its own it is
+an **AES702** violation; if the agent sits in a surface-dominated folder it is also **AES702**
+and the file should be moved out of the surface folder.
+
+An orchestrator may sit at the **member root** (e.g. `packages/agent_calculator_orchestrator.ts`)
+when it routes across features rather than serving one. That makes it a routing aggregate
+over the features beneath it — it holds one orchestrator per feature and delegates to them.
+It does **not** satisfy AES702 for those folders: each feature still owes an orchestrator of
+its own, so a capabilities folder under a member-level orchestrator is still a split feature.
+
+`agent_*_orchestrator` files are forbidden in `shared/` — that is an **AES701** violation and
+the file must be moved to a feature folder.
+
+### Feature folder documents
+
+The feature folder holding this agent also carries two documents at its root, beside the
+source:
+
+```text
+crates/<feature_name>/FRD.md       # what the feature does — requirements
+crates/<feature_name>/BACKLOG.md   # where its work stands
+```
+
+The folder name matches the feature it serves. A folder named after a generic word
+(`utils`, `common`, `core`) describes no feature and cannot carry a meaningful FRD.
+
+A feature folder carrying an agent but neither document is an **AES702** violation — the
+linter names the missing file and you write it.
 
 ---
 

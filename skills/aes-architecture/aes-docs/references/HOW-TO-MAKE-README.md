@@ -17,9 +17,6 @@
 
 ## Rules
 
-
-
-
 1. **The test is time, not completeness.** Clone → install → build → run
 in under 10 minutes. If the Quick Start cannot clear that, the
 missing step is the bug in this file.
@@ -32,9 +29,6 @@ distrust the list.
 
 ---
 
-
-
-
 ## Workflow
 
 1. **Create file** → `README.md` at repo or package root.
@@ -42,7 +36,7 @@ distrust the list.
 3. **Section: Quick Start** — 3–5 commands to get running.
 4. **Section: Architecture** — diagram or layer description.
 5. **Section: Commands** — CLI reference.
-6. **Verify** → manual review of the invariant table passes; quick start works.
+6. **Verify** → `lint-arwaky-cli docs` passes; quick start works.
 
 ## Template
 
@@ -118,5 +112,6 @@ reason.
 ## Verify
 
 ```bash
+lint-arwaky-cli docs .
 # Checks: readme-section-missing, dead-link, absolute-path, secret-in-docs, doc-length.
 ```

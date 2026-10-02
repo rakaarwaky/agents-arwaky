@@ -6,7 +6,9 @@ reaches discovery through the utility layer rather than importing a capability
 (AES201).
 
 Discovery is manifest-driven: every tool with ``category == "internal"`` is
-probed at the language-layout skill homes, then the legacy ``.agents/skills/``.
+probed at the language-layout skill homes (``crates/shared/skills`` for Rust,
+``modules/shared/skills`` for Python, ``packages/shared/skills`` for
+TypeScript), then the flat legacy layouts, then ``.agents/skills/``.
 """
 from __future__ import annotations
 
@@ -38,8 +40,13 @@ _MANIFEST = REPO_ROOT / "config" / "manifest.json"
 
 #: Skill homes probed in order; the language layout folder wins over the legacy
 #: ``.agents/skills/`` copy-nest, so a repo that has been refactored is read from
-#: its canonical location.
+#: its canonical location. Each language nests its skills under the layer that
+#: owns shared code (``crates``/``modules``/``packages`` + ``shared/skills``);
+#: the flat form predates that split and stays as a fallback for older tools.
 SKILL_HOMES = (
+    "crates/shared/skills",
+    "modules/shared/skills",
+    "packages/shared/skills",
     "crates/skills",
     "modules/skills",
     "packages/skills",
@@ -51,10 +58,24 @@ DEFAULT_INTERNAL_CATEGORY = "internal-tools"
 
 #: Source-repo skill homes that map onto a specific existing pack category, so a
 #: new upstream home never relocates skills a harness has already registered.
-CATEGORY_OVERRIDES = {"crates/skills": "aes-architecture"}
+CATEGORY_OVERRIDES = {
+    "crates/shared/skills": "aes-architecture",
+    "crates/skills": "aes-architecture",
+}
 
 #: Companion dirs copied next to a SKILL.md so relative links survive the merge.
-_ASSET_DIRS = ("scripts", "references", "resources", "examples", "templates", "assets")
+#: Both the plural and singular spellings are listed: a skill is free to name its
+#: companion dir either way, and dropping one form silently deletes the pack copy
+#: while leaving the SKILL.md's relative links dangling.
+_ASSET_DIRS = (
+    "scripts",
+    "references",
+    "reference",
+    "resources",
+    "examples",
+    "templates",
+    "assets",
+)
 
 #: Finder-style duplicate folders: ``Foo copy`` and ``Foo copy 2``.
 _COPY_SUFFIX = re.compile(r"\s+copy(\s+\d+)?$")
@@ -276,10 +297,13 @@ def read_update_provenance(dest_dir: Path) -> dict:
 def _source_priority(relative_source: str) -> int:
     """Preferred rank for a skill home relative path (lower = preferred)."""
     order = {
-        "crates/skills": 0,
-        "modules/skills": 1,
-        "packages/skills": 2,
-        ".agents/skills": 3,
+        "crates/shared/skills": 0,
+        "modules/shared/skills": 1,
+        "packages/shared/skills": 2,
+        "crates/skills": 3,
+        "modules/skills": 4,
+        "packages/skills": 5,
+        ".agents/skills": 6,
     }
     return order.get(relative_source, 99)
 
@@ -290,7 +314,8 @@ def deduplicate_sources(
     """Collapse multi-source collisions into winners, returning conflicts separately.
 
     When several internal tools expose the same skill name, the winner is the
-    entry whose source home has the highest priority (``crates/skills`` >
+    entry whose source home has the highest priority (``crates/shared/skills`` >
+    ``modules/shared/skills`` > ``packages/shared/skills`` > ``crates/skills`` >
     ``modules/skills`` > ``packages/skills`` > ``.agents/skills``). All losers
     are collected as conflicts.
     """

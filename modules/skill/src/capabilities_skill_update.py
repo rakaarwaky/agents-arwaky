@@ -1,7 +1,8 @@
 """Skill update capability — pull internal submodule skills into the pack.
 
 Implements ``ISkillUpdateProtocol``: discovers each internal tool's skill home
-(``crates/skills``, ``modules/skills``, ``packages/skills``, or the legacy
+(``crates/shared/skills``, ``modules/shared/skills``,
+``packages/shared/skills``, the flat legacy layouts, or the legacy
 ``.agents/skills`` fallback) and merges the freshest copy into the shared
 ``skills/`` pack, stamping each merge with its upstream provenance.
 

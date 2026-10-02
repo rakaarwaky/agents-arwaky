@@ -58,7 +58,7 @@
    step pipeline.
 6. **Section: Quality Verification & PR Process** — local gates, CI, PR
    checklist.
-7. **Verify** → manual review of the invariant table passes; every command block runs without
+7. **Verify** → `lint-arwaky-cli docs` passes; every command block runs without
    absolute personal paths; templates use placeholders.
 
 ## Template
@@ -99,16 +99,22 @@ the constraint, not the tool that enforces it:
    git clone <repo-url>
    cd <repo>
    ```
+
    Add `--recurse-submodules` only if the project has submodules.
 2. Verify host prerequisites:
+
    ```bash
    <prerequisite-check command>
    ```
-3. Provision the environment:
+
+1. Provision the environment:
+
    ```bash
    <install command>
    ```
-4. Verify installation:
+
+1. Verify installation:
+
    ```bash
    <status command>
    ```
@@ -164,7 +170,8 @@ scanner.> CI mirrors this check on every push via `.github/workflows/ci.yml`.
 - [ ] Any registry or manifest the project keeps is updated.
 - [ ] No absolute paths, secrets, or machine-specific values leaked into the diff.
 - [ ] The PR description names the contribution path and links the issue.
-```
+
+```text
 
 ---
 
@@ -185,6 +192,7 @@ Every section is required unless marked optional. Each exists for one reason.
 ## Verify
 
 ```bash
+lint-arwaky-cli docs .
 # Checks: dead-link, absolute-path, secret-in-docs, doc-length.
 # Manual: every command runs; templates use placeholders; no absolute personal paths.
 ```

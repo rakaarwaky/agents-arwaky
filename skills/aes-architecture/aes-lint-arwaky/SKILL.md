@@ -23,8 +23,8 @@ metadata:
     - aes-surface
     - aes-root
     - aes-testing-suite
-    - cleanup-consolidate
-    - fix-bypass
+    - aes-utility
+    - aes-root
   triggers:
     - lint arwaky
     - lint arwaky python
@@ -84,7 +84,6 @@ the routing HOW-TO. `tests/` / `benches/` are **not** AES layers (see `aes-testi
 | Invariant | Rule | Read |
 | --------- | ---- | ---- |
 | Primary gate | `lint-arwaky-cli scan` (AES101–506) → 0; language compile is fallback only | Commands + language HOW-TO |
-| Stale binary | Rebuild the binary from HEAD before trusting ANY non-zero scan — a drifted binary reports rules the source does not implement | see below |
 | Direction | Upper layers import downward only; never upward (AES201 CRITICAL) | Routing HOW-TO |
 | Role purity | Protocol = one method per feature; aggregate = many exports, one per feature (not dump-all) | Routing + `aes-contract` |
 | Auto-fix set | Only AES101 / AES203 / AES304 via `fix` (`--dry-run` first); AES201/205 manual | Routing HOW-TO |
@@ -97,9 +96,9 @@ the routing HOW-TO. `tests/` / `benches/` are **not** AES layers (see `aes-testi
 Scan failed or findings non-zero?
 ├─ exit 2 → config/parse → lint_arwaky.config.yaml / path → fix config, re-run
 ├─ exit 1, findings present
-│  ├─ CRITICAL 🔴 AES201 / AES205 / AES304 → structural; route via HOW-TO-USE-LINT-ROUTING.md (aes-contract / fix-bypass)
+│  ├─ CRITICAL 🔴 AES201 / AES205 → structural; route via HOW-TO-USE-LINT-ROUTING.md (aes-contract)
 │  ├─ HIGH 🟡 AES101–102, AES202, AES301–303, AES401–403, AES406, AES505–506 → fix / aes-{layer}
-│  ├─ MEDIUM/LOW 🟢 AES203–204, AES305, AES404–405, AES501–504 → fix or cleanup-consolidate
+│  ├─ MEDIUM/LOW 🟢 AES203–204, AES305, AES404–405, AES501–504 → fix (AES101/203 auto-fix) or aes-{layer} (manual)
 │  └─ After each AES101 rename → barrel update (language HOW-TO) or orphan reappears
 └─ exit 0 but code unhealthy → language verify failed → HOW-TO-USE-LINT-<LANG>.md pipeline
 
@@ -143,26 +142,9 @@ lint-arwaky-cli orphan <path> --format json
 - [ ] Re-scan reports **0** AES violations (exit 0).
 - [ ] Language verify pipeline (HOW-TO-USE-LINT-<LANG>.md) also green.
 
-## Stale-Binary Guard (read before fixing any finding)
-
-An installed `lint-arwaky-cli` can drift from the repo source and report rules
-the source does not implement. When a scan reports violations, rebuild from HEAD
-and re-scan BEFORE attributing a finding to the code:
-
-```bash
-CARGO_INCREMENTAL=0 cargo build --release --bin lint-arwaky-cli
-lint-arwaky-cli scan .          # re-run after rebuild
-```
-
-Symptom of drift: the finding's message contradicts the rule's doc comment or
-constant in the source. Read the auditor that emits the code (e.g. `grep -rn
-"<RULE_CODE>" crates/`) and compare. A binary whose message inverts the source
-rule is stale, not evidence of a code defect.
-
 ## Pre-flight Checklist
 
 - [ ] Target path correct (`modules/` | `crates/` | `packages/`).
-- [ ] Binary rebuilt from HEAD; scan re-run after rebuild.
 - [ ] Language build/parse clean (see language HOW-TO).
 - [ ] Shared invocation chosen (`aa tool run lint …` or `lint-arwaky-cli` / `lac`).
 - [ ] `--format` explicit if output is consumed by a pipeline or report file.
@@ -182,5 +164,5 @@ rule is stale, not evidence of a code defect.
 ## Related Skills
 
 `aes-taxonomy` · `aes-utility` · `aes-contract` · `aes-capabilities` ·
-`aes-agent` · `aes-surface` · `aes-root` · `aes-testing-suite` · `cleanup-consolidate` ·
-`fix-bypass`
+`aes-agent` · `aes-surface` · `aes-root` · `aes-testing-suite` · `aes-utility` ·
+`aes-taxonomy`
