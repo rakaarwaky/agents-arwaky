@@ -13,7 +13,6 @@ from modules.shared.src.taxonomy_common_vo import data_home
 #: tool id -> XDG data subdirectory (relative to XDG_DATA_HOME) covered by backup.
 TOOL_DATA: dict[str, str] = {
     "anytype": "anytype-mcp",
-    "9router": "9router",
     "omniroute": "omniroute",
     "mnemosyne": "mnemosyne",
     "google-workspace": "google-workspace-mcp",

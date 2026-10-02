@@ -19,6 +19,7 @@ from modules.shared.src.taxonomy_common_vo import (
     data_home,
     tool_config_dir,
 )
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT as ROOT
 from modules.shared.src.taxonomy_harness_vo import ExitCode
 from modules.shared.src.utility_harness_mechanics import dispatch_provider_op
 
@@ -63,15 +64,15 @@ class OpencodeAdapter:
     supports_mcp: bool = True
     supports_env: bool = True
     # OpenCode supports OpenAI-compatible providers via opencode.json's
-    # provider.<id> block (verified 2026-09-25: existing 9router entry with
-    # combo models my9router / 9vision).
+    # provider.<id> block (verified 2026-10-02: existing omniroute entry with
+    # combo models myomniroute / myomnivision).
     supports_custom_api: bool = True
     custom_api_kind: str = "opencode-json"
-    router_provider_id: str = "my9router"
-    router_provider_name: str = "9router"
-    env_key: str = "NINEROUTER_KEY"
+    router_provider_id: str = "myomniroute"
+    router_provider_name: str = "omniroute"
+    env_key: str = "OMNIROUTE_KEY"
     mcp_key: str = "mcp"
-    env_keys: tuple[str, ...] = ("NINEROUTER_URL", "NINEROUTER_KEY", "MNEMOSYNE_DATA_DIR")
+    env_keys: tuple[str, ...] = ("OMNIROUTE_URL", "OMNIROUTE_KEY", "MNEMOSYNE_DATA_DIR")
     skill_sync_commands: tuple[str, ...] = ()
 
     def home(self) -> Path:
@@ -104,14 +105,14 @@ class OpencodeAdapter:
 
     def session_conf_files(self) -> tuple[Path, ...]:
         """Return session configuration files referenced by the OpenCode harness."""
-        return (config_home() / "environment.d/9router.conf",)
+        return (config_home() / "environment.d/omniroute.conf",)
 
     def credential_candidates(self) -> tuple[Path, ...]:
         """Return candidate credential files searched by the OpenCode harness."""
         return (
-            agents_arwaky_config_dir() / "ninerouter.env",
-            config_home() / "9router/.env",
-            data_home() / "agents-arwaky/ninerouter.env",
+            ROOT / "config/omniroute.env",
+            Path.home() / ".omniroute/.env",
+            data_home() / "omniroute/omniroute.env",
         )
 
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_service_vo import (
-    TARGET_9ROUTER,
+    TARGET_OMNIROUTE,
     TARGET_ALL,
     ExitCode,
     ServiceTarget,
@@ -40,7 +40,7 @@ class IServiceProtocol(ABC):
         ...
 
     @abstractmethod
-    def logs(self, target: ServiceTarget = TARGET_9ROUTER) -> ExitCode:
+    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
         """Stream the named service's logs. Return the exit code."""
         ...
 
@@ -51,7 +51,7 @@ class IServiceProtocol(ABC):
 
 
 __all__ = [
-    "TARGET_9ROUTER",
+    "TARGET_OMNIROUTE",
     "TARGET_ALL",
     "ExitCode",
     "IServiceProtocol",
@@ -60,7 +60,7 @@ __all__ = [
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
-    "TARGET_9ROUTER": TARGET_9ROUTER,
+    "TARGET_OMNIROUTE": TARGET_OMNIROUTE,
     "TARGET_ALL": TARGET_ALL,
     "ExitCode": ExitCode,
     "IServiceProtocol": IServiceProtocol,

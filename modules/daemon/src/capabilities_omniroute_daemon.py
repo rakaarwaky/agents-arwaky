@@ -5,11 +5,17 @@ Runs the OmniRoute gateway directly on the host via the `omniroute` CLI
 (pnpm/npm global install), with a systemd user service for 24/7 operation.
 No Docker, no Podman.
 
-Ports are reallocated out of upstream's defaults because 20128 belongs to
-9Router in this ecosystem: dashboard 20139, API 20140, live-WS 20141. The
-upstream CLI reads `PORT` / `API_PORT` / `DASHBOARD_PORT` from the environment
-(see `bin/cli/commands/serve.mjs` in the pinned checkout), so the systemd unit
-sets them rather than passing flags.
+Port 7777 is a deliberate choice: dashboard and API share it because the
+existing ``~/.omniroute/.env`` sets neither ``API_PORT`` nor
+``DASHBOARD_PORT``, and upstream falls both back to ``PORT``
+(``opts.port ?? process.env.PORT ?? "20128"`` in
+``bin/cli/commands/serve.mjs`` of the pinned checkout). The systemd unit sets
+``PORT`` rather than passing flags.
+
+The upstream ``.env`` lives at ``~/.omniroute/.env`` — the one documented
+exception to the per-tool XDG rule, because upstream reads it from its own
+working directory. ``STORAGE_ENCRYPTION_KEY`` there decrypts every provider
+credential in ``storage.sqlite``; never regenerate it.
 """
 from __future__ import annotations
 

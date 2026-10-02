@@ -27,7 +27,7 @@ Last Updated: 2026-09-26
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
 | DMN-01 | FR-DAEMON-001, FR-DAEMON-002 | Daemon lifecycle + auth-key | P1 | QA | Protocol + capability paths in place; `python3 -m pytest modules/daemon -q` → 69 passed at `6df9f21`. Live Podman sweep outstanding (needs container host + WS-05). | @raka | WS-05 | 2026-09-26 |
-| DMN-02 | FR-DAEMON-004 | Deploy assets (systemd units, Containerfile) | P1 | Done | `modules/daemon/deploy/` ships `anytype-daemon.service`, `9router.service`, `Containerfile` at `5556fd5`. | @raka | None | 2026-09-18 |
+| DMN-02 | FR-DAEMON-004 | Deploy assets (systemd units, Containerfile) | P1 | Done | `modules/daemon/deploy/` ships `anytype-daemon.service`, `omniroute.service`, `Containerfile` at `5556fd5`. | @raka | None | 2026-09-18 |
 | DMN-03 | FR-DAEMON-001, FR-DAEMON-002, FR-DAEMON-003, FR-DAEMON-004 | FRD + BACKLOG pair authoring for daemon | P1 | Done | `check docs modules/daemon` → 0 findings (2 documents) at `f87a775`. | @raka | None | 2026-09-23 |
 | DMN-04 | FR-DAEMON-001, FR-DAEMON-003, FR-DAEMON-004 | Rich per-operation `IDaemonProtocol` + single-`execute` aggregate | P0 | Done | `python3 -m compileall -q modules/daemon modules/shared` → 0 and `lint-arwaky-cli scan modules/daemon` → 0 violations at `6df9f21`; `IDaemonProtocol` declares one named method per operation (start/stop/restart/status/logs/install_unit/remove_unit/unit_status) instead of a single `execute`; `IDaemonAggregate.execute` remains the one entry point. | @raka | None | 2026-09-26 |
 
@@ -39,7 +39,7 @@ Last Updated: 2026-09-26
 | Starting a daemon on a host without Podman falls back to native execution or reports a clear non-zero error with no traceback. | Gap | — | not yet asserted on a Podman-less host | — |
 | `auth-key` writes the generated key to XDG config only; the repo tree stays clean after the run. | Proxy | manual | `git status --porcelain` clean after `aa anytype auth-key` | `5556fd5` |
 | `auth-key` while the daemon is stopped reports the pre-condition and exits non-zero instead of crashing. | Manual | — | `aa anytype auth-key` with container stopped | `5556fd5` |
-| `list_known` returns both managed daemon ids (9router and anytype) independent of run state. | Proxy | manual | `DaemonOrchestrator.known()` → both ids | `6df9f21` |
+| `list_known` returns both managed daemon ids (anytype and omniroute) independent of run state. | Proxy | manual | `DaemonOrchestrator.known()` → both ids | `6df9f21` |
 | Enumerating daemons on a host where neither daemon is running still reports both ids. | Proxy | manual | `known()` with daemons stopped → both ids | `6df9f21` |
 | `install_unit` for a daemon enables its user unit and a following `unit_status` reports it active. | Gap | — | not run on the user host (unit enable side effects) | — |
 | `remove_unit` deletes a daemon's user unit so a following `unit_status` reports it not installed. | Gap | — | not run on the user host (unit remove side effects) | — |

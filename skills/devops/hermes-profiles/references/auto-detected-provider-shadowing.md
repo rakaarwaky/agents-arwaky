@@ -14,7 +14,7 @@ Hermes auto-detects installed CLI coding tools (e.g. `opencode` at `~/.opencode/
 and registers a provider named after the CLI. That provider **claims the bare model name**
 `free` (because the CLI's model list includes `opencode/...:free` entries). When you request
 model `free`, Hermes prefers the auto-detected provider over your intended one (e.g. `free`
-→ 9Router at `http://localhost:20128/v1`), so the request hits the CLI's API, which has no
+→ the local gateway at `http://localhost:7777/v1`), so the request hits the CLI's API, which has no
 `free` model → 401.
 
 This is **profile-specific**: it only happens in profiles whose `serve` process was started in

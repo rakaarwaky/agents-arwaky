@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
@@ -29,7 +28,6 @@ class DaemonAggregateAdapter(IDaemonAggregate):
     """Single-execute IDaemonAggregate over the two concrete daemon managers."""
 
     _UNIT_DAEMON: ClassVar[dict[str, str]] = {
-        "9router.service": "9router",
         "anytype-daemon.service": "anytype",
         "anytype.service": "anytype",
         "omniroute.service": "omniroute",
@@ -37,11 +35,10 @@ class DaemonAggregateAdapter(IDaemonAggregate):
 
     def __init__(
         self,
-        ninerouter: NinerouterDaemonManager,
         anytype: AnytypeDaemonManager,
         omniroute: OmnirouteDaemonManager | None = None,
     ) -> None:
-        self._managers = {"9router": ninerouter, "anytype": anytype}
+        self._managers = {"anytype": anytype}
         if omniroute is not None:
             self._managers["omniroute"] = omniroute
 
@@ -60,8 +57,8 @@ class DaemonAggregateAdapter(IDaemonAggregate):
     def execute(self, request: DaemonRequest) -> DaemonResponse:
         """Route *request* to the matching manager method; return the outcome."""
         op = DaemonOp(str(request.op))
-        name = DaemonName(str(request.name)) if request.name else DaemonName("9router")
-        unit = DaemonUnit(str(request.unit)) if request.unit else DaemonUnit("9router.service")
+        name = DaemonName(str(request.name)) if request.name else DaemonName("omniroute")
+        unit = DaemonUnit(str(request.unit)) if request.unit else DaemonUnit("omniroute.service")
         if op == "start":
             return _exit(self._mgr(name).start())
         if op == "stop":
@@ -95,9 +92,7 @@ class ServiceContainer:
     """Composition root: wires daemon managers into the service orchestrator."""
 
     def __init__(self) -> None:
-        self._daemons = DaemonAggregateAdapter(
-            NinerouterDaemonManager(), AnytypeDaemonManager(), OmnirouteDaemonManager()
-        )
+        self._daemons = DaemonAggregateAdapter(AnytypeDaemonManager(), OmnirouteDaemonManager())
         self._manager = ServiceManager(daemons=self._daemons)
         self._orchestrator = ServiceOrchestrator(manager=self._manager)
 

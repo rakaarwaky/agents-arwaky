@@ -10,7 +10,7 @@ import sys
 
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
 from modules.shared.src.taxonomy_service_vo import (
-    TARGET_9ROUTER,
+    TARGET_OMNIROUTE,
     ServiceOp,
     ServiceRequest,
     ServiceTarget,
@@ -28,7 +28,7 @@ _SERVICE_OPS: dict[str, str] = {
 
 
 def cmd_service(args: list[str], orch: IServiceAggregate) -> int:
-    """aa service <status|start|stop|restart|logs> [9router|anytype|all]."""
+    """aa service <status|start|stop|restart|logs> [omniroute|anytype|all]."""
     if not args or args[0] in ("help", "-h", "--help"):
         return int(orch.execute(ServiceRequest(ServiceOp("help"))))
     action = args[0]
@@ -37,8 +37,8 @@ def cmd_service(args: list[str], orch: IServiceAggregate) -> int:
         int(orch.execute(ServiceRequest(ServiceOp("help"))))
         return 1
     target = ServiceTarget(args[1] if len(args) > 1 else "all")
-    # `logs` defaults to 9router when no explicit target is given.
-    logs_target = ServiceTarget(str(target)) if len(args) > 1 else TARGET_9ROUTER
+    # `logs` defaults to omniroute when no explicit target is given.
+    logs_target = ServiceTarget(str(target)) if len(args) > 1 else TARGET_OMNIROUTE
     request = ServiceRequest(ServiceOp(action), target=target, logs_target=logs_target)
     return int(orch.execute(request))
 

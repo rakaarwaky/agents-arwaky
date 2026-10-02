@@ -10,22 +10,22 @@ def bench_anytype_manager_init(benchmark):
 
 
 def bench_podman_manager_init(benchmark):
-    """BENCH-DAEMON-002: Benchmark NinerouterDaemonManager initialization."""
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    """BENCH-DAEMON-002: Benchmark OmnirouteDaemonManager initialization."""
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 
-    benchmark(NinerouterDaemonManager)
+    benchmark(OmnirouteDaemonManager)
 
 
 def bench_orchestrator_init(benchmark):
     """BENCH-DAEMON-003: Benchmark DaemonOrchestrator initialization."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
     def _init():
-        ninerouter = NinerouterDaemonManager()
+        omniroute = OmnirouteDaemonManager()
         anytype = AnytypeDaemonManager()
-        return DaemonOrchestrator(ninerouter, anytype)
+        return DaemonOrchestrator(omniroute, anytype)
 
     benchmark(_init)
 
@@ -62,10 +62,10 @@ def bench_anytype_execute_dispatch(benchmark):
 
 
 def bench_podman_execute_dispatch(benchmark):
-    """BENCH-DAEMON-007: Benchmark NinerouterDaemonManager.execute dispatch."""
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    """BENCH-DAEMON-007: Benchmark OmnirouteDaemonManager.execute dispatch."""
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 
-    manager = NinerouterDaemonManager()
+    manager = OmnirouteDaemonManager()
 
     def _execute():
         try:

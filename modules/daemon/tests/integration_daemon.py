@@ -38,16 +38,16 @@ def test_orchestrator_start_anytype():
         assert result.exit_code == 0
 
 
-def test_orchestrator_stop_9router():
-    """IT-DAEMON-003: Orchestrator.execute(stop) routes to NinerouterDaemonManager.stop."""
+def test_orchestrator_stop_omniroute():
+    """IT-DAEMON-003: Orchestrator.execute(stop) routes to OmnirouteDaemonManager.stop."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.ninerouter, 'stop', return_value=ExitCode(0)
+        container.omniroute, 'stop', return_value=ExitCode(0)
     ) as mock_stop:
-        result = container.aggregate.execute(DaemonRequest(DaemonOp("stop"), name=DaemonName("9router")))
+        result = container.aggregate.execute(DaemonRequest(DaemonOp("stop"), name=DaemonName("omniroute")))
         mock_stop.assert_called_once()
         assert result.exit_code == 0
 
@@ -86,16 +86,16 @@ def test_orchestrator_status_anytype():
         assert result.status == expected
 
 
-def test_orchestrator_logs_9router():
-    """IT-DAEMON-006: Orchestrator.execute(logs) routes to NinerouterDaemonManager.logs."""
+def test_orchestrator_logs_omniroute():
+    """IT-DAEMON-006: Orchestrator.execute(logs) routes to OmnirouteDaemonManager.logs."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.shared.src.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
-        container.ninerouter, 'logs', return_value=ExitCode(0)
+        container.omniroute, 'logs', return_value=ExitCode(0)
     ) as mock_logs:
-        result = container.aggregate.execute(DaemonRequest(DaemonOp("logs"), name=DaemonName("9router")))
+        result = container.aggregate.execute(DaemonRequest(DaemonOp("logs"), name=DaemonName("omniroute")))
         mock_logs.assert_called_once()
         assert result.exit_code == 0
 
@@ -123,12 +123,12 @@ def test_orchestrator_remove_unit():
 
     container = DaemonContainer()
     with patch.object(
-        container.ninerouter, 'remove_unit', return_value=ExitCode(0)
+        container.omniroute, 'remove_unit', return_value=ExitCode(0)
     ) as mock_remove:
         result = container.aggregate.execute(
-            DaemonRequest(DaemonOp("remove_unit"), unit=DaemonUnit("9router.service"))
+            DaemonRequest(DaemonOp("remove_unit"), unit=DaemonUnit("omniroute.service"))
         )
-        mock_remove.assert_called_once_with(DaemonUnit("9router.service"))
+        mock_remove.assert_called_once_with(DaemonUnit("omniroute.service"))
         assert result.exit_code == 0
 
 
@@ -171,13 +171,13 @@ def test_anytype_rich_protocol_methods():
         assert isinstance(result, DaemonStatus)
 
 
-def test_ninerouter_rich_protocol_methods():
-    """IT-DAEMON-011: NinerouterDaemonManager has all rich protocol methods."""
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+def test_omniroute_rich_protocol_methods():
+    """IT-DAEMON-011: OmnirouteDaemonManager has all rich protocol methods."""
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
     from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
     from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 
-    manager = NinerouterDaemonManager()
+    manager = OmnirouteDaemonManager()
     assert isinstance(manager, IDaemonProtocol)
     assert not hasattr(manager, "execute")
 
@@ -207,9 +207,8 @@ def test_full_feature_wiring():
     assert isinstance(aggregate, IDaemonAggregate)
 
     # The orchestrator exposes .known, not list_known.
-    assert len(aggregate.known) == 3
+    assert len(aggregate.known) == 2
     names = {str(n) for n in aggregate.known}
-    assert "9router" in names
     assert "anytype" in names
     assert "omniroute" in names
 

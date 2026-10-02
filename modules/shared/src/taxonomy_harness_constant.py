@@ -19,10 +19,10 @@ for _harness_id, _tokens in HARNESSES.items():
 
 ALL_HARNESS_IDS: tuple[str, ...] = tuple(HARNESSES)
 
-#: Credential values that stand in for a real 9Router key; env injection and
+#: Credential values that stand in for a real gateway key; env injection and
 #: the live probe both skip a key equal to one of these.
 PLACEHOLDER_KEYS: frozenset[str] = frozenset({
-    "sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "change-me", "",
+    "<YOUR_API_KEY>", "change-me", "",
 })
 
 #: Server id -> launcher command used when mcp_servers.generated.json is

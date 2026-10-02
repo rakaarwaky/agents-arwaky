@@ -1,4 +1,4 @@
-"""Daemon surface — CLI adapters for aa anytype / aa 9router.
+"""Daemon surface — CLI adapters for aa anytype / aa omniroute.
 
 The 8 shared daemon operations go through the aggregate's single ``execute``;
 the capability-specific verbs (models, auth-*, space-*, help) live on the
@@ -74,8 +74,22 @@ def _manager(name: str) -> IDaemonProtocol:
     return factory()
 
 
+def _orchestrator(orch: IDaemonAggregate | None) -> IDaemonAggregate:
+    """Return *orch*, or build the wired daemon aggregate when it is omitted.
+
+    The CLI verbs (``aa anytype`` / ``aa omniroute``) pass only a manager, so the
+    shared ops must resolve their aggregate here instead of dereferencing a
+    ``None`` orchestrator.
+    """
+    if orch is not None:
+        return orch
+    from modules.daemon.src.root_daemon_container import create_daemon_feature
+
+    return create_daemon_feature()
+
+
 def _dispatch(
-    orch: IDaemonAggregate,
+    orch: IDaemonAggregate | None,
     mgr: IDaemonProtocol,
     args: list[str],
     *,
@@ -95,7 +109,7 @@ def _dispatch(
             name=name,
             unit=unit if op in _UNIT_OPS else None,
         )
-        return _exit_code(orch.execute(request))
+        return _exit_code(_orchestrator(orch).execute(request))
     local = _LOCAL_OPS.get(action)
     if local is None:
         print(f"Unknown {label} command: {action}", file=sys.stderr)
@@ -117,22 +131,6 @@ def _exit_code(response: DaemonResponse) -> int:
     if response.exit_code is not None:
         return response.exit_code
     return 0 if response.success else 1
-
-
-def cmd_9router(
-    args: list[str],
-    orch: IDaemonAggregate | None = None,
-    manager: IDaemonProtocol | None = None,
-) -> int:
-    """aa 9router <command> — start|stop|restart|status|logs|models|service-*|help."""
-    return _dispatch(
-        orch,
-        manager or _manager("9router"),
-        args,
-        name=DaemonName("9router"),
-        unit=DaemonUnit("9router.service"),
-        label="9router",
-    )
 
 
 def cmd_anytype(
@@ -187,7 +185,6 @@ __all__ = [
     "DaemonRequest",
     "DaemonResponse",
     "DaemonUnit",
-    "cmd_9router",
     "cmd_anytype",
     "cmd_omniroute",
     "register_manager_factory",

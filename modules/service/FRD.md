@@ -12,7 +12,7 @@
 The service feature drives systemd units for the managed daemons. One
 protocol method — `execute(op, unit)` — covers drive, status, logs, and
 usage; the aggregate (`status`, `start`, `stop`, `restart`, `logs`, `help`)
-exposes each path to the CLI, each target naming `9router`, `anytype`, or
+exposes each path to the CLI, each target naming `omniroute`, `anytype`, or
 `all`. Unit definitions are deploy assets owned by the daemon feature —
 this module reaches unit install/remove through an integration to the daemon
 aggregate and otherwise only drives the host service manager. Flow:
@@ -26,7 +26,7 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 
 - **Description**: start, stop, and restart act on the named target or all
   managed daemons under the single protocol method `execute`.
-- **Input**: target from the aggregate — `9router`, `anytype`, or `all`
+- **Input**: target from the aggregate — `omniroute`, `anytype`, or `all`
   (default `all`).
 - **Output**: `ExitCode`; one reported line per driven unit.
 - **Business Rules**: an unknown target is a clear error naming the valid
@@ -55,7 +55,7 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 
 - **Description**: logs tails the journal (or log file) of one target
   daemon.
-- **Input**: target — `9router` (default) or `anytype`.
+- **Input**: target — `omniroute` (default) or `anytype`.
 - **Output**: `ExitCode`; log lines on stdout.
 - **Business Rules**: logs is read-only; a stopped unit's logs are still
   valid to tail; an unknown target is a clear error naming the valid set.
@@ -72,7 +72,7 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 - **Output**: `ExitCode` + usage text on stdout.
 - **Business Rules**: usage lists exactly the supported actions
   (`status`, `start`, `stop`, `restart`, `logs`, `help`) and targets
-  (`9router`, `anytype`, `all`); help is side-effect free.
+  (`omniroute`, `anytype`, `all`); help is side-effect free.
 - **Edge Cases**: no arguments → help, exit 0; unknown action → help with
   a stderr note, exit non-zero.
 - **Error Handling**: unknown action is a reported message plus usage;
@@ -89,7 +89,7 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 | `start` | `target` (`ServiceTarget` = all) | `ExitCode` | non-zero | — | Start the requested unit(s) |
 | `stop` | `target` (`ServiceTarget` = all) | `ExitCode` | non-zero | — | Stop the requested unit(s) |
 | `restart` | `target` (`ServiceTarget` = all) | `ExitCode` | non-zero | — | Restart the requested unit(s) |
-| `logs` | `target` (`ServiceTarget` = 9router) | `ExitCode` | non-zero | — | Tail the requested unit's log lines |
+| `logs` | `target` (`ServiceTarget` = omniroute) | `ExitCode` | non-zero | — | Tail the requested unit's log lines |
 | `help` | — | `ExitCode` | non-zero | — | Print usage listing the valid actions and targets |
 
 ### Aggregate API
@@ -100,7 +100,7 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 | `start` | `target: ServiceTarget='all'` | `ExitCode` | non-zero + unit error | — | Start one target or all |
 | `stop` | `target: ServiceTarget='all'` | `ExitCode` | non-zero + unit error | — | Stop one target or all |
 | `restart` | `target: ServiceTarget='all'` | `ExitCode` | non-zero | — | Restart one target or all |
-| `logs` | `target: ServiceTarget='9router'` | `ExitCode` | non-zero | log lines | Tail logs for a unit |
+| `logs` | `target: ServiceTarget='omniroute'` | `ExitCode` | non-zero | log lines | Tail logs for a unit |
 | `help` | — | `ExitCode` + usage | — | — | Print CLI usage and valid targets |
 
 ## Integration Points
@@ -125,11 +125,11 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 
 ## Test Scenarios
 
-- `aa service start 9router` starts only that unit and reports its state.
+- `aa service start omniroute` starts only that unit and reports its state.
 - `aa service start all` with one missing unit reports that unit and still processes the other.
 - `aa service status` reports both units' states without changing anything.
 - Status with one daemon stopped reports it stopped and still prints the other row.
-- `aa service logs 9router` tails that unit's log lines.
+- `aa service logs omniroute` tails that unit's log lines.
 - `aa service logs` for an unknown target reports a clear error naming the valid targets.
 - `aa service help` prints usage listing the valid actions and targets.
 - An unknown action such as `aa service bogus` prints usage and exits non-zero.
@@ -142,7 +142,7 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
   not duplication).
 - systemctl must be present for drive paths; on a non-systemd host the
   drive actions fail clearly at the top level.
-- Targets stay within the known set (`9router`, `anytype`, `all`).
+- Targets stay within the known set (`omniroute`, `anytype`, `all`).
 
 
 ## Glossary

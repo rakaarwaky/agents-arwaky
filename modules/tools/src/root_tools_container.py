@@ -10,7 +10,7 @@ across orchestrator instances; the daemon aggregate is passed to
 Every tool id lives in a sibling capability module — the nine
 config-driven providers (blender / vision / qwen-web / mnemosyne /
 workspace / codegraph / context7 / fetch / ponytail) plus anytype, lint,
-and 9router — each exporting ``ADAPTER_UNITS``; all are merged into the
+and omniroute — each exporting ``ADAPTER_UNITS``; all are merged into the
 single ``TOOLS_REGISTRY`` below.
 
 The daemon aggregate is imported lazily inside the factory so that importing
@@ -48,9 +48,6 @@ from modules.tools.src.capabilities_tools_lint_adapter import (
 from modules.tools.src.capabilities_tools_mnemosyne_adapter import (
     ADAPTER_UNITS as _MNEMOSYNE_UNITS,
 )
-from modules.tools.src.capabilities_tools_ninerouter_adapter import (
-    ADAPTER_UNITS as _NINEROUTER_UNITS,
-)
 from modules.tools.src.capabilities_tools_omniroute_adapter import (
     ADAPTER_UNITS as _OMNIROUTE_UNITS,
 )
@@ -82,7 +79,6 @@ TOOLS_REGISTRY: dict[str, object] = {
     **_FETCH_UNITS,
     **_LINT_UNITS,
     **_MNEMOSYNE_UNITS,
-    **_NINEROUTER_UNITS,
     **_OMNIROUTE_UNITS,
     **_PONYTAIL_UNITS,
     **_QWEN_WEB_UNITS,

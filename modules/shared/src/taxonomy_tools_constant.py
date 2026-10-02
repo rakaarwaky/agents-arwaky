@@ -11,7 +11,7 @@ SENTINEL_EXECUTABLE_GONE = 126
 
 #: Tool ids that are long-running daemons (container isolation invariant).
 DAEMON_TOOL_IDS: frozenset[str] = frozenset(
-    {"9router", "anytype", "anytype-daemon", "omniroute"}
+    {"anytype", "anytype-daemon", "omniroute"}
 )
 
 #: Runner families a tool installs through (cargo / uv / bun / pnpm / npm / pip-venv).
@@ -21,7 +21,6 @@ RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
 # P1-5: the merged `anytype` id owns the daemon half too — uninstall must
 # stop the unit (or name it as a residual), not just delete its launcher.
 DAEMON_UNIT_TOOLS: dict[str, str] = {
-    "9router": "9router.service",
     "omniroute": "omniroute.service",
     "anytype": "anytype-daemon.service",
     "anytype-daemon": "anytype-daemon.service",
@@ -30,7 +29,6 @@ DAEMON_UNIT_TOOLS: dict[str, str] = {
 # Tool id -> daemon feature name (keyed on manifest id; "anytype-daemon"
 # routes to the "anytype" daemon manager in the daemon orchestrator).
 DAEMON_NAMES: dict[str, str] = {
-    "9router": "9router",
     "omniroute": "omniroute",
     "anytype": "anytype",
     "anytype-daemon": "anytype",
@@ -47,7 +45,6 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
     "fetch": ["fetch-mcp", "mcp-fetch"],
     "lint-arwaky": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "mnemosyne": ["mnemosyne", "mnemosyne-mcp"],
-    "9router": ["9router"],
     "omniroute": ["omniroute"],
     "ponytail": ["ponytail-mcp"],
     "qwen-web-arwaky": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
@@ -135,11 +132,6 @@ LINT_LAUNCHERS: tuple[tuple[str, str], ...] = (
 #: NOTE: leaf lama merujuk `_BUILD_DEPS` tanpa definisi (NameError) — didefinisikan di sini.
 LINT_BUILD_DEPS: tuple[tuple[str, str], ...] = (("sccache", "sccache"), ("mold", "mold"))
 
-# ── 9router (host-native daemon + launcher) ──
-NINEROUTER_DATA_DIR_NAME = "9router"
-NINEROUTER_INTERNAL_BIN = "internal-bin"
-NINEROUTER_LAUNCHERS: tuple[str, ...] = ("9router",)
-
 # ── OmniRoute (host-native daemon + launcher) ──
 OMNIROUTE_DATA_DIR_NAME = "omniroute"
 OMNIROUTE_INTERNAL_BIN = "internal-bin"
@@ -149,8 +141,6 @@ OMNIROUTE_SRC_REL = "vendor/omniroute"
 #: npm distribution the runtime is installed from. Upstream needs
 #: ``>=22.22.2 <23 || >=24.0.0 <27``; the host carries Node 24.
 OMNIROUTE_NPM_SPEC = "omniroute@3.8.51"
-#: Upstream default ports are 20128/20129/20132; 20128 collides with 9Router, so
-#: the daemon module allocates 20139/20140/20141 instead.
 OMNIROUTE_UNIT_FILE_NAME = "omniroute.service"
 OMNIROUTE_ENV_FILENAME = "omniroute.env"
 
@@ -176,9 +166,6 @@ __all__ = [
     "LINT_BUILD_DEPS",
     "LINT_INTERNAL_DIR_REL",
     "LINT_LAUNCHERS",
-    "NINEROUTER_DATA_DIR_NAME",
-    "NINEROUTER_INTERNAL_BIN",
-    "NINEROUTER_LAUNCHERS",
     "OMNIROUTE_DATA_DIR_NAME",
     "OMNIROUTE_ENV_FILENAME",
     "OMNIROUTE_INTERNAL_BIN",

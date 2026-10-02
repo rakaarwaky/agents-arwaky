@@ -1,4 +1,4 @@
-"""Daemon-domain constants — 9Router / Anytype host service parameters (AES layer: taxonomy)."""
+"""Daemon-domain constants — OmniRoute / Anytype host service parameters (AES layer: taxonomy)."""
 from __future__ import annotations
 
 import os
@@ -10,15 +10,11 @@ from modules.shared.src.taxonomy_common_vo import config_home, data_home, state_
 #: Repository root for deploy unit sources.
 ROOT = REPO_ROOT
 
-#: 9Router gateway listen port (env-overridable).
-PORT = os.environ.get("NINEROUTER_PORT", "20128")
-
-#: 9Router XDG data root.
-DATA_DIR = data_home() / "9router"
-
-#: systemd user unit directory and 9Router unit path.
+#: systemd user unit directory shared by the host-native daemons.
 UNIT_DIR = config_home() / "systemd/user"
-UNIT_FILE = UNIT_DIR / "9router.service"
+
+#: Anytype container data volume, mounted at /data by the compose unit.
+DATA_DIR = data_home() / "anytype"
 
 #: OmniRoute listen port (env-overridable). This is the port the pre-existing
 #: installation already used, and its state at ``~/.omniroute`` is bound to it:

@@ -23,7 +23,7 @@ def test_service_manager_execution():
         assert result is not None
         assert mock_agg.execute.call_count == 2
         mock_agg.execute.assert_any_call(
-            DaemonRequest(DaemonOp("status"), name=DaemonName("9router"))
+            DaemonRequest(DaemonOp("status"), name=DaemonName("omniroute"))
         )
         mock_agg.execute.assert_any_call(
             DaemonRequest(DaemonOp("status"), name=DaemonName("anytype"))

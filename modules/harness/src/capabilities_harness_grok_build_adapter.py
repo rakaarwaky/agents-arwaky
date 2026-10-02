@@ -19,6 +19,7 @@ from modules.shared.src.taxonomy_common_vo import (
     config_home,
     data_home,
 )
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT as ROOT
 from modules.shared.src.taxonomy_harness_vo import ExitCode
 from modules.shared.src.utility_harness_mechanics import dispatch_provider_op
 
@@ -60,15 +61,15 @@ class GrokBuildAdapter:
     skill_link_verified: bool = True
     supports_mcp: bool = True
     supports_env: bool = True
-    # Custom-API wiring binds the 9Router combo provider into config.toml
+    # Custom-API wiring binds the OmniRoute combo provider into config.toml
     # ([model_providers.<id>] + [model.<combo>], Grok Build's verified shape).
     supports_custom_api: bool = True
     custom_api_kind: str = "config-toml"
-    router_provider_id: str = "my9router"
-    router_provider_name: str = "9router"
-    env_key: str = "NINEROUTER_KEY"
+    router_provider_id: str = "myomniroute"
+    router_provider_name: str = "omniroute"
+    env_key: str = "OMNIROUTE_KEY"
     mcp_key: str = "mcp_servers"
-    env_keys: tuple[str, ...] = ("NINEROUTER_URL", "NINEROUTER_KEY", "MNEMOSYNE_DATA_DIR")
+    env_keys: tuple[str, ...] = ("OMNIROUTE_URL", "OMNIROUTE_KEY", "MNEMOSYNE_DATA_DIR")
     skill_sync_commands: tuple[str, ...] = ()
 
     def home(self) -> Path:
@@ -97,14 +98,14 @@ class GrokBuildAdapter:
 
     def session_conf_files(self) -> tuple[Path, ...]:
         """Return session configuration files referenced by the Grok Build harness."""
-        return (config_home() / "environment.d/9router.conf",)
+        return (config_home() / "environment.d/omniroute.conf",)
 
     def credential_candidates(self) -> tuple[Path, ...]:
         """Return candidate credential files searched by the Grok Build harness."""
         return (
-            agents_arwaky_config_dir() / "ninerouter.env",
-            config_home() / "9router/.env",
-            data_home() / "agents-arwaky/ninerouter.env",
+            ROOT / "config/omniroute.env",
+            Path.home() / ".omniroute/.env",
+            data_home() / "omniroute/omniroute.env",
         )
 
 

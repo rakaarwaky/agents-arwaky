@@ -19,6 +19,7 @@ from modules.shared.src.taxonomy_common_vo import (
     config_home,
     data_home,
 )
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT as ROOT
 from modules.shared.src.taxonomy_harness_vo import ExitCode
 from modules.shared.src.utility_harness_mechanics import dispatch_provider_op
 
@@ -62,14 +63,14 @@ class HermesAdapter:
     skill_link_verified: bool = True
     supports_mcp: bool = True
     supports_env: bool = True
-    # 9Router custom-API wiring writes provider entries into config.yaml.
+    # OmniRoute custom-API wiring writes provider entries into config.yaml.
     supports_custom_api: bool = True
     custom_api_kind: str = "router-env"
-    router_provider_id: str = "my9router"
-    env_key: str = "NINEROUTER_KEY"
+    router_provider_id: str = "myomniroute"
+    env_key: str = "OMNIROUTE_KEY"
     mcp_key: str = "mcpServers"
     # Keys the disconnector drops (incl. router refs installed with env keys).
-    env_keys: tuple[str, ...] = ("NINEROUTER_URL", "NINEROUTER_KEY", "MNEMOSYNE_DATA_DIR")
+    env_keys: tuple[str, ...] = ("OMNIROUTE_URL", "OMNIROUTE_KEY", "MNEMOSYNE_DATA_DIR")
     skill_sync_commands: tuple[str, ...] = ()
 
     def home(self) -> Path:
@@ -108,14 +109,14 @@ class HermesAdapter:
 
     def session_conf_files(self) -> tuple[Path, ...]:
         """systemd user-session env layer that shadows harness .env files."""
-        return (config_home() / "environment.d/9router.conf",)
+        return (config_home() / "environment.d/omniroute.conf",)
 
     def credential_candidates(self) -> tuple[Path, ...]:
         """Return candidate credential files searched by the Hermes harness."""
         return (
-            agents_arwaky_config_dir() / "ninerouter.env",
-            config_home() / "9router/.env",
-            data_home() / "agents-arwaky/ninerouter.env",
+            ROOT / "config/omniroute.env",
+            Path.home() / ".omniroute/.env",
+            data_home() / "omniroute/omniroute.env",
         )
 
 

@@ -52,7 +52,6 @@ def normalize_tool_id(query):
     alias = {
         "lint-arwaky": "lint-arwaky", "lint": "lint-arwaky",
         "la": "lint-arwaky", "lac": "lint-arwaky",
-        "9router": "9router",
         "ponytail": "ponytail", "ponytail-mcp": "ponytail",
         "context7": "context7", "context7-mcp": "context7",
         "codegraph": "codegraph", "codegraph-mcp": "codegraph",

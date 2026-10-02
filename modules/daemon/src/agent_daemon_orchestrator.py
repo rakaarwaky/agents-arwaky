@@ -20,11 +20,7 @@ from modules.shared.src.taxonomy_daemon_vo import (
 )
 
 #: Daemon ids the orchestrator can route to, in listing order.
-_KNOWN: tuple[DaemonName, ...] = (
-    DaemonName("9router"),
-    DaemonName("anytype"),
-    DaemonName("omniroute"),
-)
+_KNOWN: tuple[DaemonName, ...] = (DaemonName("anytype"), DaemonName("omniroute"))
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -33,14 +29,12 @@ class DaemonOrchestrator(IDaemonAggregate):
 
     def __init__(
         self,
-        ninerouter: IDaemonProtocol,
         anytype: IDaemonProtocol | None = None,
         omniroute: IDaemonProtocol | None = None,
     ) -> None:
-        self._ninerouter = ninerouter
         self._anytype = anytype
         self._omniroute = omniroute
-        self._managers: dict[str, IDaemonProtocol] = {"9router": ninerouter}
+        self._managers: dict[str, IDaemonProtocol] = {}
         if anytype is not None:
             self._managers["anytype"] = anytype
         if omniroute is not None:
@@ -71,7 +65,6 @@ class DaemonOrchestrator(IDaemonAggregate):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     #: systemd unit filename → daemon id (unit ops accept either form).
     _UNIT_DAEMON: ClassVar[dict[str, str]] = {
-        "9router.service": "9router",
         "anytype-daemon.service": "anytype",
         "anytype.service": "anytype",
         "omniroute.service": "omniroute",
@@ -114,7 +107,7 @@ def _name(request: DaemonRequest) -> DaemonName:
 def _unit(request: DaemonRequest) -> DaemonUnit:
     """Read the unit a request routes to; fall back to the first known unit."""
     if request.unit is None:
-        return DaemonUnit("9router.service")
+        return DaemonUnit(f"{_KNOWN[0]}.service")
     return DaemonUnit(str(request.unit))
 
 

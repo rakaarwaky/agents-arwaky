@@ -7,17 +7,17 @@ import pytest
 @pytest.mark.dogfood
 def test_dogfood_daemon_pipeline():
     """DOG-DAEMON-001: Basic dogfood check for daemon module."""
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
     anytype = AnytypeDaemonManager()
-    ninerouter = NinerouterDaemonManager()
+    omniroute = OmnirouteDaemonManager()
 
     assert not hasattr(anytype, 'execute')
-    assert not hasattr(ninerouter, 'execute')
-    for m in (anytype, ninerouter):
+    assert not hasattr(omniroute, 'execute')
+    for m in (anytype, omniroute):
         for method in ("start", "stop", "restart", "status", "logs",
                       "install_unit", "remove_unit", "unit_status"):
             assert callable(getattr(m, method))
     assert repr(anytype) == "AnytypeDaemonManager()"
-    assert repr(ninerouter) == "NinerouterDaemonManager()"
+    assert repr(omniroute) == "OmnirouteDaemonManager()"

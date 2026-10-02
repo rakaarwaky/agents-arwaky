@@ -60,7 +60,7 @@ None.
 
 Skill provisioning depends on `modules/skill` pack integrity (root WS-06 for the
 migrated test suite). Router wiring depends on `modules/daemon` exposing the
-9Router endpoint resolver.
+OmniRoute endpoint resolver.
 
 ## Release Readiness
 

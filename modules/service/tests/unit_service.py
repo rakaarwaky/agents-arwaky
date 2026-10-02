@@ -106,8 +106,8 @@ class TestServiceOrchestrator:
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
         with patch.object(manager, "stop", return_value=0) as mock_fn:
-            result = orch.execute(ServiceRequest(ServiceOp("stop"), target=ServiceTarget("9router")))
-            mock_fn.assert_called_once_with(ServiceTarget("9router"))
+            result = orch.execute(ServiceRequest(ServiceOp("stop"), target=ServiceTarget("omniroute")))
+            mock_fn.assert_called_once_with(ServiceTarget("omniroute"))
             assert int(result) == 0
 
     def test_execute_restart_delegates(self):

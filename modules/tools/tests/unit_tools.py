@@ -258,7 +258,7 @@ class TestAdapterCapabilities:
         ("fetch", "FetchToolsAdapter"),
         ("lint", "LintToolsAdapter"),
         ("mnemosyne", "MnemosyneToolsAdapter"),
-        ("ninerouter", "NinerouterToolsAdapter"),
+        ("omniroute", "OmnirouteToolsAdapter"),
         ("ponytail", "PonytailToolsAdapter"),
         ("qwen_web", "QwenWebToolsAdapter"),
         ("vision", "VisionToolsAdapter"),
