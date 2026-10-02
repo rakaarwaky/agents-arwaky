@@ -84,8 +84,8 @@ def _daemons() -> IDaemonAggregate:
     return _DAEMON_AGGREGATE
 
 def _run_omniroute(args: list[str]) -> int:
-    """Run the OmniRoute daemon helper, starting it if the first arg is 'start'."""
-    return int(_daemons().start("omniroute")) if args and args[0] == "start" else _daemon_main("omniroute", args)
+    """Run the OmniRoute daemon helper."""
+    return _daemon_main("omniroute", args)
 
 def _run_anytype(args: list[str]) -> int:
     """Run the Anytype daemon helper."""

@@ -308,7 +308,7 @@ class TestSkillRegistryAdapter:
             assert result == 0
 
     def test_sync(self):
-        """UT-SKILL-029: sync calls the module-level cmd_install with 'all'."""
+        """UT-SKILL-050: sync calls the module-level cmd_install with 'all'."""
         from modules.skill.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
@@ -480,3 +480,44 @@ class TestMainEntry:
 
         result = main(["unknown-action"])
         assert result == 0
+
+
+class TestPruneReport:
+    """`_report_prune` must actually reach and report pruned entries.
+
+    Two defects used to hide here: it passed the already-resolved skills BASE
+    to `prune_provisioned`, which then appended `.agents/skills` a second time
+    and scanned a path that never exists; and it iterated the return value as a
+    list of names when the helper returns a plain count.
+    """
+
+    def test_prune_reaches_flat_orphan_and_reports_it(self, capsys, tmp_path):
+        """UT-SKILL-052: a flat orphan is removed and named in the report."""
+        from modules.skill.src.surface_skill_command import _report_prune
+
+        orphan = tmp_path / ".agents" / "skills" / "zzz-retired"
+        orphan.mkdir(parents=True)
+        (orphan / "SKILL.md").write_text("# retired\n")
+        (orphan / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+        _report_prune(tmp_path / ".agents" / "skills")
+
+        out = capsys.readouterr().out
+        assert not orphan.exists(), "orphan survived the prune"
+        assert "zzz-retired" in out, "report never named the pruned entry"
+        assert "nothing stale" not in out
+
+    def test_prune_reports_nothing_stale_when_clean(self, capsys, tmp_path):
+        """UT-SKILL-053: a clean tree reports zero and keeps hand-written work."""
+        from modules.skill.src.surface_skill_command import _report_prune
+
+        base = tmp_path / ".agents" / "skills"
+        mine = base / "my-own-skill"
+        mine.mkdir(parents=True)
+        (mine / "SKILL.md").write_text("# mine\n")
+
+        _report_prune(base)
+
+        out = capsys.readouterr().out
+        assert "nothing stale" in out
+        assert mine.is_dir(), "hand-written skill was pruned"

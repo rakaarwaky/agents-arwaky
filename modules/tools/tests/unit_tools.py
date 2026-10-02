@@ -401,3 +401,104 @@ class TestHasProvenance:
         from modules.tools.src.capabilities_tools_installer import _has_provenance
 
         assert _has_provenance(Path("/nonexistent/file")) is False
+
+
+class TestDaemonAggregateUnitOps:
+    """Tools adapters must reach daemon unit ops through the aggregate.
+
+    `IDaemonAggregate` publishes a single `execute(request)` entry point, so
+    `daemons.install_unit(...)` is an AttributeError at runtime. Both the
+    anytype and the omniroute adapter have to build a DaemonRequest instead.
+    """
+
+    class _RecordingAggregate:
+        """Stands in for the aggregate: records requests, has no verbs."""
+
+        def __init__(self, result: int = 0) -> None:
+            self.requests = []
+            self._result = result
+
+        def execute(self, request):
+            self.requests.append(request)
+            return self._result
+
+    def test_anytype_uses_execute_not_install_unit(self):
+        """UT-TOOLS-045: the anytype adapter has no direct install_unit call."""
+        import inspect
+
+        from modules.tools.src import capabilities_tools_anytype_adapter as mod
+
+        src = inspect.getsource(mod)
+        assert "daemons.install_unit(" not in src, (
+            "anytype adapter calls daemons.install_unit(); the aggregate only "
+            "publishes execute(request)"
+        )
+
+    def test_anytype_routes_unit_op_through_aggregate(self):
+        """UT-TOOLS-040: anytype's unit helper builds a request and executes it."""
+        from modules.tools.src import capabilities_tools_anytype_adapter as mod
+
+        helper = getattr(mod, "_anytype_install_unit", None)
+        assert callable(helper), "anytype adapter exposes no unit-install helper"
+
+        agg = self._RecordingAggregate()
+        assert helper(agg) == 0
+        assert len(agg.requests) == 1
+
+        req = agg.requests[0]
+        assert str(req.op) == "install_unit"
+        assert str(req.name) == "anytype"
+        assert str(req.unit) == "anytype-daemon.service"
+
+    def test_omniroute_routes_unit_op_through_aggregate(self):
+        """UT-TOOLS-041: omniroute's unit helper builds a request and executes it."""
+        from modules.tools.src.capabilities_tools_omniroute_adapter import (
+            _omniroute_install_unit,
+        )
+
+        agg = self._RecordingAggregate()
+        assert _omniroute_install_unit(agg) == 0
+
+        req = agg.requests[0]
+        assert str(req.op) == "install_unit"
+        assert str(req.name) == "omniroute"
+        assert str(req.unit) == "omniroute.service"
+
+    def test_uninstaller_does_not_call_aggregate_verbs(self):
+        """UT-TOOLS-036: the uninstaller has no direct aggregate verb call."""
+        import inspect
+
+        from modules.tools.src import capabilities_tools_uninstaller as mod
+
+        src = inspect.getsource(mod)
+        for verb in ("remove_unit(", "install_unit(", "start(", "stop(", "restart("):
+            assert f"daemons.{verb}" not in src, (
+                f"uninstaller calls daemons.{verb}; the aggregate only "
+                "publishes execute(request)"
+            )
+
+    def test_uninstaller_routes_stop_through_aggregate(self):
+        """UT-TOOLS-044: _stop_daemon builds a request and executes it."""
+        from modules.tools.src import capabilities_tools_uninstaller as mod
+
+        agg = self._RecordingAggregate()
+        assert mod._stop_daemon(agg, "omniroute") is True
+
+        assert len(agg.requests) == 1
+        req = agg.requests[0]
+        assert str(req.op) == "remove_unit"
+        assert str(req.unit) == "omniroute.service"
+
+    def test_uninstaller_reports_stop_failure(self):
+        """UT-TOOLS-038: a non-zero aggregate result is surfaced as False."""
+        from modules.tools.src import capabilities_tools_uninstaller as mod
+
+        agg = self._RecordingAggregate(result=1)
+        assert mod._stop_daemon(agg, "omniroute") is False
+
+    def test_aggregate_only_publishes_execute(self):
+        """UT-TOOLS-042: guards the premise — the aggregate has no install_unit."""
+        from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+
+        assert not hasattr(IDaemonAggregate, "install_unit")
+        assert hasattr(IDaemonAggregate, "execute")

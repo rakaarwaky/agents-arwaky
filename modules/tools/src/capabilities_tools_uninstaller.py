@@ -206,20 +206,27 @@ def _survivor_reason(path: Path) -> str:
 def _stop_daemon(daemons: object, tool_id: str) -> bool:
     """Stop the daemon's service/container before removal.
 
-    *daemons* is anything exposing ``remove_unit(unit) -> int``
-    (structural typing, resolved by the root layer's daemon aggregate).
+    *daemons* is the daemon aggregate, whose only entry point is
+    ``execute(request) -> int``; the unit op travels as a :class:`DaemonRequest`.
 
     Returns False when the unit could not be stopped (active-service residual —
     container-isolation invariant: never force-killed). Raises on unknown
     daemon names, which the caller folds into a residual.
     """
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonOp,
+        DaemonRequest,
+        DaemonUnit,
+    )
+
     unit = DAEMON_UNIT_TOOLS[tool_id]
-    rc = daemons.remove_unit(unit)
+    rc = int(daemons.execute(
+        DaemonRequest(op=DaemonOp("remove_unit"), unit=DaemonUnit(unit))
+    ))
     if rc == 0:
         return True
-    unit = DAEMON_UNIT_TOOLS.get(tool_id)
     # P1-4: never invoke systemctl when it is absent (FileNotFoundError guard).
-    if unit and shutil.which("systemctl") and (config_home() / "systemd" / "user" / unit).exists():
+    if shutil.which("systemctl") and (config_home() / "systemd" / "user" / unit).exists():
         active = subprocess.run(
             ["systemctl", "--user", "is-active", unit],
             capture_output=True, text=True, check=False,

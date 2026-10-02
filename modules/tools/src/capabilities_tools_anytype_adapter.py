@@ -95,6 +95,27 @@ def _anytype_mcp_launchers(app_dir: Path, is_update: bool) -> list[Path]:
         raise (ToolUpdateError if is_update else FileNotFoundError)(f"entry not found {entry}")
     return [write_node_launcher("anytype-mcp", entry)]
 
+def _anytype_install_unit(daemons) -> int:
+    """Route the unit install through the daemon aggregate.
+
+    The aggregate exposes ``execute`` rather than ``install_unit``; building a
+    request keeps the adapter on the published contract.
+    """
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonName,
+        DaemonOp,
+        DaemonRequest,
+        DaemonUnit,
+    )
+
+    request = DaemonRequest(
+        op=DaemonOp("install_unit"),
+        name=DaemonName("anytype"),
+        unit=DaemonUnit("anytype-daemon.service"),
+    )
+    return int(daemons.execute(request))
+
+
 def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     is_update = action == "update"
     progress_ed = "updated" if is_update else "installed"
@@ -112,7 +133,7 @@ def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
             print(f"  Warning: anytype-daemon service-install exited {rc}")
     else:
         if daemons is not None:
-            rc = daemons.install_unit("anytype-daemon.service")
+            rc = _anytype_install_unit(daemons)
             if rc != 0:
                 raise ToolUpdateError(f"anytype-daemon service-install exited {rc}")
         elif shutil.which("podman") is None and shutil.which("docker") is None:

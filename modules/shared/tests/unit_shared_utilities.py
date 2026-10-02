@@ -898,3 +898,210 @@ class TestResolveExecutable:
 
         result = resolve_executable("nonexistent-binary-12345")
         assert result is None
+
+
+class TestPruneProvisioned:
+    """Tests for prune_provisioned across both provisioned layouts.
+
+    Provisioning lands FLAT at ``.agents/skills/<skill>/`` (see
+    :func:`provision_single_skill`, which uses ``base / name``), but some
+    callers nest under a category: ``.agents/skills/<category>/<skill>/``.
+    Prune must recognise both, otherwise flat orphans are never reported.
+    """
+
+    def _make(self, root: Path, rel: str, marker: bool = True) -> Path:
+        """Create a provisioned skill dir at *rel* under *root*."""
+        d = root / rel
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "SKILL.md").write_text("# skill\n")
+        if marker:
+            (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+        return d
+
+    def test_removes_flat_provisioned_skill(self):
+        """UT-SHARED-081: a flat provisioned skill the pack dropped is removed."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            stale = self._make(target, ".agents/skills/retired-skill")
+
+            assert prune_provisioned(target, pack) == 1
+            assert not stale.exists()
+
+    def test_removes_category_nested_provisioned_skill(self):
+        """UT-SHARED-082: a <category>/<skill>/ provisioned copy is removed."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            stale = self._make(target, ".agents/skills/ai-gateway/retired-skill")
+
+            assert prune_provisioned(target, pack) == 1
+            assert not stale.exists()
+
+    def test_keeps_handwritten_flat_skill(self):
+        """UT-SHARED-083: a flat skill with no provenance marker is left alone."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            mine = self._make(target, ".agents/skills/my-own-skill", marker=False)
+
+            assert prune_provisioned(target, pack) == 0
+            assert mine.is_dir()
+
+    def test_keeps_handwritten_nested_skill(self):
+        """UT-SHARED-084: a nested skill with no marker is left alone."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            mine = self._make(target, ".agents/skills/mine/hand-written", marker=False)
+
+            assert prune_provisioned(target, pack) == 0
+            assert mine.is_dir()
+
+    def test_removes_symlink_pointing_into_pack(self):
+        """UT-SHARED-085: a symlink resolving inside the pack is removed."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            src = pack / "devops" / "retired-skill"
+            src.mkdir(parents=True)
+            (src / "SKILL.md").write_text("# skill\n")
+            link = target / ".agents" / "skills" / "retired-skill"
+            link.parent.mkdir(parents=True)
+            link.symlink_to(src, target_is_directory=True)
+
+            assert prune_provisioned(target, pack) == 1
+            assert not link.is_symlink()
+
+    def test_keeps_symlink_pointing_outside_pack(self):
+        """UT-SHARED-086: a symlink resolving outside the pack is preserved."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            elsewhere = Path(tmp) / "elsewhere" / "my-skill"
+            elsewhere.mkdir(parents=True)
+            (elsewhere / "SKILL.md").write_text("# mine\n")
+            link = target / ".agents" / "skills" / "linked"
+            link.parent.mkdir(parents=True)
+            link.symlink_to(elsewhere, target_is_directory=True)
+
+            assert prune_provisioned(target, pack) == 0
+            assert link.is_symlink()
+
+    def test_missing_skills_root_returns_zero(self):
+        """UT-SHARED-087: a target with no .agents/skills is a no-op."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            target.mkdir(parents=True)
+
+            assert prune_provisioned(target, pack) == 0
+
+    def test_counts_every_orphan_in_one_pass(self):
+        """UT-SHARED-088: flat and nested orphans are both counted."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            self._make(target, ".agents/skills/flat-a")
+            self._make(target, ".agents/skills/flat-b")
+            self._make(target, ".agents/skills/cat/nested-a")
+            self._make(target, ".agents/skills/keep-me", marker=False)
+
+            assert prune_provisioned(target, pack) == 3
+            assert (target / ".agents/skills/keep-me").is_dir()
+
+
+class TestPruneKeepsCurrentPackSkills:
+    """A provisioned copy the pack still ships is CURRENT, not stale.
+
+    Without a pack comparison, prune removes every entry carrying the provenance
+    marker — deleting all 103 provisioned skills in this repo's own workspace.
+    """
+
+    def _pack(self, root: Path, *names: str) -> Path:
+        pack = root / "skills"
+        for n in names:
+            d = pack / "cat" / n
+            d.mkdir(parents=True, exist_ok=True)
+            (d / "SKILL.md").write_text(f"# {n}\n")
+        return pack
+
+    def test_keeps_provisioned_skill_still_in_pack(self):
+        """UT-SHARED-089: a copy of a skill the pack still provides survives."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "proj"
+            pack = self._pack(Path(tmp), "current-skill")
+            d = target / ".agents" / "skills" / "current-skill"
+            d.mkdir(parents=True)
+            (d / "SKILL.md").write_text("# current\n")
+            (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+            assert prune_provisioned(target, pack) == 0
+            assert d.is_dir(), "prune deleted a skill the pack still provides"
+
+    def test_removes_only_the_dropped_one(self):
+        """UT-SHARED-090: mixed tree prunes the orphan and keeps the rest."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "proj"
+            pack = self._pack(Path(tmp), "current-skill", "also-current")
+            for n in ("current-skill", "also-current", "retired-skill"):
+                d = target / ".agents" / "skills" / n
+                d.mkdir(parents=True)
+                (d / "SKILL.md").write_text(f"# {n}\n")
+                (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+            assert prune_provisioned(target, pack) == 1
+            assert (target / ".agents/skills/current-skill").is_dir()
+            assert (target / ".agents/skills/also-current").is_dir()
+            assert not (target / ".agents/skills/retired-skill").exists()
+
+    def test_reports_only_dropped_names(self):
+        """UT-SHARED-091: `names` lists the dropped entries, not the kept ones."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "proj"
+            pack = self._pack(Path(tmp), "current-skill")
+            for n in ("current-skill", "retired-skill"):
+                d = target / ".agents" / "skills" / n
+                d.mkdir(parents=True)
+                (d / "SKILL.md").write_text(f"# {n}\n")
+                (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+            names: list[str] = []
+            assert prune_provisioned(target, pack, names=names) == 1
+            assert names == ["retired-skill"]
+
+    def test_nested_current_skill_survives(self):
+        """UT-SHARED-092: the pack check also guards <category>/<skill>/ copies."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "proj"
+            pack = self._pack(Path(tmp), "current-skill")
+            d = target / ".agents" / "skills" / "cat" / "current-skill"
+            d.mkdir(parents=True)
+            (d / "SKILL.md").write_text("# current\n")
+            (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+            assert prune_provisioned(target, pack) == 0
+            assert d.is_dir(), "prune deleted a nested skill the pack still provides"

@@ -100,14 +100,15 @@ def _provision_base(target_dir: Path, custom_dest: str) -> Path:
 
 def _report_prune(base: Path) -> None:
     """Drop provisioned entries the pack no longer provides; leave foreign skills."""
-    removed = prune_provisioned(base, PACK_ROOT)
+    pruned: list[str] = []
+    removed = prune_provisioned(base, PACK_ROOT, names=pruned)
     print("------------------------------------------------------------------")
     if not removed:
         print(f"Prune: nothing stale under {base}")
         return
-    for name in removed:
+    for name in pruned:
         print(f"  - [PRUNE] {base / name}")
-    print(f"Prune: removed {len(removed)} provisioned skill(s) the pack no longer provides.")
+    print(f"Prune: removed {removed} provisioned skill(s) the pack no longer provides.")
 
 
 def cmd_install(argv):
