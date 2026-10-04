@@ -19,7 +19,7 @@ can authenticate.
 |---|---|---|---|
 | MCP servers | merged server map | harness settings/config file | whether those commands start |
 | Skills | the whole skills dir becomes ONE symlink to `agents-arwaky/skills/` (verified harnesses: hermes, opencode, grok-build; per-skill copies elsewhere) | `<harness>/skills` | named-profile skill dirs |
-| Env | `OMNIROUTE_URL`, `OMNIROUTE_KEY`, `MNEMOSYNE_DATA_DIR` | `<harness>/.env` + `~/.config/environment.d/omniroute.conf` | the harness's own provider/model config |
+| Env | `OMNIROUTE_URL`, `OMNIROUTE_KEY` | `<harness>/.env` + `~/.config/environment.d/omniroute.conf` | the harness's own provider/model config |
 
 Code: `modules/harness/src/surface_harness_command.py` (dispatch),
 `modules/harness/src/utility_*_adapter.py` (per-harness),

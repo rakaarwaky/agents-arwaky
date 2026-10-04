@@ -38,11 +38,10 @@
 	path = vendor/google-workspace-mcp
 	url = https://github.com/taylorwilsdon/google_workspace_mcp.git
 	ignore = dirty
-[submodule "vendor/mnemosyne"]
-	path = vendor/mnemosyne
-	url = https://github.com/mnemosyne-oss/mnemosyne.git
-	ignore = dirty
 [submodule "vendor/omniroute"]
 	path = vendor/omniroute
 	url = https://github.com/diegosouzapw/OmniRoute.git
 	ignore = dirty
+[submodule "vendor/hindsight"]
+	path = vendor/hindsight
+	url = https://github.com/vectorize-io/hindsight.git

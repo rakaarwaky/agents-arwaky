@@ -14,7 +14,7 @@ deletion steps. Where Hermes keeps state is NOT inventoried here — see below.
 ## Where Hermes keeps state (not repeated here)
 
 The provisioning map lives in the `agent-harness-connectors` skill — what `aa connect`
-writes and where (MCP server map into each harness config, `OMNIROUTE_*`/`MNEMOSYNE_*`
+writes and where (MCP server map into each harness config, `OMNIROUTE_*`
 into `<harness>/.env` plus `~/.config/environment.d/`, skills as one root symlink into the
 pack, and the dot-prefixed state files that land beside them). Profile layout and the
 `skills.disabled` mechanism are in `hermes-profiles` (`hermes-profiles` skill's `references/skills-layout.md`,
