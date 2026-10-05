@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 
 class TestAnytypeDaemonManagerInit:
@@ -154,10 +154,10 @@ class TestDaemonAggregateNoExecuteMethod:
     def test_orchestrator_has_single_execute(self):
         """UT-DAEMON-014: DaemonOrchestrator has a single execute() method."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
+        from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
         from modules.daemon.src.capabilities_omniroute_daemon import (
             OmnirouteDaemonManager,
         )
-        from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         orch = DaemonOrchestrator(OmnirouteDaemonManager(), AnytypeDaemonManager())
         assert callable(getattr(orch, "execute"))
@@ -228,10 +228,10 @@ class TestDaemonOrchestrator:
     def test_init_stores_managers(self):
         """UT-DAEMON-023: DaemonOrchestrator stores injected managers."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
+        from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
         from modules.daemon.src.capabilities_omniroute_daemon import (
             OmnirouteDaemonManager,
         )
-        from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         orch = DaemonOrchestrator(OmnirouteDaemonManager(), AnytypeDaemonManager())
         assert orch._omniroute is not None
@@ -240,10 +240,10 @@ class TestDaemonOrchestrator:
     def test_execute_routes_to_correct_manager(self):
         """UT-DAEMON-024: DaemonOrchestrator.execute routes by op + name."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
+        from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
         from modules.daemon.src.capabilities_omniroute_daemon import (
             OmnirouteDaemonManager,
         )
-        from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
         from modules.shared.src.taxonomy_daemon_vo import (
             DaemonName,
             DaemonOp,

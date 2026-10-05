@@ -1,8 +1,6 @@
 """Integration tests for modules/harness — test component interactions."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 
 def test_harness_connector_execute_connect():
     """IT-HARNESS-001: HarnessConnector executes connect operation."""

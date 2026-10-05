@@ -63,7 +63,7 @@ def normalize_tool_id(query):
         "blender-arwaky": "blender-arwaky", "blender": "blender-arwaky", "ba": "blender-arwaky",
         "skill": "skill", "skills": "skill", "skill-manager": "skill",
         "workspace": "workspace", "workspace-mcp": "workspace", "google-workspace": "workspace",
-        "mnemosyne": "mnemosyne", "mnemosyne-memory": "mnemosyne", "mnemosyne-mcp": "mnemosyne",
+        "hindsight": "hindsight", "hindsight-memory": "hindsight", "hindsight-api": "hindsight",
     }
     if query in alias:
         return alias[query]
@@ -478,9 +478,7 @@ def prune_provisioned(
             # A hand-written skill in its own right, not a category folder.
             continue
         for nested in sorted(child.iterdir()):
-            if nested.is_symlink():
-                _drop(nested, f"{child.name}/{nested.name}")
-            elif nested.is_dir() and (nested / PROVENANCE_FILE).is_file():
+            if nested.is_symlink() or nested.is_dir() and (nested / PROVENANCE_FILE).is_file():
                 _drop(nested, f"{child.name}/{nested.name}")
     return removed
 

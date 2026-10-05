@@ -15,8 +15,8 @@ from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_service_protocol import IServiceProtocol
 from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
 from modules.shared.src.taxonomy_service_vo import (
-    TARGET_OMNIROUTE,
     TARGET_ALL,
+    TARGET_OMNIROUTE,
     ExitCode,
     ServiceTarget,
 )
@@ -73,6 +73,8 @@ class ServiceManager(IServiceProtocol):
     def main(self, argv) -> int:
         """Run the service manager CLI entry point with the given arguments."""
         return main(argv)
+
+# ─── Block 3: Dunder Methods, Factories & Helpers ───
 
 def _daemons() -> IDaemonAggregate:
     """Daemon control surface: set by the service root container at construction."""

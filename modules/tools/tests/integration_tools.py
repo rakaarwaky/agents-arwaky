@@ -1,10 +1,8 @@
 """Integration tests for modules/tools — real wiring and orchestration."""
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import MagicMock
 
-from modules.shared.src.taxonomy_common_vo import ToolSpec
 from modules.shared.src.taxonomy_tools_vo import (
     ToolArgs,
     ToolQuery,

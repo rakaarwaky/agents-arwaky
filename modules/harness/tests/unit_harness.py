@@ -1,7 +1,7 @@
 """Unit tests for modules/harness — test individual functions and methods."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 

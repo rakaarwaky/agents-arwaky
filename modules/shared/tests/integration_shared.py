@@ -123,7 +123,6 @@ def test_get_registered_tool_ids():
 def test_envfile_roundtrip_integration():
     """IT-SHARED-013: Full envfile read/write roundtrip works."""
     from modules.shared.src.utility_envfile_parser import (
-        load_first_env,
         parse_env_file,
         remove_env_keys,
         update_env_file,

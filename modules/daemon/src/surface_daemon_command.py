@@ -62,9 +62,18 @@ _DEFAULT_ARG: dict[str, str] = {
 }
 
 
+_ORCHESTRATOR_FACTORY: Callable[[], IDaemonAggregate] | None = None
+
+
 def register_manager_factory(name: str, factory: Callable[[], IDaemonProtocol]) -> None:
     """Register a manager factory for *name* (composition root only)."""
     _MANAGER_FACTORY[name] = factory
+
+
+def register_orchestrator_factory(factory: Callable[[], IDaemonAggregate]) -> None:
+    """Register the aggregate factory (composition root only)."""
+    global _ORCHESTRATOR_FACTORY
+    _ORCHESTRATOR_FACTORY = factory
 
 
 def _manager(name: str) -> IDaemonProtocol:
@@ -83,9 +92,9 @@ def _orchestrator(orch: IDaemonAggregate | None) -> IDaemonAggregate:
     """
     if orch is not None:
         return orch
-    from modules.daemon.src.root_daemon_container import create_daemon_feature
-
-    return create_daemon_feature()
+    if _ORCHESTRATOR_FACTORY is None:
+        raise RuntimeError("no daemon aggregate factory registered")
+    return _ORCHESTRATOR_FACTORY()
 
 
 def _dispatch(
@@ -188,4 +197,5 @@ __all__ = [
     "cmd_anytype",
     "cmd_omniroute",
     "register_manager_factory",
+    "register_orchestrator_factory",
 ]

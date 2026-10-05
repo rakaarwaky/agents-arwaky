@@ -619,12 +619,18 @@ def _doctor_feature_compat():
 
 def cmd_anytype(argv: list[str]) -> int:
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.daemon.src.surface_daemon_command import cmd_anytype as _daemon_anytype
+    from modules.daemon.src.surface_daemon_command import (
+        cmd_anytype as _daemon_anytype,
+    )
     from modules.daemon.src.surface_daemon_command import (
         register_manager_factory as _reg_dm,
     )
+    from modules.daemon.src.surface_daemon_command import (
+        register_orchestrator_factory as _reg_da,
+    )
     _c = DaemonContainer()
     _reg_dm("anytype", lambda: _c.anytype)
+    _reg_da(lambda: _c.aggregate)
     return _daemon_anytype(argv)
 
 
@@ -636,16 +642,32 @@ def cmd_omniroute(argv: list[str]) -> int:
     from modules.daemon.src.surface_daemon_command import (
         register_manager_factory as _reg_dm,
     )
+    from modules.daemon.src.surface_daemon_command import (
+        register_orchestrator_factory as _reg_da,
+    )
     _c = DaemonContainer()
     _reg_dm("omniroute", lambda: _c.omniroute)
+    _reg_da(lambda: _c.aggregate)
     return _daemon_omniroute(argv)
 
 
 def cmd_daemon(argv: list[str]) -> int:
     """aa daemon <id> <action> — list|status|start|… for a managed daemon."""
-    from modules.daemon.src.root_daemon_container import DaemonContainer, create_daemon_feature
-    from modules.daemon.src.surface_daemon_command import register_manager_factory as _reg_dm
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
+    from modules.daemon.src.root_daemon_container import (
+        DaemonContainer,
+        create_daemon_feature,
+    )
+    from modules.daemon.src.surface_daemon_command import (
+        register_manager_factory as _reg_dm,
+    )
+    from modules.daemon.src.surface_daemon_command import (
+        register_orchestrator_factory as _reg_da,
+    )
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonName,
+        DaemonOp,
+        DaemonRequest,
+    )
 
     orch = create_daemon_feature()
     known = {str(n) for n in orch.known}
@@ -671,6 +693,7 @@ def cmd_daemon(argv: list[str]) -> int:
         _c = DaemonContainer()
         _reg_dm("anytype", lambda: _c.anytype)
         _reg_dm("omniroute", lambda: _c.omniroute)
+        _reg_da(lambda: _c.aggregate)
         from modules.daemon.src import surface_daemon_command as _dv
 
         fn = {

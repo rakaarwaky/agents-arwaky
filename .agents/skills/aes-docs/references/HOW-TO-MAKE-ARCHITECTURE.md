@@ -50,7 +50,7 @@
 5. **Section: Vertical Slicing Folder Structure** — feature layout and shared layout.
 6. **Section per layer** — Taxonomy, Contract, Utility, Capabilities, Agent, Surface,
    Root. Each section: Purpose, Components, Dependencies, Special Rules.
-7. **Verify** → manual review of the invariant table passes; every dependency table has a line for each
+7. **Verify** → `lint-arwaky-cli docs` passes; every dependency table has a line for each
    named layer.
 
 ## Template
@@ -93,12 +93,14 @@ Exceptions: `main.rs`, `lib.rs`, `mod.rs`, `__init__.py`, `index.ts`, `index.js`
 #### Feature member
 
 ```
+
 modules/<feature-name>/src/
-├── agent_<feature>_orchestrator.py        # Agent layer — only allowed role
-├── capabilities_<feature>_<role>.py       # Capabilities layer
-├── utility_<feature>_<role>.py            # Utility layer
-└── root_<feature>_container.py            # Root layer
-```
+├── agent_<feature>*orchestrator.py        # Agent layer — only allowed role
+├── capabilities*<feature>*<role>.py       # Capabilities layer
+├── utility*<feature>*<role>.py            # Utility layer
+└── root*<feature>_container.py            # Root layer
+
+```text
 
 Do **not** create `surface/`, `taxonomy/`, `contract/`, `capabilities/`, `utility/`,
 `agent/` folders. Layers live in file names, not directories.
@@ -106,19 +108,22 @@ Do **not** create `surface/`, `taxonomy/`, `contract/`, `capabilities/`, `utilit
 #### Shared member
 
 ```
+
 modules/shared/src/
-├── taxonomy_<domain>_vo.py
-├── taxonomy_<domain>_event.py
-├── taxonomy_<domain>_error.py
-├── contract_<domain>_protocol.py
-└── contract_<domain>_aggregate.py
-```
+├── taxonomy_<domain>*vo.py
+├── taxonomy*<domain>*event.py
+├── taxonomy*<domain>*error.py
+├── contract*<domain>*protocol.py
+└── contract*<domain>_aggregate.py
+
+```text
 
 `shared/common/` holds generic utilities not tied to a domain.
 
 ### General Workspace Layout
 
 ```
+
 project-root/
 ├── modules/
 │   ├── shared/src/           <- Taxonomy + Contract (all features)
@@ -128,7 +133,8 @@ project-root/
 ├── PRD.md
 ├── README.md
 └── AGENTS.md
-```
+
+```text
 
 ## 5. Taxonomy Layer
 
@@ -320,6 +326,7 @@ Every section is required unless marked optional. Each exists for one reason.
 ## Verify
 
 ```bash
+lint-arwaky-cli docs .
 # Checks: dead-link, absolute-path, secret-in-docs, doc-length.
 # Manual: every layer states its allowed dependencies; no implementation detail;
 #   file names follow layer_concern_role.ext; no per-file exceptions without a subsection.

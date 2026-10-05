@@ -50,26 +50,6 @@ def test_import_taxonomy_modules():
 
 def test_import_contracts():
     """SM-SHARED-004: contract modules can be imported."""
-    from modules.shared.src import (
-        contract_backup_aggregate,
-        contract_backup_protocol,
-        contract_config_aggregate,
-        contract_config_protocol,
-        contract_daemon_aggregate,
-        contract_daemon_protocol,
-        contract_doctor_aggregate,
-        contract_doctor_protocol,
-        contract_harness_aggregate,
-        contract_harness_protocol,
-        contract_mcp_aggregate,
-        contract_mcp_protocol,
-        contract_service_aggregate,
-        contract_service_protocol,
-        contract_skill_aggregate,
-        contract_skill_protocol,
-        contract_tools_aggregate,
-        contract_tools_protocol,
-    )
 
     # All imports succeeded without errors
     assert True

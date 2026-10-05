@@ -219,7 +219,6 @@ def bench_execute_load(benchmark):
 def bench_execute_save(benchmark):
     """BENCH-CONFIG-016: execute('save') dispatcher performance."""
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:

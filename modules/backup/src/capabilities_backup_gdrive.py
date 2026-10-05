@@ -159,6 +159,8 @@ def get_drive_service():
     return build("drive", "v3", http=auth_http)
 
 
+# ─── Block 3: Dunder Methods, Factories & Helpers ───
+
 def _is_transient(err) -> bool:
     """Return True if the error is retryable (transient), False for permanent
     failures."""

@@ -13,8 +13,8 @@ def test_import_daemon_module():
 def test_import_daemon_capabilities():
     """SM-DAEMON-002: daemon capability modules can be imported."""
     from modules.daemon.src import (
-        capabilities_omniroute_daemon,
         capabilities_anytype_daemon,
+        capabilities_omniroute_daemon,
     )
 
     assert capabilities_anytype_daemon is not None
@@ -84,8 +84,8 @@ def test_omniroute_manager_instantiates():
 def test_orchestrator_instantiates():
     """SM-DAEMON-010: DaemonOrchestrator instantiates quickly."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 
     start = time.time()
     omniroute = OmnirouteDaemonManager()

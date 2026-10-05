@@ -27,18 +27,13 @@ _KNOWN: tuple[DaemonName, ...] = (DaemonName("anytype"), DaemonName("omniroute")
 class DaemonOrchestrator(IDaemonAggregate):
     """Route daemon actions to the named capability (zero I/O)."""
 
-    def __init__(
-        self,
-        anytype: IDaemonProtocol | None = None,
-        omniroute: IDaemonProtocol | None = None,
-    ) -> None:
+    def __init__(self, anytype: IDaemonProtocol, omniroute: IDaemonProtocol) -> None:
         self._anytype = anytype
         self._omniroute = omniroute
-        self._managers: dict[str, IDaemonProtocol] = {}
-        if anytype is not None:
-            self._managers["anytype"] = anytype
-        if omniroute is not None:
-            self._managers["omniroute"] = omniroute
+        self._managers: dict[str, IDaemonProtocol] = {
+            "anytype": anytype,
+            "omniroute": omniroute,
+        }
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def execute(self, request: DaemonRequest) -> DaemonResponse:

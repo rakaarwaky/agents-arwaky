@@ -34,7 +34,6 @@ FALLBACK_MCP_COMMANDS: dict[str, str] = {
     "blender-arwaky": "blender-mcp",
     "lint-arwaky": "lint-arwaky-mcp",
     "workspace": "workspace-mcp",
-    "mnemosyne": "mnemosyne-mcp",
 }
 
 #: Per-skill sub-directories copied alongside SKILL.md on snapshot installs.

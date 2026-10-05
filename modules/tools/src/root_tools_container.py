@@ -8,7 +8,7 @@ across orchestrator instances; the daemon aggregate is passed to
 ``install`` explicitly, never held on the adapter.
 
 Every tool id lives in a sibling capability module — the nine
-config-driven providers (blender / vision / qwen-web / mnemosyne /
+config-driven providers (blender / vision / qwen-web /
 workspace / codegraph / context7 / fetch / ponytail) plus anytype, lint,
 and omniroute — each exporting ``ADAPTER_UNITS``; all are merged into the
 single ``TOOLS_REGISTRY`` below.
@@ -41,12 +41,12 @@ from modules.tools.src.capabilities_tools_context7_adapter import (
 from modules.tools.src.capabilities_tools_fetch_adapter import (
     ADAPTER_UNITS as _FETCH_UNITS,
 )
+from modules.tools.src.capabilities_tools_hindsight_adapter import (
+    ADAPTER_UNITS as _HINDSIGHT_UNITS,
+)
 from modules.tools.src.capabilities_tools_installer import InstallerCapability
 from modules.tools.src.capabilities_tools_lint_adapter import (
     ADAPTER_UNITS as _LINT_UNITS,
-)
-from modules.tools.src.capabilities_tools_mnemosyne_adapter import (
-    ADAPTER_UNITS as _MNEMOSYNE_UNITS,
 )
 from modules.tools.src.capabilities_tools_omniroute_adapter import (
     ADAPTER_UNITS as _OMNIROUTE_UNITS,
@@ -77,8 +77,8 @@ TOOLS_REGISTRY: dict[str, object] = {
     **_CODEGRAPH_UNITS,
     **_CONTEXT7_UNITS,
     **_FETCH_UNITS,
+    **_HINDSIGHT_UNITS,
     **_LINT_UNITS,
-    **_MNEMOSYNE_UNITS,
     **_OMNIROUTE_UNITS,
     **_PONYTAIL_UNITS,
     **_QWEN_WEB_UNITS,

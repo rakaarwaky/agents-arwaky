@@ -9,8 +9,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from modules.shared.src.taxonomy_service_vo import (
-    TARGET_OMNIROUTE,
     TARGET_ALL,
+    TARGET_OMNIROUTE,
     ExitCode,
     ServiceTarget,
 )
@@ -51,8 +51,8 @@ class IServiceProtocol(ABC):
 
 
 __all__ = [
-    "TARGET_OMNIROUTE",
     "TARGET_ALL",
+    "TARGET_OMNIROUTE",
     "ExitCode",
     "IServiceProtocol",
     "ServiceTarget",

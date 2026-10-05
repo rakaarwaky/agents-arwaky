@@ -98,6 +98,7 @@ class InstallerCapability(IToolsInstallerProtocol):
         result = self._register_launcher(spec, result)
         return result
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───
     def __repr__(self) -> str:
         return "InstallerCapability()"
     def _register_launcher(

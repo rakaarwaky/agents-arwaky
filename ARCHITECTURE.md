@@ -1,12 +1,12 @@
 # Agentic Engineering System Architecture
 
-## 1. Purpose
+## Purpose
 
 The Agentic Engineering System is a layered, AI-native architecture pattern. It keeps domain models stable, business logic readable, technical detail isolated, and layer boundaries explicit enough for both humans and AI agents to modify the system safely.
 
 ---
 
-## 2. Workspace Organization
+## Workspace Organization
 
 The architecture supports multi-language workspaces.
 
@@ -20,7 +20,7 @@ The architecture supports multi-language workspaces.
 
 ---
 
-## 3. Naming Convention
+## Naming Convention
 
 File names must communicate three parts:
 
@@ -34,7 +34,7 @@ The parts are joined by underscores, followed by the normal file extension for t
 
 ---
 
-## 4. Vertical Slicing Folder Structure
+## Vertical Slicing Folder Structure
 
 AI agents frequently make this mistake. Do NOT create `surface/`, `taxonomy/`,
 `contract/`, `capabilities/`, `utility/`, `agent/` folders. The correct structure
@@ -117,7 +117,7 @@ project-root/                             <- Project workspace root
 
 ---
 
-## 5. Taxonomy Layer
+## Taxonomy Layer
 
 ### Purpose
 
@@ -146,7 +146,7 @@ Taxonomy depends on nothing.
 
 ---
 
-## 6. Contract Layer
+## Contract Layer
 
 ### Purpose
 
@@ -170,7 +170,7 @@ Contract may depend on Taxonomy only.
 
 ---
 
-## 7. Utility Layer
+## Utility Layer
 
 ### Purpose
 
@@ -206,7 +206,7 @@ Utility may depend only on Taxonomy.
 
 ---
 
-## 8. Capabilities Layer
+## Capabilities Layer
 
 ### Purpose
 
@@ -247,7 +247,7 @@ Capabilities generally handle two types of concerns:
 
 ---
 
-## 9. Agent Layer
+## Agent Layer
 
 ### Purpose
 
@@ -280,7 +280,7 @@ Agent may depend only on Taxonomy, Contract, and Utility.
 
 ---
 
-## 10. Surface Layer
+## Surface Layer
 
 ### Purpose
 
@@ -319,7 +319,7 @@ Surface roles include:
 
 ---
 
-## 11. Root Layer
+## Root Layer
 
 ### Purpose
 

@@ -200,6 +200,8 @@ class HarnessConnector(IHarnessConnectProtocol):
         return "HarnessConnector()"
 
 
+# ─── Block 3: Dunder Methods, Factories & Helpers ───
+
 def _router_v1(url: str) -> str:
     base = url.rstrip("/")
     return base if base.endswith("/v1") else base + "/v1"

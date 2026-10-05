@@ -5,8 +5,6 @@ They use pytest.skipif to gracefully skip when services are unavailable.
 """
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 

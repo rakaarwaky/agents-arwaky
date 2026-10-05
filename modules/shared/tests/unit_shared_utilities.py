@@ -364,7 +364,6 @@ class TestRemoveEnvKeys:
         from modules.shared.src.utility_envfile_parser import (
             parse_env_file,
             remove_env_keys,
-            update_env_file,
         )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
@@ -382,7 +381,6 @@ class TestRemoveEnvKeys:
         from modules.shared.src.utility_envfile_parser import (
             parse_env_file,
             remove_env_keys,
-            update_env_file,
         )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
@@ -401,9 +399,7 @@ class TestRemoveEnvKeys:
     def test_remove_nonexistent_key(self):
         """UT-SHARED-032: remove_env_keys handles nonexistent key."""
         from modules.shared.src.utility_envfile_parser import (
-            parse_env_file,
             remove_env_keys,
-            update_env_file,
         )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:

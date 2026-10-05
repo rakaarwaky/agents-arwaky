@@ -7,7 +7,6 @@ import pytest
 @pytest.mark.dogfood
 def test_dogfood_skill_pipeline():
     """DOG-SKILL-001: Basic dogfood check for skill module."""
-    from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
     from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
     provisioner = SkillPackProvisioner()

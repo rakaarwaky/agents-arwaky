@@ -18,7 +18,7 @@ __all__ = [
     "DaemonContainer",
     "DaemonOrchestrator",
     "OmnirouteDaemonManager",
-    "cmd_omniroute",
     "cmd_anytype",
+    "cmd_omniroute",
     "create_daemon_feature",
 ]

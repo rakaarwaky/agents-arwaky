@@ -3,7 +3,7 @@
 
 ---
 
-## 💡 Executive Summary
+
 
 Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`cargo`), Node (`pnpm`/`npm`), Bun, Python (`uv`), Playwright headless browsers, and system C-libraries. Installing these natively clutters the host operating system, introduces version conflicts, and creates security vulnerabilities.
 
@@ -16,7 +16,12 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 
 ---
 
-## 🏛️ Architecture
+## Prerequisites
+
+- Python 3.10+, Node.js 18+, Rust toolchain, uv, pnpm
+- See `aa doctor` to verify host prerequisites.
+
+## Architecture
 
 ### System Flow
 
@@ -100,7 +105,7 @@ agents-arwaky/
 │   ├── context7/                # Upstash documentation & context retrieval
 │   ├── fetch-mcp/               # Fast, clean web scraping & text extraction
 │   ├── google-workspace-mcp/    # Google Workspace integration (Gmail, Drive, Docs, etc.)
-│   ├── mnemosyne/               # Universal local AI memory layer & temporal graph
+│   ├── hindsight/               # Hindsight agent memory: LLM extraction, knowledge graph & retrieval
 │   └── ponytail/                # Agent architecture patterns & instructions
 │
 ├── modules/                     # AES 7-layer orchestration (taxonomy→…→root)
@@ -118,7 +123,7 @@ agents-arwaky/
 
 ---
 
-## 🚀 Quickstart in 60 Seconds
+## Quick Start
 
 ### 1. Clone with Submodules
 
@@ -179,7 +184,7 @@ aa status
 
 ---
 
-## 💻 Unified Orchestrator CLI (`agents-arwaky` / `aa`)
+### Unified Orchestrator CLI (`agents-arwaky` / `aa`)
 
 The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~/.local/bin/`. It serves as the single pane of glass for monitoring, executing, and managing all ecosystem components.
 
@@ -230,7 +235,7 @@ aa tool run lint-arwaky --help
 
 ---
 
-## 📦 Agent & Tool Catalog
+### Agent & Tool Catalog
 
 > [!TIP]
 > The single source of truth (SSOT) for all tool registrations is [`config/manifest.json`](config/manifest.json). You can also run `aa tool list` or `aa mcp list` to inspect live tool status from the terminal.
@@ -261,11 +266,11 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
 | **omniroute**   | `omniroute`                        | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | HTTP Gateway       | Free-first AI gateway: 350+ providers, 150+ free tiers, `auto/best-*` combos. Host-native, no Docker. State in `~/.omniroute/`. |
 | **workspace**   | `workspace-mcp`                    | [taylorwilsdon/google_workspace_mcp](https://github.com/taylorwilsdon/google_workspace_mcp) | MCP Server | Google Workspace full integration (Gmail, Drive, Docs, Sheets, Chat).   |
-| **mnemosyne**   | `mnemosyne`, `mnemosyne-mcp`       | [mnemosyne-oss/mnemosyne](https://github.com/mnemosyne-oss/mnemosyne) | CLI / MCP / Plugin | Universal SQLite memory, temporal knowledge graph & multi-harness sync. |
+| **hindsight**   | `hindsight`, `hindsight-local-mcp`   | [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight) | MCP / Plugin | LLM-extracted agent memory: knowledge graph, observations, multi-strategy retrieval (semantic/keyword/graph/temporal). Local pg0 + OpenAI-compatible LLM. |
 
 ---
 
-## 🔌 MCP Client Integration
+### MCP Client Integration
 
 `agents-arwaky` generates a standardized, unified MCP client configuration file during `aa tool install` or `aa mcp generate`:
 
@@ -293,7 +298,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
     "blender": { "command": "blender-mcp" },
     "lint": { "command": "lint-arwaky-mcp" },
     "workspace": { "command": "workspace-mcp" },
-    "mnemosyne": { "command": "mnemosyne-mcp" }
+    "hindsight": { "command": "hindsight-local-mcp" }
   }
 }
 ```
@@ -361,7 +366,7 @@ Each entry is `{ "command": "<tool>-mcp" }` (codegraph adds `args: ["serve", "--
 
 ---
 
-## 🛠️ Developer Workflows & Installation Paradigms
+### Developer Workflows & Installation Paradigms
 
 `agents-arwaky` defines **One Installation Paradigm** across all tools: **local bare-metal build** that compiles and installs directly on the host.
 
@@ -391,7 +396,7 @@ aa reset                         # full factory reset
 
 ---
 
-## 🔒 Security & Sandboxing Model
+### Security & Sandboxing Model
 
 - **Local Bare-Metal Execution:** Tools compile and run directly on the host OS — no container indirection for CLI tools or MCPs.
 - **XDG Conformance & Storage Isolation:** binaries → `${XDG_DATA_HOME}/<tool>/`, launchers → `${XDG_BIN_HOME}/`, configs → `${XDG_CONFIG_HOME}/<tool>/`, data/reports → `${XDG_DATA_HOME}/<tool>/`.
@@ -413,6 +418,20 @@ Names only (never values):
 - `${XDG_DATA_HOME:-$HOME/.local/share}/<tool>/` — tool data
 - `.env` at repo root — secrets (gitignored)
 
+## Project Structure
+
+```
+agents-arwaky/
+├── config/manifest.json   # tool registry (SSOT)
+├── modules/               # AES features (vertical slices)
+├── internal/              # sibling repos (submodules)
+└── vendor/                # upstream tools (submodules)
+```
+
+## Available Scripts/Commands
+
+Run `aa --help` for the full command tree; key entries: `aa doctor`, `aa tool <op>`, `aa daemon <id>`, `aa service`, `aa harness`, `aa config`, `aa backup`.
+
 ## Testing
 
 ```bash
@@ -424,7 +443,7 @@ See [CONTRIBUTING.md § Quality Verification](CONTRIBUTING.md#-quality-verificat
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions to internal agents, orchestration wrappers, and documentation are welcome!
 
@@ -449,7 +468,7 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
 
 ---
 
-## 📄 License & Attribution
+## License
 
 - **Repository & Orchestration Code:** Licensed under the **[MIT License](LICENSE)** © 2026 rakaarwaky.
 - **Third-Party Dependencies:** Upstream submodules are licensed by their respective original authors under open-source licenses (MIT, Apache 2.0, BSD). Full licensing attributions and copyright notices are maintained in **[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)**.

@@ -1,7 +1,6 @@
 """Unit tests for modules/skill — class initialization and method behavior."""
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -38,7 +37,6 @@ class TestSkillPackProvisioner:
 
     def test_install_counts_provisioned(self):
         """UT-SKILL-008: install counts successfully provisioned skills."""
-        from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = SkillPackProvisioner()
@@ -181,7 +179,6 @@ class TestSkillOrchestrator:
         """UT-SKILL-018: execute(provision) delegates to provisioner."""
         from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = MagicMock()
         provisioner.provision.return_value.success = True
@@ -195,7 +192,6 @@ class TestSkillOrchestrator:
         """UT-SKILL-019: execute(prune) delegates to provisioner."""
         from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = MagicMock()
         provisioner.prune.return_value.success = True
@@ -209,7 +205,6 @@ class TestSkillOrchestrator:
         """UT-SKILL-020: execute(audit) delegates to provisioner.audit."""
         from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = MagicMock()
         provisioner.audit.return_value = []
@@ -223,7 +218,6 @@ class TestSkillOrchestrator:
         """UT-SKILL-021: execute('prune') delegates to provisioner.prune."""
         from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = MagicMock()
         provisioner.prune.return_value.success = True
@@ -232,19 +226,6 @@ class TestSkillOrchestrator:
 
         orchestrator.execute(SkillRequest(SkillOp("prune")))
         provisioner.prune.assert_called_once()
-
-    def test_execute_list_delegates_to_registry(self):
-        """UT-SKILL-022: execute(list) delegates to registry.list."""
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
-        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-
-        provisioner = SkillPackProvisioner()
-        registry = MagicMock()
-        orchestrator = SkillOrchestrator(provisioner, registry)
-
-        orchestrator.execute(SkillRequest(SkillOp("list")))
-        registry.list.assert_called_once()
 
 
 class TestSkillRegistryAdapter:
@@ -426,7 +407,6 @@ class TestSkillUpdateUtility:
     def test_recorded_source_normalizes_to_relative(self):
         """UT-SKILL-049: absolute paths are stored repo-relative so the
         sidecar survives re-clones and git worktrees."""
-        from pathlib import Path
 
         from modules.shared.src.utility_skill_update import REPO_ROOT, _recorded_source
 

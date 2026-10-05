@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 
 class TestConfigWriter:
@@ -328,7 +328,6 @@ class TestConfigOrchestrator:
         """UT-CONFIG-023: execute(load) routes to writer.load."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
         writer = MagicMock()
@@ -351,7 +350,6 @@ class TestConfigOrchestrator:
         """UT-CONFIG-024: execute(save) routes to writer.save."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.config.src.capabilities_config_writer import ConfigWriter
         from modules.shared.src.taxonomy_common_vo import (
             ConfigData,
             ConfigFormat,
@@ -423,8 +421,6 @@ class TestConfigSurface:
 
     def test_execute_delegates_to_aggregate(self):
         """UT-CONFIG-028: ConfigCommand.execute delegates to the wrapped aggregate."""
-        from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-        from modules.config.src.capabilities_config_modifier import ConfigModifier
         from modules.config.src.surface_config_command import ConfigCommand
         from modules.shared.src.taxonomy_common_vo import (
             ConfigOp,

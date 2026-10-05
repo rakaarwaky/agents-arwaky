@@ -1,9 +1,7 @@
 """Contract tests for modules/shared — prove protocol/interface implementations exist."""
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 
 def test_manifest_reader_exports_load_tools():
@@ -173,18 +171,10 @@ def test_skill_registry_exports_functions():
 def test_common_vo_exports_value_objects():
     """CP-SHARED-012: common value objects exist and can be instantiated."""
     from modules.shared.src.taxonomy_common_vo import (
-        AuditFinding,
         DocFinding,
-        InstallResult,
-        PackFinding,
-        Section,
-        Table,
         Timestamp,
         Tool,
         ToolId,
-        ToolSpec,
-        UninstallResult,
-        UpdateResult,
     )
 
     ts = Timestamp(123.456)

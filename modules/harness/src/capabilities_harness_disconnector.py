@@ -29,8 +29,8 @@ from modules.shared.src.utility_harness_log import (
     log_warn,
 )
 
-
 # ─── Block 1: Class Definition & Constructor ──────────────
+
 class HarnessDisconnector(IHarnessDisconnectProtocol):
     """Registry-keyed disconnect capability (composition root injects adapters)."""
 
@@ -93,6 +93,8 @@ class HarnessDisconnector(IHarnessDisconnectProtocol):
     def __repr__(self) -> str:
         return "HarnessDisconnector()"
 
+
+# ─── Block 3: Dunder Methods, Factories & Helpers ───
 
 def _copy_matches_pack(dest_dir: Path, src_dir: Path) -> bool:
     """True when a provisioned copy is still byte-identical to its pack source."""

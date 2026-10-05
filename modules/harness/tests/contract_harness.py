@@ -118,7 +118,6 @@ def test_harness_leaf_adapters_implement_provider_protocol():
 
 def test_no_capability_carries_a_stub():
     """CP-HARNESS-009: no harness capability raises NotImplementedError (AES304/Rule 4)."""
-    from importlib import import_module
     from pathlib import Path
 
     harness_src = Path("modules/harness/src")

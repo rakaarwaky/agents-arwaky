@@ -42,8 +42,8 @@ class ServiceRequest:
 
 __all__ = [
     "RESPONSE_DEFAULT",
-    "TARGET_OMNIROUTE",
     "TARGET_ALL",
+    "TARGET_OMNIROUTE",
     "ExitCode",
     "ServiceOp",
     "ServiceRequest",

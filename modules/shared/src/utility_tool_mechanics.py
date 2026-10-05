@@ -3,7 +3,7 @@
 Factories, launcher writers, XDG path helpers, the node-family lifecycle,
 the venv/uv lifecycles, the generic unit builder, and the shared protocol
 dispatcher. Consumed by the nine provider modules
-`capabilities_tools_{blender,vision,qwen_web,mnemosyne,workspace,
+`capabilities_tools_{blender,vision,qwen_web,hindsight,workspace,
 codegraph,context7,fetch,ponytail}_adapter` plus
 `capabilities_tools_{adapter,anytype_adapter,lint_adapter,
 omniroute_adapter}` (≥2 consumers). Taxonomy + `utility_git_submodule`
@@ -364,7 +364,7 @@ def _uv_project_lifecycle(
     tool_name: str,
     write_launchers_fn: Callable[[Path], list[Path]],
 ) -> list[Path]:
-    """Unified install/update untuk tool `uv run` (mnemosyne/workspace)."""
+    """Unified install/update untuk tool `uv run` (hindsight/workspace)."""
     is_update = action == "update"
     err_cls = ToolUpdateError if is_update else FileNotFoundError
     progress_ed = "updated" if is_update else "installed"
@@ -444,7 +444,7 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
     """Build the complete adapter unit for one config-driven tool recipe.
 
     Lifecycle branches: `uv_venv` (blender/vision/qwen-web), `uv_project`
-    (mnemosyne/workspace), `node` (codegraph/context7/fetch/ponytail).
+    (hindsight/workspace), `node` (codegraph/context7/fetch/ponytail).
     Node launchers default to a primary `launchers[0]` entry launcher plus
     symlinks for `launchers[1:]`; per-tool overrides arrive as
     `config.node_write_launchers_fn` / `config.node_post_copy_hook`.

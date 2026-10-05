@@ -72,17 +72,14 @@
       "path": "vendor/google-workspace-mcp"
     },
     {
-      "id": "mnemosyne",
-      "alias": "mnemosyne-memory",
+      "id": "hindsight",
+      "alias": "hindsight-memory",
       "category": "vendor",
-      "binary": "mnemosyne-mcp",
-      "mcpBinary": "mnemosyne-mcp",
-      "mcpArgs": [
-        "mcp"
-      ],
+      "binary": "hindsight-local-mcp-server",
+      "mcpBinary": "hindsight-local-mcp-server",
       "isMcp": true,
-      "description": "Universal AI memory layer (SQLite, temporal graph, episodic recall)",
-      "path": "vendor/mnemosyne"
+      "description": "Hindsight agent memory (knowledge graph, entity resolution, multi-strategy retrieval)",
+      "path": "vendor/hindsight"
     },
     {
       "id": "vision-arwaky",

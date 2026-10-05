@@ -67,7 +67,7 @@ One table: every feature. Feature detail stays in each feature's BACKLOG.
 | modules/backup | Archive / restore / list / status | P2 | [FRD](modules/backup/FRD.md) | [BACKLOG](modules/backup/BACKLOG.md) | QA | On Track | @raka | BKP-01 gdrive leg | 2026-09-23 |
 | modules/shared | Kernel (XDG, venv, launcher, engines) | P0 | — (kernel, not a feature) | — (no pair; see HOW-TO-MAKE-FRD) | In Progress | On Track | @raka | none | 2026-09-23 |
 
-## Branches in Flight
+### Branches in Flight
 
 | Branch | Backlog IDs | State |
 |--------|-------------|-------|
@@ -75,7 +75,7 @@ One table: every feature. Feature detail stays in each feature's BACKLOG.
 | `develop` | WS-05 | integration tip |
 | `refactor/standardize-xdg-uninstall` | TOL-03 | local, uninstall residual sweep |
 
-## Workspace Backlog
+## Backlog
 
 Cross-cutting `WS-` rows only. Feature rows live in each feature's BACKLOG.
 

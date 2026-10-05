@@ -7,7 +7,6 @@ from modules.shared.src.taxonomy_daemon_vo import (
     DaemonName,
     DaemonOp,
     DaemonRequest,
-    DaemonStatus,
     DaemonUnit,
 )
 
@@ -224,7 +223,6 @@ def test_surface_command_integration():
     """IT-DAEMON-013: DaemonAction integrates with DaemonContainer via execute."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
     from modules.daemon.src.surface_daemon_command import DaemonAction
-    from modules.shared.src.taxonomy_daemon_vo import DaemonOp, DaemonRequest
 
     container = DaemonContainer()
     action = DaemonAction(container.aggregate)

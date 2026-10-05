@@ -14,12 +14,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from modules.shared.src.contract_harness_protocol import IHarnessProviderProtocol
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT as ROOT
 from modules.shared.src.taxonomy_common_vo import (
-    agents_arwaky_config_dir,
     config_home,
     data_home,
 )
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT as ROOT
 from modules.shared.src.taxonomy_harness_vo import ExitCode
 from modules.shared.src.utility_harness_mechanics import dispatch_provider_op
 

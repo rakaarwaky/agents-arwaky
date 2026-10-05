@@ -15,11 +15,8 @@ import pytest
 def test_dogfood_backup_pipeline():
     """DOG-BACKUP-001: Actual backup workflow with real tar archive."""
     from modules.backup.src.capabilities_backup_tar import (
-        BACKUP_STORE,
         backup_tool,
-        cmd_list,
     )
-    from modules.shared.src.taxonomy_common_vo import data_home as original_data_home
 
     # Create temporary test data
     with tempfile.TemporaryDirectory() as tmpdir:

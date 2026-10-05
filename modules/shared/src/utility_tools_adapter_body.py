@@ -82,59 +82,6 @@ def update_unit(
     return ToolPaths(unit_for(units, spec, display).update(spec, root) or ())
 
 
-def with_adapter_protocol(cls):
-    """Attach the five ``IToolsAdapterProtocol`` methods to *cls*.
-
-    Adapters keep their ``_units`` map and ``_display`` label; the protocol
-    methods are identical one-line delegations everywhere, so they are
-    attached here instead of being copied into every adapter file.
-    """
-
-    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
-        """True when the installed binary satisfies the manifest."""
-        return satisfied_unit(self._units, spec, self._display, root)
-
-    def is_pin_satisfied(
-        self, spec: ToolSpec, root: Path | None = None
-    ) -> PinCheck:
-        """Return ``(satisfied, reason)`` against the manifest pin."""
-        return is_pin_satisfied_unit(self._units, spec, self._display, root)
-
-    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> ToolPaths:
-        """Return the paths this adapter's install owns for *spec*."""
-        return owned_paths_unit(self._units, spec, self._display, root)
-
-    def install(
-        self,
-        spec: ToolSpec,
-        root: Path,
-        *,
-        daemons: object | None = None,
-    ) -> ToolPaths:
-        """Install or build *spec* into *root*; return the created paths."""
-        return install_unit(self._units, spec, root, self._display, daemons=daemons)
-
-    def update(self, spec: ToolSpec, root: Path) -> ToolPaths:
-        """Update *spec* to the manifest pin; return the rebuilt paths."""
-        return update_unit(self._units, spec, root, self._display)
-
-    cls.satisfied = satisfied
-    cls.is_pin_satisfied = is_pin_satisfied
-    cls.owned_paths = owned_paths
-    cls.install = install
-    cls.update = update
-    # ABCMeta freezes __abstractmethods__ when the class is created, so the
-    # names the decorator just filled in have to be released explicitly or
-    # instantiation still fails on a missing implementation.
-    cls.__abstractmethods__ = frozenset(cls.__abstractmethods__) - {
-        "satisfied",
-        "is_pin_satisfied",
-        "owned_paths",
-        "install",
-        "update",
-    }
-    return cls
-
 
 __all__ = [
     "install_unit",
@@ -143,5 +90,4 @@ __all__ = [
     "satisfied_unit",
     "unit_for",
     "update_unit",
-    "with_adapter_protocol",
 ]

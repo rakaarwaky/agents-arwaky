@@ -10,7 +10,7 @@ Thank you for your interest in contributing to **agents-arwaky**! This document 
 
 ---
 
-## 🏛️ Architecture & Principles to Keep in Mind
+## Principles
 
 Before making changes, please review our core architectural rules:
 
@@ -29,7 +29,7 @@ Before making changes, please review our core architectural rules:
 
 ---
 
-## 🛠️ Development Setup
+## Development Setup
 
 1. **Clone the repository with submodules:**
    ```bash
@@ -56,7 +56,7 @@ Before making changes, please review our core architectural rules:
 
 ---
 
-## ➕ Adding a New Vendor Tool (Step-by-Step)
+## Feature Change
 
 Adding an upstream community tool or MCP server involves a structured, repeatable 9-step pipeline.
 
@@ -339,7 +339,7 @@ aa mcp show
 
 ---
 
-## ➖ Removing a Vendor Tool (Step-by-Step)
+### Removing a Vendor Tool (Step-by-Step)
 
 When deprecating or removing an upstream tool, follow this procedure to ensure clean de-registration with zero dangling references or broken CI checks.
 
@@ -402,7 +402,7 @@ aa status
 
 ---
 
-## 🔄 Updating an Existing Vendor Tool
+### Updating an Existing Vendor Tool
 
 To upgrade a vendor tool to a newer upstream release or commit:
 
@@ -434,7 +434,7 @@ To upgrade a vendor tool to a newer upstream release or commit:
 
 ---
 
-## 🤖 Contributing to Internal Agents (`internal/`)
+### Contributing to Internal Agents (`internal/`)
 
 The repository hosts several core in-house agents under `internal/`:
 - [`vision-arwaky`](internal/vision-arwaky/) (Python / `uv`)
@@ -453,7 +453,7 @@ The repository hosts several core in-house agents under `internal/`:
 
 ---
 
-## 🧪 Quality Verification & PR Process
+## Quality Verification & PR Process
 
 Before committing code or submitting a Pull Request, verify that all automated checks pass.
 
