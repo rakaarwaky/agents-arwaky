@@ -71,10 +71,10 @@ $RECYCLE.BIN/
 /models/
 
 # Agents
+.agents/
 .qwen
 .commandcode/
 .qwen-web/
-.agents/plans/
 # Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
 
@@ -89,10 +89,6 @@ tools/config/*.providers.json
 
 # Large binary: diunduh saat install, bukan di-commit
 **/anytype-bin
-
-# Provisioned skill copies under .agents/skills/ are runtime state (written by
-# `aa skill install` with .arwaky-skill.json provenance); canonical source is ./skills.
-.agents/skills/
 
 # Backup/verification residue a skill-sync run leaves beside the canonical file.
 /skills/**/SKILL.md.bak
