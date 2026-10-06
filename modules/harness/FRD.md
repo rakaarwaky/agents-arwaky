@@ -3,12 +3,10 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
-
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
 
 ## System Overview
 
@@ -31,7 +29,6 @@ entry; no capability or agent change.
 Router wiring (pointing a supporting harness at the local OmniRoute gateway as
 its custom API provider) is a clause of connect, undone by the mirror clause
 of disconnect — never a separate business action.
-
 
 ## Functional Requirements
 
@@ -116,7 +113,6 @@ of disconnect — never a separate business action.
   tokens and exits non-zero before dispatch; a canonical id that still misses
   the adapter registry at action time → typed error naming the supported set.
 
-
 ## API Contract
 
 ### Protocol API
@@ -135,7 +131,6 @@ of disconnect — never a separate business action.
 | `connect` | `targets`, `force`, `dry_run`, `mcp_only`, `skills_only`, `env_only`, `router`, `copy_skills` | `ExitCode` | non-zero + offending harness | — | Route connect → connector capability (FR-HARNESS-001) |
 | `disconnect` | `targets`, `dry_run` | `ExitCode` | reported failures → non-zero | — | Route disconnect → disconnector capability (FR-HARNESS-002) |
 | `provision_skills` | `targets`, `copy`, `dry_run` | `ExitCode` | per-skill failure → non-zero | — | Route skill provisioning → skills capability (FR-HARNESS-003) |
-
 
 ## Integration Points
 
@@ -167,7 +162,6 @@ of disconnect — never a separate business action.
 - `aa connect --all` targets every supported harness id in a single run.
 - An unknown harness token fails with a message naming the supported harness set.
 
-
 ## Assumptions & Constraints
 
 - Capabilities are business actions; providers are stateless leaf adapters in
@@ -181,7 +175,6 @@ of disconnect — never a separate business action.
 - Router setup emits references to secrets, never their values.
 - There is no fourth "router" capability: router wiring is a clause of connect
   and its mirror clause of disconnect.
-
 
 ## Glossary
 

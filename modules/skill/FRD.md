@@ -3,12 +3,10 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
-
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
 
 ## System Overview
 
@@ -19,7 +17,6 @@ queries, the pack side provisions and audits.
 
 Flow: `aa skill <action>` → skill orchestrator → registry/pack capability →
 a project's `.agents/skills/` (provisioned copies) or the pack itself.
-
 
 ## Functional Requirements
 
@@ -134,7 +131,6 @@ a project's `.agents/skills/` (provisioned copies) or the pack itself.
   continues; any conflict or error makes the exit code non-zero unless
   `--dry-run` is set (dry-run always exits 0).
 
-
 ## API Contract
 
 ### Protocol API
@@ -185,7 +181,6 @@ a project's `.agents/skills/` (provisioned copies) or the pack itself.
 - `aa skill uninstall` removes a provisioned skill directory while leaving the pack source intact.
 - `aa skill sync` re-provisions the full pack for every tool into the target workspace.
 
-
 ## Assumptions & Constraints
 
 - Provisioning targets a project's `.agents/skills/`, never the pack's own
@@ -194,7 +189,6 @@ a project's `.agents/skills/` (provisioned copies) or the pack itself.
   documented behaviour, not a bug to paper over.
 - Copies are the default delivery into a workspace so the provision survives
   outside this checkout; links stay an explicit local-only opt-in.
-
 
 ## Glossary
 

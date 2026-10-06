@@ -3,19 +3,16 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
-
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
 
 ## System Overview
 
 The config feature loads, saves, merges, inspects, and mutates tool configuration files — JSON, JSONC, and TOML — plus env-style key/value files, without corrupting comments or key order. The root CLI routes `aa config …` to the config agent, a single aggregate whose seven bare methods fan out over one protocol method (`execute`) into a writer capability (load, detect, save) and a modifier capability (merge, set env, remove, list). Every mutation is single-entry scoped and dry-run capable; inspect and help never write.
 
 Flow: `aa config …` → config agent (aggregate) → `execute` on writer / modifier capability → shared config kernel → config file.
-
 
 ## Functional Requirements
 
@@ -111,7 +108,6 @@ Flow: `aa config …` → config agent (aggregate) → `execute` on writer / mod
   empty data with the detected-or-default format.
 - **Error Handling**: unreadable path → non-zero naming the path on stderr.
 
-
 ## API Contract
 
 ### Protocol API
@@ -132,7 +128,6 @@ Flow: `aa config …` → config agent (aggregate) → `execute` on writer / mod
 | `inspect` | `path` | snapshot | non-zero | — | Read-only snapshot of format, data, and server names |
 | `help` | — | usage text | — | — | Print usage for the config ops |
 
-
 ## Integration Points
 
 | System | Direction | Purpose | Failure mode |
@@ -143,7 +138,6 @@ Flow: `aa config …` → config agent (aggregate) → `execute` on writer / mod
 | tool manifest | in | source of server names for a merge | missing entry → empty set |
 | harness feature (connect / disconnect) | in | drives server and env removal through the same ops | pass-through |
 
-
 ## Non-functional Requirements
 
 | Metric | Target | Measurement method |
@@ -151,7 +145,6 @@ Flow: `aa config …` → config agent (aggregate) → `execute` on writer / mod
 | Round-trip fidelity | re-saving an untouched file is byte-identical | diff a load-then-save round trip on one fixture per format |
 | dry-run purity | a dry-run removal writes nothing | file bytes unchanged after a dry-run remove |
 | Format coverage | JSON, JSONC, and TOML all load and save correctly | run load and save over one fixture per format |
-
 
 ## Test Scenarios
 
@@ -168,7 +161,6 @@ Flow: `aa config …` → config agent (aggregate) → `execute` on writer / mod
 - Inspecting a config returns path, format, data, and server names without writing.
 - Two inspects of an unchanged file return equal snapshots and leave the file bytes unchanged.
 
-
 ## Assumptions & Constraints
 
 - Formats in scope are JSON, JSONC, TOML, and env-style `KEY=VALUE` files; any
@@ -181,7 +173,6 @@ Flow: `aa config …` → config agent (aggregate) → `execute` on writer / mod
   not name.
 - The aggregate is the only public surface; capabilities are reached through
   the one protocol method.
-
 
 ## Glossary
 

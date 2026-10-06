@@ -1,11 +1,9 @@
 # FRD — daemon
 
-
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
 
 ## System Overview
 
@@ -21,7 +19,6 @@ host process. Deploy assets hold the systemd units and container definition;
 XDG config holds per-daemon environment secrets. The service feature reaches
 unit install/remove through an integration to this aggregate rather than its
 own unit code.
-
 
 ## Functional Requirements
 
@@ -91,7 +88,6 @@ own unit code.
 - **Error Handling**: non-zero with captured systemd/deploy errors; no raw
   exceptions cross the surface.
 
-
 ## API Contract
 
 ### Protocol API
@@ -131,7 +127,6 @@ own unit code.
 | root CLI (`aa anytype` / `aa omniroute`) | in | routes CLI verbs to the daemon capability | unknown verb → usage + non-zero |
 | service feature | in | reuses the daemon aggregate for unit install/remove/status | integration unavailable → non-zero |
 
-
 ## Non-functional Requirements
 
 | Metric | Target | Measurement method |
@@ -140,7 +135,6 @@ own unit code.
 | Idempotent start | starting a running daemon is a no-op | run start twice; second reports already running, exit 0 |
 | Idempotent unit install | re-installing an installed unit succeeds | run `install_unit` twice; `unit_status` still reports active |
 | Unknown-daemon safety | unknown id errors at routing, never crashes | route a bogus id → reported error, no traceback |
-
 
 ## Test Scenarios
 
@@ -153,7 +147,6 @@ own unit code.
 - `install_unit` for a daemon enables its user unit and a following `unit_status` reports it active.
 - `remove_unit` deletes a daemon's user unit so a following `unit_status` reports it not installed.
 
-
 ## Assumptions & Constraints
 
 - Only Anytype is containerized (Podman); OmniRoute is host-native — the
@@ -161,7 +154,6 @@ own unit code.
 - Secrets live in XDG config, referenced by name, never committed.
 - systemd unit operations stay in this feature's aggregate; the service
   feature integrates rather than duplicating unit code.
-
 
 ## Glossary
 

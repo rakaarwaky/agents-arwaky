@@ -3,12 +3,10 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
-
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
 
 ## System Overview
 
@@ -20,7 +18,6 @@ can load. `aa mcp generate` writes it; `aa mcp list` / `aa mcp show` report.
 
 Flow: `aa mcp <action>` → MCP orchestrator → generator capability →
 manifest-derived server list → report or client config file.
-
 
 ## Functional Requirements
 
@@ -65,7 +62,6 @@ manifest-derived server list → report or client config file.
   note, exit 0 when the server itself is registered.
 - **Error Handling**: unknown server → non-zero; a help-probe failure never
   fails the report — it is printed as a note beside the schema.
-
 
 ## API Contract
 
@@ -115,7 +111,6 @@ manifest-derived server list → report or client config file.
 - Probe of a registered server prints its schema and help text.
 - Probe of an unknown server prints a not-registered message and exits non-zero.
 
-
 ## Assumptions & Constraints
 
 - The config is a view of the manifest, not a second source of truth; the
@@ -124,7 +119,6 @@ manifest-derived server list → report or client config file.
   always comes from the manifest.
 - Alias-form generation and config validation are optional surfaces: they
   ride the same generator and never become a second write path of their own.
-
 
 ## Glossary
 
