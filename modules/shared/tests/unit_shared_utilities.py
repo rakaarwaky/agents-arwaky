@@ -139,7 +139,7 @@ class TestTool:
         try:
             tool.id = "modified"
             assert False, "Should have raised FrozenInstanceError"
-        except Exception:
+        except Exception:  # noqa: BLE001,S110
             pass
 
 
@@ -178,7 +178,7 @@ class TestDocFinding:
 
     def test_doc_finding_default_severity(self):
         """UT-SHARED-016: DocFinding defaults to ERROR severity."""
-        from modules.shared.src.taxonomy_common_vo import DocFinding, ERROR
+        from modules.shared.src.taxonomy_common_vo import ERROR, DocFinding
 
         finding = DocFinding(code="TEST-001", message="test")
         assert finding.severity == ERROR
@@ -312,7 +312,10 @@ class TestUpdateEnvFile:
 
     def test_update_adds_key(self):
         """UT-SHARED-027: update_env_file adds new key."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("")
@@ -324,7 +327,10 @@ class TestUpdateEnvFile:
 
     def test_update_overwrites_existing(self):
         """UT-SHARED-028: update_env_file overwrites existing key."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("KEY=old\n")
@@ -336,7 +342,10 @@ class TestUpdateEnvFile:
 
     def test_update_escaped_quotes(self):
         """UT-SHARED-029: update_env_file escapes quotes in values."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            update_env_file,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("")
@@ -352,7 +361,10 @@ class TestRemoveEnvKeys:
 
     def test_remove_single_key(self):
         """UT-SHARED-030: remove_env_keys removes single key."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, remove_env_keys, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            remove_env_keys,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("KEY1=value1\n")
@@ -366,7 +378,10 @@ class TestRemoveEnvKeys:
 
     def test_remove_multiple_keys(self):
         """UT-SHARED-031: remove_env_keys removes multiple keys."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, remove_env_keys, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            parse_env_file,
+            remove_env_keys,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("KEY1=value1\n")
@@ -383,7 +398,9 @@ class TestRemoveEnvKeys:
 
     def test_remove_nonexistent_key(self):
         """UT-SHARED-032: remove_env_keys handles nonexistent key."""
-        from modules.shared.src.utility_envfile_parser import parse_env_file, remove_env_keys, update_env_file
+        from modules.shared.src.utility_envfile_parser import (
+            remove_env_keys,
+        )
 
         with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
             f.write("KEY1=value1\n")
@@ -595,10 +612,11 @@ class TestReadVersion:
 
     def test_read_version_existing(self):
         """UT-SHARED-052: read_version returns version from file."""
-        from modules.shared.src.taxonomy_common_vo import read_version
-        from modules.shared.src import taxonomy_common_constant
-        from pathlib import Path
         import tempfile
+        from pathlib import Path
+
+        from modules.shared.src import taxonomy_common_constant
+        from modules.shared.src.taxonomy_common_vo import read_version
 
         # Create a temp dir with config/version.txt
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -625,13 +643,12 @@ class TestReadVersion:
 
     def test_read_version_missing(self):
         """UT-SHARED-053: read_version returns default when file missing."""
-        from modules.shared.src.taxonomy_common_vo import read_version
         from modules.shared.src import taxonomy_common_constant
+        from modules.shared.src.taxonomy_common_vo import read_version
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(taxonomy_common_constant, 'REPO_ROOT', Path(tmpdir)):
-                result = read_version()
-                assert result == taxonomy_common_constant.DEFAULT_VERSION
+        with tempfile.TemporaryDirectory() as tmpdir, patch.object(taxonomy_common_constant, 'REPO_ROOT', Path(tmpdir)):
+            result = read_version()
+            assert result == taxonomy_common_constant.DEFAULT_VERSION
 
 
 class TestStripJsoncComments:
@@ -876,3 +893,210 @@ class TestResolveExecutable:
 
         result = resolve_executable("nonexistent-binary-12345")
         assert result is None
+
+
+class TestPruneProvisioned:
+    """Tests for prune_provisioned across both provisioned layouts.
+
+    Provisioning lands FLAT at ``.agents/skills/<skill>/`` (see
+    :func:`provision_single_skill`, which uses ``base / name``), but some
+    callers nest under a category: ``.agents/skills/<category>/<skill>/``.
+    Prune must recognise both, otherwise flat orphans are never reported.
+    """
+
+    def _make(self, root: Path, rel: str, marker: bool = True) -> Path:
+        """Create a provisioned skill dir at *rel* under *root*."""
+        d = root / rel
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "SKILL.md").write_text("# skill\n")
+        if marker:
+            (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+        return d
+
+    def test_removes_flat_provisioned_skill(self):
+        """UT-SHARED-081: a flat provisioned skill the pack dropped is removed."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            stale = self._make(target, ".agents/skills/retired-skill")
+
+            assert prune_provisioned(target, pack) == 1
+            assert not stale.exists()
+
+    def test_removes_category_nested_provisioned_skill(self):
+        """UT-SHARED-082: a <category>/<skill>/ provisioned copy is removed."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            stale = self._make(target, ".agents/skills/ai-gateway/retired-skill")
+
+            assert prune_provisioned(target, pack) == 1
+            assert not stale.exists()
+
+    def test_keeps_handwritten_flat_skill(self):
+        """UT-SHARED-083: a flat skill with no provenance marker is left alone."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            mine = self._make(target, ".agents/skills/my-own-skill", marker=False)
+
+            assert prune_provisioned(target, pack) == 0
+            assert mine.is_dir()
+
+    def test_keeps_handwritten_nested_skill(self):
+        """UT-SHARED-084: a nested skill with no marker is left alone."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            mine = self._make(target, ".agents/skills/mine/hand-written", marker=False)
+
+            assert prune_provisioned(target, pack) == 0
+            assert mine.is_dir()
+
+    def test_removes_symlink_pointing_into_pack(self):
+        """UT-SHARED-085: a symlink resolving inside the pack is removed."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            src = pack / "devops" / "retired-skill"
+            src.mkdir(parents=True)
+            (src / "SKILL.md").write_text("# skill\n")
+            link = target / ".agents" / "skills" / "retired-skill"
+            link.parent.mkdir(parents=True)
+            link.symlink_to(src, target_is_directory=True)
+
+            assert prune_provisioned(target, pack) == 1
+            assert not link.is_symlink()
+
+    def test_keeps_symlink_pointing_outside_pack(self):
+        """UT-SHARED-086: a symlink resolving outside the pack is preserved."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            elsewhere = Path(tmp) / "elsewhere" / "my-skill"
+            elsewhere.mkdir(parents=True)
+            (elsewhere / "SKILL.md").write_text("# mine\n")
+            link = target / ".agents" / "skills" / "linked"
+            link.parent.mkdir(parents=True)
+            link.symlink_to(elsewhere, target_is_directory=True)
+
+            assert prune_provisioned(target, pack) == 0
+            assert link.is_symlink()
+
+    def test_missing_skills_root_returns_zero(self):
+        """UT-SHARED-087: a target with no .agents/skills is a no-op."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            target.mkdir(parents=True)
+
+            assert prune_provisioned(target, pack) == 0
+
+    def test_counts_every_orphan_in_one_pass(self):
+        """UT-SHARED-088: flat and nested orphans are both counted."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target, pack = Path(tmp) / "proj", Path(tmp) / "pack"
+            pack.mkdir(parents=True)
+            self._make(target, ".agents/skills/flat-a")
+            self._make(target, ".agents/skills/flat-b")
+            self._make(target, ".agents/skills/cat/nested-a")
+            self._make(target, ".agents/skills/keep-me", marker=False)
+
+            assert prune_provisioned(target, pack) == 3
+            assert (target / ".agents/skills/keep-me").is_dir()
+
+
+class TestPruneKeepsCurrentPackSkills:
+    """A provisioned copy the pack still ships is CURRENT, not stale.
+
+    Without a pack comparison, prune removes every entry carrying the provenance
+    marker — deleting all 103 provisioned skills in this repo's own workspace.
+    """
+
+    def _pack(self, root: Path, *names: str) -> Path:
+        pack = root / "skills"
+        for n in names:
+            d = pack / "cat" / n
+            d.mkdir(parents=True, exist_ok=True)
+            (d / "SKILL.md").write_text(f"# {n}\n")
+        return pack
+
+    def test_keeps_provisioned_skill_still_in_pack(self):
+        """UT-SHARED-089: a copy of a skill the pack still provides survives."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "proj"
+            pack = self._pack(Path(tmp), "current-skill")
+            d = target / ".agents" / "skills" / "current-skill"
+            d.mkdir(parents=True)
+            (d / "SKILL.md").write_text("# current\n")
+            (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+            assert prune_provisioned(target, pack) == 0
+            assert d.is_dir(), "prune deleted a skill the pack still provides"
+
+    def test_removes_only_the_dropped_one(self):
+        """UT-SHARED-090: mixed tree prunes the orphan and keeps the rest."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "proj"
+            pack = self._pack(Path(tmp), "current-skill", "also-current")
+            for n in ("current-skill", "also-current", "retired-skill"):
+                d = target / ".agents" / "skills" / n
+                d.mkdir(parents=True)
+                (d / "SKILL.md").write_text(f"# {n}\n")
+                (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+            assert prune_provisioned(target, pack) == 1
+            assert (target / ".agents/skills/current-skill").is_dir()
+            assert (target / ".agents/skills/also-current").is_dir()
+            assert not (target / ".agents/skills/retired-skill").exists()
+
+    def test_reports_only_dropped_names(self):
+        """UT-SHARED-091: `names` lists the dropped entries, not the kept ones."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "proj"
+            pack = self._pack(Path(tmp), "current-skill")
+            for n in ("current-skill", "retired-skill"):
+                d = target / ".agents" / "skills" / n
+                d.mkdir(parents=True)
+                (d / "SKILL.md").write_text(f"# {n}\n")
+                (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+            names: list[str] = []
+            assert prune_provisioned(target, pack, names=names) == 1
+            assert names == ["retired-skill"]
+
+    def test_nested_current_skill_survives(self):
+        """UT-SHARED-092: the pack check also guards <category>/<skill>/ copies."""
+        from modules.shared.src.utility_skill_registry import prune_provisioned
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "proj"
+            pack = self._pack(Path(tmp), "current-skill")
+            d = target / ".agents" / "skills" / "cat" / "current-skill"
+            d.mkdir(parents=True)
+            (d / "SKILL.md").write_text("# current\n")
+            (d / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+            assert prune_provisioned(target, pack) == 0
+            assert d.is_dir(), "prune deleted a nested skill the pack still provides"

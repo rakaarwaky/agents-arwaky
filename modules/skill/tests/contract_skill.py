@@ -67,7 +67,7 @@ def test_skill_orchestrator_implements_aggregate():
 
 def test_skill_registry_adapter_implements_protocol():
     """CP-SKILL-005: SkillRegistryAdapter implements ISkillRegistryProtocol."""
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
     adapter = SkillRegistryAdapter()
     assert isinstance(adapter, ISkillRegistryProtocol)
@@ -75,7 +75,7 @@ def test_skill_registry_adapter_implements_protocol():
 
 def test_skill_registry_adapter_has_registry_methods():
     """CP-SKILL-006: SkillRegistryAdapter exposes the rich registry methods."""
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
     adapter = SkillRegistryAdapter()
     for method in ("list", "check", "show", "install", "uninstall", "sync"):
@@ -94,8 +94,8 @@ def test_skill_orchestrator_execute_delegates():
     """CP-SKILL-008: SkillOrchestrator.execute routes to provisioner or registry."""
     from unittest.mock import MagicMock
 
-    from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
     from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest, SkillToolId
+    from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 
     provisioner = MagicMock()
     provisioner.provision.return_value.success = True

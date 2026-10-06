@@ -1,6 +1,6 @@
 ---
 name: hermes-profiles
-description: Manage Hermes profiles: config, keys, and which skills load.
+description: "Manage Hermes profiles: config, keys, and which skills load."
 metadata:
   tags: []
 ---
@@ -43,7 +43,48 @@ grep -n -A4 "^auxiliary:" ~/.hermes/profiles/*/config.yaml
 
 ```text
 
+## Workflow: delete a profile (clean, no resurrection)
+
+Never `rm -rf` the profile dir as the primary delete. The gateway keeps routing/session rows
+keyed by `agent:<name>:...`, and on the next start it re-materialises an EMPTY
+`~/.hermes/profiles/<name>/` dir from those rows, so the profile looks deleted but comes back.
+
+```bash
+# 1. Optional safety copy (profile dir can be hundreds of MB of cache/installs)
+cp -r ~/.hermes/profiles/<name> ~/.hermes/profiles-pre-deletion/<name>
+
+# 2. Delete WITH THE CLI (removes dir + purges session/routing identity)
+hermes profile delete <name> -y
+
+# 3. If the dir was already removed by hand, re-run the purge
+hermes profile purge-identity <name>   # idempotent; profile dir may already be gone
+
+# 4. Restart the gateway so it reloads the routing index from the DB
+systemctl --user restart hermes-gateway.service
+```
+
+Verify: `hermes profile list` shows only the wanted profiles, `~/.hermes/profiles/` has no stray
+empty dirs, and the gateway log has zero references to the deleted names:
+
+```bash
+journalctl --user -u hermes-gateway.service --since "2 min ago" --no-pager | grep -c '<name>'
+```
+
+Leftover state rows, before/after:
+`sqlite3 ~/.hermes/state.db "SELECT COUNT(*) FROM gateway_routing WHERE session_key LIKE '%<name>%';"`
+
 ## Pitfalls
+
+- **Deleting a profile orphans its platform bot.** The token lives only in that profile's `.env`
+  (`TELEGRAM_BOT_TOKEN`). Once the profile is gone the bot keeps polling with no home and must be
+  revoked with @BotFather by hand. Tell the user which bots are about to be orphaned first.
+- **One gateway unit, many bots.** With `gateway.multiplex_profiles: true` the single
+  `hermes-gateway.service` serves every profile's bot; there is no per-profile systemd unit to
+  disable. Profile dir removal + `purge-identity` is the whole cleanup — but a profile delete does
+  NOT stop the gateway, so restart it explicitly to drop the stale routing index.
+- **Skill packs shared via symlink.** If `~/.hermes/skills` is a symlink into a skill repo, a
+  profile's `skills/` may be a root symlink to the same place. Deleting the profile removes only
+  the symlink; the shared pack is untouched. Check before assuming skills were lost.
 
 - **Custom provider = two entries.** An `auxiliary.<role>` section pointing at a custom provider
   also needs a matching `providers.<name>` entry (`base_url` + `key_env`) in the same config, or

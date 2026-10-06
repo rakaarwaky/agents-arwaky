@@ -1,7 +1,7 @@
 """Unit tests for modules/harness — test individual functions and methods."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -41,7 +41,7 @@ class TestHarnessConnector:
 
         connector = HarnessConnector({})
         assert isinstance(connector, IHarnessConnectProtocol)
-        assert callable(getattr(connector, 'connect'))
+        assert callable(connector.connect)
 
     def test_provision_clause_delegates_to_injected_skills(self):
         """UT-HARNESS-004b: connect provisions skills via the injected seam."""
@@ -60,19 +60,25 @@ class TestHarnessDisconnector:
 
     def test_init_creates_disconnector(self):
         """UT-HARNESS-006: HarnessDisconnector initializes correctly."""
-        from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+        from modules.harness.src.capabilities_harness_disconnector import (
+            HarnessDisconnector,
+        )
 
         disconnector = HarnessDisconnector({})
         assert disconnector is not None
 
     def test_disconnect_method_exists(self):
         """UT-HARNESS-006: the disconnect seam declares the named method."""
-        from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
-        from modules.shared.src.contract_harness_protocol import IHarnessDisconnectProtocol
+        from modules.harness.src.capabilities_harness_disconnector import (
+            HarnessDisconnector,
+        )
+        from modules.shared.src.contract_harness_protocol import (
+            IHarnessDisconnectProtocol,
+        )
 
         disconnector = HarnessDisconnector({})
         assert isinstance(disconnector, IHarnessDisconnectProtocol)
-        assert callable(getattr(disconnector, 'disconnect'))
+        assert callable(disconnector.disconnect)
 
 
 class TestHarnessSkills:
@@ -92,7 +98,7 @@ class TestHarnessSkills:
 
         skills = HarnessSkills({})
         assert isinstance(skills, IHarnessSkillsProtocol)
-        assert callable(getattr(skills, 'provision_skills'))
+        assert callable(skills.provision_skills)
 
 
 class TestHarnessLeafAdapters:

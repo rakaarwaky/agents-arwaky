@@ -28,12 +28,58 @@ unique within the feature and stable forever.
 2. **A requirement is testable, or it is a wish.**
 State input, output, business rules, edge cases, error handling.
 3. **The API contract is two tables under one section.** `Protocol API`
-holds **exactly one row**: one method for the whole feature folder that
-covers every capability (not one row per leaf). `Aggregate API` holds one
-row per public method the feature's agent exposes (the feature
-orchestrator / agent, designed for the target — not a snapshot of today's
-code). Columns for both tables: Method, Input, Output, Error, Event,
-Description — real signatures, not invented capability names.
+lists **one row per capability method** the feature's protocol exposes
+(every method on the protocol trait). `Aggregate API` lists the
+**single `execute` entry point** — one row only, the composite verb the
+orchestrator exposes to the surface. Columns for both tables: Method,
+Input, Output, Error, Event, Description — real signatures, not invented
+capability names.
+3b. **The API Contract subsections are a closed set.** Level 3 under
+`## API Contract` is exactly `### Protocol API` then `### Aggregate API`,
+in that order, once each — nothing else. Each subsection must carry its own
+table with all six columns; prose, a partial column set, or a second copy of
+a subsection all fail. **Per-protocol detail goes in the rows of the
+`Protocol API` table, never in a heading.** Adding `### IParserProtocol`,
+`### IGraphProtocol`, and so on — one level-3 heading per protocol class — is
+the workaround this rule closes (`api_h3_unexpected`, AES602): the heading
+narrates a seam split the single table refused to make, so the contract reads
+as if the seams existed when the rows do not. There is one `Protocol API`
+table, and every protocol method is a row in it.
+3c. **The whole level-3 set is closed to three shapes, document-wide.**
+An FRD's only level-3 headings are `### FR-<FEATURENAME>-NNN: <name>`,
+`### Protocol API`, and `### Aggregate API`. Every other level-3 heading
+fires `h3_off_template` (AES602) — **wherever it sits**, not only under
+`## API Contract`, so moving an invented section into another parent section
+is not an escape (`api_h3_unexpected` reads only the API Contract subtree, so
+it cannot see this). A table you wanted to head with
+`### IToolResolutionProtocol (12 operations)` is the same information as a
+`Protocol API` row: move it into that table, fold it into the section that owns
+it, or demote it to a level-4 heading — level 4 and deeper are free-form and
+are where detail that must not become a section belongs. The sanctioned set is
+transcribed from the template below.
+3a. **The FR count must match the protocol class count.** The number of
+`### FR-<Feature>-NNN:` headings and the number of `pub trait I*Protocol`
+declarations across the feature's contract protocol files must be equal
+(`protocol_count_mismatch`, AES601).
+One protocol class is one capability seam, and one seam is one
+requirement. **A single protocol file may declare many protocol classes** —
+count the classes, never the files. Method counts are irrelevant: a
+protocol class carrying nine methods for nine commands is still one class
+and therefore one FR. When the two counts differ, fix it in whichever
+direction preserves the most spec intent:
+
+| # | Direction | Use when | Effect |
+|---|-----------|----------|--------|
+| 1 | **Split methods into more classes** | One class holds several genuinely different capabilities and an FR already describes each one separately. | classes up, FRs unchanged |
+| 2 | **Merge methods into one class** | One class is too fat — its methods collapse into fewer coherent seams — and the FRs already match the smaller count. | classes down, FRs unchanged |
+| 3 | **Merge FRs down to the class count** | FRs describe orchestrator dispatch, traversal, or sub-steps of one capability rather than distinct capabilities. | FRs down |
+| 4 | **Split FRs up to the class count** | One class legitimately covers several capabilities but the FRs are lumped together, or the classes were split per direction 1 and the FRs must follow. | FRs up |
+
+Order of preference: direction **1** or **2** when the code shape is
+genuinely wrong, direction **3** when the extra FRs are infrastructure
+narrative, direction **4** last. Never pad or delete a real requirement
+just to satisfy the count — if neither direction preserves the spec,
+split the class.
 4. **Scenarios are stated here; evidence lives in the backlog.**
 One scenario per bullet, so `scenario-evidence-count` can match them.
 5. **Non-functional numbers live here.**
@@ -60,7 +106,7 @@ the document survives every refactor (`spec-source-path`).
 3. **Section: Functional Requirements** — numbered FRs with scenario tables.
 4. **Section: API Contract** — request/response shapes.
 5. **Section: Test Scenarios** — scenarios with acceptance criteria.
-6. **Verify** → `aa check docs` passes; FR table has all required columns.
+6. **Verify** → `lint-arwaky-cli docs` passes; FR table has all required columns.
 
 ## Template
 
@@ -101,13 +147,13 @@ Copy, fill, delete nothing.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| <method> | <input> | <output> | <error> | <event> | one row only — one method for all capabilities |
+| <capability method> | <input> | <output> | <error> | <event> | one row per method on the protocol trait |
 
 ### Aggregate API
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| <method> | <input> | <output> | <error> | <event> | <one sentence> |
+| <execute> | <request> | <response> | <error> | <event> | single composite entry point |
 
 
 ## Integration Points
@@ -137,6 +183,11 @@ Copy, fill, delete nothing.
 - **Term**: <one definition, one meaning>
 ```
 
+The template's level-3 headings are exactly the requirement headings, `### Protocol
+API`, and `### Aggregate API`. Detail that needs a heading of its own belongs at
+level 4, which is free-form — an FRD that invents a level-3 section fires
+`h3_off_template`.
+
 ---
 
 ## Section Contract
@@ -144,30 +195,29 @@ Copy, fill, delete nothing.
 Every section is required unless marked optional. Each exists for one
 reason.
 
-
 | Section                       | Why it belongs here                               |
 | ----------------------------- | ------------------------------------------------- |
 | Reference                     | Separates spec promise from backlog claim.        |
 | System Overview               | Orients the reader before details begin.          |
-| Functional Requirements       | The testable promise                              |
-| API Contract                  | Protocol + Aggregate surfaces integrators build against. |
+| Functional Requirements       | The testable promise. Its only level-3 headings are `### FR-<FEATURENAME>-NNN:`. |
+| API Contract                  | Protocol + Aggregate surfaces integrators build against. Holds exactly two level-3 subsections. |
 | Integration Points            | Names every outside system that can fail you.     |
 | Non-functional Requirements   | Feature-level numbers the PRD deliberately omits. |
-| Test Scenarios                | Promises the backlog must evidence.               |
+| Test Scenarios                | Promises the backlog must evidence. A bullet list — not a heading per scenario. |
 | Assumptions &amp; Constraints | Implicit requirements made explicit.              |
 | Glossary                      | One meaning per term; rows and code agree.        |
 
-
-
+The level-3 set is closed document-wide (Rule 3c): only
+`### FR-<FEATURENAME>-NNN: <name>`, `### Protocol API`, and
+`### Aggregate API`. Anything else fires `h3_off_template`.
 
 ## Verify
 
 ```bash
-aa check docs
-# path form: aa check docs .
+lint-arwaky-cli docs
+# path form: lint-arwaky-cli docs .
 # Checks: IDs, orphan refs, scenario coverage, status leak, sections, links.
 ```
 
 On any violation the gate prints `[FAIL] <code> <path>: <message>` and exits
 non-zero; every finding gates (strict is the only mode — no advisory tier).
-

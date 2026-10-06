@@ -35,27 +35,6 @@ from modules.shared.src.taxonomy_tools_constant import (
 from modules.shared.src.taxonomy_tools_vo import ExitCode
 
 
-def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path) -> list[str]:
-    """Build the argv for the subprocess exec (runner-aware, exact port)."""
-    tool_dir = root / spec.path
-    runner = spec.runner or TOOL_RUNNERS.get(spec.id, "")
-    names = [spec.mcp_binary, spec.binary] if spec.is_mcp and spec.mcp_binary else [spec.binary]
-
-    if spec.category == "internal" and runner == "cargo" and executable == tool_dir / "Cargo.toml":
-        return ["cargo", "run", "--quiet", "--manifest-path", str(executable),
-                "--bin", f"{spec.id}-arwaky-cli", "--", *args]
-    if spec.category == "internal" and runner in ("uv", "python") and executable == tool_dir:
-        if shutil.which("uv"):
-            return ["uv", "run", "--directory", str(tool_dir), spec.binary, *args]
-        if shutil.which("python3"):
-            return ["python3", "-m", spec.id, *args]
-    if spec.category == "internal" and executable == Path(spec.id):
-        return [sys.executable, "-m", spec.id, *args]
-    if spec.category == "internal" and runner in ("uv", "python") and executable.name in names:
-        return [str(executable), *args]
-    return [str(executable), *args]
-
-
 # ─── Block 1: Class Definition & Constructor ──────────────
 class RunnerCapability(IToolsRunnerProtocol):
     """Business action run(spec, args, root): discover + exec, return exit code."""
@@ -64,10 +43,6 @@ class RunnerCapability(IToolsRunnerProtocol):
         self._root = root
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return "RunnerCapability()"
-
     def run(self, spec: ToolSpec, args: list[str], root: Path | None = None) -> ExitCode:
         """Discover the executable and launch it; return the child's exit code."""
         # Sub-step 1: discover the concrete launch path; None -> return 1.
@@ -87,6 +62,10 @@ class RunnerCapability(IToolsRunnerProtocol):
         """
         base = root or self._root or repo_root
         return self._discover(spec, base)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "RunnerCapability()"
 
     def _discover(self, spec: ToolSpec, root: Path) -> Path | None:
         """First valid candidate in discovery order, resolved; None when absent."""
@@ -167,7 +146,7 @@ class RunnerCapability(IToolsRunnerProtocol):
         # forwarded to the caller); MCP harnesses spawn their own servers —
         # `aa tool run` is interactive use.
         try:
-            argv = _exec_command(spec, executable, args, base)
+            argv = self._exec_command(spec, executable, args, base)
             proc = subprocess.run(argv, check=False)
             return proc.returncode
         except (OSError, FileNotFoundError) as exc:
@@ -181,6 +160,27 @@ class RunnerCapability(IToolsRunnerProtocol):
             if launcher.exists() and os.access(launcher, os.X_OK):
                 return launcher.resolve()
         return None
+
+    @staticmethod
+    def _exec_command(spec: ToolSpec, executable: Path, args: list[str], root: Path) -> list[str]:
+        """Build the argv for the subprocess exec (runner-aware, exact port)."""
+        tool_dir = root / spec.path
+        runner = spec.runner or TOOL_RUNNERS.get(spec.id, "")
+        names = [spec.mcp_binary, spec.binary] if spec.is_mcp and spec.mcp_binary else [spec.binary]
+
+        if spec.category == "internal" and runner == "cargo" and executable == tool_dir / "Cargo.toml":
+            return ["cargo", "run", "--quiet", "--manifest-path", str(executable),
+                    "--bin", f"{spec.id}-arwaky-cli", "--", *args]
+        if spec.category == "internal" and runner in ("uv", "python") and executable == tool_dir:
+            if shutil.which("uv"):
+                return ["uv", "run", "--directory", str(tool_dir), spec.binary, *args]
+            if shutil.which("python3"):
+                return ["python3", "-m", spec.id, *args]
+        if spec.category == "internal" and executable == Path(spec.id):
+            return [sys.executable, "-m", spec.id, *args]
+        if spec.category == "internal" and runner in ("uv", "python") and executable.name in names:
+            return [str(executable), *args]
+        return [str(executable), *args]
 
 
 __all__ = ["RunnerCapability"]

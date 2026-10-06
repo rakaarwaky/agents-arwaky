@@ -11,8 +11,8 @@ def bench_mcp_generator_init(benchmark):
 
 def bench_mcp_orchestrator_init(benchmark):
     """BENCH-MCP-002: Benchmark McpOrchestrator initialization."""
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
     from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
+    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
 
     def _init():
         generator = McpConfigGenerator()

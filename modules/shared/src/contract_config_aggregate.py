@@ -21,9 +21,9 @@ class IConfigAggregate(ABC):
 
 
 __all__ = [
-    "IConfigAggregate",
     "ConfigRequest",
     "ConfigResult",
+    "IConfigAggregate",
 ]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).

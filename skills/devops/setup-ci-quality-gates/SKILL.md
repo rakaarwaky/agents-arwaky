@@ -18,6 +18,7 @@ metadata:
     - architecture
     - aes
   related_skills:
+    - local-ci
     - lint-arwaky
     - add-docs
     - testing-suite
@@ -97,7 +98,7 @@ for Python/TypeScript equivalents). Cache with sccache + Swatinem/rust-cache.
 
 Key env in `.github/workflows/ci.yml`: `RUSTC_WRAPPER=sccache`,
 `CARGO_BUILD_JOBS=4`, `RUST_MIN_STACK=33554432`. (`CARGO_INCREMENTAL=0`
-belongs in `scripts/gates.sh` for local runs, not in the workflow.)
+belongs in `scripts/ci.sh` for local runs, not in the workflow.)
 
 ### Self-lint job (architecture enforcement)
 
@@ -244,18 +245,23 @@ Also configure `.repowiseIgnore` (committed) + `.repowise/config.yaml`
 exclude_patterns so fixture code is never indexed; `.repowise/health-rules.json`
 tunes scoring policy (see the `repowise-scan` skill).
 
-## 5. Local quality gates (scripts/gates.sh)
+## 5. Local quality gates (scripts/ci.sh)
 
 Reproduce CI locally before pushing — the pre-push hook runs the same
 gates (Rust flavor; swap commands per language from the table at the top):
 
 ```bash
-bash scripts/gates.sh          # fmt + clippy + self-lint + AES codes + tests
+bash scripts/ci.sh               # fmt + clippy + self-lint + AES codes + tests
 CARGO_INCREMENTAL=0 cargo clippy --workspace --all-targets -- -D warnings
 cargo nextest run --workspace --lib --tests
 lint-arwaky-cli check .        # whole repo, must be 0 violations
+```
 
-```text
+`scripts/ci.sh` should also accept `--container` and run the identical gates
+inside a Podman/Docker image where every dependency, browser, and the linter
+are baked in. That removes the hosted-runner quota as a merge dependency.
+See the `local-ci` skill for the script structure, container image design,
+and the version-drift pitfall that makes local runs disagree with CI.
 
 ## 6. Supporting workflows
 
@@ -276,5 +282,5 @@ lint-arwaky-cli check .        # whole repo, must be 0 violations
 - [ ] CodeRabbit + Codacy + cubic apps installed on the repo
 - [ ] `.codacy.yaml` excludes fixtures; Codacy in required checks
 - [ ] `.repowise/bot.yaml` + `.repowiseIgnore` + `health-rules.json`
-- [ ] `scripts/gates.sh` mirrors CI for local run + pre-push hook
+- [ ] `scripts/ci.sh` mirrors CI for local run + pre-push hook (see `local-ci`)
 - [ ] Release/labeler/cleanup workflows if the release train is needed

@@ -204,7 +204,7 @@ def default_server_names() -> list:
     return [
         "context7", "fetch", "ponytail", "anytype", "codegraph",
         "vision-arwaky", "qwen-web-arwaky", "blender-arwaky", "lint-arwaky",
-        "workspace", "mnemosyne",
+        "workspace", "hindsight",
     ]
 
 

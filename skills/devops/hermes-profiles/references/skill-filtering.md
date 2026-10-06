@@ -103,8 +103,8 @@ on the CLI.
 
 - Throwaway scripts live in `~/.hermes/tmp/`, NEVER in a git working tree —
   untracked files in the repo are noise the user did not ask for.
-- mnemosyne* skills are dead weight in profiles whose config lacks
-  `memory.provider: mnemosyne`; check before keeping.
+- hindsight* skills are dead weight in profiles whose config lacks
+  `memory.provider: hindsight`; check before keeping.
 - Re-run the audit after `aa connect` or a Hermes update re-seeds skills.
 
 ## Skill-suite audit (usage + writing-quality pass)

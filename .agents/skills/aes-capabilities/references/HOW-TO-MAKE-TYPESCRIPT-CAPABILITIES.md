@@ -14,6 +14,21 @@
 
 ## Rules
 
+### Capability vs Utility Boundary
+
+A capability file **implements a protocol** — it has state (via DI), business rules, and concrete behaviour.
+A utility file **performs a pure operation** — no state, no business rules, just a narrow task.
+
+| Decision | → Capability | → Utility |
+|---|---|---|
+| Uses `this` / instance state / injected dependencies | Yes | No |
+| Contains business rules or protocol logic | Yes | No |
+| Stateless, domain-agnostic, ≥2 consumers | — | Yes |
+| Implements `_protocol` interface | Yes | No |
+| Pure exported function with no business logic | No | Yes |
+
+**Rule**: If a method in Block 3 is a module-level function (`export function` without class), stateless, domain-agnostic, and reusable across modules — extract it to a `utility_*` file. It does not belong in the capability layer.
+
 ### Import rules
 
 **Allowed imports:** Taxonomy, Contract (`_protocol` only), Utility.
@@ -45,7 +60,7 @@ Extract to utility only if ALL: no `this`, pure, no side effects, domain-agnosti
 1. Confirm implements protocol behavior (not orchestration/data/mechanics).
 2. File imports from `_protocol` module — if missing → flag `CapabilityNoProtocol`.
 3. Create `contract_<name>_protocol.ts` if missing.
-4. Enforce 3-Block.
+4. Enforce 3-Block with explicit `// ─── Block 1:`, `Block 2:`, `Block 3:` comments — AES403 `CapabilityBlockMarkers` reports a file whose banners are missing, out of order, or above 3.
 5. AES403: ≥1 interface implementor, ≤3 types, DI via protocols, shared VOs.
 6. No forbidden imports, no inter-capability deps, no local domain models.
 7. `npx tsc --noEmit`.
@@ -97,19 +112,33 @@ export interface I<Name>Protocol {
 
 ## Section Contract
 
+The `Enforced` column says which rule reports a violation, so you know what the
+linter will catch and what stays a review responsibility. `Manual` means no rule
+checks it — the shape is still the contract, but a violation is caught by review
+or by `tsc`, not by `scan`.
 
-| Check                                                             | Why it belongs here                                                 |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Block 1 → 2 → 3 order followed.                                   | Required by AES layer rules and the linter; missing it is a defect. |
-| Block 2: ONLY protocol interface method implementations.          | Required by AES layer rules and the linter; missing it is a defect. |
-| ≥1 class implements protocol interface; ≤3 total types.           | Required by AES layer rules and the linter; missing it is a defect. |
-| Imports from `_protocol` module only.                             | Required by AES layer rules and the linter; missing it is a defect. |
-| No local domain models, no agent/capability imports.              | Required by AES layer rules and the linter; missing it is a defect. |
-| DI via protocol interfaces; shared VOs for fields and signatures. | Required by AES layer rules and the linter; missing it is a defect. |
-| Constants → `taxonomy_<domain>_constant.ts`.                      | Required by AES layer rules and the linter; missing it is a defect. |
-| Low-level ops → Utility.                                          | Required by AES layer rules and the linter; missing it is a defect. |
-| `npx tsc --noEmit` passes.                                        | Required by AES layer rules and the linter; missing it is a defect. |
+| Check                                                             | Enforced                                                          |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| All three `// ─── Block 1:` / `Block 2:` / `Block 3:` banners present, in order, none above 3. | **AES403** `CapabilityBlockMarkers` (MEDIUM) |
+| Block 1 (class) precedes Block 2 (protocol methods).              | **AES403** `CapabilityBlockOrder` (HIGH)                          |
+| ≥1 class implements a protocol interface.                         | **AES403** `CapabilityNoImplementor` (MEDIUM)                     |
+| Exactly 1 protocol interface per file.                            | **AES403** `CapabilityMultiProtocol` (MEDIUM)                     |
+| ≤3 total classes / interfaces / type aliases.                     | **AES403** `CapabilityTooManyTypes` (HIGH)                        |
+| Imports from `_protocol` module only.                             | **AES201**–**AES205** (import rules)                              |
+| No agent / surface / root imports.                                | **AES201** `FORBIDDEN_IMPORT`                                     |
+| Block 2: ONLY protocol interface method implementations.          | Manual — no rule reads Block 2's contents                        |
+| DI via protocol interfaces; shared VOs for fields and signatures. | Manual                                                            |
+| Constants → `taxonomy_<domain>_constant.ts`.                      | **AES403** `CapabilityLocalConstant` (MEDIUM)                     |
+| Block 3 public helpers with no production caller flagged as defect. | **AES403** `CapabilityPublicHelper` (MEDIUM)                      |
+| Test blocks (`describe`, `it`, `test`) live in `tests/`, never inline. | **AES403** `CapabilityEmbeddedTest` (LOW)                      |
+| Low-level ops → Utility.                                          | Manual — the helper-vs-utility matrix is a judgement call         |
+| `npx tsc --noEmit` passes.                                        | `tsc`, not `scan`                                                 |
 
+**On the block banners.** A banner is `Block <digits>:` standing as its own word
+inside a comment, so TypeScript uses the `//` sigil. The colon is load-bearing:
+prose such as `Block 1 (types) -> Block 2` is not a marker, and neither is
+`Sub-Block 4:`. Put the banner above the block it heads, at the same indent as
+the code it introduces.
 
 ---
 
@@ -119,7 +148,10 @@ export interface I<Name>Protocol {
 lint-arwaky-cli scan <layer-path>
 # Checks: AES101/AES102 (filename + suffix), AES201–AES205 (layer imports),
 # AES401–AES406 (role/primitive/structure rules for this layer).
-# Manual (not machine-checked): 3-block order; Block 2 only protocol methods; helper-vs-utility matrix; role naming lists.
+# AES403 machine-enforced: type budget ≤3; protocol implementor present;
+#   protocol method defined before the first private/static method;
+#   module-level constants in taxonomy file; no inline describe/it/test block;
+#   public methods with no production caller flagged.
+# Manual (not machine-checked): helper-vs-utility matrix; role naming lists.
 # Fallback compile gate: npx tsc --noEmit
 ```
-

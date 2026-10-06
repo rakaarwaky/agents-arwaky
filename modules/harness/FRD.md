@@ -28,7 +28,7 @@ Flow: `aa connect <harness>` → harness orchestrator → capability → per-har
 adapter → harness home (XDG). Adding a harness = one adapter + one registry
 entry; no capability or agent change.
 
-Router wiring (pointing a supporting harness at the local 9Router gateway as
+Router wiring (pointing a supporting harness at the local OmniRoute gateway as
 its custom API provider) is a clause of connect, undone by the mirror clause
 of disconnect — never a separate business action.
 
@@ -39,7 +39,7 @@ of disconnect — never a separate business action.
 
 - **Description**: `connect(targets, flags)` writes the MCP client config, the
   environment entries, the skill-pack provisioning, and — where supported —
-  the 9Router custom-API wiring for each resolved harness.
+  the OmniRoute custom-API wiring for each resolved harness.
 - **Input**: tuple of canonical harness ids (post-resolution); flags `force`,
   `dry_run`, `mcp_only`, `skills_only`, `env_only`, `router`, `copy_skills`.
 - **Output**: side effects on disk (config + env + skills written); exit code
@@ -143,7 +143,7 @@ of disconnect — never a separate business action.
 |--------|-----------|---------|--------------|
 | tool manifest | in | server list for the generated MCP config | missing entry → generation error |
 | skill feature pack | in | source tree for skill provisioning | missing pack → skip with report |
-| daemon feature (9Router) | in | router endpoint for the router clause of connect | daemon down → reported, wiring still applied |
+| daemon feature (OmniRoute) | in | router endpoint for the router clause of connect | daemon down → reported, wiring still applied |
 | harness homes (XDG) | out | where config, env, and skills are written | unwritable home → reported |
 | root CLI (`aa`) | in | `aa connect` / `aa disconnect` | pass-through |
 
@@ -189,4 +189,4 @@ of disconnect — never a separate business action.
 - **canonical target**: a resolved harness id after alias and `--all` expansion — the only form actions operate on.
 - **provisioning**: linking or copying the skill pack into the harness's skill dir.
 - **adapter**: a stateless utility that knows one provider's paths, config format, and env keys.
-- **router wiring**: pointing a supporting harness at the local 9Router gateway as its custom API provider, performed as a clause of connect/disconnect.
+- **router wiring**: pointing a supporting harness at the local OmniRoute gateway as its custom API provider, performed as a clause of connect/disconnect.

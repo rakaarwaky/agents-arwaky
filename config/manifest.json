@@ -55,12 +55,12 @@
       "path": "vendor/codegraph"
     },
     {
-      "id": "9router",
+      "id": "omniroute",
       "category": "vendor",
-      "binary": "9router",
+      "binary": "omniroute",
       "isMcp": false,
-      "description": "Local AI routing gateway & token saver (host-native, 40+ providers)",
-      "path": "vendor/9router"
+      "description": "Free AI gateway, 350+ providers with 150+ free tiers, auto-fallback (host-native, no Docker)",
+      "path": "vendor/omniroute"
     },
     {
       "id": "workspace",
@@ -72,17 +72,14 @@
       "path": "vendor/google-workspace-mcp"
     },
     {
-      "id": "mnemosyne",
-      "alias": "mnemosyne-memory",
+      "id": "hindsight",
+      "alias": "hindsight-memory",
       "category": "vendor",
-      "binary": "mnemosyne-mcp",
-      "mcpBinary": "mnemosyne-mcp",
-      "mcpArgs": [
-        "mcp"
-      ],
+      "binary": "hindsight-local-mcp-server",
+      "mcpBinary": "hindsight-local-mcp-server",
       "isMcp": true,
-      "description": "Universal AI memory layer (SQLite, temporal graph, episodic recall)",
-      "path": "vendor/mnemosyne"
+      "description": "Hindsight agent memory (knowledge graph, entity resolution, multi-strategy retrieval)",
+      "path": "vendor/hindsight"
     },
     {
       "id": "vision-arwaky",

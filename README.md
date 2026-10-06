@@ -3,7 +3,7 @@
 
 ---
 
-## 💡 Executive Summary
+
 
 Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`cargo`), Node (`pnpm`/`npm`), Bun, Python (`uv`), Playwright headless browsers, and system C-libraries. Installing these natively clutters the host operating system, introduces version conflicts, and creates security vulnerabilities.
 
@@ -12,11 +12,16 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 - ⚡ **Direct Host Execution:** Compilers, dependencies, and runtimes are installed natively on the host. Tools compile to host-native binaries in `~/.local/bin/` via standard Linux XDG integration. Run tools from your host terminal directly.
 - 🤖 **Universal MCP Hub & Skills Provisioner:** Out-of-the-box integration for AI harnesses (Hermes Agent with multi-profile MCP/env sync and default-profile-only skill provisioning, OpenCode, Cursor, Zed) via declarative MCP configs and automated skill provisioning.
 - 🎯 **Unified Orchestration (`agents-arwaky` / `aa` CLI):** One single control point for diagnostics, health checks, execution dispatching, and build pipelines.
-- 🐳 **Containerized Daemons:** Anytype runs in a Podman container. 9Router runs host-native (no container). CLI tools and MCPs are host-native.
+- 🐳 **Containerized Daemons:** Anytype runs in a Podman container. OmniRoute runs host-native (no container, no Docker). CLI tools and MCPs are host-native.
 
 ---
 
-## 🏛️ Architecture
+## Prerequisites
+
+- Python 3.10+, Node.js 18+, Rust toolchain, uv, pnpm
+- See `aa doctor` to verify host prerequisites.
+
+## Architecture
 
 ### System Flow
 
@@ -40,7 +45,7 @@ flowchart TB
 
         subgraph AgentsAndTools["Managed Agent & Vendor Engines"]
             InternalAgents["Internal Agents:\nlint-arwaky • vision-arwaky • qwen-web • blender"]
-            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • ponytail • fetch • 9router"]
+            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • ponytail • fetch • omniroute"]
         end
     end
 
@@ -70,7 +75,7 @@ flowchart TB
 
     %% Daemons & Services
     AgentsAndTools -. "anytype-mcp (HTTP :31012)" .-> AnytypeDaemon
-    Harnesses -. "AI Requests via 9Router (HTTP Gateway)" .-> VendorTools
+    Harnesses -. "AI Requests via OmniRoute (HTTP Gateway)" .-> VendorTools
 ```
 
 ### Directory Layout
@@ -94,13 +99,13 @@ agents-arwaky/
 │   └── vision-arwaky/           # Computer vision MCP (VLM, OCR, visual memory)
 │
 ├── vendor/                      # Pinned Upstream Repositories (Git Submodules)
-│   ├── 9router/                 # Local AI routing gateway (host-native)
+│   ├── omniroute/               # Free-first AI gateway (host-native, port 7777)
 │   ├── anytype-mcp/             # Anytype desktop & sync integration
 │   ├── codegraph/               # Codebase intelligence & graph query engine
 │   ├── context7/                # Upstash documentation & context retrieval
 │   ├── fetch-mcp/               # Fast, clean web scraping & text extraction
 │   ├── google-workspace-mcp/    # Google Workspace integration (Gmail, Drive, Docs, etc.)
-│   ├── mnemosyne/               # Universal local AI memory layer & temporal graph
+│   ├── hindsight/               # Hindsight agent memory: LLM extraction, knowledge graph & retrieval
 │   └── ponytail/                # Agent architecture patterns & instructions
 │
 ├── modules/                     # AES 7-layer orchestration (taxonomy→…→root)
@@ -118,7 +123,7 @@ agents-arwaky/
 
 ---
 
-## 🚀 Quickstart in 60 Seconds
+## Quick Start
 
 ### 1. Clone with Submodules
 
@@ -147,7 +152,7 @@ can be invoked from any terminal:
 
 Ensure [Podman](https://podman.io/) (or Docker) is installed for the optional Anytype daemon:
 
-9Router is host-native — no container required. Install it with `npm install -g 9router`:
+OmniRoute is host-native — no container and no Docker required. Install it with `npm install -g omniroute`:
 
 ```bash
 aa doctor
@@ -179,7 +184,7 @@ aa status
 
 ---
 
-## 💻 Unified Orchestrator CLI (`agents-arwaky` / `aa`)
+### Unified Orchestrator CLI (`agents-arwaky` / `aa`)
 
 The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~/.local/bin/`. It serves as the single pane of glass for monitoring, executing, and managing all ecosystem components.
 
@@ -200,8 +205,6 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa doctor`                              | All-in-one ecosystem diagnostics (toolchains, daemons, MCP config, harnesses)                    | `aa doctor`                                    |
 | `aa tool <cmd> [args]`                   | Tool management: `list`, `run`, `install`, `update`, `uninstall`                                    | `aa tool install lint-arwaky`                   |
 | `aa skill <cmd> [args]`                  | Skill management: `list`, `install`, `uninstall`, `update`, `show`, `check`                          | `aa skill install --all` · `aa skill update`  |
-| `aa check [all\|docs\|skill]`              | Run quality gate (all runners, or `docs` / `skill` alone); warnings gate alongside errors | `aa check` · `aa check docs` · `aa check skill` |
-| `aa check docs [path]`                   | Document invariants across PRD/ROADMAP/FRD/README/BACKLOG/AGENTS and skill references, scoped to `[path]`; every finding gates, `--json` emits findings, `--include-subtrees` audits vendor/internal | `aa check docs .` |
 | `aa connect [targets]`                   | Bridge MCP & skills into agent harnesses — harness `skills/` becomes a symlink to the pack (manage once in `skills/`); `--copy-skills` snapshots instead (`--hermes`, `--opencode`, `--grok-build`, `--all`) | `aa connect --all`                             |
 | `aa disconnect [targets]`                | Disconnect harnesses (use `--all` to disconnect all)                                                | `aa disconnect --all`                          |
 | `aa mcp list`                            | Enumerate all tools offering Model Context Protocol servers                                        | `aa mcp list`                                  |
@@ -214,7 +217,7 @@ The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~
 | `aa backup <tool\|all> <target>`       | Back up tool state locally or to Google Drive                                                     | `aa backup all gdrive`                         |
 | `aa restore <tool\|all> <source>`      | Restore tool state from a backup                                                                  | `aa restore all gdrive`                        |
 | `aa anytype <action>`                    | Manage headless Anytype daemon (`start`, `stop`, `status`, `auth-key`, `space-join`, `space-list`) | `aa anytype status`                            |
-| `aa 9router <action>`                  | Manage 9Router local AI gateway, daemon & models                                                   | `aa 9router status`                           |
+| `aa omniroute <action>`                | Manage OmniRoute free AI gateway, daemon & models                                                 | `aa omniroute status`                         |
 
 > [!TIP]
 > Use `agents-arwaky` or the short alias `aa` interchangeably. Backward-compat shortcuts (`aa install`, `aa run`, …) still work.
@@ -232,7 +235,7 @@ aa tool run lint-arwaky --help
 
 ---
 
-## 📦 Agent & Tool Catalog
+### Agent & Tool Catalog
 
 > [!TIP]
 > The single source of truth (SSOT) for all tool registrations is [`config/manifest.json`](config/manifest.json). You can also run `aa tool list` or `aa mcp list` to inspect live tool status from the terminal.
@@ -261,13 +264,13 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **fetch-mcp**   | `fetch-mcp`, `mcp-fetch`           | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)           |     MCP Server     | Resilient web scraping, HTML cleaning, and Markdown transformation.     |
 | **ponytail**    | `ponytail-mcp`                     | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) |     MCP Server     | Senior-developer prompt instructions and agent behavioral patterns.     |
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
-| **9router**     | `9router`                          | [decolua/9router](https://github.com/decolua/9router)                | HTTP Gateway       | Local AI routing gateway, multi-provider, auto-fallback. Host-native, no container. |
+| **omniroute**   | `omniroute`                        | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | HTTP Gateway       | Free-first AI gateway: 350+ providers, 150+ free tiers, `auto/best-*` combos. Host-native, no Docker. State in `~/.omniroute/`. |
 | **workspace**   | `workspace-mcp`                    | [taylorwilsdon/google_workspace_mcp](https://github.com/taylorwilsdon/google_workspace_mcp) | MCP Server | Google Workspace full integration (Gmail, Drive, Docs, Sheets, Chat).   |
-| **mnemosyne**   | `mnemosyne`, `mnemosyne-mcp`       | [mnemosyne-oss/mnemosyne](https://github.com/mnemosyne-oss/mnemosyne) | CLI / MCP / Plugin | Universal SQLite memory, temporal knowledge graph & multi-harness sync. |
+| **hindsight**   | `hindsight`, `hindsight-local-mcp`   | [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight) | MCP / Plugin | LLM-extracted agent memory: knowledge graph, observations, multi-strategy retrieval (semantic/keyword/graph/temporal). Local pg0 + OpenAI-compatible LLM. |
 
 ---
 
-## 🔌 MCP Client Integration
+### MCP Client Integration
 
 `agents-arwaky` generates a standardized, unified MCP client configuration file during `aa tool install` or `aa mcp generate`:
 
@@ -295,7 +298,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
     "blender": { "command": "blender-mcp" },
     "lint": { "command": "lint-arwaky-mcp" },
     "workspace": { "command": "workspace-mcp" },
-    "mnemosyne": { "command": "mnemosyne-mcp" }
+    "hindsight": { "command": "hindsight-local-mcp" }
   }
 }
 ```
@@ -339,13 +342,13 @@ aa connect --all --force      # Overwrite existing skill files and MCP entries
 aa connect --all --dry-run    # Preview changes without modifying files
 aa connect --all --mcp-only   # Configure only MCP servers (skip skills)
 aa connect --all --skills-only# Provision only skills (skip MCP)
-aa connect --all --env-only   # Inject only 9router environment variables
+aa connect --all --env-only   # Inject only OmniRoute environment variables
 aa connect --clean            # Remove provisioned skills and MCP entries cleanly
 ```
 
 > [!NOTE]
 > **Hermes Multi-Profile Support:** `aa connect --hermes` automatically detects all profiles under `~/.hermes/profiles/<profile>/` (e.g., `currie`, `fangyuan`, `linus`, `tesla`) alongside the main profile, ensuring all agents share the full tool and skill suite.
-> **Environment & Gateway:** `aa connect` also auto-injects `NINEROUTER_URL` and `NINEROUTER_KEY` into harness environments (`.env`) and desktop session configs (`~/.config/environment.d/9router.conf`).
+> **Environment & Gateway:** `aa connect` also auto-injects `OMNIROUTE_URL` and `OMNIROUTE_KEY` into harness environments (`.env`) and desktop session configs (`~/.config/environment.d/omniroute.conf`).
 
 
 ### Manual Client Setup Guides
@@ -363,7 +366,7 @@ Each entry is `{ "command": "<tool>-mcp" }` (codegraph adds `args: ["serve", "--
 
 ---
 
-## 🛠️ Developer Workflows & Installation Paradigms
+### Developer Workflows & Installation Paradigms
 
 `agents-arwaky` defines **One Installation Paradigm** across all tools: **local bare-metal build** that compiles and installs directly on the host.
 
@@ -381,10 +384,6 @@ aa tool install fetch
 
 ### Quality Gate & CI Verification
 
-```bash
-aa check   # document invariants + skill-pack loadability
-```
-
 > See [**`CONTRIBUTING.md` § Quality Verification**](CONTRIBUTING.md#-quality-verification--pr-process).
 
 ### Clean, Uninstall & Reset
@@ -397,11 +396,11 @@ aa reset                         # full factory reset
 
 ---
 
-## 🔒 Security & Sandboxing Model
+### Security & Sandboxing Model
 
 - **Local Bare-Metal Execution:** Tools compile and run directly on the host OS — no container indirection for CLI tools or MCPs.
 - **XDG Conformance & Storage Isolation:** binaries → `${XDG_DATA_HOME}/<tool>/`, launchers → `${XDG_BIN_HOME}/`, configs → `${XDG_CONFIG_HOME}/<tool>/`, data/reports → `${XDG_DATA_HOME}/<tool>/`.
-- **Daemon-only Containerization:** Anytype runs in a Podman rootless container — the only containerized layer. 9Router runs host-native. Your host OS `/usr` and root filesystems remain untouched by toolchain installations.
+- **Daemon-only Containerization:** Anytype runs in a Podman rootless container — the only containerized layer. OmniRoute runs host-native. Your host OS `/usr` and root filesystems remain untouched by toolchain installations.
 - **Submodule Isolation:** Upstream codebases are strictly tracked via Git submodules at pinned commits, preventing unsolicited upstream drift.
 
 > [!NOTE]
@@ -419,10 +418,23 @@ Names only (never values):
 - `${XDG_DATA_HOME:-$HOME/.local/share}/<tool>/` — tool data
 - `.env` at repo root — secrets (gitignored)
 
+## Project Structure
+
+```
+agents-arwaky/
+├── config/manifest.json   # tool registry (SSOT)
+├── modules/               # AES features (vertical slices)
+├── internal/              # sibling repos (submodules)
+└── vendor/                # upstream tools (submodules)
+```
+
+## Available Scripts/Commands
+
+Run `aa --help` for the full command tree; key entries: `aa doctor`, `aa tool <op>`, `aa daemon <id>`, `aa service`, `aa harness`, `aa config`, `aa backup`.
+
 ## Testing
 
 ```bash
-aa check        # document + skill-pack gate (CI runs this)
 aa skill check  # skill-pack loadability alone
 aa doctor       # host readiness
 ```
@@ -431,7 +443,7 @@ See [CONTRIBUTING.md § Quality Verification](CONTRIBUTING.md#-quality-verificat
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions to internal agents, orchestration wrappers, and documentation are welcome!
 
@@ -441,7 +453,7 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
   - Cleanly removing or deprecating vendor tools
   - Upgrading upstream submodules
   - Contributing to in-house agents under `internal/`
-  - Quality verification gates (`aa check`)
+  - Quality verification gates (see CONTRIBUTING.md)
 
 ### Quick Pull Request Checklist
 
@@ -449,14 +461,14 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
 2. Follow the step-by-step workflow in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 3. Run verification before committing:
    ```bash
-   aa check
+   python3 -m compileall modules/
    ```
 4. Commit using conventional commits (`git commit -m "feat(vendor): add my-new-tool"`).
 5. Open a Pull Request.
 
 ---
 
-## 📄 License & Attribution
+## License
 
 - **Repository & Orchestration Code:** Licensed under the **[MIT License](LICENSE)** © 2026 rakaarwaky.
 - **Third-Party Dependencies:** Upstream submodules are licensed by their respective original authors under open-source licenses (MIT, Apache 2.0, BSD). Full licensing attributions and copyright notices are maintained in **[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)**.

@@ -26,7 +26,9 @@ def test_harness_connector_exists():
 
 def test_harness_disconnector_exists():
     """CP-HARNESS-003: HarnessDisconnector class exists."""
-    from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+    from modules.harness.src.capabilities_harness_disconnector import (
+        HarnessDisconnector,
+    )
 
     assert HarnessDisconnector is not None
 
@@ -48,7 +50,9 @@ def test_harness_orchestrator_exists():
 def test_harness_connectors_implement_operations_protocol():
     """CP-HARNESS-006: each business capability implements exactly its own seam."""
     from modules.harness.src.capabilities_harness_connector import HarnessConnector
-    from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+    from modules.harness.src.capabilities_harness_disconnector import (
+        HarnessDisconnector,
+    )
     from modules.harness.src.capabilities_harness_skills import HarnessSkills
     from modules.shared.src.contract_harness_protocol import (
         IHarnessConnectProtocol,
@@ -68,7 +72,9 @@ def test_harness_connectors_implement_operations_protocol():
 def test_each_business_capability_implements_exactly_one_seam():
     """CP-HARNESS-010: a capability carries one seam ABC, never a second."""
     from modules.harness.src.capabilities_harness_connector import HarnessConnector
-    from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+    from modules.harness.src.capabilities_harness_disconnector import (
+        HarnessDisconnector,
+    )
     from modules.harness.src.capabilities_harness_skills import HarnessSkills
     from modules.shared.src.contract_harness_protocol import (
         IHarnessConnectProtocol,
@@ -112,7 +118,6 @@ def test_harness_leaf_adapters_implement_provider_protocol():
 
 def test_no_capability_carries_a_stub():
     """CP-HARNESS-009: no harness capability raises NotImplementedError (AES304/Rule 4)."""
-    from importlib import import_module
     from pathlib import Path
 
     harness_src = Path("modules/harness/src")

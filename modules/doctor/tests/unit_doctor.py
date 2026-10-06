@@ -1,7 +1,7 @@
 """Unit tests for modules/doctor — test individual functions and methods."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -22,7 +22,7 @@ class TestEnvDiagnosticRunner:
 
         runner = EnvDiagnosticRunner()
         assert hasattr(runner, 'run')
-        assert callable(getattr(runner, 'run'))
+        assert callable(runner.run)
 
     def test_check_toolchain_method_exists(self):
         """UT-DOCTOR-003: _check_toolchain method exists."""
@@ -30,7 +30,7 @@ class TestEnvDiagnosticRunner:
 
         runner = EnvDiagnosticRunner()
         assert hasattr(runner, '_check_toolchain')
-        assert callable(getattr(runner, '_check_toolchain'))
+        assert callable(runner._check_toolchain)
 
     def test_required_toolchain_defined(self):
         """UT-DOCTOR-004: REQUIRED toolchain tuple is defined."""
@@ -67,7 +67,7 @@ class TestToolsDiagnosticRunner:
 
         runner = ToolsDiagnosticRunner()
         assert hasattr(runner, 'run')
-        assert callable(getattr(runner, 'run'))
+        assert callable(runner.run)
 
 
 class TestDoctorOrchestrator:
@@ -105,7 +105,11 @@ class TestDoctorOrchestrator:
 
     def test_execute_diagnose_passes_flags(self):
         """UT-DOCTOR-010: diagnose forwards the request flags to each runner."""
-        from modules.shared.src.taxonomy_common_vo import DoctorFlags, DoctorOp, DoctorRequest
+        from modules.shared.src.taxonomy_common_vo import (
+            DoctorFlags,
+            DoctorOp,
+            DoctorRequest,
+        )
 
         orch, env, tools = self._orch()
         flags = DoctorFlags({"json": True})

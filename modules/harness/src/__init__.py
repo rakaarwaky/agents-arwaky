@@ -9,15 +9,15 @@ re-export cycle (AES205).
 """
 from __future__ import annotations
 
-from modules.harness.src.agent_harness_orchestrator import HarnessOrchestrator
-from modules.harness.src.capabilities_harness_connector import HarnessConnector
-from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
-from modules.harness.src.capabilities_harness_skills import HarnessSkills
-from modules.harness.src.surface_harness_command import (
+from modules.cli.src.surface_harness_command import (
     cmd_connect,
     cmd_disconnect,
     main,
 )
+from modules.harness.src.agent_harness_orchestrator import HarnessOrchestrator
+from modules.harness.src.capabilities_harness_connector import HarnessConnector
+from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+from modules.harness.src.capabilities_harness_skills import HarnessSkills
 
 __all__ = [
     "HarnessConnector",

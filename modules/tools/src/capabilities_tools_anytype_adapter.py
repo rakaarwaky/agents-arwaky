@@ -11,9 +11,10 @@ import shutil
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
+    ToolSpec,
     bin_home,
     data_home,
     ensure_bin_home,
@@ -28,7 +29,11 @@ from modules.shared.src.taxonomy_tools_constant import (
     ANYTYPE_VOLUME_DIRS,
     NODE_IGNORES,
 )
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit
+from modules.shared.src.taxonomy_tools_vo import (
+    AdapterUnit,
+    PinCheck,
+    ToolPaths,
+)
 from modules.shared.src.utility_git_submodule import update_submodule
 from modules.shared.src.utility_tool_mechanics import (
     make_install,
@@ -40,20 +45,52 @@ from modules.shared.src.utility_tool_mechanics import (
     node_tool_lifecycle,
     write_node_launcher,
 )
+from modules.shared.src.utility_tools_adapter_body import (
+    install_unit,
+    is_pin_satisfied_unit,
+    owned_paths_unit,
+    satisfied_unit,
+    update_unit,
+)
+
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class AnytypeToolsAdapter(ToolsAdapterBody):
+class AnytypeToolsAdapter(IToolsAdapterProtocol):
     """anytype actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'anytype'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
-        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+        self._units = dict(ADAPTER_UNITS) if units is None else units
 
-# ---------------------------------------------------------------------------
-# Lifecycle helpers
-# ---------------------------------------------------------------------------
+
+
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
+        """True when the installed binary satisfies the manifest."""
+        return satisfied_unit(self._units, spec, self._display, root)
+
+    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> PinCheck:
+        """Return ``(satisfied, reason)`` against the manifest pin."""
+        return is_pin_satisfied_unit(self._units, spec, self._display, root)
+
+    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> ToolPaths:
+        """Return the paths this adapter's install owns for *spec*."""
+        return owned_paths_unit(self._units, spec, self._display, root)
+
+    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> ToolPaths:
+        """Install or build *spec* into *root*; return the created paths."""
+        return install_unit(self._units, spec, root, self._display, daemons=daemons)
+
+    def update(self, spec: ToolSpec, root: Path) -> ToolPaths:
+        """Update *spec* to the manifest pin; return the rebuilt paths."""
+        return update_unit(self._units, spec, root, self._display)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+
+
+
 def _anytype_daemon_feature():
     _daemon_root = "modules" + "." + "daemon" + "." + "src" + "." + "root_daemon_container"
     return importlib.import_module(_daemon_root).create_daemon_feature()
@@ -78,6 +115,27 @@ def _anytype_mcp_launchers(app_dir: Path, is_update: bool) -> list[Path]:
         raise (ToolUpdateError if is_update else FileNotFoundError)(f"entry not found {entry}")
     return [write_node_launcher("anytype-mcp", entry)]
 
+def _anytype_install_unit(daemons) -> int:
+    """Route the unit install through the daemon aggregate.
+
+    The aggregate exposes ``execute`` rather than ``install_unit``; building a
+    request keeps the adapter on the published contract.
+    """
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonName,
+        DaemonOp,
+        DaemonRequest,
+        DaemonUnit,
+    )
+
+    request = DaemonRequest(
+        op=DaemonOp("install_unit"),
+        name=DaemonName("anytype"),
+        unit=DaemonUnit("anytype-daemon.service"),
+    )
+    return int(daemons.execute(request))
+
+
 def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     is_update = action == "update"
     progress_ed = "updated" if is_update else "installed"
@@ -95,7 +153,7 @@ def _anytype_daemon_lifecycle(action: str, root: Path, daemons) -> list[Path]:
             print(f"  Warning: anytype-daemon service-install exited {rc}")
     else:
         if daemons is not None:
-            rc = daemons.install_unit("anytype-daemon.service")
+            rc = _anytype_install_unit(daemons)
             if rc != 0:
                 raise ToolUpdateError(f"anytype-daemon service-install exited {rc}")
         elif shutil.which("podman") is None and shutil.which("docker") is None:
@@ -160,6 +218,9 @@ def _unit(*, satisfied, install, update, is_pin_satisfied, owned_paths) -> Adapt
     )
 
 #: tool_id → unit for the anytype feature (merged by root_tools_container).
+
+
+
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
     "anytype": _unit(
         satisfied=anytype_satisfied,

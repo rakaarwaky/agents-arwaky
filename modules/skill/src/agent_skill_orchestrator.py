@@ -21,9 +21,9 @@ from modules.shared.src.taxonomy_skill_vo import (
     ExitCode,
     SkillArgs,
     SkillOp,
+    SkillQuery,
     SkillRequest,
     SkillResponse,
-    SkillQuery,
     ToolFilter,
 )
 

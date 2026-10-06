@@ -49,12 +49,12 @@ class UpdateResult:
 
 
 __all__ = [
+    "SKILL_UPDATE_FLAGS_EMPTY",
     "UPDATE_FLAGS_EMPTY",
     "UPDATE_TOOL_ID_EMPTY",
-    "SKILL_UPDATE_FLAGS_EMPTY",
+    "SkillUpdateFlags",
     "SourceSkillEntry",
     "UpdateFlags",
     "UpdateResult",
     "UpdateToolId",
-    "SkillUpdateFlags",
 ]

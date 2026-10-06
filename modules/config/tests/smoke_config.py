@@ -36,14 +36,17 @@ def test_import_config_orchestrator():
 
 def test_import_config_container():
     """SM-CONFIG-006: ConfigContainer and factory can be imported."""
-    from modules.config.src.root_config_container import ConfigContainer, create_config_feature
+    from modules.config.src.root_config_container import (
+        ConfigContainer,
+        create_config_feature,
+    )
     assert ConfigContainer is not None
     assert callable(create_config_feature)
 
 
 def test_import_config_command():
     """SM-CONFIG-007: ConfigCommand and cmd_config can be imported."""
-    from modules.config.src.surface_config_command import ConfigCommand, cmd_config
+    from modules.cli.src.surface_config_command import ConfigCommand, cmd_config
     assert ConfigCommand is not None
     assert callable(cmd_config)
 
@@ -51,8 +54,8 @@ def test_import_config_command():
 def test_import_config_protocol():
     """SM-CONFIG-008: both config seam ABCs can be imported."""
     from modules.shared.src.contract_config_protocol import (
-        IConfigReaderProtocol,
         IConfigModifierProtocol,
+        IConfigReaderProtocol,
     )
     assert IConfigReaderProtocol is not None
     assert IConfigModifierProtocol is not None
@@ -91,8 +94,8 @@ def test_config_modifier_instantiation_quick():
 def test_config_orchestrator_instantiation_quick():
     """SM-CONFIG-012: ConfigOrchestrator instantiation completes within 1 second."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     start = time.time()
     writer = ConfigWriter()

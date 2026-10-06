@@ -9,14 +9,6 @@ import json
 import os
 from pathlib import Path
 
-from modules.shared.src.utility_harness_log import (
-    log_err,
-    log_header,
-    log_ok,
-    log_skip,
-    log_sub,
-    log_warn,
-)
 from modules.shared.src.contract_harness_protocol import IHarnessDisconnectProtocol
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import iter_skill_files
@@ -28,9 +20,17 @@ from modules.shared.src.utility_config_engine import (
     remove_mcp_servers,
     save_file,
 )
-
+from modules.shared.src.utility_harness_log import (
+    log_err,
+    log_header,
+    log_ok,
+    log_skip,
+    log_sub,
+    log_warn,
+)
 
 # ─── Block 1: Class Definition & Constructor ──────────────
+
 class HarnessDisconnector(IHarnessDisconnectProtocol):
     """Registry-keyed disconnect capability (composition root injects adapters)."""
 
@@ -93,6 +93,8 @@ class HarnessDisconnector(IHarnessDisconnectProtocol):
     def __repr__(self) -> str:
         return "HarnessDisconnector()"
 
+
+# ─── Block 3: Dunder Methods, Factories & Helpers ───
 
 def _copy_matches_pack(dest_dir: Path, src_dir: Path) -> bool:
     """True when a provisioned copy is still byte-identical to its pack source."""

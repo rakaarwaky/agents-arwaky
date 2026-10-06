@@ -1,7 +1,8 @@
 """Skill update capability — pull internal submodule skills into the pack.
 
 Implements ``ISkillUpdateProtocol``: discovers each internal tool's skill home
-(``crates/skills``, ``modules/skills``, ``packages/skills``, or the legacy
+(``crates/shared/skills``, ``modules/shared/skills``,
+``packages/shared/skills``, the flat legacy layouts, or the legacy
 ``.agents/skills`` fallback) and merges the freshest copy into the shared
 ``skills/`` pack, stamping each merge with its upstream provenance.
 
@@ -22,10 +23,6 @@ from modules.shared.src.utility_skill_update import (
     discover_skill_sources,
     merge_skill_into_pack,
 )
-
-
-def _log(message: str, stream=None) -> None:
-    print(message, file=stream if stream is not None else sys.stdout)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -99,6 +96,8 @@ class SkillUpdateCapability(ISkillUpdateProtocol):
     def __repr__(self) -> str:
         return "SkillUpdateCapability()"
 
+def _log(message: str, stream=None) -> None:
+    print(message, file=stream if stream is not None else sys.stdout)
 
 __all__ = ["SkillUpdateCapability"]
 

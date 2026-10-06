@@ -29,27 +29,6 @@ from modules.shared.src.taxonomy_common_vo import (
 )
 
 
-def _version_probe(binary: str) -> str:
-    """Capture `<binary> --version` output for the health probe; "" on any failure."""
-    try:
-        proc = subprocess.run(
-            [binary, "--version"], capture_output=True, text=True, timeout=60, check=False
-        )
-    except (OSError, subprocess.SubprocessError):
-        return ""
-    out = (proc.stdout or proc.stderr).strip()
-    return out.splitlines()[0] if out else ""
-
-
-def _has_provenance(launcher: Path) -> bool:
-    """True when the launcher carries the arwaky-installer provenance marker."""
-    try:
-        head = launcher.open("rb").read(256).decode("utf-8", "replace")
-    except OSError:
-        return False
-    return PROVENANCE_MARKER in head
-
-
 # ─── Block 1: Class Definition & Constructor ──────────────
 class InstallerCapability(IToolsInstallerProtocol):
     """Business action install(spec, dry_run): provision + register launcher."""
@@ -63,8 +42,6 @@ class InstallerCapability(IToolsInstallerProtocol):
         self._registry = dict(registry) if registry is not None else {}
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def __repr__(self) -> str:
-        return "InstallerCapability()"
 
     def install(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> InstallResult:
         """Install via the injected registry (single API pipeline).
@@ -121,6 +98,9 @@ class InstallerCapability(IToolsInstallerProtocol):
         result = self._register_launcher(spec, result)
         return result
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ───
+    def __repr__(self) -> str:
+        return "InstallerCapability()"
     def _register_launcher(
         self,
         spec: ToolSpec,
@@ -151,5 +131,25 @@ class InstallerCapability(IToolsInstallerProtocol):
         detail = "; ".join(notes) if notes else "launcher registered"
         return InstallResult(True, spec.id, detail)
 
+
+def _version_probe(binary: str) -> str:
+    """Capture `<binary> --version` output for the health probe; "" on any failure."""
+    try:
+        proc = subprocess.run(
+            [binary, "--version"], capture_output=True, text=True, timeout=60, check=False
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    out = (proc.stdout or proc.stderr).strip()
+    return out.splitlines()[0] if out else ""
+
+
+def _has_provenance(launcher: Path) -> bool:
+    """True when the launcher carries the arwaky-installer provenance marker."""
+    try:
+        head = launcher.open("rb").read(256).decode("utf-8", "replace")
+    except OSError:
+        return False
+    return PROVENANCE_MARKER in head
 
 __all__ = ["InstallerCapability"]

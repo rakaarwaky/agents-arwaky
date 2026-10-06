@@ -1,11 +1,11 @@
 """Skill composition root — wires the pack provisioner + updater into the orchestrator."""
 from __future__ import annotations
 
+from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 from modules.shared.src.contract_skill_aggregate import ISkillAggregate
 from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
-from modules.skill.src.surface_skill_command import SkillRegistryAdapter
 
 
 class SkillContainer:

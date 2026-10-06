@@ -1,8 +1,9 @@
 """Skill-update protocol contract (capability ABC).
 
 The update capability refreshes the shared skill pack from the source-of-truth
-locations inside internal submodules (`crates/skills/`, `modules/skills/`,
-`packages/skills/`, or the legacy `.agents/skills/`).
+locations inside internal submodules (`crates/shared/skills/`,
+`modules/shared/skills/`, `packages/shared/skills/`, the flat legacy layouts, or
+the legacy `.agents/skills/`).
 
 Provisioner (`ISkillProvisionProtocol`) owns lifecycle ops that touch the pack
 (`provision`, `prune`, `audit`). Registry (`ISkillRegistryProtocol`) owns

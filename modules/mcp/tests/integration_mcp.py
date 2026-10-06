@@ -1,8 +1,8 @@
 """Integration tests for modules/mcp — test component interactions."""
 from __future__ import annotations
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 def test_mcp_generator_list_servers():

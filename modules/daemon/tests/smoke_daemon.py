@@ -14,11 +14,11 @@ def test_import_daemon_capabilities():
     """SM-DAEMON-002: daemon capability modules can be imported."""
     from modules.daemon.src import (
         capabilities_anytype_daemon,
-        capabilities_9router_daemon,
+        capabilities_omniroute_daemon,
     )
 
     assert capabilities_anytype_daemon is not None
-    assert capabilities_9router_daemon is not None
+    assert capabilities_omniroute_daemon is not None
 
 
 def test_import_daemon_orchestrator():
@@ -37,14 +37,14 @@ def test_import_daemon_container():
 
 def test_import_daemon_surface():
     """SM-DAEMON-005: daemon surface module can be imported."""
-    from modules.daemon.src import surface_daemon_command
+    from modules.cli.src import surface_daemon_command
 
     assert surface_daemon_command is not None
 
 
 def test_import_daemon_protocol():
     """SM-DAEMON-006: daemon protocol contract can be imported."""
-    from modules.shared.src import contract_daemon_protocol, contract_daemon_aggregate
+    from modules.shared.src import contract_daemon_aggregate, contract_daemon_protocol
 
     assert contract_daemon_protocol is not None
     assert contract_daemon_aggregate is not None
@@ -69,28 +69,28 @@ def test_anytype_manager_instantiates():
     assert repr(manager) == "AnytypeDaemonManager()"
 
 
-def test_ninerouter_manager_instantiates():
-    """SM-DAEMON-009: NinerouterDaemonManager instantiates quickly."""
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+def test_omniroute_manager_instantiates():
+    """SM-DAEMON-009: OmnirouteDaemonManager instantiates quickly."""
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 
     start = time.time()
-    manager = NinerouterDaemonManager()
+    manager = OmnirouteDaemonManager()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
-    assert repr(manager) == "NinerouterDaemonManager()"
+    assert repr(manager) == "OmnirouteDaemonManager()"
 
 
 def test_orchestrator_instantiates():
     """SM-DAEMON-010: DaemonOrchestrator instantiates quickly."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 
     start = time.time()
-    ninerouter = NinerouterDaemonManager()
+    omniroute = OmnirouteDaemonManager()
     anytype = AnytypeDaemonManager()
-    orchestrator = DaemonOrchestrator(ninerouter, anytype)
+    orchestrator = DaemonOrchestrator(omniroute, anytype)
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -124,12 +124,12 @@ def test_create_feature_quickly():
 def test_helper_functions_importable():
     """SM-DAEMON-013: Helper functions are importable."""
     from modules.daemon.src.capabilities_anytype_daemon import (
+        _extract_api_key,
         api_ready,
         container_exists,
         container_running,
         has_podman,
         image_exists,
-        _extract_api_key,
     )
 
     assert callable(api_ready)

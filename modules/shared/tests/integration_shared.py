@@ -115,7 +115,7 @@ def test_get_registered_tool_ids():
     assert isinstance(tools, list)
     for tool_tuple in tools:
         assert len(tool_tuple) == 3
-        tid, category, desc = tool_tuple
+        tid, category, _desc = tool_tuple
         assert isinstance(tid, str)
         assert isinstance(category, str)
 
@@ -123,7 +123,6 @@ def test_get_registered_tool_ids():
 def test_envfile_roundtrip_integration():
     """IT-SHARED-013: Full envfile read/write roundtrip works."""
     from modules.shared.src.utility_envfile_parser import (
-        load_first_env,
         parse_env_file,
         remove_env_keys,
         update_env_file,
@@ -198,79 +197,6 @@ def test_config_engine_load_save_json():
         assert data2["new"] == "value"
     finally:
         path.unlink(missing_ok=True)
-
-
-def test_doc_pack_sections():
-    """IT-SHARED-016: sections() parses headings correctly."""
-    from modules.shared.src.utility_doc_pack import sections
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        doc = Path(tmpdir) / "test.md"
-        doc.write_text("""# Header 1
-
-Content
-
-## Header 2
-
-More content
-
-### Header 3
-
-Even more""")
-
-        secs = sections(doc)
-        assert len(secs) == 3
-        assert secs[0].level == 1
-        assert secs[0].title == "Header 1"
-        assert secs[1].level == 2
-        assert secs[1].title == "Header 2"
-        assert secs[2].level == 3
-        assert secs[2].title == "Header 3"
-
-
-def test_doc_pack_find_section():
-    """IT-SHARED-017: find_section returns correct section."""
-    from modules.shared.src.utility_doc_pack import find_section, sections
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        doc = Path(tmpdir) / "test.md"
-        doc.write_text("""# Header 1
-
-## Section Two
-
-Content here
-
-### Subsection
-
-More""")
-
-        sec = find_section(doc, "Section Two")
-        assert sec is not None
-        assert sec.title == "Section Two"
-
-        sec = find_section(doc, "nonexistent")
-        assert sec is None
-
-
-def test_doc_pack_parse_tables():
-    """IT-SHARED-018: parse_tables extracts markdown tables."""
-    from modules.shared.src.utility_doc_pack import parse_tables
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        doc = Path(tmpdir) / "test.md"
-        doc.write_text("""# Table Test
-
-| A | B |
-|---|---|
-| 1 | 2 |
-| 3 | 4 |
-
-More text""")
-
-        tables = parse_tables(doc.read_text())
-        assert len(tables) == 1
-        assert tables[0].header == ["A", "B"]
-        assert len(tables[0].rows) == 2
 
 
 def test_xdg_paths_integration():

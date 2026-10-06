@@ -10,7 +10,7 @@ metadata:
       - Grok
       - API
       - Coding Agent
-      - 9Router
+      - OmniRoute
 ---
 
 # xAI / Grok API & Grok Build CLI
@@ -23,7 +23,7 @@ Reference skill covering the xAI Grok API (https://api.x.ai/v1) and the Grok Bui
 - Calling the xAI REST API (Responses, Chat Completions, Images, Voice).
 - Using server-side tools: function calling, web search, X search, code execution, structured outputs.
 - Driving the `grok` CLI headlessly for coding tasks (delegation pattern).
-- Configuring 9Router / custom providers with xAI models.
+- Configuring OmniRoute / custom providers with xAI models.
 - Checking rate limits or prompt caching behaviour.
 
 ## Quick Reference
@@ -45,7 +45,7 @@ Reference skill covering the xAI Grok API (https://api.x.ai/v1) and the Grok Bui
 - Grok Build model: `grok-build-0.1` (256k context, $1.00/$2.00 per 1M tokens <200k prompt).
 - The Grok CLI binary is `grok` (installed at `~/.local/bin/grok`, config at `~/.grok/`).
 - Headless coding: `grok -p "<brief>" --output-format json --always-approve` — the `-p` flag DOES exist (verified in docs); earlier local `--help` output was misleading.
-- 9Router proxies xAI models via `base_url: http://localhost:20128/v1`.
+- OmniRoute proxies xAI models via `base_url: http://localhost:7777/v1`.
 
 ## Load on demand
 

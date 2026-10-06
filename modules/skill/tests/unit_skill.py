@@ -1,7 +1,6 @@
 """Unit tests for modules/skill — class initialization and method behavior."""
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -26,8 +25,8 @@ class TestSkillPackProvisioner:
 
     def test_install_returns_success_result(self):
         """UT-SKILL-007: install returns SkillProvisionResult."""
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
+        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = SkillPackProvisioner()
         with patch('modules.skill.src.capabilities_skill_pack.get_tool_skills', return_value=[]):
@@ -39,27 +38,26 @@ class TestSkillPackProvisioner:
     def test_install_counts_provisioned(self):
         """UT-SKILL-008: install counts successfully provisioned skills."""
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
 
         provisioner = SkillPackProvisioner()
         mock_skills = [Path("/tmp/skills/a/SKILL.md"), Path("/tmp/skills/b/SKILL.md")]
-        with patch('modules.skill.src.capabilities_skill_pack.get_tool_skills', return_value=mock_skills):
-            with patch('modules.skill.src.capabilities_skill_pack.provision_single_skill', return_value=True):
-                result = provisioner.provision("test-tool", Path("/tmp"))
-                assert result.provisioned == 2
+        with patch('modules.skill.src.capabilities_skill_pack.get_tool_skills', return_value=mock_skills), \
+             patch('modules.skill.src.capabilities_skill_pack.provision_single_skill', return_value=True):
+            result = provisioner.provision("test-tool", Path("/tmp"))
+            assert result.provisioned == 2
 
     def test_prune_returns_result(self):
         """UT-SKILL-009: prune returns SkillProvisionResult."""
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillProvisionResult
+        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = SkillPackProvisioner()
-        with patch('modules.skill.src.capabilities_skill_pack.provision_base', return_value=Path("/tmp/base")):
-            with patch('modules.skill.src.capabilities_skill_pack.prune_provisioned', return_value=3):
-                result = provisioner.prune(Path("/tmp"))
-                assert isinstance(result, SkillProvisionResult)
-                assert result.provisioned == 3
-                assert "removed" in result.message
+        with patch('modules.skill.src.capabilities_skill_pack.provision_base', return_value=Path("/tmp/base")), \
+             patch('modules.skill.src.capabilities_skill_pack.prune_provisioned', return_value=3):
+            result = provisioner.prune(Path("/tmp"))
+            assert isinstance(result, SkillProvisionResult)
+            assert result.provisioned == 3
+            assert "removed" in result.message
 
 
 class TestSkillOrchestrator:
@@ -89,9 +87,9 @@ class TestSkillOrchestrator:
 
     def test_execute_list_delegates_to_registry(self):
         """UT-SKILL-012: execute(list) delegates to registry.list."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -102,9 +100,9 @@ class TestSkillOrchestrator:
 
     def test_execute_check_delegates_to_registry(self):
         """UT-SKILL-013: execute(check) delegates to registry.check."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -115,9 +113,9 @@ class TestSkillOrchestrator:
 
     def test_execute_show_delegates_to_registry(self):
         """UT-SKILL-014: execute(show) delegates to registry.show."""
+        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -128,9 +126,13 @@ class TestSkillOrchestrator:
 
     def test_execute_install_delegates_to_registry(self):
         """UT-SKILL-015: execute(install) delegates to registry.install."""
+        from modules.shared.src.taxonomy_skill_vo import (
+            SkillArgs,
+            SkillOp,
+            SkillRequest,
+        )
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -141,9 +143,13 @@ class TestSkillOrchestrator:
 
     def test_execute_uninstall_delegates_to_registry(self):
         """UT-SKILL-016: execute(uninstall) delegates to registry.uninstall."""
+        from modules.shared.src.taxonomy_skill_vo import (
+            SkillArgs,
+            SkillOp,
+            SkillRequest,
+        )
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -154,9 +160,13 @@ class TestSkillOrchestrator:
 
     def test_execute_sync_delegates_to_registry(self):
         """UT-SKILL-017: execute(sync) delegates to registry.sync."""
+        from modules.shared.src.taxonomy_skill_vo import (
+            SkillArgs,
+            SkillOp,
+            SkillRequest,
+        )
         from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillOp, SkillRequest
 
         provisioner = SkillPackProvisioner()
         registry = MagicMock()
@@ -167,9 +177,8 @@ class TestSkillOrchestrator:
 
     def test_execute_provision_delegates_to_provisioner(self):
         """UT-SKILL-018: execute(provision) delegates to provisioner."""
-        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
+        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 
         provisioner = MagicMock()
         provisioner.provision.return_value.success = True
@@ -181,9 +190,8 @@ class TestSkillOrchestrator:
 
     def test_execute_prune_delegates_to_provisioner(self):
         """UT-SKILL-019: execute(prune) delegates to provisioner."""
-        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
+        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 
         provisioner = MagicMock()
         provisioner.prune.return_value.success = True
@@ -195,9 +203,8 @@ class TestSkillOrchestrator:
 
     def test_execute_audit_delegates_to_provisioner(self):
         """UT-SKILL-020: execute(audit) delegates to provisioner.audit."""
-        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
+        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 
         provisioner = MagicMock()
         provisioner.audit.return_value = []
@@ -209,9 +216,8 @@ class TestSkillOrchestrator:
 
     def test_execute_remove_aliases_prune(self):
         """UT-SKILL-021: execute('prune') delegates to provisioner.prune."""
-        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
         from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
+        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 
         provisioner = MagicMock()
         provisioner.prune.return_value.success = True
@@ -221,86 +227,73 @@ class TestSkillOrchestrator:
         orchestrator.execute(SkillRequest(SkillOp("prune")))
         provisioner.prune.assert_called_once()
 
-    def test_execute_list_delegates_to_registry(self):
-        """UT-SKILL-022: execute(list) delegates to registry.list."""
-        from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
-        from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-        from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
-
-        provisioner = SkillPackProvisioner()
-        registry = MagicMock()
-        orchestrator = SkillOrchestrator(provisioner, registry)
-
-        orchestrator.execute(SkillRequest(SkillOp("list")))
-        registry.list.assert_called_once()
-
 
 class TestSkillRegistryAdapter:
     """Tests for SkillRegistryAdapter."""
 
     def test_init(self):
         """UT-SKILL-023: SkillRegistryAdapter initializes without args."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
         assert adapter is not None
 
     def test_list(self):
         """UT-SKILL-024: list calls the module-level cmd_list."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_list', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_list', return_value=0) as mock_fn:
             result = adapter.list()
             mock_fn.assert_called_once_with([])
             assert result == 0
 
     def test_check(self):
         """UT-SKILL-025: check calls the module-level cmd_check."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_check', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_check', return_value=0) as mock_fn:
             result = adapter.check()
             mock_fn.assert_called_once_with([])
             assert result == 0
 
     def test_show(self):
         """UT-SKILL-026: show calls the module-level cmd_show."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_show', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_show', return_value=0) as mock_fn:
             result = adapter.show("my-skill")
             mock_fn.assert_called_once_with(["my-skill"])
             assert result == 0
 
     def test_install(self):
         """UT-SKILL-027: install calls the module-level cmd_install."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_install', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_install', return_value=0) as mock_fn:
             result = adapter.install(["lint"])
             mock_fn.assert_called_once()
             assert result == 0
 
     def test_uninstall(self):
         """UT-SKILL-028: uninstall calls the module-level cmd_uninstall."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_uninstall', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_uninstall', return_value=0) as mock_fn:
             result = adapter.uninstall(["lint"])
             mock_fn.assert_called_once()
             assert result == 0
 
     def test_sync(self):
-        """UT-SKILL-029: sync calls the module-level cmd_install with 'all'."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        """UT-SKILL-050: sync calls the module-level cmd_install with 'all'."""
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_install', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_install', return_value=0) as mock_fn:
             result = adapter.sync()
             mock_fn.assert_called_once_with(["all"])
             assert result == 0
@@ -318,8 +311,8 @@ class TestSkillUpdateCapability:
 
     def test_update_dry_run_success(self):
         """UT-SKILL-041: dry-run reports planned merges without writing."""
-        from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
         from modules.shared.src.taxonomy_skill_update_vo import UpdateResult
+        from modules.skill.src.capabilities_skill_update import SkillUpdateCapability
 
         updater = SkillUpdateCapability()
         result = updater.update(dry_run=True)
@@ -349,11 +342,11 @@ class TestSkillUpdateUtility:
 
     def test_discover_skill_sources_no_conflict(self):
         """UT-SKILL-044: discovery returns unique skill names after dedup."""
+        from modules.shared.src.taxonomy_common_constant import REPO_ROOT
         from modules.shared.src.utility_skill_update import (
             deduplicate_sources,
             discover_skill_sources,
         )
-        from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 
         pack_root = REPO_ROOT / "skills"
         entries = discover_skill_sources(pack_root, REPO_ROOT)
@@ -368,8 +361,8 @@ class TestSkillUpdateUtility:
 
     def test_pack_category_preserves_existing(self):
         """UT-SKILL-045: an existing pack skill keeps its category after an update."""
-        from modules.shared.src.utility_skill_update import pack_category
         from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+        from modules.shared.src.utility_skill_update import pack_category
 
         pack_root = REPO_ROOT / "skills"
         assert pack_category(pack_root, "vision-arwaky") == "media"
@@ -377,8 +370,8 @@ class TestSkillUpdateUtility:
 
     def test_pack_category_defaults_to_internal_tools(self):
         """UT-SKILL-046: a new skill falls into the default internal-tools category."""
-        from modules.shared.src.utility_skill_update import pack_category
         from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+        from modules.shared.src.utility_skill_update import pack_category
 
         pack_root = REPO_ROOT / "skills"
         assert pack_category(pack_root, "no-such-skill-ever") == "internal-tools"
@@ -394,8 +387,8 @@ class TestSkillUpdateUtility:
 
     def test_owned_names_includes_aliases(self):
         """UT-SKILL-048: tool aliases are part of the legacy-ownership set."""
-        from modules.shared.src.utility_skill_update import _owned_names
         from modules.shared.src.taxonomy_common_vo import Tool
+        from modules.shared.src.utility_skill_update import _owned_names
 
         tool = Tool(
             id="qwen-web-arwaky",
@@ -414,13 +407,13 @@ class TestSkillUpdateUtility:
     def test_recorded_source_normalizes_to_relative(self):
         """UT-SKILL-049: absolute paths are stored repo-relative so the
         sidecar survives re-clones and git worktrees."""
-        from modules.shared.src.utility_skill_update import _recorded_source, REPO_ROOT
-        from pathlib import Path
 
-        inside = REPO_ROOT / "internal/lint-arwaky/crates/skills/aes-agent/SKILL.md"
+        from modules.shared.src.utility_skill_update import REPO_ROOT, _recorded_source
+
+        inside = REPO_ROOT / "internal/lint-arwaky/crates/shared/skills/aes-agent/SKILL.md"
         assert _recorded_source(str(inside)) == str(inside.relative_to(REPO_ROOT))
         # A path already relative (e.g. a symlink target) is returned as-is.
-        rel = "internal/lint-arwaky/crates/skills/aes-agent/SKILL.md"
+        rel = "internal/lint-arwaky/crates/shared/skills/aes-agent/SKILL.md"
         assert _recorded_source(rel) == rel
         # A path outside the repo cannot be made relative; it is kept as-is
         # rather than raising, so audit_update_drift resolves to REPO_ROOT
@@ -434,28 +427,28 @@ class TestMainEntry:
 
     def test_main_help(self):
         """UT-SKILL-031: main('--help') returns help exit code."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main(["--help"])
         assert result == 0
 
     def test_main_empty(self):
         """UT-SKILL-032: main([]) shows help."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main([])
         assert result == 0
 
     def test_main_list(self):
         """UT-SKILL-033: main(['list']) calls cmd_list."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main(["list"])
         assert result == 0
 
     def test_main_check(self):
         """UT-SKILL-034: main(['check']) calls cmd_check."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main(["check"])
         # May return non-zero if findings exist
@@ -463,7 +456,48 @@ class TestMainEntry:
 
     def test_main_unknown_shows_help(self):
         """UT-SKILL-035: main with unknown action shows help."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main(["unknown-action"])
         assert result == 0
+
+
+class TestPruneReport:
+    """`_report_prune` must actually reach and report pruned entries.
+
+    Two defects used to hide here: it passed the already-resolved skills BASE
+    to `prune_provisioned`, which then appended `.agents/skills` a second time
+    and scanned a path that never exists; and it iterated the return value as a
+    list of names when the helper returns a plain count.
+    """
+
+    def test_prune_reaches_flat_orphan_and_reports_it(self, capsys, tmp_path):
+        """UT-SKILL-052: a flat orphan is removed and named in the report."""
+        from modules.cli.src.surface_skill_command import _report_prune
+
+        orphan = tmp_path / ".agents" / "skills" / "zzz-retired"
+        orphan.mkdir(parents=True)
+        (orphan / "SKILL.md").write_text("# retired\n")
+        (orphan / ".arwaky-skill.json").write_text('{"source_skill": "x"}')
+
+        _report_prune(tmp_path / ".agents" / "skills")
+
+        out = capsys.readouterr().out
+        assert not orphan.exists(), "orphan survived the prune"
+        assert "zzz-retired" in out, "report never named the pruned entry"
+        assert "nothing stale" not in out
+
+    def test_prune_reports_nothing_stale_when_clean(self, capsys, tmp_path):
+        """UT-SKILL-053: a clean tree reports zero and keeps hand-written work."""
+        from modules.cli.src.surface_skill_command import _report_prune
+
+        base = tmp_path / ".agents" / "skills"
+        mine = base / "my-own-skill"
+        mine.mkdir(parents=True)
+        (mine / "SKILL.md").write_text("# mine\n")
+
+        _report_prune(base)
+
+        out = capsys.readouterr().out
+        assert "nothing stale" in out
+        assert mine.is_dir(), "hand-written skill was pruned"

@@ -20,23 +20,20 @@ from modules.shared.src.taxonomy_daemon_vo import (
 )
 
 #: Daemon ids the orchestrator can route to, in listing order.
-_KNOWN: tuple[DaemonName, ...] = (DaemonName("9router"), DaemonName("anytype"))
+_KNOWN: tuple[DaemonName, ...] = (DaemonName("anytype"), DaemonName("omniroute"))
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class DaemonOrchestrator(IDaemonAggregate):
     """Route daemon actions to the named capability (zero I/O)."""
 
-    def __init__(
-        self,
-        ninerouter: IDaemonProtocol,
-        anytype: IDaemonProtocol | None = None,
-    ) -> None:
-        self._ninerouter = ninerouter
+    def __init__(self, anytype: IDaemonProtocol, omniroute: IDaemonProtocol) -> None:
         self._anytype = anytype
-        self._managers: dict[str, IDaemonProtocol] = {"9router": ninerouter}
-        if anytype is not None:
-            self._managers["anytype"] = anytype
+        self._omniroute = omniroute
+        self._managers: dict[str, IDaemonProtocol] = {
+            "anytype": anytype,
+            "omniroute": omniroute,
+        }
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def execute(self, request: DaemonRequest) -> DaemonResponse:
@@ -63,9 +60,9 @@ class DaemonOrchestrator(IDaemonAggregate):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     #: systemd unit filename → daemon id (unit ops accept either form).
     _UNIT_DAEMON: ClassVar[dict[str, str]] = {
-        "9router.service": "9router",
         "anytype-daemon.service": "anytype",
         "anytype.service": "anytype",
+        "omniroute.service": "omniroute",
     }
 
     @property
@@ -105,7 +102,7 @@ def _name(request: DaemonRequest) -> DaemonName:
 def _unit(request: DaemonRequest) -> DaemonUnit:
     """Read the unit a request routes to; fall back to the first known unit."""
     if request.unit is None:
-        return DaemonUnit("9router.service")
+        return DaemonUnit(f"{_KNOWN[0]}.service")
     return DaemonUnit(str(request.unit))
 
 
