@@ -37,7 +37,7 @@ def test_import_daemon_container():
 
 def test_import_daemon_surface():
     """SM-DAEMON-005: daemon surface module can be imported."""
-    from modules.daemon.src import surface_daemon_command
+    from modules.cli.src import surface_daemon_command
 
     assert surface_daemon_command is not None
 

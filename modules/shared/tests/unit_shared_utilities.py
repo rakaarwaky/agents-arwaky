@@ -139,7 +139,7 @@ class TestTool:
         try:
             tool.id = "modified"
             assert False, "Should have raised FrozenInstanceError"
-        except Exception:
+        except Exception:  # noqa: BLE001,S110
             pass
 
 
@@ -646,10 +646,9 @@ class TestReadVersion:
         from modules.shared.src import taxonomy_common_constant
         from modules.shared.src.taxonomy_common_vo import read_version
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(taxonomy_common_constant, 'REPO_ROOT', Path(tmpdir)):
-                result = read_version()
-                assert result == taxonomy_common_constant.DEFAULT_VERSION
+        with tempfile.TemporaryDirectory() as tmpdir, patch.object(taxonomy_common_constant, 'REPO_ROOT', Path(tmpdir)):
+            result = read_version()
+            assert result == taxonomy_common_constant.DEFAULT_VERSION
 
 
 class TestStripJsoncComments:

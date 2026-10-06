@@ -119,15 +119,15 @@ Merge strategy: {which prefixes squash, which rebase onto }.
 
 ```bash
 # Tests
-python3 -m pytest modules/ -q                            # whole-workspace Python tests
-python3 -m pytest modules/<feat>/tests -q                 # one feature
-python3 -m pytest modules/<feat>/tests/unit_<feat>.py -q  # one file
+{python3 -m pytest modules/ -q}                        # whole-workspace Python tests
+{python3 -m pytest modules/<feat>/tests -q}             # one feature
+{python3 -m pytest modules/<feat>/tests/unit_<feat>.py -q}  # one file
 
-# Lint / types / architecture
-python3 -m ruff check modules/ --fix      # matches ci.yml ruff job
-python3 -m mypy modules/ --strict         # type checker
-lac scan . --format json                  # architecture scanner (lint-arwaky)
-lac scan . --fix                          # dry-run variant, fixer is destructive
+# Lint / types / architecture —
+{python3 -m ruff check modules/ --fix}                  # matches ci.yml ruff job
+{python3 -m mypy modules/ --strict}                     # type checker
+{lac scan . --format json}                               # architecture scanner (lint-arwaky)
+{lac scan . --fix}                                       # dry-run variant, fixer is destructive
 ```
 
 ## Guided Skills
@@ -164,8 +164,7 @@ notes. Do not apply it to code identifiers, commands, or config keys.
 
 - Do not invent claims, sources, stats, or examples.
 
-- Em dashes are not default rhythm crutches. Use 1-2 in long drafts only when
-they beat commas or periods.
+- Em dashes are not default rhythm crutches. Use 1-2 in long drafts only when they beat commas or periods.
 
 - Ban binary contrasts. Cut "This is not X, it's Y." and "Not a X. Not a Y. A Z."
   State the preferred option directly: "The question isn't the model, it's the
@@ -175,14 +174,21 @@ they beat commas or periods.
 
 - Ban dramatic colon reveals. Reserve colons for lists, labels, and quotes.
 
-- Cut superficial analysis. Drop trailing "-ing" clauses that fake meaning.
+- Cut superficial analysis. Drop trailing "-ing" clauses that fake meaning. State the cause and effect.
+
+- Cut importance puffery. State the fact.
+
+- Cut interpretive metadiscourse and dramatic mic-drop endings. End on the clearest concrete sentence.
+
+- Ban weasel attribution. Name the source or cut the claim.
+
+- Stop synonym cycling. Repeat the clear word.
 
 - Ban dramatic fragmentation. Use complete sentences.
 
 - Cut summary-recap endings. End on the last concrete point or next action.
 
-- Avoid formatting slop. No mid-sentence bolding, no bullets where prose works,
-  no headers over short sections. Use code formatting for commands and variables.
+- Avoid formatting slop. No mid-sentence bolding, no bullets where prose works, no headers over short sections. Use code formatting for commands and variables.
 
 - Ban emoji by default. Use one only for UI status markers, diff glyphs, or test results.
 
@@ -194,3 +200,5 @@ they beat commas or periods.
 - [ROADMAP.md](ROADMAP.md) - cross-cutting feature roll-up and status.
 - [CONTRIBUTING.md](CONTRIBUTING.md) - how to add, update, or remove a vendor tool.
 - [README.md](README.md) - quickstart and operator workflow.
+
+---

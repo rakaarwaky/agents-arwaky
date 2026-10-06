@@ -22,7 +22,7 @@ def test_mcp_generator_init_quick():
     from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
 
     start = time.time()
-    generator = McpConfigGenerator()
+    McpConfigGenerator()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -35,7 +35,7 @@ def test_mcp_orchestrator_init_quick():
 
     start = time.time()
     generator = McpConfigGenerator()
-    orch = McpOrchestrator(generator)
+    McpOrchestrator(generator)
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -46,7 +46,7 @@ def test_container_creation_quick():
     from modules.mcp.src.root_mcp_container import McpContainer
 
     start = time.time()
-    container = McpContainer()
+    McpContainer()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Container creation took {elapsed:.2f}s"

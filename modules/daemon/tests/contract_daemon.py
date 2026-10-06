@@ -160,7 +160,7 @@ def test_daemon_value_objects_exist():
 
 def test_surface_command_exists():
     """CP-DAEMON-014: surface_daemon_command module exports DaemonAction."""
-    from modules.daemon.src.surface_daemon_command import DaemonAction
+    from modules.cli.src.surface_daemon_command import DaemonAction
 
     assert DaemonAction is not None
     assert hasattr(DaemonAction, '__init__')

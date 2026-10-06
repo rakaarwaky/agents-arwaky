@@ -22,7 +22,7 @@ class TestEnvDiagnosticRunner:
 
         runner = EnvDiagnosticRunner()
         assert hasattr(runner, 'run')
-        assert callable(getattr(runner, 'run'))
+        assert callable(runner.run)
 
     def test_check_toolchain_method_exists(self):
         """UT-DOCTOR-003: _check_toolchain method exists."""
@@ -30,7 +30,7 @@ class TestEnvDiagnosticRunner:
 
         runner = EnvDiagnosticRunner()
         assert hasattr(runner, '_check_toolchain')
-        assert callable(getattr(runner, '_check_toolchain'))
+        assert callable(runner._check_toolchain)
 
     def test_required_toolchain_defined(self):
         """UT-DOCTOR-004: REQUIRED toolchain tuple is defined."""
@@ -67,7 +67,7 @@ class TestToolsDiagnosticRunner:
 
         runner = ToolsDiagnosticRunner()
         assert hasattr(runner, 'run')
-        assert callable(getattr(runner, 'run'))
+        assert callable(runner.run)
 
 
 class TestDoctorOrchestrator:

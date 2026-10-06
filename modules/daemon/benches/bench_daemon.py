@@ -55,7 +55,7 @@ def bench_anytype_execute_dispatch(benchmark):
         # measure the dispatch path itself
         try:
             manager.execute("help")
-        except Exception:
+        except Exception:  # noqa: BLE001,S110
             pass
 
     benchmark(_execute)
@@ -70,7 +70,7 @@ def bench_podman_execute_dispatch(benchmark):
     def _execute():
         try:
             manager.execute("help")
-        except Exception:
+        except Exception:  # noqa: BLE001,S110
             pass
 
     benchmark(_execute)

@@ -30,7 +30,7 @@ def test_import_skill_orchestrator():
 
 def test_import_skill_surface():
     """SM-SKILL-005: surface_skill_command imports cleanly."""
-    from modules.skill.src import surface_skill_command
+    from modules.cli.src import surface_skill_command
     assert surface_skill_command is not None
 
 
@@ -54,7 +54,7 @@ def test_import_skill_orchestrator_class():
 
 def test_import_skill_registry_adapter():
     """SM-SKILL-009: SkillRegistryAdapter can be imported."""
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
     assert SkillRegistryAdapter is not None
 
 

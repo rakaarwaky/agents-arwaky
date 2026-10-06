@@ -408,10 +408,10 @@ class TestConfigSurface:
 
     def test_init(self):
         """UT-CONFIG-027: ConfigCommand stores orchestrator reference."""
+        from modules.cli.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.config.src.surface_config_command import ConfigCommand
 
         writer = ConfigWriter()
         modifier = ConfigModifier()
@@ -421,7 +421,7 @@ class TestConfigSurface:
 
     def test_execute_delegates_to_aggregate(self):
         """UT-CONFIG-028: ConfigCommand.execute delegates to the wrapped aggregate."""
-        from modules.config.src.surface_config_command import ConfigCommand
+        from modules.cli.src.surface_config_command import ConfigCommand
         from modules.shared.src.taxonomy_common_vo import (
             ConfigOp,
             ConfigRequest,
@@ -441,10 +441,10 @@ class TestConfigSurface:
 
     def test_help_delegates(self):
         """UT-CONFIG-029: the help op flows through the aggregate's execute."""
+        from modules.cli.src.surface_config_command import ConfigCommand
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.config.src.surface_config_command import ConfigCommand
         from modules.shared.src.taxonomy_common_vo import (
             ConfigOp,
             ConfigRequest,

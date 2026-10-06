@@ -41,7 +41,7 @@ class TestHarnessConnector:
 
         connector = HarnessConnector({})
         assert isinstance(connector, IHarnessConnectProtocol)
-        assert callable(getattr(connector, 'connect'))
+        assert callable(connector.connect)
 
     def test_provision_clause_delegates_to_injected_skills(self):
         """UT-HARNESS-004b: connect provisions skills via the injected seam."""
@@ -78,7 +78,7 @@ class TestHarnessDisconnector:
 
         disconnector = HarnessDisconnector({})
         assert isinstance(disconnector, IHarnessDisconnectProtocol)
-        assert callable(getattr(disconnector, 'disconnect'))
+        assert callable(disconnector.disconnect)
 
 
 class TestHarnessSkills:
@@ -98,7 +98,7 @@ class TestHarnessSkills:
 
         skills = HarnessSkills({})
         assert isinstance(skills, IHarnessSkillsProtocol)
-        assert callable(getattr(skills, 'provision_skills'))
+        assert callable(skills.provision_skills)
 
 
 class TestHarnessLeafAdapters:

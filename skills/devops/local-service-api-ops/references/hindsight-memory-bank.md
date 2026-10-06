@@ -110,6 +110,44 @@ Useful bank-config knobs worth reading via `GET /config` before tuning:
 `enable_auto_consolidation`, `consolidation_llm_batch_size`,
 `consolidation_llm_parallelism`, `retain_extraction_mode`.
 
+A browser `HTTP 500` / `Server Error` on the **control-plane UI** is a symptom, not the
+diagnosis: the UI is a separate Next.js process that proxies its `/api/*` calls to this
+backend. An empty UI (no memories, `Server Error HTTP 500`) usually means the backend on
+`:8888` is down, not that the UI is broken. Repair bottom-up, in this order:
+
+1. **Confirm the backend port is actually LISTENING** — `ss -ltnp | grep :8888` (and the
+   pg0 Postgres port, e.g. `:5433`). Both the API and its Postgres must be up.
+2. **Detect a crash loop even when the unit says `active`.** systemd's `Restart=always`
+   relaunches a dying process, so `systemctl --user is-active hindsight-api` reads
+   `active` during the whole loop. `systemctl --user show hindsight-api -p NRestarts`
+   reveals it — a large / climbing value means it never stays up, and the port is never
+   really listening.
+3. **Read the real failure from the journal, not `exit-code`.**
+   `journalctl --user -u hindsight-api -n 120` shows the concrete startup traceback.
+4. **Fix the root cause, then verify the port + `NRestarts=0`.** The most common startup
+   failure is the model load below.
+
+### Expired HuggingFace token → model-load 401 (most common startup crash)
+
+On startup the API loads its local embedding + reranker models (e.g. `BAAI/bge-small-en-v1.5`,
+`cross-encoder/ms-marco-MiniLM-L-6-v2`). It keeps them in `~/.cache/huggingface/hub`, but if
+the service is not in offline mode it still does a network check to huggingface.co. An **expired
+HF OAuth token** makes that check return a 401 `RepositoryNotFoundError` (journal line:
+`OAuth token has expired: "exp" claim timestamp check failed`), so startup aborts and the unit\loops — even though the model files are already cached locally.
+
+- **Verify the offline path first, before touching the unit.** From the venv:
+  `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -c "from sentence_transformers import CrossEncoder; CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')"`
+  — if that loads from cache, offline mode is the fix.
+- **Fix A (no new models expected — preferred, no token rotation).** Add to the unit's
+  `[Service]`:
+  `Environment=HF_HUB_OFFLINE=1` and `Environment=TRANSFORMERS_OFFLINE=1`, then
+  `systemctl --user daemon-reload && systemctl --user restart hindsight-api`.
+- **Fix B (you expect to pull new models).** `hf auth login` to refresh the token; leave the
+  service online.
+
+After the fix, re-probe `/health` on `:8888`, confirm `NRestarts=0`, then reload the UI and
+confirm the 500 banner is gone.
+
 ## Upstream docs
 
 - <https://hindsight.vectorize.io/sdks/integrations/hermes> — config table,

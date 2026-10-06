@@ -14,7 +14,7 @@ def test_dogfood_skill_pipeline():
     for method in ("provision", "prune", "audit"):
         assert callable(getattr(provisioner, method))
 
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
     adapter = SkillRegistryAdapter()
     assert not hasattr(adapter, 'execute')
     for method in ("list", "check", "show", "install", "uninstall", "sync"):

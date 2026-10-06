@@ -22,7 +22,7 @@ class TestMcpConfigGenerator:
 
         generator = McpConfigGenerator()
         assert hasattr(generator, 'list_servers')
-        assert callable(getattr(generator, 'list_servers'))
+        assert callable(generator.list_servers)
 
     def test_generate_method_exists(self):
         """UT-MCP-004: generate method exists."""
@@ -30,7 +30,7 @@ class TestMcpConfigGenerator:
 
         generator = McpConfigGenerator()
         assert hasattr(generator, 'generate')
-        assert callable(getattr(generator, 'generate'))
+        assert callable(generator.generate)
 
     def test_validate_method_exists(self):
         """UT-MCP-005: validate method exists."""
@@ -38,7 +38,7 @@ class TestMcpConfigGenerator:
 
         generator = McpConfigGenerator()
         assert hasattr(generator, 'validate')
-        assert callable(getattr(generator, 'validate'))
+        assert callable(generator.validate)
 
     def test_show_server_method_exists(self):
         """UT-MCP-006: show_server method exists."""
@@ -46,7 +46,7 @@ class TestMcpConfigGenerator:
 
         generator = McpConfigGenerator()
         assert hasattr(generator, 'show_server')
-        assert callable(getattr(generator, 'show_server'))
+        assert callable(generator.show_server)
 
 
 class TestMcpOrchestrator:

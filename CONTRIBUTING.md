@@ -451,6 +451,17 @@ The repository hosts several core in-house agents under `internal/`:
 3. **Parity between CLI and MCP:**  
    Internal tools exposing an MCP interface must preserve 1:1 parity with their CLI commands.
 
+## Documentation Change
+
+For doc-only changes (README, PRD, ARCHITECTURE, ROADMAP, CONTRIBUTING, FRD/BACKLOG pairs):
+
+1. Edit the document in place. Specs stay stateless: describe roles and behaviour,
+   never name source files (AES603).
+2. Keep the document's H2 set closed to its template (AES605): do not add or rename
+   level-2 sections, only level-3 and deeper are free.
+3. Verify with `lac docs .` before committing; docs gate on zero findings.
+4. A PR that changes an FRD updates the matching BACKLOG row in the same PR.
+
 ---
 
 ## Quality Verification & PR Process

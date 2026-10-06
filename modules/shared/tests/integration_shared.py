@@ -115,7 +115,7 @@ def test_get_registered_tool_ids():
     assert isinstance(tools, list)
     for tool_tuple in tools:
         assert len(tool_tuple) == 3
-        tid, category, desc = tool_tuple
+        tid, category, _desc = tool_tuple
         assert isinstance(tid, str)
         assert isinstance(category, str)
 

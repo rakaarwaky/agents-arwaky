@@ -67,7 +67,7 @@ def test_skill_orchestrator_implements_aggregate():
 
 def test_skill_registry_adapter_implements_protocol():
     """CP-SKILL-005: SkillRegistryAdapter implements ISkillRegistryProtocol."""
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
     adapter = SkillRegistryAdapter()
     assert isinstance(adapter, ISkillRegistryProtocol)
@@ -75,7 +75,7 @@ def test_skill_registry_adapter_implements_protocol():
 
 def test_skill_registry_adapter_has_registry_methods():
     """CP-SKILL-006: SkillRegistryAdapter exposes the rich registry methods."""
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
     adapter = SkillRegistryAdapter()
     for method in ("list", "check", "show", "install", "uninstall", "sync"):

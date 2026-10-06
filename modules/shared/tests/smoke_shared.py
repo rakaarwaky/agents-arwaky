@@ -75,11 +75,11 @@ def test_skill_registry_quick():
     )
 
     start = time.time()
-    skills = get_all_skills()
+    get_all_skills()
     elapsed_skills = time.time() - start
 
     start = time.time()
-    tools = get_registered_tool_ids()
+    get_registered_tool_ids()
     elapsed_tools = time.time() - start
 
     assert elapsed_skills < 5.0

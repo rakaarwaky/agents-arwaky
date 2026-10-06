@@ -41,10 +41,10 @@ class TestSkillPackProvisioner:
 
         provisioner = SkillPackProvisioner()
         mock_skills = [Path("/tmp/skills/a/SKILL.md"), Path("/tmp/skills/b/SKILL.md")]
-        with patch('modules.skill.src.capabilities_skill_pack.get_tool_skills', return_value=mock_skills):
-            with patch('modules.skill.src.capabilities_skill_pack.provision_single_skill', return_value=True):
-                result = provisioner.provision("test-tool", Path("/tmp"))
-                assert result.provisioned == 2
+        with patch('modules.skill.src.capabilities_skill_pack.get_tool_skills', return_value=mock_skills), \
+             patch('modules.skill.src.capabilities_skill_pack.provision_single_skill', return_value=True):
+            result = provisioner.provision("test-tool", Path("/tmp"))
+            assert result.provisioned == 2
 
     def test_prune_returns_result(self):
         """UT-SKILL-009: prune returns SkillProvisionResult."""
@@ -52,12 +52,12 @@ class TestSkillPackProvisioner:
         from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
         provisioner = SkillPackProvisioner()
-        with patch('modules.skill.src.capabilities_skill_pack.provision_base', return_value=Path("/tmp/base")):
-            with patch('modules.skill.src.capabilities_skill_pack.prune_provisioned', return_value=3):
-                result = provisioner.prune(Path("/tmp"))
-                assert isinstance(result, SkillProvisionResult)
-                assert result.provisioned == 3
-                assert "removed" in result.message
+        with patch('modules.skill.src.capabilities_skill_pack.provision_base', return_value=Path("/tmp/base")), \
+             patch('modules.skill.src.capabilities_skill_pack.prune_provisioned', return_value=3):
+            result = provisioner.prune(Path("/tmp"))
+            assert isinstance(result, SkillProvisionResult)
+            assert result.provisioned == 3
+            assert "removed" in result.message
 
 
 class TestSkillOrchestrator:
@@ -233,67 +233,67 @@ class TestSkillRegistryAdapter:
 
     def test_init(self):
         """UT-SKILL-023: SkillRegistryAdapter initializes without args."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
         assert adapter is not None
 
     def test_list(self):
         """UT-SKILL-024: list calls the module-level cmd_list."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_list', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_list', return_value=0) as mock_fn:
             result = adapter.list()
             mock_fn.assert_called_once_with([])
             assert result == 0
 
     def test_check(self):
         """UT-SKILL-025: check calls the module-level cmd_check."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_check', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_check', return_value=0) as mock_fn:
             result = adapter.check()
             mock_fn.assert_called_once_with([])
             assert result == 0
 
     def test_show(self):
         """UT-SKILL-026: show calls the module-level cmd_show."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_show', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_show', return_value=0) as mock_fn:
             result = adapter.show("my-skill")
             mock_fn.assert_called_once_with(["my-skill"])
             assert result == 0
 
     def test_install(self):
         """UT-SKILL-027: install calls the module-level cmd_install."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_install', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_install', return_value=0) as mock_fn:
             result = adapter.install(["lint"])
             mock_fn.assert_called_once()
             assert result == 0
 
     def test_uninstall(self):
         """UT-SKILL-028: uninstall calls the module-level cmd_uninstall."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_uninstall', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_uninstall', return_value=0) as mock_fn:
             result = adapter.uninstall(["lint"])
             mock_fn.assert_called_once()
             assert result == 0
 
     def test_sync(self):
         """UT-SKILL-050: sync calls the module-level cmd_install with 'all'."""
-        from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+        from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
         adapter = SkillRegistryAdapter()
-        with patch('modules.skill.src.surface_skill_command.cmd_install', return_value=0) as mock_fn:
+        with patch('modules.cli.src.surface_skill_command.cmd_install', return_value=0) as mock_fn:
             result = adapter.sync()
             mock_fn.assert_called_once_with(["all"])
             assert result == 0
@@ -427,28 +427,28 @@ class TestMainEntry:
 
     def test_main_help(self):
         """UT-SKILL-031: main('--help') returns help exit code."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main(["--help"])
         assert result == 0
 
     def test_main_empty(self):
         """UT-SKILL-032: main([]) shows help."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main([])
         assert result == 0
 
     def test_main_list(self):
         """UT-SKILL-033: main(['list']) calls cmd_list."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main(["list"])
         assert result == 0
 
     def test_main_check(self):
         """UT-SKILL-034: main(['check']) calls cmd_check."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main(["check"])
         # May return non-zero if findings exist
@@ -456,7 +456,7 @@ class TestMainEntry:
 
     def test_main_unknown_shows_help(self):
         """UT-SKILL-035: main with unknown action shows help."""
-        from modules.skill.src.surface_skill_command import main
+        from modules.cli.src.surface_skill_command import main
 
         result = main(["unknown-action"])
         assert result == 0
@@ -473,7 +473,7 @@ class TestPruneReport:
 
     def test_prune_reaches_flat_orphan_and_reports_it(self, capsys, tmp_path):
         """UT-SKILL-052: a flat orphan is removed and named in the report."""
-        from modules.skill.src.surface_skill_command import _report_prune
+        from modules.cli.src.surface_skill_command import _report_prune
 
         orphan = tmp_path / ".agents" / "skills" / "zzz-retired"
         orphan.mkdir(parents=True)
@@ -489,7 +489,7 @@ class TestPruneReport:
 
     def test_prune_reports_nothing_stale_when_clean(self, capsys, tmp_path):
         """UT-SKILL-053: a clean tree reports zero and keeps hand-written work."""
-        from modules.skill.src.surface_skill_command import _report_prune
+        from modules.cli.src.surface_skill_command import _report_prune
 
         base = tmp_path / ".agents" / "skills"
         mine = base / "my-own-skill"

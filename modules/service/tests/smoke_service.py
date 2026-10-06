@@ -22,7 +22,7 @@ def test_service_manager_init_quick():
     from modules.service.src.capabilities_service_manager import ServiceManager
 
     start = time.time()
-    manager = ServiceManager()
+    ServiceManager()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -35,7 +35,7 @@ def test_service_orchestrator_init_quick():
 
     start = time.time()
     manager = ServiceManager()
-    orch = ServiceOrchestrator(manager)
+    ServiceOrchestrator(manager)
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -46,7 +46,7 @@ def test_container_creation_quick():
     from modules.service.src.root_service_container import ServiceContainer
 
     start = time.time()
-    container = ServiceContainer()
+    ServiceContainer()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Container creation took {elapsed:.2f}s"

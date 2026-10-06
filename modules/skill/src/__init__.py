@@ -8,9 +8,9 @@ re-export cycle (AES205).
 """
 from __future__ import annotations
 
+from modules.cli.src.surface_skill_command import main as cmd_skill
 from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
 from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
-from modules.skill.src.surface_skill_command import main as cmd_skill
 
 __all__ = [
     "SkillOrchestrator",

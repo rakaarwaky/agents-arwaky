@@ -403,8 +403,8 @@ def cmd_install(argv: list[str]) -> int:
             skipped.append(tool.id)
             warn(f"{tool.id}: {result.message}")
     if target == "all":
+        from modules.cli.src.surface_mcp_command import cmd_mcp as _mcp
         from modules.mcp.src.root_mcp_container import create_mcp_feature
-        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         info("Generating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -455,8 +455,8 @@ def cmd_update(argv: list[str]) -> int:
             skipped.append(tool.id)
             warn(f"{tool.id}: {result.message}")
     if target == "all":
+        from modules.cli.src.surface_mcp_command import cmd_mcp as _mcp
         from modules.mcp.src.root_mcp_container import create_mcp_feature
-        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         info("Regenerating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -534,30 +534,30 @@ def cmd_mcp(argv: list[str]) -> int:
 
 
 def cmd_skill(argv: list[str]) -> int:
+    from modules.cli.src.surface_skill_command import main as _skill_surface
     from modules.skill.src.root_skill_container import create_skill_feature
-    from modules.skill.src.surface_skill_command import main as _skill_surface
     return _skill_surface(argv, create_skill_feature())
 
 
 def cmd_config(argv: list[str]) -> int:
+    from modules.cli.src.surface_config_command import cmd_config as _config_surface
     from modules.config.src.root_config_container import create_config_feature
-    from modules.config.src.surface_config_command import cmd_config as _config_surface
     return _config_surface(list(argv), create_config_feature())
 
 
 def cmd_connect(argv: list[str]) -> int:
-    from modules.harness.src.root_harness_container import create_harness_feature
-    from modules.harness.src.surface_harness_command import (
+    from modules.cli.src.surface_harness_command import (
         cmd_connect as _harness_connect,
     )
+    from modules.harness.src.root_harness_container import create_harness_feature
     return _harness_connect(list(argv), create_harness_feature)
 
 
 def cmd_disconnect(argv: list[str]) -> int:
-    from modules.harness.src.root_harness_container import create_harness_feature
-    from modules.harness.src.surface_harness_command import (
+    from modules.cli.src.surface_harness_command import (
         cmd_disconnect as _harness_disconnect,
     )
+    from modules.harness.src.root_harness_container import create_harness_feature
     return _harness_disconnect(list(argv), create_harness_feature)
 
 
@@ -592,7 +592,7 @@ def cmd_tool(argv: list[str]) -> int:
     stays a thin router (AES506). The surface owns arg parsing + aggregate
     calls so the tool action lives in one place.
     """
-    from modules.tools.src.surface_tools_command import cmd_tool as _tools_surface
+    from modules.cli.src.surface_tools_command import cmd_tool as _tools_surface
     return _tools_surface(argv, _tool_orch())
 
 
@@ -618,16 +618,16 @@ def _doctor_feature_compat():
 
 
 def cmd_anytype(argv: list[str]) -> int:
-    from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.daemon.src.surface_daemon_command import (
+    from modules.cli.src.surface_daemon_command import (
         cmd_anytype as _daemon_anytype,
     )
-    from modules.daemon.src.surface_daemon_command import (
+    from modules.cli.src.surface_daemon_command import (
         register_manager_factory as _reg_dm,
     )
-    from modules.daemon.src.surface_daemon_command import (
+    from modules.cli.src.surface_daemon_command import (
         register_orchestrator_factory as _reg_da,
     )
+    from modules.daemon.src.root_daemon_container import DaemonContainer
     _c = DaemonContainer()
     _reg_dm("anytype", lambda: _c.anytype)
     _reg_da(lambda: _c.aggregate)
@@ -635,16 +635,16 @@ def cmd_anytype(argv: list[str]) -> int:
 
 
 def cmd_omniroute(argv: list[str]) -> int:
-    from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.daemon.src.surface_daemon_command import (
+    from modules.cli.src.surface_daemon_command import (
         cmd_omniroute as _daemon_omniroute,
     )
-    from modules.daemon.src.surface_daemon_command import (
+    from modules.cli.src.surface_daemon_command import (
         register_manager_factory as _reg_dm,
     )
-    from modules.daemon.src.surface_daemon_command import (
+    from modules.cli.src.surface_daemon_command import (
         register_orchestrator_factory as _reg_da,
     )
+    from modules.daemon.src.root_daemon_container import DaemonContainer
     _c = DaemonContainer()
     _reg_dm("omniroute", lambda: _c.omniroute)
     _reg_da(lambda: _c.aggregate)
@@ -653,15 +653,15 @@ def cmd_omniroute(argv: list[str]) -> int:
 
 def cmd_daemon(argv: list[str]) -> int:
     """aa daemon <id> <action> — list|status|start|… for a managed daemon."""
+    from modules.cli.src.surface_daemon_command import (
+        register_manager_factory as _reg_dm,
+    )
+    from modules.cli.src.surface_daemon_command import (
+        register_orchestrator_factory as _reg_da,
+    )
     from modules.daemon.src.root_daemon_container import (
         DaemonContainer,
         create_daemon_feature,
-    )
-    from modules.daemon.src.surface_daemon_command import (
-        register_manager_factory as _reg_dm,
-    )
-    from modules.daemon.src.surface_daemon_command import (
-        register_orchestrator_factory as _reg_da,
     )
     from modules.shared.src.taxonomy_daemon_vo import (
         DaemonName,
@@ -707,20 +707,20 @@ def cmd_daemon(argv: list[str]) -> int:
 
 
 def cmd_service(argv: list[str]) -> int:
+    from modules.cli.src.surface_service_command import cmd_service as _service_cmd
     from modules.service.src.root_service_container import create_service_feature
-    from modules.service.src.surface_service_command import cmd_service as _service_cmd
     return _service_cmd(argv, create_service_feature())
 
 
 def cmd_backup(argv: list[str]) -> int:
     from modules.backup.src.root_backup_container import create_backup_feature
-    from modules.backup.src.surface_backup_command import cmd_backup as _backup_cmd
+    from modules.cli.src.surface_backup_command import cmd_backup as _backup_cmd
     return _backup_cmd(["backup", *argv], create_backup_feature())
 
 
 def cmd_restore(argv: list[str]) -> int:
     from modules.backup.src.root_backup_container import create_backup_feature
-    from modules.backup.src.surface_backup_command import cmd_restore as _restore_cmd
+    from modules.cli.src.surface_backup_command import cmd_restore as _restore_cmd
     return _restore_cmd(["restore", *argv], create_backup_feature())
 
 

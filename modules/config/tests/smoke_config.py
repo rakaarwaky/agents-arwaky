@@ -46,7 +46,7 @@ def test_import_config_container():
 
 def test_import_config_command():
     """SM-CONFIG-007: ConfigCommand and cmd_config can be imported."""
-    from modules.config.src.surface_config_command import ConfigCommand, cmd_config
+    from modules.cli.src.surface_config_command import ConfigCommand, cmd_config
     assert ConfigCommand is not None
     assert callable(cmd_config)
 

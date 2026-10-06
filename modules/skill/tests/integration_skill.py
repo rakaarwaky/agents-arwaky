@@ -113,9 +113,9 @@ def test_pack_provisioner_audits_real_pack():
 
 def test_registry_adapter_rich_methods():
     """IT-SKILL-011: SkillRegistryAdapter exposes the rich protocol methods."""
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
     from modules.shared.src.contract_skill_protocol import ISkillRegistryProtocol
     from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillQuery
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
 
     adapter = SkillRegistryAdapter()
     assert isinstance(adapter, ISkillRegistryProtocol)

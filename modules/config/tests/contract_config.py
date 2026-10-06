@@ -170,7 +170,7 @@ def test_create_config_feature_provides_aggregate():
 
 def test_config_surface_command_class_exists():
     """CP-CONFIG-012: ConfigCommand surface class exists and implements the aggregate."""
-    from modules.config.src.surface_config_command import ConfigCommand
+    from modules.cli.src.surface_config_command import ConfigCommand
     from modules.shared.src.contract_config_aggregate import IConfigAggregate
 
     assert hasattr(ConfigCommand, "__init__")
@@ -180,13 +180,14 @@ def test_config_surface_command_class_exists():
 
 def test_cmd_config_function_exists():
     """CP-CONFIG-013: cmd_config entry function exists."""
-    from modules.config.src.surface_config_command import cmd_config
+    from modules.cli.src.surface_config_command import cmd_config
 
     assert callable(cmd_config)
 
 
 def test_config_agent_exports():
     """CP-CONFIG-014: Config module exports required symbols."""
+    from modules.cli.src.surface_config_command import ConfigCommand, cmd_config
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
@@ -194,7 +195,6 @@ def test_config_agent_exports():
         ConfigContainer,
         create_config_feature,
     )
-    from modules.config.src.surface_config_command import ConfigCommand, cmd_config
 
     assert ConfigWriter is not None
     assert ConfigModifier is not None

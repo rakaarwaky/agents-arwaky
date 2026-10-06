@@ -24,7 +24,7 @@ def test_env_runner_init_quick():
     from modules.doctor.src.capabilities_doctor_env import EnvDiagnosticRunner
 
     start = time.time()
-    runner = EnvDiagnosticRunner()
+    EnvDiagnosticRunner()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -35,7 +35,7 @@ def test_tools_runner_init_quick():
     from modules.doctor.src.capabilities_doctor_tools import ToolsDiagnosticRunner
 
     start = time.time()
-    runner = ToolsDiagnosticRunner()
+    ToolsDiagnosticRunner()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"

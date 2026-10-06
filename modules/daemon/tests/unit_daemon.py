@@ -31,7 +31,7 @@ class TestAnytypeRichProtocol:
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'start', return_value=0) as mock_start:
+        with patch.object(manager, 'start', return_value=0):
             result = manager.start()
             assert result == 0
 
@@ -40,7 +40,7 @@ class TestAnytypeRichProtocol:
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'stop', return_value=0) as mock_stop:
+        with patch.object(manager, 'stop', return_value=0):
             result = manager.stop()
             assert result == 0
 
@@ -49,7 +49,7 @@ class TestAnytypeRichProtocol:
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'restart', return_value=0) as mock_restart:
+        with patch.object(manager, 'restart', return_value=0):
             result = manager.restart()
             assert result == 0
 
@@ -71,7 +71,7 @@ class TestAnytypeRichProtocol:
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'logs', return_value=0) as mock_logs:
+        with patch.object(manager, 'logs', return_value=0):
             result = manager.logs()
             assert result == 0
 
@@ -81,7 +81,7 @@ class TestAnytypeRichProtocol:
         from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'install_unit', return_value=0) as mock_install:
+        with patch.object(manager, 'install_unit', return_value=0):
             result = manager.install_unit(DaemonUnit("anytype-daemon.service"))
             assert result == 0
 
@@ -91,7 +91,7 @@ class TestAnytypeRichProtocol:
         from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'remove_unit', return_value=0) as mock_remove:
+        with patch.object(manager, 'remove_unit', return_value=0):
             result = manager.remove_unit(DaemonUnit("anytype-daemon.service"))
             assert result == 0
 
@@ -101,7 +101,7 @@ class TestAnytypeRichProtocol:
         from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'unit_status', return_value=0) as mock_us:
+        with patch.object(manager, 'unit_status', return_value=0):
             result = manager.unit_status(DaemonUnit("anytype-daemon.service"))
             assert result == 0
 
@@ -160,7 +160,7 @@ class TestDaemonAggregateNoExecuteMethod:
         )
 
         orch = DaemonOrchestrator(OmnirouteDaemonManager(), AnytypeDaemonManager())
-        assert callable(getattr(orch, "execute"))
+        assert callable(orch.execute)
         # All old aggregate methods are gone; only execute remains.
         for gone in ("start", "stop", "restart", "status", "logs",
                      "install_unit", "remove_unit", "unit_status", "list_known"):

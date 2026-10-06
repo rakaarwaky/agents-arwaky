@@ -83,7 +83,7 @@ Cross-cutting `WS-` rows only. Feature rows live in each feature's BACKLOG.
 |----|---------|-----------|----------|-------|-------------------|-------|--------------|---------|
 | WS-01 | — | Migrate legacy `tools/` into AES 7-layer `modules/` (P0-P4) | P0 | Done | Gate: `python3 -m compileall modules/` → clean at `b9c8c62`; excludes live `.env` and legacy `tools/tests/`. | @raka | None | 2026-09-23 |
 | WS-02 | — | Runner split per-tool (registry dispatch + RunnerBase + per-tool capabilities) | P0 | Done | Gate: `lint-arwaky scan modules` → 0 violations at `b9c8c62`; runner lives under `modules/tools`. | @raka | WS-01 | 2026-09-23 |
-| WS-03 | — | Surface command consolidation into per-feature packages only | P0 | Done | Gate: `find modules -name 'surface_*.py'` → all under `modules/<feature>/src/` at `b9c8c62`; no `modules/cli`. | @raka | WS-01 | 2026-09-23 |
+| WS-03 | — | Consolidate surface commands into per-feature packages | P0 | Done | Gate: `find modules -name 'surface_*'` → all under `modules/<feature>/src/` at `b9c8c62`; no `modules/cli`. | @raka | WS-01 | 2026-09-23 |
 | WS-04 | — | FRD + BACKLOG pair for each module | P0 | Done | Pairs written + strict-only sweep; 0 findings at `fffcd17` (working tree). | @raka | WS-01 | 2026-09-23 |
 | WS-05 | — | Decide operator-local secrets location (live `.env` vs XDG config) after migration | P1 | Blocked | `config/` holds only `.env.example` + `manifest.json` + `version.txt`; live env files untracked. | @raka | None | 2026-09-22 |
 | WS-06 | — | Migrate `tools/tests/` into `modules/tests/` | P1 | Deferred | 4 worktree tests in `tests/`; old suite not yet ported. | @raka | WS-01 | 2026-09-23 |

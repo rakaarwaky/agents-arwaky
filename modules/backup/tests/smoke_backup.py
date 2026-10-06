@@ -25,8 +25,8 @@ def test_gateway_init_quick():
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     start = time.time()
-    tar = TarBackupGateway()
-    gdrive = GdriveBackupGateway()
+    TarBackupGateway()
+    GdriveBackupGateway()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -39,7 +39,7 @@ def test_orchestrator_init_quick():
 
     start = time.time()
     tar = TarBackupGateway()
-    orch = BackupOrchestrator(tar, tar)
+    BackupOrchestrator(tar, tar)
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -50,7 +50,7 @@ def test_container_creation_quick():
     from modules.backup.src.root_backup_container import BackupContainer
 
     start = time.time()
-    container = BackupContainer()
+    BackupContainer()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Container creation took {elapsed:.2f}s"

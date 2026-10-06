@@ -24,7 +24,7 @@ def bench_orchestrator_init(benchmark):
 
 def bench_registry_adapter_init(benchmark):
     """BENCH-SKILL-003: Benchmark SkillRegistryAdapter initialization."""
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
     benchmark(SkillRegistryAdapter)
 

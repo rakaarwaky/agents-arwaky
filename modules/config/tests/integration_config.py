@@ -210,10 +210,10 @@ def test_config_dry_run_remove():
 
 def test_config_command_integration():
     """IT-CONFIG-007: the CLI surface routes every verb through the aggregate."""
+    from modules.cli.src.surface_config_command import ConfigCommand, cmd_config
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.config.src.surface_config_command import ConfigCommand, cmd_config
     from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
     cmd = ConfigCommand(ConfigOrchestrator(ConfigWriter(), ConfigModifier()))

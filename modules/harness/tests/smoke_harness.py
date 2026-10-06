@@ -26,7 +26,7 @@ def test_harness_connector_init_quick():
     from modules.harness.src.capabilities_harness_connector import HarnessConnector
 
     start = time.time()
-    connector = HarnessConnector({})
+    HarnessConnector({})
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -39,7 +39,7 @@ def test_harness_disconnector_init_quick():
     )
 
     start = time.time()
-    disconnector = HarnessDisconnector({})
+    HarnessDisconnector({})
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -50,7 +50,7 @@ def test_harness_skills_init_quick():
     from modules.harness.src.capabilities_harness_skills import HarnessSkills
 
     start = time.time()
-    skills = HarnessSkills({})
+    HarnessSkills({})
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -61,7 +61,7 @@ def test_container_creation_quick():
     from modules.harness.src.root_harness_container import HarnessContainer
 
     start = time.time()
-    container = HarnessContainer()
+    HarnessContainer()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Container creation took {elapsed:.2f}s"
