@@ -28,7 +28,7 @@ class TestServiceManager:
 
         manager = ServiceManager()
         assert hasattr(manager, 'status')
-        assert callable(getattr(manager, 'status'))
+        assert callable(manager.status)
 
     def test_start_method_exists(self):
         """UT-SERVICE-004: start method exists."""
@@ -36,7 +36,7 @@ class TestServiceManager:
 
         manager = ServiceManager()
         assert hasattr(manager, 'start')
-        assert callable(getattr(manager, 'start'))
+        assert callable(manager.start)
 
     def test_stop_method_exists(self):
         """UT-SERVICE-005: stop method exists."""
@@ -44,7 +44,7 @@ class TestServiceManager:
 
         manager = ServiceManager()
         assert hasattr(manager, 'stop')
-        assert callable(getattr(manager, 'stop'))
+        assert callable(manager.stop)
 
     def test_restart_method_exists(self):
         """UT-SERVICE-006: restart method exists."""
@@ -52,7 +52,7 @@ class TestServiceManager:
 
         manager = ServiceManager()
         assert hasattr(manager, 'restart')
-        assert callable(getattr(manager, 'restart'))
+        assert callable(manager.restart)
 
     def test_logs_method_exists(self):
         """UT-SERVICE-007: logs method exists."""
@@ -60,7 +60,7 @@ class TestServiceManager:
 
         manager = ServiceManager()
         assert hasattr(manager, 'logs')
-        assert callable(getattr(manager, 'logs'))
+        assert callable(manager.logs)
 
     def test_help_method_exists(self):
         """UT-SERVICE-008: help method exists."""
@@ -68,7 +68,7 @@ class TestServiceManager:
 
         manager = ServiceManager()
         assert hasattr(manager, 'help')
-        assert callable(getattr(manager, 'help'))
+        assert callable(manager.help)
 
 
 class TestServiceOrchestrator:
@@ -106,8 +106,8 @@ class TestServiceOrchestrator:
         manager = ServiceManager()
         orch = ServiceOrchestrator(manager)
         with patch.object(manager, "stop", return_value=0) as mock_fn:
-            result = orch.execute(ServiceRequest(ServiceOp("stop"), target=ServiceTarget("9router")))
-            mock_fn.assert_called_once_with(ServiceTarget("9router"))
+            result = orch.execute(ServiceRequest(ServiceOp("stop"), target=ServiceTarget("omniroute")))
+            mock_fn.assert_called_once_with(ServiceTarget("omniroute"))
             assert int(result) == 0
 
     def test_execute_restart_delegates(self):
@@ -118,3 +118,60 @@ class TestServiceOrchestrator:
             result = orch.execute(ServiceRequest(ServiceOp("restart")))
             mock_fn.assert_called_once()
             assert int(result) == 0
+
+
+class TestServiceManagerDaemonRouting:
+    """Service verbs must reach daemons through the aggregate's `execute`.
+
+    `_daemons()` returns an `IDaemonAggregate`, whose only entry point is
+    `execute(request)`. Calling a verb on it directly is an AttributeError.
+    """
+
+    class _RecordingAggregate:
+        def __init__(self, exit_code: int = 0) -> None:
+            self.requests = []
+            self._exit_code = exit_code
+
+        def execute(self, request):
+            self.requests.append(request)
+            return type("R", (), {"exit_code": self._exit_code})()
+
+    def _inject(self, agg) -> None:
+        from modules.service.src import capabilities_service_manager as mod
+
+        mod._DAEMON_AGGREGATE = agg
+
+    def test_aggregate_only_publishes_execute(self):
+        """UT-SERVICE-014: guards the premise — no verbs on the aggregate."""
+        from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+
+        for verb in ("start", "stop", "restart", "logs", "install_unit", "remove_unit"):
+            assert not hasattr(IDaemonAggregate, verb), (
+                f"aggregate unexpectedly grew a {verb}() verb"
+            )
+
+    def test_run_omniroute_start_routes_through_execute(self):
+        """UT-SERVICE-015: `aa service start omniroute` builds a request."""
+        from modules.service.src import capabilities_service_manager as mod
+
+        agg = self._RecordingAggregate()
+        self._inject(agg)
+        try:
+            assert mod._run_omniroute(["start"]) == 0
+        finally:
+            mod._DAEMON_AGGREGATE = None
+
+        assert len(agg.requests) == 1
+        req = agg.requests[0]
+        assert str(req.op) == "start"
+        assert str(req.name) == "omniroute"
+
+    def test_run_omniroute_propagates_failure(self):
+        """UT-SERVICE-016: a non-zero daemon exit is returned, not swallowed."""
+        from modules.service.src import capabilities_service_manager as mod
+
+        self._inject(self._RecordingAggregate(exit_code=3))
+        try:
+            assert mod._run_omniroute(["start"]) == 3
+        finally:
+            mod._DAEMON_AGGREGATE = None

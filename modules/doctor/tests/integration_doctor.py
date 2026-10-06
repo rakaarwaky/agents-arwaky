@@ -11,7 +11,7 @@ def test_env_diagnostic_runner_execution():
     try:
         result = runner.run()
         assert result is not None
-    except Exception:
+    except Exception:  # noqa: BLE001,S110
         pass
 
 
@@ -23,7 +23,7 @@ def test_tools_diagnostic_runner_execution():
     try:
         result = runner.run()
         assert result is not None
-    except Exception:
+    except Exception:  # noqa: BLE001,S110
         pass
 
 

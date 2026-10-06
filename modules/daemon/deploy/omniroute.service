@@ -1,0 +1,21 @@
+[Unit]
+Description=OmniRoute AI Gateway (host-native, no container)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Environment=NODE_ENV=production
+Environment=PATH=%h/.local/share/nodejs/node-v24.11.0-linux-x64/bin:%h/.local/bin:/usr/local/bin:/usr/bin
+# OmniRoute reads its own .env from the working directory below; that file holds
+# STORAGE_ENCRYPTION_KEY, which decrypts every provider credential in
+# storage.sqlite. The daemon code never rewrites it.
+EnvironmentFile=-%h/.omniroute/.env
+WorkingDirectory=%h/.omniroute
+ExecStart=@@EXEC_BINARY@@ serve --port @@PORT@@ --no-open --no-tray
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

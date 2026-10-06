@@ -39,10 +39,20 @@ login) see the `qwen-web` skill instead.
    (`e2e`/`slow` markers are declared in `pytest.ini`; e2e needs live network
    plus a logged-in Qwen session).
 
-Test files use flat prefix naming at repo root — `unit_<module>_<subject>.py`,
-`integration_<module>.py`, `contract_*.py`, `smoke_*.py`. There is **no**
-`modules/<x>/tests/` tree; find the right file with `ls tests/ | grep <stem>`
-instead of assuming a per-module test directory.
+**Run-generated stamp.** pytest rewrites `tests/fixtures/.last_run_ts` and
+`modules/prompt/tests/fixtures/.last_run_ts` on every run (guard for
+`tests/pipeline_fixtures.py::restore_fixture_state`). Both are intentionally
+untracked — `.gitignore` covers them via `**/tests/fixtures/.last_run_ts`.
+Never stage them: `git add -A` after a test run re-tracks the stamp and it
+rides into unrelated commits/PRs. Stage specific files, and don't be fooled
+when a test run leaves them `??` or modified.
+
+Test files use prefix naming (`unit_<module>_<subject>.py`,
+`integration_<module>.py`, `contract_*.py`, `smoke_*.py`) and live in TWO
+places: at repo root (`tests/`) and under `modules/<layer>/tests/` (e.g.
+`modules/cli/tests/unit_surface_cli_tui_app.py`). Find the right file with
+`ls tests/ modules/*/tests/ 2>/dev/null | grep <stem>` before assuming either
+layout.
 
 ## Verifying in the Podman container
 

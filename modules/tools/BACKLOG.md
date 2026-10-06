@@ -55,7 +55,7 @@ Last Updated: 2026-09-26
 ## Blockers
 
 - None recorded.
-- Daemon tools (9Router, Anytype daemon) are gated on a Podman container for
+- Daemon tools (OmniRoute, Anytype daemon) are gated on a Podman container for
   their service units; a stopped-from-stopping unit becomes a named residual,
   never a forced kill (container-isolation invariant).
 

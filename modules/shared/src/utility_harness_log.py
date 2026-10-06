@@ -6,7 +6,6 @@ no instance state, no side effects beyond stdout/stderr writes.
 from __future__ import annotations
 
 
-
 def log_header(msg: str) -> None:
     """Print a section-header line to stdout."""
 

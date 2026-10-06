@@ -13,7 +13,7 @@ This repository incorporates upstream open-source software as git submodules und
 | `vendor/ponytail` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | `2ed6c52c` | MIT License |
 | `vendor/anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `4ba725d9` (`v1.2.10`) | MIT License |
 | `vendor/codegraph` | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | `c6aaa203` | MIT License |
-| `vendor/9router` | [decolua/9router](https://github.com/decolua/9router) | `4eda76e2` (`v0.5.65`) | MIT License |
+| `vendor/omniroute` | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | `8489c9f` (release/v3.8.52) | MIT License |
 
 ---
 
@@ -54,9 +54,13 @@ This repository incorporates upstream open-source software as git submodules und
 - **URL:** [https://github.com/colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)
 - **License:** MIT License
 
-### 6. 9Router
+### 6. OmniRoute
 
-- **Project:** 9Router
-- **Author:** decolua and contributors
-- **URL:** [https://github.com/decolua/9router](https://github.com/decolua/9router)
+- **Project:** OmniRoute
+- **Author:** Diego Souza and contributors
+- **URL:** [https://github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
+- **Pinned at:** `8489c9f` (branch `release/v3.8.52`); runtime installed from npm `omniroute@3.8.51`
 - **License:** MIT License
+- **Note:** the submodule is the version SSOT only. The runtime comes from the published
+  npm package rather than a source build, because upstream's `postinstall` compiles native
+  SQLite bindings and the tarball already ships a built tree.

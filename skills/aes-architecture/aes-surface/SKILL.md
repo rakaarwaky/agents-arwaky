@@ -44,7 +44,7 @@ metadata:
 > **Audience**: The agent creating or validating a surface command/controller/component.
 > **Scope**: Python, Rust, and TypeScript `surface_<domain>_<role>` files — Smart / Utility / Passive tiers.
 
-The **aggregate** decides which suffix, which imports, and which structure apply.
+The **layer** decides which suffix, which imports, and which structure apply.
 Rules, templates, section contracts, and Verify blocks live in the language HOW-TUs under [`references/`](references/).
 
 | Language | Focus | Body rule | HOW-TO |
@@ -77,6 +77,57 @@ A rule cannot drift from the gate. Cite the linter, not this file, when pointing
 | Verify | `lint-arwaky-cli scan <layer-path>` → 0. Language compile is fallback only. |
 
 Split details, templates, and Section Contract tables: **read the language HOW-TO** — do not restate them here.
+
+---
+
+## Placement (AES703)
+
+A `surface_*` file belongs in a **surface folder** — a subdirectory of a member directory
+(`crates/`, `modules/`, `packages/`) whose name matches the kind of surface it carries:
+
+```text
+crates/api/src/surface_*_handler.rs        # HTTP API
+crates/mcp/src/surface_*_tool.rs           # MCP server
+crates/cli/src/surface_*_command.rs        # CLI
+crates/desktop/src/surface_*_window.rs      # desktop UI
+crates/tui/src/surface_*_screen.rs         # terminal UI
+```
+
+The folder name says what kind of surface it is. `api`, `mcp`, `cli`, `desktop`, and `tui`
+are the usual names; a surface folder whose name says nothing about the surface it serves
+gives the reader no way to tell which entry point uses it.
+
+A surface folder carries **surface files only**. A `capabilities_*` or `agent_*` file found
+in one is misplaced — the folder is surface-dominated (more surface files than everything
+else combined), and that file must move to a feature folder. This is an **AES703** violation.
+
+Alongside the surface files a surface folder may keep `utility_*` helpers, `root_*` wiring,
+and barrels (`lib.rs`, `mod.rs`, `__init__.py`, `index.ts`). Those are allowed.
+
+**Surface folders carry a `DESIGN.md`.** Every surface folder documents how its surface
+looks and behaves in `DESIGN.md` at the folder root, next to its source. A surface-dominated
+folder carrying no `DESIGN.md` is an **AES703** violation — the linter names the folder and
+you write the file.
+
+The file is written for the developer who arrives before you and has to change something
+without reading every source file. It carries six sections:
+
+| Section | Answers |
+| --- | --- |
+| `## Kind` | Which surface this is — `api`, `mcp`, `cli`, `desktop`, `tui` — and what the layer does and does not own. |
+| `## Entry Points` | One row per entry: the file, what the user or caller invokes, and which aggregate it reaches. |
+| `## Request Shape` | What a request looks like once it arrives, and what has already been resolved. |
+| `## States` | Each state a caller can observe, the condition that produces it, and what the user sees. |
+| `## Error States` | Each failure mode, where it is caught, and what the caller gets. |
+| `## Invariants` | The rules a change must not break. |
+| `## Change Checklist` | Which files to touch for which kind of change. |
+
+Write each row against the real code. A `DESIGN.md` that restates the layer definition
+instead of naming this folder's files has told the reader nothing they could not get from
+`ARCHITECTURE.md`, and AES703 will pass while the file stays useless.
+
+Feature folders carry two documents instead — `FRD.md` and `BACKLOG.md` — recording what the
+feature does and where its work stands. `shared/` folders carry neither.
 
 ---
 

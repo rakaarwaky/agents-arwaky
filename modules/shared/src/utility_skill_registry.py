@@ -52,7 +52,6 @@ def normalize_tool_id(query):
     alias = {
         "lint-arwaky": "lint-arwaky", "lint": "lint-arwaky",
         "la": "lint-arwaky", "lac": "lint-arwaky",
-        "9router": "9router",
         "ponytail": "ponytail", "ponytail-mcp": "ponytail",
         "context7": "context7", "context7-mcp": "context7",
         "codegraph": "codegraph", "codegraph-mcp": "codegraph",
@@ -64,7 +63,7 @@ def normalize_tool_id(query):
         "blender-arwaky": "blender-arwaky", "blender": "blender-arwaky", "ba": "blender-arwaky",
         "skill": "skill", "skills": "skill", "skill-manager": "skill",
         "workspace": "workspace", "workspace-mcp": "workspace", "google-workspace": "workspace",
-        "mnemosyne": "mnemosyne", "mnemosyne-memory": "mnemosyne", "mnemosyne-mcp": "mnemosyne",
+        "hindsight": "hindsight", "hindsight-memory": "hindsight", "hindsight-api": "hindsight",
     }
     if query in alias:
         return alias[query]
@@ -389,31 +388,98 @@ def write_provenance(dest_dir: Path, source_md: Path, pack_root: Path) -> bool:
         return False
 
 
-def prune_provisioned(target_dir: Path, pack_root: Path) -> int:
+def _skills_root(target_dir: Path) -> Path:
+    """Resolve the skills root a target workspace is pruned from.
+
+    Callers pass either a workspace root (the historical contract, where the
+    helper appends ``.agents/skills``) or an already-resolved skills root, which
+    is what the surface and provisioner hand over. Treating the latter as a
+    workspace root made prune scan ``.agents/skills/.agents/skills`` and always
+    report nothing stale.
+    """
+    if target_dir.name == "skills" and target_dir.parent.name == ".agents":
+        return target_dir
+    return target_dir / ".agents" / "skills"
+
+
+def _pack_skill_names(pack_root: Path) -> set[str]:
+    """Names of every skill the pack currently provides, flat and <category>/ forms."""
+    if not pack_root.is_dir():
+        return set()
+    names = set()
+    for skill_file in pack_root.rglob("SKILL.md"):
+        if any(p in {"node_modules", ".venv", "venv", "target", ".git", "__pycache__"}
+               for p in skill_file.parts):
+            continue
+        names.add(safe_skill_name(skill_file))
+    return names
+
+
+def prune_provisioned(
+    target_dir: Path,
+    pack_root: Path,
+    *,
+    names: list[str] | None = None,
+) -> int:
     """Remove provisioned skill copies under *target_dir* the pack no longer provides.
 
-    Returns the count of directories removed. Only entries carrying the
-    :data:`PROVENANCE_FILE` marker are touched; hand-written skills are left
-    alone, as are symlinks that point outside the pack.
+    Returns the count of entries removed, appending the name of each removed
+    entry relative to the skills root to *names* when one is supplied, so a
+    caller can report exactly what it deleted.
+
+    An entry is removed only when BOTH hold: it carries the
+    :data:`PROVENANCE_FILE` marker (so it was provisioned, not hand-written),
+    and the pack no longer provides a skill of that name. Without the second
+    check a prune would delete every provisioned copy in the workspace,
+    including the ones the pack still ships. Symlinks pointing outside the pack
+    are never touched.
+
+    Two layouts are in play. :func:`provision_single_skill` lands a copy FLAT at
+    ``.agents/skills/<skill>/``, because a harness scans one level below the
+    skills root. A category may also be present — ``.agents/skills/<category>/``
+    — holding either a nested ``<skill>/`` copy or a hand-written skill of its
+    own. So each direct child is first tested as a skill itself, and only a
+    child that is not a skill is descended into as a possible category.
     """
-    removed = 0
-    category_root = target_dir / ".agents" / "skills"
-    if not category_root.is_dir():
+    skills_root = _skills_root(target_dir)
+    if not skills_root.is_dir():
         return 0
-    for category_dir in sorted(category_root.iterdir()):
-        if not category_dir.is_dir():
+    pack_resolved = pack_root.resolve()
+
+    provided = _pack_skill_names(pack_root)
+
+    def _drop(entry: Path, label: str) -> None:
+        """Remove one provisioned entry the pack no longer provides."""
+        nonlocal removed
+        if entry.is_symlink():
+            if not entry.resolve().is_relative_to(pack_resolved):
+                return
+            entry.unlink()
+        else:
+            # Still in the pack -> this copy is current, keep it.
+            if entry.name in provided:
+                return
+            shutil.rmtree(entry, ignore_errors=True)
+        removed += 1
+        if names is not None:
+            names.append(label)
+
+    removed = 0
+    for child in sorted(skills_root.iterdir()):
+        if child.is_symlink():
+            _drop(child, child.name)
             continue
-        for skill_dir in sorted(category_dir.iterdir()):
-            if not skill_dir.is_dir() and not skill_dir.is_symlink():
-                continue
-            marker = skill_dir / PROVENANCE_FILE
-            if skill_dir.is_symlink():
-                if not skill_dir.resolve().is_relative_to(pack_root.resolve()):
-                    continue
-            elif not marker.is_file():
-                continue
-            shutil.rmtree(skill_dir, ignore_errors=True)
-            removed += 1
+        if not child.is_dir():
+            continue
+        if (child / PROVENANCE_FILE).is_file():
+            _drop(child, child.name)
+            continue
+        if (child / "SKILL.md").is_file():
+            # A hand-written skill in its own right, not a category folder.
+            continue
+        for nested in sorted(child.iterdir()):
+            if nested.is_symlink() or nested.is_dir() and (nested / PROVENANCE_FILE).is_file():
+                _drop(nested, f"{child.name}/{nested.name}")
     return removed
 
 

@@ -11,7 +11,9 @@ def bench_harness_connector_init(benchmark):
 
 def bench_harness_disconnector_init(benchmark):
     """BENCH-HARNESS-002: Benchmark HarnessDisconnector initialization."""
-    from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+    from modules.harness.src.capabilities_harness_disconnector import (
+        HarnessDisconnector,
+    )
 
     benchmark(HarnessDisconnector)
 

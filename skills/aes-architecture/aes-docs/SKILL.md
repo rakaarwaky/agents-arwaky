@@ -1,6 +1,6 @@
 ---
 name: aes-docs
-description: Adds docstrings, doc comments, JSDoc, types and PRD/ROADMAP/FRD/README/BACKLOG/AGENTS docs. Use when documenting Python, Rust, TS modules, or splitting spec from status backlog.
+description: Adds docstrings, doc comments, JSDoc, types and PRD/ROADMAP/FRD/README/BACKLOG/DESIGN/AGENTS docs. Use when documenting Python, Rust, TS modules, or splitting spec from status backlog.
 metadata:
   tags:
     - python
@@ -19,8 +19,8 @@ metadata:
     - agents-md
     - pep257
   related_skills:
-    - cleanup-consolidate
-    - fix-bypass
+    - aes-taxonomy
+    - aes-contract
     - aes-lint-arwaky
   triggers:
     - add docs
@@ -50,12 +50,15 @@ metadata:
     - split spec from status
     - move status out of frd
     - audit document invariants
+    - add design md
+    - design md template
+    - brand and style template
 ---
 # aes-docs
 
 > **Purpose**: Route every claim to the correct document, and ensure every public code item is documented.
 > **Audience**: The AI agent executing documentation tasks.
-> **Scope**: Python, Rust, and TypeScript modules; PRD, ROADMAP, FRD, README, BACKLOG, and AGENTS files.
+> **Scope**: Python, Rust, and TypeScript modules; PRD, ROADMAP, FRD, README, BACKLOG, DESIGN, and AGENTS files.
 
 The **aggregate** defines which document exists, where it lives, who reads it, and which claim belongs where.
 Templates, section contracts, exemplars, and per-document craft rules live in [`references/`](references/).
@@ -70,6 +73,7 @@ Templates, section contracts, exemplars, and per-document craft rules live in [`
 | `AGENTS.md`  | Root workspace                    | The agent, every session     | *How to work here safely*            | 50–500 lines | [references/HOW-TO-MAKE-AGENTS.md](references/HOW-TO-MAKE-AGENTS.md)   |
 | `ARCHITECTURE.md` | Root workspace                | Engineer, Tech Lead, agent   | *Layer boundaries and allowed dependencies* | 50–500 lines | [references/HOW-TO-MAKE-ARCHITECTURE.md](references/HOW-TO-MAKE-ARCHITECTURE.md) |
 | `CONTRIBUTING.md` | Root workspace                | New and existing contributor | *How to set up and ship a change*   | 50–500 lines | [references/HOW-TO-MAKE-CONTRIBUTING.md](references/HOW-TO-MAKE-CONTRIBUTING.md) |
+| `DESIGN.md`       | Root workspace (optional theme) | Design, Surface Engineer, TUI dev | *Visual & interaction contract*     | 50–500 lines | [references/HOW-TO-MAKE-DESIGN.md](references/HOW-TO-MAKE-DESIGN.md)         |
 
 **Code surface (doc comments)** — same Rules / Template / Section Contract / Verify shape:
 
@@ -89,7 +93,7 @@ Doc comments on every public item are the sixth deliverable, in the language's n
 
 ## Invariants
 
-Every rule is machine-checked by `aa check docs` (capability: `modules/check/src/capabilities_check_docs.py`, shared engine in `modules/shared/src/utility_doc_pack.py`).
+Every rule is machine-checked by `lint-arwaky-cli docs` (crate `doc-rules`, AES601–AES605).
 A rule cannot drift from the gate. Cite the code, not this file, when pointing at a rule.
 Each document's required section set is cross-checked against its reference's contract table, so a
 row that stops being enforced is a test failure rather than a silent edit.
@@ -159,6 +163,7 @@ project-root/
 ├── AGENTS.md       # operational guide (how the agent works here) — 1 per project
 ├── ARCHITECTURE.md # layer boundaries and allowed dependencies — 1 per project
 ├── CONTRIBUTING.md # contributor setup, contribution paths, PR gates — 1 per project
+├── DESIGN.md       # visual & interaction contract (optional theme) — 1 per project
 ├── crates|modules|packages/
 │   ├── feature-a/
 │   │   ├── src/
@@ -179,8 +184,8 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 
 ## Workflow
 
-1. **Resolve the repo-root anchor first.** `aa check docs` 
-2. **Analyze**: List feature modules and public items. Run `aa check docs <path>`. The findings are your work list.
+1. **Resolve the repo-root anchor first.** `lint-arwaky-cli docs` 
+2. **Analyze**: List feature modules and public items. Run `lint-arwaky-cli docs <path>`. The findings are your work list.
 3. **Draft PRD**: Write root `PRD.md` per [references/HOW-TO-MAKE-PRD.md](references/HOW-TO-MAKE-PRD.md).
 4. **Draft Roadmap**: Write root `ROADMAP.md` per [references/HOW-TO-MAKE-ROADMAP.md](references/HOW-TO-MAKE-ROADMAP.md)
 5. **Draft FRDs**: Write `FRD.md` in each feature dir per [references/HOW-TO-MAKE-FRD.md](references/HOW-TO-MAKE-FRD.md).
@@ -189,12 +194,13 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 8. **Draft AGENTS**: Write root `AGENTS.md` per [references/HOW-TO-MAKE-AGENTS.md](references/HOW-TO-MAKE-AGENTS.md).
 9. **Draft ARCHITECTURE**: Write root `ARCHITECTURE.md` per [references/HOW-TO-MAKE-ARCHITECTURE.md](references/HOW-TO-MAKE-ARCHITECTURE.md) — required when the workspace has more than one layer beyond shared.
 10. **Draft CONTRIBUTING**: Write root `CONTRIBUTING.md` per [references/HOW-TO-MAKE-CONTRIBUTING.md](references/HOW-TO-MAKE-CONTRIBUTING.md) — required when the repo accepts external contributions. One section per contribution path the project actually supports; delete the rest.
-11. **Document Code**: Add doc comments to all public items per language —
+11. **Draft DESIGN**: Write root `DESIGN.md` per [references/HOW-TO-MAKE-DESIGN.md](references/HOW-TO-MAKE-DESIGN.md) — optional; create it when the surface exposes visual tokens (colors, type scale, component anatomy).
+12. **Document Code**: Add doc comments to all public items per language —
    [references/HOW-TO-MAKE-PYTHON-DOC.md](references/HOW-TO-MAKE-PYTHON-DOC.md),
    [references/HOW-TO-MAKE-RUST-DOC.md](references/HOW-TO-MAKE-RUST-DOC.md),
    [references/HOW-TO-MAKE-TYPESCRIPT-DOC.md](references/HOW-TO-MAKE-TYPESCRIPT-DOC.md) —
    then add type annotations to all signatures.
-12. **Verify**: Run `aa check docs <path>`. Then each touched reference's `Verify` block (including the language doc ref).
+13. **Verify**: Run `lint-arwaky-cli docs <path>`. Then each touched reference's `Verify` block (including the language doc ref).
 
 ---
 
@@ -203,10 +209,8 @@ Cross-cutting rows live in the root master `ROADMAP.md` (legacy root `BACKLOG.md
 ### Machine Checks
 
 ```bash
-aa check docs .                 # invariant audit of every document (strict; every finding gates)
-aa check docs . --include-subtrees   # also audit vendor/ and internal/ submodules
-
-```text
+lint-arwaky-cli docs .                 # invariant audit of every document (strict; every finding gates)
+```
 
 A pass means no claim sits in the wrong file, no pointer is broken, and no `Done` row is unevidenced.
 
@@ -228,7 +232,7 @@ Per-language rules, templates, section contracts, and Verify blocks:
 
 ## Pre-flight Checklist
 
-- [ ] `aa check docs <path>` exits 0.
+- [ ] `lint-arwaky-cli docs <path>` exits 0.
 - [ ] Every required document exists in the correct directory.
 - [ ] Every `Done` backlog row cites a re-run command, a commit hash, and its exclusions.
 - [ ] Documents serve their exact audience (no cross-contamination).
@@ -241,16 +245,16 @@ Per-language rules, templates, section contracts, and Verify blocks:
 
 The invariant codes above cover the machine-checkable ones. These need a reader:
 
-**Structural**
+### Structural
 
 - **One document for all audiences**: Split by audience. Each file answers one question.
 - **FRD at the project root**: It belongs with the feature code, beside its backlog.
 - **Feature backlog carrying workspace rows or restating root policy**: Cross-cutting rows and State/Health definitions live once in `ROADMAP.md` (root master).
 - **PRD carrying SQL schemas or API detail**: The PRD audience cannot read them. Move to FRD.
 
-**Cadence and code surface**
+### Cadence and code surface
 
-- **Documents "write &amp; forget"**: Re-run `aa check docs` each sprint. Drift is silent.
+- **Documents "write &amp; forget"**: Re-run `lint-arwaky-cli docs` each sprint. Drift is silent.
 - **`//` instead of `///` in Rust**: Plain comments are invisible to the doc generator.
 - **Missing module docstrings or undocumented parameters**: The generated API surface stays incomplete.
 
@@ -265,5 +269,5 @@ The invariant codes above cover the machine-checkable ones. These need a reader:
 ## Related Skills
 
 - `aes-lint-arwaky`
-- `cleanup-consolidate`
-- `fix-bypass`
+- `aes-taxonomy`
+- `aes-contract`

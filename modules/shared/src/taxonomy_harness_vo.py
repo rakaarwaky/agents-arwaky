@@ -54,7 +54,7 @@ class HarnessConfig(HarnessVo):
 
 @dataclass(frozen=True)
 class RouterCredentials(HarnessVo):
-    """Resolved 9Router endpoint + key (secret referenced, never persisted)."""
+    """Resolved gateway endpoint + key (secret referenced, never persisted)."""
 
     url: str
     key: str

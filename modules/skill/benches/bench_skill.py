@@ -12,6 +12,7 @@ def bench_pack_provisioner_init(benchmark):
 def bench_orchestrator_init(benchmark):
     """BENCH-SKILL-002: Benchmark SkillOrchestrator initialization."""
     from unittest.mock import MagicMock
+
     from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
     from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
@@ -23,7 +24,7 @@ def bench_orchestrator_init(benchmark):
 
 def bench_registry_adapter_init(benchmark):
     """BENCH-SKILL-003: Benchmark SkillRegistryAdapter initialization."""
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
 
     benchmark(SkillRegistryAdapter)
 
@@ -63,6 +64,7 @@ def bench_pack_provisioner_execute_provision(benchmark):
 def bench_orchestrator_execute_provision(benchmark):
     """BENCH-SKILL-008: Benchmark SkillOrchestrator.execute('provision')."""
     from unittest.mock import MagicMock
+
     from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
     from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
@@ -76,6 +78,7 @@ def bench_orchestrator_execute_provision(benchmark):
 def bench_orchestrator_list(benchmark):
     """BENCH-SKILL-009: Benchmark SkillOrchestrator.list()."""
     from unittest.mock import MagicMock
+
     from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
     from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 
@@ -89,6 +92,7 @@ def bench_orchestrator_list(benchmark):
 def bench_orchestrator_check(benchmark):
     """BENCH-SKILL-010: Benchmark SkillOrchestrator.check()."""
     from unittest.mock import MagicMock
+
     from modules.skill.src.agent_skill_orchestrator import SkillOrchestrator
     from modules.skill.src.capabilities_skill_pack import SkillPackProvisioner
 

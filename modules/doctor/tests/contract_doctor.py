@@ -53,8 +53,8 @@ def test_doctor_run_method_exists():
 
     assert hasattr(env, 'run')
     assert hasattr(tools, 'run')
-    assert callable(getattr(env, 'run'))
-    assert callable(getattr(tools, 'run'))
+    assert callable(env.run)
+    assert callable(tools.run)
 
 
 def test_doctor_aggregate_declares_only_execute():

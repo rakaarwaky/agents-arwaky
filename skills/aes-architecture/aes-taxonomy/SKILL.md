@@ -49,11 +49,11 @@ metadata:
 
 # aes-taxonomy
 
-> **Purpose**: Scaffold AES taxonomy files (VO / entity / error / event / constant) — the stable language of the domain.
+> **Purpose**: Scaffold AES taxonomy files (VO / entity / error / event / constant / request / response) — the stable language of the domain.
 > **Audience**: The agent creating or validating a taxonomy file.
 > **Scope**: Python, Rust, and TypeScript `taxonomy_<domain>_<suffix>` files in the shared domain.
 
-The **aggregate** decides which suffix, which imports, and which structure apply.
+The **layer** decides which suffix, which imports, and which structure apply.
 Rules, templates, section contracts, and Verify blocks live in the language HOW-TUs under [`references/`](references/).
 
 | Language | Focus | Body rule | HOW-TO |
@@ -64,7 +64,7 @@ Rules, templates, section contracts, and Verify blocks live in the language HOW-
 
 **The layer chain:**
 
-`taxonomy_*_vo|entity|error|event|constant` (bottom layer) → contract → capabilities → agent → surface → root
+`taxonomy_*_vo|entity|error|event|constant|request|response` (bottom layer) → contract → capabilities → agent → surface → root
 
 Each file answers one layer's job. A method or import in the wrong layer is the defect this skill exists to prevent.
 
@@ -72,14 +72,16 @@ Each file answers one layer's job. A method or import in the wrong layer is the 
 
 ## Invariants
 
-Every rule is machine-checked by `lint-arwaky-cli scan <layer-path>` (see each HOW-TO § Verify).
-A rule cannot drift from the gate. Cite the linter, not this file, when pointing at a rule.
+Machine-checked rules are enforced by `lint-arwaky-cli scan <layer-path>` (see each HOW-TO § Verify).
+Convention-level rules are enforced by reading; the linter covers what it can, and the
+HOW-TO states explicitly which of the three is the case. Cite the HOW-TO, not this file, when pointing at a rule.
 
 | Layer | Rule |
 | ----- | ---- |
-| Naming | File `taxonomy_<domain>_<suffix>` — suffix strictly `_vo`/`_entity`/`_error`/`_event`/`_constant` (AES101/AES102). |
+| Naming | File `taxonomy_<domain>_<suffix>` — suffix strictly `_vo`/`_entity`/`_error`/`_event`/`_constant`/`_request`/`_response` (AES101/AES102). |
 | Imports | Taxonomy + stdlib only — never capabilities, agents, surface, root, contracts; no I/O (AES201). |
 | Primitives | Domain fields wrap VOs — no raw `str`/`int`/`float`/`String`/`string`/`number` for domain values (AES401). |
+| Error contract | Every `_error` file exposes `error_id` + `error_code` + `message`. Ids come from per-feature blocks: common `000X`, feature 1 `1XXX`, feature 2 `2XXX`, …; a feature is a folder with an `agent_*_orchestrator` file. Ids never change across releases. |
 | Construction | VOs validate on construction; immutable; constants are pure literals. |
 | Register | Shared barrel: `__init__.py` / `mod.rs` / `index.ts`. |
 | Verify | `lint-arwaky-cli scan <layer-path>` → 0. Language compile is fallback only. |
@@ -88,12 +90,29 @@ Split details, templates, and Section Contract tables: **read the language HOW-T
 
 ---
 
+## Placement (AES701)
+
+A `taxonomy_*` file belongs in the workspace's **`shared/` folder**, beside `utility_*` and `contract_*` files:
+
+```text
+crates/shared/src/     # Rust
+modules/shared/src/     # Python
+packages/shared/src/    # TypeScript
+```
+
+The `shared` folder is locked. Placing `taxonomy_*` in a feature folder leaves the domain
+types unreachable from every member, and the barrel that should register them does not
+exist there. A `capabilities_*`, `agent_*`, or `surface_*` file found inside `shared/`
+is an **AES701** violation and must be moved out.
+
+---
+
 ## Diagnostic Tree
 
 Ask these questions in order. The first "No" dictates your next action.
 
-1. **Is this a domain value, identity, failure, fact, or literal?**
-   - *Value* → `_vo`; *identity* → `_entity`; *failure* → `_error`; *fact* → `_event`; *literal* → `_constant`.
+1. **Is this a domain value, identity, failure, fact, literal, or an aggregate boundary?**
+   - *Value* → `_vo`; *identity* → `_entity`; *failure* → `_error`; *fact* → `_event`; *literal* → `_constant`; *inbound aggregate call* → `_request`; *outbound aggregate call* → `_response`.
 2. **Does the file import anything above taxonomy or touch I/O?**
    - *Yes* → strip the import / move I/O to capabilities or utility.
 3. **Are domain fields raw primitives?**
@@ -108,7 +127,7 @@ Ask these questions in order. The first "No" dictates your next action.
 ## Workflow
 
 1. Resolve the shared taxonomy dir beside contracts.
-2. Determine type (VO / Entity / Error / Event / Constant). Run `lint-arwaky-cli scan <layer-path>` — findings are your work list.
+2. Determine type (VO / Entity / Error / Event / Constant / Request / Response). Run `lint-arwaky-cli scan <layer-path>` — findings are your work list.
 3. Draft the file from the language HOW-TO § Template / § Section Contract.
 4. Register in `__init__.py` / `mod.rs` / `index.ts`.
 5. Verify with `lint-arwaky-cli scan <layer-path>` (HOW-TO § Verify), then wire through `aes-contract` / `aes-capabilities` as needed.

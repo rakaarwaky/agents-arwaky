@@ -5,8 +5,6 @@ injected generator, then wraps the result in a ``McpResponse``.
 """
 from __future__ import annotations
 
-from pathlib import Path
-
 from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
 from modules.shared.src.contract_mcp_protocol import IMcpProtocol
 from modules.shared.src.taxonomy_mcp_vo import (
@@ -43,7 +41,7 @@ class McpOrchestrator(IMcpAggregate):
         if op == "alias":
             if request.alias is None or output is None:
                 return McpResponse(ExitCode(1))
-            return McpResponse(self._generator.generate_alias(McpAlias(str(request.alias)), Path(output)))
+            return McpResponse(self._generator.generate_alias(McpAlias(str(request.alias)), output))
         if op == "validate":
             return McpResponse(self._generator.validate(output))
         return McpResponse(ExitCode(1))

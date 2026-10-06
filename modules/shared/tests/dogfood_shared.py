@@ -6,14 +6,13 @@ They use pytest.skipif to gracefully skip when services are unavailable.
 from __future__ import annotations
 
 import pytest
-from pathlib import Path
 
 
 # Skip if running in CI or required services unavailable
 @pytest.mark.dogfood
 def test_dogfood_pipeline():
     """DOG-SHARED-001: Basic dogfood check against live manifest."""
-    from modules.shared.src.utility_manifest_reader import load_tools, find_tool
+    from modules.shared.src.utility_manifest_reader import find_tool, load_tools
 
     # This should work in any environment with valid manifest
     tools = load_tools()

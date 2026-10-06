@@ -20,26 +20,23 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from modules.shared.src.contract_backup_protocol import IBackupProtocol
-from modules.shared.src.taxonomy_backup_constant import TOOL_DATA
+from modules.shared.src.taxonomy_backup_constant import (
+    BACKUP_STORE,
+    GDRIVE_HELPER,
+    TOOL_DATA,
+)
 from modules.shared.src.taxonomy_backup_vo import (
     ARCHIVE_DEFAULT,
+    DEST_DEFAULT,
     BackupArchive,
     BackupDestination,
     BackupOutcome,
     BackupResult,
     BackupToolQuery,
-    DEST_DEFAULT,
     ExitCode,
     RestoreResult,
 )
 from modules.shared.src.taxonomy_common_vo import data_home
-from modules.shared.src.utility_paths_resolver import repo_root
-
-ROOT = repo_root()
-
-BACKUP_STORE = data_home() / "backups"
-# gdrive gateway lives in the AES backup feature; invoked as a module entry.
-GDRIVE_HELPER = "-m:modules.backup.src.capabilities_backup_gdrive"
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

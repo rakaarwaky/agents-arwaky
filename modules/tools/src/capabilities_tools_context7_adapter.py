@@ -10,26 +10,65 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.taxonomy_common_vo import ToolSpec
 from modules.shared.src.taxonomy_tools_constant import (
     CONTEXT7_LAUNCHER_ENTRIES,
     PNPM_DANGEROUS_ALLOW,
 )
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
+from modules.shared.src.taxonomy_tools_vo import (
+    AdapterUnit,
+    PinCheck,
+    ToolLifecycleConfig,
+    ToolPaths,
+)
 from modules.shared.src.utility_tool_mechanics import (
     build_adapter_unit,
     write_node_launcher,
 )
+from modules.shared.src.utility_tools_adapter_body import (
+    install_unit,
+    is_pin_satisfied_unit,
+    owned_paths_unit,
+    satisfied_unit,
+    update_unit,
+)
+
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class Context7ToolsAdapter(ToolsAdapterBody):
+class Context7ToolsAdapter(IToolsAdapterProtocol):
     """context7 actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'context7'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
-        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+        self._units = dict(ADAPTER_UNITS) if units is None else units
+
+
+
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
+        """True when the installed binary satisfies the manifest."""
+        return satisfied_unit(self._units, spec, self._display, root)
+
+    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> PinCheck:
+        """Return ``(satisfied, reason)`` against the manifest pin."""
+        return is_pin_satisfied_unit(self._units, spec, self._display, root)
+
+    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> ToolPaths:
+        """Return the paths this adapter's install owns for *spec*."""
+        return owned_paths_unit(self._units, spec, self._display, root)
+
+    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> ToolPaths:
+        """Install or build *spec* into *root*; return the created paths."""
+        return install_unit(self._units, spec, root, self._display, daemons=daemons)
+
+    def update(self, spec: ToolSpec, root: Path) -> ToolPaths:
+        """Update *spec* to the manifest pin; return the rebuilt paths."""
+        return update_unit(self._units, spec, root, self._display)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
 
 # ---------------------------------------------------------------------------
 # Recipe (node lifecycle + per-tool hooks)
@@ -51,7 +90,7 @@ def _context7_post_copy(app_dir: Path) -> None:
         with ws.open("a", encoding="utf-8") as f:
             f.write(f"\n{PNPM_DANGEROUS_ALLOW}: true\n")
 
-CONFIG = ToolLifecycleConfig(
+config = ToolLifecycleConfig(
     lifecycle="node",
     src_rel="vendor/context7",
     app_name="context7",
@@ -72,7 +111,7 @@ CONFIG = ToolLifecycleConfig(
 
 #: tool_id → unit (merged by root_tools_container).
 ADAPTER_UNITS: dict[str, AdapterUnit] = {
-    "context7": build_adapter_unit("context7", CONFIG),
+    "context7": build_adapter_unit("context7", config),
 }
 
 __all__ = [

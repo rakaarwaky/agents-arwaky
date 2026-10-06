@@ -1,7 +1,7 @@
 """Tools agent orchestrator — single-execute aggregate over the tool capabilities.
 
 Resolves the target tool spec from the manifest (typed error on unknown ids
-BEFORE any capability runs), then routes each ``ToolRequest.op`` to the rich
+BEFORE execution begins), then routes each ``ToolRequest.op`` to the rich
 protocol method that owns it:
 
 - list           : manifest reader → every registered tool
@@ -20,6 +20,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar
 
+from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.contract_tools_aggregate import IToolsAggregate
 from modules.shared.src.contract_tools_protocol import (
     IToolsInstallerProtocol,
@@ -34,8 +35,11 @@ from modules.shared.src.taxonomy_common_error import (
 )
 from modules.shared.src.taxonomy_common_vo import ToolSpec
 from modules.shared.src.taxonomy_tools_vo import (
+    AdapterUnit,
     ExitCode,
+    ToolArgs,
     ToolExecutable,
+    ToolPaths,
     ToolQuery,
     ToolRequest,
     ToolResponse,
@@ -54,29 +58,25 @@ class ToolsOrchestrator(IToolsAggregate):
     """Zero-I/O aggregate over all tool-lifecycle capabilities.
 
     The single entry point the CLI surface calls. Unknown ids fail at
-    target resolution before any action runs; an action whose capability is
+    target resolution before execution begins; an action whose capability is
     unwired raises a typed error, never a partial dispatch.
     """
 
     def __init__(
         self,
-        registry: dict[str, object] | None = None,
-        root: Path | None = None,
-        daemons=None,
         installer: IToolsInstallerProtocol | None = None,
         updater: IToolsUpdaterProtocol | None = None,
         uninstaller: IToolsUninstallerProtocol | None = None,
         runner: IToolsRunnerProtocol | None = None,
+        registry: dict[str, AdapterUnit] | None = None,
+        root: Path | None = None,
+        daemons: IDaemonAggregate | None = None,
     ) -> None:
         self._root = root or repo_root()
         self._daemons = daemons
         if registry is None:
             raise ValueError("tools orchestrator requires an injected registry (root composition layer)")
-        # Instance-level copy of the injected registry: shared across
-        # orchestrator instances without leaking entries. The registry feeds
-        # owned_paths lookups in uninstall(); action calls route through the
-        # injected capabilities (dependency inversion via the protocol classes).
-        self._registry: dict[str, object] = dict(registry)
+        self._registry = dict(registry)
         # AES201/AES405: the agent layer must not import capabilities_* — the
         # action capabilities are injected by the root composition layer
         # (root_tools_container.create_tools_feature), each typed against the
@@ -155,21 +155,21 @@ class ToolsOrchestrator(IToolsAggregate):
         # tears down exactly that set.
         unit = self._registry.get(spec.id)
         owned_fn = getattr(unit, "owned_paths", None)
-        owned: list[Path] = list(owned_fn(spec, self._root) or []) if callable(owned_fn) else []
-        return self._uninstaller.uninstall(spec, owned)
+        owned_paths = ToolPaths(list(owned_fn(spec, self._root) or []) if callable(owned_fn) else [])
+        return self._uninstaller.uninstall(spec, owned_paths)
 
-    def _run(self, spec: ToolSpec | None, args) -> ExitCode:
+    def _run(self, spec: ToolSpec | None, args: ToolArgs) -> ExitCode:
         """Discover then execute *spec*; return the child's real exit code."""
         self._require(self._runner, "run")
         if spec is None:
             raise ToolInstallError("run op requires a resolved spec target")
-        return self._runner.run(spec, list(args))
+        return self._runner.run(spec, args)
 
     def __repr__(self) -> str:
         return "ToolsOrchestrator()"
 
 
-__all__ = ["ToolsOrchestrator", "ToolRequest", "ToolResponse"]
+__all__ = ["ToolRequest", "ToolResponse", "ToolsOrchestrator"]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {

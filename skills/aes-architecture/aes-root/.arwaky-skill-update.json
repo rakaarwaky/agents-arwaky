@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "update_source": "internal/lint-arwaky/crates/skills/aes-root/SKILL.md",
+  "update_source": "internal/lint-arwaky/crates/shared/skills/aes-root/SKILL.md",
   "submodule": "lint-arwaky",
-  "submodule_home": "crates/skills",
+  "submodule_home": "crates/shared/skills",
   "skill": "aes-root",
-  "updated_at": "2026-09-27T07:55:37.145943+00:00"
+  "updated_at": "2026-10-02T12:09:07.183714+00:00"
 }

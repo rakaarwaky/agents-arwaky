@@ -23,8 +23,8 @@ def bench_config_modifier_instantiation(benchmark):
 def bench_config_orchestrator_instantiation(benchmark):
     """BENCH-CONFIG-003: ConfigOrchestrator instantiation performance."""
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
-    from modules.config.src.capabilities_config_writer import ConfigWriter
     from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
 
     def _create():
         writer = ConfigWriter()
@@ -219,7 +219,6 @@ def bench_execute_load(benchmark):
 def bench_execute_save(benchmark):
     """BENCH-CONFIG-016: execute('save') dispatcher performance."""
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:

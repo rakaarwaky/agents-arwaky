@@ -5,9 +5,10 @@ They use pytest.skipif to gracefully skip when services are unavailable.
 """
 from __future__ import annotations
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
 
 
 @pytest.mark.dogfood
@@ -15,10 +16,7 @@ def test_dogfood_backup_pipeline():
     """DOG-BACKUP-001: Actual backup workflow with real tar archive."""
     from modules.backup.src.capabilities_backup_tar import (
         backup_tool,
-        cmd_list,
-        BACKUP_STORE,
     )
-    from modules.shared.src.taxonomy_common_vo import data_home as original_data_home
 
     # Create temporary test data
     with tempfile.TemporaryDirectory() as tmpdir:

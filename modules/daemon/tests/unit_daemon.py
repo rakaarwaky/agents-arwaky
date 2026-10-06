@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 
 class TestAnytypeDaemonManagerInit:
@@ -31,7 +31,7 @@ class TestAnytypeRichProtocol:
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'start', return_value=0) as mock_start:
+        with patch.object(manager, 'start', return_value=0):
             result = manager.start()
             assert result == 0
 
@@ -40,7 +40,7 @@ class TestAnytypeRichProtocol:
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'stop', return_value=0) as mock_stop:
+        with patch.object(manager, 'stop', return_value=0):
             result = manager.stop()
             assert result == 0
 
@@ -49,7 +49,7 @@ class TestAnytypeRichProtocol:
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'restart', return_value=0) as mock_restart:
+        with patch.object(manager, 'restart', return_value=0):
             result = manager.restart()
             assert result == 0
 
@@ -71,7 +71,7 @@ class TestAnytypeRichProtocol:
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'logs', return_value=0) as mock_logs:
+        with patch.object(manager, 'logs', return_value=0):
             result = manager.logs()
             assert result == 0
 
@@ -81,7 +81,7 @@ class TestAnytypeRichProtocol:
         from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'install_unit', return_value=0) as mock_install:
+        with patch.object(manager, 'install_unit', return_value=0):
             result = manager.install_unit(DaemonUnit("anytype-daemon.service"))
             assert result == 0
 
@@ -91,7 +91,7 @@ class TestAnytypeRichProtocol:
         from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'remove_unit', return_value=0) as mock_remove:
+        with patch.object(manager, 'remove_unit', return_value=0):
             result = manager.remove_unit(DaemonUnit("anytype-daemon.service"))
             assert result == 0
 
@@ -101,29 +101,33 @@ class TestAnytypeRichProtocol:
         from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
-        with patch.object(manager, 'unit_status', return_value=0) as mock_us:
+        with patch.object(manager, 'unit_status', return_value=0):
             result = manager.unit_status(DaemonUnit("anytype-daemon.service"))
             assert result == 0
 
 
-class TestNinerouterRichProtocol:
-    """Tests for NinerouterDaemonManager exposing rich named protocol methods."""
+class TestOmnirouteRichProtocol:
+    """Tests for OmnirouteDaemonManager exposing rich named protocol methods."""
 
     def test_start_method_exists(self):
         """UT-DAEMON-011: start() method exists and is callable."""
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_omniroute_daemon import (
+            OmnirouteDaemonManager,
+        )
 
-        manager = NinerouterDaemonManager()
+        manager = OmnirouteDaemonManager()
         with patch.object(manager, 'start', return_value=0):
             result = manager.start()
             assert result == 0
 
     def test_status_method_exists(self):
         """UT-DAEMON-012: status() method exists and is callable."""
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_omniroute_daemon import (
+            OmnirouteDaemonManager,
+        )
         from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
 
-        manager = NinerouterDaemonManager()
+        manager = OmnirouteDaemonManager()
         with patch.object(
             manager, 'status',
             return_value=DaemonStatus("stopped", "stopped", False, "", False),
@@ -133,12 +137,14 @@ class TestNinerouterRichProtocol:
 
     def test_install_unit_method_exists(self):
         """UT-DAEMON-013: install_unit() method exists and is callable."""
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+        from modules.daemon.src.capabilities_omniroute_daemon import (
+            OmnirouteDaemonManager,
+        )
         from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
 
-        manager = NinerouterDaemonManager()
+        manager = OmnirouteDaemonManager()
         with patch.object(manager, 'install_unit', return_value=0):
-            result = manager.install_unit(DaemonUnit("9router.service"))
+            result = manager.install_unit(DaemonUnit("omniroute.service"))
             assert result == 0
 
 
@@ -148,11 +154,13 @@ class TestDaemonAggregateNoExecuteMethod:
     def test_orchestrator_has_single_execute(self):
         """UT-DAEMON-014: DaemonOrchestrator has a single execute() method."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+        from modules.daemon.src.capabilities_omniroute_daemon import (
+            OmnirouteDaemonManager,
+        )
 
-        orch = DaemonOrchestrator(NinerouterDaemonManager(), AnytypeDaemonManager())
-        assert callable(getattr(orch, "execute"))
+        orch = DaemonOrchestrator(OmnirouteDaemonManager(), AnytypeDaemonManager())
+        assert callable(orch.execute)
         # All old aggregate methods are gone; only execute remains.
         for gone in ("start", "stop", "restart", "status", "logs",
                      "install_unit", "remove_unit", "unit_status", "list_known"):
@@ -220,25 +228,29 @@ class TestDaemonOrchestrator:
     def test_init_stores_managers(self):
         """UT-DAEMON-023: DaemonOrchestrator stores injected managers."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+        from modules.daemon.src.capabilities_omniroute_daemon import (
+            OmnirouteDaemonManager,
+        )
 
-        orch = DaemonOrchestrator(NinerouterDaemonManager(), AnytypeDaemonManager())
-        assert orch._ninerouter is not None
+        orch = DaemonOrchestrator(OmnirouteDaemonManager(), AnytypeDaemonManager())
+        assert orch._omniroute is not None
         assert orch._anytype is not None
 
     def test_execute_routes_to_correct_manager(self):
         """UT-DAEMON-024: DaemonOrchestrator.execute routes by op + name."""
         from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-        from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+        from modules.daemon.src.capabilities_omniroute_daemon import (
+            OmnirouteDaemonManager,
+        )
         from modules.shared.src.taxonomy_daemon_vo import (
             DaemonName,
             DaemonOp,
             DaemonRequest,
         )
 
-        orch = DaemonOrchestrator(NinerouterDaemonManager(), AnytypeDaemonManager())
+        orch = DaemonOrchestrator(OmnirouteDaemonManager(), AnytypeDaemonManager())
         # Patch the anytype manager's start to confirm routing.
         with patch.object(orch._anytype, "start", return_value=0) as mock_start:
             orch.execute(DaemonRequest(DaemonOp("start"), name=DaemonName("anytype")))

@@ -22,13 +22,13 @@ def test_anytype_daemon_manager_class_exists():
     assert not hasattr(AnytypeDaemonManager, 'execute')
 
 
-def test_ninerouter_daemon_manager_class_exists():
-    """CP-DAEMON-003: NinerouterDaemonManager class exists."""
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+def test_omniroute_daemon_manager_class_exists():
+    """CP-DAEMON-003: OmnirouteDaemonManager class exists."""
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 
-    assert NinerouterDaemonManager is not None
-    assert hasattr(NinerouterDaemonManager, '__init__')
-    assert not hasattr(NinerouterDaemonManager, 'execute')
+    assert OmnirouteDaemonManager is not None
+    assert hasattr(OmnirouteDaemonManager, '__init__')
+    assert not hasattr(OmnirouteDaemonManager, 'execute')
 
 
 def test_anytype_implements_idaemonprotocol():
@@ -40,12 +40,12 @@ def test_anytype_implements_idaemonprotocol():
     assert isinstance(manager, IDaemonProtocol)
 
 
-def test_ninerouter_implements_idaemonprotocol():
-    """CP-DAEMON-005: NinerouterDaemonManager implements the rich IDaemonProtocol."""
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+def test_omniroute_implements_idaemonprotocol():
+    """CP-DAEMON-005: OmnirouteDaemonManager implements the rich IDaemonProtocol."""
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
     from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 
-    manager = NinerouterDaemonManager()
+    manager = OmnirouteDaemonManager()
     assert isinstance(manager, IDaemonProtocol)
 
 
@@ -59,11 +59,11 @@ def test_anytype_exposes_rich_methods():
         assert callable(getattr(manager, method))
 
 
-def test_ninerouter_exposes_rich_methods():
-    """CP-DAEMON-007: NinerouterDaemonManager exposes rich protocol methods."""
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+def test_omniroute_exposes_rich_methods():
+    """CP-DAEMON-007: OmnirouteDaemonManager exposes rich protocol methods."""
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 
-    manager = NinerouterDaemonManager()
+    manager = OmnirouteDaemonManager()
     for method in ("start", "stop", "restart", "status", "logs",
                    "install_unit", "remove_unit", "unit_status"):
         assert callable(getattr(manager, method))
@@ -85,13 +85,13 @@ def test_orchestrator_class_exists():
 def test_orchestrator_implements_idaemonaggregate():
     """CP-DAEMON-009: DaemonOrchestrator implements IDaemonAggregate."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+    from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
+    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
 
-    ninerouter = NinerouterDaemonManager()
+    omniroute = OmnirouteDaemonManager()
     anytype = AnytypeDaemonManager()
-    orchestrator = DaemonOrchestrator(ninerouter, anytype)
+    orchestrator = DaemonOrchestrator(omniroute, anytype)
     assert isinstance(orchestrator, IDaemonAggregate)
 
 
@@ -160,7 +160,7 @@ def test_daemon_value_objects_exist():
 
 def test_surface_command_exists():
     """CP-DAEMON-014: surface_daemon_command module exports DaemonAction."""
-    from modules.daemon.src.surface_daemon_command import DaemonAction
+    from modules.cli.src.surface_daemon_command import DaemonAction
 
     assert DaemonAction is not None
     assert hasattr(DaemonAction, '__init__')

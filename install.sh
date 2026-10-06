@@ -412,7 +412,7 @@ seed_xdg_configs() {
   mkdir -p "$conf_dir"
   # Repo reference configs -> XDG config home. Never overwrite a live config.
   local src dst name
-  for name in ninerouter.env anytype.env ninerouter.providers.json; do
+  for name in omniroute.env anytype.env; do
     src="$ROOT/config/$name"
     dst="$conf_dir/$name"
     if [[ ! -f "$src" ]]; then
@@ -426,26 +426,26 @@ seed_xdg_configs() {
     fi
   done
 
-  # Login-session env layer (NINEROUTER_URL/KEY) consumed by every harness.
+  # Login-session env layer (OMNIROUTE_URL/KEY) consumed by every harness.
   local env_d="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d"
-  local session_conf="$env_d/9router.conf"
+  local session_conf="$env_d/omniroute.conf"
   mkdir -p "$env_d"
   if [[ -f "$session_conf" ]]; then
     ok "$session_conf (already present, left untouched)"
     return 0
   fi
   local url key
-  url="$(grep -E '^NINEROUTER_URL=' "$conf_dir/ninerouter.env" 2>/dev/null | head -1 | cut -d= -f2- || true)"
-  key="$(grep -E '^NINEROUTER_KEY=' "$conf_dir/ninerouter.env" 2>/dev/null | head -1 | cut -d= -f2- || true)"
+  url="$(grep -E '^OMNIROUTE_URL=' "$conf_dir/omniroute.env" 2>/dev/null | head -1 | cut -d= -f2- || true)"
+  key="$(grep -E '^OMNIROUTE_KEY=' "$conf_dir/omniroute.env" 2>/dev/null | head -1 | cut -d= -f2- || true)"
   if [[ -n "$key" ]]; then
     {
-      printf 'NINEROUTER_URL=%s\n' "${url:-http://127.0.0.1:20128}"
-      printf 'NINEROUTER_KEY=%s\n' "$key"
+      printf 'OMNIROUTE_URL=%s\n' "${url:-http://127.0.0.1:7777}"
+      printf 'OMNIROUTE_KEY=%s\n' "$key"
     } > "$session_conf"
     chmod 600 "$session_conf"
     ok "Seeded $session_conf"
   else
-    warn "NINEROUTER_KEY missing in $conf_dir/ninerouter.env; session env not seeded"
+    warn "OMNIROUTE_KEY missing in $conf_dir/omniroute.env; session env not seeded"
   fi
 }
 

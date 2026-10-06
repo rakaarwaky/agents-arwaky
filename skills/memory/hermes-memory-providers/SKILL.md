@@ -1,263 +1,172 @@
 ---
 name: hermes-memory-providers
-description: Configures Mnemosyne memory for Hermes Agent. Use when setting SQLite vector memory provider.
+description: Configures Hindsight memory for Hermes Agent. Use when setting LLM-learned agent memory provider.
 metadata:
   tags:
     - hermes
     - memory
-    - mnemosyne
+    - hindsight
     - plugins
     - setup
   related_skills:
-    - mnemosyne
+    - hindsight
     - hermes-agent
     - agent-harness-connectors
 ---
 
-# Mnemosyne — Hermes Memory Provider
+# Hindsight — Hermes Memory Provider
 
-Mnemosyne is a local-first memory layer for AI agents. When deployed as a
+Hindsight is an LLM-learning memory layer for AI agents. When deployed as a
 Hermes memory provider, it replaces the built-in MEMORY.md/USER.md system with
-SQLite-backed vector + FTS5 hybrid search, episodic consolidation, temporal
-knowledge graphs, and optional bidirectional sync.
+knowledge-graph + entity-resolution + multi-strategy retrieval
+(semantic / keyword / graph / temporal), consolidated "observations", and an
+optional reflect agent loop that returns a synthesized answer.
 
-**100% local. Zero cloud.**
+Runs 100% locally: embedded PostgreSQL (pg0), local embedding + reranking
+models. The one external dependency is an LLM endpoint (any
+OpenAI-compatible — e.g. OmniRoute on 127.0.0.1:7777) used for fact
+extraction and reflection.
 
 ## What It Gives You
 
-- **System prompt injection** — `# Mnemosyne Memory` context block in every prompt
-- **Pre-turn prefetch** — relevant memories injected before each LLM call
-- **Post-turn sync** — conversation turns auto-stored to episodic memory
-- **Tools** auto-injected into the model's tool surface: the `mnemosyne_*` core
-  family (remember, recall, update, invalidate, forget, triples, graph,
-  scratchpad, stats, sleep, export/import, diagnose, hygiene) **plus**
-  provider-only `mnemosyne_sync_*` and `mnemosyne_persona_*` tools that MCP does
-  not register. Do not quote a tool count — the set grows between releases;
-  enumerate it (`hermes tools`, or what your client exposes) and read
-  `integrations/hermes/src/mnemosyne_hermes/plugin.yaml` in the checkout for the
+- **System prompt injection** — relevant memories prefetched before each LLM call
+- **Retain** — conversation turns auto-stored; LLM extracts facts, entities,
+  reasoning, and emotions (not just raw strings)
+- **Observations** — deduplicated, evidence-grounded consolidated beliefs with
+  proof counts and freshness flags, refined as new facts arrive
+- **Recall** — four parallel strategies: semantic, keyword, entity graph,
+  temporal
+- **Reflect** — LLM agent loop that returns a synthesized *answer* (not just
+  data), weighing observations against raw facts
+- **Tools** auto-injected into the model's tool surface: the
+  `hindsight_*` tool family plus per-turn auto capture. Read
+  `hindsight-integrations/hermes/plugin.yaml` in the vendor checkout for the
   authoritative list.
-- **3 lifecycle hooks** — `pre_llm_call`, `on_session_start`, `post_tool_call`
-- **CLI commands** — `hermes mnemosyne {stats|sleep|inspect|export|import|clear|version}`
+- **Auto per-turn capture** — enabled via `auto_retain` / `auto_recall`
 
-All without touching Hermes core — deployed purely through the plugin directory.
+All without touching Hermes core — deployed purely through the plugin
+directory (`~/.hermes/plugins/hindsight`).
 
 ## Quick Check
 
 ```bash
-hermes memory status     # See active provider and installed plugins
-
-```text
+hermes memory status
+```
 
 ## Install
 
-### Step 1 — Install the package
+### Step 1 — Install the plugin from the Hermes catalog
 
 ```bash
-pip install mnemosyne-hermes
+hermes plugins install hindsight --enable
+```
 
-```text
+This clones `vectorize-io/hindsight` (subdir `hindsight-integrations/hermes`)
+into `~/.hermes/plugins/hindsight` and installs `hindsight-client` +
+`hindsight-embed` into Hermes' venv.
 
-Debian/Trixie users (bare pip blocked): use a venv first:
+### Step 2 — Choose the mode
 
-```bash
-python3 -m venv ~/.hermes/hermes-agent/venv
-source ~/.hermes/hermes-agent/venv/bin/activate
-pip install mnemosyne-hermes
+Config lives in `~/.hermes/hindsight/config.json` + `~/.hermes/.env`.
 
-```text
+| Mode | When | Needs |
+|------|------|-------|
+| `local_embedded` | fully local; pg0 + local embeddings on host | LLM API key (any OpenAI-compatible) |
+| `local_external` | self-hosted Hindsight server | API URL + LLM key |
+| `cloud` | Hindsight Cloud (Vectorize) | API key |
 
-`mnemosyne-hermes` wraps the core `mnemosyne-memory` library with the plugin
-manifest and entry points Hermes needs. It does not pull embeddings or LLM
-deps — pair it with one of:
+`local_embedded` with OmniRoute as the LLM:
 
-| Extra | When | RAM |
-|-------|------|-----|
-| *(core only)* | Raspberry Pi, remote embedding API | ~50 MB |
-| `mnemosyne-memory[embeddings]` | Local vector search (fastembed ONNX) | ~800 MB |
-| `mnemosyne-memory[all]` | Local embeddings + local LLM consolidation | ~1.5 GB |
-
-### Step 2 — Link the plugin
-
-```bash
-mnemosyne-hermes install
-
-```text
-
-This creates the symlink `~/.hermes/plugins/mnemosyne/ → <installed package>`
-so Hermes discovers it on startup.
-
-**Docker / read-only venv** — use persistent wrapper mode so the plugin
-survives image rebuilds:
+```json
+{
+  "mode": "local_embedded",
+  "bank_id": "raka",
+  "memory_mode": "hybrid",
+  "auto_retain": true,
+  "auto_recall": true,
+  "recall_budget": "mid",
+  "recall_types": "observation,world,experience",
+  "llm_provider": "openai_compatible",
+  "llm_base_url": "http://127.0.0.1:7777/v1",
+  "llm_model": "auto/best-fast"
+}
+```
 
 ```bash
-mnemosyne-hermes install --mode wrapper --python /path/to/venv/bin/python --hermes-home /opt/data
-mnemosyne-hermes status --hermes-home /opt/data
-hermes gateway restart
+# ~/.hermes/.env
+HINDSIGHT_LLM_API_KEY=<your-omniroute-key>
+```
 
-```text
+The embedded daemon starts on first use (spawns the `hindsight-api` process
+against pg0) and stops after ~5 min idle. Set `HINDSIGHT_NO_AUTOSTOP=true` to
+keep it resident.
 
 ### Step 3 — Activate
 
 ```bash
-hermes config set memory.provider mnemosyne
-hermes memory setup
-
-```text
+hermes config set memory.provider hindsight
+```
 
 ### Step 4 — (Optional) Disable built-in memory
 
-Mnemosyne is additive by default — the built-in MEMORY.md/USER.md keeps
-running alongside it. To make Mnemosyne the sole memory system, edit
-`~/.hermes/config.yaml`:
+Hindsight is additive by default. To make it the sole memory system:
 
 ```yaml
 memory:
   memory_enabled: false
   user_profile_enabled: false
-
-```text
-
-Do **NOT** run `hermes tools disable memory` — that also kills all 20
-Mnemosyne-registered tools.
+```
 
 ### Step 5 — Verify
 
 ```bash
-hermes memory status       # Should show "Provider: mnemosyne"
-hermes mnemosyne stats     # Working + episodic memory counts
-
-```text
+hermes memory status   # Should show "Provider: hindsight"
+```
 
 Test in a conversation:
 
 ```bash
 hermes chat -q "Remember that I love apples. What do I love?"
+```
 
-```text
+## MCP
 
-You should see `mnemosyne_remember` and `mnemosyne_recall` calls succeed.
+Hindsight ships a local MCP server (`hindsight-local-mcp`, entry point in the
+`hindsight-api` workspace member) exposing the `hindsight_*` tool family —
+usable with any MCP-compatible client. For Hermes, prefer the provider plugin
+(deeper integration: pre-LLM injection, auto capture, hooks); MCP is the
+generic fallback.
 
-> If `hermes mnemosyne stats` gives "invalid choice: 'mnemosyne'", the plugin
-> CLI registration didn't load. Use `hermes hermes-mnemosyne stats` as a
-> fallback, or re-run Step 2 to relink.
-
-## MCP vs. Provider Plugin
-
-Mnemosyne ships an MCP server (`mnemosyne mcp`, stdio + SSE + Streamable HTTP
-transports) that exposes the `mnemosyne_*` tool family — usable with any
-MCP-compatible client (Claude Desktop, etc.):
-
-```bash
-mnemosyne mcp                              # stdio transport
-mnemosyne mcp --transport sse --port 8080  # SSE transport
-mnemosyne mcp --transport streamable-http --port 8080  # native MCP http transport
-
-```text
-
-**For Hermes, prefer the provider plugin over MCP.** The provider plugin
-gives deeper integration that MCP cannot: the `pre_llm_call` context
-injection hook, `on_session_start` initialization, `post_tool_call` memory
-capture, and the `hermes mnemosyne` CLI subcommands. MCP is a generic
-fallback for non-Hermes agents.
+From the `agents-arwaky` repo the launcher is installed with
+`aa tool install hindsight` (writes `~/.local/bin/hindsight-local-mcp`).
 
 ## Switching Back
 
 ```bash
-hermes memory off          # Disable external provider, revert to built-in
-hermes memory setup        # Or use the interactive picker
-
-```text
-
-Or manually:
-
-```bash
-hermes config set memory.provider memory
-
-```text
+hermes config set memory.provider memory   # back to built-in
+```
 
 Then restart Hermes.
 
-## CLI Commands
-
-```bash
-hermes mnemosyne stats                # Current session stats
-hermes mnemosyne stats --global       # Stats across all sessions
-hermes mnemosyne inspect "query"      # Search memories
-hermes mnemosyne sleep                # Run consolidation (working → episodic)
-hermes mnemosyne export --output backup.json
-hermes mnemosyne import --input backup.json
-hermes mnemosyne clear                # Clear scratchpad
-hermes mnemosyne version              # Show version
-
-```text
-
 ## Data Location
 
-The provider's own default is under the Hermes home, so each install (and each
-`--hermes-home`, e.g. Docker's `/opt/data`) is isolated:
-
-```text
-<hermes_home>/mnemosyne/
-└── data/
-    ├── mnemosyne.db              # Main SQLite database (WAL mode)
-    ├── triples.db                # Standalone TripleStore
-    └── banks/<name>/mnemosyne.db # Named banks (per-profile isolation, off by default)
-
-```text
-
-`MNEMOSYNE_DATA_DIR` overrides that default, and `aa connect` writes it into each
-Hermes profile's `.env` — so on a host wired up that way the store is the plain
-XDG one the CLI uses, and this directory may not exist at all. **Never assume;
-ask the install:**
-
-```bash
-mnemosyne config get data_dir          # the path actually resolved
-ls ~/.hermes/mnemosyne ~/.local/share/mnemosyne 2>&1
-
-```text
-
-On this host the store is `~/.local/share/mnemosyne/` and there is **no**
-`~/.hermes/mnemosyne/`. See the `mnemosyne` skill for the layout of that
-directory (banks, surface DB, `config.yaml` and its precedence rules).
-
-Persists across sessions via the Hermes home (including on ephemeral VMs like
-Fly.io) — unless the provider was installed in wrapper mode, in which case the
-data dir lives where `--hermes-home` points.
-
-## Optional: Host LLM Routing
-
-Mnemosyne's consolidation (`sleep`) and fact extraction can use a local GGUF or
-a remote OpenAI-compatible API. Hermes users with OAuth-backed providers
-(e.g. `openai-codex`) can route those LLM calls through Hermes' authenticated
-auxiliary client instead — no extra credentials needed:
-
-```bash
-export MNEMOSYNE_HOST_LLM_ENABLED=true
-
-```text
-
-Remember the precedence trap: a key already pinned in `config.yaml` outranks
-this env var. Check the effective value with `mnemosyne config get <key>` (the
-`config` verb is hidden from `--help` but works) and hot-reload with
-`mnemosyne config reload`.
+- Embedded pg0 instance: `~/.pg0/instances/hindsight-embed-<profile>/`
+- Profile env: `~/.hindsight/profiles/<profile>.env`
+- Hermes plugin config: `~/.hermes/hindsight/config.json`
 
 ## Troubleshooting
 
 | Symptom | Cause / Fix |
 |---------|-------------|
-| `hermes memory status` shows built-in only | Provider not loaded; restart Hermes after install. |
-| Plugin listed but `unavailable` | Missing Python deps in Hermes' venv; `pip install mnemosyne-hermes` in that venv. |
-| `hermes mnemosyne stats` → "invalid choice" | Plugin CLI registration didn't load; use `hermes hermes-mnemosyne stats` or relink (Step 2). |
-| Memory not recalled across sessions | Provider loaded but session didn't restart; new sessions pick up the provider. |
-| `mnemosyne_hermes` import error in Docker | Use wrapper mode: `mnemosyne-hermes install --mode wrapper --python <venv>/bin/python`. |
-| Nothing persists / the DB you expected is empty | You are looking at a different data dir. Run `mnemosyne doctor` and read the path it prints — see Data Location above. |
+| Plugin listed but `unavailable` | Missing `hindsight-client`/`hindsight-embed` in Hermes venv; re-run `hermes plugins install hindsight`. |
+| Retain/recall returns nothing | Needs at least one retain cycle; extraction is an LLM call — check `HINDSIGHT_LLM_API_KEY` + `llm_base_url` reachability. |
+| LLM JSON decode errors on retain | Weak routed model; set `HINDSIGHT_API_LLM_STRICT_SCHEMA=true` or point `llm_model` at a stronger OmniRoute combo. |
+| Daemon won't start | `hindsight-api` not on PATH; it falls back to `uvx hindsight-api` (first run downloads deps). Install permanently for speed. |
 
 ## References
 
-- `mnemosyne` skill — the tool surface, the CLI, storage paths, and the rule for
-  which store durable memory belongs in on each harness.
-- `references/repo-dev.md` in the `mnemosyne` skill (see `mnemosyne` skill's `references/repo-dev.md`) — BEAM schema, the
-  sync/surface data model, and the provider's `skip_contexts` gating.
 - `hermes-agent` skill — general Hermes setup, config, and plugin system.
-- `agent-harness-connectors` skill — how `aa connect` registers the MCP server
-  and injects `MNEMOSYNE_*` env for each harness.
+- `agent-harness-connectors` skill — how `aa connect` registers MCP servers
+  and injects `OMNIROUTE_*` env for each harness.
+- `vendor/hindsight` submodule — upstream source (uv workspace; entry
+  points `hindsight-api`, `hindsight-local-mcp` in the `hindsight-api` member).

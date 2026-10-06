@@ -24,9 +24,8 @@ def test_create_skill_feature_returns_valid():
 
 def test_orchestrator_execute_provision():
     """IT-SKILL-003: Full provision flow executes without error."""
-    from modules.skill.src.root_skill_container import create_skill_feature
-
     from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest, ToolFilter
+    from modules.skill.src.root_skill_container import create_skill_feature
 
     aggregate = create_skill_feature()
     with tempfile.TemporaryDirectory() as tmp:
@@ -43,9 +42,8 @@ def test_orchestrator_execute_provision():
 
 def test_orchestrator_execute_audit():
     """IT-SKILL-004: Audit flow executes and returns findings."""
-    from modules.skill.src.root_skill_container import create_skill_feature
-
     from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
+    from modules.skill.src.root_skill_container import create_skill_feature
 
     aggregate = create_skill_feature()
     result = aggregate.execute(SkillRequest(SkillOp("audit")))
@@ -54,9 +52,8 @@ def test_orchestrator_execute_audit():
 
 def test_orchestrator_list():
     """IT-SKILL-005: list() returns exit code."""
-    from modules.skill.src.root_skill_container import create_skill_feature
-
     from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
+    from modules.skill.src.root_skill_container import create_skill_feature
 
     aggregate = create_skill_feature()
     result = aggregate.execute(SkillRequest(SkillOp("list")))
@@ -65,9 +62,8 @@ def test_orchestrator_list():
 
 def test_orchestrator_check():
     """IT-SKILL-006: check() returns exit code."""
-    from modules.skill.src.root_skill_container import create_skill_feature
-
     from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest
+    from modules.skill.src.root_skill_container import create_skill_feature
 
     aggregate = create_skill_feature()
     result = aggregate.execute(SkillRequest(SkillOp("check")))
@@ -76,9 +72,8 @@ def test_orchestrator_check():
 
 def test_orchestrator_show():
     """IT-SKILL-007: show() returns exit code for missing skill."""
+    from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillQuery, SkillRequest
     from modules.skill.src.root_skill_container import create_skill_feature
-
-    from modules.shared.src.taxonomy_skill_vo import SkillOp, SkillRequest, SkillQuery
 
     aggregate = create_skill_feature()
     result = aggregate.execute(
@@ -89,8 +84,8 @@ def test_orchestrator_show():
 
 def test_orchestrator_uninstall():
     """IT-SKILL-008: execute(uninstall) returns an exit code."""
-    from modules.skill.src.root_skill_container import create_skill_feature
     from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillOp, SkillRequest
+    from modules.skill.src.root_skill_container import create_skill_feature
 
     aggregate = create_skill_feature()
     result = aggregate.execute(SkillRequest(SkillOp("uninstall"), args=SkillArgs(["nonexistent"])))
@@ -99,8 +94,8 @@ def test_orchestrator_uninstall():
 
 def test_orchestrator_sync():
     """IT-SKILL-009: execute(sync) returns an exit code."""
-    from modules.skill.src.root_skill_container import create_skill_feature
     from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillOp, SkillRequest
+    from modules.skill.src.root_skill_container import create_skill_feature
 
     aggregate = create_skill_feature()
     result = aggregate.execute(SkillRequest(SkillOp("sync"), args=SkillArgs([])))
@@ -118,8 +113,8 @@ def test_pack_provisioner_audits_real_pack():
 
 def test_registry_adapter_rich_methods():
     """IT-SKILL-011: SkillRegistryAdapter exposes the rich protocol methods."""
+    from modules.cli.src.surface_skill_command import SkillRegistryAdapter
     from modules.shared.src.contract_skill_protocol import ISkillRegistryProtocol
-    from modules.skill.src.surface_skill_command import SkillRegistryAdapter
     from modules.shared.src.taxonomy_skill_vo import SkillArgs, SkillQuery
 
     adapter = SkillRegistryAdapter()

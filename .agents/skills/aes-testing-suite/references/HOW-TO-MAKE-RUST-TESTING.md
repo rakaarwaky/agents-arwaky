@@ -24,6 +24,7 @@
 Tests are placed in TWO locations based on scope:
 
 #### 1. Root Tests (`tests/` at repo root)
+
 For **cross-module** tests that span multiple features:
 
 ```text
@@ -34,12 +35,14 @@ tests/
 ```
 
 **Use root tests for:**
+
 - Shared utility tests (crates/shared/)
 - Cross-module integration tests
 - Repository-wide contract tests
 - Tests that don't belong to one specific crate
 
 #### 2. Crate Tests (`crates/<name>/tests/`)
+
 For **feature-specific** tests scoped to one crate:
 
 ```text
@@ -59,6 +62,7 @@ crates/<name>/
 ```
 
 **Use crate tests for:**
+
 - Crate-level contract tests (trait implementation verification)
 - Unit tests for crate-specific utilities
 - Integration tests for crate's DI wiring
@@ -96,7 +100,7 @@ Prefixes: `contract_`, `unit_`, `integration_`, `dogfood_`, `smoke_`, `e2e_`, `a
 2. Write `tests/contract_<crate>.rs`, `tests/unit_<crate>_<module>.rs`, `tests/integration_<crate>.rs`.
 3. Write `tests/dogfood_<pipeline>.rs` (requires live session), then `tests/smoke_<app>.rs`, `tests/e2e_<flow>.rs`, `tests/acceptance_<FR_id>.rs`.
 4. Write `benches/bench_<subject>.rs` + register in `Cargo.toml`.
-5. Run `cargo test --workspace`, then verify coverage targets met.
+5. Run `cargo nextest run --workspace --lib --tests -j 2`, then verify coverage targets met.
 
 ---
 
@@ -169,7 +173,7 @@ Registering a benchmark requires the `[[bench]]` block above **and** workflow st
 | Acceptance tests reference FRD/PRD IDs; smoke runs in <5s. | Requirement traceability plus a fast boot gate. |
 | Benchmarks use `criterion` + `[[bench]]` registered in `Cargo.toml`. | Comparable, stable numbers; `cargo bench` discovers the target. |
 | Coverage meets 70/60/50 for capabilities/agent/utility. | Per-layer floor before merge. |
-| `cargo test --workspace` passes. | The suite is green or the work is not done. |
+| `cargo nextest run --workspace --lib --tests -j 2` passes. | The suite is green or the work is not done. |
 | ALL 8 test types present per crate. | No type is optional — contract, unit, integration, dogfood, smoke, e2e, acceptance, bench. |
 
 ---
@@ -191,11 +195,10 @@ For tests that exercise actual CLI commands against live services/sessions:
 
 Dogfood tests skip in CI when services unavailable — but the file MUST exist.
 
-
 ## Verify
 
 ```bash
-cargo test --workspace
+cargo nextest run --workspace --lib --tests -j 2
 cargo bench
 # Checks: ALL 8 test types present (contract/unit/integration/dogfood/smoke/e2e/acceptance/bench)
 # All tests green; criterion benchmarks discovered through [[bench]] registration;

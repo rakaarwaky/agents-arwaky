@@ -10,14 +10,14 @@ Thank you for your interest in contributing to **agents-arwaky**! This document 
 
 ---
 
-## 🏛️ Architecture & Principles to Keep in Mind
+## Principles
 
 Before making changes, please review our core architectural rules:
 
 1. **Local Bare-Metal Execution:**
    - All toolchains (Node, Rust, Python, Bun, C-compilers) are installed and executed directly on the host.
    - Tools are compiled to host-native binaries and exported to `~/.local/bin/` (XDG compliant).
-   - Daemon services: 9Router is host-native; Anytype runs in a Podman container — the only containerized layer.
+   - Daemon services: OmniRoute is host-native; Anytype runs in a Podman container — the only containerized layer.
 
 2. **Strict XDG Base Directory Compliance:**
    - Never write persistent data or cache to the repository directory.
@@ -29,7 +29,7 @@ Before making changes, please review our core architectural rules:
 
 ---
 
-## 🛠️ Development Setup
+## Development Setup
 
 1. **Clone the repository with submodules:**
    ```bash
@@ -41,7 +41,7 @@ Before making changes, please review our core architectural rules:
    ```bash
    aa doctor
    ```
-   *(Checks host toolchains and the optional 9Router & Anytype daemons. Only Anytype is containerized; 9Router and toolchains run natively on the host).*
+   *(Checks host toolchains and the optional OmniRoute & Anytype daemons. Only Anytype is containerized; OmniRoute and toolchains run natively on the host).*
 
 3. **Provision the environment:**
    ```bash
@@ -56,7 +56,7 @@ Before making changes, please review our core architectural rules:
 
 ---
 
-## ➕ Adding a New Vendor Tool (Step-by-Step)
+## Feature Change
 
 Adding an upstream community tool or MCP server involves a structured, repeatable 9-step pipeline.
 
@@ -322,7 +322,7 @@ aa tool install my-cool-tool
 
 Run the quality gate:
 ```bash
-aa check
+aa skill check
 ```
 Test the integration end-to-end:
 ```bash
@@ -339,7 +339,7 @@ aa mcp show
 
 ---
 
-## ➖ Removing a Vendor Tool (Step-by-Step)
+### Removing a Vendor Tool (Step-by-Step)
 
 When deprecating or removing an upstream tool, follow this procedure to ensure clean de-registration with zero dangling references or broken CI checks.
 
@@ -397,13 +397,12 @@ rm -rf .git/modules/vendor/my-cool-tool
 
 Execute the verification suite to ensure no broken references remain:
 ```bash
-aa check
 aa status
 ```
 
 ---
 
-## 🔄 Updating an Existing Vendor Tool
+### Updating an Existing Vendor Tool
 
 To upgrade a vendor tool to a newer upstream release or commit:
 
@@ -435,7 +434,7 @@ To upgrade a vendor tool to a newer upstream release or commit:
 
 ---
 
-## 🤖 Contributing to Internal Agents (`internal/`)
+### Contributing to Internal Agents (`internal/`)
 
 The repository hosts several core in-house agents under `internal/`:
 - [`vision-arwaky`](internal/vision-arwaky/) (Python / `uv`)
@@ -452,19 +451,31 @@ The repository hosts several core in-house agents under `internal/`:
 3. **Parity between CLI and MCP:**  
    Internal tools exposing an MCP interface must preserve 1:1 parity with their CLI commands.
 
+## Documentation Change
+
+For doc-only changes (README, PRD, ARCHITECTURE, ROADMAP, CONTRIBUTING, FRD/BACKLOG pairs):
+
+1. Edit the document in place. Specs stay stateless: describe roles and behaviour,
+   never name source files (AES603).
+2. Keep the document's H2 set closed to its template (AES605): do not add or rename
+   level-2 sections, only level-3 and deeper are free.
+3. Verify with `lac docs .` before committing; docs gate on zero findings.
+4. A PR that changes an FRD updates the matching BACKLOG row in the same PR.
+
 ---
 
-## 🧪 Quality Verification & PR Process
+## Quality Verification & PR Process
 
 Before committing code or submitting a Pull Request, verify that all automated checks pass.
 
-### 1. Run the CI Verification Script
+### 1. Run the Verification Commands
 ```bash
-aa check
+python3 -m compileall modules/
+aa skill check
 ```
 
-The script verifies:
-- **Document invariants:** PRD/ROADMAP/FRD/README/BACKLOG/AGENTS chain and skill references pass the add-docs rules.
+The commands verify:
+- **Python syntax:** every module compiles cleanly.
 - **Skill-pack loadability:** `skills/` layout, name parity, and description budget hold.
 
 > CI also runs automatically on every push via [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
@@ -486,4 +497,4 @@ When submitting a PR, ensure:
 - [ ] New shell scripts include `set -euo pipefail` and executable bits (`chmod +x`).
 - [ ] `modules/shared/config/manifest.json` is updated and validated with `jq`.
 - [ ] `THIRD_PARTY_LICENSES.md` lists the upstream license and commit.
-- [ ] `aa check` passes with zero errors.
+- [ ] `aa skill check` passes with zero errors.

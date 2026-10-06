@@ -6,8 +6,8 @@ here, to keep the package free of a root re-export cycle (AES205).
 """
 from __future__ import annotations
 
+from modules.cli.src.surface_harness_command import cmd_connect, cmd_disconnect
 from modules.harness.src.agent_harness_orchestrator import HarnessOrchestrator
-from modules.harness.src.surface_harness_command import cmd_connect, cmd_disconnect
 
 __all__ = [
     "HarnessOrchestrator",

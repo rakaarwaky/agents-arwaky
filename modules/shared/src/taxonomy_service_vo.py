@@ -7,7 +7,7 @@ from typing import NewType
 #: Process or command exit code (0 = success, non-zero = failure).
 ExitCode = NewType("ExitCode", int)
 
-#: Service target name ("9router", "anytype", "all").
+#: Service target name ("anytype", "omniroute", "all").
 ServiceTarget = NewType("ServiceTarget", str)
 
 #: Service operation token carried by a ServiceRequest (``status``/``start``/...).
@@ -18,7 +18,9 @@ ServiceResponse = NewType("ServiceResponse", ExitCode)
 
 #: Module-level singletons for default arguments (B008).
 TARGET_ALL: ServiceTarget = ServiceTarget("all")
-TARGET_9ROUTER: ServiceTarget = ServiceTarget("9router")
+
+#: Default single-daemon target for ``logs``; the first host-native gateway.
+TARGET_OMNIROUTE: ServiceTarget = ServiceTarget("omniroute")
 
 #: Module-level singleton for the empty response (B008).
 RESPONSE_DEFAULT: ServiceResponse = ServiceResponse(ExitCode(0))
@@ -35,13 +37,13 @@ class ServiceRequest:
 
     op: ServiceOp
     target: ServiceTarget = TARGET_ALL
-    logs_target: ServiceTarget = TARGET_9ROUTER
+    logs_target: ServiceTarget = TARGET_OMNIROUTE
 
 
 __all__ = [
     "RESPONSE_DEFAULT",
-    "TARGET_9ROUTER",
     "TARGET_ALL",
+    "TARGET_OMNIROUTE",
     "ExitCode",
     "ServiceOp",
     "ServiceRequest",

@@ -189,7 +189,7 @@ def cmd_help(argv: list[str]) -> int:
     print()
     print(f"{BOLD()}SERVICES & DAEMONS:{RESET()}")
     print(f"  {GREEN()}anytype{RESET()} <cmd>                  Anytype daemon (start|stop|status|auth-key|...)")
-    print(f"  {GREEN()}9router{RESET()} <cmd>                  9Router daemon (start|stop|status|models|...)")
+    print(f"  {GREEN()}omniroute{RESET()} <cmd>                OmniRoute daemon (start|stop|status|models|...)")
     print(f"  {GREEN()}service{RESET()} <cmd>                  Service manager (start|stop|restart|status|logs)")
     print()
     print(f"{BOLD()}DATA MANAGEMENT:{RESET()}")
@@ -197,7 +197,6 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}restore{RESET()} [args]                 Restore tool data from archive")
     print()
     print(f"{BOLD()}MAINTENANCE:{RESET()}")
-    print(f"  {GREEN()}check{RESET()} <scope> [args]          Repository verification (all|docs|skill; warnings gate)")
     print(f"  {CYAN()}submodules{RESET()}                     Initialize/update git submodules")
     print(f"  {CYAN()}clean{RESET()}                          Remove build artifacts & generated configs")
     print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + disconnect + unskill")
@@ -217,8 +216,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}aa tool list{RESET()}                   List all registered tools")
     print(f"  {CYAN()}aa skill install --all{RESET()}         Provision all skills to CWD")
     print(f"  {CYAN()}aa skill update{RESET()}                 Pull internal submodule skills into the pack")
-    print(f"  {CYAN()}aa check docs .{RESET()}               Audit PRD/ROADMAP/FRD/README/BACKLOG/AGENTS invariants")
-    print(f"  {CYAN()}aa check skill{RESET()}                Audit skills/ pack loadability")
+    print(f"  {CYAN()}aa skill check{RESET()}                Audit skills/ pack loadability")
     print(f"  {CYAN()}aa skill uninstall --target .{RESET()}  Remove skills from CWD")
     print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
     print(f"  {CYAN()}aa disconnect --all{RESET()}            Disconnect all harnesses")
@@ -405,8 +403,8 @@ def cmd_install(argv: list[str]) -> int:
             skipped.append(tool.id)
             warn(f"{tool.id}: {result.message}")
     if target == "all":
+        from modules.cli.src.surface_mcp_command import cmd_mcp as _mcp
         from modules.mcp.src.root_mcp_container import create_mcp_feature
-        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         info("Generating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -457,8 +455,8 @@ def cmd_update(argv: list[str]) -> int:
             skipped.append(tool.id)
             warn(f"{tool.id}: {result.message}")
     if target == "all":
+        from modules.cli.src.surface_mcp_command import cmd_mcp as _mcp
         from modules.mcp.src.root_mcp_container import create_mcp_feature
-        from modules.mcp.src.surface_mcp_command import cmd_mcp as _mcp
         info("Regenerating MCP configuration...")
         _mcp(["generate"], create_mcp_feature())
     if skipped:
@@ -536,30 +534,30 @@ def cmd_mcp(argv: list[str]) -> int:
 
 
 def cmd_skill(argv: list[str]) -> int:
+    from modules.cli.src.surface_skill_command import main as _skill_surface
     from modules.skill.src.root_skill_container import create_skill_feature
-    from modules.skill.src.surface_skill_command import main as _skill_surface
     return _skill_surface(argv, create_skill_feature())
 
 
 def cmd_config(argv: list[str]) -> int:
+    from modules.cli.src.surface_config_command import cmd_config as _config_surface
     from modules.config.src.root_config_container import create_config_feature
-    from modules.config.src.surface_config_command import cmd_config as _config_surface
     return _config_surface(list(argv), create_config_feature())
 
 
 def cmd_connect(argv: list[str]) -> int:
-    from modules.harness.src.root_harness_container import create_harness_feature
-    from modules.harness.src.surface_harness_command import (
+    from modules.cli.src.surface_harness_command import (
         cmd_connect as _harness_connect,
     )
+    from modules.harness.src.root_harness_container import create_harness_feature
     return _harness_connect(list(argv), create_harness_feature)
 
 
 def cmd_disconnect(argv: list[str]) -> int:
-    from modules.harness.src.root_harness_container import create_harness_feature
-    from modules.harness.src.surface_harness_command import (
+    from modules.cli.src.surface_harness_command import (
         cmd_disconnect as _harness_disconnect,
     )
+    from modules.harness.src.root_harness_container import create_harness_feature
     return _harness_disconnect(list(argv), create_harness_feature)
 
 
@@ -594,7 +592,7 @@ def cmd_tool(argv: list[str]) -> int:
     stays a thin router (AES506). The surface owns arg parsing + aggregate
     calls so the tool action lives in one place.
     """
-    from modules.tools.src.surface_tools_command import cmd_tool as _tools_surface
+    from modules.cli.src.surface_tools_command import cmd_tool as _tools_surface
     return _tools_surface(argv, _tool_orch())
 
 
@@ -620,41 +618,65 @@ def _doctor_feature_compat():
 
 
 def cmd_anytype(argv: list[str]) -> int:
-    from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.daemon.src.surface_daemon_command import cmd_anytype as _daemon_anytype
-    from modules.daemon.src.surface_daemon_command import (
+    from modules.cli.src.surface_daemon_command import (
+        cmd_anytype as _daemon_anytype,
+    )
+    from modules.cli.src.surface_daemon_command import (
         register_manager_factory as _reg_dm,
     )
+    from modules.cli.src.surface_daemon_command import (
+        register_orchestrator_factory as _reg_da,
+    )
+    from modules.daemon.src.root_daemon_container import DaemonContainer
     _c = DaemonContainer()
     _reg_dm("anytype", lambda: _c.anytype)
+    _reg_da(lambda: _c.aggregate)
     return _daemon_anytype(argv)
 
 
-def cmd_9router(argv: list[str]) -> int:
-    from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.daemon.src.surface_daemon_command import (
-        cmd_9router as _daemon_9router,
+def cmd_omniroute(argv: list[str]) -> int:
+    from modules.cli.src.surface_daemon_command import (
+        cmd_omniroute as _daemon_omniroute,
     )
-    from modules.daemon.src.surface_daemon_command import (
+    from modules.cli.src.surface_daemon_command import (
         register_manager_factory as _reg_dm,
     )
+    from modules.cli.src.surface_daemon_command import (
+        register_orchestrator_factory as _reg_da,
+    )
+    from modules.daemon.src.root_daemon_container import DaemonContainer
     _c = DaemonContainer()
-    _reg_dm("9router", lambda: _c.ninerouter)
-    return _daemon_9router(argv)
+    _reg_dm("omniroute", lambda: _c.omniroute)
+    _reg_da(lambda: _c.aggregate)
+    return _daemon_omniroute(argv)
 
 
 def cmd_daemon(argv: list[str]) -> int:
     """aa daemon <id> <action> — list|status|start|… for a managed daemon."""
-    from modules.daemon.src.root_daemon_container import create_daemon_feature
+    from modules.cli.src.surface_daemon_command import (
+        register_manager_factory as _reg_dm,
+    )
+    from modules.cli.src.surface_daemon_command import (
+        register_orchestrator_factory as _reg_da,
+    )
+    from modules.daemon.src.root_daemon_container import (
+        DaemonContainer,
+        create_daemon_feature,
+    )
+    from modules.shared.src.taxonomy_daemon_vo import (
+        DaemonName,
+        DaemonOp,
+        DaemonRequest,
+    )
 
     orch = create_daemon_feature()
+    known = {str(n) for n in orch.known}
     if not argv or argv[0] in ("-h", "--help", "help"):
-        names = ", ".join(str(n) for n in orch.list_known())
-        print("Usage: aa daemon <9router|anytype> <start|stop|restart|status|logs|help>")
+        names = ", ".join(str(n) for n in orch.known)
+        print("Usage: aa daemon <anytype|omniroute> <start|stop|restart|status|logs|help>")
         print(f"Known daemons: {names}")
         return 0
     daemon_id = argv[0]
-    known = {str(n) for n in orch.list_known()}
     if daemon_id not in known:
         err(f"Unknown daemon: {daemon_id}")
         print(f"Known daemons: {', '.join(sorted(known))}")
@@ -662,24 +684,22 @@ def cmd_daemon(argv: list[str]) -> int:
     action = argv[1] if len(argv) > 1 else "status"
     rest = argv[2:]
     if action in ("start", "stop", "restart", "logs", "help"):
-        result = getattr(orch, action)(daemon_id)
-        return int(result)
+        # The aggregate exposes a single `execute`; the verb is the request op.
+        outcome = orch.execute(
+            DaemonRequest(op=DaemonOp(action), name=DaemonName(daemon_id))
+        )
+        return int(outcome.exit_code or 0)
     if action == "status":
-        from modules.daemon.src.root_daemon_container import DaemonContainer
-        from modules.daemon.src.surface_daemon_command import (
-            cmd_9router as _ni,
-        )
-        from modules.daemon.src.surface_daemon_command import (
-            cmd_anytype as _any,
-        )
-        from modules.daemon.src.surface_daemon_command import (
-            register_manager_factory as _reg_dm,
-        )
-
         _c = DaemonContainer()
         _reg_dm("anytype", lambda: _c.anytype)
-        _reg_dm("9router", lambda: _c.ninerouter)
-        fn = _ni if daemon_id == "9router" else _any
+        _reg_dm("omniroute", lambda: _c.omniroute)
+        _reg_da(lambda: _c.aggregate)
+        from modules.daemon.src import surface_daemon_command as _dv
+
+        fn = {
+            "anytype": _dv.cmd_anytype,
+            "omniroute": _dv.cmd_omniroute,
+        }[daemon_id]
         return fn(["status", *rest])
     err(f"Unknown daemon action: {action}")
     print("Valid actions: start, stop, restart, status, logs, help")
@@ -687,28 +707,21 @@ def cmd_daemon(argv: list[str]) -> int:
 
 
 def cmd_service(argv: list[str]) -> int:
+    from modules.cli.src.surface_service_command import cmd_service as _service_cmd
     from modules.service.src.root_service_container import create_service_feature
-    from modules.service.src.surface_service_command import cmd_service as _service_cmd
     return _service_cmd(argv, create_service_feature())
 
 
 def cmd_backup(argv: list[str]) -> int:
     from modules.backup.src.root_backup_container import create_backup_feature
-    from modules.backup.src.surface_backup_command import cmd_backup as _backup_cmd
+    from modules.cli.src.surface_backup_command import cmd_backup as _backup_cmd
     return _backup_cmd(["backup", *argv], create_backup_feature())
 
 
 def cmd_restore(argv: list[str]) -> int:
     from modules.backup.src.root_backup_container import create_backup_feature
-    from modules.backup.src.surface_backup_command import cmd_restore as _restore_cmd
+    from modules.cli.src.surface_backup_command import cmd_restore as _restore_cmd
     return _restore_cmd(["restore", *argv], create_backup_feature())
-
-
-def cmd_check(argv: list[str]) -> int:
-    """aa check [all|docs|skill] [path] [--include-subtrees] [--json] — route through the check feature surface."""
-    from modules.check.src.root_check_container import create_check_feature
-    from modules.check.src.surface_check_command import cmd_check as _check_cmd
-    return _check_cmd(argv, create_check_feature())
 
 
 def cmd_submodules(argv: list[str]) -> int:
@@ -834,7 +847,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
     dispatch_table = {
         # Meta / status
         "status": cmd_status, "doctor": cmd_doctor,
-        "check": cmd_check, "submodules": cmd_submodules, "clean": cmd_clean,
+        "submodules": cmd_submodules, "clean": cmd_clean,
         "reset": cmd_reset, "version": cmd_version, "--version": cmd_version,
         "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
         # Core noun-action (canonical)
@@ -843,7 +856,8 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
-        "anytype": cmd_anytype, "9router": cmd_9router, "service": cmd_service,
+        "anytype": cmd_anytype, "omniroute": cmd_omniroute,
+        "service": cmd_service,
         "daemon": cmd_daemon,
         "backup": cmd_backup, "restore": cmd_restore,
         # Backward compat aliases → noun action (deprecated, prefer aa tool/aa skill)

@@ -11,8 +11,8 @@ def bench_gateway_init(benchmark):
 
 def bench_orchestrator_init(benchmark):
     """BENCH-BACKUP-002: Benchmark BackupOrchestrator initialization."""
-    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
     from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
+    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     def _init():
         tar = TarBackupGateway()

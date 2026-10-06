@@ -14,6 +14,21 @@
 
 ## Rules
 
+### Capability vs Utility Boundary
+
+A capability file **implements a protocol** — it has state (via DI), business rules, and concrete behaviour.
+A utility file **performs a pure operation** — no state, no business rules, just a narrow task.
+
+| Decision | → Capability | → Utility |
+|---|---|---|
+| Has `self` / instance state / injected dependencies | Yes | No |
+| Contains business rules or protocol logic | Yes | No |
+| Stateless, domain-agnostic, ≥2 consumers | — | Yes |
+| Implements `_protocol` interface/ABC/trait | Yes | No |
+| Pure free function with no business logic | No | Yes |
+
+**Rule**: If a method or helper in Block 3 is stateless, domain-agnostic, and reusable across modules — extract it to a `utility_*` file. It does not belong in the capability layer.
+
 ### Import rules
 
 **Allowed imports:** Taxonomy, Contract (`_protocol` only), Utility.
@@ -46,7 +61,7 @@ I/O: stateless + I/O + domain-agnostic = utility OK.
 1. Confirm implements protocol behavior (not orchestration/data/mechanics).
 2. File imports from `_protocol` module — if missing → flag `CapabilityNoProtocol`.
 3. Create `contract_<name>_protocol.py` if missing.
-4. Enforce 3-Block.
+4. Enforce 3-Block with explicit `# ─── Block 1:`, `Block 2:`, `Block 3:` comments — AES403 `CapabilityBlockMarkers` reports a file whose banners are missing, out of order, or above 3.
 5. AES403: ≥1 protocol inheritor, ≤3 classes, DI via protocols, shared VOs.
 6. No forbidden imports, no inter-capability deps, no local domain models.
 7. `python -c "import <module>"`.
@@ -97,19 +112,33 @@ class I<Name>Protocol(ABC):
 
 ## Section Contract
 
+The `Enforced` column says which rule reports a violation, so you know what the
+linter will catch and what stays a review responsibility. `Manual` means no rule
+checks it — the shape is still the contract, but a violation is caught by review
+or by the interpreter, not by `scan`.
 
-| Check                                                             | Why it belongs here                                                 |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Block 1 → 2 → 3 order followed.                                   | Required by AES layer rules and the linter; missing it is a defect. |
-| Block 2: ONLY protocol ABC method implementations.                | Required by AES layer rules and the linter; missing it is a defect. |
-| ≥1 class inherits protocol ABC; ≤3 total classes.                 | Required by AES layer rules and the linter; missing it is a defect. |
-| Imports from `_protocol` module only.                             | Required by AES layer rules and the linter; missing it is a defect. |
-| No local domain models, no agent/capability imports.              | Required by AES layer rules and the linter; missing it is a defect. |
-| DI via protocol interfaces; shared VOs for fields and signatures. | Required by AES layer rules and the linter; missing it is a defect. |
-| Constants → `taxonomy_<domain>_constant.py`.                      | Required by AES layer rules and the linter; missing it is a defect. |
-| Low-level ops → Utility.                                          | Required by AES layer rules and the linter; missing it is a defect. |
-| `python -c "import <module>"` passes.                             | Required by AES layer rules and the linter; missing it is a defect. |
+| Check                                                             | Enforced                                                          |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| All three `# ─── Block 1:` / `Block 2:` / `Block 3:` banners present, in order, none above 3. | **AES403** `CapabilityBlockMarkers` (MEDIUM)   |
+| Block 1 (class) precedes Block 2 (protocol methods).              | **AES403** `CapabilityBlockOrder` (HIGH)                          |
+| ≥1 class inherits a protocol ABC.                                 | **AES403** `CapabilityNoImplementor` (MEDIUM)                     |
+| Exactly 1 protocol ABC per file.                                  | **AES403** `CapabilityMultiProtocol` (MEDIUM)                     |
+| ≤3 total classes.                                                 | **AES403** `CapabilityTooManyTypes` (HIGH)                        |
+| Imports from `_protocol` module only.                             | **AES201**–**AES205** (import rules)                              |
+| No agent / surface / root imports.                                | **AES201** `FORBIDDEN_IMPORT`                                     |
+| Block 2: ONLY protocol ABC method implementations.                | Manual — no rule reads Block 2's contents                        |
+| DI via protocol interfaces; shared VOs for fields and signatures. | Manual                                                            |
+| Constants → `taxonomy_<domain>_constant.py`.                     | **AES403** `CapabilityLocalConstant` (MEDIUM)                     |
+| Block 3 public helpers with no production caller are private (`def _name`). | **AES403** `CapabilityPublicHelper` (MEDIUM)       |
+| Test classes (`class Test*`, `def test_*`) live in `tests/`, never inline. | **AES403** `CapabilityEmbeddedTest` (LOW)          |
+| Low-level ops → Utility.                                          | Manual — the helper-vs-utility matrix is a judgement call         |
+| `python -c "import <module>"` passes.                             | The interpreter, not `scan`                                       |
 
+**On the block banners.** A banner is `Block <digits>:` standing as its own word
+inside a comment, so the Python comment sigil is `#`. The colon is load-bearing:
+prose such as `Block 1 (types) -> Block 2` is not a marker, and neither is
+`Sub-Block 4:`. Put the banner above the block it heads, at the same indent as
+the code it introduces.
 
 ---
 
@@ -119,7 +148,10 @@ class I<Name>Protocol(ABC):
 lint-arwaky-cli scan <layer-path>
 # Checks: AES101/AES102 (filename + suffix), AES201–AES205 (layer imports),
 # AES401–AES406 (role/primitive/structure rules for this layer).
-# Manual (not machine-checked): 3-block order; Block 2 only protocol methods; helper-vs-utility matrix; role naming lists.
+# AES403 machine-enforced: class budget ≤3; protocol inheritor present;
+#   protocol method defined before the first private helper; module-level
+#   constants in taxonomy file; no inline test class or test function;
+#   public methods after the Block 2 boundary with no production caller flagged.
+# Manual (not machine-checked): helper-vs-utility matrix; role naming lists.
 # Fallback compile gate: python -c "import <shared_package>.<module>"
 ```
-

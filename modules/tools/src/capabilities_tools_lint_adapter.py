@@ -13,9 +13,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import ToolsAdapterBody
+from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
+    ToolSpec,
     bin_home,
     cache_home,
     config_home,
@@ -28,7 +29,11 @@ from modules.shared.src.taxonomy_tools_constant import (
     LINT_INTERNAL_DIR_REL,
     LINT_LAUNCHERS,
 )
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit
+from modules.shared.src.taxonomy_tools_vo import (
+    AdapterUnit,
+    PinCheck,
+    ToolPaths,
+)
 from modules.shared.src.utility_git_submodule import update_submodule
 from modules.shared.src.utility_tool_mechanics import (
     ROOT,
@@ -37,16 +42,49 @@ from modules.shared.src.utility_tool_mechanics import (
     make_satisfied,
     run,
 )
+from modules.shared.src.utility_tools_adapter_body import (
+    install_unit,
+    is_pin_satisfied_unit,
+    owned_paths_unit,
+    satisfied_unit,
+    update_unit,
+)
+
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class LintToolsAdapter(ToolsAdapterBody):
+class LintToolsAdapter(IToolsAdapterProtocol):
     """lint actions behind the tools adapter protocol (AES403 implementor)."""
 
     _display = 'lint'
 
     def __init__(self, units: dict[str, AdapterUnit] | None = None) -> None:
         """Default to this adapter's own unit registry when *units* is omitted."""
-        super().__init__(dict(ADAPTER_UNITS) if units is None else units)
+        self._units = dict(ADAPTER_UNITS) if units is None else units
+
+
+
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
+        """True when the installed binary satisfies the manifest."""
+        return satisfied_unit(self._units, spec, self._display, root)
+
+    def is_pin_satisfied(self, spec: ToolSpec, root: Path | None = None) -> PinCheck:
+        """Return ``(satisfied, reason)`` against the manifest pin."""
+        return is_pin_satisfied_unit(self._units, spec, self._display, root)
+
+    def owned_paths(self, spec: ToolSpec, root: Path | None = None) -> ToolPaths:
+        """Return the paths this adapter's install owns for *spec*."""
+        return owned_paths_unit(self._units, spec, self._display, root)
+
+    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> ToolPaths:
+        """Install or build *spec* into *root*; return the created paths."""
+        return install_unit(self._units, spec, root, self._display, daemons=daemons)
+
+    def update(self, spec: ToolSpec, root: Path) -> ToolPaths:
+        """Update *spec* to the manifest pin; return the rebuilt paths."""
+        return update_unit(self._units, spec, root, self._display)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
 
 # ---------------------------------------------------------------------------
 # Build helpers (cargo — rustup bootstrap + atomic install)

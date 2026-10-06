@@ -1,8 +1,8 @@
-"""Harness connect capability — MCP config + env entries + 9Router wiring.
+"""Harness connect capability — MCP config + env entries + OmniRoute wiring.
 
 FR-001 business action: for each resolved harness id, merge the generated MCP
 servers into the provider's config, set the provider's env keys, and — when the
-adapter declares custom-API support — bind the 9Router provider entry. Router
+adapter declares custom-API support — bind the OmniRoute provider entry. Router
 wiring is a clause of connect, not a separate action.
 """
 from __future__ import annotations
@@ -13,20 +13,16 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from modules.shared.src.utility_harness_log import (
-    log_err,
-    log_header,
-    log_ok,
-    log_skip,
-    log_sub,
-    log_warn,
-)
 from modules.shared.src.contract_harness_protocol import (
     IHarnessConnectProtocol,
     IHarnessSkillsProtocol,
 )
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import data_home
+from modules.shared.src.taxonomy_harness_constant import (
+    FALLBACK_MCP_COMMANDS,
+    PLACEHOLDER_KEYS,
+)
 from modules.shared.src.taxonomy_harness_vo import (
     ConnectOpts,
     ExitCode,
@@ -39,18 +35,14 @@ from modules.shared.src.utility_config_engine import (
     save_file,
     set_env_keys,
 )
-
-_PLACEHOLDER_KEYS = {"sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "change-me", ""}
-
-_FALLBACK_MCP_COMMANDS = {
-    "codegraph": "codegraph-mcp",
-    "vision-arwaky": "vision-arwaky-mcp",
-    "qwen-web-arwaky": "qwen-web-mcp",
-    "blender-arwaky": "blender-mcp",
-    "lint-arwaky": "lint-arwaky-mcp",
-    "workspace": "workspace-mcp",
-    "mnemosyne": "mnemosyne-mcp",
-}
+from modules.shared.src.utility_harness_log import (
+    log_err,
+    log_header,
+    log_ok,
+    log_skip,
+    log_sub,
+    log_warn,
+)
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -143,15 +135,15 @@ class HarnessConnector(IHarnessConnectProtocol):
         return 0
 
     def _connect_env(self, adapter, opts: ConnectOpts) -> int:
-        creds = _get_9router_credentials(adapter.credential_candidates())
+        creds = _get_router_credentials(adapter.credential_candidates())
         url, key = creds.url, creds.key
-        if not key or key in _PLACEHOLDER_KEYS:
+        if not key or key in PLACEHOLDER_KEYS:
             log_warn(
-                f"No active 9Router API Key found (empty/placeholder); env injection "
-                f"SKIPPED for {adapter.id}. Run 'aa 9router' to configure."
+                f"No active OmniRoute API Key found (empty/placeholder); env injection "
+                f"SKIPPED for {adapter.id}. Run 'aa omniroute' to configure."
             )
             return 0
-        pairs = {"NINEROUTER_URL": url, "NINEROUTER_KEY": key}
+        pairs = {"OMNIROUTE_URL": url, "OMNIROUTE_KEY": key}
         m_pairs = {"MNEMOSYNE_DATA_DIR": str(data_home() / "mnemosyne")}
         synced_session = False
         if not opts.dry_run:
@@ -172,24 +164,24 @@ class HarnessConnector(IHarnessConnectProtocol):
                 failures += 1
         if failures:
             return failures
-        log_ok(f"Injected NINEROUTER_URL/KEY + MNEMOSYNE_DATA_DIR into {adapter.id} environment.")
+        log_ok(f"Injected OMNIROUTE_URL/KEY + MNEMOSYNE_DATA_DIR into {adapter.id} environment.")
         if synced_session:
-            log_ok("Synced ~/.config/environment.d/9router.conf (login-session key layer).")
+            log_ok("Synced ~/.config/environment.d/omniroute.conf (login-session key layer).")
         return 0
 
     def _connect_router(self, harness_id: str, adapter, opts: ConnectOpts) -> int:
-        """9Router custom-API clause of connect (FR-001/FR-005, gated by flag)."""
+        """OmniRoute custom-API clause of connect (FR-001/FR-005, gated by flag)."""
         if not adapter.supports_custom_api:
             log_skip(
                 f"{harness_id}: adapter lacks custom-API support; router wiring SKIPPED."
             )
             return 0
-        creds = _get_9router_credentials(adapter.credential_candidates())
+        creds = _get_router_credentials(adapter.credential_candidates())
         url, key = creds.url, creds.key
         if not _daemon_running(self._daemon_status_fn):
             log_warn(
-                "9Router daemon not running; router wiring still applied. "
-                "Start it with 'aa 9router start'."
+                "OmniRoute daemon not running; router wiring still applied. "
+                "Start it with 'aa omniroute start'."
             )
         kind = getattr(adapter, "custom_api_kind", "")
         if kind == "config-toml":
@@ -199,7 +191,7 @@ class HarnessConnector(IHarnessConnectProtocol):
         if kind == "opencode-json":
             return _connect_router_opencode(adapter, url, key, opts)
         if kind == "router-env":
-            log_skip(f"{adapter.id}: custom-API is env-only (NINEROUTER_URL/KEY); no config-file provider entry to write.")
+            log_skip(f"{adapter.id}: custom-API is env-only (OMNIROUTE_URL/KEY); no config-file provider entry to write.")
             return 0
         log_skip(f"{adapter.id}: unknown custom-API kind '{kind}'; router wiring SKIPPED.")
         return 0
@@ -208,6 +200,8 @@ class HarnessConnector(IHarnessConnectProtocol):
         return "HarnessConnector()"
 
 
+# ─── Block 3: Dunder Methods, Factories & Helpers ───
+
 def _router_v1(url: str) -> str:
     base = url.rstrip("/")
     return base if base.endswith("/v1") else base + "/v1"
@@ -215,15 +209,15 @@ def _router_v1(url: str) -> str:
 
 def _resolve_combo_model(adapter) -> str:
     """The model id harnesses send: MAIN_COMBO env override, else the adapter
-    default (a 9Router combo name like ``my9router``), never a raw upstream
+    default (an OmniRoute combo name like ``myomniroute``), never a raw upstream
     model id — combos are the stable user-facing alias."""
     combo = os.environ.get("MAIN_COMBO", "").strip()
     return combo or adapter.router_provider_id
 
 
-def _get_9router_credentials(candidates) -> RouterCredentials:
-    """Read NINEROUTER_URL/KEY from env candidates; fallback default URL."""
-    router_url = f"http://127.0.0.1:{os.environ.get('NINEROUTER_PORT', '20128')}"
+def _get_router_credentials(candidates) -> RouterCredentials:
+    """Read OMNIROUTE_URL/KEY from env candidates; fallback default URL."""
+    router_url = f"http://127.0.0.1:{os.environ.get('OMNIROUTE_PORT', '7777')}"
     router_key = ""
     for cand in candidates:
         cand = Path(cand)
@@ -234,12 +228,12 @@ def _get_9router_credentials(candidates) -> RouterCredentials:
         except OSError:
             continue
         for line in text.splitlines():
-            if line.startswith("NINEROUTER_URL="):
+            if line.startswith("OMNIROUTE_URL="):
                 router_url = line.split("=", 1)[1].strip().strip('"\'')
-            elif line.startswith("NINEROUTER_KEY="):
+            elif line.startswith("OMNIROUTE_KEY="):
                 router_key = line.split("=", 1)[1].strip().strip('"\'')
         # Break only for a non-placeholder key; later candidates may still apply.
-        if router_key and router_key not in _PLACEHOLDER_KEYS:
+        if router_key and router_key not in PLACEHOLDER_KEYS:
             break
     return RouterCredentials(url=router_url, key=router_key)
 
@@ -256,13 +250,13 @@ def _load_generated_servers() -> dict[str, dict]:
         except (OSError, ValueError) as exc:
             log_warn(f"Could not read {gen} ({exc}); using default servers.")
     return {
-        name: {"command": _FALLBACK_MCP_COMMANDS.get(name, f"{name}-mcp")}
+        name: {"command": FALLBACK_MCP_COMMANDS.get(name, f"{name}-mcp")}
         for name in arwaky_server_names(Path(REPO_ROOT))
     }
 
 
 def _daemon_running(daemon_status_fn) -> bool:
-    """9Router liveness probe via the daemon feature's status contract.
+    """OmniRoute liveness probe via the daemon feature's status contract.
 
     Resolved from the daemon feature, never hardcoded: the endpoint is the
     manager's own status, so a moved gateway is picked up automatically.
@@ -300,8 +294,8 @@ def _probe_router(v1_url: str, key: str, model: str, adapter_id: str) -> int:
 
     Secret (the key) is sent as a header only, never written into any config.
     """
-    if not key or key in _PLACEHOLDER_KEYS:
-        log_warn(f"No active 9Router key to verify provider for {adapter_id}.")
+    if not key or key in PLACEHOLDER_KEYS:
+        log_warn(f"No active OmniRoute key to verify provider for {adapter_id}.")
         return 0
     req = urllib.request.Request(
         v1_url + "/chat/completions",
@@ -314,18 +308,18 @@ def _probe_router(v1_url: str, key: str, model: str, adapter_id: str) -> int:
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
-            log_ok(f"9Router live check passed (HTTP {resp.status}).")
+            log_ok(f"OmniRoute live check passed (HTTP {resp.status}).")
             return 0
     except urllib.error.HTTPError as exc:
-        log_warn(f"9Router live check FAILED (HTTP {exc.code}). Check the key with 'aa 9router'.")
+        log_warn(f"OmniRoute live check FAILED (HTTP {exc.code}). Check the key with 'aa omniroute'.")
         return 0
     except (OSError, ValueError) as exc:
-        log_warn(f"9Router live check FAILED ({exc}).")
+        log_warn(f"OmniRoute live check FAILED ({exc}).")
         return 0
 
 
 def _connect_router_toml(adapter, url: str, key: str, opts: ConnectOpts) -> int:
-    """Bind the 9Router combo provider in a TOML harness config.
+    """Bind the OmniRoute combo provider in a TOML harness config.
 
     Grok Build's verified shape: ``[model_providers.<name>]`` carries the
     endpoint + ``env_key`` and ``[model.<combo>]`` references it via
@@ -343,7 +337,7 @@ def _connect_router_toml(adapter, url: str, key: str, opts: ConnectOpts) -> int:
         log_warn(f"Could not read {cfg_file} ({exc}); provider sync SKIPPED.")
         return 0
     combo = _resolve_combo_model(adapter)
-    provider_name = getattr(adapter, "router_provider_name", "9router")
+    provider_name = getattr(adapter, "router_provider_name", "omniroute")
     v1 = _router_v1(url)
     providers = data.setdefault("model_providers", {})
     existing_provider = providers.get(provider_name)
@@ -358,7 +352,7 @@ def _connect_router_toml(adapter, url: str, key: str, opts: ConnectOpts) -> int:
     )
     if opts.dry_run:
         log_sub(
-            f"[DRY-RUN] Would bind 9Router combo '{combo}' at {v1} in {cfg_file}"
+            f"[DRY-RUN] Would bind OmniRoute combo '{combo}' at {v1} in {cfg_file}"
             if changed
             else f"[DRY-RUN] Combo '{combo}' already bound in {cfg_file}"
         )
@@ -385,12 +379,12 @@ def _connect_router_toml(adapter, url: str, key: str, opts: ConnectOpts) -> int:
     if not save_file(cfg_file, data, fmt):
         log_err(f"{adapter.id}: failed to write provider entry in {cfg_file}")
         return 1
-    log_ok(f"9Router combo '{combo}' bound to {adapter.env_key} at {v1}.")
+    log_ok(f"OmniRoute combo '{combo}' bound to {adapter.env_key} at {v1}.")
     return _probe_router(v1, key, combo, adapter.id)
 
 
 def _connect_router_settings(adapter, url: str, key: str, opts: ConnectOpts) -> int:
-    """Bind the 9Router provider in a single-file JSON settings file."""
+    """Bind the OmniRoute provider in a single-file JSON settings file."""
     settings_file = adapter.mcp_config_file()
     provider_id = adapter.router_provider_id
     v1 = _router_v1(url)
@@ -434,7 +428,7 @@ def _connect_router_settings(adapter, url: str, key: str, opts: ConnectOpts) -> 
     m["baseUrl"] = v1
     # The interactive /auth "Custom Provider" flow parks the key inline under
     # settings.env as QWEN_CUSTOM_API_KEY_<...>. Once this connector owns the
-    # provider, drop that shadow copy so a rotated 9Router key cannot go stale.
+    # provider, drop that shadow copy so a rotated OmniRoute key cannot go stale.
     inline = settings.get("env")
     if (isinstance(inline, dict) and prev_env_key and prev_env_key != adapter.env_key
             and prev_env_key.startswith("QWEN_CUSTOM_API_KEY_") and prev_env_key in inline):
@@ -450,7 +444,7 @@ def _connect_router_settings(adapter, url: str, key: str, opts: ConnectOpts) -> 
 
 
 def _connect_router_opencode(adapter, url: str, key: str, opts: ConnectOpts) -> int:
-    """Bind the 9Router combo provider in OpenCode's opencode.json.
+    """Bind the OmniRoute combo provider in OpenCode's opencode.json.
 
     Verified shape: ``provider.<name>`` with npm ``@ai-sdk/openai-compatible``,
     ``options.baseURL``/``options.apiKey`` and a per-model ``models`` map.
@@ -467,15 +461,15 @@ def _connect_router_opencode(adapter, url: str, key: str, opts: ConnectOpts) -> 
         log_warn(f"{settings_file} is not a JSON object; provider sync SKIPPED.")
         return 0
     combo = _resolve_combo_model(adapter)
-    provider_name = getattr(adapter, "router_provider_name", "9router")
+    provider_name = getattr(adapter, "router_provider_name", "omniroute")
     v1 = _router_v1(url)
     providers = settings.setdefault("provider", {})
     block = providers.setdefault(provider_name, {
         "npm": "@ai-sdk/openai-compatible",
-        "name": "9Router (local, offline)",
+        "name": "OmniRoute (local)",
     })
     block.setdefault("npm", "@ai-sdk/openai-compatible")
-    block.setdefault("name", "9Router (local, offline)")
+    block.setdefault("name", "OmniRoute (local)")
     options = block.setdefault("options", {})
     models = block.setdefault("models", {})
     changed = (options.get("baseURL") != v1 or "apiKey" not in options

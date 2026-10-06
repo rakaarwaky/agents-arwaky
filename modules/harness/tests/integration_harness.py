@@ -1,8 +1,6 @@
 """Integration tests for modules/harness — test component interactions."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 
 def test_harness_connector_execute_connect():
     """IT-HARNESS-001: HarnessConnector executes connect operation."""
@@ -12,7 +10,7 @@ def test_harness_connector_execute_connect():
     try:
         result = connector.connect(("test-harness",))
         assert result is not None
-    except Exception:
+    except Exception:  # noqa: BLE001,S110
         pass
 
 
@@ -24,19 +22,21 @@ def test_harness_connector_handles_unknown_op():
     try:
         # connect with an id that has no adapter raises; that's acceptable here.
         connector.connect(("not-in-registry",))
-    except Exception:
+    except Exception:  # noqa: BLE001,S110
         pass  # Expected for unknown harness id
 
 
 def test_harness_disconnector_execute():
     """IT-HARNESS-003: HarnessDisconnector executes without errors."""
-    from modules.harness.src.capabilities_harness_disconnector import HarnessDisconnector
+    from modules.harness.src.capabilities_harness_disconnector import (
+        HarnessDisconnector,
+    )
 
     disconnector = HarnessDisconnector({})
     try:
         result = disconnector.disconnect(("test-harness",))
         assert result is not None
-    except Exception:
+    except Exception:  # noqa: BLE001,S110
         pass
 
 
