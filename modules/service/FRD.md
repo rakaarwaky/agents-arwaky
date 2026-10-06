@@ -1,11 +1,9 @@
 # FRD — service
 
-
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
 
 ## System Overview
 
@@ -18,7 +16,6 @@ this module reaches unit install/remove through an integration to the daemon
 aggregate and otherwise only drives the host service manager. Flow:
 `aa service <action> [target]` → service surface → orchestrator aggregate →
 service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
-
 
 ## Functional Requirements
 
@@ -78,7 +75,6 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 - **Error Handling**: unknown action is a reported message plus usage;
   never an uncaught exception.
 
-
 ## API Contract
 
 ### Protocol API
@@ -112,7 +108,6 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 | daemon deploy assets (units, container definition) | in | the artifacts driven | missing unit → per-target row |
 | root CLI (`aa service`) | in | routes CLI verbs to the aggregate | unknown action → usage + non-zero |
 
-
 ## Non-functional Requirements
 
 | Metric | Target | Measurement method |
@@ -121,7 +116,6 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 | Read-only status/logs | `status`/`logs` never change unit state | systemctl state unchanged after the call |
 | Target validation | unknown target is a named error, not a crash | `start` with a bogus target → error lists valid targets |
 | Exit fidelity | process exit equals the aggregate exit code | `echo $?` after `aa service help` |
-
 
 ## Test Scenarios
 
@@ -134,7 +128,6 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 - `aa service help` prints usage listing the valid actions and targets.
 - An unknown action such as `aa service bogus` prints usage and exits non-zero.
 
-
 ## Assumptions & Constraints
 
 - This module drives existing units; it does not author them — unit
@@ -143,7 +136,6 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 - systemctl must be present for drive paths; on a non-systemd host the
   drive actions fail clearly at the top level.
 - Targets stay within the known set (`omniroute`, `anytype`, `all`).
-
 
 ## Glossary
 

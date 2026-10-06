@@ -5,7 +5,6 @@
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md)
 
-
 ## System Overview
 
 The backup feature archives and restores a tool's owned XDG state — its data
@@ -15,7 +14,6 @@ operation to a storage gateway (a local archive gateway or an optional cloud
 gateway) and collapses every outcome into a single exit code. Listing and
 store status are read-only; archive and restore write only under the XDG
 data home.
-
 
 ## Functional Requirements
 
@@ -92,7 +90,6 @@ data home.
 - **Edge Cases**: invoked with no arguments → usage printed with exit 0.
 - **Error Handling**: write failure on standard output → non-zero.
 
-
 ## API Contract
 
 ### Protocol API
@@ -115,7 +112,6 @@ data home.
 | `status_store` | — | store path, existence, archive count | non-zero | — | Report backup store status (read-only) |
 | `help` | — | usage text | — | — | Print backup usage and known tool identifiers |
 
-
 ## Integration Points
 
 | System | Direction | Purpose | Failure mode |
@@ -124,7 +120,6 @@ data home.
 | local archive store (filesystem) | out | where archives are written, listed, and read back | unwritable store → non-zero; no partial archive left behind |
 | cloud storage gateway (optional) | out | off-host archive upload when the destination requests it | auth or network failure → non-zero; the local archive is kept |
 | root CLI (`aa backup` / `aa restore`) | in | operator entry that routes commands to the agent | unknown arguments → usage and non-zero at the surface |
-
 
 ## Non-functional Requirements
 
@@ -135,7 +130,6 @@ data home.
 | Storage failure fidelity | any storage failure exits non-zero | point the destination at an unwritable path and observe non-zero |
 | No repo writes | backup and restore never touch the repository tree | `git status --porcelain` clean after a full round-trip |
 
-
 ## Test Scenarios
 
 - Backing up a tool with XDG state produces a restorable archive under the XDG data dir.
@@ -144,14 +138,12 @@ data home.
 - Reporting backup store status on a host with no store prints the store path, reports it absent, and exits 0.
 - Requesting backup usage prints the archive, restore, list, and status forms and exits 0.
 
-
 ## Assumptions & Constraints
 
 - Backups are scoped to a tool's owned XDG subtree; the repository tree and
   sibling tools' directories are out of scope by construction.
 - The cloud gateway assumes a pre-authorized credential under the XDG config
   tree; it is never read from the repository tree.
-
 
 ## Glossary
 

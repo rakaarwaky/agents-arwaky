@@ -3,12 +3,10 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
-
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
 
 ## System Overview
 
@@ -20,7 +18,6 @@ managers, git, XDG resolvability) and tool readiness (each manifest tool's
 presence) — fan out under the orchestrator and collapse to a single exit
 code. Flow: `aa doctor` / `aa status` → doctor aggregate → env + tools
 runners → per-check pass/fail rows, one exit code.
-
 
 ## Functional Requirements
 
@@ -59,7 +56,6 @@ runners → per-check pass/fail rows, one exit code.
   timeout row.
 - **Error Handling**: a probe failure becomes a row state; only an
   unrecoverable manifest read failure returns non-zero.
-
 
 ## API Contract
 
@@ -102,7 +98,6 @@ runners → per-check pass/fail rows, one exit code.
 - `aa status` lists every manifest tool with a readiness state and exits 0.
 - `aa status --json` emits parseable JSON rows with stable keys for every tool.
 
-
 ## Assumptions & Constraints
 
 - Diagnostics are advisory: the exit code signals "needs attention", not a
@@ -110,7 +105,6 @@ runners → per-check pass/fail rows, one exit code.
 - The bounded probe timeout is fixed per check, not user-configurable here.
 - The tool manifest is present at the repository root; a missing manifest
   is a hard failure.
-
 
 ## Glossary
 

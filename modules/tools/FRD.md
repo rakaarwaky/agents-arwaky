@@ -3,13 +3,11 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
-
 ## Reference
 
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
 - Supersedes: the former installer / updater / uninstaller / runner feature specs (folded into this document).
-
 
 ## System Overview
 
@@ -25,7 +23,6 @@ Flow: `aa tool <action>` → tools aggregate → capability dispatch through
 registry) → report or child exit code. An unknown id fails with a typed
 error before any capability runs; an action whose capability is unwired
 raises a typed error, never a partial dispatch.
-
 
 ## Functional Requirements
 
@@ -125,7 +122,6 @@ raises a typed error, never a partial dispatch.
 - **Error Handling**: absence never raises — the caller receives no path
   and owns the message.
 
-
 ## API Contract
 
 ### Protocol API
@@ -156,7 +152,6 @@ raises a typed error, never a partial dispatch.
 | daemon feature (lazy aggregate) | out | daemon service install / stop for container tools | unit active → residual |
 | root CLI (`aa tool …`) and host XDG bin/PATH | in | routes list / run / install / update / uninstall; executable discovery | not installed → no path |
 
-
 ## Non-functional Requirements
 
 | Metric | Target | Measurement method |
@@ -166,7 +161,6 @@ raises a typed error, never a partial dispatch.
 | Discover read-only | readiness and path discovery never mutate install state | discovery leaves the filesystem unchanged |
 | Adapter purity | the adapter capability imports only the shared kernel and stdlib; daemon delegation via the injected daemon aggregate | import graph of the adapter capability |
 | No cross-feature imports | the feature imports nothing from sibling feature modules except the lazy daemon aggregate | import graph of the tools module |
-
 
 ## Test Scenarios
 
@@ -179,7 +173,6 @@ raises a typed error, never a partial dispatch.
 - Resolving a query by id, binary, or alias yields the matching tool specification; an unknown query yields no match without raising.
 - Discovering readiness returns the executable path without touching install state, and no path when the tool is not installed.
 
-
 ## Assumptions & Constraints
 
 - The host is bare-metal and XDG-compliant; only the container daemons
@@ -188,7 +181,6 @@ raises a typed error, never a partial dispatch.
   for ids, binaries, aliases, and runner families.
 - Verification runs are read-only: the gate performs no real host
   installs.
-
 
 ## Glossary
 
