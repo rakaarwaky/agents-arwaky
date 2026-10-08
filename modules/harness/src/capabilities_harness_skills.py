@@ -65,11 +65,11 @@ class HarnessSkills(IHarnessSkillsProtocol):
     def _provision_one(self, harness_id, adapter, opts: SkillsOpts, skill_files, pack_root) -> int:
         log_header(f"Provisioning skills into {adapter.display}...")
         skills_dir = adapter.skills_dir()
-        if not skills_dir.exists():
-            log_skip(f"{harness_id} has no skill dir; skipped.")
-            return 0
         link = adapter.skill_link_verified and not opts.copy
         if link:
+            # The whole-root form owns the directory: create the parent so the
+            # pack lands even when the harness has never created its skills dir.
+            skills_dir.parent.mkdir(parents=True, exist_ok=True)
             failures = _link_skills_root(skills_dir, pack_root, opts.force, opts.dry_run)
             if failures:
                 return failures
