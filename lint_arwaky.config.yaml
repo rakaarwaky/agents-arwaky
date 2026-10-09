@@ -103,13 +103,7 @@ architecture:
     # ─── AES200 ───
     AES201:
       enabled: true
-      exceptions:
-        # Two utility files in the shared kernel that need to import each other
-        # (AES201 layer rule forbids utility→utility). Same documented pattern:
-        # - utility_config_engine imports utility_git_submodule helpers.
-        # - utility_tool_mechanics imports utility_git_submodule helpers.
-        - "utility_config_engine.py"
-        - "utility_tool_mechanics.py"
+      exceptions: []
     AES202:
       enabled: true
       exceptions: []
@@ -137,22 +131,7 @@ architecture:
       exceptions: []
     AES305:
       enabled: true
-      exceptions:
-        # Tools adapters repeat the same 5 one-line protocol delegations
-        # (Block 2 of the AES403 3-block structure) — structural duplication
-        # required by the capability block markers, not copy-paste debt.
-        - "capabilities_tools_blender_adapter.py"
-        - "capabilities_tools_codegraph_adapter.py"
-        - "capabilities_tools_fetch_adapter.py"
-        - "capabilities_tools_hindsight_adapter.py"
-        - "capabilities_tools_ponytail_adapter.py"
-        - "capabilities_tools_qwen_web_adapter.py"
-        - "capabilities_tools_vision_adapter.py"
-        - "capabilities_tools_workspace_adapter.py"
-        - "capabilities_tools_omniroute_adapter.py"
-        - "capabilities_tools_context7_adapter.py"
-        - "capabilities_tools_anytype_adapter.py"
-        - "capabilities_tools_lint_adapter.py"
+      exceptions: []
     # ─── AES400 ───
     AES401:
       enabled: true
