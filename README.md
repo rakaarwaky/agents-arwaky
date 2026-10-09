@@ -45,7 +45,7 @@ flowchart TB
 
         subgraph AgentsAndTools["Managed Agent & Vendor Engines"]
             InternalAgents["Internal Agents:\nlint-arwaky • vision-arwaky • qwen-web • blender"]
-            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • ponytail • fetch • omniroute"]
+            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • fetch • omniroute"]
         end
     end
 
@@ -106,7 +106,6 @@ agents-arwaky/
 │   ├── fetch-mcp/               # Fast, clean web scraping & text extraction
 │   ├── google-workspace-mcp/    # Google Workspace integration (Gmail, Drive, Docs, etc.)
 │   ├── hindsight/               # Hindsight agent memory: LLM extraction, knowledge graph & retrieval
-│   └── ponytail/                # Agent architecture patterns & instructions
 │
 ├── modules/                     # AES 7-layer orchestration (taxonomy→…→root)
 │   ├── shared/src/<domain>/     # Shared domains: xdg, manifest, config, tool, skill, harness, …
@@ -262,7 +261,6 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **context7**    | `context7-mcp`, `ctx7`             | [upstash/context7](https://github.com/upstash/context7)               |  CLI / MCP Server  | Rapid documentation retrieval and vector context ingestion.             |
 | **codegraph**   | `codegraph-mcp`, `codegraph`       | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)   |     CLI / MCP     | Graph-based codebase intelligence and semantic symbol indexing.         |
 | **fetch-mcp**   | `fetch-mcp`, `mcp-fetch`           | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)           |     MCP Server     | Resilient web scraping, HTML cleaning, and Markdown transformation.     |
-| **ponytail**    | `ponytail-mcp`                     | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) |     MCP Server     | Senior-developer prompt instructions and agent behavioral patterns.     |
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
 | **omniroute**   | `omniroute`                        | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | HTTP Gateway       | Free-first AI gateway: 350+ providers, 150+ free tiers, `auto/best-*` combos. Host-native, no Docker. State in `~/.omniroute/`. |
 | **workspace**   | `workspace-mcp`                    | [taylorwilsdon/google_workspace_mcp](https://github.com/taylorwilsdon/google_workspace_mcp) | MCP Server | Google Workspace full integration (Gmail, Drive, Docs, Sheets, Chat).   |
@@ -281,7 +279,6 @@ High-performance community tools integrated via Git submodules and sandboxed wit
   "mcpServers": {
     "context7": { "command": "context7-mcp" },
     "fetch": { "command": "fetch-mcp" },
-    "ponytail": { "command": "ponytail-mcp" },
     "anytype": {
       "command": "anytype-mcp",
       "env": {

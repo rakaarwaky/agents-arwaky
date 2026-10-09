@@ -259,7 +259,6 @@ class TestAdapterCapabilities:
         ("hindsight", "HindsightToolsAdapter"),
         ("lint", "LintToolsAdapter"),
         ("omniroute", "OmnirouteToolsAdapter"),
-        ("ponytail", "PonytailToolsAdapter"),
         ("qwen_web", "QwenWebToolsAdapter"),
         ("vision", "VisionToolsAdapter"),
         ("workspace", "WorkspaceToolsAdapter"),
