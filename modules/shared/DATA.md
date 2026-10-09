@@ -46,7 +46,7 @@ sub-folders.
 - No kernel module imports a `capabilities_*` or `agent_*_orchestrator`
   module from a feature folder. The root composition layer is the only
   file that crosses both sides of that boundary.
-- `AES201` utility→utility imports between `utility_config_engine` and
-  `utility_tool_mechanics` / `utility_git_submodule` are registered as
-  documented exceptions in `lint_arwaky.config.yaml`; they are intentional
-  and will not be refactored away.
+- `utility_config_engine` inlines its JSONC / TOML / env-file helpers
+  (previously imported from `utility_jsonc_parser`, `utility_toml_write`,
+  and `utility_envfile_parser`) to keep utility-layer files free of
+  utility-to-utility imports (AES201).

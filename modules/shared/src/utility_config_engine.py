@@ -8,10 +8,186 @@ from __future__ import annotations
 import json
 import re
 import tomllib
+from collections.abc import Iterable
 from pathlib import Path
 
-from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
-from modules.shared.src.utility_toml_write import write_toml
+
+# ---------------------------------------------------------------------------
+# Inlined JSONC stripping (formerly utility_jsonc_parser.strip_jsonc_comments)
+# ---------------------------------------------------------------------------
+def strip_jsonc_comments(text: str) -> str:
+    """Best-effort JSONC -> JSON (strip // and /* */ comments outside strings)."""
+    out = []
+    i = 0
+    n = len(text)
+    in_str = False
+    while i < n:
+        c = text[i]
+        nxt = text[i + 1] if i + 1 < n else ""
+        if in_str:
+            out.append(c)
+            if c == "\\":
+                out.append(nxt)
+                i += 2
+                continue
+            if c == '"':
+                in_str = False
+            i += 1
+            continue
+        if c == '"':
+            in_str = True
+            out.append(c)
+            i += 1
+            continue
+        if c == "/" and nxt == "/":
+            while i < n and text[i] != "\n":
+                i += 1
+            continue
+        if c == "/" and nxt == "*":
+            i += 2
+            while i + 1 < n and not (text[i] == "*" and text[i + 1] == "/"):
+                i += 1
+            i += 2
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
+# ---------------------------------------------------------------------------
+# Inlined TOML writing (formerly utility_toml_write)
+# ---------------------------------------------------------------------------
+def _toml_write_value(val) -> str:
+    """Convert a Python value to its TOML representation."""
+    if isinstance(val, bool):
+        return "true" if val else "false"
+    if isinstance(val, int) and not isinstance(val, bool):
+        return str(val)
+    if isinstance(val, float):
+        return str(val)
+    if isinstance(val, str):
+        escaped = val.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped}"'
+    if isinstance(val, list):
+        if not val:
+            return "[]"
+        items = [_toml_write_value(v) for v in val]
+        return "[" + ", ".join(items) + "]"
+    if isinstance(val, dict):
+        if not val:
+            return "{}"
+        parts = []
+        for k, v in val.items():
+            parts.append(f"{_toml_quote_key(k)} = {_toml_write_value(v)}")
+        return "{ " + ", ".join(parts) + " }"
+    return str(val)
+
+
+def _toml_quote_key(key) -> str:
+    """Quote a TOML key only when it contains non-alphanumeric characters."""
+    if key and all(c.isalnum() or c in ('-', '_') for c in key):
+        return key
+    escaped = key.replace('\\', '\\\\').replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def _toml_section(parts) -> str:
+    """Join *parts* into a dotted TOML table path."""
+    return ".".join(_toml_quote_key(p) for p in parts)
+
+
+def _toml_write_table(data, parts=()):
+    """Recursively write TOML sections."""
+    lines = []
+    for key, val in data.items():
+        if isinstance(val, list) and val and all(isinstance(i, dict) for i in val):
+            continue
+        if not isinstance(val, dict):
+            lines.append(f"{_toml_quote_key(key)} = {_toml_write_value(val)}")
+    for key, val in data.items():
+        if not isinstance(val, dict) and not (isinstance(val, list) and val and all(isinstance(i, dict) for i in val)):
+            continue
+        cur = parts + (key,)
+        if isinstance(val, list) and val and all(isinstance(i, dict) for i in val):
+            for item in val:
+                lines.append("")
+                lines.append(f"[[{_toml_section(cur)}]]")
+                for ik, iv in item.items():
+                    lines.append(f"{_toml_quote_key(ik)} = {_toml_write_value(iv)}")
+        elif val and all(isinstance(v, dict) for v in val.values()):
+            sub = _toml_write_table(val, cur)
+            lines.extend(sub)
+        else:
+            sub = _toml_write_table(val, cur)
+            if sub:
+                lines.append("")
+                lines.append("[" + _toml_section(cur) + "]")
+                lines.extend(sub)
+    return lines
+
+
+def write_toml(data) -> str:
+    """Render a dict as a TOML string."""
+    lines = _toml_write_table(data)
+    return "\n".join(lines) + "\n"
+
+
+# ---------------------------------------------------------------------------
+# Inlined env-file parsing (formerly utility_envfile_parser)
+# ---------------------------------------------------------------------------
+def _parse_env_file(path: Path) -> dict[str, str]:
+    """Parse a .env-style file (KEY=VALUE lines) into a dict."""
+    env: dict[str, str] = {}
+    if not path.exists():
+        return env
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return env
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            continue
+        key, val = line.split("=", 1)
+        key = key.strip()
+        val = val.strip()
+        if len(val) >= 2 and val[0] == '"' and val[-1] == '"':
+            val = val[1:-1].replace('\\"', '"')
+        elif len(val) >= 2 and val[0] == "'" and val[-1] == "'":
+            val = val[1:-1]
+        if key:
+            env[key] = val
+    return env
+
+
+def _env_remove_keys(path: Path, keys: Iterable[str]) -> list:
+    """Remove KEY=... lines from a .env file. Returns removed keys."""
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8", errors="replace")
+    keyset = set(keys)
+    removed = []
+    kept = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        hit = None
+        for k in keyset:
+            if stripped.startswith(k + "="):
+                hit = k
+                break
+        if hit:
+            removed.append(hit)
+        else:
+            kept.append(line)
+    if removed:
+        new_text = "\n".join(kept)
+        if new_text.strip():
+            path.write_text(new_text + "\n", encoding="utf-8")
+        else:
+            path.unlink(missing_ok=True)
+    return removed
 
 
 def detect_format(path: Path) -> str:
@@ -182,18 +358,11 @@ def list_mcp_servers(path: Path):
 # Env key helpers
 # ---------------------------------------------------------------------------
 def remove_env_keys(path: Path, keys, dry_run: bool = False) -> list:
-    """Remove `KEY=...` lines from a .env-style file. Returns removed keys.
-
-    Delegates to envfile.remove_env_keys for the core logic.
-    """
-    from modules.shared.src.utility_envfile_parser import (
-        parse_env_file,
-        remove_env_keys,
-    )
+    """Remove `KEY=...` lines from a .env-style file. Returns removed keys."""
     if dry_run:
-        env = parse_env_file(path)
+        env = _parse_env_file(path)
         return [k for k in keys if k in env]
-    return remove_env_keys(path, keys)
+    return _env_remove_keys(path, keys)
 
 
 # ---------------------------------------------------------------------------
