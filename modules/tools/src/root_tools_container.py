@@ -7,10 +7,10 @@ carry no per-registry state: each unit is constructed once here and shared
 across orchestrator instances; the daemon aggregate is passed to
 ``install`` explicitly, never held on the adapter.
 
-Every tool id lives in a sibling capability module — the nine
+Every tool id lives in a sibling capability module — the eight
 config-driven providers (blender / vision / qwen-web /
-workspace / codegraph / context7 / fetch / ponytail) plus anytype, lint,
-and omniroute — each exporting ``ADAPTER_UNITS``; all are merged into the
+workspace / codegraph / context7 / fetch / omniroute) plus anytype
+and lint — each exporting ``ADAPTER_UNITS``; all are merged into the
 single ``TOOLS_REGISTRY`` below.
 
 The daemon aggregate is imported lazily inside the factory so that importing
@@ -51,9 +51,6 @@ from modules.tools.src.capabilities_tools_lint_adapter import (
 from modules.tools.src.capabilities_tools_omniroute_adapter import (
     ADAPTER_UNITS as _OMNIROUTE_UNITS,
 )
-from modules.tools.src.capabilities_tools_ponytail_adapter import (
-    ADAPTER_UNITS as _PONYTAIL_UNITS,
-)
 from modules.tools.src.capabilities_tools_qwen_web_adapter import (
     ADAPTER_UNITS as _QWEN_WEB_UNITS,
 )
@@ -80,7 +77,6 @@ TOOLS_REGISTRY: dict[str, object] = {
     **_HINDSIGHT_UNITS,
     **_LINT_UNITS,
     **_OMNIROUTE_UNITS,
-    **_PONYTAIL_UNITS,
     **_QWEN_WEB_UNITS,
     **_VISION_UNITS,
     **_WORKSPACE_UNITS,
@@ -97,7 +93,7 @@ def create_tools_feature(root=None) -> IToolsAggregate:
 
     daemons = create_daemon_feature()
     resolved = root or repo_root()
-    # P1-7: the registry is the single API pipeline over all 13 leaf
+    # P1-7: the registry is the single API pipeline over all 12 leaf
     # adapters + shared mechanics; wired here and injected into the action
     # capabilities (dependency inversion: capabilities depend on their
     # rich protocol class, not on a concrete adapter class).

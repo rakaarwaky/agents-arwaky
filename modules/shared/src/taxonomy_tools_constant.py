@@ -46,7 +46,6 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
     "lint-arwaky": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "hindsight": ["hindsight-api", "hindsight-local-mcp", "hindsight-local-mcp-server", "hindsight"],
     "omniroute": ["omniroute"],
-    "ponytail": ["ponytail-mcp"],
     "qwen-web-arwaky": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
     "vision-arwaky": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],
     "workspace": ["workspace-mcp", "google-workspace-mcp"],

@@ -4,7 +4,7 @@ Factories, launcher writers, XDG path helpers, the node-family lifecycle,
 the venv/uv lifecycles, the generic unit builder, and the shared protocol
 dispatcher. Consumed by the nine provider modules
 `capabilities_tools_{blender,vision,qwen_web,hindsight,workspace,
-codegraph,context7,fetch,ponytail}_adapter` plus
+codegraph,context7,fetch}_adapter` plus
 `capabilities_tools_{adapter,anytype_adapter,lint_adapter,
 omniroute_adapter}` (≥2 consumers). Taxonomy + `utility_git_submodule`
 only (AES201 exception registered for the utility→utility edge — same
@@ -537,7 +537,7 @@ def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
     """Build the complete adapter unit for one config-driven tool recipe.
 
     Lifecycle branches: `uv_venv` (blender/vision/qwen-web), `uv_project`
-    (hindsight/workspace), `node` (codegraph/context7/fetch/ponytail).
+    (hindsight/workspace), `node` (codegraph/context7/fetch).
     Node launchers default to a primary `launchers[0]` entry launcher plus
     symlinks for `launchers[1:]`; per-tool overrides arrive as
     `config.node_write_launchers_fn` / `config.node_post_copy_hook`.

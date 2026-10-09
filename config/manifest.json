@@ -18,14 +18,6 @@
       "path": "vendor/fetch-mcp"
     },
     {
-      "id": "ponytail",
-      "category": "vendor",
-      "binary": "ponytail-mcp",
-      "isMcp": true,
-      "description": "Senior-dev instructions & agent patterns",
-      "path": "vendor/ponytail"
-    },
-    {
       "id": "anytype",
       "category": "vendor",
       "binary": "anytype-mcp",

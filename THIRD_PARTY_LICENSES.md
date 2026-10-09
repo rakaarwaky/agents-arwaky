@@ -10,7 +10,6 @@ This repository incorporates upstream open-source software as git submodules und
 |---|---|---|---|
 | `vendor/context7` | [upstash/context7](https://github.com/upstash/context7) | `769c6cd2` | MIT License |
 | `vendor/fetch-mcp` | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp) | `1ddb1a59` | MIT License |
-| `vendor/ponytail` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | `2ed6c52c` | MIT License |
 | `vendor/anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `4ba725d9` (`v1.2.10`) | MIT License |
 | `vendor/codegraph` | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | `c6aaa203` | MIT License |
 | `vendor/omniroute` | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | `8489c9f` (release/v3.8.52) | MIT License |
@@ -33,28 +32,21 @@ This repository incorporates upstream open-source software as git submodules und
 - **URL:** [https://github.com/zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)
 - **License:** MIT License
 
-### 3. Ponytail
-
-- **Project:** Ponytail
-- **Author:** Dietrich Gebert
-- **URL:** [https://github.com/DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail)
-- **License:** MIT License
-
-### 4. Anytype MCP
+### 3. Anytype MCP
 
 - **Project:** Anytype MCP Server
 - **Author:** Any Association
 - **URL:** [https://github.com/anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)
 - **License:** MIT License (upstream NOTICE available at [github.com/anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp))
 
-### 5. CodeGraph
+### 4. CodeGraph
 
 - **Project:** CodeGraph
 - **Author:** Colby McHenry
 - **URL:** [https://github.com/colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)
 - **License:** MIT License
 
-### 6. OmniRoute
+### 5. OmniRoute
 
 - **Project:** OmniRoute
 - **Author:** Diego Souza and contributors
