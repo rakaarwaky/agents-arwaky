@@ -418,7 +418,7 @@ Names only (never values):
 - `${XDG_DATA_HOME:-$HOME/.local/share}/<tool>/` — tool data
 - `.env` at repo root — secrets (gitignored)
 
-## Project Structure
+### Project Structure
 
 ```
 agents-arwaky/

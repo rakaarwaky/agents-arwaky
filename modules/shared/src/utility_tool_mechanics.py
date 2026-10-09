@@ -38,19 +38,112 @@ from modules.shared.src.taxonomy_common_vo import (
     warn_if_bin_not_on_path,
 )
 from modules.shared.src.taxonomy_tools_constant import (
+    FALLBACK_REMOTE_BRANCHES,
     INSTALL_STAMP_FILENAME,
     NODE_IGNORES,
     ROOT_ENV_VAR,
 )
 from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
-from modules.shared.src.utility_git_submodule import (
-    ensure_source,
-    get_current_commit,
-    update_submodule,
-)
 
 #: Effective repository root for default lifecycle arguments.
 ROOT = REPO_ROOT
+
+
+# ---------------------------------------------------------------------------
+# Git submodule helpers (inlined from utility_git_submodule, AES201)
+# ---------------------------------------------------------------------------
+def _run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
+    """Run a command silently, return result."""
+    return subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True)
+
+
+def get_current_commit(submodule_dir: Path) -> str | None:
+    """Get current HEAD commit hash of a submodule."""
+    r = _run_quiet(["git", "rev-parse", "HEAD"], cwd=submodule_dir)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def _get_remote_default_branch(submodule_dir: Path) -> str | None:
+    """Detect the default branch of the remote (main, master, etc.)."""
+    r = _run_quiet(["git", "remote", "show"], cwd=submodule_dir)
+    if r.returncode != 0 or not r.stdout.strip():
+        return None
+    remote = r.stdout.strip().split("\n")[0]
+    r2 = _run_quiet(
+        ["git", "symbolic-ref", f"refs/remotes/{remote}/HEAD"], cwd=submodule_dir
+    )
+    if r2.returncode == 0:
+        ref = r2.stdout.strip()
+        parts = ref.split("/")
+        if len(parts) >= 4:
+            return parts[-1]
+    for branch in FALLBACK_REMOTE_BRANCHES:
+        r3 = _run_quiet(
+            ["git", "rev-parse", "--verify", f"refs/remotes/{remote}/{branch}"],
+            cwd=submodule_dir,
+        )
+        if r3.returncode == 0:
+            return branch
+    return None
+
+
+def update_submodule(root: Path, submodule_path: str) -> bool:
+    """Full update workflow: init/checkout, fetch, check for newer commits, pull."""
+    submodule_dir = root / submodule_path
+    if not submodule_dir.exists() or not (submodule_dir / ".git").exists():
+        r = _run_quiet(
+            ["git", "-C", str(root), "submodule", "update", "--init", submodule_path],
+        )
+        return r.returncode == 0
+    if _run_quiet(["git", "fetch", "--quiet"], cwd=submodule_dir).returncode != 0:
+        print(f"  Warning: fetch failed for {submodule_path}", file=sys.stderr)
+        return False
+    local = get_current_commit(submodule_dir)
+    if not local:
+        return True
+    branch = _get_remote_default_branch(submodule_dir)
+    if not branch:
+        return True
+    remote = _run_quiet(
+        ["git", "rev-parse", f"origin/{branch}"], cwd=submodule_dir
+    )
+    if remote.returncode != 0:
+        return True
+    remote_commit = remote.stdout.strip()
+    if remote_commit == local:
+        return True
+    has_updates = _run_quiet(
+        ["git", "rev-list", "--count", f"{local}..{remote_commit}"], cwd=submodule_dir
+    )
+    if not (has_updates.returncode == 0 and has_updates.stdout.strip() not in ("", "0")):
+        mb = _run_quiet(
+            ["git", "merge-base", local, remote_commit], cwd=submodule_dir
+        )
+        if not (mb.returncode == 0 and mb.stdout.strip() == local):
+            return True
+    short_local = (local[:8] + "...") if len(local) > 8 else local
+    short_remote = (remote_commit[:8] + "...") if len(remote_commit) > 8 else remote_commit
+    print(f"  [update] {submodule_path}: {short_local} -> {short_remote}")
+    if _run_quiet(
+        ["git", "checkout", f"origin/{branch}"], cwd=submodule_dir
+    ).returncode == 0:
+        print(f"  [ok] {submodule_path} updated successfully")
+        return True
+    print(f"  Warning: pull failed for {submodule_path}", file=sys.stderr)
+    return False
+
+
+def ensure_source(root: Path, src_rel: str) -> Path:
+    """Ensure `root/src_rel` exists, attempting a git submodule init first."""
+    src = root / src_rel
+    if not src.exists():
+        print(f">>> Initializing submodule {src_rel}...")
+        subprocess.run(
+            ["git", "-C", str(root), "submodule", "update", "--init", src_rel],
+            check=False,
+        )
+    return src
+
 
 
 # ---------------------------------------------------------------------------
