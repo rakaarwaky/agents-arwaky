@@ -151,6 +151,18 @@ there or in `modules/mcp/src/`, then `aa mcp generate`. Placeholder
 harness env values (e.g. an Anytype `Bearer <YOUR_API_KEY>`) also fail, and are a
 credential gap, not a connector bug.
 
+### pnpm monorepo servers: missing dist/
+
+MCP servers living inside a pnpm workspace (e.g. context7 at
+`~/.local/share/context7/`) have a launcher in `~/.local/bin/` that execs
+`node <repo>/packages/<pkg>/dist/index.js`. If the monorepo has never been
+built (or dist was cleaned), that path is absent and Hermes reports
+`Connection failed / Connection closed` — `mcp-stderr.log` shows `MODULE_NOT_FOUND`.
+Diagnose: `cat ~/.local/bin/<name>-mcp` → read the entry path it execs →
+check that path exists. Fix: `cd <repo_root> && pnpm install &&
+pnpx --filter <pkg> run build` (or `cd packages/<pkg> && pnpm run build`),
+then `hermes mcp test <name>`. See `references/mcp-server-registration.md`.
+
 ## Skill provisioning: the whole skills root IS the pack (default profile only)
 
 `aa connect <harness>` replaces the harness's skills DIRECTORY with one symlink
@@ -263,5 +275,6 @@ edit — the linked live host is the test subject:
   flipping `SKILL_LINK_VERIFIED`), with each CLI's invocation quirks.
 - `references/mcp-server-registration.md` — Hermes `hermes mcp add` traps the
   upstream docs do not cover: `--env` must precede `--command`/`--args`, a
-  saved-but-disabled entry is not success, and the raw JSON-RPC-over-stdin way
-  to tell a broken server from a broken registration.
+  saved-but-disabled entry is not success, the raw JSON-RPC-over-stdin probe
+  for splitting server-broken from registration-broken, and the pnpm
+  monorepo missing-`dist/` failure mode.

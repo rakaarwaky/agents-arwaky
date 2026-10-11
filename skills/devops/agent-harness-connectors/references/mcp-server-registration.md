@@ -73,3 +73,31 @@ a broken MCP server. Evidence lives in `~/.hermes/logs/agent.log`: compare the
 `cache=<n>/<total>` percentages between a working session and a failing one
 (98%+ cached vs a cold prompt). Read the logs before theorising about payload
 size or tool count — those assumptions have been wrong here before.
+
+## pnpm monorepo MCP servers: missing dist/
+
+Some MCP servers live inside a pnpm workspace (e.g. `context7` at
+`~/.local/share/context7/`). The binary in `~/.local/bin/` is a small
+Python/Node launcher that execs `node <repo>/packages/<name>/dist/index.js`.
+If the monorepo has never been built (or dist was cleaned/pruned), that path
+does not exist and the server exits immediately with `MODULE_NOT_FOUND` —
+Hermes reports it as `Connection failed` / `Connection closed` with no useful
+detail in `mcp-stderr.log`.
+
+Diagnosis: read the launcher script (`cat ~/.local/bin/<name>-mcp`) to find the
+entry path it execs; if that path is missing, the repo needs a build.
+
+Fix:
+
+```bash
+cd <repo_root>          # e.g. ~/.local/share/context7
+pnpm install            # install workspace deps
+pnpm --filter <pkg> run build   # e.g. pnpm --filter @context7/mcp run build
+                              # or cd packages/<pkg> && pnpm run build
+```
+
+Then re-run `hermes mcp test <name>` to confirm.
+
+The same pattern applies to any pnpm/yarn/npm workspace MCP server: the
+diagnostic is always "does the file the launcher execs exist?" — not the
+Hermes-side config.
