@@ -112,6 +112,7 @@ class HarnessConnector(IHarnessConnectProtocol):
             (harness_id,),
             copy=opts.copy_skills,
             dry_run=opts.dry_run,
+            force=opts.force,
         ))
 
     def _connect_mcp(self, harness_id: str, adapter, opts: ConnectOpts, servers: dict) -> int:
