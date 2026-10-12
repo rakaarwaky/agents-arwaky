@@ -227,14 +227,39 @@ def _merge_dir_into(src: Path, dest: Path) -> int:
     return moved
 
 
+# Filenames a live Hermes profile's skills dir holds as runtime state. They
+# belong to the profile, NOT the shared pack — migrating them in would pollute
+# the pack with per-profile usage/curator state. Their presence marks a live
+# home whose leftovers must be preserved in place (backed up), not moved.
+_LIVE_SKILLS_STATE = frozenset({".usage.json", ".usage.json.lock", ".curator_state", ".bundled_manifest"})
+
+
+def _live_state_backup_dir(dest_root: Path) -> Path:
+    """A backup dir alongside a live skills dir, stamped so re-runs don't clash."""
+    import time
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    return dest_root.with_name(dest_root.name + f".backup-{stamp}")
+
+
 def _link_skills_root(dest_root: Path, src_root: Path, force: bool, dry_run: bool) -> int:
     """Replace a harness's whole skills dir with ONE symlink to the pack.
 
-    Migration safety (``force``): leftover real children are MOVED into the
-    pack, never deleted; an identical per-skill symlink is just unlinked.
+    Two leftover policies, chosen by whether the dir is a **live Hermes home**:
+
+    - Live home (holds runtime-state files like ``.usage.json``): leftovers
+      are preserved by moving the whole dir to ``skills.backup-<ts>`` and are
+      NEVER merged into the pack — that would pollute the shared pack with
+      per-profile state and can crash on non-directory hidden files.
+    - Ordinary harness dir: leftover real children are MOVED into the pack
+      (never deleted); an identical per-skill symlink is just unlinked.
+
     Without ``force`` a non-empty dir aborts loudly.
     """
     failures = 0
+    live_state = (
+        any((dest_root / name).exists() for name in _LIVE_SKILLS_STATE)
+        if dest_root.is_dir() else False
+    )
     if dest_root.is_symlink():
         if dest_root.resolve() == src_root.resolve():
             log_skip(f"Skills root already linked: {dest_root} -> {src_root}")
@@ -248,46 +273,64 @@ def _link_skills_root(dest_root: Path, src_root: Path, force: bool, dry_run: boo
             return 0
         dest_root.unlink()
     elif dest_root.is_dir():
-        leftovers, stale_links = [], []
-        for child in sorted(dest_root.iterdir()):
-            if child.is_symlink():
-                try:
-                    if child.resolve().is_relative_to(src_root):
-                        stale_links.append(child)
+        if live_state:
+            # Live Hermes home: leftovers are per-profile runtime state.
+            # Preserve them by moving the whole dir aside, never merge into
+            # the shared pack.
+            backup = _live_state_backup_dir(dest_root)
+            n_items = sum(1 for _ in dest_root.iterdir())
+            if not force:
+                log_warn(f"{dest_root} is a live home ({n_items} item(s) of runtime "
+                          f"state). Nothing was touched. Re-run with --force to back "
+                          f"it up to {backup.name} and link {dest_root} -> {src_root}.")
+                return 1
+            if dry_run:
+                log_sub(f"[DRY-RUN] Would back up {n_items} live item(s) to {backup}, "
+                         f"then link {dest_root} -> {src_root}")
+                return 0
+            shutil.move(str(dest_root), str(backup))
+            log_ok(f"Backed up {n_items} live item(s) to {backup}")
+        else:
+            leftovers, stale_links = [], []
+            for child in sorted(dest_root.iterdir()):
+                if child.is_symlink():
+                    try:
+                        if child.resolve().is_relative_to(src_root):
+                            stale_links.append(child)
+                            continue
+                    except OSError:
+                        pass
+                leftovers.append(child)
+            if leftovers and not force:
+                log_warn(f"{dest_root} holds {len(leftovers)} item(s) not in the pack "
+                          f"(harness-native skills / state). Nothing was touched. "
+                          f"Re-run with --force to MOVE them into {src_root} first.")
+                return 1
+            if dry_run:
+                log_sub(f"[DRY-RUN] Would move {len(leftovers)} item(s) into {src_root}, "
+                         f"unlink {len(stale_links)} old link(s), then link {dest_root} -> {src_root}")
+                return 0
+            src_root.mkdir(parents=True, exist_ok=True)
+            for child in leftovers:
+                target = src_root / child.name
+                if target.exists():
+                    if child.name.startswith("."):
+                        _merge_dir_into(child, target)
+                        shutil.rmtree(child, ignore_errors=True)
                         continue
-                except OSError:
-                    pass
-            leftovers.append(child)
-        if leftovers and not force:
-            log_warn(f"{dest_root} holds {len(leftovers)} item(s) not in the pack "
-                      f"(harness-native skills / state). Nothing was touched. "
-                      f"Re-run with --force to MOVE them into {src_root} first.")
-            return 1
-        if dry_run:
-            log_sub(f"[DRY-RUN] Would move {len(leftovers)} item(s) into {src_root}, "
-                     f"unlink {len(stale_links)} old link(s), then link {dest_root} -> {src_root}")
-            return 0
-        src_root.mkdir(parents=True, exist_ok=True)
-        for child in leftovers:
-            target = src_root / child.name
-            if target.exists():
-                if child.name.startswith("."):
-                    _merge_dir_into(child, target)
-                    shutil.rmtree(child, ignore_errors=True)
-                    continue
-                if _copy_matches_pack(child, target):
-                    shutil.rmtree(child)
-                    continue
-                stamp = 1
-                while (src_root / f"{child.name}.harness-{stamp}").exists():
-                    stamp += 1
-                target = src_root / f"{child.name}.harness-{stamp}"
-                log_warn(f"{child.name} differs from the pack; "
-                          f"stored as {target.name} for review")
-            shutil.move(str(child), str(target))
-        for link in stale_links:
-            link.unlink()
-        dest_root.rmdir()
+                    if _copy_matches_pack(child, target):
+                        shutil.rmtree(child)
+                        continue
+                    stamp = 1
+                    while (src_root / f"{child.name}.harness-{stamp}").exists():
+                        stamp += 1
+                    target = src_root / f"{child.name}.harness-{stamp}"
+                    log_warn(f"{child.name} differs from the pack; "
+                              f"stored as {target.name} for review")
+                shutil.move(str(child), str(target))
+            for link in stale_links:
+                link.unlink()
+            dest_root.rmdir()
     else:
         if dry_run:
             log_sub(f"[DRY-RUN] Would link skills root {dest_root} -> {src_root}")
