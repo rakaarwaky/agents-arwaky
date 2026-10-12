@@ -64,32 +64,60 @@ class HarnessSkills(IHarnessSkillsProtocol):
 
     def _provision_one(self, harness_id, adapter, opts: SkillsOpts, skill_files, pack_root) -> int:
         log_header(f"Provisioning skills into {adapter.display}...")
-        skills_dir = adapter.skills_dir()
         link = adapter.skill_link_verified and not opts.copy
-        if link:
-            # The whole-root form owns the directory: create the parent so the
-            # pack lands even when the harness has never created its skills dir.
-            skills_dir.parent.mkdir(parents=True, exist_ok=True)
-            failures = _link_skills_root(skills_dir, pack_root, opts.force, opts.dry_run)
-            if failures:
-                return failures
-            log_ok(f"Skills root linked: {skills_dir} -> {pack_root}")
-            if getattr(adapter, "one_level_skill_scan", False):
-                _sync_skill_directories(adapter, opts.dry_run)
-                _sync_skill_hook(adapter, opts.dry_run)
-        else:
-            failures = 0
-            for sf in skill_files:
-                if not _provision_skill(sf, skills_dir, opts.force, opts.dry_run):
-                    failures += 1
-            if failures:
-                log_err(f"{harness_id}: {failures} skill(s) failed to provision.")
+
+        # Every skills dir the adapter owns: the default home plus each named
+        # profile for Hermes (profiles are isolated HERMES_HOMEs that do NOT
+        # inherit the top-level skills dir). Other harnesses expose exactly
+        # one dir via ``skills_dir()``.
+        targets = _skills_targets_for(adapter)
+
+        failures = 0
+        for label, skills_dir in targets:
+            if link:
+                # The whole-root form owns the directory: create the parent so
+                # the pack lands even when the harness has never created it.
+                skills_dir.parent.mkdir(parents=True, exist_ok=True)
+                f = _link_skills_root(skills_dir, pack_root, opts.force, opts.dry_run)
+                if f:
+                    failures += f
+                    continue
+                log_ok(f"[{label}] Skills root linked: {skills_dir} -> {pack_root}")
             else:
-                log_ok(f"{adapter.display} skills provisioned.")
+                target_failures = 0
+                for sf in skill_files:
+                    if not _provision_skill(sf, skills_dir, opts.force, opts.dry_run):
+                        target_failures += 1
+                failures += target_failures
+                if target_failures:
+                    log_err(f"[{label}]: {target_failures} skill(s) failed to provision.")
+                else:
+                    log_ok(f"[{label}] skills provisioned.")
+
+        # ``skills.directories`` / the SessionStart hook live in the default
+        # home's config.yaml only, so sync them once after all links land.
+        if link and getattr(adapter, "one_level_skill_scan", False):
+            _sync_skill_directories(adapter, opts.dry_run)
+            _sync_skill_hook(adapter, opts.dry_run)
+
         return failures
 
     def __repr__(self) -> str:
         return "HarnessSkills()"
+
+
+def _skills_targets_for(adapter) -> list[tuple[str, Path]]:
+    """Return ``(label, skills_dir)`` pairs the adapter wants provisioned.
+
+    Adapters that own multiple skill homes (e.g. Hermes: the default home
+    plus every named profile under ``~/.hermes/profiles/<p>/``) expose
+    ``skills_targets()``; this helper collects them. Any other adapter falls
+    back to a single ``(label, skills_dir)`` from ``skills_dir()``.
+    """
+    getter = getattr(adapter, "skills_targets", None)
+    if callable(getter):
+        return list(getter())
+    return [(f"{adapter.id}", adapter.skills_dir())]
 
 
 def _discover_skill_roots() -> list[Path]:

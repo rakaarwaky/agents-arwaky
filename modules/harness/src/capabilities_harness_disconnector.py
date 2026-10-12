@@ -72,7 +72,7 @@ class HarnessDisconnector(IHarnessDisconnectProtocol):
                         log_ok(f"Removed agents-arwaky MCP servers from {cfg}")
                     else:
                         log_skip(f"No agents-arwaky MCP servers found in {cfg}")
-        _remove_skill_provisioned(adapter.skills_dir(), opts.dry_run)
+        _remove_skill_provisioned_targets(adapter, opts.dry_run)
         _remove_router_refs(harness_id, adapter, opts)
         for env_file in adapter.env_files():
             if env_file.exists():
@@ -113,6 +113,23 @@ def _in_pack(entry: str, pack_root: Path) -> bool:
         return Path(os.path.expanduser(entry.strip())).resolve().is_relative_to(pack_root)
     except OSError:
         return False
+
+
+def _remove_skill_provisioned_targets(adapter, dry_run: bool) -> None:
+    """Remove provisioned skill copies under every skills dir the adapter owns.
+
+    Mirrors the connector's ``_skills_targets_for``: Hermes owns the default
+    home plus one skills dir per named profile, other harnesses own a single
+    dir. Removing all of them keeps ``aa disconnect`` the inverse of
+    ``aa connect``.
+    """
+    getter = getattr(adapter, "skills_targets", None)
+    if callable(getter):
+        targets = list(getter())
+    else:
+        targets = [(str(adapter.id), adapter.skills_dir())]
+    for _label, skills_dir in targets:
+        _remove_skill_provisioned(skills_dir, dry_run)
 
 
 def _remove_skill_provisioned(dest_base: Path, dry_run: bool) -> None:
