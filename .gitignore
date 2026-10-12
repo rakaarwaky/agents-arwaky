@@ -120,3 +120,4 @@ tools/config/*.providers.json
 
 # qwen-web-arwaky local worktrees (feature-modules etc.) — untracked local clones
 /internal/qwen-web-arwaky-worktrees/
+config/omnirouter.database.json
