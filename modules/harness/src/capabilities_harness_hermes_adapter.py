@@ -103,8 +103,28 @@ class HermesAdapter:
         return (target_dir or self.home()) / "config.yaml"
 
     def skills_dir(self) -> Path:
-        """Return the skills directory for the Hermes harness."""
+        """Return the skills directory for the default Hermes home."""
         return self.home() / "skills"
+
+    def skills_targets(self) -> tuple[tuple[str, Path], ...]:
+        """Return ``(label, skills_dir)`` for every Hermes home that owns a
+        skills dir.
+
+        Named profiles under ``~/.hermes/profiles/<p>/`` are **isolated
+        homes** — each switches ``HERMES_HOME`` to its own dir and resolves
+        its skills at ``<p>/skills``. They do NOT inherit the default
+        ``~/.hermes/skills``, so a single top-level link is invisible to
+        every profile. To make the pack discoverable in all of them, link
+        the pack into each profile's skills dir as well as the default home.
+        """
+        h = self.home()
+        targets: list[tuple[str, Path]] = [("Default Profile", h / "skills")]
+        profiles = h / "profiles"
+        if profiles.is_dir():
+            for p in sorted(profiles.iterdir()):
+                if p.is_dir():
+                    targets.append((f"Profile: {p.name}", p / "skills"))
+        return tuple(targets)
 
     def session_conf_files(self) -> tuple[Path, ...]:
         """systemd user-session env layer that shadows harness .env files."""
