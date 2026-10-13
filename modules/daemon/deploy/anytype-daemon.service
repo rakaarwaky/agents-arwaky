@@ -2,6 +2,12 @@
 Description=Anytype Headless Daemon (container)
 After=network-online.target
 Wants=network-online.target
+# Wajib untuk Restart=always. Default systemd (5 start / 10 dtk) membuat unit
+# latch ke `failed` permanen kalau container crash-loop, dan tidak pernah
+# mencoba start lagi — harus `systemctl --user reset-failed` manual.
+# Longgarkan supaya container yang lambat boot tetap sempat pulih.
+StartLimitIntervalSec=300
+StartLimitBurst=20
 
 [Service]
 Type=simple
@@ -16,6 +22,8 @@ ExecStart=/usr/bin/podman run --rm --name anytype-daemon \
 ExecStop=/usr/bin/podman stop -t 10 anytype-daemon
 Restart=always
 RestartSec=5s
+# Beri waktu anytype menyelesaikan sync sebelum container dibunuh.
+TimeoutStopSec=30
 
 [Install]
 WantedBy=default.target

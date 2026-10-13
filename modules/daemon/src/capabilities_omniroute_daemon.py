@@ -27,6 +27,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
 from modules.shared.src.taxonomy_common_vo import (
@@ -129,18 +130,44 @@ def _out(cmd, **kw) -> str:
     return cmd_out(cmd, **kw)
 
 
+def _is_omniroute_wrapper(path: Path) -> bool:
+    """True when *path* is this repo's `aa omniroute` wrapper, not the real CLI.
+
+    The installer drops a Python shim at ``~/.local/bin/omniroute`` that only
+    implements the ``aa`` sub-commands — it forwards to
+    ``modules.daemon.src.surface_daemon_command`` and understands nothing else.
+    Handing that shim to systemd's ``ExecStart=... serve`` produces an
+    immediate ``ModuleNotFoundError`` exit, and with ``Restart=always`` the unit
+    crash-loops forever while the real gateway is nowhere in sight.
+    """
+    try:
+        head = path.read_bytes()[:512]
+    except OSError:
+        return False
+    return b"arwaky-installer" in head or b"surface_daemon_command" in head
+
+
 def _omniroute_binary() -> str | None:
-    """Locate the omniroute launcher on PATH or inside an XDG node prefix."""
-    found = shutil.which("omniroute")
-    if found:
-        return found
-    for candidate in (
+    """Locate the real omniroute CLI (the one that accepts `serve`).
+
+    ``shutil.which`` alone is not enough: ``~/.local/bin/omniroute`` is this
+    repo's ``aa`` wrapper and shadows the genuine npm launcher. Resolve the
+    node prefix first, then PATH, skipping the wrapper in both.
+    """
+    candidates: list[Path] = []
+    nodejs = data_home() / "nodejs"
+    if nodejs.exists():
+        candidates += sorted(nodejs.glob("node-v*/bin/omniroute"), reverse=True)
+    candidates += [
         OMNIROUTE_DATA_DIR / "bin" / "omniroute",
         config_home() / "omniroute" / "bin" / "omniroute",
         data_home() / "omniroute" / "bin" / "omniroute",
-        data_home() / "local" / "bin" / "omniroute",
-    ):
-        if candidate.exists():
+    ]
+    on_path = shutil.which("omniroute")
+    if on_path:
+        candidates.append(Path(on_path))
+    for candidate in candidates:
+        if candidate.is_file() and not _is_omniroute_wrapper(candidate):
             return str(candidate)
     return None
 
@@ -148,6 +175,30 @@ def _omniroute_binary() -> str | None:
 def base_url() -> str:
     """Gateway base URL for the allocated dashboard port."""
     return f"http://{OMNIROUTE_HOST}:{OMNIROUTE_PORT}"
+
+
+def _systemd_main_pids() -> set[str]:
+    """PIDs systemd currently tracks for omniroute.service (empty when inactive)."""
+    raw = _out(["systemctl", "--user", "show", "omniroute.service", "-p", "MainPID", "--value"])
+    pids = set()
+    for token in raw.split():
+        if token.isdigit() and token != "0":
+            pids.add(token)
+    return pids
+
+
+def _stray_daemons() -> list[str]:
+    """PIDs of `omniroute serve` processes that systemd does not own.
+
+    These are the ones a `systemctl stop` cannot reach, so `cmd_stop` has to
+    sweep them explicitly.
+    """
+    owned = _systemd_main_pids()
+    found = []
+    for pid in _out(["pgrep", "-f", r"bin/omniroute serve"]).split():
+        if pid.isdigit() and pid not in owned:
+            found.append(pid)
+    return found
 
 
 def process_running() -> bool:
@@ -262,6 +313,8 @@ def _unit_content(binary: str) -> str:
 Description=OmniRoute AI Gateway (host-native, no container)
 After=network-online.target
 Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=20
 
 [Service]
 Type=simple
@@ -273,6 +326,7 @@ WorkingDirectory={OMNIROUTE_DATA_DIR}
 ExecStart={binary} serve --port {OMNIROUTE_PORT} --no-open --no-tray
 Restart=always
 RestartSec=5s
+TimeoutStopSec=30
 
 [Install]
 WantedBy=default.target
@@ -339,7 +393,16 @@ def cmd_service_status():
 
 
 def cmd_start():
-    """Start the gateway via systemd or a detached host process."""
+    """Start the gateway via systemd, falling back to a detached process.
+
+    A gateway started by hand (or left over from an earlier run) already owns
+    the port, so starting the unit on top of it only produces a bind conflict.
+    Detect that first instead of reporting a false failure.
+    """
+    if process_running() and not service_active():
+        print(f">>> OmniRoute is already serving port {OMNIROUTE_PORT} outside systemd.")
+        print(">>> Run 'aa omniroute service-install' to manage it as a unit.")
+        return cmd_status()
     if service_installed():
         print(f">>> Starting OmniRoute via systemd service (omniroute.service, port {OMNIROUTE_PORT})...")
         _run(["systemctl", "--user", "start", "omniroute.service"])
@@ -379,19 +442,26 @@ def cmd_start():
 
 
 def cmd_stop():
-    """Stop the running gateway via systemd or pkill."""
+    """Stop the gateway via systemd, then sweep any stray detached process.
+
+    Both paths are required: the unit file can be installed while the process
+    actually serving the port was started by hand (or predates the unit), and
+    stopping only systemd would silently leave that process holding the port.
+    """
     if service_installed():
         print(">>> Stopping OmniRoute via systemd service...")
         _run(["systemctl", "--user", "stop", "omniroute.service"])
-        print(">>> OmniRoute service stopped.")
-        return 0
-    if process_running():
-        print(">>> Stopping OmniRoute process...")
+    if _stray_daemons():
+        print(">>> Stopping detached OmniRoute process(es) not owned by systemd...")
         _run(["pkill", "-f", r"bin/omniroute( |$)"])
-        time.sleep(2)
-        print(">>> OmniRoute stopped.")
-    else:
+        for _ in range(20):
+            if not _stray_daemons():
+                break
+            time.sleep(0.5)
+    if not service_installed() and not _stray_daemons() and not process_running():
         print(">>> OmniRoute is not running.")
+        return 0
+    print(">>> OmniRoute stopped.")
     return 0
 
 
@@ -402,7 +472,7 @@ def cmd_restart():
     return cmd_start()
 
 
-def cmd_status():
+def cmd_status() -> int:
     """Print process, systemd, and API health status of the gateway."""
     print(f"OmniRoute Status (port {OMNIROUTE_PORT}):")
     print(f"  Process: {'RUNNING' if process_running() else 'STOPPED'}")
@@ -428,12 +498,25 @@ def cmd_logs():
 
 
 def cmd_models():
-    """Fetch and print the /v1/models response from the gateway."""
+    """Fetch and print the /v1/models response from the gateway.
+
+    Sends OMNIROUTE_KEY when one is configured; without it the gateway answers
+    401 and the operator sees an empty model list on a perfectly healthy daemon.
+    """
     url = f"{base_url()}/v1/models"
+    request = urllib.request.Request(url)
+    key = read_env().get("OMNIROUTE_KEY") or os.environ.get("OMNIROUTE_KEY")
+    if key:
+        request.add_header("Authorization", f"Bearer {key}")
     try:
-        with urllib.request.urlopen(url, timeout=10) as r:
+        with urllib.request.urlopen(request, timeout=10) as r:
             print(r.read().decode("utf-8", errors="replace"))
         return 0
+    except urllib.error.HTTPError as e:
+        print(f"Error fetching models: HTTP {e.code} {e.reason}", file=sys.stderr)
+        if e.code in (401, 403):
+            print("Set OMNIROUTE_KEY in ~/.omniroute/.env (Dashboard -> Keys).", file=sys.stderr)
+        return 1
     except (OSError, ValueError) as e:
         print(f"Error fetching models: {e}", file=sys.stderr)
         return 1
