@@ -31,6 +31,12 @@ login) see the `qwen-web` skill instead.
 - `pytest` is a dev dep a freshly-created `.venv` may lack, so `uv run pytest`
   fails with `Failed to spawn: pytest`. Fix: `uv add --dev pytest`.
 
+## State directories (standardized on qwen-web-arwaky, PR #560)
+
+- `LOCAL_WS_DIR = ".qwen-web-arwaky"` lives in `modules/shared/src/taxonomy_core_constant` — the single policy value for the per-project workspace mirror. `qwa init` creates `.qwen-web-arwaky/` with five XDG symlinks (jobs, log, output, qwen_session, swarm) and migrates a legacy `.qwen-web/` dot-dir (symlink → unlink, real dir → rename `.qwen-web-arwaky.legacy`). Never hardcode `.qwen-web` in code again — read `LOCAL_WS_DIR`.
+- All XDG state lives under `~/.local/share|state|cache|config/qwen-web-arwaky` (and `AppData\Local/qwen-web-arwaky` on Windows, via `install.py`). The old `qwen-web` trees under `~/.local/share` and `~/.local/state` were deleted during the migration; do not reference them.
+- AES pitfall hit in this work: a public constant in a `capabilities_*` module gets flagged by `lint-arwaky-cli` (AES403 CAPABILITY_ROLE — move to `taxonomy_<domain>_constant.py`) and cross-capability imports of it get flagged AES201 FORBIDDEN_IMPORT. Put shared policy constants in the taxonomy layer from the start.
+
 ## Verification loop after any source edit
 
 1. Syntax gate: `uv run python -m py_compile <each changed file>`.
