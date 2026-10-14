@@ -35,11 +35,11 @@ from modules.tools.src.capabilities_tools_blender_adapter import (
 from modules.tools.src.capabilities_tools_codegraph_adapter import (
     ADAPTER_UNITS as _CODEGRAPH_UNITS,
 )
-from modules.tools.src.capabilities_tools_desktop_commander_adapter import (
-    ADAPTER_UNITS as _DESKTOP_COMMANDER_UNITS,
-)
 from modules.tools.src.capabilities_tools_context7_adapter import (
     ADAPTER_UNITS as _CONTEXT7_UNITS,
+)
+from modules.tools.src.capabilities_tools_desktop_commander_adapter import (
+    ADAPTER_UNITS as _DESKTOP_COMMANDER_UNITS,
 )
 from modules.tools.src.capabilities_tools_fetch_adapter import (
     ADAPTER_UNITS as _FETCH_UNITS,

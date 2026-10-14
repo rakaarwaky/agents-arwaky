@@ -28,6 +28,7 @@ from modules.shared.src.utility_tools_adapter_body import (
     update_unit,
 )
 
+
 # ─── Block 1: Class Definition & Constructor ──────────────
 class DesktopCommanderToolsAdapter(IToolsAdapterProtocol):
     """desktop-commander actions behind the tools adapter protocol (AES403 implementor)."""
@@ -51,6 +52,14 @@ class DesktopCommanderToolsAdapter(IToolsAdapterProtocol):
         """Return the paths this adapter's install owns for
         *spec* (used by uninstall to clean up the host state)."""
         return owned_paths_unit(self._units, spec, self._display, root)
+
+    def install(self, spec: ToolSpec, root: Path, *, daemons: object | None = None) -> ToolPaths:
+        """Install or build *spec* into *root*; return the created paths."""
+        return install_unit(self._units, spec, root, self._display, daemons=daemons)
+
+    def update(self, spec: ToolSpec, root: Path) -> ToolPaths:
+        """Update *spec* to the manifest pin; return the rebuilt paths."""
+        return update_unit(self._units, spec, root, self._display)
 
 # ---------------------------------------------------------------------------
 # Recipe (node lifecycle)

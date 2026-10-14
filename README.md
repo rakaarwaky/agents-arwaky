@@ -279,6 +279,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
   "mcpServers": {
     "context7": { "command": "context7-mcp" },
     "fetch": { "command": "fetch-mcp" },
+    "desktop-commander": { "command": "desktop-commander" },
     "anytype": {
       "command": "anytype-mcp",
       "env": {
