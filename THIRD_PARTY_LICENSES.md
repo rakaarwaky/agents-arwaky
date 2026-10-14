@@ -10,7 +10,6 @@ This repository incorporates upstream open-source software as git submodules und
 |---|---|---|---|
 | `vendor/context7` | [upstash/context7](https://github.com/upstash/context7) | `769c6cd2` | MIT License |
 | `vendor/fetch-mcp` | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp) | `1ddb1a59` | MIT License |
-| `vendor/desktop-commander` | [wonderwhy-er/DesktopCommanderMCP](https://github.com/wonderwhy-er/DesktopCommanderMCP) | `67694caa` (`v0.3.0`) | MIT License |
 | `vendor/anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `4ba725d9` (`v1.2.10`) | MIT License |
 | `vendor/codegraph` | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | `c6aaa203` | MIT License |
 | `vendor/omniroute` | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | `8489c9f` (release/v3.8.52) | MIT License |
@@ -47,14 +46,7 @@ This repository incorporates upstream open-source software as git submodules und
 - **URL:** [https://github.com/colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)
 - **License:** MIT License
 
-### 5. Desktop Commander
-
-- **Project:** Desktop Commander MCP
-- **Author:** Eduard Ruzga and Desktop Commander Contributors
-- **URL:** [https://github.com/wonderwhy-er/DesktopCommanderMCP](https://github.com/wonderwhy-er/DesktopCommanderMCP)
-- **License:** MIT License
-
-### 6. OmniRoute
+### 5. OmniRoute
 
 - **Project:** OmniRoute
 - **Author:** Diego Souza and contributors
