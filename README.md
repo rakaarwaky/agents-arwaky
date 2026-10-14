@@ -104,7 +104,6 @@ agents-arwaky/
 │   ├── codegraph/               # Codebase intelligence & graph query engine
 │   ├── context7/                # Upstash documentation & context retrieval
 │   ├── fetch-mcp/               # Fast, clean web scraping & text extraction
-│   ├── google-workspace-mcp/    # Google Workspace integration (Gmail, Drive, Docs, etc.)
 │   ├── hindsight/               # Hindsight agent memory: LLM extraction, knowledge graph & retrieval
 │
 ├── modules/                     # AES 7-layer orchestration (taxonomy→…→root)
@@ -263,7 +262,6 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **fetch-mcp**   | `fetch-mcp`, `mcp-fetch`           | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)           |     MCP Server     | Resilient web scraping, HTML cleaning, and Markdown transformation.     |
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
 | **omniroute**   | `omniroute`                        | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | HTTP Gateway       | Free-first AI gateway: 350+ providers, 150+ free tiers, `auto/best-*` combos. Host-native, no Docker. State in `~/.omniroute/`. |
-| **workspace**   | `workspace-mcp`                    | [taylorwilsdon/google_workspace_mcp](https://github.com/taylorwilsdon/google_workspace_mcp) | MCP Server | Google Workspace full integration (Gmail, Drive, Docs, Sheets, Chat).   |
 | **hindsight**   | `hindsight`, `hindsight-local-mcp`   | [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight) | MCP / Plugin | LLM-extracted agent memory: knowledge graph, observations, multi-strategy retrieval (semantic/keyword/graph/temporal). Local pg0 + OpenAI-compatible LLM. |
 
 ---
@@ -294,7 +292,6 @@ High-performance community tools integrated via Git submodules and sandboxed wit
     "qwen-web": { "command": "qwen-web-mcp" },
     "blender": { "command": "blender-mcp" },
     "lint": { "command": "lint-arwaky-mcp" },
-    "workspace": { "command": "workspace-mcp" },
     "hindsight": { "command": "hindsight-local-mcp" }
   }
 }
