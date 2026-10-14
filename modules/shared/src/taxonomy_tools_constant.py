@@ -42,7 +42,6 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
     "blender-arwaky": ["blender-arwaky", "ba", "blender-mcp"],
     "codegraph": ["codegraph-mcp", "codegraph"],
     "context7": ["context7-mcp", "ctx7"],
-    "desktop-commander": ["desktop-commander", "dc"],
     "fetch": ["fetch-mcp", "mcp-fetch"],
     "lint-arwaky": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "hindsight": ["hindsight-api", "hindsight-local-mcp", "hindsight-local-mcp-server", "hindsight"],

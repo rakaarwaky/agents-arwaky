@@ -38,6 +38,3 @@
 	path = vendor/hindsight
 	url = https://github.com/vectorize-io/hindsight.git
 	ignore = dirty
-[submodule "vendor/desktop-commander"]
-	path = vendor/desktop-commander
-	url = https://github.com/wonderwhy-er/DesktopCommanderMCP.git

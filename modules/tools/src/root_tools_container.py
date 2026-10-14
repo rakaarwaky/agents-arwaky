@@ -38,9 +38,6 @@ from modules.tools.src.capabilities_tools_codegraph_adapter import (
 from modules.tools.src.capabilities_tools_context7_adapter import (
     ADAPTER_UNITS as _CONTEXT7_UNITS,
 )
-from modules.tools.src.capabilities_tools_desktop_commander_adapter import (
-    ADAPTER_UNITS as _DESKTOP_COMMANDER_UNITS,
-)
 from modules.tools.src.capabilities_tools_fetch_adapter import (
     ADAPTER_UNITS as _FETCH_UNITS,
 )
@@ -76,7 +73,6 @@ TOOLS_REGISTRY: dict[str, object] = {
     **_BLENDER_UNITS,
     **_CODEGRAPH_UNITS,
     **_CONTEXT7_UNITS,
-    **_DESKTOP_COMMANDER_UNITS,
     **_FETCH_UNITS,
     **_HINDSIGHT_UNITS,
     **_LINT_UNITS,
