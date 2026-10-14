@@ -40,11 +40,15 @@ removal plus consolidation: Phase 1 removes true duplicates, Phase 2 merges over
 ## Path Handling
 
 - **Default audit root:** `/home/raka/agents-arwaky/skills` (the repo's skill tree).
-- **User-supplied path:** if the user names a directory, audit that directory instead. Resolve it
-  before starting and confirm it is a skill directory (contains one or more folders with a
-  `SKILL.md`). If it contains no `SKILL.md` subfolders, stop and say the path is not a skill tree.
-- A skill folder = `<dir>/<name>/SKILL.md`, optionally with `references/` and `scripts/`
-  subfolders. Category folders (e.g. `code-quality/`, `devops/`) hold many skill folders plus a
+- **User-supplied path:** if the user names a path, audit that path instead. Resolve it before
+  starting. Reject the request if the path resolves to a file instead of a directory.
+- **Scoping:** The user can supply the root `/skills` directory for a full tree audit, or a
+  specific category folder (e.g., `/skills/devops`) to scope the audit strictly to that category.
+- **Validation:** Confirm the resolved directory contains one or more folders with a `SKILL.md`.
+  If it contains no `SKILL.md` subfolders, stop and inform the user that the path is not a valid
+  skill tree.
+- **Definitions:** A skill folder = `<dir>/<name>/SKILL.md`, optionally with `references/` and
+  `scripts/` subfolders. Category folders (e.g., `code-quality/`) hold many skill folders plus a
   `DESCRIPTION.md`.
 
 ## Two-Phase Approach
@@ -59,14 +63,11 @@ one adds no scenario the other covers.
 
 - **Same folder name, different trees** — provisioned copies under `.agents/skills/` or a
   harness home that mirror this repo's skill: keep the repo source, note the copy; never edit the
-  copy (copies are provisioned artifacts).
+  copy (copies are provisioned artifacts). Flag in the report that the copy needs re-provisioning.
 - **Byte-identical or near-identical bodies** — merge into one; keep the more complete body, drop
   the rest.
 - **Same `name:` in frontmatter appearing in two folders** — one is stale; keep the more
   complete, delete the other.
-
-Before deleting anything, git snapshot the tree (`git add -A && git commit -m "snapshot: before
-prune-skills"`, or `git stash` if the tree is dirty for other reasons).
 
 ### Phase 2 — Consolidate overlapping variants
 
@@ -86,33 +87,47 @@ A merged `SKILL.md` follows `author-skill-md` conventions: frontmatter with `nam
 
 Task Progress:
 
-- [ ] Step 1: Confirm audit root (default `/home/raka/agents-arwaky/skills` or the user path).
+- [ ] Step 1: Confirm audit root (default `/home/raka/agents-arwaky/skills`, a specific category,
+      or the user's path).
 - [ ] Step 2: Inventory — list every skill folder, read each `SKILL.md` frontmatter and body.
-- [ ] Step 3: Group — cluster skills by semantic scope using `description` and trigger terms,
-      then verify clusters against body content (two descriptions that rhyme can be different jobs).
-- [ ] Step 4: Classify each cluster — duplicate (identical scope) vs variant (same domain,
-      distinct scenarios) vs separate jobs.
-- [ ] Step 5: Snapshot the tree in git.
-- [ ] Step 6: Execute merges per the Phase 2 table. When merging, delete the redundant folders
+- [ ] Step 3: Group — cluster skills by semantic scope using `description` and trigger terms, then
+      verify clusters against body content (two descriptions that rhyme can be different jobs).
+- [ ] Step 4: Classify each cluster — duplicate (identical scope) vs variant (same domain, distinct
+      scenarios) vs separate jobs.
+- [ ] Step 5: **Dry Run & Approval** — generate the planned report (see Report Format). Present it
+      to the user and explicitly ask: *"Here is the planned prune. Shall I proceed with the git
+      snapshot and execute these changes?"* **Wait for user confirmation before proceeding.**
+- [ ] Step 6: Snapshot the tree in git (`git add -A && git commit -m "snapshot: before
+      prune-skills"`, or `git stash` if the tree is dirty for other reasons).
+- [ ] Step 7: Execute merges per the Phase 2 table. When merging, delete the redundant folders
       (keep one canonical folder name, preferring the existing skill whose `name:` in frontmatter
       matches the surviving scope).
-- [ ] Step 7: Update the category `DESCRIPTION.md` if a folder was removed or renamed.
-- [ ] Step 8: Verify — every remaining `SKILL.md` parses as valid frontmatter, all `references/`
-      links resolve, no two skills share a `name:`.
-- [ ] Step 9: Report — see Report format.
+- [ ] Step 8: Update the category `DESCRIPTION.md` if a folder was removed or renamed. If a category
+      is left completely empty, delete the category folder and its `DESCRIPTION.md`.
+- [ ] Step 9: Verify — every remaining `SKILL.md` parses as valid frontmatter, all `references/`
+      links resolve, no two skills share a `name:`. *If verification fails, trigger the Rollback
+      Protocol.*
+- [ ] Step 10: Report — Output the final executed `prune-skills report`.
 
 ## Merge Rules
 
-- **Name survival** — the surviving skill keeps the `name:` that best matches the merged scope;
-  if neither matches, pick the more specific one.
+- **Name survival** — the surviving skill keeps the `name:` that best matches the merged scope; if
+  neither matches, pick the more specific one.
 - **Frontmatter union** — merge `tags` and `triggers` as unions, de-duplicated; merge
   `related_skills` and drop entries pointing at skills that no longer exist.
 - **Body merge** — shared rules go in the `SKILL.md` body exactly once. Scenario-specific rules
   move to `references/<scenario>.md`. Never restate a rule that already exists in a reference.
+- **Conflict Resolution** — if merged skills contain contradictory rules (e.g., opposing
+  instructions), prioritize the rule from the skill with the more complete body. If a clear winner
+  isn't obvious, flag the contradiction in the report for the user to resolve manually.
 - **Scripts** — keep `scripts/` of the surviving skill; move or re-link scripts of dropped skills
-  only if the surviving skill's scenario needs them.
-- **DESCRIPTION.md** — the category description stays one line; update it only if the category's
-  skill count changed in a way that breaks the description.
+  only if the surviving skill's scenario needs them. Ensure no scripts referenced in the surviving
+  body are deleted.
+- **Empty Category Cleanup** — if deleting duplicate skills leaves a category folder entirely
+  empty (no skill subfolders remain), delete the empty category folder and its `DESCRIPTION.md` as
+  well. Note this in the DELETED section of the report.
+- **DESCRIPTION.md** — if a category is not empty, its description stays one line; update it only
+  if the category's skill count changed in a way that breaks the description.
 
 ## Report Format
 
@@ -128,21 +143,39 @@ KEPT SEPARATE:
 - <skill A> vs <skill B>  —  reason: <distinct jobs, e.g. different completion criteria>
 
 DELETED:
-- <folder>  —  reason: <true duplicate of <survivor>, stale name collision, ...>
+- <folder>  —  reason: <true duplicate of <survivor>, stale name collision, empty category cleanup>
+
+ROLLBACK TARGET:
+- <snapshot commit SHA or stash ref>
 
 VERIFY:
 - N skills remain, 0 shared names, all reference links resolve, all frontmatter parses
 ```
 
+## Rollback Protocol
+
+Verification (Step 9) is the gate for rollback:
+
+1. **Hard failure** — a `SKILL.md` no longer parses, a `references/` link is broken, or two skills
+   share a `name:`. Restore the snapshot (`git reset --hard <sha>` or `git stash pop`), re-run
+   only the offending merge, and re-verify.
+2. **Soft failure** — a merge looks structurally valid but content was lost or contradicted.
+   Restore the affected files only, keep the rest of the prune, and flag the conflict for manual
+   resolution.
+3. If the user aborts between snapshot and execution, restore the snapshot and leave the tree
+   unchanged.
+
 ## Common Mistakes
 
 - **Merging across domains.** Two skills with similar-sounding descriptions can be different jobs
-  (e.g. "PR code review" vs "local pre-push check"). Verify bodies before merging; only clusters
+  (e.g., "PR code review" vs "local pre-push check"). Verify bodies before merging; only clusters
   with the same completion criteria merge.
 - **Deep references.** `references/` files are one level deep. If a scenario needs a sub-scenario,
-  split the scenario file, do not nest folders.
+  split the scenario file; do not nest folders.
 - **Editing provisioned copies.** Copies under `.agents/skills/` or a harness home are generated;
-  fix the repo source and note that the copy needs re-provisioning, never hand-edit the copy.
+  fix the repo source and note that the copy needs re-provisioning; never hand-edit the copy.
 - **No snapshot.** Always commit or stash before deleting a skill folder.
 - **Restating rules after merge.** After merging bodies, search the new `SKILL.md` and
   `references/` for duplicated statements; keep one home per fact.
+- **Skipping the approval gate.** Present the dry-run report and wait for explicit confirmation
+  before Step 6; first-time runs on a skill tree are approval-gated.
