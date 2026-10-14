@@ -123,51 +123,6 @@ def test_toml_write_exports_functions():
     assert callable(toml_section)
     assert callable(write_toml_table)
 
-
-def test_skill_vo_exports_functions():
-    """CP-SHARED-010: skill value objects export required functions."""
-    from modules.shared.src.taxonomy_skill_vo import (
-        ensure_under,
-        extract_skill_name,
-        safe_child,
-        safe_skill_name,
-        sanitize_skill_name,
-    )
-
-    assert callable(extract_skill_name)
-    assert callable(sanitize_skill_name)
-    assert callable(safe_skill_name)
-    assert callable(safe_child)
-    assert callable(ensure_under)
-
-
-def test_skill_registry_exports_functions():
-    """CP-SHARED-011: skill registry exports required functions."""
-    from modules.shared.src.utility_skill_registry import (
-        extract_description,
-        get_all_skills,
-        get_registered_tool_ids,
-        normalize_tool_id,
-        provision_single_skill,
-        prune_provisioned,
-        remove_single_skill,
-        resolve_single_skill_file,
-        resolve_tool_skills,
-        write_provenance,
-    )
-
-    assert callable(get_registered_tool_ids)
-    assert callable(normalize_tool_id)
-    assert callable(extract_description)
-    assert callable(get_all_skills)
-    assert callable(provision_single_skill)
-    assert callable(prune_provisioned)
-    assert callable(remove_single_skill)
-    assert callable(resolve_single_skill_file)
-    assert callable(resolve_tool_skills)
-    assert callable(write_provenance)
-
-
 def test_common_vo_exports_value_objects():
     """CP-SHARED-012: common value objects exist and can be instantiated."""
     from modules.shared.src.taxonomy_common_vo import (

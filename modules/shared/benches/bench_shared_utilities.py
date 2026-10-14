@@ -109,16 +109,3 @@ def bench_resolve_executable(benchmark):
 
     benchmark(resolve_executable, "python3")
 
-
-def bench_normalize_tool_id(benchmark):
-    """BENCH-SHARED-013: normalize_tool_id performance."""
-    from modules.shared.src.utility_skill_registry import normalize_tool_id
-
-    benchmark(normalize_tool_id, "lint")
-
-
-def bench_get_registered_tool_ids(benchmark):
-    """BENCH-SHARED-014: get_registered_tool_ids performance."""
-    from modules.shared.src.utility_skill_registry import get_registered_tool_ids
-
-    benchmark(get_registered_tool_ids)

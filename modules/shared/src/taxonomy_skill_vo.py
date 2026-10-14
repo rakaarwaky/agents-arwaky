@@ -1,72 +1,14 @@
-"""Shared skill-name helpers (AES taxonomy layer, _vo: pure functions allowed)."""
+"""Shared skill-name helpers (AES taxonomy layer, _vo: pure functions allowed).
+
+Trimmed to the helpers the harness skills capability uses; the project-copy
+provisioning feature (``aa skill install`` into ``.agents/skills/``) was
+removed — agents read the pack at ``skills/`` directly.
+"""
 from __future__ import annotations
 
 import posixpath
 import re
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NewType
-
-from modules.shared.src.taxonomy_common_vo import PackFinding
-
-#: Process or command exit code (0 = success, non-zero = failure).
-ExitCode = NewType("ExitCode", int)
-
-#: Tool filter query string for skill listing.
-ToolFilter = NewType("ToolFilter", str)
-
-#: Skill name query string for skill show/install.
-SkillQuery = NewType("SkillQuery", str)
-
-#: Skill command argument list.
-SkillArgs = NewType("SkillArgs", list)
-
-#: Operation token carried by a SkillRequest.
-SkillOp = NewType("SkillOp", str)
-
-#: Tool identifier accepted by skill provisioning actions.
-SkillToolId = NewType("SkillToolId", str)
-
-#: Optional destination directory override for skill provisioning.
-SkillDest = NewType("SkillDest", str)
-
-#: Optional skill/tool name argument for a skill op.
-SkillName = NewType("SkillName", str)
-
-#: Pack loadability findings (empty list = clean).
-PackFindingList = NewType("PackFindingList", list)
-
-#: Module-level singletons for default arguments (B008).
-FILTER_EMPTY: ToolFilter = ToolFilter("")
-QUERY_EMPTY: SkillQuery = SkillQuery("")
-ARGS_EMPTY: SkillArgs = SkillArgs([])
-SKILL_EMPTY: SkillName = SkillName("")
-DEST_EMPTY: SkillDest = SkillDest("")
-PACK_FINDINGS_EMPTY: PackFindingList = PackFindingList([])
-
-#: Skill request envelope — single shape the aggregate accepts.
-@dataclass(frozen=True)
-class SkillRequest:
-    """One skill request the surface/root/CLI hands to the aggregate."""
-
-    op: SkillOp
-    skill: SkillName | None = None
-    target: Path | None = None
-    custom_dest: str = ""
-    force: bool = False
-    link: bool = False
-    prune: bool = False
-    tool_filter: ToolFilter = FILTER_EMPTY
-    query: SkillQuery = QUERY_EMPTY
-    args: SkillArgs = field(default_factory=lambda: SkillArgs([]))
-
-@dataclass(frozen=True)
-class SkillResponse:
-    """Skill response envelope returned by ``ISkillAggregate.execute``."""
-
-    result: ExitCode
-    message: str = ""
-    findings: tuple[PackFinding, ...] = ()
 
 
 def extract_skill_name(skill_md: Path) -> str:
@@ -111,54 +53,7 @@ def safe_child(base: Path, name: str) -> Path:
     return base / name
 
 
-def ensure_under(base: Path, child: Path) -> Path:
-    """Ensure child path stays inside base. Raises ValueError on traversal."""
-    base_resolved = base.resolve()
-    child_resolved = child.resolve()
-    if child_resolved == base_resolved:
-        return child_resolved
-    if base_resolved not in child_resolved.parents:
-        raise ValueError(f"Refusing path outside target directory: {child_resolved}")
-    return child_resolved
-
-
-@dataclass(frozen=True)
-class SkillInfo:
-    """Registration row for a tool: id, category, description."""
-
-    tool_id: str
-    category: str
-    description: str
-
-
-@dataclass(frozen=True)
-class SkillProvisionResult:
-    """Outcome of provisioning/unprovisioning skills for one tool."""
-
-    success: bool
-    tool_id: str
-    provisioned: int
-    message: str
-
-
 __all__ = [
-    "ARGS_EMPTY",
-    "FILTER_EMPTY",
-    "QUERY_EMPTY",
-    "SKILL_EMPTY",
-    "ExitCode",
-    "SkillArgs",
-    "SkillDest",
-    "SkillInfo",
-    "SkillName",
-    "SkillOp",
-    "SkillProvisionResult",
-    "SkillQuery",
-    "SkillRequest",
-    "SkillResponse",
-    "SkillToolId",
-    "ToolFilter",
-    "ensure_under",
     "extract_skill_name",
     "safe_child",
     "safe_skill_name",

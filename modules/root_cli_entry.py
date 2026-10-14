@@ -181,7 +181,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}status{RESET()}                         Check health, submodule and binary installation status")
     print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
     print(f"  {GREEN()}tool{RESET()} <cmd> [args]             Tool management (list|run|install|update|uninstall)")
-    print(f"  {GREEN()}skill{RESET()} <cmd> [args]             Skill management (list|install|uninstall|update|show|check)")
+    print(f"  {GREEN()}skill{RESET()} <cmd> [args]             (removed — agents read skills/ directly)")
     print(f"  {GREEN()}connect{RESET()} --<harness>|--all     Connect MCP, skills & env to harnesses")
     print(f"  {GREEN()}disconnect{RESET()} --<harness>|--all  Disconnect harnesses (use --all for all)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
@@ -199,7 +199,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"{BOLD()}MAINTENANCE:{RESET()}")
     print(f"  {CYAN()}submodules{RESET()}                     Initialize/update git submodules")
     print(f"  {CYAN()}clean{RESET()}                          Remove build artifacts & generated configs")
-    print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + disconnect + unskill")
+    print(f"  {CYAN()}reset{RESET()}                          Full factory reset = clean + uninstall + disconnect")
     print(f"  {CYAN()}help{RESET()}                           Show this help")
     print()
     print(f"{BOLD()}GLOBAL OPTIONS:{RESET()}")
@@ -214,10 +214,6 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {CYAN()}aa tool update all{RESET()}             Update all tools")
     print(f"  {CYAN()}aa tool run lint check .{RESET()}       Run a tool (AES linter)")
     print(f"  {CYAN()}aa tool list{RESET()}                   List all registered tools")
-    print(f"  {CYAN()}aa skill install --all{RESET()}         Provision all skills to CWD")
-    print(f"  {CYAN()}aa skill update{RESET()}                 Pull internal submodule skills into the pack")
-    print(f"  {CYAN()}aa skill check{RESET()}                Audit skills/ pack loadability")
-    print(f"  {CYAN()}aa skill uninstall --target .{RESET()}  Remove skills from CWD")
     print(f"  {CYAN()}aa connect --all{RESET()}               Connect all harnesses")
     print(f"  {CYAN()}aa disconnect --all{RESET()}            Disconnect all harnesses")
     print(f"  {CYAN()}aa backup all gdrive{RESET()}           Backup all tools to Google Drive")
@@ -533,12 +529,6 @@ def cmd_mcp(argv: list[str]) -> int:
     return 1
 
 
-def cmd_skill(argv: list[str]) -> int:
-    from modules.cli.src.surface_skill_command import main as _skill_surface
-    from modules.skill.src.root_skill_container import create_skill_feature
-    return _skill_surface(argv, create_skill_feature())
-
-
 def cmd_config(argv: list[str]) -> int:
     from modules.cli.src.surface_config_command import cmd_config as _config_surface
     from modules.config.src.root_config_container import create_config_feature
@@ -813,9 +803,6 @@ def cmd_reset(argv: list[str]) -> int:
     info("[3/4] disconnect --all")
     cmd_disconnect(["--all"])
     print()
-    info("[4/4] skill uninstall (CWD)")
-    cmd_skill(["uninstall", "all", "--target", os.getcwd()])
-    print()
     info("Resetting submodules...")
     run_cmd(["git", "-C", str(repo_root()), "submodule", "foreach", "--recursive", "git clean -fd && git checkout ."])
     ok("Factory reset complete.")
@@ -851,7 +838,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "reset": cmd_reset, "version": cmd_version, "--version": cmd_version,
         "help": cmd_help, "-h": cmd_help, "--help": cmd_help,
         # Core noun-action (canonical)
-        "tool": cmd_tool, "skill": cmd_skill, "skills": cmd_skill,
+        "tool": cmd_tool,
         "config": cmd_config,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,

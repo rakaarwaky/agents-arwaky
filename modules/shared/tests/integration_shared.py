@@ -70,56 +70,6 @@ def test_find_tool_whitespace():
     assert tool.id == "lint-arwaky"
 
 
-def test_skill_registry_returns_skills():
-    """IT-SHARED-008: get_all_skills discovers SKILL.md files."""
-    from modules.shared.src.utility_skill_registry import get_all_skills
-
-    skills = get_all_skills()
-    assert isinstance(skills, tuple)
-    # Should find at least some skills in the repo
-    assert len(skills) >= 0  # May be empty in test environment
-
-
-def test_normalize_tool_id_alias():
-    """IT-SHARED-009: normalize_tool_id resolves known aliases."""
-    from modules.shared.src.utility_skill_registry import normalize_tool_id
-
-    result = normalize_tool_id("la")
-    assert result == "lint-arwaky"
-
-    result = normalize_tool_id("va")
-    assert result == "vision-arwaky"
-
-
-def test_normalize_tool_id_exact():
-    """IT-SHARED-010: normalize_tool_id returns id for exact match."""
-    from modules.shared.src.utility_skill_registry import normalize_tool_id
-
-    result = normalize_tool_id("lint-arwaky")
-    assert result == "lint-arwaky"
-
-
-def test_normalize_tool_id_unknown():
-    """IT-SHARED-011: normalize_tool_id returns None for unknown."""
-    from modules.shared.src.utility_skill_registry import normalize_tool_id
-
-    result = normalize_tool_id("unknown-tool-12345")
-    assert result is None
-
-
-def test_get_registered_tool_ids():
-    """IT-SHARED-012: get_registered_tool_ids returns tool data."""
-    from modules.shared.src.utility_skill_registry import get_registered_tool_ids
-
-    tools = get_registered_tool_ids()
-    assert isinstance(tools, list)
-    for tool_tuple in tools:
-        assert len(tool_tuple) == 3
-        tid, category, _desc = tool_tuple
-        assert isinstance(tid, str)
-        assert isinstance(category, str)
-
-
 def test_envfile_roundtrip_integration():
     """IT-SHARED-013: Full envfile read/write roundtrip works."""
     from modules.shared.src.utility_envfile_parser import (

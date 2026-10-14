@@ -28,11 +28,6 @@ from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
 from modules.shared.src.contract_mcp_protocol import IMcpProtocol
 from modules.shared.src.contract_service_aggregate import IServiceAggregate
 from modules.shared.src.contract_service_protocol import IServiceProtocol
-from modules.shared.src.contract_skill_aggregate import ISkillAggregate
-from modules.shared.src.contract_skill_protocol import (
-    ISkillProvisionProtocol,
-    ISkillRegistryProtocol,
-)
 from modules.shared.src.contract_tools_aggregate import IToolsAggregate
 from modules.shared.src.contract_tools_protocol import (
     IToolsAdapterProtocol,
@@ -61,9 +56,6 @@ __all__ = [
     "IMcpProtocol",
     "IServiceAggregate",
     "IServiceProtocol",
-    "ISkillAggregate",
-    "ISkillProvisionProtocol",
-    "ISkillRegistryProtocol",
     "IToolsAdapterProtocol",
     "IToolsAggregate",
     "IToolsInstallerProtocol",

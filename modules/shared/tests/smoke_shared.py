@@ -18,7 +18,6 @@ def test_import_utility_modules():
         utility_jsonc_parser,
         utility_manifest_reader,
         utility_paths_resolver,
-        utility_skill_registry,
         utility_toml_write,
         utility_tool_resolve,
     )
@@ -28,7 +27,6 @@ def test_import_utility_modules():
     assert utility_jsonc_parser is not None
     assert utility_manifest_reader is not None
     assert utility_paths_resolver is not None
-    assert utility_skill_registry is not None
     assert utility_toml_write is not None
     assert utility_tool_resolve is not None
 
@@ -65,25 +63,6 @@ def test_manifest_loads_quickly():
 
     assert elapsed < 5.0, f"Manifest load took {elapsed:.2f}s, expected <5s"
     assert isinstance(tools, list)
-
-
-def test_skill_registry_quick():
-    """SM-SHARED-006: Skill registry operations complete within 5 seconds."""
-    from modules.shared.src.utility_skill_registry import (
-        get_all_skills,
-        get_registered_tool_ids,
-    )
-
-    start = time.time()
-    get_all_skills()
-    elapsed_skills = time.time() - start
-
-    start = time.time()
-    get_registered_tool_ids()
-    elapsed_tools = time.time() - start
-
-    assert elapsed_skills < 5.0
-    assert elapsed_tools < 5.0
 
 
 def test_xdg_operations_quick():
