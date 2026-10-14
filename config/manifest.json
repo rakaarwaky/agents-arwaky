@@ -115,6 +115,15 @@
       "isMcp": true,
       "description": "Headless 3D execution engine with automated test suites",
       "path": "internal/blender-arwaky"
+    },
+    {
+      "id": "desktop-commander",
+      "category": "vendor",
+      "binary": "desktop-commander",
+      "mcpBinary": "desktop-commander",
+      "isMcp": true,
+      "description": "Desktop Commander MCP: terminal control, file search & diff editing",
+      "path": "vendor/desktop-commander"
     }
   ]
 }

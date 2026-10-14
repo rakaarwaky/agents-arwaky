@@ -45,7 +45,7 @@ flowchart TB
 
         subgraph AgentsAndTools["Managed Agent & Vendor Engines"]
             InternalAgents["Internal Agents:\nlint-arwaky • vision-arwaky • qwen-web • blender"]
-            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • fetch • omniroute"]
+            VendorTools["Vendor Tools & MCPs:\ncodegraph • context7 • fetch • desktop-commander • omniroute"]
         end
     end
 
@@ -104,6 +104,7 @@ agents-arwaky/
 │   ├── codegraph/               # Codebase intelligence & graph query engine
 │   ├── context7/                # Upstash documentation & context retrieval
 │   ├── fetch-mcp/               # Fast, clean web scraping & text extraction
+│   ├── desktop-commander/       # Desktop Commander MCP: terminal, search & diff editing
 │   ├── hindsight/               # Hindsight agent memory: LLM extraction, knowledge graph & retrieval
 │
 ├── modules/                     # AES 7-layer orchestration (taxonomy→…→root)
@@ -260,6 +261,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 | **context7**    | `context7-mcp`, `ctx7`             | [upstash/context7](https://github.com/upstash/context7)               |  CLI / MCP Server  | Rapid documentation retrieval and vector context ingestion.             |
 | **codegraph**   | `codegraph-mcp`, `codegraph`       | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)   |     CLI / MCP     | Graph-based codebase intelligence and semantic symbol indexing.         |
 | **fetch-mcp**   | `fetch-mcp`, `mcp-fetch`           | [zcaceres/fetch-mcp](https://github.com/zcaceres/fetch-mcp)           |     MCP Server     | Resilient web scraping, HTML cleaning, and Markdown transformation.     |
+| **desktop-commander** | `desktop-commander`, `dc`    | [wonderwhy-er/DesktopCommanderMCP](https://github.com/wonderwhy-er/DesktopCommanderMCP) | MCP Server | Terminal control, file search & diff editing for AI agents. |
 | **anytype-mcp** | `anytype-mcp`                      | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp)       |     MCP Server     | Local-first knowledge base & workspace synchronization.                 |
 | **omniroute**   | `omniroute`                        | [diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute) | HTTP Gateway       | Free-first AI gateway: 350+ providers, 150+ free tiers, `auto/best-*` combos. Host-native, no Docker. State in `~/.omniroute/`. |
 | **hindsight**   | `hindsight`, `hindsight-local-mcp`   | [vectorize-io/hindsight](https://github.com/vectorize-io/hindsight) | MCP / Plugin | LLM-extracted agent memory: knowledge graph, observations, multi-strategy retrieval (semantic/keyword/graph/temporal). Local pg0 + OpenAI-compatible LLM. |
