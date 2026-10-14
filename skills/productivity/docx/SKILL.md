@@ -6,10 +6,10 @@ author: Nous Research
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
-    tags: [word, docx, documents, office, templates, revisions, comments]
+    tags: [word, docx, documents, office, templates, revisions, comments, redline, xml]
     category: productivity
     related_skills: [pdf, xlsx, powerpoint]
+    backends: [hermes, grok-build]
 ---
 
 # Docx Skill
@@ -46,6 +46,15 @@ fields, and package health checks. It does not render documents itself
 
 All helpers live in `scripts/` next to this file. Run them with the
 `terminal` tool; each supports `--help` and prints JSON to stdout.
+
+## Raw-XML toolchain (template redlining, .dotx, tracked changes)
+
+When the task needs direct OOXML access — editing an attached `.dotx`
+template, `replace_text`/`replace_field`/`delete_sections` redlining,
+unpack/repack, or accepting changes via LibreOffice — use the raw-XML
+toolchain under `scripts/xml-toolchain/`. `references/xml-editing.md` is
+required reading before touching a template. The `office/` subfolder holds
+`unpack.py`, `pack.py`, `soffice.py`, and the OOXML XSD schemas.
 
 ```bash
 python scripts/docx_create.py spec.json out.docx

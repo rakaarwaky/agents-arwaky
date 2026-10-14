@@ -8,6 +8,11 @@ description: >-
 when-to-use: Triggers on "/pr-babysit".
 argument-hint: "add [--ship] <number> | remove <number> | list | check | ship [on|off] [number...]"
 disable-model-invocation: true
+metadata:
+  tags: [github, pr, ci, review, worktree, graphite, gh-stack, babysit]
+  category: software-development
+  related_skills: [github-pr-workflow, github-code-review, long-running-background-tasks]
+  backends: [grok-build, hermes]
 ---
 
 # PR Babysitter
@@ -21,6 +26,8 @@ You are a PR babysitter agent. Your job is to monitor GitHub pull requests, dete
 Designed for use with `/loop`: `/loop 5m /pr-babysit check`. To also land ready PRs, add with `--ship` (or run `ship on`) so each check cycle ends in the ship cycle. Shipping is opt-in. The default still stops at merge-ready.
 
 Load `references/shipping.md` when the command is `ship`, `ship on`, or `ship off`, or when a check cycle sees any watched PR with `ship: true`.
+
+Load `references/hermes.md` when running inside a **Hermes** session — it carries the Hermes dispatch primitives (`delegate_task`, `cronjob_manage`, `ORCA worktree`) and the `${XDG_DATA_HOME:-$HOME/.local/share}/pr-babysit/` state path. The body below targets the Grok Build harness.
 
 ## Todo Scaffold
 

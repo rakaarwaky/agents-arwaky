@@ -38,29 +38,29 @@ If a template file is found, you MUST use it. Do NOT create from scratch.
 
 ```bash
 # 1. Unpack (.docx and .dotx both work)
-python scripts/office/unpack.py template.docx unpacked/
+python scripts/xml-toolchain/office/unpack.py template.docx unpacked/
 
 # 2. Inspect structure, text, tables, and media
-python scripts/inspect_doc.py unpacked/ --sections --media
-python scripts/inspect_tables.py unpacked/
-python scripts/inspect_headers.py unpacked/
+python scripts/xml-toolchain/inspect_doc.py unpacked/ --sections --media
+python scripts/xml-toolchain/inspect_tables.py unpacked/
+python scripts/xml-toolchain/inspect_headers.py unpacked/
 
 # 2b. Visual overview (see what pages look like)
-python scripts/render_doc.py template.docx
+python scripts/xml-toolchain/render_doc.py template.docx
 
 # 3. Replace placeholder text (handles split runs automatically)
-python scripts/replace_text.py unpacked/ --match "Name Surname" --text "Jane Smith"
-python scripts/replace_text.py unpacked/ --match "Job Title" --text "Photographer"
+python scripts/xml-toolchain/replace_text.py unpacked/ --match "Name Surname" --text "Jane Smith"
+python scripts/xml-toolchain/replace_text.py unpacked/ --match "Job Title" --text "Photographer"
 
 # Or batch replace from a JSON map:
-python scripts/replace_text.py unpacked/ --map replacements.json --all-files
+python scripts/xml-toolchain/replace_text.py unpacked/ --map replacements.json --all-files
 
 # 3b. For templates with merge fields or content controls:
-python scripts/replace_field.py unpacked/ --list
-python scripts/replace_field.py unpacked/ --map fields.json
+python scripts/xml-toolchain/replace_field.py unpacked/ --list
+python scripts/xml-toolchain/replace_field.py unpacked/ --map fields.json
 
 # 4. Repack
-python scripts/office/pack.py unpacked/ output.docx --original template.docx
+python scripts/xml-toolchain/office/pack.py unpacked/ output.docx --original template.docx
 ```
 
 ---
@@ -87,10 +87,10 @@ python scripts/office/pack.py unpacked/ output.docx --original template.docx
 
 ```bash
 # Full inspection: page setup, theme, styles, text, media
-python scripts/inspect_doc.py unpacked/ --text --media
+python scripts/xml-toolchain/inspect_doc.py unpacked/ --text --media
 
 # Text grouped by document section (for large templates)
-python scripts/inspect_doc.py unpacked/ --sections --media
+python scripts/xml-toolchain/inspect_doc.py unpacked/ --sections --media
 ```
 
 Shows page size, orientation, margins, theme fonts/colors, document styles, text content (deduplicated, noise-filtered), and media file inventory.
@@ -98,7 +98,7 @@ Shows page size, orientation, margins, theme fonts/colors, document styles, text
 ### inspect_tables.py
 
 ```bash
-python scripts/inspect_tables.py unpacked/
+python scripts/xml-toolchain/inspect_tables.py unpacked/
 ```
 
 Shows all tables with dimensions, column widths, cell content (truncated), and merged cell indicators. Example output:
@@ -119,10 +119,10 @@ Shows all tables with dimensions, column widths, cell content (truncated), and m
 
 ```bash
 # Visual page grid (like thumbnail.py for PPTX)
-python scripts/render_doc.py document.docx
+python scripts/xml-toolchain/render_doc.py document.docx
 
 # Custom columns
-python scripts/render_doc.py document.docx pages --cols 4
+python scripts/xml-toolchain/render_doc.py document.docx pages --cols 4
 ```
 
 Creates `doc_pages.jpg` — a labeled grid of all rendered pages. Use this to see what the document looks like before and after edits. Unlike `convert_doc.py --to images` (which creates individual files), this creates one grid image.
@@ -131,16 +131,16 @@ Creates `doc_pages.jpg` — a labeled grid of all rendered pages. Use this to se
 
 ```bash
 # Single replacement (case-insensitive, handles split runs)
-python scripts/replace_text.py unpacked/ --match "Work Phone" --text "+1 (555) 123-4567"
+python scripts/xml-toolchain/replace_text.py unpacked/ --match "Work Phone" --text "+1 (555) 123-4567"
 
 # Batch replace from JSON mapping
-python scripts/replace_text.py unpacked/ --map replacements.json
+python scripts/xml-toolchain/replace_text.py unpacked/ --map replacements.json
 
 # Include headers and footers
-python scripts/replace_text.py unpacked/ --map replacements.json --all-files
+python scripts/xml-toolchain/replace_text.py unpacked/ --map replacements.json --all-files
 
 # Preview without modifying
-python scripts/replace_text.py unpacked/ --match "old" --text "new" --dry-run
+python scripts/xml-toolchain/replace_text.py unpacked/ --match "old" --text "new" --dry-run
 ```
 
 JSON map format:
@@ -156,16 +156,16 @@ JSON map format:
 
 ```bash
 # List all merge fields, content controls, and bookmarks
-python scripts/replace_field.py unpacked/ --list
+python scripts/xml-toolchain/replace_field.py unpacked/ --list
 
 # Replace merge field by name
-python scripts/replace_field.py unpacked/ --field "CompanyName" --text "Acme Corp"
+python scripts/xml-toolchain/replace_field.py unpacked/ --field "CompanyName" --text "Acme Corp"
 
 # Replace content control by tag
-python scripts/replace_field.py unpacked/ --sdt "author_name" --text "Jane Smith"
+python scripts/xml-toolchain/replace_field.py unpacked/ --sdt "author_name" --text "Jane Smith"
 
 # Batch replace from JSON
-python scripts/replace_field.py unpacked/ --map fields.json
+python scripts/xml-toolchain/replace_field.py unpacked/ --map fields.json
 ```
 
 ### Handling Large Templates
@@ -174,19 +174,19 @@ Templates with many sections (planners, calendars, multi-page layouts) can be tr
 
 ```bash
 # 1. See what sections exist
-python scripts/list_sections.py unpacked/
+python scripts/xml-toolchain/list_sections.py unpacked/
 
 # 2. See text per section to decide what to keep
-python scripts/inspect_doc.py unpacked/ --sections
+python scripts/xml-toolchain/inspect_doc.py unpacked/ --sections
 
 # 3. Keep only the sections you need, delete the rest
-python scripts/delete_sections.py unpacked/ --keep 0,1,2,13
+python scripts/xml-toolchain/delete_sections.py unpacked/ --keep 0,1,2,13
 
 # 4. Replace text in the kept sections
-python scripts/replace_text.py unpacked/ --map replacements.json --all-files
+python scripts/xml-toolchain/replace_text.py unpacked/ --map replacements.json --all-files
 
 # 5. Repack
-python scripts/office/pack.py unpacked/ output.docx --original template.docx
+python scripts/xml-toolchain/office/pack.py unpacked/ output.docx --original template.docx
 ```
 
 ---
@@ -207,14 +207,14 @@ python scripts/office/pack.py unpacked/ output.docx --original template.docx
 
 ```bash
 # .doc or .dotx → .docx
-python scripts/convert_doc.py legacy.doc --to docx
+python scripts/xml-toolchain/convert_doc.py legacy.doc --to docx
 
 # .docx → per-page images (for visual inspection)
-python scripts/convert_doc.py document.docx --to images
+python scripts/xml-toolchain/convert_doc.py document.docx --to images
 
 # .docx → PDF
-python scripts/convert_doc.py document.docx --to pdf
+python scripts/xml-toolchain/convert_doc.py document.docx --to pdf
 
 # Accept tracked changes
-python scripts/accept_changes.py input.docx output.docx
+python scripts/xml-toolchain/accept_changes.py input.docx output.docx
 ```

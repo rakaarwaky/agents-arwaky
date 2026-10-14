@@ -9,12 +9,15 @@ metadata:
     - reportlab
     - pypdf
     - pdfplumber
+    - acroform
+    - tax-forms
   related_skills:
     - docx
     - xlsx
     - powerpoint
     - document-to-action-items
   category: productivity
+  backends: [hermes, grok-build]
 ---
 
 # PDF Skill
@@ -30,6 +33,26 @@ Create PDFs from structured specs, build and fill AcroForm forms (with layout li
 - Export pages as PNGs for visual review or for OCR hand-off; set/clear document metadata; add/extract file attachments.
 - Fill or flatten AcroForm forms; encrypt or decrypt with passwords.
 - NOT for scanned/image-only PDFs (see `references/ocr-extraction.md`) and NOT for pixel-perfect HTML-to-PDF rendering (use a headless browser).
+
+## Bundled toolchains
+
+- **AcroForm field inspection & fill** — `scripts/acroform/` carries the
+  deeper form tooling: `extract_form_structure.py`,
+  `extract_form_field_info.py`, `check_fillable_fields.py`,
+  `check_bounding_boxes.py`, `fill_fillable_fields.py`,
+  `fill_pdf_form_with_annotations.py`, `convert_pdf_to_images.py`,
+  `create_validation_image.py`. Reach for these when the lightweight
+  `pdf_fill_form.py` / `pdf_make_form.py` flow is not enough — e.g. when
+  inspecting a vendor-shipped AcroForm before filling, or validating fill
+  geometry against bounding boxes.
+- **Official IRS tax forms (2025)** — `forms/*.pdf` bundles f1040,
+  f1040s1–s8, f1040sa–sse, f2441, f5329, f8812, f8889, f8936, f8949,
+  f8959, f8960, f8995. `references/tax-forms.md` is required reading before
+  filling any form in `forms/`; `references/tax.md` covers the
+  preparation workflow.
+- **Advanced rendering & tooling** — `references/rendering-and-advanced.md`
+  for pypdfium2 rendering, pdf-lib / pdfjs-dist JavaScript, qpdf /
+  poppler flags, performance tuning, and troubleshooting.
 
 ## Prerequisites
 
