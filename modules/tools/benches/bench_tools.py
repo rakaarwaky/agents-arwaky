@@ -69,7 +69,11 @@ def bench_manifest_resolution():
 
     start = time.perf_counter()
     for tool in tools[:iterations]:
-        from modules.shared.src.taxonomy_tools_vo import ToolQuery, ToolRequest, ToolsOp
+        from modules.shared.src.tools.taxonomy_tools_vo import (
+            ToolQuery,
+            ToolRequest,
+            ToolsOp,
+        )
         orch = ToolsOrchestrator(registry={})
         orch.execute(ToolRequest(ToolsOp("resolve"), query=ToolQuery(tool.id)))
     elapsed = time.perf_counter() - start

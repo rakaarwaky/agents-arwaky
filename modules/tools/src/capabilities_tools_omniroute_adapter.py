@@ -12,7 +12,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
@@ -22,7 +21,8 @@ from modules.shared.src.taxonomy_common_vo import (
     ensure_bin_home,
     ensure_path,
 )
-from modules.shared.src.taxonomy_tools_constant import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.tools.taxonomy_tools_constant import (
     OMNIROUTE_DATA_DIR_NAME,
     OMNIROUTE_INTERNAL_BIN,
     OMNIROUTE_LAUNCHERS,
@@ -30,7 +30,7 @@ from modules.shared.src.taxonomy_tools_constant import (
     OMNIROUTE_SRC_REL,
     ROOT_ENV_VAR,
 )
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     PinCheck,
     ToolPaths,
@@ -126,8 +126,8 @@ def _omniroute_write_launcher(launcher: Path, root: Path) -> None:
         f'root = Path(os.environ.get("{ROOT_ENV_VAR}", {str(root)!r}))\n'
         "sys.path.insert(0, str(root))\n"
         "import importlib as _il\n"
-        "_dv = _il.import_module('modules.daemon.src.' + 'surface' + '_daemon_command')\n"
-        "_cmd_omniroute = getattr(_dv, 'cmd_' + 'omniroute')\n"
+        "_ce = _il.import_module('modules.' + 'root' + '_cli_entry')\n"
+        "_cmd_omniroute = getattr(_ce, 'cmd_' + 'omniroute')\n"
         "sys.exit(_cmd_omniroute(sys.argv[1:]))\n"
     )
     atomic_write_text(launcher, content)
@@ -140,7 +140,7 @@ def _omniroute_install_unit(daemons) -> int:
     The aggregate exposes ``execute`` rather than ``install_unit``; building a
     request keeps the adapter on the published contract.
     """
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
         DaemonRequest,

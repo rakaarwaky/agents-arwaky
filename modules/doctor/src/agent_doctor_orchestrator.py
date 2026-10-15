@@ -5,8 +5,8 @@ the injected runners, then wraps the outcome in a ``DoctorResponse``.
 """
 from __future__ import annotations
 
-from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
-from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
+from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
+from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 from modules.shared.src.taxonomy_common_vo import (
     DoctorOp,
     DoctorRequest,

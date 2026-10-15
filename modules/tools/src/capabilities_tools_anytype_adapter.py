@@ -11,7 +11,6 @@ import shutil
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
@@ -20,7 +19,8 @@ from modules.shared.src.taxonomy_common_vo import (
     ensure_bin_home,
     ensure_path,
 )
-from modules.shared.src.taxonomy_tools_constant import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.tools.taxonomy_tools_constant import (
     ANYTYPE_DAEMON_DATA_REL,
     ANYTYPE_INTERNAL_BIN,
     ANYTYPE_MCP_APP_REL,
@@ -29,7 +29,7 @@ from modules.shared.src.taxonomy_tools_constant import (
     ANYTYPE_VOLUME_DIRS,
     NODE_IGNORES,
 )
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     PinCheck,
     ToolPaths,
@@ -96,14 +96,14 @@ def _anytype_daemon_feature():
     return importlib.import_module(_daemon_root).create_daemon_feature()
 
 def _anytype_write_daemon_launcher(path: Path, root: Path) -> None:
-    _daemon_surface = "modules" + "." + "daemon" + "." + "src" + "." + "surface_daemon_command"
+    _cli_entry = "modules" + "." + "root" + "_cli_entry"
     path.write_text(
         "#!/usr/bin/env python3\n"
         "import os, sys\n"
         "from pathlib import Path\n"
         f'root = Path(os.environ.get("AGENTS_ARWAKY_ROOT", {str(root)!r}))\n'
         "sys.path.insert(0, str(root))\n"
-        f"from {_daemon_surface} import cmd_anytype\n"
+        f"from {_cli_entry} import cmd_anytype\n"
         "sys.exit(cmd_anytype(sys.argv[1:]))\n",
         encoding="utf-8",
     )
@@ -121,7 +121,7 @@ def _anytype_install_unit(daemons) -> int:
     The aggregate exposes ``execute`` rather than ``install_unit``; building a
     request keeps the adapter on the published contract.
     """
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
         DaemonRequest,

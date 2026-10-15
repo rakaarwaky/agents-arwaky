@@ -17,9 +17,8 @@ SKILL_FILE = "SKILL.md"
 
 # --- skill update provenance ---------------------------------------------------
 #: Sidecar recording which submodule source a pack skill was pulled from.
-#: Separate from :data:`PROVENANCE_FILE` so ``aa skill install --prune`` does
-#: not remove update-sourced skills (prune only touches entries carrying the
-#: original provenance marker or links into the pack).
+#: Kept for audit history; the ``aa skill`` provisioning surface that consumed
+#: it is gone — agents read the pack at ``skills/`` directly.
 UPDATE_PROVENANCE_FILE = ".arwaky-skill-update.json"
 UPDATE_PROVENANCE_VERSION = 1
 

@@ -94,9 +94,8 @@ the 401 — not a stale harness session.
 - **`/v1/models` answers without auth.** 200 on the models endpoint proves the
   router is up, NOT that a key is valid — always probe `chat/completions` with
   the bearer header when testing keys.
-- **A passing `aa skill check` is not proof the change works.** The repo gate only
-  validates document invariants and skill-pack loadability — not connector
-  behavior. Prove a connector change by re-writing the harness settings back into the
+- **A passing `aa skills list` is not proof the change works.** The repo gate only
+  validates skill-pack discovery — not connector behavior. Prove a connector change by re-writing the harness settings back into the
   broken state, running `aa connect <harness>`, and confirming the repair plus a
   live router check in the connect output.
 - **Generic config mutation belongs in the config capability, not the adapter.**
@@ -176,13 +175,9 @@ and a self-improving agent's edit writes through the link straight into the repo
 `references/harness-skill-probes.md`;
 `--copy-skills` falls back to per-skill copies for any harness.
 
-Contrast: `aa skill install` into a PROJECT `.agents/skills/` always COPIES —
-projects get pushed and git stores absolute-path symlinks as dead mode-120000
-blobs in other clones (plain text on Windows with `core.symlinks=false`);
-`--link` exists only for uncommitted local workspaces.
-
 Migration and safety invariants, enforced by `prune_provisioned` /
-`write_provenance` in `modules/skill/src/utility_skill_pack.py`:
+`write_provenance` in the harness skills capability
+(`modules/harness/src/capabilities_harness_skills.py`):
 
 - Non-empty existing skills dir ABORTS and lists what it would move; `--force`
   MIGRATES with per-entry collision semantics — never clobbers the pack:

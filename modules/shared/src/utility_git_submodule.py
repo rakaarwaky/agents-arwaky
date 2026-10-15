@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.taxonomy_tools_constant import FALLBACK_REMOTE_BRANCHES
+from modules.shared.src.tools.taxonomy_tools_constant import FALLBACK_REMOTE_BRANCHES
 
 
 def run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:

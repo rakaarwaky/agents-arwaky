@@ -268,7 +268,9 @@ class TestAdapterCapabilities:
         """UT-TOOLS-024: every provider adapter implements IToolsAdapterProtocol."""
         from importlib import import_module
 
-        from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
+        from modules.shared.src.tools.contract_tools_protocol import (
+            IToolsAdapterProtocol,
+        )
 
         for module_name, class_name in self.ADAPTERS:
             module = import_module(f"modules.tools.src.capabilities_tools_{module_name}_adapter")
@@ -497,7 +499,7 @@ class TestDaemonAggregateUnitOps:
 
     def test_aggregate_only_publishes_execute(self):
         """UT-TOOLS-042: guards the premise — the aggregate has no install_unit."""
-        from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+        from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 
         assert not hasattr(IDaemonAggregate, "install_unit")
         assert hasattr(IDaemonAggregate, "execute")

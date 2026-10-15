@@ -17,7 +17,6 @@ from pathlib import Path
 from modules.shared.src.taxonomy_common_constant import (
     _FENCE,
     DEFAULT_VERSION,
-    DESCRIPTION_BUDGET_BYTES,
     ERROR,
     SKILL_FILE,
 )
@@ -607,7 +606,6 @@ def is_resolvable_link(target: str) -> bool:
 
 __all__ = [
     "DEFAULT_VERSION",
-    "DESCRIPTION_BUDGET_BYTES",
     "SKILL_FILE",
     "AuditFinding",
     "ConfigData",

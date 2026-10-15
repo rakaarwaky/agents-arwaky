@@ -58,8 +58,8 @@ def test_import_root_container():
 
 def test_import_contract_protocols():
     """SM-TOOLS-010: contract protocols and the aggregate can be imported."""
-    from modules.shared.src.contract_tools_aggregate import IToolsAggregate
-    from modules.shared.src.contract_tools_protocol import (
+    from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
+    from modules.shared.src.tools.contract_tools_protocol import (
         IToolsAdapterProtocol,
         IToolsInstallerProtocol,
         IToolsRunnerProtocol,

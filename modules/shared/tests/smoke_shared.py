@@ -15,7 +15,6 @@ def test_import_utility_modules():
     from modules.shared.src import (
         utility_config_engine,
         utility_envfile_parser,
-        utility_jsonc_parser,
         utility_manifest_reader,
         utility_paths_resolver,
         utility_toml_write,
@@ -24,7 +23,6 @@ def test_import_utility_modules():
 
     assert utility_config_engine is not None
     assert utility_envfile_parser is not None
-    assert utility_jsonc_parser is not None
     assert utility_manifest_reader is not None
     assert utility_paths_resolver is not None
     assert utility_toml_write is not None
@@ -112,7 +110,7 @@ def test_toml_write_quick():
 
 def test_jsonc_strip_quick():
     """SM-SHARED-010: JSONC strip operation completes within 5 seconds."""
-    from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
+    from modules.shared.src.utility_config_engine import strip_jsonc_comments
 
     start = time.time()
     result = strip_jsonc_comments('{"key": "value"} // comment')

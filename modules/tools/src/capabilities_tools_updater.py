@@ -19,7 +19,6 @@ import datetime
 import json
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsUpdaterProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
@@ -27,6 +26,7 @@ from modules.shared.src.taxonomy_common_vo import (
     atomic_write_text,
     state_home,
 )
+from modules.shared.src.tools.contract_tools_protocol import IToolsUpdaterProtocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

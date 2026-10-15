@@ -10,13 +10,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_vo import ToolSpec
-from modules.shared.src.taxonomy_tools_constant import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.tools.taxonomy_tools_constant import (
     CONTEXT7_LAUNCHER_ENTRIES,
     PNPM_DANGEROUS_ALLOW,
 )
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     PinCheck,
     ToolLifecycleConfig,

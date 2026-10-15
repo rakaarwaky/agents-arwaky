@@ -237,7 +237,7 @@ def test_config_command_integration():
 def test_config_container_wiring():
     """IT-CONFIG-008: ConfigContainer produces fully wired feature."""
     from modules.config.src.root_config_container import ConfigContainer
-    from modules.shared.src.contract_config_aggregate import IConfigAggregate
+    from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
     from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
     container = ConfigContainer()

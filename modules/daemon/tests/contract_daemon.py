@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_idaemonprotocol_exists():
     """CP-DAEMON-001: IDaemonProtocol exists as an ABC with rich methods."""
-    from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
+    from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
 
     assert IDaemonProtocol is not None
     assert hasattr(IDaemonProtocol, '__abstractmethods__')
@@ -34,7 +34,7 @@ def test_omniroute_daemon_manager_class_exists():
 def test_anytype_implements_idaemonprotocol():
     """CP-DAEMON-004: AnytypeDaemonManager implements the rich IDaemonProtocol."""
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-    from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
+    from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
 
     manager = AnytypeDaemonManager()
     assert isinstance(manager, IDaemonProtocol)
@@ -43,7 +43,7 @@ def test_anytype_implements_idaemonprotocol():
 def test_omniroute_implements_idaemonprotocol():
     """CP-DAEMON-005: OmnirouteDaemonManager implements the rich IDaemonProtocol."""
     from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
-    from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
+    from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
 
     manager = OmnirouteDaemonManager()
     assert isinstance(manager, IDaemonProtocol)
@@ -87,7 +87,7 @@ def test_orchestrator_implements_idaemonaggregate():
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
     from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
-    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+    from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 
     omniroute = OmnirouteDaemonManager()
     anytype = AnytypeDaemonManager()
@@ -107,7 +107,7 @@ def test_container_class_exists():
 def test_container_wires_correctly():
     """CP-DAEMON-011: DaemonContainer returns an IDaemonAggregate."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+    from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 
     container = DaemonContainer()
     assert isinstance(container.aggregate, IDaemonAggregate)
@@ -116,7 +116,7 @@ def test_container_wires_correctly():
 def test_create_daemon_feature_function_exists():
     """CP-DAEMON-012: create_daemon_feature function exists and returns aggregate."""
     from modules.daemon.src.root_daemon_container import create_daemon_feature
-    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+    from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 
     result = create_daemon_feature()
     assert isinstance(result, IDaemonAggregate)
@@ -124,7 +124,7 @@ def test_create_daemon_feature_function_exists():
 
 def test_daemon_value_objects_exist():
     """CP-DAEMON-013: Daemon value objects exist and are instantiable."""
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
         DaemonStatus,

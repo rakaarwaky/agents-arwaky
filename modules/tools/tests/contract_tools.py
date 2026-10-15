@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_protocol_classes_exist():
     """CP-TOOLS-001: the five tools capability protocol classes exist and are ABCs."""
-    from modules.shared.src.contract_tools_protocol import (
+    from modules.shared.src.tools.contract_tools_protocol import (
         IToolsAdapterProtocol,
         IToolsInstallerProtocol,
         IToolsRunnerProtocol,
@@ -24,7 +24,7 @@ def test_protocol_classes_exist():
 
 def test_protocol_methods_are_named():
     """CP-TOOLS-002: each protocol declares named methods, never an execute(op) bag."""
-    from modules.shared.src.contract_tools_protocol import (
+    from modules.shared.src.tools.contract_tools_protocol import (
         IToolsAdapterProtocol,
         IToolsInstallerProtocol,
         IToolsRunnerProtocol,
@@ -46,7 +46,7 @@ def test_protocol_methods_are_named():
 
 def test_installer_capability_implements_protocol():
     """CP-TOOLS-003: InstallerCapability implements IToolsInstallerProtocol."""
-    from modules.shared.src.contract_tools_protocol import IToolsInstallerProtocol
+    from modules.shared.src.tools.contract_tools_protocol import IToolsInstallerProtocol
     from modules.tools.src.capabilities_tools_installer import InstallerCapability
 
     assert issubclass(InstallerCapability, IToolsInstallerProtocol)
@@ -54,7 +54,7 @@ def test_installer_capability_implements_protocol():
 
 def test_updater_capability_implements_protocol():
     """CP-TOOLS-004: UpdaterCapability implements IToolsUpdaterProtocol."""
-    from modules.shared.src.contract_tools_protocol import IToolsUpdaterProtocol
+    from modules.shared.src.tools.contract_tools_protocol import IToolsUpdaterProtocol
     from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 
     assert issubclass(UpdaterCapability, IToolsUpdaterProtocol)
@@ -62,7 +62,9 @@ def test_updater_capability_implements_protocol():
 
 def test_uninstaller_capability_implements_protocol():
     """CP-TOOLS-005: UninstallerCapability implements IToolsUninstallerProtocol."""
-    from modules.shared.src.contract_tools_protocol import IToolsUninstallerProtocol
+    from modules.shared.src.tools.contract_tools_protocol import (
+        IToolsUninstallerProtocol,
+    )
     from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
 
     assert issubclass(UninstallerCapability, IToolsUninstallerProtocol)
@@ -70,7 +72,7 @@ def test_uninstaller_capability_implements_protocol():
 
 def test_runner_capability_implements_protocol():
     """CP-TOOLS-006: RunnerCapability implements IToolsRunnerProtocol."""
-    from modules.shared.src.contract_tools_protocol import IToolsRunnerProtocol
+    from modules.shared.src.tools.contract_tools_protocol import IToolsRunnerProtocol
     from modules.tools.src.capabilities_tools_runner import RunnerCapability
 
     assert issubclass(RunnerCapability, IToolsRunnerProtocol)
@@ -78,7 +80,7 @@ def test_runner_capability_implements_protocol():
 
 def test_orchestrator_implements_aggregate():
     """CP-TOOLS-007: ToolsOrchestrator implements IToolsAggregate."""
-    from modules.shared.src.contract_tools_aggregate import IToolsAggregate
+    from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     assert issubclass(ToolsOrchestrator, IToolsAggregate)
@@ -97,7 +99,7 @@ def test_capabilities_have_no_execute_bag():
 
 def test_capabilities_implement_whole_protocol():
     """CP-TOOLS-009: every capability instantiates — no partial implementation."""
-    from modules.shared.src.contract_tools_protocol import (
+    from modules.shared.src.tools.contract_tools_protocol import (
         IToolsRunnerProtocol,
         IToolsUninstallerProtocol,
     )

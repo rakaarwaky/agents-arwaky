@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.taxonomy_tools_vo import (
     ToolArgs,
     ToolQuery,
     ToolRequest,
@@ -173,7 +173,7 @@ def test_tools_orchestrator_executable_path_requires_runner():
 
 def test_create_tools_feature():
     """IT-TOOLS-011: create_tools_feature returns a wired aggregate."""
-    from modules.shared.src.contract_tools_aggregate import IToolsAggregate
+    from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
     from modules.tools.src.root_tools_container import create_tools_feature
 
     feature = create_tools_feature()

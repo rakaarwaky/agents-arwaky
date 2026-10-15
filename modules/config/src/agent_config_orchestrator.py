@@ -8,8 +8,8 @@ agent layer depends on the contracts, never on the concrete capabilities.
 """
 from __future__ import annotations
 
-from modules.shared.src.contract_config_aggregate import IConfigAggregate
-from modules.shared.src.contract_config_protocol import (
+from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
+from modules.shared.src.config.contract_config_protocol import (
     IConfigModifierProtocol,
     IConfigReaderProtocol,
 )

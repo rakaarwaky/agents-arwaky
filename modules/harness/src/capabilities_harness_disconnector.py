@@ -9,10 +9,12 @@ import json
 import os
 from pathlib import Path
 
-from modules.shared.src.contract_harness_protocol import IHarnessDisconnectProtocol
+from modules.shared.src.harness.contract_harness_protocol import (
+    IHarnessDisconnectProtocol,
+)
+from modules.shared.src.harness.taxonomy_harness_vo import DisconnectOpts
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import iter_skill_files
-from modules.shared.src.taxonomy_harness_vo import DisconnectOpts
 from modules.shared.src.utility_config_engine import (
     arwaky_server_names,
     load_file,

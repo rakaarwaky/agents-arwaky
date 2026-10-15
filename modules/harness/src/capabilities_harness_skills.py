@@ -12,11 +12,14 @@ import os
 import shutil
 from pathlib import Path
 
-from modules.shared.src.contract_harness_protocol import IHarnessSkillsProtocol
+from modules.shared.src.harness.contract_harness_protocol import IHarnessSkillsProtocol
+from modules.shared.src.harness.taxonomy_harness_constant import (
+    ASSET_DIRS,
+    LIVE_SKILLS_STATE,
+)
+from modules.shared.src.harness.taxonomy_harness_vo import SkillsOpts
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_vo import iter_skill_files
-from modules.shared.src.taxonomy_harness_constant import ASSET_DIRS
-from modules.shared.src.taxonomy_harness_vo import SkillsOpts
 from modules.shared.src.taxonomy_skill_vo import safe_skill_name
 from modules.shared.src.utility_harness_log import (
     log_err,
@@ -231,7 +234,7 @@ def _merge_dir_into(src: Path, dest: Path) -> int:
 # belong to the profile, NOT the shared pack — migrating them in would pollute
 # the pack with per-profile usage/curator state. Their presence marks a live
 # home whose leftovers must be preserved in place (backed up), not moved.
-_LIVE_SKILLS_STATE = frozenset({".usage.json", ".usage.json.lock", ".curator_state", ".bundled_manifest"})
+# Imported from taxonomy_harness_constant (AES403: policy constant in taxonomy).
 
 
 def _live_state_backup_dir(dest_root: Path) -> Path:
@@ -257,7 +260,7 @@ def _link_skills_root(dest_root: Path, src_root: Path, force: bool, dry_run: boo
     """
     failures = 0
     live_state = (
-        any((dest_root / name).exists() for name in _LIVE_SKILLS_STATE)
+        any((dest_root / name).exists() for name in LIVE_SKILLS_STATE)
         if dest_root.is_dir() else False
     )
     if dest_root.is_symlink():

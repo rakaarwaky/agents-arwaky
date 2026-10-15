@@ -102,7 +102,7 @@ def test_config_engine_exports_functions():
 
 def test_jsonc_parser_exports_strip():
     """CP-SHARED-008: JSONC parser exports strip_jsonc_comments."""
-    from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
+    from modules.shared.src.utility_config_engine import strip_jsonc_comments
 
     assert callable(strip_jsonc_comments)
 

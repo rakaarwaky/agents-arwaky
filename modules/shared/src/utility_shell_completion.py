@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 COMMANDS = (
-    "status doctor check submodules clean reset version help "
-    "tool skill skills connect disconnect mcp completion "
+    "status doctor submodules clean reset version help "
+    "tool skills connect disconnect mcp completion "
     "anytype omniroute service backup restore "
     "install update uninstall list ls run"
 )
@@ -18,7 +18,7 @@ def bash_completion() -> str:
     else
         case "${{COMP_WORDS[1]}}" in
             tool) COMPREPLY=( $(compgen -W "list ls run install update uninstall" -- "$cur") ) ;;
-            skill|skills) COMPREPLY=( $(compgen -W "list ls install uninstall show check sync help" -- "$cur") ) ;;
+            skills) COMPREPLY=( $(compgen -W "list ls show help" -- "$cur") ) ;;
             connect|disconnect) COMPREPLY=( $(compgen -W "--hermes --opencode --grok-build --all" -- "$cur") ) ;;
             mcp) COMPREPLY=( $(compgen -W "list generate show" -- "$cur") ) ;;
             completion) COMPREPLY=( $(compgen -W "bash zsh" -- "$cur") ) ;;
@@ -41,7 +41,7 @@ _aa() {{
     else
         case "${{words[2]}}" in
             tool) _values 'sub' list ls run install update uninstall ;;
-            skill|skills) _values 'sub' list ls install uninstall show check sync help ;;
+            skills) _values 'sub' list ls show help ;;
             connect|disconnect) _values 'flag' --hermes --opencode --grok-build --all ;;
             mcp) _values 'sub' list generate show ;;
             completion) _values 'shell' bash zsh ;;

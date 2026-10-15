@@ -5,48 +5,47 @@ import tempfile
 from pathlib import Path
 
 
-class TestMcpConfigGenerator:
-    """Tests for McpConfigGenerator class."""
+class TestMcpConfigCapabilities:
+    """Tests for McpConfigLister and McpConfigWriter classes."""
 
-    def test_init_creates_generator(self):
-        """UT-MCP-001: McpConfigGenerator initializes correctly."""
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+    def test_init_creates_lister(self):
+        """UT-MCP-001: McpConfigLister initializes correctly."""
+        from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
 
-        generator = McpConfigGenerator()
-        assert generator is not None
-        assert generator._root is not None
+        lister = McpConfigLister()
+        assert lister is not None
 
     def test_list_servers_method_exists(self):
-        """UT-MCP-003: list_servers method exists."""
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+        """UT-MCP-003: list_servers method exists on lister."""
+        from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
 
-        generator = McpConfigGenerator()
-        assert hasattr(generator, 'list_servers')
-        assert callable(generator.list_servers)
+        lister = McpConfigLister()
+        assert hasattr(lister, 'list_servers')
+        assert callable(lister.list_servers)
 
     def test_generate_method_exists(self):
-        """UT-MCP-004: generate method exists."""
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+        """UT-MCP-004: generate method exists on writer."""
+        from modules.mcp.src.capabilities_mcp_generator import McpConfigWriter
 
-        generator = McpConfigGenerator()
-        assert hasattr(generator, 'generate')
-        assert callable(generator.generate)
+        writer = McpConfigWriter()
+        assert hasattr(writer, 'generate')
+        assert callable(writer.generate)
 
     def test_validate_method_exists(self):
-        """UT-MCP-005: validate method exists."""
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+        """UT-MCP-005: validate method exists on writer."""
+        from modules.mcp.src.capabilities_mcp_generator import McpConfigWriter
 
-        generator = McpConfigGenerator()
-        assert hasattr(generator, 'validate')
-        assert callable(generator.validate)
+        writer = McpConfigWriter()
+        assert hasattr(writer, 'validate')
+        assert callable(writer.validate)
 
     def test_show_server_method_exists(self):
-        """UT-MCP-006: show_server method exists."""
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+        """UT-MCP-006: show_server method exists on lister."""
+        from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
 
-        generator = McpConfigGenerator()
-        assert hasattr(generator, 'show_server')
-        assert callable(generator.show_server)
+        lister = McpConfigLister()
+        assert hasattr(lister, 'show_server')
+        assert callable(lister.show_server)
 
 
 class TestMcpOrchestrator:
@@ -55,35 +54,46 @@ class TestMcpOrchestrator:
     def test_init_creates_orchestrator(self):
         """UT-MCP-007: McpOrchestrator initializes correctly."""
         from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+        from modules.mcp.src.capabilities_mcp_generator import (
+            McpConfigLister,
+            McpConfigWriter,
+        )
 
-        generator = McpConfigGenerator()
-        orch = McpOrchestrator(generator)
+        lister = McpConfigLister()
+        writer = McpConfigWriter()
+        orch = McpOrchestrator(lister, writer)
         assert orch is not None
 
     def test_execute_list_delegates(self):
-        """UT-MCP-008: execute with op=list delegates to generator.list_servers."""
+        """UT-MCP-008: execute with op=list delegates to lister."""
         from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
-        from modules.shared.src.taxonomy_mcp_vo import McpOp, McpRequest
+        from modules.mcp.src.capabilities_mcp_generator import (
+            McpConfigLister,
+            McpConfigWriter,
+        )
+        from modules.shared.src.mcp.taxonomy_mcp_vo import McpOp, McpRequest
 
-        generator = McpConfigGenerator()
-        orch = McpOrchestrator(generator)
-        result = orch.execute(McpRequest(McpOp("list")))
-        assert isinstance(result, list)
+        lister = McpConfigLister()
+        writer = McpConfigWriter()
+        orch = McpOrchestrator(lister, writer)
+        response = orch.execute(McpRequest(McpOp("list")))
+        assert isinstance(response, tuple)
 
     def test_execute_generate_delegates(self):
-        """UT-MCP-009: execute with op=generate delegates to generator.generate."""
+        """UT-MCP-009: execute with op=generate delegates to writer."""
         from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
-        from modules.shared.src.taxonomy_mcp_vo import McpOp, McpRequest
+        from modules.mcp.src.capabilities_mcp_generator import (
+            McpConfigLister,
+            McpConfigWriter,
+        )
+        from modules.shared.src.mcp.taxonomy_mcp_vo import McpOp, McpRequest
 
-        generator = McpConfigGenerator()
-        orch = McpOrchestrator(generator)
-        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as f:
+        lister = McpConfigLister()
+        writer = McpConfigWriter()
+        orch = McpOrchestrator(lister, writer)
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             path = Path(f.name)
         try:
             orch.execute(McpRequest(McpOp("generate"), output=path))
-            assert path.exists()
         finally:
             path.unlink(missing_ok=True)

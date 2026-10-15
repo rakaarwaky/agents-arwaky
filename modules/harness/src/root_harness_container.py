@@ -23,8 +23,8 @@ from modules.harness.src.capabilities_harness_opencode_adapter import (
     ADAPTER_UNITS as _OPENCODE_UNITS,
 )
 from modules.harness.src.capabilities_harness_skills import HarnessSkills
-from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
-from modules.shared.src.taxonomy_harness_constant import ALL_HARNESS_IDS
+from modules.shared.src.harness.contract_harness_aggregate import IHarnessAggregate
+from modules.shared.src.harness.taxonomy_harness_constant import ALL_HARNESS_IDS
 
 #: harness_id → provider spec (root composition data; each spec owns one
 #: provider's paths, config format, env keys, and custom-API flag).

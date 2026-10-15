@@ -8,14 +8,17 @@ is injected by the root layer.
 """
 from __future__ import annotations
 
-from modules.shared.src.contract_harness_aggregate import IHarnessAggregate
-from modules.shared.src.contract_harness_protocol import (
+from modules.shared.src.harness.contract_harness_aggregate import IHarnessAggregate
+from modules.shared.src.harness.contract_harness_protocol import (
     IHarnessConnectProtocol,
     IHarnessDisconnectProtocol,
     IHarnessSkillsProtocol,
 )
-from modules.shared.src.taxonomy_harness_constant import ALIASES, ALL_HARNESS_IDS
-from modules.shared.src.taxonomy_harness_vo import (
+from modules.shared.src.harness.taxonomy_harness_constant import (
+    ALIASES,
+    ALL_HARNESS_IDS,
+)
+from modules.shared.src.harness.taxonomy_harness_vo import (
     ExitCode,
     HarnessRequest,
     HarnessResponse,

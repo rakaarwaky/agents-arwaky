@@ -19,10 +19,14 @@ def test_import_mcp_modules():
 
 def test_mcp_generator_init_quick():
     """SM-MCP-002: McpConfigGenerator initialization is quick."""
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+    from modules.mcp.src.capabilities_mcp_generator import (
+    McpConfigLister,
+    McpConfigWriter,
+)
 
     start = time.time()
-    McpConfigGenerator()
+    lister = McpConfigLister(); _ = lister
+    _ = McpConfigWriter()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -31,11 +35,15 @@ def test_mcp_generator_init_quick():
 def test_mcp_orchestrator_init_quick():
     """SM-MCP-003: McpOrchestrator initialization is quick."""
     from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+    from modules.mcp.src.capabilities_mcp_generator import (
+    McpConfigLister,
+    McpConfigWriter,
+)
 
     start = time.time()
-    generator = McpConfigGenerator()
-    McpOrchestrator(generator)
+    lister = McpConfigLister(); _ = lister
+    _ = McpConfigWriter()
+    McpOrchestrator(lister, McpConfigWriter())
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"

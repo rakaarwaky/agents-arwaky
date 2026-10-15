@@ -6,7 +6,7 @@ from pathlib import Path
 
 def test_backup_protocol_exists():
     """CP-BACKUP-001: IBackupProtocol exists and can be imported."""
-    from modules.shared.src.contract_backup_protocol import IBackupProtocol
+    from modules.shared.src.backup.contract_backup_protocol import IBackupProtocol
 
     assert IBackupProtocol is not None
 
@@ -25,7 +25,7 @@ def test_backup_vo_classes_exist():
 def test_tar_gateway_implements_protocol():
     """CP-BACKUP-003: TarBackupGateway implements the rich IBackupProtocol."""
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
-    from modules.shared.src.contract_backup_protocol import IBackupProtocol
+    from modules.shared.src.backup.contract_backup_protocol import IBackupProtocol
 
     gateway = TarBackupGateway()
     assert isinstance(gateway, IBackupProtocol)
@@ -36,7 +36,7 @@ def test_tar_gateway_implements_protocol():
 def test_gdrive_gateway_implements_protocol():
     """CP-BACKUP-004: GdriveBackupGateway implements the rich IBackupProtocol."""
     from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
-    from modules.shared.src.contract_backup_protocol import IBackupProtocol
+    from modules.shared.src.backup.contract_backup_protocol import IBackupProtocol
 
     gateway = GdriveBackupGateway()
     assert isinstance(gateway, IBackupProtocol)
@@ -77,7 +77,7 @@ def test_backup_protocol_has_no_execute_dispatch():
 
 def test_backup_aggregate_declares_only_execute():
     """CP-BACKUP-008: the aggregate exposes exactly one abstract method."""
-    from modules.shared.src.contract_backup_aggregate import IBackupAggregate
+    from modules.shared.src.backup.contract_backup_aggregate import IBackupAggregate
 
     abstract = {
         name

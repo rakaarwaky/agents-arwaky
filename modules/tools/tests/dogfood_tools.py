@@ -7,7 +7,7 @@ import pytest
 @pytest.mark.dogfood
 def test_dogfood_tools_pipeline():
     """DOG-TOOLS-001: Basic dogfood check for tools module."""
-    from modules.shared.src.contract_tools_protocol import (
+    from modules.shared.src.tools.contract_tools_protocol import (
         IToolsInstallerProtocol,
         IToolsUninstallerProtocol,
         IToolsUpdaterProtocol,

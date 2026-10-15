@@ -7,8 +7,8 @@ stay on the surface (AES406).
 """
 from __future__ import annotations
 
-from modules.shared.src.contract_backup_aggregate import IBackupAggregate
-from modules.shared.src.taxonomy_backup_vo import (
+from modules.shared.src.backup.contract_backup_aggregate import IBackupAggregate
+from modules.shared.src.backup.taxonomy_backup_vo import (
     BackupArchive,
     BackupDestination,
     BackupOp,

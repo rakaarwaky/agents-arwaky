@@ -7,15 +7,19 @@ def test_service_manager_execution():
     from unittest.mock import MagicMock, patch
 
     from modules.service.src import capabilities_service_manager as csm
-    from modules.service.src.capabilities_service_manager import ServiceManager
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.service.src.capabilities_service_manager import (
+        ServiceControl,
+        ServiceInspect,
+    )
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
         DaemonOutcome,
         DaemonRequest,
     )
 
-    manager = ServiceManager()
+    control = ServiceControl()
+    inspect_cap = ServiceInspect()
     mock_agg = MagicMock()
     mock_agg.execute.return_value = DaemonOutcome(success=True, exit_code=0)
     with patch.object(csm, "_DAEMON_AGGREGATE", mock_agg):
@@ -33,10 +37,14 @@ def test_service_manager_execution():
 def test_service_orchestrator_creation():
     """IT-SERVICE-002: ServiceOrchestrator can be created."""
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-    from modules.service.src.capabilities_service_manager import ServiceManager
+    from modules.service.src.capabilities_service_manager import (
+        ServiceControl,
+        ServiceInspect,
+    )
 
-    manager = ServiceManager()
-    orch = ServiceOrchestrator(manager)
+    control = ServiceControl()
+    inspect_cap = ServiceInspect()
+    orch = ServiceOrchestrator(control, inspect)
     assert orch is not None
 
 

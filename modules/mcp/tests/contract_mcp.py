@@ -4,16 +4,24 @@ from __future__ import annotations
 
 def test_mcp_protocol_exists():
     """CP-MCP-001: IMcpProtocol exists and can be imported."""
-    from modules.shared.src.contract_mcp_protocol import IMcpProtocol
+    from modules.shared.src.mcp.contract_mcp_protocol import (
+        IMcpListProtocol,
+        IMcpWriteProtocol,
+    )
 
-    assert IMcpProtocol is not None
+    assert IMcpListProtocol is not None
+    assert IMcpWriteProtocol is not None
 
 
 def test_mcp_generator_exists():
-    """CP-MCP-002: McpConfigGenerator class exists."""
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+    """CP-MCP-002: McpConfigLister class exists."""
+    from modules.mcp.src.capabilities_mcp_generator import (
+        McpConfigLister,
+        McpConfigWriter,
+    )
 
-    assert McpConfigGenerator is not None
+    assert McpConfigLister is not None
+    assert McpConfigWriter is not None
 
 
 def test_mcp_orchestrator_exists():
@@ -24,20 +32,33 @@ def test_mcp_orchestrator_exists():
 
 
 def test_mcp_generator_implements_protocol():
-    """CP-MCP-004: McpConfigGenerator implements IMcpProtocol."""
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
-    from modules.shared.src.contract_mcp_protocol import IMcpProtocol
+    """CP-MCP-004: McpConfigLister/McpConfigWriter implement the protocols."""
+    from modules.mcp.src.capabilities_mcp_generator import (
+        McpConfigLister,
+        McpConfigWriter,
+    )
+    from modules.shared.src.mcp.contract_mcp_protocol import (
+        IMcpListProtocol,
+        IMcpWriteProtocol,
+    )
 
-    generator = McpConfigGenerator()
-    assert isinstance(generator, IMcpProtocol)
+    lister = McpConfigLister()
+    writer = McpConfigWriter()
+    assert isinstance(lister, IMcpListProtocol)
+    assert isinstance(writer, IMcpWriteProtocol)
 
 
 def test_mcp_orchestrator_implements_aggregate():
     """CP-MCP-005: McpOrchestrator implements IMcpAggregate."""
     from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
-    from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
+    from modules.mcp.src.capabilities_mcp_generator import (
+        McpConfigLister,
+        McpConfigWriter,
+    )
+    from modules.shared.src.mcp.contract_mcp_aggregate import IMcpAggregate
 
-    generator = McpConfigGenerator()
-    orchestrator = McpOrchestrator(generator)
-    assert isinstance(orchestrator, IMcpAggregate)
+    lister = McpConfigLister()
+    writer = McpConfigWriter()
+    orch = McpOrchestrator(lister, writer)
+    assert isinstance(orch, IMcpAggregate)
+

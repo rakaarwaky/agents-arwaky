@@ -19,10 +19,12 @@ def test_import_service_modules():
 
 def test_service_manager_init_quick():
     """SM-SERVICE-002: ServiceManager initialization is quick."""
-    from modules.service.src.capabilities_service_manager import ServiceManager
+    from modules.service.src.capabilities_service_manager import (
+        ServiceControl,
+    )
 
     start = time.time()
-    ServiceManager()
+    ServiceControl()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -31,11 +33,15 @@ def test_service_manager_init_quick():
 def test_service_orchestrator_init_quick():
     """SM-SERVICE-003: ServiceOrchestrator initialization is quick."""
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-    from modules.service.src.capabilities_service_manager import ServiceManager
+    from modules.service.src.capabilities_service_manager import (
+        ServiceControl,
+        ServiceInspect,
+    )
 
     start = time.time()
-    manager = ServiceManager()
-    ServiceOrchestrator(manager)
+    control = ServiceControl()
+    inspect_cap = ServiceInspect()
+    ServiceOrchestrator(control, inspect)
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"

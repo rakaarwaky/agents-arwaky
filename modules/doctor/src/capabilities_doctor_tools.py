@@ -5,7 +5,7 @@ import json as _json
 import shutil
 from collections.abc import Mapping
 
-from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
+from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 from modules.shared.src.taxonomy_common_vo import ExitCode, bin_home, ensure_path
 from modules.shared.src.utility_logging_setup import (
     BLUE,

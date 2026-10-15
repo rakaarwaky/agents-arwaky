@@ -19,11 +19,8 @@ import time
 import urllib.error
 import urllib.request
 
-from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
-from modules.shared.src.taxonomy_common_vo import (
-    agents_arwaky_config_dir,
-)
-from modules.shared.src.taxonomy_daemon_constant import (
+from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
+from modules.shared.src.daemon.taxonomy_daemon_constant import (
     ANYTYPE_CONFIG_DIR,
     CONTAINER_NAME,
     DATA_DIR,
@@ -36,16 +33,23 @@ from modules.shared.src.taxonomy_daemon_constant import (
     SHARE_DIR,
     UNIT_DIR,
 )
-from modules.shared.src.taxonomy_daemon_constant import (
+from modules.shared.src.daemon.taxonomy_daemon_constant import (
     ANYTYPE_PORT as PORT,
 )
-from modules.shared.src.taxonomy_daemon_constant import (
+from modules.shared.src.daemon.taxonomy_daemon_constant import (
     ANYTYPE_SCRIPT_DIR as SCRIPT_DIR,
 )
-from modules.shared.src.taxonomy_daemon_constant import (
+from modules.shared.src.daemon.taxonomy_daemon_constant import (
     ANYTYPE_UNIT_FILE as UNIT_FILE,
 )
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, DaemonUnit, ExitCode
+from modules.shared.src.daemon.taxonomy_daemon_vo import (
+    DaemonStatus,
+    DaemonUnit,
+    ExitCode,
+)
+from modules.shared.src.taxonomy_common_vo import (
+    agents_arwaky_config_dir,
+)
 from modules.shared.src.utility_envfile_parser import update_env_file
 from modules.shared.src.utility_process_runner import cmd_out as out
 from modules.shared.src.utility_process_runner import run_cmd as run

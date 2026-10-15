@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from modules.shared.src.taxonomy_backup_vo import (
+from modules.shared.src.backup.taxonomy_backup_vo import (
     BackupOp,
     BackupOutcome,
     BackupRequest,

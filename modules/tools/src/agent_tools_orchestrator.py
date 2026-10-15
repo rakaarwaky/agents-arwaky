@@ -20,21 +20,21 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar
 
-from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.contract_tools_aggregate import IToolsAggregate
-from modules.shared.src.contract_tools_protocol import (
-    IToolsInstallerProtocol,
-    IToolsRunnerProtocol,
-    IToolsUninstallerProtocol,
-    IToolsUpdaterProtocol,
-)
+from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.taxonomy_common_error import (
     ToolInstallError,
     ToolUninstallError,
     ToolUpdateError,
 )
 from modules.shared.src.taxonomy_common_vo import ToolSpec
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
+from modules.shared.src.tools.contract_tools_protocol import (
+    IToolsInstallerProtocol,
+    IToolsRunnerProtocol,
+    IToolsUninstallerProtocol,
+    IToolsUpdaterProtocol,
+)
+from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     ExitCode,
     ToolArgs,

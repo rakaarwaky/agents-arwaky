@@ -66,7 +66,7 @@ def bench_config_home(benchmark):
 
 def bench_strip_jsonc_comments(benchmark):
     """BENCH-SHARED-007: strip_jsonc_comments performance."""
-    from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
+    from modules.shared.src.utility_config_engine import strip_jsonc_comments
 
     sample = '{"key": "value"} // comment' * 100
 

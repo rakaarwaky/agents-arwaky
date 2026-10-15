@@ -6,13 +6,15 @@ State / Health: vocabulary below. Last Updated: 2026-09-23
 
 - Done: legacy `tools/` fully migrated to AES `modules/`; 10/10 feature
   FRD/BACKLOG pairs HOW-TO-clean; FRD redesign plan approved and written
-  (single-row `execute` protocol per feature); `aa skill check` → PASSED
-  (92 skills / 20 categories).
-- Removed: `modules/check` and the `aa check` gate (docs + skill verification)
-  were deleted on 2026-09-28; `aa skill check` remains the skill-pack audit.
+  (single-row `execute` protocol per feature); skill discovery is read-only
+  via `aa skills list` / `aa skills show` (backed by `modules/skills/`).
+- Removed: `modules/check`, the `aa check` gate, and the `aa skill` provisioning
+  surface (install/uninstall/update/check) were deleted on 2026-09-28; skill
+  discovery is now read-only: `aa skills list` / `aa skills show`, backed by
+  `modules/skills/`.
 - In Progress: none at workspace level; per-feature QA sweeps live in each
   feature BACKLOG (tools TOL-02/TOL-03, config CFG-01/CFG-04, daemon DMN-01,
-  service SVC-01, mcp MCP-01, skill SKL-01, backup BKP-01).
+  service SVC-01, mcp MCP-01, skills SKL-01, backup BKP-01).
 - Blocked: WS-05 (live `.env` home undecided).
 - Next: WS-05, then WS-06 (port remaining legacy tests).
 
@@ -63,7 +65,7 @@ One table: every feature. Feature detail stays in each feature's BACKLOG.
 | modules/doctor | Host + tool readiness diagnosis | P1 | [FRD](modules/doctor/FRD.md) | [BACKLOG](modules/doctor/BACKLOG.md) | Done | On Track | @raka | none | 2026-09-23 |
 | modules/harness | Connect / disconnect / skill provisioning | P1 | [FRD](modules/harness/FRD.md) | [BACKLOG](modules/harness/BACKLOG.md) | Ready | At Risk | @raka | HRS-01 sweep | 2026-09-23 |
 | modules/service | systemd unit drive / status / logs | P1 | [FRD](modules/service/FRD.md) | [BACKLOG](modules/service/BACKLOG.md) | QA | On Track | @raka | SVC-01 live sweep | 2026-09-23 |
-| modules/skill | Skill provision / audit / install / sync | P1 | [FRD](modules/skill/FRD.md) | [BACKLOG](modules/skill/BACKLOG.md) | QA | On Track | @raka | SKL-01 sweep | 2026-09-23 |
+| modules/skills | Skill pack discovery: list / show (read-only) | P1 | [FRD](modules/skills/FRD.md) | [BACKLOG](modules/skills/BACKLOG.md) | QA | On Track | @raka | SKL-01 sweep | 2026-09-23 |
 | modules/backup | Archive / restore / list / status | P2 | [FRD](modules/backup/FRD.md) | [BACKLOG](modules/backup/BACKLOG.md) | QA | On Track | @raka | BKP-01 gdrive leg | 2026-09-23 |
 | modules/shared | Kernel (XDG, venv, launcher, engines) | P0 | — (kernel, not a feature) | — (no pair; see HOW-TO-MAKE-FRD) | In Progress | On Track | @raka | none | 2026-09-23 |
 

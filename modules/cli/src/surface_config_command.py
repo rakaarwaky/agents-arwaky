@@ -11,7 +11,7 @@ import json
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_config_aggregate import IConfigAggregate
+from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 from modules.shared.src.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,

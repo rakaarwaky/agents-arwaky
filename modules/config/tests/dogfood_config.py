@@ -9,7 +9,7 @@ def test_dogfood_config_pipeline():
     """DOG-CONFIG-001: Basic dogfood check for config module."""
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.contract_config_protocol import (
+    from modules.shared.src.config.contract_config_protocol import (
         IConfigModifierProtocol,
         IConfigReaderProtocol,
     )

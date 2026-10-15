@@ -72,7 +72,9 @@ class TestConfigWriter:
     def test_implements_whole_protocol(self):
         """UT-CONFIG-005: ConfigWriter implements every IConfigReaderProtocol method."""
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.shared.src.contract_config_protocol import IConfigReaderProtocol
+        from modules.shared.src.config.contract_config_protocol import (
+            IConfigReaderProtocol,
+        )
 
         writer = ConfigWriter()
         assert isinstance(writer, IConfigReaderProtocol)
@@ -233,7 +235,9 @@ class TestConfigModifier:
     def test_implements_whole_protocol(self):
         """UT-CONFIG-016: ConfigModifier implements every IConfigModifierProtocol method."""
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.shared.src.contract_config_protocol import IConfigModifierProtocol
+        from modules.shared.src.config.contract_config_protocol import (
+            IConfigModifierProtocol,
+        )
 
         modifier = ConfigModifier()
         assert isinstance(modifier, IConfigModifierProtocol)
@@ -342,7 +346,7 @@ class TestConfigOrchestrator:
 
     def test_aggregate_declares_one_method(self):
         """UT-CONFIG-023b: IConfigAggregate declares exactly one method, execute."""
-        from modules.shared.src.contract_config_aggregate import IConfigAggregate
+        from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 
         assert IConfigAggregate.__abstractmethods__ == frozenset({"execute"})
 

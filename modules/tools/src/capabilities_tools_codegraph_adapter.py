@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_vo import ToolSpec
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     PinCheck,
     ToolLifecycleConfig,

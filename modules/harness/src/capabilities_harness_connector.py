@@ -13,21 +13,21 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from modules.shared.src.contract_harness_protocol import (
+from modules.shared.src.harness.contract_harness_protocol import (
     IHarnessConnectProtocol,
     IHarnessSkillsProtocol,
 )
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.taxonomy_common_vo import data_home
-from modules.shared.src.taxonomy_harness_constant import (
+from modules.shared.src.harness.taxonomy_harness_constant import (
     FALLBACK_MCP_COMMANDS,
     PLACEHOLDER_KEYS,
 )
-from modules.shared.src.taxonomy_harness_vo import (
+from modules.shared.src.harness.taxonomy_harness_vo import (
     ConnectOpts,
     ExitCode,
     RouterCredentials,
 )
+from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.taxonomy_common_vo import data_home
 from modules.shared.src.utility_config_engine import (
     arwaky_server_names,
     load_file,

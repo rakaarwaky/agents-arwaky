@@ -14,7 +14,7 @@ The only differences are the import swaps to the AES modules:
                    _find_* helpers (original tools/lib/tool_resolver.py
                    bodies as-is, import-swapped)
   - doc_pack        -> modules.shared.src.utility_doc_pack
-  - skill_pack      -> modules.skill.src.capabilities_skill_pack
+  - skill_pack      -> modules.skills.src.capabilities_skills_index_builder
   - paths.repo_root -> modules.shared.src.utility_paths
 
 Delegated actions (skill/connect/disconnect/daemon/service/backup)
@@ -114,7 +114,7 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
             mcp_binary=None,
             runner=runner or TOOL_RUNNERS.get(tool_id, ""),
         )
-        from modules.shared.src.taxonomy_tools_vo import ToolRequest, ToolsOp
+        from modules.shared.src.tools.taxonomy_tools_vo import ToolRequest, ToolsOp
         found = create_tools_feature().execute(
             ToolRequest(ToolsOp("executable_path"), spec=spec)
         ).executable
@@ -181,7 +181,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}status{RESET()}                         Check health, submodule and binary installation status")
     print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
     print(f"  {GREEN()}tool{RESET()} <cmd> [args]             Tool management (list|run|install|update|uninstall)")
-    print(f"  {GREEN()}skill{RESET()} <cmd> [args]             (removed — agents read skills/ directly)")
+    print(f"  {GREEN()}skills{RESET()} <cmd> [args]            Skill pack: list|show (agents read skills/ directly)")
     print(f"  {GREEN()}connect{RESET()} --<harness>|--all     Connect MCP, skills & env to harnesses")
     print(f"  {GREEN()}disconnect{RESET()} --<harness>|--all  Disconnect harnesses (use --all for all)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
@@ -333,7 +333,11 @@ def cmd_run(argv: list[str]) -> int:
         err(f"Tool '{argv[0]}' not found in manifest.")
         print("Run 'aa tool list' to see all available tools.")
         return 1
-    from modules.shared.src.taxonomy_tools_vo import ToolArgs, ToolRequest, ToolsOp
+    from modules.shared.src.tools.taxonomy_tools_vo import (
+        ToolArgs,
+        ToolRequest,
+        ToolsOp,
+    )
     from modules.tools.src.root_tools_container import create_tools_feature
     spec = _spec_from_tool(tool)
     orch = create_tools_feature()
@@ -442,7 +446,7 @@ def cmd_update(argv: list[str]) -> int:
     for idx, tool in enumerate(tools, 1):
         spec = _spec_from_tool(tool)
         print(f"[{idx}/{total}] Updating {tool.id}", flush=True)
-        from modules.shared.src.taxonomy_tools_vo import ToolRequest, ToolsOp
+        from modules.shared.src.tools.taxonomy_tools_vo import ToolRequest, ToolsOp
         result = updater.execute(ToolRequest(ToolsOp("update"), spec=spec)).update
         if not result.success:
             failed.append(tool.id)
@@ -484,7 +488,7 @@ def cmd_mcp(argv: list[str]) -> int:
         return create_mcp_feature()
 
     def _request(op, **fields):
-        from modules.shared.src.taxonomy_mcp_vo import McpOp, McpRequest
+        from modules.shared.src.mcp.taxonomy_mcp_vo import McpOp, McpRequest
         return _feature().execute(McpRequest(McpOp(op), **fields))
 
     def _generate(target: str | None = None) -> int:
@@ -512,7 +516,7 @@ def cmd_mcp(argv: list[str]) -> int:
     if action in {"show", "path"}:
         raw = argv[1] if len(argv) > 1 and not argv[1].startswith("-") else None
         if raw is not None:
-            from modules.shared.src.taxonomy_mcp_vo import McpServerId
+            from modules.shared.src.mcp.taxonomy_mcp_vo import McpServerId
             return int(_request("show", server_id=McpServerId(raw)))
         if not generated.exists():
             warn("Configuration file not found. Generating now...")
@@ -550,6 +554,13 @@ def cmd_disconnect(argv: list[str]) -> int:
     from modules.harness.src.root_harness_container import create_harness_feature
     return _harness_disconnect(list(argv), create_harness_feature)
 
+
+def cmd_skills(argv: list[str]) -> int:
+    """Skill-pack discovery: aa skills <list|show> [args]."""
+    from modules.cli.src.surface_skills_command import cmd_skills as _skills_surface
+    from modules.skills.src.root_skills_container import default_aggregate
+
+    return _skills_surface(list(argv), default_aggregate())
 
 def cmd_completion(argv: list[str]) -> int:
     """Print a bash/zsh completion script for the aa CLI."""
@@ -653,7 +664,7 @@ def cmd_daemon(argv: list[str]) -> int:
         DaemonContainer,
         create_daemon_feature,
     )
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
         DaemonRequest,
@@ -684,7 +695,7 @@ def cmd_daemon(argv: list[str]) -> int:
         _reg_dm("anytype", lambda: _c.anytype)
         _reg_dm("omniroute", lambda: _c.omniroute)
         _reg_da(lambda: _c.aggregate)
-        from modules.daemon.src import surface_daemon_command as _dv
+        from modules.cli.src import surface_daemon_command as _dv
 
         fn = {
             "anytype": _dv.cmd_anytype,
@@ -741,7 +752,7 @@ def uninstall_tool(tool: Tool) -> int:
     uninstaller = create_tools_feature()
     spec = _spec_from_tool(tool)
     info(f"Uninstalling {tool.id}")
-    from modules.shared.src.taxonomy_tools_vo import ToolRequest, ToolsOp
+    from modules.shared.src.tools.taxonomy_tools_vo import ToolRequest, ToolsOp
     result = uninstaller.execute(ToolRequest(ToolsOp("uninstall"), spec=spec)).uninstall
     if not result.success:
         err(f"{tool.id}: {result.message}")
@@ -840,6 +851,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         # Core noun-action (canonical)
         "tool": cmd_tool,
         "config": cmd_config,
+        "skills": cmd_skills,
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
@@ -847,7 +859,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "service": cmd_service,
         "daemon": cmd_daemon,
         "backup": cmd_backup, "restore": cmd_restore,
-        # Backward compat aliases → noun action (deprecated, prefer aa tool/aa skill)
+        # Backward compat aliases → noun action (deprecated, prefer aa tool/aa skills)
         "install": cmd_install, "update": cmd_update, "uninstall": cmd_uninstall,
         "list": cmd_list, "ls": cmd_list, "run": cmd_run,
     }

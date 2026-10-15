@@ -18,7 +18,6 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsInstallerProtocol
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_error import ToolInstallError
 from modules.shared.src.taxonomy_common_vo import (
@@ -27,6 +26,7 @@ from modules.shared.src.taxonomy_common_vo import (
     bin_home,
     ensure_bin_home,
 )
+from modules.shared.src.tools.contract_tools_protocol import IToolsInstallerProtocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

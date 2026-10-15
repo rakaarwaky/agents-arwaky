@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_doctor_protocol_exists():
     """CP-DOCTOR-001: IDoctorProtocol exists and can be imported."""
-    from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
+    from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 
     assert IDoctorProtocol is not None
 
@@ -27,7 +27,7 @@ def test_doctor_runner_implements_protocol():
     """CP-DOCTOR-004: Doctor runners implement IDoctorProtocol."""
     from modules.doctor.src.capabilities_doctor_env import EnvDiagnosticRunner
     from modules.doctor.src.capabilities_doctor_tools import ToolsDiagnosticRunner
-    from modules.shared.src.contract_doctor_protocol import IDoctorProtocol
+    from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 
     env = EnvDiagnosticRunner()
     tools = ToolsDiagnosticRunner()
@@ -59,7 +59,7 @@ def test_doctor_run_method_exists():
 
 def test_doctor_aggregate_declares_only_execute():
     """CP-DOCTOR-007: the aggregate exposes exactly one abstract method."""
-    from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
+    from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
 
     abstract = {
         name

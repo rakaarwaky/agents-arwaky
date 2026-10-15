@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_config_protocol_exists():
     """CP-CONFIG-001: IConfigReaderProtocol and IConfigModifierProtocol are importable."""
-    from modules.shared.src.contract_config_protocol import (
+    from modules.shared.src.config.contract_config_protocol import (
         IConfigModifierProtocol,
         IConfigReaderProtocol,
     )
@@ -15,7 +15,7 @@ def test_config_protocol_exists():
 
 def test_config_reader_seam_has_read_ops():
     """CP-CONFIG-001b: the reader seam carries load/save/inspect/help."""
-    from modules.shared.src.contract_config_protocol import IConfigReaderProtocol
+    from modules.shared.src.config.contract_config_protocol import IConfigReaderProtocol
 
     for op in ("load", "save", "inspect", "help"):
         assert hasattr(IConfigReaderProtocol, op), op
@@ -23,7 +23,9 @@ def test_config_reader_seam_has_read_ops():
 
 def test_config_modifier_seam_has_mutating_ops():
     """CP-CONFIG-001c: the modifier seam carries merge/set/remove/help."""
-    from modules.shared.src.contract_config_protocol import IConfigModifierProtocol
+    from modules.shared.src.config.contract_config_protocol import (
+        IConfigModifierProtocol,
+    )
 
     for op in ("merge_servers", "set_env", "remove_entries", "help"):
         assert hasattr(IConfigModifierProtocol, op), op
@@ -31,7 +33,7 @@ def test_config_modifier_seam_has_mutating_ops():
 
 def test_config_aggregate_has_single_execute():
     """CP-CONFIG-002: IConfigAggregate exposes exactly one ``execute`` entry point."""
-    from modules.shared.src.contract_config_aggregate import IConfigAggregate
+    from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 
     assert callable(IConfigAggregate.execute)
     abstract = {
@@ -96,7 +98,7 @@ def test_config_orchestrator_class_exists():
 def test_config_writer_implements_reader_seam():
     """CP-CONFIG-007: ConfigWriter implements the reader seam and nothing more."""
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.contract_config_protocol import (
+    from modules.shared.src.config.contract_config_protocol import (
         IConfigModifierProtocol,
         IConfigReaderProtocol,
     )
@@ -111,7 +113,7 @@ def test_config_writer_implements_reader_seam():
 def test_config_modifier_implements_modifier_seam():
     """CP-CONFIG-008: ConfigModifier implements the modifier seam and nothing more."""
     from modules.config.src.capabilities_config_modifier import ConfigModifier
-    from modules.shared.src.contract_config_protocol import (
+    from modules.shared.src.config.contract_config_protocol import (
         IConfigModifierProtocol,
         IConfigReaderProtocol,
     )
@@ -141,7 +143,7 @@ def test_config_orchestrator_implements_aggregate():
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.contract_config_aggregate import IConfigAggregate
+    from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 
     writer = ConfigWriter()
     modifier = ConfigModifier()
@@ -152,7 +154,7 @@ def test_config_orchestrator_implements_aggregate():
 def test_config_container_provides_feature():
     """CP-CONFIG-010: ConfigContainer provides IConfigAggregate feature."""
     from modules.config.src.root_config_container import ConfigContainer
-    from modules.shared.src.contract_config_aggregate import IConfigAggregate
+    from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 
     container = ConfigContainer()
     aggregate = container.aggregate
@@ -162,7 +164,7 @@ def test_config_container_provides_feature():
 def test_create_config_feature_provides_aggregate():
     """CP-CONFIG-011: create_config_feature returns IConfigAggregate."""
     from modules.config.src.root_config_container import create_config_feature
-    from modules.shared.src.contract_config_aggregate import IConfigAggregate
+    from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 
     feature = create_config_feature()
     assert isinstance(feature, IConfigAggregate)
@@ -171,7 +173,7 @@ def test_create_config_feature_provides_aggregate():
 def test_config_surface_command_class_exists():
     """CP-CONFIG-012: ConfigCommand surface class exists and implements the aggregate."""
     from modules.cli.src.surface_config_command import ConfigCommand
-    from modules.shared.src.contract_config_aggregate import IConfigAggregate
+    from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 
     assert hasattr(ConfigCommand, "__init__")
     assert issubclass(ConfigCommand, IConfigAggregate)

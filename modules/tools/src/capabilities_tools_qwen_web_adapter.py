@@ -11,7 +11,6 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
     tool_cache_dir,
@@ -19,8 +18,12 @@ from modules.shared.src.taxonomy_common_vo import (
     tool_data_dir,
     tool_state_dir,
 )
-from modules.shared.src.taxonomy_tools_constant import QWEN_ROLE_DIRS, QWEN_TOOL_NAME
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.tools.taxonomy_tools_constant import (
+    QWEN_ROLE_DIRS,
+    QWEN_TOOL_NAME,
+)
+from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     PinCheck,
     ToolLifecycleConfig,

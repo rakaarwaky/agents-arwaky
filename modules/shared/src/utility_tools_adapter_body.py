@@ -15,7 +15,7 @@ from pathlib import Path
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import ToolSpec
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit, PinCheck, ToolPaths
+from modules.shared.src.tools.taxonomy_tools_vo import AdapterUnit, PinCheck, ToolPaths
 
 
 def unit_for(units: dict[str, AdapterUnit], spec: ToolSpec, display: str) -> AdapterUnit:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_harness_protocols_exist():
     """CP-HARNESS-001: all four seam ABCs exist and can be imported."""
-    from modules.shared.src.contract_harness_protocol import (
+    from modules.shared.src.harness.contract_harness_protocol import (
         IHarnessConnectProtocol,
         IHarnessDisconnectProtocol,
         IHarnessProviderProtocol,
@@ -54,7 +54,7 @@ def test_harness_connectors_implement_operations_protocol():
         HarnessDisconnector,
     )
     from modules.harness.src.capabilities_harness_skills import HarnessSkills
-    from modules.shared.src.contract_harness_protocol import (
+    from modules.shared.src.harness.contract_harness_protocol import (
         IHarnessConnectProtocol,
         IHarnessDisconnectProtocol,
         IHarnessSkillsProtocol,
@@ -76,7 +76,7 @@ def test_each_business_capability_implements_exactly_one_seam():
         HarnessDisconnector,
     )
     from modules.harness.src.capabilities_harness_skills import HarnessSkills
-    from modules.shared.src.contract_harness_protocol import (
+    from modules.shared.src.harness.contract_harness_protocol import (
         IHarnessConnectProtocol,
         IHarnessDisconnectProtocol,
         IHarnessSkillsProtocol,
@@ -103,7 +103,9 @@ def test_harness_leaf_adapters_implement_provider_protocol():
     from modules.harness.src.capabilities_harness_opencode_adapter import (
         OpencodeHarnessAdapter,
     )
-    from modules.shared.src.contract_harness_protocol import IHarnessProviderProtocol
+    from modules.shared.src.harness.contract_harness_protocol import (
+        IHarnessProviderProtocol,
+    )
 
     leaf_classes = (
         GrokBuildHarnessAdapter,
@@ -132,6 +134,6 @@ def test_no_capability_carries_a_stub():
 def test_harness_registry_wires_every_supported_id():
     """CP-HARNESS-008: the root registry carries one leaf per supported id."""
     from modules.harness.src.root_harness_container import HARNESS_REGISTRY
-    from modules.shared.src.taxonomy_harness_constant import ALL_HARNESS_IDS
+    from modules.shared.src.harness.taxonomy_harness_constant import ALL_HARNESS_IDS
 
     assert sorted(HARNESS_REGISTRY) == sorted(ALL_HARNESS_IDS)

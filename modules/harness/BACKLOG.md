@@ -58,8 +58,8 @@ None.
 
 ## Dependencies
 
-Skill provisioning depends on `modules/skill` pack integrity (root WS-06 for the
-migrated test suite). Router wiring depends on `modules/daemon` exposing the
+Skill provisioning depends on the `skills/` pack being readable by
+`modules/skills` (list/show discovery). Router wiring depends on `modules/daemon` exposing the
 OmniRoute endpoint resolver.
 
 ## Release Readiness

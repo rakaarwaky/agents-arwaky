@@ -13,7 +13,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
@@ -23,13 +22,14 @@ from modules.shared.src.taxonomy_common_vo import (
     data_home,
     ensure_bin_home,
 )
-from modules.shared.src.taxonomy_tools_constant import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.tools.taxonomy_tools_constant import (
     LINT_BINARIES,
     LINT_BUILD_DEPS,
     LINT_INTERNAL_DIR_REL,
     LINT_LAUNCHERS,
 )
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     PinCheck,
     ToolPaths,

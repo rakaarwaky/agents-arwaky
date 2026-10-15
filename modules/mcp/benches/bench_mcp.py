@@ -4,18 +4,20 @@ from __future__ import annotations
 
 def bench_mcp_generator_init(benchmark):
     """BENCH-MCP-001: Benchmark McpConfigGenerator initialization."""
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+    from modules.mcp.src.capabilities_mcp_generator import (
+    McpConfigLister,
+)
 
-    benchmark(McpConfigGenerator)
+    benchmark(McpConfigLister)
 
 
 def bench_mcp_orchestrator_init(benchmark):
     """BENCH-MCP-002: Benchmark McpOrchestrator initialization."""
     from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-    from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+    from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
 
     def _init():
-        generator = McpConfigGenerator()
+        generator = McpConfigLister()
         return McpOrchestrator(generator)
 
     benchmark(_init)

@@ -56,7 +56,7 @@ class TestAnytypeRichProtocol:
     def test_status_method_exists(self):
         """UT-DAEMON-006: status() method exists and is callable."""
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-        from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
+        from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonStatus
 
         manager = AnytypeDaemonManager()
         with patch.object(
@@ -78,7 +78,7 @@ class TestAnytypeRichProtocol:
     def test_install_unit_method_exists(self):
         """UT-DAEMON-008: install_unit() method exists and is callable."""
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-        from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
+        from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
         with patch.object(manager, 'install_unit', return_value=0):
@@ -88,7 +88,7 @@ class TestAnytypeRichProtocol:
     def test_remove_unit_method_exists(self):
         """UT-DAEMON-009: remove_unit() method exists and is callable."""
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-        from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
+        from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
         with patch.object(manager, 'remove_unit', return_value=0):
@@ -98,7 +98,7 @@ class TestAnytypeRichProtocol:
     def test_unit_status_method_exists(self):
         """UT-DAEMON-010: unit_status() method exists and is callable."""
         from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-        from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
+        from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonUnit
 
         manager = AnytypeDaemonManager()
         with patch.object(manager, 'unit_status', return_value=0):
@@ -125,7 +125,7 @@ class TestOmnirouteRichProtocol:
         from modules.daemon.src.capabilities_omniroute_daemon import (
             OmnirouteDaemonManager,
         )
-        from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
+        from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonStatus
 
         manager = OmnirouteDaemonManager()
         with patch.object(
@@ -140,7 +140,7 @@ class TestOmnirouteRichProtocol:
         from modules.daemon.src.capabilities_omniroute_daemon import (
             OmnirouteDaemonManager,
         )
-        from modules.shared.src.taxonomy_daemon_vo import DaemonUnit
+        from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonUnit
 
         manager = OmnirouteDaemonManager()
         with patch.object(manager, 'install_unit', return_value=0):
@@ -244,7 +244,7 @@ class TestDaemonOrchestrator:
         from modules.daemon.src.capabilities_omniroute_daemon import (
             OmnirouteDaemonManager,
         )
-        from modules.shared.src.taxonomy_daemon_vo import (
+        from modules.shared.src.daemon.taxonomy_daemon_vo import (
             DaemonName,
             DaemonOp,
             DaemonRequest,

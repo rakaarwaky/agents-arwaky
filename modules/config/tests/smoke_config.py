@@ -53,7 +53,7 @@ def test_import_config_command():
 
 def test_import_config_protocol():
     """SM-CONFIG-008: both config seam ABCs can be imported."""
-    from modules.shared.src.contract_config_protocol import (
+    from modules.shared.src.config.contract_config_protocol import (
         IConfigModifierProtocol,
         IConfigReaderProtocol,
     )
@@ -63,7 +63,7 @@ def test_import_config_protocol():
 
 def test_import_config_aggregate():
     """SM-CONFIG-009: IConfigAggregate can be imported."""
-    from modules.shared.src.contract_config_aggregate import IConfigAggregate
+    from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
     assert IConfigAggregate is not None
 
 

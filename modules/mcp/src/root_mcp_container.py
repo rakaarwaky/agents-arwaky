@@ -1,17 +1,21 @@
-"""MCP composition root — wires the generator into the orchestrator."""
+"""MCP composition root — wires the lister/writer into the orchestrator."""
 from __future__ import annotations
 
 from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
-from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
+from modules.mcp.src.capabilities_mcp_generator import (
+    McpConfigLister,
+    McpConfigWriter,
+)
+from modules.shared.src.mcp.contract_mcp_aggregate import IMcpAggregate
 
 
 class McpContainer:
-    """Construct the generator and the orchestrator."""
+    """Construct the lister, writer, and the orchestrator."""
 
     def __init__(self) -> None:
-        generator = McpConfigGenerator()
-        self._orchestrator = McpOrchestrator(generator)
+        lister = McpConfigLister()
+        writer = McpConfigWriter()
+        self._orchestrator = McpOrchestrator(list_cap=lister, write_cap=writer)
 
     @property
     def aggregate(self) -> IMcpAggregate:

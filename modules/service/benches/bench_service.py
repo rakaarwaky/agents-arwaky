@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def bench_service_manager_init(benchmark):
     """BENCH-SERVICE-001: Benchmark ServiceManager initialization."""
-    from modules.service.src.capabilities_service_manager import ServiceManager
+    from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
 
     benchmark(ServiceManager)
 
@@ -12,11 +12,12 @@ def bench_service_manager_init(benchmark):
 def bench_service_orchestrator_init(benchmark):
     """BENCH-SERVICE-002: Benchmark ServiceOrchestrator initialization."""
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-    from modules.service.src.capabilities_service_manager import ServiceManager
+    from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
 
     def _init():
-        manager = ServiceManager()
-        return ServiceOrchestrator(manager)
+        control = ServiceControl()
+    inspect_cap = ServiceInspect()
+        return ServiceOrchestrator(control, inspect)
 
     benchmark(_init)
 

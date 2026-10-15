@@ -11,10 +11,12 @@ from typing import ClassVar
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-from modules.service.src.capabilities_service_manager import ServiceManager
-from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.contract_service_aggregate import IServiceAggregate
-from modules.shared.src.taxonomy_daemon_vo import (
+from modules.service.src.capabilities_service_manager import (
+    ServiceControl,
+    ServiceInspect,
+)
+from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.daemon.taxonomy_daemon_vo import (
     DaemonName,
     DaemonOp,
     DaemonOutcome,
@@ -22,6 +24,7 @@ from modules.shared.src.taxonomy_daemon_vo import (
     DaemonResponse,
     DaemonUnit,
 )
+from modules.shared.src.service.contract_service_aggregate import IServiceAggregate
 
 
 class DaemonAggregateAdapter(IDaemonAggregate):
@@ -93,8 +96,9 @@ class ServiceContainer:
 
     def __init__(self) -> None:
         self._daemons = DaemonAggregateAdapter(AnytypeDaemonManager(), OmnirouteDaemonManager())
-        self._manager = ServiceManager(daemons=self._daemons)
-        self._orchestrator = ServiceOrchestrator(manager=self._manager)
+        self._control = ServiceControl(daemons=self._daemons)
+        self._inspect = ServiceInspect(daemons=self._daemons)
+        self._orchestrator = ServiceOrchestrator(control=self._control, inspect=self._inspect)
 
     @property
     def aggregate(self) -> IServiceAggregate:
@@ -102,9 +106,14 @@ class ServiceContainer:
         return self._orchestrator
 
     @property
-    def manager(self) -> ServiceManager:
-        """Expose the service manager for direct delegation."""
-        return self._manager
+    def control(self) -> ServiceControl:
+        """Expose the service control capability for direct delegation."""
+        return self._control
+
+    @property
+    def inspect_cap(self) -> ServiceInspect:
+        """Expose the service inspect capability for direct delegation."""
+        return self._inspect
 
 
 def create_service_feature() -> IServiceAggregate:

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from modules.shared.src.taxonomy_backup_vo import BackupOp, BackupRequest
+from modules.shared.src.backup.taxonomy_backup_vo import BackupOp, BackupRequest
 
 
 def test_backup_e2e_workflow():

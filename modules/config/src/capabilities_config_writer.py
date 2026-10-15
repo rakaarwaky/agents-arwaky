@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.contract_config_protocol import IConfigReaderProtocol
+from modules.shared.src.config.contract_config_protocol import IConfigReaderProtocol
 from modules.shared.src.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,
@@ -22,8 +22,8 @@ from modules.shared.src.utility_config_engine import (
     list_mcp_servers,
     load_file,
     save_file,
+    strip_jsonc_comments,
 )
-from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
 from modules.shared.src.utility_toml_write import write_toml
 
 

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
 from modules.shared.src.taxonomy_common_error import ToolUpdateError
 from modules.shared.src.taxonomy_common_vo import (
@@ -18,8 +17,12 @@ from modules.shared.src.taxonomy_common_vo import (
     ensure_bin_home,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.taxonomy_tools_constant import FETCH_CLI_ARGS, LAUNCHER_NAMES
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
+from modules.shared.src.tools.taxonomy_tools_constant import (
+    FETCH_CLI_ARGS,
+    LAUNCHER_NAMES,
+)
+from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     PinCheck,
     ToolLifecycleConfig,

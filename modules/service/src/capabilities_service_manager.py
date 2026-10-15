@@ -4,17 +4,28 @@
 AES port of tools/service/service_manager.py: action bodies kept; the original
 subprocess exec of the two daemon scripts is replaced by direct calls into
 modules/daemon. The daemon managers are resolved via the daemon feature
-aggregate (composition root) and injected; the module-level cmd_* functions
-fall back to a lazily-built aggregate only when called standalone.
+aggregate (composition root) and injected.
+
+Two capabilities, one per contract seam:
+- ``ServiceControl`` implements ``IServiceControlProtocol`` (start/stop/restart)
+- ``ServiceInspect`` implements ``IServiceInspectProtocol`` (status/logs/help)
 """
+
 from __future__ import annotations
 
 import sys
 
-from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.contract_service_protocol import IServiceProtocol
-from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonOp, DaemonRequest
-from modules.shared.src.taxonomy_service_vo import (
+from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.daemon.taxonomy_daemon_vo import (
+    DaemonName,
+    DaemonOp,
+    DaemonRequest,
+)
+from modules.shared.src.service.contract_service_protocol import (
+    IServiceControlProtocol,
+    IServiceInspectProtocol,
+)
+from modules.shared.src.service.taxonomy_service_vo import (
     TARGET_ALL,
     TARGET_OMNIROUTE,
     ExitCode,
@@ -24,12 +35,8 @@ from modules.shared.src.taxonomy_service_vo import (
 _DAEMON_AGGREGATE: IDaemonAggregate | None = None
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class ServiceManager(IServiceProtocol):
-    """AES facade: exposes the original script actions by their CLI names.
-
-    The optional daemon aggregate in the constructor is accepted for
-    composition-root wiring; action bodies route through it.
-    """
+class ServiceControl(IServiceControlProtocol):
+    """Service mutation capability: start / stop / restart."""
 
     def __init__(self, daemons: IDaemonAggregate | None = None) -> None:
         global _DAEMON_AGGREGATE
@@ -37,16 +44,7 @@ class ServiceManager(IServiceProtocol):
             _DAEMON_AGGREGATE = daemons
         self._daemons = daemons
 
-    @property
-    def aggregate(self) -> IDaemonAggregate | None:
-        """Return the injected daemon aggregate (composition-time wiring)."""
-        return self._daemons
-
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def status(self) -> ExitCode:
-        """Report the health of every registered service. Return the exit code."""
-        return ExitCode(cmd_status())
-
     def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         """Start the named service(s). Return the exit code."""
         return ExitCode(cmd_start(str(target)))
@@ -59,6 +57,25 @@ class ServiceManager(IServiceProtocol):
         """Restart the named service(s). Return the exit code."""
         return ExitCode(cmd_restart(str(target)))
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def __repr__(self) -> str:
+        return "ServiceControl()"
+
+
+class ServiceInspect(IServiceInspectProtocol):
+    """Service inspection capability: status / logs / help."""
+
+    def __init__(self, daemons: IDaemonAggregate | None = None) -> None:
+        global _DAEMON_AGGREGATE
+        if daemons is not None:
+            _DAEMON_AGGREGATE = daemons
+        self._daemons = daemons
+
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    def status(self) -> ExitCode:
+        """Report the health of every registered service. Return the exit code."""
+        return ExitCode(cmd_status())
+
     def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
         """Stream the named service's logs. Return the exit code."""
         return ExitCode(cmd_logs(str(target)))
@@ -67,12 +84,10 @@ class ServiceManager(IServiceProtocol):
         """Print the service command usage. Return the exit code."""
         return ExitCode(cmd_help())
 
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
-        return "ServiceManager()"
+        return "ServiceInspect()"
 
-    def main(self, argv) -> int:
-        """Run the service manager CLI entry point with the given arguments."""
-        return main(argv)
 
 # ─── Block 3: Dunder Methods, Factories & Helpers ───
 
@@ -80,7 +95,7 @@ def _daemons() -> IDaemonAggregate:
     """Daemon control surface: set by the service root container at construction."""
     if _DAEMON_AGGREGATE is None:
         raise RuntimeError(
-            "ServiceManager has no daemon control injected; use "
+            "ServiceControl/ServiceInspect has no daemon control injected; use "
             "create_service_feature() (root composition) instead of a bare constructor call."
         )
     return _DAEMON_AGGREGATE
@@ -172,10 +187,21 @@ def main(argv: list[str]) -> int:
     cmd_help()
     return 1
 
-__all__ = ["ExitCode", "IServiceProtocol", "ServiceManager", "ServiceTarget"]
+
+__all__ = [
+    "ExitCode",
+    "ServiceControl",
+    "ServiceInspect",
+        "ServiceTarget",
+]
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {"ExitCode": ExitCode, "IServiceProtocol": IServiceProtocol, "ServiceManager": ServiceManager, "ServiceTarget": ServiceTarget}
+_layer_symbols = {
+    "ExitCode": ExitCode,
+    "ServiceControl": ServiceControl,
+    "ServiceInspect": ServiceInspect,
+        "ServiceTarget": ServiceTarget,
+}
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

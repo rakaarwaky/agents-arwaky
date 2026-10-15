@@ -7,9 +7,9 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
-from modules.shared.src.taxonomy_daemon_vo import (
+from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
+from modules.shared.src.daemon.taxonomy_daemon_vo import (
     DaemonName,
     DaemonOp,
     DaemonOutcome,

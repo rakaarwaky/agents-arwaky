@@ -9,8 +9,8 @@ import json as _json
 import sys
 import textwrap
 
-from modules.shared.src.contract_tools_aggregate import IToolsAggregate
-from modules.shared.src.taxonomy_tools_vo import (
+from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
+from modules.shared.src.tools.taxonomy_tools_vo import (
     ToolArgs,
     ToolQuery,
     ToolRequest,

@@ -21,9 +21,9 @@ import sys
 import time
 from pathlib import Path
 
-from modules.shared.src.contract_backup_protocol import IBackupProtocol
-from modules.shared.src.taxonomy_backup_constant import DEFAULT_FOLDER_NAME
-from modules.shared.src.taxonomy_backup_vo import (
+from modules.shared.src.backup.contract_backup_protocol import IBackupProtocol
+from modules.shared.src.backup.taxonomy_backup_constant import DEFAULT_FOLDER_NAME
+from modules.shared.src.backup.taxonomy_backup_vo import (
     ARCHIVE_DEFAULT,
     DEST_DEFAULT,
     BackupArchive,

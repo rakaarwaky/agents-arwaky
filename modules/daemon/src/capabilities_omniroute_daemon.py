@@ -29,12 +29,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
-from modules.shared.src.taxonomy_common_vo import (
-    config_home,
-    data_home,
-)
-from modules.shared.src.taxonomy_daemon_constant import (
+from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
+from modules.shared.src.daemon.taxonomy_daemon_constant import (
     OMNIROUTE_DATA_DIR,
     OMNIROUTE_ENV_FILE,
     OMNIROUTE_ENV_TEMPLATE,
@@ -43,8 +39,16 @@ from modules.shared.src.taxonomy_daemon_constant import (
     OMNIROUTE_UNIT_FILE,
     ROOT,
 )
-from modules.shared.src.taxonomy_daemon_vo import DaemonStatus, DaemonUnit, ExitCode
-from modules.shared.src.taxonomy_tools_constant import OMNIROUTE_ENV_FILENAME
+from modules.shared.src.daemon.taxonomy_daemon_vo import (
+    DaemonStatus,
+    DaemonUnit,
+    ExitCode,
+)
+from modules.shared.src.taxonomy_common_vo import (
+    config_home,
+    data_home,
+)
+from modules.shared.src.tools.taxonomy_tools_constant import OMNIROUTE_ENV_FILENAME
 from modules.shared.src.utility_process_runner import cmd_out, run_cmd
 
 #: Written only when neither the repo copy nor the repo template exists.
@@ -134,8 +138,8 @@ def _is_omniroute_wrapper(path: Path) -> bool:
     """True when *path* is this repo's `aa omniroute` wrapper, not the real CLI.
 
     The installer drops a Python shim at ``~/.local/bin/omniroute`` that only
-    implements the ``aa`` sub-commands — it forwards to
-    ``modules.daemon.src.surface_daemon_command`` and understands nothing else.
+    implements the ``aa`` sub-commands — it forwards to the composition root's
+    ``modules.root_cli_entry.cmd_omniroute`` and understands nothing else.
     Handing that shim to systemd's ``ExecStart=... serve`` produces an
     immediate ``ModuleNotFoundError`` exit, and with ``Restart=always`` the unit
     crash-loops forever while the real gateway is nowhere in sight.

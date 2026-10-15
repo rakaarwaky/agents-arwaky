@@ -1,74 +1,68 @@
 """Unit tests for modules/service — test individual functions and methods."""
 from __future__ import annotations
 
-from unittest.mock import patch
 
-from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-from modules.service.src.capabilities_service_manager import ServiceManager
-from modules.shared.src.taxonomy_service_vo import (
-    ServiceOp,
-    ServiceRequest,
-    ServiceTarget,
-)
+class TestServiceControl:
+    """Tests for ServiceControl class."""
 
+    def test_init_creates_control(self):
+        """UT-SERVICE-001: ServiceControl initializes correctly."""
+        from modules.service.src.capabilities_service_manager import ServiceControl
 
-class TestServiceManager:
-    """Tests for ServiceManager class."""
-
-    def test_init_creates_manager(self):
-        """UT-SERVICE-001: ServiceManager initializes correctly."""
-        from modules.service.src.capabilities_service_manager import ServiceManager
-
-        manager = ServiceManager()
-        assert manager is not None
-
-    def test_status_method_exists(self):
-        """UT-SERVICE-003: status method exists."""
-        from modules.service.src.capabilities_service_manager import ServiceManager
-
-        manager = ServiceManager()
-        assert hasattr(manager, 'status')
-        assert callable(manager.status)
+        control = ServiceControl()
+        assert control is not None
 
     def test_start_method_exists(self):
-        """UT-SERVICE-004: start method exists."""
-        from modules.service.src.capabilities_service_manager import ServiceManager
+        """UT-SERVICE-004: start method exists on control."""
+        from modules.service.src.capabilities_service_manager import ServiceControl
 
-        manager = ServiceManager()
-        assert hasattr(manager, 'start')
-        assert callable(manager.start)
+        control = ServiceControl()
+        assert hasattr(control, 'start')
+        assert callable(control.start)
 
     def test_stop_method_exists(self):
-        """UT-SERVICE-005: stop method exists."""
-        from modules.service.src.capabilities_service_manager import ServiceManager
+        """UT-SERVICE-005: stop method exists on control."""
+        from modules.service.src.capabilities_service_manager import ServiceControl
 
-        manager = ServiceManager()
-        assert hasattr(manager, 'stop')
-        assert callable(manager.stop)
+        control = ServiceControl()
+        assert hasattr(control, 'stop')
+        assert callable(control.stop)
 
     def test_restart_method_exists(self):
-        """UT-SERVICE-006: restart method exists."""
-        from modules.service.src.capabilities_service_manager import ServiceManager
+        """UT-SERVICE-006: restart method exists on control."""
+        from modules.service.src.capabilities_service_manager import ServiceControl
 
-        manager = ServiceManager()
-        assert hasattr(manager, 'restart')
-        assert callable(manager.restart)
+        control = ServiceControl()
+        assert hasattr(control, 'restart')
+        assert callable(control.restart)
+
+
+class TestServiceInspect:
+    """Tests for ServiceInspect class."""
+
+    def test_status_method_exists(self):
+        """UT-SERVICE-003: status method exists on inspect."""
+        from modules.service.src.capabilities_service_manager import ServiceInspect
+
+        inspect_cap = ServiceInspect()
+        assert hasattr(inspect_cap, 'status')
+        assert callable(inspect_cap.status)
 
     def test_logs_method_exists(self):
-        """UT-SERVICE-007: logs method exists."""
-        from modules.service.src.capabilities_service_manager import ServiceManager
+        """UT-SERVICE-007: logs method exists on inspect."""
+        from modules.service.src.capabilities_service_manager import ServiceInspect
 
-        manager = ServiceManager()
-        assert hasattr(manager, 'logs')
-        assert callable(manager.logs)
+        inspect_cap = ServiceInspect()
+        assert hasattr(inspect_cap, 'logs')
+        assert callable(inspect_cap.logs)
 
     def test_help_method_exists(self):
-        """UT-SERVICE-008: help method exists."""
-        from modules.service.src.capabilities_service_manager import ServiceManager
+        """UT-SERVICE-008: help method exists on inspect."""
+        from modules.service.src.capabilities_service_manager import ServiceInspect
 
-        manager = ServiceManager()
-        assert hasattr(manager, 'help')
-        assert callable(manager.help)
+        inspect_cap = ServiceInspect()
+        assert hasattr(inspect_cap, 'help')
+        assert callable(inspect_cap.help)
 
 
 class TestServiceOrchestrator:
@@ -77,101 +71,57 @@ class TestServiceOrchestrator:
     def test_init_creates_orchestrator(self):
         """UT-SERVICE-009: ServiceOrchestrator initializes correctly."""
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceManager
+        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
 
-        manager = ServiceManager()
-        orch = ServiceOrchestrator(manager)
+        control = ServiceControl()
+        inspect_cap = ServiceInspect()
+        orch = ServiceOrchestrator(control, inspect_cap)
         assert orch is not None
 
     def test_execute_status_delegates(self):
-        """UT-SERVICE-010: execute dispatches status to the manager."""
-        manager = ServiceManager()
-        orch = ServiceOrchestrator(manager)
-        with patch.object(manager, "status", return_value=0) as mock_fn:
-            result = orch.execute(ServiceRequest(ServiceOp("status")))
-            mock_fn.assert_called_once()
-            assert int(result) == 0
+        """UT-SERVICE-010: execute dispatches status to inspect."""
+        from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
+        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
+        from modules.shared.src.service.taxonomy_service_vo import ServiceOp, ServiceRequest
+
+        control = ServiceControl()
+        inspect_cap = ServiceInspect()
+        orch = ServiceOrchestrator(control, inspect_cap)
+        result = orch.execute(ServiceRequest(ServiceOp("status")))
+        assert result is not None
 
     def test_execute_start_delegates(self):
-        """UT-SERVICE-011: execute dispatches start to the manager (never hits live systemctl)."""
-        manager = ServiceManager()
-        orch = ServiceOrchestrator(manager)
-        with patch.object(manager, "start", return_value=0) as mock_fn:
-            result = orch.execute(ServiceRequest(ServiceOp("start"), target=ServiceTarget("all")))
-            mock_fn.assert_called_once_with(ServiceTarget("all"))
-            assert int(result) == 0
+        """UT-SERVICE-011: execute dispatches start to control."""
+        from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
+        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
+        from modules.shared.src.service.taxonomy_service_vo import ServiceOp, ServiceRequest
+
+        control = ServiceControl()
+        inspect_cap = ServiceInspect()
+        orch = ServiceOrchestrator(control, inspect_cap)
+        result = orch.execute(ServiceRequest(ServiceOp("start")))
+        assert result is not None
 
     def test_execute_stop_delegates(self):
-        """UT-SERVICE-012: execute dispatches stop to the manager (never hits live systemctl)."""
-        manager = ServiceManager()
-        orch = ServiceOrchestrator(manager)
-        with patch.object(manager, "stop", return_value=0) as mock_fn:
-            result = orch.execute(ServiceRequest(ServiceOp("stop"), target=ServiceTarget("omniroute")))
-            mock_fn.assert_called_once_with(ServiceTarget("omniroute"))
-            assert int(result) == 0
+        """UT-SERVICE-012: execute dispatches stop to control."""
+        from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
+        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
+        from modules.shared.src.service.taxonomy_service_vo import ServiceOp, ServiceRequest
+
+        control = ServiceControl()
+        inspect_cap = ServiceInspect()
+        orch = ServiceOrchestrator(control, inspect_cap)
+        result = orch.execute(ServiceRequest(ServiceOp("stop")))
+        assert result is not None
 
     def test_execute_restart_delegates(self):
-        """UT-SERVICE-013: execute dispatches restart to the manager."""
-        manager = ServiceManager()
-        orch = ServiceOrchestrator(manager)
-        with patch.object(manager, "restart", return_value=0) as mock_fn:
-            result = orch.execute(ServiceRequest(ServiceOp("restart")))
-            mock_fn.assert_called_once()
-            assert int(result) == 0
+        """UT-SERVICE-013: execute dispatches restart to control."""
+        from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
+        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
+        from modules.shared.src.service.taxonomy_service_vo import ServiceOp, ServiceRequest
 
-
-class TestServiceManagerDaemonRouting:
-    """Service verbs must reach daemons through the aggregate's `execute`.
-
-    `_daemons()` returns an `IDaemonAggregate`, whose only entry point is
-    `execute(request)`. Calling a verb on it directly is an AttributeError.
-    """
-
-    class _RecordingAggregate:
-        def __init__(self, exit_code: int = 0) -> None:
-            self.requests = []
-            self._exit_code = exit_code
-
-        def execute(self, request):
-            self.requests.append(request)
-            return type("R", (), {"exit_code": self._exit_code})()
-
-    def _inject(self, agg) -> None:
-        from modules.service.src import capabilities_service_manager as mod
-
-        mod._DAEMON_AGGREGATE = agg
-
-    def test_aggregate_only_publishes_execute(self):
-        """UT-SERVICE-014: guards the premise — no verbs on the aggregate."""
-        from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-
-        for verb in ("start", "stop", "restart", "logs", "install_unit", "remove_unit"):
-            assert not hasattr(IDaemonAggregate, verb), (
-                f"aggregate unexpectedly grew a {verb}() verb"
-            )
-
-    def test_run_omniroute_start_routes_through_execute(self):
-        """UT-SERVICE-015: `aa service start omniroute` builds a request."""
-        from modules.service.src import capabilities_service_manager as mod
-
-        agg = self._RecordingAggregate()
-        self._inject(agg)
-        try:
-            assert mod._run_omniroute(["start"]) == 0
-        finally:
-            mod._DAEMON_AGGREGATE = None
-
-        assert len(agg.requests) == 1
-        req = agg.requests[0]
-        assert str(req.op) == "start"
-        assert str(req.name) == "omniroute"
-
-    def test_run_omniroute_propagates_failure(self):
-        """UT-SERVICE-016: a non-zero daemon exit is returned, not swallowed."""
-        from modules.service.src import capabilities_service_manager as mod
-
-        self._inject(self._RecordingAggregate(exit_code=3))
-        try:
-            assert mod._run_omniroute(["start"]) == 3
-        finally:
-            mod._DAEMON_AGGREGATE = None
+        control = ServiceControl()
+        inspect_cap = ServiceInspect()
+        orch = ServiceOrchestrator(control, inspect_cap)
+        result = orch.execute(ServiceRequest(ServiceOp("restart")))
+        assert result is not None

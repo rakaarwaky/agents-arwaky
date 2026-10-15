@@ -19,7 +19,6 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsUninstallerProtocol
 from modules.shared.src.taxonomy_common_vo import (
     ToolSpec,
     UninstallResult,
@@ -29,7 +28,8 @@ from modules.shared.src.taxonomy_common_vo import (
     tool_cache_dir,
     tool_data_dir,
 )
-from modules.shared.src.taxonomy_tools_constant import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsUninstallerProtocol
+from modules.shared.src.tools.taxonomy_tools_constant import (
     DAEMON_UNIT_TOOLS,
     KEEP_CONFIG,
     LAUNCHER_NAMES,
@@ -215,7 +215,7 @@ def _stop_daemon(daemons: object, tool_id: str) -> bool:
     container-isolation invariant: never force-killed). Raises on unknown
     daemon names, which the caller folds into a residual.
     """
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonOp,
         DaemonRequest,
         DaemonUnit,

@@ -643,7 +643,7 @@ class TestStripJsoncComments:
 
     def test_strip_simple_comment(self):
         """UT-SHARED-054: strip_jsonc_comments removes single-line comments."""
-        from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
+        from modules.shared.src.utility_config_engine import strip_jsonc_comments
 
         result = strip_jsonc_comments('{"key": "value"} // comment')
         assert "//" not in result
@@ -651,7 +651,7 @@ class TestStripJsoncComments:
 
     def test_strip_multiline_comment(self):
         """UT-SHARED-055: strip_jsonc_comments removes multi-line comments."""
-        from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
+        from modules.shared.src.utility_config_engine import strip_jsonc_comments
 
         result = strip_jsonc_comments('{"key": "value"} /* comment */')
         assert "/*" not in result
@@ -660,14 +660,14 @@ class TestStripJsoncComments:
 
     def test_strip_preserves_strings(self):
         """UT-SHARED-056: strip_jsonc_comments preserves slash in strings."""
-        from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
+        from modules.shared.src.utility_config_engine import strip_jsonc_comments
 
         result = strip_jsonc_comments('{"url": "http://example.com"}')
         assert "http://example.com" in result
 
     def test_strip_empty_string(self):
         """UT-SHARED-057: strip_jsonc_comments handles empty string."""
-        from modules.shared.src.utility_jsonc_parser import strip_jsonc_comments
+        from modules.shared.src.utility_config_engine import strip_jsonc_comments
 
         result = strip_jsonc_comments("")
         assert result == ""

@@ -37,7 +37,9 @@ class TestHarnessConnector:
     def test_connect_method_exists(self):
         """UT-HARNESS-004: the connect seam declares the named method."""
         from modules.harness.src.capabilities_harness_connector import HarnessConnector
-        from modules.shared.src.contract_harness_protocol import IHarnessConnectProtocol
+        from modules.shared.src.harness.contract_harness_protocol import (
+            IHarnessConnectProtocol,
+        )
 
         connector = HarnessConnector({})
         assert isinstance(connector, IHarnessConnectProtocol)
@@ -72,7 +74,7 @@ class TestHarnessDisconnector:
         from modules.harness.src.capabilities_harness_disconnector import (
             HarnessDisconnector,
         )
-        from modules.shared.src.contract_harness_protocol import (
+        from modules.shared.src.harness.contract_harness_protocol import (
             IHarnessDisconnectProtocol,
         )
 
@@ -94,7 +96,9 @@ class TestHarnessSkills:
     def test_provision_skills_method_exists(self):
         """UT-HARNESS-008: the skills seam declares the named method."""
         from modules.harness.src.capabilities_harness_skills import HarnessSkills
-        from modules.shared.src.contract_harness_protocol import IHarnessSkillsProtocol
+        from modules.shared.src.harness.contract_harness_protocol import (
+            IHarnessSkillsProtocol,
+        )
 
         skills = HarnessSkills({})
         assert isinstance(skills, IHarnessSkillsProtocol)
@@ -128,7 +132,9 @@ class TestHarnessLeafAdapters:
         from modules.harness.src.capabilities_harness_hermes_adapter import (
             HermesHarnessAdapter,
         )
-        from modules.shared.src.taxonomy_harness_vo import UnsupportedHarnessError
+        from modules.shared.src.harness.taxonomy_harness_vo import (
+            UnsupportedHarnessError,
+        )
 
         adapter = HermesHarnessAdapter()
         with pytest.raises(UnsupportedHarnessError):

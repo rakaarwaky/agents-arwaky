@@ -7,11 +7,15 @@ from __future__ import annotations
 
 from modules.cli.src.surface_mcp_command import cmd_mcp
 from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-from modules.mcp.src.capabilities_mcp_generator import McpConfigGenerator
+from modules.mcp.src.capabilities_mcp_generator import (
+    McpConfigLister,
+    McpConfigWriter,
+)
 from modules.mcp.src.root_mcp_container import McpContainer, create_mcp_feature
 
 __all__ = [
-    "McpConfigGenerator",
+    "McpConfigLister",
+    "McpConfigWriter",
     "McpContainer",
     "McpOrchestrator",
     "cmd_mcp",

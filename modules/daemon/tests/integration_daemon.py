@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from modules.shared.src.taxonomy_daemon_vo import (
+from modules.shared.src.daemon.taxonomy_daemon_vo import (
     DaemonName,
     DaemonOp,
     DaemonRequest,
@@ -15,7 +15,7 @@ def test_container_creation():
     """IT-DAEMON-001: DaemonContainer creates working orchestrator."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
+    from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 
     container = DaemonContainer()
     assert container.aggregate is not None
@@ -26,7 +26,7 @@ def test_container_creation():
 def test_orchestrator_start_anytype():
     """IT-DAEMON-002: Orchestrator.execute(start) routes to AnytypeDaemonManager.start."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import ExitCode
+    from modules.shared.src.daemon.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
@@ -40,7 +40,7 @@ def test_orchestrator_start_anytype():
 def test_orchestrator_stop_omniroute():
     """IT-DAEMON-003: Orchestrator.execute(stop) routes to OmnirouteDaemonManager.stop."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import ExitCode
+    from modules.shared.src.daemon.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
@@ -54,7 +54,7 @@ def test_orchestrator_stop_omniroute():
 def test_orchestrator_restart_anytype():
     """IT-DAEMON-004: Orchestrator.execute(restart) routes to AnytypeDaemonManager.restart."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import ExitCode
+    from modules.shared.src.daemon.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
@@ -68,7 +68,7 @@ def test_orchestrator_restart_anytype():
 def test_orchestrator_status_anytype():
     """IT-DAEMON-005: Orchestrator.execute(status) returns a DaemonStatus."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import DaemonName, DaemonStatus
+    from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonName, DaemonStatus
 
     container = DaemonContainer()
     expected = DaemonStatus(
@@ -88,7 +88,7 @@ def test_orchestrator_status_anytype():
 def test_orchestrator_logs_omniroute():
     """IT-DAEMON-006: Orchestrator.execute(logs) routes to OmnirouteDaemonManager.logs."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import ExitCode
+    from modules.shared.src.daemon.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
@@ -102,7 +102,7 @@ def test_orchestrator_logs_omniroute():
 def test_orchestrator_install_unit():
     """IT-DAEMON-007: Orchestrator.execute(install_unit) routes to manager.install_unit."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import ExitCode
+    from modules.shared.src.daemon.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
@@ -118,7 +118,7 @@ def test_orchestrator_install_unit():
 def test_orchestrator_remove_unit():
     """IT-DAEMON-008: Orchestrator.execute(remove_unit) routes to manager.remove_unit."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import ExitCode
+    from modules.shared.src.daemon.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
@@ -134,7 +134,7 @@ def test_orchestrator_remove_unit():
 def test_orchestrator_unit_status():
     """IT-DAEMON-009: Orchestrator.execute(unit_status) routes to manager.unit_status."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import ExitCode
+    from modules.shared.src.daemon.taxonomy_daemon_vo import ExitCode
 
     container = DaemonContainer()
     with patch.object(
@@ -150,8 +150,8 @@ def test_orchestrator_unit_status():
 def test_anytype_rich_protocol_methods():
     """IT-DAEMON-010: AnytypeDaemonManager has all rich protocol methods."""
     from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-    from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
-    from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
+    from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
+    from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonStatus
 
     manager = AnytypeDaemonManager()
     assert isinstance(manager, IDaemonProtocol)
@@ -173,8 +173,8 @@ def test_anytype_rich_protocol_methods():
 def test_omniroute_rich_protocol_methods():
     """IT-DAEMON-011: OmnirouteDaemonManager has all rich protocol methods."""
     from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
-    from modules.shared.src.contract_daemon_protocol import IDaemonProtocol
-    from modules.shared.src.taxonomy_daemon_vo import DaemonStatus
+    from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
+    from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonStatus
 
     manager = OmnirouteDaemonManager()
     assert isinstance(manager, IDaemonProtocol)
@@ -195,8 +195,8 @@ def test_omniroute_rich_protocol_methods():
 def test_full_feature_wiring():
     """IT-DAEMON-012: Full feature wiring from create_daemon_feature."""
     from modules.daemon.src.root_daemon_container import create_daemon_feature
-    from modules.shared.src.contract_daemon_aggregate import IDaemonAggregate
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
         DaemonRequest,
@@ -237,7 +237,7 @@ def test_surface_command_integration():
 def test_execute_with_name_argument():
     """IT-DAEMON-014: execute passes name into the request; manager receives start()."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
         DaemonRequest,
@@ -255,7 +255,7 @@ def test_execute_with_name_argument():
 def test_execute_with_unit_argument():
     """IT-DAEMON-015: execute passes unit into the request; manager receives unit argument."""
     from modules.daemon.src.root_daemon_container import DaemonContainer
-    from modules.shared.src.taxonomy_daemon_vo import (
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonOp,
         DaemonRequest,
         DaemonUnit,

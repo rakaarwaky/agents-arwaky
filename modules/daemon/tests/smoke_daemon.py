@@ -44,7 +44,10 @@ def test_import_daemon_surface():
 
 def test_import_daemon_protocol():
     """SM-DAEMON-006: daemon protocol contract can be imported."""
-    from modules.shared.src import contract_daemon_aggregate, contract_daemon_protocol
+    from modules.shared.src.daemon import (
+        contract_daemon_aggregate,
+        contract_daemon_protocol,
+    )
 
     assert contract_daemon_protocol is not None
     assert contract_daemon_aggregate is not None
@@ -52,7 +55,7 @@ def test_import_daemon_protocol():
 
 def test_import_daemon_vo():
     """SM-DAEMON-007: daemon value objects can be imported."""
-    from modules.shared.src import taxonomy_daemon_vo
+    from modules.shared.src.daemon import taxonomy_daemon_vo
 
     assert taxonomy_daemon_vo is not None
 

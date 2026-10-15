@@ -10,7 +10,7 @@ import json
 from collections.abc import Mapping
 
 from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
-from modules.shared.src.contract_doctor_aggregate import IDoctorAggregate
+from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
 from modules.shared.src.taxonomy_common_vo import (
     DoctorFlags,
     DoctorOp,

@@ -7,7 +7,10 @@ from __future__ import annotations
 
 from modules.cli.src.surface_service_command import cmd_service
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-from modules.service.src.capabilities_service_manager import ServiceManager
+from modules.service.src.capabilities_service_manager import (
+    ServiceControl,
+    ServiceInspect,
+)
 from modules.service.src.root_service_container import (
     ServiceContainer,
     create_service_feature,
@@ -15,7 +18,8 @@ from modules.service.src.root_service_container import (
 
 __all__ = [
     "ServiceContainer",
-    "ServiceManager",
+    "ServiceControl",
+    "ServiceInspect",
     "ServiceOrchestrator",
     "cmd_service",
     "create_service_feature",

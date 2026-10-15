@@ -9,17 +9,17 @@ from __future__ import annotations
 import sys
 from collections.abc import Callable
 
-from modules.shared.src.contract_harness_aggregate import (
+from modules.shared.src.harness.contract_harness_aggregate import (
     HarnessRequest,
     HarnessResponse,
     IHarnessAggregate,
 )
-from modules.shared.src.taxonomy_harness_constant import (
+from modules.shared.src.harness.taxonomy_harness_constant import (
     ALIASES,
     ALL_HARNESS_IDS,
     HARNESSES,
 )
-from modules.shared.src.taxonomy_harness_vo import (
+from modules.shared.src.harness.taxonomy_harness_vo import (
     HarnessFlags,
     HarnessOp,
     HarnessTargets,
@@ -38,8 +38,9 @@ Skill provisioning links each skill directory to the repo pack under
 every agent shares them; ``aa connect --copy-skills`` restores snapshots.
 
 Removes agents-arwaky MCP servers, provisioned skills and env vars from
-agent harness paths (NOT the current working directory's .agents/skills —
-that is `aa unskill` / skill-manager).
+agent harness paths. Skill discovery is read-only via `aa skills list` /
+`aa skills show`; harnesses pick up pack changes through the link this
+command creates.
 """
 
 _CONNECT_FLAGS = ("force", "dry-run", "mcp-only", "skills-only", "env-only", "router", "copy-skills")

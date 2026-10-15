@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import sys
 
-from modules.shared.src.contract_service_aggregate import IServiceAggregate
-from modules.shared.src.taxonomy_service_vo import (
+from modules.shared.src.service.contract_service_aggregate import IServiceAggregate
+from modules.shared.src.service.taxonomy_service_vo import (
     TARGET_OMNIROUTE,
     ServiceOp,
     ServiceRequest,

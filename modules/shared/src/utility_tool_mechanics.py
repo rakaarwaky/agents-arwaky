@@ -37,13 +37,13 @@ from modules.shared.src.taxonomy_common_vo import (
     utc_now_iso,
     warn_if_bin_not_on_path,
 )
-from modules.shared.src.taxonomy_tools_constant import (
+from modules.shared.src.tools.taxonomy_tools_constant import (
     FALLBACK_REMOTE_BRANCHES,
     INSTALL_STAMP_FILENAME,
     NODE_IGNORES,
     ROOT_ENV_VAR,
 )
-from modules.shared.src.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
+from modules.shared.src.tools.taxonomy_tools_vo import AdapterUnit, ToolLifecycleConfig
 
 #: Effective repository root for default lifecycle arguments.
 ROOT = REPO_ROOT

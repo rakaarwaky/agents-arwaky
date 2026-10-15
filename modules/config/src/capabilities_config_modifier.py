@@ -13,7 +13,7 @@ import os
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_config_protocol import IConfigModifierProtocol
+from modules.shared.src.config.contract_config_protocol import IConfigModifierProtocol
 from modules.shared.src.taxonomy_common_vo import (
     ConfigKeys,
     EnvPairs,

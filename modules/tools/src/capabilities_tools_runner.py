@@ -24,15 +24,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.contract_tools_protocol import IToolsRunnerProtocol
 from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
 from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
 from modules.shared.src.taxonomy_common_vo import ToolSpec, bin_home
-from modules.shared.src.taxonomy_tools_constant import (
+from modules.shared.src.tools.contract_tools_protocol import IToolsRunnerProtocol
+from modules.shared.src.tools.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,
     SENTINEL_EXECUTABLE_GONE,
 )
-from modules.shared.src.taxonomy_tools_vo import ExitCode
+from modules.shared.src.tools.taxonomy_tools_vo import ExitCode
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

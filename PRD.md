@@ -30,7 +30,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 
 - **The operator on a fresh machine**: clones the repo, runs the provisioner, and
   gets a working multi-agent toolchain in under ten minutes. Done = `aa doctor`
-  green and `aa skill check` passing with no manual path fixes.
+  green and the skill pack listing cleanly.
 - **The tool maintainer**: adds or upgrades one tool (often an upstream commit
   bump) and wants the lifecycle to be a data edit, not a script rewrite.
   Done = manifest entry + one capability module; no hand-edited scripts.
@@ -73,7 +73,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 
 - Daemon lifecycle (OmniRoute host-native, Anytype Podman) with health, API-key, and space join/list.
   Acceptance: `aa anytype start` then `aa anytype health` reports ready.
-- Document and skill-pack audit. Acceptance: `aa skill check` reports coverage
+- Document and skill-pack audit. Acceptance: `aa skills list` reports coverage
   and invariants are reviewed manually.
 - Reset/clean of build artifacts and per-tool state. Acceptance: `aa clean`
   removes artifacts and `aa status` reflects the clean state.
@@ -89,7 +89,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 
 | Category | Commitment | Detail lives in |
 |----------|-----------|-----------------|
-| Determinism | `aa skill check` produces identical findings on identical trees | `modules/skill/FRD.md` |
+| Determinism | `aa skills list` produces identical findings on identical trees | `modules/skills/FRD.md` |
 | XDG hygiene | No tool writes persistent data outside its XDG dirs; repo root stays clean | `modules/shared` (kernel; no FRD — see HOW-TO-MAKE-FRD) |
 | Security | No secrets committed; daemon credentials live in `.env`/XDG only | `modules/daemon/FRD.md` |
 | Submodule integrity | Pinned submodule commits are never mutated by a tool run | `modules/AGENTS.md` precedence |

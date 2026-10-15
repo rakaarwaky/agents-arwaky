@@ -4,8 +4,8 @@ from __future__ import annotations
 import json as _json
 from pathlib import Path
 
-from modules.shared.src.contract_mcp_aggregate import IMcpAggregate
-from modules.shared.src.taxonomy_mcp_vo import (
+from modules.shared.src.mcp.contract_mcp_aggregate import IMcpAggregate
+from modules.shared.src.mcp.taxonomy_mcp_vo import (
     McpAlias,
     McpOp,
     McpRequest,

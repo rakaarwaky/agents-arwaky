@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.taxonomy_harness_vo import (
+from modules.shared.src.harness.taxonomy_harness_vo import (
     ExitCode,
     UnsupportedHarnessError,
 )
