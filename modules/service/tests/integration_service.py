@@ -3,14 +3,12 @@ from __future__ import annotations
 
 
 def test_service_manager_execution():
-    """IT-SERVICE-001: ServiceManager status routes through injected aggregate (mocked)."""
+    """IT-SERVICE-001: ServiceControl/Inspect status routes through injected aggregate (mocked)."""
     from unittest.mock import MagicMock, patch
 
     from modules.service.src import capabilities_service_manager as csm
-    from modules.service.src.capabilities_service_manager import (
-        ServiceControl,
-        ServiceInspect,
-    )
+    from modules.service.src.capabilities_service_inspect import ServiceInspect
+    from modules.service.src.capabilities_service_manager import ServiceControl
     from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
@@ -18,12 +16,12 @@ def test_service_manager_execution():
         DaemonRequest,
     )
 
-    control = ServiceControl()
+    _ = ServiceControl()
     inspect_cap = ServiceInspect()
     mock_agg = MagicMock()
     mock_agg.execute.return_value = DaemonOutcome(success=True, exit_code=0)
     with patch.object(csm, "_DAEMON_AGGREGATE", mock_agg):
-        result = manager.status()
+        result = inspect_cap.status()
         assert result is not None
         assert mock_agg.execute.call_count == 2
         mock_agg.execute.assert_any_call(
@@ -37,14 +35,12 @@ def test_service_manager_execution():
 def test_service_orchestrator_creation():
     """IT-SERVICE-002: ServiceOrchestrator can be created."""
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-    from modules.service.src.capabilities_service_manager import (
-        ServiceControl,
-        ServiceInspect,
-    )
+    from modules.service.src.capabilities_service_inspect import ServiceInspect
+    from modules.service.src.capabilities_service_manager import ServiceControl
 
     control = ServiceControl()
     inspect_cap = ServiceInspect()
-    orch = ServiceOrchestrator(control, inspect)
+    orch = ServiceOrchestrator(control, inspect_cap)
     assert orch is not None
 
 

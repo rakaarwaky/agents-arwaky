@@ -15,10 +15,8 @@ def test_mcp_protocol_exists():
 
 def test_mcp_generator_exists():
     """CP-MCP-002: McpConfigLister class exists."""
-    from modules.mcp.src.capabilities_mcp_generator import (
-        McpConfigLister,
-        McpConfigWriter,
-    )
+    from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
+    from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
 
     assert McpConfigLister is not None
     assert McpConfigWriter is not None
@@ -33,10 +31,8 @@ def test_mcp_orchestrator_exists():
 
 def test_mcp_generator_implements_protocol():
     """CP-MCP-004: McpConfigLister/McpConfigWriter implement the protocols."""
-    from modules.mcp.src.capabilities_mcp_generator import (
-        McpConfigLister,
-        McpConfigWriter,
-    )
+    from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
+    from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
     from modules.shared.src.mcp.contract_mcp_protocol import (
         IMcpListProtocol,
         IMcpWriteProtocol,
@@ -51,10 +47,8 @@ def test_mcp_generator_implements_protocol():
 def test_mcp_orchestrator_implements_aggregate():
     """CP-MCP-005: McpOrchestrator implements IMcpAggregate."""
     from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-    from modules.mcp.src.capabilities_mcp_generator import (
-        McpConfigLister,
-        McpConfigWriter,
-    )
+    from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
+    from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
     from modules.shared.src.mcp.contract_mcp_aggregate import IMcpAggregate
 
     lister = McpConfigLister()

@@ -8,14 +8,12 @@ import pytest
 def test_dogfood_service_pipeline():
     """DOG-SERVICE-001: Basic dogfood check for service module."""
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-    from modules.service.src.capabilities_service_manager import (
-        ServiceControl,
-        ServiceInspect,
-    )
+    from modules.service.src.capabilities_service_inspect import ServiceInspect
+    from modules.service.src.capabilities_service_manager import ServiceControl
 
     control = ServiceControl()
     inspect_cap = ServiceInspect()
-    orch = ServiceOrchestrator(control, inspect)
+    orch = ServiceOrchestrator(control, inspect_cap)
 
-    assert hasattr(manager, 'status')
+    assert hasattr(inspect_cap, 'status')
     assert hasattr(orch, 'execute')

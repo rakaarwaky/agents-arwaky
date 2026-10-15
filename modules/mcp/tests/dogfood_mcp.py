@@ -8,14 +8,12 @@ import pytest
 def test_dogfood_mcp_pipeline():
     """DOG-MCP-001: Basic dogfood check for mcp module."""
     from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-    from modules.mcp.src.capabilities_mcp_generator import (
-        McpConfigLister,
-        McpConfigWriter,
-    )
+    from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
+    from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
 
     lister = McpConfigLister()
     writer = McpConfigWriter()
     orch = McpOrchestrator(lister, writer)
 
-    assert hasattr(generator, 'generate')
+    assert hasattr(writer, 'generate')
     assert hasattr(orch, 'execute')

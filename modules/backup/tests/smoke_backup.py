@@ -8,29 +8,23 @@ def test_import_backup_modules():
     """SM-BACKUP-001: Backup modules can be imported."""
     from modules.backup.src import (
         agent_backup_orchestrator,
-        capabilities_backup_gdrive,
         capabilities_backup_tar,
         root_backup_container,
     )
 
     assert capabilities_backup_tar is not None
-    assert capabilities_backup_gdrive is not None
     assert agent_backup_orchestrator is not None
     assert root_backup_container is not None
 
-
 def test_gateway_init_quick():
     """SM-BACKUP-002: Gateway initialization is quick."""
-    from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     start = time.time()
     TarBackupGateway()
-    GdriveBackupGateway()
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
-
 
 def test_orchestrator_init_quick():
     """SM-BACKUP-003: Orchestrator initialization is quick."""
@@ -39,11 +33,10 @@ def test_orchestrator_init_quick():
 
     start = time.time()
     tar = TarBackupGateway()
-    BackupOrchestrator(tar, tar)
+    BackupOrchestrator(tar)
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
-
 
 def test_container_creation_quick():
     """SM-BACKUP-004: Container creation is quick."""

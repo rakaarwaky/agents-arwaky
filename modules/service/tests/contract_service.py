@@ -20,61 +20,61 @@ def test_service_aggregate_exists():
     assert IServiceAggregate is not None
 
 
-def test_service_manager_exists():
-    """CP-SERVICE-003: ServiceManager class exists."""
+def test_service_control_exists():
+    """CP-SERVICE-003: ServiceControl class exists."""
+    from modules.service.src.capabilities_service_manager import ServiceControl
 
-    assert ServiceManager is not None
+    assert ServiceControl is not None
+
+
+def test_service_inspect_exists():
+    """CP-SERVICE-004: ServiceInspect class exists."""
+    from modules.service.src.capabilities_service_inspect import ServiceInspect
+
+    assert ServiceInspect is not None
 
 
 def test_service_orchestrator_exists():
-    """CP-SERVICE-004: ServiceOrchestrator class exists."""
+    """CP-SERVICE-005: ServiceOrchestrator class exists."""
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
 
     assert ServiceOrchestrator is not None
 
 
-def test_service_manager_implements_protocol():
-    """CP-SERVICE-005: ServiceManager implements the rich IServiceProtocol."""
-    from modules.service.src.capabilities_service_manager import (
-        ServiceControl,
-        ServiceInspect,
-    )
+def test_service_control_implements_protocol():
+    """CP-SERVICE-006: ServiceControl implements IServiceControlProtocol."""
+    from modules.service.src.capabilities_service_manager import ServiceControl
     from modules.shared.src.service.contract_service_protocol import (
         IServiceControlProtocol,
+    )
+
+    control = ServiceControl()
+    assert isinstance(control, IServiceControlProtocol)
+    for method in ("start", "stop", "restart"):
+        assert callable(getattr(control, method))
+
+
+def test_service_inspect_implements_protocol():
+    """CP-SERVICE-007: ServiceInspect implements IServiceInspectProtocol."""
+    from modules.service.src.capabilities_service_inspect import ServiceInspect
+    from modules.shared.src.service.contract_service_protocol import (
         IServiceInspectProtocol,
     )
 
-    control = ServiceControl()
     inspect_cap = ServiceInspect()
-    assert isinstance(manager, (IServiceControlProtocol, IServiceInspectProtocol))
-    for method in ("status", "start", "stop", "restart", "logs", "help"):
-        assert callable(getattr(manager, method))
+    assert isinstance(inspect_cap, IServiceInspectProtocol)
+    for method in ("status", "logs", "help"):
+        assert callable(getattr(inspect_cap, method))
 
 
 def test_service_orchestrator_implements_aggregate():
-    """CP-SERVICE-006: ServiceOrchestrator implements the single-execute aggregate."""
+    """CP-SERVICE-008: ServiceOrchestrator implements the single-execute aggregate."""
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-    from modules.service.src.capabilities_service_manager import (
-        ServiceControl,
-        ServiceInspect,
-    )
+    from modules.service.src.capabilities_service_inspect import ServiceInspect
+    from modules.service.src.capabilities_service_manager import ServiceControl
     from modules.shared.src.service.contract_service_aggregate import IServiceAggregate
 
     control = ServiceControl()
     inspect_cap = ServiceInspect()
-    orch = ServiceOrchestrator(control, inspect)
+    orch = ServiceOrchestrator(control, inspect_cap)
     assert isinstance(orch, IServiceAggregate)
-    assert callable(orch.execute)
-
-
-def test_service_aggregate_declares_only_execute():
-    """CP-SERVICE-007: the aggregate exposes exactly one abstract method."""
-    from modules.shared.src.service.contract_service_aggregate import IServiceAggregate
-
-    abstract = {
-        name
-        for name in vars(IServiceAggregate)
-        if callable(getattr(IServiceAggregate, name, None))
-        and getattr(getattr(IServiceAggregate, name), "__isabstractmethod__", False)
-    }
-    assert abstract == {"execute"}

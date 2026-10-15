@@ -8,7 +8,6 @@ aggregate (composition root) and injected.
 
 Two capabilities, one per contract seam:
 - ``ServiceControl`` implements ``IServiceControlProtocol`` (start/stop/restart)
-- ``ServiceInspect`` implements ``IServiceInspectProtocol`` (status/logs/help)
 """
 
 from __future__ import annotations
@@ -21,18 +20,18 @@ from modules.shared.src.daemon.taxonomy_daemon_vo import (
     DaemonOp,
     DaemonRequest,
 )
-from modules.shared.src.service.contract_service_protocol import (
-    IServiceControlProtocol,
-    IServiceInspectProtocol,
-)
+from modules.shared.src.service.contract_service_protocol import IServiceControlProtocol
 from modules.shared.src.service.taxonomy_service_vo import (
     TARGET_ALL,
-    TARGET_OMNIROUTE,
     ExitCode,
     ServiceTarget,
 )
 
 _DAEMON_AGGREGATE: IDaemonAggregate | None = None
+
+__all__ = [
+    "ServiceControl",
+]
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class ServiceControl(IServiceControlProtocol):
@@ -60,36 +59,6 @@ class ServiceControl(IServiceControlProtocol):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "ServiceControl()"
-
-
-class ServiceInspect(IServiceInspectProtocol):
-    """Service inspection capability: status / logs / help."""
-
-    def __init__(self, daemons: IDaemonAggregate | None = None) -> None:
-        global _DAEMON_AGGREGATE
-        if daemons is not None:
-            _DAEMON_AGGREGATE = daemons
-        self._daemons = daemons
-
-    # ─── Block 2: Protocol Method Implementation ──────────────
-    def status(self) -> ExitCode:
-        """Report the health of every registered service. Return the exit code."""
-        return ExitCode(cmd_status())
-
-    def logs(self, target: ServiceTarget = TARGET_OMNIROUTE) -> ExitCode:
-        """Stream the named service's logs. Return the exit code."""
-        return ExitCode(cmd_logs(str(target)))
-
-    def help(self) -> ExitCode:
-        """Print the service command usage. Return the exit code."""
-        return ExitCode(cmd_help())
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
-    def __repr__(self) -> str:
-        return "ServiceInspect()"
-
-
-# ─── Block 3: Dunder Methods, Factories & Helpers ───
 
 def _daemons() -> IDaemonAggregate:
     """Daemon control surface: set by the service root container at construction."""
@@ -191,7 +160,6 @@ def main(argv: list[str]) -> int:
 __all__ = [
     "ExitCode",
     "ServiceControl",
-    "ServiceInspect",
         "ServiceTarget",
 ]
 
@@ -199,9 +167,5 @@ __all__ = [
 _layer_symbols = {
     "ExitCode": ExitCode,
     "ServiceControl": ServiceControl,
-    "ServiceInspect": ServiceInspect,
-        "ServiceTarget": ServiceTarget,
+            "ServiceTarget": ServiceTarget,
 }
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))

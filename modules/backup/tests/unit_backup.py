@@ -32,29 +32,6 @@ class TestTarBackupGateway:
             assert result.success is True
             assert result.result == 0
 
-
-class TestGdriveBackupGateway:
-    """Tests for GdriveBackupGateway class."""
-
-    def test_init_creates_gateway(self):
-        """UT-BACKUP-003: GdriveBackupGateway initializes correctly."""
-        from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
-
-        gateway = GdriveBackupGateway()
-        assert gateway is not None
-        assert gateway._folder_name == "Agents-Arwaky-Backups"
-
-    def test_backup_without_local_archive_fails(self):
-        """UT-BACKUP-004: backup reports failure when no local archive exists."""
-        from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
-
-        gateway = GdriveBackupGateway()
-        with patch("modules.shared.src.taxonomy_common_vo.data_home") as mock_home:
-            mock_home.return_value = Path("/nonexistent-store")
-            result = gateway.backup("no-such-tool")
-            assert result.success is False
-
-
 class TestBackupOrchestrator:
     """Tests for BackupOrchestrator class."""
 
@@ -64,7 +41,7 @@ class TestBackupOrchestrator:
         from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
         tar = TarBackupGateway()
-        orchestrator = BackupOrchestrator(tar, tar)
+        orchestrator = BackupOrchestrator(tar)
         assert orchestrator is not None
 
     def test_execute_list_delegates_to_tar(self):
@@ -74,12 +51,12 @@ class TestBackupOrchestrator:
         from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
 
         tar = MagicMock()
-        tar.list_archives.return_value = BackupOutcome(success=True, tool_id="", result=[])
-        orchestrator = BackupOrchestrator(tar, tar)
+        tar.list_archives.return_value = BackupOutcome(success=True, tool_id="", result=0)
+        orchestrator = BackupOrchestrator(tar)
 
         response = orchestrator.execute(BackupRequest(BackupOp("list")))
         tar.list_archives.assert_called_once()
-        assert response.result == []
+        assert response.result == 0
 
     def test_execute_help_delegates_to_tar(self):
         """UT-BACKUP-007: execute(help) routes to the tar gateway's help."""
@@ -89,7 +66,7 @@ class TestBackupOrchestrator:
 
         tar = MagicMock()
         tar.help.return_value = 0
-        orchestrator = BackupOrchestrator(tar, tar)
+        orchestrator = BackupOrchestrator(tar)
 
         response = orchestrator.execute(BackupRequest(BackupOp("help")))
         tar.help.assert_called_once()
@@ -103,10 +80,9 @@ class TestBackupOrchestrator:
 
         from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
 
-        orchestrator = BackupOrchestrator(MagicMock(), MagicMock())
+        orchestrator = BackupOrchestrator(MagicMock())
         with pytest.raises(ValueError):
             orchestrator.execute(BackupRequest(BackupOp("nope")))
-
 
 class TestBackupFunctions:
     """Tests for standalone backup functions."""
@@ -123,6 +99,7 @@ class TestBackupFunctions:
             assert not tarfile.is_tarfile(path)
         finally:
             path.unlink(missing_ok=True)
+
     def test_cmd_help_output(self):
         """UT-BACKUP-010: cmd_help returns expected help text."""
         from modules.backup.src.capabilities_backup_tar import cmd_help
@@ -130,15 +107,8 @@ class TestBackupFunctions:
         result = cmd_help()
         assert result == 0
 
-
 class TestBackupConstants:
     """Tests for backup constants."""
-
-    def test_default_folder_name(self):
-        """UT-BACKUP-011: DEFAULT_FOLDER_NAME has expected value."""
-        from modules.backup.src.capabilities_backup_gdrive import DEFAULT_FOLDER_NAME
-
-        assert DEFAULT_FOLDER_NAME == "Agents-Arwaky-Backups"
 
     def test_backup_store_path(self):
         """UT-BACKUP-012: BACKUP_STORE is a valid Path."""

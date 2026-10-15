@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import os
 import shutil
-import subprocess
 import sys
 import tarfile
 import threading
@@ -22,7 +21,6 @@ from pathlib import Path
 from modules.shared.src.backup.contract_backup_protocol import IBackupProtocol
 from modules.shared.src.backup.taxonomy_backup_constant import (
     BACKUP_STORE,
-    GDRIVE_HELPER,
     TOOL_DATA,
 )
 from modules.shared.src.backup.taxonomy_backup_vo import (
@@ -41,7 +39,7 @@ from modules.shared.src.taxonomy_common_vo import data_home
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class TarBackupGateway(IBackupProtocol):
-    """tar/untar backup & restore with progress spinner + optional gdrive upload.
+    """tar/untar backup & restore with progress spinner.
 
     Thin AES capability wrapper around the unchanged original script
     functions above; the original ``backup_tool`` / ``restore_tool`` /
@@ -179,8 +177,7 @@ def untar(src: Path, dest: Path):
 
 
 def backup_tool(tool: str, dest: str = ""):
-    """Back up *tool* data to BACKUP_STORE, optionally uploading to gdrive."""
-    upload_to_gdrive = dest == "gdrive" or dest.startswith("gdrive:")
+    """Back up *tool* data to BACKUP_STORE."""
     store = BACKUP_STORE
     store.mkdir(parents=True, exist_ok=True)
     subdir = TOOL_DATA.get(tool, tool)
@@ -193,26 +190,6 @@ def backup_tool(tool: str, dest: str = ""):
     log_info(f"Backing up {tool} -> {archive}")
     tar_dir(src, archive)
     log_ok(f"{tool} backed up.")
-    if upload_to_gdrive:
-        # Argument list without shell=True; helper runs in-process as a module
-        target, _, mod = GDRIVE_HELPER.partition(":")
-        cmd = (
-            [sys.executable, target, mod, "upload", str(archive)]
-            if target == "-m"
-            else [sys.executable, target, "upload", str(archive)]
-        )
-        with _Progress(f"Uploading {archive.name} to Google Drive..."):
-            result = subprocess.run(
-                cmd,
-                capture_output=True, text=True, check=False,
-            )
-        if result.returncode != 0:
-            print(
-                f"  [FAIL] Google Drive upload failed: {result.stderr.strip()}",
-                file=sys.stderr,
-            )
-            return result.returncode
-        print(result.stdout)
     return 0
 
 
@@ -267,15 +244,14 @@ def restore_tool(tool: str, src: str):
 
 
 def cmd_backup(argv):
-    """Run backup for one or all tools, optionally targeting gdrive."""
+    """Run backup for one or all tools."""
     tool = argv[0] if argv else "all"
     if tool == "list":
         return cmd_list()
-    dest = argv[1] if len(argv) > 1 else ""
     tools = list(TOOL_DATA.keys()) if tool == "all" else [tool]
     rc = 0
     for t in tools:
-        if backup_tool(t, dest) not in (0, None):
+        if backup_tool(t) not in (0, None):
             rc = 1
     return rc
 

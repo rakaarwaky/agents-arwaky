@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
 
 from modules.shared.src.backup.taxonomy_backup_vo import BackupOp, BackupRequest
 
@@ -13,25 +12,21 @@ def test_full_backup_workflow():
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     tar = TarBackupGateway()
-    orchestrator = BackupOrchestrator(tar, tar)
+    orchestrator = BackupOrchestrator(tar)
 
     assert callable(orchestrator.execute)
     assert orchestrator.execute(BackupRequest(BackupOp("help"))).result == 0
 
-
 def test_orchestrator_with_real_gateways():
     """IT-BACKUP-002: Orchestrator works with real gateway instances."""
     from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
-    from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     tar = TarBackupGateway()
-    gdrive = GdriveBackupGateway()
-    orchestrator = BackupOrchestrator(tar, gdrive)
+    orchestrator = BackupOrchestrator(tar)
 
     assert orchestrator.execute(BackupRequest(BackupOp("help"))).result == 0
     assert orchestrator.execute(BackupRequest(BackupOp("status"))).result == 0
-
 
 def test_tar_backup_store_check():
     """IT-BACKUP-003: Backup store path check works."""
@@ -39,33 +34,39 @@ def test_tar_backup_store_check():
 
     assert isinstance(BACKUP_STORE, Path)
 
-
-def test_gdrive_gateway_folder_name():
-    """IT-BACKUP-004: Gdrive gateway uses correct default folder name."""
-    from modules.backup.src.capabilities_backup_gdrive import GdriveBackupGateway
-
-    gateway = GdriveBackupGateway()
-    assert gateway._folder_name == "Agents-Arwaky-Backups"
-
-
 def test_execute_op_dispatch():
-    """IT-BACKUP-005: The aggregate routes each op to the matching protocol method."""
+    """IT-BACKUP-004: The aggregate routes each op to the matching protocol method."""
+    from unittest.mock import MagicMock
+
     from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
-    from modules.backup.src.capabilities_backup_tar import TarBackupGateway
+    from modules.shared.src.backup.taxonomy_backup_vo import (
+        BackupArchive,
+        BackupDestination,
+        BackupOp,
+        BackupRequest,
+        BackupToolQuery,
+    )
 
-    tar = TarBackupGateway()
-    orchestrator = BackupOrchestrator(tar, tar)
+    tar = MagicMock()
+    tar.backup.return_value = MagicMock(success=True, tool_id="omniroute", archive="omniroute.tar.gz", uploaded=False, message="ok")
+    tar.restore.return_value = MagicMock(success=True, tool_id="omniroute", archive="omniroute.tar.gz", message="ok")
+    tar.list_archives.return_value = MagicMock(success=True, tool_id="", result=[])
+    tar.help.return_value = 0
+    tar.status.return_value = 0
 
-    with patch("modules.backup.src.capabilities_backup_tar.cmd_list", return_value=0):
-        assert orchestrator.execute(BackupRequest(BackupOp("list"))).result == 0
+    orchestrator = BackupOrchestrator(tar)
 
-    with patch("modules.backup.src.capabilities_backup_tar.cmd_help", return_value=0):
-        assert orchestrator.execute(BackupRequest(BackupOp("help"))).result == 0
+    orchestrator.execute(BackupRequest(BackupOp("backup"), tool=BackupToolQuery("omniroute"), dest=BackupDestination("")))
+    tar.backup.assert_called_once()
 
+    orchestrator.execute(BackupRequest(BackupOp("restore"), tool=BackupToolQuery("omniroute"), archive=BackupArchive("omniroute.tar.gz")))
+    tar.restore.assert_called_once()
 
-def test_container_creation():
-    """IT-BACKUP-006: Container creates orchestrator correctly."""
-    from modules.backup.src.root_backup_container import BackupContainer
+    orchestrator.execute(BackupRequest(BackupOp("list")))
+    tar.list_archives.assert_called_once()
 
-    container = BackupContainer()
-    assert container.aggregate is not None
+    orchestrator.execute(BackupRequest(BackupOp("help")))
+    tar.help.assert_called_once()
+
+    orchestrator.execute(BackupRequest(BackupOp("status")))
+    tar.status.assert_called_once()

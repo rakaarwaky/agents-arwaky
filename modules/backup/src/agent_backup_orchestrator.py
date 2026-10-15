@@ -1,7 +1,7 @@
-"""Backup agent orchestrator — single-execute aggregate over the backup gateways.
+"""Backup agent orchestrator — single-execute aggregate over the tar backup gateway.
 
 Dispatches each ``BackupRequest.op`` to the matching rich protocol method on
-the injected tar or gdrive gateway, then wraps the result in a
+the injected tar gateway, then wraps the result in a
 ``BackupOutcome`` so the aggregate exposes exactly one entry point.
 """
 from __future__ import annotations
@@ -20,19 +20,17 @@ from modules.shared.src.backup.taxonomy_backup_vo import (
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class BackupOrchestrator(IBackupAggregate):
-    """Single entry point over the backup gateways; dispatch happens here."""
+    """Single entry point over the tar backup gateway; dispatch happens here."""
 
-    def __init__(self, tar_gateway: IBackupProtocol, gdrive_gateway: IBackupProtocol) -> None:
+    def __init__(self, tar_gateway: IBackupProtocol) -> None:
         self._tar = tar_gateway
-        self._gdrive = gdrive_gateway
 
     # ─── Block 2: Aggregate Method Implementation ──────────
     def execute(self, request: BackupRequest) -> BackupResponse:
         """Route *request* to the matching protocol method; return the response."""
         op = BackupOp(str(request.op))
         if op == "backup":
-            gateway = self._gdrive if str(request.dest).startswith("gdrive") else self._tar
-            result = gateway.backup(BackupToolQuery(str(request.tool)), BackupDestination(str(request.dest)))
+            result = self._tar.backup(BackupToolQuery(str(request.tool)), BackupDestination(str(request.dest)))
             return BackupResponse(BackupOutcome(
                 success=result.success,
                 tool_id=result.tool_id,
@@ -46,31 +44,20 @@ class BackupOrchestrator(IBackupAggregate):
                 result=result,
             ))
         if op == "list":
-            return BackupResponse(self._tar.list_archives())
+            result = self._tar.list_archives()
+            return BackupResponse(result)
         if op == "status":
+            result = self._tar.status()
             return BackupResponse(BackupOutcome(
-                success=True,
+                success=result == 0,
                 tool_id="",
-                result=self._tar.status(),
+                result=result,
             ))
         if op == "help":
+            result = self._tar.help()
             return BackupResponse(BackupOutcome(
-                success=True,
+                success=result == 0,
                 tool_id="",
-                result=self._tar.help(),
+                result=result,
             ))
-        raise ValueError(f"Unknown backup op: {op}")
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
-    def __repr__(self) -> str:
-        return "BackupOrchestrator()"
-
-
-__all__ = ["BackupOrchestrator", "BackupRequest", "BackupResponse"]
-
-# Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {
-    "BackupOrchestrator": BackupOrchestrator,
-    "BackupRequest": BackupRequest,
-    "BackupResponse": BackupResponse,
-}
+        raise ValueError(f"unknown backup op: {op}")

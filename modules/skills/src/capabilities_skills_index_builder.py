@@ -12,24 +12,17 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from modules.shared.src.skills.contract_skills_protocol import (
-    ISkillsIndexProtocol,
-    ISkillsReaderProtocol,
-)
+from modules.shared.src.skills.contract_skills_protocol import ISkillsIndexProtocol
 from modules.shared.src.skills.taxonomy_skills_vo import (
-    SkillContent,
     SkillDescription,
-    SkillQuery,
     SkillRecord,
 )
 from modules.shared.src.taxonomy_skill_vo import (
     extract_skill_name,
-    sanitize_skill_name,
 )
 
 __all__ = [
     "SkillsIndexBuilder",
-    "SkillsPackReader",
     "default_pack_root",
 ]
 
@@ -98,43 +91,3 @@ class SkillsIndexBuilder(ISkillsIndexProtocol):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
 
 
-class SkillsPackReader(ISkillsReaderProtocol):
-    """Reads one skill's ``SKILL.md`` content from the pack at *pack_root*."""
-
-    def __init__(self, pack_root: Path | None = None) -> None:
-        self._root = pack_root or default_pack_root()
-
-    # ─── Block 2: Protocol Method Implementation ──────────────
-    def show_skill(self, query: SkillQuery) -> SkillContent | None:
-        """Return the raw SKILL.md content for *query*, or None if missing.
-
-        Matches the frontmatter ``name:`` field, the parent directory name,
-        or a hyphen-free spelling of either (``fetch`` ↔ ``fetch-mcp``).
-        """
-        wanted = sanitize_skill_name(query, query)
-        wanted_plain = wanted.replace("-", "")
-        records = [
-            (_parse_frontmatter(md), md) for md in _iter_skill_mds(self._root)
-        ]
-        exact = [
-            (name_, md)
-            for (name_, _desc), md in records
-            if wanted in (name_, md.parent.name)
-            or wanted_plain
-            in (name_.replace("-", ""), md.parent.name.replace("-", ""))
-        ]
-        if exact:
-            raw = _read_skill_md(exact[0][1])
-            return SkillContent(raw) if raw is not None else None
-        prefixed = [
-            md
-            for (name_, _desc), md in records
-            if name_.startswith(wanted + "-")
-            or md.parent.name.startswith(wanted + "-")
-        ]
-        if len(prefixed) == 1:
-            raw = _read_skill_md(prefixed[0])
-            return SkillContent(raw) if raw is not None else None
-        return None
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────

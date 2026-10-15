@@ -25,7 +25,7 @@ class TestMcpConfigCapabilities:
 
     def test_generate_method_exists(self):
         """UT-MCP-004: generate method exists on writer."""
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigWriter
+        from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
 
         writer = McpConfigWriter()
         assert hasattr(writer, 'generate')
@@ -33,7 +33,7 @@ class TestMcpConfigCapabilities:
 
     def test_validate_method_exists(self):
         """UT-MCP-005: validate method exists on writer."""
-        from modules.mcp.src.capabilities_mcp_generator import McpConfigWriter
+        from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
 
         writer = McpConfigWriter()
         assert hasattr(writer, 'validate')
@@ -54,10 +54,8 @@ class TestMcpOrchestrator:
     def test_init_creates_orchestrator(self):
         """UT-MCP-007: McpOrchestrator initializes correctly."""
         from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-        from modules.mcp.src.capabilities_mcp_generator import (
-            McpConfigLister,
-            McpConfigWriter,
-        )
+        from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
+        from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
 
         lister = McpConfigLister()
         writer = McpConfigWriter()
@@ -67,10 +65,8 @@ class TestMcpOrchestrator:
     def test_execute_list_delegates(self):
         """UT-MCP-008: execute with op=list delegates to lister."""
         from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-        from modules.mcp.src.capabilities_mcp_generator import (
-            McpConfigLister,
-            McpConfigWriter,
-        )
+        from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
+        from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
         from modules.shared.src.mcp.taxonomy_mcp_vo import McpOp, McpRequest
 
         lister = McpConfigLister()
@@ -82,10 +78,8 @@ class TestMcpOrchestrator:
     def test_execute_generate_delegates(self):
         """UT-MCP-009: execute with op=generate delegates to writer."""
         from modules.mcp.src.agent_mcp_orchestrator import McpOrchestrator
-        from modules.mcp.src.capabilities_mcp_generator import (
-            McpConfigLister,
-            McpConfigWriter,
-        )
+        from modules.mcp.src.capabilities_mcp_generator import McpConfigLister
+        from modules.mcp.src.capabilities_mcp_writer import McpConfigWriter
         from modules.shared.src.mcp.taxonomy_mcp_vo import McpOp, McpRequest
 
         lister = McpConfigLister()

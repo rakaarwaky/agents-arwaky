@@ -3,21 +3,24 @@ from __future__ import annotations
 
 
 def bench_service_manager_init(benchmark):
-    """BENCH-SERVICE-001: Benchmark ServiceManager initialization."""
-    from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
+    """BENCH-SERVICE-001: Benchmark ServiceControl initialization."""
+    from modules.service.src.capabilities_service_manager import ServiceControl
 
-    benchmark(ServiceManager)
+    benchmark(ServiceControl)
 
 
 def bench_service_orchestrator_init(benchmark):
     """BENCH-SERVICE-002: Benchmark ServiceOrchestrator initialization."""
     from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-    from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
+    from modules.service.src.capabilities_service_manager import (
+        ServiceControl,
+        ServiceInspect,
+    )
 
     def _init():
         control = ServiceControl()
-    inspect_cap = ServiceInspect()
-        return ServiceOrchestrator(control, inspect)
+        inspect_cap = ServiceInspect()
+        return ServiceOrchestrator(control, inspect_cap)
 
     benchmark(_init)
 

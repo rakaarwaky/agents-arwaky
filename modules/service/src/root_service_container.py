@@ -11,10 +11,8 @@ from typing import ClassVar
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-from modules.service.src.capabilities_service_manager import (
-    ServiceControl,
-    ServiceInspect,
-)
+from modules.service.src.capabilities_service_inspect import ServiceInspect
+from modules.service.src.capabilities_service_manager import ServiceControl
 from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.daemon.taxonomy_daemon_vo import (
     DaemonName,

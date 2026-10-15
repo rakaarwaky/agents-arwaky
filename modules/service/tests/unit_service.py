@@ -42,7 +42,7 @@ class TestServiceInspect:
 
     def test_status_method_exists(self):
         """UT-SERVICE-003: status method exists on inspect."""
-        from modules.service.src.capabilities_service_manager import ServiceInspect
+        from modules.service.src.capabilities_service_inspect import ServiceInspect
 
         inspect_cap = ServiceInspect()
         assert hasattr(inspect_cap, 'status')
@@ -50,7 +50,7 @@ class TestServiceInspect:
 
     def test_logs_method_exists(self):
         """UT-SERVICE-007: logs method exists on inspect."""
-        from modules.service.src.capabilities_service_manager import ServiceInspect
+        from modules.service.src.capabilities_service_inspect import ServiceInspect
 
         inspect_cap = ServiceInspect()
         assert hasattr(inspect_cap, 'logs')
@@ -58,7 +58,7 @@ class TestServiceInspect:
 
     def test_help_method_exists(self):
         """UT-SERVICE-008: help method exists on inspect."""
-        from modules.service.src.capabilities_service_manager import ServiceInspect
+        from modules.service.src.capabilities_service_inspect import ServiceInspect
 
         inspect_cap = ServiceInspect()
         assert hasattr(inspect_cap, 'help')
@@ -71,7 +71,8 @@ class TestServiceOrchestrator:
     def test_init_creates_orchestrator(self):
         """UT-SERVICE-009: ServiceOrchestrator initializes correctly."""
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
+        from modules.service.src.capabilities_service_inspect import ServiceInspect
+        from modules.service.src.capabilities_service_manager import ServiceControl
 
         control = ServiceControl()
         inspect_cap = ServiceInspect()
@@ -81,8 +82,12 @@ class TestServiceOrchestrator:
     def test_execute_status_delegates(self):
         """UT-SERVICE-010: execute dispatches status to inspect."""
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
-        from modules.shared.src.service.taxonomy_service_vo import ServiceOp, ServiceRequest
+        from modules.service.src.capabilities_service_inspect import ServiceInspect
+        from modules.service.src.capabilities_service_manager import ServiceControl
+        from modules.shared.src.service.taxonomy_service_vo import (
+            ServiceOp,
+            ServiceRequest,
+        )
 
         control = ServiceControl()
         inspect_cap = ServiceInspect()
@@ -93,8 +98,12 @@ class TestServiceOrchestrator:
     def test_execute_start_delegates(self):
         """UT-SERVICE-011: execute dispatches start to control."""
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
-        from modules.shared.src.service.taxonomy_service_vo import ServiceOp, ServiceRequest
+        from modules.service.src.capabilities_service_inspect import ServiceInspect
+        from modules.service.src.capabilities_service_manager import ServiceControl
+        from modules.shared.src.service.taxonomy_service_vo import (
+            ServiceOp,
+            ServiceRequest,
+        )
 
         control = ServiceControl()
         inspect_cap = ServiceInspect()
@@ -105,8 +114,12 @@ class TestServiceOrchestrator:
     def test_execute_stop_delegates(self):
         """UT-SERVICE-012: execute dispatches stop to control."""
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
-        from modules.shared.src.service.taxonomy_service_vo import ServiceOp, ServiceRequest
+        from modules.service.src.capabilities_service_inspect import ServiceInspect
+        from modules.service.src.capabilities_service_manager import ServiceControl
+        from modules.shared.src.service.taxonomy_service_vo import (
+            ServiceOp,
+            ServiceRequest,
+        )
 
         control = ServiceControl()
         inspect_cap = ServiceInspect()
@@ -117,8 +130,12 @@ class TestServiceOrchestrator:
     def test_execute_restart_delegates(self):
         """UT-SERVICE-013: execute dispatches restart to control."""
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_manager import ServiceControl, ServiceInspect
-        from modules.shared.src.service.taxonomy_service_vo import ServiceOp, ServiceRequest
+        from modules.service.src.capabilities_service_inspect import ServiceInspect
+        from modules.service.src.capabilities_service_manager import ServiceControl
+        from modules.shared.src.service.taxonomy_service_vo import (
+            ServiceOp,
+            ServiceRequest,
+        )
 
         control = ServiceControl()
         inspect_cap = ServiceInspect()
