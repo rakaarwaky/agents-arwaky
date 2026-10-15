@@ -9,10 +9,11 @@ from modules.shared.src.backup.taxonomy_backup_vo import BackupOp, BackupRequest
 def test_backup_e2e_workflow():
     """E2E-BACKUP-001: Full backup orchestration workflow."""
     from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
+    from modules.backup.src.capabilities_backup_inspect import TarBackupInspect
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     tar = TarBackupGateway()
-    orchestrator = BackupOrchestrator(tar)
+    orchestrator = BackupOrchestrator(tar, TarBackupInspect())
 
     # The aggregate is a single entry point.
     assert callable(orchestrator.execute)

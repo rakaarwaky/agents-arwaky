@@ -24,11 +24,11 @@ class TestTarBackupGateway:
 
     def test_list_archives_returns_outcome(self):
         """UT-BACKUP-002: list_archives wraps cmd_list's exit code in an outcome."""
-        from modules.backup.src.capabilities_backup_tar import TarBackupGateway
+        from modules.backup.src.capabilities_backup_inspect import TarBackupInspect
 
-        gateway = TarBackupGateway()
-        with patch("modules.backup.src.capabilities_backup_tar.cmd_list", return_value=0):
-            result = gateway.list_archives()
+        inspect_cap = TarBackupInspect()
+        with patch("modules.backup.src.capabilities_backup_inspect.cmd_list", return_value=0):
+            result = inspect_cap.list_archives()
             assert result.success is True
             assert result.result == 0
 
@@ -38,38 +38,41 @@ class TestBackupOrchestrator:
     def test_init_creates_orchestrator(self):
         """UT-BACKUP-005: BackupOrchestrator initializes correctly."""
         from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
+        from modules.backup.src.capabilities_backup_inspect import TarBackupInspect
         from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
         tar = TarBackupGateway()
-        orchestrator = BackupOrchestrator(tar)
+        orchestrator = BackupOrchestrator(tar, TarBackupInspect())
         assert orchestrator is not None
 
     def test_execute_list_delegates_to_tar(self):
-        """UT-BACKUP-006: execute(list) routes to the tar gateway's list_archives."""
+        """UT-BACKUP-006: execute(list) routes to the inspect capability's list_archives."""
         from unittest.mock import MagicMock
 
         from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
 
         tar = MagicMock()
-        tar.list_archives.return_value = BackupOutcome(success=True, tool_id="", result=0)
-        orchestrator = BackupOrchestrator(tar)
+        inspect_cap = MagicMock()
+        inspect_cap.list_archives.return_value = BackupOutcome(success=True, tool_id="", result=0)
+        orchestrator = BackupOrchestrator(tar, inspect_cap)
 
         response = orchestrator.execute(BackupRequest(BackupOp("list")))
-        tar.list_archives.assert_called_once()
+        inspect_cap.list_archives.assert_called_once()
         assert response.result == 0
 
     def test_execute_help_delegates_to_tar(self):
-        """UT-BACKUP-007: execute(help) routes to the tar gateway's help."""
+        """UT-BACKUP-007: execute(help) routes to the inspect capability's help."""
         from unittest.mock import MagicMock
 
         from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
 
         tar = MagicMock()
-        tar.help.return_value = 0
-        orchestrator = BackupOrchestrator(tar)
+        inspect_cap = MagicMock()
+        inspect_cap.help.return_value = 0
+        orchestrator = BackupOrchestrator(tar, inspect_cap)
 
         response = orchestrator.execute(BackupRequest(BackupOp("help")))
-        tar.help.assert_called_once()
+        inspect_cap.help.assert_called_once()
         assert response.result == 0
 
     def test_execute_unknown_op_raises(self):
@@ -80,7 +83,7 @@ class TestBackupOrchestrator:
 
         from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
 
-        orchestrator = BackupOrchestrator(MagicMock())
+        orchestrator = BackupOrchestrator(MagicMock(), MagicMock())
         with pytest.raises(ValueError):
             orchestrator.execute(BackupRequest(BackupOp("nope")))
 

@@ -36,32 +36,27 @@ manifest-derived server list → report or client config file.
 - **Error Handling**: generation failure returns non-zero; no partial file
   is left on a hard error.
 
-### FR-MCP-002: Report servers without writing
+### FR-MCP-002: Report servers, show one, and probe (read-only)
 
 - **Description**: listing returns the registered server rows; showing
-  reports one server or the generated config — both read-only.
-- **Input**: none (list) / optional server id (show).
-- **Output**: server rows (list); exit code (show).
-- **Business Rules**: read-only — list and show never write a file; output
-  is derived from the manifest plus each tool's help/schema where available.
+  reports one server or the generated config; probing one server prints its
+  schema (command, args) and a bounded help sample from its CLI — all
+  read-only.
+- **Input**: none (list) / optional server id (show, probe).
+- **Output**: server rows (list); exit code and help/schema text (show,
+  probe).
+- **Business Rules**: list and show never write a file; the probe is
+  bounded (short timeout) and read-only; schema comes from the manifest
+  even when the help probe fails; output is derived from the manifest plus
+  each tool's help/schema where available.
 - **Edge Cases**: show for an unknown server → clear "not registered"
-  message, non-zero.
+  message, non-zero; probe for an unknown id → not-registered message,
+  non-zero; binary missing or help timing out → schema still printed with
+  a probe-failure note, exit 0 when the server itself is registered.
 - **Error Handling**: a server whose CLI refuses help → the row reports the
-  probe failure; the listing continues.
-
-### FR-MCP-003: Probe help or schema for one server
-
-- **Description**: probing one server prints its schema (command, args) and
-  a bounded help sample from its CLI.
-- **Input**: server id.
-- **Output**: exit code; help/schema text on stdout.
-- **Business Rules**: the probe is bounded (short timeout) and read-only;
-  schema comes from the manifest even when the help probe fails.
-- **Edge Cases**: unknown id → not-registered message, non-zero; binary
-  missing or help timing out → schema still printed with a probe-failure
-  note, exit 0 when the server itself is registered.
-- **Error Handling**: unknown server → non-zero; a help-probe failure never
-  fails the report — it is printed as a note beside the schema.
+  probe failure; the listing continues; a help-probe failure never fails
+  the report — it is printed as a note beside the schema; unknown server →
+  non-zero.
 
 ## API Contract
 

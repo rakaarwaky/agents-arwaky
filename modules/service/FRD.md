@@ -35,45 +35,33 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 - **Error Handling**: non-zero with the unit and the systemctl error
   captured; no raw exceptions cross the surface.
 
-### FR-SERVICE-002: Inspect daemon service state
+### FR-SERVICE-002: Inspect, tail logs, and show usage (read-only)
 
 - **Description**: status reports each managed daemon's running/stopped
-  state without side effects.
-- **Input**: none — status covers every known target.
-- **Output**: `ExitCode`; a state table on stdout.
+  state without side effects; logs tails the journal (or log file) of one
+  target daemon; help prints the CLI usage line and the valid
+  action/target set, and an unknown action routes here instead of
+  crashing — read-only inspection over the daemon service state.
+- **Input**: none (status, help) / target — `omniroute` (default) or
+  `anytype` (logs).
+- **Output**: `ExitCode`; a state table on stdout (status); log lines on
+  stdout (logs); usage text on stdout (help).
 - **Business Rules**: status is read-only — it never starts, stops, or
   restarts anything; a stopped unit is a valid reported state, not an
-  error.
+  error; logs is read-only; a stopped unit's logs are still valid to tail;
+  an unknown target is a clear error naming the valid set; usage lists
+  exactly the supported actions (`status`, `start`, `stop`, `restart`,
+  `logs`, `help`) and targets (`omniroute`, `anytype`, `all`); help is
+  side-effect free.
 - **Edge Cases**: a daemon stopped → reported stopped, exit reflects the
-  probe without raising; one of two daemons down → both rows still printed.
-- **Error Handling**: read probes that fail are reported, not raised.
-
-### FR-SERVICE-003: Tail daemon unit logs
-
-- **Description**: logs tails the journal (or log file) of one target
-  daemon.
-- **Input**: target — `omniroute` (default) or `anytype`.
-- **Output**: `ExitCode`; log lines on stdout.
-- **Business Rules**: logs is read-only; a stopped unit's logs are still
-  valid to tail; an unknown target is a clear error naming the valid set.
-- **Edge Cases**: no journal access → the limitation is reported, not
-  raised; a target with no log file yet → clear no-logs note, non-zero.
-- **Error Handling**: probe/tail failures are reported messages with a
-  non-zero exit.
-
-### FR-SERVICE-004: Show usage and valid targets
-
-- **Description**: help prints the CLI usage line and the valid
-  action/target set; an unknown action routes here instead of crashing.
-- **Input**: none (or any unknown action token from the CLI).
-- **Output**: `ExitCode` + usage text on stdout.
-- **Business Rules**: usage lists exactly the supported actions
-  (`status`, `start`, `stop`, `restart`, `logs`, `help`) and targets
-  (`omniroute`, `anytype`, `all`); help is side-effect free.
-- **Edge Cases**: no arguments → help, exit 0; unknown action → help with
-  a stderr note, exit non-zero.
-- **Error Handling**: unknown action is a reported message plus usage;
-  never an uncaught exception.
+  probe without raising; one of two daemons down → both rows still
+  printed; no journal access → the limitation is reported, not raised; a
+  target with no log file yet → clear no-logs note, non-zero; no
+  arguments → help, exit 0; unknown action → help with a stderr note,
+  exit non-zero.
+- **Error Handling**: read probes that fail are reported, not raised;
+  probe/tail failures are reported messages with a non-zero exit; unknown
+  action is a reported message plus usage, never an uncaught exception.
 
 ## API Contract
 

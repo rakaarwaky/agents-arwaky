@@ -17,12 +17,12 @@ def _make_pack(tmp_path: Path) -> Path:
 def test_e2e_dispatch_list(tmp_path: Path, monkeypatch):
     """E2E-SKILLS-001: `aa skills list` dispatches and exits 0."""
     import modules.skills.src.capabilities_skills_index_builder as builder_mod
+    import modules.skills.src.capabilities_skills_pack_reader as reader_mod
     from modules.root_cli_entry import _dispatch
 
     pack = _make_pack(tmp_path)
-    monkeypatch.setattr(
-        builder_mod, "default_pack_root", lambda: pack
-    )
+    monkeypatch.setattr(builder_mod, "default_pack_root", lambda: pack)
+    monkeypatch.setattr(reader_mod, "default_pack_root", lambda: pack)
     rc = _dispatch(["skills", "list"])
     assert rc == 0
 
@@ -30,11 +30,11 @@ def test_e2e_dispatch_list(tmp_path: Path, monkeypatch):
 def test_e2e_dispatch_show(tmp_path: Path, monkeypatch):
     """E2E-SKILLS-002: `aa skills show <name>` dispatches and exits 0."""
     import modules.skills.src.capabilities_skills_index_builder as builder_mod
+    import modules.skills.src.capabilities_skills_pack_reader as reader_mod
     from modules.root_cli_entry import _dispatch
 
     pack = _make_pack(tmp_path)
-    monkeypatch.setattr(
-        builder_mod, "default_pack_root", lambda: pack
-    )
+    monkeypatch.setattr(builder_mod, "default_pack_root", lambda: pack)
+    monkeypatch.setattr(reader_mod, "default_pack_root", lambda: pack)
     rc = _dispatch(["skills", "show", "fetch-mcp"])
     assert rc == 0

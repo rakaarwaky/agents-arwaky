@@ -4,7 +4,7 @@
 
 ---
 
-## 💡 Executive Summary
+### 💡 Executive Summary
 
 Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`cargo`), Node (`pnpm`/`npm`), Bun, Python (`uv`), Playwright headless browsers, and system C-libraries. Installing these natively clutters the host operating system, introduces version conflicts, and creates security vulnerabilities.
 
@@ -17,7 +17,7 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 
 ---
 
-## 📑 Table of Contents
+### 📑 Table of Contents
 
 - [Architecture](#-architecture)
   - [System Flow](#system-flow)
@@ -40,6 +40,17 @@ Modern autonomous AI workflows demand dozens of polyglot toolchains—Rust (`car
 - [License & Attribution](#-license--attribution)
 
 ---
+
+## Prerequisites
+
+Host requirements for a full development setup:
+
+- Linux (macOS works for development; CI targets Linux)
+- Rust (stable), Node.js 20+, Bun 1+, Python 3.11+
+- Podman or Docker (for daemon services only)
+- `git` with submodules enabled
+
+Run `./aa setup` to check and install missing dependencies automatically.
 
 ## 🏛️ Architecture
 
@@ -138,7 +149,9 @@ agents-arwaky/
 
 ---
 
-## 🚀 Quickstart in 60 Seconds
+## Quick Start
+
+### 🚀 Quickstart in 60 Seconds
 
 ### 1. Clone with Submodules
 
@@ -188,7 +201,9 @@ aa status
 
 ---
 
-## 💻 Unified Orchestrator CLI (`agents-arwaky` / `aa`)
+## Available Scripts/Commands
+
+### 💻 Unified Orchestrator CLI (`agents-arwaky` / `aa`)
 
 The repository installs the `agents-arwaky` CLI and its short alias `aa` into `~/.local/bin/`. It serves as the single pane of glass for monitoring, executing, and managing all ecosystem components.
 
@@ -242,7 +257,7 @@ aa run lint --help
 
 ---
 
-## 📦 Agent & Tool Catalog
+### 📦 Agent & Tool Catalog
 
 > [!TIP]
 > The single source of truth (SSOT) for all tool registrations is [`tools/config/manifest.json`](tools/config/manifest.json). You can also run `aa list` or `aa mcp list` to inspect live tool status from the terminal.
@@ -278,7 +293,7 @@ High-performance community tools integrated via Git submodules and sandboxed wit
 
 ---
 
-## 🔌 MCP Client Integration
+### 🔌 MCP Client Integration
 
 `agents-arwaky` generates a standardized, unified MCP client configuration file during `aa install` or `aa mcp generate`:
 
@@ -493,7 +508,12 @@ Add to `~/.config/zed/settings.json`:
 
 ---
 
-## 🛠️ Developer Workflows & Installation Paradigms
+## Configuration
+
+Environment variables are read from XDG config paths (`$XDG_CONFIG_HOME` or `~/.config`).
+Key files: `~/.config/agents-arwaky/env.sh` (shell exports) and tool-specific `.env` files.
+
+### 🛠️ Developer Workflows & Installation Paradigms
 
 `agents-arwaky` defines **One Installation Paradigm** across all tools: **local bare-metal build** that compiles and installs directly on the host.
 
@@ -557,7 +577,7 @@ aa clean --all
 
 ---
 
-## 🔒 Security & Sandboxing Model
+### 🔒 Security & Sandboxing Model
 
 - **Local Bare-Metal Execution:** Tools compile and run directly on the host OS — no container indirection for CLI tools or MCPs.
 - **XDG Conformance & Storage Isolation:**
@@ -572,6 +592,16 @@ aa clean --all
 > For the complete technical specifications on XDG storage paths, container isolation contracts, and Architecture Enforcement System (AES) rules, see [**`AGENTS.md` § System Philosophy & Core Invariants**](AGENTS.md#-system-philosophy--core-invariants).
 
 ---
+
+## Testing
+
+Run the full test suite:
+
+```bash
+./aa test
+```
+
+Individual module tests live under `modules/<name>/tests/`.
 
 ## 🤝 Contributing
 
@@ -598,7 +628,7 @@ Contributions to internal agents, orchestration wrappers, and documentation are 
 
 ---
 
-## 📄 License & Attribution
+## License
 
 - **Repository & Orchestration Code:** Licensed under the **[MIT License](LICENSE)** © 2026 rakaarwaky.
 - **Third-Party Dependencies:** Upstream submodules are licensed by their respective original authors under open-source licenses (MIT, Apache 2.0, BSD). Full licensing attributions and copyright notices are maintained in **[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)**.

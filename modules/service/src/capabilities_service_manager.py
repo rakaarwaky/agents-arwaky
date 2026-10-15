@@ -6,31 +6,34 @@ subprocess exec of the two daemon scripts is replaced by direct calls into
 modules/daemon. The daemon managers are resolved via the daemon feature
 aggregate (composition root) and injected.
 
-Two capabilities, one per contract seam:
-- ``ServiceControl`` implements ``IServiceControlProtocol`` (start/stop/restart)
+``ServiceControl`` implements ``IServiceControlProtocol`` (start/stop/restart).
+The CLI-verb dispatch helpers live in ``utility_service_daemon`` (shared
+kernel) so no capability imports a sibling capability.
 """
-
 from __future__ import annotations
 
 import sys
 
 from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.daemon.taxonomy_daemon_vo import (
-    DaemonName,
-    DaemonOp,
-    DaemonRequest,
-)
 from modules.shared.src.service.contract_service_protocol import IServiceControlProtocol
 from modules.shared.src.service.taxonomy_service_vo import (
     TARGET_ALL,
     ExitCode,
     ServiceTarget,
 )
-
-_DAEMON_AGGREGATE: IDaemonAggregate | None = None
+from modules.shared.src.utility_service_daemon import (
+    cmd_help,
+    cmd_logs,
+    cmd_restart,
+    cmd_start,
+    cmd_status,
+    cmd_stop,
+    set_daemon_aggregate,
+)
 
 __all__ = [
     "ServiceControl",
+    "cmd_help",
 ]
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -38,9 +41,8 @@ class ServiceControl(IServiceControlProtocol):
     """Service mutation capability: start / stop / restart."""
 
     def __init__(self, daemons: IDaemonAggregate | None = None) -> None:
-        global _DAEMON_AGGREGATE
         if daemons is not None:
-            _DAEMON_AGGREGATE = daemons
+            set_daemon_aggregate(daemons)
         self._daemons = daemons
 
     # ─── Block 2: Protocol Method Implementation ──────────────
@@ -60,82 +62,8 @@ class ServiceControl(IServiceControlProtocol):
     def __repr__(self) -> str:
         return "ServiceControl()"
 
-def _daemons() -> IDaemonAggregate:
-    """Daemon control surface: set by the service root container at construction."""
-    if _DAEMON_AGGREGATE is None:
-        raise RuntimeError(
-            "ServiceControl/ServiceInspect has no daemon control injected; use "
-            "create_service_feature() (root composition) instead of a bare constructor call."
-        )
-    return _DAEMON_AGGREGATE
 
-def _run_omniroute(args: list[str]) -> int:
-    """Run the OmniRoute daemon helper."""
-    return _daemon_main("omniroute", args)
-
-def _run_anytype(args: list[str]) -> int:
-    """Run the Anytype daemon helper."""
-    return _daemon_main("anytype", args)
-
-def _daemon_main(name: str, args: list[str]) -> int:
-    """Route daemon CLI arguments to the injected daemon aggregate."""
-    agg = _daemons()
-    action = (args[0] if args else "help").lower()
-    if action in ("start", "stop", "restart", "logs"):
-        request = DaemonRequest(DaemonOp(action), name=DaemonName(name))
-        return int(agg.execute(request).exit_code or 0)
-    if action == "status":
-        result = agg.execute(DaemonRequest(DaemonOp("status"), name=DaemonName(name)))
-        return 0 if result.status and result.status.ok else 1
-    return 0
-
-def cmd_status() -> int:
-    """Print status for all registered services."""
-    print("=========== OmniRoute ===========")
-    _run_omniroute(["status"])
-    print()
-    print("=========== Anytype ===========")
-    _run_anytype(["status"])
-    return 0
-
-def cmd_start(target: str = "all") -> int:
-    """Start the requested service target(s)."""
-    if target in ("omniroute", "all"):
-        _run_omniroute(["start"])
-    if target in ("anytype", "all"):
-        _run_anytype(["start"])
-    return 0
-
-def cmd_stop(target: str = "all") -> int:
-    """Stop the requested service target(s)."""
-    if target in ("omniroute", "all"):
-        _run_omniroute(["stop"])
-    if target in ("anytype", "all"):
-        _run_anytype(["stop"])
-    return 0
-
-def cmd_restart(target: str = "all") -> int:
-    """Restart the requested service target(s)."""
-    if target in ("omniroute", "all"):
-        _run_omniroute(["restart"])
-    if target in ("anytype", "all"):
-        _run_anytype(["restart"])
-    return 0
-
-def cmd_logs(target: str = "omniroute") -> int:
-    """Print logs for the requested service target(s)."""
-    if target == "omniroute":
-        return _run_omniroute(["logs"])
-    if target == "anytype":
-        return _run_anytype(["logs"])
-    print("Usage: aa service logs <omniroute|anytype>")
-    return 1
-
-def cmd_help() -> int:
-    """Print the service command usage summary."""
-    print("Usage: aa service <status|start|stop|restart|logs> [omniroute|anytype|all]")
-    return 0
-
+# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
 def main(argv: list[str]) -> int:
     """Entry point for standalone service command execution."""
     if not argv or argv[0] in ("help", "-h", "--help"):
@@ -152,20 +80,9 @@ def main(argv: list[str]) -> int:
         return cmd_restart(target)
     if action == "logs":
         return cmd_logs(target)
-    print(f"Unknown service command: {action}", file=sys.stderr)
-    cmd_help()
-    return 1
+    print(f"Unknown service action: {action}", file=sys.stderr)
+    return cmd_help()
 
 
-__all__ = [
-    "ExitCode",
-    "ServiceControl",
-        "ServiceTarget",
-]
-
-# Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {
-    "ExitCode": ExitCode,
-    "ServiceControl": ServiceControl,
-            "ServiceTarget": ServiceTarget,
-}
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

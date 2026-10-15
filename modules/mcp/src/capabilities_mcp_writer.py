@@ -9,7 +9,6 @@ import json
 import sys
 from pathlib import Path
 
-from modules.mcp.src.capabilities_mcp_generator import _load_manifest
 from modules.shared.src.mcp.contract_mcp_protocol import IMcpWriteProtocol
 from modules.shared.src.mcp.taxonomy_mcp_vo import (
     ExitCode,
@@ -17,6 +16,7 @@ from modules.shared.src.mcp.taxonomy_mcp_vo import (
 )
 from modules.shared.src.taxonomy_common_vo import config_home
 from modules.shared.src.utility_envfile_parser import load_first_env
+from modules.shared.src.utility_mcp_manifest import load_mcp_manifest
 from modules.shared.src.utility_paths_resolver import repo_root
 
 __all__ = ["McpConfigWriter"]
@@ -61,7 +61,7 @@ class McpConfigWriter(IMcpWriteProtocol):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _main(self) -> int:
         """Original generate_config.py body — kept as-is."""
-        manifest = _load_manifest(self._root)
+        manifest = load_mcp_manifest(self._root)
         servers: dict = {}
         for tool_id, tool in manifest.items():
             if not tool.get("mcp"):

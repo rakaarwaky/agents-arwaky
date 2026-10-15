@@ -16,97 +16,66 @@ Flow: `aa config …` → config agent (aggregate) → `execute` on writer / mod
 
 ## Functional Requirements
 
-### FR-CONFIG-001: Load konfigurasi dan deteksi format
+### FR-CONFIG-001: Read & inspect konfigurasi (load + inspect, read-only)
 
 - **Description**: the load op reads a JSON/JSONC/TOML file and reports the
-  parsed data together with the detected format.
+  parsed data together with the detected format; the inspect op returns a
+  read-only snapshot of that file (path, detected format, parsed data, and
+  server names). One reader capability seam.
 - **Input**: path of the config file to read.
-- **Output**: data (mapping) plus the detected format (`json` / `jsonc` / `toml`).
+- **Output**: data (mapping) plus the detected format (`json` / `jsonc` /
+  `toml`); for inspect, the snapshot mapping (path, format, data, server
+  names).
 - **Business Rules**: detection is extension-first with a content fallback —
   never a blind guess; JSONC input is comment-stripped before parsing so the
   data matches the visible structure; the detected format travels with the
-  data on every later save.
+  data on every later save; inspect never creates, rewrites, or deletes;
+  the snapshot is derived from a single load pass; two inspects of an
+  unchanged file are equal.
 - **Edge Cases**: empty file → empty mapping with the detected-or-default
   format; missing file → failure naming the path; a file whose extension
-  disagrees with its content → content decides.
+  disagrees with its content → content decides; env-style file → data
+  included, server names empty.
 - **Error Handling**: unparseable content → non-zero exit with the offending
-  path on stderr, never a silent empty mapping.
+  path on stderr, never a silent empty mapping; unreadable path → non-zero
+  naming the path on stderr.
 
-### FR-CONFIG-002: Save tanpa merusak komentar / urutan
+### FR-CONFIG-002: Mutate konfigurasi & env (save, merge, set_env, remove)
 
-- **Description**: the save op writes data back in the detected (or explicit)
-  format while preserving surrounding comments and key order.
-- **Input**: path, data mapping, optional explicit format.
-- **Output**: success flag; non-zero on failure.
+- **Description**: the mutation ops write to the config or env files —
+  save writes data back in the detected (or explicit) format preserving
+  comments and key order; merge adds named MCP server definitions into the
+  config's server map; set_env upserts KEY=VALUE pairs into an env-style
+  file; remove drops named entries from a server map or env file one at a
+  time. One modifier capability seam.
+- **Input**: path, data mapping, optional explicit format, map of server
+  name to definition, map of key to value, list of names, dry-run flag.
+- **Output**: success flag (save/set_env); list of names merged (merge);
+  list of names removed (remove).
 - **Business Rules**: a round trip with untouched data is byte-identical;
   keys not named by a mutation keep their relative order and bytes; a failed
   save never truncates the existing file; an explicit format overrides
-  detection for that write only.
+  detection for that write only; only names absent from the map are added
+  unless force is set; existing entries keep their bytes; an unparsable
+  existing file is never clobbered — the merge fails closed before any
+  write; an existing key is rewritten in place so only that line changes;
+  new keys append; a missing file is created with exactly the given pairs;
+  unrelated hand-written lines keep their bytes and order; only the named
+  entries are removed — never the whole file; siblings keep their relative
+  order; dry-run reports without writing.
 - **Edge Cases**: unwritable path → reported failure with the original bytes
   intact; missing file → created from the given data; explicit format
-  differing from the on-disk format → written as requested.
-- **Error Handling**: write failure → non-zero naming the path; a half-written
-  file is never left in place of a good one.
-
-### FR-CONFIG-003: Merge server MCP ke konfigurasi
-
-- **Description**: the merge op adds named MCP server definitions into the
-  config's server map.
-- **Input**: path, map of server name to definition.
-- **Output**: list of names actually merged.
-- **Business Rules**: only names absent from the map are added unless force is
-  set; existing entries keep their bytes; an unparsable existing file is never
-  clobbered — the merge fails closed before any write.
-- **Edge Cases**: missing file → created with the merged map; existing name
-  without force → skipped with no write; unparsable file → non-zero before any
-  mutation.
-- **Error Handling**: write failure → non-zero; unparsable target → non-zero
-  naming the path, original file untouched.
-
-### FR-CONFIG-004: Set pasangan env key
-
-- **Description**: the set_env op upserts KEY=VALUE pairs into an env-style
-  file.
-- **Input**: path, map of key to value.
-- **Output**: success flag; non-zero on failure.
-- **Business Rules**: an existing key is rewritten in place so only that line
-  changes; new keys append; a missing file is created with exactly the given
-  pairs; unrelated hand-written lines keep their bytes and order.
-- **Edge Cases**: missing file → created with only the given pairs; value
-  containing `=` → everything after the first `=` is the value; unrelated
-  comments and blank lines → left alone.
-- **Error Handling**: unwritable path → non-zero naming the path; a malformed
+  differing from the on-disk format → written as requested; existing name
+  without force → skipped with no write; unparsable file → non-zero before
+  any mutation; value containing `=` → everything after the first `=` is
+  the value; unrelated comments and blank lines → left alone; name not
+  present → omitted from the result, exit success; all names absent → empty
+  list, file untouched; dry-run on a read-only file → reports without
+  error.
+- **Error Handling**: write failure → non-zero naming the path; a
+  half-written file is never left in place of a good one; unparsable
+  target → non-zero naming the path, original file untouched; a malformed
   payload → non-zero before the file is touched.
-
-### FR-CONFIG-005: Hapus entri server / env
-
-- **Description**: the remove op drops named entries from an MCP config server
-  map or from an env-style file, one entry at a time.
-- **Input**: path, list of names, dry-run flag.
-- **Output**: list of names actually removed (or that would be removed under
-  dry-run).
-- **Business Rules**: only the named entries are removed — never the whole
-  file; siblings keep their relative order; dry-run reports without writing;
-  removing an absent name is a clean no-op.
-- **Edge Cases**: name not present → omitted from the result, exit success;
-  all names absent → empty list, file untouched; dry-run on a read-only file →
-  reports without error.
-- **Error Handling**: write failure → non-zero; the dry-run path never opens
-  the file for write.
-
-### FR-CONFIG-006: Inspeksi isi konfigurasi (read-only)
-
-- **Description**: the inspect op returns a read-only snapshot of a config
-  file: path, detected format, parsed data, and server names.
-- **Input**: path.
-- **Output**: snapshot mapping (path, format, data, server names).
-- **Business Rules**: inspect never creates, rewrites, or deletes; the snapshot
-  is derived from a single load pass; two inspects of an unchanged file are
-  equal.
-- **Edge Cases**: missing file → non-zero naming the path, no placeholder
-  snapshot; env-style file → data included, server names empty; empty file →
-  empty data with the detected-or-default format.
-- **Error Handling**: unreadable path → non-zero naming the path on stderr.
 
 ## API Contract
 

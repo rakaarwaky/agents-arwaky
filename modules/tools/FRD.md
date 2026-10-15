@@ -93,34 +93,29 @@ raises a typed error, never a partial dispatch.
 - **Error Handling**: every failure path returns an integer; nothing
   raises out of the run action.
 
-### FR-TOOLS-005: Resolve a query to a tool specification
+### FR-TOOLS-005: Resolve a query and discover executable paths
 
 - **Description**: Map a manifest id, binary name, or alias to the tool's
+  specification, and report whether the tool's executable is present and
+  where it lives, without mutating install state.
+- **Input**: query string (id / binary / alias) or a resolved tool
   specification.
-- **Input**: query string (id / binary / alias).
-- **Output**: the tool specification, or no match for an unknown query.
+- **Output**: the tool specification (or no match for an unknown query);
+  executable path, or no path when the tool is not installed.
 - **Business Rules**: resolution goes through the shared manifest reader;
   aliases resolve to the same specification as their id; resolution is
-  pure — it never mutates install state.
+  pure — it never mutates install state; discovery is strictly read-only;
+  the same candidate order as run applies (launcher → host PATH → install
+  directory); readiness follows from a found candidate, never from a
+  write probe.
 - **Edge Cases**: unknown query → no match, never an exception; a query
   that is both an alias and a binary resolves to its manifest entry; an
-  empty query misses quietly.
+  empty query misses quietly; a stale launcher yields to the PATH
+  candidate; not installed → no path and no error; MCP tools probe the
+  MCP binary first.
 - **Error Handling**: a manifest parse failure surfaces as a typed error;
-  an unknown query is a quiet miss the caller reports.
-
-### FR-TOOLS-006: Discover tool readiness and executable path
-
-- **Description**: Report whether a tool's executable is present and where
-  it lives, without mutating install state.
-- **Input**: resolved tool specification.
-- **Output**: executable path, or no path when the tool is not installed.
-- **Business Rules**: discovery is strictly read-only; the same candidate
-  order as run applies (launcher → host PATH → install directory);
-  readiness follows from a found candidate, never from a write probe.
-- **Edge Cases**: a stale launcher yields to the PATH candidate; not
-  installed → no path and no error; MCP tools probe the MCP binary first.
-- **Error Handling**: absence never raises — the caller receives no path
-  and owns the message.
+  absence never raises — the caller receives no path and owns the
+  message.
 
 ## API Contract
 
@@ -134,13 +129,11 @@ raises a typed error, never a partial dispatch.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `list` | — | table | manifest parse error | tool rows | Registered tools |
-| `resolve` | `query` | spec | unknown query → no match | — | Query → spec |
 | `install` | `spec\|all` | result | non-zero on failure | — | Install |
 | `update` | `spec\|all` | result | non-zero on failure | — | Update |
 | `uninstall` | `spec\|all` | result | non-zero / residual | — | Uninstall + owned paths |
 | `run` | `spec`, `args` | exit | non-zero / sentinel 126 | child stdio | Exit fidelity |
-| `executable_path` | `spec` | path | not installed → none | — | Discover path |
+| `discover` | `spec` | path | not installed → none | — | Discover executable path |
 
 ## Integration Points
 

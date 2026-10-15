@@ -18,9 +18,9 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_index_builder import (
     SkillsIndexBuilder,
-    SkillsPackReader,
     default_pack_root,
 )
+from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 from modules.skills.src.root_skills_container import default_aggregate
 
 

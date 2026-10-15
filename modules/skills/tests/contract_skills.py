@@ -39,8 +39,8 @@ def test_agent_implements_aggregate(tmp_path: Path):
     from modules.skills.src.agent_skills_orchestrator import SkillsAgent
     from modules.skills.src.capabilities_skills_index_builder import (
     SkillsIndexBuilder,
-    SkillsPackReader,
 )
+    from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 
     agent = SkillsAgent(SkillsIndexBuilder(tmp_path), SkillsPackReader(tmp_path))
     assert isinstance(agent, ISkillsAggregate)

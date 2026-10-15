@@ -1,10 +1,14 @@
 """Backup-domain protocol contract (capability ABC).
 
-Pure capability ABC: one abstract method per backup operation a gateway
-exposes — archive, restore, list, status, help. Each method carries its
-own typed return, so a gateway implementor never narrows a union and never
-dispatches behind an ``execute(op, …)`` bag. Consumers never see this
-method list; the aggregate dispatches to it.
+Capability ABCs for the backup subsystems. The feature splits its seams
+across two protocols so the aggregate coordinates two distinct subsystems:
+
+- ``IBackupControlProtocol`` — mutation ops: archive and restore.
+- ``IBackupInspectProtocol`` — read-only store ops: list, status, help.
+
+Each method carries its own typed return, so a gateway implementor never
+narrows a union and never dispatches behind an ``execute(op, …)`` bag.
+Consumers never see this method list; the aggregate dispatches to it.
 """
 from __future__ import annotations
 
@@ -23,8 +27,8 @@ from modules.shared.src.backup.taxonomy_backup_vo import (
 )
 
 
-class IBackupProtocol(ABC):
-    """Capability contract for backup gateways: one method per operation."""
+class IBackupControlProtocol(ABC):
+    """Capability contract for backup mutation: archive and restore."""
 
     @abstractmethod
     def backup(self, tool: BackupToolQuery, dest: BackupDestination = DEST_DEFAULT) -> BackupResult:
@@ -35,6 +39,10 @@ class IBackupProtocol(ABC):
     def restore(self, tool: BackupToolQuery, archive: BackupArchive = ARCHIVE_DEFAULT) -> RestoreResult:
         """Restore *tool*'s XDG state from *archive*; return the restore result."""
         ...
+
+
+class IBackupInspectProtocol(ABC):
+    """Capability contract for read-only store ops: list, status, help."""
 
     @abstractmethod
     def list_archives(self) -> BackupOutcome:
@@ -61,21 +69,9 @@ __all__ = [
     "BackupResult",
     "BackupToolQuery",
     "ExitCode",
-    "IBackupProtocol",
+    "IBackupControlProtocol",
+    "IBackupInspectProtocol",
     "RestoreResult",
 ]
 
 
-# Layer-symbol registry (runtime reference for harness/loader introspection).
-_layer_symbols = {
-    "ARCHIVE_DEFAULT": ARCHIVE_DEFAULT,
-    "BackupArchive": BackupArchive,
-    "BackupDestination": BackupDestination,
-    "BackupOutcome": BackupOutcome,
-    "BackupResult": BackupResult,
-    "BackupToolQuery": BackupToolQuery,
-    "ExitCode": ExitCode,
-    "IBackupProtocol": IBackupProtocol,
-    "RestoreResult": RestoreResult,
-    "DEST_DEFAULT": DEST_DEFAULT,
-}

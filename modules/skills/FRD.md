@@ -59,8 +59,8 @@ never writes to it.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `list` | — | table | non-zero when empty | — | Every skill in the pack |
-| `show` | `name` | SKILL.md text | non-zero when unknown | — | One skill's guide |
+| `list_skills` | — | table | non-zero when empty | — | Every skill in the pack |
+| `show_skill` | `query` | SKILL.md text | non-zero when unknown | — | One skill's guide |
 
 ## Integration Points
 

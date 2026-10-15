@@ -5,11 +5,6 @@ status / logs / help).
 """
 from __future__ import annotations
 
-from modules.service.src.capabilities_service_manager import (
-    cmd_help,
-    cmd_logs,
-    cmd_status,
-)
 from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.service.contract_service_protocol import IServiceInspectProtocol
 from modules.shared.src.service.taxonomy_service_vo import (
@@ -17,8 +12,12 @@ from modules.shared.src.service.taxonomy_service_vo import (
     ExitCode,
     ServiceTarget,
 )
-
-_DAEMON_AGGREGATE: IDaemonAggregate | None = None
+from modules.shared.src.utility_service_daemon import (
+    cmd_help,
+    cmd_logs,
+    cmd_status,
+    set_daemon_aggregate,
+)
 
 __all__ = ["ServiceInspect"]
 
@@ -27,9 +26,8 @@ class ServiceInspect(IServiceInspectProtocol):
     """Service inspection capability: status / logs / help."""
 
     def __init__(self, daemons: IDaemonAggregate | None = None) -> None:
-        global _DAEMON_AGGREGATE
         if daemons is not None:
-            _DAEMON_AGGREGATE = daemons
+            set_daemon_aggregate(daemons)
         self._daemons = daemons
 
     # ─── Block 2: Protocol Method Implementation ──────────────

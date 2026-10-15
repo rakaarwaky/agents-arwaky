@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
+from modules.backup.src.capabilities_backup_inspect import TarBackupInspect
 from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 from modules.shared.src.backup.contract_backup_aggregate import IBackupAggregate
 
@@ -10,8 +11,9 @@ class BackupContainer:
     """Construct the tar backup gateway and the orchestrator."""
 
     def __init__(self) -> None:
-        tar_gateway = TarBackupGateway()
-        self._orchestrator = BackupOrchestrator(tar_gateway)
+        control = TarBackupGateway()
+        inspect_cap = TarBackupInspect()
+        self._orchestrator = BackupOrchestrator(control, inspect_cap)
 
     @property
     def aggregate(self) -> IBackupAggregate:

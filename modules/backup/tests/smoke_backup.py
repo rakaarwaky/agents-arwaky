@@ -29,11 +29,12 @@ def test_gateway_init_quick():
 def test_orchestrator_init_quick():
     """SM-BACKUP-003: Orchestrator initialization is quick."""
     from modules.backup.src.agent_backup_orchestrator import BackupOrchestrator
+    from modules.backup.src.capabilities_backup_inspect import TarBackupInspect
     from modules.backup.src.capabilities_backup_tar import TarBackupGateway
 
     start = time.time()
     tar = TarBackupGateway()
-    BackupOrchestrator(tar)
+    BackupOrchestrator(tar, TarBackupInspect())
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"

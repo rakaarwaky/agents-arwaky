@@ -27,9 +27,7 @@ def test_acceptance_fr_skill_discovery(tmp_path: Path):
 def test_acceptance_fr_skill_lookup(tmp_path: Path):
     """AC-SKILLS-002: FR-003 — a discovered skill's content is retrievable."""
     from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery
-    from modules.skills.src.capabilities_skills_index_builder import (
-    SkillsPackReader,
-)
+    from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 
     pack = _make_pack(tmp_path)
     content = SkillsPackReader(pack).show_skill(SkillQuery("fetch-mcp"))
@@ -41,9 +39,7 @@ def test_acceptance_fr_skill_lookup(tmp_path: Path):
 def test_acceptance_fr_skill_unknown(tmp_path: Path):
     """AC-SKILLS-003: FR-003 — an unknown skill name returns None."""
     from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery
-    from modules.skills.src.capabilities_skills_index_builder import (
-    SkillsPackReader,
-)
+    from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 
     pack = _make_pack(tmp_path)
     content = SkillsPackReader(pack).show_skill(SkillQuery("nope-missing"))

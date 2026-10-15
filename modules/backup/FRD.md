@@ -17,78 +17,57 @@ data home.
 
 ## Functional Requirements
 
-### FR-BACKUP-001: Archive a tool's XDG state
+### FR-BACKUP-001: Archive and restore a tool's XDG state
 
-- **Description**: The agent produces a restorable archive of one tool's
-  owned XDG directories, or of every known tool when the query is `all`.
-- **Input**: tool identifier (or `all`) and an optional destination,
-  defaulting to the backup store under the XDG data home.
-- **Output**: exit code; on success the archive path under the destination.
-- **Business Rules**: only the tool-owned XDG data/cache subtree is archived —
-  repository files are never included; archive names embed the tool id and a
-  UTC timestamp so repeated runs never clobber; a destination requesting the
-  cloud gateway triggers an upload only after the local archive is complete.
+- **Description**: the agent archives a tool's owned XDG directories into
+  a restorable tar.gz, or writes an archived subtree back from an
+  archive — the two mutation ops of the control seam.
+- **Input**: tool identifier (or `all`); for archive, an optional
+  destination defaulting to the backup store under the XDG data home;
+  for restore, an archive path.
+- **Output**: exit code; on success the archive path under the
+  destination.
+- **Business Rules**: only the tool-owned XDG data/cache subtree is
+  archived — repository files are never included; archive names embed the
+  tool id and a UTC timestamp so repeated runs never clobber; a
+  destination requesting the cloud gateway triggers an upload only after
+  the local archive is complete; restore replaces only the archived paths
+  inside that tool's own subtree and never touches sibling tools; the
+  archive is validated and extracted to staging before any swap, so a
+  corrupt archive cannot destroy existing state; a missing archive is an
+  error, not a silent no-op.
 - **Edge Cases**: tool has no XDG state yet → success with a note; query
-  `all` → every tool archived and any single failure makes the exit non-zero;
-  destination unwritable → non-zero naming the path with no partial archive
-  left behind.
-- **Error Handling**: non-zero exit with the failing path on stderr; a failed
-  cloud upload keeps the local archive and returns the upload failure code.
+  `all` → every tool archived and any single failure makes the exit
+  non-zero; destination unwritable → non-zero naming the path with no
+  partial archive left behind; fresh XDG with no prior state →
+  directories are created; staging failure rolls back to the previous
+  state.
+- **Error Handling**: non-zero exit with the failing path on stderr; a
+  failed cloud upload keeps the local archive and returns the upload
+  failure code; a corrupt or truncated archive is rejected before any
+  write.
 
-### FR-BACKUP-002: Restore a tool from an archive
-
-- **Description**: The agent writes an archived subtree back into the tool's
-  XDG data directory.
-- **Input**: tool identifier (or `all`) and an archive path (or, for `all`, a
-  backup directory holding per-tool archives).
-- **Output**: exit code.
-- **Business Rules**: restore replaces only the archived paths inside that
-  tool's own subtree and never touches sibling tools; the archive is
-  validated and extracted to staging before any swap, so a corrupt archive
-  cannot destroy existing state; a missing archive is an error, not a silent
-  no-op.
-- **Edge Cases**: fresh XDG with no prior state → directories are created;
-  query `all` with a directory → the newest matching archive per tool is used
-  and tools without archives are warned and skipped; a staging failure rolls
-  back to the previous state.
-- **Error Handling**: missing or corrupt archive → non-zero naming the
-  archive; staging failure → non-zero with prior state preserved.
-
-### FR-BACKUP-003: List available archives
+### FR-BACKUP-002: Inspect the backup store (list, status, usage)
 
 - **Description**: The agent reports the archives present in the backup
-  store.
-- **Input**: none.
-- **Output**: exit code; a human-readable listing on standard output, one
-  archive name per line.
-- **Business Rules**: listing is a read-only scan — it never creates, moves,
-  or deletes archives; names are sorted so repeated listings are stable.
-- **Edge Cases**: store missing or empty → empty listing body with exit 0.
-- **Error Handling**: unreadable store → non-zero naming the path.
-
-### FR-BACKUP-004: Report backup store status
-
-- **Description**: The agent reports where the backup store lives, whether it
-  exists, and how many archives it holds.
-- **Input**: none.
-- **Output**: exit code; a short report on standard output with the store
-  path, existence, and archive count.
-- **Business Rules**: reporting is read-only — it never creates the store or
-  mutates archives; the count covers archive files only.
-- **Edge Cases**: store not yet created → reported as absent with a count of
-  0 and exit 0.
-- **Error Handling**: unreadable store → non-zero naming the path.
-
-### FR-BACKUP-005: Print backup usage
-
-- **Description**: The agent prints the usage forms for archive, restore,
-  list, and status along with the known tool identifiers.
-- **Input**: none (a help request from the surface).
-- **Output**: exit code; usage text on standard output.
-- **Business Rules**: usage is read-only and always succeeds; tool
-  identifiers come from the registered tool map.
-- **Edge Cases**: invoked with no arguments → usage printed with exit 0.
-- **Error Handling**: write failure on standard output → non-zero.
+  store, the store's location/existence/archive count, and the usage forms
+  for all backup operations — read-only inspection over the store, one
+  capability seam on the inspect protocol.
+- **Input**: none (a list, status, or help request from the surface).
+- **Output**: exit code; a human-readable listing (one archive name per
+  line) for list, a short report with the store path, existence, and
+  archive count for status, and usage text naming the known tool
+  identifiers for help.
+- **Business Rules**: all three views are read-only — they never create,
+  move, or delete archives and never create the store; listing names are
+  sorted so repeated listings are stable; the status count covers archive
+  files only; usage is always a success and its tool identifiers come from
+  the registered tool map.
+- **Edge Cases**: store missing or empty → empty listing body / absent
+  store with a count of 0, exit 0; invoked with no arguments → usage
+  printed with exit 0.
+- **Error Handling**: unreadable store → non-zero naming the path; write
+  failure on standard output → non-zero.
 
 ## API Contract
 
@@ -109,7 +88,7 @@ data home.
 | `backup` | `tool`, `dest?` | exit code | non-zero + gateway failure message | — | Archive the tool's XDG state into the store |
 | `restore` | `tool`, `archive` | exit code | non-zero + missing archive message | — | Restore the tool's XDG state from an archive |
 | `list_archives` | — | list of archive paths | non-zero + unreadable store message | — | List archives under the backup store (read-only) |
-| `status_store` | — | store path, existence, archive count | non-zero | — | Report backup store status (read-only) |
+| `status` | — | store path, existence, archive count | non-zero | — | Report backup store status (read-only) |
 | `help` | — | usage text | — | — | Print backup usage and known tool identifiers |
 
 ## Integration Points

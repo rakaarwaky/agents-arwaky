@@ -126,11 +126,7 @@ of disconnect — never a separate business action.
 
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
-| `resolve_targets` | id / alias / `--all` tokens | `tuple[str, …]` canonical ids | unknown tokens dropped (CLI reports) | — | Map raw CLI tokens onto canonical targets, deduped |
-| `all_targets` | — | `tuple[str, …]` canonical ids | — | — | Every supported harness id |
-| `connect` | `targets`, `force`, `dry_run`, `mcp_only`, `skills_only`, `env_only`, `router`, `copy_skills` | `ExitCode` | non-zero + offending harness | — | Route connect → connector capability (FR-HARNESS-001) |
-| `disconnect` | `targets`, `dry_run` | `ExitCode` | reported failures → non-zero | — | Route disconnect → disconnector capability (FR-HARNESS-002) |
-| `provision_skills` | `targets`, `copy`, `dry_run` | `ExitCode` | per-skill failure → non-zero | — | Route skill provisioning → skills capability (FR-HARNESS-003) |
+| `execute` | `op`, `targets`, `force`, `dry_run`, `mcp_only`, `skills_only`, `env_only`, `router`, `copy_skills` | `HarnessResponse` | unknown op → `ValueError`; unregistered id → typed error; non-zero + offending harness | — | One entry point routes connect / disconnect / provision_skills to the matching capability |
 
 ## Integration Points
 

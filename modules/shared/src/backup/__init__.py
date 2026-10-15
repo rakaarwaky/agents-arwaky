@@ -4,7 +4,10 @@ from modules.shared.src.backup.contract_backup_aggregate import (
     IBackupAggregate as IBackupAggregate,
 )
 from modules.shared.src.backup.contract_backup_protocol import (
-    IBackupProtocol as IBackupProtocol,
+    IBackupControlProtocol as IBackupControlProtocol,
+)
+from modules.shared.src.backup.contract_backup_protocol import (
+    IBackupInspectProtocol as IBackupInspectProtocol,
 )
 from modules.shared.src.backup.taxonomy_backup_constant import (
     BACKUP_STORE as BACKUP_STORE,
@@ -72,6 +75,7 @@ __all__ = [
     "BackupValue",
     "ExitCode",
     "IBackupAggregate",
-    "IBackupProtocol",
+    "IBackupControlProtocol",
+    "IBackupInspectProtocol",
     "RestoreResult",
 ]

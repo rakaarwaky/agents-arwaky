@@ -5,13 +5,12 @@ Two capabilities, one per contract seam:
 - ``McpConfigWriter`` implements ``IMcpWriteProtocol`` (mutation)
 
 Both are thin wrappers around the original ``McpConfigGenerator`` body.
+The manifest-reading helper is shared via ``utility_mcp_manifest`` so
+neither capability imports the other.
 """
-
 from __future__ import annotations
 
-import json
 import subprocess
-from pathlib import Path
 
 from modules.shared.src.mcp.contract_mcp_protocol import IMcpListProtocol
 from modules.shared.src.mcp.taxonomy_mcp_vo import (
@@ -23,22 +22,12 @@ from modules.shared.src.mcp.taxonomy_mcp_vo import (
 from modules.shared.src.taxonomy_common_vo import (
     config_home,
 )
+from modules.shared.src.utility_mcp_manifest import load_mcp_manifest
 from modules.shared.src.utility_paths_resolver import repo_root
 
 __all__ = [
     "McpConfigLister",
 ]
-
-# ─── Internal helpers ────────────────────────────────────────
-def _load_manifest(root: Path) -> dict:
-    """Read the MCP manifest."""
-    manifest_path = root / "tools" / "mcp" / "manifest.json"
-    if not manifest_path.is_file():
-        return {}
-    try:
-        return json.loads(manifest_path.read_text())
-    except json.JSONDecodeError:
-        return {}
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -51,7 +40,7 @@ class McpConfigLister(IMcpListProtocol):
     # ─── Block 2: Protocol Method Implementation ──────────────
     def list_servers(self) -> McpServerInfos:
         """MCP-enabled tools from the manifest (read-only)."""
-        manifest = _load_manifest(self._root)
+        manifest = load_mcp_manifest(self._root)
         infos = []
         for tool_id, tool in manifest.items():
             if tool.get("mcp"):

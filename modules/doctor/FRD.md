@@ -21,41 +21,33 @@ runners → per-check pass/fail rows, one exit code.
 
 ## Functional Requirements
 
-### FR-DOCTOR-001: Diagnose the host environment
+### FR-DOCTOR-001: Diagnose the host and its tools
 
-- **Description**: probe the host for OS tooling, language toolchains,
-  package managers, git, and XDG directory resolvability, and report one
-  pass/warn/fail row per probe.
-- **Input**: the live host; mode flags (`json`, mode) select the render
-  shape.
+- **Description**: one diagnostic pass over the host environment (OS
+  tooling, language toolchains, package managers, git, XDG resolvability)
+  and the manifest tool readiness (binary/runner resolvable and
+  launchable), reporting one pass/warn/fail row per probe plus one exit
+  code.
+- **Input**: the live host; the tool registry from the tool manifest; mode
+  flags (`json`, mode) select the render shape.
 - **Output**: exit code plus a per-check pass/fail table on stdout, or the
   same rows as JSON under the JSON flag.
 - **Business Rules**: probes are read-only — they never install, remove, or
   mutate; a missing toolchain marks that row FAIL; a row-level FAIL never
-  fails the process; only a hard failure yields a non-zero exit.
+  fails the process; only a hard failure yields a non-zero exit; readiness
+  means the executable resolves via the discovery order (PATH, XDG bin,
+  source-ready for in-house tools); a missing tool is a row state, not a
+  crash.
 - **Edge Cases**: a toolchain present but too old → WARN with the found
   version; XDG home unset → the affected rows FAIL with the env var named;
-  an optional tool absent → SKIP row, not FAIL.
-- **Error Handling**: probe exceptions are captured per row; the capability
-  returns an exit code rather than raising into the CLI.
-
-### FR-DOCTOR-002: Diagnose tool readiness
-
-- **Description**: report, per manifest tool, whether its binary/runner is
-  resolvable and launchable through the standard discovery order.
-- **Input**: the tool registry from the tool manifest; mode flags (`json`,
-  mode) select the render shape.
-- **Output**: exit code plus a per-tool readiness table on stdout, or the
-  same rows as JSON under the JSON flag.
-- **Business Rules**: readiness means the executable resolves via the
-  discovery order (PATH, XDG bin, source-ready for in-house tools); a
-  missing tool is a row state, not a crash; a row-level FAIL keeps exit 0.
-- **Edge Cases**: installed but stale binary → READY with a version note;
-  manifest entry with no binary yet → NOT READY (expected pre-install); a
-  probe that hangs → killed after a bounded timeout and reported as a
-  timeout row.
-- **Error Handling**: a probe failure becomes a row state; only an
-  unrecoverable manifest read failure returns non-zero.
+  an optional tool absent → SKIP row, not FAIL; installed but stale binary
+  → READY with a version note; manifest entry with no binary yet → NOT
+  READY (expected pre-install); a probe that hangs → killed after a
+  bounded timeout and reported as a timeout row.
+- **Error Handling**: probe exceptions are captured per row; the
+  capability returns an exit code rather than raising into the CLI; a
+  probe failure becomes a row state; only an unrecoverable manifest read
+  failure returns non-zero.
 
 ## API Contract
 
@@ -69,9 +61,7 @@ runners → per-check pass/fail rows, one exit code.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `diagnose` | `flags` (`json`, mode) | report | hard fail → non-zero; row FAIL keeps 0 | PASS/FAIL rows or JSON | Full environment + readiness diagnosis. |
-| `readiness` | `flags` (`json`, mode) | rows | hard fail → non-zero; missing tool row keeps 0 | READY rows or JSON | Tool readiness report across the manifest. |
-| `report` | `report` | text/JSON | hard fail → non-zero | rendered output | Render a diagnosis report as text or JSON. |
+| `run` | `flags` (`json`, mode) | `ExitCode` | hard fail → non-zero; row FAIL keeps 0 | PASS/FAIL/READY rows or JSON | One diagnostic pass over host env + tool readiness |
 
 ## Integration Points
 

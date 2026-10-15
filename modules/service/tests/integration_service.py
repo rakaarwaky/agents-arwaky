@@ -6,21 +6,32 @@ def test_service_manager_execution():
     """IT-SERVICE-001: ServiceControl/Inspect status routes through injected aggregate (mocked)."""
     from unittest.mock import MagicMock, patch
 
-    from modules.service.src import capabilities_service_manager as csm
     from modules.service.src.capabilities_service_inspect import ServiceInspect
     from modules.service.src.capabilities_service_manager import ServiceControl
+    from modules.shared.src import utility_service_daemon as usd
     from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
         DaemonOutcome,
         DaemonRequest,
+        DaemonStatus,
     )
 
     _ = ServiceControl()
     inspect_cap = ServiceInspect()
     mock_agg = MagicMock()
-    mock_agg.execute.return_value = DaemonOutcome(success=True, exit_code=0)
-    with patch.object(csm, "_DAEMON_AGGREGATE", mock_agg):
+    mock_agg.execute.return_value = DaemonOutcome(
+        success=True,
+        exit_code=0,
+        status=DaemonStatus(
+            container_state="running",
+            service_state="running",
+            api_ready=True,
+            data_dir="/tmp",
+            ok=True,
+        ),
+    )
+    with patch.object(usd, "_DAEMON_AGGREGATE", mock_agg):
         result = inspect_cap.status()
         assert result is not None
         assert mock_agg.execute.call_count == 2

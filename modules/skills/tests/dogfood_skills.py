@@ -20,8 +20,8 @@ def test_dogfood_skills_show():
     from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery
     from modules.skills.src.capabilities_skills_index_builder import (
         SkillsIndexBuilder,
-        SkillsPackReader,
     )
+    from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 
     rows = list(SkillsIndexBuilder().list_skills())
     content = SkillsPackReader().show_skill(SkillQuery(rows[0].name))

@@ -22,71 +22,42 @@ own unit code.
 
 ## Functional Requirements
 
-### FR-DAEMON-001: Manage the lifecycle of one daemon
+### FR-DAEMON-001: Manage, authorize, enumerate, and install daemons
 
-- **Description**: start, stop, restart, status, and logs for one managed
-  daemon, routed by daemon id through the aggregate to the daemon's
-  capability under the single protocol method `execute`.
+- **Description**: one management seam over every daemon op — start, stop,
+  restart, status, and logs for one managed daemon; Anytype API-key
+  authorization (`auth-create` / `auth-key`); enumeration of the managed
+  daemon ids; and install/remove/status of a daemon's systemd user unit —
+  all routed through the aggregate to the daemon's capability under the
+  single protocol method `execute`.
 - **Input**: daemon id from the aggregate (`start`, `stop`, `restart`,
-  `status`, `logs`); an operation token for the protocol call.
-- **Output**: `ExitCode` for start/stop/restart/logs; a `DaemonStatus`
-  snapshot for status.
+  `status`, `logs`); an operation token for the protocol call; an optional
+  account/key name for authorization; the daemon's unit for the unit ops.
+- **Output**: `ExitCode` for start/stop/restart/logs/install_unit/
+  remove_unit/unit_status and the auth ops; a `DaemonStatus` snapshot for
+  status; the tuple of daemon ids for enumeration.
 - **Business Rules**: status reports running/stopped/unknown without side
   effects; start is idempotent when the daemon is already up; secrets are
-  read from XDG config, never from the repo tree.
+  read from XDG config, never from the repo tree; the auth key is written
+  only to XDG config, never logged or committed; enumeration is pure — no
+  side effects, independent of whether any daemon is running or installed,
+  and returns exactly the ids the aggregate accepts for routing; unit files
+  come from the deploy assets shipped with this feature; install reloads
+  the user manager and enables the unit; remove disables and deletes it;
+  unit operations never touch repo-tree state.
 - **Edge Cases**: daemon not installed → status reports unknown, start
   reports a clear error; Podman or the host binary missing → non-zero with
-  the error captured; unknown daemon id → reported error, no crash.
+  the error captured; unknown daemon id → reported error, no crash; daemon
+  not running → auth reports the pre-condition and does not crash; key
+  output unparseable → non-zero with a clear message; enumeration with both
+  daemons stopped or uninstalled → still returns both ids; a routing id
+  absent from the list → unknown-daemon error at the routing call; unit
+  already installed → install re-copies and succeeds; unit not installed →
+  remove reports so and still succeeds; `systemctl` missing → non-zero
+  with the error captured.
 - **Error Handling**: non-zero exit with captured stderr; no raw exceptions
-  cross the surface.
-
-### FR-DAEMON-002: Authorize Anytype with an API key
-
-- **Description**: `aa anytype auth-create` / `auth-key` generate an account
-  or API key against the Anytype daemon and persist the key to XDG config.
-- **Input**: optional account/key name from the CLI; the daemon endpoint
-  comes from XDG config.
-- **Output**: exit code; the key written to XDG config on success.
-- **Business Rules**: the key is written only to XDG config; it is never
-  logged or committed to the repo tree.
-- **Edge Cases**: daemon not running → auth reports the pre-condition and
-  does not crash; key output unparseable → non-zero with a clear message.
-- **Error Handling**: pre-condition and parse failures are reported
-  messages, exit non-zero.
-
-### FR-DAEMON-003: Enumerate the managed daemons
-
-- **Description**: `list_known` returns the canonical daemon ids the
-  orchestrator manages.
-- **Input**: none.
-- **Output**: the tuple of daemon ids — `anytype` and `omniroute`.
-- **Business Rules**: enumeration is pure — no side effects, independent of
-  whether any daemon is running or installed; the returned ids are exactly
-  the ones the aggregate accepts for routing.
-- **Edge Cases**: called with both daemons stopped or uninstalled → still
-  returns both ids; a routing id absent from the list → unknown-daemon
-  error at the routing call, not during enumeration.
-- **Error Handling**: enumeration itself cannot fail; unknown ids surface
-  only when used for routing.
-
-### FR-DAEMON-004: Install and remove a daemon's systemd unit
-
-- **Description**: `install_unit`, `remove_unit`, and `unit_status` manage
-  the per-daemon systemd user unit from this feature's deploy assets; the
-  service feature reaches these through an integration, not its own unit
-  code.
-- **Input**: the daemon's unit from the CLI or from the service feature.
-- **Output**: `ExitCode` for install/remove; the unit install/active state
-  for `unit_status`.
-- **Business Rules**: unit files come from the deploy assets shipped with
-  this feature; install reloads the user manager and enables the unit;
-  remove disables and deletes it; unit operations never touch repo-tree
-  state.
-- **Edge Cases**: unit already installed → install re-copies and succeeds;
-  unit not installed → remove reports so and still succeeds; `systemctl`
-  missing → non-zero with the error captured.
-- **Error Handling**: non-zero with captured systemd/deploy errors; no raw
-  exceptions cross the surface.
+  cross the surface; pre-condition and parse failures are reported
+  messages, exit non-zero; unknown ids surface only when used for routing.
 
 ## API Contract
 
@@ -107,7 +78,6 @@ own unit code.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `list_known` | — | `tuple[DaemonName, …]` | — | — | Canonical daemon ids the orchestrator manages |
 | `start` | `name: DaemonName` | `ExitCode` | non-zero + podman/unit error | — | Start one daemon |
 | `stop` | `name: DaemonName` | `ExitCode` | non-zero | — | Stop one daemon |
 | `restart` | `name: DaemonName` | `ExitCode` | non-zero | — | Restart one daemon |

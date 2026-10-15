@@ -18,7 +18,7 @@ import threading
 from datetime import UTC, datetime
 from pathlib import Path
 
-from modules.shared.src.backup.contract_backup_protocol import IBackupProtocol
+from modules.shared.src.backup.contract_backup_protocol import IBackupControlProtocol
 from modules.shared.src.backup.taxonomy_backup_constant import (
     BACKUP_STORE,
     TOOL_DATA,
@@ -28,17 +28,15 @@ from modules.shared.src.backup.taxonomy_backup_vo import (
     DEST_DEFAULT,
     BackupArchive,
     BackupDestination,
-    BackupOutcome,
     BackupResult,
     BackupToolQuery,
-    ExitCode,
     RestoreResult,
 )
 from modules.shared.src.taxonomy_common_vo import data_home
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class TarBackupGateway(IBackupProtocol):
+class TarBackupGateway(IBackupControlProtocol):
     """tar/untar backup & restore with progress spinner.
 
     Thin AES capability wrapper around the unchanged original script
@@ -60,24 +58,6 @@ class TarBackupGateway(IBackupProtocol):
         """Restore *tool* data from a local tar.gz *archive*."""
         rc = cmd_restore([str(tool), str(archive)])
         return RestoreResult(rc == 0, str(tool), str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
-
-    def list_archives(self) -> BackupOutcome:
-        """Return the archives visible to this gateway plus their print lines."""
-        lines = cmd_list()
-        return BackupOutcome(success=True, tool_id="", result=ExitCode(lines))
-
-    def status(self) -> ExitCode:
-        """Report the backup store path, existence, and archive count."""
-        exists = BACKUP_STORE.is_dir()
-        count = len(list(BACKUP_STORE.glob("*.tar.gz"))) if exists else 0
-        print(f"Backup store: {BACKUP_STORE}")
-        print(f"  exists: {'yes' if exists else 'no'}")
-        print(f"  archives: {count}")
-        return ExitCode(0)
-
-    def help(self) -> ExitCode:
-        """Show backup usage information."""
-        return ExitCode(cmd_help())
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:

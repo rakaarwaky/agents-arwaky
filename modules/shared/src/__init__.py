@@ -7,7 +7,10 @@ All shared taxonomy, contract, and utility modules live directly here:
 - utility_*: stateless helpers / I/O utilities
 """
 from modules.shared.src.backup.contract_backup_aggregate import IBackupAggregate
-from modules.shared.src.backup.contract_backup_protocol import IBackupProtocol
+from modules.shared.src.backup.contract_backup_protocol import (
+    IBackupControlProtocol,
+    IBackupInspectProtocol,
+)
 from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 from modules.shared.src.config.contract_config_protocol import (
     IConfigModifierProtocol,
@@ -45,7 +48,8 @@ from modules.shared.src.tools.contract_tools_protocol import (
 
 __all__ = [
     "IBackupAggregate",
-    "IBackupProtocol",
+    "IBackupControlProtocol",
+    "IBackupInspectProtocol",
     "IConfigAggregate",
     "IConfigModifierProtocol",
     "IConfigReaderProtocol",
