@@ -2,11 +2,14 @@
 Description=OmniRoute AI Gateway (host-native, no container)
 After=network-online.target
 Wants=network-online.target
-# Wajib untuk Restart=always. Default systemd (5 start / 10 dtk) membuat unit
-# latch ke `failed` permanen kalau ExecStart salah, dan tidak pernah mencoba
-# lagi — harus `systemctl --user reset-failed` manual.
-StartLimitIntervalSec=300
-StartLimitBurst=20
+# Wajib untuk Restart=always: rate-limit harus benar-benar dimatikan, bukan
+# hanya dilonggarkan. Config lama (Burst=20 / Interval=300 dtk) TETAP latch ke
+# `failed`: 20 x RestartSec=5s = 100 dtk < 300 dtk, jadi limit selalu tercapai
+# sebelum jendela habis, lalu unit berhenti mencoba sampai `reset-failed` manual.
+# Interval=0 menonaktifkan StartLimit sepenuhnya, sehingga Retry=always benar-
+# benar selalu retry dan unit pulih sendiri begitu penyebab kegagalan hilang
+# (mis. koneksi lama yang masih menempel di port sudah ditutup).
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple

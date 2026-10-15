@@ -317,8 +317,10 @@ def _unit_content(binary: str) -> str:
 Description=OmniRoute AI Gateway (host-native, no container)
 After=network-online.target
 Wants=network-online.target
-StartLimitIntervalSec=300
-StartLimitBurst=20
+# Rate-limit mati supaya Restart=always benar-benar tidak pernah latch ke
+# `failed` (lihat deploy/omniroute.service — Burst=20 x RestartSec=5s tetap
+# menembus Interval=300dtk dan harus reset-failed manual).
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
