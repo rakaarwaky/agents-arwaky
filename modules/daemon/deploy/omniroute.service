@@ -25,6 +25,16 @@ ExecStart=@@EXEC_BINARY@@ serve --port @@PORT@@ --no-open --no-tray
 Restart=always
 RestartSec=5s
 TimeoutStopSec=30
+# Backstop tylko, bukan tuning harian. Insiden 2026-10-17: server accept TCP di
+# 7777 tapi tidak pernah jawab HTTP (health timeout, dashboard "Reconnecting…")
+# sementara main thread 100% CPU dan RSS naik tanpa batas. Type=simple tidak
+# punya deteksi hang, jadi MemoryHigh (tekanan soft, tidak membunuh) +
+# MemoryMax (bunuh proses) memastikan runaway tidak sampai OOM-kill seluruh host.
+# Nilai longgar karena pemakaian normal setelah storage.sqlite di-prune ke
+# window retensinya ada di ~150-250 MB; menyentuh 3G berarti leak, bukan beban
+# normal.
+MemoryHigh=1500M
+MemoryMax=3G
 
 [Install]
 WantedBy=default.target
