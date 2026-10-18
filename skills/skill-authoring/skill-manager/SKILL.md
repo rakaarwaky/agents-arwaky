@@ -46,7 +46,7 @@ skills/
 ├── documentation/         # Docs, slides, sheets
 ├── email/                 # Inbox triage, Himalaya CLI
 ├── github/                # PRs, issues, releases, CI
-├── memory/                # Hindsight, LLM wiki
+├── memory/                # LLM wiki
 ├── mlops/                 # Model serving, eval, hubs
 ├── note-taking/           # Obsidian, Anytype, Hermes plans
 ├── orchestration/         # Worktrees, subagents, workflows

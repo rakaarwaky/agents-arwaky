@@ -81,5 +81,4 @@ prevents a repeat.
 
 ## References
 
-- `references/hindsight-memory-bank.md` — Hindsight bank REST surface, recall score
-  semantics, mode/LLM-ownership split, export-import restore.
+(None — this skill is self-contained.)
