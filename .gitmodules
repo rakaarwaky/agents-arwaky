@@ -34,7 +34,3 @@
 	path = vendor/omniroute
 	url = https://github.com/diegosouzapw/OmniRoute.git
 	ignore = dirty
-[submodule "vendor/hindsight"]
-	path = vendor/hindsight
-	url = https://github.com/vectorize-io/hindsight.git
-	ignore = dirty
