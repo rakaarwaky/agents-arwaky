@@ -41,9 +41,6 @@ from modules.tools.src.capabilities_tools_context7_adapter import (
 from modules.tools.src.capabilities_tools_fetch_adapter import (
     ADAPTER_UNITS as _FETCH_UNITS,
 )
-from modules.tools.src.capabilities_tools_hindsight_adapter import (
-    ADAPTER_UNITS as _HINDSIGHT_UNITS,
-)
 from modules.tools.src.capabilities_tools_installer import InstallerCapability
 from modules.tools.src.capabilities_tools_lint_adapter import (
     ADAPTER_UNITS as _LINT_UNITS,
@@ -74,7 +71,6 @@ TOOLS_REGISTRY: dict[str, object] = {
     **_CODEGRAPH_UNITS,
     **_CONTEXT7_UNITS,
     **_FETCH_UNITS,
-    **_HINDSIGHT_UNITS,
     **_LINT_UNITS,
     **_OMNIROUTE_UNITS,
     **_QWEN_WEB_UNITS,

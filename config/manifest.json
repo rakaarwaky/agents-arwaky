@@ -55,16 +55,6 @@
       "path": "vendor/omniroute"
     },
     {
-      "id": "hindsight",
-      "alias": "hindsight-memory",
-      "category": "vendor",
-      "binary": "hindsight-local-mcp-server",
-      "mcpBinary": "hindsight-local-mcp-server",
-      "isMcp": true,
-      "description": "Hindsight agent memory (knowledge graph, entity resolution, multi-strategy retrieval)",
-      "path": "vendor/hindsight"
-    },
-    {
       "id": "vision-arwaky",
       "alias": "va",
       "aliases": [

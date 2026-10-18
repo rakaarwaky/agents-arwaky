@@ -256,7 +256,6 @@ class TestAdapterCapabilities:
         ("codegraph", "CodegraphToolsAdapter"),
         ("context7", "Context7ToolsAdapter"),
         ("fetch", "FetchToolsAdapter"),
-        ("hindsight", "HindsightToolsAdapter"),
         ("lint", "LintToolsAdapter"),
         ("omniroute", "OmnirouteToolsAdapter"),
         ("qwen_web", "QwenWebToolsAdapter"),
