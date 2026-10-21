@@ -9,7 +9,7 @@ metadata:
   hermes:
     tags: [skills, migration, conversion, audit, cross-harness, frontmatter]
     category: skill-authoring
-    related_skills: [author-skill-md, skill-manager, skill-design-principles]
+    related_skills: [create-skills, skill-manager]
 ---
 
 # Skill migration between harnesses
@@ -25,7 +25,7 @@ tool-coupled and unportable.
 - Asked to make a foreign skill "run on Hermes too" / be harness-agnostic.
 
 Don't use for: provisioning repo skills into a client workspace (`skill-manager`), authoring a
-skill from scratch (`author-skill-md`), or editing an already-migrated skill in place.
+skill from scratch (`create-skills`), or editing an already-migrated skill in place.
 
 ## Procedure
 

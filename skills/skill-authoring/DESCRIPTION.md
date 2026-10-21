@@ -1,3 +1,3 @@
 ---
-description: Skill-authoring skills — write effective SKILL.md files following best practices, and discover, inspect, and provision skill guides across tools.
+description: Skill-authoring skills — create, validate, and improve SKILL.md files, plus discover, inspect, migrate, and prune skill trees.
 ---

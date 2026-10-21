@@ -10,7 +10,7 @@ metadata:
     - documentation
     - scaffolding
   related_skills:
-    - author-skill-md
+    - create-skills
     - aes-architecture
 triggers:
   - create howto
@@ -250,5 +250,5 @@ grep "^## " skills/<skill-name>/references/HOW-TO-MAKE-*.md
 
 ## Related Skills
 
-- `author-skill-md` — For SKILL.md creation rules
+- `create-skills` — For SKILL.md creation rules
 - `aes-architecture` — For layer-specific HOW-TO examples

@@ -10,9 +10,8 @@ metadata:
     - skill-cleanup
     - agent-skills
   related_skills:
-    - author-skill-md
+    - create-skills
     - skill-manager
-    - skill-design-principles
     - cleanup-consolidate
   triggers:
     - prune skills
@@ -79,7 +78,7 @@ Skills are variants when they share a domain but each covers a distinct scenario
 | Merged skill now has complex, distinct sub-scenarios | **one folder, one `SKILL.md`, plus `references/`** — `SKILL.md` keeps the shared rules and a routing table; each sub-scenario becomes `references/<scenario>.md`, one level deep |
 | Skills that are genuinely different jobs | leave both alone; note in the report why they were not merged |
 
-A merged `SKILL.md` follows `author-skill-md` conventions: frontmatter with `name`,
+A merged `SKILL.md` follows `create-skills` conventions: frontmatter with `name`,
 `description` (third person, includes trigger terms), `metadata.tags`, `related_skills`,
 `triggers`; body as a table of contents that links one level deep into `references/`.
 

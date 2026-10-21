@@ -152,4 +152,4 @@ Finish with what changed (paths), what was rejected or deferred, how to undo, an
 - One repeated phrase is one action; it joins the skill that already owns the job when one exists.
 - Never print secrets: tokens, headers, env values, API keys, auth files. Inventory is names and paths only.
 - If the user disputes a count, re-run the collector; do not guess.
-- Skill edits follow the bundled `skill-design-principles` skill.
+- Skill edits follow the bundled `create-skills` skill.
