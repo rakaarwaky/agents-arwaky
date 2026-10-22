@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import shutil
 import sys
 from pathlib import Path
@@ -27,12 +26,27 @@ if len(SCRIPT.parents) < 4:
 
 # Expected layout: <skills-root>/<category>/<skill>/scripts/librarian.py
 SKILLS_ROOT = SCRIPT.parents[3]
+
+# SSOT: the rules module and the script package live at the pack root
+# (skill-authoring/), two levels above this skill folder.
+PACK_ROOT = SCRIPT.parents[2]
+if str(PACK_ROOT / "_rules") not in sys.path:
+    sys.path.insert(0, str(PACK_ROOT / "_rules"))
+if str(PACK_ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(PACK_ROOT / "scripts"))
+
+from model import parse_frontmatter
+from skill_rules import (
+    IGNORED_CATEGORY_DIRS,
+    NAME_RE,
+    clean_one_line,
+    md_escape,
+)
+from validate import validate_library
+
 CATALOG_PATH = SKILLS_ROOT / "CATALOG.md"
 ARCHIVE_ROOT = SKILLS_ROOT / "_archive"
 CATEGORY_DESCRIPTION_FILENAME = "DESCRIPTION.md"
-IGNORED_CATEGORY_DIRS = {".git", ".hg", ".svn", "__pycache__", "_archive"}
-NAME_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
-MAX_DESCRIPTION_LEN = 1024
 
 
 def fail(message: str) -> None:
@@ -47,66 +61,8 @@ def relpath(path: Path) -> str:
         return str(path)
 
 
-def clean_one_line(value: object) -> str:
-    return " ".join(str(value).split()).strip()
-
-
 def yaml_quote(value: object) -> str:
     return json.dumps(str(value), ensure_ascii=False)
-
-
-def md_escape(value: object) -> str:
-    return str(value).replace("|", "&#124;").replace("\n", " ").strip()
-
-
-def parse_frontmatter(path: Path) -> dict:
-    try:
-        text = path.read_text(encoding="utf-8-sig", errors="replace")
-    except OSError:
-        return {}
-
-    stripped = text.lstrip()
-    if not stripped.startswith("---"):
-        return {}
-
-    parts = stripped.split("---", 2)
-    if len(parts) < 3:
-        return {}
-
-    fm_text = parts[1]
-
-    if yaml is not None:
-        try:
-            data = yaml.safe_load(fm_text)
-            if isinstance(data, dict):
-                return data
-        except Exception:
-            pass
-
-    data = {}
-    for line in fm_text.splitlines():
-        if not line.strip():
-            continue
-        if line != line.lstrip():
-            continue
-        if ":" not in line:
-            continue
-
-        key, value = line.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-
-        if not key or value in {"", "|", ">", "|-", ">-"}:
-            continue
-        if value.startswith(("[", "{", "- ")):
-            continue
-
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"\"", "'"}:
-            value = value[1:-1]
-
-        data[key] = value
-
-    return data
 
 
 def category_dirs():
@@ -270,270 +226,6 @@ def load_catalog_skill_rows():
     return entries
 
 
-def iter_skill_md_files_relative(pattern: str):
-    for path in SKILLS_ROOT.glob(pattern):
-        try:
-            rel = path.relative_to(SKILLS_ROOT)
-        except ValueError:
-            continue
-
-        parts = rel.parts
-        if not parts:
-            continue
-
-        if parts[0].startswith("."):
-            continue
-
-        if parts[0] in IGNORED_CATEGORY_DIRS:
-            continue
-
-        yield path
-
-
-def make_issue(issue_type: str, message: str, path: str | None = None, category: str | None = None):
-    issue = {"type": issue_type, "message": message}
-    if path:
-        issue["path"] = path
-    if category:
-        issue["category"] = category
-    return issue
-
-
-def validate_library():
-    issues = []
-    entries = skill_entries()
-    categories = category_summaries(entries)
-
-    for cat in categories:
-        if not cat["description_file_exists"]:
-            issues.append(
-                make_issue(
-                    "missing-category-description",
-                    "DESCRIPTION.md is missing.",
-                    category=cat["category"],
-                )
-            )
-        elif not cat["description"]:
-            issues.append(
-                make_issue(
-                    "empty-category-description",
-                    "DESCRIPTION.md has no description.",
-                    category=cat["category"],
-                )
-            )
-
-        if cat["skill_count"] == 0:
-            issues.append(
-                make_issue(
-                    "empty-category",
-                    "Category has no skills.",
-                    category=cat["category"],
-                )
-            )
-
-    name_map = {}
-    desc_map = {}
-
-    for entry in entries:
-        path = entry["path"]
-
-        name_map.setdefault(entry["skill"], []).append(path)
-
-        if entry["description"]:
-            desc_map.setdefault(entry["description"], []).append(path)
-
-        if entry["frontmatter_name"] != entry["skill"]:
-            issues.append(
-                make_issue(
-                    "name-mismatch",
-                    f"Frontmatter name '{entry['frontmatter_name']}' does not match directory '{entry['skill']}'.",
-                    path=path,
-                )
-            )
-
-        if (
-            not NAME_RE.match(entry["skill"])
-            or "--" in entry["skill"]
-            or not (2 <= len(entry["skill"]) <= 64)
-        ):
-            issues.append(
-                make_issue(
-                    "invalid-skill-name",
-                    "Directory name must be lowercase a-z, 0-9, hyphens, 2-64 chars, no leading/trailing hyphen or double hyphen.",
-                    path=path,
-                )
-            )
-
-        if not entry["description"]:
-            issues.append(
-                make_issue(
-                    "missing-description",
-                    "SKILL.md description is missing.",
-                    path=path,
-                )
-            )
-        else:
-            if any(ch in entry["description"] for ch in "<>\""):
-                issues.append(
-                    make_issue(
-                        "invalid-description-characters",
-                        "Description contains <, >, or double quote characters.",
-                        path=path,
-                    )
-                )
-
-            if len(entry["description"]) > MAX_DESCRIPTION_LEN:
-                issues.append(
-                    make_issue(
-                        "description-too-long",
-                        f"Description is {len(entry['description'])} chars; max is {MAX_DESCRIPTION_LEN}.",
-                        path=path,
-                    )
-                )
-
-        skill_dir = SKILLS_ROOT / path
-        nested = [
-            str(p.relative_to(SKILLS_ROOT))
-            for p in skill_dir.rglob("SKILL.md")
-            if p != skill_dir / "SKILL.md"
-        ]
-
-        if nested:
-            issues.append(
-                make_issue(
-                    "nested-skill-md",
-                    f"Nested SKILL.md files found: {', '.join(nested)}",
-                    path=path,
-                )
-            )
-
-    for p in iter_skill_md_files_relative("*/SKILL.md"):
-        issues.append(
-            make_issue(
-                "invalid-placement",
-                "SKILL.md is directly under a category; expected category/skill/SKILL.md.",
-                path=str(p.relative_to(SKILLS_ROOT)),
-            )
-        )
-
-    for p in iter_skill_md_files_relative("*/*/*/SKILL.md"):
-        issues.append(
-            make_issue(
-                "too-deep",
-                "SKILL.md is nested deeper than category/skill/SKILL.md.",
-                path=str(p.relative_to(SKILLS_ROOT)),
-            )
-        )
-
-    for name, paths in sorted(name_map.items()):
-        if len(paths) > 1:
-            issues.append(
-                make_issue(
-                    "duplicate-skill-name",
-                    f"Skill name '{name}' appears in: {', '.join(sorted(paths))}.",
-                )
-            )
-
-    for description, paths in sorted(desc_map.items()):
-        if len(paths) > 1:
-            issues.append(
-                make_issue(
-                    "duplicate-description",
-                    f"Identical description appears in: {', '.join(sorted(paths))}.",
-                )
-            )
-
-    return {
-        "skills_root": str(SKILLS_ROOT),
-        "catalog": str(CATALOG_PATH),
-        "issue_count": len(issues),
-        "issues": issues,
-    }
-
-
-def write_category_description(category: Path, description: str, force: bool = False) -> bool:
-    desc_file = category / CATEGORY_DESCRIPTION_FILENAME
-
-    if desc_file.exists() and not force:
-        return False
-
-    desc_file.write_text(
-        f"---\ndescription: {yaml_quote(description)}\n---\n",
-        encoding="utf-8",
-    )
-    return True
-
-
-def ensure_frontmatter_name(skill_md: Path, expected_name: str) -> bool:
-    text = skill_md.read_text(encoding="utf-8-sig", errors="replace")
-    stripped = text.lstrip()
-
-    if not stripped.startswith("---"):
-        new_text = f"---\nname: {expected_name}\ndescription: TODO\n---\n\n{text}"
-        skill_md.write_text(new_text, encoding="utf-8")
-        return True
-
-    parts = stripped.split("---", 2)
-    if len(parts) < 3:
-        return False
-
-    fm_lines = parts[1].splitlines()
-    replaced = False
-
-    for i, line in enumerate(fm_lines):
-        if line.startswith("name:"):
-            fm_lines[i] = f"name: {expected_name}"
-            replaced = True
-            break
-
-    if not replaced:
-        fm_lines.insert(0, f"name: {expected_name}")
-
-    fm_body = "\n".join(fm_lines).strip("\n")
-    body = parts[2]
-    new_text = f"---\n{fm_body}\n---{body}"
-
-    skill_md.write_text(new_text, encoding="utf-8")
-    return True
-
-
-def validate_category_name(name: str) -> None:
-    if (
-        not NAME_RE.match(name)
-        or "--" in name
-        or not (2 <= len(name) <= 64)
-    ):
-        fail(
-            "Category name must be lowercase a-z, 0-9, hyphens, 2-64 chars, "
-            "no leading/trailing hyphen or double hyphen."
-        )
-
-
-def resolve_skill_dir(skill_ref: str) -> Path:
-    p = Path(skill_ref)
-    candidates = []
-
-    if p.is_absolute():
-        candidates.append(p)
-    else:
-        if len(p.parts) == 2:
-            candidates.append(SKILLS_ROOT / p)
-
-        if len(p.parts) == 1:
-            for category in category_dirs():
-                candidates.append(category / p)
-
-        candidates.append(Path.cwd() / p)
-        candidates.append(SKILLS_ROOT / p)
-
-    for candidate in candidates:
-        candidate = Path(candidate).resolve()
-        if candidate.is_dir() and (candidate / "SKILL.md").exists():
-            return candidate
-
-    fail(f"Could not find skill directory with SKILL.md: {skill_ref}")
-
-
 def cmd_catalog(args) -> None:
     entries, categories = rebuild_catalog()
     print(f"Rebuilt {CATALOG_PATH}")
@@ -590,7 +282,7 @@ def cmd_discover(args) -> None:
 
 
 def cmd_validate(args) -> None:
-    report = validate_library()
+    report = validate_library(SKILLS_ROOT)
 
     if report["issue_count"] == 0:
         print("No validation issues found.")
@@ -781,6 +473,89 @@ def main() -> None:
     }
 
     commands[args.command](args)
+
+
+def ensure_frontmatter_name(skill_md: Path, expected_name: str) -> bool:
+    text = skill_md.read_text(encoding="utf-8-sig", errors="replace")
+    stripped = text.lstrip()
+
+    if not stripped.startswith("---"):
+        new_text = f"---\nname: {expected_name}\ndescription: TODO\n---\n\n{text}"
+        skill_md.write_text(new_text, encoding="utf-8")
+        return True
+
+    parts = stripped.split("---", 2)
+    if len(parts) < 3:
+        return False
+
+    fm_lines = parts[1].splitlines()
+    replaced = False
+
+    for i, line in enumerate(fm_lines):
+        if line.startswith("name:"):
+            fm_lines[i] = f"name: {expected_name}"
+            replaced = True
+            break
+
+    if not replaced:
+        fm_lines.insert(0, f"name: {expected_name}")
+
+    fm_body = "\n".join(fm_lines).strip("\n")
+    body = parts[2]
+    new_text = f"---\n{fm_body}\n---{body}"
+
+    skill_md.write_text(new_text, encoding="utf-8")
+    return True
+
+
+def write_category_description(category: Path, description: str, force: bool = False) -> bool:
+    desc_file = category / CATEGORY_DESCRIPTION_FILENAME
+
+    if desc_file.exists() and not force:
+        return False
+
+    desc_file.write_text(
+        f"---\ndescription: {yaml_quote(description)}\n---\n",
+        encoding="utf-8",
+    )
+    return True
+
+
+def validate_category_name(name: str) -> None:
+    if (
+        not NAME_RE.match(name)
+        or "--" in name
+        or not (2 <= len(name) <= 64)
+    ):
+        fail(
+            "Category name must be lowercase a-z, 0-9, hyphens, 2-64 chars, "
+            "no leading/trailing hyphen or double hyphen."
+        )
+
+
+def resolve_skill_dir(skill_ref: str) -> Path:
+    p = Path(skill_ref)
+    candidates = []
+
+    if p.is_absolute():
+        candidates.append(p)
+    else:
+        if len(p.parts) == 2:
+            candidates.append(SKILLS_ROOT / p)
+
+        if len(p.parts) == 1:
+            for category in category_dirs():
+                candidates.append(category / p)
+
+        candidates.append(Path.cwd() / p)
+        candidates.append(SKILLS_ROOT / p)
+
+    for candidate in candidates:
+        candidate = Path(candidate).resolve()
+        if candidate.is_dir() and (candidate / "SKILL.md").exists():
+            return candidate
+
+    fail(f"Could not find skill directory with SKILL.md: {skill_ref}")
 
 
 if __name__ == "__main__":
