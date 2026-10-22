@@ -13,8 +13,12 @@ this file is the mechanical checklist.
 | Field | Required | Constraints |
 | --- | --- | --- |
 | `name` | Yes | Max 64 chars. Lowercase `a-z`, `0-9`, `-` only. No leading/trailing hyphen, no `--`, no XML tags, no reserved words. Equals the directory name exactly. |
-| `description` | Yes | Max 1,024 chars (or the target's stricter ceiling). Non-empty. No `<` or `>`. Third person, includes triggers. |
-| others (`metadata`, `version`, `author`, `license`, `platforms`, …) | Target-dependent | Match the field set the destination validator enforces; survey sibling skills. |
+| `description` | Yes | Max 1,024 chars (or the target's stricter ceiling). Non-empty. No `<`, `>`, or `"`. Third person, includes triggers. |
+| `when-to-use` (Grok Build) | No | Max 1,024 chars. Trigger phrases for auto-invocation when they don't fit the description. |
+| `user-invocable` (Grok Build) | No | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool. |
+| `disable-model-invocation` (Grok Build) | No | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it. |
+| `argument-hint`, `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` (Grok Build) | No | See the main guide's Grok Build keys table for effects and limits. |
+| others (`version`, `author`, `platforms`, ...) | Target-dependent | Match the field set the destination validator enforces; survey sibling skills. Grok Build ignores top-level `version`, `triggers`, and `entry_points`. |
 
 ### Naming
 
@@ -27,7 +31,19 @@ this file is the mechanical checklist.
 
 - Third person: "Extracts text from PDFs", never "I can help".
 - WHAT + WHEN + trigger terms, specific ("Helps with documents" fails this).
-- No angle brackets; quote the value if it contains a `:` so YAML parses a string.
+- No `<`, `>`, or `"` — Grok Build embeds the description in `<skill description="...">`.
+- Quote the value if it contains a `:` so YAML parses a string.
+- Grok Build matches the prompt against `description` AND `when-to-use`; put leftover
+  trigger phrases in `when-to-use` rather than bloating the description.
+
+### YAML hygiene
+
+- Quote values containing `: ` or indicator characters (`{ } [ ] * & # ! | > % @`, backtick).
+- Nothing indented under a previous field's value: one nested line invalidates the whole
+  frontmatter, and only `name`, `description`, `when-to-use` survive the recovery pass.
+- Multi-word keys kebab-case; `when_to_use` is the only accepted alias of `when-to-use`.
+- For Grok Build targets, trigger phrases go in `description`/`when-to-use` — a `triggers:`
+  key is ignored.
 
 ## Structure
 
@@ -54,7 +70,9 @@ this file is the mechanical checklist.
 
 - [ ] Frontmatter uses only the keys the target validator accepts.
 - [ ] `name:` matches the directory; lowercase, hyphens, no leading/trailing `-`.
-- [ ] `description:` third person, specific, no `<`/`>`, includes trigger terms.
+- [ ] `description:` third person, specific, no `<`/`>`/`"`, includes trigger terms.
+- [ ] Frontmatter is valid YAML: colon-containing values quoted, no field nested under another.
+- [ ] Grok Build target: trigger phrases live in `description`/`when-to-use`, not `triggers:`.
 - [ ] Exactly one `SKILL.md` at the skill root; no nested copies.
 - [ ] Body within the size target; detail overflowed into `references/`.
 - [ ] All `references/` links resolve; nothing nested deeper than one level.

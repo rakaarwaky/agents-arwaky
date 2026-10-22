@@ -32,6 +32,9 @@ Write a `description:` that carries:
 - Trigger phrases and keywords so the harness auto-invokes it.
 - The slash-command name, if the harness supports one ("Use when the user runs `/deploy-k8s`").
 
+If the trigger phrases don't fit one sentence, add a separate `when-to-use:` field —
+Grok Build matches both fields when deciding to auto-invoke.
+
 Show it to the user for approval or edits.
 
 ## Step 3: Create the directory
@@ -54,6 +57,11 @@ description: <description from Step 2>
 
 <body with instructions, steps, code blocks>
 ```
+
+Optional Grok Build keys (`when-to-use`, `user-invocable`, `disable-model-invocation`,
+`argument-hint`, `paths`, `model`, `effort`) follow the main guide's field table. Do not
+add `triggers:`, `entry_points:`, or top-level `version:` for Grok Build — the parser
+ignores them; trigger phrases belong in `description:`/`when-to-use:`.
 
 Write any supporting scripts or references as needed. Follow the design principles in the
 main guide rather than restating them here.
