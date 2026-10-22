@@ -21,34 +21,41 @@ work, which are already open issues, and which are stale doc text, and opens a m
 issue per finding. The run outputs GitHub issues only. It never edits source code,
 never creates a branch, never opens a PR.
 
-## Target repos
+## Scope
 
-The skill is repo-agnostic and works on any AES-architecture repo that keeps spec docs
-inside the repo. Verified layouts (2026-10-22):
+The skill is repo-agnostic: any AES-architecture repo that keeps spec documents inside
+the repo tree works. Discover scope at run time with the two rules below; do not
+assume a layout.
 
-| Repo | Spec docs |
-| --- | --- |
-| `internal/qwen-web-arwaky` | `PRD.md`, `ROADMAP.md`, `modules/*/BACKLOG.md`, `modules/*/FRD.md`, `modules/*/DESIGN.md` |
-| `projects/psd-timelapse` | `BACKLOG.md` (root, state table + feature roll-up), `modules/*/BACKLOG.md`, `modules/*/FRD.md`, `packages/*/BACKLOG.md`, `packages/*/FRD.md`, `packages/*/DESIGN.md` |
-| `internal/lint-arwaky` | `ROADMAP.md` (Feature Roll-up table carries ID + State), `crates/*/BACKLOG.md`, `crates/*/FRD.md`, `crates/*/DESIGN.md`. `RULES_AES.md` mentions the state vocabulary in table cells only, so it is not a row source. |
-| `internal/vision-arwaky` | `modules/*/BACKLOG.md`, `modules/*/FRD.md` — feature backlogs carry doc-level `State:` lines and one-row backlog tables; no root definitions table exists |
+**In scope** — any `.md` that either:
+1. Contains a `## State Definitions` or `### State definitions` heading (the authoritative vocabulary table), or
+2. Is a feature `BACKLOG.md`, `FRD.md`, or `DESIGN.md` listed by the root spec docs, or sits under a feature directory (`modules/`, `packages/`, `crates/`) and has a row table whose headers include `ID` (or `Feature` / `Branch`) and `State`.
 
-On a repo not in the table, fall back to the discovery rule: every `.md` file containing
-a `## State Definitions` or `### State definitions` table is in scope.
+**Out of scope** — any path whose first segment after the repo root starts with a dot
+(`.git/`, `.agents/`, `.grok/`, `.venv/`, `.tox/`, `.pytest_cache/`, `.mypy_cache/`,
+`.ruff_cache/`, `.idea/`, `.vscode/`, and any other dot-prefixed directory) —
+dot-prefixed directories are always scratch, session, or tooling, never spec docs.
+Also exclude build and template paths matching `node_modules|target|dist|__pycache__|htmlcov|coverage|junit|vendor|skills|references|workspaces-bad|workspaces-good`.
+
+Prompt scratch files and skill reference templates quote the words "State Definitions"
+without being specs — never include them.
 
 ## State sources
 
-Two layouts, both in scope:
+Two common layouts, both in scope:
 
-| Shape | Where the state lives | Source docs |
-| --- | --- | --- |
-| Roadmap-owned | `ROADMAP.md` holds the definitions, a backlog table, a phase plan, and a feature roll-up; feature `BACKLOG.md` files say "values from root ROADMAP.md" and carry only their own row table | `qwen-web-arwaky`, `lint-arwaky` |
-| Backlog-owned | Root `BACKLOG.md` holds the definitions (`### State definitions`), the feature index, the roll-up, and the root row table; each feature `BACKLOG.md` declares its own doc-level `State: <value>` line plus its row table | `psd-timelapse`, `vision-arwaky` |
+| Shape | Where the state lives |
+| --- | --- |
+| Roadmap-owned | `ROADMAP.md` (or `ROADMAP.md`/`DESIGN.md` at root) holds the definitions, a backlog table, a phase plan, and a feature roll-up; feature `BACKLOG.md` files carry only their own row table |
+| Backlog-owned | Root `BACKLOG.md` holds the definitions (`### State definitions`), the feature index, the roll-up, and the root row table; each feature `BACKLOG.md` declares its own doc-level `State: <value>` line plus its row table |
 
 In the backlog-owned shape the doc-level `State:` line at the top of a feature backlog
 is a real classification target in its own right — a feature still `In Progress` or
 `Idea` while its row table is empty produces a tracking issue for the feature roll-up
 row, not for the vanished rows.
+
+If the repo uses neither shape exactly, follow the discovery rule and extract every
+table that has both an ID (or Feature) column and a State column.
 
 ## State vocabulary
 
@@ -83,26 +90,10 @@ A `Done` row whose evidence does not reproduce is `doc_sync`, never `skip`.
 
 ### Step 1 — discover
 
-A spec doc qualifies when it sits at the repo root or under a feature directory
-(`modules/`, `packages/`, `crates/`), and contains a state table. Exclude scratch and
-session directories without exception — prompt scratch dirs (`.qwen-web/`,
-`.qwen-web-arwaky/`, `.qwen/`, `.agents/`), `.git`, `node_modules`, `target`, `dist`,
-`__pycache__`, `htmlcov`, `vendor` — because prompt scratch files quote the words
-"State Definitions" without being specs, and skill reference templates under
-`skills/` / `crates/*/skills/*/references/` quote them as scaffolding.
-
-```bash
-cd <repo-root>
-grep -rl -E '^#+ *State [Dd]efinitions' . --include='*.md' | grep -vE '/(\.git|\.qwen-web|\.qwen-web-arwaky|\.qwen|\.agents|node_modules|target|dist|__pycache__|htmlcov|vendor|skills|references|workspaces-bad|workspaces-good)/'
-```
-
-Expected file set: the root spec docs (`PRD.md`, `ROADMAP.md`, `BACKLOG.md`,
-`DESIGN.md`) plus each feature's `BACKLOG.md` / `FRD.md` / `DESIGN.md`. A feature doc
-with no state table still contributes rows if its backlog table carries a `State`
-column — read every feature `BACKLOG.md` listed by the root roll-up regardless of
-whether it holds the definitions table itself. On `psd-timelapse` and `vision-arwaky`
-the grep finds only the root backlog; the walk over `modules/*/BACKLOG.md`,
-`packages/*/BACKLOG.md`, and `crates/*/BACKLOG.md` is what surfaces the feature rows.
+Run the discovery grep from the Scope section above, then walk feature directories
+(`modules/`, `packages/`, `crates/` — whichever exist) and add every feature
+`BACKLOG.md`, `FRD.md`, and `DESIGN.md` even when that file holds no definitions
+table itself — its backlog table may still carry a `State` column.
 
 ### Step 2 — spawn scanner subagents
 
@@ -164,14 +155,13 @@ its title and lists the siblings in its body.
 **Title format**
 
 ```text
-[BACKLOG] <ROW-ID> — <one-line task summary>        # WS-* root rows
-[<feature>] <ROW-ID> — <one-line task summary>       # feature-scoped rows, e.g. [browser] BROWSER-01
+[BACKLOG] <ROW-ID> — <one-line task summary>        # root rows
+[<feature>] <ROW-ID> — <one-line task summary>       # feature-scoped rows
 [DOC-SYNC] <ROW-ID> — <doc path> still reports <stale state>
 ```
 
-The feature tag is the lowercase directory name: `browser`, `prompt`, `cli`, `tui`,
-`mcp`, `animator`, `compositor`, ... For lint-arwaky Rust workspaces use the crate
-name.
+The feature tag is the lowercase directory name of the owning feature (e.g. `browser`,
+`cli`, `api`, `compositor`); for Rust workspaces use the crate name.
 
 **Body**
 
@@ -216,10 +206,7 @@ label without calling `gh issue create`.
 Append one JSON object per row to `<repo-root>/docs/task-tracker-ledger.jsonl`:
 
 ```json
-{"run":"YYYY-MM-DD","row":"BROWSER-01","doc":"modules/browser/BACKLOG.md","state":"Ready","priority":"P0","class":"incomplete","issue":641,"action":"created"}
-{"run":"YYYY-MM-DD","row":"WS-01","doc":"ROADMAP.md","state":"In Review","priority":"P0","class":"incomplete","issue":642,"action":"commented"}
-{"run":"YYYY-MM-DD","row":"UPDATE-01","doc":"modules/update/BACKLOG.md","state":"Deferred","priority":"P2","class":"incomplete","issue":643,"action":"created"}
-{"run":"YYYY-MM-DD","row":"JOB-01","doc":"modules/jobs/BACKLOG.md","state":"In Progress","priority":"P1","class":"doc_sync","issue":644,"action":"created"}
+{"run":"YYYY-MM-DD","row":"<ROW-ID>","doc":"<source_doc>","state":"<state>","priority":"<P0/P1/P2>","class":"<incomplete|doc_sync|skip>","issue":<issue-number>,"action":"<created|commented|skipped-exists|skipped-evidence>"}
 ```
 
 `action` values: `created`, `commented`, `skipped-exists`, `skipped-evidence`.
