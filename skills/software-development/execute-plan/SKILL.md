@@ -1,15 +1,15 @@
 ---
 name: execute-plan
-description: Execute a PR Plan DAG from a design document. Parses the plan, topologically sorts it, implements PRs in parallel using worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability.
+description: Execute a PR Plan DAG from a design document. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability.
 when-to-use: Use when asked to "execute plan", "run the plan", "implement the design", or "/execute-plan".
 argument-hint: "<design-doc-path> [--effort N] [--concurrency N] [--dry-run] [--resume <PLAN_ID>] [--instructions \"...\"] [--no-graphite] [--auto-pr]"
 ---
 
 # Execute Plan Skill
 
-You are an orchestrator that takes a PR Plan DAG (produced by the `/design` skill) and executes it end-to-end. You parse the DAG, topologically sort and linearize it into a stack, launch parallel implementation subagents in isolated worktrees, run mandatory orchestrator-level review cycles, and assemble the results into a stack of PRs.
+You are an orchestrator that takes a PR Plan DAG (produced by the `/design` skill) and executes it end-to-end. You parse the DAG, topologically sort and linearize it into a stack, launch parallel implementation subagents in Orca-managed worktrees, run mandatory orchestrator-level review cycles, and assemble the results into a stack of PRs.
 
-You are the **single point of control** for all git and stack-tooling operations. Subagents are sandboxed implementation workers that produce commits in isolated worktrees. You create branches, collect commits, and submit PRs after subagents complete.
+You are the **single point of control** for all git, Orca worktree, and stack-tooling operations. Subagents are sandboxed implementation workers that produce commits in Orca-managed worktrees. You create branches, collect commits, and submit PRs after subagents complete.
 
 ## Two Assembly Modes
 
@@ -24,17 +24,50 @@ You coordinate only. You **must not** use `write`, `search_replace`, `delete`, o
 
 References to "the stack" throughout this document refer to whichever mode is active. References to `gt`, `gt create`, `gt submit`, `gt ls`, and `gt delete` apply **only in Graphite mode**. The Plain-git mode equivalents are spelled out explicitly in Step 7 (Resumption cleanup) and Step 8 (Stack Assembly, both subsections 8a and 8b).
 
-## Subagent Worktree Protocol
+## Orca Worktree Protocol
 
-The orchestrator interacts with subagent worktrees through a small set of git commands that are written to work uniformly across every environment the skill runs in. Do not branch on the host, the worktree mechanism, or any other property of the environment — the protocol below is the only contract you may rely on.
+Every subagent runs in its own Orca-managed worktree under `~/orca/workspaces/`. The orchestrator interacts with those worktrees through the `orca` CLI, resolved once per session (see the *Orca CLI Resolution* section) and used via `run_terminal_command`. Do not work on the default branch in the main clone; every subagent runs in its own Orca worktree.
 
-**Rule 1 — fetch without a destination refspec.** When you need the subagent's commits in the orchestrator's main repo, run exactly:
+**Orca CLI Resolution.** Resolve the `ORCA` executable once at Setup:
+
+1. If `ORCA_CLI_COMMAND` is set, use it.
+2. Otherwise, on Linux, use `orca-ide` — bare `orca` on the host resolves to the GNOME screen reader and must never be used.
+3. If neither works, report the error and stop.
+
+All Orca invocations in this skill use the resolved executable with `--json`, for example `orca-ide worktree create ... --json`. Inline the resolved executable name into every later command (do not rely on a shell variable surviving across `run_terminal_command` calls).
+
+### Worktree creation
+
+Create one Orca worktree per PR at launch time (Step 4a):
+
+```bash
+orca-ide worktree create \
+  --repo path:<main_clone_path> \
+  --name <PLAN_ID>-<pr.id> \
+  --base-branch <pr.branch> \
+  --no-parent \
+  --json
+```
+
+- `--repo path:<main_clone_path>` targets the repo the design document came from (the orchestrator's main clone, recorded in Setup as `main_clone_path`).
+- `--name <PLAN_ID>-<pr.id>` gives each PR a unique, resumable worktree display name.
+- `--base-branch <pr.branch>` checks the stack branch out inside the new worktree, so the implementer works on `<pr.branch>` from the first commit. This removes the need for a post-creation `git push` of the branch into the worktree.
+- `--no-parent` keeps the DAG lineage out of Orca's lineage model — stack order is tracked in the state file, not in Orca.
+- Do not pass `--agent` or `--prompt`: the worktree hosts a Grok Build subagent (via `spawn_subagent` with `cwd`), not an Orca TUI agent.
+
+The worktree `id` is the two-part address `<repoId>::<worktreePath>` returned in `result.worktree.id` (for example `repo-123::/home/raka/orca/workspaces/agents-arwaky/<plan-id>-<pr-id>`). The checkout path is `result.worktree.path`. Record both on the PR node: `pr.orca_worktree_id` and `pr.worktree_path` (`worktree_path` stays the field name used everywhere else in this skill — it now holds the Orca worktree path).
+
+If the create call fails, mark the PR `"failed"` with the Orca error and cascade-skip dependents (Step 6).
+
+### Completion and teardown
+
+**Rule 1 — fetch without a destination refspec.** When the subagent's commits need to land in the orchestrator's main repo, run exactly:
 
 ```bash
 git fetch <worktree_path> HEAD --no-tags
 ```
 
-Never add `:refs/heads/<pr.branch>` and never pass `--force`. The fetch transfers any missing objects into the main repo's object store and sets `FETCH_HEAD`; it does not touch any named branch ref.
+Never add `:refs/heads/<pr.branch>` and never pass `--force`. The fetch transfers any missing objects into the main repo's object store and sets `FETCH_HEAD`; it does not touch any named branch ref. Orca worktrees share the main clone's object store and refs, so the fetch succeeds whether or not the subagent's commits are already visible.
 
 **Rule 2 — `pr.commit_sha` is the authoritative reference.** After every fetch, immediately record the subagent's HEAD and verify it is reachable:
 
@@ -45,15 +78,19 @@ git cat-file -t <pr.commit_sha>   # must print "commit"
 
 Every downstream step (dependent-branch creation in Step 3, stack assembly in Step 8a) keys off `commit_sha`, never off `refs/heads/<pr.branch>` in the main repo. Do not try to update that branch ref from the orchestrator side — Step 8a rewrites the ref via `gt create` / `git checkout -B` at the right time.
 
-**Rule 3 — tear down the worktree before mutating its branch ref.** Step 8a is the only step that mutates `refs/heads/<pr.branch>` in the main repo. Immediately before that mutation, the orchestrator must remove the subagent's worktree:
+**Rule 3 — tear down the worktree before mutating its branch ref.** Step 8a is the only step that mutates `refs/heads/<pr.branch>` in the main repo. Immediately before that mutation, the orchestrator must remove the subagent's Orca worktree:
 
 ```bash
-if [ -n "<pr.worktree_path>" ] && [ -d "<pr.worktree_path>" ]; then
-  grok worktree rm --force "<pr.worktree_path>"
-fi
+orca-ide worktree rm --worktree <pr.orca_worktree_id> --force --json
 ```
 
-The command is idempotent and safe to run when the worktree is already gone, missing, or was never created (e.g., a `failed`/`skipped` PR).
+Where `<pr.orca_worktree_id>` is the `<repoId>::<worktreePath>` address recorded at creation (the `--worktree` selector also accepts `path:<worktree_path>`). The command is idempotent and safe to run when the worktree is already gone; a "not found" response counts as success and still sets `pr.worktree_cleaned = true`.
+
+Before retiring a worktree whose PR is handed to a human, mark the handoff state with `orca-ide worktree set --worktree <pr.orca_worktree_id> --workspace-status in-review --json` (this is a human-review handoff; the automated skill flow retires the worktree without the status set).
+
+### Teardown
+
+All Orca worktrees are retired with `orca-ide worktree rm --worktree <id> --force --json`. The verb is `rm`, not `remove` — `orca worktree remove` does not exist in the current CLI. Running `rm` on a worktree whose path the current shell has `CWD` bound to invalidates that shell session's working directory; this is expected and the orchestrator re-resolves paths from scratch after each teardown.
 
 ## Tool-Call Discipline (Anti-Hallucination)
 
@@ -127,6 +164,8 @@ Resolve `HOST_PY` as `<dirname of this SKILL.md>/../../shared/scripts/host.py`. 
 
 Run `<python> <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `PLAN_ID`.
 
+**Resolve the Orca CLI** per the *Orca CLI Resolution* rule in the Orca Worktree Protocol section: check `ORCA_CLI_COMMAND` first, then `orca-ide` on Linux. If neither is available, stop and report — Orca worktrees are mandatory for this skill.
+
 **Validate** that `PLAN_ID` is 8 hex characters. If it is empty or the command failed, report the error and stop.
 
 **Inline the resolved absolute `scratch_dir` and `PYTHON`** into every later command and subagent prompt. Do not rely on a shell variable surviving across `run_terminal_command` calls (the same reason this skill inlines `${MEMORY_HELPER}`).
@@ -149,13 +188,14 @@ These paths stay the same for the entire run. Never regenerate them between iter
 
 Initialize these orchestrator state variables:
 - `design_doc_path`: the user-provided path to the design document
+- `main_clone_path`: absolute path to the orchestrator's main clone (`git rev-parse --show-toplevel` from the workspace cwd). This is the `--repo path:<main_clone_path>` target for every `orca worktree create` call.
 - `effort`: parsed effort level (1-5). Controls the number of reviewers launched per PR in Step 5.
 - `max_concurrent`: parsed concurrency limit (1-8, default 4)
 - `dag`: the parsed PR Plan DAG (populated in Step 1)
 - `linearized_order`: the linearized PR order for stack assembly (populated in Step 2)
 - `ready_queue`: PRs ready to execute (all dependencies complete)
 - `in_progress`: map of PR id to task_id for currently running subagents
-- `completed`: map of PR id to completion data (commit_sha, worktree_path)
+- `completed`: map of PR id to completion data (commit_sha, worktree_path, orca_worktree_id)
 - `failed`: map of PR id to error information
 - `skipped`: map of PR id to skip reason
 - `past_issues_briefing`: `""` -- populated in Step 0 from the workspace memory file. Contains a formatted markdown block of common issue patterns from previous runs, injected into implementer and reviewer prompts.
@@ -206,15 +246,22 @@ Write this initial state file using the `write` tool.
 Report to the user: `"Starting execute-plan with PLAN_ID: <PLAN_ID>, effort: <effort>, concurrency: <max_concurrent>"`
 If `user_instructions` is non-empty, add: `"User instructions: <first 100 chars>..."`
 
-## Step 0.5: Tool Detection (Graphite & gh)
+## Step 0.5: Tool Detection (Orca, Graphite & gh)
 
-Probe the environment **once** at the start of the run to choose the stack-assembly mode. Use the safe `if ... then ... else ... fi` form (the `&& X || Y` shortcut is a footgun if `X` ever fails):
+Probe the environment **once** at the start of the run to verify Orca availability and choose the stack-assembly mode. Use the safe `if ... then ... else ... fi` form (the `&& X || Y` shortcut is a footgun if `X` ever fails):
 
 ```bash
+# Orca CLI — every subagent worktree is Orca-managed, so this is mandatory
+if command -v orca-ide >/dev/null 2>&1; then echo "yes"; else echo "no"; fi
+
+# Graphite
 if command -v gt >/dev/null 2>&1; then echo "yes"; else echo "no"; fi
 
+# gh
 if command -v gh >/dev/null 2>&1; then echo "yes"; else echo "no"; fi
 ```
+
+If the Orca probe returns `no`, resolve the executable per the *Orca CLI Resolution* rule (check `ORCA_CLI_COMMAND` first, then `orca-ide`). If neither is available, **stop and report**: "Orca CLI is required for execute-plan (subagents run in Orca worktrees). Install Orca or set ORCA_CLI_COMMAND, then re-run." Do not fall back to any other worktree mechanism.
 
 For additional confidence that the binary named `gt` is actually Graphite (and not an unrelated tool that happens to share the name), additionally run `gt --help 2>/dev/null` when the first probe returns `yes` and verify the output contains `graphite` (case-insensitive substring match — e.g., `if gt --help 2>/dev/null | grep -qi graphite; then echo "yes"; else echo "no"; fi`). `gt --version` is unreliable here because Graphite's version output is a bare version string with no product name, so it fails the substring check even for a legitimate Graphite install; `gt --help` reliably prints the Graphite CLI banner. Treat unrecognized output as `no`.
 
@@ -325,7 +372,8 @@ PRNode {
     review_rounds: int   // 0 initially
     started_at: string   // null initially
     completed_at: string // null initially
-    worktree_cleaned: bool // false initially; set true by Step 8a (per-PR prologue) or Step 9 (safety net) after `grok worktree rm --force` succeeds. Step 9 uses this to stay idempotent across resumes.
+    worktree_cleaned: bool // false initially; set true by Step 8a (per-PR prologue) or Step 9 (safety net) after `orca worktree rm` succeeds. Step 9 uses this to stay idempotent across resumes.
+    orca_worktree_id: string // null initially; the Orca worktree address <repoId>::<worktreePath> from `orca worktree create --json`
 }
 ```
 
@@ -450,11 +498,11 @@ git worktree remove "$TEMP_WT"
 pr.base_sha = $(git rev-parse <pr.branch>)
 ```
 
-**Note:** Branch creation keys off the dependency's recorded `commit_sha`, never its branch name — this is Rule 2 of the *Subagent Worktree Protocol*. The main repo's `refs/heads/<dep.branch>` is not a reliable pointer to the dependency's latest commit; only `dep.commit_sha` is. The orchestrator still enforces ordering — dependent branches are created only after the dependency's `process_completion` step has recorded `dep.commit_sha` and fetched its objects.
+**Note:** Branch creation keys off the dependency's recorded `commit_sha`, never its branch name — this is Rule 2 of the *Orca Worktree Protocol*. The main repo's `refs/heads/<dep.branch>` is not a reliable pointer to the dependency's latest commit; only `dep.commit_sha` is. The orchestrator still enforces ordering — dependent branches are created only after the dependency's `process_completion` step has recorded `dep.commit_sha` and fetched its objects.
 
 After creating each branch, record `pr.base_sha` (via `git rev-parse <branch_name>`) and update the PR node's status to `"branch_created"` in the state file. The `base_sha` captures the exact commit the branch points to before any implementation work, and is used for range cherry-pick in Step 8a.
 
-**Critical: the orchestrator must NOT switch its own checked-out branch.** Use `git branch` (no checkout) for branch creation and temp worktrees for merge operations.
+**Critical: the orchestrator must NOT switch its own checked-out branch.** Use `git branch` (no checkout) for branch creation and temp worktrees for merge operations. These temp worktrees are raw `git worktree add` worktrees under a `mktemp` directory — they are not Orca-managed and are removed with `git worktree remove`. Orca worktrees (created in Step 4a) share the main clone's object store and refs, so a branch created here is immediately visible inside every Orca worktree without a push.
 
 Report to the user: `"Created branches for <N> level-0 PRs. Starting implementation..."`
 
@@ -470,7 +518,8 @@ completed = {}
 while ready_queue is not empty OR in_progress is not empty:
     while ready_queue is not empty AND len(in_progress) < max_concurrent:
         pr = ready_queue.pop(0)
-        task_id = launch_implementer(pr)
+        create_orca_worktree(pr)   # Step 4a — `orca worktree create`; on failure: pr = failed, cascade_skip, continue
+        task_id = launch_implementer(pr)   # spawn_subagent with cwd = pr.worktree_path
         in_progress[pr.id] = task_id
 
     result = wait_commands_or_subagents(task_ids=list(in_progress.values()), mode="wait_any", timeout_ms=600000)
@@ -494,16 +543,25 @@ while ready_queue is not empty OR in_progress is not empty:
 
 ### Step 4a: Launch Implementer
 
-For each PR, launch an implementer subagent in a worktree.
+For each PR, create its Orca worktree, then launch an implementer subagent inside it.
 
-After the worktree is created (by `spawn_subagent`'s `isolation: "worktree"`), but before the implementer reaches `git checkout`, push the branch into the worktree. The branch was created in the main repo (Step 3) only after the worktree had already been built, so the worktree may not see the ref yet — this push ensures it does. Extract `worktree_path` from the subagent's initial output and push immediately -- the subagent's prompt processing provides a sufficient time window before `git checkout` is reached:
+**Create the Orca worktree first:**
+
 ```bash
-git push <worktree_path> refs/heads/<pr.branch>:refs/heads/<pr.branch>
+orca-ide worktree create \
+  --repo path:<main_clone_path> \
+  --name <PLAN_ID>-<pr.id> \
+  --base-branch <pr.branch> \
+  --no-parent \
+  --json
 ```
 
+Parse `result.worktree.id` into `pr.orca_worktree_id` and `result.worktree.path` into `pr.worktree_path`. Because `--base-branch <pr.branch>` checks the stack branch out inside the new worktree, the implementer works on the correct branch from its first command — no post-creation `git push` is needed. Orca worktrees share the main clone's object store and refs, so the branch created in Step 3 is already visible. If the create call fails (Orca not running, repo not registered, branch missing), mark the PR `"failed"` with the Orca error, cascade-skip dependents (Step 6), and continue with other ready PRs.
+
+**Then launch the subagent in the worktree:**
+
 `spawn_subagent` parameters:
-- `subagent_type`: `"general-purpose"`
-- `isolation`: `"worktree"`
+- `cwd`: `<pr.worktree_path>`
 - `background`: `true`
 - `description`: `"[implementer] <pr.id>: <pr.title>"`
 
@@ -540,9 +598,9 @@ These instructions apply to all work in this plan. Follow them strictly.
 
 ## Instructions
 
-1. First, check out your branch:
-   git checkout <pr.branch>
-   This branch already contains changes from your dependencies.
+1. Verify your branch:
+   git branch --show-current
+   The branch is already checked out in this worktree and contains changes from your dependencies.
 
 2. Implement the changes described above.
 
@@ -569,20 +627,20 @@ Report to the user: `"Launching <pr.id> (<pr.title>)..."`
 When a subagent completes (returned by `wait_commands_or_subagents`):
 
 1. Identify which PR finished by matching the returned `task_id` against `in_progress`. The `wait_commands_or_subagents` result contains entries with `task_id`, `status`, and `output` fields. Match `task_id` against the `in_progress` map to find the corresponding PR.
-2. Extract subagent metadata from the result. The `worktree_path` and `subagent_id` are embedded in the `spawn_subagent` result's output text, wrapped in structured tags. Extract these values for state tracking.
+2. The `subagent_id` is returned by `spawn_subagent`. The `worktree_path` and `orca_worktree_id` are **already set** on the PR node from Step 4a (they came from `result.worktree.path` and `result.worktree.id` at Orca worktree creation time, not from the subagent) — no extraction from subagent output is needed for them.
 3. Read the subagent's result:
    - If the subagent succeeded:
-     - Record the `subagent_id` and `worktree_path` extracted from the result.
+     - Record the `subagent_id`. `worktree_path` and `orca_worktree_id` are already set.
      - Note: `pr.base_sha` was already recorded in Step 3 at branch creation time. No need to compute it here.
      - Get the HEAD commit SHA:
        ```bash
-       git -C <worktree_path> rev-parse HEAD
+       git -C <pr.worktree_path> rev-parse HEAD
        ```
        Store as `pr.commit_sha`.
      - Fetch the subagent's commits into the main repo's object store, per
-       Rule 1 of the *Subagent Worktree Protocol*:
+       Rule 1 of the *Orca Worktree Protocol*:
        ```bash
-       git fetch <worktree_path> HEAD --no-tags
+       git fetch <pr.worktree_path> HEAD --no-tags
        ```
        **No destination refspec, no `--force`.** Adding `:refs/heads/<pr.branch>`
        is forbidden — it can fail outright, and downstream steps key off
@@ -602,7 +660,7 @@ When a subagent completes (returned by `wait_commands_or_subagents`):
 
 Persist the state file after each status transition.
 
-Report to the user on success: `"<pr.id> (<pr.title>) implemented. <N> files changed. Starting review..."`
+Report to the user on success: `"<pr.id> (<pr.title>) implemented in <pr.worktree_path>. <N> files changed. Starting review..."`
 
 ## Step 5: Orchestrator-Level Review
 
@@ -701,7 +759,6 @@ Before launching the reviewers, read the PR's implementation summary at `${scrat
 Launch every config in `pr.reviewer_configs` in parallel with `background: true`:
 
 `spawn_subagent` parameters:
-- `subagent_type`: `"general-purpose"`
 - `cwd`: `<pr.worktree_path>`
 - `background`: `true`
 - `description`: `"[<tag>] <pr.id>: <specialization>"` where `<tag>` is `[reviewer]` for `general`/`general-2`/`general-3`, `[tests]` for tests, `[security]` for security, `[plan]` for plan alignment, `[simplicity]` for simplicity. The bracketed tag drives the pager row label.
@@ -881,8 +938,8 @@ Report: `"<pr.id> review round <review_rounds>: <N> issues found (<X> bugs, <Y> 
 Resume the original implementer to fix all review issues:
 
 `spawn_subagent` parameters:
-- `subagent_type`: `"general-purpose"`
 - `resume_from`: `<pr.subagent_id>`
+- `cwd`: `<pr.worktree_path>`
 - `description`: `"[implementer] Fix review issues for <pr.id>"`
 
 Prompt:
@@ -922,13 +979,13 @@ These instructions apply to all work in this plan. Follow them strictly.
 
 Wait for the implementer to complete. Update `pr.subagent_id` with the new returned id. Read the review file to note any issues the implementer marked `Status: wontfix` (needed for stalemate detection below).
 
-After the fix, re-fetch the subagent's new commits using the same form as Step 4b (Rule 1 of the *Subagent Worktree Protocol*):
+After the fix, re-fetch the subagent's new commits using the same form as Step 4b (Rule 1 of the *Orca Worktree Protocol*):
 ```bash
-git fetch <worktree_path> HEAD --no-tags
+git fetch <pr.worktree_path> HEAD --no-tags
 ```
 Then update the commit SHA:
 ```bash
-pr.commit_sha = $(git -C <worktree_path> rev-parse HEAD)
+pr.commit_sha = $(git -C <pr.worktree_path> rev-parse HEAD)
 git cat-file -t <pr.commit_sha>   # must print "commit"
 ```
 No destination refspec, no `--force` — both are unnecessary because `commit_sha` is what downstream steps use, and the subagent is the sole writer for this branch so the fetch is always a simple object pull.
@@ -1029,9 +1086,9 @@ Setup is skipped on resume, so first **recompute the scratch directory** — the
    - `graphite_available` and `gh_available`: re-run the Step 0.5 probe (both `gt` and `gh`) to populate them.
 4. Evaluate each PR node's status:
    - **`completed`**: Skip. The commit SHA is already recorded.
-   - **`failed`**: Clean up the old worktree first (if `worktree_path` is set and `worktree_cleaned` is false, run `grok worktree rm --force <worktree_path>`), then reset to `"pending"`. Clear error, subagent_id, reviewer_configs, worktree_path, base_sha, commit_sha, review_rounds, worktree_cleaned. This PR will be retried from scratch with a new worktree.
+   - **`failed`**: Clean up the old Orca worktree first (if `orca_worktree_id` is set and `worktree_cleaned` is false, run `orca-ide worktree rm --worktree <orca_worktree_id> --force --json`; a "not found" response counts as success), then reset to `"pending"`. Clear error, subagent_id, reviewer_configs, worktree_path, orca_worktree_id, base_sha, commit_sha, review_rounds, worktree_cleaned. This PR will be retried from scratch with a new Orca worktree.
    - **`skipped`**: Re-evaluate. If all dependencies are now `"completed"`, reset to `"pending"`. Otherwise, keep as `"skipped"`.
-   - **`implementing`** or **`reviewing`**: The previous run crashed mid-execution. Clean up the old worktree first (if `worktree_path` is set and `worktree_cleaned` is false, run `grok worktree rm --force <worktree_path>`), then reset to `"pending"` for a clean retry. Clear subagent_id, reviewer_configs, worktree_path, base_sha, commit_sha, review_rounds, worktree_cleaned.
+   - **`implementing`** or **`reviewing`**: The previous run crashed mid-execution. Clean up the old Orca worktree first (if `orca_worktree_id` is set and `worktree_cleaned` is false, run `orca-ide worktree rm --worktree <orca_worktree_id> --force --json`), then reset to `"pending"` for a clean retry. Clear subagent_id, reviewer_configs, worktree_path, orca_worktree_id, base_sha, commit_sha, review_rounds, worktree_cleaned.
    - **`pending`** or **`branch_created`**: Keep as-is.
 5. If `stack_assembly_started` is true but `graphite_stack_submitted` is false (recall: in plain-git mode this flag means "Step 8b finished" — so the gate fires for both modes):
    - The previous run crashed during stack assembly.
@@ -1071,11 +1128,11 @@ Update `stack_assembly_started` to `true` in the state file before beginning.
 
 Work in the main workspace. The stack is built in the linearized topological order, skipping any failed/skipped PRs.
 
-**Per-PR prologue — free the branch name.** Apply Rule 3 of the *Subagent Worktree Protocol* before touching the PR's branch ref: tear down the subagent worktree so `gt create` can move/recreate `refs/heads/<pr.branch>` cleanly. Run the cleanup unconditionally — it is a no-op when the worktree is already gone or never existed (e.g., a `failed`/`skipped` PR was never assigned one, or a `--resume` of a partial Step 8a has already cleaned it):
+**Per-PR prologue — free the branch name.** Apply Rule 3 of the *Orca Worktree Protocol* before touching the PR's branch ref: tear down the Orca worktree so `gt create` can move/recreate `refs/heads/<pr.branch>` cleanly. Run the cleanup unconditionally when the worktree was assigned — it is a no-op (treated as success) when the worktree is already gone or never existed (e.g., a `failed`/`skipped` PR was never assigned one, or a `--resume` of a partial Step 8a has already cleaned it):
 
 ```bash
-if [ -n "<pr.worktree_path>" ] && [ -d "<pr.worktree_path>" ]; then
-  grok worktree rm --force "<pr.worktree_path>"
+if [ -n "<pr.orca_worktree_id>" ]; then
+  orca-ide worktree rm --worktree "<pr.orca_worktree_id>" --force --json || true
 fi
 ```
 
@@ -1120,7 +1177,7 @@ When `graphite_available == false`, assemble the same linearized stack using onl
 
 Work in the main workspace. Skip any failed/skipped PRs. Track the previous successfully-pushed branch in a local variable `parent_branch` (initialized to `"main"`).
 
-**Important Step 3 ↔ Step 8a interaction:** Step 3 already created each `<pr.branch>` in the main repo (via `git branch <pr.branch> <base>`). Step 4b deliberately does **not** advance that ref — it only pulls the subagent's objects into the main repo's store and records `pr.commit_sha` (Rule 2 of the *Subagent Worktree Protocol*). So by the time Step 8a runs, every `<pr.branch>` already exists locally and its tip is not guaranteed to be `commit_sha`. Step 8a needs to *reset* each branch to a new starting point (`parent_branch` from this stack-assembly pass), not create it from scratch — hence `git checkout -B` (uppercase) below. The per-PR `grok worktree rm --force` immediately above the `checkout -B` is required by Rule 3 — without it the reset can fail with `cannot force update the branch '...' used by worktree at '<WT>'`.
+**Important Step 3 ↔ Step 8a interaction:** Step 3 already created each `<pr.branch>` in the main repo (via `git branch <pr.branch> <base>`). Step 4b deliberately does **not** advance that ref — it only pulls the subagent's objects into the main repo's store and records `pr.commit_sha` (Rule 2 of the *Orca Worktree Protocol*). So by the time Step 8a runs, every `<pr.branch>` already exists locally and its tip is not guaranteed to be `commit_sha`. Step 8a needs to *reset* each branch to a new starting point (`parent_branch` from this stack-assembly pass), not create it from scratch — hence `git checkout -B` (uppercase) below. The per-PR Orca worktree teardown immediately above the `checkout -B` is required by Rule 3 — without it the reset can fail with `cannot force update the branch '...' used by worktree at '<WT>'`.
 
 ```bash
 test -z "$(git status --porcelain)" || { echo "Working tree dirty; aborting"; exit 1; }
@@ -1133,13 +1190,13 @@ parent_branch="main"
 Then, per PR (in linearized stack order):
 
 ```bash
-# Free the branch name (Rule 3 of the Subagent Worktree Protocol).
-# Idempotent — no-op when the WT is already gone, missing, or was never
+# Free the branch name (Rule 3 of the Orca Worktree Protocol).
+# Idempotent — no-op when the WT is already gone or was never
 # assigned (e.g., a failed/skipped PR). Without this, `git checkout -B
 # "<pr.branch>"` can fail with
 # `cannot force update the branch '<pr.branch>' used by worktree at '<WT>'`.
-if [ -n "<pr.worktree_path>" ] && [ -d "<pr.worktree_path>" ]; then
-  grok worktree rm --force "<pr.worktree_path>"
+if [ -n "<pr.orca_worktree_id>" ]; then
+  orca-ide worktree rm --worktree "<pr.orca_worktree_id>" --force --json || true
 fi
 
 git checkout -B "<pr.branch>" "$parent_branch"
@@ -1267,10 +1324,9 @@ for each pr in dag.nodes:
 # `skipped` PR (Step 8a never reaches them) or Step 8a crashed before
 # reaching this PR. The check on `worktree_cleaned` keeps Step 9 idempotent
 # on `--resume`.
-for each pr in dag.nodes where worktree_path is not null
+for each pr in dag.nodes where orca_worktree_id is not null
                           and not pr.worktree_cleaned:
-    if directory <worktree_path> exists:
-        grok worktree rm --force <worktree_path>
+    orca-ide worktree rm --worktree <pr.orca_worktree_id> --force --json || true
     pr.worktree_cleaned = true
 ```
 
@@ -1287,7 +1343,7 @@ rm ${scratch_dir}/grok-exec-plan-<PLAN_ID>.json
 
 **After failure (resumable):** Worktrees for **completed** PRs are preserved (their commits are needed for stack assembly). Worktrees for **failed** or **crashed** PRs are cleaned up during `--resume` (Step 7) before retrying, since failed PRs are retried from scratch with new worktrees.
 
-**Note:** `grok worktree rm --force` is used instead of `git worktree remove` to avoid inconsistencies with the tool's internal worktree tracking (same pattern as pr-babysit skill).
+**Note:** `orca-ide worktree rm --worktree <id> --force` is used instead of `git worktree remove` to avoid inconsistencies with Orca's internal worktree registry. Orca worktrees live under `~/orca/workspaces/` and are tracked by Orca; removing them via raw `git worktree remove` orphans the Orca state. The temporary merge worktrees in Step 3 (diamond dependency handling) are raw `git worktree add` worktrees — those are removed with `git worktree remove`, not Orca.
 
 ## Step 10: Memory Flush
 
@@ -1433,27 +1489,30 @@ Give the user a brief status update after each significant event:
 
 Follow these rules strictly:
 
+- **Never work on the default branch in the main clone.** Every subagent runs in its own Orca worktree. The orchestrator's main clone is read-only for git mutations except during stack assembly (Step 8a) and branch preparation (Step 3).
 - **Never force-push without `--force-with-lease`.** Always use `git push --force-with-lease`, never `git push --force`. `gt submit` handles this internally. In plain-git mode the orchestrator uses `git push --force-with-lease origin <branch>` unconditionally — the lease is a no-op for newly-created branches (no upstream to lease against), but protects the resume case, the rare concurrent-push case, and the re-resolved-conflict case.
-- **Never modify the main branch.** The orchestrator checks out `main` only during stack assembly (to cherry-pick onto stack branches). Never commit directly to main.
-- **Orchestrator owns all git/stack-tooling operations, including merge conflict resolution.** Subagents implement code and commit in worktrees. They never create branches, push, or interact with Graphite or `gh`. The orchestrator resolves merge conflicts directly during branch preparation (Step 3) and stack assembly (Step 8a) using `read_file` and `write` — this is the sole exception to the "no source file modification" rule.
+- **Orchestrator owns all git, Orca worktree, and stack-tooling operations, including merge conflict resolution.** Subagents implement code and commit in Orca worktrees. They never create branches, push, interact with Orca worktree lifecycle, or use Graphite or `gh`. The orchestrator resolves merge conflicts directly during branch preparation (Step 3) and stack assembly (Step 8a) using `read_file` and `write` — this is the sole exception to the "no source file modification" rule.
 - **Sequential stack assembly operations.** All branch-mutating and remote-mutating operations during Step 8 (Graphite: `gt create`, `gt submit`; plain-git: `git checkout -B`, `git cherry-pick`, `git push --force-with-lease origin`, `gh pr create`) run sequentially. Never run them concurrently — ordering is load-bearing for stack consistency.
-- **Follow the Subagent Worktree Protocol exactly.** It is the only contract for moving commits and refs between a subagent's worktree and the orchestrator's main repo:
-  - Step 4b/5c fetch with `git fetch <WT> HEAD --no-tags` — no destination refspec, no `--force`.
+- **Follow the Orca Worktree Protocol exactly.** It is the only contract for moving commits and refs between a subagent's Orca worktree and the orchestrator's main repo:
+  - Step 4a creates the Orca worktree with `orca-ide worktree create --base-branch <pr.branch>` and records `pr.orca_worktree_id` and `pr.worktree_path`.
+  - Step 4b/5c fetch with `git fetch <pr.worktree_path> HEAD --no-tags` — no destination refspec, no `--force`.
   - Step 3, 4b, 5c, 8a all treat `pr.commit_sha` (not `refs/heads/<pr.branch>`) as the authoritative reference for a PR's changes.
-  - Step 8a tears down each PR's subagent worktree with `grok worktree rm --force` immediately before manipulating that PR's branch ref.
+  - Step 8a tears down each PR's Orca worktree with `orca-ide worktree rm --worktree <pr.orca_worktree_id> --force --json` immediately before manipulating that PR's branch ref.
 
-  See the *Subagent Worktree Protocol* section near the top of this document for the full rules. There is no git lock contention between worktrees. Subagent prompts instruct retry on git lock errors as a general safety measure, but contention is not expected.
-- **All fix work happens in worktrees, never in the main workspace.** The orchestrator's workspace tree must not be modified by subagents.
-- **Use `grok worktree rm --force` for subagent worktrees** (created by `isolation: "worktree"`). This avoids inconsistencies with the tool's internal worktree tracking. **Use `git worktree remove` for temporary merge worktrees** created directly by the orchestrator in Step 3 (diamond dependency handling) -- these are not tracked by the tool's internal registry.
-- **Persist state after every status transition.** If the session crashes, the state file enables resumption.
+  See the *Orca Worktree Protocol* section near the top of this document for the full rules. There is no git lock contention between Orca worktrees (they share the main clone's object store). Subagent prompts instruct retry on git lock errors as a general safety measure, but contention is not expected.
+- **All fix work happens in Orca worktrees, never in the main workspace.** The orchestrator's main clone working tree must not be modified by subagents.
+- **Use `orca-ide worktree rm --worktree <id> --force --json` for subagent Orca worktrees** (created by Step 4a via `orca worktree create`). This retires the worktree through Orca's registry and avoids orphans. **Use `git worktree remove` for temporary merge worktrees** created directly by the orchestrator in Step 3 (diamond dependency handling) — these are raw git worktrees under a `mktemp` directory and are not Orca-managed.
+- **Persist state after every status transition.** If the session crashes, the state file enables resumption. The `orca_worktree_id` field is critical for safe resumption — a crash between `orca worktree create` and the state-file write leaves an orphaned worktree that Step 7 will clean up via the `worktree_cleaned` flag.
 - **Never merge PRs.** The skill creates and submits PRs. Merging is a human decision.
 - **Explicit composition with `/pr-babysit` (Graphite mode only).** After stack submission, the user runs `/pr-babysit add <bottom-pr-number>` separately. The skill does not auto-chain. In plain-git mode, `/pr-babysit` is not suggested because it depends on `gt` for stack walking (it invokes `gt checkout`, `gt bottom`, `gt up`, `gt sync`).
 
 ## Rules
 
 - **Inject personas into prompts** -- on initial launches, prepend the appropriate persona instructions (from `personas/*.toml`): `implementer` for implementers, `reviewer` for general reviewers, `security-auditor` for the security specialist. The Tests, Plan-Alignment, and Simplicity specialists are prompt-only (no persona prepended). Do NOT pass a `persona` parameter to `spawn_subagent`. On `resume_from` follow-ups, the persona is already in the subagent's transcript from the initial launch.
-- **Prefix `description` with a bracketed role tag** -- `[implementer]` for implementer launches and fix cycles; `[reviewer]` for general reviewer launches and re-reviews; `[security]`, `[tests]`, `[plan]`, `[simplicity]` for the respective specialists. The pager parses the first `[tag]` of the description and uses it as the row label (the bracketed prefix is stripped from the displayed description). Without this, every row falls through to the generic "General" label because `subagent_type` is `general-purpose` and no persona/role is plumbed through the spawn args. Keep the tag on `resume_from` follow-ups so the label stays stable across rounds.
-- **`isolation: "worktree"` for implementers only** -- implementers get fresh worktrees. Reviewers use `cwd=<worktree_path>` to access an existing worktree.
+- **Prefix `description` with a bracketed role tag** -- `[implementer]` for implementer launches and fix cycles; `[reviewer]` for general reviewer launches and re-reviews; `[security]`, `[tests]`, `[plan]`, `[simplicity]` for the respective specialists. The pager parses the first `[tag]` of the description and uses it as the row label (the bracketed prefix is stripped from the displayed description). Without this, every row falls through to the generic "General" label. Keep the tag on `resume_from` follow-ups so the label stays stable across rounds.
+- **Orca worktree for implementers; `cwd` into the worktree for reviewers** -- implementers get a fresh Orca worktree created in Step 4a and are launched with `cwd=<pr.worktree_path>`. Reviewers use `cwd=<pr.worktree_path>` to read the implementer's worktree; they never get their own worktree.
+- **Record `orca_worktree_id` at creation time** -- Step 4a parses `result.worktree.id` from the `orca worktree create --json` response and stores it on the PR node immediately. All later teardown calls (Step 8a, Step 9, Step 7) use this id, never a re-derived path. If the create call fails, the PR is marked failed before any subagent is launched.
+- **Do not pass `--agent` or `--prompt` to `orca worktree create`** -- the worktree hosts a Grok Build subagent (via `spawn_subagent` with `cwd`), not an Orca TUI agent. Passing `--agent` would start a competing TUI agent inside the worktree.
 - **Include design context in initial prompts** -- the initial implementer and initial reviewer launches should include all relevant design context in their task prompts. All subsequent rounds use `resume_from` instead, which carries the subagent's own transcript forward.
 - **`resume_from` for fix and re-review cycles** -- when resuming an implementer to fix review issues, use `resume_from` with the stored `subagent_id` (implementer -> implementer). When re-reviewing, resume each reviewer with `resume_from` using its `config.subagent_id` from `pr.reviewer_configs` (reviewer -> reviewer; always resume all of the PR's reviewers in parallel). All are same-persona resumptions.
 - **`background: true` for parallel launches** -- implementation subagents are launched in background. Use `wait_commands_or_subagents(task_ids=[...], mode="wait_any")` for event-driven waiting.
@@ -1466,11 +1525,12 @@ Follow these rules strictly:
 - **Branch creation is just-in-time** -- create branches for dependent PRs only after their dependencies complete. Level-0 branches are created upfront.
 - **State file is the source of truth** -- persist after every status transition. On resume, the state file determines what to retry.
 - **Cascade-skip, do not abort** -- a failed PR causes its transitive dependents to be skipped, but independent PRs continue.
-- **Error handling** -- if an implementer (or a PR's **primary general** reviewer) fails or cannot be resumed, mark the PR as failed, cascade-skip dependents, and continue with independent PRs. **Exception:** a failed **specialist** (including simplicity) or **secondary general** (`general-2`/`general-3`) reviewer is non-fatal — warn, drop it from `pr.reviewer_configs`, and continue that PR's review with the remaining reviewers (see Step 5a). Only stop the entire run if no PRs can make progress.
+- **Error handling** -- if an implementer (or a PR's **primary general** reviewer) fails or cannot be resumed, mark the PR as failed, cascade-skip dependents, and continue with independent PRs. If `orca worktree create` fails, treat it as an implementation failure: mark the PR failed and cascade-skip dependents. **Exception:** a failed **specialist** (including simplicity) or **secondary general** (`general-2`/`general-3`) reviewer is non-fatal — warn, drop it from `pr.reviewer_configs`, and continue that PR's review with the remaining reviewers (see Step 5a). Only stop the entire run if no PRs can make progress.
 - **Context management for resumed subagents** -- `resume_from` carries the full prior transcript. If a review-fix loop exceeds 4 rounds, consider killing a reviewer task and launching a fresh reviewer (with `cwd`) to prevent token overflow. Reset that `config.subagent_id` in `pr.reviewer_configs` to the new task id. The same applies to implementers if fix cycles are unusually long.
 - **Stack assembly is batch, not incremental** -- wait for all PRs to complete (or fail/skip) before assembling the stack. Do not assemble incrementally.
 - **Respect concurrency limits** -- `max_concurrent` caps **implementation** subagents only: never run more than `max_concurrent` implementers simultaneously (the ready-queue loop enforces this). Per-PR review fan-out is **separate** and not bounded by `max_concurrent` — a single PR launches all of its reviewers in parallel (up to 7 at effort=5), as described in Step 5.
 - **`past_issues_briefing` must be consistent and capped** -- before launching any implementer or reviewer, the orchestrator must build the `past_issues_briefing` from the `issue_patterns` list accumulated so far. If the list exceeds 20 patterns, include only the top 20 by occurrence count (most frequently seen patterns first). Never partially include a pattern or truncate mid-description. If `issue_patterns` is empty (first PR, no prior reviews), omit the block entirely rather than including an empty block.
 - **Memory is best-effort** -- if the `memory.py` helper fails (lock contention, malformed spec, disk full, etc.), proceed without it. Never fail a run due to memory issues.
 - **Use the implement skill's memory.py helper** -- derive the absolute path from the implement skill's SKILL.md path announced in the system context (see Step 0 for derivation), not from `$(pwd)`. The execute-plan skill shares the same workspace-scoped memory file as `/implement`.
+- **Orca worktrees share the main clone's git object store** -- no fetch is needed to make subagent commits visible to the main repo's ref namespace; `git fetch <pr.worktree_path> HEAD --no-tags` in Step 4b/5c is a no-op for objects already shared, but it sets `FETCH_HEAD` and confirms reachability. Do not use `git push` between the main clone and an Orca worktree — Orca worktrees are siblings of the main clone, not separate remotes.
 
