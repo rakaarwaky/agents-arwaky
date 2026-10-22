@@ -56,8 +56,11 @@ skills/
 ```
 
 Each skill directory contains a `SKILL.md` with frontmatter (`name`,
-`description`, `tags`) followed by the guide body. The pack is the single
-source of truth: edit a skill there and every connected harness sees it.
+`description`, `tags`) followed by the guide body. The frontmatter, name,
+description, and category-shape constraints a skill must satisfy are the
+rules in [`../_rules/skill-rules.md`](../_rules/skill-rules.md). The pack
+is the single source of truth: edit a skill there and every connected
+harness sees it.
 
 ## Harness Provisioning (connect, not install)
 

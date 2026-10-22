@@ -8,12 +8,21 @@ role: reference
 Rules for validating a SKILL.md before publishing. The main guide owns the design principles;
 this file is the mechanical checklist.
 
+The frontmatter, name, description, and category-shape constraints are not restated here:
+they are the rules in [`../../_rules/skill-rules.md`](../../_rules/skill-rules.md), which is
+generated from the same `_rules/skill_rules.py` module the validator runs. What remains here
+is the harness-specific guidance the checker does not encode: which keys each target parses,
+YAML hygiene, and the pre-publish checklist.
+
 ## Frontmatter
 
-| Field | Required | Constraints |
+Which keys each target parses (the checker's own rules are in
+[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md)):
+
+| Field | Required | Notes (target-specific) |
 | --- | --- | --- |
-| `name` | Yes | Max 64 chars. Lowercase `a-z`, `0-9`, `-` only. No leading/trailing hyphen, no `--`, no XML tags, no reserved words. Equals the directory name exactly. |
-| `description` | Yes | Max 1,024 chars (or the target's stricter ceiling). Non-empty. No `<`, `>`, or `"`. Third person, includes triggers. |
+| `name` | Yes | The `name-format` and `name-mismatch` rules. |
+| `description` | Yes | The `description-*` rules. Trigger terms belong here or in `when-to-use`. |
 | `when-to-use` (Grok Build) | No | Max 1,024 chars. Trigger phrases for auto-invocation when they don't fit the description. |
 | `user-invocable` (Grok Build) | No | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool. |
 | `disable-model-invocation` (Grok Build) | No | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it. |
@@ -22,16 +31,20 @@ this file is the mechanical checklist.
 
 ### Naming
 
-- Valid: `pdf-processing`, `process-pdfs`, `deploy-k8s`. Gerund form preferred
-  (`processing-pdfs`).
-- Invalid: `-leading`, `trailing-`, `double--hyphen`, `Helper`, `utils`, `tools`.
+The naming constraints are the `name-format` and `name-mismatch` rules in
+[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md). What that doc does not cover:
+
+- Gerund form preferred (`processing-pdfs`) over `pdf-processing`, when both are valid.
 - Renaming a skill = rename the directory (`git mv`) and grep the tree for inbound mentions.
 
 ### Description
 
+The description constraints are the `description-*` rules in
+[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md). What that doc does
+not cover:
+
 - Third person: "Extracts text from PDFs", never "I can help".
 - WHAT + WHEN + trigger terms, specific ("Helps with documents" fails this).
-- No `<`, `>`, or `"` — Grok Build embeds the description in `<skill description="...">`.
 - Quote the value if it contains a `:` so YAML parses a string.
 - Grok Build matches the prompt against `description` AND `when-to-use`; put leftover
   trigger phrases in `when-to-use` rather than bloating the description.
@@ -47,8 +60,10 @@ this file is the mechanical checklist.
 
 ## Structure
 
-- Exactly one `SKILL.md` at the skill root; no nested `SKILL.md`.
-- `<category>/<skill>/SKILL.md` — one level below the category, or the loader won't find it.
+The placement and nesting constraints are the `skill-placement`, `category-depth`, and
+`skill-md-nesting` rules in
+[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md). What that doc does not cover:
+
 - `references/` exactly one level deep; every reference links directly from `SKILL.md`.
 - Body target ~100-200 lines for simple skills, hard ceiling is the harness's limit
   (commonly 500 lines / 100k chars); overflow goes into references.
@@ -69,18 +84,18 @@ this file is the mechanical checklist.
 ## Pre-publish checklist
 
 - [ ] Frontmatter uses only the keys the target validator accepts.
-- [ ] `name:` matches the directory; lowercase, hyphens, no leading/trailing `-`.
-- [ ] `description:` third person, specific, no `<`/`>`/`"`, includes trigger terms.
+- [ ] `name:` matches the directory and satisfies the `name-format` rule; `description:`
+      satisfies the `description-*` rules — run
+      `python3 skills/skill-authoring/scripts/cli.py validate` to check both.
 - [ ] Frontmatter is valid YAML: colon-containing values quoted, no field nested under another.
 - [ ] Grok Build target: trigger phrases live in `description`/`when-to-use`, not `triggers:`.
-- [ ] Exactly one `SKILL.md` at the skill root; no nested copies.
+- [ ] Exactly one `SKILL.md` at the skill root, at `<category>/<skill>/SKILL.md`.
 - [ ] Body within the size target; detail overflowed into `references/`.
 - [ ] All `references/` links resolve; nothing nested deeper than one level.
 - [ ] Terminology consistent; examples concrete.
 - [ ] Workflows are sequential with checkable completion criteria.
 - [ ] Scripts handle errors; dependencies listed; forward slashes only.
 - [ ] No time-sensitive content; no duplicated rules; no no-op guardrails.
-- [ ] Every `related_skills` entry (if the field exists) resolves to a skill that exists.
 
 ## Post-publish note
 

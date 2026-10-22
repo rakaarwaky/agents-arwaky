@@ -1,7 +1,7 @@
 """Tests for the SSOT rules module.
 
 Pins the constants that came out of ``librarian.py`` and the
-``Rule``/``IssueType`` taxonomy so PR-3's ``cli rules --markdown``
+``Rule``/``IssueType`` taxonomy so the ``cli rules --markdown``
 renderer has a stable contract to build against.
 """
 
@@ -9,19 +9,24 @@ from __future__ import annotations
 
 from skill_rules import (
     CATEGORY_DESCRIPTION_FILENAME,
+    CITATIONS,
     IGNORED_CATEGORY_DIRS,
     ISSUE_MESSAGES,
     MAX_DESCRIPTION_LEN,
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
+    RULE_IDS,
     RULES,
+    SUMMARIES,
     IssueType,
+    Level,
     Rule,
     clean_one_line,
     is_valid_skill_name,
     issue_message,
     md_escape,
+    rule,
 )
 
 
@@ -79,15 +84,49 @@ def test_issue_messages_have_templates_for_every_type():
 
 
 def test_rules_covers_every_issue_type():
-    """Every IssueType has exactly one Rule; the Rule's message template
-    matches the ISSUE_MESSAGES entry (the two maps must never diverge)."""
-    assert len(RULES) == 13
-    for rule in RULES:
-        assert isinstance(rule, Rule)
-        assert rule.message == ISSUE_MESSAGES[rule.issue]
-        assert rule.check == rule.issue.value.replace("-", " ")
+    """Every IssueType has exactly one Rule, and every rule id resolves.
 
+    The ``Rule`` shape is the design §5.3 contract: ``id``/``level``/
+    ``summary``/``detail_md``/``why``. The two maps that must never
+    diverge are ``ISSUE_MESSAGES`` (what the validator prints) and
+    ``detail_md`` (what the docs generator renders) — they are the same
+    string by construction, and this test pins that.
+    """
+    assert len(RULES) == 13
+    for one_rule in RULES:
+        assert isinstance(one_rule, Rule)
+        assert one_rule.level is Level.ERROR
+        assert one_rule.id in RULE_IDS
+        assert one_rule.summary
+        assert one_rule.detail_md == ISSUE_MESSAGES[one_rule.issue]
+        assert isinstance(one_rule.why, str)
+
+    # The doc's section order follows RULE_IDS, so every id must render.
+    assert [r.id for r in RULES] == list(RULE_IDS)
     assert {r.issue for r in RULES} == set(IssueType)
+
+
+def test_rule_lookup_resolves_every_id():
+    """``rule(<id>)`` is the §5.3 lookup the checkers and the docs
+    generator read through — it must resolve for every published id."""
+    for one_rule in RULES:
+        assert rule(one_rule.id) is one_rule
+
+    try:
+        rule("nonexistent-id")
+    except KeyError:
+        pass
+    else:
+        raise AssertionError("rule() must KeyError on an unknown id")
+
+
+def test_summaries_and_citations_exist_for_every_id():
+    """Every rule carries a one-line summary; ``why`` is either a real
+    loader citation or empty (never an invented citation)."""
+    for one_rule in RULES:
+        assert SUMMARIES[one_rule.id] == one_rule.summary
+        assert one_rule.why == CITATIONS[one_rule.id]
+        assert one_rule.why == "" or one_rule.why.startswith("`")
 
 
 def test_issue_message_renders_verbatim_templates():

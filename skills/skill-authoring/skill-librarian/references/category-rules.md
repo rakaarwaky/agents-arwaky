@@ -54,13 +54,9 @@ Do not create a new category for a single skill unless the domain is clearly dis
 
 ## Naming
 
-Category names must be:
-
-- Lowercase `a-z`, `0-9`, and hyphens.
-- 2 to 64 characters.
-- No leading hyphen.
-- No trailing hyphen.
-- No double hyphen.
+Category names follow the same shape rule the checker enforces for skill names:
+the `name-format` and `category-depth` rules in
+[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md).
 
 Valid:
 

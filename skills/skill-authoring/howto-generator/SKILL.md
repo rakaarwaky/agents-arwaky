@@ -1,6 +1,7 @@
 ---
 name: howto-generator
-description: Generate standardized HOW-TO reference files following AES format. Use when creating new HOW-TO guides for skills.
+description: Generate standardized HOW-TO reference files following AES format. Use when creating a howto, generating a howto, making a howto template, scaffolding a howto, creating a reference guide, or writing HOW-TO documentation for skills.
+when-to-use: Use when creating a HOW-TO guide, generating a HOW-TO template, scaffolding a reference file, or creating a reference guide for a skill.
 metadata:
   tags:
     - howto
@@ -9,17 +10,6 @@ metadata:
     - aes
     - documentation
     - scaffolding
-  related_skills:
-    - create-skills
-    - aes-architecture
-triggers:
-  - create howto
-  - generate howto
-  - make howto template
-  - scaffold howto
-  - create reference guide
-  - howto template
-  - howto generator
 ---
 
 # HOW-TO Generator
@@ -27,6 +17,11 @@ triggers:
 > **Purpose**: Generate standardized HOW-TO reference files following the AES documentation format.
 > **Audience**: Agents creating new HOW-TO guides for skills.
 > **Scope**: Python, Rust, and TypeScript HOW-TO files with consistent structure.
+
+## Routing
+
+- **`create-skills`** — for the SKILL.md creation rules this generator's output sits beside.
+- **`aes-architecture`** — for layer-specific HOW-TO examples and the AES format this generator emits.
 
 This skill generates HOW-TO files with the standard AES structure:
 
@@ -250,5 +245,5 @@ grep "^## " skills/<skill-name>/references/HOW-TO-MAKE-*.md
 
 ## Related Skills
 
-- `create-skills` — For SKILL.md creation rules
-- `aes-architecture` — For layer-specific HOW-TO examples
+See the Routing section at the top of this file. Frontmatter and naming constraints for a
+generated skill are the rules in [`../_rules/skill-rules.md`](../_rules/skill-rules.md).
