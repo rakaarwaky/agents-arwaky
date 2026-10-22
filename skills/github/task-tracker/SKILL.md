@@ -1,25 +1,52 @@
 ---
 name: task-tracker
 description: >
-  Map incomplete tasks from AES-architecture spec documents (PRD, ROADMAP, BACKLOG, FRD,
-  DESIGN, plus module and package feature docs) into modular, deduplicated GitHub tracking
-  issues. Scans every State Definitions table, classifies each row as incomplete,
-  done-verified, or done-but-stale, verifies against git and GitHub, and opens one issue
-  per task — tracking only, with no implementation. Use when the user runs /task-tracker,
-  asks to map backlog tasks to GitHub issues, or asks for doc-sync tracking.
+  Zero-trust task tracker: maps AES spec documents (PRD, ROADMAP, BACKLOG, FRD, DESIGN,
+  plus module and package feature docs) into modular, deduplicated GitHub tracking
+  issues. Never trusts any doc claim — Done, QA, and Released rows are re-verified
+  against live git and GitHub evidence exactly like incomplete rows. Splits work into
+  one subagent per feature, keyed by the FR IDs each feature owns (every FR ID in a
+  roadmap or FRD has a backlog equivalent), double-checks the ROADMAP feature roll-up
+  against each feature's backlog reality, and opens one issue per finding — tracking
+  only, with no implementation. Use when the user runs /task-tracker, asks to map
+  backlog tasks to GitHub issues, or asks for doc-sync tracking.
 when-to-use: >
   /task-tracker, map incomplete tasks to GitHub issues, create tracking issues from
   ROADMAP or BACKLOG, audit document states against reality, doc-sync issues for stale
-  spec documents
-argument-hint: <repo-root> [--dry-run] [--state-label task-tracker]
+  spec documents, verify Done/QA claims in a roadmap
+argument-hint: <repo-root> [--dry-run] [--state-label task-tracker] [--no-trust-doc]
 ---
 
-# Task Tracker — AES spec states → modular GitHub tracking issues
+# Task Tracker — zero-trust spec audit → modular GitHub tracking issues
 
-One run covers one repo. It reads the spec-document states, proves which rows are real
-work, which are already open issues, and which are stale doc text, and opens a modular
-issue per finding. The run outputs GitHub issues only. It never edits source code,
-never creates a branch, never opens a PR.
+One run covers one repo. It reads the spec-document states, **proves** which rows are
+real work and which are fiction, and opens a modular issue per finding. The run outputs
+GitHub issues only. It never edits source code, never creates a branch, never opens a
+PR.
+
+## Zero-trust policy (read first)
+
+No state value in any spec document is trusted. A row marked `Done`, `QA`, or
+`Released` is a **claim**, never a fact. Every row — whatever its state — is verified
+against live evidence before it is allowed to be skipped:
+
+- A `Done` row owes **reproducible evidence**: a command plus a commit hash that is an
+  ancestor of `HEAD`. The verifier re-runs the cited command and re-checks the hash.
+  A gate string copied from an older commit is proof of nothing.
+- A `Released` row owes a `gh release view <tag>` hit and a tag that resolves in git.
+- A `QA` / `In Review` row owes the fr row it leans on; the row stays `incomplete` and
+  the tracker re-checks whether the work has since landed (merged PR / passing gate).
+- Evidence that does not reproduce flips the row to `unverified` and produces a
+  `[DOC-SYNC]` issue. The doc never gets the benefit of the doubt.
+
+The roll-up gets the same treatment: the ROADMAP `Feature Roll-up` row for a feature is
+reconciled against the **actual** state of that feature's backlog rows — a roll-up that
+says `Done` while any backlog row is still `QA` or `In Progress` is a mismatch and
+becomes a `[DOC-SYNC]` issue.
+
+When `--no-trust-doc` is passed, even the scan step may not treat a doc's State
+Definitions table as authoritative until the verifier has confirmed the doc is not a
+template or scratch file (see Scope).
 
 ## Scope
 
@@ -73,65 +100,151 @@ Extended states seen in some repos: `In Review`, `QA`, `Done`, `Released`, `Defe
 The authoritative table for the current repo is its own State Definitions table —
 parse it, do not assume the full vocabulary.
 
-## Classification
+## Feature model
+
+A **feature** is a directory under `modules/`, `packages/`, or `crates/` (whichever the
+repo has). Root-level spec docs form one extra group, `root`.
+
+Every feature owns a set of **FR IDs** — the requirement ids declared in its `FRD.md`
+(`FR-<SCOPE>-001`) and referenced by its backlog rows. Every FR ID in a roadmap or FRD
+has a backlog equivalent: a row whose `FRD Ref` cell cites that id. The tracker treats
+the feature as the unit of work, and every FR ID in the feature is checked both ways:
+
+- **FR → backlog**: each FR ID declared in the FRD must appear in at least one backlog
+  row's `FRD Ref`. An FR with no backlog row is a `fr_orphan` finding.
+- **backlog → FR**: each `FRD Ref` in a backlog row must resolve to an FR ID declared
+  in the FRD. A dangling reference is a `fr_orphan` finding.
+
+## Classification (every row, zero trust)
 
 | Row state | Classification | Action |
 | --- | --- | --- |
 | Idea, Refinement, Ready, In Progress, Blocked | `incomplete` | tracking issue |
 | In Review, QA | `incomplete` | tracking issue, body notes the current gate |
 | Deferred | `incomplete` | tracking issue, label `deferred`, body carries the reason |
-| Done / Released with cited evidence (commit hash, merged PR number, published release) in the row | `skip` | no issue, ledger records the evidence |
-| Done / Released with no cited evidence | `doc_sync` | doc-update issue |
-| Any incomplete state where the work is provably finished (merged PR or release found via `gh` / `git log`) | `doc_sync` | doc-update issue |
+| Done / Released whose cited evidence reproduces (command re-run passes, commit is an ancestor of `HEAD`, release resolves) | `skip` | no issue, ledger records the reproduced evidence |
+| Done / Released with no cited evidence, or whose evidence does not reproduce | `unverified` | `[DOC-SYNC]` issue demanding proof |
+| Any incomplete state where the work is provably finished (merged PR or passing gate found via `gh` / `git log`) | `doc_sync` | doc-update issue |
+| FR ID declared in FRD with no backlog row (or vice versa) | `fr_orphan` | tracking issue on the feature |
 
-A `Done` row whose evidence does not reproduce is `doc_sync`, never `skip`.
+There is no path where a `Done` or `Released` marker alone suppresses an issue. Doc
+text is the hypothesis; live evidence is the verdict.
+
+### Evidence rules
+
+Evidence is a command plus an artifact, both reproduced by the verifier:
+
+| Claim shape | Verification |
+| --- | --- |
+| commit hash in row | `git merge-base --is-ancestor <sha> HEAD` (or `git cat-file -e <sha>`) in the repo root — the hash must be reachable from the current tip |
+| gate command in row | re-run the exact command in the repo worktree; capture exit status and one-line output; a failing or erroring run is non-proof |
+| merged PR | `gh pr view <number> --json state,mergedAt` must report `MERGED` |
+| release tag | `gh release view <tag>` must succeed and `git rev-parse <tag>` must resolve |
+| test count | re-run the cited pytest invocation; the count must match the row's number |
+| "verified at commit X" with a date | the commit date must match the cited date and the command above must still reproduce at `HEAD` |
+
+A row citing evidence at a commit that is **not** an ancestor of `HEAD` (a squashed or
+rebased-away hash) is `unverified` even if the hash exists.
+
+### Roll-up double-check
+
+For every `Feature Roll-up` row (roadmap-owned shape) or feature index row
+(backlog-owned shape), the verifier recomputes the feature's **effective state** from
+its backlog rows:
+
+1. Collect every backlog row of the feature plus its doc-level `State:` line.
+2. Effective state = the worst state present, ranked:
+   `Blocked` > `In Progress` > `Refinement` > `Ready` > `Idea` > `QA` > `In Review` > `Deferred` > `Done` > `Released`.
+   Any non-`Done` row makes the feature non-`Done`; `QA` never rolls up to `Done`.
+3. If the roll-up row's `State` claims `Done` or `Released` while the effective state
+   is anything less, open `[DOC-SYNC]` on the roll-up row with the offending backlog
+   row ids and states listed in the body.
+4. If the roll-up claims `Done` and the effective state is `Done`, still re-verify each
+   contributing backlog row's evidence per the Evidence rules table — a roll-up is only
+   as good as the rows it aggregates.
+5. Symmetric check: a feature whose roll-up says `QA` while every backlog row is
+   verified `Done` with reproducing evidence is also a mismatch (under-claimed), and
+   becomes a `[DOC-SYNC]` issue.
+
+The same reconciliation runs on the doc-level `State:` line of a backlog-owned feature
+backlog.
 
 ## Workflow
 
-### Step 1 — discover
+### Step 1 — discover features
 
-Run the discovery grep from the Scope section above, then walk feature directories
-(`modules/`, `packages/`, `crates/` — whichever exist) and add every feature
-`BACKLOG.md`, `FRD.md`, and `DESIGN.md` even when that file holds no definitions
-table itself — its backlog table may still carry a `State` column.
+Enumerate feature directories (`modules/`, `packages/`, `crates/` — whichever exist) and
+the root spec docs. One discovery agent; output is a feature table:
 
-### Step 2 — spawn scanner subagents
+```json
+{"root": ["ROADMAP.md", "BACKLOG.md"], "features": [
+  {"name": "tools", "dir": "modules/tools", "docs": ["modules/tools/FRD.md", "modules/tools/BACKLOG.md"]},
+  {"name": "skills", "dir": "modules/skills", "docs": ["modules/skills/FRD.md", "modules/skills/BACKLOG.md"]}
+]}
+```
 
-Spawn one subagent per doc group (group by directory so a repo with 15 features gets
-15 parallel scanners plus 1 for the root docs). Scanner prompt, self-contained:
+Also record the repo's State Definitions vocabulary per doc so later phases quote the
+right state names.
+
+### Step 2 — spawn one scanner subagent per feature
+
+One subagent per feature, plus one for `root`. A feature scanner owns its feature's
+whole doc set plus the roadmap roll-up row for that feature; it must not read other
+features' docs. Splitting by feature keeps every FR ID and its backlog equivalent in
+one agent's context, which is what makes the orphan check possible.
+
+Scanner prompt, self-contained:
 
 ```text
-You are a read-only scanner. Read the file <abs path to doc> in full.
-1. Extract its State Definitions table; list the state names it defines. If the file
-   has none, note that and continue — rows still count.
+You are a read-only scanner for the feature "<feature>" in <repo-root>.
+Read each of these files in full: <abs paths>.
+1. Extract each file's State Definitions table; list the state names it defines. If a
+   file has none, note that and continue — rows still count.
 2. Extract every table row whose headers include ID (or Feature / Branch) and State.
    Also capture the doc-level "State: <value>" line at the top of a feature backlog.
-3. For each row output one JSON object:
-   {"id":"<row id>","title":"<item text>","state":"<verbatim state>","priority":"<P0/P1/P2 or —>","health":"<health or —>","source_doc":"<repo-relative doc path>","row_text":"<verbatim row text>"}
+3. Extract the FR ID set this feature owns: every FR-<SCOPE>-NNN declared in its FRD,
+   and every FRD Ref cell in its backlog rows.
+4. If the roadmap has a Feature Roll-up table, extract this feature's roll-up row
+   verbatim (all cells, including State, Health, Next, Updated).
+5. For each task row output one JSON object:
+   {"id":"<row id>","title":"<item text>","state":"<verbatim state>","priority":"<P0/P1/P2 or —>","health":"<health or —>","fr_refs":["<FR-…>"],"source_doc":"<repo-relative doc path>","row_text":"<verbatim row text>"}
    State must appear in the source row verbatim. Do not infer, fill in, or normalize
    state values. A row without a state column value is {"id":...,"state":"unknown"}.
-4. Return the JSON array. An empty array is valid only after reading the whole file.
+6. Also output the FR set:
+   {"fr_declared":["FR-…"],"fr_referenced":["FR-…"],"rollup_row":"<verbatim row or null>"}
+7. Return {"rows":[…],"fr":{…}}. An empty rows array is valid only after reading every
+   file in full.
 ```
 
 Wait on all handles. Collect rows; dedupe on `(id, source_doc)`.
 
-### Step 3 — classify
+### Step 3 — classify with zero trust
 
-Apply the classification table above locally. For `stale_candidate` flags: any row whose
-`Updated` date predates the newest commit touching its source doc.
+Apply the classification table locally. Every `Done` / `Released` / `QA`-gate row goes
+to the verifier as a **proof demand**, not as a skip candidate. Any row whose `Updated`
+date predates the newest commit touching its source doc is a stale candidate:
 
 ```bash
 git -C <repo-root> log -1 --format=%cd --date=short -- <source_doc>
 ```
 
-### Step 4 — verify (read-only)
+Compute the per-feature effective state here, before verification, so the verifier can
+compare it against the roll-up claim.
 
-For every `incomplete` and every `stale_candidate` row:
+### Step 4 — verify (read-only, mandatory for every row)
+
+There is no skip path that avoids this step. For **every** row — incomplete, Done,
+Released, or stale — the verifier:
 
 ```bash
 gh issue list --state open --search "<row id> in:title" --json number,title
 gh pr list --state merged --search "<row id>" --json number,title,mergedAt
+git -C <repo-root> merge-base --is-ancestor <cited sha> HEAD
 ```
+
+and, when the row cites a gate command, re-runs that command in the repo worktree and
+records exit status plus a one-line output excerpt. A `Done` row whose evidence cell is
+empty, whose hash is unreachable, or whose gate fails on re-run is `unverified`.
 
 Verdicts:
 
@@ -140,10 +253,9 @@ Verdicts:
 | `open` | no open issue for this row | create a tracking issue |
 | `exists` | open issue already tracks it | comment freshness, no new issue |
 | `doc_sync` | work is done (merged PR / release) but the doc still says otherwise | create a `[DOC-SYNC]` issue |
-| `skip` | Done/Released with reproducing evidence | ledger only |
-
-For `done` rows claiming a commit: `git merge-base --is-ancestor <sha> HEAD` (or `git
-cat-file -e <sha>`) to confirm the commit exists in the repo.
+| `unverified` | Done/Released claim whose evidence does not reproduce | create a `[DOC-SYNC]` issue naming the failed check |
+| `skip` | Done/Released with **reproduced** evidence — the only skip path | ledger only, evidence recorded |
+| `rollup_mismatch` | roll-up state disagrees with the feature's effective state | create a `[DOC-SYNC]` issue on the roll-up row |
 
 ### Step 5 — open modular issues
 
@@ -157,7 +269,9 @@ its title and lists the siblings in its body.
 ```text
 [BACKLOG] <ROW-ID> — <one-line task summary>        # root rows
 [<feature>] <ROW-ID> — <one-line task summary>       # feature-scoped rows
-[DOC-SYNC] <ROW-ID> — <doc path> still reports <stale state>
+[DOC-SYNC] <ROW-ID> — <doc path> still reports <stale or unproven state>
+[DOC-SYNC] <feature> roll-up — claims <state>, backlog says <effective state>
+[DOC-SYNC] <feature> FR <FR-ID> — has no backlog row   # fr_orphan
 ```
 
 The feature tag is the lowercase directory name of the owning feature (e.g. `browser`,
@@ -175,7 +289,7 @@ Source: `<source_doc>` · row `<ROW-ID>` · scanned by `/task-tracker` on `<date
 | Health | <health or —> |
 | Owner | <owner or —> |
 | Target | <target date or —> |
-| Classification | incomplete / doc_sync |
+| Classification | incomplete / doc_sync / unverified / fr_orphan |
 
 ## Task
 <verbatim Next Action / Item text>
@@ -184,19 +298,24 @@ Source: `<source_doc>` · row `<ROW-ID>` · scanned by `/task-tracker` on `<date
 > <verbatim Actual Condition / row text>
 
 ## Verification
-<for doc_sync: the gh/git evidence that the work is done>
+<for doc_sync / unverified: the exact gh/git command run and its result>
 <for incomplete: the open-issue check result (none found / issue #N already open)>
+
+## Roll-up check
+<feature>: roll-up claims <state>; backlog effective state <effective state>;
+offending rows: <ROW-ID> (<state>), …
 
 ## Tracking only
 This issue tracks the task. Implementation lands in its own PR and closes this
 issue with verification evidence (commit + command output). For a `[DOC-SYNC]`
-issue, the fix is the document edit aligning the state with reality.
+issue, the fix is the document edit aligning the state with reality, plus the
+reproduced evidence that justifies the new state.
 ````
 
 **Labels** (create on first use, then reuse): `task-tracker`, one `state:<doc-state>`,
-one of `p0` / `p1` / `p2`, plus `doc-sync` for the doc_sync class and `deferred` for
-Deferred rows. Pass the tracker label through as a single arg so a team can keep
-different repos distinct.
+one of `p0` / `p1` / `p2`, plus `doc-sync` for the `doc_sync`, `unverified`,
+`rollup_mismatch`, and `fr_orphan` classes, and `deferred` for Deferred rows. No other
+labels — the four title formats and this label set are the whole vocabulary.
 
 **Dry run**: `--dry-run` executes steps 1–4 and prints every would-be title, body, and
 label without calling `gh issue create`.
@@ -206,13 +325,13 @@ label without calling `gh issue create`.
 Append one JSON object per row to `<repo-root>/docs/task-tracker-ledger.jsonl`:
 
 ```json
-{"run":"YYYY-MM-DD","row":"<ROW-ID>","doc":"<source_doc>","state":"<state>","priority":"<P0/P1/P2>","class":"<incomplete|doc_sync|skip>","issue":<issue-number>,"action":"<created|commented|skipped-exists|skipped-evidence>"}
+{"run":"YYYY-MM-DD","row":"<ROW-ID>","doc":"<source_doc>","feature":"<feature or root>","fr":["<FR-ID>"],"state":"<state>","priority":"<P0/P1/P2>","class":"<incomplete|doc_sync|unverified|fr_orphan|skip>","proof":{"verdict":"<verdict>","evidence":"<reproduced evidence or failed check>"},"issue":<issue-number>,"action":"<created|commented|skipped-exists|skipped-evidence>"}
 ```
 
 `action` values: `created`, `commented`, `skipped-exists`, `skipped-evidence`.
 
-Close with a count table: `rows scanned N | incomplete A | doc_sync B | skipped C |
-created X | commented Y`.
+Close with a count table: `rows scanned N | incomplete A | doc_sync B | unverified C |
+fr_orphan D | skipped E | created X | commented Y | roll-up mismatches M`.
 
 ## Personas
 
@@ -222,16 +341,19 @@ the four personas, defined in `personas/task-tracker-*.toml`:
 
 | Persona | Capability | Role |
 | --- | --- | --- |
-| `task-tracker-scanner` | read-only | extracts state table + rows as JSON |
-| `task-tracker-classifier` | read-only | buckets rows, flags stale candidates |
-| `task-tracker-verifier` | read-only + GitHub API | dedupe + stale checks, verdicts |
+| `task-tracker-scanner` | read-only | one per feature: state table + rows + FR set + roll-up row as JSON |
+| `task-tracker-classifier` | read-only | zero-trust buckets, effective state per feature, orphan flags |
+| `task-tracker-verifier` | read-only + git + GitHub API | re-runs cited gates, re-checks hashes, dedupe, verdicts |
 | `task-tracker-issuer` | write (GitHub issues only) | creates / comments issues |
 
 ## Completion criteria
 
 - [ ] Every row from every in-scope doc appears in the ledger with a class.
 - [ ] Every `incomplete` row maps to exactly one open issue (created, commented, or pre-existing).
-- [ ] Every `doc_sync` row maps to an open `[DOC-SYNC]` issue.
-- [ ] No `skip` row dropped silently — each has its evidence cited in the ledger.
+- [ ] Every `doc_sync` and every `unverified` row maps to an open `[DOC-SYNC]` issue.
+- [ ] Every `Done` / `Released` row shows reproduced evidence in the ledger, or is `unverified`.
+- [ ] Every feature roll-up row is reconciled against its backlog; each mismatch is an issue.
+- [ ] Every FR ID declared in an FRD has a cited backlog equivalent, or is an `fr_orphan` issue.
+- [ ] No `skip` row dropped silently — each has its reproduced evidence cited in the ledger.
 - [ ] No file changed outside `docs/task-tracker-ledger.jsonl`.
 - [ ] No branch, PR, or code change created.
