@@ -70,18 +70,54 @@ description: What it does and when to use it. Third person. Include trigger term
 ```
 
 Survey 2-3 sibling skills in the target tree first and match the field set that tree's
-validator enforces — some require extra keys (`version`, `author`, `license`, `platforms`,
-`metadata`), hosted upload targets reject keys outside their allowlist.
+validator enforces — hosted upload targets reject keys outside their allowlist; harnesses
+that parse extra keys are listed below.
 
 - **`name:`** Max 64 chars; lowercase `a-z`, `0-9`, `-` only; no leading/trailing hyphen,
   no `--`, no XML tags, no reserved words. **Must equal the directory name exactly** —
   loaders key discovery on the folder, so a mismatch means rejected or silently unresolvable.
   Renaming means `git mv` the directory and grepping for inbound mentions, not editing one field.
+  Grok Build normalizes names anyway (any char outside `a-z0-9-` becomes `-`, `--` collapses,
+  leading/trailing `-` trimmed) and re-keys colliding same-scope skills to their directory
+  basename, so keep `name` equal to the directory to survive collisions intact.
 - **`description:`** Max 1,024 chars (some targets: 60). Third person: "Extracts text from
-  PDFs". Includes WHAT + WHEN + trigger terms. No `<` or `>` anywhere. Specific — "Helps
-  with documents" and "Processes data" trigger nothing.
+  PDFs". Includes WHAT + WHEN + trigger terms. No `<`, `>`, or `"` anywhere — Grok Build
+  embeds the value verbatim inside `<skill description="...">`. Specific — "Helps with
+  documents" and "Processes data" trigger nothing.
 - **Placement:** `<skills-root>/<category>/<skill>/SKILL.md`. Loaders walk one level, so a
   skill nested deeper or sitting at the tree root is invisible rather than broken-looking.
+
+### Grok Build keys
+
+Grok Build parses exactly these keys; unknown keys load silently and do nothing:
+
+| Key | Default | Effect |
+| --- | --- | --- |
+| `when-to-use` (or `when_to_use`) | — | Extra trigger phrases matched against the prompt alongside `description`. |
+| `user-invocable` | `true` | `false` hides the skill from slash commands and from the model's skill tool. |
+| `disable-model-invocation` | `false` | `true` removes the skill from the model's listing; slash commands still run it. |
+| `argument-hint` | — | Hint shown in slash-command autocomplete (`commit message`). |
+| `paths` | — | Gitignore-style globs; the skill is held out of the listing until a touched file matches, then stays active for the session (`/clear` re-hides it). |
+| `model` / `effort` | — | Model and reasoning-effort override when the skill runs. |
+| `allowed-tools` | — | Displayed in `/extensions`; not enforced at runtime. |
+| `license` / `compatibility` | — | Informational. |
+| `metadata.author` / `metadata.short-description` | — | Promoted for display; other `metadata` values must be strings — lists are skipped. |
+| `origin` | — | Provenance slug `[a-z0-9-]`, max 32 chars, naming the tool that wrote the skill. |
+
+Parser limits: `name` ≤ 64 chars; `description` and `when-to-use` ≤ 1,024 chars (longer
+values truncate). Top-level `version:`, `triggers:`, and `entry_points:` are **not parsed**
+— trigger phrases belong in `description:` or `when-to-use:`.
+
+### YAML hygiene
+
+- Quote any value containing `: ` or indicator characters (`{ } [ ] * & # ! | > % @` and
+  backticks); a plain `description: Deploy: prod` fails YAML and the skill falls back to a
+  body-derived description.
+- Never indent a field under a previous field's value. One accidentally nested line
+  invalidates the entire frontmatter; the parser recovers only `name`, `description`, and
+  `when-to-use` from the broken block — every other key is lost.
+- Multi-word keys are kebab-case (`when-to-use`, `allowed-tools`, `argument-hint`);
+  single-word keys are written as-is (`model`, `effort`).
 
 ## Structure
 
