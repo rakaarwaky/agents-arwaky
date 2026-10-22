@@ -1,6 +1,6 @@
 ---
 name: codacy-code-review
-description: Enriches pull request code reviews with Codacy data — quality issues, security findings, coverage, and duplication. Use whenever the user asks to review a PR, check what a pull request introduced, verify PR coverage, look at PR quality, or find new issues in a PR. Also use when another code-review skill is active (e.g. CodeRabbit) to layer Codacy data on top. Trigger this skill for any pull request review workflow, even if the user just says "review PR 42" or "what's wrong with this PR".
+description: Enriches pull request code reviews with Codacy data — quality issues, security findings, coverage, and duplication. Use whenever the user asks to review a PR, check what a pull request introduced, verify PR coverage, look at PR quality, or find new issues in a PR. Also use when another code review skill is active (e.g. `strict-code-quality-review`, CodeRabbit) to layer Codacy data on top. Trigger this skill for any pull request review workflow, even if the user just says "review PR 42" or "what's wrong with this PR".
 license: MIT
 metadata:
   author: Codacy
@@ -11,7 +11,7 @@ metadata:
 
 > **Glossary:** See [glossary.md](references/glossary.md) for shared definitions of Codacy concepts (issues, findings, severity, coverage, tools, patterns, etc.).
 
-This skill enriches code reviews with Codacy data. It works alongside any existing code review process (a code-review skill, CodeRabbit, manual review, etc.) — it adds Codacy-specific data on top.
+This skill enriches code reviews with Codacy data. It works alongside any existing code review process (a code review skill such as `strict-code-quality-review`, CodeRabbit, manual review, etc.) — it adds Codacy-specific data on top.
 
 ## Prerequisites
 
@@ -193,4 +193,4 @@ Present a structured review summary:
 
 ## When another code review skill is active
 
-If a code review skill (e.g. `code-review` skill, CodeRabbit) has already performed a review, add a **Codacy data section** to that review rather than replacing it. Follow steps 2–7 above and append the Codacy findings.
+If a code review skill (e.g. `strict-code-quality-review`, CodeRabbit) has already performed a review, add a **Codacy data section** to that review rather than replacing it. Follow steps 2–7 above and append the Codacy findings.

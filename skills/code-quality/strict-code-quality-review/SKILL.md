@@ -1,6 +1,6 @@
 ---
 name: strict-code-quality-review
-description: "Deep structural maintainability audit for spaghetti growth."
+description: "Deep structural maintainability audit for spaghetti growth. Run an extremely strict maintainability review for abstraction quality, giant files, and spaghetti-condition growth. Use for a deep code quality audit or an especially harsh maintainability review before merge."
 version: 1.0.0
 author: grok-bundled, Hermes Agent
 license: MIT

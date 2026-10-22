@@ -33,8 +33,8 @@ Exit when `rereview-round-N` produces 0 open issues.
 This skill uses the **design-doc-writer** and **design-doc-reviewer** personas. The persona instructions are defined at:
 
 ```
-<dirname of this SKILL.md>/../shared/personas/design-doc-writer.md
-<dirname of this SKILL.md>/../shared/personas/design-doc-reviewer.md
+<dirname of this SKILL.md>/../../shared/personas/design-doc-writer.md
+<dirname of this SKILL.md>/../../shared/personas/design-doc-reviewer.md
 ```
 
 Resolve these paths once at the start of the run (the system context gives you the absolute path to this SKILL.md). Read each file with `read_file` and store their contents as `writer_persona_instructions` and `reviewer_persona_instructions`.
@@ -54,7 +54,7 @@ The `<description>` is the design task -- it can be a feature design, system arc
 
 Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, `id -u`, `/proc`, or write to `/tmp`. Use `run_terminal_command`.
 
-Resolve `HOST_PY` as `<dirname of this SKILL.md>/../shared/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
+Resolve `HOST_PY` as `<dirname of this SKILL.md>/../../shared/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
 
 Run `<python> <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `DESIGN_ID`.
 

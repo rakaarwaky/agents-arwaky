@@ -50,9 +50,9 @@ Never end a turn with `in_progress` set to a phase whose subagent has not been s
 This skill uses the **implementer**, **reviewer**, and **security-auditor** personas. The persona instructions are defined at:
 
 ```
-<dirname of this SKILL.md>/../shared/personas/implementer.md
-<dirname of this SKILL.md>/../shared/personas/reviewer.md
-<dirname of this SKILL.md>/../shared/personas/security-auditor.md
+<dirname of this SKILL.md>/../../shared/personas/implementer.md
+<dirname of this SKILL.md>/../../shared/personas/reviewer.md
+<dirname of this SKILL.md>/../../shared/personas/security-auditor.md
 ```
 
 Resolve these paths once at the start of the run (the system context gives you the absolute path to this SKILL.md). Read each file with `read_file` and store their contents as `implementer_persona_instructions`, `reviewer_persona_instructions`, and `security_auditor_persona_instructions`.
@@ -84,7 +84,7 @@ Extract the effort level from the argument string using natural language underst
 
 Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, `id -u`, or write to `/tmp`. Use `run_terminal_command`.
 
-Resolve `HOST_PY` as `<dirname of this SKILL.md>/../shared/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
+Resolve `HOST_PY` as `<dirname of this SKILL.md>/../../shared/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
 
 Run `<python> <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `IMPL_ID`.
 
