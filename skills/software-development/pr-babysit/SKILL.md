@@ -66,7 +66,7 @@ The `<INSTANCE_ID>` is a UUID generated once per session on the first `add` comm
 
 ### State file lifecycle
 
-1. **First `add` in a session**: Resolve `HOST_PY` as `<dirname of this SKILL.md>/../shared/scripts/host.py`. Find a real Python 3 interpreter (`python`, then `py -3`, then `python3`; reject `WindowsApps`). Generate a UUID via `<python> <HOST_PY> uuid --full`. Create the state file with that UUID embedded, and persist the filename. Hold the `INSTANCE_ID` in memory for the rest of the session.
+1. **First `add` in a session**: Resolve `HOST_PY` as `<dirname of this SKILL.md>/../../shared/scripts/host.py`. Find a real Python 3 interpreter (`python`, then `py -3`, then `python3`; reject `WindowsApps`). Generate a UUID via `<python> <HOST_PY> uuid --full`. Create the state file with that UUID embedded, and persist the filename. Hold the `INSTANCE_ID` in memory for the rest of the session.
 2. **Subsequent `add` / `remove` / `list` / `check` / `ship` calls in the same session**: The agent already knows the `INSTANCE_ID` from the first `add` call (it is in the conversation context). Use the same filename.
 3. **`/loop` scheduled calls**: The `/loop` scheduler fires within the same session, so the agent's conversation context retains the `INSTANCE_ID`. If for any reason the `INSTANCE_ID` is not in context (e.g., after context compaction), scan `~/.grok/plugin-data/pr-babysit/` for `watched-prs-*.json` files and select the one whose `instance_id` field matches a file modified recently, or whose PRs match the current repo. If exactly one file matches the current repo, use it.
 

@@ -77,9 +77,9 @@ Terminal state: all `pr-<n>:merge-ready` ids `completed`. Only then write the fi
 This skill uses the **implementer**, **reviewer**, and **security-auditor** personas. The persona instructions are defined at:
 
 ```
-<dirname of this SKILL.md>/../shared/personas/implementer.md
-<dirname of this SKILL.md>/../shared/personas/reviewer.md
-<dirname of this SKILL.md>/../shared/personas/security-auditor.md
+<dirname of this SKILL.md>/../../shared/personas/implementer.md
+<dirname of this SKILL.md>/../../shared/personas/reviewer.md
+<dirname of this SKILL.md>/../../shared/personas/security-auditor.md
 ```
 
 Resolve these paths once at the start of the run (the system context gives you the absolute path to this SKILL.md). Read each file with `read_file` and store their contents as `implementer_persona_instructions`, `reviewer_persona_instructions`, and `security_auditor_persona_instructions`. The `security-auditor` persona is only needed when a PR's review selects the security specialist (effort >= 2); reading it upfront is harmless if unused.
@@ -112,7 +112,7 @@ Extract parameters from the argument string using natural language understanding
 
 Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, or `id -u`, and do not write directly to a fixed temporary directory. Use `run_terminal_command` and put temporary artifacts under `scratch_dir`.
 
-Resolve `HOST_PY` as `<dirname of this SKILL.md>/../shared/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
+Resolve `HOST_PY` as `<dirname of this SKILL.md>/../../shared/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
 
 Run `<python> <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `PLAN_ID`.
 
