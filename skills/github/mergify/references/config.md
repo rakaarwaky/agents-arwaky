@@ -1,8 +1,3 @@
----
-name: mergify-config
-description: Use Mergify config commands to validate configuration files, simulate Mergify actions, and write Mergify configuration. ALWAYS use this skill when validating, writing, editing, or simulating Mergify config. Triggers on config validate, config simulate, mergify configuration, mergify.yml, .mergify.yml, merge queue config, workflow rules, conditions.
----
-
 # Mergify Configuration Management
 
 ## Overview

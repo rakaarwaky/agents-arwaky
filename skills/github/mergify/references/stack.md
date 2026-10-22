@@ -1,8 +1,3 @@
----
-name: mergify-stack
-description: Use Mergify stacks for git push, commit, branch, and PR creation. ALWAYS use this skill when pushing code, creating commits, creating branches, or creating PRs. Triggers on push, commit, branch, PR, pull request, stack, stacked, git, rebase, checkout, reorder, move, sync, amend, note, revision history.
----
-
 # Mergify Stack Workflow
 
 ## Stack Philosophy

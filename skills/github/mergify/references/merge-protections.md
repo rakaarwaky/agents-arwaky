@@ -1,8 +1,3 @@
----
-name: mergify-merge-protections
-description: Use Mergify merge protections to control when PRs merge — PR dependencies (Depends-On header), delayed merges (Merge-After header), and scheduled freezes (CLI). ALWAYS use this skill when managing merge freezes, deployment windows, temporarily blocking merges, setting up PR dependencies, blocking a PR on another PR, coordinating cross-repo merges, scheduling a merge for a specific time, or adding Depends-On or Merge-After headers to PRs. Triggers on freeze, scheduled freeze, merge freeze, deployment freeze, halt merges, depends on, dependency, block merge, merge after, merge later, schedule merge, delayed merge, cross-repo, merge protection.
----
-
 # Mergify Merge Protections
 
 Merge protections control when PRs are allowed to merge:

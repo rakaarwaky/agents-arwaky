@@ -1,8 +1,3 @@
----
-name: mergify-merge-queue
-description: Use Mergify merge queue to queue/dequeue PRs, to monitor and inspect the queue, and to diagnose a dequeued PR — whether it is queued, why it was dequeued, where its CI failure is, and what to do next. ALWAYS use this skill when queuing or dequeuing a PR, checking queue status, investigating PR merge state, finding out why a PR left the queue, pausing/unpausing the queue, or debugging merge failures. Triggers on queue a PR, requeue, dequeue, dequeued, why was my PR dequeued, dequeue reason, merge queue, queue status, queue pause, queue show, pause, unpause, frozen, bisecting, batch, CI checks, CHECKS_FAILED, PULL_REQUEST_UPDATED.
----
-
 # Mergify Merge Queue
 
 ## Overview
@@ -37,7 +32,7 @@ mergify queue pause --reason "..."   # Pause the queue (requires reason)
 mergify queue unpause                # Resume the queue
 ```
 
-That is the whole `queue` group: `status`, `show`, `pause`, `unpause`. There is no subcommand for dequeuing a PR — the dequeue reason comes from `queue show` on a PR that has left the queue, not from a flag. For the full queue *trail* (every enter / checks / leave event, not just the last exit), use `mergify events --pr <PR> --since 90d` — see the `mergify-events` skill.
+That is the whole `queue` group: `status`, `show`, `pause`, `unpause`. There is no subcommand for dequeuing a PR — the dequeue reason comes from `queue show` on a PR that has left the queue, not from a flag. For the full queue *trail* (every enter / checks / leave event, not just the last exit), use `mergify events --pr <PR> --since 90d` — see the [events](events.md) scenario.
 
 ## Is the PR queued, dequeued, or never queued?
 
@@ -111,7 +106,7 @@ Reading the activity log is **best-effort**: a token scoped to the merge queue c
 
 ### 2. The Mergify activity log (what surface 1 reads underneath)
 
-`GET /v1/repos/{owner}/{repo}/logs` returns the queue lifecycle events, newest first. `queue show` calls this for you, and `mergify events --pr <PR> --since 90d` (the `mergify-events` skill) browses the whole lifecycle from the CLI — including every event type, not just queue ones. Go direct with `curl` only when it degrades (403 above, with a token that can read the log) or from somewhere the CLI is not installed:
+`GET /v1/repos/{owner}/{repo}/logs` returns the queue lifecycle events, newest first. `queue show` calls this for you, and `mergify events --pr <PR> --since 90d` (the [events](events.md) scenario) browses the whole lifecycle from the CLI — including every event type, not just queue ones. Go direct with `curl` only when it degrades (403 above, with a token that can read the log) or from somewhere the CLI is not installed:
 
 `MERGIFY_TOKEN` must hold a Mergify token: a GitHub token still works
 against the Mergify API but is deprecated, and the credential `mergify
@@ -224,7 +219,7 @@ Caveat: this comment can be turned off per repository (`merge_queue.status_comme
 | `PR_DEQUEUED` | Queue conditions stopped matching | Look at the conditions in the report; fix the PR or requeue |
 | `DROPPED_BY_BISECTION_ELIMINATION` | Bisection blamed other PRs and dropped this one untested | It is unproven, not known-broken. Requeue to test it on its own |
 | `STACK_PREDECESSOR_DEQUEUED` | A predecessor in the same stack was dequeued | Fix the predecessor, requeue the stack |
-| `QUEUE_RULE_MISSING` / `CONFIGURATION_CHANGED` | The config changed under the queued PR | Fix `.mergify.yml` (see the `mergify-config` skill), then requeue |
+| `QUEUE_RULE_MISSING` / `CONFIGURATION_CHANGED` | The config changed under the queued PR | Fix `.mergify.yml` (see the [config](config.md) scenario), then requeue |
 | `INCOMPATIBILITY_WITH_BRANCH_PROTECTIONS` | Queue settings clash with branch protections | Reconcile the repository's branch protections with the queue config — requeuing alone will not help |
 | `UNPROCESSABLE_PULL_REQUEST` | Too many check runs, comments, or files for Mergify to process | Shrink the PR |
 
