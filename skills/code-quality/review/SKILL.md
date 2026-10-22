@@ -21,13 +21,21 @@ You are an orchestrator that runs reviewer subagents against one of five review 
 
 ## Persona Injection
 
-This skill uses the **reviewer** persona. The persona instructions are defined at:
+This skill uses the **reviewer** persona.
 
-```
-<dirname of this SKILL.md>/../../shared/personas/reviewer.md
-```
+Persona text is the Grok Build persona store (SSOT: `personas/*.toml`).
 
-Resolve this path once at the start of the run (the system context gives you the absolute path to this SKILL.md). Read the file with `read_file` and store its contents as `reviewer_persona_instructions`.
+Resolve each persona name in this order:
+1. `~/.grok/personas/<name>.toml` (user persona store; already linked to this repo's `personas/`)
+2. `<dirname of this SKILL.md>/../../../personas/<name>.toml` (repo fallback)
+
+For each persona:
+1. Pick the first path that exists
+2. Read the file with `read_file`
+3. Extract the `instructions` field (the `""" ... """` body; ignore keys, `[[inputs]]`, and `[[outputs]]`)
+4. Store that body as the persona instructions variable named below
+
+Store the extracted body as `reviewer_persona_instructions`.
 
 When launching the reviewer subagent, **prepend** the persona instructions to the prompt. Do NOT pass a `persona` parameter to `spawn_subagent` — that parameter is not supported. Instead, prefix the `description` with `[reviewer]` so the pager's subagent label renderer surfaces "Reviewer" at the top of the subagent row (see Step 2 below).
 
@@ -628,7 +636,7 @@ Give the user a brief status update after each phase:
 ## Rules
 
 - **Reviewer is read-only** -- the reviewer subagent must never modify source files (it only writes its review/diff/payload artifacts under `scratch_dir`). The orchestrator must never modify source files either. The only writes are to `<review_file>`, `<summary_file>`, `<diff_file>`, `<pending_review_payload>`, the per-PR artifacts under `scratch_dir` in stack mode, and the GitHub review (PENDING by default; COMMENT with `--submit`; APPROVED with `--approve`).
-- **Inject the reviewer persona into the prompt** -- always prepend the `reviewer` persona instructions (from the shared personas file) to the subagent prompt. Do NOT pass a `persona` parameter to `spawn_subagent`.
+- **Inject the reviewer persona into the prompt** -- always prepend the `reviewer` persona instructions (from `personas/reviewer.toml`) to the subagent prompt. Do NOT pass a `persona` parameter to `spawn_subagent`.
 - **Prefix `description` with `[reviewer]`** -- the pager's subagent label renderer parses the first `[tag]` of the description and uses it as the row label (the bracketed prefix is stripped from the displayed description). Without it, the row falls through to the generic "General" label because `subagent_type` is `general-purpose` and no persona/role is plumbed through the spawn args.
 - **Include context in the reviewer prompt** -- the reviewer needs the conversation context (the user's framing, any constraints, etc.) passed through the task prompt.
 - **One reviewer per PR** -- main, local, branch, and single-PR modes run exactly one reviewer. Stack mode runs one reviewer per PR in the stack, in parallel. Multi-reviewer runs during an implement-fix loop are `/implement --effort N`.

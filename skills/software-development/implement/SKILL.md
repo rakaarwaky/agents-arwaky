@@ -47,15 +47,24 @@ Never end a turn with `in_progress` set to a phase whose subagent has not been s
 
 ## Persona Injection
 
-This skill uses the **implementer**, **reviewer**, and **security-auditor** personas. The persona instructions are defined at:
+This skill uses the **implementer**, **reviewer**, and **security-auditor** personas.
 
-```
-<dirname of this SKILL.md>/../../shared/personas/implementer.md
-<dirname of this SKILL.md>/../../shared/personas/reviewer.md
-<dirname of this SKILL.md>/../../shared/personas/security-auditor.md
-```
+Persona text is the Grok Build persona store (SSOT: `personas/*.toml`).
 
-Resolve these paths once at the start of the run (the system context gives you the absolute path to this SKILL.md). Read each file with `read_file` and store their contents as `implementer_persona_instructions`, `reviewer_persona_instructions`, and `security_auditor_persona_instructions`.
+Resolve each persona name in this order:
+1. `~/.grok/personas/<name>.toml` (user persona store; already linked to this repo's `personas/`)
+2. `<dirname of this SKILL.md>/../../../personas/<name>.toml` (repo fallback)
+
+For each persona:
+1. Pick the first path that exists
+2. Read the file with `read_file`
+3. Extract the `instructions` field (the `""" ... """` body; ignore keys, `[[inputs]]`, and `[[outputs]]`)
+4. Store that body as the persona instructions variable named below
+
+Store the extracted bodies as:
+- `implementer_persona_instructions` from `implementer`
+- `reviewer_persona_instructions` from `reviewer`
+- `security_auditor_persona_instructions` from `security-auditor`
 
 When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent` — that parameter is not supported. Instead, prefix the `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[security]`, `[tests]`, `[plan]`, `[simplicity]`, etc.) so the pager's subagent label renderer (see `format_subagent_label` in `xai-grok-pager`) surfaces the role name at the top of the subagent row instead of the generic "General" fallback. The bracketed prefix is stripped from the displayed description. On `resume_from` follow-ups, the persona is already in the subagent's transcript from the initial launch — do not re-inject it; **do** keep the bracketed tag in the description so the label remains correct.
 
@@ -942,7 +951,7 @@ Give the user a brief status update after each phase:
 
 - **Tool-call discipline** — every "launching", "spawning", "starting", or "running" statement in your prose must be backed by a `spawn_subagent` tool call in the same assistant response. Never end a turn with a content-only message that claims a subagent is being launched. See [Tool-Call Discipline (Anti-Hallucination)](#tool-call-discipline-anti-hallucination) for the full rule set.
 - **No permission-asking on launch** — the launch announcement is informational, not interactive. Do not append "Want me to check in every 30 min, or run silently?" or similar cadence-negotiation questions to launch messages. Pick a default and proceed.
-- **Inject personas into prompts** — prepend `implementer` persona instructions for the implementer, `reviewer` for general reviewer, `security-auditor` for security specialist. Do NOT pass a `persona` parameter to `spawn_subagent`. For Tests, Plan Alignment, and Simplicity specialists, do not prepend any persona — they are prompt-only subagents. On `resume_from` follow-ups, the persona is already in the transcript from the initial launch.
+- **Inject personas into prompts** — prepend `implementer` persona instructions for the implementer, `reviewer` for general reviewer, `security-auditor` for security specialist (from `personas/*.toml`). Do NOT pass a `persona` parameter to `spawn_subagent`. For Tests, Plan Alignment, and Simplicity specialists, do not prepend any persona — they are prompt-only subagents. On `resume_from` follow-ups, the persona is already in the transcript from the initial launch.
 - **Prefix `description` with a bracketed role tag** — `[implementer]`, `[reviewer]`, `[security]`, `[tests]`, `[plan]`, or `[simplicity]`. The pager's subagent label renderer parses the first `[tag]` of the description and uses it as the row label (the bracketed prefix is stripped from the displayed description). Without this, every row falls through to the generic "General" label because `subagent_type` is `general-purpose` and no persona/role is plumbed through the spawn args. Keep the tag on `resume_from` follow-ups too so the label stays stable across rounds.
 - **resume_from on follow-ups** — never launch a fresh subagent for fix or re-review rounds. Always resume the previous one so it retains its full working memory. Exception: if `resume_from` fails (subagent expired), launch a fresh one and log a warning.
 - **Save every subagent_id** returned by `spawn_subagent` — these are needed for `resume_from` on subsequent rounds. Store them in `reviewer_configs` for reviewers.

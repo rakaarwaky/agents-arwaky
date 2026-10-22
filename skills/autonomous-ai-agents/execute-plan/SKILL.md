@@ -74,15 +74,26 @@ Terminal state: all `pr-<n>:merge-ready` ids `completed`. Only then write the fi
 
 ## Persona Injection
 
-This skill uses the **implementer**, **reviewer**, and **security-auditor** personas. The persona instructions are defined at:
+This skill uses the **implementer**, **reviewer**, and **security-auditor** personas.
 
-```
-<dirname of this SKILL.md>/../../shared/personas/implementer.md
-<dirname of this SKILL.md>/../../shared/personas/reviewer.md
-<dirname of this SKILL.md>/../../shared/personas/security-auditor.md
-```
+Persona text is the Grok Build persona store (SSOT: `personas/*.toml`).
 
-Resolve these paths once at the start of the run (the system context gives you the absolute path to this SKILL.md). Read each file with `read_file` and store their contents as `implementer_persona_instructions`, `reviewer_persona_instructions`, and `security_auditor_persona_instructions`. The `security-auditor` persona is only needed when a PR's review selects the security specialist (effort >= 2); reading it upfront is harmless if unused.
+Resolve each persona name in this order:
+1. `~/.grok/personas/<name>.toml` (user persona store; already linked to this repo's `personas/`)
+2. `<dirname of this SKILL.md>/../../../personas/<name>.toml` (repo fallback)
+
+For each persona:
+1. Pick the first path that exists
+2. Read the file with `read_file`
+3. Extract the `instructions` field (the `""" ... """` body; ignore keys, `[[inputs]]`, and `[[outputs]]`)
+4. Store that body as the persona instructions variable named below
+
+Store the extracted bodies as:
+- `implementer_persona_instructions` from `implementer`
+- `reviewer_persona_instructions` from `reviewer`
+- `security_auditor_persona_instructions` from `security-auditor`
+
+The `security-auditor` persona is only needed when a PR's review selects the security specialist (effort >= 2); reading it upfront is harmless if unused.
 
 When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent` — that parameter is not supported. Instead, prefix the `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[security]`, `[tests]`, `[plan]`, or `[simplicity]`) so the pager's subagent label renderer (see `format_subagent_label` in `xai-grok-pager`) surfaces the role name at the top of the subagent row instead of the generic "General" fallback. The bracketed prefix is stripped from the displayed description. Keep the tag on `resume_from` follow-ups too so the label stays stable across rounds.
 
@@ -1440,7 +1451,7 @@ Follow these rules strictly:
 
 ## Rules
 
-- **Inject personas into prompts** -- on initial launches, prepend the appropriate persona instructions (from the shared personas file): `implementer` for implementers, `reviewer` for general reviewers, `security-auditor` for the security specialist. The Tests, Plan-Alignment, and Simplicity specialists are prompt-only (no persona prepended). Do NOT pass a `persona` parameter to `spawn_subagent`. On `resume_from` follow-ups, the persona is already in the subagent's transcript from the initial launch.
+- **Inject personas into prompts** -- on initial launches, prepend the appropriate persona instructions (from `personas/*.toml`): `implementer` for implementers, `reviewer` for general reviewers, `security-auditor` for the security specialist. The Tests, Plan-Alignment, and Simplicity specialists are prompt-only (no persona prepended). Do NOT pass a `persona` parameter to `spawn_subagent`. On `resume_from` follow-ups, the persona is already in the subagent's transcript from the initial launch.
 - **Prefix `description` with a bracketed role tag** -- `[implementer]` for implementer launches and fix cycles; `[reviewer]` for general reviewer launches and re-reviews; `[security]`, `[tests]`, `[plan]`, `[simplicity]` for the respective specialists. The pager parses the first `[tag]` of the description and uses it as the row label (the bracketed prefix is stripped from the displayed description). Without this, every row falls through to the generic "General" label because `subagent_type` is `general-purpose` and no persona/role is plumbed through the spawn args. Keep the tag on `resume_from` follow-ups so the label stays stable across rounds.
 - **`isolation: "worktree"` for implementers only** -- implementers get fresh worktrees. Reviewers use `cwd=<worktree_path>` to access an existing worktree.
 - **Include design context in initial prompts** -- the initial implementer and initial reviewer launches should include all relevant design context in their task prompts. All subsequent rounds use `resume_from` instead, which carries the subagent's own transcript forward.
