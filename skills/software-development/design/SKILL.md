@@ -30,14 +30,23 @@ Exit when `rereview-round-N` produces 0 open issues.
 
 ## Persona Injection
 
-This skill uses the **design-doc-writer** and **design-doc-reviewer** personas. The persona instructions are defined at:
+This skill uses the **design-doc-writer** and **design-doc-reviewer** personas.
 
-```
-<dirname of this SKILL.md>/../../shared/personas/design-doc-writer.md
-<dirname of this SKILL.md>/../../shared/personas/design-doc-reviewer.md
-```
+Persona text is the Grok Build persona store (SSOT: `personas/*.toml`).
 
-Resolve these paths once at the start of the run (the system context gives you the absolute path to this SKILL.md). Read each file with `read_file` and store their contents as `writer_persona_instructions` and `reviewer_persona_instructions`.
+Resolve each persona name in this order:
+1. `~/.grok/personas/<name>.toml` (user persona store; already linked to this repo's `personas/`)
+2. `<dirname of this SKILL.md>/../../../personas/<name>.toml` (repo fallback)
+
+For each persona:
+1. Pick the first path that exists
+2. Read the file with `read_file`
+3. Extract the `instructions` field (the `""" ... """` body; ignore keys, `[[inputs]]`, and `[[outputs]]`)
+4. Store that body as the persona instructions variable named below
+
+Store the extracted bodies as:
+- `writer_persona_instructions` from `design-doc-writer`
+- `reviewer_persona_instructions` from `design-doc-reviewer`
 
 When launching a subagent for the first time, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent` — that parameter is not supported. Instead, prefix the `description` with a bracketed role tag (`[writer]` for design-doc-writer, `[reviewer]` for design-doc-reviewer) so the pager's subagent label renderer surfaces the role name at the top of the subagent row instead of the generic "General" fallback. The bracketed prefix is stripped from the displayed description. On `resume_from` follow-ups, the persona is already in the subagent's transcript from the initial launch — do not re-inject it; **do** keep the bracketed tag in the description so the label remains correct.
 
@@ -341,7 +350,7 @@ Give the user a brief status update after each phase:
 
 ## Rules
 
-- **Inject personas into prompts** -- prepend the `design-doc-writer` or `design-doc-reviewer` persona instructions (from the shared personas file) to the subagent prompt on initial launches. Do NOT pass a `persona` parameter to `spawn_subagent`. On `resume_from` follow-ups, the persona is already in the transcript from the initial launch.
+- **Inject personas into prompts** -- prepend the `design-doc-writer` or `design-doc-reviewer` persona instructions (from `personas/design-doc-*.toml`) to the subagent prompt on initial launches. Do NOT pass a `persona` parameter to `spawn_subagent`. On `resume_from` follow-ups, the persona is already in the transcript from the initial launch.
 - **Prefix `description` with a bracketed role tag** -- `[writer]` for design-doc-writer launches and revisions, `[reviewer]` for design-doc-reviewer launches and re-reviews. The pager parses the first `[tag]` of the description and uses it as the row label (the bracketed prefix is stripped from the displayed description). Without this, every row falls through to the generic "General" label. Keep the tag on `resume_from` follow-ups too so the label stays stable across rounds.
 - **Include full context in prompts** -- both the writer and reviewer should receive all relevant context from the conversation in their task prompts.
 - **resume_from on follow-ups** -- never launch a fresh subagent for revise or re-review rounds. Always resume the previous one so it retains its full working memory.
