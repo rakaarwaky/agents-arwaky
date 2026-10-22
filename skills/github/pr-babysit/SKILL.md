@@ -10,7 +10,7 @@ argument-hint: "add [--ship] <number> | remove <number> | list | check | ship [o
 disable-model-invocation: true
 metadata:
   tags: [github, pr, ci, review, worktree, graphite, gh-stack, babysit]
-  category: software-development
+  category: github
   related_skills: [github-pr-workflow, github-code-review, long-running-background-tasks]
   backends: [grok-build, hermes]
 ---
