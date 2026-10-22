@@ -1,13 +1,13 @@
 ---
 name: humanizer
-description: "Humanize text: strip AI-isms and add real voice."
+description: "Humanize text: strip AI-isms and add real voice. Cut AI slop from writing while keeping the author's voice. Detect or audit a draft for AI tells without rewriting. Use when the user asks to humanize, de-AI, de-slop, un-ChatGPT, edit a draft to sound natural, match their voice, review text for AI tells, asks whether a piece is AI slop, or wants to audit/scan/flag a draft without rewriting (e.g. /no-ai-slop)."
 version: 2.5.1
 author: Siqi Chen (@blader, https://github.com/blader/humanizer), ported by Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   hermes:
-    tags: [writing, editing, humanize, anti-ai-slop, voice, prose, text]
+    tags: [writing, editing, humanize, anti-ai-slop, voice, prose, text, detect, audit, slop]
     category: creative
     homepage: https://github.com/blader/humanizer
     related_skills: [songwriting-and-ai-music]
@@ -22,13 +22,30 @@ Identify and remove signs of AI-generated text to make writing sound natural and
 ## When to use this skill
 
 Load this skill whenever the user asks to:
-- "humanize", "de-AI", "de-slop", or "un-ChatGPT" a piece of text
+- "humanize", "de-AI", "de-slop", "no-ai-slop", or "un-ChatGPT" a piece of text
 - rewrite something so it doesn't sound like it was written by an LLM
 - edit a draft (blog post, essay, PR description, docs, memo, email, tweet, resume bullet) to sound more natural
 - match their voice in writing they're producing
 - review text for AI tells before publishing
+- whether a piece is AI slop, or to audit/scan/flag a draft without rewriting
 
 Also apply this skill to **your own** output when writing user-facing prose such as release notes, PR descriptions, docs, and summaries. Hermes's baseline voice already strips most of these, but a focused pass catches what slips through.
+
+This skill edits and audits existing drafts. It does not ghostwrite brand-new content from a prompt, and it is not a code-review skill.
+
+## Two jobs
+
+**Edit (default).** The user shares a draft to fix. Make the minimum effective edit that removes AI patterns while preserving the writer's real voice, then return the edited draft plus a What changed section.
+
+**Detect.** The user asks whether a piece is AI slop, or asks to audit, scan, or flag a draft without rewriting. Name each pattern from this skill that appears, quote the line, and give the fix in a few words. Do not rewrite, score the draft, or guess whether AI wrote it. AI detectors guess. Named patterns are evidence the user can check. Offer to edit the draft after.
+
+## What to ask for
+
+If the user has not provided a draft, ask them to paste it.
+
+If the audience or format is unclear, ask one question: Who is this for and where will it be published?
+
+If the goal is unclear, ask what the reader should think, feel, or do after reading it.
 
 ## How to use it in Hermes
 
@@ -41,14 +58,25 @@ Always show the rewrite to the user. For file edits, show a diff or the changed 
 
 ## Your task
 
-When given text to humanize:
+When given text to handle, branch on the job from Two jobs above.
 
-1. **Identify AI patterns.** Scan for the 34 patterns listed below.
-2. **Rewrite problematic sections.** Replace AI-isms with natural alternatives.
-3. **Preserve meaning.** Keep the core message intact.
+**Detect request** (audit, scan, flag, "is this AI slop"):
+
+1. Read the full draft.
+2. Identify every instance of the patterns below that actually appears.
+3. For each hit, name the pattern, quote the line, and give the fix in a few words.
+4. Do not rewrite the draft, score it, or claim it was AI-written.
+5. Return the findings report in Output Format, then offer to edit.
+
+**Edit request** (default):
+
+1. **Identify AI patterns.** Scan for the 39 patterns listed below.
+2. **Rewrite problematic sections.** Replace AI-isms with natural alternatives. Prefer the minimum edit that removes the pattern and keeps the writer's voice.
+3. **Preserve meaning.** Keep the core message intact. Never invent claims, examples, stats, or opinions. If something is unclear, ask.
 4. **Maintain voice.** Match the intended tone (formal, casual, technical, and so on). If a voice sample was provided, match it specifically.
 5. **Add soul.** Removing bad patterns is only half the job; the rewrite also needs real personality. See PERSONALITY AND SOUL below.
-6. **Do a final anti-AI pass.** Ask yourself: "What makes the below so obviously AI generated?" Answer briefly with any remaining tells, then revise one more time.
+6. **Pass the portability test.** If a sentence could move unchanged to another person, company, country, or product, cut it or make it specific to this subject.
+7. **Do a final anti-AI pass.** Ask yourself: "What makes the below so obviously AI generated?" Answer briefly with any remaining tells, then revise one more time. Check the edited draft against the Eval checklist before returning it.
 
 
 ## Voice Calibration (optional)
@@ -193,6 +221,8 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 **Marketing and blog clichés (same tell, different register):** at the end of the day, when it comes to, in a world where, moving forward, circle back, deep dive, game-changer, double down, take a step back, on the same page, make no mistake, it turns out, let me be clear, navigate (for challenges), lean into, unpack (before analysis), straightforward (to describe anything)
 
+**Corporate filler (same tell, other register):** utilize, facilitate, empower, streamline, robust, cutting-edge, paradigm shift, elevate, embark, supercharge, harness, ever-evolving, multifaceted, meticulous, paramount, transformative, realm, beacon, "this is huge," "this changes everything," "it's worth noting," "it's important to note," "in today's world," "in the age of," "the reality is," "the truth is," "in terms of," "with regard to," "in this article." Cut when empty; keep when quoting or when the phrase is the writer's own tic.
+
 **Problem:** These words appear far more frequently in post-2023 text. They often co-occur.
 
 **Before:**
@@ -281,6 +311,8 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 ### 14. Em Dash Overuse
 
 **Problem:** LLMs use em dashes (—) more than humans, mimicking "punchy" sales writing. In practice, most of these can be rewritten more cleanly with commas, periods, or parentheses.
+
+**Rule of thumb:** In short copy, use none. In longer drafts, 1-2 are fine when they clearly beat commas, periods, or parentheses. Remove clusters and decorative dashes.
 
 **Before:**
 > The term is primarily promoted by Dutch institutions—not by the people themselves. You don't say "Netherlands, Europe" as an address—yet this mislabeling continues—even in official documents.
@@ -546,33 +578,136 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 **After:**
 > Many teams start without a testing setup and add one once regressions begin costing real time.
 
+
+### 35. Faux-Insight Setups
+
+**Signs to watch:** "This is the part most people skip," "What most people get wrong," "Here's what nobody tells you," "The part everyone misses."
+
+**Problem:** These flatter the writer as the lone expert and delay the claim. Cut the setup and make the claim stand on its own.
+
+**Before:**
+> The part everyone misses: distribution is the real moat.
+
+**After:**
+> Distribution is the moat.
+
+
+### 36. Colon Reveals
+
+**Signs to watch:** A noun phrase, a colon, then a lowercase dramatic reveal: "The detail that makes it work: a separate agent grades it." "The best part: it learns."
+
+**Problem:** The colon-reveal turn is a stock AI rhythm for fake drama. Rewrite as a plain sentence. Use colons for lists, labels, and quotes. Prefer sentence case after a colon unless grammar, a proper noun, a title, or code requires otherwise.
+
+**Before:**
+> The detail that makes it work: a separate agent grades it.
+
+**After:**
+> A separate agent does the grading, which is what makes it work.
+
+
+### 37. Interpretive Metadiscourse
+
+**Signs to watch:** "That last part matters more than it sounds," "The key point is," "As you can see," "This distinction matters," redundant "In other words."
+
+**Problem:** These lines step outside the subject to tell the reader what to notice or how much weight to give it. If the point is clear, delete the aside. Otherwise, replace it with support or facts already in the content.
+
+**Before:**
+> The cache invalidates on write. That last part matters more than it sounds.
+
+**After:**
+> The cache invalidates on write, so a stale read cannot survive a successful save.
+
+
+### 38. Summary-Recap Endings
+
+**Signs to watch:** "In conclusion," "Ultimately," "Overall," or a final paragraph that restates the piece.
+
+**Problem:** The reader was just there. End on the last concrete point, takeaway, or next action instead. Distinct from pattern 25 (vague upbeat endings): this is faithful restatement, not false optimism.
+
+**Before:**
+> Overall, caching improves performance by reducing redundant work. In conclusion, teams should adopt it.
+
+**After:**
+> Enable the router cache first; measure hit rate before touching the data cache.
+
+
+### 39. Robotic Rhythm
+
+**Signs to watch:** Repeated sentence shapes, identical paragraph structures, and stacked punchy fragments across the draft.
+
+**Problem:** Uniform rhythm reads machine-assembled even when every sentence is clean. Vary length and structure when variation helps the point. Distinct from pattern 31 (dramatic fragmentation for false emphasis): here the tell is sameness across units, not showmanship.
+
+**Before:**
+> The agent reviews the draft. The agent scores the draft. The agent suggests fixes. The agent ships the work.
+
+**After:**
+> The agent reviews the draft, scores it, and suggests fixes. Only then does it ship anything.
+
 ---
 
 ## Process
 
 1. Read the input text carefully (use `read_file` if it's a file).
-2. Identify all instances of the patterns above.
-3. Rewrite each problematic section.
-4. Ensure the revised text:
+2. If this is a detect request: identify every matching pattern, quote the line, write a short fix for each, and return the findings report in Output Format. Stop without rewriting.
+3. Identify all instances of the patterns above.
+4. Rewrite each problematic section with the minimum edit that removes the pattern and keeps the writer's voice.
+5. Ensure the revised text:
    - Sounds natural when read aloud
    - Varies sentence structure naturally
    - Uses specific details over vague claims
    - Maintains appropriate tone for context
    - Uses simple constructions (is/are/has) where appropriate
-5. Present a draft humanized version.
-6. Prompt yourself: "What makes the below so obviously AI generated?"
-7. Answer briefly with the remaining tells (if any).
-8. Prompt yourself: "Now make it not obviously AI generated."
-9. Present the final version (revised after the audit).
-10. If the text came from a file, apply the edit with `patch` (targeted) or `write_file` (full rewrite) and show the user what changed.
+6. Run the Eval checklist. Fix any fail and re-check before returning.
+7. Present a draft humanized version.
+8. Prompt yourself: "What makes the below so obviously AI generated?"
+9. Answer briefly with the remaining tells (if any).
+10. Prompt yourself: "Now make it not obviously AI generated."
+11. Present the final version (revised after the audit).
+12. If the text came from a file, apply the edit with `patch` (targeted) or `write_file` (full rewrite) and show the user what changed.
+
+## Eval checklist
+
+Answer each check with pass or fail before returning an edit. If any check fails, fix the draft and run the checks again.
+
+**Meaning and voice**
+
+1. Does the edit preserve the user's point without adding claims, examples, stats, quotes, or opinions?
+2. Does it preserve the writer's distinctive vocabulary, cadence, bluntness, humor, uncertainty, digressions, and level of polish?
+3. Does it leave strong human sentences alone instead of rewriting them for consistency?
+4. Is the amount of cutting proportional to the actual slop?
+5. Does the writer still recognize the draft as their own?
+6. Do sentences earn their place, with concrete facts and direct verbs where the draft supports them?
+7. Does every generic sentence fail the portability test only after being cut or made subject-specific?
+
+**Patterns**
+
+8. Are corporate filler, marketing clichés, and high-frequency AI vocabulary removed unless quoted?
+9. Are content patterns (1-6), grammar patterns (7-13), and style patterns (14-19) cleaned where they appeared?
+10. Are communication artifacts (20-22), filler and hedging (23-25), and structural tells (26-29) cleaned where they appeared?
+11. Are rhetoric and rhythm patterns (30-39) cleaned where they appeared, including faux-insight setups, colon reveals, interpretive metadiscourse, summary-recap endings, and robotic rhythm?
+12. Are colons sentence case after them unless grammar, a proper noun, a title, or code requires otherwise?
+13. Are em dashes within budget: none in short copy, at most 1-2 in longer drafts when they clearly help?
+
+**Final read**
+
+14. Does the draft avoid robotic symmetry, repeated sentence shapes, and stacked punchy fragments?
+15. Would the draft sound natural if read to a sharp colleague?
+16. Does the output include the full edited draft and a short **What changed** section?
+
+For detect requests, confirm instead: every hit names a pattern, quotes the line, and gives a short fix; no rewrite, no score, no claim about who or what wrote the draft.
 
 ## Output Format
 
-Provide:
+**Detect request.** Provide a findings list only:
+1. For each hit: pattern name, quoted line, short fix (a few words).
+2. If nothing matched, say so plainly.
+3. Offer to edit the draft afterward.
+
+**Edit request.** Provide:
 1. Draft rewrite
 2. "What makes the below so obviously AI generated?" (brief bullets)
 3. Final rewrite
-4. A brief summary of changes made (optional, if helpful)
+4. A brief **What changed** summary (optional, if helpful)
 
 
 ## Full Example
@@ -642,6 +777,6 @@ Provide:
 
 This skill is ported from [blader/humanizer](https://github.com/blader/humanizer) (MIT licensed), which is itself based on [Wikipedia: Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing), maintained by WikiProject AI Cleanup. The patterns documented there come from observations of thousands of instances of AI-generated text on Wikipedia.
 
-Original author: Siqi Chen ([@blader](https://github.com/blader)). Original repo: https://github.com/blader/humanizer (version 2.5.1). Ported to Hermes Agent with Hermes-native tool references (`read_file`, `patch`, `write_file`) and guidance for when to load the skill. The original 29 patterns come from the source, and the before/after examples (including the full worked example) are kept as demonstrations. Patterns 30-34 and the "marketing and blog clichés" list added to pattern 7 are Hermes additions and are not part of the upstream source. The skill's own instructional prose has also been lightly edited to follow its own guidance (for example, removing em dashes and negative parallelism from the narration) so the skill models the writing it asks for. Original MIT license preserved in the `LICENSE` file alongside this `SKILL.md`.
+Original author: Siqi Chen ([@blader](https://github.com/blader)). Original repo: https://github.com/blader/humanizer (version 2.5.1). Ported to Hermes Agent with Hermes-native tool references (`read_file`, `patch`, `write_file`) and guidance for when to load the skill. The original 29 patterns come from the source, and the before/after examples (including the full worked example) are kept as demonstrations. Patterns 30-34, the "marketing and blog clichés" list added to pattern 7, the "corporate filler" list, the detect job, the eval checklist, and patterns 35-39 (merged from the retired `no-ai-slop` skill) are Hermes additions and are not part of the upstream source. The skill's own instructional prose has also been lightly edited to follow its own guidance (for example, removing em dashes and negative parallelism from the narration) so the skill models the writing it asks for. Original MIT license preserved in the `LICENSE` file alongside this `SKILL.md`.
 
 Key insight from Wikipedia: "LLMs use statistical algorithms to guess what should come next. The result tends toward the most statistically likely result that applies to the widest variety of cases."
