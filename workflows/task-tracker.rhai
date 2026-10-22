@@ -115,7 +115,7 @@ if type_of(args) == "map" {
     a_label = json_text_field(args, "state_label");
     a_batch = json_text_field(args, "batch");
 }
-if a_root == () { pause("verification", "Pass args.repo_root — the AES repo to track (e.g. internal/qwen-web-arwaky)."); }
+if a_root == () { pause("verification", "Pass args.repo_root — the absolute path to the AES repo to track."); }
 let repo_root = a_root.to_string();
 let dry_run = if a_dry == () { true } else { a_dry.to_string() != "false" };
 let state_label = if a_label == () { "task-tracker" } else { a_label.to_string() };
@@ -127,10 +127,12 @@ let disc_prompt = "Enumerate the in-scope spec documents in " + repo_root
     + ". A spec doc qualifies when it sits at the repo root or under modules/, packages/, or crates/, "
     + "and contains a state table or a row table with a State column. "
     + "Run: cd " + repo_root + " && grep -rl -E '^#+ *State [Dd]efinitions' . --include='*.md' "
-    + "then filter out scratch, session, and skill-template directories: .git, .qwen-web, .qwen-web-arwaky, "
-    + ".qwen, .agents, node_modules, target, dist, __pycache__, htmlcov, vendor, skills, references, "
-    + "workspaces-bad, workspaces-good. Prompt scratch files and skill reference templates quote the words "
-    + "'State Definitions' without being specs — never include them. "
+    + "then exclude: any path whose first segment starts with a dot (.git, .agents, .grok, .venv, .tox, "
+    + ".pytest_cache, .mypy_cache, .ruff_cache, .idea, .vscode, and every other dot-prefixed directory — "
+    + "they are scratch, session, or tooling, never spec docs); plus build and "
+    + "template paths matching node_modules|target|dist|__pycache__|htmlcov|coverage|junit|vendor|skills|"
+    + "references|workspaces-bad|workspaces-good. Prompt scratch files and skill reference templates quote "
+    + "the words 'State Definitions' without being specs — never include them. "
     + "Then walk modules/, packages/, and crates/ (whichever exist) and add every feature BACKLOG.md, FRD.md, "
     + "and DESIGN.md even when that file holds no definitions table itself — its backlog table may still "
     + "carry a State column. Return repo-relative paths, one per entry. An empty list is valid only if the "
