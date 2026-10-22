@@ -34,7 +34,7 @@ skill from scratch (`create-skills`), or editing an already-migrated skill in pl
 Never bulk-copy a foreign skill tree. First read every source `SKILL.md`'s frontmatter and grep
 the whole source tree for that harness's marker terms. A harness leaves distinctive markers: its
 tool names, its home/env vars, its paths, its config-file formats, its subagent/spawn primitives,
-scheduler/loop primitives, and `../shared/` dependencies (personas, session readers). Count the
+scheduler/loop primitives, and `../../shared/` dependencies (personas, session readers). Count the
 hits per skill dir across ALL its files (not just SKILL.md — scripts and references carry them
 too).
 
