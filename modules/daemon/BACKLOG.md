@@ -24,12 +24,12 @@ Last Updated: 2026-09-26
 
 ## Backlog
 
-| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
-|----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| DMN-01 | FR-DAEMON-001, FR-DAEMON-002 | Daemon lifecycle + auth-key | P1 | QA | Protocol + capability paths in place; `python3 -m pytest modules/daemon -q` → 69 passed at `6df9f21`. Live Podman sweep outstanding (needs container host + WS-05). | @raka | WS-05 | 2026-09-26 |
-| DMN-02 | FR-DAEMON-004 | Deploy assets (systemd units, Containerfile) | P1 | Done | `modules/daemon/deploy/` ships `anytype-daemon.service`, `omniroute.service`, `Containerfile` at `5556fd5`. | @raka | None | 2026-09-18 |
-| DMN-03 | FR-DAEMON-001, FR-DAEMON-002, FR-DAEMON-003, FR-DAEMON-004 | FRD + BACKLOG pair authoring for daemon | P1 | Done | `check docs modules/daemon` → 0 findings (2 documents) at `f87a775`. | @raka | None | 2026-09-23 |
-| DMN-04 | FR-DAEMON-001, FR-DAEMON-003, FR-DAEMON-004 | Rich per-operation `IDaemonProtocol` + single-`execute` aggregate | P0 | Done | `python3 -m compileall -q modules/daemon modules/shared` → 0 and `lint-arwaky-cli scan modules/daemon` → 0 violations at `6df9f21`; `IDaemonProtocol` declares one named method per operation (start/stop/restart/status/logs/install_unit/remove_unit/unit_status) instead of a single `execute`; `IDaemonAggregate.execute` remains the one entry point. | @raka | None | 2026-09-26 |
+| ID | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|
+| DMN-01 | P1 | QA | WS-05 | none | 2026-09-26 |
+| DMN-02 | P1 | Done | None | none | 2026-09-18 |
+| DMN-03 | P1 | Done | None | none | 2026-09-23 |
+| DMN-04 | P0 | Done | None | none | 2026-09-26 |
 
 ## Scenario Evidence
 

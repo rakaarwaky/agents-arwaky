@@ -21,12 +21,12 @@ Last Updated: 2026-09-26
 
 ## Backlog
 
-| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
-|----|---------|-----------|----------|-------|------------------|-------|--------------|---------|
-| DOC-01 | FR-DOCTOR-001, FR-DOCTOR-002 | Env + tools diagnostic runners | P1 | Done | Gate: `python3 -m modules.root_cli_entry doctor` → exit 0 (all-PASS) + `... status --json` → 13 rows, stable keys on this host at `6df9f21`. | @raka | None | 2026-09-26 |
-| DOC-02 | FR-DOCTOR-001 | Bounded, read-only probes | P1 | Done | Gate: `git status --porcelain` unchanged after `python3 -m modules.root_cli_entry doctor` at `6df9f21`. | @raka | None | 2026-09-26 |
-| DOC-03 | FR-DOCTOR-001, FR-DOCTOR-002 | FRD + BACKLOG pair authoring / redesign for doctor | P1 | Done | Gate: `python3 -m modules.root_cli_entry check docs modules/doctor` → 0 findings at `6df9f21`. | @raka | None | 2026-09-26 |
-| DOC-04 | FR-DOCTOR-001, FR-DOCTOR-002 | One-method `IDoctorProtocol.run` + single-`execute` aggregate | P1 | Done | Gate: `python3 -m compileall -q modules/doctor modules/shared` → clean; aggregate smoke (run/readiness/report) → 0 at `6df9f21`; `python3 -m pytest modules/doctor -q` → 29 passed. | @raka | DOC-03 | 2026-09-26 |
+| ID | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|
+| DOC-01 | P1 | Done | None | none | 2026-09-26 |
+| DOC-02 | P1 | Done | None | none | 2026-09-26 |
+| DOC-03 | P1 | Done | None | none | 2026-09-26 |
+| DOC-04 | P1 | Done | DOC-03 | none | 2026-09-26 |
 
 ## Scenario Evidence
 

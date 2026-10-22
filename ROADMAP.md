@@ -56,18 +56,18 @@ State / Health: vocabulary below. Last Updated: 2026-09-23
 
 One table: every feature. Feature detail stays in each feature's BACKLOG.
 
-| ID | Item | Priority | Spec | Backlog | State | Health | Owner | Next | Updated |
-|---|---|---|---|---|---|---|---|---|---|
-| modules/tools | Tool lifecycle (install / update / uninstall / run / resolve) | P0 | [FRD](modules/tools/FRD.md) | [BACKLOG](modules/tools/BACKLOG.md) | QA | At Risk | @raka | TOL-02, TOL-03 | 2026-09-23 |
-| modules/mcp | MCP manifest → client config / list / probe | P0 | [FRD](modules/mcp/FRD.md) | [BACKLOG](modules/mcp/BACKLOG.md) | QA | On Track | @raka | MCP-01 sweep | 2026-09-23 |
-| modules/config | Comment-safe config load / save / merge / env | P1 | [FRD](modules/config/FRD.md) | [BACKLOG](modules/config/BACKLOG.md) | QA | On Track | @raka | CFG-01 round-trip | 2026-09-23 |
-| modules/daemon | Daemon lifecycle + Anytype auth / units | P1 | [FRD](modules/daemon/FRD.md) | [BACKLOG](modules/daemon/BACKLOG.md) | QA | On Track | @raka | DMN-01 live sweep | 2026-09-23 |
-| modules/doctor | Host + tool readiness diagnosis | P1 | [FRD](modules/doctor/FRD.md) | [BACKLOG](modules/doctor/BACKLOG.md) | Done | On Track | @raka | none | 2026-09-23 |
-| modules/harness | Connect / disconnect / skill provisioning | P1 | [FRD](modules/harness/FRD.md) | [BACKLOG](modules/harness/BACKLOG.md) | Ready | At Risk | @raka | HRS-01 sweep | 2026-09-23 |
-| modules/service | systemd unit drive / status / logs | P1 | [FRD](modules/service/FRD.md) | [BACKLOG](modules/service/BACKLOG.md) | QA | On Track | @raka | SVC-01 live sweep | 2026-09-23 |
-| modules/skills | Skill pack discovery: list / show (read-only) | P1 | [FRD](modules/skills/FRD.md) | [BACKLOG](modules/skills/BACKLOG.md) | QA | On Track | @raka | SKL-01 sweep | 2026-09-23 |
-| modules/backup | Archive / restore / list / status | P2 | [FRD](modules/backup/FRD.md) | [BACKLOG](modules/backup/BACKLOG.md) | QA | On Track | @raka | BKP-01 gdrive leg | 2026-09-23 |
-| modules/shared | Kernel (XDG, venv, launcher, engines) | P0 | — (kernel, not a feature) | — (no pair; see HOW-TO-MAKE-FRD) | In Progress | On Track | @raka | none | 2026-09-23 |
+| ID | Feature | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|---|
+| modules/tools | Tool lifecycle (install / update / uninstall / run / resolve) | P0 | QA | TOL-01 | TOL-02, TOL-03 | 2026-09-23 |
+| modules/mcp | MCP manifest → client config / list / probe | P0 | QA | MCP-03 | MCP-01 sweep | 2026-09-23 |
+| modules/config | Comment-safe config load / save / merge / env | P1 | QA | CFG-03 | CFG-01 round-trip | 2026-09-23 |
+| modules/daemon | Daemon lifecycle + Anytype auth / units | P1 | QA | DMN-03 | DMN-01 live sweep | 2026-09-23 |
+| modules/doctor | Host + tool readiness diagnosis | P1 | Done | DOC-03 | none | 2026-09-23 |
+| modules/harness | Connect / disconnect / skill provisioning | P1 | Ready | HRS-04 | HRS-01 sweep | 2026-09-23 |
+| modules/service | systemd unit drive / status / logs | P1 | QA | SVC-03 | SVC-01 live sweep | 2026-09-23 |
+| modules/skills | Skill pack discovery: list / show (read-only) | P1 | QA | SKL-01 | none | 2026-09-23 |
+| modules/backup | Archive / restore / list / status | P2 | QA | BKP-03 | BKP-01 gdrive leg | 2026-09-23 |
+| modules/shared | Kernel (XDG, venv, launcher, engines) | P0 | In Progress | none | none | 2026-09-23 |
 
 ### Branches in Flight
 

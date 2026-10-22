@@ -22,13 +22,13 @@ Last Updated: 2026-09-26
 
 ## Backlog
 
-| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
-|----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| MCP-01 | FR-MCP-001 | Manifest-driven client config generation | P0 | QA | Generator + `IMcpProtocol.generate` present; `python3 -m compileall -q modules/mcp` clean and `python3 -m pytest modules/mcp -q` → 24 passed at `6df9f21`; live entry-count sweep outstanding. | @raka | None | 2026-09-26 |
-| MCP-02 | FR-MCP-002 | Read-only server list/show | P0 | Done | `python3 -c "from modules.mcp.src.root_mcp_container import create_mcp_feature as f; print(len(f().list_servers()))"` → server rows at `6df9f21`; tree unchanged after list/show. | @raka | None | 2026-09-26 |
-| MCP-03 | FR-MCP-001, FR-MCP-002, FR-MCP-003 | FRD + BACKLOG pair authoring for mcp | P0 | Done | `python3 -m modules.root_cli_entry check docs modules/mcp` → 0 findings at `6df9f21`. | @raka | None | 2026-09-26 |
-| MCP-04 | FR-MCP-003 | Probe help/schema for one server | P0 | Done | `python3 -m modules.root_cli_entry mcp show anytype` → schema + help note at `6df9f21`; unknown id → non-zero. | @raka | None | 2026-09-26 |
-| MCP-05 | FR-MCP-001, FR-MCP-002, FR-MCP-003 | Rich per-operation `IMcpProtocol` + single-`execute` aggregate | P0 | Done | `python3 -m compileall -q modules/mcp modules/shared` clean, `lint-arwaky-cli scan modules/mcp` → 0 violations, and `check docs modules/mcp` → 0 findings at `6df9f21`; `IMcpProtocol` declares one named method per operation (generate/list_servers/show_server/generate_alias/validate). | @raka | None | 2026-09-26 |
+| ID | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|
+| MCP-01 | P0 | QA | None | none | 2026-09-26 |
+| MCP-02 | P0 | Done | None | none | 2026-09-26 |
+| MCP-03 | P0 | Done | None | none | 2026-09-26 |
+| MCP-04 | P0 | Done | None | none | 2026-09-26 |
+| MCP-05 | P0 | Done | None | none | 2026-09-26 |
 
 ## Scenario Evidence
 
