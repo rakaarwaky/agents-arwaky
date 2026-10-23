@@ -521,6 +521,82 @@ def test_catalog_does_not_drift_the_committed_artifact_in_check_mode():
     assert _git_status() == before
 
 
+def test_crafted_description_with_literal_entity_fails_the_gate(tmp_path: Path):
+    """The escaping round-trip assertion (§9.2): a crafted description that
+    carries the literal text ``&#124;`` does not survive the escape→unescape
+    round-trip, so ``catalog --check`` fails it as drift (exit 3) rather than
+    letting the index silently corrupt.
+
+    The drift must be the cell round-trip, not a content diff: the cell's
+    rendered row is what the tree renders, so the diff against the tracked
+    catalog is empty and only the cell assertion flags it.
+    """
+    root = tmp_path / "skills"
+    (root / "cat").mkdir(parents=True)
+    (root / "cat" / "DESCRIPTION.md").write_text(
+        "---\ndescription: Crafted cells\n---\n", encoding="utf-8"
+    )
+    (root / "cat" / "corrupt").mkdir()
+    (root / "cat" / "corrupt" / "SKILL.md").write_text(
+        "---\nname: corrupt\ndescription: bad cell &#124; here\n---\n\n# corrupt\n",
+        encoding="utf-8",
+    )
+
+    from catalog import catalog_cell_problems, rebuild_catalog
+
+    entries, categories = rebuild_catalog(root)
+    problems = catalog_cell_problems(entries, categories)
+    assert problems, "the crafted &#124; cell must fail the round-trip"
+    assert any("corrupt" in p for p in problems)
+
+    # The cell round-trips lossily: md_escape leaves the literal entity alone
+    # and the parser unescapes it to a pipe.
+    from skill_rules import md_escape
+
+    lossy = "bad cell &#124; here"
+    assert md_escape(lossy).replace("&#124;", "|") != lossy
+
+    # A clean pipe cell round-trips fine and is not flagged.
+    clean = rebuild_catalog(root)
+    assert not any("clean" in p for p in catalog_cell_problems(*clean))
+
+
+def test_check_catalog_reports_cell_drift_not_just_content_diff(tmp_path: Path):
+    """``check_catalog`` is fail-closed on cells: when a rendered cell does
+    not round-trip through the escape→unesparse path, the check reports the
+    cell drift even when the content diff is empty.
+
+    The diff-based branch is the ordinary "artifact is stale" case. The cell
+    assertion is the §9.2 guard: a tracked artifact that matches what the tree
+    renders byte-for-byte but carries a lossy cell is still drift, and only
+    the cell check can see it.
+    """
+    root = tmp_path / "skills"
+    (root / "cat").mkdir(parents=True)
+    (root / "cat" / "DESCRIPTION.md").write_text(
+        "---\ndescription: Crafted cells\n---\n", encoding="utf-8"
+    )
+    (root / "cat" / "corrupt").mkdir()
+    (root / "cat" / "corrupt" / "SKILL.md").write_text(
+        "---\nname: corrupt\ndescription: bad cell &#124; here\n---\n\n# corrupt\n",
+        encoding="utf-8",
+    )
+
+    import catalog
+
+    # The artifact the tree renders (diff is empty here) carries the
+    # lossy cell; check_catalog must flag it via the cell assertion, not
+    # the diff.
+    catalog.rebuild_catalog(root)
+
+    in_sync, summary, diff_lines = catalog.check_catalog(root)
+    assert not in_sync
+    # The cell round-trips lossily: md_escape leaves the literal &#124; alone,
+    # the parser unescapes it to a pipe, so the artifact lies about the tree.
+    assert "do not round-trip" in summary, f"expected the cell drift, got: {summary}"
+    assert diff_lines, "the cell drift must be surfaced as diff-like lines"
+
+
 def _crafted_tree(tmp_path: Path) -> Path:
     """A small, deterministic skills root with one known validation issue."""
     root = tmp_path / "skills"

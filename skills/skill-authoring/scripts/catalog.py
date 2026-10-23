@@ -23,6 +23,7 @@ from skill_rules import md_escape
 
 __all__ = [
     "CATALOG_FILENAME",
+    "catalog_cell_problems",
     "catalog_path",
     "check_catalog",
     "load_catalog_skill_rows",
@@ -124,6 +125,42 @@ def read_catalog_text(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig", errors="replace")
 
 
+def _cell_round_trips(cell: str) -> bool:
+    """True if ``cell`` survives the catalog escape→unescape round-trip.
+
+    ``md_escape`` writes pipes as ``&#124;`` and ``load_catalog_skill_rows``
+    reads them back, so ``a|b`` round-trips losslessly. A cell that already
+    contains the literal text ``&#124;`` or a newline would be read back as
+    ``|`` or a space — silently corrupting the index. Those cells fail closed
+    here so ``catalog --check`` reports drift instead of emitting a broken row.
+    """
+    return md_escape(cell).replace("&#124;", "|") == cell
+
+
+def catalog_cell_problems(
+    entries: list[model.SkillEntry], categories: list[model.CategorySummary]
+) -> list[str]:
+    """Return a human-readable line per catalog cell that does not round-trip.
+
+    A cell that does not round-trip means the rendered catalog cannot be
+    parsed back into the same value, so the artifact would silently lie about
+    the tree. Fail-closed: any problem here is drift.
+    """
+    problems: list[str] = []
+    for cat in categories:
+        for field, value in (("category", cat.category), ("description", cat.description)):
+            if value and not _cell_round_trips(value):
+                problems.append(f"category {cat.category!r}:{field} = {value!r}")
+
+    for entry in entries:
+        for field in ("skill", "category", "description", "path"):
+            value = getattr(entry, field)
+            if value and not _cell_round_trips(value):
+                problems.append(f"skill {entry.path!r}:{field} = {value!r}")
+
+    return problems
+
+
 def load_catalog_skill_rows(skills_root: Path) -> list[dict[str, str]]:
     """Parse the ``## Skills`` table into ``{skill, category, description, path}``.
 
@@ -212,7 +249,7 @@ def check_catalog(skills_root: Path) -> tuple[bool, str, list[str]]:
 
     with tempfile.TemporaryDirectory(prefix="catalog-check-") as tmp:
         candidate = Path(tmp) / CATALOG_FILENAME
-        rebuild_catalog(skills_root, candidate)
+        entries, categories = rebuild_catalog(skills_root, candidate)
         current = read_catalog_text(path).splitlines()
         regenerated = read_catalog_text(candidate).splitlines()
 
@@ -232,5 +269,17 @@ def check_catalog(skills_root: Path) -> tuple[bool, str, list[str]]:
             f"({len(diff_lines)} diff line(s)); rebuild with the catalog subcommand"
         )
         return False, message, diff_lines
+
+    # Fail-closed escaping assertion (§9.2): no rendered cell may survive the
+    # escape→unescape round-trip lossily, or a crafted description silently
+    # corrupts the index.
+    cell_problems = catalog_cell_problems(entries, categories)
+    if cell_problems:
+        detail = "; ".join(cell_problems)
+        message = (
+            f"Catalog drift detected: {path} contains cells that do not round-trip "
+            f"through the catalog parser ({len(cell_problems)} cell(s)): {detail}"
+        )
+        return False, message, [f"drift: {p}" for p in cell_problems]
 
     return True, f"Catalog in sync: {path}", []
