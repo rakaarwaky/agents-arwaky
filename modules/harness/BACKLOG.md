@@ -27,15 +27,15 @@ Last Updated: 2026-09-26
 
 ## Backlog
 
-| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
-|----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| HRS-01 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Per-harness connect/disconnect/skills sweep (5 harnesses) | P1 | Ready | FRD now states 8 scenarios; no automated per-harness sweep on the current tree. | @raka | HRS-06 | 2026-09-23 |
-| HRS-02 | FR-HARNESS-001 | Shared MCP config + skill provisioning machinery | P1 | Deferred | `capabilities_harness_shared.py` superseded by the machinery + leaf-adapter split (HRS-04). | @raka | None | 2026-09-19 |
-| HRS-03 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003, FR-HARNESS-004 | FRD + BACKLOG pair authoring for harness | P1 | Done | `python3 -m modules.root_cli_entry check docs modules/harness` → 0 findings at `f87a775`. | @raka | None | 2026-09-23 |
-| HRS-04 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Restructure harness module to 3 business capabilities + 5 leaf adapters | P1 | Done | `python3 -m compileall -q modules/harness` → 0 at `f87a775`; connector/disconnector/skills + 5 leaf adapters on the tree. | @raka | HRS-03 | 2026-09-23 |
-| HRS-05 | FR-HARNESS-001, FR-HARNESS-002 | Router wiring as connect/disconnect clause | P2 | Ready | Clause specified under FR-HARNESS-001/FR-HARNESS-002 and gated by the adapter custom-API flag; behaviour sweep owed under HRS-01. | @raka | HRS-04 | 2026-09-19 |
-| HRS-06 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003, FR-HARNESS-004 | Split `IHarnessOperationsProtocol` into four per-seam ABCs; remove dispatch wrappers | P1 | Done | `IHarnessConnectProtocol` / `IHarnessDisconnectProtocol` / `IHarnessSkillsProtocol` / `IHarnessProviderProtocol` in place; each business capability implements exactly its own seam in full — zero AES304 stubs, 36 tests, 0 lint violations at `6df9f21`. | @raka | HRS-04 | 2026-09-26 |
-| HRS-07 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | Provider leaves serve `IHarnessProviderProtocol`; registry wired in the composition root | P1 | Done | `python3 -m pytest modules/harness/tests -q` → 36 passed; `lint-arwaky-cli scan modules/harness` → 0 at `6df9f21`; three leaves implement the provider seam via `execute` and `HARNESS_REGISTRY` covers every supported id. | @raka | HRS-04 | 2026-09-26 |
+| ID | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|
+| HRS-01 | P1 | Ready | HRS-06 | none | 2026-09-23 |
+| HRS-02 | P1 | Deferred | None | none | 2026-09-19 |
+| HRS-03 | P1 | Done | None | none | 2026-09-23 |
+| HRS-04 | P1 | Done | HRS-03 | none | 2026-09-23 |
+| HRS-05 | P2 | Ready | HRS-04 | none | 2026-09-19 |
+| HRS-06 | P1 | Done | HRS-04 | none | 2026-09-26 |
+| HRS-07 | P1 | Done | HRS-04 | none | 2026-09-26 |
 
 ## Scenario Evidence
 

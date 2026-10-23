@@ -26,13 +26,13 @@ Last Updated: 2026-09-26
 
 ## Backlog
 
-| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
-|----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| BKP-01 | FR-BACKUP-001, FR-BACKUP-002 | tar + gdrive backup/restore gateways | P2 | QA | tar round-trip verified in a sandboxed XDG: `python3 -m modules.root_cli_entry backup scratchtool`, wipe, then `restore` recreates state at `6df9f21`; gdrive leg needs credentials and is outstanding. | @raka | None | 2026-09-26 |
-| BKP-02 | FR-BACKUP-003 | Archive listing (read-only) | P2 | Done | `python3 -m modules.root_cli_entry backup list` on a host with no store → exit 0 with an empty list at `6df9f21`. | @raka | None | 2026-09-26 |
-| BKP-03 | FR-BACKUP-001–FR-BACKUP-005 | FRD + BACKLOG pair authoring / redesign | P2 | Done | `python3 -m modules.root_cli_entry check docs modules/backup` → 0 findings at `6df9f21`. | @raka | None | 2026-09-26 |
-| BKP-04 | FR-BACKUP-004, FR-BACKUP-005 | Store status report + usage surface | P2 | Done | `python3 -m modules.root_cli_entry backup status` on a host with no store → store path, `exists: no`, exit 0; `backup help` prints all four forms, exit 0 at `6df9f21`. | @raka | None | 2026-09-26 |
-| BKP-05 | FR-BACKUP-001–FR-BACKUP-005 | Rich per-operation `IBackupProtocol` + single-`execute` aggregate | P2 | Done | `python3 -m compileall -q modules/backup modules/shared` → 0, `lint-arwaky-cli scan modules/backup` → 0 violations, and `python3 -m pytest modules/backup -q` → 34 passed at `6df9f21`; `IBackupProtocol` declares one named method per operation (backup/restore/list_archives/status/help) with its own typed return. | @raka | None | 2026-09-26 |
+| ID | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|
+| BKP-01 | P2 | QA | None | none | 2026-09-26 |
+| BKP-02 | P2 | Done | None | none | 2026-09-26 |
+| BKP-03 | P2 | Done | None | none | 2026-09-26 |
+| BKP-04 | P2 | Done | None | none | 2026-09-26 |
+| BKP-05 | P2 | Done | None | none | 2026-09-26 |
 
 ## Scenario Evidence
 

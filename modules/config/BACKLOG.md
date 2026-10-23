@@ -26,12 +26,12 @@ Last Updated: 2026-09-26
 
 ## Backlog
 
-| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
-|----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| CFG-01 | FR-CONFIG-001, FR-CONFIG-002 | Comment-safe JSON / JSONC / TOML load + save | P1 | QA | `ConfigWriter` implements `IConfigReaderProtocol` (`load`/`save`/`inspect`/`help`); `python3 -m compileall -q modules/config modules/shared` clean, `create_config_feature` import OK, 73 config tests pass at `6df9f21`; live round-trip sweep still outstanding. | @raka | CFG-04 | 2026-09-26 |
-| CFG-02 | FR-CONFIG-005 | `dry_run`-safe removal of MCP servers / env keys | P1 | Done | `remove_mcp_servers` / `remove_env_keys` carry `dry_run` at `5556fd5`. | @raka | None | 2026-09-18 |
-| CFG-03 | FR-CONFIG-001–FR-CONFIG-006 | FRD + BACKLOG pair authoring for config (redesign template) | P1 | Done | `python3 -m modules.root_cli_entry check docs modules/config` → 0 findings at `f87a775` (working tree). | @raka | None | 2026-09-23 |
-| CFG-04 | FR-CONFIG-001–FR-CONFIG-006 | Split `IConfigProtocol` into per-seam reader + modifier ABCs; `ConfigOrchestrator` drops direct capability imports | P1 | QA | `IConfigReaderProtocol` + `IConfigModifierProtocol` in place; `ConfigWriter` owns the reader seam only, `ConfigModifier` the modifier seam only, both fully implemented (zero `NotImplementedError` stubs, 73 tests pass, 0 lint violations at `6df9f21`). | @raka | None | 2026-09-26 |
+| ID | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|
+| CFG-01 | P1 | QA | CFG-04 | none | 2026-09-26 |
+| CFG-02 | P1 | Done | None | none | 2026-09-18 |
+| CFG-03 | P1 | Done | None | none | 2026-09-23 |
+| CFG-04 | P1 | QA | None | none | 2026-09-26 |
 
 ## Scenario Evidence
 

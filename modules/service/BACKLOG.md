@@ -22,12 +22,12 @@ Last Updated: 2026-09-26
 
 ## Backlog
 
-| ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
-|----|---------|-----------|:---------|-------|------------------|-------|--------------|---------|
-| SVC-01 | FR-SERVICE-001, FR-SERVICE-002, FR-SERVICE-003 | Drive + inspect + tail daemon systemd units | P1 | QA | Manager + protocol + aggregate in place; import OK. Live systemctl sweep outstanding. | @raka | WS-05 | 2026-09-23 |
-| SVC-02 | FR-SERVICE-001 | Fan-out over `all` without false abort | P1 | Done | per-unit independent reporting path at `5556fd5`. | @raka | None | 2026-09-18 |
-| SVC-03 | FR-SERVICE-001, FR-SERVICE-002, FR-SERVICE-003, FR-SERVICE-004 | FRD + BACKLOG pair authoring for service | P1 | Done | `check docs modules/service` → 0 findings (2 documents) at `f87a775`. | @raka | None | 2026-09-23 |
-| SVC-04 | FR-SERVICE-001, FR-SERVICE-002, FR-SERVICE-003, FR-SERVICE-004 | Rich per-operation `IServiceProtocol` redesign | P0 | Done | `python3 -m compileall -q modules/service` → 0 at `6df9f21`; `IServiceProtocol` now declares one named method per operation (status/start/stop/restart/logs/help) instead of a single `execute(op, unit)` dispatch; aggregate routes each call to the named method. | @raka | None | 2026-09-26 |
+| ID | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|
+| SVC-01 | P1 | QA | WS-05 | none | 2026-09-23 |
+| SVC-02 | P1 | Done | None | none | 2026-09-18 |
+| SVC-03 | P1 | Done | None | none | 2026-09-23 |
+| SVC-04 | P0 | Done | None | none | 2026-09-26 |
 
 ## Scenario Evidence
 

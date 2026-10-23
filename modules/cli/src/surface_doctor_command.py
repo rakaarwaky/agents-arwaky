@@ -2,14 +2,15 @@
 
 Builds a typed ``DoctorRequest`` from the raw CLI tokens and calls the
 aggregate's single ``execute``; the agent routes it to the right capability
-method. Rendering and token parsing stay on the surface (AES406).
+method. Rendering and token parsing stay on the surface (AES406). The
+orchestrator is typed by the aggregate contract because the surface may only
+import ``contract(aggregate)`` (AES201); the orchestrator satisfies it.
 """
 from __future__ import annotations
 
 import json
 from collections.abc import Mapping
 
-from modules.doctor.src.agent_doctor_orchestrator import DoctorOrchestrator
 from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
 from modules.shared.src.taxonomy_common_vo import (
     DoctorFlags,
@@ -39,8 +40,8 @@ def cmd_status(args: list[str], orch: IDoctorAggregate) -> int:
 class DoctorAction(IDoctorAggregate):
     """CLI command surface for the doctor feature (owns report rendering)."""
 
-    def __init__(self, orch: DoctorOrchestrator) -> None:
-        """Hold the orchestrator reference for surface delegation."""
+    def __init__(self, orch: IDoctorAggregate) -> None:
+        """Hold the aggregate reference for surface delegation."""
         self._orch = orch
 
     def execute(self, request: DoctorRequest) -> ExitCode:
