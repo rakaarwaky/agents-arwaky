@@ -69,6 +69,7 @@ def run(*args: str, cwd: Path | None = None, env_root: Path | None = None) -> tu
         cwd=str(cwd) if cwd else str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     return completed.returncode, completed.stdout, completed.stderr
 
@@ -80,6 +81,7 @@ def run_shim(*args: str) -> tuple[int, str, str]:
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     return completed.returncode, completed.stdout, completed.stderr
 
@@ -334,6 +336,7 @@ def test_pack_is_not_importable_as_a_dotted_package():
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     assert completed.returncode != 0
     assert "No module named" in completed.stderr
@@ -345,12 +348,13 @@ def test_can_be_imported_by_path_without_side_effects(tmp_path: Path):
     marker.mkdir()
     completed = subprocess.run(
         [sys.executable, "-c",
-         "import sys; sys.path.insert(0, 'skills/skill-authoring/scripts'); "
-         "import catalog, discover, mergeplan, model, mutate; "
-         f"import os; print(sorted(os.listdir({str(marker)!r})))"],
+         ("import sys; sys.path.insert(0, 'skills/skill-authoring/scripts'); "
+          "import catalog, discover, mergeplan, model, mutate; "
+          f"import os; print(sorted(os.listdir({str(marker)!r})))")],
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     assert completed.returncode == 0, f"stderr: {completed.stderr}"
     assert completed.stdout.strip() == "[]"
@@ -499,13 +503,11 @@ def test_weed_json_reports_the_same_weeds_as_text():
 
 def test_catalog_does_not_drift_the_committed_artifact_in_check_mode():
     """``catalog --check`` regenerates to a temp file — the tracked catalog
-    is never the file it writes."""
+    is never the file it writes, whether or not it is currently in sync."""
     before = _git_status()
     exit_code, _, _ = run("catalog", "--check")
-    # The committed catalog is stale by design (the descriptions PR-3
-    # edited were never regenerated into it), so drift is the expected
-    # state today; the point of the test is that the tree is unchanged.
-    assert exit_code == 3
+    # 0 = in sync, 3 = drift; --check must report, never write.
+    assert exit_code in (0, 3)
     assert _git_status() == before
 
 
@@ -545,14 +547,15 @@ def _git_status() -> str:
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     return completed.stdout
 
 
 def test_shutil_available():
     """The mutations import shutil; assert the module loads at all."""
-    import mutate  # noqa: F401
-    import catalog  # noqa: F401
+    import catalog
+    import mutate
 
     assert callable(mutate.fail)
     assert callable(catalog.rebuild_catalog)
