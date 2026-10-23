@@ -15,15 +15,12 @@ Covers what the refactor promised:
 
 Subprocess-based by design: the contract is about how the scripts behave
 when invoked by path from the repo root, which is not observable in-process.
-
-Catalog and discover tests live in ``test_catalog.py`` and
-``test_discover.py`` (PR-5); the ``_clean_skills_root`` regression guard
-now lives in ``conftest.py`` so every test module gets it.
 """
 
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -112,6 +109,16 @@ def test_shim_matches_canonical_for_every_read_only_subcommand():
         )
 
 
+def test_shim_runs_from_a_clean_interpreter():
+    """The back-compat path works from a clean interpreter: the shim's
+    ``sys.path`` prepend of the pack's ``scripts/`` directory is what lets
+    ``from cli import main`` resolve without any packaging (NG5), and the
+    exit code follows the canonical CLI's contract (1: issues found)."""
+    exit_code, stdout, _stderr = run_shim("validate")
+    assert exit_code == 1, f"expected exit 1 (issues found), got {exit_code}"
+    assert stdout.startswith("14 validation issue(s) found:\n"), stdout[:100]
+
+
 def test_validate_report_is_the_committed_baseline():
     """The 14 issues / 15 lines the tree reports today hold through the
     canonical path (hard constraint: read-only stdout is unchanged)."""
@@ -169,6 +176,18 @@ def test_exit_code_2_nonexistent_skill_is_a_usage_error():
     exit_code, _, stderr = run("move", "nonexistent-skill", "automation")
     assert exit_code == 2
     assert "ERROR: Could not find skill directory with SKILL.md: nonexistent-skill" in stderr
+
+
+def test_catalog_check_drifts_to_3_on_an_empty_root(tmp_path: Path):
+    """A skills root with no skills drifts: the tracked catalog is missing.
+    So there is nothing to be in sync with (exit 3, not a usage error)."""
+    root = tmp_path / "skills"
+    (root / "empty-cat").mkdir(parents=True)
+
+    exit_code, stdout, _ = run("catalog", "--check", env_root=root)
+
+    assert exit_code == 3, f"expected exit 3 (missing catalog = drift), got {exit_code}"
+    assert "Catalog missing" in stdout
 
 
 def test_mutating_commands_default_to_dry_run(tmp_path: Path):
@@ -309,6 +328,16 @@ def test_rules_markdown_round_trip_unchanged():
     assert stdout == committed.read_text(encoding="utf-8")
 
 
+def test_catalog_artifact_is_unchanged_by_the_refactor():
+    """The catalog the refactor leaves behind is the tracked one: the
+    placeholder row for the asset container survives, untouched."""
+    catalog_md = REPO_ROOT / "skills" / "CATALOG.md"
+    text = catalog_md.read_text(encoding="utf-8")
+    assert text.startswith("# Skills Catalog\n")
+    assert "| shared | (missing DESCRIPTION.md) | 0 |" in text
+    assert "skill-librarian | skill-authoring |" in text
+
+
 def test_pack_is_not_importable_as_a_dotted_package():
     """The pack path contains a hyphen, so ``python3 -m`` cannot target it
     (design §6.1): importing the dotted form fails before any code runs."""
@@ -328,15 +357,10 @@ def test_can_be_imported_by_path_without_side_effects(tmp_path: Path):
     marker = tmp_path / "untouched"
     marker.mkdir()
     completed = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            (
-                "import sys; sys.path.insert(0, 'skills/skill-authoring/scripts'); "
-                "import catalog, discover, mergeplan, model, mutate; "
-                f"import os; print(sorted(os.listdir({str(marker)!r})))"
-            ),
-        ],
+        [sys.executable, "-c",
+         ("import sys; sys.path.insert(0, 'skills/skill-authoring/scripts'); "
+          "import catalog, discover, mergeplan, model, mutate; "
+          f"import os; print(sorted(os.listdir({str(marker)!r})))")],
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
@@ -351,6 +375,45 @@ def test_weed_exits_0_on_a_clean_tree():
     exit_code, stdout, _ = run("weed", env_root=FIXTURES / "clean")
     assert exit_code == 0
     assert stdout == "Weeding report:\nNo obvious weeds found.\n"
+
+
+def test_discover_limit_caps_results(tmp_path: Path):
+    """``--limit`` caps the result count."""
+    root = _crafted_tree(tmp_path)
+    run("catalog", env_root=root)
+
+    # "notes" matches both rows (category + path hit); the cap keeps one.
+    _, stdout, _ = run("discover", "notes", "--limit", "1", env_root=root)
+    rows = [
+        line
+        for line in stdout.splitlines()
+        if line.startswith("| ")
+        and "---|" not in line
+        and line != "| Skill | Category | Description | Path | Score |"
+    ]
+    assert len(rows) == 1
+
+
+def test_discover_reads_the_catalog(tmp_path: Path):
+    """Discovery answers from CATALOG.md: a row only the catalog holds is
+    found, and the empty-query error is a usage error (exit 2)."""
+    root = _crafted_tree(tmp_path)
+    run("catalog", env_root=root)
+
+    exit_code, stdout, _ = run("discover", "docs", env_root=root)
+    assert exit_code == 0
+    assert "| doc-drafts |" in stdout
+
+    exit_code, _, stderr = run("discover", "", env_root=root)
+    assert exit_code == 2
+    assert "ERROR: Query is empty" in stderr
+
+
+def test_discover_limit_caps_results_is_empty_without_matches(tmp_path: Path):
+    """No match prints the legacy single line and exits 0."""
+    exit_code, stdout, _ = run("discover", "definitely-not-a-real-skill-term")
+    assert exit_code == 0
+    assert stdout.strip() == "No matching skills found in CATALOG.md."
 
 
 def test_merge_plan_chooses_the_non_stale_name(tmp_path: Path):
@@ -387,6 +450,20 @@ def test_archive_dry_run_renames_nothing(tmp_path: Path):
     assert "SKILL.md -> SKILL.md.archived" in stdout
     assert (root / "drafts" / "doc-drafts" / "SKILL.md").exists()
     assert not (root / "_archive").exists()
+
+
+def test_catalog_check_drift_count_matches_diff(tmp_path: Path):
+    """The drift message's diff-line count is the actual diff size."""
+    root = _crafted_tree(tmp_path)
+    run("catalog", env_root=root)
+    (root / "drafts" / "doc-drafts" / "SKILL.md").write_text(
+        "---\nname: doc-drafts\ndescription: Changed description.\n---\n\n# doc-drafts\n",
+        encoding="utf-8",
+    )
+
+    exit_code, stdout, _ = run("catalog", "--check", env_root=root)
+    assert exit_code == 3
+    assert "diff line(s)" in stdout
 
 
 def test_validate_category_scope_counts_are_honest():
@@ -434,6 +511,102 @@ def test_weed_json_reports_the_same_weeds_as_text():
     assert "empty-category: shared" in text_out
 
 
+def test_catalog_does_not_drift_the_committed_artifact_in_check_mode():
+    """``catalog --check`` regenerates to a temp file — the tracked catalog
+    is never the file it writes, whether or not it is currently in sync."""
+    before = _git_status()
+    exit_code, _, _ = run("catalog", "--check")
+    # 0 = in sync, 3 = drift; --check must report, never write.
+    assert exit_code in (0, 3)
+    assert _git_status() == before
+
+
+def test_crafted_description_with_literal_entity_fails_the_gate(tmp_path: Path):
+    """The escaping round-trip assertion (§9.2): a crafted description that
+    carries the literal text ``&#124;`` does not survive the escape→unescape
+    round-trip, so ``catalog --check`` fails it as drift (exit 3) rather than
+    letting the index silently corrupt.
+
+    The drift must be the cell round-trip, not a content diff: the cell's
+    rendered row is what the tree renders, so the diff against the tracked
+    catalog is empty and only the cell assertion flags it.
+    """
+    root = tmp_path / "skills"
+    (root / "cat").mkdir(parents=True)
+    (root / "cat" / "DESCRIPTION.md").write_text(
+        "---\ndescription: Crafted cells\n---\n", encoding="utf-8"
+    )
+    (root / "cat" / "corrupt").mkdir()
+    (root / "cat" / "corrupt" / "SKILL.md").write_text(
+        "---\nname: corrupt\ndescription: bad cell &#124; here\n---\n\n# corrupt\n",
+        encoding="utf-8",
+    )
+
+    from catalog import catalog_cell_problems, rebuild_catalog
+
+    entries, categories = rebuild_catalog(root)
+    problems = catalog_cell_problems(entries, categories)
+    assert problems, "the crafted &#124; cell must fail the round-trip"
+    assert any("corrupt" in p for p in problems)
+
+    # The cell round-trips lossily: md_escape leaves the literal entity alone
+    # and the parser unescapes it to a pipe.
+    from skill_rules import md_escape
+
+    lossy = "bad cell &#124; here"
+    assert md_escape(lossy).replace("&#124;", "|") != lossy
+
+    # A real pipe round-trips: escape writes &#124;, the parser reads | back,
+    # so a legitimate cell is never flagged.
+    from skill_rules import md_unescape
+
+    assert md_unescape(md_escape("a|b")) == "a|b"
+
+    # Line-break characters beyond \n survive md_escape but the reader's
+    # splitlines() chops the row at them — fail closed (review bug fix).
+    from catalog import _cell_round_trips
+
+    assert not _cell_round_trips("bad\rcell")
+    assert not _cell_round_trips("bad\x85cell")
+    assert _cell_round_trips("a|b")
+
+
+def test_check_catalog_reports_cell_drift_not_just_content_diff(tmp_path: Path):
+    """``check_catalog`` is fail-closed on cells: when a rendered cell does
+    not round-trip through the escape→unescape path, the check reports the
+    cell drift even when the content diff is empty.
+
+    The diff-based branch is the ordinary "artifact is stale" case. The cell
+    assertion is the §9.2 guard: a tracked artifact that matches what the tree
+    renders byte-for-byte but carries a lossy cell is still drift, and only
+    the cell check can see it.
+    """
+    root = tmp_path / "skills"
+    (root / "cat").mkdir(parents=True)
+    (root / "cat" / "DESCRIPTION.md").write_text(
+        "---\ndescription: Crafted cells\n---\n", encoding="utf-8"
+    )
+    (root / "cat" / "corrupt").mkdir()
+    (root / "cat" / "corrupt" / "SKILL.md").write_text(
+        "---\nname: corrupt\ndescription: bad cell &#124; here\n---\n\n# corrupt\n",
+        encoding="utf-8",
+    )
+
+    import catalog
+
+    # The artifact the tree renders (diff is empty here) carries the
+    # lossy cell; check_catalog must flag it via the cell assertion, not
+    # the diff.
+    catalog.rebuild_catalog(root)
+
+    in_sync, summary, diff_lines = catalog.check_catalog(root)
+    assert not in_sync
+    # The cell round-trips lossily: md_escape leaves the literal &#124; alone,
+    # the parser unescapes it to a pipe, so the artifact lies about the tree.
+    assert "do not round-trip" in summary, f"expected the cell drift, got: {summary}"
+    assert diff_lines, "the cell drift must be surfaced as diff-like lines"
+
+
 def _crafted_tree(tmp_path: Path) -> Path:
     """A small, deterministic skills root with one known validation issue."""
     root = tmp_path / "skills"
@@ -475,10 +648,11 @@ def _git_status() -> str:
     return completed.stdout
 
 
-def test_mutation_module_importable():
-    """The mutations import catalog/mutate; assert the modules load."""
+def test_shutil_available():
+    """The mutations import shutil; assert the module loads at all."""
     import catalog
     import mutate
 
     assert callable(mutate.fail)
     assert callable(catalog.rebuild_catalog)
+    assert shutil.move is not None

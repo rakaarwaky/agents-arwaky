@@ -64,6 +64,11 @@ def md_escape(value: object) -> str:
     return str(value).replace("|", "&#124;").replace("\n", " ").strip()
 
 
+def md_unescape(value: object) -> str:
+    """Inverse of ``md_escape``'s pipe escaping (the ``&#124;`` literal lives here only)."""
+    return str(value).replace("&#124;", "|")
+
+
 # ── Issue taxonomy ─────────────────────────────────────────────────────
 
 #: Exactly the 13 strings ``librarian.py`` ``validate_library`` emits today
