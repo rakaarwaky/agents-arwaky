@@ -4,7 +4,7 @@ Covers what the refactor promised:
 - the canonical form runs from the repo root (path-based invocation,
   since the pack directory contains a hyphen and is not a ``python3 -m``
   target);
-- the back-compat shim (``skill-librarian/scripts/librarian.py``) prints
+- the back-compat shim (``skill-library/scripts/librarian.py``) prints
   the same stdout as the canonical path for every read-only subcommand;
 - the exit-code contract: 0 clean, 1 issues found, 2 usage error,
   3 catalog drift (``catalog --check`` only);
@@ -48,7 +48,7 @@ def _find_repo_root() -> Path:
 REPO_ROOT = _find_repo_root()
 SKILLS_ROOT = REPO_ROOT / "skills"
 CLI = PACK_ROOT / "scripts" / "cli.py"
-SHIM = PACK_ROOT / "skill-librarian" / "scripts" / "librarian.py"
+SHIM = PACK_ROOT / "skill-library" / "scripts" / "librarian.py"
 FIXTURES = PACK_ROOT / "tests" / "fixtures"
 
 READ_ONLY_SUBCOMMANDS = [
@@ -372,7 +372,7 @@ def test_catalog_artifact_is_unchanged_by_the_refactor():
     text = catalog_md.read_text(encoding="utf-8")
     assert text.startswith("# Skills Catalog\n")
     assert "| shared | (missing DESCRIPTION.md) | 0 |" in text
-    assert "skill-librarian | skill-authoring |" in text
+    assert "skill-library | skill-authoring |" in text
 
 
 def test_pack_is_not_importable_as_a_dotted_package():
@@ -454,7 +454,7 @@ def test_discover_limit_caps_results_is_empty_without_matches(tmp_path: Path):
 
 
 def test_merge_plan_chooses_the_non_stale_name(tmp_path: Path):
-    """Rule from prune-skills §Merge Rules: the skill whose frontmatter
+    """Rule from skill-lifecycle §Merge Rules: the skill whose frontmatter
     ``name:`` matches its folder survives; a name-mismatch is stale."""
     root = tmp_path / "skills"
     (root / "cat").mkdir(parents=True)

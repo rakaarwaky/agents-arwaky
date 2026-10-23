@@ -1,5 +1,5 @@
 ---
-name: prune-skills
+name: skill-lifecycle
 description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories, pruning skills, consolidating skills, merging duplicate skills, auditing a skill directory, or collapsing skill folders.
 when-to-use: Use when cleaning up, auditing, or merging agent skill directories; pruning skills; consolidating skills; merging duplicate skills; auditing a skill directory; or collapsing skill folders.
 metadata:
@@ -12,7 +12,7 @@ metadata:
     - agent-skills
 ---
 
-# prune-skills
+# skill-lifecycle
 
 Prunes and consolidates an agent **skill directory** (a collection of `SKILL.md` folders). It finds
 skills that overlap semantically and collapses them: two skills covering the same job become one
@@ -26,11 +26,11 @@ removal plus consolidation: Phase 1 removes true duplicates, Phase 2 merges over
 
 ## Routing
 
-- **`create-skills`** — authoring a new skill or auditing one `SKILL.md` (the prune happens after
+- **`skill-authoring`** — authoring a new skill or auditing one `SKILL.md` (the prune happens after
   the authoring, not instead of it).
-- **`skill-librarian`** — cataloging the library and repairing mechanical frontmatter faults before
+- **`skill-library`** — cataloging the library and repairing mechanical frontmatter faults before
   a prune.
-- **`skill-manager`** — read-only listing and inspecting skills (`aa skills list/show`), for the
+- **`skill-library`** — read-only listing and inspecting skills (`aa skills list/show`), for the
   inventory a prune starts from.
 - **`code-quality/cleanup-consolidate`** — the code-level duplicate removal this skill is modeled on.
 
@@ -81,7 +81,7 @@ Skills are variants when they share a domain but each covers a distinct scenario
 | Merged skill now has complex, distinct sub-scenarios | **one folder, one `SKILL.md`, plus `references/`** — `SKILL.md` keeps the shared rules and a routing table; each sub-scenario becomes `references/<scenario>.md`, one level deep |
 | Skills that are genuinely different jobs | leave both alone; note in the report why they were not merged |
 
-A merged `SKILL.md` follows `create-skills` conventions: frontmatter with `name` and
+A merged `SKILL.md` follows `skill-authoring` conventions: frontmatter with `name` and
 `description` (third person, includes trigger terms), routing in the body rather than in
 non-parsed keys (`triggers:` and `metadata.related_skills` are not parsed by Grok Build —
 trigger terms go in `description:`/`when-to-use:`, sibling skills in a body section), and a
@@ -103,7 +103,7 @@ Task Progress:
       to the user and explicitly ask: *"Here is the planned prune. Shall I proceed with the git
       snapshot and execute these changes?"* **Wait for user confirmation before proceeding.**
 - [ ] Step 6: Snapshot the tree in git (`git add -A && git commit -m "snapshot: before
-      prune-skills"`, or `git stash` if the tree is dirty for other reasons).
+      skill-lifecycle"`, or `git stash` if the tree is dirty for other reasons).
 - [ ] Step 7: Execute merges per the Phase 2 table. When merging, delete the redundant folders
       (keep one canonical folder name, preferring the existing skill whose `name:` in frontmatter
       matches the surviving scope).
@@ -112,7 +112,7 @@ Task Progress:
 - [ ] Step 9: Verify — every remaining `SKILL.md` parses as valid frontmatter, all `references/`
       links resolve, no two skills share a `name:`. *If verification fails, trigger the Rollback
       Protocol.*
-- [ ] Step 10: Report — Output the final executed `prune-skills report`.
+- [ ] Step 10: Report — Output the final executed `skill-lifecycle report`.
 
 ## Merge Rules
 
@@ -138,7 +138,7 @@ Task Progress:
 ## Report Format
 
 ```text
-prune-skills report — <audit root>
+skill-lifecycle report — <audit root>
 
 MERGED:
 - <surviving folder>  <-  <dropped folder(s)>
