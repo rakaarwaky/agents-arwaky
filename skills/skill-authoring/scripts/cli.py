@@ -58,7 +58,7 @@ import mergeplan
 import mutate
 from docs import render_rules_markdown, render_rules_summary
 from mutate import fail
-from validate import validate_library
+from validate import validate_library, validate_summary
 
 _EXIT_USAGE = 2
 _EXIT_DRIFT = 3
@@ -118,6 +118,12 @@ def cmd_validate(args: argparse.Namespace) -> int:
     is found: the count line states the unfiltered total, and the exit
     code tracks it, so a scoped view cannot report the library as clean
     while issues exist outside the scope.
+
+    ``--summary`` prints a single observability line (design §10.1) with
+    the live counts — issues / loader-visible skills / categories — and
+    suppresses the per-issue listing; it is orthogonal to the report
+    filters. It takes no precedence on its own: when ``--json`` is
+    passed, the JSON report wins and ``--summary`` is ignored.
     """
     skills_root = _skills_root(args)
     report, issues = _validate_report(skills_root, args.category, args.rules_only)
@@ -135,6 +141,10 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 "issues": issues,
             }
         )
+        return 1 if total else 0
+
+    if args.summary:
+        print(validate_summary(skills_root))
         return 1 if total else 0
 
     if total == 0:
@@ -495,6 +505,11 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Only report issues in category NAME")
     p.add_argument("--rules-only", action="store_true",
                    help="Only report the rule checks (skip library-wide duplicates)")
+    p.add_argument("--summary", action="store_true",
+                   help="Print the 'N issues / M skills / K categories' observability line "
+                        "instead of the per-issue listing; exit code tracks the unfiltered "
+                        "issue total as usual. If --json is also passed, JSON wins and "
+                        "--summary is ignored")
 
     p = subparsers.add_parser("catalog", help="Rebuild CATALOG.md (or check for drift)")
     add_common(p)

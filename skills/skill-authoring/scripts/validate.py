@@ -24,6 +24,7 @@ if str(_RULES_DIR) not in sys.path:
     sys.path.insert(0, str(_RULES_DIR))
 
 import model
+from model import category_dirs, skill_entries
 from skill_rules import (
     IGNORED_CATEGORY_DIRS,
     MAX_DESCRIPTION_LEN,
@@ -32,7 +33,7 @@ from skill_rules import (
     issue_message,
 )
 
-__all__ = ["validate_library"]
+__all__ = ["validate_library", "validate_summary"]
 
 
 def _issue(
@@ -245,3 +246,20 @@ def validate_library(skills_root: Path) -> dict[str, Any]:
         "issue_count": len(issues),
         "issues": issues,
     }
+
+
+def validate_summary(skills_root: Path) -> str:
+    """One-line observability summary for CI (design §10.1):
+    ``<issues> issues / <skills> skills / <categories> categories``.
+
+    All three counts are derived from the live tree: issues is
+    ``validate_library``'s total (unfiltered, matching the exit-code
+    semantics), skills is the loader-visible count from
+    ``model.skill_entries`` (``category/*/SKILL.md`` with frontmatter),
+    categories is the count of directories ``model.category_dirs``
+    yields. Nothing is hardcoded.
+    """
+    report = validate_library(skills_root)
+    entries = skill_entries(skills_root)
+    categories = list(category_dirs(skills_root))
+    return f"{report['issue_count']} issues / {len(entries)} skills / {len(categories)} categories"
