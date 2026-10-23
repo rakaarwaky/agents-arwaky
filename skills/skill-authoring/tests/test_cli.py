@@ -556,14 +556,24 @@ def test_crafted_description_with_literal_entity_fails_the_gate(tmp_path: Path):
     lossy = "bad cell &#124; here"
     assert md_escape(lossy).replace("&#124;", "|") != lossy
 
-    # A clean pipe cell round-trips fine and is not flagged.
-    clean = rebuild_catalog(root)
-    assert not any("clean" in p for p in catalog_cell_problems(*clean))
+    # A real pipe round-trips: escape writes &#124;, the parser reads | back,
+    # so a legitimate cell is never flagged.
+    from skill_rules import md_unescape
+
+    assert md_unescape(md_escape("a|b")) == "a|b"
+
+    # Line-break characters beyond \n survive md_escape but the reader's
+    # splitlines() chops the row at them — fail closed (review bug fix).
+    from catalog import _cell_round_trips
+
+    assert not _cell_round_trips("bad\rcell")
+    assert not _cell_round_trips("bad\x85cell")
+    assert _cell_round_trips("a|b")
 
 
 def test_check_catalog_reports_cell_drift_not_just_content_diff(tmp_path: Path):
     """``check_catalog`` is fail-closed on cells: when a rendered cell does
-    not round-trip through the escape→unesparse path, the check reports the
+    not round-trip through the escape→unescape path, the check reports the
     cell drift even when the content diff is empty.
 
     The diff-based branch is the ordinary "artifact is stale" case. The cell

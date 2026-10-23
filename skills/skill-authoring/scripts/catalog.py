@@ -19,7 +19,7 @@ import tempfile
 from pathlib import Path
 
 import model
-from skill_rules import md_escape
+from skill_rules import md_escape, md_unescape
 
 __all__ = [
     "CATALOG_FILENAME",
@@ -125,6 +125,11 @@ def read_catalog_text(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig", errors="replace")
 
 
+#: Every character ``str.splitlines`` breaks a row on; a catalog cell must
+#: contain none of them or the reader silently drops/truncates the row.
+LINE_BREAKS = "\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029"
+
+
 def _cell_round_trips(cell: str) -> bool:
     """True if ``cell`` survives the catalog escape→unescape round-trip.
 
@@ -133,8 +138,15 @@ def _cell_round_trips(cell: str) -> bool:
     contains the literal text ``&#124;`` or a newline would be read back as
     ``|`` or a space — silently corrupting the index. Those cells fail closed
     here so ``catalog --check`` reports drift instead of emitting a broken row.
+
+    The reader uses ``str.splitlines``, which also splits on ``\r``, ``\v``,
+    ``\f``, ``\x1c``-``\x1e``, ``\x85``, ``\u2028``, ``\u2029`` — none of
+    which ``md_escape`` normalizes, so a cell carrying one still loses its row.
+    Fail closed on every split character, not only ``\n``.
     """
-    return md_escape(cell).replace("&#124;", "|") == cell
+    if any(ch in cell for ch in LINE_BREAKS):
+        return False
+    return md_unescape(md_escape(cell)) == cell
 
 
 def catalog_cell_problems(
@@ -201,7 +213,7 @@ def load_catalog_skill_rows(skills_root: Path) -> list[dict[str, str]]:
             continue
 
         cells = [
-            cell.strip().replace("&#124;", "|")
+            md_unescape(cell.strip())
             for cell in stripped.strip("|").split("|")
         ]
 
@@ -275,10 +287,11 @@ def check_catalog(skills_root: Path) -> tuple[bool, str, list[str]]:
     # corrupts the index.
     cell_problems = catalog_cell_problems(entries, categories)
     if cell_problems:
-        detail = "; ".join(cell_problems)
+        # Summary carries the count only — the per-cell lines below carry
+        # the detail, so text mode does not print each problem twice.
         message = (
             f"Catalog drift detected: {path} contains cells that do not round-trip "
-            f"through the catalog parser ({len(cell_problems)} cell(s)): {detail}"
+            f"through the catalog parser ({len(cell_problems)} cell(s))"
         )
         return False, message, [f"drift: {p}" for p in cell_problems]
 
