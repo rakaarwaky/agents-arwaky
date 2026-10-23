@@ -7,6 +7,7 @@ All notable changes to this project are documented in this file.
 ### Added
 - Centralized root/path resolution with validation (`tools/lib/paths.py`).
 - Google Drive backup helper (`tools/backup/gdrive.py`).
+- Skill pack catalog drift gate: `catalog --check` regenerates to a temp file and fails closed (exit 3) on drift, and `discover` warns loudly and falls back to a read-only tree scan when the tracked catalog is unusable.
 - Generic retry utility (`tools/lib/utility_retry.py`).
 - Capabilities tool resolver (`tools/lib/capabilities_tool_resolver.py`).
 - Unified version bump script (`tools/build/bump_version.py`).
