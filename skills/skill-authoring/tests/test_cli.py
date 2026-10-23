@@ -95,7 +95,7 @@ def run_shim(*args: str) -> tuple[int, str, str]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def _clean_skills_root():
+def _clean_skills_root() -> None:
     """Regression guard: restore the pristine skills tree after the suite.
 
     The tests that drive the canonical CLI without ``--skills-root`` run
@@ -114,7 +114,7 @@ def _clean_skills_root():
         "git", "checkout", "--",
         "skills/CATALOG.md",
     ]
-    subprocess.run(git_checkout, cwd=str(REPO_ROOT), capture_output=True)
+    subprocess.run(git_checkout, cwd=str(REPO_ROOT), capture_output=True, check=False)
 
     shared_desc = SKILLS_ROOT / "shared" / "DESCRIPTION.md"
     if shared_desc.exists():
@@ -123,6 +123,7 @@ def _clean_skills_root():
             ["git", "ls-files", "--error-unmatch", str(shared_desc.relative_to(REPO_ROOT))],
             cwd=str(REPO_ROOT),
             capture_output=True,
+            check=False,
         ).returncode == 0
         if not is_tracked:
             shared_desc.unlink()
