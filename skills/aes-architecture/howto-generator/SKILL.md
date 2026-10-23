@@ -1,15 +1,6 @@
 ---
 name: howto-generator
 description: Generate standardized HOW-TO reference files following AES format. Use when creating a howto, generating a howto, making a howto template, scaffolding a howto, creating a reference guide, or writing HOW-TO documentation for skills.
-when-to-use: Use when creating a HOW-TO guide, generating a HOW-TO template, scaffolding a reference file, or creating a reference guide for a skill.
-metadata:
-  tags:
-    - howto
-    - generator
-    - template
-    - aes
-    - documentation
-    - scaffolding
 ---
 
 # HOW-TO Generator
@@ -20,7 +11,7 @@ metadata:
 
 ## Routing
 
-- **`create-skills`** — for the SKILL.md creation rules this generator's output sits beside.
+- **`skill-authoring`** — for the SKILL.md creation rules this generator's output sits beside.
 - **`aes-architecture`** — for layer-specific HOW-TO examples and the AES format this generator emits.
 
 This skill generates HOW-TO files with the standard AES structure:

@@ -1,5 +1,5 @@
 ---
-name: create-skills
+name: skill-authoring
 description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split.
 when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, or deciding what belongs in the body versus a references/ file.
 metadata:
@@ -20,16 +20,16 @@ design principles, the interactive creation workflow, and validation rules.
 
 - Asked to create, write, structure, improve, validate, or audit a skill / `SKILL.md`.
 - Deciding what goes in the body versus a `references/` file, or how to word a `description:`.
-- Don't use for: discovering or reading installed skills (`skill-manager`), consolidating
-  a skill tree (`prune-skills`), or authoring a skill committed to the hermes-agent repo
+- Don't use for: discovering or reading installed skills (`skill-library`), consolidating
+  a skill tree (`skill-lifecycle`), or authoring a skill committed to the hermes-agent repo
   (`hermes-agent-skill-authoring`).
 
 ## Routing
 
-- **`skill-manager`** — listing and reading installed skills (`aa skills list/show`).
-- **`prune-skills`** — consolidating or de-duplicating a skill tree.
+- **`skill-library`** — listing and reading installed skills (`aa skills list/show`).
+- **`skill-lifecycle`** — consolidating or de-duplicating a skill tree.
 - **`howto-generator`** — generating AES-format HOW-TO reference files.
-- **`skill-librarian`** — cataloging, repairing, and weeding the library.
+- **`skill-library`** — cataloging, repairing, and weeding the library.
 
 Frontmatter, naming, description, and category-shape constraints are not restated here:
 the executable rules and their exact messages live in

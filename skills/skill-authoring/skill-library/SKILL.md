@@ -1,11 +1,11 @@
 ---
-name: skill-librarian
-description: Manages the skills library by maintaining CATALOG.md, discovering skills, auditing category placement, repairing skill metadata, weeding duplicates, and organizing categories. Use when the user runs /skill-librarian or asks to find, audit, repair, weed, organize, or catalog skills.
+name: skill-library
+description: Manages the skills library by maintaining CATALOG.md, discovering skills, auditing category placement, repairing skill metadata, weeding duplicates, and organizing categories. Also provides the `aa skills list/show` discovery surface (formerly skill-manager). Use when the user runs /skill-library or asks to find, audit, repair, weed, organize, or catalog skills.
 when-to-use: Use when the user wants to search the skill library, rebuild the skill catalog, move misplaced skills, fix skill frontmatter, detect duplicate skills, archive obsolete skills, create skill categories, or update category DESCRIPTION.md files.
 argument-hint: --discover query, --catalog, --audit, --repair, --weed, --organize
 ---
 
-# Skill Librarian
+# Skill Library
 
 Manages the skills pack as a library. The master index is `CATALOG.md` at the skills root. Category intent is stored in each category's `DESCRIPTION.md`.
 
@@ -30,7 +30,7 @@ python3 skills/skill-authoring/scripts/cli.py COMMAND
 The back-compat path keeps working and delegates to the same CLI:
 
 ```bash
-python3 skills/skill-authoring/skill-librarian/scripts/librarian.py COMMAND
+python3 skills/skill-authoring/skill-library/scripts/librarian.py COMMAND
 ```
 
 Examples:
@@ -61,7 +61,7 @@ Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML pa
 
 ## Discovery mode
 
-Use this when the user asks to find a skill or runs `/skill-librarian --discover QUERY`.
+Use this when the user asks to find a skill or runs `/skill-library --discover QUERY`.
 
 - [ ] Run `discover QUERY`.
 - [ ] If the catalog is missing, rebuild it first.

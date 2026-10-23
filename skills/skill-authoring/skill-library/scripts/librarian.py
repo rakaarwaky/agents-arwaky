@@ -21,7 +21,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-#: This file is <pack>/skill-librarian/scripts/librarian.py, so the pack
+#: This file is <pack>/skill-library/scripts/librarian.py, so the pack
 #: root is two levels up and its script package sits at ``scripts/``.
 _PACK_SCRIPTS = Path(__file__).resolve().parents[2] / "scripts"
 if str(_PACK_SCRIPTS) not in sys.path:
