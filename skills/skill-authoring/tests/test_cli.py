@@ -99,6 +99,43 @@ def test_canonical_form_runs_from_repo_root():
     assert stderr == ""
 
 
+def test_validate_summary_prints_live_counts_and_keeps_exit_semantics():
+    """``validate --summary`` (design §10.1) prints the single observability
+    line ``N issues / M skills / K categories`` — derived, never hardcoded —
+    and the exit code still tracks the unfiltered issue total."""
+    import re
+
+    # Dirty tree: the repo's own skills root (14 issues at this base).
+    import model
+    import validate
+
+    entries = model.skill_entries(SKILLS_ROOT)
+    categories = list(model.category_dirs(SKILLS_ROOT))
+    exit_code, stdout, stderr = run("validate", "--summary")
+    assert exit_code == 1, f"expected exit 1 (issues found), got {exit_code}: {stderr}"
+    line = stdout.strip()
+    expected = f"{validate.validate_summary(SKILLS_ROOT)}"
+    assert line == expected, f"summary line {line!r} != {expected!r}"
+    assert re.fullmatch(r"\d+ issues / \d+ skills / \d+ categories", line)
+    assert line.endswith(f" {len(entries)} skills / {len(categories)} categories")
+
+    # Clean crafted tree: 0 issues, exit 0, counts derived from the tree.
+    exit_code, stdout, _ = run("validate", "--summary", env_root=FIXTURES / "clean")
+    assert exit_code == 0, f"expected exit 0 on clean tree, got {exit_code}"
+    assert stdout.strip() == "0 issues / 1 skills / 1 categories"
+
+
+def test_validate_summary_is_orthogonal_to_json():
+    """When ``--json`` is also passed, JSON wins: the payload is emitted and
+    the summary line is not; exit code semantics are unchanged."""
+    exit_code, stdout, _ = run("validate", "--summary", "--json")
+    assert exit_code == 1
+    payload = json.loads(stdout)
+    assert payload["total_issue_count"] == 14
+    assert "issues /" not in stdout
+    assert "skills /" not in stdout.split('"skills_root"')[0]
+
+
 def test_shim_matches_canonical_for_every_read_only_subcommand():
     """The old path and the canonical path print identical stdout."""
     for subcommand in READ_ONLY_SUBCOMMANDS:
