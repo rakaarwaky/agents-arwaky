@@ -24,12 +24,12 @@ from skill_rules import NAME_RE
 
 __all__ = [
     "ARCHIVE_DIRNAME",
-    "archive_plan",
-    "archive_root",
     "apply_archive",
     "apply_move",
     "apply_new_category",
     "apply_repairs",
+    "archive_plan",
+    "archive_root",
     "ensure_frontmatter_name",
     "fail",
     "missing_category_descriptions",
