@@ -363,14 +363,14 @@ def check_catalog(skills_root: Path) -> tuple[bool, str, list[str]]:
     (empty when in sync) a caller can print or log. Read-only: the
     tracked file is never touched.
 
-    Fail-closed (§9.2): beyond the diff, the check asserts the
-    escape round-trip — every row the regenerated catalog emits must
-    survive a parse through the ``## Skills`` table and come back
-    cell-for-cell equal. A crafted description (a ``|`` that
-    splits the table, a dangling ``&#124;`` that parses back
-    differently, ...) would corrupt the index silently; here it fails
-    the check instead, so no corrupt artifact can ever read as
-    in-sync.
+    Fail-closed (§9.2): beyond the text diff, cells parsed back out of
+    the regenerated ``## Skills`` table are compared field-by-field with
+    the source tree's own entries (``_entry_cells``; the
+    ``(missing description)`` render placeholder normalizes back, and
+    ``_cell_round_trips`` rejects escape-losing cells such as a literal
+    ``&#124;`` entity or a line break). A crafted description would
+    corrupt the index silently; here it fails the check instead, so no
+    corrupt artifact can ever read as in-sync.
     """
     path = catalog_path(skills_root)
 
