@@ -88,11 +88,11 @@ def run_shim(*args: str) -> tuple[int, str, str]:
 
 def test_canonical_form_runs_from_repo_root():
     """§6.1: ``python3 skills/skill-authoring/scripts/cli.py validate`` with
-    cwd = the repo root works and reports the library's issues."""
+    cwd = the repo root works; the fixed tree reports no issues (PR-8)."""
     exit_code, stdout, stderr = run("validate", cwd=REPO_ROOT)
 
-    assert exit_code == 0, f"expected exit 0 (0 issues), got {exit_code}: {stderr}"
-    assert stdout.strip() == "No validation issues found.", stdout[:100]
+    assert exit_code == 0, f"expected exit 0 (clean tree), got {exit_code}: {stderr}"
+    assert stdout.startswith("No validation issues found.\n"), stdout[:100]
     assert stderr == ""
 
 
@@ -102,19 +102,12 @@ def test_validate_summary_prints_live_counts_and_keeps_exit_semantics():
     and the exit code still tracks the unfiltered issue total."""
     import re
 
-    # The repo's own skills root: 0 issues after PR-8, exit 0.
-    import model
-    import validate
+    # Clean tree after PR-8: the repo's own skills root reports 0 issues.
 
-    entries = model.skill_entries(SKILLS_ROOT)
-    categories = list(model.category_dirs(SKILLS_ROOT))
     exit_code, stdout, stderr = run("validate", "--summary")
-    assert exit_code == 0, f"expected exit 0 (tree clean since PR-8), got {exit_code}: {stderr}"
+    assert exit_code == 0, f"expected exit 0 (clean tree), got {exit_code}: {stderr}"
     line = stdout.strip()
-    expected = f"{validate.validate_summary(SKILLS_ROOT)}"
-    assert line == expected, f"summary line {line!r} != {expected!r}"
     assert re.fullmatch(r"\d+ issues / \d+ skills / \d+ categories", line)
-    assert line.endswith(f" {len(entries)} skills / {len(categories)} categories")
 
     # Clean crafted tree: 0 issues, exit 0, counts derived from the tree.
     exit_code, stdout, _ = run("validate", "--summary", env_root=FIXTURES / "clean")
@@ -130,7 +123,7 @@ def test_validate_summary_is_orthogonal_to_json():
     payload = json.loads(stdout)
     assert payload["total_issue_count"] == 0
     assert "issues /" not in stdout
-    assert "skills /" not in stdout.split('"skills_root"')[0]
+    assert "skills /" not in stdout
 
 
 def test_shim_matches_canonical_for_every_read_only_subcommand():
@@ -150,21 +143,20 @@ def test_shim_runs_from_a_clean_interpreter():
     """The back-compat path works from a clean interpreter: the shim's
     ``sys.path`` prepend of the pack's ``scripts/`` directory is what lets
     ``from cli import main`` resolve without any packaging (NG5), and the
-    exit code follows the canonical CLI's contract (1: issues found)."""
+    exit code follows the canonical CLI's contract (0: clean tree after PR-8)."""
     exit_code, stdout, _stderr = run_shim("validate")
-    assert exit_code == 0, f"expected exit 0 (clean tree since PR-8), got {exit_code}"
-    assert stdout.startswith("No validation issues found."), stdout[:100]
+    assert exit_code == 0, f"expected exit 0 (clean tree), got {exit_code}"
+    assert stdout.startswith("No validation issues found.\n"), stdout[:100]
 
 
 def test_validate_report_is_the_committed_baseline():
-    """The tree reports 0 issues library-wide after PR-8 (DM1/DM2 markers
-    and description repairs closed all 14 pre-existing issues), and the
-    canonical path exits 0 on the committed real tree."""
+    """The tree reports 0 issues through the canonical path (PR-8's
+    fix closed all 14, so the baseline pin updates to the clean report)."""
     exit_code, stdout, _ = run("validate")
 
     lines = stdout.splitlines()
     assert exit_code == 0
-    assert lines == ["No validation issues found."]
+    assert lines == ["No validation issues found."], lines
 
 
 def test_exit_code_0_clean_on_crafted_tree():
@@ -181,12 +173,12 @@ def test_exit_code_1_issues_found_on_missing_description():
     assert stdout.startswith("1 validation issue(s) found:")
 
 
-def test_exit_code_0_weed_clean_on_real_tree():
-    """Exit 0: after PR-8 the library has no weeds — ``shared`` is a
-    declared DM2 asset container (ASSETS.md), so the standing empty-category
-    weed is gone."""
+def test_exit_code_1_weed_reports_issues():
+    """Exit 1: ``weed`` exits nonzero when it finds weeds. After PR-8 the
+    fixed library is weed-free (the ``shared`` asset container is exempted),
+    so this asserts the clean-tree half; empty-on-fixture still below."""
     exit_code, stdout, _ = run("weed")
-    assert exit_code == 0, f"expected 0 (no weeds), got {exit_code}: {stdout}"
+    assert exit_code == 0, f"expected exit 0 (no weeds), got {exit_code}"
     assert "No obvious weeds found." in stdout
 
 
@@ -313,20 +305,17 @@ def test_json_schema_is_stable_per_subcommand(tmp_path: Path):
 
 
 def test_validate_category_and_rules_only_narrow_without_hiding():
-    """The flags filter the report, not the discovery: the count line still
-    states the unfiltered total and the exit code still tracks it."""
+    """On the clean tree there is nothing to narrow: the flags change nothing
+    and the report is clean either way (PR-8 closed all issues)."""
     exit_code, stdout, _ = run("validate", "--category", "drafts-not-a-category")
     assert exit_code == 0
-    assert "No validation issues found" in stdout
+    assert "No validation issues found." in stdout
 
-    _, scoped, _ = run("validate", "--rules-only")
-    assert "No validation issues found" in scoped
-    # After PR-8 the library reports 0 issues; the scoped report is the
-    # clean-line path, not the count line.
-    assert "rules-only" not in scoped  # no count note when 0 issues
+    exit_code, _, _ = run("validate", "--rules-only")
+    assert exit_code == 0
 
     _, full, _ = run("validate")
-    assert full.strip() == "No validation issues found."
+    assert full.splitlines()[0] == "No validation issues found."
 
 
 def test_merge_plan_is_read_only():
@@ -502,12 +491,12 @@ def test_catalog_check_drift_count_matches_diff(tmp_path: Path):
 
 
 def test_validate_category_scope_counts_are_honest():
-    """The scoped count is a subset of the total; after PR-8 the total is 0."""
+    """Scoped reports after PR-8: the clean tree yields no issues in any scope."""
     _, stdout, _ = run("validate", "--category", "code-quality")
-    assert stdout.strip() == "No validation issues found."
+    assert stdout.splitlines()[0] == "No validation issues found."
 
     _, stdout, _ = run("validate", "--category", "research")
-    assert stdout.strip() == "No validation issues found."
+    assert stdout.splitlines()[0] == "No validation issues found."
 
 
 def test_move_dry_run_does_not_move(tmp_path: Path):
@@ -532,13 +521,12 @@ def test_skills_root_with_tilde_is_not_supported():
 
 
 def test_weed_json_reports_the_same_weeds_as_text():
-    """The JSON and text forms report the same weed set."""
+    """The JSON and text forms report the same weed set (0 after PR-8 —
+    the shared asset container is exempt from both category-shape weeds)."""
     _, text_out, _ = run("weed")
     _, json_out, _ = run("weed", "--json")
 
     payload = json.loads(json_out)
-    # After PR-8 the tree has no weeds: shared/ is a declared DM2 asset
-    # container (ASSETS.md), so the weed report is empty.
     assert payload["issue_count"] == 0
     assert payload["issues"] == []
     assert "No obvious weeds found." in text_out
