@@ -26,6 +26,7 @@ All notable changes to this project are documented in this file.
   - Cache: `~/.cache/<tool>/`
   - State: `~/.local/state/<tool>/`
 - **Install scripts rewritten**: `install_blender.py`, `install_vision.py`, `install_qwen_web.py` now create venv in XDG data directory using pip (not uv run).
+- **Skill pack v2 surface map**: packs renamed `create-skills` to `skill-authoring`, `skill-librarian` to `skill-library`, and `prune-skills` to `skill-lifecycle`; `skill-manager` merged into `skill-library`; `howto-generator` moved to `skills/aes-architecture/`; pack gains a `README.md` entrypoint.
 - **Uninstall scripts standardized**: All 4 internal tools use same XDG pattern with `TOOL_NAME`, `BIN_DIR`, `DATA_DIR`, `CONFIG_DIR`, `CACHE_DIR`, `STATE_DIR`.
 - **lint-arwaky install consolidated**: Merged 4 install scripts (`install.local.sh`, `install.remote.sh`, `install.global.sh`, `install.dev.sh`) into single `install.sh` with `--local`, `--global`, `--remote`, `--dev` flags.
 - **Venv symlinks moved to init**: `.venv`/`venv` symlinks in source directories are now created during `<tool> init`, not during install.
