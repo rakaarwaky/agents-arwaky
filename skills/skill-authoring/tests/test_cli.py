@@ -109,6 +109,23 @@ def test_shim_matches_canonical_for_every_read_only_subcommand():
         )
 
 
+def test_shim_runs_from_a_clean_interpreter():
+    """The back-compat path works from a clean interpreter: the shim's
+    ``sys.path`` prepend of the pack's ``scripts/`` directory is what lets
+    ``from cli import main`` resolve without any packaging (NG5), and the
+    exit code follows the canonical CLI's contract (1: issues found)."""
+    command = [sys.executable, str(SHIM), "validate"]
+    completed = subprocess.run(
+        command,
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 1, f"expected exit 1 (issues found), got {completed.returncode}: {completed.stderr}"
+    assert completed.stdout.startswith("14 validation issue(s) found:\n"), completed.stdout[:100]
+
+
 def test_validate_report_is_the_committed_baseline():
     """The 14 issues / 15 lines the tree reports today hold through the
     canonical path (hard constraint: read-only stdout is unchanged)."""

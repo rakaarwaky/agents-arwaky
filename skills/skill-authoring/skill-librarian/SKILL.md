@@ -21,23 +21,29 @@ The helper script resolves the skills root from its own file location. Do not ha
 
 ## Helper script
 
-Run the helper from the skills root:
+The helper lives in the pack script package; the canonical form is by path:
 
 ```bash
-python3 skill-authoring/skill-librarian/scripts/librarian.py COMMAND
+python3 skills/skill-authoring/scripts/cli.py COMMAND
+```
+
+The back-compat path keeps working and delegates to the same CLI:
+
+```bash
+python3 skills/skill-authoring/skill-librarian/scripts/librarian.py COMMAND
 ```
 
 Examples:
 
 ```bash
-python3 skill-authoring/skill-librarian/scripts/librarian.py catalog
-python3 skill-authoring/skill-librarian/scripts/librarian.py discover "github pull request"
-python3 skill-authoring/skill-librarian/scripts/librarian.py validate
-python3 skill-authoring/skill-librarian/scripts/librarian.py repair
-python3 skill-authoring/skill-librarian/scripts/librarian.py weed
-python3 skill-authoring/skill-librarian/scripts/librarian.py move automation/file-renamer productivity
-python3 skill-authoring/skill-librarian/scripts/librarian.py new-category data-engineering "Skills for pipelines, datasets, and data processing"
-python3 skill-authoring/skill-librarian/scripts/librarian.py archive old-skill
+python3 skills/skill-authoring/scripts/cli.py catalog
+python3 skills/skill-authoring/scripts/cli.py discover "github pull request"
+python3 skills/skill-authoring/scripts/cli.py validate
+python3 skills/skill-authoring/scripts/cli.py repair
+python3 skills/skill-authoring/scripts/cli.py weed
+python3 skills/skill-authoring/scripts/cli.py move automation/file-renamer productivity
+python3 skills/skill-authoring/scripts/cli.py new-category data-engineering "Skills for pipelines, datasets, and data processing"
+python3 skills/skill-authoring/scripts/cli.py archive old-skill
 ```
 
 Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML parsing. Without PyYAML, the script uses a minimal frontmatter parser.
