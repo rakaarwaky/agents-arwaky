@@ -311,18 +311,36 @@ def load_catalog_skill_rows(skills_root: Path) -> list[dict[str, str]]:
     return rows
 
 
+#: The placeholder ``render_catalog`` emits for an empty skill description.
+#: Parsed rows carry this literal string; source entries have `""` —
+#: the round-trip comparison normalizes it back so description-less
+#: skills don't false-positive as drift.
+_MISSING_DESCRIPTION_PLACEHOLDER = "(missing description)"
+
+
 def _row_cells(rows: list[dict[str, str]]) -> list[tuple[str, str, str, str]]:
-    """The comparable cell projection of parsed catalog rows."""
+    """The comparable cell projection of parsed catalog rows.
+
+    The ``(missing description)`` placeholder ``render_catalog`` emits for
+    empty descriptions is normalized to `""` so the projection matches
+    ``_entry_cells`` (the source-tree side of the §9.2 comparison).
+    """
     return [
-        (row["skill"], row["category"], row["description"], row["path"]) for row in rows
+        (
+            row["skill"],
+            row["category"],
+            "" if row["description"] == _MISSING_DESCRIPTION_PLACEHOLDER else row["description"],
+            row["path"],
+        )
+        for row in rows
     ]
 
 
 def _entry_cells(entries: list[model.SkillEntry]) -> list[tuple[str, str, str, str]]:
     """The comparable cell projection of source tree entries (§9.2 ground truth).
 
-    Empty descriptions and the render placeholder ``(missing description)``
-    are normalized to `""` so the projection matches the parser's output.
+    Empty descriptions project to `""` — the form the parser normalizes
+    back to when it reads the ``(missing description)`` placeholder.
     """
     return [
         (

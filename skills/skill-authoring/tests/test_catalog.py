@@ -250,6 +250,27 @@ def test_crafted_pipe_description_fails_closed_as_drift(tmp_path: Path):
         catalog.load_catalog_skill_rows(root)
 
 
+def test_empty_description_skill_reports_in_sync(tmp_path: Path):
+    """MF-2 regression: a skill whose frontmatter has no ``description:`` key
+    renders the ``(missing description)`` placeholder. The round-trip
+    comparison normalizes that placeholder back to the empty source
+    description, so an in-sync catalog with a description-less skill
+    reports in_sync True (CLI ``catalog --check`` would exit 0)."""
+    root = tmp_path / "skills"
+    (root / "cat").mkdir(parents=True)
+    (root / "cat" / "DESCRIPTION.md").write_text("---\ndescription: A cat\n---\n")
+    (root / "cat" / "a").mkdir()
+    (root / "cat" / "a" / "SKILL.md").write_text("---\nname: a\n---\n# a\n")
+    catalog.rebuild_catalog(root)
+
+    in_sync, summary, _ = catalog.check_catalog(root)
+    assert in_sync is True, f"empty-description tree must be in sync: {summary}"
+
+    # CLI-level: the same tree exits 0 through the canonical subcommand.
+    exit_code, stdout, _ = _run_cli("catalog", "--check", env_root=root)
+    assert exit_code == 0, f"expected exit 0, got {exit_code}: {stdout}"
+
+
 def test_mutating_commands_rebuild_catalog_in_same_invocation(crafted_tree: Path):
     """DM3: every mutating command rebuilds the catalog in the same call."""
     tree = crafted_tree
