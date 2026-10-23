@@ -52,4 +52,4 @@ The restated rule copies PR-3 replaced with a link to `skill-rules.md`:
 - `create-skills/references/creation-workflow.md` — the name alphabet in Step 1
 - `skill-librarian/SKILL.md` — the category rules in the body
 
-`_rules/skill_rules.py` is the executable home of every rule and the SSOT the checker (`scripts/validate.py`) reads; `skill-librarian/scripts/librarian.py` is only the back-compat shim onto the pack CLI.
+`_rules/skill_rules.py` is the SSOT the checker (`scripts/validate.py`) reads; `skill-librarian/scripts/librarian.py` is only the back-compat shim onto the pack CLI.
