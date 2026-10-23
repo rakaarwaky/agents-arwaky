@@ -257,17 +257,21 @@ phase("Verify");
 let verdicts = [];
 let j = 0;
 for g in groups {
-    let vp = "Verify the feature \"" + g.name + "\" in " + repo_root
-        + " against git and GitHub. ZERO TRUST: no state claim — including Done and Released — is accepted on doc text alone. "
-        + "For every row: "
-        + "(a) gh issue list --state open --search \"<row id> in:title\" --json number,title; "
-        + "(b) gh pr list --state merged --search \"<row id>\" --json number,mergedAt. "
-        + "Proof rules for Done/Released rows: commit claim → git merge-base --is-ancestor <sha> HEAD (an "
-        + "unreachable or rebased-away hash is non-proof); gate command claim → re-run the exact command in the "
-        + "repo worktree and record exit status plus a one-line output excerpt; PR claim → gh pr view <number> "
-        + "--json state,mergedAt must report MERGED; release claim → gh release view <tag> must succeed and "
-        + "git rev-parse <tag> must resolve. A Done/Released row whose evidence fails any check is verdict "
-        + "\"unverified\" with the failed check named. "
+    let vp = "Verify the feature \"" + g.name + "\" against ACTUAL CODE ONLY. ZERO TRUST: no state claim "
+        + "— including Done and Released — is accepted on doc text, git history, or GitHub issues/PRs/releases. "
+        + "The only evidence that counts is the source code and test files in the feature's own tree. "
+        + "For every row in the feature's BACKLOG: "
+        + "(1) Read the row's item text and its Actual Condition cell. "
+        + "(2) Open the files under " + g.dir + "/src/ and " + g.dir + "/tests/ that the row's description refers to "
+        + "(use the FR id, the row title, and the described behavior to locate them). "
+        + "(3) Confirm the described behavior is actually implemented in the current code: "
+        + "the function/class/flag/config exists, the logic matches the claim, and at least one test exercises it. "
+        + "A row claiming Done/Released passes only if the code and tests you just read prove it. "
+        + "A hash in the row's evidence cell is NOT proof; a merged-PR number is NOT proof; a release tag is NOT proof. "
+        + "If the code does not implement what the row claims, verdict is \"unverified\" and the evidence field "
+        + "names the specific file and the missing or wrong behavior. "
+        + "For tracking-issue dedupe: gh issue list --state open --search \"<row id> in:title\" --json number,title "
+        + "(an open issue makes the verdict \"exists\"; nothing open makes it \"open\"). "
         + "Roll-up reconciliation: recompute the feature's effective state from its backlog rows — worst state "
         + "wins, ranked Blocked > In Progress > Refinement > Ready > Idea > QA > In Review > Deferred > Done > "
         + "Released; any non-Done row makes the feature non-Done. If the roadmap roll-up claims Done/Released "
@@ -275,10 +279,12 @@ for g in groups {
         + "\"rollup_mismatch\" for the roll-up row. "
         + "FR orphan check: every FR id declared in the FRD must be cited by at least one backlog row and "
         + "vice versa; either direction failing is verdict \"fr_orphan\" for that FR id. "
-        + "Verdicts per row: open (no open issue, work unfinished) | exists (open issue #N tracks it) | "
-        + "doc_sync (work provably done but the doc still disagrees) | unverified (Done/Released claim whose "
-        + "evidence did not reproduce) | skip (Done/Released with fully reproduced evidence — the only skip "
-        + "path) | fr_orphan. Cite the exact command and result in evidence. No writes, no issue creation.";
+        + "Verdicts per row: open (code does not implement the work, no open issue tracks it) | "
+        + "exists (an open issue #N already tracks this row — cite the issue number) | "
+        + "doc_sync (code implements the work but the doc still reports an incomplete state) | "
+        + "unverified (Done/Released claim whose code evidence is absent or does not match the claim) | "
+        + "skip (Done/Released with code evidence that fully confirms it — the only skip path) | fr_orphan. "
+        + "Cite the file paths and line ranges you read in the evidence field. No writes, no issue creation.";
     let res = agent(vp, #{
         label: "verify:" + g.name,
         capability_mode: "read-only",

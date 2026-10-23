@@ -30,12 +30,10 @@ No state value in any spec document is trusted. A row marked `Done`, `QA`, or
 `Released` is a **claim**, never a fact. Every row — whatever its state — is verified
 against live evidence before it is allowed to be skipped:
 
-- A `Done` row owes **reproducible evidence**: a command plus a commit hash that is an
-  ancestor of `HEAD`. The verifier re-runs the cited command and re-checks the hash.
-  A gate string copied from an older commit is proof of nothing.
-- A `Released` row owes a `gh release view <tag>` hit and a tag that resolves in git.
+- A `Done` row owes proof that the described behavior is actually implemented in the feature's current source code (`<feature>/src/`) and exercised by at least one test in `<feature>/tests/`.
+- A `Released` row owes proof that the described behavior is implemented AND the feature's code shows no pending work for it; a release tag in the doc's evidence cell is not proof.
 - A `QA` / `In Review` row owes the fr row it leans on; the row stays `incomplete` and
-  the tracker re-checks whether the work has since landed (merged PR / passing gate).
+  the tracker checks whether the work has since landed by reading the actual source, not by checking for a merged PR.
 - Evidence that does not reproduce flips the row to `unverified` and produces a
   `[DOC-SYNC]` issue. The doc never gets the benefit of the doubt.
 
@@ -122,9 +120,9 @@ the feature as the unit of work, and every FR ID in the feature is checked both 
 | Idea, Refinement, Ready, In Progress, Blocked | `incomplete` | tracking issue |
 | In Review, QA | `incomplete` | tracking issue, body notes the current gate |
 | Deferred | `incomplete` | tracking issue, label `deferred`, body carries the reason |
-| Done / Released whose cited evidence reproduces (command re-run passes, commit is an ancestor of `HEAD`, release resolves) | `skip` | no issue, ledger records the reproduced evidence |
-| Done / Released with no cited evidence, or whose evidence does not reproduce | `unverified` | `[DOC-SYNC]` issue demanding proof |
-| Any incomplete state where the work is provably finished (merged PR or passing gate found via `gh` / `git log`) | `doc_sync` | doc-update issue |
+| Done / Released whose claimed behavior is confirmed present in the feature's current source code and exercised by at least one test | `skip` | no issue, ledger records the reproduced evidence |
+| Done / Released claim where the described behavior is absent, incomplete, or untested in the feature's source tree | `unverified` | `[DOC-SYNC]` issue demanding proof |
+| Any incomplete state where the work is present and tested in the source code but the doc still reports an incomplete state | `doc_sync` | doc-update issue |
 | FR ID declared in FRD with no backlog row (or vice versa) | `fr_orphan` | tracking issue on the feature |
 
 There is no path where a `Done` or `Released` marker alone suppresses an issue. Doc
@@ -132,19 +130,15 @@ text is the hypothesis; live evidence is the verdict.
 
 ### Evidence rules
 
-Evidence is a command plus an artifact, both reproduced by the verifier:
-
 | Claim shape | Verification |
 | --- | --- |
-| commit hash in row | `git merge-base --is-ancestor <sha> HEAD` (or `git cat-file -e <sha>`) in the repo root — the hash must be reachable from the current tip |
-| gate command in row | re-run the exact command in the repo worktree; capture exit status and one-line output; a failing or erroring run is non-proof |
-| merged PR | `gh pr view <number> --json state,mergedAt` must report `MERGED` |
-| release tag | `gh release view <tag>` must succeed and `git rev-parse <tag>` must resolve |
-| test count | re-run the cited pytest invocation; the count must match the row's number |
-| "verified at commit X" with a date | the commit date must match the cited date and the command above must still reproduce at `HEAD` |
+| behavior described in row | locate the implementing file under `<feature>/src/`; confirm the described function/flag/class/config exists and its logic matches the claim |
+| test coverage claimed | locate the test in `<feature>/tests/`; confirm it exercises the described behavior and is not a trivial or disabled test |
+| commit hash in row | hash is NOT proof; ignore it and verify the code directly |
+| merged PR number in row | PR number is NOT proof; verify the code directly |
+| release tag in row | tag is NOT proof; verify the code directly |
 
-A row citing evidence at a commit that is **not** an ancestor of `HEAD` (a squashed or
-rebased-away hash) is `unverified` even if the hash exists.
+The verifier reads source files, not git history. A hash, PR number, or tag cited in a row is context, not evidence.
 
 ### Roll-up double-check
 
@@ -221,41 +215,29 @@ Wait on all handles. Collect rows; dedupe on `(id, source_doc)`.
 ### Step 3 — classify with zero trust
 
 Apply the classification table locally. Every `Done` / `Released` / `QA`-gate row goes
-to the verifier as a **proof demand**, not as a skip candidate. Any row whose `Updated`
-date predates the newest commit touching its source doc is a stale candidate:
-
-```bash
-git -C <repo-root> log -1 --format=%cd --date=short -- <source_doc>
-```
+to the verifier as a **proof demand**, not as a skip candidate. A row whose `Updated`
+date is older than 14 days is a staleness flag; the verifier re-reads the code regardless.
 
 Compute the per-feature effective state here, before verification, so the verifier can
 compare it against the roll-up claim.
 
 ### Step 4 — verify (read-only, mandatory for every row)
 
-There is no skip path that avoids this step. For **every** row — incomplete, Done,
-Released, or stale — the verifier:
+There is no skip path that avoids this step. The verifier:
 
-```bash
-gh issue list --state open --search "<row id> in:title" --json number,title
-gh pr list --state merged --search "<row id>" --json number,title,mergedAt
-git -C <repo-root> merge-base --is-ancestor <cited sha> HEAD
-```
-
-and, when the row cites a gate command, re-runs that command in the repo worktree and
-records exit status plus a one-line output excerpt. A `Done` row whose evidence cell is
-empty, whose hash is unreachable, or whose gate fails on re-run is `unverified`.
+1. For each row in the feature's backlog, reads the row's item text and Actual Condition.
+2. Opens the files under `<feature>/src/` and `<feature>/tests/` that the row refers to.
+3. Confirms the described behavior is implemented and tested.
 
 Verdicts:
 
 | Verdict | Meaning | Action |
 | --- | --- | --- |
-| `open` | no open issue for this row | create a tracking issue |
-| `exists` | open issue already tracks it | comment freshness, no new issue |
-| `doc_sync` | work is done (merged PR / release) but the doc still says otherwise | create a `[DOC-SYNC]` issue |
-| `unverified` | Done/Released claim whose evidence does not reproduce | create a `[DOC-SYNC]` issue naming the failed check |
-| `skip` | Done/Released with **reproduced** evidence — the only skip path | ledger only, evidence recorded |
-| `rollup_mismatch` | roll-up state disagrees with the feature's effective state | create a `[DOC-SYNC]` issue on the roll-up row |
+| `open` | code does not implement it, no existing tracking issue | create a tracking issue |
+| `doc_sync` | code implements it, doc says otherwise | create a `[DOC-SYNC]` issue |
+| `unverified` | Done/Released claim, code does not match | create a `[DOC-SYNC]` issue naming the failed check |
+| `skip` | Done/Released, code fully confirms it | ledger only, evidence recorded |
+| `fr_orphan` | FR id with no backlog row | tracking issue on the feature |
 
 ### Step 5 — open modular issues
 
@@ -298,8 +280,7 @@ Source: `<source_doc>` · row `<ROW-ID>` · scanned by `/task-tracker` on `<date
 > <verbatim Actual Condition / row text>
 
 ## Verification
-<for doc_sync / unverified: the exact gh/git command run and its result>
-<for incomplete: the open-issue check result (none found / issue #N already open)>
+<the file paths and line ranges read, and whether the code confirms or contradicts the row's claim>
 
 ## Roll-up check
 <feature>: roll-up claims <state>; backlog effective state <effective state>;
@@ -343,7 +324,7 @@ the four personas, defined in `personas/task-tracker-*.toml`:
 | --- | --- | --- |
 | `task-tracker-scanner` | read-only | one per feature: state table + rows + FR set + roll-up row as JSON |
 | `task-tracker-classifier` | read-only | zero-trust buckets, effective state per feature, orphan flags |
-| `task-tracker-verifier` | read-only + git + GitHub API | re-runs cited gates, re-checks hashes, dedupe, verdicts |
+| `task-tracker-verifier` | read-only (source files + tests only) | re-runs cited gates, re-checks hashes, dedupe, verdicts |
 | `task-tracker-issuer` | write (GitHub issues only) | creates / comments issues |
 
 ## Completion criteria
@@ -351,7 +332,7 @@ the four personas, defined in `personas/task-tracker-*.toml`:
 - [ ] Every row from every in-scope doc appears in the ledger with a class.
 - [ ] Every `incomplete` row maps to exactly one open issue (created, commented, or pre-existing).
 - [ ] Every `doc_sync` and every `unverified` row maps to an open `[DOC-SYNC]` issue.
-- [ ] Every `Done` / `Released` row shows reproduced evidence in the ledger, or is `unverified`.
+- [ ] Every `Done` / `Released` row shows code evidence (file + line + test) in the ledger, or is `unverified`.
 - [ ] Every feature roll-up row is reconciled against its backlog; each mismatch is an issue.
 - [ ] Every FR ID declared in an FRD has a cited backlog equivalent, or is an `fr_orphan` issue.
 - [ ] No `skip` row dropped silently — each has its reproduced evidence cited in the ledger.
