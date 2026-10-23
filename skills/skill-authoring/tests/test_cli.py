@@ -15,6 +15,14 @@ Covers what the refactor promised:
 
 Subprocess-based by design: the contract is about how the scripts behave
 when invoked by path from the repo root, which is not observable in-process.
+
+Regression guard: a session-scoped autouse fixture (``_clean_skills_root``)
+restores the pristine skills tree after the suite completes. If a test or
+a manual run of ``repair --apply`` / ``catalog`` pollutes the worktree
+(e.g. creates an untracked ``skills/shared/DESCRIPTION.md`` or regenerates
+``skills/CATALOG.md``), the fixture uses ``git checkout`` to restore the
+tracked catalog and deletes the untracked description file — so the next
+run starts from a clean baseline.
 """
 
 from __future__ import annotations
@@ -24,6 +32,8 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 PACK_ROOT = Path(__file__).resolve().parent.parent
 
@@ -82,6 +92,40 @@ def run_shim(*args: str) -> tuple[int, str, str]:
         text=True,
     )
     return completed.returncode, completed.stdout, completed.stderr
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _clean_skills_root():
+    """Regression guard: restore the pristine skills tree after the suite.
+
+    The tests that drive the canonical CLI without ``--skills-root`` run
+    against the repo's own ``skills/`` directory. If a test (or a manual
+    run of ``repair --apply`` / ``catalog``) leaves behind an untracked
+    ``skills/shared/DESCRIPTION.md`` or a regenerated ``skills/CATALOG.md``,
+    the 14-issue baseline the suite pins shifts and seven tests fail on the
+    next run. This fixture uses ``git checkout`` to restore the two files
+    from HEAD after the suite completes, guaranteeing a pristine state
+    regardless of what the tests did.
+    """
+    yield
+
+    # Restore tracked files from HEAD; remove any untracked file a test created.
+    git_checkout = [
+        "git", "checkout", "--",
+        "skills/CATALOG.md",
+    ]
+    subprocess.run(git_checkout, cwd=str(REPO_ROOT), capture_output=True)
+
+    shared_desc = SKILLS_ROOT / "shared" / "DESCRIPTION.md"
+    if shared_desc.exists():
+        # Only delete if it's untracked (a test-created side effect).
+        is_tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", str(shared_desc.relative_to(REPO_ROOT))],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+        ).returncode == 0
+        if not is_tracked:
+            shared_desc.unlink()
 
 
 def test_canonical_form_runs_from_repo_root():

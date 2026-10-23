@@ -21,23 +21,35 @@ The helper script resolves the skills root from its own file location. Do not ha
 
 ## Helper script
 
-Run the helper from the skills root:
+**Canonical path (preferred for new code):**
 
 ```bash
-python3 skill-authoring/skill-librarian/scripts/librarian.py COMMAND
+python3 skills/skill-authoring/scripts/cli.py COMMAND
 ```
 
-Examples:
+**Back-compat shim (existing code continues to work):**
 
 ```bash
-python3 skill-authoring/skill-librarian/scripts/librarian.py catalog
-python3 skill-authoring/skill-librarian/scripts/librarian.py discover "github pull request"
-python3 skill-authoring/skill-librarian/scripts/librarian.py validate
-python3 skill-authoring/skill-librarian/scripts/librarian.py repair
-python3 skill-authoring/skill-librarian/scripts/librarian.py weed
-python3 skill-authoring/skill-librarian/scripts/librarian.py move automation/file-renamer productivity
-python3 skill-authoring/skill-librarian/scripts/librarian.py new-category data-engineering "Skills for pipelines, datasets, and data processing"
-python3 skill-authoring/skill-librarian/scripts/librarian.py archive old-skill
+python3 skills/skill-authoring/skill-librarian/scripts/librarian.py COMMAND
+```
+
+The shim delegates to the canonical path. Both entrypoints print byte-identical stdout for all read-only subcommands.
+
+### Examples
+
+```bash
+# Canonical form (preferred)
+python3 skills/skill-authoring/scripts/cli.py catalog
+python3 skills/skill-authoring/scripts/cli.py discover "github pull request"
+python3 skills/skill-authoring/scripts/cli.py validate
+python3 skills/skill-authoring/scripts/cli.py repair
+python3 skills/skill-authoring/scripts/cli.py weed
+python3 skills/skill-authoring/scripts/cli.py move automation/file-renamer productivity
+python3 skills/skill-authoring/scripts/cli.py new-category data-engineering "Skills for pipelines, datasets, and data processing"
+python3 skills/skill-authoring/scripts/cli.py archive old-skill
+
+# Back-compat shim (same behavior)
+python3 skills/skill-authoring/skill-librarian/scripts/librarian.py catalog
 ```
 
 Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML parsing. Without PyYAML, the script uses a minimal frontmatter parser.
@@ -52,6 +64,13 @@ Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML pa
 - `move SKILL TARGET_CATEGORY`: move a skill folder to another category, then rebuild the catalog.
 - `new-category NAME DESCRIPTION`: create a category folder and write its `DESCRIPTION.md`.
 - `archive SKILL`: move a skill into `_archive/` and disable its `SKILL.md`.
+
+### Exit codes
+
+- `0`: clean (no issues found, or read-only success)
+- `1`: issues found (validation errors, weeds present)
+- `2`: usage error (bad arguments, missing required input, nonexistent skill)
+- `3`: catalog drift (`catalog --check` only)
 
 ## Discovery mode
 
