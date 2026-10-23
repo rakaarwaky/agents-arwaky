@@ -1,11 +1,11 @@
 let meta = #{
     name: "task-tracker",
-    description: "Zero-trust: map AES spec states into modular GitHub tracking issues, one subagent per feature",
+    description: "Zero-trust: map AES spec states into modular GitHub tracking issues, one subagent per feature, every issue closing to a row advance to Done",
     phases: [
         #{ title: "Discover", detail: "one agent enumerates features and their spec docs" },
         #{ title: "Scan", detail: "one scanner subagent per feature, each owning its FR-id set" },
         #{ title: "Verify", detail: "one verifier subagent per feature; every Done/Released row is re-checked, roll-up reconciled" },
-        #{ title: "Issue", detail: "batched modular issue creation, dry-run default" },
+        #{ title: "Issue", detail: "batched modular issue creation, one Closing condition per body, dry-run default" },
     ],
 };
 
@@ -61,22 +61,24 @@ let verdict_schema = #{
         "verdicts": #{
             "type": "array",
             "items": #{
-                "type": "object", "required": ["row", "verdict", "evidence"],
+                "type": "object", "required": ["row", "verdict", "evidence", "closing_condition"],
                 "properties": #{
                     "row": #{ "type": "string" },
                     "verdict": #{ "type": "string" },
                     "evidence": #{ "type": "string" },
+                    "closing_condition": #{ "type": "string" },
                 },
             },
         },
         "rollup_verdicts": #{
             "type": "array",
             "items": #{
-                "type": "object", "required": ["feature", "verdict"],
+                "type": "object", "required": ["feature", "verdict", "closing_condition"],
                 "properties": #{
                     "feature": #{ "type": "string" },
                     "verdict": #{ "type": "string" },
                     "evidence": #{ "type": "string" },
+                    "closing_condition": #{ "type": "string" },
                 },
             },
         },
@@ -94,6 +96,7 @@ let issue_schema = #{
                     "action": #{ "type": "string" },
                     "url": #{ "type": "string" },
                     "number": #{ "type": "string" },
+                    "closing_condition": #{ "type": "string" },
                 },
             },
         },
@@ -281,7 +284,15 @@ for g in groups {
         + "doc_sync (code implements the work but the doc still reports an incomplete state) | "
         + "unverified (Done/Released claim whose code evidence is absent or does not match the claim) | "
         + "skip (Done/Released with code evidence that fully confirms it — the only skip path) | fr_orphan. "
-        + "Cite the file paths and line ranges you read in the evidence field. No writes, no issue creation.";
+        + "Cite the file paths and line ranges you read in the evidence field. "
+        + "CRITICAL: every verdict object MUST include a non-empty closing_condition field — "
+        + "the exact observable check whose fulfillment advances the row to Done. "
+        + "For open: the implementation path + test file + verification command that proves the work. "
+        + "For doc_sync: the exact doc edit (file, cell, new state value) that aligns the doc with reality. "
+        + "For unverified: the code change + test that closes the failed verification check. "
+        + "For rollup_mismatch: which side to correct (advance backlog rows or lower roll-up) and the evidence. "
+        + "For fr_orphan: the backlog row to add that cites the orphan FR, and the state it takes. "
+        + "No writes, no issue creation.";
     let res = agent(vp, #{
         label: "verify:" + g.name,
         capability_mode: "read-only",
@@ -304,6 +315,16 @@ log("verified " + verdicts.len().to_string() + " verdicts across " + groups.len(
 
 // --- Phase 4: Issue (modular, batched, dry-run default) ---
 phase("Issue");
+
+// Validate: every actionable verdict must have a non-empty closing_condition
+let missing_cc = 0;
+for v in verdicts {
+    if v.verdict != "skip" && (v.closing_condition == () || v.closing_condition == "") {
+        missing_cc += 1;
+        log("WARNING: row " + (v.row != () ? v.row : "roll-up") + " has no closing_condition — cannot advance to Done");
+    }
+}
+
 let actionable = [];
 for v in verdicts {
     if v.verdict == "open" || v.verdict == "doc_sync" || v.verdict == "unverified"
@@ -321,7 +342,8 @@ for t in 0..total_ibatches {
     for u in lo..hi {
         let entry = actionable[u];
         let row_id = if entry.row != () { entry.row } else { entry.feature + " roll-up" };
-        row_list += row_id + " (" + entry.verdict + ": " + entry.evidence + "), ";
+        row_list += row_id + " (" + entry.verdict + ": " + entry.evidence
+            + ", closing_condition: " + entry.closing_condition + "), ";
     }
     row_list = row_list.sub_string(0, row_list.len() - 2);
     let dry_word = if dry_run {
@@ -338,11 +360,13 @@ for t in 0..total_ibatches {
         + "<effective state>. "
         + "For verdict fr_orphan: title [DOC-SYNC] <feature> FR <fr id> — has no backlog row. "
         + "Body per SKILL.md: field table, verbatim task, verbatim evidence, Verification section with the "
-        + "exact commands run, Roll-up check section, and the 'Tracking only' footer. "
+        + "exact commands run, Roll-up check section, a '## Closing condition' section carrying "
+        + "the closing_condition verbatim (Check / Advance / Proof), and the 'Tracking only' footer. "
+        + "A created issue with no Closing condition section is a violation — do not emit it. "
         + "Labels: " + state_label + ", state:<state>, p0/p1/p2, plus doc-sync for doc_sync/unverified/"
         + "rollup_mismatch and deferred for Deferred rows. "
         + "For verdict exists: append a freshness comment to the recorded issue, action commented. "
-        + "Return {row, action, url, number} per row. No branch, no PR, no code edit, no file write. "
+        + "Return {row, action, url, number, closing_condition} per row. No branch, no PR, no code edit, no file write. "
         + dry_word;
     let res = agent(ip, #{
         label: "issue-batch-" + (t + 1),
@@ -356,10 +380,19 @@ for t in 0..total_ibatches {
 
 let created_count = created.len();
 let mode_str = if dry_run { "dry-run" } else { "live" };
+// Invariant check: count issued rows that carry a closing_condition
+let cc_issued = 0;
+for c in created {
+    if c.closing_condition != () && c.closing_condition != "" { cc_issued += 1; }
+}
+let invariant_ok = (cc_issued == created_count) && (missing_cc == 0);
 let complete_msg = "rows scanned: " + all_rows.len().to_string()
     + " | verdicts: " + verdicts.len().to_string()
     + " | actionable: " + actionable.len().to_string()
     + " | issued: " + created_count.to_string()
+    + " | with_closing_condition: " + cc_issued.to_string()
+    + " | missing_closing_condition: " + missing_cc.to_string()
+    + " | invariant_ok: " + invariant_ok.to_string()
     + " | mode: " + mode_str;
 log(complete_msg);
 complete(#{

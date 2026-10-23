@@ -2,27 +2,33 @@
 name: task-tracker
 description: >
   Zero-trust task tracker: maps AES spec documents (PRD, ROADMAP, BACKLOG, FRD, DESIGN,
-  plus module and package feature docs) into modular, deduplicated GitHub tracking
-  issues. Never trusts any doc claim — Done, QA, and Released rows are re-verified
-  against live git and GitHub evidence exactly like incomplete rows. Splits work into
-  one subagent per feature, keyed by the FR IDs each feature owns (every FR ID in a
-  roadmap or FRD has a backlog equivalent), double-checks the ROADMAP feature roll-up
-  against each feature's backlog reality, and opens one issue per finding — tracking
-  only, with no implementation. Use when the user runs /task-tracker, asks to map
-  backlog tasks to GitHub issues, or asks for doc-sync tracking.
+  plus module and package feature docs) into modular GitHub tracking issues. Never trusts
+  any doc claim — Done, QA, and Released rows are re-verified against live source and test
+  evidence. Every issue carries a closing-condition that, when fulfilled, advances the ROW
+  and ALL ITS FR IDs to the next state. Intended invariant: fixing ALL open issues equals
+  ALL FR states = Done (or Released where proven). Use when the user runs /task-tracker,
+  asks to map backlog tasks to GitHub issues, or asks for a zero-trust audit of spec states.
 when-to-use: >
   /task-tracker, map incomplete tasks to GitHub issues, create tracking issues from
-  ROADMAP or BACKLOG, audit document states against reality, doc-sync issues for stale
-  spec documents, verify Done/QA claims in a roadmap
+  ROADMAP or BACKLOG, verify Done/QA claims against code, ensure every issue carries
+  a closing-condition that advances the roadmap state.
 argument-hint: <repo-root> [--dry-run]
 ---
 
-# Task Tracker — zero-trust spec audit → modular GitHub tracking issues
+# Task Tracker — zero-trust spec audit → modular GitHub tracking issues with closing conditions
 
 One run covers one repo. It reads the spec-document states, **proves** which rows are
 real work and which are fiction, and opens a modular issue per finding. The run outputs
 GitHub issues only. It never edits source code, never creates a branch, never opens a
-PR.
+PR. Every issue it opens carries one closing condition: the check whose fulfillment
+advances that issue's row to `Done` in its source document.
+
+## Core invariant (read first)
+
+**Fixing every open issue created by this run must make all tracked FR states = Done.**
+This is the contract. If any issue cannot be made to advance its row to `Done` on close,
+the run report must flag it as a structural gap (`pending-infra`) so the invariant breach
+is visible.
 
 ## Zero-trust policy (read first)
 
@@ -163,6 +169,49 @@ its backlog rows:
 The same reconciliation runs on the doc-level `State:` line of a backlog-owned feature
 backlog.
 
+## Closing contract
+
+Every issue a run creates carries exactly one `## Closing condition` section. A tracking
+issue that names no path to `Done`, or whose path cannot be checked from the body alone,
+is incomplete on creation, and the run does not count it until the section is present.
+
+The section holds three fields:
+
+1. **Check** — one observable predicate: the file paths, the behavior that must exist
+   there, and the test command that must pass. One issue, one check; a split issue
+   carries its own check for its own deliverable.
+2. **Advance** — when the check passes, row `<ROW-ID>` sets `State` to `Done` in
+   `<source_doc>`, and its evidence cell is rewritten to the commit SHA plus the
+   command output that reproduced the check. Every FR ID the row cites advances with
+   it: an FR is evidenced only by its backlog rows, so this row's `Done` is that FR's
+   `Done` — closing all open issues therefore lands every FR state at `Done` (or
+   `Released` where the row's own evidence proves a release).
+3. **Proof** — the commit link and command output posted as the closing comment.
+
+The check's content follows the verdict that produced the issue:
+
+| Verdict producing the issue | Check | Advance |
+| --- | --- | --- |
+| `open` | the described behavior exists in `<feature>/src/` and one test in `<feature>/tests/` exercises it; `<test command>` passes | row → `Done` |
+| `doc_sync` | the doc edit lands: `State` corrected to the reproduced reality, evidence cell citing the verified file and test | row → `Done` |
+| `unverified` | the check that failed verification now passes — implementation present in source, one test exercising it | row → `Done` |
+| `rollup_mismatch` | every backlog row named in the body independently verifies `Done`, so the roll-up claim becomes true; on an under-claimed roll-up the contributing rows are already `Done` | roll-up row → `Done` |
+| `fr_orphan` | a backlog row citing `<FR-ID>` exists and carries reproduced evidence | that row → `Done` |
+
+Rules:
+
+- The check is re-runnable from the issue body alone: exact paths, the behavior, and
+  the exact command all appear in the body.
+- No proof, no close. Closing without the commit link and command output advances no
+  row, and the next run's zero-trust pass returns the row to `unverified`.
+- A `[DOC-SYNC]` issue's check is itself the document edit; that edit performs the
+  advance the moment it lands.
+- If verification disproves a roll-up claim outright, the closing edit corrects the
+  roll-up to the effective state instead, and the ledger records that correction as
+  the resolution — a `Done` marker is never written for work that does not reproduce.
+- A `skip` verdict creates no issue, so it carries no condition; its reproduced
+  evidence lives in the ledger.
+
 ## Workflow
 
 ### Step 1 — discover features
@@ -286,11 +335,24 @@ Source: `<source_doc>` · row `<ROW-ID>` · scanned by `/task-tracker` on `<date
 <feature>: roll-up claims <state>; backlog effective state <effective state>;
 offending rows: <ROW-ID> (<state>), …
 
+## Closing condition
+**Check:** <file paths> must implement <the row's described behavior> and be exercised by
+<test path>; `<test command>` must pass.
+<# the one-line verdict-specific check, per the Closing contract table>
+
+**Advance:** when the check passes, set row `<ROW-ID>` `State` to `Done` in `<source_doc>`
+and write the commit SHA + the `<test command>` output into its evidence cell. Every FR ID
+cited by the row carries to `Done` with it — the FR is evidenced by its backlog rows, so
+this row's advance is the FR's advance.
+
+**Proof:** close this issue with the commit link and the command output. No proof, no
+close, no `Done`.
+
 ## Tracking only
-This issue tracks the task. Implementation lands in its own PR and closes this
-issue with verification evidence (commit + command output). For a `[DOC-SYNC]`
-issue, the fix is the document edit aligning the state with reality, plus the
-reproduced evidence that justifies the new state.
+This issue tracks the task. Implementation lands in its own PR. The `## Closing condition`
+above is the only path to `Done`: its check passes, the row advances in `<source_doc>`,
+and this issue closes with the proof. For a `[DOC-SYNC]` issue, the fix is the document
+edit aligning the state with reality — that edit is both the check and the advance.
 ````
 
 **Labels** (create on first use, then reuse): `task-tracker`, one `state:<doc-state>`,
@@ -299,21 +361,24 @@ one of `p0` / `p1` / `p2`, plus `doc-sync` for the `doc_sync`, `unverified`,
 labels — the four title formats and this label set are the whole vocabulary.
 
 **Dry run**: the default run is live — steps 1–6 all execute and issues are created.
-Passing `--dry-run` executes steps 1–4 and prints every would-be title, body, and
-label without calling `gh issue create`.
+Passing `--dry-run` executes steps 1–4 and prints every would-be title, body (including
+its `## Closing condition`), and label without calling `gh issue create`.
 
 ### Step 6 — ledger + report
 
 Append one JSON object per row to `<repo-root>/docs/task-tracker-ledger.jsonl`:
 
 ```json
-{"run":"YYYY-MM-DD","row":"<ROW-ID>","doc":"<source_doc>","feature":"<feature or root>","fr":["<FR-ID>"],"state":"<state>","priority":"<P0/P1/P2>","class":"<incomplete|doc_sync|unverified|fr_orphan|skip>","proof":{"verdict":"<verdict>","evidence":"<reproduced evidence or failed check>"},"issue":<issue-number>,"action":"<created|commented|skipped-exists|skipped-evidence>"}
+{"run":"YYYY-MM-DD","row":"<ROW-ID>","doc":"<source_doc>","feature":"<feature or root>","fr":["<FR-ID>"],"state":"<state>","priority":"<P0/P1/P2>","class":"<incomplete|doc_sync|unverified|fr_orphan|skip>","proof":{"verdict":"<verdict>","evidence":"<reproduced evidence or failed check>"},"closing_condition":"<the Check from the issue's ## Closing condition — the one line that, when passed, sets this row to Done>","issue":<issue-number>,"action":"<created|commented|skipped-exists|skipped-evidence>"}
 ```
 
 `action` values: `created`, `commented`, `skipped-exists`, `skipped-evidence`.
+`closing_condition` is required for every row whose `action` is `created` or `commented`
+— it is the condensed Check carried in the issue body; `skip` rows record `"—"`.
 
 Close with a count table: `rows scanned N | incomplete A | doc_sync B | unverified C |
-fr_orphan D | skipped E | created X | commented Y | roll-up mismatches M`.
+fr_orphan D | skipped E | created X | commented Y | roll-up mismatches M | closing
+conditions K`.
 
 ## Personas
 
@@ -326,7 +391,7 @@ the four personas, defined in `personas/task-tracker-*.toml`:
 | `task-tracker-scanner` | read-only | one per feature: state table + rows + FR set + roll-up row as JSON |
 | `task-tracker-classifier` | read-only | zero-trust buckets, effective state per feature, orphan flags |
 | `task-tracker-verifier` | read-only (source files + tests only) | re-runs cited gates, re-checks hashes, dedupe, verdicts |
-| `task-tracker-issuer` | write (GitHub issues only) | creates / comments issues |
+| `task-tracker-issuer` | write (GitHub issues only) | creates / comments issues; every body carries one `## Closing condition` |
 
 ## Completion criteria
 
@@ -337,5 +402,7 @@ the four personas, defined in `personas/task-tracker-*.toml`:
 - [ ] Every feature roll-up row is reconciled against its backlog; each mismatch is an issue.
 - [ ] Every FR ID declared in an FRD has a cited backlog equivalent, or is an `fr_orphan` issue.
 - [ ] No `skip` row dropped silently — each has its reproduced evidence cited in the ledger.
+- [ ] Every created, commented, and dry-run issue carries exactly one `## Closing condition` whose Advance sets its row to `Done` in the source doc, and the ledger records its Check.
+- [ ] No issue is counted as created until its `## Closing condition` is present in the body.
 - [ ] No file changed outside `docs/task-tracker-ledger.jsonl`.
 - [ ] No branch, PR, or code change created.
