@@ -322,7 +322,9 @@ aa tool install my-cool-tool
 
 Run the quality gate:
 ```bash
-aa skill check
+aa skills list
+python3 skills/skill-authoring/scripts/cli.py validate
+python3 skills/skill-authoring/scripts/cli.py catalog --check
 ```
 Test the integration end-to-end:
 ```bash
@@ -471,7 +473,8 @@ Before committing code or submitting a Pull Request, verify that all automated c
 ### 1. Run the Verification Commands
 ```bash
 python3 -m compileall modules/
-aa skill check
+python3 skills/skill-authoring/scripts/cli.py validate
+python3 skills/skill-authoring/scripts/cli.py catalog --check
 ```
 
 The commands verify:
@@ -497,4 +500,4 @@ When submitting a PR, ensure:
 - [ ] New shell scripts include `set -euo pipefail` and executable bits (`chmod +x`).
 - [ ] `modules/shared/config/manifest.json` is updated and validated with `jq`.
 - [ ] `THIRD_PARTY_LICENSES.md` lists the upstream license and commit.
-- [ ] `aa skill check` passes with zero errors.
+- [ ] `aa skills list` and `python3 skills/skill-authoring/scripts/cli.py validate` pass with zero issues.
