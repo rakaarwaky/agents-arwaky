@@ -39,9 +39,14 @@ before it is allowed to be skipped:
 - A `Done` row owes proof that the described behavior is actually implemented in the
   feature's current source code (`<feature>/src/`) and exercised by at least one test
   in `<feature>/tests/`.
-- A `Done` row additionally requires: **command + commit evidence** — the exact
-  verification command, its pass/fail result, and the implementing commit SHA
-  recorded in the row's `Actual Condition` cell.
+- A `Done` row owes three proofs, all recorded in the row's `Actual Condition` cell:
+  (1) the exact verification command, (2) its pass/fail result, (3) the implementing
+  commit SHA. All three must be present and reproduce.
+- A `Done` row whose evidence cell carries shipped-release language additionally
+  requires release evidence: a public release or deployment that the command
+  `gh release view <tag>` confirms (for example `gh release view v6.4.0` reports a
+  published release). A tag cited in the doc is a claim, never a fact — the command
+  output is the proof.
 - An `In Review` row owes proof that a PR exists and is open; the tracker checks
   GitHub for the PR rather than trusting the doc text.
 - Evidence that does not reproduce flips the row to `unverified` and produces a
@@ -110,8 +115,8 @@ it, do not assume the full vocabulary. If the repo still carries legacy state na
 (`Idea`, `Refinement`, `Blocked`, `QA`, `Released`, `Deferred`), the scanner records
 them verbatim but the classifier maps them to the simplified four: `Idea`/`Refinement`/
 `Blocked`/`Deferred` → `Ready` (or `In Progress` when work has started); `QA` →
-`In Review`; `Released` → `Done` (Released is a Done-claim that additionally requires a
-published release; it is verified as Done plus release evidence).
+`In Review`; `Released` → `Done` plus release evidence (a published release that
+`gh release view <tag>` confirms; in the tracked repo, `gh release view v6.4.0`).
 
 ## Feature model
 
@@ -152,7 +157,7 @@ suppresses an issue. Doc text is the hypothesis; live evidence is the verdict.
 | test coverage claimed | locate the test in `<feature>/tests/`; confirm it exercises the described behavior and is not a trivial or disabled test |
 | commit hash in row | hash is NOT proof; ignore it and verify the code directly |
 | merged PR number in row | PR number is NOT proof; verify the code directly |
-| release tag in row | tag is NOT proof; verify the code directly |
+| release tag in row | tag is NOT proof; run `gh release view <tag>` and use its output as the proof |
 
 The verifier reads source files, not git history. A hash, PR number, or tag cited in a row is context, not evidence.
 
@@ -403,7 +408,7 @@ the four personas, defined in `personas/task-tracker-*.toml`:
 | --- | --- | --- |
 | `task-tracker-scanner` | read-only | one per feature: state table + rows + FR set + roll-up row as JSON |
 | `task-tracker-classifier` | read-only | zero-trust buckets, effective state per feature, orphan flags |
-| `task-tracker-verifier` | read-only (source files + tests only) | re-runs cited gates, re-checks hashes, dedupe, verdicts |
+| `task-tracker-verifier` | read-only (source files + tests + `gh release view` only) | re-runs cited gates, re-checks hashes, confirms release evidence, dedupe, verdicts |
 | `task-tracker-issuer` | write (GitHub issues only) | creates / comments issues; every body carries one `## Closing condition` |
 
 ## Completion criteria
