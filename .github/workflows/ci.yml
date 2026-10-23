@@ -46,8 +46,8 @@ jobs:
       - name: Generate MCP manifest (gitignored artifact referenced by docs)
         run: python3 -m modules.root_cli_entry mcp generate
 
-      - name: Skill pack validate (advisory until PR-9)
-        run: python3 skills/skill-authoring/scripts/cli.py validate --summary || true
+      - name: Skill pack validate
+        run: python3 skills/skill-authoring/scripts/cli.py validate --summary
 
       - name: Skill catalog drift gate
         run: python3 skills/skill-authoring/scripts/cli.py catalog --check
