@@ -205,20 +205,28 @@ def cmd_catalog(args: argparse.Namespace) -> int:
 
 
 def cmd_discover(args: argparse.Namespace) -> int:
-    """Search the catalog and rank matches."""
+    """Search the catalog and rank matches.
+
+    §5.6: when the catalog fails its drift gate, the result carries a
+    ``warning`` field (JSON) / a stderr warning (text) naming
+    ``catalog --check`` as the repair, and the answer comes from a
+    read-only tree scan. Exit stays 0 — a successful search is a
+    successful search; drift is ``catalog --check``'s exit 3.
+    """
     skills_root = _skills_root(args)
-    lines, results = discover_mod.discover(args.query, skills_root, limit=args.limit)
+    lines, results, warning = discover_mod.discover(args.query, skills_root, limit=args.limit)
 
     if args.json:
-        _emit_json(
-            {
-                "skills_root": str(skills_root),
-                "query": args.query,
-                "limit": args.limit,
-                "match_count": len(results),
-                "matches": results,
-            }
-        )
+        payload: dict = {
+            "skills_root": str(skills_root),
+            "query": args.query,
+            "limit": args.limit,
+            "match_count": len(results),
+            "matches": results,
+        }
+        if warning is not None:
+            payload["warning"] = warning
+        _emit_json(payload)
     else:
         _emit(lines)
     return 0

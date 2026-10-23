@@ -1,4 +1,4 @@
-"""Catalog rendering and the drift check (design §6.1, risk R7/G4).
+"""Catalog rendering and the drift gate (design §6.1, §9.2, risk G4/DM3).
 
 Owns everything that turns the live tree into a ``CATALOG.md``: the
 rendering (``write_catalog``/``rebuild_catalog``), the catalog reader
@@ -6,6 +6,16 @@ that ``discover`` scores against (``load_catalog_skill_rows``), and
 ``catalog --check`` — regenerate to a temp file and diff against the
 tracked artifact, exit 3 on drift. The tree walks themselves live in
 ``model.py``; this module only renders and compares.
+
+Drift contract (PR-5; design §5.6, §9.2): the tracked ``CATALOG.md`` is
+a checked artifact. A read through it must never silently repair
+itself — a missing, unparseable, or corrupted catalog raises
+``CatalogDrift`` instead of being rebuilt on the read path or answered
+from the live tree. Callers (``discover``, §5.6) catch it, fail
+loudly, and fall back to a read-only tree scan. ``check_catalog``
+asserts the §9.2 escape round-trip: an emitted row whose cells do not
+survive a parse/render fixed point is a hard, fail-closed drift, so a
+crafted description cannot silently corrupt the index.
 
 ``rebuild_catalog`` writes the path the caller passes, so the mutating
 commands can rewrite the real catalog under ``--apply`` while the drift
@@ -23,6 +33,7 @@ from skill_rules import md_escape
 
 __all__ = [
     "CATALOG_FILENAME",
+    "CatalogDrift",
     "catalog_path",
     "check_catalog",
     "load_catalog_skill_rows",
@@ -31,6 +42,18 @@ __all__ = [
     "render_catalog",
     "write_catalog",
 ]
+
+
+class CatalogDrift(Exception):
+    """The tracked ``CATALOG.md`` is missing, unparseable, or corrupt.
+
+    A read path must never answer from a drifted index: ``discover``
+    (design §5.6) catches this, prints a loud warning naming
+    ``catalog --check`` as the repair command, and falls back to a
+    read-only tree scan. Raised instead of the silent rebuild /
+    silent live-tree fallback the original ``load_catalog_skill_rows``
+    carried.
+    """
 
 CATALOG_FILENAME = "CATALOG.md"
 
@@ -124,20 +147,13 @@ def read_catalog_text(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig", errors="replace")
 
 
-def load_catalog_skill_rows(skills_root: Path) -> list[dict[str, str]]:
-    """Parse the ``## Skills`` table into ``{skill, category, description, path}``.
+def _parse_skill_table(text: str) -> list[dict[str, str]]:
+    """Parse the ``## Skills`` table out of catalog text.
 
-    Verbatim semantics from the original ``librarian.py``: a missing
-    catalog is regenerated, the ``## Skills`` section ends at the next
-    ``## `` heading, separator rows are skipped, pipes are un-escaped, and
-    a parse that yields nothing falls back to the live tree (the silent
-    fallback is PR-5's drift-signal work — kept faithful here).
+    The verbatim parse from the original ``librarian.py``: the section
+    ends at the next ``## `` heading, separator rows are skipped, and
+    cells are un-escaped (``&#124;`` back to ``|``).
     """
-    path = catalog_path(skills_root)
-    if not path.exists():
-        rebuild_catalog(skills_root)
-
-    text = read_catalog_text(path)
     entries: list[dict[str, str]] = []
     in_skills = False
 
@@ -178,28 +194,134 @@ def load_catalog_skill_rows(skills_root: Path) -> list[dict[str, str]]:
                 }
             )
 
-    if not entries:
-        entries = [
-            {
-                "skill": entry.skill,
-                "category": entry.category,
-                "description": entry.description,
-                "path": entry.path,
-            }
-            for entry in model.skill_entries(skills_root)
-        ]
-
     return entries
+
+
+def _rebuild_rows(skills_root: Path, path: Path | None) -> tuple[
+    list[model.SkillEntry], list[model.CategorySummary]
+]:
+    """Walk the tree and render (never write) — the read-side fixed point."""
+    entries = model.skill_entries(skills_root)
+    categories = model.category_summaries(entries, skills_root)
+    if path is not None:
+        write_catalog(entries, categories, path)
+    return entries, categories
+
+
+def load_catalog_skill_rows(skills_root: Path) -> list[dict[str, str]]:
+    """Parse the tracked ``CATALOG.md`` into ``{skill, category, description, path}`` rows.
+
+    Read-only: this is the index ``discover`` scores against, and a
+    read must never repair the artifact (the silent rebuild /
+    live-tree fallback the original carried is gone — PR-5). Any
+    condition that would have triggered those fallbacks now raises
+    ``CatalogDrift`` so the caller fails loudly:
+
+    - the catalog file is missing,
+    - the tracked text differs from what the live tree renders
+      (a stale row must not be returned as an answer),
+    - the parse yields no rows, or
+    - the parsed rows do not round-trip against the source tree's own
+      entries (§9.2: a crafted description that corrupts the table).
+
+    ``check_catalog`` (``catalog --check``, exit 3) is the repair
+    path.
+    """
+    path = catalog_path(skills_root)
+    if not path.exists():
+        raise CatalogDrift(f"Catalog missing: {path} (rebuild with the catalog subcommand)")
+
+    text = read_catalog_text(path)
+    rows = _parse_skill_table(text)
+    if not rows:
+        raise CatalogDrift(
+            f"Catalog parse yielded no skill rows: {path} "
+            "(check it against `catalog --check`; it drifted or is corrupt)"
+        )
+
+    # §5.6 hard drift signal: a stale row is drift, not an answer.
+    entries, categories = _rebuild_rows(skills_root, None)
+    regenerated_text = "\n".join(render_catalog(entries, categories)) + "\n"
+    if text.rstrip("\n") != regenerated_text.rstrip("\n"):
+        raise CatalogDrift(
+            f"Catalog drift detected: {path} does not match the live tree "
+            "(stale or phantom rows); rebuild with the catalog subcommand"
+        )
+
+    # §9.2 round-trip: the parsed rows must equal the source tree's own
+    # entries. A description that cannot survive parse(render(x)) — e.g.
+    # a literal `&#124;` that the parser unescapes to `|` on load —
+    # silently shifts the row's truth and fails closed.
+    if _row_cells(rows) != _entry_cells(entries):
+        raise CatalogDrift(
+            f"Catalog round-trip failure: {path} cells do not match the live "
+            "tree (a crafted description corrupted the table, §9.2); "
+            "failing closed"
+        )
+
+    return rows
+
+
+#: The placeholder ``render_catalog`` emits for an empty skill description.
+#: Parsed rows carry this literal string; source entries have `""` —
+#: the round-trip comparison normalizes it back so description-less
+#: skills don't false-positive as drift.
+_MISSING_DESCRIPTION_PLACEHOLDER = "(missing description)"
+
+
+def _row_cells(rows: list[dict[str, str]]) -> list[tuple[str, str, str, str]]:
+    """The comparable cell projection of parsed catalog rows.
+
+    The ``(missing description)`` placeholder ``render_catalog`` emits for
+    empty descriptions is normalized to `""` so the projection matches
+    ``_entry_cells`` (the source-tree side of the §9.2 comparison).
+    """
+    return [
+        (
+            row["skill"],
+            row["category"],
+            "" if row["description"] == _MISSING_DESCRIPTION_PLACEHOLDER else row["description"],
+            row["path"],
+        )
+        for row in rows
+    ]
+
+
+def _entry_cells(entries: list[model.SkillEntry]) -> list[tuple[str, str, str, str]]:
+    """The comparable cell projection of source tree entries (§9.2 ground truth).
+
+    Empty descriptions project to `""` — the form the parser normalizes
+    back to when it reads the ``(missing description)`` placeholder.
+    """
+    return [
+        (
+            entry.skill,
+            entry.category,
+            entry.description or "",
+            entry.path,
+        )
+        for entry in entries
+    ]
+
 
 
 def check_catalog(skills_root: Path) -> tuple[bool, str, list[str]]:
     """Regenerate the catalog to a temp file and diff against the tracked one.
 
     Returns ``(in_sync, summary, diff_lines)``: ``in_sync`` is False and
-    ``summary`` explains the drift when the tracked artifact does not match
-    what the live tree renders. ``diff_lines`` is a unified diff (empty when
-    in sync) a caller can print or log. Read-only: the tracked file is
-    never touched.
+    ``summary`` explains the drift when the tracked artifact does not
+    match what the live tree renders. ``diff_lines`` is a unified diff
+    (empty when in sync) a caller can print or log. Read-only: the
+    tracked file is never touched.
+
+    Fail-closed (§9.2): beyond the diff, the check asserts the
+    escape round-trip — every row the regenerated catalog emits must
+    survive a parse through the ``## Skills`` table and come back
+    cell-for-cell equal. A crafted description (a ``|`` that
+    splits the table, a dangling ``&#124;`` that parses back
+    differently, ...) would corrupt the index silently; here it fails
+    the check instead, so no corrupt artifact can ever read as
+    in-sync.
     """
     path = catalog_path(skills_root)
 
@@ -212,7 +334,7 @@ def check_catalog(skills_root: Path) -> tuple[bool, str, list[str]]:
 
     with tempfile.TemporaryDirectory(prefix="catalog-check-") as tmp:
         candidate = Path(tmp) / CATALOG_FILENAME
-        rebuild_catalog(skills_root, candidate)
+        _rebuild_rows(skills_root, candidate)
         current = read_catalog_text(path).splitlines()
         regenerated = read_catalog_text(candidate).splitlines()
 
@@ -233,4 +355,37 @@ def check_catalog(skills_root: Path) -> tuple[bool, str, list[str]]:
         )
         return False, message, diff_lines
 
+    # §9.2 round-trip gate: tree → write → load must equal the tree's own
+    # rows. An emitted row whose cells do not survive the parse back to the
+    # source entries (a `|` that splits the table, a literal `&#124;` that
+    # unescapes to `|` on load, ...) fails closed as drift, so no corrupt
+    # index can ever read as in-sync.
+    entries, _ = _rebuild_rows(skills_root, None)
+    emitted_rows = _parse_skill_table("\n".join(regenerated))
+    if _row_cells(emitted_rows) != _entry_cells(entries):
+        message = (
+            f"Catalog round-trip failure: {path} cells do not match the live "
+            "tree (a crafted description corrupted the table, §9.2); "
+            "failing closed (exit 3)"
+        )
+        return False, message, _round_trip_diff_lines(emitted_rows, entries)
+
     return True, f"Catalog in sync: {path}", []
+
+
+def _round_trip_diff_lines(
+    emitted_rows: list[dict[str, str]], entries: list[model.SkillEntry]
+) -> list[str]:
+    """The per-row cell divergences a failed §9.2 round-trip reports."""
+    lines: list[str] = []
+    for emitted, entry in zip(emitted_rows, entries):
+        emitted_cells = (
+            emitted["skill"],
+            emitted["category"],
+            emitted["description"],
+            emitted["path"],
+        )
+        source_cells = _entry_cells([entry])[0]
+        if emitted_cells != source_cells:
+            lines.append(f"row {entry.path}: loaded {emitted_cells!r} != source {source_cells!r}")
+    return lines
