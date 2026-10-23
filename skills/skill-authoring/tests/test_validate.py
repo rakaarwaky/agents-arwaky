@@ -158,3 +158,201 @@ def test_clean_fixture_reports_no_issues():
 
         report = validate_library(Path(tmp))
         assert report["issue_count"] == 0, report["issues"]
+
+
+def test_assets_container_marker_suppresses_empty_and_missing_description():
+    """DM2: a declared ``ASSETS.md`` (frontmatter ``kind: assets`` + a
+    one-line purpose) in a category directory suppresses exactly
+    ``empty-category`` and ``missing-category-description`` — and only
+    when the declaration is present.
+
+    Cover all four combinations:
+      - declared assets container (no skills, no DESCRIPTION.md) -> 0
+      - stray ``ASSETS.md`` without ``kind: assets`` -> both issues
+      - empty category without ``ASSETS.md`` -> both issues
+      - declared assets container that also has a skill -> no
+        empty-category issue, the marker does not hide skills
+    """
+    import json
+    import shutil
+    import tempfile
+
+    def write_skill(root: Path, category: str, skill: str, desc: str) -> None:
+        d = root / category / skill
+        d.mkdir(parents=True)
+        (d / "SKILL.md").write_text(
+            f"---\nname: {skill}\ndescription: {json.dumps(desc)}\n---\n",
+            encoding="utf-8",
+        )
+
+    def declare_assets(root: Path, category: str, purpose: str) -> None:
+        (root / category).mkdir(parents=True, exist_ok=True)
+        (root / category / "ASSETS.md").write_text(
+            f"---\ndescription: {json.dumps(purpose)}\nkind: assets\n---\n\n"
+            f"{purpose}\n",
+            encoding="utf-8",
+        )
+
+    def stray_assets(root: Path, category: str) -> None:
+        (root / category / "ASSETS.md").write_text(
+            "# Stray file\n\nNo frontmatter declaration.\n", encoding="utf-8"
+        )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+
+        # 1. Declared assets container, empty: no issues at all.
+        declare_assets(root, "shared", "Cross-skill assets.")
+        report = validate_library(root)
+        assert report["issue_count"] == 0, report["issues"]
+
+        # 2. Stray ASSETS.md without the kind declaration: the marker does
+        #    not opt in, both issues stand.
+        root2 = Path(tempfile.mkdtemp())
+        try:
+            (root2 / "shared").mkdir()
+            stray_assets(root2, "shared")
+            report = validate_library(root2)
+            types = sorted(i["type"] for i in report["issues"])
+            assert types == ["empty-category", "missing-category-description"], types
+        finally:
+            shutil.rmtree(root2, ignore_errors=True)
+
+        # 3. No ASSETS.md at all: both issues stand (the standing empty-category
+        #    defect).
+        root3 = Path(tempfile.mkdtemp())
+        try:
+            (root3 / "shared").mkdir()
+            report = validate_library(root3)
+            types = sorted(i["type"] for i in report["issues"])
+            assert types == ["empty-category", "missing-category-description"], types
+        finally:
+            shutil.rmtree(root3, ignore_errors=True)
+
+        # 4. Declared assets container that also holds a skill: the marker
+        #    suppresses the two emptiness checks only; the skill row still
+        #    validates normally (no name-mismatch here, just no new issues
+        #    from the marker).
+        write_skill(root, "mixed", "a-skill", "A skill living next to a declared assets container.")
+        declare_assets(root, "mixed", "Mixed assets and skills.")
+        report = validate_library(root)
+        # The mixed category now has a DESCRIPTION-free state but is not empty
+        # (it holds a-skill), so neither category-level issue applies; the
+        # assets container "shared" is declared, so its two issues are gone.
+        assert report["issue_count"] == 0, report["issues"]
+
+
+def test_nested_pack_marker_exempts_too_deep_files():
+    """DM1: an intermediate directory that carries the ``pack.toml``
+    marker opts its one-level-deeper ``SKILL.md`` files in — the
+    ``too-deep`` error is suppressed for exactly those paths, and only
+    when the marker is present.
+
+    Cover both presence and absence paths in one tree:
+      - ``cat-a/nested-pack/SKILL.md`` with ``cat-a/nested-pack/pack.toml``
+        -> no too-deep issue
+      - ``cat-a/loose/SKILL.md`` without a marker -> too-deep issue
+        (the marker did not leak to siblings)
+    """
+    import json
+    import tempfile
+
+    def write_skill(root: Path, category: str, skill: str, desc: str) -> None:
+        d = root / category / skill
+        d.mkdir(parents=True)
+        (d / "SKILL.md").write_text(
+            f"---\nname: {skill}\ndescription: {json.dumps(desc)}\n---\n",
+            encoding="utf-8",
+        )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+
+        # A category with a DESCRIPTION.md and one top-level skill so
+        # only the too-deep defect is in play (empty-category is not).
+        (root / "cat-a").mkdir()
+        (root / "cat-a" / "DESCRIPTION.md").write_text(
+            '---\ndescription: "Cat A"\n---\n', encoding="utf-8"
+        )
+        top_skill = root / "cat-a" / "top-skill"
+        top_skill.mkdir()
+        (top_skill / "SKILL.md").write_text(
+            "---\nname: top-skill\n"
+            f"description: {json.dumps('A top-level skill in cat-a.')}\n"
+            "---\n",
+            encoding="utf-8",
+        )
+
+        # Nested pack (exempt): cat-a/nested-pack/inner-skill/SKILL.md with
+        # cat-a/nested-pack/pack.toml present.
+        nested_dir = root / "cat-a" / "nested-pack" / "inner-skill"
+        nested_dir.mkdir(parents=True)
+        (nested_dir / "SKILL.md").write_text(
+            "---\nname: inner-skill\n"
+            f"description: {json.dumps('An inner skill of a nested pack.')}\n"
+            "---\n",
+            encoding="utf-8",
+        )
+        (root / "cat-a" / "nested-pack" / "pack.toml").write_text(
+            "# Nested pack marker (DM1): exempts inner SKILL.md files\n"
+            "# from the too-deep check.\n",
+            encoding="utf-8",
+        )
+
+        # Loose (not exempt): cat-a/loose-pack/loose-skill/SKILL.md with no
+        # pack.toml next to loose-pack/.
+        loose_dir = root / "cat-a" / "loose-pack" / "loose-skill"
+        loose_dir.mkdir(parents=True)
+        (loose_dir / "SKILL.md").write_text(
+            "---\nname: loose-skill\n"
+            f"description: {json.dumps('A loose skill without a pack marker.')}\n"
+            "---\n",
+            encoding="utf-8",
+        )
+
+        report = validate_library(root)
+        types = sorted(i["type"] for i in report["issues"])
+        assert types == ["too-deep"], types
+        assert (
+            report["issues"][0]["path"] == "cat-a/loose-pack/loose-skill/SKILL.md"
+        ), report["issues"]
+        # The nested-pack inner skill produced no too-deep issue.
+        assert not any(
+            i["path"] == "cat-a/nested-pack/inner-skill/SKILL.md"
+            for i in report["issues"]
+        )
+
+
+def test_real_tree_validate_zero_issues():
+    """After PR-8 the committed real tree validates clean: 0 issues
+    library-wide. Runs against the actual ``skills/`` directory at the
+    repo root (not a fixture), pinned for G5.
+    """
+    import subprocess
+    import sys
+
+    # Walk up from the test file to the repo root (worktree or main clone).
+    test_file = Path(__file__).resolve()
+    repo_root = None
+    for candidate in test_file.parents:
+        if (candidate / ".git").exists():
+            repo_root = candidate
+            break
+    assert repo_root is not None, "no repo root found walking up from the test file"
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root / "skills" / "skill-authoring" / "scripts" / "cli.py"),
+            "validate",
+        ],
+        cwd=str(repo_root),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, (
+        f"expected exit 0 (0 issues), got {completed.returncode}:\n"
+        f"stdout: {completed.stdout}\nstderr: {completed.stderr}"
+    )
+    assert "No validation issues found." in completed.stdout, completed.stdout

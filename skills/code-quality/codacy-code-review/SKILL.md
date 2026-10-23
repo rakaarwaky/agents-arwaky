@@ -1,6 +1,6 @@
 ---
 name: codacy-code-review
-description: Enriches pull request code reviews with Codacy data — quality issues, security findings, coverage, and duplication. Use whenever the user asks to review a PR, check what a pull request introduced, verify PR coverage, look at PR quality, or find new issues in a PR. Also use when another code review skill is active (e.g. `strict-code-quality-review`, CodeRabbit) to layer Codacy data on top. Trigger this skill for any pull request review workflow, even if the user just says "review PR 42" or "what's wrong with this PR".
+description: Enriches pull request code reviews with Codacy data — quality issues, security findings, coverage, and duplication. Use whenever the user asks to review a PR, check what a pull request introduced, verify PR coverage, look at PR quality, or find new issues in a PR. Also use when another code review skill is active (e.g. strict-code-quality-review, CodeRabbit) to layer Codacy data on top. Trigger this skill for any pull request review workflow, even if the user just says review PR 42 or what is wrong with this PR.
 license: MIT
 metadata:
   author: Codacy

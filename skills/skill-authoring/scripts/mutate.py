@@ -84,6 +84,7 @@ def weed_report(skills_root: Path) -> list[str]:
     """
     entries = model.skill_entries(skills_root)
     categories = model.category_summaries(entries, skills_root)
+    assets = model.assets_container(skills_root)
 
     name_map: dict[str, list[str]] = {}
     desc_map: dict[str, list[str]] = {}
@@ -109,6 +110,10 @@ def weed_report(skills_root: Path) -> list[str]:
             )
 
     for cat in categories:
+        if cat.category in assets:
+            # Declared DM2 asset containers are intentional: their
+            # emptiness and missing DESCRIPTION.md are by design.
+            continue
         if cat.skill_count == 0:
             lines.append(f"- empty-category: {cat.category}")
 
@@ -194,11 +199,16 @@ def name_mismatch_repairs(skills_root: Path) -> list[tuple[Path, str]]:
 
 
 def missing_category_descriptions(skills_root: Path) -> list[Path]:
-    """The category dirs whose ``DESCRIPTION.md`` a repair would create."""
+    """The category dirs whose ``DESCRIPTION.md`` a repair would create.
+
+    Declared DM2 asset containers are exempt: a repair never writes a
+    ``DESCRIPTION.md`` into an asset container.
+    """
     return [
         category / model.CATEGORY_DESCRIPTION_FILENAME
         for category in model.category_dirs(skills_root)
         if not (category / model.CATEGORY_DESCRIPTION_FILENAME).exists()
+        and category.name not in model.assets_container(skills_root)
     ]
 
 
@@ -214,6 +224,9 @@ def repair_plan(skills_root: Path) -> list[str]:
     ]
 
     for category in model.category_dirs(skills_root):
+        if category.name in model.assets_container(skills_root):
+            # A declared DM2 asset container never gets a DESCRIPTION.md.
+            continue
         desc_file = category / model.CATEGORY_DESCRIPTION_FILENAME
         if not desc_file.exists():
             repaired.append(

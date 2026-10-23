@@ -1,0 +1,13 @@
+# Orca nested pack
+
+Opt-in for PR-8 DM1: the validator treats the sub-directories under this folder as a single nested pack, suppressing `too-deep` for their SKILL.md files. The pack is intentional — orca skills are developed, versioned, and shipped as a unit and are not meant to appear at `<category>/orca-*/SKILL.md`.
+
+## Sub-skill directories
+
+- `orca-cli` — orca CLI interface
+- `orca-emulator` — desktop emulator orchestration
+- `orca-emulator-android` — Android emulator
+- `orca-emulator-ios` — iOS emulator (where present)
+- `orca-linear` — Linear ticket management
+- `orca-per-workspace-env` — per-workspace environment scaffolding
+- `orchestration` — multi-agent orchestration

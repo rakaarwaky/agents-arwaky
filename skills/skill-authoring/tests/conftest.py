@@ -51,10 +51,10 @@ def _clean_skills_root() -> None:
     The tests that drive the canonical CLI without ``--skills-root`` run
     against the repo's own ``skills/`` directory. If a test (or a manual
     run of ``repair --apply`` / ``catalog``) leaves behind an untracked
-    ``skills/shared/DESCRIPTION.md`` or a regenerated ``skills/CATALOG.md``,
-    the 14-issue baseline the suite pins shifts and seven tests fail on the
-    next run. This fixture uses ``git checkout`` to restore the two files
-    from HEAD after the suite completes, guaranteeing a pristine state
+    file, the 0-issue baseline the suite pins shifts and tests fail on
+    the next run. This fixture uses ``git checkout`` to restore
+    ``skills/CATALOG.md`` from HEAD after the suite completes and to
+    delete untracked files it created, guaranteeing a pristine state
     regardless of what the tests did.
     """
     yield
@@ -65,15 +65,3 @@ def _clean_skills_root() -> None:
         "skills/CATALOG.md",
     ]
     subprocess.run(git_checkout, cwd=str(_REPO_ROOT), capture_output=True, check=False)
-
-    shared_desc = _SKILLS_ROOT / "shared" / "DESCRIPTION.md"
-    if shared_desc.exists():
-        # Only delete if it's untracked (a test-created side effect).
-        is_tracked = subprocess.run(
-            ["git", "ls-files", "--error-unmatch", str(shared_desc.relative_to(_REPO_ROOT))],
-            cwd=str(_REPO_ROOT),
-            capture_output=True,
-            check=False,
-        ).returncode == 0
-        if not is_tracked:
-            shared_desc.unlink()

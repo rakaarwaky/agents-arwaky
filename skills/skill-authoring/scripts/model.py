@@ -13,6 +13,7 @@ import sys
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Final
 
 try:
     import yaml
@@ -31,14 +32,68 @@ from skill_rules import (
 )
 
 __all__ = [
+    "ASSETS_MARKER_FILENAME",
+    "PACK_MARKER_FILENAME",
     "CategorySummary",
     "Issue",
     "SkillEntry",
+    "assets_container",
     "category_dirs",
     "category_summaries",
     "parse_frontmatter",
     "skill_entries",
+    "too_deep_exempt_paths",
 ]
+
+
+# ── DM1 / DM2 markers ────────────────────────────────────────────────
+
+#: The DM2 asset-container marker file. A category directory that carries
+#: it (with frontmatter ``kind: assets``) declares itself a cross-skill
+#: asset container, not a category of skills: ``validate`` and the weed
+#: report skip its ``empty-category`` / ``missing-category-description``
+#: checks (design §6.3 DM2). Declared file, not a directory-name
+#: heuristic — a real category can never opt out accidentally (R8).
+ASSETS_MARKER_FILENAME: Final = "ASSETS.md"
+
+#: The DM1 nested-pack marker file. A subdirectory of a category that
+#: holds its own ``SKILL.md`` files one level deeper than the loader's
+#: two-level walk declares itself a nested pack by carrying this marker:
+#: ``validate`` skips the ``too-deep`` error for those files (design §6.3
+#: DM1). Opt-in only — without the marker, depth violations are
+#: unchanged (R6). The marker affects ``validate``'s depth check only;
+#: ``skill_entries`` / the catalog / ``discover`` do not descend into it.
+PACK_MARKER_FILENAME: Final = "pack.toml"
+
+
+def assets_container(skills_root: Path) -> set[str]:
+    """Category names that carry a declared DM2 asset-container marker.
+    """
+    declared = set()
+    for category in category_dirs(skills_root):
+        marker = category / ASSETS_MARKER_FILENAME
+        if not marker.is_file():
+            continue
+        fm = parse_frontmatter(marker)
+        if fm.get("kind") == "assets":
+            declared.add(category.name)
+    return declared
+
+
+def too_deep_exempt_paths(skills_root: Path) -> set[str]:
+    """DM1 nested-pack exemption: the ``category/pack/SKILL.md`` paths
+    whose intermediate directory carries the ``pack.toml`` marker.
+    """
+    exempt = set()
+    for category in category_dirs(skills_root):
+        for skill_md in category.glob("*/*/SKILL.md"):
+            marker = skill_md.parent.parent / PACK_MARKER_FILENAME
+            if marker.is_file():
+                try:
+                    exempt.add(str(skill_md.relative_to(skills_root)))
+                except ValueError:
+                    continue
+    return exempt
 
 
 def parse_frontmatter(path: Path) -> dict:
