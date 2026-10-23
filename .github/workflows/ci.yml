@@ -20,7 +20,7 @@ jobs:
 
       - name: Install deps
         run: |
-          pip install ruff pytest
+          pip install ruff pytest pyyaml
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck jq
 
