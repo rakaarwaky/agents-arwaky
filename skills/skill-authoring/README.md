@@ -25,6 +25,7 @@ Read-only subcommands (`validate`, `catalog --check`, `discover`, `weed`,
 `move`, `archive`, `new-category`) default to dry-run — pass `--apply` to
 execute. The old `skill-library/scripts/librarian.py` shim keeps working and
 delegates to the same CLI.
+CI runs `validate` and `catalog --check` on every pull request (`.github/workflows/ci.yml`); run both locally before pushing.
 
 ## Catalog
 
