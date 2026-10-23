@@ -102,14 +102,14 @@ def test_validate_summary_prints_live_counts_and_keeps_exit_semantics():
     and the exit code still tracks the unfiltered issue total."""
     import re
 
-    # Dirty tree: the repo's own skills root (14 issues at this base).
+    # The repo's own skills root: 0 issues after PR-8, exit 0.
     import model
     import validate
 
     entries = model.skill_entries(SKILLS_ROOT)
     categories = list(model.category_dirs(SKILLS_ROOT))
     exit_code, stdout, stderr = run("validate", "--summary")
-    assert exit_code == 1, f"expected exit 1 (issues found), got {exit_code}: {stderr}"
+    assert exit_code == 0, f"expected exit 0 (tree clean since PR-8), got {exit_code}: {stderr}"
     line = stdout.strip()
     expected = f"{validate.validate_summary(SKILLS_ROOT)}"
     assert line == expected, f"summary line {line!r} != {expected!r}"
@@ -126,9 +126,9 @@ def test_validate_summary_is_orthogonal_to_json():
     """When ``--json`` is also passed, JSON wins: the payload is emitted and
     the summary line is not; exit code semantics are unchanged."""
     exit_code, stdout, _ = run("validate", "--summary", "--json")
-    assert exit_code == 1
+    assert exit_code == 0
     payload = json.loads(stdout)
-    assert payload["total_issue_count"] == 14
+    assert payload["total_issue_count"] == 0
     assert "issues /" not in stdout
     assert "skills /" not in stdout.split('"skills_root"')[0]
 
@@ -152,8 +152,8 @@ def test_shim_runs_from_a_clean_interpreter():
     ``from cli import main`` resolve without any packaging (NG5), and the
     exit code follows the canonical CLI's contract (1: issues found)."""
     exit_code, stdout, _stderr = run_shim("validate")
-    assert exit_code == 1, f"expected exit 1 (issues found), got {exit_code}"
-    assert stdout.startswith("14 validation issue(s) found:\n"), stdout[:100]
+    assert exit_code == 0, f"expected exit 0 (clean tree since PR-8), got {exit_code}"
+    assert stdout.startswith("No validation issues found."), stdout[:100]
 
 
 def test_validate_report_is_the_committed_baseline():
