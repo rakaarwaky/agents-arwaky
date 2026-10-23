@@ -11,7 +11,7 @@ Manages the skills pack as a library. The master index is `CATALOG.md` at the sk
 
 ## Library layout
 
-- Skills root: the directory three levels above `scripts/librarian.py`.
+- Skills root: the directory three levels above `scripts/cli.py`.
 - Category folder: `skills-root/category/`
 - Skill folder: `skills-root/category/skill-name/SKILL.md`
 - Category metadata: `skills-root/category/DESCRIPTION.md`

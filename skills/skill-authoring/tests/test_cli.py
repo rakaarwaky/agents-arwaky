@@ -114,16 +114,9 @@ def test_shim_runs_from_a_clean_interpreter():
     ``sys.path`` prepend of the pack's ``scripts/`` directory is what lets
     ``from cli import main`` resolve without any packaging (NG5), and the
     exit code follows the canonical CLI's contract (1: issues found)."""
-    command = [sys.executable, str(SHIM), "validate"]
-    completed = subprocess.run(
-        command,
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert completed.returncode == 1, f"expected exit 1 (issues found), got {completed.returncode}: {completed.stderr}"
-    assert completed.stdout.startswith("14 validation issue(s) found:\n"), completed.stdout[:100]
+    exit_code, stdout, _stderr = run_shim("validate")
+    assert exit_code == 1, f"expected exit 1 (issues found), got {exit_code}"
+    assert stdout.startswith("14 validation issue(s) found:\n"), stdout[:100]
 
 
 def test_validate_report_is_the_committed_baseline():
