@@ -374,11 +374,14 @@ Append one JSON object per row to `<repo-root>/docs/task-tracker-ledger.jsonl`:
 
 `action` values: `created`, `commented`, `skipped-exists`, `skipped-evidence`.
 `closing_condition` is required for every row whose `action` is `created` or `commented`
-— it is the condensed Check carried in the issue body; `skip` rows record `"—"`.
+— it is the condensed Check carried in the issue body; `skip` rows record `"—"`. A
+verdict that arrives without a closing condition is a breach of the core invariant: it
+is reported as `pending-infra` in the run report, receives no issue, and stays visible
+until its condition can be stated.
 
 Close with a count table: `rows scanned N | incomplete A | doc_sync B | unverified C |
 fr_orphan D | skipped E | created X | commented Y | roll-up mismatches M | closing
-conditions K`.
+conditions K | pending-infra P`.
 
 ## Personas
 
