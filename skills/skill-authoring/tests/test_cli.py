@@ -79,6 +79,7 @@ def run(*args: str, cwd: Path | None = None, env_root: Path | None = None) -> tu
         cwd=str(cwd) if cwd else str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     return completed.returncode, completed.stdout, completed.stderr
 
@@ -90,6 +91,7 @@ def run_shim(*args: str) -> tuple[int, str, str]:
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     return completed.returncode, completed.stdout, completed.stderr
 
@@ -379,6 +381,7 @@ def test_pack_is_not_importable_as_a_dotted_package():
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     assert completed.returncode != 0
     assert "No module named" in completed.stderr
@@ -389,13 +392,19 @@ def test_can_be_imported_by_path_without_side_effects(tmp_path: Path):
     marker = tmp_path / "untouched"
     marker.mkdir()
     completed = subprocess.run(
-        [sys.executable, "-c",
-         "import sys; sys.path.insert(0, 'skills/skill-authoring/scripts'); "
-         "import catalog, discover, mergeplan, model, mutate; "
-         f"import os; print(sorted(os.listdir({str(marker)!r})))"],
+        [
+            sys.executable,
+            "-c",
+            (
+                "import sys; sys.path.insert(0, 'skills/skill-authoring/scripts'); "
+                "import catalog, discover, mergeplan, model, mutate; "
+                f"import os; print(sorted(os.listdir({str(marker)!r})))"
+            ),
+        ],
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     assert completed.returncode == 0, f"stderr: {completed.stderr}"
     assert completed.stdout.strip() == "[]"
@@ -590,14 +599,15 @@ def _git_status() -> str:
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
+        check=False,
     )
     return completed.stdout
 
 
 def test_shutil_available():
     """The mutations import shutil; assert the module loads at all."""
-    import mutate  # noqa: F401
-    import catalog  # noqa: F401
+    import catalog
+    import mutate
 
     assert callable(mutate.fail)
     assert callable(catalog.rebuild_catalog)
