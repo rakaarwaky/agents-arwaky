@@ -26,7 +26,26 @@ import sys
 from pathlib import Path
 
 PACK_ROOT = Path(__file__).resolve().parent.parent
-REPO_ROOT = PACK_ROOT.parents[2]
+
+
+def _find_repo_root() -> Path:
+    """Walk up from PACK_ROOT to the directory that carries ``.git``.
+
+    A git worktree stores its ``.git`` as a file (pointing at
+    ``gitdir``), so the marker is present both in the main clone and in
+    any worktree — regardless of how many directory levels deep the
+    checkout lives.
+    """
+    for candidate in PACK_ROOT.parents:
+        if (candidate / ".git").exists():
+            return candidate
+    raise RuntimeError(
+        f"no .git marker found walking up from {PACK_ROOT} — "
+        "test must run inside a git clone or worktree"
+    )
+
+
+REPO_ROOT = _find_repo_root()
 SKILLS_ROOT = REPO_ROOT / "skills"
 CLI = PACK_ROOT / "scripts" / "cli.py"
 SHIM = PACK_ROOT / "skill-librarian" / "scripts" / "librarian.py"
@@ -147,7 +166,7 @@ def test_exit_code_2_nonexistent_skill_is_a_usage_error():
     assert "ERROR: Could not find skill directory with SKILL.md: nonexistent-skill" in stderr
 
 
-def test_catalog_check_drifts_to_3_on_an_empty_root():
+def test_catalog_check_drifts_to_3_on_an_empty_root(tmp_path: Path):
     """A skills root with no skills drifts: the tracked catalog is missing.
     So there is nothing to be in sync with (exit 3, not a usage error)."""
     root = tmp_path / "skills"
@@ -349,11 +368,14 @@ def test_discover_limit_caps_results(tmp_path: Path):
     root = _crafted_tree(tmp_path)
     run("catalog", env_root=root)
 
-    _, stdout, _ = run("discover", "skills", "--limit", "1", env_root=root)
+    # "notes" matches both rows (category + path hit); the cap keeps one.
+    _, stdout, _ = run("discover", "notes", "--limit", "1", env_root=root)
     rows = [
         line
         for line in stdout.splitlines()
-        if line.startswith("| ") and "---|" not in line
+        if line.startswith("| ")
+        and "---|" not in line
+        and line != "| Skill | Category | Description | Path | Score |"
     ]
     assert len(rows) == 1
 
