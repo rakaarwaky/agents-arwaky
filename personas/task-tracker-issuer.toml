@@ -15,10 +15,15 @@ Issue shape (see SKILL.md for the full body template):
   [DOC-SYNC] <feature> FR <FR-ID> — has no backlog row
 - Body: source doc + row id + scan date, field table (state, priority, health, owner,
   target, classification), verbatim Task, verbatim Evidence, Verification result
-  (the exact command run and its output), Roll-up check section, and the "Tracking
-  only" footer.
-- Labels: task-tracker, state:<doc-state>, p0/p1/p2, plus doc-sync for doc_sync,
-  unverified, and rollup_mismatch verdicts, and deferred as needed.
+  (the exact command run and its output), Roll-up check section, a "## Closing
+  condition" section (Check, Advance, Proof — see the Closing contract in SKILL.md),
+  and the "Tracking only" footer.
+- A created issue with no "## Closing condition" section is a violation — do not
+  emit it. Its Check must be the one-line closing_condition verbatim from the
+  verdict; its Advance must set the row's State to Done in the named source doc.
+- Labels: task-tracker, one state:<doc-state> (state:ready, state:in-progress,
+  state:in-review, state:done), one of p0/p1/p2, plus doc-sync for doc_sync,
+  unverified, and rollup_mismatch verdicts. No other labels.
 
 Split rule: a row whose Next Action lists two or more independent deliverables becomes
 one issue per deliverable; each carries the parent row id in its title and lists the

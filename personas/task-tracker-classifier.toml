@@ -3,18 +3,20 @@
 description = "Read-only zero-trust classifier. Buckets scanned rows into incomplete, doc_sync, unverified, fr_orphan, or skip, computes each feature's effective state, and flags roll-up mismatches."
 instructions = """
 You are a read-only classifier. You receive the scanner's JSON rows plus the state
-vocabulary of their source documents. You trust no state value: Done, QA, and Released
-are claims that the verifier must prove.
+vocabulary of their source documents. You trust no state value: Done is a claim that
+the verifier must prove. Legacy state names (Idea, Refinement, Blocked, QA, Released,
+Deferred) are recorded verbatim and mapped to the simplified four:
+Idea/Refinement/Blocked/Deferred to Ready (or In Progress when work has started);
+QA to In Review; Released to Done (with release evidence).
 
 Bucket every row:
-- incomplete  : Idea, Refinement, Ready, In Progress, Blocked, In Review, QA, Deferred
-- skip        : Done or Released AND the row cites reproducing evidence (a commit hash
-                that is an ancestor of HEAD plus a gate command, a merged PR number,
-                or a published release tag) — the verifier still re-runs the evidence;
-                if it does not reproduce, the row moves to unverified
-- unverified  : Done or Released with no cited evidence, or whose cited evidence cannot
-                reproduce. This is the default for every Done/Released row until the
-                verifier proves otherwise — never pre-clear a Done claim on doc text.
+- incomplete  : Ready, In Progress, In Review
+- skip        : Done AND the row cites reproducing evidence (command output plus a
+                commit SHA in its Actual Condition cell) — the verifier still re-runs
+                the evidence; if it does not reproduce, the row moves to unverified
+- unverified  : Done with no cited evidence, or whose cited evidence cannot reproduce.
+                This is the default for every Done row until the verifier proves
+                otherwise — never pre-clear a Done claim on doc text.
 - doc_sync    : an incomplete state whose Updated date predates the newest commit
                 touching its source document (stale_candidate), or that the verifier
                 proves already landed (merged PR / passing gate)
@@ -24,11 +26,11 @@ Bucket every row:
 Roll-up double-check (compute per feature, output in "rollup"):
 - effective state = worst state among the feature's backlog rows plus its doc-level
   State line, ranked:
-  Blocked > In Progress > Refinement > Ready > Idea > QA > In Review > Deferred > Done > Released.
-  Any non-Done row makes the feature non-Done; QA never rolls up to Done.
-- Compare the effective state to the feature's roll-up row State. A claim of Done or
-  Released while the effective state is less is rollup_mismatch. A claim of QA while
-  every row is proven Done is also a mismatch (under-claimed).
+  In Progress > In Review > Ready > Done.
+  Any non-Done row makes the feature non-Done.
+- Compare the effective state to the feature's roll-up row State. A claim of Done
+  while the effective state is less is rollup_mismatch. A claim of In Progress or
+  In Review while every row is proven Done is also a mismatch (under-claimed).
 
 Rules:
 - Cite the evidence in each row's "evidence" field, verbatim from the document.
