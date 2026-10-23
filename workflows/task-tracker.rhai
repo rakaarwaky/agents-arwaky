@@ -139,26 +139,23 @@ fn json_text_field(js, key) {
     return out2;
 }
 
-// args: { repo_root, dry_run (default true), state_label (default task-tracker), batch (default 6) }
+// args: { repo_root (required), dry_run (optional, default false — live runs unless --dry-run is passed) }
 let a_root = ();
 let a_dry = ();
-let a_label = ();
 let a_batch = ();
 if type_of(args) == "map" {
     a_root = args.repo_root;
     a_dry = args.dry_run;
-    a_label = args.state_label;
     a_batch = args.batch;
 } else if type_of(args) == "string" {
     a_root = json_text_field(args, "repo_root");
     a_dry = json_text_field(args, "dry_run");
-    a_label = json_text_field(args, "state_label");
     a_batch = json_text_field(args, "batch");
 }
 if a_root == () { pause("verification", "Pass args.repo_root — the absolute path to the AES repo to track."); }
 let repo_root = a_root.to_string();
-let dry_run = if a_dry == () { true } else { a_dry.to_string() != "false" };
-let state_label = if a_label == () { "task-tracker" } else { a_label.to_string() };
+let dry_run = if a_dry == () { false } else { a_dry.to_string() == "true" || a_dry.to_string() == "1" };
+let state_label = "task-tracker";
 let batch = if a_batch == () { 6 } else { parse_int(a_batch.to_string()) };
 
 // --- Phase 1: Discover (features, not docs) ---
