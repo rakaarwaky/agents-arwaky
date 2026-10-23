@@ -14,7 +14,7 @@ when-to-use: >
   /task-tracker, map incomplete tasks to GitHub issues, create tracking issues from
   ROADMAP or BACKLOG, audit document states against reality, doc-sync issues for stale
   spec documents, verify Done/QA claims in a roadmap
-argument-hint: <repo-root> [--dry-run] [--state-label task-tracker] [--no-trust-doc]
+argument-hint: <repo-root> [--dry-run]
 ---
 
 # Task Tracker — zero-trust spec audit → modular GitHub tracking issues
@@ -42,9 +42,9 @@ reconciled against the **actual** state of that feature's backlog rows — a rol
 says `Done` while any backlog row is still `QA` or `In Progress` is a mismatch and
 becomes a `[DOC-SYNC]` issue.
 
-When `--no-trust-doc` is passed, even the scan step may not treat a doc's State
-Definitions table as authoritative until the verifier has confirmed the doc is not a
-template or scratch file (see Scope).
+When the verifier runs, it never trusts a doc's State Definitions table as
+authoritative — it confirms the doc is not a template or scratch file before
+relying on the vocabulary it declares.
 
 ## Scope
 
@@ -298,7 +298,8 @@ one of `p0` / `p1` / `p2`, plus `doc-sync` for the `doc_sync`, `unverified`,
 `rollup_mismatch`, and `fr_orphan` classes, and `deferred` for Deferred rows. No other
 labels — the four title formats and this label set are the whole vocabulary.
 
-**Dry run**: `--dry-run` executes steps 1–4 and prints every would-be title, body, and
+**Dry run**: the default run is live — steps 1–6 all execute and issues are created.
+Passing `--dry-run` executes steps 1–4 and prints every would-be title, body, and
 label without calling `gh issue create`.
 
 ### Step 6 — ledger + report
