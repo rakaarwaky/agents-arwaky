@@ -295,4 +295,4 @@ def test_catalog_artifact_unchanged_by_refactor():
     text = catalog_md.read_text(encoding="utf-8")
     assert text.startswith("# Skills Catalog\n")
     assert "| shared | (missing DESCRIPTION.md) | 0 |" in text
-    assert "skill-librarian | skill-authoring |" in text
+    assert "skill-library | skill-authoring |" in text
