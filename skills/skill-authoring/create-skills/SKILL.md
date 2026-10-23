@@ -1,6 +1,7 @@
 ---
 name: create-skills
-description: Author, validate, and improve agent skills. Use when creating a skill, writing or auditing a SKILL.md, or deciding what belongs in the body versus a reference file.
+description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split.
+when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, or deciding what belongs in the body versus a references/ file.
 metadata:
   tags:
     - skills
@@ -8,18 +9,6 @@ metadata:
     - creation
     - validation
     - design
-  related_skills:
-    - skill-manager
-    - skill-migration
-    - prune-skills
-    - howto-generator
-triggers:
-  - create skill
-  - write skill
-  - improve skill
-  - validate skill
-  - audit skill
-  - check skill
 ---
 
 # Create Skills
@@ -31,9 +20,21 @@ design principles, the interactive creation workflow, and validation rules.
 
 - Asked to create, write, structure, improve, validate, or audit a skill / `SKILL.md`.
 - Deciding what goes in the body versus a `references/` file, or how to word a `description:`.
-- Don't use for: discovering or reading installed skills (`skill-manager`), porting a pack
-  from another harness (`skill-migration`), consolidating a skill tree (`prune-skills`), or
-  authoring a skill committed to the hermes-agent repo (`hermes-agent-skill-authoring`).
+- Don't use for: discovering or reading installed skills (`skill-manager`), consolidating
+  a skill tree (`prune-skills`), or authoring a skill committed to the hermes-agent repo
+  (`hermes-agent-skill-authoring`).
+
+## Routing
+
+- **`skill-manager`** — listing and reading installed skills (`aa skills list/show`).
+- **`prune-skills`** — consolidating or de-duplicating a skill tree.
+- **`howto-generator`** — generating AES-format HOW-TO reference files.
+- **`skill-librarian`** — cataloging, repairing, and weeding the library.
+
+Frontmatter, naming, description, and category-shape constraints are not restated here:
+the executable rules and their exact messages live in
+[`_rules/skill-rules.md`](../_rules/skill-rules.md), generated from
+`_rules/skill_rules.py`. This skill teaches how to author, not what the checker enforces.
 
 ## Design principles
 
@@ -73,19 +74,10 @@ Survey 2-3 sibling skills in the target tree first and match the field set that 
 validator enforces — hosted upload targets reject keys outside their allowlist; harnesses
 that parse extra keys are listed below.
 
-- **`name:`** Max 64 chars; lowercase `a-z`, `0-9`, `-` only; no leading/trailing hyphen,
-  no `--`, no XML tags, no reserved words. **Must equal the directory name exactly** —
-  loaders key discovery on the folder, so a mismatch means rejected or silently unresolvable.
-  Renaming means `git mv` the directory and grepping for inbound mentions, not editing one field.
-  Grok Build normalizes names anyway (any char outside `a-z0-9-` becomes `-`, `--` collapses,
-  leading/trailing `-` trimmed) and re-keys colliding same-scope skills to their directory
-  basename, so keep `name` equal to the directory to survive collisions intact.
-- **`description:`** Max 1,024 chars (some targets: 60). Third person: "Extracts text from
-  PDFs". Includes WHAT + WHEN + trigger terms. No `<`, `>`, or `"` anywhere — Grok Build
-  embeds the value verbatim inside `<skill description="...">`. Specific — "Helps with
-  documents" and "Processes data" trigger nothing.
-- **Placement:** `<skills-root>/<category>/<skill>/SKILL.md`. Loaders walk one level, so a
-  skill nested deeper or sitting at the tree root is invisible rather than broken-looking.
+The `name:`, `description:`, and placement constraints are the rules in
+[`_rules/skill-rules.md`](../_rules/skill-rules.md) — generated from the same module the
+validator runs. Check a skill with `python3 skills/skill-authoring/scripts/cli.py validate`. Renaming a
+skill means `git mv` the directory and grepping for inbound mentions, not editing one field.
 
 ### Grok Build keys
 
@@ -106,7 +98,9 @@ Grok Build parses exactly these keys; unknown keys load silently and do nothing:
 
 Parser limits: `name` ≤ 64 chars; `description` and `when-to-use` ≤ 1,024 chars (longer
 values truncate). Top-level `version:`, `triggers:`, and `entry_points:` are **not parsed**
-— trigger phrases belong in `description:` or `when-to-use:`.
+— trigger phrases belong in `description:` or `when-to-use:`. This file's own top-level
+`triggers:` block was removed for that reason; its terms moved into the `description:` and
+`when-to-use:` above.
 
 ### YAML hygiene
 

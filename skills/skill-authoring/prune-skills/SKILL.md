@@ -1,6 +1,7 @@
 ---
 name: prune-skills
-description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories.
+description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories, pruning skills, consolidating skills, merging duplicate skills, auditing a skill directory, or collapsing skill folders.
+when-to-use: Use when cleaning up, auditing, or merging agent skill directories; pruning skills; consolidating skills; merging duplicate skills; auditing a skill directory; or collapsing skill folders.
 metadata:
   tags:
     - skill
@@ -9,19 +10,6 @@ metadata:
     - consolidation
     - skill-cleanup
     - agent-skills
-  related_skills:
-    - create-skills
-    - skill-manager
-    - cleanup-consolidate
-  triggers:
-    - prune skills
-    - clean up skills
-    - consolidate skills
-    - merge duplicate skills
-    - audit skill directory
-    - skill cleanup
-    - deduplicate skills
-    - collapse skill folders
 ---
 
 # prune-skills
@@ -35,6 +23,21 @@ one `SKILL.md` plus a `references/` subfolder, one file per scenario. Modeled on
 **Scope:** skill directories only — `SKILL.md` files, `references/`, `scripts/`, and category
 `DESCRIPTION.md` files. Never touch non-skill content. This is the skill-folder analog of dead-code
 removal plus consolidation: Phase 1 removes true duplicates, Phase 2 merges overlapping variants.
+
+## Routing
+
+- **`create-skills`** — authoring a new skill or auditing one `SKILL.md` (the prune happens after
+  the authoring, not instead of it).
+- **`skill-librarian`** — cataloging the library and repairing mechanical frontmatter faults before
+  a prune.
+- **`skill-manager`** — read-only listing and inspecting skills (`aa skills list/show`), for the
+  inventory a prune starts from.
+- **`code-quality/cleanup-consolidate`** — the code-level duplicate removal this skill is modeled on.
+
+Frontmatter constraints for a merged `SKILL.md` are not restated here: the executable rules and
+their messages live in [`../_rules/skill-rules.md`](../_rules/skill-rules.md), generated from
+`_rules/skill_rules.py`. A merge that produces a rule violation is caught by running
+`python3 skills/skill-authoring/scripts/cli.py validate`.
 
 ## Path Handling
 
@@ -78,9 +81,12 @@ Skills are variants when they share a domain but each covers a distinct scenario
 | Merged skill now has complex, distinct sub-scenarios | **one folder, one `SKILL.md`, plus `references/`** — `SKILL.md` keeps the shared rules and a routing table; each sub-scenario becomes `references/<scenario>.md`, one level deep |
 | Skills that are genuinely different jobs | leave both alone; note in the report why they were not merged |
 
-A merged `SKILL.md` follows `create-skills` conventions: frontmatter with `name`,
-`description` (third person, includes trigger terms), `metadata.tags`, `related_skills`,
-`triggers`; body as a table of contents that links one level deep into `references/`.
+A merged `SKILL.md` follows `create-skills` conventions: frontmatter with `name` and
+`description` (third person, includes trigger terms), routing in the body rather than in
+non-parsed keys (`triggers:` and `metadata.related_skills` are not parsed by Grok Build —
+trigger terms go in `description:`/`when-to-use:`, sibling skills in a body section), and a
+body that is a table of contents linking one level deep into `references/`. The exact
+frontmatter constraints are the rules in [`../_rules/skill-rules.md`](../_rules/skill-rules.md).
 
 ## Workflow
 
@@ -112,8 +118,9 @@ Task Progress:
 
 - **Name survival** — the surviving skill keeps the `name:` that best matches the merged scope; if
   neither matches, pick the more specific one.
-- **Frontmatter union** — merge `tags` and `triggers` as unions, de-duplicated; merge
-  `related_skills` and drop entries pointing at skills that no longer exist.
+- **Frontmatter union** — merge `tags` and `when-to-use` as unions, de-duplicated; merge any
+  body Routing sections and drop entries pointing at skills that no longer exist. Merge
+  `triggers:` terms into `description:`/`when-to-use:` — the key is not parsed.
 - **Body merge** — shared rules go in the `SKILL.md` body exactly once. Scenario-specific rules
   move to `references/<scenario>.md`. Never restate a rule that already exists in a reference.
 - **Conflict Resolution** — if merged skills contain contradictory rules (e.g., opposing

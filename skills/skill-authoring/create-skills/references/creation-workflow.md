@@ -12,8 +12,9 @@ constraints come from the main guide; this file is only the step order.
 
 Ask the user these questions one at a time as normal conversation (not option prompts):
 
-1. **Skill name** — lowercase `a-z`, `0-9`, `-`; starts and ends with a letter or digit;
-   2-64 chars (e.g. `deploy-k8s`). Validate before continuing.
+1. **Skill name** — must satisfy the `name-format` rule in
+   [`../../_rules/skill-rules.md`](../../_rules/skill-rules.md) (e.g. `deploy-k8s`).
+   Validate before continuing.
 2. **Scope** — present two options:
    - **Project** (recommended): `<repo-root>/<skills-dir>/<name>/SKILL.md` — lives in this
      repo, shareable with teammates. Default when inside a git repo.
