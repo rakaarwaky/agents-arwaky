@@ -3,15 +3,15 @@ name: task-tracker
 description: >
   Zero-trust task tracker: maps AES spec documents (PRD, ROADMAP, BACKLOG, FRD, DESIGN,
   plus module and package feature docs) into modular GitHub tracking issues. Never trusts
-  any doc claim — Done, QA, and Released rows are re-verified against live source and test
-  evidence. Every issue carries a closing-condition that, when fulfilled, advances the ROW
-  and ALL ITS FR IDs to the next state. Intended invariant: fixing ALL open issues equals
-  ALL FR states = Done (or Released where proven). Use when the user runs /task-tracker,
-  asks to map backlog tasks to GitHub issues, or asks for a zero-trust audit of spec states.
+  any doc claim — Done rows are re-verified against live source and test evidence.
+  Every issue created carries a closing-condition that, when fulfilled, advances the ROW
+  and ALL ITS FR IDs to Done. The intended invariant: fixing ALL open issues equals
+  ALL FR states = Done. Use when the user runs /task-tracker, asks to map backlog tasks
+  to GitHub issues, or asks for a zero-trust audit of spec states.
 when-to-use: >
   /task-tracker, map incomplete tasks to GitHub issues, create tracking issues from
-  ROADMAP or BACKLOG, verify Done/QA claims against code, ensure every issue carries
-  a closing-condition that advances the roadmap state.
+  ROADMAP or BACKLOG, verify Done claims against code, ensure every issue carries
+  a closing-condition that advances the roadmap state to Done.
 argument-hint: <repo-root> [--dry-run]
 ---
 
@@ -32,20 +32,24 @@ is visible.
 
 ## Zero-trust policy (read first)
 
-No state value in any spec document is trusted. A row marked `Done`, `QA`, or
-`Released` is a **claim**, never a fact. Every row — whatever its state — is verified
-against live evidence before it is allowed to be skipped:
+No state value in any spec document is trusted. A row marked `Done` is a **claim**,
+never a fact. Every row — whatever its state — is verified against live evidence
+before it is allowed to be skipped:
 
-- A `Done` row owes proof that the described behavior is actually implemented in the feature's current source code (`<feature>/src/`) and exercised by at least one test in `<feature>/tests/`.
-- A `Released` row owes proof that the described behavior is implemented AND the feature's code shows no pending work for it; a release tag in the doc's evidence cell is not proof.
-- A `QA` / `In Review` row owes the fr row it leans on; the row stays `incomplete` and
-  the tracker checks whether the work has since landed by reading the actual source, not by checking for a merged PR.
+- A `Done` row owes proof that the described behavior is actually implemented in the
+  feature's current source code (`<feature>/src/`) and exercised by at least one test
+  in `<feature>/tests/`.
+- A `Done` row additionally requires: **command + commit evidence** — the exact
+  verification command, its pass/fail result, and the implementing commit SHA
+  recorded in the row's `Actual Condition` cell.
+- An `In Review` row owes proof that a PR exists and is open; the tracker checks
+  GitHub for the PR rather than trusting the doc text.
 - Evidence that does not reproduce flips the row to `unverified` and produces a
   `[DOC-SYNC]` issue. The doc never gets the benefit of the doubt.
 
 The roll-up gets the same treatment: the ROADMAP `Feature Roll-up` row for a feature is
 reconciled against the **actual** state of that feature's backlog rows — a roll-up that
-says `Done` while any backlog row is still `QA` or `In Progress` is a mismatch and
+says `Done` while any backlog row is still `In Progress` or `In Review` is a mismatch and
 becomes a `[DOC-SYNC]` issue.
 
 When the verifier runs, it never trusts a doc's State Definitions table as
@@ -82,7 +86,7 @@ Two common layouts, both in scope:
 
 In the backlog-owned shape the doc-level `State:` line at the top of a feature backlog
 is a real classification target in its own right — a feature still `In Progress` or
-`Idea` while its row table is empty produces a tracking issue for the feature roll-up
+`Ready` while its row table is empty produces a tracking issue for the feature roll-up
 row, not for the vanished rows.
 
 If the repo uses neither shape exactly, follow the discovery rule and extract every
@@ -90,19 +94,24 @@ table that has both an ID (or Feature) column and a State column.
 
 ## State vocabulary
 
-The five base states every AES repo carries:
+The simplified four-state vocabulary used across the tracked repo:
 
 | State | Meaning |
 | --- | --- |
-| Idea | Not examined; no spec. |
-| Refinement | Being specced. |
 | Ready | Specified; not started. |
 | In Progress | Active now. |
-| Blocked | Name the blocker in Actual Condition. |
+| In Review | PR open; awaiting merge/verification. |
+| Done | Command + commit evidence recorded in `Actual Condition`. |
 
-Extended states seen in some repos: `In Review`, `QA`, `Done`, `Released`, `Deferred`.
-The authoritative table for the current repo is its own State Definitions table —
-parse it, do not assume the full vocabulary.
+Transitions: `Ready` → `In Progress` → `In Review` → `Done`.
+
+The authoritative table for the current repo is its own State Definitions table — parse
+it, do not assume the full vocabulary. If the repo still carries legacy state names
+(`Idea`, `Refinement`, `Blocked`, `QA`, `Released`, `Deferred`), the scanner records
+them verbatim but the classifier maps them to the simplified four: `Idea`/`Refinement`/
+`Blocked`/`Deferred` → `Ready` (or `In Progress` when work has started); `QA` →
+`In Review`; `Released` → `Done` (Released is a Done-claim that additionally requires a
+published release; it is verified as Done plus release evidence).
 
 ## Feature model
 
@@ -123,16 +132,17 @@ the feature as the unit of work, and every FR ID in the feature is checked both 
 
 | Row state | Classification | Action |
 | --- | --- | --- |
-| Idea, Refinement, Ready, In Progress, Blocked | `incomplete` | tracking issue |
-| In Review, QA | `incomplete` | tracking issue, body notes the current gate |
-| Deferred | `incomplete` | tracking issue, label `deferred`, body carries the reason |
-| Done / Released whose claimed behavior is confirmed present in the feature's current source code and exercised by at least one test | `skip` | no issue, ledger records the reproduced evidence |
-| Done / Released claim where the described behavior is absent, incomplete, or untested in the feature's source tree | `unverified` | `[DOC-SYNC]` issue demanding proof |
+| Ready, In Progress | `incomplete` | tracking issue |
+| In Review | `incomplete` | tracking issue, body notes the open PR gate |
+| Done whose claimed behavior is confirmed present in the feature's current source code and exercised by at least one test, with command + commit evidence recorded | `skip` | no issue, ledger records the reproduced evidence |
+| Done claim where the described behavior is absent, incomplete, or untested in the feature's source tree | `unverified` | `[DOC-SYNC]` issue demanding proof |
 | Any incomplete state where the work is present and tested in the source code but the doc still reports an incomplete state | `doc_sync` | doc-update issue |
 | FR ID declared in FRD with no backlog row (or vice versa) | `fr_orphan` | tracking issue on the feature |
 
-There is no path where a `Done` or `Released` marker alone suppresses an issue. Doc
-text is the hypothesis; live evidence is the verdict.
+Legacy state names (`Idea`, `Refinement`, `Blocked`, `QA`, `Released`, `Deferred`) are
+recorded verbatim by the scanner and mapped by the classifier to the simplified four
+(see the State vocabulary section). There is no path where a `Done` marker alone
+suppresses an issue. Doc text is the hypothesis; live evidence is the verdict.
 
 ### Evidence rules
 
@@ -154,17 +164,17 @@ its backlog rows:
 
 1. Collect every backlog row of the feature plus its doc-level `State:` line.
 2. Effective state = the worst state present, ranked:
-   `Blocked` > `In Progress` > `Refinement` > `Ready` > `Idea` > `QA` > `In Review` > `Deferred` > `Done` > `Released`.
-   Any non-`Done` row makes the feature non-`Done`; `QA` never rolls up to `Done`.
-3. If the roll-up row's `State` claims `Done` or `Released` while the effective state
-   is anything less, open `[DOC-SYNC]` on the roll-up row with the offending backlog
-   row ids and states listed in the body.
+   `In Progress` > `In Review` > `Ready` > `Done`.
+   Any non-`Done` row makes the feature non-`Done`.
+3. If the roll-up row's `State` claims `Done` while the effective state is anything
+   less, open `[DOC-SYNC]` on the roll-up row with the offending backlog row ids
+   and states listed in the body.
 4. If the roll-up claims `Done` and the effective state is `Done`, still re-verify each
    contributing backlog row's evidence per the Evidence rules table — a roll-up is only
    as good as the rows it aggregates.
-5. Symmetric check: a feature whose roll-up says `QA` while every backlog row is
-   verified `Done` with reproducing evidence is also a mismatch (under-claimed), and
-   becomes a `[DOC-SYNC]` issue.
+5. Symmetric check: a feature whose roll-up says `In Progress` or `In Review` while every
+   backlog row is verified `Done` with reproducing evidence is also a mismatch
+   (under-claimed), and becomes a `[DOC-SYNC]` issue.
 
 The same reconciliation runs on the doc-level `State:` line of a backlog-owned feature
 backlog.
@@ -184,8 +194,7 @@ The section holds three fields:
    `<source_doc>`, and its evidence cell is rewritten to the commit SHA plus the
    command output that reproduced the check. Every FR ID the row cites advances with
    it: an FR is evidenced only by its backlog rows, so this row's `Done` is that FR's
-   `Done` — closing all open issues therefore lands every FR state at `Done` (or
-   `Released` where the row's own evidence proves a release).
+   `Done` — closing all open issues therefore lands every FR state at `Done`.
 3. **Proof** — the commit link and command output posted as the closing comment.
 
 The check's content follows the verdict that produced the issue:
@@ -263,9 +272,9 @@ Wait on all handles. Collect rows; dedupe on `(id, source_doc)`.
 
 ### Step 3 — classify with zero trust
 
-Apply the classification table locally. Every `Done` / `Released` / `QA`-gate row goes
-to the verifier as a **proof demand**, not as a skip candidate. A row whose `Updated`
-date is older than 14 days is a staleness flag; the verifier re-reads the code regardless.
+Apply the classification table locally. Every `Done` row goes to the verifier as a
+**proof demand**, not as a skip candidate. A row whose `Updated` date is older than
+14 days is a staleness flag; the verifier re-reads the code regardless.
 
 Compute the per-feature effective state here, before verification, so the verifier can
 compare it against the roll-up claim.
@@ -284,8 +293,8 @@ Verdicts:
 | --- | --- | --- |
 | `open` | code does not implement it, no existing tracking issue | create a tracking issue |
 | `doc_sync` | code implements it, doc says otherwise | create a `[DOC-SYNC]` issue |
-| `unverified` | Done/Released claim, code does not match | create a `[DOC-SYNC]` issue naming the failed check |
-| `skip` | Done/Released, code fully confirms it | ledger only, evidence recorded |
+| `unverified` | Done claim, code does not match | create a `[DOC-SYNC]` issue naming the failed check |
+| `skip` | Done, code fully confirms it with command + commit evidence | ledger only, evidence recorded |
 | `fr_orphan` | FR id with no backlog row | tracking issue on the feature |
 
 ### Step 5 — open modular issues
@@ -355,10 +364,11 @@ and this issue closes with the proof. For a `[DOC-SYNC]` issue, the fix is the d
 edit aligning the state with reality — that edit is both the check and the advance.
 ````
 
-**Labels** (create on first use, then reuse): `task-tracker`, one `state:<doc-state>`,
-one of `p0` / `p1` / `p2`, plus `doc-sync` for the `doc_sync`, `unverified`,
-`rollup_mismatch`, and `fr_orphan` classes, and `deferred` for Deferred rows. No other
-labels — the four title formats and this label set are the whole vocabulary.
+**Labels** (create on first use, then reuse): `task-tracker`, one `state:<doc-state>`
+(`state:ready`, `state:in-progress`, `state:in-review`, `state:done`), one of
+`p0` / `p1` / `p2`, plus `doc-sync` for the `doc_sync`, `unverified`,
+`rollup_mismatch`, and `fr_orphan` classes. No other labels — the four title formats
+and this label set are the whole vocabulary.
 
 **Dry run**: the default run is live — steps 1–6 all execute and issues are created.
 Passing `--dry-run` executes steps 1–4 and prints every would-be title, body (including
@@ -401,7 +411,7 @@ the four personas, defined in `personas/task-tracker-*.toml`:
 - [ ] Every row from every in-scope doc appears in the ledger with a class.
 - [ ] Every `incomplete` row maps to exactly one open issue (created, commented, or pre-existing).
 - [ ] Every `doc_sync` and every `unverified` row maps to an open `[DOC-SYNC]` issue.
-- [ ] Every `Done` / `Released` row shows code evidence (file + line + test) in the ledger, or is `unverified`.
+- [ ] Every `Done` row shows code evidence (file + line + test) in the ledger, or is `unverified`.
 - [ ] Every feature roll-up row is reconciled against its backlog; each mismatch is an issue.
 - [ ] Every FR ID declared in an FRD has a cited backlog equivalent, or is an `fr_orphan` issue.
 - [ ] No `skip` row dropped silently — each has its reproduced evidence cited in the ledger.

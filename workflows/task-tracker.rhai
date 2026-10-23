@@ -4,7 +4,7 @@ let meta = #{
     phases: [
         #{ title: "Discover", detail: "one agent enumerates features and their spec docs" },
         #{ title: "Scan", detail: "one scanner subagent per feature, each owning its FR-id set" },
-        #{ title: "Verify", detail: "one verifier subagent per feature; every Done/Released row is re-checked, roll-up reconciled" },
+        #{ title: "Verify", detail: "one verifier subagent per feature; every Done row is re-checked, roll-up reconciled" },
         #{ title: "Issue", detail: "batched modular issue creation, one Closing condition per body, dry-run default" },
     ],
 };
@@ -253,14 +253,14 @@ for sr in scan_list {
 log("scanned " + all_rows.len().to_string() + " rows across " + groups.len().to_string() + " feature groups");
 
 // --- Phase 3: Verify (one subagent per feature, zero-trust) ---
-// No row is exempt: Done/Released rows are proof demands, the roll-up is reconciled
+// No row is exempt: Done rows are proof demands, the roll-up is reconciled
 // against each feature's effective state, and FR orphans are flagged in both directions.
 phase("Verify");
 let verdicts = [];
 let j = 0;
 for g in groups {
     let vp = "Verify the feature \"" + g.name + "\" against ACTUAL CODE ONLY. ZERO TRUST: no state claim "
-        + "— including Done and Released — is accepted on doc text, git history, or GitHub issues/PRs/releases. "
+        + "— including Done — is accepted on doc text, git history, or GitHub issues/PRs/releases. "
         + "The only evidence that counts is the source code and test files in the feature's own tree. "
         + "For every row in the feature's BACKLOG: "
         + "(1) Read the row's item text and its Actual Condition cell. "
@@ -268,24 +268,26 @@ for g in groups {
         + "(use the FR id, the row title, and the described behavior to locate them). "
         + "(3) Confirm the described behavior is actually implemented in the current code: "
         + "the function/class/flag/config exists, the logic matches the claim, and at least one test exercises it. "
-        + "A row claiming Done/Released passes only if the code and tests you just read prove it. "
+        + "A row claiming Done passes only if the code and tests you just read prove it. "
         + "A hash in the row's evidence cell is NOT proof; a merged-PR number is NOT proof; a release tag is NOT proof. "
         + "If the code does not implement what the row claims, verdict is \"unverified\" and the evidence field "
         + "names the specific file and the missing or wrong behavior. "
         + "For tracking-issue dedupe: gh issue list --state open --search \"<row id> in:title\" --json number,title "
         + "(an open issue makes the verdict \"exists\"; nothing open makes it \"open\"). "
         + "Roll-up reconciliation: recompute the feature's effective state from its backlog rows — worst state "
-        + "wins, ranked Blocked > In Progress > Refinement > Ready > Idea > QA > In Review > Deferred > Done > "
-        + "Released; any non-Done row makes the feature non-Done. If the roadmap roll-up claims Done/Released "
-        + "while the effective state is less (or claims QA while every row is proven Done), verdict "
+        + "wins, ranked In Progress > In Review > Ready > Done; any non-Done row makes the feature non-Done. "
+        + "If the roadmap roll-up claims Done while the effective state is less, verdict "
         + "\"rollup_mismatch\" for the roll-up row. "
+        + "Legacy state names (Idea, Refinement, Blocked, QA, Released, Deferred) are mapped to the simplified "
+        + "four: Idea/Refinement/Blocked/Deferred to Ready or In Progress when work started; QA to In Review; "
+        + "Released to Done (plus release evidence). "
         + "FR orphan check: every FR id declared in the FRD must be cited by at least one backlog row and "
         + "vice versa; either direction failing is verdict \"fr_orphan\" for that FR id. "
         + "Verdicts per row: open (code does not implement the work, no open issue tracks it) | "
         + "exists (an open issue #N already tracks this row — cite the issue number) | "
         + "doc_sync (code implements the work but the doc still reports an incomplete state) | "
-        + "unverified (Done/Released claim whose code evidence is absent or does not match the claim) | "
-        + "skip (Done/Released with code evidence that fully confirms it — the only skip path) | fr_orphan. "
+        + "unverified (Done claim whose code evidence is absent or does not match the claim) | "
+        + "skip (Done with code evidence that fully confirms it — the only skip path) | fr_orphan. "
         + "Cite the file paths and line ranges you read in the evidence field. "
         + "CRITICAL: every verdict object MUST include a non-empty closing_condition field — "
         + "the exact observable check whose fulfillment advances the row to Done. "
@@ -384,7 +386,7 @@ for t in 0..total_ibatches {
         + "command output, no proof no close. "
         + "A created issue with no Closing condition section is a violation — do not emit it. "
         + "Labels: " + state_label + ", state:<state>, p0/p1/p2, plus doc-sync for doc_sync/unverified/"
-        + "rollup_mismatch and deferred for Deferred rows. "
+        + "rollup_mismatch, and fr_orphan classes. No other labels — the four title formats and this label set are the whole vocabulary. "
         + "For verdict exists: append a freshness comment to the recorded issue that restates its closing "
         + "condition — the check and the Done advance — action commented. "
         + "Return {row, action, url, number, closing_condition} per row, closing_condition copied from the "
