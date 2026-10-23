@@ -1,6 +1,6 @@
 ---
 name: releasing
-description: Cut and ship a new release of the `mergify` CLI — build the draft release with its platform binaries, publish it, and verify PyPI and the Homebrew tap picked it up. Use when asked to release, cut a release, ship a new version, publish a release, tag a version, or when a release run failed and needs recovery. Triggers on "release", "new version", "cut a release", "ship it", "publish the release", "bump the version", "release failed", "PyPI publish failed".
+description: Cut and ship a new release of the mergify CLI — build the draft release with its platform binaries, publish it, and verify PyPI and the Homebrew tap picked it up. Use when asked to release, cut a release, ship a new version, publish a release, tag a version, or when a release run failed and needs recovery. Triggers on release, new version, cut a release, ship it, publish the release, bump the version, release failed, PyPI publish failed.
 ---
 
 # Releasing `mergify-cli`

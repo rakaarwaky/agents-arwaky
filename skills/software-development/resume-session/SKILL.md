@@ -1,10 +1,6 @@
 ---
 name: resume-session
-description: >
-  Resume or continue work from a recent Claude Code, Codex, or Cursor session.
-  Use when the user switched from one of those tools, says "continue from
-  Claude/Codex/Cursor" or "resume my Claude/Codex/Cursor session", or names a
-  session by description, path, or native ID.
+description: Resume or continue work from a recent Claude Code, Codex, or Cursor session. Use when the user switched from one of those tools, says continue from Claude-Codex-Cursor or resume my Claude-Codex-Cursor session, or names a session by description, path, or native ID.
 metadata:
   short-description: "Continue from a recent Claude Code / Codex / Cursor session"
   argument-hint: "[words describing the session | session id]"

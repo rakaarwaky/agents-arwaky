@@ -287,7 +287,9 @@ def test_mutating_commands_rebuild_catalog_in_same_invocation(crafted_tree: Path
 
 def test_catalog_artifact_unchanged_by_refactor():
     """The catalog the refactor leaves behind is the tracked one: the
-    placeholder row for the asset container survives, untouched."""
+    placeholder row for the asset container survives, untouched. The
+    shared row carries the shared DESCRIPTION.md placeholder.
+    """
     # test file lives at <worktree>/skills/skill-authoring/tests/test_catalog.py
     pack_root = Path(__file__).resolve().parent.parent
     skills_root = pack_root.parent

@@ -89,8 +89,13 @@ def validate_library(skills_root: Path) -> dict[str, Any]:
     issues: list[dict[str, Any]] = []
     entries = model.skill_entries(skills_root)
     categories = model.category_summaries(entries, skills_root)
+    assets = model.assets_container(skills_root)
 
     for cat in categories:
+        if cat.category in assets:
+            # Declared DM2 asset container: its emptiness and the missing
+            # DESCRIPTION.md are by design, so both checks are skipped.
+            continue
         if not cat.description_file_exists:
             issues.append(
                 _issue(
@@ -207,6 +212,11 @@ def validate_library(skills_root: Path) -> dict[str, Any]:
         )
 
     for p in _iter_skill_md_files_relative(skills_root, "*/*/*/SKILL.md"):
+        # DM1 nested-pack marker: the intermediate directory carrying
+        # ``pack.toml`` opts the pack in — its too-deep files are
+        # skipped. Without the marker the violation stands unchanged.
+        if str(p.relative_to(skills_root)) in model.too_deep_exempt_paths(skills_root):
+            continue
         issues.append(
             _issue(
                 IssueType.TOO_DEEP,

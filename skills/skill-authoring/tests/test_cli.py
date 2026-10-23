@@ -91,8 +91,8 @@ def test_canonical_form_runs_from_repo_root():
     cwd = the repo root works and reports the library's issues."""
     exit_code, stdout, stderr = run("validate", cwd=REPO_ROOT)
 
-    assert exit_code == 1, f"expected exit 1 (issues found), got {exit_code}: {stderr}"
-    assert stdout.startswith("14 validation issue(s) found:\n"), stdout[:100]
+    assert exit_code == 0, f"expected exit 0 (0 issues), got {exit_code}: {stderr}"
+    assert stdout.strip() == "No validation issues found.", stdout[:100]
     assert stderr == ""
 
 
@@ -157,15 +157,14 @@ def test_shim_runs_from_a_clean_interpreter():
 
 
 def test_validate_report_is_the_committed_baseline():
-    """The 14 issues / 15 lines the tree reports today hold through the
-    canonical path (hard constraint: read-only stdout is unchanged)."""
+    """The tree reports 0 issues library-wide after PR-8 (DM1/DM2 markers
+    and description repairs closed all 14 pre-existing issues), and the
+    canonical path exits 0 on the committed real tree."""
     exit_code, stdout, _ = run("validate")
 
     lines = stdout.splitlines()
-    assert exit_code == 1
-    assert len(lines) == 15, f"expected 15 output lines, got {len(lines)}"
-    assert lines[0] == "14 validation issue(s) found:"
-    assert sum(1 for line in lines if line.startswith("- [")) == 14
+    assert exit_code == 0
+    assert lines == ["No validation issues found."]
 
 
 def test_exit_code_0_clean_on_crafted_tree():
@@ -182,12 +181,13 @@ def test_exit_code_1_issues_found_on_missing_description():
     assert stdout.startswith("1 validation issue(s) found:")
 
 
-def test_exit_code_1_weed_reports_issues():
-    """Exit 1: ``weed`` exits nonzero when it finds weeds (the library's
-    ``shared`` category is the standing example)."""
+def test_exit_code_0_weed_clean_on_real_tree():
+    """Exit 0: after PR-8 the library has no weeds — ``shared`` is a
+    declared DM2 asset container (ASSETS.md), so the standing empty-category
+    weed is gone."""
     exit_code, stdout, _ = run("weed")
-    assert exit_code == 1
-    assert "empty-category" in stdout
+    assert exit_code == 0, f"expected 0 (no weeds), got {exit_code}: {stdout}"
+    assert "No obvious weeds found." in stdout
 
 
 def test_exit_code_2_usage_error_unknown_flag():
@@ -316,19 +316,17 @@ def test_validate_category_and_rules_only_narrow_without_hiding():
     """The flags filter the report, not the discovery: the count line still
     states the unfiltered total and the exit code still tracks it."""
     exit_code, stdout, _ = run("validate", "--category", "drafts-not-a-category")
-    assert exit_code == 1
-    assert "0 in scope" in stdout
+    assert exit_code == 0
+    assert "No validation issues found" in stdout
 
     _, scoped, _ = run("validate", "--rules-only")
-    assert "13 in scope" in scoped
-    # The scoped version includes a note after the total count, but the test
-    # should assert that the line starts with the total count, not that it ends
-    # with the scoped note.
-    assert scoped.startswith("14 validation issue(s) found (13 in scope rules-only):")
+    assert "No validation issues found" in scoped
+    # After PR-8 the library reports 0 issues; the scoped report is the
+    # clean-line path, not the count line.
+    assert "rules-only" not in scoped  # no count note when 0 issues
 
     _, full, _ = run("validate")
-    assert full.splitlines()[0] == "14 validation issue(s) found:"
-    assert full.count("\n- [") == 14
+    assert full.strip() == "No validation issues found."
 
 
 def test_merge_plan_is_read_only():
@@ -504,13 +502,12 @@ def test_catalog_check_drift_count_matches_diff(tmp_path: Path):
 
 
 def test_validate_category_scope_counts_are_honest():
-    """The scoped count is a subset of the total; the total never drops."""
+    """The scoped count is a subset of the total; after PR-8 the total is 0."""
     _, stdout, _ = run("validate", "--category", "code-quality")
-    first = stdout.splitlines()[0]
-    assert "14 validation issue(s) found (3 in scope" in first
+    assert stdout.strip() == "No validation issues found."
 
     _, stdout, _ = run("validate", "--category", "research")
-    assert "1 in scope" in stdout
+    assert stdout.strip() == "No validation issues found."
 
 
 def test_move_dry_run_does_not_move(tmp_path: Path):
@@ -540,12 +537,11 @@ def test_weed_json_reports_the_same_weeds_as_text():
     _, json_out, _ = run("weed", "--json")
 
     payload = json.loads(json_out)
-    assert payload["issue_count"] == 2
-    assert {issue["type"] for issue in payload["issues"]} == {
-        "empty-category",
-        "missing-category-description",
-    }
-    assert "empty-category: shared" in text_out
+    # After PR-8 the tree has no weeds: shared/ is a declared DM2 asset
+    # container (ASSETS.md), so the weed report is empty.
+    assert payload["issue_count"] == 0
+    assert payload["issues"] == []
+    assert "No obvious weeds found." in text_out
 
 
 def test_catalog_does_not_drift_the_committed_artifact_in_check_mode():
