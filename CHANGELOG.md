@@ -14,6 +14,7 @@ All notable changes to this project are documented in this file.
 - Unit tests for `envfile`, `xdg`, and `manifest`.
 - CI pipeline with lint / compile / audit / shellcheck / JSON gates.
 - Opt-in Sentry error tracking (`ARWAKY_SENTRY_DSN`).
+- Skill pack CI gates: `.github/workflows/ci.yml` runs pack `validate`, `catalog --check`, pytest, and ruff on every pull request (validate output is surfaced in the log; catalog drift, test, and lint failures fail the job).
 - Structured logging helpers in `ui.py`.
 - `--version` command and `tools/config/version.txt`.
 - zsh completion generation.
