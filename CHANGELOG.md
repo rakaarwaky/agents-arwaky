@@ -37,3 +37,4 @@ All notable changes to this project are documented in this file.
 - `generate_config.py` derives MCP servers from `manifest.json` (single source of truth).
 - PID-file based daemon stop for Anytype native mode; password zeroing in 9Router env.
 - ANSI-width-aware table padding and `[OK]/[WARN]/[FAIL]` status labels.
+- Closed all 14 skill-library validation issues via nested-pack and assets-container placement markers plus six skill-description length repairs; `cli.py validate` reports 0 issues.
