@@ -122,22 +122,32 @@ catalog rebuild.
 
 ### Protocol API
 
-| Capability protocol | Ops | Returns |
-|---------------------|-----|---------|
-| `ISkillsIndexProtocol` | `list_skills(root=None)` | `Sequence[SkillRecord]` |
-| `ISkillsReaderProtocol` | `show_skill(query, root=None)` | `SkillContent | None` |
-| `ISkillsValidatorProtocol` | `validate(root)` | `ValidationReport` |
-| `ISkillsCatalogProtocol` | `rebuild(root)` / `check(root)` / `load_rows(root)` | `CatalogReport` / `CatalogCheckResult` / `tuple[CatalogRow, ...]` |
-| `ISkillsDiscovererProtocol` | `discover(query, root, limit)` | `DiscoveryResult` |
-| `ISkillsMutatorProtocol` | `plan_move`, `plan_archive`, `plan_repair`, `plan_weed`, `plan_new_category`, `apply`, `apply_new_category` | `MutationPlan` / `MutationOutcome` / `NewCategoryPlan` |
-| `ISkillsMergePlannerProtocol` | `plan(ref_a, ref_b, root)` / `render(plan)` | `MergePlan` / `tuple[str, ...]` |
-| `ISkillsRulesRendererProtocol` | `render_markdown()` / `render_summary()` | `RulesDocument` / `str` |
+| Method | Input | Output | Error | Event | Description |
+|--------|-------|--------|-------|-------|-------------|
+| `list_skills` | skills root override | one record per skill, sorted by name | typed error → exit code | — | enumerate every skill in the pack |
+| `show_skill` | skill name or identifier | raw SKILL.md text or not found | typed error → exit code | — | print one skill's guide |
+| `validate` | skills root | validation report | typed error → exit code | — | run the 13 checks over the tree |
+| `rebuild` | skills root | catalog report | typed error → exit code | — | walk the tree and rewrite the catalog |
+| `check` | skills root | in-sync flag plus diff | typed error → exit code | — | diff the tracked catalog against a rebuild |
+| `load_rows` | skills root | catalog rows | raises drift rather than repairing | — | fail-closed read of catalog rows |
+| `discover` | search query, root, limit | scored matches | raises usage error on empty query | — | score catalog rows, fall back to tree on drift |
+| `plan_move` | skill and target category | pure plan, no writes | typed error → exit code | — | pre-apply plan to move a skill to another category |
+| `plan_archive` | skill name | pure plan, no writes | typed error → exit code | — | pre-apply plan to archive a skill |
+| `plan_repair` | skills root | pure plan, no writes | typed error → exit code | — | pre-apply plan for safe mechanical repairs |
+| `plan_weed` | skills root | pure plan, no writes | typed error → exit code | — | report duplicates, empty categories, missing descriptions |
+| `plan_new_category` | category name and description | category creation plan | typed error → exit code | — | pre-apply plan to create a category |
+| `apply` | mutation plan | post-apply result | typed error → exit code | — | execute a plan after re-checking containment |
+| `apply_new_category` | category plan | whether it wrote | typed error → exit code | — | create category and write its description |
+| `plan` | two category/skill refs, skills root | merge plan | typed error → exit code | — | build the read-only plan for merging two skills |
+| `render` | merge plan | rendered report lines | typed error → exit code | — | render a merge plan as markdown |
+| `render_markdown` | — | full rules document | typed error → exit code | — | render the rule SSOT as markdown |
+| `render_summary` | — | one-line-per-rule summary | typed error → exit code | — | render the compact rule summary |
 
 ### Aggregate API
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `execute(request)` | `SkillsRequest` (op, query?, root?, apply?, flags?) | `SkillsResult` with the op's payload | typed `SkillsError` → exit code | — | one method covers every op |
+| `execute(request)` | request (op, query?, root?, apply?, flags?) | result with the op's payload | typed error → exit code | — | single composite entry point covering every op |
 
 ## Integration Points
 
