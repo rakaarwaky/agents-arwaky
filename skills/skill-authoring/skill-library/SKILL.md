@@ -11,7 +11,7 @@ Manages the skills pack as a library. The master index is `CATALOG.md` at the sk
 
 ## Library layout
 
-- Skills root: the directory three levels above `scripts/librarian.py`.
+- Skills root: the directory three levels above `skills/skill-authoring/scripts/cli.py`.
 - Category folder: `skills-root/category/`
 - Skill folder: `skills-root/category/skill-name/SKILL.md`
 - Category metadata: `skills-root/category/DESCRIPTION.md`
@@ -21,24 +21,13 @@ The helper script resolves the skills root from its own file location. Do not ha
 
 ## Helper script
 
-**Canonical path (preferred for new code):**
-
 ```bash
 python3 skills/skill-authoring/scripts/cli.py COMMAND
 ```
 
-**Back-compat shim (existing code continues to work):**
-
-```bash
-python3 skills/skill-authoring/skill-library/scripts/librarian.py COMMAND
-```
-
-The shim delegates to the canonical path. Both entrypoints print byte-identical stdout for all read-only subcommands.
-
 ### Examples
 
 ```bash
-# Canonical form (preferred)
 python3 skills/skill-authoring/scripts/cli.py catalog
 python3 skills/skill-authoring/scripts/cli.py discover "github pull request"
 python3 skills/skill-authoring/scripts/cli.py validate
@@ -47,9 +36,6 @@ python3 skills/skill-authoring/scripts/cli.py weed
 python3 skills/skill-authoring/scripts/cli.py move automation/file-renamer productivity
 python3 skills/skill-authoring/scripts/cli.py new-category data-engineering "Skills for pipelines, datasets, and data processing"
 python3 skills/skill-authoring/scripts/cli.py archive old-skill
-
-# Back-compat shim (same behavior)
-python3 skills/skill-authoring/skill-librarian/scripts/librarian.py catalog
 ```
 
 Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML parsing. Without PyYAML, the script uses a minimal frontmatter parser.
