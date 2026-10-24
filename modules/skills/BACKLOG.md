@@ -14,17 +14,20 @@ Last Updated: 2026-10-24
   catalog, discoverer, mutator, merge planner, rules renderer), the agent
   orchestrator (including the mutation→catalog pipeline), the root
   container, and the 12-verb CLI surface.
-- Done: `aa skills` exposes every capability of the legacy
-  `skills/skill-authoring/scripts/cli.py` — `list`, `show`, `validate`,
-  `catalog`, `discover`, `weed`, `repair`, `move`, `archive`,
-  `new-category`, `merge-plan`, `rules` — with the legacy exit-code
-  contract (0 / 1 / 2 / 3). Gate: `python3 -m pytest modules/skills -q`
-  → 133 passed; `python3 -m ruff check modules/skills` → clean.
+- Done (amended 2026-10-25, PR-5): the feature *reads and authors* the
+  pack — the read-only invariant is dropped; the agent dispatches every op
+  and owns the mutation→catalog chain.
+- Done: `aa skills` exposes every capability of the retired
+  skill-authoring CLI — `list`, `show`, `validate`, `catalog`, `discover`,
+  `weed`, `repair`, `move`, `archive`, `new-category`, `merge-plan`,
+  `rules` — with the legacy exit-code contract (0 / 1 / 2 / 3). Gate:
+  `python3 -m pytest modules/skills -q` → 133 passed;
+  `python3 -m ruff check modules/skills` → clean.
 - Done: the former `modules/skill/` provisioning feature and the `aa skill`
   command were removed; agents read `skills/` directly and harnesses receive
   the pack through `aa connect`.
-- Done: the legacy script is a delegating shim; the pack's own Python test
-  suite and the shim are retired once the shim has shipped for a release.
+- Done: the pack scripts (`skills/skill-authoring/scripts/`), legacy tests,
+  and back-compat shims are retired.
 - Blocked: none.
 - Next Action: none.
 
@@ -42,6 +45,7 @@ Last Updated: 2026-10-24
 | SKL-08 | P0 | Done | SKL-07 | none — 12-verb `aa skills` surface; legacy output parity pinned | 2026-10-24 |
 | SKL-09 | P1 | Done | SKL-08 | none — CI flips to the new commands; pack scripts reduced to a shim | 2026-10-24 |
 | SKL-10 | P2 | Done | SKL-09 | none — pack docs point at `aa skills`; legacy suite + shim retired | 2026-10-24 |
+| SKL-11 | P1 | Done | SKL-10 | none — pack scripts directory, test suite, and back-compat shim retired | 2026-10-25 |
 
 ## Scenario Evidence
 
@@ -73,7 +77,7 @@ Last Updated: 2026-10-24
 | Discovery | Done | `list` and `show` work end to end; the surface is byte-stable |
 | Authoring | Done | `validate`, `catalog`, `discover`, `weed`, `repair`, `move`, `archive`, `new-category`, `merge-plan`, `rules` all dispatch through the aggregate |
 | CI | Done | `validate --summary` + `catalog --check` run the new code; `pytest modules/` and `lac scan modules/` are blocking steps |
-| Legacy retirement | Done | The script is a one-release shim; the pack suite is retired with it |
+| Legacy retirement | Done | The pack scripts directory, test suite, and back-compat shims are retired |
 
 ## Deferred
 
@@ -85,9 +89,6 @@ Last Updated: 2026-10-24
   wanted.
 - Executing a merge: `merge-plan` stays read-only; `skill-lifecycle`
   executes merges agent-side.
-- Deleting the two shims (`skills/skill-authoring/scripts/cli.py` and
-  `_rules/skill_rules.py`): they stay for one release so path-based
-  callers keep working, then go with the next cleanup.
 
 ## Change Log
 
@@ -97,3 +98,5 @@ Last Updated: 2026-10-24
 | 2026-10-23 | Scenario Evidence, Release Readiness, and Change Log converted to the AES606 template tables | @raka |
 | 2026-10-24 | Feature amended from read-only discovery to read + authoring: the skill-authoring toolchain moved into `modules/skills` and is exposed as 12 `aa skills` verbs; legacy script reduced to a shim | @raka |
 | 2026-10-24 | Retired the legacy script package and the pack's own pytest suite; the shims and the generated pack artifacts remain | @raka |
+| 2026-10-25 | FRD/BACKLOG amended: the feature reads and authors (the read-only invariant dropped with the first write path); the agent dispatches every op and owns the mutation→catalog chain | @raka |
+| 2026-10-25 | Retired the skill-authoring pack scripts directory (`scripts/cli.py`) and legacy back-compat shims | @raka |

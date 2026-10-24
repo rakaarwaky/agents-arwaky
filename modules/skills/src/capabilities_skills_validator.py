@@ -1,10 +1,9 @@
 """Skills validator capability (AES capabilities layer).
 
 Implements ``ISkillsValidatorProtocol``: the 13 issue checks ported from
-``skills/skill-authoring/scripts/validate.py`` (itself lifted from
-``librarian.py``). Issue-type strings and message templates come from
-the shared rule SSOT, so the checker and the generated rules doc cannot
-drift apart.
+the retired legacy validator (itself lifted from ``librarian.py``).
+Issue-type strings and message templates come from the shared rule SSOT, so
+the checker and the generated rules doc cannot drift apart.
 
 The report is unfiltered by design: ``--category`` and ``--rules-only``
 narrow what the surface lists, never what the validator finds, so the
@@ -26,7 +25,11 @@ from modules.shared.src.skills.taxonomy_skills_constant import (
     is_valid_skill_name,
     issue_message,
 )
-from modules.shared.src.skills.taxonomy_skills_entity import Issue
+from modules.shared.src.skills.taxonomy_skills_entity import (
+    CategorySummary,
+    Issue,
+    SkillEntry,
+)
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
 from modules.shared.src.utility_skills_tree import (
     assets_container,
@@ -72,7 +75,7 @@ class SkillsValidator(ISkillsValidatorProtocol):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     @staticmethod
     def _check_categories(
-        categories: list,
+        categories: list[CategorySummary],
         assets: set[str],
         issues: list[Issue],
     ) -> None:
@@ -110,7 +113,7 @@ class SkillsValidator(ISkillsValidatorProtocol):
     @staticmethod
     def _check_entries(
         skills_root: Path,
-        entries: list,
+        entries: list[SkillEntry],
         issues: list[Issue],
     ) -> None:
         """Per-skill checks: name, description, budget, and nesting."""
@@ -216,7 +219,7 @@ class SkillsValidator(ISkillsValidatorProtocol):
             )
 
     @staticmethod
-    def _check_duplicates(entries: list, issues: list[Issue]) -> None:
+    def _check_duplicates(entries: list[SkillEntry], issues: list[Issue]) -> None:
         """Library-wide duplicate names and descriptions."""
         name_map: dict[str, list[str]] = {}
         desc_map: dict[str, list[str]] = {}

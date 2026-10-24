@@ -28,6 +28,23 @@ def test_repair_plan_is_pure_and_names_the_work(tmp_path: Path) -> None:
     ).startswith("---\nname: wrong-name")
 
 
+def test_mutating_commands_default_to_dry_run(tmp_path: Path) -> None:
+    """§5.5: no apply means no write, for every mutating verb."""
+    mutator = SkillsMutator()
+    root = crafted_tree(tmp_path)
+    before = (root / "drafts" / "DESCRIPTION.md").read_text(encoding="utf-8")
+
+    mutator.plan_repair(as_root(root))
+    mutator.plan_move("drafts/doc-drafts", "notes", as_root(root))
+    mutator.plan_archive("drafts/doc-drafts", as_root(root))
+    mutator.plan_new_category("beta-cat", "Second category", as_root(root), False)
+
+    assert not (root / "beta-cat").exists(), "new-category created a directory in dry-run"
+    assert not (root / "_archive").exists(), "archive wrote in dry-run"
+    assert (root / "drafts" / "doc-drafts").exists(), "move wrote in dry-run"
+    assert (root / "drafts" / "DESCRIPTION.md").read_text(encoding="utf-8") == before
+
+
 def test_repair_apply_rewrites_only_on_apply(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     mutator = SkillsMutator()
@@ -72,6 +89,36 @@ def test_unknown_skill_is_a_usage_error(tmp_path: Path) -> None:
         SkillsMutator().plan_move("nope", "notes", as_root(root))
     assert str(failure.value).startswith("Could not find skill directory with SKILL.md")
     assert failure.value.exit_code == 2
+
+
+def test_dry_run_leaves_a_clean_worktree(tmp_path: Path) -> None:
+    """Hard constraint: a plan-only pass leaves the tree byte-identical."""
+    mutator = SkillsMutator()
+    root = crafted_tree(tmp_path)
+    snapshot = sorted(path.relative_to(root).as_posix() for path in root.rglob("*"))
+
+    mutator.plan_repair(as_root(root))
+    mutator.plan_move("drafts/doc-drafts", "notes", as_root(root))
+    mutator.plan_archive("drafts/doc-drafts", as_root(root))
+    mutator.plan_new_category("zz-dry-run-only", "Never created", as_root(root), False)
+
+    assert sorted(
+        path.relative_to(root).as_posix() for path in root.rglob("*")
+    ) == snapshot, "a plan modified the tree"
+
+
+def test_exit_code_2_nonexistent_skill_is_a_usage_error(tmp_path: Path) -> None:
+    """Legacy contract: an unknown skill ref is caller input, exit 2."""
+    mutator = SkillsMutator()
+    root = crafted_tree(tmp_path)
+    for verb in (
+        ("plan_move", ("nonexistent-skill", "notes")),
+        ("plan_archive", ("nonexistent-skill",)),
+    ):
+        with pytest.raises(SkillNotFoundError) as failure:
+            getattr(mutator, verb[0])(*verb[1], as_root(root))
+        assert failure.value.exit_code == 2
+        assert "nonexistent-skill" in str(failure.value)
 
 
 def test_archive_apply_moves_and_renames(tmp_path: Path) -> None:

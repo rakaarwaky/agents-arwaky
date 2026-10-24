@@ -1,4 +1,4 @@
-"""Unit tests for the skills feature (list + show, read-only)."""
+"""Unit tests for the skills feature (read ops, agent pipeline, error mapping)."""
 
 from __future__ import annotations
 
@@ -7,8 +7,13 @@ from pathlib import Path
 import pytest
 
 from modules.shared.src.skills.contract_skills_protocol import (
+    ISkillsCatalogProtocol,
     ISkillsIndexProtocol,
     ISkillsReaderProtocol,
+)
+from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+    CatalogCheckResult,
+    CatalogReport,
 )
 from modules.shared.src.skills.taxonomy_skills_error import SkillsRootError
 from modules.shared.src.skills.taxonomy_skills_vo import (
@@ -18,6 +23,7 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillRecord,
     SkillsOp,
     SkillsRequest,
+    SkillsRoot,
 )
 from modules.shared.src.utility_skills_tree import (
     assets_container,
@@ -30,8 +36,10 @@ from modules.skills.src.capabilities_skills_index_builder import (
     SkillsIndexBuilder,
     default_pack_root,
 )
+from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 from modules.skills.src.root_skills_container import default_aggregate
+from modules.skills.tests.support_skills import as_root, crafted_tree
 
 
 def _make_pack(tmp_path: Path) -> Path:
@@ -147,6 +155,90 @@ def test_agent_execute_unknown_op_is_not_ok(tmp_path: Path) -> None:
     # mypy rejects a bare str; the agent must reject un-parseable ops at runtime.
     result = agent.execute(SkillsRequest(op="frobnicate"))  # type: ignore[arg-type]
     assert not result.ok
+
+
+class _SpyCatalog(ISkillsCatalogProtocol):
+    """Records the agent's mutation→catalog calls (a spy through the container)."""
+
+    def __init__(self, calls: list[str]) -> None:
+        self.calls = calls
+
+    def rebuild(self, root: SkillsRoot) -> CatalogReport:
+        self.calls.append("rebuild")
+        return CatalogReport(path=Path(root) / "CATALOG.md", skills=0, categories=0)
+
+    def check(self, root: SkillsRoot) -> CatalogCheckResult:
+        self.calls.append("check")
+        return CatalogCheckResult(in_sync=True)
+
+    def load_rows(self, root: SkillsRoot):
+        self.calls.append("load_rows")
+        return ()
+
+
+def test_move_apply_produces_one_apply_and_one_rebuild_in_order(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """move --apply yields exactly one mutator apply and one catalog
+    rebuild, in that order — the agent owns the mutation→catalog chain."""
+    root = crafted_tree(tmp_path)
+    calls: list[str] = []
+
+    original_apply = SkillsMutator.apply
+
+    def spy_apply(self, plan):  # type: ignore[no-untyped-def]
+        calls.append("apply")
+        return original_apply(self, plan)
+
+    monkeypatch.setattr(SkillsMutator, "apply", spy_apply)
+
+    agent = SkillsAgent(
+        SkillsIndexBuilder(root),
+        SkillsPackReader(root),
+        catalog=_SpyCatalog(calls),
+        mutator=SkillsMutator(),
+        default_root=root,
+    )
+    result = agent.execute(
+        SkillsRequest(
+            op=SkillsOp.MOVE,
+            query=SkillQuery("drafts/doc-drafts"),
+            apply=True,
+            root=as_root(root),
+            flags={"target": "notes"},
+        )
+    )
+
+    assert result.ok
+    assert calls.count("apply") == 1
+    assert calls.count("rebuild") == 1
+    assert calls.index("apply") < calls.index("rebuild")
+
+
+def test_move_dry_run_never_applies_or_rebuilds(tmp_path: Path) -> None:
+    """Without --apply the agent plans only: no apply, no rebuild."""
+    root = crafted_tree(tmp_path)
+    calls: list[str] = []
+    agent = SkillsAgent(
+        SkillsIndexBuilder(root),
+        SkillsPackReader(root),
+        catalog=_SpyCatalog(calls),
+        mutator=SkillsMutator(),
+        default_root=root,
+    )
+
+    result = agent.execute(
+        SkillsRequest(
+            op=SkillsOp.MOVE,
+            query=SkillQuery("drafts/doc-drafts"),
+            root=as_root(root),
+            flags={"target": "notes"},
+        )
+    )
+
+    assert result.ok
+    assert result.outcome is None
+    assert calls == []
 
 
 def test_default_aggregate_bound_to_default_pack() -> None:
