@@ -143,9 +143,9 @@ def test_agent_execute_show_unknown_is_not_ok(tmp_path: Path) -> None:
 def test_agent_execute_unknown_op_is_not_ok(tmp_path: Path) -> None:
     """An unknown op is rejected rather than silently succeeding."""
     agent = SkillsAgent(SkillsIndexBuilder(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
-    # raw str is intentional: the agent must reject an un-parseable op
-    result = agent.execute(SkillsRequest(op="frobnicate"  # type: ignore[arg-type]
-                                         ))
+    # raw str is intentional: SkillsRequest.op is typed SkillsOp (StrEnum),
+    # mypy rejects a bare str; the agent must reject un-parseable ops at runtime.
+    result = agent.execute(SkillsRequest(op="frobnicate"))  # type: ignore[arg-type]
     assert not result.ok
 
 
@@ -197,6 +197,7 @@ def test_skill_entries_walks_the_authoring_tree(tmp_path: Path) -> None:
     """skill_entries yields one entry per category/skill, in stable order."""
     pack = _make_pack(tmp_path)
     entries = skill_entries(pack)
+    # Order is alphabetical by category then skill dir (category_dirs sorts names).
     assert [e.path for e in entries] == ["bad/empty", "dev/lint", "web/fetch-mcp"]
     assert [e.skill for e in entries] == ["empty", "lint", "fetch-mcp"]
 
