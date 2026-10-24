@@ -4,8 +4,6 @@ Covers what the refactor promised:
 - the canonical form runs from the repo root (path-based invocation,
   since the pack directory contains a hyphen and is not a ``python3 -m``
   target);
-- the back-compat shim (``skill-library/scripts/librarian.py``) prints
-  the same stdout as the canonical path for every read-only subcommand;
 - the exit-code contract: 0 clean, 1 issues found, 2 usage error,
   3 catalog drift (``catalog --check`` only);
 - the safety model (§5.5): mutating subcommands default to dry-run and
@@ -48,7 +46,6 @@ def _find_repo_root() -> Path:
 REPO_ROOT = _find_repo_root()
 SKILLS_ROOT = REPO_ROOT / "skills"
 CLI = PACK_ROOT / "scripts" / "cli.py"
-SHIM = PACK_ROOT / "skill-library" / "scripts" / "librarian.py"
 FIXTURES = PACK_ROOT / "tests" / "fixtures"
 
 READ_ONLY_SUBCOMMANDS = [
@@ -67,18 +64,6 @@ def run(*args: str, cwd: Path | None = None, env_root: Path | None = None) -> tu
     completed = subprocess.run(
         command,
         cwd=str(cwd) if cwd else str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return completed.returncode, completed.stdout, completed.stderr
-
-
-def run_shim(*args: str) -> tuple[int, str, str]:
-    """Invoke the old path — the back-compat shim."""
-    completed = subprocess.run(
-        [sys.executable, str(SHIM), *args],
-        cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
         check=False,
@@ -126,32 +111,7 @@ def test_validate_summary_is_orthogonal_to_json():
     assert "skills /" not in stdout
 
 
-def test_shim_matches_canonical_for_every_read_only_subcommand():
-    """The old path and the canonical path print identical stdout."""
-    for subcommand in READ_ONLY_SUBCOMMANDS:
-        canonical = run(*subcommand)
-        shim = run_shim(*subcommand)
-
-        assert canonical[0] == shim[0], f"{subcommand}: exit {canonical[0]} vs {shim[0]}"
-        assert canonical[1] == shim[1], (
-            f"{subcommand}: shim stdout drifted from canonical\n"
-            f"--- canonical\n{canonical[1]}\n--- shim\n{shim[1]}"
-        )
-
-
-def test_shim_runs_from_a_clean_interpreter():
-    """The back-compat path works from a clean interpreter: the shim's
-    ``sys.path`` prepend of the pack's ``scripts/`` directory is what lets
-    ``from cli import main`` resolve without any packaging (NG5), and the
-    exit code follows the canonical CLI's contract (0: clean tree after PR-8)."""
-    exit_code, stdout, _stderr = run_shim("validate")
-    assert exit_code == 0, f"expected exit 0 (clean tree), got {exit_code}"
-    assert stdout.startswith("No validation issues found.\n"), stdout[:100]
-
-
 def test_validate_report_is_the_committed_baseline():
-    """The tree reports 0 issues through the canonical path (PR-8's
-    fix closed all 14, so the baseline pin updates to the clean report)."""
     exit_code, stdout, _ = run("validate")
 
     lines = stdout.splitlines()
