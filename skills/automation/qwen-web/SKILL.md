@@ -2,24 +2,27 @@
 name: qwen-web
 description: >
   Automate Qwen AI Web (chat.qwen.ai) with the Qwen3.8-Max intelligence model —
-  zero API keys, persistent browser sessions. Use when an AI agent needs to send
-  prompts, review code, or analyze document attachments via CLI or MCP tools.
-version: 6.0.0
-triggers:
-  - qwen
-  - chat.qwen.ai
-  - prompt automation
-  - code audit
-  - architecture review
-  - deep reasoning
-  - document analysis
-  - no api key
-entry_points: [qwen-web-arwaky, qwa, qwen-web-mcp]
+  zero API keys, persistent browser sessions — and develop the qwen-web-arwaky repo
+  source (TUI, slots, tests). Use when an AI agent needs to send prompts, review code,
+  or analyze attachments via CLI/MCP tools, or edit the internal/qwen-web-arwaky source.
+version: 6.8.0
+metadata:
+  tags:
+    - qwen
+    - qwen-web
+    - qwen-web-arwaky
+    - python
+    - textual
+    - tui
+    - uv
+    - pytest
+    - aes
+    - automation
 ---
 
 # Qwen Web Automation Skill Guide
 
-Use this skill when an AI agent needs to send prompts or document files to **Qwen AI (`chat.qwen.ai`)** and receive complete responses via MCP tools or CLI commands.
+Use this skill when an AI agent needs to send prompts or document files to **Qwen AI (`chat.qwen.ai`)** and receive complete responses via MCP tools or CLI commands, or when developing and modifying the `qwen-web-arwaky` repo source.
 
 ---
 
@@ -35,7 +38,7 @@ Use this skill when an AI agent needs to send prompts or document files to **Qwe
 | Reset session | `delete_session` | — |
 | Initialize workspace | `init_workspace` | `qwa init` |
 
-> **File conventions:** Place inputs under `.qwen-web/input/` and outputs under `.qwen-web/output/`. Always append a timestamp to output filenames (e.g., `arch_review_$(date +%Y%m%d_%H%M%S).md` in CLI or `YYYYMMDD_HHMMSS` in MCP) to prevent overwriting results from previous runs.
+> **File conventions:** Place inputs under `.qwen-web-arwaky/input/` (or `.qwen-web/input/`) and outputs under `.qwen-web-arwaky/output/`. Always append a timestamp to output filenames (e.g., `arch_review_$(date +%Y%m%d_%H%M%S).md` in CLI or `YYYYMMDD_HHMMSS` in MCP) to prevent overwriting results from previous runs.
 
 ---
 
@@ -54,7 +57,7 @@ Use for fast queries, factual explanations, or one-off code generation where no 
 
 **CLI:**
 ```bash
-qwa prompt-direct -t "Explain optimistic vs pessimistic locking" -o .qwen-web/output/locking_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt-direct -t "Explain optimistic vs pessimistic locking" -o .qwen-web-arwaky/output/locking_$(date +%Y%m%d_%H%M%S).md --headless
 ```
 
 ---
@@ -65,15 +68,15 @@ Use for multi-step instructions, complex refactor specs, or long prompts authore
 **MCP:**
 ```json
 {
-  "input_file": ".qwen-web/input/refactor_task.md",
-  "output_file": ".qwen-web/output/refactor_result_20260911_133000.md",
+  "input_file": ".qwen-web-arwaky/input/refactor_task.md",
+  "output_file": ".qwen-web-arwaky/output/refactor_result_20260911_133000.md",
   "headless": true
 }
 ```
 
 **CLI:**
 ```bash
-qwa prompt-only -i .qwen-web/input/refactor_task.md -o .qwen-web/output/refactor_result_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt-only -i .qwen-web-arwaky/input/refactor_task.md -o .qwen-web-arwaky/output/refactor_result_$(date +%Y%m%d_%H%M%S).md --headless
 ```
 
 ---
@@ -84,16 +87,16 @@ Use when the prompt requires analyzing a codebase export, technical document, lo
 **MCP:**
 ```json
 {
-  "prompt_file": ".qwen-web/input/audit_spec.md",
-  "attachment_file": ".qwen-web/input/codebase_export.md",
-  "output_file": ".qwen-web/output/audit_findings_20260911_133000.md",
+  "prompt_file": ".qwen-web-arwaky/input/audit_spec.md",
+  "attachment_file": ".qwen-web-arwaky/input/codebase_export.md",
+  "output_file": ".qwen-web-arwaky/output/audit_findings_20260911_133000.md",
   "headless": true
 }
 ```
 
 **CLI:**
 ```bash
-qwa prompt-with-attachment -i .qwen-web/input/audit_spec.md -a .qwen-web/input/codebase_export.md -o .qwen-web/output/audit_findings_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt-with-attachment -i .qwen-web-arwaky/input/audit_spec.md -a .qwen-web-arwaky/input/codebase_export.md -o .qwen-web-arwaky/output/audit_findings_$(date +%Y%m%d_%H%M%S).md --headless
 ```
 
 ---
@@ -116,14 +119,14 @@ Instead of writing a custom prompt file, you can pass a built-in role template n
 {
   "prompt_file": "backend-engineer",
   "attachment_file": "src/api/auth.py",
-  "output_file": ".qwen-web/output/auth_review_20260911_133000.md"
+  "output_file": ".qwen-web-arwaky/output/auth_review_20260911_133000.md"
 }
 ```
 
 **CLI:**
 ```bash
-qwa prompt-with-attachment -i backend-engineer -a src/api/auth.py -o .qwen-web/output/auth_review_$(date +%Y%m%d_%H%M%S).md --headless
-qwa prompt-with-attachment -i software-architect -a README.md -o .qwen-web/output/arch_review_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt-with-attachment -i backend-engineer -a src/api/auth.py -o .qwen-web-arwaky/output/auth_review_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt-with-attachment -i software-architect -a README.md -o .qwen-web-arwaky/output/arch_review_$(date +%Y%m%d_%H%M%S).md --headless
 ```
 
 ---
@@ -143,7 +146,7 @@ Use to verify login status or authenticate a new browser session when cookies ex
 ---
 
 ### Use Case 6: Workspace Initialization
-Use when provisioning `.qwen-web/` workspace directories and sample configuration in a new project.
+Use when provisioning `.qwen-web-arwaky/` workspace directories and sample configuration in a new project.
 
 **MCP:**
 ```json
@@ -182,3 +185,9 @@ To ensure Qwen produces complete code without placeholders or omitted sections:
 | `FileValidationError` / `FILE_NOT_FOUND` | Missing, unreadable, or file > 100 MB | Verify file path, permissions, and ensure file size is under 100 MB. |
 | `CircuitBreakerOpenError` | Repeated consecutive failures | Wait 30 seconds before sending next request. |
 | `VALIDATION_ERROR` (MCP) | Invalid tool parameter | Check error `field` in response and correct the argument payload. |
+
+---
+
+## 5. Development & Internal Architecture
+
+For instructions on developing and modifying the `qwen-web-arwaky` repo source (including environment setup via `uv`, AES architecture compliance, Textual TUI conventions, Podman container verification, output-path policy, and attachment mounts), see the detailed guide in [references/dev.md](references/dev.md).

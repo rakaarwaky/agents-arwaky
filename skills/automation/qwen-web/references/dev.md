@@ -1,17 +1,3 @@
----
-name: qwen-web-arwaky-dev
-description: "Edit qwen-web-arwaky repo source (TUI, slots, tests). Not sending prompts."
-metadata:
-  tags:
-    - python
-    - textual
-    - tui
-    - uv
-    - pytest
-    - aes
-    - qwen-web-arwaky
----
-
 # Developing qwen-web-arwaky
 
 Repo: `~/agents-arwaky/internal/qwen-web-arwaky` — AES layered layout
