@@ -24,6 +24,7 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMergePlannerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import MergePlan
+from modules.shared.src.skills.taxonomy_skills_entity import SkillEntry
 from modules.shared.src.skills.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
@@ -66,7 +67,7 @@ def parse_ref(reference: str) -> tuple[str, str]:
     return parts[0], parts[1]
 
 
-def _load(skills_root: Path, category: str, skill: str):
+def _load(skills_root: Path, category: str, skill: str) -> SkillEntry:
     """Load one ``category/skill`` entry; fail with the legacy message when absent."""
     entry = next(
         (
@@ -83,7 +84,7 @@ def _load(skills_root: Path, category: str, skill: str):
     return entry
 
 
-def _completeness(entry, skills_root: Path) -> tuple[int, int, str]:
+def _completeness(entry: SkillEntry, skills_root: Path) -> tuple[int, int, str]:
     """The tie-break signal: file count, then description length, then name."""
     folder = skills_root / entry.path
     file_count = sum(1 for _ in iter_files(folder))
@@ -151,7 +152,7 @@ def _references_to(skills_root: Path, path: str) -> list[str]:
     return mentions
 
 
-def _category_left_empty(skills_root: Path, absorbed) -> str | None:
+def _category_left_empty(skills_root: Path, absorbed: SkillEntry) -> str | None:
     """The absorbed skill's category if removing it empties the category."""
     folder = skills_root / absorbed.category
     remaining = [
