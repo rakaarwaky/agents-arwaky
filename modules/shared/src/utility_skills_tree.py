@@ -34,7 +34,7 @@ from modules.shared.src.utility_skills_markdown import clean_one_line
 try:
     import yaml
 except ImportError:  # pragma: no cover - exercised by the S8 test
-    yaml = None  # type: ignore[assignment]
+    yaml = None
 
 __all__ = [
     "assets_container",
@@ -148,10 +148,10 @@ def parse_frontmatter(path: Path) -> dict[str, object]:
 
     if yaml is not None:
         try:
-            data = yaml.safe_load(fm_text)
-            if isinstance(data, dict):
-                return data
-        except Exception:  # noqa: BLE001,S110  (degrade to fallback parser)
+            parsed = yaml.safe_load(fm_text)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:  # degraded to the fallback parser below
             pass
 
     data: dict[str, object] = {}
