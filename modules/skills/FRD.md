@@ -8,12 +8,14 @@
 - PRD: [PRD.md](../../PRD.md)
 - Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
 - Supersedes: the former `modules/skill/` provisioning spec (install / uninstall / update / check / sync), which was removed — agents read `skills/` directly and harnesses receive the pack through `aa connect`.
+- Amendment (2026-10-25, PR-5): the feature *reads and authors* the pack. The read-only invariant is dropped with the first write path; dry-run safety still gates every mutation behind `--apply`.
 
 ## System Overview
 
-The skills feature owns discovery, inspection, validation, cataloguing,
-and the authoring mutations of the `agents-arwaky` skill pack. One
-protocol method, `execute(request)`, routes every op through the agent to
+The skills feature reads and authors the `agents-arwaky` skill pack:
+discovery, inspection, validation, cataloguing, and the authoring
+mutations. A single protocol method, `execute(request)`, routes every op
+through the agent to
 injected capabilities, so the surface and CLI never touch the pack
 filesystem directly. The pack at `skills/` remains the single source of
 truth for *content*; this feature is the single source of truth for *the

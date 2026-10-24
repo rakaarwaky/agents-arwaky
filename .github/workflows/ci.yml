@@ -93,8 +93,5 @@ jobs:
         # this step is red on main too until that file lands upstream.
         run: python3 -m modules.root_cli_entry skills validate --summary
 
-      - name: Skill pack ruff (legacy shim window)
-        run: ruff check skills/skill-authoring/scripts/
-
       - name: Submodule integrity
         run: git submodule status

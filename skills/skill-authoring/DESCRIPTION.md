@@ -6,7 +6,7 @@ description: Skill-authoring skills — create, validate, and improve SKILL.md f
 
 | Goal | Skill | Entry point |
 |---|---|---|
-| Author / validate / audit a `SKILL.md` | `skill-authoring` | `skills/skill-authoring/skill-authoring/SKILL.md` |
-| Find / catalog / repair / weed skills | `skill-library` | `skills/skill-authoring/skill-library/SKILL.md` |
-| Prune / consolidate / merge skill trees | `skill-lifecycle` | `skills/skill-authoring/skill-lifecycle/SKILL.md` |
-| Generate AES-format HOW-TO reference files | `howto-generator` | `skills/aes-architecture/howto-generator/SKILL.md` |
+| Author / validate / audit a `SKILL.md` | `skill-authoring` | `aa skills validate | show | list` |
+| Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
+| Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
+| Generate AES-format HOW-TO reference files | `howto-generator` | `aa skills rules --markdown` |
