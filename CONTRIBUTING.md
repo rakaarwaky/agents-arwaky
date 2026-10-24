@@ -6,6 +6,7 @@ Thank you for your interest in contributing to **agents-arwaky**! This document 
 - [Removing a Vendor Tool](#-removing-a-vendor-tool-step-by-step)
 - [Updating an Existing Vendor Tool](#-updating-an-existing-vendor-tool)
 - [Contributing to Internal Agents](#-contributing-to-internal-agents-internal)
+- [Documentation Change](#-documentation-change)
 - [Quality Verification & Pull Request Process](#-quality-verification--pr-process)
 
 ---
