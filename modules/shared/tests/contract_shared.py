@@ -6,7 +6,7 @@ from pathlib import Path
 
 def test_manifest_reader_exports_load_tools():
     """CP-SHARED-001: load_tools function exists and is callable."""
-    from modules.shared.src.utility_manifest_reader import load_tools
+    from modules.shared.src.common.utility_manifest_reader import load_tools
 
     assert callable(load_tools)
     result = load_tools()
@@ -15,7 +15,7 @@ def test_manifest_reader_exports_load_tools():
 
 def test_manifest_reader_exports_find_tool():
     """CP-SHARED-002: find_tool function exists and is callable."""
-    from modules.shared.src.utility_manifest_reader import find_tool
+    from modules.shared.src.common.utility_manifest_reader import find_tool
 
     assert callable(find_tool)
     result = find_tool("lint-arwaky")
@@ -24,7 +24,7 @@ def test_manifest_reader_exports_find_tool():
 
 def test_envfile_parser_exports_functions():
     """CP-SHARED-003: envfile parser exports required functions."""
-    from modules.shared.src.utility_envfile_parser import (
+    from modules.shared.src.common.utility_envfile_parser import (
         load_first_env,
         parse_env_file,
         remove_env_keys,
@@ -39,7 +39,7 @@ def test_envfile_parser_exports_functions():
 
 def test_xdg_helpers_export_functions():
     """CP-SHARED-004: XDG path helpers are exported."""
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         agents_arwaky_config_dir,
         bin_home,
         cache_home,
@@ -66,7 +66,7 @@ def test_xdg_helpers_export_functions():
 
 def test_tool_resolve_exports_functions():
     """CP-SHARED-005: tool resolver exports required functions."""
-    from modules.shared.src.utility_tool_resolve import (
+    from modules.shared.src.common.utility_tool_resolve import (
         is_submodule_missing,
         resolve_executable,
     )
@@ -77,7 +77,7 @@ def test_tool_resolve_exports_functions():
 
 def test_config_engine_exports_functions():
     """CP-SHARED-007: config engine exports required functions."""
-    from modules.shared.src.utility_config_engine import (
+    from modules.shared.src.common.utility_config_engine import (
         detect_format,
         get_mcp_map,
         list_mcp_servers,
@@ -102,14 +102,14 @@ def test_config_engine_exports_functions():
 
 def test_jsonc_parser_exports_strip():
     """CP-SHARED-008: JSONC parser exports strip_jsonc_comments."""
-    from modules.shared.src.utility_config_engine import strip_jsonc_comments
+    from modules.shared.src.common.utility_config_engine import strip_jsonc_comments
 
     assert callable(strip_jsonc_comments)
 
 
 def test_toml_write_exports_functions():
     """CP-SHARED-009: TOML writer exports required functions."""
-    from modules.shared.src.utility_toml_write import (
+    from modules.shared.src.common.utility_toml_write import (
         quote_key,
         toml_section,
         write_toml,
@@ -125,7 +125,7 @@ def test_toml_write_exports_functions():
 
 def test_common_vo_exports_value_objects():
     """CP-SHARED-012: common value objects exist and can be instantiated."""
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         DocFinding,
         Timestamp,
         Tool,
@@ -155,7 +155,7 @@ def test_common_vo_exports_value_objects():
 
 def test_common_error_hierarchy_exists():
     """CP-SHARED-013: domain error classes form expected hierarchy."""
-    from modules.shared.src.taxonomy_common_error import (
+    from modules.shared.src.common.taxonomy_common_error import (
         ArwakyError,
         ConfigWriteError,
         DaemonStartError,
@@ -181,7 +181,7 @@ def test_common_error_hierarchy_exists():
 
 def test_constants_are_defined():
     """CP-SHARED-014: key constants are defined in taxonomy_common_constant."""
-    from modules.shared.src.taxonomy_common_constant import (
+    from modules.shared.src.common.taxonomy_common_constant import (
         BACKLOG_COLUMNS,
         DEFAULT_VERSION,
         DOC_NAMES,

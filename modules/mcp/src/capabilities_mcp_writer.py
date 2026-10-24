@@ -9,15 +9,15 @@ import json
 import sys
 from pathlib import Path
 
+from modules.shared.src.common.taxonomy_common_vo import config_home
+from modules.shared.src.common.utility_envfile_parser import load_first_env
+from modules.shared.src.common.utility_mcp_manifest import load_mcp_manifest
+from modules.shared.src.common.utility_paths_resolver import repo_root
 from modules.shared.src.mcp.contract_mcp_protocol import IMcpWriteProtocol
 from modules.shared.src.mcp.taxonomy_mcp_vo import (
     ExitCode,
     McpAlias,
 )
-from modules.shared.src.taxonomy_common_vo import config_home
-from modules.shared.src.utility_envfile_parser import load_first_env
-from modules.shared.src.utility_mcp_manifest import load_mcp_manifest
-from modules.shared.src.utility_paths_resolver import repo_root
 
 __all__ = ["McpConfigWriter"]
 

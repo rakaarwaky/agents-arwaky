@@ -9,22 +9,22 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.config.contract_config_protocol import IConfigReaderProtocol
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,
     ConfigSnapshot,
     ConfigTuple,
     HelpText,
 )
-from modules.shared.src.utility_config_engine import (
+from modules.shared.src.common.utility_config_engine import (
     detect_format,
     list_mcp_servers,
     load_file,
     save_file,
     strip_jsonc_comments,
 )
-from modules.shared.src.utility_toml_write import write_toml
+from modules.shared.src.common.utility_toml_write import write_toml
+from modules.shared.src.config.contract_config_protocol import IConfigReaderProtocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

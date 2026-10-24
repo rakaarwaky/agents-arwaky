@@ -20,6 +20,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from modules.shared.src.common.utility_skills_tree import (
+    iter_files,
+    iter_markdown_files,
+    relpath,
+    skill_entries,
+)
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMergePlannerProtocol,
 )
@@ -31,12 +37,6 @@ from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsUsageError,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.shared.src.utility_skills_tree import (
-    iter_files,
-    iter_markdown_files,
-    relpath,
-    skill_entries,
-)
 
 __all__ = ["SkillsMergePlanner", "parse_ref"]
 

@@ -29,6 +29,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from modules.shared.src.common.taxonomy_common_vo import (
+    config_home,
+    data_home,
+)
+from modules.shared.src.common.utility_process_runner import cmd_out, run_cmd
 from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
 from modules.shared.src.daemon.taxonomy_daemon_constant import (
     OMNIROUTE_DATA_DIR,
@@ -44,12 +49,7 @@ from modules.shared.src.daemon.taxonomy_daemon_vo import (
     DaemonUnit,
     ExitCode,
 )
-from modules.shared.src.taxonomy_common_vo import (
-    config_home,
-    data_home,
-)
 from modules.shared.src.tools.taxonomy_tools_constant import OMNIROUTE_ENV_FILENAME
-from modules.shared.src.utility_process_runner import cmd_out, run_cmd
 
 #: Written only when neither the repo copy nor the repo template exists.
 #: `STORAGE_ENCRYPTION_KEY` encrypts the provider credentials in storage.sqlite,

@@ -20,9 +20,12 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER, REPO_ROOT
-from modules.shared.src.taxonomy_common_error import ToolUpdateError
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_constant import (
+    PROVENANCE_MARKER,
+    REPO_ROOT,
+)
+from modules.shared.src.common.taxonomy_common_error import ToolUpdateError
+from modules.shared.src.common.taxonomy_common_vo import (
     atomic_write_text,
     bin_home,
     cache_home,

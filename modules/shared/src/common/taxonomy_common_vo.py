@@ -14,13 +14,13 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import (
+from modules.shared.src.common.taxonomy_common_constant import (
     _FENCE,
     DEFAULT_VERSION,
     ERROR,
     SKILL_FILE,
 )
-from modules.shared.src.taxonomy_common_constant import (
+from modules.shared.src.common.taxonomy_common_constant import (
     REPO_ROOT as repo_root,
 )
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 import json as _json
 from pathlib import Path
 
+from modules.shared.src.common.utility_logging_setup import BOLD, RESET, err
+from modules.shared.src.common.utility_paths_resolver import repo_root
 from modules.shared.src.mcp.contract_mcp_aggregate import IMcpAggregate
 from modules.shared.src.mcp.taxonomy_mcp_vo import (
     McpAlias,
@@ -11,8 +13,6 @@ from modules.shared.src.mcp.taxonomy_mcp_vo import (
     McpRequest,
     McpServerId,
 )
-from modules.shared.src.utility_logging_setup import BOLD, RESET, err
-from modules.shared.src.utility_paths_resolver import repo_root
 
 
 def cmd_mcp(args: list[str], orch: IMcpAggregate) -> int:

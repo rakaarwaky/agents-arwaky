@@ -14,7 +14,7 @@ from modules.harness.src.capabilities_harness_skills import (
     HarnessSkills,
     _skills_targets_for,
 )
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
 
 
 def _multi_profile_adapter(root: Path) -> SimpleNamespace:

@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.taxonomy_common_vo import data_home
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.common.taxonomy_common_vo import data_home
 
 #: tool id -> XDG data subdirectory (relative to XDG_DATA_HOME) covered by backup.
 TOOL_DATA: dict[str, str] = {

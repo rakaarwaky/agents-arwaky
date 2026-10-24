@@ -38,7 +38,10 @@ class TestConfigWriter:
     def test_save_uses_rich_method(self):
         """UT-CONFIG-003: save() is the named protocol method."""
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
+        from modules.shared.src.common.taxonomy_common_vo import (
+            ConfigData,
+            ConfigFormat,
+        )
 
         writer = ConfigWriter()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -103,7 +106,10 @@ class TestConfigWriter:
     def test_save_file_json(self):
         """UT-CONFIG-007: save_file writes JSON correctly."""
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
+        from modules.shared.src.common.taxonomy_common_vo import (
+            ConfigData,
+            ConfigFormat,
+        )
 
         writer = ConfigWriter()
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -332,7 +338,7 @@ class TestConfigOrchestrator:
         """UT-CONFIG-023: execute(load) routes to writer.load."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
+        from modules.shared.src.common.taxonomy_common_vo import ConfigOp, ConfigRequest
 
         writer = MagicMock()
         writer.load.return_value = ({"key": "value"}, "json")
@@ -354,7 +360,7 @@ class TestConfigOrchestrator:
         """UT-CONFIG-024: execute(save) routes to writer.save."""
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
-        from modules.shared.src.taxonomy_common_vo import (
+        from modules.shared.src.common.taxonomy_common_vo import (
             ConfigData,
             ConfigFormat,
             ConfigOp,
@@ -382,7 +388,7 @@ class TestConfigOrchestrator:
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.shared.src.taxonomy_common_vo import (
+        from modules.shared.src.common.taxonomy_common_vo import (
             ConfigOp,
             ConfigRequest,
             HelpText,
@@ -426,7 +432,7 @@ class TestConfigSurface:
     def test_execute_delegates_to_aggregate(self):
         """UT-CONFIG-028: ConfigCommand.execute delegates to the wrapped aggregate."""
         from modules.cli.src.surface_config_command import ConfigCommand
-        from modules.shared.src.taxonomy_common_vo import (
+        from modules.shared.src.common.taxonomy_common_vo import (
             ConfigOp,
             ConfigRequest,
             ConfigResult,
@@ -449,7 +455,7 @@ class TestConfigSurface:
         from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
         from modules.config.src.capabilities_config_modifier import ConfigModifier
         from modules.config.src.capabilities_config_writer import ConfigWriter
-        from modules.shared.src.taxonomy_common_vo import (
+        from modules.shared.src.common.taxonomy_common_vo import (
             ConfigOp,
             ConfigRequest,
             HelpText,

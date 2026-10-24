@@ -18,8 +18,8 @@ The daemon aggregate is imported lazily inside the factory so that importing
 """
 from __future__ import annotations
 
+from modules.shared.src.common.utility_paths_resolver import repo_root
 from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
-from modules.shared.src.utility_paths_resolver import repo_root
 from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
 # Root is the only layer allowed to import capabilities_* (AES201 rule 8):

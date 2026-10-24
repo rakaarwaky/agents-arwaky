@@ -13,14 +13,13 @@ import os
 import sys
 from pathlib import Path
 
-from modules.shared.src.config.contract_config_protocol import IConfigModifierProtocol
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     ConfigKeys,
     EnvPairs,
     HelpText,
     McpServersMap,
 )
-from modules.shared.src.utility_config_engine import (
+from modules.shared.src.common.utility_config_engine import (
     arwaky_server_names,
     list_mcp_servers,
     merge_mcp_servers,
@@ -28,6 +27,7 @@ from modules.shared.src.utility_config_engine import (
     remove_mcp_servers,
     set_env_keys,
 )
+from modules.shared.src.config.contract_config_protocol import IConfigModifierProtocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

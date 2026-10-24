@@ -12,7 +12,7 @@ def test_import_shared_module():
 
 def test_import_utility_modules():
     """SM-SHARED-002: utility modules can be imported."""
-    from modules.shared.src import (
+    from modules.shared.src.common import (
         utility_config_engine,
         utility_envfile_parser,
         utility_manifest_reader,
@@ -31,7 +31,7 @@ def test_import_utility_modules():
 
 def test_import_taxonomy_modules():
     """SM-SHARED-003: taxonomy modules can be imported."""
-    from modules.shared.src import (
+    from modules.shared.src.common import (
         taxonomy_common_constant,
         taxonomy_common_error,
         taxonomy_common_vo,
@@ -53,7 +53,7 @@ def test_import_contracts():
 
 def test_manifest_loads_quickly():
     """SM-SHARED-005: Manifest loads within 5 seconds."""
-    from modules.shared.src.utility_manifest_reader import load_tools
+    from modules.shared.src.common.utility_manifest_reader import load_tools
 
     start = time.time()
     tools = load_tools()
@@ -65,7 +65,7 @@ def test_manifest_loads_quickly():
 
 def test_xdg_operations_quick():
     """SM-SHARED-007: XDG operations complete within 5 seconds."""
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         bin_home,
         cache_home,
         config_home,
@@ -86,7 +86,7 @@ def test_xdg_operations_quick():
 
 def test_version_read_quick():
     """SM-SHARED-008: Version read completes within 5 seconds."""
-    from modules.shared.src.taxonomy_common_vo import read_version
+    from modules.shared.src.common.taxonomy_common_vo import read_version
 
     start = time.time()
     version = read_version()
@@ -98,7 +98,7 @@ def test_version_read_quick():
 
 def test_toml_write_quick():
     """SM-SHARED-009: TOML write operation completes within 5 seconds."""
-    from modules.shared.src.utility_toml_write import write_toml
+    from modules.shared.src.common.utility_toml_write import write_toml
 
     start = time.time()
     result = write_toml({"key": "value", "nested": {"a": 1}})
@@ -110,7 +110,7 @@ def test_toml_write_quick():
 
 def test_jsonc_strip_quick():
     """SM-SHARED-010: JSONC strip operation completes within 5 seconds."""
-    from modules.shared.src.utility_config_engine import strip_jsonc_comments
+    from modules.shared.src.common.utility_config_engine import strip_jsonc_comments
 
     start = time.time()
     result = strip_jsonc_comments('{"key": "value"} // comment')

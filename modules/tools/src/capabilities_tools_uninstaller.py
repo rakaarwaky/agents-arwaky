@@ -19,7 +19,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     ToolSpec,
     UninstallResult,
     bin_home,

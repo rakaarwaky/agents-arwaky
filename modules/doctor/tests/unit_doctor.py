@@ -93,7 +93,7 @@ class TestDoctorOrchestrator:
 
     def test_execute_diagnose_runs_both_runners(self):
         """UT-DOCTOR-009: diagnose dispatches to both runners and ORs the exit codes."""
-        from modules.shared.src.taxonomy_common_vo import DoctorOp, DoctorRequest
+        from modules.shared.src.common.taxonomy_common_vo import DoctorOp, DoctorRequest
 
         orch, env, tools = self._orch(env_rc=0, tools_rc=2)
         response = orch.execute(DoctorRequest(DoctorOp("diagnose")))
@@ -105,7 +105,7 @@ class TestDoctorOrchestrator:
 
     def test_execute_diagnose_passes_flags(self):
         """UT-DOCTOR-010: diagnose forwards the request flags to each runner."""
-        from modules.shared.src.taxonomy_common_vo import (
+        from modules.shared.src.common.taxonomy_common_vo import (
             DoctorFlags,
             DoctorOp,
             DoctorRequest,
@@ -120,7 +120,7 @@ class TestDoctorOrchestrator:
 
     def test_execute_readiness_runs_tools_only(self):
         """UT-DOCTOR-011: readiness dispatches to the tools runner only."""
-        from modules.shared.src.taxonomy_common_vo import DoctorOp, DoctorRequest
+        from modules.shared.src.common.taxonomy_common_vo import DoctorOp, DoctorRequest
 
         orch, env, tools = self._orch(tools_rc=0)
         response = orch.execute(DoctorRequest(DoctorOp("readiness")))
@@ -132,7 +132,7 @@ class TestDoctorOrchestrator:
 
     def test_execute_report_touches_no_runner(self):
         """UT-DOCTOR-012: report is a no-op at the agent layer (surface renders)."""
-        from modules.shared.src.taxonomy_common_vo import DoctorOp, DoctorRequest
+        from modules.shared.src.common.taxonomy_common_vo import DoctorOp, DoctorRequest
 
         orch, env, tools = self._orch()
         response = orch.execute(DoctorRequest(DoctorOp("report"), report={"a": 1}))
@@ -144,7 +144,7 @@ class TestDoctorOrchestrator:
 
     def test_execute_unknown_op_raises(self):
         """UT-DOCTOR-013: an unknown op is rejected instead of silently ignored."""
-        from modules.shared.src.taxonomy_common_vo import DoctorOp, DoctorRequest
+        from modules.shared.src.common.taxonomy_common_vo import DoctorOp, DoctorRequest
 
         orch, _, _ = self._orch()
         with pytest.raises(ValueError):

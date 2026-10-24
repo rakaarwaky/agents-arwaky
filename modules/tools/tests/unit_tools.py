@@ -4,8 +4,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from modules.shared.src.taxonomy_common_vo import ToolSpec
-from modules.shared.src.utility_tool_mechanics import ROOT
+from modules.shared.src.common.taxonomy_common_vo import ToolSpec
+from modules.shared.src.common.utility_tool_mechanics import ROOT
 
 
 def _spec(id: str = "test-tool") -> ToolSpec:
@@ -57,7 +57,7 @@ class TestInstallerCapability:
 
     def test_install_returns_result(self):
         """UT-TOOLS-004: install(spec) returns an InstallResult."""
-        from modules.shared.src.taxonomy_common_vo import InstallResult
+        from modules.shared.src.common.taxonomy_common_vo import InstallResult
         from modules.tools.src.capabilities_tools_installer import InstallerCapability
 
         installer = InstallerCapability(registry={"test-tool": MagicMock()})
@@ -66,7 +66,7 @@ class TestInstallerCapability:
 
     def test_missing_registry_raises(self):
         """UT-TOOLS-005: install without a wired registry raises ToolInstallError."""
-        from modules.shared.src.taxonomy_common_error import ToolInstallError
+        from modules.shared.src.common.taxonomy_common_error import ToolInstallError
         from modules.tools.src.capabilities_tools_installer import InstallerCapability
 
         installer = InstallerCapability()
@@ -118,7 +118,7 @@ class TestUpdaterCapability:
 
     def test_update_returns_result(self):
         """UT-TOOLS-011: update(spec) returns an UpdateResult."""
-        from modules.shared.src.taxonomy_common_vo import UpdateResult
+        from modules.shared.src.common.taxonomy_common_vo import UpdateResult
         from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 
         registry = {"test-tool": MagicMock()}
@@ -129,7 +129,7 @@ class TestUpdaterCapability:
 
     def test_missing_registry_raises(self):
         """UT-TOOLS-012: update without a wired registry raises ToolUpdateError."""
-        from modules.shared.src.taxonomy_common_error import ToolUpdateError
+        from modules.shared.src.common.taxonomy_common_error import ToolUpdateError
         from modules.tools.src.capabilities_tools_updater import UpdaterCapability
 
         updater = UpdaterCapability()
@@ -184,7 +184,7 @@ class TestUninstallerCapability:
 
     def test_uninstall_returns_result(self):
         """UT-TOOLS-017: uninstall(spec) returns an UninstallResult."""
-        from modules.shared.src.taxonomy_common_vo import UninstallResult
+        from modules.shared.src.common.taxonomy_common_vo import UninstallResult
         from modules.tools.src.capabilities_tools_uninstaller import (
             UninstallerCapability,
         )
@@ -291,7 +291,7 @@ class TestAdapterCapabilities:
         """UT-TOOLS-026: an unowned spec id raises ToolUpdateError."""
         from importlib import import_module
 
-        from modules.shared.src.taxonomy_common_error import ToolUpdateError
+        from modules.shared.src.common.taxonomy_common_error import ToolUpdateError
 
         module = import_module("modules.tools.src.capabilities_tools_lint_adapter")
         adapter = module.LintToolsAdapter()
@@ -305,7 +305,7 @@ class TestAdapterCapabilities:
         """UT-TOOLS-032: every adapter raises ToolUpdateError, never NameError."""
         from importlib import import_module
 
-        from modules.shared.src.taxonomy_common_error import ToolUpdateError
+        from modules.shared.src.common.taxonomy_common_error import ToolUpdateError
 
         for module_name, class_name in self.ADAPTERS:
             module = import_module(f"modules.tools.src.capabilities_tools_{module_name}_adapter")
@@ -369,7 +369,7 @@ class TestHasProvenance:
         """UT-TOOLS-029: _has_provenance returns True when marker present."""
         import tempfile
 
-        from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
+        from modules.shared.src.common.taxonomy_common_constant import PROVENANCE_MARKER
         from modules.tools.src.capabilities_tools_installer import _has_provenance
 
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".sh") as f:

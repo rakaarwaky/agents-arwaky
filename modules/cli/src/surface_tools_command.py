@@ -9,15 +9,8 @@ import json as _json
 import sys
 import textwrap
 
-from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
-from modules.shared.src.tools.taxonomy_tools_vo import (
-    ToolArgs,
-    ToolQuery,
-    ToolRequest,
-    ToolsOp,
-)
-from modules.shared.src.utility_git_submodule import init_submodules
-from modules.shared.src.utility_logging_setup import (
+from modules.shared.src.common.utility_git_submodule import init_submodules
+from modules.shared.src.common.utility_logging_setup import (
     BOLD,
     CYAN,
     GREEN,
@@ -30,7 +23,14 @@ from modules.shared.src.utility_logging_setup import (
     table_widths,
     warn,
 )
-from modules.shared.src.utility_paths_resolver import repo_root
+from modules.shared.src.common.utility_paths_resolver import repo_root
+from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
+from modules.shared.src.tools.taxonomy_tools_vo import (
+    ToolArgs,
+    ToolQuery,
+    ToolRequest,
+    ToolsOp,
+)
 
 
 def _term_width() -> int:
@@ -124,7 +124,7 @@ def cmd_install(args: list[str], orch: IToolsAggregate) -> int:
     if _has_help(args):
         print("Usage: aa tool install <tool|all> [--yes]")
         return 0
-    from modules.shared.src.taxonomy_common_vo import ensure_path
+    from modules.shared.src.common.taxonomy_common_vo import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
     has_yes = "--yes" in args or "-y" in args
@@ -169,7 +169,7 @@ def cmd_update(args: list[str], orch: IToolsAggregate) -> int:
     if _has_help(args):
         print("Usage: aa tool update <tool|all> [--yes]")
         return 0
-    from modules.shared.src.taxonomy_common_vo import ensure_path
+    from modules.shared.src.common.taxonomy_common_vo import ensure_path
     ensure_path()
     target = args[0] if args and args[0] not in ("--yes", "-y") else "all"
     has_yes = "--yes" in args or "-y" in args

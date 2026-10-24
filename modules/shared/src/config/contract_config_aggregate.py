@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from modules.shared.src.taxonomy_common_vo import ConfigRequest, ConfigResult
+from modules.shared.src.common.taxonomy_common_vo import ConfigRequest, ConfigResult
 
 
 class IConfigAggregate(ABC):

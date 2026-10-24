@@ -219,7 +219,7 @@ def test_weed_reports_duplicates(tmp_path: Path) -> None:
 
 def test_parse_frontmatter_falls_back_without_pyyaml(tmp_path: Path, monkeypatch) -> None:
     """S8: the optional-PyYAML fallback keeps parsing the pack."""
-    import modules.shared.src.utility_skills_tree as tree
+    import modules.shared.src.common.utility_skills_tree as tree
 
     skill_md = tmp_path / "SKILL.md"
     skill_md.write_text(
@@ -235,7 +235,7 @@ def test_parse_frontmatter_falls_back_without_pyyaml(tmp_path: Path, monkeypatch
 
 def test_os_walk_does_not_follow_symlinked_directories(tmp_path: Path) -> None:
     """S6: a symlink loop cannot hang or duplicate a recursive scan."""
-    from modules.shared.src.utility_skills_tree import iter_files
+    from modules.shared.src.common.utility_skills_tree import iter_files
 
     root = tmp_path / "root"
     (root / "a").mkdir(parents=True)

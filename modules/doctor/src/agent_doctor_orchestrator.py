@@ -5,14 +5,14 @@ the injected runners, then wraps the outcome in a ``DoctorResponse``.
 """
 from __future__ import annotations
 
-from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
-from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     DoctorOp,
     DoctorRequest,
     DoctorResponse,
     ExitCode,
 )
+from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
+from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

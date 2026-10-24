@@ -12,7 +12,7 @@ import pytest
 @pytest.mark.dogfood
 def test_dogfood_pipeline():
     """DOG-SHARED-001: Basic dogfood check against live manifest."""
-    from modules.shared.src.utility_manifest_reader import find_tool, load_tools
+    from modules.shared.src.common.utility_manifest_reader import find_tool, load_tools
 
     # This should work in any environment with valid manifest
     tools = load_tools()

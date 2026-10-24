@@ -7,7 +7,7 @@ from pathlib import Path
 
 def test_manifest_loads_real_tools():
     """IT-SHARED-001: load_tools returns actual tools from manifest."""
-    from modules.shared.src.utility_manifest_reader import load_tools
+    from modules.shared.src.common.utility_manifest_reader import load_tools
 
     tools = load_tools()
     assert len(tools) >= 10, f"Expected at least 10 tools, got {len(tools)}"
@@ -19,7 +19,7 @@ def test_manifest_loads_real_tools():
 
 def test_find_tool_by_id():
     """IT-SHARED-002: find_tool finds by exact id match."""
-    from modules.shared.src.utility_manifest_reader import find_tool
+    from modules.shared.src.common.utility_manifest_reader import find_tool
 
     tool = find_tool("lint-arwaky")
     assert tool is not None
@@ -28,7 +28,7 @@ def test_find_tool_by_id():
 
 def test_find_tool_by_binary():
     """IT-SHARED-003: find_tool finds by binary name."""
-    from modules.shared.src.utility_manifest_reader import find_tool
+    from modules.shared.src.common.utility_manifest_reader import find_tool
 
     tool = find_tool("lint-arwaky")
     assert tool is not None
@@ -37,7 +37,7 @@ def test_find_tool_by_binary():
 
 def test_find_tool_by_alias():
     """IT-SHARED-004: find_tool finds by alias."""
-    from modules.shared.src.utility_manifest_reader import find_tool
+    from modules.shared.src.common.utility_manifest_reader import find_tool
 
     tool = find_tool("la")
     assert tool is not None
@@ -46,7 +46,7 @@ def test_find_tool_by_alias():
 
 def test_find_tool_missing():
     """IT-SHARED-005: find_tool returns None for missing tool."""
-    from modules.shared.src.utility_manifest_reader import find_tool
+    from modules.shared.src.common.utility_manifest_reader import find_tool
 
     tool = find_tool("nonexistent-tool-12345")
     assert tool is None
@@ -54,7 +54,7 @@ def test_find_tool_missing():
 
 def test_find_tool_empty():
     """IT-SHARED-006: find_tool returns None for empty query."""
-    from modules.shared.src.utility_manifest_reader import find_tool
+    from modules.shared.src.common.utility_manifest_reader import find_tool
 
     tool = find_tool("")
     assert tool is None
@@ -62,7 +62,7 @@ def test_find_tool_empty():
 
 def test_find_tool_whitespace():
     """IT-SHARED-007: find_tool strips whitespace."""
-    from modules.shared.src.utility_manifest_reader import find_tool
+    from modules.shared.src.common.utility_manifest_reader import find_tool
 
     tool = find_tool("  lint  ")
     assert tool is not None
@@ -72,7 +72,7 @@ def test_find_tool_whitespace():
 
 def test_envfile_roundtrip_integration():
     """IT-SHARED-013: Full envfile read/write roundtrip works."""
-    from modules.shared.src.utility_envfile_parser import (
+    from modules.shared.src.common.utility_envfile_parser import (
         parse_env_file,
         remove_env_keys,
         update_env_file,
@@ -107,7 +107,7 @@ def test_envfile_roundtrip_integration():
 
 def test_config_engine_detect_format():
     """IT-SHARED-014: detect_format identifies correct format."""
-    from modules.shared.src.utility_config_engine import detect_format
+    from modules.shared.src.common.utility_config_engine import detect_format
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # JSON
@@ -128,7 +128,7 @@ def test_config_engine_detect_format():
 
 def test_config_engine_load_save_json():
     """IT-SHARED-015: Config engine can load and save JSON."""
-    from modules.shared.src.utility_config_engine import load_file, save_file
+    from modules.shared.src.common.utility_config_engine import load_file, save_file
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         f.write('{"key": "value", "num": 42}\n')
@@ -151,7 +151,7 @@ def test_config_engine_load_save_json():
 
 def test_xdg_paths_integration():
     """IT-SHARED-019: XDG paths work in real environment."""
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         agents_arwaky_config_dir,
         bin_home,
         cache_home,
@@ -171,7 +171,7 @@ def test_xdg_paths_integration():
 
 def test_is_submodule_missing():
     """IT-SHARED-020: is_submodule_missing detects missing submodules."""
-    from modules.shared.src.utility_tool_resolve import is_submodule_missing
+    from modules.shared.src.common.utility_tool_resolve import is_submodule_missing
 
     # This should not raise and return a boolean
     result = is_submodule_missing("internal/lint-arwaky")

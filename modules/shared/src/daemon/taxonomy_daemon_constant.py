@@ -4,8 +4,12 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.taxonomy_common_vo import config_home, data_home, state_home
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.common.taxonomy_common_vo import (
+    config_home,
+    data_home,
+    state_home,
+)
 
 #: Repository root for deploy unit sources.
 ROOT = REPO_ROOT

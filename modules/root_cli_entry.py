@@ -35,13 +35,13 @@ import sys
 import textwrap
 from pathlib import Path
 
-from modules.shared.src.utility_git_submodule import init_submodules
-from modules.shared.src.utility_paths_resolver import repo_root
-from modules.shared.src.utility_process_runner import run_cmd as _run_cmd_util
+from modules.shared.src.common.utility_git_submodule import init_submodules
+from modules.shared.src.common.utility_paths_resolver import repo_root
+from modules.shared.src.common.utility_process_runner import run_cmd as _run_cmd_util
 
 ROOT = repo_root()
 
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     Tool,
     bin_home,
     cache_home,
@@ -49,7 +49,7 @@ from modules.shared.src.taxonomy_common_vo import (
     data_home,
     ensure_path,
 )
-from modules.shared.src.utility_logging_setup import (
+from modules.shared.src.common.utility_logging_setup import (
     BLUE,
     BOLD,
     CYAN,
@@ -66,13 +66,13 @@ from modules.shared.src.utility_logging_setup import (
     set_verbosity,
     warn,
 )
-from modules.shared.src.utility_logging_setup import (
+from modules.shared.src.common.utility_logging_setup import (
     pad as _pad,
 )
-from modules.shared.src.utility_logging_setup import (
+from modules.shared.src.common.utility_logging_setup import (
     table_widths as _table_widths,
 )
-from modules.shared.src.utility_manifest_reader import (
+from modules.shared.src.common.utility_manifest_reader import (
     find_tool,
     load_tools,
 )
@@ -80,8 +80,8 @@ from modules.shared.src.utility_manifest_reader import (
 _ANSI_RE = re.compile(r"\033\[[0-9;]*m")
 
 # Runner map per tool (P5-P1: manifest-driven dispatch, avoid hardcoded IDs)
-from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
-from modules.shared.src.taxonomy_common_vo import ToolSpec
+from modules.shared.src.common.taxonomy_common_constant import TOOL_RUNNERS
+from modules.shared.src.common.taxonomy_common_vo import ToolSpec
 
 
 # =============================================================================
@@ -101,7 +101,7 @@ def executable_path(binary: str, category: str = "", tool_id: str = "", runner: 
     if local.exists() and os.access(local, os.X_OK):
         return local
     if category == "internal":
-        from modules.shared.src.taxonomy_common_vo import ToolSpec
+        from modules.shared.src.common.taxonomy_common_vo import ToolSpec
         from modules.tools.src.root_tools_container import create_tools_feature
         spec = ToolSpec(
             id=tool_id,
@@ -275,7 +275,7 @@ def cmd_status(argv: list[str]) -> int:
 
 def cmd_doctor(argv: list[str]) -> int:
     from modules.doctor.src.root_doctor_container import create_doctor_feature
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         DoctorFlags,
         DoctorOp,
         DoctorRequest,
@@ -360,7 +360,7 @@ def _confirm(prompt: str, accepted: tuple = ("y", "yes")) -> bool:
 
 def _spec_from_tool(tool) -> ToolSpec:
     """Build a ToolSpec for the orchestrators from a manifest Tool."""
-    from modules.shared.src.utility_manifest_reader import spec_from_tool
+    from modules.shared.src.common.utility_manifest_reader import spec_from_tool
     return spec_from_tool(tool)
 
 
@@ -564,7 +564,7 @@ def cmd_skills(argv: list[str]) -> int:
 
 def cmd_completion(argv: list[str]) -> int:
     """Print a bash/zsh completion script for the aa CLI."""
-    from modules.shared.src.utility_shell_completion import (
+    from modules.shared.src.common.utility_shell_completion import (
         bash_completion,
         zsh_completion,
     )

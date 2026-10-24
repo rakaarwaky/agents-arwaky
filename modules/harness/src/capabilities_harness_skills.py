@@ -12,16 +12,10 @@ import os
 import shutil
 from pathlib import Path
 
-from modules.shared.src.harness.contract_harness_protocol import IHarnessSkillsProtocol
-from modules.shared.src.harness.taxonomy_harness_constant import (
-    ASSET_DIRS,
-    LIVE_SKILLS_STATE,
-)
-from modules.shared.src.harness.taxonomy_harness_vo import SkillsOpts
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.taxonomy_common_vo import iter_skill_files
-from modules.shared.src.taxonomy_skill_vo import safe_skill_name
-from modules.shared.src.utility_harness_log import (
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.common.taxonomy_common_vo import iter_skill_files
+from modules.shared.src.common.taxonomy_skill_vo import safe_skill_name
+from modules.shared.src.common.utility_harness_log import (
     log_err,
     log_header,
     log_ok,
@@ -29,6 +23,12 @@ from modules.shared.src.utility_harness_log import (
     log_sub,
     log_warn,
 )
+from modules.shared.src.harness.contract_harness_protocol import IHarnessSkillsProtocol
+from modules.shared.src.harness.taxonomy_harness_constant import (
+    ASSET_DIRS,
+    LIVE_SKILLS_STATE,
+)
+from modules.shared.src.harness.taxonomy_harness_vo import SkillsOpts
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

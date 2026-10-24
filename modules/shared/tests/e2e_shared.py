@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def test_manifest_e2e_workflow():
     """E2E-SHARED-001: Full manifest load and tool find workflow."""
-    from modules.shared.src.utility_manifest_reader import find_tool, load_tools
+    from modules.shared.src.common.utility_manifest_reader import find_tool, load_tools
 
     tools = load_tools()
     assert len(tools) >= 10
@@ -19,7 +19,7 @@ def test_envfile_e2e_workflow():
     import tempfile
     from pathlib import Path
 
-    from modules.shared.src.utility_envfile_parser import (
+    from modules.shared.src.common.utility_envfile_parser import (
         parse_env_file,
         remove_env_keys,
         update_env_file,
@@ -47,7 +47,7 @@ def test_envfile_e2e_workflow():
 
 def test_xdg_paths_e2e_workflow():
     """E2E-SHARED-003: Full XDG path resolution workflow."""
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         bin_home,
         cache_home,
         config_home,

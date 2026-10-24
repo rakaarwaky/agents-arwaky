@@ -80,7 +80,7 @@ def test_import_contract_protocols():
 
 def test_import_common_vos():
     """SM-TOOLS-011: common VOs can be imported."""
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         InstallResult,
         ToolSpec,
         UninstallResult,
@@ -95,7 +95,7 @@ def test_import_common_vos():
 
 def test_import_common_errors():
     """SM-TOOLS-012: domain errors can be imported."""
-    from modules.shared.src.taxonomy_common_error import (
+    from modules.shared.src.common.taxonomy_common_error import (
         ToolInstallError,
         ToolUninstallError,
         ToolUpdateError,
@@ -137,7 +137,7 @@ def test_orchestrator_creation_quick():
 
 def test_manifest_loads_quickly():
     """SM-TOOLS-015: Manifest loading completes within 5 seconds."""
-    from modules.shared.src.utility_manifest_reader import load_tools
+    from modules.shared.src.common.utility_manifest_reader import load_tools
 
     start = time.time()
     tools = load_tools()

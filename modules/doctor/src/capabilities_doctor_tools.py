@@ -5,9 +5,8 @@ import json as _json
 import shutil
 from collections.abc import Mapping
 
-from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
-from modules.shared.src.taxonomy_common_vo import ExitCode, bin_home, ensure_path
-from modules.shared.src.utility_logging_setup import (
+from modules.shared.src.common.taxonomy_common_vo import ExitCode, bin_home, ensure_path
+from modules.shared.src.common.utility_logging_setup import (
     BLUE,
     BOLD,
     CYAN,
@@ -19,11 +18,12 @@ from modules.shared.src.utility_logging_setup import (
     pad,
     table_widths,
 )
-from modules.shared.src.utility_manifest_reader import load_tools
-from modules.shared.src.utility_tool_resolve import (
+from modules.shared.src.common.utility_manifest_reader import load_tools
+from modules.shared.src.common.utility_tool_resolve import (
     is_submodule_missing,
     resolve_executable,
 )
+from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

@@ -19,8 +19,8 @@ import datetime
 import json
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_error import ToolUpdateError
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_error import ToolUpdateError
+from modules.shared.src.common.taxonomy_common_vo import (
     ToolSpec,
     UpdateResult,
     atomic_write_text,
@@ -64,7 +64,7 @@ class UpdaterCapability(IToolsUpdaterProtocol):
     ) -> UpdateResult:
         base = self._root
         if base is None:
-            from modules.shared.src.utility_paths_resolver import repo_root
+            from modules.shared.src.common.utility_paths_resolver import repo_root
             base = repo_root()
         unit = registry.get(spec.id)
         if unit is None:

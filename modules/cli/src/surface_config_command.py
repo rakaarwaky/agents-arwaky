@@ -11,8 +11,7 @@ import json
 import sys
 from pathlib import Path
 
-from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     ConfigData,
     ConfigFormat,
     ConfigKeys,
@@ -22,6 +21,7 @@ from modules.shared.src.taxonomy_common_vo import (
     EnvPairs,
     McpServersMap,
 )
+from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 
 
 class ConfigCommand(IConfigAggregate):

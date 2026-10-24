@@ -78,7 +78,7 @@ def test_tools_orchestrator_resolve_unknown():
 
 def test_tools_orchestrator_install_requires_installer():
     """IT-TOOLS-006: install raises when installer not wired."""
-    from modules.shared.src.taxonomy_common_error import ToolInstallError
+    from modules.shared.src.common.taxonomy_common_error import ToolInstallError
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
@@ -97,7 +97,7 @@ def test_tools_orchestrator_install_requires_installer():
 
 def test_tools_orchestrator_update_requires_updater():
     """IT-TOOLS-007: update raises when updater not wired."""
-    from modules.shared.src.taxonomy_common_error import ToolUpdateError
+    from modules.shared.src.common.taxonomy_common_error import ToolUpdateError
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
@@ -116,7 +116,7 @@ def test_tools_orchestrator_update_requires_updater():
 
 def test_tools_orchestrator_uninstall_requires_uninstaller():
     """IT-TOOLS-008: uninstall raises when uninstaller not wired."""
-    from modules.shared.src.taxonomy_common_error import ToolUninstallError
+    from modules.shared.src.common.taxonomy_common_error import ToolUninstallError
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
@@ -135,7 +135,7 @@ def test_tools_orchestrator_uninstall_requires_uninstaller():
 
 def test_tools_orchestrator_run_requires_runner():
     """IT-TOOLS-009: run raises when runner not wired."""
-    from modules.shared.src.taxonomy_common_error import ToolInstallError
+    from modules.shared.src.common.taxonomy_common_error import ToolInstallError
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
@@ -154,7 +154,7 @@ def test_tools_orchestrator_run_requires_runner():
 
 def test_tools_orchestrator_executable_path_requires_runner():
     """IT-TOOLS-010: executable_path raises when runner not wired."""
-    from modules.shared.src.taxonomy_common_error import ToolInstallError
+    from modules.shared.src.common.taxonomy_common_error import ToolInstallError
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     orch = ToolsOrchestrator(registry={})
