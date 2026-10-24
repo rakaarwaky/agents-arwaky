@@ -85,6 +85,9 @@ Last Updated: 2026-10-24
   wanted.
 - Executing a merge: `merge-plan` stays read-only; `skill-lifecycle`
   executes merges agent-side.
+- Deleting the two shims (`skills/skill-authoring/scripts/cli.py` and
+  `_rules/skill_rules.py`): they stay for one release so path-based
+  callers keep working, then go with the next cleanup.
 
 ## Change Log
 
@@ -93,3 +96,4 @@ Last Updated: 2026-10-24
 | 2026-10-15 | created `modules/skills/` (list + show) superseding the removed `modules/skill/` provisioning feature | @raka |
 | 2026-10-23 | Scenario Evidence, Release Readiness, and Change Log converted to the AES606 template tables | @raka |
 | 2026-10-24 | Feature amended from read-only discovery to read + authoring: the skill-authoring toolchain moved into `modules/skills` and is exposed as 12 `aa skills` verbs; legacy script reduced to a shim | @raka |
+| 2026-10-24 | Retired the legacy script package and the pack's own pytest suite; the shims and the generated pack artifacts remain | @raka |
