@@ -2,7 +2,7 @@
 name: skill-lifecycle
 description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories, pruning skills, consolidating skills, merging duplicate skills, auditing a skill directory, or collapsing skill folders.
 when-to-use: Use when cleaning up, auditing, or merging agent skill directories; pruning skills; consolidating skills; merging duplicate skills; auditing a skill directory; or collapsing skill folders.
-argument-hint: "[<skill-dir>] [--dry-run]"
+argument-hint: "[<skill-dir>] [--dry-run | --auto]"
 metadata:
   tags:
     - skill
@@ -91,6 +91,8 @@ frontmatter constraints are the rules in [`../_rules/skill-rules.md`](../_rules/
 
 ## Workflow
 
+**`--auto`** — skip the dry-run approval gate: after Step 4 classification, proceed straight to Step 6 snapshot then Steps 7–9 execution. Use only when you have already reviewed the planned prune and accept automatic application.
+
 Task Progress:
 
 - [ ] Step 1: Confirm audit root (default `/home/raka/agents-arwaky/skills`, a specific category,
@@ -103,6 +105,7 @@ Task Progress:
 - [ ] Step 5: **Dry Run & Approval** — generate the planned report (see Report Format). Present it
       to the user and explicitly ask: *"Here is the planned prune. Shall I proceed with the git
       snapshot and execute these changes?"* **Wait for user confirmation before proceeding.**
+      With `--auto`, skip this gate and proceed straight to Step 6.
 - [ ] Step 6: Snapshot the tree in git (`git add -A && git commit -m "snapshot: before
       skill-lifecycle"`, or `git stash` if the tree is dirty for other reasons).
 - [ ] Step 7: Execute merges per the Phase 2 table. When merging, delete the redundant folders
