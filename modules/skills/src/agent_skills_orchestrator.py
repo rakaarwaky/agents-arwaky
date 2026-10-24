@@ -14,8 +14,10 @@ composition root injects every capability implementation.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
+from typing import Any, cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
@@ -34,7 +36,9 @@ from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsUsageError,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
+    SkillContent,
     SkillQuery,
+    SkillRecord,
     SkillsExitCode,
     SkillsOp,
     SkillsRequest,
@@ -84,8 +88,8 @@ class SkillsAgent(ISkillsAggregate):
             )
 
         try:
-            handler = getattr(self, f"_execute_{op.value.replace('-', '_')}")
-        except AttributeError:
+            handler = self._handler_for(op)
+        except KeyError:
             return SkillsResult(
                 ok=False,
                 op=op,
@@ -104,6 +108,16 @@ class SkillsAgent(ISkillsAggregate):
             )
 
     # ─── Block 3: Per-Op Handlers ─────────────────────────────
+    def _handler_for(
+        self, op: SkillsOp
+    ) -> Callable[[SkillsRequest, SkillsOp], SkillsResult]:
+        """The typed handler for one op; ``KeyError`` for an unknown one."""
+        name = f"_execute_{op.value.replace('-', '_')}"
+        handler = getattr(self, name, None)
+        if not callable(handler):
+            raise KeyError(name)
+        return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
+
     def _execute_list(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """List every skill in the pack."""
         records = tuple(self._index.list_skills(request.root))
@@ -314,17 +328,19 @@ class SkillsAgent(ISkillsAggregate):
         raise SkillsUsageError("No skills root configured")
 
     @staticmethod
-    def _require(capability, name: str):
+    def _require(capability: Any, name: str) -> Any:
         """Fail loudly when an op is used on an aggregate wired without it."""
         if capability is None:
             raise SkillsUsageError(f"Skills {name} capability is not configured")
         return capability
 
     # ─── Block 5: Dunder Methods, Factories & Read Helpers ────
-    def list_skills(self):
+    def list_skills(self, root: SkillsRoot | None = None) -> Sequence[SkillRecord]:
         """Convenience pass-through to the index (used by the facade)."""
-        return self._index.list_skills()
+        return self._index.list_skills(root)
 
-    def show_skill(self, name: str):
+    def show_skill(
+        self, name: str, root: SkillsRoot | None = None
+    ) -> SkillContent | None:
         """Convenience pass-through to the reader (used by the facade)."""
-        return self._reader.show_skill(SkillQuery(name))
+        return self._reader.show_skill(SkillQuery(name), root)

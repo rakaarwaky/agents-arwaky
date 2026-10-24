@@ -219,6 +219,60 @@ def test_json_is_accepted_but_ignored_by_rules(tmp_path: Path) -> None:
     assert out.startswith("13 rules from _rules/skill_rules.py:")
 
 
+def test_rules_markdown_matches_the_generated_doc(tmp_path: Path) -> None:
+    """``--markdown`` renders the byte-identical rules document (R7)."""
+    root = crafted_tree(tmp_path)
+    code, out, _ = run_surface(root, "rules", "--markdown")
+    assert code == 0
+    document = out
+    from modules.skills.src.capabilities_skills_rules_renderer import (
+        SkillsRulesRenderer,
+    )
+
+    assert document == SkillsRulesRenderer().render_markdown().markdown
+
+
+def test_validate_full_listing_matches_the_legacy_shape(tmp_path: Path) -> None:
+    """The per-issue listing keeps the ``- [type] locator: message`` lines."""
+    root = crafted_tree(tmp_path)
+    code, out, _ = run_surface(root, "validate")
+    assert code == 1
+    assert out == (
+        "1 validation issue(s) found:\n"
+        "- [name-mismatch] drafts/doc-drafts: "
+        "Frontmatter name 'wrong-name' does not match directory 'doc-drafts'.\n"
+    )
+
+
+def test_discover_no_match_prints_the_legacy_line(tmp_path: Path) -> None:
+    root = crafted_tree(tmp_path)
+    run_surface(root, "catalog")
+    code, out, _ = run_surface(root, "discover", "no-such-skill-zzz")
+    assert code == 0
+    assert out == "No matching skills found in CATALOG.md.\n"
+
+
+def test_repair_apply_reports_applied_steps(tmp_path: Path) -> None:
+    root = crafted_tree(tmp_path)
+    run_surface(root, "catalog")
+    code, out, _ = run_surface(root, "repair", "--apply")
+    assert code == 0
+    assert "Repairs applied:" in out
+    assert "Rebuilt" in out
+
+
+def test_merge_plan_json_keeps_the_legacy_key_order(tmp_path: Path) -> None:
+    root = crafted_tree(tmp_path)
+    code, out, _ = run_surface(
+        root, "merge-plan", "drafts/doc-drafts", "notes/note-taker", "--json"
+    )
+    assert code == 0
+    payload = json.loads(out)
+    assert payload["moves"] == []
+    assert payload["category_after"] == "notes"
+    assert payload["empty_category_after"] == "drafts"
+
+
 def test_list_and_show_keep_their_output_shape(tmp_path: Path) -> None:
     """The read-only surface is byte-stable (only ``--skills-root`` is new)."""
     root = clean_tree(tmp_path)

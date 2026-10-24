@@ -68,7 +68,18 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_list(rest, aggregate)
     if sub == "show":
         return _cmd_show(rest, aggregate)
-    if sub in _AUTHORING:
+    if sub in (
+        "validate",
+        "catalog",
+        "discover",
+        "weed",
+        "repair",
+        "move",
+        "archive",
+        "new-category",
+        "merge-plan",
+        "rules",
+    ):
         return _cmd_authoring(sub, rest, aggregate)
 
     err(f"Unknown skills subcommand: {sub}")
@@ -266,20 +277,6 @@ def _authoring_parser() -> argparse.ArgumentParser:
     return parser
 
 
-_AUTHORING = {
-    "validate",
-    "catalog",
-    "discover",
-    "weed",
-    "repair",
-    "move",
-    "archive",
-    "new-category",
-    "merge-plan",
-    "rules",
-}
-
-
 def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Parse an authoring subcommand and render its result."""
     try:
@@ -294,24 +291,38 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         # The legacy ``fail()`` channel prints the ERROR line verbatim on
         # stderr (no banner prefix); callers and older tests parse it.
         print(f"ERROR: {result.message}", file=sys.stderr)
-        return _EXIT_USAGE
+        return result.exit_code
 
-    renderer = _RENDERERS[request.op.value]
-    return renderer(namespace, result)
+    if sub == "validate":
+        return _render_validate(result, request)
+    if sub == "catalog":
+        return _render_catalog(result, request)
+    if sub == "discover":
+        return _render_discover(result, request)
+    if sub == "weed":
+        return _render_weed(result, request)
+    if sub == "repair":
+        return _render_repair(result, request)
+    if sub == "move":
+        return _render_move(result, request)
+    if sub == "archive":
+        return _render_archive(result, request)
+    if sub == "new-category":
+        return _render_new_category(result, request)
+    if sub == "merge-plan":
+        return _render_merge_plan(result, request)
+    return _render_rules(result, request)
 
 
 def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
     """Map parsed argv onto the request the domain understands."""
     command = namespace.command
-    root = (
+    root_value: SkillsRoot | None = (
         SkillsRoot(resolve_skills_root(namespace.skills_root))
         if namespace.skills_root
         else None
     )
-    common = {
-        "root": root,
-        "json": bool(getattr(namespace, "json", False)),
-    }
+    json_value = bool(getattr(namespace, "json", False))
 
     if command == "validate":
         return SkillsRequest(
@@ -321,39 +332,49 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
                 "rules_only": "1" if namespace.rules_only else "0",
                 "summary": "1" if namespace.summary else "0",
             },
-            **common,
+            root=root_value,
+            json=json_value,
         )
     if command == "catalog":
         return SkillsRequest(
             op=SkillsOp.CATALOG,
             flags={"check": "1" if namespace.check else "0"},
-            **common,
+            root=root_value,
+            json=json_value,
         )
     if command == "discover":
         return SkillsRequest(
             op=SkillsOp.DISCOVER,
             query=SkillQuery(namespace.query),
             flags={"limit": str(namespace.limit)},
-            **common,
+            root=root_value,
+            json=json_value,
         )
     if command == "weed":
-        return SkillsRequest(op=SkillsOp.WEED, **common)
+        return SkillsRequest(op=SkillsOp.WEED, root=root_value, json=json_value)
     if command == "repair":
-        return SkillsRequest(op=SkillsOp.REPAIR, apply=namespace.apply, **common)
+        return SkillsRequest(
+            op=SkillsOp.REPAIR,
+            apply=namespace.apply,
+            root=root_value,
+            json=json_value,
+        )
     if command == "move":
         return SkillsRequest(
             op=SkillsOp.MOVE,
             query=SkillQuery(namespace.skill),
             apply=namespace.apply,
             flags={"target": namespace.target_category},
-            **common,
+            root=root_value,
+            json=json_value,
         )
     if command == "archive":
         return SkillsRequest(
             op=SkillsOp.ARCHIVE,
             query=SkillQuery(namespace.skill),
             apply=namespace.apply,
-            **common,
+            root=root_value,
+            json=json_value,
         )
     if command == "new-category":
         return SkillsRequest(
@@ -362,24 +383,27 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
             description=namespace.description or "",
             apply=namespace.apply,
             flags={"force": "1" if namespace.force else "0"},
-            **common,
+            root=root_value,
+            json=json_value,
         )
     if command == "merge-plan":
         return SkillsRequest(
             op=SkillsOp.MERGE_PLAN,
             query=SkillQuery(namespace.skill_a),
             flags={"target": namespace.skill_b},
-            **common,
+            root=root_value,
+            json=json_value,
         )
     return SkillsRequest(
         op=SkillsOp.RULES,
         flags={"markdown": "1" if namespace.markdown else "0"},
-        **common,
+        root=root_value,
+        json=json_value,
     )
 
 
 # ─── Renderers ───────────────────────────────────────────────────────
-def _emit_json(payload: dict) -> None:
+def _emit_json(payload: dict[str, object]) -> None:
     """Print a JSON payload with a stable key order and a trailing newline."""
     print(json.dumps(payload, indent=2, ensure_ascii=False))
 
@@ -399,33 +423,32 @@ def _issue_payload(issue: Issue) -> dict[str, object]:
     return payload
 
 
-def _render_validate(
-    namespace: argparse.Namespace, result: SkillsResult
-) -> int:
+def _render_validate(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a validation report, narrowed by --category/--rules-only."""
     report = result.report
     assert report is not None
     total = report.issue_count
     issues = list(report.issues)
 
-    if namespace.category:
+    if request.flags.get("category"):
+        category = request.flags["category"]
         issues = [
             issue
             for issue in issues
-            if issue.category == namespace.category
-            or (issue.path or "").startswith(f"{namespace.category}/")
+            if issue.category == category
+            or (issue.path or "").startswith(f"{category}/")
         ]
-    if namespace.rules_only:
+    if request.flags.get("rules_only") == "1":
         issues = [issue for issue in issues if issue.type in RULE_ONLY_ISSUE_TYPES]
 
     root = _root_of(result)
 
-    if namespace.json:
+    if request.json:
         _emit_json(
             {
                 "skills_root": str(root),
-                "category": namespace.category,
-                "rules_only": namespace.rules_only,
+                "category": request.flags.get("category") or None,
+                "rules_only": request.flags.get("rules_only") == "1",
                 "issue_count": len(issues),
                 "total_issue_count": total,
                 "issues": [_issue_payload(issue) for issue in issues],
@@ -433,7 +456,7 @@ def _render_validate(
         )
         return 1 if total else 0
 
-    if namespace.summary:
+    if request.flags.get("summary") == "1":
         print(report.summary())
         return 1 if total else 0
 
@@ -441,7 +464,9 @@ def _render_validate(
         print("No validation issues found.")
         return 0
 
-    scope_note = _filter_note(namespace.category, namespace.rules_only)
+    scope_note = _filter_note(
+        request.flags.get("category"), request.flags.get("rules_only")
+    )
     if scope_note:
         print(f"{total} validation issue(s) found ({len(issues)} in scope {scope_note}):")
     else:
@@ -455,25 +480,25 @@ def _render_validate(
     return 1
 
 
-def _filter_note(category: str | None, rules_only: bool) -> str:
+def _filter_note(category: str | None, rules_only: str | None) -> str:
     """The parenthetical that names the active filter(s)."""
     bits = []
     if category:
         bits.append(f"category={category}")
-    if rules_only:
+    if rules_only == "1":
         bits.append("rules-only")
     return "; ".join(bits)
 
 
-def _render_catalog(namespace: argparse.Namespace, result: SkillsResult) -> int:
+def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the rebuild result or the drift gate."""
     root = _root_of(result)
     catalog = root / "CATALOG.md"
 
-    if namespace.check:
+    if request.flags.get("check") == "1":
         check = result.check
         assert check is not None
-        if namespace.json:
+        if request.json:
             _emit_json(
                 {
                     "skills_root": str(root),
@@ -490,7 +515,7 @@ def _render_catalog(namespace: argparse.Namespace, result: SkillsResult) -> int:
 
     report = result.catalog
     assert report is not None
-    if namespace.json:
+    if request.json:
         _emit_json(
             {
                 "skills_root": str(root),
@@ -506,7 +531,7 @@ def _render_catalog(namespace: argparse.Namespace, result: SkillsResult) -> int:
     return 0
 
 
-def _render_discover(namespace: argparse.Namespace, result: SkillsResult) -> int:
+def _render_discover(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the scored matches (or the legacy no-match line)."""
     root = _root_of(result)
     if result.warning:
@@ -514,11 +539,11 @@ def _render_discover(namespace: argparse.Namespace, result: SkillsResult) -> int
         if result.message:
             print(f"  reason: {result.message}", file=sys.stderr)
 
-    if namespace.json:
+    if request.json:
         payload: dict[str, object] = {
             "skills_root": str(root),
-            "query": namespace.query,
-            "limit": namespace.limit,
+            "query": request.query,
+            "limit": request.flags.get("limit"),
             "match_count": len(result.matches),
             "matches": [match.as_dict() for match in result.matches],
         }
@@ -551,14 +576,14 @@ def _weed_issue(line: str) -> dict[str, str]:
     return {"type": kind, "message": message}
 
 
-def _render_weed(namespace: argparse.Namespace, result: SkillsResult) -> int:
+def _render_weed(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the weeding report; any weed line means exit 1."""
     plan = result.plan
     assert plan is not None
     lines = list(plan.lines)
     root = _root_of(result)
 
-    if namespace.json:
+    if request.json:
         _emit_json(
             {
                 "skills_root": str(root),
@@ -576,15 +601,15 @@ def _render_weed(namespace: argparse.Namespace, result: SkillsResult) -> int:
     return 1 if lines else 0
 
 
-def _render_repair(namespace: argparse.Namespace, result: SkillsResult) -> int:
+def _render_repair(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a repair preview or the applied report."""
     plan = result.plan
     assert plan is not None
     root = _root_of(result)
     catalog = root / "CATALOG.md"
 
-    if not namespace.apply:
-        if namespace.json:
+    if not request.apply:
+        if request.json:
             _emit_json(
                 {
                     "skills_root": str(root),
@@ -615,7 +640,7 @@ def _render_repair(namespace: argparse.Namespace, result: SkillsResult) -> int:
     return 0
 
 
-def _render_move(namespace: argparse.Namespace, result: SkillsResult) -> int:
+def _render_move(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a move preview, the applied report, or the already-there case."""
     plan = result.plan
     assert plan is not None
@@ -623,19 +648,19 @@ def _render_move(namespace: argparse.Namespace, result: SkillsResult) -> int:
     catalog = root / "CATALOG.md"
 
     if plan.already_in_category:
-        print(f"Skill already in category: {namespace.target_category}")
+        print(f"Skill already in category: {request.flags.get('target')}")
         return 0
 
     source = relpath(plan.source, root) if plan.source else ""
     destination = relpath(plan.destination, root) if plan.destination else ""
 
-    if not namespace.apply:
-        if namespace.json:
+    if not request.apply:
+        if request.json:
             _emit_json(
                 {
                     "skills_root": str(root),
                     "dry_run": True,
-                    "skill": namespace.skill,
+                    "skill": request.query,
                     "from": source,
                     "to": destination,
                     "note": _DRY_RUN_NOTE,
@@ -652,7 +677,7 @@ def _render_move(namespace: argparse.Namespace, result: SkillsResult) -> int:
     return 0
 
 
-def _render_archive(namespace: argparse.Namespace, result: SkillsResult) -> int:
+def _render_archive(result: SkillsResult, request: SkillsRequest) -> int:
     """Render an archive preview or the applied report."""
     plan = result.plan
     assert plan is not None
@@ -661,13 +686,13 @@ def _render_archive(namespace: argparse.Namespace, result: SkillsResult) -> int:
     source = relpath(plan.source, root) if plan.source else ""
     destination = relpath(plan.destination, root) if plan.destination else ""
 
-    if not namespace.apply:
-        if namespace.json:
+    if not request.apply:
+        if request.json:
             _emit_json(
                 {
                     "skills_root": str(root),
                     "dry_run": True,
-                    "skill": namespace.skill,
+                    "skill": request.query,
                     "from": source,
                     "to": destination,
                     "note": _DRY_RUN_NOTE,
@@ -685,17 +710,15 @@ def _render_archive(namespace: argparse.Namespace, result: SkillsResult) -> int:
     return 0
 
 
-def _render_new_category(
-    namespace: argparse.Namespace, result: SkillsResult
-) -> int:
+def _render_new_category(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a category-creation preview or the applied report."""
     plan = result.new_category
     assert plan is not None
     root = _root_of(result)
     catalog = root / "CATALOG.md"
 
-    if not namespace.apply:
-        if namespace.json:
+    if not request.apply:
+        if request.json:
             _emit_json(
                 {
                     "skills_root": str(root),
@@ -730,15 +753,13 @@ def _render_new_category(
     return 0
 
 
-def _render_merge_plan(
-    namespace: argparse.Namespace, result: SkillsResult
-) -> int:
+def _render_merge_plan(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the merge plan (JSON projections keep the legacy key order)."""
     plan = result.merge
     assert plan is not None
     root = _root_of(result)
 
-    if namespace.json:
+    if request.json:
         _emit_json(
             {
                 "skills_root": str(root),
@@ -761,25 +782,11 @@ def _render_merge_plan(
     return 0
 
 
-def _render_rules(namespace: argparse.Namespace, result: SkillsResult) -> int:
+def _render_rules(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the rules document (``--json`` is accepted but ignored)."""
     document = result.document or ""
-    if namespace.markdown:
+    if request.flags.get("markdown") == "1":
         sys.stdout.write(document)
     else:
         print(document)
     return 0
-
-
-_RENDERERS = {
-    "validate": _render_validate,
-    "catalog": _render_catalog,
-    "discover": _render_discover,
-    "weed": _render_weed,
-    "repair": _render_repair,
-    "move": _render_move,
-    "archive": _render_archive,
-    "new-category": _render_new_category,
-    "merge-plan": _render_merge_plan,
-    "rules": _render_rules,
-}
