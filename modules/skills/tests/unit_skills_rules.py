@@ -11,7 +11,7 @@ from modules.shared.src.skills.taxonomy_skills_constant import (
 )
 from modules.skills.src.capabilities_skills_rules_renderer import SkillsRulesRenderer
 
-PACK_ROOT = Path(__file__).resolve().parents[3] / "skills" / "skill-authoring"
+PACK_ROOT = Path(__file__).resolve().parents[3] / "modules" / "skills"
 COMMITTED_DOC = PACK_ROOT / "_rules" / "skill-rules.md"
 
 
@@ -45,5 +45,5 @@ def test_committed_artifact_matches_the_generator() -> None:
 def test_summary_keeps_the_legacy_first_line() -> None:
     """The compact report is byte-identical to the ported script's."""
     summary = SkillsRulesRenderer().render_summary()
-    assert summary.startswith("13 rules from _rules/skill_rules.py:\n")
+    assert summary.startswith("13 rules from taxonomy_skills_constant.py:\n")
     assert summary.count("\n- [error]") == 13

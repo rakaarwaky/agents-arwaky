@@ -10,7 +10,7 @@ executable rules.
 Regenerate the committed artifact with::
 
     python3 -m modules.root_cli_entry skills rules --markdown \
-        > skills/skill-authoring/_rules/skill-rules.md
+        > modules/skills/_rules/skill-rules.md
 """
 
 from __future__ import annotations
@@ -35,12 +35,12 @@ _DOCS_HEADER = """\
 
 # Skill rules
 
-What `skills/skill-authoring` enforces a skill tree against. Every rule
+What `modules/skills` enforces a skill tree against. Every rule
 below is emitted by the validator — `aa skills validate` — so this page
 cannot state a constraint the checker does not enforce, and the checker
 cannot enforce a constraint this page does not state. Provenance for each
 rule (the loader file it was first read from, or the failure mode that
-motivated it) lives in `RULES.md`, next to this file.
+motivated it) lives in `modules/shared/src/skills/taxonomy_skills_constant.py`.
 
 - **Rules:** {rule_count}
 - **Levels:** `error` (a rule violation fails the skill or category it hits)
@@ -114,7 +114,7 @@ class SkillsRulesRenderer(ISkillsRulesRendererProtocol):
 
     def render_summary(self) -> str:
         """The compact one-line-per-rule form ``aa skills rules`` prints."""
-        lines = [f"{len(RULES)} rules from _rules/skill_rules.py:", ""]
+        lines = [f"{len(RULES)} rules from taxonomy_skills_constant.py:", ""]
         for rule_obj in RULES:
             lines.append(
                 f"- [{rule_obj.level.value}] {rule_obj.id} — {rule_obj.summary}"
