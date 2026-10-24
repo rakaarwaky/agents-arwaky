@@ -90,7 +90,7 @@ checkable criterion or delete.
 - [ ] `name:` matches the directory and satisfies the `name-format` rule; `description:`
 
   satisfies the `description-*` rules — run
-  `python3 skills/skill-authoring/scripts/cli.py validate` to check both.
+  `aa skills validate` to check both.
 - [ ] Frontmatter is valid YAML: colon-containing values quoted, no field nested under another.
 - [ ] Grok Build target: trigger phrases live in `description`/`when-to-use`, not `triggers:`.
 - [ ] Exactly one `SKILL.md` at the skill root, at `<category>/<skill>/SKILL.md`.

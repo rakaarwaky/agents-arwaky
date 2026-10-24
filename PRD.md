@@ -73,8 +73,9 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 
 - Daemon lifecycle (OmniRoute host-native, Anytype Podman) with health, API-key, and space join/list.
   Acceptance: `aa anytype start` then `aa anytype health` reports ready.
-- Document and skill-pack audit. Acceptance: `aa skills list` reports coverage
-  and invariants are reviewed manually.
+- Document and skill-pack audit. Acceptance: `aa skills validate --summary`
+  reports coverage and `aa skills catalog --check` reports drift; both are CI
+  gates.
 - Reset/clean of build artifacts and per-tool state. Acceptance: `aa clean`
   removes artifacts and `aa status` reflects the clean state.
 
@@ -89,7 +90,7 @@ code — so drift accumulates silently and "is this repo consistent?" has no ans
 
 | Category | Commitment | Detail lives in |
 |----------|-----------|-----------------|
-| Determinism | `aa skills list` produces identical findings on identical trees | `modules/skills/FRD.md` |
+| Determinism | `aa skills` produces identical findings on identical trees | `modules/skills/FRD.md` |
 | XDG hygiene | No tool writes persistent data outside its XDG dirs; repo root stays clean | `modules/shared` (kernel; no FRD — see HOW-TO-MAKE-FRD) |
 | Security | No secrets committed; daemon credentials live in `.env`/XDG only | `modules/daemon/FRD.md` |
 | Submodule integrity | Pinned submodule commits are never mutated by a tool run | `modules/AGENTS.md` precedence |

@@ -181,7 +181,7 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}status{RESET()}                         Check health, submodule and binary installation status")
     print(f"  {GREEN()}doctor{RESET()}                         Diagnose runtime environment & toolchain")
     print(f"  {GREEN()}tool{RESET()} <cmd> [args]             Tool management (list|run|install|update|uninstall)")
-    print(f"  {GREEN()}skills{RESET()} <cmd> [args]            Skill pack: list|show (agents read skills/ directly)")
+    print(f"  {GREEN()}skills{RESET()} <cmd> [args]            Skill pack: list|show|validate|catalog|discover|authoring")
     print(f"  {GREEN()}connect{RESET()} --<harness>|--all     Connect MCP, skills & env to harnesses")
     print(f"  {GREEN()}disconnect{RESET()} --<harness>|--all  Disconnect harnesses (use --all for all)")
     print(f"  {GREEN()}mcp{RESET()} [list|generate|show]       Manage MCP configuration")
@@ -556,7 +556,7 @@ def cmd_disconnect(argv: list[str]) -> int:
 
 
 def cmd_skills(argv: list[str]) -> int:
-    """Skill-pack discovery: aa skills <list|show> [args]."""
+    """Skill-pack discovery and authoring: aa skills <verb> [args]."""
     from modules.cli.src.surface_skills_command import cmd_skills as _skills_surface
     from modules.skills.src.root_skills_container import default_aggregate
 

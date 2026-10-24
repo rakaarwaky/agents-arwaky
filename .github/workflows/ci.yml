@@ -24,8 +24,34 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck jq
 
+      - name: Install AES architecture scanner (lac)
+        env:
+          # Pinned to the version the internal/lint-arwaky submodule points at;
+          # bump together with the submodule pointer.
+          LAC_VERSION: v3.11.4
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/lac" \
+            "https://github.com/rakaarwaky/lint-arwaky/releases/download/$LAC_VERSION/lint-arwaky-cli"
+          sudo install -m 0755 "$RUNNER_TEMP/lac" /usr/local/bin/lac
+          lac --version
+
       - name: Python compile check
         run: python -m compileall modules/
+
+      - name: Architecture scan (AES)
+        # Advisory until the AES layout of the pre-existing modules is
+        # brought to zero findings; the report is uploaded below so the
+        # findings are inspectable. Flip to blocking by dropping ``|| true``.
+        run: |
+          lac scan modules/ --format json > "$RUNNER_TEMP/lac-report.json" || true
+          cat "$RUNNER_TEMP/lac-report.json"
+
+      - name: Upload AES report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lac-report
+          path: ${{ runner.temp }}/lac-report.json
 
       - name: Ruff lint
         run: ruff check modules/ --ignore E501 || true
@@ -46,16 +72,28 @@ jobs:
       - name: Generate MCP manifest (gitignored artifact referenced by docs)
         run: python3 -m modules.root_cli_entry mcp generate
 
-      - name: Skill pack validate
-        run: python3 skills/skill-authoring/scripts/cli.py validate --summary
-
       - name: Skill catalog drift gate
-        run: python3 skills/skill-authoring/scripts/cli.py catalog --check
+        run: python3 -m modules.root_cli_entry skills catalog --check
 
-      - name: Skill pack tests
-        run: python3 -m pytest skills/skill-authoring/tests -q
+      - name: Skills and shared tests
+        run: python3 -m pytest modules/skills modules/shared -q
 
-      - name: Skill pack ruff
+      - name: Module tests
+        # Advisory: modules/daemon, modules/service, and modules/tools carry
+        # pre-existing failures (podman-dependent probes and two stale
+        # delegation assertions) that predate this branch. Flip to blocking
+        # once those are repaired.
+        continue-on-error: true
+        run: python3 -m pytest modules/ -q
+
+      - name: Skill pack validate
+        # Blocking by design. NOTE: the tree currently reports one genuine
+        # pack issue — category `aes-architecture` is mounted from the
+        # internal/lint-arwaky submodule and ships no DESCRIPTION.md — so
+        # this step is red on main too until that file lands upstream.
+        run: python3 -m modules.root_cli_entry skills validate --summary
+
+      - name: Skill pack ruff (legacy shim window)
         run: ruff check skills/skill-authoring/scripts/
 
       - name: Submodule integrity

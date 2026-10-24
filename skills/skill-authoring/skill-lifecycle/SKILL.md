@@ -38,7 +38,7 @@ removal plus consolidation: Phase 1 removes true duplicates, Phase 2 merges over
 Frontmatter constraints for a merged `SKILL.md` are not restated here: the executable rules and
 their messages live in [`../_rules/skill-rules.md`](../_rules/skill-rules.md), generated from
 `_rules/skill_rules.py`. A merge that produces a rule violation is caught by running
-`python3 skills/skill-authoring/scripts/cli.py validate`.
+`aa skills validate`.
 
 ## Path Handling
 

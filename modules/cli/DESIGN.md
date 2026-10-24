@@ -5,7 +5,7 @@
 The CLI surface layer is the operator's point of contact with agents-arwaky.
 Subcommand names use `aa` as the single entry-point verb; feature commands
 (`backup`, `config`, `daemon`, `doctor`, `harness`, `mcp`, `service`,
-`skill`, `tools`) are short, lowercase, and kebab-case where they contain
+`skills`, `tools`) are short, lowercase, and kebab-case where they contain
 multiple words. Each command module returns a typed `int` exit code via the
 feature aggregate; no surface function raises to the top level.
 
@@ -20,12 +20,19 @@ feature aggregate; no surface function raises to the top level.
 | `surface_harness_command.py` | `connect`, `disconnect` | `create_harness_feature` |
 | `surface_mcp_command.py` | `mcp` | `create_mcp_feature` |
 | `surface_service_command.py` | `service` | `create_service_feature` |
-| `surface_skill_command.py` | `skill` | `create_skill_feature` |
+| `surface_skills_command.py` | `skills` (`list`, `show`, `validate`, `catalog`, `discover`, `weed`, `repair`, `move`, `archive`, `new-category`, `merge-plan`, `rules`) | `default_aggregate` (aggregate injected) |
 | `surface_tools_command.py` | `tool`, `install`, `update`, `uninstall` | `create_tools_feature` |
 
 Invariants:
 
 - No surface file performs I/O — all side effects go through the feature aggregate.
+- `surface_skills_command.py` parses argv into a `SkillsRequest`, renders the
+  returned `SkillsResult` (text or legacy-ordered JSON), and returns its
+  `exit_code` (0 clean / 1 issues / 2 usage / 3 catalog drift). It imports the
+  aggregate contract plus shared taxonomy/utility only — never the agent,
+  a capability, or the composition root (AES205).
+- The skills surface keeps `list`/`show` byte-identical to their historical
+  output; the authoring verbs add the ported skill-authoring contract.
 - No surface file defines a capability or orchestrator class.
 - Each module exposes `cmd_<name>(argv: list[str]) -> int` for `root_cli_entry`.
 

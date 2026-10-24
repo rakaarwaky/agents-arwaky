@@ -27,3 +27,29 @@ def test_dogfood_skills_show():
     content = SkillsPackReader().show_skill(SkillQuery(rows[0].name))
     assert content is not None
     assert "name:" in content
+
+
+@pytest.mark.dogfood
+def test_dogfood_validate_live_pack_is_deterministic():
+    """DOG-SKILLS-003: validating the live pack is stable and self-consistent.
+
+    Deliberately does not assert a clean pack: what the live tree contains
+    (including categories mounted from submodules) is the pack owner's
+    business, and pinning zero issues would make this test a second,
+    hidden content gate. It asserts instead that two runs agree, that the
+    exit code tracks the unfiltered issue total, and that every reported
+    issue carries a locator and a message — the invariants the CLI relies
+    on.
+    """
+    from modules.shared.src.skills.taxonomy_skills_vo import SkillsRequest
+    from modules.skills.src.root_skills_container import default_aggregate
+
+    first = default_aggregate().execute(SkillsRequest(op="validate"))
+    second = default_aggregate().execute(SkillsRequest(op="validate"))
+
+    assert first.report is not None and second.report is not None
+    assert first.report.issues == second.report.issues
+    assert first.exit_code == (1 if first.report.issue_count else 0)
+    for issue in first.report.issues:
+        assert issue.message
+        assert issue.locator

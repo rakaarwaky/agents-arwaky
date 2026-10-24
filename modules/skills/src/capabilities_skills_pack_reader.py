@@ -13,6 +13,7 @@ from modules.shared.src.skills.contract_skills_protocol import ISkillsReaderProt
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillContent,
     SkillQuery,
+    SkillsRoot,
 )
 from modules.shared.src.taxonomy_skill_vo import (
     sanitize_skill_name,
@@ -35,16 +36,19 @@ class SkillsPackReader(ISkillsReaderProtocol):
         self._root = pack_root or default_pack_root()
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def show_skill(self, query: SkillQuery) -> SkillContent | None:
+    def show_skill(
+        self, query: SkillQuery, root: SkillsRoot | None = None
+    ) -> SkillContent | None:
         """Return the raw SKILL.md content for *query*, or None if missing.
 
         Matches the frontmatter ``name:`` field, the parent directory name,
         or a hyphen-free spelling of either (``fetch`` ↔ ``fetch-mcp``).
         """
+        pack_root = Path(root) if root is not None else self._root
         wanted = sanitize_skill_name(query, query)
         wanted_plain = wanted.replace("-", "")
         records = [
-            (parse_skill_frontmatter(md), md) for md in iter_skill_mds(self._root)
+            (parse_skill_frontmatter(md), md) for md in iter_skill_mds(pack_root)
         ]
         exact = [
             (name_, md)

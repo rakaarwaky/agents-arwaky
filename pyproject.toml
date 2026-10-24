@@ -6,6 +6,9 @@ testpaths = ["tests", "modules"]
 python_files = ["test_*.py", "contract_*.py", "unit_*.py", "integration_*.py", "dogfood_*.py", "smoke_*.py", "e2e_*.py", "acceptance_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+  "dogfood: exercises the live repository state (skill pack, config) rather than a fixture",
+]
 
 [tool.ruff.lint.per-file-ignores]
 "tools/install/*.py" = ["E402", "S603"]

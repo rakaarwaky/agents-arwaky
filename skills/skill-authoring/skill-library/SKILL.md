@@ -11,7 +11,7 @@ Manages the skills pack as a library. The master index is `CATALOG.md` at the sk
 
 ## Library layout
 
-- Skills root: the directory three levels above `skills/skill-authoring/scripts/cli.py`.
+- Skills root: `skills/` at the repository root.
 - Category folder: `skills-root/category/`
 - Skill folder: `skills-root/category/skill-name/SKILL.md`
 - Category metadata: `skills-root/category/DESCRIPTION.md`
@@ -22,20 +22,20 @@ The helper script resolves the skills root from its own file location. Do not ha
 ## Helper script
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py COMMAND
+aa skills COMMAND
 ```
 
 ### Examples
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py catalog
-python3 skills/skill-authoring/scripts/cli.py discover "github pull request"
-python3 skills/skill-authoring/scripts/cli.py validate
-python3 skills/skill-authoring/scripts/cli.py repair
-python3 skills/skill-authoring/scripts/cli.py weed
-python3 skills/skill-authoring/scripts/cli.py move automation/file-renamer productivity
-python3 skills/skill-authoring/scripts/cli.py new-category data-engineering "Skills for pipelines, datasets, and data processing"
-python3 skills/skill-authoring/scripts/cli.py archive old-skill
+aa skills catalog
+aa skills discover "github pull request"
+aa skills validate
+aa skills repair
+aa skills weed
+aa skills move automation/file-renamer productivity
+aa skills new-category data-engineering "Skills for pipelines, datasets, and data processing"
+aa skills archive old-skill
 ```
 
 Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML parsing. Without PyYAML, the script uses a minimal frontmatter parser.

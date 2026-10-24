@@ -14,37 +14,46 @@ answers "which skill do I use".
 
 ## Pack tooling
 
-The canonical entrypoint is the script package:
+The tooling is a first-class feature of the `aa` CLI:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py <subcommand>
+aa skills <subcommand>
 ```
 
-Read-only subcommands (`validate`, `catalog --check`, `discover`, `weed`,
-`rules`, `merge-plan`) run immediately. Mutating subcommands (`repair`,
-`move`, `archive`, `new-category`) default to dry-run — pass `--apply` to
-execute. The old `skill-library/scripts/librarian.py` shim keeps working and
-delegates to the same CLI.
-CI runs `validate` and `catalog --check` on every pull request (`.github/workflows/ci.yml`); run both locally before pushing.
+Read-only subcommands (`list`, `show`, `validate`, `catalog --check`,
+`discover`, `weed`, `rules`, `merge-plan`) run immediately. Mutating
+subcommands (`repair`, `move`, `archive`, `new-category`) default to
+dry-run — pass `--apply` to execute. Every subcommand accepts
+`--skills-root PATH`; the authoring subcommands also accept `--json`.
+CI runs `aa skills validate --summary` and `aa skills catalog --check` on
+every pull request (`.github/workflows/ci.yml`); run both locally before
+pushing.
+
+The old `python3 skills/skill-authoring/scripts/cli.py <subcommand>` path
+still works for one release: it prints a deprecation notice to stderr and
+delegates to `aa skills` with identical output and exit codes.
 
 ## Catalog
 
 `CATALOG.md` at the skills root is the master index. Rebuild with:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py catalog
+aa skills catalog
 ```
 
-`catalog --check` is the drift gate: it regenerates to a temp file and fails
-(~exit 3) when the tracked artifact does not match the live tree.
+`catalog --check` is the drift gate: it regenerates to a temp file and exits
+3 when the tracked artifact does not match the live tree.
 
 ## Rules
 
-The single source of truth for what a valid skill is lives in
-`skills/skill-authoring/_rules/skill-rules.md` (generated from
-`_rules/skill_rules.py`).
+The executable rules live in
+`modules/shared/src/skills/taxonomy_skills_constant.py`; the rendered
+reference is `skills/skill-authoring/_rules/skill-rules.md` (regenerate with
+`aa skills rules --markdown`), and provenance is recorded in
+`_rules/RULES.md`.
 
 ## Back-compat shims preserved
 
-- `skill-library/scripts/librarian.py` — delegates to `scripts/cli.py` (the
-  old `skill-librarian/scripts/librarian.py` path still works).
+- `skills/skill-authoring/scripts/cli.py` — delegates to `aa skills`.
+- `skills/skill-authoring/_rules/skill_rules.py` — re-exports the shared
+  rule SSOT for in-pack imports.
