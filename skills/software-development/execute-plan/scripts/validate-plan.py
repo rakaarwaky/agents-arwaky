@@ -69,12 +69,12 @@ def parse_pr_plan(content):
         description = _extract_field(body, "Description") or ""
 
         files = [f.strip() for f in files_raw.split(",") if f.strip()] if files_raw else []
-        dependencies, dep_errors = _parse_dependencies(deps_raw, "PR {}".format(pr_num))
+        dependencies, dep_errors = _parse_dependencies(deps_raw, f"PR {pr_num}")
         parse_errors.extend(dep_errors)
 
         entries.append(
             {
-                "id": "pr-{}".format(pr_num.lower()),
+                "id": f"pr-{pr_num.lower()}",
                 "number": pr_num,
                 "title": title,
                 "files": files,
@@ -127,12 +127,10 @@ def _parse_dependencies(deps_raw, pr_label):
             continue
         m = re.match(r"PR\s+(\S+)", part, re.IGNORECASE)
         if m:
-            deps.append("pr-{}".format(m.group(1).lower()))
+            deps.append(f"pr-{m.group(1).lower()}")
         else:
             errors.append(
-                "Unrecognized dependency format '{}' in {} (expected 'PR <id>')".format(
-                    part, pr_label
-                )
+                f"Unrecognized dependency format '{part}' in {pr_label} (expected 'PR <id>')"
             )
     return deps, errors
 
@@ -160,9 +158,7 @@ def validate_dag(entries):
                 dep_label = dep.replace("pr-", "PR ", 1)
                 entry_label = entry["id"].replace("pr-", "PR ", 1)
                 errors.append(
-                    "Dependency '{}' in {} does not reference a valid PR ID".format(
-                        dep_label, entry_label
-                    )
+                    f"Dependency '{dep_label}' in {entry_label} does not reference a valid PR ID"
                 )
 
     # --- cycles (only when references are valid) ---
@@ -303,7 +299,7 @@ def main():
             json.dumps(
                 {
                     "valid": False,
-                    "errors": ["Usage: python3 {} <design-doc-path>".format(sys.argv[0])],
+                    "errors": [f"Usage: python3 {sys.argv[0]} <design-doc-path>"],
                 },
                 indent=2,
             )
@@ -316,12 +312,12 @@ def main():
         with open(path, "r") as fh:
             content = fh.read()
     except FileNotFoundError:
-        print(json.dumps({"valid": False, "errors": ["File not found: {}".format(path)]}, indent=2))
+        print(json.dumps({"valid": False, "errors": [f"File not found: {path}"]}, indent=2))
         sys.exit(2)
-    except IOError as exc:
+    except OSError as exc:
         print(
             json.dumps(
-                {"valid": False, "errors": ["Cannot read file {}: {}".format(path, exc)]},
+                {"valid": False, "errors": [f"Cannot read file {path}: {exc}"]},
                 indent=2,
             )
         )
@@ -368,7 +364,7 @@ def main():
     except Exception as exc:
         print(
             json.dumps(
-                {"valid": False, "errors": ["Internal error: {}".format(exc)]},
+                {"valid": False, "errors": [f"Internal error: {exc}"]},
                 indent=2,
             )
         )

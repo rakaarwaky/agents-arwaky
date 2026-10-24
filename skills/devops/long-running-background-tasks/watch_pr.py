@@ -8,8 +8,9 @@ import random
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Optional
 from urllib.parse import urlparse
 
 REVIEW_THREADS_QUERY = """
@@ -39,7 +40,7 @@ query($owner: String!, $repo: String!, $number: Int!, $endCursor: String) {
 """.strip()
 
 
-def parse_pr(value: str) -> Tuple[str, int, Optional[str]]:
+def parse_pr(value: str) -> tuple[str, int, str | None]:
     """Return (owner/repo, number, host). host is the URL netloc, including
     github.com. OWNER/REPO#NUMBER leaves host None so gh uses GH_HOST / config."""
     parsed = urlparse(value)
@@ -55,11 +56,11 @@ def parse_pr(value: str) -> Tuple[str, int, Optional[str]]:
     return repo, int(number), None
 
 
-def login_of(user: object) -> Optional[str]:
+def login_of(user: object) -> str | None:
     return user.get("login") if isinstance(user, dict) else None
 
 
-def comment_kind(author: Optional[str], typename: Optional[str]) -> str:
+def comment_kind(author: str | None, typename: str | None) -> str:
     if typename == "Bot" or (author and author.lower().endswith("[bot]")):
         return "bugbot_comment"
     return "human_review_comment"
@@ -69,7 +70,7 @@ def comment_kind(author: Optional[str], typename: Optional[str]) -> str:
 class Gh:
     """Runs the gh CLI and decodes its stdout."""
 
-    host: Optional[str] = None
+    host: str | None = None
 
     def run(self, *args: str) -> str:
         # GH_HOST points both `gh api` and `gh pr view` at a GitHub Enterprise
@@ -81,10 +82,10 @@ class Gh:
             raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "gh failed")
         return result.stdout
 
-    def json(self, *args: str) -> Dict:
+    def json(self, *args: str) -> dict:
         return json.loads(self.run(*args))
 
-    def lines(self, *args: str) -> List[Dict]:
+    def lines(self, *args: str) -> list[dict]:
         return [json.loads(line) for line in self.run(*args).splitlines() if line]
 
 
@@ -95,41 +96,41 @@ class PullRequestApi:
     repo: str
     number: int
     gh: Gh = field(default_factory=Gh)
-    fetched_commit_comments: Dict[str, List[Dict]] = field(default_factory=dict)
-    _commit_refresh: List[int] = field(default_factory=lambda: [0])
+    fetched_commit_comments: dict[str, list[dict]] = field(default_factory=dict)
+    _commit_refresh: list[int] = field(default_factory=lambda: [0])
 
-    def items(self, path: str, jq: str = ".[]") -> List[Dict]:
+    def items(self, path: str, jq: str = ".[]") -> list[dict]:
         return self.gh.lines("api", "--paginate", path, "--jq", jq)
 
-    def pull(self) -> Dict:
+    def pull(self) -> dict:
         return self.gh.json("api", f"repos/{self.repo}/pulls/{self.number}")
 
-    def review_decision(self) -> Optional[str]:
+    def review_decision(self) -> str | None:
         data = self.gh.json(
             "pr", "view", str(self.number), "--repo", self.repo, "--json", "reviewDecision"
         )
         value = data.get("reviewDecision")
         return value if isinstance(value, str) and value else None
 
-    def check_runs(self, sha: str) -> List[Dict]:
+    def check_runs(self, sha: str) -> list[dict]:
         path = f"repos/{self.repo}/commits/{sha}/check-runs?per_page=100"
         return self.items(path, ".check_runs[]")
 
-    def statuses(self, sha: str) -> List[Dict]:
+    def statuses(self, sha: str) -> list[dict]:
         return self.items(f"repos/{self.repo}/commits/{sha}/statuses?per_page=100")
 
-    def pull_commits(self) -> List[Dict]:
+    def pull_commits(self) -> list[dict]:
         return self.items(f"repos/{self.repo}/pulls/{self.number}/commits?per_page=100")
 
-    def commit_comments(self, sha: str) -> List[Dict]:
+    def commit_comments(self, sha: str) -> list[dict]:
         return self.items(f"repos/{self.repo}/commits/{sha}/comments?per_page=100")
 
-    def commit_comment_items(self, head_sha: str) -> List[Dict]:
+    def commit_comment_items(self, head_sha: str) -> list[dict]:
         # Always return comments for every commit so seen keys stay live.
         # Refetch the head every poll; refetch one older SHA per poll so a
         # new comment on an earlier commit still appears without N API
         # calls every tick.
-        shas: List[str] = []
+        shas: list[str] = []
         for commit in self.pull_commits():
             sha = commit.get("sha")
             if isinstance(sha, str) and sha:
@@ -138,7 +139,7 @@ class PullRequestApi:
         rotate = extras[self._commit_refresh[0] % len(extras)] if extras else None
         if extras:
             self._commit_refresh[0] += 1
-        items: List[Dict] = []
+        items: list[dict] = []
         for sha in shas:
             refresh = sha == head_sha or sha not in self.fetched_commit_comments or sha == rotate
             if refresh:
@@ -146,13 +147,13 @@ class PullRequestApi:
             items.extend(self.fetched_commit_comments[sha])
         return items
 
-    def reviews(self) -> List[Dict]:
+    def reviews(self) -> list[dict]:
         return self.items(f"repos/{self.repo}/pulls/{self.number}/reviews?per_page=100")
 
-    def issue_comments(self) -> List[Dict]:
+    def issue_comments(self) -> list[dict]:
         return self.items(f"repos/{self.repo}/issues/{self.number}/comments?per_page=100")
 
-    def review_threads(self) -> List[Dict]:
+    def review_threads(self) -> list[dict]:
         owner, name = self.repo.split("/", 1)
         return self.gh.lines(
             "api",
@@ -177,11 +178,11 @@ class Event:
     head_sha: str
     terminal: bool = False
 
-    def as_dict(self) -> Dict:
+    def as_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
-    def final(cls, pr: Dict, head_sha: str) -> "Event":
+    def final(cls, pr: dict, head_sha: str) -> "Event":
         return cls("merged" if pr.get("merged") else "closed", head_sha, terminal=True)
 
     @classmethod
@@ -195,11 +196,11 @@ class Event:
 
 @dataclass
 class CiFailure(Event):
-    name: Optional[str] = None
-    conclusion: Optional[str] = None
+    name: str | None = None
+    conclusion: str | None = None
 
     @classmethod
-    def from_check(cls, head_sha: str, check: Dict) -> "CiFailure":
+    def from_check(cls, head_sha: str, check: dict) -> "CiFailure":
         return cls(
             "ci_failure",
             head_sha,
@@ -210,12 +211,12 @@ class CiFailure(Event):
 
 @dataclass
 class Comment(Event):
-    author: Optional[str] = None
+    author: str | None = None
     body: str = ""
-    url: Optional[str] = None
+    url: str | None = None
 
     @classmethod
-    def from_rest_item(cls, head_sha: str, item: Dict) -> Optional["Comment"]:
+    def from_rest_item(cls, head_sha: str, item: dict) -> Optional["Comment"]:
         body = (item.get("body") or "").strip()
         if not body:
             return None
@@ -232,13 +233,13 @@ class Comment(Event):
 
 @dataclass
 class ThreadComment(Comment):
-    path: Optional[str] = None
-    line: Optional[int] = None
-    thread_id: Optional[str] = None
-    commit_oid: Optional[str] = None
+    path: str | None = None
+    line: int | None = None
+    thread_id: str | None = None
+    commit_oid: str | None = None
 
     @staticmethod
-    def pick_comment(nodes: List[Dict], pr_author: Optional[str]) -> Optional[Dict]:
+    def pick_comment(nodes: list[dict], pr_author: str | None) -> dict | None:
         nonempty = [node for node in nodes if (node.get("body") or "").strip()]
         if not nonempty:
             return None
@@ -249,7 +250,7 @@ class ThreadComment(Comment):
 
     @classmethod
     def from_thread(
-        cls, head_sha: str, thread: Dict, pr_author: Optional[str]
+        cls, head_sha: str, thread: dict, pr_author: str | None
     ) -> Optional["ThreadComment"]:
         if thread.get("isResolved"):
             return None
@@ -272,7 +273,7 @@ class ThreadComment(Comment):
         )
 
 
-def event_time(item: Dict, *keys: str) -> str:
+def event_time(item: dict, *keys: str) -> str:
     """First present timestamp so we can keep the newest check or status."""
     for key in keys:
         value = item.get(key)
@@ -281,8 +282,8 @@ def event_time(item: Dict, *keys: str) -> str:
     return ""
 
 
-def latest_statuses(statuses: List[Dict]) -> List[Dict]:
-    latest: Dict[str, Dict] = {}
+def latest_statuses(statuses: list[dict]) -> list[dict]:
+    latest: dict[str, dict] = {}
     for status in statuses:
         context = status.get("context")
         if not isinstance(context, str) or not context:
@@ -293,11 +294,11 @@ def latest_statuses(statuses: List[Dict]) -> List[Dict]:
     return list(latest.values())
 
 
-def latest_checks(checks: List[Dict]) -> List[Dict]:
+def latest_checks(checks: list[dict]) -> list[dict]:
     # Key by check name only. A rerun creates a new check_suite id, so
     # (name, suite_id) would keep the failed suite next to the successful one
     # and `failing` would never clear.
-    latest: Dict[str, Dict] = {}
+    latest: dict[str, dict] = {}
     for check in checks:
         name = check.get("name")
         if not isinstance(name, str) or not name:
@@ -310,7 +311,7 @@ def latest_checks(checks: List[Dict]) -> List[Dict]:
     return list(latest.values())
 
 
-def events(api: PullRequestApi) -> Tuple[List[Dict], Optional[bool]]:
+def events(api: PullRequestApi) -> tuple[list[dict], bool | None]:
     pr = api.pull()
     sha = pr["head"]["sha"]
     raw_mergeable = pr.get("mergeable")
@@ -318,7 +319,7 @@ def events(api: PullRequestApi) -> Tuple[List[Dict], Optional[bool]]:
     if pr["state"] != "open":
         return [Event.final(pr, sha).as_dict()], mergeable
 
-    found: List[Event] = []
+    found: list[Event] = []
     if mergeable is False:
         found.append(Event.merge_conflict(sha))
 
@@ -351,7 +352,7 @@ def events(api: PullRequestApi) -> Tuple[List[Dict], Optional[bool]]:
             pending = True
 
     pr_author = login_of(pr.get("user"))
-    seen_bodies: Set[Tuple[Optional[str], str]] = set()
+    seen_bodies: set[tuple[str | None, str]] = set()
     open_threads = False
 
     for thread in api.review_threads():
@@ -419,7 +420,7 @@ _COMMENT_KINDS = frozenset({"human_review_comment", "bugbot_comment"})
 _COMMENT_KEY_FIELDS = ("kind", "author", "body")
 
 
-def event_key(event: Dict) -> str:
+def event_key(event: dict) -> str:
     kind = event.get("kind")
     if kind in _COMMENT_KINDS:
         return json.dumps(
@@ -482,7 +483,7 @@ def transport_backoff(
     return max(0.1, min(cap, base * (0.5 + random_fn())))
 
 
-def _fit_json_line(payload: Dict, shrink_key: str) -> str:
+def _fit_json_line(payload: dict, shrink_key: str) -> str:
     """Shrink `shrink_key` until the JSON line fits `_LINE_LIMIT`, then drop it.
 
     Never leave a leftover ellipsis as the only remaining value: that is still
@@ -503,8 +504,8 @@ def _fit_json_line(payload: Dict, shrink_key: str) -> str:
     return line
 
 
-def emit(event: Dict) -> None:
-    payload: Dict = {"type": "pr_monitor_event"}
+def emit(event: dict) -> None:
+    payload: dict = {"type": "pr_monitor_event"}
     for key in _EVENT_FIELD_ORDER:
         if key == "body" or key not in event:
             continue
@@ -525,9 +526,9 @@ def watch(
     events_fn=events,
     random_fn: Callable[[], float] = random.random,
 ) -> int:
-    seen: Set[str] = set()
-    seen_errors: Set[str] = set()
-    seen_comments: Set[str] = set()
+    seen: set[str] = set()
+    seen_errors: set[str] = set()
+    seen_comments: set[str] = set()
     first_poll = True
     transport_failures = 0
     while True:

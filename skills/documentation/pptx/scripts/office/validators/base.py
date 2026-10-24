@@ -149,7 +149,7 @@ class BaseSchemaValidator:
                 )
             except Exception as e:
                 errors.append(
-                    f"  {xml_file.relative_to(self.unpacked_dir)}: Unexpected error: {str(e)}"
+                    f"  {xml_file.relative_to(self.unpacked_dir)}: Unexpected error: {e!s}"
                 )
 
         if errors:
@@ -445,9 +445,7 @@ class BaseSchemaValidator:
 
         if elem_lower.endswith("id") and len(elem_lower) > 2:
             prefix = elem_lower[:-2]
-            if prefix.endswith("master"):
-                return prefix.lower()
-            elif prefix.endswith("layout"):
+            if prefix.endswith("master") or prefix.endswith("layout"):
                 return prefix.lower()
             else:
                 if prefix == "sld":

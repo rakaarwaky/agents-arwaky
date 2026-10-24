@@ -114,7 +114,7 @@ def main() -> int:
             src = os.path.abspath(os.path.expanduser(src))
             dest = os.path.join(dest_dir, os.path.basename(src.rstrip("\\/")))
             if os.path.exists(dest):
-                dest += "-" + dt.datetime.now(dt.timezone.utc).strftime("%H%M%S")
+                dest += "-" + dt.datetime.now(dt.UTC).strftime("%H%M%S")
             shutil.move(src, dest)
             moved.append({"from": src, "to": dest})
         print(json.dumps({"moved": moved}, indent=1))
@@ -141,7 +141,7 @@ def main() -> int:
                 # mappers write map0000-0009.md at the run root, not under map/
                 phase = "map" if any(f.startswith("map") and f.endswith(".md") for f in os.listdir(args.run_dir)) else "collected"
             if phase != last_phase:
-                print(json.dumps({"status": "running", "phase": phase, "at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}), flush=True)
+                print(json.dumps({"status": "running", "phase": phase, "at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds")}), flush=True)
                 last_phase = phase
             # any phase can freeze (a reducer on a 246-session run sat 5 h with no output): no new or changed file
             # under the run dir for --phase-stall-min means the run is not progressing, whatever the host says
@@ -175,7 +175,7 @@ def main() -> int:
         return 0
 
     if args.cmd == "decide":
-        line = {"date": dt.datetime.now(dt.timezone.utc).date().isoformat(), "run_dir": args.run_dir, "id": args.id,
+        line = {"date": dt.datetime.now(dt.UTC).date().isoformat(), "run_dir": args.run_dir, "id": args.id,
                 "kind": args.kind, "action": args.action, "target": args.target, "path": args.path,
                 "decision": args.decision, "undo": args.undo}
         dec_path = os.path.join(grok_home, "learn", "decisions.jsonl")
@@ -238,7 +238,7 @@ def files_ready(run_dir: str) -> bool:
 def mark(path: str, run_dir: str, status: str, extra: dict | None = None) -> dict:
     """Record `status` for `run_dir` as the pending run and save; `done` also stamps last_completed_*."""
     state = load(path)
-    now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    now = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
     pending = state.get("pending") or {}
     if pending.get("run_dir") != run_dir:
         pending = {"run_dir": run_dir, "started_at": now}

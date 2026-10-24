@@ -68,13 +68,9 @@ def inspect_page_setup(unpacked_dir: Path) -> str:
                 h_in = int(h) / 1440
                 # Detect paper size
                 paper = ""
-                if abs(w_in - 11.69) < 0.2 and abs(h_in - 8.27) < 0.2:
+                if abs(w_in - 11.69) < 0.2 and abs(h_in - 8.27) < 0.2 or abs(w_in - 8.27) < 0.2 and abs(h_in - 11.69) < 0.2:
                     paper = " (A4)"
-                elif abs(w_in - 8.27) < 0.2 and abs(h_in - 11.69) < 0.2:
-                    paper = " (A4)"
-                elif abs(w_in - 8.5) < 0.2 and abs(h_in - 11.0) < 0.2:
-                    paper = " (Letter)"
-                elif abs(w_in - 11.0) < 0.2 and abs(h_in - 8.5) < 0.2:
+                elif abs(w_in - 8.5) < 0.2 and abs(h_in - 11.0) < 0.2 or abs(w_in - 11.0) < 0.2 and abs(h_in - 8.5) < 0.2:
                     paper = " (Letter)"
                 lines.append(f'  Page: {w_in:.1f}"×{h_in:.1f}" {orient}{paper}')
 

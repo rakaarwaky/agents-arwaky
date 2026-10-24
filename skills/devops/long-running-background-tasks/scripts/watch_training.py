@@ -21,9 +21,8 @@ import re
 import statistics as stats
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import List, Optional
 
 LAYOUT_HELP = """\
 Expected layout under --train-root, which is the nanoGPT + Slurm convention the
@@ -85,14 +84,14 @@ class Config:
     run: str
     train_root: Path
     watch_dir: Path
-    job_id: Optional[str]
+    job_id: str | None
     ckpt_interval: int
     target_val: float
-    max_iters: Optional[int]
+    max_iters: int | None
     log_tail_lines: int
     log_scan_lines: int
 
-    def snapshot_path(self, job_id: Optional[str] = None) -> Path:
+    def snapshot_path(self, job_id: str | None = None) -> Path:
         """Key the previous-tick file on run + job so a relaunch is a fresh series.
 
         `--job-id` on the config is only the CLI override; callers pass the
@@ -112,7 +111,7 @@ class _Formatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescription
     """Shows every default in --help without reflowing the layout notes."""
 
 
-def parse_args(argv: Optional[List[str]] = None) -> Config:
+def parse_args(argv: list[str] | None = None) -> Config:
     parser = argparse.ArgumentParser(
         description="Report one Slurm training run: state, progress, eval trend, and jank.",
         epilog=LAYOUT_HELP,
@@ -165,7 +164,7 @@ def parse_args(argv: Optional[List[str]] = None) -> Config:
     )
 
 
-def _sh(cmd: List[str]) -> Optional[str]:
+def _sh(cmd: list[str]) -> str | None:
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, check=False)
     except FileNotFoundError:
@@ -217,7 +216,7 @@ def job_info(job_id: str) -> dict:
     return {"state": None}
 
 
-def node_issues(nodes: str) -> List[str]:
+def node_issues(nodes: str) -> list[str]:
     """Ask Slurm whether the nodes this job is on are healthy. Catches the sick-node case where
     training limps or hangs but the job itself is still RUNNING."""
     if not nodes or nodes in {"None assigned", "(null)", "n/a"}:
@@ -232,7 +231,7 @@ def node_issues(nodes: str) -> List[str]:
     return out
 
 
-def run_dir(cfg: Config, job_id: Optional[str] = None) -> Optional[Path]:
+def run_dir(cfg: Config, job_id: str | None = None) -> Path | None:
     ident = job_id if job_id is not None else cfg.job_id
     if ident:
         named = cfg.train_root / f"{ident}-{cfg.run}"
@@ -255,7 +254,7 @@ def run_dir(cfg: Config, job_id: Optional[str] = None) -> Optional[Path]:
     return hits[-1] if hits else None
 
 
-def train_job_id(cfg: Config, d: Optional[Path]) -> Optional[str]:
+def train_job_id(cfg: Config, d: Path | None) -> str | None:
     """--job-id wins; otherwise read the leading digits off the <jobid>-<run> dir name."""
     if cfg.job_id:
         return cfg.job_id
@@ -263,7 +262,7 @@ def train_job_id(cfg: Config, d: Optional[Path]) -> Optional[str]:
     return m.group(1) if m else None
 
 
-def ckpts(d: Optional[Path]) -> List[int]:
+def ckpts(d: Path | None) -> list[int]:
     if not d:
         return []
     return sorted(
@@ -273,7 +272,7 @@ def ckpts(d: Optional[Path]) -> List[int]:
     )
 
 
-def find_log(cfg: Config, job_id: Optional[str]) -> Optional[Path]:
+def find_log(cfg: Config, job_id: str | None) -> Path | None:
     # With a job id, never fall through to slurm-{run}-*.out: that glob
     # matches an older run of the same name while this job is still queued.
     pats = [f"slurm-{cfg.run}-{job_id}.out"] if job_id else [f"slurm-{cfg.run}-*.out"]
@@ -299,7 +298,7 @@ def _count_starts(text: str) -> int:
     return nanogpt or harness
 
 
-def _scan_starts_and_max_iters(path: Path) -> tuple[int, Optional[int]]:
+def _scan_starts_and_max_iters(path: Path) -> tuple[int, int | None]:
     """Count start markers and the last max_iters over the whole log.
 
     The 4MB tail used for iters/evals drops early-run lines. Restart detection
@@ -310,7 +309,7 @@ def _scan_starts_and_max_iters(path: Path) -> tuple[int, Optional[int]]:
     return _count_starts(text), int(found[-1]) if found else None
 
 
-def parse_log(cfg: Config, path: Optional[Path], tail: int = 4_000_000) -> dict:
+def parse_log(cfg: Config, path: Path | None, tail: int = 4_000_000) -> dict:
     out: dict = {
         "iters": [],
         "evals": [],
@@ -342,7 +341,7 @@ def parse_log(cfg: Config, path: Optional[Path], tail: int = 4_000_000) -> dict:
     return out
 
 
-def status_line(cfg: Config, cur: dict, prev: dict, log: dict, med_ms: Optional[float]) -> str:
+def status_line(cfg: Config, cur: dict, prev: dict, log: dict, med_ms: float | None) -> str:
     """The one line the report copies verbatim, so it has to carry every number that answers
     "where is this heading": how far along, iters left, eta, and how far the eval still is from
     target. Always returns a line, even before the first iter is logged."""
@@ -360,7 +359,7 @@ def status_line(cfg: Config, cur: dict, prev: dict, log: dict, med_ms: Optional[
     return "STATUS: " + ", ".join(bits)
 
 
-def train_line(cur: dict, prev: dict) -> Optional[str]:
+def train_line(cur: dict, prev: dict) -> str | None:
     if cur["loss_med20"] is None:
         return None
     was = prev.get("loss_med20")
@@ -381,8 +380,8 @@ def eval_summary(cfg: Config, log: dict) -> str:
 
 
 def issues(
-    cfg: Config, cur: dict, prev: dict, log: dict, cks: List[int], med_ms: Optional[float]
-) -> List[str]:
+    cfg: Config, cur: dict, prev: dict, log: dict, cks: list[int], med_ms: float | None
+) -> list[str]:
     """Two kinds of trouble, labelled so the report can separate them: 'instability' is the model
     diverging, 'infra' is the cluster or a node letting us down."""
     found = []
@@ -431,7 +430,7 @@ def issues(
     return found
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     cfg = parse_args(argv)
     job_id = train_job_id(cfg, None)
     d = run_dir(cfg, job_id)
@@ -450,7 +449,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     recent_losses = [l for _, l, _, _ in log["iters"][-20:] if math.isfinite(l)]
 
     cur = {
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
         "job": {"id": job_id, **info},
         "iter": last[0] if last else None,
         "loss": last[1] if last else None,

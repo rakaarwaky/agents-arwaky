@@ -60,7 +60,7 @@ def retire_stale_workflow_copy(grok_home: str) -> dict | None:
         return None
     if theirs == ours or b'name: "learn-traces"' not in theirs:
         return None
-    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d-%H%M%S")
+    stamp = dt.datetime.now(dt.UTC).strftime("%Y%m%d-%H%M%S")
     dest_dir = os.path.join(grok_home, "learn", "trash", f"{stamp}-stale-workflow")
     os.makedirs(dest_dir, exist_ok=True)
     dest = os.path.join(dest_dir, "learn-traces.rhai")
@@ -73,16 +73,16 @@ def prune_old_runs(runs_dir: str, keep_days: int) -> None:
     """Delete run directories older than keep_days (by name stamp) so GROK_HOME/learn/runs does not grow forever."""
     if not os.path.isdir(runs_dir):
         return
-    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=keep_days)
+    cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=keep_days)
     for name in os.listdir(runs_dir):
         try:
-            when = dt.datetime.strptime(name[:15], "%Y%m%d-%H%M%S").replace(tzinfo=dt.timezone.utc)
+            when = dt.datetime.strptime(name[:15], "%Y%m%d-%H%M%S").replace(tzinfo=dt.UTC)
         except ValueError:
             continue
         if when < cutoff:
             shutil.rmtree(os.path.join(runs_dir, name), ignore_errors=True)
 TURN_CAP = 2000
-USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.S)
+USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
 # pasted credentials must not be copied into the run directory
 # a credential is one unbroken run of letters and digits with digits in it; hyphenated words
 # (npm-package-for-widgets, sk-learn-utils) and 40-hex git SHAs are not credentials
@@ -181,10 +181,10 @@ def frontmatter(path: str) -> dict:
     if len(body) < 3:
         return out
     fm = body[1]
-    m = re.search(r"^name:\s*(.+)$", fm, re.M)
+    m = re.search(r"^name:\s*(.+)$", fm, re.MULTILINE)
     if m:
         out["name"] = m.group(1).strip().strip("'\"")
-    m = re.search(r"^description:\s*(.*)$", fm, re.M)
+    m = re.search(r"^description:\s*(.*)$", fm, re.MULTILINE)
     if m:
         desc = m.group(1).strip()
         if desc in (">", ">-", "|", "|-", ""):
@@ -204,14 +204,14 @@ def frontmatter(path: str) -> dict:
 
 def toml_string_array(text: str, table: str, key: str) -> list[str] | None:
     """Read `key = [ "a", "b" ]` under `[table]` without reading any other value."""
-    m = re.search(r"^\[" + re.escape(table) + r"\]\s*$", text, re.M)
+    m = re.search(r"^\[" + re.escape(table) + r"\]\s*$", text, re.MULTILINE)
     if not m:
         return None
     rest = text[m.end():]
-    nxt = re.search(r"^\[", rest, re.M)
+    nxt = re.search(r"^\[", rest, re.MULTILINE)
     if nxt:
         rest = rest[: nxt.start()]
-    km = re.search(r"^" + re.escape(key) + r"\s*=\s*\[", rest, re.M)
+    km = re.search(r"^" + re.escape(key) + r"\s*=\s*\[", rest, re.MULTILINE)
     if not km:
         return None
     depth, i, start = 0, km.end() - 1, km.end() - 1
@@ -228,7 +228,7 @@ def toml_string_array(text: str, table: str, key: str) -> list[str] | None:
 
 def toml_subtables(text: str, table: str) -> list[str]:
     names = []
-    for m in re.finditer(r"^\[" + re.escape(table) + r"\.([^\].]+)\]", text, re.M):
+    for m in re.finditer(r"^\[" + re.escape(table) + r"\.([^\].]+)\]", text, re.MULTILINE):
         if m.group(1) not in names:
             names.append(m.group(1))
     return names
@@ -617,7 +617,7 @@ def main() -> int:
     if args.out:
         out = os.path.abspath(os.path.expanduser(args.out))
     else:
-        stamp = "estimate" if args.estimate else dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d-%H%M%S")
+        stamp = "estimate" if args.estimate else dt.datetime.now(dt.UTC).strftime("%Y%m%d-%H%M%S")
         # under GROK_HOME, not the OS temp dir: Windows' Storage Sense and the Temp cleaner delete a run's report
         # from %TEMP% before the user has curated it; the collector prunes runs older than 30 days itself
         out = os.path.join(grok_home, "learn", "runs", stamp)
@@ -635,12 +635,12 @@ def main() -> int:
             os.makedirs(os.path.join(out, sub), exist_ok=True)
 
     exclude_cwd = args.exclude_cwd if args.exclude_cwd is not None else DEFAULT_EXCLUDE_CWD
-    drop_patterns = [re.compile(p, re.I) for p in DEFAULT_DROP_PATTERNS + args.drop_pattern]
+    drop_patterns = [re.compile(p, re.IGNORECASE) for p in DEFAULT_DROP_PATTERNS + args.drop_pattern]
     if args.estimate:
         args.days, args.since_last, args.limit = 0, False, 0
     cutoff = None
     if args.days > 0:
-        cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=args.days)
+        cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=args.days)
     state_path = os.path.join(grok_home, "learn", "state.json")
     if args.since_last:
         # count from the last run whose curation finished; an orphaned run must not hide its sessions
@@ -710,7 +710,7 @@ def main() -> int:
     kept.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
 
     if args.estimate:
-        now = dt.datetime.now(dt.timezone.utc)
+        now = dt.datetime.now(dt.UTC)
         try:
             st = read_json(state_path)
         except (OSError, ValueError):
@@ -913,7 +913,7 @@ def main() -> int:
     manifest = {
         "grok_home": grok_home,
         "run_dir": out,
-        "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         "disuse_evidence": disuse_evidence,
         "stale_workflow_copy": stale_workflow,
         "params": {

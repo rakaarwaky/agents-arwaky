@@ -14,9 +14,10 @@ import subprocess
 import sys
 import time
 import unicodedata
-from datetime import datetime, timezone
+from collections.abc import Iterable
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 for _stream in (sys.stdout, sys.stderr):
     try:
@@ -250,7 +251,7 @@ def _timestamp_to_millis(value: Any) -> int | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return int(parsed.timestamp() * 1000)
 
 
@@ -258,7 +259,7 @@ def _iso_from_millis(value: int | None) -> str | None:
     if value is None:
         return None
     try:
-        return datetime.fromtimestamp(value / 1000, tz=timezone.utc).isoformat()
+        return datetime.fromtimestamp(value / 1000, tz=UTC).isoformat()
     except (OverflowError, OSError, ValueError):
         return None
 

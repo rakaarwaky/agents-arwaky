@@ -16,7 +16,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 DEFAULT_BASE_URL = "https://api.x.ai/v1"
@@ -61,7 +61,7 @@ def resolve_bearer() -> tuple[str, dict]:
     entry = entries[0]
 
     expires_at = parse_rfc3339(entry.get("expires_at", "") or "")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if expires_at is not None and expires_at <= now:
         fail(
             f"OAuth session in {path} expired at {expires_at.isoformat()}. The Grok Build "

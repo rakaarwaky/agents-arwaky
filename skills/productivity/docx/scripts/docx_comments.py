@@ -28,9 +28,8 @@ from copy import deepcopy
 
 from docx import Document
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
-from lxml import etree
-
 from docx_common import iter_part_roots
+from lxml import etree
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 COMMENTS_CT = ("application/vnd.openxmlformats-officedocument"
@@ -158,7 +157,7 @@ def add_comment_xml(doc, runs, text, author, initials) -> str:
     root = _comments_root(doc)
     if root is None:
         root = etree.fromstring(
-            f'<w:comments xmlns:w="{W}"/>'.encode("utf-8"))
+            f'<w:comments xmlns:w="{W}"/>'.encode())
         from docx.opc.packuri import PackURI
         from docx.opc.part import Part
         blob = etree.tostring(root, xml_declaration=True,
@@ -175,7 +174,7 @@ def add_comment_xml(doc, runs, text, author, initials) -> str:
                                   encoding="UTF-8", standalone=True)
         part.__class__ = type("CommentsXmlPart", (Part,),
                               {"blob": property(lambda self: _blob(self))})
-    now = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = _dt.datetime.now(_dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     comment = etree.SubElement(root, q("comment"))
     comment.set(q("id"), cid)
     comment.set(q("author"), author)

@@ -104,7 +104,7 @@ import sys
 import tempfile
 import time
 from collections import OrderedDict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -313,8 +313,7 @@ def get_workspace_id() -> str:
     digest = hashlib.sha256(id_source.encode("utf-8")).hexdigest()[:12]
 
     raw_name = id_source.rstrip("/").rsplit("/", 1)[-1]
-    if raw_name.endswith(".git"):
-        raw_name = raw_name[:-4]
+    raw_name = raw_name.removesuffix(".git")
     safe_name = re.sub(r"[^a-zA-Z0-9_.-]+", "_", raw_name).strip("_.-")
     safe_name = safe_name[:40].rstrip("_.-") or "workspace"
 
@@ -715,7 +714,7 @@ def _merge_recent_run(state: dict[str, Any], run: dict[str, Any], stats: dict[st
     """Validate and prepend a Recent Runs entry. Updates ``stats`` in place."""
     date_raw = run.get("date")
     if date_raw is None or (isinstance(date_raw, str) and not date_raw.strip()):
-        date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        date = datetime.now(UTC).strftime("%Y-%m-%d")
     else:
         date_str = _require_str(date_raw, "run.date").strip()
         try:

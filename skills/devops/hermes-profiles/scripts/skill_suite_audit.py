@@ -35,7 +35,7 @@ PHRASES = [
 
 
 def frontmatter(text):
-    m = re.match(r"\A---\n(.*?)\n---\n", text, re.S)
+    m = re.match(r"\A---\n(.*?)\n---\n", text, re.DOTALL)
     if not m:
         return {}, text
     body = text[m.end():]
@@ -43,7 +43,7 @@ def frontmatter(text):
         import yaml
         return (yaml.safe_load(m.group(1)) or {}), body
     except ImportError:
-        fm = dict(re.findall(r"^(name|description):\s*(.+)$", m.group(1), re.M))
+        fm = dict(re.findall(r"^(name|description):\s*(.+)$", m.group(1), re.MULTILINE))
         return fm, body
 
 
@@ -82,7 +82,7 @@ def main():
         u = usage.get(name) or {}
         hits = []
         for w in BANNED + PHRASES:
-            for m in re.finditer(re.escape(w), body, re.I):
+            for m in re.finditer(re.escape(w), body, re.IGNORECASE):
                 line = body[:m.start()].count("\n")
                 snippet = body.splitlines()[line].strip()[:120]
                 hits.append((w, line + 1, snippet))
@@ -91,7 +91,7 @@ def main():
         if len(desc) > MAX_INDEX:
             flags.append("DESC_TRUNC(%dch)" % len(desc))
         if desc and not re.search(r"^##\s*(When to Use|Triggers?|Use this when|Scope)\b",
-                                  body, re.M):
+                                  body, re.MULTILINE):
             flags.append("NO_TRIGGER_SECTION")
         if len(body) > BIG_BODY:
             flags.append("BIG_BODY(%dB)" % len(body))

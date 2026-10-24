@@ -118,11 +118,7 @@ def _match_shapes(
     """Filter shapes by criteria."""
     results = []
     for s in shapes:
-        if ph_type and s["ph_type"] == ph_type:
-            results.append(s)
-        elif name and s["name"] == name:
-            results.append(s)
-        elif match_text and match_text.lower() in s["text"].lower():
+        if ph_type and s["ph_type"] == ph_type or name and s["name"] == name or match_text and match_text.lower() in s["text"].lower():
             results.append(s)
     return results
 

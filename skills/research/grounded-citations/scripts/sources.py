@@ -37,11 +37,12 @@ import os
 import re
 import sys
 import time
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _hermes_home import get_hermes_home  # noqa: E402
+from _hermes_home import get_hermes_home
 
 SCHEMA_VERSION = 1
 
@@ -118,7 +119,7 @@ class _LedgerLock:
         self.timeout = timeout
         self.fd: int | None = None
 
-    def __enter__(self) -> "_LedgerLock":
+    def __enter__(self) -> _LedgerLock:
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
         deadline = time.monotonic() + self.timeout
         while True:
