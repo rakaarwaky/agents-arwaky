@@ -38,22 +38,10 @@ from modules.shared.src.utility_skills_tree import skill_entries
 
 __all__ = [
     "DRIFT_WARNING",
-    "NO_MATCH_LINE",
-    "SCORE_TABLE_HEADER",
-    "SCORE_TABLE_SEPARATOR",
     "SkillsDiscoverer",
     "score_entries",
     "tokenize",
 ]
-
-#: The results table header, verbatim from the original ``librarian.py``.
-SCORE_TABLE_HEADER = "| Skill | Category | Description | Path | Score |"
-
-#: The separator row under the header, verbatim.
-SCORE_TABLE_SEPARATOR = "|---|---|---|---|---|"
-
-#: The empty-result line, verbatim.
-NO_MATCH_LINE = "No matching skills found in CATALOG.md."
 
 #: The loud drift warning: the catalog failed its drift gate, so the
 #: answer comes from a live tree scan. Named repair: ``catalog --check``.
