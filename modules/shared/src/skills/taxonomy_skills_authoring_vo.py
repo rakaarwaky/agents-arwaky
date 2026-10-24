@@ -27,12 +27,8 @@ __all__ = [
     "MutationStep",
     "NewCategoryPlan",
     "RulesDocument",
-    "SkillIssue",
     "ValidationReport",
 ]
-
-#: The validator's issue entity, republished under the authoring name.
-SkillIssue = Issue
 
 
 @dataclass(frozen=True)
