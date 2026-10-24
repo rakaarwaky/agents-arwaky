@@ -75,10 +75,12 @@ catalog rebuild.
 
 - **Description**: render the catalog from the live tree, or — with
   `--check` — regenerate to a temp file and diff the tracked artifact.
+- **Input**: a skills root; optional `--check` flag for read-only verification.
 - **Output**: the rebuilt path and counts, or the drift summary plus diff.
 - **Business Rules**: a read through the catalog never repairs itself; a
   missing, stale, unparseable, or non-round-tripping catalog is drift
   (exit 3). A crafted cell that loses its escape round-trip fails closed.
+- **Edge Cases**: missing catalog is drift; non-round-tripping cell fails closed.
 - **Error Handling**: the check is read-only and never rewrites the
   tracked file.
 
@@ -86,8 +88,12 @@ catalog rebuild.
 
 - **Description**: score catalog rows against a query (name +5,
   description +3, category +2, path +1) and return the top `--limit`.
+- **Input**: a search query and an optional row limit.
+- **Output**: the top scoring matches.
 - **Business Rules**: on catalog drift the command warns loudly on stderr
   (and in JSON) and answers from a live tree scan; exit stays 0.
+- **Edge Cases**: empty query is a usage error; no matches yields an empty
+  result set.
 - **Error Handling**: an empty query is a usage error (exit 2, legacy
   `ERROR: Query is empty`).
 
@@ -96,13 +102,16 @@ catalog rebuild.
 - **Description**: `repair`, `move`, `archive`, and `new-category` compute
   a plan; only `--apply` writes. The agent rebuilds the catalog after an
   applied mutation.
+- **Input**: mutation parameters such as skill name, target category, or
+  new-category name and description; optional `--apply` flag.
+- **Output**: a pure plan or, when `--apply` is given, a post-apply result.
 - **Business Rules**: no delete verb exists — `archive` moves a skill to
   `_archive/<category>/<skill>/` and renames its `SKILL.md` to
   `SKILL.md.archived`; `move` preserves the folder; `repair` only rewrites
-  frontmatter and writes missing category descriptions.
-- **Security**: every computed destination is asserted inside the skills
-  root at plan time and re-checked at apply time (symlink escapes fail
-  closed, exit 2).
+  frontmatter and writes missing category descriptions. Every mutating
+  command leaves the tree untouched without `--apply`.
+- **Edge Cases**: unknown skills, bad category names, and conflicts are
+  typed usage errors; symlinked destinations outside the root fail closed.
 - **Error Handling**: unknown skills, bad category names, and conflicts
   are typed usage errors carrying the legacy message text (exit 2).
 
@@ -111,14 +120,25 @@ catalog rebuild.
 - **Description**: `merge-plan` chooses the survivor by frontmatter-name
   alignment (ties: file count, description length) and lists asset moves,
   rewrites, and the absorbed folder.
+- **Input**: two category/skill references and a skills root.
+- **Output**: a read-only merge plan listing asset moves, rewrites, and the
+  absorbed folder.
 - **Business Rules**: nothing is executed; `skill-lifecycle` performs the
   merge agent-side.
+- **Edge Cases**: ties are resolved by file count then description length.
+- **Error Handling**: unknown references are typed usage errors (exit 2).
 
 ### FR-SKILLS-008: Render the rule SSOT
 
 - **Description**: `rules` prints one line per rule; `rules --markdown`
   prints the generated document byte-identical to the committed
   `_rules/skill-rules.md`.
+- **Input**: optional `--markdown` flag to select the full document form.
+- **Output**: the one-line-per-rule summary, or the full rules document.
+- **Business Rules**: `rules --markdown` prints the generated document
+  byte-identical to the committed rule SSOT.
+- **Edge Cases**: no markers; deterministic output on every run.
+- **Error Handling**: none beyond the typed error → exit code contract.
 
 ## API Contract
 
@@ -165,7 +185,7 @@ catalog rebuild.
 |--------|--------|--------------------|
 | Determinism | identical output on identical trees | run `aa skills list` twice and diff |
 | Dry-run safety | no mutating command writes without `--apply` | filesystem unchanged after every preview |
-| Exit-code contract | 0 clean / 1 issues / 2 usage / 3 drift | contract tests in `modules/skills/tests/unit_skills_surface.py` |
+| Exit-code contract | 0 clean / 1 issues / 2 usage / 3 drift | contract tests in the skills surface test file |
 | Output parity | byte-identical to the retired legacy script | `aa skills …` vs the legacy authoring CLI on the same tree |
 | No cross-feature imports | the feature imports nothing from sibling feature modules | import graph of the skills module |
 | Layering | surface → root container → agent → capabilities → shared taxonomy | `lac scan modules/skills` |
