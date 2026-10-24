@@ -1,8 +1,7 @@
 """Skills mutator capability (AES capabilities layer).
 
-The write side of the library, ported from
-``skills/skill-authoring/scripts/mutate.py``. Every mutating operation
-is split in two:
+The write side of the library, ported from the retired legacy mutator.
+Every mutating operation is split in two:
 
 - ``plan_*`` is pure: it computes what would change and returns a
   ``MutationPlan`` (or ``NewCategoryPlan``). It never writes.

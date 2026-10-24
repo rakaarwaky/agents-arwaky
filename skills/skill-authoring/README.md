@@ -29,10 +29,6 @@ CI runs `aa skills validate --summary` and `aa skills catalog --check` on
 every pull request (`.github/workflows/ci.yml`); run both locally before
 pushing.
 
-The old `python3 skills/skill-authoring/scripts/cli.py <subcommand>` path
-still works for one release: it prints a deprecation notice to stderr and
-delegates to `aa skills` with identical output and exit codes.
-
 ## Catalog
 
 `CATALOG.md` at the skills root is the master index. Rebuild with:
@@ -51,7 +47,3 @@ The executable rules live in
 reference is `skills/skill-authoring/_rules/skill-rules.md` (regenerate with
 `aa skills rules --markdown`). Provenance for each rule is recorded in
 `modules/shared/src/skills/taxonomy_skills_constant.py`.
-
-## Back-compat shims preserved
-
-- `skills/skill-authoring/scripts/cli.py` — delegates to `aa skills`.
