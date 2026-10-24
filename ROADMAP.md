@@ -54,6 +54,9 @@ State / Health: vocabulary below. Last Updated: 2026-09-23
 
 ## Feature Roll-up
 
+### Cross-Cutting Backlog
+
+Cross-cutting `WS-` rows only. Feature rows live in each feature's BACKLOG.
 One table: every feature. Feature detail stays in each feature's BACKLOG.
 
 | ID | Feature | Priority | State | Dependencies | Next Action | Updated |
@@ -77,9 +80,6 @@ One table: every feature. Feature detail stays in each feature's BACKLOG.
 | `develop` | WS-05 | integration tip |
 | `refactor/standardize-xdg-uninstall` | TOL-03 | local, uninstall residual sweep |
 
-## Backlog
-
-Cross-cutting `WS-` rows only. Feature rows live in each feature's BACKLOG.
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|----------|-------|-------------------|-------|--------------|---------|

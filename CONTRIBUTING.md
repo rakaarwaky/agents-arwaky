@@ -56,7 +56,7 @@ Before making changes, please review our core architectural rules:
 
 ---
 
-## Feature Change
+### Feature Change
 
 Adding an upstream community tool or MCP server involves a structured, repeatable 9-step pipeline.
 
@@ -453,7 +453,7 @@ The repository hosts several core in-house agents under `internal/`:
 3. **Parity between CLI and MCP:**  
    Internal tools exposing an MCP interface must preserve 1:1 parity with their CLI commands.
 
-## Documentation Change
+### Documentation Change
 
 For doc-only changes (README, PRD, ARCHITECTURE, ROADMAP, CONTRIBUTING, FRD/BACKLOG pairs):
 
