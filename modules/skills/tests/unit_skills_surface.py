@@ -216,7 +216,7 @@ def test_json_is_accepted_but_ignored_by_rules(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     code, out, _ = run_surface(root, "rules", "--json")
     assert code == 0
-    assert out.startswith("13 rules from _rules/skill_rules.py:")
+    assert out.startswith("13 rules from taxonomy_skills_constant.py:")
 
 
 def test_rules_markdown_matches_the_generated_doc(tmp_path: Path) -> None:

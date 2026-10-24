@@ -7,12 +7,12 @@
 
 # Skill rules
 
-What `skills/skill-authoring` enforces a skill tree against. Every rule
+What `modules/skills` enforces a skill tree against. Every rule
 below is emitted by the validator — `aa skills validate` — so this page
 cannot state a constraint the checker does not enforce, and the checker
 cannot enforce a constraint this page does not state. Provenance for each
 rule (the loader file it was first read from, or the failure mode that
-motivated it) lives in `RULES.md`, next to this file.
+motivated it) lives in `modules/shared/src/skills/taxonomy_skills_constant.py`.
 
 - **Rules:** 13
 - **Levels:** `error` (a rule violation fails the skill or category it hits)
