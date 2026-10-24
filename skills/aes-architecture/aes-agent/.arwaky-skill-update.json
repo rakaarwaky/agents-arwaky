@@ -1,8 +1,0 @@
-{
-  "version": 1,
-  "update_source": "internal/lint-arwaky/crates/shared/skills/aes-agent/SKILL.md",
-  "submodule": "lint-arwaky",
-  "submodule_home": "crates/shared/skills",
-  "skill": "aes-agent",
-  "updated_at": "2026-10-02T12:09:07.155476+00:00"
-}

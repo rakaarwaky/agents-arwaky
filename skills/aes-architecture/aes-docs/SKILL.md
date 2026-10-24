@@ -93,7 +93,7 @@ Doc comments on every public item are the sixth deliverable, in the language's n
 
 ## Invariants
 
-Every rule is machine-checked by `lint-arwaky-cli docs` (crate `doc-rules`, AES601–AES605).
+Every rule is machine-checked by `lint-arwaky-cli docs` (crate `doc-rules`, AES601–AES606).
 A rule cannot drift from the gate. Cite the code, not this file, when pointing at a rule.
 Each document's required section set is cross-checked against its reference's contract table, so a
 row that stops being enforced is a test failure rather than a silent edit.
@@ -102,7 +102,7 @@ row that stops being enforced is a test failure rather than a silent edit.
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `status-in-spec` / `spec-source-path`                                       | Spec and status never share a file. Specs promise; backlogs report. Specs are stateless — no `.py`/`.rs`/`.ts` file names (HOW-TO Rule 9). |
 | `spec-without-backlog` / `backlog-without-spec` / `feature-doc-in-shared` | An **FRD** and its backlog are a pair in the same **feature** directory (root PRD pairs with root ROADMAP, not a sibling BACKLOG). Kernel folders (`modules/shared`) are not features: either file under `shared/` fails with `feature-doc-in-shared` (HOW-TO-MAKE-FRD § Scope). |
-| `no-master-backlog` / `undefined-state-vocab` / `master-section-missing` | One root master owns the `State`/`Health` vocabulary, the status policy, the roll-up, in-flight branches and risk (`ROADMAP.md`; legacy root `BACKLOG.md` accepted during migration). |
+| `no-master-backlog` / `undefined-state-vocab` / `master-section-missing` | One root master owns the `State` vocabulary, the status policy, the roll-up, in-flight branches and risk (`ROADMAP.md`; legacy root `BACKLOG.md` accepted during migration). |
 | `state-vocab-restated`                                                   | Definitions live once. Feature files cite them, never repeat them.                                                                                                                    |
 | `done-without-evidence` / `unknown-state`                                | Every backlog claim is re-runnable: command + counts + commit hash, and what it excludes.                                                                                             |
 | `duplicate-fr-id` / `orphan-fr-ref`                                      | Requirement IDs are unique, stable, and the only thing a backlog row may cite.                                                                                                        |
@@ -118,6 +118,7 @@ row that stops being enforced is a test failure rather than a silent edit.
 | `absolute-path` / `secret-in-docs`                                       | No machine-specific path and no credential literal in any document.                                                                                                                   |
 | `ci-command-drift`                                                       | AGENTS.md commands match CI exactly or are labelled advisory.                                                                                                                        |
 | `doc-length` / `doc-thin`                                                | Each document stays inside the size its audience can read.                                                                                                                            |
+| `section_not_table` / `table_missing_columns` / `missing_required_doc`  | AES606: mandated BACKLOG/ROADMAP table sections carry their template tables; the six required root docs exist at a real workspace root.                                                  |
 
 ### Unchecked Invariants (Language Rules)
 
@@ -249,7 +250,7 @@ The invariant codes above cover the machine-checkable ones. These need a reader:
 
 - **One document for all audiences**: Split by audience. Each file answers one question.
 - **FRD at the project root**: It belongs with the feature code, beside its backlog.
-- **Feature backlog carrying workspace rows or restating root policy**: Cross-cutting rows and State/Health definitions live once in `ROADMAP.md` (root master).
+- **Feature backlog carrying workspace rows or restating root policy**: Cross-cutting rows and State definitions live once in `ROADMAP.md` (root master).
 - **PRD carrying SQL schemas or API detail**: The PRD audience cannot read them. Move to FRD.
 
 ### Cadence and code surface

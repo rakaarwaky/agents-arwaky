@@ -20,15 +20,15 @@
 
 Four rules. Each one prevents a specific failure mode.
 
-1. **Single source of truth.** State vocabulary, Health vocabulary, and
- Status Policy live here and nowhere else. Feature backlogs cite them.
+1. **Single source of truth.** State vocabulary and Status Policy live
+   here and nowhere else. Feature backlogs cite them.
 2. **Index every feature.** Every feature directory must appear in the
- Feature Index table, linking to its FRD.md and BACKLOG.md
- (`no-master-roadmap`).
+   Feature Index table, linking to its FRD.md and BACKLOG.md
+   (`no-master-roadmap`).
 3. **Cross-cutting rows only.** The workspace backlog is for items that
- span multiple features or infrastructure.
+   span multiple features or infrastructure.
 4. **ID scopes are explicit.** The root file uses a workspace prefix
- (`WS-01`). Feature prefixes are documented in the Status Policy table.
+   (`WS-01`). Feature prefixes are documented in the Status Policy table.
 
 ---
 
@@ -47,7 +47,7 @@ Copy, fill, delete nothing.
 ```markdown
 # ROADMAP — <workspace name>
 
-State / Health: vocabulary below. Last Updated: <YYYY-MM-DD>
+State: vocabulary below. Last Updated: <YYYY-MM-DD>
 
 ## Current Condition
 
@@ -58,25 +58,10 @@ State / Health: vocabulary below. Last Updated: <YYYY-MM-DD>
 
 | State | Meaning |
 |---|---|
-| Idea | Not examined; no spec. |
-| Refinement | Being specced. |
 | Ready | Specified; not started. |
 | In Progress | Active now. |
-| Blocked | Name the blocker in Actual Condition. |
 | In Review | PR open. |
-| QA | Awaiting verification pass. |
 | Done | Command + commit evidence. |
-| Released | Shipped. |
-| Deferred | Out of scope; reason in Actual Condition. |
-
-| Health | Meaning |
-|---|---|
-| On Track | No threat to the gate. |
-| At Risk | Gaps may miss the gate. |
-| Blocked | Cannot proceed. |
-| Ready for QA | Open rows clear; sweep left. |
-| Ready for Release | Evidence recorded. |
-| Released | Shipped. |
 
 ## Status Policy
 
@@ -88,15 +73,9 @@ State / Health: vocabulary below. Last Updated: <YYYY-MM-DD>
 
 One table: every feature. Feature detail stays in each feature's BACKLOG.
 
-| ID | Item | Priority | Spec | Backlog | State | Health | Owner | Next | Updated |
-|---|---|---|---|---|---|---|---|---|---|
-| modules/<a> | Feature | P0 | [FRD](modules/<a>/FRD.md) | [BACKLOG](modules/<a>/BACKLOG.md) | In Progress | On Track | — | <SCOPE>-01 | <YYYY-MM-DD> |
-
-## Branches in Flight
-
-| Branch | Backlog IDs | State |
-|---|---|---|
-| <prefix>/<name> | <IDs> | <state / PR #n> |
+| ID | Feature | Priority | State | Dependencies | Next Action | Updated |
+|---|---|---|---|---|---|---|
+| <SCOPE>-01 | Feature | P0 | In Progress | — | <next row ID> | <YYYY-MM-DD> |
 
 ## Risk Register
 
@@ -113,11 +92,14 @@ reason.
 | Section            | Why it belongs here                                                |
 | ------------------ | ------------------------------------------------------------------ |
 | Current Condition  | Workspace truth in one glance.                                     |
-| State Definitions  | SSOT for state + health vocabulary. Feature backlogs cite it.      |
+| State Definitions  | SSOT for state vocabulary. Feature backlogs cite it.            |
 | Status Policy      | SSOT for verification + ID prefixes.                               |
 | Feature Roll-up    | Index + state + `WS-*` in one place; feature rows stay in BACKLOG. |
-| Branches in Flight | Active branches and the rows they own.                             |
 | Risk Register      | Workspace-level what-could-ship-broken.                            |
+
+Per-feature dependency detail belongs in each feature's BACKLOG.md, and
+workspace-level release history belongs in CHANGELOG.md; the ROADMAP
+carries neither.
 
 ---
 
