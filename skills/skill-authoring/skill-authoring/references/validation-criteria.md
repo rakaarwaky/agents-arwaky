@@ -2,7 +2,6 @@
 title: Validation Criteria
 role: reference
 ---
-
 # Validation Criteria
 
 Rules for validating a SKILL.md before publishing. The main guide owns the design principles;
@@ -19,16 +18,18 @@ YAML hygiene, and the pre-publish checklist.
 Four keys are mandatory in our workflow (`name`, `description`, `when-to-use`,
 and `argument-hint`). All other keys are optional and target-dependent.
 
-| Field | Required | Notes |
-| --- | --- | --- |
-| `name` | **Yes** | The `name-format` and `name-mismatch` rules. |
-| `description` | **Yes** | The `description-*` rules. WHAT + WHEN + trigger terms. |
-| `when-to-use` | **Yes** | Max 1,024 chars. Dedicated trigger phrases for auto-invocation. |
-| `argument-hint` | **Yes** | Slash-command autocomplete hint (e.g. `<command> [--flag]`). |
-| `user-invocable` (Grok Build) | No | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool. |
-| `disable-model-invocation` (Grok Build) | No | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it. |
-| `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` (Grok Build) | No | Optional Grok Build controls. See the main guide's keys table for effects and limits. |
-| others (`version`, `author`, `platforms`, ...) | Optional | Target-dependent. Match the field set the destination validator enforces. Grok Build ignores top-level `version`, `triggers`, and `entry_points`. |
+
+| Field                                                                                         | Required | Notes                                                                                                                                             |
+| --------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                                                                                        | **Yes**  | The `name-format` and `name-mismatch` rules.                                                                                                      |
+| `description`                                                                                 | **Yes**  | The `description-*` rules. WHAT + WHEN + trigger terms.                                                                                           |
+| `when-to-use`                                                                                 | **Yes**  | Max 1,024 chars. Dedicated trigger phrases for auto-invocation.                                                                                   |
+| `argument-hint`                                                                               | **Yes**  | Slash-command autocomplete hint (e.g. `<command> [--flag]`).                                                                                      |
+| `user-invocable`                                                                              | Optional | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool.                                                  |
+| `disable-model-invocation`                                                                    | Optional | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it.                                         |
+| `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` | Optional | Optional Grok Build controls. See the main guide's keys table for effects and limits.                                                             |
+| others (`version`, `author`, `platforms`, ...)                                                | Optional | Target-dependent. Match the field set the destination validator enforces. Grok Build ignores top-level `version`, `triggers`, and `entry_points`. |
+
 
 ### Naming
 
@@ -48,16 +49,16 @@ not cover:
 - WHAT + WHEN + trigger terms, specific ("Helps with documents" fails this).
 - Quote the value if it contains a `:` so YAML parses a string.
 - Grok Build matches the prompt against `description` AND `when-to-use`; put leftover
-  trigger phrases in `when-to-use` rather than bloating the description.
+trigger phrases in `when-to-use` rather than bloating the description.
 
 ### YAML hygiene
 
-- Quote values containing `: ` or indicator characters (`{ } [ ] * & # ! | > % @`, backtick).
+- Quote values containing `:`  or indicator characters (`{ } [ ] * & # ! | > % @`, backtick).
 - Nothing indented under a previous field's value: one nested line invalidates the whole
-  frontmatter, and only `name`, `description`, `when-to-use` survive the recovery pass.
+frontmatter, and only `name`, `description`, `when-to-use` survive the recovery pass.
 - Multi-word keys kebab-case; `when_to_use` is the only accepted alias of `when-to-use`.
 - For Grok Build targets, trigger phrases go in `description`/`when-to-use` — a `triggers:`
-  key is ignored.
+key is ignored.
 
 ## Structure
 
@@ -67,7 +68,7 @@ The placement and nesting constraints are the `skill-placement`, `category-depth
 
 - `references/` exactly one level deep; every reference links directly from `SKILL.md`.
 - Body target ~100-200 lines for simple skills, hard ceiling is the harness's limit
-  (commonly 500 lines / 100k chars); overflow goes into references.
+(commonly 500 lines / 100k chars); overflow goes into references.
 - Forward slashes in paths (`scripts/helper.py`). No time-sensitive content in the body.
 - Multi-step workflows use a checkbox checklist ending in a verifiable criterion.
 
@@ -80,15 +81,16 @@ The placement and nesting constraints are the `skill-placement`, `category-depth
 - MCP tools named fully qualified (`ServerName:tool_name`).
 - No second authoritative copy of any rule: search the skill directory for each fact you add.
 - No no-op sentences: "be careful" and "use best practices" change nothing — replace with a
-  checkable criterion or delete.
+checkable criterion or delete.
 
 ## Pre-publish checklist
 
 - [ ] Frontmatter contains all four mandatory keys: `name`, `description`, `when-to-use`, and `argument-hint`.
 - [ ] Frontmatter uses only valid keys (all others are optional).
 - [ ] `name:` matches the directory and satisfies the `name-format` rule; `description:`
-      satisfies the `description-*` rules — run
-      `python3 skills/skill-authoring/scripts/cli.py validate` to check both.
+
+  satisfies the `description-*` rules — run
+  `python3 skills/skill-authoring/scripts/cli.py validate` to check both.
 - [ ] Frontmatter is valid YAML: colon-containing values quoted, no field nested under another.
 - [ ] Grok Build target: trigger phrases live in `description`/`when-to-use`, not `triggers:`.
 - [ ] Exactly one `SKILL.md` at the skill root, at `<category>/<skill>/SKILL.md`.
