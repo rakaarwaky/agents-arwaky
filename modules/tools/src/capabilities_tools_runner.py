@@ -24,9 +24,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT as repo_root
-from modules.shared.src.taxonomy_common_constant import TOOL_RUNNERS
-from modules.shared.src.taxonomy_common_vo import ToolSpec, bin_home
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT as repo_root
+from modules.shared.src.common.taxonomy_common_constant import TOOL_RUNNERS
+from modules.shared.src.common.taxonomy_common_vo import ToolSpec, bin_home
 from modules.shared.src.tools.contract_tools_protocol import IToolsRunnerProtocol
 from modules.shared.src.tools.taxonomy_tools_constant import (
     DAEMON_TOOL_IDS,

@@ -12,14 +12,28 @@ import subprocess
 import sys
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_constant import PROVENANCE_MARKER
+from modules.shared.src.common.taxonomy_common_vo import (
     ToolSpec,
     atomic_write_text,
     bin_home,
     data_home,
     ensure_bin_home,
     ensure_path,
+)
+from modules.shared.src.common.utility_tool_mechanics import (
+    make_install,
+    make_owned,
+    make_pin_check,
+    make_satisfied,
+    make_update,
+)
+from modules.shared.src.common.utility_tools_adapter_body import (
+    install_unit,
+    is_pin_satisfied_unit,
+    owned_paths_unit,
+    satisfied_unit,
+    update_unit,
 )
 from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.tools.taxonomy_tools_constant import (
@@ -34,20 +48,6 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
     AdapterUnit,
     PinCheck,
     ToolPaths,
-)
-from modules.shared.src.utility_tool_mechanics import (
-    make_install,
-    make_owned,
-    make_pin_check,
-    make_satisfied,
-    make_update,
-)
-from modules.shared.src.utility_tools_adapter_body import (
-    install_unit,
-    is_pin_satisfied_unit,
-    owned_paths_unit,
-    satisfied_unit,
-    update_unit,
 )
 
 

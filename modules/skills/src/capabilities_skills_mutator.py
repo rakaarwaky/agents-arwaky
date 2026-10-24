@@ -23,6 +23,14 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+from modules.shared.src.common.utility_skills_markdown import yaml_quote
+from modules.shared.src.common.utility_skills_tree import (
+    assets_container,
+    category_dirs,
+    category_summaries,
+    relpath,
+    skill_entries,
+)
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMutatorProtocol,
 )
@@ -46,14 +54,6 @@ from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsUsageError,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.shared.src.utility_skills_markdown import yaml_quote
-from modules.shared.src.utility_skills_tree import (
-    assets_container,
-    category_dirs,
-    category_summaries,
-    relpath,
-    skill_entries,
-)
 
 __all__ = [
     "SkillsMutator",

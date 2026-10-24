@@ -20,13 +20,19 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar
 
-from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.taxonomy_common_error import (
+from modules.shared.src.common.taxonomy_common_error import (
     ToolInstallError,
     ToolUninstallError,
     ToolUpdateError,
 )
-from modules.shared.src.taxonomy_common_vo import ToolSpec
+from modules.shared.src.common.taxonomy_common_vo import ToolSpec
+from modules.shared.src.common.utility_manifest_reader import (
+    find_tool,
+    load_tools,
+    spec_from_tool,
+)
+from modules.shared.src.common.utility_paths_resolver import repo_root
+from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
 from modules.shared.src.tools.contract_tools_protocol import (
     IToolsInstallerProtocol,
@@ -45,12 +51,6 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
     ToolResponse,
     ToolsOp,
 )
-from modules.shared.src.utility_manifest_reader import (
-    find_tool,
-    load_tools,
-    spec_from_tool,
-)
-from modules.shared.src.utility_paths_resolver import repo_root
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

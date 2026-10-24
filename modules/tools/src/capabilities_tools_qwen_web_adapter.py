@@ -11,12 +11,22 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     ToolSpec,
     tool_cache_dir,
     tool_config_dir,
     tool_data_dir,
     tool_state_dir,
+)
+from modules.shared.src.common.utility_tool_mechanics import (
+    build_adapter_unit,
+)
+from modules.shared.src.common.utility_tools_adapter_body import (
+    install_unit,
+    is_pin_satisfied_unit,
+    owned_paths_unit,
+    satisfied_unit,
+    update_unit,
 )
 from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.tools.taxonomy_tools_constant import (
@@ -28,16 +38,6 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
     PinCheck,
     ToolLifecycleConfig,
     ToolPaths,
-)
-from modules.shared.src.utility_tool_mechanics import (
-    build_adapter_unit,
-)
-from modules.shared.src.utility_tools_adapter_body import (
-    install_unit,
-    is_pin_satisfied_unit,
-    owned_paths_unit,
-    satisfied_unit,
-    update_unit,
 )
 
 

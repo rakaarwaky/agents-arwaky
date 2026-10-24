@@ -7,7 +7,7 @@ from pathlib import Path
 
 def bench_parse_env_file(benchmark):
     """BENCH-SHARED-001: parse_env_file performance."""
-    from modules.shared.src.utility_envfile_parser import parse_env_file
+    from modules.shared.src.common.utility_envfile_parser import parse_env_file
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
         f.write("KEY1=value1\n")
@@ -22,7 +22,7 @@ def bench_parse_env_file(benchmark):
 
 def bench_update_env_file(benchmark):
     """BENCH-SHARED-002: update_env_file performance."""
-    from modules.shared.src.utility_envfile_parser import update_env_file
+    from modules.shared.src.common.utility_envfile_parser import update_env_file
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
         f.write("")
@@ -38,35 +38,35 @@ def bench_update_env_file(benchmark):
 
 def bench_load_tools(benchmark):
     """BENCH-SHARED-003: load_tools performance."""
-    from modules.shared.src.utility_manifest_reader import load_tools
+    from modules.shared.src.common.utility_manifest_reader import load_tools
 
     benchmark(load_tools)
 
 
 def bench_find_tool(benchmark):
     """BENCH-SHARED-004: find_tool performance."""
-    from modules.shared.src.utility_manifest_reader import find_tool
+    from modules.shared.src.common.utility_manifest_reader import find_tool
 
     benchmark(find_tool, "lint")
 
 
 def bench_data_home(benchmark):
     """BENCH-SHARED-005: data_home performance."""
-    from modules.shared.src.taxonomy_common_vo import data_home
+    from modules.shared.src.common.taxonomy_common_vo import data_home
 
     benchmark(data_home)
 
 
 def bench_config_home(benchmark):
     """BENCH-SHARED-006: config_home performance."""
-    from modules.shared.src.taxonomy_common_vo import config_home
+    from modules.shared.src.common.taxonomy_common_vo import config_home
 
     benchmark(config_home)
 
 
 def bench_strip_jsonc_comments(benchmark):
     """BENCH-SHARED-007: strip_jsonc_comments performance."""
-    from modules.shared.src.utility_config_engine import strip_jsonc_comments
+    from modules.shared.src.common.utility_config_engine import strip_jsonc_comments
 
     sample = '{"key": "value"} // comment' * 100
 
@@ -75,7 +75,7 @@ def bench_strip_jsonc_comments(benchmark):
 
 def bench_write_toml(benchmark):
     """BENCH-SHARED-008: write_toml performance."""
-    from modules.shared.src.utility_toml_write import write_toml
+    from modules.shared.src.common.utility_toml_write import write_toml
 
     data = {
         "key": "value",
@@ -92,7 +92,7 @@ def bench_write_toml(benchmark):
 
 def bench_extract_skill_name(benchmark):
     """BENCH-SHARED-009: extract_skill_name performance."""
-    from modules.shared.src.taxonomy_skill_vo import extract_skill_name
+    from modules.shared.src.common.taxonomy_skill_vo import extract_skill_name
 
     with tempfile.TemporaryDirectory() as tmpdir:
         skill_dir = Path(tmpdir) / "test-skill"
@@ -105,7 +105,7 @@ def bench_extract_skill_name(benchmark):
 
 def bench_resolve_executable(benchmark):
     """BENCH-SHARED-012: resolve_executable performance."""
-    from modules.shared.src.utility_tool_resolve import resolve_executable
+    from modules.shared.src.common.utility_tool_resolve import resolve_executable
 
     benchmark(resolve_executable, "python3")
 

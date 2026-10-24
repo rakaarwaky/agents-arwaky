@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
+from modules.shared.src.common.utility_skill_pack import default_pack_root
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
@@ -34,7 +35,6 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillsResult,
     SkillsRoot,
 )
-from modules.shared.src.utility_skill_pack import default_pack_root
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_discoverer import SkillsDiscoverer

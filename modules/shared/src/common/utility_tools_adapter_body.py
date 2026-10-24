@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.taxonomy_common_error import ToolUpdateError
-from modules.shared.src.taxonomy_common_vo import ToolSpec
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.common.taxonomy_common_error import ToolUpdateError
+from modules.shared.src.common.taxonomy_common_vo import ToolSpec
 from modules.shared.src.tools.taxonomy_tools_vo import AdapterUnit, PinCheck, ToolPaths
 
 

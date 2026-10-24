@@ -11,13 +11,13 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 
-from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     DoctorFlags,
     DoctorOp,
     DoctorRequest,
     ExitCode,
 )
+from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
 
 
 def _flags(args: list[str]) -> DoctorFlags:

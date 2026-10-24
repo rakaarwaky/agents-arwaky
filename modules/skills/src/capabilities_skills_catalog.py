@@ -19,6 +19,11 @@ import difflib
 import tempfile
 from pathlib import Path
 
+from modules.shared.src.common.utility_skills_markdown import md_escape, md_unescape
+from modules.shared.src.common.utility_skills_tree import (
+    category_summaries,
+    skill_entries,
+)
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
 )
@@ -33,11 +38,6 @@ from modules.shared.src.skills.taxonomy_skills_entity import (
 )
 from modules.shared.src.skills.taxonomy_skills_error import CatalogDrift
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.shared.src.utility_skills_markdown import md_escape, md_unescape
-from modules.shared.src.utility_skills_tree import (
-    category_summaries,
-    skill_entries,
-)
 
 __all__ = [
     "CATALOG_FILENAME",

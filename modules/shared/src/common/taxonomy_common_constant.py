@@ -77,8 +77,8 @@ BACKLOG_COLUMNS = (
 )
 
 # --- filesystem anchors --------------------------------------------------------
-#: Repository root (walks up from this file's location: modules/shared/src).
-REPO_ROOT: Path = Path(__file__).resolve().parents[3]
+#: Repository root (walks up from this file's location: modules/shared/src/common).
+REPO_ROOT: Path = Path(__file__).resolve().parents[4]
 
 #: Provenance marker baked into launcher first lines; foreign files without it are residual.
 PROVENANCE_MARKER = "# arwaky-installer"

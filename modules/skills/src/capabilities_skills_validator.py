@@ -15,6 +15,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from modules.shared.src.common.utility_skills_tree import (
+    assets_container,
+    category_dirs,
+    category_summaries,
+    iter_files,
+    iter_relative_skill_mds,
+    relpath,
+    skill_entries,
+    too_deep_exempt_paths,
+)
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsValidatorProtocol,
 )
@@ -31,16 +41,6 @@ from modules.shared.src.skills.taxonomy_skills_entity import (
     SkillEntry,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.shared.src.utility_skills_tree import (
-    assets_container,
-    category_dirs,
-    category_summaries,
-    iter_files,
-    iter_relative_skill_mds,
-    relpath,
-    skill_entries,
-    too_deep_exempt_paths,
-)
 
 __all__ = ["SkillsValidator"]
 

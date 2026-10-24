@@ -9,7 +9,7 @@ from modules.harness.src.capabilities_harness_skills import (
     HarnessSkills,
     _link_skills_root,
 )
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
 
 
 def _adapter(tmp_path: Path) -> SimpleNamespace:

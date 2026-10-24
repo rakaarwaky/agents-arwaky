@@ -100,7 +100,7 @@ def bench_load_toml_file(benchmark):
 def bench_save_json_file(benchmark):
     """BENCH-CONFIG-009: save_file on JSON."""
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
+    from modules.shared.src.common.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:

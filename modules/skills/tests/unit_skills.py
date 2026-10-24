@@ -6,6 +6,12 @@ from pathlib import Path
 
 import pytest
 
+from modules.shared.src.common.utility_skills_tree import (
+    assets_container,
+    category_summaries,
+    skill_entries,
+    too_deep_exempt_paths,
+)
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsIndexProtocol,
@@ -24,12 +30,6 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
-)
-from modules.shared.src.utility_skills_tree import (
-    assets_container,
-    category_summaries,
-    skill_entries,
-    too_deep_exempt_paths,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_index_builder import (
@@ -274,8 +274,8 @@ def test_skill_content_is_a_newtype_of_str() -> None:
 def test_two_walkers_agree_on_the_live_pack() -> None:
     """R5 cross-check: the read walker and the authoring walker see the
     same skill set, so drift fails a test instead of shipping silently."""
-    from modules.shared.src.utility_skill_pack import iter_skill_mds
-    from modules.shared.src.utility_skills_tree import skill_entries
+    from modules.shared.src.common.utility_skill_pack import iter_skill_mds
+    from modules.shared.src.common.utility_skills_tree import skill_entries
 
     pack = default_pack_root()
     read_walk = {

@@ -13,6 +13,23 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.common.taxonomy_common_vo import data_home
+from modules.shared.src.common.utility_config_engine import (
+    arwaky_server_names,
+    load_file,
+    merge_mcp_servers,
+    save_file,
+    set_env_keys,
+)
+from modules.shared.src.common.utility_harness_log import (
+    log_err,
+    log_header,
+    log_ok,
+    log_skip,
+    log_sub,
+    log_warn,
+)
 from modules.shared.src.harness.contract_harness_protocol import (
     IHarnessConnectProtocol,
     IHarnessSkillsProtocol,
@@ -25,23 +42,6 @@ from modules.shared.src.harness.taxonomy_harness_vo import (
     ConnectOpts,
     ExitCode,
     RouterCredentials,
-)
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.taxonomy_common_vo import data_home
-from modules.shared.src.utility_config_engine import (
-    arwaky_server_names,
-    load_file,
-    merge_mcp_servers,
-    save_file,
-    set_env_keys,
-)
-from modules.shared.src.utility_harness_log import (
-    log_err,
-    log_header,
-    log_ok,
-    log_skip,
-    log_sub,
-    log_warn,
 )
 
 

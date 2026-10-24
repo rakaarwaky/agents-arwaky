@@ -18,6 +18,17 @@ import json
 import sys
 from pathlib import Path
 
+from modules.shared.src.common.utility_logging_setup import (
+    BOLD,
+    CYAN,
+    RESET,
+    banner,
+    err,
+    info,
+)
+from modules.shared.src.common.utility_paths_resolver import resolve_skills_root
+from modules.shared.src.common.utility_skills_markdown import md_escape, yaml_quote
+from modules.shared.src.common.utility_skills_tree import relpath
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.taxonomy_skills_constant import (
     RULE_ONLY_ISSUE_TYPES,
@@ -30,17 +41,6 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillsResult,
     SkillsRoot,
 )
-from modules.shared.src.utility_logging_setup import (
-    BOLD,
-    CYAN,
-    RESET,
-    banner,
-    err,
-    info,
-)
-from modules.shared.src.utility_paths_resolver import resolve_skills_root
-from modules.shared.src.utility_skills_markdown import md_escape, yaml_quote
-from modules.shared.src.utility_skills_tree import relpath
 
 _EXIT_USAGE = 2
 _EXIT_DRIFT = 3

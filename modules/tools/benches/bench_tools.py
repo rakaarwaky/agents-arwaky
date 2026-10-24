@@ -61,7 +61,7 @@ def bench_orchestrator_with_dependencies():
 
 def bench_manifest_resolution():
     """Benchmark: resolve tool specs from manifest."""
-    from modules.shared.src.utility_manifest_reader import load_tools
+    from modules.shared.src.common.utility_manifest_reader import load_tools
     from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
 
     tools = load_tools()
@@ -84,7 +84,7 @@ def bench_manifest_resolution():
 
 def bench_execute_dispatch():
     """Benchmark: execute() dispatch overhead."""
-    from modules.shared.src.taxonomy_common_vo import ToolSpec
+    from modules.shared.src.common.taxonomy_common_vo import ToolSpec
     from modules.tools.src.capabilities_tools_installer import InstallerCapability
 
     iterations = 1000

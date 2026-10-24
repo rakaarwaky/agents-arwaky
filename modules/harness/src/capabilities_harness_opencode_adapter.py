@@ -12,17 +12,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from modules.shared.src.harness.contract_harness_protocol import (
-    IHarnessProviderProtocol,
-)
-from modules.shared.src.harness.taxonomy_harness_vo import ExitCode
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT as ROOT
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT as ROOT
+from modules.shared.src.common.taxonomy_common_vo import (
     config_home,
     data_home,
     tool_config_dir,
 )
-from modules.shared.src.utility_harness_mechanics import dispatch_provider_op
+from modules.shared.src.common.utility_harness_mechanics import dispatch_provider_op
+from modules.shared.src.harness.contract_harness_protocol import (
+    IHarnessProviderProtocol,
+)
+from modules.shared.src.harness.taxonomy_harness_vo import ExitCode
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

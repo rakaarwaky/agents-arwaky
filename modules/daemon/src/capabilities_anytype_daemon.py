@@ -4,7 +4,7 @@
 AES port of tools/daemons/anytype_daemon.py: body kept as-is; only the
 imports are swapped to their AES equivalents (paths/xdg/envfile) and
 constants defined locally in the original stay local as-is instead of
-being pulled from modules.shared.src.taxonomy_common_constant.
+being pulled from modules.shared.src.common.taxonomy_common_constant.
 """
 from __future__ import annotations
 
@@ -19,6 +19,12 @@ import time
 import urllib.error
 import urllib.request
 
+from modules.shared.src.common.taxonomy_common_vo import (
+    agents_arwaky_config_dir,
+)
+from modules.shared.src.common.utility_envfile_parser import update_env_file
+from modules.shared.src.common.utility_process_runner import cmd_out as out
+from modules.shared.src.common.utility_process_runner import run_cmd as run
 from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
 from modules.shared.src.daemon.taxonomy_daemon_constant import (
     ANYTYPE_CONFIG_DIR,
@@ -47,12 +53,6 @@ from modules.shared.src.daemon.taxonomy_daemon_vo import (
     DaemonUnit,
     ExitCode,
 )
-from modules.shared.src.taxonomy_common_vo import (
-    agents_arwaky_config_dir,
-)
-from modules.shared.src.utility_envfile_parser import update_env_file
-from modules.shared.src.utility_process_runner import cmd_out as out
-from modules.shared.src.utility_process_runner import run_cmd as run
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────

@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NewType
 
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_vo import (
     InstallResult,
     Tool,
     ToolSpec,

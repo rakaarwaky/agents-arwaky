@@ -19,6 +19,7 @@ from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import ModuleType
 
+from modules.shared.src.common.utility_skills_markdown import clean_one_line
 from modules.shared.src.skills.taxonomy_skills_constant import (
     ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
@@ -30,7 +31,6 @@ from modules.shared.src.skills.taxonomy_skills_entity import (
     SkillEntry,
 )
 from modules.shared.src.skills.taxonomy_skills_error import SkillsRootError
-from modules.shared.src.utility_skills_markdown import clean_one_line
 
 yaml: ModuleType | None = None
 try:

@@ -5,7 +5,7 @@ Non-feature taxonomy errors; feature-specific errors belong in
 """
 from __future__ import annotations
 
-from modules.shared.src.taxonomy_common_vo import ErrorMessage
+from modules.shared.src.common.taxonomy_common_vo import ErrorMessage
 
 
 class ArwakyError(Exception):

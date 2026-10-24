@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from modules.shared.src.common.utility_skills_tree import skill_entries
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
@@ -34,7 +35,6 @@ from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsUsageError,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.shared.src.utility_skills_tree import skill_entries
 
 __all__ = [
     "DRIFT_WARNING",

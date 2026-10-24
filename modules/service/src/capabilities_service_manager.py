@@ -14,14 +14,7 @@ from __future__ import annotations
 
 import sys
 
-from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
-from modules.shared.src.service.contract_service_protocol import IServiceControlProtocol
-from modules.shared.src.service.taxonomy_service_vo import (
-    TARGET_ALL,
-    ExitCode,
-    ServiceTarget,
-)
-from modules.shared.src.utility_service_daemon import (
+from modules.shared.src.common.utility_service_daemon import (
     cmd_help,
     cmd_logs,
     cmd_restart,
@@ -29,6 +22,13 @@ from modules.shared.src.utility_service_daemon import (
     cmd_status,
     cmd_stop,
     set_daemon_aggregate,
+)
+from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
+from modules.shared.src.service.contract_service_protocol import IServiceControlProtocol
+from modules.shared.src.service.taxonomy_service_vo import (
+    TARGET_ALL,
+    ExitCode,
+    ServiceTarget,
 )
 
 __all__ = [

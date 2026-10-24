@@ -8,7 +8,7 @@ def test_service_manager_execution():
 
     from modules.service.src.capabilities_service_inspect import ServiceInspect
     from modules.service.src.capabilities_service_manager import ServiceControl
-    from modules.shared.src import utility_service_daemon as usd
+    from modules.shared.src.common import utility_service_daemon as usd
     from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,

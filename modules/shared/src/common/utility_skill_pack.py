@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.taxonomy_skill_vo import (
+from modules.shared.src.common.taxonomy_skill_vo import (
     extract_skill_name,
 )
 
@@ -23,7 +23,7 @@ __all__ = [
 
 def default_pack_root() -> Path:
     """Return the repo's ``skills/`` pack (the SSOT for all skills)."""
-    return Path(__file__).resolve().parents[3] / "skills"
+    return Path(__file__).resolve().parents[4] / "skills"
 
 
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:

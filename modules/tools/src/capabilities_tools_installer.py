@@ -18,9 +18,9 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import PROVENANCE_MARKER
-from modules.shared.src.taxonomy_common_error import ToolInstallError
-from modules.shared.src.taxonomy_common_vo import (
+from modules.shared.src.common.taxonomy_common_constant import PROVENANCE_MARKER
+from modules.shared.src.common.taxonomy_common_error import ToolInstallError
+from modules.shared.src.common.taxonomy_common_vo import (
     InstallResult,
     ToolSpec,
     bin_home,

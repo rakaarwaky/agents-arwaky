@@ -8,15 +8,15 @@ agent layer depends on the contracts, never on the concrete capabilities.
 """
 from __future__ import annotations
 
+from modules.shared.src.common.taxonomy_common_vo import (
+    ConfigOp,
+    ConfigRequest,
+    ConfigResult,
+)
 from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
 from modules.shared.src.config.contract_config_protocol import (
     IConfigModifierProtocol,
     IConfigReaderProtocol,
-)
-from modules.shared.src.taxonomy_common_vo import (
-    ConfigOp,
-    ConfigRequest,
-    ConfigResult,
 )
 
 

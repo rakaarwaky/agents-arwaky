@@ -12,6 +12,11 @@ from __future__ import annotations
 
 import subprocess
 
+from modules.shared.src.common.taxonomy_common_vo import (
+    config_home,
+)
+from modules.shared.src.common.utility_mcp_manifest import load_mcp_manifest
+from modules.shared.src.common.utility_paths_resolver import repo_root
 from modules.shared.src.mcp.contract_mcp_protocol import IMcpListProtocol
 from modules.shared.src.mcp.taxonomy_mcp_vo import (
     ExitCode,
@@ -19,11 +24,6 @@ from modules.shared.src.mcp.taxonomy_mcp_vo import (
     McpServerInfo,
     McpServerInfos,
 )
-from modules.shared.src.taxonomy_common_vo import (
-    config_home,
-)
-from modules.shared.src.utility_mcp_manifest import load_mcp_manifest
-from modules.shared.src.utility_paths_resolver import repo_root
 
 __all__ = [
     "McpConfigLister",

@@ -9,7 +9,7 @@ from pathlib import Path
 def test_config_load_save_roundtrip_json():
     """IT-CONFIG-001: Full load/save roundtrip on JSON file."""
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import ConfigData, ConfigFormat
+    from modules.shared.src.common.taxonomy_common_vo import ConfigData, ConfigFormat
 
     writer = ConfigWriter()
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -56,7 +56,7 @@ def test_config_orchestrator_full_workflow():
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         ConfigData,
         ConfigFormat,
         ConfigOp,
@@ -105,7 +105,7 @@ def test_config_env_integration():
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         ConfigKeys,
         ConfigOp,
         ConfigRequest,
@@ -152,7 +152,7 @@ def test_config_orchestrator_inspect():
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
+    from modules.shared.src.common.taxonomy_common_vo import ConfigOp, ConfigRequest
 
     orch = ConfigOrchestrator(ConfigWriter(), ConfigModifier())
 
@@ -178,7 +178,7 @@ def test_config_dry_run_remove():
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import (
+    from modules.shared.src.common.taxonomy_common_vo import (
         ConfigKeys,
         ConfigOp,
         ConfigRequest,
@@ -214,7 +214,7 @@ def test_config_command_integration():
     from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
     from modules.config.src.capabilities_config_modifier import ConfigModifier
     from modules.config.src.capabilities_config_writer import ConfigWriter
-    from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
+    from modules.shared.src.common.taxonomy_common_vo import ConfigOp, ConfigRequest
 
     cmd = ConfigCommand(ConfigOrchestrator(ConfigWriter(), ConfigModifier()))
 
@@ -237,8 +237,8 @@ def test_config_command_integration():
 def test_config_container_wiring():
     """IT-CONFIG-008: ConfigContainer produces fully wired feature."""
     from modules.config.src.root_config_container import ConfigContainer
+    from modules.shared.src.common.taxonomy_common_vo import ConfigOp, ConfigRequest
     from modules.shared.src.config.contract_config_aggregate import IConfigAggregate
-    from modules.shared.src.taxonomy_common_vo import ConfigOp, ConfigRequest
 
     container = ConfigContainer()
     aggregate = container.aggregate

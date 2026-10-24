@@ -9,8 +9,8 @@ import os
 import shutil
 from pathlib import Path
 
-from modules.shared.src.taxonomy_common_constant import REPO_ROOT
-from modules.shared.src.taxonomy_common_vo import bin_home
+from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
+from modules.shared.src.common.taxonomy_common_vo import bin_home
 
 
 def resolve_executable(binary: str) -> Path | None:

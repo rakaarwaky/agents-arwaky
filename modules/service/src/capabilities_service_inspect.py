@@ -5,18 +5,18 @@ status / logs / help).
 """
 from __future__ import annotations
 
+from modules.shared.src.common.utility_service_daemon import (
+    cmd_help,
+    cmd_logs,
+    cmd_status,
+    set_daemon_aggregate,
+)
 from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 from modules.shared.src.service.contract_service_protocol import IServiceInspectProtocol
 from modules.shared.src.service.taxonomy_service_vo import (
     TARGET_OMNIROUTE,
     ExitCode,
     ServiceTarget,
-)
-from modules.shared.src.utility_service_daemon import (
-    cmd_help,
-    cmd_logs,
-    cmd_status,
-    set_daemon_aggregate,
 )
 
 __all__ = ["ServiceInspect"]
