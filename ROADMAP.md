@@ -1,17 +1,20 @@
 # ROADMAP — agents-arwaky
 
-State / Health: vocabulary below. Last Updated: 2026-09-23
+State / Health: vocabulary below. Last Updated: 2026-10-24
 
 ## Current Condition
 
 - Done: legacy `tools/` fully migrated to AES `modules/`; 10/10 feature
   FRD/BACKLOG pairs HOW-TO-clean; FRD redesign plan approved and written
-  (single-row `execute` protocol per feature); skill discovery is read-only
-  via `aa skills list` / `aa skills show` (backed by `modules/skills/`).
+  (single-row `execute` protocol per feature); the skill pack is served by
+  `modules/skills/` through `aa skills` — read-only discovery (`list`,
+  `show`, `validate`, `catalog`, `discover`, `weed`, `merge-plan`, `rules`)
+  plus dry-run-by-default authoring (`repair`, `move`, `archive`,
+  `new-category`).
 - Removed: `modules/check`, the `aa check` gate, and the `aa skill` provisioning
-  surface (install/uninstall/update/check) were deleted on 2026-09-28; skill
-  discovery is now read-only: `aa skills list` / `aa skills show`, backed by
-  `modules/skills/`.
+  surface (install/uninstall/update/check) were deleted on 2026-09-28;
+  `modules/skills/` now owns discovery *and* authoring, exposed as 12
+  `aa skills` verbs.
 - In Progress: none at workspace level; per-feature QA sweeps live in each
   feature BACKLOG (tools TOL-02/TOL-03, config CFG-01/CFG-04, daemon DMN-01,
   service SVC-01, mcp MCP-01, skills SKL-01, backup BKP-01).

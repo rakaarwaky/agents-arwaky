@@ -56,10 +56,10 @@ SCORE_TABLE_SEPARATOR = "|---|---|---|---|---|"
 NO_MATCH_LINE = "No matching skills found in CATALOG.md."
 
 #: The loud drift warning: the catalog failed its drift gate, so the
-#: answer comes from a live tree scan. Named repair: ``aa skills catalog``.
+#: answer comes from a live tree scan. Named repair: ``catalog --check``.
 DRIFT_WARNING = (
     "WARNING: catalog drift detected — answering from a live tree scan. "
-    "Run `aa skills catalog --check` to repair CATALOG.md."
+    "Run `catalog --check` to repair CATALOG.md."
 )
 
 

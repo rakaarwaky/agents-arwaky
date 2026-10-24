@@ -1,23 +1,24 @@
-<!-- Hand-written provenance. Not generated: `cli rules --markdown` emits
+<!-- Hand-written provenance. Not generated: `aa skills rules --markdown` emits
      skill-rules.md, and this file records where each rule came from. If a
-     rule id below disagrees with _rules/skill_rules.py, the SSOT wins. -->
+     rule id below disagrees with taxonomy_skills_constant.py, the SSOT wins. -->
 
 # RULES — provenance
 
 Where each rule in `skill-rules.md` came from: the loader file the
 constraint was first read from, or the failure mode it fixes. The
-executable rules live in `_rules/skill_rules.py`; this file adds no
+executable rules live in
+`modules/shared/src/skills/taxonomy_skills_constant.py`; this file adds no
 constraints of its own.
 
-The 13 rules are the issue types `librarian.py validate` has emitted since
-the skill-librarian was written (PR-2 lifted them into the SSOT verbatim,
-so the validator's behavior is byte-identical). Provenance for each is
+The 13 rules are the issue types the skill-library validator has emitted
+since the skill-librarian was written (they were lifted into the SSOT
+verbatim, so the validator's behavior is byte-identical). Provenance for each is
 given in the order the doc renders them.
 
 | Rule | Provenance |
 |---|---|
 | `name-mismatch` | `create-skills/SKILL.md` teaches that `name:` must equal the directory because loaders key discovery on the folder. The failure mode is the skill being silently unresolvable, which no other rule catches — the directory can be perfectly well-named while the frontmatter disagrees. |
-| `name-format` | Stated in `create-skills/SKILL.md` and again in `create-skills/references/validation-criteria.md` (one of the seven duplicated copies of this rule, §2.3 P2), and enforced by `NAME_RE` in `_rules/skill_rules.py` (checked by `scripts/validate.py`; `skill-librarian/scripts/librarian.py` is the back-compat shim onto that checker). The 172-row catalog drift (§2.1 fact 2) is why the rule is checked by tooling rather than taught by prose: `skill-migration` was deleted while every prose copy of the rules stayed silent. |
+| `name-format` | Stated in `create-skills/SKILL.md` and again in `create-skills/references/validation-criteria.md` (one of the seven duplicated copies of this rule, §2.3 P2), and enforced by `NAME_RE` in `modules/shared/src/skills/taxonomy_skills_constant.py` (checked by `modules/skills/src/capabilities_skills_validator.py`). The 172-row catalog drift (§2.1 fact 2) is why the rule is checked by tooling rather than taught by prose: `skill-migration` was deleted while every prose copy of the rules stayed silent. |
 | `description-present` | `create-skills/SKILL.md` (the minimal required frontmatter shape). A missing description leaves the skill unreachable in the listing — the failure mode is invisibility, not an error. |
 | `description-characters` | `create-skills/SKILL.md`: Grok Build embeds the value verbatim inside `<skill description="...">`, so an unescaped `<`, `>`, or `"` breaks the embedding, not the YAML. |
 | `description-length` | `create-skills/SKILL.md` and `validation-criteria.md` both stated the 1,024-char ceiling; it was still missed — `code-quality/configure-codacy` shipped a 1,242-char description, and `research/learn` an `invalid-description-characters` (§2.3 P2, §4). |
@@ -52,4 +53,7 @@ The restated rule copies PR-3 replaced with a link to `skill-rules.md`:
 - `create-skills/references/creation-workflow.md` — the name alphabet in Step 1
 - `skill-librarian/SKILL.md` — the category rules in the body
 
-`_rules/skill_rules.py` is the SSOT the checker (`scripts/validate.py`) reads; `skill-librarian/scripts/librarian.py` is only the back-compat shim onto the pack CLI.
+`modules/shared/src/skills/taxonomy_skills_constant.py` is the SSOT the checker
+(`modules/skills/src/capabilities_skills_validator.py`) reads. The pack's
+`_rules/skill_rules.py` is a deprecated shim onto it while the legacy script
+path is retired.

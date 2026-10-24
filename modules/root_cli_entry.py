@@ -556,7 +556,7 @@ def cmd_disconnect(argv: list[str]) -> int:
 
 
 def cmd_skills(argv: list[str]) -> int:
-    """Skill-pack discovery: aa skills <list|show> [args]."""
+    """Skill-pack discovery and authoring: aa skills <verb> [args]."""
     from modules.cli.src.surface_skills_command import cmd_skills as _skills_surface
     from modules.skills.src.root_skills_container import default_aggregate
 

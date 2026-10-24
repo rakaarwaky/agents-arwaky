@@ -12,13 +12,13 @@ Use this when skills may be in the wrong category.
 - [ ] Run:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py validate
+aa skills validate
 ```
 
 - [ ] Run:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py weed
+aa skills weed
 ```
 
 - [ ] Read `CATALOG.md`.
@@ -27,19 +27,19 @@ python3 skills/skill-authoring/scripts/cli.py weed
 - [ ] If no category fits, create one:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py new-category CATEGORY_NAME "CATEGORY_DESCRIPTION"
+aa skills new-category CATEGORY_NAME "CATEGORY_DESCRIPTION"
 ```
 
 - [ ] Move each misplaced skill:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py move CATEGORY/SKILL TARGET_CATEGORY
+aa skills move CATEGORY/SKILL TARGET_CATEGORY
 ```
 
 - [ ] Rebuild the catalog:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py catalog
+aa skills catalog
 ```
 
 - [ ] Verify the moved skills appear under the correct category.
@@ -51,13 +51,13 @@ Use this when skills have broken or weak metadata.
 - [ ] Run:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py validate
+aa skills validate
 ```
 
 - [ ] Run safe mechanical repairs:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py repair
+aa skills repair
 ```
 
 - [ ] Edit remaining invalid `SKILL.md` files.
@@ -72,7 +72,7 @@ Use this when the library may contain duplicates or obsolete skills.
 - [ ] Run:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py weed
+aa skills weed
 ```
 
 - [ ] For duplicate skill names, decide which skill is authoritative.
@@ -80,7 +80,7 @@ python3 skills/skill-authoring/scripts/cli.py weed
 - [ ] Archive obsolete skills:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py archive CATEGORY/SKILL
+aa skills archive CATEGORY/SKILL
 ```
 
 - [ ] Rebuild the catalog.
@@ -95,13 +95,13 @@ Use this when categories are broad, missing, overlapping, or empty.
 - [ ] Create new categories where needed:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py new-category CATEGORY_NAME "CATEGORY_DESCRIPTION"
+aa skills new-category CATEGORY_NAME "CATEGORY_DESCRIPTION"
 ```
 
 - [ ] Move skills into better categories:
 
 ```bash
-python3 skills/skill-authoring/scripts/cli.py move CATEGORY/SKILL TARGET_CATEGORY
+aa skills move CATEGORY/SKILL TARGET_CATEGORY
 ```
 
 - [ ] Improve category `DESCRIPTION.md` files where the description is vague.
