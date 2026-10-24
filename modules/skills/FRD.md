@@ -67,6 +67,8 @@ catalog rebuild.
 - **Business Rules**: the exit code tracks the *unfiltered* issue total
   (1 when any issue exists); a scoped report can never claim the library is
   clean while issues exist outside the scope.
+- **Edge Cases**: missing or invalid root is a usage error; empty issue set
+  still yields a clean report.
 - **Error Handling**: a missing or invalid root is a usage error (exit 2).
 
 ### FR-SKILLS-004: Rebuild and guard `CATALOG.md`
