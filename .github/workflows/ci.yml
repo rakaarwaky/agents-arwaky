@@ -24,8 +24,16 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck jq
 
+      - name: Install AES architecture scanner (lac)
+        run: |
+          cargo install --path internal/lint-arwaky --locked --bin lint-arwaky-cli
+          ln -sf "$HOME/.cargo/bin/lint-arwaky-cli" "$HOME/.cargo/bin/lac"
+
       - name: Python compile check
         run: python -m compileall modules/
+
+      - name: Architecture scan (AES)
+        run: lac scan modules/
 
       - name: Ruff lint
         run: ruff check modules/ --ignore E501 || true
@@ -47,15 +55,15 @@ jobs:
         run: python3 -m modules.root_cli_entry mcp generate
 
       - name: Skill pack validate
-        run: python3 skills/skill-authoring/scripts/cli.py validate --summary
+        run: python3 -m modules.root_cli_entry skills validate --summary
 
       - name: Skill catalog drift gate
-        run: python3 skills/skill-authoring/scripts/cli.py catalog --check
+        run: python3 -m modules.root_cli_entry skills catalog --check
 
-      - name: Skill pack tests
-        run: python3 -m pytest skills/skill-authoring/tests -q
+      - name: Module tests
+        run: python3 -m pytest modules/ -q
 
-      - name: Skill pack ruff
+      - name: Skill pack ruff (legacy shim window)
         run: ruff check skills/skill-authoring/scripts/
 
       - name: Submodule integrity

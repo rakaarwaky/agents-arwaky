@@ -1,3 +1,0 @@
----
-description: "Test category b"
----
