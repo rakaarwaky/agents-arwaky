@@ -25,9 +25,15 @@ jobs:
           sudo apt-get install -y -qq shellcheck jq
 
       - name: Install AES architecture scanner (lac)
+        env:
+          # Pinned to the version the internal/lint-arwaky submodule points at;
+          # bump together with the submodule pointer.
+          LAC_VERSION: v3.11.4
         run: |
-          cargo install --path internal/lint-arwaky --locked --bin lint-arwaky-cli
-          ln -sf "$HOME/.cargo/bin/lint-arwaky-cli" "$HOME/.cargo/bin/lac"
+          curl -fsSL -o "$RUNNER_TEMP/lac" \
+            "https://github.com/rakaarwaky/lint-arwaky/releases/download/$LAC_VERSION/lint-arwaky-cli"
+          sudo install -m 0755 "$RUNNER_TEMP/lac" /usr/local/bin/lac
+          lac --version
 
       - name: Python compile check
         run: python -m compileall modules/
