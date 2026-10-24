@@ -219,6 +219,89 @@ def test_json_is_accepted_but_ignored_by_rules(tmp_path: Path) -> None:
     assert out.startswith("13 rules from _rules/skill_rules.py:")
 
 
+def test_rules_markdown_matches_the_generated_doc(tmp_path: Path) -> None:
+    """``--markdown`` renders the byte-identical rules document (R7)."""
+    root = crafted_tree(tmp_path)
+    code, out, _ = run_surface(root, "rules", "--markdown")
+    assert code == 0
+    document = out
+    from modules.skills.src.capabilities_skills_rules_renderer import (
+        SkillsRulesRenderer,
+    )
+
+    assert document == SkillsRulesRenderer().render_markdown().markdown
+
+
+def test_all_twelve_subcommands_reachable_and_shape_parity(tmp_path: Path) -> None:
+    """Every verb renders the legacy text shape with its exit code."""
+    root = crafted_tree(tmp_path)
+    run_surface(root, "catalog")
+
+    cases = (
+        ("list", 0, "SKILL"),
+        ("show", "note-taker", 0, "# note-taker"),
+        ("validate", 1, "[name-mismatch]"),
+        ("catalog", 0, "Rebuilt"),
+        ("catalog", "--check", 0, "Catalog in sync:"),
+        ("discover", "docs", 0, "| Skill | Category | Description | Path | Score |"),
+        ("weed", 0, "Weeding report:"),
+        ("repair", 0, "Planned repairs (dry-run"),
+        ("move", "drafts/doc-drafts", "notes", 0, "Planned move (dry-run"),
+        ("archive", "drafts/doc-drafts", 0, "Planned archive (dry-run"),
+        ("new-category", "beta-cat", "Second", 0, "Planned new-category (dry-run"),
+        ("merge-plan", "drafts/doc-drafts", "notes/note-taker", 0, "# Merge plan"),
+        ("rules", 0, "13 rules from _rules/skill_rules.py:"),
+    )
+    for case in cases:
+        argv = case[:-2]
+        expected_code = case[-2]
+        expected_fragment = case[-1]
+        code, out, err = run_surface(root, *argv)
+        assert code == expected_code, (argv, code, out, err)
+        assert expected_fragment in out, (argv, out)
+
+
+def test_validate_full_listing_matches_the_legacy_shape(tmp_path: Path) -> None:
+    """The per-issue listing keeps the ``- [type] locator: message`` lines."""
+    root = crafted_tree(tmp_path)
+    code, out, _ = run_surface(root, "validate")
+    assert code == 1
+    assert out == (
+        "1 validation issue(s) found:\n"
+        "- [name-mismatch] drafts/doc-drafts: "
+        "Frontmatter name 'wrong-name' does not match directory 'doc-drafts'.\n"
+    )
+
+
+def test_discover_no_match_prints_the_legacy_line(tmp_path: Path) -> None:
+    root = crafted_tree(tmp_path)
+    run_surface(root, "catalog")
+    code, out, _ = run_surface(root, "discover", "no-such-skill-zzz")
+    assert code == 0
+    assert out == "No matching skills found in CATALOG.md.\n"
+
+
+def test_repair_apply_reports_applied_steps(tmp_path: Path) -> None:
+    root = crafted_tree(tmp_path)
+    run_surface(root, "catalog")
+    code, out, _ = run_surface(root, "repair", "--apply")
+    assert code == 0
+    assert "Repairs applied:" in out
+    assert "Rebuilt" in out
+
+
+def test_merge_plan_json_keeps_the_legacy_key_order(tmp_path: Path) -> None:
+    root = crafted_tree(tmp_path)
+    code, out, _ = run_surface(
+        root, "merge-plan", "drafts/doc-drafts", "notes/note-taker", "--json"
+    )
+    assert code == 0
+    payload = json.loads(out)
+    assert payload["moves"] == []
+    assert payload["category_after"] == "notes"
+    assert payload["empty_category_after"] == "drafts"
+
+
 def test_list_and_show_keep_their_output_shape(tmp_path: Path) -> None:
     """The read-only surface is byte-stable (only ``--skills-root`` is new)."""
     root = clean_tree(tmp_path)
