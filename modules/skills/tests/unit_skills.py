@@ -166,3 +166,37 @@ def test_skill_content_is_a_newtype_of_str() -> None:
     """SkillContent behaves as a string-typed wrapper."""
     content = SkillContent("hello")
     assert content == "hello"
+
+def test_two_walkers_agree_on_the_live_pack() -> None:
+    """R5 cross-check: the read walker and the authoring walker see the
+    same skill set, so drift fails a test instead of shipping silently."""
+    from modules.shared.src.utility_skill_pack import iter_skill_mds
+    from modules.shared.src.utility_skills_tree import skill_entries
+
+    pack = default_pack_root()
+    read_walk = {
+        f"{path.parent.parent.name}/{path.parent.name}" for path in iter_skill_mds(pack)
+    }
+    authoring_walk = {entry.path for entry in skill_entries(pack)}
+    assert read_walk == authoring_walk
+
+
+def test_importing_the_feature_does_not_mutate_sys_path() -> None:
+    """G3: the migrated feature is an ordinary package — no sys.path writes."""
+    import subprocess
+    import sys
+
+    code = (
+        "import sys; before = list(sys.path); "
+        "import modules.skills.src.root_skills_container; "
+        "import modules.cli.src.surface_skills_command; "
+        "assert sys.path == before, sys.path"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=str(Path(__file__).resolve().parents[3]),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr

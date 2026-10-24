@@ -27,3 +27,15 @@ def test_dogfood_skills_show():
     content = SkillsPackReader().show_skill(SkillQuery(rows[0].name))
     assert content is not None
     assert "name:" in content
+
+
+@pytest.mark.dogfood
+def test_dogfood_validate_live_pack_is_clean():
+    """DOG-SKILLS-003: the repo's own pack validates clean through the agent."""
+    from modules.shared.src.skills.taxonomy_skills_vo import SkillsRequest
+    from modules.skills.src.root_skills_container import default_aggregate
+
+    result = default_aggregate().execute(SkillsRequest(op="validate"))
+    assert result.report is not None
+    assert result.report.issue_count == 0, result.report.issues[:5]
+    assert result.exit_code == 0
