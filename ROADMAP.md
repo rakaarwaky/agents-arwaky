@@ -69,15 +69,7 @@ One table: every feature. Feature detail stays in each feature's BACKLOG.
 | modules/backup | Archive / restore / list / status | P2 | QA | BKP-03 | BKP-01 gdrive leg | 2026-09-23 |
 | modules/shared | Kernel (XDG, venv, launcher, engines) | P0 | In Progress | none | none | 2026-09-23 |
 
-### Branches in Flight
-
-| Branch | Backlog IDs | State |
-|--------|-------------|-------|
-| `main` | WS-05, WS-06 | green gates at tip |
-| `develop` | WS-05 | integration tip |
-| `refactor/standardize-xdg-uninstall` | TOL-03 | local, uninstall residual sweep |
-
-## Backlog
+### Backlog
 
 Cross-cutting `WS-` rows only. Feature rows live in each feature's BACKLOG.
 
