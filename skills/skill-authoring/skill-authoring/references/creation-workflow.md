@@ -54,15 +54,19 @@ to save without the directory.
 ---
 name: <skill-name>
 description: <description from Step 2>
+when-to-use: "Use when <trigger conditions and context>."
+argument-hint: "<arg> [--flag] <other-arg>"
 ---
 
 <body with instructions, steps, code blocks>
 ```
 
-Optional Grok Build keys (`when-to-use`, `user-invocable`, `disable-model-invocation`,
-`argument-hint`, `paths`, `model`, `effort`) follow the main guide's field table. Do not
-add `triggers:`, `entry_points:`, or top-level `version:` for Grok Build — the parser
-ignores them; trigger phrases belong in `description:`/`when-to-use:`.
+In our workflow, `name`, `description`, `when-to-use`, and `argument-hint` are
+mandatory frontmatter keys. All other keys (`user-invocable`,
+`disable-model-invocation`, `paths`, `model`, `effort`, `metadata`, etc.) are
+optional. Do not add `triggers:`, `entry_points:`, or top-level `version:` for
+Grok Build — the parser ignores them; trigger phrases belong in
+`description:` and `when-to-use:`.
 
 Write any supporting scripts or references as needed. Follow the design principles in the
 main guide rather than restating them here.

@@ -2,7 +2,7 @@
 name: skill-library
 description: Manages the skills library by maintaining CATALOG.md, discovering skills, auditing category placement, repairing skill metadata, weeding duplicates, and organizing categories. Also provides the `aa skills list/show` discovery surface (formerly skill-manager). Use when the user runs /skill-library or asks to find, audit, repair, weed, organize, or catalog skills.
 when-to-use: Use when the user wants to search the skill library, rebuild the skill catalog, move misplaced skills, fix skill frontmatter, detect duplicate skills, archive obsolete skills, create skill categories, or update category DESCRIPTION.md files.
-argument-hint: --discover query, --catalog, --audit, --repair, --weed, --organize
+argument-hint: "[--discover <query>] [--catalog] [--validate] [--repair] [--weed] [--move <skill> <category>] [--new-category <name> <desc>] [--archive <skill>]"
 ---
 
 # Skill Library

@@ -2,6 +2,7 @@
 name: skill-authoring
 description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split.
 when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, or deciding what belongs in the body versus a references/ file.
+argument-hint: "<create | improve | validate | audit | check> <skill-dir>"
 metadata:
   tags:
     - skills
@@ -61,23 +62,42 @@ for; complete the request first, then report the opportunity.
 
 ## Frontmatter
 
-Minimal required shape for most harnesses:
+In our workflow, a skill's frontmatter carries four keys: `name:`,
+`description:`, `when-to-use:`, and `argument-hint:`. All four are mandatory.
+Every other key (`user-invocable`, `disable-model-invocation`, `paths`, `model`,
+`effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata`,
+`author`, `platforms`, `version`, ...) is optional and target-dependent.
+
+Mandatory shape:
 
 ```yaml
 ---
 name: your-skill-name
 description: What it does and when to use it. Third person. Include trigger terms.
+when-to-use: "Use when <trigger phrases for auto-invocation>."
+argument-hint: "<arg> [--flag] <other-arg>"
 ---
 ```
 
-Survey 2-3 sibling skills in the target tree first and match the field set that tree's
-validator enforces — hosted upload targets reject keys outside their allowlist; harnesses
-that parse extra keys are listed below.
+Rules:
 
-The `name:`, `description:`, and placement constraints are the rules in
-[`_rules/skill-rules.md`](../_rules/skill-rules.md) — generated from the same module the
-validator runs. Check a skill with `python3 skills/skill-authoring/scripts/cli.py validate`. Renaming a
-skill means `git mv` the directory and grepping for inbound mentions, not editing one field.
+- `name:` matches the directory; satisfies the `name-format` and
+  `name-mismatch` rules in
+  [`_rules/skill-rules.md`](../_rules/skill-rules.md).
+- `description:` satisfies the `description-*` rules; carries the WHAT +
+  WHEN + trigger terms, so auto-invocation works even without
+  `when-to-use:`.
+- `when-to-use:` holds leftover trigger phrases that would bloat the
+  description; kebab-case key, `when_to_use` is the only accepted alias.
+- `argument-hint:` shows in slash-command autocomplete; keep it under one
+  line, use `[]` for optionals, `|` for choices, and angle-bracket
+  placeholders for required args (see sibling skills `review`, `design`,
+  `pr-babysit`).
+
+Survey 2-3 sibling skills in the target tree first and match the field set
+that tree's validator enforces — hosted upload targets reject keys outside
+their allowlist; the Grok Build parser table below lists every optional key
+it accepts.
 
 ### Grok Build keys
 

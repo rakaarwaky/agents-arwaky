@@ -16,18 +16,19 @@ YAML hygiene, and the pre-publish checklist.
 
 ## Frontmatter
 
-Which keys each target parses (the checker's own rules are in
-[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md)):
+Four keys are mandatory in our workflow (`name`, `description`, `when-to-use`,
+and `argument-hint`). All other keys are optional and target-dependent.
 
-| Field | Required | Notes (target-specific) |
+| Field | Required | Notes |
 | --- | --- | --- |
-| `name` | Yes | The `name-format` and `name-mismatch` rules. |
-| `description` | Yes | The `description-*` rules. Trigger terms belong here or in `when-to-use`. |
-| `when-to-use` (Grok Build) | No | Max 1,024 chars. Trigger phrases for auto-invocation when they don't fit the description. |
+| `name` | **Yes** | The `name-format` and `name-mismatch` rules. |
+| `description` | **Yes** | The `description-*` rules. WHAT + WHEN + trigger terms. |
+| `when-to-use` | **Yes** | Max 1,024 chars. Dedicated trigger phrases for auto-invocation. |
+| `argument-hint` | **Yes** | Slash-command autocomplete hint (e.g. `<command> [--flag]`). |
 | `user-invocable` (Grok Build) | No | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool. |
 | `disable-model-invocation` (Grok Build) | No | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it. |
-| `argument-hint`, `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` (Grok Build) | No | See the main guide's Grok Build keys table for effects and limits. |
-| others (`version`, `author`, `platforms`, ...) | Target-dependent | Match the field set the destination validator enforces; survey sibling skills. Grok Build ignores top-level `version`, `triggers`, and `entry_points`. |
+| `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` (Grok Build) | No | Optional Grok Build controls. See the main guide's keys table for effects and limits. |
+| others (`version`, `author`, `platforms`, ...) | Optional | Target-dependent. Match the field set the destination validator enforces. Grok Build ignores top-level `version`, `triggers`, and `entry_points`. |
 
 ### Naming
 
@@ -83,7 +84,8 @@ The placement and nesting constraints are the `skill-placement`, `category-depth
 
 ## Pre-publish checklist
 
-- [ ] Frontmatter uses only the keys the target validator accepts.
+- [ ] Frontmatter contains all four mandatory keys: `name`, `description`, `when-to-use`, and `argument-hint`.
+- [ ] Frontmatter uses only valid keys (all others are optional).
 - [ ] `name:` matches the directory and satisfies the `name-format` rule; `description:`
       satisfies the `description-*` rules — run
       `python3 skills/skill-authoring/scripts/cli.py validate` to check both.
