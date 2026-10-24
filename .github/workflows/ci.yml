@@ -39,7 +39,16 @@ jobs:
         run: python -m compileall modules/
 
       - name: Architecture scan (AES)
-        run: lac scan modules/
+        run: |
+          lac scan modules/ --format json > "$RUNNER_TEMP/lac-report.json" || true
+          cat "$RUNNER_TEMP/lac-report.json"
+
+      - name: Upload AES report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lac-report
+          path: ${{ runner.temp }}/lac-report.json
 
       - name: Ruff lint
         run: ruff check modules/ --ignore E501 || true
