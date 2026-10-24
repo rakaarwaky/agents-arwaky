@@ -4,16 +4,26 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsIndexProtocol,
     ISkillsReaderProtocol,
 )
+from modules.shared.src.skills.taxonomy_skills_error import SkillsRootError
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillContent,
     SkillDescription,
     SkillQuery,
     SkillRecord,
+    SkillsOp,
     SkillsRequest,
+)
+from modules.shared.src.utility_skills_tree import (
+    assets_container,
+    category_summaries,
+    skill_entries,
+    too_deep_exempt_paths,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_index_builder import (
@@ -112,11 +122,11 @@ def test_show_skill_ambiguous_prefix_returns_none(tmp_path: Path) -> None:
 def test_agent_execute_list_and_show(tmp_path: Path) -> None:
     """The agent routes list/show through the injected index capability."""
     agent = SkillsAgent(SkillsIndexBuilder(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
-    listed = agent.execute(SkillsRequest(op="list"))
+    listed = agent.execute(SkillsRequest(op=SkillsOp.LIST))
     assert listed.ok
     assert {r.name for r in listed.records} == {"fetch-mcp", "lint", "empty"}
 
-    shown = agent.execute(SkillsRequest(op="show", query=SkillQuery("fetch")))
+    shown = agent.execute(SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery("fetch")))
     assert shown.ok
     assert shown.content is not None
     assert "# Fetch" in shown.content
@@ -125,7 +135,7 @@ def test_agent_execute_list_and_show(tmp_path: Path) -> None:
 def test_agent_execute_show_unknown_is_not_ok(tmp_path: Path) -> None:
     """An unknown show target reports failure with a clear message."""
     agent = SkillsAgent(SkillsIndexBuilder(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
-    result = agent.execute(SkillsRequest(op="show", query=SkillQuery("nope")))
+    result = agent.execute(SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery("nope")))
     assert not result.ok
     assert "nope" in result.message
 
@@ -133,17 +143,19 @@ def test_agent_execute_show_unknown_is_not_ok(tmp_path: Path) -> None:
 def test_agent_execute_unknown_op_is_not_ok(tmp_path: Path) -> None:
     """An unknown op is rejected rather than silently succeeding."""
     agent = SkillsAgent(SkillsIndexBuilder(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
-    result = agent.execute(SkillsRequest(op="frobnicate"))
+    # raw str is intentional: SkillsRequest.op is typed SkillsOp (StrEnum),
+    # mypy rejects a bare str; the agent must reject un-parseable ops at runtime.
+    result = agent.execute(SkillsRequest(op="frobnicate"))  # type: ignore[arg-type]
     assert not result.ok
 
 
 def test_default_aggregate_bound_to_default_pack() -> None:
     """The composition root binds an agent to the real pack."""
     aggregate = default_aggregate()
-    listed = aggregate.execute(SkillsRequest(op="list"))
+    listed = aggregate.execute(SkillsRequest(op=SkillsOp.LIST))
     assert listed.ok
     assert len(listed.records) > 0
-    shown = aggregate.execute(SkillsRequest(op="show", query=SkillQuery("fetch")))
+    shown = aggregate.execute(SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery("fetch")))
     assert shown.ok
     assert shown.content is not None
 
@@ -179,6 +191,76 @@ def test_two_walkers_agree_on_the_live_pack() -> None:
     }
     authoring_walk = {entry.path for entry in skill_entries(pack)}
     assert read_walk == authoring_walk
+
+
+def test_skill_entries_walks_the_authoring_tree(tmp_path: Path) -> None:
+    """skill_entries yields one entry per category/skill, in stable order."""
+    pack = _make_pack(tmp_path)
+    entries = skill_entries(pack)
+    # Order is alphabetical by category then skill dir (category_dirs sorts names).
+    assert [e.path for e in entries] == ["bad/empty", "dev/lint", "web/fetch-mcp"]
+    assert [e.skill for e in entries] == ["empty", "lint", "fetch-mcp"]
+
+
+def test_skill_entries_skips_ignored_category_dirs(tmp_path: Path) -> None:
+    """IGNORED_CATEGORY_DIRS (e.g. _archive) never enter the walk."""
+    pack = tmp_path / "skills"
+    (pack / "web" / "fetch-mcp").mkdir(parents=True)
+    (pack / "web" / "fetch-mcp" / "SKILL.md").write_text(
+        "---\nname: fetch-mcp\ndescription: d\n---\n\n# Fetch\n",
+        encoding="utf-8",
+    )
+    (pack / "_archive" / "old-skill").mkdir(parents=True)
+    (pack / "_archive" / "old-skill" / "SKILL.md").write_text(
+        "---\nname: old-skill\ndescription: d\n---\n\n# Old\n",
+        encoding="utf-8",
+    )
+    assert [e.path for e in skill_entries(pack)] == ["web/fetch-mcp"]
+
+
+def test_category_summaries_count_skills_per_category(tmp_path: Path) -> None:
+    """category_summaries derives description state and skill counts."""
+    pack = _make_pack(tmp_path)
+    (pack / "web" / "DESCRIPTION.md").write_text(
+        "---\n\ndescription: Web skills\n---\n", encoding="utf-8"
+    )
+    summaries = category_summaries(skill_entries(pack), pack)
+    by_category = {s.category: s for s in summaries}
+    assert by_category["web"].description == "Web skills"
+    assert by_category["web"].description_file_exists is True
+    assert by_category["web"].skill_count == 1
+    assert by_category["dev"].description_file_exists is False
+    assert by_category["dev"].skill_count == 1
+
+
+def test_skills_root_error_on_missing_root(tmp_path: Path) -> None:
+    """A missing skills root raises the typed usage error, not SystemExit."""
+    with pytest.raises(SkillsRootError):
+        skill_entries(tmp_path / "nope")
+
+
+def test_assets_container_detects_declared_markers(tmp_path: Path) -> None:
+    """The DM2 marker declares an asset container, not a skill category."""
+    pack = tmp_path / "skills"
+    assets = pack / "assets"
+    assets.mkdir(parents=True)
+    (assets / "ASSETS.md").write_text(
+        "---\nkind: assets\n---\n", encoding="utf-8"
+    )
+    assert assets_container(pack) == {"assets"}
+
+
+def test_too_deep_exempt_paths_honours_the_dm1_marker(tmp_path: Path) -> None:
+    """A SKILL.md two levels below a category is exempt only when its
+    intermediate directory carries the pack.toml marker."""
+    pack = tmp_path / "skills"
+    (pack / "cat" / "pack-a" / "deep").mkdir(parents=True)
+    (pack / "cat" / "pack-a" / "deep" / "SKILL.md").write_text(
+        "---\nname: a\ndescription: d\n---\n", encoding="utf-8"
+    )
+    assert too_deep_exempt_paths(pack) == set()
+    (pack / "cat" / "pack-a" / "pack.toml").write_text("version = 1\n", encoding="utf-8")
+    assert too_deep_exempt_paths(pack) == {"cat/pack-a/deep/SKILL.md"}
 
 
 def test_importing_the_feature_does_not_mutate_sys_path() -> None:

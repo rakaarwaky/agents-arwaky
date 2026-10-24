@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path
+from types import ModuleType
 
 from modules.shared.src.skills.taxonomy_skills_constant import (
     ASSETS_MARKER_FILENAME,
@@ -31,10 +32,12 @@ from modules.shared.src.skills.taxonomy_skills_entity import (
 from modules.shared.src.skills.taxonomy_skills_error import SkillsRootError
 from modules.shared.src.utility_skills_markdown import clean_one_line
 
+yaml: ModuleType | None = None
 try:
-    import yaml
+    import yaml as _yaml
+    yaml = _yaml
 except ImportError:  # pragma: no cover - exercised by the S8 test
-    yaml = None  # type: ignore[assignment]
+    yaml = None
 
 __all__ = [
     "assets_container",
@@ -148,10 +151,10 @@ def parse_frontmatter(path: Path) -> dict[str, object]:
 
     if yaml is not None:
         try:
-            data = yaml.safe_load(fm_text)
-            if isinstance(data, dict):
-                return data
-        except Exception:  # noqa: BLE001,S110  (degrade to fallback parser)
+            parsed = yaml.safe_load(fm_text)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:  # degraded to the fallback parser below
             pass
 
     data: dict[str, object] = {}
@@ -235,7 +238,13 @@ def skill_entries(skills_root: Path) -> list[SkillEntry]:
 def category_summaries(
     entries: Iterable[SkillEntry], skills_root: Path
 ) -> list[CategorySummary]:
-    """Per-category description state and skill counts."""
+    """Per-category description state and skill counts.
+
+    ``entries`` is materialized once because it is re-iterated per
+    category; a generator passed here would be consumed by the first
+    category and silently zero every later category's count.
+    """
+    entries = list(entries)
     summaries = []
 
     for category in category_dirs(skills_root):
