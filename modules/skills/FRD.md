@@ -122,27 +122,22 @@ catalog rebuild.
 
 ### Protocol API
 
-| Method | Input | Output | Error | Event | Description |
-|--------|-------|--------|-------|-------|-------------|
-| `execute` | `op`, `query?`, `root?`, `apply?`, `flags?` | result + the op's payload | typed `SkillsError` → exit code | — | one method covers every op |
-
 | Capability protocol | Ops | Returns |
 |---------------------|-----|---------|
-| `ISkillsIndexProtocol` | `list` | `SkillRecord` rows |
-| `ISkillsReaderProtocol` | `show` | `SKILL.md` text |
-| `ISkillsValidatorProtocol` | `validate` | `ValidationReport` |
-| `ISkillsCatalogProtocol` | `catalog` | `CatalogReport` / `CatalogCheckResult` |
-| `ISkillsDiscovererProtocol` | `discover` | `DiscoveryResult` |
-| `ISkillsMutatorProtocol` | `weed`, `repair`, `move`, `archive`, `new-category` | `MutationPlan` / `MutationOutcome` / `NewCategoryPlan` |
-| `ISkillsMergePlannerProtocol` | `merge-plan` | `MergePlan` |
-| `ISkillsRulesRendererProtocol` | `rules` | `RulesDocument` |
+| `ISkillsIndexProtocol` | `list_skills(root=None)` | `Sequence[SkillRecord]` |
+| `ISkillsReaderProtocol` | `show_skill(query, root=None)` | `SkillContent | None` |
+| `ISkillsValidatorProtocol` | `validate(root)` | `ValidationReport` |
+| `ISkillsCatalogProtocol` | `rebuild(root)` / `check(root)` / `load_rows(root)` | `CatalogReport` / `CatalogCheckResult` / `tuple[CatalogRow, ...]` |
+| `ISkillsDiscovererProtocol` | `discover(query, root, limit)` | `DiscoveryResult` |
+| `ISkillsMutatorProtocol` | `plan_move`, `plan_archive`, `plan_repair`, `plan_weed`, `plan_new_category`, `apply`, `apply_new_category` | `MutationPlan` / `MutationOutcome` / `NewCategoryPlan` |
+| `ISkillsMergePlannerProtocol` | `plan(ref_a, ref_b, root)` / `render(plan)` | `MergePlan` / `tuple[str, ...]` |
+| `ISkillsRulesRendererProtocol` | `render_markdown()` / `render_summary()` | `RulesDocument` / `str` |
 
 ### Aggregate API
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `list_skills` | — | table | non-zero when empty | — | Every skill in the pack |
-| `show_skill` | `query` | SKILL.md text | non-zero when unknown | — | One skill's guide |
+| `execute(request)` | `SkillsRequest` (op, query?, root?, apply?, flags?) | `SkillsResult` with the op's payload | typed `SkillsError` → exit code | — | one method covers every op |
 
 ## Integration Points
 
