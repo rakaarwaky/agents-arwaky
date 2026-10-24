@@ -25,7 +25,7 @@ design principles, the interactive creation workflow, and validation rules.
 
 Frontmatter, naming, description, and category-shape constraints are not restated here:
 the executable rules and their exact messages live in
-[`_rules/skill-rules.md`](../_rules/skill-rules.md), generated from
+[`_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md), generated from
 `_rules/skill_rules.py`. This skill teaches how to author, not what the checker enforces.
 
 ## Design principles
@@ -74,7 +74,7 @@ Rules:
 
 - `name:` matches the directory; satisfies the `name-format` and
   `name-mismatch` rules in
-  [`_rules/skill-rules.md`](../_rules/skill-rules.md).
+  [`_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md).
 - `description:` satisfies the `description-*` rules; carries the WHAT +
   WHEN + trigger terms, so auto-invocation works even without
   `when-to-use:`.

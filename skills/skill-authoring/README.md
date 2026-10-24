@@ -10,7 +10,6 @@ answers "which skill do I use".
 | Author / validate / audit a `SKILL.md` | `skill-authoring` | `aa skills validate | show | list` |
 | Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
 | Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
-| Generate AES-format HOW-TO reference files | `howto-generator` | `aa skills rules --markdown` |
 
 ## Pack tooling
 
@@ -44,6 +43,6 @@ aa skills catalog
 
 The executable rules live in
 `modules/shared/src/skills/taxonomy_skills_constant.py`; the rendered
-reference is `skills/skill-authoring/_rules/skill-rules.md` (regenerate with
+reference is `modules/skills/_rules/skill-rules.md` (regenerate with
 `aa skills rules --markdown`). Provenance for each rule is recorded in
 `modules/shared/src/skills/taxonomy_skills_constant.py`.

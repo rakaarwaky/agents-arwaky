@@ -56,7 +56,7 @@ Do not create a new category for a single skill unless the domain is clearly dis
 
 Category names follow the same shape rule the checker enforces for skill names:
 the `name-format` and `category-depth` rules in
-[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md).
+[`../../../../modules/skills/_rules/skill-rules.md`](../../../../modules/skills/_rules/skill-rules.md).
 
 Valid:
 
