@@ -1,8 +1,8 @@
 ---
 name: skill-authoring
-description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split.
-when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, or deciding what belongs in the body versus a references/ file.
-argument-hint: "<create | improve | validate | audit | check> <skill-dir>"
+description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split. Use when the user asks what each skill in a pack does, requests argument hints for every skill in a directory, or checks that a skill pack's references are current.
+when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, deciding what belongs in the body versus a references/ file, explaining a skill pack's features and usage to the user, or generating argument hints for skills in a tree.
+argument-hint: "<create | improve | validate | audit | check | explain | hints> [skill-dir]"
 ---
 
 # Create Skills
@@ -154,6 +154,38 @@ my-skill/
   draft the description, scaffold the directory, verify).
 - **Validating or auditing a skill** → `references/validation-criteria.md` (frontmatter, naming,
   structure, content rules, pre-publish checklist).
+- **Refining frontmatter in place** → follow the Frontmatter section above, then run
+  `aa skills validate`. When the user restates which keys are mandatory, the four mandatory
+  keys are `name`, `description`, `when-to-use`, and `argument-hint`; every other key is
+  optional and target-dependent.
+
+## Explain a skill or pack
+
+When the user asks what a skill does, what a pack covers, or how to use it:
+
+- Read the target `SKILL.md` frontmatter and body; read each `references/*.md` file it
+  links to.
+- Summarize: purpose, when to invoke it (from `description:` and `when-to-use:`),
+  argument/flag surface (from `argument-hint:` and the body), and one concrete example of
+  invoking it.
+- For a whole pack (a category folder with several skill subfolders), cover each skill in
+  the same shape and note which sibling skill handles a nearby job.
+
+## Generate argument hints for a tree
+
+When the user asks for `argument-hint:` values across several skills:
+
+- [ ] List every `SKILL.md` under the given directory (skip `references/` and `scripts/`).
+- [ ] For each skill, derive the hint from its `description:`, `when-to-use:`, and body
+      workflow commands: `[]` for optional groups, `|` for alternatives, `<...>` for
+      required positional args.
+- [ ] When a flag is a counterpart to another flag (for example `--auto` as the
+      unattended apply mode opposite `--dry-run`), say so in one line in the hint or in
+      the flag's body description so the two read as a pair.
+- [ ] Show the proposed hint lines to the user before writing.
+- [ ] Apply each hint to its `SKILL.md` `argument-hint:` line, keeping the value under one
+      line.
+- [ ] Run `aa skills validate` to confirm no rule violations.
 
 ## Scripts and MCP
 
