@@ -159,7 +159,7 @@ catalog rebuild.
 | Determinism | identical output on identical trees | run `aa skills list` twice and diff |
 | Dry-run safety | no mutating command writes without `--apply` | filesystem unchanged after every preview |
 | Exit-code contract | 0 clean / 1 issues / 2 usage / 3 drift | contract tests in `modules/skills/tests/unit_skills_surface.py` |
-| Output parity | byte-identical to the ported script | `aa skills …` vs `skills/skill-authoring/scripts/cli.py` on the same tree |
+| Output parity | byte-identical to the retired legacy script | `aa skills …` vs the legacy authoring CLI on the same tree |
 | No cross-feature imports | the feature imports nothing from sibling feature modules | import graph of the skills module |
 | Layering | surface → root container → agent → capabilities → shared taxonomy | `lac scan modules/skills` |
 

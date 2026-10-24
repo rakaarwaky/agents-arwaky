@@ -1,10 +1,9 @@
 """Skills validator capability (AES capabilities layer).
 
 Implements ``ISkillsValidatorProtocol``: the 13 issue checks ported from
-``skills/skill-authoring/scripts/validate.py`` (itself lifted from
-``librarian.py``). Issue-type strings and message templates come from
-the shared rule SSOT, so the checker and the generated rules doc cannot
-drift apart.
+the retired legacy validator (itself lifted from ``librarian.py``).
+Issue-type strings and message templates come from the shared rule SSOT, so
+the checker and the generated rules doc cannot drift apart.
 
 The report is unfiltered by design: ``--category`` and ``--rules-only``
 narrow what the surface lists, never what the validator finds, so the
