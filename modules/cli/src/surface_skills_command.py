@@ -68,7 +68,18 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_list(rest, aggregate)
     if sub == "show":
         return _cmd_show(rest, aggregate)
-    if sub in _AUTHORING:
+    if sub in (
+        "validate",
+        "catalog",
+        "discover",
+        "weed",
+        "repair",
+        "move",
+        "archive",
+        "new-category",
+        "merge-plan",
+        "rules",
+    ):
         return _cmd_authoring(sub, rest, aggregate)
 
     err(f"Unknown skills subcommand: {sub}")
@@ -266,20 +277,6 @@ def _authoring_parser() -> argparse.ArgumentParser:
     return parser
 
 
-_AUTHORING = {
-    "validate",
-    "catalog",
-    "discover",
-    "weed",
-    "repair",
-    "move",
-    "archive",
-    "new-category",
-    "merge-plan",
-    "rules",
-}
-
-
 def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> int:
     """Parse an authoring subcommand and render its result."""
     try:
@@ -296,8 +293,25 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         print(f"ERROR: {result.message}", file=sys.stderr)
         return result.exit_code
 
-    renderer = _RENDERERS[request.op.value]
-    return renderer(result, request)
+    if sub == "validate":
+        return _render_validate(result, request)
+    if sub == "catalog":
+        return _render_catalog(result, request)
+    if sub == "discover":
+        return _render_discover(result, request)
+    if sub == "weed":
+        return _render_weed(result, request)
+    if sub == "repair":
+        return _render_repair(result, request)
+    if sub == "move":
+        return _render_move(result, request)
+    if sub == "archive":
+        return _render_archive(result, request)
+    if sub == "new-category":
+        return _render_new_category(result, request)
+    if sub == "merge-plan":
+        return _render_merge_plan(result, request)
+    return _render_rules(result, request)
 
 
 def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
@@ -776,17 +790,3 @@ def _render_rules(result: SkillsResult, request: SkillsRequest) -> int:
     else:
         print(document)
     return 0
-
-
-_RENDERERS = {
-    "validate": _render_validate,
-    "catalog": _render_catalog,
-    "discover": _render_discover,
-    "weed": _render_weed,
-    "repair": _render_repair,
-    "move": _render_move,
-    "archive": _render_archive,
-    "new-category": _render_new_category,
-    "merge-plan": _render_merge_plan,
-    "rules": _render_rules,
-}

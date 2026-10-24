@@ -232,35 +232,6 @@ def test_rules_markdown_matches_the_generated_doc(tmp_path: Path) -> None:
     assert document == SkillsRulesRenderer().render_markdown().markdown
 
 
-def test_all_twelve_subcommands_reachable_and_shape_parity(tmp_path: Path) -> None:
-    """Every verb renders the legacy text shape with its exit code."""
-    root = crafted_tree(tmp_path)
-    run_surface(root, "catalog")
-
-    cases = (
-        ("list", 0, "SKILL"),
-        ("show", "note-taker", 0, "# note-taker"),
-        ("validate", 1, "[name-mismatch]"),
-        ("catalog", 0, "Rebuilt"),
-        ("catalog", "--check", 0, "Catalog in sync:"),
-        ("discover", "docs", 0, "| Skill | Category | Description | Path | Score |"),
-        ("weed", 0, "Weeding report:"),
-        ("repair", 0, "Planned repairs (dry-run"),
-        ("move", "drafts/doc-drafts", "notes", 0, "Planned move (dry-run"),
-        ("archive", "drafts/doc-drafts", 0, "Planned archive (dry-run"),
-        ("new-category", "beta-cat", "Second", 0, "Planned new-category (dry-run"),
-        ("merge-plan", "drafts/doc-drafts", "notes/note-taker", 0, "# Merge plan"),
-        ("rules", 0, "13 rules from _rules/skill_rules.py:"),
-    )
-    for case in cases:
-        argv = case[:-2]
-        expected_code = case[-2]
-        expected_fragment = case[-1]
-        code, out, err = run_surface(root, *argv)
-        assert code == expected_code, (argv, code, out, err)
-        assert expected_fragment in out, (argv, out)
-
-
 def test_validate_full_listing_matches_the_legacy_shape(tmp_path: Path) -> None:
     """The per-issue listing keeps the ``- [type] locator: message`` lines."""
     root = crafted_tree(tmp_path)

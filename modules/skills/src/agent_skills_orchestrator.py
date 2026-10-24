@@ -17,9 +17,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
-from typing import TypeVar
-
-_T = TypeVar("_T")
+from typing import Any, cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
@@ -89,9 +87,8 @@ class SkillsAgent(ISkillsAggregate):
                 message=f"Unknown skills op: {request.op}",
             )
 
-        handler: Callable[[SkillsRequest, SkillsOp], SkillsResult]
         try:
-            handler = self._handlers()[op]
+            handler = self._handler_for(op)
         except KeyError:
             return SkillsResult(
                 ok=False,
@@ -111,22 +108,15 @@ class SkillsAgent(ISkillsAggregate):
             )
 
     # ─── Block 3: Per-Op Handlers ─────────────────────────────
-    def _handlers(self) -> dict[SkillsOp, Callable[[SkillsRequest, SkillsOp], SkillsResult]]:
-        """Every op mapped to its typed handler (dispatch table for ``execute``)."""
-        return {
-            SkillsOp.LIST: self._execute_list,
-            SkillsOp.SHOW: self._execute_show,
-            SkillsOp.VALIDATE: self._execute_validate,
-            SkillsOp.CATALOG: self._execute_catalog,
-            SkillsOp.DISCOVER: self._execute_discover,
-            SkillsOp.WEED: self._execute_weed,
-            SkillsOp.REPAIR: self._execute_repair,
-            SkillsOp.MOVE: self._execute_move,
-            SkillsOp.ARCHIVE: self._execute_archive,
-            SkillsOp.NEW_CATEGORY: self._execute_new_category,
-            SkillsOp.MERGE_PLAN: self._execute_merge_plan,
-            SkillsOp.RULES: self._execute_rules,
-        }
+    def _handler_for(
+        self, op: SkillsOp
+    ) -> Callable[[SkillsRequest, SkillsOp], SkillsResult]:
+        """The typed handler for one op; ``KeyError`` for an unknown one."""
+        name = f"_execute_{op.value.replace('-', '_')}"
+        handler = getattr(self, name, None)
+        if not callable(handler):
+            raise KeyError(name)
+        return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
 
     def _execute_list(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """List every skill in the pack."""
@@ -156,7 +146,7 @@ class SkillsAgent(ISkillsAggregate):
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
         """Run the 13-rule validator over the resolved root."""
-        validator = self._require_capability(self._validator, "validator")
+        validator = self._require(self._validator, "validator")
         report = validator.validate(self._root(request))
 
         exit_code = (
@@ -174,7 +164,7 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_catalog(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Rebuild the catalog, or with ``--check`` only test for drift."""
-        catalog = self._require_capability(self._catalog, "catalog")
+        catalog = self._require(self._catalog, "catalog")
         root = self._root(request)
 
         if request.flags.get("check") == "1":
@@ -200,7 +190,7 @@ class SkillsAgent(ISkillsAggregate):
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
         """Score the catalog against the query, with the drift fallback."""
-        discoverer = self._require_capability(self._discoverer, "discoverer")
+        discoverer = self._require(self._discoverer, "discoverer")
         limit = int(request.flags.get("limit", "20"))
         root = self._root(request)
         result = discoverer.discover(str(request.query), root, limit)
@@ -216,7 +206,7 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_weed(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Report weeds; any weed line makes the exit code 1."""
-        mutator = self._require_capability(self._mutator, "mutator")
+        mutator = self._require(self._mutator, "mutator")
         root = self._root(request)
         plan = mutator.plan_weed(root)
         exit_code = (
@@ -232,7 +222,7 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_repair(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Apply safe mechanical repairs — preview by default."""
-        mutator = self._require_capability(self._mutator, "mutator")
+        mutator = self._require(self._mutator, "mutator")
         root = self._root(request)
         plan = mutator.plan_repair(root)
 
@@ -240,14 +230,14 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=True, op=op, plan=plan, root=root)
 
         outcome = mutator.apply(plan)
-        catalog = self._require_capability(self._catalog, "catalog").rebuild(root)
+        catalog = self._require(self._catalog, "catalog").rebuild(root)
         return SkillsResult(
             ok=True, op=op, plan=plan, outcome=outcome, catalog=catalog, root=root
         )
 
     def _execute_move(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Move a skill folder to another category — preview by default."""
-        mutator = self._require_capability(self._mutator, "mutator")
+        mutator = self._require(self._mutator, "mutator")
         root = self._root(request)
         plan = mutator.plan_move(
             str(request.query), request.flags.get("target", ""), root
@@ -257,14 +247,14 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=True, op=op, plan=plan, root=root)
 
         outcome = mutator.apply(plan)
-        catalog = self._require_capability(self._catalog, "catalog").rebuild(root)
+        catalog = self._require(self._catalog, "catalog").rebuild(root)
         return SkillsResult(
             ok=True, op=op, plan=plan, outcome=outcome, catalog=catalog, root=root
         )
 
     def _execute_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Archive a skill into ``_archive/`` — preview by default."""
-        mutator = self._require_capability(self._mutator, "mutator")
+        mutator = self._require(self._mutator, "mutator")
         root = self._root(request)
         plan = mutator.plan_archive(str(request.query), root)
 
@@ -272,7 +262,7 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=True, op=op, plan=plan, root=root)
 
         outcome = mutator.apply(plan)
-        catalog = self._require_capability(self._catalog, "catalog").rebuild(root)
+        catalog = self._require(self._catalog, "catalog").rebuild(root)
         return SkillsResult(
             ok=True, op=op, plan=plan, outcome=outcome, catalog=catalog, root=root
         )
@@ -281,7 +271,7 @@ class SkillsAgent(ISkillsAggregate):
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
         """Create a category folder and its ``DESCRIPTION.md`` — preview by default."""
-        mutator = self._require_capability(self._mutator, "mutator")
+        mutator = self._require(self._mutator, "mutator")
         root = self._root(request)
         plan = mutator.plan_new_category(
             str(request.query),
@@ -295,7 +285,7 @@ class SkillsAgent(ISkillsAggregate):
 
         wrote = mutator.apply_new_category(plan)
         plan = replace(plan, created=wrote)
-        catalog = self._require_capability(self._catalog, "catalog").rebuild(root)
+        catalog = self._require(self._catalog, "catalog").rebuild(root)
         return SkillsResult(
             ok=True,
             op=op,
@@ -308,7 +298,7 @@ class SkillsAgent(ISkillsAggregate):
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
         """Emit the read-only merge plan; nothing is executed."""
-        planner = self._require_capability(self._merge_planner, "merge planner")
+        planner = self._require(self._merge_planner, "merge planner")
         root = self._root(request)
         plan = planner.plan(
             str(request.query), request.flags.get("target", ""), root
@@ -319,7 +309,7 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_rules(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Render the rule SSOT: the markdown doc or the summary form."""
-        renderer = self._require_capability(self._rules_renderer, "rules renderer")
+        renderer = self._require(self._rules_renderer, "rules renderer")
         document = renderer.render_markdown()
         if request.flags.get("markdown") == "1":
             return SkillsResult(ok=True, op=op, document=document.markdown)
@@ -337,7 +327,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsRoot(self._default_root)
         raise SkillsUsageError("No skills root configured")
 
-    def _require_capability(self, capability: _T | None, name: str) -> _T:
+    @staticmethod
+    def _require(capability: Any, name: str) -> Any:
         """Fail loudly when an op is used on an aggregate wired without it."""
         if capability is None:
             raise SkillsUsageError(f"Skills {name} capability is not configured")
