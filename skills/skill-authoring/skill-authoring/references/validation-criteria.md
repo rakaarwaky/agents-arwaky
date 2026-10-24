@@ -8,7 +8,7 @@ Rules for validating a SKILL.md before publishing. The main guide owns the desig
 this file is the mechanical checklist.
 
 The frontmatter, name, description, and category-shape constraints are not restated here:
-they are the rules in [`../../_rules/skill-rules.md`](../../_rules/skill-rules.md), which is
+they are the rules in [`../../../../modules/skills/_rules/skill-rules.md`](../../../../modules/skills/_rules/skill-rules.md), which is
 generated from the same `_rules/skill_rules.py` module the validator runs. What remains here
 is the harness-specific guidance the checker does not encode: which keys each target parses,
 YAML hygiene, and the pre-publish checklist.
@@ -34,7 +34,7 @@ and `argument-hint`). All other keys are optional and target-dependent.
 ### Naming
 
 The naming constraints are the `name-format` and `name-mismatch` rules in
-[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md). What that doc does not cover:
+[`../../../../modules/skills/_rules/skill-rules.md`](../../../../modules/skills/_rules/skill-rules.md). What that doc does not cover:
 
 - Gerund form preferred (`processing-pdfs`) over `pdf-processing`, when both are valid.
 - Renaming a skill = rename the directory (`git mv`) and grep the tree for inbound mentions.
@@ -42,7 +42,7 @@ The naming constraints are the `name-format` and `name-mismatch` rules in
 ### Description
 
 The description constraints are the `description-*` rules in
-[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md). What that doc does
+[`../../../../modules/skills/_rules/skill-rules.md`](../../../../modules/skills/_rules/skill-rules.md). What that doc does
 not cover:
 
 - Third person: "Extracts text from PDFs", never "I can help".
@@ -64,7 +64,7 @@ key is ignored.
 
 The placement and nesting constraints are the `skill-placement`, `category-depth`, and
 `skill-md-nesting` rules in
-[`../../_rules/skill-rules.md`](../../_rules/skill-rules.md). What that doc does not cover:
+[`../../../../modules/skills/_rules/skill-rules.md`](../../../../modules/skills/_rules/skill-rules.md). What that doc does not cover:
 
 - `references/` exactly one level deep; every reference links directly from `SKILL.md`.
 - Body target ~100-200 lines for simple skills, hard ceiling is the harness's limit

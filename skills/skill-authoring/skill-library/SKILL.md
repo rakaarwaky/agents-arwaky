@@ -125,7 +125,7 @@ Use this when the user asks to reorganize categories or create a new category.
 ## Category rules
 
 Category shape and `DESCRIPTION.md` constraints are the rules in
-[`../_rules/skill-rules.md`](../_rules/skill-rules.md) (`category-description-present`,
+[`../../../modules/skills/_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md) (`category-description-present`,
 `category-description-nonempty`, `category-nonempty`, `category-depth`). The category
 description helps the Librarian decide where skills belong; keep it short, concrete, and
 domain-focused. `references/category-rules.md` carries the folder-shape examples.

@@ -3,13 +3,6 @@ name: skill-authoring
 description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split.
 when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, or deciding what belongs in the body versus a references/ file.
 argument-hint: "<create | improve | validate | audit | check> <skill-dir>"
-metadata:
-  tags:
-    - skills
-    - authoring
-    - creation
-    - validation
-    - design
 ---
 
 # Create Skills
@@ -22,19 +15,17 @@ design principles, the interactive creation workflow, and validation rules.
 - Asked to create, write, structure, improve, validate, or audit a skill / `SKILL.md`.
 - Deciding what goes in the body versus a `references/` file, or how to word a `description:`.
 - Don't use for: discovering or reading installed skills (`skill-library`), consolidating
-  a skill tree (`skill-lifecycle`), or authoring a skill committed to the hermes-agent repo
-  (`hermes-agent-skill-authoring`).
+  a skill tree (`skill-lifecycle`)
 
 ## Routing
 
 - **`skill-library`** — listing and reading installed skills (`aa skills list/show`).
 - **`skill-lifecycle`** — consolidating or de-duplicating a skill tree.
-- **`howto-generator`** — generating AES-format HOW-TO reference files.
 - **`skill-library`** — cataloging, repairing, and weeding the library.
 
 Frontmatter, naming, description, and category-shape constraints are not restated here:
 the executable rules and their exact messages live in
-[`_rules/skill-rules.md`](../_rules/skill-rules.md), generated from
+[`_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md), generated from
 `_rules/skill_rules.py`. This skill teaches how to author, not what the checker enforces.
 
 ## Design principles
@@ -83,7 +74,7 @@ Rules:
 
 - `name:` matches the directory; satisfies the `name-format` and
   `name-mismatch` rules in
-  [`_rules/skill-rules.md`](../_rules/skill-rules.md).
+  [`_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md).
 - `description:` satisfies the `description-*` rules; carries the WHAT +
   WHEN + trigger terms, so auto-invocation works even without
   `when-to-use:`.
