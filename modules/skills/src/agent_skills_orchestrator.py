@@ -29,6 +29,7 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsValidatorProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_error import (
+    SkillsError,
     SkillsRootError,
     SkillsUsageError,
 )
@@ -94,7 +95,7 @@ class SkillsAgent(ISkillsAggregate):
 
         try:
             return handler(request, op)
-        except SkillsUsageError as failure:
+        except SkillsError as failure:
             return SkillsResult(
                 ok=False,
                 op=op,

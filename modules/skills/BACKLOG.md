@@ -14,6 +14,9 @@ Last Updated: 2026-10-24
   catalog, discoverer, mutator, merge planner, rules renderer), the agent
   orchestrator (including the mutation→catalog pipeline), the root
   container, and the 12-verb CLI surface.
+- Done (amended 2026-10-25, PR-5): the feature *reads and authors* the
+  pack — the read-only invariant is dropped; the agent dispatches every op
+  and owns the mutation→catalog chain.
 - Done: `aa skills` exposes every capability of the legacy
   `skills/skill-authoring/scripts/cli.py` — `list`, `show`, `validate`,
   `catalog`, `discover`, `weed`, `repair`, `move`, `archive`,
@@ -97,3 +100,4 @@ Last Updated: 2026-10-24
 | 2026-10-23 | Scenario Evidence, Release Readiness, and Change Log converted to the AES606 template tables | @raka |
 | 2026-10-24 | Feature amended from read-only discovery to read + authoring: the skill-authoring toolchain moved into `modules/skills` and is exposed as 12 `aa skills` verbs; legacy script reduced to a shim | @raka |
 | 2026-10-24 | Retired the legacy script package and the pack's own pytest suite; the shims and the generated pack artifacts remain | @raka |
+| 2026-10-25 | FRD/BACKLOG amended: the feature reads and authors (the read-only invariant dropped with the first write path); the agent dispatches every op and owns the mutation→catalog chain | @raka |
