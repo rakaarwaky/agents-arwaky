@@ -13,6 +13,7 @@ from modules.shared.src.skills.contract_skills_protocol import ISkillsIndexProto
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillDescription,
     SkillRecord,
+    SkillsRoot,
 )
 from modules.shared.src.utility_skill_pack import (
     default_pack_root,
@@ -34,10 +35,11 @@ class SkillsIndexBuilder(ISkillsIndexProtocol):
         self._root = pack_root or default_pack_root()
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def list_skills(self) -> Sequence[SkillRecord]:
+    def list_skills(self, root: SkillsRoot | None = None) -> Sequence[SkillRecord]:
         """Return one record per skill in the pack, sorted by name."""
+        pack_root = Path(root) if root is not None else self._root
         records: list[SkillRecord] = []
-        for skill_md in iter_skill_mds(self._root):
+        for skill_md in iter_skill_mds(pack_root):
             name, description = parse_skill_frontmatter(skill_md)
             records.append(
                 SkillRecord(
