@@ -6,6 +6,7 @@ Opt-in for PR-8 DM1: the validator treats the sub-directories under this folder 
 
 - `orca-automations` — scheduled automations and cron jobs
 - `orca-cli` — orca CLI interface
+- `orca-computer-use` — drive visible local app windows via `orca computer`
 - `orca-emulator` — desktop emulator orchestration
 - `orca-emulator-android` — Android emulator
 - `orca-emulator-ios` — iOS emulator (where present)
