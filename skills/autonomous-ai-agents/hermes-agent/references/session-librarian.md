@@ -1,19 +1,4 @@
----
-name: session-librarian
-description: Organize sessions by prompt: find, rename, archive, prune.
-metadata:
-  tags:
-    - Sessions
-    - Organization
-    - Cleanup
-    - Library
-    - Productivity
-  related_skills:
-    - weekly-review-planning
-  category: productivity
----
-
-# Session Librarian
+# Session Librarian (session find / rename / archive / prune)
 
 Manage the user's session library conversationally: find past sessions about a
 topic, summarize what they decided, rename them meaningfully, split work into
@@ -21,8 +6,7 @@ parallel sessions, and propose stale ones for archive or deletion — all from a
 plain-language request like *"find my sessions about Q3 pricing, keep the
 useful ones, and clean up the duplicates."*
 
-Inspired by Perplexity Computer's prompt-driven session management (Aug 2026):
-the agent starts, organizes, and cleans up the user's own session library, and
+The agent starts, organizes, and cleans up the user's own session library, and
 always shows the plan before touching anything.
 
 ## When to Use
