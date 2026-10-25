@@ -1,0 +1,10 @@
+{
+  "root": [
+    "ROADMAP.md"
+  ],
+  "features": [
+    {"name": "widgets", "dir": "widgets", "docs": ["widgets/BACKLOG.md"]},
+    {"name": "widgets-tools", "dir": "widgets-tools", "docs": ["widgets-tools/BACKLOG.md"]},
+    {"name": "widgets-ext", "dir": "widgets-ext", "docs": ["widgets-ext/BACKLOG.md"]}
+  ]
+}
