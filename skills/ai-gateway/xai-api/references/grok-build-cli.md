@@ -19,6 +19,9 @@
 | `grok worktree <list|show|rm|gc>` | Manage git worktrees |
 | `grok dashboard` | Open Agent Dashboard |
 | `grok agent stdio` | Run as an ACP agent over JSON-RPC on stdin/stdout |
+| `grok agent headless` | Run the agent headlessly over the Grok WebSocket relay |
+| `grok agent serve` | Run the agent as a WebSocket server |
+| `grok agent leader` | Run as the shared leader process for other clients |
 | `grok wrap <command...>` | Run a command in a local PTY that forwards OSC 52 clipboard writes |
 | `grok update` | Check/install updates (`--check`, `--version <V>`, `--alpha`, `--stable`) |
 | `grok version` | Print version |
@@ -93,3 +96,18 @@ grok -p "$(cat /tmp/grok-task-slug.md)" --always-approve --output-format json --
 
 Via Hermes `terminal` tool: launch `background=true, pty=true` for TUI pattern, or
 use the `-p` headless form (no PTY needed) which returns clean JSON on exit.
+
+## Orca delegation channel (when Orca is installed)
+
+Drive the Grok TUI through Orca instead of raw `grok -p`:
+
+```text
+orca worktree create --repo path:<repo> --name <task> --agent grok --prompt "<brief>" --no-parent --surface terminal --json
+orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
+orca terminal send --terminal <handle> --text "<full brief>" --enter --json
+orca terminal read --terminal <handle> --cursor <cursor> --limit 1000 --json
+```
+
+- `grok` is a registered Orca agent id — verify with `~/.config/orca/agent-model-catalog.json` (this install: `grok` agent, models `grok-4.7`/`grok-4.6`/`grok-4.5`, default effort `high`) before trusting an agent id.
+- `--surface terminal` keeps the TUI controllable via `orca terminal`; a chat surface is not scriptable the same way.
+- The worktree is Orca-managed, not the `~/.grok/worktrees/` store — retire it with `orca worktree rm`.

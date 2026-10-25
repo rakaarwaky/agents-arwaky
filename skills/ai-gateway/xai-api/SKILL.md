@@ -45,6 +45,7 @@ Reference skill covering the xAI Grok API (https://api.x.ai/v1) and the Grok Bui
 - Grok Build model: `grok-build-0.1` (256k context, $1.00/$2.00 per 1M tokens <200k prompt).
 - The Grok CLI binary is `grok` (installed at `~/.local/bin/grok`, config at `~/.grok/`).
 - Headless coding: `grok -p "<brief>" --output-format json --always-approve` — the `-p` flag DOES exist (verified in docs); earlier local `--help` output was misleading.
+- Live model/effort catalog: `~/.config/orca/agent-model-catalog.json` — query it instead of trusting hardcoded model ids; this install serves `grok-4.7` (live, default effort `high`) and the `myomniroute` gateway. `grok --help` prints no models; `grok models` lists them.
 - OmniRoute proxies xAI models via `base_url: http://localhost:7777/v1`.
 
 ## Load on demand

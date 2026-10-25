@@ -31,12 +31,16 @@ aa skills COMMAND
 aa skills catalog
 aa skills discover "github pull request"
 aa skills validate
-aa skills repair
+aa skills repair --apply
 aa skills weed
-aa skills move automation/file-renamer productivity
+aa skills move automation/file-renamer productivity --apply
 aa skills new-category data-engineering "Skills for pipelines, datasets, and data processing"
 aa skills archive old-skill
 ```
+
+The write commands `move`, `archive`, and `new-category` default to a dry-run that only
+prints the planned changes; pass `--apply` to execute. Dry runs exit 0, so always check
+the output for "Planned" lines — exit 0 does not mean the change was made.
 
 Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML parsing. Without PyYAML, the script uses a minimal frontmatter parser.
 
@@ -49,9 +53,9 @@ Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML pa
 - `validate`: report frontmatter, naming, placement, and category issues.
 - `weed`: report duplicates, empty categories, and missing category descriptions.
 - `repair`: preview safe mechanical repairs by default; add `--apply` to execute them.
-- `move SKILL TARGET_CATEGORY`: move a skill folder to another category, then rebuild the catalog.
+- `move SKILL TARGET_CATEGORY` (accepts `category/skill` or bare `skill`): move a skill folder to another category, then rebuild the catalog. Dry-run by default; `--apply` executes.
 - `new-category NAME DESCRIPTION`: create a category folder and write its `DESCRIPTION.md`.
-- `archive SKILL`: move a skill into `_archive/` and disable its `SKILL.md`.
+- `archive SKILL`: move a skill into `_archive/` and disable its `SKILL.md`; dry-run by default, `--apply` executes.
 - `merge-plan A B`: emit a read-only plan for merging two skills; hand execution off to `skill-lifecycle` when the plan is approved.
 - `rules [--markdown]`: render the rule set from the SSOT (`modules/skills/_rules/skill-rules.md`).
 
@@ -84,8 +88,7 @@ Use this when the user asks to audit the library, fix categories, or organize sk
 - [ ] Read the relevant `DESCRIPTION.md` files.
 - [ ] Decide the correct category for each misplaced skill.
 - [ ] If no existing category fits, create a new category with `new-category`.
-- [ ] Move misplaced skills with `move`.
-- [ ] Rebuild the catalog.
+- [ ] Move misplaced skills with `move --apply` (the move already rebuilds the catalog).
 - [ ] Report every move, created category, and catalog update.
 
 The Librarian operates in Auto-Pilot mode. Apply the changes directly, then report what changed.
@@ -121,9 +124,9 @@ Use this when the user asks to reorganize categories or create a new category.
 - [ ] Read the Categories table in `CATALOG.md`.
 - [ ] Identify broad, missing, overlapping, or empty categories.
 - [ ] Create new categories with `new-category`.
-- [ ] Move skills into the correct categories with `move`.
+- [ ] Move skills into the correct categories with `move --apply` (the move already rebuilds the catalog).
 - [ ] Improve category `DESCRIPTION.md` wording where needed.
-- [ ] Rebuild the catalog.
+- [ ] Rebuild the catalog if DESCRIPTION.md files were edited by hand.
 - [ ] Report the final category structure and moved skills.
 
 ## Category rules

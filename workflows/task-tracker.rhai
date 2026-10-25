@@ -218,8 +218,10 @@ for g in groups {
         + "1. Extract each file's State Definitions table; list the state names it defines. "
         + "2. Extract every table row whose headers include ID and State; capture the doc-level "
         + "\"State: <value>\" line at the top of a feature backlog. "
-        + "3. ALSO extract the \"Next Action\" column (or \"Item\" column if \"Next Action\" is not present) "
-        + "from each row — include it as \"next_action\" in the output JSON. "
+        + "3. Extract the Next Action cell value (or Item cell value if Next Action is absent) "
+        + "from each table row — capture ONLY the text between the | delimiters of that column in the "
+        + "row; prose outside the table (Current Condition, etc.) is out of scope. "
+        + "Trim leading/trailing whitespace. Include it as \"next_action\" in the output JSON. "
         + "4. Collect the FR-id set: every FR-<SCOPE>-NNN declared in the FRD headings and every FRD Ref "
         + "cell cited by the backlog rows. "
         + "5. If the roadmap has a Feature Roll-up table, extract THIS feature's roll-up row verbatim, all cells. "
@@ -277,38 +279,66 @@ for g in groups {
     }
     
     // Classify each row based on trust_mode
+    // Next Action is checked for ALL rows regardless of trust_mode (skill spec).
+    // A Done row under trust mode is accepted for STATE, but its Next Action
+    // (if it has descriptive content) still needs verification.
     for r in feature_rows {
-        let row_state = r.state.to_string().to_lowercase();
-        let next_action = r.next_action.to_string().to_lowercase();
+        let row_state = r.state.to_string();
+        let next_action = r.next_action.to_string();
         let classification = "";
         let next_action_check = ();
         
-        // Check next_action first (applies regardless of trust_mode)
-        if next_action.contains("none") || next_action.contains("<skip>") {
+        // Check next_action first (applies regardless of trust_mode).
+        // Skip ONLY when the cell is a single word that is none / None / <skip> / empty.
+        // Multi-word cells ("None — every row is Done") or any other content must be
+        // verified: the Next Action column still has descriptive content that owes
+        // a tracking or doc-sync issue.
+        let na_trimmed = next_action;
+        // Strip leading/trailing whitespace
+        let j2 = 0;
+        let nlen2 = na_trimmed.len();
+        while j2 < nlen2 && na_trimmed.sub_string(j2, 1) == " " { j2 += 1; }
+        let j3 = nlen2 - 1;
+        while j3 >= j2 && na_trimmed.sub_string(j3, 1) == " " { j3 -= 1; }
+        let na_clean = if j3 >= j2 { na_trimmed.sub_string(j2, j3 - j2 + 1) } else { "" };
+        let na_words = 0;
+        if na_clean != "" { na_words = 1; }
+        let k = 0;
+        while k < na_clean.len() {
+            if na_clean.sub_string(k, 1) == " " { na_words += 1; }
+            k += 1;
+        }
+        let na_lower_exact = na_clean == "none" || na_clean == "None" || na_clean == "NONE" || na_clean == "<skip>" || na_clean == "";
+        if na_lower_exact {
             classification = "skip_next_action";
-        } else if next_action != "" && next_action != "none" && next_action != "<skip>" {
-            // Has a next action item
+        } else {
+            // Next Action has descriptive content — needs verification regardless of state/trust
             next_action_check = #{
                 action_text: r.next_action,
                 needs_verification: true
             };
         }
         
-        // Apply trust_mode for Done rows
-        if row_state == "done" {
-            if trust_mode == "trust" {
-                if classification == "" {
-                    classification = "skip";
+        // State-based classification (provisional — Phase 4 determines final verdict)
+        if classification == "" {
+            if row_state == "Done" {
+                if trust_mode == "trust" {
+                    if next_action_check != () {
+                        // Done + trust + Next Action content: verifier must check the
+                        // Next Action action (next_action_complete or next_action_pending).
+                        // State itself is accepted at face value.
+                        classification = "next_action_check";
+                    } else {
+                        classification = "skip";
+                    }
+                } else {
+                    if next_action_check != () {
+                        classification = "unverified_with_next_action";
+                    } else {
+                        classification = "unverified";
+                    }
                 }
-            } else {
-                // no-trust mode: Done rows need verification
-                if classification == "" {
-                    classification = "unverified";  // Default for Done in no-trust mode
-                }
-            }
-        } else if classification == "" {
-            // Non-Done rows
-            if row_state == "ready" || row_state == "in progress" || row_state == "in review" {
+            } else if row_state == "Ready" || row_state == "In Progress" || row_state == "In Review" {
                 classification = "incomplete";
             } else {
                 classification = "incomplete";  // Default for unknown states
@@ -335,13 +365,13 @@ for g in groups {
     // Compute effective state from backlog rows
     let effective_state = "Done";
     for r in feature_rows {
-        let rs = r.state.to_string().to_lowercase();
-        if rs == "in progress" {
+        let rs = r.state.to_string();
+        if rs == "In Progress" {
             effective_state = "In Progress";
             break;
-        } else if rs == "in review" && effective_state != "In Progress" {
+        } else if rs == "In Review" && effective_state != "In Progress" {
             effective_state = "In Review";
-        } else if rs == "ready" && effective_state == "Done" {
+        } else if rs == "Ready" && effective_state == "Done" {
             effective_state = "Ready";
         }
     }
@@ -372,7 +402,11 @@ log("classified " + classified_rows.len().to_string() + " rows with trust_mode="
 // against each feature's effective state, and FR orphans are flagged in both directions.
 phase("Verify");
 let verdicts = [];
-let j = 0;
+
+// Build all verifier jobs first, then fan out in parallel (Engine Fix 2).
+// The previous sequential `for g in groups { agent(...) }` serialized 12+
+// verifier LLM calls; parallel matches the Scan phase pattern.
+let verify_jobs = [];
 for g in groups {
     // Build feature-specific classified rows for the verifier
     let feature_classified = [];
@@ -383,10 +417,15 @@ for g in groups {
     }
     
     let vp = "Verify the feature \"" + g.name + "\" against ACTUAL CODE ONLY. Trust mode: " + trust_mode + ". "
-        + "In 'trust' mode: all Done rows are pre-classified as 'skip' and should not be re-verified. "
-        + "In 'no-trust' mode: Done rows are proof demands and must be verified against source code. "
+        + "In 'no-trust' mode, Done rows are proof demands and must be verified against source code; "
+        + "in 'trust' mode, Done rows are accepted at face value for STATE only. "
+        + "BOTH MODES: for ANY row whose Next Action cell contains descriptive text "
+        + "(not none, not <skip>, not empty), you MUST check whether that action is already "
+        + "implemented in code + tests. If yes → verdict next_action_complete (set Next Action to none). "
+        + "If no → verdict next_action_pending (implement the action, then set Next Action to done). "
+        + "This applies to Done rows under trust mode as well — trust mode only skips STATE verification, "
+        + "never Next Action verification. "
         + "The only evidence that counts is the source code and test files in the feature's own tree. "
-        + "You receive pre-classified rows with their classification and next_action_check fields. "
         + "For every row in the feature's BACKLOG: "
         + "(1) Read the row's item text and its Actual Condition cell. "
         + "(2) Open the files under " + g.dir + "/src/ and " + g.dir + "/tests/ that the row's description refers to "
@@ -442,15 +481,22 @@ for g in groups {
         + "then doc edit to set Next Action to 'done' in <source-doc>. "
         + "Closing condition is a check, never a status: no 'should be done', only paths, behavior, and a command. "
         + "No writes, no issue creation.";
-    let res = agent(vp, #{
+    verify_jobs.push(#{
+        prompt: vp,
         label: "verify:" + g.name,
         capability_mode: "read-only",
         output_schema: verdict_schema,
+        _feature_name: g.name,
     });
+}
+let verify_results = parallel(verify_jobs);
+for vr in verify_results {
+    let res = vr;
     if res != () && res.success && res.output != () {
+        let gname = res._feature_name;
         let got_verdicts = if type_of(res.output.verdicts) == "array" { res.output.verdicts } else { [] };
         for v in got_verdicts {
-            v.feature = g.name;
+            v.feature = gname;
             verdicts.push(v);
         }
         let got_rollups = if type_of(res.output.rollup_verdicts) == "array" { res.output.rollup_verdicts } else { [] };
@@ -460,7 +506,6 @@ for g in groups {
             verdicts.push(rv);
         }
     }
-    j += 1;
 }
 log("verified " + verdicts.len().to_string() + " verdicts across " + groups.len().to_string() + " features");
 
