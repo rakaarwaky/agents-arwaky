@@ -37,12 +37,12 @@ Not every entry carries every field.
 2. `Counter(m.get("root") or m["id"] for m in models)` — see the family counts.
 3. Exclude combos, image prefixes, and utility families.
 4. Dedupe variant suffixes.
-5. Tier S→D by capability; write `Model | Tier | Cocok untuk` rows. If tiering a user-supplied shortlist, match on the model name suffix, not the provider-prefixed slug (`yjs/gpt-oss-20b` → `gpt-oss-20b`). If the user asks for benchmark evidence, check OpenRouter usage-rank (popularity, not quality), LMArena Elo, and BenchLM's independent composite (see SKILL.md step 6) — mark models absent from an independent source as "no independent benchmark data", not as low-quality.
+5. Tier S→D by capability; write `Model | Tier | Cocok untuk` rows. If tiering a user-supplied shortlist, match on the model name suffix, not the provider-prefixed slug (`yjs/gpt-oss-20b` → `gpt-oss-20b`). If the user asks for benchmark evidence, check OpenRouter usage-rank (popularity, not quality), LMArena Elo, and BenchLM's independent composite (see model-tier-list.md step 6) — mark models absent from an independent source as "no independent benchmark data", not as low-quality.
 6. Note `auto/best-coding` / `auto/pro-coding` as the practical shortcut; write the file to a user-visible path.
 
 ## Where each source lives
 
 - OpenRouter usage-rank: `https://openrouter.ai/api/v1/models?order=top-weekly` (public, no key).
-- LMArena: `lmarena.ai/leaderboard/text` (client-rendered, no API — browser-scrape, see SKILL.md step 6).
+- LMArena: `lmarena.ai/leaderboard/text` (client-rendered, no API — browser-scrape, see model-tier-list.md step 6).
 - HuggingFace model cards: `huggingface.co/api/models?search=<name>` → `<repo>/raw/main/README.md` (vendor-reported numbers).
-- BenchLM Data API: `data.benchlm.ai/v1` (Bearer key, independent composite score; free tier = current data only; see SKILL.md step 6 for working endpoints and the catalog/rankings-404 coverage-sparsity quirk).
+- BenchLM Data API: `data.benchlm.ai/v1` (Bearer key, independent composite score; free tier = current data only; see model-tier-list.md step 6 for working endpoints and the catalog/rankings-404 coverage-sparsity quirk).
