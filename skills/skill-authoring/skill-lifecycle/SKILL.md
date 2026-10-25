@@ -183,7 +183,9 @@ Verification (Step 9) is the gate for rollback:
   (e.g., "PR code review" vs "local pre-push check"). Verify bodies before merging; only clusters
   with the same completion criteria merge.
 - **Deep references.** `references/` files are one level deep. If a scenario needs a sub-scenario,
-  split the scenario file; do not nest folders.
+  split the scenario file; do not nest folders. This also applies when absorbing another
+  skill's references: moving skill B's `references/` into skill A must stay flat — the
+  executable `category-depth` rule rejects `references/<subdir>/`; prefixed renames are safe.
 - **Editing provisioned copies.** Copies under `.agents/skills/` or a harness home are generated;
   fix the repo source and note that the copy needs re-provisioning; never hand-edit the copy.
 - **No snapshot.** Always commit or stash before deleting a skill folder.

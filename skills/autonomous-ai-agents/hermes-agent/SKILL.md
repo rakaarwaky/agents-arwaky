@@ -1,6 +1,8 @@
 ---
 name: hermes-agent
 description: "Use, configure, theme, extend, and orchestrate Hermes Agent — including multi-bot Telegram multiplex gateways and gateway persistence."
+when-to-use: "Use when the user mentions Hermes, hermes CLI, TUI, skins/themes, desktop plugins, TUI widgets, pets, provider or model setup, spawning additional hermes instances, multi-agent coordination, messaging-gateway bots, or asks 'can Hermes do X' / 'how do I set up X in Hermes'."
+argument-hint: "[<question | task>] [--reference <name>]"
 metadata:
   tags:
     - hermes
@@ -41,6 +43,8 @@ What makes Hermes different:
 - **Extensible & themeable** — plugins, MCP servers, custom tools, webhook triggers, cron scheduling, skins that theme every surface, desktop UI plugins, TUI widgets, and pet mascots.
 
 **This skill is a hub.** The body covers identity, quick start, spawning/orchestration, and hard invariants. Everything else lives in reference files — **load the matching reference (below) before answering**; do not answer detail questions from the body alone.
+
+**Siblings:** per-profile state, keys, and skill loading → `hermes-profiles`; shell hooks → `hermes-shell-hooks`; the routing table doubles as the cross-skill pointer table.
 
 **Docs:** https://hermes-agent.nousresearch.com/docs/
 
@@ -111,6 +115,10 @@ Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile i
 | Provider setup, API keys, OAuth | `references/providers-and-models.md` |
 | config.yaml sections, toolsets, voice/STT/TTS | `references/configuration.md` |
 | AGENTS.md / .hermes.md / CLAUDE.md project rules | `references/project-context-files.md` |
+| Standing behavior, identity, or task routing that must hold in every session | `references/soul-md-routing.md` |
+| Per-profile state: config, keys, skills, SOUL.md | sibling skill `hermes-profiles` |
+| Shell hooks (pre/post tool guards) per profile | sibling skill `hermes-shell-hooks` |
+| Guard hooks for Orca worktrees / immutable clone | `devops/agent-worktree-hooks` |
 | Secret redaction, PII, approval modes, "reset permissions" | `references/security-privacy.md` |
 | Delegation, cron, curator, kanban | `references/background-systems.md` |
 | MCP servers (add, catalog, `hermes mcp`) | `references/native-mcp.md` |
@@ -132,11 +140,6 @@ Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile i
 The reference list above is not the feature list — it is the set of topics that
 need more than their docs page. For everything else Hermes ships, fetch
 `llms.txt` and it maps the question to the page that answers it.
-
-The four gateway references (`multi-bot-telegram-run.md`, `multiplex-internals.md`,
-`multiplex-late-profile-adoption.md`, `systemd-always-on.md`) also hold the former
-standalone `hermes-messaging-gateways` skill: multi-bot Telegram multiplex setup and
-always-on persistence, now part of this hub.
 
 Two theming rules that hold even without loading the reference: **you apply skins yourself** (`hermes config set display.skin <name>` — every surface repaints live within ~a second; don't tell the user to run `/skin`), and **to tweak one color, edit the ACTIVE skin** (`hermes skin set <key> <hex>`) — never fork `default`, which drops the palette and resets the background.
 
@@ -238,4 +241,4 @@ terminal(command="tmux new-session -d -s resumed 'hermes --resume 20260225_14305
 - **Message role alternation** — never two assistant or two user messages in a row; only `tool` results can repeat.
 - **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
 - **Profile-safe paths** — `get_hermes_home()` in code, `$HERMES_HOME` when resolving paths in a session.
-- **Never hand-edit `config.yaml` for the user** — use `hermes config set KEY VAL`; a stray indent can corrupt the file and break the live gateway. List-valued keys are still CLI work, but only when the value is passed as a **JSON array literal** (`hermes config set skills.disabled '["a","b"]'`); the comma form stores a scalar that every later read treats as one bogus name, so it silently does nothing. Verify with `config get <key> --json`, which must print an array. The single sanctioned non-CLI writer is the ruamel round-trip, used when the file carries comments the CLI rewrite would destroy — procedure documented once, in the sibling `hermes-profiles` skill (`hermes-profiles/references/skill-filtering.md`).
+- **Never hand-edit `config.yaml` for the user** — use `hermes config set KEY VAL`; a stray indent can corrupt the file and break the live gateway. List-valued keys are still CLI work, but only when the value is passed as a **JSON array literal** (`hermes config set skills.disabled '["a","b"]'`); the comma form stores a scalar that every later read treats as one bogus name, so it silently does nothing. Verify with `config get <key> --json`, which must print an array. The single sanctioned non-CLI writer is the ruamel round-trip, used when the file carries comments the CLI rewrite would destroy — procedure documented in the sibling `hermes-profiles` skill's `references/skill-filtering.md`.
