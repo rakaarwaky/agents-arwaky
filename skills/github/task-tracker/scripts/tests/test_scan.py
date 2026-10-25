@@ -122,7 +122,7 @@ def test_fr_groups_keyed_per_feature() -> None:
 def test_doc_state_line_captured_for_backlog_owned_feature() -> None:
     # widgets/BACKLOG.md has `State: In Progress`; check parse_doc surfaces it.
     text = (REPO_ROOT / "widgets" / "BACKLOG.md").read_text(encoding="utf-8")
-    _rows, declared, _refs, rollup, doc_state, _warnings = scan.parse_doc(
+    _rows, declared, _refs, rollup, _rollup_state, doc_state, _warnings = scan.parse_doc(
         "widgets/BACKLOG.md", text, "widgets", "widgets"
     )
     assert doc_state == "In Progress"

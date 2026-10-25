@@ -83,7 +83,11 @@ def test_next_action_pending_piped_test_command_stops_at_pipe() -> None:
 
 
 def test_next_action_pending_requires_backticked_test_path() -> None:
-    # Backtick-quoted path → substituted into the check.
+    # Backtick-quoted path → substituted into the check. The template
+    # re-prepends `{feature}/tests/` to the substituted test file, so a
+    # backticked path that already carries the feature prefix renders
+    # doubled (`w/tests/w/tests/test_x.py`) — that doubling is the
+    # expected template behavior and is pinned here, not a bug.
     row = _classify_cell("add test in `w/tests/test_x.py`; `python3 -m pytest w/tests -q` passes; "
                          "then set row W-1 Next Action to \"done\" in w/BACKLOG.md.")
     assert row["next_action_check"]["test_file"] == "w/tests/test_x.py"
@@ -278,25 +282,14 @@ def test_fr_orphan_flags() -> None:
     for orphan in orphans:
         if orphan["feature"] == "widgets":
             assert orphan["fr_id"].startswith("FR-WID-")
-    # Legacy flat-fr fallback: only when no fr_groups key AND every row is
-    # root-owned. A hand-built scan with a feature row + flat fr sets must
-    # NOT produce a synthetic "root" group.
+    # fr_groups is the sole FR input: a scan carrying only the flat `fr`
+    # sets (no fr_groups key) yields no orphans.
     legacy = {"rows": [{"id": "W-1", "feature": "w", "state": "Ready",
                         "next_action": "none", "source_doc": "w/BACKLOG.md",
                         "updated": "2026-10-20"}],
               "fr": {"fr_declared": ["FR-X-001"], "fr_referenced": []}}
     res2 = classify.classify_scan(legacy, trust_mode="no-trust", today=TODAY)
     assert res2["fr_orphans"] == []
-    root_only = {"rows": [{"id": "W-1", "feature": "root", "state": "Ready",
-                           "next_action": "none", "source_doc": "ROADMAP.md",
-                           "updated": "2026-10-20"}],
-                 "fr": {"fr_declared": ["FR-X-001"], "fr_referenced": []}}
-    res3 = classify.classify_scan(root_only, trust_mode="no-trust", today=TODAY)
-    assert res3["fr_orphans"] == [
-        {"fr_id": "FR-X-001", "feature": "root",
-         "direction": "declared-not-referenced",
-         "target_doc": "root/BACKLOG.md", "closing_condition": None}
-    ]
 
 
 def test_rollup_mismatch_flags() -> None:

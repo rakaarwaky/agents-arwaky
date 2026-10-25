@@ -172,10 +172,8 @@ def classify_scan(
     - ``rows``: list of scan rows (``id``, ``feature``, ``state``,
       ``next_action``, ``source_doc``, ``updated``).
     - ``fr_groups``: ``{feature: {"fr_declared": [...], "fr_referenced": [...]}}``
-      — emitted by scan.py per feature (the default path); when absent,
-      falls back to the top-level ``fr`` sets, keyed ``"root"``, but only
-      when no row carries a feature key other than ``root`` (i.e. the
-      scan is genuinely single-feature/root).
+      — emitted by scan.py unconditionally; the sole FR input. A missing
+      key means there is no FR data to check.
     - ``rollups``: ``[{"feature", "claimed_state"}]`` — emitted by scan.py
       from the Feature Roll-up tables it recognizes; a missing key means
       there is no roll-up claim to check.
@@ -199,21 +197,10 @@ def classify_scan(
         today_tuple = (now.year, now.month, now.day)
 
     rows_in = scan.get("rows", [])
-    fr_in = scan.get("fr", {})
 
-    # FR groups: prefer the per-feature fr_groups the scanner emits (each
-    # row already carries its feature, so this is the default path); the
-    # flat `fr` fallback is only for scans that predate fr_groups, and is
-    # keyed "root" solely when the scan is genuinely single-feature/root
-    # (no feature-keyed rows present).
+    # FR groups: `fr_groups` is the sole input — scan.py emits it
+    # unconditionally, so a missing key means no FR data to check.
     fr_groups: dict[str, dict[str, Any]] = scan.get("fr_groups", {})
-    if not fr_groups and (fr_in.get("fr_declared") or fr_in.get("fr_referenced")):
-        row_features = {str(row.get("feature", "root")) for row in rows_in}
-        if not (row_features - {"root"}):
-            fr_groups["root"] = {
-                "fr_declared": fr_in.get("fr_declared", []),
-                "fr_referenced": fr_in.get("fr_referenced", []),
-            }
 
     # Group rows by feature for effective-state computation.
     feature_rows: dict[str, list[dict[str, Any]]] = {}

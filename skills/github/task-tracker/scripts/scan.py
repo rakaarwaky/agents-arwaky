@@ -136,19 +136,22 @@ def parse_doc(
     text: str,
     feature: str,
     feature_dir: str,
-) -> tuple[list[Row], list[str], list[str], str | None, str | None, list[str]]:
+) -> tuple[list[Row], list[str], list[str], str | None, str | None, str | None, list[str]]:
     """Parse one spec doc.
 
-    Returns ``(rows, fr_declared, fr_referenced, rollup_row, doc_state,
-    warnings)``. ``rollup_row`` is the verbatim roll-up row text for the
-    given feature (matched by the Feature cell against the feature name or
-    directory), or None when the doc carries no roll-up row for it.
+    Returns ``(rows, fr_declared, fr_referenced, rollup_row, rollup_state,
+    doc_state, warnings)``. ``rollup_row`` is the verbatim roll-up row text
+    for the given feature (matched by the Feature cell against the feature
+    name or directory), or None when the doc carries no roll-up row for it;
+    ``rollup_state`` is that row's State cell, read by header name so
+    multi-column roll-up tables route the claimed state correctly.
     ``doc_state`` is the doc-level ``State:`` line value, or None.
     ``warnings`` names malformed table rows (short cells, empty IDs).
     """
     rows: list[Row] = []
     fr_referenced: list[str] = []
     rollup_row: str | None = None
+    rollup_state: str | None = None
     warnings: list[str] = []
     dir_norm = feature_dir.strip().lower()
     target = dir_norm or feature.strip().lower()
@@ -195,24 +198,12 @@ def parse_doc(
                 feat_cell = _cell(headers, cells, "Feature").strip()
                 if feat_cell.lower().replace(" ", "/") == target:
                     rollup_row = " | ".join(cells)
+                    rollup_state = _cell(headers, cells, "State").strip() or None
 
     fr_declared = sorted(set(FR_ID_RE.findall(text)))
     match = DOC_STATE_RE.search(text)
     doc_state = match.group("value") if match else None
-    return rows, fr_declared, fr_referenced, rollup_row, doc_state, warnings
-
-
-def _cell_for_rollup(rollup_row: str, name: str) -> str | None:
-    """Extract the state cell from a verbatim roll-up row string.
-
-    The row is joined cells in original column order: ``Feature`` first,
-    ``State`` second (the corpus's roll-up shape). Returns None when the
-    row does not start with the expected feature cell.
-    """
-    cells = rollup_row.split(" | ")
-    if len(cells) >= 2 and cells[0].strip() == name:
-        return cells[1].strip()
-    return None
+    return rows, fr_declared, fr_referenced, rollup_row, rollup_state, doc_state, warnings
 
 
 def load_discovery(path: Path) -> tuple[list[str], dict[str, dict[str, Any]]]:
@@ -271,6 +262,7 @@ def run_scan(
 
     for name, dir_rel, docs in groups:
         group_rollup: str | None = None
+        group_rollup_state: str | None = None
         group_declared: list[str] = []
         group_referenced: list[str] = []
         for doc_rel in docs:
@@ -282,7 +274,7 @@ def run_scan(
                 warnings.append(f"unreadable doc: {doc_rel}")
                 docs_out.append({"doc": doc_rel, "rows": [], "warning": f"unreadable: {doc_rel}"})
                 continue
-            rows, decl, refs, rollup, _doc_state, doc_warnings = parse_doc(
+            rows, decl, refs, rollup, rollup_state, _doc_state, doc_warnings = parse_doc(
                 doc_rel, text, name, dir_rel
             )
             warnings.extend(doc_warnings)
@@ -292,6 +284,7 @@ def run_scan(
             group_referenced.extend(refs)
             if rollup is not None and group_rollup is None:
                 group_rollup = rollup
+                group_rollup_state = rollup_state
             kept: list[Row] = []
             for row in rows:
                 key = (row["id"], row["source_doc"])
@@ -309,9 +302,8 @@ def run_scan(
             docs_out.append({"doc": doc_rel, "rows": kept, "warning": warning})
         if group_rollup is not None:
             rollup_row = group_rollup
-            claimed = _cell_for_rollup(group_rollup, name)
-            if claimed is not None:
-                rollups.append({"feature": name, "claimed_state": claimed})
+            if group_rollup_state is not None:
+                rollups.append({"feature": name, "claimed_state": group_rollup_state})
         fr_groups[name] = {
             "fr_declared": sorted(set(group_declared)),
             "fr_referenced": sorted(set(group_referenced)),
