@@ -1,3 +1,3 @@
 ---
-description: Note taking skills, to save information, assist with research, and collab on multi-session planning and information sharing.
+description: Note taking and knowledge-management skills — Anytype headless daemon, bot accounts, P2P space sync, and MCP queries over spaces/objects/notes.
 ---
