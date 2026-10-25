@@ -70,7 +70,7 @@ Use this when the user asks to find a skill or runs `/skill-library --discover Q
 - [ ] If the catalog is missing, rebuild it first.
 - [ ] Read the returned table.
 - [ ] Recommend the best matching skill or skills.
-- [ ] If no good match exists, say that no matching skill was found and suggest creating one with the skill-authoring skill if appropriate.
+- [ ] If no good match exists, say that no matching skill was found and suggest creating one with the skill-design skill if appropriate.
 
 Discovery must use the catalog. Do not read every skill file unless the catalog is missing and must be rebuilt.
 
@@ -158,7 +158,7 @@ writes (archive) require the recorded undo path.
 - Never permanently delete skills by default; archive them instead.
 - Every category should have a `DESCRIPTION.md`.
 - Every skill should live at `category/skill-name/SKILL.md`.
-- Do not author brand-new skills here; use the skill-authoring skill for creation.
+- Do not author brand-new skills here; use the skill-design skill for creation.
 - Do not nest skills deeper than one category level.
 
 ## References

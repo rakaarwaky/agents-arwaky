@@ -27,7 +27,7 @@ removal plus consolidation: Phase 1 removes true duplicates, Phase 2 merges over
 
 ## Routing
 
-- **`skill-authoring`** — authoring a new skill or auditing one `SKILL.md` (the prune happens after
+- **`skill-design`** — authoring a new skill or auditing one `SKILL.md` (the prune happens after
   the authoring, not instead of it).
 - **`skill-library`** — cataloging the library and repairing mechanical frontmatter faults before
   a prune.
@@ -82,7 +82,7 @@ Skills are variants when they share a domain but each covers a distinct scenario
 | Merged skill now has complex, distinct sub-scenarios | **one folder, one `SKILL.md`, plus `references/`** — `SKILL.md` keeps the shared rules and a routing table; each sub-scenario becomes `references/<scenario>.md`, one level deep |
 | Skills that are genuinely different jobs | leave both alone; note in the report why they were not merged |
 
-A merged `SKILL.md` follows `skill-authoring` conventions: frontmatter with `name` and
+A merged `SKILL.md` follows `skill-design` conventions: frontmatter with `name` and
 `description` (third person, includes trigger terms), routing in the body rather than in
 non-parsed keys (`triggers:` and `metadata.related_skills` are not parsed by Grok Build —
 trigger terms go in `description:`/`when-to-use:`, sibling skills in a body section), and a

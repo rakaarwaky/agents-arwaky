@@ -5,7 +5,7 @@ when-to-use: Use when creating, writing, structuring, improving, validating, or 
 argument-hint: "<create | improve | validate | audit | check | explain | hints> [skill-dir]"
 ---
 
-# Create Skills
+# skill-design
 
 Author, validate, and improve SKILL.md files. One skill covers the full lifecycle:
 design principles, the interactive creation workflow, and validation rules.
