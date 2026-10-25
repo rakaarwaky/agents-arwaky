@@ -102,8 +102,8 @@ instead of polling many tmux sessions when running a fleet of Grok agents.
 
 ## Subagents, Plan Mode, Permissions
 
-- Subagents: built-in types `grok-build`, `explore` (research — searches, reads,
-  greps, runs shell, never edits), `plan`, and `cursor`; project/user agents can add
+- Subagents: built-in types `grok-build`, `explore` (read-only research: searches,
+  reads, greps, shell; never edits), `plan`, and `cursor`; project/user agents can add
   new types or shadow these by name. A child's tools come from its agent type
   (general-purpose is unrestricted). `SubagentStop`/`SubagentStart` hooks fire around
   each child. Fullscreen subagent view in the TUI: `q`/`Esc` closes it.

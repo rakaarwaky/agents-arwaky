@@ -81,7 +81,8 @@ grok --no-auto-update -p 'Add a dark mode toggle to settings'
 
 ### Mode 2: Interactive PTY — Multi-Turn TUI
 
-Drive the TUI with `pty=true` + tmux for capture-pane monitoring:
+Drive the TUI with `pty=true` + tmux for capture-pane monitoring (`--no-alt-screen` keeps
+output inline without fullscreen takeover):
 
 ```bash
 tmux new-session -d -s grok-work -x 140 -y 40
@@ -91,11 +92,9 @@ tmux capture-pane -t grok-work -p -S -50   # monitor
 tmux send-keys -t grok-work '/quit' Enter && tmux kill-session -t grok-work
 ```
 
-Tip: add `--no-alt-screen` for inline TUI output without fullscreen alt-screen
-takeover. For a fleet of concurrent agents use the dashboard instead:
-`Ctrl+\` (or `/dashboard`) opens the Agent Dashboard; each agent row can be peeked,
-dispatched, and cancelled from one screen (`/doctor` diagnoses terminal/clipboard/color
-issues; `/doctor fix <id>` applies named tmux/clipboard fixes).
+`Ctrl+\` (or `/dashboard`) opens the Agent Dashboard: peek, dispatch, and cancel
+agent rows from one screen. `/doctor` diagnoses terminal/clipboard/color issues,
+`/doctor fix <id>` applies named fixes.
 
 ## Read-Only Audit → Markdown Note
 
@@ -153,8 +152,6 @@ worktree` works without the Orca daemon.
 
 ## Config (`~/.grok/config.toml`)
 
-Actual values on this machine (OmniRoute-backed):
-
 ```toml
 [model_providers.omniroute]
 base_url = "http://127.0.0.1:7777/v1"
@@ -178,62 +175,37 @@ default = "myomniroute"
 image_description = "myomnivision"
 
 [ui]
-permission_mode = "always-approve"   # yolo = true; autonomous builds, no per-tool prompts
+permission_mode = "always-approve"
 ```
 
-- The active model (`myomniroute`) is served by OmniRoute; it is not a Grok model.
-- Pointing Grok at a local OpenAI-compatible endpoint uses a `[model.<name>]` section
-  with `base_url`, `model`, and `api_backend = "chat_completions"` under a
-  `[model_providers.<name>]` block, plus an `env_key` for the gateway's auth token.
-- `permission_mode = "always-approve"` supersedes the legacy `approval_mode` /
-  `yolo = true` keys; it means headless runs won't stall on tool-approval prompts.
-- Put global preferences in `~/.grok/config.toml` (not project-scoped
-  `.grok/config.toml`).
+Read the live `~/.grok/config.toml` before relying on this block: provider, model,
+and auth choices change when the gateway is re-pointed, and a stale block is the
+usual cause of "why is it still trying xAI". Global preferences live in
+`~/.grok/config.toml`, not project-scoped `.grok/config.toml`.
 
 ## Pitfalls & Gotchas
 
-- **Verify the live config before trusting the Config section.** The `[model.*]` /
-  `[model_providers.*]` values below are what is set on *this* machine, not Grok's
-  stock defaults. Read `~/.grok/config.toml` before relying on any config block in this
-  skill — provider/model/auth choices change when the gateway is re-pointed, and a
-  stale Config section is the usual cause of "why is it still trying xAI."
-- **This is NOT xAI auth.** Do not run `grok login` or set `XAI_API_KEY` here.
-  Grok Build talks to the OmniRoute gateway; auth is `OMNIROUTE_KEY` (see
-  `[model_providers.omniroute] env_key`), and the model is whatever the gateway serves
-  for `myomniroute`. `~/.grok/auth.json` from any earlier stock setup is irrelevant —
-  the active path is the gateway, not an xAI subscription token.
-- **Hermes xAI auth ≠ grok CLI auth.** Hermes' `x_search` runs on its own xAI OAuth;
-  a working `x_search` does NOT mean the grok CLI can reach the gateway.
-- **Always pass `--no-auto-update` in automation** — otherwise Grok phones home for
-  update checks (it can stall when x.ai is unreachable).
 - **Verify the gateway before relying on it** — `curl -s -o /dev/null -w '%{http_code}\n'
   "$OMNIROUTE_URL/v1/models"` must return `200` (with a valid `OMNIROUTE_KEY`); a `401`
   means the key is missing/invalid and no run will work.
-- **Prefer `npm install` over the curl installer** — avoids the Cloudflare-walled x.ai
-  host.
-- **`--always-approve` is the autonomous-build switch** (already the default here via
-  `[ui] permission_mode = "always-approve"` / `yolo = true`). Omit it deliberately for
+- **Always pass `--no-auto-update` in automation** — otherwise Grok phones home for
+  update checks.
+- **Hermes xAI auth ≠ grok CLI auth.** Hermes' `x_search` runs on its own xAI OAuth;
+  a working `x_search` does NOT mean the grok CLI can reach the gateway.
+- **`--always-approve` is the autonomous-build switch.** Omit it deliberately for
   read-only review/audit so Grok cannot mutate files.
-- **Headless `-p` skips TUI dialogs.** The TUI needs `pty=true` + tmux for monitoring.
-- **Use `--no-alt-screen`** if the TUI fullscreen alt-screen takeover garbles captured
-  output; run `/doctor` when keys or colors misbehave in tmux.
+- **Headless `-p` skips TUI dialogs.** The TUI needs `pty=true` + tmux for monitoring;
+  run `/doctor` when keys or colors misbehave in tmux.
 - **No git repo needed** for a task, but for PR/commit workflows you still want one —
   use `mktemp -d && git init` for scratch commit tasks.
 - **Clean up tmux sessions** with `tmux kill-session -t <name>` when done.
 
 ## Rules for Hermes Agents
 
-- Prefer headless `-p` for single tasks — cleanest integration, structured output via
-  `--output-format json`.
+- Prefer headless `-p` for single tasks, structured output via `--output-format json`.
 - Always set `workdir` (or `--cwd`) so Grok targets the right project.
-- Pass `--no-auto-update` in every automated invocation.
-- Use `--always-approve` only when Grok should write autonomously; omit it for read-only
-  reviews and audits.
-- Background long tasks with `background=true, notify_on_complete=true` and monitor via
-  the process tool; use the dashboard (`Ctrl+\`) for several concurrent TUI agents.
+- Background long tasks with `background=true, notify_on_complete=true` and monitor
+  via the process tool; use the dashboard (`Ctrl+\`) for several concurrent TUI agents.
 - Use tmux for multi-turn interactive work and monitor with `tmux capture-pane -t
   <session> -p -S -50`.
-- **Verify the gateway before relying on it** — probe `$OMNIROUTE_URL/v1/models` for
-  a `200`, or run a cheap `grok --no-auto-update -p "Say ok."` smoke test. Auth is
-  `OMNIROUTE_KEY`, not an xAI subscription.
 - Report results to the user — summarize what Grok changed and what's left.
