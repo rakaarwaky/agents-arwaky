@@ -20,7 +20,7 @@ jobs:
 
       - name: Install deps
         run: |
-          pip install ruff pytest pyyaml
+          pip install ruff pytest pyyaml mypy
           sudo apt-get update -qq
           sudo apt-get install -y -qq shellcheck jq
 
@@ -74,6 +74,15 @@ jobs:
 
       - name: Skill catalog drift gate
         run: python3 -m modules.root_cli_entry skills catalog --check
+
+      - name: Task-tracker script tests
+        run: python3 -m pytest skills/github/task-tracker/scripts/tests -q
+
+      - name: Task-tracker script lint
+        run: ruff check skills/github/task-tracker/scripts/
+
+      - name: Task-tracker script type check
+        run: python3 -m mypy skills/github/task-tracker/scripts/ --strict
 
       - name: Skills and shared tests
         run: python3 -m pytest modules/skills modules/shared -q
