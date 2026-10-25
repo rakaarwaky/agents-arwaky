@@ -42,6 +42,7 @@ let scan_schema = #{
                     "fr_refs": #{ "type": "array", "items": #{ "type": "string" } },
                     "source_doc": #{ "type": "string" },
                     "row_text": #{ "type": "string" },
+                    "next_action": #{ "type": "string" },
                 },
             },
         },
@@ -142,22 +143,29 @@ fn json_text_field(js, key) {
     return out2;
 }
 
-// args: { repo_root (required), dry_run (optional, default false — live runs unless --dry-run is passed) }
+// args: { repo_root (required), dry_run (optional), batch (optional), trust_mode (optional: "trust" | "no-trust", default "no-trust") }
 let a_root = ();
 let a_dry = ();
 let a_batch = ();
+let a_trust = ();
 if type_of(args) == "map" {
     a_root = args.repo_root;
     a_dry = args.dry_run;
     a_batch = args.batch;
+    a_trust = args.trust_mode;
 } else if type_of(args) == "string" {
     a_root = json_text_field(args, "repo_root");
     a_dry = json_text_field(args, "dry_run");
     a_batch = json_text_field(args, "batch");
+    a_trust = json_text_field(args, "trust_mode");
 }
 if a_root == () { pause("verification", "Pass args.repo_root — the absolute path to the AES repo to track."); }
 let repo_root = a_root.to_string();
 let dry_run = if a_dry == () { false } else { a_dry.to_string() == "true" || a_dry.to_string() == "1" };
+let trust_mode = if a_trust == () { "no-trust" } else { a_trust.to_string() };
+if trust_mode != "trust" && trust_mode != "no-trust" {
+    pause("verification", "Invalid trust_mode: " + trust_mode + " — must be 'trust' or 'no-trust'");
+}
 let state_label = "task-tracker";
 let batch = if a_batch == () { 6 } else { parse_int(a_batch.to_string()) };
 
@@ -210,12 +218,15 @@ for g in groups {
         + "1. Extract each file's State Definitions table; list the state names it defines. "
         + "2. Extract every table row whose headers include ID and State; capture the doc-level "
         + "\"State: <value>\" line at the top of a feature backlog. "
-        + "3. Collect the FR-id set: every FR-<SCOPE>-NNN declared in the FRD headings and every FRD Ref "
+        + "3. ALSO extract the \"Next Action\" column (or \"Item\" column if \"Next Action\" is not present) "
+        + "from each row — include it as \"next_action\" in the output JSON. "
+        + "4. Collect the FR-id set: every FR-<SCOPE>-NNN declared in the FRD headings and every FRD Ref "
         + "cell cited by the backlog rows. "
-        + "4. If the roadmap has a Feature Roll-up table, extract THIS feature's roll-up row verbatim, all cells. "
+        + "5. If the roadmap has a Feature Roll-up table, extract THIS feature's roll-up row verbatim, all cells. "
         + "Emit one JSON object per task row: "
         + "{\"id\":\"...\",\"title\":\"...\",\"state\":\"<verbatim state>\",\"priority\":\"P0|P1|P2|—\","
-        + "\"health\":\"...|—\",\"fr_refs\":[\"FR-…\"],\"source_doc\":\"<repo-relative path>\",\"row_text\":\"<verbatim row>\"}. "
+        + "\"health\":\"...|—\",\"fr_refs\":[\"FR-…\"],\"source_doc\":\"<repo-relative path>\",\"row_text\":\"<verbatim row>\","
+        + "\"next_action\":\"<verbatim next action or item text>\"}. "
         + "State must appear verbatim in the source row; never infer or normalize. "
         + "Rows without a state value get state unknown. Empty rows array is valid only after reading every file in full. "
         + "Return {\"rows\":[…],\"fr\":{\"fr_declared\":[…],\"fr_referenced\":[…]},\"rollup_row\":\"<verbatim row or empty>\"}.";
@@ -252,16 +263,130 @@ for sr in scan_list {
 }
 log("scanned " + all_rows.len().to_string() + " rows across " + groups.len().to_string() + " feature groups");
 
-// --- Phase 3: Verify (one subagent per feature, zero-trust) ---
+// --- Phase 3: Classify (local, zero-trust with trust_mode support) ---
+phase("Classify");
+let classified_rows = [];
+let rollup_classifications = [];
+for g in groups {
+    // Filter rows for this feature
+    let feature_rows = [];
+    for r in all_rows {
+        if r.feature == g.name {
+            feature_rows.push(r);
+        }
+    }
+    
+    // Classify each row based on trust_mode
+    for r in feature_rows {
+        let row_state = r.state.to_string().to_lowercase();
+        let next_action = r.next_action.to_string().to_lowercase();
+        let classification = "";
+        let next_action_check = ();
+        
+        // Check next_action first (applies regardless of trust_mode)
+        if next_action.contains("none") || next_action.contains("<skip>") {
+            classification = "skip_next_action";
+        } else if next_action != "" && next_action != "none" && next_action != "<skip>" {
+            // Has a next action item
+            next_action_check = #{
+                action_text: r.next_action,
+                needs_verification: true
+            };
+        }
+        
+        // Apply trust_mode for Done rows
+        if row_state == "done" {
+            if trust_mode == "trust" {
+                if classification == "" {
+                    classification = "skip";
+                }
+            } else {
+                // no-trust mode: Done rows need verification
+                if classification == "" {
+                    classification = "unverified";  // Default for Done in no-trust mode
+                }
+            }
+        } else if classification == "" {
+            // Non-Done rows
+            if row_state == "ready" || row_state == "in progress" || row_state == "in review" {
+                classification = "incomplete";
+            } else {
+                classification = "incomplete";  // Default for unknown states
+            }
+        }
+        
+        classified_rows.push(#{
+            row: r,
+            classification: classification,
+            next_action_check: next_action_check,
+            evidence: r.row_text
+        });
+    }
+    
+    // Roll-up classification for this feature
+    let feature_rollup = ();
+    for rup in rollups {
+        if rup.feature == g.name {
+            feature_rollup = rup.row;
+            break;
+        }
+    }
+    
+    // Compute effective state from backlog rows
+    let effective_state = "Done";
+    for r in feature_rows {
+        let rs = r.state.to_string().to_lowercase();
+        if rs == "in progress" {
+            effective_state = "In Progress";
+            break;
+        } else if rs == "in review" && effective_state != "In Progress" {
+            effective_state = "In Review";
+        } else if rs == "ready" && effective_state == "Done" {
+            effective_state = "Ready";
+        }
+    }
+    
+    // Extract claimed state from rollup row (simplified - would need parsing)
+    let claimed_state = "Done";  // Placeholder - would parse from rollup_row
+    
+    let rollup_verdict = "match";
+    if claimed_state == "Done" && effective_state != "Done" {
+        rollup_verdict = "rollup_mismatch";
+    } else if (claimed_state == "In Progress" || claimed_state == "In Review") && effective_state == "Done" {
+        rollup_verdict = "rollup_mismatch";  // Under-claimed
+    }
+    
+    rollup_classifications.push(#{
+        feature: g.name,
+        claimed: claimed_state,
+        effective: effective_state,
+        verdict: rollup_verdict,
+        offending_rows: feature_rows
+    });
+}
+
+log("classified " + classified_rows.len().to_string() + " rows with trust_mode=" + trust_mode);
+
+// --- Phase 4: Verify (one subagent per feature, zero-trust) ---
 // No row is exempt: Done rows are proof demands, the roll-up is reconciled
 // against each feature's effective state, and FR orphans are flagged in both directions.
 phase("Verify");
 let verdicts = [];
 let j = 0;
 for g in groups {
-    let vp = "Verify the feature \"" + g.name + "\" against ACTUAL CODE ONLY. ZERO TRUST: no state claim "
-        + "— including Done — is accepted on doc text, git history, or GitHub issues/PRs alone; "
+    // Build feature-specific classified rows for the verifier
+    let feature_classified = [];
+    for cr in classified_rows {
+        if cr.row.feature == g.name {
+            feature_classified.push(cr);
+        }
+    }
+    
+    let vp = "Verify the feature \"" + g.name + "\" against ACTUAL CODE ONLY. Trust mode: " + trust_mode + ". "
+        + "In 'trust' mode: all Done rows are pre-classified as 'skip' and should not be re-verified. "
+        + "In 'no-trust' mode: Done rows are proof demands and must be verified against source code. "
         + "The only evidence that counts is the source code and test files in the feature's own tree. "
+        + "You receive pre-classified rows with their classification and next_action_check fields. "
         + "For every row in the feature's BACKLOG: "
         + "(1) Read the row's item text and its Actual Condition cell. "
         + "(2) Open the files under " + g.dir + "/src/ and " + g.dir + "/tests/ that the row's description refers to "
@@ -288,11 +413,18 @@ for g in groups {
         + "Released to Done (plus release evidence: gh release view <tag> reports a published release). "
         + "FR orphan check: every FR id declared in the FRD must be cited by at least one backlog row and "
         + "vice versa; either direction failing is verdict \"fr_orphan\" for that FR id. "
+        + "NEXT ACTION VERIFICATION: For rows with next_action_check.needs_verification == true, "
+        + "check if the action described in next_action_check.action_text is already implemented in code/tests. "
+        + "  - If the action is ALREADY COMPLETE (code + test exist): verdict is \"next_action_complete\" with "
+        + "    closing_condition to update the row's Next Action to \"none\". "
+        + "  - If the action is NOT COMPLETE: verdict is \"next_action_pending\" with "
+        + "    closing_condition to implement the action and set Next Action to \"done\". "
         + "Verdicts per row: open (code does not implement the work, no open issue tracks it) | "
         + "exists (an open issue #N already tracks this row — cite the issue number) | "
         + "doc_sync (code implements the work but the doc still reports an incomplete state) | "
         + "unverified (Done claim whose code evidence is absent or does not match the claim) | "
-        + "skip (Done with code evidence that fully confirms it — the only skip path) | fr_orphan. "
+        + "skip (Done with code evidence that fully confirms it — the only skip path) | "
+        + "fr_orphan | next_action_complete | next_action_pending | skip_next_action. "
         + "Cite the file paths and line ranges you read in the evidence field. "
         + "CRITICAL: every verdict object MUST include a non-empty closing_condition field — "
         + "the exact observable check whose fulfillment advances the row to Done. "
@@ -305,6 +437,9 @@ for g in groups {
         + "For unverified: the code change + test that closes the failed verification check. "
         + "For rollup_mismatch: which side to correct (advance backlog rows or lower roll-up) and the evidence. "
         + "For fr_orphan: the backlog row to add that cites the orphan FR, and the state it takes. "
+        + "For next_action_complete: the doc edit to set Next Action to 'none' in <source-doc>. "
+        + "For next_action_pending: the implementation path + test file + verification command for the action, "
+        + "then doc edit to set Next Action to 'done' in <source-doc>. "
         + "Closing condition is a check, never a status: no 'should be done', only paths, behavior, and a command. "
         + "No writes, no issue creation.";
     let res = agent(vp, #{
@@ -338,7 +473,8 @@ phase("Issue");
 let missing_cc = 0;
 let pending_infra = [];
 for v in verdicts {
-    if v.verdict != "skip" && (v.closing_condition == () || v.closing_condition == "") {
+    let is_skip_verdict = v.verdict == "skip" || v.verdict == "skip_next_action";
+    if !is_skip_verdict && (v.closing_condition == () || v.closing_condition == "") {
         missing_cc += 1;
         let bad_row = if v.row != () { v.row } else { "roll-up" };
         pending_infra.push(bad_row);
@@ -348,8 +484,10 @@ for v in verdicts {
 
 let actionable = [];
 for v in verdicts {
-    if v.verdict == "open" || v.verdict == "doc_sync" || v.verdict == "unverified"
-        || v.verdict == "rollup_mismatch" || v.verdict == "fr_orphan" || v.verdict == "exists" {
+    let is_actionable = v.verdict == "open" || v.verdict == "doc_sync" || v.verdict == "unverified"
+        || v.verdict == "rollup_mismatch" || v.verdict == "fr_orphan" || v.verdict == "exists"
+        || v.verdict == "next_action_complete" || v.verdict == "next_action_pending";
+    if is_actionable {
         if v.closing_condition != () && v.closing_condition != "" {
             actionable.push(v);
         }
