@@ -372,7 +372,7 @@ log("classified " + classified_rows.len().to_string() + " rows with trust_mode="
 // against each feature's effective state, and FR orphans are flagged in both directions.
 phase("Verify");
 let verdicts = [];
-let j = 0;
+let verify_jobs = [];
 for g in groups {
     // Build feature-specific classified rows for the verifier
     let feature_classified = [];
@@ -442,27 +442,47 @@ for g in groups {
         + "then doc edit to set Next Action to 'done' in <source-doc>. "
         + "Closing condition is a check, never a status: no 'should be done', only paths, behavior, and a command. "
         + "No writes, no issue creation.";
-    let res = agent(vp, #{
+    verify_jobs.push(#{
+        prompt: vp,
         label: "verify:" + g.name,
         capability_mode: "read-only",
         output_schema: verdict_schema,
     });
-    if res != () && res.success && res.output != () {
-        let got_verdicts = if type_of(res.output.verdicts) == "array" { res.output.verdicts } else { [] };
-        for v in got_verdicts {
-            v.feature = g.name;
-            verdicts.push(v);
-        }
-        let got_rollups = if type_of(res.output.rollup_verdicts) == "array" { res.output.rollup_verdicts } else { [] };
-        for rv in got_rollups {
-            rv.kind = "rollup";
-            if rv.row == () { rv.row = rv.feature + " roll-up"; }
-            verdicts.push(rv);
-        }
-    }
-    j += 1;
 }
-log("verified " + verdicts.len().to_string() + " verdicts across " + groups.len().to_string() + " features");
+// Run the verify jobs in waves of `batch` so the panel never exceeds the
+// configured concurrency while still parallelizing across features.
+let wave_no = 0;
+let wave_start = 0;
+while wave_start < verify_jobs.len() {
+    let take = if verify_jobs.len() - wave_start < batch { verify_jobs.len() - wave_start } else { batch };
+    let wave_jobs = verify_jobs.extract(wave_start, take);
+    let res = parallel(wave_jobs);
+    // Job indices within the wave map positionally onto groups (same
+    // convention as the Scan phase), so the feature name comes from the
+    // group, not from a field on the result.
+    let wi = 0;
+    let res_list = if type_of(res) == "array" { res } else { [] };
+    for r in res_list {
+        let gname = groups[wave_start + wi].name;
+        if r != () && r.success && r.output != () {
+            let got_verdicts = if type_of(r.output.verdicts) == "array" { r.output.verdicts } else { [] };
+            for v in got_verdicts {
+                v.feature = gname;
+                verdicts.push(v);
+            }
+            let got_rollups = if type_of(r.output.rollup_verdicts) == "array" { r.output.rollup_verdicts } else { [] };
+            for rv in got_rollups {
+                rv.kind = "rollup";
+                if rv.row == () { rv.row = rv.feature + " roll-up"; }
+                verdicts.push(rv);
+            }
+        }
+        wi += 1;
+    }
+    wave_start += take;
+    wave_no += 1;
+}
+log("verified " + verdicts.len().to_string() + " verdicts across " + groups.len().to_string() + " features in " + wave_no.to_string() + " wave(s) of <= " + batch.to_string());
 
 // --- Phase 4: Issue (modular, batched, dry-run default) ---
 phase("Issue");
