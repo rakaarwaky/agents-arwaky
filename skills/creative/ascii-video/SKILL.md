@@ -1,6 +1,8 @@
 ---
 name: ascii-video
 description: "ASCII video: convert video/audio to colored ASCII MP4/GIF."
+when-to-use: "Use when the user wants ASCII video — video-to-ASCII conversion, audio-reactive music visualizers, generative ASCII animations, hybrid video+audio, text/lyrics overlays, or TTS narration videos (MP4, GIF, image sequence)."
+argument-hint: "<video-to-ascii|audio-reactive|generative|hybrid|lyrics|tts> <input> [output.mp4]"
 version: 1.0.0
 author: SHL0MS, Hermes Agent
 license: MIT

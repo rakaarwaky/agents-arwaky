@@ -10,6 +10,7 @@ when-to-use:
   - parallel worktrees for issues
   - audit open issues
   - which issues can close
+argument-hint: <issue-number>
 metadata:
   tags:
     - GitHub

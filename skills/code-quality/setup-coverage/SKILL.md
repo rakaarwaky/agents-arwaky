@@ -1,6 +1,8 @@
 ---
 name: setup-coverage
 description: Sets up test coverage reporting in a repository and configures upload to Codacy. Detects testing frameworks, CI/CD pipelines, and coverage gaps, then adds the missing pieces to generate and upload coverage reports. Use whenever the user wants to set up coverage, add coverage reporting, integrate coverage with Codacy, fix missing coverage uploads, troubleshoot coverage not showing up, or configure CI to send coverage data. Also trigger when the user mentions test coverage, code coverage, coverage reports, or wants to know why Codacy shows no coverage for their repo.
+when-to-use: "Set up test coverage reporting and Codacy upload — detect frameworks/CI, identify gaps, add coverage generation and upload steps, verify the setup."
+argument-hint: "[detect testing setup] [detect CI/CD] [identify coverage gaps] [add coverage generation] [add Codacy upload] [verify]"
 license: MIT
 metadata:
   author: Codacy
@@ -85,118 +87,7 @@ Present the gap analysis to the user and confirm the plan before making changes.
 
 ### Step 4: Add coverage generation
 
-Add the minimal configuration to generate coverage reports in a format Codacy supports. Choose the format based on the language and tooling. See [references/coverage-formats.md](references/coverage-formats.md) for the full format reference.
-
-#### Language-specific setup
-
-**JavaScript/TypeScript (Jest):**
-```json
-// In package.json or jest.config.js
-{
-  "collectCoverage": true,
-  "coverageReporters": ["lcov"]
-}
-```
-Or run: `npx jest --coverage --coverageReporters=lcov`
-
-**JavaScript/TypeScript (Vitest):**
-```js
-// vitest.config.ts
-{ test: { coverage: { reporter: ['lcov'] } } }
-```
-
-**Python (pytest + coverage.py):**
-```bash
-pip install pytest-cov
-pytest --cov --cov-report=xml:cobertura.xml
-```
-
-**Java (Maven + JaCoCo):**
-Add the JaCoCo Maven plugin to `pom.xml`:
-```xml
-<plugin>
-  <groupId>org.jacoco</groupId>
-  <artifactId>jacoco-maven-plugin</artifactId>
-  <version>0.8.12</version>
-  <executions>
-    <execution>
-      <goals><goal>prepare-agent</goal></goals>
-    </execution>
-    <execution>
-      <id>report</id>
-      <phase>test</phase>
-      <goals><goal>report</goal></goals>
-    </execution>
-  </executions>
-</plugin>
-```
-
-**Java (Gradle + JaCoCo):**
-```gradle
-plugins { id 'jacoco' }
-jacocoTestReport { dependsOn test }
-```
-Run: `./gradlew test jacocoTestReport`
-
-**Kotlin (Gradle + JaCoCo):**
-```gradle
-plugins { id 'jacoco' }
-jacocoTestReport {
-    dependsOn test
-    reports { xml.required = true }
-}
-```
-Run: `./gradlew test jacocoTestReport`
-
-Report location: `build/reports/jacoco/test/jacocoTestReport.xml`
-
-**Kotlin (Maven + JaCoCo):**
-Same as Java Maven + JaCoCo setup above — JaCoCo supports Kotlin bytecode natively.
-
-**Android (Gradle + JaCoCo):**
-```gradle
-android {
-    buildTypes {
-        debug { testCoverageEnabled true }
-    }
-}
-```
-Run: `./gradlew createDebugCoverageReport`
-
-Report location: `app/build/reports/coverage/debug/report.xml`
-
-For multi-module Android projects, use a merged report or partial uploads (see [references/coverage-upload.md](references/coverage-upload.md)).
-
-**Go:**
-```bash
-go test -coverprofile=coverage.out ./...
-```
-
-**Ruby (SimpleCov):**
-```ruby
-# At the top of spec/spec_helper.rb or test/test_helper.rb
-require 'simplecov'
-SimpleCov.start
-SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
-```
-Requires `simplecov` and `simplecov-cobertura` gems.
-
-**C#/.NET (Coverlet):**
-```bash
-dotnet test --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
-```
-
-**Scala (sbt-jacoco):**
-Add to `project/plugins.sbt`:
-```scala
-addSbtPlugin("com.github.sbt" % "sbt-jacoco" % "3.5.0")
-```
-Run: `sbt jacoco`
-
-**PHP (PHPUnit):**
-```bash
-phpunit --coverage-clover clover.xml
-```
+Add the minimal configuration to generate coverage reports in a format Codacy supports. The full language-specific setup blocks (Jest, Vitest, pytest, JaCoCo/Maven/Gradle, Android, Go, SimpleCov, Coverlet, sbt-jacoco, PHPUnit) live in [references/coverage-generation.md](references/coverage-generation.md), split out to keep this SKILL.md under ~200 lines. See [references/coverage-formats.md](references/coverage-formats.md) for the complete format reference.
 
 ### Step 5: Add Codacy coverage upload
 

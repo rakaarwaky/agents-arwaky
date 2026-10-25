@@ -1,6 +1,8 @@
 ---
 name: context7-cli
 description: Operates ctx7 CLI and Context7 MCP registry — doc lookup (resolve a library ID then query its docs), skills install/search/generate, and MCP setup. Use when mentioning ctx7, context7, find-docs, installing skills, or looking up API docs.
+when-to-use: When the user mentions ctx7, context7, find-docs, installing skills, or looking up API docs for a library or framework.
+argument-hint: <command> [args] [--claude|--cursor|--opencode|--universal|--antigravity] [--all] [--global] [--project] [--yes] [--api-key KEY] [--oauth] [--no-browser] [--json]
 metadata:
   tags:
     - documentation

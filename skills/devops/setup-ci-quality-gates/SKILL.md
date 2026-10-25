@@ -1,6 +1,8 @@
 ---
 name: setup-ci-quality-gates
-description: Sets up CI quality gates and arch checks. Use when creating workflows, branch protection.
+description: "Set up CI quality gates and architecture checks on GitHub Actions. Use when creating workflows, branch protection rulesets, auto-merge, or AI review layers."
+when-to-use: "Use when replicating this repo's CI setup: ci.yml jobs, branch-protection ruleset, auto-merge workflow, AI review layers (CodeRabbit, Codacy, cubic, Repowise), and local scripts/ci.sh."
+argument-hint: "[<repo-root>]"
 metadata:
   tags:
     - ci
@@ -144,106 +146,13 @@ passes all gates. (This is why all work here uses worktrees + PRs.)
 
 ## 3. Auto-merge (.github/workflows/auto-merge.yml)
 
-Squash-merges a PR to `main` once required checks pass:
-
-```yaml
-name: Auto-merge gated PRs
-
-on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review, reopened]
-
-permissions:
-  pull-requests: write
-  contents: write
-
-jobs:
-  enable-auto-merge:
-    name: Enable auto-merge
-    runs-on: ubuntu-latest
-    if: >
-      github.event.pull_request.base.ref == 'main' &&
-      github.event.pull_request.draft == false &&
-      github.event.pull_request.merged == false
-    steps:
-      - name: Enable auto-merge (squash)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          # --auto holds the PR until required checks pass, then squash-merges.
-          gh pr merge "$PR_NUMBER" --auto --squash \
-            --subject "$PR_TITLE" || \
-            echo "Auto-merge not available yet — a later event will retry."
-
-```text
-
-Use env vars (not inline interpolation) to avoid command injection through
-PR metadata.
+See `references/auto-merge.yml.md` for the squash-merge workflow and
+PR-metadata env-var rules.
 
 ## 4. AI review layers
 
-### CodeRabbit (app.coderabbit.ai)
-
-GitHub App; no repo config file required (config via UI or repo-wide).
-Reviews every PR: walkthrough, actionable inline comments, pre-merge
-checks (docstring coverage, title/description), "finishing touches".
-Re-review runs on every push.
-
-### Codacy Static Code Analysis
-
-- Add repo at app.codacy.com → analysis runs on each PR.
-- **Required check**: `Codacy Static Code Analysis` (add to ruleset).
-- Exclusions in `.codacy.yaml` (fixture/test code must not skew metrics):
-
-```yaml
-exclude_paths:
-- "workspaces-bad/**"
-- "workspaces-good/**"
-- "crates/*/tests/**"
-- "scripts/**"
-- "tools/**"
-
-```text
-
-- Custom AI instructions in `.github/instructions/codacy.instructions.md`
-  (org/repo defaults, run `codacy_cli_analyze` after edits, trivy after
-  dependency changes).
-
-### cubic AI reviewer (www.cubic.dev)
-
-GitHub App; runs "ultrareview" on each PR with P1/P2/P3 findings.
-No repo config file in this project (UI-configured).
-
-### Repowise PR bot (.repowise/bot.yaml)
-
-Health gate on PRs (advisory): code-health of changed files, change risk,
-dead-code findings, blast radius. Config:
-
-```yaml
-bot:
-  enabled: true
-  comment_mode: on_signal
-  ignore_paths:   # mirror .codacy.yaml + .repowiseIgnore
-    - "workspaces-bad/**"
-    - "workspaces-good/**"
-    - "crates/*/tests/**"
-    - "scripts/**"
-    - "tools/**"
-    - "log/**"
-    - "target/**"
-    - "*.md"
-  health_gate:
-    mode: advisory
-    min_new_file_score: 7.0
-    block_on_introduced: false
-
-```text
-
-Also configure `.repowiseIgnore` (committed) + `.repowise/config.yaml`
-exclude_patterns so fixture code is never indexed; `.repowise/health-rules.json`
-tunes scoring policy (see the `repowise-scan` skill).
+See `references/ai-review-layers.md` for CodeRabbit, Codacy, cubic, and
+Repowise configuration.
 
 ## 5. Local quality gates (scripts/ci.sh)
 

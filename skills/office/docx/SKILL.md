@@ -1,6 +1,8 @@
 ---
 name: docx
 description: Create, read, edit, template, and review Word .docx files.
+when-to-use: "Use when generating, reading, editing, or templating Word .docx files — reports, letters, contracts — including tracked changes, comments, TOC, and page-number fields."
+argument-hint: "create <spec.json> <out.docx>|read <file.docx> [--text|--structure|--styles|--images|--revisions]|edit replace <file.docx> --find <old> --replace <new>|template <tpl.docx> <values.json> <out.docx>|revisions list|accept-all|reject-all|comments list|add|delete|validate <file.docx>"
 version: 1.1.0
 author: Nous Research
 license: MIT
@@ -20,6 +22,12 @@ images, headers/footers, `{{token}}` templating, tracked changes
 (list/accept/reject), comments (list/add/delete), TOC and page-number
 fields, and package health checks. It does not render documents itself
 (PDF needs LibreOffice — see Converting to PDF) or edit legacy `.doc`.
+
+## References
+
+- `references/xml-editing.md` — raw-XML toolchain: unpack/repack, redlining, `.dotx` templates, tracked changes via LibreOffice.
+- `references/revisions-and-comments.md` — tracked-changes and comments reference: revision types, acceptance flow, comment threading, and which edge cases to hand to Word.
+- `references/pitfalls.md` — edge-case behaviors: run fragmentation, revision coverage limits, field results, validation semantics, style numbering, cell formatting, and encoding.
 
 ## When to Use
 
@@ -153,42 +161,7 @@ cannot render PDFs, and layout fidelity requires a real renderer.
 
 ## Pitfalls
 
-- **Tokens split across runs.** Word often fragments text into several
-  runs. The replace helpers collapse matched runs (replacement inherits
-  the first run's formatting); running `docx_edit.py normalize` first
-  reduces fragmentation for all later edits.
-- **Revision coverage.** `docx_revisions.py` resolves run-level
-  insertions and deletions (the overwhelming majority). Paragraph-mark
-  and table-row revisions, format-change records, and moves are detected
-  by `--revisions` but not auto-resolved — see
-  `references/revisions-and-comments.md` and hand those to Word.
-- **Comment threading.** Replies and "resolved" status live in
-  `commentsExtended.xml`, which this skill ignores; comments it adds are
-  plain top-level comments.
-- **Field results are computed by Word.** `toc`, `page-numbers`, and the
-  `toc`/`footer_page_numbers` spec options write *field codes*.
-  Word/LibreOffice populates the actual entries and numbers when the
-  file is opened (Word may prompt to update fields); python-docx never
-  computes them, so placeholder text shows until then.
-- **Validation is a health check, not schema validation.**
-  `docx_validate.py` verifies the zip, required parts, relationship
-  targets, image magic bytes, and referenced styles. It is NOT XSD
-  validation — a file can pass and still contain XML Word dislikes.
-- **Style names must exist.** Applying a style that isn't defined in the
-  document raises `KeyError`. Built-ins like `Heading 1`, `List Bullet`,
-  `List Number`, `Table Grid` exist in the default template; custom
-  styles must be declared in the create spec first.
-- **Numbered lists restart.** `List Number` relies on Word's default
-  numbering; separate lists in one document may continue numbering
-  instead of restarting. Warn users needing precise multi-list numbering.
-- **Cell writes replace formatting.** `set-cell` uses `cell.text = ...`,
-  which resets runs in that cell to plain formatting.
-- **Encoding.** All JSON specs/values files are read as UTF-8 explicitly;
-  never rely on locale defaults when writing your own glue code.
-- **Don't unzip-and-sed the XML.** Edit through the scripts (or
-  python-docx); raw text substitution in `document.xml` corrupts files
-  easily. Use `patch`/`write_file` only for the JSON inputs, never on the
-  `.docx` itself.
+Edge-case behaviors (tokens split across runs, revision coverage, comment threading, field results computed by Word, validation as health check, style names, numbered list restarts, cell writes replace formatting, encoding, no raw XML edits) live in `references/pitfalls.md`.
 
 ## Verification
 

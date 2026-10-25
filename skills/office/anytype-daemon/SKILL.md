@@ -1,6 +1,8 @@
 ---
 name: anytype-daemon
 description: Manage Anytype headless daemon lifecycle, bot accounts, authentication tokens, and P2P space sync.
+when-to-use: "Use when starting, stopping, or checking the local Anytype daemon, creating bot accounts, rotating API keys, or joining spaces via invite links."
+argument-hint: "start|stop|restart|status|logs|auth-create <name>|auth-key <name>|space-join <invite-link>|space-list"
 metadata:
   tags: []
 ---

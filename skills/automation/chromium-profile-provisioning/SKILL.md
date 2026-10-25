@@ -1,6 +1,8 @@
 ---
 name: chromium-profile-provisioning
-description: Create or inspect Brave/Chromium profile dirs and prefs. Not driving pages.
+description: Use when creating, inspecting, or fixing Brave/Chromium profile dirs, Local State info_cache, user-data locations, or provisioning profiles alongside the Bitwarden CLI. Not driving pages.
+when-to-use: Use when a tool must see or create browser profiles deterministically, when editing Local State or Preferences with a closed browser, when probing user-data dirs under native, Flatpak, Snap, or macOS installs, or when wiring NAME|user|pass|url envs into vault items plus browser profiles. Not for driving pages.
+argument-hint: "<create | inspect> <profile-name> [user-data-dir] [--dry-run] [--yes]"
 metadata:
   tags:
     - browser

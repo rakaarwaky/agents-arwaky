@@ -1,6 +1,8 @@
 ---
 name: coderabbit-review
 description: "CodeRabbit review: local pre-push check plus apply its PR threads. Needs coderabbit."
+when-to-use: "Local pre-push CodeRabbit review, and PR autofix: apply CodeRabbit review-thread comments to an open PR."
+argument-hint: "[coderabbit review --agent [-t uncommitted|committed] [--base <branch>] [--dir <path>]] [PR autofix via gh GraphQL threads]"
 metadata:
   tags: []
   version: 0.1.0

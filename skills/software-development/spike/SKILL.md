@@ -1,6 +1,8 @@
 ---
 name: spike
 description: Runs throwaway validation experiments. Use when testing ideas before build with terminal, delegate.
+when-to-use: Use when testing an idea before committing to a build — validate feasibility, compare approaches, surface unknowns.
+argument-hint: "<idea>"
 metadata:
   tags:
     - spike

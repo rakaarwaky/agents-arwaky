@@ -1,6 +1,8 @@
 ---
 name: atomic-commit-split
 description: Use when a dirty tree must become an atomic commit series.
+when-to-use: Use when a dirty tree must become an atomic commit series, splitting churn into reason-grouped commits.
+argument-hint: "<repo-path>"
 metadata:
   tags: []
 ---

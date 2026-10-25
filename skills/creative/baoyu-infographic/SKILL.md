@@ -1,6 +1,8 @@
 ---
 name: baoyu-infographic
 description: "Infographics: 21 layouts x 21 styles (信息图, 可视化)."
+when-to-use: "Use when the user asks for an infographic, visual summary, or information graphic — they provide content (text, file, URL, topic) and optionally layout, style, aspect ratio, or language. Triggers include 信息图, 可视化, 高密度信息大图."
+argument-hint: "<topic> [layout] [style] [aspect] [language]"
 version: 1.56.1
 author: 宝玉 (JimLiu)
 license: MIT

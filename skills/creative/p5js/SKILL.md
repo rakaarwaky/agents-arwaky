@@ -1,6 +1,8 @@
 ---
 name: p5js
 description: "p5.js sketches: gen art, shaders, interactive, 3D."
+when-to-use: "Use when the user wants a p5.js sketch — generative art, shaders, interactive visualizations, canvas animations, 3D WebGL scenes, audio-reactive visuals, or data viz, exported as HTML/PNG/GIF/MP4/SVG."
+argument-hint: "<generative|data-viz|interactive|animation|3d|image-processing|audio-reactive> [output.html|png|gif|mp4] [--width W --height H --frames N --fps F]"
 version: 1.0.0
 author: SHL0MS, Hermes Agent
 license: MIT

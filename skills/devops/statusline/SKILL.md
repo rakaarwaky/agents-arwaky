@@ -1,6 +1,8 @@
 ---
 name: statusline
-description: Configure the Grok Build status line.
+description: "Configure the optional Grok Build status-line row (`[ui.status_line]`). Use when the user wants built-in items (cwd, model, context), a custom command script, or the row disabled."
+when-to-use: "Use when the user asks to configure the status line row: built-in items, a custom script path, refresh interval, padding, or off/disabled."
+argument-hint: "[builtin | command <path> | disabled]"
 ---
 
 # Status line

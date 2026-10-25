@@ -1,6 +1,8 @@
 ---
 name: threejs-frame-conventions
 description: "One spatial frame for Three.js controls, camera, and facing."
+when-to-use: "Use when debugging Three.js movement/camera/facing bugs — wrong arrow direction, character walking backward, camera-relative vs world-axis input, or render/collision frame disagreement."
+argument-hint: "<movement|camera|facing|collision>"
 version: 1.0.0
 author: grok-bundled, Hermes Agent
 license: MIT

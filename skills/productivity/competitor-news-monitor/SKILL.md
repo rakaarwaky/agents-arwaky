@@ -1,6 +1,8 @@
 ---
 name: competitor-news-monitor
-description: "Watch named companies for material news; cited digests."
+description: "Watch named companies for material news; cited digests. Use when monitoring a competitor set, tracking company launches, pricing, funding, partnerships, executive moves, or incidents, scheduling a recurring competitor-intelligence digest, or running the scheduled competitor-watch tick."
+when-to-use: "Use when the user asks to monitor competitors, tell them when a named company changes pricing or launches a product, create a competitor intelligence digest, track funding/partnerships/executive moves/incidents, or when a cron tick fires for an existing competitor watch. Not for one-off company research (use web_search/web_extract) or plain feed reading (blogwatcher)."
+argument-hint: "[create | tick] <companies-or-slug> [watch-slug] [--all-clear]"
 version: 0.1.0
 author: Ben Barclay (benbarclay), Hermes Agent
 license: MIT

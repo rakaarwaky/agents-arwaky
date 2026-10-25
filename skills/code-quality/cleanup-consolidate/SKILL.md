@@ -1,6 +1,8 @@
 ---
 name: cleanup-consolidate
 description: Removes dead code and merges duplicates. Use when cleaning Python, Rust, TS packages.
+when-to-use: "Dead code removal (ruff/vulture/knip/clippy/udeps) and file consolidation after refactors, before commits, or before releases."
+argument-hint: "[--dry-run]"
 metadata:
   tags:
     - python

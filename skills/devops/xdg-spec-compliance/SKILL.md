@@ -1,6 +1,8 @@
 ---
 name: xdg-spec-compliance
-description: Audit and fix XDG Base Directory compliance in a repo.
+description: "Audit and fix XDG Base Directory compliance in a repo (data/config/cache/state paths, 0700 dirs, 0600 secrets, precedence). Use when the app resolves paths with `expanduser`/`Path.home`, writes logs outside `$XDG_STATE_HOME`, or ships world-readable secrets."
+when-to-use: "Use when auditing a repo's path resolution against the XDG Base Directory spec: relative/tilde rejection, precedence (shell env > XDG file > .env), dir and file permissions, and vendor subdirs."
+argument-hint: "[<repo-root>]"
 metadata:
   tags:
     - linux

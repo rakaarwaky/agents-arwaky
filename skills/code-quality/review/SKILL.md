@@ -431,137 +431,7 @@ Do NOT delete `<review_file>` or `<summary_file>` in main/local/branch modes -- 
 
 ### PR mode
 
-1. Read `<review_file>` via `read_file` and parse it into a structured representation:
-   - Extract the `## Summary` section -- everything after the `## Summary` heading and before the next `## ` heading.
-   - Extract each issue by matching heading lines against `^### Issue \d+ -- Severity: (bug|suggestion|nit)$` (same regex as Step 3 Main/Local/Branch mode). For each matched block, capture:
-     - `severity` -- the captured group from the heading regex
-     - `file` and `line` -- parsed from the `- File: path:line` field. If `:line` is missing, the issue cannot become an inline comment; it must be promoted to the body.
-     - `description` -- from the `- Description:` field
-     - `suggestion` -- from the `- Suggestion:` field (may be empty)
-
-   **Early-exit on zero issues**: behavior depends on `approve` / `submit`:
-   - **`approve` is false and `submit` is false (default):** do NOT walk the diff, build a payload, or post. Print "Reviewer found no issues on PR #<pr_number>. No PENDING review created." Then run no-reviewer cleanup and produce the Final report.
-   - **`submit` is true (and `approve` is false):** do not post an empty COMMENT review. Print "Reviewer found no issues on PR #<pr_number>. No COMMENT review created." Then run no-reviewer cleanup and produce the Final report.
-   - **`approve` is true:** do NOT skip -- the user asked to approve. Build a payload with `comments: []` and a `body` carrying the `## Summary` and the (zero) issue counts, then post it with `"event": "APPROVE"` (items 4-7 below) so the approval still happens. Continue to item 2 (the diff walk produces an empty inline-comment set, which is fine).
-
-2. Read `<diff_file>` via `read_file` and walk it to determine which `(file, line)` pairs are present on the RIGHT side of any hunk. The line is on the RIGHT side when:
-   - It is an added line (prefix `+`, but not the `+++ b/...` header line), OR
-   - It is a context line (prefix ` `).
-
-   Walk the diff file by file:
-   - Each file section starts with `+++ b/<path>` (treat `+++ /dev/null` as a deletion -- skip).
-   - Within a file, each hunk starts with `@@ -<old>[,<oldcount>] +<new>[,<newcount>] @@`. The `,<count>` parts are optional and default to `1` when omitted (so `@@ -42 +42 @@` is a valid single-line hunk that `git diff` and `gh pr diff` both emit). A regex like `^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@` matches both forms; capture `<new>` from the second group. Reset the right-side line counter to `<new>`. (The regex is intentionally unanchored at the end -- real diffs frequently carry trailing context after the second `@@`, e.g. `@@ -10,5 +15,3 @@ def my_function():`, and `re.match` succeeds on the prefix without a `$` anchor. Do NOT add `$`; it would reject every hunk header that includes a function/class hint.)
-   - Walk the hunk body. For ` ` (context) and `+` lines (excluding `+++` headers), record the current right-side line and increment the counter. For `-` lines (excluding `---` headers), do not increment the right-side counter.
-   - Lines starting with `\ ` (a literal backslash followed by a space) are diff metadata, not file content -- e.g., `\ No newline at end of file`. Skip them: do not increment the right-side counter, and do not contribute a `(file, line)` pair.
-
-   Build a set of `(file, line)` pairs.
-
-3. Partition the parsed issues into two groups:
-   - **Inline comments**: issues whose `(file, line)` is in the diff set.
-   - **Promoted to body**: issues whose `(file, line)` is missing or not in the diff set.
-
-4. Build the JSON payload via the `write` tool, saving to `<pending_review_payload>`:
-
-   ```json
-   {
-     "commit_id": "<head_sha>",
-     "body": "<assembled body, see below>",
-     "comments": [
-       {
-         "path": "src/foo.rs",
-         "line": 42,
-         "side": "RIGHT",
-         "body": "**[bug]** description text\n\n**Suggestion:** suggestion text"
-       }
-     ]
-   }
-   ```
-
-   **The `event` field is conditional on `approve` / `submit`:**
-   - If `approve` is false and `submit` is false (default): do NOT include `event`. Omitting it causes the GitHub API to create the review in PENDING state -- the user reviews and submits it through the GitHub UI.
-   - If `submit` is true (and `approve` is false): add `"event": "COMMENT"` to the dict. The single `POST .../reviews` call publishes the inline comments + body immediately without approving the PR.
-   - If `approve` is true: add `"event": "APPROVE"` to the dict. The single `POST .../reviews` call then publishes the inline comments + body AND approves the PR in one shot.
-
-   The top-level `body` is constructed as:
-
-   ```
-   ## Summary
-
-   <verbatim text of the ## Summary section from the review_file>
-
-   ## Issue counts by severity
-
-   - bugs: <X>
-   - suggestions: <Y>
-   - nits: <Z>
-
-   <if any promoted issues exist, append:>
-   ## Issues outside the diff
-
-   These findings reference lines that are not present in the diff and could not be posted as inline comments:
-
-   - **[severity]** file:line -- description
-     - **Suggestion:** suggestion text
-   <repeat for each promoted issue>
-   <end if>
-   ```
-
-   Each inline comment body has the form `**[severity]** description\n\n**Suggestion:** suggestion`. If the suggestion is empty, drop the suggestion line.
-
-   **Construct the payload as structured data, then persist it with the `write` tool as valid JSON.** Do not concatenate JSON strings by hand. Do not use a `python <<'PY'` heredoc because `<<` is reserved in PowerShell. Serialize the in-memory object and pass the resulting JSON as the `content` argument for `<pending_review_payload>`. The default object has no `event`; add it only for `submit` or `approve` as specified above.
-
-5. Post the review.
-
-   **Self-approval pre-check (`approve` only):** fetch the PR author with `gh pr view <target> --json author` and the authenticated user with `gh api user`. Parse both JSON responses yourself, or use `--jq` as part of those `gh` commands. If the logins are equal, stop before posting, explain that GitHub forbids self-approval, preserve `<review_file>`, and run failed-post cleanup for the other artifacts. Do not send a knowingly invalid APPROVE request.
-
-   Post with `gh api "repos/<owner>/<repo>/pulls/<pr_number>/reviews" -X POST --input <pending_review_payload>`. Inline the validated owner, repo, PR number, payload path, `<post_file>`, and `<post_error_file>` in a shell-appropriate `run_terminal_command` call that captures stdout and stderr.
-
-6. **Error handling**: if the `gh api` call exits non-zero, surface the captured stderr verbatim to the user along with the HTTP status code (parseable from `gh api`'s stderr message). Do not retry. Common cases by status:
-   - **422 Unprocessable Entity**: comments reference lines outside the diff (the diff-line filter missed something, e.g., the reviewer hallucinated a file path), `commit_id` is stale (the PR was force-pushed between Step 1 and now), or the `side` value was rejected. When `approve` is true, a 422 can ALSO mean GitHub refused to let you approve your own PR -- if the stderr says the author cannot approve their own pull request, surface that specific cause clearly (you cannot approve a PR you authored; ask a different reviewer or drop `--approve`) and keep the review file.
-   - **403 Forbidden**: authenticated user lacks permission to comment on the PR (read-only collaborator on the repo, archived repo).
-   - **404 Not Found**: PR does not exist (the user passed a wrong number, or the URL is in a private repo the user cannot see).
-   - **5xx**: GitHub-side outage or transient failure.
-
-   On any error, also keep `<review_file>` on disk (skip the PR-mode review_file deletion in Step 4) so the user can see what would have been posted and either re-run with corrected inputs or submit the notes through some other channel. Mention the preserved path in the error message.
-
-7. On success, the message depends on `approve` / `submit`. In all cases the response is parsed for the review `id`, which is recorded in the Final report; the `html_url` field is not used.
-
-   **`approve` is false and `submit` is false (PENDING):** the user-facing pending-review URL is the PR Files tab, where pending reviews surface and where the "Finish your review" / "Submit review" button lives:
-
-   ```
-   https://github.com/<owner>/<repo>/pull/<pr_number>/files
-   ```
-
-   Construct this URL from the already-validated `owner`, `repo`, and `pr_number` -- do NOT use the `html_url` field from the GitHub response. The response's `html_url` points at a deep link to the review object that does not surface the submit button as cleanly as the Files tab.
-
-   Print to the user as a structured block (not a wall of text):
-
-   ```
-   A PENDING review has been created on PR #<pr_number>.
-   - Inline comments: <N>
-   - Body findings (outside the diff): <M>
-   - Submit at: https://github.com/<owner>/<repo>/pull/<pr_number>/files
-     (scroll to "Finish your review" -> click "Submit review").
-   Until you submit, the comments are visible only to you.
-   ```
-
-   **`submit` is true (COMMENTED):** the review was submitted (published) as a COMMENT review -- comments are visible immediately, the PR is not approved, and there is no PENDING state. Print the PR URL (not the Files-tab submit link):
-
-   ```
-   Submitted a COMMENT review on PR #<pr_number> -- comments are visible immediately.
-   - Inline comments: <N>
-   - Body findings (outside the diff): <M>
-   - PR: <pr_url>
-   ```
-
-   **`approve` is true (APPROVED):** the review was submitted (published) and the PR approved in the same call -- there is no PENDING state to submit. Print the PR URL instead of the Files-tab submit reminder:
-
-   ```
-   Submitted an APPROVING review on PR #<pr_number> -- the PR is now approved.
-   - Inline comments: <N>
-   - Body findings (outside the diff): <M>
-   - PR: <pr_url>
-   ```
+The GitHub PR post-processing — read the reviewer output, walk the diff for valid inline positions, build the payload, post the review, and handle errors — lives in [references/pr-post-processing.md](references/pr-post-processing.md), split out to keep this SKILL.md under ~200 lines. Follow it for single-PR mode; the default posts a PENDING review, `--submit` posts COMMENT, and `--approve` posts APPROVE.
 
 ### Stack mode
 
@@ -614,24 +484,7 @@ Present a final report to the user. Item 1 is always included; item 2 is omitted
 
 ## In-Progress Reporting
 
-Give the user a brief status update after each phase:
-
-- After argument parsing: "Reviewing <mode> target: <target-summary>." (omit target for local mode -- "Reviewing local changes." -- and for main mode -- "Reviewing this clean branch vs its base branch."; the exact base ref is not resolved until Step 1, so do not template a specific ref into this line). When no flag was given, say which mode the default chose and why (e.g. "Working tree is clean, so reviewing the whole branch vs its base branch.").
-- After Step 1 (diff collection): "Collected diff (<N> files, <M> changed lines). Launching reviewer..."
-- After Step 1 (empty diff): "No changes to review. Proceeding to final report."
-- After Step 1 (stack discovery): "Discovered N-PR stack: #a, #b, #c (base->tip). Launching reviewers..."
-- After Step 2 (stack launch): "Launched N reviewers (one per PR) in parallel."
-- After all stack subagents complete: "All stack reviewers complete. Aggregating results..."
-- After Step 2 (reviewer complete): "Review complete. Processing findings..."
-- After Step 3 (main / local / branch): "Found N issues (X bugs, Y suggestions, Z nits). Wrote <review_file> and <summary_file>."
-- After Step 3 (PR, zero issues, no approve, no submit): "Reviewer found no issues on PR #<pr_number>. No PENDING review created."
-- After Step 3 (PR, zero issues, submit): "Reviewer found no issues on PR #<pr_number>. No COMMENT review created."
-- After Step 3 (PR, zero issues, approve): "Reviewer found no issues on PR #<pr_number>. Submitted an empty APPROVING review; PR approved."
-- After Step 3 (PR, success, no approve, no submit): "Posted PENDING review with N inline comments and M body findings. Visit <url> to submit."
-- After Step 3 (PR, success, submit): "Submitted COMMENT review on PR #<pr_number> with N inline comments and M body findings."
-- After Step 3 (PR, success, approve): "Submitted and APPROVED review on PR #<pr_number> with N inline comments and M body findings."
-- After Step 3 (PR, error -- 422 or any other non-zero exit): "Failed to post review. HTTP <status>. GitHub returned: <verbatim stderr>. Review notes preserved at <review_file>."
-- After Step 3 (stack): one line per PR -- "PR #<num>: <APPROVED | COMMENTED | PENDING | NO CHANGES | NO REVIEW> -- X bugs, Y suggestions, Z nits." (or that PR's error) -- followed by "Stack review complete: <P> PRs, <A> approved, <C> commented, <Pn> pending, <E> errored."
+Status-update phrasing after each phase (diff collection, reviewer completion, post-outcome, stack per-PR results) is in [references/in-progress-reporting.md](references/in-progress-reporting.md).
 
 ## Rules
 
@@ -659,14 +512,4 @@ Give the user a brief status update after each phase:
 
 ## Design notes
 
-These are background notes that explain the rationale behind some of the choices above. They are NOT rules; they are pointers for future maintainers.
-
-- **Main mode reviews the current branch tip.** It is selected only when the working tree is clean and compares `MERGE_BASE..HEAD`. Local mode remains the owner of staged, unstaged, and untracked changes through `collect_local_diff.py`; named branch mode compares `MERGE_BASE..<target>`.
-- **The bare `/review` default trades one previously-empty case for a useful one.** Before this change a bare `/review` always meant local mode, so on a clean tree (everything committed) it reported "no changes to review" and did nothing. The default keeps local mode whenever the tree is dirty (no regression for the common mid-edit gut-check) and only switches to main mode when local mode would otherwise have been a no-op. GitHub-writing modes stay strictly opt-in: a bare `/review` never resolves to `--pr` or `--stack`, so it can never post to GitHub on its own.
-- **Host helpers do not own review parsing.** `scripts/host.py` owns portable setup and cleanup. `scripts/collect_local_diff.py` owns portable local diff collection. Review markdown parsing, unified-diff hunk walking, and GitHub payload assembly stay inline.
-- **Owner/repo are derived from the PR `url`, not from a `baseRepository` field.** `gh pr view --json baseRepository` returns `Unknown JSON field: "baseRepository"` -- only `headRepository`, `headRepositoryOwner`, and `isCrossRepository` are exposed. Parsing the URL is the simplest universal approach and works correctly for cross-repo PRs.
-- **The constructed `/files` URL is used for PENDING output only, not the response's `html_url`.** The Files tab is where the "Finish your review" / "Submit review" button surfaces in the GitHub UI; that is what the user needs for a PENDING review. The response's `html_url` deep-links to the review object and is less useful for this workflow. When `--submit` or `--approve` is used there is no PENDING state and no submit button, so the user output reports the PR URL instead.
-- **Default stays PENDING; `--submit` opts into COMMENT (2026-07-27).** Changing the default would surprise users who open GitHub to iterate on draft reviews before publishing. `--submit` mirrors `--approve` as an explicit opt-in for a published event (`event: COMMENT` vs `event: APPROVE`) without flipping the default.
-- **Color-off on git diffs.** Agents parse unified diffs as plain text; ANSI color sequences from `color.ui=always` corrupt that parse and force retries. The skill pins `-c color.ui=false -c color.diff=false` on every `git diff` invocation rather than relying on ambient config.
-- **Stack subagents post their own reviews; the orchestrator does not.** A stack can be 8+ PRs; collecting every diff and posting every review from the orchestrator would serialize the work and bloat its context. Spawning one read-only subagent per PR parallelizes the reviews. Because they share one working tree, each subagent reads post-change content via `gh api .../contents?ref=<headSha>` instead of checking the branch out, and writes only per-PR-unique files under `scratch_dir` (REVIEW_ID + PR number) so concurrent subagents never collide.
-- **Stack discovery is a deterministic walk over open PRs.** Rather than depend on the `gh` Graphite extension (not guaranteed installed), the skill fetches all open PRs once and walks the `baseRefName`->`headRefName` chain down to the base and up to the tip. This needs only core `gh` and degrades gracefully (a PR with no neighbors is reviewed alone; a branching stack includes all reachable descendants).
+> Rationale for the non-obvious choices (bare-`/review` default, PENDING-vs-`--submit`, color-off diffs, stack-subagent parallelism, host-helper ownership) is in [references/design-notes.md](references/design-notes.md).

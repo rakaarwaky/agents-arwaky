@@ -1,6 +1,8 @@
 ---
 name: no-mistakes
 description: "Validates changes via review, tests, lint, CI. Use when running no-mistakes, gating, shipping."
+when-to-use: "Run the no-mistakes axi gate pipeline (intent, rebase, review, test, document, lint, push, PR, CI) before changes reach upstream; validate-only or task-first modes."
+argument-hint: "[no-mistakes axi run --intent <task>] [--skip=<step>] [--yes] [axi respond --action fix|approve|skip --findings <ids>]"
 metadata:
   tags: []
 ---

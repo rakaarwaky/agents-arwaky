@@ -1,6 +1,8 @@
 ---
 name: fix-bypass
 description: Fixes bypass suppressions at root cause. Use when cleaning type ignore, noqa, allow, unwrap.
+when-to-use: "Remove bypass suppressions (# type: ignore, # noqa, #[allow], unwrap, expect, panic, @ts-ignore, eslint-disable) by fixing root cause."
+argument-hint: "[grep patterns per language] [python|rust|typescript sections]"
 metadata:
   tags:
     - python

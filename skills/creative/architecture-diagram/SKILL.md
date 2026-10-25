@@ -1,6 +1,8 @@
 ---
 name: architecture-diagram
 description: "Dark-themed SVG architecture/cloud/infra diagrams as HTML."
+when-to-use: "Use when the user asks for architecture, cloud, or infrastructure diagrams — system topology, microservice mesh, VPC/region/subnet layout, database/API maps, or any dark-themed SVG diagram as a standalone HTML file."
+argument-hint: "<architecture-description> [output-file.html]"
 version: 1.0.0
 author: Cocoon AI (hello@cocoon-ai.com), ported by Hermes Agent
 license: MIT

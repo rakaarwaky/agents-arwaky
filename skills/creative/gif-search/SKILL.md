@@ -1,6 +1,8 @@
 ---
 name: gif-search
 description: "Search/download GIFs from Tenor via curl + jq."
+when-to-use: "Use when the user wants to search or download GIFs from Tenor — reaction GIFs, visual content for chat, or GIF metadata via the Tenor API with curl + jq."
+argument-hint: "<query> [--limit N] [--format gif|tinygif|mp4|webm]"
 version: 1.1.0
 author: Hermes Agent
 license: MIT

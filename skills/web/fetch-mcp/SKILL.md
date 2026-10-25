@@ -1,6 +1,8 @@
 ---
 name: fetch-mcp
 description: Scrapes web to markdown with transcripts. Use when extracting articles, HTML, YouTube text.
+when-to-use: Use when reading content from external web pages, blogs, or documentation URLs; converting noisy pages to clean Markdown articles; fetching structured JSON from REST API endpoints; or extracting captions/transcripts from YouTube videos.
+argument-hint: "<tool> <url> [--max-length N] [--start-index N] [--headers <json>] [--proxy <url>] | fetch_youtube_transcript <url> [--lang en]"
 metadata:
   tags: []
 ---

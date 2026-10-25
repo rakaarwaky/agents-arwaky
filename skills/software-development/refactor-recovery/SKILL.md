@@ -1,6 +1,8 @@
 ---
 name: refactor-recovery
 description: Resume a mid-flight code refactor left inconsistent.
+when-to-use: Use when resuming an interrupted refactor — files half-moved, imports half-fixed, __init__.py re-exports pointing at moved sources.
+argument-hint: "<pkg-root>"
 category: software-development
 ---
 

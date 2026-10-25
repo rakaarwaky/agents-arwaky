@@ -1,10 +1,16 @@
 ---
 name: pptx
 description: Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Trigger whenever the user mentions 'deck', 'slides', 'presentation', or references a .pptx filename, regardless of what they plan to do with the content afterward. If a .pptx file needs to be opened, created, or touched, use this skill.
+when-to-use: "Use whenever any .pptx file is involved — creating, reading, editing, combining, splitting, or working with templates, layouts, speaker notes, or comments — triggered by 'deck', 'slides', 'presentation', or a .pptx filename."
+argument-hint: "create <deck>|edit <file.pptx>|read <file.pptx>|thumbnail <file.pptx>|check-overlaps <dir>|detect-fonts <file.pptx>|render-slides <file.pptx>"
 user-invocable: false
 ---
 
 # PPTX Skill
+
+## References
+
+- `references/images.md` — image aspect-ratio rule, sources, options, sizing modes, and dimension calculations.
 
 ## Workflow Selection
 
@@ -153,62 +159,7 @@ pdftoppm -jpeg -r 150 output.pdf slide
 
 ## Images
 
-### Image Aspect Ratio Rule
-
-**Always preserve the original aspect ratio of images.** When resizing, compute the target height from the source image's natural aspect ratio (or vice versa) — never set width and height independently, as this stretches or squashes the image.
-
-
-### Image Sources
-
-```javascript
-// From file path
-slide.addImage({ path: "images/chart.png", x: 1, y: 1, w: 5, h: 3 });
-
-// From URL
-slide.addImage({ path: "https://example.com/image.jpg", x: 1, y: 1, w: 5, h: 3 });
-
-// From base64 (faster, no file I/O)
-slide.addImage({ data: "image/png;base64,iVBORw0KGgo...", x: 1, y: 1, w: 5, h: 3 });
-```
-
-### Image Options
-
-```javascript
-slide.addImage({
-  path: "image.png",
-  x: 1, y: 1, w: 5, h: 3,
-  rotate: 45,              // 0-359 degrees
-  rounding: true,          // Circular crop
-  transparency: 50,        // 0-100
-  flipH: true,             // Horizontal flip
-  flipV: false,            // Vertical flip
-  altText: "Description",  // Accessibility
-  hyperlink: { url: "https://example.com" }
-});
-```
-
-### Image Sizing Modes
-
-```javascript
-// Contain - fit inside, preserve ratio
-{ sizing: { type: 'contain', w: 4, h: 3 } }
-
-// Cover - fill area, preserve ratio (may crop)
-{ sizing: { type: 'cover', w: 4, h: 3 } }
-
-// Crop - cut specific portion
-{ sizing: { type: 'crop', x: 0.5, y: 0.5, w: 2, h: 2 } }
-```
-
-### Calculate Dimensions (preserve aspect ratio)
-
-```javascript
-const origWidth = 1978, origHeight = 923, maxHeight = 3.0;
-const calcWidth = maxHeight * (origWidth / origHeight);
-const centerX = (10 - calcWidth) / 2;
-
-slide.addImage({ path: "image.png", x: centerX, y: 1.2, w: calcWidth, h: maxHeight });
-```
+Image handling rules (aspect ratio, sources, options, sizing modes, dimension calculations) live in `references/images.md`.
 
 ---
 

@@ -1,6 +1,8 @@
 ---
 name: local-ci
-description: Reproduce remote CI gates on the developer machine, in a container, or both. Use when building a ci.sh, mirroring .github/workflows, or when GitHub Actions is quota-blocked.
+description: "Reproduce remote CI gates on the developer machine, in a container, or both. Use when building a ci.sh, mirroring .github/workflows, or when GitHub Actions is quota-blocked."
+when-to-use: "Use when you need the same CI gates locally as `.github/workflows/`, GitHub Actions is quota/billing-blocked, or you want a pre-push hook that mirrors the remote workflow."
+argument-hint: "[--container]"
 metadata:
   tags:
     - ci
@@ -159,100 +161,24 @@ VOLUMES="-v ${REPO_ROOT}:/root/src:Z \
 
 ## 4. Container image: bake once, run many times
 
-The image holds every dependency, so `podman run` does no network work. A
-warm container starts in under a second; the first build is the only slow
-step.
-
-**Slim the base when the official image ships unused browsers.** The
-Playwright Python base is 2.41 GB because it bundles Chromium, Firefox,
-WebKit, and ffmpeg. An adapter that only drives Chromium needs ~450 MB of
-those. `python:3.12-slim` plus the one browser lands near 1.3 GB — 51%
-smaller — and `podman build` caches the browser layer independently of
-source changes, so the cost is paid once.
-
-**Download browsers with `curl`, not the Playwright installer.** Its Node
-downloader has an internal 30 s stall timeout and hangs on slow links even
-when the CDN is reachable. `curl --retry 5` at 1 MB/s is reliable. Then write
-the marker file the installer checks so the first launch skips the download:
-
-```dockerfile
-ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
-RUN install_browser() { \
-        local dir="$1" url="$2"; \
-        mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}/${dir}" && \
-        curl -fSL --retry 5 --retry-delay 5 -o /tmp/pw.zip "${url}" && \
-        unzip -qo /tmp/pw.zip -d "${PLAYWRIGHT_BROWSERS_PATH}/${dir}" && \
-        rm -f /tmp/pw.zip && \
-        touch "${PLAYWRIGHT_BROWSERS_PATH}/${dir}/INSTALLATION_COMPLETE" \
-              "${PLAYWRIGHT_BROWSERS_PATH}/${dir}/DEPENDENCIES_VALIDATED"; \
-    } && \
-    install_browser "chromium-${REVISION}" "${CHROME_URL}" && \
-    install_browser "chromium_headless_shell-${REVISION}" "${HEADLESS_URL}"
-```
-
-Both binaries are required: `headless=True` launches the headless shell, a
-separate download from full Chromium. Omitting it produces
-`Executable doesn't exist at .../chrome-headless-shell-linux64/chrome-headless-shell`.
-
-**Install a prebuilt CLI from the same release the remote job uses.** A
-locally installed linter is often several majors behind the release CI
-downloads, and the version gap shows up as phantom violations:
-
-```bash
-lint-arwaky-cli version          # host: 2.0.0
-# container, from releases/latest: 3.7.0 → reports 8 extra violations
-```
-
-Match the version, or the local run does not predict CI.
-
-**Pick the base for its glibc, not just its size.** A release binary linked
-against glibc 2.38+ refuses to start on bookworm (2.36). Debian trixie ships
-2.41.
-
-**Add `tini` as PID 1** when the app spawns browser or Node children;
-without it a headless run exiting leaves zombies in the container.
+See `references/container-image.md` for base-image slimming, browser
+download via `curl`, marker files, prebuilt CLI pinning, glibc base
+choice, and `tini` as PID 1.
 
 ## 5. Verify both runtimes before trusting either
 
-```bash
-bash scripts/ci.sh                 # host
-bash scripts/ci.sh --container     # container
-```
-
-Then confirm the container really has the browser, not just the Python
-package:
-
-```bash
-podman run --rm --entrypoint <interpreter> <image> -c "
-from playwright.sync_api import sync_playwright
-with sync_playwright() as p:
-    b = p.chromium.launch(headless=True)
-    page = b.new_page()
-    page.goto('about:blank')
-    print('Chromium OK — viewport:', page.viewport_size)
-"
-```
-
-`--entrypoint` is required: an image whose `ENTRYPOINT` is the app binary
-will interpret your `-c` as a subcommand.
+See `references/verify-runtimes.md` for the host/container verification
+commands and the browser-launch proof.
 
 ## Pitfalls
 
-- **Linter version drift.** The single most common false failure. Pin the
-  local binary to the version the workflow downloads.
-- **Read-only source mount.** `uv sync` and pytest both write into the tree.
-  Mount `:Z` without `:ro`.
-- **`ENTRYPOINT` shadowing.** `podman exec` and `podman run` both inherit it;
-  use `--entrypoint` to reach a shell.
-- **`podman exec --entrypoint` is not a flag.** The running container's
-  entrypoint is irrelevant to `exec`; only the command after the container
-  name matters.
-- **Exit code from the count, not the parser.** Grep `Total: N` for the log
-  line, but trust the linter's own exit code. A parse failure should fail the
-  gate, never pass it.
+- **Linter version drift.** Pin the local binary to the version the workflow downloads.
+- **Read-only source mount.** Mount `:Z` without `:ro`.
+- **`ENTRYPOINT` shadowing.** Use `--entrypoint` to reach a shell.
+- **`podman exec --entrypoint` is not a flag.** Only the command after the container name matters.
+- **Exit code from the count, not the parser.** Trust the linter's own exit code.
 - **Skipped test directories.** Copy the full path list from the workflow.
-- **Bandit vs tests.** Exclude test dirs and gate on medium severity, or
-  the signal drowns.
+- **Bandit vs tests.** Exclude test dirs, gate on medium severity.
 
 ## Checklist — add local CI to a repo
 

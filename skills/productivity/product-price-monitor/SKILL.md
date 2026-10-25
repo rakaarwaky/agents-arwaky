@@ -1,6 +1,8 @@
 ---
 name: product-price-monitor
-description: "Watch product, flight, or listing prices; alert on target."
+description: "Watch product, flight, or listing prices; alert on target. Use when tracking a product/listing/flight/hotel price, setting a price or availability alert, handling currency and all-in totals across variants, or running the scheduled price-watch tick."
+when-to-use: "Use when the user wants an alert when a price drops below a target, wants to watch flights, hotel rooms, tickets, or listings for a fare or availability condition, track inventory or booking windows, or when a cron tick fires for an existing price watch. Not for one-off price lookups (use web_search/web_extract)."
+argument-hint: "[create | tick] <item-or-slug> [watch-slug] [--cooldown <duration>]"
 version: 0.1.0
 author: Ben Barclay (benbarclay), Hermes Agent
 license: MIT

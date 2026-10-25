@@ -1,6 +1,8 @@
 ---
 name: report-linter-false-positive
 description: "Linter false positive: file an issue, never patch the tool."
+when-to-use: "When a lint/scan finding is a tool false positive — prove repo code is correct, then report the defect upstream on the linter repo; never patch the linter inline."
+argument-hint: "[reproduce finding] [trace checker heuristic] [rule out repo-side clears] [file issue on linter repo] [document residual finding]"
 metadata:
   tags:
     - lint

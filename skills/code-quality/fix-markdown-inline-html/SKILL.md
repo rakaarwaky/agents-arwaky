@@ -1,6 +1,8 @@
 ---
 name: fix-markdown-inline-html
 description: Fixes Markdown files rejected as HTML, JSX, or MDX. Use when an editor or edit tool refuses a .md file, or markdownlint reports MD033 inline HTML.
+when-to-use: "Markdown files rejected as HTML/JSX/MDX or flagged MD033 inline HTML — remove bare angle brackets outside code spans and fenced blocks."
+argument-hint: "[python3 scripts/find_bare_angle_brackets.py <file-or-dir>] [lint-arwaky-cli check <path> | grep MD033]"
 metadata:
   tags:
     - markdown

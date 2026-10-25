@@ -1,6 +1,8 @@
 ---
 name: anytype-mcp
 description: Anytype MCP for spaces, objects, notes. Use when querying Anytype local spaces, graph, notes.
+when-to-use: "Use when querying Anytype local spaces, graph, notes — searching, reading, creating, or updating objects, collections, and spaces."
+argument-hint: "search_global <query>|search_space <space_id> <query>|get_spaces|get_object <space_id> <object_id>|create_object <space_id> <type_id> <name>|update_object <space_id> <object_id>|get_types <space_id>"
 metadata:
   tags: []
 ---

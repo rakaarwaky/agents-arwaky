@@ -1,6 +1,8 @@
 ---
 name: playwright-cache-restore
-description: "Restore Playwright browser cache when CDN is unreachable."
+description: "Restore Playwright browser cache (Chromium, headless shell, FFmpeg) when the CDN is unreachable or `playwright install` times out. Use when `playwright install chromium` fails on a network-restricted host, manually placed browser dirs are wiped every run, or headless-shell/FFmpeg is missing from `~/.cache/ms-playwright/`."
+when-to-use: "Use when `playwright install` times out or fails on GFW/corporate proxy/data-cap hosts, `curl` reaches the CDN but Playwright's Node fetch cannot, browser dirs are wiped on each run, or headless-shell/FFmpeg is missing."
+argument-hint: "[<browser>]"
 version: 1.0.0
 author: Hermes Agent
 license: MIT

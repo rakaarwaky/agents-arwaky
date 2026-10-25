@@ -1,6 +1,8 @@
 ---
 name: mergify
-description: Use the Mergify CLI for stacked PRs, merge queues, merge protections, CI Insights, config validation, and the activity log. ALWAYS use this skill for any Mergify workflow — pushing or stacking commits/PRs, queuing or diagnosing merge-queue PRs, Depends-On/Merge-After/scheduled freezes, JUnit upload and quarantine, scopes detection, writing or validating .mergify.yml, or browsing what Mergify did. Triggers on mergify, mergify stack, stack push, stacked PR, merge queue, dequeue, queue status, depends-on, merge-after, freeze, mergify config, mergify.yml, junit, quarantine, scopes, ci insights, activity log, mergify events.
+description: mergify, stacked PR, merge queue, CI insights, config validation.
+when-to-use: Run any Mergify workflow — push or stack commits/PRs, diagnose merge-queue PRs, Depends-On/Merge-After/scheduled freezes, JUnit upload and quarantine, scopes detection, write or validate .mergify.yml, browse Mergify events.
+argument-hint: <stack|queue|config|ci|events> [--token <token>] [--repository <owner/repo>]
 metadata:
   tags:
     - mergify

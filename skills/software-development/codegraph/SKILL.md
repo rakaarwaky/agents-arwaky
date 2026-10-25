@@ -1,6 +1,8 @@
 ---
 name: codegraph
 description: Code graph: symbols, callers, impact. Prefer over grep. Use when exploring or refactoring a repo.
+when-to-use: Use when exploring or refactoring a repo, or before grep/Read when asking "what breaks if I change this".
+argument-hint: "<project-path> [--sync] [--status]"
 ---
 # CodeGraph MCP & CLI
 

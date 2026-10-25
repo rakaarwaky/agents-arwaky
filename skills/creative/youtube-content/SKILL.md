@@ -1,6 +1,8 @@
 ---
 name: youtube-content
 description: "YouTube transcripts to summaries, threads, blogs."
+when-to-use: "Use when the user shares a YouTube URL or video link, asks to summarize a video, requests a transcript, or wants to extract and reformat YouTube content into chapters, threads, blog posts, or quotes."
+argument-hint: "<youtube-url> [--text-only | --timestamps | --language LANG]"
 version: 1.0.0
 author: Teknium (teknium1), Hermes Agent
 license: MIT
