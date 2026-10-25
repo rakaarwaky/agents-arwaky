@@ -7,7 +7,7 @@ answers "which skill do I use".
 
 | Goal | Skill | Where |
 |---|---|---|
-| Author / validate / audit a `SKILL.md` | `skill-authoring` | `aa skills validate | show | list` |
+| Author / validate / audit a `SKILL.md` | `skill-design` | `aa skills validate | show | list` |
 | Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
 | Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
 | Orchestrate autonomous self-evolution | `skill-evolving` | `skills/skill-authoring/skill-evolving/` |

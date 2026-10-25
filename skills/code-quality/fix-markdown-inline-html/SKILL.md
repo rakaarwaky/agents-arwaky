@@ -14,7 +14,7 @@ metadata:
     - typescript
     - python
   related_skills:
-    - skill-authoring
+    - skill-design
     - aes-docs
     - aes-lint-arwaky
   triggers:

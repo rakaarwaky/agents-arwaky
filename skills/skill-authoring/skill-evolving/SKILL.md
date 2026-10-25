@@ -13,7 +13,7 @@ synchronization, and lifecycle consolidation into a single verified publication 
 
 Modeled on the four-skill pack under `skills/skill-authoring/`:
 - **`research/learn`** — mines session traces, repeated user phrases, and friction.
-- **`skill-authoring`** — creates new skills and refines frontmatter, triggers, and hints.
+- **`skill-design`** — creates new skills and refines frontmatter, triggers, and hints.
 - **`skill-library`** — audits category placement, repairs metadata, and updates `CATALOG.md`.
 - **`skill-lifecycle`** — prunes bloat, consolidates variants, and deletes empty categories.
 
@@ -62,7 +62,7 @@ Modeled on the four-skill pack under `skills/skill-authoring/`:
 | Role | Skill | Action in Evolution Loop |
 |---|---|---|
 | Trace Mining | `research/learn` | Run `collect_sessions.py --since-last` or `--days 1` to extract friction points, tool failures, and user phrases. |
-| Creation & Refinement | `skill-authoring` | Rewrite descriptions, adjust `argument-hint:`, split bloated bodies into `references/`, add newly discovered workflows. |
+| Creation & Refinement | `skill-design` | Rewrite descriptions, adjust `argument-hint:`, split bloated bodies into `references/`, add newly discovered workflows. |
 | Catalog & Mechanical Repair | `skill-library` | Run `aa skills repair --apply`, `aa skills weed`, and `aa skills catalog`. |
 | Pruning & Consolidation | `skill-lifecycle` | Run `skill-lifecycle --evolution` across the tree to merge overlapping variants and retire duplicates. |
 

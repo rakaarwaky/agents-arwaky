@@ -23,4 +23,4 @@ applying.
 
 This table replaces the three earlier copies (`skill-librarian` Auto-Pilot
 at `SKILL.md:84`, `skill-lifecycle` approval gate at `SKILL.md:96-104`,
-`skill-authoring` interactive) — bodies link here rather than restating it.
+`skill-design` interactive) — bodies link here rather than restating it.
