@@ -38,11 +38,11 @@ def write_fixed() -> None:
 
 
 def main() -> None:
-    log = open(str(PATH) + ".guard.log", "a")
+    logf = open(str(PATH) + ".guard.log", "a")
 
     def log(msg: str) -> None:
-        log.write(f"[{time.strftime('%H:%M:%S')}] {msg}\n")
-        log.flush()
+        logf.write(f"[{time.strftime('%H:%M:%S')}] {msg}\n")
+        logf.flush()
 
     write_fixed()
     last = (os.stat(PATH).st_mtime, os.stat(PATH).st_size)
