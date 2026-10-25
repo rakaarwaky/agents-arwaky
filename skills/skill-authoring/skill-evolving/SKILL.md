@@ -12,7 +12,7 @@ parallel category audits via subagents, frontmatter and body refinements, catalo
 synchronization, and lifecycle consolidation into a single verified publication pass.
 
 Modeled on the four-skill pack under `skills/skill-authoring/`:
-- **`research/learn`** — mines session traces, repeated user phrases, and friction.
+- **`research-study/learn`** — mines session traces, repeated user phrases, and friction.
 - **`skill-design`** — creates new skills and refines frontmatter, triggers, and hints.
 - **`skill-library`** — audits category placement, repairs metadata, and updates `CATALOG.md`.
 - **`skill-lifecycle`** — prunes bloat, consolidates variants, and deletes empty categories.
@@ -26,7 +26,7 @@ Modeled on the four-skill pack under `skills/skill-authoring/`:
                    ┌──────────────────┴──────────────────┐
                    ▼                                     ▼
         Step 1: Ingest Traces                 Step 2: Tree Discovery
-        research/learn                        aa skills list & categories
+        research-study/learn            aa skills list & categories
                    │                                     │
                    └──────────────────┬──────────────────┘
                                       ▼
@@ -61,7 +61,7 @@ Modeled on the four-skill pack under `skills/skill-authoring/`:
 
 | Role | Skill | Action in Evolution Loop |
 |---|---|---|
-| Trace Mining | `research/learn` | Run `collect_sessions.py --since-last` or `--days 1` to extract friction points, tool failures, and user phrases. |
+| Trace Mining | `research-study/learn` | Run `collect_sessions.py --since-last` or `--days 1` to extract friction points, tool failures, and user phrases. |
 | Creation & Refinement | `skill-design` | Rewrite descriptions, adjust `argument-hint:`, split bloated bodies into `references/`, add newly discovered workflows. |
 | Catalog & Mechanical Repair | `skill-library` | Run `aa skills repair --apply`, `aa skills weed`, and `aa skills catalog`. |
 | Pruning & Consolidation | `skill-lifecycle` | Run `skill-lifecycle --evolution` across the tree to merge overlapping variants and retire duplicates. |
@@ -69,10 +69,10 @@ Modeled on the four-skill pack under `skills/skill-authoring/`:
 ## Workflow
 
 ### Step 1: Trace Ingestion (Telemetry)
-Run the session collector from `research/learn` scoped to the target window (default 24h):
+Run the session collector from `research-study/learn` scoped to the target window (default 24h):
 
 ```bash
-python3 skills/research/learn/collect_sessions.py --since-last --batch 1
+python3 skills/research-study/learn/collect_sessions.py --since-last --batch 1
 ```
 
 Examine output artifacts in the run directory (`<RUN>`):
