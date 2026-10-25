@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "sample_repo"
 DISCOVERY = REPO_ROOT / "discovery.json"
@@ -16,10 +17,10 @@ if str(_SKILL_DIR) not in sys.path:
 from scripts import scan
 
 
-def _run() -> dict:
+def _run() -> dict[str, Any]:
     out_path = REPO_ROOT / "scan_out.json"
     scan.run_scan(str(REPO_ROOT), str(DISCOVERY), out=str(out_path))
-    return json.loads(out_path.read_text(encoding="utf-8"))
+    return json.loads(out_path.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
 
 
 def test_output_doc_paths_include_in_scope_zero_rows_doc() -> None:

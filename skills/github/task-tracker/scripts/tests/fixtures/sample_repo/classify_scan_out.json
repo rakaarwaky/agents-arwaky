@@ -1,0 +1,197 @@
+{
+  "docs": [
+    {
+      "doc": "ROADMAP.md",
+      "rows": [],
+      "warning": "in-scope zero rows: ROADMAP.md"
+    },
+    {
+      "doc": "widgets/BACKLOG.md",
+      "rows": [
+        {
+          "id": "WID-01",
+          "title": "Widget creation and validation",
+          "state": "In Progress",
+          "priority": "P0",
+          "health": "\u2014",
+          "fr_refs": [
+            "FR-WID-001"
+          ],
+          "source_doc": "widgets/BACKLOG.md",
+          "row_text": "WID-01 | FR-WID-001 | Widget creation and validation | P0 | In Progress | Widget validator partial; gate `python3 -m pytest widgets/tests -q` outstanding | add `widgets/src/validator.py` exercising `validate_widget`; `python3 -m pytest widgets/tests -q` passes; then set row WID-01 Next Action to \"done\" in `widgets/BACKLOG.md`. | 2026-10-20",
+          "next_action": "add `widgets/src/validator.py` exercising `validate_widget`; `python3 -m pytest widgets/tests -q` passes; then set row WID-01 Next Action to \"done\" in `widgets/BACKLOG.md`.",
+          "feature": "widgets",
+          "updated": "2026-10-20"
+        },
+        {
+          "id": "WID-02",
+          "title": "Widget rendering pipeline",
+          "state": "Ready",
+          "priority": "P1",
+          "health": "\u2014",
+          "fr_refs": [
+            "FR-WID-002"
+          ],
+          "source_doc": "widgets/BACKLOG.md",
+          "row_text": "WID-02 | FR-WID-002 | Widget rendering pipeline | P1 | Ready | Not started | none | 2026-10-20",
+          "next_action": "none",
+          "feature": "widgets",
+          "updated": "2026-10-20"
+        },
+        {
+          "id": "WID-03",
+          "title": "Widget cache backend",
+          "state": "Done",
+          "priority": "P2",
+          "health": "\u2014",
+          "fr_refs": [
+            "FR-WID-003"
+          ],
+          "source_doc": "widgets/BACKLOG.md",
+          "row_text": "WID-03 | FR-WID-003 | Widget cache backend | P2 | Done | Gate: `python3 -m pytest widgets/tests/test_cache.py -q` \u2192 3 passed at `abc1234`; `widgets/src/cache.py` implements `WidgetCache` | none | 2026-09-01",
+          "next_action": "none",
+          "feature": "widgets",
+          "updated": "2026-09-01"
+        },
+        {
+          "id": "WID-04",
+          "title": "Widget export",
+          "state": "In Review",
+          "priority": "P1",
+          "health": "\u2014",
+          "fr_refs": [
+            "FR-WID-004"
+          ],
+          "source_doc": "widgets/BACKLOG.md",
+          "row_text": "WID-04 | FR-WID-004 | Widget export | P1 | In Review | PR #42 open; `python3 -m pytest widgets/tests/test_export.py -q` \u2192 2 passed at `def5678` | none | 2026-10-18",
+          "next_action": "none",
+          "feature": "widgets",
+          "updated": "2026-10-18"
+        }
+      ],
+      "warning": null
+    },
+    {
+      "doc": "widgets-tools/BACKLOG.md",
+      "rows": [],
+      "warning": "in-scope zero rows: widgets-tools/BACKLOG.md"
+    },
+    {
+      "doc": "widgets-ext/BACKLOG.md",
+      "rows": [
+        {
+          "id": "WEXT-01",
+          "title": "Widget extension registry; supports plugin load, plugin unload, and hot-reload of registered widgets without restarting the host process.",
+          "state": "In Progress",
+          "priority": "P0",
+          "health": "\u2014",
+          "fr_refs": [
+            "FR-WEXT-001"
+          ],
+          "source_doc": "widgets-ext/BACKLOG.md",
+          "row_text": "WEXT-01 | FR-WEXT-001 | Widget extension registry; supports plugin load, plugin unload, and hot-reload of registered widgets without restarting the host process. | P0 | In Progress | Registry skeleton merged at `111aaaa`; plugin load path untested | add plugin unload test in `widgets-ext/tests/test_registry.py`; `python3 -m pytest widgets-ext/tests -q` passes; then set row WEXT-01 Next Action to \"done\" in `widgets-ext/BACKLOG.md`. | 2026-10-20",
+          "next_action": "add plugin unload test in `widgets-ext/tests/test_registry.py`; `python3 -m pytest widgets-ext/tests -q` passes; then set row WEXT-01 Next Action to \"done\" in `widgets-ext/BACKLOG.md`.",
+          "feature": "widgets-ext",
+          "updated": "2026-10-20"
+        }
+      ],
+      "warning": null
+    }
+  ],
+  "rows": [
+    {
+      "id": "WID-01",
+      "title": "Widget creation and validation",
+      "state": "In Progress",
+      "priority": "P0",
+      "health": "\u2014",
+      "fr_refs": [
+        "FR-WID-001"
+      ],
+      "source_doc": "widgets/BACKLOG.md",
+      "row_text": "WID-01 | FR-WID-001 | Widget creation and validation | P0 | In Progress | Widget validator partial; gate `python3 -m pytest widgets/tests -q` outstanding | add `widgets/src/validator.py` exercising `validate_widget`; `python3 -m pytest widgets/tests -q` passes; then set row WID-01 Next Action to \"done\" in `widgets/BACKLOG.md`. | 2026-10-20",
+      "next_action": "add `widgets/src/validator.py` exercising `validate_widget`; `python3 -m pytest widgets/tests -q` passes; then set row WID-01 Next Action to \"done\" in `widgets/BACKLOG.md`.",
+      "feature": "widgets",
+      "updated": "2026-10-20"
+    },
+    {
+      "id": "WID-02",
+      "title": "Widget rendering pipeline",
+      "state": "Ready",
+      "priority": "P1",
+      "health": "\u2014",
+      "fr_refs": [
+        "FR-WID-002"
+      ],
+      "source_doc": "widgets/BACKLOG.md",
+      "row_text": "WID-02 | FR-WID-002 | Widget rendering pipeline | P1 | Ready | Not started | none | 2026-10-20",
+      "next_action": "none",
+      "feature": "widgets",
+      "updated": "2026-10-20"
+    },
+    {
+      "id": "WID-03",
+      "title": "Widget cache backend",
+      "state": "Done",
+      "priority": "P2",
+      "health": "\u2014",
+      "fr_refs": [
+        "FR-WID-003"
+      ],
+      "source_doc": "widgets/BACKLOG.md",
+      "row_text": "WID-03 | FR-WID-003 | Widget cache backend | P2 | Done | Gate: `python3 -m pytest widgets/tests/test_cache.py -q` \u2192 3 passed at `abc1234`; `widgets/src/cache.py` implements `WidgetCache` | none | 2026-09-01",
+      "next_action": "none",
+      "feature": "widgets",
+      "updated": "2026-09-01"
+    },
+    {
+      "id": "WID-04",
+      "title": "Widget export",
+      "state": "In Review",
+      "priority": "P1",
+      "health": "\u2014",
+      "fr_refs": [
+        "FR-WID-004"
+      ],
+      "source_doc": "widgets/BACKLOG.md",
+      "row_text": "WID-04 | FR-WID-004 | Widget export | P1 | In Review | PR #42 open; `python3 -m pytest widgets/tests/test_export.py -q` \u2192 2 passed at `def5678` | none | 2026-10-18",
+      "next_action": "none",
+      "feature": "widgets",
+      "updated": "2026-10-18"
+    },
+    {
+      "id": "WEXT-01",
+      "title": "Widget extension registry; supports plugin load, plugin unload, and hot-reload of registered widgets without restarting the host process.",
+      "state": "In Progress",
+      "priority": "P0",
+      "health": "\u2014",
+      "fr_refs": [
+        "FR-WEXT-001"
+      ],
+      "source_doc": "widgets-ext/BACKLOG.md",
+      "row_text": "WEXT-01 | FR-WEXT-001 | Widget extension registry; supports plugin load, plugin unload, and hot-reload of registered widgets without restarting the host process. | P0 | In Progress | Registry skeleton merged at `111aaaa`; plugin load path untested | add plugin unload test in `widgets-ext/tests/test_registry.py`; `python3 -m pytest widgets-ext/tests -q` passes; then set row WEXT-01 Next Action to \"done\" in `widgets-ext/BACKLOG.md`. | 2026-10-20",
+      "next_action": "add plugin unload test in `widgets-ext/tests/test_registry.py`; `python3 -m pytest widgets-ext/tests -q` passes; then set row WEXT-01 Next Action to \"done\" in `widgets-ext/BACKLOG.md`.",
+      "feature": "widgets-ext",
+      "updated": "2026-10-20"
+    }
+  ],
+  "fr": {
+    "fr_declared": [
+      "FR-WEXT-001",
+      "FR-WID-001",
+      "FR-WID-002",
+      "FR-WID-003",
+      "FR-WID-004",
+      "FR-WID-005"
+    ],
+    "fr_referenced": [
+      "FR-WEXT-001",
+      "FR-WID-001",
+      "FR-WID-002",
+      "FR-WID-003",
+      "FR-WID-004"
+    ]
+  },
+  "rollup_row": "widgets | In Progress",
+  "warnings": []
+}

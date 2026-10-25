@@ -12,6 +12,8 @@ _SKILL_DIR = Path(__file__).resolve().parent.parent.parent
 if str(_SKILL_DIR) not in sys.path:
     sys.path.insert(0, str(_SKILL_DIR))
 
+from typing import Any
+
 from scripts import classify, scan
 from scripts.templates import (
     closing_condition_next_action_complete,
@@ -23,11 +25,11 @@ from scripts.templates import (
 TODAY = "2026-10-25"
 
 
-def _scan() -> dict:
+def _scan() -> dict[str, Any]:
     discovery = REPO_ROOT / "discovery.json"
     out = REPO_ROOT / "classify_scan_out.json"
     scan.run_scan(str(REPO_ROOT), str(discovery), out=str(out))
-    return json.loads(out.read_text(encoding="utf-8"))
+    return json.loads(out.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
 
 
 def test_next_action_pending_closing_condition_exact_string() -> None:
@@ -128,10 +130,10 @@ def test_incomplete_states() -> None:
     # precedence over the incomplete state.
     assert by_id["WID-04"]["classification"] == "skip_next_action"
 
-    def _classify_one(row: dict, trust: str = "no-trust") -> dict:
+    def _classify_one(row: dict[str, Any], trust: str = "no-trust") -> dict[str, Any]:
         sc_copy = dict(sc)
         sc_copy["rows"] = [row]
-        return classify.classify_scan(sc_copy, trust_mode=trust, today=TODAY)["rows"][0]
+        return classify.classify_scan(sc_copy, trust_mode=trust, today=TODAY)["rows"][0]  # type: ignore[no-any-return]
 
     # Ready row with a pending Next Action → next_action_pending.
     assert _classify_one({"id": "WID-02", "feature": "widgets", "state": "Ready",
