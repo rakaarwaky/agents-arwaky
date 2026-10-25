@@ -13,7 +13,7 @@ from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsUsageError,
 )
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
-from modules.skills.tests.support_skills import as_root, crafted_tree
+from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 
 def test_repair_plan_is_pure_and_names_the_work(tmp_path: Path) -> None:

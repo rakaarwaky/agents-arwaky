@@ -29,16 +29,16 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsValidatorProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import ValidationReport
-from modules.shared.src.skills.taxonomy_skills_constant import (
-    MAX_DESCRIPTION_LEN,
-    IssueType,
-    is_valid_skill_name,
-    issue_message,
-)
+from modules.shared.src.skills.taxonomy_skills_constant import MAX_DESCRIPTION_LEN
 from modules.shared.src.skills.taxonomy_skills_entity import (
     CategorySummary,
     Issue,
     SkillEntry,
+)
+from modules.shared.src.skills.taxonomy_skills_rule_vo import (
+    IssueType,
+    is_valid_skill_name,
+    issue_message,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
 

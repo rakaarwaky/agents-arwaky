@@ -39,7 +39,7 @@ from modules.skills.src.capabilities_skills_index_builder import (
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 from modules.skills.src.root_skills_container import default_aggregate
-from modules.skills.tests.support_skills import as_root, crafted_tree
+from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 
 def _make_pack(tmp_path: Path) -> Path:

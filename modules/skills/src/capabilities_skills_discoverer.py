@@ -30,25 +30,20 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     DiscoveryMatch,
     DiscoveryResult,
 )
+from modules.shared.src.skills.taxonomy_skills_constant import (
+    DRIFT_WARNING,
+)
 from modules.shared.src.skills.taxonomy_skills_error import (
     CatalogDrift,
     SkillsUsageError,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
+from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery, SkillsRoot
 
 __all__ = [
-    "DRIFT_WARNING",
     "SkillsDiscoverer",
     "score_entries",
     "tokenize",
 ]
-
-#: The loud drift warning: the catalog failed its drift gate, so the
-#: answer comes from a live tree scan. Named repair: ``catalog --check``.
-DRIFT_WARNING = (
-    "WARNING: catalog drift detected — answering from a live tree scan. "
-    "Run `catalog --check` to repair CATALOG.md."
-)
 
 
 def tokenize(query: str) -> list[str]:
@@ -112,7 +107,7 @@ class SkillsDiscoverer(ISkillsDiscovererProtocol):
         self._catalog = catalog
 
     # ─── Block 2: Protocol Method Implementation ──────────────
-    def discover(self, query: str, root: SkillsRoot, limit: int) -> DiscoveryResult:
+    def discover(self, query: SkillQuery, root: SkillsRoot, limit: int) -> DiscoveryResult:
         """Return the top ``limit`` matches for ``query``."""
         tokens = tokenize(query)
         if not tokens:

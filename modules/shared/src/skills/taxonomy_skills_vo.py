@@ -3,7 +3,7 @@
 Pure data + helpers for the skills feature: the read-side VOs
 (``SkillQuery``/``SkillRecord``/...), the request/result envelope the
 surface and agent exchange, the exit-code contract, and the re-exported
-rule SSOT (defined in ``taxonomy_skills_constant`` so the rule table's
+rule SSOT (defined in ``taxonomy_skills_rule_vo.py`` so the rule table's
 dependencies stay acyclic).
 
 No I/O, no imports from utility/capabilities/agent/root/surface layers.
@@ -27,21 +27,6 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     NewCategoryPlan,
     ValidationReport,
 )
-from modules.shared.src.skills.taxonomy_skills_constant import (
-    ISSUE_MESSAGES,
-    RULES,
-    IssueType,
-    Level,
-    Rule,
-    is_valid_skill_name,
-    issue_message,
-    rule,
-)
-from modules.shared.src.skills.taxonomy_skills_entity import (
-    CategorySummary,
-    Issue,
-    SkillEntry,
-)
 
 SkillQuery = NewType("SkillQuery", str)
 """A skill name / identifier to look up in the pack."""
@@ -51,6 +36,15 @@ SkillContent = NewType("SkillContent", str)
 
 SkillDescription = NewType("SkillDescription", str)
 """One-line description extracted from SKILL.md frontmatter."""
+
+ErrorMessage = NewType("ErrorMessage", str)
+"""A formatted error message for skill-domain exceptions."""
+
+DiffLines = NewType("DiffLines", tuple[str, ...])
+"""A sequence of diff lines for catalog drift errors."""
+
+RulesSummary = NewType("RulesSummary", str)
+"""The compact one-line-per-rule summary rendered by the rules renderer."""
 
 SkillsRoot = NewType("SkillsRoot", Path)
 """An explicit skills root; ``None`` on a request means 'use the default'."""
@@ -146,23 +140,18 @@ class SkillsResult:
 
 
 __all__ = [
-    "ISSUE_MESSAGES",
-    "RULES",
     "CatalogCheckResult",
     "CatalogReport",
-    "CategorySummary",
+    "DiffLines",
     "DiscoveryMatch",
-    "Issue",
-    "IssueType",
-    "Level",
+    "ErrorMessage",
     "MergePlan",
     "MutationOutcome",
     "MutationPlan",
     "NewCategoryPlan",
-    "Rule",
+    "RulesSummary",
     "SkillContent",
     "SkillDescription",
-    "SkillEntry",
     "SkillQuery",
     "SkillRecord",
     "SkillsExitCode",
@@ -171,7 +160,4 @@ __all__ = [
     "SkillsResult",
     "SkillsRoot",
     "ValidationReport",
-    "is_valid_skill_name",
-    "issue_message",
-    "rule",
 ]

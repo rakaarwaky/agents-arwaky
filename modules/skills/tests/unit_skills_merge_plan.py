@@ -15,7 +15,7 @@ from modules.skills.src.capabilities_skills_merge_planner import (
     SkillsMergePlanner,
     parse_ref,
 )
-from modules.skills.tests.support_skills import as_root
+from modules.skills.tests.fixture_skills import as_root
 
 
 def _merge_tree(tmp_path: Path) -> Path:

@@ -30,11 +30,11 @@ from modules.shared.src.common.utility_paths_resolver import resolve_skills_root
 from modules.shared.src.common.utility_skills_markdown import md_escape, yaml_quote
 from modules.shared.src.common.utility_skills_tree import relpath
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
-from modules.shared.src.skills.taxonomy_skills_constant import (
+from modules.shared.src.skills.taxonomy_skills_entity import Issue
+from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     RULE_ONLY_ISSUE_TYPES,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
-    Issue,
     SkillQuery,
     SkillsOp,
     SkillsRequest,

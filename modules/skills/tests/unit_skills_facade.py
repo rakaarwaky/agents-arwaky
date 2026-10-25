@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.skills.src.root_skills_container import SkillsFacade
-from modules.skills.tests.support_skills import crafted_tree
+from modules.skills.tests.fixture_skills import crafted_tree
 
 
 def _facade(root: Path) -> SkillsFacade:

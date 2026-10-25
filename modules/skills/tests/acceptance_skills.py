@@ -48,7 +48,7 @@ def test_acceptance_fr_skill_unknown(tmp_path: Path):
 # ─── Authoring acceptance (one case per `aa skills` subcommand) ────────
 def test_acceptance_validate_reports_and_exits(tmp_path: Path):
     """AC-SKILLS-010: ``validate`` reports the crafted issue with exit 1."""
-    from modules.skills.tests.support_skills import crafted_tree, run_surface
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     code, out, _ = run_surface(crafted_tree(tmp_path), "validate")
     assert code == 1
@@ -57,7 +57,7 @@ def test_acceptance_validate_reports_and_exits(tmp_path: Path):
 
 def test_acceptance_catalog_rebuilds_and_checks(tmp_path: Path):
     """AC-SKILLS-011: ``catalog`` rebuilds; ``catalog --check`` gates drift."""
-    from modules.skills.tests.support_skills import crafted_tree, run_surface
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
     assert run_surface(root, "catalog")[0] == 0
@@ -71,7 +71,7 @@ def test_acceptance_catalog_rebuilds_and_checks(tmp_path: Path):
 
 def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
     """AC-SKILLS-012: ``discover`` answers from CATALOG.md."""
-    from modules.skills.tests.support_skills import crafted_tree, run_surface
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
     run_surface(root, "catalog")
@@ -82,7 +82,7 @@ def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
 
 def test_acceptance_weed_is_clean_on_a_healthy_tree(tmp_path: Path):
     """AC-SKILLS-013: ``weed`` exits 0 when there is nothing to weed."""
-    from modules.skills.tests.support_skills import crafted_tree, run_surface
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     code, out, _ = run_surface(crafted_tree(tmp_path), "weed")
     assert code == 0
@@ -91,7 +91,7 @@ def test_acceptance_weed_is_clean_on_a_healthy_tree(tmp_path: Path):
 
 def test_acceptance_repair_defaults_to_preview(tmp_path: Path):
     """AC-SKILLS-014: ``repair`` previews and writes only with ``--apply``."""
-    from modules.skills.tests.support_skills import crafted_tree, run_surface
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
     code, out, _ = run_surface(root, "repair")
@@ -108,7 +108,7 @@ def test_acceptance_repair_defaults_to_preview(tmp_path: Path):
 
 def test_acceptance_move_archive_new_category(tmp_path: Path):
     """AC-SKILLS-015: the three path mutations preview and apply."""
-    from modules.skills.tests.support_skills import crafted_tree, run_surface
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
     assert run_surface(root, "move", "drafts/doc-drafts", "notes")[0] == 0
@@ -124,7 +124,7 @@ def test_acceptance_move_archive_new_category(tmp_path: Path):
 
 def test_acceptance_merge_plan_is_read_only(tmp_path: Path):
     """AC-SKILLS-016: ``merge-plan`` emits a plan and changes nothing."""
-    from modules.skills.tests.support_skills import crafted_tree, run_surface
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
     code, out, _ = run_surface(
@@ -137,7 +137,7 @@ def test_acceptance_merge_plan_is_read_only(tmp_path: Path):
 
 def test_acceptance_rules_render_the_ssot(tmp_path: Path):
     """AC-SKILLS-017: ``rules`` renders one line per rule."""
-    from modules.skills.tests.support_skills import crafted_tree, run_surface
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     code, out, _ = run_surface(crafted_tree(tmp_path), "rules")
     assert code == 0
@@ -146,7 +146,7 @@ def test_acceptance_rules_render_the_ssot(tmp_path: Path):
 
 def test_acceptance_unknown_subcommand_is_usage_error(tmp_path: Path):
     """AC-SKILLS-018: an unknown verb exits 2, not 1."""
-    from modules.skills.tests.support_skills import run_surface
+    from modules.skills.tests.fixture_skills import run_surface
 
     code, _out, err = run_surface(tmp_path, "frobnicate")
     assert code == 2

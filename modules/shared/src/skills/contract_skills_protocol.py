@@ -27,8 +27,15 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     RulesDocument,
     ValidationReport,
 )
+from modules.shared.src.skills.taxonomy_skills_rule_vo import (
+    CategoryName,
+    SkillName,
+    SkillRef,
+)
 from modules.shared.src.skills.taxonomy_skills_vo import (
+    RulesSummary,
     SkillContent,
+    SkillDescription,
     SkillQuery,
     SkillRecord,
     SkillsRoot,
@@ -100,7 +107,7 @@ class ISkillsDiscovererProtocol(ABC):
 
     @abstractmethod
     def discover(
-        self, query: str, root: SkillsRoot, limit: int
+        self, query: SkillQuery, root: SkillsRoot, limit: int
     ) -> DiscoveryResult:
         """Search the catalog rows for *query*, returning top *limit* matches.
 
@@ -116,12 +123,12 @@ class ISkillsMutatorProtocol(ABC):
     """Plan/apply mechanical library mutations (dry-run by default)."""
 
     @abstractmethod
-    def plan_move(self, skill: str, target: str, root: SkillsRoot) -> MutationPlan:
+    def plan_move(self, skill: SkillName, target: CategoryName, root: SkillsRoot) -> MutationPlan:
         """Resolve a move to another category (pure; no writes)."""
         ...
 
     @abstractmethod
-    def plan_archive(self, skill: str, root: SkillsRoot) -> MutationPlan:
+    def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
         """Resolve an archive into ``_archive/`` (pure; no writes)."""
         ...
 
@@ -137,7 +144,7 @@ class ISkillsMutatorProtocol(ABC):
 
     @abstractmethod
     def plan_new_category(
-        self, name: str, description: str | None, root: SkillsRoot, force: bool
+        self, name: CategoryName, description: SkillDescription | None, root: SkillsRoot, force: bool
     ) -> NewCategoryPlan:
         """Resolve a category creation (pure; the folder is created on apply)."""
         ...
@@ -157,7 +164,7 @@ class ISkillsMergePlannerProtocol(ABC):
     """Read-only merge planning for ``skill-lifecycle``."""
 
     @abstractmethod
-    def plan(self, ref_a: str, ref_b: str, root: SkillsRoot) -> MergePlan:
+    def plan(self, ref_a: SkillRef, ref_b: SkillRef, root: SkillsRoot) -> MergePlan:
         """Build the plan for merging two ``category/skill`` references."""
         ...
 
@@ -176,7 +183,7 @@ class ISkillsRulesRendererProtocol(ABC):
         ...
 
     @abstractmethod
-    def render_summary(self) -> str:
+    def render_summary(self) -> RulesSummary:
         """Render the compact one-line-per-rule summary."""
         ...
 

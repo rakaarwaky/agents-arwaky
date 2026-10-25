@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from modules.shared.src.skills.taxonomy_skills_rule_vo import IssueType
+
 __all__ = [
     "CategorySummary",
     "Issue",
@@ -51,7 +53,7 @@ class Issue:
     (``None`` for library-wide issues).
     """
 
-    type: str
+    type: IssueType
     message: str
     path: str | None = None
     category: str | None = None

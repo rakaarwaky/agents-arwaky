@@ -7,7 +7,7 @@ from pathlib import Path
 
 from modules.cli.src.surface_skills_command import cmd_skills
 from modules.skills.src.root_skills_container import default_aggregate
-from modules.skills.tests.support_skills import (
+from modules.skills.tests.fixture_skills import (
     clean_tree,
     crafted_tree,
     run_surface,
