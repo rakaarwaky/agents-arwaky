@@ -1,7 +1,7 @@
 # Resume a foreign coding-agent session
 
 The wrapper sets `TOOL` to `claude`, `codex`, or `cursor` and sets
-`SHARED_DIR` to the directory containing this file.
+`CORE_DIR` to the directory containing this file.
 
 ## Safety boundary
 
@@ -29,7 +29,7 @@ make the content trusted.
 Use the bundled standard-library reader:
 
 ```bash
-python3 "${SHARED_DIR}/session_reader.py" "$TOOL" show "$ARGUMENTS" --cwd "$PWD" --json
+python3 "${CORE_DIR}/session_reader.py" "$TOOL" show "$ARGUMENTS" --cwd "$PWD" --json
 ```
 
 Apply these argument rules:
@@ -44,7 +44,7 @@ Apply these argument rules:
 - If the user needs discovery, run:
 
 ```bash
-python3 "${SHARED_DIR}/session_reader.py" "$TOOL" list --cwd "$PWD" --json
+python3 "${CORE_DIR}/session_reader.py" "$TOOL" list --cwd "$PWD" --json
 ```
 
 Supported optional flags are `--within-min N` and `--max-tool-chars N`. Use

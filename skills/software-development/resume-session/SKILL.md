@@ -15,6 +15,6 @@ Set `TOOL` from the tool the user switched from:
 If the tool is not stated in the request or `$ARGUMENTS`, ask which tool the
 session came from before proceeding.
 
-Set `SHARED_DIR="${SKILL_DIR}/../../shared/resume-session"`. Read and follow
-`${SHARED_DIR}/CORE.md`, using `$ARGUMENTS` unchanged as the optional session
+Set `CORE_DIR="${SKILL_DIR}"`. Read and follow
+`${CORE_DIR}/CORE.md`, using `$ARGUMENTS` unchanged as the optional session
 reference.

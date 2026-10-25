@@ -160,7 +160,7 @@ Extract parameters from the argument string using natural language understanding
 
 Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, or `id -u`, and do not write directly to a fixed temporary directory. Use `run_terminal_command` and put temporary artifacts under `scratch_dir`.
 
-Resolve `HOST_PY` as `<dirname of this SKILL.md>/../../shared/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
+Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
 
 Run `<python> <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `PLAN_ID`.
 
