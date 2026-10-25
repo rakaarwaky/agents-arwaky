@@ -41,52 +41,27 @@ The active model is whatever the gateway serves for `myomniroute`; auth is the
 npm install -g @xai-official/grok   # preferred; the curl installer is Cloudflare-walled in some environments
 ```
 
-Auth is **not** `grok login`. On this machine the CLI is wired to the local OmniRoute
-gateway via `~/.grok/config.toml`:
+Auth is the OmniRoute gateway, wired in `~/.grok/config.toml` (the `[model_providers.omniroute]`
+and `[model.myomniroute]` blocks, shown under Config below). Check the gateway is
+reachable before relying on any run:
 
-```toml
-[model_providers.omniroute]
-base_url = "http://127.0.0.1:7777/v1"
-api_backend = "chat_completions"
-env_key = "OMNIROUTE_KEY"
-
-[model.myomniroute]
-model = "myomniroute"
-name = "myomniroute"
-model_provider = "omniroute"
-context_window = 262144
-
-[model.myomnivision]
-model = "myomnivision"
-name = "myomnivision"
-model_provider = "omniroute"
-context_window = 262144
-
-[models]
-default = "myomniroute"
-image_description = "myomnivision"
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' "$OMNIROUTE_URL/v1/models"   # expect 200; 401 = missing/invalid OMNIROUTE_KEY
 ```
 
-- `OMNIROUTE_URL=http://127.0.0.1:7777` is exported in the environment; set
-  `OMNIROUTE_KEY` to the gateway's access key.
-- Verify the gateway is up and the key is valid:
-  `curl -s -o /dev/null -w '%{http_code}\n' "$OMNIROUTE_URL/v1/models"` → expect
-  `200` (a `401` means the key is missing or invalid).
-- End-to-end smoke test: `grok --no-auto-update -p "Say ok."`.
-- No git repo required — Grok runs fine outside a git directory (good for scratch tasks).
-- Project rules: Grok auto-reads the `AGENTS.md` family, the `CLAUDE.md` family, and
-  Claude/Cursor compat files with zero config; home-level rules live in
-  `~/.grok/rules/*.md`.
+End-to-end smoke test: `grok --no-auto-update -p "Say ok."`.
 
-### Choosing a model
+- No git repo required; Grok runs fine outside a git directory.
+- Project rules: Grok auto-reads the `AGENTS.md` and `CLAUDE.md` families; home-level
+  rules live in `~/.grok/rules/*.md`.
 
-`[models] default = "myomniroute"` is the active text model; vision uses
-`myomnivision`. Switch models with `-m <model>`. Everything below assumes the default
-`myomniroute` unless a `-m` is passed. The active model is whatever the OmniRoute
-gateway serves for that name — it is not a Grok model.
+## Choosing a Model
 
-> `--no-auto-update` is already set persistently in `~/.grok/config.toml`. Still pass
-> it in every automated invocation for safety.
+`myomniroute` is the active text model; `myomnivision` handles images. Switch with
+`-m <model>`. Everything below assumes the default unless a `-m` is passed.
+
+`[models] default` and `[ui] permission_mode` are already set in `~/.grok/config.toml`,
+so most runs need no extra flags.
 
 ## Two Orchestration Modes
 
