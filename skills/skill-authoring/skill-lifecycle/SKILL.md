@@ -1,8 +1,8 @@
 ---
 name: skill-lifecycle
-description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories, pruning skills, consolidating skills, merging duplicate skills, auditing a skill directory, or collapsing skill folders.
-when-to-use: Use when cleaning up, auditing, or merging agent skill directories; pruning skills; consolidating skills; merging duplicate skills; auditing a skill directory; or collapsing skill folders.
-argument-hint: "[<skill-dir>] [--dry-run | --auto]"
+description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories, pruning skills, consolidating skills, merging duplicate skills, auditing a skill directory, collapsing skill folders, or running a scheduled self-evolution pass over a skill tree.
+when-to-use: Use when cleaning up, auditing, or merging agent skill directories; pruning skills; consolidating skills; merging duplicate skills; auditing a skill directory; collapsing skill folders; or running a scheduled (headless) evolution pass that applies approved changes without an interactive approval gate.
+argument-hint: "[<skill-dir>] [--dry-run | --auto | --evolution]"
 metadata:
   tags:
     - skill
@@ -93,6 +93,8 @@ frontmatter constraints are the rules in [`../../../modules/skills/_rules/skill-
 
 **`--auto`** — skip the dry-run approval gate: after Step 4 classification, proceed straight to Step 6 snapshot then Steps 7–9 execution. Use only when you have already reviewed the planned prune and accept automatic application.
 
+**`--evolution` (headless mode)** — for scheduled or unattended runs (a cron job, `/loop`, a background task with no interactive user): apply the planned changes without waiting at the Step 5 approval gate. Before executing, the run must still pass Step 9 verification, and the rollback snapshot from Step 6 is the undo path — record the snapshot SHA in the commit message and the final report. A headless run that cannot commit (dirty tree, no git) falls back to `--dry-run` and reports instead of applying.
+
 Task Progress:
 
 - [ ] Step 1: Confirm audit root (default `/home/raka/agents-arwaky/skills`, a specific category,
@@ -105,7 +107,7 @@ Task Progress:
 - [ ] Step 5: **Dry Run & Approval** — generate the planned report (see Report Format). Present it
       to the user and explicitly ask: *"Here is the planned prune. Shall I proceed with the git
       snapshot and execute these changes?"* **Wait for user confirmation before proceeding.**
-      With `--auto`, skip this gate and proceed straight to Step 6.
+      With `--auto` or `--evolution`, skip this gate and proceed straight to Step 6.
 - [ ] Step 6: Snapshot the tree in git (`git add -A && git commit -m "snapshot: before
       skill-lifecycle"`, or `git stash` if the tree is dirty for other reasons).
 - [ ] Step 7: Execute merges per the Phase 2 table. When merging, delete the redundant folders
@@ -189,3 +191,6 @@ Verification (Step 9) is the gate for rollback:
   `references/` for duplicated statements; keep one home per fact.
 - **Skipping the approval gate.** Present the dry-run report and wait for explicit confirmation
   before Step 6; first-time runs on a skill tree are approval-gated.
+- **Unattended runs.** A headless pass (cron, `/loop`, background task) must use `--evolution`
+  explicitly; relying on `--auto` is acceptable only when the run has no user to ask and the
+  snapshot commit is verified before reporting.
