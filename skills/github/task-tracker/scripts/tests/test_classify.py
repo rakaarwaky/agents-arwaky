@@ -54,15 +54,23 @@ def test_next_action_pending_closing_condition_exact_string() -> None:
     assert row["next_action_check"]["test_file"] is None  # not backtick-quoted
 
 
-def test_next_action_pending_piped_test_command_stops_at_pipe() -> None:
-    def _classify(row: dict[str, Any]) -> dict[str, Any]:
-        sc = {"rows": [row], "fr": {}, "rollup_row": ""}
-        return classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)["rows"][0]
+def _classify_row(row: dict[str, Any]) -> dict[str, Any]:
+    sc = {"rows": [row], "fr": {}, "rollup_row": ""}
+    return classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)["rows"][0]  # type: ignore[no-any-return]
 
-    row = _classify({"id": "W-1", "feature": "w", "state": "Ready",
-                    "next_action": ("add the gate; `python3 -m pytest w/tests -q | grep 3 passed` "
-                                     "passes; then set row W-1 Next Action to \"done\" in w/BACKLOG.md."),
-                    "source_doc": "w/BACKLOG.md", "updated": "2026-10-20"})
+
+def _classify_cell(cell: str) -> dict[str, Any]:
+    sc = {"rows": [{"id": "W-1", "feature": "w", "state": "Ready",
+                    "next_action": cell, "source_doc": "w/BACKLOG.md",
+                    "updated": "2026-10-20"}], "fr": {}, "rollup_row": ""}
+    return classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)["rows"][0]  # type: ignore[no-any-return]
+
+
+def test_next_action_pending_piped_test_command_stops_at_pipe() -> None:
+    row = _classify_row({"id": "W-1", "feature": "w", "state": "Ready",
+                        "next_action": ("add the gate; `python3 -m pytest w/tests -q | grep 3 passed` "
+                                        "passes; then set row W-1 Next Action to \"done\" in w/BACKLOG.md."),
+                        "source_doc": "w/BACKLOG.md", "updated": "2026-10-20"})
     # The test command is the command up to the first shell pipe; the
     # pipeline (`| grep …`) is not swallowed into the check string.
     assert row["next_action_check"]["test_command"] == "python3 -m pytest w/tests -q"
@@ -75,20 +83,14 @@ def test_next_action_pending_piped_test_command_stops_at_pipe() -> None:
 
 
 def test_next_action_pending_requires_backticked_test_path() -> None:
-    def _classify(cell: str) -> dict[str, Any]:
-        sc = {"rows": [{"id": "W-1", "feature": "w", "state": "Ready",
-                        "next_action": cell, "source_doc": "w/BACKLOG.md",
-                        "updated": "2026-10-20"}], "fr": {}, "rollup_row": ""}
-        return classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)["rows"][0]
-
     # Backtick-quoted path → substituted into the check.
-    row = _classify("add test in `w/tests/test_x.py`; `python3 -m pytest w/tests -q` passes; "
-                    "then set row W-1 Next Action to \"done\" in w/BACKLOG.md.")
+    row = _classify_cell("add test in `w/tests/test_x.py`; `python3 -m pytest w/tests -q` passes; "
+                         "then set row W-1 Next Action to \"done\" in w/BACKLOG.md.")
     assert row["next_action_check"]["test_file"] == "w/tests/test_x.py"
     assert "exercised by w/tests/w/tests/test_x.py" in row["closing_condition"]
     # Prose path without backticks → the generic placeholder, not the path.
-    row2 = _classify("add test in w/tests/test_x.py; `python3 -m pytest w/tests -q` passes; "
-                     "then set row W-1 Next Action to \"done\" in w/BACKLOG.md.")
+    row2 = _classify_cell("add test in w/tests/test_x.py; `python3 -m pytest w/tests -q` passes; "
+                          "then set row W-1 Next Action to \"done\" in w/BACKLOG.md.")
     assert row2["next_action_check"]["test_file"] is None
     assert "the feature's test file" in row2["closing_condition"]
 
@@ -257,6 +259,19 @@ def test_fr_orphan_flags() -> None:
     assert by_fr["FR-WID-005"]["direction"] == "declared-not-referenced"
     assert by_fr["FR-WID-005"]["target_doc"] == "widgets/BACKLOG.md"
     assert by_fr["FR-WID-005"]["closing_condition"] is None
+    # Referenced-not-declared direction: an FR cited by a row but declared
+    # nowhere in the feature doc. (scan.py's declared set is whole-doc, so a
+    # fixture row's own FRD Ref always counts as declared — this direction
+    # is exercised on a hand-built scan.)
+    sc2 = dict(sc)
+    sc2["fr_groups"] = {
+        "widgets-ext": {"fr_declared": ["FR-WEXT-001"], "fr_referenced": ["FR-WEXT-001", "FR-WEXT-002"]},
+    }
+    res2 = classify.classify_scan(sc2, trust_mode="no-trust", today=TODAY)
+    ext_orphans = {o["fr_id"]: o for o in res2["fr_orphans"] if o["feature"] == "widgets-ext"}
+    assert ext_orphans["FR-WEXT-002"]["direction"] == "referenced-not-declared"
+    assert ext_orphans["FR-WEXT-002"]["target_doc"] == "widgets-ext/BACKLOG.md"
+    assert ext_orphans["FR-WEXT-002"]["closing_condition"] is None
     # Cross-feature contamination is gone: a widgets-ext referenced FR that
     # is not declared in widgets must NOT be flagged against the widgets
     # group (fr_groups keeps the sets per feature).

@@ -50,7 +50,7 @@ def test_scan_rows_extracted() -> None:
     assert "hot-reload" in by_id["WEXT-01"]["title"]
     assert by_id["WEXT-01"]["source_doc"] == "widgets-ext/BACKLOG.md"
     # Root docs carry no task tables in this fixture → only feature rows.
-    assert len(rows) == 5  # 4 widgets rows + 1 widgets-ext row
+    assert {r["id"] for r in rows} == {"WID-01", "WID-02", "WID-03", "WID-04", "WEXT-01"}
     # Roll-up tables (Feature + State, no ID) are NOT task rows.
     assert "widgets" not in by_id
 
