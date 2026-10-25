@@ -1,8 +1,8 @@
 ---
 name: skill-library
-description: Manages the skills library by maintaining CATALOG.md, discovering skills, auditing category placement, repairing skill metadata, weeding duplicates, and organizing categories. Also provides the `aa skills list/show` discovery surface (formerly skill-manager). Use when the user runs /skill-library or asks to find, audit, repair, weed, organize, or catalog skills.
-when-to-use: Use when the user wants to search the skill library, rebuild the skill catalog, move misplaced skills, fix skill frontmatter, detect duplicate skills, archive obsolete skills, create skill categories, or update category DESCRIPTION.md files.
-argument-hint: "[--discover <query>] [--catalog] [--validate] [--repair] [--weed] [--move <skill> <category>] [--new-category <name> <desc>] [--archive <skill>]"
+description: Manages the skills library by maintaining CATALOG.md, discovering skills, auditing category placement, repairing skill metadata, weeding duplicates, and organizing categories. Also provides the `aa skills list/show` discovery surface (formerly skill-manager). Use when the user runs /skill-library or asks to find, audit, repair, weed, organize, catalog, or validate skills.
+when-to-use: Use when the user wants to search the skill library, rebuild the skill catalog, validate or audit frontmatter rules, move misplaced skills, fix skill frontmatter, detect duplicate skills, archive obsolete skills, create skill categories, or update category DESCRIPTION.md files.
+argument-hint: "[--discover <query>] [--catalog] [--validate] [--repair] [--weed] [--move <skill> <category>] [--new-category <name> <desc>] [--archive <skill>] [--check]"
 ---
 
 # Skill Library
@@ -42,14 +42,18 @@ Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML pa
 
 ## Commands
 
-- `catalog`: rebuild `CATALOG.md`.
+- `list`: list all skills in the pack.
+- `show <name>`: print a skill's `SKILL.md`.
+- `catalog`: rebuild `CATALOG.md`. `catalog --check`: exit 3 when the catalog is stale relative to disk; use this in a pre-commit or CI step to detect drift without rewriting the file.
 - `discover QUERY`: search the catalog and return matching skills.
 - `validate`: report frontmatter, naming, placement, and category issues.
 - `weed`: report duplicates, empty categories, and missing category descriptions.
-- `repair`: apply safe mechanical repairs, then rebuild the catalog.
+- `repair`: preview safe mechanical repairs by default; add `--apply` to execute them.
 - `move SKILL TARGET_CATEGORY`: move a skill folder to another category, then rebuild the catalog.
 - `new-category NAME DESCRIPTION`: create a category folder and write its `DESCRIPTION.md`.
 - `archive SKILL`: move a skill into `_archive/` and disable its `SKILL.md`.
+- `merge-plan A B`: emit a read-only plan for merging two skills; hand execution off to `skill-lifecycle` when the plan is approved.
+- `rules [--markdown]`: render the rule set from the SSOT (`modules/skills/_rules/skill-rules.md`).
 
 ### Exit codes
 
@@ -129,6 +133,23 @@ Category shape and `DESCRIPTION.md` constraints are the rules in
 `category-description-nonempty`, `category-nonempty`, `category-depth`). The category
 description helps the Librarian decide where skills belong; keep it short, concrete, and
 domain-focused. `references/category-rules.md` carries the folder-shape examples.
+
+## Maintenance pass (scheduled or headless)
+
+Use this when a scheduled task, `/loop`, or background job runs a maintenance sweep with no
+interactive user to approve moves, archives, or new categories.
+
+- [ ] Run `validate` and `weed`. Read-only; always safe.
+- [ ] Run `repair` without `--apply` first; apply only the specific repairs that fix
+      validation errors already present before this run. Never invent new structure.
+- [ ] For every move, archive, or new category, record the exact `aa skills` command in the
+      final commit message or log line so a later run can undo it.
+- [ ] Rebuild the catalog.
+- [ ] If `validate` exits nonzero after the pass, report the remaining issues; do not loop
+      indefinitely.
+
+This mode mirrors `skill-lifecycle --evolution`: reversible writes apply directly, destructive
+writes (archive) require the recorded undo path.
 
 ## Auto-pilot rules
 
