@@ -1,70 +1,67 @@
 ---
 name: grok-build
-description: "Delegate coding to xAI Grok Build CLI. Use for headless, TUI, and PR review."
-when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Sibling of the Orca skill — Orca manages worktrees/terminals; this skill drives the Grok CLI inside them."
+description: "Delegate coding to Grok Build CLI via the local OmniRoute gateway. Use for headless, TUI, and PR review."
+when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Sibling of the Orca skill — Orca manages worktrees/terminals; this one drives the Grok CLI inside them. Backed by OmniRoute (model myomniroute), not an xAI subscription."
 argument-hint: "[<task>] [--headless | --interactive] [--review <pr> | --worktree]]"
 tags:
   - Coding-Agent
   - Grok
-  - xAI
+  - OmniRoute
   - Code-Review
   - Refactoring
   - Automation
 related_skills:
   - orca
+  - create-workflow
   - hermes-agent
-  - codex
-  - claude-code
-homepage: "https://x.ai"
+homepage: "http://127.0.0.1:7777"
 ---
 
-# Grok Build CLI
+# Grok Build CLI — Personal Orchestration Guide
 
-Delegate coding tasks to Grok Build (xAI's autonomous coding agent CLI, the `grok` command). Grok reads files, writes code, runs shell commands, spawns subagents, and manages git workflows. Three modes: interactive TUI, headless `-p`, and ACP over JSON-RPC.
+Delegate coding tasks to the `grok` command. Grok reads files, writes code, runs
+shell commands, spawns subagents, and manages git workflows. Two surfaces used here:
+headless `-p` and the interactive TUI (Orca's SKILL.md owns worktrees and terminals;
+this one drives Grok inside them). Full flag tables, sessions, and TUI cheatsheet:
+[references/flags-and-tui.md](references/flags-and-tui.md).
 
-This is the third sibling to `codex` and `claude-code`. The orchestration pattern is nearly identical — prefer headless `-p` for one-shots, use a PTY for interactive sessions.
+This machine runs Grok against the local OmniRoute gateway, not an xAI subscription.
+The active model is whatever the gateway serves for `myomniroute`; auth is the
+`OMNIROUTE_KEY` gateway key. Do not run `grok login` or set `XAI_API_KEY` here.
 
 ## When to Use
 
-- Building features
-- Refactoring
-- PR reviews
-- Batch issue fixing
-- Any task where you'd otherwise reach for Codex / Claude Code but want Grok
+- Building features, refactoring, batch issue fixing
+- PR reviews (read-only audits, including diff-piped and clone-to-temp)
+- Any coding task delegated out instead of implemented inline
 
 ## Prerequisites
 
-### Install
-
 ```bash
-# Preferred
-npm install -g @xai-official/grok
-
-# Official installer (Cloudflare-walled in some environments; npm avoids that)
-curl -fsSL https://x.ai/cli/install.sh | bash
+npm install -g @xai-official/grok   # preferred; the curl installer is Cloudflare-walled in some environments
 ```
 
-### Auth — SuperGrok / X Premium+ (primary path)
+Auth is the OmniRoute gateway, wired in `~/.grok/config.toml` (the `[model_providers.omniroute]`
+and `[model.myomniroute]` blocks, shown under Config below). Check the gateway is
+reachable before relying on any run:
 
 ```bash
-grok login   # opens browser OAuth; token cached in ~/.grok/auth.json
+curl -s -o /dev/null -w '%{http_code}\n' "$OMNIROUTE_URL/v1/models"   # expect 200; 401 = missing/invalid OMNIROUTE_KEY
 ```
 
-Verify:
+End-to-end smoke test: `grok --no-auto-update -p "Say ok."`.
 
-```bash
-ls ~/.grok/auth.json   # file exists
-# or cheap smoke test:
-grok --no-auto-update -p "Say ok."
-```
+- No git repo required; Grok runs fine outside a git directory.
+- Project rules: Grok auto-reads the `AGENTS.md` and `CLAUDE.md` families; home-level
+  rules live in `~/.grok/rules/*.md`.
 
-- `/logout` signs out, `/login` (or relaunch) signs back in.
-- No git repo required — Grok runs fine outside a git directory (good for scratch tasks).
-- AGENTS.md / CLAUDE.md compatible with zero config — Grok auto-reads `CLAUDE.md`, `.claude/` (skills, agents, MCPs, hooks, rules), and the `AGENTS.md` family.
+## Choosing a Model
 
-### API-key fallback
+`myomniroute` is the active text model; `myomnivision` handles images. Switch with
+`-m <model>`. Everything below assumes the default unless a `-m` is passed.
 
-`XAI_API_KEY` env var for pay-as-you-go billing via api.x.ai. Only use if `grok login` / SuperGrok auth is unavailable.
+`[models] default` and `[ui] permission_mode` are already set in `~/.grok/config.toml`,
+so most runs need no extra flags.
 
 ## Two Orchestration Modes
 
@@ -76,86 +73,45 @@ One-shot: runs a task, prints the result, exits. No PTY needed.
 grok --no-auto-update -p 'Add a dark mode toggle to settings'
 ```
 
-Always pass `--no-auto-update` in automation to skip background update checks.
-
-Use headless for:
-- One-shot coding tasks (fix a bug, add a feature, refactor)
-- CI/CD automation and scripting
-- Structured output parsing with `--output-format json`
-- Any task that doesn't need multi-turn conversation
+- One-shot coding tasks, CI/CD automation, structured output (`--output-format json`)
+- `--output-format json` emits one JSON object at the end; `streaming-json` emits
+  newline-delimited events as they arrive.
+- Long tasks: run in the background (`background=true, notify_on_complete=true`) and
+  poll the process; a run returns a session id you can resume (see reference).
 
 ### Mode 2: Interactive PTY — Multi-Turn TUI
 
-Drive the TUI with `pty=true` + tmux for capture-pane monitoring:
+Drive the TUI with `pty=true` + tmux for capture-pane monitoring (`--no-alt-screen` keeps
+output inline without fullscreen takeover):
 
 ```bash
-# Launch
 tmux new-session -d -s grok-work -x 140 -y 40
-tmux send-keys -t grok-work 'cd /path/to/project && grok' Enter
-
-# Wait for startup, send a task
+tmux send-keys -t grok-work 'cd /path/to/project && grok --no-alt-screen' Enter
 sleep 5 && tmux send-keys -t grok-work 'Refactor the auth module to use JWT' Enter
-
-# Monitor progress
-sleep 15 && tmux capture-pane -t grok-work -p -S -50
-
-# Exit
-tmux send-keys -t grok-work '/quit' Enter && sleep 1 && tmux kill-session -t grok-work
+tmux capture-pane -t grok-work -p -S -50   # monitor
+tmux send-keys -t grok-work '/quit' Enter && tmux kill-session -t grok-work
 ```
 
-Tip: add `--no-alt-screen` for inline TUI output without fullscreen alt-screen takeover.
-
-## Headless Flags
-
-| Flag | Effect |
-|---|---|
-| `-p, --single <PROMPT>` | Send one prompt, run headless, exit |
-| `-m, --model <MODEL>` | Choose a model |
-| `-s, --session-id <UUID>` | Assign a new valid UUID to a fresh conversation |
-| `-r, --resume [<UUID>]` | Resume an existing session (most recent if omitted) |
-| `-c, --continue` | Continue the most recent session in the current directory |
-| `--fork-session` | When resuming, create a new session ID |
-| `--max-turns <N>` | Cap the maximum number of agent turns |
-| `--cwd <PATH>` | Set the working directory |
-| `--output-format <FMT>` | plain (default), json, or streaming-json |
-| `--always-approve` | Auto-approve all tool executions (autonomous build) |
-| `--no-alt-screen` | Run inline, no fullscreen TUI takeover |
-| `--no-auto-update` | Skip background update checks (always use in automation) |
-
-### Output Formats
-
-- `plain` — human-readable (default)
-- `json` — one JSON object at the end (parse cleanly)
-- `streaming-json` — newline-delimited JSON events as they arrive
-
-### Background Mode (Long Tasks)
-
-```bash
-# Start headless in background
-grok --no-auto-update --always-approve -p 'Refactor the auth module'
-# → returns session_id; monitor with process poll/log/kill
-```
-
-### Session Continuation
-
-```bash
-SID=$(uuidgen)
-grok --no-auto-update -s $SID -p 'Start refactoring the database layer' --always-approve
-# Resume later
-grok --no-auto-update -r $SID -p 'Now add connection pooling' --always-approve
-# Or continue most recent (no UUID)
-grok --no-auto-update -c -p 'What did you change last time?'
-```
+`Ctrl+\` (or `/dashboard`) opens the Agent Dashboard: peek, dispatch, and cancel
+agent rows from one screen. `/doctor` diagnoses terminal/clipboard/color issues,
+`/doctor fix <id>` applies named fixes.
 
 ## Read-Only Audit → Markdown Note
 
-To have Grok review local artifacts and return a clean markdown note without mutating anything:
+To have Grok review local artifacts and return a clean markdown note without mutating
+anything:
 
-1. Prepare stable input files first with Hermes tools (`read_file`, `write_file`). Snapshot only relevant context into a temp file.
-2. Run Grok headless **without** `--always-approve` so it cannot auto-write; demand markdown only.
+1. Prepare stable input files first with Hermes tools (`read_file`, `write_file`).
+   Snapshot only relevant context into a temp file.
+2. Run Grok headless **without** `--always-approve` so it cannot auto-write; demand
+   markdown only.
 3. Save stdout into the destination note with `write_file()`.
 
-Pitfall: for document rewrites, a loose "rewrite this" prompt may return a change summary instead of the full file. Pipe the file in and demand "Return ONLY the full revised markdown document. No intro, no explanation, no code fences. Start immediately with `# Title`". Verify the first lines with `read_file()` before overwriting the destination.
+Pitfall: for document rewrites, a loose "rewrite this" prompt may return a change
+summary instead of the full file. Pipe the file in and demand "Return ONLY the full
+revised markdown document. No intro, no explanation, no code fences. Start immediately
+with `# Title`". Verify the first lines with `read_file()` before overwriting the
+destination.
 
 ## PR Review Patterns
 
@@ -172,14 +128,12 @@ REVIEW=$(mktemp -d)
 git clone https://github.com/user/repo.git $REVIEW
 cd $REVIEW && gh pr checkout 42
 grok --no-auto-update -p 'Review the changes vs origin/main. Check bugs, security, race conditions, missing tests.'
-# Post the review:
 gh pr comment 42 --body '<review text>'
 ```
 
 ## Parallel Issue Fixing with Worktrees
 
 ```bash
-# Create worktrees
 git worktree add -b fix/issue-78 ~/.hermes/cache/scratch/issue-78 main
 git worktree add -b fix/issue-99 ~/.hermes/cache/scratch/issue-99 main
 
@@ -187,65 +141,71 @@ git worktree add -b fix/issue-99 ~/.hermes/cache/scratch/issue-99 main
 grok --no-auto-update --always-approve -p 'Fix issue #78: <desc>. Commit when done.'  # in worktree 78
 grok --no-auto-update --always-approve -p 'Fix issue #99: <desc>. Commit when done.'  # in worktree 99
 
-# After completion: push and open PRs
+# After completion: push and open PRs, then clean up
 cd ~/.hermes/cache/scratch/issue-78 && git push -u origin fix/issue-78
 gh pr create --repo user/repo --head fix/issue-78 --title 'fix: ...'
-
-# Cleanup
 git worktree remove ~/.hermes/cache/scratch/issue-78
 ```
 
-## TUI Slash Commands (interactive only)
-
-| Command | Purpose |
-|---|---|
-| `/model <name>` | Switch model |
-| `/always-approve` | Toggle auto-approve |
-| `/plan` | Enter Plan mode (blocks write tools except session plan file) |
-| `/context` | Show context usage |
-| `/compact` | Compact session history |
-| `/resume` | Resume a session |
-| `/sessions` | List sessions |
-| `/fork` | Fork current session |
-| `/usage` | Show usage |
-| `/quit` | Exit |
-
-Shift+Tab cycles session modes (including Plan mode).
+The same worktrees can be Orca-managed (`orca worktree create`), but plain `git
+worktree` works without the Orca daemon.
 
 ## Config (`~/.grok/config.toml`)
 
 ```toml
-[cli]
-auto_update = false        # skip background update checks persistently
+[model_providers.omniroute]
+base_url = "http://127.0.0.1:7777/v1"
+api_backend = "chat_completions"
+env_key = "OMNIROUTE_KEY"
 
-[ui]
-permission_mode = "ask"   # or "always-approve" to skip tool prompts by default
+[model.myomniroute]
+model = "myomniroute"
+name = "myomniroute"
+model_provider = "omniroute"
+context_window = 262144
+
+[model.myomnivision]
+model = "myomnivision"
+name = "myomnivision"
+model_provider = "omniroute"
+context_window = 262144
 
 [models]
-default = "grok-build-0.1"
+default = "myomniroute"
+image_description = "myomnivision"
+
+[ui]
+permission_mode = "always-approve"
 ```
 
-Put global preferences in `~/.grok/config.toml` (not project-scoped `.grok/config.toml`). `permission_mode` supersedes the legacy `approval_mode` / `yolo = true` keys.
+Read the live `~/.grok/config.toml` before relying on this block: provider, model,
+and auth choices change when the gateway is re-pointed, and a stale block is the
+usual cause of "why is it still trying xAI". Global preferences live in
+`~/.grok/config.toml`, not project-scoped `.grok/config.toml`.
 
 ## Pitfalls & Gotchas
 
-- **Auth is subscription-gated.** `grok login` requires SuperGrok or X Premium+. If login fails or `~/.grok/auth.json` is missing, confirm the subscription is active before falling back to `XAI_API_KEY`.
-- **Hermes xAI auth ≠ grok CLI auth.** Hermes' `x_search` runs on its own xAI OAuth; the standalone grok CLI has a separate token. A working `x_search` does NOT mean grok is logged in.
-- **Always pass `--no-auto-update` in automation** — otherwise Grok phones home for update checks.
-- **Prefer `npm install` over the curl installer** — avoids the Cloudflare-walled x.ai host.
-- **`--always-approve` is the autonomous-build switch.** Without it, headless runs may stall waiting on tool-approval prompts. Omit it deliberately for read-only review/audit.
-- **Headless `-p` skips TUI dialogs.** The TUI needs `pty=true` + tmux for monitoring.
-- **Use `--no-alt-screen`** if the TUI fullscreen alt-screen takeover garbles captured output.
-- **No git repo needed**, but for PR/commit workflows you still want one — use `mktemp -d && git init` for scratch commit tasks.
+- **Verify the gateway before relying on it** — `curl -s -o /dev/null -w '%{http_code}\n'
+  "$OMNIROUTE_URL/v1/models"` must return `200` (with a valid `OMNIROUTE_KEY`); a `401`
+  means the key is missing/invalid and no run will work.
+- **Always pass `--no-auto-update` in automation** — otherwise Grok phones home for
+  update checks.
+- **Hermes xAI auth ≠ grok CLI auth.** Hermes' `x_search` runs on its own xAI OAuth;
+  a working `x_search` does NOT mean the grok CLI can reach the gateway.
+- **`--always-approve` is the autonomous-build switch.** Omit it deliberately for
+  read-only review/audit so Grok cannot mutate files.
+- **Headless `-p` skips TUI dialogs.** The TUI needs `pty=true` + tmux for monitoring;
+  run `/doctor` when keys or colors misbehave in tmux.
+- **No git repo needed** for a task, but for PR/commit workflows you still want one —
+  use `mktemp -d && git init` for scratch commit tasks.
 - **Clean up tmux sessions** with `tmux kill-session -t <name>` when done.
 
 ## Rules for Hermes Agents
 
-- Prefer headless `-p` for single tasks — cleanest integration, structured output via `--output-format json`.
+- Prefer headless `-p` for single tasks, structured output via `--output-format json`.
 - Always set `workdir` (or `--cwd`) so Grok targets the right project.
-- Pass `--no-auto-update` in every automated invocation.
-- Use `--always-approve` only when Grok should write autonomously; omit it for read-only reviews and audits.
-- Background long tasks with `background=true, notify_on_complete=true` and monitor via the process tool.
-- Use tmux for multi-turn interactive work and monitor with `tmux capture-pane -t <session> -p -S -50`.
-- Verify auth before relying on it — check `~/.grok/auth.json` or run a cheap `grok -p "Say ok."` smoke test.
+- Background long tasks with `background=true, notify_on_complete=true` and monitor
+  via the process tool; use the dashboard (`Ctrl+\`) for several concurrent TUI agents.
+- Use tmux for multi-turn interactive work and monitor with `tmux capture-pane -t
+  <session> -p -S -50`.
 - Report results to the user — summarize what Grok changed and what's left.
