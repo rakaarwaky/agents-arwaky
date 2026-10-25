@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -27,9 +26,7 @@ TODAY = "2026-10-25"
 
 def _scan() -> dict[str, Any]:
     discovery = REPO_ROOT / "discovery.json"
-    out = REPO_ROOT / "classify_scan_out.json"
-    scan.run_scan(str(REPO_ROOT), str(discovery), out=str(out))
-    return json.loads(out.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
+    return scan.run_scan(str(REPO_ROOT), str(discovery))
 
 
 def test_next_action_pending_closing_condition_exact_string() -> None:
