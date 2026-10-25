@@ -205,6 +205,13 @@ Verification (Step 9) is the gate for rollback:
 
 ## Common Mistakes
 
+- **Parallel agents committing in the same tree.** This repo is worked on by multiple agents
+  (GrokBuild via Orca, Hermes). A concurrent commit can sweep your staged changes into someone
+  else's commit (e.g., your `git rm` landing in another agent's commit) and change the HEAD you
+  snapshotted against. After any snapshot and before committing, re-run `git log --oneline -4` and
+  `git status`; re-verify on-disk state before executing; keep your commit scoped to your own task
+  files only — never `git add -A`.
+
 - **Absorbing a skill whose own SKILL.md is a thin TOC over the survivor's references.**
   When the dropped skill's body routes into the surviving skill ("this is covered in
   `context7-cli`", links the survivor's references), the two are the same job with a
