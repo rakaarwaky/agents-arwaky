@@ -125,16 +125,18 @@ Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile i
 | delegate_task "capped at N" reports | `references/delegate-task-concurrency-diagnosis.md` |
 | "Can app X use my Nous Portal subscription/OAuth?" | `references/portal-auth-for-third-party-apps.md` |
 | Connecting a messaging platform (Telegram, Discord, Slack, WhatsApp, …) | docs: `/user-guide/messaging` |
-| Multi-bot Telegram setup, multiplex profiles, "gateway always on", gateway bot not answering | `references/gateway/multi-bot-telegram-run.md` + `references/gateway/systemd-always-on.md` |
-| Why a newly added profile's bot stays silent / per-profile gateway unit exits 78 | `references/gateway/multiplex-late-profile-adoption.md` |
-| Multiplex gateway code paths, token/secret scoping, auth sharing (source-verified) | `references/gateway/multiplex-internals.md` |
+| Multi-bot Telegram setup, multiplex profiles, "gateway always on", gateway bot not answering | `references/multi-bot-telegram-run.md` + `references/systemd-always-on.md` |
+| Why a newly added profile's bot stays silent / per-profile gateway unit exits 78 | `references/multiplex-late-profile-adoption.md` |
+| Multiplex gateway code paths, token/secret scoping, auth sharing (source-verified) | `references/multiplex-internals.md` |
 
 The reference list above is not the feature list — it is the set of topics that
 need more than their docs page. For everything else Hermes ships, fetch
 `llms.txt` and it maps the question to the page that answers it.
 
-`references/gateway/` also holds the former standalone `hermes-messaging-gateways`
-skill: multi-bot Telegram multiplex setup and always-on persistence, now part of this hub.
+The four gateway references (`multi-bot-telegram-run.md`, `multiplex-internals.md`,
+`multiplex-late-profile-adoption.md`, `systemd-always-on.md`) also hold the former
+standalone `hermes-messaging-gateways` skill: multi-bot Telegram multiplex setup and
+always-on persistence, now part of this hub.
 
 Two theming rules that hold even without loading the reference: **you apply skins yourself** (`hermes config set display.skin <name>` — every surface repaints live within ~a second; don't tell the user to run `/skin`), and **to tweak one color, edit the ACTIVE skin** (`hermes skin set <key> <hex>`) — never fork `default`, which drops the palette and resets the background.
 
