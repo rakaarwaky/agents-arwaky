@@ -47,6 +47,13 @@ their messages live in [`../../../modules/skills/_rules/skill-rules.md`](../../.
   starting. Reject the request if the path resolves to a file instead of a directory.
 - **Scoping:** The user can supply the root `/skills` directory for a full tree audit, or a
   specific category folder (e.g., `/skills/devops`) to scope the audit strictly to that category.
+- **Scoped multi-skill merge:** the user can also name two or more specific skill folders
+  (e.g., two sibling skills in the same category) and ask to prune/consolidate just those.
+  In that case skip the full-tree inventory; treat exactly the named skills as the audit
+  set, run Steps 2–4 on that set, and produce a scoped report listing the named audit root
+  rather than the whole tree. Do not let the default audit root expand the scope beyond the
+  skills the user named — other folders are out of scope unless they are affected (e.g.
+  `CATALOG.md` rows pointing at a dropped skill).
 - **Validation:** Confirm the resolved directory contains one or more folders with a `SKILL.md`.
   If it contains no `SKILL.md` subfolders, stop and inform the user that the path is not a valid
   skill tree.
@@ -109,15 +116,27 @@ Task Progress:
       snapshot and execute these changes?"* **Wait for user confirmation before proceeding.**
       With `--auto` or `--evolution`, skip this gate and proceed straight to Step 6.
 - [ ] Step 6: Snapshot the tree in git (`git add -A && git commit -m "snapshot: before
-      skill-lifecycle"`, or `git stash` if the tree is dirty for other reasons).
+      skill-lifecycle"`, or `git stash` if the tree is dirty for other reasons). If the
+      working tree already holds unrelated in-progress changes, record the current `HEAD`
+      commit SHA as the rollback target and stage only the skill-tree paths you touch —
+      never `git add -A` into the same commit as unrelated work. The rollback target is
+      that HEAD SHA; `git reset --hard <sha>` after the merge restores both the skill and
+      unrelated state.
 - [ ] Step 7: Execute merges per the Phase 2 table. When merging, delete the redundant folders
       (keep one canonical folder name, preferring the existing skill whose `name:` in frontmatter
       matches the surviving scope).
 - [ ] Step 8: Update the category `DESCRIPTION.md` if a folder was removed or renamed. If a category
-      is left completely empty, delete the category folder and its `DESCRIPTION.md`.
+      is left completely empty, delete the category folder and its `DESCRIPTION.md`. Also
+      reconcile `skills/CATALOG.md`: drop the row for every dropped skill, add/update the row
+      for the surviving skill's new description, and adjust the category's skill-count
+      column. The catalog is a generated artifact (`aa skills catalog [--check]`), so after
+      the manual edit run that command to confirm it is consistent before committing.
 - [ ] Step 9: Verify — every remaining `SKILL.md` parses as valid frontmatter, all `references/`
-      links resolve, no two skills share a `name:`. *If verification fails, trigger the Rollback
-      Protocol.*
+      links resolve (including cross-links *within* the `references/` set, not just from
+      `SKILL.md` to `references/`), no two skills share a `name:`, and `aa skills validate`
+      reports no issues. Also confirm `skills/CATALOG.md` still matches the on-disk state
+      (or run `aa skills catalog` to regenerate it). *If verification fails, trigger the
+      Rollback Protocol.*
 - [ ] Step 10: Report — Output the final executed `skill-lifecycle report`.
 
 ## Merge Rules
@@ -126,7 +145,10 @@ Task Progress:
   neither matches, pick the more specific one.
 - **Frontmatter union** — merge `tags` and `when-to-use` as unions, de-duplicated; merge any
   body Routing sections and drop entries pointing at skills that no longer exist. Merge
-  `triggers:` terms into `description:`/`when-to-use:` — the key is not parsed.
+  `triggers:` terms into `description:`/`when-to-use:` — the key is not parsed. If the
+  surviving skill had `tags: []` and the dropped skill had populated `tags`, carry the
+  dropped skill's tags into the survivor — otherwise the surviving skill loses its
+  searchability for that topic and the catalog search no longer reaches it.
 - **Body merge** — shared rules go in the `SKILL.md` body exactly once. Scenario-specific rules
   move to `references/<scenario>.md`. Never restate a rule that already exists in a reference.
 - **Conflict Resolution** — if merged skills contain contradictory rules (e.g., opposing
@@ -196,6 +218,13 @@ Verification (Step 9) is the gate for rollback:
   questions per turn is fine; lumping a whole class of skills into one question is not.
 - **Restating rules after merge.** After merging bodies, search the new `SKILL.md` and
   `references/` for duplicated statements; keep one home per fact.
+- **Dangling cross-references between absorbed files.** When a dropped skill's
+  `references/` files are moved next to the surviving skill's own `references/`, any
+  cross-links in the moved files (or in the surviving SKILL.md) that pointed at
+  `SKILL.md` step N, or at a sibling under the old folder, now dangle. Rewrite them to
+  name the sibling reference file directly (`see model-tier-list.md step 6`, not
+  `see SKILL.md step 6`). Step 9's "all reference links resolve" check only passes if
+  these were re-pointed; add them to the Step 9 pass before committing.
 - **Skipping the approval gate.** Present the dry-run report and wait for explicit confirmation
   before Step 6; first-time runs on a skill tree are approval-gated.
 - **Unattended runs.** A headless pass (cron, `/loop`, background task) must use `--evolution`
