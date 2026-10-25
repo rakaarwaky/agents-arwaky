@@ -189,6 +189,11 @@ Verification (Step 9) is the gate for rollback:
 - **Editing provisioned copies.** Copies under `.agents/skills/` or a harness home are generated;
   fix the repo source and note that the copy needs re-provisioning; never hand-edit the copy.
 - **No snapshot.** Always commit or stash before deleting a skill folder.
+- **Interacting with the user during a prune.** When the user asks which skills to delete and
+  frames it as "ask me, then recommend," ask **specific, one-skill, binary yes/no** questions —
+  never a multi-skill bucket ("do you use the creative pack?" gets rejected as too broad).
+  Name each skill and its concrete job in the question. Batching a few independent binary
+  questions per turn is fine; lumping a whole class of skills into one question is not.
 - **Restating rules after merge.** After merging bodies, search the new `SKILL.md` and
   `references/` for duplicated statements; keep one home per fact.
 - **Skipping the approval gate.** Present the dry-run report and wait for explicit confirmation
