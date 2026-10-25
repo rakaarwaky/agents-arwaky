@@ -166,12 +166,12 @@ Use whichever fits; often both (script for state transitions, subagent for log q
 
 ### Bundled watcher scripts
 
-- `long-running-background-tasks/scripts/watch_dev_server.sh` — dev-server up/down predicate.
-- `long-running-background-tasks/scripts/watch_pr.py` — GitHub PR state (needs `gh` CLI).
-- `long-running-background-tasks/scripts/watch_training.py` — nanoGPT/Slurm run stdout
+- `scripts/watch_dev_server.sh` — dev-server up/down predicate.
+- `scripts/watch_pr.py` — GitHub PR state (needs `gh` CLI).
+- `scripts/watch_training.py` — nanoGPT/Slurm run stdout
   parsing (run with `--help` for every flag and the run-directory layout it expects).
 
-Launch: `terminal(command="python3 <watch_pr.py path> <url>", background=true, notify=true)`,
+Launch: `terminal(command="python3 scripts/watch_pr.py <url>", background=true, notify=true)`,
 then track with `process_manage` poll/wait.
 
 ### Verification
