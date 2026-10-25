@@ -42,6 +42,13 @@ The write commands `move`, `archive`, and `new-category` default to a dry-run th
 prints the planned changes; pass `--apply` to execute. Dry runs exit 0, so always check
 the output for "Planned" lines — exit 0 does not mean the change was made.
 
+When the `--apply` write succeeds, still run `aa skills validate` after the move:
+a rename can strand cross-references in *other* skills' bodies (they keep the
+old `category/name/` path or name a now-deleted sibling) and leave
+`metadata.related_skills` pointing at skills that no longer exist. `validate`
+checks structure, not link validity — grep the pack for the moved or deleted
+skill name and fix dangling pointers before committing.
+
 Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML parsing. Without PyYAML, the script uses a minimal frontmatter parser.
 
 ## Commands

@@ -118,7 +118,6 @@ Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile i
 | Standing behavior, identity, or task routing that must hold in every session | `references/soul-md-routing.md` |
 | Per-profile state: config, keys, skills, SOUL.md | sibling skill `hermes-profiles` |
 | Shell hooks (pre/post tool guards) per profile | sibling skill `hermes-shell-hooks` |
-| Guard hooks for Orca worktrees / immutable clone | `devops/agent-worktree-hooks` |
 | Secret redaction, PII, approval modes, "reset permissions" | `references/security-privacy.md` |
 | Delegation, cron, curator, kanban | `references/background-systems.md` |
 | MCP servers (add, catalog, `hermes mcp`) | `references/native-mcp.md` |
