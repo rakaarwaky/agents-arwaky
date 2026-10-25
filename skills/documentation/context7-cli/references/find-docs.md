@@ -1,9 +1,6 @@
----
-name: find-docs
-description: Fetches library docs and examples via ctx7. Use when asking API syntax, config, migration, usage.
-metadata:
-  tags: []
----
+# Find Docs — Documentation Lookup
+
+The doc-lookup job of Context7. Two transports, same two-step workflow (resolve an ID, then query). Use whichever the current harness has:
 
 # Documentation Lookup
 
@@ -91,5 +88,5 @@ relevant, and name the version when it matters.
 
 ## Related
 
-- `context7-cli` — install `ctx7`, `ctx7 setup` MCP wiring for Claude Code /
-  Cursor / OpenCode, and `ctx7 skills …` registry management.
+- This scenario is a sub-scenario of the `context7-cli` skill — `ctx7` install, `ctx7 setup` MCP wiring for Claude Code /
+  Cursor / OpenCode, and `ctx7 skills …` registry management live in `context7-cli/SKILL.md` and its references.
