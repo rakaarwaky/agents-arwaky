@@ -53,7 +53,8 @@ from modules.shared.src.skills.taxonomy_skills_error import (
     SkillNotFoundError,
     SkillsUsageError,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
+from modules.shared.src.skills.taxonomy_skills_rule_vo import CategoryName, SkillName
+from modules.shared.src.skills.taxonomy_skills_vo import SkillDescription, SkillsRoot
 
 __all__ = [
     "SkillsMutator",
@@ -208,7 +209,7 @@ class SkillsMutator(ISkillsMutatorProtocol):
 
     # ─── Block 2: Protocol Method Implementations ─────────────
     def plan_move(
-        self, skill: str, target: str, root: SkillsRoot
+        self, skill: SkillName, target: CategoryName, root: SkillsRoot
     ) -> MutationPlan:
         """Resolve a move; the returned plan takes no action."""
         skills_root = Path(root)
@@ -248,7 +249,7 @@ class SkillsMutator(ISkillsMutatorProtocol):
             root=skills_root,
         )
 
-    def plan_archive(self, skill: str, root: SkillsRoot) -> MutationPlan:
+    def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
         """Resolve an archive; the skill lands at ``_archive/<cat>/<skill>/``."""
         skills_root = Path(root)
         source = _resolve_skill_dir(skill, skills_root)
@@ -355,8 +356,8 @@ class SkillsMutator(ISkillsMutatorProtocol):
 
     def plan_new_category(
         self,
-        name: str,
-        description: str | None,
+        name: CategoryName,
+        description: SkillDescription | None,
         root: SkillsRoot,
         force: bool,
     ) -> NewCategoryPlan:

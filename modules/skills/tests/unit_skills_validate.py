@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from modules.shared.src.skills.taxonomy_skills_constant import (
+from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     ISSUE_MESSAGES,
     RULE_IDS,
     RULES,
@@ -16,7 +16,7 @@ from modules.shared.src.skills.taxonomy_skills_constant import (
     rule,
 )
 from modules.skills.src.capabilities_skills_validator import SkillsValidator
-from modules.skills.tests.support_skills import as_root
+from modules.skills.tests.fixture_skills import as_root
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
@@ -117,7 +117,7 @@ def test_clean_fixture_reports_no_issues() -> None:
 
 def test_report_is_unfiltered_by_design(tmp_path: Path) -> None:
     """The validator never narrows: filtering is the surface's job."""
-    from modules.skills.tests.support_skills import crafted_tree
+    from modules.skills.tests.fixture_skills import crafted_tree
 
     report = SkillsValidator().validate(as_root(crafted_tree(tmp_path)))
     assert report.issue_count == 1

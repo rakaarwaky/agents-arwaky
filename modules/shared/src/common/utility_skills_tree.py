@@ -19,13 +19,17 @@ from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import ModuleType
 
-from modules.shared.src.common.utility_skills_markdown import clean_one_line
 from modules.shared.src.skills.taxonomy_skills_constant import (
     ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
     PACK_MARKER_FILENAME,
 )
+
+
+def _clean_one_line(value: object) -> str:
+    """Collapse whitespace to single spaces and strip the edges."""
+    return " ".join(str(value).split()).strip()
 from modules.shared.src.skills.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
@@ -223,11 +227,11 @@ def skill_entries(skills_root: Path) -> list[SkillEntry]:
             entries.append(
                 SkillEntry(
                     skill=skill_dir.name,
-                    frontmatter_name=clean_one_line(
+                    frontmatter_name=_clean_one_line(
                         frontmatter.get("name", skill_dir.name)
                     ),
                     category=category.name,
-                    description=clean_one_line(frontmatter.get("description", "")),
+                    description=_clean_one_line(frontmatter.get("description", "")),
                     path=f"{category.name}/{skill_dir.name}",
                 )
             )
@@ -254,7 +258,7 @@ def category_summaries(
 
         if exists:
             frontmatter = parse_frontmatter(desc_file)
-            description = clean_one_line(frontmatter.get("description", ""))
+            description = _clean_one_line(frontmatter.get("description", ""))
 
         skill_count = sum(1 for entry in entries if entry.category == category.name)
 

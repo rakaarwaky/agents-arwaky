@@ -10,11 +10,13 @@ legacy message text and the legacy exit code. The surface prints
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from modules.shared.src.skills.taxonomy_skills_vo import DiffLines, ErrorMessage
 
 __all__ = [
     "CatalogDrift",
     "CategoryNameError",
+    "DiffLines",
+    "ErrorMessage",
     "MutationConflictError",
     "SkillNotFoundError",
     "SkillsError",
@@ -33,8 +35,8 @@ class SkillsError(Exception):
 
     exit_code: int = 2
 
-    def __init__(self, message: str, *, exit_code: int = 2) -> None:
-        super().__init__(message)
+    def __init__(self, message: ErrorMessage, *, exit_code: int = 2) -> None:
+        super().__init__(str(message))
         self.exit_code = exit_code
 
 
@@ -58,6 +60,10 @@ class SkillsRootError(SkillsUsageError):
     """The skills root is missing or is not a directory."""
 
 
+#: Default empty diff lines for catalog drift errors.
+_DEFAULT_DIFF_LINES: DiffLines = DiffLines(())
+
+
 class CatalogDrift(SkillsUsageError):
     """Tracked ``CATALOG.md`` is missing, stale, corrupt, or non-round-tripping.
 
@@ -74,6 +80,6 @@ class CatalogDrift(SkillsUsageError):
 
     exit_code: int = 3
 
-    def __init__(self, message: str, diff_lines: Sequence[str] = ()) -> None:
+    def __init__(self, message: ErrorMessage, diff_lines: DiffLines = _DEFAULT_DIFF_LINES) -> None:
         super().__init__(message, exit_code=3)
-        self.diff_lines: tuple[str, ...] = tuple(diff_lines)
+        self.diff_lines = diff_lines

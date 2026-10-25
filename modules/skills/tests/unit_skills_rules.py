@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.skills.taxonomy_skills_constant import (
+from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     ISSUE_MESSAGES,
     RULES,
     IssueType,

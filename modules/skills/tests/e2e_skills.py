@@ -43,7 +43,7 @@ def test_e2e_dispatch_show(tmp_path: Path, monkeypatch):
 def test_e2e_dispatch_validate_and_catalog(tmp_path: Path):
     """E2E-SKILLS-003: `aa skills validate|catalog` dispatch end to end."""
     from modules.root_cli_entry import _dispatch
-    from modules.skills.tests.support_skills import crafted_tree
+    from modules.skills.tests.fixture_skills import crafted_tree
 
     root = crafted_tree(tmp_path)
     assert _dispatch(["skills", "validate", "--skills-root", str(root)]) == 1
@@ -54,7 +54,7 @@ def test_e2e_dispatch_validate_and_catalog(tmp_path: Path):
 def test_e2e_dispatch_authoring_read_only_verbs(tmp_path: Path):
     """E2E-SKILLS-005: discover / weed / merge-plan / rules dispatch and exit 0."""
     from modules.root_cli_entry import _dispatch
-    from modules.skills.tests.support_skills import crafted_tree
+    from modules.skills.tests.fixture_skills import crafted_tree
 
     root = crafted_tree(tmp_path)
     root_arg = ["--skills-root", str(root)]
@@ -80,7 +80,7 @@ def test_e2e_dispatch_move_applies_then_rebuilds_catalog(tmp_path: Path):
     """E2E-SKILLS-006: move --apply moves the folder and the agent's
     post-apply rebuild leaves CATALOG.md in sync (drift check exits 0)."""
     from modules.root_cli_entry import _dispatch
-    from modules.skills.tests.support_skills import crafted_tree
+    from modules.skills.tests.fixture_skills import crafted_tree
 
     root = crafted_tree(tmp_path)
     root_arg = ["--skills-root", str(root)]
@@ -107,7 +107,7 @@ def test_e2e_dispatch_move_applies_then_rebuilds_catalog(tmp_path: Path):
 def test_e2e_dispatch_new_category_dry_run_then_apply(tmp_path: Path):
     """E2E-SKILLS-007: new-category previews without writing, then --apply creates it."""
     from modules.root_cli_entry import _dispatch
-    from modules.skills.tests.support_skills import crafted_tree
+    from modules.skills.tests.fixture_skills import crafted_tree
 
     root = crafted_tree(tmp_path)
     root_arg = ["--skills-root", str(root)]

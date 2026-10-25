@@ -8,7 +8,7 @@ import pytest
 
 from modules.shared.src.skills.taxonomy_skills_error import CatalogDrift
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
-from modules.skills.tests.support_skills import as_root, crafted_tree
+from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 
 def test_rebuild_writes_the_tracked_header_and_rows(tmp_path: Path) -> None:

@@ -30,24 +30,20 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMergePlannerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import MergePlan
+from modules.shared.src.skills.taxonomy_skills_constant import (
+    _KEEP_DIRS,
+    _SKIP_FILES,
+)
 from modules.shared.src.skills.taxonomy_skills_entity import SkillEntry
 from modules.shared.src.skills.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
 )
+from modules.shared.src.skills.taxonomy_skills_rule_vo import SkillRef
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
 
 __all__ = ["SkillsMergePlanner", "parse_ref"]
-
-#: Subdirectories a merged body keeps as-is: scenario material and
-#: category metadata are content, not build output.
-_KEEP_DIRS = ("references", "scripts")
-
-#: Files never moved into the survivor: the identity card belongs to the
-#: surviving folder, and a stale frontmatter in the absorbed folder would
-#: produce two ``name:`` keys if it landed beside the survivor's.
-_SKIP_FILES = ("SKILL.md", "SKILL.md.archived")
 
 
 def parse_ref(reference: str) -> tuple[str, str]:
@@ -170,7 +166,7 @@ class SkillsMergePlanner(ISkillsMergePlannerProtocol):
     """Builds (and renders) read-only merge plans."""
 
     # ─── Block 2: Protocol Method Implementations ─────────────
-    def plan(self, ref_a: str, ref_b: str, root: SkillsRoot) -> MergePlan:
+    def plan(self, ref_a: SkillRef, ref_b: SkillRef, root: SkillsRoot) -> MergePlan:
         """Build the plan for merging two ``category/skill`` references."""
         skills_root = Path(root)
         cat_a, skill_a = parse_ref(ref_a)
@@ -297,3 +293,5 @@ class SkillsMergePlanner(ISkillsMergePlannerProtocol):
             lines.append("- Empty category cleanup: (none)")
 
         return tuple(lines)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ──────────

@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
@@ -315,26 +315,25 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=True, op=op, document=document.markdown)
         return SkillsResult(ok=True, op=op, document=renderer.render_summary())
 
-    # ─── Block 4: Helpers ────────────────────────────────────
+    # ─── Block 3: Helpers, Factories & Read Helpers ────────────
     def _root(self, request: SkillsRequest) -> SkillsRoot:
         """Resolve the request's root: explicit beats derived, never silent."""
         if request.root is not None:
-            path = Path(request.root)
+            path = request.root
             if not path.is_dir():
                 raise SkillsRootError(f"Skills root does not exist: {path}")
-            return SkillsRoot(path)
+            return path
         if self._default_root is not None:
-            return SkillsRoot(self._default_root)
+            return self._default_root
         raise SkillsUsageError("No skills root configured")
 
     @staticmethod
-    def _require(capability: Any, name: str) -> Any:
+    def _require(capability: object, name: str) -> object:
         """Fail loudly when an op is used on an aggregate wired without it."""
         if capability is None:
             raise SkillsUsageError(f"Skills {name} capability is not configured")
         return capability
 
-    # ─── Block 5: Dunder Methods, Factories & Read Helpers ────
     def list_skills(self, root: SkillsRoot | None = None) -> Sequence[SkillRecord]:
         """Convenience pass-through to the index (used by the facade)."""
         return self._index.list_skills(root)

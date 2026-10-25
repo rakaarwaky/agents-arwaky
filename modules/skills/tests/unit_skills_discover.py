@@ -15,7 +15,7 @@ from modules.skills.src.capabilities_skills_discoverer import (
     score_entries,
     tokenize,
 )
-from modules.skills.tests.support_skills import as_root, crafted_tree
+from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 
 def _rows() -> list[CatalogRow]:

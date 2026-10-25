@@ -45,7 +45,7 @@ State / Health: vocabulary below. Last Updated: 2026-10-24
 | Ready for Release | Evidence recorded. |
 | Released | Shipped. |
 
-## Status Policy
+### Status Policy
 
 - Verified, not self-reported: re-run the cited command; name a commit hash
   (never "today"). A `Done` / `Released` row owes a code-span command plus
