@@ -119,9 +119,13 @@ Task Progress:
       skill-lifecycle"`, or `git stash` if the tree is dirty for other reasons). If the
       working tree already holds unrelated in-progress changes, record the current `HEAD`
       commit SHA as the rollback target and stage only the skill-tree paths you touch —
-      never `git add -A` into the same commit as unrelated work. The rollback target is
-      that HEAD SHA; `git reset --hard <sha>` after the merge restores both the skill and
-      unrelated state.
+      never `git add -A` into the same commit as unrelated work. Use explicit paths
+      (`git add skills/<category>/ skills/CATALOG.md`) and verify the staged set with
+      `git status --short` before committing — a path typo or a sibling subagent
+      committing concurrent work in the same checkout silently pulls unrelated
+      deletions into the commit; unstage anything that is not part of the prune.
+      The rollback target is that HEAD SHA; `git reset --hard <sha>` after the merge
+      restores both the skill and unrelated state.
 - [ ] Step 7: Execute merges per the Phase 2 table. When merging, delete the redundant folders
       (keep one canonical folder name, preferring the existing skill whose `name:` in frontmatter
       matches the surviving scope).
@@ -201,6 +205,22 @@ Verification (Step 9) is the gate for rollback:
 
 ## Common Mistakes
 
+- **Absorbing a skill whose own SKILL.md is a thin TOC over the survivor's references.**
+  When the dropped skill's body routes into the surviving skill ("this is covered in
+  `context7-cli`", links the survivor's references), the two are the same job with a
+  routing split, not variants with distinct scenarios. Drop the dropped skill's folder
+  and delete any survivor reference that duplicates it — do not move the dropped
+  SKILL.md into the survivor's `references/` as a new scenario file; that restates
+  content that already lives in the survivor's own references (rule-restatement
+  mistake, not a new sub-scenario).
+- **Staging with `git add -A .` from inside a subdirectory.** Inside
+  `skills/<category>/`, `git add -A .` stages every tracked file under that
+  subdirectory, not just the prune's changes — a sibling subagent that committed
+  concurrent work in the same checkout (or a path typo reaching a parent) silently
+  pulls unrelated deletions into the commit. Use explicit top-level paths
+  (`git add skills/<category>/ skills/CATALOG.md`) and verify the staged set with
+  `git status --short` before committing.
+
 - **Merging across domains.** Two skills with similar-sounding descriptions can be different jobs
   (e.g., "PR code review" vs "local pre-push check"). Verify bodies before merging; only clusters
   with the same completion criteria merge.
@@ -224,7 +244,13 @@ Verification (Step 9) is the gate for rollback:
   `SKILL.md` step N, or at a sibling under the old folder, now dangle. Rewrite them to
   name the sibling reference file directly (`see model-tier-list.md step 6`, not
   `see SKILL.md step 6`). Step 9's "all reference links resolve" check only passes if
-  these were re-pointed; add them to the Step 9 pass before committing.
+  these were re-pointed; add them to the Step 9 pass before committing. Also re-point
+  any *catalog* reference to the dropped skill's name: the surviving skill's frontmatter
+  `description` (which drives routing and catalog search) and the `CATALOG.md` rows both
+  key off the old skill's name — after the merge, absorb the dropped skill's trigger
+  terms into the surviving `description` (e.g. a dropped `find-docs` skill's terms must
+  appear in `context7-cli`'s description) or catalog search stops routing requests to
+  the surviving skill.
 - **Skipping the approval gate.** Present the dry-run report and wait for explicit confirmation
   before Step 6; first-time runs on a skill tree are approval-gated.
 - **Unattended runs.** A headless pass (cron, `/loop`, background task) must use `--evolution`
