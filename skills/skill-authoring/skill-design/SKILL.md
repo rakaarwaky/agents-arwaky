@@ -1,5 +1,5 @@
 ---
-name: skill-authoring
+name: skill-design
 description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split. Use when the user asks what each skill in a pack does, requests argument hints for every skill in a directory, or checks that a skill pack's references are current.
 when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, deciding what belongs in the body versus a references/ file, explaining a skill pack's features and usage to the user, or generating argument hints for skills in a tree.
 argument-hint: "<create | improve | validate | audit | check | explain | hints> [skill-dir]"
