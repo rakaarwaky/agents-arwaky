@@ -1,8 +1,11 @@
 ---
 name: omniroute
-description: OmniRoute free AI gateway over OpenAI REST, 350+ providers with 150+ free tiers. Use when mentioning OmniRoute, OMNIROUTE_URL, auto/best-free, free-tier routing.
+description: OmniRoute free AI gateway over OpenAI REST, 350+ providers with 150+ free tiers. Use when mentioning OmniRoute, OMNIROUTE_URL, auto/best-free, free-tier routing, or building a model tier list / ranking the gateway's model catalog.
 metadata:
-  tags: []
+  tags:
+    - ai-gateway
+    - model-catalog
+    - tierlist
 ---
 
 # OmniRoute
@@ -54,12 +57,24 @@ curl $OMNIROUTE_URL/v1/chat/completions -H "Content-Type: application/json" \
 | `auto/best-fast` | low-latency replies |
 | `auto/best-chat` | general conversation |
 
+## Reference sub-scenarios
+
+- [`references/model-tier-list.md`](references/model-tier-list.md) — build a model
+  tier list / capability ranking from the OmniRoute `/v1/models` catalog (the
+  "Discover models" data task against this gateway).
+- [`references/omniroute-models-shape.md`](references/omniroute-models-shape.md) —
+  the concrete `GET /v1/models` response shape and the full dedupe suffix list.
+
 ## Discover models
 
 ```bash
 curl $OMNIROUTE_URL/v1/models          # everything currently routable
 omniroute models --free                # free tiers only, via the CLI
 ```
+
+To **rank or tier** the models returned by `/v1/models` into a capability
+table (a model inventory / tier list), follow
+[`references/model-tier-list.md`](references/model-tier-list.md).
 
 ## Provider keys
 

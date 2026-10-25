@@ -31,12 +31,23 @@ aa skills COMMAND
 aa skills catalog
 aa skills discover "github pull request"
 aa skills validate
-aa skills repair
+aa skills repair --apply
 aa skills weed
-aa skills move automation/file-renamer productivity
+aa skills move automation/file-renamer productivity --apply
 aa skills new-category data-engineering "Skills for pipelines, datasets, and data processing"
 aa skills archive old-skill
 ```
+
+The write commands `move`, `archive`, and `new-category` default to a dry-run that only
+prints the planned changes; pass `--apply` to execute. Dry runs exit 0, so always check
+the output for "Planned" lines — exit 0 does not mean the change was made.
+
+When the `--apply` write succeeds, still run `aa skills validate` after the move:
+a rename can strand cross-references in *other* skills' bodies (they keep the
+old `category/name/` path or name a now-deleted sibling) and leave
+`metadata.related_skills` pointing at skills that no longer exist. `validate`
+checks structure, not link validity — grep the pack for the moved or deleted
+skill name and fix dangling pointers before committing.
 
 Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML parsing. Without PyYAML, the script uses a minimal frontmatter parser.
 
@@ -49,9 +60,9 @@ Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML pa
 - `validate`: report frontmatter, naming, placement, and category issues.
 - `weed`: report duplicates, empty categories, and missing category descriptions.
 - `repair`: preview safe mechanical repairs by default; add `--apply` to execute them.
-- `move SKILL TARGET_CATEGORY`: move a skill folder to another category, then rebuild the catalog.
+- `move SKILL TARGET_CATEGORY` (accepts `category/skill` or bare `skill`): move a skill folder to another category, then rebuild the catalog. Dry-run by default; `--apply` executes.
 - `new-category NAME DESCRIPTION`: create a category folder and write its `DESCRIPTION.md`.
-- `archive SKILL`: move a skill into `_archive/` and disable its `SKILL.md`.
+- `archive SKILL`: move a skill into `_archive/` and disable its `SKILL.md`; dry-run by default, `--apply` executes.
 - `merge-plan A B`: emit a read-only plan for merging two skills; hand execution off to `skill-lifecycle` when the plan is approved.
 - `rules [--markdown]`: render the rule set from the SSOT (`modules/skills/_rules/skill-rules.md`).
 
@@ -84,8 +95,7 @@ Use this when the user asks to audit the library, fix categories, or organize sk
 - [ ] Read the relevant `DESCRIPTION.md` files.
 - [ ] Decide the correct category for each misplaced skill.
 - [ ] If no existing category fits, create a new category with `new-category`.
-- [ ] Move misplaced skills with `move`.
-- [ ] Rebuild the catalog.
+- [ ] Move misplaced skills with `move --apply` (the move already rebuilds the catalog).
 - [ ] Report every move, created category, and catalog update.
 
 The Librarian operates in Auto-Pilot mode. Apply the changes directly, then report what changed.
@@ -121,10 +131,26 @@ Use this when the user asks to reorganize categories or create a new category.
 - [ ] Read the Categories table in `CATALOG.md`.
 - [ ] Identify broad, missing, overlapping, or empty categories.
 - [ ] Create new categories with `new-category`.
-- [ ] Move skills into the correct categories with `move`.
+- [ ] Move skills into the correct categories with `move --apply` (the move already rebuilds the catalog).
 - [ ] Improve category `DESCRIPTION.md` wording where needed.
-- [ ] Rebuild the catalog.
+- [ ] Rebuild the catalog if DESCRIPTION.md files were edited by hand.
 - [ ] Report the final category structure and moved skills.
+
+## Rename a category
+
+`aa skills move` moves individual skills between categories; it does not rename a category folder itself. When the user asks to rename a category (e.g. `research` → `research-study`):
+
+1. `mv skills/<old> skills/<new>` (filesystem rename of the category directory).
+2. Update `skills/<new>/DESCRIPTION.md` — keep the frontmatter, update the description text if the scope changed.
+3. Remove the now-empty `<old>` directory if it still exists (the `mv` leaves the old folder empty when the helper was used for individual moves first).
+4. **Grep the entire skills tree for the old category path and fix all cross-references** — other skills' bodies, `DESCRIPTION.md` routing tables, and script paths (`python3 skills/<old>/<skill>/...`) will be broken:
+   ```bash
+   grep -rn 'skills/<old>/' skills/ --include='*.md' | grep -v 'skills/<new>/'
+   ```
+5. Run `aa skills catalog` to rebuild `CATALOG.md`.
+6. Run `aa skills validate` — it will flag any empty category left behind; clean it up.
+
+Do not use `aa skills move` to move skills one-by-one into a new category and then rename the category — that is two separate operations and the first one is unnecessary if the category is being renamed in place.
 
 ## Category rules
 

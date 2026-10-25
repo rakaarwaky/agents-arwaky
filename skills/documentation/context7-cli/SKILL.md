@@ -1,16 +1,19 @@
 ---
 name: context7-cli
-description: Operates ctx7 CLI and Context7 MCP registry. Use when mentioning ctx7, context7, installing skills.
+description: Operates ctx7 CLI and Context7 MCP registry — doc lookup (resolve a library ID then query its docs), skills install/search/generate, and MCP setup. Use when mentioning ctx7, context7, find-docs, installing skills, or looking up API docs.
 metadata:
-  tags: []
+  tags:
+    - documentation
+    - context7
 ---
 
 # ctx7 CLI
 
 The Context7 CLI does three things: fetches up-to-date library documentation, manages AI coding skills, and sets up Context7 MCP for your editor.
 
-Doc *lookup* (the resolve-then-query workflow over MCP tools or this CLI) lives in
-the `find-docs` skill; this skill covers the tool itself.
+Doc *lookup* (the resolve-then-query workflow over MCP tools or the CLI) is
+covered in [`references/find-docs.md`](references/find-docs.md); this skill
+covers the tool itself.
 
 Make sure the CLI is up to date before running commands:
 
@@ -28,7 +31,8 @@ npx ctx7@latest <command>
 
 ## What this skill covers
 
-- **[Documentation](references/docs.md)** — Fetch current docs for any library. Use when writing code, verifying API signatures, or when training data may be outdated.
+- **[Documentation lookup](references/find-docs.md)** — Resolve a library ID, then query its docs (the "find-docs" job; two transports — MCP tools or CLI).
+- **[Documentation commands](references/docs.md)** — `ctx7 library` / `ctx7 docs` command reference. Use when writing code, verifying API signatures, or when training data may be outdated.
 - **[Skills management](references/skills.md)** — Install, search, suggest, list, remove, and generate AI coding skills.
 - **[Setup](references/setup.md)** — Configure Context7 MCP for Claude Code / Cursor / OpenCode.
 

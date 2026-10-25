@@ -75,3 +75,15 @@ automation-
 auto--mation
 Automation
 ```
+
+## Renaming a category
+
+There is no `aa skills` subcommand that renames a category in place. The procedure is:
+
+1. `mv skills/<old-name> skills/<new-name>`
+2. Update `skills/<new-name>/DESCRIPTION.md` if the scope changed
+3. `rmdir skills/<old-name>` if the old directory was not removed by the `mv`
+4. Grep the entire skills tree for the old path and fix all cross-references (see `skill-library` SKILL.md, “Rename a category” section)
+5. `aa skills catalog && aa skills validate`
+
+The grep step is non-optional: other skills’ bodies, `DESCRIPTION.md` routing tables, and script invocations (`python3 skills/<old>/<skill>/...`) will all be broken silently.

@@ -1,3 +1,3 @@
 ---
-description: DevOps and service-management skills — AI gateway config, harness connectors, Hermes profiles, systemd services, CI quality gates, local CI gates, and XDG compliance.
+description: DevOps and service-management skills — local CI gates, systemd services, CI quality gates, Playwright cache recovery, XDG compliance, and statusline config.
 ---
