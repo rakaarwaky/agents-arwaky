@@ -22,12 +22,20 @@ from typing import Any, TypedDict
 
 FR_ID_RE = re.compile(r"\bFR-[A-Z]+-\d+\b")
 # Doc-level "State: <value>" line near the top of a feature backlog.
-DOC_STATE_RE = re.compile(r"^State:\s*(?P<value>\S.*?)\s*$", re.MULTILINE)
+# The value is anchored to the simplified four-state vocabulary so a
+# trailing note (e.g. "State: In Progress (planned)") does not bleed into
+# the captured value.
+DOC_STATE_RE = re.compile(
+    r"^State:\s*(?P<value>in.progress|in.review|ready|done)\s*$",
+    re.MULTILINE | re.IGNORECASE,
+)
 SEPARATOR_CELL_RE = re.compile(r"^:?-+:?$")
 
 # Table headers that mark a row table (ID / Branch + State).
 ID_HEADERS = {"id", "branch"}
 STATE_HEADERS = {"state", "doc_state"}
+# Roll-up Feature cells are the feature directory (e.g. ``widgets`` or
+# ``modules/tools``); normalize whitespace to "/" for the comparison.
 
 Row = dict[str, Any]
 Table = tuple[list[str], list[list[str]]]
@@ -54,7 +62,9 @@ def _split_row(line: str) -> list[str]:
 
 
 def _is_separator(cells: list[str]) -> bool:
-    return bool(cells) and all(SEPARATOR_CELL_RE.match(c) for c in cells if c)
+    # A genuine separator row has one dash cell per column, so every cell
+    # must match; do not skip empty cells from the check.
+    return bool(cells) and all(SEPARATOR_CELL_RE.match(c) for c in cells)
 
 
 def _header_names(headers: list[str]) -> set[str]:
@@ -107,10 +117,12 @@ def _is_task_table(headers: list[str]) -> bool:
 
     A `Feature` header alone is NOT enough: Feature Roll-up tables carry a
     `Feature` column plus `State` but no `ID`, so they must be routed to
-    roll-up extraction instead.
+    roll-up extraction instead. A table that has BOTH `Feature` and `ID`
+    plus `State` is treated as a task table (the `Feature` column is
+    ignored); Feature+ID+State roll-ups are out of scope.
     """
     names = _header_names(headers)
-    return (bool(names & {"id", "branch"}) or "id" in names) and bool(names & STATE_HEADERS)
+    return bool(names & ID_HEADERS) and bool(names & STATE_HEADERS)
 
 
 def _looks_like_rollup_table(headers: list[str]) -> bool:
@@ -124,18 +136,22 @@ def parse_doc(
     text: str,
     feature: str,
     feature_dir: str,
-) -> tuple[list[Row], list[str], list[str], str | None, str | None]:
+) -> tuple[list[Row], list[str], list[str], str | None, str | None, list[str]]:
     """Parse one spec doc.
 
-    Returns ``(rows, fr_declared, fr_referenced, rollup_row, doc_state)``.
-    ``rollup_row`` is this feature's verbatim roll-up row text, or None when
-    the doc carries no Feature Roll-up table for it. ``doc_state`` is the
-    doc-level ``State:`` line value, or None.
+    Returns ``(rows, fr_declared, fr_referenced, rollup_row, doc_state,
+    warnings)``. ``rollup_row`` is the verbatim roll-up row text for the
+    given feature (matched by the Feature cell against the feature name or
+    directory), or None when the doc carries no roll-up row for it.
+    ``doc_state`` is the doc-level ``State:`` line value, or None.
+    ``warnings`` names malformed table rows (short cells, empty IDs).
     """
     rows: list[Row] = []
     fr_referenced: list[str] = []
     rollup_row: str | None = None
+    warnings: list[str] = []
     dir_norm = feature_dir.strip().lower()
+    target = dir_norm or feature.strip().lower()
 
     for headers, data in _extract_tables(text):
         if _is_task_table(headers):
@@ -145,6 +161,12 @@ def parse_doc(
                 row_id = _cell(headers, cells, "ID")
                 if not row_id:
                     row_id = _cell(headers, cells, "Branch")
+                if len(cells) < len(headers):
+                    warnings.append(
+                        f"malformed row ({len(cells)} cells, expected {len(headers)}): {doc_rel}"
+                    )
+                if not row_id:
+                    warnings.append(f"row with empty ID/Branch cell: {doc_rel}")
                 state = _cell(headers, cells, "State") or "unknown"
                 fr_cell = _cell(headers, cells, "FRD Ref")
                 fr_refs = sorted(set(FR_ID_RE.findall(fr_cell))) if fr_cell else []
@@ -171,13 +193,26 @@ def parse_doc(
         elif _looks_like_rollup_table(headers):
             for cells in data:
                 feat_cell = _cell(headers, cells, "Feature").strip()
-                if feat_cell.lower() == dir_norm:
+                if feat_cell.lower().replace(" ", "/") == target:
                     rollup_row = " | ".join(cells)
 
     fr_declared = sorted(set(FR_ID_RE.findall(text)))
     match = DOC_STATE_RE.search(text)
     doc_state = match.group("value") if match else None
-    return rows, fr_declared, fr_referenced, rollup_row, doc_state
+    return rows, fr_declared, fr_referenced, rollup_row, doc_state, warnings
+
+
+def _cell_for_rollup(rollup_row: str, name: str) -> str | None:
+    """Extract the state cell from a verbatim roll-up row string.
+
+    The row is joined cells in original column order: ``Feature`` first,
+    ``State`` second (the corpus's roll-up shape). Returns None when the
+    row does not start with the expected feature cell.
+    """
+    cells = rollup_row.split(" | ")
+    if len(cells) >= 2 and cells[0].strip() == name:
+        return cells[1].strip()
+    return None
 
 
 def load_discovery(path: Path) -> tuple[list[str], dict[str, dict[str, Any]]]:
@@ -226,6 +261,8 @@ def run_scan(
     all_rows: list[Row] = []
     fr_declared: list[str] = []
     fr_referenced: list[str] = []
+    fr_groups: dict[str, dict[str, list[str]]] = {}
+    rollups: list[dict[str, str]] = []
     rollup_row: str | None = None
     docs_out: list[ScanDoc] = []
     warnings: list[str] = []
@@ -234,6 +271,8 @@ def run_scan(
 
     for name, dir_rel, docs in groups:
         group_rollup: str | None = None
+        group_declared: list[str] = []
+        group_referenced: list[str] = []
         for doc_rel in docs:
             docs_scanned += 1
             doc_path = Path(repo_root) / doc_rel
@@ -243,9 +282,14 @@ def run_scan(
                 warnings.append(f"unreadable doc: {doc_rel}")
                 docs_out.append({"doc": doc_rel, "rows": [], "warning": f"unreadable: {doc_rel}"})
                 continue
-            rows, decl, refs, rollup, _doc_state = parse_doc(doc_rel, text, name, dir_rel)
+            rows, decl, refs, rollup, _doc_state, doc_warnings = parse_doc(
+                doc_rel, text, name, dir_rel
+            )
+            warnings.extend(doc_warnings)
             fr_declared.extend(decl)
             fr_referenced.extend(refs)
+            group_declared.extend(decl)
+            group_referenced.extend(refs)
             if rollup is not None and group_rollup is None:
                 group_rollup = rollup
             kept: list[Row] = []
@@ -265,6 +309,13 @@ def run_scan(
             docs_out.append({"doc": doc_rel, "rows": kept, "warning": warning})
         if group_rollup is not None:
             rollup_row = group_rollup
+            claimed = _cell_for_rollup(group_rollup, name)
+            if claimed is not None:
+                rollups.append({"feature": name, "claimed_state": claimed})
+        fr_groups[name] = {
+            "fr_declared": sorted(set(group_declared)),
+            "fr_referenced": sorted(set(group_referenced)),
+        }
 
     output: dict[str, Any] = {
         "docs": docs_out,
@@ -273,7 +324,9 @@ def run_scan(
             "fr_declared": sorted(set(fr_declared)),
             "fr_referenced": sorted(set(fr_referenced)),
         },
+        "fr_groups": fr_groups,
         "rollup_row": rollup_row or "",
+        "rollups": rollups,
         "warnings": warnings,
     }
     if out:

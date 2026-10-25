@@ -1,17 +1,21 @@
-"""Shared constants, types, and helpers for task-tracker scripts.
+"""Shared constants and the gh runner for task-tracker scripts.
 
-Stdlib only. Shared by scan.py, classify.py, and (later) validate.py /
-cache.py / ledger.py.
+Stdlib only. ``gh()`` is used by PR 2's validate.py / ledger.py; scan.py
+and classify.py are pure and do not import this module in PR 1.
 """
 
 from __future__ import annotations
 
-import json
 import subprocess
-from typing import NamedTuple, TypedDict
 
 # gh CLI invocations never block a run longer than this.
 GH_TIMEOUT = 30
+
+# The gh CLI reports HTTP failures only through its stderr text (it exits 1
+# for both API errors and local failures); these patterns classify the
+# failure class.
+_RATE_LIMIT_MARKERS = ("rate limit", "http 403", "http 429", "secondary rate limit")
+_AUTH_MARKERS = ("http 401", "authentication failed", "token is invalid", "auth")
 
 
 class GhRateLimited(Exception):
@@ -28,6 +32,11 @@ def gh(*args: str, timeout: int = GH_TIMEOUT) -> str:
     Propagates gh's stderr into the raised exception. Raise GhRateLimited
     on 403/429, GhAuthError on 401, and RuntimeError for any other
     non-zero exit.
+
+    gh reports HTTP status codes only via stderr text (the exit code is 1
+    for every API error), so the failure class is matched against the
+    stderr: any 403 response is treated as rate-limited per the design
+    (retryable), and 401 / auth-setup failures are permanent.
     """
     proc = subprocess.run(
         ["gh", *args],
@@ -39,78 +48,9 @@ def gh(*args: str, timeout: int = GH_TIMEOUT) -> str:
     if proc.returncode == 0:
         return proc.stdout.strip()
     stderr = proc.stderr.strip()
-    if proc.returncode == 429 or "rate limit" in stderr.lower() or "403" in stderr:
+    lowered = stderr.lower()
+    if proc.returncode == 429 or any(marker in lowered for marker in _RATE_LIMIT_MARKERS):
         raise GhRateLimited(f"gh {' '.join(args)}: {stderr}")
-    if "401" in stderr or "auth" in stderr.lower():
+    if any(marker in lowered for marker in _AUTH_MARKERS):
         raise GhAuthError(f"gh {' '.join(args)}: {stderr}")
     raise RuntimeError(f"gh {' '.join(args)} exited {proc.returncode}: {stderr}")
-
-
-class ScanRow(TypedDict, total=False):
-    """One parsed table row (scan_schema.row shape)."""
-
-    id: str
-    title: str
-    state: str
-    priority: str
-    health: str
-    fr_refs: list[str]
-    source_doc: str
-    row_text: str
-    next_action: str
-
-
-class FrSets(TypedDict, total=False):
-    """Per-group FR-id declared / referenced sets."""
-
-    fr_declared: list[str]
-    fr_referenced: list[str]
-
-
-class ScanDoc(TypedDict):
-    """Per-document slice of the scan output."""
-
-    doc: str
-    rows: list[ScanRow]
-    warning: str | None
-
-
-class ScanOutput(TypedDict, total=False):
-    """Top-level scan.py output."""
-
-    docs: list[ScanDoc]
-    rows: list[ScanRow]
-    fr: FrSets
-    rollup_row: str
-    warnings: list[str]
-
-
-class FeatureGroup(NamedTuple):
-    """A discovery group: a feature dir or the repo-root group."""
-
-    name: str
-    dir: str
-    docs: list[str]
-
-
-def load_json(path: str) -> object:
-    """Load a JSON document from a repo-relative or absolute path."""
-    with open(path, encoding="utf-8") as fh:
-        return json.load(fh)
-
-
-def emit_json(payload: object, out: str | None) -> None:
-    """Write payload as JSON to out, or to stdout when out is None."""
-    text = json.dumps(payload, indent=2)
-    if out:
-        with open(out, "w", encoding="utf-8") as fh:
-            fh.write(text + "\n")
-    else:
-        print(text)
-
-
-def log(msg: str) -> None:
-    """Emit an observability line to stderr with the script prefix."""
-    import sys
-
-    print(f"[task-tracker] {msg}", file=sys.stderr)

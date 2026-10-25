@@ -3,6 +3,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "sample_repo"
 
 # Add the task-tracker skill root to sys.path so `scripts.*` is importable
@@ -16,7 +18,6 @@ from typing import Any
 from scripts import classify, scan
 from scripts.templates import (
     closing_condition_next_action_complete,
-    closing_condition_next_action_pending,
     closing_condition_skip_next_action,
 )
 
@@ -35,26 +36,61 @@ def test_next_action_pending_closing_condition_exact_string() -> None:
     by_id = {r["row_id"]: r for r in result["rows"]}
     row = by_id["WID-01"]
     assert row["classification"] == "next_action_pending"
-    check = row["next_action_check"]
-    # test_file is not parseable out of WID-01's cell, so the row's closing
-    # condition substitutes the generic placeholder; the exact string is
-    # computed through the same template the classifier uses.
-    expected = closing_condition_next_action_pending(
-        feature="widgets",
-        row_id="WID-01",
-        action_description=check["action_text"],
-        test_file="the feature's test file",
-        test_command=check["test_command"],
-        source_doc="widgets/BACKLOG.md",
+    # The action description is the imperative action only: the trailing
+    # test-command clause ("`python3 … -q` passes") and the doc-advance
+    # clause are both stripped, because the template re-appends the command
+    # and the advance. Pinned as a literal, not recomputed through the
+    # template, so drift in either the parser or the template is caught.
+    assert row["closing_condition"] == (
+        "widgets/src/ implements add `widgets/src/validator.py` exercising "
+        "`validate_widget`, exercised by widgets/tests/the feature's test file; "
+        "python3 -m pytest widgets/tests -q passes; then set row WID-01 "
+        "Next Action to \"done\" in widgets/BACKLOG.md."
     )
-    assert row["closing_condition"] == expected
-    # Structural assertions: the exact-string checks that matter.
-    assert row["closing_condition"].startswith("widgets/src/ implements")
-    assert "exercised by" in row["closing_condition"]
-    assert row["closing_condition"].endswith(
-        'then set row WID-01 Next Action to "done" in widgets/BACKLOG.md.'
+    assert row["next_action_check"]["action_text"] == (
+        "add `widgets/src/validator.py` exercising `validate_widget`"
     )
-    assert check["test_command"] == "python3 -m pytest widgets/tests -q"
+    assert row["next_action_check"]["test_command"] == "python3 -m pytest widgets/tests -q"
+    assert row["next_action_check"]["test_file"] is None  # not backtick-quoted
+
+
+def test_next_action_pending_piped_test_command_stops_at_pipe() -> None:
+    def _classify(row: dict[str, Any]) -> dict[str, Any]:
+        sc = {"rows": [row], "fr": {}, "rollup_row": ""}
+        return classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)["rows"][0]
+
+    row = _classify({"id": "W-1", "feature": "w", "state": "Ready",
+                    "next_action": ("add the gate; `python3 -m pytest w/tests -q | grep 3 passed` "
+                                     "passes; then set row W-1 Next Action to \"done\" in w/BACKLOG.md."),
+                    "source_doc": "w/BACKLOG.md", "updated": "2026-10-20"})
+    # The test command is the command up to the first shell pipe; the
+    # pipeline (`| grep …`) is not swallowed into the check string.
+    assert row["next_action_check"]["test_command"] == "python3 -m pytest w/tests -q"
+    assert row["closing_condition"] is not None
+    assert "| grep" not in row["closing_condition"]
+    assert row["closing_condition"] == (
+        "w/src/ implements add the gate, exercised by w/tests/the feature's test file; "
+        "python3 -m pytest w/tests -q passes; then set row W-1 Next Action to \"done\" in w/BACKLOG.md."
+    )
+
+
+def test_next_action_pending_requires_backticked_test_path() -> None:
+    def _classify(cell: str) -> dict[str, Any]:
+        sc = {"rows": [{"id": "W-1", "feature": "w", "state": "Ready",
+                        "next_action": cell, "source_doc": "w/BACKLOG.md",
+                        "updated": "2026-10-20"}], "fr": {}, "rollup_row": ""}
+        return classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)["rows"][0]
+
+    # Backtick-quoted path → substituted into the check.
+    row = _classify("add test in `w/tests/test_x.py`; `python3 -m pytest w/tests -q` passes; "
+                    "then set row W-1 Next Action to \"done\" in w/BACKLOG.md.")
+    assert row["next_action_check"]["test_file"] == "w/tests/test_x.py"
+    assert "exercised by w/tests/w/tests/test_x.py" in row["closing_condition"]
+    # Prose path without backticks → the generic placeholder, not the path.
+    row2 = _classify("add test in w/tests/test_x.py; `python3 -m pytest w/tests -q` passes; "
+                     "then set row W-1 Next Action to \"done\" in w/BACKLOG.md.")
+    assert row2["next_action_check"]["test_file"] is None
+    assert "the feature's test file" in row2["closing_condition"]
 
 
 def test_next_action_complete_closing_condition_exact_string() -> None:
@@ -171,51 +207,116 @@ def test_staleness_flag() -> None:
     assert "WID-01" not in flagged
 
 
+def test_staleness_boundary_14_days() -> None:
+    # STALENESS_DAYS=14: exactly 14 days old is NOT stale; 15 days is.
+    def _row(updated: str) -> dict[str, Any]:
+        return {"id": "X-1", "feature": "f", "state": "Ready",
+                "next_action": "", "source_doc": "f/BACKLOG.md", "updated": updated}
+
+    sc14 = {"rows": [_row("2026-10-11")], "fr": {}, "rollup_row": ""}
+    assert classify.classify_scan(sc14, trust_mode="no-trust", today=TODAY)["rows"][0]["staleness_flag"] is False
+    sc15 = {"rows": [_row("2026-10-10")], "fr": {}, "rollup_row": ""}
+    assert classify.classify_scan(sc15, trust_mode="no-trust", today=TODAY)["rows"][0]["staleness_flag"] is True
+
+
+def test_today_is_validated() -> None:
+    # A malformed --today is a clear error, not a silent (1970, 1, 1)
+    # fallback or a deep ValueError.
+    with pytest.raises(SystemExit) as exc_info:
+        classify.classify_scan({"rows": []}, trust_mode="no-trust", today="garbage")
+    assert "invalid --today" in str(exc_info.value)
+    with pytest.raises(SystemExit) as exc_info2:
+        classify.classify_scan({"rows": []}, trust_mode="no-trust", today="2026-02-30")
+    assert "invalid --today" in str(exc_info2.value)
+    # A valid date works.
+    result = classify.classify_scan({"rows": [], "fr": {}, "rollup_row": ""},
+                                    trust_mode="no-trust", today="2026-10-25")
+    assert result["rows"] == []
+
+
+def test_non_string_row_cells_coerce_to_empty() -> None:
+    # A JSON null next_action must not crash the run; it coerces to the
+    # skip path (empty cell) instead of an AttributeError traceback.
+    sc = {"rows": [
+        {"id": "W-1", "feature": "w", "state": "Ready",
+         "next_action": None, "source_doc": "w/BACKLOG.md", "updated": None},
+    ], "fr": {}, "rollup_row": ""}
+    result = classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)
+    assert result["rows"][0]["classification"] == "skip_next_action"
+    assert result["rows"][0]["staleness_flag"] is False
+
+
 def test_fr_orphan_flags() -> None:
     sc = _scan()
-    # Per-feature FR groups: build the ones the widgets feature owns.
-    rows_in_widgets = [r for r in sc["rows"] if r.get("feature") == "widgets"]
-    declared = set(sc["fr"]["fr_declared"])
-    referenced = set(sc["fr"]["fr_referenced"])
-    sc["fr_groups"] = {"widgets": {"fr_declared": sorted(declared), "fr_referenced": sorted(referenced)}}
-    del rows_in_widgets
+    # scan.py emits per-feature fr_groups; the widgets feature owns
+    # FR-WID-005 (declared, no citing row) → declared-not-referenced.
     result = classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)
     orphans = result["fr_orphans"]
     by_fr = {o["fr_id"]: o for o in orphans}
-    # FR-WID-005 is declared in the FRD but cited by no backlog row.
+    assert by_fr["FR-WID-005"]["feature"] == "widgets"
     assert by_fr["FR-WID-005"]["direction"] == "declared-not-referenced"
     assert by_fr["FR-WID-005"]["target_doc"] == "widgets/BACKLOG.md"
     assert by_fr["FR-WID-005"]["closing_condition"] is None
-    # FR-WEXT-001 is cited by a widgets-ext row; the flat fr sets are
-    # feature-agnostic, so the referenced-only case is checked structurally:
-    ext_referred_only = [
-        o for o in orphans if o["direction"] == "referenced-not-declared"
+    # Cross-feature contamination is gone: a widgets-ext referenced FR that
+    # is not declared in widgets must NOT be flagged against the widgets
+    # group (fr_groups keeps the sets per feature).
+    for orphan in orphans:
+        if orphan["feature"] == "widgets":
+            assert orphan["fr_id"].startswith("FR-WID-")
+    # Legacy flat-fr fallback: only when no fr_groups key AND every row is
+    # root-owned. A hand-built scan with a feature row + flat fr sets must
+    # NOT produce a synthetic "root" group.
+    legacy = {"rows": [{"id": "W-1", "feature": "w", "state": "Ready",
+                        "next_action": "none", "source_doc": "w/BACKLOG.md",
+                        "updated": "2026-10-20"}],
+              "fr": {"fr_declared": ["FR-X-001"], "fr_referenced": []}}
+    res2 = classify.classify_scan(legacy, trust_mode="no-trust", today=TODAY)
+    assert res2["fr_orphans"] == []
+    root_only = {"rows": [{"id": "W-1", "feature": "root", "state": "Ready",
+                           "next_action": "none", "source_doc": "ROADMAP.md",
+                           "updated": "2026-10-20"}],
+                 "fr": {"fr_declared": ["FR-X-001"], "fr_referenced": []}}
+    res3 = classify.classify_scan(root_only, trust_mode="no-trust", today=TODAY)
+    assert res3["fr_orphans"] == [
+        {"fr_id": "FR-X-001", "feature": "root",
+         "direction": "declared-not-referenced",
+         "target_doc": "root/BACKLOG.md", "closing_condition": None}
     ]
-    assert {o["fr_id"] for o in ext_referred_only} >= {"FR-WEXT-001"} or not ext_referred_only
 
 
 def test_rollup_mismatch_flags() -> None:
+    # scan.py emits the `rollups` key on the default path, so the mismatch
+    # detector runs without any opt-in key injection.
     sc = _scan()
-    sc["rollups"] = [{"feature": "widgets", "claimed_state": "Done"}]
+    assert [r["feature"] for r in sc["rollups"]] == ["widgets"]
     result = classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)
-    assert len(result["rollup_mismatches"]) == 1
-    mismatch = result["rollup_mismatches"][0]
+    # widgets claims In Progress, effective is In Progress → no mismatch.
+    assert result["rollup_mismatches"] == []
+    # Over-claim: roll-up claims Done while the backlog is still In
+    # Progress → mismatch.
+    sc2 = _scan()
+    sc2["rollups"] = [{"feature": "widgets", "claimed_state": "Done"}]
+    result2 = classify.classify_scan(sc2, trust_mode="no-trust", today=TODAY)
+    assert len(result2["rollup_mismatches"]) == 1
+    mismatch = result2["rollup_mismatches"][0]
     assert mismatch["feature"] == "widgets"
     assert mismatch["claimed"] == "Done"
     assert mismatch["effective"] == "In Progress"
     assert mismatch["verdict"] == "rollup_mismatch"
     assert mismatch["closing_condition"] is None
-    # Symmetric under-claim: roll-up claims In Progress, effective is Done.
-    sc2 = _scan()
-    sc2["rollups"] = [{"feature": "widgets-ext", "claimed_state": "In Progress"}]
-    result2 = classify.classify_scan(sc2, trust_mode="no-trust", today=TODAY)
-    mismatches = [m for m in result2["rollup_mismatches"] if m["feature"] == "widgets-ext"]
-    # widgets-ext has one In Progress row → effective is In Progress → no
-    # mismatch; a claimed "Done" would flag.
-    assert mismatches == []
+    # Symmetric under-claim: roll-up claims In Progress while every row is
+    # Done → mismatch.
     sc3 = _scan()
-    sc3["rollups"] = [{"feature": "widgets-ext", "claimed_state": "Done"}]
+    sc3["rows"] = [
+        {"id": "WID-01", "feature": "widgets", "state": "Done",
+         "next_action": "none", "source_doc": "widgets/BACKLOG.md",
+         "updated": "2026-10-20"},
+    ]
+    sc3["rollups"] = [{"feature": "widgets", "claimed_state": "In Progress"}]
     result3 = classify.classify_scan(sc3, trust_mode="no-trust", today=TODAY)
-    mismatches3 = [m for m in result3["rollup_mismatches"] if m["feature"] == "widgets-ext"]
+    mismatches3 = result3["rollup_mismatches"]
     assert len(mismatches3) == 1
+    assert mismatches3[0]["feature"] == "widgets"
+    assert mismatches3[0]["claimed"] == "In Progress"
+    assert mismatches3[0]["effective"] == "Done"
     assert mismatches3[0]["verdict"] == "rollup_mismatch"

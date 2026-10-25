@@ -62,12 +62,22 @@ _RANK_ORDER = ["In Progress", "In Review", "Ready", "Done"]
 STALENESS_DAYS = 14
 
 _DATE_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
-_TEST_CMD_RE = re.compile(r"(?:Gate:\s*)?(python3 [^\n;`]+|pytest [^\n;`]+|lint-arwaky-cli [^\n;`]+)")
-# A backtick-quoted test file path: `.../tests/...`
-_TEST_PATH_RE = re.compile(r"`?((?:[\w./-]*/tests/[\w./-]+))`?")
+# Test commands: a single re-runnable gate. The capture stops at shell
+# pipes, backticks, and semicolons so a piped command
+# (``python3 -m pytest x | grep ok``) is not swallowed whole.
+_TEST_CMD_RE = re.compile(
+    r"(?:Gate:\s*)?(python3 [^\n;`|]+|pytest [^\n;`|]+|lint-arwaky-cli [^\n;`|]+)"
+)
+# A backtick-QUOTED test file path: only explicitly-named paths count as
+# the row's test file; an incidental ``tests/...`` mention in prose does not.
+_TEST_PATH_RE = re.compile(r"`((?:[\w./-]*/tests/[\w./-]+))`")
 # The doc-advance clause embedded in some Next Action cells:
 # `then set row <ID> Next Action to "done" in <doc>`.
 _ADVANCE_CLAUSE_RE = re.compile(r";\s*then set row [\w.-]+ Next Action to \"done\" in .*$")
+# A trailing test-command clause in the action text: ``; <cmd> passes`` —
+# the template re-appends the command, so the action description must not
+# duplicate it.
+_TEST_CLAUSE_RE = re.compile(r";\s*(?:`)?(?:python3|pytest|lint-arwaky-cli)\b[^,;`]*(?:`)?\s*passes$")
 
 
 def log(msg: str) -> None:
@@ -90,10 +100,6 @@ def _effective_state(states: list[str]) -> str:
     return _RANK_ORDER[best]
 
 
-def _na_word_count(cell: str) -> int:
-    return len(cell.split())
-
-
 def _is_skip_next_action(cell: str) -> bool:
     """Engine Fix 1 rule.
 
@@ -102,7 +108,7 @@ def _is_skip_next_action(cell: str) -> bool:
     merely contain ``none`` are NOT skipped.
     """
     trimmed = cell.strip()
-    words = _na_word_count(trimmed)
+    words = len(trimmed.split())
     return words == 0 or (words == 1 and trimmed.lower() in ("none", "<skip>"))
 
 
@@ -121,17 +127,18 @@ def _row_state_category(state: str) -> str | None:
 def _parse_next_action_check(cell: str) -> dict[str, Any]:
     """Build the next_action_check payload for a pending Next Action cell.
 
-    ``action_text`` is the trimmed cell minus the embedded doc-advance
-    clause (the template re-appends it); ``test_command`` and ``test_file``
-    are pulled from the cell when parseable, otherwise null.
+    ``action_text`` is the trimmed cell minus the doc-advance clause and
+    the trailing test-command clause (the template re-appends both);
+    ``test_command`` and ``test_file`` are pulled from the cell when
+    parseable, otherwise null.
     """
     trimmed = cell.strip()
-    action_text = _ADVANCE_CLAUSE_RE.sub("", trimmed).strip().rstrip(";").strip()
+    action_text = _ADVANCE_CLAUSE_RE.sub("", trimmed).strip()
+    action_text = _TEST_CLAUSE_RE.sub("", action_text).strip().rstrip(";").strip()
     test_cmd_match = _TEST_CMD_RE.search(trimmed)
     test_file_match = _TEST_PATH_RE.search(trimmed)
     return {
         "action_text": action_text,
-        "needs_verification": True,
         "test_command": test_cmd_match.group(1).strip() if test_cmd_match else None,
         "test_file": test_file_match.group(1) if test_file_match else None,
     }
@@ -165,10 +172,13 @@ def classify_scan(
     - ``rows``: list of scan rows (``id``, ``feature``, ``state``,
       ``next_action``, ``source_doc``, ``updated``).
     - ``fr_groups``: ``{feature: {"fr_declared": [...], "fr_referenced": [...]}}``
-      when the scan was grouped per feature; otherwise falls back to the
-      top-level ``fr`` sets (used for a single-feature scan).
-    - ``rollups``: ``[{"feature", "claimed_state"}]`` per feature roll-up
-      row.
+      — emitted by scan.py per feature (the default path); when absent,
+      falls back to the top-level ``fr`` sets, keyed ``"root"``, but only
+      when no row carries a feature key other than ``root`` (i.e. the
+      scan is genuinely single-feature/root).
+    - ``rollups``: ``[{"feature", "claimed_state"}]`` — emitted by scan.py
+      from the Feature Roll-up tables it recognizes; a missing key means
+      there is no roll-up claim to check.
 
     ``next_action_complete`` is produced when a pending Next Action cell is
     already implemented in code + tests — doc-determinable only when the
@@ -178,8 +188,11 @@ def classify_scan(
     proof demand) and the verifier confirms which of the two it is.
     """
     if today:
-        parts = today.split("-")
-        today_tuple = (int(parts[0]), int(parts[1]), int(parts[2])) if len(parts) == 3 else (1970, 1, 1)
+        try:
+            today_date = datetime.date.fromisoformat(today)
+        except ValueError as exc:
+            raise SystemExit(f"classify.py: invalid --today {today!r}: {exc}") from exc
+        today_tuple = (today_date.year, today_date.month, today_date.day)
     else:
         tz = datetime.UTC
         now = datetime.datetime.now(tz).date()
@@ -188,36 +201,42 @@ def classify_scan(
     rows_in = scan.get("rows", [])
     fr_in = scan.get("fr", {})
 
-    rows_in_with_feature = rows_in
-
-    # FR groups: prefer per-feature groups; fall back to the flat fr sets.
+    # FR groups: prefer the per-feature fr_groups the scanner emits (each
+    # row already carries its feature, so this is the default path); the
+    # flat `fr` fallback is only for scans that predate fr_groups, and is
+    # keyed "root" solely when the scan is genuinely single-feature/root
+    # (no feature-keyed rows present).
     fr_groups: dict[str, dict[str, Any]] = scan.get("fr_groups", {})
     if not fr_groups and (fr_in.get("fr_declared") or fr_in.get("fr_referenced")):
-        fr_groups["root"] = {
-            "fr_declared": fr_in.get("fr_declared", []),
-            "fr_referenced": fr_in.get("fr_referenced", []),
-        }
+        row_features = {str(row.get("feature", "root")) for row in rows_in}
+        if not (row_features - {"root"}):
+            fr_groups["root"] = {
+                "fr_declared": fr_in.get("fr_declared", []),
+                "fr_referenced": fr_in.get("fr_referenced", []),
+            }
 
     # Group rows by feature for effective-state computation.
     feature_rows: dict[str, list[dict[str, Any]]] = {}
-    for row in rows_in_with_feature:
-        feature_rows.setdefault(row.get("feature", "root"), []).append(row)
+    for row in rows_in:
+        feature_rows.setdefault(str(row.get("feature") or "root"), []).append(row)
 
     feature_effective: dict[str, str] = {}
     for feature, frows in feature_rows.items():
-        states = [r.get("state", "unknown") for r in frows]
+        states = [str(r.get("state") or "unknown") for r in frows]
         feature_effective[feature] = _effective_state(states)
 
     classified_rows: list[dict[str, Any]] = []
     staleness_flags: list[dict[str, Any]] = []
 
-    for row in rows_in_with_feature:
-        row_id = row.get("id", "")
-        feature = row.get("feature", "root")
-        state = row.get("state", "unknown")
-        next_action = row.get("next_action", "")
-        source_doc = row.get("source_doc", "")
-        updated = row.get("updated", "")
+    for row in rows_in:
+        row_id = str(row.get("id") or "")
+        feature = str(row.get("feature") or "root")
+        state = str(row.get("state") or "unknown")
+        # Non-string cells (null, numbers) coerce to "" — the scan JSON is
+        # machine-generated but a null next_action is plausible upstream.
+        next_action = str(row.get("next_action") or "")
+        source_doc = str(row.get("source_doc") or "")
+        updated = str(row.get("updated") or "")
 
         stale = _staleness_flag(updated, today_tuple)
         if stale:
@@ -296,11 +315,15 @@ def classify_scan(
                 }
             )
 
-    # Roll-up mismatch: claimed state vs effective state per feature.
+    # Roll-up mismatch: claimed state vs effective state per feature. The
+    # ``rollups`` key is emitted by scan.py from the roll-up tables it
+    # recognizes; a missing key means no roll-up claim to check.
     rollup_mismatches: list[dict[str, Any]] = []
     for rollup in scan.get("rollups", []):
-        feature = rollup.get("feature", "root")
-        claimed = rollup.get("claimed_state", "")
+        feature = str(rollup.get("feature") or "root")
+        claimed = str(rollup.get("claimed_state") or "")
+        if not claimed:
+            continue
         effective = feature_effective.get(feature, "Done")
         if claimed.strip().lower() != effective.strip().lower():
             rollup_mismatches.append(
@@ -325,6 +348,7 @@ def classify_scan(
         f"{len(classified_rows)} verdicts: "
         f"{counts['open']} open, {counts['doc_sync']} doc_sync, "
         f"{counts['unverified']} unverified, {counts['fr_orphan']} fr_orphan, "
+        f"{counts['rollup_mismatch']} rollup_mismatch, "
         f"{counts['skip']} skip, {counts['pending_infra']} pending-infra"
     )
     return output
@@ -338,10 +362,20 @@ def _verdict_counts(
     ``open`` counts incomplete rows; ``skip`` counts trust-mode skips plus
     skip_next_action; ``pending_infra`` counts no-trust proof demands that
     await the verifier (they are never counted as skips).
+    ``rollup_mismatch`` is its own counter, reported after fr_orphan in the
+    stderr summary line.
     """
-    counts = {"open": 0, "doc_sync": 0, "unverified": 0, "fr_orphan": 0, "skip": 0, "pending_infra": 0}
+    counts = {
+        "open": 0,
+        "doc_sync": 0,
+        "unverified": 0,
+        "fr_orphan": 0,
+        "rollup_mismatch": 0,
+        "skip": 0,
+        "pending_infra": 0,
+    }
     counts["fr_orphan"] = len(fr_orphans)
-    counts["doc_sync"] = len(rollups)
+    counts["rollup_mismatch"] = len(rollups)
     for row in rows:
         cls = row["classification"]
         if cls in ("incomplete", "next_action_pending", "next_action_complete"):
