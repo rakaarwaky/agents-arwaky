@@ -12,7 +12,7 @@ when-to-use: >
   /task-tracker, map incomplete tasks to GitHub issues, create tracking issues from
   ROADMAP or BACKLOG, verify Done claims against code, ensure every issue carries
   a closing-condition that advances the roadmap state to Done.
-argument-hint: <repo-root> [--dry-run]
+argument-hint: <repo-root> [--dry-run] [--trust | --no-trust]
 ---
 
 # Task Tracker — zero-trust spec audit → modular GitHub tracking issues with closing conditions
@@ -22,6 +22,49 @@ real work and which are fiction, and opens a modular issue per finding. The run 
 GitHub issues only. It never edits source code, never creates a branch, never opens a
 PR. Every issue it opens carries one closing condition: the check whose fulfillment
 advances that issue's row to `Done` in its source document.
+
+## Trust modes
+
+The tracker supports two modes for handling `Done` rows:
+
+### `--no-trust` (default)
+
+Zero-trust audit: every `Done` row is treated as a claim that must be proven.
+The verifier re-reads the feature's source code and tests to confirm the claimed
+behavior is actually implemented and tested. Rows that fail verification become
+`unverified` and produce `[DOC-SYNC]` issues demanding proof.
+
+### `--trust`
+
+Trust mode: all `Done` rows are accepted at face value and classified as `skip`
+without code verification. Use this when the repo's `Done` markers have been
+pre-verified or when the audit is focused on incomplete rows only.
+The verifier still processes `Ready`, `In Progress`, and `In Review` rows normally.
+
+Both modes handle the `Next Action` column the same way — see below.
+
+## Next Action handling
+
+Every row carries a `Next Action` (or `Item`) column. The tracker checks this field
+for all rows regardless of trust mode:
+
+- **`none` or `<skip>` in Next Action** → the row is classified as `skip_next_action`.
+  No issue is created. The ledger records the skip.
+
+- **Next Action has content** (not `none`/`<skip>`) → the verifier checks whether the
+  described action is already implemented in the feature's source code and tests:
+  - **Action already complete** (code + test exist): verdict `next_action_complete`.
+    The tracker opens a `[DOC-SYNC]` issue whose closing condition is the doc edit
+    that sets the row's `Next Action` to `none`.
+  - **Action not yet complete**: verdict `next_action_pending`.
+    The tracker opens a tracking issue whose closing condition is the implementation
+    path + test that proves the action, plus the doc edit that sets `Next Action`
+    to `done`.
+
+The closing condition for `next_action_pending` issues combines two steps:
+1. Implement the described behavior in `<feature>/src/` and add a test in
+   `<feature>/tests/` that exercises it; `<test command>` must pass.
+2. Set the row's `Next Action` cell to `done` in `<source_doc>`.
 
 ## Core invariant (read first)
 
@@ -139,10 +182,14 @@ the feature as the unit of work, and every FR ID in the feature is checked both 
 | --- | --- | --- |
 | Ready, In Progress | `incomplete` | tracking issue |
 | In Review | `incomplete` | tracking issue, body notes the open PR gate |
-| Done whose claimed behavior is confirmed present in the feature's current source code and exercised by at least one test, with command + commit evidence recorded | `skip` | no issue, ledger records the reproduced evidence |
+| Done whose claimed behavior is confirmed present in the feature's current source code and exercised by at least one test, with command + commit evidence recorded (`--no-trust`) | `skip` | no issue, ledger records the reproduced evidence |
+| Done row under `--trust` mode | `skip` | no issue, accepted at face value without code verification |
 | Done claim where the described behavior is absent, incomplete, or untested in the feature's source tree | `unverified` | `[DOC-SYNC]` issue demanding proof |
 | Any incomplete state where the work is present and tested in the source code but the doc still reports an incomplete state | `doc_sync` | doc-update issue |
 | FR ID declared in FRD with no backlog row (or vice versa) | `fr_orphan` | tracking issue on the feature |
+| Next Action contains `none` or `<skip>` | `skip_next_action` | no issue, ledger records the skip |
+| Next Action has content and the action is already implemented in code + tests | `next_action_complete` | `[DOC-SYNC]` issue: set Next Action to `none` |
+| Next Action has content and the action is not yet implemented | `next_action_pending` | tracking issue: implement the action, then set Next Action to `done` |
 
 Legacy state names (`Idea`, `Refinement`, `Blocked`, `QA`, `Released`, `Deferred`) are
 recorded verbatim by the scanner and mapped by the classifier to the simplified four
@@ -211,6 +258,8 @@ The check's content follows the verdict that produced the issue:
 | `unverified` | the check that failed verification now passes — implementation present in source, one test exercising it | row → `Done` |
 | `rollup_mismatch` | every backlog row named in the body independently verifies `Done`, so the roll-up claim becomes true; on an under-claimed roll-up the contributing rows are already `Done` | roll-up row → `Done` |
 | `fr_orphan` | a backlog row citing `<FR-ID>` exists and carries reproduced evidence | that row → `Done` |
+| `next_action_complete` | the row's `Next Action` cell in `<source_doc>` is set to `none` (the action it described is already verified in code + tests) | row's `Next Action` → `none` |
+| `next_action_pending` | the described behavior is implemented in `<feature>/src/` and one test in `<feature>/tests/` exercises it; `<test command>` passes; then the row's `Next Action` cell in `<source_doc>` is set to `done` | row's `Next Action` → `done` |
 
 Rules:
 
@@ -299,8 +348,12 @@ Verdicts:
 | `open` | code does not implement it, no existing tracking issue | create a tracking issue |
 | `doc_sync` | code implements it, doc says otherwise | create a `[DOC-SYNC]` issue |
 | `unverified` | Done claim, code does not match | create a `[DOC-SYNC]` issue naming the failed check |
-| `skip` | Done, code fully confirms it with command + commit evidence | ledger only, evidence recorded |
+| `skip` | Done, code fully confirms it with command + commit evidence (no-trust mode) | ledger only, evidence recorded |
+| `skip` | Done row accepted under `--trust` mode without code verification | ledger only |
 | `fr_orphan` | FR id with no backlog row | tracking issue on the feature |
+| `skip_next_action` | Next Action contains `none` or `<skip>` | ledger only, no issue |
+| `next_action_complete` | Next Action item already implemented in code + tests | `[DOC-SYNC]` issue: set Next Action to `none` |
+| `next_action_pending` | Next Action item not yet implemented | tracking issue: implement the action, then set Next Action to `done` |
 
 ### Step 5 — open modular issues
 
@@ -384,7 +437,7 @@ its `## Closing condition`), and label without calling `gh issue create`.
 Append one JSON object per row to `<repo-root>/docs/task-tracker-ledger.jsonl`:
 
 ```json
-{"run":"YYYY-MM-DD","row":"<ROW-ID>","doc":"<source_doc>","feature":"<feature or root>","fr":["<FR-ID>"],"state":"<state>","priority":"<P0/P1/P2>","class":"<incomplete|doc_sync|unverified|fr_orphan|skip>","proof":{"verdict":"<verdict>","evidence":"<reproduced evidence or failed check>"},"closing_condition":"<the Check from the issue's ## Closing condition — the one line that, when passed, sets this row to Done>","issue":<issue-number>,"action":"<created|commented|skipped-exists|skipped-evidence>"}
+{"run":"YYYY-MM-DD","row":"<ROW-ID>","doc":"<source_doc>","feature":"<feature or root>","fr":["<FR-ID>"],"state":"<state>","priority":"<P0/P1/P2>","class":"<incomplete|doc_sync|unverified|fr_orphan|skip|skip_next_action|next_action_complete|next_action_pending>","proof":{"verdict":"<verdict>","evidence":"<reproduced evidence or failed check>"},"closing_condition":"<the Check from the issue's ## Closing condition — the one line that, when passed, sets this row to Done>","issue":<issue-number>,"action":"<created|commented|skipped-exists|skipped-evidence>"}
 ```
 
 `action` values: `created`, `commented`, `skipped-exists`, `skipped-evidence`.
