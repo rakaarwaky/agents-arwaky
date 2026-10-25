@@ -96,6 +96,8 @@ checkable criterion or delete.
 - [ ] Exactly one `SKILL.md` at the skill root, at `<category>/<skill>/SKILL.md`.
 - [ ] Body within the size target; detail overflowed into `references/`.
 - [ ] All `references/` links resolve; nothing nested deeper than one level.
+- [ ] Every `related_skills:` entry, sibling mention, and cross-skill link names a skill
+  that exists in the tree.
 - [ ] Terminology consistent; examples concrete.
 - [ ] Workflows are sequential with checkable completion criteria.
 - [ ] Scripts handle errors; dependencies listed; forward slashes only.

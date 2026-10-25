@@ -50,6 +50,10 @@ for; complete the request first, then report the opportunity.
   anything task-conditional out of the body.
 - **Consistent terminology.** One term per concept, no synonyms. Model-agnostic wording:
   don't over-explain for strong models or under-specify for light ones.
+- **Dangling refs rot fast.** Sibling references (`related_skills:`, prose mentions,
+  cross-skill links) are not existence-checked — when editing, resolve every one against
+  the tree (`find skills -maxdepth 2 -type d -name <sibling>`) and remove refs to skills
+  that don't exist.
 
 ## Frontmatter
 
@@ -192,6 +196,21 @@ When the user asks for `argument-hint:` values across several skills:
 - State intent: "run `scripts/x.py`" (execute) vs "see `scripts/x.py`" (read).
 - List dependencies explicitly before usage.
 - Use fully qualified MCP tool names: `ServerName:tool_name`.
+
+## Creating a new skill: which writer
+
+- **`skill_manage(action=create)`** — the safe path, but it enforces a strict ~60-char
+  limit on the `description:` line (the skill index clips anything longer) and rolls back
+  the whole batch on any violation. Draft the description first and count it; if it will
+  exceed ~60 chars, don't fight the validator loop.
+- **Write the `SKILL.md` file directly** (`write_file`) to `<category>/<skill>/SKILL.md`,
+  then run `aa skills catalog` to register it. Use this when the description is longer
+  than the index budget, when you're building a richer multi-file skill, or when
+  `create` keeps rejecting frontmatter. After writing, run `aa skills validate` to confirm
+  the file parses and naming/placement rules hold.
+
+Both paths then go to the same verification below. "Never permanently delete skills" and
+"one home per fact" apply regardless of which writer you used.
 
 ## Verification
 
