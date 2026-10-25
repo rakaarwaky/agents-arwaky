@@ -1,6 +1,8 @@
 ---
 name: google-workspace
-description: Daily Google ops via workspace MCP: Gmail, Drive, Calendar, Docs. For user tasks.
+description: Daily Google ops via workspace MCP: Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, Contacts, Chat. For user tasks.
+when-to-use: "Use when performing daily Google Workspace operations — Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, Contacts, or Chat — via the workspace MCP server."
+argument-hint: "search_gmail_messages <query>|get_gmail_message_content <message_id>|send_gmail_message|manage_event|read_sheet_values|modify_sheet_values|create_doc|modify_doc_text|create_drive_file|list_drive_items|get_events|query_freebusy|start_google_auth"
 metadata:
   tags:
     - Google
@@ -31,6 +33,7 @@ Load on demand; only this page and the tool tables below are always in context.
 - [references/docs-layout-workflow.md](references/docs-layout-workflow.md) — incremental Google Docs build order that avoids style cascade, index shifting, list merging, and table-cell corruption.
 - [references/server-options.md](references/server-options.md) — transport, auth modes, tool filtering/tiers, deployment, credential loading priority.
 - Per-service parameter tables: `gmail.md`, `drive.md`, `calendar.md`, `docs.md`, `sheets.md`, `slides.md`, `forms.md`, `tasks.md`, `contacts.md`, `chat.md`, `apps-script.md`, `search.md` — linked from each service section below.
+- `references/workflows.md` — common workflows: daily brief, reply to email, find and share a file, read and update a spreadsheet, create a formatted document, process email attachments, edit a Google Doc, plus tips.
 
 ## Execution Mode
 
@@ -135,7 +138,7 @@ Reproduced error signatures and their workarounds: [references/pitfalls.md](refe
 | Manage filters | `manage_gmail_filter` |
 | List filters | `list_gmail_filters` |
 
-For parameters: [references/gmail.md](references/gmail.md) -- and for the `query` syntax, [references/gmail-search-syntax.md](references/gmail-search-syntax.md).
+For the `query` syntax, read [references/gmail-search-syntax.md](references/gmail-search-syntax.md) before composing Gmail searches.
 
 ### Google Drive
 
@@ -156,8 +159,6 @@ For parameters: [references/gmail.md](references/gmail.md) -- and for the `query
 | Check public access | `check_drive_file_public_access` |
 | Import file to Google Doc | `import_to_google_doc` |
 
-For parameters: [references/drive.md](references/drive.md)
-
 ### Google Calendar
 
 | Task | Tool |
@@ -167,7 +168,7 @@ For parameters: [references/drive.md](references/drive.md)
 | Create/update/delete event | `manage_event` |
 | Check availability | `query_freebusy` |
 
-For parameters: [references/calendar.md](references/calendar.md) -- read [references/pitfalls.md](references/pitfalls.md) first for the recurring-event timezone rule and the secondary-calendar 404s.
+Read [references/pitfalls.md](references/pitfalls.md) first for the recurring-event timezone rule and the secondary-calendar 404s.
 
 ### Google Docs
 
@@ -192,7 +193,7 @@ For parameters: [references/calendar.md](references/calendar.md) -- read [refere
 | Comments | `manage_document_comment` / `list_document_comments` |
 | Debug table structure | `debug_table_structure` |
 
-For parameters: [references/docs.md](references/docs.md) -- for multi-step layout work (headings, lists, tables) also follow [references/docs-layout-workflow.md](references/docs-layout-workflow.md).
+For multi-step layout work (headings, lists, tables), also follow [references/docs-layout-workflow.md](references/docs-layout-workflow.md).
 
 ### Google Sheets
 
@@ -209,8 +210,6 @@ For parameters: [references/docs.md](references/docs.md) -- for multi-step layou
 | List spreadsheets | `list_spreadsheets` |
 | Comments | `manage_spreadsheet_comment` / `list_spreadsheet_comments` |
 
-For parameters: [references/sheets.md](references/sheets.md)
-
 ### Google Slides
 
 | Task | Tool |
@@ -223,8 +222,6 @@ For parameters: [references/sheets.md](references/sheets.md)
 | Speaker notes | `get_presentation` (`include_speaker_notes`) + `batch_update_presentation` |
 | Comments | `manage_presentation_comment` / `list_presentation_comments` |
 
-For parameters: [references/slides.md](references/slides.md)
-
 ### Google Forms
 
 | Task | Tool |
@@ -236,8 +233,6 @@ For parameters: [references/slides.md](references/slides.md)
 | Get one response | `get_form_response` |
 | Publish settings | `set_publish_settings` |
 
-For parameters: [references/forms.md](references/forms.md)
-
 ### Google Tasks
 
 | Task | Tool |
@@ -248,8 +243,6 @@ For parameters: [references/forms.md](references/forms.md)
 | List tasks | `list_tasks` |
 | Get task | `get_task` |
 | Manage task (CRUD/move) | `manage_task` |
-
-For parameters: [references/tasks.md](references/tasks.md)
 
 ### Google Contacts
 
@@ -264,8 +257,6 @@ For parameters: [references/tasks.md](references/tasks.md)
 | Manage contact group | `manage_contact_group` |
 | List all contacts | `list_contacts` |
 
-For parameters: [references/contacts.md](references/contacts.md)
-
 ### Google Chat
 
 | Task | Tool |
@@ -277,8 +268,6 @@ For parameters: [references/contacts.md](references/contacts.md)
 | Edit a message already sent | `send_message` with `message_name` |
 | React to message | `create_reaction` |
 | Download attachment | `download_chat_attachment` |
-
-For parameters: [references/chat.md](references/chat.md)
 
 ### Google Apps Script
 
@@ -297,16 +286,12 @@ For parameters: [references/chat.md](references/chat.md)
 | Execution metrics | `get_script_metrics` |
 | Process history | `list_script_processes` |
 
-For parameters: [references/apps-script.md](references/apps-script.md)
-
 ### Google Custom Search
 
 | Task | Tool |
 |------|------|
 | Web search | `search_custom` |
 | Get search engine info | `get_search_engine_info` |
-
-For parameters: [references/search.md](references/search.md)
 
 ### Auth
 
@@ -318,68 +303,7 @@ Parameters: `user_google_email` (string, optional), `service_name` (string, requ
 
 ## Common Workflows
 
-### Daily / morning brief
-
-Load [references/daily-brief.md](references/daily-brief.md) and follow it: resolve the day window in
-the account's timezone, fetch events (all calendars, accepted + tentative + all-day), pull only the
-mail that changes preparation or priority, link mail to meetings without guessing, then present the
-brief in its fixed order. Nothing is drafted or created until the user approves it.
-
-### Reply to an email
-
-1. `search_gmail_messages` -- find the email
-2. `get_gmail_message_content` -- read it (get `message_id` and `thread_id`)
-3. `send_gmail_message` -- reply using `thread_id`; omit reply headers to target the latest non-draft, non-trash message with an RFC `Message-ID`
-
-### Find and share a file
-
-1. `search_drive_files` -- find the file
-2. `manage_drive_access` -- share it
-3. `get_drive_shareable_link` -- get the link
-
-### Read and update a spreadsheet
-
-1. `get_spreadsheet_info` -- get sheet names
-2. `read_sheet_values` -- read current data
-3. `modify_sheet_values` -- write updated data
-4. `read_sheet_values` -- verify the update
-
-### Create a formatted document
-
-1. `create_doc` -- create the doc
-2. `modify_doc_text` -- add text with formatting
-3. `insert_doc_elements` -- add tables, lists, page breaks
-4. `update_paragraph_style` -- apply heading styles
-5. `get_doc_as_markdown` -- verify the result
-
-### Process email attachments
-
-1. `search_gmail_messages` -- find the email
-2. `get_gmail_message_content` -- get attachment metadata
-3. `get_gmail_attachment_content` -- download the attachment
-
-### Edit a Google Doc
-
-1. `get_doc_as_markdown` -- read current content
-2. `inspect_doc_structure` -- find insertion points and indices
-3. `modify_doc_text` / `insert_doc_elements` -- make changes
-4. `get_doc_as_markdown` -- verify the result
-
-## Tips
-
-- **Check parameters**: run `workspace-mcp --help` for server flags, and read the matching
-  `references/<service>.md` for a tool's arguments. There is no `workspace-mcp --cli` mode.
-- **Gmail queries**: [references/gmail-search-syntax.md](references/gmail-search-syntax.md) lists
-  every supported operator (`is:unread`, `from:`, `newer_than:7d`, `has:attachment`,
-  `filename:`, `larger:`, `in:anywhere`, `-from:`, `OR`, quoted phrases) with worked patterns.
-- **Email-only user**: if the user needs *just* mail and Workspace OAuth is the blocker,
-  `himalaya` is the lighter alternative (Gmail App Password, no Google Cloud project) -- see
-  [references/pitfalls.md](references/pitfalls.md).
-- **Calendar times**: recurring events must send wall-clock time + `timezone`, not a `+07:00`
-  offset. The exact rule and the error it prevents are in [references/pitfalls.md](references/pitfalls.md).
-- **Formatting Docs**: before building a document with headings, lists, or tables, load
-  [references/docs-layout-workflow.md](references/docs-layout-workflow.md) -- the Docs API
-  corrupts styles when content is inserted in one pass.
+Common workflows (daily brief, reply to email, find and share a file, read and update a spreadsheet, create a formatted document, process email attachments, edit a Google Doc, plus tips) live in `references/workflows.md`.
 
 ## Rules
 

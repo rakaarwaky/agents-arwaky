@@ -1,6 +1,8 @@
 ---
 name: test-driven-development
 description: "Enforces RED-GREEN-REFACTOR tests-first. Use when writing tests before code, terminal runs."
+when-to-use: Use when writing new features, bug fixes, refactors, or behavior changes — tests first, watch them fail, then minimal code to pass.
+argument-hint: "<feature-or-bug>"
 metadata:
   tags:
     - testing

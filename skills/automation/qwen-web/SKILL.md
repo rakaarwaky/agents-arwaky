@@ -5,6 +5,8 @@ description: >
   zero API keys, persistent browser sessions — and develop the qwen-web-arwaky repo
   source (TUI, slots, tests). Use when an AI agent needs to send prompts, review code,
   or analyze attachments via CLI/MCP tools, or edit the internal/qwen-web-arwaky source.
+when-to-use: Use when the user runs /qwen-web, sends a prompt to Qwen AI Web, sends prompt files or attachments for Qwen analysis or code review with role templates, sets up or resets the Qwen browser session, initializes the qwen-web workspace, or asks to develop or fix the internal/qwen-web-arwaky repo.
+argument-hint: "<prompt-direct -t <text> | prompt-only -i <prompt-file> | prompt-with-attachment -i <prompt> -a <attachment> | doctor | login | init> [-o <out-file>] [--headless]"
 version: 6.8.0
 metadata:
   tags:

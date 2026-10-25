@@ -1,6 +1,8 @@
 ---
 name: llm-wiki
 description: "Karpathy's LLM Wiki: build/query interlinked markdown KB."
+when-to-use: Use when the user asks to create, build, or start a wiki, ingest a source into a wiki, ask a question about an existing wiki, or lint/audit/health-check a wiki.
+argument-hint: "<init | ingest | query | lint> [wiki-path | source]"
 version: 2.1.0
 author: Hermes Agent
 license: MIT

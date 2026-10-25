@@ -1,6 +1,8 @@
 ---
 name: design-md
 description: Author/validate/export Google's DESIGN.md token spec files.
+when-to-use: "Use when the user wants a DESIGN.md design-token spec file — authoring, linting, diffing, or exporting to Tailwind or W3C DTCG JSON; also for WCAG contrast validation on color palettes."
+argument-hint: "lint|diff|export|spec [--format <fmt>] DESIGN.md"
 version: 1.1.0
 author: Hermes Agent
 license: MIT

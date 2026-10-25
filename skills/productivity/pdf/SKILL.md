@@ -1,6 +1,8 @@
 ---
 name: pdf
-description: Create, read, merge, fill, and secure PDF files.
+description: "Create, read, merge, fill, and secure PDF files. Use when generating PDFs, extracting text/tables, building or filling AcroForm forms, merging/splitting/watermarking/stamping pages, encrypting or decrypting documents, or preparing official IRS tax forms."
+when-to-use: "Use when generating reports/invoices as PDF, building or filling AcroForm forms (with layout linting and visual overlays), extracting text, tables, metadata, or form-field values, merging/splitting/rotating/watermarking/stamping pages, exporting pages as PNGs for visual review or OCR hand-off, managing metadata/attachments, or encrypting/decrypting with passwords. NOT for scanned/image-only PDFs (see references/ocr-extraction.md) and NOT for pixel-perfect HTML-to-PDF rendering (use a headless browser)."
+argument-hint: "<create | make-form | lint-form | read | merge | split | fill | secure | watermark | stamp | page-image | meta> <in [out]>"
 metadata:
   tags:
     - pdf

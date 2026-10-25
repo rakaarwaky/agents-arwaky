@@ -1,6 +1,8 @@
 ---
 name: xlsx
 description: Create, read, edit Excel .xlsx workbooks and CSVs.
+when-to-use: "Use when creating, reading, editing, or recalculating Excel .xlsx workbooks and CSVs — styled multi-sheet reports, formulas, tables, charts, data validation, and CSV interop — with openpyxl."
+argument-hint: "create <spec.json> <out.xlsx>|read <file.xlsx> [--sheets|--json|--formulas|--notes]|edit <file.xlsx> --set <cell=value>|restructure <file.xlsx> --insert-rows <range>|recalc <file.xlsx>|csv_to_xlsx <in.csv> <out.xlsx>|xlsx_to_csv <file.xlsx> <out.csv>"
 version: 1.1.0
 author: Nous Research
 license: MIT

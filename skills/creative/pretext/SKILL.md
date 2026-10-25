@@ -1,6 +1,8 @@
 ---
 name: pretext
 description: "Build creative browser demos with DOM-free text layout."
+when-to-use: "Use when the user wants a pretext creative demo — text flowing around a moving shape, ASCII-art effects using real words, text-as-geometry games, kinetic typography, multiline shrink-wrap UI, or per-glyph physics."
+argument-hint: "<pattern> [output.html]"
 metadata:
   tags:
     - creative-coding

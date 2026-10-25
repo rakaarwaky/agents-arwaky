@@ -8,6 +8,8 @@ description: >
   dialect rules, and journal semantics. Use when the user wants to
   create/author/write a workflow, automate a multi-agent pipeline, or runs
   /create-workflow.
+when-to-use: "Use when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow."
+argument-hint: "/create-workflow [<workflow-name>]"
 metadata:
   short-description: "Author a new multi-agent workflow"
 ---

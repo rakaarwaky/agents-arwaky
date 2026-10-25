@@ -1,6 +1,8 @@
 ---
 name: popular-web-designs
 description: 54 real design systems (Stripe, Linear, Vercel) as HTML/CSS.
+when-to-use: "Use when the user wants a page styled like a known site — 'build a page that looks like Stripe/Linear/Vercel', a landing page, dashboard, or UI using a real design system's tokens and components."
+argument-hint: "<site> [output.html]"
 version: 1.0.0
 author: Hermes Agent + Teknium (design systems sourced from VoltAgent/awesome-design-md)
 license: MIT

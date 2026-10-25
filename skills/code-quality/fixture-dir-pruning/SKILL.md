@@ -1,6 +1,9 @@
 ---
 name: fixture-dir-pruning
 description: Prunes test/lint fixture dirs by code-coverage redundancy.
+when-to-use: "Shrink large deterministic fixture dirs (linter workspaces-bad/ etc.) by coverage redundancy per language, honoring per-language CI floors and hardcoded test paths."
+argument-hint: "[dry-run by default] [linter scan baseline -> set-cover per language -> verify gates]"
+metadata:
 ---
 
 # Fixture-Dir Pruning

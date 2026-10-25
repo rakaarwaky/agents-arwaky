@@ -1,6 +1,8 @@
 ---
 name: releasing
-description: Autonomous headless release agent for the mergify CLI — computes the next CalVer tag, bumps the version via the project bump script, opens and merges a release prep PR with admin self-approval, then builds and publishes the draft release through the GitHub workflow continuously without pausing for user approval. Use when asked to release, cut a release, ship a new version, publish a release, tag a version, run a headless release, or when a release run failed and needs recovery. Triggers on release, new version, cut a release, ship it, publish the release, bump the version, release failed, PyPI publish failed.
+description: release, cut a release, ship a new version, publish a release, tag a version, headless release, release run recovery.
+when-to-use: Release the mergify CLI autonomously — compute the next CalVer tag, bump via the bump script, open and merge a release prep PR, build and publish the draft release through GitHub workflows, and recover failed release runs.
+argument-hint: [--tag <tag>] [--target_commitish <sha>]
 ---
 
 # Releasing `mergify-cli` — autonomous headless release agent

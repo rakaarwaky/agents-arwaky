@@ -2,7 +2,7 @@
 name: skill-evolving
 description: Autonomous self-evolution engine for agent skills. Ingests session traces via learn, fans out category-level audit subagents, coordinates authoring, library cataloging, and lifecycle pruning, verifies quality gates, and publishes pull requests.
 when-to-use: Use when running autonomous or scheduled self-evolution across the skill tree, evolving skills from execution traces, coordinating multi-agent skill maintenance, or running daily skill optimization passes.
-argument-hint: "[--scope <24h | all | <category>>] [--headless] [--dry-run]"
+argument-hint: "[--days <N>] [--include-headless]"
 ---
 
 # skill-evolving
@@ -61,7 +61,7 @@ Modeled on the four-skill pack under `skills/skill-authoring/`:
 
 | Role | Skill | Action in Evolution Loop |
 |---|---|---|
-| Trace Mining | `research-study/learn` | Run `collect_sessions.py --since-last` or `--days 1` to extract friction points, tool failures, and user phrases. |
+| Trace Mining | `research-study/learn` | Run `collect_sessions.py --days 1 --include-headless` to extract friction points, tool failures, and user phrases from the last 24 hours. |
 | Creation & Refinement | `skill-design` | Rewrite descriptions, adjust `argument-hint:`, split bloated bodies into `references/`, add newly discovered workflows. |
 | Catalog & Mechanical Repair | `skill-library` | Run `aa skills repair --apply`, `aa skills weed`, and `aa skills catalog`. |
 | Pruning & Consolidation | `skill-lifecycle` | Run `skill-lifecycle --evolution` across the tree to merge overlapping variants and retire duplicates. |
@@ -72,8 +72,10 @@ Modeled on the four-skill pack under `skills/skill-authoring/`:
 Run the session collector from `research-study/learn` scoped to the target window (default 24h):
 
 ```bash
-python3 skills/research-study/learn/collect_sessions.py --since-last --batch 1
+python3 skills/research-study/learn/collect_sessions.py --days 1 --include-headless
 ```
+
+Headless semantics: no `ask_user_question` (no interactive prompts), reversible edits are auto-applied, and the pass ends with commit + PR (Step 7). `--days 1` scopes collection to the last 24 hours; `--include-headless` keeps headless (bot / `grok -p`) sessions that would otherwise be dropped.
 
 Examine output artifacts in the run directory (`<RUN>`):
 - `usage.json`: identifies zero-hit or heavily invoked skills.

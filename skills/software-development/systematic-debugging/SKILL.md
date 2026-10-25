@@ -1,6 +1,8 @@
 ---
 name: systematic-debugging
 description: Debugs root causes in 4 phases. Use when fixing bugs via read_file, search, delegate_task.
+when-to-use: Use for any technical issue — test failures, production bugs, build/performance problems. Users also invoke it directly as /systematic-debugging; this slash trigger is carried here so trigger matching resolves bundled-vs-user collisions.
+argument-hint: "<issue-or-error> [--phase <1|2|3|4>] [--repro <command>]"
 metadata:
   tags:
     - debugging

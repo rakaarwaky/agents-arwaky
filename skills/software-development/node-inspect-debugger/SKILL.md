@@ -1,6 +1,8 @@
 ---
 name: node-inspect-debugger
 description: "Debug Node.js via --inspect + Chrome DevTools Protocol CLI."
+when-to-use: Use when console.log isn't enough — breakpoints, step in/over/out, scope dumps, expression evaluation, heap/CPU profiles for Node.js.
+argument-hint: "<script-path|pid> [--inspect-brk] [--port <port>]"
 version: 1.0.0
 author: Hermes Agent
 license: MIT

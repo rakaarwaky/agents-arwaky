@@ -1,6 +1,8 @@
 ---
 name: android-emulator-linux-gps
-description: Use when running Android apps on Linux with spoofable GPS.
+description: Use when running or installing Android apps on a Linux host with the AOSP emulator and spoofing GPS via adb emu geo fix, including AVD setup, x86 image ABI selection, and apkpure/apkcombo APK retrieval.
+when-to-use: Use when the user wants the Android emulator on Linux, Deepin or X11 hosts, an AVD that boots headlessly, 32-bit ARM APK installation, Android GPS spoofing or mock location, or apkpure/apkcombo APK downloads without browser automation.
+argument-hint: "<emulator | avd | gps | apk> [options] | <freeform task>"
 metadata:
   tags: []
 ---

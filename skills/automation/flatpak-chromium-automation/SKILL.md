@@ -1,6 +1,8 @@
 ---
 name: flatpak-chromium-automation
-description: Drive Flatpak Brave/Chromium pages under sandbox paths. Not profile setup.
+description: Use when driving Flatpak Brave/Chromium pages under sandbox paths over CDP, or installing Web Store extensions unpacked. Not profile setup.
+when-to-use: Use when CDP debugging of a Flatpak browser fails to bind its port, when orphan Flatpak instances hijack a debug launch, when pkill/pgrep patterns threaten the agent shell, or when adding a Web Store extension that cannot be clicked through. Not for creating or provisioning browser profiles.
+argument-hint: "[<appid | <ext-id | <cmd>]"
 metadata:
   tags:
     - browser

@@ -1,6 +1,8 @@
 ---
 name: blogwatcher
 description: "Monitor blogs and RSS/Atom feeds via blogwatcher-cli tool."
+when-to-use: Use when the user wants to monitor blogs and RSS/Atom feeds, add or remove tracked blogs, scan for new articles, or manage read/unread articles via blogwatcher-cli.
+argument-hint: "<add | scan | articles | blogs | remove | import> [blog] [url] [--feed-url | --scrape-selector]"
 metadata:
   tags:
     - RSS

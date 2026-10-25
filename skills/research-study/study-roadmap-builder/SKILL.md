@@ -1,6 +1,8 @@
 ---
 name: study-roadmap-builder
 description: Build folder-structured quarterly study/learning roadmaps.
+when-to-use: Use when the user wants to build a folder-structured quarterly study/learning roadmap with specific sub-fields per quarter, or to teach a section from an existing roadmap.
+argument-hint: "<build | teach> [quarter | field | section]"
 version: "1.0"
 author: hermes-agent
 license: MIT

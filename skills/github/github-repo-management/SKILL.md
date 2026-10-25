@@ -1,6 +1,8 @@
 ---
 name: github-repo-management
 description: Clone/create/fork repos; manage remotes, releases.
+when-to-use: Create, clone, fork, configure, and manage GitHub repositories — remotes, settings, secrets, releases, and Actions CI via gh.
+argument-hint: <owner/repo> [--public|--private] [--clone] [--description <text>]
 metadata:
   tags:
     - GitHub

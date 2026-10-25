@@ -1,6 +1,8 @@
 ---
 name: dogfood
 description: "Exploratory QA of web apps: find bugs, evidence, reports."
+when-to-use: Use when doing exploratory QA of a web app — navigate, interact, capture evidence, and produce a structured bug report.
+argument-hint: "<target-url> [--scope <scope>] [--output-dir <dir>]"
 version: 1.0.0
 author: Teknium (teknium1), Hermes Agent
 license: MIT
