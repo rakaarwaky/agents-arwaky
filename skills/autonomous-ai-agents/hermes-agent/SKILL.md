@@ -124,6 +124,7 @@ Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile i
 | Webhook routes and event-driven runs | `references/webhooks.md` |
 | A custom theme/skin ("synthwave theme", "change the gold ●") | `references/themes.md` + `templates/skin.yaml` |
 | A desktop app UI element (pane, widget, ⌘K command, page) | `references/desktop-plugins.md` + `templates/plugin.js` |
+| Desktop window looks transparent/see-through/"faded", or a window-translucency change won't stick after relaunch | `references/desktop-translucency.md` |
 | A live TUI panel or modal widget (ticker, clock, dashboard) | `references/tui-widgets.md` + `templates/clock.mjs` |
 | Pet mascots — install, select, scale, diagnose | `references/petdex.md` |
 | Windows-specific issues (keybinds, WinError 10106, BOM) | `references/windows-quirks.md` |
@@ -241,3 +242,4 @@ terminal(command="tmux new-session -d -s resumed 'hermes --resume 20260225_14305
 - **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
 - **Profile-safe paths** — `get_hermes_home()` in code, `$HERMES_HOME` when resolving paths in a session.
 - **Never hand-edit `config.yaml` for the user** — use `hermes config set KEY VAL`; a stray indent can corrupt the file and break the live gateway. List-valued keys are still CLI work, but only when the value is passed as a **JSON array literal** (`hermes config set skills.disabled '["a","b"]'`); the comma form stores a scalar that every later read treats as one bogus name, so it silently does nothing. Verify with `config get <key> --json`, which must print an array. The single sanctioned non-CLI writer is the ruamel round-trip, used when the file carries comments the CLI rewrite would destroy — procedure documented in the sibling `hermes-profiles` skill's `references/skill-filtering.md`.
+- **Never stop/restart the gateway from inside the gateway process.** `systemctl --user stop hermes-gateway` (or any SIGTERM to the gateway) is blocked: the kill signal propagates to this very process's children, so the command dies before it completes. Restart the gateway with `hermes gateway restart` from a separate shell outside the running gateway. Desktop-app restarts follow the same rule — kill the *desktop* process, not the gateway.
