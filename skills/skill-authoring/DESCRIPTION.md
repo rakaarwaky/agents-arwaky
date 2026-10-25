@@ -9,3 +9,4 @@ description: Skill-authoring skills — create, validate, and improve SKILL.md f
 | Author / validate / audit a `SKILL.md` | `skill-authoring` | `aa skills validate | show | list` |
 | Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
 | Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
+| Autonomous self-evolution across skill trees | `skill-evolving` | `python3 skills/research/learn/collect_sessions.py` |
