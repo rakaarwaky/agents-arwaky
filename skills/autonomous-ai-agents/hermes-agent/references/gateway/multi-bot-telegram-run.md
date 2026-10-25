@@ -1,6 +1,6 @@
 # Verified end-to-end run: 4 Telegram bots → 4 profiles via multiplex (Aug 2026, Fedora)
 
-Session evidence for the standard flow in SKILL.md. Setup: default profile + secondary
+Session evidence for the standard flow in `hermes-agent/SKILL.md`. Setup: default profile + secondary
 profiles `currie`, `linus`, `tesla`, each with its own BotFather token.
 
 ## Exact steps that worked
@@ -26,7 +26,7 @@ profiles `currie`, `linus`, `tesla`, each with its own BotFather token.
    hermes gateway restart
    ```
    The `--force` is needed: without it Hermes prints "not a recognized config key" and asks.
-   The key IS honored at runtime via the nested `gateway:` bridge (see multiplex-internals.md).
+   the key IS honored at runtime via the nested `gateway:` bridge (see `multiplex-internals.md`, same directory).
 
 4. **Verification** (~1–2 min after restart):
    - `~/.hermes/logs/gateway.log`:

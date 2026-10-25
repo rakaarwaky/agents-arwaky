@@ -55,4 +55,4 @@ hermes gateway status
 
 Which profile actually receives messages (the `platforms.telegram.enabled` +
 `home_channel` block) is a messaging-config question, not a systemd one — that block is
-documented once, in `SKILL.md` § "A profile is only reachable if it declares its channel".
+documented once, in `hermes-agent/SKILL.md` § "A profile is only reachable if it declares its channel".

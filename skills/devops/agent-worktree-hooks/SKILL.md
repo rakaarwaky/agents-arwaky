@@ -16,7 +16,6 @@ metadata:
   related_skills:
     - orca-cli
     - hermes-agent
-    - hermes-home-cleanup
   triggers:
     - worktree enforcement
     - guard hooks
@@ -33,7 +32,6 @@ metadata:
     related_skills:
       - orca-cli
       - hermes-agent
-      - hermes-home-cleanup
 ---
 
 ## When to Use

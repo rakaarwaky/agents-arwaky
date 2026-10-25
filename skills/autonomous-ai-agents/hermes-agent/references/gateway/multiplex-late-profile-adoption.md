@@ -1,6 +1,6 @@
 # Live diagnosis: profile added after multiplexer start → silent bot + failed per-profile unit
 
-(fangyuan profile, Aug 2026 — companion evidence for `multi-bot-telegram-run.md`)
+(fangyuan profile, Aug 2026 — companion evidence for `multi-bot-telegram-run.md`, same directory)
 
 ## Symptom
 - Bot configured correctly (`TELEGRAM_BOT_TOKEN` verified in `<profile>/.env`) but never answers DMs.
