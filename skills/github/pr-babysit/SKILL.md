@@ -11,7 +11,7 @@ disable-model-invocation: true
 metadata:
   tags: [github, pr, ci, review, worktree, graphite, gh-stack, babysit]
   category: github
-  related_skills: [github-pr-workflow, github-code-review, long-running-background-tasks]
+  related_skills: [github-pr-workflow, github-code-review, hermes-agent]
   backends: [grok-build, hermes]
 ---
 
