@@ -11,18 +11,18 @@
 
 ## System Overview
 
-The tools feature owns the full lifecycle of every tool registered in the
-tool manifest: install, update, uninstall, run — plus query resolution and
-readiness discovery. One protocol method, `execute(op, spec, query, args)`,
-covers every capability; the tools aggregate (`list`, `resolve`, `install`,
-`update`, `uninstall`, `run`, `executable_path`) exposes each path to the
-CLI.
+The tools feature owns the lifecycle of every manifest-registered tool:
+install, update, uninstall, run, query resolution, and read-only executable
+discovery. Typed protocol seams separate installer, updater, uninstaller,
+runner, and per-tool adapter operations. `IToolsAggregate.execute(ToolRequest)`
+is the single entry point for the CLI; the agent dispatches each request to
+the matching capability.
 
-Flow: `aa tool <action>` → tools aggregate → capability dispatch through
-`execute` → per-tool adapter selection by manifest id (composition-root
-registry) → report or child exit code. An unknown id fails with a typed
-error before any capability runs; an action whose capability is unwired
-raises a typed error, never a partial dispatch.
+Flow: `aa tool <action>` → tools aggregate → capability method → per-tool
+adapter selection by manifest id (composition-root registry) → report or
+child exit code. An unknown id fails with a typed error before any capability
+runs; an action whose capability is unwired raises a typed error, never a
+partial dispatch.
 
 ## Functional Requirements
 
@@ -93,29 +93,35 @@ raises a typed error, never a partial dispatch.
 - **Error Handling**: every failure path returns an integer; nothing
   raises out of the run action.
 
-### FR-TOOLS-005: Resolve a query and discover executable paths
+### FR-TOOLS-005: Resolve a tool query
 
 - **Description**: Map a manifest id, binary name, or alias to the tool's
-  specification, and report whether the tool's executable is present and
-  where it lives, without mutating install state.
-- **Input**: query string (id / binary / alias) or a resolved tool
   specification.
-- **Output**: the tool specification (or no match for an unknown query);
-  executable path, or no path when the tool is not installed.
+- **Input**: query string (id / binary / alias).
+- **Output**: the matching tool specification, or no match for an unknown
+  query.
 - **Business Rules**: resolution goes through the shared manifest reader;
-  aliases resolve to the same specification as their id; resolution is
-  pure — it never mutates install state; discovery is strictly read-only;
-  the same candidate order as run applies (launcher → host PATH → install
-  directory); readiness follows from a found candidate, never from a
-  write probe.
-- **Edge Cases**: unknown query → no match, never an exception; a query
-  that is both an alias and a binary resolves to its manifest entry; an
-  empty query misses quietly; a stale launcher yields to the PATH
-  candidate; not installed → no path and no error; MCP tools probe the
-  MCP binary first.
+  aliases resolve to the same specification as their id; resolution is pure
+  and never mutates install state.
+- **Edge Cases**: unknown or empty query → no match, never an exception; a
+  query that is both an alias and a binary resolves to its manifest entry.
 - **Error Handling**: a manifest parse failure surfaces as a typed error;
-  absence never raises — the caller receives no path and owns the
-  message.
+  absence never raises — the caller receives no match and owns the message.
+
+### FR-TOOLS-006: Discover executable readiness and path
+
+- **Description**: Report whether a registered tool's executable is present
+  and where it lives, without mutating install state or launching it.
+- **Input**: resolved tool specification.
+- **Output**: executable path, or no path when the tool is not installed.
+- **Business Rules**: discovery is strictly read-only and uses the same
+  candidate order as run (XDG bin launcher → host PATH → per-tool install
+  directory); readiness follows from a found candidate, never from a write
+  probe. MCP tools probe the MCP binary first.
+- **Edge Cases**: not installed → no path and no error; a stale launcher
+  yields to the PATH candidate.
+- **Error Handling**: absence never raises — the caller receives no path and
+  owns the message.
 
 ## API Contract
 
@@ -123,17 +129,17 @@ raises a typed error, never a partial dispatch.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `execute` | `op`, `spec?`, `query?`, `args?` | result / exit | non-zero | — | one method covers install, update, uninstall, run, resolve, discover |
+| `IToolsInstallerProtocol.install` | resolved spec, optional adapter, dry-run flag | `InstallResult` | typed install outcome | — | Provision the registered tool and launcher |
+| `IToolsUpdaterProtocol.update` | resolved spec, optional adapter, dry-run flag | `UpdateResult` | typed update outcome | — | Bring the tool to its manifest pin |
+| `IToolsUninstallerProtocol.uninstall` | resolved spec, optional owned paths | `UninstallResult` | typed outcome with residuals | — | Remove only the tool's owned paths |
+| `IToolsRunnerProtocol.run` / `discover` | spec and args (run); spec (discover) | exit code (run); path or none (discover) | child exit / sentinel 126; absence → none | child stdio | Run the executable or find its path without writes |
+| `IToolsAdapterProtocol` | spec and operation-specific inputs | satisfaction, pin, paths, install/update results | adapter-specific typed outcome | — | Per-tool install/update/probe seam |
 
 ### Aggregate API
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `install` | `spec\|all` | result | non-zero on failure | — | Install |
-| `update` | `spec\|all` | result | non-zero on failure | — | Update |
-| `uninstall` | `spec\|all` | result | non-zero / residual | — | Uninstall + owned paths |
-| `run` | `spec`, `args` | exit | non-zero / sentinel 126 | child stdio | Exit fidelity |
-| `discover` | `spec` | path | not installed → none | — | Discover executable path |
+| `execute(request)` | `ToolRequest(op, query?, spec?, args?, owned?)` | `ToolResponse` with operation-specific payload | typed resolution/capability error or non-zero operation outcome | op-dependent | Single aggregate entry point; dispatches lifecycle, run, resolve, and discovery requests to their capability methods |
 
 ## Integration Points
 

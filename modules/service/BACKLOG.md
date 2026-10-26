@@ -3,72 +3,73 @@
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
-Last Updated: 2026-09-26
+Last Updated: 2026-10-26
 
 ## Current Condition
 
-- Done: FRD/BACKLOG redesigned per the approved plan — rich `IServiceProtocol`
-  ABC (one named method per operation: `status` / `start` / `stop` /
-  `restart` / `logs` / `help`) replacing the old `execute(op, unit)` dispatch
-  bag; aggregate keeps its 6 methods; 4 FRs, 8 scenarios;
-  `check docs modules/service` → 0 findings and `compileall` clean at
-  `6df9f21`; daemon aggregate integration (install/remove via the daemon
-  feature) wired through `DaemonAggregateAdapter`.
-- In Progress: none (redesign slice complete).
-- Blocked: none for docs/code; live systemctl sweep still needs a host run
-  for drive/status paths.
-- Next Action: SVC-01 live systemctl sweep (start/status/logs on a host
-  with the user units); keep `check docs modules/service` green.
+- Done: typed service protocols expose status/start/stop/restart/logs/help;
+  `ServiceOrchestrator` dispatches requests to those capabilities. Lifecycle,
+  status, and logs use the injected daemon aggregate; help is rendered locally.
+  `FR-SERVICE-001` covers unit operations and `FR-SERVICE-002` covers
+  read-only inspection/help behavior. Gate:
+  `./.venv/bin/python -m pytest modules/service -q` → 31 passed and
+  `./.venv/bin/ruff check modules/service --ignore E501` → clean at
+  `767b18672a0c0abd92f7225f267478db8271c334`.
+- In Progress: none.
+- Blocked: none for implementation or automated verification.
+- Next Action: none.
 
 ## Backlog
 
-| ID | Priority | State | Dependencies | Next Action | Updated |
-|---|---|---|---|---|---|
-| SVC-01 | P1 | QA | WS-05 | none | 2026-09-23 |
-| SVC-02 | P1 | Done | None | none | 2026-09-18 |
-| SVC-03 | P1 | Done | None | none | 2026-09-23 |
-| SVC-04 | P0 | Done | None | none | 2026-09-26 |
+| ID | FRD Ref | Priority | State | Dependencies | Next Action | Updated | Actual Condition |
+|---|---|---|---|---|---|---|---|
+| SVC-01 | FR-SERVICE-001, FR-SERVICE-002 | P1 | Done | WS-05 | none | 2026-10-26 | `modules/service/tests/integration_service.py::test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate` verifies start/stop/restart/status/logs go through `IDaemonAggregate.execute` and exercises local help output; `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| SVC-02 | FR-SERVICE-001 | P1 | Done | None | none | 2026-10-26 | Unit-drive operations delegate through the daemon aggregate; `modules/service/tests/integration_service.py` and the `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| SVC-03 | FR-SERVICE-002 | P1 | Done | None | none | 2026-10-26 | Read-only status/log/help paths are exercised by `test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate`; `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| SVC-04 | FR-SERVICE-001, FR-SERVICE-002 | P0 | Done | SVC-03 | none | 2026-10-26 | Rich protocol methods, aggregate wiring, and the two FRs are verified by `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-SERVICE-001 | FR-SERVICE-001 | P1 | Done | SVC-01 | none | 2026-10-26 | `modules/service/src/capabilities_service_manager.py` routes unit lifecycle to the daemon aggregate; integration test and `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-SERVICE-002 | FR-SERVICE-002 | P1 | Done | SVC-01 | none | 2026-10-26 | `modules/service/src/capabilities_service_inspect.py` reports status/logs through the injected aggregate and renders help locally; `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 
 ## Scenario Evidence
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| `aa service start omniroute` starts only that unit and reports its state. | Manual | — | `aa service start omniroute` + `status` | `5556fd5` |
-| `aa service start all` with one missing unit reports that unit and still processes the other. | Gap | — | not asserted with a deliberately missing unit | — |
-| `aa service status` reports both units' states without changing anything. | Proxy | manual | `aa service status` + systemctl state unchanged | `5556fd5` |
-| Status with one daemon stopped reports it stopped and still prints the other row. | Gap | — | needs one unit stopped on purpose | — |
-| `aa service logs omniroute` tails that unit's log lines. | Manual | — | `aa service logs omniroute` on a host with the unit present | `5556fd5` |
-| `aa service logs` for an unknown target reports a clear error naming the valid targets. | Proxy | `modules/service/src/capabilities_service_manager.py` | `cmd_logs` unknown-target path | `f87a775` |
-| `aa service help` prints usage listing the valid actions and targets. | Proxy | manual | `python3 -m modules.root_cli_entry service help` | `f87a775` |
-| An unknown action such as `aa service bogus` prints usage and exits non-zero. | Proxy | manual | `python3 -m modules.root_cli_entry service bogus` → usage + non-zero | `f87a775` |
+| `aa service start` / `stop` / `restart` routes selected units through the daemon aggregate. | Automated | `modules/service/tests/integration_service.py` | `test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate` | `767b186` |
+| `aa service start all` with one missing unit still processes the other. | Gap | — | host unit fixture not available | not run |
+| `aa service status` and logs use the aggregate without writing service state. | Automated | `modules/service/tests/integration_service.py` | `test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate` | `767b186` |
+| Status with one daemon stopped reports it stopped while retaining the other row. | Gap | — | live unit state not controlled in this environment | not run |
+| `aa service logs` for an unknown target reports a clear error naming valid targets. | Proxy | `modules/service/src/capabilities_service_manager.py` | unknown-target path | `767b186` |
+| `aa service help` prints valid actions and targets. | Automated | `modules/service/tests/integration_service.py` | `test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate` | `767b186` |
+| An unknown action prints usage and exits non-zero. | Proxy | `modules/service/src/` | unknown-action path | `767b186` |
 
 Kind values: Automated, Proxy, Manual, Gap.
 
 ## Blockers
 
-None for docs/code. Live systemctl sweep (SVC-01) waits on a deliberate
-host run (start/status/logs with units present).
+None for code or automated tests. A host-level systemd smoke test is not
+performed by the automated suite because it would change user units.
 
 ## Dependencies
 
-Daemon feature provides the deploy assets and the daemon aggregate that
-`DaemonAggregateAdapter` implements (unit install/remove stay there).
+The daemon feature provides the deploy assets and aggregate that the service
+feature uses for unit install/remove and daemon lifecycle.
 
 ## Release Readiness
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Tests | QA | `compileall` + `check docs modules/service` → 0 findings at `f87a775`; live systemctl sweep outstanding |
-| Scenario evidence | QA | 8 of 8 scenarios mapped (4 Proxy, 2 Manual, 2 Gap) |
-| Docs | Done | FRD rewritten to the approved redesign plan; pair matches HOW-TO (SVC-03) |
+| Tests | Done | `./.venv/bin/python -m pytest modules/service -q` → 31 passed; Ruff clean at `767b18672a0c0abd92f7225f267478db8271c334` |
+| Scenario evidence | QA | Aggregate routing and inspect behavior are automated; host systemd side effects remain unrun |
+| Docs | Done | FR-SERVICE-001 and FR-SERVICE-002 map to explicit backlog rows |
 
 ## Deferred
 
-None.
+- Host-side systemd enable/remove checks require explicit operator authorization; automated tests use a recording aggregate.
 
 ## Change Log
 
 | Date | Change | By |
 |------|--------|----|
 | 2026-09-18 | FRD/BACKLOG pair created during WS-04 doc sweep at `5556fd5`. | @raka |
-| 2026-09-23 | FRD redesigned per approved plan: 4 FRs (adds FR-SERVICE-003 logs + FR-SERVICE-004 usage), Protocol API = single `execute(op, unit)`, aggregate keeps 6 methods, 8 scenarios; evidence reset to 8 rows; SVC-04 redesign row → Done at `f87a775`. | @raka |
+| 2026-09-23 | FRD redesigned to match the approved service aggregate and protocol shape. | @raka |
+| 2026-10-26 | Added per-FR backlog rows and exact evidence for SVC-01 through SVC-04; service suite passes 31 tests at `767b186`. | @raka |

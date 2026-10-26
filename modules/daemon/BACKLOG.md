@@ -3,74 +3,74 @@
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
-Last Updated: 2026-09-26
+Last Updated: 2026-10-26
 
 ## Current Condition
 
-- Done: `IDaemonProtocol` is a rich ABC — one named method per daemon
-  operation (`start` / `stop` / `restart` / `status` / `logs` /
-  `install_unit` / `remove_unit` / `unit_status`), each with its own typed
-  return; no `execute(op, …)` dispatch bag. `IDaemonAggregate` keeps the
-  single `execute(request) → response` entry point, and
-  `DaemonOrchestrator` adds `known()` beside it. 4 FRs, 8 scenarios.
-  Gate: `lint-arwaky-cli scan modules/daemon` → 0 violations;
-  `python3 -m pytest modules/daemon -q` → 69 passed at `6df9f21`; deploy
-  assets already shipped at `5556fd5`.
-- In Progress: none (redesign slice complete).
-- Blocked: none for docs/code; live Podman sweep still needs a container
-  host and root WS-05 (secret location).
-- Next Action: DMN-01 live sweep (start/status/auth on a Podman host);
-  keep `check docs modules/daemon` green as the pair evolves.
+- Done: `IDaemonProtocol` is a rich ABC with typed lifecycle, authorization,
+  and unit methods; `IDaemonAggregate.execute(request)` routes shared
+  operations, and `DaemonOrchestrator.known()` enumerates both supported
+  ids. The FRD now separates lifecycle, XDG authorization, enumeration, and
+  unit requirements. Gate: `./.venv/bin/python -m pytest modules/daemon -q`
+  → 71 passed and `./.venv/bin/ruff check modules/daemon --ignore E501` →
+  clean at `767b18672a0c0abd92f7225f267478db8271c334`.
+- In Progress: none.
+- Blocked: none for implementation or automated verification.
+- Next Action: none.
 
 ## Backlog
 
-| ID | Priority | State | Dependencies | Next Action | Updated |
-|---|---|---|---|---|---|
-| DMN-01 | P1 | QA | WS-05 | none | 2026-09-26 |
-| DMN-02 | P1 | Done | None | none | 2026-09-18 |
-| DMN-03 | P1 | Done | None | none | 2026-09-23 |
-| DMN-04 | P0 | Done | None | none | 2026-09-26 |
+| ID | FRD Ref | Priority | State | Dependencies | Next Action | Updated | Actual Condition |
+|---|---|---|---|---|---|---|---|
+| DMN-01 | FR-DAEMON-001 | P1 | Done | WS-05 | none | 2026-10-26 | Lifecycle behavior is implemented in `modules/daemon/src/capabilities_anytype_daemon.py`; Podman-absent status is exercised by `test_status_is_safe_without_podman`; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| DMN-02 | FR-DAEMON-002 | P1 | Done | None | none | 2026-10-26 | `cmd_auth_key` writes the secret through `agents_arwaky_config_dir()`; `modules/daemon/tests/unit_daemon.py::test_auth_key_writes_private_xdg_env_only` invokes the root `cmd_anytype` path and verifies mode `0600` plus no repo credential; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| DMN-03 | FR-DAEMON-003 | P1 | Done | None | none | 2026-10-26 | `DaemonOrchestrator.known()` is verified for `anytype` and `omniroute` in `modules/daemon/tests/integration_daemon.py::test_full_feature_wiring`; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| DMN-04 | FR-DAEMON-004 | P0 | Done | None | none | 2026-10-26 | Per-daemon systemd unit methods and aggregate routing are implemented in `modules/daemon/src/`; `modules/daemon/tests/integration_daemon.py` exercises install/remove/status routing; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-DAEMON-001 | FR-DAEMON-001 | P1 | Done | DMN-01 | none | 2026-10-26 | Lifecycle capability and aggregate paths are exercised by `modules/daemon/tests/integration_daemon.py`; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-DAEMON-002 | FR-DAEMON-002 | P1 | Done | DMN-02 | none | 2026-10-26 | XDG-only authorization persistence is implemented in `capabilities_anytype_daemon.py` and verified by `test_auth_key_writes_private_xdg_env_only`; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-DAEMON-003 | FR-DAEMON-003 | P1 | Done | DMN-03 | none | 2026-10-26 | Pure canonical id enumeration is implemented by `DaemonOrchestrator.known()` and verified by `test_full_feature_wiring`; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-DAEMON-004 | FR-DAEMON-004 | P0 | Done | DMN-04 | none | 2026-10-26 | Systemd user-unit operations use packaged deploy assets and the aggregate; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 
 ## Scenario Evidence
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| Starting an Anytype daemon that is already running reports it is already running and exits 0 without a second launch. | Manual | — | `aa anytype start` twice on a live Podman host | `5556fd5` |
-| Starting a daemon on a host without Podman falls back to native execution or reports a clear non-zero error with no traceback. | Gap | — | not yet asserted on a Podman-less host | — |
-| `auth-key` writes the generated key to XDG config only; the repo tree stays clean after the run. | Proxy | manual | `git status --porcelain` clean after `aa anytype auth-key` | `5556fd5` |
-| `auth-key` while the daemon is stopped reports the pre-condition and exits non-zero instead of crashing. | Manual | — | `aa anytype auth-key` with container stopped | `5556fd5` |
-| `list_known` returns both managed daemon ids (anytype and omniroute) independent of run state. | Proxy | manual | `DaemonOrchestrator.known()` → both ids | `6df9f21` |
-| Enumerating daemons on a host where neither daemon is running still reports both ids. | Proxy | manual | `known()` with daemons stopped → both ids | `6df9f21` |
-| `install_unit` for a daemon enables its user unit and a following `unit_status` reports it active. | Gap | — | not run on the user host (unit enable side effects) | — |
-| `remove_unit` deletes a daemon's user unit so a following `unit_status` reports it not installed. | Gap | — | not run on the user host (unit remove side effects) | — |
+| Starting an Anytype daemon that is already running reports it is already running and exits 0 without a second launch. | Manual | — | live Podman host start-twice check | not run in this environment |
+| A host without Podman reports safe status without a traceback. | Automated | `modules/daemon/tests/integration_daemon.py` | `test_status_is_safe_without_podman` | `767b186` |
+| `auth-key` writes the generated key to private XDG config only; the repo tree stays clean. | Automated | `modules/daemon/tests/unit_daemon.py` | `test_auth_key_writes_private_xdg_env_only` | `767b186` |
+| `auth-key` while the daemon is stopped reports the pre-condition and exits non-zero. | Manual | — | live Anytype host check | not run in this environment |
+| `known()` returns both managed daemon ids regardless of run state. | Automated | `modules/daemon/tests/integration_daemon.py` | `test_full_feature_wiring` | `767b186` |
+| Enumerating daemons with neither daemon running still reports both ids. | Automated | `modules/daemon/tests/integration_daemon.py` | `test_full_feature_wiring` | `767b186` |
+| `install_unit` enables a daemon user unit and a following status reports it active. | Gap | — | host-side systemd enablement not run | not run |
+| `remove_unit` deletes a daemon user unit so a following status reports it absent. | Gap | — | host-side systemd removal not run | not run |
 
 Kind values: Automated, Proxy, Manual, Gap.
 
 ## Blockers
 
-Live sweep (DMN-01) is blocked on a Podman host and root WS-05 (secret
-location decision).
+None for code or automated tests.
 
 ## Dependencies
 
-WS-05 (live `.env`/XDG config decision) gates secret-backed auth flows.
+WS-05 chooses the private XDG config home for secrets. The service feature
+uses the daemon aggregate for unit operations instead of duplicating them.
 
 ## Release Readiness
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Tests | QA | `python3 -m pytest modules/daemon -q` → 69 passed and `lint-arwaky-cli scan modules/daemon` → 0 violations at `6df9f21`; live Podman sweep outstanding |
-| Scenario evidence | QA | 8 of 8 scenarios mapped (3 Proxy, 2 Manual, 3 Gap) |
-| Docs | Done | FRD rewritten to the approved redesign plan; pair matches HOW-TO (DMN-03) |
+| Tests | Done | `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed; Ruff clean at `767b18672a0c0abd92f7225f267478db8271c334` |
+| Scenario evidence | QA | XDG authorization, enumeration, and Podman-absent status are automated; host systemd side-effect checks remain explicitly unrun |
+| Docs | Done | FRD defines FR-DAEMON-001 through FR-DAEMON-004 and references this backlog |
 
 ## Deferred
 
-None.
+- Live systemd enable/remove checks require a host where user-unit changes are explicitly authorized; the automated suite avoids host-side effects.
 
 ## Change Log
 
 | Date | Change | By |
 |------|--------|----|
 | 2026-09-18 | FRD/BACKLOG pair created during WS-04 doc sweep at `5556fd5`. | @raka |
-| 2026-09-26 | Updated Current Condition, DMN-01/DMN-04 rows, scenario evidence, Release Readiness and Change Log to reflect `IDaemonProtocol` rich per-operation shape (start/stop/restart/status/logs/install_unit/remove_unit/unit_status), single-`execute` aggregate, 69 tests at `6df9f21`, 0 violations. | @raka |
-| 2026-09-23 | FRD redesigned per approved plan: 4 FRs (adds FR-DAEMON-003 enum + FR-DAEMON-004 unit ops), Protocol API = single `execute`, aggregate expands to 9 methods, 8 scenarios; evidence reset to 8 rows; DMN-04 redesign row → Done at `f87a775`. | @raka |
+| 2026-09-26 | Rich per-operation protocol and aggregate described; 69 tests at `6df9f21`. | @raka |
+| 2026-10-26 | Split the FRD into four requirements; added FRD-ref backlog rows and commit-backed evidence; 71 daemon tests pass at `767b186`. | @raka |

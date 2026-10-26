@@ -12,9 +12,6 @@ from __future__ import annotations
 
 import subprocess
 
-from modules.shared.src.common.taxonomy_common_vo import (
-    config_home,
-)
 from modules.shared.src.common.utility_mcp_manifest import load_mcp_manifest
 from modules.shared.src.common.utility_paths_resolver import repo_root
 from modules.shared.src.mcp.contract_mcp_protocol import IMcpListProtocol
@@ -41,20 +38,15 @@ class McpConfigLister(IMcpListProtocol):
     def list_servers(self) -> McpServerInfos:
         """MCP-enabled tools from the manifest (read-only)."""
         manifest = load_mcp_manifest(self._root)
-        infos = []
-        for tool_id, tool in manifest.items():
-            if tool.get("mcp"):
-                env_name = tool.get("env") or tool_id
-                env_path = config_home() / f".{env_name}.env"
-                has_env = env_path.is_file()
-                infos.append(
-                    McpServerInfo(
-                        id=tool_id,
-                        name=tool.get("name", tool_id),
-                        has_env=has_env,
-                        requires_auth=tool.get("auth", False),
-                    )
-                )
+        infos = [
+            McpServerInfo(
+                id=tool_id,
+                category=str(tool.get("category", "")),
+                description=str(tool.get("description", "")),
+            )
+            for tool_id, tool in manifest.items()
+            if tool.get("mcp")
+        ]
         return McpServerInfos(tuple(infos))
 
     def show_server(self, server_id: McpServerId | None = None) -> ExitCode:

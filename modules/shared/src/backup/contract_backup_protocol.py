@@ -41,6 +41,7 @@ class IBackupControlProtocol(ABC):
         ...
 
 
+
 class IBackupInspectProtocol(ABC):
     """Capability contract for read-only store ops: list, status, help."""
 

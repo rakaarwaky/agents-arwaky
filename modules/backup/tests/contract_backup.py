@@ -61,7 +61,7 @@ def test_backup_orchestrator_dispatches_to_tar():
     )
 
     tar = MagicMock()
-    tar.backup.return_value = MagicMock(success=True, tool_id="omniroute", archive="omniroute.tar.gz", uploaded=False, message="ok")
+    tar.backup.return_value = MagicMock(success=True, tool_id="omniroute", archive="omniroute.tar.gz", message="ok")
     tar.restore.return_value = MagicMock(success=True, tool_id="omniroute", archive="omniroute.tar.gz", message="ok")
     inspect_cap = MagicMock()
     inspect_cap.list_archives.return_value = MagicMock(success=True, tool_id="", result=[])

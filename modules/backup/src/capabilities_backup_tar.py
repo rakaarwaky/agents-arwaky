@@ -1,12 +1,7 @@
-"""Tar backup gateway — EXACT port of tools/backup/backup_manager.py.
+"""Tar backup capability for local archives and restore.
 
-The original script's logic (tar_dir, untar, backup_tool, restore_tool,
-cmd_backup, cmd_restore, cmd_list, cmd_help, main) is kept exactly as
-written, with only the module-level constants relocated into a class
-(``TarBackupGateway``) to satisfy the AES capability layer and the import
-paths swapped to the AES shared modules. The original script's
-``main(argv)`` CLI entry point is kept as the module-level function
-``main`` at the bottom of this file.
+The module retains the original script's ``main(argv)`` CLI entry point and
+tar/restore helpers while routing aggregate calls through ``TarBackupGateway``.
 """
 from __future__ import annotations
 
@@ -37,22 +32,13 @@ from modules.shared.src.common.taxonomy_common_vo import data_home
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class TarBackupGateway(IBackupControlProtocol):
-    """tar/untar backup & restore with progress spinner.
-
-    Thin AES capability wrapper around the unchanged original script
-    functions above; the original ``backup_tool`` / ``restore_tool`` /
-    ``cmd_*`` functions remain the source of truth and are simply
-    delegated to, preserving their exact behaviour (return codes,
-    print statements, edge cases).
-    """
+    """tar/untar backup & restore with progress reporting."""
 
     # ─── Block 2: Protocol Method Implementation ──────────────
 
     def backup(self, tool: BackupToolQuery, dest: BackupDestination = DEST_DEFAULT) -> BackupResult:
-        """Create a tar.gz archive of *tool* data, optionally uploading to Drive."""
-        rc = cmd_backup([str(tool)] + ([str(dest)] if str(dest) else []))
-        archive = f"{tool}-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}.tar.gz"
-        return BackupResult(rc == 0, str(tool), archive, False, "tar backup completed" if rc == 0 else "tar backup failed")
+        """Create a local tar.gz archive in the requested destination."""
+        return backup_tool_result(str(tool), str(dest))
 
     def restore(self, tool: BackupToolQuery, archive: BackupArchive = ARCHIVE_DEFAULT) -> RestoreResult:
         """Restore *tool* data from a local tar.gz *archive*."""
@@ -115,10 +101,23 @@ def log_warn(msg):
 
 
 def tar_dir(src: Path, dest: Path):
-    """Archive *src* directory into a gzip-compressed tar at *dest*."""
+    """Archive *src* directory into a new gzip-compressed tar at *dest*."""
     file_count = sum(1 for _ in src.rglob("*") if _.is_file())
-    with _Progress(f"Archiving {src.name} ({file_count} files)..."), tarfile.open(dest, "w:gz") as tar:
-        tar.add(src, arcname=src.name)
+    created = False
+    try:
+        with (
+            _Progress(f"Archiving {src.name} ({file_count} files)..."),
+            tarfile.open(dest, "x:gz") as tar,
+        ):
+            created = True
+            tar.add(src, arcname=src.name)
+    except BaseException:
+        if created:
+            try:
+                dest.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise
 
 
 def untar(src: Path, dest: Path):
@@ -156,21 +155,59 @@ def untar(src: Path, dest: Path):
             tar.extractall(dest)
 
 
-def backup_tool(tool: str, dest: str = ""):
-    """Back up *tool* data to BACKUP_STORE."""
-    store = BACKUP_STORE
-    store.mkdir(parents=True, exist_ok=True)
+def backup_tool_result(tool: str, dest: str = "") -> BackupResult:
+    """Create a local archive for *tool* (or all registered tools)."""
+    if tool == "all":
+        results = [backup_tool_result(item, dest) for item in TOOL_DATA]
+        failures = [result.tool_id for result in results if not result.success]
+        archives = [result.archive for result in results if result.archive]
+        message = (
+            f"Backed up {len(results) - len(failures)} of {len(results)} tools"
+            if not failures
+            else f"Backup failed for: {', '.join(failures)}"
+        )
+        return BackupResult(
+            success=not failures,
+            tool_id="all",
+            archive=";".join(archives),
+            message=message,
+        )
+
     subdir = TOOL_DATA.get(tool, tool)
     src = data_home() / subdir
     if not src.exists():
-        print(f"  ⚠ No data for {tool} at {src}, skipping.")
-        return 0
-    ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
-    archive = store / f"{tool}-{ts}.tar.gz"
+        message = f"No data for {tool} at {src}; nothing to back up."
+        print(f"  ⚠ {message}")
+        return BackupResult(True, tool, "", message)
+
+    store = BACKUP_STORE if not dest else Path(dest).expanduser()
+    try:
+        store.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        message = f"Could not create backup destination {store}: {exc}"
+        print(f"  ✗ {message}", file=sys.stderr)
+        return BackupResult(False, tool, "", message)
+
+    timestamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S-%f")
+    archive = store / f"{tool}-{timestamp}.tar.gz"
+    suffix = 1
+    while archive.exists():
+        archive = store / f"{tool}-{timestamp}-{suffix}.tar.gz"
+        suffix += 1
     log_info(f"Backing up {tool} -> {archive}")
-    tar_dir(src, archive)
-    log_ok(f"{tool} backed up.")
-    return 0
+    try:
+        tar_dir(src, archive)
+    except (OSError, tarfile.TarError) as exc:
+        message = f"Could not create backup archive {archive}: {exc}"
+        print(f"  ✗ {message}", file=sys.stderr)
+        return BackupResult(False, tool, str(archive), message)
+    log_ok(f"{tool} backed up locally.")
+    return BackupResult(True, tool, str(archive), "local backup completed")
+
+
+def backup_tool(tool: str, dest: str = "") -> int:
+    """Back up *tool* to the local store and return its exit code."""
+    return 0 if backup_tool_result(tool, dest).success else 1
 
 
 def restore_tool(tool: str, src: str):
@@ -224,14 +261,15 @@ def restore_tool(tool: str, src: str):
 
 
 def cmd_backup(argv):
-    """Run backup for one or all tools."""
+    """Run backup for one or all tools to the local store or destination dir."""
     tool = argv[0] if argv else "all"
     if tool == "list":
         return cmd_list()
+    dest = argv[1] if len(argv) > 1 else ""
     tools = list(TOOL_DATA.keys()) if tool == "all" else [tool]
     rc = 0
     for t in tools:
-        if backup_tool(t) not in (0, None):
+        if backup_tool(t, dest) not in (0, None):
             rc = 1
     return rc
 
@@ -273,7 +311,7 @@ def cmd_list():
 
 def cmd_help():
     """Print backup usage information to stdout."""
-    print("Usage: aa backup <tool|all> [dest|gdrive]")
+    print("Usage: aa backup <tool|all> [destination-dir]")
     print("       aa restore <tool|all> <archive.tar.gz>")
     print("       aa backup list")
     print(f"Tools: {', '.join(TOOL_DATA)}")

@@ -7,22 +7,23 @@
 
 ## System Overview
 
-The service feature drives systemd units for the managed daemons. One
-protocol method — `execute(op, unit)` — covers drive, status, logs, and
-usage; the aggregate (`status`, `start`, `stop`, `restart`, `logs`, `help`)
-exposes each path to the CLI, each target naming `omniroute`, `anytype`, or
-`all`. Unit definitions are deploy assets owned by the daemon feature —
-this module reaches unit install/remove through an integration to the daemon
-aggregate and otherwise only drives the host service manager. Flow:
-`aa service <action> [target]` → service surface → orchestrator aggregate →
-service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
+The service feature exposes typed control methods (`start`, `stop`,
+`restart`) and inspection methods (`status`, `logs`, `help`) through two
+capability protocols. `ServiceOrchestrator.execute(ServiceRequest)` is the
+single aggregate entry point; it dispatches to those methods. Lifecycle,
+status, and log operations are routed through the injected daemon aggregate;
+help prints local usage. Daemon managers own the host service operations and
+deploy assets. Flow: `aa service <action> [target]` → service surface →
+`ServiceOrchestrator.execute` → service capability → daemon aggregate (where
+needed).
 
 ## Functional Requirements
 
 ### FR-SERVICE-001: Drive daemon systemd units
 
-- **Description**: start, stop, and restart act on the named target or all
-  managed daemons under the single protocol method `execute`.
+- **Description**: the control capability's typed `start`, `stop`, and
+  `restart` methods act on the named target or all managed daemons; the
+  service aggregate dispatches the corresponding request.
 - **Input**: target from the aggregate — `omniroute`, `anytype`, or `all`
   (default `all`).
 - **Output**: `ExitCode`; one reported line per driven unit.
@@ -37,11 +38,10 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 
 ### FR-SERVICE-002: Inspect, tail logs, and show usage (read-only)
 
-- **Description**: status reports each managed daemon's running/stopped
-  state without side effects; logs tails the journal (or log file) of one
-  target daemon; help prints the CLI usage line and the valid
-  action/target set, and an unknown action routes here instead of
-  crashing — read-only inspection over the daemon service state.
+- **Description**: the inspection capability's typed `status` and `logs`
+  methods query the daemon aggregate without side effects; `help` prints the
+  CLI usage line and valid action/target set. The service aggregate dispatches
+  each request to the matching inspection method.
 - **Input**: none (status, help) / target — `omniroute` (default) or
   `anytype` (logs).
 - **Output**: `ExitCode`; a state table on stdout (status); log lines on
@@ -80,19 +80,14 @@ service capability (`execute`) → daemon aggregate (lifecycle) / systemctl.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `status` | — | `ExitCode` + table | failed unit → non-zero | unit states | Read-only status of all units |
-| `start` | `target: ServiceTarget='all'` | `ExitCode` | non-zero + unit error | — | Start one target or all |
-| `stop` | `target: ServiceTarget='all'` | `ExitCode` | non-zero + unit error | — | Stop one target or all |
-| `restart` | `target: ServiceTarget='all'` | `ExitCode` | non-zero | — | Restart one target or all |
-| `logs` | `target: ServiceTarget='omniroute'` | `ExitCode` | non-zero | log lines | Tail logs for a unit |
-| `help` | — | `ExitCode` + usage | — | — | Print CLI usage and valid targets |
+| `execute(request)` | `ServiceRequest(op, target?, logs_target?)` | `ServiceResponse` (`ExitCode`) | unknown op → `ValueError`; operation failures → non-zero | op-dependent status/log output | Single aggregate entry point; dispatches to the matching typed service capability method |
 
 ## Integration Points
 
 | System | Direction | Purpose | Failure mode |
 | -------- | --------- | --------- | ------------ |
-| systemd (systemctl) | out | the control plane for the units | no systemd → clear top-level failure |
-| daemon aggregate | out | unit install/remove and per-daemon lifecycle (FR-SERVICE-001 fan-out) | integration unavailable → non-zero |
+| systemd (systemctl) | out via daemon managers | host control plane for managed units | no systemd → clear top-level failure |
+| daemon aggregate | out | per-daemon lifecycle, status, and logs for the service targets | integration unavailable → non-zero |
 | daemon deploy assets (units, container definition) | in | the artifacts driven | missing unit → per-target row |
 | root CLI (`aa service`) | in | routes CLI verbs to the aggregate | unknown action → usage + non-zero |
 

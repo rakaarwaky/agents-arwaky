@@ -80,65 +80,83 @@ class TestServiceOrchestrator:
         assert orch is not None
 
     def test_execute_status_delegates(self):
-        """UT-SERVICE-010: execute dispatches status to inspect."""
+        """UT-SERVICE-010: execute dispatches status to inspect without host I/O."""
+        from unittest.mock import MagicMock
+
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_inspect import ServiceInspect
-        from modules.service.src.capabilities_service_manager import ServiceControl
         from modules.shared.src.service.taxonomy_service_vo import (
             ServiceOp,
             ServiceRequest,
         )
 
-        control = ServiceControl()
-        inspect_cap = ServiceInspect()
+        control = MagicMock()
+        inspect_cap = MagicMock()
+        inspect_cap.status.return_value = 0
         orch = ServiceOrchestrator(control, inspect_cap)
+
         result = orch.execute(ServiceRequest(ServiceOp("status")))
-        assert result is not None
+
+        inspect_cap.status.assert_called_once_with()
+        control.start.assert_not_called()
+        assert result == 0
 
     def test_execute_start_delegates(self):
-        """UT-SERVICE-011: execute dispatches start to control."""
+        """UT-SERVICE-011: execute dispatches start to control without host I/O."""
+        from unittest.mock import MagicMock
+
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_inspect import ServiceInspect
-        from modules.service.src.capabilities_service_manager import ServiceControl
         from modules.shared.src.service.taxonomy_service_vo import (
             ServiceOp,
             ServiceRequest,
         )
 
-        control = ServiceControl()
-        inspect_cap = ServiceInspect()
+        control = MagicMock()
+        control.start.return_value = 0
+        inspect_cap = MagicMock()
         orch = ServiceOrchestrator(control, inspect_cap)
+
         result = orch.execute(ServiceRequest(ServiceOp("start")))
-        assert result is not None
+
+        control.start.assert_called_once()
+        inspect_cap.status.assert_not_called()
+        assert result == 0
 
     def test_execute_stop_delegates(self):
-        """UT-SERVICE-012: execute dispatches stop to control."""
+        """UT-SERVICE-012: execute dispatches stop to control without host I/O."""
+        from unittest.mock import MagicMock
+
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_inspect import ServiceInspect
-        from modules.service.src.capabilities_service_manager import ServiceControl
         from modules.shared.src.service.taxonomy_service_vo import (
             ServiceOp,
             ServiceRequest,
         )
 
-        control = ServiceControl()
-        inspect_cap = ServiceInspect()
+        control = MagicMock()
+        control.stop.return_value = 0
+        inspect_cap = MagicMock()
         orch = ServiceOrchestrator(control, inspect_cap)
+
         result = orch.execute(ServiceRequest(ServiceOp("stop")))
-        assert result is not None
+
+        control.stop.assert_called_once()
+        assert result == 0
 
     def test_execute_restart_delegates(self):
-        """UT-SERVICE-013: execute dispatches restart to control."""
+        """UT-SERVICE-013: execute dispatches restart to control without host I/O."""
+        from unittest.mock import MagicMock
+
         from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
-        from modules.service.src.capabilities_service_inspect import ServiceInspect
-        from modules.service.src.capabilities_service_manager import ServiceControl
         from modules.shared.src.service.taxonomy_service_vo import (
             ServiceOp,
             ServiceRequest,
         )
 
-        control = ServiceControl()
-        inspect_cap = ServiceInspect()
+        control = MagicMock()
+        control.restart.return_value = 0
+        inspect_cap = MagicMock()
         orch = ServiceOrchestrator(control, inspect_cap)
+
         result = orch.execute(ServiceRequest(ServiceOp("restart")))
-        assert result is not None
+
+        control.restart.assert_called_once()
+        assert result == 0

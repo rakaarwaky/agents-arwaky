@@ -1,4 +1,4 @@
-"""Backup feature package — tar + Google Drive backup/restore for tool data.
+"""Backup feature package — local tar backup/restore for tool data.
 
 Public re-exports: orchestrator + container.
 """

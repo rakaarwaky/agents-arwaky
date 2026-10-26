@@ -17,21 +17,28 @@ from modules.shared.src.backup.taxonomy_backup_vo import (
 )
 
 
+def _exit_code(response: object) -> int:
+    """Translate a typed backup outcome to the process exit code."""
+    return 0 if getattr(response, "success", False) else 1
+
+
 def cmd_backup(args: list[str], orch: IBackupAggregate) -> int:
-    """aa backup <tool|all> [dest|gdrive] | aa backup list | aa backup status."""
+    """aa backup <tool|all> [destination-dir] | aa backup list | aa backup status."""
     # The root entry prepends the command noun; strip it so args[0] is the
     # first user token (tool / list / status / help) for both call shapes.
     if args and args[0] == "backup":
         args = args[1:]
     if not args or args[0] in ("help", "-h", "--help"):
-        return int(orch.execute(BackupRequest(BackupOp("help"))))
+        return _exit_code(orch.execute(BackupRequest(BackupOp("help"))))
     if args[0] == "list":
-        return int(orch.execute(BackupRequest(BackupOp("list"))))
+        return _exit_code(orch.execute(BackupRequest(BackupOp("list"))))
     if args[0] == "status":
-        return int(orch.execute(BackupRequest(BackupOp("status"))))
+        return _exit_code(orch.execute(BackupRequest(BackupOp("status"))))
     tool = BackupToolQuery(args[0])
     dest = BackupDestination(args[1] if len(args) > 1 else "")
-    return int(orch.execute(BackupRequest(BackupOp("backup"), tool=tool, dest=dest)))
+    return _exit_code(
+        orch.execute(BackupRequest(BackupOp("backup"), tool=tool, dest=dest))
+    )
 
 
 def cmd_restore(args: list[str], orch: IBackupAggregate) -> int:
@@ -39,7 +46,9 @@ def cmd_restore(args: list[str], orch: IBackupAggregate) -> int:
     if args and args[0] == "restore":
         args = args[1:]
     if not args or args[0] in ("help", "-h", "--help"):
-        return int(orch.execute(BackupRequest(BackupOp("help"))))
+        return _exit_code(orch.execute(BackupRequest(BackupOp("help"))))
     tool = BackupToolQuery(args[0])
     archive = BackupArchive(args[1] if len(args) > 1 else "")
-    return int(orch.execute(BackupRequest(BackupOp("restore"), tool=tool, archive=archive)))
+    return _exit_code(
+        orch.execute(BackupRequest(BackupOp("restore"), tool=tool, archive=archive))
+    )

@@ -32,6 +32,101 @@ def test_config_load_save_roundtrip_json():
         path.unlink(missing_ok=True)
 
 
+def test_config_roundtrip_jsonc_byte_identical(tmp_path):
+    """CFG-01: saving an unchanged JSONC document preserves every byte."""
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+
+    original = (
+        b"// keep this heading and formatting\n"
+        b"{\n"
+        b'  "mcpServers": {\n'
+        b'    "alpha": {"command": "node", "args": ["serve"]}\n'
+        b"  }\n"
+        b"}\n"
+    )
+    path = tmp_path / "settings.jsonc"
+    path.write_bytes(original)
+
+    writer = ConfigWriter()
+    data, fmt = writer.load_file(path)
+    assert fmt == "jsonc"
+    assert writer.save_file(path, data, fmt) is True
+    assert path.read_bytes() == original
+
+
+def test_config_roundtrip_toml_byte_identical(tmp_path):
+    """CFG-01: saving an unchanged TOML document preserves comments and bytes."""
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+
+    original = (
+        b"# provider configuration\n"
+        b"[servers.alpha]\n"
+        b'command = "node"\n'
+        b'args = ["serve", "--mcp"]\n'
+    )
+    path = tmp_path / "settings.toml"
+    path.write_bytes(original)
+
+    writer = ConfigWriter()
+    data, fmt = writer.load_file(path)
+    assert fmt == "toml"
+    assert writer.save_file(path, data, fmt) is True
+    assert path.read_bytes() == original
+
+
+def test_config_dry_run_remove_purity(tmp_path):
+    """CFG-01: aggregate dry-run reports removals without changing file bytes."""
+    from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+    from modules.shared.src.common.taxonomy_common_vo import (
+        ConfigKeys,
+        ConfigOp,
+        ConfigRequest,
+    )
+
+    path = tmp_path / "servers.json"
+    original = b'{\n  "mcpServers": {"alpha": {}, "beta": {}}\n}\n'
+    path.write_bytes(original)
+    aggregate = ConfigOrchestrator(ConfigWriter(), ConfigModifier())
+
+    result = aggregate.execute(
+        ConfigRequest(
+            ConfigOp("remove_entries"),
+            path=path,
+            keys=ConfigKeys(["alpha"]),
+            dry_run=True,
+        )
+    )
+
+    assert result.success is True
+    assert result.data == ["alpha"]
+    assert path.read_bytes() == original
+
+
+def test_config_cli_live_execute(tmp_path, capsys):
+    """CFG-04: inspect and load CLI verbs execute through the aggregate."""
+    from modules.cli.src.surface_config_command import ConfigCommand, cmd_config
+    from modules.config.src.agent_config_orchestrator import ConfigOrchestrator
+    from modules.config.src.capabilities_config_modifier import ConfigModifier
+    from modules.config.src.capabilities_config_writer import ConfigWriter
+
+    path = tmp_path / "client.json"
+    path.write_text('{"mcpServers": {"alpha": {"command": "node"}}}\n', encoding="utf-8")
+    aggregate = ConfigOrchestrator(ConfigWriter(), ConfigModifier())
+    command = ConfigCommand(aggregate)
+
+    assert cmd_config(["inspect", str(path)], command) == 0
+    inspected = capsys.readouterr().out
+    assert '"format": "json"' in inspected
+    assert '"alpha"' in inspected
+
+    assert cmd_config(["load", str(path)], command) == 0
+    loaded = capsys.readouterr().out
+    assert '"format": "json"' in loaded
+    assert '"command": "node"' in loaded
+
+
 def test_config_detect_format_various():
     """IT-CONFIG-002: detect_format identifies JSON, TOML, YAML correctly."""
     from modules.config.src.capabilities_config_writer import ConfigWriter

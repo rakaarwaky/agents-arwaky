@@ -35,7 +35,6 @@ from modules.shared.src.daemon.taxonomy_daemon_constant import (
     IMAGE_NAME,
     LOCAL_BIN,
     PID_FILE,
-    ROOT,
     SHARE_DIR,
     UNIT_DIR,
 )
@@ -100,19 +99,22 @@ class AnytypeDaemonManager(IDaemonProtocol):
         """Probe container state and API readiness into a DaemonStatus."""
         # Probe once, print once — the legacy cmd_status path re-probed the
         # API up to three times with backoff and stalled `aa anytype status`.
-        running = container_running()
-        exists = container_exists() if not running else True
+        podman_available = has_podman()
+        running = container_running() if podman_available else False
+        exists = container_exists() if podman_available and not running else running
         ready = api_ready(timeout=3)
         print("==========================================")
         print(" Anytype Headless Daemon Status")
         print("==========================================")
-        if has_podman():
+        if podman_available:
             if running:
                 print(" Container: RUNNING")
             elif exists:
                 print(" Container: STOPPED (exists)")
             else:
                 print(" Container: NOT FOUND")
+        else:
+            print(" Container: UNAVAILABLE (Podman is not installed)")
         if ready:
             print(f" API: OK (http://127.0.0.1:{PORT})")
         else:
@@ -165,16 +167,26 @@ def has_podman():
 
 def container_running():
     """True when the Anytype daemon container is currently up."""
-    return out(
-        ["podman", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME]
-    ) == "true"
+    if not has_podman():
+        return False
+    try:
+        return out(
+            ["podman", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME]
+        ) == "true"
+    except OSError:
+        return False
 
 
 def container_exists():
     """True when a container with CONTAINER_NAME exists (running or stopped)."""
-    return out(
-        ["podman", "ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]
-    ) == CONTAINER_NAME
+    if not has_podman():
+        return False
+    try:
+        return out(
+            ["podman", "ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]
+        ) == CONTAINER_NAME
+    except OSError:
+        return False
 
 
 def api_ready(timeout=90):
@@ -204,12 +216,17 @@ def api_ready(timeout=90):
 
 def image_exists() -> bool:
     """True when the Anytype daemon Podman image is already pulled."""
-    return subprocess.run(
-        ["podman", "image", "exists", IMAGE_NAME],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        check=False,
-    ).returncode == 0
+    if not has_podman():
+        return False
+    try:
+        return subprocess.run(
+            ["podman", "image", "exists", IMAGE_NAME],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode == 0
+    except OSError:
+        return False
 
 
 def build_image():
@@ -420,15 +437,12 @@ def cmd_auth_key(name="arwaky-agent-key"):
         print("Error: could not extract API key from daemon output.", file=sys.stderr)
         return 1
 
-    # Update .env (canonical $XDG_CONFIG_HOME/agents-arwaky + repo config placeholder)
-    env_candidates = [
-        agents_arwaky_config_dir() / "anytype.env",
-        ROOT / "config/anytype.env",
-    ]
-    for env_path in env_candidates:
-        env_path.parent.mkdir(parents=True, exist_ok=True)
-        update_env_file(env_path, "ANYTYPE_API_KEY", api_key)
-        print(f"  \u2713 Updated ANYTYPE_API_KEY in {env_path}")
+    # Live credentials have one canonical home outside the repository. The
+    # tracked config/anytype.env.example is a template only and is never a
+    # destination for generated secrets.
+    env_path = agents_arwaky_config_dir() / "anytype.env"
+    update_env_file(env_path, "ANYTYPE_API_KEY", api_key)
+    print(f"  \u2713 Updated ANYTYPE_API_KEY in {env_path}")
 
     print(f"  \u2713 API key generated: {name}")
     return 0

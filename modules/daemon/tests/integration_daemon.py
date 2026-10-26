@@ -219,6 +219,22 @@ def test_full_feature_wiring():
     assert result.status is not None
 
 
+def test_status_is_safe_without_podman(monkeypatch, capsys):
+    """Daemon status reports unavailable instead of raising if Podman is absent."""
+    from modules.daemon.src import capabilities_anytype_daemon as anytype
+    from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonStatus
+
+    monkeypatch.setattr(anytype, "has_podman", lambda: False)
+    monkeypatch.setattr(anytype, "api_ready", lambda timeout=90: False)
+
+    status = anytype.AnytypeDaemonManager().status()
+
+    assert isinstance(status, DaemonStatus)
+    assert status.container_state == "not-found"
+    assert status.ok is False
+    assert "Podman is not installed" in capsys.readouterr().out
+
+
 def test_surface_command_integration():
     """IT-DAEMON-013: DaemonAction integrates with DaemonContainer via execute."""
     from modules.cli.src.surface_daemon_command import DaemonAction

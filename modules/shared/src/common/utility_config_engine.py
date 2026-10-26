@@ -253,8 +253,19 @@ def load_file(path: Path):
 
 def save_file(path: Path, data, fmt: str, preserve_comments: bool = True) -> bool:
     """Write *data* back to *path* preserving its format. Returns True on success."""
-    """Write dict back preserving format. Returns True on success."""
     try:
+        # A load/save round trip with no semantic changes must be a true no-op.
+        # Besides avoiding needless disk writes, this is the only reliable way
+        # to preserve comments, whitespace, and key order for JSONC/TOML without
+        # introducing format-specific concrete-syntax trees.
+        if path.is_file():
+            try:
+                current, current_fmt = load_file(path)
+            except (OSError, ValueError, TypeError):
+                current, current_fmt = None, None
+            if current_fmt == fmt and current == data:
+                return True
+
         if fmt == "json":
             path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         elif fmt == "jsonc":
