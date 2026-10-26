@@ -9,8 +9,9 @@ State / Health: vocabulary below. Last Updated: 2026-10-26
   regressions are covered by feature suites and documented in per-feature
   backlogs.
 - In Progress: none at workspace level.
+- In Review: PR #159 covers the code regressions, local-only backup scope, and issue evidence updates.
 - Blocked: none.
-- Next: none.
+- Next: review and merge PR #159.
 
 ## State Definitions
 
@@ -70,7 +71,7 @@ One table: every feature. Feature detail stays in each feature's BACKLOG.
 
 | Branch | Backlog IDs | State |
 |--------|-------------|-------|
-| `arena/640ff78a-agents-arwaky` | WS-05, WS-06, feature verification and evidence updates | In Progress |
+| `arena/640ff78a-agents-arwaky` | WS-05, WS-06, feature evidence updates; PR #159 | In Review |
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|----------|-------|-------------------|-------|--------------|---------|
