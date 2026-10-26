@@ -1,9 +1,12 @@
 """Unit tests for modules/backup — test individual functions and methods."""
 from __future__ import annotations
 
+import tarfile
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 from modules.shared.src.backup.taxonomy_backup_vo import (
     BackupOp,
@@ -119,3 +122,68 @@ class TestBackupConstants:
 
         assert BACKUP_STORE is not None
         assert isinstance(BACKUP_STORE, Path)
+
+class TestTarBackupArchiveSafety:
+    """Regression tests for non-overwrite and partial-archive guarantees."""
+
+    def test_tar_dir_does_not_overwrite_existing_archive(self, tmp_path):
+        import modules.backup.src.capabilities_backup_tar as backup_module
+
+        source = tmp_path / "source"
+        source.mkdir()
+        (source / "state.txt").write_text("new", encoding="utf-8")
+        archive = tmp_path / "existing.tar.gz"
+        archive.write_bytes(b"preserve existing content")
+
+        with pytest.raises(FileExistsError):
+            backup_module.tar_dir(source, archive)
+        assert archive.read_bytes() == b"preserve existing content"
+
+    def test_tar_dir_removes_partial_archive_on_failure(self, tmp_path, monkeypatch):
+        import modules.backup.src.capabilities_backup_tar as backup_module
+
+        source = tmp_path / "source"
+        source.mkdir()
+        (source / "state.txt").write_text("new", encoding="utf-8")
+        archive = tmp_path / "partial.tar.gz"
+
+        class FailingTar:
+            def __enter__(self):
+                archive.write_bytes(b"partial")
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def add(self, *_args, **_kwargs):
+                raise tarfile.TarError("simulated write failure")
+
+        monkeypatch.setattr(backup_module.tarfile, "open", lambda *_args, **_kwargs: FailingTar())
+        with pytest.raises(tarfile.TarError, match="simulated write failure"):
+            backup_module.tar_dir(source, archive)
+        assert not archive.exists()
+
+    def test_archive_timestamp_collisions_get_unique_names(self, tmp_path, monkeypatch):
+        import modules.backup.src.capabilities_backup_tar as backup_module
+
+        source = tmp_path / "data" / "scratch"
+        source.mkdir(parents=True)
+        (source / "state.txt").write_text("state", encoding="utf-8")
+        store = tmp_path / "backups"
+        monkeypatch.setattr(backup_module, "data_home", lambda: tmp_path / "data")
+        monkeypatch.setattr(backup_module, "BACKUP_STORE", store)
+
+        class FixedDateTime:
+            @staticmethod
+            def now(_timezone):
+                from datetime import datetime as RealDateTime
+
+                return RealDateTime(2026, 10, 26, 12, 0, 0)
+
+        monkeypatch.setattr(backup_module, "datetime", FixedDateTime)
+        first = backup_module.backup_tool_result("scratch")
+        second = backup_module.backup_tool_result("scratch")
+
+        assert first.success and second.success
+        assert first.archive != second.archive
+        assert Path(first.archive).is_file() and Path(second.archive).is_file()

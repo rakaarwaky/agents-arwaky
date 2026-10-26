@@ -255,3 +255,41 @@ class TestDaemonOrchestrator:
         with patch.object(orch._anytype, "start", return_value=0) as mock_start:
             orch.execute(DaemonRequest(DaemonOp("start"), name=DaemonName("anytype")))
             mock_start.assert_called_once()
+
+
+def test_auth_key_writes_private_xdg_env_only(tmp_path, monkeypatch):
+    """WS-05: auth-key uses the private XDG config path, not repo config."""
+    from types import SimpleNamespace
+
+    from modules.daemon.src import capabilities_anytype_daemon as anytype
+    from modules.shared.src.common.utility_envfile_parser import parse_env_file
+
+    local_bin = tmp_path / "bin"
+    local_bin.mkdir()
+    (local_bin / "anytype").write_text("placeholder", encoding="utf-8")
+    monkeypatch.setattr(anytype, "LOCAL_BIN", local_bin)
+    monkeypatch.setattr(anytype, "has_podman", lambda: False)
+
+    repo = tmp_path / "repo"
+    (repo / "config").mkdir(parents=True)
+    xdg_config = tmp_path / "xdg-config" / "agents-arwaky"
+    monkeypatch.setattr(anytype, "agents_arwaky_config_dir", lambda: xdg_config)
+
+    secret = "a" * 32
+    monkeypatch.setattr(
+        anytype.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=0,
+            stdout=f"API key: {secret}\n",
+            stderr="",
+        ),
+    )
+
+    from modules.root_cli_entry import cmd_anytype
+
+    assert cmd_anytype(["auth-key", "test-agent"]) == 0
+    env_file = xdg_config / "anytype.env"
+    assert parse_env_file(env_file)["ANYTYPE_API_KEY"] == secret
+    assert env_file.stat().st_mode & 0o777 == 0o600
+    assert not (repo / "config" / "anytype.env").exists()

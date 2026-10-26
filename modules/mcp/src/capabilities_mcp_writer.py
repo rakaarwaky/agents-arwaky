@@ -68,9 +68,14 @@ class McpConfigWriter(IMcpWriteProtocol):
                 continue
             env_name = tool.get("env") or tool_id
             env_path = config_home() / f".{env_name}.env"
-            env = load_first_env(env_path)
-            cmd = tool.get("command", tool_id)
-            args = tool.get("args", [])
+            env = load_first_env([env_path])
+            cmd = (
+                tool.get("command")
+                or tool.get("mcpBinary")
+                or tool.get("binary")
+                or tool_id
+            )
+            args = tool.get("mcpArgs", tool.get("args", []))
             if env:
                 env_str = " ".join(f"{k}={v}" for k, v in env.items())
                 cmd = f"{env_str} {cmd}"

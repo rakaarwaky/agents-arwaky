@@ -31,7 +31,7 @@ def cmd_list():
 
 def cmd_help() -> int:
     """Print backup usage information to stdout."""
-    print("Usage: aa backup <tool|all> [dest|gdrive]")
+    print("Usage: aa backup <tool|all> [destination-dir]")
     print("       aa restore <tool|all> <archive.tar.gz>")
     print("       aa backup list")
     return 0

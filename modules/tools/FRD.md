@@ -93,29 +93,35 @@ raises a typed error, never a partial dispatch.
 - **Error Handling**: every failure path returns an integer; nothing
   raises out of the run action.
 
-### FR-TOOLS-005: Resolve a query and discover executable paths
+### FR-TOOLS-005: Resolve a tool query
 
 - **Description**: Map a manifest id, binary name, or alias to the tool's
-  specification, and report whether the tool's executable is present and
-  where it lives, without mutating install state.
-- **Input**: query string (id / binary / alias) or a resolved tool
   specification.
-- **Output**: the tool specification (or no match for an unknown query);
-  executable path, or no path when the tool is not installed.
+- **Input**: query string (id / binary / alias).
+- **Output**: the matching tool specification, or no match for an unknown
+  query.
 - **Business Rules**: resolution goes through the shared manifest reader;
-  aliases resolve to the same specification as their id; resolution is
-  pure — it never mutates install state; discovery is strictly read-only;
-  the same candidate order as run applies (launcher → host PATH → install
-  directory); readiness follows from a found candidate, never from a
-  write probe.
-- **Edge Cases**: unknown query → no match, never an exception; a query
-  that is both an alias and a binary resolves to its manifest entry; an
-  empty query misses quietly; a stale launcher yields to the PATH
-  candidate; not installed → no path and no error; MCP tools probe the
-  MCP binary first.
+  aliases resolve to the same specification as their id; resolution is pure
+  and never mutates install state.
+- **Edge Cases**: unknown or empty query → no match, never an exception; a
+  query that is both an alias and a binary resolves to its manifest entry.
 - **Error Handling**: a manifest parse failure surfaces as a typed error;
-  absence never raises — the caller receives no path and owns the
-  message.
+  absence never raises — the caller receives no match and owns the message.
+
+### FR-TOOLS-006: Discover executable readiness and path
+
+- **Description**: Report whether a registered tool's executable is present
+  and where it lives, without mutating install state or launching it.
+- **Input**: resolved tool specification.
+- **Output**: executable path, or no path when the tool is not installed.
+- **Business Rules**: discovery is strictly read-only and uses the same
+  candidate order as run (XDG bin launcher → host PATH → per-tool install
+  directory); readiness follows from a found candidate, never from a write
+  probe. MCP tools probe the MCP binary first.
+- **Edge Cases**: not installed → no path and no error; a stale launcher
+  yields to the PATH candidate.
+- **Error Handling**: absence never raises — the caller receives no path and
+  owns the message.
 
 ## API Contract
 

@@ -50,7 +50,7 @@ def test_execute_op_dispatch():
     )
 
     tar = MagicMock()
-    tar.backup.return_value = MagicMock(success=True, tool_id="omniroute", archive="omniroute.tar.gz", uploaded=False, message="ok")
+    tar.backup.return_value = MagicMock(success=True, tool_id="omniroute", archive="omniroute.tar.gz", message="ok")
     tar.restore.return_value = MagicMock(success=True, tool_id="omniroute", archive="omniroute.tar.gz", message="ok")
     inspect_cap = MagicMock()
     inspect_cap.list_archives.return_value = MagicMock(success=True, tool_id="", result=[])
@@ -73,3 +73,28 @@ def test_execute_op_dispatch():
 
     orchestrator.execute(BackupRequest(BackupOp("status")))
     inspect_cap.status.assert_called_once()
+
+def test_backup_cli_maps_typed_outcomes_to_exit_codes(tmp_path):
+    """The CLI surface renders aggregate outcomes, not by coercing the object."""
+    from unittest.mock import MagicMock
+
+    from modules.cli.src.surface_backup_command import cmd_backup, cmd_restore
+    from modules.shared.src.backup.taxonomy_backup_vo import (
+        BackupOutcome,
+        BackupValue,
+    )
+
+    aggregate = MagicMock()
+    aggregate.execute.return_value = BackupOutcome(
+        success=True, tool_id="scratch", result=BackupValue(None)
+    )
+    destination = tmp_path / "custom-backups"
+    assert cmd_backup(["backup", "scratch", str(destination)], aggregate) == 0
+    request = aggregate.execute.call_args.args[0]
+    assert str(request.dest) == str(destination)
+
+    aggregate.execute.return_value = BackupOutcome(
+        success=False, tool_id="scratch", result=BackupValue(None)
+    )
+    assert cmd_backup(["scratch"], aggregate) == 1
+    assert cmd_restore(["restore", "scratch", "missing.tar.gz"], aggregate) == 1

@@ -20,7 +20,6 @@ class BackupResult:
     success: bool
     tool_id: str
     archive: str
-    uploaded: bool
     message: str
 
 
@@ -38,7 +37,7 @@ class RestoreResult:
 #: Manifest / CLI tool identifier accepted by a backup/restore call.
 BackupToolQuery = NewType("BackupToolQuery", str)
 
-#: Destination descriptor (e.g. "gdrive" or local path) for backup archives.
+#: Local directory for backup archives; an empty value selects the default store.
 BackupDestination = NewType("BackupDestination", str)
 
 #: Module-level singleton for default argument (B008).

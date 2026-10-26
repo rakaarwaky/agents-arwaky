@@ -10,10 +10,9 @@
 The backup feature archives and restores a tool's owned XDG state — its data
 and cache directories under the XDG data home. The root CLI (`aa backup` /
 `aa restore`) routes each request to the backup agent, which dispatches the
-operation to a storage gateway (a local archive gateway or an optional cloud
-gateway) and collapses every outcome into a single exit code. Listing and
-store status are read-only; archive and restore write only under the XDG
-data home.
+operation to the local archive gateway and collapses every outcome into a
+single exit code. Listing and store status are read-only; archive and restore
+write only under the XDG data home or an explicitly selected local destination.
 
 ## Functional Requirements
 
@@ -29,9 +28,8 @@ data home.
   destination.
 - **Business Rules**: only the tool-owned XDG data/cache subtree is
   archived — repository files are never included; archive names embed the
-  tool id and a UTC timestamp so repeated runs never clobber; a
-  destination requesting the cloud gateway triggers an upload only after
-  the local archive is complete; restore replaces only the archived paths
+  tool id and a UTC timestamp so repeated runs never clobber; an optional
+  destination is a local directory; restore replaces only the archived paths
   inside that tool's own subtree and never touches sibling tools; the
   archive is validated and extracted to staging before any swap, so a
   corrupt archive cannot destroy existing state; a missing archive is an
@@ -43,9 +41,7 @@ data home.
   directories are created; staging failure rolls back to the previous
   state.
 - **Error Handling**: non-zero exit with the failing path on stderr; a
-  failed cloud upload keeps the local archive and returns the upload
-  failure code; a corrupt or truncated archive is rejected before any
-  write.
+  corrupt or truncated archive is rejected before any write.
 
 ### FR-BACKUP-002: Inspect the backup store (list, status, usage)
 
@@ -97,7 +93,6 @@ data home.
 |--------|-----------|---------|--------------|
 | XDG data home (shared kernel) | in | owned tool data/cache subtrees to archive and restore | missing XDG home → non-zero with the path in the message |
 | local archive store (filesystem) | out | where archives are written, listed, and read back | unwritable store → non-zero; no partial archive left behind |
-| cloud storage gateway (optional) | out | off-host archive upload when the destination requests it | auth or network failure → non-zero; the local archive is kept |
 | root CLI (`aa backup` / `aa restore`) | in | operator entry that routes commands to the agent | unknown arguments → usage and non-zero at the surface |
 
 ## Non-functional Requirements
@@ -121,15 +116,13 @@ data home.
 
 - Backups are scoped to a tool's owned XDG subtree; the repository tree and
   sibling tools' directories are out of scope by construction.
-- The cloud gateway assumes a pre-authorized credential under the XDG config
-  tree; it is never read from the repository tree.
 
 ## Glossary
 
 - **archive**: a timestamped, tool-scoped bundle of one tool's XDG state.
 - **backup store**: the directory under the XDG data home where archives are
   written, listed, and read back.
-- **gateway**: a storage backend (local archive or optional cloud) the agent
-  delegates archive and restore work to.
+- **gateway**: the local archive backend the agent delegates archive and
+  restore work to.
 - **agent**: the feature orchestrator that exposes the backup aggregate
   surface to the root CLI.

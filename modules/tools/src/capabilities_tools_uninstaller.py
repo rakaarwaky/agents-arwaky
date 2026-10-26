@@ -92,7 +92,13 @@ class UninstallerCapability(IToolsUninstallerProtocol):
                         )
                 else:
                     unit = DAEMON_UNIT_TOOLS[spec.id]
-                    notes.append(f"residual: unit {unit} still active, not force-killed")
+                    # Never tear down data while its daemon may still be using
+                    # it. Report the residual and preserve all owned state.
+                    return UninstallResult(
+                        False,
+                        spec.id,
+                        f"residual: unit {unit} could not be stopped; owned state preserved",
+                    )
 
         # Generic XDG teardown (launchers, data, cache, optionally config).
         launchers = LAUNCHER_NAMES.get(spec.id, [])
@@ -165,8 +171,14 @@ class UninstallerCapability(IToolsUninstallerProtocol):
             return UninstallResult(
                 False,
                 spec.id,
-                f"{spec.id}: partial removal — {len(residuals)} residual(s): "
+                f"{uninstall_result.message} — {len(residuals)} residual(s): "
                 + " | ".join(residuals),
+            )
+        if not uninstall_result.success:
+            return UninstallResult(
+                False,
+                spec.id,
+                f"{uninstall_result.message} — removal could not be verified",
             )
 
         base = uninstall_result.message
@@ -227,14 +239,23 @@ def _stop_daemon(daemons: object, tool_id: str) -> bool:
     ))
     if rc == 0:
         return True
-    # P1-4: never invoke systemctl when it is absent (FileNotFoundError guard).
-    if shutil.which("systemctl") and (config_home() / "systemd" / "user" / unit).exists():
-        active = subprocess.run(
+
+    # A non-zero stop is only safe to treat as an idempotent no-op when
+    # systemd positively reports that the unit is not running. If systemctl
+    # is absent or the state cannot be established, fail closed and preserve
+    # the tool's data rather than risk deleting state beneath a live daemon.
+    if not shutil.which("systemctl"):
+        return False
+    try:
+        result = subprocess.run(
             ["systemctl", "--user", "is-active", unit],
-            capture_output=True, text=True, check=False,
-        ).stdout.strip()
-        if active == "active":
-            return False
-    return True
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return False
+    state = result.stdout.strip().lower()
+    return state in {"inactive", "failed", "unknown", "not-found"}
 
 __all__ = ["UninstallerCapability"]

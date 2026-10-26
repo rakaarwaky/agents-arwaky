@@ -246,6 +246,108 @@ class TestRunnerCapability:
         result = runner.discover(_spec())
         assert result is None or isinstance(result, Path)
 
+    def test_discover_is_read_only_and_reports_absence(self, tmp_path, monkeypatch):
+        """FR-TOOLS-006: discovery finds an executable without mutating state."""
+        from modules.tools.src import capabilities_tools_runner as runner_module
+        from modules.tools.src.capabilities_tools_runner import RunnerCapability
+
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        monkeypatch.setattr(runner_module, "bin_home", lambda: bin_dir)
+        monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))
+        executable = bin_dir / "discovery-fixture"
+        executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        executable.chmod(0o755)
+        spec = ToolSpec(
+            id="discovery-fixture",
+            category="vendor",
+            binary="discovery-fixture",
+            is_mcp=False,
+            description="read-only discovery fixture",
+            path="",
+            alias=None,
+            mcp_binary=None,
+            runner="",
+        )
+        runner = RunnerCapability(root=tmp_path)
+        before = {path: path.read_bytes() for path in bin_dir.iterdir()}
+
+        assert runner.discover(spec) == executable.resolve()
+        missing = ToolSpec(
+            id="missing-fixture",
+            category="vendor",
+            binary="missing-fixture",
+            is_mcp=False,
+            description="not installed",
+            path="",
+            alias=None,
+            mcp_binary=None,
+            runner="",
+        )
+        assert runner.discover(missing) is None
+        assert {path: path.read_bytes() for path in bin_dir.iterdir()} == before
+        assert list(bin_dir.iterdir()) == [executable]
+
+    def test_run_preserves_child_exit_codes(self, tmp_path, monkeypatch):
+        """TOL-02: a clean executable's exit codes 0, 1, and 127 pass through."""
+        import os
+
+        from modules.tools.src.capabilities_tools_runner import RunnerCapability
+
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        monkeypatch.setenv("PATH", str(bin_dir) + os.pathsep + os.environ.get("PATH", ""))
+        runner = RunnerCapability(root=tmp_path)
+
+        for exit_code in (0, 1, 127):
+            name = f"runner-exit-{exit_code}"
+            executable = bin_dir / name
+            executable.write_text(f"#!/bin/sh\nexit {exit_code}\n", encoding="utf-8")
+            executable.chmod(0o755)
+            spec = ToolSpec(
+                id=name,
+                category="vendor",
+                binary=name,
+                is_mcp=False,
+                description="exit-code fixture",
+                path="",
+                alias=None,
+                mcp_binary=None,
+                runner="",
+            )
+            assert int(runner.run(spec, [])) == exit_code
+
+    def test_run_returns_126_when_executable_vanishes(self, tmp_path, capsys, monkeypatch):
+        """TOL-02: an executable disappearing after discovery returns sentinel 126."""
+        from modules.shared.src.tools.taxonomy_tools_constant import (
+            SENTINEL_EXECUTABLE_GONE,
+        )
+        from modules.tools.src.capabilities_tools_runner import RunnerCapability
+
+        executable = tmp_path / "vanished-tool"
+        executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        executable.chmod(0o755)
+        spec = ToolSpec(
+            id="vanished-tool",
+            category="vendor",
+            binary="vanished-tool",
+            is_mcp=False,
+            description="vanishing fixture",
+            path="",
+            alias=None,
+            mcp_binary=None,
+            runner="",
+        )
+        runner = RunnerCapability(root=tmp_path)
+
+        def discover_then_unlink(*_args):
+            executable.unlink()
+            return executable
+
+        monkeypatch.setattr(runner, "_discover", discover_then_unlink)
+        assert int(runner.run(spec, [])) == SENTINEL_EXECUTABLE_GONE
+        assert "vanished between discovery and launch" in capsys.readouterr().err
+
 
 class TestAdapterCapabilities:
     """Tests for the per-tool adapter capabilities."""
@@ -490,11 +592,51 @@ class TestDaemonAggregateUnitOps:
         assert str(req.unit) == "omniroute.service"
 
     def test_uninstaller_reports_stop_failure(self):
-        """UT-TOOLS-038: a non-zero aggregate result is surfaced as False."""
+        """UT-TOOLS-038: an unverified stop failure is surfaced as False."""
         from modules.tools.src import capabilities_tools_uninstaller as mod
 
         agg = self._RecordingAggregate(result=1)
-        assert mod._stop_daemon(agg, "omniroute") is False
+        with patch.object(mod.shutil, "which", return_value=None):
+            assert mod._stop_daemon(agg, "omniroute") is False
+
+    def test_active_daemon_preserves_owned_state_without_force_kill(self, tmp_path):
+        """TOL-03: active residuals never force-kill or delete daemon-owned data."""
+        from types import SimpleNamespace
+
+        from modules.tools.src import capabilities_tools_uninstaller as mod
+
+        agg = self._RecordingAggregate(result=1)
+        unit_dir = tmp_path / "config" / "systemd" / "user"
+        unit_dir.mkdir(parents=True)
+        (unit_dir / "omniroute.service").write_text("[Service]\n", encoding="utf-8")
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        remove_artifacts = MagicMock()
+        owned = tmp_path / "owned-state"
+        owned.mkdir()
+        (owned / "sentinel").write_text("keep", encoding="utf-8")
+        spec = _spec("omniroute")
+
+        with (
+            patch.object(mod, "config_home", return_value=tmp_path / "config"),
+            patch.object(mod, "bin_home", return_value=bin_dir),
+            patch.object(mod.shutil, "which", return_value="/usr/bin/systemctl"),
+            patch.object(
+                mod.subprocess,
+                "run",
+                return_value=SimpleNamespace(returncode=0, stdout="active\n", stderr=""),
+            ) as systemctl,
+            patch.object(mod, "remove_tool_artifacts", remove_artifacts),
+        ):
+            result = mod.UninstallerCapability(daemons=agg).uninstall(spec, [owned])
+
+        assert result.success is False
+        assert "owned state preserved" in result.message
+        assert (owned / "sentinel").read_text(encoding="utf-8") == "keep"
+        remove_artifacts.assert_not_called()
+        command = systemctl.call_args.args[0]
+        assert command[-2:] == ["is-active", "omniroute.service"]
+        assert "kill" not in command
 
     def test_aggregate_only_publishes_execute(self):
         """UT-TOOLS-042: guards the premise — the aggregate has no install_unit."""
