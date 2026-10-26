@@ -150,80 +150,23 @@ This is the most important pattern in the whole library. It's what unlocks "text
 
 ## Demo Recipe Patterns
 
-The community corpus (see `references/patterns.md`) clusters into a handful of strong patterns. Pick one and riff — don't invent a new category unless asked.
+Community demo patterns (reflow around obstacle, text-as-geometry games, shatter/particles,
+ASCII obstacle typography, editorial multi-column, kinetic type, multiline shrink-wrap)
+and which pretext API each one uses are in
+[`references/patterns.md`](references/patterns.md). Pick one pattern, riff on it —
+don't invent a new category unless asked.
 
-| Pattern | Key API | Example idea |
-|---|---|---|
-| **Reflow around obstacle** | `layoutNextLineRange` + per-row width function | Editorial paragraph that parts around a dragged cursor sprite |
-| **Text-as-geometry game** | `layoutWithLines` + per-line collision rects | Breakout where each brick is a measured word |
-| **Shatter / particles** | `walkLineRanges` → per-grapheme (x,y) → physics | Sentence that explodes into letters on click |
-| **ASCII obstacle typography** | `layoutNextLineRange` + measured per-row obstacle spans | Bitmap ASCII logo, shape morphs, and draggable wire objects that make text open around their actual geometry |
-| **Editorial multi-column** | `layoutNextLineRange` per column + shared cursor | Animated magazine spread with pull quotes |
-| **Kinetic type** | `layoutWithLines` + per-line transform over time | Star Wars crawl, wave, bounce, glitch |
-| **Multiline shrink-wrap** | `measureLineStats` | Quote card that auto-sizes to its tightest container |
+Working starters: `templates/hello-orb-flow.html` (reflow around a moving orb) and
+`templates/donut-orbit.html` (measured ASCII logo obstacles, draggable wire shapes).
 
-See `templates/donut-orbit.html` and `templates/hello-orb-flow.html` for working single-file starters.
+## Performance Notes, Pitfalls, and Verification
 
-## Workflow
-
-1. **Pick a pattern** from the table above based on the user's brief.
-2. **Start from a template**:
-   - `templates/hello-orb-flow.html` — text reflowing around a moving orb (reflow-around-obstacle pattern)
-   - `templates/donut-orbit.html` — advanced example: measured ASCII logo obstacles, draggable wire sphere/cube, morphing shape fields, selectable DOM text, and dev-only controls
-   - `write_file` to a new `.html` in `/tmp/` or the user's workspace.
-3. **Swap the corpus** for something intentional to the brief. Real prose, 10-100 sentences, no lorem.
-4. **Tune the aesthetic** — font, palette, composition, interaction. This is the work; don't skip it.
-5. **Verify locally**:
-
-   ```sh
-   cd <dir-with-html> && python -m http.server 8765
-   # then open http://localhost:8765/<file>.html
-
-```text
-
-6. **Check the console** — pretext will throw if `prepareWithSegments` is called with a bad font string; `Intl.Segmenter` is available in every modern browser.
-7. **Show the user the file path**, not just the code — they want to open it.
-
-## Performance Notes
-
-- `prepare()` / `prepareWithSegments()` is the expensive call. Do it **once** per text+font pair. Cache the handle.
-- On resize, only rerun `layout()` / `layoutWithLines()` — never re-prepare.
-- For per-frame animations where text doesn't change but geometry does, `layoutNextLineRange` in a tight loop is cheap enough to do every frame at 60fps for normal-length paragraphs.
-- When rendering ASCII masks per frame, keep a cell buffer (`Uint8Array`/typed arrays), derive measured per-row obstacle spans from the cells or projected geometry, merge spans, then feed those spans into `layoutNextLineRange` before drawing text.
-- Keep visual animation and layout animation coupled. If a sphere morphs into a cube, tween both the rendered cell buffer and the obstacle spans with the same value; otherwise the demo looks painted-on instead of physically reflowed.
-- For fades, prefer layer opacity over changing glyph intensity or obstacle scale. Put transient ASCII sprites on their own canvas and fade the canvas with CSS/GSAP opacity so geometry does not appear to shrink.
-- Canvas `ctx.font` setting is surprisingly slow; set it **once** per frame if font doesn't vary, not per `fillText` call.
-
-## Common Pitfalls
-
-1. **Drifting CSS/canvas font strings.** `ctx.font = "16px Inter"` measured, but CSS says `font-family: Inter, sans-serif; font-size: 16px`. Fine *if* Inter loads. If Inter 404s, CSS falls back to sans-serif and measurements drift by 5-20%. Always `preload` the font or use a web-safe family.
-
-2. **Re-preparing inside the animation loop.** Only `layout*` is cheap. Re-calling `prepare` every frame will tank perf. Keep the prepared handle in module scope.
-
-3. **Forgetting `Intl.Segmenter` for grapheme splits.** Emoji, combining marks, CJK — `"é".split("")` gives you two chars. Use `new Intl.Segmenter(undefined, { granularity: "grapheme" })` when sampling individual visible glyphs.
-
-4. **`break: 'never'` chips without `extraWidth`.** In `rich-inline`, if you use `break: 'never'` for an atomic chip/mention, you must also supply `extraWidth` for the pill padding — otherwise chip chrome overflows the container.
-
-5. **Using `@chenglou/pretext` from `unpkg` with TypeScript-only entry.** Use `esm.sh` — it compiles the TS exports to browser-ready ESM automatically. `unpkg` will 404 or serve raw TS.
-
-6. **Monospace fallbacks silently erasing the whole point.** Users seeing monospace-looking output often have a CSS `font-family` that fell through to `monospace`. Verify the actual rendered font via DevTools.
-
-7. **Skipping rows vs adjusting width** when flowing around a shape. If the corridor on this row is too narrow to fit a line, *skip the row* (`y += lineHeight; continue;`) rather than passing a tiny maxWidth to `layoutNextLineRange` — pretext will return one-grapheme lines that look broken.
-
-8. **Shipping a cold demo.** The default first-paint looks tutorial-grade. Add: vignette, subtle scanline, idle auto-motion, one carefully chosen interactive response (drag, hover, scroll, click). Without these, "cool pretext demo" lands as "intern repro of the README."
-
-## Verification Checklist
-
-- [ ] Demo is a single self-contained `.html` file — opens by double-click or `python -m http.server`
-- [ ] `@chenglou/pretext` imported via `esm.sh` with pinned version
-- [ ] Corpus is real prose, not lorem ipsum, and matches the demo's concept
-- [ ] Font string passed to `prepare` matches the CSS font exactly
-- [ ] `prepare()` / `prepareWithSegments()` called once, not per frame
-- [ ] Dark background + considered palette — not the default white canvas
-- [ ] At least one interactive response (drag / hover / scroll / click) or idle auto-motion
-- [ ] Tested locally with `python -m http.server` and confirmed no console errors
-- [ ] 60fps on a mid-tier laptop (or graceful degradation documented)
-- [ ] One "extra mile" detail the user didn't ask for
+Full performance notes, 8 common pitfalls, and the 10-item verification
+checklist are in [`references/pitfalls.md`](references/pitfalls.md).
+Key rules: call `prepare()`/`prepareWithSegments()` **once** per text+font
+pair and cache the handle; set `ctx.font` once per frame; use `Intl.Segmenter`
+for grapheme splits; verify the rendered CSS font matches the `prepare()` font
+string; and test locally with `python -m http.server` before shipping.
 
 ## Reference: Community Demos
 

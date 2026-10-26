@@ -12,7 +12,7 @@ when-to-use: >
   /task-tracker, map incomplete tasks to GitHub issues, create tracking issues from
   ROADMAP or BACKLOG, verify Done claims against code, ensure every issue carries
   a closing-condition that advances the roadmap state to Done.
-argument-hint: <repo-root> [--dry-run] [--trust | --no-trust] [--legacy] [--scripts-root <dir>]
+argument-hint: <repo-root> [--dry-run] [--trust | --no-trust] [--legacy]
 ---
 
 # Task Tracker — zero-trust spec audit → modular GitHub tracking issues with closing conditions

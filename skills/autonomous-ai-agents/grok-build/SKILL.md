@@ -2,7 +2,7 @@
 name: grok-build
 description: "Delegate coding to Grok Build CLI via the local OmniRoute gateway. Use for headless, TUI, and PR review."
 when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Sibling of the Orca skill — Orca manages worktrees/terminals; this one drives the Grok CLI inside them. Backed by OmniRoute (model myomniroute), not an xAI subscription."
-argument-hint: "[<task>] [--headless | --interactive] [--review <pr> | --worktree]"
+argument-hint: "<task> [-p <prompt>] [-m <model>] [--output-format <fmt>] [--no-auto-update] [--cwd <path>] [--max-turns <n>]"
 tags:
   - Coding-Agent
   - Grok

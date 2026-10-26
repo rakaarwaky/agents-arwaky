@@ -311,6 +311,7 @@ When the loop terminates, present a final report to the user:
 4. **Total issues addressed** -- the values from `total_issues_by_severity` (cumulative count across all rounds, broken down by severity).
 5. **PR Plan** -- from Step 6c.
 6. **Open questions** -- resolved answers or note that none remain.
+7. **Next step** -- the PR Plan is a DAG ready for execution. Run `/execute-plan <design-doc-path>` to implement it in parallel (Orca worktrees), review each PR, and assemble the stack. The design document path is the local path above.
 
 ## In-Progress Reporting
 
