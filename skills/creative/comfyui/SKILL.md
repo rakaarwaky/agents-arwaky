@@ -109,46 +109,14 @@ Node types and param mapping: [references/workflow-format.md](references/workflo
 
 ```bash
 python scripts/extract_schema.py workflow_api.json --summary-only
-python scripts/extract_schema.py workflow_api.json
-
-```text
+```
 
 ### Step 3: Run with parameters
 
-```bash
-# Local (defaults to http://127.0.0.1:8188)
-python scripts/run_workflow.py \
-  --workflow workflow_api.json \
-  --args '{"prompt": "a beautiful sunset over mountains", "seed": -1, "steps": 30}' \
-  --output-dir ./outputs
-
-# Cloud (export API key once; scripts route to /api automatically)
-export COMFY_CLOUD_API_KEY="comfyui-..."
-python scripts/run_workflow.py \
-  --workflow workflow_api.json \
-  --args '{"prompt": "..."}' \
-  --host https://cloud.comfy.org \
-  --output-dir ./outputs
-
-# Real-time progress via WebSocket (requires `pip install websocket-client`)
-python scripts/run_workflow.py --workflow flux_dev.json --args '{"prompt": "..."}' --ws
-
-# img2img / inpaint: --input-image uploads + references automatically
-python scripts/run_workflow.py \
-  --workflow sdxl_img2img.json \
-  --input-image image=./photo.png \
-  --args '{"prompt": "make it watercolor", "denoise": 0.6}'
-
-# Batch / sweep: 8 random seeds, parallel up to cloud tier limit
-python scripts/run_batch.py \
-  --workflow sdxl.json \
-  --args '{"prompt": "abstract"}' \
-  --count 8 --randomize-seed --parallel 3 \
-  --output-dir ./outputs/batch
-
-```text
-
-`-1` for `seed` (or `--randomize-seed`) generates a fresh random seed per run.
+`run_workflow.py` (`--workflow W --args JSON --output-dir D`, plus `--ws` for
+live progress and `--input-image` for img2img/inpaint) and `run_batch.py`
+(`--count N --randomize-seed --parallel P`) — full flag examples:
+[`references/run-examples.md`](references/run-examples.md).
 
 ### Step 4: Present results
 

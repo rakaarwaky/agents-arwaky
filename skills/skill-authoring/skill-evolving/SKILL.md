@@ -2,7 +2,7 @@
 name: skill-evolving
 description: Autonomous self-evolution engine for agent skills. Ingests session traces via learn, fans out category-level audit subagents, coordinates authoring, library cataloging, and lifecycle pruning, verifies quality gates, and publishes pull requests.
 when-to-use: Use when running autonomous or scheduled self-evolution across the skill tree, evolving skills from execution traces, coordinating multi-agent skill maintenance, or running daily skill optimization passes.
-argument-hint: "[--days <N>] [--include-headless]"
+argument-hint: "[--scope <window>] [--headless] [--since-last] [--dry-run]"
 ---
 
 # skill-evolving
@@ -75,7 +75,9 @@ Run the session collector from `research-study/learn` scoped to the target windo
 python3 skills/research-study/learn/collect_sessions.py --days 1 --include-headless
 ```
 
-Headless semantics: no `ask_user_question` (no interactive prompts), reversible edits are auto-applied, and the pass ends with commit + PR (Step 7). `--days 1` scopes collection to the last 24 hours; `--include-headless` keeps headless (bot / `grok -p`) sessions that would otherwise be dropped.
+Argument mapping: `--scope <window>` selects `--days N` (a day count; `24h` means 1 day) and `--since-last` selects `--since-last`; `--headless` passes `--include-headless`. `--dry-run` runs Steps 1-6 but stops before commit/PR and reports the proposed diff.
+
+Headless semantics: no `ask_user_question` (no interactive prompts), reversible edits are auto-applied, and the pass ends with commit + PR (Step 7).
 
 Examine output artifacts in the run directory (`<RUN>`):
 - `usage.json`: identifies zero-hit or heavily invoked skills.

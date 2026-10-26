@@ -156,11 +156,12 @@ sudo apt-get install -y ffmpeg libgl1 tesseract-ocr
 
 ## Development verification
 
-From the repository root:
+From the `vision-arwaky` repository root (not this skill directory):
 
 ```bash
 uv sync
-bash scripts/gates.sh
+# Quality gates: ruff format, ruff check, mypy, pytest, and lint-arwaky-cli scan .
+# (Run the gates defined in the repo's CI config; this skill does not bundle a gate script.)
 ```
 
 The gates run Ruff formatting, Ruff lint, Mypy, pytest, and `lint-arwaky-cli scan .`. CI additionally builds the package and runs pytest on Python 3.12 and 3.13.

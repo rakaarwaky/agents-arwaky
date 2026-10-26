@@ -142,20 +142,20 @@ Map the user's prompt to aesthetic choices. A "chill lo-fi visualizer" demands d
 
 ### Step 3: Build the Script
 
-Single Python file. Components (with references):
+Single Python file. Component order (with references):
 
-1. **Hardware detection + quality profile** — `references/optimization.md`
-2. **Input loader** — mode-dependent; `references/inputs.md`
-3. **Feature analyzer** — audio FFT, video luminance, or synthetic
-4. **Grid + renderer** — multi-density grids with bitmap cache; `references/architecture.md`
-5. **Character palettes** — multiple per project; `references/architecture.md` § Palettes
-6. **Color system** — HSV + discrete RGB + harmony generation; `references/architecture.md` § Color
-7. **Scene functions** — each returns `canvas (uint8 H,W,3)`; `references/scenes.md`
-8. **Tonemap** — adaptive brightness normalization; `references/composition.md`
-9. **Shader pipeline** — `ShaderChain` + `FeedbackBuffer`; `references/shaders.md`
-10. **Scene table + dispatcher** — time → scene function + config; `references/scenes.md`
-11. **Parallel encoder** — N-worker clip rendering with ffmpeg pipes
-12. **Main** — orchestrate full pipeline
+1. Hardware detection + quality profile — `references/optimization.md`
+2. Input loader — mode-dependent; `references/inputs.md`
+3. Feature analyzer — audio FFT, video luminance, or synthetic
+4. Grid + renderer — multi-density grids with bitmap cache; `references/architecture.md`
+5. Character palettes — multiple per project; `references/architecture.md` § Palettes
+6. Color system — HSV + discrete RGB + harmony generation; `references/architecture.md` § Color
+7. Scene functions — each returns `canvas (uint8 H,W,3)`; `references/scenes.md`
+8. Tonemap — adaptive brightness normalization; `references/composition.md`
+9. Shader pipeline — `ShaderChain` + `FeedbackBuffer`; `references/shaders.md`
+10. Scene table + dispatcher — time → scene function + config; `references/scenes.md`
+11. Parallel encoder — N-worker clip rendering with ffmpeg pipes
+12. Main — orchestrate full pipeline
 
 ### Step 4: Quality Verification
 
@@ -166,48 +166,12 @@ Single Python file. Components (with references):
 
 ## Critical Implementation Notes
 
-### Brightness — Use `tonemap()`, Not Linear Multipliers
-
-This is the #1 visual issue. ASCII on black is inherently dark. **Never use `canvas * N` multipliers** — they clip highlights. Use adaptive tonemap:
-
-```python
-def tonemap(canvas, gamma=0.75):
-    f = canvas.astype(np.float32)
-    lo, hi = np.percentile(f[::4, ::4], [1, 99.5])
-    if hi - lo < 10: hi = lo + 10
-    f = np.clip((f - lo) / (hi - lo), 0, 1) ** gamma
-    return (f * 255).astype(np.uint8)
-```
-
-Pipeline: `scene_fn() → tonemap() → FeedbackBuffer → ShaderChain → ffmpeg`
-
-Per-scene gamma: default 0.75, solarize 0.55, posterize 0.50, bright scenes 0.85. Use `screen` blend (not `overlay`) for dark layers.
-
-### Font Cell Height
-
-macOS Pillow: `textbbox()` returns wrong height. Use `font.getmetrics()`: `cell_height = ascent + descent`. See `references/troubleshooting.md`.
-
-### ffmpeg Pipe Deadlock
-
-Never `stderr=subprocess.PIPE` with long-running ffmpeg — buffer fills at 64KB and deadlocks. Redirect to file. See `references/troubleshooting.md`.
-
-### Font Compatibility
-
-Not all Unicode chars render in all fonts. Validate palettes at init — render each char, check for blank output. See `references/troubleshooting.md`.
-
-### Per-Clip Architecture
-
-For segmented videos (quotes, scenes, chapters), render each as a separate clip file for parallel rendering and selective re-rendering. See `references/scenes.md`.
-
-## Performance Targets
-
-| Component | Budget |
-|-----------|--------|
-| Feature extraction | 1-5ms |
-| Effect function | 2-15ms |
-| Character render | 80-150ms (bottleneck) |
-| Shader pipeline | 5-25ms |
-| **Total** | ~100-200ms/frame |
+Brightness (`tonemap()` over linear multipliers), font cell height on macOS,
+ffmpeg pipe deadlock, font compatibility, per-clip architecture, and
+performance budgets are in
+[`references/implementation-notes.md`](references/implementation-notes.md).
+Key rule: ASCII on black is inherently dark — use adaptive `tonemap()`,
+never `canvas * N` multipliers.
 
 ## References
 
@@ -221,30 +185,12 @@ For segmented videos (quotes, scenes, chapters), render each as a separate clip 
 | `references/inputs.md` | Audio analysis (FFT, bands, beats), video sampling, image conversion, text/lyrics, TTS integration (ElevenLabs, voice assignment, audio mixing) |
 | `references/optimization.md` | Hardware detection, quality profiles, vectorized patterns, parallel rendering, memory management, performance budgets |
 | `references/troubleshooting.md` | NumPy broadcasting traps, blend mode pitfalls, multiprocessing/pickling, brightness diagnostics, ffmpeg issues, font problems, common mistakes |
+| `references/implementation-notes.md` | `tonemap()`, font cell height (macOS), ffmpeg pipe deadlock, font compatibility, per-clip architecture, performance budgets |
+| `references/creative-divergence.md` | Forced Connections, Conceptual Blending, Oblique Strategies — experimental-output strategies |
 
 ---
 
 ## Creative Divergence (use only when user requests experimental/creative/unique output)
 
-If the user asks for creative, experimental, surprising, or unconventional output, select the strategy that best fits and reason through its steps BEFORE generating code.
-
-- **Forced Connections** — when the user wants cross-domain inspiration ("make it look organic," "industrial aesthetic")
-- **Conceptual Blending** — when the user names two things to combine ("ocean meets music," "space + calligraphy")
-- **Oblique Strategies** — when the user is maximally open ("surprise me," "something I've never seen")
-
-### Forced Connections
-1. Pick a domain unrelated to the visual goal (weather systems, microbiology, architecture, fluid dynamics, textile weaving)
-2. List its core visual/structural elements (erosion → gradual reveal; mitosis → splitting duplication; weaving → interlocking patterns)
-3. Map those elements onto ASCII characters and animation patterns
-4. Synthesize — what does "erosion" or "crystallization" look like in a character grid?
-
-### Conceptual Blending
-1. Name two distinct visual/conceptual spaces (e.g., ocean waves + sheet music)
-2. Map correspondences (crests = high notes, troughs = rests, foam = staccato)
-3. Blend selectively — keep the most interesting mappings, discard forced ones
-4. Develop emergent properties that exist only in the blend
-
-### Oblique Strategies
-1. Draw one: "Honor thy error as a hidden intention" / "Use an old idea" / "What would your closest friend do?" / "Emphasize the flaws" / "Turn it upside down" / "Only a part, not the whole" / "Reverse"
-2. Interpret the directive against the current ASCII animation challenge
-3. Apply the lateral insight to the visual design before writing code
+If the user asks for creative, experimental, surprising, or unconventional output, select the strategy that best fits and reason through its steps BEFORE generating code. Full step-by-step strategies (Forced Connections, Conceptual Blending, Oblique Strategies) are in
+[`references/creative-divergence.md`](references/creative-divergence.md).

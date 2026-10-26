@@ -1,17 +1,6 @@
----
-name: codacy-cloud-cli
-description: Uses the Codacy Cloud CLI to query repositories, issues, security findings, pull requests, tools, and patterns on Codacy Cloud. Use whenever the user mentions Codacy, asks about code quality metrics, wants to check issues or findings in a repo, inspect a pull request analysis, browse security vulnerabilities, enable or disable tools, search patterns, trigger a reanalysis, or interact with any remote Codacy data — even if they do not name the Codacy CLI explicitly.
-when-to-use: "Remote Codacy Cloud queries: repo/dashboard data, issues, security findings, PR analysis and coverage, tools/patterns management, reanalysis triggers, config import."
-argument-hint: "[--provider <gh|gl|bb> <org> <repo>] [--output json] [--reanalyze | --reanalyze-and-wait] [--ignore-issue <id> | --ignore-all-false-positives] [--tool <id> --enable | --disable]"
-license: MIT
-metadata:
-  author: Codacy
-  version: 1.6.1
----
+# Codacy Cloud CLI — remote query & tuning commands (merged from the former `codacy-cloud-cli` skill)
 
-# Codacy Cloud CLI
-
-> **Glossary:** See [glossary.md](references/glossary.md) for shared definitions of Codacy concepts (issues, findings, severity, coverage, tools, patterns, etc.).
+### Codacy Cloud CLI — remote query & tuning commands (merged from the former `codacy-cloud-cli` skill)
 
 The Codacy Cloud CLI (`codacy`) is the command-line interface for Codacy Cloud. Use it whenever the user wants to interact with remote Codacy data. This is a different tool from the Codacy Analysis CLI (`codacy-analysis`), which runs static analysis locally.
 
@@ -143,3 +132,4 @@ for repo in my-repo-one my-repo-two; do
 done | jq -s '{findings: (map(.findings) | add)}'
 ```
 Keep only findings where `advisoryInformation.vulnerableFunctions` is a non-empty array — it's sometimes present but empty, which means no reachability check is possible. For each, `dependencyChains` tells you Direct (a single package) vs. Transitive (2+ packages — the first package in the chain is the one to upgrade); when `dependencyChains` is missing entirely, Codacy hasn't resolved the import path, so treat it as unknown rather than assuming Direct — plenty of transitive packages (verified against real `package.json`/lockfile data) show up with no chain at all. For each repository above, search your local checkout for calls to the listed functions, then report back per repository — used/not used, chain status, recommendation — and wait for confirmation before ignoring anything with `--ignore-reason NotExploitable` or applying an upgrade.
+

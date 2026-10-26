@@ -1,4 +1,4 @@
-# Review design notes
+# Review rules and design notes
 
 Background notes explaining the rationale behind the choices in the `review` skill. These are NOT rules; they are pointers for future maintainers.
 
@@ -37,3 +37,19 @@ A stack can be 8+ PRs; collecting every diff and posting every review from the o
 ## Stack discovery is a deterministic walk over open PRs
 
 Rather than depend on the `gh` Graphite extension (not guaranteed installed), the skill fetches all open PRs once and walks the `baseRefName`->`headRefName` chain down to the base and up to the tip. This needs only core `gh` and degrades gracefully (a PR with no neighbors is reviewed alone; a branching stack includes all reachable descendants).
+
+## Surface every `gh api` error verbatim
+
+If the GitHub API call exits non-zero (422, 403, 404, 5xx, anything else), do not retry, with one exception: a stack subagent may perform the single documented fold-into-body retry on a 422 (per Step 2 Stack mode) before reporting failure. Show the user the raw stderr plus the HTTP status code so they can debug, and preserve `<review_file>` on disk so the findings are not lost.
+
+## Helpers stay host-focused
+
+Use `scripts/host.py` for setup and cleanup and `scripts/collect_local_diff.py` for local changes. Keep review markdown parsing and payload assembly inline.
+
+## Cleanup is asymmetric by mode and outcome
+
+Main/local/branch modes keep `<review_file>` and `<summary_file>` (they are the deliverable). PR mode removes `<review_file>` on a successful post (the GitHub review -- PENDING, COMMENT, or APPROVED -- is the deliverable) and on a no-reviewer-output exit (zero issues OR empty diff -- nothing actionable to preserve), but preserves it on a failed post so the user can recover the findings. In stack mode each subagent cleans up its own per-PR temp files and the orchestrator has nothing extra to remove.
+
+## Thread the same file paths across all steps
+
+Never regenerate paths between steps. The `REVIEW_ID` is fixed for the run.
