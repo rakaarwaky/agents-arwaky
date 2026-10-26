@@ -1,6 +1,6 @@
 ---
 name: codacy-code-review
-description: Enriches pull request code reviews with Codacy data — quality issues, security findings, coverage, and duplication. Use whenever the user asks to review a PR, check what a pull request introduced, verify PR coverage, look at PR quality, or find new issues in a PR. Also use when another code review skill is active (e.g. strict-code-quality-review, CodeRabbit) to layer Codacy data on top. Trigger this skill for any pull request review workflow, even if the user just says review PR 42 or what is wrong with this PR.
+description: Enriches PR code reviews with Codacy data — quality issues, security findings, coverage, duplication — plus the full Codacy Cloud CLI surface (querying repositories, issues, findings, pull requests, tools, patterns; triggering reanalysis; Cloud queries) merged in from the former codacy-cloud-cli skill. Use whenever the user asks to review a PR, check what it introduced, verify PR coverage, find new issues in a PR, mentions Codacy, checks issues or findings in a repo, inspects a pull request analysis, browses security vulnerabilities, enables or disables tools or patterns, searches patterns, or triggers a reanalysis — even without naming the Codacy CLI. Also layer on top of another active review (e.g. strict-code-quality-review, CodeRabbit).
 when-to-use: "PR code review enrichment — layer Codacy local analysis (issues/security) plus Cloud coverage/quality gate on top of any active review process; run with local Analysis CLI --pr/--diff or Cloud CLI pull-request commands."
 argument-hint: "[codacy-analysis analyze --pr|--diff --fail-if-missing --output-format json] [codacy pull-request <number> [--diff] [--reanalyze-and-wait] [--ignore-issue <id>]]"
 license: MIT
@@ -18,7 +18,7 @@ This skill enriches code reviews with Codacy data. It works alongside any existi
 ## Prerequisites
 
 - **Codacy Analysis CLI** (`codacy-analysis`) — for fast local analysis. See `codacy-analysis-cli` for setup.
-- **Codacy Cloud CLI** (`codacy`) — for coverage data, quality gate status, and ignoring issues. See `codacy-cloud-cli` for setup.
+- **Codacy Cloud CLI** (`codacy`) — for coverage data, quality gate status, and ignoring issues. Setup and the full remote command reference (merged from the former `codacy-cloud-cli` skill) live in [references/cloud-cli.md](references/cloud-cli.md).
 
 Both CLIs share credentials at `~/.codacy/credentials`, so a single login covers both.
 
@@ -196,3 +196,7 @@ Present a structured review summary:
 ## When another code review skill is active
 
 If a code review skill (e.g. `strict-code-quality-review`, CodeRabbit) has already performed a review, add a **Codacy data section** to that review rather than replacing it. Follow steps 2–7 above and append the Codacy findings.
+
+## Codacy Cloud CLI surface
+
+The full Codacy Cloud CLI setup (install/auth), auto-detection, reanalysis semantics, and common workflows merged from the former `codacy-cloud-cli` skill live in [references/cloud-cli.md](references/cloud-cli.md), split out to keep this SKILL.md under ~200 lines.

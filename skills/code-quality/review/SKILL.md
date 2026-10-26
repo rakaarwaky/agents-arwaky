@@ -71,31 +71,7 @@ The user runs one of:
 
 ### Argument parsing
 
-Parse the raw argument tokens in **two phases**: first extract the `--approve` / `--submit` modifiers, then resolve the mode from the remaining tokens.
-
-**Phase 1 -- modifier extraction.** Scan the raw argument tokens for standalone `--approve` and `--submit` tokens anywhere in the list. If `--approve` is present, set `APPROVE=true` and remove all its occurrences; otherwise `APPROVE=false`. If `--submit` is present, set `SUBMIT=true` and remove all its occurrences; otherwise `SUBMIT=false`. If BOTH are present, reject with `--approve and --submit are mutually exclusive.` and stop. All of Phase 2 operates on the REMAINING tokens.
-
-**Phase 2 -- mode resolution.** First, reject input that contains more than one of the mode-selecting flags `--main` / `--local` / `--branch` / `--pr` / `--stack` (e.g. `--pr 1 --stack 2`) with `Only one of --main, --local, --branch, --pr, --stack may be given.` and stop. This cross-cutting check runs BEFORE the ordered rules below, because those rules stop at the first matching flag and would otherwise never see the second one. Then parse the remaining tokens with these deterministic rules, applied in order. The first rule that matches wins; do not fall through.
-
-1. **Empty / whitespace-only**: run `git status --porcelain`. Non-empty (uncommitted changes) resolves `MODE=local`; empty (clean tree) resolves `MODE=main`. No target either way.
-2. **Starts with `--main`**: `MODE=main`. Reject any extra positional argument with an error.
-3. **Starts with `--local`**: `MODE=local`. Reject any extra positional argument with an error.
-4. **Starts with `--branch <name>`**: `MODE=branch`, `TARGET=<name>`. The branch name is required -- if the flag appears with no following token (or only with another `--`-prefixed token), reject with `Flag --branch requires an argument: <branch-name>` and stop.
-5. **Starts with `--pr <id-or-url>`**: `MODE=pr`, `TARGET=<id-or-url>`. The id or URL is required -- if the flag appears with no following token (or only with another `--`-prefixed token), reject with `Flag --pr requires an argument: <number-or-url>` and stop.
-6. **Starts with `--stack <id-or-url>`**: `MODE=stack`, `TARGET=<id-or-url>`. The id or URL is required -- if the flag appears with no following token (or only with another `--`-prefixed token), reject with `Flag --stack requires an argument: <number-or-url>` and stop.
-7. **Starts with `--` but does not match any of the above**: reject with `Unknown flag: <flag>. Valid flags: --main, --local, --branch <name>, --pr <number-or-url>, --stack <number-or-url>, --approve, --submit.` and stop. Do NOT fall through to auto-detect.
-8. **Plain argument given (no flag prefix)**: auto-detect against the rules below, also applied in order:
-   1. Matches the regex `^https?://github\.com/[^/]+/[^/]+/pull/\d+(?:[/?#].*)?$` -- treat as PR URL. `MODE=pr`, `TARGET=<url>`.
-   2. Matches `^#?\d+$` (optional leading `#`, then pure digits) -- treat as PR number. `MODE=pr`, `TARGET=<digits without leading #>`. A bare number always stays single-PR mode -- stack review requires the explicit `--stack` flag.
-   3. Resolves to a local or remote branch via `git rev-parse --verify --quiet <arg>` or `git rev-parse --verify --quiet origin/<arg>` -- treat as branch. `MODE=branch`, `TARGET=<arg>` (use the bare name, not `origin/<arg>`).
-   4. None of the above -- ask the user whether the argument is a PR identifier or a branch name (use the appropriate ask/question tool if available). Provide three options: "PR (treat as PR identifier)", "Branch (treat as branch name)", and "Cancel". On Cancel, stop.
-
-As enforced by the pre-check at the top of Phase 2, the mode-selecting flags `--main` / `--local` / `--branch` / `--pr` / `--stack` are mutually exclusive -- input containing more than one is rejected before the ordered rules run.
-
-**Modifier validation.** After resolving `MODE`, if `APPROVE` or `SUBMIT` is true and `MODE` is `main`, `local`, or `branch` (including an auto-detected branch), reject with `--approve/--submit are only valid with --pr or --stack (PR-based modes).` and stop.
-
-If the user passes both a mode flag and a positional argument (e.g., `/review --local somebranch`), reject with a clear error message and stop -- the mode flags are mutually exclusive and take no free positional. This rejection does NOT apply to `--approve`/`--submit`, which are co-flags rather than modes: `/review 1234 --approve`, `/review --pr 1234 --approve`, `/review --pr 1234 --submit`, and `/review --stack 1234 --submit` are all valid.
-
+The two-phase parse (modifier extraction, then mode resolution with the ordered deterministic rules, including auto-detect and the rejection messages) lives in [references/argument-parsing.md](references/argument-parsing.md), split out to keep this SKILL.md under ~200 lines. Summary: standalone `--approve` / `--submit` tokens are extracted first; exactly one of `--main` / `--local` / `--branch` / `--pr` / `--stack` may be given; a bare `/review` resolves to local mode on a dirty tree and main mode on a clean one; plain arguments auto-detect as PR URL, PR number, or branch name.
 ## Setup
 
 Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, `id -u`, `chmod`, `jq`, `wc`, `rm -f`, `sort -u`, or write to `/tmp`. Use `run_terminal_command`.
@@ -132,87 +108,9 @@ Initialize state:
 
 ## Step 1: Resolve target & collect diff
 
-The diff collection commands differ per mode.
+The per-mode diff collection (Main, Local, Branch, PR, and Stack discovery, including the size gates, color-off git invocations, and stack walk algorithm) lives in [references/diff-collection-and-cleanup.md](references/diff-collection-and-cleanup.md), split out to keep this SKILL.md under ~200 lines.
 
-### Main mode
-
-Main mode reviews the committed diff of the current branch against its merge-base with the default branch. It is the clean-tree path selected by a bare `/review`.
-
-1. Run `git status --porcelain`. If the tree is dirty, do not assemble a mixed diff with shell loops. Tell the user to use `/review --local` for the working state or clean the tree before `/review --main`, then stop. Local changes must always be collected by `COLLECT_PY` as described below.
-2. Determine `BASE`. Check `origin/main`, then `origin/master`, with separate `git rev-parse --verify --quiet <ref>` calls. If neither exists, ask the user which base ref to use, offering the name from `git symbolic-ref refs/remotes/origin/HEAD` when available plus an "Other" option.
-3. Compute `MERGE_BASE` with `git merge-base <BASE> HEAD`. Collect the diff and changed-file names with commands whose absolute output paths have been inlined:
-
-   ```text
-   git -c color.ui=false -c color.diff=false -c core.quotepath=false diff <MERGE_BASE>..HEAD
-   git -c color.ui=false -c color.diff=false -c core.quotepath=false diff --name-only <MERGE_BASE>..HEAD
-   ```
-
-   Persist their stdout to `<diff_file>` and `<files_file>` with `run_terminal_command` redirection that is valid for the active shell. Read the resulting diff size from file metadata or `read_file`; do not invoke a byte-counting utility. Apply the local size gates. For a >10 MB main diff, suggest a narrower `--pr <number>` or named `--branch` target.
-4. If `<diff_file>` is empty or whitespace-only, print "Branch has no changes vs `<BASE>`." Skip the reviewer, run main/local/branch cleanup, and use the matching empty-diff Final report. Otherwise read `changed_files` from `<files_file>`.
-
-### Local mode
-
-1. Run `git status --porcelain`. If it is empty, print "No local changes to review (working tree clean)." Skip the reviewer, run main/local/branch cleanup, and use the matching empty-diff Final report.
-2. Resolve `COLLECT_PY` as `<dirname of this SKILL.md>/scripts/collect_local_diff.py`. Run:
-
-   ```text
-   <PYTHON> <COLLECT_PY> --diff <diff_file> --files <files_file>
-   ```
-
-   Inline the absolute interpreter and paths. Parse the JSON stdout fields `bytes`, `files`, and `empty`. This helper is the required path for staged, unstaged, and untracked local changes. Do not replace it with shell `git diff` plus untracked-file loops, and do not mutate the index.
-3. Apply the size gate from `bytes`:
-   - Above 10 MB, abort and point the user to `git status --porcelain` and an appropriate platform-native size inspection to find generated or untracked data that belongs in `.gitignore`. Run cleanup and stop.
-   - Above 1 MB, ask for confirmation. On decline, run cleanup and stop.
-   - Otherwise proceed silently.
-4. Read `changed_files` from the collector's `files` array. The helper handles repositories without `HEAD`, expected nonzero `git diff --no-index` results, untracked files, and symlinks without modifying the worktree or index.
-
-### Branch mode
-
-1. Determine `BASE` exactly as in main mode: probe `origin/main`, then `origin/master`, with separate commands. Ask for a base ref if neither exists.
-2. Verify `<target>` with `git rev-parse --verify --quiet <target>`, then `origin/<target>`. If neither resolves, report the error and stop.
-3. Compute `MERGE_BASE` with `git merge-base <BASE> <target>`. Collect `MERGE_BASE..<target>` with color disabled and `core.quotepath=false`, persisting the diff to `<diff_file>` and names to `<files_file>`. Inline all resolved paths rather than relying on shell variables across calls.
-4. If `<diff_file>` is empty or whitespace-only, print "Branch `<target>` has no changes vs `<BASE>`." Skip the reviewer, run main/local/branch cleanup, and use the matching Final report. Otherwise read `changed_files` from `<files_file>`.
-
-### PR mode
-
-1. Run `gh auth status`. If it fails, tell the user to run `gh auth login` and stop.
-2. Fetch metadata in one call and persist it to `<prmeta_file>`:
-
-   ```text
-   gh pr view <target> --json number,title,body,headRefOid,baseRefOid,headRefName,baseRefName,url,headRepository,headRepositoryOwner,isCrossRepository,files
-   ```
-
-   Parse the JSON yourself. Populate `pr_number`, `pr_title`, `pr_url`, `head_sha`, `base_sha`, and `.files[].path`. Parse `owner` and `repo` from `pr_url` with `^https?://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/pull/\d+`; the URL identifies the upstream even for cross-repository PRs. Persist the changed-file paths to `<files_file>` with the `write` tool or retain them as structured state. Do not invoke a separate JSON parser binary. Validate `pr_number`, `head_sha`, `base_sha`, `owner`, and `repo`; on missing data show the parsed metadata and stop.
-3. Run `gh pr diff <target>` and persist stdout to `<diff_file>`.
-4. If the diff is empty, print "PR #<pr_number> has no changes." If `approve` is true, add "Nothing to review or approve; not approved." Never auto-approve an empty diff. Skip the reviewer, run the PR no-reviewer cleanup, and use the matching Final report.
-
-### Stack mode
-
-Stack mode reviews every PR in a Graphite/stacked-PR stack. Step 1 only **discovers** the stack; the per-PR diffs are collected by each subagent in Step 2 (the orchestrator collects no diff itself in this mode).
-
-**Discovery algorithm** (deterministic):
-
-1. Verify `gh` authentication with `gh auth status` (same as PR mode). If it exits non-zero, stop with the same guidance -- warn that the stack cannot be fetched without `gh` auth and tell the user to run `gh auth login`.
-2. Resolve the start PR (works for both numeric IDs and full URLs):
-
-   Run `gh pr view <target> --json number,headRefName,baseRefName,url,title,state`.
-
-   Parse `owner`/`repo` from the start PR's `url` (same regex as PR mode: `^https?://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/pull/\d+`). The `target` may be a full URL (or `GH_REPO` may be set), so the start PR can live in a different repository than the current checkout. Inline the resolved `<owner>/<repo>` in every subsequent discovery call and hand it to each per-PR subagent. Do not rely on a `REPO` shell variable surviving across commands.
-
-3. Determine the repo default branch with `gh repo view <owner>/<repo> --json defaultBranchRef --jq '.defaultBranchRef.name'`. If the result is empty, fall back to whichever of `origin/main` / `origin/master` resolves via separate `git rev-parse --verify --quiet` calls, else `main`.
-4. Fetch all open PRs once with `gh pr list --repo <owner>/<repo> --state open --limit 1000 --json number,headRefName,baseRefName,url,title` and build a map keyed by `headRefName`.
-
-   `gh pr list` returns at most `--limit` PRs. If the number returned equals the limit, the list was truncated and stack neighbors beyond that window may be missing -- warn the user that stack discovery may be incomplete (rerun with a higher `--limit`) before proceeding with whatever was fetched.
-
-5. **Walk down** (toward the base): start at the start PR. While its `baseRefName` is the `headRefName` of another open PR in the map, AND that base is not the default branch, AND it has not already been visited, prepend that base PR and continue the walk from it.
-6. **Walk up** (toward the tip): traverse outward from the start PR over all open PRs. Maintain a frontier of already-included heads (initially just the start PR's `headRefName`); repeatedly add every not-yet-visited open PR whose `baseRefName` matches any already-included head, adding each newly added PR's `headRefName` to the frontier, until no open PR matches. This collects every reachable descendant -- a single child in the common linear chain, or all branches of a *branching* stack -- ordered by base-depth (distance from the start PR), rather than following only one child.
-7. Produce `stack_prs` ordered base->tip, de-duplicated, always including the start PR. For each entry, parse `owner` and `repo` from its `url` with the same regex PR mode uses (`^https?://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/pull/\d+`) so every subagent has a defined owner/repo source. If no neighbors are found, proceed with a single-element stack and note: "starting PR has no detected stack neighbors; reviewing it alone."
-8. Report the discovered stack to the user as an ordered list (`#<num> -- <title>`) BEFORE launching any subagents.
-
-There is no orchestrator-side empty-diff or zero-issue short-circuit in stack mode -- each subagent makes those decisions for its own PR.
-
-After Step 1, report progress: "Collected diff for <mode> target <summary>. Launching reviewer..." (in stack mode there is no single diff -- report the discovered stack instead, per the Stack mode subsection above and In-Progress Reporting.)
-
+Key invariants: main mode requires a clean tree; local mode collects through `COLLECT_PY` (never shell `git diff` loops); branch mode compares `MERGE_BASE..<target>`; PR mode fetches metadata plus `gh pr diff` and validates `pr_number`, `head_sha`, `base_sha`, `owner`, and `repo`; stack mode only discovers — each subagent collects its own PR diff in Step 2. After Step 1, report progress per In-Progress Reporting.
 ## Step 2: Launch reviewer subagent
 
 In main, local, branch, and single-PR modes, launch a single reviewer subagent by calling `spawn_subagent` (this section). In **stack mode**, skip the single-reviewer flow and use the **Stack mode** subsection at the end of this step instead, which launches one reviewer subagent per PR in parallel. Emit the `spawn_subagent` tool call before producing any "reviewer is starting" narration; the post-launch progress message ("Review complete. Processing findings...") belongs in a later assistant message after the tool result is in hand.
@@ -224,80 +122,7 @@ In main, local, branch, and single-PR modes, launch a single reviewer subagent b
 - `description`: `"[reviewer] <mode> <target-summary>"` (e.g., `"[reviewer] pr #4221"` or `"[reviewer] branch feature/foo"` or `"[reviewer] main"` or `"[reviewer] local changes"`). The `[reviewer]` prefix is parsed by the pager's subagent label renderer (see `format_subagent_label` in `xai-grok-pager`) so the subagent row shows "Reviewer" instead of the generic "General" fallback. The bracketed prefix is stripped from the displayed description.
 - Do **not** pass `capability_mode`. The reviewer needs `write` for `<review_file>`; the prompt keeps it off source files.
 
-Build the prompt with the mode-specific context. **Prepend the reviewer persona instructions** (loaded during setup) to the prompt. Use this template:
-
-```
-<reviewer_persona_instructions>
-
----
-
-You are reviewing code changes. Mode: <mode>.
-
-Target: <target-summary-line>
-<if PR mode: PR URL: <pr_url>>
-<if PR mode: head SHA: <head_sha>, base SHA: <base_sha>>
-<if branch mode: base: <BASE>, merge-base: <MERGE_BASE>, head: <target>>
-<if main mode: base: <BASE>, merge-base: <MERGE_BASE>, head: HEAD (clean working tree)>
-
-The unified diff is at: <diff_file>
-The list of changed files is at: <files_file>
-
-Read the diff first to understand the scope. The diff alone is often not enough
-context, so you should also `read_file` the source files referenced in the diff
-to understand call sites, types, and surrounding logic before flagging issues.
-
-Diff-review scope (overrides any conflicting persona Scope text):
-- Report issues in ADDED or MODIFIED diff lines. Also flag breakages from
-  deleted/renamed symbols even when call sites are outside the diff, after
-  verifying those call sites.
-- Do not report pre-existing problems in untouched code unless the diff newly
-  depends on them in a way that will break.
-- If a high-risk finding is the clearly intended, well-constrained purpose of
-  the change, do not report it. Report it only if the author likely missed
-  downstream impact or the change looks unconstrained/malicious.
-- Flag feature-flag / internal-only gate leaks (new user-visible paths that
-  skip an existing gate, or gates removed without a matching product intent).
-
-Write your structured findings to: <review_file>
-
-Format:
-
-## Summary
-
-<2 to 4 sentence overall assessment of the changes -- what they do, whether
-they look correct, the dominant risk areas. This goes at the very top of the
-file, before any individual issues.>
-
-## Issues
-
-### Issue 1 -- Severity: bug
-- File: path/to/file.ext:LINE
-- Description: <what is wrong>
-- Suggestion: <how to fix>
-- Status: open
-
-### Issue 2 -- Severity: suggestion
-- File: path/to/file.ext:LINE
-- Description: ...
-- Suggestion: ...
-- Status: open
-
-Severity must be one of: bug, suggestion, nit. Each issue's Status field must be set to "open" (as shown in the example above).
-
-<if PR mode, include this paragraph verbatim:>
-IMPORTANT: For each issue, the File line MUST reference a single line number on
-the RIGHT side of the diff (the line number in the new/post-change file, not
-the pre-change file). If a finding spans a range, pick the most representative
-single line on the RIGHT side. This requirement is mandatory because the
-orchestrator will post these findings as inline comments on the GitHub PR, and
-the GitHub API rejects comments that do not target a line present in the diff.
-<end if>
-
-If the diff is genuinely fine and you have no issues, write the Summary and an
-empty `## Issues` section (or omit the Issues section entirely). Do not invent
-issues to fill space.
-```
-
+Build the prompt with the mode-specific context. **Prepend the reviewer persona instructions** (loaded during setup) to the prompt. The single-PR prompt template (scope rules, findings format, right-side-line requirement) and the stack subagent prompt template (parallel-safety constraints, per-PR post-decision logic) live in [references/reviewer-prompts.md](references/reviewer-prompts.md), split out to keep this SKILL.md under ~200 lines.
 Wait for the subagent to complete. If it fails, report the error to the user and stop.
 
 After it completes, verify that `<review_file>` exists and is non-empty. If it does not, report the error and stop.
@@ -308,84 +133,7 @@ Report progress: "Review complete. Processing findings..."
 
 ### Stack mode (one reviewer subagent per PR)
 
-Spawn one reviewer subagent per `stack_prs` entry with `background: true` so all PRs are reviewed in parallel. Use `subagent_type: "general-purpose"`, `description: "[reviewer] pr #<num>"`, and prepend `reviewer_persona_instructions`.
-
-**Do not pass `capability_mode: read-only`.** It removes the `write` tool needed for each per-PR review and payload. Enforce read-only source behavior in the prompt instead.
-
-Substitute the per-PR values plus the resolved absolute `scratch_dir`, `PYTHON`, `HOST_PY`, run-wide `<approve>`, and run-wide `<submit>` into this prompt:
-
-```
-<reviewer_persona_instructions>
-
----
-
-Review ONE pull request in a stack. Review only this PR's delta, not the whole stack.
-
-PR: #<num> -- <title>
-PR URL: <url>
-Repo: <owner>/<repo>
-REVIEW_ID: <REVIEW_ID>
-Approve after review: <approve>
-Submit as COMMENT after review: <submit>
-Scratch directory: <absolute scratch_dir>
-Python: <absolute PYTHON>
-Host helper: <absolute HOST_PY>
-
-Treat the three values above as already resolved absolute paths. Inline them in every command. Do not rely on shell variables between `run_terminal_command` calls.
-
-Parallel-safety constraints:
-- Run only read-only git and gh commands. Never checkout, switch, reset, stash,
-  run `gh pr checkout`, or fetch into a branch. Do not modify the worktree,
-  index, or HEAD.
-- Write only under the resolved scratch directory. Every filename must include
-  both REVIEW_ID and the PR number. Use:
-  - <scratch_dir>/grok-review-<REVIEW_ID>-pr<num>.diff
-  - <scratch_dir>/grok-review-<REVIEW_ID>-pr<num>.md
-  - <scratch_dir>/grok-review-<REVIEW_ID>-pr<num>.json
-  - <scratch_dir>/grok-review-<REVIEW_ID>-pr<num>-post.json
-  - <scratch_dir>/grok-review-<REVIEW_ID>-pr<num>-post.err
-- Pass `--repo <owner>/<repo>` to every `gh pr` call. The `gh api` endpoint
-  must include `repos/<owner>/<repo>`.
-
-Steps:
-1. Fetch the diff with `gh pr diff <num> --repo <owner>/<repo>` and persist it
-   to the per-PR diff file. Fetch `headRefOid` with `gh pr view ... --json
-   headRefOid` and parse the JSON yourself or use `gh --jq`. If the diff is
-   empty, post nothing, clean up all per-PR artifacts with `<PYTHON> <HOST_PY>
-   cleanup`, and report NO CHANGES. Empty diffs are never approved.
-2. Read the diff. The shared worktree may be on another branch. Fetch full
-   post-change files with `gh api "repos/<owner>/<repo>/contents/<path>?ref=<headSha>"
-   -H "Accept: application/vnd.github.raw+json"`; do not checkout the PR.
-3. Write structured findings to the per-PR markdown file. Use `## Summary` and
-   `## Issues`; severities are bug, suggestion, or nit. Each issue has a
-   right-side `File: path:line`, Description, Suggestion, and `Status: open`.
-4. Parse right-side diff positions exactly as documented in single-PR mode.
-   Inline valid positions and promote missing or out-of-diff findings to the
-   review body. Construct the payload as structured data, then persist valid
-   JSON with the `write` tool. Do not hand-concatenate JSON and do not use a
-   Python heredoc. Set `commit_id` to <headSha>.
-5. Post one review:
-   - Default, zero issues: post nothing and report NO REVIEW.
-   - Default, issues: omit `event` for PENDING and report the `/files` URL.
-   - Submit true, zero issues: post nothing and report NO REVIEW.
-   - Submit true, issues: set `event` to `COMMENT` and report COMMENTED.
-   - Approve true: compare the PR author's login with `gh api user`. If they
-     match, do not post; preserve the review markdown, payload, and diff, and
-     report ERROR with the self-approval cause. Otherwise set `event` to
-     `APPROVE`, including an empty comments array when there are zero issues,
-     and report APPROVED.
-   On an HTTP 422 caused by an inline position, fold inline findings into the
-   body and retry once. Do not retry other failures.
-6. On success or a no-post outcome, clean up every per-PR artifact with the
-   resolved `<PYTHON> <HOST_PY> cleanup` command. On post failure, preserve the
-   review markdown, payload, and diff; clean only post capture files and report
-   every preserved path.
-
-Report PR number, verdict, bug/suggestion/nit counts, inline/body counts, final
-state (APPROVED, COMMENTED, PENDING, NO CHANGES, NO REVIEW, or ERROR), exact
-error text, and preserved paths when applicable.
-```
-
+Spawn one reviewer subagent per `stack_prs` entry with `background: true` so all PRs are reviewed in parallel. Use `subagent_type: "general-purpose"`, `description: "[reviewer] pr #<num>"`, and prepend `reviewer_persona_instructions`. The full per-PR prompt template (parallel-safety constraints, diff collection, right-side position parsing, post-decision logic, per-PR cleanup) lives in [references/reviewer-prompts.md](references/reviewer-prompts.md#stack-subagent-one-reviewer-per-pr), split out to keep this SKILL.md under ~200 lines. **Do not pass `capability_mode: read-only`.** It removes the `write` tool needed for each per-PR review and payload; enforce read-only source behavior in the prompt instead.
 After all launches, call `get_command_or_subagent_output` for all task IDs and wait for every reviewer. Record a failed subagent as ERROR for that PR and continue aggregating the rest.
 
 ## Step 3: Handle output based on mode
@@ -394,41 +142,9 @@ The post-processing differs by mode: main/local/branch mode writes a summary to 
 
 ### Main / Local / Branch mode
 
-1. Read `<review_file>` via `read_file`.
-2. Count issues by counting heading lines that match the regex `^### Issue \d+ -- Severity: (bug|suggestion|nit)$` and bucket them by the captured severity. Issues whose heading does not match this pattern (typo'd severity, missing severity field, malformed heading) are malformed -- log a one-line warning to the user listing the heading line and treat them as uncounted. Do not attempt to re-parse the body for a `Severity:` field; the heading is the canonical source. The same regex governs the parsing in Step 3 PR mode below.
-3. Compute diff stats:
+The main/local/branch post-processing (read the review file, count issues by the severity-regex, compute color-off `--shortstat` diff stats, write the `<summary_file>` in the documented structure, print paths) lives in [references/final-report.md](references/final-report.md#mainlocalbranch-mode-details-step-3), split out to keep this SKILL.md under ~200 lines. Do NOT delete `<review_file>` or `<summary_file>` in these modes -- those files ARE the deliverable.
 
-   ```text
-   git -c color.ui=false -c color.diff=false diff --shortstat <range>
-   ```
-
-   For local mode, run `git -c color.ui=false -c color.diff=false diff --shortstat HEAD` and also count untracked files separately. For branch mode, inline the resolved merge base and target in `git -c color.ui=false -c color.diff=false diff --shortstat <MERGE_BASE>..<target>`. For main mode, inline the merge base in `git -c color.ui=false -c color.diff=false diff --shortstat <MERGE_BASE>..HEAD`.
-
-   **Color-off on every git diff.** All `git diff` / `git diff --name-only` / `git diff --shortstat` / `git diff --no-index` invocations in this skill MUST pass `-c color.ui=false -c color.diff=false` (or equivalent `NO_COLOR=1` / `GIT_CONFIG_COUNT` overrides). ANSI color codes from a user-enabled `color.ui=always` frequently break agent parsing and force retries; never rely on ambient git color config.
-
-4. Use the `write` tool to create `<summary_file>` with this structure:
-
-   ```markdown
-   # Review Summary
-
-   - **Mode**: <mode>
-   - **Target**: <target-summary>
-   - **Files reviewed**: <count> (<list, truncated to 10 if longer>)
-   - **Diff stats**: <shortstat-line>
-   - **Issue counts**: <X> bugs, <Y> suggestions, <Z> nits
-
-   ## Top issues
-
-   <First 5 issue titles, one per line, in the form "[severity] file:line -- description (truncated to ~100 chars)">
-
-   See the full review at: <review_file>
-   ```
-
-5. Print to the user:
-   - Inline issue counts and the file paths to `<review_file>` and `<summary_file>`.
-
-Do NOT delete `<review_file>` or `<summary_file>` in main/local/branch modes -- those files ARE the deliverable.
-
+### PR mode
 ### PR mode
 
 The GitHub PR post-processing — read the reviewer output, walk the diff for valid inline positions, build the payload, post the review, and handle errors — lives in [references/pr-post-processing.md](references/pr-post-processing.md), split out to keep this SKILL.md under ~200 lines. Follow it for single-PR mode; the default posts a PENDING review, `--submit` posts COMMENT, and `--approve` posts APPROVE.
@@ -444,44 +160,10 @@ The orchestrator wrote no per-PR review/diff/payload files in this mode, so ther
 
 ## Step 4: Cleanup
 
-Cleanup is asymmetric by mode and outcome:
-
-- **Main, local, and branch:** keep `<review_file>` and `<summary_file>`. Remove only `<diff_file>` and `<files_file>`.
-- **PR successful post:** remove `<review_file>`, `<diff_file>`, `<pending_review_payload>`, `<prmeta_file>`, `<files_file>`, `<post_file>`, and `<post_error_file>`.
-- **PR failed post:** keep `<review_file>` and remove the other PR artifacts. Mention the preserved review path.
-- **PR no reviewer output:** remove `<review_file>`, `<diff_file>`, `<pending_review_payload>`, `<prmeta_file>`, and `<files_file>`. Missing files are harmless.
-- **Stack:** each subagent owns cleanup of its per-PR paths. It removes them after a successful post or no-post result and preserves the review, payload, and diff after a failed post. The orchestrator has no stack artifacts to remove.
-
-For every cleanup, run the resolved `<PYTHON> <HOST_PY> cleanup <paths...>` command with absolute paths. Missing files are allowed. Do not use a shell deletion command. `--approve` and `--submit` use the same successful-post cleanup as the default PR path.
-
+Per-mode cleanup asymmetry (keep vs remove per outcome, per-mode artifact lists, and the `HOST_PY cleanup` invocation) lives in [references/diff-collection-and-cleanup.md](references/diff-collection-and-cleanup.md#step-4-details-cleanup), split out to keep this SKILL.md under ~200 lines. In summary: main/local/branch keep `<review_file>` and `<summary_file>`; PR removes `<review_file>` on success or no-reviewer-output but preserves it on a failed post; each stack subagent owns its own per-PR cleanup. For every cleanup, run the resolved `<PYTHON> <HOST_PY> cleanup <paths...>` with absolute paths; missing files are allowed; do not use a shell deletion command.
 ## Step 5: Final report
 
-Present a final report to the user. Item 1 is always included; item 2 is omitted on empty-diff exits; item 3 is omitted on empty-diff exits and on PR zero-issue early-exits; item 4 is always included. In **stack mode**, items 2-3 are subsumed by the per-PR table in item 4 (the orchestrator collected no single combined diff); item 1 still names the mode and lists the stack.
-
-1. **Mode + target** -- e.g., "Current branch vs origin/main" (main mode) or "Local changes" or "Branch feature/foo vs origin/main" or "PR #4221: <pr_title>".
-2. **Files reviewed** -- count and (if 10 or fewer) the list. Omit on empty-diff exits.
-3. **Issues by severity** -- the bug/suggestion/nit counts. Omit on empty-diff exits and on PR zero-issue early-exits (counts are all zero by construction; the mode-specific bullet says so).
-4. **Mode-specific output**:
-   - Main / local / branch (successful review): full paths to `<review_file>` and `<summary_file>`, plus a one-line copy of the summary's top-issues list.
-   - Main / local / branch (empty-diff exit): "No changes to review." (local mode) or "Branch has no changes vs <BASE>." (main mode) or "Branch <target> has no changes vs <BASE>." (branch mode). No file paths -- nothing was written.
-   - PR (successful post): the structured block from Step 3 PR mode item 7, plus the review `id` from the response (for traceability). Default: the PENDING submit block (PR number, inline-comment count, body-findings count, Files-tab URL, submit reminder). If `submit` was true: the COMMENTED block (PR URL, comments already visible, no submit reminder). If `approve` was true: the APPROVED block stating the review was submitted (published) and the PR approved, with the PR URL and no submit reminder.
-   - PR (zero-issue early-exit, no approve, no submit): "Reviewer found no issues on PR #<pr_number>. No PENDING review created."
-   - PR (zero-issue, submit): "Reviewer found no issues on PR #<pr_number>. No COMMENT review created."
-   - PR (zero-issue, approve): "Reviewer found no issues on PR #<pr_number>. Submitted an empty APPROVING review -- the PR is now approved."
-   - PR (empty-diff exit): "PR #<pr_number> has no changes. Nothing to review." (if `--approve` was passed, add "Not approved -- an empty-diff PR has no changes to approve.")
-   - PR (failed post): the verbatim stderr from `gh api` plus the HTTP status code, plus the preserved path to `<review_file>` so the user can recover the findings. If the failure was a self-approval 422, state that cause explicitly.
-   - Stack (all PRs reviewed): a summary table over every PR in `stack_prs`, one row each, plus a totals line:
-
-     ```
-     PR    | Title              | bugs/sugg/nits | State    | Error
-     #4221 | Add foo to bar     | 1/2/0          | APPROVED | -
-     #4222 | Wire bar into baz  | 0/0/1          | APPROVED | -
-     #4223 | Update callers     | 0/0/0          | APPROVED | -
-     Totals: 3 PRs, 1 bug, 2 suggestions, 1 nit; 3 approved, 0 commented, 0 pending, 0 errored.
-     ```
-
-     Each row's State reflects that PR's own outcome: APPROVED (reviewed with `--approve`), COMMENTED (issues found and submitted with `--submit`), PENDING (issues found, no modifier -- default), NO CHANGES (empty diff -- never auto-approved), NO REVIEW (zero issues and not approving -- nothing posted), or ERROR (subagent failed to post; put the exact error text in the Error column). The totals line counts approved / commented / pending / errored PRs; NO CHANGES and NO REVIEW rows are shown but fall outside those buckets. (Because the modifiers are run-wide, APPROVED, COMMENTED, and PENDING do not mix within one run -- but errored / no-change / no-review rows can still appear alongside any.)
-
+The full final-report structure (the always-included mode + target line, files-reviewed and severity-count items, and the per-mode output blocks including the stack summary table and state definitions) lives in [references/final-report.md](references/final-report.md), split out to keep this SKILL.md under ~200 lines. Summary: item 1 (mode + target) and item 4 (mode-specific output) are always included; items 2-3 are omitted on empty-diff exits; in stack mode items 2-3 are subsumed by the per-PR table.
 ## In-Progress Reporting
 
 Status-update phrasing after each phase (diff collection, reviewer completion, post-outcome, stack per-PR results) is in [references/in-progress-reporting.md](references/in-progress-reporting.md).
@@ -503,13 +185,9 @@ Status-update phrasing after each phase (diff collection, reviewer completion, p
 - **Stack mode is read-only and parallel-safe** -- stack subagents share one working tree, so they must run only read-only git/gh commands (never checkout/switch/reset/stash/`gh pr checkout`/`git fetch ...:branch`) and write only under the resolved `scratch_dir` using per-PR-unique filenames that embed BOTH the `REVIEW_ID` and the PR number. Each subagent reads post-change file content via `gh api .../contents?ref=<headSha>` rather than checking out the branch, and removes its own temp files when done.
 - **`--approve` forbids self-approval** -- GitHub rejects approving your own PR. Single-PR mode and every stack reviewer compare the PR author with the authenticated user before posting. On a match, do not post, surface the cause, and preserve the review artifacts.
 - **`--approve` and `--submit` are PR-only and mutually exclusive** -- both modifiers are valid only with `--pr` and `--stack`; combining either with main, local, or branch mode (including an auto-detected branch) is rejected during argument parsing. Passing both together is rejected with `--approve and --submit are mutually exclusive.`
-- **Surface every `gh api` error verbatim** -- if the GitHub API call exits non-zero (422, 403, 404, 5xx, anything else), do not retry, with one exception: a stack subagent may perform the single documented fold-into-body retry on a 422 (per Step 2 Stack mode) before reporting failure. Show the user the raw stderr plus the HTTP status code so they can debug, and preserve `<review_file>` on disk so the findings are not lost.
-- **Helpers stay host-focused** -- use `scripts/host.py` for setup and cleanup and `scripts/collect_local_diff.py` for local changes. Keep review markdown parsing and payload assembly inline.
-- **Cleanup is asymmetric by mode and outcome** -- main/local/branch modes keep `<review_file>` and `<summary_file>` (they are the deliverable). PR mode removes `<review_file>` on a successful post (the GitHub review -- PENDING, COMMENT, or APPROVED -- is the deliverable) and on a no-reviewer-output exit (zero issues OR empty diff -- nothing actionable to preserve), but preserves it on a failed post so the user can recover the findings. In stack mode each subagent cleans up its own per-PR temp files and the orchestrator has nothing extra to remove.
-- **Thread the same file paths** across all steps -- never regenerate paths between steps. The `REVIEW_ID` is fixed for the run.
 - **Error handling** -- if the reviewer subagent fails, the diff collection fails, or the GitHub API call fails, report the error to the user and stop. Do not silently continue with missing results. EXCEPTION (stack mode): a single per-PR subagent failure does NOT abort the run -- record it against that PR, show it as `ERROR` in the stack table, and keep aggregating the other PRs (per Step 2 Stack mode).
 - **No emojis in output** -- match the conventions of the `reviewer` persona instructions and the surrounding skills.
 
 ## Design notes
 
-> Rationale for the non-obvious choices (bare-`/review` default, PENDING-vs-`--submit`, color-off diffs, stack-subagent parallelism, host-helper ownership) is in [references/design-notes.md](references/design-notes.md).
+> Rationale for the non-obvious choices (bare-`/review` default, PENDING-vs-`--submit`, color-off diffs, stack-subagent parallelism, host-helper ownership) is in [references/rules-and-design.md](references/rules-and-design.md).

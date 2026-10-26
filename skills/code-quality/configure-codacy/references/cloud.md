@@ -8,7 +8,7 @@ For the local-first workflow (stack discovery + local `codacy-analysis analyze`)
 
 ## Prerequisites and requirements
 
-- **Codacy Cloud CLI** (`codacy`) — drives all cloud reads, updates, and reanalysis. See `codacy-cloud-cli` for setup.
+- **Codacy Cloud CLI** (`codacy`) — drives all cloud reads, updates, and reanalysis. Setup (install, auth, shared session) and the remote command reference live in the **Codacy Cloud CLI** section at the end of the `codacy-code-review` skill.
 - **Codacy Analysis CLI** (`codacy-analysis`) — used **only** for config-file operations (`init --remote`, `init --auto`, `config --merge`). See `codacy-analysis-cli` for setup.
 - Both CLIs share credentials at `~/.codacy/credentials`, so a single login covers both.
 
