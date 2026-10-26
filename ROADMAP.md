@@ -1,25 +1,16 @@
 # ROADMAP — agents-arwaky
 
-State / Health: vocabulary below. Last Updated: 2026-10-24
+State / Health: vocabulary below. Last Updated: 2026-10-26
 
 ## Current Condition
 
-- Done: legacy `tools/` fully migrated to AES `modules/`; 10/10 feature
-  FRD/BACKLOG pairs HOW-TO-clean; FRD redesign plan approved and written
-  (single-row `execute` protocol per feature); the skill pack is served by
-  `modules/skills/` through `aa skills` — read-only discovery (`list`,
-  `show`, `validate`, `catalog`, `discover`, `weed`, `merge-plan`, `rules`)
-  plus dry-run-by-default authoring (`repair`, `move`, `archive`,
-  `new-category`).
-- Removed: `modules/check`, the `aa check` gate, and the `aa skill` provisioning
-  surface (install/uninstall/update/check) were deleted on 2026-09-28;
-  `modules/skills/` now owns discovery *and* authoring, exposed as 12
-  `aa skills` verbs.
-- In Progress: none at workspace level; per-feature QA sweeps live in each
-  feature BACKLOG (tools TOL-02/TOL-03, config CFG-01/CFG-04, daemon DMN-01,
-  service SVC-01, mcp MCP-01, skills SKL-01, backup BKP-01).
-- Blocked: WS-05 (live `.env` home undecided).
-- Next: WS-05, then WS-06 (port remaining legacy tests).
+- Done: legacy `tools/` migration and per-feature AES architecture are in
+  place; identified lifecycle, config, manifest, harness, and backup
+  regressions are covered by feature suites and documented in per-feature
+  backlogs.
+- In Progress: none at workspace level.
+- Blocked: none.
+- Next: none.
 
 ## State Definitions
 
@@ -62,27 +53,24 @@ State / Health: vocabulary below. Last Updated: 2026-10-24
 Cross-cutting `WS-` rows only. Feature rows live in each feature's BACKLOG.
 One table: every feature. Feature detail stays in each feature's BACKLOG.
 
-| ID | Feature | Priority | State | Dependencies | Next Action | Updated |
-|---|---|---|---|---|---|---|
-| modules/tools | Tool lifecycle (install / update / uninstall / run / resolve) | P0 | QA | TOL-01 | TOL-02, TOL-03 | 2026-09-23 |
-| modules/mcp | MCP manifest → client config / list / probe | P0 | QA | MCP-03 | MCP-01 sweep | 2026-09-23 |
-| modules/config | Comment-safe config load / save / merge / env | P1 | QA | CFG-03 | CFG-01 round-trip | 2026-09-23 |
-| modules/daemon | Daemon lifecycle + Anytype auth / units | P1 | QA | DMN-03 | DMN-01 live sweep | 2026-09-23 |
-| modules/doctor | Host + tool readiness diagnosis | P1 | Done | DOC-03 | none | 2026-09-23 |
-| modules/harness | Connect / disconnect / skill provisioning | P1 | Ready | HRS-04 | HRS-01 sweep | 2026-09-23 |
-| modules/service | systemd unit drive / status / logs | P1 | QA | SVC-03 | SVC-01 live sweep | 2026-09-23 |
-| modules/skills | Skill pack discovery: list / show (read-only) | P1 | QA | SKL-01 | none | 2026-09-23 |
-| modules/backup | Archive / restore / list / status | P2 | QA | BKP-03 | BKP-01 gdrive leg | 2026-09-23 |
-| modules/shared | Kernel (XDG, venv, launcher, engines) | P0 | In Progress | none | none | 2026-09-23 |
+| ID | Feature | Priority | State | Dependencies | Next Action | Updated | Actual Condition |
+|---|---|---|---|---|---|---|---|
+| modules/tools | Tool lifecycle (install / update / uninstall / run / resolve) | P0 | Done | TOL-06 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/tools -q` → 84 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/mcp | MCP manifest → client config / list / probe | P0 | Done | MCP-05 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/mcp -q` → 26 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/config | Comment-safe config load / save / merge / env | P1 | Done | CFG-04 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/config -q` → 77 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/daemon | Daemon lifecycle + Anytype auth / units | P1 | Done | DMN-04 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/doctor | Host + tool readiness diagnosis | P1 | Done | DOC-03 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/doctor -q` → 29 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/harness | Connect / disconnect / skill provisioning | P1 | Done | HRS-07 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/service | systemd unit drive / status / logs | P1 | Done | SVC-04 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/skills | Skill pack discovery and authoring | P1 | Done | SKL-11 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/backup | Local archive / restore / list / status | P2 | Done | BKP-06 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| modules/shared | Kernel (XDG, venv, launcher, engines) | P0 | Done | SHARED-02 | none | 2026-10-26 | `./.venv/bin/python -m pytest modules/shared -q` → 116 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
 
 ### Branches in Flight
 
 | Branch | Backlog IDs | State |
 |--------|-------------|-------|
-| `main` | WS-05, WS-06 | green gates at tip |
-| `develop` | WS-05 | integration tip |
-| `refactor/standardize-xdg-uninstall` | TOL-03 | local, uninstall residual sweep |
-
+| `arena/640ff78a-agents-arwaky` | WS-05, WS-06, feature verification and evidence updates | In Progress |
 
 | ID | FRD Ref | Work Item | Priority | State | Actual Condition | Owner | Dependencies | Updated |
 |----|---------|-----------|----------|-------|-------------------|-------|--------------|---------|
@@ -90,22 +78,16 @@ One table: every feature. Feature detail stays in each feature's BACKLOG.
 | WS-02 | — | Runner split per-tool (registry dispatch + RunnerBase + per-tool capabilities) | P0 | Done | Gate: `lint-arwaky scan modules` → 0 violations at `b9c8c62`; runner lives under `modules/tools`. | @raka | WS-01 | 2026-09-23 |
 | WS-03 | — | Consolidate surface commands into per-feature packages | P0 | Done | Gate: `find modules -name 'surface_*'` → all under `modules/<feature>/src/` at `b9c8c62`; no `modules/cli`. | @raka | WS-01 | 2026-09-23 |
 | WS-04 | — | FRD + BACKLOG pair for each module | P0 | Done | Pairs written + strict-only sweep; 0 findings at `fffcd17` (working tree). | @raka | WS-01 | 2026-09-23 |
-| WS-05 | — | Decide operator-local secrets location (live `.env` vs XDG config) after migration | P1 | Blocked | `config/` holds only `.env.example` + `manifest.json` + `version.txt`; live env files untracked. | @raka | None | 2026-09-22 |
-| WS-06 | — | Migrate `tools/tests/` into `modules/tests/` | P1 | Deferred | 4 worktree tests in `tests/`; old suite not yet ported. | @raka | WS-01 | 2026-09-23 |
+| WS-05 | — | Select the private XDG config home for live Anytype credentials | P1 | Done | `./.venv/bin/python -m pytest modules/daemon/tests/unit_daemon.py::test_auth_key_writes_private_xdg_env_only -q` → 1 passed; `./.venv/bin/python -m pytest modules/daemon -q` → 71 passed at `767b18672a0c0abd92f7225f267478db8271c334`; writes only under `agents_arwaky_config_dir()/anytype.env`. | @raka | None | 2026-10-26 |
+| WS-06 | — | Audit/migrate the legacy tools test suite if source files are tracked | P1 | Done | `git ls-tree -r --name-only HEAD -- tests tools/tests` → no tracked paths to migrate; feature tests already live under `modules/<feature>/tests/`; `./.venv/bin/python -m pytest modules -q` → 684 passed at `767b18672a0c0abd92f7225f267478db8271c334`. | @raka | WS-01 | 2026-10-26 |
 | WS-07 | — | Merge `refactor/aes-tools` into main, deleting legacy `tools/` there | P0 | Done | Gate: `git log --oneline -1` → merge on main at `b9c8c62`; legacy `tools/` gone; AES + ruff green. | @raka | WS-04, WS-08 | 2026-09-23 |
 | WS-08 | — | Fix CI entry-point drift (`modules.cli` → `root_cli_entry`) | P0 | Done | Gate: `grep root_cli_entry .github/workflows/ci.yml` → 2 hits at `b9c8c62`; CI green. | @raka | WS-03 | 2026-09-23 |
 
 ## Risk Register
 
-- Risk: live `.env` files have no decided home (WS-05); a fresh clone has no
-  daemon credentials and `aa anytype start` fails. Mitigation: WS-05 names a
-  single XDG path before P1 daemon onboarding is trusted.
-- Risk: tools clean-host fidelity (TOL-02 exit codes, TOL-03 residuals) is
-  still QA-only; a host-specific failure would ship with the P0 tool gate
-  green. Mitigation: run both sweeps before calling tools Done.
-- Risk: harness has no automated per-harness coverage (HRS-01 Ready, tests
-  Todo); a connector regression is only caught manually. Mitigation: land
-  HRS-01 sweep before the next harness-facing release.
-- Risk (closed 2026-09-23): CI entry-point drift (`modules.cli` →
-  `root_cli_entry`). Resolved: `ci.yml` runs
-  `python3 -m modules.root_cli_entry mcp generate`; gate green.
+- Risk: HRS-02 has no task description or FR/scenario mapping and remains
+  Deferred; mitigation: keep it out of the active roll-up until the owner
+  supplies an acceptance scope.
+- Risk: live systemd/Podman operations are not run by the automated suite
+  because they alter host services; mitigation: keep these host-side checks
+  explicitly identified in the relevant feature backlogs.

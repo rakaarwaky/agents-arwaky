@@ -10,14 +10,17 @@
 
 ## System Overview
 
-The mcp feature turns the tool manifest into MCP client configuration and
-reports what is registered. One orchestrator exposes list, show, and
-generate; generation is the only path that writes — it reads every
-registered MCP tool from the manifest and emits a client config a harness
-can load. `aa mcp generate` writes it; `aa mcp list` / `aa mcp show` report.
+The MCP feature turns the tool manifest into client configuration and
+reports registered servers. Typed list and write capability protocols
+separate read-only reporting from config generation; `McpOrchestrator.execute`
+is the single aggregate entry point and dispatches each request to the
+matching protocol method. Generation and its alias form are the only write
+paths — they read every MCP-enabled tool from the manifest and emit a client
+config a harness can load. `aa mcp generate` / `aa mcp alias` write it;
+`aa mcp list` / `aa mcp show` report.
 
-Flow: `aa mcp <action>` → MCP orchestrator → generator capability →
-manifest-derived server list → report or client config file.
+Flow: `aa mcp <action>` → `McpOrchestrator.execute` → list or write
+capability → manifest-derived server list → report or client config file.
 
 ## Functional Requirements
 
@@ -74,18 +77,14 @@ manifest-derived server list → report or client config file.
 
 | Method | Input | Output | Error | Event | Description |
 |---|---|---|---|---|---|
-| `McpOrchestrator.list_servers` | — | `list[McpServerInfo]` | manifest read failure → raised to surface | server rows | Report every registered MCP server without writing |
-| `McpOrchestrator.show_server` | `server_id?` | `int` exit code | unknown id → non-zero | help/schema text | Probe one server's help/schema, or show the generated config when no id is given |
-| `McpOrchestrator.generate` | `output: Path` | `int` exit code | non-zero + message | path written | Generate the client config at *output* (the only write path) |
-| `McpOrchestrator.generate_alias` | `alias`, `output: Path` | `int` exit code | non-zero + message | path written | Optional: emit an alias-qualified client config at *output* via the same generator |
-| `McpOrchestrator.validate` | `output?` | `int` exit code | parse error → non-zero | ok/err message | Optional: parse the generated config at *output* and report validity |
+| `execute(request)` | `McpRequest(op, output?, server_id?, alias?)` | `McpResponse` (op-specific result) | op-specific failure → non-zero or typed error | config path for write operations | Single aggregate entry point; dispatches list/show/generate/alias/validate to the matching typed capability method |
 
 ## Integration Points
 
 | System | Direction | Purpose | Failure mode |
 |--------|-----------|---------|--------------|
 | tool manifest (SSOT) | in | server list, command/args/env for generation | missing entry → flagged row |
-| root CLI (`aa mcp`) | in | routes `list` / `generate` / `show` | pass-through |
+| root CLI (`aa mcp`) | in | routes `list` / `generate` / `show` / `alias` / `validate` | unknown action → usage + non-zero |
 | each tool's CLI | in | bounded help/schema for probe | probe failure → note beside schema |
 | harness (MCP client) | out | the generated config file | unwriteable → non-zero |
 

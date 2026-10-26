@@ -52,13 +52,13 @@ write only under the XDG data home or an explicitly selected local destination.
 - **Input**: none (a list, status, or help request from the surface).
 - **Output**: exit code; a human-readable listing (one archive name per
   line) for list, a short report with the store path, existence, and
-  archive count for status, and usage text naming the known tool
-  identifiers for help.
+  archive count for status, and local backup/restore/list usage forms for
+  help.
 - **Business Rules**: all three views are read-only — they never create,
   move, or delete archives and never create the store; listing names are
   sorted so repeated listings are stable; the status count covers archive
-  files only; usage is always a success and its tool identifiers come from
-  the registered tool map.
+  files only; usage is always a success and documents the supported local
+  archive, restore, and list forms.
 - **Edge Cases**: store missing or empty → empty listing body / absent
   store with a count of 0, exit 0; invoked with no arguments → usage
   printed with exit 0.
@@ -81,11 +81,7 @@ write only under the XDG data home or an explicitly selected local destination.
 
 | Method | Input | Output | Error | Event | Description |
 |--------|-------|--------|-------|-------|-------------|
-| `backup` | `tool`, `dest?` | exit code | non-zero + gateway failure message | — | Archive the tool's XDG state into the store |
-| `restore` | `tool`, `archive` | exit code | non-zero + missing archive message | — | Restore the tool's XDG state from an archive |
-| `list_archives` | — | list of archive paths | non-zero + unreadable store message | — | List archives under the backup store (read-only) |
-| `status` | — | store path, existence, archive count | non-zero | — | Report backup store status (read-only) |
-| `help` | — | usage text | — | — | Print backup usage and known tool identifiers |
+| `execute(request)` | `BackupRequest(op, tool?, dest?, archive?)` | `BackupResponse` (op-specific result) | gateway/validation failure → non-zero outcome | archive path for successful backup | Single aggregate entry point; dispatches archive, restore, list, status, and help to the matching typed capability method |
 
 ## Integration Points
 

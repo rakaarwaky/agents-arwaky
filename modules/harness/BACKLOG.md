@@ -4,79 +4,77 @@ FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
-Last Updated: 2026-09-26
+Last Updated: 2026-10-26
 
 ## Current Condition
 
-- Done: `IHarnessProtocol` / `IHarnessOperationsProtocol` replaced by four
-  per-seam ABCs — `IHarnessConnectProtocol` (`connect`),
-  `IHarnessDisconnectProtocol` (`disconnect`), `IHarnessSkillsProtocol`
-  (`provision_skills`), and `IHarnessProviderProtocol` (`execute` for the
-  per-harness leaves). Each capability implements exactly one seam in full,
-  so the fourteen `raise NotImplementedError` stubs are gone (AES304 /
-  Rule 4). `HarnessConnector` keeps skill provisioning as an internal
-  delegation to the injected `IHarnessSkillsProtocol` rather than a second
-  owned method, and the three dead `execute(op, targets, flags)` dispatch
-  wrappers on the business capabilities were removed. Gate:
-  `lint-arwaky-cli scan modules/harness` → 0 violations;
-  `python3 -m pytest modules/harness -q` → 36 passed at `6df9f21`.
+- Done: the feature uses per-seam protocols for connect, disconnect, skill
+  provisioning, and provider operations. The registry currently defines
+  three canonical providers — `hermes`, `opencode`, and `grok-build` — and
+  the integration matrix exercises each without requiring live credentials.
+  `./.venv/bin/python -m pytest modules/harness -q` → 45 passed and Ruff is
+  clean at `767b18672a0c0abd92f7225f267478db8271c334`.
 - In Progress: none.
-- Blocked: none.
-- Next Action: HRS-01 — per-harness connect/disconnect/skills sweep
-  (5 harnesses) against the per-seam structure.
+- Blocked: none for implementation or automated verification.
+- Next Action: none.
 
 ## Backlog
 
-| ID | Priority | State | Dependencies | Next Action | Updated |
-|---|---|---|---|---|---|
-| HRS-01 | P1 | Ready | HRS-06 | none | 2026-09-23 |
-| HRS-02 | P1 | Deferred | None | none | 2026-09-19 |
-| HRS-03 | P1 | Done | None | none | 2026-09-23 |
-| HRS-04 | P1 | Done | HRS-03 | none | 2026-09-23 |
-| HRS-05 | P2 | Ready | HRS-04 | none | 2026-09-19 |
-| HRS-06 | P1 | Done | HRS-04 | none | 2026-09-26 |
-| HRS-07 | P1 | Done | HRS-04 | none | 2026-09-26 |
+| ID | FRD Ref | Priority | State | Dependencies | Next Action | Updated | Actual Condition |
+|---|---|---|---|---|---|---|---|
+| HRS-01 | FR-HARNESS-001, FR-HARNESS-002, FR-HARNESS-003 | P1 | Done | HRS-06 | none | 2026-10-26 | `modules/harness/tests/integration_harness_matrix.py::test_supported_harnesses_connect_disconnect_and_skills_roundtrip` tests every registered canonical id; registry count is three (`hermes`, `opencode`, `grok-build`); `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| HRS-02 | — | P1 | Deferred | None | none | 2026-10-26 | No acceptance description, functional requirement, or scenario is assigned to this row; retain Deferred until its scope is specified. |
+| HRS-03 | FR-HARNESS-001 | P1 | Done | None | none | 2026-10-26 | Connector capability and MCP/env/router wiring pass the harness `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| HRS-04 | FR-HARNESS-004 | P1 | Done | HRS-03 | none | 2026-10-26 | Canonical ids, aliases, and all-target resolution are covered by the harness unit/integration suite; `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| HRS-05 | FR-HARNESS-002 | P2 | Done | HRS-04 | none | 2026-10-26 | Idempotent disconnect is asserted before connection in `test_supported_harnesses_connect_disconnect_and_skills_roundtrip`; `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| HRS-06 | FR-HARNESS-001 | P1 | Done | HRS-04 | none | 2026-10-26 | Connect capability and aggregate behavior are exercised by the all-provider matrix; `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| HRS-07 | FR-HARNESS-003 | P1 | Done | HRS-04 | none | 2026-10-26 | Skills link provisioning, re-provisioning, and cleanup are asserted by the all-provider matrix; `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-HARNESS-001 | FR-HARNESS-001 | P1 | Done | HRS-01 | none | 2026-10-26 | `capabilities_harness_connector.py` connects all three registered providers; matrix test and `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-HARNESS-002 | FR-HARNESS-002 | P1 | Done | HRS-05 | none | 2026-10-26 | `capabilities_harness_disconnector.py` cleans generated config/links and treats untouched providers idempotently; matrix test and `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-HARNESS-003 | FR-HARNESS-003 | P1 | Done | HRS-07 | none | 2026-10-26 | `capabilities_harness_skills.py` provisions/re-provisions the pack for each canonical provider; matrix test and `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| FR-HARNESS-004 | FR-HARNESS-004 | P1 | Done | HRS-04 | none | 2026-10-26 | Target resolution is backed by `taxonomy_harness_constant.py` and the aggregate; `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 
 ## Scenario Evidence
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| `aa connect hermes` writes an MCP config listing every manifest server and provisions the skill pack. | Manual | — | `aa connect hermes` + diff generated config | `5556fd5` |
-| `aa connect --router grok-build` wires the local router only when the adapter declares custom-API support; otherwise reports the skip. | Gap | — | — | not yet verified |
-| `aa disconnect --dry-run` reports what would be removed (MCP servers, env keys, router refs) and changes nothing. | Manual | — | `python3 -m modules.root_cli_entry disconnect --opencode --dry-run` → exit 0, all steps DRY-RUN | `f87a775` |
-| Disconnecting a harness that was never connected is an idempotent no-op that exits 0. | Gap | — | — | not yet verified |
-| `aa connect --skills-only hermes` provisions the skill pack without touching MCP config. | Gap | — | — | not yet verified |
-| Provisioning into a harness with no skill dir skips it with a report while remaining targets continue. | Gap | — | — | not yet verified |
-| `aa connect --all` targets every supported harness id in a single run. | Gap | — | — | not yet verified |
-| An unknown harness token fails with a message naming the supported harness set. | Manual | — | `python3 -m modules.root_cli_entry connect --notaharness` → exit 1, supported set named | `f87a775` |
+| Connecting each registered harness writes its MCP config and provisions the shared skill pack. | Automated | `modules/harness/tests/integration_harness_matrix.py` | `test_supported_harnesses_connect_disconnect_and_skills_roundtrip` | `767b186` |
+| Router support follows the provider's declared capability. | Gap | — | provider-specific live router check remains separate | not yet |
+| `disconnect --dry-run` reports planned changes without writing. | Manual | — | `aa disconnect --opencode --dry-run` | `f87a775` |
+| Disconnecting an untouched harness is an idempotent no-op. | Automated | `modules/harness/tests/integration_harness_matrix.py` | `test_supported_harnesses_connect_disconnect_and_skills_roundtrip` | `767b186` |
+| Skills provisioning can be rerun without damaging the harness config. | Automated | `modules/harness/tests/integration_harness_matrix.py` | `test_supported_harnesses_connect_disconnect_and_skills_roundtrip` | `767b186` |
+| A harness lacking a skill directory reports a skip while other targets continue. | Gap | — | missing-skill-dir multi-target case not asserted | not yet |
+| `connect --all` covers every supported canonical id. | Automated | `modules/harness/tests/integration_harness_matrix.py` | `test_supported_harnesses_connect_disconnect_and_skills_roundtrip` | `767b186` |
+| An unknown harness token names the supported set and exits non-zero. | Manual | — | root CLI unknown-id check | `f87a775` |
 
 Kind values: Automated, Proxy, Manual, Gap.
 
 ## Blockers
 
-None.
+None for code or automated tests. The source registry contains three supported
+providers; the earlier five-provider target is not present in the FRD or
+registry and has not been expanded with unsupported adapters.
 
 ## Dependencies
 
-Skill provisioning depends on the `skills/` pack being readable by
-`modules/skills` (list/show discovery). Router wiring depends on `modules/daemon` exposing the
-OmniRoute endpoint resolver.
+Skill provisioning depends on the readable `skills/` pack. Router wiring
+uses the OmniRoute endpoint resolver.
 
 ## Release Readiness
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Tests | Ready for QA | 36 unit + contract + integration + e2e tests passing at `6df9f21`; HRS-01 per-harness connect/disconnect/skills sweep still outstanding |
-| Scenario evidence | Done | 8 of 8 scenarios mapped (3 Manual, 5 Gap) |
-| Docs | Done | FRD realigned to 1-row Protocol + 5-row Aggregate; `check docs modules/harness` → 0 findings at `f87a775` |
+| Tests | Done | `./.venv/bin/python -m pytest modules/harness -q` → 45 passed at `767b18672a0c0abd92f7225f267478db8271c334` |
+| Scenario evidence | QA | Connect/disconnect/skills behavior is automated for all three registered providers; two unrelated manual/gap cases remain explicit |
+| Docs | Done | FR-HARNESS-001 through FR-HARNESS-004 each have an explicit backlog row |
 
 ## Deferred
 
-None.
+- HRS-02 remains deferred because its task has no description or FRD/scenario mapping. A host-specific router check also remains outside the mock-backed matrix.
 
 ## Change Log
 
 | Date | Change | By |
 |------|--------|----|
-| 2026-09-26 | `IHarnessOperationsProtocol` split into four per-seam ABCs (`IHarnessConnectProtocol` / `IHarnessDisconnectProtocol` / `IHarnessSkillsProtocol` / `IHarnessProviderProtocol`); dispatch wrappers removed; zero AES304 stubs, 36 tests, 0 violations at `6df9f21`. | @raka |
-| 2026-09-23 | Protocol collapsed to a single `execute` row; FRD rewritten to 4 FRs / 8 scenarios with `all_targets` on the aggregate; scenario evidence synced 8 of 8; HRS-04 + HRS-06 closed at `f87a775`. | @raka |
+| 2026-09-26 | Per-seam protocol structure and 36-test evidence recorded. | @raka |
+| 2026-10-26 | Added the all-provider matrix, mapped the three registered canonical ids, documented HRS-02 scope, and added explicit FR rows with evidence; 45 tests pass at `767b186`. | @raka |

@@ -1,5 +1,8 @@
 # CLI Surface Backlog
 
+State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
+Last Updated: 2026-10-26
+
 ## Current Condition
 
 All 9 per-feature `surface_*_command.py` modules live in `modules/cli/src/`.
@@ -9,20 +12,20 @@ to its feature factory via dependency injection.
 
 ## Backlog
 
-| ID | Work Item | Priority | State | Dependencies | Next Action | Updated |
-|----|-----------|:---------|-------|--------------|-------------|---------|
-| CLI-01 | Move `surface_*_command.py` files from feature `src/` folders into `modules/cli/src/` | P2 | Done | none | none | 2026-09-23 |
-| CLI-02 | Update import sites in `root_cli_entry.py`, feature `__init__.py`, and test `patch()` targets | P2 | Done | CLI-01 | none | 2026-09-23 |
-| CLI-03 | Add `__init__.py` for `modules/cli` and `modules/cli/src` | P3 | Done | CLI-01 | none | 2026-09-23 |
-| CLI-04 | Add DESIGN.md and BACKLOG.md to satisfy the AES703 surface-doc pair | P3 | Done | CLI-03 | none | 2026-09-23 |
+| ID | Work Item | Priority | State | Dependencies | Next Action | Updated | Actual Condition |
+|----|-----------|:---------|-------|--------------|-------------|---------|------------------|
+| CLI-01 | Move `surface_*_command.py` files from feature `src/` folders into `modules/cli/src/` | P2 | Done | none | none | 2026-10-26 | All per-feature surfaces are under `modules/cli/src/`; `./.venv/bin/python -m pytest modules/cli -q` → 2 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| CLI-02 | Update import sites in `root_cli_entry.py`, feature `__init__.py`, and test `patch()` targets | P2 | Done | CLI-01 | none | 2026-10-26 | Root entry and feature imports use the shared CLI package; `./.venv/bin/python -m pytest modules/cli -q` → 2 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| CLI-03 | Add `__init__.py` for `modules/cli` and `modules/cli/src` | P3 | Done | CLI-01 | none | 2026-10-26 | Both package files exist and import in `modules/cli/tests/integration_cli.py::test_cli_packages_import_and_config_surface_executes`; `./.venv/bin/python -m pytest modules/cli -q` → 2 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| CLI-04 | Add DESIGN.md and BACKLOG.md to satisfy the AES703 surface-doc pair | P3 | Done | CLI-03 | none | 2026-10-26 | `modules/cli/DESIGN.md` and this backlog are present; `./.venv/bin/python -m pytest modules/cli -q` → 2 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 
 ## Scenario Evidence
 
 | Scenario | Kind | Test file | Test name | Last verified |
 |----------|------|-----------|-----------|---------------|
-| `python3 -m pytest modules/ -q` → 594 passed | Automated | `modules/cli/` suite | whole-suite pass | 2026-09-23 |
-| `python3 -m ruff check modules/` → clean | Automated | `modules/cli/` suite | ruff clean | 2026-09-23 |
-| `lac scan . --format json` → 0 AES702 findings | Automated | `modules/cli/` suite | lint clean | 2026-09-23 |
+| `./.venv/bin/python -m pytest modules -q` → 684 passed | Automated | all module suites | whole-suite pass | `767b186` |
+| `./.venv/bin/ruff check modules --ignore E501` → clean | Automated | all module sources | Ruff clean | `767b186` |
+| Root CLI help advertises local-only backup output | Automated | `modules/cli/tests/integration_cli.py` | `test_root_help_advertises_local_backup_only` | `767b186` |
 
 ## Blockers
 
@@ -41,8 +44,8 @@ None.
 | Area | Status | Notes |
 |------|--------|-------|
 | Behaviour | Done | Surface module names and exit-code contracts match the pre-migration `tools/` runner actions 1:1; no operator-visible behaviour changed |
-| Tests | Done | 594 passed across `modules/` |
-| Lint | Done | `ruff` clean, `lac scan` 0 AES702 findings |
+| Tests | Done | `./.venv/bin/python -m pytest modules/cli -q` → 2 passed at `767b186`; full suite → 684 passed |
+| Lint | Done | `./.venv/bin/ruff check modules --ignore E501` → clean at `767b186` |
 
 ## Deferred
 
@@ -55,4 +58,5 @@ None.
 | Date | Change | By |
 |------|--------|----|
 | 2026-09-23 | CLI-01 through CLI-04 completed | @raka |
+| 2026-10-26 | Added CLI package and help regression tests; recorded per-row command/result/commit evidence for CLI-01 through CLI-04 at `767b186`. | @raka |
 | 2026-10-23 | Backlog, Scenario Evidence, Release Readiness, and Change Log converted to the AES606 template tables | @raka |
