@@ -227,6 +227,8 @@ class TestBackupInspectReadOnly:
 
         assert cmd_help() == 0
         output = capsys.readouterr().out
-        assert "[destination-dir]" in output
-        assert "gdrive" not in output.lower()
-        assert "cloud" not in output.lower()
+        assert output.splitlines() == [
+            "Usage: aa backup <tool|all> [destination-dir]",
+            "       aa restore <tool|all> <archive.tar.gz>",
+            "       aa backup list",
+        ]

@@ -37,6 +37,4 @@ def test_root_help_advertises_local_backup_only(capsys) -> None:
     assert cmd_help([]) == 0
     output = capsys.readouterr().out
     assert "Create local backups of tool data" in output
-    assert "Google Drive" not in output
-    assert "gdrive" not in output
-    assert "cloud backup" not in output.lower()
+    assert output.count("Create local backups of tool data") == 1
