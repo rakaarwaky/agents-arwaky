@@ -187,3 +187,46 @@ class TestTarBackupArchiveSafety:
         assert first.success and second.success
         assert first.archive != second.archive
         assert Path(first.archive).is_file() and Path(second.archive).is_file()
+
+
+class TestBackupInspectReadOnly:
+    """Read-only store reports must not create missing local destinations."""
+
+    def test_empty_list_leaves_missing_store_absent(self, tmp_path, monkeypatch, capsys):
+        import modules.backup.src.capabilities_backup_inspect as inspect_module
+        from modules.backup.src.capabilities_backup_inspect import TarBackupInspect
+
+        store = tmp_path / "not-created"
+        monkeypatch.setattr(inspect_module, "BACKUP_STORE", store)
+        result = TarBackupInspect().list_archives()
+
+        assert result.success is True
+        assert int(result.result) == 0
+        assert not store.exists()
+        assert "none found" in capsys.readouterr().out
+
+    def test_status_reports_missing_store_without_creating_it(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        import modules.backup.src.capabilities_backup_inspect as inspect_module
+        from modules.backup.src.capabilities_backup_inspect import TarBackupInspect
+
+        store = tmp_path / "not-created"
+        monkeypatch.setattr(inspect_module, "BACKUP_STORE", store)
+        result = TarBackupInspect().status()
+
+        assert int(result) == 0
+        output = capsys.readouterr().out
+        assert f"Backup store: {store}" in output
+        assert "exists: no" in output
+        assert "archives: 0" in output
+        assert not store.exists()
+
+    def test_usage_names_only_local_backup_destination(self, capsys):
+        from modules.backup.src.capabilities_backup_inspect import cmd_help
+
+        assert cmd_help() == 0
+        output = capsys.readouterr().out
+        assert "[destination-dir]" in output
+        assert "gdrive" not in output.lower()
+        assert "cloud" not in output.lower()
