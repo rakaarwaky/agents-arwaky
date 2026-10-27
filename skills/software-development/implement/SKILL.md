@@ -30,7 +30,7 @@ Every action you describe in your text **must** correspond to an actual tool cal
 
 Open the run with a `todo_write` (merge: false) listing the canonical phases. Use exactly this id schema so the runtime turn-end gate can correlate phases consistently across compactions:
 
-- `setup` — Step 0 (memory retrieval) + reviewer-config decision
+- `setup` — Worktree Isolation (resolve owning repo + Orca `worktree create`) + Step 0 (memory retrieval) + reviewer-config decision
 - `implement` — Step 1 (spawn implementer)
 - `review-round-1` — Step 2 (spawn reviewers) + Step 3 (merge & check)
 - `fix-round-1` — Step 4 (resume implementer to fix)
@@ -123,6 +123,57 @@ Initialize these state variables for the orchestrator to maintain across rounds:
 - `reviewer_configs`: `[]` — list of reviewer config objects (see Specialization Selection below).
 - `past_issues_briefing`: `""` — populated in Step 0 from the workspace memory file (resolved via the `memory.py` helper, see Step 0). Contains a formatted markdown block of common issue patterns from previous runs, injected into implementer and reviewer prompts. Empty string if no past issues exist.
 - `issue_patterns`: `[]` — a list of concise one-line issue descriptions accumulated across rounds. After each Step 3, extract a one-line description from each open issue and append it to this list (deduplicating exact matches). Used in Step 6 (Memory Flush) instead of relying on LLM recall of earlier rounds.
+
+**Then run Worktree Isolation (next section) before announcing specializations** — every `spawn_subagent` call in this skill assumes `worktree_path` exists.
+
+## Worktree Isolation
+
+Run this inside the `setup` todo phase, right after `host.py setup`, before Specialization Selection. The whole run executes inside **one** dedicated Orca worktree whose path is `~/orca/workspaces/<repo-basename>/<task-slug>`. The `<repo-basename>` must be the project that owns the target files: a lint-arwaky task lands in `workspaces/lint-arwaky/<slug>`, an agents-arwaky task in `workspaces/agents-arwaky/<slug>`. Subagents inherit this worktree through `cwd`; they never create worktrees themselves.
+
+### Resolve the owning repo
+
+1. Collect candidate paths: every file or directory path named in `<description>` and in the conversation context.
+2. For the first candidate that exists on disk, run `git -C <parent-dir> rev-parse --show-toplevel` to get `repo_path`. Inside a submodule checkout this returns the submodule root (e.g. `/home/raka/agents-arwaky/internal/lint-arwaky`) — accept it as-is. The outer superproject is the wrong repo whenever the target files live in a submodule or a sibling clone.
+3. If no candidate exists on disk, run the same command from the current workspace cwd.
+4. Resolve the Orca CLI once per run: `$ORCA_CLI_COMMAND` if set, else `orca-ide` on Linux (outside an Orca-managed terminal). Never bare `orca` on Linux — it can resolve to the GNOME screen reader. Inline the resolved executable into every later command; do not rely on a shell variable surviving across `run_terminal_command` calls.
+
+### Reuse or create
+
+Run `"$ORCA" worktree list --json` and decide:
+
+- **Reuse:** if the session workspace path equals some entry's `path` **and** that entry's checkout shares its git common dir with `repo_path` (`git rev-parse --git-common-dir` returns the same value from both), set `worktree_path` = the session workspace path, `worktree_id` = that entry's `id`, `worktree_branch` = that entry's branch (strip `refs/heads/`), and skip creation. A session sitting in the *wrong* project's worktree fails the common-dir check and falls through to create.
+- **Create:** derive `wt_name` as a lowercase `[a-z0-9-]` slug of the task, ≤ 40 chars (e.g. `root-container-enforcement`), then run:
+  ```
+  "$ORCA" worktree create --repo path:<repo_path> --name <wt_name> --no-parent --json
+  ```
+  Do **not** pass `--agent` or `--prompt` — the implementer runs as a `spawn_subagent` child, and `--agent` would start a competing TUI agent inside the worktree.
+
+  Parse the JSON: `result.worktree.path` → `worktree_path`, `result.worktree.id` → `worktree_id`, `result.worktree.branch` → `worktree_branch` (strip the `refs/heads/` prefix).
+- **Verify the project name:** the path segment after `workspaces/` must equal `basename(repo_path)`. If it does not (a lint-arwaky target landing under `workspaces/agents-arwaky/` is the exact failure this check exists for), run `"$ORCA" worktree rm --worktree <worktree_id> --json`, correct the resolution, and retry the create once. If it still lands under the wrong project, report the mismatch and stop.
+- **Failure:** if the create fails or no Orca CLI resolves, report the error and stop. The workspace WORKFLOW contract requires subagents to run in Orca worktrees — never fall back to editing the main clone or the default branch.
+
+Inline `worktree_path`, `worktree_id`, and `worktree_branch` into every later command and subagent prompt, exactly like `scratch_dir`.
+
+### Bind every subagent to the worktree
+
+Pass `cwd: <worktree_path>` on the Step 1 implementer spawn, on every Step 2 reviewer launch, and on any fresh (non-`resume_from`) relaunch in Step 5. Add this block to the top of the implementer prompt on the **initial** launch only:
+
+```
+You are already inside this task's Orca worktree at <worktree_path>.
+All repo paths are relative to this directory. Do not create another
+worktree and do not modify anything outside this directory — the
+orchestrator owns the worktree lifecycle.
+```
+
+`resume_from` spawns keep the original cwd; no `cwd` argument is honored there.
+
+### The skill leaves the worktree for the caller
+
+The orchestrator does not commit, push, open PRs, or retire the worktree — the caller's outer workflow does that after the run ends. Report `worktree_path`, `worktree_id`, and `worktree_branch` in the Final Report (item 9) so the caller can commit, PR, merge, and retire it with `"$ORCA" worktree rm --worktree <worktree_id> --json`.
+
+### Memory helper runs from the worktree
+
+Step 0 and Step 6 invoke `${MEMORY_HELPER}` with cwd inside `<worktree_path>` (`cd <worktree_path> && "${PYTHON}" "${MEMORY_HELPER}" ...`). The worktree shares the owning repo's remote (submodule worktrees share the submodule's git common dir), so the workspace id follows the project that owns the task even when the session itself sits in a superproject workspace. Never run the helper from the helper's own directory (see Step 0).
 
 ## Specialization Selection
 
@@ -262,7 +313,7 @@ For example, if this SKILL.md is at `/Users/alice/.grok/worktrees/org/repo/.grok
 
 **Substitute this absolute path directly** into every helper invocation throughout the run — do not rely on a shell environment variable surviving across `run_terminal_command` calls. All examples below show `${MEMORY_HELPER}` for readability; in practice, inline the absolute `memory_helper_path` value.
 
-**Invoke the helper from the workspace root**, not from the helper's own directory. The helper itself is cwd-sensitive only for its workspace-id derivation: it runs `git config --get remote.origin.url` and `git rev-parse --git-common-dir` in the cwd, so cwd needs to be inside the workspace. `run_terminal_command` defaults to the workspace root, so this is the natural case — just don't `cd` to the helper's own directory before invoking it (especially relevant when the skill is loaded from `~/.grok/skills/`, where `cd`-ing to the helper would put cwd outside any workspace and the workspace-id would fall back to that home-dir cwd).
+**Invoke the helper from the run's worktree after Worktree Isolation: `cd <worktree_path> && "${PYTHON}" "${MEMORY_HELPER}" ...`** (before the worktree exists, the session workspace root is fine). The helper itself is cwd-sensitive only for its workspace-id derivation: it runs `git config --get remote.origin.url` and `git rev-parse --git-common-dir` in the cwd, so cwd must be inside the repo that owns the task — the worktree guarantees that even when the session sits in a superproject workspace. Never `cd` to the helper's own directory before invoking it (especially relevant when the skill is loaded from `~/.grok/skills/`, where `cd`-ing to the helper would put cwd outside any workspace and the workspace-id would fall back to that home-dir cwd).
 
 ### Read Path
 
@@ -334,15 +385,18 @@ Launch the implementer subagent by calling `spawn_subagent`. **Emit the `spawn_s
 `spawn_subagent` parameters:
 - `subagent_type`: `"general-purpose"`
 - `background`: `false`
+- `cwd`: `<worktree_path>` (from Worktree Isolation — required, so the implementer edits the worktree and never the session's default checkout)
 - `description`: `"[implementer] <short summary>"` (the `[implementer]` prefix becomes the pager's row label)
 
-**Prepend the implementer persona instructions** (loaded during setup) to the prompt.
+**Prepend the implementer persona instructions** (loaded during setup) to the prompt, and prepend the worktree-binding block from Worktree Isolation (initial launch only — omit it on `resume_from`).
 
 Prompt:
 ```
 <implementer_persona_instructions>
 
 ---
+
+<worktree-binding block from Worktree Isolation>
 
 Implement the following:
 
@@ -389,6 +443,7 @@ For each config in `reviewer_configs`, launch with the appropriate prompt for th
 `spawn_subagent` parameters:
 - `subagent_type`: `"general-purpose"`
 - `background`: `true`
+- `cwd`: `<worktree_path>` (reviewers read repo files relative to the run's worktree)
 - `description`: `"[<tag>] Review: <specialization>"` where `<tag>` matches the specialization: `[reviewer]` for `general`/`general-2`/`general-3`, `[tests]` for tests, `[security]` for security, `[plan]` for plan alignment, `[simplicity]` for simplicity. The bracketed tag drives the pager's subagent row label.
 
 If `config.persona_to_inject` is non-null, prepend the corresponding persona instructions to the prompt. If null (Tests, Plan Alignment, Simplicity), use the prompt as-is — those specializations are prompt-only.
@@ -719,7 +774,7 @@ If a reviewer fails during re-review:
 - Report a warning and exclude that reviewer's findings from the merge.
 - Continue with remaining reviewers.
 
-If `resume_from` fails for a reviewer (subagent expired), launch a fresh reviewer for that specialization, prepending the persona instructions from `config.persona_to_inject` (if non-null) to the prompt. Log a warning.
+If `resume_from` fails for a reviewer (subagent expired), launch a fresh reviewer for that specialization with `cwd: <worktree_path>`, prepending the persona instructions from `config.persona_to_inject` (if non-null) to the prompt. Log a warning.
 
 **Regardless of effort level, go back to Step 3.** Repeat until 0 open issues.
 
@@ -933,11 +988,13 @@ When the loop terminates (0 issues), read the summary_file and review_file one l
 6. **Files changed** — list the files that were created or modified.
 7. **Anything notable** — if the implementer made design decisions, disagreed with a reviewer suggestion (wontfix), or encountered anything unexpected, call it out.
 8. **Memory update** — what patterns were written or updated in the workspace memory file (path returned by the helper as the `file` field). Use the `existed_before` flag from the helper's stats output to choose between "file created" (false) and "file updated" (true) wording.
+9. **Worktree** — `worktree_path`, `worktree_id`, and `worktree_branch` from Worktree Isolation. State that the worktree is left in place: the caller commits, opens the PR, merges, and retires it with `"$ORCA" worktree rm --worktree <worktree_id> --json`.
 
 ## In-Progress Reporting
 
 Give the user a brief status update after each phase:
 
+- After worktree isolation: "Running in <worktree_path> (project <repo-basename>, branch <worktree_branch>)."
 - After specialization selection: "Using effort level N: general + simplicity [+ other specialists] (<reason>). Simplicity is always pinned."
 - After implement: "Implementation complete. Starting parallel review (N reviewers)..."
 - After all reviewers complete: "All reviewers complete. Merging findings..."
@@ -950,6 +1007,7 @@ Give the user a brief status update after each phase:
 ## Rules
 
 - **Tool-call discipline** — every "launching", "spawning", "starting", or "running" statement in your prose must be backed by a `spawn_subagent` tool call in the same assistant response. Never end a turn with a content-only message that claims a subagent is being launched. See [Tool-Call Discipline (Anti-Hallucination)](#tool-call-discipline-anti-hallucination) for the full rule set.
+- **One orchestrator-owned worktree, named after the owning project** — resolve `repo_path` from the target files (`git rev-parse --show-toplevel`), create (or reuse) the Orca worktree with `--repo path:<repo_path> --no-parent` and no `--agent`/`--prompt`, verify the path sits under `workspaces/<repo-basename>/`, pass `cwd: <worktree_path>` on every fresh `spawn_subagent`, tell the implementer not to create another worktree, and leave retirement to the caller. A run that would edit the main clone or a superproject worktree for a submodule task is broken — stop and fix the resolution first.
 - **No permission-asking on launch** — the launch announcement is informational, not interactive. Do not append "Want me to check in every 30 min, or run silently?" or similar cadence-negotiation questions to launch messages. Pick a default and proceed.
 - **Inject personas into prompts** — prepend `implementer` persona instructions for the implementer, `reviewer` for general reviewer, `security-auditor` for security specialist (from `personas/*.toml`). Do NOT pass a `persona` parameter to `spawn_subagent`. For Tests, Plan Alignment, and Simplicity specialists, do not prepend any persona — they are prompt-only subagents. On `resume_from` follow-ups, the persona is already in the transcript from the initial launch.
 - **Prefix `description` with a bracketed role tag** — `[implementer]`, `[reviewer]`, `[security]`, `[tests]`, `[plan]`, or `[simplicity]`. The pager's subagent label renderer parses the first `[tag]` of the description and uses it as the row label (the bracketed prefix is stripped from the displayed description). Without this, every row falls through to the generic "General" label because `subagent_type` is `general-purpose` and no persona/role is plumbed through the spawn args. Keep the tag on `resume_from` follow-ups too so the label stays stable across rounds.
