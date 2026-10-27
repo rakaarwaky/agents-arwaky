@@ -102,7 +102,7 @@ Before launching, tell the user three things in one short message: the coverage 
 
 If the user asks how it is going while the wait runs, list `<RUN>/map*.md`, `<RUN>/reduce`, and `<RUN>/verify` with the file tools and say which phase is writing.
 
-Design rules the script keeps, for anyone editing it: control flow derives only from `args` and agent results; the work list comes from the collector, never from an agent; every artifact path is assigned by the script, never taken from an agent's text; every agent output is guarded and a failed slot is logged as lost; verification fails closed; verifiers append verdicts incrementally and cap their reading so one stuck agent cannot stall the run. Edit the copy under `GROK_HOME/workflows/`, smoke-check with `validate_only: true` and the same `args`, then launch. The Rhai dialect and host API are documented in the bundled `create-workflow` skill.
+Design rules the script keeps, for anyone editing it: control flow derives only from `args` and agent results; the work list comes from the collector, never from an agent; every artifact path is assigned by the script, never taken from an agent's text; every agent output is guarded and a failed slot is logged as lost; verification fails closed; verifiers append verdicts incrementally and cap their reading so one stuck agent cannot stall the run. Edit the copy under `GROK_HOME/workflows/`, smoke-check with `validate_only: true` and the same `args`, then launch. The Rhai dialect and host API are documented in the `grok-build` skill (`workflow-authoring.md`).
 
 ## 3. Present
 

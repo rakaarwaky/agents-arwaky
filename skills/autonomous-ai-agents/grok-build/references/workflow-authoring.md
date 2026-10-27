@@ -1,20 +1,5 @@
----
-name: create-workflow
-description: >
-  Create a Grok Build workflow: author a Rhai orchestration script (agents,
-  phases, bounded parallel fan-out, verification panels), smoke-check one path
-  with the workflow tool, save it as a named workflow, and offer a real run.
-  Also the complete Rhai reference for workflow scripts: script shape, host API,
-  dialect rules, and journal semantics. Use when the user wants to
-  create/author/write a workflow, automate a multi-agent pipeline, or runs
-  /create-workflow.
-when-to-use: "Use when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow."
-argument-hint: "/create-workflow [<workflow-name>]"
-metadata:
-  short-description: "Author a new multi-agent workflow"
----
 
-# Create Workflow
+# Grok Build — Rhai Workflow Authoring
 
 Workflows are deterministic Rhai scripts that orchestrate subagents — `agent()`, `parallel()`, `phase()`, `complete()` — run by the `workflow` tool. This file is both the authoring procedure and the complete language reference. The reference sections (Script shape onward) are what the `workflow` tool's description points at, and they apply to any script, whether or not it came from this procedure.
 

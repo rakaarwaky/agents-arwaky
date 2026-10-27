@@ -66,7 +66,7 @@ grok --no-auto-update -c -p 'What did you change last time?'   # or continue mos
 | `/goal` | Set a persistent goal the agent pursues across turns |
 | `/loop [interval] <prompt>` | Schedule a recurring prompt |
 | `/deep-research <query>` | Run a deep-research workflow |
-| `/workflow` / `/workflows` | Author and manage Rhai workflows (see the create-workflow skill) |
+| `/workflow` / `/workflows` | Author and manage Rhai workflows (see workflow-authoring.md) |
 | `/imagine <description>` | Generate an image |
 | `/quit` | Exit |
 

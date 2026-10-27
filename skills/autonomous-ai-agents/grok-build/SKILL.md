@@ -1,7 +1,7 @@
 ---
 name: grok-build
-description: "Delegate coding to Grok Build CLI via the local OmniRoute gateway. Use for headless, TUI, and PR review."
-when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Sibling of the Orca skill — Orca manages worktrees/terminals; this one drives the Grok CLI inside them. Backed by OmniRoute (model myomniroute), not an xAI subscription."
+description: "Delegate coding and multi-agent orchestration to Grok Build via the local OmniRoute gateway. Use for headless, TUI, and PR review, plus authoring Rhai workflow scripts (agents, phases, bounded parallel fan-out, verification panels). Use when the user wants to create/author/write a workflow, automate a multi-agent pipeline, or runs /create-workflow."
+when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Also use when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow, and when a workflow script needs the Rhai reference (script shape, dialect, host API, journal semantics). Sibling of the Orca skill — Orca manages worktrees/terminals; this one drives the Grok CLI inside them. Backed by OmniRoute (model myomniroute), not an xAI subscription."
 argument-hint: "<task> [-p <prompt>] [-m <model>] [--output-format <fmt>] [--no-auto-update] [--cwd <path>] [--max-turns <n>]"
 tags:
   - Coding-Agent
@@ -12,7 +12,6 @@ tags:
   - Automation
 related_skills:
   - orca
-  - create-workflow
   - hermes-agent
 homepage: "http://127.0.0.1:7777"
 ---
@@ -23,7 +22,10 @@ Delegate coding tasks to the `grok` command. Grok reads files, writes code, runs
 shell commands, spawns subagents, and manages git workflows. Two surfaces used here:
 headless `-p` and the interactive TUI (Orca's SKILL.md owns worktrees and terminals;
 this one drives Grok inside them). Full flag tables, sessions, and TUI cheatsheet:
-[references/flags-and-tui.md](references/flags-and-tui.md).
+[references/flags-and-tui.md](references/flags-and-tui.md). Authoring `.rhai`
+orchestration scripts for the `workflow` tool — procedure, smoke-check, save, plus
+the complete Rhai language reference — lives in
+[references/workflow-authoring.md](references/workflow-authoring.md).
 
 This machine runs Grok against the local OmniRoute gateway, not an xAI subscription.
 The active model is whatever the gateway serves for `myomniroute`; auth is the
@@ -33,6 +35,7 @@ The active model is whatever the gateway serves for `myomniroute`; auth is the
 
 - Building features, refactoring, batch issue fixing
 - PR reviews (read-only audits, including diff-piped and clone-to-temp)
+- Authoring or editing a Grok Build workflow (`.rhai`, `/create-workflow`) — see [references/workflow-authoring.md](references/workflow-authoring.md)
 - Any coding task delegated out instead of implemented inline
 
 ## Prerequisites
