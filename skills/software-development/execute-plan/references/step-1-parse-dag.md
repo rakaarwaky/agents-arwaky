@@ -1,0 +1,69 @@
+# Step 1 Parse Dag
+
+## Step 1: Parse PR Plan DAG
+
+Read the design document at `<design_doc_path>` using `read_file`.
+
+Extract the `## PR Plan` section. Parse each PR entry from `### PR N:` headings into a structured representation:
+
+```
+PRNode {
+    id: string           // e.g., "pr-1", "pr-2" -- derived from the PR number
+    title: string        // PR title (text after "### PR N: ")
+    slug: string         // URL-safe slug: lowercase, spaces to hyphens, non-alphanumeric removed, truncated to 50 chars
+    description: string  // From the "Description:" or "**Description:**" bullet
+    files: string[]      // From the "Files/components affected:" bullet
+    dependencies: string[] // From the "Dependencies:" bullet, parsed as PR ids
+    level: int           // Computed in Step 2
+    status: string       // "pending"
+    branch: string       // Computed after level assignment
+    subagent_id: string  // null initially
+    worktree_path: string // null initially
+    base_sha: string     // null initially -- branch point before implementation
+    commit_sha: string   // null initially -- HEAD after all commits (implementation + fixes)
+    error: string        // null initially
+    reviewer_configs: object[] // [] initially -- per-PR reviewer config objects, populated in Step 5.0.
+                               // Each entry: {subagent_id, persona_to_inject, specialization, review_file}.
+                               // Effort 1 holds general + simplicity, each with its own
+                               // individual review_file. Always merge. See Step 5.
+    review_rounds: int   // 0 initially
+    started_at: string   // null initially
+    completed_at: string // null initially
+    worktree_cleaned: bool // false initially; set true by Step 8a (per-PR prologue) or Step 9 (safety net) after `orca worktree rm` succeeds. Step 9 uses this to stay idempotent across resumes.
+    orca_worktree_id: string // null initially; the Orca worktree address <repoId>::<worktreePath> from `orca worktree create --json`
+}
+```
+
+**Parsing strategy:**
+
+1. Find the `## PR Plan` section by scanning for the heading.
+2. Split into individual PR entries at each `### PR` heading.
+3. For each entry:
+   - Extract the PR number and title from the heading (e.g., `### PR 1: Add retry configuration types`).
+   - Extract `Files/components affected:` from the bullet list (split by comma).
+   - Extract `Dependencies:` from the bullet list. Parse references like "PR 1", "PR 2" into ids like "pr-1", "pr-2". "None" means empty dependencies.
+   - Extract `Description:` from the bullet list.
+   - Generate the slug from the title:
+     1. Lowercase the title.
+     2. Replace spaces and underscores with hyphens.
+     3. Remove any character that is not `[a-z0-9-]`.
+     4. Collapse consecutive hyphens into a single hyphen.
+     5. Strip leading and trailing hyphens.
+     6. Remove the suffix `.lock` if present (defensive -- dots are already removed in step 3, but this guards against future validation changes; git rejects refs ending in `.lock`).
+     7. Truncate to 50 characters. If truncation lands mid-hyphen-sequence, trim trailing hyphens after truncation.
+     8. If the result is empty after all transformations, use `"unnamed"`.
+
+     The resulting slug is safe for use in git branch names: no spaces, no `..`, no control characters, no `~^:?*[\`, no trailing `.lock`, no leading/trailing dots, no consecutive dots.
+   - Set `id` to `"pr-N"` where N is the PR number.
+
+4. Validate the DAG:
+   - All dependency references must resolve to valid PR ids.
+   - There must be no cycles. Detect cycles by attempting topological sort -- if it fails, report the cycle and stop.
+   - Every PR must have a unique id.
+
+If parsing fails (missing PR Plan section, malformed entries, unresolved dependencies, cycles), report the error with details and stop.
+
+Store the parsed nodes in `dag.nodes`.
+
+Report to the user: `"Parsed PR Plan: <N> PRs found."`
+

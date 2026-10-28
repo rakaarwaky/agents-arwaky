@@ -2,7 +2,7 @@
 name: docx
 description: Create, read, edit, template, and review Word .docx files.
 when-to-use: "Use when generating, reading, editing, or templating Word .docx files — reports, letters, contracts — including tracked changes, comments, TOC, and page-number fields."
-argument-hint: "create <spec.json> <out.docx>|read <file.docx> [--text|--structure|--styles|--images|--revisions]|edit replace <file.docx> --find <old> --replace <new>|template <tpl.docx> <values.json> <out.docx>|revisions list|accept-all|reject-all|comments list|add|delete|validate <file.docx>"
+argument-hint: "create <spec.json> <out.docx>|read <file.docx> [--text|--structure|--styles|--images <dir>|--revisions]|edit replace <file.docx> --find <old> --replace <new>|edit set-cell <file.docx> --table N --row N --col N --text <text>|edit insert <file.docx> --index N --text <text>|edit delete <file.docx> --index N|edit style <file.docx> --index N --style <name>|edit normalize <file.docx>|edit toc <file.docx> --index N|edit page-numbers <file.docx>|template <tpl.docx> <values.json> <out.docx> [--strict]|revisions list <file.docx>|revisions accept-all <file.docx>|revisions reject-all <file.docx>|revisions accept <file.docx> --id N|revisions reject <file.docx> --id N|comments list <file.docx>|comments add <file.docx> --target <text> --text <comment>|comments delete <file.docx> --id N|validate <file.docx>"
 version: 1.1.0
 author: Nous Research
 license: MIT

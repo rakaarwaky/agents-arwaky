@@ -6,7 +6,7 @@ description: >
   source (TUI, slots, tests). Use when an AI agent needs to send prompts, review code,
   or analyze attachments via CLI/MCP tools, or edit the internal/qwen-web-arwaky source.
 when-to-use: Use when the user runs /qwen-web, sends a prompt to Qwen AI Web, sends prompt files or attachments for Qwen analysis or code review with role templates, sets up or resets the Qwen browser session, initializes the qwen-web workspace, or asks to develop or fix the internal/qwen-web-arwaky repo.
-argument-hint: "<prompt-direct -t <text> | prompt-only -i <prompt-file> | prompt-with-attachment -i <prompt> -a <attachment> | doctor | login | init> [-o <out-file>] [--headless]"
+argument-hint: "<prompt direct -t <text> | prompt file -i <file> | prompt attach -i <file> -a <file> | doctor | session login | init [--dir <dir>]> [-o <out-file>] [--headless|--no-headless] [--json]"
 version: 6.8.0
 metadata:
   tags:
@@ -32,13 +32,13 @@ Use this skill when an AI agent needs to send prompts or document files to **Qwe
 
 | Action | MCP Tool | CLI Command (`qwa` / `qwen-web-arwaky`) |
 | :--- | :--- | :--- |
-| Direct text prompt | `process_direct_prompt` | `qwa prompt-direct -t "<prompt>" [-o <out>]` |
-| Prompt file only | `process_prompt_file_only` | `qwa prompt-only -i <prompt.md> [-o <out>]` |
-| Prompt with attachment | `process_prompt_with_attachment` | `qwa prompt-with-attachment -i <prompt.md> -a <file> [-o <out>]` |
-| Check session health | `check_session` | `qwa doctor` |
-| Manual login / CAPTCHA | `setup_session` | `qwa login` |
-| Reset session | `delete_session` | — |
-| Initialize workspace | `init_workspace` | `qwa init` |
+| Direct text prompt | `process_direct_prompt` | `qwa prompt direct -t "<prompt>" [-o <out>]` |
+| Prompt file only | `process_prompt_file_only` | `qwa prompt file -i <prompt.md> [-o <out>]` |
+| Prompt with attachment | `process_prompt_with_attachment` | `qwa prompt attach -i <prompt.md> -a <file> [-o <out>]` |
+| Check session health | `check_session` | `qwa doctor [--smoke] [--deep]` |
+| Manual login / CAPTCHA | `setup_session` | `qwa session login` |
+| Reset session | `delete_session` | `qwa session remove <id>` |
+| Initialize workspace | `init_workspace` | `qwa init [--dir <dir>]` |
 
 > **File conventions:** Place inputs under `.qwen-web-arwaky/input/` (or `.qwen-web/input/`) and outputs under `.qwen-web-arwaky/output/`. Always append a timestamp to output filenames (e.g., `arch_review_$(date +%Y%m%d_%H%M%S).md` in CLI or `YYYYMMDD_HHMMSS` in MCP) to prevent overwriting results from previous runs.
 
@@ -59,7 +59,7 @@ Use for fast queries, factual explanations, or one-off code generation where no 
 
 **CLI:**
 ```bash
-qwa prompt-direct -t "Explain optimistic vs pessimistic locking" -o .qwen-web-arwaky/output/locking_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt direct -t "Explain optimistic vs pessimistic locking" -o .qwen-web-arwaky/output/locking_$(date +%Y%m%d_%H%M%S).md --headless
 ```
 
 ---
@@ -78,7 +78,7 @@ Use for multi-step instructions, complex refactor specs, or long prompts authore
 
 **CLI:**
 ```bash
-qwa prompt-only -i .qwen-web-arwaky/input/refactor_task.md -o .qwen-web-arwaky/output/refactor_result_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt file -i .qwen-web-arwaky/input/refactor_task.md -o .qwen-web-arwaky/output/refactor_result_$(date +%Y%m%d_%H%M%S).md --headless
 ```
 
 ---
@@ -98,7 +98,7 @@ Use when the prompt requires analyzing a codebase export, technical document, lo
 
 **CLI:**
 ```bash
-qwa prompt-with-attachment -i .qwen-web-arwaky/input/audit_spec.md -a .qwen-web-arwaky/input/codebase_export.md -o .qwen-web-arwaky/output/audit_findings_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt attach -i .qwen-web-arwaky/input/audit_spec.md -a .qwen-web-arwaky/input/codebase_export.md -o .qwen-web-arwaky/output/audit_findings_$(date +%Y%m%d_%H%M%S).md --headless
 ```
 
 ---
@@ -127,8 +127,8 @@ Instead of writing a custom prompt file, you can pass a built-in role template n
 
 **CLI:**
 ```bash
-qwa prompt-with-attachment -i backend-engineer -a src/api/auth.py -o .qwen-web-arwaky/output/auth_review_$(date +%Y%m%d_%H%M%S).md --headless
-qwa prompt-with-attachment -i software-architect -a README.md -o .qwen-web-arwaky/output/arch_review_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt attach -i backend-engineer -a src/api/auth.py -o .qwen-web-arwaky/output/auth_review_$(date +%Y%m%d_%H%M%S).md --headless
+qwa prompt attach -i software-architect -a README.md -o .qwen-web-arwaky/output/arch_review_$(date +%Y%m%d_%H%M%S).md --headless
 ```
 
 ---
@@ -141,7 +141,7 @@ Use to verify login status or authenticate a new browser session when cookies ex
    - CLI: `qwa doctor`
 2. **Login / Re-authenticate (opens visible browser for login / CAPTCHA):**
    - MCP: call `setup_session`
-   - CLI: `qwa login`
+   - CLI: `qwa session login`
 3. **Reset session profile (if corrupted):**
    - MCP: `delete_session` with `{"confirm": true}`
 
@@ -159,7 +159,7 @@ Use when provisioning `.qwen-web-arwaky/` workspace directories and sample confi
 
 **CLI:**
 ```bash
-qwa init
+qwa init [--dir .]
 ```
 
 ---
@@ -181,9 +181,9 @@ To ensure Qwen produces complete code without placeholders or omitted sections:
 
 | Error / Condition | Cause | Action |
 | :--- | :--- | :--- |
-| `AuthRequiredError` / `AUTH_REQUIRED` | Session expired or login needed | Call `setup_session` (MCP) or run `qwa login` (CLI) to re-authenticate. |
-| `OutputValidationError` (CAPTCHA) | Bot verification challenge | Run `setup_session` or `qwa login` to solve challenge manually. |
-| `NetworkTimeoutError` | Temporary network latency | Retry the request; if persistent, verify internet connection via `qwa doctor`. |
+| `AuthRequiredError` / `AUTH_REQUIRED` | Session expired or login needed | Call `setup_session` (MCP) or run `qwa session login` (CLI) to re-authenticate. |
+| `OutputValidationError` (CAPTCHA) | Bot verification challenge | Run `setup_session` or `qwa session login` to solve challenge manually. |
+| `NetworkTimeoutError` | Temporary network latency | Retry the request; if persistent, verify internet connection via `qwa doctor [--smoke] [--deep]`. |
 | `FileValidationError` / `FILE_NOT_FOUND` | Missing, unreadable, or file > 100 MB | Verify file path, permissions, and ensure file size is under 100 MB. |
 | `CircuitBreakerOpenError` | Repeated consecutive failures | Wait 30 seconds before sending next request. |
 | `VALIDATION_ERROR` (MCP) | Invalid tool parameter | Check error `field` in response and correct the argument payload. |

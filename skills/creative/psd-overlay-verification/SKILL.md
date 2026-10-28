@@ -1,6 +1,6 @@
 ---
 name: psd-overlay-verification
-description: Use when testing PSD compositor cursor/brush overlays.
+description: "Verify PSD compositor cursor/brush overlay visibility in rendered MP4 output."
 when-to-use: "Use when testing or fixing the PSD compositor cursor/brush overlay interaction in modules/compositor, or when a claim needs proof that an overlay is actually visible in the rendered MP4."
 argument-hint: "<fixture.psd> [--mp4 out.mp4 | --frame N | --probe]"
 metadata:

@@ -53,10 +53,7 @@ Code Review Progress:
 - [ ] Step 2: Run local analysis on PR changes
 - [ ] Step 3: Fetch Cloud PR data (coverage, quality gate)
 - [ ] Step 4: Check introduced issues
-- [ ] Step 5: Check coverage
-- [ ] Step 6: Verify alignment with ticket and PR description
-- [ ] Step 7: Propose test plan and check coverage gaps
-- [ ] Step 8: Summarize and suggest improvements
+- [ ] Step 5–8: Coverage, alignment, test plan, summary (see references/review-steps-5-8.md)
 ```
 
 ### Step 1: Gather PR context
@@ -138,64 +135,13 @@ codacy pull-request <provider> <org> <repo> <prNumber> --unignore-issue <issueId
 
 If the same false positive pattern keeps appearing across PRs, suggest disabling the pattern via `configure-codacy` instead.
 
-### Step 5: Check coverage
+### Step 5–8: Coverage, alignment, test plan, summary
 
-Coverage data comes from the Cloud CLI (Step 3). Review:
-- Overall coverage delta (did it go up or down?)
-- Files with uncovered lines introduced by the PR
-- Use `--diff` output to see which specific lines lack coverage (✘ markers)
-
-Flag files with new uncovered lines as needing tests.
-
-### Step 6: Verify alignment
-
-**With the ticket/issue:** Check that the code changes address the stated requirements. Note any functionality described in the ticket that is not present in the changes. Note any changes that go beyond the scope of the ticket.
-
-**With the PR description:** Verify the description accurately reflects what was changed. Note discrepancies.
-
-If the ticket or PR description is missing, incomplete, or inaccurate, note specific improvements to suggest.
-
-### Step 7: Propose test plan
-
-Based on the changed code and coverage data:
-1. List the scenarios that should be tested (happy path, edge cases, error cases)
-2. For each scenario, check whether a test already exists in the PR diff
-3. Flag scenarios with no corresponding test and no coverage in Codacy
-
-### Step 8: Summary
-
-Present a structured review summary:
-
-```
-## Codacy Review Summary
-
-### Quality gate
-[Pass / Fail — from Codacy PR analysis]
-
-### Issues introduced
-[List issues by severity, or "None — see Analysis coverage"]
-
-### Analysis coverage
-[Tools that ran; any skipped (with reason) or cloud-only]
-
-### Coverage
-[Delta, uncovered lines in new code]
-
-### Alignment
-- Ticket: [aligned / gaps noted]
-- PR description: [accurate / suggestions]
-
-### Test plan
-[Proposed scenarios and whether tests exist]
-
-### Suggested improvements
-- PR description: [if applicable]
-- Ticket/issue: [if applicable]
-```
+These remaining review steps are documented in [references/review-steps-5-8.md](references/review-steps-5-8.md).
 
 ## When another code review skill is active
 
-If a code review skill (e.g. `strict-code-quality-review`, CodeRabbit) has already performed a review, add a **Codacy data section** to that review rather than replacing it. Follow steps 2–7 above and append the Codacy findings.
+Layering on top of an active review (e.g. `strict-code-quality-review`, CodeRabbit) is covered in [references/layer-on-active-review.md](references/layer-on-active-review.md).
 
 ## Codacy Cloud CLI surface
 

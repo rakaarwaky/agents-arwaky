@@ -2,7 +2,7 @@
 name: skill-lifecycle
 description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories, pruning skills, consolidating skills, merging duplicate skills, auditing a skill directory, collapsing skill folders, or running a scheduled self-evolution pass over a skill tree.
 when-to-use: Use when cleaning up, auditing, or merging agent skill directories; pruning skills; consolidating skills; merging duplicate skills; auditing a skill directory; collapsing skill folders; or running a scheduled (headless) evolution pass that applies approved changes without an interactive approval gate.
-argument-hint: "[<skill-dir>] [--dry-run | --auto | --evolution]"
+argument-hint: "[<skill-dir>] [--dry-run | --evolution]"
 metadata:
   tags:
     - skill

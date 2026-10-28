@@ -1,8 +1,8 @@
 ---
 name: codacy-analysis-cli
-description: Uses the Codacy Analysis CLI to run local static analysis on repositories or specific files. Handles installation, initialization, dependency management, dry-runs, and analysis with JSON output. Use whenever the user wants to analyze code locally, run static analysis, scan for bugs or security issues, lint files, check code quality without pushing to Codacy, or run tools like ESLint, Ruff, Semgrep, RuboCop, or any other supported analyzer on their machine. Also trigger when the user asks to analyze staged changes, scan a PR locally, or set up local Codacy analysis.
-when-to-use: "Local static analysis on a repo or specific files; install/init, run tools (ESLint, Ruff, Semgrep, RuboCop, etc.) with JSON output; scan staged/diff/PR changes or a whole repo."
-argument-hint: "[--init | --analyze [--staged | --diff | --pr | --tool <id> | --files <paths>] --output-format json [--fail-if-missing | --install-dependencies] [--config-file <path>]"
+description: "Runs Codacy Analysis CLI (`codacy-analysis`) for local static analysis: installation, init, dependency management, dry-runs, and analysis with JSON output. Use when the user asks to analyze code locally, run static analysis, scan for bugs or security issues, lint files, check code quality without pushing to Codacy, run tools like ESLint, Ruff, Semgrep, or RuboCop, analyze staged/diff/PR changes, or set up local Codacy analysis. Also covers CLI command usage patterns and external lint tool integration."
+when-to-use: "Local static analysis on a repo or specific files; install/init, run tools (ESLint, Ruff, Semgrep, RuboCop, etc.) with JSON output; scan staged/diff/PR changes or a whole repo; external lint tool configuration and CLI command reference."
+argument-hint: "[--init | --analyze [--staged | --diff | --pr | --tool <id> | --files <paths>] --output-format json [--fail-if-missing | --install-dependencies] [--config-file <path>]] [init --remote gh|gl|bb <org> <repo>]"
 license: MIT
 metadata:
   author: Codacy

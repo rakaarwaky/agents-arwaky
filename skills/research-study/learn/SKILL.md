@@ -3,7 +3,7 @@ name: learn
 description: Learn from your own Grok Build sessions and tune your setup — add skills for things you keep typing, fix stale skill instructions, and retire skills, plugins, or MCP servers you never use. Use on slash-learn, learn from my traces, what skills do I never use. Not for summarizing sessions into notes or memory.
 user-invocable: true
 when-to-use: Use when the user invokes slash-learn, asks to learn from their traces, or asks what skills they never use; not for summarizing sessions into notes or memory.
-argument-hint: "[--days N | --since-last | --limit N] [--include-headless] [--cwd PATH]"
+argument-hint: "[--days N | --since-last | --limit N] [--batch N] [--include-headless] [--cwd PATH] [--drop-pattern REGEX]"
 ---
 
 # learn

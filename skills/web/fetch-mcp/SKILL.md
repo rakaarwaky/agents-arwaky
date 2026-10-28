@@ -2,7 +2,7 @@
 name: fetch-mcp
 description: Scrapes web to markdown with transcripts. Use when extracting articles, HTML, YouTube text.
 when-to-use: Use when reading content from external web pages, blogs, or documentation URLs; converting noisy pages to clean Markdown articles; fetching structured JSON from REST API endpoints; or extracting captions/transcripts from YouTube videos.
-argument-hint: "<tool> <url> [--max-length N] [--start-index N] [--headers <json>] [--proxy <url>] | fetch_youtube_transcript <url> [--lang en]"
+argument-hint: "mcp-fetch <command> <url> [--max-length N] [--start-index N] [--proxy <URL>] [--lang <code>]"
 metadata:
   tags: []
 ---
@@ -39,15 +39,29 @@ Activate this skill when:
 - `headers` (object, optional): Custom HTTP request headers (e.g. `User-Agent`, `Authorization`).
 - `proxy` (string, optional): HTTP/HTTPS proxy URL if required.
 
-## CLI & Orchestrator Usage
+## CLI Usage
 
-You can also run fetch commands directly via the `agents-arwaky` CLI:
+The fetch-mcp submodule exposes an `mcp-fetch` CLI (from `vendor/fetch-mcp/dist/cli.js`):
 
 ```bash
-# Fetch and convert URL to markdown
-aa run fetch-mcp fetch_readable "https://example.com/article"
+# Fetch and convert URL to readable article markdown
+mcp-fetch readable "https://example.com/article"
+
+# Fetch URL as raw HTML
+mcp-fetch html "https://example.com/page"
+
+# Fetch plain text with a length cap
+mcp-fetch txt "https://example.com/page" --max-length 5000
+
+# Paginated read of a large page
+mcp-fetch markdown "https://example.com/long-page" --start-index 5000
+
+# Fetch a REST endpoint as JSON
+mcp-fetch json "https://api.example.com/data"
 
 # Extract YouTube transcript
-aa run fetch-mcp fetch_youtube_transcript "https://www.youtube.com/watch?v=VIDEO_ID"
+mcp-fetch youtube "https://www.youtube.com/watch?v=VIDEO_ID" --lang en
+```
 
-```text
+Available commands: `html`, `markdown`, `readable`, `txt`, `json`, `youtube`.
+Flags: `--max-length <N>`, `--start-index <N>`, `--proxy <URL>`, `--lang <code>`.

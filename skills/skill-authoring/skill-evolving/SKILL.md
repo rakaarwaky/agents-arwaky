@@ -1,7 +1,7 @@
 ---
 name: skill-evolving
-description: Autonomous self-evolution engine for agent skills. Ingests session traces via learn, fans out category-level audit subagents, coordinates authoring, library cataloging, and lifecycle pruning, verifies quality gates, and publishes pull requests.
-when-to-use: Use when running autonomous or scheduled self-evolution across the skill tree, evolving skills from execution traces, coordinating multi-agent skill maintenance, or running daily skill optimization passes.
+description: Autonomous self-evolution engine for agent skills. Ingests session traces via learn, fans out category-level audit subagents, coordinates authoring, library cataloging, and lifecycle pruning, verifies quality gates, and publishes pull requests. Use when a slash command such as /skill-evolving has no loaded skill, or when the user lists pr-la-xxx commands (auto-fix, cli-commands, config-system, doc-rules, external-lint, file-watch, filesystem, git-hooks, import-rules, logging, maintenance, mcp-server, naming-rules, orphan-rules, project-setup, quality-rules).
+when-to-use: Use when running autonomous or scheduled self-evolution across the skill tree, evolving skills from execution traces, coordinating multi-agent skill maintenance, or running daily skill optimization passes. Also use when a slash command returns no loaded skill and a new skill or category audit is needed.
 argument-hint: "[--scope <window>] [--headless] [--since-last] [--dry-run]"
 ---
 

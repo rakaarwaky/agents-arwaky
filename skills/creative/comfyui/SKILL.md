@@ -2,7 +2,7 @@
 name: comfyui
 description: Generate images, video, and audio via diffusion workflows.
 when-to-use: "Use when the user wants to generate images, video, or audio via ComfyUI diffusion workflows — Stable Diffusion, SDXL, Flux, SD3, AnimateDiff, Hunyuan, Wan, or ControlNet/inpainting/img2img pipelines; also to install, launch, or health-check ComfyUI."
-argument-hint: "<hardware_check|setup|run_workflow|run_batch|health_check|comfy> [--workflow W --args '{}' --output-dir D]"
+argument-hint: "<hardware_check|setup|run_workflow|run_batch|ws_monitor|health_check|fetch_logs|check_deps|auto_fix_deps|extract_schema|comfy> [--workflow W --args '{}' --output-dir D --count N --randomize-seed --parallel P --ws --input-image PATH]"
 metadata:
   tags:
     - comfyui

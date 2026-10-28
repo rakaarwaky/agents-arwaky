@@ -1,8 +1,8 @@
 ---
 name: blender-arwaky
-description: Blender asset search, scene build and render. Use when scripting Blender, placing GLB, rendering.
+description: "Blender asset search, GLB import/export, scene assembly, and rendering via MCP or CLI."
 when-to-use: "Use when scripting Blender, placing GLB/assets, rendering frames, or managing Blender scenes via CLI or MCP execute_command."
-argument-hint: "<init|launch|close|get-scene-info|create-primitive|render|import-glb|export-model|place-asset|execute-blender-code> [--flag value]"
+argument-hint: "<init|launch|close|get-scene-info|create-primitive|render|import-glb|export-model|place-asset|execute-blender-code|execute-command|list-commands|health-check|get-config|help> [--flag value]"
 metadata:
   tags: []
 ---
@@ -51,10 +51,6 @@ Sections: `tools`, `commands` (all actions with CLI↔MCP mapping), `workflows`,
 ## Section: commands
 
 CLI sub-commands and MCP action reference: `skill_view(name="blender-arwaky", file_path="references/commands.md")` covers every CLI sub-command, MCP action, parameter table, and screenshot parameters.
-
-**Scene**
-
-## Section: workflows
 
 ## Section: workflows
 

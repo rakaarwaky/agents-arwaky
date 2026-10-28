@@ -1,7 +1,7 @@
 ---
 name: releasing
-description: release, cut a release, ship a new version, publish a release, tag a version, headless release, release run recovery.
-when-to-use: Release the mergify CLI autonomously — compute the next CalVer tag, bump via the bump script, open and merge a release prep PR, build and publish the draft release through GitHub workflows, and recover failed release runs.
+description: "Release, cut a release, ship a new version, publish or tag a release for the mergify CLI, recover a failed release run."
+when-to-use: "Cut a CalVer release of the mergify CLI autonomously — bump via the bump script, open and merge a release prep PR, build and publish the draft through GitHub workflows, and recover failed release runs. Triggers: \"release\", \"cut a release\", \"ship a new version\", \"publish a release\", \"tag a version\", \"release run recovery\"."
 argument-hint: [--tag <tag>] [--target_commitish <sha>]
 ---
 

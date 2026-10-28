@@ -1,8 +1,8 @@
 ---
 name: context7-cli
-description: Operates ctx7 CLI and Context7 MCP registry — doc lookup (resolve a library ID then query its docs), skills install/search/generate, and MCP setup. Use when mentioning ctx7, context7, find-docs, installing skills, or looking up API docs.
-when-to-use: When the user mentions ctx7, context7, find-docs, installing skills, or looking up API docs for a library or framework.
-argument-hint: <command> [args] [--mcp|--cli] [--claude|--cursor|--opencode|--universal|--antigravity] [--all] [--global] [--project] [--yes] [--api-key KEY] [--oauth] [--no-browser] [--json]
+description: Operates the ctx7 CLI and Context7 MCP registry — resolve a library ID, then query its docs (doc lookup / find-docs), skills install/search/suggest/list/remove/generate, and MCP setup. Use when mentioning ctx7 or context7, looking up API docs or library docs for a library or framework, finding docs via ctx7, installing skills, or configuring Context7 MCP for an editor.
+when-to-use: Use when the user mentions ctx7, context7, or find-docs; asks to look up API docs or library docs for a library or framework; wants docs via MCP (context7__resolve-library-id / context7__query-docs) or the ctx7 CLI; wants to install, search, suggest, list, remove, or generate skills; or needs Context7 MCP set up for Claude Code, Cursor, OpenCode, or a project.
+argument-hint: ctx7 library <name> [query] [--json] | ctx7 docs <libraryId> <query> [--json] | ctx7 setup [--mcp|--cli] [--project] [--yes] [--api-key KEY] [--oauth] [--stdio] [--base-url URL] [--claude|--cursor|--opencode|--universal|--antigravity] | ctx7 auth login [--no-browser] | logout | whoami | ctx7 skills install|search|suggest|list|remove|info [--claude|--cursor|--opencode|--universal|--antigravity] [--global] [--project] [--yes] [--all] [--json] | ctx7 skills generate [-o DIR] [--all] [--global] [--claude|--cursor|--universal|--antigravity] | ctx7 upgrade [-y] [--check]
 metadata:
   tags:
     - documentation

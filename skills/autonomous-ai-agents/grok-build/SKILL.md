@@ -1,8 +1,8 @@
 ---
 name: grok-build
-description: "Delegate coding and multi-agent orchestration to Grok Build via the local OmniRoute gateway. Use for headless, TUI, and PR review, plus authoring Rhai workflow scripts (agents, phases, bounded parallel fan-out, verification panels). Use when the user wants to create/author/write a workflow, automate a multi-agent pipeline, or runs /create-workflow."
-when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Also use when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow, and when a workflow script needs the Rhai reference (script shape, dialect, host API, journal semantics). Sibling of the Orca skill — Orca manages worktrees/terminals; this one drives the Grok CLI inside them. Backed by OmniRoute (model myomniroute), not an xAI subscription."
-argument-hint: "<task> [-p <prompt>] [-m <model>] [--output-format <fmt>] [--no-auto-update] [--cwd <path>] [--max-turns <n>]"
+description: "Delegate coding and multi-agent orchestration to Grok Build via the local OmniRoute gateway. Use for headless, TUI, and PR review, plus authoring Rhai workflow scripts (agents, phases, bounded parallel fan-out, verification panels). Use when the user wants to create/author/write a workflow, automate a multi-agent pipeline, or runs /create-workflow. Observed user phrasing: '/implement <paths> cek dpc rules', '/implement ... buat pr untuk perbaiki template dari PRD', '/design <file> palse redesign rules aes ... remove all legacy', 'fix doc violations in <crate>', 'find any segfault error in my environment and clean it', 'we need to spawn sub agent to make all FRD becoming real FRD'."
+when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Also use when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow, and when a workflow script needs the Rhai reference (script shape, dialect, host API, journal semantics). Sibling of the Orca skill — Orca manages worktrees/terminals; this one drives the Grok CLI inside them. Backed by OmniRoute (model myomniroute), not an xAI subscription. Matches observed user phrasing: '/implement <paths> cek dpc rules', '/implement ... buat pr untuk perbaiki template dari PRD', '/design <file> palse redesign rules aes', 'fix doc violations in <crate>', 'find any segfault error in my environment and clean it', 'we need to spawn sub agent to make all FRD becoming real FRD'."
+argument-hint: "<task> [-p <prompt>] [-m <model>] [-c] [-s <session> | -r | --continue] [--output-format <fmt>] [--always-approve] [--no-alt-screen] [--cwd <path>] [--max-turns <n>]"
 tags:
   - Coding-Agent
   - Grok
@@ -52,7 +52,7 @@ reachable before relying on any run:
 curl -s -o /dev/null -w '%{http_code}\n' "$OMNIROUTE_URL/v1/models"   # expect 200; 401 = missing/invalid OMNIROUTE_KEY
 ```
 
-End-to-end smoke test: `grok --no-auto-update -p "Say ok."`.
+End-to-end smoke test: `grok -p "Say ok."`.
 
 - No git repo required; Grok runs fine outside a git directory.
 - Project rules: Grok auto-reads the `AGENTS.md` and `CLAUDE.md` families; home-level
@@ -73,7 +73,7 @@ so most runs need no extra flags.
 One-shot: runs a task, prints the result, exits. No PTY needed.
 
 ```bash
-grok --no-auto-update -p 'Add a dark mode toggle to settings'
+grok -p 'Add a dark mode toggle to settings'
 ```
 
 - One-shot coding tasks, CI/CD automation, structured output (`--output-format json`)
@@ -121,7 +121,7 @@ destination.
 ### Quick Review (Headless)
 
 ```bash
-git diff main...feature-branch | grok --no-auto-update -p 'Review this diff for bugs, security issues, and style problems. Be thorough.'
+git diff main...feature-branch | grok -p 'Review this diff for bugs, security issues, and style problems. Be thorough.'
 ```
 
 ### Clone-to-Temp Review (safe, no repo mutation)
@@ -130,7 +130,7 @@ git diff main...feature-branch | grok --no-auto-update -p 'Review this diff for 
 REVIEW=$(mktemp -d)
 git clone https://github.com/user/repo.git $REVIEW
 cd $REVIEW && gh pr checkout 42
-grok --no-auto-update -p 'Review the changes vs origin/main. Check bugs, security, race conditions, missing tests.'
+grok -p 'Review the changes vs origin/main. Check bugs, security, race conditions, missing tests.'
 gh pr comment 42 --body '<review text>'
 ```
 
@@ -141,8 +141,8 @@ git worktree add -b fix/issue-78 ~/.hermes/cache/scratch/issue-78 main
 git worktree add -b fix/issue-99 ~/.hermes/cache/scratch/issue-99 main
 
 # Launch Grok headless in each (background)
-grok --no-auto-update --always-approve -p 'Fix issue #78: <desc>. Commit when done.'  # in worktree 78
-grok --no-auto-update --always-approve -p 'Fix issue #99: <desc>. Commit when done.'  # in worktree 99
+grok --always-approve -p 'Fix issue #78: <desc>. Commit when done.'  # in worktree 78
+grok --always-approve -p 'Fix issue #99: <desc>. Commit when done.'  # in worktree 99
 
 # After completion: push and open PRs, then clean up
 cd ~/.hermes/cache/scratch/issue-78 && git push -u origin fix/issue-78
@@ -191,12 +191,8 @@ usual cause of "why is it still trying xAI". Global preferences live in
 - **Verify the gateway before relying on it** — `curl -s -o /dev/null -w '%{http_code}\n'
   "$OMNIROUTE_URL/v1/models"` must return `200` (with a valid `OMNIROUTE_KEY`); a `401`
   means the key is missing/invalid and no run will work.
-- **Always pass `--no-auto-update` in automation** — otherwise Grok phones home for
-  update checks.
-- **Hermes xAI auth ≠ grok CLI auth.** Hermes' `x_search` runs on its own xAI OAuth;
-  a working `x_search` does NOT mean the grok CLI can reach the gateway.
-- **`--always-approve` is the autonomous-build switch.** Omit it deliberately for
-  read-only review/audit so Grok cannot mutate files.
+- **Do not run `grok login` or set `XAI_API_KEY`** — auth is the gateway key, not an xAI subscription.
+- **Run background builds with `background=true, notify_on_complete=true`** and monitor via the process tool; use the dashboard (`Ctrl+\`) for several concurrent TUI agents.
 - **Headless `-p` skips TUI dialogs.** The TUI needs `pty=true` + tmux for monitoring;
   run `/doctor` when keys or colors misbehave in tmux.
 - **No git repo needed** for a task, but for PR/commit workflows you still want one —

@@ -2,7 +2,7 @@
 name: omniroute
 description: OmniRoute free AI gateway over OpenAI REST, 350+ providers with 150+ free tiers. Use when mentioning OmniRoute, OMNIROUTE_URL, auto/best-free, free-tier routing, checking a model's context length (ctx) on the gateway, or building a model tier list / ranking the gateway's model catalog.
 when-to-use: "Use when asking about OmniRoute, OMNIROUTE_URL, OMNIROUTE_KEY, auto/best-free or other combo routing, free-tier routing, adding a custom OpenAI-compatible provider, managing the OmniRoute daemon (status, restart, logs), fixing OmniRoute errors, or building a model tier list / ranking the gateway's model catalog."
-argument-hint: "[setup | combo <alias> | discover | add-provider | daemon | tierlist | errors]"
+argument-hint: "[setup | models [--search <q> | --json] | combo <list|switch|create|delete|suggest> | providers <add|list|test|edit|remove|test-all> | daemon <status|restart|logs|models|service-install> | doctor | keys | cost | errors]"
 metadata:
   tags:
     - ai-gateway

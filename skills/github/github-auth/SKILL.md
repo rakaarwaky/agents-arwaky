@@ -1,7 +1,7 @@
 ---
 name: github-auth
-description: GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login.
-when-to-use: Set up GitHub authentication so the agent can push, open PRs, and read issues via gh or git.
+description: GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login (browser and device flow).
+when-to-use: When gh is not authenticated or git lacks a token — run gh auth login (browser or device flow) or configure a git HTTPS token/SSH key so the agent can push, open PRs, and read issues via gh or git
 argument-hint: <git-only|gh-cli> [--with-token]
 metadata:
   tags:

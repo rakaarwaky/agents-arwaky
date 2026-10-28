@@ -181,76 +181,7 @@ inferring support from the executable's reported version.
 
 ## Typed browser page rung
 
-For page content in a supported GUI browser, the same `computer_use` tool
-exposes namespaced `cua_browser_*` actions. They do not collide with other
-browser tools. The contract is capability-based:
-
-1. Discover the exact native browser `(pid, window_id)` with `list_windows` or
-   native capture, then call `cua_browser_state` with both values.
-2. Continue only when it returns `status:"ok"`, `binding_quality:"exact"`, and
-   `mutation_allowed:true`. Select an opaque `tab_id` from that response.
-3. Call `cua_browser_state` with the `tab_id` for a fresh `semantic_v2`
-   snapshot. Use only refs from that newest snapshot and only for their
-   declared actions.
-4. Use the matching namespaced action (`cua_browser_click`,
-   `cua_browser_type`, `cua_browser_navigate`, or `cua_browser_pointer`).
-   Trusted input is the default. `input_route="dom_event"` is an explicit
-   trust downgrade; never choose it silently after a refusal.
-5. Every mutation invalidates refs. Take a fresh state snapshot before another
-   typed action. Never chain actions from remembered refs.
-
-`cua_browser_prepare` is a separate approved setup action. Driver-owned
-`isolated_new`/`isolated_named` profiles require explicit `allow_launch=true`.
-An `existing_profile` is decided by cua-driver's immutable permission mode.
-Prefer `isolated_new` unless the task genuinely needs the user's signed-in
-session — attaching to an existing profile exposes its live pages, cookies,
-and storage over the browser protocol.
-
-Authorization paths for `existing_profile`:
-
-1. **Config grant (standard and unrestricted modes).** When
-   `computer_use.grant_existing_profile: true` is set, the runtime is
-   launched pre-authorized in standard mode (`--grant existing-profile`) and
-   Hermes applies the same host-side floor in unrestricted mode. If it is not
-   set, both modes fail closed. Tell the user to flip that config key and
-   restart the session if they want this; do not retry or work around it.
-2. **Bounded manifest.** When `computer_use.permission_mode: bounded` is
-   configured with a reviewed `capability_manifest`, prepares inside the
-   manifest's scope succeed without prompts and everything else fails closed.
-
-Explicit Hermes YOLO (`--yolo`, `/yolo`, or `approvals.mode: off`) launches an
-unrestricted runtime with no runtime Cua approval prompts, but it does not
-substitute for `grant_existing_profile: true`.
-
-These settings belong to runtime launch. The agent cannot add or change them
-after the runtime starts. Without the applicable grant or bounded manifest,
-`existing_profile` fails closed. Report the refusal and name the config key;
-do not retry, downgrade trust, or work around it.
-
-Every MCP transport owns a private lifecycle session inside the runtime. The
-public session name only labels cursor identity and session-scoped state. It
-does not select, share, or keep a runtime alive.
-
-Use the native capture/AX/pixel/foreground ladder for browser chrome, browser
-permission UI, OS prompts, native dialogs, extension surfaces, unsupported
-engines, and any typed route that cannot prove exact binding or mutation
-permission. `cua_browser_dialog` covers page JavaScript dialogs only.
-
-### Key shortcuts vary per platform
-
-Use the host's idiomatic modifier:
-
-| Common action | macOS | Windows / Linux |
-|---|---|---|
-| Save | `cmd+s` | `ctrl+s` |
-| New tab | `cmd+t` | `ctrl+t` |
-| Close tab / window | `cmd+w` | `ctrl+w` |
-| Copy / paste | `cmd+c` / `cmd+v` | `ctrl+c` / `ctrl+v` |
-| Address bar | `cmd+l` | `ctrl+l` |
-| App switcher | `cmd+tab` | `alt+tab` |
-
-When in doubt, capture and look for menu hints, or ask the user which
-shortcut to use.
+See [references/browser-page-rung.md](references/browser-page-rung.md).
 
 ## Background rules (the whole point)
 
@@ -339,15 +270,7 @@ in your conversation context.
 
 ## Failure modes — what to do when things go sideways
 
-| Symptom | Likely cause + remedy |
-|---|---|
-| `cua-driver not installed` | Run `hermes computer-use install`, or `hermes tools` and enable Computer Use |
-| Captures consistently return empty / "no on-screen window" | On Linux: DISPLAY may not be set (X11) or you're on pure Wayland — ask the user to run `hermes computer-use doctor`. On Windows: you may be in Session 0 (SSH session) instead of the interactive desktop — see the cua-driver `WINDOWS.md` deep-dive |
-| Element index stale ("Element N not in cache") | SOM indices are only valid until the next `capture`. Re-capture before clicking. The wrapper carries opaque `element_token`s for stale-detection; you'll see an explicit error rather than a wrong click |
-| Click had no effect | Read the structured verdict. `effect:"unverifiable"` → fresh capture/state before retry, even with an escalation hint. `effect:"suspected_noop"` or a structured refusal → climb the recommended ladder: coordinate (px), typed page route when exact, then foreground. Browser chrome/native prompts remain native. Don't conclude the app is undrivable |
-| Type text disappears into a terminal emulator | cua-driver detects terminals (Ghostty, iTerm2, Terminal.app, Windows Terminal, mintty, etc.) and routes through key-event synthesis — should "just work" on a recent cua-driver. If it doesn't, ask the user to run `hermes computer-use doctor` |
-| `blocked pattern in type text` | You tried to `type` a shell command matching the dangerous-pattern block list (`curl ... \| bash`, `sudo rm -rf`, etc.). Break the command up or reconsider |
-| Anything else weird | **First action: ask the user to run `hermes computer-use doctor`.** It runs the cua-driver `health_report` MCP tool and prints a structured per-check matrix. Their output tells you (and them) exactly what's wrong |
+See [references/failure-modes.md](references/failure-modes.md).
 
 ## When NOT to use `computer_use`
 
@@ -364,39 +287,4 @@ in your conversation context.
 
 ## Going deeper — read the cua-driver skill pack
 
-Hermes intentionally keeps THIS skill focused on the Hermes-side
-`computer_use` action vocabulary. The platform-specific deep dives
-(macOS no-foreground contract, Windows UIA + Session 0, Linux AT-SPI +
-X11/Wayland nuances, recording trajectory + video, browser-page
-interaction, etc.) live in cua-driver's skill pack — same content the
-cua-driver team ships and maintains for every other agent harness.
-
-To link the cua-driver skill pack into your skill space:
-
-```text
-cua-driver skills install
-
-```text
-
-You'll then have access to:
-
-- `SKILL.md` — the cross-platform core (snapshot invariant, no-
-  foreground contract, click dispatch, AX tree mechanics)
-- `MACOS.md` — macOS specifics (no-foreground contract, AXMenuBar
-  navigation, SkyLight click dispatch, Apple Events JS bridge)
-- `WINDOWS.md` — Windows specifics (UIA tree, UWP / ApplicationFrameHost
-  hosting, Session 0 isolation, autostart pattern for SSH)
-- `LINUX.md` — Linux specifics (AT-SPI tree, X11 / Wayland, terminal
-  emulator detection)
-- `RECORDING.md` — trajectory + video recording semantics
-- `WEB_APPS.md` — browser page interaction tips
-- `TESTS.md` — replay-by-trajectory workflow
-
-These are platform deep dives, not duplicates — when the user reports
-"on Windows the click landed on the wrong element," you read
-`WINDOWS.md` for the UIA / UWP context that explains why and what to
-do differently.
-
-Hermes autodetection is a planned follow-up in trycua/cua. For now, the command
-installs the pack under `~/.cua-driver/skills/cua-driver`; point Hermes at that
-directory or symlink it into the user's skill space.
+See [references/going-deeper.md](references/going-deeper.md).

@@ -2,7 +2,7 @@
 name: powerpoint
 description: Create, read, edit .pptx decks with python-pptx.
 when-to-use: "Use when creating, reading, or editing PowerPoint .pptx decks — building slide decks, extracting text/notes/images, updating charts or templates, and rendering slides — with python-pptx."
-argument-hint: "create <deck.json> <out.pptx>|read <deck.pptx> [--outline|--notes|--images <dir>]|edit <deck.pptx> --replace-text <old> <new>|from-template <tpl.pptx> <out.pptx> --values <vals.json>|render <deck.pptx> --outdir <dir>"
+argument-hint: "create <deck.json> <out.pptx>|read <deck.pptx> [--outline|--notes|--images <dir>]|edit <deck.pptx> --replace-text <old> <new>|edit <deck.pptx> --chart-data <spec.json>|edit <deck.pptx> --swap-image <slide> <shape> <image>|edit <deck.pptx> --duplicate-slide <n>|edit <deck.pptx> --remove-slide <n>|edit <deck.pptx> --move-slide <from> <to>|edit <deck.pptx> --set-background <n> <hex>|edit <deck.pptx> --hyperlink <slide> <text> <url>|edit <deck.pptx> --enable-slide-number <n>|edit <deck.pptx> --set-footer <n> <text>|edit <deck.pptx> --set-notes <n> <text>|edit <deck.pptx> --append-notes <n> <text>|from-template <tpl.pptx> <out.pptx> --values <vals.json>|render <deck.pptx> --outdir <dir>"
 version: 1.1.0
 author: Nous Research
 license: MIT

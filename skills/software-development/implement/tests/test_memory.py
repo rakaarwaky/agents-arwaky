@@ -830,7 +830,7 @@ class TestDocsConsistency(unittest.TestCase):
         # different from what the helper actually writes. This test parses
         # the file, locates the marker, extracts the next fenced block, and
         # asserts the first len(DEFAULT_HEADER) lines match exactly.
-        skill_md = _HERE.parent / "SKILL.md"
+        skill_md = _HERE.parent / "references" / "memory-flush.md"
         text = skill_md.read_text(encoding="utf-8")
 
         marker = "<!-- mirror-of: scripts/memory.py DEFAULT_HEADER -->"
