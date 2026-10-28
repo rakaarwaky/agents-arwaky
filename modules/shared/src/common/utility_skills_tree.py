@@ -76,7 +76,7 @@ def category_dirs(skills_root: Path) -> Iterator[Path]:
         raise SkillsRootError(f"Skills root does not exist: {skills_root}")
 
     for path in sorted(skills_root.iterdir()):
-        if not path.is_dir():
+        if path.is_symlink() or not path.is_dir():
             continue
         if path.name.startswith("."):
             continue
