@@ -1,28 +1,37 @@
 ---
 name: pptx
 description: Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Trigger whenever the user mentions 'deck', 'slides', 'presentation', or references a .pptx filename, regardless of what they plan to do with the content afterward. If a .pptx file needs to be opened, created, or touched, use this skill.
-when-to-use: "Use whenever any .pptx file is involved — creating, reading, editing, combining, splitting, or working with templates, layouts, speaker notes, or comments — triggered by 'deck', 'slides', 'presentation', or a .pptx filename."
-argument-hint: "thumbnail <file.pptx>|check-overlaps <dir> [--fix]|detect-fonts <file.pptx>|render-slides <file.pptx> [--output_dir <dir>] [--width N] [--height N]|add-slide <file.pptx>|delete-slide <file.pptx> <n>|replace-text <file.pptx> <old> <new>|replace-nth-text <file.pptx> <n> <old> <new>|resize-shape <file.pptx> <shape> <w> <h>|inspect-slide <unpacked_dir> [--theme] [--media]|clean <unpacked_dir>|media-grid <file.pptx>|search-templates <query>"
+when-to-use: "Use whenever any .pptx file is involved — creating, reading, editing, combining, splitting, or working with templates, layouts, speaker notes, or comments — triggered by 'deck', 'slides', 'presentation', or a .pptx filename. Also use for structured programmatic work on .pptx decks via python-pptx (create from JSON spec, structured read-back, targeted text/chart/image edits, template filling, slide PNG rendering) and the legacy binary .ppt — convert it with `soffice --convert-to pptx old.ppt` first."
+argument-hint: "thumbnail <file.pptx>|check-overlaps <unpacked_dir> [--fix]|detect-fonts <file.pptx>|render-slides <file.pptx> [--output_dir <dir>] [--width N] [--height N]|add-slide <unpacked_dir> <source> [--after <slide>]|delete-slide <unpacked_dir> [<slide>...] [--keep <slide>...]|replace-text <slide.xml> [--ph <type>|--match <text>] --text <new>|replace-nth-text <slide.xml> --find <text> --nth N --text <new>|resize-shape <slide.xml> [--ph <type>] [--width <in>] [--height <in>]|inspect-slide <unpacked_dir> [--theme] [--media]|clean <unpacked_dir>|media-grid <unpacked_dir>|search-templates <query>|create <deck.json> <out.pptx>|read <deck.pptx> [--outline|--notes|--images <dir>]|edit <deck.pptx> <op> <args>|from-template <tpl.pptx> <out.pptx> --values <vals.json>|render <deck.pptx> --outdir <dir>"
 user-invocable: false
 ---
 
 # PPTX Skill
 
+Three workflows: raw XML unpack/edit/pack for templates, PptxGenJS for de novo
+decks, and the python-pptx structured programmatic tooling (the latter merged in
+from the former `powerpoint` skill).
+
 ## References
 
 - `references/images.md` — image aspect-ratio rule, sources, options, sizing modes, and dimension calculations.
+- `references/python-pptx.md` — python-pptx programmatic workflow: create/read/edit/from-template/render, quick reference, and edge-case pitfalls.
 
 ## Workflow Selection
 
 | Situation | Action |
 |-----------|--------|
-| User attaches or references a `.pptx` file | Read [editing.md](editing.md) — edit the template directly |
+| User attaches or references a `.pptx` template to edit | Read [editing.md](editing.md) — edit the template directly |
 | No `.pptx` provided — create from scratch | Read [creating.md](creating.md) — use PptxGenJS templates |
+| Programmatic create/read/edit via python-pptx (JSON spec, outline read-back, replace-text/chart-data/swap-image/duplicate/remove/move, template fill, slide PNG render) | Read `references/python-pptx.md` |
+| Legacy binary `.ppt` file | Convert first: `soffice --convert-to pptx old.ppt`, then use a .pptx workflow |
 | Read/analyze an existing presentation | See Reading Content below |
 
 **When in doubt:** If ANY `.pptx` file is attached or mentioned, use the
 editing workflow. The creating workflow is ONLY for when no existing
-presentation exists at all.
+presentation exists at all. The python-pptx workflow is for structured,
+script-driven operations on decks (including from-template brand decks)
+rather than per-slide XML editing.
 
 ---
 

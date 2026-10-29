@@ -2,7 +2,7 @@
 name: mergify
 description: mergify, stacked PR, merge queue, CI insights, config validation.
 when-to-use: Run any Mergify workflow — push or stack commits/PRs, diagnose merge-queue PRs, Depends-On/Merge-After/scheduled freezes, JUnit upload and quarantine, scopes detection, write or validate .mergify.yml, browse Mergify events.
-argument-hint: <stack|queue|config|ci|events> [--token <token>] [--repository <owner/repo>]
+argument-hint: <stack|queue|freeze|ci|tests|config|events> [--token <token>] [--repository <owner/repo>]
 metadata:
   tags:
     - mergify

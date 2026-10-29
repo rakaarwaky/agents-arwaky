@@ -16,7 +16,7 @@ metadata:
   related_skills:
     - docx
     - xlsx
-    - powerpoint
+    - pptx
     - document-to-action-items
   category: productivity
   backends: [hermes, grok-build]

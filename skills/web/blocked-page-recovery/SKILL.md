@@ -1,6 +1,6 @@
 ---
 name: blocked-page-recovery
-description: "Use when a fetch fails: 403/429, paywall, WAF, bot wall."
+description: Use when a fetch fails: 403/429, paywall, WAF, bot wall. Recover via Wayback Machine, archive.today, Jina Reader, or API-first pivot before a real browser.
 when-to-use: Use when a direct fetch returns 403/429, hits a paywall, WAF, or bot-detection interstitial; recover via Wayback Machine, archive.today, Jina Reader, or API-first pivot before a real browser.
 argument-hint: "python3 scripts/recover_page.py <url> [--json] [--out FILE] [--timeout N]"
 version: 1.0.0

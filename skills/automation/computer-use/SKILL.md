@@ -22,17 +22,14 @@ keyboard focus, or switch virtual desktops / Spaces. The user can keep
 typing in their editor while you click around in a browser in another
 window. This is the opposite of pyautogui-style automation.
 
-Everything here works with any tool-capable model — Claude, GPT, Gemini,
-or an open model on a local OpenAI-compatible endpoint. There is no
-Anthropic-native schema to learn.
+Everything here works with any tool-capable model — Claude, GPT, Gemini, or a
+local OpenAI-compatible endpoint. There is no Anthropic-native schema to learn.
 
 Hermes drives [cua-driver](https://github.com/trycua/cua) under the hood.
 This wrapper skill teaches the Hermes `computer_use` workflow and action
 vocabulary. Call the actions documented below instead of raw cua-driver MCP
-tools. For driver internals and platform-specific behavior, follow the Cua
-skill installed by `cua-driver skills install`. Hermes autodetection is a
-planned cua-driver follow-up, so currently point Hermes at the resulting
-`~/.cua-driver/skills/cua-driver` directory or symlink it into your skill space.
+tools. For driver internals and platform-specific behavior, see
+[references/going-deeper.md](references/going-deeper.md).
 
 ## The canonical workflow
 
@@ -103,14 +100,13 @@ focus_app         app="<app name>"   raise_window=false   (default: don't raise)
 
 ```text
 
-All actions accept optional `capture_after=True` to get a follow-up
-screenshot in the same tool call. All actions that target an element
-accept `modifiers=[…]` for held keys.
+All actions accept `capture_after=True` for a follow-up screenshot in one
+call, and element-targeting actions accept `modifiers=[…]`.
 
 The input actions (`click`, `double_click`, `right_click`, `middle_click`,
-`drag`, `scroll`, `type`, `key`) also accept `delivery_mode`. The optional
-`bring_to_front=True` request invokes a separately approved standalone focus
-tool before foreground input; it is never an input-action property.
+`drag`, `scroll`, `type`, `key`) also accept `delivery_mode`.
+`bring_to_front=True` is a separately approved focus tool, never an
+input-action property.
 
 ## The verify → escalate ladder (background-first)
 
@@ -129,59 +125,18 @@ Returned fields (present when the driver supports them):
   `"foreground_unsupported"`.
 - `verified`: `true` only on AX read-back.
 
-Walk it in order:
+Walk it in order: (1) `click(element=N)` and stop on `effect:"confirmed"`;
+(2) on `effect:"unverifiable"`, re-capture before any retry; (3) background
+`coordinate=[x,y]` after `"suspected_noop"` or a `"px"` recommendation; (4) the
+typed page rung when `escalation` recommends `"page"`; (5)
+`delivery_mode="foreground"` only as a reaction to a returned signal, never a
+prediction; (6) after one verified-lost keystroke round trip, stop climbing and
+use the app's own I/O instead.
 
-1. **Element, background (default).** `click(element=N)`. If `effect:"confirmed"`,
-   you're done.
-2. **Fresh verification.** `effect:"unverifiable"` means inspect a fresh
-   capture/state before any retry. Do this even when `escalation.recommended`
-   is present; it is advisory, not proof that successful input should repeat.
-3. **Pixel, background.** After `effect:"suspected_noop"` or a structured
-   refusal recommends `"px"` (or a `degraded` capture has no elements), click
-   by `coordinate=[x,y]` instead of `element`.
-4. **Typed page.** When `escalation.recommended == "page"` and the exact
-   browser-page contract below is available, use the namespaced typed route
-   before native foreground. This is not the legacy `page` workflow.
-5. **Foreground.** After `effect:"suspected_noop"`,
-   `code:"background_unavailable"`, or a verified pixel no-op,
-   re-issue the SAME action with `delivery_mode="foreground"`. This briefly
-   raises the window and restores focus after; pair with `bring_to_front=True`
-   for a short sequence to avoid per-call flashes. It needs its own approval
-   (it's a visible focus change) and is only appropriate when the user isn't
-   actively working. Classic cases: Electron/Chromium consent dialogs (e.g.
-   tldraw offline's "Run Script"), DirectInput games, raw-input canvases.
-6. **Keystrokes verified-lost on a KDE/Qt editor → use the app's own I/O.**
-   Some Qt text components (KTextEditor: Kate, KWrite, KDevelop) discard
-   SYNTHETIC X keystrokes entirely — foreground `type` reports ok
-   ("Typed N characters into the focused widget", `effect:"unverifiable"`)
-   but a fresh AX capture shows the text never arrived, and raw XTest fails
-   identically (proven live, Aug 2026 — it is the toolkit, not the driver;
-   the same foreground route works on kcalc/Chrome). After ONE such
-   verified-lost round trip, stop retrying input rungs: write the file with
-   terminal/file tools and let the editor reload it, or drive the app's
-   DBus/CLI interface. Never loop the ladder against a surface that
-   verifiably swallows synthetic input.
+Rung-by-rung rules, the foreground scenario set, and a worked example:
+[references/verify-escalate-ladder.md](references/verify-escalate-ladder.md).
 
-```text
-computer_use(action="click", element=7)
-# → {effect: "suspected_noop", escalation: {recommended: "foreground", ...}}
-computer_use(action="click", element=7, delivery_mode="foreground")
-# → {effect: "unverifiable", path: "x11_pixel_fg"}   then re-capture to confirm
-
-```text
-
-**Escalate to foreground as a REACTION to a returned signal, never as a
-prediction** from the app being Electron/Chromium/GTK. A confirmed effect is
-done and must not be duplicated. Different controls in
-the same app behave differently. Do NOT silently retry the same rung, and do
-NOT conclude "cua-driver can't drive this app" — climb the ladder. If
-`delivery_mode="foreground"` returns `code:"foreground_unsupported"`, the live
-action schema lacks that property; choose another verified rung without
-inferring support from the executable's reported version.
-
-## Typed browser page rung
-
-See [references/browser-page-rung.md](references/browser-page-rung.md).
+## Typed browser page rung — [references/browser-page-rung.md](references/browser-page-rung.md)
 
 ## Background rules (the whole point)
 
@@ -195,58 +150,11 @@ See [references/browser-page-rung.md](references/browser-page-rung.md).
 4. **The user can be on the same machine.** They might be typing in
    another window. Don't grab focus. Don't pop modals to the front.
 
-## Drag & drop
+## Input scenarios
 
-Prefer element indices:
-
-```text
-computer_use(action="drag", from_element=3, to_element=17)
-
-```text
-
-For a rubber-band selection on empty canvas, use coordinates:
-
-```text
-computer_use(action="drag",
-             from_coordinate=[100, 200],
-             to_coordinate=[400, 500])
-
-```text
-
-## Scroll
-
-Scroll the viewport under an element (most common):
-
-```text
-computer_use(action="scroll", direction="down", amount=5, element=12)
-
-```text
-
-Or at a specific point:
-
-```text
-computer_use(action="scroll", direction="down", amount=3, coordinate=[500, 400])
-
-```text
-
-## Managing what's focused
-
-`list_apps` returns running apps with bundle IDs / process names, PIDs,
-and window counts. `focus_app` routes input to an app without raising
-it. You rarely need to focus explicitly — passing `app=...` to
-`capture` / `click` / `type` will target that app's frontmost window
-automatically.
-
-## Delivering screenshots to the user
-
-When the user is on a messaging platform (Telegram, Discord, etc.) and
-you took a screenshot they should see, save it somewhere durable and
-use `MEDIA:/absolute/path.png` in your reply. cua-driver's screenshots
-are PNG or JPEG bytes (mimeType is on the response); write them out
-with `write_file` or the terminal (`base64 -d`).
-
-On CLI, you can just describe what you see — the screenshot data stays
-in your conversation context.
+Drag & drop (index and coordinate), viewport and point scroll,
+`list_apps`/`focus_app` focus routing, and delivering screenshots:
+[references/input-scenarios.md](references/input-scenarios.md).
 
 ## Safety — these are hard rules
 

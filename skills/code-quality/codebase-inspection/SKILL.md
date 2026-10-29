@@ -1,6 +1,6 @@
 ---
 name: codebase-inspection
-description: Inspect codebases w/ pygount: LOC, languages, ratios.
+description: "Inspect codebases w/ pygount: LOC, languages, ratios."
 when-to-use: "Repository LOC count, language breakdown, file counts, and code-vs-comment ratios using pygount — general 'how big is this repo' questions."
 argument-hint: "[--format=summary|json] [--suffix=<langs>] [--folders-to-skip=<globs>] [<path>]"
 metadata:

@@ -6,7 +6,7 @@ description: >
   source (TUI, slots, tests). Use when an AI agent needs to send prompts, review code,
   or analyze attachments via CLI/MCP tools, or edit the internal/qwen-web-arwaky source.
 when-to-use: Use when the user runs /qwen-web, sends a prompt to Qwen AI Web, sends prompt files or attachments for Qwen analysis or code review with role templates, sets up or resets the Qwen browser session, initializes the qwen-web workspace, or asks to develop or fix the internal/qwen-web-arwaky repo.
-argument-hint: "<prompt direct -t <text> | prompt file -i <file> | prompt attach -i <file> -a <file> | doctor | session login | init [--dir <dir>]> [-o <out-file>] [--headless|--no-headless] [--json]"
+argument-hint: "<prompt direct -t <text> | prompt file -i <file> | prompt attach -i <file> -a <file> | doctor [--smoke] [--deep] | session login | session remove <id> | init [--dir <dir>]> [-o <out-file>] [--headless|--no-headless] [--json]"
 version: 6.8.0
 metadata:
   tags:

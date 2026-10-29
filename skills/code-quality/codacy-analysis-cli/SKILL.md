@@ -2,7 +2,7 @@
 name: codacy-analysis-cli
 description: "Runs Codacy Analysis CLI (`codacy-analysis`) for local static analysis: installation, init, dependency management, dry-runs, and analysis with JSON output. Use when the user asks to analyze code locally, run static analysis, scan for bugs or security issues, lint files, check code quality without pushing to Codacy, run tools like ESLint, Ruff, Semgrep, or RuboCop, analyze staged/diff/PR changes, or set up local Codacy analysis. Also covers CLI command usage patterns and external lint tool integration."
 when-to-use: "Local static analysis on a repo or specific files; install/init, run tools (ESLint, Ruff, Semgrep, RuboCop, etc.) with JSON output; scan staged/diff/PR changes or a whole repo; external lint tool configuration and CLI command reference."
-argument-hint: "[--init | --analyze [--staged | --diff | --pr | --tool <id> | --files <paths>] --output-format json [--fail-if-missing | --install-dependencies] [--config-file <path>]] [init --remote gh|gl|bb <org> <repo>]"
+argument-hint: "[codacy-analysis init [--remote gh|gl|bb <org> <repo>]] [codacy-analysis analyze [<paths>] [--staged | --diff | --pr] [--tool <id>] [--files <paths>] --output-format json [--fail-if-missing | --install-dependencies] [--config-file <path>]]"
 license: MIT
 metadata:
   author: Codacy

@@ -10,7 +10,7 @@ when-to-use:
   - parallel worktrees for issues
   - audit open issues
   - which issues can close
-argument-hint: <issue-number>
+argument-hint: <issue-number> [<issue-number>...]
 metadata:
   tags:
     - GitHub
@@ -140,18 +140,10 @@ issue closure (the parent decides closure).
 
 ## Phase D — Build isolation
 
-Each worktree MUST use its own build artifact directory. Shared artifact dirs cause:
-
-1. **Phantom errors** — a sibling's half-built new symbols leak into a shared cache and
-   surface as unrelated failures in other worktrees.
-2. **Contention** — parallel builds on one dir exhaust file locks / RAM (lock waits, OOM,
-   linker exits).
-
-First build in a cold isolated dir is slower (no shared cache), and that cost is always less
-than debugging phantom failures. If a child's build genuinely fails on a cold isolated dir,
-retry once; do **not** fall back to the shared dir.
-
-Setup recipes for Cargo, Node, and Python: [`references/isolation-recipes.md`](references/isolation-recipes.md).
+Each worktree MUST use its own build artifact directory — shared dirs cause phantom
+sibling errors and lock/RAM contention, and a cold-dir retry never falls back to the
+shared dir. Rationale plus setup recipes for Cargo, Node, and Python:
+[`references/isolation-recipes.md`](references/isolation-recipes.md).
 
 ## Phase E — Run waves and verify children
 

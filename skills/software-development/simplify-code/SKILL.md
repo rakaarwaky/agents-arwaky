@@ -1,6 +1,6 @@
 ---
 name: simplify-code
-description: "Cleans recent changes via 4-agent sweep. Use when simplifying, reuse, efficiency, conventions."
+description: Cleans recent changes via 4-agent sweep. Use when simplifying, reuse, efficiency, conventions.
 when-to-use: Use when simplifying recent changes — run reuse/quality/efficiency/altitude reviewers in parallel, aggregate, apply.
 argument-hint: "[--focus <reuse|quality|efficiency|altitude>] [--dry-run] [--scope <path|commit>]"
 metadata:

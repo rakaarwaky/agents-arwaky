@@ -34,7 +34,7 @@ for human editing — reviewers expect Word footnotes. Keep the ledger ids as th
 footnote numbers so `verify` still works on a markdown source-of-truth, and
 generate the .docx from that markdown.
 
-## Slides (.pptx, `powerpoint` skill)
+## Slides (.pptx, `pptx` skill)
 
 Inline `[n]` in the bullet, one "Sources" slide at the end rendered with
 `--style plain`. Never put a URL in a body bullet — it wrecks the layout and

@@ -2,7 +2,7 @@
 name: arxiv
 description: Search arXiv papers by keyword, author, category, or ID.
 when-to-use: Use when the user asks to search arXiv papers by keyword, author, category, or ID, or to fetch a paper's metadata, abstract, or PDF.
-argument-hint: "search \"QUERY\" [--author NAME | --category CAT | --id ID] [--max N] [--sort relevance|date|updated]"
+argument-hint: "[\"QUERY\"] [--author NAME | --category CAT | --id ID] [--max N] [--sort relevance|date|updated]"
 metadata:
   tags:
     - Research

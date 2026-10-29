@@ -2,7 +2,7 @@
 name: xlsx
 description: Create, read, edit Excel .xlsx workbooks and CSVs.
 when-to-use: "Use when creating, reading, editing, or recalculating Excel .xlsx workbooks and CSVs — styled multi-sheet reports, formulas, tables, charts, data validation, and CSV interop — with openpyxl."
-argument-hint: "create <spec.json> <out.xlsx>|read <file.xlsx> [--sheets|--json|--csv|--formulas|--notes|--names] --sheet NAME [--data-only] [--encoding ENC] [--out PATH]|edit <file.xlsx> --set CELL=VALUE|edit --append ROWJSON|edit --add-table NAME:RANGE[:STYLE]|edit --table-append NAME=ROWJSON|edit --list-tables|edit --define-name NAME=REF|edit --delete-name NAME|edit --hyperlink CELL=URL[|TEXT]|edit --note CELL=TEXT[|AUTHOR]|edit --clear-note CELL|edit --protect [PASSWORD]|edit --unlock RANGE|edit --recalc|edit --copy-sheet SRC:NEW|edit --rename-sheet OLD:NEW|restructure <file.xlsx> --sheet NAME --insert-rows IDX[:N]|restructure --sheet NAME --delete-rows IDX[:N]|restructure --sheet NAME --insert-cols IDX[:N]|restructure --sheet NAME --delete-cols IDX[:N]|recalc <file.xlsx> [--out PATH] [--timeout N]|csv_to_xlsx <in.csv> <out.xlsx> [--sheet-name NAME] [--encoding ENC] [--delimiter DEL]|xlsx_to_csv <file.xlsx> <out.csv> [--sheet NAME] [--encoding ENC] [--delimiter DEL] [--data-only]"
+argument-hint: "create <spec.json> <out.xlsx>|read <file.xlsx> [--sheets|--json|--csv|--formulas|--notes|--names] --sheet NAME [--data-only] [--encoding ENC] [--out PATH]|edit <file.xlsx> --set CELL=VALUE|edit --append ROWJSON|edit --add-table NAME:RANGE[:STYLE]|edit --table-append NAME=ROWJSON|edit --list-tables|edit --define-name NAME=REF|edit --delete-name NAME|edit --hyperlink CELL=URL[|TEXT]|edit --note CELL=TEXT[|AUTHOR]|edit --clear-note CELL|edit --protect [PASSWORD]|edit --unlock RANGE|edit --recalc|edit --copy-sheet SRC:NEW|edit --rename-sheet OLD:NEW|restructure <file.xlsx> --sheet NAME --insert-rows IDX[:N]|restructure --sheet NAME --delete-rows IDX[:N]|restructure --sheet NAME --insert-cols COL[:N]|restructure --sheet NAME --delete-cols COL[:N]|recalc <file.xlsx> [--out PATH] [--timeout N]|csv_to_xlsx <in.csv> <out.xlsx> [--sheet-name NAME] [--encoding ENC] [--delimiter DEL]|xlsx_to_csv <file.xlsx> <out.csv> [--sheet NAME] [--encoding ENC] [--delimiter DEL] [--data-only]"
 version: 1.1.0
 author: Nous Research
 license: MIT
@@ -11,7 +11,7 @@ metadata:
   hermes:
     tags: [excel, spreadsheet, xlsx, csv, openpyxl, productivity]
     category: productivity
-    related_skills: [docx, pdf, powerpoint]
+    related_skills: [docx, pdf, pptx]
 ---
 
 # Xlsx Skill

@@ -1,7 +1,7 @@
 ---
 name: grok-build
-description: "Delegate coding and multi-agent orchestration to Grok Build via the local OmniRoute gateway. Use for headless, TUI, and PR review, plus authoring Rhai workflow scripts (agents, phases, bounded parallel fan-out, verification panels). Use when the user wants to create/author/write a workflow, automate a multi-agent pipeline, or runs /create-workflow. Observed user phrasing: '/implement <paths> cek dpc rules', '/implement ... buat pr untuk perbaiki template dari PRD', '/design <file> palse redesign rules aes ... remove all legacy', 'fix doc violations in <crate>', 'find any segfault error in my environment and clean it', 'we need to spawn sub agent to make all FRD becoming real FRD'."
-when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Also use when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow, and when a workflow script needs the Rhai reference (script shape, dialect, host API, journal semantics). Sibling of the Orca skill — Orca manages worktrees/terminals; this one drives the Grok CLI inside them. Backed by OmniRoute (model myomniroute), not an xAI subscription. Matches observed user phrasing: '/implement <paths> cek dpc rules', '/implement ... buat pr untuk perbaiki template dari PRD', '/design <file> palse redesign rules aes', 'fix doc violations in <crate>', 'find any segfault error in my environment and clean it', 'we need to spawn sub agent to make all FRD becoming real FRD'."
+description: "Delegate coding and multi-agent orchestration to Grok Build via the local OmniRoute gateway. Use for headless, TUI, and PR review, plus authoring Rhai workflow scripts (agents, phases, bounded parallel fan-out, verification panels). Use when the user wants to create/author/write a workflow, automate a multi-agent pipeline, or runs /create-workflow, /implement, /design, or /execute-plan. Observed user phrasing: '/implement paths cek dpc rules', '/implement ... buat pr untuk perbaiki template dari PRD', '/design file palse redesign rules aes ... remove all legacy', 'fix doc violations in crate', 'find any segfault error in my environment and clean it', 'we need to spawn sub agent to make all FRD becoming real FRD'."
+when-to-use: "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build, or when a coding task should be delegated to Grok instead of implementing it inline. Also use when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow, /implement, /design, or /execute-plan, and when a workflow script needs the Rhai reference (script shape, dialect, host API, journal semantics). Sibling of the Orca skill — Orca manages worktrees/terminals; this one drives the Grok CLI inside them. Backed by OmniRoute (model myomniroute), not an xAI subscription. Matches observed user phrasing: '/implement paths cek dpc rules', '/implement ... buat pr untuk perbaiki template dari PRD', '/design file palse redesign rules aes', 'fix doc violations in crate', 'find any segfault error in my environment and clean it', 'we need to spawn sub agent to make all FRD becoming real FRD'."
 argument-hint: "<task> [-p <prompt>] [-m <model>] [-c] [-s <session> | -r | --continue] [--output-format <fmt>] [--always-approve] [--no-alt-screen] [--cwd <path>] [--max-turns <n>]"
 tags:
   - Coding-Agent
@@ -99,59 +99,12 @@ tmux send-keys -t grok-work '/quit' Enter && tmux kill-session -t grok-work
 agent rows from one screen. `/doctor` diagnoses terminal/clipboard/color issues,
 `/doctor fix <id>` applies named fixes.
 
-## Read-Only Audit → Markdown Note
+## Delegation scenarios
 
-To have Grok review local artifacts and return a clean markdown note without mutating
-anything:
-
-1. Prepare stable input files first with Hermes tools (`read_file`, `write_file`).
-   Snapshot only relevant context into a temp file.
-2. Run Grok headless **without** `--always-approve` so it cannot auto-write; demand
-   markdown only.
-3. Save stdout into the destination note with `write_file()`.
-
-Pitfall: for document rewrites, a loose "rewrite this" prompt may return a change
-summary instead of the full file. Pipe the file in and demand "Return ONLY the full
-revised markdown document. No intro, no explanation, no code fences. Start immediately
-with `# Title`". Verify the first lines with `read_file()` before overwriting the
-destination.
-
-## PR Review Patterns
-
-### Quick Review (Headless)
-
-```bash
-git diff main...feature-branch | grok -p 'Review this diff for bugs, security issues, and style problems. Be thorough.'
-```
-
-### Clone-to-Temp Review (safe, no repo mutation)
-
-```bash
-REVIEW=$(mktemp -d)
-git clone https://github.com/user/repo.git $REVIEW
-cd $REVIEW && gh pr checkout 42
-grok -p 'Review the changes vs origin/main. Check bugs, security, race conditions, missing tests.'
-gh pr comment 42 --body '<review text>'
-```
-
-## Parallel Issue Fixing with Worktrees
-
-```bash
-git worktree add -b fix/issue-78 ~/.hermes/cache/scratch/issue-78 main
-git worktree add -b fix/issue-99 ~/.hermes/cache/scratch/issue-99 main
-
-# Launch Grok headless in each (background)
-grok --always-approve -p 'Fix issue #78: <desc>. Commit when done.'  # in worktree 78
-grok --always-approve -p 'Fix issue #99: <desc>. Commit when done.'  # in worktree 99
-
-# After completion: push and open PRs, then clean up
-cd ~/.hermes/cache/scratch/issue-78 && git push -u origin fix/issue-78
-gh pr create --repo user/repo --head fix/issue-78 --title 'fix: ...'
-git worktree remove ~/.hermes/cache/scratch/issue-78
-```
-
-The same worktrees can be Orca-managed (`orca worktree create`), but plain `git
-worktree` works without the Orca daemon.
+Operational recipes for delegating work to Grok — read-only audit to a markdown
+note, PR review (diff-piped and clone-to-temp), and parallel issue fixing across
+worktrees — live in
+[references/delegation-scenarios.md](references/delegation-scenarios.md).
 
 ## Config (`~/.grok/config.toml`)
 

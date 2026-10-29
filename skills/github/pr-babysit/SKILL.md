@@ -5,7 +5,7 @@ description: >-
   resolve merge conflicts, and restack stacks. Supports independent PRs, Graphite
   stacks, and GitHub stacked PRs (gh-stack). Optional ship lands a ready PR
   bottom-up when every job has passed and no comments remain open.
-when-to-use: Triggers on "/pr-babysit".
+when-to-use: "Triggers on \"/pr-babysit\". Observed run phrasing: \"check every open PR, \"fix PR 162\", \"merger to main\" (land ready PRs when green)."
 argument-hint: "add [--ship] <number> | remove <number> | list | check | ship [on|off] [number...]"
 disable-model-invocation: true
 metadata:

@@ -8,7 +8,7 @@ description: >-
 when-to-use: >-
   Any game asset or game art, 2D or 3D; a 3D model, mesh or GLB from a picture;
   "make this 3D"; /game-assets.
-argument-hint: "<sprite|tileset|character|ui-icon|glb-3d-model> [threejs|unity|godot|unreal] [style]"
+argument-hint: "<sprite|animation|tileset|character|ui-icon|glb-3d-model> [threejs|unity|godot|unreal] [style]"
 metadata:
   short-description: "Engine-ready game art, 2D sprites to 3D models"
 ---

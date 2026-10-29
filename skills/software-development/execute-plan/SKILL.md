@@ -1,7 +1,7 @@
 ---
 name: execute-plan
-description: Execute a PR Plan DAG from a design document. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability. Observed phrasing: "/execute-plan <design-doc-path>", "execute plan", "run the plan", "implement the design".
-when-to-use: Use when asked to "execute plan", "run the plan", "implement the design", or "/execute-plan". Invoked after /design produces a PR plan; observed runs reference design documents produced by the design skill.
+description: Execute a PR Plan DAG from a design document in parallel-first mode. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability. Observed phrasing: /execute-plan followed by a design doc path, execute plan, run the plan, implement the design, make plan execution parallel-first.
+when-to-use: Use when asked to execute a plan, run the plan, implement the design, or via the /execute-plan slash command with a design doc path. Invoked after /design produces a PR plan; observed runs reference design documents produced by the design skill.
 argument-hint: "<design-doc-path> [--effort N] [--concurrency N] [--dry-run] [--resume <PLAN_ID>] [--instructions \"...\"] [--no-graphite] [--auto-pr]"
 ---
 

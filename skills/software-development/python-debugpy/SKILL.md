@@ -1,6 +1,6 @@
 ---
 name: python-debugpy
-description: "Debug Python: pdb REPL + debugpy remote (DAP)."
+description: Debug Python with pdb REPL plus debugpy remote (DAP).
 when-to-use: Use when a Python test/process misbehaves — pdb breakpoints, debugpy remote attach, post-mortem on crashes.
 argument-hint: "<script-or-module|pid> [--listen <host:port>] [--pid <pid>]"
 version: 1.0.0

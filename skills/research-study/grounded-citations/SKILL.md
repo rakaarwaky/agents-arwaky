@@ -2,7 +2,7 @@
 name: grounded-citations
 description: Ground answers and documents in cited, verifiable sources.
 when-to-use: Use whenever an answer or artifact rests on information you fetched rather than knew, and needs inline numbered citations plus a verifiable Sources block.
-argument-hint: "<reset | add | list | render | verify | quote | ingest> [urls | id | path] [--title | --accessed | --json | --ledger | --style | --only | --cited-in | --replace-in | --strict | --min-coverage | --evidence]"
+argument-hint: "<reset | add | list | render | verify | quote | ingest> [urls | id | path | draft] [--title | --accessed | --json | --ledger | --style | --only | --cited-in | --replace-in | --strict | --min-coverage | --evidence | --text | --from]"
 metadata:
   tags:
     - Research

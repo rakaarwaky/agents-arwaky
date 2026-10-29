@@ -1,6 +1,6 @@
 ---
 name: email-inbox-triage
-description: "Triage an inbox: prioritize threads, draft replies safely."
+description: 'Triage an inbox: prioritize threads, draft replies safely.'
 when-to-use: "Use when the user asks to triage their inbox, prioritize threads, draft replies, or reach inbox zero."
 argument-hint: "[threads|replies|actions|waiting|reference|noise]"
 version: 0.2.0

@@ -10,7 +10,7 @@ platforms: [linux, macos, windows]
 metadata:
     tags: [word, docx, documents, office, templates, revisions, comments, redline, xml]
     category: productivity
-    related_skills: [pdf, xlsx, powerpoint]
+    related_skills: [pdf, xlsx, pptx]
     backends: [hermes, grok-build]
 ---
 

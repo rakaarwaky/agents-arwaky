@@ -1,6 +1,6 @@
 ---
 name: himalaya
-description: "Himalaya CLI: IMAP/SMTP email from terminal."
+description: 'Himalaya CLI: IMAP/SMTP email from terminal.'
 when-to-use: "Use when managing email from the terminal via IMAP/SMTP — listing folders, reading and searching messages, composing and sending replies, moving/copying/deleting mail, and managing flags and attachments."
 argument-hint: "account configure|folder list|envelope list [--folder <name>] [--page N] [--page-size N]|message read <id>|message write|template send|message move <folder> <id>|message copy|message delete|flag add|flag remove|attachment download [--downloads-dir <dir>]"
 version: 1.1.0

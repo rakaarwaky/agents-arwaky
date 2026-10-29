@@ -1,8 +1,8 @@
 ---
 name: hermes-agent
-description: "Use, configure, theme, extend, and orchestrate Hermes Agent — including multi-bot Telegram multiplex gateways and gateway persistence. Observed user phrasing: 'spawn sub agent / subagents to make all FRD becoming real', 'we need to spawn sub agent', 'can Hermes do X' / 'how do I set up X in Hermes', 'hanya spawn hermes', 'hermes' with a task to delegate."
-when-to-use: "Use when the user mentions Hermes, hermes CLI, TUI, skins/themes, desktop plugins, TUI widgets, pets, provider or model setup, spawning additional hermes instances or sub agents, multi-agent coordination, messaging-gateway bots, or asks 'can Hermes do X' / 'how do I set up X in Hermes'. Matches observed user phrasing: 'spawn sub agent / subagents to make all FRD becoming real', 'we need to spawn sub agent', 'hanya spawn hermes', 'can Hermes do X'."
-argument-hint: "[<question | task>] [chat] [-q <query> | --query-file <path>] [-m <model>] [--provider <p>] [--resume <session> | --continue] [--oneshot | -Q] [--worktree] [--reference <name>]"
+description: "Use, configure, theme, extend, and orchestrate Hermes Agent — including multi-bot Telegram multiplex gateways and gateway persistence. Observed user phrasing: 'spawn sub agent / subagents to make all FRD becoming real', 'we need to spawn sub agent', 'can Hermes do X' / 'how do I set up X in Hermes', 'only spawn hermes', 'hanya spawn hermes', 'hermes' with a task to delegate."
+when-to-use: "Use when the user mentions Hermes, hermes CLI, TUI, skins/themes, desktop plugins, TUI widgets, pets, provider or model setup, spawning additional hermes instances or sub agents, multi-agent coordination, messaging-gateway bots, or asks 'can Hermes do X' / 'how do I set up X in Hermes'. Matches observed user phrasing: 'spawn sub agent / subagents to make all FRD becoming real', 'we need to spawn sub agent', 'only spawn hermes', 'hanya spawn hermes', 'can Hermes do X'."
+argument-hint: "[<question | task>] [chat] [-q <query>] [-m <model>] [--provider <p>] [--resume <session> | --continue] [--oneshot | -Q] [--worktree]"
 metadata:
   tags:
     - hermes

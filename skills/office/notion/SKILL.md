@@ -1,6 +1,6 @@
 ---
 name: notion
-description: "Notion API + ntn CLI: pages, databases, markdown, Workers."
+description: 'Notion API + ntn CLI: pages, databases, markdown, Workers.'
 when-to-use: "Use when reading or writing Notion pages, databases, markdown, file uploads, or Workers via the ntn CLI or the Notion API (curl)."
 argument-hint: "ntn api v1/search|ntn api v1/users|ntn api v1/pages <parent[page_id]> [properties...]|ntn api v1/pages/<id>/markdown|ntn api v1/pages/<id>/markdown -X PATCH|ntn api v1/blocks/<id>/children|ntn api v1/data_sources/<id>/query -X POST|ntn files create|ntn files list|ntn workers new|ntn workers deploy|ntn workers exec"
 version: 2.0.0

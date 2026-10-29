@@ -2,7 +2,7 @@
 name: vision-arwaky
 description: "Unified image and video intelligence for computer vision, OCR, video analysis, object tracking, and MCP integrations."
 when-to-use: "Use when the user needs computer vision — image analysis, OCR, screenshot comparison, video info/frame extraction, scene/motion detection, object tracking, or smart-video understanding via CLI or MCP."
-argument-hint: "<init|analyze|ocr|compare|video-info|extract-frames|check-corruption|detect-scenes|detect-motion|track|analyze-video> [--image PATH|--video PATH] [--prompt TEXT]"
+argument-hint: "<init|analyze|ocr|compare|video-info|extract-frames|check-corruption|detect-scenes|detect-motion|track|analyze-video> [--image PATH|--image1 PATH|--image2 PATH|--video PATH|--prompt TEXT|--lang CODE|--bbox X,Y,W,H]"
 version: 3.0.0
 ---
 # Vision Arwaky

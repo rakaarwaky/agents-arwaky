@@ -1,11 +1,7 @@
 ---
 name: implement
-description: >-
-  Run the full implement-review-fix loop using implementer and reviewer personas.
-  Supports effort-based multi-reviewer scaling (2–7 reviewers) with automatic
-  specialization selection. Includes memory-based feedback loop that learns from
-  past review patterns. Loops until all reviewers find 0 issues of any severity.
-when-to-use: Use when asked to "implement", "build", "add feature", "fix bug", or "/implement".
+description: Run the parallel-first implement-review-fix loop using implementer and reviewer personas; independent reviewer launches and fixes are fanned out together. Supports effort-based multi-reviewer scaling (2 to 7 reviewers) with automatic specialization selection and Orca worktree isolation under the owning project. Includes memory-based feedback loop that learns from past review patterns. Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement, fix Orca worktree project routing.
+when-to-use: Use when asked to implement, build, add a feature, fix a bug, or via the /implement slash command.
 argument-hint: "[--effort N] <description of what to implement>"
 disable-model-invocation: true
 ---

@@ -9,7 +9,8 @@ argument-hint: [--tag <tag>] [--target_commitish <sha>]
 
 This is an **agent instruction**, not a human runbook. You are an autonomous
 release agent: you run every stage below end-to-end, stop only on hard
-failures that need the Recovery table, and report a final status at the end.
+failures that need the [Recovery playbook](references/recovery.md), and report
+a final status at the end.
 The only step you report to the user and do *not* execute is the Homebrew tap
 PR merge, which needs a human.
 
@@ -37,46 +38,7 @@ workflow itself needs changing.
 
 ## Step 0 — version bump
 
-Working directory: project root.
-
-1. Compute `NEW_VERSION`. `YYYY.M.D` is the current UTC date; `N` follows the
-   calver rule (preamble above).
-
-   ```shell
-   last=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')   # e.g. 2026.10.24.1
-   today=$(date -u +%Y.%-m.%-d)                                     # no zero padding
-   # N = 1 if last tag is from a different day, else last N + 1
-   N=1
-   if [ -n "$last" ]; then
-     last_date="${last%.*}"
-     last_N="${last##*.}"
-     [ "$last_date" = "$today" ] && N=$((last_N + 1))
-   fi
-   NEW_VERSION="$today.$N"
-   ```
-
-2. Use the bump script at project-root `scripts/` — check for `scripts/bump.sh`
-   or `scripts/bump.py`:
-
-   ```shell
-   if [ -f scripts/bump.sh ]; then
-     bash scripts/bump.sh "$NEW_VERSION"
-   elif [ -f scripts/bump.py ]; then
-     python3 scripts/bump.py "$NEW_VERSION"
-   else
-     mkdir -p scripts
-     cat > scripts/bump.sh <<'EOF'
-   #!/usr/bin/env bash
-   sed -i -E 's/^__RELEASE_VERSION__ = .*/__RELEASE_VERSION__ = "'"$1"'"/' \
-     pyproject.toml Cargo.toml 2>/dev/null || true
-   echo "## $1" >> CHANGELOG.md
-   for f in scripts pyproject.toml Cargo.toml CHANGELOG.md; do [ -e "$f" ] && git add -A "$f" || true; done
-   git commit -m "release: bump to $1"
-   EOF
-     chmod +x scripts/bump.sh
-     bash scripts/bump.sh "$NEW_VERSION"
-   fi
-   ```
+Compute `NEW_VERSION` and run the bump script per [`references/version-bump.md`](references/version-bump.md) (calver rule + `scripts/bump.sh` / `scripts/bump.py`). Working directory: project root.
 
 ## Step 1 — release prep PR
 
@@ -203,12 +165,4 @@ nothing to do there.
 
 ## Recovery
 
-| Symptom | Fix |
-|---|---|
-| Step 3 failed mid-run | No release exists yet, or a draft does. Delete the draft (`gh release delete <tag> --cleanup-tag`) and re-run Step 3. |
-| Draft missing assets | Delete the draft and re-run Step 3 — never backfill by hand. |
-| `assert-binaries-present` failed after publish | The release was created outside the workflow and is now immutable. Delete the release *and* its tag, then re-run Step 3 with the same tag. |
-| PyPI publish failed (transient / outage) | Wheels are built; re-run just the failed job: `gh run rerun <run-id> --failed`. |
-| Wrong version already on PyPI | PyPI versions can't be reused or overwritten. Ship the next `N` — do not try to reuse the tag. |
-| Release prep PR merge failed | Check CI on the release branch; fix in the same branch, re-merge, then continue from Step 2. |
-| Bump script missing and created one that fails | The script is a version-stamp helper; if it cannot commit, do it manually (`git commit -m "release: bump to $NEW_VERSION"`), then continue. |
+Failed stages are an outward-facing scenario with a fixed playbook: [`references/recovery.md`](references/recovery.md) (delete draft, rerun failed job, immutable-release traps, prep-PR re-merge).

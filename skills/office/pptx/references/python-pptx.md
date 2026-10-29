@@ -1,29 +1,21 @@
----
-name: powerpoint
-description: Create, read, edit .pptx decks with python-pptx.
-when-to-use: "Use when creating, reading, or editing PowerPoint .pptx decks — building slide decks, extracting text/notes/images, updating charts or templates, and rendering slides — with python-pptx."
-argument-hint: "create <deck.json> <out.pptx>|read <deck.pptx> [--outline|--notes|--images <dir>]|edit <deck.pptx> --replace-text <old> <new>|edit <deck.pptx> --chart-data <spec.json>|edit <deck.pptx> --swap-image <slide> <shape> <image>|edit <deck.pptx> --duplicate-slide <n>|edit <deck.pptx> --remove-slide <n>|edit <deck.pptx> --move-slide <from> <to>|edit <deck.pptx> --set-background <n> <hex>|edit <deck.pptx> --hyperlink <slide> <text> <url>|edit <deck.pptx> --enable-slide-number <n>|edit <deck.pptx> --set-footer <n> <text>|edit <deck.pptx> --set-notes <n> <text>|edit <deck.pptx> --append-notes <n> <text>|from-template <tpl.pptx> <out.pptx> --values <vals.json>|render <deck.pptx> --outdir <dir>"
-version: 1.1.0
-author: Nous Research
-license: MIT
-platforms: [linux, macos, windows]
-metadata:
-  hermes:
-    tags: [pptx, powerpoint, presentations, slides, office, python-pptx]
-    category: productivity
-    related_skills: [docx, xlsx, pdf]
----
+## python-pptx Workflow
 
-# Powerpoint Skill
+Programmatic create, read, edit, template-fill, and render of PowerPoint
+(.pptx) presentations using the python-pptx library. Five helper scripts
+cover deck creation from a JSON spec, structured read-back, in-place
+edits, template-driven brand decks, and slide rendering — all offline, no
+PowerPoint installation required.
 
-Create, inspect, and edit PowerPoint (.pptx) presentations using the
-python-pptx library. Five helper scripts cover deck creation from a JSON
-spec, structured read-back, in-place edits, template-driven brand decks,
-and slide rendering — all offline, no PowerPoint installation required.
+> Merged in from the former `powerpoint` skill (skill-lifecycle
+> evolution pass, 2026-10-30). The five `pptx_*.py` scripts and the
+> bundled test suite now live in this skill at `scripts-python-pptx/`
+> and `tests-python-pptx/` (sibling subdirs of `SKILL.md`), since
+> `office/pptx/scripts/` is already owned by the legacy-binary
+> `pptx` CLI. Path references below use `scripts-python-pptx/`.
 
 ## References
 
-- `references/pitfalls.md` — edge-case behaviors: run splitting, chart duplication limits, chart ops wrapper, XML-level reordering, footer/slide-number constraints, hyperlinks, template sizing, layout indexes, and UTF-8 specs.
+- `pitfalls.md` — edge-case behaviors: run splitting, chart duplication limits, chart ops wrapper, XML-level reordering, footer/slide-number constraints, hyperlinks, template sizing, layout indexes, and UTF-8 specs.
 
 ## When to Use
 
@@ -51,20 +43,21 @@ and slide rendering — all offline, no PowerPoint installation required.
 
 ## How to Run
 
-All scripts live in `scripts/`, take `--help`, print JSON to stdout, and
+All five scripts live in this skill's `scripts-python-pptx/` directory
+(`skills/office/pptx/scripts-python-pptx/`), take `--help`, print JSON to stdout, and
 exit non-zero on failure. Run them with `terminal`:
 
 ```bash
-python scripts/pptx_create.py deck.json out.pptx
-python scripts/pptx_read.py deck.pptx --outline      # full JSON outline
-python scripts/pptx_read.py deck.pptx --notes        # speaker notes
-python scripts/pptx_read.py deck.pptx --images ./img # export pictures
-python scripts/pptx_edit.py deck.pptx --replace-text "Old Corp" "New Corp"
-python scripts/pptx_edit.py deck.pptx --chart-data update.json
-python scripts/pptx_edit.py deck.pptx --duplicate-slide 2
-python scripts/pptx_edit.py deck.pptx --remove-slide 3 --move-slide 2 0
-python scripts/pptx_from_template.py brand.pptx out.pptx --values vals.json
-python scripts/pptx_render.py deck.pptx --outdir ./render  # slide PNGs
+python scripts-python-pptx/pptx_create.py deck.json out.pptx
+python scripts-python-pptx/pptx_read.py deck.pptx --outline      # full JSON outline
+python scripts-python-pptx/pptx_read.py deck.pptx --notes        # speaker notes
+python scripts-python-pptx/pptx_read.py deck.pptx --images ./img # export pictures
+python scripts-python-pptx/pptx_edit.py deck.pptx --replace-text "Old Corp" "New Corp"
+python scripts-python-pptx/pptx_edit.py deck.pptx --chart-data update.json
+python scripts-python-pptx/pptx_edit.py deck.pptx --duplicate-slide 2
+python scripts-python-pptx/pptx_edit.py deck.pptx --remove-slide 3 --move-slide 2 0
+python scripts-python-pptx/pptx_from_template.py brand.pptx out.pptx --values vals.json
+python scripts-python-pptx/pptx_render.py deck.pptx --outdir ./render  # slide PNGs
 ```
 
 Author JSON specs with `write_file`; inspect script output and generated
@@ -179,7 +172,7 @@ say so rather than approximating.
 
 ## Pitfalls
 
-Edge-case behaviors (run splitting, chart duplication limits, chart ops as wrapper, XML-level reordering, footer/slide-number limits, hyperlinks, template size, layout indexes, blank-layout title, UTF-8 specs) live in `references/pitfalls.md`.
+Edge-case behaviors (run splitting, chart duplication limits, chart ops as wrapper, XML-level reordering, footer/slide-number limits, hyperlinks, template size, layout indexes, blank-layout title, UTF-8 specs) live in `pitfalls.md`.
 
 ## Verification
 
@@ -191,4 +184,4 @@ Edge-case behaviors (run splitting, chart duplication limits, chart ops as wrapp
    shapes, truncated text, and color problems the outline cannot. If the
    render tools are missing, the script says so; rely on the outline.
 4. The bundled test suite is the full contract:
-   `python -m pytest tests/ -q` (requires python-pptx + pytest).
+   `python -m pytest tests-python-pptx/ -q` (requires python-pptx + pytest).

@@ -2,7 +2,7 @@
 name: psd-timelapse-workflow
 description: "Work the psd-timelapse repo: PRD tiers, gates, PR prep."
 when-to-use: "Use when working in the psd-timelapse repo — applying PRD P0-P3 tiers, backlog format v2, quality gates (pytest/ruff/mypy/lint-arwaky), or PR prep checklist."
-argument-hint: "<pytest|ruff|mypy|lint-arwaky|pr-prep>"
+argument-hint: "<pytest|ruff|mypy|lint-arwaky-cli|pr-prep>"
 metadata:
   tags: []
 ---

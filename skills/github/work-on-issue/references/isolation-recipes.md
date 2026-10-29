@@ -1,7 +1,17 @@
 # Isolation Recipes
 
-Phase D/C setup. Shared artifact dirs cause phantom sibling errors and lock/RAM
-contention. One Orca worktree = one artifact dir. Never fall back to a shared dir.
+Phase D/C setup. One Orca worktree = one artifact dir. Never fall back to a shared dir.
+
+Why shared dirs are forbidden:
+
+1. **Phantom errors** — a sibling's half-built new symbols leak into a shared cache and
+   surface as unrelated failures in other worktrees.
+2. **Contention** — parallel builds on one dir exhaust file locks / RAM (lock waits, OOM,
+   linker exits).
+
+First build in a cold isolated dir is slower (no shared cache), and that cost is always
+less than debugging phantom failures. If a child's build genuinely fails on a cold
+isolated dir, retry once; do **not** fall back to the shared dir.
 
 The pattern is the same in every ecosystem:
 

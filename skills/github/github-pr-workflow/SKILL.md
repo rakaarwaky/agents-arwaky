@@ -1,7 +1,7 @@
 ---
 name: github-pr-workflow
-description: Run the GitHub PR lifecycle — branch, commit, push, open PR, monitor CI, auto-fix, merge/squash.
-when-to-use: "Take work to a merged PR: create a branch, commit, push, open a PR, watch CI, auto-fix red checks, and merge (squash / auto-merge). Triggers: \"open a PR\", \"make sure CI is green\", \"fix the failing check\", \"merge when green\", \"auto-fix the CI failure\", \"finish this branch into a PR\"."
+description: Run the GitHub PR lifecycle from a worktree or branch — branch, commit, push, open a PR (pr to main), monitor CI, auto-fix red checks, merge/squash.
+when-to-use: "Take work to a merged PR: create a branch, commit, push, open a PR, watch CI, auto-fix red checks, and merge (squash / auto-merge), including the orca worktree + GitHub PR flow. Observed run phrasing: \"fix PR 162\", \"pr to main\", \"merger pr\", PR titles \"Remove PRD Acceptance Table, Fix Lint Enforcement\" and \"remove FRD.md surface links enable strict_member_docs\". Triggers: \"open a PR\", \"make sure CI is green\", \"fix the failing check\", \"merge when green\", \"auto-fix the CI failure\", \"finish this branch into a PR\"."
 argument-hint: <number> [--squash|--auto] [--draft] [--reviewer <user>] [--label <label>]
 metadata:
   tags:

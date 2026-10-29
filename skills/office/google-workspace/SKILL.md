@@ -1,6 +1,6 @@
 ---
 name: google-workspace
-description: Daily Google ops via workspace MCP: Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, Contacts, Chat. For user tasks.
+description: 'Daily Google ops via workspace MCP: Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, Contacts, Chat. For user tasks.'
 when-to-use: "Use when performing daily Google Workspace operations — Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, Contacts, or Chat — via the workspace MCP server."
 argument-hint: "search_gmail_messages <query>|get_gmail_message_content <message_id>|send_gmail_message|manage_event|read_sheet_values|modify_sheet_values|create_doc|modify_doc_text|create_drive_file|list_drive_items|get_events|query_freebusy|start_google_auth"
 metadata:
