@@ -32,6 +32,10 @@ See [`references/orca-worktree-protocol.md`](references/orca-worktree-protocol.m
 
 Every action you describe in your text must correspond to an actual tool call in the same assistant response. The execution loop spawns subagents in tight cycles, so the safest pattern is: emit the `spawn_subagent` tool call **first**, then once the tool result is in the history, write the user-visible status update referencing the returned `subagent_id`. Never end a turn with prose that claims a PR's implementer or reviewer "is being launched" when no `spawn_subagent` call appears in the same response. Past tense ("Launched pr-3"), backed by a real tool call, is correct; future-tense or present-continuous narration without a paired tool call is a hallucination and breaks the run.
 
+## Parallel-First Policy
+
+This skill is parallel-first. Every task, sub-task, subagent launch, branch creation, and review that has no data dependency on another MUST be launched together in a single assistant response (all tool calls in one message) rather than serialized. Serialization is permitted only when a later step consumes an earlier step's output (e.g., a dependent PR's branch needs its dependency's commit SHA, or a review needs the implementation to finish). When in doubt, fan out. Default concurrency is the maximum (8 implementers) — never artificially throttle independent work to save tokens or "be safe". Throttling independent work wastes wall-clock time and is a defect.
+
 ## Todo Scaffold
 
 The PR plan is a DAG. Each DAG node becomes a top-level todo with id `pr-<node-id>`. Inside each node, use sub-id namespacing for phases:
@@ -81,14 +85,14 @@ The user runs:
 |-----------|------|---------|-------------|
 | `<design-doc-path>` | String | Required | Path to the design document (from `/design`) |
 | `--effort` | Integer (1-5) | 1 | Review thoroughness **per PR**. Controls how many reviewers review each PR, matching `/implement`'s effort-scales-reviewer-count pattern. 1 = 1 general + simplicity (always pinned). 2-5 = more base slots, with specialists (security, tests, plan-alignment) auto-selected from each PR's description/files and remaining slots filled with independent general reviewers; simplicity is always pinned after allocation and does not consume a base slot. The review-fix loop still runs until 0 open issues for every PR. See the reviewer-count table in Step 5. |
-| `--concurrency` | Integer (1-8) | 4 | Max parallel implementation subagents |
+| `--concurrency` | Integer (1-8) | 8 | Max parallel implementation subagents (default max: run all independent tasks in parallel) |
 | `--dry-run` | Flag | false | Parse and validate DAG, show execution plan and linearized stack order, but do not implement |
 | `--resume` | String | none | Resume a previous run by PLAN_ID. Reads the state file and retries failed PRs. |
 | `--instructions` | String | none | Extra instructions injected into every implementer and reviewer prompt. Use for cross-cutting concerns like "Enforce rust rules from /root/.grok/memory/MEMORY.md" or "Don't modify the public API". |
 | `--no-graphite` | Flag | false | Force plain-git mode even if `gt` is installed. When set, `graphite_available` is forced to `false` and Step 8 uses the plain-git assembly path. |
 | `--auto-pr` | Flag | false | Only meaningful in plain-git mode. When set **and** `gh` is detected, the orchestrator runs `gh pr create --base <stack-parent-branch> --head <branch> --fill --draft` for each branch in stack order, where `<stack-parent-branch>` is defined in the Two Assembly Modes section above. When unset, the orchestrator only prints compare URLs / suggested commands. Ignored in Graphite mode (where `gt submit --stack` always opens PRs). |
 
-Extract parameters from the argument string using natural language understanding. If `--effort` is not present or out of range (1-5), default to 1. If `--concurrency` is not present or out of range (1-8), default to 4. If `--instructions` is present, extract the quoted string value after it. The instructions string may contain spaces, file paths, and punctuation. If `--instructions` is not present, default to "". `--no-graphite` and `--auto-pr` are boolean flags (presence = true).
+Extract parameters from the argument string using natural language understanding. If `--effort` is not present or out of range (1-5), default to 1. If `--concurrency` is not present or out of range (1-8), default to 8. If `--instructions` is present, extract the quoted string value after it. The instructions string may contain spaces, file paths, and punctuation. If `--instructions` is not present, default to "". `--no-graphite` and `--auto-pr` are boolean flags (presence = true).
 
 **If `--resume <PLAN_ID>` is specified**, skip Setup and jump to Step 7 (Resumption).
 

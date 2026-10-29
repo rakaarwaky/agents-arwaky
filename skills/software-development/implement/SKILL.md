@@ -27,7 +27,11 @@ Every action you describe in your text **must** correspond to an actual tool cal
 5. **Self-check before ending a turn.** Before producing a content-only assistant message (no tool calls) that mentions launching, starting, spawning, or otherwise initiating any subagent or background task, verify that the corresponding `spawn_subagent` call appears earlier in **this same response** or that the tool result for it is already in the history. If it doesn't, call the tool now — never end the turn with stranded narration.
 
 
-Open the run with a `todo_write` (merge: false) listing the canonical phases. Use exactly this id schema so the runtime turn-end gate can correlate phases consistently across compactions:
+## Parallel-First Policy
+
+This skill is parallel-first. Every independent subagent launch, reviewer launch, fix cycle, and supporting read/write that has no data dependency on another MUST be issued together in a single assistant response (all tool calls in one message) rather than serialized. Serialization is permitted only when a later step consumes an earlier step's output (a re-review needs the fix to finish, a merge needs all reviewers to finish). When in doubt, fan out. Default to the maximum parallelism the tool allows (8 children) — never artificially throttle independent work to save tokens or "be safe". Throttling independent work wastes wall-clock time and is a defect.
+
+## Open the run with a `todo_write` (merge: false) listing the canonical phases. Use exactly this id schema so the runtime turn-end gate can correlate phases consistently across compactions:
 
 - `setup` — Worktree Isolation (resolve owning repo + Orca `worktree create`) + Step 0 (memory retrieval) + reviewer-config decision
 - `implement` — Step 1 (spawn implementer)

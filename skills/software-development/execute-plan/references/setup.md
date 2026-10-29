@@ -34,7 +34,7 @@ Initialize these orchestrator state variables:
 - `design_doc_path`: the user-provided path to the design document
 - `main_clone_path`: absolute path to the orchestrator's main clone (`git rev-parse --show-toplevel` from the workspace cwd). This is the `--repo path:<main_clone_path>` target for every `orca worktree create` call.
 - `effort`: parsed effort level (1-5). Controls the number of reviewers launched per PR in Step 5.
-- `max_concurrent`: parsed concurrency limit (1-8, default 4)
+- `max_concurrent`: parsed concurrency limit (1-8, default 8)
 - `dag`: the parsed PR Plan DAG (populated in Step 1)
 - `linearized_order`: the linearized PR order for stack assembly (populated in Step 2)
 - `ready_queue`: PRs ready to execute (all dependencies complete)

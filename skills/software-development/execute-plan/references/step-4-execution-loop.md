@@ -2,7 +2,7 @@
 
 ## Step 4: Execution Loop
 
-The orchestrator uses a ready-queue approach for maximum parallelism:
+The orchestrator uses a ready-queue approach for maximum parallelism. Independent ready PRs are launched together in one batch — do not serialize worktree creation or implementer spawns when multiple PRs are ready.
 
 ```
 ready_queue = [all PRs with status "branch_created" and all dependencies completed]
@@ -10,10 +10,17 @@ in_progress = {}
 completed = {}
 
 while ready_queue is not empty OR in_progress is not empty:
-    while ready_queue is not empty AND len(in_progress) < max_concurrent:
-        pr = ready_queue.pop(0)
-        create_orca_worktree(pr)   # Step 4a — `orca worktree create`; on failure: pr = failed, cascade_skip, continue
-        task_id = launch_implementer(pr)   # spawn_subagent with cwd = pr.worktree_path
+    # Batch: take up to (max_concurrent - len(in_progress)) ready PRs and
+    # create their worktrees + launch their implementers IN PARALLEL in a
+    # single assistant response (all tool calls together). Never one-by-one.
+    batch = ready_queue[:max_concurrent - len(in_progress)]
+    ready_queue = ready_queue[len(batch):]
+    # 1) Create all worktrees in parallel (independent calls).
+    for pr in batch:
+        create_orca_worktree(pr)   # Step 4a — failure marks pr failed + cascade_skip
+    # 2) Launch all implementers in parallel (independent spawns).
+    for pr in batch where pr.status == "worktree_created":
+        task_id = launch_implementer(pr)   # spawn_subagent cwd=pr.worktree_path
         in_progress[pr.id] = task_id
 
     result = wait_commands_or_subagents(task_ids=list(in_progress.values()), mode="wait_any", timeout_ms=600000)
@@ -34,6 +41,8 @@ while ready_queue is not empty OR in_progress is not empty:
             create_branch(pr)
             ready_queue.append(pr)
 ```
+
+**Parallel-first rule:** when `len(batch) > 1`, issue every `orca worktree create` and every `spawn_subagent` for that batch in the same assistant response so they run concurrently. Serializing them one PR at a time is a defect. Worktree creation for different PRs has no dependency on each other.
 
 ### Step 4a: Launch Implementer
 

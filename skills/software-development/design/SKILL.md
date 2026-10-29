@@ -15,6 +15,10 @@ You coordinate only. You **must not** write the design document or author review
 
 Every action you describe in your text must correspond to an actual tool call in the same assistant response. Emit the `spawn_subagent` tool call **first**, then once the tool result is in the history write a brief post-launch confirmation in past tense. Never end a turn with prose claiming a writer or reviewer subagent has been launched if no `spawn_subagent` call appears in the same response. Do not append permission-asking questions to launch messages — pick a sensible default and proceed.
 
+## Parallel-First Policy
+
+The write -> review -> revise loop itself is inherently serial (each step consumes the previous step's output). Parallelization applies to the independent work inside and around it: load the writer and reviewer persona files in one batch during Setup, batch independent file reads (design doc, summary, review file), and never serialize independent tool calls. When in doubt, fan out. The loop's correctness depends on ordering; the surrounding I/O does not.
+
 ## Invocation
 
 The user runs:
