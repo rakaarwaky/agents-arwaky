@@ -41,8 +41,8 @@ Systematic exploratory QA across four target types: **web**, **terminal/TUI**, *
 
 ### Phase 1: Plan
 
-See [references/general.md](references/general.md) for the output directory layout
-and target-specific test-plan items.
+See [references/workflow.md](references/workflow.md) for the output directory
+layout and target-specific test-plan items.
 
 ### Phase 2: Explore
 
@@ -56,16 +56,15 @@ same rhythm: **act → observe → record**.
 | `desktop` | [references/desktop.md](references/desktop.md) — `computer_use` (cua-driver) |
 | `mobile` | [references/mobile.md](references/mobile.md) — `adb` shell commands |
 
-Shared pipeline, evidence protocol, and reporting rules live in
-[references/general.md](references/general.md). Issue categories are in
-[references/issue-taxonomy-general.md](references/issue-taxonomy-general.md)
-plus per-target files: `issue-taxonomy-web.md`, `issue-taxonomy-terminal.md`,
-`issue-taxonomy-desktop.md`, `issue-taxonomy-mobile.md`.
+Shared pipeline lives in [references/workflow.md](references/workflow.md).
+Shared evidence protocol, categorize, and report rules live in
+[references/general.md](references/general.md). Issue categories are documented
+in each per-target reference file (web/terminal/desktop/mobile).
 
 ### Phase 3: Collect Evidence
 
-See [references/general.md](references/general.md) for the evidence protocol
-(screenshot/transcript capture, field list, classification rules).
+See [references/workflow.md](references/workflow.md) (phase overview) and
+[references/general.md](references/general.md) (evidence protocol).
 
 ### Phase 4: Categorize
 

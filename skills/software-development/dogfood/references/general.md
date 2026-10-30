@@ -1,8 +1,8 @@
-# General QA Workflow (all target types)
+# General QA Rules (all target types)
 
-Shared pipeline, evidence protocol, and reporting rules that apply to every
-target type. Per-target toolsets live in `web.md`, `terminal.md`,
-`desktop.md`, and `mobile.md`.
+Shared evidence protocol, categorize rules, and report requirements that apply to
+every target type. The 5-phase pipeline lives in `workflow.md`. Per-target
+toolsets live in `web.md`, `terminal.md`, `desktop.md`, and `mobile.md`.
 
 ## Output directory layout
 
@@ -13,22 +13,6 @@ target type. Per-target toolsets live in `web.md`, `terminal.md`,
 ├── logs/              # Console / logcat / stderr captures
 └── report.md          # Final report
 ```
-
-## Phase 1: Plan
-
-1. Create the output directory structure above.
-2. Identify the testing scope from user input.
-3. Build a rough test plan based on target type:
-   - **web** — landing page, navigation links, key user flows (sign up, login,
-     search, checkout), forms, empty states, 404s, edge cases.
-   - **terminal / TUI** — `--help` output, each subcommand, invalid arguments,
-     pipe behavior, TUI rendering at multiple terminal sizes, signal handling
-     (SIGINT, SIGTERM), non-interactive mode (stdin closed / `</dev/null`).
-   - **desktop** — app launch, each menu item, toolbars, dialogs, drag-and-drop,
-     file open/save flows, accessibility tree coverage, error dialogs.
-   - **mobile** — cold start, each screen, navigation (back button, in-app nav),
-     form input, touch targets, screen rotation, permission dialogs,
-     background/foreground transitions.
 
 ## Phase 3: Collect Evidence
 
@@ -45,11 +29,9 @@ For every issue found, regardless of target type:
    - Actual behavior
    - Evidence path (screenshot or transcript)
    - Runtime log lines if relevant (console errors, logcat, stderr)
-3. **Classify** using `references/issue-taxonomy-general.md` plus the target-specific
-   file (`issue-taxonomy-web.md`, `issue-taxonomy-terminal.md`,
-   `issue-taxonomy-desktop.md`, or `issue-taxonomy-mobile.md`). Severity and category are
-   target-aware — the taxonomy has target-specific categories in addition to the
-   shared ones.
+3. **Classify** using the issue taxonomy section of the matching per-target
+   reference file (`web.md`, `terminal.md`, `desktop.md`, or `mobile.md`).
+   Severity and category are target-aware.
 
 ## Phase 4: Categorize
 
@@ -61,8 +43,8 @@ For every issue found, regardless of target type:
 
 ## Phase 5: Report
 
-Generate the final report using `templates/dogfood-report-template.md`. Save to
-`{output_dir}/report.md`. The report must include:
+Generate the final report using `../templates/dogfood-report-template.md`. Save
+to `{output_dir}/report.md`. The report must include:
 
 1. **Executive summary** — total issue count, breakdown by severity, target type,
    testing scope
@@ -82,3 +64,116 @@ Generate the final report using `templates/dogfood-report-template.md`. Save to
 - Test edge cases: empty inputs, very long inputs, special characters, rapid
   repeated actions.
 - De-duplicate before reporting — the same bug often surfaces in multiple places.
+# Issue Taxonomy — General (all target types)
+
+Shared severity levels and universal categories that apply to every target type.
+Target-specific categories are appended below in each per-target reference file.
+
+## Severity Levels
+
+### Critical
+The issue makes a core feature completely unusable or causes data loss.
+
+**Examples (all targets):**
+- Application crashes or shows a blank white page / black terminal / ANR
+- Form submission or command execution silently loses user data
+- Authentication is completely broken
+- Payment flow fails and charges the user without completing the order
+- Security vulnerability (XSS, exposed credentials in console or logs)
+- Uncaught exception in `logcat` (mobile) or fatal panic (terminal)
+
+### High
+The issue significantly impairs functionality but a workaround may exist.
+
+**Examples:**
+- A key button or command does nothing (but retrying or refreshing fixes it)
+- Search returns no results for valid queries
+- Form validation rejects valid input
+- Critical content is missing or garbled
+- Navigation leads to a 404 or wrong screen
+- TUI renders as a wall of unformatted text (layout broken at common terminal sizes)
+- Terminal command hangs on non-interactive stdin instead of failing fast
+- App does not return to the expected screen on back navigation (mobile)
+
+### Medium
+The issue is noticeable and affects user experience but doesn't block core functionality.
+
+**Examples:**
+- Layout misaligned or overlapping on certain screen sections
+- Images or assets fail to load
+- Slow performance (visible delays > 3 seconds)
+- Form field lacks validation feedback
+- Console / logcat warnings that suggest deprecated or misconfigured features
+- Inconsistent styling between similar screens
+- TUI colors or alignment break under specific TERM values or in a specific terminal emulator
+- Desktop app window restores at wrong size or position on relaunch
+
+### Low
+Minor polish issues that don't affect functionality.
+
+**Examples:**
+- Typos or grammatical errors in text content
+- Minor spacing or alignment inconsistencies
+- Placeholder text left in production ("Lorem ipsum")
+- Favicon missing; `--version` output missing in `--help`
+- Console info/debug messages that shouldn't be in production
+- Subtle color contrast issues that don't fail WCAG requirements
+- Touch target smaller than 48 dp (mobile) but still tappable
+- TUI missing a help hint or keyboard-shortcut legend
+
+## Categories (universal)
+
+These categories apply to every target type.
+
+### Functional (all)
+Issues where features don't work as expected.
+- Buttons / links / commands that don't respond
+- Forms that don't submit or submit incorrectly
+- Broken multi-step flows
+- Incorrect data displayed
+- Features that work partially
+
+### Visual (all)
+Issues with the visual presentation.
+- Layout problems (overlapping elements, broken grids)
+- Broken images or missing media
+- Styling inconsistencies
+- Responsive / responsive-rewindowing design failures
+- Z-index issues
+- Text overflow or truncation
+
+### Accessibility (all)
+Issues that prevent or hinder access for users with disabilities.
+- Missing alt text on meaningful images
+- Poor color contrast (fails WCAG AA)
+- Elements not reachable via keyboard navigation
+- Missing form labels or ARIA attributes
+- Focus indicators missing or unclear
+- Screen reader incompatible content
+
+### Console (all)
+Issues detected through runtime log output.
+- Uncaught exceptions and unhandled promise rejections
+- Failed network requests (4xx, 5xx)
+- Deprecation warnings
+- CORS errors
+- Excessive console.log output left from development
+
+### UX (all)
+Issues where functionality works but the experience is poor.
+- Confusing navigation or information architecture
+- Missing loading indicators
+- No feedback after user actions
+- Inconsistent interaction patterns
+- Missing confirmation dialogs for destructive actions
+- Poor error messages that don't help the user recover
+
+### Content (all)
+Issues with the text, media, or information on the surface.
+- Typos and grammatical errors
+- Placeholder / dummy content in production
+- Outdated information
+- Missing content (empty sections)
+- Broken or dead external links
+- Incorrect or misleading labels
+
