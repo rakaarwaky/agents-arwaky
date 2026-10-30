@@ -11,7 +11,9 @@ Last Updated: 2026-10-26
   `ServiceOrchestrator` dispatches requests to those capabilities. Lifecycle,
   status, and logs use the injected daemon aggregate; help is rendered locally.
   `FR-SERVICE-001` covers unit operations and `FR-SERVICE-002` covers
-  read-only inspection/help behavior. Gate:
+  read-only inspection/help behavior. Both gateways are driven by name:
+  `omniroute` and `9router` resolve to their own daemon managers, and
+  `all` fans out over both. Gate:
   `./.venv/bin/python -m pytest modules/service -q` → 31 passed and
   `./.venv/bin/ruff check modules/service --ignore E501` → clean at
   `767b18672a0c0abd92f7225f267478db8271c334`.
@@ -28,6 +30,7 @@ Last Updated: 2026-10-26
 | SVC-03 | FR-SERVICE-002 | P1 | Done | None | none | 2026-10-26 | Read-only status/log/help paths are exercised by `test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate`; `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | SVC-04 | FR-SERVICE-001, FR-SERVICE-002 | P0 | Done | SVC-03 | none | 2026-10-26 | Rich protocol methods, aggregate wiring, and the two FRs are verified by `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | FR-SERVICE-001 | FR-SERVICE-001 | P1 | Done | SVC-01 | none | 2026-10-26 | `modules/service/src/capabilities_service_manager.py` routes unit lifecycle to the daemon aggregate; integration test and `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| SVC-05 | FR-SERVICE-001, FR-SERVICE-002 | P1 | Done | SVC-01 | none | 2026-10-30 | 9router is a first-class service target beside OmniRoute: `TARGET_9ROUTER` in `modules/shared/src/service/taxonomy_service_vo.py`, `_UNIT_DAEMON["9router.service"]` in `modules/service/src/root_service_container.py`, and the status fan-out prints all three daemons. Verified by `modules/service/tests/integration_service.py::test_service_container_wires_both_gateways`, `test_service_target_9router_resolves_to_the_gateway`, and `modules/service/tests/unit_service.py::TestNineRouterServiceTarget` in this worktree (uncommitted). |
 | FR-SERVICE-002 | FR-SERVICE-002 | P1 | Done | SVC-01 | none | 2026-10-26 | `modules/service/src/capabilities_service_inspect.py` reports status/logs through the injected aggregate and renders help locally; `./.venv/bin/python -m pytest modules/service -q` → 31 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 
 ## Scenario Evidence
@@ -39,6 +42,7 @@ Last Updated: 2026-10-26
 | `aa service status` and logs use the aggregate without writing service state. | Automated | `modules/service/tests/integration_service.py` | `test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate` | `767b186` |
 | Status with one daemon stopped reports it stopped while retaining the other row. | Gap | — | live unit state not controlled in this environment | not run |
 | `aa service logs` for an unknown target reports a clear error naming valid targets. | Proxy | `modules/service/src/capabilities_service_manager.py` | unknown-target path | `767b186` |
+| `aa service start 9router` drives only the 9router unit while OmniRoute keeps its state. | Automated | `modules/service/tests/integration_service.py` | `test_service_target_9router_resolves_to_the_gateway` | worktree, uncommitted |
 | `aa service help` prints valid actions and targets. | Automated | `modules/service/tests/integration_service.py` | `test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate` | `767b186` |
 | An unknown action prints usage and exits non-zero. | Proxy | `modules/service/src/` | unknown-action path | `767b186` |
 

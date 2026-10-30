@@ -20,7 +20,8 @@ the matching capability.
 
 Flow: `aa tool <action>` → tools aggregate → capability method → per-tool
 adapter selection by manifest id (composition-root registry) → report or
-child exit code. An unknown id fails with a typed error before any capability
+child exit code. The host-native gateways each own an adapter under their
+manifest id — `omniroute` and `9router` — with identical lifecycle shape. An unknown id fails with a typed error before any capability
 runs; an action whose capability is unwired raises a typed error, never a
 partial dispatch.
 
@@ -150,6 +151,7 @@ partial dispatch.
 | runner families (cargo / uv / bun) | out | native runners that build and launch in-house tools | runner absent → non-zero exit |
 | daemon feature (lazy aggregate) | out | daemon service install / stop for container tools | unit active → residual |
 | root CLI (`aa tool …`) and host XDG bin/PATH | in | routes list / run / install / update / uninstall; executable discovery | not installed → no path |
+| npm global prefix | out | install the pinned `9router` / `omniroute` distributions the adapters drive | npm absent or install fails → non-zero provision result |
 
 ## Non-functional Requirements
 
@@ -171,6 +173,7 @@ partial dispatch.
 - Running a registered tool returns the child's real exit code for 0, 1, and 127; an executable that vanishes after discovery returns sentinel 126.
 - Resolving a query by id, binary, or alias yields the matching tool specification; an unknown query yields no match without raising.
 - Discovering readiness returns the executable path without touching install state, and no path when the tool is not installed.
+- Installing or updating `9router` routes its unit install through the daemon aggregate with unit `9router.service`, mirroring the OmniRoute adapter.
 
 ## Assumptions & Constraints
 

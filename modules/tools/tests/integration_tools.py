@@ -208,3 +208,41 @@ def test_execute_is_the_only_public_method():
     for attr in ("list", "resolve", "install", "update", "uninstall", "run",
                  "executable_path"):
         assert not hasattr(orch, attr) or attr in ("execute",), f"unexpected {attr}"
+
+def test_tools_registry_registers_both_gateway_adapters():
+    """IT-TOOLS-016: both 9router and omniroute units live in TOOLS_REGISTRY."""
+    from modules.tools.src.root_tools_container import TOOLS_REGISTRY
+
+    assert "omniroute" in TOOLS_REGISTRY
+    assert "9router" in TOOLS_REGISTRY
+    for tool_id in ("omniroute", "9router"):
+        unit = TOOLS_REGISTRY[tool_id]
+        for action in ("satisfied", "is_pin_satisfied", "owned_paths", "install", "update"):
+            assert callable(getattr(unit, action)), f"{tool_id}.{action}"
+
+def test_9router_adapter_owns_launcher_and_data_dir():
+    """IT-TOOLS-017: 9router ownership covers its launcher, data dir, internal bin."""
+    from pathlib import Path
+
+    from modules.shared.src.tools.taxonomy_tools_vo import ToolSpec
+    from modules.tools.src.capabilities_tools_9router_adapter import (
+        NinerouterToolsAdapter,
+    )
+
+    adapter = NinerouterToolsAdapter()
+    paths = adapter.owned_paths(
+        ToolSpec(
+            id="9router",
+            category="dev",
+            binary="9router",
+            is_mcp=False,
+            description="9router gateway",
+            path="/test",
+            alias=None,
+            mcp_binary=None,
+            runner="npm",
+        )
+    )
+    owned = [Path(p) for p in paths]
+    assert any(path.name == "9router" for path in owned)
+    assert any("9router" in str(path) for path in owned)

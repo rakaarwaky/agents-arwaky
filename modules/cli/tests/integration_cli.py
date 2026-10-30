@@ -38,3 +38,42 @@ def test_root_help_advertises_local_backup_only(capsys) -> None:
     output = capsys.readouterr().out
     assert "Create local backups of tool data" in output
     assert output.count("Create local backups of tool data") == 1
+
+def test_root_dispatch_table_routes_both_gateway_verbs(monkeypatch) -> None:
+    """CLI-05: the root dispatcher routes aa 9router and aa omniroute separately."""
+    from modules import root_cli_entry as entry
+
+    calls: list[tuple[str, list[str]]] = []
+
+    def fake_nine(argv):
+        calls.append(("9router", argv))
+        return 0
+
+    def fake_omni(argv):
+        calls.append(("omniroute", argv))
+        return 0
+
+    monkeypatch.setattr(entry, "cmd_9router", fake_nine)
+    monkeypatch.setattr(entry, "cmd_omniroute", fake_omni)
+
+    assert entry._dispatch(["9router", "status"]) == 0
+    assert entry._dispatch(["omniroute", "status"]) == 0
+    assert calls == [("9router", ["status"]), ("omniroute", ["status"])]
+
+def test_surface_exposes_cmd_9router_alongside_cmd_omniroute() -> None:
+    """CLI-06: the daemon surface exports cmd_9router next to cmd_omniroute."""
+    from modules.cli.src import surface_daemon_command as surface
+
+    assert "cmd_9router" in surface.__all__
+    assert "cmd_omniroute" in surface.__all__
+    assert callable(surface.cmd_9router)
+    assert callable(surface.cmd_omniroute)
+
+def test_daemon_help_advertises_9router(monkeypatch, capsys) -> None:
+    """CLI-07: aa daemon help lists 9router without dropping omniroute."""
+    from modules import root_cli_entry as entry
+
+    assert entry.cmd_daemon(["help"]) == 0
+    out = capsys.readouterr().out
+    assert "9router" in out
+    assert "omniroute" in out

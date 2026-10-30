@@ -1,0 +1,29 @@
+[Unit]
+Description=9router AI Gateway (host-native, no container)
+Documentation=https://github.com/decolua/9router
+After=network-online.target
+Wants=network-online.target
+# Wajib untuk Restart=always: rate-limit harus benar-benar dimatikan, bukan
+# hanya dilonggarkan. Config lama (Burst=20 / Interval=300 dtk) TETAP latch ke
+# `failed`: 20 x RestartSec=5s = 100 dtk < 300 dtk, jadi limit selalu tercapai
+# sebelum jendela habis, lalu unit berhenti mencoba sampai `reset-failed` manual.
+# Interval=0 menonaktifkan StartLimit sepenuhnya, sehingga Retry=always benar-
+# benar selalu retry dan unit pulih sendiri begitu penyebab kegagalan hilang.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Environment=NODE_ENV=production
+Environment=PATH=%h/.local/share/nodejs/node-v24.11.0-linux-x64/bin:%h/.local/bin:/usr/local/bin:/usr/bin
+# 9router reads its own .env from the working directory below; that file holds
+# the gateway credentials. The daemon code never rewrites it.
+EnvironmentFile=-%h/.9router/.env
+WorkingDirectory=%h/.9router
+ExecStart=@@EXEC_BINARY@@ --port @@PORT@@ --no-browser --skip-update
+Restart=always
+RestartSec=5s
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
+from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
@@ -32,16 +33,20 @@ class DaemonAggregateAdapter(IDaemonAggregate):
         "anytype-daemon.service": "anytype",
         "anytype.service": "anytype",
         "omniroute.service": "omniroute",
+        "9router.service": "9router",
     }
 
     def __init__(
         self,
         anytype: AnytypeDaemonManager,
         omniroute: OmnirouteDaemonManager | None = None,
+        ninerouter: NinerouterDaemonManager | None = None,
     ) -> None:
         self._managers = {"anytype": anytype}
         if omniroute is not None:
             self._managers["omniroute"] = omniroute
+        if ninerouter is not None:
+            self._managers["9router"] = ninerouter
 
     def _mgr(self, name: DaemonName):
         return self._managers[str(name).lower()]
@@ -93,7 +98,9 @@ class ServiceContainer:
     """Composition root: wires daemon managers into the service orchestrator."""
 
     def __init__(self) -> None:
-        self._daemons = DaemonAggregateAdapter(AnytypeDaemonManager(), OmnirouteDaemonManager())
+        self._daemons = DaemonAggregateAdapter(
+            AnytypeDaemonManager(), OmnirouteDaemonManager(), NinerouterDaemonManager()
+        )
         self._control = ServiceControl(daemons=self._daemons)
         self._inspect = ServiceInspect(daemons=self._daemons)
         self._orchestrator = ServiceOrchestrator(control=self._control, inspect=self._inspect)

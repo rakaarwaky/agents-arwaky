@@ -160,3 +160,61 @@ class TestServiceOrchestrator:
 
         control.restart.assert_called_once()
         assert result == 0
+
+class TestNineRouterServiceTarget:
+    """The 9router service target coexists with the OmniRoute one."""
+
+    def test_target_constant_exists(self):
+        """UT-SERVICE-014: TARGET_9ROUTER is a sibling of TARGET_OMNIROUTE."""
+        from modules.shared.src.service.taxonomy_service_vo import (
+            TARGET_9ROUTER,
+            TARGET_OMNIROUTE,
+        )
+
+        assert str(TARGET_9ROUTER) == "9router"
+        assert str(TARGET_OMNIROUTE) == "omniroute"
+
+    def test_target_reexported_from_package(self):
+        """UT-SERVICE-015: modules.shared.src.service re-exports TARGET_9ROUTER."""
+        from modules.shared.src.service import TARGET_9ROUTER
+
+        assert str(TARGET_9ROUTER) == "9router"
+
+    def test_contract_exposes_target_9router(self):
+        """UT-SERVICE-016: the protocol contract publishes TARGET_9ROUTER."""
+        from modules.shared.src.service import contract_service_protocol as contract
+
+        assert "TARGET_9ROUTER" in contract.__all__
+        assert str(contract._layer_symbols["TARGET_9ROUTER"]) == "9router"
+
+    def test_execute_stop_dispatches_9router_target(self):
+        """UT-SERVICE-017: execute(stop) forwards ServiceTarget('9router') verbatim."""
+        from unittest.mock import MagicMock
+
+        from modules.service.src.agent_service_orchestrator import ServiceOrchestrator
+        from modules.shared.src.service.taxonomy_service_vo import (
+            ServiceOp,
+            ServiceRequest,
+            ServiceTarget,
+        )
+
+        control = MagicMock()
+        control.stop.return_value = 0
+        inspect_cap = MagicMock()
+        orch = ServiceOrchestrator(control, inspect_cap)
+
+        result = orch.execute(
+            ServiceRequest(ServiceOp("stop"), target=ServiceTarget("9router"))
+        )
+
+        control.stop.assert_called_once_with(ServiceTarget("9router"))
+        assert result == 0
+
+    def test_logs_default_stays_omniroute(self):
+        """UT-SERVICE-018: logs() keeps OmniRoute as the documented default."""
+        import inspect
+
+        from modules.shared.src.service import contract_service_protocol as contract
+
+        sig = inspect.signature(contract.IServiceInspectProtocol.logs)
+        assert str(sig.parameters["target"].default) == "omniroute"

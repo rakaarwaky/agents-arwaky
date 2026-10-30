@@ -189,6 +189,7 @@ def cmd_help(argv: list[str]) -> int:
     print()
     print(f"{BOLD()}SERVICES & DAEMONS:{RESET()}")
     print(f"  {GREEN()}anytype{RESET()} <cmd>                  Anytype daemon (start|stop|status|auth-key|...)")
+    print(f"  {GREEN()}9router{RESET()} <cmd>                  9router daemon (start|stop|status|models|...)")
     print(f"  {GREEN()}omniroute{RESET()} <cmd>                OmniRoute daemon (start|stop|status|models|...)")
     print(f"  {GREEN()}service{RESET()} <cmd>                  Service manager (start|stop|restart|status|logs)")
     print()
@@ -651,6 +652,23 @@ def cmd_omniroute(argv: list[str]) -> int:
     return _daemon_omniroute(argv)
 
 
+def cmd_9router(argv: list[str]) -> int:
+    from modules.cli.src.surface_daemon_command import (
+        cmd_9router as _daemon_9router,
+    )
+    from modules.cli.src.surface_daemon_command import (
+        register_manager_factory as _reg_dm,
+    )
+    from modules.cli.src.surface_daemon_command import (
+        register_orchestrator_factory as _reg_da,
+    )
+    from modules.daemon.src.root_daemon_container import DaemonContainer
+    _c = DaemonContainer()
+    _reg_dm("9router", lambda: _c.ninerouter)
+    _reg_da(lambda: _c.aggregate)
+    return _daemon_9router(argv)
+
+
 def cmd_daemon(argv: list[str]) -> int:
     """aa daemon <id> <action> — list|status|start|… for a managed daemon."""
     from modules.cli.src.surface_daemon_command import (
@@ -673,7 +691,7 @@ def cmd_daemon(argv: list[str]) -> int:
     known = {str(n) for n in orch.known}
     if not argv or argv[0] in ("-h", "--help", "help"):
         names = ", ".join(str(n) for n in orch.known)
-        print("Usage: aa daemon <anytype|omniroute> <start|stop|restart|status|logs|help>")
+        print("Usage: aa daemon <anytype|9router|omniroute> <start|stop|restart|status|logs|help>")
         print(f"Known daemons: {names}")
         return 0
     daemon_id = argv[0]
@@ -854,7 +872,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
-        "anytype": cmd_anytype, "omniroute": cmd_omniroute,
+        "anytype": cmd_anytype, "9router": cmd_9router, "omniroute": cmd_omniroute,
         "service": cmd_service,
         "daemon": cmd_daemon,
         "backup": cmd_backup, "restore": cmd_restore,

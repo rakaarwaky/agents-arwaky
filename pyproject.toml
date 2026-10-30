@@ -21,5 +21,7 @@ markers = [
 # Intentional broad catch: YAML parse degradation must degrade, never raise.
 "modules/shared/src/common/utility_skills_tree.py" = ["BLE001", "S110"]
 "modules/daemon/src/capabilities_omniroute_daemon.py" = ["BLE001"]
+"modules/daemon/src/capabilities_9router_daemon.py" = ["BLE001"]
 "modules/tools/src/capabilities_tools_omniroute_adapter.py" = ["BLE001"]
+"modules/tools/src/capabilities_tools_9router_adapter.py" = ["BLE001"]
 

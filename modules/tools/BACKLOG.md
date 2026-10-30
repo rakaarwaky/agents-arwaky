@@ -13,8 +13,9 @@ Last Updated: 2026-10-26
 
 ## Current Condition
 
-- Done: the tools feature has five rich seam ABCs and twelve config-driven
-  adapters; the aggregate exposes a single `execute(request)` entry point.
+- Done: the tools feature has five rich seam ABCs and thirteen config-driven
+  adapters (including the host-native `omniroute` and `9router` gateways);
+  the aggregate exposes a single `execute(request)` entry point.
   FR-TOOLS-005 resolves ids/binaries/aliases; FR-TOOLS-006 performs strictly
   read-only executable discovery. Gate: `./.venv/bin/python -m pytest
   modules/tools -q` → 84 passed and `./.venv/bin/ruff check modules/tools
@@ -33,6 +34,7 @@ Last Updated: 2026-10-26
 | TOL-04 | FR-TOOLS-001, FR-TOOLS-002, FR-TOOLS-003, FR-TOOLS-004 | P2 | Done | TOL-01 | none | 2026-10-26 | Four action classes and shared adapter body are exercised by `modules/tools/tests/`; `./.venv/bin/python -m pytest modules/tools -q` → 84 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | TOL-05 | FR-TOOLS-005 | P1 | Done | TOL-04 | none | 2026-10-26 | FRD defines query resolution; code and tests in `modules/tools/src/` and `modules/tools/tests/`; `./.venv/bin/python -m pytest modules/tools -q` → 84 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | TOL-06 | FR-TOOLS-006 | P1 | Done | TOL-05 | none | 2026-10-26 | `modules/tools/src/capabilities_tools_runner.py::discover` and `modules/tools/tests/unit_tools.py::test_discover_is_read_only_and_reports_absence`; `./.venv/bin/python -m pytest modules/tools -q` → 84 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| TOL-07 | FR-TOOLS-001, FR-TOOLS-002, FR-TOOLS-003 | P1 | Done | TOL-01 | none | 2026-10-30 | The 9router adapter ships beside OmniRoute's: `modules/tools/src/capabilities_tools_9router_adapter.py` exports `ADAPTER_UNITS = {"9router": …}` merged into `TOOLS_REGISTRY`, drives `npm install -g 9router@0.5.112`, seeds `~/.9router/.env`, and routes `install_unit` for `9router.service` through the daemon aggregate. Verified by `modules/tools/tests/unit_tools.py::test_9router_routes_unit_op_through_aggregate` and `modules/tools/tests/integration_tools.py::test_tools_registry_registers_both_gateway_adapters` in this worktree (uncommitted). |
 
 ## Scenario Evidence (rows)
 
@@ -45,14 +47,16 @@ Last Updated: 2026-10-26
 | FR-TOOLS-003: An active daemon unit that refuses to stop is reported as a named residual and owned data is preserved. | Automated | `modules/tools/tests/unit_tools.py` | `test_active_daemon_preserves_owned_state_without_force_kill` | `767b186` |
 | FR-TOOLS-004: Running a registered tool returns child exit codes 0, 1, and 127; a vanishing executable returns sentinel 126. | Automated | `modules/tools/tests/unit_tools.py` | `test_run_preserves_child_exit_codes`, `test_run_returns_126_when_executable_vanishes` | `767b186` |
 | FR-TOOLS-005: Resolving a query by id, binary, or alias yields the matching tool specification; an unknown query yields no match without raising. | Proxy | — | `python3 -m modules.root_cli_entry tool run definitely-not-a-tool-xyz` → exit 1, no exception; `create_tools_feature().resolve(...)` smoke | 2026-09-23 |
+| FR-TOOLS-001/002: The 9router adapter routes its unit install through the daemon aggregate with unit `9router.service`. | Automated | `modules/tools/tests/unit_tools.py` | `test_9router_routes_unit_op_through_aggregate` | worktree, uncommitted |
 | FR-TOOLS-006: Discovery returns an executable path without touching state, or no path when absent. | Automated | `modules/tools/tests/unit_tools.py` | `test_discover_is_read_only_and_reports_absence` | `767b186` |
 
 ## Blockers
 
 - None recorded.
-- Daemon tools (OmniRoute, Anytype daemon) are gated on a Podman container for
-  their service units; a stopped-from-stopping unit becomes a named residual,
-  never a forced kill (container-isolation invariant).
+- Daemon tools (OmniRoute, 9router, Anytype daemon) own host-native systemd
+  user units; Anytype is gated on a Podman container. A stopped-from-stopping
+  unit becomes a named residual, never a forced kill
+  (container-isolation invariant).
 
 ## Dependencies
 

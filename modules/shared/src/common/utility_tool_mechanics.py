@@ -6,7 +6,7 @@ dispatcher. Consumed by the nine provider modules
 `capabilities_tools_{blender,vision,qwen_web,workspace,
 codegraph,context7,fetch}_adapter` plus
 `capabilities_tools_{adapter,anytype_adapter,lint_adapter,
-omniroute_adapter}` (≥2 consumers). Taxonomy + `utility_git_submodule`
+omniroute_adapter,9router_adapter}` (≥2 consumers). Taxonomy + `utility_git_submodule`
 only (AES201 exception registered for the utility→utility edge — same
 pattern as `utility_config_engine`).
 """

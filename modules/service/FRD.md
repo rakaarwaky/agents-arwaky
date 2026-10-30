@@ -24,11 +24,11 @@ needed).
 - **Description**: the control capability's typed `start`, `stop`, and
   `restart` methods act on the named target or all managed daemons; the
   service aggregate dispatches the corresponding request.
-- **Input**: target from the aggregate — `omniroute`, `anytype`, or `all`
-  (default `all`).
+- **Input**: target from the aggregate — `omniroute`, `9router`, `anytype`,
+  or `all` (default `all`).
 - **Output**: `ExitCode`; one reported line per driven unit.
 - **Business Rules**: an unknown target is a clear error naming the valid
-  set; `all` fans out over both known daemons; one failing unit does not
+  set; `all` fans out over every known daemon; one failing unit does not
   abort the others — each is reported independently.
 - **Edge Cases**: unit not installed on the host → that target reports a
   unit-missing result, others proceed; no systemd on the host → a
@@ -42,8 +42,8 @@ needed).
   methods query the daemon aggregate without side effects; `help` prints the
   CLI usage line and valid action/target set. The service aggregate dispatches
   each request to the matching inspection method.
-- **Input**: none (status, help) / target — `omniroute` (default) or
-  `anytype` (logs).
+- **Input**: none (status, help) / target — `omniroute` (default), `9router`,
+  or `anytype` (logs).
 - **Output**: `ExitCode`; a state table on stdout (status); log lines on
   stdout (logs); usage text on stdout (help).
 - **Business Rules**: status is read-only — it never starts, stops, or
@@ -51,8 +51,8 @@ needed).
   error; logs is read-only; a stopped unit's logs are still valid to tail;
   an unknown target is a clear error naming the valid set; usage lists
   exactly the supported actions (`status`, `start`, `stop`, `restart`,
-  `logs`, `help`) and targets (`omniroute`, `anytype`, `all`); help is
-  side-effect free.
+  `logs`, `help`) and targets (`omniroute`, `9router`, `anytype`, `all`);
+  help is side-effect free.
 - **Edge Cases**: a daemon stopped → reported stopped, exit reflects the
   probe without raising; one of two daemons down → both rows still
   printed; no journal access → the limitation is reported, not raised; a
@@ -103,10 +103,12 @@ needed).
 ## Test Scenarios
 
 - `aa service start omniroute` starts only that unit and reports its state.
+- `aa service start 9router` starts only the 9router unit and leaves OmniRoute untouched.
 - `aa service start all` with one missing unit reports that unit and still processes the other.
-- `aa service status` reports both units' states without changing anything.
+- `aa service status` reports every unit's state without changing anything.
 - Status with one daemon stopped reports it stopped and still prints the other row.
 - `aa service logs omniroute` tails that unit's log lines.
+- `aa service logs 9router` tails the 9router unit's log lines.
 - `aa service logs` for an unknown target reports a clear error naming the valid targets.
 - `aa service help` prints usage listing the valid actions and targets.
 - An unknown action such as `aa service bogus` prints usage and exits non-zero.
@@ -118,7 +120,7 @@ needed).
   not duplication).
 - systemctl must be present for drive paths; on a non-systemd host the
   drive actions fail clearly at the top level.
-- Targets stay within the known set (`omniroute`, `anytype`, `all`).
+- Targets stay within the known set (`omniroute`, `9router`, `anytype`, `all`).
 
 ## Glossary
 

@@ -13,6 +13,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from modules.shared.src.service.taxonomy_service_vo import (
+    TARGET_9ROUTER,
     TARGET_ALL,
     TARGET_OMNIROUTE,
     ExitCode,
@@ -59,6 +60,7 @@ class IServiceInspectProtocol(ABC):
 
 
 __all__ = [
+    "TARGET_9ROUTER",
     "TARGET_ALL",
     "TARGET_OMNIROUTE",
     "ExitCode",
@@ -69,6 +71,7 @@ __all__ = [
 
 # Layer-symbol registry (runtime reference for harness/loader introspection).
 _layer_symbols = {
+    "TARGET_9ROUTER": TARGET_9ROUTER,
     "TARGET_ALL": TARGET_ALL,
     "TARGET_OMNIROUTE": TARGET_OMNIROUTE,
     "ExitCode": ExitCode,

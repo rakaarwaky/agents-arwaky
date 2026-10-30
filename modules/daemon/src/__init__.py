@@ -5,8 +5,13 @@ feature consumers can import from ``modules.daemon`` directly.
 """
 from __future__ import annotations
 
-from modules.cli.src.surface_daemon_command import cmd_anytype, cmd_omniroute
+from modules.cli.src.surface_daemon_command import (
+    cmd_9router,
+    cmd_anytype,
+    cmd_omniroute,
+)
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
+from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.root_daemon_container import (
     DaemonContainer,
@@ -17,7 +22,9 @@ __all__ = [
     "AnytypeDaemonManager",
     "DaemonContainer",
     "DaemonOrchestrator",
+    "NinerouterDaemonManager",
     "OmnirouteDaemonManager",
+    "cmd_9router",
     "cmd_anytype",
     "cmd_omniroute",
     "create_daemon_feature",
