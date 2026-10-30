@@ -1,4 +1,4 @@
-# Step 4 Fix (resume implementer)
+# Step 6: Fix (resume implementer)
 
 
 **Use `spawn_subagent` only** — do not apply fixes yourself.
@@ -9,6 +9,8 @@ Resume the original implementer to address **all** review findings.
 - `subagent_type`: `"general-purpose"`
 - `resume_from`: `<implementer_subagent_id>`
 - `description`: `"[implementer] Fix review issues"`
+
+**resume_from on follow-ups** — never launch a fresh subagent for fix or re-review rounds. Always resume the previous one so it retains its working memory. Exception: if `resume_from` fails (subagent expired), launch a fresh one and log a warning.
 
 Prompt:
 ```
@@ -32,5 +34,4 @@ Wait for completion. If it fails, report the error to the user and stop.
 
 Update the saved implementer `subagent_id` with the new one returned.
 
-Report to the user: "Fixes applied. Running parallel re-review (round N)..." where N is the current `round_count` + 1.
-
+Report to the user: "Fixes applied. Running parallel re-review (round N)..." where N is the current `round_count` + 1. After re-review (Step 7), the loop returns to Step 5 (Merge & Check).

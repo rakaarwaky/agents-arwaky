@@ -1,8 +1,8 @@
 ---
 name: implement
-description: Run the implement → review → fix loop for small implementation tasks using implementer and reviewer personas in a single Orca worktree. Supports effort-based multi-reviewer scaling (2 to 7 reviewers) with automatic specialization selection. Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement.
+description: Run the implement → review → fix loop for small implementation tasks using implementer and reviewer personas in a single Orca worktree. Runs a fixed five-reviewer panel on every task (1 General, 1 Tests, 1 Plan Alignment, 1 Security, 1 Simplicity). Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement.
 when-to-use: Use when asked to implement, build, add a feature, fix a bug, or via the /implement slash command. Best for small-to-medium tasks that fit in one worktree. For multi-PR stacks with dependencies, use /execute-plan instead.
-argument-hint: "<task-description> [--effort N]"
+argument-hint: "<task-description>"
 disable-model-invocation: true
 ---
 
@@ -24,16 +24,17 @@ This skill is parallel-first. Every independent subagent launch, reviewer launch
 
 List exactly these canonical phases:
 
-- `setup` — host.py setup, resolve owning repo, create 1 Orca worktree
-- `step-0-memory` — past-issues briefing from memory.py
-- `step-1-implement` — spawn implementer
-- `review-round-1` — spawn reviewers (parallel) + Step 3 merge
-- `fix-round-1` — resume implementer to fix
-- `rereview-round-1` — resume reviewers + Step 3 merge
+- `step-0-setup` — host.py setup, shared file paths, resolve owning repo, create 1 Orca worktree (Step 0)
+- `step-1-specialization` — assemble the fixed 5-reviewer panel, build `reviewer_configs`, announce (Step 1)
+- `step-2-memory` — past-issues briefing from memory.py (Step 2)
+- `step-3-implement` — spawn implementer (Step 3)
+- `review-round-1` — spawn reviewers in parallel (Step 4) + Step 5 merge
+- `fix-round-1` — resume implementer to fix (Step 6)
+- `rereview-round-1` — resume reviewers in parallel (Step 7) + Step 5 merge
 - (repeat fix-round-N + rereview-round-N as needed)
-- `memory-flush` — Step 6
-- `stack-assembly` — push branch + open 1 PR
-- `final-report` — final report message
+- `step-8-memory-flush` — flush issue patterns to workspace memory (Step 8)
+- `step-9-stack-assembly` — push branch + open 1 PR (Step 9)
+- `step-10-final-report` — final report message + cleanup (Step 10)
 
 Mark exactly one `in_progress` at a time. As you enter a new round, append the two new ids via `merge: true`. Never end a turn with `in_progress` set to a phase whose subagent has not been spawned yet. Spawn first; then mark completed/next in the next turn.
 
@@ -54,13 +55,12 @@ When launching a subagent, **prepend** the appropriate persona instructions to i
 ## Invocation
 
 ```
-/implement [--effort N] <task-description>
+/implement <task-description>
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `<task-description>` | String | Required | The implementation task — feature, bug fix, refactor, etc. |
-| `--effort` | Integer (1-5) | 1 | Review thoroughness. 1 = 1 general + simplicity. 2-5 = more base slots, with specialists (security, tests, plan-alignment) auto-selected from the description. Simplicity is always pinned. |
 
 **All other parameters are automatic:**
 
@@ -71,72 +71,66 @@ When launching a subagent, **prepend** the appropriate persona instructions to i
 | `auto_pr` | **true** | When `gh` is available and the remote is GitHub, automatically runs `gh pr create` for the final PR. Otherwise prints a compare URL / `gh pr create` command. |
 | concurrency | 8 | Max parallel reviewers per batch. |
 
-Extract `--effort` from the argument string; if missing or out of range (1-5), default to 1. Everything else is the task description.
+The entire argument string is the task description. There are no user-selectable options — the reviewer panel is fixed (see Step 1).
 
-## Setup
+## Run Steps
 
-See [`references/setup.md`](references/setup.md).
+Every reference file is **step-scoped**: `references/step-<N>-<name>.md` contains everything needed at that step — including the rules that used to live in standalone references (specialization selection, specialized prompts, exit condition, rules, safety guardrails, in-progress reporting, setup, worktree isolation, memory flush, stack assembly, cleanup, final report). Only conventions that apply to **every** step stay in this file: Tool-Call Discipline, Parallel-First Policy, Personas, Invocation.
 
-## Worktree Isolation
+| Step | Reference | Purpose |
+|------|-----------|---------|
+| 0 | [`references/step-0-setup.md`](references/step-0-setup.md) | Host setup, shared file paths, orchestrator state, resolve owning repo, create the single Orca worktree; worktree safety rules |
+| 1 | [`references/step-1-specialization.md`](references/step-1-specialization.md) | Fixed five-reviewer panel (1 general + 4 specialists); build `reviewer_configs`; announce once |
+| 2 | [`references/step-2-memory.md`](references/step-2-memory.md) | Past-issues briefing from the workspace memory file (injected into implementer and reviewer prompts) |
+| 3 | [`references/step-3-implement.md`](references/step-3-implement.md) | Spawn the implementer subagent in the worktree; prepare reviewer focus areas |
+| 4 | [`references/step-4-review.md`](references/step-4-review.md) | Launch all 5 reviewers in parallel; specialized review prompt per specialization |
+| 5 | [`references/step-5-merge.md`](references/step-5-merge.md) | Merge individual review files into one merged review; check the exit condition; stalemate → Step 5a escalate to user |
+| 6 | [`references/step-6-fix.md`](references/step-6-fix.md) | Resume the original implementer to address all open issues |
+| 7 | [`references/step-7-rereview.md`](references/step-7-rereview.md) | Resume all reviewers in parallel; back to Step 5; repeat until 0 open issues in the same round |
+| 8 | [`references/step-8-memory-flush.md`](references/step-8-memory-flush.md) | Flush `issue_patterns` accumulated across all rounds to the workspace memory file (sub-steps 8a–8d) |
+| 9 | [`references/step-9-stack-assembly.md`](references/step-9-stack-assembly.md) | Push the single worktree branch and open 1 PR to `main`; assembly safety rules |
+| 10 | [`references/step-10-final-report.md`](references/step-10-final-report.md) | Final report message, then cleanup of temporary artifact files |
 
-See [`references/worktree-isolation.md`](references/worktree-isolation.md). One worktree is created per run, named after the task slug under `workspaces/<repo-basename>/<task-slug>`. The implementer and all reviewers run inside it via `cwd`.
+### Step 0: Setup & Worktree Isolation
 
-## Step 0: Memory Retrieval
+See [`references/step-0-setup.md`](references/step-0-setup.md).
 
-See [`references/step-0-memory.md`](references/step-0-memory.md). Past-issues briefing is injected into the implementer and reviewer prompts.
+### Step 1: Specialization Selection
 
-## Step 1: Implement
+See [`references/step-1-specialization.md`](references/step-1-specialization.md). Announce the composition once — informational only, no permission-asking — then proceed directly to Steps 2 and 3 in the same turn.
 
-See [`references/step-1-implement.md`](references/step-1-implement.md). Spawn one implementer subagent in the worktree.
+### Step 2: Memory Retrieval
 
-## Step 2: Review
+See [`references/step-2-memory.md`](references/step-2-memory.md).
 
-See [`references/step-2-review.md`](references/step-2-review.md). Launch all reviewers in parallel (effort 1 still has 2 reviewers: general + simplicity).
+### Step 3: Implement
 
-## Specialized Review Prompts
+See [`references/step-3-implement.md`](references/step-3-implement.md).
 
-See [`references/specialized-review-prompts.md`](references/specialized-review-prompts.md).
+### Step 4: Review
 
-## Step 3: Merge & Check Exit Condition
+See [`references/step-4-review.md`](references/step-4-review.md).
 
-See [`references/step-3-merge.md`](references/step-3-merge.md). Merge individual review files into one merged review. If 0 open issues → commit the worktree. If issues > 0 → Step 4 fix. Stalemate (reviewer re-opens a `wontfix`) → escalate to user.
+### Step 5: Merge & Check Exit Condition
 
-## Step 4: Fix (resume implementer)
+See [`references/step-5-merge.md`](references/step-5-merge.md). The only exit condition is **all reviewers** reporting **0 issues** of any severity in the same round. No iteration cap. If 0 open issues → commit the worktree. If issues > 0 → Step 6 fix. Stalemate (reviewer re-opens a `wontfix`) → Step 5a escalate to user.
 
-See [`references/step-4-fix.md`](references/step-4-fix.md). Resume the original implementer to address all open issues.
+### Step 6: Fix (resume implementer)
 
-## Step 5: Re-review
+See [`references/step-6-fix.md`](references/step-6-fix.md).
 
-See [`references/step-5-rereview.md`](references/step-5-rereview.md). Resume all reviewers in parallel. Back to Step 3. Repeat until 0 open issues in the same round.
+### Step 7: Re-review
 
-## Exit Condition
+See [`references/step-7-rereview.md`](references/step-7-rereview.md). Back to Step 5. Repeat until 0 open issues in the same round.
 
-See [`references/exit-condition.md`](references/exit-condition.md). The only exit condition is **all reviewers** reporting **0 issues** of any severity in the same round. No iteration cap.
+### Step 8: Memory Flush
 
-## Step 6: Memory Flush
+See [`references/step-8-memory-flush.md`](references/step-8-memory-flush.md).
 
-See [`references/memory-flush.md`](references/memory-flush.md). Runs once after the loop ends, using the `issue_patterns` accumulated across all rounds.
+### Step 9: Stack Assembly
 
-## Stack Assembly
+See [`references/step-9-stack-assembly.md`](references/step-9-stack-assembly.md).
 
-See [`references/stack-assembly.md`](references/stack-assembly.md). Push the single worktree branch and open 1 PR to `main`.
+### Step 10: Final Report & Cleanup
 
-## Cleanup
-
-See [`references/cleanup.md`](references/cleanup.md). Remove temporary artifact files after the final report.
-
-## Final Report
-
-See [`references/final-report.md`](references/final-report.md).
-
-## In-Progress Reporting
-
-See [`references/in-progress-reporting.md`](references/in-progress-reporting.md).
-
-## Rules
-
-See [`references/rules.md`](references/rules.md).
-
-## Safety Guardrails
-
-See [`references/safety-guardrails.md`](references/safety-guardrails.md).
+See [`references/step-10-final-report.md`](references/step-10-final-report.md).
