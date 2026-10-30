@@ -26,7 +26,7 @@ spawn_subagent(
     prompt="""
     Implement [feature] using strict TDD.
 
-    Follow test-driven-development skill:
+    Follow the systematic-debugging Phase 4 TDD cycle:
     1. Write failing test FIRST
     2. Run test to verify it fails
     3. Write minimal code to pass

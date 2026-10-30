@@ -17,7 +17,6 @@ metadata:
     - github-code-review
     - github-issues
     - systematic-debugging
-    - test-driven-development
     - requesting-code-review
 ---
 
