@@ -76,13 +76,13 @@ jobs:
         run: python3 -m modules.root_cli_entry skills catalog --check
 
       - name: Task-tracker script tests
-        run: python3 -m pytest skills/github/task-tracker/scripts/tests -q
+        run: python3 -m pytest skills/git/task-tracker/scripts/tests -q
 
       - name: Task-tracker script lint
-        run: ruff check skills/github/task-tracker/scripts/
+        run: ruff check skills/git/task-tracker/scripts/
 
       - name: Task-tracker script type check
-        run: python3 -m mypy skills/github/task-tracker/scripts/ --strict
+        run: python3 -m mypy skills/git/task-tracker/scripts/ --strict
 
       - name: Skills and shared tests
         run: python3 -m pytest modules/skills modules/shared -q

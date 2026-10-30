@@ -231,7 +231,7 @@ fn json_text_field(js, key) {
 
 // args: { repo_root (required), dry_run (optional), batch (optional), trust_mode (optional: "trust" | "no-trust", default "no-trust"),
 //         legacy (optional, default false — the rollback escape: old per-feature LLM scanner + inline Rhai classify),
-//         scripts_root (optional — directory holding scan.py/classify.py; default <repo_root>/skills/github/task-tracker/scripts) }
+//         scripts_root (optional — directory holding scan.py/classify.py; default <repo_root>/skills/git/task-tracker/scripts) }
 let a_root = ();
 let a_dry = ();
 let a_batch = ();
@@ -261,7 +261,7 @@ let trust_mode = if a_trust == () { "no-trust" } else { a_trust.to_string() };
 if trust_mode != "trust" && trust_mode != "no-trust" {
     pause("verification", "Invalid trust_mode: " + trust_mode + " — must be 'trust' or 'no-trust'");
 }
-let scripts_root = if a_scripts == () { repo_root + "/skills/github/task-tracker/scripts" } else { a_scripts.to_string() };
+let scripts_root = if a_scripts == () { repo_root + "/skills/git/task-tracker/scripts" } else { a_scripts.to_string() };
 let state_label = "task-tracker";
 let batch = if a_batch == () { 6 } else { parse_int(a_batch.to_string()) };
 
