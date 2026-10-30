@@ -55,6 +55,14 @@
       "path": "vendor/omniroute"
     },
     {
+      "id": "9router",
+      "category": "vendor",
+      "binary": "9router",
+      "isMcp": false,
+      "description": "Local AI routing gateway & token saver (host-native, 40+ providers, port 20128)",
+      "path": "vendor/9router"
+    },
+    {
       "id": "vision-arwaky",
       "alias": "va",
       "aliases": [

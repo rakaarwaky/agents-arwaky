@@ -13,7 +13,7 @@ This repository incorporates upstream open-source software as git submodules und
 | `vendor/ponytail` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | `2ed6c52c` | MIT License |
 | `vendor/anytype-mcp` | [anyproto/anytype-mcp](https://github.com/anyproto/anytype-mcp) | `4ba725d9` (`v1.2.10`) | MIT License |
 | `vendor/codegraph` | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | `c6aaa203` | MIT License |
-| `vendor/9router` | [decolua/9router](https://github.com/decolua/9router) | `4eda76e2` (`v0.5.65`) | MIT License |
+| `vendor/9router` | [decolua/9router](https://github.com/decolua/9router) | `1fe586bb` (`v0.5.112`) | MIT License |
 
 ---
 

@@ -8,7 +8,8 @@ description: "agents-arwaky operational guide."
 
 - Language: Python 3.10+, Rust (cargo), Node.js 18+ (pnpm), Bun, C.
 - Environment: host bare-metal; XDG base directories. No Docker. Anytype
-  is the only Podman-containerized service. OmniRoute runs host-native.
+  is the only Podman-containerized service. OmniRoute (port 7777) and
+  9router (port 20128) run host-native.
 - Artifacts: XDG prefixes. Data in ${XDG_DATA_HOME:-$HOME/.local/share}/,
   config in ${XDG_CONFIG_HOME:-$HOME/.config}/, cache in
   ${XDG_CACHE_HOME:-$HOME/.cache}/, launchers in
