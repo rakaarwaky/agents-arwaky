@@ -2,8 +2,9 @@
 """Cross-platform host helpers for bundled orchestrator skills.
 
 Stdlib only. Works on Windows, macOS, and Linux. Resolves a real Python
-(rejecting the Microsoft Store stub), a per-user scratch dir, and a short
-run id so skills never need ``python3``, ``umask``, ``id -u``, or ``/tmp``.
+(rejecting the Microsoft Store stub), a per-user scratch dir, a per-user
+state dir, and a short run id so skills never need ``python3``, ``umask``,
+``id -u``, or ``/tmp``.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ import json
 import os
 import shutil
 import stat
+import subprocess
 import sys
 import tempfile
 import uuid
@@ -21,6 +23,34 @@ from pathlib import Path
 
 def _is_store_stub(path: str) -> bool:
     return "WindowsApps" in path.replace("\\", "/")
+
+
+def _probe_launcher(argv: list[str]) -> str | None:
+    """Return the real interpreter path behind ``argv``, or ``None``.
+
+    ``argv[0]`` is looked up on PATH. A bare candidate (``python``) is
+    returned as found. A launcher with arguments (``py -3``) is asked for
+    its ``sys.executable`` so the arguments are not silently dropped.
+    """
+    found = shutil.which(argv[0])
+    if not found or _is_store_stub(found):
+        return None
+    if len(argv) == 1:
+        return found
+    try:
+        result = subprocess.run(
+            [found, *argv[1:], "-c", "import sys; print(sys.executable)"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    resolved = result.stdout.strip()
+    if result.returncode != 0 or not resolved or _is_store_stub(resolved):
+        return None
+    return resolved
 
 
 def resolve_python() -> str:
@@ -32,27 +62,38 @@ def resolve_python() -> str:
 
     candidates: list[list[str]] = [["python"], ["py", "-3"], ["python3"]]
     for argv in candidates:
-        found = shutil.which(argv[0])
-        if not found or _is_store_stub(found):
-            continue
-        return found
+        resolved = _probe_launcher(argv)
+        if resolved:
+            return resolved
     raise SystemExit(
         "host.py: no real Python 3 on PATH "
         "(tried python, py -3, python3; rejected WindowsApps stubs)"
     )
 
 
-def scratch_dir() -> Path:
-    user = os.environ.get("USERNAME") or os.environ.get("USER") or "user"
-    # Keep the name filesystem-safe on Windows and POSIX.
-    safe = "".join(c if c.isalnum() or c in "._-" else "_" for c in user) or "user"
-    path = Path(tempfile.gettempdir()) / f"grok-{safe}"
+def _private_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     try:
         os.chmod(path, stat.S_IRWXU)
     except OSError:
         pass
     return path
+
+
+def scratch_dir() -> Path:
+    user = os.environ.get("USERNAME") or os.environ.get("USER") or "user"
+    # Keep the name filesystem-safe on Windows and POSIX.
+    safe = "".join(c if c.isalnum() or c in "._-" else "_" for c in user) or "user"
+    return _private_dir(Path(tempfile.gettempdir()) / f"grok-{safe}")
+
+
+def state_dir() -> Path:
+    """Per-user directory for run state files (survives temp-dir cleanup)."""
+    try:
+        home = Path.home()
+    except RuntimeError:
+        raise SystemExit("host.py: could not determine the user's home directory")
+    return _private_dir(home / ".grok" / "implement-state")
 
 
 def run_id(hex_len: int = 8) -> str:
@@ -65,6 +106,7 @@ def cmd_setup(_args: argparse.Namespace) -> int:
     payload = {
         "python": resolve_python(),
         "scratch_dir": str(scratch_dir()),
+        "state_dir": str(state_dir()),
         "run_id": run_id(8),
     }
     json.dump(payload, sys.stdout, indent=None, separators=(",", ":"))
@@ -97,8 +139,6 @@ def cmd_cleanup(args: argparse.Namespace) -> int:
 
 
 def cmd_git_cwd(_args: argparse.Namespace) -> int:
-    import subprocess
-
     result = subprocess.run(
         ["git", "rev-parse", "--is-inside-work-tree"],
         capture_output=True,
@@ -115,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="host.py")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("setup", help="Print JSON {python, scratch_dir, run_id}.")
+    sub.add_parser("setup", help="Print JSON {python, scratch_dir, state_dir, run_id}.")
     u = sub.add_parser("uuid", help="Print a UUID (default: 8 hex chars).")
     u.add_argument("--full", action="store_true", help="Print a full UUID4.")
     u.add_argument("--hex-len", type=int, default=8)

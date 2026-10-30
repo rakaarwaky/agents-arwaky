@@ -392,6 +392,24 @@ class TestMergeBehavior(unittest.TestCase):
             [{"description": "Missing null check", "count": 3}],
         )
 
+    def test_category_match_is_case_and_whitespace_insensitive(self):
+        state = memory.parse_memory_file("")
+        memory.merge_run(
+            state,
+            {
+                "patterns": [
+                    {"category": "Error Handling", "description": "Missing null check"},
+                    {"category": "error  handling", "description": "Missing null check"},
+                    {"category": "ERROR HANDLING", "description": "No retry on failure"},
+                ]
+            },
+        )
+        self.assertEqual(list(state["common_issues"].keys()), ["Error Handling"])
+        self.assertEqual(
+            sorted((e["description"], e["count"]) for e in state["common_issues"]["Error Handling"]),
+            [("Missing null check", 2), ("No retry on failure", 1)],
+        )
+
     def test_per_category_cap_drops_lowest_count(self):
         state = memory.parse_memory_file("")
         # 30 distinct patterns, all count=1
@@ -880,3 +898,4 @@ class TestDocsConsistency(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

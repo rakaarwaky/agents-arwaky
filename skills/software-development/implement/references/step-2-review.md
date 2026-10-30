@@ -32,3 +32,4 @@ If any reviewer fails on initial launch:
 After all reviewers complete, proceed to Step 3 (Merge & Check).
 
 Report to the user: "All reviewers complete. Merging findings..."
+

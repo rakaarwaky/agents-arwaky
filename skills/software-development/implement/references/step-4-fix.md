@@ -33,3 +33,4 @@ Wait for completion. If it fails, report the error to the user and stop.
 Update the saved implementer `subagent_id` with the new one returned.
 
 Report to the user: "Fixes applied. Running parallel re-review (round N)..." where N is the current `round_count` + 1.
+

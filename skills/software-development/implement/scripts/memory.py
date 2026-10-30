@@ -638,6 +638,20 @@ def _bump_or_append(
     return False
 
 
+def _canonical_category(existing: Any, name: str) -> str:
+    """Return the existing category matching ``name`` ignoring case and
+    whitespace runs, or ``name`` itself when there is no match.
+
+    Without this, "Error Handling" and "error handling" would become two
+    separate categories and their patterns could never be merged.
+    """
+    key = _WHITESPACE_RE.sub(" ", name).strip().lower()
+    for have in existing:
+        if _WHITESPACE_RE.sub(" ", have).strip().lower() == key:
+            return have
+    return name
+
+
 def merge_run(state: dict[str, Any], spec: dict[str, Any]) -> dict[str, Any]:
     """Merge a run spec into ``state`` in place. Return summary stats.
 
@@ -681,6 +695,7 @@ def merge_run(state: dict[str, Any], spec: dict[str, Any]) -> dict[str, Any]:
             if not description:
                 continue
 
+            category = _canonical_category(state["common_issues"], category)
             entries = state["common_issues"].setdefault(category, [])
             lookup = category_lookups.get(category)
             if lookup is None:
@@ -1083,3 +1098,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

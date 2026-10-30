@@ -54,8 +54,8 @@ specialists = matched_specialists[:total_slots - 1]
 num_generals = total_slots - len(specialists)
 
 # Step 4: Always pin simplicity. Does not consume a base slot.
-if "simplicity" not in specialists:
-    specialists.append("simplicity")
+# (simplicity is never in matched_specialists, so no membership check is needed)
+specialists.append("simplicity")
 ```
 
 **Examples:**
@@ -110,3 +110,4 @@ Strict rules for this announcement:
 - This message describes **only the specialization selection**. Do **not** also claim that the implementer is being launched, that reviewers are starting, or that the run is "now running" — those statements belong to later steps, after the corresponding `spawn_subagent` calls.
 - Do **not** end the announcement with a question to the user. No "Want me to check in every 30 minutes?", no "Should I proceed?", no "Let me know if you want me to do anything different." This step is fire-and-forget: no blocking interaction, no approval step, no cadence negotiation.
 - Proceed directly to Step 0 (Memory Retrieval) and Step 1 (Implement) in the same turn. The next user-visible message should be the post-spawn launch confirmation described in Step 1, not a continuation of this announcement.
+

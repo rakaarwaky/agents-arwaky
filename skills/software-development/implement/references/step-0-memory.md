@@ -87,3 +87,4 @@ If there are no qualifying entries, set `past_issues_briefing` to `""`.
 ### Graceful Degradation
 
 If the helper command fails for any reason, set `past_issues_briefing` to `""`, `existing_patterns_snapshot` to `[]`, `memory_existed_before` to `false`, and proceed normally. Never fail the run due to memory retrieval issues — log a brief note and continue.
+

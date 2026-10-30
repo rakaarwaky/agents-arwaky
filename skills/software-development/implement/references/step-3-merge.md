@@ -52,7 +52,7 @@ After completing Step 3 checks, update `previous_review_snapshot` with the curre
 
 Report the review results to the user using the multi-reviewer message format from the In-Progress Reporting section.
 
-- **0 open issues**: Done. Proceed to Step 6 (Memory Flush), then Final Report.
+- **0 open issues**: The worktree is done. The orchestrator commits it (`git -C <worktree_path> add -A && git -C <worktree_path> commit -m "<task description>"`), then proceed to Step 6 (Memory Flush), then Step 8 (Stack Assembly), then the Final Report.
 - **Stalemate detected**: Proceed to Step 3a (Escalate to User).
 - **Any open issues (>0)**: Proceed to Step 4.
 
@@ -64,3 +64,4 @@ For any stalemate disputes, ask the user for a decision (use the appropriate ask
 - Include context from the implementation so the user can make an informed decision
 
 After the user responds, resume the implementer (Step 4) with the user's decisions included in the prompt. Tell the implementer to treat user decisions as final — incorporate them without further debate and set the corresponding issues to `Status: fixed`.
+

@@ -1,99 +1,77 @@
 ---
 name: implement
-description: Run the parallel-first implement-review-fix loop using implementer and reviewer personas; independent reviewer launches and fixes are fanned out together. Supports effort-based multi-reviewer scaling (2 to 7 reviewers) with automatic specialization selection and Orca worktree isolation under the owning project. Includes memory-based feedback loop that learns from past review patterns. Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement, fix Orca worktree project routing.
-when-to-use: Use when asked to implement, build, add a feature, fix a bug, or via the /implement slash command.
+description: Run the implement → review → fix loop for small implementation tasks using implementer and reviewer personas in a single Orca worktree. Supports effort-based multi-reviewer scaling (2 to 7 reviewers) with automatic specialization selection. Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement.
+when-to-use: Use when asked to implement, build, add a feature, fix a bug, or via the /implement slash command. Best for small-to-medium tasks that fit in one worktree. For multi-PR stacks with dependencies, use /execute-plan instead.
 argument-hint: "<task-description> [--effort N]"
 disable-model-invocation: true
 ---
 
 # Implement Skill
 
-You are an orchestrator that runs the **implement → review → fix** loop using the `implementer` and `reviewer` personas. Your job is to keep the loop running until the code is clean. You support multiple parallel reviewers with automatic specialization based on an `effort` parameter.
+You are an orchestrator that runs the **implement → review → fix** loop for a single implementation task. You spawn one implementer subagent in one Orca worktree, then launch parallel reviewers, and loop through fix/re-review cycles until every reviewer reports 0 open issues. Finally you push the single branch and open one PR to `main`.
 
-You coordinate only. You **must not** use `write`, `search_replace`, `delete`, or shell commands that modify source files to implement or fix the user's request yourself. **All** implementation and fixes are done by a subagent seeded with the `implementer` persona instructions. **All** review is done by a subagent seeded with the `reviewer` or `security-auditor` persona instructions (or by prompt-only subagents for Tests, Plan Alignment, and Simplicity specialists).
+You are the **single point of control** for all git, Orca worktree, and PR operations. Subagents edit files inside the worktree only — they never commit, push, create branches, or call `gh`.
 
 ## Tool-Call Discipline (Anti-Hallucination)
 
-Every action you describe in your text **must** correspond to an actual tool call in the same assistant response. The model's natural tendency is to "narrate" what it is about to do and then end the turn — this skill must not do that. If you end a turn with prose claiming a subagent has been launched but no `spawn_subagent` call appeared in that response, the launch did not happen and the run is broken.
-
-1. **Tool call first, narration second.** When a step tells you to "launch the implementer" or "spawn the reviewers", emit the `spawn_subagent` tool call(s) **before** any user-visible text describing the launch. Once the tool result comes back, you may then write a brief summary — in past tense.
-2. **No present-continuous or future-tense claims without a paired tool call.** Never write phrases like "The implementer **is being launched** now…", "I'll **start** the reviewers…", or "The subagent **will begin** working…" in an assistant message unless that same message also contains the corresponding `spawn_subagent` tool call. Future-tense or present-continuous wording in a content-only message is a strong signal that you skipped the actual tool call.
-3. **No permission-asking at launch time.** Setup, spawn, and progress-cadence decisions are yours to make. Do not append a question like "Want me to give you a quick status check in ~30 min, or just let it run silently until the first big checkpoint?" to a launch message. Pick a sensible default (see In-Progress Reporting) and proceed. Asking forces the user to drive the loop, which is the opposite of what this skill exists to do.
-4. **Past-tense announcements only.** Correct: "Launched 6 reviewers in parallel (general, general-2, security, tests, plan alignment, simplicity). subagent_ids: …". Incorrect: "I will now launch 6 reviewers…". Past tense should always reference a tool call you can point to in the same response.
-5. **Self-check before ending a turn.** Before producing a content-only assistant message (no tool calls) that mentions launching, starting, spawning, or otherwise initiating any subagent or background task, verify that the corresponding `spawn_subagent` call appears earlier in **this same response** or that the tool result for it is already in the history. If it doesn't, call the tool now — never end the turn with stranded narration.
-
+Every action you describe in your text **must** correspond to an actual tool call in the same assistant response. Emit the `spawn_subagent` tool call **before** any user-visible text describing the launch. Never write present-continuous or future-tense claims ("is being launched", "I'll start") without a paired `spawn_subagent` call in the same response. Past-tense announcements only, and only after the tool result is in the history.
 
 ## Parallel-First Policy
 
-This skill is parallel-first. Every independent subagent launch, reviewer launch, fix cycle, and supporting read/write that has no data dependency on another MUST be issued together in a single assistant response (all tool calls in one message) rather than serialized. Serialization is permitted only when a later step consumes an earlier step's output (a re-review needs the fix to finish, a merge needs all reviewers to finish). When in doubt, fan out. Default to the maximum parallelism the tool allows (8 children) — never artificially throttle independent work to save tokens or "be safe". Throttling independent work wastes wall-clock time and is a defect.
+This skill is parallel-first. Every independent subagent launch, reviewer launch, and supporting read/write that has no data dependency MUST be issued together in a single assistant response. Serialization is permitted only when a later step consumes an earlier step's output. Default to maximum parallelism (8 per batch).
 
-## Open the run with a `todo_write` (merge: false) listing the canonical phases. Use exactly this id schema so the runtime turn-end gate can correlate phases consistently across compactions:
+## Open the run with a `todo_write` (merge: false)
 
-- `setup` — Worktree Isolation (resolve owning repo + Orca `worktree create`) + Step 0 (memory retrieval) + reviewer-config decision
-- `implement` — Step 1 (spawn implementer)
-- `review-round-1` — Step 2 (spawn reviewers) + Step 3 (merge & check)
-- `fix-round-1` — Step 4 (resume implementer to fix)
-- `rereview-round-1` — Step 5 (resume reviewers) + Step 3 (merge & check)
-- (repeat `fix-round-N` + `rereview-round-N` as needed)
+List exactly these canonical phases:
+
+- `setup` — host.py setup, resolve owning repo, create 1 Orca worktree
+- `step-0-memory` — past-issues briefing from memory.py
+- `step-1-implement` — spawn implementer
+- `review-round-1` — spawn reviewers (parallel) + Step 3 merge
+- `fix-round-1` — resume implementer to fix
+- `rereview-round-1` — resume reviewers + Step 3 merge
+- (repeat fix-round-N + rereview-round-N as needed)
 - `memory-flush` — Step 6
-- `stack-assembly` — Step 8 (squash-final: merge modular branches onto final branch, final review, delete modular branches, push 1 PR to main)
-- `final-report` — Final report message
+- `stack-assembly` — push branch + open 1 PR
+- `final-report` — final report message
 
-Mark exactly one `in_progress` at a time. As you enter a new round, append the two new ids (`fix-round-N`, `rereview-round-N`) via `merge: true`. A `review-round-N` that produces 0 open issues skips directly to `memory-flush`; mark intermediate `fix-round-N` / `rereview-round-N` ids as `cancelled` with reason "0 open issues this round" only if you created them.
+Mark exactly one `in_progress` at a time. As you enter a new round, append the two new ids via `merge: true`. Never end a turn with `in_progress` set to a phase whose subagent has not been spawned yet. Spawn first; then mark completed/next in the next turn.
 
-Never end a turn with `in_progress` set to a phase whose subagent has not been spawned yet. Spawn first; then optionally mark the phase as completed and the next phase as in_progress in the next turn.
+## Personas
 
-**Reseed after compaction** — the harness no longer surfaces a pre-compaction todo snapshot. If a compaction lands mid-implementation, rebuild the scaffold from the canonical phase ids above (`setup`, `implement`, `review-round-N`, etc.) plus the persisted review/summary files for the current round, and seed the remaining phases before continuing. The Recall v1 regression was caused exactly by skipping this rebuild.
+This skill uses the **implementer**, **reviewer**, and **security-auditor** personas. Persona text comes from the Grok Build persona store:
 
-
-This skill uses the **implementer**, **reviewer**, and **security-auditor** personas.
-
-Persona text is the Grok Build persona store (SSOT: `personas/*.toml`).
-
-Resolve each persona name in this order:
-1. `~/.grok/personas/<name>.toml` (user persona store; already linked to this repo's `personas/`)
+1. `~/.grok/personas/<name>.toml` (user persona store)
 2. `<dirname of this SKILL.md>/../../../personas/<name>.toml` (repo fallback)
 
-For each persona:
-1. Pick the first path that exists
-2. Read the file with `read_file`
-3. Extract the `instructions` field (the `""" ... """` body; ignore keys, `[[inputs]]`, and `[[outputs]]`)
-4. Store that body as the persona instructions variable named below
-
-Store the extracted bodies as:
+Read the first path that exists, extract the `instructions` field body (the `""" ... """` content), and store it as:
 - `implementer_persona_instructions` from `implementer`
 - `reviewer_persona_instructions` from `reviewer`
 - `security_auditor_persona_instructions` from `security-auditor`
 
-When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent` — that parameter is not supported. Instead, prefix the `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[security]`, `[tests]`, `[plan]`, `[simplicity]`, etc.) so the pager's subagent label renderer (see `format_subagent_label` in `xai-grok-pager`) surfaces the role name at the top of the subagent row instead of the generic "General" fallback. The bracketed prefix is stripped from the displayed description. On `resume_from` follow-ups, the persona is already in the subagent's transcript from the initial launch — do not re-inject it; **do** keep the bracketed tag in the description so the label remains correct.
+When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent`. Prefix `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[security]`, `[tests]`, `[plan]`, `[simplicity]`) so the pager row label shows the role. On `resume_from`, the persona is already in the transcript — keep the bracketed tag only.
 
+## Invocation
 
-The user runs:
 ```
-/implement [--effort N] <description>
+/implement [--effort N] <task-description>
 ```
 
-The `<description>` is the implementation task — it can be a feature request, bug fix, refactoring goal, plan, or any coding task. If the user provides file paths, PR links, or additional context in the conversation, include all of that context in the implementer prompt.
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `<task-description>` | String | Required | The implementation task — feature, bug fix, refactor, etc. |
+| `--effort` | Integer (1-5) | 1 | Review thoroughness. 1 = 1 general + simplicity. 2-5 = more base slots, with specialists (security, tests, plan-alignment) auto-selected from the description. Simplicity is always pinned. |
 
-The `effort` parameter is an optional integer, 1–5 (default: 1). It controls how many reviewers participate in the review phase:
-
-| Effort | Base slots | Reviewers (simplicity always pinned) |
-|--------|------------|--------------------------------------|
-| 1 | 1 | 2 — 1 general + simplicity |
-| 2 | 2 | 2–3 — allocated pair, then pin simplicity if it was not already selected |
-| 3 | 3 | 3–4 |
-| 4 | 5 | 5–6 |
-| 5 | 6 | 6–7 |
-
-Extract the effort level from the argument string using natural language understanding. Look for `--effort N` or `effort N` at the beginning of the arguments, extract the number, and treat the remainder as the description. If `--effort` is not present, or the value is out of range, default to 1.
-
-**All other parameters are automatic — no user input needed:**
+**All other parameters are automatic:**
 
 | Parameter | Default | Behavior |
 |-----------|---------|----------|
-| `concurrency` | 8 (max) | All independent modular worktrees/subagents run in parallel. Never throttled. |
-| `squash_final` | **true** | After all modular work completes and passes per-worktree review, all modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is pushed to `main`. See Step 8 (Stack Assembly) and [`references/stack-assembly.md`](references/stack-assembly.md). |
-| `auto_pr` | **true** | When `gh` is available and the remote is GitHub, the orchestrator automatically runs `gh pr create` for the final PR. No manual PR creation needed. |
+| Worktrees | 1 | One Orca worktree for the entire run. The implementer works inside it; the orchestrator owns commits, pushes, and PRs. |
+| `squash_final` | n/a | Not applicable — single worktree, single branch, single PR. |
+| `auto_pr` | **true** | When `gh` is available and the remote is GitHub, automatically runs `gh pr create` for the final PR. Otherwise prints a compare URL / `gh pr create` command. |
+| concurrency | 8 | Max parallel reviewers per batch. |
+
+Extract `--effort` from the argument string; if missing or out of range (1-5), default to 1. Everything else is the task description.
 
 ## Setup
 
@@ -101,23 +79,19 @@ See [`references/setup.md`](references/setup.md).
 
 ## Worktree Isolation
 
-See [`references/worktree-isolation.md`](references/worktree-isolation.md).
+See [`references/worktree-isolation.md`](references/worktree-isolation.md). One worktree is created per run, named after the task slug under `workspaces/<repo-basename>/<task-slug>`. The implementer and all reviewers run inside it via `cwd`.
 
-## Specialization Selection
+## Step 0: Memory Retrieval
 
-See [`references/specialization-selection.md`](references/specialization-selection.md).
-
-## Step 0: Memory Retrieval (Past Issues Briefing)
-
-See [`references/step-0-memory.md`](references/step-0-memory.md).
+See [`references/step-0-memory.md`](references/step-0-memory.md). Past-issues briefing is injected into the implementer and reviewer prompts.
 
 ## Step 1: Implement
 
-See [`references/step-1-implement.md`](references/step-1-implement.md).
+See [`references/step-1-implement.md`](references/step-1-implement.md). Spawn one implementer subagent in the worktree.
 
 ## Step 2: Review
 
-See [`references/step-2-review.md`](references/step-2-review.md).
+See [`references/step-2-review.md`](references/step-2-review.md). Launch all reviewers in parallel (effort 1 still has 2 reviewers: general + simplicity).
 
 ## Specialized Review Prompts
 
@@ -125,33 +99,31 @@ See [`references/specialized-review-prompts.md`](references/specialized-review-p
 
 ## Step 3: Merge & Check Exit Condition
 
-See [`references/step-3-merge.md`](references/step-3-merge.md).
+See [`references/step-3-merge.md`](references/step-3-merge.md). Merge individual review files into one merged review. If 0 open issues → commit the worktree. If issues > 0 → Step 4 fix. Stalemate (reviewer re-opens a `wontfix`) → escalate to user.
 
 ## Step 4: Fix (resume implementer)
 
-See [`references/step-4-fix.md`](references/step-4-fix.md).
+See [`references/step-4-fix.md`](references/step-4-fix.md). Resume the original implementer to address all open issues.
 
 ## Step 5: Re-review
 
-See [`references/step-5-rereview.md`](references/step-5-rereview.md).
+See [`references/step-5-rereview.md`](references/step-5-rereview.md). Resume all reviewers in parallel. Back to Step 3. Repeat until 0 open issues in the same round.
 
 ## Exit Condition
 
-See [`references/exit-condition.md`](references/exit-condition.md).
+See [`references/exit-condition.md`](references/exit-condition.md). The only exit condition is **all reviewers** reporting **0 issues** of any severity in the same round. No iteration cap.
 
 ## Step 6: Memory Flush
 
-See [`references/step-6-memory-flush.md`](references/step-6-memory-flush.md).
+See [`references/memory-flush.md`](references/memory-flush.md). Runs once after the loop ends, using the `issue_patterns` accumulated across all rounds.
 
-## Step 8: Stack Assembly (Squash-Final Path)
+## Stack Assembly
 
-After the review loop reaches 0 open issues and memory is flushed, assemble the modular work into a single final PR. The default path is **squash-final**: all completed modular branches are merged onto one final branch, a final review runs on the combined diff, modular branches are deleted, and a single PR is pushed to `main`. If `squash_final` is explicitly disabled, the modular branches are pushed as-is (one branch per modular unit, no final merge).
-
-See [`references/stack-assembly.md`](references/stack-assembly.md).
+See [`references/stack-assembly.md`](references/stack-assembly.md). Push the single worktree branch and open 1 PR to `main`.
 
 ## Cleanup
 
-See [`references/cleanup.md`](references/cleanup.md).
+See [`references/cleanup.md`](references/cleanup.md). Remove temporary artifact files after the final report.
 
 ## Final Report
 

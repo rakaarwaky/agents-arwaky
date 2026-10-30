@@ -1,10 +1,10 @@
-# Step 6: Memory Flush — full procedure (factored from implement/SKILL.md)
+# Step 6: Memory Flush
 
-The implement SKILL.md carries a short "Step 6" summary; the complete procedure below (sub-steps 6a–6d, the memory file format, and helper exit codes) is loaded from this reference when the loop exits with 0 open issues.
+Runs once per run, after every unit has reached 0 open issues. This file is the complete procedure (sub-steps 6a–6d, the memory file format, and helper exit codes).
 
-## Step 6: Memory Flush
+## Procedure
 
-After the loop terminates with 0 open issues, update the workspace memory file with patterns from this run. The orchestrator performs this directly using its own tools — no subagent is needed for this step.
+Update the workspace memory file with patterns from this run, using the `issue_patterns` list accumulated during Step 3. The orchestrator performs this directly using its own tools — no subagent is needed for this step.
 
 The write goes through `"${PYTHON}" "${MEMORY_HELPER}" update --file <spec>` so that:
 - The path resolves to the **shared workspace-scoped file** (`$HOME/.grok/implement-memory/<workspace-id>.md`), not a per-worktree file.
@@ -181,3 +181,4 @@ Exit codes:
 - `2`: workspace id could not be determined (cwd unreadable and `$HOME` unset — very rare).
 - `3`: lock could not be acquired within 30 seconds (another concurrent /implement run is monopolising the file; usually retrying once works).
 - `4`: stdin JSON is missing, malformed, or fails type validation. The stderr message identifies the offending field. Surface it verbatim in the report so the user can see what was wrong with the spec.
+

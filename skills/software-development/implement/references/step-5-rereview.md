@@ -45,3 +45,4 @@ If a reviewer fails during re-review:
 If `resume_from` fails for a reviewer (subagent expired), launch a fresh reviewer for that specialization with `cwd: <worktree_path>`, prepending the persona instructions from `config.persona_to_inject` (if non-null) to the prompt. Log a warning.
 
 **Regardless of effort level, go back to Step 3.** Repeat until 0 open issues.
+
