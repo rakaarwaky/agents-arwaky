@@ -178,7 +178,7 @@ class TestTarBackupArchiveSafety:
             def now(_timezone):
                 from datetime import datetime as RealDateTime
 
-                return RealDateTime(2026, 10, 26, 12, 0, 0)
+                return RealDateTime(2026, 10, 26, 12, 0, 0, tzinfo=_timezone)
 
         monkeypatch.setattr(backup_module, "datetime", FixedDateTime)
         first = backup_module.backup_tool_result("scratch")

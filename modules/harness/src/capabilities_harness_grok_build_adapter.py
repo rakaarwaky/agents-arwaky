@@ -63,14 +63,23 @@ class GrokBuildAdapter:
     supports_mcp: bool = True
     supports_env: bool = True
     # Custom-API wiring binds the OmniRoute combo provider into config.toml
-    # ([model_providers.<id>] + [model.<combo>], Grok Build's verified shape).
+    # ([model_providers.<id>] + [model.<combo>], Grok Build's verified shape)
+    # and adds the 9router sibling below next to it.
     supports_custom_api: bool = True
     custom_api_kind: str = "config-toml"
     router_provider_id: str = "myomniroute"
     router_provider_name: str = "omniroute"
     env_key: str = "OMNIROUTE_KEY"
+    # Secondary 9router gateway: fields symmetric to the OmniRoute trio above.
+    router2_provider_id: str = "my9router"
+    router2_provider_name: str = "9router"
+    router2_env_key: str = "NINEROUTER_KEY"
     mcp_key: str = "mcp_servers"
-    env_keys: tuple[str, ...] = ("OMNIROUTE_URL", "OMNIROUTE_KEY", "MNEMOSYNE_DATA_DIR")
+    env_keys: tuple[str, ...] = (
+        "OMNIROUTE_URL", "OMNIROUTE_KEY",
+        "NINEROUTER_URL", "NINEROUTER_KEY",
+        "MNEMOSYNE_DATA_DIR",
+    )
     skill_sync_commands: tuple[str, ...] = ()
 
     def home(self) -> Path:
@@ -99,7 +108,10 @@ class GrokBuildAdapter:
 
     def session_conf_files(self) -> tuple[Path, ...]:
         """Return session configuration files referenced by the Grok Build harness."""
-        return (config_home() / "environment.d/omniroute.conf",)
+        return (
+            config_home() / "environment.d/omniroute.conf",
+            config_home() / "environment.d/9router.conf",
+        )
 
     def credential_candidates(self) -> tuple[Path, ...]:
         """Return candidate credential files searched by the Grok Build harness."""
@@ -107,6 +119,9 @@ class GrokBuildAdapter:
             ROOT / "config/omniroute.env",
             Path.home() / ".omniroute/.env",
             data_home() / "omniroute/omniroute.env",
+            ROOT / "config/ninerouter.env",
+            Path.home() / ".9router/.env",
+            data_home() / "9router/ninerouter.env",
         )
 
 

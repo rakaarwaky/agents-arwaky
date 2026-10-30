@@ -66,14 +66,23 @@ class OpencodeAdapter:
     supports_env: bool = True
     # OpenCode supports OpenAI-compatible providers via opencode.json's
     # provider.<id> block (verified 2026-10-02: existing omniroute entry with
-    # combo models myomniroute / myomnivision).
+    # combo models myomniroute / myomnivision; the 9router sibling entry is
+    # written next to it).
     supports_custom_api: bool = True
     custom_api_kind: str = "opencode-json"
     router_provider_id: str = "myomniroute"
     router_provider_name: str = "omniroute"
     env_key: str = "OMNIROUTE_KEY"
+    # Secondary 9router gateway: fields symmetric to the OmniRoute trio above.
+    router2_provider_id: str = "my9router"
+    router2_provider_name: str = "9router"
+    router2_env_key: str = "NINEROUTER_KEY"
     mcp_key: str = "mcp"
-    env_keys: tuple[str, ...] = ("OMNIROUTE_URL", "OMNIROUTE_KEY", "MNEMOSYNE_DATA_DIR")
+    env_keys: tuple[str, ...] = (
+        "OMNIROUTE_URL", "OMNIROUTE_KEY",
+        "NINEROUTER_URL", "NINEROUTER_KEY",
+        "MNEMOSYNE_DATA_DIR",
+    )
     skill_sync_commands: tuple[str, ...] = ()
 
     def home(self) -> Path:
@@ -106,7 +115,10 @@ class OpencodeAdapter:
 
     def session_conf_files(self) -> tuple[Path, ...]:
         """Return session configuration files referenced by the OpenCode harness."""
-        return (config_home() / "environment.d/omniroute.conf",)
+        return (
+            config_home() / "environment.d/omniroute.conf",
+            config_home() / "environment.d/9router.conf",
+        )
 
     def credential_candidates(self) -> tuple[Path, ...]:
         """Return candidate credential files searched by the OpenCode harness."""
@@ -114,6 +126,9 @@ class OpencodeAdapter:
             ROOT / "config/omniroute.env",
             Path.home() / ".omniroute/.env",
             data_home() / "omniroute/omniroute.env",
+            ROOT / "config/ninerouter.env",
+            Path.home() / ".9router/.env",
+            data_home() / "9router/ninerouter.env",
         )
 
 
