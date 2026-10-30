@@ -2,7 +2,7 @@
 name: execute-plan
 description: Execute a PR Plan DAG from a design document in parallel-first mode. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability. Observed phrasing: /execute-plan followed by a design doc path, execute plan, run the plan, implement the design, make plan execution parallel-first.
 when-to-use: Use when asked to execute a plan, run the plan, implement the design, or via the /execute-plan slash command with a design doc path. Invoked after /design produces a PR plan; observed runs reference design documents produced by the design skill.
-argument-hint: "<design-doc-path> [--effort N] [--concurrency N] [--dry-run] [--resume <PLAN_ID>] [--instructions \"...\"] [--no-graphite] [--auto-pr]"
+argument-hint: "<design-doc-path> [--effort N] [--resume <PLAN_ID>]"
 ---
 
 # Execute Plan Skill
@@ -78,21 +78,27 @@ When launching a subagent, **prepend** the appropriate persona instructions to i
 
 The user runs:
 ```
-/execute-plan <design-doc-path> [--effort N] [--concurrency N] [--dry-run] [--resume <PLAN_ID>] [--instructions "..."] [--no-graphite] [--auto-pr]
+/execute-plan <design-doc-path> [--effort N] [--resume <PLAN_ID>]
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `<design-doc-path>` | String | Required | Path to the design document (from `/design`) |
-| `--effort` | Integer (1-5) | 1 | Review thoroughness **per PR**. Controls how many reviewers review each PR, matching `/implement`'s effort-scales-reviewer-count pattern. 1 = 1 general + simplicity (always pinned). 2-5 = more base slots, with specialists (security, tests, plan-alignment) auto-selected from each PR's description/files and remaining slots filled with independent general reviewers; simplicity is always pinned after allocation and does not consume a base slot. The review-fix loop still runs until 0 open issues for every PR. See the reviewer-count table in Step 5. |
-| `--concurrency` | Integer (1-8) | 8 | Max parallel implementation subagents (default max: run all independent tasks in parallel) |
-| `--dry-run` | Flag | false | Parse and validate DAG, show execution plan and linearized stack order, but do not implement |
+| `--effort` | Integer (1-5) | 1 | Review thoroughness **per PR**. 1 = 1 general + simplicity (always pinned). 2-5 = more base slots, with specialists (security, tests, plan-alignment) auto-selected from each PR's description/files. The review-fix loop runs until 0 open issues for every PR. See the reviewer-count table in Step 5. |
 | `--resume` | String | none | Resume a previous run by PLAN_ID. Reads the state file and retries failed PRs. |
-| `--instructions` | String | none | Extra instructions injected into every implementer and reviewer prompt. Use for cross-cutting concerns like "Enforce rust rules from /root/.grok/memory/MEMORY.md" or "Don't modify the public API". |
-| `--no-graphite` | Flag | false | Force plain-git mode even if `gt` is installed. When set, `graphite_available` is forced to `false` and Step 8 uses the plain-git assembly path. |
-| `--auto-pr` | Flag | false | Only meaningful in plain-git mode. When set **and** `gh` is detected, the orchestrator runs `gh pr create --base <stack-parent-branch> --head <branch> --fill --draft` for each branch in stack order, where `<stack-parent-branch>` is defined in the Two Assembly Modes section above. When unset, the orchestrator only prints compare URLs / suggested commands. Ignored in Graphite mode (where `gt submit --stack` always opens PRs). |
 
-Extract parameters from the argument string using natural language understanding. If `--effort` is not present or out of range (1-5), default to 1. If `--concurrency` is not present or out of range (1-8), default to 8. If `--instructions` is present, extract the quoted string value after it. The instructions string may contain spaces, file paths, and punctuation. If `--instructions` is not present, default to "". `--no-graphite` and `--auto-pr` are boolean flags (presence = true).
+**All other parameters are automatic — no user input needed:**
+
+| Parameter | Default | Behavior |
+|-----------|---------|----------|
+| `concurrency` | 8 (max) | All independent tasks run in parallel. Never throttled. |
+| `squash_final` | **true** | After all PRs complete + pass per-PR review, all modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is pushed to `main`. See the Squash-Final path in [`references/stack-assembly.md`](references/stack-assembly.md). |
+| `auto_pr` | **true** | When `gh` is available and the remote is GitHub, the orchestrator automatically runs `gh pr create` for the final PR (squash-final mode) or for each branch in the stack (normal mode). No manual PR creation needed. |
+| `graphite` | auto-detect | If `gt` is installed and no explicit override is set, Graphite mode is used. Otherwise plain-git mode. `squash_final` forces plain-git mode. |
+| `dry_run` | false | Full execution. Set to true only when the user explicitly asks for a dry run. |
+| `instructions` | "" | No extra instructions by default. |
+
+Extract `--effort` and `--resume` from the argument string. If `--effort` is not present or out of range (1-5), default to 1. `--resume` skips Setup and jumps to Step 7.
 
 **If `--resume <PLAN_ID>` is specified**, skip Setup and jump to Step 7 (Resumption).
 
@@ -138,9 +144,9 @@ See [`references/step-7-resumption.md`](references/step-7-resumption.md).
 
 ## Step 8: Stack Assembly
 
-After **all** PRs in the linearized order are either `"completed"` or `"failed"`/`"skipped"`, and at least one PR completed successfully, assemble the stack. The exact mechanism branches on `graphite_available` (Graphite mode via `gt create` + `gt submit --stack`, or plain-git mode via chained branches + `git push --force-with-lease`).
+After **all** PRs in the linearized order are either `"completed"` or `"failed"`/`"skipped"`, and at least one PR completed successfully, assemble the stack. The default path is **squash-final**: all completed modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is opened. If `--squash-final` is explicitly disabled, the normal stack assembly runs instead (Graphite mode via `gt create` + `gt submit --stack`, or plain-git mode via chained branches + `git push --force-with-lease`).
 
-Read [`references/stack-assembly.md`](references/stack-assembly.md) for the full Step 8a/8b procedure — branch-per-PR assembly in both modes, cherry-pick conflict resolution, `--auto-pr` / compare-URL collection, and `pr_urls` / `pr_create_commands` / `graphite_stack_submitted` state semantics.
+Read [`references/stack-assembly.md`](references/stack-assembly.md) for the full Step 8a/8b procedure (normal path) **and** the Steps 8.1–8.5 procedure (squash-final path).
 
 ## Step 9: Cleanup
 

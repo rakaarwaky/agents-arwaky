@@ -106,7 +106,7 @@ Then mark the PR `"failed"`, cascade-skip its dependents, and **do not advance `
 
 **Push failure handling:** If `git push --force-with-lease` fails, retry once after a 5-second pause. If the retry also fails, mark the PR `"failed"`, cascade-skip dependents, and **do not advance `parent_branch`**.
 
-**No equivalent of `gt submit`:** PRs are not auto-created by default. After the loop completes, jump to Step 8b (plain-git mode) for URL collection / optional `--auto-pr`.
+**No equivalent of `gt submit`:** Since `auto_pr` is **true by default**, the orchestrator auto-creates PRs via `gh pr create` (draft) in Step 8b when `gh` is available and the remote is GitHub. When `gh` is unavailable or the remote is not GitHub, it falls back to printing compare URLs / copy-paste `gh pr create` commands.
 
 Update `stack_assembly_started` to `true` (already done) but **do not** set `graphite_stack_submitted` in this mode yet — in plain-git mode it is reused as a generic "Step 8b finished" sentinel.
 
@@ -122,9 +122,11 @@ Parse the output to extract PR URLs for each branch. Store in `pr_urls` in the s
 
 Report: `"Stack submitted: <N> PRs. URLs: [...]"`
 
-## Step 8b (plain-git mode): Collect PR URLs
+## Step 8b (plain-git mode): Collect PR URLs / Create PRs
 
-After all branches are pushed, derive a GitHub-style compare URL for each branch in stack order:
+After all branches are pushed in Step 8a (plain-git mode), collect PR URLs. Since `auto_pr` is **true by default**, the orchestrator auto-creates PRs via `gh` whenever it is available; it only falls back to printing compare URLs when `gh` is unavailable or the remote is not GitHub.
+
+**Derive the remote host/owner/repo once:**
 
 ```bash
 remote_url=$(git config --get remote.origin.url)
@@ -159,7 +161,7 @@ where `<parent_branch>` is the branch immediately below this PR in the stack (or
 }
 ```
 
-**If `auto_pr_flag == true` AND `gh_available == true` AND host is GitHub/GHE:** create draft PRs by invoking `gh` in stack order:
+**Auto-PR (default on):** `gh_available == true` AND host is GitHub/GHE → create draft PRs by invoking `gh` in stack order:
 
 ```bash
 gh pr create --base "<parent_branch>" --head "<pr.branch>" --fill --draft
@@ -167,7 +169,7 @@ gh pr create --base "<parent_branch>" --head "<pr.branch>" --fill --draft
 
 Capture stdout (the PR URL) and append an entry with `kind: "pr"`. If `gh pr create` fails for a single branch, append an entry with `kind: "compare"` and the synthesized compare URL instead, and continue. Sequential — never parallel.
 
-**Otherwise:** populate every entry with `kind: "compare"` and the synthesized compare URL. Also build `gh pr create ...` copy/paste commands, one per PR in stack order, stored as `pr_create_commands` in the state file.
+**Fallback (no `gh`, or non-GitHub):** populate every entry with `kind: "compare"` and the synthesized compare URL. Also build `gh pr create ...` copy/paste commands, one per PR in stack order, stored as `pr_create_commands` in the state file.
 
 Persist the state file. Set `graphite_stack_submitted = true` (generic "Step 8b finished" sentinel).
 
@@ -176,3 +178,169 @@ Report variants:
 - All `kind: "compare"`: `"Stack pushed: <N> branches. Open these compare URLs ... to open PRs: [...]"`
 - Mixed: `"Stack pushed: <N> branches. <X> PRs were created via gh, <Y> need to be opened manually..."`
 - Any `kind: "pushed-only"`: `"Stack pushed: <N> branches to non-GitHub remote. Open PRs via your forge UI."`
+
+---
+
+## Squash-Final Path (Default On)
+
+**This is the default assembly path.** `squash_final` is `true` unless explicitly disabled in the state file. When active, the normal stack assembly (Steps 8a/8b above) is skipped; instead, all completed modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is opened.
+
+Set `graphite_available = false` when squash-final is active (squash-final is plain-git-only).
+
+**Fallback:** if the final review loop (Step 8.2) fails to reach 0 open issues within 4 rounds, do **not** abort. Fall back to the normal stack assembly (Steps 8a/8b plain-git) so the run still produces PRs — one per modular branch. The fallback keeps the per-PR branches (do not delete them) and produces N PRs instead of 1.
+
+**Precondition:** at least one PR is `"completed"`. If all PRs are `"failed"`/`"skipped"`, report an error and stop — there is nothing to merge.
+
+**State updates before beginning:** set `squash_final_active = true` and `stack_assembly_started = true` in the state file.
+
+---
+
+### Step 8.1: Build the Final Branch (Sequential Merges)
+
+Create one new branch off `main` and sequentially merge each completed modular branch onto it in `linearized_order`. This is a plain `git merge` (no cherry-pick) — each modular branch was already built on top of its dependencies in the execution loop, so the merges should be fast-forwards or clean three-way merges.
+
+```bash
+git fetch origin main
+git checkout main
+git reset --hard origin/main
+
+FINAL_BRANCH="execute-plan/${PLAN_ID}-final"
+git checkout -B "$FINAL_BRANCH" main
+
+for pr in <completed PRs in linearized_order>:
+    # Tear down this PR's Orca worktree first (Rule 3 — free the branch ref).
+    if [ -n "<pr.orca_worktree_id>" ]; then
+        orca-ide worktree rm --worktree "<pr.orca_worktree_id>" --force --json || true
+        pr.worktree_cleaned = true
+    fi
+    git merge <pr.branch> --no-edit
+```
+
+**Conflict handling:** if a `git merge` produces a conflict, resolve it directly (read the conflicting files, combine both sides' intent, remove all conflict markers, `git add`, `git commit`). If a merge is truly unresolvable, abort with `git merge --abort`, mark that PR `"failed"`, and continue merging the remaining completed PRs. If no completed PRs remain after conflicts, fall back to normal stack assembly (Steps 8a/8b plain-git).
+
+**Why sequential merges and not cherry-pick:** the modular branches were built as a dependency chain (each branch's base is its dependency's commit). Merging them in `linearized_order` replays the same topology. Each merge commit records which modular branch it absorbed, preserving traceability back to the per-PR review history.
+
+After the loop, record:
+- `final_branch = "execute-plan/${PLAN_ID}-final"` in the state file.
+- `final_commit_sha = $(git rev-parse HEAD)` in the state file.
+
+### Step 8.2: Final Review
+
+Run one orchestrator-level review on the final branch, targeting the **full diff** (`main..final_commit_sha`). This is a separate review from the per-PR reviews — it checks the combined result for issues that only appear when modules interact.
+
+**Create a final worktree for the reviewer:**
+
+```bash
+orca-ide worktree create \
+  --repo path:<main_clone_path> \
+  --name <PLAN_ID>-final \
+  --base-branch <final_branch> \
+  --no-parent \
+  --json
+```
+
+Record `final_orca_worktree_id` and `final_worktree_path` in the state file.
+
+**Launch reviewers (parallel):** use the same reviewer composition logic as Step 5.0, but scoped to the **full final diff** instead of a single PR. At minimum: 1 general reviewer + 1 simplicity reviewer. If `effort >= 2`, add security, tests, and plan-alignment specialists as appropriate for the combined scope.
+
+Each reviewer writes to its own individual review file:
+- `${scratch_dir}/grok-exec-review-${PLAN_ID}-final-general.md`
+- `${scratch_dir}/grok-exec-review-${PLAN_ID}-final-simplicity.md`
+- (plus specialist files as allocated)
+
+**Merge:** read all individual review files and merge into `${scratch_dir}/grok-exec-review-${PLAN_ID}-final.md` with source tags (`[General]`, `[Simplicity]`, …), same as Step 5b.
+
+**Fix loop:** if any open issues, spawn a fixer subagent in `final_worktree_path` (seeded with the implementer persona + the merged review file). After the fix, re-review (resume the reviewers in parallel). Loop until **all** final reviewers report 0 open issues. Track `final_review_rounds` in the state file.
+
+**On success** (0 open issues): record `final_review_passed = true` in the state file.
+
+**On failure** (fix loop exceeds 4 rounds, or a primary general reviewer fails and cannot be resumed): fall back to normal stack assembly (Steps 8a/8b plain-git). Do **not** delete modular branches, do **not** push the final branch. Set `final_review_passed = false`.
+
+### Step 8.3: Delete Modular Branches
+
+If `final_review_passed == true`, delete all modular branches, keeping only the final branch and `main`.
+
+```bash
+for pr in <all PRs in dag.nodes>:
+    git branch -D <pr.branch>
+```
+
+The Orca worktrees for the modular PRs were already torn down in Step 8.1 (Rule 3). This step only removes the local branch refs. The commits are still reachable via the final branch's merge history.
+
+Update the state file: `modular_branches_deleted = true`.
+
+### Step 8.4: Push the Final PR
+
+Push the final branch and open a single PR to `main`.
+
+```bash
+git push --force-with-lease origin <final_branch>
+```
+
+**Auto-PR (default on):** `gh` is available and the remote is GitHub:
+```bash
+gh pr create --base main --head <final_branch> --fill --draft
+```
+Capture the PR URL. Store in `pr_urls` as a single entry: `{branch: <final_branch>, url: "<pr_url>", kind: "pr"}`.
+
+**Fallback (no `gh`, or non-GitHub):**
+Derive the compare URL:
+```
+https://<host>/<owner>/<repo>/compare/main...<final_branch>?expand=1
+```
+Store in `pr_urls` as `{branch: <final_branch>, url: "<compare_url>", kind: "compare"}`.
+Also store a copy/paste-ready `gh pr create --base main --head <final_branch> --fill --draft` in `pr_create_commands`.
+
+Set `graphite_stack_submitted = true` (reused as the generic "assembly finished" sentinel).
+
+Report:
+- `kind: "pr"`: `"Final PR created: <url> — <N> modular branches merged and deleted. Monitor this single PR."`
+- `kind: "compare"`: `"Final branch pushed: <final_branch>. Open this compare URL to create the PR: <url>"`
+
+### Step 8.5: Final Worktree Teardown (Post-Merge)
+
+The final worktree (`final_orca_worktree_id`) is **not** torn down here. The skill does not wait for the PR to merge to `main` (that requires CI + approval, which can take hours). The skill completes after Step 8.4.
+
+**Documented post-merge step (user or CI automation):**
+After the final PR is merged to `main`, run:
+```bash
+orca-ide worktree rm --worktree <final_orca_worktree_id> --force --json
+```
+This is listed in the final report as a manual follow-up action.
+
+Update the state file: `final_worktree_retired = false` (to be set `true` when the post-merge step completes).
+
+---
+
+## State Fields Added for Squash-Final Mode
+
+The following fields are added to the state file when squash-final is active:
+
+```json
+{
+  "squash_final_active": true,
+  "final_branch": "execute-plan/<PLAN_ID>-final",
+  "final_commit_sha": null,
+  "final_orca_worktree_id": null,
+  "final_worktree_path": null,
+  "final_review_rounds": 0,
+  "final_review_passed": false,
+  "modular_branches_deleted": false,
+  "final_worktree_retired": false
+}
+```
+
+- `final_commit_sha`, `final_orca_worktree_id`, `final_worktree_path` are populated in Steps 8.1/8.2.
+- `final_review_passed` is set `true` when the final review loop reaches 0 open issues.
+- `modular_branches_deleted` is set `true` after Step 8.3.
+- `final_worktree_retired` stays `false` at skill completion; the user (or CI) sets it after the post-merge teardown in Step 8.5.
+
+## Resumption with Squash-Final
+
+When `--resume <PLAN_ID>` is used on a squash-final run, Step 7 evaluates the final-branch state in addition to the per-PR states:
+
+- If `final_review_passed == false` and the final worktree still exists: resume the final review/fix loop from where it left off.
+- If `final_review_passed == true` and `modular_branches_deleted == false`: re-run Step 8.3 (delete modular branches), then Step 8.4 (push PR).
+- If `modular_branches_deleted == true` and `final_worktree_retired == false`: the PR was already pushed. The only remaining action is the post-merge worktree teardown (Step 8.5).
+- If `final_review_passed == false` and the final worktree is gone (crashed mid-Step 8.2): tear down any orphan final worktree, reset `final_review_passed`, and re-run from Step 8.1 (rebuild the final branch from the modular branches — they still exist because Step 8.3 has not run yet).
+- If the run fell back to normal stack assembly (`final_review_passed == false`, `modular_branches_deleted == false`, but `graphite_stack_submitted == true`): the fallback already produced PRs; nothing more to do.
