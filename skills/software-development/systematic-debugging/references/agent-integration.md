@@ -17,7 +17,7 @@ For complex multi-component debugging, dispatch investigation subagents in paral
 - Goal: "Investigate why [specific test/behavior] fails"
 - Context: error, file, test command; instruct: read error, reproduce, trace data flow, report findings — do NOT fix yet.
 
-## With test-driven-development (now Phase 4)
+## With the TDD phase (Phase 4)
 
 Bug found? Write a failing test reproducing it, then follow the Phase 4 cycle.
 The test proves the fix and prevents regression. Never fix bugs without a test.

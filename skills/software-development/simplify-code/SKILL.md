@@ -14,7 +14,7 @@ metadata:
     - simplify
   related_skills:
     - requesting-code-review
-    - test-driven-development
+    - systematic-debugging
     - hermes-plan
 ---
 
