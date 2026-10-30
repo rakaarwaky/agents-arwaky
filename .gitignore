@@ -49,11 +49,14 @@ tools/anytype-mcp/daemon/anytype
 config/*/env
 config/*/.env
 config/omniroute.env
+config/ninerouter.env
+config/ninerouter.providers.json
 config/anytype.env
 # salinan LOCAL bersih dari config live sering tercopy ke *.example.json dengan
 # token asli (OAuth/refresh/API key). File *.example.json HARUS placeholder saja;
 # un-ignore satu-satu supaya file example baru tidak lolos default.
 config/*.example.json
+!config/ninerouter.providers.example.json
 
 # Windows OS files
 Thumbs.db
