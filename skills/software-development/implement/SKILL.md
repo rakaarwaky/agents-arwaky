@@ -2,7 +2,7 @@
 name: implement
 description: Run the parallel-first implement-review-fix loop using implementer and reviewer personas; independent reviewer launches and fixes are fanned out together. Supports effort-based multi-reviewer scaling (2 to 7 reviewers) with automatic specialization selection and Orca worktree isolation under the owning project. Includes memory-based feedback loop that learns from past review patterns. Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement, fix Orca worktree project routing.
 when-to-use: Use when asked to implement, build, add a feature, fix a bug, or via the /implement slash command.
-argument-hint: "[--effort N] <description of what to implement>"
+argument-hint: "<task-description> [--effort N]"
 disable-model-invocation: true
 ---
 
@@ -36,6 +36,7 @@ This skill is parallel-first. Every independent subagent launch, reviewer launch
 - `rereview-round-1` — Step 5 (resume reviewers) + Step 3 (merge & check)
 - (repeat `fix-round-N` + `rereview-round-N` as needed)
 - `memory-flush` — Step 6
+- `stack-assembly` — Step 8 (squash-final: merge modular branches onto final branch, final review, delete modular branches, push 1 PR to main)
 - `final-report` — Final report message
 
 Mark exactly one `in_progress` at a time. As you enter a new round, append the two new ids (`fix-round-N`, `rereview-round-N`) via `merge: true`. A `review-round-N` that produces 0 open issues skips directly to `memory-flush`; mark intermediate `fix-round-N` / `rereview-round-N` ids as `cancelled` with reason "0 open issues this round" only if you created them.
@@ -86,6 +87,14 @@ The `effort` parameter is an optional integer, 1–5 (default: 1). It controls h
 
 Extract the effort level from the argument string using natural language understanding. Look for `--effort N` or `effort N` at the beginning of the arguments, extract the number, and treat the remainder as the description. If `--effort` is not present, or the value is out of range, default to 1.
 
+**All other parameters are automatic — no user input needed:**
+
+| Parameter | Default | Behavior |
+|-----------|---------|----------|
+| `concurrency` | 8 (max) | All independent modular worktrees/subagents run in parallel. Never throttled. |
+| `squash_final` | **true** | After all modular work completes and passes per-worktree review, all modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is pushed to `main`. See Step 8 (Stack Assembly) and [`references/stack-assembly.md`](references/stack-assembly.md). |
+| `auto_pr` | **true** | When `gh` is available and the remote is GitHub, the orchestrator automatically runs `gh pr create` for the final PR. No manual PR creation needed. |
+
 ## Setup
 
 See [`references/setup.md`](references/setup.md).
@@ -134,6 +143,12 @@ See [`references/exit-condition.md`](references/exit-condition.md).
 
 See [`references/step-6-memory-flush.md`](references/step-6-memory-flush.md).
 
+## Step 8: Stack Assembly (Squash-Final Path)
+
+After the review loop reaches 0 open issues and memory is flushed, assemble the modular work into a single final PR. The default path is **squash-final**: all completed modular branches are merged onto one final branch, a final review runs on the combined diff, modular branches are deleted, and a single PR is pushed to `main`. If `squash_final` is explicitly disabled, the modular branches are pushed as-is (one branch per modular unit, no final merge).
+
+See [`references/stack-assembly.md`](references/stack-assembly.md).
+
 ## Cleanup
 
 See [`references/cleanup.md`](references/cleanup.md).
@@ -149,3 +164,7 @@ See [`references/in-progress-reporting.md`](references/in-progress-reporting.md)
 ## Rules
 
 See [`references/rules.md`](references/rules.md).
+
+## Safety Guardrails
+
+See [`references/safety-guardrails.md`](references/safety-guardrails.md).

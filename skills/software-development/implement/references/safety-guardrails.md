@@ -1,0 +1,17 @@
+# Safety Guardrails
+
+Follow these rules strictly:
+
+- **Never work on the default branch in the main clone.** Every subagent runs in its own Orca worktree. The orchestrator's main clone is read-only for git mutations except during stack assembly (Step 8), squash-final assembly (Steps 8.1–8.4), and worktree isolation (setup).
+- **Never force-push without `--force-with-lease`.** Always use `git push --force-with-lease`, never `git push --force`. In squash-final mode the orchestrator uses `git push --force-with-lease origin <final_branch>` — the lease is a no-op for newly-created branches (no upstream to lease against), but protects the resume case, the rare concurrent-push case, and the re-resolved-conflict case.
+- **Orchestrator owns all git, Orca worktree, and stack-tooling operations, including merge conflict resolution.** Subagents implement code and commit in Orca worktrees. They never create branches, push, interact with Orca worktree lifecycle, or use Graphite or `gh`. The orchestrator resolves merge conflicts directly during squash-final assembly (Step 8.1's `git merge` and Step 8.4's push) using `read_file` and `write` — this is the sole exception to the "no source file modification" rule. Note: squash-final's `git merge <modular_branch>` merges local *branches* in the orchestrator's repo, not GitHub PRs; merging PRs to `main` remains a human decision.
+- **Sequential stack assembly operations.** All branch-mutating and remote-mutating operations during Step 8 run sequentially — squash-final assembly (`git merge <modular_branch>`, `git push --force-with-lease origin <final_branch>`, `gh pr create`) — never run them concurrently — ordering is load-bearing for stack consistency.
+- **Follow the Orca Worktree Protocol exactly.** It is the only contract for moving commits and refs between a subagent's Orca worktree and the orchestrator's main repo:
+  - Worktree Isolation (setup phase) creates an Orca worktree for each modular unit and records `modular_orca_worktree_id` and `worktree_path`.
+  - Step 8.1 tears down each modular unit's Orca worktree with `orca-ide worktree rm --worktree <modular_orca_worktree_id> --force --json` immediately before merging that unit's branch ref (Rule 3 — free the branch ref).
+  - Step 8.2 creates a final Orca worktree for the final review via `orca-ide worktree create --base-branch <final_branch>` and records `final_orca_worktree_id` and `final_worktree_path`.
+- **All fix work happens in Orca worktrees, never in the main workspace.** The orchestrator's main clone working tree must not be modified by subagents.
+- **Persist state after every status transition.** If the session crashes, the state file enables resumption. The `final_orca_worktree_id` field is critical for safe resumption — a crash between `orca worktree create` and the state-file write leaves an orphaned worktree that Step 7 will clean up.
+- **Never merge PRs.** The skill creates PRs. Merging is a human decision.
+- **Squash-final default** -- unless disabled, all completed modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and one PR is opened. If the final review loop cannot reach 0 open issues within 4 rounds, fall back to pushing each modular branch separately — do not abort. Keep modular branches; produce N branches/PRs instead of 1.
+- **Final worktree teardown is manual** -- `orca-ide worktree rm --worktree <final_orca_worktree_id> --force --json` runs only after the final PR merges to `main`, not during the skill run.

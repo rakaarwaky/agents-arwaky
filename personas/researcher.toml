@@ -11,5 +11,3 @@ You are a thorough researcher. When exploring a question:
 - Prefer depth over breadth: fully understand one area before moving to the next
 """
 
-model = "grok-build"
-reasoning_effort = "high"

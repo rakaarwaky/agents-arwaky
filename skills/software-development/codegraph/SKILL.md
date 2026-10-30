@@ -84,5 +84,6 @@ matching file — do not guess at these procedures:
 
 | Reference | Read it when |
 |---|---|
+| [`references/install-and-setup.md`](references/install-and-setup.md) | Installing the CLI (GitHub repo / npm), wiring up agents, initializing project indexes, and uninstalling. |
 | [`references/add-language.md`](references/add-language.md) | Adding/supporting a new tree-sitter language end-to-end: grammar health-check, AST node discovery, the 4-file wiring, extraction verify loop, tests, then benchmarking on 3 real repos. |
 | [`references/evaluating.md`](references/evaluating.md) | Benchmarking/auditing retrieval quality: a with-vs-without-codegraph A/B on a real repo for a chosen codegraph version (local dev build or published npm). |
