@@ -28,7 +28,7 @@ _SERVICE_OPS: dict[str, str] = {
 
 
 def cmd_service(args: list[str], orch: IServiceAggregate) -> int:
-    """aa service <status|start|stop|restart|logs> [omniroute|anytype|all]."""
+    """aa service <status|start|stop|restart|logs> [omniroute|9router|anytype|all]."""
     if not args or args[0] in ("help", "-h", "--help"):
         return int(orch.execute(ServiceRequest(ServiceOp("help"))))
     action = args[0]

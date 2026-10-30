@@ -54,7 +54,11 @@ class HarnessConfig(HarnessVo):
 
 @dataclass(frozen=True)
 class RouterCredentials(HarnessVo):
-    """Resolved gateway endpoint + key (secret referenced, never persisted)."""
+    """Resolved gateway endpoint + key (secret referenced, never persisted).
+
+    One instance per gateway: the OmniRoute primary resolves the
+    ``OMNIROUTE_*`` pair, the 9router secondary the ``NINEROUTER_*`` pair.
+    """
 
     url: str
     key: str

@@ -17,6 +17,13 @@ ROOT = REPO_ROOT
 #: systemd user unit directory shared by the host-native daemons.
 UNIT_DIR = config_home() / "systemd/user"
 
+#: 9router gateway listen port (env-overridable).
+NINEROUTER_PORT = os.environ.get("NINEROUTER_PORT", "20128")
+#: 9router XDG data root.
+NINEROUTER_DATA_DIR = data_home() / "9router"
+#: systemd user unit directory and 9router unit path.
+NINEROUTER_UNIT_FILE = UNIT_DIR / "9router.service"
+
 #: Anytype container data volume, mounted at /data by the compose unit.
 DATA_DIR = data_home() / "anytype"
 
@@ -87,6 +94,9 @@ __all__ = [
     "DOT_ANYTYPE",
     "IMAGE_NAME",
     "LOCAL_BIN",
+    "NINEROUTER_DATA_DIR",
+    "NINEROUTER_PORT",
+    "NINEROUTER_UNIT_FILE",
     "OMNIROUTE_CONFIG_DIR",
     "OMNIROUTE_DATA_DIR",
     "OMNIROUTE_ENV_FILE",

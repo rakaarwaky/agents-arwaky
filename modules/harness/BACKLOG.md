@@ -58,7 +58,8 @@ registry and has not been expanded with unsupported adapters.
 ## Dependencies
 
 Skill provisioning depends on the readable `skills/` pack. Router wiring
-uses the OmniRoute endpoint resolver.
+uses the OmniRoute endpoint resolver for the primary binding and the 9router
+endpoint resolver for the secondary binding.
 
 ## Release Readiness
 

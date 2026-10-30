@@ -7,13 +7,15 @@
 
 ## System Overview
 
-The daemon feature manages two gateway daemons: OmniRoute (host-native, no
-container) and Anytype headless (Podman when available, native fallback
-otherwise). `IDaemonProtocol` exposes typed lifecycle and unit operations;
+The daemon feature manages three gateway daemons: OmniRoute (host-native, no
+container), 9router (host-native, no container), and Anytype headless (Podman
+when available, native fallback otherwise). `IDaemonProtocol` exposes typed
+lifecycle and unit operations;
 Anytype authorization is provided by the Anytype manager command.
 `IDaemonAggregate.execute(request)` routes shared operations by
 daemon id, while `DaemonOrchestrator.known()` enumerates the supported ids.
-Flow: `aa anytype <action>` / `aa omniroute <action>` → daemon surface →
+Flow: `aa anytype <action>` / `aa omniroute <action>` / `aa 9router <action>`
+→ daemon surface →
 manager or aggregate → systemd / Podman / host process. Deploy assets hold the
 systemd units and container definition; live Anytype credentials are stored
 under the orchestrator's XDG config directory. The service feature delegates
@@ -25,13 +27,13 @@ maintaining a separate daemon implementation.
 ### FR-DAEMON-001: Manage daemon lifecycle
 
 - **Description**: start, stop, restart, report status, and show logs for
-  Anytype or OmniRoute through the daemon manager and aggregate.
-- **Input**: canonical daemon id (`anytype` or `omniroute`) and lifecycle
-  operation.
+  Anytype, OmniRoute, or 9router through the daemon manager and aggregate.
+- **Input**: canonical daemon id (`anytype`, `omniroute`, or `9router`) and
+  lifecycle operation.
 - **Output**: operation exit code or a typed status snapshot.
 - **Business Rules**: starting an already-running daemon is an idempotent
   success; Anytype uses Podman when available and falls back to its native
-  executable when appropriate; OmniRoute remains host-native.
+  executable when appropriate; OmniRoute and 9router remain host-native.
 - **Edge Cases**: missing runtimes or binaries return a clear non-zero
   result; status can report stopped or not found without crashing.
 - **Error Handling**: process and runtime errors are returned as reported
@@ -56,13 +58,38 @@ maintaining a separate daemon implementation.
 
 - **Description**: expose the set of daemon ids accepted by the aggregate.
 - **Input**: none.
-- **Output**: the canonical ids `anytype` and `omniroute`.
+- **Output**: the canonical ids `anytype`, `omniroute`, and `9router`.
 - **Business Rules**: enumeration is read-only and independent of whether
-  either daemon is running or installed; the listed ids are the routing
+  any daemon is running or installed; the listed ids are the routing
   aggregate's source of truth.
 - **Edge Cases**: an unknown id is rejected at the routing call without a
   traceback; stopped daemons remain in the enumeration.
 - **Error Handling**: enumeration has no process or filesystem side effects.
+
+### FR-DAEMON-005: Migrate OmniRoute credentials into 9router
+
+- **Description**: import OmniRoute ``provider_connections`` (read-only) into
+  9router's ``providerConnections`` table, decrypting stored credentials and
+  mapping each row into 9router's payload shape. Exposed as
+  ``aa 9router import-omniroute [--dry-run] [--provider <name>]...``.
+- **Input**: optional ``--dry-run`` flag and zero or more ``--provider``
+  filters; OmniRoute DB at ``~/.omniroute/storage.sqlite`` (read-only source);
+  9router DB at ``~/.9router/db/data.sqlite`` (destination).
+- **Output**: an import plan (total / apikey / oauth / decrypt-failures /
+  would-import / would-skip-existing) plus masked stdout; on the real run,
+  UPSERT counts (imported / skipped / errors).
+- **Business Rules**: OmniRoute is opened strictly read-only (``mode=ro`` URI);
+  no decrypted plaintext credential is ever logged or printed; the secret is
+  resolved from ``STORAGE_ENCRYPTION_KEY`` env or ``~/.omniroute/.env``;
+  existing 9router ids and apiKey business keys are deduped as
+  ``skipped-existing``; OAuth rows whose secrets fail decryption are reported
+  as decrypt-failures but still imported without empty tokens; OmniRoute
+  combos are out of scope; ``--dry-run`` performs zero writes anywhere.
+- **Edge Cases**: undecryptable ciphertext counts as a decrypt-failure and
+  keeps the import going; missing secret yields ``None`` for encrypted fields
+  without raising; unknown CLI arguments return exit code 2.
+- **Error Handling**: a single row write failure never aborts the batch;
+  crypto failures degrade to ``None``; missing DB files degrade gracefully.
 
 ### FR-DAEMON-004: Manage systemd user units
 
@@ -104,10 +131,10 @@ maintaining a separate daemon implementation.
 
 | System | Direction | Purpose | Failure mode |
 | -------- | --------- | --------- | ------------ |
-| Podman | out | run the Anytype container (OmniRoute is host-native) | podman missing → native fallback or non-zero |
+| Podman | out | run the Anytype container (OmniRoute and 9router are host-native) | podman missing → native fallback or non-zero |
 | systemd user units + deploy assets | out | install, remove, and query per-daemon user units | systemctl or unit missing → non-zero |
 | XDG config (per-daemon env) | in | secrets and endpoints for auth flows | missing key → auth pre-condition failure |
-| root CLI (`aa anytype` / `aa omniroute`) | in | routes CLI verbs to the daemon capability | unknown verb → usage + non-zero |
+| root CLI (`aa anytype` / `aa omniroute` / `aa 9router`) | in | routes CLI verbs to the daemon capability | unknown verb → usage + non-zero |
 | service feature | in | delegates per-daemon lifecycle, status, and logs to the daemon aggregate | integration unavailable → non-zero |
 
 ## Non-functional Requirements
@@ -125,24 +152,24 @@ maintaining a separate daemon implementation.
 - Starting a daemon on a host without Podman falls back to native execution or reports a clear non-zero error with no traceback.
 - `auth-key` writes the generated key to XDG config only; the repo tree stays clean after the run.
 - `auth-key` while the daemon is stopped reports the pre-condition and exits non-zero instead of crashing.
-- `list_known` returns both managed daemon ids (anytype and omniroute) independent of run state.
-- Enumerating daemons on a host where neither daemon is running still reports both ids.
+- `list_known` returns all managed daemon ids (anytype, omniroute, and 9router) independent of run state.
+- Enumerating daemons on a host where no daemon is running still reports every id.
 - `install_unit` for a daemon enables its user unit and a following `unit_status` reports it active.
 - `remove_unit` deletes a daemon's user unit so a following `unit_status` reports it not installed.
 
 ## Assumptions & Constraints
 
-- Only Anytype is containerized (Podman); OmniRoute is host-native — the
-  container-isolation invariant is unchanged.
+- Only Anytype is containerized (Podman); OmniRoute and 9router are
+  host-native — the container-isolation invariant is unchanged.
 - Secrets live in XDG config, referenced by name, never committed.
 - systemd unit operations stay in this feature's aggregate; the service
   feature integrates rather than duplicating unit code.
 
 ## Glossary
 
-- **daemon**: a managed gateway service — Anytype headless (Podman) or
-  OmniRoute (host-native).
-- **daemon id**: the canonical routing token (`anytype`, `omniroute`).
+- **daemon**: a managed gateway service — Anytype headless (Podman),
+  OmniRoute (host-native), or 9router (host-native).
+- **daemon id**: the canonical routing token (`anytype`, `omniroute`, `9router`).
 - **DaemonStatus**: a snapshot — running / stopped / unknown plus API
   readiness.
 - **unit**: a systemd user service installed from this feature's deploy

@@ -13,12 +13,14 @@ def test_import_daemon_module():
 def test_import_daemon_capabilities():
     """SM-DAEMON-002: daemon capability modules can be imported."""
     from modules.daemon.src import (
+        capabilities_9router_daemon,
         capabilities_anytype_daemon,
         capabilities_omniroute_daemon,
     )
 
     assert capabilities_anytype_daemon is not None
     assert capabilities_omniroute_daemon is not None
+    assert capabilities_9router_daemon is not None
 
 
 def test_import_daemon_orchestrator():
@@ -83,6 +85,17 @@ def test_omniroute_manager_instantiates():
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
     assert repr(manager) == "OmnirouteDaemonManager()"
 
+
+def test_ninerouter_manager_instantiates():
+    """SM-DAEMON-009b: NinerouterDaemonManager instantiates quickly."""
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+
+    start = time.time()
+    manager = NinerouterDaemonManager()
+    elapsed = time.time() - start
+
+    assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
+    assert repr(manager) == "NinerouterDaemonManager()"
 
 def test_orchestrator_instantiates():
     """SM-DAEMON-010: DaemonOrchestrator instantiates quickly."""

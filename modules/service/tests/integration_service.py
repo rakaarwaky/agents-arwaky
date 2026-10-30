@@ -34,9 +34,12 @@ def test_service_manager_execution():
     with patch.object(usd, "_DAEMON_AGGREGATE", mock_agg):
         result = inspect_cap.status()
         assert result is not None
-        assert mock_agg.execute.call_count == 2
+        assert mock_agg.execute.call_count == 3
         mock_agg.execute.assert_any_call(
             DaemonRequest(DaemonOp("status"), name=DaemonName("omniroute"))
+        )
+        mock_agg.execute.assert_any_call(
+            DaemonRequest(DaemonOp("status"), name=DaemonName("9router"))
         )
         mock_agg.execute.assert_any_call(
             DaemonRequest(DaemonOp("status"), name=DaemonName("anytype"))
@@ -79,6 +82,7 @@ def test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate(capsys
     requested = {(str(request.op), str(request.name)) for request in requests}
     for op in ("start", "stop", "restart", "status"):
         assert (op, "omniroute") in requested
+        assert (op, "9router") in requested
         assert (op, "anytype") in requested
     assert ("logs", "anytype") in requested
     assert all(isinstance(request, DaemonRequest) for request in requests)
@@ -105,3 +109,52 @@ def test_service_container_creation():
     container = ServiceContainer()
     aggregate = container.aggregate
     assert aggregate is not None
+def test_service_container_wires_both_gateways():
+    """IT-SERVICE-004: ServiceContainer routes 9router and omniroute units apart."""
+    from unittest.mock import patch
+
+    from modules.service.src.root_service_container import ServiceContainer
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
+        DaemonOp,
+        DaemonRequest,
+        DaemonUnit,
+        ExitCode,
+    )
+
+    container = ServiceContainer()
+    daemons = container._daemons
+    with patch.object(daemons._managers["9router"], "unit_status", return_value=ExitCode(0)) as nine, \
+            patch.object(daemons._managers["omniroute"], "unit_status", return_value=ExitCode(0)) as omni:
+        daemons.execute(
+            DaemonRequest(DaemonOp("unit_status"), unit=DaemonUnit("9router.service"))
+        )
+        daemons.execute(
+            DaemonRequest(DaemonOp("unit_status"), unit=DaemonUnit("omniroute.service"))
+        )
+        nine.assert_called_once_with(DaemonUnit("9router.service"))
+        omni.assert_called_once_with(DaemonUnit("omniroute.service"))
+
+def test_service_target_9router_resolves_to_the_gateway():
+    """IT-SERVICE-005: ServiceTarget('9router') drives only the 9router daemon."""
+    from unittest.mock import MagicMock
+
+    from modules.service.src.capabilities_service_manager import ServiceControl
+    from modules.shared.src.daemon.taxonomy_daemon_vo import (
+        DaemonOutcome,
+        DaemonRequest,
+    )
+    from modules.shared.src.service.taxonomy_service_vo import (
+        TARGET_9ROUTER,
+        ServiceTarget,
+    )
+
+    aggregate = MagicMock()
+    aggregate.execute.return_value = DaemonOutcome(success=True, exit_code=0)
+    control = ServiceControl(aggregate)
+
+    assert control.restart(ServiceTarget(str(TARGET_9ROUTER))) == 0
+
+    requests = [call.args[0] for call in aggregate.execute.call_args_list]
+    assert all(isinstance(request, DaemonRequest) for request in requests)
+    assert [str(request.name) for request in requests] == ["9router"]
+    assert [str(request.op) for request in requests] == ["restart"]

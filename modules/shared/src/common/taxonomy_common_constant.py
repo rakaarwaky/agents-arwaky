@@ -37,16 +37,19 @@ INSTALL_OVERRIDES = {
     "fetch": "fetch-mcp",
     "anytype": "anytype-mcp",
     "anytype-daemon": "anytype-mcp",
+    "9router": "9router",
     "omniroute": "omniroute",
 }
 UNINSTALL_OVERRIDES = {
     "workspace": "google-workspace-mcp",
     "fetch": "fetch-mcp",
     "anytype": "anytype-mcp",
+    "9router": "9router",
     "omniroute": "omniroute",
 }
 
 # --- daemons -------------------------------------------------------------------
+NINEROUTER_PORT = "20128"
 OMNIROUTE_PORTS = ("20139", "20140", "20141")
 
 # --- anytype -------------------------------------------------------------------

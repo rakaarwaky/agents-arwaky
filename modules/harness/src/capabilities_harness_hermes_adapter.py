@@ -71,7 +71,11 @@ class HermesAdapter:
     env_key: str = "OMNIROUTE_KEY"
     mcp_key: str = "mcpServers"
     # Keys the disconnector drops (incl. router refs installed with env keys).
-    env_keys: tuple[str, ...] = ("OMNIROUTE_URL", "OMNIROUTE_KEY", "MNEMOSYNE_DATA_DIR")
+    env_keys: tuple[str, ...] = (
+        "OMNIROUTE_URL", "OMNIROUTE_KEY",
+        "NINEROUTER_URL", "NINEROUTER_KEY",
+        "MNEMOSYNE_DATA_DIR",
+    )
     skill_sync_commands: tuple[str, ...] = ()
 
     def home(self) -> Path:
@@ -130,7 +134,10 @@ class HermesAdapter:
 
     def session_conf_files(self) -> tuple[Path, ...]:
         """systemd user-session env layer that shadows harness .env files."""
-        return (config_home() / "environment.d/omniroute.conf",)
+        return (
+            config_home() / "environment.d/omniroute.conf",
+            config_home() / "environment.d/9router.conf",
+        )
 
     def credential_candidates(self) -> tuple[Path, ...]:
         """Return candidate credential files searched by the Hermes harness."""
@@ -138,6 +145,9 @@ class HermesAdapter:
             ROOT / "config/omniroute.env",
             Path.home() / ".omniroute/.env",
             data_home() / "omniroute/omniroute.env",
+            ROOT / "config/ninerouter.env",
+            Path.home() / ".9router/.env",
+            data_home() / "9router/ninerouter.env",
         )
 
 

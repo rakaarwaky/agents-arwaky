@@ -359,6 +359,7 @@ class TestAdapterCapabilities:
         ("context7", "Context7ToolsAdapter"),
         ("fetch", "FetchToolsAdapter"),
         ("lint", "LintToolsAdapter"),
+        ("9router", "NinerouterToolsAdapter"),
         ("omniroute", "OmnirouteToolsAdapter"),
         ("qwen_web", "QwenWebToolsAdapter"),
         ("vision", "VisionToolsAdapter"),
@@ -565,6 +566,20 @@ class TestDaemonAggregateUnitOps:
         assert str(req.op) == "install_unit"
         assert str(req.name) == "omniroute"
         assert str(req.unit) == "omniroute.service"
+
+    def test_9router_routes_unit_op_through_aggregate(self):
+        """UT-TOOLS-046: 9router's unit helper builds a request and executes it."""
+        from modules.tools.src.capabilities_tools_9router_adapter import (
+            _9router_install_unit,
+        )
+
+        agg = self._RecordingAggregate()
+        assert _9router_install_unit(agg) == 0
+
+        req = agg.requests[0]
+        assert str(req.op) == "install_unit"
+        assert str(req.name) == "9router"
+        assert str(req.unit) == "9router.service"
 
     def test_uninstaller_does_not_call_aggregate_verbs(self):
         """UT-TOOLS-036: the uninstaller has no direct aggregate verb call."""

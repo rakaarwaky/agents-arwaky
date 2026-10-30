@@ -21,6 +21,9 @@ from __future__ import annotations
 from modules.shared.src.common.utility_paths_resolver import repo_root
 from modules.shared.src.tools.contract_tools_aggregate import IToolsAggregate
 from modules.tools.src.agent_tools_orchestrator import ToolsOrchestrator
+from modules.tools.src.capabilities_tools_9router_adapter import (
+    ADAPTER_UNITS as _NINEROUTER_UNITS,
+)
 
 # Root is the only layer allowed to import capabilities_* (AES201 rule 8):
 # every adapter capability is constructed here and injected into the
@@ -72,6 +75,7 @@ TOOLS_REGISTRY: dict[str, object] = {
     **_CONTEXT7_UNITS,
     **_FETCH_UNITS,
     **_LINT_UNITS,
+    **_NINEROUTER_UNITS,
     **_OMNIROUTE_UNITS,
     **_QWEN_WEB_UNITS,
     **_VISION_UNITS,

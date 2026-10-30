@@ -11,7 +11,7 @@ SENTINEL_EXECUTABLE_GONE = 126
 
 #: Tool ids that are long-running daemons (container isolation invariant).
 DAEMON_TOOL_IDS: frozenset[str] = frozenset(
-    {"anytype", "anytype-daemon", "omniroute"}
+    {"anytype", "anytype-daemon", "omniroute", "9router"}
 )
 
 #: Runner families a tool installs through (cargo / uv / bun / pnpm / npm / pip-venv).
@@ -22,6 +22,7 @@ RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
 # stop the unit (or name it as a residual), not just delete its launcher.
 DAEMON_UNIT_TOOLS: dict[str, str] = {
     "omniroute": "omniroute.service",
+    "9router": "9router.service",
     "anytype": "anytype-daemon.service",
     "anytype-daemon": "anytype-daemon.service",
 }
@@ -30,6 +31,7 @@ DAEMON_UNIT_TOOLS: dict[str, str] = {
 # routes to the "anytype" daemon manager in the daemon orchestrator).
 DAEMON_NAMES: dict[str, str] = {
     "omniroute": "omniroute",
+    "9router": "9router",
     "anytype": "anytype",
     "anytype-daemon": "anytype",
 }
@@ -45,6 +47,7 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
     "fetch": ["fetch-mcp", "mcp-fetch"],
     "lint-arwaky": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "omniroute": ["omniroute"],
+    "9router": ["9router"],
     "qwen-web-arwaky": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
     "vision-arwaky": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],
     "workspace": ["workspace-mcp", "google-workspace-mcp"],
@@ -141,6 +144,15 @@ OMNIROUTE_NPM_SPEC = "omniroute@3.8.51"
 OMNIROUTE_UNIT_FILE_NAME = "omniroute.service"
 OMNIROUTE_ENV_FILENAME = "omniroute.env"
 
+# ── 9router (host-native daemon + launcher) ──
+NINEROUTER_DATA_DIR_NAME = "9router"
+NINEROUTER_INTERNAL_BIN = "internal-bin"
+NINEROUTER_LAUNCHERS: tuple[str, ...] = ("9router",)
+#: npm distribution the runtime is installed from (npm global install).
+NINEROUTER_NPM_SPEC = "9router@0.5.112"
+NINEROUTER_UNIT_FILE_NAME = "9router.service"
+NINEROUTER_ENV_FILENAME = "ninerouter.env"
+
 
 __all__ = [
     "ALIAS_TABLE",
@@ -163,6 +175,12 @@ __all__ = [
     "LINT_BUILD_DEPS",
     "LINT_INTERNAL_DIR_REL",
     "LINT_LAUNCHERS",
+    "NINEROUTER_DATA_DIR_NAME",
+    "NINEROUTER_ENV_FILENAME",
+    "NINEROUTER_INTERNAL_BIN",
+    "NINEROUTER_LAUNCHERS",
+    "NINEROUTER_NPM_SPEC",
+    "NINEROUTER_UNIT_FILE_NAME",
     "NODE_IGNORES",
     "OMNIROUTE_DATA_DIR_NAME",
     "OMNIROUTE_ENV_FILENAME",
