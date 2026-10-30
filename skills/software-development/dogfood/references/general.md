@@ -14,7 +14,7 @@ toolsets live in `web.md`, `terminal.md`, `desktop.md`, and `mobile.md`.
 └── report.md          # Final report
 ```
 
-## Phase 3: Collect Evidence
+## Evidence protocol
 
 For every issue found, regardless of target type:
 
@@ -33,7 +33,7 @@ For every issue found, regardless of target type:
    reference file (`web.md`, `terminal.md`, `desktop.md`, or `mobile.md`).
    Severity and category are target-aware.
 
-## Phase 4: Categorize
+## Categorize rules
 
 1. Review all collected issues.
 2. De-duplicate — merge the same bug manifesting in different places.
@@ -41,7 +41,7 @@ For every issue found, regardless of target type:
 4. Sort: Critical → High → Medium → Low.
 5. Count by severity and category for the executive summary.
 
-## Phase 5: Report
+## Report requirements
 
 Generate the final report using `../templates/dogfood-report-template.md`. Save
 to `{output_dir}/report.md`. The report must include:
@@ -64,10 +64,10 @@ to `{output_dir}/report.md`. The report must include:
 - Test edge cases: empty inputs, very long inputs, special characters, rapid
   repeated actions.
 - De-duplicate before reporting — the same bug often surfaces in multiple places.
+
 # Issue Taxonomy — General (all target types)
 
 Shared severity levels and universal categories that apply to every target type.
-Target-specific categories are appended below in each per-target reference file.
 
 ## Severity Levels
 
@@ -176,4 +176,5 @@ Issues with the text, media, or information on the surface.
 - Missing content (empty sections)
 - Broken or dead external links
 - Incorrect or misleading labels
+
 
