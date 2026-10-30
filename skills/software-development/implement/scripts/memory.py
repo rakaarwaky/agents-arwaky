@@ -125,10 +125,8 @@ GIT_TIMEOUT_SECONDS = 5
 # same host enumerate and read the file directly. 0o600 prevents that.
 FILE_MODE = 0o600
 
-# NOTE: DEFAULT_HEADER is mirrored verbatim in
-# .grok/skills/implement/SKILL.md (Memory File Format section, marked with
-# `<!-- mirror-of: scripts/memory.py DEFAULT_HEADER -->`). If you edit one,
-# edit the other. The drift-check unit test
+# NOTE: DEFAULT_HEADER is mirrored verbatim in references/step-8-memory-flush.md (relative to the skill dir) under the
+# <!-- mirror-of: scripts/memory.py DEFAULT_HEADER --> marker. If you edit one, edit the other. The drift-check unit test
 # tests.test_memory.TestDocsConsistency.test_skill_md_default_header_matches
 # fails the build if they go out of sync.
 DEFAULT_HEADER = [
@@ -440,7 +438,7 @@ def parse_memory_file(content: str) -> dict[str, Any]:
     Header lines and run body lines are preserved verbatim. Inside
     ``## Common Issues`` only ``### Category`` headers and ``- desc (seen N
     time(s))`` bullets are recognised; any other content there is dropped on
-    re-render — SKILL.md warns users not to add freeform notes inside
+    re-render — step-8-memory-flush.md warns users not to add freeform notes inside
     Common Issues, only inside the header.
     """
     state: dict[str, Any] = {

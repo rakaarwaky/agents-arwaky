@@ -840,23 +840,23 @@ class TestDocsConsistency(unittest.TestCase):
     """Catch drift between code constants and the markdown docs that mirror them."""
 
     def test_skill_md_default_header_matches(self):
-        # SKILL.md's "Memory File Format" section embeds the same lines as
-        # `memory.DEFAULT_HEADER` inside a fenced ```markdown code block,
+        # references/step-8-memory-flush.md's "Memory File Format" section embeds the same
+        # lines as `memory.DEFAULT_HEADER` inside a fenced ```markdown code block,
         # introduced by the marker comment
         # `<!-- mirror-of: scripts/memory.py DEFAULT_HEADER -->`.
         # If either copy drifts, users reading the docs will see a header
         # different from what the helper actually writes. This test parses
         # the file, locates the marker, extracts the next fenced block, and
         # asserts the first len(DEFAULT_HEADER) lines match exactly.
-        skill_md = _HERE.parent / "references" / "memory-flush.md"
-        text = skill_md.read_text(encoding="utf-8")
+        ref_md = _HERE.parent / "references" / "step-8-memory-flush.md"
+        text = ref_md.read_text(encoding="utf-8")
 
         marker = "<!-- mirror-of: scripts/memory.py DEFAULT_HEADER -->"
         marker_idx = text.find(marker)
         self.assertNotEqual(
             marker_idx,
             -1,
-            f"drift-check marker {marker!r} missing from {skill_md}; "
+            f"drift-check marker {marker!r} missing from {ref_md}; "
             "either restore it or update this test to match the new layout",
         )
 
@@ -867,7 +867,7 @@ class TestDocsConsistency(unittest.TestCase):
             fence_open,
             -1,
             "expected ```markdown fenced block immediately after the "
-            "drift-check marker; the SKILL.md layout has changed.",
+            "drift-check marker; the step-8-memory-flush.md layout has changed.",
         )
         body_start = after.find("\n", fence_open) + 1
         fence_close = after.find("```", body_start)
@@ -884,14 +884,14 @@ class TestDocsConsistency(unittest.TestCase):
         self.assertGreaterEqual(
             len(block_lines),
             len(expected),
-            f"SKILL.md mirror block has only {len(block_lines)} lines; "
+            f"step-8-memory-flush.md mirror block has only {len(block_lines)} lines; "
             f"expected at least {len(expected)} (DEFAULT_HEADER)",
         )
         for i, (got, want) in enumerate(zip(block_lines, expected)):
             self.assertEqual(
                 got,
                 want,
-                f"SKILL.md mirror block line {i} drifted from "
+                f"step-8-memory-flush.md mirror block line {i} drifted from "
                 f"memory.DEFAULT_HEADER[{i}]: got {got!r}, want {want!r}",
             )
 

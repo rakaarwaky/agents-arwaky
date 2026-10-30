@@ -1,9 +1,9 @@
-# Step 5 Re-review
+# Step 7: Re-review
 
 
 **Use `spawn_subagent` only** — do not re-review yourself.
 
-Always re-review in parallel (every run includes general + simplicity).
+Always re-review in parallel (the fixed five-reviewer panel).
 
 ### Parallel Re-review
 
@@ -15,9 +15,9 @@ For each config in `reviewer_configs`:
 - `subagent_type`: `"general-purpose"`
 - `resume_from`: `config.subagent_id`
 - `background`: `true`
-- `description`: `"[<tag>] Re-review: <specialization>"` — use the same bracketed tag as the initial launch (`[reviewer]` for `general`/`general-2`/`general-3`, `[tests]`, `[security]`, `[plan]`, `[simplicity]`) so the pager row label stays consistent across rounds.
+- `description`: `"[<tag>] Re-review: <specialization>"` — use the same bracketed tag as the initial launch (`[reviewer]` for `general`, `[tests]`, `[security]`, `[plan]`, `[simplicity]`) so the pager row label stays consistent across rounds.
 
-Prompt (same structure as initial review, but with re-review instructions):
+Prompt (same structure as the initial review prompts in Step 4, but with re-review instructions):
 ```
 The implementer addressed the review issues. Re-review all changes.
 
@@ -44,5 +44,4 @@ If a reviewer fails during re-review:
 
 If `resume_from` fails for a reviewer (subagent expired), launch a fresh reviewer for that specialization with `cwd: <worktree_path>`, prepending the persona instructions from `config.persona_to_inject` (if non-null) to the prompt. Log a warning.
 
-**Regardless of effort level, go back to Step 3.** Repeat until 0 open issues.
-
+**Go back to Step 5 (Merge & Check).** Repeat until 0 open issues.
