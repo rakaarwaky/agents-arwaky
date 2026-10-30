@@ -101,7 +101,7 @@ Long-lived. Use `remote-pdb` at a handler, or `debugpy` with `--wait-for-client`
 
 4. **`debugpy.listen` blocks only if you also call `wait_for_client()`.** Without it, execution continues and your first breakpoint may fire before the client is attached.
 
-5. **Attach to PID fails on hardened kernels.** `ptrace_scope=1` (Ubuntu default) allows only same-user ptrace of child processes. Workaround: `echo 0 > /proc/sys/kernel/yama/ptrace_scope` (needs root) or launch under `debugpy` from the start.
+5. **Attach to PID fails on hardened kernels.** `ptrace_scope=1` (Ubuntu default) allows only same-user ptrace of child processes. Workaround: `echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope` or launch under `debugpy` from the start.
 
 6. **Threads.** `pdb` only debugs the current thread. For multithreaded code, use `debugpy` (thread-aware DAP) or set `threading.settrace()` per thread.
 
@@ -138,14 +138,7 @@ breakpoint()
 ```
 
 **"This test passes in isolation but fails in the suite."**
-```bash
-# Confirm it fails under the isolated runner first:
-<project-root>/scripts/run_tests.sh tests/the_test.py
-# For interactive debugging, or if it only fails WITH other tests, use the
-# dev venv's pytest (see Recipe 5):
-.venv/bin/python -m pytest tests/ -x --pdb
-# Now it pdb-traps at the exact failing test after state accumulated.
-```
+See Recipe 3 for the full wrapper-vs-dev-venv rule.
 
 **"My async handler deadlocks."**
 ```python
@@ -194,7 +187,7 @@ python -m pdb path/to/script.py arg1 arg2
 Use the canonical runner for noninteractive diagnostics:
 ```bash
 # Show locals in tracebacks without pdb:
-<project-root>/scripts/run_tests.sh tests/path/to/test_file.py --showlocals --tb=long
+./run_tests.sh tests/path/to/test_file.py --showlocals --tb=long   # substitute your repo's test runner
 ```
 
 A wrapper that captures each file in a separate subprocess cannot provide an interactive prompt, so `--pdb` / `--trace` do nothing there. For an interactive debugger only, use the dev venv's interpreter (see Recipe 5):
@@ -240,7 +233,7 @@ Use the project's own dev venv, and make sure `debugpy` is installed in it (e.g.
 .venv/bin/python -c "import debugpy; print(debugpy.__file__)"
 ```
 
-`.venv/bin/python` is the project's own dev venv, not a guessed application venv, and the patterns below run through it.
+All patterns below run through `.venv/bin/python`.
 
 #### Pattern A: Source-edit — process waits for debugger at launch
 
@@ -275,10 +268,7 @@ Needs the PID and debugpy preinstalled in the target's environment:
 # debugpy injects itself into the process. Then attach a client as below.
 ```
 
-Some kernels/security configs block the ptrace-based injection (`/proc/sys/kernel/yama/ptrace_scope`). Fix with:
-```bash
-echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
-```
+Some kernels/security configs block the ptrace-based injection — see pitfall 5.
 
 #### Connecting a client from the terminal
 

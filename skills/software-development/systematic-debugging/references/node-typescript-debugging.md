@@ -28,7 +28,7 @@ Launch paused on first line:
 ```bash
 node inspect path/to/script.js
 # or with tsx
-node --inspect-brk $(which tsx) path/to/script.ts
+node --inspect-brk --import tsx path/to/script.ts
 ```
 
 The `debug>` prompt accepts:
@@ -93,7 +93,6 @@ node --inspect-brk -r tsx/cjs script.ts
 When you want to automate — set many breakpoints, capture scope state, script a repro — use `chrome-remote-interface`:
 
 ```bash
-npm i -g chrome-remote-interface        # or project-local
 # Start your target:
 node --inspect-brk=9229 target.js &
 ```
@@ -167,7 +166,7 @@ A TUI built Ink + tsx has two common scenarios:
 
 ### Debugging a single Ink component under dev
 
-If the app's `package.json` has `npm run dev` (tsx --watch), add `--inspect-brk` by running tsx directly:
+If the app's `package.json` has `npm run dev` (tsx --watch), build once then debug dist:
 
 ```bash
 cd <project-root>/ui-tui
@@ -191,9 +190,10 @@ When it pauses, `repl` → inspect `props`, state refs, `useInput` handler value
 The TUI spawns Node from a parent CLI. Easiest path:
 
 ```bash
-# 1. Launch the TUI
+# 1. Launch the TUI and capture its Node PID
 myapp --tui &
-TUI_PID=$(pgrep -f 'ui-tui/dist/entry' | head -1)
+TUI_PID=$!
+sleep 2   # give Node time to spawn
 
 # 2. Enable inspector on that Node PID
 kill -SIGUSR1 "$TUI_PID"
@@ -229,21 +229,31 @@ From the CDP driver above, swap Debugger for `HeapProfiler` / `Profiler`:
 
 ```javascript
 // CPU profile for 5 seconds
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const scratch = path.join(os.homedir(), '.cache/scratch');
+fs.mkdirSync(scratch, { recursive: true });
 await client.Profiler.enable();
 await client.Profiler.start();
 await new Promise(r => setTimeout(r, 5000));
 const { profile } = await client.Profiler.stop();
-require('fs').writeFileSync('~/.cache/scratch/cpu.cpuprofile', JSON.stringify(profile));
+fs.writeFileSync(path.join(scratch, 'cpu.cpuprofile'), JSON.stringify(profile));
 // Open ~/.cache/scratch/cpu.cpuprofile in Chrome DevTools → Performance tab
 ```
 
 ```javascript
 // Heap snapshot
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const scratch = path.join(os.homedir(), '.cache/scratch');
+fs.mkdirSync(scratch, { recursive: true });
 await client.HeapProfiler.enable();
 const chunks = [];
 client.HeapProfiler.addHeapSnapshotChunk(({ chunk }) => chunks.push(chunk));
 await client.HeapProfiler.takeHeapSnapshot({ reportProgress: false });
-require('fs').writeFileSync('~/.cache/scratch/heap.heapsnapshot', chunks.join(''));
+fs.writeFileSync(path.join(scratch, 'heap.heapsnapshot'), chunks.join(''));
 ```
 
 ## One-Shot Recipes
@@ -283,12 +293,9 @@ debug> bt
 
 2. **`--inspect` vs `--inspect-brk`.** `--inspect` starts the inspector but doesn't pause; your script races past your first breakpoint if you attach too late. Use `--inspect-brk` when you need to set breakpoints before any code runs.
 
-3. **Port collisions.** Default is `9229`. If multiple Node processes are inspecting, pass `--inspect=0` (random port) and read the actual URL from `/json/list`:
-   ```bash
-   curl -s http://127.0.0.1:9229/json/list   # lists all inspectable targets on the host
-   ```
+3. **Port collisions.** Default is `9229`. If multiple Node processes are inspecting, pass `--inspect=0` (random port) and read each process's actual URL from its `Debugger listening on ws://127.0.0.1:<port>` stderr line.
 
-4. **Child processes.** `--inspect` on a parent does NOT inspect its children. Use `NODE_OPTIONS='--inspect-brk' node parent.js` to propagate to every child; be aware they all need unique ports (Node auto-increments when `NODE_OPTIONS='--inspect'` is inherited).
+4. **Child processes.** `--inspect` on a parent does NOT inspect its children. Each child inherits the parent's port and fails to bind it (`address already in use`), continuing without an inspector. Use `NODE_OPTIONS='--inspect=0' node parent.js` so every child opens its own random port, then parse each child's `Debugger listening on ws://127.0.0.1:<port>` stderr line to attach.
 
 5. **Background kills.** If you `Ctrl+C` out of `node inspect` while the target is paused, the target stays paused. Either `cont` first, or `kill` the target explicitly.
 
