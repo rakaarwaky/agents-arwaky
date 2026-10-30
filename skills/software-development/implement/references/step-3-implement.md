@@ -1,4 +1,4 @@
-# Step 1 Implement
+# Step 3: Implement
 
 
 **Use `spawn_subagent` only** — do not implement code yourself.
@@ -8,10 +8,12 @@ Launch the implementer subagent by calling `spawn_subagent`. **Emit the `spawn_s
 `spawn_subagent` parameters:
 - `subagent_type`: `"general-purpose"`
 - `background`: `false`
-- `cwd`: `<worktree_path>` (from Worktree Isolation — required, so the implementer edits the worktree and never the session's default checkout)
+- `cwd`: `<worktree_path>` (from Step 0 — required, so the implementer edits the worktree and never the session's default checkout)
 - `description`: `"[implementer] <short summary>"` (the `[implementer]` prefix becomes the pager's row label)
 
-**Prepend the implementer persona instructions** (loaded during setup) to the prompt, and prepend the worktree-binding block from Worktree Isolation (initial launch only — omit it on `resume_from`).
+**Prepend the implementer persona instructions** (loaded during setup) to the prompt, and prepend the worktree-binding block from Step 0 (`step-0-setup.md`) (initial launch only — omit it on `resume_from`).
+
+**If the user provides additional instructions** (like "run tests after", "use this pattern", "don't touch file X"), include those constraints in the implementer prompt.
 
 Prompt:
 ```
@@ -19,7 +21,7 @@ Prompt:
 
 ---
 
-<worktree-binding block from Worktree Isolation>
+<worktree-binding block from Step 0>
 
 Implement the following:
 
@@ -50,4 +52,3 @@ Before launching reviewers, read `<summary_file>` yourself. Based on the impleme
 - If new public APIs were introduced: "Check input validation at API boundaries"
 
 Store these as `reviewer_focus_areas` (a short bulleted list). Include them in every reviewer prompt alongside `past_issues_briefing`.
-

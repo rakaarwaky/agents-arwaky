@@ -1,11 +1,45 @@
-# Specialized Review Prompts
+# Step 4: Review
 
 
-Each reviewer specialization gets a different prompt while sharing the same structured output format and severity taxonomy (`bug`, `suggestion`, `nit`).
+**Use `spawn_subagent` only** — do not review code yourself.
+
+Always use the parallel-reviewer path — every run is multi-reviewer, with individual review files and a merge on every run. The panel is fixed at 5 reviewers (general, tests, plan alignment, security, simplicity), and Simplicity is always in `reviewer_configs`.
+
+### Parallel Reviewers
+
+Launch all reviewers in parallel by calling `spawn_subagent` with `background: true` for each.
+
+For each config in `reviewer_configs`, launch with the appropriate prompt for the specialization:
+
+`spawn_subagent` parameters:
+- `subagent_type`: `"general-purpose"`
+- `background`: `true`
+- `cwd`: `<worktree_path>` (reviewers read repo files relative to the run's worktree)
+- `description`: `"[<tag>] Review: <specialization>"` where `<tag>` matches the specialization: `[reviewer]` for `general`, `[tests]` for tests, `[security]` for security, `[plan]` for plan alignment, `[simplicity]` for simplicity. The bracketed tag drives the pager's subagent row label.
+
+If `config.persona_to_inject` is non-null, prepend the corresponding persona instructions to the prompt. If null (Tests, Plan Alignment, Simplicity), use the prompt as-is — those specializations are prompt-only.
+
+Use the specialization-specific prompt (see Specialized Review Prompts below).
+
+After launching all reviewers, wait for all to complete via `get_command_or_subagent_output` with every reviewer `task_id` in the `task_ids` array and a positive `timeout_ms` (there is no `block` parameter).
+
+Save each returned `subagent_id` to the corresponding `reviewer_configs` entry.
+
+If any reviewer fails on initial launch:
+- If the **general reviewer** fails: report the error and stop entirely.
+- If a **specialist** fails: report a warning, remove that entry from `reviewer_configs`, and continue with remaining reviewers.
+
+After all reviewers complete, proceed to Step 5 (Merge & Check).
+
+Report to the user: "All reviewers complete. Merging findings..."
+
+### Specialized Review Prompts
+
+Each reviewer specialization gets a different prompt while sharing the same structured output format and severity taxonomy (`bug`, `suggestion`, `nit`). All reviewers use this shared severity taxonomy — the Security specialist prompt maps native security severities onto it (see below).
 
 All specialized review prompts include the `past_issues_briefing` block (if non-empty) to give reviewers awareness of historically common issues.
 
-### General Reviewer
+#### General Reviewer
 
 Inject: `reviewer` persona instructions.
 
@@ -33,7 +67,7 @@ Use the structured format with severity (bug/suggestion/nit), file:line, descrip
 Every issue must have a Status field set to "open".
 ```
 
-### Tests Specialist
+#### Tests Specialist
 
 Inject: none (prompt-only subagent — no persona prepended).
 
@@ -64,7 +98,7 @@ Use the structured format with severity (bug/suggestion/nit), file:line, descrip
 Every issue must have a Status field set to "open".
 ```
 
-### Security Specialist
+#### Security Specialist
 
 Inject: `security-auditor` persona instructions.
 
@@ -104,7 +138,7 @@ Use the structured format with severity (bug/suggestion/nit), file:line, descrip
 Every issue must have a Status field set to "open".
 ```
 
-### Plan Alignment Specialist
+#### Plan Alignment Specialist
 
 Inject: none (prompt-only subagent — no persona prepended).
 
@@ -138,7 +172,7 @@ Use the structured format with severity (bug/suggestion/nit), file:line, descrip
 Every issue must have a Status field set to "open".
 ```
 
-### Simplicity Specialist
+#### Simplicity Specialist
 
 Inject: none (prompt-only subagent — no persona prepended).
 
@@ -166,4 +200,3 @@ Write your review notes to: <individual_review_file>
 Use the structured format with severity (bug/suggestion/nit), file:line, description, suggestion, and status for each issue.
 Every issue must have a Status field set to "open".
 ```
-
