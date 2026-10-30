@@ -54,7 +54,7 @@ python scripts/repro_bug.py
 # Or run a high-repetition flaky repro
 for i in {1..100}; do pytest tests/test_flake.py::test_name -q || break; done
 
-```text
+```bash
 
 ### 3. Check Recent Changes
 
@@ -74,7 +74,7 @@ git diff
 # Changes in specific file
 git log -p --follow src/problematic_file.py | head -100
 
-```text
+```bash
 
 ### 4. Gather Evidence in Multi-Component Systems
 
@@ -111,7 +111,7 @@ search_files("function_name(", path="src/", file_glob="*.py")
 # Find where the variable is set
 search_files("variable_name\\s*=", path="src/", file_glob="*.py")
 
-```text
+```bash
 
 ### Phase 1 Completion Checklist
 

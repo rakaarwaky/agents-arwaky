@@ -47,8 +47,9 @@ Vague name, tests mock not real code.
 
 **MANDATORY. Never skip.**
 
+### Use terminal tool to run the specific test
+
 ```bash
-# Use terminal tool to run the specific test
 pytest tests/test_feature.py::test_specific_behavior -v
 ```
 
