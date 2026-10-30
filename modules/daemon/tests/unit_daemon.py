@@ -1,8 +1,13 @@
 """Unit tests for modules/daemon — test implementation details with mocking."""
 from __future__ import annotations
 
+import hashlib
+import sqlite3
+from os import urandom as os_urandom
 from pathlib import Path
 from unittest.mock import patch
+
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 
 class TestAnytypeDaemonManagerInit:
@@ -515,3 +520,253 @@ class TestNinerouterDaemonProbes:
         nine.seed_env()
 
         assert env_file.read_text(encoding="utf-8") == "EXISTING=1\n"
+
+
+class TestImportOmniroute:
+    """Unit tests for `capabilities_9router_import_omniroute` using temp SQLite fixtures."""
+
+    @staticmethod
+    def _encrypt(plain: str, secret: str) -> str:
+        """Encrypt *plain* with the OmniRoute scheme (static salt) for fixture building."""
+        key = hashlib.scrypt(
+            secret.encode(),
+            salt=b"omniroute-field-encryption-v1",
+            dklen=32,
+            n=16384,
+            r=8,
+            p=1,
+        )
+        iv = os_urandom(16)
+        ct = AESGCM(key).encrypt(iv, plain.encode(), None)
+        tag = ct[-16:]
+        body = ct[:-16]
+        return "enc:v1:" + iv.hex() + ":" + body.hex() + ":" + tag.hex()
+
+    @staticmethod
+    def _make_omni_db(tmp_path: Path, secret: str) -> Path:
+        db = tmp_path / "omni.sqlite"
+        conn = sqlite3.connect(db)
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS provider_connections("
+            "id TEXT PRIMARY KEY, provider TEXT, auth_type TEXT, name TEXT, email TEXT, "
+            "priority INTEGER, is_active INTEGER, api_key TEXT, access_token TEXT, "
+            "refresh_token TEXT, id_token TEXT, expires_at TEXT, token_expires_at TEXT, "
+            "scope TEXT, project_id TEXT, display_name TEXT, default_model TEXT, "
+            "token_type TEXT, expires_in TEXT, provider_specific_data TEXT, "
+            "created_at TEXT, updated_at TEXT, \"group\" TEXT, max_concurrent INTEGER, "
+            "global_priority INTEGER)"
+        )
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS provider_nodes("
+            "id TEXT PRIMARY KEY, type TEXT, name TEXT, prefix TEXT, api_type TEXT, "
+            "base_url TEXT, chat_path TEXT, models_path TEXT, custom_headers_json TEXT)"
+        )
+        cols = [
+            "id", "provider", "auth_type", "name", "email", "priority", "is_active",
+            "api_key", "access_token", "refresh_token", "id_token", "expires_at",
+            "token_expires_at", "scope", "project_id", "display_name", "default_model",
+            "token_type", "expires_in", "provider_specific_data", "created_at",
+            "updated_at", '"group"', "max_concurrent", "global_priority",
+        ]
+        placeholders = ", ".join(["?"] * len(cols))
+
+        def row(**kw):
+            base = {c: None for c in cols}
+            base.update(kw)
+            return tuple(base[c] for c in cols)
+
+        conn.execute("DELETE FROM provider_connections")
+        conn.execute("DELETE FROM provider_nodes")
+
+        # apikey row
+        conn.execute(
+            f"INSERT INTO provider_connections({', '.join(cols)}) VALUES({placeholders})",
+            row(
+                id="c-apikey-1", provider="openrouter", auth_type="apikey",
+                name="openrouter-main", email="o@e.com", priority=1, is_active=1,
+                api_key=TestImportOmniroute._encrypt("sk-or-v1-1111", secret),
+                provider_specific_data='{"extra":"x"}',
+                created_at="2026-01-01T00:00:00Z", updated_at="2026-01-02T00:00:00Z",
+            ),
+        )
+        # oauth row with all secrets
+        conn.execute(
+            f"INSERT INTO provider_connections({', '.join(cols)}) VALUES({placeholders})",
+            row(
+                id="c-oauth-1", provider="agy", auth_type="oauth",
+                name="arwaky001@gmail.com", email="arwaky001@gmail.com", priority=2,
+                is_active=1, access_token=TestImportOmniroute._encrypt("ya29.access", secret),
+                refresh_token=TestImportOmniroute._encrypt("ya29.refresh", secret),
+                id_token=TestImportOmniroute._encrypt("ya29.id", secret),
+                expires_at="2026-10-30T08:25:23Z", token_expires_at="2026-10-30T08:25:23Z",
+                scope="openid email", project_id="proj-x", expires_in="3599",
+                provider_specific_data='{"nodeName":"agy"}',
+                created_at="2026-09-01T00:00:00Z", updated_at="2026-10-01T00:00:00Z",
+            ),
+        )
+        # oauth row whose access_token FAILS to decrypt (undecryptable ciphertext)
+        conn.execute(
+            f"INSERT INTO provider_connections({', '.join(cols)}) VALUES({placeholders})",
+            row(
+                id="c-oauth-fail", provider="agy", auth_type="oauth",
+                name="arwaky002@gmail.com", email="arwaky002@gmail.com", priority=3,
+                is_active=1,
+                access_token="enc:v1:" + "00" * 16 + ":deadbeef:cafebabe",
+                created_at="2026-09-01T00:00:00Z", updated_at="2026-10-01T00:00:00Z",
+            ),
+        )
+        # apikey node referenced by an openai-compatible-chat-* provider
+        conn.execute(
+            "INSERT INTO provider_nodes VALUES(?,?,?,?,?,?,?,?,?)",
+            ["openai-compatible-chat-node1", "openai-compatible", "tokenharbor.ai", "tokenharbor", "chat",
+             "https://tokenharbor.ai/v1", "/v1/chat/completions", "/v1/models", None],
+        )
+        conn.execute(
+            f"INSERT INTO provider_connections({', '.join(cols)}) VALUES({placeholders})",
+            row(
+                id="c-openai-comp", provider="openai-compatible-chat-node1", auth_type="apikey",
+                name="tokenharbor", email="o@e.com", priority=4, is_active=1,
+                api_key=TestImportOmniroute._encrypt("sk-comp-2222", secret),
+                created_at="2026-02-01T00:00:00Z", updated_at="2026-02-02T00:00:00Z",
+            ),
+        )
+        conn.commit()
+        conn.close()
+        return db
+
+    def _run_plan(self, tmp_path, secret="test-secret-xyz", providers=None):
+        from modules.daemon.src.capabilities_9router_import_omniroute import (
+            load_omniroute_connections,
+            load_omniroute_nodes,
+            plan_import,
+        )
+        db = self._make_omni_db(tmp_path, secret)
+        conns = load_omniroute_connections(db, secret=secret)
+        nodes = load_omniroute_nodes(db)
+        plan = plan_import(conns, nodes, providers=providers)
+        return conns, nodes, plan, db
+
+    def test_decrypt_field_apikey(self, tmp_path):
+        from modules.daemon.src.capabilities_9router_import_omniroute import (
+            load_omniroute_connections,
+        )
+        db = self._make_omni_db(tmp_path, "test-secret-xyz")
+        conns = load_omniroute_connections(db, secret="test-secret-xyz")
+        apikey = next(c for c in conns if c["id"] == "c-apikey-1")
+        assert apikey["api_key"] == "sk-or-v1-1111"
+        oauth = next(c for c in conns if c["id"] == "c-oauth-1")
+        assert oauth["access_token"] == "ya29.access"
+        assert oauth["refresh_token"] == "ya29.refresh"
+        assert oauth["id_token"] == "ya29.id"
+        fail = next(c for c in conns if c["id"] == "c-oauth-fail")
+        assert fail["access_token"] is None  # undecryptable -> None
+
+    def test_map_connection_shapes(self, tmp_path):
+        from modules.daemon.src.capabilities_9router_import_omniroute import (
+            load_omniroute_connections,
+            load_omniroute_nodes,
+            map_connection_to_9router,
+        )
+        db = self._make_omni_db(tmp_path, "test-secret-xyz")
+        conns = load_omniroute_connections(db, secret="test-secret-xyz")
+        nodes = load_omniroute_nodes(db)
+        item = map_connection_to_9router(conns[0], nodes)
+        assert item["id"] == "c-apikey-1"
+        assert item["provider"] == "openrouter"
+        assert item["authType"] == "apikey"
+        assert item["isActive"] == 1
+        assert item["data"]["apiKey"] == "sk-or-v1-1111"
+        assert item["data"]["providerSpecificData"] == {"extra": "x"}
+        # openai-compatible node picked up
+        comp = next(c for c in conns if c["id"] == "c-openai-comp")
+        item2 = map_connection_to_9router(comp, nodes)
+        assert item2["data"]["providerNode"]["baseUrl"] == "https://tokenharbor.ai/v1"
+        assert item2["data"]["providerNode"]["apiType"] == "chat"
+
+    def test_dry_run_plan_counts(self, tmp_path):
+        _, _, plan, _db = self._run_plan(tmp_path)
+        assert plan["total"] == 4
+        assert plan["apikey"] == 2
+        assert plan["oauth"] == 2
+        assert plan["decrypt_failures"] == 1
+        assert plan["would_import"] == 4
+        assert plan["would_skip_existing"] == 0
+        # provider filter
+        _, _, plan2, _db2 = self._run_plan(tmp_path, providers=["agy"])
+        assert plan2["total"] == 2
+        assert plan2["would_skip_provider_filter"] == 2
+
+    def test_dedupe_skip_existing(self, tmp_path):
+        from modules.daemon.src.capabilities_9router_import_omniroute import (
+            load_omniroute_connections,
+            load_omniroute_nodes,
+            plan_import,
+        )
+        db = self._make_omni_db(tmp_path, "test-secret-xyz")
+        conns = load_omniroute_connections(db, secret="test-secret-xyz")
+        nodes = load_omniroute_nodes(db)
+        plan = plan_import(conns, nodes, existing_ids={"c-apikey-1"})
+        skipped = [i for i in plan["items"] if i.get("skip")]
+        assert len(skipped) == 1
+        assert skipped[0]["id"] == "c-apikey-1"
+        assert plan["would_skip_existing"] == 1
+        assert plan["would_import"] == 3
+
+    def test_dedupe_by_api_key(self, tmp_path):
+        from modules.daemon.src.capabilities_9router_import_omniroute import (
+            load_omniroute_connections,
+            load_omniroute_nodes,
+            plan_import,
+        )
+        db = self._make_omni_db(tmp_path, "test-secret-xyz")
+        conns = load_omniroute_connections(db, secret="test-secret-xyz")
+        nodes = load_omniroute_nodes(db)
+        plan = plan_import(conns, nodes, existing_keys={"sk-or-v1-1111"})
+        skipped = [i for i in plan["items"] if i.get("skip")]
+        assert len(skipped) == 1
+        assert skipped[0]["id"] == "c-apikey-1"
+        assert plan["would_skip_existing"] == 1
+
+    def test_no_plaintext_in_output(self, tmp_path, capsys):
+        """Regression: decrypted secrets never appear in run_import stdout."""
+        from modules.daemon.src.capabilities_9router_import_omniroute import (
+            load_omniroute_connections,
+            load_omniroute_nodes,
+            run_import,
+        )
+        db = self._make_omni_db(tmp_path, "test-secret-xyz")
+        conns = load_omniroute_connections(db, secret="test-secret-xyz")
+        nodes = load_omniroute_nodes(db)
+        run_import(["--dry-run"], connections=conns, nodes=nodes)
+        out = capsys.readouterr().out
+        assert "sk-or-v1-1111" not in out
+        assert "ya29.access" not in out
+        assert "ya29.refresh" not in out
+        assert "ya29.id" not in out
+        assert "test-secret-xyz" not in out
+        assert "(no writes performed)" in out
+
+    def test_write_via_sqlite_dry_run_counts(self, tmp_path):
+        from modules.daemon.src.capabilities_9router_import_omniroute import (
+            load_omniroute_connections,
+            load_omniroute_nodes,
+            plan_import,
+            write_via_sqlite,
+        )
+        db = self._make_omni_db(tmp_path, "test-secret-xyz")
+        nine_db = tmp_path / "nine.sqlite"
+        conn = sqlite3.connect(nine_db)
+        conn.execute(
+            "CREATE TABLE providerConnections(id TEXT PRIMARY KEY, provider TEXT, authType TEXT, "
+            "name TEXT, email TEXT, priority INTEGER, isActive INTEGER, data TEXT NOT NULL, "
+            "createdAt TEXT, updatedAt TEXT)"
+        )
+        conn.commit()
+        conn.close()
+        conns = load_omniroute_connections(db, secret="test-secret-xyz")
+        nodes = load_omniroute_nodes(db)
+        plan = plan_import(conns, nodes)
+        counts = write_via_sqlite(plan["items"], db_path=str(nine_db), dry_run=True)
+        assert counts["imported"] == plan["would_import"]
+        assert counts["errors"] == 0
+

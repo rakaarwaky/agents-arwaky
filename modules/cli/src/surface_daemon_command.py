@@ -54,6 +54,7 @@ _LOCAL_OPS: dict[str, str] = {
     "auth-key": "auth_key",
     "space-join": "space_join",
     "space-list": "space_list",
+    "import-omniroute": "import_omniroute",
 }
 
 #: Default argument for a capability-specific verb that takes a name.
@@ -182,6 +183,10 @@ def cmd_9router(
     manager: IDaemonAggregate | None = None,
 ) -> int:
     """aa 9router <command> — start|stop|restart|status|logs|models|service-*|help."""
+    if args and args[0] == "import-omniroute":
+        from modules.daemon.src.capabilities_9router_import_omniroute import run_import
+
+        return run_import(args[1:])
     return _dispatch(
         orch,
         manager or _manager("9router"),

@@ -66,6 +66,31 @@ maintaining a separate daemon implementation.
   traceback; stopped daemons remain in the enumeration.
 - **Error Handling**: enumeration has no process or filesystem side effects.
 
+### FR-DAEMON-005: Migrate OmniRoute credentials into 9router
+
+- **Description**: import OmniRoute ``provider_connections`` (read-only) into
+  9router's ``providerConnections`` table, decrypting stored credentials and
+  mapping each row into 9router's payload shape. Exposed as
+  ``aa 9router import-omniroute [--dry-run] [--provider <name>]...``.
+- **Input**: optional ``--dry-run`` flag and zero or more ``--provider``
+  filters; OmniRoute DB at ``~/.omniroute/storage.sqlite`` (read-only source);
+  9router DB at ``~/.9router/db/data.sqlite`` (destination).
+- **Output**: an import plan (total / apikey / oauth / decrypt-failures /
+  would-import / would-skip-existing) plus masked stdout; on the real run,
+  UPSERT counts (imported / skipped / errors).
+- **Business Rules**: OmniRoute is opened strictly read-only (``mode=ro`` URI);
+  no decrypted plaintext credential is ever logged or printed; the secret is
+  resolved from ``STORAGE_ENCRYPTION_KEY`` env or ``~/.omniroute/.env``;
+  existing 9router ids and apiKey business keys are deduped as
+  ``skipped-existing``; OAuth rows whose secrets fail decryption are reported
+  as decrypt-failures but still imported without empty tokens; OmniRoute
+  combos are out of scope; ``--dry-run`` performs zero writes anywhere.
+- **Edge Cases**: undecryptable ciphertext counts as a decrypt-failure and
+  keeps the import going; missing secret yields ``None`` for encrypted fields
+  without raising; unknown CLI arguments return exit code 2.
+- **Error Handling**: a single row write failure never aborts the batch;
+  crypto failures degrade to ``None``; missing DB files degrade gracefully.
+
 ### FR-DAEMON-004: Manage systemd user units
 
 - **Description**: install, remove, and report status for the daemon user

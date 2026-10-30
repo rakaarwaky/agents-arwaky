@@ -24,4 +24,5 @@ markers = [
 "modules/daemon/src/capabilities_9router_daemon.py" = ["BLE001"]
 "modules/tools/src/capabilities_tools_omniroute_adapter.py" = ["BLE001"]
 "modules/tools/src/capabilities_tools_9router_adapter.py" = ["BLE001"]
+"modules/daemon/src/capabilities_9router_import_omniroute.py" = ["BLE001"]
 

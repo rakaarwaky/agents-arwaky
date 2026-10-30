@@ -90,7 +90,8 @@ class NinerouterDaemonManager(IDaemonProtocol):
         ready = api_ready(timeout=3)
         return DaemonStatus(
             container_state="running" if running else "stopped",
-            service_state="active" if service_active() else "inactive" if service_installed() else "not-installed",
+            service_state=("not-installed" if not service_installed()
+                           else ("active" if service_active() else "inactive")),
             api_ready=ready,
             data_dir=str(NINEROUTER_DATA_DIR),
             ok=running and ready,
@@ -517,6 +518,7 @@ def cmd_help():
     print("  service-install    Enable 24/7 systemd user service")
     print("  service-status     Show systemd service status")
     print("  service-uninstall  Disable and remove systemd user service")
+    print("  import-omniroute   Migrate OmniRoute credentials into 9router [--dry-run]")
     print("  help               Show this help")
     print()
     print(f"Dashboard: {base_url()}")
