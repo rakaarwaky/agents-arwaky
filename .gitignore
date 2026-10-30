@@ -118,6 +118,8 @@ tools/config/*.providers.json
 # pack dirs THROUGH the harness root link (anytype-mcp -> anytype_mcp). Generated
 # noise, regenerates locally; the hyphen dir is the tracked canonical.
 /skills/*_*/
+# Archived skills are the reversible half of deprecation; they stay tracked.
+!/skills/_archive/
 .worktrees/
 
 # qwen-web-arwaky local worktrees (feature-modules etc.) — untracked local clones

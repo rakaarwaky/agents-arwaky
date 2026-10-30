@@ -22,7 +22,7 @@ metadata:
     - github-issues
     - github-pr-workflow
     - systematic-debugging
-    - orca-cli
+    - orca
 ---
 
 # Work on Issue

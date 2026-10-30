@@ -25,7 +25,7 @@ List acceptance criteria, interfaces, migrations/state changes, compatibility, s
 
 ### 5. Implement the smallest complete change — and fix the class
 
-Work on an isolated branch or worktree (Section 1), loading `systematic-debugging` or `test-driven-development` when the bug class calls for them. Add regression tests first, then implement. When the fix is in hand, `search_files` for the same bug shape at sibling call sites and fix the whole class in this PR — an incomplete fix that leaves known siblings broken is worse than none. Every changed line must trace to the issue; no drive-by cleanup. Done when targeted tests pass, the original failure no longer reproduces, and sibling sites are fixed or explicitly ruled out.
+Work on an isolated branch or worktree (Section 1), loading `systematic-debugging` when the bug class calls for it. Add regression tests first, then implement. When the fix is in hand, `search_files` for the same bug shape at sibling call sites and fix the whole class in this PR — an incomplete fix that leaves known siblings broken is worse than none. Every changed line must trace to the issue; no drive-by cleanup. Done when targeted tests pass, the original failure no longer reproduces, and sibling sites are fixed or explicitly ruled out.
 
 ### 6. Prove the regression test bites (sabotage run)
 
