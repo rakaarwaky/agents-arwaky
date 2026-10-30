@@ -45,7 +45,9 @@ For every issue found, regardless of target type:
    - Actual behavior
    - Evidence path (screenshot or transcript)
    - Runtime log lines if relevant (console errors, logcat, stderr)
-3. **Classify** using `references/issue-taxonomy.md`. Severity and category are
+3. **Classify** using `references/issue-taxonomy-general.md` plus the target-specific
+   file (`issue-taxonomy-web.md`, `issue-taxonomy-terminal.md`,
+   `issue-taxonomy-desktop.md`, or `issue-taxonomy-mobile.md`). Severity and category are
    target-aware — the taxonomy has target-specific categories in addition to the
    shared ones.
 

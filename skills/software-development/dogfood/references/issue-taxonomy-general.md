@@ -1,8 +1,9 @@
-# Issue Taxonomy
+# Issue Taxonomy — General (all target types)
 
-Use this taxonomy to classify issues found during dogfood QA testing.
-Severity levels are shared across all target types. Categories include
-target-specific ones — use the target-applicable set.
+Shared severity levels and universal categories that apply to every target type.
+Target-specific categories live in `issue-taxonomy-web.md`,
+`issue-taxonomy-terminal.md`, `issue-taxonomy-desktop.md`, and
+`issue-taxonomy-mobile.md`.
 
 ## Severity Levels
 
@@ -56,10 +57,9 @@ Minor polish issues that don't affect functionality.
 - Touch target smaller than 48 dp (mobile) but still tappable
 - TUI missing a help hint or keyboard-shortcut legend
 
-## Categories
+## Categories (universal)
 
-Categories marked **(all)** apply to every target type. Target-specific
-categories apply only to their target.
+These categories apply to every target type.
 
 ### Functional (all)
 Issues where features don't work as expected.
@@ -77,8 +77,6 @@ Issues with the visual presentation.
 - Responsive / responsive-rewindowing design failures
 - Z-index issues
 - Text overflow or truncation
-- (terminal) TUI garbling: misaligned columns, broken box-drawing, lost cursor after resize
-- (mobile) layout breakage in landscape; content clipped at small screen sizes
 
 ### Accessibility (all)
 Issues that prevent or hinder access for users with disabilities.
@@ -88,7 +86,6 @@ Issues that prevent or hinder access for users with disabilities.
 - Missing form labels or ARIA attributes
 - Focus indicators missing or unclear
 - Screen reader incompatible content
-- (mobile) missing `content-desc` on interactive elements; touch targets too small
 
 ### Console (all)
 Issues detected through runtime log output.
@@ -97,8 +94,6 @@ Issues detected through runtime log output.
 - Deprecation warnings
 - CORS errors
 - Excessive console.log output left from development
-- (terminal) stderr noise on success; non-zero exit code with no stderr message
-- (mobile) `logcat` `AndroidRuntime` / `FATAL EXCEPTION` lines; `ANR` traces
 
 ### UX (all)
 Issues where functionality works but the experience is poor.
@@ -108,9 +103,6 @@ Issues where functionality works but the experience is poor.
 - Inconsistent interaction patterns
 - Missing confirmation dialogs for destructive actions
 - Poor error messages that don't help the user recover
-- (terminal) error messages that don't name the failing subcommand or suggest a fix
-- (desktop) app not responding to the OS (spinner cursor) during long operations
-- (mobile) app re-asks permissions every cold start; no offline state handling
 
 ### Content (all)
 Issues with the text, media, or information on the surface.
@@ -120,28 +112,3 @@ Issues with the text, media, or information on the surface.
 - Missing content (empty sections)
 - Broken or dead external links
 - Incorrect or misleading labels
-
-### Terminal (terminal/TUI)
-Issues specific to command-line and TUI applications.
-- Wrong or missing exit codes (0 on failure, non-zero on success)
-- `--help` / `--version` output incomplete or inaccurate
-- Command hangs on piped / closed stdin instead of failing fast
-- Signal handling: SIGINT / SIGTERM leaves the process running or corrupts state
-- TUI assumes a minimum terminal size and breaks below it
-- TUI cursor position lost after terminal resize
-- Output uses non-portable escape sequences that break on common terminals
-- Locale / `LANG` not respected; UTF-8 mojibake
-- Config file not found error is cryptic; no `--config` flag documented
-
-### Mobile (mobile/Android)
-Issues specific to Android apps.
-- ANR (Application Not Responding) on main thread
-- Crash on rotation (state not saved / restored)
-- Back button skips screens or exits the app from a nested screen
-- Permission dialog handling: granting vs denying each permission leads to the wrong state
-- Cold start shows blank screen longer than expected (slow first frame)
-- App backgrounded and re-entered loses scroll position or form state
-- Touch target smaller than 48 dp (Material minimum)
-- Screen reader (TalkBack) announces wrong or empty labels
-- App misbehaves in split-screen / multi-window mode
-- GPS / location permission not requested before first use

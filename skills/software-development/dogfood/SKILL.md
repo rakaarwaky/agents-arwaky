@@ -58,7 +58,9 @@ same rhythm: **act → observe → record**.
 
 Shared pipeline, evidence protocol, and reporting rules live in
 [references/general.md](references/general.md). Issue categories are in
-[references/issue-taxonomy.md](references/issue-taxonomy.md).
+[references/issue-taxonomy-general.md](references/issue-taxonomy-general.md)
+plus per-target files: `issue-taxonomy-web.md`, `issue-taxonomy-terminal.md`,
+`issue-taxonomy-desktop.md`, `issue-taxonomy-mobile.md`.
 
 ### Phase 3: Collect Evidence
 
