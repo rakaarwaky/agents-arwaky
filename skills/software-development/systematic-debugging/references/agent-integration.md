@@ -16,7 +16,6 @@ For complex multi-component debugging, dispatch investigation subagents in paral
 
 - Goal: "Investigate why [specific test/behavior] fails"
 - Context: error, file, test command; instruct: read error, reproduce, trace data flow, report findings — do NOT fix yet.
-- Toolsets: terminal + file.
 
 ## With test-driven-development (now Phase 4)
 
