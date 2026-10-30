@@ -114,8 +114,6 @@ Pick by file extension / runtime; each reference is self-contained.
 - **TypeScript/Node** → [`references/node-typescript-debugging.md`](references/node-typescript-debugging.md)
 - **Rust** → [`references/rust-debugging.md`](references/rust-debugging.md)
 
-These three references arrive in PR 2 of this migration; they do not exist yet.
-
 ## Agent Integration
 
 See [`references/agent-integration.md`](references/agent-integration.md).
