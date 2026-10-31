@@ -1,12 +1,12 @@
-# Step 10 Memory Flush
+# Step 12 Memory Flush
 
-## Step 10: Memory Flush
+## Step 12: Memory Flush
 
 After cleanup, update the workspace memory file with patterns from this run. The orchestrator performs this directly using its own tools -- no subagent is needed. This step follows the same protocol as the `/implement` skill's Step 6 (see `.grok/skills/implement/SKILL.md` for full helper documentation, exit codes, and file format details).
 
-### Step 10a: Collect & Categorize This Run's Patterns
+### Step 12a: Collect & Categorize This Run's Patterns
 
-1. Use the `issue_patterns` list accumulated during Step 5b and Step 5c re-reviews across all PRs and review rounds.
+1. Use the `issue_patterns` list accumulated during Step 7b and Step 7c re-reviews across all PRs and review rounds.
 2. **Generalize each pattern.** The memory file exists to help *future* runs on *different* tasks — patterns that reference this task's specific code, variable names, or domain objects are useless noise. Strip implementation-specific details (file names, variable names, type names, function names, domain-specific terms) and rewrite each pattern as a reusable principle that applies across different codebases and tasks:
    - Bad: "Missing error type `RetryableError` in retry handler list" → Good: "Missing entries in error-type or configuration allowlists"
    - Bad: "JWT token not validated for expiration" → Good: "Missing expiration/TTL validation on tokens or credentials"
@@ -17,7 +17,7 @@ After cleanup, update the workspace memory file with patterns from this run. The
 3. Categorize each generalized pattern into one of: Error Handling, Testing, Security, Code Quality, Naming, Documentation, Performance, or another short category name. Reuse existing category names from `existing_patterns_snapshot` (captured in Step 0) whenever the pattern fits.
 4. For each pattern, write a concise one-line description. Keep descriptions on a single line.
 
-### Step 10b: Harmonize Phrasing Against Existing Entries
+### Step 12b: Harmonize Phrasing Against Existing Entries
 
 Before handing generalized patterns to the helper, dedup at the *phrasing* level using `existing_patterns_snapshot`:
 
@@ -25,7 +25,7 @@ Before handing generalized patterns to the helper, dedup at the *phrasing* level
 2. If no match exists, keep the concise description as-is.
 3. Within this run's own list, also dedup by phrasing -- collapse patterns that mean the same thing to a single entry.
 
-### Step 10c: Build the Update Spec
+### Step 12c: Build the Update Spec
 
 Construct a JSON object:
 
@@ -49,11 +49,11 @@ Construct a JSON object:
 Field notes:
 - `run.date`: pass `null` and the helper fills in today's UTC date.
 - `run.rounds`: sum of `review_rounds` across all completed PRs.
-- `run.issues_by_severity`: derived from `total_issues_by_severity` (accumulated in Step 5b and Step 5c re-reviews across all PRs).
-- `run.key_patterns`: pick 2-3 most-significant patterns (severity-ranked: bugs > suggestions > nits). **Apply the same generalization rules as Step 10a** — strip task-specific names and rewrite as reusable principles.
+- `run.issues_by_severity`: derived from `total_issues_by_severity` (accumulated in Step 7b and Step 7c re-reviews across all PRs).
+- `run.key_patterns`: pick 2-3 most-significant patterns (severity-ranked: bugs > suggestions > nits). **Apply the same generalization rules as Step 12a** — strip task-specific names and rewrite as reusable principles.
 - `run.specializations`: the distinct set of reviewer specializations actually used across **all** PRs this run. Collect every `config.specialization` from every PR's `reviewer_configs`, strip the `-N` suffix so `general-2`/`general-3` collapse to `general`, normalize `plan_alignment` → `plan`, and deduplicate. Always include `simplicity`. For an effort=1 run this is `["general", "simplicity"]`; for higher effort it might be e.g. `["general", "security", "tests", "plan", "simplicity"]`.
 
-### Step 10d: Invoke the Helper
+### Step 12d: Invoke the Helper
 
 Use the `write` tool to create `${scratch_dir}/grok-exec-mem-${PLAN_ID}.json` with the JSON spec above, then invoke:
 

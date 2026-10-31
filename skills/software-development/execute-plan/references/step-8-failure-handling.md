@@ -1,6 +1,6 @@
-# Step 6 Failure Handling
+# Step 8 Failure Handling
 
-## Step 6: Failure Handling
+## Step 8: Failure Handling
 
 When a PR fails (implementation error, unfixable review issues, or branch creation failure):
 

@@ -1,6 +1,6 @@
-# Step 2 Dag Processing
+# Step 4 Dag Processing
 
-## Step 2: DAG Processing and Linearization
+## Step 4: DAG Processing and Linearization
 
 ### Level Assignment
 

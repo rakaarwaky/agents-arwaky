@@ -1,6 +1,6 @@
-# Step 1 Parse Dag
+# Step 3 Parse Dag
 
-## Step 1: Parse PR Plan DAG
+## Step 3: Parse PR Plan DAG
 
 Read the design document at `<design_doc_path>` using `read_file`.
 
@@ -14,7 +14,7 @@ PRNode {
     description: string  // From the "Description:" or "**Description:**" bullet
     files: string[]      // From the "Files/components affected:" bullet
     dependencies: string[] // From the "Dependencies:" bullet, parsed as PR ids
-    level: int           // Computed in Step 2
+    level: int           // Computed in Step 4
     status: string       // "pending"
     branch: string       // Computed after level assignment
     subagent_id: string  // null initially
@@ -22,14 +22,14 @@ PRNode {
     base_sha: string     // null initially -- branch point before implementation
     commit_sha: string   // null initially -- HEAD after all commits (implementation + fixes)
     error: string        // null initially
-    reviewer_configs: object[] // [] initially -- per-PR reviewer config objects, populated in Step 5.0.
+    reviewer_configs: object[] // [] initially -- per-PR reviewer config objects, populated in Step 7.0.
                                // Each entry: {subagent_id, persona_to_inject, specialization, review_file}.
                                // Effort 1 holds general + simplicity, each with its own
-                               // individual review_file. Always merge. See Step 5.
+                               // individual review_file. Always merge. See Step 7.
     review_rounds: int   // 0 initially
     started_at: string   // null initially
     completed_at: string // null initially
-    worktree_cleaned: bool // false initially; set true by Step 8a (per-PR prologue) or Step 9 (safety net) after `orca worktree rm` succeeds. Step 9 uses this to stay idempotent across resumes.
+    worktree_cleaned: bool // false initially; set true by Step 10a (per-PR prologue) or Step 11 (safety net) after `orca worktree rm` succeeds. Step 11 uses this to stay idempotent across resumes.
     orca_worktree_id: string // null initially; the Orca worktree address <repoId>::<worktreePath> from `orca worktree create --json`
 }
 ```

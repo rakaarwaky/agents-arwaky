@@ -1,6 +1,6 @@
-# Step 0.1 Memory Retrieval
+# Step 1 Memory Retrieval
 
-## Step 0.1: Memory Retrieval (Past Issues Briefing)
+## Step 1: Memory Retrieval (Past Issues Briefing)
 
 Before launching any implementers, attempt to load past issue patterns from the workspace memory file. This briefing is injected into both implementer and reviewer prompts to help avoid recurring issues. The execute-plan skill **shares the same memory file** as the `/implement` skill -- patterns from both skills help each other.
 
@@ -33,7 +33,7 @@ For example, if the implement skill's SKILL.md is at `/root/.grok/worktrees/xai/
    ```
 
    Store the `common_issues` list as `existing_patterns_snapshot`. Store the boolean `exists` as `memory_existed_before`.
-2. If the helper exits non-zero, log a brief note, set `past_issues_briefing` to `""`, `existing_patterns_snapshot` to `[]`, `memory_existed_before` to `false`, and proceed to Step 1.
+2. If the helper exits non-zero, log a brief note, set `past_issues_briefing` to `""`, `existing_patterns_snapshot` to `[]`, `memory_existed_before` to `false`, and proceed to Step 3.
 3. If `existing_patterns_snapshot` is empty (or `exists` is `false`), set `past_issues_briefing` to `""`.
 
 ### Parsing & Formatting

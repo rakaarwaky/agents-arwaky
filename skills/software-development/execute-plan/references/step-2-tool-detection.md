@@ -1,6 +1,6 @@
-# Step 0 5 Tool Detection
+# Step 2 Tool Detection
 
-## Step 0.5: Tool Detection (Orca, Graphite & gh)
+## Step 2: Tool Detection (Orca, Graphite & gh)
 
 Probe the environment **once** at the start of the run to verify Orca availability and choose the stack-assembly mode. Use the safe `if ... then ... else ... fi` form (the `&& X || Y` shortcut is a footgun if `X` ever fails):
 

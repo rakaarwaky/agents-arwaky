@@ -1,14 +1,14 @@
-# Step 11 Final Report
+# Step 13 Final Report
 
-## Step 11: Final Report
+## Step 13: Final Report
 
-After stack assembly (Step 8), cleanup (Step 9), and memory flush (Step 10), present a final report:
+After stack assembly (Step 10), cleanup (Step 11), and memory flush (Step 12), present a final report:
 
 1. **Summary** -- which PRs were implemented, total files changed across all PRs.
 2. **Execution stats**:
    - Total PRs: N (M completed, K failed, J skipped)
    - Levels: L, Max parallelism achieved: P
-   - Effort level: E (reviewers per PR, per the Step 5 table); specializations used across the run: <deduped list from all PRs' `reviewer_configs`>. Simplicity is always pinned.
+   - Effort level: E (reviewers per PR, per the Step 7 table); specializations used across the run: <deduped list from all PRs' `reviewer_configs`>. Simplicity is always pinned.
 3. **Review stats** -- total review rounds across all PRs, total issues found and fixed (broken down by severity). Also break the issue counts down by source tag (General / Tests / Security / Plan / Simplicity) aggregated across all PRs.
 4. **Stack** -- what was produced. Render by active mode:
    - **Graphite mode**: label this section "Graphite stack" and list the PR URLs from `gt ls --json`.
@@ -19,10 +19,10 @@ After stack assembly (Step 8), cleanup (Step 9), and memory flush (Step 10), pre
      - `kind: "pushed-only"`: print as "Pushed: `<branch>` — `<note>`" (the `note` is always present for this kind; it carries the user-facing explanation, e.g., "non-GitHub remote (<remote_url>) — open a PR via your forge UI").
 5. **Failed PRs** (if any) -- which PRs failed and why, which were skipped as a result.
 6. **Resumption** -- if any PRs failed: `"Resume with: /execute-plan --resume <PLAN_ID>"`
-7. **Memory update** -- what patterns were written or updated in the workspace memory file. Use the `existed_before` flag from the helper's Step 10d update output to choose between "file created" and "file updated" wording.
+7. **Memory update** -- what patterns were written or updated in the workspace memory file. Use the `existed_before` flag from the helper's Step 12d update output to choose between "file created" and "file updated" wording.
 8. **Next steps**:
    - **Graphite mode**: suggest `/pr-babysit add <bottom-pr-number>` to monitor CI and reviews.
-   - **Squash-final mode**: list the post-merge worktree-teardown command (Step 8.5) as a manual follow-up. Note: "After the final PR merges to main, run the teardown command above."
+   - **Squash-final mode**: list the post-merge worktree-teardown command (Step 10.5) as a manual follow-up. Note: "After the final PR merges to main, run the teardown command above."
    - **Plain-git mode**: do NOT suggest `/pr-babysit` (it depends on `gt` for stack walking — see its Step 2/3). The Stack section above already lists the URLs / commands; the Next-Steps text just adds a one-line note: "No automated CI/review monitoring is available in plain-git mode; open the PR URLs / compare URLs above and monitor them in the GitHub UI."
 
 ### In-Progress Reporting
