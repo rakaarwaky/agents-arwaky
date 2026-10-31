@@ -1,157 +1,50 @@
 ---
 name: skill-evolving
-description: Autonomous self-evolution engine for agent skills. Ingests session traces via learn, fans out category-level audit subagents, coordinates authoring, library cataloging, and lifecycle pruning, verifies quality gates, and publishes pull requests. Use when the user runs /skill-evolving with flags such as --scope 24h --headless, or when the user lists pr-la-xxx commands (auto-fix, cli-commands, config-system, doc-rules, external-lint, file-watch, filesystem, git-hooks, import-rules, logging, maintenance, mcp-server, naming-rules, orphan-rules, project-setup, quality-rules).
-when-to-use: Use when running autonomous or scheduled self-evolution across the skill tree, evolving skills from execution traces, coordinating multi-agent skill maintenance, or running daily skill optimization passes.
-argument-hint: "[--scope <window>] [--headless] [--since-last] [--dry-run]"
+description: Edit skills to adapt them to matching conditions and demand. Mines Grok Build session traces for stale skill lines (a path that no longer exists, a flag or command that failed, a step the user skips) and friction that points at a missing or unclear skill line, then applies the smallest edit: anchor-based edits with the original backed up to trash, user-skill overrides for protected plugin or bundled skills, and PR patches for git-tracked skills. Use on slash-skill-evolving, my skill instructions are outdated, a skill step no longer works, update skills from my traces. Not for creating skills from repeated phrases (skill-learning) or retiring unused surfaces (skill-unlearn); not for summarizing sessions into notes or memory.
+user-invocable: true
+when-to-use: Use when the user wants existing skills updated to match reality — stale paths, flags, models, or steps observed in session traces, or friction the user hit because a skill line was missing or unclear. Not for new-skill creation or deletion of unused surfaces.
+argument-hint: "[--days N | --since-last | --limit N] [--batch N] [--estimate] [--include-headless] [--cwd PATH] [--drop-pattern REGEX] ([--batch 1] is per-trace)"
 ---
 
 # skill-evolving
 
-The orchestrator skill for autonomous skill evolution. Coordinates trace collection,
-parallel category audits via subagents, frontmatter and body refinements, catalog
-synchronization, and lifecycle consolidation into a single verified publication pass.
+Edit skills so they match the conditions and demand the traces show. The trace pipeline produces report section 2 (Skills to update); this skill curates it and applies `edit`, `propose`, `enable`, and `disable` actions.
 
-Modeled on the four-skill pack under `skills/skill-authoring/`:
-- **`research-study/learn`** — mines session traces, repeated user phrases, and friction.
-- **`skill-design`** — creates new skills and refines frontmatter, triggers, and hints.
-- **`skill-library`** — audits category placement, repairs metadata, and updates `CATALOG.md`.
-- **`skill-lifecycle`** — prunes bloat, consolidates variants, and deletes empty categories.
+## Pipeline
 
-## Architecture & Responsibilities
+Runs on the shared pipeline in [`../_trace-pipeline/`](../_trace-pipeline/README.md):
 
-```
-                                 skill-evolving
-                               (Top-Level Agent)
-                                      │
-                   ┌──────────────────┴──────────────────┐
-                   ▼                                     ▼
-        Step 1: Ingest Traces                 Step 2: Tree Discovery
-        research-study/learn            aa skills list & categories
-                   │                                     │
-                   └──────────────────┬──────────────────┘
-                                      ▼
-                        Step 3: Parallel Subagents
-                      (1 Subagent per Category Folder)
-                     ┌────────────────┬────────────────┐
-                     ▼                ▼                ▼
-                devops/         automation/     skill-authoring/
-                 agent             agent             agent
-                     │                │                │
-                     └────────────────┼────────────────┘
-                                      ▼
-                        Step 4: Central Aggregation
-                        Apply proposed mutations
-                                      │
-                                      ▼
-                        Step 5: Library & Lifecycle
-                        aa skills repair & aa skills catalog
-                        skill-lifecycle --evolution
-                                      │
-                                      ▼
-                        Step 6: Gate & Verification
-                        aa skills validate --summary
-                        aa skills catalog --check
-                                      │
-                                      ▼
-                        Step 7: Commit & Pull Request
-                        Branch -> Commit -> gh pr create
-```
+1. Resume or price: [`_trace-pipeline/scripts/state.py`](../_trace-pipeline/scripts/state.py) `get` (resume check) and [`_trace-pipeline/scripts/collect_sessions.py`](../_trace-pipeline/scripts/collect_sessions.py) `--estimate` (one-line price per scope).
+2. Collect → run dir; narrow windows matter for retirement, not for edits: a stale line observed in 3 sessions is still a claim (the verifier gates it), and the edit applies regardless of `disuse_evidence`.
+3. Launch the `learn-traces` workflow per the [pipeline README](../_trace-pipeline/README.md) (older-client fallback included); block on `state.py wait`.
+4. Read `report.md`, present the Overview plus section 2 (Skills to update) — the report comes first on its own; curation questions belong to the next turn.
 
-## Related Skills & Routing
+## Signals this skill owns
 
-| Role | Skill | Action in Evolution Loop |
-|---|---|---|
-| Trace Mining | `research-study/learn` | Run `collect_sessions.py --days 1 --include-headless` to extract friction points, tool failures, and user phrases from the last 24 hours. |
-| Creation & Refinement | `skill-design` | Rewrite descriptions, adjust `argument-hint:`, split bloated bodies into `references/`, add newly discovered workflows. |
-| Catalog & Mechanical Repair | `skill-library` | Run `aa skills repair --apply`, `aa skills weed`, and `aa skills catalog`. |
-| Pruning & Consolidation | `skill-lifecycle` | Run `skill-lifecycle --evolution` across the tree to merge overlapping variants and retire duplicates. |
+From [`_trace-pipeline/references/signals.md`](../_trace-pipeline/references/signals.md):
 
-## Workflow
+- §3 Stale skill lines — a line in a loaded SKILL.md the session shows to be wrong or outdated (a path that did not exist, a flag or command that failed, a model or tool name that was overridden, a step the user told the agent to skip). Name the skill, quote the current line from the file, and quote the trace evidence. If the line is not in the current file, there is no claim.
+- §2 Friction — turns where the user corrected the agent, repeated an earlier instruction, or said the result was wrong. Friction that recurs across sessions points at a missing or unclear skill line; the fix is the same `edit` action.
 
-### Step 1: Trace Ingestion (Telemetry)
-Run the session collector from `research-study/learn` scoped to the target window (default 24h):
+## Action types
 
-```bash
-python3 skills/research-study/learn/collect_sessions.py --days 1 --include-headless
-```
+Per [`_trace-pipeline/references/report-format.md`](../_trace-pipeline/references/report-format.md):
 
-Argument mapping: `--scope <window>` selects `--days N` (a day count; `24h` means 1 day) and `--since-last` selects `--since-last`; `--headless` passes `--include-headless`. `--dry-run` runs Steps 1-6 but stops before commit/PR and reports the proposed diff.
+- `edit` — anchor/replacement/mode (`replace` | `insert_after` | `append`); the original is backed up to trash as the undo.
+- `propose` — the target is protected (plugin, bundled, or git-tracked); the fix belongs in a user-skill override or a PR patch, never in the protected file.
+- `enable` / `disable` — flip the plugin in the `[plugins]` lists of `GROK_HOME/config.toml`; read only that block.
 
-Headless semantics: no `ask_user_question` (no interactive prompts), reversible edits are auto-applied, and the pass ends with commit + PR (Step 7).
+Apply rules: [`references/apply-rules.md`](references/apply-rules.md) (read-before-edit, backup, anchor-or-fix, re-read-after, protected targets, config blocks).
 
-Examine output artifacts in the run directory (`<RUN>`):
-- `usage.json`: identifies zero-hit or heavily invoked skills.
-- `phrases.json`: captures user phrasing patterns, shorthand terms, and repeated instructions.
-- `surfaces.json`: highlights missing skills, unregistered slash commands, or collisions.
+## Curation and apply
 
-### Step 2: Category Discovery
-List all top-level category directories under `skills/`:
+Consent rules: [`_trace-pipeline/README.md` §Rules](../_trace-pipeline/README.md).
 
-```bash
-find skills -mindepth 1 -maxdepth 1 -type d ! -name "_*" ! -name ".*"
-```
+By mode: shared step/auto/report contract (see `_trace-pipeline/README.md` §Rules). skill-evolving's delta: actions are `edit`/`propose`/`enable`/`disable`.
 
-### Step 3: Spawn Parallel Category Subagents
-For each category folder containing skills, spawn a dedicated subagent with bounded scope:
+Record every decision with `state.py decide --run-dir <RUN> --id <id> --kind skill --action edit|propose|enable|disable --target <name> --path <path> --decision applied|rejected|deferred [--undo <trash path>]`.
 
-- **Prompt template for category subagent:**
-  > "You own category `<category>` under `skills/<category>`. Read `<RUN>/phrases.json` and `<RUN>/usage.json`. Audit each `SKILL.md` inside `skills/<category>/` against actual trace friction: (1) Update `description:` and `when-to-use:` with observed user phrasing. (2) Ensure `argument-hint:` matches the current CLI flags. (3) If a skill body exceeds 200 lines, factor scenario sections into `references/<scenario>.md`. (4) Verify all four mandatory keys exist (`name`, `description`, `when-to-use`, `argument-hint`). Apply changes in place."
+## References
 
-Spawn subagents in parallel using `spawn_subagent`.
-
-### Step 4: Central Aggregation & Mechanical Repairs
-Once all category subagents finish:
-1. Run mechanical repairs for standard violations:
-   ```bash
-   aa skills repair --apply
-   ```
-2. Rebuild the master catalog:
-   ```bash
-   aa skills catalog
-   ```
-
-### Step 5: Cross-Category Consolidation
-Execute the unattended lifecycle pass to consolidate cross-category variants:
-
-```bash
-/skill-lifecycle skills --evolution
-```
-
-### Step 6: Zero-Trust Quality Gate
-Run the full suite of skill validation gates:
-
-```bash
-aa skills validate --summary
-aa skills catalog --check
-python3 -m pytest modules/skills/tests -q
-```
-
-If any check fails:
-- Inspect error messages against `modules/skills/_rules/skill-rules.md`.
-- Fix offending frontmatter or links.
-- Re-run validation until all checks report clean.
-
-### Step 7: Publication & Pull Request
-1. Check for uncommitted changes:
-   ```bash
-   git status --short
-   ```
-2. If changes exist:
-   ```bash
-   git add skills/
-   git commit -m "chore(skills): daily autonomous self-evolution pass"
-   git push origin HEAD
-   gh pr create --title "chore(skills): daily autonomous self-evolution" --body "Automated daily evolution pass across skills/ tree driven by skill-evolving."
-   ```
-3. If no changes exist:
-   ```bash
-   git commit --allow-empty -m "chore(skills): daily evolution check - clean tree"
-   ```
-
-## Completion Criteria
-
-- All category folders reviewed against recent session traces.
-- All four mandatory frontmatter keys present and valid across all touched skills.
-- Zero rule violations reported by `aa skills validate`.
-- `CATALOG.md` synchronized and `aa skills catalog --check` exits 0.
-- Work committed and submitted via GitHub pull request.
+- Apply rules (edit, propose, enable/disable, protected targets, undo): [`references/apply-rules.md`](references/apply-rules.md)
+- Pipeline: [`_trace-pipeline/`](../_trace-pipeline/README.md)

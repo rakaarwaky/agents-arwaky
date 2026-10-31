@@ -1,7 +1,7 @@
 let meta = #{
     name: "learn-traces",
     description: "Map-reduce a collected set of Grok Build sessions into a curated list of harness changes: new or edited skills, plugin enables, deletes",
-    when_to_use: "Launched by the /learn skill after collect_sessions.py has written a run directory. Not for direct use without that run directory.",
+    when_to_use: "Launched by the trace-learning skills (skill-learning, skill-evolving, skill-unlearn) after collect_sessions.py has written a run directory. Not for direct use without that run directory.",
     phases: [
         #{ title: "Map", detail: "one agent per batch of sessions: phrases outside skills, skills and MCPs used, area, task type, friction" },
         #{ title: "Reduce", detail: "one agent per group of notes, repeated until one synthesis remains, with skill files as context" },
@@ -37,7 +37,7 @@ fn pad4(n) {
 }
 
 if args == () || args.run_dir == () || args.count == () || args.skill_dir == () {
-    pause("verification", "Pass args.run_dir (collector output), args.count (sessions_kept from manifest.json), and args.skill_dir (directory holding report-format.md). Optional: batch (default 10), fan (default 10), today, user_label, focus; grok_home and python are accepted for compatibility and unused (the parent session owns state.json).");
+    pause("verification", "Pass args.run_dir (collector output), args.count (sessions_kept from manifest.json), and args.skill_dir (the _trace-pipeline root holding references/report-format.md). Optional: batch (default 10), fan (default 10), today, user_label, focus; grok_home and python are accepted for compatibility and unused (the parent session owns state.json).");
 }
 
 let run_dir = trimmed(args.run_dir);
@@ -127,7 +127,7 @@ let report_schema = #{
 // ---------------------------------------------------------------- shared prompt text
 
 fn rules(run_dir, today, user_label) {
-    let p = "Today is " + today + ". You are one worker in a /learn run for " + user_label + ".\n";
+    let p = "Today is " + today + ". You are one worker in a trace-learning run for " + user_label + ".\n";
     p += "Run directory: " + run_dir + "\n";
     p += "Rules:\n";
     p += "- Read files with tools before you write anything. A claim with no file behind it is invalid.\n";
@@ -159,7 +159,7 @@ while m < n_map {
     p += "Read every file in " + run_dir + sep + "sessions" + sep + " whose 4-digit prefix is between " + pad4(first) + " and " + pad4(last) + " inclusive (" + (last - first + 1).to_string() + " files). List the directory first, then read each file in full.\n";
     p += "Each file is one Grok Build session " + user_label + " sat at: `turns` (the human prompts, in order), `slash_commands`, `skills_loaded`, `mcp_servers_used`, `tools`, `top_dirs_touched`, `cwd`, `git_root`, `title`, `model`.\n";
     p += "Read " + run_dir + sep + "surfaces.json once so you know which skills exist and are loaded (name, path, source, loaded).\n";
-    p += "Read " + skill_dir + sep + "signals.md: it defines what to extract (sections 1, 2, 3, 5) and the per-session record shape. Section 4 is not your job.\n";
+    p += "Read " + skill_dir + sep + "references" + sep + "signals.md: it defines what to extract (sections 1, 2, 3, 5) and the per-session record shape. Section 4 is not your job.\n";
     p += focus_line;
     p += "\nWrite " + note + " with one record per session in file order, in the shape signals.md gives, ending with `## Batch candidates`.\n";
     p += "\nReturn ok=true only after the note exists and sessions_read equals the number of files you read in full. candidates is the number of bullets under Batch candidates. If a file is missing or unreadable, say so in the note and set ok=false.";
@@ -239,9 +239,9 @@ loop {
         p += "\nRead every one of these notes in full:\n";
         for n in group { p += "- " + n + "\n"; }
         p += "Then read " + run_dir + sep + "usage.json (deterministic use counts per skill, plugin, MCP, workflow; `unused_loaded`; `slash_commands_with_no_loaded_skill`; `mcp_servers_used_but_not_in_local_config`), " + run_dir + sep + "surfaces.json (what exists, paths, name collisions, plugins enabled but not installed), and " + run_dir + sep + "phrases.json (exact repeated prompts and repeated instruction lines with distinct-session counts).\n";
-        p += "If " + run_dir + sep + "decisions.jsonl exists, read it: it holds prior /learn decisions. Never re-propose an action the user rejected. Mark an item already applied as applied instead of proposing it again.\n";
+        p += "If " + run_dir + sep + "decisions.jsonl exists, read it: it holds prior trace-learning decisions. Never re-propose an action the user rejected. Mark an item already applied as applied instead of proposing it again.\n";
         p += focus_line;
-        p += "Read " + skill_dir + sep + "signals.md for the definition of each section and the safety rules for unused surfaces.\n";
+        p += "Read " + skill_dir + sep + "references" + sep + "signals.md for the definition of each section and the safety rules for unused surfaces.\n";
         p += "\nMerge the notes into " + out + " with these sections:\n";
         p += "## 1. Repeated phrases -> skills — one bullet per phrase: quoted phrase, distinct session ids, owner (existing loaded skill with path, or NEW <name>). Before naming an existing owner, open its SKILL.md and quote the line the phrase joins or that already covers it.\n";
         p += "## 2. Skills to update — one bullet per skill: path, the stale line quoted from the current file (open it; no line, no item), trace evidence with session ids, proposed replacement text.\n";
@@ -324,8 +324,8 @@ for r in verified {
 
 phase("Report");
 let rp = rules(run_dir, today, user_label);
-rp += "\nYou write the final /learn report and the machine-readable action list.\n";
-rp += "Read " + skill_dir + sep + "report-format.md first and follow it exactly for both files.\n";
+rp += "\nYou write the final trace-learning report and the machine-readable action list.\n";
+rp += "Read " + skill_dir + sep + "references" + sep + "report-format.md first and follow it exactly for both files.\n";
 rp += "Inputs: the synthesis " + synthesis + ", the verifier files:\n";
 for n in verify_notes { rp += "- " + n + "\n"; }
 if verify_failed.len() > 0 {

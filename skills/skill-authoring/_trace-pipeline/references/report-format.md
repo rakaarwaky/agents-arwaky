@@ -1,4 +1,4 @@
-# /learn output format
+# Trace-learning output format
 
 Two files in the run directory. `report.md` is for the user. `actions.json` is for the apply step. Every action in `actions.json` must appear in `report.md`, and every claim in sections 1–3 of `report.md` must be backed by a verifier's Kept list.
 
@@ -7,7 +7,7 @@ Two files in the run directory. `report.md` is for the user. `actions.json` is f
 Write short sentences with one meaning each. No hedged summaries: a count is a number, a path is a path.
 
 ```markdown
-# /learn report — <today>
+# trace-learning report — <today>
 
 ## Overview
 Problem: <2–4 sentences: what the traces show the user repeating, correcting, or never using>

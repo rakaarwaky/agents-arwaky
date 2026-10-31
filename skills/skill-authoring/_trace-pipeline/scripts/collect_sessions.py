@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic collector for the /learn skill.
+"""Deterministic collector for the trace-learning pipeline.
 
 Walks a Grok Build home (default: $GROK_HOME or ~/.grok), keeps the sessions the
 user actually sat at, and writes a compact run directory that the learn-traces.rhai
@@ -10,7 +10,7 @@ workflow shards across agents:
   <run>/surfaces.json        skills, plugins, MCP servers, hooks, workflows (names only)
   <run>/usage.json           hit counts per surface item across kept sessions
   <run>/phrases.json         repeated prompts, prompt stems, repeated instruction lines
-  <run>/decisions.jsonl      copy of prior /learn decisions, if any
+  <run>/decisions.jsonl      copy of prior trace-learning decisions, if any
 
 Stdlib only. Never prints or copies config values other than names.
 """
@@ -48,7 +48,7 @@ def retire_stale_workflow_copy(grok_home: str) -> dict | None:
     one written by the launch step.
     """
     user_copy = os.path.join(grok_home, "workflows", "learn-traces.rhai")
-    skill_copy = os.path.join(os.path.dirname(os.path.abspath(__file__)), "learn-traces.rhai")
+    skill_copy = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "learn-traces.rhai")
     if not (os.path.isfile(user_copy) and os.path.isfile(skill_copy)):
         return None
     try:
@@ -95,6 +95,8 @@ SECRET_RES = [
     re.compile(r"(?i)\bbearer\s+[A-Za-z0-9_\-./+=]{20,}"),
     re.compile(r"(?i)\b(token|api[_-]?key|secret|password|passwd)\b\s*[:=]\s*['\"]?(?=[A-Za-z0-9_\-./+=]*\d)[A-Za-z0-9_\-./+=]{16,}"),
     re.compile(r"\b[a-f0-9]{64,}\b"),
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY.*?-----END [A-Z ]*PRIVATE KEY", re.S),  # PEM key blocks
+    re.compile(r'"private_key"\s*:\s*"[^"]{16,}"'),  # JSON-shaped pasted private keys
 ]
 
 
@@ -594,7 +596,7 @@ def main() -> int:
     ap.add_argument("--grok-home", default=os.environ.get("GROK_HOME") or os.path.expanduser("~/.grok"))
     ap.add_argument("--out", default=None, help="run directory to create (default: <GROK_HOME>/learn/runs/<UTC timestamp>, or <OS temp dir>/learn/estimate with --estimate)")
     ap.add_argument("--days", type=int, default=0, help="only sessions updated in the last N days (0 = all)")
-    ap.add_argument("--since-last", action="store_true", help="only sessions updated after the last /learn run (GROK_HOME/learn/state.json)")
+    ap.add_argument("--since-last", action="store_true", help="only sessions updated after the last trace-learning run (GROK_HOME/learn/state.json)")
     ap.add_argument("--include-headless", action="store_true", help="keep session_kind=headless (bots, grok -p)")
     ap.add_argument("--include-subagents", action="store_true", help="keep subagent sessions (normally noise)")
     ap.add_argument("--cwd", action="append", default=[], help="keep only sessions whose cwd starts with this (repeatable)")

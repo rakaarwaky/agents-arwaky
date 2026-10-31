@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read or update GROK_HOME/learn/state.json for the /learn skill.
+"""Read or update GROK_HOME/learn/state.json for the trace-learning skills.
 
   state.py get
   state.py set --run-dir DIR --status collected|running|report_ready|curating|done [--mode M] [--scope S] [--note TEXT]
