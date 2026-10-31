@@ -1,8 +1,8 @@
 ---
 name: chromium-profile-provisioning
-description: Use when creating, inspecting, or fixing Brave/Chromium profile dirs, Local State info_cache, user-data locations, or provisioning profiles alongside the Bitwarden CLI. Not driving pages.
-when-to-use: Use when a tool must see or create browser profiles deterministically, when editing Local State or Preferences with a closed browser, when probing user-data dirs under native, Flatpak, Snap, or macOS installs, or when wiring NAME|user|pass|url envs into vault items plus browser profiles. Not for driving pages.
-argument-hint: "<create | inspect> <profile-name> [user-data-dir] [--dry-run] [--yes]"
+description: Use when creating, inspecting, or fixing Brave/Chromium profile dirs, Local State info_cache, user-data locations, or provisioning profiles alongside the Bitwarden CLI. Not driving pages. Backed by the `baa` CLI (brave-automation-arwaky) and the `Local State` registry rules here.
+when-to-use: Use when a tool must see or create browser profiles deterministically, when editing Local State or Preferences with a closed browser, when probing user-data dirs under native, Flatpak, Snap, or macOS installs, when running `baa profile list|ensure|import|export|reset|rename|reconcile|sync`, `baa password`, `baa google`, or `baa init`, or when wiring NAME|user|pass|url envs into vault items plus browser profiles. Not for driving pages (see flatpak-chromium-automation).
+argument-hint: "<profile list | profile ensure | profile import | profile export | profile reset | profile rename | profile reconcile | profile sync | password <sub> | google <sub> | init | interactive> [profile-names...] [--csv <path>] [--browser brave|chrome|chromium|edge] [--dry-run] [-y|--yes] [--strict] [--prune] [--auto-fix]"
 metadata:
   tags:
     - browser
@@ -13,6 +13,17 @@ metadata:
 ---
 
 # Provisioning Chromium/Brave browser profiles
+
+All commands below are the `baa` CLI (`brave-automation-arwaky`,
+`baa --list` prints the detected profiles). Sub-commands:
+`baa init` (workspace: `.baa` XDG symlinks + `profile.csv` + `.gitignore`),
+`baa profile <list|ensure|import|export|reset|rename|reconcile|sync>`,
+`baa password <list|generate|export|import|reset>`, `baa google <login|logout|session>`,
+`baa interactive` (menu mode). Shared flags: `--csv <path>` (default
+`profile.csv`), `--browser {brave|chrome|chromium|edge}` (default `brave`),
+`--dry-run`, `-y`/`--yes` (skip the running-browser safety prompt),
+`--strict`, `--prune`, `--auto-fix` (the last three on `profile ensure`/`import`/
+`reconcile`). These rules explain what each sub-command does under the hood.
 
 ## What "a profile exists" actually means
 
@@ -139,3 +150,19 @@ bundle:
     `ln -sf "$(npm prefix -g)/bin/bw" ~/.local/bin/bw`.
   * Non-interactive login without exposing the password in argv:
     `bw login <email> --passwordenv BWC_PASSWORD` (export the var first).
+
+## Companion flows in `baa`
+
+- **Native passwords:** `baa password generate` exports a Chromium
+  `passwords.csv` (override with `--csv` / `--all-dir`); `baa password
+  import` loads it into every profile; `baa password reset` wipes saved
+  passwords.
+- **Google sign-in:** `baa google login` automates login from
+  `profile.csv`; `baa google session list|clear` manages saved session
+  cookies.
+- **Sync Chain:** `baa profile sync [--source Default] [--code <24-word>]
+  [--headless] [names...]` joins profiles to the Brave Sync Chain
+  (`--source`/`--code` as documented; `--headless` for CI).
+- **Workspace bootstrap:** `baa init [--dir <target>]` creates `.baa` XDG
+  symlinks, `profile.csv`, and `.gitignore`; run it before the first
+  `baa profile` command in a new repo.

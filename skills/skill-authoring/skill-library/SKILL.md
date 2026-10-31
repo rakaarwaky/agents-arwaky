@@ -1,8 +1,8 @@
 ---
 name: skill-library
-description: Manages the skills library by maintaining CATALOG.md, discovering skills, auditing category placement, repairing skill metadata, weeding duplicates, and organizing categories. Also provides the `aa skills list/show` discovery surface (formerly skill-manager). Use when the user runs /skill-library or asks to find, audit, repair, weed, organize, catalog, or validate skills.
-when-to-use: Use when the user wants to search the skill library, rebuild the skill catalog, validate or audit frontmatter rules, move misplaced skills, fix skill frontmatter, detect duplicate skills, archive obsolete skills, create skill categories, or update category DESCRIPTION.md files.
-argument-hint: "[--discover <query>] [--catalog] [--validate] [--repair] [--weed] [--move <skill> <category>] [--new-category <name> <desc>] [--archive <skill>]"
+description: Manages the skills library by maintaining CATALOG.md, discovering skills, auditing category placement, repairing skill metadata, weeding duplicates, and organizing categories. Use when the user runs /skill-library, asks to find, audit, repair, weed, organize, catalog, or validate skills, or asks to move or delete a skill ("remove this skill", "move to <category>") — deletions are archiving, not deleting.
+when-to-use: Use when the user wants to search the skill library, rebuild the skill catalog, validate or audit frontmatter rules, move misplaced skills, fix skill frontmatter, detect duplicate skills, archive obsolete skills, remove a skill, delete or delete-and-replace a category folder, create skill categories, or update category DESCRIPTION.md files.
+argument-hint: "<list | show <name> | discover <query> | catalog [--check] | validate [--category <name>] | weed | repair [--apply] | move <skill> <category> [--apply] | archive <skill> [--apply] | new-category <name> <desc> [--force] | merge-plan <a> <b>>"
 ---
 
 # Skill Library

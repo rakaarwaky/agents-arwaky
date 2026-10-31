@@ -1,8 +1,8 @@
 ---
 name: arxiv
-description: Search arXiv papers by keyword, author, category, or ID.
-when-to-use: Use when the user asks to search arXiv papers by keyword, author, category, or ID, or to fetch a paper's metadata, abstract, or PDF.
-argument-hint: "[\"QUERY\"] [--author NAME | --category CAT | --id ID] [--max N] [--sort relevance|date|updated]"
+description: Search and retrieve arXiv papers by keyword, author, category, or ID via the free REST API and the bundled stdlib-only helper script — plus BibTeX generation, Semantic Scholar for citations/impact, and PDF/HTML full-text reading.
+when-to-use: Use when the user asks to find or study arXiv papers ("search arxiv for X", "apakah bagus dan bisa kita adaptasi" on a paper), fetch a paper's metadata, abstract, BibTeX entry, or full text, or trace citation/impact via Semantic Scholar.
+argument-hint: "[QUERY] [--author NAME] [--category CAT] [--id ID[,ID...]] [--max N] [--sort relevance|date|updated]"
 metadata:
   tags:
     - Research

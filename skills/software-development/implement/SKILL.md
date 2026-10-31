@@ -1,7 +1,7 @@
 ---
 name: implement
-description: Run the implement → review → fix loop for small implementation tasks using implementer and reviewer personas in a single Orca worktree. Runs a fixed five-reviewer panel on every task (1 General, 1 Tests, 1 Plan Alignment, 1 Security, 1 Simplicity). Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement.
-when-to-use: Use when asked to implement, build, add a feature, fix a bug, or via the /implement slash command. Best for small-to-medium tasks that fit in one worktree. For multi-PR stacks with dependencies, use /execute-plan instead.
+description: "Run the implement, review, fix loop for small implementation tasks using implementer and reviewer personas in a single Orca worktree. Runs a fixed five-reviewer panel on every task (1 General, 1 Tests, 1 Plan Alignment, 1 Security, 1 Simplicity). Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, redesign a skill references directory into step-scoped files like an existing skill, run /implement, or paste CLI help output as the task."
+when-to-use: "Use when asked to implement, build, add a feature, fix a bug, or restructure a skill's references into step-scoped files, or via the /implement slash command. Best for small-to-medium tasks that fit in one worktree. For multi-PR stacks with dependencies, use /execute-plan instead."
 argument-hint: "<task-description>"
 disable-model-invocation: true
 ---

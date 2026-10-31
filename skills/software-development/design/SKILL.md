@@ -1,7 +1,7 @@
 ---
 name: design
-description: "Runs the design-doc-writer and design-doc-reviewer subagents in a write-review-revise loop until consensus, producing a polished design document with a PR plan. Observed phrasing: /design followed by a task description, write a design doc, design a feature, or asking whether the design skill can be parallelized."
-when-to-use: "Use when asked to design, write a design doc, produce a system design, architecture doc, or technical spec, or via the /design slash command. Invoked as /design with a description and as a step dependency inside execute-plan."
+description: "Runs the design-doc-writer and design-doc-reviewer subagents in a write-review-revise loop until consensus, producing a polished design document with a PR plan. Observed phrasing: /design followed by a task description, let design a proper merger of two skills, redesign doc rules, design a feature, or asking whether the design skill can be parallelized."
+when-to-use: "Use when asked to design, write a design doc, merge or redesign two skills' documentation into a design doc, produce a system design, architecture doc, or technical spec, or via the /design slash command. Invoked as /design with a description and as a step dependency inside execute-plan."
 argument-hint: "<description of what to design>"
 disable-model-invocation: true
 ---

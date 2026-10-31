@@ -1,7 +1,7 @@
 ---
 name: spike
-description: Runs throwaway validation experiments. Use when testing ideas before build with terminal, delegate.
-when-to-use: Use when testing an idea before committing to a build — validate feasibility, compare approaches, surface unknowns.
+description: "Runs throwaway validation experiments. Use when testing ideas before build with terminal, delegate. Observed user phrasing: 'waht theddiifere nwith my existing udplicatio detecito nadn what benefit if i adpat and upagrade it ?', 'is this even possible?', 'quick prototype of Z'."
+when-to-use: "Use when testing an idea before committing to a build — validate feasibility, compare approaches, surface unknowns. Matches observed user phrasing: 'waht theddiifere nwith my existing udplicatio detecito nadn what benefit if i adpat and upagrade it ?' (compare A vs B spike)."
 argument-hint: "<idea>"
 metadata:
   tags:

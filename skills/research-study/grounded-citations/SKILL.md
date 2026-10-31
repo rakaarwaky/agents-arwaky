@@ -1,7 +1,7 @@
 ---
 name: grounded-citations
-description: Ground answers and documents in cited, verifiable sources.
-when-to-use: Use whenever an answer or artifact rests on information you fetched rather than knew, and needs inline numbered citations plus a verifiable Sources block.
+description: Ground answers and documents in cited, verifiable sources — ledger-owned numbered citations plus a rendered Sources block. Use when the user wants claims sourced, cites a doc, asks to "make sure this is fact / no hallucination / perlu dicek manual", or needs fact-checking with verbatim evidence.
+when-to-use: Use whenever an answer or artifact rests on fetched rather than known information and needs inline numbered citations plus a verifiable Sources block, or when the user asks to fact-check, verify, or de-hallucinate a draft/list; skip for incidental lookups, casual chat, or creative writing.
 argument-hint: "<reset | add | list | render | verify | quote | ingest> [urls | id | path | draft] [--title | --accessed | --json | --ledger | --style | --only | --cited-in | --replace-in | --strict | --min-coverage | --evidence | --text | --from]"
 metadata:
   tags:

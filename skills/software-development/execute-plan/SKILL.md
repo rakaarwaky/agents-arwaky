@@ -2,7 +2,7 @@
 name: execute-plan
 description: "Execute a PR Plan DAG from a design document in parallel-first mode. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability. Observed phrasing: /execute-plan followed by a design doc path, execute plan, run the plan, implement the design, make plan execution parallel-first."
 when-to-use: Use when asked to execute a plan, run the plan, implement the design, or via the /execute-plan slash command with a design doc path. Invoked after /design produces a PR plan; observed runs reference design documents produced by the design skill.
-argument-hint: "<design-doc-path> [--effort N] [--resume <PLAN_ID>]"
+argument-hint: "<design-doc-path> [--effort N] [--resume <PLAN_ID>] [--squash-final] [--no-graphite] [--auto-pr] [--dry-run] [--instructions <text>]"
 ---
 
 # Execute Plan Skill
@@ -78,7 +78,7 @@ When launching a subagent, **prepend** the appropriate persona instructions to i
 
 The user runs:
 ```
-/execute-plan <design-doc-path> [--effort N] [--resume <PLAN_ID>]
+/execute-plan <design-doc-path> [--effort N] [--resume <PLAN_ID>] [--squash-final] [--no-graphite] [--auto-pr] [--dry-run] [--instructions <text>]
 ```
 
 | Parameter | Type | Default | Description |
@@ -86,6 +86,11 @@ The user runs:
 | `<design-doc-path>` | String | Required | Path to the design document (from `/design`) |
 | `--effort` | Integer (1-5) | 1 | Review thoroughness **per PR**. 1 = 1 general + simplicity (always pinned). 2-5 = more base slots, with specialists (security, tests, plan-alignment) auto-selected from each PR's description/files. The review-fix loop runs until 0 open issues for every PR. See the reviewer-count table in Step 7. |
 | `--resume` | String | none | Resume a previous run by PLAN_ID. Reads the state file and retries failed PRs. |
+| `--squash-final` | Flag | on | Squash-final assembly is the default path (Steps 10.1–10.5). When explicitly disabled, the normal N-branch stack assembly runs instead. |
+| `--no-graphite` | Flag | off | Force plain-git assembly even when `gt` is installed. |
+| `--auto-pr` | Flag | off | In plain-git mode, auto-run `gh pr create` per branch when `gh` is available. |
+| `--dry-run` | Flag | off | Parse and plan only: report the execution plan and stop without implementing. |
+| `--instructions` | String | "" | Extra instructions injected into every implementer, reviewer, and fix prompt. |
 
 **All other parameters are automatic — no user input needed:**
 
@@ -95,7 +100,6 @@ The user runs:
 | `squash_final` | **true** | After all PRs complete + pass per-PR review, all modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is pushed to `main`. See the Squash-Final path in [`references/step-10-stack-assembly.md`](references/step-10-stack-assembly.md). |
 | `auto_pr` | **true** | When `gh` is available and the remote is GitHub, the orchestrator automatically runs `gh pr create` for the final PR (squash-final mode) or for each branch in the stack (normal mode). No manual PR creation needed. |
 | `graphite` | auto-detect | If `gt` is installed and no explicit override is set, Graphite mode is used. Otherwise plain-git mode. `squash_final` forces plain-git mode. |
-| `dry_run` | false | Full execution. Set to true only when the user explicitly asks for a dry run. |
 | `instructions` | "" | No extra instructions by default. |
 
 Extract `--effort` and `--resume` from the argument string. If `--effort` is not present or out of range (1-5), default to 1. `--resume` skips Setup and jumps to Step 9.

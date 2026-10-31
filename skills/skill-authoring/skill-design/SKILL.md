@@ -1,7 +1,7 @@
 ---
 name: skill-design
-description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split. Use when the user asks what each skill in a pack does, requests argument hints for every skill in a directory, checks that a skill pack's references are current, or needs a skill created for an unloaded slash command (cli-commands, config-system, doc-rules, external-lint, git-hooks).
-when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, deciding what belongs in the body versus a references/ file, explaining a skill pack's features and usage to the user, or generating argument hints for skills in a tree. Also use when a slash command has no loaded skill and a new skill needs to be authored for it.
+description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, redesign or restructure a SKILL.md and its references/, or scaffold a SKILL.md. Covers frontmatter, naming, structure, the references/ subfolder convention, and body-versus-reference split. Use when the user asks what each skill in a pack does, requests argument hints for every skill in a directory, checks that a skill pack's references are current, allows references/ subfolders in a skill, asks to redesign a skill's references as step files, or needs a skill created for an unloaded slash command (cli-commands, config-system, doc-rules, external-lint, git-hooks).
+when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md; deciding what belongs in the body versus a references/ file or how to group references into subfolders; explaining a skill pack's features and usage to the user; or generating argument hints for skills in a tree. Also use when a slash command has no loaded skill and a new skill needs to be authored for it.
 argument-hint: "<create | improve | validate | audit | check | explain | hints> [skill-dir]"
 ---
 
@@ -22,6 +22,22 @@ design principles, the interactive creation workflow, and validation rules.
 - **`skill-library`** — listing and reading installed skills (`aa skills list/show`).
 - **`skill-lifecycle`** — consolidating or de-duplicating a skill tree.
 - **`skill-library`** — cataloging, repairing, and weeding the library.
+
+## references/ subfolders
+
+A skill's `references/` folder may be flat, or grouped into subfolders. Both are valid:
+
+- Flat `references/<file>.md` is the default for a small reference set.
+- `references/<subfolder>/<file>.md` is allowed whenever the flat set stops being
+  scannable — group by theme ("how-to" vs "rules") or stage (e.g. `step-0-intake/`
+  through `step-6-verify/`, one subfolder per workflow step).
+- `SKILL.md` is the only routing point: link every reference, whatever its depth,
+  directly from `SKILL.md` by relative path (`references/<subfolder>/<file>.md`).
+  Cross-links *between* references are optional and must resolve too.
+- A redesign of an existing skill's references (for example, restructuring flat
+  reference files into per-step subfolders like `design/references/` does) is a
+  `skill-design` task: keep the body a table of contents, move the detail into the
+  new layout, and verify every link after the move.
 
 Frontmatter, naming, description, and category-shape constraints are not restated here:
 the executable rules and their exact messages live in
@@ -144,7 +160,8 @@ my-skill/
 
 - Keep the body a table of contents; push detail into `references/*.md`.
 - Use subfolders under `references/` only when the reference set is large enough that
-  flat files stop being scannable — group by theme or stage.
+  flat files stop being scannable — group by theme or stage (see "references/ subfolders"
+  above).
 - Every reference, whatever its depth, must link directly from `SKILL.md` by relative
   path (`references/<subfolder>/<file>.md`). The body is the only routing point.
 - End steps with checkable completion criteria ("every modified file accounted for" beats

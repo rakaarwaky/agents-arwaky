@@ -2,7 +2,7 @@
 name: blender-arwaky
 description: "Blender asset search, GLB import/export, scene assembly, and rendering via MCP or CLI."
 when-to-use: "Use when scripting Blender, placing GLB/assets, rendering frames, or managing Blender scenes via CLI or MCP execute_command."
-argument-hint: "<init|launch|close|get-scene-info|create-primitive|set-object-transform|render|import-glb|export-model|place-asset|execute-blender-code|get-task-status|get-config|set-config|help> [--flag value]"
+argument-hint: "<init|launch|close|get-scene-info|create-primitive|set-object-transform|get-viewport-screenshot|render|import-glb|export-model|place-asset|get-task-status|cancel-task|execute-blender-code|get-config|set-config|help> [--filepath P --mode gui|headless --primitive-type T --location X Y Z --output PATH --resolution-x N --resolution-y N --file-path P --object-name N --asset-id ID --task-id ID --key K --value V --code 'py']"
 metadata:
   tags: []
 ---

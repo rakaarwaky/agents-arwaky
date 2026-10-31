@@ -1,7 +1,7 @@
 ---
 name: reference-doc-fact-audit
-description: Audit a study reference doc for factual errors, then fix.
-when-to-use: Use when the user asks to audit, fact-check, verify, or fix a study or technical reference document the agent or a model wrote earlier.
+description: Audit a study or technical reference doc an agent or model wrote for factual/numeric errors, then fix them in place — recompute every claim in code before reporting.
+when-to-use: Use when the user asks to audit, fact-check, verify, or fix a study/technical reference document the agent or a model wrote earlier, in skeptical terms ("make sure all this is fact, no hallucination, no assumption", "perlu dicek manual"). Assume errors until each claim is recomputed.
 argument-hint: "<audit | fix> <doc-path>"
 version: "1.0"
 author: hermes-agent

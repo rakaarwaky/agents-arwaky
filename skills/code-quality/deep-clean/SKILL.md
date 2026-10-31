@@ -1,7 +1,7 @@
 ---
 name: deep-clean
-description: "Deep structural cleanup: remove dead code, merge duplicate files, audit spaghetti growth and giant files, and restructure for maintainability. Use for a full pre-merge audit or post-refactor cleanup across Python, Rust, and TypeScript."
-when-to-use: "Remove dead code (ruff/vulture/knip/clippy/udeps), consolidate overlapping files into single cohesive modules, and run a harsh structural maintainability audit (abstraction quality, spaghetti-condition growth, 1k-line file boundaries) over a branch, diff, or module. Use before merge, before release, or after refactoring. --dry-run reports without executing."
+description: "Unified code-quality skill that subsumes cleanup-consolidate, strict-code-quality-review, and simplify-code: remove dead code, merge duplicate files, audit spaghetti growth and giant files, and restructure for maintainability. Use for a full pre-merge audit or post-refactor cleanup across Python, Rust, and TypeScript."
+when-to-use: "Use for any of: dead-code cleanup (ruff/vulture/knip/clippy/udeps), consolidation of overlapping files into single cohesive modules, harsh structural maintainability audit (abstraction quality, spaghetti-condition growth, 1k-line file boundaries), or simplification of recent changes over a branch, diff, or module (the 4-agent simplify sweep — reuse/quality/efficiency/altitude reviewers). Use before merge, before release, or after refactoring. --dry-run reports without executing."
 argument-hint: "[--dry-run] [diff or module path]"
 metadata:
   tags:
@@ -73,10 +73,11 @@ metadata:
 
 # deep-clean
 
-One skill that does two jobs over a branch, diff, or module:
+One skill that does three jobs over a branch, diff, or module:
 
 - **Cleanup & consolidation** (mechanical). Phase 1 removes dead code — unused files, stubs, thin wrappers, duplicates, commented-out code, unused imports/exports. Phase 2 merges overlapping files that share the same domain into single cohesive modules.
 - **Structural maintainability audit** (judgment). A strict review of abstraction quality, spaghetti-condition growth, giant files, boundary leaks, and missed "code-judo" moves — run over the diff or module *after* cleanup, or standalone when the goal is structure rather than deletion.
+- **Simplify sweep** (per-diff). The 4-agent parallel reviewer pass over recent changes: reuse / quality / efficiency / altitude reviewers, aggregate, apply the safe and careful tiers — the merged `simplify-code` scenario, one level deep in `references/`.
 
 **CRITICAL: two-phase order** — dead code first, then consolidation. Consolidating files that still contain dead code wastes effort. The structural audit is the judgment layer on top: it does not replace the mechanical phases; it decides *how* the remaining code should be reshaped.
 
@@ -100,6 +101,10 @@ Read the matching language reference end to end (self-contained: rules, detectio
 - For a deep code-quality audit of a branch, working tree, or PR.
 - For an especially harsh maintainability review before merge.
 - To answer "Is this codebase drifting toward spaghetti?" — run over a diff or module.
+- "Simplify my changes" / "clean up my recent diff" (the 4-agent sweep) →
+  [references/simplify-scenario.md](references/simplify-scenario.md), with its
+  sub-references `references/reviewer-prompts.md` and
+  `references/phase3-aggregate.md`.
 
 Do **not** use for routine lint/type-check runs (those are the gates in `requesting-code-review`/CI), or for style nits without a structural angle.
 

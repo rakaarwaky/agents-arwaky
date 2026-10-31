@@ -1,8 +1,8 @@
 ---
 name: context7-cli
-description: Operates the ctx7 CLI and Context7 MCP registry — resolve a library ID, then query its docs (doc lookup / find-docs), skills install/search/suggest/list/remove/generate, and MCP setup. Use when mentioning ctx7 or context7, looking up API docs or library docs for a library or framework, finding docs via ctx7, installing skills, or configuring Context7 MCP for an editor.
-when-to-use: Use when the user mentions ctx7, context7, or find-docs; asks to look up API docs or library docs for a library or framework; wants docs via MCP (context7__resolve-library-id / context7__query-docs) or the ctx7 CLI; wants to install, search, suggest, list, remove, or generate skills; or needs Context7 MCP set up for Claude Code, Cursor, OpenCode, or a project.
-argument-hint: ctx7 library <name> [query] [--json] | ctx7 docs <libraryId> <query> [--json] | ctx7 setup [--mcp|--cli] [--project] [--yes] [--api-key KEY] [--oauth] [--stdio] [--base-url URL] [--claude|--cursor|--opencode|--universal|--antigravity] | ctx7 auth login [--no-browser] | logout | whoami | ctx7 skills install|search|suggest|list|remove|info [--claude|--cursor|--opencode|--universal|--antigravity] [--global] [--project] [--yes] [--all] [--json] | ctx7 skills generate [-o DIR] [--all] [--global] [--claude|--cursor|--universal|--antigravity] | ctx7 upgrade [-y] [--check]
+description: Operates the ctx7 CLI (npm ctx7 / npx ctx7@latest) and Context7 MCP registry — resolve a library ID, then query its docs (doc lookup / find-docs), and set up or remove Context7 for an editor or project. Use when the user says how do I use X / gimana cara pakai for a library or tool (e.g. git-cliff, comrak, qlty), mentions ctx7 or context7, looks up up-to-date API docs (training data may be stale), or needs Context7 MCP configured or unconfigured. Note: ctx7 0.8.2 ships no ctx7 skills subcommand and no --universal setup flag; the skills-management commands in references/skills.md target a newer CLI build.
+when-to-use: "Use when the user mentions ctx7, context7, or find-docs; asks \"how do I use / gimana cara pakai\" a library, tool, or framework and current docs matter; asks to look up API docs or library docs (training data may be stale); wants docs via the Context7 MCP tools (context7__resolve-library-id / context7__query-docs) or the ctx7 CLI; or needs to set up (or remove) Context7 MCP/CLI for Claude Code, Cursor, VS Code, Devin, Copilot CLI, OpenCode, Codex, Antigravity, or Gemini CLI."
+argument-hint: "ctx7 login [--no-browser] | ctx7 logout | ctx7 whoami | ctx7 library <name> [query] [--json] | ctx7 docs <libraryId> <query> [--json] [--language LANG] | ctx7 setup [--mcp] [--cli] [--project] [--yes] [--api-key KEY] [--oauth] [--stdio] [--base-url URL] [--claude] [--cursor] [--vscode] [--devin] [--copilot] [--opencode] [--codex] [--antigravity] [--gemini] | ctx7 remove [--mcp] [--cli] [--all] [--project] [--yes] [--claude] [--cursor] [--vscode] [--devin] [--copilot] [--opencode] [--codex] [--antigravity] [--gemini] | ctx7 upgrade [-y] [--check] | npx ctx7@latest <command>"
 metadata:
   tags:
     - documentation
@@ -35,7 +35,7 @@ npx ctx7@latest <command>
 
 - **[Documentation lookup](references/find-docs.md)** — Resolve a library ID, then query its docs (the "find-docs" job; two transports — MCP tools or CLI).
 - **[Documentation commands](references/docs.md)** — `ctx7 library` / `ctx7 docs` command reference. Use when writing code, verifying API signatures, or when training data may be outdated.
-- **[Skills management](references/skills.md)** — Install, search, suggest, list, remove, and generate AI coding skills.
+- **[Skills management](references/skills.md)** — Install, search, suggest, list, remove, and generate AI coding skills. Documented against a CLI build newer than the published `ctx7@0.8.2` (which registers only login, logout, whoami, setup, remove, library, docs, upgrade); verify `ctx7 skills --help` on your installed version before relying on it.
 - **[Setup](references/setup.md)** — Configure Context7 MCP for Claude Code / Cursor / OpenCode.
 
 ## Quick Reference

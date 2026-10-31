@@ -1,8 +1,8 @@
 ---
 name: blogwatcher
-description: "Monitor blogs and RSS/Atom feeds via blogwatcher-cli tool."
-when-to-use: Use when the user wants to monitor blogs and RSS/Atom feeds, add or remove tracked blogs, scan for new articles, or manage read/unread articles via blogwatcher-cli.
-argument-hint: "<add | scan | articles | blogs | remove | import | read | unread | read-all> [blog] [url] [--feed-url | --scrape-selector | --all | --blog NAME | --category CAT | --yes | --db PATH]"
+description: "Monitor blogs and RSS/Atom feeds with the blogwatcher-cli Go tool: add, scan, import (OPML), and read/unread article tracking."
+when-to-use: Use when the user wants to monitor blogs or RSS/Atom feeds for new articles, add or remove tracked blogs, scan for new posts, filter articles by blog/category/date (--since/--before), import an OPML subscription file, or manage read/unread status via blogwatcher-cli.
+argument-hint: "<add | scan | articles | blogs | remove | import | read | unread | read-all> [blog] [url] [--feed-url URL | --scrape-selector CSS] [--all | --blog NAME | --category CAT | --since YYYY-MM-DD | --before YYYY-MM-DD] [--yes] [--silent] [--db PATH]"
 metadata:
   tags:
     - RSS

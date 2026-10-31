@@ -1,6 +1,8 @@
 ---
 name: music-library-downloader
-description: Download named song lists to MP3 via mdl / YouTube URLs.
+description: Download named song lists or hit collections to MP3 via mdl / YouTube URLs.
+when-to-use: "Use when the user wants to download a list of named songs (title + artist) or a curated hit collection (e.g. \"100 lagu hits 2020-2026\", \"50 Indonesian + 50 global\") to MP3 — resolve each track to a YouTube Music URL, then batch-download with mdl. User phrasings: \"bantu carai 100 lagu hits\", \"unduh daftar lagu\", \"download these songs\"."
+argument-hint: "<songs.json|<title> <artist> …> [--out DIR]"
 metadata:
   tags:
     - mdl

@@ -1,8 +1,8 @@
 ---
 name: codegraph
-description: Code graph: symbols, callers, impact. Prefer over grep. Use when exploring or refactoring a repo.
-when-to-use: Use when exploring or refactoring a repo, or before grep/Read when asking "what breaks if I change this".
-argument-hint: "<project-path>"
+description: "Code graph: symbols, callers, impact. Prefer over grep. Use when exploring or refactoring a repo. Observed phrasing: what breaks if I change this, which tests cover this file, what calls this and how."
+when-to-use: "Use when exploring or refactoring a repo, or before grep/Read when asking 'what breaks if I change this', 'which tests cover this file', or 'what calls this and how'."
+argument-hint: "<subcommand> [path] [args]"
 ---
 # CodeGraph MCP & CLI
 
@@ -65,8 +65,9 @@ init` run in it first (the user's decision, not yours).
 Same outputs as MCP, useful for a quick check or when piping:
 
 ```bash
-codegraph status                       # is there an index, and how big?
+codegraph status [path]                # is there an index, and how big? (path is a positional, not --path)
 codegraph explore "how does the dispatcher route commands"
+codegraph context "<task>"             # relevant symbols + relationships + code blocks for a task
 codegraph node <symbol>                # source + caller/callee trail
 codegraph impact <symbol>              # blast radius of changing it
 codegraph affected src/foo.py src/bar.py   # test files touched by these changes
@@ -75,7 +76,7 @@ codegraph ui                           # browse the graph in a browser
 
 ```text
 
-Each subcommand takes `--path` / `-p` for another project and `--help` for its own flags.
+Every subcommand except `status` takes `-p` / `--path` for another project, plus `--help` for its own flags; `status` takes the project path as a positional argument.
 
 ## References
 

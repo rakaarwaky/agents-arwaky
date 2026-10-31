@@ -1,7 +1,7 @@
 ---
 name: systemd-headless-service
-description: "Background a TTY/tray app as a 24/7 user systemd service that survives reboot. Use when an app exits under `systemd --user` with no TTY, auto-exits because `!process.stdin.isTTY`, or must run headless with linger after PC restart."
-when-to-use: "Use when an app works in a terminal but dies under systemd --user (no TTY), drops to tray/background mode, or must survive reboot via `systemctl --user enable` with `loginctl linger`."
+description: "Background a TTY/tray app as a 24/7 user systemd service that survives reboot (always on). Use when an app exits under `systemd --user` with no TTY, auto-exits because `!process.stdin.isTTY`, must run headless with linger after PC restart, or the user wants it always on across restarts."
+when-to-use: "Use when an app works in a terminal but dies under `systemd --user` (no TTY), drops to tray/background mode, or must survive reboot via `systemctl --user enable` with `loginctl linger`. Also for 'pakai systemd agar always on' on a fresh install (binary or podman service) that must run unattended."
 argument-hint: "<binary> <flags>"
 metadata:
   tags: []

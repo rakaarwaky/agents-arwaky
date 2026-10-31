@@ -6,7 +6,7 @@ description: >
   source (TUI, slots, tests). Use when an AI agent needs to send prompts, review code,
   or analyze attachments via CLI/MCP tools, or edit the internal/qwen-web-arwaky source.
 when-to-use: Use when the user runs /qwen-web, sends a prompt to Qwen AI Web, sends prompt files or attachments for Qwen analysis or code review with role templates, sets up or resets the Qwen browser session, initializes the qwen-web workspace, or asks to develop or fix the internal/qwen-web-arwaky repo.
-argument-hint: "<prompt direct -t <text> | prompt file -i <file> | prompt attach -i <file> -a <file> | doctor [--smoke] [--deep] | session login | session remove <id> | init [--dir <dir>]> [-o <out-file>] [--headless|--no-headless] [--json]"
+argument-hint: "prompt direct -t <text> | prompt file -i <prompt-or-role-template> | prompt attach -i <prompt-or-role-template> -a <file> | doctor [--smoke] [--deep] | session login --name <name> | session remove <session-id> [--force | --keep-profile] | session list | session health | session status | init [--dir <dir>] | job submit|status|list|cleanup | swarm | mcp | update | observability> [-o <out-file>] [--headless|--no-headless] [--json] [--model <model>]"
 version: 6.8.0
 metadata:
   tags:
@@ -36,8 +36,9 @@ Use this skill when an AI agent needs to send prompts or document files to **Qwe
 | Prompt file only | `process_prompt_file_only` | `qwa prompt file -i <prompt.md> [-o <out>]` |
 | Prompt with attachment | `process_prompt_with_attachment` | `qwa prompt attach -i <prompt.md> -a <file> [-o <out>]` |
 | Check session health | `check_session` | `qwa doctor [--smoke] [--deep]` |
-| Manual login / CAPTCHA | `setup_session` | `qwa session login` |
-| Reset session | `delete_session` | `qwa session remove <id>` |
+| Manual login / CAPTCHA | `setup_session` | `qwa session login --name <name>` |
+| Reset session | `delete_session` | `qwa session remove <session-id> [--keep-profile]` |
+| List / status / health sessions | — | `qwa session list | status | health` |
 | Initialize workspace | `init_workspace` | `qwa init [--dir <dir>]` |
 
 > **File conventions:** Place inputs under `.qwen-web-arwaky/input/` (or `.qwen-web/input/`) and outputs under `.qwen-web-arwaky/output/`. Always append a timestamp to output filenames (e.g., `arch_review_$(date +%Y%m%d_%H%M%S).md` in CLI or `YYYYMMDD_HHMMSS` in MCP) to prevent overwriting results from previous runs.
@@ -141,9 +142,10 @@ Use to verify login status or authenticate a new browser session when cookies ex
    - CLI: `qwa doctor`
 2. **Login / Re-authenticate (opens visible browser for login / CAPTCHA):**
    - MCP: call `setup_session`
-   - CLI: `qwa session login`
+   - CLI: `qwa session login --name <name>`
 3. **Reset session profile (if corrupted):**
    - MCP: `delete_session` with `{"confirm": true}`
+   - CLI: `qwa session remove <session-id>` (add `--keep-profile` to leave the Chromium profile dir on disk)
 
 ---
 
@@ -181,8 +183,8 @@ To ensure Qwen produces complete code without placeholders or omitted sections:
 
 | Error / Condition | Cause | Action |
 | :--- | :--- | :--- |
-| `AuthRequiredError` / `AUTH_REQUIRED` | Session expired or login needed | Call `setup_session` (MCP) or run `qwa session login` (CLI) to re-authenticate. |
-| `OutputValidationError` (CAPTCHA) | Bot verification challenge | Run `setup_session` or `qwa session login` to solve challenge manually. |
+| `AuthRequiredError` / `AUTH_REQUIRED` | Session expired or login needed | Call `setup_session` (MCP) or run `qwa session login --name <name>` (CLI) to re-authenticate. |
+| `OutputValidationError` (CAPTCHA) | Bot verification challenge | Run `setup_session` or `qwa session login --name <name>` to solve challenge manually. |
 | `NetworkTimeoutError` | Temporary network latency | Retry the request; if persistent, verify internet connection via `qwa doctor [--smoke] [--deep]`. |
 | `FileValidationError` / `FILE_NOT_FOUND` | Missing, unreadable, or file > 100 MB | Verify file path, permissions, and ensure file size is under 100 MB. |
 | `CircuitBreakerOpenError` | Repeated consecutive failures | Wait 30 seconds before sending next request. |

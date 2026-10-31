@@ -188,9 +188,9 @@ never `canvas * N` multipliers.
 | `references/implementation-notes.md` | `tonemap()`, font cell height (macOS), ffmpeg pipe deadlock, font compatibility, per-clip architecture, performance budgets |
 | `references/creative-divergence.md` | Forced Connections, Conceptual Blending, Oblique Strategies — experimental-output strategies |
 
----
+## Scenario: Creative Divergence (experimental / unique output only)
 
-## Creative Divergence (use only when user requests experimental/creative/unique output)
-
-If the user asks for creative, experimental, surprising, or unconventional output, select the strategy that best fits and reason through its steps BEFORE generating code. Full step-by-step strategies (Forced Connections, Conceptual Blending, Oblique Strategies) are in
-[`references/creative-divergence.md`](references/creative-divergence.md).
+Summarized: follow the standard pipeline above, then apply creative-divergence
+strategies — read
+[references/scenario-creative-divergence.md](references/scenario-creative-divergence.md)
+for full context before choosing a strategy.

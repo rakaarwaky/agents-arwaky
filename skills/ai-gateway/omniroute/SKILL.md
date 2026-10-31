@@ -1,8 +1,8 @@
 ---
 name: omniroute
-description: OmniRoute free AI gateway over OpenAI REST, 350+ providers with 150+ free tiers. Use when mentioning OmniRoute, OMNIROUTE_URL, auto/best-free, free-tier routing, checking a model context length (ctx) on the gateway, or building a model tier list / ranking the gateway model catalog. 9router (port 20128) is the second supported gateway vendor alongside OmniRoute.
-when-to-use: "Use when asking about OmniRoute, OMNIROUTE_URL, OMNIROUTE_KEY, auto/best-free or other combo routing, free-tier routing, adding a custom OpenAI-compatible provider, managing the OmniRoute daemon (status, restart, logs), fixing OmniRoute errors, or building a model tier list / ranking the gateway's model catalog."
-argument-hint: "[setup | models [--free] [--search <q> | --json] | combo <list|switch|create|delete|suggest> | providers <add|list|test|edit|remove|test-all> | aa omniroute <status|restart|logs|models|service-install> | doctor | keys | cost]"
+description: OmniRoute free AI gateway over OpenAI REST (host port 7777), 350+ providers with 150+ free tiers. Use when mentioning OmniRoute, OMNIROUTE_URL, OMNIROUTE_KEY, auto/best-free or other combo routing, free-tier routing, checking a model context length (ctx) on the gateway, or building a model tier list / capability ranking of the gateway model catalog. 9router (port 20128) is the second supported gateway vendor alongside OmniRoute.
+when-to-use: "Use when asking about OmniRoute, OMNIROUTE_URL, OMNIROUTE_KEY, auto/best-free or other combo routing, free-tier routing, adding a custom OpenAI-compatible provider, managing the OmniRoute daemon (status, restart, logs, service-install), fixing OmniRoute errors, discovering or ranking the model catalog, or building a model tier list / capability inventory (Model | Tier | Cocok untuk table)."
+argument-hint: "[setup | models [--search <q>] [--json] | models add|edit|remove|test-add <provider> <model> | combo <list|switch|create|delete|suggest> | providers <add|list|test|test-all|edit|remove|rotate|metrics|available|validate|import|auth|status|metric> | aa omniroute <start|stop|restart|status|logs|models|service-install|service-status|service-uninstall> | doctor | keys | cost | status]"
 metadata:
   tags:
     - ai-gateway
@@ -71,7 +71,7 @@ curl $OMNIROUTE_URL/v1/chat/completions -H "Content-Type: application/json" \
 
 ```bash
 curl $OMNIROUTE_URL/v1/models          # everything currently routable
-omniroute models --free                # free tiers only, via the CLI
+aa omniroute models                    # free tiers only, filter with --search / jq
 ```
 
 To **rank or tier** the models returned by `/v1/models` into a capability
@@ -153,6 +153,9 @@ omniroute providers add yjs --credential sk-... --default-model deepseek-v4-flas
 omniroute models add yjs deepseek-v4-flash-0731 --api-format chat-completions
 omniroute models add yjs deepseek-v4-flash-vision --api-format chat-completions
 omniroute providers test yjs
+omniroute providers rotate yjs       # rotate the upstream API key
+omniroute providers metrics          # per-connection latency / success / cost
+omniroute models search "deepseek"   # --search filters id/name/provider/description
 ```
 
 If the `omniroute` shell wrapper errors out (`ModuleNotFoundError: surface_daemon_command`
@@ -170,11 +173,15 @@ dashboard-password `curl` flow above.
 ## Manage the daemon
 
 ```bash
+aa omniroute start             # start the host-native daemon
+aa omniroute stop              # stop the daemon
 aa omniroute status            # process, systemd, ports, API readiness
 aa omniroute restart           # needed after any env edit
 aa omniroute logs              # journalctl tail
 aa omniroute models            # /v1/models through the gateway
 aa omniroute service-install   # 24/7 systemd user unit + enable-linger
+aa omniroute service-status    # systemd service status
+aa omniroute service-uninstall # disable and remove the systemd user unit
 ```
 
 Also upstream, for settings the `aa` verbs do not cover:

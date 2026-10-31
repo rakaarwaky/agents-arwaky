@@ -2,7 +2,7 @@
 name: pptx
 description: Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Trigger whenever the user mentions 'deck', 'slides', 'presentation', or references a .pptx filename, regardless of what they plan to do with the content afterward. If a .pptx file needs to be opened, created, or touched, use this skill.
 when-to-use: "Use whenever any .pptx file is involved — creating, reading, editing, combining, splitting, or working with templates, layouts, speaker notes, or comments — triggered by 'deck', 'slides', 'presentation', or a .pptx filename. Also use for structured programmatic work on .pptx decks via python-pptx (create from JSON spec, structured read-back, targeted text/chart/image edits, template filling, slide PNG rendering) and the legacy binary .ppt — convert it with `soffice --convert-to pptx old.ppt` first."
-argument-hint: "thumbnail <file.pptx>|check-overlaps <unpacked_dir> [--fix]|detect-fonts <file.pptx>|render-slides <file.pptx> [--output_dir <dir>] [--width N] [--height N]|add-slide <unpacked_dir> <source> [--after <slide>]|delete-slide <unpacked_dir> [<slide>...] [--keep <slide>...]|replace-text <slide.xml> [--ph <type>|--match <text>] --text <new>|replace-nth-text <slide.xml> --find <text> --nth N --text <new>|resize-shape <slide.xml> [--ph <type>] [--width <in>] [--height <in>]|inspect-slide <unpacked_dir> [--theme] [--media]|clean <unpacked_dir>|media-grid <unpacked_dir>|search-templates <query>|create <deck.json> <out.pptx>|read <deck.pptx> [--outline|--notes|--images <dir>]|edit <deck.pptx> <op> <args>|from-template <tpl.pptx> <out.pptx> --values <vals.json>|render <deck.pptx> --outdir <dir>"
+argument-hint: "thumbnail <file.pptx>|check-overlaps <unpacked_dir> [--fix]|detect-fonts <file.pptx>|render-slides <file.pptx> [--outdir <dir>] [--dpi N] [--cols N]|add-slide <unpacked_dir> <source> [--after <slide>]|delete-slide <unpacked_dir> [<slide>...] [--keep <slide>...]|replace-text <slide.xml> [--ph <type>|--match <text>] --text <new>|replace-nth-text <slide.xml> --find <text> --nth N --text <new>|resize-shape <slide.xml> [--ph <type>] [--width <in>] [--height <in>]|inspect-slide <unpacked_dir> [--theme] [--media]|clean <unpacked_dir>|media-grid <unpacked_dir>|search-templates <query>|create <deck.json> <out.pptx>|read <deck.pptx> [--outline|--notes|--images <dir>]|edit <deck.pptx> --replace-text <old> <new>|--chart-data <spec>|--swap-image <n> <name> <img>|--duplicate-slide <n>|--remove-slide <n>|--move-slide <from> <to>|--set-background <n> <hex>|--set-footer <n> <text>|--set-notes <n> <text>|from-template <tpl.pptx> <out.pptx> --values <vals.json>|render <deck.pptx> --outdir <dir>"
 user-invocable: false
 ---
 
@@ -151,11 +151,13 @@ Convert presentations to individual slide images for visual inspection:
 # Preferred — auto-calculates DPI from slide dimensions, with ODP fallback
 python scripts/render_slides.py output.pptx
 
-# Or with custom target resolution
-python scripts/render_slides.py output.pptx --output_dir slides/ --width 1920 --height 1080
+# Or with a custom output directory and DPI
+python scripts/render_slides.py output.pptx --outdir slides/ --dpi 200
 ```
 
-This creates `slide-1.png`, `slide-2.png`, etc. in a folder named after the input file.
+This creates `slide-01.jpg`, `slide-02.jpg`, … plus a combined
+`contact-sheet.jpg` in the output directory (default: same folder as the
+input).
 
 **Fallback** (if render_slides.py dependencies aren't available):
 

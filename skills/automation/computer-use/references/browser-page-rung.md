@@ -16,7 +16,10 @@ browser tools. The contract is capability-based:
    Trusted input is the default. `input_route="dom_event"` is an explicit
    trust downgrade; never choose it silently after a refusal.
 5. Every mutation invalidates refs. Take a fresh state snapshot before another
-   typed action. Never chain actions from remembered refs.
+   typed action. Never chain actions from remembered refs. `browser_download`
+   saves one page-triggered download inside an explicitly approved directory;
+   `browser_set_input_files` assigns absolute local files to an exact live
+   `<input type=file>` ref.
 
 `cua_browser_prepare` is a separate approved setup action. Driver-owned
 `isolated_new`/`isolated_named` profiles require explicit `allow_launch=true`.

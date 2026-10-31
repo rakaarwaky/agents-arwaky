@@ -1,7 +1,7 @@
 ---
 name: llm-wiki
-description: "Karpathy's LLM Wiki: build/query interlinked markdown KB."
-when-to-use: Use when the user asks to create, build, or start a wiki, ingest a source into a wiki, ask a question about an existing wiki, or lint/audit/health-check a wiki.
+description: "Karpathy's LLM Wiki pattern: build, query, ingest, and lint a compounding interlinked-markdown knowledge base (no RAG, no database)."
+when-to-use: Use when the user asks to create, build, or start a wiki or knowledge base; ingest, add, or process a source into an existing wiki; ask a question answered from an existing wiki; or lint, audit, or health-check a wiki ("apa itu X menurut wiki saya", "check my notes for stale/duplicate pages").
 argument-hint: "<init | ingest | query | lint> [wiki-path | source]"
 version: 2.1.0
 author: Hermes Agent

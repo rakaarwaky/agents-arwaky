@@ -1,8 +1,8 @@
 ---
 name: computer-use
-description: Drive the user's desktop in the background without stealing focus, via the Hermes computer_use tool backed by cua-driver, including a typed browser-page rung. Use when a task needs the user's actual desktop apps rather than headless browser or shell tools.
-when-to-use: Use when driving a native desktop app (browser GUI, mail client, editor, game, Figma, OS dialogs) in the background, when the user wants mouse/keyboard automation that must not steal focus, or when an input rung must be verified or escalated through the computer_use ladder. Not for headless web automation, plain file edits, or shell commands.
-argument-hint: "<capture | click | double_click | right_click | middle_click | drag | scroll | type | key | wait | list_apps | focus_app | cua_browser_state | cua_browser_click | cua_browser_type | cua_browser_navigate | cua_browser_pointer | cua_browser_dialog> [action args]"
+description: Drive the user's desktop in the background without stealing focus, via the Hermes computer_use tool backed by cua-driver 0.28.x, including a typed browser-page rung (cua_browser_* actions). Use when a task needs the user's actual desktop apps rather than headless browser or shell tools.
+when-to-use: Use when driving a native desktop app (browser GUI, mail client, editor, game, Figma, OS dialogs) in the background, when the user wants mouse/keyboard automation that must not steal focus, when launching a background Linux app (launch_app) or invoking native app menus (invoke_menu), or when an input rung must be verified or escalated through the computer_use ladder. Not for headless web automation, plain file edits, or shell commands.
+argument-hint: "<capture | click | double_click | right_click | middle_click | drag | scroll | type | key | wait | list_apps | focus_app | cua_browser_state | cua_browser_click | cua_browser_type | cua_browser_navigate | cua_browser_pointer | cua_browser_dialog | cua_browser_prepare | list_windows> [action args]"
 metadata:
   tags:
     - computer-use
