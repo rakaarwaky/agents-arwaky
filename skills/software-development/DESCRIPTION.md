@@ -1,3 +1,3 @@
 ---
-description: Software development workflow skills — systematic debugging, test suites, atomic commits, code simplification, and review requests.
+description: Software development workflow skills — design docs, plan execution, implementation loops, and code graphs.
 ---
