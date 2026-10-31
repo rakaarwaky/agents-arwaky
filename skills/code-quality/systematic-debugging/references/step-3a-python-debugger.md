@@ -1,4 +1,6 @@
-# Python Debugging (pdb + debugpy)
+# Step 3a: Python Debugger (pdb + debugpy)
+
+Language-variant of Step 3 for `target_lang = python`. Picked when the bug site is Python source.
 
 ## Overview
 
@@ -113,21 +115,9 @@ Long-lived. Use `remote-pdb` at a handler, or `debugpy` with `--wait-for-client`
 
 10. **Security — bind the debug listener to `127.0.0.1` only.** `debugpy.listen(("0.0.0.0", 5678))` and `remote_pdb.set_trace(host="0.0.0.0")` expose arbitrary code execution (the DAP/pdb protocol evaluates expressions) to anyone who can reach the port. Never use `0.0.0.0` on a shared or untrusted network.
 
-## Verification Checklist
-
-- [ ] In the project's own dev venv, confirm: `.venv/bin/python -c "import debugpy; print(debugpy.__version__); print(debugpy.__file__)"`
-- [ ] For remote debug, confirm the port is actually listening: `ss -tlnp | grep 5678`
-- [ ] First breakpoint actually hits (if it doesn't, you likely have `PYTHONBREAKPOINT=0`, you're under a parallel/capturing runner, or execution finished before attach)
-- [ ] `where` / `w` shows the expected call stack
-- [ ] Post-debug cleanup: no stray `breakpoint()` / `set_trace()` in committed code
-  ```bash
-  rg -n 'breakpoint\(\)|set_trace\(|debugpy\.listen' --type py
-  ```
-
 ## One-Shot Recipes
 
 **"Why is this dict missing a key?"**
-
 ```python
 # add above the KeyError site
 breakpoint()
@@ -158,14 +148,12 @@ PYTHONFAULTHANDLER=1 python -m pdb -c continue path/to/entrypoint.py
 ### Recipe 1: Local breakpoint
 
 Easiest. Edit the file:
-
 ```python
 def compute(x, y):
     result = some_helper(x)
     breakpoint()           # <-- drops into pdb here
     return result + y
 ```
-
 Run the code normally. You land at the `breakpoint()` line with full access to locals.
 
 **Don't forget to remove `breakpoint()` before committing.** Use `git diff` or a pre-commit grep:
@@ -238,7 +226,6 @@ All patterns below run through `.venv/bin/python`.
 #### Pattern A: Source-edit — process waits for debugger at launch
 
 Add near the top of the entry point (or inside the function you want to debug):
-
 ```python
 import debugpy
 debugpy.listen(("127.0.0.1", 5678))
@@ -246,7 +233,6 @@ print("debugpy listening on 5678, waiting for client...", flush=True)
 debugpy.wait_for_client()
 debugpy.breakpoint()       # optional: pause immediately once attached
 ```
-
 Start the process; it blocks on `wait_for_client()`.
 
 #### Pattern B: No source edit — launch with `-m debugpy`
@@ -343,3 +329,7 @@ nc 127.0.0.1 4444
 ```
 
 `remote-pdb` is the cleanest agent-friendly choice when `debugpy`'s DAP protocol is overkill. Use `debugpy` only when you actually need IDE integration.
+
+## Back to Step 3
+
+After confirming the hypothesis with the debugger, return to [`step-3-hypothesis.md`](step-3-hypothesis.md) §3 to record the result and advance to Step 4. For post-fix cleanup verification, see [`step-5a-python-verify.md`](step-5a-python-verify.md).

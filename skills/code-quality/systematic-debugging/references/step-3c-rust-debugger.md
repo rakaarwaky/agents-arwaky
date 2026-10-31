@@ -1,6 +1,9 @@
-# Rust Debugging
+# Step 3c: Rust Debugger (dbg!, RUST_BACKTRACE, rust-gdb/lldb)
+
+Language-variant of Step 3 for `target_lang = rust`. Picked when the bug site is Rust source.
 
 ## When to Use
+
 - A `cargo test` failure whose traceback doesn't reveal why a value is wrong
 - A panic with a truncated or missing backtrace
 - Borrow-checker or lifetime errors you need to inspect at runtime
@@ -45,8 +48,7 @@ let bt = Backtrace::capture();   // disabled unless RUST_BACKTRACE set
 eprintln!("captured:\n{}", bt);
 ```
 
-Note: `Backtrace::capture()` returns a disabled backtrace unless `RUST_BACKTRACE` is set
-or `RUST_BACKTRACE=1` is in the environment at runtime.
+Note: `Backtrace::capture()` returns a disabled backtrace unless `RUST_BACKTRACE` is set or `RUST_BACKTRACE=1` is in the environment at runtime.
 
 ## Common Pitfalls
 
@@ -88,12 +90,6 @@ cargo test -- --nocapture 2>&1 | grep -i "test result"
 for i in $(seq 1 50); do cargo test flaky_test -- --nocapture || break; done
 ```
 
-## Verification Checklist
+## Back to Step 3
 
-- [ ] `RUST_BACKTRACE=1` shows the expected frames (if missing, env not propagated to subprocess)
-- [ ] `dbg!()` line numbers match source (mismatch = stale build; `cargo clean` then rebuild)
-- [ ] Debugger attaches to the right binary (`target/debug/deps/` for tests)
-- [ ] No stray `dbg!()` / `println!()` in committed code:
-  ```bash
-  rg -n 'dbg!\(|println!\(' --type rust src/ tests/
-  ```
+After confirming the hypothesis with the debugger, return to [`step-3-hypothesis.md`](step-3-hypothesis.md) §3 to record the result and advance to Step 4. For post-fix cleanup verification, see [`step-5c-rust-verify.md`](step-5c-rust-verify.md).

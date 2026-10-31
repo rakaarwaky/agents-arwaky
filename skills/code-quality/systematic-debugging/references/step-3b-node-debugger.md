@@ -1,6 +1,6 @@
-# Node.js / TypeScript Debugging (`node inspect` + CDP)
+# Step 3b: Node.js / TypeScript Debugger (node inspect + CDP)
 
-## Overview
+Language-variant of Step 3 for `target_lang = typescript` or `node`. Picked when the bug site is Node/TS source.
 
 When `console.log` isn't enough, drive Node's built-in V8 inspector programmatically from the terminal. You get real breakpoints, step in/over/out, call-stack walking, local/closure scope dumps, and arbitrary expression evaluation in the paused frame.
 
@@ -24,7 +24,6 @@ Two tools, pick one:
 ## Quick Reference: `node inspect` REPL
 
 Launch paused on first line:
-
 ```bash
 node inspect path/to/script.js
 # or with tsx
@@ -60,7 +59,6 @@ The `debug>` prompt accepts:
 ## Attaching to a Running Process
 
 When the process is already running (e.g. a long-lived dev server or a TUI backend):
-
 ```bash
 # 1. Send SIGUSR1 to enable the inspector on an existing process
 kill -SIGUSR1 <pid>
@@ -73,7 +71,6 @@ node inspect ws://127.0.0.1:9229/<uuid>
 ```
 
 To start a process with the inspector from the beginning:
-
 ```bash
 node --inspect script.js           # listen on 127.0.0.1:9229, keep running
 node --inspect-brk script.js       # listen AND pause on first line
@@ -81,7 +78,6 @@ node --inspect=127.0.0.1:9230 script.js   # custom host:port
 ```
 
 For TypeScript via tsx:
-
 ```bash
 node --inspect-brk --import tsx script.ts
 # or older tsx
@@ -148,13 +144,11 @@ const CDP = require('chrome-remote-interface');
 ```
 
 Run it:
-
 ```bash
 node ~/.cache/scratch/cdp-debug.js
 ```
 
 `chrome-remote-interface` is NOT in the project's `package.json`. Install it to a throwaway location if you don't want to dirty the project:
-
 ```bash
 mkdir -p ~/.cache/scratch/cdp-tools && cd ~/.cache/scratch/cdp-tools && npm i chrome-remote-interface
 NODE_PATH=~/.cache/scratch/cdp-tools/node_modules node ~/.cache/scratch/cdp-debug.js
@@ -167,7 +161,6 @@ A TUI built Ink + tsx has two common scenarios:
 ### Debugging a single Ink component under dev
 
 If the app's `package.json` has `npm run dev` (tsx --watch), build once then debug dist:
-
 ```bash
 cd <project-root>/ui-tui
 npm run build    # produce dist/ once so transpile isn't needed on first load
@@ -177,7 +170,6 @@ node inspect -p <node pid>
 ```
 
 Then inside `debug>`:
-
 ```
 sb('dist/app.js', 220)     # or wherever the suspect render is
 cont
@@ -188,7 +180,6 @@ When it pauses, `repl` → inspect `props`, state refs, `useInput` handler value
 ### Debugging a running TUI
 
 The TUI spawns Node from a parent CLI. Easiest path:
-
 ```bash
 # 1. Launch the TUI and capture its Node PID
 myapp --tui &
@@ -209,7 +200,7 @@ Interacting with the TUI (typing in its window) continues to advance execution; 
 
 ### Python child processes
 
-A worker subprocess or PTY bridge child written in Python is a different runtime. If the bug is on the Python side rather than the Node UI, use [`python-debugging.md`](python-debugging.md). Only Node portions (the Ink UI, the tsx-run tests) use this reference.
+A worker subprocess or PTY bridge child written in Python is a different runtime. If the bug is on the Python side rather than the Node UI, use [`step-3a-python-debugger.md`](step-3a-python-debugger.md). Only Node portions (the Ink UI, the tsx-run tests) use this reference.
 
 ## Running Vitest Tests Under the Debugger
 
@@ -303,11 +294,6 @@ debug> bt
 
 7. **Security.** `--inspect=0.0.0.0:9229` exposes arbitrary code execution (anyone who can reach the port can eval expressions and run code). Always bind to `127.0.0.1` (the default) unless you have an isolated network. Never use `0.0.0.0`.
 
-## Verification Checklist
+## Back to Step 3
 
-After setting up a debug session, verify:
-
-- [ ] `curl -s http://127.0.0.1:9229/json/list` returns exactly the target you expect
-- [ ] First breakpoint actually hits (if it doesn't, you likely missed `--inspect-brk` or attached after execution completed)
-- [ ] Source listing at pause shows the right file (mismatch = sourcemap issue, see pitfall 1)
-- [ ] `exec process.pid` in `repl` returns the PID you meant to attach to
+After confirming the hypothesis with the debugger, return to [`step-3-hypothesis.md`](step-3-hypothesis.md) §3 to record the result and advance to Step 4. For post-fix cleanup verification, see [`step-5b-node-verify.md`](step-5b-node-verify.md).
