@@ -1,8 +1,8 @@
 ---
 name: deep-clean
-description: "Deep structural cleanup: remove dead code, merge duplicate files, audit spaghetti growth and giant files, and restructure for maintainability. Use for a full pre-merge audit or post-refactor cleanup across Python, Rust, and TypeScript."
-when-to-use: "Remove dead code (ruff/vulture/knip/clippy/udeps), consolidate overlapping files into single cohesive modules, and run a harsh structural maintainability audit (abstraction quality, spaghetti-condition growth, 1k-line file boundaries) over a branch, diff, or module. Use before merge, before release, or after refactoring. --dry-run reports without executing."
-argument-hint: "[--dry-run] [diff or module path]"
+description: "Deep structural cleanup and simplification: remove dead code, merge duplicate files, run a 4-lens diff sweep, and audit maintainability. Use for pre-merge or post-refactor work across Python, Rust, and TypeScript. Also triggered by /simplify."
+when-to-use: "Remove dead code (ruff/vulture/knip/clippy/udeps), consolidate overlapping files into single cohesive modules, run a 4-reviewer diff sweep (reuse, quality, efficiency, altitude), and execute a strict maintainability audit over a branch, diff, or module. Use before merge, before release, or after refactoring. --dry-run reports without executing."
+argument-hint: "[--dry-run] [--focus <reuse|quality|efficiency|altitude>] [--scope <path|commit>] [diff or module path]"
 metadata:
   tags:
     - python
@@ -18,15 +18,27 @@ metadata:
     - unused-files
     - merge
     - deduplication
+    - code-review
+    - refactor
+    - delegation
+    - subagent
+    - parallel
+    - simplify
     - spaghetti
     - maintainability
     - code-judo
     - giant-files
+    - reuse
+    - efficiency
+    - altitude
   related_skills:
     - fix-bypass
     - lint-arwaky
     - create-capabilities
     - create-agent
+    - systematic-debugging
+    - requesting-code-review
+    - hermes-plan
   triggers:
     - deep clean
     - deep clean python
@@ -69,16 +81,30 @@ metadata:
     - code judo
     - split giant file
     - harsh maintainability review before merge
+    - simplify
+    - simplify my changes
+    - simplify these changes
+    - review my code
+    - review my recent changes
+    - clean up my changes
+    - /simplify
 ---
 
 # deep-clean
 
-One skill that does two jobs over a branch, diff, or module:
+One skill that runs a 6-phase pipeline over a branch, diff, or module:
 
-- **Cleanup & consolidation** (mechanical). Phase 1 removes dead code — unused files, stubs, thin wrappers, duplicates, commented-out code, unused imports/exports. Phase 2 merges overlapping files that share the same domain into single cohesive modules.
-- **Structural maintainability audit** (judgment). A strict review of abstraction quality, spaghetti-condition growth, giant files, boundary leaks, and missed "code-judo" moves — run over the diff or module *after* cleanup, or standalone when the goal is structure rather than deletion.
+- **Phase 0 — Scope capture.** Pick the diff source (working tree, staged, last commit, branch, or named paths) or select the module/crate to audit.
+- **Phase 1 — Dead-code & unused-surface cleanup** (mechanical). Remove unused files, stubs, thin wrappers, duplicates, commented-out code, and dead imports/exports.
+- **Phase 2 — File consolidation** (mechanical). Merge overlapping files that share the same domain into single cohesive modules.
+- **Phase 3 — 4-lens diff sweep** (evidence-based). Four focused reviewers — Reuse, Quality, Efficiency, Altitude — search the codebase for duplication, quality problems, wasted work, and band-aids layered over shared infrastructure.
+- **Phase 4 — Aggregate, risk-tier, and structural audit** (judgment). Dedupe findings, tier them SAFE / CAREFUL / RISKY, and run the strict maintainability audit (code-judo moves, spaghetti prevention, 1k-line file boundary).
+- **Phase 5 — Apply per tier.** SAFE auto-applied, CAREFUL applied with per-file test gates, RISKY flagged for human review (never auto-applied).
+- **Phase 6 — Verification gates.** Lint, format, typecheck, targeted tests, entry-point import, stale-reference grep, and a dedicated "Bugs found" section.
 
-**CRITICAL: two-phase order** — dead code first, then consolidation. Consolidating files that still contain dead code wastes effort. The structural audit is the judgment layer on top: it does not replace the mechanical phases; it decides *how* the remaining code should be reshaped.
+**This is a cleanup and simplification pass, not a bug hunt.** Improve the quality, structure, and simplicity of code that already works. If a reviewer surfaces a genuine correctness bug, report it prominently as a separate "Bugs found" note — do not fold it into the cleanup fixes.
+
+**CRITICAL: two-phase mechanical order** — dead code first, then consolidation. Consolidating files that still contain dead code wastes effort. The 4-lens sweep (Phase 3) and the structural audit (Phase 4) are the judgment layers on top: they do not replace the mechanical phases; they decide *what to reshape and how to apply it safely*.
 
 ## Language Routing
 
@@ -128,6 +154,31 @@ For the structural audit: **"Is there a code-judo move that makes this dramatica
 
 Language-specific invariants (Rust: *always update the trait when removing impl methods*, *one struct per file*; Python: *respect `# noqa` / `# type: ignore` / `# pragma: no cover` / `if TYPE_CHECKING:`*; TypeScript: *respect `@ts-ignore` / `eslint-disable` / side-effect imports / path aliases*) and the full **Exceptions — NEVER Remove Without Explicit Approval** tables live in each reference.
 
+## Phase 0 — Scope Capture
+
+**Diff-scoped request** ("simplify my changes", "review my recent changes", a PR/branch):
+capture the diff to review. Pick the source in this default order:
+
+```bash
+git diff              # 1. uncommitted working tree (tracked files)
+git diff HEAD         # 2. if empty, include staged
+git diff --staged     # "staged changes"
+git diff HEAD~1       # "the last commit"
+git diff main...HEAD  # "this branch" / "my PR"
+git diff -- <path>    # specific file(s)
+```
+
+If both `git diff` and `git diff HEAD` are empty and there is no git repo or no changes,
+fall back to the files the user explicitly named, or recently created/edited this session.
+If there is genuinely nothing to review, say so and stop.
+
+**Large-diff warning:** if the diff exceeds ~2000 changed lines, warn that four
+subagents each carrying the full diff is token-heavy, and offer to scope it down
+(per-directory, per-commit) before proceeding.
+
+**Module/crate-scoped request** ("deep clean this crate", "clean bloat in `foo/`"):
+skip diff capture; operate directly on the named module or crate.
+
 ## Phase 1 — Dead Code Cleanup (identical steps in all three references)
 
 1. **1.1 Safety Snapshot** — commit, then branch; non-negotiable.
@@ -145,9 +196,98 @@ Language-specific invariants (Rust: *always update the trait when removing impl 
 
 Detect same-purpose / same-domain / split-functionality file groups → pick the target file (the one holding the most logic) → move the source files' unique members into it → update **all** references (imports, exports, tests, wiring) → delete the source file(s) → verify compilation and behavior. Rust merges follow *one struct per file* (merge fields, keep each trait impl, prefix shared method names); Python/TypeScript merge re-export surfaces too (`__init__.py`/`__all__`, barrel `index.ts`/`package.json`).
 
-## Phase 3 — Structural Maintainability Audit (judgment layer)
+## Phase 3 — 4-Lens Diff Sweep (evidence-based)
 
-After cleanup and consolidation are stable, run the strict structural audit over the diff or module. This is where the "code-judo" ambition lives. Read [references/review-tone.md](references/review-tone.md) for tone and output prioritization.
+When the request is diff-scoped (Phase 0 captured a diff), run four focused reviewers in
+parallel. **Four narrow reviewers beat one broad reviewer** — each deeply searches the
+codebase for a single class of problem without diluting its attention across all four.
+
+### Execution model
+
+- **Preferred:** subagent batch fan-out — pass all four reviewer tasks in one batch so
+  they run concurrently. Four is the right fan-out; it is within the default
+  `max_concurrent_children` budget. **Never fan out wider than 4** — more reviewers means
+  more cost and more conflicting suggestions to reconcile, not better coverage.
+- **Fallback:** if subagents are unavailable (leaf agent, delegation disabled, budget
+  exhausted), do **not** skip the review or drop angles. Work through all four reviewer
+  angles yourself, sequentially, in this context — same search standards, same finding
+  format. State clearly in the final summary that this was a single-pass inline review,
+  not the parallel fan-out.
+
+**Give every reviewer the complete diff** (not fragments — cross-file issues hide in the
+gaps) plus the absolute repo path so they can search the wider codebase. Each reviewer gets
+`terminal`, `file`, and `search` toolsets so it can `git`, `read_file`, and grep.
+
+### The four lenses
+
+For the full reviewer prompts, see [`references/reviewer-prompts.md`](references/reviewer-prompts.md).
+
+- **Reviewer 1 — Reuse.** Find code that duplicates functionality already in the codebase
+  (utilities, shared helpers, canonical patterns). Flag new functions that duplicate existing
+  ones; hand-rolled logic an existing utility already does. Name the existing thing and where
+  it lives.
+- **Reviewer 2 — Quality.** Redundant state, parameter sprawl, copy-paste-with-variation,
+  leaky abstractions, stringly-typed code, deeply nested conditionals, AI-generated slop
+  patterns. For each, give the concrete refactor.
+- **Reviewer 3 — Efficiency.** Unnecessary work, N+1 patterns, missed concurrency, hot-path
+  bloat, TOCTOU anti-patterns, memory/listener leaks, overly broad reads, silent failures
+  (swallowed exceptions). For each, give the concrete fix and why it is faster or safer.
+- **Reviewer 4 — Altitude.** Changes implemented at the wrong depth — band-aids layered over
+  shared infrastructure instead of fixes to the infrastructure itself. Special-case branches on
+  generic paths, workarounds stacked on earlier workarounds. Identify the underlying mechanism
+  being dodged and describe the deeper fix.
+
+### Evidence standard
+
+- **Chesterton's Fence:** before flagging anything for removal, run `git blame` on the line
+  to understand why it exists. If the original purpose cannot be determined, mark
+  `confidence: low` — do not guess.
+- **Reviewers search, they do not guess.** A reuse finding with no pointer to the existing
+  utility ("there's probably a helper for this") is noise. Require `file:line` evidence;
+  drop findings that lack it.
+- **Finding format** (the `cost` field is mandatory — a finding that cannot articulate what
+  the problem actually costs is probably a nit and gets dropped):
+
+```text
+file:line → problem → cost (what's duplicated/wasted/harder to maintain) → suggested fix | confidence: high/medium/low | risk: SAFE/CAREFUL/RISKY
+```
+
+### Phase 3 pitfalls
+
+- **Over-trusting dead-code tools.** `knip`, `ts-prune`, and `depcheck` flag exports that
+  **are** used dynamically (string-based imports, reflection). Always grep for the symbol
+  name before removing — a clean tool report is not proof.
+- **Removing "unnecessary" error handling.** An empty catch block or ignored error might be
+  intentional — the error is expected and benign in that context. Flag it, don't remove it;
+  let the human decide.
+- **Not every special case is a band-aid.** Compat shims, staged migrations, and isolation
+  layers around vendored code look like altitude violations but are deliberate design. Check
+  `git blame` and surrounding comments before flagging; when the intent is unclear, mark
+  `confidence: low`.
+- **Renaming without checking public contracts.** Export names, API route paths, DB column
+  names, and config keys are contracts — even if the name is bad, renaming breaks consumers.
+  Tag public-contract changes as RISKY; never auto-rename them.
+
+## Phase 4 — Aggregate, Risk-Tier, and Structural Audit (judgment layer)
+
+After cleanup, consolidation, and (if run) the 4-lens sweep are stable:
+
+1. **Aggregate & tier** the findings — for the full aggregate-and-apply procedure, see
+   [`references/phase3-aggregate.md`](references/phase3-aggregate.md):
+   - **SAFE** (auto-apply): unused imports, commented-out code, pass-through wrappers,
+     redundant type assertions. Run tests after.
+   - **CAREFUL** (apply with verification, one file at a time): rename locals, flatten
+     ternaries, extract helpers, consolidate dupes. Run tests after each file; revert any
+     that break.
+   - **RISKY** (flag for review — **do NOT auto-apply**): N+1 restructuring, public API
+     changes, concurrency fixes, error-handling changes. Present each with a risk
+     description and test-coverage status.
+   - Conflict-resolution priority: `correctness > the user's stated focus >
+     readability/reuse > micro-perf`.
+2. **Structural audit.** Run the strict maintainability audit (the "code-judo" ambition).
+   Altitude and quality findings that land in the RISKY tier are escalated here before
+   tiering is finalized. Read [references/review-tone.md](references/review-tone.md) for
+   tone and output prioritization.
 
 ### Non-Negotiable Audit Standards
 
@@ -249,18 +389,48 @@ If those conditions are not met, leave explicit, actionable feedback and push fo
 ## Deep-Clean Report: <unit>
 ### Summary            # files scanned, items analyzed, counts per category found
 ### Per-File Findings  # per file: | Item | Type | Lines | Verdict | Reason |
-### Structural Audit Findings  # from Phase 3: | Finding | File:Line | Severity | Judo move |
-### Items Requiring Manual Review   # ambiguous / INVESTIGATE / audit disagreements
+### 4-Lens Sweep Findings   # from Phase 3: | Finding | File:Line | Lens | Risk | Judo/fix |
+### Structural Audit Findings  # from Phase 4: | Finding | File:Line | Severity | Judo move |
+### Items Requiring Manual Review   # RISKY / ambiguous / INVESTIGATE / audit disagreements
 ### Formatting Fixes (auto-applied) # format-only changes needing no approval
+### Bugs found          # genuine correctness bugs, separate from cleanup fixes
+### Run mode           # "parallel fan-out" or "single-pass inline review"
 ```
 
 Every finding carries a Verdict (KEEP / REMOVE / DELETE / INVESTIGATE / RESTRUCTURE) and a one-line Reason. Each language reference contains a fully worked example table.
 
-## Verification Gates
+## Phase 5 — Apply per Tier
 
-After any removal, merge, or restructuring, in this order: static/lint check clean → format check clean → type/compile check clean → full test suite passes → the package/crate still imports or resolves at its entry point → downstream consumers still build → no stale references to deleted or renamed names (grep the old names). Exact commands per language are in the references, as are the **Verification Checklist** (Phase 1 / Phase 2 / Final) and **Common Mistakes** tables.
+Apply findings in strict risk-tier order (from Phase 4 aggregation):
 
-For audit findings: tie every finding to specific files/lines in the diff; for each blocker name the concrete code-judo move that resolves it (or why none exists); a reviewer re-reading the diff cold must be able to reproduce every finding from the code alone.
+1. **SAFE first** — auto-apply; run tests after.
+2. **CAREFUL next** — apply one file at a time; run targeted tests after each file; revert
+   any individual fix that breaks a test.
+3. **RISKY last** — flag for human review; **do NOT auto-apply**. Present each with a risk
+   description and current test-coverage status. Altitude findings usually land here:
+   deepening a fix means touching shared infrastructure, so present the deeper fix and let
+   the user decide whether to apply now or defer.
+4. If the user opted for `--dry-run`, present all three tiers and apply nothing.
+
+Respect project conventions: if the repo has `AGENTS.md` / `CLAUDE.md` or a linter config,
+fold those rules into the apply step so fixes match house style.
+
+## Phase 6 — Verification Gates
+
+After any removal, merge, or restructuring, in this order: static/lint check clean →
+format check clean → type/compile check clean → full test suite passes → the package/crate
+still imports or resolves at its entry point → downstream consumers still build → no stale
+references to deleted or renamed names (grep the old names). Exact commands per language
+are in the references, as are the **Verification Checklist** (Phase 1 / Phase 2 / Final) and
+**Common Mistakes** tables.
+
+For audit findings: tie every finding to specific files/lines in the diff; for each blocker
+name the concrete code-judo move that resolves it (or why none exists); a reviewer
+re-reading the diff cold must be able to reproduce every finding from the code alone.
+
+**Bugs found.** If a reviewer surfaced a genuine correctness bug, list it in a dedicated
+`## Bugs found` section of the report — separate from the cleanup fixes, with its own
+verification standard. Do not fold bugs into the SAFE/CAREFUL/RISKY cleanup tiers.
 
 ## Rollback & Commit
 
@@ -268,4 +438,4 @@ Rollback via the snapshot: restore a single file from history, or reset the clea
 
 ## Dry-Run Mode
 
-When the user requests `--dry-run` or says "just show me what you'd remove": run Phase 1 steps 1.1–1.6, Phase 2 overlap detection, and the Phase 3 audit over the current state; generate the full report; **do NOT execute any deletions, edits, format changes, or restructurings**; present the report and wait for explicit approval. This is the **default mode** for first-time runs on a package/crate.
+When the user requests `--dry-run` or says "just show me what you'd clean/simplify": run Phase 0, Phase 1 steps 1.1–1.6, Phase 2 overlap detection, the Phase 3 4-lens sweep (if diff-scoped), and the Phase 4 audit over the current state; generate the full report; **do NOT execute any deletions, edits, format changes, or restructurings** (i.e., present all three tiers and apply nothing); present the report and wait for explicit approval. This is the **default mode** for first-time runs on a package/crate.
