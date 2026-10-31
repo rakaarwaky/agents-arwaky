@@ -29,7 +29,6 @@ metadata:
     - knip
   related_skills:
     - add-docs
-    - fix-bypass
     - lint-arwaky
     - create-capabilities
     - create-agent
