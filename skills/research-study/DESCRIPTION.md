@@ -1,3 +1,3 @@
 ---
-description: "Research and study skills: academic papers, study roadmaps, reference docs, learning, blog monitoring, and personal knowledge bases"
+description: "Research and study skills: academic papers, study roadmaps, reference docs, blog monitoring, and personal knowledge bases"
 ---

@@ -1,6 +1,6 @@
 # Skill-authoring pack
 
-Four skills with disjoint scopes. This file is the pack entrypoint — it
+Seven skills with disjoint scopes, plus one shared pipeline library. This file is the pack entrypoint — it
 answers "which skill do I use".
 
 ## ROUTING
@@ -10,7 +10,16 @@ answers "which skill do I use".
 | Author / validate / audit a `SKILL.md` | `skill-design` | `aa skills validate | show | list` |
 | Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
 | Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
-| Orchestrate autonomous self-evolution | `skill-evolving` | `skills/skill-authoring/skill-evolving/` |
+| Create skills for things you keep typing out | `skill-learning` | `skills/skill-authoring/skill-learning/` |
+| Edit skills to adapt to conditions and demand | `skill-evolving` | `skills/skill-authoring/skill-evolving/` |
+| Remove skills and surfaces you never use | `skill-unlearn` | `skills/skill-authoring/skill-unlearn/` |
+| Orchestrate autonomous self-evolution | `skill-orchestrator` | `skills/skill-authoring/skill-orchestrator/` |
+
+The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) and the orchestrator all
+run on the shared deterministic pipeline in [`_trace-pipeline/`](_trace-pipeline/README.md) — one folder of
+scripts and references, not a skill (no `SKILL.md` at its root, so the validator does not count it). It produces
+phrases, usage counts, and stale-skill signals in a single pass; each skill curates only its own action group
+from the shared `report.md` / `actions.json` run directory.
 
 ## Pack tooling
 
