@@ -135,14 +135,18 @@ One `SKILL.md` per skill, at the skill root. Nested `SKILL.md` files are rejecte
 ```text
 my-skill/
 ├── SKILL.md              # Overview + links (target ~100-200 lines)
-├── references/           # One level deep only
+├── references/           # Group in subfolders when the set is large
 │   ├── scenario-a.md
 │   └── scenario-b.md
 └── scripts/
     └── helper.py         # Executed, not loaded into context
 ```
 
-- Keep the body a table of contents; push detail into `references/*.md`, never nested deeper.
+- Keep the body a table of contents; push detail into `references/*.md`.
+- Use subfolders under `references/` only when the reference set is large enough that
+  flat files stop being scannable — group by theme or stage.
+- Every reference, whatever its depth, must link directly from `SKILL.md` by relative
+  path (`references/<subfolder>/<file>.md`). The body is the only routing point.
 - End steps with checkable completion criteria ("every modified file accounted for" beats
   "summarize changes"). Use checkbox lists for multi-step workflows with a feedback loop.
 - Prefer defaults over menus ("use pdfplumber", not a list of four PDF libraries).

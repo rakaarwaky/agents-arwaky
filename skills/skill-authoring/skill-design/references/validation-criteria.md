@@ -66,7 +66,8 @@ The placement and nesting constraints are the `skill-placement`, `category-depth
 `skill-md-nesting` rules in
 [`../../../../modules/skills/_rules/skill-rules.md`](../../../../modules/skills/_rules/skill-rules.md). What that doc does not cover:
 
-- `references/` exactly one level deep; every reference links directly from `SKILL.md`.
+- `references/` may use subfolders when the reference set is large; every reference,
+  whatever its depth, links directly from `SKILL.md`.
 - Body target ~100-200 lines for simple skills, hard ceiling is the harness's limit
 (commonly 500 lines / 100k chars); overflow goes into references.
 - Forward slashes in paths (`scripts/helper.py`). No time-sensitive content in the body.
@@ -95,7 +96,7 @@ checkable criterion or delete.
 - [ ] Grok Build target: trigger phrases live in `description`/`when-to-use`, not `triggers:`.
 - [ ] Exactly one `SKILL.md` at the skill root, at `<category>/<skill>/SKILL.md`.
 - [ ] Body within the size target; detail overflowed into `references/`.
-- [ ] All `references/` links resolve; nothing nested deeper than one level.
+- [ ] All `references/` links resolve, whatever their depth under `references/`.
 - [ ] Every `related_skills:` entry, sibling mention, and cross-skill link names a skill
   that exists in the tree.
 - [ ] Terminology consistent; examples concrete.
