@@ -21,7 +21,7 @@ metadata:
   related_skills:
     - github-pr-workflow
     - work-on-issue
-    - simplify-code
+    - deep-clean
 ---
 
 # Systematic Debugging
@@ -120,7 +120,7 @@ One merged table for debugging and TDD excuses: [`references/step-6-guardrails.m
 
 - `github-pr-workflow` — PR lifecycle; loads this skill for bug-class fixes
 - `work-on-issue` — issue triage; loads this skill for bug-class fixes
-- `simplify-code` — post-fix cleanup pass
+- `deep-clean` — post-fix cleanup pass
 
 ## Real-World Impact
 
