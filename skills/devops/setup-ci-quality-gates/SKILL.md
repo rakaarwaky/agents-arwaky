@@ -1,7 +1,7 @@
 ---
 name: setup-ci-quality-gates
 description: "Set up CI quality gates and architecture checks on GitHub Actions, and reproduce those gates locally via a ci.sh mirror. Use when creating workflows, branch protection rulesets, auto-merge, AI review layers, or building scripts/ci.sh to mirror .github/workflows when GitHub Actions is quota-blocked."
-when-to-use: "Use when replicating this repo's CI setup: ci.yml jobs, branch-protection ruleset, auto-merge workflow, AI review layers (CodeRabbit, Codacy, cubic, Repowise), local scripts/ci.sh that mirrors the remote workflow, or running the same CI gates locally in a container when GitHub Actions is quota/billing-blocked."
+when-to-use: "Use when replicating this repo's CI setup: ci.yml jobs, branch-protection ruleset, auto-merge workflow, AI review layers (cubic, Repowise), local scripts/ci.sh that mirrors the remote workflow, or running the same CI gates locally in a container when GitHub Actions is quota/billing-blocked."
 argument-hint: "[<repo-root>]"
 metadata:
   tags:
@@ -9,8 +9,6 @@ metadata:
     - github-actions
     - quality-gates
     - code-review
-    - coderabbit
-    - codacy
     - cubic
     - repowise
     - rust
@@ -45,8 +43,8 @@ metadata:
 
 Replicate the CI setup used by this repo: quality gates enforced by GitHub
 Actions + a branch-protection ruleset, architecture enforcement via the
-project's own linter (self-lint), and four AI review layers (CodeRabbit,
-Codacy, cubic, Repowise). This is a copy-and-extend blueprint, not a
+project's own linter (self-lint), and two AI review layers (cubic,
+Repowise). This is a copy-and-extend blueprint, not a
 one-off checklist — adapt names and paths to the target repo.
 
 **Language-agnostic.** The pattern (quality gates → branch protection →
@@ -77,14 +75,12 @@ PR opened / pushed
    │    ├─ Tests   (cargo nextest run)
    │    └─ Self-Lint (lint-arwaky-cli check .  == 0 violations)
    │
-   ├─ Codacy Static Code Analysis (app.codacy.com)
-   ├─ CodeRabbit (app.coderabbit.ai) — change review
    ├─ cubic AI reviewer (www.cubic.dev) — ultrareview
    └─ Repowise bot (.repowise/bot.yaml) — health gate advisory
    │
    └─ Ruleset "Protect main" (GitHub rulesets)
         ├─ required_status_checks: Format, Clippy, Build, Tests,
-        │    Self-Lint, Codacy Static Code Analysis
+        │    Self-Lint
         ├─ strict: true (must be up to date)
         ├─ non_fast_forward + deletion: blocked
         └─ auto-merge workflow (squash) merges when all pass
@@ -124,8 +120,8 @@ check, fixture assertion, and the `cargo build --release` prerequisite).
 Create a ruleset "Protect main - quality gates" (Settings → Rules →
 Rulesets), `target: branch`, enforcement `active`:
 
-- **required_status_checks**: Format, Clippy, Build, Tests, Self-Lint,
-  Codacy Static Code Analysis — with `strict: true` (requires up-to-date).
+- **required_status_checks**: Format, Clippy, Build, Tests, Self-Lint —
+  with `strict: true` (requires up-to-date).
 - **non_fast_forward**: blocked.
 - **deletion**: blocked.
 
@@ -139,8 +135,7 @@ PR-metadata env-var rules.
 
 ## 4. AI review layers
 
-See `references/ai-review-layers.md` for CodeRabbit, Codacy, cubic, and
-Repowise configuration.
+See `references/ai-review-layers.md` for cubic and Repowise configuration.
 
 ## 5. Local quality gates (scripts/ci.sh)
 
@@ -179,8 +174,7 @@ pitfall that makes local runs disagree with CI), merged from the former
 - [ ] Self-lint job runs the project's own linter, fails on violations
 - [ ] Ruleset on `main`: required status checks + strict + no fast-forward
 - [ ] Auto-merge workflow (squash) gated on the same checks
-- [ ] CodeRabbit + Codacy + cubic apps installed on the repo
-- [ ] `.codacy.yaml` excludes fixtures; Codacy in required checks
+- [ ] cubic + Repowise apps installed on the repo
 - [ ] `.repowise/bot.yaml` + `.repowiseIgnore` + `health-rules.json`
 - [ ] `scripts/ci.sh` mirrors CI for local run + pre-push hook (see `references/local-ci.md`)
 - [ ] Release/labeler/cleanup workflows if the release train is needed

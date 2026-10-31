@@ -122,6 +122,6 @@ When a pytest job hits the 20-min timeout with no failure output: `gh run view <
 5. Push branch
 6. Create PR targeting `develop`
 7. Verify CI passes
-8. Address AI-reviewer findings (cubic/CodeRabbit): verify EACH finding against the live code with grep before complying — reviewers are often right but may cite stale commits; fix valid ones in a follow-up commit, push, and post one PR comment stating the grep evidence for fix-vs-reject of each item.
+8. Address AI-reviewer findings (cubic): verify EACH finding against the live code with grep before complying — reviewers are often right but may cite stale commits; fix valid ones in a follow-up commit, push, and post one PR comment stating the grep evidence for fix-vs-reject of each item.
 
 For EGL/ctypes mocking patterns in renderer tests, see `references/mock-egl-ctypes.md`.

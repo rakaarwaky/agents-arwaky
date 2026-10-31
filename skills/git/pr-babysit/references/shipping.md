@@ -69,7 +69,7 @@ Fail the gate when any check is `IN_PROGRESS`, `QUEUED`, `PENDING`, or has concl
 
 Re-run the review-thread pagination from SKILL.md "Unresolved Review Comments" and the issue-comment fetch from "Bot and automated comments". Do not reuse a dump from earlier in the cycle.
 
-**Review threads.** Paginate every thread. Fail the gate if any thread has `isResolved == false`. Author does not matter. Human, `Bot`, `*[bot]`, Bugbot, Copilot, CodeRabbit, Semgrep, Dependabot, Renovate, Graphite, or anyone else. One unresolved thread blocks ship.
+**Review threads.** Paginate every thread. Fail the gate if any thread has `isResolved == false`. Author does not matter. Human, `Bot`, `*[bot]`, Bugbot, Copilot, Semgrep, Dependabot, Renovate, Graphite, or anyone else. One unresolved thread blocks ship.
 
 **Review decision.** `CHANGES_REQUESTED` already failed gate 1. Still fail here if a later query sees it.
 
