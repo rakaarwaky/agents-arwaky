@@ -39,3 +39,6 @@ rm ${scratch_dir}/grok-exec-plan-<PLAN_ID>.json
 
 **Note:** `orca-ide worktree rm --worktree <id> --force` is used instead of `git worktree remove` to avoid inconsistencies with Orca's internal worktree registry. Orca worktrees live under `~/orca/workspaces/` and are tracked by Orca; removing them via raw `git worktree remove` orphans the Orca state. The temporary merge worktrees in Step 3 (diamond dependency handling) are raw `git worktree add` worktrees — those are removed with `git worktree remove`, not Orca.
 
+## In-Progress Reporting
+
+- After cleanup: `"Cleanup complete."`

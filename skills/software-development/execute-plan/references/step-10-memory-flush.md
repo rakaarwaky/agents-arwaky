@@ -91,3 +91,11 @@ If the helper exits non-zero, log a warning with stderr and skip the memory upda
 <PYTHON> <HOST_PY> cleanup <scratch_dir>/grok-exec-mem-<PLAN_ID>.json
 ```
 
+## Rules (memory scope)
+
+- **Memory is best-effort** -- if the `memory.py` helper fails (lock contention, malformed spec, disk full, etc.), proceed without it. Never fail a run due to memory issues.
+- **Use the implement skill's `memory.py` helper** -- derive the absolute path from the implement skill's SKILL.md path announced in the system context, not from `$(pwd)`. The execute-plan skill shares the same workspace-scoped memory file as `/implement`.
+
+## In-Progress Reporting
+
+- After memory flush: `"Memory updated with N patterns from this run."` (or `"Memory file created with N patterns."` for first run)

@@ -1,8 +1,8 @@
-# Final Report
+# Step 11 Final Report
 
-## Final Report
+## Step 11: Final Report
 
-After stack assembly, cleanup, and memory flush, present a final report:
+After stack assembly (Step 8), cleanup (Step 9), and memory flush (Step 10), present a final report:
 
 1. **Summary** -- which PRs were implemented, total files changed across all PRs.
 2. **Execution stats**:
@@ -25,3 +25,7 @@ After stack assembly, cleanup, and memory flush, present a final report:
    - **Squash-final mode**: list the post-merge worktree-teardown command (Step 8.5) as a manual follow-up. Note: "After the final PR merges to main, run the teardown command above."
    - **Plain-git mode**: do NOT suggest `/pr-babysit` (it depends on `gt` for stack walking — see its Step 2/3). The Stack section above already lists the URLs / commands; the Next-Steps text just adds a one-line note: "No automated CI/review monitoring is available in plain-git mode; open the PR URLs / compare URLs above and monitor them in the GitHub UI."
 
+### In-Progress Reporting
+
+- After final report (Graphite mode only): `"Run '/pr-babysit add <bottom-pr-number>' to monitor CI."`
+- After final report (squash-final mode): `"After the final PR merges to main, retire the final worktree: orca-ide worktree rm --worktree <final_orca_worktree_id> --force --json"`

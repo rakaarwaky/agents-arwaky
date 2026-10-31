@@ -1,6 +1,8 @@
-# Stack Assembly (execute-plan reference)
+# Step 8 Stack Assembly
 
-Extracted from `SKILL.md` Step 8 so the main body stays under ~200 lines. Read this file when you reach the stack-assembly step of an `/execute-plan` run.
+## Step 8: Stack Assembly
+
+Read this file when you reach the stack-assembly step of an `/execute-plan` run.
 
 ## Overview
 
@@ -64,7 +66,7 @@ When `graphite_available == false`, assemble the same linearized stack using onl
 
 Work in the main workspace. Skip any failed/skipped PRs. Track the previous successfully-pushed branch in a local variable `parent_branch` (initialized to `"main"`).
 
-**Important Step 3 ↔ Step 8a interaction:** Step 3 already created each `<pr.branch>` in the main repo (via `git branch <pr.branch> <base>`). Step 4b deliberately does **not** advance that ref — it only pulls the subagent's objects into the main repo's store and records `pr.commit_sha` (Rule 2 of the *Orca Worktree Protocol*). So by the time Step 8a runs, every `<pr.branch>` already exists locally and its tip is not guaranteed to be `commit_sha`. Step 8a needs to *reset* each branch to a new starting point (`parent_branch` from this stack-assembly pass), not create it from scratch — hence `git checkout -B` (uppercase) below. The per-PR Orca worktree teardown immediately above the `checkout -B` is required by Rule 3 — without it the reset can fail with `cannot force update the branch '...' used by worktree at '<WT>'`.
+**Important Step 3 ↔ Step 8a interaction:** Step 3 already created each `<pr.branch>` in the main repo (via `git branch <pr.branch> <base>`). Step 4b deliberately does **not** advance that ref — it only pulls the subagent's objects into the main repo's store and records `pr.commit_sha` (Rule 2 of the *Orca Worktree Protocol*, in `step-0-setup.md`). So by the time Step 8a runs, every `<pr.branch>` already exists locally and its tip is not guaranteed to be `commit_sha`. Step 8a needs to *reset* each branch to a new starting point (`parent_branch` from this stack-assembly pass), not create it from scratch — hence `git checkout -B` (uppercase) below. The per-PR Orca worktree teardown immediately above the `checkout -B` is required by Rule 3 — without it the reset can fail with `cannot force update the branch '...' used by worktree at '<WT>'`.
 
 ```bash
 test -z "$(git status --porcelain)" || { echo "Working tree dirty; aborting"; exit 1; }
@@ -344,3 +346,26 @@ When `--resume <PLAN_ID>` is used on a squash-final run, Step 7 evaluates the fi
 - If `modular_branches_deleted == true` and `final_worktree_retired == false`: the PR was already pushed. The only remaining action is the post-merge worktree teardown (Step 8.5).
 - If `final_review_passed == false` and the final worktree is gone (crashed mid-Step 8.2): tear down any orphan final worktree, reset `final_review_passed`, and re-run from Step 8.1 (rebuild the final branch from the modular branches — they still exist because Step 8.3 has not run yet).
 - If the run fell back to normal stack assembly (`final_review_passed == false`, `modular_branches_deleted == false`, but `graphite_stack_submitted == true`): the fallback already produced PRs; nothing more to do.
+## Rules (stack-assembly scope)
+
+- **Never force-push without `--force-with-lease`.** Always use `git push --force-with-lease`, never `git push --force`. `gt submit` handles this internally. In plain-git mode the orchestrator uses `git push --force-with-lease origin <branch>` unconditionally — including the squash-final path where it pushes `<final_branch>` — the lease is a no-op for newly-created branches (no upstream to lease against), but protects the resume case, the rare concurrent-push case, and the re-resolved-conflict case.
+- **Orchestrator owns all git, Orca worktree, and stack-tooling operations, including merge conflict resolution.** Subagents implement code and commit in Orca worktrees. They never create branches, push, interact with Orca worktree lifecycle, or use Graphite or `gh`. The orchestrator resolves merge conflicts directly during branch preparation (Step 3), normal stack assembly (Step 8a), and squash-final assembly (Step 8.1's `git merge` and Step 8.4's push) using `read_file` and `write` — this is the sole exception to the "no source file modification" rule. Note: squash-final's `git merge <pr.branch>` merges local *branches* in the orchestrator's repo, not GitHub PRs; merging PRs to `main` remains a human decision.
+- **Stack assembly is batch, not incremental** -- wait for all PRs to complete (or fail/skip) before assembling the stack. Do not assemble incrementally.
+- **Squash-final default** -- unless disabled, all completed modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and one PR is opened. If the final review cannot reach 0 open issues within 4 rounds, **fall back** to normal stack assembly (Steps 8a/8b plain-git) — do not abort.
+- **Sequential stack assembly operations.** All branch-mutating and remote-mutating operations during Step 8 run sequentially — normal stack assembly (`gt create`, `gt submit`, `git checkout -B`, `git cherry-pick`, `git push --force-with-lease origin`, `gh pr create`) **and** squash-final assembly (`git merge <pr.branch>`, `git push --force-with-lease origin <final_branch>`, `gh pr create`). Never run them concurrently — ordering is load-bearing for stack consistency.
+- **Final review uses its own worktree** -- the final review uses a separate Orca worktree (`final_worktree_path`) created in Step 8.2. The final worktree is **not** torn down at skill completion; it is retired only after the final PR merges to `main` (documented post-merge step).
+- **Final worktree teardown is manual** -- `orca-ide worktree rm --worktree <final_orca_worktree_id> --force --json` runs only after the final PR merges to `main`, not during the skill run.
+- **Never merge PRs.** The skill creates and submits PRs. Merging is a human decision.
+
+## In-Progress Reporting
+
+- After all PRs done: `"All PRs complete. Building squash-final branch..."` (default path) or `"All PRs complete. Building stack..."`
+- After Step 8.1 (final branch built): `"Final branch <final_branch> built from <N> modular branches. Running final review..."`
+- After final review passes: `"Final review passed: <R> rounds, 0 open issues. Deleting modular branches..."`
+- After modular branches deleted: `"<N> modular branches deleted. Final branch <final_branch> kept. Pushing final PR..."`
+- After final PR created: `"Final PR created: <url>. Monitor this single PR."`
+- After stack submission (Graphite mode): `"Stack submitted: <N> PRs. URLs: [...]"`
+- After stack push (plain-git mode, auto PR): `"Stack pushed and draft PRs created: <N> branches. URLs: [...]"`
+- After stack push (plain-git mode, fallback, compare URLs only): `"Stack pushed: <N> branches. Open these compare URLs to create PRs: [...]"`
+- After stack push (plain-git mode, non-GitHub remote): `"Stack pushed: <N> branches to non-GitHub remote. Open PRs via your forge UI."`
+- After fallback from squash-final to normal stack: `"Final review could not reach 0 issues. Falling back to normal N-branch stack assembly."`

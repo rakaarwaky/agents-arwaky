@@ -56,3 +56,7 @@ Levels: <number of levels>"
 
 If `--dry-run` was specified, report the full execution plan (linearized order, level assignments, branch names, dependency graph) and stop. Do not proceed to implementation.
 
+## In-Progress Reporting
+
+- After parse: `"Parsed PR Plan: <N> PRs, <L> levels, max parallelism: <P>"`
+- After linearize: `"Linearized stack order: PR1 -> PR4 -> PR2 -> PR5 -> PR3"`

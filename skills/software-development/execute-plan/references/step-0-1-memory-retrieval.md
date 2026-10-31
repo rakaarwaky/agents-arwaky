@@ -1,6 +1,6 @@
-# Step 0 Memory Retrieval
+# Step 0.1 Memory Retrieval
 
-## Step 0: Memory Retrieval (Past Issues Briefing)
+## Step 0.1: Memory Retrieval (Past Issues Briefing)
 
 Before launching any implementers, attempt to load past issue patterns from the workspace memory file. This briefing is injected into both implementer and reviewer prompts to help avoid recurring issues. The execute-plan skill **shares the same memory file** as the `/implement` skill -- patterns from both skills help each other.
 
@@ -45,4 +45,3 @@ If `existing_patterns_snapshot` is non-empty:
 3. Take the top 10 entries.
 4. Format into `past_issues_briefing`:
 
-```

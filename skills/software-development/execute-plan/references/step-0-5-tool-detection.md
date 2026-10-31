@@ -15,7 +15,7 @@ if command -v gt >/dev/null 2>&1; then echo "yes"; else echo "no"; fi
 if command -v gh >/dev/null 2>&1; then echo "yes"; else echo "no"; fi
 ```
 
-If the Orca probe returns `no`, resolve the executable per the *Orca CLI Resolution* rule (check `ORCA_CLI_COMMAND` first, then `orca-ide`). If neither is available, **stop and report**: "Orca CLI is required for execute-plan (subagents run in Orca worktrees). Install Orca or set ORCA_CLI_COMMAND, then re-run." Do not fall back to any other worktree mechanism.
+If the Orca probe returns `no`, resolve the executable per the *Orca CLI Resolution* rule in `step-0-setup.md` (check `ORCA_CLI_COMMAND` first, then `orca-ide`). If neither is available, **stop and report**: "Orca CLI is required for execute-plan (subagents run in Orca worktrees). Install Orca or set ORCA_CLI_COMMAND, then re-run." Do not fall back to any other worktree mechanism.
 
 For additional confidence that the binary named `gt` is actually Graphite (and not an unrelated tool that happens to share the name), additionally run `gt --help 2>/dev/null` when the first probe returns `yes` and verify the output contains `graphite` (case-insensitive substring match — e.g., `if gt --help 2>/dev/null | grep -qi graphite; then echo "yes"; else echo "no"; fi`). `gt --version` is unreliable here because Graphite's version output is a bare version string with no product name, so it fails the substring check even for a legitimate Graphite install; `gt --help` reliably prints the Graphite CLI banner. Treat unrecognized output as `no`.
 

@@ -26,7 +26,7 @@ References to "the stack" throughout this document refer to whichever mode is ac
 
 ## Orca Worktree Protocol
 
-See [`references/orca-worktree-protocol.md`](references/orca-worktree-protocol.md) for the full protocol — worktree creation, the three fetch/teardown rules, and teardown semantics.
+See the *Orca Worktree Protocol* section in [`references/step-0-setup.md`](references/step-0-setup.md) for the full protocol — worktree creation, the three fetch/teardown rules, and teardown semantics.
 
 ## Tool-Call Discipline (Anti-Hallucination)
 
@@ -92,7 +92,7 @@ The user runs:
 | Parameter | Default | Behavior |
 |-----------|---------|----------|
 | `concurrency` | 8 (max) | All independent tasks run in parallel. Never throttled. |
-| `squash_final` | **true** | After all PRs complete + pass per-PR review, all modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is pushed to `main`. See the Squash-Final path in [`references/stack-assembly.md`](references/stack-assembly.md). |
+| `squash_final` | **true** | After all PRs complete + pass per-PR review, all modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is pushed to `main`. See the Squash-Final path in [`references/step-8-stack-assembly.md`](references/step-8-stack-assembly.md). |
 | `auto_pr` | **true** | When `gh` is available and the remote is GitHub, the orchestrator automatically runs `gh pr create` for the final PR (squash-final mode) or for each branch in the stack (normal mode). No manual PR creation needed. |
 | `graphite` | auto-detect | If `gt` is installed and no explicit override is set, Graphite mode is used. Otherwise plain-git mode. `squash_final` forces plain-git mode. |
 | `dry_run` | false | Full execution. Set to true only when the user explicitly asks for a dry run. |
@@ -104,15 +104,15 @@ Extract `--effort` and `--resume` from the argument string. If `--effort` is not
 
 ## Setup
 
-See [`references/setup.md`](references/setup.md).
+See [`references/step-0-setup.md`](references/step-0-setup.md).
 
 ## Step 0.5: Tool Detection (Orca, Graphite & gh)
 
 See [`references/step-0-5-tool-detection.md`](references/step-0-5-tool-detection.md).
 
-## Step 0: Memory Retrieval (Past Issues Briefing)
+## Step 0.1: Memory Retrieval (Past Issues Briefing)
 
-See [`references/step-0-memory-retrieval.md`](references/step-0-memory-retrieval.md).
+See [`references/step-0-1-memory-retrieval.md`](references/step-0-1-memory-retrieval.md).
 
 ## Step 1: Parse PR Plan DAG
 
@@ -146,7 +146,7 @@ See [`references/step-7-resumption.md`](references/step-7-resumption.md).
 
 After **all** PRs in the linearized order are either `"completed"` or `"failed"`/`"skipped"`, and at least one PR completed successfully, assemble the stack. The default path is **squash-final**: all completed modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is opened. If `--squash-final` is explicitly disabled, the normal stack assembly runs instead (Graphite mode via `gt create` + `gt submit --stack`, or plain-git mode via chained branches + `git push --force-with-lease`).
 
-Read [`references/stack-assembly.md`](references/stack-assembly.md) for the full Step 8a/8b procedure (normal path) **and** the Steps 8.1–8.5 procedure (squash-final path).
+Read [`references/step-8-stack-assembly.md`](references/step-8-stack-assembly.md) for the full Step 8a/8b procedure (normal path) **and** the Steps 8.1–8.5 procedure (squash-final path).
 
 ## Step 9: Cleanup
 
@@ -156,18 +156,10 @@ See [`references/step-9-cleanup.md`](references/step-9-cleanup.md).
 
 See [`references/step-10-memory-flush.md`](references/step-10-memory-flush.md).
 
-## Final Report
+## Step 11: Final Report
 
-See [`references/final-report.md`](references/final-report.md).
+See [`references/step-11-final-report.md`](references/step-11-final-report.md).
 
-## In-Progress Reporting
+## References Are Step-Scoped
 
-See [`references/in-progress-reporting.md`](references/in-progress-reporting.md).
-
-## Safety Guardrails
-
-See [`references/safety-guardrails.md`](references/safety-guardrails.md).
-
-## Rules
-
-See [`references/rules.md`](references/rules.md).
+Every reference file is step-scoped: `references/step-<N>-<name>.md` contains everything needed at that step — including the rules, safety guardrails, and in-progress reporting strings that used to live in standalone references. When a step's reference says "see the *Orca Worktree Protocol* section", that section is in [`references/step-0-setup.md`](references/step-0-setup.md).

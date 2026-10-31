@@ -232,3 +232,21 @@ Always merge. Every PR has at least general + simplicity.
 Read each reviewer's individual `config.review_file`, then merge them into the single merged review file `${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr.id>.md` using the `write` tool. Prefix each issue with its source tag (`[General]`, `[General-2]`, `[General-3]`, `[Tests]`, `[Security]`, `[Plan]`, `[Simplicity]`). Consolidate obviously duplicated findings (same file, same line, same underlying problem) using judgment — when in doubt, keep both. The merged file is what the implementer reads in Step 5c. Merge format:
 
 ```markdown
+
+## Rules (review scope)
+
+- **Inject personas into prompts** -- on initial reviewer launches, prepend `reviewer` for general reviewers and `security-auditor` for the security specialist. The Tests, Plan-Alignment, and Simplicity specialists are prompt-only (no persona prepended). Do NOT pass a `persona` parameter to `spawn_subagent`.
+- **`resume_from` for fix and re-review cycles** -- when re-reviewing, resume each reviewer with `resume_from` using its `config.subagent_id` from `pr.reviewer_configs`. Always resume all of the PR's reviewers in parallel.
+- **Read review files yourself** after each review to count open issues and decide whether to continue.
+- **Include the design doc context in subagent prompts** -- read the design document and include the relevant sections for each PR in the implementer prompt.
+- **Error handling** -- if an implementer (or a PR's **primary general** reviewer) fails or cannot be resumed, mark the PR as failed, cascade-skip dependents (Step 6), and continue with independent PRs. **Exception:** a failed **specialist** (including simplicity) or **secondary general** (`general-2`/`general-3`) reviewer is non-fatal — warn, drop it from `pr.reviewer_configs`, and continue that PR's review with the remaining reviewers. Only stop the entire run if no PRs can make progress.
+- **Respect concurrency limits** -- `max_concurrent` caps **implementation** subagents only. Per-PR review fan-out is **separate** and not bounded by `max_concurrent` — a single PR launches all of its reviewers in parallel (up to 7 at effort=5), as described above.
+- **`past_issues_briefing` must be consistent and capped** -- before launching any implementer or reviewer, build the briefing from the `issue_patterns` list. If the list exceeds 20 patterns, include only the top 20 by occurrence count. Never partially include a pattern or truncate mid-description. If empty, omit the block entirely.
+
+## In-Progress Reporting
+
+- After per-PR specialization selection: `"<pr.id> review (effort <E>): <composition>, e.g. 1 general + security + plan + simplicity (PR touches auth). Simplicity is always pinned."`
+- After all of a PR's reviewers complete: `"<pr.id>: all <K> reviewers complete. Merging findings..."`
+- After review (0 issues): `"<pr.id> review: 0 issues found. PR complete."`
+- After review (N issues): `"<pr.id> merged review: <N> issues (<X> bugs [tag breakdown], <Y> suggestions, <Z> nits). Fixing..."`
+- After fix cycle: `"<pr.id> fix applied. Re-reviewing with <K> reviewers (round <N>)..."`

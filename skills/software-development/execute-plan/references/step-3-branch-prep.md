@@ -32,7 +32,7 @@ git worktree remove "$TEMP_WT"
 pr.base_sha = $(git rev-parse <pr.branch>)
 ```
 
-**Note:** Branch creation keys off the dependency's recorded `commit_sha`, never its branch name — this is Rule 2 of the *Orca Worktree Protocol*. The main repo's `refs/heads/<dep.branch>` is not a reliable pointer to the dependency's latest commit; only `dep.commit_sha` is. The orchestrator still enforces ordering — dependent branches are created only after the dependency's `process_completion` step has recorded `dep.commit_sha` and fetched its objects.
+**Note:** Branch creation keys off the dependency's recorded `commit_sha`, never its branch name — this is Rule 2 of the *Orca Worktree Protocol* (in `step-0-setup.md`). The main repo's `refs/heads/<dep.branch>` is not a reliable pointer to the dependency's latest commit; only `dep.commit_sha` is. The orchestrator still enforces ordering — dependent branches are created only after the dependency's `process_completion` step has recorded `dep.commit_sha` and fetched its objects.
 
 After creating each branch, record `pr.base_sha` (via `git rev-parse <branch_name>`) and update the PR node's status to `"branch_created"` in the state file. The `base_sha` captures the exact commit the branch points to before any implementation work, and is used for range cherry-pick in Step 8a.
 
@@ -40,3 +40,6 @@ After creating each branch, record `pr.base_sha` (via `git rev-parse <branch_nam
 
 Report to the user: `"Created branches for <N> level-0 PRs. Starting implementation..."`
 
+## In-Progress Reporting
+
+- After branch creation: `"Created branches for <N> level-0 PRs. Starting implementation..."`
