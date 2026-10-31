@@ -1,6 +1,4 @@
-# Cleanup & Consolidate — TypeScript (full procedure)
-
-> Per-language half of the [`cleanup-consolidate`](../SKILL.md) skill. `../SKILL.md` holds the shared methodology (two-phase rule, workflow skeleton, report format, dry-run); this file is the complete, self-contained TypeScript procedure — rules, detection patterns, tool commands, checklists.
+# Cleanup &amp; Consolidate — TypeScript (full procedure)
 
 ## Purpose
 
@@ -56,22 +54,24 @@ Before keeping any function, class, type, or file, ask:
 
 > **"Why does this function/class/type/file need to exist?"**
 
-| Answer | Verdict |
+
+| Answer                                                                                  | Verdict    |
 | --------------------------------------------------------------------------------------- | ---------- |
-| "Because it was always there" | **REMOVE** |
-| "Because it might be useful someday" | **REMOVE** |
-| "Because it handles edge cases we don't have" | **REMOVE** |
-| "Because it's required by FRD" | **KEEP** |
-| "Because it's called by a method required by FRD" | **KEEP** |
-| "Because it's registered via decorator (`@Controller`, `@Injectable`, `@Entity`, etc.)" | **KEEP** |
-| "Because it's exported from `index.ts` and consumed by downstream packages" | **KEEP** |
-| "Because it's a `.d.ts` ambient declaration or `declare global` augmentation" | **KEEP** |
-| "Because it's dynamically imported via `import()` or `require()`" | **KEEP** |
-| "Because it's a side-effect import (`import './polyfill'`)" | **KEEP** |
-| "Because `package.json` `exports`/`main`/`types` references it" | **KEEP** |
-| "Because it's referenced in `tsconfig.json` `paths` or `include`" | **KEEP** |
-| "Because it's a type guard, `satisfies` target, or `as const` assertion used elsewhere" | **KEEP** |
-| "Because a test file (`*.spec.ts`, `*.test.ts`) imports it" | **KEEP** |
+| "Because it was always there"                                                           | **REMOVE** |
+| "Because it might be useful someday"                                                    | **REMOVE** |
+| "Because it handles edge cases we don't have"                                           | **REMOVE** |
+| "Because it's required by FRD"                                                          | **KEEP**   |
+| "Because it's called by a method required by FRD"                                       | **KEEP**   |
+| "Because it's registered via decorator (`@Controller`, `@Injectable`, `@Entity`, etc.)" | **KEEP**   |
+| "Because it's exported from `index.ts` and consumed by downstream packages"             | **KEEP**   |
+| "Because it's a `.d.ts` ambient declaration or `declare global` augmentation"           | **KEEP**   |
+| "Because it's dynamically imported via `import()` or `require()`"                       | **KEEP**   |
+| "Because it's a side-effect import (`import './polyfill'`)"                             | **KEEP**   |
+| "Because `package.json` `exports`/`main`/`types` references it"                         | **KEEP**   |
+| "Because it's referenced in `tsconfig.json` `paths` or `include`"                       | **KEEP**   |
+| "Because it's a type guard, `satisfies` target, or `as const` assertion used elsewhere" | **KEEP**   |
+| "Because a test file (`*.spec.ts`, `*.test.ts`) imports it"                             | **KEEP**   |
+
 
 ### For Consolidation (Phase 2)
 
@@ -182,7 +182,7 @@ function clamp(value: number, min: number, max: number): number {
 
 1. ✅ The pattern is **NOT referenced** in any FRD requirement document
 2. ✅ Removing it does **NOT break** any existing test (`jest`/`vitest` passes)
-3. ✅ The pattern adds **>20 lines** of code for **<3 lines** of actual consumed logic
+3. ✅ The pattern adds **&gt;20 lines** of code for **&lt;3 lines** of actual consumed logic
 
 If **any** check fails → **KEEP** and add comment: `// REVIEW: candidate for removal post-MVP`
 
@@ -213,7 +213,7 @@ If **any** check fails → **KEEP** and add comment: `// REVIEW: candidate for r
 - They are `// @ts-ignore`, `// @ts-expect-error`, `// eslint-disable` directives
 - They are JSDoc / TSDoc comments (`/** ... */`)
 
-#### Unused Variables & Parameters (Remove)
+#### Unused Variables &amp; Parameters (Remove)
 
 ```typescript
 // ❌ Assigned but never read
@@ -324,39 +324,43 @@ cargo run --bin lint-arwaky-cli -- orphan <project-path> --format json
 
 The tool builds a full import reachability graph and checks:
 
-| Rule | Layer | Orphan If... | Severity |
-|------|-------|-------------|----------|
-| **AES501** | Taxonomy | No non-taxonomy file imports it | MEDIUM |
-| **AES502** | Contract | No implementation exists, or no callers | MEDIUM |
-| **AES503** | Capabilities | Not wired in any container and not reachable from entry points | HIGH |
-| **AES504** | Utility | Imported only by other utility files (utility-only chain = dead) | MEDIUM |
-| **AES505** | Agent | Not referenced by any surface, entry point, or container | **HIGH** |
-| **AES506** | Surface | Not reachable in `Entry→Smart→Utility→Passive` chain | MEDIUM |
+
+| Rule       | Layer        | Orphan If...                                                     | Severity |
+| ---------- | ------------ | ---------------------------------------------------------------- | -------- |
+| **AES501** | Taxonomy     | No non-taxonomy file imports it                                  | MEDIUM   |
+| **AES502** | Contract     | No implementation exists, or no callers                          | MEDIUM   |
+| **AES503** | Capabilities | Not wired in any container and not reachable from entry points   | HIGH     |
+| **AES504** | Utility      | Imported only by other utility files (utility-only chain = dead) | MEDIUM   |
+| **AES505** | Agent        | Not referenced by any surface, entry point, or container         | **HIGH** |
+| **AES506** | Surface      | Not reachable in `Entry→Smart→Utility→Passive` chain             | MEDIUM   |
+
 
 ### Exceptions (NEVER Remove Without Explicit Approval)
 
-| File / Pattern | Reason |
+
+| File / Pattern                                                                          | Reason                                                                                             |
 | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `index.ts` (barrel) | Public API surface; may be referenced by `package.json` exports |
-| `main.ts` / `index.ts` (entry) | Application entry point |
-| `.d.ts` files | Ambient type declarations consumed by compiler |
-| `declare global` / `declare module` blocks | Global/module augmentations |
-| `/// <reference types="..." />` | Triple-slash directives for type resolution |
-| `tsconfig.json` / `tsconfig.*.json` | Compiler configuration |
-| `package.json` | Package manifest; `exports`, `main`, `types` fields reference files |
-| Decorator-registered code | `@Controller`, `@Injectable`, `@Component`, `@Entity`, `@Module`, `@Guard`, `@Pipe`, `@Middleware` |
-| `// @ts-ignore` / `// @ts-expect-error` items | Developer explicitly suppressed — investigate intent |
-| `// eslint-disable` items | Developer explicitly suppressed — investigate intent |
-| Side-effect imports (`import './x'`) | Execute code at import time (polyfills, styles, registrations) |
-| Dynamic `import()` targets | Lazily loaded; invisible to static analysis |
-| `require()` targets | CommonJS dynamic loading |
-| Path alias targets (`@/`, `~/`) | Resolved via `tsconfig.json` paths, not relative imports |
-| Test files (`*.spec.ts`, `*.test.ts`, `__tests__/`) | Test code; not imported by source |
-| Config files (`jest.config.ts`, `vitest.config.ts`, `vite.config.ts`, `next.config.js`) | Build/test tooling references |
-| `// @generated` / `// @auto-generated` files | Generated by codegen tools; do not manually edit/delete |
-| `env.d.ts` / `vite-env.d.ts` / `next-env.d.ts` | Framework-generated type declarations |
-| Migration files (TypeORM, Prisma, Drizzle) | Must be preserved for migration history |
-| `enum` members in public API | May be consumed by downstream even if unused locally |
+| `index.ts` (barrel)                                                                     | Public API surface; may be referenced by `package.json` exports                                    |
+| `main.ts` / `index.ts` (entry)                                                          | Application entry point                                                                            |
+| `.d.ts` files                                                                           | Ambient type declarations consumed by compiler                                                     |
+| `declare global` / `declare module` blocks                                              | Global/module augmentations                                                                        |
+| `/// <reference types="..." />`                                                         | Triple-slash directives for type resolution                                                        |
+| `tsconfig.json` / `tsconfig.*.json`                                                     | Compiler configuration                                                                             |
+| `package.json`                                                                          | Package manifest; `exports`, `main`, `types` fields reference files                                |
+| Decorator-registered code                                                               | `@Controller`, `@Injectable`, `@Component`, `@Entity`, `@Module`, `@Guard`, `@Pipe`, `@Middleware` |
+| `// @ts-ignore` / `// @ts-expect-error` items                                           | Developer explicitly suppressed — investigate intent                                               |
+| `// eslint-disable` items                                                               | Developer explicitly suppressed — investigate intent                                               |
+| Side-effect imports (`import './x'`)                                                    | Execute code at import time (polyfills, styles, registrations)                                     |
+| Dynamic `import()` targets                                                              | Lazily loaded; invisible to static analysis                                                        |
+| `require()` targets                                                                     | CommonJS dynamic loading                                                                           |
+| Path alias targets (`@/`, `~/`)                                                         | Resolved via `tsconfig.json` paths, not relative imports                                           |
+| Test files (`*.spec.ts`, `*.test.ts`, `__tests__/`)                                     | Test code; not imported by source                                                                  |
+| Config files (`jest.config.ts`, `vitest.config.ts`, `vite.config.ts`, `next.config.js`) | Build/test tooling references                                                                      |
+| `// @generated` / `// @auto-generated` files                                            | Generated by codegen tools; do not manually edit/delete                                            |
+| `env.d.ts` / `vite-env.d.ts` / `next-env.d.ts`                                          | Framework-generated type declarations                                                              |
+| Migration files (TypeORM, Prisma, Drizzle)                                              | Must be preserved for migration history                                                            |
+| `enum` members in public API                                                            | May be consumed by downstream even if unused locally                                               |
+
 
 ### Phase 1 Workflow
 
@@ -538,29 +542,31 @@ grep -rnP "enum\s+\w+\s*\{" -A 50 "$PKG_DIR" --include="*.ts" | head -60
 
 For each flagged item, apply **The Fundamental Question**. Categorize findings:
 
-| Category | What It Is | Action | Confidence |
+
+| Category                   | What It Is                                             | Action                              | Confidence      |
 | -------------------------- | ------------------------------------------------------ | ----------------------------------- | --------------- |
-| **Stubs** | Empty body, `throw Not Implemented`, trivial return | Remove | High |
-| **Thin Wrappers** | Single `return obj.prop`, trivial passthrough | Remove (unless interface/framework) | High |
-| **Duplicates** | Same logic in multiple files | Keep in owning module, remove rest | High |
-| **Overengineered** | Patterns failing 3-point test | Remove | Medium — verify |
-| **Unused Imports** | `import X` never referenced | Remove (eslint --fix) | High |
-| **Unused Variables** | Assigned but never read | Remove or prefix with `_` | High |
-| **Unused Exports** | Exported but never imported anywhere | Remove `export` keyword or delete | High |
-| **Unused Types** | Interface/type/enum never referenced | Remove | High |
-| **Unused Enum Members** | Enum member never referenced | Remove member | Medium |
-| **Commented Code** | `// function oldFunc()` blocks | Remove | High |
-| **Unused Files** | 0 inbound refs (all patterns checked) | Delete | High |
-| **Barrel Bloat** | `index.ts` re-exporting unused symbols | Remove dead re-exports | High |
-| **Re-export Only** | Files with only `export { X } from` | Consolidate | Medium |
-| **Maybe Unused** | 0 static refs but dynamic import / string ref possible | Manual review | Low — verify |
-| **`@ts-ignore` items** | Type error explicitly suppressed | Investigate intent | Low — ask |
-| **`eslint-disable` items** | Lint rule explicitly suppressed | Investigate intent | Low — ask |
-| **Decorator-registered** | `@Controller`, `@Injectable`, `@Entity`, etc. | **KEEP** | N/A |
-| **`.d.ts` / `declare`** | Ambient type declarations | **KEEP** | N/A |
-| **Side-effect imports** | `import './polyfill'` | **KEEP** | N/A |
-| **Dynamic import targets** | `import('./lazy-module')` | **KEEP** | N/A |
-| **`@generated` files** | Codegen output | **KEEP** (regenerate, don't edit) | N/A |
+| **Stubs**                  | Empty body, `throw Not Implemented`, trivial return    | Remove                              | High            |
+| **Thin Wrappers**          | Single `return obj.prop`, trivial passthrough          | Remove (unless interface/framework) | High            |
+| **Duplicates**             | Same logic in multiple files                           | Keep in owning module, remove rest  | High            |
+| **Overengineered**         | Patterns failing 3-point test                          | Remove                              | Medium — verify |
+| **Unused Imports**         | `import X` never referenced                            | Remove (eslint --fix)               | High            |
+| **Unused Variables**       | Assigned but never read                                | Remove or prefix with `_`           | High            |
+| **Unused Exports**         | Exported but never imported anywhere                   | Remove `export` keyword or delete   | High            |
+| **Unused Types**           | Interface/type/enum never referenced                   | Remove                              | High            |
+| **Unused Enum Members**    | Enum member never referenced                           | Remove member                       | Medium          |
+| **Commented Code**         | `// function oldFunc()` blocks                         | Remove                              | High            |
+| **Unused Files**           | 0 inbound refs (all patterns checked)                  | Delete                              | High            |
+| **Barrel Bloat**           | `index.ts` re-exporting unused symbols                 | Remove dead re-exports              | High            |
+| **Re-export Only**         | Files with only `export { X } from`                    | Consolidate                         | Medium          |
+| **Maybe Unused**           | 0 static refs but dynamic import / string ref possible | Manual review                       | Low — verify    |
+| **`@ts-ignore` items**     | Type error explicitly suppressed                       | Investigate intent                  | Low — ask       |
+| **`eslint-disable` items** | Lint rule explicitly suppressed                        | Investigate intent                  | Low — ask       |
+| **Decorator-registered**   | `@Controller`, `@Injectable`, `@Entity`, etc.          | **KEEP**                            | N/A             |
+| **`.d.ts` / `declare`**    | Ambient type declarations                              | **KEEP**                            | N/A             |
+| **Side-effect imports**    | `import './polyfill'`                                  | **KEEP**                            | N/A             |
+| **Dynamic import targets** | `import('./lazy-module')`                              | **KEEP**                            | N/A             |
+| **`@generated` files**     | Codegen output                                         | **KEEP** (regenerate, don't edit)   | N/A             |
+
 
 #### Step 1.7: Report Phase 1
 
@@ -1009,29 +1015,31 @@ git reset --hard HEAD~1                                # nuclear option
 
 ## Common Mistakes (AVOID)
 
-| Mistake | Why It's Dangerous | Prevention |
+
+| Mistake                                            | Why It's Dangerous                                          | Prevention                                                       |
 | -------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------- |
-| Removing real MVP logic | Breaks required functionality | Fundamental Question + FRD cross-reference |
-| Removing decorator-registered code | Breaks NestJS/Angular/TypeORM routing, DI, entities | Grep for decorators before removing any class/function |
-| Removing `.d.ts` / `declare` blocks | Breaks ambient typing for entire project | Exception list; never auto-remove |
-| Removing side-effect imports | Breaks polyfills, style injection, global registrations | Check for `import './x'` pattern; investigate what the file does |
-| Removing dynamic `import()` targets | Runtime `MODULE_NOT_FOUND` / chunk load failure | Grep for `import(` and `require(` string references |
-| Forgetting to update barrel `index.ts` | `MODULE_NOT_FOUND` for downstream consumers | Always edit `index.ts` when deleting modules |
-| Forgetting to update `package.json` exports | Package entry point breaks | Always check `exports`/`main`/`types` fields |
-| Removing `// @ts-ignore` without investigating | Exposes a real type error that was intentionally suppressed | Investigate git blame / ask author |
-| Removing `// eslint-disable` without investigating | Exposes a lint issue that was intentionally suppressed | Investigate why the rule was disabled |
-| Removing path-aliased modules (`@/utils/x`) | Module appears unused because grep misses alias resolution | Resolve `tsconfig.json` paths before scanning |
-| Removing `@generated` files | Breaks codegen pipeline; file is regenerated on next build | Exception list; never manually edit/delete |
-| Removing `export` from publicly consumed types | Breaks downstream package compilation | Check monorepo consumers before de-exporting |
-| Skipping `--noEmit` typecheck | Misses broken imports, missing types | Always run `tsc --noEmit` after cleanup |
-| Batch-removing "Maybe Unused" items | Dynamic imports or string refs may reference them | Require manual review + explicit approval |
-| Keeping commented-out code "for reference" | Noise; git history preserves old code | Remove; use `git log` to recover if needed |
-| Skipping git snapshot | Cannot rollback if cleanup breaks something | Step 1.1 is non-negotiable |
-| Removing enum members from public API | Breaks downstream `switch` statements / comparisons | Check monorepo consumers before removing members |
-| Ignoring monorepo workspace references | File unused in own package but imported by sibling | Run `knip` at workspace root or check sibling imports |
-| Consolidating files with dead code | Wastes effort merging code that should be deleted | Always run Phase 1 before Phase 2 |
-| Forgetting to update `index.ts` after merge | `MODULE_NOT_FOUND` for downstream consumers | Grep for old module names after merge |
-| Leaving orphan references after merge | Runtime errors from stale imports | Grep for old class/function names after merge |
+| Removing real MVP logic                            | Breaks required functionality                               | Fundamental Question + FRD cross-reference                       |
+| Removing decorator-registered code                 | Breaks NestJS/Angular/TypeORM routing, DI, entities         | Grep for decorators before removing any class/function           |
+| Removing `.d.ts` / `declare` blocks                | Breaks ambient typing for entire project                    | Exception list; never auto-remove                                |
+| Removing side-effect imports                       | Breaks polyfills, style injection, global registrations     | Check for `import './x'` pattern; investigate what the file does |
+| Removing dynamic `import()` targets                | Runtime `MODULE_NOT_FOUND` / chunk load failure             | Grep for `import(` and `require(` string references              |
+| Forgetting to update barrel `index.ts`             | `MODULE_NOT_FOUND` for downstream consumers                 | Always edit `index.ts` when deleting modules                     |
+| Forgetting to update `package.json` exports        | Package entry point breaks                                  | Always check `exports`/`main`/`types` fields                     |
+| Removing `// @ts-ignore` without investigating     | Exposes a real type error that was intentionally suppressed | Investigate git blame / ask author                               |
+| Removing `// eslint-disable` without investigating | Exposes a lint issue that was intentionally suppressed      | Investigate why the rule was disabled                            |
+| Removing path-aliased modules (`@/utils/x`)        | Module appears unused because grep misses alias resolution  | Resolve `tsconfig.json` paths before scanning                    |
+| Removing `@generated` files                        | Breaks codegen pipeline; file is regenerated on next build  | Exception list; never manually edit/delete                       |
+| Removing `export` from publicly consumed types     | Breaks downstream package compilation                       | Check monorepo consumers before de-exporting                     |
+| Skipping `--noEmit` typecheck                      | Misses broken imports, missing types                        | Always run `tsc --noEmit` after cleanup                          |
+| Batch-removing "Maybe Unused" items                | Dynamic imports or string refs may reference them           | Require manual review + explicit approval                        |
+| Keeping commented-out code "for reference"         | Noise; git history preserves old code                       | Remove; use `git log` to recover if needed                       |
+| Skipping git snapshot                              | Cannot rollback if cleanup breaks something                 | Step 1.1 is non-negotiable                                       |
+| Removing enum members from public API              | Breaks downstream `switch` statements / comparisons         | Check monorepo consumers before removing members                 |
+| Ignoring monorepo workspace references             | File unused in own package but imported by sibling          | Run `knip` at workspace root or check sibling imports            |
+| Consolidating files with dead code                 | Wastes effort merging code that should be deleted           | Always run Phase 1 before Phase 2                                |
+| Forgetting to update `index.ts` after merge        | `MODULE_NOT_FOUND` for downstream consumers                 | Grep for old module names after merge                            |
+| Leaving orphan references after merge              | Runtime errors from stale imports                           | Grep for old class/function names after merge                    |
+
 
 ---
 
@@ -1133,15 +1141,17 @@ This is the **default mode** for first-time runs on a package.
 
 ## Tool Reference
 
-| Tool | Replaces | Purpose |
+
+| Tool                               | Replaces                         | Purpose                                                                             |
 | ---------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------- |
-| `knip` | ts-prune, depcheck, unused-files | Unused files, exports, dependencies, types, enum members — all in one |
-| `tsc --noEmit` | (no equivalent) | Type checking; `--noUnusedLocals --noUnusedParameters` for compiler-level dead code |
-| `eslint` + `@typescript-eslint` | tslint, jshint | Lint, unused vars, import ordering, code quality rules |
-| `prettier` | (no equivalent) | Code formatting (line length, semicolons, quotes, spacing) |
-| `ts-prune` | (partial knip overlap) | Unused exports detection (lighter weight, fewer features) |
-| `ts-unused-exports` | (partial knip overlap) | Unused exports with tsconfig path alias support |
-| `jest --listTests` / `vitest list` | (no equivalent) | Verifies all test files can be resolved (catches broken imports) |
+| `knip`                             | ts-prune, depcheck, unused-files | Unused files, exports, dependencies, types, enum members — all in one               |
+| `tsc --noEmit`                     | (no equivalent)                  | Type checking; `--noUnusedLocals --noUnusedParameters` for compiler-level dead code |
+| `eslint` + `@typescript-eslint`    | tslint, jshint                   | Lint, unused vars, import ordering, code quality rules                              |
+| `prettier`                         | (no equivalent)                  | Code formatting (line length, semicolons, quotes, spacing)                          |
+| `ts-prune`                         | (partial knip overlap)           | Unused exports detection (lighter weight, fewer features)                           |
+| `ts-unused-exports`                | (partial knip overlap)           | Unused exports with tsconfig path alias support                                     |
+| `jest --listTests` / `vitest list` | (no equivalent)                  | Verifies all test files can be resolved (catches broken imports)                    |
+
 
 **Recommended config files:**
 

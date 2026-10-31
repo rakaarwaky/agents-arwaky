@@ -1,7 +1,5 @@
 # Cleanup & Consolidate — Python (full procedure)
 
-> Per-language half of the [`cleanup-consolidate`](../SKILL.md) skill. `../SKILL.md` holds the shared methodology (two-phase rule, workflow skeleton, report format, dry-run); this file is the complete, self-contained Python procedure — rules, detection patterns, tool commands, checklists.
-
 ## Purpose
 
 Unified Python codebase cleanup skill combining **dead code removal** and **file consolidation**. First find and remove dead code, unused files, stubs, thin wrappers, and duplicates. Then detect overlapping files that share the same domain and merge them into single cohesive modules. The result is a cleaner codebase with fewer files, less bloat, and maximum signal-to-noise ratio.
