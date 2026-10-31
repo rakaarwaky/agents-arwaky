@@ -1,6 +1,6 @@
 ---
 name: execute-plan
-description: Execute a PR Plan DAG from a design document in parallel-first mode. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability. Observed phrasing: /execute-plan followed by a design doc path, execute plan, run the plan, implement the design, make plan execution parallel-first.
+description: "Execute a PR Plan DAG from a design document in parallel-first mode. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability. Observed phrasing: /execute-plan followed by a design doc path, execute plan, run the plan, implement the design, make plan execution parallel-first."
 when-to-use: Use when asked to execute a plan, run the plan, implement the design, or via the /execute-plan slash command with a design doc path. Invoked after /design produces a PR plan; observed runs reference design documents produced by the design skill.
 argument-hint: "<design-doc-path> [--effort N] [--resume <PLAN_ID>]"
 ---
@@ -56,8 +56,8 @@ This skill uses the **implementer**, **reviewer**, and **security-auditor** pers
 Persona text is the Grok Build persona store (SSOT: `personas/*.toml`).
 
 Resolve each persona name in this order:
-1. `~/.grok/personas/<name>.toml` (user persona store; already linked to this repo's `personas/`)
-2. `<dirname of this SKILL.md>/../../../personas/<name>.toml` (repo fallback)
+1. `~/.grok/personas/<name>.toml` (user persona store; `host.py` links this to the repo's `personas/` on first run)
+2. `<dirname of this SKILL.md>/../../../../personas/<name>.toml` (repo fallback — four levels up lands on the repo root where `personas/` lives)
 
 For each persona:
 1. Pick the first path that exists
@@ -106,13 +106,13 @@ Extract `--effort` and `--resume` from the argument string. If `--effort` is not
 
 See [`references/step-0-setup.md`](references/step-0-setup.md).
 
-## Step 2: Tool Detection (Orca, Graphite & gh)
-
-See [`references/step-2-tool-detection.md`](references/step-2-tool-detection.md).
-
 ## Step 1: Memory Retrieval (Past Issues Briefing)
 
 See [`references/step-1-memory-retrieval.md`](references/step-1-memory-retrieval.md).
+
+## Step 2: Tool Detection (Orca, Graphite & gh)
+
+See [`references/step-2-tool-detection.md`](references/step-2-tool-detection.md).
 
 ## Step 3: Parse PR Plan DAG
 

@@ -15,6 +15,8 @@ PRs at the same level are independent and can execute in parallel.
 
 ### Linearization for Stack Assembly
 
+If Step 3 ran `validate-plan.py`, `linearized_order` and `level_assignments` are already in the state file — use them as authoritative and skip to **Compute Branch Names** below. Re-derive only when Step 3 parsed by hand (validator unavailable), in which case both rules below match `validate-plan.py` exactly:
+
 Stacks (Graphite or plain-git) are strictly linear chains. The DAG is flattened into a single topologically-sorted linear sequence:
 
 ```

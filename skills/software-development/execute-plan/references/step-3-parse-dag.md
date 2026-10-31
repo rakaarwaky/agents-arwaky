@@ -1,8 +1,23 @@
-# Step 3 Parse Dag
+# Step 3 Parse DAG
 
 ## Step 3: Parse PR Plan DAG
 
 Read the design document at `<design_doc_path>` using `read_file`.
+
+### Prefer the bundled validator
+
+Run the bundled validator first — it encodes the exact parsing, validation, and level-assignment rules, so a malformed plan fails with a precise error before any subagent is spawned:
+
+```bash
+<python> <HOST_PY_DIR>/validate-plan.py <design_doc_path>
+```
+
+- `<HOST_PY_DIR>` is the same directory as `host.py` (resolved in Setup). On this host that is `scripts/validate-plan.py` relative to this `SKILL.md`.
+- Exit `0`: parse the JSON report. `linearized_order`, `level_assignments`, `pr_count`, and `max_parallelism` are authoritative — store `linearized_order` in the state file and skip to Step 4 (it only computes branch names from the parsed nodes; it must not re-derive the order).
+- Exit `1`: the report's `errors` list names the offending PRs (duplicate id, unresolved dependency, cycle, malformed entry). Report the first error to the user and stop — do not proceed to Step 4 or spawn any subagent.
+- Exit `2`: usage or IO error (path not found, unreadable). Report and stop.
+
+Only parse by hand if `validate-plan.py` is missing from `scripts/`. The manual procedure below is the reference implementation the validator mirrors; both must agree on `id`, `slug`, `dependencies`, `level`, and `linearized_order`.
 
 Extract the `## PR Plan` section. Parse each PR entry from `### PR N:` headings into a structured representation:
 
