@@ -1,8 +1,9 @@
 ---
 name: design
-description: Runs the design-doc-writer and design-doc-reviewer subagents in a parallel-first loop until consensus (write, review, revise), producing a polished design document with a PR plan. Observed phrasing: /design followed by a task description, write a design doc, design a feature, or asking whether the design skill can be parallelized.
-when-to-use: Use when asked to design, write a design doc, produce a system design, architecture doc, or technical spec, or via the /design slash command. Invoked as /design with a description and as a step dependency inside execute-plan.
-argument-hint: "<description of what to design> [--publish]"
+description: "Runs the design-doc-writer and design-doc-reviewer subagents in a write-review-revise loop until consensus, producing a polished design document with a PR plan. Observed phrasing: /design followed by a task description, write a design doc, design a feature, or asking whether the design skill can be parallelized."
+when-to-use: "Use when asked to design, write a design doc, produce a system design, architecture doc, or technical spec, or via the /design slash command. Invoked as /design with a description and as a step dependency inside execute-plan."
+argument-hint: "<description of what to design>"
+disable-model-invocation: true
 ---
 
 # Design Skill
@@ -28,85 +29,49 @@ The user runs:
 
 The `<description>` is the design task — feature design, system architecture, migration plan, technical spec, or any design document. If the user provides file paths, links, or additional context, include all of that context in the writer prompt.
 
-## Procedure
+## Run Steps
 
-Six steps (full detail in [`references/review-loop.md`](references/review-loop.md)):
+Every reference file is **step-scoped**: `references/step-<N>-<name>.md` contains everything needed at that step — including the rules that used to live in standalone references (subagent prompts, exit condition, escalation, in-progress reporting, cleanup, final report). Only conventions that apply to **every** step stay in this file: Tool-Call Discipline, Parallel-First Policy, Invocation.
 
-1. **Write** — Launch the writer subagent; it produces the design document, summary, PR plan, and key decisions.
-2. **Review** — Launch the reviewer subagent; it writes structured review notes.
-3. **Check exit** — Read the review file. 0 open issues → Step 6. Any `needs-user-input` → escalate (3a). Any open issues → Step 4.
-4. **Revise** — Resume the writer to address all open issues.
-5. **Re-review** — Resume the reviewer; loop back to Step 3 until 0 open issues.
-6. **Summarize** — Extract key decisions, present open questions, present PR plan, optionally publish (`--publish`), cleanup, final report.
+| Step | Reference | Purpose |
+|------|-----------|---------|
+| 0 | [`references/step-0-setup.md`](references/step-0-setup.md) | Host setup, shared file paths, orchestrator state, persona injection, invocation |
+| 1 | [`references/step-1-write.md`](references/step-1-write.md) | Spawn the writer subagent; it produces the design document, summary, PR plan, and key decisions |
+| 2 | [`references/step-2-review.md`](references/step-2-review.md) | Spawn the reviewer subagent; it writes structured review notes |
+| 3 | [`references/step-3-check-exit.md`](references/step-3-check-exit.md) | Read the review file and check the exit condition; stalemate detection; Step 3a escalate to user |
+| 4 | [`references/step-4-revise.md`](references/step-4-revise.md) | Resume the writer to address all open issues |
+| 5 | [`references/step-5-rereview.md`](references/step-5-rereview.md) | Resume the reviewer; back to Step 3; repeat until 0 open issues |
+| 6 | [`references/step-6-summarize.md`](references/step-6-summarize.md) | Summarize and finalize: key decisions, open questions, PR plan |
+| 7 | [`references/step-7-cleanup-final-report.md`](references/step-7-cleanup-final-report.md) | Final report message, then cleanup of temporary artifact files |
 
-**The only exit condition is the reviewer reporting 0 issues of any severity. There is no iteration cap.**
+### Step 0: Setup
 
-## Todo Scaffold
+See [`references/step-0-setup.md`](references/step-0-setup.md).
 
-Canonical ids: `write-round-1`, `review-round-1`, `revise-round-N` / `rereview-round-N`, `summarize`, `publish` (only with `--publish`), `final-report`. Reseed after compaction from these ids plus `round_count` and the persisted artifact paths (`design_doc_file`, `summary_file`, `review_file`) plus `published_url` if Step 6d ran.
+### Step 1: Write
 
-## Setup
+See [`references/step-1-write.md`](references/step-1-write.md).
 
-Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, `id -u`, `/proc`, or write to `/tmp` directly — the host helper resolves the per-repo plans dir. Use `run_terminal_command`.
+### Step 2: Review
 
-Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Find Python 3 (`python`, `py -3`, `python3`; reject `WindowsApps`). Run `<python> <HOST_PY> setup` and parse JSON stdout → `python` (PYTHON), `scratch_dir`, `run_id` (DESIGN_ID, validate 8 hex chars).
+See [`references/step-2-review.md`](references/step-2-review.md).
 
-`scratch_dir` is the per-repo plans home `~/.grok/plans/<repo-slug>/` (repo slug = `git rev-parse --show-toplevel` basename, lowercased `[a-z0-9-]`; `general` outside a git work tree). The helper creates the dir. Design deliverables live here so they survive reboots and group by repo.
+### Step 3: Check Exit Condition
 
-Inline absolute `scratch_dir` and `PYTHON` into every later command and subagent prompt. Shared paths under `scratch_dir`:
-- `design_doc_file`: `${scratch_dir}/grok-design-doc-${DESIGN_ID}.md`
-- `summary_file`: `${scratch_dir}/grok-design-summary-${DESIGN_ID}.md`
-- `review_file`: `${scratch_dir}/grok-design-review-${DESIGN_ID}.md`
+See [`references/step-3-check-exit.md`](references/step-3-check-exit.md). 0 open + 0 needs-user-input → Step 6. Any `needs-user-input` → Step 3a (escalate). Any open issues → Step 4. **The only exit condition is the reviewer reporting 0 issues of any severity. There is no iteration cap.**
 
-State: `round_count` (0), `total_issues_by_severity` ({}), `previous_review_snapshot` (""), `publish` (true only with `--publish`), `published_url` ("").
+### Step 4: Revise
 
-## Persona Injection
+See [`references/step-4-revise.md`](references/step-4-revise.md).
 
-Personas come from `personas/*.toml` (user store `~/.grok/personas/<name>.toml` first, then repo fallback `<dirname>/../../../personas/<name>.toml`). Extract the `instructions` field (`""" ... """` body). Store as `writer_persona_instructions` and `reviewer_persona_instructions`.
+### Step 5: Re-review
 
-Prepend the appropriate persona to the subagent prompt on initial launch. Do NOT pass a `persona` parameter to `spawn_subagent`. Prefix `description` with `[writer]` or `[reviewer]`. Keep the tag on `resume_from` follow-ups; do not re-inject persona on resume.
+See [`references/step-5-rereview.md`](references/step-5-rereview.md). Back to Step 3. Repeat until 0 open issues.
 
-## References
+### Step 6: Summarize
 
-| Reference | Read it when |
-|---|---|
-| [`references/review-loop.md`](references/review-loop.md) | Full write -> review -> revise loop: todos, persona injection, exit condition, rules, in-progress reporting, subagent prompts for Steps 1, 2, 4, 5. |
-| [`references/publish.md`](references/publish.md) | Step 6d publish procedure (Notion page first, secret-gist fallback), URL handling, report wording. |
+See [`references/step-6-summarize.md`](references/step-6-summarize.md).
 
-## Cleanup
+### Step 7: Cleanup & Final Report
 
-After presenting the final report:
-```
-<PYTHON> <HOST_PY> cleanup <summary_file> <review_file>
-```
-Keep `<design_doc_file>` — it is the deliverable.
-
-## Final Report
-
-When the loop terminates, present:
-1. Design document location (plus `published_url` when `--publish`).
-2. Key decisions summary (Step 6a).
-3. Review rounds (`round_count`).
-4. Total issues addressed (`total_issues_by_severity`).
-5. PR Plan (Step 6c).
-6. Open questions (resolved answers or none).
-7. Next step: run `/execute-plan <design-doc-path>` to implement the PR plan DAG.
-
-## Rules
-
-- Inject personas into prompts; never pass a `persona` parameter to `spawn_subagent`.
-- Prefix `description` with bracketed role tag; keep on `resume_from`.
-- `resume_from` on follow-ups — never launch fresh for revise/re-review.
-- Save every `subagent_id` returned by `spawn_subagent`.
-- Read the review file yourself after each review to count open issues.
-- Don't modify the design document yourself — all changes go through the writer subagent.
-- Explicitly tell subagents to write their output files.
-- Thread the same file paths across all rounds — never regenerate paths between iterations.
-- No iteration cap.
-- Always include PR Plan and Key Decisions sections.
-- Publish only on request (`--publish`).
-- Ask the user about open questions — never silently resolve them.
-- Writer can push back with `Status: wontfix` + technical justification.
-- Escalate, don't spin — writer/reviewer disagreement after two rounds → escalate to user.
-- User decisions are final.
-- Error handling — if a subagent fails or cannot be resumed, report and stop.
+See [`references/step-7-cleanup-final-report.md`](references/step-7-cleanup-final-report.md).
