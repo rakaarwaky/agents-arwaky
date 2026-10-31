@@ -18,7 +18,7 @@ metadata:
     - unwrap
     - ts-ignore
   related_skills:
-    - cleanup-consolidate
+    - deep-clean
     - add-docs
     - lint-arwaky
   triggers:

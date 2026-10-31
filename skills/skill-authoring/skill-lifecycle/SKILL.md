@@ -19,7 +19,7 @@ Prunes and consolidates an agent **skill directory** (a collection of `SKILL.md`
 skills that overlap semantically and collapses them: two skills covering the same job become one
 folder with one `SKILL.md`; skills that share a domain but differ per scenario stay one folder with
 one `SKILL.md` plus a `references/` subfolder, one file per scenario. Modeled on
-`code-quality/cleanup-consolidate` (two-phase: remove duplicates, then consolidate variants).
+`code-quality/deep-clean` (two-phase: remove duplicates, then consolidate variants).
 
 **Scope:** skill directories only — `SKILL.md` files, `references/`, `scripts/`, and category
 `DESCRIPTION.md` files. Never touch non-skill content. This is the skill-folder analog of dead-code
@@ -33,7 +33,7 @@ removal plus consolidation: Phase 1 removes true duplicates, Phase 2 merges over
   a prune.
 - **`skill-library`** — read-only listing and inspecting skills (`aa skills list/show`), for the
   inventory a prune starts from.
-- **`code-quality/cleanup-consolidate`** — the code-level duplicate removal this skill is modeled on.
+- **`code-quality/deep-clean`** — the code-level duplicate removal this skill is modeled on.
 
 Frontmatter constraints for a merged `SKILL.md` are not restated here: the executable rules and
 their messages live in [`../../../modules/skills/_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md), generated from
