@@ -18,8 +18,14 @@ Working directory: project root.
    NEW_VERSION="$today.$N"
    ```
 
-2. Use the bump script at project-root `scripts/` — check for `scripts/bump.sh`
-   or `scripts/bump.py`:
+2. Update changelog and version files:
+   - If `git-cliff` is installed and `cliff.toml` exists, generate/prepend the changelog:
+     ```shell
+     if command -v git-cliff >/dev/null 2>&1; then
+       git-cliff --unreleased --tag "$NEW_VERSION" --prepend CHANGELOG.md
+     fi
+     ```
+   - Run the bump script at project-root `scripts/` — check for `scripts/bump.sh` or `scripts/bump.py`:
 
    ```shell
    if [ -f scripts/bump.sh ]; then
@@ -30,11 +36,16 @@ Working directory: project root.
      mkdir -p scripts
      cat > scripts/bump.sh <<'EOF'
    #!/usr/bin/env bash
-   sed -i -E 's/^__RELEASE_VERSION__ = .*/__RELEASE_VERSION__ = "'"$1"'"/' \
+   VERSION="$1"
+   sed -i -E 's/^__RELEASE_VERSION__ = .*/__RELEASE_VERSION__ = "'"$VERSION"'"/' \
      pyproject.toml Cargo.toml 2>/dev/null || true
-   echo "## $1" >> CHANGELOG.md
+   if command -v git-cliff >/dev/null 2>&1 && [ -f cliff.toml ]; then
+     git-cliff --unreleased --tag "$VERSION" --prepend CHANGELOG.md
+   elif [ ! -f CHANGELOG.md ] || ! grep -q "## $VERSION" CHANGELOG.md; then
+     echo -e "## $VERSION\n" | cat - CHANGELOG.md > CHANGELOG.tmp 2>/dev/null && mv CHANGELOG.tmp CHANGELOG.md || echo "## $VERSION" >> CHANGELOG.md
+   fi
    for f in scripts pyproject.toml Cargo.toml CHANGELOG.md; do [ -e "$f" ] && git add -A "$f" || true; done
-   git commit -m "release: bump to $1"
+   git commit -m "release: bump to $VERSION"
    EOF
      chmod +x scripts/bump.sh
      bash scripts/bump.sh "$NEW_VERSION"

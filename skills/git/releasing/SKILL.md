@@ -36,9 +36,16 @@ workflow itself needs changing.
   and pushes to PyPI. The headless flow proceeds straight to publish; this is the
   intended autonomous behavior, not a stop-and-ask step.
 
-## Step 0 — version bump
+## Step 0 — version bump and changelog generation
 
-Compute `NEW_VERSION` and run the bump script per [`references/version-bump.md`](references/version-bump.md) (calver rule + `scripts/bump.sh` / `scripts/bump.py`). Working directory: project root.
+Compute `NEW_VERSION`, generate or update the changelog with `git-cliff` (when available), and run the bump script per [`references/version-bump.md`](references/version-bump.md) (calver rule + `git-cliff` changelog prep + `scripts/bump.sh` / `scripts/bump.py`). Working directory: project root.
+
+```shell
+# Generate unreleased changelog section for the new version via git-cliff
+if command -v git-cliff >/dev/null 2>&1 && [ -f cliff.toml ]; then
+  git-cliff --unreleased --tag "$NEW_VERSION" --prepend CHANGELOG.md
+fi
+```
 
 ## Step 1 — release prep PR
 
