@@ -16,7 +16,6 @@ metadata:
   related_skills:
     - study-roadmap-builder
     - grounded-citations
-    - no-mistakes
 ---
 
 # Reference Doc Fact Audit
