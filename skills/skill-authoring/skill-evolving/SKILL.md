@@ -1,6 +1,6 @@
 ---
 name: skill-evolving
-description: Autonomous self-evolution engine for agent skills. Ingests session traces via learn, fans out category-level audit subagents, coordinates authoring, library cataloging, and lifecycle pruning, verifies quality gates, and publishes pull requests. Use when the user runs /skill-evolving --scope 24h --headless (or any of its flags such as --since-last, --dry-run), names pr-la-xxx commands (auto-fix, cli-commands, config-system, doc-rules, external-lint, file-watch, filesystem, git-hooks, import-rules, logging, maintenance, mcp-server, naming-rules, orphan-rules, project-setup, quality-rules), or asks for a daily/scheduled skill optimization pass.
+description: Autonomous self-evolution engine for agent skills. Ingests session traces via learn, fans out category-level audit subagents, coordinates authoring, library cataloging, and lifecycle pruning, verifies quality gates, and publishes pull requests. Use when the user runs /skill-evolving --scope 24h --headless (or any of its flags such as --since-last, --dry-run), or asks for a daily/scheduled skill optimization pass.
 when-to-use: Use when running autonomous or scheduled self-evolution across the skill tree, evolving skills from execution traces, or running a headless daily skill optimization pass; coordinating multi-agent skill maintenance.
 argument-hint: "[--scope <window>] [--headless] [--since-last] [--dry-run]"
 ---
