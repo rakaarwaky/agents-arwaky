@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import stat
 import sys
@@ -42,11 +43,38 @@ def resolve_python() -> str:
     )
 
 
+def _plans_root() -> Path:
+    home = Path(os.environ.get("HOME") or os.environ.get("USERPROFILE") or "~")
+    return home / ".grok" / "plans"
+
+
+def _repo_slug() -> str:
+    """Best-effort owning-repo basename, safe on Windows and POSIX."""
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            name = Path(result.stdout.strip()).name
+            slug = re.sub(r"[^a-z0-9-]", "-", name.lower()).strip("-")
+            if slug:
+                return slug
+    except OSError:
+        pass
+    return "general"
+
+
 def scratch_dir() -> Path:
-    user = os.environ.get("USERNAME") or os.environ.get("USER") or "user"
-    # Keep the name filesystem-safe on Windows and POSIX.
-    safe = "".join(c if c.isalnum() or c in "._-" else "_" for c in user) or "user"
-    path = Path(tempfile.gettempdir()) / f"grok-{safe}"
+    """Per-repo plans home: ``~/.grok/plans/<repo-slug>/``.
+
+    Design docs, summaries, and per-PR review scratch live here instead of
+    the OS temp dir, so deliverables survive reboots and group by repo.
+    """
+    path = _plans_root() / _repo_slug()
     path.mkdir(parents=True, exist_ok=True)
     try:
         os.chmod(path, stat.S_IRWXU)

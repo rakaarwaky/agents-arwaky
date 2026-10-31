@@ -47,9 +47,11 @@ Canonical ids: `write-round-1`, `review-round-1`, `revise-round-N` / `rereview-r
 
 ## Setup
 
-Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, `id -u`, `/proc`, or write to `/tmp`. Use `run_terminal_command`.
+Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, `id -u`, `/proc`, or write to `/tmp` directly — the host helper resolves the per-repo plans dir. Use `run_terminal_command`.
 
 Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Find Python 3 (`python`, `py -3`, `python3`; reject `WindowsApps`). Run `<python> <HOST_PY> setup` and parse JSON stdout → `python` (PYTHON), `scratch_dir`, `run_id` (DESIGN_ID, validate 8 hex chars).
+
+`scratch_dir` is the per-repo plans home `~/.grok/plans/<repo-slug>/` (repo slug = `git rev-parse --show-toplevel` basename, lowercased `[a-z0-9-]`; `general` outside a git work tree). The helper creates the dir. Design deliverables live here so they survive reboots and group by repo.
 
 Inline absolute `scratch_dir` and `PYTHON` into every later command and subagent prompt. Shared paths under `scratch_dir`:
 - `design_doc_file`: `${scratch_dir}/grok-design-doc-${DESIGN_ID}.md`

@@ -8,6 +8,8 @@ Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Find a real P
 
 Run `<python> <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `PLAN_ID`.
 
+`scratch_dir` is the per-repo plans home `~/.grok/plans/<repo-slug>/` (repo slug = `git rev-parse --show-toplevel` basename, lowercased `[a-z0-9-]`; `general` outside a git work tree). The host helper creates the dir. State, summaries, and reviews live here so they survive reboots and group by repo.
+
 **Resolve the Orca CLI** per the *Orca CLI Resolution* rule in the Orca Worktree Protocol section: check `ORCA_CLI_COMMAND` first, then `orca-ide` on Linux. If neither is available, stop and report — Orca worktrees are mandatory for this skill.
 
 **Validate** that `PLAN_ID` is 8 hex characters. If it is empty or the command failed, report the error and stop.

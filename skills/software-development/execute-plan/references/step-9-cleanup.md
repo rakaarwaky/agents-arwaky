@@ -30,7 +30,7 @@ Then delete each per-PR summary, merged review, and individual reviewer file:
 <PYTHON> <HOST_PY> cleanup <each ${scratch_dir}/grok-exec-summary-<PLAN_ID>-<pr-id>.md, ${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr-id>.md, and config.review_file you created>
 ```
 
-**Keep the state file** -- the user may want to reference PR URLs or run history. It can be manually removed:
+**Keep the state file** -- the user may want to reference PR URLs or run history. It lives in `~/.grok/plans/<repo-slug>/` and can be manually removed:
 ```bash
 rm ${scratch_dir}/grok-exec-plan-<PLAN_ID>.json
 ```

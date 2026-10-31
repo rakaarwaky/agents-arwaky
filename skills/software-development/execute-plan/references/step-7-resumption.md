@@ -4,7 +4,7 @@
 
 When invoked with `--resume <PLAN_ID>`:
 
-Setup is skipped on resume, so first **recompute the scratch directory** — the state file and all per-PR artifacts live under it. Re-run `<PYTHON> <HOST_PY> scratch` so the path matches the original run's OS temp dir:
+Setup is skipped on resume, so first **recompute the scratch directory** — the state file and all per-PR artifacts live under `~/.grok/plans/<repo-slug>/`. Re-run `<PYTHON> <HOST_PY> scratch` so the path matches the original run's per-repo plans dir:
 
 1. Read the state file at `${scratch_dir}/grok-exec-plan-<PLAN_ID>.json`.
 2. If the file does not exist, report the error and stop.
