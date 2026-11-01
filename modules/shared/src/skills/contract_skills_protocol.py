@@ -66,9 +66,8 @@ class ISkillsIndexProtocol(ABC):
 
         One entry per skill (``name``, ``source``, ``path``, ``loaded``);
         the source is the repo pack only. The surface renders it; this
-        default returns an empty mapping until the capability implements
-        the projection (the JSON key order is pinned by the surface, not
-        the contract).
+        default returns ``{}`` as a transition stub — the real projection
+        lands in PR 3 in ``capabilities_skills_index_builder.py``.
         """
         return {}
 

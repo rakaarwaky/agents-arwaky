@@ -18,12 +18,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from modules.shared.src.skills.taxonomy_skills_entity import Issue
-
-if TYPE_CHECKING:
-    from modules.shared.src.skills.taxonomy_skills_vo import PhraseRow, SkillUsageItem
 
 __all__ = [
     "CatalogCheckResult",
@@ -245,3 +241,16 @@ class PhrasesReport:
 
     exact_prompts: tuple[PhraseRow, ...] = ()
     repeated_instruction_lines: tuple[PhraseRow, ...] = ()
+
+# Runtime import of the two primitives this module's annotations reference
+# (``PhraseRow``, ``SkillUsageItem``). Placed at the bottom because
+# ``taxonomy_skills_vo`` re-exports this module's class objects — importing
+# it back at the top would cycle. The import lands after this module's
+# class definitions, so the primitives (and the module's own classes) are
+# both loaded by the time ``get_type_hints`` evaluates the string
+# annotations above. AES403-safe: imports only ``modules.shared`` types,
+# no I/O.
+from modules.shared.src.skills.taxonomy_skills_vo import (
+    PhraseRow,
+    SkillUsageItem,
+)

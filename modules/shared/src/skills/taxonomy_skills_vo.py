@@ -17,23 +17,25 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import IntEnum, StrEnum
 from pathlib import Path
-from typing import NewType
+from typing import TYPE_CHECKING, NewType
 
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
-    CatalogCheckResult,
-    CatalogReport,
-    DiscoveryMatch,
-    MergePlan,
-    MutationOutcome,
-    MutationPlan,
-    NewCategoryPlan,
-    ValidationReport,
-)
 from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     CategoryName,
     SkillName,
     SkillRef,
 )
+
+if TYPE_CHECKING:
+    from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+        CatalogCheckResult,
+        CatalogReport,
+        DiscoveryMatch,
+        MergePlan,
+        MutationOutcome,
+        MutationPlan,
+        NewCategoryPlan,
+        ValidationReport,
+    )
 
 SkillQuery = NewType("SkillQuery", str)
 """A skill name / identifier to look up in the pack."""
@@ -181,7 +183,10 @@ class TraceDecision:
     undo: str | None = None
 
     def as_dict(self) -> dict[str, object]:
-        """The legacy decision-line projection, in legacy key order."""
+        """The legacy decision-line projection, in legacy key order.
+
+        Pins the retired ``state.py`` JSON shape; PR 4 wires its consumer.
+        """
         return {
             "date": self.date,
             "run_dir": self.run_dir,
@@ -274,3 +279,28 @@ __all__ = [
     "TraceStateStatus",
     "ValidationReport",
 ]
+
+# The authoring VOs above are re-exported for consumers that import the
+# whole skills-VO surface from this module. The re-export is lazy so this
+# file stays the runtime base of the cycle (``taxonomy_skills_authoring_vo``
+# imports the trace primitives from here); the classes land in the
+# authoring module, which loads without importing this module's
+# re-exports back.
+_AUTHORING_REEXPORTS = {
+    "CatalogCheckResult",
+    "CatalogReport",
+    "DiscoveryMatch",
+    "MergePlan",
+    "MutationOutcome",
+    "MutationPlan",
+    "NewCategoryPlan",
+    "ValidationReport",
+}
+
+
+def __getattr__(name: str):
+    if name in _AUTHORING_REEXPORTS:
+        from modules.shared.src.skills import taxonomy_skills_authoring_vo
+
+        return getattr(taxonomy_skills_authoring_vo, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

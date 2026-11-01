@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import typing
+
 import pytest
 
 from modules.shared.src.skills.contract_skills_protocol import (
@@ -93,3 +95,9 @@ def test_index_protocol_gains_json_list_method() -> None:
     assert callable(ISkillsIndexProtocol.list_skills_json)
     assert "list_skills" in ISkillsIndexProtocol.__abstractmethods__
     assert "list_skills_json" not in ISkillsIndexProtocol.__abstractmethods__
+
+
+def test_report_hints_resolve_at_runtime() -> None:
+    """The guarded annotations resolve: get_type_hints works on both report VOs."""
+    assert typing.get_type_hints(UsageReport)["items"]
+    assert typing.get_type_hints(PhrasesReport)["exact_prompts"]
