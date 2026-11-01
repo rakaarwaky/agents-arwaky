@@ -12,7 +12,7 @@ module directly.
 
 ## Backlog Status
 
-### CLI-01: Wire shared daemon verbs through the aggregate contract
+### DS-CLI-001: Wire shared daemon verbs through the aggregate contract
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -22,17 +22,37 @@ module directly.
 | Risk         | None                                                         |
 | Updated      | 2026-10-28                                                   |
 
-### CLI-02: Add the OmniRoute to 9router credential import verb
+### DS-CLI-002: Add the OmniRoute to 9router credential import verb
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
 | Done         | `cmd_9router` recognises `import-omniroute` and hands the remaining args to the 9router import capability; the surface imports the capability only inside that branch, so the shared daemon verbs stay contract-only. |
 | In Progress  | None                                                         |
-| Risk         | The 9router capability must stay reachable through its contract and container wiring. |
+| Risk         | None                                                         |
 | Updated      | 2026-10-28                                                   |
 
-### CLI-03: Route the wiring and tool verbs through their aggregates
+### DS-CLI-003: Keep the surface within the function cap
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | Shared verbs are grouped per daemon; no surface file exceeds the AES406 function cap. |
+| In Progress  | None                                                         |
+| Risk         | Adding a new daemon verb must stay inside one surface file.  |
+| Updated      | 2026-10-28                                                   |
+
+### DS-CLI-004: Keep local-only verbs beside their dispatch
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | Capability-specific verbs with no other daemon implementation stay beside their shared dispatch in one surface file; no surface module imports a capability module directly. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-10-28                                                   |
+
+### DS-CLI-005: Route tools and wiring verbs through their aggregates
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -42,14 +62,14 @@ module directly.
 | Risk         | None                                                         |
 | Updated      | 2026-10-28                                                   |
 
-### CLI-04: Keep surface files within the 15-function limit
+### DS-CLI-006: Surface returns aggregate exit code unchanged
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | Shared verbs are grouped per daemon; the local-only verbs live beside their dispatch so no surface file exceeds the AES406 function cap. |
+| Done         | No remapping or wrapping of the aggregate return value.      |
 | In Progress  | None                                                         |
-| Risk         | Adding a new daemon verb must stay inside one surface file. |
+| Risk         | None                                                         |
 | Updated      | 2026-10-28                                                   |
 
 ## Reference
@@ -58,5 +78,6 @@ module directly.
 |--------------|--------------------------------------------|------|
 | PRD          | <Business goals and scope>                 | [PRD.md](../../PRD.md) |
 | FRD          | <Functional requirements specification>    | [FRD.md](../../FRD.md) |
+| DESIGN       | <Design decisions and data flow>           | [DESIGN.md](DESIGN.md) |
 | Roadmap      | <Timeline, phasing, and dependencies>      | [ROADMAP.md](../../ROADMAP.md) |
 | Architecture | <System boundaries, tech stack, and infra> | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

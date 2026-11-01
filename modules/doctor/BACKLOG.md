@@ -2,67 +2,31 @@
 
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
-State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
+State: root § State Definitions
+Health: root § State Definitions
 Last Updated: 2026-09-26
 
-## Current Condition
+## Progress Overview
 
-- Done: `IDoctorProtocol` stays a one-method capability ABC (`run(flags)`
-  under the `json` / `mode` flags VO) — one diagnostic pass, one exit code.
-  `IDoctorAggregate` keeps the single `execute(request) → response` entry
-  point; `DoctorOrchestrator` fans the request out to the env and tools
-  runners. Gate: `lint-arwaky-cli scan modules/doctor` → 0 violations;
-  `python3 -m pytest modules/doctor -q` → 29 passed at `6df9f21`; live
-  `aa doctor` / `aa status` sweeps on this host exit 0.
-- In Progress: none.
-- Blocked: none.
-- Next Action: DOC-03/DOC-04 closed; port the missing-toolchain scenario
-  (Gap) to an automated test when the `modules/tests/` port lands (WS-06).
+The doctor feature is a read-only host diagnostic: `IDoctorProtocol.run(flags)` covers env + tool readiness, `IDoctorAggregate.execute(request) → response` collapses both runners to one exit code, and `DoctorOrchestrator` fans requests out to env and tools runners. `aa doctor` / `aa status` sweeps exit 0 on this host. Gate: `lint-arwaky-cli scan modules/doctor` → 0 violations; `python3 -m pytest modules/doctor -q` → 29 passed at `6df9f21`.
 
-## Backlog
+## Backlog Status
 
-| ID | Priority | State | Dependencies | Next Action | Updated |
-|---|---|---|---|---|---|
-| DOC-01 | P1 | Done | None | none | 2026-09-26 |
-| DOC-02 | P1 | Done | None | none | 2026-09-26 |
-| DOC-03 | P1 | Done | None | none | 2026-09-26 |
-| DOC-04 | P1 | Done | DOC-03 | none | 2026-09-26 |
+### FR-DOCTOR-001: Diagnose the host and its tools
 
-## Scenario Evidence
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | One diagnostic pass over host env and manifest tool readiness reports per-check pass/warn/fail rows plus one exit code; `aa doctor` / `aa status` on this host exit 0; 29 doctor tests pass at `6df9f21`. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-09-26                                                   |
 
-| Scenario | Kind | Test file | Test name | Last verified |
-|----------|------|-----------|-----------|---------------|
-| `aa doctor` on a healthy host prints all-PASS and exits 0. | Proxy | manual | `python -m modules.root_cli_entry doctor` on this host | `6df9f21` |
-| `aa doctor` with a missing toolchain marks that row FAIL while the process still exits 0. | Gap | — | — | not yet |
-| `aa status` lists every manifest tool with a readiness state and exits 0. | Proxy | manual | `python -m modules.root_cli_entry status` on this host | `6df9f21` |
-| `aa status --json` emits parseable JSON rows with stable keys for every tool. | Proxy | manual | `python -m modules.root_cli_entry status --json` → `json.loads` + keys `id,category,binary,status` | `6df9f21` |
+## Reference
 
-Kind values: Automated, Proxy, Manual, Gap.
-
-## Blockers
-
-None.
-
-## Dependencies
-
-None.
-
-## Release Readiness
-
-| Area | Status | Notes |
-|------|--------|-------|
-| Tests | Done | `python3 -m pytest modules/doctor -q` → 29 passed and `lint-arwaky-cli scan modules/doctor` → 0 violations at `6df9f21`; live doctor/status sweeps exit 0 on this host |
-| Scenario evidence | Done | 4 of 4 scenarios mapped (3 Proxy, 1 Gap) |
-| Docs | Done | [FRD.md](FRD.md) is specification-only; pair redesigned per approved plan |
-
-## Deferred
-
-None.
-
-## Change Log
-
-| Date | Change | By |
-|------|--------|----|
-| 2026-09-26 | Updated Current Condition, DOC-01/02/03/04 rows, scenario evidence, Release Readiness and Change Log to reflect the one-method `IDoctorProtocol.run` + single-`execute` aggregate, 29 tests at `6df9f21`, 0 violations. | @raka |
-| 2026-09-18 | FRD/BACKLOG pair created during WS-04 doc sweep at `5556fd5`. | @raka |
-| 2026-09-23 | Redesigned pair per approved plan: Protocol API = 1 row `run`; aggregate = single `execute`; 4 scenarios ↔ 4 evidence rows; code renamed (protocol, aggregate, orchestrator, runners, surface, root CLI `.diagnose`); gates re-run at `f87a775` (working tree). | @raka |
+| Artifact     | Purpose                                    | Link |
+|--------------|--------------------------------------------|------|
+| PRD          | Business goals and scope                   | [PRD.md](../../PRD.md) |
+| FRD          | Functional requirements specification       | [FRD.md](FRD.md) |
+| Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

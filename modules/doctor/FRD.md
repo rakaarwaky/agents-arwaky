@@ -1,105 +1,68 @@
 # FRD — doctor
 
-> Functional Requirements Document. Describes HOW this feature works functionally.
-> Audience: Engineers, QA, Tech Lead.
+## Feature Overview
 
-## Reference
-
-- PRD: [PRD.md](../../PRD.md)
-- Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
-## System Overview
-
-The doctor feature is a read-only diagnostic for the host: one protocol
-method covers both capabilities (environment and tool readiness), and the
-aggregate exposes full diagnosis, tool readiness, and report rendering.
-Two capability runners — host environment (OS, language toolchains, package
-managers, git, XDG resolvability) and tool readiness (each manifest tool's
-presence) — fan out under the orchestrator and collapse to a single exit
-code. Flow: `aa doctor` / `aa status` → doctor aggregate → env + tools
-runners → per-check pass/fail rows, one exit code.
+The doctor feature is a read-only host diagnostic: one protocol method covers both environment and tool readiness, and the aggregate exposes full diagnosis, tool readiness, and report rendering. The flow is `aa doctor` / `aa status` → doctor aggregate → env + tools runners → per-check pass/fail rows, one exit code. Probes never install, remove, or mutate anything.
 
 ## Functional Requirements
 
 ### FR-DOCTOR-001: Diagnose the host and its tools
 
-- **Description**: one diagnostic pass over the host environment (OS
-  tooling, language toolchains, package managers, git, XDG resolvability)
-  and the manifest tool readiness (binary/runner resolvable and
-  launchable), reporting one pass/warn/fail row per probe plus one exit
-  code.
-- **Input**: the live host; the tool registry from the tool manifest; mode
-  flags (`json`, mode) select the render shape.
-- **Output**: exit code plus a per-check pass/fail table on stdout, or the
-  same rows as JSON under the JSON flag.
-- **Business Rules**: probes are read-only — they never install, remove, or
-  mutate; a missing toolchain marks that row FAIL; a row-level FAIL never
-  fails the process; only a hard failure yields a non-zero exit; readiness
-  means the executable resolves via the discovery order (PATH, XDG bin,
-  source-ready for in-house tools); a missing tool is a row state, not a
-  crash.
-- **Edge Cases**: a toolchain present but too old → WARN with the found
-  version; XDG home unset → the affected rows FAIL with the env var named;
-  an optional tool absent → SKIP row, not FAIL; installed but stale binary
-  → READY with a version note; manifest entry with no binary yet → NOT
-  READY (expected pre-install); a probe that hangs → killed after a
-  bounded timeout and reported as a timeout row.
-- **Error Handling**: probe exceptions are captured per row; the
-  capability returns an exit code rather than raising into the CLI; a
-  probe failure becomes a row state; only an unrecoverable manifest read
-  failure returns non-zero.
+**Description:** One diagnostic pass over the host environment (OS tooling, language toolchains, package managers, git, XDG resolvability) and the manifest tool readiness (binary/runner resolvable and launchable), reporting one pass/warn/fail row per probe plus one exit code.
 
-## API Contract
+#### Business Logic
 
-### Protocol API
+- Probes are read-only — they never install, remove, or mutate.
+- A missing toolchain marks that row FAIL; a row-level FAIL never fails the process.
+- Only a hard failure yields a non-zero exit.
+- Readiness means the executable resolves via the discovery order (PATH, XDG bin, source-ready for in-house tools); a missing tool is a row state, not a crash.
 
-| Method | Input | Output | Error | Event | Description |
-|--------|-------|--------|-------|-------|-------------|
-| `run` | `flags` (`json`, mode) | `ExitCode` | hard fail → non-zero | — | one method per diagnostic pass (env + tools runners) |
+#### Edge Cases
 
-### Aggregate API
+- A toolchain present but too old → WARN with the found version.
+- XDG home unset → affected rows FAIL with the env var named.
+- An optional tool absent → SKIP row, not FAIL.
+- A probe that hangs → killed after a bounded timeout and reported as a timeout row.
 
-| Method | Input | Output | Error | Event | Description |
-|--------|-------|--------|-------|-------|-------------|
-| `run` | `flags` (`json`, mode) | `ExitCode` | hard fail → non-zero; row FAIL keeps 0 | PASS/FAIL/READY rows or JSON | One diagnostic pass over host env + tool readiness |
+#### Technical Specification
 
-## Integration Points
+| Aspect | Detail |
+|--------|--------|
+| **Input** | the live host; the tool registry from the tool manifest; mode flags (`json`, mode) |
+| **Output** | exit code plus a per-check pass/fail table on stdout, or the same rows as JSON |
+| **Protocol** | IDoctorProtocol |
+| **Method** | run(flags) |
+| **Event** | — |
+| **Error** | probe exceptions are captured per row; only an unrecoverable manifest read failure returns non-zero |
 
-| System | Direction | Purpose | Failure mode |
-|--------|-----------|---------|--------------|
-| host (python, git, pkg managers, XDG) | in | environment probes | missing toolchain → FAIL row |
-| tool manifest | in | tool list for readiness | missing entry → skipped |
-| root CLI (`aa`) | in | `aa doctor` / `aa status` | pass-through |
+#### Test
 
-## Non-functional Requirements
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Healthy host | `aa doctor` | all-PASS table, exit 0 |
+| Missing toolchain | `aa doctor` | that row FAIL, process exit 0 |
 
-| Metric | Target | Measurement method |
-|--------|--------|--------------------|
-| Row vs process exit | a row FAIL never fails the process; only hard fail → non-zero | remove a toolchain → row FAIL, process exit 0 |
-| JSON stability | JSON mode emits parseable rows with stable keys across runs | run twice with the JSON flag; `json.loads` + byte-identical output |
-| Read-only | doctor never installs, removes, or mutates | `git status --porcelain` unchanged after a run |
-| Bounded | a hung probe times out; no infinite hang | single-probe wall-clock cap |
-| Deterministic | same host state → same table | run twice; identical output |
+#### Metric
 
-## Test Scenarios
+| Target Metric | Value |
+|---------------|-------|
+| Row vs process exit | a row FAIL never fails the process; only hard fail → non-zero |
 
-- `aa doctor` on a healthy host prints all-PASS and exits 0.
-- `aa doctor` with a missing toolchain marks that row FAIL while the process still exits 0.
-- `aa status` lists every manifest tool with a readiness state and exits 0.
-- `aa status --json` emits parseable JSON rows with stable keys for every tool.
+## Public Interface
 
-## Assumptions & Constraints
+| Aspect     | Detail            |
+|------------|-------------------|
+| Agent      | DoctorOrchestrator |
+| Aggregate  | IDoctorAggregate   |
+| Method     | run(flags)         |
+| Request    | DoctorRequest (flags: json, mode) |
+| Response   | DoctorResult (rows / exit code / JSON) |
 
-- Diagnostics are advisory: the exit code signals "needs attention", not a
-  broken build; beyond row policy, only a hard failure is non-zero.
-- The bounded probe timeout is fixed per check, not user-configurable here.
-- The tool manifest is present at the repository root; a missing manifest
-  is a hard failure.
+## Reference
 
-## Glossary
-
-- **probe**: one read-only check of a host or tool property.
-- **row**: a single check result in the doctor table.
-- **hard fail**: an infrastructure failure that must return a non-zero
-  exit, unlike a row-level FAIL.
-- **flags**: the `json` and `mode` inputs the protocol method accepts.
+| Artifact     | Purpose                                         | Link |
+|--------------|-------------------------------------------------|------|
+| PRD          | Business goals and scope                        | [PRD.md](../../PRD.md) |
+| Backlog      | Task tracking and implementation status          | [BACKLOG.md](BACKLOG.md) |
+| Roadmap      | Timeline, phasing, and dependencies              | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | System boundaries, tech stack, and infra         | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

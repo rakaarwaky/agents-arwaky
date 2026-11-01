@@ -1,59 +1,72 @@
-# Shared Kernel Backlog
+# Feature Backlog: shared kernel
 
-State / Health: values from root [ROADMAP.md](../../ROADMAP.md) — do not redefine here.
+FRD: none
+Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
+State: root § State Definitions
+Health: root § State Definitions
 Last Updated: 2026-10-26
 
-## Current Condition
+## Progress Overview
 
-`modules/shared` holds the AES kernel: all taxonomy, contract, and utility
-modules that every feature folder imports. It contains no feature-specific
-logic. Both required doc files (DATA.md + BACKLOG.md) are present and
-current as of 2026-10-26.
+`modules/shared` holds the AES kernel: taxonomy, contract, and utility modules every feature folder imports. It contains no feature-specific logic. Both required doc files (DATA.md + BACKLOG.md) are present and current as of 2026-10-26. Gate: `./.venv/bin/python -m pytest modules/shared -q` → 116 passed at `767b18672a0c0abd92f7225f267478db8271c334`.
 
-## Backlog
+## Backlog Status
 
-| ID | FRD Ref | Work Item | Priority | State | Dependencies | Next Action | Updated | Actual Condition |
-|----|---------|-----------|----------|-------|--------------|-------------|---------|------------------|
-| SHARED-01 | — | Create DATA.md documenting the kernel's prefix taxonomy and dependency rule | P3 | Done | none | none | 2026-10-26 | Prefix taxonomy and dependency rule are documented in `modules/shared/DATA.md`; `modules/shared/src/common/taxonomy_common_vo.py` and `modules/shared/tests/unit_shared_utilities.py` pass in `./.venv/bin/python -m pytest modules/shared -q` → 116 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
-| SHARED-02 | — | Create BACKLOG.md to satisfy the AES701 shared-doc pair requirement | P3 | Done | SHARED-01 | none | 2026-10-26 | This backlog supplies the shared-doc pair; `./.venv/bin/python -m pytest modules/shared -q` → 116 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+### DT-SHARED-001: Daemon value objects
 
-No open items. The kernel is stable; changes follow the normal PR process.
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `DaemonName`, `DaemonOp`, `DaemonUnit`, `DaemonRequest`, `DaemonResponse`, `DaemonOutcome`, `DaemonStatus`, `ExitCode` defined in the shared kernel; verified by `modules/shared/tests/unit_shared_utilities.py`; 116 shared tests pass at `767b186`. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-10-26                                                   |
 
-## Scenario Evidence
+### DT-SHARED-002: Daemon constants
 
-| Scenario | Kind | Test file | Test name | Last verified |
-|----------|------|-----------|-----------|---------------|
-| `./.venv/bin/python -m pytest modules -q` → 684 passed | Automated | all module suites | whole-suite pass | `767b186` |
-| `./.venv/bin/ruff check modules --ignore E501` → clean | Automated | all module sources | Ruff clean | `767b186` |
-| Shared utility unit suite → 116 passed | Automated | `modules/shared/tests/unit_shared_utilities.py` | utility regression tests | `767b186` |
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `taxonomy_daemon_constant` module holds ports, XDG data/config directories, unit filenames, OmniRoute env-var names, and 9router/OmniRoute credential-migration field mappings; 116 shared tests pass at `767b186`. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-10-26                                                   |
 
-## Blockers
+### DT-SHARED-003: Harness value objects
 
-None.
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `ConnectOpts`, `RouterCredentials`, `ExitCode` defined in the shared kernel; verified by `modules/shared/tests/unit_shared_utilities.py`; 116 shared tests pass at `767b186`. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-10-26                                                   |
 
-## Dependencies
+### DT-SHARED-004: Skills taxonomy
 
-- Feature folders (`modules/<feat>/src/`) import from `modules/shared/src/`
-  only; the shared folder never imports a feature module.
-- `modules/root_cli_entry.py` is the sole composition point that bridges
-  feature factories and the CLI surface layer.
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `extract_skill_name` and `taxonomy_skills_constant.IGNORED_CATEGORY_DIRS` defined in the shared kernel; 116 shared tests pass at `767b186`. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-10-26                                                   |
 
-## Release Readiness
+### DT-SHARED-005: Common constants and utilities
 
-| Area | Status | Notes |
-|------|--------|-------|
-| Kernel | Done | Kernel is frozen for the current release cycle; no breaking changes in progress |
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `REPO_ROOT`, `data_home`, `config_home`, `state_home`, `cache_home`, `bin_home`, `utility_config_engine`, `utility_harness_log` defined in the shared kernel; 116 shared tests pass at `767b186`. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-10-26                                                   |
 
-## Deferred
+## Reference
 
-- Consolidating the 54 `src/` files into sub-folders by layer prefix is a
-  future layout refactor; the current flat prefix scheme is the stable
-  convention.
-
-## Change Log
-
-| Date | Change | By |
-|------|--------|----|
-| 2026-09-23 | SHARED-01 and SHARED-02 completed | @raka |
-| 2026-10-26 | Added per-row command/result/commit evidence for SHARED-01/02; shared suite passes 116 tests at `767b186`. | @raka |
-| 2026-10-23 | Backlog, Scenario Evidence, Release Readiness, and Change Log converted to the AES606 template tables | @raka |
+| Artifact     | Purpose                                    | Link |
+|--------------|--------------------------------------------|------|
+| PRD          | Business goals and scope                   | [PRD.md](../../PRD.md) |
+| Data         | Data requirements and shared value objects | [DATA.md](DATA.md) |
+| Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

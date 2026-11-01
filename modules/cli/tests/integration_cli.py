@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def test_cli_packages_import_and_config_surface_executes(tmp_path: Path, capsys) -> None:
-    """CLI-03/04: package modules exist and a surface verb reaches the aggregate."""
+    """DS-CLI-003/004: package modules exist and a surface verb reaches the aggregate."""
     import modules.cli
     import modules.cli.src
     from modules.cli.src.surface_config_command import ConfigCommand, cmd_config
@@ -40,7 +40,7 @@ def test_root_help_advertises_local_backup_only(capsys) -> None:
     assert output.count("Create local backups of tool data") == 1
 
 def test_root_dispatch_table_routes_both_gateway_verbs(monkeypatch) -> None:
-    """CLI-05: the root dispatcher routes aa 9router and aa omniroute separately."""
+    """DS-CLI-05: the root dispatcher routes aa 9router and aa omniroute separately."""
     from modules import root_cli_entry as entry
 
     calls: list[tuple[str, list[str]]] = []
