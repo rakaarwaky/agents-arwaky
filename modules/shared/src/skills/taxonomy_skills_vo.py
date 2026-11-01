@@ -2,9 +2,11 @@
 
 Pure data + helpers for the skills feature: the read-side VOs
 (``SkillQuery``/``SkillRecord``/...), the request/result envelope the
-surface and agent exchange, the exit-code contract, and the re-exported
-rule SSOT (defined in ``taxonomy_skills_rule_vo.py`` so the rule table's
-dependencies stay acyclic).
+surface and agent exchange, the exit-code contract, the trace-pipeline
+VOs, and the re-exported rule SSOT (defined in
+``taxonomy_skills_rule_vo.py`` so the rule table's dependencies stay
+acyclic). The trace report VOs (``UsageReport``/``PhrasesReport``) live
+in ``taxonomy_skills_authoring_vo.py`` over the primitives defined here.
 
 No I/O, no imports from utility/capabilities/agent/root/surface layers.
 """
@@ -15,18 +17,34 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import IntEnum, StrEnum
 from pathlib import Path
-from typing import NewType
+from typing import TYPE_CHECKING, NewType
 
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
-    CatalogCheckResult,
-    CatalogReport,
-    DiscoveryMatch,
-    MergePlan,
-    MutationOutcome,
-    MutationPlan,
-    NewCategoryPlan,
-    ValidationReport,
+from modules.shared.src.skills.taxonomy_skills_rule_vo import (
+    CategoryName,
+    SkillName,
+    SkillRef,
 )
+
+if TYPE_CHECKING:
+    # ``SkillsResult`` annotates an authoring VO (``ValidationReport``,
+    # ``CatalogReport``, ...). Those classes live in the authoring module,
+    # which re-imports the trace primitives from here — a runtime import
+    # here would cycle, so the names are reserved for type-checking and the
+    # PEP 563 string annotations. No consumer reads an authoring VO off this
+    # module (they import from the authoring module directly), so nothing is
+    # re-exported at runtime.
+    from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+        CatalogCheckResult,
+        CatalogReport,
+        DiscoveryMatch,
+        MergePlan,
+        MutationOutcome,
+        MutationPlan,
+        NewCategoryPlan,
+        PhrasesReport,
+        UsageReport,
+        ValidationReport,
+    )
 
 SkillQuery = NewType("SkillQuery", str)
 """A skill name / identifier to look up in the pack."""
@@ -65,6 +83,29 @@ class SkillsOp(StrEnum):
     NEW_CATEGORY = "new-category"
     MERGE_PLAN = "merge-plan"
     RULES = "rules"
+    TRACE_COLLECT = "trace-collect"
+    TRACE_USAGE = "trace-usage"
+    TRACE_PHRASES = "trace-phrases"
+    TRACE_STATE = "trace-state"
+
+
+class TraceStateStatus(StrEnum):
+    """The trace-learning lifecycle status of a pending run.
+
+    ``collected`` → ``running`` → ``report_ready`` → ``curating`` → ``done``
+    is the lifecycle machine driven by ``set_status``. ``PHASE_STALL``,
+    ``REPORT_STALL``, and ``DEADLINE`` are the distinct terminal outcomes of
+    ``wait`` (the surface maps them to exit 4 / 3 / 2 respectively).
+    """
+
+    COLLECTED = "collected"
+    RUNNING = "running"
+    REPORT_READY = "report_ready"
+    CURATING = "curating"
+    DONE = "done"
+    PHASE_STALL = "phase_stall"
+    REPORT_STALL = "report_stall"
+    DEADLINE = "deadline"
 
 
 class SkillsExitCode(IntEnum):
@@ -88,6 +129,120 @@ class SkillRecord:
     name: str
     description: SkillDescription
     path: Path
+
+
+@dataclass(frozen=True)
+class TraceSessionRecord:
+    """One compact per-session record the tracker writes to the run dir.
+
+    The fields are the trace-mining raw material (turns, skill loads,
+    top dirs touched); the surface projects them to the legacy
+    ``sessions/NNNN-<id>.json`` shape.
+    """
+
+    id: str
+    index: int
+    cwd: str
+    branch: str = ""
+    title: str = ""
+    session_kind: str = ""
+    updated_at: str = ""
+    model: str = ""
+    human_turns: int = 0
+    turns: tuple[str, ...] = ()
+    slash_commands: Mapping[str, int] = field(default_factory=dict)
+    skills_loaded: Mapping[str, int] = field(default_factory=dict)
+    skill_load_paths: Mapping[str, str] = field(default_factory=dict)
+    mcp_servers_used: Mapping[str, int] = field(default_factory=dict)
+    tools: Mapping[str, int] = field(default_factory=dict)
+    subagent_spawns: int = 0
+    workflow_launches: int = 0
+    top_dirs_touched: Mapping[str, int] = field(default_factory=dict)
+    repeated_single_turn: bool = False
+    trace_path: str = ""
+
+
+@dataclass(frozen=True)
+class SkillUsageItem:
+    """One loaded skill's usage row (the LLM's disuse verdict input)."""
+
+    name: str
+    source: str
+    path: str
+    loaded: bool
+    count: int = 0
+    sessions: tuple[str, ...] = ()
+    last_used: str | None = None
+    in_slash_mru: bool = False
+
+
+@dataclass(frozen=True)
+class PhraseRow:
+    """One repeated-phrase row: the normalized text, distinct-session count, occurrences."""
+
+    phrase: str
+    sessions: int
+    occurrences: int
+    session_ids: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class TraceDecision:
+    """One trace-learning decision line appended to ``decisions.jsonl``."""
+
+    date: str
+    run_dir: str
+    decision_id: str
+    kind: str
+    action: str
+    target: str
+    target_path: str
+    decision: str
+    undo: str | None = None
+
+    def as_dict(self) -> dict[str, object]:
+        """The legacy decision-line projection, in legacy key order.
+
+        Pins the retired ``state.py`` JSON shape; PR 4 wires its consumer.
+        """
+        return {
+            "date": self.date,
+            "run_dir": self.run_dir,
+            "id": self.decision_id,
+            "kind": self.kind,
+            "action": self.action,
+            "target": self.target,
+            "path": self.target_path,
+            "decision": self.decision,
+            "undo": self.undo,
+        }
+
+
+@dataclass(frozen=True)
+class ScanResult:
+    """Outcome of one tracker scan: the kept records plus scan counters.
+
+    ``sessions_seen`` is every session directory examined; ``dropped`` maps
+    a drop-reason name to its count (the legacy manifest counters, surfaced
+    so no consumer re-parses ``manifest.json``).
+    """
+
+    records: tuple[TraceSessionRecord, ...]
+    sessions_seen: int
+    dropped: Mapping[str, int] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class TraceStateDispatchResult:
+    """The state capability's single-op projection for the agent's dispatch.
+
+    ``state`` is populated by set/get/clear; ``state_status`` is the
+    ``wait`` outcome; ``lines`` carries trash/restrict/decide output.
+    """
+
+    state: TraceStateStatus | None = None
+    state_status: TraceStateStatus | None = None
+    lines: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -117,6 +272,10 @@ class SkillsResult:
     ``exit_code`` is the CLI contract: 0 clean / 1 issues / 2 usage /
     3 catalog drift. Payload fields are populated per op; the surface
     renders them and never reaches back into a capability.
+
+    ``state`` is populated by trace-state set/get/clear; ``state_status``
+    is the ``wait`` outcome. ``collect_summary`` carries the tracker
+    scan counters (``ScanResult``) for trace-collect.
     """
 
     ok: bool
@@ -137,27 +296,34 @@ class SkillsResult:
     lines: tuple[str, ...] = ()
     warning: str | None = None
     root: Path | None = None
+    usage: UsageReport | None = None
+    phrases: PhrasesReport | None = None
+    state: TraceStateStatus | None = None
+    state_status: TraceStateStatus | None = None
+    collect_summary: ScanResult | None = None
 
 
 __all__ = [
-    "CatalogCheckResult",
-    "CatalogReport",
+    "CategoryName",
     "DiffLines",
-    "DiscoveryMatch",
     "ErrorMessage",
-    "MergePlan",
-    "MutationOutcome",
-    "MutationPlan",
-    "NewCategoryPlan",
+    "PhraseRow",
     "RulesSummary",
+    "ScanResult",
     "SkillContent",
     "SkillDescription",
+    "SkillName",
     "SkillQuery",
     "SkillRecord",
+    "SkillRef",
+    "SkillUsageItem",
     "SkillsExitCode",
     "SkillsOp",
     "SkillsRequest",
     "SkillsResult",
     "SkillsRoot",
-    "ValidationReport",
+    "TraceDecision",
+    "TraceSessionRecord",
+    "TraceStateDispatchResult",
+    "TraceStateStatus",
 ]

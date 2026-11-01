@@ -51,6 +51,25 @@ class SkillsIndexBuilder(ISkillsIndexProtocol):
         records.sort(key=lambda r: r.name)
         return records
 
+    def list_skills_json(self, root: SkillsRoot | None = None) -> dict:
+        """Return the global-skill JSON list: ``{"skills": [{name, source, path, loaded}]}``.
+
+        Source is the repo pack only; the per-entry key order is pinned by
+        ``contract_skills_index_json``.
+        """
+        records = self.list_skills(root)
+        skills: list[dict] = []
+        for record in records:
+            skills.append(
+                {
+                    "name": record.name,
+                    "source": str(self._root),
+                    "path": str(record.path),
+                    "loaded": True,
+                }
+            )
+        return {"skills": skills}
+
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "SkillsIndexBuilder()"

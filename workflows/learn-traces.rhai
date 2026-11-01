@@ -37,7 +37,7 @@ fn pad4(n) {
 }
 
 if args == () || args.run_dir == () || args.count == () || args.skill_dir == () {
-    pause("verification", "Pass args.run_dir (collector output), args.count (sessions_kept from manifest.json), and args.skill_dir (the _trace-pipeline root holding references/report-format.md). Optional: batch (default 10), fan (default 10), today, user_label, focus; grok_home and python are accepted for compatibility and unused (the parent session owns state.json).");
+    pause("verification", "Pass args.run_dir (collector output), args.count (sessions_kept from manifest.json), and args.skill_dir (the skill root whose `references/` dir holds `signals.md` and `report-format.md`). Optional: batch (default 10), fan (default 10), today, user_label, focus; grok_home and python are accepted for compatibility and unused (the parent session owns state.json).");
 }
 
 let run_dir = trimmed(args.run_dir);

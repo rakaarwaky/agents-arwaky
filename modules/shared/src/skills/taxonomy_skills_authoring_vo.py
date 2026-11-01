@@ -2,9 +2,15 @@
 
 Typed returns for every authoring capability: validation reports,
 catalog rows/rebuild/check results, discovery results, mutation plans
-and outcomes, merge plans, and the rendered rules document. Pure data —
-no I/O and no imports from utility, capabilities, agent, root, or
-surface layers. The surface projects these to the legacy JSON shapes.
+and outcomes, merge plans, the rendered rules document, and the
+trace-pipeline report VOs. Pure data — no I/O and no imports from
+utility, capabilities, agent, root, or surface layers. The surface
+projects these to the legacy JSON shapes.
+
+The trace report VOs (``UsageReport``/``PhrasesReport``) compose
+primitives defined in ``taxonomy_skills_vo.py`` (which re-exports the
+class objects from this module); the re-export keeps the two files
+mutually importable without a cycle.
 """
 
 from __future__ import annotations
@@ -26,7 +32,9 @@ __all__ = [
     "MutationPlan",
     "MutationStep",
     "NewCategoryPlan",
+    "PhrasesReport",
     "RulesDocument",
+    "UsageReport",
     "ValidationReport",
 ]
 
@@ -207,3 +215,43 @@ class RulesDocument:
     markdown: str
     summary: str
     rule_count: int = 0
+
+
+@dataclass(frozen=True)
+class UsageReport:
+    """The skills-only usage material the LLM reads from ``usage.json``.
+
+    One ``SkillUsageItem`` per loaded skill plus the ``unused_loaded``
+    verdict the unlearn step filters on.
+    """
+
+    kept_sessions: int
+    items: tuple[SkillUsageItem, ...] = ()
+    unused_loaded: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class PhrasesReport:
+    """Repeated exact prompts, repeated instruction lines, and prompt stems.
+
+    Counts are distinct sessions; single-turn sessions repeated 3+ times
+    are excluded as likely automation. The surface projects this to the
+    legacy ``phrases.json`` shape.
+    """
+
+    exact_prompts: tuple[PhraseRow, ...] = ()
+    stems: tuple[PhraseRow, ...] = ()
+    repeated_instruction_lines: tuple[PhraseRow, ...] = ()
+
+# Runtime import of the two primitives this module's annotations reference
+# (``PhraseRow``, ``SkillUsageItem``). Placed at the bottom because
+# ``taxonomy_skills_vo`` re-exports this module's class objects — importing
+# it back at the top would cycle. The import lands after this module's
+# class definitions, so the primitives (and the module's own classes) are
+# both loaded by the time ``get_type_hints`` evaluates the string
+# annotations above. AES403-safe: imports only ``modules.shared`` types,
+# no I/O.
+from modules.shared.src.skills.taxonomy_skills_vo import (
+    PhraseRow,
+    SkillUsageItem,
+)

@@ -21,6 +21,7 @@ from typing import cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
+    IPhrasesProtocol,
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
@@ -29,6 +30,8 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsRulesRendererProtocol,
     ISkillsValidatorProtocol,
+    IStateProtocol,
+    ITrackerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsError,
@@ -62,6 +65,9 @@ class SkillsAgent(ISkillsAggregate):
         mutator: ISkillsMutatorProtocol | None = None,
         merge_planner: ISkillsMergePlannerProtocol | None = None,
         rules_renderer: ISkillsRulesRendererProtocol | None = None,
+        tracker: ITrackerProtocol | None = None,
+        phrases: IPhrasesProtocol | None = None,
+        state: IStateProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._index = index
@@ -72,6 +78,9 @@ class SkillsAgent(ISkillsAggregate):
         self._mutator = mutator
         self._merge_planner = merge_planner
         self._rules_renderer = rules_renderer
+        self._tracker = tracker
+        self._phrases = phrases
+        self._state = state
         self._default_root = default_root
 
     # ─── Block 2: Aggregate Method Implementation ────────────
@@ -314,6 +323,68 @@ class SkillsAgent(ISkillsAggregate):
         if request.flags.get("markdown") == "1":
             return SkillsResult(ok=True, op=op, document=document.markdown)
         return SkillsResult(ok=True, op=op, document=renderer.render_summary())
+
+    def _execute_trace_collect(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Scan sessions then build usage: the collect half of the trace pipeline."""
+        tracker = self._require(self._tracker, "tracker")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        days = int(request.flags.get("days", "0"))
+        since_last = request.flags.get("since_last") == "1"
+        min_turns = int(request.flags.get("min_turns", "1"))
+        limit = int(request.flags.get("limit", "0"))
+
+        scan = tracker.scan_sessions(
+            grok_home=grok_home,
+            run_dir=run_dir,
+            days=days,
+            since_last=since_last,
+            min_turns=min_turns,
+            limit=limit,
+        )
+        usage = tracker.build_usage(grok_home=grok_home, run_dir=run_dir)
+        kept = len(scan.records)
+        seen = scan.sessions_seen
+
+        return SkillsResult(
+            ok=True,
+            op=op,
+            usage=usage,
+            collect_summary=scan,
+            message=f"{kept} of {seen} sessions kept → {run_dir}",
+        )
+
+    def _execute_trace_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Read the last run's usage report from the tracker."""
+        tracker = self._require(self._tracker, "tracker")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        usage = tracker.build_usage(grok_home=grok_home, run_dir=run_dir)
+        return SkillsResult(ok=True, op=op, usage=usage)
+
+    def _execute_trace_phrases(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Mine repeated prompts and instruction lines from the session records."""
+        phrases = self._require(self._phrases, "phrases")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        report = phrases.build_phrases(grok_home=grok_home, run_dir=run_dir)
+        return SkillsResult(ok=True, op=op, phrases=report)
+
+    def _execute_trace_state(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Drive the trace-learning lifecycle; the state capability routes it."""
+        state = self._require(self._state, "state")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        action = request.flags.get("state_action", "")
+
+        result = state.dispatch(grok_home, run_dir, action, request.flags)
+        return SkillsResult(
+            ok=True,
+            op=op,
+            state=result.state,
+            state_status=result.state_status,
+            lines=result.lines,
+        )
 
     # ─── Block 3: Helpers, Factories & Read Helpers ────────────
     def _root(self, request: SkillsRequest) -> SkillsRoot:

@@ -4,10 +4,19 @@ Stateless readers over the skill pack: locating ``SKILL.md`` files, parsing
 frontmatter, and reading body text. Shared by the two skills capabilities
 (``SkillsIndexBuilder`` and ``SkillsPackReader``) so neither imports the
 other.
+
+Also hosts the shared trace-pipeline regexes (``SLASH_RE``, ``WORD_RE``)
+ported verbatim from ``collect_sessions.py`` so capabilities reuse one
+compiled copy instead of recompiling per module.
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
+
+# Shared trace-pipeline regexes (ported verbatim from collect_sessions.py).
+SLASH_RE = re.compile(r"(?<![\w/~.])/([a-z][a-z0-9-]{1,63})\b(?!/)")
+WORD_RE = re.compile(r"\s+")
 
 from modules.shared.src.common.taxonomy_skill_vo import (
     extract_skill_name,

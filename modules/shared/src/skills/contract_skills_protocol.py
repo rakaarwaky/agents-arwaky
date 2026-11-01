@@ -2,8 +2,10 @@
 
 One seam per subsystem the skills agent coordinates: the pack index
 (list), the pack reader (show), the validator, the catalog, discovery,
-the mutator, the merge planner, and the rules renderer. Capabilities
-implement these; the composition root injects them into the agent.
+the mutator, the merge planner, and the rules renderer, plus the
+trace-learning trio (the tracker, the phrases miner, and the lifecycle
+state). Capabilities implement these; the composition root injects them
+into the agent.
 
 Capabilities never import one another: where one needs another's data
 (the discoverer reads catalog rows), the dependency is expressed as one
@@ -13,7 +15,7 @@ of these protocols and wired by the root.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
@@ -24,7 +26,9 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     MutationOutcome,
     MutationPlan,
     NewCategoryPlan,
+    PhrasesReport,
     RulesDocument,
+    UsageReport,
     ValidationReport,
 )
 from modules.shared.src.skills.taxonomy_skills_rule_vo import (
@@ -34,11 +38,15 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
     RulesSummary,
+    ScanResult,
     SkillContent,
     SkillDescription,
     SkillQuery,
     SkillRecord,
     SkillsRoot,
+    TraceDecision,
+    TraceStateDispatchResult,
+    TraceStateStatus,
 )
 
 
@@ -53,6 +61,16 @@ class ISkillsIndexProtocol(ABC):
         (explicit beats derived); ``None`` keeps it.
         """
         ...
+
+    def list_skills_json(self, root: SkillsRoot | None = None) -> dict:
+        """Return the global-skill JSON list as a pure-data dict.
+
+        One entry per skill (``name``, ``source``, ``path``, ``loaded``);
+        the source is the repo pack only. ``SkillsIndexBuilder`` provides
+        the real implementation; this default returns ``{}`` for other
+        implementors.
+        """
+        return {}
 
 
 class ISkillsReaderProtocol(ABC):
@@ -188,7 +206,105 @@ class ISkillsRulesRendererProtocol(ABC):
         ...
 
 
+class ITrackerProtocol(ABC):
+    """Scan sessions and build the LLM-read skills-only usage material."""
+
+    @abstractmethod
+    def scan_sessions(
+        self,
+        grok_home: str,
+        run_dir: str,
+        days: int = 0,
+        since_last: bool = False,
+        min_turns: int = 1,
+        limit: int = 0,
+    ) -> ScanResult:
+        """Scan the session tree with the filters and return a ``ScanResult``.
+
+        The capability writes the records into ``run_dir`` and returns
+        the kept records plus the scan counters (``sessions_seen``,
+        ``dropped``) as a VO — no raw JSON for the surface to re-parse.
+        """
+        ...
+
+    @abstractmethod
+    def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
+        """Return the skills-only usage (hit counts, sessions, last_used, unused_loaded)."""
+        ...
+
+
+class IPhrasesProtocol(ABC):
+    """Mine repeated exact prompts and repeated instruction lines."""
+
+    @abstractmethod
+    def build_phrases(
+        self, grok_home: str, run_dir: str
+    ) -> PhrasesReport:
+        """Read the session records the tracker wrote to *run_dir*.
+
+        Returns repeated exact prompts and repeated instruction lines
+        (distinct-session counts; single-turn automation excluded).
+        """
+        ...
+
+
+class IStateProtocol(ABC):
+    """Drive the trace-learning lifecycle (status machine, trash, decisions)."""
+
+    @abstractmethod
+    def set_status(
+        self, grok_home: str, run_dir: str, status: TraceStateStatus
+    ) -> TraceStateStatus:
+        """Record *status* for the pending run; ``done`` stamps last_completed."""
+        ...
+
+    @abstractmethod
+    def trash(self, grok_home: str, run_name: str, paths: Sequence[str]) -> tuple[str, ...]:
+        """Move the validated paths into ``learn/trash/<run_name>``.
+
+        Only a ``skills/<name>`` directory, a ``workflows/*.rhai`` file, or a
+        ``hooks/*`` file under ``GROK_HOME`` / ``~/.agents`` / a project
+        ``.grok`` directory is moved; anything else is refused.
+        """
+        ...
+
+    @abstractmethod
+    def decide(
+        self,
+        grok_home: str,
+        run_dir: str,
+        decision: TraceDecision,
+    ) -> TraceDecision:
+        """Append one decision line to ``learn/decisions.jsonl`` and return it."""
+        ...
+
+    @abstractmethod
+    def wait(
+        self, grok_home: str, run_dir: str, timeout_min: int = 90
+    ) -> TraceStateStatus:
+        """Block until the run dir holds ``report.md`` + ``actions.json``.
+
+        Returns ``report_ready`` on success; the surface maps a deadline
+        overrun to the legacy exit code.
+        """
+        ...
+
+    def dispatch(
+        self,
+        grok_home: str,
+        run_dir: str,
+        action: str,
+        flags: Mapping[str, str],
+    ) -> TraceStateDispatchResult:
+        """Route one trace-state sub-action through this capability.
+
+        The thin router behind the agent's single per-op call; ``flags``
+        carries the sub-action's parameters (status, run_name, paths, ...).
+        """
+
+
 __all__ = [
+    "IPhrasesProtocol",
     "ISkillsCatalogProtocol",
     "ISkillsDiscovererProtocol",
     "ISkillsIndexProtocol",
@@ -197,4 +313,6 @@ __all__ = [
     "ISkillsReaderProtocol",
     "ISkillsRulesRendererProtocol",
     "ISkillsValidatorProtocol",
+    "IStateProtocol",
+    "ITrackerProtocol",
 ]

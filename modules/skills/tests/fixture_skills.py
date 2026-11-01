@@ -11,6 +11,56 @@ from modules.cli.src.surface_skills_command import cmd_skills
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
 from modules.skills.src.root_skills_container import default_aggregate
 
+_TRAFIX_SESSION = {
+    "id": "sess-001",
+    "created_at": "2026-01-01T00:00:00+00:00",
+    "updated_at": "2026-01-02T00:00:00+00:00",
+    "session_kind": "interactive",
+    "head_branch": "main",
+    "generated_title": "test session",
+}
+
+_TRAFIX_TURN = {
+    "type": "user",
+    "content": "<user_query>turn one two three</user_query>",
+    "synthetic_reason": None,
+}
+
+
+def make_grok_home(
+    tmp_path: Path, *, cwd: str = "proj", with_skills: bool = False
+) -> Path:
+    """A minimal GROK_HOME fixture: one interactive session, plus optionally
+    one user skill and a slash-mru entry (for usage/phrases coverage)."""
+    grok_home = tmp_path / "grok"
+    sessions = grok_home / "sessions" / "user" / "sess-001"
+    sessions.mkdir(parents=True)
+    project = str(tmp_path / cwd)
+    (sessions / "summary.json").write_text(
+        json.dumps(
+            {
+                **_TRAFIX_SESSION,
+                "info": {"cwd": project, "git_root_dir": project},
+            },
+            indent=1,
+        ),
+        encoding="utf-8",
+    )
+    (sessions / "chat_history.jsonl").write_text(
+        json.dumps(_TRAFIX_TURN) + "\n", encoding="utf-8"
+    )
+    if with_skills:
+        skill_dir = grok_home / "skills" / "cat" / "lint"
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: lint\ndescription: lints\n---\n", encoding="utf-8"
+        )
+        (grok_home / "slash-mru.json").write_text(
+            json.dumps({"by_command": {"lint": {}}}), encoding="utf-8"
+        )
+    (grok_home / "learn").mkdir(parents=True)
+    return grok_home
+
 
 def make_pack(tmp_path: Path) -> Path:
     """A miniature two-category pack with one name-mismatch skill."""
@@ -63,8 +113,8 @@ def clean_tree(tmp_path: Path) -> Path:
 def run_surface(root: Path, *args: str) -> tuple[int, str, str]:
     """Drive ``cmd_skills`` in-process against a crafted root.
 
-    Returns ``(exit_code, stdout, stderr)`` so tests can assert the CLI
-    contract without a subprocess.
+    Appends ``--skills-root <root>``; the pack-root verbs (list/show/
+    authoring) consume it. Returns ``(exit_code, stdout, stderr)``.
     """
     stdout = io.StringIO()
     stderr = io.StringIO()
@@ -72,6 +122,21 @@ def run_surface(root: Path, *args: str) -> tuple[int, str, str]:
         code = cmd_skills(
             [*args, "--skills-root", str(root)], default_aggregate()
         )
+    return code, stdout.getvalue(), stderr.getvalue()
+
+
+def run_trace_surface(grok_home: Path, *args: str) -> tuple[int, str, str]:
+    """Drive a trace verb in-process against a fixture GROK_HOME.
+
+    Does NOT append ``--skills-root``: trace verbs use their own
+    ``--grok-home``/``--run-dir``/``--out`` plumbing, so tests assert
+    against the real trace state machine, not the grok fixture's
+    incidental ``learn/`` directory.
+    """
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        code = cmd_skills(list(args), default_aggregate())
     return code, stdout.getvalue(), stderr.getvalue()
 
 

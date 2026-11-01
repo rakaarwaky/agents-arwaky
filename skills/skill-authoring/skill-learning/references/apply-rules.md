@@ -20,5 +20,5 @@ A protected skill is never created-over or edited in place; the action is `propo
 
 ## Records
 
-- Undo for a `create` is deleting `<user skills dir>/<name>/`; pass it as `--undo` to `state.py decide`.
+- Undo for a `create` is deleting `<user skills dir>/<name>/`; pass it as `--undo` to `aa skills trace-state decide`.
 - Never print secrets; the body of a created skill must not carry tokens, keys, or credentials quoted from the traces.

@@ -9,9 +9,8 @@ description: Skill-authoring skills — create, validate, and improve SKILL.md f
 | Author / validate / audit a `SKILL.md` | `skill-design` | `aa skills validate | show | list` |
 | Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
 | Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
-| Create skills for things you keep typing out | `skill-learning` | shared trace pipeline (`_trace-pipeline/scripts/collect_sessions.py`) |
-| Edit skills to adapt to conditions and demand | `skill-evolving` | shared trace pipeline |
-| Remove skills and surfaces you never use | `skill-unlearn` | shared trace pipeline |
-| Orchestrate autonomous self-evolution | `skill-orchestrator` | shared trace pipeline + `aa skills` gates |
+| Create skills for things you keep typing out | `skill-learning` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
+| Edit skills to adapt to conditions and demand | `skill-evolving` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
+| Remove skills and surfaces you never use | `skill-unlearn` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
 
-The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) share the deterministic pipeline under `_trace-pipeline/` (not a skill: no `SKILL.md` at its root). See `README.md` for pack routing and `CATALOG.md` for the master index.
+The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) are driven by the `aa skills` trace verbs (`trace-collect`, `trace-usage`, `trace-phrases`, `trace-state`) backed by `capabilities_skills_tracker`, `capabilities_skills_phrases`, and `capabilities_skills_state`. See `README.md` for pack routing and `CATALOG.md` for the master index.
