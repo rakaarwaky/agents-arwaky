@@ -17,7 +17,7 @@ When the review-fix loop reaches 0 open issues, memory is flushed (Step 8), and 
 
 ## Cleanup
 
-After the final report (memory was flushed in Step 8), clean up the temporary artifact files with `<PYTHON> <HOST_PY> cleanup`. List each concrete path; do not use `rm -f` or globs that PowerShell will expand as `Remove-Item`. Missing files are ok.
+After the final report (memory was flushed in Step 8), clean up the temporary artifact files with `<PYTHON> <HOST_PY> cleanup`. List each concrete path; do not use `rm -f` or globs. Missing files are ok.
 
 ```
 <PYTHON> <HOST_PY> cleanup <path> <path> ...

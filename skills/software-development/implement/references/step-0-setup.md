@@ -4,15 +4,13 @@ Everything the run needs before any subagent can spawn: host helpers, shared fil
 
 ## Host Setup
 
-Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, `id -u`, or write to `/tmp`. Use `run_terminal_command`.
+Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Run `<python> <HOST_PY> setup` via `run_terminal_command` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `IMPL_ID`. `scratch_dir` is `~/.grok/plans/<repo-slug>/` (per-repo, created by `host.py`); every artifact path in later steps is derived from it.
 
-Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Find a real Python 3 interpreter: try `python`, then `py -3`, then `python3`. Reject any path containing `WindowsApps`. If none works, tell the user to install Python 3 and stop.
+The helper is Linux-only and requires the current directory to be inside a git repository — it exits with a clear error on either condition. If it exits non-zero, report the error and stop.
 
-Run `<python> <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, `state_dir` as `state_dir`, and `run_id` as `IMPL_ID`.
+**Validate** that `IMPL_ID` is 8 hex characters.
 
-**Validate** that `IMPL_ID` is 8 hex characters. If it is empty or the command failed, report the error and stop.
-
-**Inline the resolved absolute `scratch_dir`, `state_dir` and `PYTHON`** into every later command and subagent prompt. Do not rely on a shell variable surviving across `run_terminal_command` calls (the same reason this skill inlines `${MEMORY_HELPER}`).
+**Inline the resolved absolute `scratch_dir` and `PYTHON`** into every later command and subagent prompt. Do not rely on a shell variable surviving across `run_terminal_command` calls (the same reason this skill inlines `${MEMORY_HELPER}`).
 
 ### Shared File Paths
 
