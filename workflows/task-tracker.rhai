@@ -136,6 +136,8 @@ let scan_out_schema = #{
             },
         },
         "rollup_row": #{ "type": "string" },
+        "rollups": #{ "type": "array" },
+        "fr_groups": #{ "type": "object" },
         "warnings": #{ "type": "array", "items": #{ "type": "string" } },
     },
 };
@@ -271,7 +273,8 @@ let disc_prompt = "Enumerate the spec-document groups of " + repo_root + " as on
     + "{\"root\":[...repo-relative paths...],\"features\":[{\"name\":\"<feature>\",\"dir\":\"<modules|packages|crates>/<feature>\",\"docs\":[...]}...]}. "
     + "A feature is each directory under modules/, packages/, or crates/ (whichever exist); its docs are the "
     + "spec documents inside that directory: BACKLOG.md, FRD.md, DESIGN.md, plus any other .md holding a "
-    + "State Definitions table or a row table with an ID and State column. Root docs are the spec .md files at "
+    + "State Definitions table, a row table with an ID and State column, or a '## Backlog Status' section of "
+    + "aes-docs entries (### FR-...-NNN with an optional \": title\" + an Aspect/Detail table). Root docs are the spec .md files at "
     + "the repo root (ROADMAP.md, BACKLOG.md, PRD.md, DESIGN.md — whichever exist). "
     + "Exclude: any path whose first segment starts with a dot (.git, .agents, .grok, .venv, .tox, "
     + ".pytest_cache, .mypy_cache, .ruff_cache, .idea, .vscode, and every other dot-prefixed directory); "
