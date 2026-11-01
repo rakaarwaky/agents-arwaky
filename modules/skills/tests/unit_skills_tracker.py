@@ -83,7 +83,7 @@ def test_secret_res_redacts_sk_key() -> None:
 
 def test_secret_res_redacts_aws_key() -> None:
     """AKIA… AWS keys are redacted (SECRET_RES entry 1)."""
-    out = redact("key AKIAFAKEKEYFAKEKEY")
+    out = redact("key ASIAFAKE1234567890AB")
     assert "…[redacted]" in out
 
 
@@ -119,7 +119,7 @@ def test_scan_keeps_interactive_session(tmp_path: Path) -> None:
     """A normal interactive session with human turns is kept."""
     grok_home = _grok_home(tmp_path)
     summary = _base_summary(tmp_path, id="s1", head_branch="main")
-    _write_session(grok_home, "user", "s1", summary, ["turn one", "turn two"])
+    _write_session(grok_home, "user", "s1", summary, ["turn one two", "turn two three"])
     tracker = _make_tracker()
     records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
     assert len(records) == 1
@@ -140,7 +140,7 @@ def test_scan_drops_subagent_headless_by_default(tmp_path: Path) -> None:
 def test_scan_includes_headless_when_requested(tmp_path: Path) -> None:
     """--include-headless keeps headless sessions."""
     grok_home = _grok_home(tmp_path)
-    _write_session(grok_home, "user", "hl", _base_summary(tmp_path, id="hl", session_kind="headless"), ["headless turn"])
+    _write_session(grok_home, "user", "hl", _base_summary(tmp_path, id="hl", session_kind="headless"), ["headless turn check"])
     tracker = _make_tracker()
     records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), include_headless=True)
     assert [r.id for r in records] == ["hl"]
@@ -165,8 +165,8 @@ def test_scan_drops_temp_cwd_and_grok_e2e(tmp_path: Path) -> None:
 def test_scan_min_turns_filter(tmp_path: Path) -> None:
     """sessions below min_turns are dropped."""
     grok_home = _grok_home(tmp_path)
-    _write_session(grok_home, "user", "a", _base_summary(tmp_path, id="a"), ["one"])
-    _write_session(grok_home, "user", "b", _base_summary(tmp_path, id="b"), ["one", "two", "three"])
+    _write_session(grok_home, "user", "a", _base_summary(tmp_path, id="a"), ["one alpha beta"])
+    _write_session(grok_home, "user", "b", _base_summary(tmp_path, id="b"), ["one alpha beta", "two beta gamma", "three gamma delta"])
     tracker = _make_tracker()
     records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), min_turns=2)
     assert [r.id for r in records] == ["b"]
@@ -178,8 +178,8 @@ def test_scan_days_window(tmp_path: Path) -> None:
 
     grok_home = _grok_home(tmp_path)
     now = dt.datetime.now(dt.UTC)
-    _write_session(grok_home, "user", "new", _base_summary(tmp_path, id="new", updated_at=now.isoformat()), ["x"])
-    _write_session(grok_home, "user", "old", _base_summary(tmp_path, id="old", updated_at="2026-01-01T00:00:00+00:00"), ["y"])
+    _write_session(grok_home, "user", "new", _base_summary(tmp_path, id="new", updated_at=now.isoformat()), ["x alpha beta"])
+    _write_session(grok_home, "user", "old", _base_summary(tmp_path, id="old", updated_at="2026-01-01T00:00:00+00:00"), ["y gamma delta"])
     tracker = _make_tracker()
     records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), days=1)
     assert [r.id for r in records] == ["new"]
@@ -191,8 +191,8 @@ def test_scan_limit(tmp_path: Path) -> None:
 
     grok_home = _grok_home(tmp_path)
     now = dt.datetime.now(dt.UTC)
-    _write_session(grok_home, "user", "a", _base_summary(tmp_path, id="a", updated_at=now.isoformat()), ["a"])
-    _write_session(grok_home, "user", "b", _base_summary(tmp_path, id="b", updated_at="2026-01-02T00:00:00+00:00"), ["b"])
+    _write_session(grok_home, "user", "a", _base_summary(tmp_path, id="a", updated_at=now.isoformat()), ["a alpha beta"])
+    _write_session(grok_home, "user", "b", _base_summary(tmp_path, id="b", updated_at="2026-01-02T00:00:00+00:00"), ["b beta gamma"])
     tracker = _make_tracker()
     records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), limit=1)
     assert [r.id for r in records] == ["a"]
@@ -306,10 +306,44 @@ def test_build_usage_returns_items_as_skill_usage_item_vos(tmp_path: Path) -> No
     assert report.kept_sessions == 0
 
 
+def test_build_usage_kept_sessions_counts_records(tmp_path: Path) -> None:
+    """kept_sessions is the number of kept session records, not distinct skills."""
+    grok_home = _grok_home(tmp_path)
+    run_dir = tmp_path / "run"
+    (run_dir / "sessions").mkdir(parents=True)
+    # two records, only one references a skill that is on disk
+    for i, sid in enumerate(("s1", "s2")):
+        rec = {
+            "id": sid,
+            "updated_at": "2026-01-02T00:00:00+00:00",
+            "skills_loaded": {"lint": 1},
+        }
+        (run_dir / "sessions" / f"{i:04d}-{sid}.json").write_text(
+            json.dumps(rec), encoding="utf-8"
+        )
+    (grok_home / "skills" / "cat" / "lint").mkdir(parents=True)
+    (grok_home / "skills" / "cat" / "lint" / "SKILL.md").write_text(
+        "---\nname: lint\ndescription: lints\n---\n", encoding="utf-8"
+    )
+    (grok_home / "slash-mru.json").write_text(json.dumps({"by_command": {}}), encoding="utf-8")
+    tracker = _make_tracker()
+    report = tracker.build_usage(str(grok_home), str(run_dir))
+    assert report.kept_sessions == 2
+
+
+def test_scan_drops_smoke_test_session(tmp_path: Path) -> None:
+    """a smoke-test session (zero real tools, all turns < 3 words) is dropped."""
+    grok_home = _grok_home(tmp_path)
+    _write_session(grok_home, "user", "s1", _base_summary(tmp_path, id="s1"), ["hi", "ok"])
+    tracker = _make_tracker()
+    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    assert [r.id for r in records] == []
+
+
 def test_scan_caps_prompts_at_turn_cap(tmp_path: Path) -> None:
     """prompts longer than TURN_CAP are truncated at scan time."""
     grok_home = _grok_home(tmp_path)
-    long_prompt = "x" * 5000
+    long_prompt = "aaa bbb " + "x" * 5000
     _write_session(grok_home, "user", "s1", _base_summary(tmp_path, id="s1"), [long_prompt])
     tracker = _make_tracker()
     records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
@@ -317,28 +351,4 @@ def test_scan_caps_prompts_at_turn_cap(tmp_path: Path) -> None:
     assert len(records[0].turns[0]) <= TURN_CAP + len("…")
 
 
-# ---------------------------------------------------------------- prune_old_runs
 
-
-def test_prune_old_runs_deletes_stale_runs(tmp_path: Path) -> None:
-    """runs older than keep_days (by name stamp) are deleted."""
-    import datetime as dt
-
-    runs_dir = tmp_path / "runs"
-    runs_dir.mkdir()
-    (runs_dir / "20260101-000000").mkdir()
-    recent = dt.datetime.now(dt.UTC).strftime("%Y%m%d-%H%M%S")
-    (runs_dir / recent).mkdir()
-    (runs_dir / "not-a-date").mkdir()
-    tracker = _make_tracker()
-    tracker.prune_old_runs(str(runs_dir), keep_days=5)
-    assert not (runs_dir / "20260101-000000").exists()
-    assert (runs_dir / recent).exists()
-    assert (runs_dir / "not-a-date").exists()
-
-
-def test_workflow_ref_defaults_to_bundled_learn_traces() -> None:
-    """default --workflow-ref resolves to <repo>/workflows/learn-traces.rhai."""
-    tracker = _make_tracker()
-    expected = Path(__file__).resolve().parents[3] / "workflows" / "learn-traces.rhai"
-    assert tracker.workflow_ref == str(expected)

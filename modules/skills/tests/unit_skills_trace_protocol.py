@@ -42,6 +42,9 @@ def test_trace_state_status_values() -> None:
         "report_ready",
         "curating",
         "done",
+        "phase_stall",
+        "report_stall",
+        "deadline",
     ]
 
 

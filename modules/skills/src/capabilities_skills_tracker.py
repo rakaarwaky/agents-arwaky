@@ -12,8 +12,9 @@ The capability writes its records into ``run_dir`` (``manifest.json`` and
 reads those session records back out of the run dir.
 
 No capability-to-capability imports: depends only on ``modules.shared``
-contract + taxonomy. I/O is limited to reading ``$GROK_HOME/sessions`` files
-and writing the run dir — that is this capability's job, not a layer violation.
+contract + taxonomy + utilities. I/O is limited to reading
+``$GROK_HOME/sessions`` files and writing the run dir — that is this
+capability's job, not a layer violation.
 """
 
 from __future__ import annotations
@@ -22,11 +23,15 @@ import datetime as dt
 import json
 import os
 import re
-import tempfile
 import urllib.parse
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from modules.shared.src.common.utility_skill_pack import (
+    SLASH_RE,
+    WORD_RE,
+    parse_skill_frontmatter,
+)
 from modules.shared.src.skills.contract_skills_protocol import ITrackerProtocol
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import UsageReport
 from modules.shared.src.skills.taxonomy_skills_vo import (
@@ -38,7 +43,6 @@ __all__ = [
     "SECRET_RES",
     "TURN_CAP",
     "SkillsTracker",
-    "default_workflow_ref",
     "normalize",
     "redact",
 ]
@@ -49,18 +53,7 @@ TURN_CAP = 2000
 USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
 SUBAGENT_KINDS = {"subagent", "subagent_resume", "subagent_fork"}
 DEFAULT_EXCLUDE_SUBSTR = ["grok-e2e"]
-# slash tokens that are TUI commands or common path fragments, not skills
-SLASH_STOP = {
-    "tmp", "usr", "bin", "etc", "var", "dev", "opt", "home", "users", "private",
-    "api", "v1", "v2", "src", "lib", "test", "tests", "docs", "help", "quit",
-    "exit", "clear", "model", "compact", "rewind", "rename", "workflows",
-    "workflow", "feedback", "btw", "loop", "resume", "status", "config",
-    "init", "login", "logout", "mcp", "plugins", "skills", "memory", "diff",
-    "review", "commit", "pr", "cost", "doctor", "theme", "vim", "terminal",
-}
 SKILL_PATH_RE = re.compile(r"[/\\]skills[/\\]([^/\\]+)[/\\]SKILL\.md$")
-SLASH_RE = re.compile(r"(?<![\w/~.])/([a-z][a-z0-9-]{1,63})\b(?!/)")
-WORD_RE = re.compile(r"\s+")
 # a slash command, not a path segment (~/x, ./x, a/b) and not followed by more path
 DEFAULT_DROP_PATTERNS = [r"^the user invoked `/feedback`"]
 
@@ -94,17 +87,6 @@ def normalize(s: str) -> str:
     return WORD_RE.sub(" ", s.strip().lower())
 
 
-def default_workflow_ref() -> str:
-    """Default ``--workflow-ref``: the bundled learn-traces workflow.
-
-    Resolved from the repo root (this file lives at
-    ``modules/skills/src/``) rather than the broken ``__file__`` self-locating
-    path math the retired collector used to find its own workflow copy.
-    """
-    repo_root = Path(__file__).resolve().parents[3]
-    return str(repo_root / "workflows" / "learn-traces.rhai")
-
-
 def _read_json(path: str):
     with open(path, encoding="utf-8") as f:
         return json.load(f)
@@ -119,47 +101,14 @@ def _parse_time(s):
         return None
 
 
-def _frontmatter(path: str) -> dict:
-    """Return name/description from a SKILL.md frontmatter without YAML."""
-    out = {"name": os.path.basename(os.path.dirname(path)), "description": ""}
-    try:
-        with open(path, encoding="utf-8", errors="replace") as f:
-            head = f.read(4000)
-    except OSError:
-        return out
-    if not head.startswith("---"):
-        return out
-    body = head.split("---", 2)
-    if len(body) < 3:
-        return out
-    fm = body[1]
-    m = re.search(r"^name:\s*(.+)$", fm, re.MULTILINE)
-    if m:
-        out["name"] = m.group(1).strip().strip("'\"")
-    m = re.search(r"^description:\s*(.*)$", fm, re.MULTILINE)
-    if m:
-        desc = m.group(1).strip()
-        if desc in (">", ">-", "|", "|-", ""):
-            lines = []
-            after = fm[m.end():].splitlines()
-            for line in after:
-                if line.startswith((" ", "\t")):
-                    lines.append(line.strip())
-                elif line.strip() == "":
-                    continue
-                else:
-                    break
-            desc = " ".join(lines)
-        out["description"] = desc.strip("'\"")[:300]
-    return out
-
-
 def _under(path: str, base: str) -> bool:
     path, base = os.path.normcase(os.path.normpath(path)), os.path.normcase(os.path.normpath(base))
     return path == base or path.startswith(base.rstrip(os.sep) + os.sep)
 
 
 def _default_exclude_cwd() -> list[str]:
+    import tempfile
+
     return sorted(
         {
             os.path.normcase(os.path.normpath(p))
@@ -176,9 +125,6 @@ def _default_exclude_cwd() -> list[str]:
 
 class SkillsTracker(ITrackerProtocol):
     """Scans sessions and builds the skills-only usage material."""
-
-    def __init__(self, workflow_ref: str | None = None) -> None:
-        self.workflow_ref = workflow_ref or default_workflow_ref()
 
     # ── ITrackerProtocol ──────────────────────────────────────────
 
@@ -197,8 +143,9 @@ class SkillsTracker(ITrackerProtocol):
 
         Applies the subagent/headless/temp-cwd/grok-e2e/window/min-turns
         filters, redacts secrets verbatim, caps prompts at ``TURN_CAP`` chars,
-        writes ``manifest.json`` + ``sessions/NNNN-<id>.json`` into ``run_dir``,
-        and returns the kept records as VOs.
+        drops smoke-test sessions, writes ``manifest.json`` +
+        ``sessions/NNNN-<id>.json`` into ``run_dir``, and returns the kept
+        records as VOs.
         """
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         sessions_root = os.path.join(grok_home, "sessions")
@@ -283,6 +230,9 @@ class SkillsTracker(ITrackerProtocol):
 
         kept = [r for r in kept if not r["repeated_single_turn"]]
 
+        # "hi" / "Test" sessions with no real tool use are smoke tests, not habits
+        kept = [r for r in kept if not r["smoke_test"]]
+
         if limit > 0 and len(kept) > limit:
             dropped["beyond_limit"] += len(kept) - limit
             kept = kept[:limit]
@@ -306,7 +256,8 @@ class SkillsTracker(ITrackerProtocol):
         Aggregates per-skill hit counts (hits, sessions, last_used) from the
         session records the tracker wrote, and derives ``unused_loaded``
         (loaded, zero hits, not in slash-mru). Keeps the user-level slash-mru
-        read so the disuse verdict stays correct.
+        read so the disuse verdict stays correct. ``kept_sessions`` is the
+        number of kept compact session records (not the number of skills with hits).
         """
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         run_dir = os.path.abspath(run_dir)
@@ -315,6 +266,7 @@ class SkillsTracker(ITrackerProtocol):
         usage: dict[str, dict] = defaultdict(
             lambda: {"count": 0, "sessions": [], "last_used": None}
         )
+        kept_sessions = 0
         if os.path.isdir(sessions_dir):
             for name in sorted(os.listdir(sessions_dir)):
                 if not name.endswith(".json"):
@@ -323,6 +275,7 @@ class SkillsTracker(ITrackerProtocol):
                     rec = _read_json(os.path.join(sessions_dir, name))
                 except (OSError, ValueError):
                     continue
+                kept_sessions += 1
                 rid = rec.get("id") or ""
                 updated = rec.get("updated_at") or ""
                 for sname, n in (rec.get("skills_loaded") or {}).items():
@@ -357,26 +310,11 @@ class SkillsTracker(ITrackerProtocol):
             if it.loaded and it.count == 0 and not it.in_slash_mru
         )
 
-        return UsageReport(kept_sessions=len(usage), items=tuple(items), unused_loaded=unused_loaded)
-
-    # ── extra (ported from collect_sessions.prune_old_runs) ───────
-
-    def prune_old_runs(self, runs_dir: str, keep_days: int = 30) -> None:
-        """Delete run directories older than ``keep_days`` (by name stamp)."""
-        if not os.path.isdir(runs_dir):
-            return
-        cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=keep_days)
-        for name in os.listdir(runs_dir):
-            try:
-                when = dt.datetime.strptime(name[:15], "%Y%m%d-%H%M%S").replace(
-                    tzinfo=dt.UTC
-                )
-            except ValueError:
-                continue
-            if when < cutoff:
-                import shutil
-
-                shutil.rmtree(os.path.join(runs_dir, name), ignore_errors=True)
+        return UsageReport(
+            kept_sessions=kept_sessions,
+            items=tuple(items),
+            unused_loaded=unused_loaded,
+        )
 
 
 # ── internal helpers ────────────────────────────────────────────────
@@ -556,7 +494,6 @@ def _write_manifest(
     manifest = {
         "grok_home": grok_home,
         "run_dir": run_dir,
-        "workflow_ref": None,
         "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         "sessions_seen": seen,
         "sessions_kept": len(kept),
@@ -588,8 +525,9 @@ def _load_skill_catalog(grok_home: str) -> dict[str, dict]:
     """Load the user skill catalog: name -> {source, path, loaded, in_slash_mru}.
 
     Skills-only, user-level: walks ``$GROK_HOME/skills/<cat>/<name>/SKILL.md``,
-    parses frontmatter, applies the ``[skills] disabled`` list from
-    ``config.toml``, and reads the user slash-mru for the ``in_slash_mru`` flag.
+    parses frontmatter via the shared utility, applies the ``[skills] disabled``
+    list from ``config.toml``, and reads the user slash-mru for the
+    ``in_slash_mru`` flag.
     """
     catalog: dict[str, dict] = {}
     skills_dir = os.path.join(grok_home, "skills")
@@ -621,8 +559,8 @@ def _load_skill_catalog(grok_home: str) -> dict[str, dict]:
                 sk_path = os.path.join(skill_dir, "SKILL.md")
                 if not os.path.isfile(sk_path):
                     continue
-                fm = _frontmatter(sk_path)
-                sname = fm["name"] or name
+                sname, _description = parse_skill_frontmatter(Path(sk_path))
+                sname = sname or name
                 loaded = sname not in disabled
                 catalog[sname] = {
                     "source": "user",

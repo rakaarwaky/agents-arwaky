@@ -23,14 +23,13 @@ import os
 import re
 from collections import defaultdict
 
+from modules.shared.src.common.utility_skill_pack import SLASH_RE, WORD_RE
 from modules.shared.src.skills.contract_skills_protocol import IPhrasesProtocol
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import PhrasesReport
 from modules.shared.src.skills.taxonomy_skills_vo import PhraseRow
 
-__all__ = ["SLASH_RE", "WORD_RE", "SkillsPhrases", "normalize"]
+__all__ = ["SkillsPhrases", "normalize"]
 
-SLASH_RE = re.compile(r"(?<![\w/~.])/([a-z][a-z0-9-]{1,63})\b(?!/)")
-WORD_RE = re.compile(r"\s+")
 _SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
 
 
@@ -48,7 +47,7 @@ _MIN_LINE_CHARS = 24
 
 
 class SkillsPhrases(IPhrasesProtocol):
-    """Mine repeated exact prompts and repeated instruction lines."""
+    """Mine repeated exact prompts, prompt stems, and instruction lines."""
 
     def build_phrases(self, grok_home: str, run_dir: str) -> PhrasesReport:
         """Read session records from ``run_dir`` and return repeated phrases.
@@ -88,14 +87,19 @@ class SkillsPhrases(IPhrasesProtocol):
                         stems[" ".join(words[:12])].append(rid)
                     for ln in t.splitlines():
                         ln_n = normalize(ln)
-                        if len(ln_n.split(" ")) >= _MIN_LINE_WORDS and len(ln_n) >= _MIN_LINE_CHARS:
+                        if (
+                            len(ln_n.split(" ")) >= _MIN_LINE_WORDS
+                            and len(ln_n) >= _MIN_LINE_CHARS
+                        ):
                             lines[ln_n].add(rid)
 
         exact_prompts = self._top(exact, _EXACT_MIN_SESSIONS, "phrase")
+        prompt_stems = self._top(stems, _STEM_MIN_SESSIONS, "stem")
         instruction_lines = self._top(lines, _LINE_MIN_SESSIONS, "line")
 
         return PhrasesReport(
             exact_prompts=tuple(exact_prompts),
+            stems=tuple(prompt_stems),
             repeated_instruction_lines=tuple(instruction_lines),
         )
 

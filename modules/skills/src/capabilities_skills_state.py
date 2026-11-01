@@ -285,9 +285,10 @@ class SkillsTraceState(IStateProtocol):
     ) -> TraceStateStatus:
         """Block until the run dir holds ``report.md`` + ``actions.json``.
 
-        Returns ``report_ready`` on success. The caller maps the terminal
-        statuses to the legacy exit codes: 0 ready / 3 report-stall / 4
-        phase-stall / 2 deadline.
+        Returns a distinct ``TraceStateStatus`` per outcome so the surface can
+        map exit codes explicitly: ``REPORT_READY`` (0), ``REPORT_STALL`` (3),
+        ``PHASE_STALL`` (4), ``DEADLINE`` (2). No exit-code logic lives in the
+        capability.
         """
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         path = state_path(grok_home)
@@ -337,7 +338,7 @@ class SkillsTraceState(IStateProtocol):
                         )
                     },
                 )
-                return TraceStateStatus.RUNNING  # caller maps to exit 4
+                return TraceStateStatus.PHASE_STALL
             verdicts = [
                 f
                 for f in ("phrases.md", "stale.md", "deletes.md")
@@ -357,10 +358,10 @@ class SkillsTraceState(IStateProtocol):
                             )
                         },
                     )
-                    return TraceStateStatus.RUNNING  # caller maps to exit 3
+                    return TraceStateStatus.REPORT_STALL
             time.sleep(30)
         mark(path, run_dir, TraceStateStatus.RUNNING, {"note": "deadline exceeded"})
-        return TraceStateStatus.RUNNING  # caller maps to exit 2
+        return TraceStateStatus.DEADLINE
 
     def restrict(self, paths: Sequence[str]) -> tuple[str, ...]:
         """chmod 0600 where the OS supports it; silently skip what it cannot."""

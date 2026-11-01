@@ -232,7 +232,7 @@ class UsageReport:
 
 @dataclass(frozen=True)
 class PhrasesReport:
-    """Repeated exact prompts and repeated instruction lines.
+    """Repeated exact prompts, repeated instruction lines, and prompt stems.
 
     Counts are distinct sessions; single-turn sessions repeated 3+ times
     are excluded as likely automation. The surface projects this to the
@@ -240,6 +240,7 @@ class PhrasesReport:
     """
 
     exact_prompts: tuple[PhraseRow, ...] = ()
+    stems: tuple[PhraseRow, ...] = ()
     repeated_instruction_lines: tuple[PhraseRow, ...] = ()
 
 # Runtime import of the two primitives this module's annotations reference

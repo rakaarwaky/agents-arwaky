@@ -93,7 +93,7 @@ def test_prompt_stems_mined() -> None:
         for i in range(3):
             _write_record(run_dir, f"s{i}", [stem + " extra words here"])
         report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
-        stems = [r.phrase for r in report.exact_prompts]
+        stems = [r.phrase for r in report.stems]
         assert any(stem in s for s in stems)
 
 

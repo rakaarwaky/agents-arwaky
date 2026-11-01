@@ -296,7 +296,7 @@ def test_wait_returns_report_ready_when_files_exist(tmp_path: Path) -> None:
 
 
 def test_wait_deadline_maps_to_exit_2(tmp_path: Path, monkeypatch) -> None:
-    """deadline exceeded → RUNNING (surface maps to exit 2)."""
+    """deadline exceeded → DEADLINE (surface maps to exit 2)."""
     grok_home = _grok_home(tmp_path)
     state = _state(tmp_path)
     run_dir = str(tmp_path / "run")
@@ -304,7 +304,7 @@ def test_wait_deadline_maps_to_exit_2(tmp_path: Path, monkeypatch) -> None:
     # noop sleep so the loop spins without real waiting; timeout_min=0 hits deadline immediately
     monkeypatch.setattr(time, "sleep", lambda *a: None)
     status = state.wait(str(grok_home), run_dir, timeout_min=0)
-    assert status == TraceStateStatus.RUNNING
+    assert status == TraceStateStatus.DEADLINE
 
 
 def test_wait_sets_report_ready_mark(tmp_path: Path) -> None:

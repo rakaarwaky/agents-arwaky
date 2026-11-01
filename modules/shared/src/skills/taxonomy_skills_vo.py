@@ -88,13 +88,22 @@ class SkillsOp(StrEnum):
 
 
 class TraceStateStatus(StrEnum):
-    """The trace-learning lifecycle status of a pending run."""
+    """The trace-learning lifecycle status of a pending run.
+
+    ``collected`` → ``running`` → ``report_ready`` → ``curating`` → ``done``
+    is the lifecycle machine driven by ``set_status``. ``PHASE_STALL``,
+    ``REPORT_STALL``, and ``DEADLINE`` are the distinct terminal outcomes of
+    ``wait`` (the surface maps them to exit 4 / 3 / 2 respectively).
+    """
 
     COLLECTED = "collected"
     RUNNING = "running"
     REPORT_READY = "report_ready"
     CURATING = "curating"
     DONE = "done"
+    PHASE_STALL = "phase_stall"
+    REPORT_STALL = "report_stall"
+    DEADLINE = "deadline"
 
 
 class SkillsExitCode(IntEnum):
