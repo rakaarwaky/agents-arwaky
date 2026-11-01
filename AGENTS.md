@@ -1,66 +1,51 @@
 ---
 trigger: always
-description: "agents-arwaky operational guide."
+description: "AGENTS.md operational guide for agents-arwaky."
 ---
-# agents-arwaky
+
+# AGENTS — <project-name>
+
+## Agent Overview
+
+<One paragraph: what AI agents must know before generating code, docs, or suggestions in this workspace.>
 
 ## Runtime
 
-- Language: Python 3.10+, Rust (cargo), Node.js 18+ (pnpm), Bun, C.
-- Environment: host bare-metal; XDG base directories. No Docker. Anytype
-  is the only Podman-containerized service. OmniRoute (port 7777) and
-  9router (port 20128) run host-native.
-- Artifacts: XDG prefixes. Data in ${XDG_DATA_HOME:-$HOME/.local/share}/,
-  config in ${XDG_CONFIG_HOME:-$HOME/.config}/, cache in
-  ${XDG_CACHE_HOME:-$HOME/.cache}/, launchers in
-  ${XDG_BIN_HOME:-$HOME/.local/bin}/.
-
-```bash
-python3 --version
-uv sync
-```
-
-## Project Quick Facts
-
-INPUT  = config/manifest.json (tool registry, SSOT)
-OUTPUT = XDG-compliant host binaries plus MCP server configs plus launchers
-
-## Pipeline
-
-manifest, adapter, capability, orchestrator, surface CLI
+| Aspect          | Detail                                          |
+|-----------------|-------------------------------------------------|
+| Language        | <language and pinned version>                   |
+| Environment     | <environment manager and creation method>       |
+| Artifacts       | <reviewable artifact location>                  |
+| Package Manager | <package manager and lockfile>                  |
+| Version Probe   | `<version probe command>`                       |
+| Setup           | `<environment setup command>`                   |
+| Activation      | `<optional environment activation command>`     |
 
 ## Project Structure
 
-```
-agents-arwaky/
-├── config/manifest.json   # tool registry (SSOT)
-├── modules/               # AES features (vertical slices)
-├── internal/              # sibling repos (submodules)
-└── vendor/                # upstream tools (submodules)
+```text
+.
+├── <path>   # <what lives here>
+└── <path>   # <what lives here>
 ```
 
 ## Commands
 
-Every command must match the exact CI gate.
+| Category    | Command                              | Scope      | CI Gate              |
+|-------------|--------------------------------------|------------|----------------------|
+| Test (all)  | `<whole-workspace test command>`     | All        | ci.yml: <job name>   |
+| Test (unit) | `<single-package test command>`      | One unit   | ci.yml: <job name>   |
+| Test (file) | `<single-file test command>`         | One file   | ci.yml: <job name>   |
+| Lint        | `<formatter or linter command>`      | All        | ci.yml: <job name>   |
+| Type Check  | `<type checker command>`             | All        | ci.yml: <job name>   |
+| Arch Scan   | `<architecture scanner command>`     | All        | ci.yml: <job name>   |
 
-```bash
-# Tests
-python3 -m pytest modules/ -q                            # whole-workspace Python tests
-python3 -m pytest modules/<feat>/tests -q                # one feature
-python3 -m pytest modules/<feat>/tests/unit_<feat>.py -q # one file
+## Reference
 
-# Lint / types / architecture
-python3 -m ruff check modules/ --fix                     # matches ci.yml ruff job
-python3 -m mypy modules/ --strict                        # type checker
-lac scan . --format json                                  # architecture scanner (lint-arwaky)
-lac scan . --fix                                           # dry-run variant, fixer is destructive
-```
-
-## Related Documents
-
-- [ARCHITECTURE.md](ARCHITECTURE.md) - the 7-layer AES vertical-slicing system.
-- [ROADMAP.md](ROADMAP.md) - cross-cutting feature roll-up and status.
-- [CONTRIBUTING.md](CONTRIBUTING.md) - how to add, update, or remove a vendor tool.
-- [README.md](README.md) - quickstart and operator workflow.
-
----
+| Artifact     | Purpose                                    | Link |
+|--------------|--------------------------------------------|------|
+| README       | What the tool does, every command, install | [README.md](README.md) |
+| CONTRIBUTING | Branch, commit, and PR conventions         | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| ARCHITECTURE | Layer contract for every crate             | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| ROADMAP      | What ships next, in order                  | [ROADMAP.md](ROADMAP.md) |
+| PRD          | What the product does and why              | [PRD.md](PRD.md) |

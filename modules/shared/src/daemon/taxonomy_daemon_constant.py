@@ -57,9 +57,41 @@ STORAGE_ENCRYPTION_KEY="{storage_encryption_key}"
 PORT={port}
 """
 
-#: Known-weak / placeholder INITIAL_PASSWORD values (warn on install).
+#: OmniRoute known-weak / placeholder INITIAL_PASSWORD values (warn on install).
 WEAK_PASSWORDS = frozenset(
     {"change-me-to-a-strong-password", "", "password", "admin"}
+)
+
+# --- 9router / OmniRoute credential migration constants ----------------------
+#: Env var name holding the OmniRoute storage encryption key.
+STORAGE_ENCRYPTION_KEY_ENV = "STORAGE_ENCRYPTION_KEY"
+#: Default path to the OmniRoute storage database (read-only source).
+OMNIROUTE_DB_DEFAULT = str(Path.home() / ".omniroute" / "storage.sqlite")
+#: Default path to the 9router provider-connections database (write target).
+NINEROUTER_DB_DEFAULT = str(Path.home() / ".9router" / "db" / "data.sqlite")
+#: Prefix marking an encrypted OmniRoute field value.
+ENC_PREFIX = "enc:v1:"
+#: OmniRoute column names (lower_snake) -> 9router data JSON keys (camelCase).
+OMNI_TO_NINE_FIELDS = {
+    "access_token": "accessToken",
+    "refresh_token": "refreshToken",
+    "expires_at": "expiresAt",
+    "token_expires_at": "expiresAt",
+    "scope": "scope",
+    "id_token": "idToken",
+    "expires_in": "expiresIn",
+    "project_id": "projectId",
+    "token_type": "tokenType",
+    "display_name": "displayName",
+    "default_model": "defaultModel",
+    "provider_specific_data": "providerSpecificData",
+}
+#: Fields OmniRoute keeps that have no 9router equivalent (reported only).
+SKIPPED_FIELDS = (
+    "group",
+    "max_concurrent",
+    "global_priority",
+    "_9router_skipped_fields",
 )
 
 #: Anytype headless container identity.

@@ -12,7 +12,9 @@ from pathlib import Path
 from modules.shared.src.common.taxonomy_skill_vo import (
     extract_skill_name,
 )
-from modules.shared.src.common.utility_skills_tree import category_dirs
+from modules.shared.src.skills.taxonomy_skills_constant import (
+    IGNORED_CATEGORY_DIRS,
+)
 
 __all__ = [
     "default_pack_root",
@@ -48,18 +50,23 @@ def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:
 def iter_skill_mds(pack_root: Path) -> list[Path]:
     """Yield each ``SKILL.md`` in the pack, sorted by path.
 
-    Category discovery delegates to ``category_dirs`` (design S6): symlinked,
-    hidden, and ignored category directories are skipped, so the read walker
-    and the authoring walker see the same skill pack even though the glob
-    would follow a symlinked category into a submodule.
+    Category discovery walks the skills root directly: symlinked, hidden,
+    and ignored category directories are skipped, so the read walker and
+    the authoring walker see the same skill pack even though the glob would
+    follow a symlinked category into a submodule.
     """
     if not pack_root.is_dir():
         return []
-    return sorted(
-        skill_md
-        for category in category_dirs(pack_root)
-        for skill_md in category.glob("*/SKILL.md")
-    )
+    found: list[Path] = []
+    for category in sorted(pack_root.iterdir()):
+        if not category.is_dir() or category.is_symlink():
+            continue
+        if category.name.startswith("."):
+            continue
+        if category.name in IGNORED_CATEGORY_DIRS:
+            continue
+        found.extend(sorted(category.glob("*/SKILL.md")))
+    return sorted(found)
 
 
 def read_skill_md(skill_md: Path) -> str | None:

@@ -727,7 +727,7 @@ class TestImportOmniroute:
         assert skipped[0]["id"] == "c-apikey-1"
         assert plan["would_skip_existing"] == 1
 
-    def test_no_plaintext_in_output(self, tmp_path, capsys):
+    def test_no_plaintext_in_output(self, tmp_path, capsys, monkeypatch):
         """Regression: decrypted secrets never appear in run_import stdout."""
         from modules.daemon.src.capabilities_9router_import_omniroute import (
             load_omniroute_connections,
@@ -737,7 +737,15 @@ class TestImportOmniroute:
         db = self._make_omni_db(tmp_path, "test-secret-xyz")
         conns = load_omniroute_connections(db, secret="test-secret-xyz")
         nodes = load_omniroute_nodes(db)
-        run_import(["--dry-run"], connections=conns, nodes=nodes)
+        monkeypatch.setattr(
+            "modules.daemon.src.capabilities_9router_import_omniroute.load_omniroute_connections",
+            lambda *a, **kw: conns,
+        )
+        monkeypatch.setattr(
+            "modules.daemon.src.capabilities_9router_import_omniroute.load_omniroute_nodes",
+            lambda *a, **kw: nodes,
+        )
+        run_import(["--dry-run"])
         out = capsys.readouterr().out
         assert "sk-or-v1-1111" not in out
         assert "ya29.access" not in out

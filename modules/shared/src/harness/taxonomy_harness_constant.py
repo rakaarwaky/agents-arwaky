@@ -26,6 +26,9 @@ PLACEHOLDER_KEYS: frozenset[str] = frozenset({
     "sk-your-9router-consumer-key-here", "<YOUR_API_KEY>", "change-me", "",
 })
 
+#: environment.d session-conf filename owned by the secondary 9router gateway.
+SESSION_CONF_9ROUTER = "9router.conf"
+
 #: Server id -> launcher command used when mcp_servers.generated.json is
 #: absent, so `aa connect` still writes a runnable command per server.
 FALLBACK_MCP_COMMANDS: dict[str, str] = {
@@ -59,4 +62,5 @@ __all__ = [
     "HARNESSES",
     "LIVE_SKILLS_STATE",
     "PLACEHOLDER_KEYS",
+    "SESSION_CONF_9ROUTER",
 ]

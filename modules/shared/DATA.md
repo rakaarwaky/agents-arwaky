@@ -1,52 +1,49 @@
-# Shared Kernel — Data Contract
-
-## Reference
-
-- [PRD.md](../../PRD.md) — product requirements the kernel type definitions support.
-- [BACKLOG.md](./BACKLOG.md) — shared kernel work items and change log.
-
-`modules/shared/src/` is the AES kernel folder. No feature folder may import
-a feature from the shared folder; the dependency rule is strictly one-way:
-feature → kernel, never kernel → feature.
+# Data — shared
 
 ## Data Overview
 
-The kernel exposes three layer prefixes, one per AES role:
+The shared layer owns the value objects, constants, and protocol contracts
+every other layer reads. It holds no state of its own: the shapes below are
+pure definitions that the capability and agent layers consume, so they can be
+imported upward without pulling in any I/O.
 
-| Prefix | Role | Example modules |
-|--------|------|-----------------|
-| `taxonomy_*` | Value objects, constants, error types | `taxonomy_tools_vo`, `taxonomy_common_error` |
-| `contract_*` | Protocol ABCs + aggregate interfaces | `contract_tools_protocol`, `contract_mcp_aggregate` |
-| `utility_*` | Pure shared free-functions | `utility_tool_mechanics`, `utility_manifest_reader` |
+## Data Requirements
 
-54 modules in total, one flat namespace (`modules/shared/src/`), no
-sub-folders.
+### DT-SHARED-001: Daemon value objects
 
-## Data Domain
+| Type | Description|
+|------|-------------|
+| `DaemonName`, `DaemonOp`, `DaemonUnit`, `DaemonRequest`, `DaemonResponse`, `DaemonOutcome`, `DaemonStatus`, `ExitCode` | The shared request/response/value-object types the daemon aggregate and its capabilities exchange. |
 
-- **Tool domain** — `ToolSpec`, `AdapterUnit`, `ToolLifecycleConfig`,
-  `ToolPaths`, `PinCheck` (tools, backup, config features).
-- **MCP domain** — `McpServerId`, `McpOp`, `McpRequest`, `McpResponse`,
-  `ExitCode` (mcp, harness features).
-- **Daemon domain** — `AnytypeDaemonRequest`, daemon constants (daemon
-  feature).
-- **Harness domain** — `HarnessRequest`, `HarnessResponse`, connector
-  constants (harness feature).
-- **Skill domain** — `SkillProvisionResult`, `SkillUpdateResult` (skill
-  feature).
-- **Common domain** — `ExitCode`, `ErrorCode`, repo-root helpers, logging
-  setup, shell-completion emission.
+### DT-SHARED-002: Daemon constants
 
-## Assumptions & Constraints
+| Type | Description|
+|------|-------------|
+| `taxonomy_daemon_constant` module | Ports, XDG data/config directories, unit filenames, OmniRoute env-var names, and the 9router/OmniRoute credential-migration field mappings. |
 
-- All kernel modules are pure: no I/O, no side effects, no network calls.
-  The `utility_*` helpers that do perform I/O (`git_submodule`,
-  `process_runner`) are deliberately isolated and documented at the call
-  site.
-- No kernel module imports a `capabilities_*` or `agent_*_orchestrator`
-  module from a feature folder. The root composition layer is the only
-  file that crosses both sides of that boundary.
-- `utility_config_engine` inlines its JSONC / TOML / env-file helpers
-  (previously imported from `utility_jsonc_parser`, `utility_toml_write`,
-  and `utility_envfile_parser`) to keep utility-layer files free of
-  utility-to-utility imports (AES201).
+### DT-SHARED-003: Harness value objects
+
+| Type | Description|
+|------|-------------|
+| `ConnectOpts`, `RouterCredentials`, `ExitCode` | The connect capability's options bag and router credential pair. |
+
+### DT-SHARED-004: Skills taxonomy
+
+| Type | Description|
+|------|-------------|
+| `extract_skill_name`, `taxonomy_skills_constant.IGNORED_CATEGORY_DIRS` | The skill-name resolver and the category directories the skill reader skips. |
+
+### DT-SHARED-005: Common constants and utilities
+
+| Type | Description|
+|------|-------------|
+| `REPO_ROOT`, `data_home`, `config_home`, `state_home`, `cache_home`, `bin_home`, `utility_config_engine`, `utility_harness_log` | The XDG path helpers, repo-root constant, and the stateless file/env/log readers every layer shares. |
+
+## Reference
+
+| Artifact     | Purpose                                         | Link|
+|--------------|-------------------------------------------------|------|
+| PRD          | <Business goals, user stories, and scope>       | [PRD.md](../../PRD.md)|
+| Backlog      | <Task tracking, epics, and implementation status>| [BACKLOG.md](BACKLOG.md)|
+| Roadmap      | <Timeline, phasing, and dependencies>           | [ROADMAP.md](../../ROADMAP.md)|
+| Architecture | <System boundaries, tech stack, and infra>      | [ARCHITECTURE.md](../../ARCHITECTURE.md)|

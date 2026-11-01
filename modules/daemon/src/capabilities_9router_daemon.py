@@ -39,10 +39,13 @@ from modules.shared.src.daemon.taxonomy_daemon_vo import (
     ExitCode,
 )
 
+__all__ = [
+    "NinerouterDaemonManager",
+]
+
 #: Written only when neither the repo copy nor the repo template exists.
 #: `STORAGE_ENCRYPTION_KEY` encrypts provider credentials; this is a genuine
 #: last resort and never replaces a key that already decrypts an existing database.
-
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class NinerouterDaemonManager(IDaemonProtocol):
@@ -51,8 +54,8 @@ class NinerouterDaemonManager(IDaemonProtocol):
     No container engine required.
     """
 
-    def __init__(self, root=None, daemons: object | None = None) -> None:
-        pass
+    def __init__(self, root=None, daemons: object | None = None, import_omni=None) -> None:
+        self._import_omni = import_omni
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def install_unit(self, unit: DaemonUnit) -> ExitCode:
@@ -70,7 +73,6 @@ class NinerouterDaemonManager(IDaemonProtocol):
         del unit  # 9router owns a single unit; the caller passes it for routing
         return ExitCode(cmd_service_status())
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def start(self) -> ExitCode:
         """Bring the gateway up via systemd or a detached host process."""
         return ExitCode(cmd_start())
@@ -102,9 +104,6 @@ class NinerouterDaemonManager(IDaemonProtocol):
         """Show recent gateway logs via journalctl."""
         return ExitCode(cmd_logs())
 
-    def __repr__(self) -> str:
-        return "NinerouterDaemonManager()"
-
     def models(self) -> int:
         """List AI model endpoints exposed at /v1/models."""
         return cmd_models()
@@ -113,7 +112,18 @@ class NinerouterDaemonManager(IDaemonProtocol):
         """Print usage information for daemon sub-commands."""
         return ExitCode(cmd_help())
 
+    def import_omniroute(self, argv: list[str]) -> ExitCode:
+        """Migrate OmniRoute provider credentials into 9router."""
+        if self._import_omni is None:
+            print("import-omniroute requires the import capability to be wired in the container.", file=sys.stderr)
+            return ExitCode(2)
+        return ExitCode(self._import_omni.run_import(argv, cmd_stop, cmd_start))
 
+    def __repr__(self) -> str:
+        return "NinerouterDaemonManager()"
+
+
+# ─── Block 3: Constructors, Std Traits, Helpers ───────────
 def _run(cmd, **kw):
     return run_cmd(cmd, **kw)
 
