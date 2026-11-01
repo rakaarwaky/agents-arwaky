@@ -1,176 +1,220 @@
 # FRD — daemon
 
-## Reference
+## Feature Overview
 
-- PRD: [PRD.md](../../PRD.md)
-- Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
-## System Overview
-
-The daemon feature manages three gateway daemons: OmniRoute (host-native, no
-container), 9router (host-native, no container), and Anytype headless (Podman
-when available, native fallback otherwise). `IDaemonProtocol` exposes typed
-lifecycle and unit operations;
-Anytype authorization is provided by the Anytype manager command.
-`IDaemonAggregate.execute(request)` routes shared operations by
-daemon id, while `DaemonOrchestrator.known()` enumerates the supported ids.
-Flow: `aa anytype <action>` / `aa omniroute <action>` / `aa 9router <action>`
-→ daemon surface →
-manager or aggregate → systemd / Podman / host process. Deploy assets hold the
-systemd units and container definition; live Anytype credentials are stored
-under the orchestrator's XDG config directory. The service feature delegates
-daemon lifecycle, status, and log requests to this aggregate rather than
-maintaining a separate daemon implementation.
+The daemon feature manages Anytype, OmniRoute, and 9router gateways through `IDaemonProtocol` (typed lifecycle, authorization, and unit methods), `IDaemonAggregate.execute(request)`, and `DaemonOrchestrator.known()` (anytype, omniroute, 9router). The root CLI (`aa anytype`, `aa omniroute`, `aa 9router`) routes to the daemon surface, which dispatches through the aggregate to daemon managers and deploy assets. The service feature delegates lifecycle, status, and log requests to this aggregate.
 
 ## Functional Requirements
 
 ### FR-DAEMON-001: Manage daemon lifecycle
 
-- **Description**: start, stop, restart, report status, and show logs for
-  Anytype, OmniRoute, or 9router through the daemon manager and aggregate.
-- **Input**: canonical daemon id (`anytype`, `omniroute`, or `9router`) and
-  lifecycle operation.
-- **Output**: operation exit code or a typed status snapshot.
-- **Business Rules**: starting an already-running daemon is an idempotent
-  success; Anytype uses Podman when available and falls back to its native
-  executable when appropriate; OmniRoute and 9router remain host-native.
-- **Edge Cases**: missing runtimes or binaries return a clear non-zero
-  result; status can report stopped or not found without crashing.
-- **Error Handling**: process and runtime errors are returned as reported
-  failures; raw exceptions do not cross the CLI surface.
+**Description:** Start, stop, restart, report status, and show logs for Anytype, OmniRoute, or 9router through the daemon manager and aggregate.
+
+#### Business Logic
+
+- Starting an already-running daemon is an idempotent success with no second launch.
+- Anytype uses Podman when available and falls back to its native executable otherwise.
+- OmniRoute and 9router remain host-native; the container-isolation invariant is unchanged.
+- Each lifecycle operation reports its exit code or a typed status snapshot to the caller.
+
+#### Edge Cases
+
+- Missing runtimes or binaries return a clear non-zero result.
+- Status can report stopped or not found without crashing.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | canonical daemon id (`anytype`, `omniroute`, or `9router`) and lifecycle operation |
+| **Output** | operation exit code or a typed status snapshot |
+| **Protocol** | Protocol |
+| **Method** | start/stop/restart/status/logs |
+| **Event** | — |
+| **Error** | process and runtime errors are returned as reported failures; raw exceptions do not cross the CLI surface |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Host without Podman | `status` for Anytype | safe status without a traceback |
+| Already-running daemon | `start` | reports already running, exit 0 |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Idempotent start | starting a running daemon is a no-op success |
 
 ### FR-DAEMON-002: Create and store Anytype authorization locally
 
-- **Description**: create an Anytype bot account or API key and persist the
-  key in the operator's private orchestrator configuration.
-- **Input**: optional account or key name.
-- **Output**: exit code and a success/failure message that never prints the
-  secret value.
-- **Business Rules**: `auth-key` writes `ANYTYPE_API_KEY` only to
-  `agents_arwaky_config_dir()/anytype.env`; the file is owner-readable and
-  owner-writable (`0600`). The tracked example file is a template only.
-- **Edge Cases**: daemon stopped, command failure, or unparseable key output
-  returns non-zero and does not create a repository credential file.
-- **Error Handling**: credential-generation errors are reported without
-  exposing the generated key.
+**Description:** Create an Anytype bot account or API key and persist the key in the operator's private orchestrator configuration.
+
+#### Business Logic
+
+- `auth-key` writes `ANYTYPE_API_KEY` only to `agents_arwaky_config_dir()/anytype.env`.
+- The persisted file is owner-readable and owner-writable (`0600`).
+- The secret value is never printed; the tracked example file is a template only.
+
+#### Edge Cases
+
+- Daemon stopped, command failure, or unparseable key output returns non-zero and creates no repository credential file.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | optional account or key name |
+| **Output** | exit code and a success/failure message that never prints the secret value |
+| **Protocol** | Protocol |
+| **Method** | auth-key |
+| **Event** | — |
+| **Error** | credential-generation errors are reported without exposing the generated key |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Daemon running | `auth-key` | key written to XDG config at mode `0600`, repo tree stays clean |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| No repo secrets | no real secrets tracked in the tree after auth flows |
 
 ### FR-DAEMON-003: Enumerate supported daemon ids
 
-- **Description**: expose the set of daemon ids accepted by the aggregate.
-- **Input**: none.
-- **Output**: the canonical ids `anytype`, `omniroute`, and `9router`.
-- **Business Rules**: enumeration is read-only and independent of whether
-  any daemon is running or installed; the listed ids are the routing
-  aggregate's source of truth.
-- **Edge Cases**: an unknown id is rejected at the routing call without a
-  traceback; stopped daemons remain in the enumeration.
-- **Error Handling**: enumeration has no process or filesystem side effects.
+**Description:** Expose the set of daemon ids accepted by the aggregate.
 
-### FR-DAEMON-005: Migrate OmniRoute credentials into 9router
+#### Business Logic
 
-- **Description**: import OmniRoute ``provider_connections`` (read-only) into
-  9router's ``providerConnections`` table, decrypting stored credentials and
-  mapping each row into 9router's payload shape. Exposed as
-  ``aa 9router import-omniroute [--dry-run] [--provider <name>]...``.
-- **Input**: optional ``--dry-run`` flag and zero or more ``--provider``
-  filters; OmniRoute DB at ``~/.omniroute/storage.sqlite`` (read-only source);
-  9router DB at ``~/.9router/db/data.sqlite`` (destination).
-- **Output**: an import plan (total / apikey / oauth / decrypt-failures /
-  would-import / would-skip-existing) plus masked stdout; on the real run,
-  UPSERT counts (imported / skipped / errors).
-- **Business Rules**: OmniRoute is opened strictly read-only (``mode=ro`` URI);
-  no decrypted plaintext credential is ever logged or printed; the secret is
-  resolved from ``STORAGE_ENCRYPTION_KEY`` env or ``~/.omniroute/.env``;
-  existing 9router ids and apiKey business keys are deduped as
-  ``skipped-existing``; OAuth rows whose secrets fail decryption are reported
-  as decrypt-failures but still imported without empty tokens; OmniRoute
-  combos are out of scope; ``--dry-run`` performs zero writes anywhere.
-- **Edge Cases**: undecryptable ciphertext counts as a decrypt-failure and
-  keeps the import going; missing secret yields ``None`` for encrypted fields
-  without raising; unknown CLI arguments return exit code 2.
-- **Error Handling**: a single row write failure never aborts the batch;
-  crypto failures degrade to ``None``; missing DB files degrade gracefully.
+- Enumeration is read-only and independent of whether any daemon is running or installed.
+- The listed ids are the routing aggregate's source of truth: `anytype`, `omniroute`, `9router`.
+
+#### Edge Cases
+
+- An unknown id is rejected at the routing call without a traceback.
+- Stopped daemons remain in the enumeration.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | none |
+| **Output** | the canonical ids `anytype`, `omniroute`, and `9router` |
+| **Protocol** | Protocol |
+| **Method** | execute(request) with op `known` |
+| **Event** | — |
+| **Error** | enumeration has no process or filesystem side effects |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| No daemon running | `known()` | returns every managed daemon id |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Read-only | enumeration never mutates host state |
 
 ### FR-DAEMON-004: Manage systemd user units
 
-- **Description**: install, remove, and report status for the daemon user
-  units through the daemon aggregate.
-- **Input**: daemon id and unit operation.
-- **Output**: exit code and, for status, the reported unit state.
-- **Business Rules**: unit files come from this feature's deploy assets;
-  install enables the user unit, remove disables and deletes it, and neither
-  operation writes into the repository tree.
-- **Edge Cases**: reinstalling an existing unit succeeds; removing a unit
-  that is absent reports the state cleanly; missing `systemctl` returns a
-  non-zero result.
-- **Error Handling**: systemd errors are captured and reported; no raw
-  exceptions cross the CLI surface.
+**Description:** Install, remove, and report status for the daemon user units through the daemon aggregate.
 
-## API Contract
+#### Business Logic
 
-### Protocol API
+- Unit files come from this feature's deploy assets (`deploy/*.service`).
+- Install enables the user unit; remove disables and deletes it.
+- Neither operation writes into the repository tree.
 
-| Method | Input | Output | Error | Event | Description |
-|--------|-------|--------|-------|-------|-------------|
-| `start` | — | `ExitCode` | non-zero | — | Start the daemon and wait for readiness |
-| `stop` | — | `ExitCode` | non-zero | — | Stop the running daemon |
-| `restart` | — | `ExitCode` | non-zero | — | Restart the daemon, waiting for readiness after the stop |
-| `status` | — | `DaemonStatus` | — | — | Probe process, systemd, and API state |
-| `logs` | — | `ExitCode` | non-zero | — | Show the daemon's recent logs |
-| `install_unit` | `unit` (`DaemonUnit`) | `ExitCode` | non-zero | — | Install and enable the systemd user unit |
-| `remove_unit` | `unit` (`DaemonUnit`) | `ExitCode` | non-zero | — | Disable and remove the systemd user unit |
-| `unit_status` | `unit` (`DaemonUnit`) | `ExitCode` | non-zero | — | Report the systemd state of the unit |
+#### Edge Cases
 
-### Aggregate API
+- Reinstalling an existing unit succeeds.
+- Removing a unit that is absent reports the state cleanly.
+- Missing `systemctl` returns a non-zero result.
 
-| Method | Input | Output | Error | Event | Description |
-|--------|-------|--------|-------|-------|-------------|
-| `execute(request)` | `DaemonRequest(op, name?, unit?)` | `DaemonResponse` (`DaemonOutcome`) | unknown operation/name or host/runtime failure → reported outcome | operation-specific status, unit state, or log output | Single aggregate entry point; dispatches lifecycle and unit operations to the matching daemon manager method |
+#### Technical Specification
 
-## Integration Points
+| Aspect | Detail |
+|--------|--------|
+| **Input** | daemon id and unit operation |
+| **Output** | exit code and, for status, the reported unit state |
+| **Protocol** | Protocol |
+| **Method** | install_unit/remove_unit/unit_status |
+| **Event** | — |
+| **Error** | systemd errors are captured and reported; no raw exceptions cross the CLI surface |
 
-| System | Direction | Purpose | Failure mode |
-| -------- | --------- | --------- | ------------ |
-| Podman | out | run the Anytype container (OmniRoute and 9router are host-native) | podman missing → native fallback or non-zero |
-| systemd user units + deploy assets | out | install, remove, and query per-daemon user units | systemctl or unit missing → non-zero |
-| XDG config (per-daemon env) | in | secrets and endpoints for auth flows | missing key → auth pre-condition failure |
-| root CLI (`aa anytype` / `aa omniroute` / `aa 9router`) | in | routes CLI verbs to the daemon capability | unknown verb → usage + non-zero |
-| service feature | in | delegates per-daemon lifecycle, status, and logs to the daemon aggregate | integration unavailable → non-zero |
+#### Test
 
-## Non-functional Requirements
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| `install_unit` for a daemon | enables its user unit | a following `unit_status` reports it active |
 
-| Metric | Target | Measurement method |
-| -------- | -------- | --------- |
-| No repo secrets | no real secrets tracked in the tree | `git status --porcelain` clean after auth flows; only placeholder examples tracked |
-| Idempotent start | starting a running daemon is a no-op | run start twice; second reports already running, exit 0 |
-| Idempotent unit install | re-installing an installed unit succeeds | run `install_unit` twice; `unit_status` still reports active |
-| Unknown-daemon safety | unknown id errors at routing, never crashes | route a bogus id → reported error, no traceback |
+#### Metric
 
-## Test Scenarios
+| Target Metric | Value |
+|---------------|-------|
+| Idempotent unit install | re-installing an installed unit succeeds |
 
-- Starting an Anytype daemon that is already running reports it is already running and exits 0 without a second launch.
-- Starting a daemon on a host without Podman falls back to native execution or reports a clear non-zero error with no traceback.
-- `auth-key` writes the generated key to XDG config only; the repo tree stays clean after the run.
-- `auth-key` while the daemon is stopped reports the pre-condition and exits non-zero instead of crashing.
-- `list_known` returns all managed daemon ids (anytype, omniroute, and 9router) independent of run state.
-- Enumerating daemons on a host where no daemon is running still reports every id.
-- `install_unit` for a daemon enables its user unit and a following `unit_status` reports it active.
-- `remove_unit` deletes a daemon's user unit so a following `unit_status` reports it not installed.
+### FR-DAEMON-005: Migrate OmniRoute credentials into 9router
 
-## Assumptions & Constraints
+**Description:** Import OmniRoute `provider_connections` (read-only) into 9router's `providerConnections` table, decrypting stored credentials and mapping each row into 9router's payload shape. Exposed as `aa 9router import-omniroute [--dry-run] [--provider <name>]...`.
 
-- Only Anytype is containerized (Podman); OmniRoute and 9router are
-  host-native — the container-isolation invariant is unchanged.
-- Secrets live in XDG config, referenced by name, never committed.
-- systemd unit operations stay in this feature's aggregate; the service
-  feature integrates rather than duplicating unit code.
+#### Business Logic
 
-## Glossary
+- OmniRoute is opened strictly read-only (`mode=ro` URI); no decrypted plaintext credential is ever logged or printed.
+- The secret is resolved from `STORAGE_ENCRYPTION_KEY` env or `~/.omniroute/.env`.
+- Existing 9router ids and apiKey business keys are deduped as `skipped-existing`.
+- OAuth rows whose secrets fail decryption are reported as decrypt-failures but still imported without empty tokens.
+- `--dry-run` performs zero writes anywhere.
 
-- **daemon**: a managed gateway service — Anytype headless (Podman),
-  OmniRoute (host-native), or 9router (host-native).
-- **daemon id**: the canonical routing token (`anytype`, `omniroute`, `9router`).
-- **DaemonStatus**: a snapshot — running / stopped / unknown plus API
-  readiness.
-- **unit**: a systemd user service installed from this feature's deploy
-  assets.
+#### Edge Cases
+
+- Undecryptable ciphertext counts as a decrypt-failure and keeps the import going.
+- Missing secret yields `None` for encrypted fields without raising.
+- Missing DB files degrade gracefully.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | optional `--dry-run` flag and zero or more `--provider` filters; OmniRoute DB read-only source; 9router DB destination |
+| **Output** | an import plan (total / apikey / oauth / decrypt-failures / would-import / would-skip-existing) plus masked stdout |
+| **Protocol** | Protocol |
+| **Method** | import-omniroute |
+| **Event** | — |
+| **Error** | a single row write failure never aborts the batch; crypto failures degrade to `None` |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| `--dry-run` | `aa 9router import-omniroute --dry-run` | zero writes, import plan printed |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Read-only source | OmniRoute DB opened `mode=ro` with zero writes |
+
+## Public Interface
+
+| Aspect     | Detail            |
+|------------|-------------------|
+| Agent      | DaemonOrchestrator |
+| Aggregate  | IDaemonAggregate   |
+| Method     | execute(request)  |
+| Request    | DaemonRequest (op, name?, unit?) |
+| Response   | DaemonResponse (DaemonOutcome) |
+
+## Reference
+
+| Artifact     | Purpose                                         | Link |
+|--------------|-------------------------------------------------|------|
+| PRD          | Business goals and scope                        | [PRD.md](../../PRD.md) |
+| Backlog      | Task tracking and implementation status          | [BACKLOG.md](BACKLOG.md) |
+| Roadmap      | Timeline, phasing, and dependencies              | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | System boundaries, tech stack, and infra         | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

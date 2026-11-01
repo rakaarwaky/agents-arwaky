@@ -1,153 +1,134 @@
 # FRD — config
 
-> Functional Requirements Document. Describes HOW this feature works functionally.
-> Audience: Engineers, QA, Tech Lead.
+## Feature Overview
 
-## Reference
-
-- PRD: [PRD.md](../../PRD.md)
-- Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-
-## System Overview
-
-The config feature loads, saves, merges, inspects, and mutates tool configuration files — JSON, JSONC, and TOML — plus env-style key/value files, without corrupting comments or key order. The root CLI routes `aa config …` to the config agent, a single aggregate whose seven bare methods fan out over one protocol method (`execute`) into a writer capability (load, detect, save) and a modifier capability (merge, set env, remove, list). Every mutation is single-entry scoped and dry-run capable; inspect and help never write.
-
-Flow: `aa config …` → config agent (aggregate) → `execute` on writer / modifier capability → shared config kernel → config file.
+The config feature loads, saves, merges, inspects, and mutates tool
+configuration files — JSON, JSONC, and TOML — plus env-style key/value
+files, without corrupting comments or key order. The root CLI (`aa config
+…`) routes to the config agent, a single aggregate whose `execute(request)`
+entry point dispatches each op to one of two capability protocols: the
+reader seam (load, save, inspect, help) and the modifier seam
+(merge_servers, set_env, remove_entries, help). Every mutation is
+single-entry scoped and dry-run capable; inspect and help never write.
 
 ## Functional Requirements
 
 ### FR-CONFIG-001: Read & inspect konfigurasi (load + inspect, read-only)
 
-- **Description**: the load op reads a JSON/JSONC/TOML file and reports the
-  parsed data together with the detected format; the inspect op returns a
-  read-only snapshot of that file (path, detected format, parsed data, and
-  server names). One reader capability seam.
-- **Input**: path of the config file to read.
-- **Output**: data (mapping) plus the detected format (`json` / `jsonc` /
-  `toml`); for inspect, the snapshot mapping (path, format, data, server
-  names).
-- **Business Rules**: detection is extension-first with a content fallback —
-  never a blind guess; JSONC input is comment-stripped before parsing so the
-  data matches the visible structure; the detected format travels with the
-  data on every later save; inspect never creates, rewrites, or deletes;
-  the snapshot is derived from a single load pass; two inspects of an
-  unchanged file are equal.
-- **Edge Cases**: empty file → empty mapping with the detected-or-default
-  format; missing file → failure naming the path; a file whose extension
-  disagrees with its content → content decides; env-style file → data
-  included, server names empty.
-- **Error Handling**: unparseable content → non-zero exit with the offending
-  path on stderr, never a silent empty mapping; unreadable path → non-zero
-  naming the path on stderr.
+**Description:** Load a JSON/JSONC/TOML file and report the parsed data
+with its detected format; inspect returns a read-only snapshot (path,
+format, data, server names).
+
+#### Business Logic
+
+- Detection is extension-first with a content fallback — never a blind
+  guess.
+- JSONC input is comment-stripped before parsing so the data matches the
+  visible structure.
+- The detected format travels with the data on every later save.
+- Inspect never creates, rewrites, or deletes; the snapshot is derived
+  from a single load pass.
+- Two inspects of an unchanged file are equal.
+
+#### Edge Cases
+
+- Empty file → empty mapping with the detected-or-default format.
+- Missing file → failure naming the path.
+- Extension disagrees with content → content decides.
+- Env-style file → data included, server names empty.
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | path of the config file to read |
+| **Output** | data (mapping) plus the detected format; for inspect, the snapshot mapping (path, format, data, server names) |
+| **Protocol** | IConfigReaderProtocol |
+| **Method** | load(path) / inspect(path) |
+| **Event** | — |
+| **Error** | unparseable content → non-zero with the path on stderr; unreadable path → non-zero naming the path |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| JSONC file | `load(<path>)` | parsed mapping, format jsonc |
+| TOML file | `load(<path>)` | nested tables, format toml |
+| Same file twice | `inspect(<path>)` | equal snapshots, no writes |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Byte-identical re-save | re-saving untouched data produces identical bytes |
 
 ### FR-CONFIG-002: Mutate konfigurasi & env (save, merge, set_env, remove)
 
-- **Description**: the mutation ops write to the config or env files —
-  save writes data back in the detected (or explicit) format preserving
-  comments and key order; merge adds named MCP server definitions into the
-  config's server map; set_env upserts KEY=VALUE pairs into an env-style
-  file; remove drops named entries from a server map or env file one at a
-  time. One modifier capability seam.
-- **Input**: path, data mapping, optional explicit format, map of server
-  name to definition, map of key to value, list of names, dry-run flag.
-- **Output**: success flag (save/set_env); list of names merged (merge);
-  list of names removed (remove).
-- **Business Rules**: a round trip with untouched data is byte-identical;
-  keys not named by a mutation keep their relative order and bytes; a failed
-  save never truncates the existing file; an explicit format overrides
-  detection for that write only; only names absent from the map are added
-  unless force is set; existing entries keep their bytes; an unparsable
-  existing file is never clobbered — the merge fails closed before any
-  write; an existing key is rewritten in place so only that line changes;
-  new keys append; a missing file is created with exactly the given pairs;
-  unrelated hand-written lines keep their bytes and order; only the named
-  entries are removed — never the whole file; siblings keep their relative
-  order; dry-run reports without writing.
-- **Edge Cases**: unwritable path → reported failure with the original bytes
-  intact; missing file → created from the given data; explicit format
-  differing from the on-disk format → written as requested; existing name
-  without force → skipped with no write; unparsable file → non-zero before
-  any mutation; value containing `=` → everything after the first `=` is
-  the value; unrelated comments and blank lines → left alone; name not
-  present → omitted from the result, exit success; all names absent → empty
-  list, file untouched; dry-run on a read-only file → reports without
-  error.
-- **Error Handling**: write failure → non-zero naming the path; a
-  half-written file is never left in place of a good one; unparsable
-  target → non-zero naming the path, original file untouched; a malformed
-  payload → non-zero before the file is touched.
+**Description:** Write config or env files: save preserves comments and key
+order; merge adds named MCP server definitions into the server map;
+set_env upserts KEY=VALUE pairs into an env-style file; remove drops
+named entries one at a time.
 
-## API Contract
+#### Business Logic
 
-### Protocol API
+- A round trip with untouched data is byte-identical.
+- Keys not named by a mutation keep their relative order and bytes.
+- A failed save never truncates the existing file.
+- An explicit format overrides detection for that write only.
+- Only names absent from the map are added unless force is set.
+- Existing entries keep their bytes; new keys append.
+- An unparsable existing file is never clobbered — the merge fails closed
+  before any write.
+- Dry-run reports without writing.
 
-| Method | Input | Output | Error | Event | Description |
-|---|---|---|---|---|---|
-| `execute` | `op`, `path`, `payload?` | result / snapshot | non-zero | — | one method covers load, save, mutasi, inspect |
+#### Edge Cases
 
-### Aggregate API
+- Unwritable path → reported failure with original bytes intact.
+- Missing file → created from the given data.
+- Existing name without force → skipped with no write.
+- Value containing `=` → everything after the first `=` is the value.
+- Name not present → omitted from the result, exit success.
 
-| Method | Input | Output | Error | Event | Description |
-|---|---|---|---|---|---|
-| `load` | `path` | `(data, format)` | non-zero | — | Read a config file and detect its format |
-| `save` | `path`, `data`, `fmt?` | ok / non-zero | non-zero | — | Write data back preserving comments and key order |
-| `merge_servers` | `path`, `servers` | merged names | non-zero | — | Merge MCP server entries into the config |
-| `set_env` | `path`, `pairs` | ok | non-zero | — | Upsert env key/value pairs |
-| `remove_entries` | `path`, `keys` | removed names | non-zero | — | Drop named server or env entries; dry-run reports only |
-| `inspect` | `path` | snapshot | non-zero | — | Read-only snapshot of format, data, and server names |
-| `help` | — | usage text | — | — | Print usage for the config ops |
+#### Technical Specification
 
-## Integration Points
+| Aspect | Detail |
+|--------|--------|
+| **Input** | path, data mapping, optional explicit format, server name → definition map, key → value map, name list, dry-run flag |
+| **Output** | success flag; list of names merged / removed |
+| **Protocol** | IConfigModifierProtocol |
+| **Method** | save / merge_servers / set_env / remove_entries |
+| **Event** | — |
+| **Error** | write failure → non-zero naming the path; unparsable target → non-zero naming the path, original untouched |
 
-| System | Direction | Purpose | Failure mode |
-|--------|-----------|---------|--------------|
-| root CLI (`aa config …`) | in | designed operator entry routing each op to the config agent | unknown op → usage and non-zero |
-| shared config kernel | in | JSON / JSONC / TOML load, save, merge, env, and removal primitives behind the capabilities | parse or write failure → non-zero |
-| harness config files (JSON / JSONC / TOML / env) | out | the files this feature rewrites | unwritable path → non-zero, original intact |
-| tool manifest | in | source of server names for a merge | missing entry → empty set |
-| harness feature (connect / disconnect) | in | drives server and env removal through the same ops | pass-through |
+#### Test
 
-## Non-functional Requirements
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Unchanged round trip | `save(<path>, <data>)` | byte-identical file |
+| Dry-run removal | `remove_entries(<path>, <names>, dry_run)` | lists names, writes nothing |
+| Missing file set_env | `set_env(<path>, <pairs>)` | creates file containing the pairs |
 
-| Metric | Target | Measurement method |
-|--------|--------|--------------------|
-| Round-trip fidelity | re-saving an untouched file is byte-identical | diff a load-then-save round trip on one fixture per format |
-| dry-run purity | a dry-run removal writes nothing | file bytes unchanged after a dry-run remove |
-| Format coverage | JSON, JSONC, and TOML all load and save correctly | run load and save over one fixture per format |
+#### Metric
 
-## Test Scenarios
+| Target Metric | Value |
+|---------------|-------|
+| dry-run purity | a dry-run removal writes nothing; file bytes unchanged |
 
-- Loading a JSONC config reports the parsed mapping and format jsonc.
-- Loading a TOML config returns nested tables with format toml.
-- Re-saving an unchanged JSONC file is byte-identical with comments and key order preserved.
-- Saving to an unwritable path fails without truncating the original file.
-- Merging a new MCP server entry leaves sibling servers and comments untouched.
-- Merging an already-present server without force is a no-op that changes nothing on disk.
-- Setting an env pair on a missing file creates the file containing that pair.
-- Setting an existing env key rewrites only that line, leaving the rest byte-identical.
-- Removing MCP servers with dry-run lists the would-be-removed names and writes nothing.
-- Removing an absent entry is a clean no-op returning an empty list.
-- Inspecting a config returns path, format, data, and server names without writing.
-- Two inspects of an unchanged file return equal snapshots and leave the file bytes unchanged.
+## Public Interface
 
-## Assumptions & Constraints
+| Aspect     | Detail            |
+|------------|-------------------|
+| Agent      | ConfigOrchestrator |
+| Aggregate  | IConfigAggregate   |
+| Method     | execute(request)  |
+| Request    | ConfigRequest (op, path?, payload?, flags?) |
+| Response   | ConfigResult (data / snapshot / success / names) |
 
-- Formats in scope are JSON, JSONC, TOML, and env-style `KEY=VALUE` files; any
-  other format is out of scope until the kernel grows it.
-- `aa config …` is this feature's designed entry; registering it in the root
-  dispatch table belongs to the root entry, not to this feature.
-- Config paths are supplied by the caller (root CLI or harness feature); the
-  agent never invents a location.
-- Mutations are single-entry scoped: a save never reformats entries the op did
-  not name.
-- The aggregate is the only public surface; capabilities are reached through
-  the one protocol method.
+## Reference
 
-## Glossary
-
-- **JSONC**: JSON with `//` comments; comments are stripped for parsing and retained on save for round-trip fidelity.
-- **format detection**: choosing `json` / `jsonc` / `toml` from the file extension first, then from content.
-- **dry-run**: report the names a removal would delete without opening the file for write.
-- **snapshot**: the inspect result — path, format, data, and server names in one mapping.
-- **config agent**: the feature's orchestrator — one aggregate the root CLI dispatches into, routing each op to a writer or modifier capability.
-- **env-style file**: a `KEY=VALUE` line-per-pair file (dotenv form).
+| Artifact     | Purpose                                         | Link |
+|--------------|-------------------------------------------------|------|
+| PRD          | Business goals and scope                        | [PRD.md](../../PRD.md) |
+| Backlog      | Task tracking and implementation status          | [BACKLOG.md](BACKLOG.md) |
+| Roadmap      | Timeline, phasing, and dependencies              | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | System boundaries, tech stack, and infra         | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
