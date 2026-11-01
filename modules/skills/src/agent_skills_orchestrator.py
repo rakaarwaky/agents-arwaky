@@ -14,6 +14,8 @@ composition root injects every capability implementation.
 
 from __future__ import annotations
 
+import json
+import os
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
@@ -21,6 +23,7 @@ from typing import cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
+    IPhrasesProtocol,
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
@@ -29,6 +32,8 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsRulesRendererProtocol,
     ISkillsValidatorProtocol,
+    IStateProtocol,
+    ITrackerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsError,
@@ -44,6 +49,8 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillsRequest,
     SkillsResult,
     SkillsRoot,
+    TraceDecision,
+    TraceStateStatus,
 )
 
 
@@ -62,6 +69,9 @@ class SkillsAgent(ISkillsAggregate):
         mutator: ISkillsMutatorProtocol | None = None,
         merge_planner: ISkillsMergePlannerProtocol | None = None,
         rules_renderer: ISkillsRulesRendererProtocol | None = None,
+        tracker: ITrackerProtocol | None = None,
+        phrases: IPhrasesProtocol | None = None,
+        state: IStateProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._index = index
@@ -72,6 +82,9 @@ class SkillsAgent(ISkillsAggregate):
         self._mutator = mutator
         self._merge_planner = merge_planner
         self._rules_renderer = rules_renderer
+        self._tracker = tracker
+        self._phrases = phrases
+        self._state = state
         self._default_root = default_root
 
     # ─── Block 2: Aggregate Method Implementation ────────────
@@ -314,6 +327,120 @@ class SkillsAgent(ISkillsAggregate):
         if request.flags.get("markdown") == "1":
             return SkillsResult(ok=True, op=op, document=document.markdown)
         return SkillsResult(ok=True, op=op, document=renderer.render_summary())
+
+    def _execute_trace_collect(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Scan sessions then build usage: the collect half of the trace pipeline."""
+        tracker = self._require(self._tracker, "tracker")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        days = int(request.flags.get("days", "0"))
+        since_last = request.flags.get("since_last") == "1"
+        min_turns = int(request.flags.get("min_turns", "1"))
+        limit = int(request.flags.get("limit", "0"))
+
+        records = tracker.scan_sessions(
+            grok_home=grok_home,
+            run_dir=run_dir,
+            days=days,
+            since_last=since_last,
+            min_turns=min_turns,
+            limit=limit,
+        )
+        usage = tracker.build_usage(grok_home=grok_home, run_dir=run_dir)
+        kept = len(records)
+        seen = 0
+        try:
+            with open(os.path.join(run_dir, "manifest.json"), encoding="utf-8") as f:
+                seen = int(json.load(f).get("sessions_seen", 0))
+        except (OSError, ValueError):
+            seen = kept
+
+        return SkillsResult(
+            ok=True,
+            op=op,
+            usage=usage,
+            message=f"{kept} of {seen} sessions kept → {run_dir}",
+            root=Path(run_dir) if run_dir else None,
+        )
+
+    def _execute_trace_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Read the last run's usage report from the tracker."""
+        tracker = self._require(self._tracker, "tracker")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        usage = tracker.build_usage(grok_home=grok_home, run_dir=run_dir)
+        return SkillsResult(ok=True, op=op, usage=usage)
+
+    def _execute_trace_phrases(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Mine repeated prompts and instruction lines from the session records."""
+        phrases = self._require(self._phrases, "phrases")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        report = phrases.build_phrases(grok_home=grok_home, run_dir=run_dir)
+        return SkillsResult(ok=True, op=op, phrases=report)
+
+    def _execute_trace_state(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Drive the trace-learning lifecycle: set/get/clear/trash/restrict/decide/wait."""
+        state = self._require(self._state, "state")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        action = request.flags.get("state_action", "")
+
+        if action == "set":
+            status = TraceStateStatus(request.flags.get("status", "collected"))
+            got = state.set_status(grok_home, run_dir, status)
+            return SkillsResult(ok=True, op=op, state=got)
+
+        if action == "get":
+            got, _view = state.get_status(grok_home)
+            return SkillsResult(ok=True, op=op, state=got)
+
+        if action == "clear":
+            state.set_status(grok_home, run_dir, TraceStateStatus.DONE)
+            return SkillsResult(ok=True, op=op, state=TraceStateStatus.DONE)
+
+        if action == "trash":
+            run_name = request.flags.get("run_name", "")
+            paths = [
+                p.strip()
+                for p in request.flags.get("trash_paths", "").split(",")
+                if p.strip()
+            ]
+            moved = state.trash(grok_home, run_name, paths)
+            return SkillsResult(ok=True, op=op, lines=moved)
+
+        if action == "restrict":
+            paths = [
+                p.strip()
+                for p in request.flags.get("restrict_paths", "").split(",")
+                if p.strip()
+            ]
+            restricted = state.restrict(paths)
+            return SkillsResult(ok=True, op=op, lines=restricted)
+
+        if action == "decide":
+            decision = TraceDecision(
+                date=request.flags.get("date", ""),
+                run_dir=run_dir,
+                decision_id=request.flags.get("id", ""),
+                kind=request.flags.get("kind", ""),
+                action=request.flags.get("decide_action", ""),
+                target=request.flags.get("target", ""),
+                target_path=request.flags.get("path", ""),
+                decision=request.flags.get("decision", ""),
+                undo=request.flags.get("undo") or None,
+            )
+            got = state.decide(grok_home, run_dir, decision)
+            return SkillsResult(ok=True, op=op, lines=(json.dumps(got.as_dict(), ensure_ascii=False),))
+
+        if action == "wait":
+            timeout_min = int(request.flags.get("timeout_min", "90"))
+            got = state.wait(grok_home, run_dir, timeout_min=timeout_min)
+            return SkillsResult(ok=True, op=op, state_status=got)
+
+        raise SkillsUsageError(f"Unknown trace-state action: {action}")
+
+        raise SkillsUsageError(f"Unknown trace-state action: {action}")
 
     # ─── Block 3: Helpers, Factories & Read Helpers ────────────
     def _root(self, request: SkillsRequest) -> SkillsRoot:

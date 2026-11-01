@@ -41,6 +41,8 @@ if TYPE_CHECKING:
         MutationOutcome,
         MutationPlan,
         NewCategoryPlan,
+        PhrasesReport,
+        UsageReport,
         ValidationReport,
     )
 
@@ -263,6 +265,10 @@ class SkillsResult:
     lines: tuple[str, ...] = ()
     warning: str | None = None
     root: Path | None = None
+    usage: UsageReport | None = None
+    phrases: PhrasesReport | None = None
+    state: TraceStateStatus | None = None
+    state_status: TraceStateStatus | None = None
 
 
 __all__ = [

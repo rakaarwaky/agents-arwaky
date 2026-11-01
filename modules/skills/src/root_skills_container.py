@@ -17,6 +17,7 @@ from pathlib import Path
 from modules.shared.src.common.utility_skill_pack import default_pack_root
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
+    IPhrasesProtocol,
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
@@ -25,6 +26,8 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsRulesRendererProtocol,
     ISkillsValidatorProtocol,
+    IStateProtocol,
+    ITrackerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillContent,
@@ -42,7 +45,10 @@ from modules.skills.src.capabilities_skills_index_builder import SkillsIndexBuil
 from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlanner
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
+from modules.skills.src.capabilities_skills_phrases import SkillsPhrases
 from modules.skills.src.capabilities_skills_rules_renderer import SkillsRulesRenderer
+from modules.skills.src.capabilities_skills_state import SkillsTraceState
+from modules.skills.src.capabilities_skills_tracker import SkillsTracker
 from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 __all__ = [
@@ -62,6 +68,9 @@ def default_aggregate(
     mutator: ISkillsMutatorProtocol | None = None,
     merge_planner: ISkillsMergePlannerProtocol | None = None,
     rules_renderer: ISkillsRulesRendererProtocol | None = None,
+    tracker: ITrackerProtocol | None = None,
+    phrases: IPhrasesProtocol | None = None,
+    state: IStateProtocol | None = None,
 ) -> ISkillsAggregate:
     """Return an agent bound to the repo's ``skills/`` pack (or overrides)."""
     root = default_pack_root()
@@ -75,6 +84,9 @@ def default_aggregate(
         mutator=mutator or SkillsMutator(),
         merge_planner=merge_planner or SkillsMergePlanner(),
         rules_renderer=rules_renderer or SkillsRulesRenderer(),
+        tracker=tracker or SkillsTracker(),
+        phrases=phrases or SkillsPhrases(),
+        state=state or SkillsTraceState(),
         default_root=root,
     )
 
@@ -104,6 +116,9 @@ class SkillsFacade:
         mutator: ISkillsMutatorProtocol | None = None,
         merge_planner: ISkillsMergePlannerProtocol | None = None,
         rules_renderer: ISkillsRulesRendererProtocol | None = None,
+        tracker: ITrackerProtocol | None = None,
+        phrases: IPhrasesProtocol | None = None,
+        state: IStateProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._index = index
@@ -114,6 +129,9 @@ class SkillsFacade:
         self._mutator = mutator
         self._merge_planner = merge_planner
         self._rules_renderer = rules_renderer
+        self._tracker = tracker
+        self._phrases = phrases
+        self._state = state
         self._default_root = default_root
 
     def _agent(self) -> SkillsAgent:
@@ -129,6 +147,9 @@ class SkillsFacade:
             mutator=self._mutator or SkillsMutator(),
             merge_planner=self._merge_planner or SkillsMergePlanner(),
             rules_renderer=self._rules_renderer or SkillsRulesRenderer(),
+            tracker=self._tracker or SkillsTracker(),
+            phrases=self._phrases or SkillsPhrases(),
+            state=self._state or SkillsTraceState(),
             default_root=self._default_root or root,
         )
 
