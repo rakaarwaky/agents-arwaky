@@ -14,7 +14,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-PIPELINE = Path(__file__).resolve().parents[3] / "skills" / "skill-authoring" / "_trace-pipeline"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+PIPELINE = REPO_ROOT / "skills" / "skill-authoring" / "_trace-pipeline"
+# pr-5 moved the canonical workflow out of _trace-pipeline to the repo-top-level workflows dir
+CANONICAL_WORKFLOW = REPO_ROOT / "workflows" / "learn-traces.rhai"
 COLLECT = PIPELINE / "scripts" / "collect_sessions.py"
 STATE = PIPELINE / "scripts" / "state.py"
 PYTHON = sys.executable
@@ -131,7 +134,7 @@ def test_collect_estimate_writes_estimate_json(tmp_path: Path) -> None:
 def test_retire_stale_workflow_copy_identical_returns_none(tmp_path: Path) -> None:
     """User copy identical to skill copy -> None, nothing moved."""
     grok_home = fake_grok_home(tmp_path)
-    skill_copy = PIPELINE / "learn-traces.rhai"
+    skill_copy = CANONICAL_WORKFLOW
     user_copy = grok_home / "workflows" / "learn-traces.rhai"
     shutil.copyfile(skill_copy, user_copy)
 

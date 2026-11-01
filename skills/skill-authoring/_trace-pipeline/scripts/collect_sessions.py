@@ -48,7 +48,19 @@ def retire_stale_workflow_copy(grok_home: str) -> dict | None:
     one written by the launch step.
     """
     user_copy = os.path.join(grok_home, "workflows", "learn-traces.rhai")
-    skill_copy = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "learn-traces.rhai")
+    # canonical copy: <repo>/workflows/learn-traces.rhai; the script lives at
+    # <repo>/skills/skill-authoring/_trace-pipeline/scripts/collect_sessions.py
+    skill_copy = os.path.join(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                )
+            )
+        ),
+        "workflows",
+        "learn-traces.rhai",
+    )
     if not (os.path.isfile(user_copy) and os.path.isfile(skill_copy)):
         return None
     try:
