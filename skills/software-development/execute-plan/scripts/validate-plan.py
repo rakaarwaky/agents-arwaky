@@ -6,7 +6,7 @@ Usage:
 
 Parses the ``## PR Plan`` section, extracts PR entries from ``### PR N:``
 headings, validates the dependency DAG (unique IDs, valid references, no
-cycles), computes level assignments, linearises for Graphite stack order,
+cycles), computes level assignments, linearises for final branch merge order,
 and reports max parallelism.
 
 Output (stdout): a JSON report.
@@ -281,7 +281,7 @@ def compute_levels(entries):
 
 
 def linearize(entries, levels):
-    """Flatten the DAG into Graphite stack order (stable within levels)."""
+    """Flatten the DAG into final branch merge order (stable within levels)."""
     by_level = defaultdict(list)
     for e in entries:
         by_level[levels[e["id"]]].append(e["id"])

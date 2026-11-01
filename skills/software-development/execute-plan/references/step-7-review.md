@@ -142,16 +142,37 @@ Always merge. Every PR has exactly 3 reviewers (general, tests, simplicity).
 Read each reviewer's individual `config.review_file`, then merge them into the single merged review file `${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr.id>.md` using the `write` tool. Prefix each issue with its source tag (`[General]`, `[Tests]`, `[Simplicity]`). Consolidate obviously duplicated findings (same file, same line, same underlying problem) using judgment — when in doubt, keep both. The merged file is what the implementer reads in Step 7c. Merge format:
 
 ```markdown
+# Merged Review: <pr.id> — <pr.title>
 
-## Rules (review scope)
+## [General]
+### Issue 1 -- Severity: bug
+- **File**: path/to/file.ext:LINE
+- **Description**: ...
+- **Suggestion**: ...
+- **Status**: open
 
-- **Inject personas into prompts** -- on initial reviewer launches, prepend `reviewer` for the general reviewer. The Tests and Simplicity specialists are prompt-only (no persona prepended). Do NOT pass a `persona` parameter to `spawn_subagent`.
-- **`resume_from` for fix and re-review cycles** -- when re-reviewing, resume each reviewer with `resume_from` using its `config.subagent_id` from `pr.reviewer_configs`. Always resume all of the PR's reviewers in parallel.
-- **Read review files yourself** after each review to count open issues and decide whether to continue.
-- **Include the design doc context in subagent prompts** -- read the design document and include the relevant sections for each PR in the implementer prompt.
-- **Error handling** -- if an implementer (or a PR's **general** reviewer) fails or cannot be resumed, mark the PR as failed, cascade-skip dependents (Step 8), and continue with independent PRs. **Exception:** a failed **tests** or **simplicity** reviewer is non-fatal — warn, drop it from `pr.reviewer_configs`, and continue that PR's review with the remaining reviewers. Only stop the entire run if no PRs can make progress.
-- **Respect concurrency limits** -- `max_concurrent` caps **implementation** subagents only. Per-PR review fan-out is **separate** and not bounded by `max_concurrent` — a single PR launches its 3 reviewers in parallel, as described above.
-- **`past_issues_briefing` must be consistent and capped** -- before launching any implementer or reviewer, build the briefing from the `issue_patterns` list. If the list exceeds 20 patterns, include only the top 20 by occurrence count. Never partially include a pattern or truncate mid-description. If empty, omit the block entirely.
+## [Tests]
+### Issue 1 -- Severity: suggestion
+...
+
+## [Simplicity]
+(no issues found)
+```
+
+After merging, count the total open issues across all source tags. This count drives the fix loop in Step 7c.
+
+### Step 7c: Fix and Re-Review Loop
+
+If the merged review has open issues:
+
+1. Spawn a fixer subagent in `<pr.worktree_path>` seeded with the implementer persona and the merged review file `${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr.id>.md`. The fixer implements fixes and commits locally on `<pr.branch>` (the fixer, like the implementer, never runs Orca or cross-worktree git commands).
+2. Re-run Rules 1 & 2 (fetch + record `pr.commit_sha`) from `step-0-setup.md` so the orchestrator's main repo sees the fix commits.
+3. Re-launch all 3 reviewers in parallel (resume with `resume_from` where `config.subagent_id` is set, fresh spawn otherwise).
+4. Re-merge. Loop to step 1 while any reviewer reports open issues.
+
+When all 3 reviewers report 0 open issues in the same round, the PR is complete: set `pr.review_rounds` and mark the PR `"completed"`. Extract a one-line description of each issue seen this round into `issue_patterns` (deduplicated) and update `total_issues_by_severity` for the memory flush (Step 12).
+
+If a re-reviewer fails and cannot be resumed, treat it as in Step 7a: general-reviewer failure marks the PR failed and cascade-skips dependents (Step 8); a failed tests/simplicity reviewer is dropped from `pr.reviewer_configs` and the PR completes when the remaining reviewers are clean.
 
 ## In-Progress Reporting
 
