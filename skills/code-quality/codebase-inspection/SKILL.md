@@ -1,8 +1,8 @@
 ---
 name: codebase-inspection
-description: "Inspect codebases w/ pygount: LOC, languages, ratios."
-when-to-use: "Repository LOC count, language breakdown, file counts, and code-vs-comment ratios using pygount — general 'how big is this repo' questions."
-argument-hint: "[--format=summary|json] [--suffix=<langs>] [--folders-to-skip=<globs>] [<path>]"
+description: "Inspect codebases: LOC, languages, ratios via pygount, plus symbol/call graphs and blast radius via CodeGraph."
+when-to-use: "Repository LOC counts, language breakdowns, file counts, and code-vs-comment ratios (pygount — general 'how big is this repo' questions); or symbol lookup, callers/callees, cross-file impact, and test selection for a set of changed files (CodeGraph — use before grep/Read when asking 'what breaks if I change this')."
+argument-hint: "[pygount] [--format=summary|json] [--suffix=<langs>] [--folders-to-skip=<globs>] [<path>]  |  [codegraph] <project-path>"
 metadata:
   tags:
     - LOC
@@ -11,15 +11,36 @@ metadata:
     - Codebase
     - Metrics
     - Repository
+    - symbols
+    - call graph
+    - impact
+    - CodeGraph
   related_skills:
     - github-repo-management
 ---
 
-# Codebase Inspection with pygount
+# Codebase Inspection
 
-Analyze repositories for lines of code, language breakdown, file counts, and code-vs-comment ratios using `pygount`.
+Two complementary lenses on a codebase, routed by the question:
 
-## When to Use
+| Question | Tool | Scenario |
+|---|---|---|
+| How big is this repo? Language mix? Code-vs-comment ratios? | `pygount` | Basic LOC metrics below |
+| What calls this symbol? What breaks if I change it? Which tests cover it? | `CodeGraph` | [`references/codegraph.md`](references/codegraph.md) |
+
+They answer different jobs: pygount counts lines by language; CodeGraph resolves symbols and the
+edges between them. Reach for CodeGraph **before** grep/Read, not after they fail. Grep matches
+text; CodeGraph answers "what breaks if I change this", "which tests cover this file", "what
+calls this and how".
+
+---
+
+## pygount — LOC Metrics
+
+Analyze repositories for lines of code, language breakdown, file counts, and code-vs-comment
+ratios using `pygount`.
+
+### When to Use
 
 - User asks for LOC (lines of code) count
 - User wants a language breakdown of a repo
@@ -27,14 +48,13 @@ Analyze repositories for lines of code, language breakdown, file counts, and cod
 - User wants code-vs-comment ratios
 - General "how big is this repo" questions
 
-## Prerequisites
+### Prerequisites
 
 ```bash
 pip install --break-system-packages pygount 2>/dev/null || pip install pygount
+```
 
-```text
-
-## 1. Basic Summary (Most Common)
+### 1. Basic Summary (Most Common)
 
 Get a full language breakdown with file counts, code lines, and comment lines:
 
@@ -43,12 +63,12 @@ cd /path/to/repo
 pygount --format=summary \
   --folders-to-skip=".git,node_modules,venv,.venv,__pycache__,.cache,dist,build,.next,.tox,.eggs,*.egg-info" \
   .
+```
 
-```text
+**IMPORTANT:** Always use `--folders-to-skip` to exclude dependency/build directories, otherwise
+pygount will crawl them and take a very long time or hang.
 
-**IMPORTANT:** Always use `--folders-to-skip` to exclude dependency/build directories, otherwise pygount will crawl them and take a very long time or hang.
-
-## 2. Common Folder Exclusions
+### 2. Common Folder Exclusions
 
 Adjust based on the project type:
 
@@ -61,10 +81,9 @@ Adjust based on the project type:
 
 # General catch-all
 --folders-to-skip=".git,node_modules,venv,.venv,__pycache__,.cache,dist,build,.next,.tox,vendor,third_party"
+```
 
-```text
-
-## 3. Filter by Specific Language
+### 3. Filter by Specific Language
 
 ```bash
 # Only count Python files
@@ -72,10 +91,9 @@ pygount --suffix=py --format=summary .
 
 # Only count Python and YAML
 pygount --suffix=py,yaml,yml --format=summary .
+```
 
-```text
-
-## 4. Detailed File-by-File Output
+### 4. Detailed File-by-File Output
 
 ```bash
 # Default format shows per-file breakdown
@@ -83,10 +101,9 @@ pygount --folders-to-skip=".git,node_modules,venv" .
 
 # Sort by code lines (pipe through sort)
 pygount --folders-to-skip=".git,node_modules,venv" . | sort -t$'\t' -k1 -nr | head -20
+```
 
-```text
-
-## 5. Output Formats
+### 5. Output Formats
 
 ```bash
 # Summary table (default recommendation)
@@ -97,10 +114,9 @@ pygount --format=json .
 
 # Pipe-friendly: Language, file count, code, docs, empty, string
 pygount --format=summary . 2>/dev/null
+```
 
-```text
-
-## 6. Interpreting Results
+### 6. Interpreting Results
 
 The summary table columns:
 
@@ -118,9 +134,21 @@ Special pseudo-languages:
 - `__duplicate__` — files with identical content
 - `__unknown__` — unrecognized file types
 
-## Pitfalls
+### Pitfalls
 
-1. **Always exclude .git, node_modules, venv** — without `--folders-to-skip`, pygount will crawl everything and may take minutes or hang on large dependency trees.
-2. **Markdown shows 0 code lines** — pygount classifies all Markdown content as comments, not code. This is expected behavior.
-3. **JSON files show low code counts** — pygount may count JSON lines conservatively. For accurate JSON line counts, use `wc -l` directly.
-4. **Large monorepos** — for very large repos, consider using `--suffix` to target specific languages rather than scanning everything.
+1. **Always exclude .git, node_modules, venv** — without `--folders-to-skip`, pygount will crawl
+   everything and may take minutes or hang on large dependency trees.
+2. **Markdown shows 0 code lines** — pygount classifies all Markdown content as comments, not
+   code. This is expected behavior.
+3. **JSON files show low code counts** — pygount may count JSON lines conservatively. For
+   accurate JSON line counts, use `wc -l` directly.
+4. **Large monorepos** — for very large repos, consider using `--suffix` to target specific
+   languages rather than scanning everything.
+
+---
+
+## CodeGraph — Symbol & Call Graph
+
+For the symbol-graph job (callers, callees, blast radius, test selection), load
+[`references/codegraph.md`](references/codegraph.md) — the CodeGraph MCP tool table, the CLI
+direct-query syntax, and the "an index must exist first" notes live there.
