@@ -7,6 +7,15 @@ role: reference
 
 Mechanical validation for a SKILL.md before publishing. Design rules are Global Rules in `SKILL.md`; this file holds what they do not: the full key table, the validator's rule catalog, naming/description/content detail, and the checklists.
 
+## Scope resolution
+
+The `audit` mode auto-resolves its scope from the `[skill-dir]` argument:
+
+- **Single skill** — `[skill-dir]` names one skill folder (`<category>/<skill>/`). Run the checklist below for that one `SKILL.md`; run `aa skills validate` scoped to it.
+- **Pack / category** — `[skill-dir]` names a category (`<category>/`) or the skills root. Run the single-skill checklist for every `SKILL.md` in the tree, then add the pack-wide checks: no `unique-skill-name` or `unique-description` collisions across skills, no dangling cross-skill links, every skill correctly placed under `skill-placement`, and category `DESCRIPTION.md` present. Run `aa skills validate` over the whole tree.
+
+When the argument is ambiguous, default to the single-skill scope if the path ends in a folder containing a `SKILL.md`, otherwise the pack scope.
+
 ## Frontmatter keys
 
 Which keys are mandatory is a Global Rule; this table is the full key reference, including the optional ones.
