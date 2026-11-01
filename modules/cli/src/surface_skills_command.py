@@ -89,17 +89,31 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _print_usage() -> None:
     banner()
-    info(f"{BOLD()}aa skills list{RESET()}                  List all skills in the pack")
+    info(
+        f"{BOLD()}aa skills list{RESET()}                  List all skills in the pack"
+    )
     info(f"{BOLD()}aa skills show <name>{RESET()}           Print a skill's SKILL.md")
     info(f"{BOLD()}aa skills validate{RESET()}              Report validation issues")
-    info(f"{BOLD()}aa skills catalog [--check]{RESET()}     Rebuild CATALOG.md (or test it)")
+    info(
+        f"{BOLD()}aa skills catalog [--check]{RESET()}     Rebuild CATALOG.md (or test it)"
+    )
     info(f"{BOLD()}aa skills discover <query>{RESET()}      Search the catalog")
-    info(f"{BOLD()}aa skills weed{RESET()}                  Report duplicates and empty categories")
-    info(f"{BOLD()}aa skills repair [--apply]{RESET()}      Apply safe mechanical repairs")
-    info(f"{BOLD()}aa skills move <skill> <cat>{RESET()}    Move a skill to another category")
-    info(f"{BOLD()}aa skills archive <skill>{RESET()}       Archive a skill into _archive/")
+    info(
+        f"{BOLD()}aa skills weed{RESET()}                  Report duplicates and empty categories"
+    )
+    info(
+        f"{BOLD()}aa skills repair [--apply]{RESET()}      Apply safe mechanical repairs"
+    )
+    info(
+        f"{BOLD()}aa skills move <skill> <cat>{RESET()}    Move a skill to another category"
+    )
+    info(
+        f"{BOLD()}aa skills archive <skill>{RESET()}       Archive a skill into _archive/"
+    )
     info(f"{BOLD()}aa skills new-category <name>{RESET()}    Create a category")
-    info(f"{BOLD()}aa skills merge-plan <a> <b>{RESET()}    Emit the read-only merge plan")
+    info(
+        f"{BOLD()}aa skills merge-plan <a> <b>{RESET()}    Emit the read-only merge plan"
+    )
     info(f"{BOLD()}aa skills rules [--markdown]{RESET()}    Render the rule SSOT")
 
 
@@ -115,7 +129,7 @@ def _split_root(args: list[str]) -> tuple[SkillsRoot | None, list[str]]:
     index = 0
     while index < len(args):
         token = args[index]
-        if token == "--skills-root" and index + 1 < len(args):
+        if token == "--skills-root" and index + 1 < len(args):  # nosec B105
             root = SkillsRoot(resolve_skills_root(args[index + 1]))
             index += 2
             continue
@@ -162,7 +176,7 @@ def _cmd_show(args: list[str], aggregate: ISkillsAggregate) -> int:
         SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery(name), root=root)
     )
     if not result.ok or result.content is None:
-        err(f"Skill not found: {name}")
+        err("Skill not found")
         return 1
     print(result.content)
     return 0
@@ -208,7 +222,9 @@ def _authoring_parser() -> argparse.ArgumentParser:
         ),
     )
 
-    sub = subparsers.add_parser("catalog", help="Rebuild CATALOG.md (or check for drift)")
+    sub = subparsers.add_parser(
+        "catalog", help="Rebuild CATALOG.md (or check for drift)"
+    )
     add_common(sub)
     sub.add_argument(
         "--check",
@@ -229,7 +245,9 @@ def _authoring_parser() -> argparse.ArgumentParser:
     )
     add_common(sub)
     sub.add_argument(
-        "--apply", action="store_true", help="Execute the repairs (default is a preview)"
+        "--apply",
+        action="store_true",
+        help="Execute the repairs (default is a preview)",
     )
 
     sub = subparsers.add_parser("move", help="Move a skill to a target category")
@@ -244,16 +262,24 @@ def _authoring_parser() -> argparse.ArgumentParser:
     add_common(sub)
     sub.add_argument("skill", help="Skill reference, e.g. category/skill-name")
     sub.add_argument(
-        "--apply", action="store_true", help="Execute the archive (default is a preview)"
+        "--apply",
+        action="store_true",
+        help="Execute the archive (default is a preview)",
     )
 
-    sub = subparsers.add_parser("new-category", help="Create category and DESCRIPTION.md")
+    sub = subparsers.add_parser(
+        "new-category", help="Create category and DESCRIPTION.md"
+    )
     add_common(sub)
     sub.add_argument("name", help="Category folder name")
-    sub.add_argument("description", nargs="?", default=None, help="Category description")
+    sub.add_argument(
+        "description", nargs="?", default=None, help="Category description"
+    )
     sub.add_argument("--force", action="store_true", help="Overwrite DESCRIPTION.md")
     sub.add_argument(
-        "--apply", action="store_true", help="Execute the creation (default is a preview)"
+        "--apply",
+        action="store_true",
+        help="Execute the creation (default is a preview)",
     )
 
     sub = subparsers.add_parser(
@@ -426,7 +452,9 @@ def _issue_payload(issue: Issue) -> dict[str, object]:
 def _render_validate(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a validation report, narrowed by --category/--rules-only."""
     report = result.report
-    assert report is not None
+    if report is None:
+        err("Internal error: no validation report produced")
+        return 1
     total = report.issue_count
     issues = list(report.issues)
 
@@ -468,7 +496,9 @@ def _render_validate(result: SkillsResult, request: SkillsRequest) -> int:
         request.flags.get("category"), request.flags.get("rules_only")
     )
     if scope_note:
-        print(f"{total} validation issue(s) found ({len(issues)} in scope {scope_note}):")
+        print(
+            f"{total} validation issue(s) found ({len(issues)} in scope {scope_note}):"
+        )
     else:
         print(f"{total} validation issue(s) found:")
 
@@ -497,7 +527,9 @@ def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
 
     if request.flags.get("check") == "1":
         check = result.check
-        assert check is not None
+        if check is None:
+            err("Internal error: no catalog check result produced")
+            return 1
         if request.json:
             _emit_json(
                 {
@@ -514,7 +546,9 @@ def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
         return 0 if check.in_sync else _EXIT_DRIFT
 
     report = result.catalog
-    assert report is not None
+    if report is None:
+        err("Internal error: no catalog report produced")
+        return 1
     if request.json:
         _emit_json(
             {
@@ -579,7 +613,9 @@ def _weed_issue(line: str) -> dict[str, str]:
 def _render_weed(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the weeding report; any weed line means exit 1."""
     plan = result.plan
-    assert plan is not None
+    if plan is None:
+        err("Internal error: no weed plan produced")
+        return 1
     lines = list(plan.lines)
     root = _root_of(result)
 
@@ -604,7 +640,9 @@ def _render_weed(result: SkillsResult, request: SkillsRequest) -> int:
 def _render_repair(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a repair preview or the applied report."""
     plan = result.plan
-    assert plan is not None
+    if plan is None:
+        err("Internal error: no repair plan produced")
+        return 1
     root = _root_of(result)
     catalog = root / "CATALOG.md"
 
@@ -643,7 +681,9 @@ def _render_repair(result: SkillsResult, request: SkillsRequest) -> int:
 def _render_move(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a move preview, the applied report, or the already-there case."""
     plan = result.plan
-    assert plan is not None
+    if plan is None:
+        err("Internal error: no move plan produced")
+        return 1
     root = _root_of(result)
     catalog = root / "CATALOG.md"
 
@@ -680,7 +720,9 @@ def _render_move(result: SkillsResult, request: SkillsRequest) -> int:
 def _render_archive(result: SkillsResult, request: SkillsRequest) -> int:
     """Render an archive preview or the applied report."""
     plan = result.plan
-    assert plan is not None
+    if plan is None:
+        err("Internal error: no archive plan produced")
+        return 1
     root = _root_of(result)
     catalog = root / "CATALOG.md"
     source = relpath(plan.source, root) if plan.source else ""
@@ -713,7 +755,9 @@ def _render_archive(result: SkillsResult, request: SkillsRequest) -> int:
 def _render_new_category(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a category-creation preview or the applied report."""
     plan = result.new_category
-    assert plan is not None
+    if plan is None:
+        err("Internal error: no new-category plan produced")
+        return 1
     root = _root_of(result)
     catalog = root / "CATALOG.md"
 
@@ -756,7 +800,9 @@ def _render_new_category(result: SkillsResult, request: SkillsRequest) -> int:
 def _render_merge_plan(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the merge plan (JSON projections keep the legacy key order)."""
     plan = result.merge
-    assert plan is not None
+    if plan is None:
+        err("Internal error: no merge plan produced")
+        return 1
     root = _root_of(result)
 
     if request.json:
