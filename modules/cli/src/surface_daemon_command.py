@@ -133,6 +133,12 @@ def _local_call(mgr: IDaemonAggregate, method: str, rest: list[str]) -> int:
     """Invoke a capability-specific manager method, keeping the legacy defaults."""
     if method in _DEFAULT_ARG:
         return int(getattr(mgr, method)(rest[0] if rest else _DEFAULT_ARG[method]))
+    if method == "import_omniroute":
+        fn = getattr(mgr, "import_omniroute", None)
+        if fn is None:
+            print("import-omniroute is not available on this daemon.", file=sys.stderr)
+            return int(mgr.help())
+        return int(fn(rest))
     return int(getattr(mgr, method)())
 
 
@@ -183,10 +189,6 @@ def cmd_9router(
     manager: IDaemonAggregate | None = None,
 ) -> int:
     """aa 9router <command> — start|stop|restart|status|logs|models|service-*|help."""
-    if args and args[0] == "import-omniroute":
-        from modules.daemon.src.capabilities_9router_import_omniroute import run_import
-
-        return run_import(args[1:])
     return _dispatch(
         orch,
         manager or _manager("9router"),

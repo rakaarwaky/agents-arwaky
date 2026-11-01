@@ -3,6 +3,9 @@ from __future__ import annotations
 
 from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
 from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
+from modules.daemon.src.capabilities_9router_import_omniroute import (
+    NineRouterImportOmniroute,
+)
 from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
@@ -14,7 +17,8 @@ class DaemonContainer:
     def __init__(self) -> None:
         anytype = AnytypeDaemonManager()
         omniroute = OmnirouteDaemonManager()
-        ninerouter = NinerouterDaemonManager()
+        nine_import = NineRouterImportOmniroute()
+        ninerouter = NinerouterDaemonManager(import_omni=nine_import)
         self._orchestrator = DaemonOrchestrator(anytype, omniroute, ninerouter)
         self._anytype = anytype
         self._omniroute = omniroute

@@ -38,15 +38,13 @@ from modules.shared.src.harness.contract_harness_protocol import (
 from modules.shared.src.harness.taxonomy_harness_constant import (
     FALLBACK_MCP_COMMANDS,
     PLACEHOLDER_KEYS,
+    SESSION_CONF_9ROUTER,
 )
 from modules.shared.src.harness.taxonomy_harness_vo import (
     ConnectOpts,
     ExitCode,
     RouterCredentials,
 )
-
-#: environment.d session-conf filename owned by the secondary 9router gateway.
-_SESSION_CONF_9ROUTER = "9router.conf"
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -168,7 +166,7 @@ class HarnessConnector(IHarnessConnectProtocol):
         synced_session_9router = False
         if not opts.dry_run:
             for envd in adapter.session_conf_files():
-                if envd.name == _SESSION_CONF_9ROUTER:
+                if envd.name == SESSION_CONF_9ROUTER:
                     # The 9router layer carries only its own pair and is
                     # written on demand; the omniroute layer is untouched
                     # beyond its existing single-pair content.

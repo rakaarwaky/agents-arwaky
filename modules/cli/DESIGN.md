@@ -1,44 +1,56 @@
 # CLI Surface Design
 
-## Brand & Style
+## Design Overview
 
-The CLI surface layer is the operator's point of contact with agents-arwaky.
-Subcommand names use `aa` as the single entry-point verb; feature commands
-(`backup`, `config`, `daemon`, `doctor`, `harness`, `mcp`, `service`,
-`skills`, `tools`) are short, lowercase, and kebab-case where they contain
-multiple words. Each command module returns a typed `int` exit code via the
-feature aggregate; no surface function raises to the top level.
+Each CLI verb is a thin surface adapter: it parses its argv slice, builds a
+domain request value object, and hands it to the feature aggregate's single
+`execute` entry point. Capability-specific verbs with no other daemon
+implementation stay beside their shared dispatch in one surface file, and
+no surface module imports a capability module directly.
 
-## Components
+## Design Requirements
 
-| Module | Subcommands | Feature Factory Injection |
-|--------|-------------|---------------------------|
-| `surface_backup_command.py` | `backup`, `restore` | `create_backup_feature` |
-| `surface_config_command.py` | `config` | `create_config_feature` |
-| `surface_daemon_command.py` | `anytype`, `omniroute` | `create_daemon_feature` |
-| `surface_doctor_command.py` | `doctor`, `status` | `create_doctor_feature` |
-| `surface_harness_command.py` | `connect`, `disconnect` | `create_harness_feature` |
-| `surface_mcp_command.py` | `mcp` | `create_mcp_feature` |
-| `surface_service_command.py` | `service` | `create_service_feature` |
-| `surface_skills_command.py` | `skills` (`list`, `show`, `validate`, `catalog`, `discover`, `weed`, `repair`, `move`, `archive`, `new-category`, `merge-plan`, `rules`) | `default_aggregate` (aggregate injected) |
-| `surface_tools_command.py` | `tool`, `install`, `update`, `uninstall` | `create_tools_feature` |
+### DS-CLI-001: One aggregate `execute` per shared verb
 
-Invariants:
+| Variant | Use case | Token | Value |
+|---------|----------|-------|-------|
+| shared  | start / stop / restart / status / logs / service-* | `DaemonRequest` | `IDaemonAggregate.execute` |
 
-- No surface file performs I/O — all side effects go through the feature aggregate.
-- `surface_skills_command.py` parses argv into a `SkillsRequest`, renders the
-  returned `SkillsResult` (text or legacy-ordered JSON), and returns its
-  `exit_code` (0 clean / 1 issues / 2 usage / 3 catalog drift). It imports the
-  aggregate contract plus shared taxonomy/utility only — never the agent,
-  a capability, or the composition root (AES205).
-- The skills surface keeps `list`/`show` byte-identical to their historical
-  output; the authoring verbs add the ported skill-authoring contract.
-- No surface file defines a capability or orchestrator class.
-- Each module exposes `cmd_<name>(argv: list[str]) -> int` for `root_cli_entry`.
+### DS-CLI-002: Branch-only import for capability-specific verbs
+
+| Variant | Use case | Token | Value |
+|---------|----------|-------|-------|
+| local   | import-omniroute | local `run_import` call | `cmd_9router` branch |
+
+### DS-CLI-003: Keep the surface within the function cap
+
+| Variant | Use case | Token | Value |
+|---------|----------|-------|-------|
+| shared  | many verbs on one daemon | grouped verb map | AES406 cap |
+
+### DS-CLI-004: Keep local-only verbs beside their dispatch
+
+| Variant | Use case | Token | Value |
+|---------|----------|-------|-------|
+| local   | verbs unique to a daemon | local branch | no extra file |
+
+### DS-CLI-005: Route tools and wiring verbs through their aggregates
+
+| Variant | Use case | Token | Value |
+|---------|----------|-------|-------|
+| shared  | tools / harness / mcp / service / config / doctor / skills / backup | per-feature aggregate | `I<Feature>Aggregate.execute` |
+
+### DS-CLI-006: Surface returns the aggregate exit code unchanged
+
+| Variant | Use case | Token | Value |
+|---------|----------|-------|-------|
+| shared  | every verb | `int` | process exit code |
 
 ## Reference
 
-- `modules/root_cli_entry.py` — wires feature factories to the surface via DI.
-- `DESIGN` layer of the AES 7-layer model: this folder is the sole surface
-  folder in the Python `modules/` layout.
-- AES703 surface-purity rule requires DESIGN.md + BACKLOG.md beside the source.
+| Artifact     | Purpose                                         | Link |
+|--------------|-------------------------------------------------|------|
+| PRD          | <Business goals, user stories, and scope>       | [PRD.md](../../PRD.md) |
+| Backlog      | <Task tracking, epics, and implementation status>| [BACKLOG.md](BACKLOG.md) |
+| Roadmap      | <Timeline, phasing, and dependencies>           | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | <System boundaries, tech stack, and infra>      | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

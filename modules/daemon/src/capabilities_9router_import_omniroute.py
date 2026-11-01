@@ -29,16 +29,27 @@ import os
 import re
 import sqlite3
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from modules.daemon.src.capabilities_9router_daemon import cmd_start, cmd_stop
+from modules.shared.src.daemon.contract_daemon_import_protocol import (
+    I9routerImportOmnirouteProtocol,
+)
+from modules.shared.src.daemon.taxonomy_daemon_constant import (
+    ENC_PREFIX,
+    NINEROUTER_DB_DEFAULT,
+    OMNI_TO_NINE_FIELDS,
+    OMNIROUTE_DB_DEFAULT,
+    SKIPPED_FIELDS,
+    STORAGE_ENCRYPTION_KEY_ENV,
+)
+from modules.shared.src.daemon.taxonomy_daemon_vo import ExitCode
 
 __all__ = [
-    "ENC_PREFIX",
     "NINEROUTER_DB_DEFAULT",
     "OMNIROUTE_DB_DEFAULT",
-    "STORAGE_ENCRYPTION_KEY_ENV",
+    "NineRouterImportOmniroute",
     "decrypt_field",
     "derive_key",
     "execute_plan",
@@ -54,38 +65,57 @@ __all__ = [
     "write_via_sqlite",
 ]
 
-STORAGE_ENCRYPTION_KEY_ENV = "STORAGE_ENCRYPTION_KEY"
-OMNIROUTE_DB_DEFAULT = str(Path.home() / ".omniroute" / "storage.sqlite")
-NINEROUTER_DB_DEFAULT = str(Path.home() / ".9router" / "db" / "data.sqlite")
-ENC_PREFIX = "enc:v1:"
-# OmniRoute column names (lower_snake) -> 9router data JSON keys (camelCase).
-OMNI_TO_NINE_FIELDS = {
-    "access_token": "accessToken",
-    "refresh_token": "refreshToken",
-    "expires_at": "expiresAt",
-    "token_expires_at": "expiresAt",
-    "scope": "scope",
-    "id_token": "idToken",
-    "expires_in": "expiresIn",
-    "project_id": "projectId",
-    "token_type": "tokenType",
-    "display_name": "displayName",
-    "default_model": "defaultModel",
-    "provider_specific_data": "providerSpecificData",
-}
-
-#: Fields OmniRoute keeps that have no 9router equivalent (reported only).
-SKIPPED_FIELDS = (
-    "group",
-    "max_concurrent",
-    "global_priority",
-    "_9router_skipped_fields",
-)
+# ─── Block 1: Class Definition & Constructor ──────────────
 
 
-# --------------------------------------------------------------------------- #
-# Decryption (ported from vendor/omniroute/src/lib/db/encryption.ts)
-# --------------------------------------------------------------------------- #
+class NineRouterImportOmniroute(I9routerImportOmnirouteProtocol):
+    """OmniRoute -> 9router credential import capability.
+
+    Implements ``I9routerImportOmnirouteProtocol``. The daemon stop/start
+    callables are injected by the composition root so this capability never
+    imports a sibling capability module (AES201).
+    """
+
+    def __init__(
+        self,
+        stop_fn: Callable[[], None] | None = None,
+        start_fn: Callable[[], None] | None = None,
+    ) -> None:
+        """Store the daemon lifecycle callables injected by the container."""
+        self._stop_fn = stop_fn
+        self._start_fn = start_fn
+
+    # ─── Block 2: Protocol Trait Implementation ──────────────
+
+    def run_import(
+        self,
+        argv: list[str],
+        stop_fn: Callable[[], None] | None = None,
+        start_fn: Callable[[], None] | None = None,
+    ) -> ExitCode:
+        """CLI entry for ``9router import-omniroute [--dry-run] [--provider X]``."""
+        stop = stop_fn or self._stop_fn or (lambda: None)
+        start = start_fn or self._start_fn or (lambda: None)
+        return ExitCode(_run_import(argv, stop, start))
+
+# ─── Block 3: Constructors, Std Traits, Helpers ───────────
+
+
+def run_import(
+    argv: list[str],
+    stop_fn: Callable[[], None] | None = None,
+    start_fn: Callable[[], None] | None = None,
+) -> int:
+    """Module-level convenience entry (used by the CLI surface).
+
+    Wraps :class:`NineRouterImportOmniroute`; when *stop_fn*/*start_fn* are
+    omitted the capability falls back to no-op no-ops so the dry-run path
+    still works without a daemon.
+    """
+    stop = stop_fn or (lambda: None)
+    start = start_fn or (lambda: None)
+    return NineRouterImportOmniroute(stop, start).run_import(argv)
+
 
 def _static_salt() -> bytes:
     return b"omniroute-field-encryption-v1"
@@ -228,7 +258,9 @@ def _open_ro(db_path: str) -> sqlite3.Connection:
     return conn
 
 
-def load_omniroute_connections(db_path: str = OMNIROUTE_DB_DEFAULT, secret: str | None = None) -> list[dict[str, Any]]:
+def load_omniroute_connections(
+    db_path: str = OMNIROUTE_DB_DEFAULT, secret: str | None = None
+) -> list[dict[str, Any]]:
     """Read every provider_connections row from OmniRoute, read-only.
 
     Decrypts ``api_key`` / ``access_token`` / ``refresh_token`` / ``id_token``.
@@ -677,10 +709,10 @@ def execute_plan(
 # CLI entry
 # --------------------------------------------------------------------------- #
 
-def run_import(
+def _run_import(
     argv: list[str],
-    connections: list[dict[str, Any]] | None = None,
-    nodes: list[dict[str, Any]] | None = None,
+    stop_fn: Callable[[], None],
+    start_fn: Callable[[], None],
 ) -> int:
     """CLI entry for ``9router import-omniroute [--dry-run] [--provider X]``."""
     dry_run = False
@@ -708,11 +740,8 @@ def run_import(
             return 2
         i += 1
 
-    if connections is None:
-        connections = load_omniroute_connections()
-    print(f"  source:        {OMNIROUTE_DB_DEFAULT} (read-only)")
-    if nodes is None:
-        nodes = load_omniroute_nodes()
+    connections = load_omniroute_connections()
+    nodes = load_omniroute_nodes()
     plan = plan_import(connections, nodes, providers=providers or None)
 
     print("9router import-omniroute plan")
@@ -739,10 +768,10 @@ def run_import(
     # SQLite write requires the daemon stopped first (per transport decision),
     # then restarted and health re-verified.
     print("  stopping 9router daemon before SQLite write...")
-    cmd_stop()
+    stop_fn()
     counts = write_via_sqlite(plan["items"], dry_run=False)
     print("  starting 9router daemon after SQLite write...")
-    cmd_start()
+    start_fn()
     print(f"  imported:      {counts['imported']}")
     print(f"  skipped:       {counts['skipped_existing']}")
     print(f"  errors:        {counts['errors']}")

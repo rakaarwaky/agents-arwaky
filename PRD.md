@@ -1,104 +1,103 @@
-# PRD — agents-arwaky
+# PRD — <PROJECT-NAME>
 
-> Product Requirements Document. Describes WHAT this project does and WHY.
-> Audience: Stakeholders, PM, Design, Engineering leads.
-> Real condition lives in [ROADMAP.md](ROADMAP.md) (workspace) + each feature's `BACKLOG.md`; this file is specification only.
+## Project Overview
 
-## Problem Statement
+<One diagram and one paragraph: what the project is, who it is for, why it matters, and what happens if it is not solved.>
 
-An operator maintaining a polyglot AI-tool ecosystem (Rust linters, Python MCP
-servers, npm/bun/pnpm upstreams, in-house agents, 2 daemons, and an agent-skill
-pack) faces three daily failures. First, every tool needs its own install/update/
-uninstall path, so adding one tool means a new script plus a new entry in a dozen
-places. Second, AI coding harnesses (Hermes, OpenCode, Grok Build)
-each discover MCP servers and skills differently, so "connect everything" is
-re-litigated by hand. Third, the architecture layering (7 AES layers, naming
-conventions, per-tool XDG paths) is enforced in the agent's head, not in the
-code — so drift accumulates silently and "is this repo consistent?" has no answer.
+## Goals
 
-## Goals & Success Metrics
+- <Primary business goal>
+- <Primary user goal>
+- <Strategic objective>
 
-| # | Goal | Measurement | Target |
-|---|------|-------------|--------|
-| 1 | One-command tool lifecycle: install, update, uninstall of any registered tool resolves from a single manifest, not per-tool scripts scattered by hand | `aa tool install <id>` succeeds for every tool id in `config/manifest.json` on a clean host | 100% of manifest tools |
-| 2 | One-command harness connection: MCP config and skill provisioning for every supported harness is generated and verified | `aa connect --all` exits 0 and `aa mcp list` reports every server in the manifest as reachable | 100% of servers |
-| 3 | Architecture compliance is machine-checked: every module obeys AES 7-layer naming, flat shared layout, no contract in shared | `lint-arwaky scan modules` exits 0 on the tree | 0 errors |
-| 4 | Real-condition is tracked per feature: a spec row and a backlog row exist together, and every `Done` claim cites a re-runnable command + commit | manual review of feature FRD/BACKLOG pairs | 0 gaps |
-| 5 | New-tool onboarding is a single-file data change: adding a tool to the manifest produces a working install/update/uninstall/runner | `aa tool install <id>` succeeds without new module code | 1 tool = 0 new modules |
+## Non-Goals
 
-## User Personas
+- <Explicitly excluded scope for this project>
+- <Related problems not being solved in this release>
+- <Future considerations not included now>
 
-- **The operator on a fresh machine**: clones the repo, runs the provisioner, and
-  gets a working multi-agent toolchain in under ten minutes. Done = `aa doctor`
-  green and the skill pack listing cleanly.
-- **The tool maintainer**: adds or upgrades one tool (often an upstream commit
-  bump) and wants the lifecycle to be a data edit, not a script rewrite.
-  Done = manifest entry + one capability module; no hand-edited scripts.
-- **The agent harness user**: runs a coding agent and expects its MCP servers and
-  skill packs to be pre-wired so the agent finds tools without per-harness setup.
-  Done = `aa connect <harness>` produces a verified config the harness loads.
-- **The AI agent editing this repo**: must work safely without a human re-telling
-  it the conventions every session. Done = AGENTS.md + the `aa` gates keep it in
-  bounds.
+## Target Users
+
+| Persona | Need | Current Pain | Desired Outcome |
+|---------|------|--------------|-----------------|
+| <persona> | <need> | <pain> | <outcome> |
 
 ## Scope
 
-- **In scope**: bare-metal host toolchain installation (Rust/cargo, Node/npm/pnpm,
-  Bun, Python/uv), per-tool XDG data/cache layout, the unified `aa` orchestrator
-  CLI, AES 7-layer module architecture, in-house agent submodules, pinned vendor
-  submodules, the OmniRoute and 9Router host-native daemons and the Anytype (Podman) daemon, the
-  agent-skill pack, and doc-invariant gating.
-- **Out of scope**: cloud provisioning, a package manager for the host itself,
-  Windows/macOS host support (Linux-first), GUI tooling, and any feature that
-  requires rewriting a pinned vendor's source (customizations live in in-house
-  modules, never in `vendor/`).
+### In Scope
 
-## Feature Requirements (Prioritized)
+- <Major capability or module included in this project>
+- <User journey included>
+- <Integration included>
 
-### P0 — Must Have
+### Out of Scope
 
-- Register every tool in one machine-readable manifest as the single source of
-  truth. Acceptance: `aa tool list` output equals the manifest's tool ids.
-- Install / update / uninstall / run any registered tool via `aa tool`
-  subcommands. Acceptance: `aa tool install <id>` then `aa tool run <id> --help`
-  exits 0 on a clean host.
-- Generate MCP client config and provision skills for a named harness. Acceptance:
-  `aa connect <harness>` exits 0 and `aa mcp list` reports the servers.
-- Enforce AES 7-layer architecture and flat shared layout. Acceptance: `lint-arwaky scan modules`
-  exits 0 on the tree and fails on a layer violation.
-- Track doc real-condition with invariants. Acceptance: manual review of FEATURE/BACKLOG pairs
-  reports no unevidenced rows.
+- <Major capability excluded from this project>
+- <User journey excluded>
+- <Future enhancement>
 
-### P1 — Should Have
+---
 
-- Daemon lifecycle (OmniRoute and 9Router host-native, Anytype Podman) with health, API-key, and space join/list.
-  Acceptance: `aa anytype start` then `aa anytype health` reports ready.
-- Document and skill-pack audit. Acceptance: `aa skills validate --summary`
-  reports coverage and `aa skills catalog --check` reports drift; both are CI
-  gates.
-- Reset/clean of build artifacts and per-tool state. Acceptance: `aa clean`
-  removes artifacts and `aa status` reflects the clean state.
+## Project Requirements
 
-### P2 — Nice to Have
+### PR-<PROJECT-NAME-ID>-001: <Short imperative name>
+<!-- Tier P0: entry -001 is always P0. -->
 
-- Version bump automation across the manifest and submodules. Acceptance: a
-  version bump produces a consistent `version.txt` and manifest version.
-- Cross-harness skill sync on session start. Acceptance: a `SessionStart` hook
-  keeps the harness skill directory in sync with the pack.
+#### User Stories
 
-## Non-functional Requirements (High-level)
+| As a | I want | So that | Priority |
+|------|--------|---------|----------|
+| <role> | <capability> | <benefit> | P0 |
 
-| Category | Commitment | Detail lives in |
-|----------|-----------|-----------------|
-| Determinism | `aa skills` produces identical findings on identical trees | `modules/skills/FRD.md` |
-| XDG hygiene | No tool writes persistent data outside its XDG dirs; repo root stays clean | `modules/shared` (kernel; no FRD — see HOW-TO-MAKE-FRD) |
-| Security | No secrets committed; daemon credentials live in `.env`/XDG only | `modules/daemon/FRD.md` |
-| Submodule integrity | Pinned submodule commits are never mutated by a tool run | `modules/AGENTS.md` precedence |
+#### Proposed Solution
 
-## Open Questions / Risks
+<Describe the proposed solution. Focus on what the user experiences and what the system should achieve.>
 
-| # | Question / Risk | Owner | Deadline | Status |
-|---|-----------------|-------|----------|--------|
-| 1 | `tools/` legacy tree still live in the main repo until the `refactor/aes-tools` branch merges; both entry points coexist | @raka | at branch merge | open |
-| 2 | Config static files moved to `modules/shared/config/`; live `.env` files are not tracked — where do operator-local secrets live on a fresh clone? | @raka | before P1 | open |
-| 3 | Doc real-condition is manual-only since the `aa check docs` gate was removed on 2026-09-28; do skill sub-READMEs need a separate audit gate? | @raka | before P2 | open |
+#### Main User Flow
+
+1. <Step 1>
+2. <Step 2>
+3. <Step 3>
+
+### PR-<PROJECT-NAME-ID>-002: <Short imperative name>
+<!-- Tier P1: the first P1 entry. -->
+
+#### User Stories
+
+| As a | I want | So that | Priority |
+|------|--------|---------|----------|
+| <role> | <capability> | <benefit> | P1 |
+
+#### Proposed Solution
+
+<Describe the proposed solution.>
+
+#### Main User Flow
+
+1. <Step 1>
+
+### PR-<PROJECT-NAME-ID>-003: <Short imperative name>
+<!-- Tier P2: the first P2 entry. -->
+
+#### User Stories
+
+| As a | I want | So that | Priority |
+|------|--------|---------|----------|
+| <role> | <capability> | <benefit> | P2 |
+
+#### Proposed Solution
+
+<Describe the proposed solution.>
+
+#### Main User Flow
+
+1. <Step 1>
+
+## Reference
+
+| Artifact     | Purpose                                          | Link |
+|--------------|--------------------------------------------------|------|
+| PRD          | <Business goals and scope>                       | [PRD.md](PRD.md) |
+| Backlog      | <What is true now, with evidence>                | [BACKLOG.md](BACKLOG.md) |
+| Roadmap      | <Timeline, phasing, and dependencies>            | [ROADMAP.md](ROADMAP.md) |
+| Architecture | <System boundaries, tech stack, and infra>       | [ARCHITECTURE.md](ARCHITECTURE.md) |
