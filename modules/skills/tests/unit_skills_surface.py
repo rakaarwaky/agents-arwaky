@@ -212,26 +212,6 @@ def test_discover_empty_query_is_a_usage_error(tmp_path: Path) -> None:
     assert err == "ERROR: Query is empty\n"
 
 
-def test_json_is_accepted_but_ignored_by_rules(tmp_path: Path) -> None:
-    root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(root, "rules", "--json")
-    assert code == 0
-    assert out.startswith("13 rules from taxonomy_skills_constant.py:")
-
-
-def test_rules_markdown_matches_the_generated_doc(tmp_path: Path) -> None:
-    """``--markdown`` renders the byte-identical rules document (R7)."""
-    root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(root, "rules", "--markdown")
-    assert code == 0
-    document = out
-    from modules.skills.src.capabilities_skills_rules_renderer import (
-        SkillsRulesRenderer,
-    )
-
-    assert document == SkillsRulesRenderer().render_markdown().markdown
-
-
 def test_validate_full_listing_matches_the_legacy_shape(tmp_path: Path) -> None:
     """The per-issue listing keeps the ``- [type] locator: message`` lines."""
     root = crafted_tree(tmp_path)

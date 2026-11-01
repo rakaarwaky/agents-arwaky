@@ -14,7 +14,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
-    ISkillsRulesRendererProtocol,
     ISkillsValidatorProtocol,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
@@ -24,7 +23,6 @@ from modules.skills.src.capabilities_skills_index_builder import SkillsIndexBuil
 from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlanner
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
-from modules.skills.src.capabilities_skills_rules_renderer import SkillsRulesRenderer
 from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 
@@ -87,12 +85,6 @@ def test_merge_planner_implements_protocol() -> None:
     assert isinstance(planner, ISkillsMergePlannerProtocol)
 
 
-def test_rules_renderer_implements_protocol() -> None:
-    """CP-SKILLS-011: SkillsRulesRenderer implements ISkillsRulesRendererProtocol."""
-    renderer = SkillsRulesRenderer()
-    assert isinstance(renderer, ISkillsRulesRendererProtocol)
-
-
 @pytest.mark.parametrize(
     ("capability", "protocol"),
     [
@@ -103,7 +95,6 @@ def test_rules_renderer_implements_protocol() -> None:
         (SkillsDiscoverer, ISkillsDiscovererProtocol),
         (SkillsMutator, ISkillsMutatorProtocol),
         (SkillsMergePlanner, ISkillsMergePlannerProtocol),
-        (SkillsRulesRenderer, ISkillsRulesRendererProtocol),
         (SkillsAgent, ISkillsAggregate),
     ],
     ids=[
@@ -114,7 +105,6 @@ def test_rules_renderer_implements_protocol() -> None:
         "discoverer",
         "mutator",
         "merge-planner",
-        "rules-renderer",
         "agent",
     ],
 )

@@ -73,7 +73,7 @@ RULE_IDS: Final = {
     "category-nonempty": IssueType.EMPTY_CATEGORY,
 }
 
-#: One-line summaries for ``aa skills rules`` and the generated doc headings.
+#: One-line summaries for the skill-rules reference doc headings.
 #: Short imperatives; the full constraint text is the verbatim
 #: ``ISSUE_MESSAGES`` template below.
 SUMMARIES: Final = {
@@ -94,7 +94,7 @@ SUMMARIES: Final = {
 
 #: Loader citations: the file each constraint was first read from. Empty
 #: where no real citation exists — provenance that cannot be traced to a
-#: source is left to ``_rules/RULES.md`` to discuss, never invented here.
+#: source is left to the skill-rules reference doc to discuss, never invented here.
 CITATIONS: Final = {
     "name-mismatch": "`create-skills/SKILL.md` (name must equal the directory)",
     "name-format": (
@@ -182,10 +182,10 @@ class Rule:
     """One named constraint from the executable SSOT.
 
     ``id`` is the kebab-case identifier the rest of the pack links to
-    (``rule("name-format")`` is how ``validate`` and the docs generator
-    both read the detail); ``level`` is the severity; ``summary`` is the
-    one-line form shown by ``aa skills rules``; ``detail_md`` is the
-    verbatim message template the validator emits, so the generated
+    (``rule("name-format")`` is how ``validate`` reads the detail);
+    ``level`` is the severity; ``summary`` is the
+    one-line form shown in the skill-rules reference doc; ``detail_md`` is the
+    verbatim message template the validator emits, so the reference doc
     ``skill-rules.md`` cannot disagree with the executable rule;
     ``why`` is the loader citation (empty when no real citation exists).
     """

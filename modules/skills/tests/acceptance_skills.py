@@ -135,15 +135,6 @@ def test_acceptance_merge_plan_is_read_only(tmp_path: Path):
     assert (root / "drafts" / "doc-drafts").exists()
 
 
-def test_acceptance_rules_render_the_ssot(tmp_path: Path):
-    """AC-SKILLS-017: ``rules`` renders one line per rule."""
-    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
-
-    code, out, _ = run_surface(crafted_tree(tmp_path), "rules")
-    assert code == 0
-    assert out.count("- [error]") == 13
-
-
 def test_acceptance_unknown_subcommand_is_usage_error(tmp_path: Path):
     """AC-SKILLS-018: an unknown verb exits 2, not 1."""
     from modules.skills.tests.fixture_skills import run_surface

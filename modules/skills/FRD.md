@@ -14,7 +14,7 @@ source of truth for *content*; this feature is the single source of truth
 for *the rules about that content*.
 
 Read-only ops: `list`, `show`, `validate`, `catalog`, `discover`, `weed`,
-`merge-plan`, `rules`. Mutating ops (dry-run by default, `--apply` gated,
+`merge-plan`. Mutating ops (dry-run by default, `--apply` gated,
 never deleting): `repair`, `move`, `archive`, `new-category`. The agent —
 never a capability and never the surface — sequences a mutation into its
 catalog rebuild. Provisioning/distribution into harness homes remains
@@ -293,43 +293,6 @@ script are pinned by the surface and contract test files.
 | Target Metric | Value |
 |---------------|-------|
 | Determinism | identical plan on identical trees |
-
-### FR-SKILLS-008: Render the rule SSOT
-
-**Description:** `rules` prints one line per rule; `rules --markdown` prints the generated document byte-identical to the committed `_rules/skill-rules.md`.
-
-#### Business Logic
-
-- `rules --markdown` prints the generated document byte-identical to the committed rule SSOT
-- No markers; deterministic output on every run
-
-#### Edge Cases
-
-- None beyond the typed error → exit code contract
-
-#### Technical Specification
-
-| Aspect | Detail |
-|--------|--------|
-| **Input** | optional `--markdown` flag to select the full document form |
-| **Output** | the one-line-per-rule summary, or the full rules document |
-| **Protocol** | ISkillsRulesRendererProtocol |
-| **Method** | render / render_markdown / render_summary |
-| **Event** | — |
-| **Error** | typed error → exit code |
-
-#### Test
-
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| Summary form | `aa skills rules` | one line per rule |
-| Markdown form | `aa skills rules --markdown` | byte-identical to the committed rule SSOT |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Output parity | byte-identical to the retired legacy script |
 
 ## Public Interface
 

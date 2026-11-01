@@ -2,7 +2,7 @@
 
 One seam per subsystem the skills agent coordinates: the pack index
 (list), the pack reader (show), the validator, the catalog, discovery,
-the mutator, the merge planner, and the rules renderer, plus the
+the mutator, and the merge planner, plus the
 trace-learning trio (the tracker, the phrases miner, and the lifecycle
 state). Capabilities implement these; the composition root injects them
 into the agent.
@@ -27,7 +27,6 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     MutationPlan,
     NewCategoryPlan,
     PhrasesReport,
-    RulesDocument,
     UsageReport,
     ValidationReport,
 )
@@ -37,7 +36,6 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     SkillRef,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
-    RulesSummary,
     ScanResult,
     SkillContent,
     SkillDescription,
@@ -192,20 +190,6 @@ class ISkillsMergePlannerProtocol(ABC):
         ...
 
 
-class ISkillsRulesRendererProtocol(ABC):
-    """Render the rule SSOT for humans and for the generated artifact."""
-
-    @abstractmethod
-    def render_markdown(self) -> RulesDocument:
-        """Render the full rules document (the ``--markdown`` form)."""
-        ...
-
-    @abstractmethod
-    def render_summary(self) -> RulesSummary:
-        """Render the compact one-line-per-rule summary."""
-        ...
-
-
 class ITrackerProtocol(ABC):
     """Scan sessions and build the LLM-read skills-only usage material."""
 
@@ -311,7 +295,6 @@ __all__ = [
     "ISkillsMergePlannerProtocol",
     "ISkillsMutatorProtocol",
     "ISkillsReaderProtocol",
-    "ISkillsRulesRendererProtocol",
     "ISkillsValidatorProtocol",
     "IStateProtocol",
     "ITrackerProtocol",

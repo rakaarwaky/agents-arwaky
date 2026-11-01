@@ -25,8 +25,9 @@ design principles, the interactive creation workflow, and validation rules.
 
 Frontmatter, naming, description, and category-shape constraints are not restated here:
 the executable rules and their exact messages live in
-[`_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md), generated from
-`_rules/skill_rules.py`. This skill teaches how to author, not what the checker enforces.
+`./references/skill-rules.md`, generated from
+`modules/shared/src/skills/taxonomy_skills_rule_vo.py`. This skill teaches how to author,
+not what the checker enforces.
 
 ## Design principles
 
@@ -78,7 +79,7 @@ Rules:
 
 - `name:` matches the directory; satisfies the `name-format` and
   `name-mismatch` rules in
-  [`_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md).
+  `./references/skill-rules.md`.
 - `description:` satisfies the `description-*` rules; carries the WHAT +
   WHEN + trigger terms, so auto-invocation works even without
   `when-to-use:`.
@@ -164,6 +165,8 @@ my-skill/
   structure, content rules, pre-publish checklist).
 - **Explain a skill or pack** / **Generate argument hints** / **Which writer to use** /
   **Verification** → `references/authoring-workflows.md`
+- **Skill rules reference** → `references/skill-rules.md` (the 13 executable rules and their
+  verbatim messages; this skill teaches how to author, not what the checker enforces)
 - **Refining frontmatter in place** → follow the Frontmatter section above, then run
   `aa skills validate`. When the user restates which keys are mandatory, the four mandatory
   keys are `name`, `description`, `when-to-use`, and `argument-hint`; every other key is

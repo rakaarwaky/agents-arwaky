@@ -2,7 +2,7 @@
 
 Typed returns for every authoring capability: validation reports,
 catalog rows/rebuild/check results, discovery results, mutation plans
-and outcomes, merge plans, the rendered rules document, and the
+and outcomes, merge plans, and the
 trace-pipeline report VOs. Pure data — no I/O and no imports from
 utility, capabilities, agent, root, or surface layers. The surface
 projects these to the legacy JSON shapes.
@@ -33,7 +33,6 @@ __all__ = [
     "MutationStep",
     "NewCategoryPlan",
     "PhrasesReport",
-    "RulesDocument",
     "UsageReport",
     "ValidationReport",
 ]
@@ -206,15 +205,6 @@ class MergePlan:
     rewrites: tuple[Mapping[str, str], ...] = ()
     category_after: str = ""
     empty_category_after: str | None = None
-
-
-@dataclass(frozen=True)
-class RulesDocument:
-    """The rendered SSOT: the markdown doc and the one-line-per-rule summary."""
-
-    markdown: str
-    summary: str
-    rule_count: int = 0
 
 
 @dataclass(frozen=True)

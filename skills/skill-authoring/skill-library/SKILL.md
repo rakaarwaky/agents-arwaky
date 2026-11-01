@@ -64,7 +64,6 @@ Dependencies: Python 3.9+. PyYAML is optional but recommended for robust YAML pa
 - `new-category NAME DESCRIPTION`: create a category folder and write its `DESCRIPTION.md`.
 - `archive SKILL`: move a skill into `_archive/` and disable its `SKILL.md`; dry-run by default, `--apply` executes.
 - `merge-plan A B`: emit a read-only plan for merging two skills; hand execution off to `skill-lifecycle` when the plan is approved.
-- `rules [--markdown]`: render the rule set from the SSOT (`modules/skills/_rules/skill-rules.md`).
 
 ### Exit codes
 
@@ -144,7 +143,7 @@ See `references/rename-category.md` for the in-place category rename procedure
 ## Category rules
 
 Category shape and `DESCRIPTION.md` constraints are the rules in
-[`../../../modules/skills/_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md) (`category-description-present`,
+`../skill-design/references/skill-rules.md` (`category-description-present`,
 `category-description-nonempty`, `category-nonempty`, `category-depth`). The category
 description helps the Librarian decide where skills belong; keep it short, concrete, and
 domain-focused. `references/category-rules.md` carries the folder-shape examples.

@@ -2,7 +2,7 @@
 
 Read-only discovery (``list``/``show``) plus the authoring commands
 (``validate``, ``catalog``, ``discover``, ``weed``, ``repair``, ``move``,
-``archive``, ``new-category``, ``merge-plan``, ``rules``).
+``archive``, ``new-category``, ``merge-plan``).
 
 The aggregate is injected by the caller (the root CLI), never imported
 here, so no root→surface coupling exists (AES205). Argv becomes a
@@ -32,6 +32,7 @@ from modules.shared.src.common.utility_skills_markdown import md_escape, yaml_qu
 from modules.shared.src.common.utility_skills_tree import relpath
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.taxonomy_skills_entity import Issue
+from modules.shared.src.skills.taxonomy_skills_error import SkillsUsageError
 from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     RULE_ONLY_ISSUE_TYPES,
 )
@@ -84,7 +85,6 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         "archive",
         "new-category",
         "merge-plan",
-        "rules",
     ):
         return _cmd_authoring(sub, rest, aggregate)
     if sub in ("trace-collect", "trace-usage", "trace-phrases", "trace-state"):
@@ -122,7 +122,6 @@ def _print_usage() -> None:
     info(
         f"{BOLD()}aa skills merge-plan <a> <b>{RESET()}    Emit the read-only merge plan"
     )
-    info(f"{BOLD()}aa skills rules [--markdown]{RESET()}    Render the rule SSOT")
     info(f"{BOLD()}aa skills trace-collect[...]{RESET()}    Scan sessions → build usage (run dir + kept/seen counts)")
     info(f"{BOLD()}aa skills trace-usage[...]{RESET()}      Read last run's usage (skills-only table, unused_loaded)")
     info(f"{BOLD()}aa skills trace-phrases[...]{RESET()}    Mine repeated prompts + instruction lines")
@@ -302,16 +301,6 @@ def _authoring_parser() -> argparse.ArgumentParser:
     sub.add_argument("skill_a", help="First skill reference, category/skill")
     sub.add_argument("skill_b", help="Second skill reference, category/skill")
 
-    sub = subparsers.add_parser(
-        "rules", help="Render the SSOT rules (add --markdown for the full doc)"
-    )
-    add_common(sub)
-    sub.add_argument(
-        "--markdown",
-        action="store_true",
-        help="Print the full rules document (redirect into _rules/skill-rules.md)",
-    )
-
     return parser
 
 
@@ -349,7 +338,7 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         return _render_new_category(result, request)
     if sub == "merge-plan":
         return _render_merge_plan(result, request)
-    return _render_rules(result, request)
+    raise SkillsUsageError(f"Unknown skills subcommand: {sub}")
 
 
 def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
@@ -432,12 +421,7 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
             root=root_value,
             json=json_value,
         )
-    return SkillsRequest(
-        op=SkillsOp.RULES,
-        flags={"markdown": "1" if namespace.markdown else "0"},
-        root=root_value,
-        json=json_value,
-    )
+    raise SkillsUsageError(f"Unknown skills subcommand: {command}")
 
 
 # ─── Renderers ───────────────────────────────────────────────────────
@@ -837,16 +821,6 @@ def _render_merge_plan(result: SkillsResult, request: SkillsRequest) -> int:
 
     for line in result.lines:
         print(line)
-    return 0
-
-
-def _render_rules(result: SkillsResult, request: SkillsRequest) -> int:
-    """Render the rules document (``--json`` is accepted but ignored)."""
-    document = result.document or ""
-    if request.flags.get("markdown") == "1":
-        sys.stdout.write(document)
-    else:
-        print(document)
     return 0
 
 

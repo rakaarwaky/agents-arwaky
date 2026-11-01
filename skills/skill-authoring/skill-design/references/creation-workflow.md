@@ -13,7 +13,7 @@ constraints come from the main guide; this file is only the step order.
 Ask the user these questions one at a time as normal conversation (not option prompts):
 
 1. **Skill name** — must satisfy the `name-format` rule in
-   [`../../../../modules/skills/_rules/skill-rules.md`](../../../../modules/skills/_rules/skill-rules.md) (e.g. `deploy-k8s`).
+   [`skill-rules.md`](skill-rules.md) (e.g. `deploy-k8s`).
    Validate before continuing.
 2. **Scope** — present two options:
    - **Project** (recommended): `<repo-root>/<skills-dir>/<name>/SKILL.md` — lives in this

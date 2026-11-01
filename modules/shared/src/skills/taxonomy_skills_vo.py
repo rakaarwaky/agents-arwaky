@@ -61,9 +61,6 @@ ErrorMessage = NewType("ErrorMessage", str)
 DiffLines = NewType("DiffLines", tuple[str, ...])
 """A sequence of diff lines for catalog drift errors."""
 
-RulesSummary = NewType("RulesSummary", str)
-"""The compact one-line-per-rule summary rendered by the rules renderer."""
-
 SkillsRoot = NewType("SkillsRoot", Path)
 """An explicit skills root; ``None`` on a request means 'use the default'."""
 
@@ -82,7 +79,6 @@ class SkillsOp(StrEnum):
     ARCHIVE = "archive"
     NEW_CATEGORY = "new-category"
     MERGE_PLAN = "merge-plan"
-    RULES = "rules"
     TRACE_COLLECT = "trace-collect"
     TRACE_USAGE = "trace-usage"
     TRACE_PHRASES = "trace-phrases"
@@ -292,7 +288,6 @@ class SkillsResult:
     outcome: MutationOutcome | None = None
     new_category: NewCategoryPlan | None = None
     merge: MergePlan | None = None
-    document: str | None = None
     lines: tuple[str, ...] = ()
     warning: str | None = None
     root: Path | None = None
@@ -308,7 +303,6 @@ __all__ = [
     "DiffLines",
     "ErrorMessage",
     "PhraseRow",
-    "RulesSummary",
     "ScanResult",
     "SkillContent",
     "SkillDescription",

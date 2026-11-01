@@ -10,8 +10,8 @@ Last Updated: 2026-10-26
 
 - Done: `modules/skills/` vertical slice — contract protocols, contract
   aggregate, taxonomy VOs/entities/errors, the rules SSOT, the shared tree
-  and markdown utilities, eight capabilities (index, reader, validator,
-  catalog, discoverer, mutator, merge planner, rules renderer), the agent
+  and markdown utilities, seven capabilities (index, reader, validator,
+  catalog, discoverer, mutator, merge planner), the agent
   orchestrator (including the mutation→catalog pipeline), the root
   container, and the 12-verb CLI surface.
 - Done (amended 2026-10-25, PR-5): the feature *reads and authors* the
@@ -19,8 +19,7 @@ Last Updated: 2026-10-26
   and owns the mutation→catalog chain.
 - Done: `aa skills` exposes every capability of the retired
   skill-authoring CLI — `list`, `show`, `validate`, `catalog`, `discover`,
-  `weed`, `repair`, `move`, `archive`, `new-category`, `merge-plan`,
-  `rules` — with the legacy exit-code contract (0 / 1 / 2 / 3). Gate:
+  `weed`, `repair`, `move`, `archive`, `new-category`, `merge-plan` — with the legacy exit-code contract (0 / 1 / 2 / 3). Gate:
   `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at
   `767b18672a0c0abd92f7225f267478db8271c334`; Ruff is clean.
 - Done: the former `modules/skill/` provisioning feature and the `aa skill`
@@ -105,16 +104,6 @@ counterpart.
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
 | Done         | Read-only merge planning is implemented in `capabilities_skills_merge_planner.py`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-10-26                                                   |
-
-### FR-SKILLS-008: Render the rule SSOT
-
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | Rules render from the shared SSOT through `capabilities_skills_rules_renderer.py`; `modules/skills/tests/unit_skills_rules.py`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |

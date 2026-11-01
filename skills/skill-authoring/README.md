@@ -29,7 +29,7 @@ aa skills <subcommand>
 ```
 
 Read-only subcommands (`list`, `show`, `validate`, `catalog --check`,
-`discover`, `weed`, `rules`, `merge-plan`) run immediately. Mutating
+`discover`, `weed`, `merge-plan`) run immediately. Mutating
 subcommands (`repair`, `move`, `archive`, `new-category`) default to
 dry-run — pass `--apply` to execute. Every subcommand accepts
 `--skills-root PATH`; the authoring subcommands also accept `--json`.
@@ -51,7 +51,7 @@ aa skills catalog
 ## Rules
 
 The executable rules live in
-`modules/shared/src/skills/taxonomy_skills_constant.py`; the rendered
-reference is `modules/skills/_rules/skill-rules.md` (regenerate with
-`aa skills rules --markdown`). Provenance for each rule is recorded in
-`modules/shared/src/skills/taxonomy_skills_constant.py`.
+`modules/shared/src/skills/taxonomy_skills_rule_vo.py`; the rules
+reference is `skills/skill-authoring/skill-design/references/skill-rules.md`.
+Provenance for each rule is recorded in
+`modules/shared/src/skills/taxonomy_skills_rule_vo.py` (CITATIONS table).

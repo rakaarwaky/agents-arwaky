@@ -1,7 +1,7 @@
 """Skills root container (AES composition root).
 
-Wires the eight capabilities (index, reader, validator, catalog,
-discoverer, mutator, merge planner, rules renderer) into the agent. The
+Wires the seven capabilities (index, reader, validator, catalog,
+discoverer, mutator, merge planner) into the agent. The
 CLI surface receives an ``ISkillsAggregate`` (the agent itself), injected
 at the call site, so no root→surface coupling exists.
 
@@ -24,7 +24,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
-    ISkillsRulesRendererProtocol,
     ISkillsValidatorProtocol,
     IStateProtocol,
     ITrackerProtocol,
@@ -46,7 +45,6 @@ from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlan
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_phrases import SkillsPhrases
-from modules.skills.src.capabilities_skills_rules_renderer import SkillsRulesRenderer
 from modules.skills.src.capabilities_skills_state import SkillsTraceState
 from modules.skills.src.capabilities_skills_tracker import SkillsTracker
 from modules.skills.src.capabilities_skills_validator import SkillsValidator
@@ -67,7 +65,6 @@ def default_aggregate(
     discoverer: ISkillsDiscovererProtocol | None = None,
     mutator: ISkillsMutatorProtocol | None = None,
     merge_planner: ISkillsMergePlannerProtocol | None = None,
-    rules_renderer: ISkillsRulesRendererProtocol | None = None,
     tracker: ITrackerProtocol | None = None,
     phrases: IPhrasesProtocol | None = None,
     state: IStateProtocol | None = None,
@@ -83,7 +80,6 @@ def default_aggregate(
         discoverer=discoverer or SkillsDiscoverer(wired_catalog),
         mutator=mutator or SkillsMutator(),
         merge_planner=merge_planner or SkillsMergePlanner(),
-        rules_renderer=rules_renderer or SkillsRulesRenderer(),
         tracker=tracker or SkillsTracker(),
         phrases=phrases or SkillsPhrases(),
         state=state or SkillsTraceState(),
@@ -115,7 +111,6 @@ class SkillsFacade:
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
         merge_planner: ISkillsMergePlannerProtocol | None = None,
-        rules_renderer: ISkillsRulesRendererProtocol | None = None,
         tracker: ITrackerProtocol | None = None,
         phrases: IPhrasesProtocol | None = None,
         state: IStateProtocol | None = None,
@@ -128,7 +123,6 @@ class SkillsFacade:
         self._discoverer = discoverer
         self._mutator = mutator
         self._merge_planner = merge_planner
-        self._rules_renderer = rules_renderer
         self._tracker = tracker
         self._phrases = phrases
         self._state = state
@@ -146,7 +140,6 @@ class SkillsFacade:
             discoverer=self._discoverer or SkillsDiscoverer(catalog),
             mutator=self._mutator or SkillsMutator(),
             merge_planner=self._merge_planner or SkillsMergePlanner(),
-            rules_renderer=self._rules_renderer or SkillsRulesRenderer(),
             tracker=self._tracker or SkillsTracker(),
             phrases=self._phrases or SkillsPhrases(),
             state=self._state or SkillsTraceState(),
@@ -265,14 +258,5 @@ class SkillsFacade:
                 query=SkillQuery(ref_a),
                 root=root,
                 flags={"target": ref_b},
-            )
-        )
-
-    def rules(self, markdown: bool = False) -> SkillsResult:
-        """Render the rule SSOT (markdown or summary form)."""
-        return self._agent().execute(
-            SkillsRequest(
-                op=SkillsOp.RULES,
-                flags={"markdown": "1" if markdown else "0"},
             )
         )

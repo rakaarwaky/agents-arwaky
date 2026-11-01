@@ -28,7 +28,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
-    ISkillsRulesRendererProtocol,
     ISkillsValidatorProtocol,
     IStateProtocol,
     ITrackerProtocol,
@@ -64,7 +63,6 @@ class SkillsAgent(ISkillsAggregate):
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
         merge_planner: ISkillsMergePlannerProtocol | None = None,
-        rules_renderer: ISkillsRulesRendererProtocol | None = None,
         tracker: ITrackerProtocol | None = None,
         phrases: IPhrasesProtocol | None = None,
         state: IStateProtocol | None = None,
@@ -77,7 +75,6 @@ class SkillsAgent(ISkillsAggregate):
         self._discoverer = discoverer
         self._mutator = mutator
         self._merge_planner = merge_planner
-        self._rules_renderer = rules_renderer
         self._tracker = tracker
         self._phrases = phrases
         self._state = state
@@ -315,14 +312,6 @@ class SkillsAgent(ISkillsAggregate):
         return SkillsResult(
             ok=True, op=op, merge=plan, lines=planner.render(plan), root=root
         )
-
-    def _execute_rules(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Render the rule SSOT: the markdown doc or the summary form."""
-        renderer = self._require(self._rules_renderer, "rules renderer")
-        document = renderer.render_markdown()
-        if request.flags.get("markdown") == "1":
-            return SkillsResult(ok=True, op=op, document=document.markdown)
-        return SkillsResult(ok=True, op=op, document=renderer.render_summary())
 
     def _execute_trace_collect(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Scan sessions then build usage: the collect half of the trace pipeline."""

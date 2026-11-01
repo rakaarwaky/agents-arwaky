@@ -73,7 +73,6 @@ def test_e2e_dispatch_authoring_read_only_verbs(tmp_path: Path):
         )
         == 0
     )
-    assert _dispatch(["skills", "rules", *root_arg]) == 0
 
 
 def test_e2e_dispatch_move_applies_then_rebuilds_catalog(tmp_path: Path):

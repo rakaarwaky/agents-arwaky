@@ -36,9 +36,9 @@ removal plus consolidation: Phase 1 removes true duplicates, Phase 2 merges over
 - **`code-quality/deep-clean`** — the code-level duplicate removal this skill is modeled on.
 
 Frontmatter constraints for a merged `SKILL.md` are not restated here: the executable rules and
-their messages live in [`../../../modules/skills/_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md), generated from
-`_rules/skill_rules.py`. A merge that produces a rule violation is caught by running
-`aa skills validate`.
+their messages live in `../skill-design/references/skill-rules.md`, generated from
+`modules/shared/src/skills/taxonomy_skills_rule_vo.py`. A merge that produces a rule violation
+is caught by running `aa skills validate`.
 
 ## Path Handling
 
@@ -94,7 +94,7 @@ A merged `SKILL.md` follows `skill-design` conventions: frontmatter with `name` 
 non-parsed keys (`triggers:` and `metadata.related_skills` are not parsed by Grok Build —
 trigger terms go in `description:`/`when-to-use:`, sibling skills in a body section), and a
 body that is a table of contents linking one level deep into `references/`. The exact
-frontmatter constraints are the rules in [`../../../modules/skills/_rules/skill-rules.md`](../../../modules/skills/_rules/skill-rules.md).
+frontmatter constraints are the rules in `../skill-design/references/skill-rules.md`.
 
 ## Workflow
 
