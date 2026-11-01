@@ -13,11 +13,8 @@ level(node) = max(level(dep) for dep in dependencies) + 1    otherwise
 
 PRs at the same level are independent and can execute in parallel.
 
-### Linearization for Stack Assembly
-
-If Step 3 ran `validate-plan.py`, `linearized_order` and `level_assignments` are already in the state file — use them as authoritative and skip to **Compute Branch Names** below. Re-derive only when Step 3 parsed by hand (validator unavailable), in which case both rules below match `validate-plan.py` exactly:
-
-Stacks (Graphite or plain-git) are strictly linear chains. The DAG is flattened into a single topologically-sorted linear sequence:
+### Linearization for Merge Order
+The DAG is flattened into a single topologically-sorted linear sequence. This determines the order in which modular branches will be sequentially merged into the final branch in Step 10.
 
 ```
 def linearize(dag):
@@ -49,7 +46,7 @@ Update each node's `branch` field.
 
 Report to the user:
 ```
-"Linearized stack order: PR1 (<title>) -> PR4 (<title>) -> PR2 (<title>) -> ...
+"Linearized merge order: PR1 (<title>) -> PR4 (<title>) -> PR2 (<title>) -> ...
 Max parallelism: <max PRs at any single level>
 Levels: <number of levels>"
 ```
@@ -61,4 +58,4 @@ If `--dry-run` was specified, report the full execution plan (linearized order, 
 ## In-Progress Reporting
 
 - After parse: `"Parsed PR Plan: <N> PRs, <L> levels, max parallelism: <P>"`
-- After linearize: `"Linearized stack order: PR1 -> PR4 -> PR2 -> PR5 -> PR3"`
+- After linearize: `"Linearized merge order: PR1 -> PR4 -> PR2 -> PR5 -> PR3"`

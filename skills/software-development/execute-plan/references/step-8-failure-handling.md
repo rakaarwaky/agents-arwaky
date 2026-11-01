@@ -31,7 +31,6 @@ Persist the state file after all status updates.
 ## Rules (failure scope)
 
 - **Error handling** -- if an implementer (or a PR's **primary general** reviewer) fails or cannot be resumed, mark the PR as failed, cascade-skip dependents, and continue with independent PRs. If `orca worktree create` fails, treat it as an implementation failure: mark the PR failed and cascade-skip dependents.
-- **Explicit composition with `/pr-babysit` (Graphite mode only)** -- after stack submission, the user runs `/pr-babysit add <bottom-pr-number>` separately. The skill does not auto-chain. In plain-git mode, `/pr-babysit` is not suggested because it depends on `gt` for stack walking.
 
 ## In-Progress Reporting
 

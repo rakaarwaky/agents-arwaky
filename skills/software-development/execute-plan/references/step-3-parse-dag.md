@@ -44,7 +44,7 @@ PRNode {
     review_rounds: int   // 0 initially
     started_at: string   // null initially
     completed_at: string // null initially
-    worktree_cleaned: bool // false initially; set true by Step 10a (per-PR prologue) or Step 11 (safety net) after `orca worktree rm` succeeds. Step 11 uses this to stay idempotent across resumes.
+    worktree_cleaned: bool // false initially; set true by Step 10.1 (per-PR prologue) or Step 11 (safety net) after `orca worktree rm` succeeds. Step 11 uses this to stay idempotent across resumes.
     orca_worktree_id: string // null initially; the Orca worktree address <repoId>::<worktreePath> from `orca worktree create --json`
 }
 ```

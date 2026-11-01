@@ -59,7 +59,7 @@ orca-ide worktree create \
   --json
 ```
 
-Parse `result.worktree.id` into `pr.orca_worktree_id` and `result.worktree.path` into `pr.worktree_path`. Because `--base-branch <pr.branch>` checks the stack branch out inside the new worktree, the implementer works on the correct branch from its first command — no post-creation `git push` is needed. Orca worktrees share the main clone's object store and refs, so the branch created in Step 5 is already visible. If the create call fails (Orca not running, repo not registered, branch missing), mark the PR `"failed"` with the Orca error, cascade-skip dependents (Step 8), and continue with other ready PRs.
+Parse `result.worktree.id` into `pr.orca_worktree_id` and `result.worktree.path` into `pr.worktree_path`. Because `--base-branch <pr.branch>` checks the modular branch out inside the new worktree, the implementer works on the correct branch from its first command — no post-creation `git push` is needed. Orca worktrees share the main clone's object store and refs, so the branch created in Step 5 is already visible. If the create call fails (Orca not running, repo not registered, branch missing), mark the PR `"failed"` with the Orca error, cascade-skip dependents (Step 8), and continue with other ready PRs.
 
 **Then launch the subagent in the worktree:**
 
@@ -105,8 +105,8 @@ orca-ide worktree create \
 
 - `--repo path:<main_clone_path>` targets the repo the design document came from (the orchestrator's main clone, recorded in Setup as `main_clone_path`).
 - `--name <PLAN_ID>-<pr.id>` gives each PR a unique, resumable worktree display name.
-- `--base-branch <pr.branch>` checks the stack branch out inside the new worktree, so the implementer works on `<pr.branch>` from the first commit. This removes the need for a post-creation `git push` of the branch into the worktree.
-- `--no-parent` keeps the DAG lineage out of Orca's lineage model — stack order is tracked in the state file, not in Orca.
+- `--base-branch <pr.branch>` checks the modular branch out inside the new worktree, so the implementer works on `<pr.branch>` from the first commit. This removes the need for a post-creation `git push` of the branch into the worktree.
+- `--no-parent` keeps the DAG lineage out of Orca's lineage model — merge order is tracked in the state file, not in Orca.
 - Do not pass `--agent` or `--prompt`: the worktree hosts a Grok Build subagent (via `spawn_subagent` with `cwd`), not an Orca TUI agent.
 
 The worktree `id` is the two-part address `<repoId>::<worktreePath>` returned in `result.worktree.id` (for example `repo-123::/home/raka/orca/workspaces/agents-arwaky/<plan-id>-<pr-id>`). The checkout path is `result.worktree.path`. Record both on the PR node: `pr.orca_worktree_id` and `pr.worktree_path` (`worktree_path` stays the field name used everywhere else in this skill — it now holds the Orca worktree path).
@@ -130,9 +130,9 @@ pr.commit_sha = $(git -C <worktree_path> rev-parse HEAD)
 git cat-file -t <pr.commit_sha>   # must print "commit"
 ```
 
-Every downstream step (dependent-branch creation in Step 5, stack assembly in Step 10a) keys off `commit_sha`, never off `refs/heads/<pr.branch>` in the main repo. Do not try to update that branch ref from the orchestrator side — Step 10a rewrites the ref via `gt create` / `git checkout -B` at the right time.
+Every downstream step (dependent-branch creation in Step 5, final-branch assembly in Step 10.1) keys off `commit_sha`, never off `refs/heads/<pr.branch>` in the main repo. Do not try to update that branch ref from the orchestrator side — Step 10.1 merges it into the final branch via `git merge` at the right time.
 
-**Rule 3 — tear down the worktree before mutating its branch ref.** Step 10a is the only step that mutates `refs/heads/<pr.branch>` in the main repo. Immediately before that mutation, the orchestrator must remove the subagent's Orca worktree:
+**Rule 3 — tear down the worktree before mutating its branch ref.** Step 10.1 is the only step that mutates `refs/heads/<pr.branch>` in the main repo. Immediately before that mutation, the orchestrator must remove the subagent's Orca worktree:
 
 ```bash
 orca-ide worktree rm --worktree <pr.orca_worktree_id> --force --json
@@ -151,7 +151,7 @@ All Orca worktrees are retired with `orca-ide worktree rm --worktree <id> --forc
 - **Parallel-first execution** -- every independent action (worktree creation, implementer spawn, reviewer spawn, branch creation for independent PRs, reads) MUST be issued as a batch in a single assistant response. Only serialize when a later action consumes an earlier one's output. Default concurrency is the maximum (8 implementers); never throttle independent work to save tokens.
 - **Prefix `description` with a bracketed role tag** -- `[implementer]` for implementer launches and fix cycles; `[reviewer]` for general reviewer launches and re-reviews; `[tests]`, `[simplicity]` for the respective specialists. The pager parses the first `[tag]` of the description and uses it as the row label. Keep the tag on `resume_from` follow-ups so the label stays stable across rounds.
 - **Orca worktree for implementers; `cwd` into the worktree for reviewers** -- implementers get a fresh Orca worktree created in Step 6a and are launched with `cwd=<pr.worktree_path>`. Reviewers use `cwd=<pr.worktree_path>` to read the implementer's worktree; they never get their own worktree.
-- **Record `orca_worktree_id` at creation time** -- Step 6a parses `result.worktree.id` from the `orca worktree create --json` response and stores it on the PR node immediately. All later teardown calls (Step 10a, Step 11, Step 9) use this id, never a re-derived path. If the create call fails, the PR is marked failed before any subagent is launched.
+- **Record `orca_worktree_id` at creation time** -- Step 6a parses `result.worktree.id` from the `orca worktree create --json` response and stores it on the PR node immediately. All later teardown calls (Step 10.1, Step 11, Step 9) use this id, never a re-derived path. If the create call fails, the PR is marked failed before any subagent is launched.
 - **Do not pass `--agent` or `--prompt` to `orca worktree create`** -- the worktree hosts a Grok Build subagent (via `spawn_subagent` with `cwd`), not an Orca TUI agent.
 - **Inject personas into prompts** -- on initial launches, prepend the appropriate persona instructions (from `personas/*.toml`): `implementer` for implementers. Do NOT pass a `persona` parameter to `spawn_subagent`. On `resume_from` follow-ups, the persona is already in the subagent's transcript.
 - **Include design context in initial prompts** -- the initial implementer launch should include all relevant design context in its task prompt. All subsequent rounds use `resume_from` instead, which carries the subagent's own transcript forward.
@@ -168,7 +168,7 @@ All Orca worktrees are retired with `orca-ide worktree rm --worktree <id> --forc
 
 ## Safety Guardrails (execution-loop scope)
 
-- **Never work on the default branch in the main clone.** Every subagent runs in its own Orca worktree. The orchestrator's main clone is read-only for git mutations except during stack assembly (Step 10a), squash-final assembly (Steps 10.1–10.4), and branch preparation (Step 5).
+- **Never work on the default branch in the main clone.** Every subagent runs in its own Orca worktree. The orchestrator's main clone is read-only for git mutations except during final branch assembly (Steps 10.1–10.4) and branch preparation (Step 5).
 - **All fix work happens in Orca worktrees, never in the main workspace.** The orchestrator's main clone working tree must not be modified by subagents.
 - **Use `orca-ide worktree rm --worktree <id> --force --json` for subagent Orca worktrees** (created by Step 6a via `orca worktree create`). This retires the worktree through Orca's registry and avoids orphans. **Use `git worktree remove` for temporary merge worktrees** created directly by the orchestrator in Step 5 (diamond dependency handling) — these are raw git worktrees under a `mktemp` directory and are not Orca-managed.
 - **Persist state after every status transition.** If the session crashes, the state file enables resumption. The `orca_worktree_id` field is critical for safe resumption — a crash between `orca worktree create` and the state-file write leaves an orphaned worktree that Step 9 will clean up via the `worktree_cleaned` flag.

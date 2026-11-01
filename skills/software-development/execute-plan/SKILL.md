@@ -1,32 +1,62 @@
 ---
 name: execute-plan
-description: "Execute a PR Plan DAG from a design document in parallel-first mode. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability. Observed phrasing: /execute-plan followed by a design doc path, execute plan, run the plan, implement the design, make plan execution parallel-first."
-when-to-use: Use when asked to execute a plan, run the plan, implement the design, or via the /execute-plan slash command with a design doc path. Invoked after /design produces a PR plan; observed runs reference design documents produced by the design skill.
-argument-hint: "<design-doc-path> [--resume <PLAN_ID>]"
+description: "Executes a PR Plan DAG: implements PRs in parallel Orca worktrees, merges them locally into a single final branch, runs a final review, and opens one PR to main."
+when-to-use: "Use for /execute-plan <design-doc-path>, execute plan, run the plan, implement the design, or after /design produces a PR plan. Supports --resume <PLAN_ID>."
+argument-hint: "<design-doc-path> [--resume <PLAN_ID>] [--no-auto-pr]"
 ---
 
 # Execute Plan Skill
 
-You are an orchestrator that takes a PR Plan DAG (produced by the `/design` skill) and executes it end-to-end. You parse the DAG, topologically sort and linearize it into a stack, launch parallel implementation subagents in Orca-managed worktrees, run mandatory orchestrator-level review cycles, and assemble the results into a stack of PRs.
+You orchestrate execution of a PR Plan DAG produced by `/design`. 
 
-You are the **single point of control** for all git, Orca worktree, and stack-tooling operations. Subagents are sandboxed implementation workers that produce commits in Orca-managed worktrees. You create branches, collect commits, and submit PRs after subagents complete.
+## Execution Flow
+1. **Local Parallel Implementation**: Parse the DAG, create local modular branches, and implement PRs in parallel using Orca worktrees.
+2. **Local Final Merge**: Sequentially merge all completed modular branches into a single local `final` branch.
+3. **Final Review**: Run the 3-reviewer panel on the combined final branch. Fix issues until 0 open issues.
+4. **One PR to Main**: Delete local modular branches, push the final branch, and open a single PR to `main`.
 
-## Two Assembly Modes
-
-The skill supports two stack-assembly modes. Mode selection happens once during Setup (see Step 2) and is recorded in the state file as `graphite_available`:
-
-- **Graphite mode** (`graphite_available == true`, the default when `gt` is installed *and* `--no-graphite` was not passed): assembles the stack with `gt create` and submits all PRs with a single `gt submit --stack` call. Graphite manages the parent/child relationships and opens PRs automatically.
-- **Plain-git mode** (`graphite_available == false`, or `--no-graphite` was passed): assembles the same linearized stack as a chain of plain git branches, each fast-forwarded from its parent. Each branch is pushed to `origin` with `git push --force-with-lease origin <branch>` (the lease is a no-op for newly-created branches and protects the resume / re-resolved-conflict cases). PRs are **not** auto-created by default — instead, the orchestrator prints GitHub compare URLs (or `gh pr create` invocations) the user can run to create PRs. If `--auto-pr` was passed **and** `gh` is available, the orchestrator runs `gh pr create --base <stack-parent-branch> --head <branch> --fill --draft` for each branch in stack order, where `<stack-parent-branch>` is the branch immediately below this PR in the linearized stack (or `main` for the bottom of the stack).
-
-All other steps (parsing, branch prep, parallel implementation, review-fix loops, cleanup, memory flush) are identical across both modes.
-
-You coordinate only. You **must not** use `write`, `search_replace`, `delete`, or shell commands that modify source files yourself, **except** when resolving merge conflicts during branch preparation (Step 5) or stack assembly (Step 10a) — conflict resolution is a git coordination task owned by the orchestrator. **All** implementation is done by a subagent seeded with the `implementer` persona instructions. **All** review is done by reviewer subagents — the fixed 3-reviewer panel: `reviewer` persona (general), prompt-only tests specialist, and prompt-only simplicity specialist; see Step 7.
+You are the single point of control for git, Orca worktree, and stack tooling. Subagents implement code in worktrees; you create branches, collect commits, resolve merge conflicts, and submit the final PR.
 
 ## Scope Boundary
+This skill implements the PR plan only. It does not rewrite or re-review the design document. If the DAG cannot be parsed or the plan is ambiguous, stop and point back to the design document.
 
-This skill implements the PR plan DAG produced by the `/design` skill. It is the **only** skill that creates branches, commits, worktrees, and PRs for that plan. It does **not** rewrite or re-review the design document — that is the `/design` skill's job, completed before this skill starts. If the plan itself is ambiguous or the DAG cannot be parsed, stop and point back to the design document rather than inventing implementation details.
+## Global Rules
+- Every claimed action must correspond to a real tool call in the same response.
+- Emit `spawn_subagent` before claiming a subagent was launched.
+- Launch independent work in parallel; serialize only true dependencies.
+- Do not modify source files yourself, except when resolving merge conflicts during branch preparation or final assembly.
 
-References to "the stack" throughout this document refer to whichever mode is active. References to `gt`, `gt create`, `gt submit`, `gt ls`, and `gt delete` apply **only in Graphite mode**. The Plain-git mode equivalents are spelled out explicitly in Step 9 (Resumption cleanup) and Step 10 (Stack Assembly, both subsections 10a and 10b).
+## Invocation
+```text
+/execute-plan <design-doc-path> [--resume <PLAN_ID>] [--no-auto-pr]
+```
+
+| Parameter | Default | Meaning |
+|---|---:|---|
+| `<design-doc-path>` | required | Design document containing the PR Plan DAG. |
+| `--resume <PLAN_ID>` | none | Resume a previous run and retry failed PRs. |
+| `--no-auto-pr` | off | Do not auto-create the final PR; print the compare URL instead. |
+
+Internal defaults: `concurrency = 8`, `auto_pr = true`.
+If `--resume <PLAN_ID>` is specified, skip Setup and jump to Step 9.
+
+## Run Steps
+| Step | Reference | Purpose |
+|---:|---|---|
+| 0 | [`references/step-0-setup.md`](references/step-0-setup.md) | Setup, state, personas, worktree protocol |
+| 1 | [`references/step-1-memory-retrieval.md`](references/step-1-memory-retrieval.md) | Past issues briefing |
+| 2 | [`references/step-2-tool-detection.md`](references/step-2-tool-detection.md) | Detect Orca and gh |
+| 3 | [`references/step-3-parse-dag.md`](references/step-3-parse-dag.md) | Parse PR Plan DAG |
+| 4 | [`references/step-4-dag-processing.md`](references/step-4-dag-processing.md) | Sort and linearize DAG for merge order |
+| 5 | [`references/step-5-branch-prep.md`](references/step-5-branch-prep.md) | Prepare local modular branches |
+| 6 | [`references/step-6-execution-loop.md`](references/step-6-execution-loop.md) | Run parallel implementer subagents |
+| 7 | [`references/step-7-review.md`](references/step-7-review.md) | Run per-PR reviewer panel and fix loop |
+| 8 | [`references/step-8-failure-handling.md`](references/step-8-failure-handling.md) | Handle failed or skipped PRs |
+| 9 | [`references/step-9-resumption.md`](references/step-9-resumption.md) | Resume previous run |
+| 10 | [`references/step-10-stack-assembly.md`](references/step-10-stack-assembly.md) | Final branch assembly, final review, push 1 PR |
+| 11 | [`references/step-11-cleanup.md`](references/step-11-cleanup.md) | Cleanup worktrees and artifacts |
+| 12 | [`references/step-12-memory-flush.md`](references/step-12-memory-flush.md) | Flush memory |
+| 13 | [`references/step-13-final-report.md`](references/step-13-final-report.md) | Final report |
 
 ## Orca Worktree Protocol
 
@@ -47,9 +77,9 @@ The PR plan is a DAG. Each DAG node becomes a top-level todo with id `pr-<node-i
 - `pr-<n>:branch-prep` — Step 5
 - `pr-<n>:execute` — Step 6 (worker loop)
 - `pr-<n>:review` — review phase if invoked
-- `pr-<n>:merge-ready` — push + CI green + ready-to-merge
+- `pr-<n>:merge-ready` — final branch assembled + final review green + final PR pushed
 
-Terminal state: all `pr-<n>:merge-ready` ids `completed`. Only then write the final stack assembly report.
+Terminal state: all `pr-<n>:merge-ready` ids `completed`. Only then write the final report.
 
 **Reseed after compaction** — the harness no longer surfaces a pre-compaction todo snapshot. If a compaction lands mid-execution, rebuild the todo list from the cached DAG (persisted in the orchestrator's PR plan file, NOT in conversation, so it survives compaction). Reseed before advancing any further step.
 
@@ -76,91 +106,6 @@ Store the extracted bodies as:
 The tests and simplicity specialists are prompt-only; they need no persona.
 
 When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent` — that parameter is not supported. Instead, prefix the `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[tests]`, or `[simplicity]`) so the pager's subagent label renderer (see `format_subagent_label` in `xai-grok-pager`) surfaces the role name at the top of the subagent row instead of the generic "General" fallback. The bracketed prefix is stripped from the displayed description. Keep the tag on `resume_from` follow-ups too so the label stays stable across rounds.
-
-## Invocation
-
-The user runs:
-```
-/execute-plan <design-doc-path> [--resume <PLAN_ID>]
-```
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `<design-doc-path>` | String | Required | Path to the design document (from `/design`) |
-| `--resume` | String | none | Resume a previous run by PLAN_ID. Reads the state file and retries failed PRs. |
-
-**All other parameters are automatic — no user input needed:**
-
-| Parameter | Default | Behavior |
-|-----------|---------|----------|
-| `concurrency` | 8 (max) | All independent tasks run in parallel. Never throttled. |
-| `squash_final` | **true** | After all PRs complete + pass per-PR review, all modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is pushed to `main`. See the Squash-Final path in [`references/step-10-stack-assembly.md`](references/step-10-stack-assembly.md). |
-| `auto_pr` | **true** | When `gh` is available and the remote is GitHub, the orchestrator automatically runs `gh pr create` for the final PR (squash-final mode) or for each branch in the stack (normal mode). No manual PR creation needed. |
-| `graphite` | auto-detect | If `gt` is installed and no explicit override is set, Graphite mode is used. Otherwise plain-git mode. `squash_final` forces plain-git mode. |
-| `dry_run` | false | Full execution. Set to true only when the user explicitly asks for a dry run. |
-| `instructions` | "" | No extra instructions by default. |
-
-Every PR gets the fixed 3-reviewer panel (1 general + tests + simplicity). The review-fix loop runs until 0 open issues for every PR. See the reviewer panel in Step 7.
-
-**If `--resume <PLAN_ID>` is specified**, skip Setup and jump to Step 9 (Resumption).
-
-## Setup
-
-See [`references/step-0-setup.md`](references/step-0-setup.md).
-
-## Step 1: Memory Retrieval (Past Issues Briefing)
-
-See [`references/step-1-memory-retrieval.md`](references/step-1-memory-retrieval.md).
-
-## Step 2: Tool Detection (Orca, Graphite & gh)
-
-See [`references/step-2-tool-detection.md`](references/step-2-tool-detection.md).
-
-## Step 3: Parse PR Plan DAG
-
-See [`references/step-3-parse-dag.md`](references/step-3-parse-dag.md).
-
-## Step 4: DAG Processing and Linearization
-
-See [`references/step-4-dag-processing.md`](references/step-4-dag-processing.md).
-
-## Step 5: Branch Preparation
-
-See [`references/step-5-branch-prep.md`](references/step-5-branch-prep.md).
-
-## Step 6: Execution Loop
-
-See [`references/step-6-execution-loop.md`](references/step-6-execution-loop.md).
-
-## Step 7: Orchestrator-Level Review
-
-See [`references/step-7-review.md`](references/step-7-review.md).
-
-## Step 8: Failure Handling
-
-See [`references/step-8-failure-handling.md`](references/step-8-failure-handling.md).
-
-## Step 9: Resumption
-
-See [`references/step-9-resumption.md`](references/step-9-resumption.md).
-
-## Step 10: Stack Assembly
-
-After **all** PRs in the linearized order are either `"completed"` or `"failed"`/`"skipped"`, and at least one PR completed successfully, assemble the stack. The default path is **squash-final**: all completed modular branches are merged onto one final branch, a final review runs, modular branches are deleted, and a single PR is opened. If `--squash-final` is explicitly disabled, the normal stack assembly runs instead (Graphite mode via `gt create` + `gt submit --stack`, or plain-git mode via chained branches + `git push --force-with-lease`).
-
-Read [`references/step-10-stack-assembly.md`](references/step-10-stack-assembly.md) for the full Step 10a/10b procedure (normal path) **and** the Steps 10.1–10.5 procedure (squash-final path).
-
-## Step 11: Cleanup
-
-See [`references/step-11-cleanup.md`](references/step-11-cleanup.md).
-
-## Step 12: Memory Flush
-
-See [`references/step-12-memory-flush.md`](references/step-12-memory-flush.md).
-
-## Step 13: Final Report
-
-See [`references/step-13-final-report.md`](references/step-13-final-report.md).
 
 ## References Are Step-Scoped
 
