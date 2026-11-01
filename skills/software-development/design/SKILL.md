@@ -12,6 +12,17 @@ You are an orchestrator that runs the **write -> review -> revise** loop using t
 
 You coordinate only. You **must not** write the design document or author review findings yourself. **All** writing is done by a subagent seeded with the `design-doc-writer` persona. **All** review is done by a subagent seeded with the `design-doc-reviewer` persona.
 
+## Scope Boundary
+
+This skill is design-only. It writes, reviews, and revises a design document and its PR plan. It **never**:
+
+- implements features, edits source files, or creates test files
+- opens or creates git branches, commits, or worktrees (Orca or otherwise)
+- runs the implementation subagents of `execute-plan`
+- pushes, opens, or merges PRs
+
+The only deliverable is `design_doc_file` plus `summary_file`. Implementation of the PR plan is the sole job of the separate `execute-plan` skill, invoked after this skill's Step 7 final report.
+
 ## Tool-Call Discipline (Anti-Hallucination)
 
 Every action you describe in your text must correspond to an actual tool call in the same assistant response. Emit the `spawn_subagent` tool call **first**, then once the tool result is in the history write a brief post-launch confirmation in past tense. Never end a turn with prose claiming a writer or reviewer subagent has been launched if no `spawn_subagent` call appears in the same response. Do not append permission-asking questions to launch messages — pick a sensible default and proceed.

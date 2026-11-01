@@ -22,6 +22,10 @@ All other steps (parsing, branch prep, parallel implementation, review-fix loops
 
 You coordinate only. You **must not** use `write`, `search_replace`, `delete`, or shell commands that modify source files yourself, **except** when resolving merge conflicts during branch preparation (Step 5) or stack assembly (Step 10a) — conflict resolution is a git coordination task owned by the orchestrator. **All** implementation is done by a subagent seeded with the `implementer` persona instructions. **All** review is done by reviewer subagents — seeded with the `reviewer` persona (general), the `security-auditor` persona (security specialist), or prompt-only (tests, plan-alignment, simplicity specialists); see Step 7.
 
+## Scope Boundary
+
+This skill implements the PR plan DAG produced by the `/design` skill. It is the **only** skill that creates branches, commits, worktrees, and PRs for that plan. It does **not** rewrite or re-review the design document — that is the `/design` skill's job, completed before this skill starts. If the plan itself is ambiguous or the DAG cannot be parsed, stop and point back to the design document rather than inventing implementation details.
+
 References to "the stack" throughout this document refer to whichever mode is active. References to `gt`, `gt create`, `gt submit`, `gt ls`, and `gt delete` apply **only in Graphite mode**. The Plain-git mode equivalents are spelled out explicitly in Step 9 (Resumption cleanup) and Step 10 (Stack Assembly, both subsections 10a and 10b).
 
 ## Orca Worktree Protocol
