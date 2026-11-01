@@ -856,7 +856,7 @@ def _cmd_trace(
 ) -> int:
     """Route a trace subcommand to its handler."""
     # strip --skills-root (trace verbs use --grok-home, not the skills pack root)
-    _root, rest = _split_root(args)
+    _, rest = _split_root(args)
     if sub == "trace-collect":
         return _cmd_trace_collect(rest, aggregate)
     if sub == "trace-usage":
@@ -911,13 +911,12 @@ def _cmd_trace_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     result = aggregate.execute(request)
 
     if ns.json:
-        summary = result.collect_summary
         _emit_json(
             {
                 "run_dir": run_dir,
                 "kept": len(result.usage.items) if result.usage else 0,
-                "seen": summary.sessions_seen if summary else 0,
-                "dropped": dict(summary.dropped) if summary else {},
+                "seen": result.collect_summary.sessions_seen if result.collect_summary else 0,
+                "dropped": dict(result.collect_summary.dropped) if result.collect_summary else {},
             }
         )
         return 0

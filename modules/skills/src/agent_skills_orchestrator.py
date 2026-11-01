@@ -352,7 +352,6 @@ class SkillsAgent(ISkillsAggregate):
             usage=usage,
             collect_summary=scan,
             message=f"{kept} of {seen} sessions kept → {run_dir}",
-            root=Path(run_dir) if run_dir else None,
         )
 
     def _execute_trace_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:

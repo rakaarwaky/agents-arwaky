@@ -96,7 +96,7 @@ def test_get_status_pending_returns_status(tmp_path: Path) -> None:
     state = _state(tmp_path)
     run_dir = str(tmp_path / "run")
     state.set_status(str(grok_home), run_dir, TraceStateStatus.RUNNING)
-    status, _view = state.get_status(str(grok_home))
+    status = state.get_status(str(grok_home))
     assert status == TraceStateStatus.RUNNING
 
 

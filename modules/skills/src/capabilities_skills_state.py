@@ -36,7 +36,8 @@ import os
 import shutil
 import stat
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
+from typing import ClassVar
 
 from modules.shared.src.skills.contract_skills_protocol import IStateProtocol
 from modules.shared.src.skills.taxonomy_skills_error import SkillsUsageError
@@ -172,8 +173,8 @@ class SkillsTraceState(IStateProtocol):
         pending = result.get("pending") or {}
         return TraceStateStatus(pending["status"])
 
-    def get_status(self, grok_home: str) -> tuple[TraceStateStatus, dict]:
-        """Return the current pending status plus the full state view.
+    def get_status(self, grok_home: str) -> TraceStateStatus:
+        """Return the current pending status.
 
         ``done``-less pending runs exit 3 (the surface maps to exit 3); the
         capability returns the status, the caller maps it to an exit code.
@@ -189,9 +190,7 @@ class SkillsTraceState(IStateProtocol):
         ):
             state = mark(path, pending["run_dir"], TraceStateStatus.REPORT_READY)
             pending = state.get("pending") or {}
-        view = dict(state)
-        pending_status = TraceStateStatus(pending.get("status") or "done")
-        return pending_status, view
+        return TraceStateStatus(pending.get("status") or "done")
 
     def trash(
         self,
@@ -382,6 +381,62 @@ class SkillsTraceState(IStateProtocol):
     def _split_paths(flag_value: str) -> tuple[str, ...]:
         return tuple(p.strip() for p in flag_value.split(",") if p.strip())
 
+    # ── sub-action handlers ──────────────────────────────────────
+
+    def _do_set(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
+        status = TraceStateStatus(flags.get("status", "collected"))
+        got = self.set_status(grok_home, run_dir, status)
+        return TraceStateDispatchResult(state=got)
+
+    def _do_get(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
+        got = self.get_status(grok_home)
+        return TraceStateDispatchResult(state=got)
+
+    def _do_clear(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
+        self.set_status(grok_home, run_dir, TraceStateStatus.DONE)
+        return TraceStateDispatchResult(state=TraceStateStatus.DONE)
+
+    def _do_trash(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
+        run_name = flags.get("run_name", "")
+        moved = self.trash(grok_home, run_name, self._split_paths(flags.get("trash_paths", "")))
+        return TraceStateDispatchResult(lines=moved)
+
+    def _do_restrict(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
+        restricted = self.restrict(self._split_paths(flags.get("restrict_paths", "")))
+        return TraceStateDispatchResult(lines=restricted)
+
+    def _do_decide(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
+        decision = TraceDecision(
+            date=flags.get("date", ""),
+            run_dir=run_dir,
+            decision_id=flags.get("id", ""),
+            kind=flags.get("kind", ""),
+            action=flags.get("decide_action", ""),
+            target=flags.get("target", ""),
+            target_path=flags.get("path", ""),
+            decision=flags.get("decision", ""),
+            undo=flags.get("undo") or None,
+        )
+        got = self.decide(grok_home, run_dir, decision)
+        return TraceStateDispatchResult(lines=(json.dumps(got.as_dict(), ensure_ascii=False),))
+
+    def _do_wait(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
+        timeout_min = int(flags.get("timeout_min", "90"))
+        got = self.wait(grok_home, run_dir, timeout_min=timeout_min)
+        return TraceStateDispatchResult(state_status=got)
+
+    # ── router ───────────────────────────────────────────────────
+
+    _DISPATCH: ClassVar[dict[str, Callable[..., TraceStateDispatchResult]]] = {
+        "set": lambda self, g, r, f: self._do_set(g, r, f),
+        "get": lambda self, g, r, f: self._do_get(g, r, f),
+        "clear": lambda self, g, r, f: self._do_clear(g, r, f),
+        "trash": lambda self, g, r, f: self._do_trash(g, r, f),
+        "restrict": lambda self, g, r, f: self._do_restrict(g, r, f),
+        "decide": lambda self, g, r, f: self._do_decide(g, r, f),
+        "wait": lambda self, g, r, f: self._do_wait(g, r, f),
+    }
+
     def dispatch(
         self,
         grok_home: str,
@@ -391,50 +446,10 @@ class SkillsTraceState(IStateProtocol):
     ) -> TraceStateDispatchResult:
         """Route one trace-state sub-action; the thin router the agent calls.
 
-        The 7-branch business logic (comma-string parsing, ``TraceDecision``
-        construction) lives here, not in the agent. Unknown actions raise
-        ``SkillsUsageError`` (exit 2).
+        Dispatches via a class-level dict so each sub-action is individually
+        testable. Unknown actions raise ``SkillsUsageError`` (exit 2).
         """
-        if action == "set":
-            status = TraceStateStatus(flags.get("status", "collected"))
-            got = self.set_status(grok_home, run_dir, status)
-            return TraceStateDispatchResult(state=got)
-
-        if action == "get":
-            got, _view = self.get_status(grok_home)
-            return TraceStateDispatchResult(state=got)
-
-        if action == "clear":
-            self.set_status(grok_home, run_dir, TraceStateStatus.DONE)
-            return TraceStateDispatchResult(state=TraceStateStatus.DONE)
-
-        if action == "trash":
-            run_name = flags.get("run_name", "")
-            moved = self.trash(grok_home, run_name, self._split_paths(flags.get("trash_paths", "")))
-            return TraceStateDispatchResult(lines=moved)
-
-        if action == "restrict":
-            restricted = self.restrict(self._split_paths(flags.get("restrict_paths", "")))
-            return TraceStateDispatchResult(lines=restricted)
-
-        if action == "decide":
-            decision = TraceDecision(
-                date=flags.get("date", ""),
-                run_dir=run_dir,
-                decision_id=flags.get("id", ""),
-                kind=flags.get("kind", ""),
-                action=flags.get("decide_action", ""),
-                target=flags.get("target", ""),
-                target_path=flags.get("path", ""),
-                decision=flags.get("decision", ""),
-                undo=flags.get("undo") or None,
-            )
-            got = self.decide(grok_home, run_dir, decision)
-            return TraceStateDispatchResult(lines=(json.dumps(got.as_dict(), ensure_ascii=False),))
-
-        if action == "wait":
-            timeout_min = int(flags.get("timeout_min", "90"))
-            got = self.wait(grok_home, run_dir, timeout_min=timeout_min)
-            return TraceStateDispatchResult(state_status=got)
-
-        raise SkillsUsageError(f"Unknown trace-state action: {action}")
+        handler = self._DISPATCH.get(action)
+        if handler is None:
+            raise SkillsUsageError(f"Unknown trace-state action: {action}")
+        return handler(self, grok_home, run_dir, flags)

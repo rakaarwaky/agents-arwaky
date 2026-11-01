@@ -252,3 +252,23 @@ def test_e2e_trace_verbs_registered_in_help(tmp_path: Path) -> None:
     out = stdout.getvalue()
     for verb in ("trace-collect", "trace-usage", "trace-phrases", "trace-state"):
         assert verb in out
+
+
+def test_e2e_trace_state_restrict_sets_mode_0600(tmp_path: Path) -> None:
+    """E2E-TRACE-012: trace-state restrict chmods the target file to 0600."""
+    import stat as stat_mod
+
+    grok_home = make_grok_home(tmp_path, cwd="/home/raka/proj", with_skills=True)
+    target = grok_home / "secret.txt"
+    target.write_text("restricted", encoding="utf-8")
+    target.chmod(0o644)  # start with a permissive mode
+
+    code, out, _err = run_trace_surface(
+        grok_home,
+        "trace-state",
+        "restrict",
+        str(target),
+    )
+    assert code == 0
+    assert str(target) in out
+    assert stat_mod.S_IMODE(target.stat().st_mode) == 0o600
