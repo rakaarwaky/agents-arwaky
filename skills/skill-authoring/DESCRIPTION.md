@@ -12,6 +12,5 @@ description: Skill-authoring skills — create, validate, and improve SKILL.md f
 | Create skills for things you keep typing out | `skill-learning` | shared trace pipeline (`_trace-pipeline/scripts/collect_sessions.py`) |
 | Edit skills to adapt to conditions and demand | `skill-evolving` | shared trace pipeline |
 | Remove skills and surfaces you never use | `skill-unlearn` | shared trace pipeline |
-| Orchestrate autonomous self-evolution | `skill-orchestrator` | shared trace pipeline + `aa skills` gates |
 
 The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) share the deterministic pipeline under `_trace-pipeline/` (not a skill: no `SKILL.md` at its root). See `README.md` for pack routing and `CATALOG.md` for the master index.

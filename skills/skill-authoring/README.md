@@ -13,9 +13,8 @@ answers "which skill do I use".
 | Create skills for things you keep typing out | `skill-learning` | `skills/skill-authoring/skill-learning/` |
 | Edit skills to adapt to conditions and demand | `skill-evolving` | `skills/skill-authoring/skill-evolving/` |
 | Remove skills and surfaces you never use | `skill-unlearn` | `skills/skill-authoring/skill-unlearn/` |
-| Orchestrate autonomous self-evolution | `skill-orchestrator` | `skills/skill-authoring/skill-orchestrator/` |
 
-The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) and the orchestrator all
+The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) all
 run on the shared deterministic pipeline in [`_trace-pipeline/`](_trace-pipeline/README.md) — one folder of
 scripts and references, not a skill (no `SKILL.md` at its root, so the validator does not count it). It produces
 phrases, usage counts, and stale-skill signals in a single pass; each skill curates only its own action group
