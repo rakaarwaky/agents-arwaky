@@ -85,6 +85,13 @@ Report: `"Starting execute-plan with PLAN_ID: <PLAN_ID>, concurrency: <max_concu
 ## Orca Worktree Protocol (SSOT)
 Every subagent runs in its own Orca-managed worktree under `~/orca/workspaces/`. The orchestrator interacts with those worktrees through the `orca-ide` CLI. Do not work on the default branch in the main clone.
 
+### Subagent boundary
+Subagents (implementers, fixers, reviewers) never create branches, push, fetch across worktrees, run `orca-ide`, or use `gh`. Their only git obligations are editing files and committing locally in their own worktree. The orchestrator owns all git, Orca-worktree, and stack-tooling operations, including merge-conflict resolution — its sole exception to the no-source-file-modification rule (applied in Step 5 branch prep and Steps 10.1/10.4; see Step 10 Rules).
+
+### Worktree kinds
+- **Orca-managed worktrees** live under `~/orca/workspaces/` and are tracked by Orca. Remove them only with `orca-ide worktree rm --worktree <id> --force --json`; removing them via raw `git worktree remove` orphans Orca's internal registry. A `not found` response from `orca-ide worktree rm` counts as success (teardown is idempotent).
+- **Raw temp worktrees** (Step 5 diamond-dependency merges) are plain `git worktree add` worktrees under a `mktemp` directory — remove those with `git worktree remove`, not Orca.
+
 ### Worktree creation (Step 6a)
 ```bash
 orca-ide worktree create \
@@ -116,6 +123,3 @@ Every downstream step keys off `commit_sha`, never off `refs/heads/<pr.branch>`.
 orca-ide worktree rm --worktree <pr.orca_worktree_id> --force --json
 ```
 Run this immediately before merging the branch into the final branch (Step 10.1).
-
-### Teardown
-All Orca worktrees are retired with `orca-ide worktree rm --worktree <id> --force --json`.

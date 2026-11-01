@@ -27,7 +27,7 @@ def linearize(dag):
     return result
 ```
 
-Within each level, sort by the numeric PR number (extracted from the id string via `int(n.id.split('-')[1])`) to produce a deterministic, reviewable order. Do NOT use lexicographic string sort on the id -- `"pr-10"` would sort before `"pr-2"` lexicographically.
+Within each level, sort by the numeric PR number (extracted from the id string via `int(n.id.split('-')[1])`) to produce a deterministic, reviewable order. Do NOT use lexicographic string sort on the id -- `"pr-10"` would sort before `"pr-2"` lexicographically. This mirrors `_pr_sort_key` in `scripts/validate-plan.py`, which falls back to lexicographic order for non-numeric suffixes (`pr-0a`, `pr-0b`); the validator's `linearized_order` is authoritative.
 
 Store the result in `linearized_order` and update the state file.
 
@@ -42,20 +42,13 @@ Example: `execute-plan/a1b2c3d4-pr-1-add-retry-config-types`
 
 Update each node's `branch` field.
 
-### Report
-
-Report to the user:
-```
-"Linearized merge order: PR1 (<title>) -> PR4 (<title>) -> PR2 (<title>) -> ...
-Max parallelism: <max PRs at any single level>
-Levels: <number of levels>"
-```
-
 ### Dry-Run Exit
 
 If `--dry-run` was specified, report the full execution plan (linearized order, level assignments, branch names, dependency graph) and stop. Do not proceed to implementation.
 
 ## In-Progress Reporting
 
-- After parse: `"Parsed PR Plan: <N> PRs, <L> levels, max parallelism: <P>"`
-- After linearize: `"Linearized merge order: PR1 -> PR4 -> PR2 -> PR5 -> PR3"`
+- After level assignment: `"DAG levels: <L> levels, max parallelism: <P>"`
+- After linearize: `"Linearized merge order: PR1 (<title>) -> PR4 (<title>) -> PR2 (<title>) -> ..."`
+
+(The parse itself is reported by Step 3: `"Parsed PR Plan: <N> PRs found."` — do not emit a second parse line here.)

@@ -51,11 +51,11 @@ Field notes:
 - `run.rounds`: sum of `review_rounds` across all completed PRs.
 - `run.issues_by_severity`: derived from `total_issues_by_severity` (accumulated in Step 7b and Step 7c re-reviews across all PRs).
 - `run.key_patterns`: pick 2-3 most-significant patterns (severity-ranked: bugs > suggestions > nits). **Apply the same generalization rules as Step 12a** — strip task-specific names and rewrite as reusable principles.
-- `run.specializations`: the distinct set of reviewer specializations actually used across **all** PRs this run. Collect every `config.specialization` from every PR's `reviewer_configs` and deduplicate. The panel is fixed, so this is always `["general", "tests", "simplicity"]`.
+- `run.specializations`: collect every `config.specialization` from every PR's `reviewer_configs` and deduplicate — the fixed Step 7 panel makes this always `["general", "tests", "simplicity"]`.
 
 ### Step 12d: Invoke the Helper
 
-Use the `write` tool to create `${scratch_dir}/grok-exec-mem-${PLAN_ID}.json` with the JSON spec above, then invoke:
+Resolve `<MEMORY_HELPER>` exactly as in Step 1 (*Resolve the helper path*) — absolute path, inlined. Use the `write` tool to create `${scratch_dir}/grok-exec-mem-${PLAN_ID}.json` with the JSON spec above, then invoke:
 
 ```
 <PYTHON> <MEMORY_HELPER> update --file <scratch_dir>/grok-exec-mem-<PLAN_ID>.json
@@ -77,11 +77,7 @@ The helper acquires the lock, merges, compacts, writes atomically, and prints a 
 }
 ```
 
-Use these stats to report to the user:
-> "Memory updated: 2 new patterns, 5 merged into existing entries."
-
-Or if `existed_before` is `false`:
-> "Memory file created with N patterns."
+Map the `stats` output onto the report strings in *In-Progress Reporting* below (`new_patterns` / `merged_patterns`, and `existed_before` for created-vs-updated wording).
 
 ### Graceful Degradation
 
@@ -91,11 +87,7 @@ If the helper exits non-zero, log a warning with stderr and skip the memory upda
 <PYTHON> <HOST_PY> cleanup <scratch_dir>/grok-exec-mem-<PLAN_ID>.json
 ```
 
-## Rules (memory scope)
-
-- **Memory is best-effort** -- if the `memory.py` helper fails (lock contention, malformed spec, disk full, etc.), proceed without it. Never fail a run due to memory issues.
-- **Use the implement skill's `memory.py` helper** -- derive the absolute path from the implement skill's SKILL.md path announced in the system context, not from `$(pwd)`. The execute-plan skill shares the same workspace-scoped memory file as `/implement`.
-
 ## In-Progress Reporting
 
-- After memory flush: `"Memory updated with N patterns from this run."` (or `"Memory file created with N patterns."` for first run)
+- After memory flush: `"Memory updated: <new_patterns> new patterns, <merged_patterns> merged into existing entries."`
+- After memory flush (first run): `"Memory file created with <N> patterns."`

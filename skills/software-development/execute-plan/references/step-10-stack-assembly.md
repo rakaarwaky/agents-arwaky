@@ -39,7 +39,7 @@ orca-ide worktree create --repo path:<main_clone_path> --name <PLAN_ID>-final --
 ```
 
 Launch the 3-reviewer panel (General, Tests, Simplicity) in parallel. Merge their findings.
-If open issues exist, spawn a fixer subagent in the final worktree. Loop until 0 open issues or until all remaining issues are explicitly deferred (recorded with a reason). If the loop stalls and a decision is needed, stop and ask the user for input.
+If open issues exist, spawn a fixer subagent in the final worktree. The loop has no round cap: run until 0 open issues or until all remaining issues are explicitly deferred (recorded with a reason). If the loop stalls and a decision is needed, stop and ask the user for input.
 
 If 0 open issues: record `final_review_passed = true`.
 If the loop cannot close every open issue without the user's input, or the user's input does not resolve the remaining issues: record `final_review_passed = false`. Stop and report to the user (do not push).
@@ -104,24 +104,17 @@ The following fields are added to the state file during Step 10:
 - `final_worktree_retired` stays `false` at skill completion; the user (or CI) sets it after the post-merge teardown in Step 10.5.
 - `deferred_issues` is a list of `{issue, reason}` entries, one per deferred open issue.
 
-## Resumption with Final Branch Assembly
+## Resumption
 
-When `--resume <PLAN_ID>` is used, Step 9 evaluates the final-branch state in addition to the per-PR states:
-
-- If `final_review_passed == false` and the final worktree still exists: resume the final review/fix loop from where it left off.
-- If `final_review_passed == true` and `modular_branches_deleted == false`: re-run Step 10.3 (delete modular branches), then Step 10.4 (push PR).
-- If `modular_branches_deleted == true` and `final_worktree_retired == false`: the PR was already pushed. The only remaining action is the post-merge worktree teardown (Step 10.5).
-- If `final_review_passed == false` and the final worktree is gone (crashed mid-Step 10.2): tear down any orphan final worktree, reset `final_review_passed`, and re-run from Step 10.1 (rebuild the final branch from the modular branches — they still exist because Step 10.3 has not run yet).
+Final-assembly resume handling — including the mid-assembly crash decision table — is defined in Step 9 (final-assembly state machine). Evaluate it before touching any branch on `--resume`.
 
 ## Rules (final-assembly scope)
 
 - **Never force-push without `--force-with-lease`.** Always use `git push --force-with-lease`, never `git push --force`. The lease is a no-op for newly-created branches (no upstream to lease against), but protects the resume case, the rare concurrent-push case, and the re-resolved-conflict case.
-- **Orchestrator owns all git, Orca worktree, and stack-tooling operations, including merge conflict resolution.** Subagents implement code and commit in Orca worktrees. They never create branches, push, interact with Orca worktree lifecycle, or use `gh`. The orchestrator resolves merge conflicts directly during branch preparation (Step 5) and final assembly (Step 10.1's `git merge` and Step 10.4's push) using `read_file` and `write` — this is the sole exception to the "no source file modification" rule. Note: `git merge <pr.branch>` merges local *branches* in the orchestrator's repo, not GitHub PRs; merging PRs to `main` remains a human decision.
+- **Orchestrator owns conflict resolution during assembly.** The orchestrator/subagent boundary itself is the *Subagent boundary* section of the Orca Worktree Protocol (Step 0). Within it, the orchestrator resolves merge conflicts directly during branch preparation (Step 5) and final assembly (Step 10.1's `git merge` and Step 10.4's push) using `read_file` and `write` — the sole exception to the no-source-file-modification rule. Note: `git merge <pr.branch>` merges local *branches* in the orchestrator's repo, not GitHub PRs; merging PRs to `main` remains a human decision.
 - **Final assembly is batch, not incremental** — wait for all PRs to complete (or fail/skip) before assembling the final branch. Do not assemble incrementally.
 - **Sequential final assembly operations.** All branch-mutating and remote-mutating operations during Step 10 run sequentially — `git merge <pr.branch>`, `git push --force-with-lease origin <final_branch>`, `gh pr create`. Never run them concurrently — ordering is load-bearing.
-- **Final review uses its own worktree** — the final review uses a separate Orca worktree (`final_worktree_path`) created in Step 10.2. The final worktree is **not** torn down at skill completion; it is retired only after the final PR merges to `main` (documented post-merge step).
-- **Final worktree teardown is manual** — `orca-ide worktree rm --worktree <final_orca_worktree_id> --force --json` runs only after the final PR merges to `main`, not during the skill run.
-- **Fix loop runs until closed-or-deferred, not for a fixed number of rounds.** The final review fix loop has no round cap. It runs until `open_issues == 0` or every remaining issue is explicitly deferred (recorded with a reason). If the loop stalls and a decision is needed, stop and ask the user for input. If the user's input does not resolve the remaining issues, record `final_review_passed = false` and stop — do not push.
+- **Final worktree is retired post-merge, not at skill completion.** The final review runs in its own Orca worktree (`final_worktree_path`, created in Step 10.2); Steps 10–11 never tear it down. Retirement (`orca-ide worktree rm --worktree <final_orca_worktree_id> --force --json`) runs only after the final PR merges to `main` (Step 10.5).
 - **Never merge PRs.** The skill creates and submits the final PR. Merging is a human decision.
 
 ## In-Progress Reporting

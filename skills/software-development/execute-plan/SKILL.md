@@ -18,12 +18,13 @@ You orchestrate the execution of a PR Plan DAG produced by the `/design` skill. 
 ## Global Rules (SSOT)
 - **Tool-Call Discipline**: Every claimed action must correspond to a real tool call. Emit `spawn_subagent` before claiming it was launched.
 - **Parallel-First**: Launch independent work in parallel. Serialize only true dependencies.
-- **Scope Boundary**: Do not rewrite or re-review the design document. If the DAG is ambiguous, stop and point back to `/design`. Do not modify source files yourself, except when resolving merge conflicts during branch prep or final assembly.
-- **Error Handling**: If an implementer or primary general reviewer fails, mark PR failed, cascade-skip dependents (Step 8), and continue independent PRs.
-- **Delegation**: All code implementation is done by `implementer` subagents. All reviews are done by `reviewer` subagents.
+- **Single-Home Rule**: Every protocol, policy, and reporting string has exactly one home file (declared below); other files reference it instead of restating it.
+- **Scope Boundary**: Do not rewrite or re-review the design document. If the DAG is ambiguous, stop and point back to `/design`. Do not modify source files yourself (sole exception: merge-conflict resolution — see Step 10 Rules).
+- **Error Handling**: Failures are governed by Step 8 — fail the PR, cascade-skip dependents, keep independent PRs running.
+- **Delegation**: All code implementation is done by `implementer` subagents. All reviews are done by `reviewer` subagents. The orchestrator/subagent boundary is the Orca Worktree Protocol (Step 0).
 
 ## Run Steps
-Every reference file is step-scoped and contains the executable logic, guardrails, and reporting strings for that step. Setup, personas, and the Orca Worktree Protocol are defined exclusively in Step 0.
+Every reference file is step-scoped and contains the executable logic, guardrails, and reporting strings for that step. Setup, personas, and the Orca Worktree Protocol are defined exclusively in Step 0. Cross-file pointers (`see Step N`) are references, not restatements — read the referenced file when the detail matters.
 
 | Step | Reference | Purpose |
 |---:|---|---|

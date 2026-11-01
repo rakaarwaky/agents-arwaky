@@ -41,7 +41,7 @@ while ready_queue or in_progress:
             ready_queue.append(pr)
 ```
 
-`process_completion` is the orchestrator's per-PR completion handler: run Rule 1 (`git fetch <pr.worktree_path> HEAD --no-tags`), then Rule 2 (record `pr.commit_sha` and verify reachability) — both defined in the *Orca Worktree Protocol* in `step-0-setup.md`. The orchestrator owns all fetch/teardown; subagents never run those commands.
+`process_completion` is the orchestrator's per-PR completion handler: run Rule 1 (`git fetch <pr.worktree_path> HEAD --no-tags`), then Rule 2 (record `pr.commit_sha` and verify reachability) — both defined in the *Orca Worktree Protocol* (`step-0-setup.md`).
 
 ## Step 6a: Launch Implementer
 
@@ -77,7 +77,7 @@ Do not switch branches. Do not attempt to push to a remote. Just implement the c
 3. Commit your changes with a clear, descriptive commit message.
 ```
 
-The implementer subagent has no access to the Orca CLI and must not run `orca-ide`, `git fetch`, `git push`, or any worktree-teardown command. Its only git obligations are implementing the changes and creating local commits on `<pr.branch>`. All Orca worktree lifecycle and cross-worktree git mutations are orchestrator-only (see *Orca Worktree Protocol*, `step-0-setup.md`).
+The *subagent boundary* (Orca Worktree Protocol, Step 0) applies: the implementer's only git obligations are implementing the changes and creating local commits on `<pr.branch>`; all Orca-worktree lifecycle and cross-worktree git mutations are orchestrator-only.
 
 ## In-Progress Reporting
 

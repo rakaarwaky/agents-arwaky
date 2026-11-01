@@ -16,7 +16,7 @@ The review-fix loop (Steps 7b/7c) runs per PR until **all** of that PR's reviewe
 
 ### Step 7.0: Per-PR Reviewer Setup (Specialization Selection)
 
-This step runs for **every** PR — it always populates `pr.reviewer_configs`. The panel is fixed: 1 general + tests + simplicity. Always use individual review files and merge.
+This step runs for **every** PR — populate `pr.reviewer_configs` as follows (panel composition is fixed; see the Step 7 intro).
 
 **Build `pr.reviewer_configs`** (one entry per reviewer, in panel order):
 
@@ -137,8 +137,6 @@ Use the structured format (severity bug|suggestion|nit; File; Description; Sugge
 
 ### Step 7b: Check / Merge Review Results
 
-Always merge. Every PR has exactly 3 reviewers (general, tests, simplicity).
-
 Read each reviewer's individual `config.review_file`, then merge them into the single merged review file `${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr.id>.md` using the `write` tool. Prefix each issue with its source tag (`[General]`, `[Tests]`, `[Simplicity]`). Consolidate obviously duplicated findings (same file, same line, same underlying problem) using judgment — when in doubt, keep both. The merged file is what the implementer reads in Step 7c. Merge format:
 
 ```markdown
@@ -165,14 +163,14 @@ After merging, count the total open issues across all source tags. This count dr
 
 If the merged review has open issues:
 
-1. Spawn a fixer subagent in `<pr.worktree_path>` seeded with the implementer persona and the merged review file `${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr.id>.md`. The fixer implements fixes and commits locally on `<pr.branch>` (the fixer, like the implementer, never runs Orca or cross-worktree git commands).
+1. Spawn a fixer subagent in `<pr.worktree_path>` seeded with the implementer persona and the merged review file `${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr.id>.md`. The fixer implements fixes and commits locally on `<pr.branch>` (subject to the *subagent boundary*, Step 0).
 2. Re-run Rules 1 & 2 (fetch + record `pr.commit_sha`) from `step-0-setup.md` so the orchestrator's main repo sees the fix commits.
 3. Re-launch all 3 reviewers in parallel (resume with `resume_from` where `config.subagent_id` is set, fresh spawn otherwise).
 4. Re-merge. Loop to step 1 while any reviewer reports open issues.
 
 When all 3 reviewers report 0 open issues in the same round, the PR is complete: set `pr.review_rounds` and mark the PR `"completed"`. Extract a one-line description of each issue seen this round into `issue_patterns` (deduplicated) and update `total_issues_by_severity` for the memory flush (Step 12).
 
-If a re-reviewer fails and cannot be resumed, treat it as in Step 7a: general-reviewer failure marks the PR failed and cascade-skips dependents (Step 8); a failed tests/simplicity reviewer is dropped from `pr.reviewer_configs` and the PR completes when the remaining reviewers are clean.
+If a re-reviewer fails and cannot be resumed, apply the Step 7a reviewer-failure rules unchanged.
 
 ## In-Progress Reporting
 

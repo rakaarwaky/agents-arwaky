@@ -81,4 +81,3 @@ If parsing fails (missing PR Plan section, malformed entries, unresolved depende
 Store the parsed nodes in `dag.nodes`.
 
 Report to the user: `"Parsed PR Plan: <N> PRs found."`
-

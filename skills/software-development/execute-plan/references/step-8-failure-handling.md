@@ -17,16 +17,7 @@ def cascade_skip(failed_pr_id, all_prs):
                 pr.error = "Skipped: dependency <failed_pr_id> failed"
 ```
 
-Remove any skipped PRs from the ready_queue. Do not abort the entire run -- independent PRs continue executing.
-
-Report:
-```
-"<pr.id> (<pr.title>) FAILED: <error>
-Dependent PRs skipped: <list of skipped pr ids and titles>
-Independent PRs continue running."
-```
-
-Persist the state file after all status updates.
+Remove any skipped PRs from the ready_queue. Do not abort the entire run -- independent PRs continue executing. Persist the state file after all status updates.
 
 ## Rules (failure scope)
 
@@ -34,4 +25,4 @@ Persist the state file after all status updates.
 
 ## In-Progress Reporting
 
-- After failure: `"<pr.id> FAILED: <reason>. Skipping <N> dependents. <M> independent PRs continue."`
+- After failure: `"<pr.id> (<pr.title>) FAILED: <reason>. Skipping <N> dependents (<list of skipped pr ids and titles>). <M> independent PRs continue."`
