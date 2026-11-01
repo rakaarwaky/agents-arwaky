@@ -65,9 +65,9 @@ class ISkillsIndexProtocol(ABC):
         """Return the global-skill JSON list as a pure-data dict.
 
         One entry per skill (``name``, ``source``, ``path``, ``loaded``);
-        the source is the repo pack only. The surface renders it; this
-        default returns ``{}`` as a transition stub — the real projection
-        lands in PR 3 in ``capabilities_skills_index_builder.py``.
+        the source is the repo pack only. ``SkillsIndexBuilder`` provides
+        the real implementation; this default returns ``{}`` for other
+        implementors.
         """
         return {}
 

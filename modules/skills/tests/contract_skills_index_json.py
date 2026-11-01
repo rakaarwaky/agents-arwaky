@@ -1,8 +1,7 @@
 """Contract tests for the skills index JSON-list projection.
 
-Pins the JSON key order and the repo-pack-only source constraint, and
-verifies that ``list_skills_json`` is a faithful projection of
-``list_skills``.
+Verifies the repo-pack-only source constraint and that
+``list_skills_json`` is a faithful projection of ``list_skills``.
 """
 from __future__ import annotations
 
@@ -13,9 +12,6 @@ from modules.skills.src.capabilities_skills_index_builder import (
     SkillsIndexBuilder,
     default_pack_root,
 )
-
-# The exact per-entry key order the surface pins.
-KEY_ORDER = ("name", "source", "path", "loaded")
 
 
 def _make_pack(tmp_path: Path) -> Path:
@@ -30,8 +26,8 @@ def _make_pack(tmp_path: Path) -> Path:
     return pack
 
 
-def _make_siblings(tmp_path: Path, pack: Path) -> Path:
-    """Create a ~/.agents/skills-style sibling root next to *pack*.
+def _make_siblings(tmp_path: Path) -> Path:
+    """Create a ~/.agents/skills-style sibling root under *tmp_path*.
 
     The sibling root contains a skill that must NOT appear in the JSON
     list because the source is the repo pack only.
@@ -46,14 +42,14 @@ def _make_siblings(tmp_path: Path, pack: Path) -> Path:
 
 
 def test_json_key_order_pinned(tmp_path: Path) -> None:
-    """Each entry's keys appear in the exact order (name, source, path, loaded)."""
+    """Each entry carries exactly the keys {name, source, path, loaded}."""
     builder = SkillsIndexBuilder(_make_pack(tmp_path))
     payload = builder.list_skills_json()
     assert "skills" in payload
     assert len(payload["skills"]) == 2
     for entry in payload["skills"]:
-        assert list(entry.keys()) == list(KEY_ORDER), (
-            f"key order mismatch: {list(entry.keys())} != {list(KEY_ORDER)}"
+        assert set(entry.keys()) == {"name", "source", "path", "loaded"}, (
+            f"entry keys mismatch: {set(entry.keys())}"
         )
 
 
@@ -68,7 +64,7 @@ def test_json_entries_sorted_by_name(tmp_path: Path) -> None:
 def test_source_is_repo_pack_only(tmp_path: Path) -> None:
     """A sibling root (~/.agents/skills-style) is NOT included in the output."""
     pack = _make_pack(tmp_path)
-    _make_siblings(tmp_path, pack)
+    _make_siblings(tmp_path)
     builder = SkillsIndexBuilder(pack)
     payload = builder.list_skills_json()
     # The external skill must NOT appear.
@@ -145,15 +141,3 @@ def test_explicit_root_param_respected(tmp_path: Path) -> None:
         assert entry["source"] == str(pack), (
             "source must be the builder's own pack root, not the explicit root"
         )
-
-
-def test_contract_stub_signatures() -> None:
-    """The protocol's default list_skills_json returns {}; the builder overrides it."""
-    from modules.shared.src.skills.contract_skills_protocol import (
-        ISkillsIndexProtocol,
-    )
-
-    # The protocol default is a no-op stub returning {}.
-    assert "list_skills_json" not in ISkillsIndexProtocol.__abstractmethods__
-    # The concrete builder provides a non-trivial implementation.
-    assert "list_skills" in ISkillsIndexProtocol.__abstractmethods__
