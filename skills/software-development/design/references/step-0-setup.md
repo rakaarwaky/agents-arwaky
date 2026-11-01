@@ -1,44 +1,99 @@
-# Step 0 Setup
+# Step 0: Setup
 
-Everything the run needs before any subagent can spawn: host helpers, shared file paths, orchestrator state, and persona loading.
+Prepare the Linux environment, hardcoded output location, orchestrator state, and persona instructions before spawning any subagent.
 
 ## Host Setup
 
-Host commands must work in bash **and** PowerShell. Do not run `python3`, `umask`, `id -u`, `/proc`, or write to `/tmp` directly — the host helper resolves the per-repo plans dir. Use `run_terminal_command`.
+Use `run_terminal_command` for all host commands. Commands run in bash on Linux. Standard Linux utilities are allowed.
 
-Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Find Python 3 (`python`, `py -3`, `python3`; reject `WindowsApps`). Run `<python> <HOST_PY> setup` and parse JSON stdout → `python` (PYTHON), `scratch_dir`, `run_id` (DESIGN_ID, validate 8 hex chars).
+Resolve `HOST_PY` as `<skill_dir>/scripts/host.py`, where `<skill_dir>` is the directory containing this `SKILL.md`.
 
-`scratch_dir` is the per-repo plans home `~/.grok/plans/<repo-slug>/` (repo slug = `git rev-parse --show-toplevel` basename, lowercased `[a-z0-9-]`; `general` outside a git work tree). The helper creates the dir. Design deliverables live here so they survive reboots and group by repo.
+Use `python3`. Run:
 
-Inline absolute `scratch_dir` and `PYTHON` into every later command and subagent prompt.
+```bash
+python3 <HOST_PY> setup
+```
+
+Parse the JSON on stdout and store:
+
+- `python` as `PYTHON`
+- `run_id` as `DESIGN_ID`; validate that it is exactly 8 hexadecimal characters
+
+If the host helper returns a different `scratch_dir`, ignore it for artifact storage. The artifact output location is hardcoded below.
+
+## Hardcoded Output Location
+
+All design artifacts must be stored under this hardcoded base directory:
+
+```text
+~/.grok/plans/<repo-slug>/
+```
+
+Where `<repo-slug>` is:
+
+- the lowercased basename of `git rev-parse --show-toplevel`, normalized to `[a-z0-9-]`, when inside a git repository
+- `general` when outside a git repository
+
+Create the directory if it does not exist:
+
+```bash
+mkdir -p ~/.grok/plans/<repo-slug>
+```
+
+When passing paths to subagents or tools, use the expanded absolute path, for example:
+
+```text
+/home/<user>/.grok/plans/<repo-slug>/grok-design-doc-<DESIGN_ID>.md
+```
 
 ## Shared File Paths
 
-All paths live under `scratch_dir` and stay the same for the entire run — never regenerate between iterations.
+Keep these paths fixed for the entire run. Substitute `<repo-slug>` and `<DESIGN_ID>` with their actual values.
 
-- `design_doc_file`: `${scratch_dir}/grok-design-doc-${DESIGN_ID}.md`
-- `summary_file`: `${scratch_dir}/grok-design-summary-${DESIGN_ID}.md`
-- `review_file`: `${scratch_dir}/grok-design-review-${DESIGN_ID}.md`
+- `design_doc_file`: `~/.grok/plans/<repo-slug>/grok-design-doc-<DESIGN_ID>.md`
+- `summary_file`: `~/.grok/plans/<repo-slug>/grok-design-summary-<DESIGN_ID>.md`
+- `review_file`: `~/.grok/plans/<repo-slug>/grok-design-review-<DESIGN_ID>.md`
+
+Never regenerate `DESIGN_ID` or these file paths between review/revise iterations.
 
 ## Orchestrator State
 
 Initialize these state variables:
 
-- `round_count`: `0` — incremented each time a review completes.
-- `total_issues_by_severity`: `{}` — a map from severity (bug, suggestion, nit) to cumulative count.
-- `previous_review_snapshot`: `""` — after each review check, store a copy of the `review_file` contents for stalemate detection.
+- `round_count`: `0`  
+  Increment each time a review completes.
+
+- `total_issues_by_severity`: `{}`  
+  Map from severity (`bug`, `suggestion`, `nit`) to cumulative count.
+
+- `previous_review_snapshot`: `""`  
+  Store the previous `review_file` contents here for stalemate detection. This value is updated during the review-check step.
 
 ## Persona Injection
 
-Personas come from `personas/*.toml` (user store `~/.grok/personas/<name>.toml` first, then repo fallback `<dirname of this SKILL.md>/../../../../personas/<name>.toml`). Extract the `instructions` field (`""" ... """` body). Store as `writer_persona_instructions` and `reviewer_persona_instructions`.
+Load the writer and reviewer personas from TOML files.
 
-Prepend the appropriate persona to the subagent prompt on initial launch. Do NOT pass a `persona` parameter to `spawn_subagent`. Prefix `description` with `[writer]` or `[reviewer]`. Keep the tag on `resume_from` follow-ups; do not re-inject persona on resume.
+User store: `~/.grok/personas/<name>.toml`
 
-## Invocation
+Extract the `instructions` field and preserve its full text. Store the results as:
 
-The user runs:
-```
+- `writer_persona_instructions`
+- `reviewer_persona_instructions`
+
+On initial subagent launch, prepend the matching persona instructions to the subagent prompt. Do **not** pass a `persona` parameter to `spawn_subagent`.
+
+Prefix the subagent description with `[writer]` or `[reviewer]`. On `resume_from` follow-ups, keep the same description tag, but do not re-inject the persona instructions.
+
+## Invocation Input
+
+Step 0 receives the argument from:
+
+```text
 /design <description>
 ```
 
-The `<description>` is the design task — feature design, system architecture, migration plan, technical spec, or any design document. If the user provides file paths, links, or additional context, include all of that context in the writer prompt.
+Treat `<description>` as the design task: feature design, system architecture, migration plan, technical spec, or another design deliverable.
+
+If the user provides file paths, links, constraints, or additional context, include all of that context in the writer prompt.
+```
+
