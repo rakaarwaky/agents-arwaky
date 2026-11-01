@@ -26,6 +26,13 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
 )
 
 if TYPE_CHECKING:
+    # ``SkillsResult`` annotates an authoring VO (``ValidationReport``,
+    # ``CatalogReport``, ...). Those classes live in the authoring module,
+    # which re-imports the trace primitives from here — a runtime import
+    # here would cycle, so the names are reserved for type-checking and the
+    # PEP 563 string annotations. No consumer reads an authoring VO off this
+    # module (they import from the authoring module directly), so nothing is
+    # re-exported at runtime.
     from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
         CatalogCheckResult,
         CatalogReport,
@@ -250,16 +257,9 @@ class SkillsResult:
 
 
 __all__ = [
-    "CatalogCheckResult",
-    "CatalogReport",
     "CategoryName",
     "DiffLines",
-    "DiscoveryMatch",
     "ErrorMessage",
-    "MergePlan",
-    "MutationOutcome",
-    "MutationPlan",
-    "NewCategoryPlan",
     "PhraseRow",
     "RulesSummary",
     "SkillContent",
@@ -277,30 +277,4 @@ __all__ = [
     "TraceDecision",
     "TraceSessionRecord",
     "TraceStateStatus",
-    "ValidationReport",
 ]
-
-# The authoring VOs above are re-exported for consumers that import the
-# whole skills-VO surface from this module. The re-export is lazy so this
-# file stays the runtime base of the cycle (``taxonomy_skills_authoring_vo``
-# imports the trace primitives from here); the classes land in the
-# authoring module, which loads without importing this module's
-# re-exports back.
-_AUTHORING_REEXPORTS = {
-    "CatalogCheckResult",
-    "CatalogReport",
-    "DiscoveryMatch",
-    "MergePlan",
-    "MutationOutcome",
-    "MutationPlan",
-    "NewCategoryPlan",
-    "ValidationReport",
-}
-
-
-def __getattr__(name: str):
-    if name in _AUTHORING_REEXPORTS:
-        from modules.shared.src.skills import taxonomy_skills_authoring_vo
-
-        return getattr(taxonomy_skills_authoring_vo, name)
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
