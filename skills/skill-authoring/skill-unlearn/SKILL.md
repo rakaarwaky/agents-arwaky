@@ -18,7 +18,7 @@ You remove skills, plugins, and other surfaces the user never uses. The trace pi
 4. **Read**: `report.md`, present the Overview plus section 3 (Unused → delete or disable). The report comes first on its own; curation questions belong to the next turn.
 5. **Apply**: for each owned action, follow the mode in [`references/apply-rules.md`](references/apply-rules.md); record every decision with `aa skills trace-state decide`.
 
-## Global Rules (SSOT)
+## Global Rules
 
 Rules that apply to every action. Reference files cite these; they never restate them.
 

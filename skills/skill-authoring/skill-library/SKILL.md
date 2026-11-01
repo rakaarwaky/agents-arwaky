@@ -17,7 +17,7 @@ You manage the skills pack as a library. The master index is `CATALOG.md` at the
 4. **Validate**: after any move, run `aa skills validate` and grep the pack for the moved or deleted skill name to catch stranded cross-references and stale `metadata.related_skills` pointers before committing.
 5. **Report**: summarize every move, created category, and catalog update.
 
-## Global Rules (SSOT)
+## Global Rules
 
 Rules that apply to every mode. Reference files cite these; they never restate them.
 

@@ -74,12 +74,14 @@ references/hints/step-0-list.md
 
 ## Decision table
 
-| Situation | Pattern to use |
-|-----------|----------------|
-| Skill picks one mode per invocation; each mode is small (≤ ~100 lines) | **A** — `references/<mode>.md` |
-| Skill is an ordered loop with shared state between steps | **B** — `references/step-<N>-<name>.md` |
-| Skill has multiple modes, and at least one mode is large enough to split into ordered steps | **C** — `references/<workflow>/step-<N>-<name>.md` |
-| You just need to add a fact used across steps | Put it in `SKILL.md` `## Global Rules (SSOT)` instead of a reference file |
+
+| Situation                                                                                   | Pattern to use                                                     |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Skill picks one mode per invocation; each mode is small (≤ \~100 lines)                     | **A** — `references/<mode>.md`                                     |
+| Skill is an ordered loop with shared state between steps                                    | **B** — `references/step-<N>-<name>.md`                            |
+| Skill has multiple modes, and at least one mode is large enough to split into ordered steps | **C** — `references/<workflow>/step-<N>-<name>.md`                 |
+| You just need to add a fact used across steps                                               | Put it in `SKILL.md` `## Global Rules` instead of a reference file |
+
 
 ## Rule of thumb
 

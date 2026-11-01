@@ -29,7 +29,7 @@ You prune and consolidate agent skill directories (a collection of `SKILL.md` fo
 6. **Verify & rollback**: every remaining `SKILL.md` parses, all reference links resolve, no two skills share a `name:`, `aa skills validate` is clean. On failure, trigger the Rollback Protocol.
 7. **Report**: output the executed `skill-lifecycle report` with the rollback target SHA.
 
-## Global Rules (SSOT)
+## Global Rules
 
 Rules that apply to every step. Reference files cite these; they never restate them.
 

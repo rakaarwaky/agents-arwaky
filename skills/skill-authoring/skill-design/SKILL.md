@@ -18,7 +18,7 @@ You author, validate, and improve SKILL.md files. One skill covers the full life
 5. **Verify**: after every create/improve, run `aa skills validate`; after every merge or move in a tree, grep the pack for the changed name and fix dangling pointers.
 6. **Report**: state what changed, how it was verified, and any duplication you noticed but did not fix (per the one-home rule, you report rather than silently rewrite).
 
-## Global Rules (SSOT)
+## Global Rules
 
 Rules that apply to every mode. Reference files cite these; they never restate them.
 

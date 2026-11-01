@@ -18,7 +18,7 @@ You create new skills from things the user keeps typing out. The trace pipeline 
 4. **Read**: `report.md`, present the Overview plus section 1 (Repeated phrases → skills) and section 4 (Gaps). The report comes first on its own; curation questions belong to the next turn.
 5. **Apply**: for each owned action, follow the mode in [`references/apply-rules.md`](references/apply-rules.md); record every decision with `aa skills trace-state decide`.
 
-## Global Rules (SSOT)
+## Global Rules
 
 Rules that apply to every action. Reference files cite these; they never restate them.
 
