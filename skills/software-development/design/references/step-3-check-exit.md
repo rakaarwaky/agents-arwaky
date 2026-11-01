@@ -7,7 +7,7 @@ Read `review_file` and evaluate issue statuses:
 
 Report status:
 - 0 issues: "Review passed. Finalizing..."
-- N issues: "Reviewer found N issues (X critical, Y major, Z minor). Revising..."
+- N issues: "Reviewer found N issues (X bug, Y suggestion, Z nit). Revising..."
 
 ## Stalemate Detection
 Compare `review_file` with `previous_review_snapshot`. If the reviewer re-opens an issue the writer previously marked `wontfix`, escalate to Step 3a (skip Step 4). 

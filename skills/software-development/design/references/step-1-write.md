@@ -7,7 +7,7 @@ Spawn the `design-doc-writer` subagent
 `spawn_subagent` parameters:
 - `subagent_type`: `"general-purpose"`
 - `background`: `false`
-- `description`: `"[writer] Write design doc: <short summary>`
+- `description`: `"[writer] Write design doc: <short summary>"`
 
 Prepend `writer_persona_instructions`. You MUST substitute `<design_doc_file>` and `<summary_file>` with their absolute expanded Linux paths before sending the prompt 
 Prompt body:
@@ -23,6 +23,6 @@ The document must end with these two exact sections in this specific order:
 ## PR Plan
 (Break design into concrete, ordered, independently mergeable PRs. Each must include: PR title, affected files, dependencies, and description. This section must be at the absolute bottom).
 
-After Completion:
+## After Completion:
 Block until completion. If it fails, stop and report the error. Save the `subagent_id` to resume for future revisions.
 In-progress report: "Design document drafted. Starting review..."

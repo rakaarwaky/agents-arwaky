@@ -7,12 +7,17 @@ Output root:
 
 If the current directory is not inside a git repository, this script exits
 with an error. No fallback directory is used.
+
+This module only runs on Linux. On any other platform it exits immediately
+with a clear message rather than silently failing to resolve Python or
+relying on a scratch-dir contract that no longer exists.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import stat
@@ -23,7 +28,10 @@ from pathlib import Path
 
 
 def resolve_python() -> str:
-    """Return an absolute Python 3 executable."""
+    """Return an absolute Python 3 executable. Linux only."""
+    if os.name != "posix" or sys.platform != "linux":
+        raise SystemExit("host.py: this helper runs on Linux only")
+
     current = sys.executable or ""
     if current and sys.version_info.major == 3:
         return current

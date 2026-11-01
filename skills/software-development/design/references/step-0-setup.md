@@ -29,7 +29,7 @@ All design artifacts must be stored under this hardcoded base directory:
 ~/.grok/plans/<projectreponame>/
 ```
 
-Where &lt;projectreponame&gt; is:
+Where <projectreponame> is:
 
 - the lowercased basename of `git rev-parse --show-toplevel`, normalized to `[a-z0-9-]`, when inside a git repository
 
@@ -59,13 +59,13 @@ Never regenerate `DESIGN_ID` or these file paths between review/revise iteration
 
 Initialize these state variables:
 
-- `round_count`: `0`  
+- `round_count`: `0`
   Increment each time a review completes.
 
-- `total_issues_by_severity`: `{}`  
+- `total_issues_by_severity`: `{}`
   Map from severity (`bug`, `suggestion`, `nit`) to cumulative count.
 
-- `previous_review_snapshot`: `""`  
+- `previous_review_snapshot`: `""`
   Store the previous `review_file` contents here for stalemate detection. This value is updated during the review-check step.
 
 ## Persona Injection
@@ -94,7 +94,3 @@ Step 0 receives the argument from:
 Treat `<description>` as the design task: feature design, system architecture, migration plan, technical spec, or another design deliverable.
 
 If the user provides file paths, links, constraints, or additional context, include all of that context in the writer prompt.
-
-
-
-&nbsp;
