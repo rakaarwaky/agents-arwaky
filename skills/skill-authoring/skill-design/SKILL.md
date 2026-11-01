@@ -18,14 +18,13 @@ You create, improve, and audit SKILL.md files.
 5. **Verify** after every step that edits a skill: run `aa skills validate`; search the skill directory for a second authoritative copy of each fact you added or moved; after any rename or move, grep the pack for the old name and fix dangling pointers; for create/improve, walk the pre-publish checklist in `references/audit.md`. Stop at the first failing verification and report it before continuing.
 6. **Report**: what changed in each step, how it was verified, and any duplication you noticed but did not fix — per One home per fact, you report it rather than silently rewriting the skill.
 
+## Flag examples
 
 | Invocation | Meaning |
 | ---------- | ------- |
 | `/skill-design skills/<category>/my-skill --create` | Build a new skill at the given path. |
 | `/skill-design skills/<category>/my-skill --improve` | Edit an existing skill in place. |
 | `/skill-design skills/<category>/my-skill --audit` | Run the validation checklist. |
-| `/skill-design skills/<category>/my-skill --create --improve --audit` | Full flow: build, strengthen, then audit. |
-| `/skill-design skills/<category>/my-skill --improve --audit` | Edit an existing skill, then audit it. |
 
 ## Global Rules
 
@@ -50,5 +49,5 @@ Rules that apply to every step. Reference files cite these; they never restate t
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
 | Create | [`references/create.md`](references/create.md) | Interactive creation workflow; ends at the pre-publish checklist. |
-| Improve | [`references/improve.md`](references/improve.md) | Edit a skill in place; owns the reference-pattern decision (A / B / C). |
-| Audit | [`references/audit.md`](references/audit.md) | Frontmatter key table, validator rule catalog, naming/content detail, pre-publish checklist. Auto-resolves scope — single skill vs pack; see Scope resolution in the reference. |
+| Improve | [`references/improve.md`](references/improve.md) | Improve checklist; owns the reference-pattern decision (A / B / C). |
+| Audit | [`references/audit.md`](references/audit.md) | Frontmatter key table, validator rule catalog, naming/content detail, pre-publish checklist; auto-resolves scope. |
