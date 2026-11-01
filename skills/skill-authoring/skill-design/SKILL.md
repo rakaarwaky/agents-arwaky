@@ -1,47 +1,45 @@
 ---
 name: skill-design
-description: Author, validate, and improve agent skills — create skill, write skill, improve skill, validate skill, audit skill, check skill, or scaffold a SKILL.md. Covers frontmatter, naming, structure, and body-versus-reference split. Use when the user asks what each skill in a pack does, requests argument hints for every skill in a directory, checks that a skill pack's references are current, or needs a skill created for an unloaded slash command (cli-commands, config-system, doc-rules, external-lint, git-hooks).
-when-to-use: Use when creating, writing, structuring, improving, validating, or auditing a skill / SKILL.md, deciding what belongs in the body versus a references/ file, explaining a skill pack's features and usage to the user, or generating argument hints for skills in a tree. Also use when a slash command has no loaded skill and a new skill needs to be authored for it.
-argument-hint: "<create | improve | validate | audit | check | explain | hints> [skill-dir]"
+description: Authors, validates, and improves agent skills — creates a new skill, scaffolds or improves an existing SKILL.md, audits a skill pack, explains what a skill or pack does, or generates argument-hint lines for a skill tree. Use when the user says create, write, improve, validate, audit, or check a skill, or asks what a skill in a pack does.
+when-to-use: Use when a slash command has no loaded skill and a new skill must be authored for it, when deciding what belongs in a skill body versus a references/ file or which reference pattern to use, or when checking a pack for stale references and dangling links.
+argument-hint: "<create | improve | validate | audit | explain | hints | patterns> [skill-dir]"
 ---
 
 # Skill Design
 
-You author, validate, and improve SKILL.md files. One skill covers the full lifecycle: design principles, the interactive creation workflow, and validation rules. Every editable rule has exactly one home (a reference file or the Global Rules list below); the body of this skill routes to the right reference and never restates it.
+You author, validate, and improve SKILL.md files. One skill covers the full lifecycle. Every editable rule has exactly one home — a Global Rules bullet below or a reference file — and nothing restates a rule it can cite instead.
 
 ## Execution Flow
 
-1. **Identify the task**: create, improve, validate/audit, explain, or generate argument hints — read `description:` / `when-to-use:` and the argument to pick the mode.
-2. **Load the applicable reference**: open only the reference file(s) that the mode names (see Run Steps below); their rules are the executable logic for that mode.
-3. **Apply the Global Rules below** throughout: single home per fact, budget for permanent cost, dangling-reference check, one home for each fact you add.
-4. **Execute**: follow the reference's steps (gather → draft → scaffold → verify for create; checklist for validate; etc.).
-5. **Verify**: after every create/improve, run `aa skills validate`; after every merge or move in a tree, grep the pack for the changed name and fix dangling pointers.
-6. **Report**: state what changed, how it was verified, and any duplication you noticed but did not fix (per the one-home rule, you report rather than silently rewrite).
+1. **Route**: pick the mode from the argument (`create | improve | validate | audit | explain | hints | patterns`) and open only the reference(s) the Run Steps table names for it — that reference is the executable logic for the mode.
+2. **Apply Global Rules** throughout; references cite them and never restate them.
+3. **Execute** the reference's steps.
+4. **Verify** after every create/improve/edit: run `aa skills validate`; search the skill directory for a second authoritative copy of each fact you added or moved; after any rename or move, grep the pack for the old name and fix dangling pointers; for create/improve, walk the pre-publish checklist in `references/validation-criteria.md`.
+5. **Report**: what changed, how it was verified, and any duplication you noticed but did not fix — per One home per fact, you report it rather than silently rewriting the skill.
 
-## Global Rules
+## Global Rules (SSOT)
 
 Rules that apply to every mode. Reference files cite these; they never restate them.
 
-- **One home per fact.** Each rule, value, or list lives in a single authoritative place — a reference file or this list. When editing and you find an existing copy elsewhere, make the requested change and report the duplication instead of silently rewriting the skill.
-- **Avoid no-op statements.** If a sentence does not change behavior, delete it. Guardrails that restate the new instruction ("do not do X" after "do Y" replaced X) are no-ops too.
-- **Solve the class of problem, not the instance.** Fix the bad output where the fact is owned rather than adding a downstream check that catches one symptom. Generalize along predictable dimensions, and check every generalization against at least two instances.
-- **Set degrees of freedom.** Match specificity to task fragility: high freedom (text steps) for context-dependent work, medium (parameterized scripts) when a preferred pattern exists, low (exact commands) for fragile, strict-sequence operations.
-- **Budget for permanent cost.** The `description:` is injected into the skill list every session; the body loads per skill use; `references/*.md` cost nothing until opened. Move anything task-conditional out of the body.
-- **Consistent terminology.** One term per concept, no synonyms. Model-agnostic wording: don't over-explain for strong models or under-specify for light ones.
-- **Dangling refs rot fast.** Sibling references (`related_skills:`, prose mentions, cross-skill links) are not existence-checked — when editing, resolve every one against the tree (`find skills -maxdepth 2 -type d -name <sibling>`) and remove refs to skills that don't exist.
-- **Mandatory frontmatter.** Four keys are mandatory: `name:`, `description:`, `when-to-use:`, `argument-hint:`. All other keys (`user-invocable`, `disable-model-invocation`, `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata`, `version`, ...) are optional and target-dependent. `name:` matches the directory; `description:` carries WHAT + WHEN + trigger terms.
-- **YAML hygiene.** Quote any value containing `: ` or indicator characters; never indent a field under a previous field's value (one accidentally nested line invalidates the entire frontmatter — only `name`, `description`, `when-to-use` survive recovery). Multi-word keys are kebab-case.
-- **Grok Build parser limits.** `name` ≤ 64 chars; `description` and `when-to-use` ≤ 1,024 chars. Top-level `version:`, `triggers:`, and `entry_points:` are not parsed — trigger phrases belong in `description:` or `when-to-use:`.
-- **Structure.** One `SKILL.md` per skill at the skill root; nested `SKILL.md` files are rejected. Keep the body a table of contents (~100–200 lines); push detail into `references/*.md` (subfolders only when the set is large). Every reference, whatever its depth, links directly from `SKILL.md`. End steps with checkable completion criteria. Prefer defaults over menus; examples beat descriptions; ship non-trivial logic as `scripts/<file>` referenced by path.
-- **Validation rules** (enforced by `aa skills validate`): name-mismatch — Frontmatter name equals skill directory name; name-format — Skill names are lowercase letters, digits, and hyphens; description-present — Every skill carries a description; description-characters — Descriptions contain no <, >, or "; description-length — Descriptions are at most 1024 characters; skill-md-nesting — A skill directory holds exactly one SKILL.md; skill-placement — SKILL.md lives at <category>/<skill>/SKILL.md; unique-skill-name — Each skill name is used by one folder only; unique-description — No two skills share one description.
+- **One home per fact.** Each rule, value, or list lives in a single authoritative place. When an edit touches an existing copy elsewhere, make the requested change and report the duplication instead of silently rewriting.
+- **No no-op sentences.** If a sentence does not change behavior — "be careful", "use best practices", a guardrail restating the instruction it follows — delete it or replace it with a checkable criterion.
+- **Solve the class, not the instance.** Fix bad output where the fact is owned, not with a downstream check that catches one symptom. Check every generalization against at least two concrete instances.
+- **Set degrees of freedom.** High (text steps) for context-dependent work; medium (parameterized scripts) when a preferred pattern exists; low (exact commands) for fragile, strict-sequence operations.
+- **Budget for permanent cost.** `description:` and `when-to-use:` are injected into the skill list every session; the body loads per use; `references/*.md` cost nothing until opened. Keep the two trigger fields non-overlapping, and move anything task-conditional out of the body.
+- **Consistent terminology.** One term per concept, no synonyms; model-agnostic wording.
+- **Dangling refs rot fast.** `related_skills:`, sibling mentions, and cross-skill links are not existence-checked — resolve each against the tree before relying on it, and remove refs to skills that do not exist.
+- **Mandatory frontmatter.** Exactly four keys are mandatory: `name`, `description`, `when-to-use`, `argument-hint`; every other key is optional and target-dependent. Full key table: `references/validation-criteria.md`.
+- **Frontmatter semantics.** `description:` = WHAT + WHEN + trigger terms, third person. Trigger phrases the description cannot fit go in `when-to-use:`, never in a `triggers:` key.
+- **YAML hygiene.** Quote values containing `: ` or indicator characters (`{ } [ ] * & # ! | > % @`, backtick); never indent a field under a previous field's value (one nested line invalidates the whole frontmatter — only `name`, `description`, `when-to-use` survive recovery); multi-word keys kebab-case (`when_to_use` is the accepted alias).
+- **Grok Build parser limits.** `name` ≤ 64 chars; `description` and `when-to-use` ≤ 1,024 chars; top-level `version:`, `triggers:`, and `entry_points:` are ignored.
+- **Structure.** Exactly one `SKILL.md` at `<category>/<skill>/SKILL.md` (nested SKILL.md files are rejected). The body is a routing table of contents, ~100–200 lines, with steps that end in checkable completion criteria; detail lives in `references/*.md` (subfolders allowed when the set is large) and every reference, whatever its depth, links directly from `SKILL.md`. Non-trivial logic ships as `scripts/<file>` referenced by path.
+- **Enforcement.** `aa skills validate` is the gate before publishing; the rule names it enforces are cataloged in `references/validation-criteria.md`.
 
 ## Run Steps
 
-Each reference is mode-scoped and contains the executable steps for that mode. The Global Rules above apply throughout; do not restate them in a reference.
-
 | Mode | Reference | Purpose |
 | ---- | --------- | ------- |
-| Create | [`references/creation-workflow.md`](references/creation-workflow.md) | Interactive workflow: gather requirements, draft the description, scaffold the directory, verify. |
-| Validate / audit | [`references/validation-criteria.md`](references/validation-criteria.md) | Mechanical checklist: frontmatter, naming, structure, content rules, pre-publish checklist. |
-| Explain / hints / writer choice / verify | [`references/authoring-workflows.md`](references/authoring-workflows.md) | Per-mode recipes: explain a skill or pack, generate argument hints for a tree, choose which writer to use, verify a touched skill. |
-| Reference patterns | [`references/reference-guide.md`](references/reference-guide.md) | Decision guide: when to use mode-based single files vs sequential `step-N-name.md` vs hybrid `references/<workflow>/step-N-name.md`. |
+| Create | [`references/creation-workflow.md`](references/creation-workflow.md) | Interactive workflow: gather → draft → scaffold → write → verify; ends at the pre-publish checklist. |
+| Validate / audit | [`references/validation-criteria.md`](references/validation-criteria.md) | Frontmatter key table, validator rule catalog, naming/content detail, pre-publish checklist. |
+| Improve / explain / hints | [`references/authoring-workflows.md`](references/authoring-workflows.md) | Per-mode recipes: improve a skill, explain a skill or pack, generate argument hints, choose the writer for a new skill. |
+| Patterns | [`references/reference-guide.md`](references/reference-guide.md) | Choosing between mode-based files, sequential `step-N` files, and hybrid workflow directories. |

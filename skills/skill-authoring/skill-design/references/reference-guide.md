@@ -1,3 +1,8 @@
+---
+title: Reference Guide
+role: reference
+---
+
 # Reference Guide — choosing the right SKILL.md reference pattern
 
 This guide documents the three reference patterns used across the skill pack and when to pick each one. It lives in `skill-design/references/` because `skill-design` is the meta-skill that authors all other skills; keep it updated when you introduce a new pattern.
@@ -22,7 +27,7 @@ references/authoring-workflows.md
 
 ## Pattern B — Sequential `step-N-name.md` files
 
-**Shape:** numbered step files at `references/step-<N>-<name>.md`, with optional language/sub-variants `step-<N><letter>-<name>.md`.
+**Shape:** numbered step files at `references/step-<N>-<name>.md`, with optional sub-variants `step-<N><letter>-<name>.md`.
 
 ```
 references/step-0-intake.md
@@ -74,14 +79,12 @@ references/hints/step-0-list.md
 
 ## Decision table
 
-
-| Situation                                                                                   | Pattern to use                                                     |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Skill picks one mode per invocation; each mode is small (≤ \~100 lines)                     | **A** — `references/<mode>.md`                                     |
-| Skill is an ordered loop with shared state between steps                                    | **B** — `references/step-<N>-<name>.md`                            |
-| Skill has multiple modes, and at least one mode is large enough to split into ordered steps | **C** — `references/<workflow>/step-<N>-<name>.md`                 |
-| You just need to add a fact used across steps                                               | Put it in `SKILL.md` `## Global Rules` instead of a reference file |
-
+| Situation | Pattern to use |
+| --------- | -------------- |
+| Skill picks one mode per invocation; each mode is small (≤ ~100 lines) | **A** — `references/<mode>.md` |
+| Skill is an ordered loop with shared state between steps | **B** — `references/step-<N>-<name>.md` |
+| Skill has multiple modes, and at least one mode is large enough to split into ordered steps | **C** — `references/<workflow>/step-<N>-<name>.md` |
+| You just need to add a fact used across steps | Put it in `SKILL.md` `## Global Rules (SSOT)` instead of a reference file |
 
 ## Rule of thumb
 

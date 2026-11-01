@@ -2,106 +2,64 @@
 title: Validation Criteria
 role: reference
 ---
+
 # Validation Criteria
 
-Rules for validating a SKILL.md before publishing. The main guide owns the design principles;
-this file is the mechanical checklist.
+Mechanical validation for a SKILL.md before publishing. Design rules are Global Rules in `SKILL.md`; this file holds what they do not: the full key table, the validator's rule catalog, naming/description/content detail, and the checklists.
 
-The frontmatter, name, description, and category-shape constraints are not restated here:
-they live inline in each skill's SKILL.md under "Validation Rules", generated from the same
-`modules/shared/src/skills/taxonomy_skills_rule_vo.py` module the validator runs. What remains here
-is the harness-specific guidance the checker does not encode: which keys each target parses,
-YAML hygiene, and the pre-publish checklist.
+## Frontmatter keys
 
-## Frontmatter
+Which keys are mandatory is a Global Rule; this table is the full key reference, including the optional ones.
 
-Four keys are mandatory in our workflow (`name`, `description`, `when-to-use`,
-and `argument-hint`). All other keys are optional and target-dependent.
+| Field | Required | Notes |
+| ----- | -------- | ----- |
+| `name` | Yes | Validator rules `name-format`, `name-mismatch`. |
+| `description` | Yes | Validator rules `description-*`. |
+| `when-to-use` | Yes | Dedicated trigger phrases; Grok Build matches it together with `description`. |
+| `argument-hint` | Yes | Slash-command autocomplete hint, e.g. `<command> [--flag]`. |
+| `user-invocable` | Optional | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool. |
+| `disable-model-invocation` | Optional | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it. |
+| `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` | Optional | Grok Build controls. |
+| anything else (`version`, `author`, `platforms`, ...) | Optional | Target-dependent; match the field set the destination validator enforces. |
 
+## Validator catalog — what `aa skills validate` enforces
 
-| Field                                                                                         | Required | Notes                                                                                                                                             |
-| --------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                                                                                        | **Yes**  | The `name-format` and `name-mismatch` rules.                                                                                                      |
-| `description`                                                                                 | **Yes**  | The `description-*` rules. WHAT + WHEN + trigger terms.                                                                                           |
-| `when-to-use`                                                                                 | **Yes**  | Max 1,024 chars. Dedicated trigger phrases for auto-invocation.                                                                                   |
-| `argument-hint`                                                                               | **Yes**  | Slash-command autocomplete hint (e.g. `<command> [--flag]`).                                                                                      |
-| `user-invocable`                                                                              | Optional | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool.                                                  |
-| `disable-model-invocation`                                                                    | Optional | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it.                                         |
-| `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` | Optional | Optional Grok Build controls. See the main guide's keys table for effects and limits.                                                             |
-| others (`version`, `author`, `platforms`, ...)                                                | Optional | Target-dependent. Match the field set the destination validator enforces. Grok Build ignores top-level `version`, `triggers`, and `entry_points`. |
+| Rule | Meaning |
+| ---- | ------- |
+| `name-mismatch` | Frontmatter `name` equals the skill directory name. |
+| `name-format` | Skill names are lowercase letters, digits, and hyphens. |
+| `description-present` | Every skill carries a description. |
+| `description-characters` | Descriptions contain no `<`, `>`, or `"`. |
+| `description-length` | Descriptions are at most 1,024 characters. |
+| `skill-md-nesting` | A skill directory holds exactly one `SKILL.md`. |
+| `skill-placement` | `SKILL.md` lives at `<category>/<skill>/SKILL.md`. |
+| `unique-skill-name` | Each skill name is used by one folder only. |
+| `unique-description` | No two skills share one description. |
 
-
-### Naming
-
-The naming constraints are the `name-format` and `name-mismatch` rules. What that guidance does not cover:
+## Naming detail
 
 - Gerund form preferred (`processing-pdfs`) over `pdf-processing`, when both are valid.
-- Renaming a skill = rename the directory (`git mv`) and grep the tree for inbound mentions.
+- Renaming a skill = rename the directory (`git mv`), then grep the tree for inbound mentions and fix every one (Global Rules: dangling refs rot fast).
 
-### Description
-
-The description constraints are the `description-*` rules. What that guidance does
-not cover:
+## Description detail
 
 - Third person: "Extracts text from PDFs", never "I can help".
-- WHAT + WHEN + trigger terms, specific ("Helps with documents" fails this).
-- Quote the value if it contains a `:` so YAML parses a string.
-- Grok Build matches the prompt against `description` AND `when-to-use`; put leftover
-trigger phrases in `when-to-use` rather than bloating the description.
+- Specific: "Helps with documents" fails — name the artifact and the action.
+- Leftover trigger phrases go to `when-to-use:`, not into an ever-longer description (Global Rules: Frontmatter semantics).
 
-### YAML hygiene
+## Content detail
 
-- Quote values containing `:`  or indicator characters (`{ } [ ] * & # ! | > % @`, backtick).
-- Nothing indented under a previous field's value: one nested line invalidates the whole
-frontmatter, and only `name`, `description`, `when-to-use` survive the recovery pass.
-- Multi-word keys kebab-case; `when_to_use` is the only accepted alias of `when-to-use`.
-- For Grok Build targets, trigger phrases go in `description`/`when-to-use` — a `triggers:`
-key is ignored.
-
-## Structure
-
-The placement and nesting constraints are the `skill-placement`, `category-depth`, and
-`skill-md-nesting` rules. What that guidance does not cover:
-
-- `references/` may use subfolders when the reference set is large; every reference,
-  whatever its depth, links directly from `SKILL.md`.
-- Body target ~100-200 lines for simple skills, hard ceiling is the harness's limit
-(commonly 500 lines / 100k chars); overflow goes into references.
-- Forward slashes in paths (`scripts/helper.py`). No time-sensitive content in the body.
-- Multi-step workflows use a checkbox checklist ending in a verifiable criterion.
-
-## Content
-
-- Terminology consistent — one term per concept.
 - Concrete examples over abstract description; input/output pairs for style-dependent output.
 - Defaults, not menus of alternatives.
-- Scripts handle errors themselves, justify constants, list dependencies, reference by path.
+- Scripts handle errors themselves, justify constants, list dependencies.
+- Prefer referencing existing CLI tools over writing custom scripts.
 - MCP tools named fully qualified (`ServerName:tool_name`).
-- No second authoritative copy of any rule: search the skill directory for each fact you add.
-- No no-op sentences: "be careful" and "use best practices" change nothing — replace with a
-checkable criterion or delete.
+- Forward slashes in paths (`scripts/helper.py`); no time-sensitive content in the body.
 
 ## Pre-publish checklist
 
-- [ ] Frontmatter contains all four mandatory keys: `name`, `description`, `when-to-use`, and `argument-hint`.
-- [ ] Frontmatter uses only valid keys (all others are optional).
-- [ ] `name:` matches the directory and satisfies the `name-format` rule; `description:`
-
-  satisfies the `description-*` rules — run
-  `aa skills validate` to check both.
-- [ ] Frontmatter is valid YAML: colon-containing values quoted, no field nested under another.
-- [ ] Grok Build target: trigger phrases live in `description`/`when-to-use`, not `triggers:`.
-- [ ] Exactly one `SKILL.md` at the skill root, at `<category>/<skill>/SKILL.md`.
-- [ ] Body within the size target; detail overflowed into `references/`.
-- [ ] All `references/` links resolve, whatever their depth under `references/`.
-- [ ] Every `related_skills:` entry, sibling mention, and cross-skill link names a skill
-  that exists in the tree.
-- [ ] Terminology consistent; examples concrete.
-- [ ] Workflows are sequential with checkable completion criteria.
-- [ ] Scripts handle errors; dependencies listed; forward slashes only.
-- [ ] No time-sensitive content; no duplicated rules; no no-op guardrails.
-
-## Post-publish note
-
-Loaders cache the skill list at session start: a new or renamed skill appears in the next
-session, not the current one. This is expected.
+- [ ] `aa skills validate` passes (catalog above).
+- [ ] Frontmatter satisfies the Global Rules bullets: mandatory keys, Frontmatter semantics, YAML hygiene, parser limits.
+- [ ] Body within ~100–200 lines; overflow moved into `references/`; every reference, whatever its depth, is linked from `SKILL.md` (Global Rules: Structure).
+- [ ] Every sibling mention and cross-skill link names a skill that exists in the tree (Global Rules: dangling refs).
+- [ ] Content detail section above satisfied.

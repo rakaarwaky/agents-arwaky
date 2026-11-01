@@ -5,37 +5,26 @@ role: reference
 
 # Creation Workflow
 
-Interactive workflow for creating a new skill from scratch. Design rules and frontmatter
-constraints come from the main guide; this file is only the step order.
+Interactive workflow for creating a new skill from scratch. Design rules and frontmatter constraints are Global Rules in `SKILL.md`; this file is only the step order.
 
 ## Step 1: Gather information
 
-Ask the user these questions one at a time as normal conversation (not option prompts):
+Ask the user one at a time, as normal conversation (not option prompts):
 
-1. **Skill name** — must satisfy the `name-format` rule.
-   Validate before continuing.
-2. **Scope** — present two options:
-   - **Project** (recommended): `<repo-root>/<skills-dir>/<name>/SKILL.md` — lives in this
-     repo, shareable with teammates. Default when inside a git repo.
+1. **Skill name** — must satisfy the `name-format` rule (see the validator catalog in `validation-criteria.md`). Validate before continuing.
+2. **Category** — the category folder the skill belongs under: `<skills-dir>/<category>/<skill-name>/`. Default to the category of its sibling skills.
+3. **Scope** — present two options:
+   - **Project** (recommended): `<repo-root>/<skills-dir>/<category>/<skill-name>/SKILL.md` — lives in this repo, shareable with teammates. Default when inside a git repo.
    - **User**: the harness's user-level skills directory — available in all projects.
-3. **What it should do** — describe the workflow, paste a repeated example prompt, or explain
-   the task the skill automates.
+4. **What it should do** — the workflow to automate, a repeated example prompt, or the task description.
 
-Resolve the actual directory for the chosen scope before writing (read it from the harness
-config or the repo layout; never hardcode a home path into the skill body).
+Resolve the real directory for the chosen scope from the harness config or repo layout before writing; never hardcode a home path into the skill body.
 
-## Step 2: Draft the description
+## Step 2: Draft the trigger fields
 
-Write a `description:` that carries:
+Draft `description:` and `when-to-use:` together — both are mandatory (Global Rules) and both drive auto-invocation. Apply the Frontmatter semantics bullet and the description detail in `validation-criteria.md`. Keep the two fields non-overlapping: the description stays lean because it is injected every session (Global Rules: budget for permanent cost).
 
-- What the skill does (1-2 sentences).
-- Trigger phrases and keywords so the harness auto-invokes it.
-- The slash-command name, if the harness supports one ("Use when the user runs `/deploy-k8s`").
-
-If the trigger phrases don't fit one sentence, add a separate `when-to-use:` field —
-Grok Build matches both fields when deciding to auto-invoke.
-
-Show it to the user for approval or edits.
+Show both to the user for approval or edits before writing anything.
 
 ## Step 3: Create the directory
 
@@ -43,45 +32,26 @@ Show it to the user for approval or edits.
 mkdir -p <SKILL_DIR>
 ```
 
-Also create `<SKILL_DIR>/scripts/` if the skill ships helper scripts, and
-`<SKILL_DIR>/references/` if it needs reference docs. Never skip this step — the file fails
-to save without the directory.
+Create `<SKILL_DIR>/scripts/` if the skill ships helper scripts and `<SKILL_DIR>/references/` if it needs reference docs. The file fails to save without the directory.
 
 ## Step 4: Write SKILL.md
 
 ```markdown
 ---
 name: <skill-name>
-description: <description from Step 2>
+description: <from Step 2>
 when-to-use: "Use when <trigger conditions and context>."
 argument-hint: "<arg> [--flag] <other-arg>"
 ---
 
-<body with instructions, steps, code blocks>
+<body: routing table of contents; steps end in checkable completion criteria>
 ```
 
-In our workflow, `name`, `description`, `when-to-use`, and `argument-hint` are
-mandatory frontmatter keys. All other keys (`user-invocable`,
-`disable-model-invocation`, `paths`, `model`, `effort`, `metadata`, etc.) are
-optional. Do not add `triggers:`, `entry_points:`, or top-level `version:` for
-Grok Build — the parser ignores them; trigger phrases belong in
-`description:` and `when-to-use:`.
-
-Write any supporting scripts or references as needed. Follow the design principles in the
-main guide rather than restating them here.
+Mandatory keys, YAML hygiene, parser limits, and which optional keys are safe to add are Global Rules; the full optional-key table is in `validation-criteria.md`. Write supporting scripts and references as needed, using absolute paths so nothing lands in the wrong place.
 
 ## Step 5: Verify and confirm
 
-1. Read the written file back (`cat <SKILL_DIR>/SKILL.md` or open it) and confirm frontmatter
-   and body landed correctly.
-2. Tell the user how to invoke it: slash command, skills menu, and automatic description
-   matching — whichever the target harness provides.
-3. Note that most harnesses pick up file changes within seconds, but a session that already
-   loaded its skill list may need a restart to see the new skill.
-
-## Guidelines
-
-- Keep the body a prompt for the agent, not documentation: focused and actionable.
-- The `description:` field drives auto-invocation — be specific with trigger words.
-- Prefer referencing existing CLI tools over writing custom scripts.
-- Use absolute paths when creating files so nothing lands in the wrong place.
+- [ ] Read the file back and confirm frontmatter and body landed correctly.
+- [ ] Run `aa skills validate`, then walk the pre-publish checklist in `validation-criteria.md`.
+- [ ] Tell the user how to invoke it (slash command, skills menu, description matching — whichever the target harness provides).
+- [ ] Remind the user that new or renamed skills appear in the next session: loaders cache the skill list at session start. This is expected.
