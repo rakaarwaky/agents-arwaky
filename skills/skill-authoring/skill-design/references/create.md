@@ -22,7 +22,7 @@ Resolve the real directory for the chosen scope from the harness config or repo 
 
 ## Step 2: Draft the trigger fields
 
-Draft `description:` and `when-to-use:` together — both are mandatory (Global Rules) and both drive auto-invocation. Apply the Frontmatter semantics bullet and the description detail in `validation-criteria.md`. Keep the two fields non-overlapping: the description stays lean because it is injected every session (Global Rules: budget for permanent cost).
+Draft `description:` and `when-to-use:` together — both are mandatory (Global Rules) and both drive auto-invocation. Apply the Frontmatter semantics bullet and the description detail in `audit.md`. Keep the two fields non-overlapping: the description stays lean because it is injected every session (Global Rules: budget for permanent cost).
 
 Show both to the user for approval or edits before writing anything.
 
@@ -47,11 +47,11 @@ argument-hint: "<arg> [--flag] <other-arg>"
 <body: routing table of contents; steps end in checkable completion criteria>
 ```
 
-Mandatory keys, YAML hygiene, parser limits, and which optional keys are safe to add are Global Rules; the full optional-key table is in `validation-criteria.md`. Write supporting scripts and references as needed, using absolute paths so nothing lands in the wrong place.
+Mandatory keys, YAML hygiene, parser limits, and which optional keys are safe to add are Global Rules; the full optional-key table is in `audit.md`. Write supporting scripts and references as needed, using absolute paths so nothing lands in the wrong place.
 
 ## Step 5: Verify and confirm
 
 - [ ] Read the file back and confirm frontmatter and body landed correctly.
-- [ ] Run `aa skills validate`, then walk the pre-publish checklist in `validation-criteria.md`.
+- [ ] Run `aa skills validate`, then walk the pre-publish checklist in `audit.md`.
 - [ ] Tell the user how to invoke it (slash command, skills menu, description matching — whichever the target harness provides).
 - [ ] Remind the user that new or renamed skills appear in the next session: loaders cache the skill list at session start. This is expected.

@@ -40,4 +40,4 @@ Two ways to create a skill; pick by description length:
 
 The ~60-char index budget and the 1,024-char parser limit (Global Rules: Grok Build parser limits) are different ceilings: the parser accepts long descriptions, the index display clips them.
 
-Both paths end at Step 5 of `creation-workflow.md` (verify and confirm).
+Both paths end at Step 5 of `create.md` (verify and confirm).
