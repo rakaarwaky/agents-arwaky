@@ -36,11 +36,13 @@ import os
 import shutil
 import stat
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from modules.shared.src.skills.contract_skills_protocol import IStateProtocol
+from modules.shared.src.skills.taxonomy_skills_error import SkillsUsageError
 from modules.shared.src.skills.taxonomy_skills_vo import (
     TraceDecision,
+    TraceStateDispatchResult,
     TraceStateStatus,
 )
 
@@ -373,3 +375,66 @@ class SkillsTraceState(IStateProtocol):
             except OSError:
                 pass
         return tuple(restricted)
+
+    # ── dispatch: one router call instead of seven branches upstream ──
+
+    @staticmethod
+    def _split_paths(flag_value: str) -> tuple[str, ...]:
+        return tuple(p.strip() for p in flag_value.split(",") if p.strip())
+
+    def dispatch(
+        self,
+        grok_home: str,
+        run_dir: str,
+        action: str,
+        flags: Mapping[str, str],
+    ) -> TraceStateDispatchResult:
+        """Route one trace-state sub-action; the thin router the agent calls.
+
+        The 7-branch business logic (comma-string parsing, ``TraceDecision``
+        construction) lives here, not in the agent. Unknown actions raise
+        ``SkillsUsageError`` (exit 2).
+        """
+        if action == "set":
+            status = TraceStateStatus(flags.get("status", "collected"))
+            got = self.set_status(grok_home, run_dir, status)
+            return TraceStateDispatchResult(state=got)
+
+        if action == "get":
+            got, _view = self.get_status(grok_home)
+            return TraceStateDispatchResult(state=got)
+
+        if action == "clear":
+            self.set_status(grok_home, run_dir, TraceStateStatus.DONE)
+            return TraceStateDispatchResult(state=TraceStateStatus.DONE)
+
+        if action == "trash":
+            run_name = flags.get("run_name", "")
+            moved = self.trash(grok_home, run_name, self._split_paths(flags.get("trash_paths", "")))
+            return TraceStateDispatchResult(lines=moved)
+
+        if action == "restrict":
+            restricted = self.restrict(self._split_paths(flags.get("restrict_paths", "")))
+            return TraceStateDispatchResult(lines=restricted)
+
+        if action == "decide":
+            decision = TraceDecision(
+                date=flags.get("date", ""),
+                run_dir=run_dir,
+                decision_id=flags.get("id", ""),
+                kind=flags.get("kind", ""),
+                action=flags.get("decide_action", ""),
+                target=flags.get("target", ""),
+                target_path=flags.get("path", ""),
+                decision=flags.get("decision", ""),
+                undo=flags.get("undo") or None,
+            )
+            got = self.decide(grok_home, run_dir, decision)
+            return TraceStateDispatchResult(lines=(json.dumps(got.as_dict(), ensure_ascii=False),))
+
+        if action == "wait":
+            timeout_min = int(flags.get("timeout_min", "90"))
+            got = self.wait(grok_home, run_dir, timeout_min=timeout_min)
+            return TraceStateDispatchResult(state_status=got)
+
+        raise SkillsUsageError(f"Unknown trace-state action: {action}")

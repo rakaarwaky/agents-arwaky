@@ -35,6 +35,7 @@ from modules.shared.src.common.utility_skill_pack import (
 from modules.shared.src.skills.contract_skills_protocol import ITrackerProtocol
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import UsageReport
 from modules.shared.src.skills.taxonomy_skills_vo import (
+    ScanResult,
     SkillUsageItem,
     TraceSessionRecord,
 )
@@ -138,14 +139,15 @@ class SkillsTracker(ITrackerProtocol):
         limit: int = 0,
         include_headless: bool = False,
         include_subagents: bool = False,
-    ) -> tuple[TraceSessionRecord, ...]:
-        """Walk ``$GROK_HOME/sessions`` and return compact per-session records.
+    ) -> ScanResult:
+        """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
 
         Applies the subagent/headless/temp-cwd/grok-e2e/window/min-turns
         filters, redacts secrets verbatim, caps prompts at ``TURN_CAP`` chars,
         drops smoke-test sessions, writes ``manifest.json`` +
         ``sessions/NNNN-<id>.json`` into ``run_dir``, and returns the kept
-        records as VOs.
+        records plus the ``sessions_seen`` / ``dropped`` counters as a
+        ``ScanResult`` VO.
         """
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         sessions_root = os.path.join(grok_home, "sessions")
@@ -248,7 +250,7 @@ class SkillsTracker(ITrackerProtocol):
             records.append(_record_from_dict(r))
 
         _write_manifest(grok_home, run_dir, records, kept, seen, dropped, days, since_last, min_turns, limit)
-        return tuple(records)
+        return ScanResult(records=tuple(records), sessions_seen=seen, dropped=dict(dropped))
 
     def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
         """Build the skills-only usage report from session records in ``run_dir``.

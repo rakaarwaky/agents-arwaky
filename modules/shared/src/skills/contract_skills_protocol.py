@@ -15,7 +15,7 @@ of these protocols and wired by the root.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
@@ -38,13 +38,14 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
     RulesSummary,
+    ScanResult,
     SkillContent,
     SkillDescription,
     SkillQuery,
     SkillRecord,
     SkillsRoot,
     TraceDecision,
-    TraceSessionRecord,
+    TraceStateDispatchResult,
     TraceStateStatus,
 )
 
@@ -217,11 +218,12 @@ class ITrackerProtocol(ABC):
         since_last: bool = False,
         min_turns: int = 1,
         limit: int = 0,
-    ) -> tuple[TraceSessionRecord, ...]:
-        """Scan the session tree with the filters and return compact records.
+    ) -> ScanResult:
+        """Scan the session tree with the filters and return a ``ScanResult``.
 
         The capability writes the records into ``run_dir`` and returns
-        the same data as VOs (no raw JSON for the surface to re-parse).
+        the kept records plus the scan counters (``sessions_seen``,
+        ``dropped``) as a VO — no raw JSON for the surface to re-parse.
         """
         ...
 
@@ -286,6 +288,19 @@ class IStateProtocol(ABC):
         overrun to the legacy exit code.
         """
         ...
+
+    def dispatch(
+        self,
+        grok_home: str,
+        run_dir: str,
+        action: str,
+        flags: Mapping[str, str],
+    ) -> TraceStateDispatchResult:
+        """Route one trace-state sub-action through this capability.
+
+        The thin router behind the agent's single per-op call; ``flags``
+        carries the sub-action's parameters (status, run_name, paths, ...).
+        """
 
 
 __all__ = [

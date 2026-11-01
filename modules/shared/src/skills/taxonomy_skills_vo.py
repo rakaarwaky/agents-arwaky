@@ -219,6 +219,33 @@ class TraceDecision:
 
 
 @dataclass(frozen=True)
+class ScanResult:
+    """Outcome of one tracker scan: the kept records plus scan counters.
+
+    ``sessions_seen`` is every session directory examined; ``dropped`` maps
+    a drop-reason name to its count (the legacy manifest counters, surfaced
+    so no consumer re-parses ``manifest.json``).
+    """
+
+    records: tuple[TraceSessionRecord, ...]
+    sessions_seen: int
+    dropped: Mapping[str, int] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class TraceStateDispatchResult:
+    """The state capability's single-op projection for the agent's dispatch.
+
+    ``state`` is populated by set/get/clear; ``state_status`` is the
+    ``wait`` outcome; ``lines`` carries trash/restrict/decide output.
+    """
+
+    state: TraceStateStatus | None = None
+    state_status: TraceStateStatus | None = None
+    lines: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class SkillsRequest:
     """Input for one skills operation.
 
@@ -245,6 +272,10 @@ class SkillsResult:
     ``exit_code`` is the CLI contract: 0 clean / 1 issues / 2 usage /
     3 catalog drift. Payload fields are populated per op; the surface
     renders them and never reaches back into a capability.
+
+    ``state`` is populated by trace-state set/get/clear; ``state_status``
+    is the ``wait`` outcome. ``collect_summary`` carries the tracker
+    scan counters (``ScanResult``) for trace-collect.
     """
 
     ok: bool
@@ -269,6 +300,7 @@ class SkillsResult:
     phrases: PhrasesReport | None = None
     state: TraceStateStatus | None = None
     state_status: TraceStateStatus | None = None
+    collect_summary: ScanResult | None = None
 
 
 __all__ = [
@@ -277,6 +309,7 @@ __all__ = [
     "ErrorMessage",
     "PhraseRow",
     "RulesSummary",
+    "ScanResult",
     "SkillContent",
     "SkillDescription",
     "SkillName",
@@ -291,5 +324,6 @@ __all__ = [
     "SkillsRoot",
     "TraceDecision",
     "TraceSessionRecord",
+    "TraceStateDispatchResult",
     "TraceStateStatus",
 ]

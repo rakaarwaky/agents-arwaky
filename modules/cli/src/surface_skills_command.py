@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 from modules.shared.src.common.utility_logging_setup import (
@@ -874,7 +875,12 @@ def _trace_collect_parser() -> argparse.ArgumentParser:
         description="Scan sessions and build the skills-only usage material.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to scan")
-    parser.add_argument("--out", metavar="DIR", default="", help="Run dir for output records")
+    parser.add_argument(
+        "--out",
+        metavar="DIR",
+        default="",
+        help="Run dir for output records (default: a scratch skills-trace-* temp dir)",
+    )
     parser.add_argument("--days", type=int, default=0, help="Only sessions updated within N days")
     parser.add_argument("--since-last", action="store_true", help="Since the last completed run")
     parser.add_argument("--min-turns", type=int, default=1, help="Minimum human turns per session")
@@ -889,7 +895,7 @@ def _cmd_trace_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
-    run_dir = ns.out or str(__import__("tempfile").mkdtemp(prefix="skills-trace-"))
+    run_dir = ns.out or tempfile.mkdtemp(prefix="skills-trace-")
     request = SkillsRequest(
         op=SkillsOp.TRACE_COLLECT,
         flags={
@@ -905,12 +911,13 @@ def _cmd_trace_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     result = aggregate.execute(request)
 
     if ns.json:
+        summary = result.collect_summary
         _emit_json(
             {
                 "run_dir": run_dir,
                 "kept": len(result.usage.items) if result.usage else 0,
-                "seen": 0,
-                "dropped": 0,
+                "seen": summary.sessions_seen if summary else 0,
+                "dropped": dict(summary.dropped) if summary else {},
             }
         )
         return 0
@@ -1131,6 +1138,8 @@ def _cmd_trace_state(args: list[str], aggregate: ISkillsAggregate) -> int:
     elif action == "trash":
         flags["run_name"] = ns.run_name
         flags["trash_paths"] = ",".join(ns.paths)
+    elif action == "restrict":
+        flags["restrict_paths"] = ",".join(ns.paths)
     elif action == "decide":
         flags["id"] = ns.id
         flags["kind"] = ns.kind

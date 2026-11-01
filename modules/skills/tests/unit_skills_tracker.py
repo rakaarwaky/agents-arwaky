@@ -14,6 +14,7 @@ import pytest
 from modules.shared.src.skills.contract_skills_protocol import ITrackerProtocol
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import UsageReport
 from modules.shared.src.skills.taxonomy_skills_vo import (
+    ScanResult,
     SkillUsageItem,
     TraceSessionRecord,
 )
@@ -121,7 +122,8 @@ def test_scan_keeps_interactive_session(tmp_path: Path) -> None:
     summary = _base_summary(tmp_path, id="s1", head_branch="main")
     _write_session(grok_home, "user", "s1", summary, ["turn one two", "turn two three"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    records = scan.records
     assert len(records) == 1
     assert records[0].id == "s1"
     assert records[0].human_turns == 2
@@ -133,8 +135,12 @@ def test_scan_drops_subagent_headless_by_default(tmp_path: Path) -> None:
     _write_session(grok_home, "user", "sub", _base_summary(tmp_path, id="sub", session_kind="subagent"), ["hi"])
     _write_session(grok_home, "user", "hl", _base_summary(tmp_path, id="hl", session_kind="headless"), ["hi"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
-    assert [r.id for r in records] == []
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    assert [r.id for r in scan.records] == []
+    # one subagent + one headless session, both dropped
+    assert scan.sessions_seen == 2
+    assert dict(scan.dropped).get("subagent") == 1
+    assert dict(scan.dropped).get("headless") == 1
 
 
 def test_scan_includes_headless_when_requested(tmp_path: Path) -> None:
@@ -142,8 +148,8 @@ def test_scan_includes_headless_when_requested(tmp_path: Path) -> None:
     grok_home = _grok_home(tmp_path)
     _write_session(grok_home, "user", "hl", _base_summary(tmp_path, id="hl", session_kind="headless"), ["headless turn check"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), include_headless=True)
-    assert [r.id for r in records] == ["hl"]
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), include_headless=True)
+    assert [r.id for r in scan.records] == ["hl"]
 
 
 def test_scan_drops_temp_cwd_and_grok_e2e(tmp_path: Path) -> None:
@@ -158,8 +164,8 @@ def test_scan_drops_temp_cwd_and_grok_e2e(tmp_path: Path) -> None:
         ["y"],
     )
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
-    assert [r.id for r in records] == []
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    assert [r.id for r in scan.records] == []
 
 
 def test_scan_min_turns_filter(tmp_path: Path) -> None:
@@ -168,8 +174,9 @@ def test_scan_min_turns_filter(tmp_path: Path) -> None:
     _write_session(grok_home, "user", "a", _base_summary(tmp_path, id="a"), ["one alpha beta"])
     _write_session(grok_home, "user", "b", _base_summary(tmp_path, id="b"), ["one alpha beta", "two beta gamma", "three gamma delta"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), min_turns=2)
-    assert [r.id for r in records] == ["b"]
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), min_turns=2)
+    assert [r.id for r in scan.records] == ["b"]
+    assert dict(scan.dropped).get("no_human_turns") == 1
 
 
 def test_scan_days_window(tmp_path: Path) -> None:
@@ -181,8 +188,8 @@ def test_scan_days_window(tmp_path: Path) -> None:
     _write_session(grok_home, "user", "new", _base_summary(tmp_path, id="new", updated_at=now.isoformat()), ["x alpha beta"])
     _write_session(grok_home, "user", "old", _base_summary(tmp_path, id="old", updated_at="2026-01-01T00:00:00+00:00"), ["y gamma delta"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), days=1)
-    assert [r.id for r in records] == ["new"]
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), days=1)
+    assert [r.id for r in scan.records] == ["new"]
 
 
 def test_scan_limit(tmp_path: Path) -> None:
@@ -194,8 +201,9 @@ def test_scan_limit(tmp_path: Path) -> None:
     _write_session(grok_home, "user", "a", _base_summary(tmp_path, id="a", updated_at=now.isoformat()), ["a alpha beta"])
     _write_session(grok_home, "user", "b", _base_summary(tmp_path, id="b", updated_at="2026-01-02T00:00:00+00:00"), ["b beta gamma"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), limit=1)
-    assert [r.id for r in records] == ["a"]
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"), limit=1)
+    assert [r.id for r in scan.records] == ["a"]
+    assert dict(scan.dropped).get("beyond_limit") == 1
 
 
 def test_scan_excludes_repeated_single_turn(tmp_path: Path) -> None:
@@ -204,8 +212,9 @@ def test_scan_excludes_repeated_single_turn(tmp_path: Path) -> None:
     for i in range(3):
         _write_session(grok_home, "user", f"s{i}", _base_summary(tmp_path, id=f"s{i}"), ["the same prompt"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
-    assert [r.id for r in records] == []
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    assert [r.id for r in scan.records] == []
+    assert scan.sessions_seen == 3
 
 
 # ---------------------------------------------------------------- run-dir writing
@@ -218,8 +227,10 @@ def test_scan_writes_manifest_and_session_files(tmp_path: Path) -> None:
     summary = _base_summary(tmp_path, id="s1", head_branch="main")
     _write_session(grok_home, "user", "s1", summary, ["keep this turn"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(run_dir))
-    assert len(records) == 1
+    scan = tracker.scan_sessions(str(grok_home), str(run_dir))
+    assert len(scan.records) == 1
+    assert scan.sessions_seen == 1
+    assert scan.dropped == {}
     assert (run_dir / "manifest.json").is_file()
     session_files = list((run_dir / "sessions").iterdir())
     assert len(session_files) == 1
@@ -234,9 +245,10 @@ def test_scan_returns_vos_not_raw_dicts(tmp_path: Path) -> None:
     summary = _base_summary(tmp_path, id="s1")
     _write_session(grok_home, "user", "s1", summary, ["keep this turn"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
-    assert all(isinstance(r, TraceSessionRecord) for r in records)
-    assert records[0].turns == ("keep this turn",)
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    assert isinstance(scan, ScanResult)
+    assert all(isinstance(r, TraceSessionRecord) for r in scan.records)
+    assert scan.records[0].turns == ("keep this turn",)
 
 
 # ---------------------------------------------------------------- usage builder
@@ -336,8 +348,9 @@ def test_scan_drops_smoke_test_session(tmp_path: Path) -> None:
     grok_home = _grok_home(tmp_path)
     _write_session(grok_home, "user", "s1", _base_summary(tmp_path, id="s1"), ["hi", "ok"])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
-    assert [r.id for r in records] == []
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    assert [r.id for r in scan.records] == []
+    assert scan.sessions_seen == 1
 
 
 def test_scan_caps_prompts_at_turn_cap(tmp_path: Path) -> None:
@@ -346,9 +359,9 @@ def test_scan_caps_prompts_at_turn_cap(tmp_path: Path) -> None:
     long_prompt = "aaa bbb " + "x" * 5000
     _write_session(grok_home, "user", "s1", _base_summary(tmp_path, id="s1"), [long_prompt])
     tracker = _make_tracker()
-    records = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
-    assert len(records) == 1
-    assert len(records[0].turns[0]) <= TURN_CAP + len("…")
+    scan = tracker.scan_sessions(str(grok_home), str(tmp_path / "run"))
+    assert len(scan.records) == 1
+    assert len(scan.records[0].turns[0]) <= TURN_CAP + len("…")
 
 
 
