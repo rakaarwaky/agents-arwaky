@@ -51,6 +51,32 @@ class SkillsIndexBuilder(ISkillsIndexProtocol):
         records.sort(key=lambda r: r.name)
         return records
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    def list_skills_json(self, root: SkillsRoot | None = None) -> dict:
+        """Return the global-skill JSON list as a pure-data dict.
+
+        Shape: ``{"skills": [{"name", "source", "path", "loaded"}, ...]}``.
+
+        The source is the repo pack only (``default_pack_root()``); sibling
+        roots such as ``~/.agents/skills``, plugins, MCP, workflows, and
+        slash-mru are NOT scanned. ``loaded`` is always ``True`` in this
+        projection — it marks the skill as visible to the global index.
+
+        Key order per entry is pinned: ``name``, ``source``, ``path``,
+        ``loaded``. Entries are sorted by ``name`` (stable, deterministic).
+        """
+        records = self.list_skills(root)
+        skills: list[dict] = []
+        for record in records:
+            skills.append(
+                {
+                    "name": record.name,
+                    "source": str(self._root),
+                    "path": str(record.path),
+                    "loaded": True,
+                }
+            )
+        skills.sort(key=lambda e: e["name"])
+        return {"skills": skills}
+
     def __repr__(self) -> str:
         return "SkillsIndexBuilder()"
