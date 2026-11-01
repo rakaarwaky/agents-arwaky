@@ -15,10 +15,10 @@ answers "which skill do I use".
 | Remove skills and surfaces you never use | `skill-unlearn` | `skills/skill-authoring/skill-unlearn/` |
 
 The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) all
-run on the shared deterministic pipeline in [`_trace-pipeline/`](_trace-pipeline/README.md) — one folder of
-scripts and references, not a skill (no `SKILL.md` at its root, so the validator does not count it). It produces
-phrases, usage counts, and stale-skill signals in a single pass; each skill curates only its own action group
-from the shared `report.md` / `actions.json` run directory.
+run on the `aa skills` trace verbs (`trace-collect`, `trace-usage`, `trace-phrases`, `trace-state`), backed by
+`capabilities_skills_tracker`, `capabilities_skills_phrases`, and `capabilities_skills_state` in `modules/skills`.
+They produce phrases, usage counts, and stale-skill signals in a single pass; each skill curates only its own action
+group from the shared `report.md` / `actions.json` run directory.
 
 ## Pack tooling
 
