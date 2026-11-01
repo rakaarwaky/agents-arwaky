@@ -22,7 +22,7 @@ Resolve the real directory for the chosen scope from the harness config or repo 
 
 ## Step 2: Draft the trigger fields
 
-Draft `description:` and `when-to-use:` together — both are mandatory (Global Rules) and both drive auto-invocation. Apply the Frontmatter semantics bullet and the description detail in `audit.md`. Keep the two fields non-overlapping: the description stays lean because it is injected every session (Global Rules: budget for permanent cost).
+Draft `description:` and `when-to-use:` together — both are mandatory (Global Rules) and both drive auto-invocation. Apply the Frontmatter semantics bullet and the description detail in `audit.md`. Keep the two fields non-overlapping (Global Rules: budget for permanent cost).
 
 Show both to the user for approval or edits before writing anything.
 
@@ -34,7 +34,16 @@ mkdir -p <SKILL_DIR>
 
 Create `<SKILL_DIR>/scripts/` if the skill ships helper scripts and `<SKILL_DIR>/references/` if it needs reference docs. The file fails to save without the directory. If the category folder is new, also create its `DESCRIPTION.md` — the pack audit requires one.
 
-## Step 4: Write SKILL.md
+## Step 4: Choose the writer
+
+Two ways to write the skill; pick by description length:
+
+- **`skill_manage(action=create)`** — safe default; creates the directory and `SKILL.md` in one call. It enforces a ~60-char budget on the `description:` line (the skill index clips anything longer) and rolls back the whole batch on any violation. Draft the description first and count it; if it will exceed ~60 chars, don't fight the validator loop — use the direct writer below. When this writer succeeds, skip to Step 6.
+- **Write the files directly** (`write_file`) — continue with Steps 5–6. Use this when the description needs more than ~60 chars, when building a richer multi-file skill, or when `create` keeps rejecting frontmatter. After writing, run `aa skills catalog` to register the skill.
+
+The ~60-char index budget and the 1,024-char parser limit (Global Rules: Grok Build parser limits) are different ceilings: the parser accepts long descriptions, the index display clips them.
+
+## Step 5: Write SKILL.md
 
 ```markdown
 ---
@@ -49,9 +58,9 @@ argument-hint: "<arg> [--flag] <other-arg>"
 
 Mandatory keys, YAML hygiene, parser limits, and which optional keys are safe to add are Global Rules; the full optional-key table is in `audit.md`. Write supporting scripts and references as needed, using absolute paths so nothing lands in the wrong place.
 
-## Step 5: Verify and confirm
+## Step 6: Verify and confirm
 
 - [ ] Read the file back and confirm frontmatter and body landed correctly.
-- [ ] Run `aa skills validate`, then walk the pre-publish checklist in `audit.md`.
+- [ ] Run the Verify and Report steps of `SKILL.md` (Execution Flow 5–6) — they own `aa skills validate` and the pre-publish checklist.
 - [ ] Tell the user how to invoke it (slash command, skills menu, description matching — whichever the target harness provides).
 - [ ] Remind the user that new or renamed skills appear in the next session: loaders cache the skill list at session start. This is expected.

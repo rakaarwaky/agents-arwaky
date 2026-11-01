@@ -12,7 +12,7 @@ Mechanical audit for a SKILL.md — before publishing (after create/improve) or 
 The audit auto-resolves its scope from the skills-path argument:
 
 - **Single skill** — the path names one skill folder (`<category>/<skill>/`). Run the checklist below for that one `SKILL.md`; run `aa skills validate` scoped to it.
-- **Pack / category** — the path names a category (`<category>/`) or the skills root. Run the single-skill checklist for every `SKILL.md` in the tree, then add the pack-wide checks: no `unique-skill-name` or `unique-description` collisions across skills, no dangling cross-skill links, every skill correctly placed under `skill-placement`, and category `DESCRIPTION.md` present. Run `aa skills validate` over the whole tree.
+- **Pack / category** — the path names a category (`<category>/`) or the skills root. Run the single-skill checklist for every `SKILL.md` in the tree, and run `aa skills validate` over the whole tree — it covers the `unique-skill-name`, `unique-description`, and `skill-placement` rules pack-wide. Two pack-wide checks the tool does not perform: no dangling cross-skill links, and a `DESCRIPTION.md` present in every category.
 
 When the path is ambiguous, default to the single-skill scope if it ends in a folder containing a `SKILL.md`, otherwise the pack scope.
 
@@ -48,7 +48,7 @@ Which keys are mandatory is a Global Rule; this table is the full key reference,
 ## Naming detail
 
 - Gerund form preferred (`processing-pdfs`) over `pdf-processing`, when both are valid.
-- Renaming a skill = rename the directory (`git mv`), then grep the tree for inbound mentions and fix every one (Global Rules: dangling refs rot fast).
+- Renaming a skill = rename the directory (`git mv`); the dangling-pointer sweep afterwards is owned by the Verify step of `SKILL.md`.
 
 ## Description detail
 
