@@ -1,11 +1,11 @@
 ---
-title: Authoring Workflows
+title: Improve
 role: reference
 ---
 
-# Authoring Workflows
+# Improve
 
-Recipes for the modes that edit existing skills. Verification after any edit is the Verify step of `SKILL.md` — it is not repeated here.
+Recipe for the improve step, plus the two decisions it owns: reference-pattern choice and writer choice. Verification after any edit is the Verify step of `SKILL.md` — it is not repeated here.
 
 ## Improve a skill
 

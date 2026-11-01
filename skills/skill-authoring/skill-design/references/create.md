@@ -1,9 +1,9 @@
 ---
-title: Creation Workflow
+title: Create
 role: reference
 ---
 
-# Creation Workflow
+# Create
 
 Interactive workflow for creating a new skill from scratch. Design rules and frontmatter constraints are Global Rules in `SKILL.md`; this file is only the step order.
 
@@ -32,7 +32,7 @@ Show both to the user for approval or edits before writing anything.
 mkdir -p <SKILL_DIR>
 ```
 
-Create `<SKILL_DIR>/scripts/` if the skill ships helper scripts and `<SKILL_DIR>/references/` if it needs reference docs. The file fails to save without the directory.
+Create `<SKILL_DIR>/scripts/` if the skill ships helper scripts and `<SKILL_DIR>/references/` if it needs reference docs. The file fails to save without the directory. If the category folder is new, also create its `DESCRIPTION.md` — the pack audit requires one.
 
 ## Step 4: Write SKILL.md
 
