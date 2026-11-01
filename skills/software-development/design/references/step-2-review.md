@@ -1,39 +1,26 @@
-# Step 2: Review the Design Document
+# Step 2: Review
 
-Launch the design-doc-reviewer subagent. It writes structured review notes.
+Spawn the `design-doc-reviewer` subagent.
 
 ## Spawn
-
 `spawn_subagent` parameters:
 - `subagent_type`: `"general-purpose"`
 - `background`: `false`
-- `description`: `"[reviewer] Review design document"`
+- `description`: `"[reviewer] Review design doc"`
 
-**Prepend the reviewer persona instructions** (from Step 0). Prompt body:
+Prepend `reviewer_persona_instructions` (Step 0). Substitute absolute paths for `<...>` placeholders.
 
-```
+```text
 <reviewer_persona_instructions>
-
 ---
+Review: <design_doc_file>
+Summary: <summary_file>
+Output: <review_file>
 
-Review the design document.
+Read both files. Do not modify them. Write structured notes to Output.
+Each issue needs: Severity, Section, Description, Suggestion, Status: open.
 
-The design document is at: <design_doc_file>
-The writer's summary is at: <summary_file>
-
-Read both files. Review the document thoroughly.
-
-Write your review notes to: <review_file>
-Use the structured format with severity, section, description, suggestion, and status for each issue.
-Every issue must have a Status field set to "open".
-
-Pay special attention to:
-- Whether the PR Plan at the bottom is realistic and properly ordered
-- Whether Key Decisions are well-reasoned and complete
-- Whether the design is specific enough that an engineer could implement from it
-- Whether alternatives were meaningfully explored
-```
-
-## After Completion
-
-Wait for completion. If it fails, report the error and stop. Save the returned `subagent_id` — you will resume this agent for re-review rounds.
+Evaluate:
+- PR Plan: realistic, ordered, independently mergeable.
+- Key Decisions: well-reasoned.
+- Detail: enough for implementation.

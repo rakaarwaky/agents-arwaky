@@ -26,13 +26,12 @@ If the host helper returns a different `scratch_dir`, ignore it for artifact sto
 All design artifacts must be stored under this hardcoded base directory:
 
 ```text
-~/.grok/plans/<repo-slug>/
+~/.grok/plans/<projectreponame>/
 ```
 
-Where `<repo-slug>` is:
+Where &lt;projectreponame&gt; is:
 
 - the lowercased basename of `git rev-parse --show-toplevel`, normalized to `[a-z0-9-]`, when inside a git repository
-- `general` when outside a git repository
 
 Create the directory if it does not exist:
 
@@ -95,5 +94,7 @@ Step 0 receives the argument from:
 Treat `<description>` as the design task: feature design, system architecture, migration plan, technical spec, or another design deliverable.
 
 If the user provides file paths, links, constraints, or additional context, include all of that context in the writer prompt.
-```
 
+
+
+&nbsp;

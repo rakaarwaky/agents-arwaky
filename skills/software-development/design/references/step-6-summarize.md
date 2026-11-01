@@ -1,17 +1,15 @@
 # Step 6: Summarize and Finalize
 
-Run only after the exit condition in Step 3 holds: 0 open issues. Read the final design document from `<design_doc_file>`.
+Read the final `<design_doc_file>` and present these sections to the user:
 
-## 6a: Extract Key Decisions
+## 6a: Key Decisions
+Extract and summarize each decision and its rationale.
 
-Read the "Key Decisions" section and present a concise summary listing each decision and its rationale.
+## 6b: Open Questions
+If an "Open Questions" section exists, present each as a clear question with selectable trade-off options (include an "Other" option). 
+- Never silently resolve these; always ask the user.
+- If the user answers, resume the writer to incorporate them. Skip re-review.
+- If empty or missing, skip this section.
 
-## 6b: Ask Open Questions
-
-Read the "Open Questions" section (if any remain). For each: frame it as a clear question, provide the options/trade-offs as selectable choices, include an "Other" option. If the user answers, resume the writer one final time to incorporate the answers, then skip re-review (user decisions, not design issues). If none remain, skip.
-
-User decisions are final. Never silently resolve open questions — always ask the user.
-
-## 6c: Present PR Plan
-
-Read and present the "PR Plan" section.
+## 6c: PR Plan
+Present the PR Plan section.
