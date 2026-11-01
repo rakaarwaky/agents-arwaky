@@ -27,7 +27,12 @@ python3 <this-skill>/scripts/scan.py --repo-root <repo-root> --discovery <discov
 `<discovery.json>` is the Step-1 discovery output written to a temp file. The
 script parses every in-scope doc's State Definitions table, row tables,
 Next Action / Item cells (cell value only — prose outside the table is out
-of scope), FR-id sets, and roll-up rows into one ScanOutput JSON. A
+of scope), FR-id sets, and roll-up rows into one ScanOutput JSON. It also
+parses the aes-docs entry shape: `### FR/DS/DT/PR-...` headings with their
+`| Aspect | Detail |` tables under `## Backlog Status` (task rows keyed by
+the entry's `State` / `Updated` rows; no `next_action` key — the shape has
+no such column) and under `## Roadmap Status` (PR entries → roll-up claims,
+feature resolved from the `Backlog` link). A
 non-zero exit is a hard stop: fix the scanner and re-run; the workflow does
 **not** fall back to an LLM scanner.
 
@@ -110,7 +115,7 @@ Verdicts:
 | `skip` | Done, code fully confirms it with command + commit evidence (no-trust mode) | ledger only, evidence recorded |
 | `skip` | Done row accepted under `--trust` mode without code verification | ledger only |
 | `fr_orphan` | FR id with no backlog row | tracking issue on the feature |
-| `skip_next_action` | Next Action contains `none` or `<skip>` | ledger only, no issue |
+| `skip_next_action` | Next Action column present; cell empty, `none`, or `<skip>` | ledger only, no issue (rows with no Next Action column classify by state instead) |
 | `next_action_complete` | Next Action item already implemented in code + tests | `[DOC-SYNC]` issue: set Next Action to `none` |
 | `next_action_pending` | Next Action item not yet implemented | tracking issue: implement the action, then set Next Action to `done` |
 

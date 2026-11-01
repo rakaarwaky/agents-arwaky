@@ -22,11 +22,13 @@ Both modes handle the `Next Action` column the same way — see below.
 
 ## Next Action handling
 
-Every row carries a `Next Action` (or `Item`) column. The tracker checks this field
-for all rows regardless of trust mode:
+Rows whose source table has a `Next Action` (or `Item`) column: the tracker checks
+this field for all of them regardless of trust mode:
 
 - **`none` or `<skip>` in Next Action** → the row is classified as `skip_next_action`.
   No issue is created. The ledger records the skip.
+- **Empty Next Action cell** (column present, cell blank) → also `skip_next_action`;
+  an empty cell in a table whose shape *has* the column is a "nothing to do" marker.
 
 - **Next Action has content** (not `none`/`<skip>`) → the verifier checks whether the
   described action is already implemented in the feature's source code and tests:
@@ -37,6 +39,13 @@ for all rows regardless of trust mode:
     The tracker opens a tracking issue whose closing condition is the implementation
     path + test that proves the action, plus the doc edit that sets `Next Action`
     to `done`.
+
+Rows whose source table has **no Next Action column at all** (aes-docs Aspect/Detail
+entry rows under `## Backlog Status` — the scan emits no `next_action` key for them)
+never take the skip path; the `State` row alone classifies them (`Ready` /
+`In Progress` / `In Review` → `incomplete`; `Done` → trust-mode `skip` or
+`proof_demand`). The distinction is the key's presence, not its content: a missing
+column cannot be a "no action" claim.
 
 The closing condition for `next_action_pending` issues combines two steps:
 1. Implement the described behavior in `<feature>/src/` and add a test in
@@ -101,12 +110,13 @@ them verbatim but the classifier maps them to the simplified four: `Idea`/`Refin
 | --- | --- | --- |
 | Ready, In Progress | `incomplete` | tracking issue |
 | In Review | `incomplete` | tracking issue, body notes the open PR gate |
-| Done whose claimed behavior is confirmed present in the feature's current source code and exercised by at least one test, with command + commit evidence recorded (`--no-trust`) | `skip` | no issue, ledger records the reproduced evidence |
 | Done row under `--trust` mode | `skip` | no issue, accepted at face value without code verification |
+| Done row under `--no-trust` | `proof_demand` | verifier re-reads source + tests; passes → `skip` (ledger records the reproduced evidence), fails → `unverified` `[DOC-SYNC]` |
 | Done claim where the described behavior is absent, incomplete, or untested in the feature's source tree | `unverified` | `[DOC-SYNC]` issue demanding proof |
 | Any incomplete state where the work is present and tested in the source code but the doc still reports an incomplete state | `doc_sync` | doc-update issue |
 | FR ID declared in FRD with no backlog row (or vice versa) | `fr_orphan` | tracking issue on the feature |
-| Next Action contains `none` or `<skip>` | `skip_next_action` | no issue, ledger records the skip |
+| Next Action column present and cell is empty, `none`, or `<skip>` | `skip_next_action` | no issue, ledger records the skip |
+| No Next Action column in the source table (aes-docs entry rows) | state rule above (never `skip_next_action`) | classified by `State` alone |
 | Next Action has content and the action is already implemented in code + tests | `next_action_complete` | `[DOC-SYNC]` issue: set Next Action to `none` |
 | Next Action has content and the action is not yet implemented | `next_action_pending` | tracking issue: implement the action, then set Next Action to `done` |
 
@@ -129,9 +139,14 @@ The verifier reads source files, not git history. A hash, PR number, or tag cite
 
 ### Roll-up double-check
 
-For every `Feature Roll-up` row (roadmap-owned shape) or feature index row
-(backlog-owned shape), the verifier recomputes the feature's **effective state** from
-its backlog rows:
+For every `Feature Roll-up` row (roadmap-owned shape), feature index row
+(backlog-owned shape), or `## Roadmap Status` PR entry (aes-docs shape, feature
+resolved from the entry's `Backlog` link), the verifier recomputes the feature's
+**effective state** from its backlog rows. The claim's feature key arrives in
+path form (`modules/<name>` from a Roll-up ID cell, `crates/<name>` from a
+Backlog link) and is matched to the feature's rows by the path's last segment
+(`modules/daemon` → rows grouped under `daemon`); a claim for a feature with no
+rows at all is checked against `Done`:
 
 1. Collect every backlog row of the feature plus its doc-level `State:` line.
 2. Effective state = the worst state present, ranked:

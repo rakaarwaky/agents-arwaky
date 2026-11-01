@@ -7,8 +7,13 @@ no gh, no network, no reads of the feature source trees.
 Deterministic classes (from the SKILL.md classification table):
 
 - ``incomplete``          — state in {Ready, In Progress, In Review}
-- ``skip_next_action``    — Next Action cell is empty, or exactly one word
-                            that is ``none`` / ``<skip>`` (case-insensitive)
+- ``skip_next_action``    — the row *has* a Next Action column (the
+                            ``next_action`` key is present) and the cell is
+                            empty, or exactly one word that is ``none`` /
+                            ``<skip>`` (case-insensitive). Rows without the
+                            column (aes-docs Aspect/Detail entries — the
+                            key is absent) never take this path; they
+                            classify by state alone.
 - ``skip``                — Done under --trust-mode trust
 - ``proof_demand``        — Done under --trust-mode no-trust
 - ``fr_orphan``           — FR-id set difference, both directions
@@ -100,6 +105,24 @@ def _effective_state(states: list[str]) -> str:
     return _RANK_ORDER[best]
 
 
+def _rollup_effective(feature: str, feature_effective: dict[str, str]) -> str:
+    """Effective state for a roll-up claim on ``feature``.
+
+    Roll-up features come in path form (``modules/tools`` from a Feature
+    Roll-up ID cell, ``crates/filesystem`` from an aes-docs Backlog link)
+    while rows group under the bare feature name. Try the key as given,
+    then its last path segment. A feature with no rows at all keeps the
+    ``Done`` default — a claim about an empty backlog is checked against
+    Done (pinned by test_rollup_mismatch_flags).
+    """
+    if feature in feature_effective:
+        return feature_effective[feature]
+    base = feature.rstrip("/").split("/")[-1]
+    if base in feature_effective:
+        return feature_effective[base]
+    return "Done"
+
+
 def _is_skip_next_action(cell: str) -> bool:
     """Engine Fix 1 rule.
 
@@ -170,7 +193,10 @@ def classify_scan(
     The ScanOutput shape:
 
     - ``rows``: list of scan rows (``id``, ``feature``, ``state``,
-      ``next_action``, ``source_doc``, ``updated``).
+      ``next_action``, ``source_doc``, ``updated``). ``next_action`` is
+      omitted by scan.py for Aspect/Detail entry rows, whose shape has no
+      such column; presence of the key — not its content — selects the
+      skip rule.
     - ``fr_groups``: ``{feature: {"fr_declared": [...], "fr_referenced": [...]}}``
       — emitted by scan.py unconditionally; the sole FR input. A missing
       key means there is no FR data to check.
@@ -221,6 +247,11 @@ def classify_scan(
         state = str(row.get("state") or "unknown")
         # Non-string cells (null, numbers) coerce to "" — the scan JSON is
         # machine-generated but a null next_action is plausible upstream.
+        # Key present: the doc has a Next Action column — Engine Fix 1
+        # applies (empty / `none` / `<skip>` → skip_next_action).
+        # Key absent: aes-docs Aspect/Detail entry rows carry no Next
+        # Action column — skip never fires and the State row classifies.
+        has_next_action = "next_action" in row
         next_action = str(row.get("next_action") or "")
         source_doc = str(row.get("source_doc") or "")
         updated = str(row.get("updated") or "")
@@ -233,7 +264,7 @@ def classify_scan(
         classification: str
         closing_condition: str | None = None
 
-        if _is_skip_next_action(next_action):
+        if has_next_action and _is_skip_next_action(next_action):
             classification = "skip_next_action"
             closing_condition = closing_condition_skip_next_action()
         elif trust_mode == "trust" and state.strip().lower() == "done":
@@ -311,7 +342,7 @@ def classify_scan(
         claimed = str(rollup.get("claimed_state") or "")
         if not claimed:
             continue
-        effective = feature_effective.get(feature, "Done")
+        effective = _rollup_effective(feature, feature_effective)
         if claimed.strip().lower() != effective.strip().lower():
             rollup_mismatches.append(
                 {

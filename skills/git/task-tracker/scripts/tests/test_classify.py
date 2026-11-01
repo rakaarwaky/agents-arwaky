@@ -13,7 +13,7 @@ _SKILL_DIR = Path(__file__).resolve().parent.parent.parent
 if str(_SKILL_DIR) not in sys.path:
     sys.path.insert(0, str(_SKILL_DIR))
 
-from typing import Any
+from typing import Any, cast
 
 from scripts import classify, scan
 from scripts.templates import (
@@ -126,6 +126,36 @@ def test_skip_next_action_emits_dash() -> None:
     assert classify._is_skip_next_action("None") is True
     assert classify._is_skip_next_action("") is True
     assert classify._is_skip_next_action("None — every row is Done") is False
+
+
+def test_rows_without_next_action_key_classify_by_state() -> None:
+    # aes-docs Aspect/Detail entry rows carry no ``next_action`` key at all
+    # (the column does not exist), so Engine Fix 1's skip rule — which fires
+    # on an *empty* cell when the column exists — must not fire. State alone
+    # decides: incomplete stays open, Done is still a trust-mode claim.
+    def classify_state(state: str, trust: str = "no-trust") -> str:
+        sc = {
+            "rows": [
+                {
+                    "id": "FR-FS-001",
+                    "feature": "crates/filesystem",
+                    "state": state,
+                    "source_doc": "crates/filesystem/BACKLOG.md",
+                    "updated": "2026-10-26",
+                }
+            ],
+            "fr_groups": {},
+            "rollups": [],
+        }
+        rows = cast(list[dict[str, Any]], classify.classify_scan(
+            sc, trust_mode=trust, today=TODAY)["rows"])
+        return cast(str, rows[0]["classification"])
+
+    assert classify_state("In Progress") == "incomplete"
+    assert classify_state("Ready") == "incomplete"
+    assert classify_state("In Review") == "incomplete"
+    assert classify_state("Done", "no-trust") == "proof_demand"
+    assert classify_state("Done", "trust") == "skip"
 
 
 def test_done_row_no_trust_is_proof_demand() -> None:
@@ -293,13 +323,18 @@ def test_fr_orphan_flags() -> None:
 
 
 def test_rollup_mismatch_flags() -> None:
-    # scan.py emits the `rollups` key on the default path, so the mismatch
+    # scan.py emits per-feature claimed states via rollups; the mismatch
     # detector runs without any opt-in key injection.
     sc = _scan()
-    assert [r["feature"] for r in sc["rollups"]] == ["widgets"]
     result = classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)
-    # widgets claims In Progress, effective is In Progress → no mismatch.
-    assert result["rollup_mismatches"] == []
+    # widgets-tools claims Ready but its backlog has zero task rows
+    # (effective state = Done), so it is flagged as a mismatch.
+    mismatches = {m["feature"]: m for m in result["rollup_mismatches"]}
+    assert mismatches["widgets-tools"]["claimed"] == "Ready"
+    assert mismatches["widgets-tools"]["effective"] == "Done"
+    # widgets claims In Progress and its effective state is In Progress → no mismatch.
+    assert "widgets" not in mismatches
+
     # Over-claim: roll-up claims Done while the backlog is still In
     # Progress → mismatch.
     sc2 = _scan()
@@ -328,3 +363,25 @@ def test_rollup_mismatch_flags() -> None:
     assert mismatches3[0]["claimed"] == "In Progress"
     assert mismatches3[0]["effective"] == "Done"
     assert mismatches3[0]["verdict"] == "rollup_mismatch"
+
+
+def test_rollup_feature_path_key_resolves_to_feature_rows() -> None:
+    # Roll-up claims arrive in path form (`modules/<name>` from a Feature
+    # Roll-up ID cell, `crates/<name>` from an aes-docs Backlog link) while
+    # rows group under the bare feature name. Without normalization every
+    # claim falls back to the Done default and real drift is masked.
+    sc = _scan()
+    sc["rollups"] = [{"feature": "modules/widgets", "claimed_state": "Done"}]
+    result = classify.classify_scan(sc, trust_mode="no-trust", today=TODAY)
+    mismatches = result["rollup_mismatches"]
+    assert len(mismatches) == 1
+    assert mismatches[0]["feature"] == "modules/widgets"
+    assert mismatches[0]["claimed"] == "Done"
+    # widgets' real worst state, not the Done fallback.
+    assert mismatches[0]["effective"] == "In Progress"
+
+    # Path key matching a genuinely In Progress backlog → no mismatch.
+    sc2 = _scan()
+    sc2["rollups"] = [{"feature": "crates/widgets", "claimed_state": "In Progress"}]
+    result2 = classify.classify_scan(sc2, trust_mode="no-trust", today=TODAY)
+    assert result2["rollup_mismatches"] == []

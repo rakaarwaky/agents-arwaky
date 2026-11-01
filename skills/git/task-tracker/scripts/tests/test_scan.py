@@ -95,17 +95,20 @@ def test_unreadable_doc_emits_empty_rows_and_warning(tmp_path: Path) -> None:
 
 def test_rollup_row_extracted() -> None:
     result = _run()
-    assert "widgets" in result["rollup_row"]
-    assert "In Progress" in result["rollup_row"]
+    rollup_states = {r["feature"]: r["claimed_state"] for r in result["rollups"]}
+    assert rollup_states.get("widgets") == "In Progress"
 
 
 def test_rollups_key_carries_per_feature_claimed_state() -> None:
     result = _run()
     by_feature = {r["feature"]: r["claimed_state"] for r in result["rollups"]}
     # widgets/BACKLOG.md carries its own Feature Roll-up table claiming
-    # In Progress; widgets-tools and widgets-ext have no roll-up table in
-    # their docs, so they carry no claimed state.
-    assert by_feature == {"widgets": "In Progress"}
+    # In Progress; widgets-tools claims Ready; widgets-ext claims In Progress.
+    assert by_feature == {
+        "widgets": "In Progress",
+        "widgets-tools": "Ready",
+        "widgets-ext": "In Progress",
+    }
 
 
 def test_fr_groups_keyed_per_feature() -> None:
@@ -122,9 +125,163 @@ def test_fr_groups_keyed_per_feature() -> None:
 def test_doc_state_line_captured_for_backlog_owned_feature() -> None:
     # widgets/BACKLOG.md has `State: In Progress`; check parse_doc surfaces it.
     text = (REPO_ROOT / "widgets" / "BACKLOG.md").read_text(encoding="utf-8")
-    _rows, declared, _refs, rollup, _rollup_state, doc_state, _warnings = scan.parse_doc(
+    _rows, declared, _refs, rollups, doc_state, _warnings = scan.parse_doc(
         "widgets/BACKLOG.md", text, "widgets", "widgets"
     )
     assert doc_state == "In Progress"
     assert "FR-WID-005" in declared
-    assert rollup is not None and "widgets" in rollup
+    assert {"feature": "widgets", "claimed_state": "In Progress"} in rollups
+
+
+# --- aes-docs dialect: `## Roadmap Status` / `## Backlog Status` entry tables ---
+
+_AES_ROADMAP = """# ROADMAP — sample
+
+## Roadmap Status
+
+### PR-SMP-001: filesystem
+
+| Aspect       | Detail                                    |
+|--------------|-------------------------------------------|
+| Priority     | P0                                        |
+| State        | Done                                      |
+| Backlog      | [BACKLOG.md](crates/filesystem/BACKLOG.md) |
+"""
+
+
+def test_roadmap_status_entry_becomes_rollup_claim() -> None:
+    rows, _decl, refs, rollups, _state, warnings = scan.parse_doc(
+        "ROADMAP.md", _AES_ROADMAP, "root", "."
+    )
+    assert rows == []
+    assert refs == []
+    assert rollups == [
+        {"feature": "crates/filesystem", "claimed_state": "Done"}
+    ]
+    assert warnings == []
+
+
+_AES_BACKLOG = """# BACKLOG — filesystem
+
+## Backlog Status
+
+### FR-FS-001: reads a file
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| State        | In Progress                       |
+| Done         | Not done yet                      |
+| Updated      | 2026-10-26                        |
+"""
+
+
+def test_backlog_status_entry_becomes_task_row_without_next_action() -> None:
+    rows, _decl, refs, rollups, _state, warnings = scan.parse_doc(
+        "crates/filesystem/BACKLOG.md", _AES_BACKLOG, "crates/filesystem",
+        "crates/filesystem",
+    )
+    assert rollups == []
+    assert warnings == []
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["id"] == "FR-FS-001"
+    assert row["title"] == "reads a file"
+    assert row["state"] == "In Progress"
+    assert row["updated"] == "2026-10-26"
+    assert row["feature"] == "crates/filesystem"
+    assert row["source_doc"] == "crates/filesystem/BACKLOG.md"
+    # The Aspect/Detail shape has no Next Action column → no key at all,
+    # so classify.py's Engine Fix 1 skip rule cannot fire on this row.
+    assert "next_action" not in row
+    # FR-family entries count as backlog references for the orphan check.
+    assert row["fr_refs"] == ["FR-FS-001"]
+    assert refs == ["FR-FS-001"]
+
+
+def test_bare_id_entry_heading_without_colon_is_a_row() -> None:
+    # lint-arwaky's real crate BACKLOGs write `### FR-Filesystem-001` with
+    # no `: title` — the template shows a title, the files often omit it.
+    text = """# BACKLOG — filesystem
+
+## Backlog Status
+
+### FR-Filesystem-001
+
+| Aspect | Detail |
+| -------------- | --------------------------------------------- |
+| State | Ready |
+| Updated | 2026-09-29 |
+
+## Reference
+
+| Artifact | Purpose |
+| --- | --- |
+| PRD.md | spec |
+"""
+    rows, decl, refs, rollups, _state, warnings = scan.parse_doc(
+        "crates/filesystem/BACKLOG.md", text, "crates/filesystem",
+        "crates/filesystem",
+    )
+    # Mixed-case scopes register as declared too (FR_ID_RE is case-faithful).
+    assert "FR-Filesystem-001" in decl
+    assert warnings == []
+    assert rollups == []
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["id"] == "FR-Filesystem-001"
+    assert row["title"] == ""
+    assert row["state"] == "Ready"
+    assert row["fr_refs"] == ["FR-Filesystem-001"]
+    assert refs == ["FR-Filesystem-001"]
+    assert "next_action" not in row
+    # row_text carries the bare ID (no dangling colon + blank title).
+    assert row["row_text"].startswith("FR-Filesystem-001 | ")
+
+
+def test_entry_table_outside_status_section_is_ignored() -> None:
+    # The same entry + Aspect/Detail shape under any other H2 (e.g. a PRD's
+    # Project Requirements) is not a backlog row and not a roll-up claim.
+    text = """# PRD
+
+## Project Requirements
+
+### PR-SMP-001: something
+
+| Aspect | Detail |
+|---|---|
+| State | Done |
+| Backlog | [BACKLOG.md](crates/x/BACKLOG.md) |
+"""
+    rows, _decl, _refs, rollups, _state, warnings = scan.parse_doc(
+        "PRD.md", text, "root", "."
+    )
+    assert rows == []
+    assert rollups == []
+    assert warnings == []
+
+
+def test_roadmap_status_entry_without_feature_link_warns() -> None:
+    text = _AES_ROADMAP.replace(
+        "[BACKLOG.md](crates/filesystem/BACKLOG.md)", "BACKLOG.md"
+    )
+    rows, _decl, _refs, rollups, _state, warnings = scan.parse_doc(
+        "ROADMAP.md", text, "root", "."
+    )
+    assert rows == []
+    assert rollups == []
+    assert any("without a feature Backlog link" in w for w in warnings)
+
+
+def test_entry_context_is_scoped_to_its_own_h2() -> None:
+    # An entry heading under one H2 cannot authorize a table under the next:
+    # a bare Aspect/Detail table under Backlog Status (no entry) yields
+    # nothing, while the Roadmap Status entry above still yields its claim.
+    text = _AES_ROADMAP + (
+        "\n## Backlog Status\n\n| Aspect | Detail |\n|---|---|\n| State | Ready |\n"
+    )
+    rows, _decl, _refs, rollups, _state, warnings = scan.parse_doc(
+        "ROADMAP.md", text, "root", "."
+    )
+    assert rollups == [{"feature": "crates/filesystem", "claimed_state": "Done"}]
+    assert rows == []
+    assert warnings == []

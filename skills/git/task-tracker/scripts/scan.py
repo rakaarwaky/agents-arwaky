@@ -2,10 +2,12 @@
 
 Stdlib only. Reads the discovery JSON (the Rhai ``feature_schema`` object
 verbatim: ``{"root": [...], "features": [{"name", "dir", "docs"}]}``), reads
-the listed spec docs, and emits an object matching the task-tracker Rhai
-workflow's ``scan_schema`` (``rows`` / ``fr`` / ``rollup_row``) plus
-per-doc ``docs`` bookkeeping (rows, and a ``warning`` field naming a doc
-that was unreadable or had in-scope zero rows).
+the listed spec docs, and emits an object with ``rows`` / ``fr`` /
+``fr_groups`` / ``rollups`` plus per-doc ``docs`` bookkeeping (rows, and a
+``warning`` field naming a doc that was unreadable or had in-scope zero
+rows). Column tables (ID/Feature/Branch + State) and aes-docs entry tables
+(``## Backlog Status`` / ``## Roadmap Status`` + Aspect/Detail) are both
+parsed.
 
 Pure over files: no gh, no network.
 """
@@ -20,7 +22,10 @@ import time
 from pathlib import Path
 from typing import Any, TypedDict
 
-FR_ID_RE = re.compile(r"\bFR-[A-Z]+-\d+\b")
+# FR id tokens, any case scope: aes-docs entries mix case
+# (``FR-Filesystem-001``) while agents-arwaky rows stay upper-cased
+# (``FR-DOCTOR-001``). Shape mirrors ENTRY_HEADING_RE's id half.
+FR_ID_RE = re.compile(r"\bFR-[A-Za-z0-9_]+-\d+\b")
 # Doc-level "State: <value>" line near the top of a feature backlog.
 # The value is anchored to the simplified four-state vocabulary so a
 # trailing note (e.g. "State: In Progress (planned)") does not bleed into
@@ -30,6 +35,23 @@ DOC_STATE_RE = re.compile(
     re.MULTILINE | re.IGNORECASE,
 )
 SEPARATOR_CELL_RE = re.compile(r"^:?-+:?$")
+
+# aes-docs dialect (internal/lint-arwaky/.../aes-docs/references): an entry
+# heading `### FR-<SCOPE>-NNN: <title>` (H2–H4) followed by an
+# `| Aspect | Detail |` table whose row labels carry `State`, etc.
+# The `: <title>` half is optional — the template shows it, but real
+# BACKLOG files (lint-arwaky crates) carry the bare ID alone.
+ENTRY_HEADING_RE = re.compile(
+    r"^(#{2,4})\s+(?P<id>(?:FR|DS|DT|PR)-[A-Za-z0-9_]+-\d+)(?::\s*(?P<title>.*))?$"
+)
+H2_RE = re.compile(r"^##\s+(?P<title>\S.*?)\s*$")
+ANY_HEADING_RE = re.compile(r"^#{2,6}\s+")
+# Markdown link target inside a table cell: `[...,](path)`.
+MD_LINK_RE = re.compile(r"\]\((?P<path>[^)#\s]+)\)")
+# Sections whose entry tables are staged for extraction.
+ENTRY_SECTIONS = {"backlog status", "roadmap status"}
+# Feature-directory markers for resolving a Backlog cell link to a feature.
+FEATURE_DIR_MARKERS = ("modules", "packages", "crates")
 
 # Table headers that mark a row table (ID / Branch + State).
 ID_HEADERS = {"id", "branch"}
@@ -79,19 +101,43 @@ def _cell(headers: list[str], cells: list[str], name: str) -> str:
     return ""
 
 
-def _extract_tables(doc_text: str) -> list[tuple[list[str], list[list[str]]]]:
-    """Extract (headers, data_rows) pairs from every markdown table.
+def _extract_tables_ctx(
+    doc_text: str,
+) -> list[tuple[str, tuple[str, str] | None, list[str], list[list[str]]]]:
+    """Extract every markdown table with its heading context.
 
-    A table is a consecutive run of lines starting with ``|``. The first
-    line is the header; a dash separator line is dropped; the rest are data
-    rows.
+    Returns ``(section, entry, headers, data_rows)`` where ``section`` is
+    the normalized level-2 title in effect (``""`` before the first H2)
+    and ``entry`` is the most recent aes-docs entry heading
+    (``(entry_id, title)``) seen under that H2. A table is a consecutive
+    run of lines starting with ``|``; the first line is the header, a dash
+    separator line is dropped, the rest are data rows. A new H2 resets the
+    section and clears the entry; a non-entry heading between an entry and
+    its table also clears the entry, so only the entry heading that
+    immediately frames a table resolves.
     """
-    tables: list[tuple[list[str], list[list[str]]]] = []
+    tables: list[tuple[str, tuple[str, str] | None, list[str], list[list[str]]]] = []
+    section = ""
+    entry: tuple[str, str] | None = None
     lines = doc_text.splitlines()
     i = 0
     while i < len(lines):
-        if lines[i].lstrip().startswith("|"):
-            block = [lines[i]]
+        line = lines[i]
+        h2_match = H2_RE.match(line)
+        if h2_match:
+            section = h2_match.group("title").strip().lower()
+            entry = None
+        else:
+            entry_match = ENTRY_HEADING_RE.match(line)
+            if entry_match:
+                entry = (
+                    entry_match.group("id"),
+                    (entry_match.group("title") or "").strip(),
+                )
+            elif ANY_HEADING_RE.match(line):
+                entry = None
+        if line.lstrip().startswith("|"):
+            block = [line]
             i += 1
             while i < len(lines) and lines[i].lstrip().startswith("|"):
                 block.append(lines[i])
@@ -106,29 +152,68 @@ def _extract_tables(doc_text: str) -> list[tuple[list[str], list[list[str]]]]:
                     continue
                 data.append(cells)
             if headers:
-                tables.append((headers, data))
+                tables.append((section, entry, headers, data))
+            entry = None
             continue
         i += 1
     return tables
 
 
-def _is_task_table(headers: list[str]) -> bool:
-    """True for row tables: an ID (or Branch) column plus a State column.
+def _extract_tables(doc_text: str) -> list[tuple[list[str], list[list[str]]]]:
+    """(headers, data_rows) pairs from every markdown table, no context."""
+    return [(headers, data) for _s, _e, headers, data in _extract_tables_ctx(doc_text)]
 
-    A `Feature` header alone is NOT enough: Feature Roll-up tables carry a
-    `Feature` column plus `State` but no `ID`, so they must be routed to
-    roll-up extraction instead. A table that has BOTH `Feature` and `ID`
-    plus `State` is treated as a task table (the `Feature` column is
-    ignored); Feature+ID+State roll-ups are out of scope.
+
+def _is_task_table(headers: list[str]) -> bool:
+    """True for row tables: an ID (or Branch) column plus a State column,
+    but no Feature column. A `Feature` column marks a roll-up table, not a
+    task table — the ID column in a roll-up holds feature paths, not task IDs.
     """
     names = _header_names(headers)
+    if "feature" in names:
+        return False
     return bool(names & ID_HEADERS) and bool(names & STATE_HEADERS)
 
 
 def _looks_like_rollup_table(headers: list[str]) -> bool:
-    """Feature Roll-up: a Feature + State table with no ID column."""
+    """Feature Roll-up: a Feature + State table, with or without an ID column."""
     names = _header_names(headers)
-    return "feature" in names and "state" in names and "id" not in names
+    return "feature" in names and "state" in names
+
+
+def _is_aspect_detail_table(headers: list[str]) -> bool:
+    """aes-docs entry table: ``| Aspect | Detail |`` with label rows."""
+    names = _header_names(headers)
+    return "aspect" in names and "detail" in names
+
+
+def _aspect_rows(headers: list[str], data: list[list[str]]) -> dict[str, str]:
+    """Map an Aspect|Detail table's row labels (first column) to values."""
+    out: dict[str, str] = {}
+    for cells in data:
+        if not cells:
+            continue
+        label = cells[0].strip().lower()
+        value = cells[1].strip() if len(cells) > 1 else ""
+        if label:
+            out[label] = value
+    return out
+
+
+def _feature_from_backlog_link(cell: str) -> str:
+    """Resolve the feature dir from a Backlog cell's markdown link.
+
+    ``[BACKLOG.md](crates/filesystem/BACKLOG.md)`` → ``crates/filesystem``;
+    a link without a feature-directory segment (e.g. root-relative) → ``""``.
+    """
+    match = MD_LINK_RE.search(cell)
+    if not match:
+        return ""
+    parts = match.group("path").split("/")
+    for idx in range(len(parts) - 1):
+        if parts[idx] in FEATURE_DIR_MARKERS:
+            return f"{parts[idx]}/{parts[idx + 1]}"
+    return ""
 
 
 def parse_doc(
@@ -136,27 +221,33 @@ def parse_doc(
     text: str,
     feature: str,
     feature_dir: str,
-) -> tuple[list[Row], list[str], list[str], str | None, str | None, str | None, list[str]]:
+) -> tuple[list[Row], list[str], list[str], list[dict[str, str]], str | None, list[str]]:
     """Parse one spec doc.
 
-    Returns ``(rows, fr_declared, fr_referenced, rollup_row, rollup_state,
-    doc_state, warnings)``. ``rollup_row`` is the verbatim roll-up row text
-    for the given feature (matched by the Feature cell against the feature
-    name or directory), or None when the doc carries no roll-up row for it;
-    ``rollup_state`` is that row's State cell, read by header name so
-    multi-column roll-up tables route the claimed state correctly.
-    ``doc_state`` is the doc-level ``State:`` line value, or None.
-    ``warnings`` names malformed table rows (short cells, empty IDs).
+    Returns ``(rows, fr_declared, fr_referenced, rollups, doc_state,
+    warnings)``. ``rollups`` is a list of ``{"feature", "claimed_state"}``
+    dicts — one per roll-up table row — for any Feature/State table found in
+    the doc (and one per aes-docs ``Roadmap Status`` PR entry, keyed by its
+    Backlog link). ``doc_state`` is the doc-level ``State:`` line value, or
+    None. ``warnings`` names malformed table rows (short cells, empty IDs,
+    entry-shape problems).
+
+    Two shapes produce entries:
+
+    - Column tables (ID/Branch + State, or Feature + State) — the
+      agents-arwaky flat-table dialect.
+    - aes-docs entry tables: an ``FR/DS/DT/PR-...`` H2–H4 heading inside
+      ``## Backlog Status`` (task row) or ``## Roadmap Status`` (PR entry →
+      roll-up claim) followed by an ``| Aspect | Detail |`` table. Entry
+      rows carry no ``next_action`` key: the Aspect/Detail shape has no
+      Next Action column, so classification falls back to the State row.
     """
     rows: list[Row] = []
     fr_referenced: list[str] = []
-    rollup_row: str | None = None
-    rollup_state: str | None = None
+    rollups: list[dict[str, str]] = []
     warnings: list[str] = []
-    dir_norm = feature_dir.strip().lower()
-    target = dir_norm or feature.strip().lower()
 
-    for headers, data in _extract_tables(text):
+    for section, entry, headers, data in _extract_tables_ctx(text):
         if _is_task_table(headers):
             for cells in data:
                 if not cells:
@@ -195,15 +286,77 @@ def parse_doc(
                 )
         elif _looks_like_rollup_table(headers):
             for cells in data:
-                feat_cell = _cell(headers, cells, "Feature").strip()
-                if feat_cell.lower().replace(" ", "/") == target:
-                    rollup_row = " | ".join(cells)
-                    rollup_state = _cell(headers, cells, "State").strip() or None
+                # The ID cell carries the feature path (e.g. "modules/tools");
+                # fall back to the Feature cell when the table has no ID column
+                # (fixture-style Feature Roll-up tables with only Feature + State).
+                feat_cell = _cell(headers, cells, "ID").strip() or _cell(
+                    headers, cells, "Feature"
+                ).strip()
+                if feat_cell:
+                    rollups.append(
+                        {
+                            "feature": feat_cell,
+                            "claimed_state": _cell(headers, cells, "State").strip(),
+                        }
+                    )
+        elif entry and section in ENTRY_SECTIONS and _is_aspect_detail_table(headers):
+            entry_id, entry_title = entry
+            aspects = _aspect_rows(headers, data)
+            if section == "roadmap status":
+                # A Roadmap Status PR entry is a feature-index claim: the
+                # roll-up state comes from its State row, the feature key
+                # from the Backlog link (no link → warning, no claim).
+                if not entry_id.startswith("PR-"):
+                    warnings.append(
+                        f"non-PR entry in Roadmap Status: {doc_rel} ({entry_id})"
+                    )
+                    continue
+                rollup_feature = _feature_from_backlog_link(aspects.get("backlog", ""))
+                if rollup_feature:
+                    rollups.append(
+                        {
+                            "feature": rollup_feature,
+                            "claimed_state": aspects.get("state", "").strip(),
+                        }
+                    )
+                else:
+                    warnings.append(
+                        f"Roadmap Status entry without a feature Backlog link: "
+                        f"{doc_rel} ({entry_id})"
+                    )
+                continue
+            # Backlog Status entry → task row. No next_action key on
+            # purpose: the Aspect/Detail shape has no Next Action column.
+            state = aspects.get("state", "") or "unknown"
+            fr_refs = [entry_id] if entry_id.startswith("FR-") else []
+            if fr_refs:
+                fr_referenced.append(entry_id)
+            aspect_text = " | ".join(
+                f"{label}: {value}" for label, value in aspects.items()
+            )
+            rows.append(
+                {
+                    "id": entry_id,
+                    "title": entry_title,
+                    "state": state,
+                    "priority": aspects.get("priority", "") or "—",
+                    "health": "—",
+                    "fr_refs": fr_refs,
+                    "source_doc": doc_rel,
+                    "row_text": (
+                        f"{entry_id}: {entry_title} | {aspect_text}"
+                        if entry_title
+                        else f"{entry_id} | {aspect_text}"
+                    ),
+                    "feature": feature,
+                    "updated": aspects.get("updated", ""),
+                }
+            )
 
     fr_declared = sorted(set(FR_ID_RE.findall(text)))
     match = DOC_STATE_RE.search(text)
     doc_state = match.group("value") if match else None
-    return rows, fr_declared, fr_referenced, rollup_row, rollup_state, doc_state, warnings
+    return rows, fr_declared, fr_referenced, rollups, doc_state, warnings
 
 
 def load_discovery(path: Path) -> tuple[list[str], dict[str, dict[str, Any]]]:
@@ -254,15 +407,12 @@ def run_scan(
     fr_referenced: list[str] = []
     fr_groups: dict[str, dict[str, list[str]]] = {}
     rollups: list[dict[str, str]] = []
-    rollup_row: str | None = None
     docs_out: list[ScanDoc] = []
     warnings: list[str] = []
     seen_rows: set[tuple[str, str]] = set()
     docs_scanned = 0
 
     for name, dir_rel, docs in groups:
-        group_rollup: str | None = None
-        group_rollup_state: str | None = None
         group_declared: list[str] = []
         group_referenced: list[str] = []
         for doc_rel in docs:
@@ -274,7 +424,7 @@ def run_scan(
                 warnings.append(f"unreadable doc: {doc_rel}")
                 docs_out.append({"doc": doc_rel, "rows": [], "warning": f"unreadable: {doc_rel}"})
                 continue
-            rows, decl, refs, rollup, rollup_state, _doc_state, doc_warnings = parse_doc(
+            rows, decl, refs, doc_rollups, _doc_state, doc_warnings = parse_doc(
                 doc_rel, text, name, dir_rel
             )
             warnings.extend(doc_warnings)
@@ -282,9 +432,7 @@ def run_scan(
             fr_referenced.extend(refs)
             group_declared.extend(decl)
             group_referenced.extend(refs)
-            if rollup is not None and group_rollup is None:
-                group_rollup = rollup
-                group_rollup_state = rollup_state
+            rollups.extend(doc_rollups)
             kept: list[Row] = []
             for row in rows:
                 key = (row["id"], row["source_doc"])
@@ -300,10 +448,6 @@ def run_scan(
                 # already handled above.
                 warning = f"in-scope zero rows: {doc_rel}"
             docs_out.append({"doc": doc_rel, "rows": kept, "warning": warning})
-        if group_rollup is not None:
-            rollup_row = group_rollup
-            if group_rollup_state is not None:
-                rollups.append({"feature": name, "claimed_state": group_rollup_state})
         fr_groups[name] = {
             "fr_declared": sorted(set(group_declared)),
             "fr_referenced": sorted(set(group_referenced)),
@@ -317,7 +461,6 @@ def run_scan(
             "fr_referenced": sorted(set(fr_referenced)),
         },
         "fr_groups": fr_groups,
-        "rollup_row": rollup_row or "",
         "rollups": rollups,
         "warnings": warnings,
     }
