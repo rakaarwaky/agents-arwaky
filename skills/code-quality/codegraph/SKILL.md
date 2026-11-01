@@ -1,5 +1,5 @@
 ---
-name: codebase-inspection
+name: codegraph
 description: "Inspect codebases: LOC, languages, ratios via pygount, plus symbol/call graphs and blast radius via CodeGraph."
 when-to-use: "Repository LOC counts, language breakdowns, file counts, and code-vs-comment ratios (pygount — general 'how big is this repo' questions); or symbol lookup, callers/callees, cross-file impact, and test selection for a set of changed files (CodeGraph — use before grep/Read when asking 'what breaks if I change this')."
 argument-hint: "[pygount] [--format=summary|json] [--suffix=<langs>] [--folders-to-skip=<globs>] [<path>]  |  [codegraph] <project-path>"
