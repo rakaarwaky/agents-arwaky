@@ -4,7 +4,7 @@ Spawn the reviewer subagent to produce structured findings.
 
 ## Spawn
 
-`spawn_subagent` parameters (Shared Conventions in SKILL.md apply):
+`spawn_subagent` parameters (Global Rules in SKILL.md apply):
 
 - `description`: `"[reviewer] Review design doc"`
 - Prompt body: `reviewer_persona_instructions` prepended, then:

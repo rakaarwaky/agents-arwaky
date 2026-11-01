@@ -4,7 +4,7 @@ Spawn the writer subagent to draft the design document.
 
 ## Spawn
 
-`spawn_subagent` parameters (Shared Conventions in SKILL.md apply):
+`spawn_subagent` parameters (Global Rules in SKILL.md apply):
 
 - `description`: `"[writer] Write design doc: <short summary>"`
 - Prompt body: `writer_persona_instructions` prepended, then:

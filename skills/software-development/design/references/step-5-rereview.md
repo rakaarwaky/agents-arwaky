@@ -4,7 +4,7 @@ Resume the reviewer subagent to re-review the revisions.
 
 ## Spawn
 
-`spawn_subagent` parameters (Shared Conventions in SKILL.md apply):
+`spawn_subagent` parameters (Global Rules in SKILL.md apply):
 
 - `resume_from`: `<reviewer_subagent_id>`
 - `description`: `"[reviewer] Re-review design doc"`

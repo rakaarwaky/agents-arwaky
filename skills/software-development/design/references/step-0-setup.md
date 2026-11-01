@@ -41,7 +41,7 @@ Load the writer and reviewer personas from `~/.grok/personas/<name>.toml`, extra
 - `writer_persona_instructions`
 - `reviewer_persona_instructions`
 
-Injection timing follows the **Personas** rule in SKILL.md Shared Conventions (prepend on initial launch; never on resume).
+Injection timing follows the **Personas** rule in SKILL.md Global Rules (SSOT) — prepend on initial launch, never on resume.
 
 ## Invocation Input
 

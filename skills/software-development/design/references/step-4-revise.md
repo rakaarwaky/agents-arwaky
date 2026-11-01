@@ -4,7 +4,7 @@ Resume the writer subagent to address open issues.
 
 ## Spawn
 
-`spawn_subagent` parameters (Shared Conventions in SKILL.md apply):
+`spawn_subagent` parameters (Global Rules in SKILL.md apply):
 
 - `resume_from`: `<writer_subagent_id>`
 - `description`: `"[writer] Revise design doc"`

@@ -8,31 +8,26 @@ disable-model-invocation: true
 
 # Design Skill
 
-You are an orchestrator that coordinates a **write -> review -> revise** loop. You must not write the document or author review findings yourself: **all** writing is delegated to a `design-doc-writer` subagent, and **all** reviewing to a `design-doc-reviewer` subagent. Keep the loop running until the reviewer approves with 0 open issues.
+You orchestrate a **write -> review -> revise** loop. You must not write the document or author review findings yourself: all writing is delegated to a `design-doc-writer` subagent, all reviewing to a `design-doc-reviewer` subagent. Keep the loop running until the reviewer approves with 0 open issues.
 
-## Scope Boundary
+## Execution Flow
+1. **Write**: Spawn the `design-doc-writer` to draft the design document (ends with `Key Decisions` + `PR Plan`).
+2. **Review**: Spawn the `design-doc-reviewer` to write structured findings.
+3. **Check / Escalate**: Route on issue statuses; detect stalemates; escalate genuine open questions to the user.
+4. **Revise / Re-review**: Resume writer to fix issues, resume reviewer to re-check. Loop until 0 open issues.
+5. **Summarize**: Present Key Decisions, Open Questions, and the PR Plan.
+6. **Report & Cleanup**: Print the final report and remove temporary artifacts.
 
-This skill is strictly design-only. The only deliverables are `design_doc_file` and `summary_file`. It **never**:
+## Global Rules (SSOT)
+Rules that apply to every step. Step files reference these; they never restate them.
 
-- implements features, edits source files, or creates test files
-- opens or creates git branches, commits, or worktrees
-- runs implementation subagents (that is `execute-plan`, invoked after Step 7)
-- pushes, opens, or merges PRs
-
-## Tool-Call Discipline
-
-Every action you describe must correspond to an actual tool call in the same response. Emit the `spawn_subagent` call **first**; once the result is in history, confirm in past tense. Never claim a launch without executing the tool, and never ask permission — proceed with sensible defaults.
-
-## Parallel-First Policy
-
-The loop itself is inherently serial. Parallelize only the surrounding I/O: batch persona loads in Setup, batch independent file reads, never serialize independent tool calls. When in doubt, fan out.
-
-## Shared Conventions
-
-Rules that apply to every step; step files never restate them.
-
+- **Delegation**: You never author the document or review findings. Writing is the `design-doc-writer` subagent's job; reviewing is the `design-doc-reviewer` subagent's. You run the loop.
+- **Scope Boundary**: Design-only. The only deliverables are `design_doc_file` and `summary_file`. This skill never implements features, edits source or test files, creates branches/commits/worktrees, runs implementation subagents, or opens/merges PRs. Implementation is the separate `execute-plan` skill (run after Step 7).
+- **Tool-Call Discipline**: Every claimed action must correspond to a real tool call in the same response. Emit the `spawn_subagent` call first; once the result is in history, confirm in past tense. Never claim a launch without executing the tool, and never ask permission — proceed with sensible defaults.
+- **Parallel-First**: The write-review-revise loop is inherently serial. Parallelize only the surrounding I/O (batch persona loads, batch independent file reads). Never serialize independent tool calls. When in doubt, fan out.
+- **Single-Home Rule**: Every protocol, policy, and reporting string has exactly one home (a step file or this list). Other files reference it instead of restating it.
 - **Spawn parameters**: every `spawn_subagent` call uses `subagent_type: "general-purpose"` and `background: false`, with the description prefixed `[writer]` or `[reviewer]`.
-- **Personas**: on a subagent's initial launch, prepend its persona instructions (loaded in Step 0) to the prompt; never pass a `persona` parameter. On `resume_from` follow-ups, keep the description tag and do not re-inject the persona.
+- **Personas**: on a subagent's initial launch, prepend its persona instructions (loaded in Step 0); never pass a `persona` parameter. On `resume_from` follow-ups, keep the description tag and do not re-inject the persona.
 - **Paths**: substitute every `<design_doc_file>`, `<summary_file>`, and `<review_file>` placeholder with its expanded absolute Linux path before sending any prompt.
 - **Blocking**: block until each subagent completes; on failure, stop and report the error. Save every `subagent_id` for later resume.
 - **Review issues**: each issue carries `Severity` (`bug`, `suggestion`, `nit`), `Section`, `Description`, `Suggestion`, `Status`. Statuses: `open` (set by the reviewer) -> `addressed`, `wontfix`, or `needs-user-input` (set by the writer in Step 4); Step 5 rewrites the review file with current findings only.
