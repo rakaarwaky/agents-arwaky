@@ -1,18 +1,15 @@
 # Step 2: Review
 
-Spawn the `design-doc-reviewer` subagent.
+Spawn the reviewer subagent to produce structured findings.
 
 ## Spawn
-`spawn_subagent` parameters:
-- `subagent_type`: `"general-purpose"`
-- `background`: `false`
-- `description`: `"[reviewer] Review design doc"`
 
-Prepend `reviewer_persona_instructions` (Step 0). Substitute absolute paths for `<...>` placeholders.
+`spawn_subagent` parameters (Shared Conventions in SKILL.md apply):
+
+- `description`: `"[reviewer] Review design doc"`
+- Prompt body: `reviewer_persona_instructions` prepended, then:
 
 ```text
-<reviewer_persona_instructions>
----
 Review: <design_doc_file>
 Summary: <summary_file>
 Output: <review_file>
@@ -24,3 +21,8 @@ Evaluate:
 - PR Plan: realistic, ordered, independently mergeable.
 - Key Decisions: well-reasoned.
 - Detail: enough for implementation.
+```
+
+## After Completion
+
+Continue to Step 3.

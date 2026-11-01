@@ -1,28 +1,27 @@
 # Step 1: Write the Design Document
 
-Spawn the `design-doc-writer` subagent 
+Spawn the writer subagent to draft the design document.
 
 ## Spawn
 
-`spawn_subagent` parameters:
-- `subagent_type`: `"general-purpose"`
-- `background`: `false`
-- `description`: `"[writer] Write design doc: <short summary>"`
+`spawn_subagent` parameters (Shared Conventions in SKILL.md apply):
 
-Prepend `writer_persona_instructions`. You MUST substitute `<design_doc_file>` and `<summary_file>` with their absolute expanded Linux paths before sending the prompt 
-Prompt body:
-<writer_persona_instructions>
-Write a design document for: <full user description and context>.
-Save the document to: <absolute_design_doc_file>
-Save a summary to: <absolute_summary_file>
-The document must end with these two exact sections in this specific order:
+- `description`: `"[writer] Write design doc: <short summary>"`
+- Prompt body: `writer_persona_instructions` prepended, then:
+
+```text
+Write a design document for: <full user description and context from Step 0>.
+Save the document to: <design_doc_file>
+Save a summary to: <summary_file>
+The document must end with these two exact sections, in this specific order:
 
 ## Key Decisions
-(Summarize important architectural choices and rationale)
+(Summarize important architectural choices and rationale.)
 
 ## PR Plan
-(Break design into concrete, ordered, independently mergeable PRs. Each must include: PR title, affected files, dependencies, and description. This section must be at the absolute bottom).
+(Break the design into concrete, ordered, independently mergeable PRs. Each PR must include: title, affected files, dependencies, and description. This section must be at the absolute bottom of the document.)
+```
 
-## After Completion:
-Block until completion. If it fails, stop and report the error. Save the `subagent_id` to resume for future revisions.
-In-progress report: "Design document drafted. Starting review..."
+## After Completion
+
+Report: "Design document drafted. Starting review..." and continue to Step 2.

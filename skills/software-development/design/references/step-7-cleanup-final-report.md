@@ -1,7 +1,9 @@
 # Step 7: Final Report & Cleanup
 
 ## Final Report
+
 Present a final summary to the user containing:
+
 1. The absolute path to `<design_doc_file>`.
 2. Total review rounds (`round_count`).
 3. Issue breakdown (`total_issues_by_severity`).
@@ -9,7 +11,11 @@ Present a final summary to the user containing:
 5. Next action: run `/execute-plan <design-doc-file-path>` to implement the PR plan.
 
 ## Cleanup
-Run the host helper to delete temporary artifacts:
+
+Delete the temporary artifacts with the host helper:
 
 ```bash
 <PYTHON> <HOST_PY> cleanup <summary_file> <review_file>
+```
+
+The design document itself is kept.
