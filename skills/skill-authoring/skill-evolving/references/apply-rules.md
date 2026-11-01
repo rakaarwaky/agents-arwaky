@@ -26,4 +26,4 @@ Both are `requires_confirmation: true`.
 
 - Undo for an `edit` is the backup under `<GROK_HOME>/learn/trash/<run name>/originals/`; pass it as `--undo`.
 - Undo for a `propose` is deleting the user-skill override or the patch.
-- `state.py decide` one line per action, `applied` / `rejected` / `deferred`.
+- `aa skills trace-state decide` one line per action, `applied` / `rejected` / `deferred`.

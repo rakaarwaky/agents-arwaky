@@ -12,23 +12,23 @@ Edit skills so they match the conditions and demand the traces show. The trace p
 
 ## Pipeline
 
-Runs on the shared pipeline in [`../_trace-pipeline/`](../_trace-pipeline/README.md):
+Runs on the shared workflow [`workflows/learn-traces.rhai`](../../workflows/learn-traces.rhai):
 
-1. Resume or price: [`_trace-pipeline/scripts/state.py`](../_trace-pipeline/scripts/state.py) `get` (resume check) and [`_trace-pipeline/scripts/collect_sessions.py`](../_trace-pipeline/scripts/collect_sessions.py) `--estimate` (one-line price per scope).
+1. Resume or price: `aa skills trace-state get` (resume check) and `aa skills trace-collect` (one-line price per scope).
 2. Collect → run dir; narrow windows matter for retirement, not for edits: a stale line observed in 3 sessions is still a claim (the verifier gates it), and the edit applies regardless of `disuse_evidence`.
-3. Launch the `learn-traces` workflow per the [pipeline README](../_trace-pipeline/README.md) (older-client fallback included); block on `state.py wait`.
+3. Launch the `learn-traces` workflow from [`workflows/learn-traces.rhai`](../../workflows/learn-traces.rhai); block on `aa skills trace-state wait`.
 4. Read `report.md`, present the Overview plus section 2 (Skills to update) — the report comes first on its own; curation questions belong to the next turn.
 
 ## Signals this skill owns
 
-From [`_trace-pipeline/references/signals.md`](../_trace-pipeline/references/signals.md):
+From [`references/signals.md`](references/signals.md):
 
 - §3 Stale skill lines — a line in a loaded SKILL.md the session shows to be wrong or outdated (a path that did not exist, a flag or command that failed, a model or tool name that was overridden, a step the user told the agent to skip). Name the skill, quote the current line from the file, and quote the trace evidence. If the line is not in the current file, there is no claim.
 - §2 Friction — turns where the user corrected the agent, repeated an earlier instruction, or said the result was wrong. Friction that recurs across sessions points at a missing or unclear skill line; the fix is the same `edit` action.
 
 ## Action types
 
-Per [`_trace-pipeline/references/report-format.md`](../_trace-pipeline/references/report-format.md):
+Per [`references/report-format.md`](references/report-format.md):
 
 - `edit` — anchor/replacement/mode (`replace` | `insert_after` | `append`); the original is backed up to trash as the undo.
 - `propose` — the target is protected (plugin, bundled, or git-tracked); the fix belongs in a user-skill override or a PR patch, never in the protected file.
@@ -38,13 +38,13 @@ Apply rules: [`references/apply-rules.md`](references/apply-rules.md) (read-befo
 
 ## Curation and apply
 
-Consent rules: [`_trace-pipeline/README.md` §Rules](../_trace-pipeline/README.md).
+Consent rules: the report sections this skill owns (section 2: Skills to update); apply only actions backed by trace evidence and gated by the verifier.
 
-By mode: shared step/auto/report contract (see `_trace-pipeline/README.md` §Rules). skill-evolving's delta: actions are `edit`/`propose`/`enable`/`disable`.
+By mode: shared step/auto/report contract. skill-evolving's delta: actions are `edit`/`propose`/`enable`/`disable`.
 
-Record every decision with `state.py decide --run-dir <RUN> --id <id> --kind skill --action edit|propose|enable|disable --target <name> --path <path> --decision applied|rejected|deferred [--undo <trash path>]`.
+Record every decision with `aa skills trace-state decide --run-dir <RUN> --id <id> --kind skill --action edit|propose|enable|disable --target <name> --path <path> --decision applied|rejected|deferred [--undo <trash path>]`.
 
 ## References
 
 - Apply rules (edit, propose, enable/disable, protected targets, undo): [`references/apply-rules.md`](references/apply-rules.md)
-- Pipeline: [`_trace-pipeline/`](../_trace-pipeline/README.md)
+- Workflow: [`workflows/learn-traces.rhai`](../../workflows/learn-traces.rhai)
