@@ -8,8 +8,8 @@ After stack assembly (Step 10), cleanup (Step 11), and memory flush (Step 12), p
 2. **Execution stats**:
    - Total PRs: N (M completed, K failed, J skipped)
    - Levels: L, Max parallelism achieved: P
-   - Effort level: E (reviewers per PR, per the Step 7 table); specializations used across the run: <deduped list from all PRs' `reviewer_configs`>. Simplicity is always pinned.
-3. **Review stats** -- total review rounds across all PRs, total issues found and fixed (broken down by severity). Also break the issue counts down by source tag (General / Tests / Security / Plan / Simplicity) aggregated across all PRs.
+   - Review panel: the fixed 3-reviewer panel per PR (general + tests + simplicity); specializations used across the run: <deduped list from all PRs' `reviewer_configs`>.
+3. **Review stats** -- total review rounds across all PRs, total issues found and fixed (broken down by severity). Also break the issue counts down by source tag (General / Tests / Simplicity) aggregated across all PRs.
 4. **Stack** -- what was produced. Render by active mode:
    - **Graphite mode**: label this section "Graphite stack" and list the PR URLs from `gt ls --json`.
    - **Squash-final mode (default)**: label this section "Final PR". Show the single final PR/compare URL from `pr_urls`, the list of merged modular branches, and a note that modular branches were deleted. Also add a **"Post-merge action"** line: `"After the final PR merges to main, retire the final worktree: orca-ide worktree rm --worktree <final_orca_worktree_id> --force --json"`.

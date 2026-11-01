@@ -41,7 +41,7 @@ Construct a JSON object:
     "rounds": <sum of review_rounds across all completed PRs>,
     "issues_by_severity": {"bug": <total>, "suggestion": <total>, "nit": <total>},
     "key_patterns": ["<2-3 most significant patterns from this run>"],
-    "specializations": ["general", "simplicity"]
+    "specializations": ["general", "tests", "simplicity"]
   }
 }
 ```
@@ -51,7 +51,7 @@ Field notes:
 - `run.rounds`: sum of `review_rounds` across all completed PRs.
 - `run.issues_by_severity`: derived from `total_issues_by_severity` (accumulated in Step 7b and Step 7c re-reviews across all PRs).
 - `run.key_patterns`: pick 2-3 most-significant patterns (severity-ranked: bugs > suggestions > nits). **Apply the same generalization rules as Step 12a** — strip task-specific names and rewrite as reusable principles.
-- `run.specializations`: the distinct set of reviewer specializations actually used across **all** PRs this run. Collect every `config.specialization` from every PR's `reviewer_configs`, strip the `-N` suffix so `general-2`/`general-3` collapse to `general`, normalize `plan_alignment` → `plan`, and deduplicate. Always include `simplicity`. For an effort=1 run this is `["general", "simplicity"]`; for higher effort it might be e.g. `["general", "security", "tests", "plan", "simplicity"]`.
+- `run.specializations`: the distinct set of reviewer specializations actually used across **all** PRs this run. Collect every `config.specialization` from every PR's `reviewer_configs` and deduplicate. The panel is fixed, so this is always `["general", "tests", "simplicity"]`.
 
 ### Step 12d: Invoke the Helper
 

@@ -39,7 +39,7 @@ PRNode {
     error: string        // null initially
     reviewer_configs: object[] // [] initially -- per-PR reviewer config objects, populated in Step 7.0.
                                // Each entry: {subagent_id, persona_to_inject, specialization, review_file}.
-                               // Effort 1 holds general + simplicity, each with its own
+                               // The fixed panel holds general + tests + simplicity, each with its own
                                // individual review_file. Always merge. See Step 7.
     review_rounds: int   // 0 initially
     started_at: string   // null initially

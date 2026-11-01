@@ -51,7 +51,7 @@ Update spec (stdin)
         "rounds": 2,
         "issues_by_severity": {"bug": 1, "suggestion": 1, "nit": 5},
         "key_patterns": ["...", "..."],
-        "specializations": ["general", "security"]
+        "specializations": ["general", "tests", "simplicity"]
       }
     }
 

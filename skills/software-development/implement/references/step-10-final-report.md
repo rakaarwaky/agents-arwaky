@@ -3,7 +3,7 @@
 When the review-fix loop reaches 0 open issues, memory is flushed (Step 8), and the PR is pushed (Step 9), present a final report:
 
 1. **Summary of what was implemented** — from the summary_file: which files were changed, what was added/modified, key design decisions.
-2. **Review panel** — the fixed five-reviewer panel that ran: 1 general + tests + plan alignment + security + simplicity (5 reviewers).
+2. **Review panel** — the fixed three-reviewer panel that ran: 1 general + tests + simplicity (3 reviewers).
 3. **Review rounds** — how many review→fix iterations it took to reach 0 issues (the value of `round_count`).
 4. **Total issues fixed** — the cumulative count from `total_issues_by_severity`, broken down by severity (bugs, suggestions, nits).
 5. **Issues by reviewer** — breakdown of how many issues each reviewer found across all rounds (by specialization tag).
@@ -29,7 +29,7 @@ After the final report (memory was flushed in Step 8), clean up the temporary ar
 |------|-------|
 | Implementation summary | `<scratch_dir>/grok-impl-summary-<IMPL_ID>.md` |
 | Merged review | `<scratch_dir>/grok-review-<IMPL_ID>.md` |
-| Per-reviewer reviews | `<scratch_dir>/grok-review-<IMPL_ID>-<suffix>.md` (`general`, `tests`, `security`, `plan`, `simplicity`) |
+| Per-reviewer reviews | `<scratch_dir>/grok-review-<IMPL_ID>-<suffix>.md` (`general`, `tests`, `simplicity`) |
 | Memory update spec | `<scratch_dir>/grok-mem-<IMPL_ID>.json` |
 
 ### Kept

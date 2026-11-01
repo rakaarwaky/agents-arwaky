@@ -1,14 +1,14 @@
 # Step 5: Merge & Check Exit Condition
 
 
-Always merge. Every run has the fixed five-reviewer panel (general, tests, plan alignment, security, simplicity).
+Always merge. Every run has the fixed three-reviewer panel (general, tests, simplicity).
 
 ### Merge
 
 After all reviewers complete:
 
 1. Read each reviewer's individual review file.
-2. Merge into the single `review_file` with source tags. Prefix each issue with a tag indicating its source: `[General]`, `[Tests]`, `[Security]`, `[Plan]`, `[Simplicity]`. Every run uses all five tags.
+2. Merge into the single `review_file` with source tags. Prefix each issue with a tag indicating its source: `[General]`, `[Tests]`, `[Simplicity]`. Every run uses all three tags.
 3. Consolidate obviously duplicated findings — use your judgment to identify issues that reference the same file, same line, and the same underlying problem. When in doubt, keep both issues — false duplicates are worse than redundant findings.
 4. Write the merged result to `review_file`.
 
@@ -25,16 +25,16 @@ Increment `round_count`. Count all open issues and add their severities to `tota
 - **Suggestion**: Add validation before processing
 - **Status**: open
 
-### Issue 2 [Security] — Severity: bug
-- **File**: src/auth.rs:102
-- **Description**: JWT token not validated for expiration
-- **Suggestion**: Add exp claim validation
-- **Status**: open
-
-### Issue 3 [Tests] — Severity: suggestion
+### Issue 2 [Tests] — Severity: suggestion
 - **File**: tests/handler_test.rs
 - **Description**: No test for error path when user input is null
 - **Suggestion**: Add test case for None input
+- **Status**: open
+
+### Issue 3 [Simplicity] — Severity: nit
+- **File**: src/handler.rs:60
+- **Description**: Helper function used by one caller only
+- **Suggestion**: Inline the helper
 - **Status**: open
 ```
 
@@ -52,7 +52,7 @@ After completing Step 5 checks, update `previous_review_snapshot` with the curre
 
 The **only** exit condition is **all reviewers** reporting **0 issues** of any severity in the same round. There is no iteration cap — do not add a max-rounds limit; the loop runs until 0 issues. Every issue — including nits, suggestions, and minor improvements — must be addressed before the loop terminates.
 
-There is no per-reviewer exit — if the security reviewer has 0 issues but the general reviewer has 2, the implementer fixes those 2 and all reviewers re-review in the next round.
+There is no per-reviewer exit — if the tests reviewer has 0 issues but the general reviewer has 2, the implementer fixes those 2 and all reviewers re-review in the next round.
 
 ### Decision Logic
 

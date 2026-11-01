@@ -3,7 +3,7 @@
 
 **Use `spawn_subagent` only** — do not review code yourself.
 
-Always use the parallel-reviewer path — every run is multi-reviewer, with individual review files and a merge on every run. The panel is fixed at 5 reviewers (general, tests, plan alignment, security, simplicity), and Simplicity is always in `reviewer_configs`.
+Always use the parallel-reviewer path — every run is multi-reviewer, with individual review files and a merge on every run. The panel is fixed at 3 reviewers (general, tests, simplicity), and Simplicity is always in `reviewer_configs`.
 
 ### Parallel Reviewers
 
@@ -15,9 +15,9 @@ For each config in `reviewer_configs`, launch with the appropriate prompt for th
 - `subagent_type`: `"general-purpose"`
 - `background`: `true`
 - `cwd`: `<worktree_path>` (reviewers read repo files relative to the run's worktree)
-- `description`: `"[<tag>] Review: <specialization>"` where `<tag>` matches the specialization: `[reviewer]` for `general`, `[tests]` for tests, `[security]` for security, `[plan]` for plan alignment, `[simplicity]` for simplicity. The bracketed tag drives the pager's subagent row label.
+- `description`: `"[<tag>] Review: <specialization>"` where `<tag>` matches the specialization: `[reviewer]` for `general`, `[tests]` for tests, `[simplicity]` for simplicity. The bracketed tag drives the pager's subagent row label.
 
-If `config.persona_to_inject` is non-null, prepend the corresponding persona instructions to the prompt. If null (Tests, Plan Alignment, Simplicity), use the prompt as-is — those specializations are prompt-only.
+If `config.persona_to_inject` is non-null, prepend the corresponding persona instructions to the prompt. If null (Tests, Simplicity), use the prompt as-is — those specializations are prompt-only.
 
 Use the specialization-specific prompt (see Specialized Review Prompts below).
 
@@ -27,7 +27,7 @@ Save each returned `subagent_id` to the corresponding `reviewer_configs` entry.
 
 If any reviewer fails on initial launch:
 - If the **general reviewer** fails: report the error and stop entirely.
-- If a **specialist** fails: report a warning, remove that entry from `reviewer_configs`, and continue with remaining reviewers.
+- If the **tests** or **simplicity** reviewer fails: report a warning, remove that entry from `reviewer_configs`, and continue with remaining reviewers.
 
 After all reviewers complete, proceed to Step 5 (Merge & Check).
 
@@ -35,7 +35,7 @@ Report to the user: "All reviewers complete. Merging findings..."
 
 ### Specialized Review Prompts
 
-Each reviewer specialization gets a different prompt while sharing the same structured output format and severity taxonomy (`bug`, `suggestion`, `nit`). All reviewers use this shared severity taxonomy — the Security specialist prompt maps native security severities onto it (see below).
+Each reviewer specialization gets a different prompt while sharing the same structured output format and severity taxonomy (`bug`, `suggestion`, `nit`).
 
 All specialized review prompts include the `past_issues_briefing` block (if non-empty) to give reviewers awareness of historically common issues.
 
@@ -52,6 +52,8 @@ Review the changes made by the implementer.
 
 The implementer's summary is at: <summary_file>
 Read it to understand what was changed.
+
+Review all modified files for code quality, correctness, naming, SOLID, style, and security-relevant defects (input validation, injection, secrets handling, authz), and confirm the implementation matches the task description / requirements (no scope creep, no missing planned items). The security and plan-alignment concerns are folded into this reviewer.
 
 <if past_issues_briefing is non-empty, include the following block verbatim:>
 <past_issues_briefing>
@@ -92,80 +94,6 @@ Your review should focus on:
 - Whether mocking is used appropriately (not over-mocking)
 
 Do NOT review for general code style, naming, or architecture — another reviewer handles that.
-
-Write your review notes to: <individual_review_file>
-Use the structured format with severity (bug/suggestion/nit), file:line, description, suggestion, and status for each issue.
-Every issue must have a Status field set to "open".
-```
-
-#### Security Specialist
-
-Inject: `security-auditor` persona instructions.
-
-```
-<security_auditor_persona_instructions>
-
----
-
-Review the changes made by the implementer, focusing specifically on security.
-
-The implementer's summary is at: <summary_file>
-Read it to understand what was changed.
-
-<if past_issues_briefing is non-empty, include the following block verbatim:>
-<past_issues_briefing>
-<end if>
-
-Your review should focus on:
-- Input validation and sanitization
-- Authentication and authorization checks
-- Injection vulnerabilities (SQL, command, path traversal)
-- Sensitive data handling (secrets, PII, tokens in logs)
-- Cryptographic correctness
-- Rate limiting and abuse prevention
-- OWASP Top 10 patterns
-
-IMPORTANT: Use the following severity labels (not security-standard severities):
-- bug: for critical/high severity findings (exploitable vulnerabilities)
-- suggestion: for medium severity findings (defense-in-depth improvements)
-- nit: for low/informational findings (best-practice recommendations)
-
-Only flag real, exploitable issues — not theoretical concerns.
-Do NOT review for general code style or test coverage — other reviewers handle that.
-
-Write your review notes to: <individual_review_file>
-Use the structured format with severity (bug/suggestion/nit), file:line, description, suggestion, and status for each issue.
-Every issue must have a Status field set to "open".
-```
-
-#### Plan Alignment Specialist
-
-Inject: none (prompt-only subagent — no persona prepended).
-
-```
-You are a technical lead reviewing whether an implementation correctly follows its design plan.
-
-Review the changes made by the implementer, focusing on whether the implementation matches the plan/design.
-
-The implementer's summary is at: <summary_file>
-Read it to understand what was changed.
-
-The original plan/design is referenced in the conversation context.
-If a design document, plan, or spec is referenced by file path in the conversation context, read it in full before starting your review.
-
-<if past_issues_briefing is non-empty, include the following block verbatim:>
-<past_issues_briefing>
-<end if>
-
-Your review should focus on:
-- Whether all requirements from the plan are addressed
-- Whether the implementation deviates from the planned approach
-- Whether any scope creep has occurred (implementing things not in the plan)
-- Whether any planned items are missing
-- Whether the implementation order matches the plan's dependency graph
-- Whether interfaces match what was specified
-
-Do NOT review for code style, tests, or security — other reviewers handle that.
 
 Write your review notes to: <individual_review_file>
 Use the structured format with severity (bug/suggestion/nit), file:line, description, suggestion, and status for each issue.

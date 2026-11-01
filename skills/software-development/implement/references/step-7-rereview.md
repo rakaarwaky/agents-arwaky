@@ -3,7 +3,7 @@
 
 **Use `spawn_subagent` only** — do not re-review yourself.
 
-Always re-review in parallel (the fixed five-reviewer panel).
+Always re-review in parallel (the fixed three-reviewer panel).
 
 ### Parallel Re-review
 
@@ -15,7 +15,7 @@ For each config in `reviewer_configs`:
 - `subagent_type`: `"general-purpose"`
 - `resume_from`: `config.subagent_id`
 - `background`: `true`
-- `description`: `"[<tag>] Re-review: <specialization>"` — use the same bracketed tag as the initial launch (`[reviewer]` for `general`, `[tests]`, `[security]`, `[plan]`, `[simplicity]`) so the pager row label stays consistent across rounds.
+- `description`: `"[<tag>] Re-review: <specialization>"` — use the same bracketed tag as the initial launch (`[reviewer]` for `general`, `[tests]`, `[simplicity]`) so the pager row label stays consistent across rounds.
 
 Prompt (same structure as the initial review prompts in Step 4, but with re-review instructions):
 ```

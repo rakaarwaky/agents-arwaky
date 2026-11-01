@@ -8,7 +8,7 @@ Setup is skipped on resume, so first **recompute the scratch directory** — the
 
 1. Read the state file at `${scratch_dir}/grok-exec-plan-<PLAN_ID>.json`.
 2. If the file does not exist, report the error and stop.
-3. Restore orchestrator state from the file: `design_doc_path`, `effort`, `max_concurrent`, `dag`, `linearized_order`, `user_instructions`, `no_graphite_flag`, `auto_pr_flag`, `graphite_available`, `gh_available`, `pr_urls`, `pr_create_commands`. Apply these defaults for any field missing from a pre-existing (pre-this-feature) state file:
+3. Restore orchestrator state from the file: `design_doc_path`, `max_concurrent`, `dag`, `linearized_order`, `user_instructions`, `no_graphite_flag`, `auto_pr_flag`, `graphite_available`, `gh_available`, `pr_urls`, `pr_create_commands`. Apply these defaults for any field missing from a pre-existing (pre-this-feature) state file:
    - `no_graphite_flag`: `false`
    - `auto_pr_flag`: `false`
    - `pr_create_commands`: `[]`

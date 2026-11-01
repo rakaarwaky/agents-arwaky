@@ -243,14 +243,14 @@ orca-ide worktree create \
 
 Record `final_orca_worktree_id` and `final_worktree_path` in the state file.
 
-**Launch reviewers (parallel):** use the same reviewer composition logic as Step 7.0, but scoped to the **full final diff** instead of a single PR. At minimum: 1 general reviewer + 1 simplicity reviewer. If `effort >= 2`, add security, tests, and plan-alignment specialists as appropriate for the combined scope.
+**Launch reviewers (parallel):** use the same fixed 3-reviewer panel as Step 7.0, scoped to the **full final diff** instead of a single PR: 1 general + tests + simplicity.
 
 Each reviewer writes to its own individual review file:
 - `${scratch_dir}/grok-exec-review-${PLAN_ID}-final-general.md`
+- `${scratch_dir}/grok-exec-review-${PLAN_ID}-final-tests.md`
 - `${scratch_dir}/grok-exec-review-${PLAN_ID}-final-simplicity.md`
-- (plus specialist files as allocated)
 
-**Merge:** read all individual review files and merge into `${scratch_dir}/grok-exec-review-${PLAN_ID}-final.md` with source tags (`[General]`, `[Simplicity]`, …), same as Step 7b.
+**Merge:** read all individual review files and merge into `${scratch_dir}/grok-exec-review-${PLAN_ID}-final.md` with source tags (`[General]`, `[Tests]`, `[Simplicity]`), same as Step 7b.
 
 **Fix loop:** if any open issues, spawn a fixer subagent in `final_worktree_path` (seeded with the implementer persona + the merged review file). After the fix, re-review (resume the reviewers in parallel). Loop until **all** final reviewers report 0 open issues. Track `final_review_rounds` in the state file.
 

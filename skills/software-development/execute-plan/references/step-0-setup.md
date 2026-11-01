@@ -21,21 +21,16 @@ Then define the shared file paths (all under `scratch_dir`):
 - Per-PR summary: `${scratch_dir}/grok-exec-summary-${PLAN_ID}-<pr-id>.md`
 - Per-PR merged review (what the implementer reads): `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>.md`
 
-Each PR gets one individual review file per reviewer so parallel reviewers never write to the same file. Effort 1 is already two reviewers (general + simplicity). The suffix matches the reviewer's specialization tag:
+Each PR gets one individual review file per reviewer so parallel reviewers never write to the same file. The fixed 3-reviewer panel gives 3 files:
 - `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-general.md`
-- `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-general-2.md` (if a second general is allocated)
-- `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-general-3.md` (if a third general is allocated)
-- `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-tests.md` (if tests specialist selected for that PR)
-- `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-security.md` (if security specialist selected for that PR)
-- `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-plan.md` (if plan-alignment specialist selected for that PR)
-- `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-simplicity.md` (always; simplicity is pinned)
+- `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-tests.md`
+- `${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr-id>-simplicity.md`
 
 These paths stay the same for the entire run. Never regenerate them between iterations.
 
 Initialize these orchestrator state variables:
 - `design_doc_path`: the user-provided path to the design document
 - `main_clone_path`: absolute path to the orchestrator's main clone (`git rev-parse --show-toplevel` from the workspace cwd). This is the `--repo path:<main_clone_path>` target for every `orca worktree create` call.
-- `effort`: parsed effort level (1-5). Controls the number of reviewers launched per PR in Step 7.
 - `max_concurrent`: parsed concurrency limit (1-8, default 8)
 - `dag`: the parsed PR Plan DAG (populated in Step 3)
 - `linearized_order`: the linearized PR order for stack assembly (populated in Step 4)
@@ -65,7 +60,6 @@ Initialize the state file:
   "design_doc_path": "<design-doc-path>",
   "status": "initializing",
   "created_at": "<ISO 8601 timestamp>",
-  "effort": <effort>,
   "max_concurrent": <max_concurrent>,
   "linearized_order": [],
   "dag": { "nodes": [] },
@@ -89,7 +83,7 @@ Field notes:
 
 Write this initial state file using the `write` tool.
 
-Report to the user: `"Starting execute-plan with PLAN_ID: <PLAN_ID>, effort: <effort>, concurrency: <max_concurrent>"`
+Report to the user: `"Starting execute-plan with PLAN_ID: <PLAN_ID>, concurrency: <max_concurrent>"`
 If `user_instructions` is non-empty, add: `"User instructions: <first 100 chars>..."`
 
 ## Orca Worktree Protocol

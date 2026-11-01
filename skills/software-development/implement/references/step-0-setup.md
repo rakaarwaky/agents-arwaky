@@ -21,11 +21,9 @@ Define the shared file paths (all under `scratch_dir`):
 - `summary_file`: `${scratch_dir}/grok-impl-summary-${IMPL_ID}.md`
 - `review_file`: `${scratch_dir}/grok-review-${IMPL_ID}.md` (merged review — what the implementer reads)
 
-Always define individual review files per reviewer (the fixed panel is 5 reviewers):
+Always define individual review files per reviewer (the fixed panel is 3 reviewers):
 - `${scratch_dir}/grok-review-${IMPL_ID}-general.md`
 - `${scratch_dir}/grok-review-${IMPL_ID}-tests.md`
-- `${scratch_dir}/grok-review-${IMPL_ID}-security.md`
-- `${scratch_dir}/grok-review-${IMPL_ID}-plan.md`
 - `${scratch_dir}/grok-review-${IMPL_ID}-simplicity.md`
 
 **Thread the same file paths across all rounds** — these paths stay the same for the entire loop. Never regenerate them between iterations.

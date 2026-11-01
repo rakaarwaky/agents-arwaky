@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Run the implement → review → fix loop for small implementation tasks using implementer and reviewer personas in a single Orca worktree. Runs a fixed five-reviewer panel on every task (1 General, 1 Tests, 1 Plan Alignment, 1 Security, 1 Simplicity). Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement.
+description: Run the implement → review → fix loop for small implementation tasks using implementer and reviewer personas in a single Orca worktree. Runs a fixed three-reviewer panel on every task (1 General, 1 Tests, 1 Simplicity). Loops until all reviewers find 0 issues of any severity. Observed phrasing: implement or build a feature, fix a bug, run /implement.
 when-to-use: Use when asked to implement, build, add a feature, fix a bug, or via the /implement slash command. Best for small-to-medium tasks that fit in one worktree. For multi-PR stacks with dependencies, use /execute-plan instead.
 argument-hint: "<task-description>"
 disable-model-invocation: true
@@ -25,7 +25,7 @@ This skill is parallel-first. Every independent subagent launch, reviewer launch
 List exactly these canonical phases:
 
 - `step-0-setup` — host.py setup, shared file paths, resolve owning repo, create 1 Orca worktree (Step 0)
-- `step-1-specialization` — assemble the fixed 5-reviewer panel, build `reviewer_configs`, announce (Step 1)
+- `step-1-specialization` — assemble the fixed 3-reviewer panel, build `reviewer_configs`, announce (Step 1)
 - `step-2-memory` — past-issues briefing from memory.py (Step 2)
 - `step-3-implement` — spawn implementer (Step 3)
 - `review-round-1` — spawn reviewers in parallel (Step 4) + Step 5 merge
@@ -40,7 +40,7 @@ Mark exactly one `in_progress` at a time. As you enter a new round, append the t
 
 ## Personas
 
-This skill uses the **implementer**, **reviewer**, and **security-auditor** personas. Persona text comes from the Grok Build persona store:
+This skill uses the **implementer** and **reviewer** personas. Persona text comes from the Grok Build persona store:
 
 1. `~/.grok/personas/<name>.toml` (user persona store)
 2. `<dirname of this SKILL.md>/../../../personas/<name>.toml` (repo fallback)
@@ -48,9 +48,10 @@ This skill uses the **implementer**, **reviewer**, and **security-auditor** pers
 Read the first path that exists, extract the `instructions` field body (the `""" ... """` content), and store it as:
 - `implementer_persona_instructions` from `implementer`
 - `reviewer_persona_instructions` from `reviewer`
-- `security_auditor_persona_instructions` from `security-auditor`
 
-When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent`. Prefix `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[security]`, `[tests]`, `[plan]`, `[simplicity]`) so the pager row label shows the role. On `resume_from`, the persona is already in the transcript — keep the bracketed tag only.
+The tests and simplicity specialists are prompt-only; they need no persona.
+
+When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent`. Prefix `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[tests]`, or `[simplicity]`) so the pager row label shows the role. On `resume_from`, the persona is already in the transcript — keep the bracketed tag only.
 
 ## Invocation
 
@@ -71,7 +72,7 @@ When launching a subagent, **prepend** the appropriate persona instructions to i
 | `auto_pr` | **true** | When `gh` is available and the remote is GitHub, automatically runs `gh pr create` for the final PR. Otherwise prints a compare URL / `gh pr create` command. |
 | concurrency | 8 | Max parallel reviewers per batch. |
 
-The entire argument string is the task description. There are no user-selectable options — the reviewer panel is fixed (see Step 1).
+The entire argument string is the task description. There are no user-selectable options — the reviewer panel is fixed at 3 (see Step 1).
 
 ## Run Steps
 
@@ -80,10 +81,10 @@ Every reference file is **step-scoped**: `references/step-<N>-<name>.md` contain
 | Step | Reference | Purpose |
 |------|-----------|---------|
 | 0 | [`references/step-0-setup.md`](references/step-0-setup.md) | Host setup, shared file paths, orchestrator state, resolve owning repo, create the single Orca worktree; worktree safety rules |
-| 1 | [`references/step-1-specialization.md`](references/step-1-specialization.md) | Fixed five-reviewer panel (1 general + 4 specialists); build `reviewer_configs`; announce once |
+| 1 | [`references/step-1-specialization.md`](references/step-1-specialization.md) | Fixed three-reviewer panel (1 general + tests + simplicity); build `reviewer_configs`; announce once |
 | 2 | [`references/step-2-memory.md`](references/step-2-memory.md) | Past-issues briefing from the workspace memory file (injected into implementer and reviewer prompts) |
 | 3 | [`references/step-3-implement.md`](references/step-3-implement.md) | Spawn the implementer subagent in the worktree; prepare reviewer focus areas |
-| 4 | [`references/step-4-review.md`](references/step-4-review.md) | Launch all 5 reviewers in parallel; specialized review prompt per specialization |
+| 4 | [`references/step-4-review.md`](references/step-4-review.md) | Launch all 3 reviewers in parallel; specialized review prompt per specialization |
 | 5 | [`references/step-5-merge.md`](references/step-5-merge.md) | Merge individual review files into one merged review; check the exit condition; stalemate → Step 5a escalate to user |
 | 6 | [`references/step-6-fix.md`](references/step-6-fix.md) | Resume the original implementer to address all open issues |
 | 7 | [`references/step-7-rereview.md`](references/step-7-rereview.md) | Resume all reviewers in parallel; back to Step 5; repeat until 0 open issues in the same round |

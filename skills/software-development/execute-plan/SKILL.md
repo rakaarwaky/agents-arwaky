@@ -2,7 +2,7 @@
 name: execute-plan
 description: "Execute a PR Plan DAG from a design document in parallel-first mode. Parses the plan, topologically sorts it, implements PRs in parallel using Orca worktree-isolated subagents, runs mandatory orchestrator-level review, and assembles either a Graphite PR stack or a plain-git branch stack depending on tool availability. Observed phrasing: /execute-plan followed by a design doc path, execute plan, run the plan, implement the design, make plan execution parallel-first."
 when-to-use: Use when asked to execute a plan, run the plan, implement the design, or via the /execute-plan slash command with a design doc path. Invoked after /design produces a PR plan; observed runs reference design documents produced by the design skill.
-argument-hint: "<design-doc-path> [--effort N] [--resume <PLAN_ID>]"
+argument-hint: "<design-doc-path> [--resume <PLAN_ID>]"
 ---
 
 # Execute Plan Skill
@@ -20,7 +20,7 @@ The skill supports two stack-assembly modes. Mode selection happens once during 
 
 All other steps (parsing, branch prep, parallel implementation, review-fix loops, cleanup, memory flush) are identical across both modes.
 
-You coordinate only. You **must not** use `write`, `search_replace`, `delete`, or shell commands that modify source files yourself, **except** when resolving merge conflicts during branch preparation (Step 5) or stack assembly (Step 10a) — conflict resolution is a git coordination task owned by the orchestrator. **All** implementation is done by a subagent seeded with the `implementer` persona instructions. **All** review is done by reviewer subagents — seeded with the `reviewer` persona (general), the `security-auditor` persona (security specialist), or prompt-only (tests, plan-alignment, simplicity specialists); see Step 7.
+You coordinate only. You **must not** use `write`, `search_replace`, `delete`, or shell commands that modify source files yourself, **except** when resolving merge conflicts during branch preparation (Step 5) or stack assembly (Step 10a) — conflict resolution is a git coordination task owned by the orchestrator. **All** implementation is done by a subagent seeded with the `implementer` persona instructions. **All** review is done by reviewer subagents — the fixed 3-reviewer panel: `reviewer` persona (general), prompt-only tests specialist, and prompt-only simplicity specialist; see Step 7.
 
 ## Scope Boundary
 
@@ -55,7 +55,7 @@ Terminal state: all `pr-<n>:merge-ready` ids `completed`. Only then write the fi
 
 ## Persona Injection
 
-This skill uses the **implementer**, **reviewer**, and **security-auditor** personas.
+This skill uses the **implementer** and **reviewer** personas.
 
 Persona text is the Grok Build persona store (SSOT: `personas/*.toml`).
 
@@ -72,23 +72,21 @@ For each persona:
 Store the extracted bodies as:
 - `implementer_persona_instructions` from `implementer`
 - `reviewer_persona_instructions` from `reviewer`
-- `security_auditor_persona_instructions` from `security-auditor`
 
-The `security-auditor` persona is only needed when a PR's review selects the security specialist (effort >= 2); reading it upfront is harmless if unused.
+The tests and simplicity specialists are prompt-only; they need no persona.
 
-When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent` — that parameter is not supported. Instead, prefix the `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[security]`, `[tests]`, `[plan]`, or `[simplicity]`) so the pager's subagent label renderer (see `format_subagent_label` in `xai-grok-pager`) surfaces the role name at the top of the subagent row instead of the generic "General" fallback. The bracketed prefix is stripped from the displayed description. Keep the tag on `resume_from` follow-ups too so the label stays stable across rounds.
+When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent` — that parameter is not supported. Instead, prefix the `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[tests]`, or `[simplicity]`) so the pager's subagent label renderer (see `format_subagent_label` in `xai-grok-pager`) surfaces the role name at the top of the subagent row instead of the generic "General" fallback. The bracketed prefix is stripped from the displayed description. Keep the tag on `resume_from` follow-ups too so the label stays stable across rounds.
 
 ## Invocation
 
 The user runs:
 ```
-/execute-plan <design-doc-path> [--effort N] [--resume <PLAN_ID>]
+/execute-plan <design-doc-path> [--resume <PLAN_ID>]
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `<design-doc-path>` | String | Required | Path to the design document (from `/design`) |
-| `--effort` | Integer (1-5) | 1 | Review thoroughness **per PR**. 1 = 1 general + simplicity (always pinned). 2-5 = more base slots, with specialists (security, tests, plan-alignment) auto-selected from each PR's description/files. The review-fix loop runs until 0 open issues for every PR. See the reviewer-count table in Step 7. |
 | `--resume` | String | none | Resume a previous run by PLAN_ID. Reads the state file and retries failed PRs. |
 
 **All other parameters are automatic — no user input needed:**
@@ -102,7 +100,7 @@ The user runs:
 | `dry_run` | false | Full execution. Set to true only when the user explicitly asks for a dry run. |
 | `instructions` | "" | No extra instructions by default. |
 
-Extract `--effort` and `--resume` from the argument string. If `--effort` is not present or out of range (1-5), default to 1. `--resume` skips Setup and jumps to Step 9.
+Every PR gets the fixed 3-reviewer panel (1 general + tests + simplicity). The review-fix loop runs until 0 open issues for every PR. See the reviewer panel in Step 7.
 
 **If `--resume <PLAN_ID>` is specified**, skip Setup and jump to Step 9 (Resumption).
 

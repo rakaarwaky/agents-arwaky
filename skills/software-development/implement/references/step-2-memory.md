@@ -38,7 +38,7 @@ For example, if this SKILL.md is at `/Users/alice/.grok/worktrees/org/repo/.grok
        ...
      ],
      "recent_runs": [
-       {"date": "2026-04-23", "description": "\"Add retry logic\"", "body_lines": ["- **Rounds**: 2", "- **Issues**: 7 total (1 bug, 1 suggestion, 5 nits)", "- **Key patterns**: Missing entries in error-type allowlists, incomplete configuration validation", "- **Specializations used**: general, tests, plan_alignment, security, simplicity"]},
+       {"date": "2026-04-23", "description": "\"Add retry logic\"", "body_lines": ["- **Rounds**: 2", "- **Issues**: 7 total (1 bug, 1 suggestion, 5 nits)", "- **Key patterns**: Missing entries in error-type allowlists, incomplete configuration validation", "- **Specializations used**: general, tests, simplicity"]},
        ...
      ],
      "exists": true
