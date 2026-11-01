@@ -199,11 +199,13 @@ missing-executable sentinel all reach the caller without translation.
 |---------------|-------|
 | Exit fidelity | the caller observes the child exit code, never a wrapped value |
 
-### FR-TOOLS-005: Resolve a tool query
+### FR-TOOLS-005: Resolve a tool query and discover executable readiness
 
 **Description:** Resolve a raw query — tool id, binary name, alias, or
-legacy alias — to its tool specification; an unknown query yields no
-match without raising.
+legacy alias — to its tool specification, and report a tool's executable
+readiness without launching it: return the first valid candidate path in
+the discovery order, or an absence result when no candidate exists. An
+unknown query yields no match without raising.
 
 #### Business Logic
 
@@ -212,51 +214,15 @@ match without raising.
   side effects.
 - The resolved specification carries runner, pin, and manifest-relative
   path so downstream ops never re-resolve.
-
-#### Edge Cases
-
-- Empty or whitespace query → no match.
-- Query matching several aliases of one tool → the same specification.
-- Unknown query → no match, no exception.
-
-#### Technical Specification
-
-| Aspect | Detail |
-|--------|--------|
-| **Input** | a raw query string (id, binary, alias, or legacy alias) |
-| **Output** | the matching tool specification, or no match |
-| **Protocol** | Protocol |
-| **Method** | execute(request) with op `resolve` |
-| **Event** | — |
-| **Error** | none — an unknown query is a result, not an exception |
-
-#### Test
-
-| Context | When Action | Then Observable Result |
-|---------|-------------|------------------------|
-| Query by id / binary / alias | `resolve(<query>)` | the matching specification |
-| Unknown query | `resolve(<unknown>)` | no match, no exception |
-
-#### Metric
-
-| Target Metric | Value |
-|---------------|-------|
-| Read-only | resolution never mutates the manifest or the host |
-
-### FR-TOOLS-006: Discover executable readiness and path
-
-**Description:** Report a tool's executable readiness without launching it:
-return the first valid candidate path in the discovery order, or an
-absence result when no candidate exists.
-
-#### Business Logic
-
 - Discovery order: PATH, XDG bin, then source-ready candidates for
   in-house tools; the first existing, executable candidate wins.
 - Strictly read-only: no install state is created, probed, or mutated.
 
 #### Edge Cases
 
+- Empty or whitespace query → no match.
+- Query matching several aliases of one tool → the same specification.
+- Unknown query → no match, no exception.
 - Tool absent on host → no path, reported as absence.
 - Candidate exists but is not executable → skipped, next candidate
   considered.
@@ -266,17 +232,19 @@ absence result when no candidate exists.
 
 | Aspect | Detail |
 |--------|--------|
-| **Input** | tool specification |
-| **Output** | the resolved executable path, or absence |
+| **Input** | a raw query string (id, binary, alias, or legacy alias); tool specification |
+| **Output** | the matching tool specification, or no match; the resolved executable path, or absence |
 | **Protocol** | Protocol |
-| **Method** | discover(spec) |
+| **Method** | execute(request) with op `resolve`; discover(spec) |
 | **Event** | — |
-| **Error** | unknown tool or unwired runner → typed error carrying the reason |
+| **Error** | none — an unknown query is a result, not an exception; unknown tool or unwired runner → typed error carrying the reason |
 
 #### Test
 
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
+| Query by id / binary / alias | `resolve(<query>)` | the matching specification |
+| Unknown query | `resolve(<unknown>)` | no match, no exception |
 | Installed tool | `discover(<tool>)` | the executable path, state untouched |
 | Absent tool | `discover(<tool>)` | no path, no install side effects |
 
@@ -284,7 +252,7 @@ absence result when no candidate exists.
 
 | Target Metric | Value |
 |---------------|-------|
-| Read-only guarantee | discovery leaves no filesystem or install state behind |
+| Read-only | resolution and discovery never mutate the manifest, the host, or install state |
 
 ## Public Interface
 

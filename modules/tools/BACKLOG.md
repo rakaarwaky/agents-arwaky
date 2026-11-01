@@ -63,22 +63,12 @@ passed and `./.venv/bin/ruff check modules/tools --ignore E501` → clean at
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-TOOLS-005: Resolve a tool query
+### FR-TOOLS-005: Resolve a tool query and discover executable readiness
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | Query resolution by id, binary, alias, or legacy alias is implemented through the manifest reader; 84 feature tests pass at `767b186`. |
-| In Progress  | None                                                         |
-| Risk         | None                                                         |
-| Updated      | 2026-10-26                                                   |
-
-### FR-TOOLS-006: Discover executable readiness and path
-
-| Aspect       | Detail                                                       |
-|--------------|--------------------------------------------------------------|
-| State        | Done                                                         |
-| Done         | `capabilities_tools_runner.py::discover` plus `test_discover_is_read_only_and_reports_absence` verify read-only discovery; 84 feature tests pass at `767b186`. |
+| Done         | Query resolution by id, binary, alias, or legacy alias is implemented through the manifest reader; `capabilities_tools_runner.py::discover` plus `test_discover_is_read_only_and_reports_absence` verify read-only discovery; 84 feature tests pass at `767b186`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
