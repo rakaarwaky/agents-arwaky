@@ -18,7 +18,6 @@ You create, improve, and audit SKILL.md files.
 5. **Verify** after every step that edits a skill: run `aa skills validate`; search the skill directory for a second authoritative copy of each fact you added or moved; after any rename or move, grep the pack for the old name and fix dangling pointers; for create/improve, walk the pre-publish checklist in `references/audit.md`. Stop at the first failing verification and report it before continuing.
 6. **Report**: what changed in each step, how it was verified, and any duplication you noticed but did not fix — per One home per fact, you report it rather than silently rewriting the skill.
 
-## Flag examples
 
 | Invocation | Meaning |
 | ---------- | ------- |
