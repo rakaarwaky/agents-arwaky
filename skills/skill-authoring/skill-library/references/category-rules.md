@@ -55,8 +55,9 @@ Do not create a new category for a single skill unless the domain is clearly dis
 ## Naming
 
 Category names follow the same shape rule the checker enforces for skill names:
-the `name-format` and `category-depth` rules in
-`../../skill-design/references/skill-rules.md`.
+the `name-format` and `category-depth` rules are enforced by
+`modules/shared/src/skills/taxonomy_skills_rule_vo.py` and restated inline in each
+skill's SKILL.md under "Validation Rules".
 
 Valid:
 

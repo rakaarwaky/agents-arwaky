@@ -52,6 +52,7 @@ aa skills catalog
 
 The executable rules live in
 `modules/shared/src/skills/taxonomy_skills_rule_vo.py`; the rules
-reference is `skills/skill-authoring/skill-design/references/skill-rules.md`.
+reference was `skills/skill-authoring/skill-design/references/skill-rules.md`
+and is now folded inline into each skill's SKILL.md under "Validation Rules".
 Provenance for each rule is recorded in
 `modules/shared/src/skills/taxonomy_skills_rule_vo.py` (CITATIONS table).

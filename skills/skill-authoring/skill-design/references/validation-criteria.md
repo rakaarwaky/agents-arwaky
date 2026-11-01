@@ -8,8 +8,8 @@ Rules for validating a SKILL.md before publishing. The main guide owns the desig
 this file is the mechanical checklist.
 
 The frontmatter, name, description, and category-shape constraints are not restated here:
-they are the rules in [skill-rules.md](skill-rules.md), which is
-generated from the same `_rules/skill_rules.py` module the validator runs. What remains here
+they live inline in each skill's SKILL.md under "Validation Rules", generated from the same
+`modules/shared/src/skills/taxonomy_skills_rule_vo.py` module the validator runs. What remains here
 is the harness-specific guidance the checker does not encode: which keys each target parses,
 YAML hygiene, and the pre-publish checklist.
 
@@ -33,16 +33,14 @@ and `argument-hint`). All other keys are optional and target-dependent.
 
 ### Naming
 
-The naming constraints are the `name-format` and `name-mismatch` rules in
-[skill-rules.md](skill-rules.md). What that doc does not cover:
+The naming constraints are the `name-format` and `name-mismatch` rules. What that guidance does not cover:
 
 - Gerund form preferred (`processing-pdfs`) over `pdf-processing`, when both are valid.
 - Renaming a skill = rename the directory (`git mv`) and grep the tree for inbound mentions.
 
 ### Description
 
-The description constraints are the `description-*` rules in
-[skill-rules.md](skill-rules.md). What that doc does
+The description constraints are the `description-*` rules. What that guidance does
 not cover:
 
 - Third person: "Extracts text from PDFs", never "I can help".
@@ -63,8 +61,7 @@ key is ignored.
 ## Structure
 
 The placement and nesting constraints are the `skill-placement`, `category-depth`, and
-`skill-md-nesting` rules in
-[skill-rules.md](skill-rules.md). What that doc does not cover:
+`skill-md-nesting` rules. What that guidance does not cover:
 
 - `references/` may use subfolders when the reference set is large; every reference,
   whatever its depth, links directly from `SKILL.md`.
