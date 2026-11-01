@@ -3,222 +3,349 @@
 > Functional Requirements Document. Describes HOW this feature works functionally.
 > Audience: Engineers, QA, Tech Lead.
 
-## Reference
-
-- PRD: [PRD.md](../../PRD.md)
-- Backlog: [BACKLOG.md](BACKLOG.md) — real condition for this feature; this file is specification only.
-- Supersedes: the former `modules/skill/` provisioning spec (install / uninstall / update / check / sync), which was removed — agents read `skills/` directly and harnesses receive the pack through `aa connect`.
-- Amendment (2026-10-25, PR-5): the feature *reads and authors* the pack. The read-only invariant is dropped with the first write path; dry-run safety still gates every mutation behind `--apply`.
-
-## System Overview
+## Feature Overview
 
 The skills feature reads and authors the `agents-arwaky` skill pack:
 discovery, inspection, validation, cataloguing, and the authoring
-mutations. A single protocol method, `execute(request)`, routes every op
-through the agent to
-injected capabilities, so the surface and CLI never touch the pack
-filesystem directly. The pack at `skills/` remains the single source of
-truth for *content*; this feature is the single source of truth for *the
-rules about that content*.
+mutations. A single aggregate entry point routes every op through the
+agent to injected capabilities, so the surface and CLI never touch the
+pack filesystem directly. The pack at `skills/` remains the single
+source of truth for *content*; this feature is the single source of truth
+for *the rules about that content*.
 
 Read-only ops: `list`, `show`, `validate`, `catalog`, `discover`, `weed`,
 `merge-plan`, `rules`. Mutating ops (dry-run by default, `--apply` gated,
 never deleting): `repair`, `move`, `archive`, `new-category`. The agent —
 never a capability and never the surface — sequences a mutation into its
-catalog rebuild.
+catalog rebuild. Provisioning/distribution into harness homes remains
+`modules/harness` (`aa connect`); this feature does not link or copy the
+pack. Determinism, dry-run safety, the exit-code contract (0 clean / 1
+issues / 2 usage / 3 drift), and output parity against the retired legacy
+script are pinned by the surface and contract test files.
 
 ## Functional Requirements
 
 ### FR-SKILLS-001: List every skill in the pack
 
-- **Description**: enumerate every `SKILL.md` in the pack with its frontmatter
-  name and description.
-- **Input**: none.
-- **Output**: records sorted by name; an empty result when the pack is absent.
-- **Business Rules**: a missing pack root yields an empty listing, never an
-  exception; a malformed `SKILL.md` is still listed, with the directory name
-  as fallback name.
-- **Edge Cases**: unreadable file is skipped with an empty description;
-  sorting is by the parsed frontmatter name.
-- **Error Handling**: nothing raises into the CLI; an empty pack surfaces as
-  a non-zero exit with a clear message.
+**Description:** Enumerate every `SKILL.md` in the pack with its frontmatter name and description, returning records sorted by name.
+
+#### Business Logic
+
+- A missing pack root yields an empty listing, never an exception
+- A malformed `SKILL.md` is still listed, with the directory name as fallback name
+- Sorting is by the parsed frontmatter name
+
+#### Edge Cases
+
+- Unreadable file is skipped with an empty description
+- Empty pack surfaces as a non-zero exit with a clear message
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | none |
+| **Output** | records sorted by name; empty result when the pack is absent |
+| **Protocol** | ISkillsIndexProtocol |
+| **Method** | list_skills |
+| **Event** | — |
+| **Error** | typed error → exit code |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Pack present | `aa skills list` | every skill listed with description, sorted by name |
+| Pack absent | `aa skills list` | empty result, non-zero exit |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Determinism | identical output on identical trees |
 
 ### FR-SKILLS-002: Show one skill's guide
 
-- **Description**: print the raw `SKILL.md` content for a named skill.
-- **Input**: a skill name (frontmatter name, directory name, or hyphen-free
-  spelling).
-- **Output**: the file's full text; a not-found result otherwise.
-- **Business Rules**: matching accepts `fetch`, `fetch-mcp`, and the
-  frontmatter `name: fetch-mcp`; a prefix that matches several skills is
-  rejected rather than guessed.
-- **Edge Cases**: an ambiguous prefix returns not-found; an unreadable file
-  returns not-found.
-- **Error Handling**: unknown names exit non-zero with `Skill not found: <name>`.
+**Description:** Print the raw `SKILL.md` content for a named skill.
+
+#### Business Logic
+
+- Matching accepts the frontmatter name, the directory name, and the hyphen-free spelling
+- A prefix that matches several skills is rejected rather than guessed
+
+#### Edge Cases
+
+- An ambiguous prefix returns not-found
+- An unreadable file returns not-found
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | a skill name or identifier |
+| **Output** | the file's full text; a not-found result otherwise |
+| **Protocol** | ISkillsReaderProtocol |
+| **Method** | show_skill |
+| **Event** | — |
+| **Error** | unknown names exit non-zero with `Skill not found: <name>` |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Known skill | `aa skills show <name>` | prints the raw SKILL.md |
+| Unknown skill | `aa skills show nope` | exits non-zero with `Skill not found: nope` |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Exit-code contract | 0 found / 1 not-found |
 
 ### FR-SKILLS-003: Validate the pack against the 13 rules
 
-- **Description**: run every rule check over a skills root and report the
-  issues with their verbatim messages.
-- **Input**: a skills root; optional `--category` / `--rules-only`
-  narrowing flags (they narrow the listing, never the checks).
-- **Output**: the issue list plus the derived summary line
-  `N issues / M skills / K categories`.
-- **Business Rules**: the exit code tracks the *unfiltered* issue total
-  (1 when any issue exists); a scoped report can never claim the library is
-  clean while issues exist outside the scope.
-- **Edge Cases**: missing or invalid root is a usage error; empty issue set
-  still yields a clean report.
-- **Error Handling**: a missing or invalid root is a usage error (exit 2).
+**Description:** Run every rule check over a skills root and report the issues with their verbatim messages.
 
-### FR-SKILLS-004: Rebuild and guard `CATALOG.md`
+#### Business Logic
 
-- **Description**: render the catalog from the live tree, or — with
-  `--check` — regenerate to a temp file and diff the tracked artifact.
-- **Input**: a skills root; optional `--check` flag for read-only verification.
-- **Output**: the rebuilt path and counts, or the drift summary plus diff.
-- **Business Rules**: a read through the catalog never repairs itself; a
-  missing, stale, unparseable, or non-round-tripping catalog is drift
-  (exit 3). A crafted cell that loses its escape round-trip fails closed.
-- **Edge Cases**: missing catalog is drift; non-round-tripping cell fails closed.
-- **Error Handling**: the check is read-only and never rewrites the
-  tracked file.
+- The exit code tracks the *unfiltered* issue total (1 when any issue exists)
+- A scoped report can never claim the library is clean while issues exist outside the scope
+- `--category` / `--rules-only` narrow the listing, never the checks
+
+#### Edge Cases
+
+- Missing or invalid root is a usage error (exit 2)
+- An empty issue set still yields a clean report
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | a skills root; optional `--category` / `--rules-only` flags |
+| **Output** | the issue list plus the derived summary line `N issues / M skills / K categories` |
+| **Protocol** | ISkillsValidatorProtocol |
+| **Method** | validate |
+| **Event** | — |
+| **Error** | missing/invalid root → usage error (exit 2) |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Clean pack | `aa skills validate` | 0 issues, exit 0 |
+| Pack with issues | `aa skills validate` | issues reported, exit 1 |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Exit-code contract | 0 clean / 1 issues |
+
+### FR-SKILLS-004: Rebuild and guard CATALOG.md
+
+**Description:** Render the catalog from the live tree, or with `--check` regenerate to a temp file and diff the tracked artifact.
+
+#### Business Logic
+
+- A read through the catalog never repairs itself
+- A missing, stale, unparseable, or non-round-tripping catalog is drift (exit 3)
+- A crafted cell that loses its escape round-trip fails closed
+- The check is read-only and never rewrites the tracked file
+
+#### Edge Cases
+
+- Missing catalog is drift
+- A non-round-tripping cell fails closed
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | a skills root; optional `--check` flag for read-only verification |
+| **Output** | the rebuilt path and counts, or the drift summary plus diff |
+| **Protocol** | ISkillsCatalogProtocol |
+| **Method** | rebuild / check |
+| **Event** | — |
+| **Error** | drift → exit 3 |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Freshly rebuilt catalog | `aa skills catalog --check` | in sync, exit 0 |
+| Drifted catalog | `aa skills catalog --check` | drift summary, exit 3 |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Exit-code contract | 0 in-sync / 3 drift |
 
 ### FR-SKILLS-005: Search the catalog
 
-- **Description**: score catalog rows against a query (name +5,
-  description +3, category +2, path +1) and return the top `--limit`.
-- **Input**: a search query and an optional row limit.
-- **Output**: the top scoring matches.
-- **Business Rules**: on catalog drift the command warns loudly on stderr
-  (and in JSON) and answers from a live tree scan; exit stays 0.
-- **Edge Cases**: empty query is a usage error; no matches yields an empty
-  result set.
-- **Error Handling**: an empty query is a usage error (exit 2, legacy
-  `ERROR: Query is empty`).
+**Description:** Score catalog rows against a query (name +5, description +3, category +2, path +1) and return the top `--limit`.
+
+#### Business Logic
+
+- On catalog drift the command warns loudly on stderr (and in JSON) and answers from a live tree scan
+- Exit stays 0 even on drift fallback
+
+#### Edge Cases
+
+- Empty query is a usage error (exit 2, legacy `ERROR: Query is empty`)
+- No matches yields an empty result set
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | a search query and an optional row limit |
+| **Output** | the top scoring matches |
+| **Protocol** | ISkillsDiscovererProtocol |
+| **Method** | discover |
+| **Event** | — |
+| **Error** | empty query → usage error (exit 2) |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Query with matches | `aa skills discover <query>` | scored matches printed |
+| Catalog drift | `aa skills discover <query>` | warning, live-tree fallback, exit 0 |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Determinism | identical matches on identical trees |
 
 ### FR-SKILLS-006: Author the pack (dry-run by default)
 
-- **Description**: `repair`, `move`, `archive`, and `new-category` compute
-  a plan; only `--apply` writes. The agent rebuilds the catalog after an
-  applied mutation.
-- **Input**: mutation parameters such as skill name, target category, or
-  new-category name and description; optional `--apply` flag.
-- **Output**: a pure plan or, when `--apply` is given, a post-apply result.
-- **Business Rules**: no delete verb exists — `archive` moves a skill to
-  `_archive/<category>/<skill>/` and renames its `SKILL.md` to
-  `SKILL.md.archived`; `move` preserves the folder; `repair` only rewrites
-  frontmatter and writes missing category descriptions. Every mutating
-  command leaves the tree untouched without `--apply`.
-- **Edge Cases**: unknown skills, bad category names, and conflicts are
-  typed usage errors; symlinked destinations outside the root fail closed.
-- **Error Handling**: unknown skills, bad category names, and conflicts
-  are typed usage errors carrying the legacy message text (exit 2).
+**Description:** `repair`, `move`, `archive`, and `new-category` compute a plan; only `--apply` writes. The agent rebuilds the catalog after an applied mutation.
+
+#### Business Logic
+
+- No delete verb exists — `archive` moves a skill to `_archive/<category>/<skill>/` and renames its `SKILL.md` to `SKILL.md.archived`
+- `move` preserves the folder; `repair` only rewrites frontmatter and writes missing category descriptions
+- Every mutating command leaves the tree untouched without `--apply`
+
+#### Edge Cases
+
+- Unknown skills, bad category names, and conflicts are typed usage errors (exit 2)
+- Symlinked destinations outside the root fail closed at plan and apply
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | mutation parameters (skill name, target category, or new-category name and description); optional `--apply` flag |
+| **Output** | a pure plan, or when `--apply` is given, a post-apply result |
+| **Protocol** | ISkillsMutatorProtocol |
+| **Method** | plan_move / plan_archive / plan_repair / plan_new_category / apply |
+| **Event** | — |
+| **Error** | unknown skills, bad category names, conflicts → typed usage error (exit 2) |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Dry-run default | `aa skills move <skill> <cat>` | plan shown, tree untouched |
+| Apply | `aa skills move <skill> <cat> --apply` | one apply + one catalog rebuild, in order |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Dry-run safety | filesystem unchanged after every preview |
 
 ### FR-SKILLS-007: Plan a merge (read-only)
 
-- **Description**: `merge-plan` chooses the survivor by frontmatter-name
-  alignment (ties: file count, description length) and lists asset moves,
-  rewrites, and the absorbed folder.
-- **Input**: two category/skill references and a skills root.
-- **Output**: a read-only merge plan listing asset moves, rewrites, and the
-  absorbed folder.
-- **Business Rules**: nothing is executed; `skill-lifecycle` performs the
-  merge agent-side.
-- **Edge Cases**: ties are resolved by file count then description length.
-- **Error Handling**: unknown references are typed usage errors (exit 2).
+**Description:** `merge-plan` chooses the survivor by frontmatter-name alignment (ties: file count, description length) and lists asset moves, rewrites, and the absorbed folder.
+
+#### Business Logic
+
+- Nothing is executed; `skill-lifecycle` performs the merge agent-side
+- Ties are resolved by file count then description length
+
+#### Edge Cases
+
+- Unknown references are typed usage errors (exit 2)
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | two category/skill references and a skills root |
+| **Output** | a read-only merge plan listing asset moves, rewrites, and the absorbed folder |
+| **Protocol** | ISkillsMergePlannerProtocol |
+| **Method** | plan |
+| **Event** | — |
+| **Error** | unknown references → typed usage error (exit 2) |
+
+#### Test
+
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Two distinct skills | `aa skills merge-plan <a> <b>` | read-only plan printed, no writes |
+
+#### Metric
+
+| Target Metric | Value |
+|---------------|-------|
+| Determinism | identical plan on identical trees |
 
 ### FR-SKILLS-008: Render the rule SSOT
 
-- **Description**: `rules` prints one line per rule; `rules --markdown`
-  prints the generated document byte-identical to the committed
-  `_rules/skill-rules.md`.
-- **Input**: optional `--markdown` flag to select the full document form.
-- **Output**: the one-line-per-rule summary, or the full rules document.
-- **Business Rules**: `rules --markdown` prints the generated document
-  byte-identical to the committed rule SSOT.
-- **Edge Cases**: no markers; deterministic output on every run.
-- **Error Handling**: none beyond the typed error → exit code contract.
+**Description:** `rules` prints one line per rule; `rules --markdown` prints the generated document byte-identical to the committed `_rules/skill-rules.md`.
 
-## API Contract
+#### Business Logic
 
-### Protocol API
+- `rules --markdown` prints the generated document byte-identical to the committed rule SSOT
+- No markers; deterministic output on every run
 
-| Method | Input | Output | Error | Event | Description |
-|--------|-------|--------|-------|-------|-------------|
-| `list_skills` | skills root override | one record per skill, sorted by name | typed error → exit code | — | enumerate every skill in the pack |
-| `show_skill` | skill name or identifier | raw SKILL.md text or not found | typed error → exit code | — | print one skill's guide |
-| `validate` | skills root | validation report | typed error → exit code | — | run the 13 checks over the tree |
-| `rebuild` | skills root | catalog report | typed error → exit code | — | walk the tree and rewrite the catalog |
-| `check` | skills root | in-sync flag plus diff | typed error → exit code | — | diff the tracked catalog against a rebuild |
-| `load_rows` | skills root | catalog rows | raises drift rather than repairing | — | fail-closed read of catalog rows |
-| `discover` | search query, root, limit | scored matches | raises usage error on empty query | — | score catalog rows, fall back to tree on drift |
-| `plan_move` | skill and target category | pure plan, no writes | typed error → exit code | — | pre-apply plan to move a skill to another category |
-| `plan_archive` | skill name | pure plan, no writes | typed error → exit code | — | pre-apply plan to archive a skill |
-| `plan_repair` | skills root | pure plan, no writes | typed error → exit code | — | pre-apply plan for safe mechanical repairs |
-| `plan_weed` | skills root | pure plan, no writes | typed error → exit code | — | report duplicates, empty categories, missing descriptions |
-| `plan_new_category` | category name and description | category creation plan | typed error → exit code | — | pre-apply plan to create a category |
-| `apply` | mutation plan | post-apply result | typed error → exit code | — | execute a plan after re-checking containment |
-| `apply_new_category` | category plan | whether it wrote | typed error → exit code | — | create category and write its description |
-| `plan` | two category/skill refs, skills root | merge plan | typed error → exit code | — | build the read-only plan for merging two skills |
-| `render` | merge plan | rendered report lines | typed error → exit code | — | render a merge plan as markdown |
-| `render_markdown` | — | full rules document | typed error → exit code | — | render the rule SSOT as markdown |
-| `render_summary` | — | one-line-per-rule summary | typed error → exit code | — | render the compact rule summary |
+#### Edge Cases
 
-### Aggregate API
+- None beyond the typed error → exit code contract
 
-| Method | Input | Output | Error | Event | Description |
-|--------|-------|--------|-------|-------|-------------|
-| `execute(request)` | request (op, query?, root?, apply?, flags?) | result with the op's payload | typed error → exit code | — | single composite entry point covering every op |
+#### Technical Specification
 
-## Integration Points
+| Aspect | Detail |
+|--------|--------|
+| **Input** | optional `--markdown` flag to select the full document form |
+| **Output** | the one-line-per-rule summary, or the full rules document |
+| **Protocol** | ISkillsRulesRendererProtocol |
+| **Method** | render / render_markdown / render_summary |
+| **Event** | — |
+| **Error** | typed error → exit code |
 
-| System | Direction | Purpose | Failure mode |
-|--------|-----------|---------|--------------|
-| `modules/harness` | out | harnesses receive the pack through `aa connect`; this feature performs no linking or copying | harness unlinkable → `aa connect` reports it, not this feature |
-| shared kernel (skill taxonomy) | out | name sanitisation and frontmatter parsing from the shared taxonomy | malformed frontmatter → fallback to the directory name |
-| root CLI (`aa skills …`) | in | routes list / show into the feature | unknown op → not-ok result, non-zero exit |
+#### Test
 
-## Non-functional Requirements
+| Context | When Action | Then Observable Result |
+|---------|-------------|------------------------|
+| Summary form | `aa skills rules` | one line per rule |
+| Markdown form | `aa skills rules --markdown` | byte-identical to the committed rule SSOT |
 
-| Metric | Target | Measurement method |
-|--------|--------|--------------------|
-| Determinism | identical output on identical trees | run `aa skills list` twice and diff |
-| Dry-run safety | no mutating command writes without `--apply` | filesystem unchanged after every preview |
-| Exit-code contract | 0 clean / 1 issues / 2 usage / 3 drift | contract tests in the skills surface test file |
-| Output parity | byte-identical to the retired legacy script | `aa skills …` vs the legacy authoring CLI on the same tree |
-| No cross-feature imports | the feature imports nothing from sibling feature modules | import graph of the skills module |
-| Layering | surface → root container → agent → capabilities → shared taxonomy | `lac scan modules/skills` |
+#### Metric
 
-## Test Scenarios
+| Target Metric | Value |
+|---------------|-------|
+| Output parity | byte-identical to the retired legacy script |
 
-- Listing the pack returns every skill sorted by name, each with its frontmatter description.
-- Listing a missing pack root returns an empty result without raising.
-- Showing a skill by frontmatter name, directory name, and hyphen-free spelling all succeed.
-- Showing a name that matches several skills by prefix returns not-found rather than guessing.
-- Showing an unknown name exits non-zero with `Skill not found: <name>`.
-- An unknown op returns a not-ok result instead of silently succeeding.
-- Every golden fixture under `modules/skills/tests/fixtures/` reports exactly
-  its target issue type, message, and locator.
-- `catalog --check` exits 0 on a freshly rebuilt catalog and 3 on drift.
-- A crafted `&#124;` description fails the catalog round-trip closed.
-- `discover` warns loudly and falls back to the tree when the catalog drifts.
-- Every mutating command leaves the tree untouched without `--apply`.
-- A symlinked destination outside the root fails closed at plan and apply.
-- `move --apply` produces exactly one apply and one catalog rebuild, in order.
-- `aa skills <unknown>` exits 2 (the flagged change from the legacy surface).
+## Public Interface
 
-## Assumptions & Constraints
+| Aspect     | Detail             |
+|------------|--------------------|
+| Agent      | Skills Agent       |
+| Aggregate  | ISkillsAggregate   |
+| Method     | execute(request)   |
+| Request    | SkillsRequest      |
+| Response   | SkillsResult       |
 
-- The skill pack lives at `<repo>/skills/` and is the single source of truth
-  for content. This feature owns the rules about that content and the
-  mechanical authoring operations over it.
-- Provisioning/distribution into harness homes remains `modules/harness`
-  (`aa connect`); this feature does not link or copy the pack.
-- The legacy path-invocable script remains a thin delegating shim for one
-  release, then is deleted together with the pack's own Python test suite.
+## Reference
 
-## Glossary
-
-- **Pack**: the `skills/` directory at the repo root.
-- **Skill record**: the `(name, description, path)` tuple surfaced by the index.
+| Artifact     | Purpose                                          | Link |
+|--------------|--------------------------------------------------|------|
+| PRD          | <Business goals, user stories, and scope>        | [PRD.md](../../PRD.md) |
+| Backlog      | <Task tracking, epics, and implementation status> | [BACKLOG.md](BACKLOG.md) |
+| ROADMAP      | <Timeline, phasing, and dependencies>            | [ROADMAP.md](../../ROADMAP.md) |
+| ARCHITECTURE | <System boundaries, tech stack, and infra>       | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

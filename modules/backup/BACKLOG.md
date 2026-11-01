@@ -6,66 +6,53 @@ State: root § State Definitions
 Health: root § State Definitions
 Last Updated: 2026-10-26
 
-## Current Condition
+## Progress Overview
 
-- Done: `IBackupProtocol` is a rich ABC — one named method per operation
-  (`backup` / `restore` / `list_archives` / `status` / `help`), each with a
-  typed return. `IBackupAggregate` keeps the single `execute(request) →
-  response` entry point. The feature supports local archive creation,
-  restore, inspection, and a caller-selected local destination. The result
-  contract reports local archive outcomes only. Gate: `./.venv/bin/python -m pytest
-  modules/backup -q` → 35 passed at
-  `767b18672a0c0abd92f7225f267478db8271c334`; `./.venv/bin/ruff check
-  modules/backup --ignore E501` → clean.
-- In Progress: none.
-- Blocked: none.
-- Next Action: none.
+The backup feature is complete: local-only archive and restore of a tool's
+owned XDG state into a timestamped tar.gz, plus read-only store listing,
+status, and usage. The control protocol exposes `backup`/`restore`; the
+inspect protocol exposes `list_archives`/`status`/`help`; the aggregate
+dispatches both through `execute(request)`. Gate: `./.venv/bin/python -m pytest
+modules/backup -q` → 35 passed and `./.venv/bin/ruff check modules/backup
+--ignore E501` → clean at `767b18672a0c0abd92f7225f267478db8271c334`.
 
-## Backlog
+## Backlog Status
 
-| ID | FRD Ref | Priority | State | Dependencies | Next Action | Updated | Actual Condition |
-|---|---|---|---|---|---|---|---|
-| BKP-01 | — | P2 | Deferred | None | none | 2026-10-26 | Scope is local-only by operator direction; only local directories are supported. |
-| BKP-02 | FR-BACKUP-001 | P2 | Done | None | none | 2026-10-26 | `modules/backup/src/capabilities_backup_tar.py::backup_tool_result`; `modules/backup/tests/dogfood_backup.py::test_dogfood_backup_pipeline`; `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
-| BKP-03 | FR-BACKUP-001 | P2 | Done | BKP-02 | none | 2026-10-26 | `modules/backup/src/capabilities_backup_tar.py::restore_tool`; `modules/backup/tests/dogfood_backup.py::test_dogfood_restore_recreates_a_fresh_tool_tree`; `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
-| BKP-04 | FR-BACKUP-002 | P2 | Done | None | none | 2026-10-26 | `modules/backup/src/capabilities_backup_inspect.py`; read-only empty-list and absent-store status tests in `modules/backup/tests/unit_backup.py`; `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
-| BKP-05 | FR-BACKUP-001, FR-BACKUP-002 | P2 | Done | BKP-04 | none | 2026-10-26 | Rich protocol/aggregate wiring is exercised by `modules/backup/tests/contract_backup.py` and `integration_backup.py`; `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
-| FR-BACKUP-002 | FR-BACKUP-002 | P2 | Done | BKP-04 | none | 2026-10-26 | `modules/backup/src/capabilities_backup_inspect.py` implements list/status/help; `modules/backup/tests/unit_backup.py::TestTarBackupGateway.test_list_archives_returns_outcome` → 1 passed and `TestBackupInspectReadOnly` verifies absent-store reads; `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+### FR-BACKUP-001: Archive and restore a tool's XDG state
 
-## Scenario Evidence
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `capabilities_backup_tar.py::backup_tool_result` and `restore_tool` archive/restore XDG state; `test_dogfood_backup_pipeline` and `test_dogfood_restore_recreates_a_fresh_tool_tree` exercise them; `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b186`. |
+| In Progress  | None                                                         |
+| Risk         | Host-side install/update scope is outside this feature      |
+| Updated      | 2026-10-26                                                   |
 
-| Scenario | Kind | Test file | Test name | Last verified |
-|----------|------|-----------|-----------|---------------|
-| Backing up a tool with XDG state produces a restorable local archive. | Automated | `modules/backup/tests/dogfood_backup.py` | `test_dogfood_backup_pipeline` | `767b186` |
-| Restoring that archive into a fresh XDG tree recreates the tool's state. | Automated | `modules/backup/tests/dogfood_backup.py` | `test_dogfood_restore_recreates_a_fresh_tool_tree` | `767b186` |
-| Listing archives on a host with no archives exits 0 without creating the store. | Automated | `modules/backup/tests/unit_backup.py` | `TestBackupInspectReadOnly.test_empty_list_leaves_missing_store_absent` | `767b186` |
-| Reporting backup store status on a host with no store reports it absent and exits 0. | Automated | `modules/backup/tests/unit_backup.py` | `TestBackupInspectReadOnly.test_status_reports_missing_store_without_creating_it` | `767b186` |
-| Requesting backup usage prints local archive, restore, and list forms and exits 0. | Automated | `modules/backup/tests/unit_backup.py` | `TestBackupInspectReadOnly.test_usage_documents_local_backup_destination` | `767b186` |
+### FR-BACKUP-002: Inspect the backup store (list, status, usage)
 
-Kind values: Automated, Proxy, Manual, Gap.
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `capabilities_backup_inspect.py` implements list/status/help; `TestBackupInspectReadOnly` verifies empty-list and absent-store reads; `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b186`. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-10-26                                                   |
 
-## Blockers
+### FR-BACKUP-001: Local-only scope (deferred)
 
-None.
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Deferred                                                     |
+| Done         | Scope is local-only by operator direction; only local directories are supported as backup destinations. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-10-26                                                   |
 
-## Dependencies
+## Reference
 
-None.
-
-## Release Readiness
-
-| Area | Status | Notes |
-|------|--------|-------|
-| Tests | Done | `./.venv/bin/python -m pytest modules/backup -q` → 35 passed at `767b18672a0c0abd92f7225f267478db8271c334`; local backup, restore, read-only listing/status, and usage are covered |
-| Scenario evidence | Done | 5 of 5 scenarios automated |
-| Docs | Done | FRD and backlog define local directories as the only backup destination |
-
-## Deferred
-
-- BKP-01: only local directories are in scope by operator direction.
-
-## Change Log
-
-| Date | Change | By |
-|------|--------|----|
-| 2026-10-26 | Recorded local-only scope, per-requirement backlog evidence, read-only store tests, and 35 passing backup tests at `767b186`. | @raka |
+| Artifact     | Purpose                                    | Link |
+|--------------|--------------------------------------------|------|
+| PRD          | Business goals and scope                   | [PRD.md](../../PRD.md) |
+| FRD          | Functional requirements specification       | [FRD.md](FRD.md) |
+| Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
