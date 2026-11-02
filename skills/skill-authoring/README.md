@@ -17,7 +17,7 @@ answers "which skill do I use".
 
 The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) all
 run on the `aa skills` trace verbs (`trace-collect`, `trace-usage`, `trace-phrases`, `trace-state`), backed by
-`capabilities_skills_tracker`, `capabilities_skills_phrases`, and `capabilities_skills_state` in `modules/skills`.
+`capabilities_skills_traces` and `capabilities_skills_state` in `modules/skills`.
 They produce phrases, usage counts, and stale-skill signals in a single pass; each skill curates only its own action
 group from the shared `report.md` / `actions.json` run directory.
 
