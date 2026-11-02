@@ -233,7 +233,7 @@ fn json_text_field(js, key) {
 
 // args: { repo_root (required), dry_run (optional), batch (optional), trust_mode (optional: "trust" | "no-trust", default "no-trust"),
 //         legacy (optional, default false — the rollback escape: old per-feature LLM scanner + inline Rhai classify),
-//         scripts_root (optional — directory holding scan.py/classify.py; default <repo_root>/skills/git/task-tracker/scripts) }
+//         scripts_root (optional — directory holding scan.py/classify.py; default <repo_root>/skills/git/issue-maker/scripts) }
 let a_root = ();
 let a_dry = ();
 let a_batch = ();
@@ -263,7 +263,7 @@ let trust_mode = if a_trust == () { "no-trust" } else { a_trust.to_string() };
 if trust_mode != "trust" && trust_mode != "no-trust" {
     pause("verification", "Invalid trust_mode: " + trust_mode + " — must be 'trust' or 'no-trust'");
 }
-let scripts_root = if a_scripts == () { repo_root + "/skills/git/task-tracker/scripts" } else { a_scripts.to_string() };
+let scripts_root = if a_scripts == () { repo_root + "/skills/git/issue-maker/scripts" } else { a_scripts.to_string() };
 let state_label = "task-tracker";
 let batch = if a_batch == () { 6 } else { parse_int(a_batch.to_string()) };
 
@@ -374,7 +374,7 @@ if legacy {
 } else {
     // Script path: one host-call agent runs the deterministic scanner. The
     // workflow engine's host-call mechanism is agent() (sibling convention:
-    // prune-test-suite / work-on-issues have no shell host primitive); the
+    // prune-test-suite / issue-worker have no shell host primitive); the
     // agent only transports the script's stdout — all table parsing is done
     // by scan.py, not by the model. The discovery JSON (the Discover phase's
     // feature_schema output) is written to a temp file first, as scan.py's

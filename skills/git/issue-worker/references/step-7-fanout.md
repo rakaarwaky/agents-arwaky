@@ -25,7 +25,7 @@ Defaults (override only when the user names different options):
 | Branch | Orca default from repo base ref (do not base on the current feature branch) |
 | Isolation | one build artifact dir per worktree — see [step-8-build-isolation.md](step-8-build-isolation.md) |
 | Wave size | ≤ concurrency limit (typically 10) |
-| Child scope | local commits only; no push, no PR, no tracker writes |
+| Child scope | edits files only inside its worktree; **children never commit, push, open a PR, or write to the tracker** — the orchestrator owns push + PR |
 
 Write decisions + per-issue evidence to a session state file the children can read (e.g. `.agents/session-notes.md`). It is the source for every child's context — children see nothing else of this conversation.
 
@@ -42,7 +42,7 @@ Every child brief must state:
 - Work **only** inside the assigned worktree; never touch sibling worktrees or shared state dirs.
 - Use **per-worktree build isolation** (own artifact/cache dir; never the repo-shared one).
 - Targeted checks only (`<tool> check/test -p <package>` or the language equivalent); never workspace-wide gate scripts — they serialize and slow every sibling.
-- Local commits allowed (conventional messages); **no push, no PR, no tracker writes**.
+- No local commits, no push, no PR, no tracker writes — the orchestrator owns push + PR (one PR per issue, draft by default).
 - Close the report with: files changed, mechanism, verification command + real output, commit sha.
 
 For "verify first, fix if still broken" issues, the child brief asks for a verdict (`fixed-on-main` / `still-broken`) plus the regression test pinning the behavior — never for issue closure (the parent decides closure).

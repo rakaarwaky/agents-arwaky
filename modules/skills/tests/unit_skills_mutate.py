@@ -7,15 +7,16 @@ from pathlib import Path
 
 import pytest
 
-from modules.shared.src.skills.taxonomy_skills_vo import SkillsRequest, SkillsOp
 from modules.shared.src.skills.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
 )
+from modules.shared.src.skills.taxonomy_skills_vo import SkillsOp, SkillsRequest
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
+from modules.skills.src.root_skills_container import default_aggregate
 from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 

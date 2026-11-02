@@ -7,7 +7,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "sample_repo"
 
-# Add the task-tracker skill root to sys.path so `scripts.*` is importable
+# Add the issue-maker skill root to sys.path so `scripts.*` is importable
 # when pytest collects these tests from the repo root.
 _SKILL_DIR = Path(__file__).resolve().parent.parent.parent
 if str(_SKILL_DIR) not in sys.path:

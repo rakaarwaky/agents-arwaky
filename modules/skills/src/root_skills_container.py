@@ -68,9 +68,10 @@ def default_aggregate(
     tracker: ITrackerProtocol | None = None,
     phrases: IPhrasesProtocol | None = None,
     state: IStateProtocol | None = None,
+    default_root: Path | None = None,
 ) -> ISkillsAggregate:
     """Return an agent bound to the repo's ``skills/`` pack (or overrides)."""
-    root = default_pack_root()
+    root = default_root if default_root is not None else default_pack_root()
     wired_catalog = catalog or SkillsCatalog()
     return SkillsAgent(
         index or SkillsIndexBuilder(root),

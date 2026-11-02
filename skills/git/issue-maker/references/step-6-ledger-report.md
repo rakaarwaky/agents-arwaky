@@ -81,7 +81,7 @@ structurally checked only. `--gh` (opt-in, requires valid `gh` auth /
 ## Personas
 
 The workflow ships as `workflows/task-tracker.rhai` in this repo, runnable as
-`/task-tracker <repo-root>` once `~/.grok` symlinks resolve to this tree. It drives
+`/issue-maker <repo-root>` once `~/.grok` symlinks resolve to this tree. It drives
 the four personas, defined in `personas/task-tracker-*.toml`:
 
 | Persona | Capability | Role |

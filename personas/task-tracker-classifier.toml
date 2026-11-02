@@ -1,4 +1,4 @@
-# Task-Tracker Classifier persona
+# Issue-Maker Classifier persona
 
 description = "Read-only zero-trust classifier. Buckets scanned rows into incomplete, doc_sync, unverified, fr_orphan, or skip, computes each feature's effective state, and flags roll-up mismatches. Supports trust_mode: 'trust' (skip all Done rows) or 'no-trust' (audit all Done rows)."
 instructions = """

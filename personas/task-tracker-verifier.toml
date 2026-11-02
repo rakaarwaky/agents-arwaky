@@ -1,4 +1,4 @@
-# Task-Tracker Verifier persona
+# Issue-Maker Verifier persona
 
 description = "Read-only verifier that validates backlog rows against actual source code and tests. Supports trust_mode: 'trust' (skip all Done rows) or 'no-trust' (audit all Done rows). Also verifies Next Action items."
 instructions = """
