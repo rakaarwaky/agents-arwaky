@@ -12,12 +12,12 @@ You create new skills from things the user keeps typing out. The trace pipeline 
 
 ## Execution Flow
 
-1. **Resume or price**: run `aa skills trace-state get` (resume check, exit 3 = pending run) and `aa skills trace-collect` (one-line price per scope).
-2. **Collect**: run the collector into a run dir. A narrow window does not affect creation — a phrase repeated in 3 sessions is still a habit.
-3. **Launch**: the `learn-traces` workflow from [`workflows/learn-traces.rhai`](../../../workflows/learn-traces.rhai); block on `aa skills trace-state wait`.
-4. **Read**: `report.md`, present the Overview plus section 1 (Repeated phrases → skills) and section 4 (Gaps). The report comes first on its own; curation questions belong to the next turn.
-5. **Apply**: for each owned action, follow the mode in [`references/apply-rules.md`](references/apply-rules.md); record every decision with `aa skills trace-state decide`.
-6. **Verify**: re-read every written `<user skills dir>/<name>/SKILL.md` and confirm the frontmatter parses; confirm every recorded decision is in the run dir; stop at the first failure and report it before continuing.
+1. **Resume or price**: run `aa skills trace-state get` (resume check, exit 3 = pending run) and `aa skills trace-collect` (one-line price per scope) — [`references/step-0-resume-or-price.md`](references/step-0-resume-or-price.md).
+2. **Collect**: run the collector into a run dir — [`references/step-1-collect.md`](references/step-1-collect.md).
+3. **Launch**: the `learn-traces` workflow; block on `aa skills trace-state wait` — [`references/step-2-launch.md`](references/step-2-launch.md).
+4. **Read**: `report.md`, present the Overview plus section 1 (Repeated phrases → skills) and section 4 (Gaps) — [`references/step-3-read-report.md`](references/step-3-read-report.md). The report comes first on its own; curation questions belong to the next turn.
+5. **Apply**: for each owned action, follow the rules in [`references/step-4-apply.md`](references/step-4-apply.md); record every decision with `aa skills trace-state decide`.
+6. **Verify**: re-read every written `<user skills dir>/<name>/SKILL.md` and confirm the frontmatter parses; confirm every recorded decision is in the run dir — [`references/step-5-verify.md`](references/step-5-verify.md). Stop at the first failure and report it before continuing.
 7. **Report**: what was created or deferred, how it was verified, and any duplication noticed but not fixed.
 
 ## Global Rules
@@ -25,16 +25,21 @@ You create new skills from things the user keeps typing out. The trace pipeline 
 Rules that apply to every action. Reference files cite these; they never restate them.
 
 - **Scope**: this skill owns report section 1 (repeated phrases → skills) and section 4 (gaps) only. Stale-line edits belong to `skill-evolving`; retire actions belong to `skill-unlearn`. Route cross-skill actions there instead of applying them here.
-- **Signals** (from [`references/signals.md`](references/signals.md)): §1 instructions typed by hand — a phrase repeated across ≥2 distinct sessions is a candidate; two or more make it a habit. Owner is the existing skill when one already states it (the phrase joins it as a trigger line — that is an `edit`, route it to `skill-evolving`), `NEW` otherwise. §5 gaps — recurring needs with no owner; discussion items, they carry an action only when the user asks for a skill.
-- **Action types** (from [`references/report-format.md`](references/report-format.md)): `create`, `propose`, `ask` — the three actions this skill applies; the reference owns their field shapes and emission rules.
+- **Signal §1 (instructions typed by hand)**: text in `turns` that tells the agent HOW to work rather than WHAT to do — process, order of steps, tools to prefer, checks to run, style, who to notify. Quote it exactly (at most 200 characters). Then check the loaded skills in `surfaces.json`: if one already states it, the owner is that skill (the phrase joins it as a trigger line — that is an `edit`, route it to `skill-evolving`); if none does, the owner is `NEW`. The task content itself ("fix the flaky test in X") is not an instruction. A phrase seen in one session is a candidate; two or more distinct sessions make it a habit.
+- **Signal §5 (gaps)**: a job the user did by hand in two or more sessions that no skill, MCP, or workflow covers. Gaps are for discussion; they carry no action id unless the user asks for a skill.
+- **Report invariant**: every action in `actions.json` must appear in `report.md`, and every claim in sections 1–3 of `report.md` must be backed by a verifier's Kept list.
+- **Action types** (from [`references/step-4-apply.md`](references/step-4-apply.md)): `create` — the whole-file write to `<user skills dir>/<name>/SKILL.md`; `propose` — the protected-owner override or patch; `ask` — the user must decide (collision, referenced, only-copy). The reference owns the per-action field shapes, the protected-target rules, and the undo path.
 - **Consent rules**: apply only actions backed by trace evidence and gated by the verifier.
 - **Record**: every decision with `aa skills trace-state decide --run-dir <RUN> --id <id> --kind skill --action create|propose|ask --target <name> --path <path> --decision applied|rejected|deferred [--undo <path>]`.
 
 ## Run Steps
 
-| Mode | Reference | Purpose |
+| Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Signal definitions | [`references/signals.md`](references/signals.md) | What the trace mappers look for; ordered by blast radius. |
-| Report shape | [`references/report-format.md`](references/report-format.md) | `actions.json` fields and emission rules. |
-| Apply rules | [`references/apply-rules.md`](references/apply-rules.md) | create, propose, ask, protected targets. |
+| Resume or price | [`references/step-0-resume-or-price.md`](references/step-0-resume-or-price.md) | Resume check, one-line price per scope. |
+| Collect | [`references/step-1-collect.md`](references/step-1-collect.md) | Run the collector into a run dir. |
+| Launch | [`references/step-2-launch.md`](references/step-2-launch.md) | Start the `learn-traces` workflow; block on `trace-state wait`. |
+| Read report | [`references/step-3-read-report.md`](references/step-3-read-report.md) | Present Overview + sections 1 and 4; report shape. |
+| Apply | [`references/step-4-apply.md`](references/step-4-apply.md) | `create`/`propose`/`ask` rules; `actions.json` field shapes; records; undo. |
+| Verify | [`references/step-5-verify.md`](references/step-5-verify.md) | Re-read written files; confirm frontmatter parses; decisions recorded. |
 | Workflow | [`workflows/learn-traces.rhai`](../../../workflows/learn-traces.rhai) | The shared trace-mining workflow this skill runs. |

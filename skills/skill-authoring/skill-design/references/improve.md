@@ -10,12 +10,31 @@ Recipe for the improve step, plus the reference-pattern decision it owns. Verifi
 ## Improve a skill
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.
-2. **Identify the owner**: for each fact being changed, name its one home (Global Rules, a reference file, or a step file). If the owner is ambiguous, stop and confirm before touching anything.
+2. **Identify the owner**: for each fact being changed, name its one home using the Information distribution test below — `SKILL.md` Global Rules for a fact read by more than one step, a step file for a fact read by exactly one step. A standalone `references/<name>.md` is a home only when it is the single authoritative copy of a fact that no step file already states. If the owner is ambiguous, stop and confirm before touching anything.
 3. **Pick the target pattern** (when the edit restructures `references/`, or when the current tree's pattern does not match the skill's shape): run the pattern decision below and apply it before editing. The answer to Step 1 and Step 2 below comes from the skill's **Execution Flow verbs and run-state**, never from the layout of the `references/` files that exist today — a tree that looks like Pattern A (flat per-mode files) is Pattern B the moment its flow is a single ordered pipeline with state passing between steps. Restructuring from A to B is a valid restructure; it is not "mixing patterns."
 4. **Apply the edit** where the owner lives. If the owner is a reference file, edit the reference — never the body. If the owner is Global Rules, edit `SKILL.md`.
 5. **Sweep for second copies**: after the edit, search the skill directory for any other place that states the same fact. Report each one; do not silently rewrite them.
 6. **Resolve cross-skill links you touched**: every sibling mention and cross-skill link you edited must name a skill that exists in the tree (Global Rules: dangling refs rot fast).
 7. **Run Verify and Report**: the Verify and Report steps of `SKILL.md` (Execution Flow 5–6) — they own `aa skills validate` and the pre-publish checklist.
+
+## Information distribution
+
+Before editing any fact, route it with the test below. A fact that has more than one home is a bug; one home per fact (Global Rules). This is the check that catches a definition file that should have been split into the Global Rules + step files that use it.
+
+### The test
+
+For each fact, ask one question: **how many steps read this fact during a single invocation?**
+
+- **More than one step (or all steps)** → `SKILL.md` Global Rules. Cross-step policy, signal definitions, invariants, record formats.
+- **Exactly one step** → that step's reference file. Commands, field shapes, per-action rules, stop conditions, worked examples.
+- **Neither — the fact is a shared definition used by several pipeline skills** (the trace pipeline's `signals.md`, `report-format.md`, …) → it is a shared reference, not owned by any one step. In that case it may live as `references/<name>.md` and be linked from every skill that uses it; no single skill's step file is its home.
+
+### Rules
+
+- Never leave a definition file in a skill when its content is fully owned by the Global Rules + step files of that same skill. A file whose every line is restated in `SKILL.md` or a step file is a second copy and is deleted, not kept.
+- A Global Rules bullet that fully defines a signal, action type, or invariant is the home for it; a step file that repeats that definition in full is the second copy. Point at the bullet, do not restate it.
+- A step file may reference the Global Rules bullet by name; it does not restate the bullet's content.
+- The shared-reference case (third rule above) is the only situation where a non-step `references/<name>.md` is legitimate in a Pattern B pipeline; name it in `SKILL.md` Run Steps and link it from the step that consumes it.
 
 ## Choosing the reference pattern
 
@@ -92,17 +111,11 @@ Ask: does the agent pick exactly one mode per invocation, and no shared state fl
 
 #### Step 3: What goes in the body vs a reference (placement decision)
 
-Run this before deciding where each fact lands. The test is one question: **is this needed on every invocation, or only when a specific step runs?**
+Run this before deciding where each fact lands. The test is the Information distribution test above: **how many steps read this fact during a single invocation?**
 
-- **Cross-step and always needed → body** (`SKILL.md`):
-  - Global Rules — cross-step policy that every step obeys (scope, consent, validation).
-  - Execution Flow — the ordered step list; one line per step, verb + what it checks.
-  - Run Steps — the reference index table (Step | Reference | Purpose).
-- **Step-specific detail → that step's reference file:**
-  - Commands and flags the step runs, with exact syntax.
-  - Outputs the step produces and their shape.
-  - The step's stop conditions and failure handling.
-  - Worked examples for that step's shape.
+- **More than one step (or all steps) → `SKILL.md` Global Rules**: cross-step policy (scope, consent, validation), signal definitions, invariants, record formats.
+- **Exactly one step → that step's reference file**: commands and flags with exact syntax, outputs and their shape, the step's stop conditions and failure handling, worked examples for that step's shape.
+- **Shared definition used by several pipeline skills → `references/<name>.md` linked from every consumer**: it is not owned by any one skill's step file.
 
 The two trigger fields (`description:`, `when-to-use:`) follow their own budget rule (Global Rules: budget for permanent cost) — they are not "body". Move anything task-conditional out of the body into a reference or a step.
 
