@@ -13,6 +13,7 @@ answers "which skill do I use".
 | Create skills for things you keep typing out | `skill-learning` | `skills/skill-authoring/skill-learning/` |
 | Edit skills to adapt to conditions and demand | `skill-evolving` | `skills/skill-authoring/skill-evolving/` |
 | Remove skills and surfaces you never use | `skill-unlearn` | `skills/skill-authoring/skill-unlearn/` |
+| Learn, evolve, and unlearn skills from session traces (one pass) | `skill-traces` | `/skill-traces --learn [--evolve --unlearn]` → `aa skills trace-collect | trace-materialize | trace-state` |
 
 The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) all
 run on the `aa skills` trace verbs (`trace-collect`, `trace-usage`, `trace-phrases`, `trace-state`), backed by
