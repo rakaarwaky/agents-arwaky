@@ -30,6 +30,8 @@ Rules that apply to every step. Reference files cite these; they never restate t
 - **Staging discipline**: inside `skills/<category>/`, `git add -A .` stages every tracked file under that subdirectory, not just the prune's changes. Use explicit top-level paths (`git add skills/<category>/ skills/CATALOG.md`) and verify the staged set with `git status --short` before committing.
 ## Routing
 
+| Step | Reference | Purpose |
+| ---- | --------- | ------- |
 | Step 0 | [`references/step-0-confirm-root.md`](references/step-0-confirm-root.md) | Confirm the audit root; reject a file path or an empty tree. |
 | Step 1 | [`references/step-1-inventory.md`](references/step-1-inventory.md) | List every skill folder; read each `SKILL.md` frontmatter and body. |
 | Step 2 | [`references/step-2-group.md`](references/step-2-group.md) | Cluster by semantic scope; verify against body content. |
