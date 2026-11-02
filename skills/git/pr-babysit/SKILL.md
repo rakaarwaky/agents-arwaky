@@ -16,7 +16,8 @@ One sequential pipeline per PR: take a PR number, fix it until green and ready t
 - **Never force-push without `--force-with-lease`**.
 - **Never skip a review thread** — human or bot. Every unresolved thread is evaluated.
 - **Never reply with "will fix", "acknowledged", or a bare acknowledgment.** Reply with a fix commit SHA or a substantive technical explanation.
-- **Merge only in step 6**, only when `ship` is `true` and every gate passes.
+- **Merge only in step 6**, only when `ship` is `true` and every gate passes. No auto-merge on a PR whose base is not the repo default branch.
+- **State is per-session**: `~/.grok/plugin-data/pr-babysit/watched-prs-<INSTANCE_ID>.json`. `INSTANCE_ID` is a UUID generated on first `add` (resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`, run `<python> <HOST_PY> uuid --full`, reject WindowsApps stubs) and held in conversation context.
 
 ## Routing
 
@@ -29,4 +30,3 @@ One sequential pipeline per PR: take a PR number, fix it until green and ready t
 | 4 — Auto-fix red checks | [`references/step-4-auto-fix.md`](references/step-4-auto-fix.md) | CI reports a red check; loops back to step 3 after each push |
 | 5 — Decision tree | [`references/step-5-decision-tree.md`](references/step-5-decision-tree.md) | After each step 4 push and always before step 6; CI logs ambiguous → [`references/step-5-troubleshoot.md`](references/step-5-troubleshoot.md) |
 | 6 — Merge | [`references/step-6-merge.md`](references/step-6-merge.md) | `ship` is `true` and step 5 reports `healthy`; ship-ready gates + merge commands |
-| Pipeline driver | [`references/watchlist.md`](references/watchlist.md) | Full pipeline walkthrough and safety guardrails |
