@@ -17,10 +17,29 @@ The `--improve` flag takes a single skills path. Resolve it before editing:
 
 Do not prompt the user to disambiguate unless two or more distinct skills in the tree match the request equally well and acting on both would waste significant effort; in that case, name the two candidates and proceed with the more specific match.
 
+## SKILL.md body format
+
+Every skill being improved must use this exact body shape in `SKILL.md`:
+
+```
+# Title
+
+## Global rules
+
+## Routing
+```
+
+- **Title** — one `#` heading with the skill name.
+- **Global rules** — bullets only. Cross-step policy, invariants, record formats, and any fact read by more than one step.
+- **Routing** — a table of contents mapping each step/reference to its purpose.
+
+All task data, commands, field shapes, examples, stop conditions, and worked examples belong in `references/*.md` or `scripts/*`. If the body contains anything beyond the three sections above, move it to a reference file before publishing.
+
 ## Improve a skill
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.
-2. **Identify the owner**: for each fact being changed, name its one home using the Information distribution test below — `SKILL.md` Global Rules for a fact read by more than one step, a step file for a fact read by exactly one step. A standalone `references/<name>.md` is a home only when it is the single authoritative copy of a fact that no step file already states. If the owner is ambiguous, stop and confirm before touching anything.
+2. **Enforce body format**: before applying any content or structure fix, verify the target `SKILL.md` follows the format above. If it does not, restructure it first — move any out-of-place detail into `references/*.md`, then continue with the actual edit.
+3. **Identify the owner**: for each fact being changed, name its one home using the Information distribution test below — `SKILL.md` Global Rules for a fact read by more than one step, a step file for a fact read by exactly one step. A standalone `references/<name>.md` is a home only when it is the single authoritative copy of a fact that no step file already states. If the owner is ambiguous, stop and confirm before touching anything.
 3. **Pick the target pattern** (when the edit restructures `references/`, or when the current tree's pattern does not match the skill's shape): run the pattern decision below and apply it before editing. The answer to Step 1 and Step 2 below comes from the skill's **Routing table**, never from the layout of the `references/` files that exist today — a tree that looks like Pattern A (flat per-mode files) is Pattern B the moment its routing is a single ordered pipeline with state passing between steps. Restructuring from A to B is a valid restructure; it is not "mixing patterns."
 4. **Apply the edit** where the owner lives. If the owner is a reference file, edit the reference — never the body. If the owner is Global Rules, edit `SKILL.md`.
 5. **Sweep for second copies**: after the edit, search the skill directory for any other place that states the same fact. Report each one; do not silently rewrite them.

@@ -30,14 +30,13 @@ Rules that apply to every issue-worker operation. Reference files cite these; th
 | ---- | --------- | ------- |
 | Step 0 | [`references/step-0-setup.md`](references/step-0-setup.md) | Prerequisites, auth detection, `gh-env.sh` helper sourcing. |
 | Step 1 | [`references/step-1-viewing.md`](references/step-1-viewing.md) | List, search, view issues (gh + curl). |
-| Step 2 | [`references/step-2-creating.md`](references/step-2-creating.md) | Auxiliary CRUD recipe: create an issue (bug/feature template). Not the spine — the spine is issue → PR; `/issue-worker` takes EXISTING issues to PRs, it does not originate them. |
-| Step 3 | [`references/step-3-managing.md`](references/step-3-managing.md) | Label, assign, comment, close/reopen, link to PRs, branch from issue. |
-| Step 4 | [`references/step-4-triage-bulk.md`](references/step-4-triage-bulk.md) | Issue triage workflow and bulk label/close operations. |
-| Step 5 | [`references/step-5-verify-triage.md`](references/step-5-verify-triage.md) | Load and triage: verify every claim at HEAD before closing. |
-| Step 6 | [`references/step-6-decision-quiz.md`](references/step-6-decision-quiz.md) | Decision quiz before implementation. |
-| Step 7 | [`references/step-7-fanout.md`](references/step-7-fanout.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner. |
-| Step 8 | [`references/step-8-build-isolation.md`](references/step-8-build-isolation.md) | Build isolation per worktree. |
-| Step 9 | [`references/step-9-waves-verify.md`](references/step-9-waves-verify.md) | Run waves, verify children, then orchestrator pushes each worktree branch and opens one PR per issue (draft by default). |
-| Step 10 | [`references/step-10-rebase.md`](references/step-10-rebase.md) | Rebase still-open worktree branches onto the default tip after PRs land. |
+| Step 2 | [`references/step-3-managing.md`](references/step-3-managing.md) | Label, assign, comment, close/reopen, link to PRs, branch from issue. |
+| Step 3 | [`references/step-4-triage-bulk.md`](references/step-4-triage-bulk.md) | Issue triage workflow and bulk label/close operations. |
+| Step 4 | [`references/step-5-verify-triage.md`](references/step-5-verify-triage.md) | Load and triage: verify every claim at HEAD before closing. |
+| Step 5 | [`references/step-6-decision-quiz.md`](references/step-6-decision-quiz.md) | Decision quiz before implementation. |
+| Step 6 | [`references/step-7-fanout.md`](references/step-7-fanout.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner. |
+| Step 7 | [`references/step-8-build-isolation.md`](references/step-8-build-isolation.md) | Build isolation per worktree. |
+| Step 8 | [`references/step-9-waves-verify.md`](references/step-9-waves-verify.md) | Run waves, verify children, then orchestrator pushes each worktree branch and opens one PR per issue (draft by default). |
+| Step 9 | [`references/step-10-rebase.md`](references/step-10-rebase.md) | Rebase still-open worktree branches onto the default tip after PRs land. |
 | Templates | `templates/bug-report.md`, `templates/feature-request.md` | Skeletons for new issues. |
 
