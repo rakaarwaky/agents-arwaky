@@ -7,10 +7,9 @@ import typing
 import pytest
 
 from modules.shared.src.skills.contract_skills_protocol import (
-    IPhrasesProtocol,
     ISkillsIndexProtocol,
+    ISkillsTracesProtocol,
     IStateProtocol,
-    ITrackerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     PhrasesReport,
@@ -84,13 +83,10 @@ def test_report_vos_are_frozen() -> None:
 
 
 def test_trace_protocols_are_abstract() -> None:
-    """The three new protocols are ABCs: instantiating without methods raises."""
+    """ISkillsTracesProtocol is an ABC: instantiating without methods raises."""
     with pytest.raises(TypeError):
-        ITrackerProtocol()  # type: ignore[abstract]
-    with pytest.raises(TypeError):
-        IPhrasesProtocol()  # type: ignore[abstract]
-    with pytest.raises(TypeError):
-        IStateProtocol()  # type: ignore[abstract]
+        ISkillsTracesProtocol()  # type: ignore[abstract]
+    assert "scan_sessions" in ISkillsTracesProtocol.__abstractmethods__
 
 
 def test_index_protocol_gains_json_list_method() -> None:

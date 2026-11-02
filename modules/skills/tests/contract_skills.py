@@ -14,6 +14,7 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
+    ISkillsTracesProtocol,
     ISkillsValidatorProtocol,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
@@ -23,6 +24,7 @@ from modules.skills.src.capabilities_skills_index_builder import SkillsIndexBuil
 from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlanner
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
+from modules.skills.src.capabilities_skills_traces import SkillsTraces
 from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 
@@ -96,6 +98,7 @@ def test_merge_planner_implements_protocol() -> None:
         (SkillsMutator, ISkillsMutatorProtocol),
         (SkillsMergePlanner, ISkillsMergePlannerProtocol),
         (SkillsAgent, ISkillsAggregate),
+        (SkillsTraces, ISkillsTracesProtocol),
     ],
     ids=[
         "index-builder",
@@ -106,6 +109,7 @@ def test_merge_planner_implements_protocol() -> None:
         "mutator",
         "merge-planner",
         "agent",
+        "traces",
     ],
 )
 def test_capability_signatures_compatible(

@@ -1,20 +1,15 @@
-"""Skills tracker capability (AES capabilities layer).
+"""Skills traces capability (AES capabilities layer).
 
-Ports the session-scanning, redaction, and usage-building business logic out
-of the retired ``skills/skill-authoring/_trace-pipeline/scripts/collect_sessions.py``
-into the ``ITrackerProtocol`` seam.
+Ports the session-scanning / redaction / usage-building logic from
+``capabilities_skills_tracker.py`` and the repeated-prompt /
+repeated-instruction-line mining logic from
+``capabilities_skills_phrases.py`` into the single
+``ISkillsTracesProtocol`` seam.
 
-Skills-only: plugin / MCP / workflow / slash-mru usage tracking is dropped;
-skill hit counts, ``unused_loaded``, per-session records, and phrases are kept.
-
-The capability writes its records into ``run_dir`` (``manifest.json`` and
-``sessions/NNNN-<id>.json``) and returns the same data as VOs. ``build_usage``
-reads those session records back out of the run dir.
-
-No capability-to-capability imports: depends only on ``modules.shared``
-contract + taxonomy + utilities. I/O is limited to reading
-``$GROK_HOME/sessions`` files and writing the run dir — that is this
-capability's job, not a layer violation.
+The phrases half depends on the scan half through run-dir files only
+(the tracker writes ``manifest.json`` + ``sessions/*.json``; phrases
+reads them back) — there is no capability-to-capability import between
+them here.
 """
 
 from __future__ import annotations
@@ -32,21 +27,21 @@ from modules.shared.src.common.utility_skill_pack import (
     WORD_RE,
     parse_skill_frontmatter,
 )
-from modules.shared.src.skills.contract_skills_protocol import ITrackerProtocol
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import UsageReport
+from modules.shared.src.skills.contract_skills_protocol import (
+    ISkillsTracesProtocol,
+)
+from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+    PhrasesReport,
+    UsageReport,
+)
 from modules.shared.src.skills.taxonomy_skills_vo import (
+    PhraseRow,
     ScanResult,
     SkillUsageItem,
     TraceSessionRecord,
 )
 
-__all__ = [
-    "SECRET_RES",
-    "TURN_CAP",
-    "SkillsTracker",
-    "normalize",
-    "redact",
-]
+__all__ = ["SECRET_RES", "TURN_CAP", "SkillsTraces", "normalize", "redact"]
 
 TURN_CAP = 2000
 """Max characters kept per human prompt (longer prompts are truncated)."""
@@ -75,6 +70,16 @@ SECRET_RES = [
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY.*?-----END [A-Z ]*PRIVATE KEY", re.DOTALL),  # PEM key blocks
     re.compile(r'"private_key"\s*:\s*"[^"]{16,}"'),  # JSON-shaped pasted private keys
 ]
+
+_SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
+
+_EXACT_MIN_SESSIONS = 2
+_STEM_MIN_SESSIONS = 3
+_LINE_MIN_SESSIONS = 3
+_TOP = 60
+_MIN_PHRASE_LEN = 12
+_MIN_LINE_WORDS = 5
+_MIN_LINE_CHARS = 24
 
 
 def redact(text: str) -> str:
@@ -124,10 +129,11 @@ def _default_exclude_cwd() -> list[str]:
     )
 
 
-class SkillsTracker(ITrackerProtocol):
-    """Scans sessions and builds the skills-only usage material."""
+# ─── Block 1: SkillsTraces class definition & protocol methods ──────────────
+class SkillsTraces(ISkillsTracesProtocol):
+    """Scans sessions, builds skills-only usage, and mines repeated phrases."""
 
-    # ── ITrackerProtocol ──────────────────────────────────────────
+    # ── ISkillsTracesProtocol ──────────────────────────────────────────
 
     def scan_sessions(
         self,
@@ -249,7 +255,18 @@ class SkillsTracker(ITrackerProtocol):
                 json.dump(r, f, indent=1, ensure_ascii=False)
             records.append(_record_from_dict(r))
 
-        _write_manifest(grok_home, run_dir, records, kept, seen, dropped, days, since_last, min_turns, limit)
+        _write_manifest(
+            grok_home,
+            run_dir,
+            records,
+            kept,
+            seen,
+            dropped,
+            days,
+            since_last,
+            min_turns,
+            limit,
+        )
         return ScanResult(records=tuple(records), sessions_seen=seen, dropped=dict(dropped))
 
     def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
@@ -318,8 +335,80 @@ class SkillsTracker(ITrackerProtocol):
             unused_loaded=unused_loaded,
         )
 
+    def build_phrases(self, grok_home: str, run_dir: str) -> PhrasesReport:
+        """Read session records from ``run_dir`` and return repeated phrases.
 
-# ── internal helpers ────────────────────────────────────────────────
+        Counts are distinct sessions; single-turn sessions repeated 3+ times
+        are excluded as likely automation.
+        """
+        sessions_dir = os.path.join(run_dir, "sessions")
+        exact: dict[str, list[str]] = defaultdict(list)
+        stems: dict[str, list[str]] = defaultdict(list)
+        lines: dict[str, set[str]] = defaultdict(set)
+
+        if os.path.isdir(sessions_dir):
+            for name in sorted(os.listdir(sessions_dir)):
+                if not name.endswith(".json"):
+                    continue
+                path = os.path.join(sessions_dir, name)
+                try:
+                    with open(path, encoding="utf-8") as f:
+                        rec = json.load(f)
+                except (OSError, ValueError):
+                    continue
+                rid = rec.get("id") or ""
+                # sessions flagged repeated_single_turn are automation — excluded
+                if rec.get("repeated_single_turn"):
+                    continue
+                for t in rec.get("turns") or []:
+                    n = normalize(t)
+                    if len(n) < _MIN_PHRASE_LEN:
+                        continue
+                    stripped = t.strip()
+                    if SLASH_RE.fullmatch(stripped) or _SLASH_ONLY.fullmatch(n):
+                        continue
+                    exact[n].append(rid)
+                    words = n.split(" ")
+                    if len(words) >= 6:
+                        stems[" ".join(words[:12])].append(rid)
+                    for ln in t.splitlines():
+                        ln_n = normalize(ln)
+                        if (
+                            len(ln_n.split(" ")) >= _MIN_LINE_WORDS
+                            and len(ln_n) >= _MIN_LINE_CHARS
+                        ):
+                            lines[ln_n].add(rid)
+
+        exact_prompts = self._top(exact, _EXACT_MIN_SESSIONS, "phrase")
+        prompt_stems = self._top(stems, _STEM_MIN_SESSIONS, "stem")
+        instruction_lines = self._top(lines, _LINE_MIN_SESSIONS, "line")
+
+        return PhrasesReport(
+            exact_prompts=tuple(exact_prompts),
+            stems=tuple(prompt_stems),
+            repeated_instruction_lines=tuple(instruction_lines),
+        )
+
+    @staticmethod
+    def _top(data: dict, min_count: int, key_name: str) -> tuple[PhraseRow, ...]:
+        rows: list[PhraseRow] = []
+        for k, ids in data.items():
+            id_list = list(ids)
+            sessions = len(set(id_list))
+            if sessions >= min_count:
+                rows.append(
+                    PhraseRow(
+                        phrase=k[:400],
+                        sessions=sessions,
+                        occurrences=len(id_list),
+                        session_ids=tuple(sorted(set(id_list))[:8]),
+                    )
+                )
+        rows.sort(key=lambda x: (-x.sessions, -x.occurrences, x.phrase))
+        return tuple(rows[:_TOP])
+
+
+# ─── Block 2: inherent helper functions used by the class ──────────────
 
 
 def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern]) -> dict | None:
@@ -337,6 +426,7 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
     paths_touched: Counter[str] = Counter()
     subagents = 0
     workflow_launches = 0
+
     parse_errors = 0
     dropped_turns = 0
 
