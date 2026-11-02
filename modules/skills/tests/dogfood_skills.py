@@ -7,9 +7,9 @@ import pytest
 @pytest.mark.dogfood
 def test_dogfood_skills_list():
     """DOG-SKILLS-001: listing the real repo pack works end to end."""
-    from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
+    from modules.skills.src.capabilities_skills_lister import SkillsLister
 
-    rows = list(SkillsIndexBuilder().list_skills())
+    rows = list(SkillsLister().list_skills())
     assert rows, "expected the repo skill pack to be non-empty"
     assert all(r.name for r in rows)
 
@@ -18,12 +18,12 @@ def test_dogfood_skills_list():
 def test_dogfood_skills_show():
     """DOG-SKILLS-002: reading a real SKILL.md works end to end."""
     from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery
-    from modules.skills.src.capabilities_skills_index import (
-        SkillsIndexBuilder,
+    from modules.skills.src.capabilities_skills_lister import (
+        SkillsLister,
     )
     from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 
-    rows = list(SkillsIndexBuilder().list_skills())
+    rows = list(SkillsLister().list_skills())
     content = SkillsPackReader().show_skill(SkillQuery(rows[0].name))
     assert content is not None
     assert "name:" in content

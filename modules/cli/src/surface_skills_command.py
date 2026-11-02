@@ -1,8 +1,8 @@
 """Skills CLI surface — command handlers for every ``aa skills`` verb.
 
-Read-only discovery (``list``/``show``) plus the authoring commands
+Read-only discovery (``list``/``read``) plus the authoring commands
 (``lint``, ``catalog``, ``discover``, ``move``, ``archive``,
-``new-category``, ``create``).
+``create``) and the trace lifecycle (``traces``).
 
 The aggregate is injected by the caller (the root CLI), never imported
 here, so no root→surface coupling exists (AES205). Argv becomes a
@@ -73,21 +73,19 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
 
     if sub in ("list", "ls"):
         return _cmd_list(rest, aggregate)
-    if sub == "show":
-        return _cmd_show(rest, aggregate)
+    if sub == "read":
+        return _cmd_read(rest, aggregate)
     if sub in (
         "lint",
         "catalog",
         "discover",
         "move",
         "archive",
-        "new-category",
         "create",
     ):
         return _cmd_authoring(sub, rest, aggregate)
-    if sub in ("trace-collect", "trace-usage", "trace-phrases", "trace-materialize", "trace-state"):
-        return _cmd_trace(sub, rest, aggregate)
-
+    if sub == "traces":
+        return _cmd_traces(rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
     _print_usage()
     return _EXIT_USAGE
@@ -98,7 +96,7 @@ def _print_usage() -> None:
     info(
         f"{BOLD()}aa skills list{RESET()}                  List all skills in the pack"
     )
-    info(f"{BOLD()}aa skills show <name>{RESET()}           Print a skill's SKILL.md")
+    info(f"{BOLD()}aa skills read <name>{RESET()}           Print a skill's SKILL.md")
     info(f"{BOLD()}aa skills lint [--category NAME]{RESET()}  Full lint scan (validate + weed)")
     info(
         f"{BOLD()}aa skills catalog [--check]{RESET()}     Rebuild CATALOG.md (or test it)"
@@ -110,20 +108,16 @@ def _print_usage() -> None:
     info(
         f"{BOLD()}aa skills archive <skill>{RESET()}       Archive a skill into _archive/"
     )
-    info(f"{BOLD()}aa skills new-category <name>{RESET()}    Create a category")
     info(
-        f"{BOLD()}aa skills create <name> --category <cat> --description <desc> "
-        f"--when-to-use <trigger> --argument-hint <hint> --body <body> [--apply]{RESET()}"
-        f"  Create a skill in the pack"
+        f"{BOLD()}aa skills create <skill|category> <name> [--category <cat>] "
+        f"[--description <desc>] [--when-to-use <trigger>] [--argument-hint <hint>] "
+        f"[--body <body>] [--force] [--apply]{RESET()}"
+        f"  Create a skill or category in the pack"
     )
-    info(f"{BOLD()}aa skills trace-collect[...]{RESET()}    Scan sessions → build usage (run dir + kept/seen counts)")
-    info(f"{BOLD()}aa skills trace-usage[...]{RESET()}      Read last run's usage (skills-only table, unused_loaded)")
-    info(f"{BOLD()}aa skills trace-phrases[...]{RESET()}    Mine repeated prompts + instruction lines")
-    info(f"{BOLD()}aa skills trace-materialize[...]{RESET()}  Write usage.json + phrases.json into a run dir")
-    info(f"{BOLD()}aa skills trace-state <action>[...]{RESET()}  Trace lifecycle: get|set|clear|trash|restrict|decide|wait")
+    info(f"{BOLD()}aa skills traces <action>[...]{RESET()}    Trace lifecycle: collect|usage|phrases|materialize|state")
 
 
-# ─── Read-only surface (historical behavior preserved) ────────────────
+# ─── Read-only surface ──────────────────────────────────────
 def _has_help(args: list[str]) -> bool:
     return any(a in ("-h", "--help") for a in args)
 
@@ -171,15 +165,15 @@ def _cmd_list(args: list[str], aggregate: ISkillsAggregate) -> int:
     return 0
 
 
-def _cmd_show(args: list[str], aggregate: ISkillsAggregate) -> int:
+def _cmd_read(args: list[str], aggregate: ISkillsAggregate) -> int:
     """Print the raw SKILL.md for one skill."""
     root, rest = _split_root(args)
     if _has_help(rest) or not rest:
-        info("Usage: aa skills show <name>")
+        info("Usage: aa skills read <name>")
         return 0
     name = rest[0]
     result = aggregate.execute(
-        SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery(name), root=root)
+        SkillsRequest(op=SkillsOp.READ, query=SkillQuery(name), root=root)
     )
     if not result.ok or result.content is None:
         err("Skill not found")
@@ -256,36 +250,22 @@ def _authoring_parser() -> argparse.ArgumentParser:
     )
 
     sub = subparsers.add_parser(
-        "new-category", help="Create category and DESCRIPTION.md"
+        "create", help="Create a skill or category (dry-run by default)"
     )
     add_common(sub)
-    sub.add_argument("name", help="Category folder name")
-    sub.add_argument(
-        "description", nargs="?", default=None, help="Category description"
-    )
-    sub.add_argument("--force", action="store_true", help="Overwrite DESCRIPTION.md")
-    sub.add_argument(
-        "--apply",
-        action="store_true",
-        help="Execute the creation (default is a preview)",
-    )
-
-    sub = subparsers.add_parser(
-        "create", help="Create a new skill in the pack (dry-run by default)"
-    )
-    add_common(sub)
-    sub.add_argument("name", help="Skill name (lowercase, hyphen-separated)")
+    sub.add_argument("kind", choices=["skill", "category"], help="skill | category")
+    sub.add_argument("name", help="Skill name or category name")
     sub.add_argument(
         "--category",
         metavar="CAT",
         default="",
-        help="Target category folder (required unless the skill already exists)",
+        help="Target category folder (required for create skill)",
     )
     sub.add_argument(
         "--description",
         metavar="DESC",
         default="",
-        help="Skill description (frontmatter description: key)",
+        help="Skill description or category description",
     )
     sub.add_argument(
         "--when-to-use",
@@ -306,9 +286,14 @@ def _authoring_parser() -> argparse.ArgumentParser:
         help="SKILL.md body content (markdown after the frontmatter)",
     )
     sub.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing DESCRIPTION.md (category create)",
+    )
+    sub.add_argument(
         "--apply",
         action="store_true",
-        help="Write the skill (default is a preview)",
+        help="Write the skill/category (default is a preview)",
     )
 
     return parser
@@ -340,8 +325,6 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         return _render_move(result, request)
     if sub == "archive":
         return _render_archive(result, request)
-    if sub == "new-category":
-        return _render_new_category(result, request)
     if sub == "create":
         return _render_create(result, request)
     raise SkillsUsageError(f"Unknown skills subcommand: {sub}")
@@ -399,28 +382,28 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
             root=root_value,
             json=json_value,
         )
-    if command == "new-category":
-        return SkillsRequest(
-            op=SkillsOp.NEW_CATEGORY,
-            query=SkillQuery(namespace.name),
-            description=namespace.description or "",
-            apply=namespace.apply,
-            flags={"force": "1" if namespace.force else "0"},
-            root=root_value,
-            json=json_value,
-        )
     if command == "create":
+        kind = getattr(namespace, "kind", "skill")
+        flags = {
+            "kind": kind,
+        }
+        if kind == "skill":
+            flags.update(
+                {
+                    "category": namespace.category or "",
+                    "when_to_use": namespace.when_to_use or "",
+                    "argument_hint": namespace.argument_hint or "",
+                    "body": namespace.body or "",
+                }
+            )
+        else:
+            flags.update({"force": "1" if namespace.force else "0"})
         return SkillsRequest(
             op=SkillsOp.CREATE,
             query=SkillQuery(namespace.name),
             description=namespace.description or "",
             apply=namespace.apply,
-            flags={
-                "category": namespace.category or "",
-                "when_to_use": namespace.when_to_use or "",
-                "argument_hint": namespace.argument_hint or "",
-                "body": namespace.body or "",
-            },
+            flags=flags,
             root=root_value,
             json=json_value,
         )
@@ -671,53 +654,12 @@ def _render_archive(result: SkillsResult, request: SkillsRequest) -> int:
     return 0
 
 
-def _render_new_category(result: SkillsResult, request: SkillsRequest) -> int:
-    """Render a category-creation preview or the applied report."""
-    plan = result.new_category
-    if plan is None:
-        err("Internal error: no new-category plan produced")
-        return 1
-    root = _root_of(result)
-    catalog = root / "CATALOG.md"
-
-    if not request.apply:
-        if request.json:
-            _emit_json(
-                {
-                    "skills_root": str(root),
-                    "dry_run": True,
-                    "category": plan.name,
-                    "description": plan.description,
-                    "would_write_description": plan.will_write,
-                    "note": _DRY_RUN_NOTE,
-                }
-            )
-        else:
-            print("Planned new-category (dry-run — pass --apply to execute):")
-            print(f"- create {plan.name}/")
-            if plan.will_write:
-                print(
-                    f"- write {plan.name}/DESCRIPTION.md: "
-                    f"{yaml_quote(plan.description)}"
-                )
-            else:
-                print(
-                    f"- keep existing {plan.name}/DESCRIPTION.md; "
-                    "use --force to overwrite"
-                )
-            print(f"- rebuild {catalog}")
-        return 0
-
-    if plan.created:
-        print(f"Wrote {plan.name}/DESCRIPTION.md")
-    else:
-        print(f"Kept existing {plan.name}/DESCRIPTION.md; use --force to overwrite")
-    print(f"Rebuilt {catalog}")
-    return 0
-
-
 def _render_create(result: SkillsResult, request: SkillsRequest) -> int:
     """Render a create preview or the applied report."""
+    new_category = result.new_category
+    if new_category is not None:
+        return _render_create_category(result, request, new_category)
+
     plan = result.create_plan
     if plan is None:
         err("Internal error: no create plan produced")
@@ -756,30 +698,100 @@ def _render_create(result: SkillsResult, request: SkillsRequest) -> int:
     return 0
 
 
-# ─── Trace pipeline surface (trace-collect / trace-usage / trace-phrases / trace-state) ───
-def _cmd_trace(
-    sub: str, args: list[str], aggregate: ISkillsAggregate
+def _render_create_category(
+    result: SkillsResult, request: SkillsRequest, plan
 ) -> int:
-    """Route a trace subcommand to its handler."""
-    # strip --skills-root (trace verbs use --grok-home, not the skills pack root)
+    """Render a category-creation preview or the applied report."""
+    root = _root_of(result)
+    catalog = root / "CATALOG.md"
+
+    if not request.apply:
+        if request.json:
+            _emit_json(
+                {
+                    "skills_root": str(root),
+                    "dry_run": True,
+                    "category": plan.name,
+                    "description": plan.description,
+                    "would_write_description": plan.will_write,
+                    "note": _DRY_RUN_NOTE,
+                }
+            )
+        else:
+            print("Planned create category (dry-run — pass --apply to execute):")
+            print(f"- create {plan.name}/")
+            if plan.will_write:
+                print(
+                    f"- write {plan.name}/DESCRIPTION.md: "
+                    f"{yaml_quote(plan.description)}"
+                )
+            else:
+                print(
+                    f"- keep existing {plan.name}/DESCRIPTION.md; "
+                    "use --force to overwrite"
+                )
+            print(f"- rebuild {catalog}")
+        return 0
+
+    if plan.created:
+        print(f"Wrote {plan.name}/DESCRIPTION.md")
+    else:
+        print(f"Kept existing {plan.name}/DESCRIPTION.md; use --force to overwrite")
+    print(f"Rebuilt {catalog}")
+    return 0
+
+
+# ─── Trace pipeline surface (traces collect / usage / phrases / materialize / state) ───
+def _cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
+    """Route a traces sub-action to its handler."""
     _, rest = _split_root(args)
-    if sub == "trace-collect":
-        return _cmd_trace_collect(rest, aggregate)
-    if sub == "trace-usage":
-        return _cmd_trace_usage(rest, aggregate)
-    if sub == "trace-phrases":
-        return _cmd_trace_phrases(rest, aggregate)
-    if sub == "trace-materialize":
-        return _cmd_trace_materialize(rest, aggregate)
-    if sub == "trace-state":
-        return _cmd_trace_state(rest, aggregate)
-    err(f"Unknown trace subcommand: {sub}")
+    if not rest:
+        err("Usage: aa skills traces <collect|usage|phrases|materialize|state> [flags]")
+        return _EXIT_USAGE
+    action = rest[0]
+
+    flags = {
+        "traces_action": action,
+        "grok_home": "",
+        "run_dir": "",
+    }
+
+    if action == "collect":
+        return _cmd_traces_collect(rest[1:], aggregate)
+    if action == "usage":
+        return _cmd_traces_usage(rest[1:], aggregate)
+    if action == "phrases":
+        return _cmd_traces_phrases(rest[1:], aggregate)
+    if action == "materialize":
+        return _cmd_traces_materialize(rest[1:], aggregate)
+    if action == "state":
+        if len(rest) > 1:
+            return _cmd_traces_state(rest[1:], aggregate)
+        # No sub-action: default to "get"
+        ns = argparse.Namespace(grok_home="", run_dir="")
+        flags = {
+            "traces_action": "state",
+            "state_action": "get",
+            "grok_home": "",
+            "run_dir": "",
+        }
+        request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
+        result = aggregate.execute(request)
+        status = result.state
+        if status in (
+            TraceStateStatus.COLLECTED,
+            TraceStateStatus.RUNNING,
+        ):
+            return 3
+        print(f"Pending status: {status}")
+        return 0
+    err(f"Unknown traces action: {action}")
     return _EXIT_USAGE
 
 
 def _trace_collect_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="aa skills trace-collect",
+        prog="aa skills traces collect",
         description="Scan sessions and build the skills-only usage material.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to scan")
@@ -797,7 +809,7 @@ def _trace_collect_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _cmd_trace_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
+def _cmd_traces_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
         ns = _trace_collect_parser().parse_args(args)
     except SystemExit as exit_exc:
@@ -805,8 +817,9 @@ def _cmd_trace_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
 
     run_dir = ns.out or tempfile.mkdtemp(prefix="skills-trace-")
     request = SkillsRequest(
-        op=SkillsOp.TRACE_COLLECT,
+        op=SkillsOp.TRACES,
         flags={
+            "traces_action": "collect",
             "grok_home": ns.grok_home,
             "run_dir": run_dir,
             "days": str(ns.days),
@@ -834,7 +847,7 @@ def _cmd_trace_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _trace_usage_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="aa skills trace-usage",
+        prog="aa skills traces usage",
         description="Read the last run's skills-only usage report.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to read")
@@ -843,15 +856,16 @@ def _trace_usage_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _cmd_trace_usage(args: list[str], aggregate: ISkillsAggregate) -> int:
+def _cmd_traces_usage(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
         ns = _trace_usage_parser().parse_args(args)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
     request = SkillsRequest(
-        op=SkillsOp.TRACE_USAGE,
+        op=SkillsOp.TRACES,
         flags={
+            "traces_action": "usage",
             "grok_home": ns.grok_home,
             "run_dir": ns.run_dir,
         },
@@ -899,7 +913,7 @@ def _cmd_trace_usage(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _trace_phrases_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="aa skills trace-phrases",
+        prog="aa skills traces phrases",
         description="Mine repeated prompts and instruction lines from session records.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME (unused by phrases, kept for symmetry)")
@@ -908,15 +922,16 @@ def _trace_phrases_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _cmd_trace_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
+def _cmd_traces_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
         ns = _trace_phrases_parser().parse_args(args)
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
     request = SkillsRequest(
-        op=SkillsOp.TRACE_PHRASES,
+        op=SkillsOp.TRACES,
         flags={
+            "traces_action": "phrases",
             "grok_home": ns.grok_home,
             "run_dir": ns.run_dir,
         },
@@ -981,7 +996,7 @@ def _cmd_trace_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _trace_materialize_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="aa skills trace-materialize",
+        prog="aa skills traces materialize",
         description="Write usage.json + phrases.json into a run dir for the trace workflow.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to read")
@@ -990,7 +1005,7 @@ def _trace_materialize_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _cmd_trace_materialize(args: list[str], aggregate: ISkillsAggregate) -> int:
+def _cmd_traces_materialize(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
         ns = _trace_materialize_parser().parse_args(args)
     except SystemExit as exit_exc:
@@ -1001,8 +1016,9 @@ def _cmd_trace_materialize(args: list[str], aggregate: ISkillsAggregate) -> int:
         return 2
 
     request = SkillsRequest(
-        op=SkillsOp.TRACE_MATERIALIZE,
+        op=SkillsOp.TRACES,
         flags={
+            "traces_action": "materialize",
             "grok_home": ns.grok_home,
             "run_dir": ns.run_dir,
         },
@@ -1033,7 +1049,7 @@ def _cmd_trace_materialize(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _trace_state_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="aa skills trace-state",
+        prog="aa skills traces state",
         description="Drive the trace-learning lifecycle (status, trash, decisions, wait).",
     )
     subparsers = parser.add_subparsers(dest="action", required=True)
@@ -1079,7 +1095,7 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _cmd_trace_state(args: list[str], aggregate: ISkillsAggregate) -> int:
+def _cmd_traces_state(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
         ns = _trace_state_parser().parse_args(args)
     except SystemExit as exit_exc:
@@ -1087,6 +1103,7 @@ def _cmd_trace_state(args: list[str], aggregate: ISkillsAggregate) -> int:
 
     action = ns.action
     flags = {
+        "traces_action": "state",
         "state_action": action,
         "grok_home": getattr(ns, "grok_home", ""),
         "run_dir": getattr(ns, "run_dir", ""),
@@ -1111,7 +1128,7 @@ def _cmd_trace_state(args: list[str], aggregate: ISkillsAggregate) -> int:
     elif action == "wait":
         flags["timeout_min"] = str(getattr(ns, "timeout_min", 90))
 
-    request = SkillsRequest(op=SkillsOp.TRACE_STATE, flags=flags)
+    request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
     result = aggregate.execute(request)
 
     if action == "get":

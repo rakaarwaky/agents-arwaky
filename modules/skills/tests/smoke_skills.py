@@ -8,12 +8,12 @@ def test_import_skills_modules():
     """SM-SKILLS-001: skills modules can be imported."""
     from modules.skills.src import (
         agent_skills_orchestrator,
-        capabilities_skills_index,
+        capabilities_skills_lister,
         root_skills_container,
     )
 
     assert agent_skills_orchestrator is not None
-    assert capabilities_skills_index is not None
+    assert capabilities_skills_lister is not None
     assert root_skills_container is not None
 
 

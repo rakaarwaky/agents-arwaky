@@ -1,14 +1,17 @@
 """Skills contract protocols (AES contract layer, ABC traits).
 
-One seam per subsystem the skills agent coordinates: the pack index
-(list), the pack reader (show), the validator, the catalog, discovery,
-and the mutator, plus the
-trace-learning pair (the traces capability and the lifecycle state). Capabilities implement these; the composition root injects them
-into the agent.
+One seam per CLI command the skills feature exposes: list, read,
+lint, catalog, discover, move, archive, create, and the
+trace-learning lifecycle. Capabilities implement these; the
+composition root injects them into the agent.
 
-Capabilities never import one another: where one needs another's data
-(the discoverer reads catalog rows), the dependency is expressed as one
-of these protocols and wired by the root.
+Capabilities never import one another: where one needs another's
+data (the discoverer reads catalog rows), the dependency is
+expressed as one of these protocols and wired by the root.
+
+``ISkillsValidatorProtocol`` and ``ISkillsMutatorProtocol`` are
+internal seams consumed by the linter and creator; they are not
+exposed as CLI verbs.
 """
 
 from __future__ import annotations
@@ -26,8 +29,8 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     MutationPlan,
     NewCategoryPlan,
     PhrasesReport,
+    SkillCreatePlan,
     UsageReport,
-    ValidationReport,
 )
 from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     CategoryName,
@@ -46,7 +49,7 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 )
 
 
-class ISkillsIndexProtocol(ABC):
+class ISkillsListerProtocol(ABC):
     """Read-only listing of the skill pack."""
 
     @abstractmethod
@@ -62,7 +65,7 @@ class ISkillsIndexProtocol(ABC):
         """Return the global-skill JSON list as a pure-data dict.
 
         One entry per skill (``name``, ``source``, ``path``, ``loaded``);
-        the source is the repo pack only. ``SkillsIndexBuilder`` provides
+        the source is the repo pack only. ``SkillsLister`` provides
         the real implementation; this default returns ``{}`` for other
         implementors.
         """
@@ -80,16 +83,7 @@ class ISkillsReaderProtocol(ABC):
         ...
 
 
-class ISkillsValidatorProtocol(ABC):
-    """The 13-rule validator over a skills tree."""
-
-    @abstractmethod
-    def validate(self, root: SkillsRoot) -> ValidationReport:
-        """Run the 13 checks over *root*; the report is unfiltered by design."""
-        ...
-
-
-class ISkillsLintProtocol(ABC):
+class ISkillsLinterProtocol(ABC):
     """Combined lint scan: 13-rule checks + weed report in one pass."""
 
     @abstractmethod
@@ -134,7 +128,7 @@ class ISkillsCatalogProtocol(ABC):
         ...
 
 
-class ISkillsDiscovererProtocol(ABC):
+class ISkillsDiscoverProtocol(ABC):
     """Query the catalog, with a loud fallback when it drifts."""
 
     @abstractmethod
@@ -151,13 +145,24 @@ class ISkillsDiscovererProtocol(ABC):
         ...
 
 
-class ISkillsMutatorProtocol(ABC):
-    """Plan/apply mechanical library mutations (dry-run by default)."""
+class ISkillsMoverProtocol(ABC):
+    """Plan/apply a move of a skill to another category (dry-run by default)."""
 
     @abstractmethod
-    def plan_move(self, skill: SkillName, target: CategoryName, root: SkillsRoot) -> MutationPlan:
+    def plan_move(
+        self, skill: SkillName, target: CategoryName, root: SkillsRoot
+    ) -> MutationPlan:
         """Resolve a move to another category (pure; no writes)."""
         ...
+
+    @abstractmethod
+    def apply_move(self, plan: MutationPlan) -> MutationOutcome:
+        """Execute a move plan; re-checks containment first."""
+        ...
+
+
+class ISkillsArchiverProtocol(ABC):
+    """Plan/apply an archive of a skill into ``_archive/`` (dry-run by default)."""
 
     @abstractmethod
     def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
@@ -165,30 +170,47 @@ class ISkillsMutatorProtocol(ABC):
         ...
 
     @abstractmethod
-    def plan_repair(self, root: SkillsRoot) -> MutationPlan:
-        """Plan the safe mechanical repairs (pure; no writes)."""
+    def apply_archive(self, plan: MutationPlan) -> MutationOutcome:
+        """Execute an archive plan; re-checks containment first."""
+        ...
+
+
+class ISkillsCreatorProtocol(ABC):
+    """Create skills and categories in the pack (dry-run by default)."""
+
+    @abstractmethod
+    def create_skill(
+        self,
+        skill: SkillName,
+        category: str,
+        description: str,
+        when_to_use: str,
+        argument_hint: str,
+        body: str,
+        root: SkillsRoot,
+        apply: bool,
+    ) -> SkillCreatePlan:
+        """Plan (or apply) creating a new skill SKILL.md.
+
+        When ``apply`` is False the returned plan is a preview.
+        When True, the file is written.
+        """
         ...
 
     @abstractmethod
-    def plan_weed(self, root: SkillsRoot) -> MutationPlan:
-        """Report duplicates, empty categories, and missing descriptions."""
-        ...
-
-    @abstractmethod
-    def plan_new_category(
-        self, name: CategoryName, description: SkillDescription | None, root: SkillsRoot, force: bool
+    def create_category(
+        self,
+        name: CategoryName,
+        description: str,
+        root: SkillsRoot,
+        force: bool,
+        apply: bool,
     ) -> NewCategoryPlan:
-        """Resolve a category creation (pure; the folder is created on apply)."""
-        ...
+        """Plan (or apply) creating a category folder + DESCRIPTION.md.
 
-    @abstractmethod
-    def apply(self, plan: MutationPlan) -> MutationOutcome:
-        """Execute a repair/move/archive plan; re-checks containment first."""
-        ...
-
-    @abstractmethod
-    def apply_new_category(self, plan: NewCategoryPlan) -> bool:
-        """Create the category and write its description; returns whether it wrote."""
+        When ``apply`` is False the returned plan is a preview.
+        When True, the directory and description file are written.
+        """
         ...
 
 
@@ -230,11 +252,136 @@ class ISkillsTracesProtocol(ABC):
         """
         ...
 
+    # ── Trace-state lifecycle ─────────────────────────────────────────
+
+    @abstractmethod
+    def set_status(
+        self, grok_home: str, run_dir: str, status: TraceStateStatus
+    ) -> TraceStateStatus:
+        """Record *status* for the pending run; ``done`` stamps last_completed."""
+        ...
+
+    @abstractmethod
+    def get_status(self, grok_home: str) -> TraceStateStatus:
+        """Return the current pending status.
+
+        ``done``-less pending runs exit 3 (the surface maps to exit 3); the
+        capability returns the status, the caller maps it to an exit code.
+        """
+        ...
+
+    @abstractmethod
+    def trash(self, grok_home: str, run_name: str, paths: Sequence[str]) -> tuple[str, ...]:
+        """Move the validated paths into ``learn/trash/<run_name>``.
+
+        Only a ``skills/<name>`` directory, a ``workflows/*.rhai`` file, or a
+        ``hooks/*`` file under ``GROK_HOME`` / ``~/.agents`` / a project
+        ``.grok`` directory is moved; anything else is refused.
+        """
+        ...
+
+    @abstractmethod
+    def decide(
+        self,
+        grok_home: str,
+        run_dir: str,
+        decision: TraceDecision,
+    ) -> TraceDecision:
+        """Append one decision line to ``learn/decisions.jsonl`` and return it."""
+        ...
+
+    @abstractmethod
+    def wait(
+        self,
+        grok_home: str,
+        run_dir: str,
+        timeout_min: int = 90,
+        phase_stall_min: int = 60,
+        report_stall_min: int = 45,
+    ) -> TraceStateStatus:
+        """Block until the run dir holds ``report.md`` + ``actions.json``.
+
+        Returns ``report_ready`` on success; the surface maps a deadline
+        overrun to the legacy exit code.
+        """
+        ...
+
+    def dispatch(
+        self,
+        grok_home: str,
+        run_dir: str,
+        action: str,
+        flags: Mapping[str, str],
+    ) -> TraceStateDispatchResult:
+        """Route one trace-state sub-action through this capability.
+
+        The thin router behind the agent's single per-op call; ``flags``
+        carries the sub-action's parameters (status, run_name, paths, ...).
+        """
+
+
+# ── Internal seams (consumed by the linter and creator, not exposed as CLI verbs) ──
+
+class ISkillsValidatorProtocol(ABC):
+    """The 13-rule validator: per-skill, category, placement, and duplicate checks."""
+
+    @abstractmethod
+    def validate(self, root: SkillsRoot) -> "ValidationReport":
+        """Return the unfiltered validation report for *root*."""
+        ...
+
+
+class ISkillsMutatorProtocol(ABC):
+    """The write-side mutation primitives (plan_weed, plan_repair, apply)."""
+
+    @abstractmethod
+    def plan_weed(self, root: SkillsRoot) -> MutationPlan:
+        """The weeding report body (duplicate names, duplicate descriptions,
+        empty categories, missing category descriptions)."""
+        ...
+
+    @abstractmethod
+    def plan_repair(self, root: SkillsRoot) -> MutationPlan:
+        """The mechanical repairs the old ``librarian.py repair`` applied."""
+        ...
+
+    @abstractmethod
+    def apply(self, plan: MutationPlan) -> MutationOutcome:
+        """Execute a repair/move/archive plan; re-checks containment first."""
+        ...
+
+    @abstractmethod
+    def plan_new_category(
+        self,
+        name: CategoryName,
+        description: "SkillDescription | None",
+        root: SkillsRoot,
+        force: bool,
+    ) -> NewCategoryPlan:
+        """Resolve a category creation; the folder is only created on apply."""
+        ...
+
+    @abstractmethod
+    def apply_new_category(self, plan: NewCategoryPlan) -> bool:
+        """Create the category and write its description; returns whether it wrote."""
+        ...
+
+
+# Runtime import for the type annotations used in the internal seams above.
+# Placed here so the module loads cleanly; the annotation is a string in the
+# ABC body, so no cycle at class-definition time.
+from modules.shared.src.skills.taxonomy_skills_authoring_vo import (  # noqa: E402
+    ValidationReport,
+)
+
 __all__ = [
+    "ISkillsArchiverProtocol",
     "ISkillsCatalogProtocol",
-    "ISkillsDiscovererProtocol",
-    "ISkillsIndexProtocol",
-    "ISkillsLintProtocol",
+    "ISkillsCreatorProtocol",
+    "ISkillsDiscoverProtocol",
+    "ISkillsListerProtocol",
+    "ISkillsLinterProtocol",
+    "ISkillsMoverProtocol",
     "ISkillsMutatorProtocol",
     "ISkillsReaderProtocol",
     "ISkillsTracesProtocol",

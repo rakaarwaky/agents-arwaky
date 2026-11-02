@@ -18,7 +18,7 @@ def test_smoke_trace_collect_exits_0(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     code, _out, _err = run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -33,7 +33,7 @@ def test_smoke_trace_usage_exits_0(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -41,7 +41,7 @@ def test_smoke_trace_usage_exits_0(tmp_path: Path) -> None:
     )
     code, _out, _err = run_trace_surface(
         grok_home,
-        "trace-usage",
+        "traces", "usage",
         "--grok-home",
         str(grok_home),
         "--run-dir",
@@ -56,7 +56,7 @@ def test_smoke_trace_phrases_exits_0(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -64,7 +64,7 @@ def test_smoke_trace_phrases_exits_0(tmp_path: Path) -> None:
     )
     code, _out, _err = run_trace_surface(
         grok_home,
-        "trace-phrases",
+        "traces", "phrases",
         "--run-dir",
         str(run_dir),
     )
@@ -77,7 +77,7 @@ def test_smoke_trace_state_get_exits_3_when_pending(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "set",
         "--grok-home",
         str(grok_home),
@@ -88,7 +88,7 @@ def test_smoke_trace_state_get_exits_3_when_pending(tmp_path: Path) -> None:
     )
     code = run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "get",
         "--grok-home",
         str(grok_home),
@@ -105,7 +105,7 @@ def test_smoke_trace_state_wait_ready_exits_0(tmp_path: Path) -> None:
     (run_dir / "actions.json").write_text("{}")
     code = run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "wait",
         "--grok-home",
         str(grok_home),
@@ -118,8 +118,8 @@ def test_smoke_trace_state_wait_ready_exits_0(tmp_path: Path) -> None:
 
 
 def test_smoke_trace_verbs_parse_flags(tmp_path: Path) -> None:
-    """SM-TRACE-006: all four trace verbs parse their flags (--help)."""
+    """SM-TRACE-006: all trace actions parse their flags (--help)."""
 
-    for verb in ("trace-collect", "trace-usage", "trace-phrases"):
-        assert cmd_skills([verb, "--help"], default_aggregate()) == 0
-    assert cmd_skills(["trace-state", "wait", "--help"], default_aggregate()) == 0
+    for action in ("collect", "usage", "phrases", "materialize"):
+        assert cmd_skills(["traces", action, "--help"], default_aggregate()) == 0
+    assert cmd_skills(["traces", "state", "wait", "--help"], default_aggregate()) == 0

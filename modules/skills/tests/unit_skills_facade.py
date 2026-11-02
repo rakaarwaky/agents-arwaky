@@ -12,10 +12,10 @@ def _facade(root: Path) -> SkillsFacade:
     return SkillsFacade(default_root=root)
 
 
-def test_facade_validate(tmp_path: Path) -> None:
-    result = _facade(crafted_tree(tmp_path)).validate()
-    assert result.report is not None
-    assert result.report.issue_count == 1
+def test_facade_lint(tmp_path: Path) -> None:
+    result = _facade(crafted_tree(tmp_path)).lint()
+    assert result.lint_report is not None
+    assert result.lint_report.issue_count == 1
 
 
 def test_facade_catalog_rebuild_and_check(tmp_path: Path) -> None:
@@ -36,19 +36,10 @@ def test_facade_discover(tmp_path: Path) -> None:
     assert [match.skill for match in result.matches] == ["doc-drafts"]
 
 
-def test_facade_weed(tmp_path: Path) -> None:
-    result = _facade(crafted_tree(tmp_path)).weed()
-    assert result.plan is not None
-    assert result.plan.lines == ()
-
-
-def test_facade_repair_dry_run_then_apply(tmp_path: Path) -> None:
-    facade = _facade(crafted_tree(tmp_path))
-    preview = facade.repair()
-    assert preview.outcome is None
-
-    applied = facade.repair(apply=True)
-    assert applied.outcome is not None
+def test_facade_lint_weed_lines(tmp_path: Path) -> None:
+    result = _facade(crafted_tree(tmp_path)).lint()
+    assert result.lint_report is not None
+    assert result.lint_report.weed_lines == ()
 
 
 def test_facade_move_and_archive(tmp_path: Path) -> None:
@@ -63,9 +54,9 @@ def test_facade_move_and_archive(tmp_path: Path) -> None:
     assert (root / "_archive" / "notes" / "note-taker").exists()
 
 
-def test_facade_new_category(tmp_path: Path) -> None:
+def test_facade_create_category(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    result = _facade(root).new_category("beta-cat", "Second", apply=True)
+    result = _facade(root).create_category("beta-cat", "Second", apply=True)
     assert result.new_category is not None
     assert result.new_category.created
     assert (root / "beta-cat" / "DESCRIPTION.md").exists()

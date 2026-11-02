@@ -19,11 +19,10 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
-from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
-from modules.skills.src.capabilities_skills_lint import SkillsLint
-from modules.skills.src.capabilities_skills_mutator import SkillsMutator
+from modules.skills.src.capabilities_skills_linter import SkillsLinter
+from modules.skills.src.capabilities_skills_lister import SkillsLister
+from modules.skills.src.capabilities_skills_mover import SkillsMover
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
-from modules.skills.src.capabilities_skills_validator import SkillsValidator
 from modules.skills.src.root_skills_container import default_aggregate
 from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
@@ -40,7 +39,7 @@ def _make_pack(tmp_path: Path) -> Path:
 
 def test_container_wires_agent_to_capability(tmp_path: Path) -> None:
     """INT-SKILLS-001: the container wires the capability into the agent."""
-    aggregate = default_aggregate(index=SkillsIndexBuilder(_make_pack(tmp_path)))
+    aggregate = default_aggregate(lister=SkillsLister(_make_pack(tmp_path)))
     result = aggregate.execute(SkillsRequest(op="list"))
     assert result.ok
     assert [r.name for r in result.records] == ["fetch-mcp"]
@@ -50,8 +49,8 @@ def test_surface_through_container(tmp_path: Path) -> None:
     """INT-SKILLS-002: surface + container resolve a show request."""
     from modules.cli.src.surface_skills_command import cmd_skills
 
-    aggregate = default_aggregate(index=SkillsIndexBuilder(_make_pack(tmp_path)))
-    rc = cmd_skills(["show", "fetch-mcp"], aggregate)
+    aggregate = default_aggregate(lister=SkillsLister(_make_pack(tmp_path)))
+    rc = cmd_skills(["read", "fetch-mcp"], aggregate)
     assert rc == 0
 
 
@@ -80,19 +79,19 @@ def test_move_apply_applies_once_then_rebuilds_once(tmp_path: Path) -> None:
     calls: list[str] = []
     catalog = _SpyCatalog(calls)
 
-    original_apply = SkillsMutator.apply
+    original_apply = SkillsMover.apply_move
 
     def spy_apply(self, plan):  # type: ignore[no-untyped-def]
         calls.append("apply")
         return original_apply(self, plan)
 
-    SkillsMutator.apply = spy_apply
+    SkillsMover.apply_move = spy_apply
     try:
         agent = SkillsAgent(
-            SkillsIndexBuilder(root),
+            SkillsLister(root),
             SkillsPackReader(root),
             catalog=catalog,
-            mutator=SkillsMutator(),
+            mover=SkillsMover(),
             default_root=root,
         )
         result = agent.execute(
@@ -105,7 +104,7 @@ def test_move_apply_applies_once_then_rebuilds_once(tmp_path: Path) -> None:
             )
         )
     finally:
-        SkillsMutator.apply = original_apply
+        SkillsMover.apply_move = original_apply
 
     assert result.ok
     assert calls == ["apply", "rebuild"]
@@ -115,10 +114,10 @@ def test_move_dry_run_never_applies_or_rebuilds(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     calls: list[str] = []
     agent = SkillsAgent(
-        SkillsIndexBuilder(root),
+        SkillsLister(root),
         SkillsPackReader(root),
         catalog=_SpyCatalog(calls),
-        mutator=SkillsMutator(),
+        mover=SkillsMover(),
         default_root=root,
     )
 
@@ -139,12 +138,11 @@ def test_move_dry_run_never_applies_or_rebuilds(tmp_path: Path) -> None:
 def test_agent_maps_typed_errors_to_exit_codes(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     agent = SkillsAgent(
-        SkillsIndexBuilder(root),
+        SkillsLister(root),
         SkillsPackReader(root),
         catalog=SkillsCatalog(),
-        mutator=SkillsMutator(),
-        validator=SkillsValidator(),
-        lint=SkillsLint(),
+        linter=SkillsLinter(),
+        mover=SkillsMover(),
         default_root=root,
     )
 

@@ -16,11 +16,11 @@ def _make_pack(tmp_path: Path) -> Path:
 
 def test_acceptance_fr_skill_discovery(tmp_path: Path):
     """AC-SKILLS-001: FR-003 — every skill in the pack is discoverable."""
-    from modules.skills.src.capabilities_skills_index import (
-    SkillsIndexBuilder,
+    from modules.skills.src.capabilities_skills_lister import (
+    SkillsLister,
 )
 
-    rows = list(SkillsIndexBuilder(_make_pack(tmp_path)).list_skills())
+    rows = list(SkillsLister(_make_pack(tmp_path)).list_skills())
     assert [r.name for r in rows] == ["fetch-mcp"]
 
 
@@ -80,8 +80,8 @@ def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
     assert "| doc-drafts |" in out
 
 
-def test_acceptance_move_archive_new_category(tmp_path: Path):
-    """AC-SKILLS-015: the three path mutations preview and apply."""
+def test_acceptance_move_archive_create_category(tmp_path: Path):
+    """AC-SKILLS-015: the path mutations and category creation preview and apply."""
     from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
@@ -92,7 +92,10 @@ def test_acceptance_move_archive_new_category(tmp_path: Path):
     assert run_surface(root, "archive", "notes/doc-drafts", "--apply")[0] == 0
     assert (root / "_archive" / "notes" / "doc-drafts" / "SKILL.md.archived").exists()
 
-    assert run_surface(root, "new-category", "beta-cat", "Second", "--apply")[0] == 0
+    assert (
+        run_surface(root, "create", "category", "beta-cat", "--description", "Second", "--apply")[0]
+        == 0
+    )
     assert (root / "beta-cat" / "DESCRIPTION.md").exists()
 
 
