@@ -1,8 +1,6 @@
-# Wave Rebase and Sibling-PR Conflicts
+# Step 10 — Rebase open work after merges
 
-Phase F. After a wave of PRs merges, rebase every still-open branch onto the new default
-tip before CI re-runs. A stale base fails self-lint and format against already-merged code;
-the fix is a rebase, not a debug session.
+After a wave of PRs lands on the default branch, rebase every still-open branch onto the new tip before letting CI re-run. A stale base fails self-lint and format against already-merged code, and the fix is a one-command rebase, not a debug session.
 
 ## Rebase discipline
 

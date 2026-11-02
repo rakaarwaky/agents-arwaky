@@ -1,4 +1,4 @@
-# Phase E — Run waves and verify children
+# Step 9 — Run waves and verify children
 
 Wave N+1 spawns after wave N's results arrive. Stacking all waves at once multiplies isolation contention.
 
@@ -11,3 +11,16 @@ A child's summary is a self-report, not evidence. For each finished child, insid
 5. When the issue is done and ready for review, mark the Orca worktree: `ORCA worktree set --worktree path:<WT> --workspace-status in-review --json`.
 
 Scan a worktree by `cd`ing into Orca's checkout path (`ORCA worktree show --worktree id:<repoId>::<path> --json` → path). Running checkers against a worktree path from the repo root often produces phantom violations from broken relative paths.
+
+## Completion checklist
+
+Before reporting the batch, confirm every box:
+
+- [ ] Every candidate issue verified against HEAD, or closed with evidence comment.
+- [ ] All non-code decisions answered in one quiz (or none needed).
+- [ ] One Orca worktree per issue (`worktree create --no-parent`, json id captured).
+- [ ] Each child used isolated build artifacts; no shared-target fallback.
+- [ ] Each child's commits and verification re-checked in that worktree path.
+- [ ] User report cites files, mechanism, and real command output — not child self-reports.
+- [ ] Finished worktrees marked `--workspace-status in-review` (or retired when done).
+- [ ] If PRs merged mid-batch: remaining branches rebased onto current default tip.

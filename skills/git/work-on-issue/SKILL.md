@@ -28,16 +28,15 @@ Rules that apply to every work-on-issue operation. Reference files cite these; t
 
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Setup | [`references/setup.md`](references/setup.md) | Prerequisites, auth detection, `gh-env.sh` helper sourcing. |
-| List/search/view | [`references/viewing-issues.md`](references/viewing-issues.md) | List, search, view issues (gh + curl). |
-| Create | [`references/creating-issues.md`](references/creating-issues.md) | Create an issue, pick a bug/feature template. |
-| Manage | [`references/managing-issues.md`](references/managing-issues.md) | Label, assign, comment, close/reopen, link to PRs, branch from issue. |
-| Triage | [`references/triage-and-bulk.md`](references/triage-and-bulk.md) | Issue triage workflow and bulk label/close operations. |
-| Phase A | [`references/phase-a.md`](references/phase-a.md) | Load and triage: verify every claim at HEAD before closing. |
-| Phase B | [`references/phase-b.md`](references/phase-b.md) | Decision quiz before implementation. |
-| Phase C | [`references/phase-c.md`](references/phase-c.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner. |
-| Phase D | [`references/phase-d.md`](references/phase-d.md) | Build isolation per worktree. |
-| Phase E | [`references/phase-e.md`](references/phase-e.md) | Run waves and verify children. |
-| Phase F | [`references/phase-f.md`](references/phase-f.md) | Rebase open branches after a wave merges. |
+| Step 0 | [`references/step-0-setup.md`](references/step-0-setup.md) | Prerequisites, auth detection, `gh-env.sh` helper sourcing. |
+| Step 1 | [`references/step-1-viewing.md`](references/step-1-viewing.md) | List, search, view issues (gh + curl). |
+| Step 2 | [`references/step-2-creating.md`](references/step-2-creating.md) | Create an issue, pick a bug/feature template. |
+| Step 3 | [`references/step-3-managing.md`](references/step-3-managing.md) | Label, assign, comment, close/reopen, link to PRs, branch from issue. |
+| Step 4 | [`references/step-4-triage-bulk.md`](references/step-4-triage-bulk.md) | Issue triage workflow and bulk label/close operations. |
+| Step 5 | [`references/step-5-verify-triage.md`](references/step-5-verify-triage.md) | Load and triage: verify every claim at HEAD before closing. |
+| Step 6 | [`references/step-6-decision-quiz.md`](references/step-6-decision-quiz.md) | Decision quiz before implementation. |
+| Step 7 | [`references/step-7-fanout.md`](references/step-7-fanout.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner. |
+| Step 8 | [`references/step-8-build-isolation.md`](references/step-8-build-isolation.md) | Build isolation per worktree. |
+| Step 9 | [`references/step-9-waves-verify.md`](references/step-9-waves-verify.md) | Run waves and verify children. |
+| Step 10 | [`references/step-10-rebase.md`](references/step-10-rebase.md) | Rebase open branches after a wave merges. |
 | Templates | `templates/bug-report.md`, `templates/feature-request.md` | Skeletons for new issues. |
-| Completion checklist | [`references/checklist.md`](references/checklist.md) | Pre-report checklist for the batch. |

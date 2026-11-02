@@ -23,7 +23,7 @@ Defaults (override only when the user names different options):
 | Lineage | `--no-parent` for independent issue work |
 | Name / selector | `issue-N`; selector `path:<absPath>` or full `id:<repoId>::<path>` |
 | Branch | Orca default from repo base ref (do not base on the current feature branch) |
-| Isolation | one build artifact dir per worktree — see [isolation-recipes.md](isolation-recipes.md) |
+| Isolation | one build artifact dir per worktree — see [step-8-build-isolation.md](step-8-build-isolation.md) |
 | Wave size | ≤ concurrency limit (typically 10) |
 | Child scope | local commits only; no push, no PR, no tracker writes |
 

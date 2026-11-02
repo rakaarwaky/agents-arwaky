@@ -1,19 +1,17 @@
-# Isolation Recipes
+# Step 8 — Build isolation
 
-Phase D/C setup. One Orca worktree = one artifact dir. Never fall back to a shared dir.
+Each worktree MUST use its own build artifact directory — shared dirs cause phantom sibling errors and lock/RAM contention, and a cold-dir retry never falls back to the shared dir.
 
-Why shared dirs are forbidden:
+## Why shared dirs are forbidden
 
-1. **Phantom errors** — a sibling's half-built new symbols leak into a shared cache and
-   surface as unrelated failures in other worktrees.
-2. **Contention** — parallel builds on one dir exhaust file locks / RAM (lock waits, OOM,
-   linker exits).
+1. **Phantom errors** — a sibling's half-built new symbols leak into a shared cache and surface as unrelated failures in other worktrees.
+2. **Contention** — parallel builds on one dir exhaust file locks / RAM (lock waits, OOM, linker exits).
 
 First build in a cold isolated dir is slower (no shared cache), and that cost is always
 less than debugging phantom failures. If a child's build genuinely fails on a cold
 isolated dir, retry once; do **not** fall back to the shared dir.
 
-The pattern is the same in every ecosystem:
+## The pattern (every ecosystem)
 
 1. After `ORCA worktree create --json`, take `result` path (or full `id:<repoId>::<path>`).
 2. Create a per-worktree output directory outside the source tree (or gitignored inside it).
@@ -22,8 +20,7 @@ The pattern is the same in every ecosystem:
 5. Tell every child to source/activate the env before the first build.
 6. Gitignore the artifact dirs once per repo.
 
-Defaults below assume Orca worktree path `$WT` and name `issue-NNN`.
-Adjust names to match the repo.
+Defaults below assume Orca worktree path `$WT` and name `issue-NNN`. Adjust names to match the repo.
 
 ## Rust / Cargo
 
