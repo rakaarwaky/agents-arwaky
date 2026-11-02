@@ -45,7 +45,7 @@ The ~60-char index budget and the 1,024-char parser limit (Global Rules: Grok Bu
 
 ## Step 5: Write SKILL.md
 
-Frontmatter first, then the standard body. Every created skill uses the same skeleton — `# <Skill Name>`, `## Execution Flow`, `## Global Rules`, `## Run Steps`, in that order:
+Frontmatter first, then the standard body. Every created skill uses the same skeleton — `# <Skill Name>`, `## Invoke Routing`, `## Global Rules`, `## Run Steps`, in that order:
 
 ```markdown
 ---
@@ -59,11 +59,9 @@ argument-hint: "<arg> [--flag] <other-arg>"
 
 You <one sentence: what the agent does when this skill loads>.
 
-## Execution Flow
+## Invoke Routing
 
-1. **<Verb>**: <action, decision, or command>.
-2. **Verify**: <the checkable command or observable criterion>; stop at the first failure and report it.
-3. **Report**: what changed, how it was verified, and anything noticed but not fixed.
+- `--<flag>` → <reference-name>.md — <what the reference contains, one line>.
 
 ## Global Rules
 
@@ -73,22 +71,26 @@ Rules that apply to every step. Reference files cite these; they never restate t
 
 ## Run Steps
 
+The ordered pipeline that executes the reference Invoke Routing selected. Rows follow the routed reference's step files; terminal rows always run last.
+
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| <Step name> | [`references/<file>.md`](references/<file>.md) | <What the reference contains, one line.> |
+| Step 0 | [`references/step-0-<name>.md`](references/step-0-<name>.md) | <purpose, one line>. |
+| Step 1 | [`references/step-1-<name>.md`](references/step-1-<name>.md) | <purpose, one line>. |
+| Report | — | What changed, how it was verified, and anything noticed but not fixed. |
 ```
 
 How to fill each section:
 
-- **Execution Flow** — ordered steps the agent runs top to bottom; each starts with a bold verb. Inline the deterministic commands; push longer logic into `references/` and route to it from the flow. Insert the skill's own steps before Verify and Report, and end every step in a checkable completion criterion (Global Rules: Structure).
-- **Global Rules** — one named bullet per cross-step rule; the bullet is the single home for that fact. Task-conditional content belongs in a step or a reference, not here (Global Rules: budget for permanent cost).
-- **Run Steps** — only when the skill ships references; a single-file skill omits the section. Purpose describes what the reference contains, not what the step does — the Execution Flow owns that.
+- **Invoke Routing** — a plain text list, one bullet per request/mode: `<flag> → <reference-name>.md — <purpose>`. No markdown links here — the reference links are owned by the Run Steps table. A single-file skill with no references omits the section.
+- **Global Rules** — one named bullet per cross-step rule; the bullet is the single home for that fact. Task-conditional content belongs in a reference, not here (Global Rules: budget for permanent cost).
+- **Run Steps** — the ordered pipeline table (Step | Reference | Purpose) for the routed reference; terminal `Report` row last. This is where the `references/<file>.md` links live.
 
 This is the same skeleton this skill's own `SKILL.md` uses; open it as a filled-in example. Mandatory keys, YAML hygiene, parser limits, and which optional keys are safe to add are Global Rules; the full optional-key table is in `audit.md`. Write supporting scripts and references as needed, using absolute paths so nothing lands in the wrong place.
 
 ## Step 6: Verify and confirm
 
-- [ ] Read the file back and confirm frontmatter and body landed correctly, and the body follows the Step 5 skeleton (`# <Skill Name>` / `## Execution Flow` / `## Global Rules` / `## Run Steps`).
-- [ ] Run the Verify and Report steps of `SKILL.md` (Execution Flow 5–6) — they own `aa skills validate` and the pre-publish checklist.
+- [ ] Read the file back and confirm frontmatter and body landed correctly, and the body follows the Step 5 skeleton (`# <Skill Name>` / `## Invoke Routing` / `## Global Rules` / `## Run Steps`).
+- [ ] Run the terminal `Run Steps` rows of `SKILL.md` — `aa skills validate` and the pre-publish checklist.
 - [ ] Tell the user how to invoke it (slash command, skills menu, description matching — whichever the target harness provides).
 - [ ] Remind the user that new or renamed skills appear in the next session: loaders cache the skill list at session start. This is expected.

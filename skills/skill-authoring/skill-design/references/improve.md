@@ -5,17 +5,17 @@ role: reference
 
 # Improve
 
-Recipe for the improve step, plus the reference-pattern decision it owns. Verification after any edit is the Verify and Report steps of `SKILL.md` (Execution Flow 5–6) — this file adds only the edit actions that precede them.
+Recipe for the improve step, plus the reference-pattern decision it owns. Verification after any edit is the Verify section of `SKILL.md` — this file adds only the edit actions that precede it.
 
 ## Improve a skill
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.
 2. **Identify the owner**: for each fact being changed, name its one home using the Information distribution test below — `SKILL.md` Global Rules for a fact read by more than one step, a step file for a fact read by exactly one step. A standalone `references/<name>.md` is a home only when it is the single authoritative copy of a fact that no step file already states. If the owner is ambiguous, stop and confirm before touching anything.
-3. **Pick the target pattern** (when the edit restructures `references/`, or when the current tree's pattern does not match the skill's shape): run the pattern decision below and apply it before editing. The answer to Step 1 and Step 2 below comes from the skill's **Execution Flow verbs and run-state**, never from the layout of the `references/` files that exist today — a tree that looks like Pattern A (flat per-mode files) is Pattern B the moment its flow is a single ordered pipeline with state passing between steps. Restructuring from A to B is a valid restructure; it is not "mixing patterns."
+3. **Pick the target pattern** (when the edit restructures `references/`, or when the current tree's pattern does not match the skill's shape): run the pattern decision below and apply it before editing. The answer to Step 1 and Step 2 below comes from the skill's **Invoke Routing + Run Steps table**, never from the layout of the `references/` files that exist today — a tree that looks like Pattern A (flat per-mode files) is Pattern B the moment its routing is a single ordered pipeline with state passing between steps. Restructuring from A to B is a valid restructure; it is not "mixing patterns."
 4. **Apply the edit** where the owner lives. If the owner is a reference file, edit the reference — never the body. If the owner is Global Rules, edit `SKILL.md`.
 5. **Sweep for second copies**: after the edit, search the skill directory for any other place that states the same fact. Report each one; do not silently rewrite them.
 6. **Resolve cross-skill links you touched**: every sibling mention and cross-skill link you edited must name a skill that exists in the tree (Global Rules: dangling refs rot fast).
-7. **Run Verify and Report**: the Verify and Report steps of `SKILL.md` (Execution Flow 5–6) — they own `aa skills validate` and the pre-publish checklist.
+7. **Run Verify and Report**: the Verify and Report sections of `SKILL.md` — they own `aa skills validate` and the pre-publish checklist.
 
 ## Information distribution
 
@@ -94,7 +94,7 @@ The pattern follows the skill's shape, not the tree it currently has. Run Step 1
 
 Ask: will the agent always execute all steps in sequence, with run state (attempt counters, hypotheses, repro commands, etc.) flowing from one step to the next?
 
-Answer this question from the **Execution Flow** in `SKILL.md` (the numbered verb list and whether each step's output feeds the next), not from the filenames under `references/`. Definition files (`signals.md`, `report-format.md`, …) do not make a skill mode-based; they are inputs a pipeline step reads. If the flow is one ordered sequence, the answer is **Yes** even if the current tree is flat Pattern A.
+Answer this question from the **Run Steps table** in `SKILL.md` (the Step rows and whether each row's output feeds the next), not from the filenames under `references/`. Definition files (`signals.md`, `report-format.md`, …) do not make a skill mode-based; they are inputs a pipeline step reads. If the pipeline is one ordered sequence, the answer is **Yes** even if the current tree is flat Pattern A.
 
 - **Yes** → **Pattern B**: numbered `references/step-<N>-<name>.md` files in execution order. Numbers encode order; sub-variants (`step-<N>a`, `step-<N>b`) branch by a runtime parameter.
   - Examples in this pack: `systematic-debugging`, `implement`, `skill-evolving`.

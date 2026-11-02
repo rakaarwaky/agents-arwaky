@@ -1,21 +1,14 @@
 ---
 name: skill-lifecycle
-description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories (e.g., /skill-lifecycle, or a merge of one skill into another such as merging create-workflow into grok-build), pruning skills, consolidating skills, merging duplicate skills, auditing a skill directory, collapsing skill folders, or running a scheduled self-evolution pass over a skill tree.
-when-to-use: Use when cleaning up, auditing, or merging agent skill directories; pruning skills; consolidating skills; merging one skill into another (for example, a merge of create-workflow into grok-build); auditing a skill directory; collapsing skill folders; or running a scheduled (headless) evolution pass that applies approved changes without an interactive approval gate.
+description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories (e.g., /skill-lifecycle, or a merge of one skill into another such as merging create-workflow into grok-build), pruning skills, consolidating skills, merging duplicate skills, collapsing skill folders, or running a scheduled self-evolution pass over a skill tree.
+user-invocable: true
+when-to-use: Use when the user wants to prune, consolidate, or merge a skill tree; collapse duplicate or near-duplicate skill folders; audit a skill directory for structural issues; or run a scheduled headless evolution pass that applies approved changes without an interactive approval gate.
 argument-hint: "[<skill-dir>] [--dry-run | --auto | --evolution]"
-metadata:
-  tags:
-    - skill
-    - pruning
-    - deduplication
-    - consolidation
-    - skill-cleanup
-    - agent-skills
 ---
 
 # Skill Lifecycle
 
-You prune and consolidate agent skill directories (a collection of `SKILL.md` folders). Two skills covering the same job collapse into one folder with one `SKILL.md`; skills that share a domain but differ per scenario keep one folder with one `SKILL.md` plus a `references/` subfolder, one file per scenario. Modeled on `code-quality/deep-clean` (two-phase: remove duplicates, then consolidate variants).
+You prune and consolidate agent skill directories (a collection of `SKILL.md` folders). Two skills covering the same job collapse into one folder with one `SKILL.md`; skills that share a domain but differ per scenario keep one folder with one `SKILL.md` plus a `references/` subfolder, one file per scenario. The two-phase structure mirrors `code-quality/deep-clean`: Phase 1 removes true duplicates, Phase 2 consolidates variants.
 
 **Scope:** skill directories only — `SKILL.md` files, `references/`, `scripts/`, and category `DESCRIPTION.md` files. Never touch non-skill content.
 
@@ -25,7 +18,7 @@ You prune and consolidate agent skill directories (a collection of `SKILL.md` fo
 2. **Inventory & classify**: list every skill folder, read each `SKILL.md`, cluster by semantic scope, and classify each cluster as duplicate, variant, or separate jobs (Phase 1 removes true duplicates; Phase 2 consolidates variants — never skip Phase 1).
 3. **Dry-run & approval**: generate the planned prune report and present it; wait for confirmation. `--auto` and `--evolution` skip this gate and go straight to the snapshot.
 4. **Snapshot**: `git add -A && git commit` (or `git stash` if the tree holds unrelated work — record the `HEAD` SHA and stage only the skill-tree paths you touch).
-5. **Execute**: merge per the Phase 2 table; update category `DESCRIPTION.md` and `CATALOG.md`.
+5. **Execute**: merge per [`references/merge-rules.md`](references/merge-rules.md); update category `DESCRIPTION.md` and `CATALOG.md`.
 6. **Verify & rollback**: every remaining `SKILL.md` parses, all reference links resolve, no two skills share a `name:`, `aa skills validate` is clean. On failure, trigger the Rollback Protocol.
 7. **Report**: output the executed `skill-lifecycle report` with the rollback target SHA.
 
