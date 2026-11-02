@@ -40,11 +40,11 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_discoverer import SkillsDiscoverer
-from modules.skills.src.capabilities_skills_index_builder import SkillsIndexBuilder
+from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
 from modules.skills.src.capabilities_skills_lint import SkillsLint
 from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlanner
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
-from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
+from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_state import SkillsTraceState
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
 from modules.skills.src.capabilities_skills_validator import SkillsValidator

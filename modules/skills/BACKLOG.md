@@ -43,7 +43,7 @@ counterpart.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `capabilities_skills_index_builder.py::list_skills` and the index/reader in `root_skills_container.py` are exercised by `unit_skills.py::test_list_skills_sorted_with_descriptions`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| Done         | `capabilities_skills_index.py::list_skills` and the index/reader in `root_skills_container.py` are exercised by `unit_skills.py::test_list_skills_sorted_with_descriptions`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
@@ -53,7 +53,7 @@ counterpart.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `capabilities_skills_pack_reader.py::show_skill`; `unit_skills.py::test_show_skill_by_frontmatter_name`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| Done         | `capabilities_skills_reader.py::show_skill`; `unit_skills.py::test_show_skill_by_frontmatter_name`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |

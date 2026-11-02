@@ -8,7 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.skills.src.capabilities_skills_index_builder import (
+from modules.skills.src.capabilities_skills_index import (
     SkillsIndexBuilder,
     default_pack_root,
 )
