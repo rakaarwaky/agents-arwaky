@@ -62,7 +62,6 @@ def default_aggregate(
     discoverer: ISkillsDiscovererProtocol | None = None,
     mutator: ISkillsMutatorProtocol | None = None,
     traces: ISkillsTracesProtocol | None = None,
-    state: IStateProtocol | None = None,
     default_root: Path | None = None,
 ) -> ISkillsAggregate:
     """Return an agent bound to the repo's ``skills/`` pack (or overrides)."""
@@ -77,7 +76,6 @@ def default_aggregate(
         discoverer=discoverer or SkillsDiscoverer(wired_catalog),
         mutator=mutator or SkillsMutator(),
         traces=traces or SkillsTraces(),
-        state=state or SkillsTraceState(),
         default_root=root,
     )
 
@@ -107,7 +105,6 @@ class SkillsFacade:
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
         traces: ISkillsTracesProtocol | None = None,
-        state: IStateProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._index = index
@@ -118,7 +115,6 @@ class SkillsFacade:
         self._discoverer = discoverer
         self._mutator = mutator
         self._traces = traces
-        self._state = state
         self._default_root = default_root
 
     def _agent(self) -> SkillsAgent:
@@ -134,7 +130,6 @@ class SkillsFacade:
             discoverer=self._discoverer or SkillsDiscoverer(catalog),
             mutator=self._mutator or SkillsMutator(),
             traces=self._traces or SkillsTraces(),
-            state=self._state or SkillsTraceState(),
             default_root=self._default_root or root,
         )
 

@@ -230,69 +230,6 @@ class ISkillsTracesProtocol(ABC):
         """
         ...
 
-    # ── Trace-state lifecycle ─────────────────────────────────────────
-
-    @abstractmethod
-    def set_status(
-        self, grok_home: str, run_dir: str, status: TraceStateStatus
-    ) -> TraceStateStatus:
-        """Record *status* for the pending run; ``done`` stamps last_completed."""
-        ...
-
-    @abstractmethod
-    def get_status(self, grok_home: str) -> TraceStateStatus:
-        """Return the current pending status.
-
-        ``done``-less pending runs exit 3 (the surface maps to exit 3); the
-        capability returns the status, the caller maps it to an exit code.
-        """
-        ...
-
-    @abstractmethod
-    def trash(self, grok_home: str, run_name: str, paths: Sequence[str]) -> tuple[str, ...]:
-        """Move the validated paths into ``learn/trash/<run_name>``.
-
-        Only a ``skills/<name>`` directory, a ``workflows/*.rhai`` file, or a
-        ``hooks/*`` file under ``GROK_HOME`` / ``~/.agents`` / a project
-        ``.grok`` directory is moved; anything else is refused.
-        """
-        ...
-
-    @abstractmethod
-    def decide(
-        self,
-        grok_home: str,
-        run_dir: str,
-        decision: TraceDecision,
-    ) -> TraceDecision:
-        """Append one decision line to ``learn/decisions.jsonl`` and return it."""
-        ...
-
-    @abstractmethod
-    def wait(
-        self, grok_home: str, run_dir: str, timeout_min: int = 90
-    ) -> TraceStateStatus:
-        """Block until the run dir holds ``report.md`` + ``actions.json``.
-
-        Returns ``report_ready`` on success; the surface maps a deadline
-        overrun to the legacy exit code.
-        """
-        ...
-
-    def dispatch(
-        self,
-        grok_home: str,
-        run_dir: str,
-        action: str,
-        flags: Mapping[str, str],
-    ) -> TraceStateDispatchResult:
-        """Route one trace-state sub-action through this capability.
-
-        The thin router behind the agent's single per-op call; ``flags``
-        carries the sub-action's parameters (status, run_name, paths, ...).
-        """
-
-
 __all__ = [
     "ISkillsCatalogProtocol",
     "ISkillsDiscovererProtocol",

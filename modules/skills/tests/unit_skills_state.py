@@ -1,4 +1,4 @@
-"""Unit tests for ``capabilities_skills_state.SkillsTraceState``.
+"""Unit tests for the trace-state lifecycle in ``capabilities_skills_traces``.
 
 Status transitions, trash path-shape guard (valid + refused shapes), decide
 log shape, wait exit-code semantics (0 ready / 3 report-stall / 4 phase-stall /
@@ -19,9 +19,9 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     TraceDecision,
     TraceStateStatus,
 )
-from modules.skills.src.capabilities_skills_state import (
+from modules.skills.src.capabilities_skills_traces import (
     STATUSES,
-    SkillsTraceState,
+    SkillsTraces,
     decisions_path,
     files_ready,
     latest_synthesis,
@@ -37,18 +37,18 @@ def _grok_home(tmp_path: Path) -> Path:
     return tmp_path / "grok"
 
 
-def _state(tmp_path: Path) -> SkillsTraceState:
-    return SkillsTraceState()
+def _state(tmp_path: Path) -> SkillsTraces:
+    return SkillsTraces()
 
 
 # ---------------------------------------------------------------- protocol / helpers
 
 
 def test_state_implements_protocol() -> None:
-    """SkillsTraceState satisfies the IStateProtocol contract."""
-    from modules.shared.src.skills.contract_skills_protocol import IStateProtocol
+    """SkillsTraces satisfies the ISkillsTracesProtocol contract."""
+    from modules.shared.src.skills.contract_skills_protocol import ISkillsTracesProtocol
 
-    assert isinstance(SkillsTraceState(), IStateProtocol)
+    assert isinstance(SkillsTraces(), ISkillsTracesProtocol)
 
 
 def test_status_machine_values() -> None:

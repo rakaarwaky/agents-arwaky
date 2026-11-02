@@ -9,7 +9,6 @@ import pytest
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsIndexProtocol,
     ISkillsTracesProtocol,
-    IStateProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     PhrasesReport,
