@@ -32,6 +32,9 @@ from modules.shared.src.skills.contract_skills_protocol import (
     IStateProtocol,
     ITrackerProtocol,
 )
+from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+    SkillCreatePlan,
+)
 from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsError,
     SkillsRootError,
@@ -296,6 +299,59 @@ class SkillsAgent(ISkillsAggregate):
             ok=True,
             op=op,
             new_category=plan,
+            catalog=catalog,
+            root=root,
+        )
+
+    def _execute_create(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Create a new skill SKILL.md at the default skills root — preview by default."""
+        root = self._root(request)
+        skill = str(request.query)
+        category = request.flags.get("category", "")
+        if not category:
+            raise SkillsUsageError(
+                "Missing --category: pass --category <cat> for the new skill folder"
+            )
+
+        description = request.description
+        when_to_use = request.flags.get("when_to_use", "")
+        argument_hint = request.flags.get("argument_hint", "")
+        body = request.flags.get("body", "")
+
+        directory = root / category / skill
+        skill_md = directory / "SKILL.md"
+        plan = SkillCreatePlan(
+            skill=skill,
+            category=category,
+            description=description,
+            when_to_use=when_to_use,
+            argument_hint=argument_hint,
+            body=body,
+            directory=directory,
+            skill_md=skill_md,
+            already_exists=skill_md.exists(),
+            root=root,
+        )
+
+        if plan.already_exists or not request.apply:
+            return SkillsResult(ok=True, op=op, create_plan=plan, root=root)
+
+        directory.mkdir(parents=True, exist_ok=True)
+        frontmatter = (
+            "---\n"
+            f"name: {skill}\n"
+            f"description: {description}\n"
+            f'when-to-use: "{when_to_use}"\n'
+            f"argument-hint: {argument_hint}\n"
+            "---\n\n"
+        )
+        skill_md.write_text(frontmatter + body, encoding="utf-8")
+
+        catalog = self._require(self._catalog, "catalog").rebuild(root)
+        return SkillsResult(
+            ok=True,
+            op=op,
+            create_plan=plan,
             catalog=catalog,
             root=root,
         )

@@ -42,6 +42,7 @@ if TYPE_CHECKING:
         MutationPlan,
         NewCategoryPlan,
         PhrasesReport,
+        SkillCreatePlan,
         UsageReport,
         ValidationReport,
     )
@@ -78,6 +79,7 @@ class SkillsOp(StrEnum):
     MOVE = "move"
     ARCHIVE = "archive"
     NEW_CATEGORY = "new-category"
+    CREATE = "create"
     MERGE_PLAN = "merge-plan"
     TRACE_COLLECT = "trace-collect"
     TRACE_USAGE = "trace-usage"
@@ -287,6 +289,7 @@ class SkillsResult:
     plan: MutationPlan | None = None
     outcome: MutationOutcome | None = None
     new_category: NewCategoryPlan | None = None
+    create_plan: SkillCreatePlan | None = None
     merge: MergePlan | None = None
     lines: tuple[str, ...] = ()
     warning: str | None = None
