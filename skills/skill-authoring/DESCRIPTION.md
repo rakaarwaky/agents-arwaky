@@ -7,8 +7,11 @@ description: Skill-authoring skills — create, validate, and improve SKILL.md f
 | Goal | Skill | Entry point |
 |---|---|---|
 | Author / validate / audit a `SKILL.md` | `skill-design` | `aa skills validate | show | list` |
-| Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
-| Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
+| Find / catalog / move / organize skills | `skill-library` | `aa skills catalog --check | discover | move | new-category` |
+| Prune / consolidate / merge / weed / archive skill trees | `skill-lifecycle` | `aa skills weed | archive | merge-plan` |
+| Create skills for things you keep typing out | `skill-learning` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
+| Edit skills to adapt to conditions and demand | `skill-evolving` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
+| Remove skills and surfaces you never use | `skill-unlearn` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
 | Learn, evolve, and unlearn skills from session traces (one pass) | `skill-traces` | `/skill-traces --learn [--evolve --unlearn]` → `aa skills trace-collect | trace-materialize | trace-state` |
 
 The trace-learning skill (`skill-traces`, modes `--learn` / `--evolve` / `--unlearn`) is driven by the `aa skills` trace verbs (`trace-collect`, `trace-materialize`, `trace-state`) backed by `capabilities_skills_tracker`, `capabilities_skills_phrases`, and `capabilities_skills_state`. See `README.md` for pack routing and `CATALOG.md` for the master index.

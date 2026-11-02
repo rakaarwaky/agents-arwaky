@@ -6,7 +6,7 @@ mode: weed
 
 # Weed
 
-Remove duplicate and obsolete skills from the library.
+Remove duplicate and obsolete skills from the skill tree.
 
 1. Run weed:
 

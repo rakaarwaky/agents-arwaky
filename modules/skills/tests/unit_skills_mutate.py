@@ -318,7 +318,7 @@ def test_create_already_exists_is_a_no_op(tmp_path: Path) -> None:
         "---\nname: doc-helper\ndescription: old\nwhen-to-use: \"old\"\nargument-hint: <old>\n---\n",
         encoding="utf-8",
     )
-    agent = default_aggregate(default_root=tmp_path)
+    agent = _create_agent(tmp_path)
     request = SkillsRequest(
         op=SkillsOp.CREATE,
         query="doc-helper",
@@ -340,7 +340,7 @@ def test_create_already_exists_is_a_no_op(tmp_path: Path) -> None:
 
 
 def test_create_without_category_is_a_usage_error(tmp_path: Path) -> None:
-    agent = default_aggregate(default_root=tmp_path)
+    agent = _create_agent(tmp_path)
     request = SkillsRequest(
         op=SkillsOp.CREATE,
         query="doc-helper",
