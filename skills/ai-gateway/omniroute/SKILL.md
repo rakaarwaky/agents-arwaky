@@ -186,6 +186,20 @@ omniroute cost                # spend report
 omniroute status              # upstream's own view
 ```
 
+## 9router sync
+
+9router (port 20128) stores its runtime data in SQLite at `~/.9router/db/data.sqlite`
+(not the JSON export files). The JSON files in `config/` are exports/backups.
+
+When syncing OmniRoute providers/models/combos into 9router's SQLite:
+
+- The `combos` table has a `kind` column that must be `'llm'` (not null). A null
+  `kind` crashes the dashboard combos page with `t.includes is not a function`.
+- Combo `models` is stored as a JSON string in the `models` column.
+- Provider connections in 9router share the same IDs as OmniRoute's, so sync by
+  updating existing rows rather than inserting duplicates.
+- 9router requires a restart (`systemctl --user restart 9router`) after DB edits.
+
 ## Errors
 
 - Port already bound → something else holds 7777; check `ss -ltn | grep 7777`, then change
