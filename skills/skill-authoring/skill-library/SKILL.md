@@ -2,7 +2,7 @@
 name: skill-library
 description: Manages the skills library — discovers skills, moves skills between categories, and organizes categories (create, split, rename). Routes authoring, content repair, audit, and duplicate/obsolete pruning to skill-design and skill-lifecycle. Use when the user runs /skill-library or asks to find, move, organize, catalog, validate, or rename-category skills.
 when-to-use: Use when the user wants to search the skill library, rebuild the catalog, move misplaced skills, create or rename categories, or reorganize the category tree.
-argument-hint: "[--discover <query>] [--catalog] [--validate] [--move <skill> <category>] [--new-category <name> <desc>] [--audit] [--rename-category <old> <new>]"
+argument-hint: "[--discover <query>] [--catalog] [--validate] [--move <skill> <category>] [--new-category <name> <desc>] [--rename-category <old> <new>]"
 ---
 
 # Skill Library
