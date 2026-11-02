@@ -1,4 +1,4 @@
-# Prerequisites & setup
+# Step 0 — Prerequisites & setup
 
 - Authenticated with GitHub (see the `github-auth` skill).
 - Inside a git repo with a GitHub remote, or specify the repo explicitly.

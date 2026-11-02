@@ -33,10 +33,11 @@ Rules that apply to every issue-worker operation. Reference files cite these; th
 | Step 2 | [`references/step-2-managing.md`](references/step-2-managing.md) | Label, assign, comment, close/reopen, link to PRs, branch from issue. |
 | Step 3 | [`references/step-3-triage-bulk.md`](references/step-3-triage-bulk.md) | Issue triage workflow and bulk label/close operations. |
 | Step 4 | [`references/step-4-verify-triage.md`](references/step-4-verify-triage.md) | Load and triage: verify every claim at HEAD before closing. |
-| Step 5 | [`references/step-5-decision-quiz.md`](references/step-5-decision-quiz.md) | Decision quiz before implementation. |
-| Step 6 | [`references/step-6-fanout.md`](references/step-6-fanout.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner. |
-| Step 7 | [`references/step-7-build-isolation.md`](references/step-7-build-isolation.md) | Build isolation per worktree. |
-| Step 8 | [`references/step-8-waves-verify.md`](references/step-8-waves-verify.md) | Run waves, verify children, then orchestrator pushes each worktree branch and opens one PR per issue (draft by default). |
-| Step 9 | [`references/step-9-rebase.md`](references/step-9-rebase.md) | Rebase still-open worktree branches onto the default tip after PRs land. |
+| Step 5 | [`references/step-5-validate.md`](references/step-5-validate.md) | Validate issue state before deciding — rejects stale/fake/duplicate/already-fixed issues. |
+| Step 6 | [`references/step-6-decision-quiz.md`](references/step-6-decision-quiz.md) | Decision quiz before implementation. |
+| Step 7 | [`references/step-7-fanout.md`](references/step-7-fanout.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner. |
+| Step 8 | [`references/step-8-build-isolation.md`](references/step-8-build-isolation.md) | Build isolation per worktree. |
+| Step 9 | [`references/step-9-waves-verify.md`](references/step-9-waves-verify.md) | Run waves, verify children, then orchestrator pushes each worktree branch and opens one PR per issue (draft by default). |
+| Step 10 | [`references/step-10-rebase.md`](references/step-10-rebase.md) | Rebase still-open worktree branches onto the default tip after PRs land. |
 | Templates | `templates/bug-report.md`, `templates/feature-request.md` | Issue templates owned by `/issue-maker`; issue-worker does not create issues. |
 
