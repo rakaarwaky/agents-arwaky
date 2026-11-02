@@ -1,4 +1,4 @@
-"""Golden regression tests for the ported 13-rule validator."""
+"""Golden regression tests for the 13-rule validator folded into SkillsLinter."""
 
 from __future__ import annotations
 
@@ -15,8 +15,9 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     issue_message,
     rule,
 )
-from modules.skills.src.capabilities_skills_validator import SkillsValidator
+from modules.skills.src.capabilities_skills_linter import SkillsLinter
 from modules.skills.tests.fixture_skills import as_root
+from modules.skills.tests.fixture_skills import crafted_tree
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
@@ -76,14 +77,14 @@ def test_golden_fixture_per_issue_type(issue_type: IssueType) -> None:
     fixture_root = FIXTURES / issue_type.value
     assert fixture_root.is_dir(), f"missing golden fixture for {issue_type.value}"
 
-    report = SkillsValidator().validate(as_root(fixture_root))
+    report = SkillsLinter().lint(as_root(fixture_root))
 
-    assert report.issue_count == 1, (
-        f"{issue_type.value}: expected exactly 1 issue, got "
-        f"{report.issue_count}: {report.issues}"
+    assert len(report.unfiltered_issues) == 1, (
+        f"{issue_type.value}: expected exactly 1 validator issue, got "
+        f"{len(report.unfiltered_issues)}: {report.unfiltered_issues}"
     )
 
-    issue = report.issues[0]
+    issue = report.unfiltered_issues[0]
     assert issue.type == issue_type.value
     assert issue.locator == GOLDEN[issue_type]
     assert issue.message == _expected_message(issue, issue_type)
@@ -109,16 +110,14 @@ def _expected_message(issue, issue_type: IssueType) -> str:
 
 
 def test_clean_fixture_reports_no_issues() -> None:
-    """The clean tree reports zero issues and the derived counts."""
-    report = SkillsValidator().validate(as_root(FIXTURES / "clean"))
-    assert report.issue_count == 0
+    """The clean tree reports zero validator issues and the derived counts."""
+    report = SkillsLinter().lint(as_root(FIXTURES / "clean"))
+    assert len(report.unfiltered_issues) == 0
     assert report.summary() == "0 issues / 1 skills / 1 categories"
 
 
 def test_report_is_unfiltered_by_design(tmp_path: Path) -> None:
-    """The validator never narrows: filtering is the surface's job."""
-    from modules.skills.tests.fixture_skills import crafted_tree
-
-    report = SkillsValidator().validate(as_root(crafted_tree(tmp_path)))
-    assert report.issue_count == 1
-    assert report.issues[0].type == IssueType.NAME_MISMATCH.value
+    """The linter never narrows on its own: filtering is the surface's job."""
+    report = SkillsLinter().lint(as_root(crafted_tree(tmp_path)))
+    assert len(report.unfiltered_issues) == 1
+    assert report.unfiltered_issues[0].type == IssueType.NAME_MISMATCH.value

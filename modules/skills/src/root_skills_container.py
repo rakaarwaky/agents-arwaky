@@ -46,7 +46,6 @@ from modules.skills.src.capabilities_skills_lister import SkillsLister
 from modules.skills.src.capabilities_skills_mover import SkillsMover
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
-from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 __all__ = [
     "SkillsFacade",
@@ -71,7 +70,7 @@ def default_aggregate(
     """Return an agent bound to the repo's ``skills/`` pack (or overrides)."""
     root = default_root if default_root is not None else default_pack_root()
     wired_catalog = catalog or SkillsCatalog()
-    wired_linter = linter or SkillsLinter(SkillsValidator())
+    wired_linter = linter or SkillsLinter()
     return SkillsAgent(
         lister or SkillsLister(root),
         reader or SkillsPackReader(root),
@@ -116,7 +115,7 @@ class SkillsFacade:
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
         wired_catalog = catalog or SkillsCatalog()
-        wired_linter = linter or SkillsLinter(SkillsValidator())
+        wired_linter = linter or SkillsLinter()
         self._agent_cache = SkillsAgent(
             lister or SkillsLister(root),
             reader or SkillsPackReader(root),

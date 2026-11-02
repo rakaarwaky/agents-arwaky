@@ -63,7 +63,7 @@ counterpart.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `capabilities_skills_validator.py` plus the shared rule SSOT in `modules/shared/src/common/utility_skill_pack.py` and `taxonomy_skills_constant.py`; golden fixtures in `unit_skills_validate.py::test_golden_fixture_per_issue_type`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| Done         | The 13-rule validator checks live inline in `capabilities_skills_linter.py::SkillsLinter` (folded from the retired `capabilities_skills_validator.py`); the shared rule SSOT lives in `modules/shared/src/common/utility_skill_pack.py` and `taxonomy_skills_constant.py`; golden fixtures in `unit_skills_validate.py::test_golden_fixture_per_issue_type`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |

@@ -17,7 +17,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
-    ISkillsValidatorProtocol,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_archiver import SkillsArchiver
@@ -29,7 +28,6 @@ from modules.skills.src.capabilities_skills_lister import SkillsLister
 from modules.skills.src.capabilities_skills_mover import SkillsMover
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
-from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 
 def test_lister_protocol_exists() -> None:
@@ -58,12 +56,6 @@ def test_reader_implements_protocol(tmp_path: Path) -> None:
     """CP-SKILLS-005: SkillsPackReader implements ISkillsReaderProtocol."""
     reader = SkillsPackReader(tmp_path)
     assert isinstance(reader, ISkillsReaderProtocol)
-
-
-def test_validator_implements_protocol() -> None:
-    """CP-SKILLS-006: SkillsValidator implements ISkillsValidatorProtocol."""
-    validator = SkillsValidator()
-    assert isinstance(validator, ISkillsValidatorProtocol)
 
 
 def test_catalog_implements_protocol() -> None:

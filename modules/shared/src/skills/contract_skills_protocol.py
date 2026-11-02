@@ -9,10 +9,11 @@ Capabilities never import one another: where one needs another's
 data (the discoverer reads catalog rows), the dependency is
 expressed as one of these protocols and wired by the root.
 
-``ISkillsValidatorProtocol`` is an internal seam consumed by the linter;
-it is not exposed as a CLI verb. The mutation primitives (plan_weed,
-plan_repair) live in ``utility_skills_mutation`` (shared kernel), so no
-mutation protocol is needed here.
+The 13-rule validator checks live inline in
+``capabilities_skills_linter.SkillsLinter``; they are not exposed as a CLI
+verb. The mutation primitives (plan_weed, plan_repair) live in
+``utility_skills_mutation`` (shared kernel), so no mutation protocol is
+needed here.
 """
 
 from __future__ import annotations
@@ -321,27 +322,8 @@ class ISkillsTracesProtocol(ABC):
         """
 
 
-# ── Internal seam: validator (consumed by the linter, not exposed as a CLI verb) ──
-
-
-class ISkillsValidatorProtocol(ABC):
-    """The 13-rule validator: per-skill, category, placement, and duplicate checks."""
-
-    @abstractmethod
-    def validate(self, root: SkillsRoot) -> "ValidationReport":
-        """Return the unfiltered validation report for *root*."""
-        ...
-
-
 # ── Internal seams end ──
 
-
-# Runtime import for the type annotations used in the internal seam above.
-# Placed here so the module loads cleanly; the annotation is a string in the
-# ABC body, so no cycle at class-definition time.
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (  # noqa: E402
-    ValidationReport,
-)
 
 __all__ = [
     "ISkillsArchiverProtocol",
@@ -353,5 +335,4 @@ __all__ = [
     "ISkillsMoverProtocol",
     "ISkillsReaderProtocol",
     "ISkillsTracesProtocol",
-    "ISkillsValidatorProtocol",
 ]
