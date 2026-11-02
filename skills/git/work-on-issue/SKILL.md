@@ -81,7 +81,7 @@ AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$G
 - Create an issue from the bug-report or feature-request template.
 
 For single-issue PR discipline (duplicate sweeps, regression sabotage runs), see
-`github-pr-workflow`'s "Taking an Issue to a PR" section. This skill owns the
+`pr-babysit`'s "Taking an Issue to a PR" section. This skill owns the
 **verify → decide → isolate → implement → verify-again** pipeline plus the CRUD
 mechanics that feed it, especially at batch scale.
 
@@ -226,6 +226,6 @@ Sibling-PR conflict shape, stale-CI diagnosis, and the rebase checklist:
 
 ## Overlap note
 
-Single-issue PR mechanics live in `github-pr-workflow`. This skill owns both the CRUD
+Single-issue PR mechanics live in `pr-babysit`. This skill owns both the CRUD
 mechanics (create, search, label, assign, comment, close/reopen, branch-from-issue) and
 the verify → decide → isolate → implement → verify-again pipeline end to end.

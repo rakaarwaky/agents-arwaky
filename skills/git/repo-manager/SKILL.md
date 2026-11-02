@@ -13,7 +13,7 @@ metadata:
     - Configuration
   related_skills:
     - github-auth
-    - github-pr-workflow
+    - pr-babysit
     - work-on-issue
 ---
 

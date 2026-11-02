@@ -40,7 +40,7 @@ No "I think", "probably", or "might". Each claim is backed by a concrete observa
 
 ## Related Skills
 
-- `github-pr-workflow` — take the fix to a merged PR
+- `pr-babysit` — take the fix to a merged PR
 - `work-on-issue` — if the fix closes a GitHub issue
 - `deep-clean` — post-fix cleanup pass (separate from the REFACTOR in Step 4 §4, which stays green-bound)
 

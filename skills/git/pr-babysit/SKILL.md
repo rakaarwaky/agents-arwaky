@@ -110,9 +110,10 @@ PR is merged.
 ### State file
 
 Per-session: `~/.grok/plugin-data/pr-babysit/watched-prs-<INSTANCE_ID>.json`.
-`INSTANCE_ID` is a UUID generated on first `add` (via
-`<python> scripts/host.py uuid --full`, rejecting WindowsApps stubs) and held
-in conversation context. Load [`references/check-cycle.md`](references/check-cycle.md)
+`INSTANCE_ID` is a UUID generated on first `add` (resolve `HOST_PY` as
+`<dirname of this SKILL.md>/scripts/host.py`, then run
+`<python> <HOST_PY> uuid --full` with a real Python 3 interpreter, rejecting
+WindowsApps stubs) and held in conversation context. Load [`references/check-cycle.md`](references/check-cycle.md)
 for the full state schema and lifecycle, and [`references/adding-prs.md`](references/adding-prs.md)
 for stack detection (Graphite / GitHub / API chain).
 

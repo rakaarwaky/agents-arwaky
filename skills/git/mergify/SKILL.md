@@ -12,7 +12,7 @@ metadata:
     - merge-queue
     - stack
   related_skills:
-    - github/github-pr-workflow
+    - github/pr-babysit
     - code-quality/review
     - github/releasing
   triggers:

@@ -118,7 +118,7 @@ One merged table for debugging and TDD excuses: [`references/step-6-guardrails.m
 
 ## Related Skills
 
-- `github-pr-workflow` — PR lifecycle; loads this skill for bug-class fixes
+- `pr-babysit` — PR lifecycle; loads this skill for bug-class fixes
 - `work-on-issue` — issue triage; loads this skill for bug-class fixes
 - `deep-clean` — post-fix cleanup pass
 
