@@ -63,7 +63,6 @@ def default_aggregate(
     catalog: ISkillsCatalogProtocol | None = None,
     discoverer: ISkillsDiscovererProtocol | None = None,
     mutator: ISkillsMutatorProtocol | None = None,
-    merge_planner: ISkillsMergePlannerProtocol | None = None,
     traces: ISkillsTracesProtocol | None = None,
     state: IStateProtocol | None = None,
     default_root: Path | None = None,
@@ -79,7 +78,6 @@ def default_aggregate(
         catalog=wired_catalog,
         discoverer=discoverer or SkillsDiscoverer(wired_catalog),
         mutator=mutator or SkillsMutator(),
-        merge_planner=merge_planner or SkillsMergePlanner(),
         traces=traces or SkillsTraces(),
         state=state or SkillsTraceState(),
         default_root=root,
@@ -110,7 +108,6 @@ class SkillsFacade:
         catalog: ISkillsCatalogProtocol | None = None,
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
-        merge_planner: ISkillsMergePlannerProtocol | None = None,
         traces: ISkillsTracesProtocol | None = None,
         state: IStateProtocol | None = None,
         default_root: Path | None = None,
@@ -122,7 +119,6 @@ class SkillsFacade:
         self._catalog = catalog
         self._discoverer = discoverer
         self._mutator = mutator
-        self._merge_planner = merge_planner
         self._traces = traces
         self._state = state
         self._default_root = default_root
@@ -139,7 +135,6 @@ class SkillsFacade:
             catalog=catalog,
             discoverer=self._discoverer or SkillsDiscoverer(catalog),
             mutator=self._mutator or SkillsMutator(),
-            merge_planner=self._merge_planner or SkillsMergePlanner(),
             traces=self._traces or SkillsTraces(),
             state=self._state or SkillsTraceState(),
             default_root=self._default_root or root,
