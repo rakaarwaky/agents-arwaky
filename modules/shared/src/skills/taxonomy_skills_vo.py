@@ -84,6 +84,7 @@ class SkillsOp(StrEnum):
     TRACE_COLLECT = "trace-collect"
     TRACE_USAGE = "trace-usage"
     TRACE_PHRASES = "trace-phrases"
+    TRACE_MATERIALIZE = "trace-materialize"
     TRACE_STATE = "trace-state"
 
 

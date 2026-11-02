@@ -415,6 +415,86 @@ class SkillsAgent(ISkillsAggregate):
         report = phrases.build_phrases(grok_home=grok_home, run_dir=run_dir)
         return SkillsResult(ok=True, op=op, phrases=report)
 
+    def _execute_trace_materialize(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Write usage.json + phrases.json into the run dir for the trace workflow.
+
+        The collector (``scan_sessions``) writes ``manifest.json`` and the
+        ``sessions/`` records but the usage / phrases material was only returned
+        as in-memory VOs, so the ``learn-traces`` workflow had no on-disk files to
+        read. This verb materializes both from the existing builders into the run
+        dir so every agent in the pipeline reads the same deterministic material.
+        Skills-only: ``usage.json`` carries one row per loaded skill plus the
+        ``unused_loaded`` verdict; no plugin / MCP / workflow / hook surfaces.
+        """
+        tracker = self._require(self._tracker, "tracker")
+        phrases = self._require(self._phrases, "phrases")
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        if not run_dir:
+            raise SkillsUsageError("trace-materialize requires --run-dir")
+
+        usage = tracker.build_usage(grok_home=grok_home, run_dir=run_dir)
+        report = phrases.build_phrases(grok_home=grok_home, run_dir=run_dir)
+
+        usage_path = os.path.join(run_dir, "usage.json")
+        phrases_path = os.path.join(run_dir, "phrases.json")
+        with open(usage_path, "w", encoding="utf-8") as f:
+            json.dump(self._usage_to_json(usage), f, indent=1, ensure_ascii=False)
+        with open(phrases_path, "w", encoding="utf-8") as f:
+            json.dump(self._phrases_to_json(report), f, indent=1, ensure_ascii=False)
+
+        return SkillsResult(
+            ok=True,
+            op=op,
+            usage=usage,
+            phrases=report,
+            message=f"Materialized usage.json + phrases.json → {run_dir}",
+        )
+
+    @staticmethod
+    def _usage_to_json(usage: UsageReport) -> dict:
+        """The skills-only usage.json shape the trace workflow reads."""
+        return {
+            "kept_sessions": usage.kept_sessions,
+            "items": [
+                {
+                    "kind": "skill",
+                    "name": it.name,
+                    "source": it.source,
+                    "path": it.path,
+                    "loaded": it.loaded,
+                    "count": it.count,
+                    "sessions": list(it.sessions),
+                    "last_used": it.last_used,
+                    "in_slash_mru": it.in_slash_mru,
+                }
+                for it in usage.items
+            ],
+            "unused_loaded": list(usage.unused_loaded),
+        }
+
+    @staticmethod
+    def _phrases_to_json(report: PhrasesReport) -> dict:
+        """The legacy phrases.json shape (exact / stems / instruction lines)."""
+        def rows(rows_: tuple[PhraseRow, ...]) -> list[dict]:
+            return [
+                {
+                    "phrase": r.phrase,
+                    "sessions": r.sessions,
+                    "occurrences": r.occurrences,
+                    "session_ids": list(r.session_ids),
+                }
+                for r in rows_
+            ]
+
+        return {
+            "exact_prompts": rows(report.exact_prompts),
+            "prompt_stems_12_words": rows(report.stems),
+            "repeated_instruction_lines": rows(report.repeated_instruction_lines),
+            "note": "counts are distinct sessions; single-turn sessions repeated 3+ times are excluded as likely automation",
+        }
+
+
     def _execute_trace_state(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Drive the trace-learning lifecycle; the state capability routes it."""
         state = self._require(self._state, "state")
