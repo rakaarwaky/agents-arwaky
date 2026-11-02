@@ -1,8 +1,3 @@
----
-title: Create
-role: reference
----
-
 # Create
 
 Interactive workflow for creating a new skill from scratch. Design rules and frontmatter constraints are Global Rules in `SKILL.md`; this file is only the step order.
@@ -45,7 +40,7 @@ The ~60-char index budget and the 1,024-char parser limit (Global Rules: Grok Bu
 
 ## Step 5: Write SKILL.md
 
-Frontmatter first, then the standard body. Every created skill uses the same skeleton — `# <Skill Name>`, `## Invoke Routing`, `## Global Rules`, `## Run Steps`, in that order:
+Frontmatter first, then the standard body. Every created skill uses the same skeleton — `# <Skill Name>`, `## Global Rules`, `## Routing`, in that order:
 
 ```markdown
 ---
@@ -57,11 +52,7 @@ argument-hint: "<arg> [--flag] <other-arg>"
 
 # <Skill Name>
 
-You <one sentence: what the agent does when this skill loads>.
-
-## Invoke Routing
-
-- `--<flag>` → <reference-name>.md — <what the reference contains, one line>.
+You <one paragraft: what the agent does when this skill loads>.
 
 ## Global Rules
 
@@ -69,28 +60,24 @@ Rules that apply to every step. Reference files cite these; they never restate t
 
 - **<Rule name>.** <the rule, stated once — this bullet is its single home; detail beyond a few lines moves to a reference and the bullet points to it.>
 
-## Run Steps
-
-The ordered pipeline that executes the reference Invoke Routing selected. Rows follow the routed reference's step files; terminal rows always run last.
+## Routing
 
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Step 0 | [`references/step-0-<name>.md`](references/step-0-<name>.md) | <purpose, one line>. |
-| Step 1 | [`references/step-1-<name>.md`](references/step-1-<name>.md) | <purpose, one line>. |
-| Report | — | What changed, how it was verified, and anything noticed but not fixed. |
+| <step-name> | [`references/<file>.md`](references/<file>.md) | <what the reference contains, one line>. |
+| <step-name> | [`references/<file>.md`](references/<file>.md) | <what the reference contains, one line>. |
 ```
 
 How to fill each section:
 
-- **Invoke Routing** — a plain text list, one bullet per request/mode: `<flag> → <reference-name>.md — <purpose>`. No markdown links here — the reference links are owned by the Run Steps table. A single-file skill with no references omits the section.
 - **Global Rules** — one named bullet per cross-step rule; the bullet is the single home for that fact. Task-conditional content belongs in a reference, not here (Global Rules: budget for permanent cost).
-- **Run Steps** — the ordered pipeline table (Step | Reference | Purpose) for the routed reference; terminal `Report` row last. This is where the `references/<file>.md` links live.
+- **Routing** — one table row per reference file the skill ships; the reference cell links to `references/<file>.md`. A single-file skill with no references omits the section.
 
 This is the same skeleton this skill's own `SKILL.md` uses; open it as a filled-in example. Mandatory keys, YAML hygiene, parser limits, and which optional keys are safe to add are Global Rules; the full optional-key table is in `audit.md`. Write supporting scripts and references as needed, using absolute paths so nothing lands in the wrong place.
 
 ## Step 6: Verify and confirm
 
-- [ ] Read the file back and confirm frontmatter and body landed correctly, and the body follows the Step 5 skeleton (`# <Skill Name>` / `## Invoke Routing` / `## Global Rules` / `## Run Steps`).
-- [ ] Run the terminal `Run Steps` rows of `SKILL.md` — `aa skills validate` and the pre-publish checklist.
+- [ ] Read the file back and confirm frontmatter and body landed correctly, and the body follows the Step 5 skeleton (`# <Skill Name>` / `## Global Rules` / `## Routing`).
+- [ ] Run `aa skills validate` and the pre-publish checklist.
 - [ ] Tell the user how to invoke it (slash command, skills menu, description matching — whichever the target harness provides).
 - [ ] Remind the user that new or renamed skills appear in the next session: loaders cache the skill list at session start. This is expected.
