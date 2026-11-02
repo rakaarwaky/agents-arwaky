@@ -88,7 +88,7 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         "merge-plan",
     ):
         return _cmd_authoring(sub, rest, aggregate)
-    if sub in ("trace-collect", "trace-usage", "trace-phrases", "trace-state"):
+    if sub in ("trace-collect", "trace-usage", "trace-phrases", "trace-materialize", "trace-state"):
         return _cmd_trace(sub, rest, aggregate)
 
     err(f"Unknown skills subcommand: {sub}")
@@ -131,6 +131,7 @@ def _print_usage() -> None:
     info(f"{BOLD()}aa skills trace-collect[...]{RESET()}    Scan sessions → build usage (run dir + kept/seen counts)")
     info(f"{BOLD()}aa skills trace-usage[...]{RESET()}      Read last run's usage (skills-only table, unused_loaded)")
     info(f"{BOLD()}aa skills trace-phrases[...]{RESET()}    Mine repeated prompts + instruction lines")
+    info(f"{BOLD()}aa skills trace-materialize[...]{RESET()}  Write usage.json + phrases.json into a run dir")
     info(f"{BOLD()}aa skills trace-state <action>[...]{RESET()}  Trace lifecycle: get|set|clear|trash|restrict|decide|wait")
 
 
@@ -941,6 +942,8 @@ def _cmd_trace(
         return _cmd_trace_usage(rest, aggregate)
     if sub == "trace-phrases":
         return _cmd_trace_phrases(rest, aggregate)
+    if sub == "trace-materialize":
+        return _cmd_trace_materialize(rest, aggregate)
     if sub == "trace-state":
         return _cmd_trace_state(rest, aggregate)
     err(f"Unknown trace subcommand: {sub}")
@@ -1146,6 +1149,58 @@ def _cmd_trace_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
             print(f"  [{row.sessions} sessions] {row.phrase}")
     if not any((phrases.exact_prompts, phrases.stems, phrases.repeated_instruction_lines)):
         print("No repeated phrases found.")
+    return 0
+
+
+def _trace_materialize_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="aa skills trace-materialize",
+        description="Write usage.json + phrases.json into a run dir for the trace workflow.",
+    )
+    parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to read")
+    parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to write into (required)")
+    parser.add_argument("--json", action="store_true", help="Emit JSON")
+    return parser
+
+
+def _cmd_trace_materialize(args: list[str], aggregate: ISkillsAggregate) -> int:
+    try:
+        ns = _trace_materialize_parser().parse_args(args)
+    except SystemExit as exit_exc:
+        return int(exit_exc.code or 0)
+
+    if not ns.run_dir:
+        err("--run-dir is required")
+        return 2
+
+    request = SkillsRequest(
+        op=SkillsOp.TRACE_MATERIALIZE,
+        flags={
+            "grok_home": ns.grok_home,
+            "run_dir": ns.run_dir,
+        },
+        json=ns.json,
+    )
+    result = aggregate.execute(request)
+    if not result.ok:
+        err(result.message or "Materialize failed")
+        return int(result.exit_code or 1)
+
+    if ns.json:
+        _emit_json(
+            {
+                "run_dir": ns.run_dir,
+                "usage_items": len(result.usage.items) if result.usage else 0,
+                "unused_loaded": list(result.usage.unused_loaded) if result.usage else [],
+                "phrases": {
+                    "exact_prompts": len(result.phrases.exact_prompts) if result.phrases else 0,
+                    "stems": len(result.phrases.stems) if result.phrases else 0,
+                    "instruction_lines": len(result.phrases.repeated_instruction_lines) if result.phrases else 0,
+                },
+            }
+        )
+        return 0
+    print(result.message or f"Materialized usage.json + phrases.json → {ns.run_dir}")
     return 0
 
 

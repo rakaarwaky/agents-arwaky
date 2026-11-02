@@ -17,6 +17,9 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
+
+import json
+import os
 from typing import cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
@@ -33,7 +36,9 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ITrackerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+    PhrasesReport,
     SkillCreatePlan,
+    UsageReport,
 )
 from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsError,
@@ -41,6 +46,7 @@ from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsUsageError,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
+    PhraseRow,
     SkillContent,
     SkillQuery,
     SkillRecord,

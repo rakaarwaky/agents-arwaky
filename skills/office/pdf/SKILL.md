@@ -18,7 +18,7 @@ metadata:
     - xlsx
     - pptx
     - document-to-action-items
-  category: productivity
+  category: office
   backends: [hermes, grok-build]
 ---
 
