@@ -12,13 +12,6 @@ You prune and consolidate agent skill directories (a collection of `SKILL.md` fo
 
 **Scope:** skill directories only — `SKILL.md` files, `references/`, `scripts/`, and category `DESCRIPTION.md` files. Never touch non-skill content.
 
-## Invoke Routing
-
-- `--dry-run` → workflow-steps.md — the full per-step checklist from confirm root to report.
-- `--auto` / `--evolution` → workflow-steps.md — skip the approval gate and go straight to the snapshot.
-- `--merge` → merge-rules.md — name survival, frontmatter union, body merge, conflict resolution.
-- `--rollback` → rollback-protocol.md — hard failure, soft failure, and mid-run abort handling.
-
 ## Global Rules
 
 Rules that apply to every step. Reference files cite these; they never restate them.
@@ -32,13 +25,11 @@ Rules that apply to every step. Reference files cite these; they never restate t
 - **Rollback**: the snapshot (or `HEAD` SHA when the tree was dirty) is the undo path; `git reset --hard <sha>` restores both the skill and unrelated state. Record the snapshot SHA in the commit message and final report. `--evolution` (headless) runs that cannot commit fall back to `--dry-run` and report instead of applying.
 - **Scope**: skill directories only. A scoped multi-skill merge (the user names two or more specific folders) skips the full-tree inventory and treats exactly the named skills as the audit set; do not let the default audit root expand the scope beyond the named skills.
 
-## Run Steps
+## Routing
 
-| Mode | Reference | Purpose |
+| Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Step details (1–10) | [`references/workflow-steps.md`](references/workflow-steps.md) | The full per-step checklist: confirm root, inventory, group, classify, dry-run & approval, snapshot, execute, update, verify, report. |
-| Merge rules | [`references/merge-rules.md`](references/merge-rules.md) | Name survival, frontmatter union, body merge, conflict resolution, scripts, empty-category cleanup, DESCRIPTION.md handling. |
-| Report format | [`references/report-format.md`](references/report-format.md) | The final executed report shape: MERGED / KEPT SEPARATE / DELETED / ROLLBACK TARGET / VERIFY. |
-| Rollback protocol | [`references/rollback-protocol.md`](references/rollback-protocol.md) | Hard failure, soft failure, and mid-run abort handling. |
-| Common mistakes | [`references/common-mistakes.md`](references/common-mistakes.md) | The failure list to re-check before declaring the prune done. |
-| Safety model | [`references/safety.md`](references/safety.md) | What this skill may and may not touch. |
+| `--dry-run` | `[workflow-steps.md](references/workflow-steps.md)` | the full per-step checklist from confirm root to report. |
+| `--auto` / `--evolution` | `[workflow-steps.md](references/workflow-steps.md)` | skip the approval gate and go straight to the snapshot. |
+| `--merge` | `[merge-rules.md](references/merge-rules.md)` | name survival, frontmatter union, body merge, conflict resolution. |
+| `--rollback` | `[rollback-protocol.md](references/rollback-protocol.md)` | hard failure, soft failure, and mid-run abort handling. |

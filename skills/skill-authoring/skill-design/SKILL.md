@@ -9,12 +9,6 @@ argument-hint: "<skills path> [--create] [--improve] [--audit]"
 
 You create, improve, and audit SKILL.md files.
 
-## Invoke Routing
-
-- `--create` → create.md — interactive creation workflow; ends at the pre-publish checklist.
-- `--improve` → improve.md — improve checklist; owns the reference-pattern decision (A / B / C).
-- `--audit` → audit.md — frontmatter key table, validator rule catalog, naming/content detail, pre-publish checklist; auto-resolves scope.
-
 ## Global Rules
 
 Rules that apply to every step. Reference files cite these; they never restate them.
@@ -33,12 +27,10 @@ Rules that apply to every step. Reference files cite these; they never restate t
 - **Structure.** Exactly one `SKILL.md` at `<category>/<skill>/SKILL.md` (nested SKILL.md files are rejected). The body is a routing table of contents, ~100–200 lines, with steps that end in checkable completion criteria; detail lives in `references/*.md` (subfolders allowed when the set is large) and every reference, whatever its depth, links directly from `SKILL.md`. Non-trivial logic ships as `scripts/<file>` referenced by path.
 - **Enforcement.** `aa skills validate` is the gate before publishing; the rule names it enforces are cataloged in `references/audit.md`.
 
-## Run Steps
-
-The ordered pipeline that executes the reference Invoke Routing selected. Rows follow the routed reference's step files; terminal rows always run last.
+## Routing
 
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| `--create` | [`references/create.md`](references/create.md) | Interactive creation workflow; ends at the pre-publish checklist. |
-| `--improve` | [`references/improve.md`](references/improve.md) | Improve checklist; owns the reference-pattern decision (A / B / C). |
-| `--audit` | [`references/audit.md`](references/audit.md) | Frontmatter key table, validator rule catalog, naming/content detail, pre-publish checklist; auto-resolves scope. |
+| `--create` | `[create.md](references/create.md)` | interactive creation workflow; ends at the pre-publish checklist. |
+| `--improve` | `[improve.md](references/improve.md)` | improve checklist; owns the reference-pattern decision (A / B / C). |
+| `--audit` | `[audit.md](references/audit.md)` | frontmatter key table, validator rule catalog, naming/content detail, pre-publish checklist; auto-resolves scope. |

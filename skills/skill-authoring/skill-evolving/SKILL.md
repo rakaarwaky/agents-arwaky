@@ -9,15 +9,6 @@ argument-hint: "<none>"
 
 You edit existing skills so they match the conditions and demand the traces show. The trace pipeline produces report section 2 (Skills to update); you curate that section and apply `edit` and `propose` actions.
 
-## Invoke Routing
-
-- Resume or price → step-0-resume-or-price.md — run `trace-state get` and `trace-collect` to price the scope.
-- Collect → step-1-collect.md — the collector writes `manifest.json` and sessions into the run dir.
-- Launch → step-2-launch.md — run the `learn-traces` workflow; block on `trace-state wait`.
-- Read → step-3-read-report.md — present `report.md` Overview plus section 2.
-- Apply → step-4-apply.md — edit or propose each owned action; record decisions.
-- Verify → step-5-verify.md — re-read touched files; confirm the change and the trash backup.
-
 ## Global Rules
 
 Rules that apply to every action. Reference files cite these; they never restate them.
@@ -30,14 +21,13 @@ Rules that apply to every action. Reference files cite these; they never restate
 - **Consent rules**: apply only actions backed by trace evidence and gated by the verifier.
 - **Validation rules** — enforced by `aa skills validate` on every edit this skill makes. The full key table and naming detail live in [`skill-design/references/audit.md`](../skill-design/references/audit.md).
 
-## Run Steps
+## Routing
 
-
-| Step   | Reference                                                                      | Purpose                                                  |
-| ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| Step 0 | [`references/step-0-resume-or-price.md`](references/step-0-resume-or-price.md) | Resume pending run or price scope with trace-collect     |
-| Step 1 | [`references/step-1-collect.md`](references/step-1-collect.md)                 | Collector writes manifest.json and sessions into run dir |
-| Step 2 | [`references/step-2-launch.md`](references/step-2-launch.md)                   | Launch learn-traces workflow; block on trace-state wait  |
-| Step 3 | [`references/step-3-read-report.md`](references/step-3-read-report.md)         | Read report.md, present Overview + section 2; table columns; unverified/dropped claims |
-| Step 4 | [`references/step-4-apply.md`](references/step-4-apply.md)                     | Per-action rules; `actions.json` field shapes; record decisions |
-| Step 5 | [`references/step-5-verify.md`](references/step-5-verify.md)                   | Re-read touched files; confirm change + trash backup     |
+| Step | Reference | Purpose |
+| ---- | --------- | ------- |
+| Resume or price | `[step-0-resume-or-price.md](references/step-0-resume-or-price.md)` | run `trace-state get` and `trace-collect` to price the scope. |
+| Collect | `[step-1-collect.md](references/step-1-collect.md)` | the collector writes `manifest.json` and sessions into the run dir. |
+| Launch | `[step-2-launch.md](references/step-2-launch.md)` | run the `learn-traces` workflow; block on `trace-state wait`. |
+| Read | `[step-3-read-report.md](references/step-3-read-report.md)` | present `report.md` Overview plus section 2. |
+| Apply | `[step-4-apply.md](references/step-4-apply.md)` | edit or propose each owned action; record decisions. |
+| Verify | `[step-5-verify.md](references/step-5-verify.md)` | re-read touched files; confirm the change and the trash backup. |

@@ -10,12 +10,6 @@ argument-hint: "[--days N | --since-last | --limit N] [--batch N] [--estimate] [
 
 You remove skills, plugins, and other surfaces the user never uses. The trace pipeline produces report section 3 (Unused → delete or disable) from deterministic zero counts — never counted by an agent; you curate that section and apply `delete`, `disable`, `ask`, and `group` actions.
 
-## Invoke Routing
-
-- `--signals` → signals.md — what the trace mappers look for; ordered by blast radius.
-- `--report` → report-format.md — `actions.json` fields and emission rules, incl. grouping prohibitions.
-- `--apply` → apply-rules.md — trash mechanics, MCP table carving, restrict, undo.
-
 ## Global Rules
 
 Rules that apply to every action. Reference files cite these; they never restate them.
@@ -30,11 +24,10 @@ Rules that apply to every action. Reference files cite these; they never restate
 - **Validation rules** (enforced by `aa skills validate` when removing skills): category-nonempty — Every category holds at least one skill.
 - **Disputed counts**: a skill in slash MRU, or one that other loaded skills reference, is not a free delete. If the user disputes a count, re-run the collector; do not guess.
 
-## Run Steps
+## Routing
 
-| Mode | Reference | Purpose |
+| Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Signal definitions | [`references/signals.md`](references/signals.md) | What the trace mappers look for; ordered by blast radius. |
-| Report shape | [`references/report-format.md`](references/report-format.md) | `actions.json` fields and emission rules, including the grouping prohibitions. |
-| Apply rules | [`references/apply-rules.md`](references/apply-rules.md) | Trash mechanics, MCP table carving, restrict, undo. |
-| Workflow | [`workflows/learn-traces.rhai`](../../workflows/learn-traces.rhai) | The shared trace-mining workflow this skill runs. |
+| `--signals` | `[signals.md](references/signals.md)` | what the trace mappers look for; ordered by blast radius. |
+| `--report` | `[report-format.md](references/report-format.md)` | `actions.json` fields and emission rules, incl. grouping prohibitions. |
+| `--apply` | `[apply-rules.md](references/apply-rules.md)` | trash mechanics, MCP table carving, restrict, undo. |
