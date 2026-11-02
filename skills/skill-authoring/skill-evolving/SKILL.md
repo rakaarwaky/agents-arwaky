@@ -11,31 +11,28 @@ argument-hint: "<none>"
 You edit existing skills so they match the conditions and demand the traces show. The trace pipeline produces report section 2 (Skills to update); you curate that section and apply `edit`, `propose`, `enable`, and `disable` actions.
 
 ## Execution Flow
-
-1. **Resume or price**: run `aa skills trace-state get` (resume check, exit 3 = pending run) and `aa skills trace-collect` (one-line price). The collector always uses the hardcoded defaults from `taxonomy_skills_constant.py` — `since_last=True`, `min_turns=3`, `limit=0` (unlimited), `json=True`. No user arguments needed.
-2. **Collect**: `trace-collect` writes `manifest.json` and `sessions/NNNN-<id>.json` into the hardcoded run dir (`$GROK_HOME/skill-evolving/runs/<run-id>/`).
-3. **Launch**: the `learn-traces` workflow from [`workflows/learn-traces.rhai`](../../../workflows/learn-traces.rhai); block on `aa skills trace-state wait`.
-4. **Read**: `report.md`, present the Overview plus section 2 (Skills to update). The report comes first on its own; curation questions belong to the next turn.
-5. **Apply**: for each owned action, follow the mode in [`references/apply-rules.md`](references/apply-rules.md); record every decision with `aa skills trace-state decide`.
-6. **Verify**: re-read every file the apply step touched; the change must be present and the original must exist in the run's trash. Stop at the first failure and report it before continuing.
+1. **Resume or price**: run `trace-state get` (exit 3 = pending run) and `trace-collect` to price the scope; use the hardcoded collector defaults.
+2. **Collect**: the collector writes `manifest.json` and `sessions/*.json` into the hardcoded run dir.
+3. **Launch**: run the `learn-traces` workflow; block on `trace-state wait` for `report.md` + `actions.json`.
+4. **Read**: present `report.md` Overview plus section 2 (Skills to update); curation questions wait for the next turn.
+5. **Apply**: edit / propose / enable / disable each owned action; record every decision with `trace-state decide`.
+6. **Verify**: re-read each touched file; the change must be present and the original backed up in the run's trash. Stop at the first failure.
 
 ## Global Rules
 
 Rules that apply to every action. Reference files cite these; they never restate them.
 
 - **Scope**: this skill owns report section 2 (Skills to update) only. Section 1 (repeated phrases) belongs to `skill-learning`; section 3 (unused → retire) belongs to `skill-unlearn`. Route cross-skill actions there instead of applying them here.
-- **Signals** (from [`references/signals.md`](references/signals.md)): §3 stale skill lines — a line in a loaded SKILL.md that the session shows to be wrong or outdated; name the skill, quote the current line, quote the trace evidence. §2 friction — turns where the user corrected the agent, repeated an earlier instruction, or said the result was wrong; friction that recurs across sessions points at a missing or unclear skill line; the fix is the same `edit` action.
-- **Action types** (from [`references/report-format.md`](references/report-format.md)): `edit` (anchor/replacement/mode `replace` | `insert_after` | `append`; the original is backed up to trash as the undo), `propose` (target is protected — plugin, bundled, or git-tracked — the fix belongs in a user-skill override or a PR patch, never in the protected file), `enable` / `disable` (flip the plugin in the `[plugins]` lists of `GROK_HOME/config.toml`; read only that block).
 - **Consent rules**: apply only actions backed by trace evidence and gated by the verifier.
-- **Record**: every decision with `aa skills trace-state decide --run-dir <RUN> --id <id> --kind skill|workflow|hook --action create|update|delete|reject --target <name> --path <path> --decision applied|rejected|deferred [--date DATE] [--undo <trash path>]`. Map `edit`/`propose`/`enable`/`disable` to `--action update`.
-- **Hardcoded defaults**: the run dir is `$GROK_HOME/skill-evolving/runs/<run-id>/` — it writes `report.md` and `actions.json` there on every run. `GROK_HOME` is read from the environment or the config; both paths are fixed, not user flags. The collector is always invoked with `--since-last` (sessions since the last completed trace run), `--min-turns 3` (drop signals seen in fewer than 3 sessions), and no `--limit` (keep all matching sessions — unlimited). The AI turn still reports to the user what it did in plain language regardless of the JSON on disk.
-- **Validation rules** — enforced by `aa skills validate`; the catalog: `name-format` (lowercase letters, digits, hyphens), `name-mismatch` (frontmatter name equals directory name), `description-present`, `description-characters` (no `<`, `>`, `"`), `description-length` (≤ 1,024 chars), `skill-md-nesting` (exactly one SKILL.md per skill dir), `skill-placement` (at `<category>/<skill>/SKILL.md`), `unique-skill-name`, `unique-description`. Full key table and naming detail are in [`skill-design/references/audit.md`](../skill-design/references/audit.md).
+- **Validation rules** — enforced by `aa skills validate` on every edit this skill makes. The full key table and naming detail are in [`skill-design/references/audit.md`](../skill-design/references/audit.md).
 
 ## Run Steps
 
-| Mode | Reference | Purpose |
+| Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Signal definitions | [`references/signals.md`](references/signals.md) | What the trace mappers look for; ordered by blast radius. |
-| Report shape | [`references/report-format.md`](references/report-format.md) | `actions.json` fields and emission rules. |
-| Apply rules | [`references/apply-rules.md`](references/apply-rules.md) | Read-before-edit, backup, anchor-or-fix, re-read-after, protected targets, config blocks. |
-| Workflow | [`workflows/learn-traces.rhai`](../../../workflows/learn-traces.rhai) | The shared trace-mining workflow this skill runs. |
+| Step 0 | [`references/step-0-resume-or-price.md`](references/step-0-resume-or-price.md) | Resume pending run or price scope with trace-collect |
+| Step 1 | [`references/step-1-collect.md`](references/step-1-collect.md) | Collector writes manifest.json and sessions into run dir |
+| Step 2 | [`references/step-2-launch.md`](references/step-2-launch.md) | Launch learn-traces workflow; block on trace-state wait |
+| Step 3 | [`references/step-3-read-report.md`](references/step-3-read-report.md) | Read report.md, present Overview + Skills to update |
+| Step 4 | [`references/step-4-apply.md`](references/step-4-apply.md) | Edit/propose/enable/disable; record decisions |
+| Step 5 | [`references/step-5-verify.md`](references/step-5-verify.md) | Re-read touched files; confirm change + trash backup |
