@@ -160,6 +160,7 @@ Run additional Hermes processes as fully independent subprocesses — separate s
 
 - **Never break prompt caching** — don't change past context, toolsets, or the system prompt mid-conversation. The only exception is context compression.
 - **Message role alternation** — never two assistant or two user messages in a row; only `tool` results can repeat.
+- **No unnecessary clarifying questions.** When the user's request is specific enough to act on, execute it. Only ask for clarification when the request is genuinely ambiguous and acting would change behavior in a way the user did not authorize. A path + flag is a directive, not a conversation opener.
 - **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
 - **Profile-safe paths** — `get_hermes_home()` in code, `$HERMES_HOME` when resolving paths in a session.
 - **Never hand-edit `config.yaml` for the user** — use `hermes config set KEY VAL`; a stray indent can corrupt the file and break the live gateway. List-valued keys are still CLI work, but only when the value is passed as a **JSON array literal** (`hermes config set skills.disabled '["a","b"]'`); the comma form stores a scalar that every later read treats as one bogus name, so it silently does nothing. Verify with `config get <key> --json`, which must print an array. The single sanctioned non-CLI writer is the ruamel round-trip, used when the file carries comments the CLI rewrite would destroy.

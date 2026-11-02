@@ -1,4 +1,6 @@
-# Creating Issues
+# Creating Issues — auxiliary CRUD recipe
+
+This recipe is auxiliary, not part of the issue-worker spine. The spine (issue → PR) takes EXISTING GitHub issues to PRs; it never originates them. Use `/issue-maker` to create issues from repo spec docs. This recipe only covers the raw `gh issue create` / `curl` mechanics for ad-hoc one-off issues.
 
 **With gh:**
 

@@ -7,6 +7,16 @@ role: reference
 
 Recipe for the improve step, plus the reference-pattern decision it owns. Verification after any edit is the `aa skills validate` gate — this file adds only the edit actions that precede it.
 
+## Scope resolution
+
+The `--improve` flag takes a single skills path. Resolve it before editing:
+
+- **Skill directory** — the path names `<category>/<skill>/` containing a `SKILL.md`. Improve that one skill.
+- **Category directory** — the path names a category folder without its own `SKILL.md`. Default to improving every `SKILL.md` in that tree. Do not ask the user to pick one skill; the request targets the whole category.
+- **Skills root** — the path is the `skills/` folder itself. Improve every skill in the tree.
+
+Do not prompt the user to disambiguate unless two or more distinct skills in the tree match the request equally well and acting on both would waste significant effort; in that case, name the two candidates and proceed with the more specific match.
+
 ## Improve a skill
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.

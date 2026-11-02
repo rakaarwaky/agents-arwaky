@@ -2,8 +2,7 @@
 name: issue-maker
 description: repo → issues: zero-trust issue maker that maps AES spec documents (PRD, ROADMAP, BACKLOG, FRD, DESIGN, plus module and package feature docs) into modular GitHub tracking issues. Done rows are re-verified against live source and test evidence. Every issue carries a closing-condition that advances its ROW and all FR IDs to Done. Never opens a PR — issues only.
 when-to-use: /issue-maker — map incomplete tasks to GitHub issues (repo → issues), create tracking issues from ROADMAP or BACKLOG, verify Done claims against code, ensure every issue carries a closing-condition that advances the roadmap state to Done. Outputs GitHub issues only; never edits source, never creates a branch, never opens a PR.
-argument-hint: <repo-root> [--dry-run] [--trust | --no-trust] [--legacy]
----
+argument-hint: <repo-root> [--discovery <json>] [--scan-out <json>] [--classify-out <json>] [--trust-mode <no-trust|trust>] [--dry-run] [--ledger <path>] [--report <path>] [--legacy]---
 
 # Issue Maker — repo → issues: zero-trust spec audit → modular GitHub tracking issues with closing conditions
 

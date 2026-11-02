@@ -1,7 +1,6 @@
 ---
 name: issue-worker
-description: issue worker: analyze open GitHub issues and take each one from backlog to a PR opened to main — verify at HEAD → decide → 1 issue → 1 Orca worktree → implementer subagent → orchestrator verifies → orchestrator pushes branch + opens a (draft) PR to main → close/reopen the issue per result. Never merges.
-when-to-use: /issue-worker — analyze issues to create PRs (issue → PR): work one issue ("fix #123") or a batch in isolation (1 issue → 1 worktree → 1 PR to main), audit which open issues can close. The CRUD recipes (create/search/label/assign/comment/close/reopen) stay as reference; the spine is the verify → decide → isolate → implement → verify → PR pipeline.
+description: issue worker: analyze open GitHub issues and take each one from backlog to a PR opened to main — verify at HEAD → decide → 1 issue → 1 Orca worktree → implementer subagent → orchestrator verifies → orchestrator pushes branch + opens a (draft) PR to main → close/reopen the issue per result. Never merges. Takes EXISTING issues to PRs; does not create issues (that is `/issue-maker`'s domain). CRUD recipes (create/search/label/assign/comment/close/reopen) stay as reference only; the spine is verify → decide → isolate → implement → verify → PR.
 argument-hint: <issue-number> [<issue-number>...]
 disable-model-invocation: true
 ---
@@ -31,7 +30,7 @@ Rules that apply to every issue-worker operation. Reference files cite these; th
 | ---- | --------- | ------- |
 | Step 0 | [`references/step-0-setup.md`](references/step-0-setup.md) | Prerequisites, auth detection, `gh-env.sh` helper sourcing. |
 | Step 1 | [`references/step-1-viewing.md`](references/step-1-viewing.md) | List, search, view issues (gh + curl). |
-| Step 2 | [`references/step-2-creating.md`](references/step-2-creating.md) | Create an issue, pick a bug/feature template. |
+| Step 2 | [`references/step-2-creating.md`](references/step-2-creating.md) | Auxiliary CRUD recipe: create an issue (bug/feature template). Not the spine — the spine is issue → PR; `/issue-worker` takes EXISTING issues to PRs, it does not originate them. |
 | Step 3 | [`references/step-3-managing.md`](references/step-3-managing.md) | Label, assign, comment, close/reopen, link to PRs, branch from issue. |
 | Step 4 | [`references/step-4-triage-bulk.md`](references/step-4-triage-bulk.md) | Issue triage workflow and bulk label/close operations. |
 | Step 5 | [`references/step-5-verify-triage.md`](references/step-5-verify-triage.md) | Load and triage: verify every claim at HEAD before closing. |
