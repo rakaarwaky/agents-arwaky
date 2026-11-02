@@ -3,7 +3,7 @@ name: skill-evolving
 description: "Edit skills to adapt them to matching conditions and demand. Mines Grok Build session traces for stale skill lines (a path that no longer exists, a flag or command that failed, a step the user skips) and friction pointing at a missing or unclear skill line; applies the smallest edit — anchor-based edits with the original backed up to trash, user-skill overrides for protected plugin or bundled skills, PR patches for git-tracked skills. Use on slash-skill-evolving when skill instructions are outdated. Not for creating skills from repeated phrases (skill-learning) or retiring unused surfaces (skill-unlearn)."
 user-invocable: true
 when-to-use: Use when existing skills need to match reality — stale paths, failed flags or commands, overridden model or tool names, skipped steps, or friction the user hit because a skill line was missing or unclear, all observed in Grok Build session traces.
-argument-hint: "[--min-turns N]"
+argument-hint: "<none>"
 ---
 
 # Skill Evolving
