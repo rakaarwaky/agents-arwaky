@@ -9,9 +9,10 @@ Capabilities never import one another: where one needs another's
 data (the discoverer reads catalog rows), the dependency is
 expressed as one of these protocols and wired by the root.
 
-``ISkillsValidatorProtocol`` and ``ISkillsMutatorProtocol`` are
-internal seams consumed by the linter and creator; they are not
-exposed as CLI verbs.
+``ISkillsValidatorProtocol`` is an internal seam consumed by the linter;
+it is not exposed as a CLI verb. The mutation primitives (plan_weed,
+plan_repair) live in ``utility_skills_mutation`` (shared kernel), so no
+mutation protocol is needed here.
 """
 
 from __future__ import annotations
