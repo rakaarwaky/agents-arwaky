@@ -11,7 +11,7 @@ Recipe for the improve step, plus the reference-pattern decision it owns. Verifi
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.
 2. **Identify the owner**: for each fact being changed, name its one home (Global Rules, a reference file, or a step file). If the owner is ambiguous, stop and confirm before touching anything.
-3. **Pick the target pattern** (only if the edit restructures `references/`): run the pattern decision below and apply it before editing.
+3. **Pick the target pattern** (when the edit restructures `references/`, or when the current tree's pattern does not match the skill's shape): run the pattern decision below and apply it before editing. The answer to Step 1 and Step 2 below comes from the skill's **Execution Flow verbs and run-state**, never from the layout of the `references/` files that exist today — a tree that looks like Pattern A (flat per-mode files) is Pattern B the moment its flow is a single ordered pipeline with state passing between steps. Restructuring from A to B is a valid restructure; it is not "mixing patterns."
 4. **Apply the edit** where the owner lives. If the owner is a reference file, edit the reference — never the body. If the owner is Global Rules, edit `SKILL.md`.
 5. **Sweep for second copies**: after the edit, search the skill directory for any other place that states the same fact. Report each one; do not silently rewrite them.
 6. **Resolve cross-skill links you touched**: every sibling mention and cross-skill link you edited must name a skill that exists in the tree (Global Rules: dangling refs rot fast).
@@ -69,9 +69,13 @@ skill-evolving/
 
 ### Decision steps
 
+The pattern follows the skill's shape, not the tree it currently has. Run Step 1 and Step 2 **before** looking at the existing `references/` layout; if the resulting pattern differs from what is on disk, restructure.
+
 #### Step 1: Does the skill have one ordered pipeline?
 
 Ask: will the agent always execute all steps in sequence, with run state (attempt counters, hypotheses, repro commands, etc.) flowing from one step to the next?
+
+Answer this question from the **Execution Flow** in `SKILL.md` (the numbered verb list and whether each step's output feeds the next), not from the filenames under `references/`. Definition files (`signals.md`, `report-format.md`, …) do not make a skill mode-based; they are inputs a pipeline step reads. If the flow is one ordered sequence, the answer is **Yes** even if the current tree is flat Pattern A.
 
 - **Yes** → **Pattern B**: numbered `references/step-<N>-<name>.md` files in execution order. Numbers encode order; sub-variants (`step-<N>a`, `step-<N>b`) branch by a runtime parameter.
   - Examples in this pack: `systematic-debugging`, `implement`, `skill-evolving`.
