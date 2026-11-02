@@ -84,7 +84,9 @@ Run once to gather evidence showing WHERE it breaks. THEN analyze evidence to id
 - Keep tracing upstream until you find the source.
 - Fix at the source, not at the symptom.
 
-**Action:** Use `grep` / `codegraph_explore` to trace references:
+**Pitfall — frontend `.includes()` on a null/undefined field:** When a browser/JS frontend throws `X.includes is not a function` (or `Cannot read properties of null (reading 'includes')`), the variable is not an array or string — it is `null` or `undefined`. Trace upstream to the data source (API response, database row, config). Common culprits: a database column set to `null` where the frontend expects a string/array, a missing field in a JSON payload, or an uninitialized React state. Fix the data at its source (set the column to a valid default) rather than patching the frontend minified bundle.
+
+**Action:** Use `grep` / `codegraph_explore` to trace references:"
 
 ```bash
 grep -rn "function_name(" src/

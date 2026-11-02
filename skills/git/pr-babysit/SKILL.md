@@ -16,7 +16,7 @@ One sequential pipeline per PR: take a PR number, fix it until green and ready t
 - **Never force-push without `--force-with-lease`**.
 - **Never skip a review thread** — human or bot. Every unresolved thread is evaluated.
 - **Never reply with "will fix", "acknowledged", or a bare acknowledgment.** Reply with a fix commit SHA or a substantive technical explanation.
-- **Merge only in step 5**, only when `ship` is `true` and every gate passes. No auto-merge on a PR whose base is not the repo default branch.
+- **Merge only in step 4**, only when `ship` is `true` and every gate passes. No auto-merge on a PR whose base is not the repo default branch.
 - **State is per-session**: `~/.grok/plugin-data/pr-babysit/watched-prs-<INSTANCE_ID>.json`. `INSTANCE_ID` is a UUID generated on first `add` (resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`, run `<python> <HOST_PY> uuid --full`, reject WindowsApps stubs) and held in conversation context.
 
 ## Routing
@@ -24,8 +24,7 @@ One sequential pipeline per PR: take a PR number, fix it until green and ready t
 | Step | Reference | When it runs |
 |------|-----------|--------------|
 | 0 — Add to watchlist | [`references/step-0-add-pr.md`](references/step-0-add-pr.md) | `/pr-babysit add [--ship] <number>` |
-| 1 — Commit/title grammar | [`references/step-1-commit-title.md`](references/step-1-commit-title.md) | Authoring a fix commit in step 3 (auto-fix) |
-| 2 — Watch CI | [`references/step-2-watch-ci.md`](references/step-2-watch-ci.md) | Always, after the PR exists |
-| 3 — Auto-fix red checks | [`references/step-3-auto-fix.md`](references/step-3-auto-fix.md) | CI reports a red check; loops back to step 2 after each push |
-| 4 — Decision tree | [`references/step-4-decision-tree.md`](references/step-4-decision-tree.md) | After each step 3 push and always before step 5; CI logs ambiguous → [`references/step-4-troubleshoot.md`](references/step-4-troubleshoot.md) |
-| 5 — Merge | [`references/step-5-merge.md`](references/step-5-merge.md) | `ship` is `true` and step 4 reports `healthy`; ship-ready gates + merge commands |
+| 1 — Watch CI | [`references/step-1-watch-ci.md`](references/step-1-watch-ci.md) | Always, after the PR exists |
+| 2 — Auto-fix red checks | [`references/step-2-auto-fix.md`](references/step-2-auto-fix.md) | CI reports a red check; loops back to step 1 after each push. Commit title grammar: Conventional Commits inline |
+| 3 — Decision tree | [`references/step-3-decision-tree.md`](references/step-3-decision-tree.md) | After each step 2 push and always before step 4; CI logs ambiguous → [`references/step-3-troubleshoot.md`](references/step-3-troubleshoot.md) |
+| 4 — Merge | [`references/step-4-merge.md`](references/step-4-merge.md) | `ship` is `true` and step 3 reports `healthy`; ship-ready gates + merge commands |

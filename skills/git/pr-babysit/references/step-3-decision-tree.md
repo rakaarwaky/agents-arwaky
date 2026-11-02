@@ -94,7 +94,7 @@ gh run view <run_id> --log-failed 2>/dev/null | tail -100
 
 For each failed check:
 
-1. Read the log. Load [step-4-troubleshoot.md](step-4-troubleshoot.md) if the failure is ambiguous (flake vs real).
+1. Read the log. Load [step-3-troubleshoot.md](step-3-troubleshoot.md) if the failure is ambiguous (flake vs real).
 2. Fix the code in the worktree.
 3. Commit and push:
    ```bash
@@ -329,7 +329,7 @@ All of:
 - No unresolved review threads (human or bot) — confirmed by the passes above
 - No open conversation-tab comment without a later `Addressed in ` closer
 
-Set `last_status` to `"healthy"`. No action. The PR is ready to merge. If `--ship` is active, load [step-5-merge.md](step-5-merge.md).
+Set `last_status` to `"healthy"`. No action. The PR is ready to merge. If `--ship` is active, load [step-4-merge.md](step-4-merge.md).
 
 ## Last-status precedence
 

@@ -53,4 +53,4 @@ Write the state file. Report what was added and the ship flag.
 
 ## Next
 
-After `add`, the pipeline continues with step 1 (commit/title grammar, when a fix commit is authored in step 3) or jumps straight to step 2 (watch CI).
+After `add`, the pipeline continues with step 1 (watch CI).
