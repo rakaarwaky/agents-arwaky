@@ -1,6 +1,6 @@
 ---
 name: skill-library
-description: Manages the skills library — discovers skills, audits category placement, moves skills between categories, and organizes categories (create, split, rename). Routes authoring, content repair, and duplicate/obsolete pruning to skill-design and skill-lifecycle. Use when the user runs /skill-library or asks to find, audit, move, organize, catalog, validate, or rename-category skills.
+description: Manages the skills library — discovers skills, moves skills between categories, and organizes categories (create, split, rename). Routes authoring, content repair, audit, and duplicate/obsolete pruning to skill-design and skill-lifecycle. Use when the user runs /skill-library or asks to find, move, organize, catalog, validate, or rename-category skills.
 when-to-use: Use when the user wants to search the skill library, rebuild the catalog, move misplaced skills, create or rename categories, or reorganize the category tree.
 argument-hint: "[--discover <query>] [--catalog] [--validate] [--move <skill> <category>] [--new-category <name> <desc>] [--audit] [--rename-category <old> <new>]"
 ---
@@ -26,5 +26,4 @@ Rules that apply to every mode. Reference files cite these; they never restate t
 | ---- | --------- | ------- |
 | discover | `[discover.md](references/discover.md)` | find skills by query; recommend the best match; if none, suggest creating one via skill-design. |
 | organize | `[organize.md](references/organize.md)` | reorganize or create categories; improve DESCRIPTION.md wording; rebuild the catalog if hand-edited. |
-| audit | `[audit.md](references/audit.md)` | decide the correct category for each misplaced skill; move with move --apply; report. |
 | rename-category | `[rename-category.md](references/rename-category.md)` | in-place category rename: mv + cross-reference grep + catalog/validate rebuild. |
