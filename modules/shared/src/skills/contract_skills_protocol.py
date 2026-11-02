@@ -3,8 +3,7 @@
 One seam per subsystem the skills agent coordinates: the pack index
 (list), the pack reader (show), the validator, the catalog, discovery,
 the mutator, and the merge planner, plus the
-trace-learning trio (the tracker, the phrases miner, and the lifecycle
-state). Capabilities implement these; the composition root injects them
+trace-learning pair (the traces capability and the lifecycle state). Capabilities implement these; the composition root injects them
 into the agent.
 
 Capabilities never import one another: where one needs another's data
@@ -229,48 +228,6 @@ class ISkillsTracesProtocol(ABC):
         ...
 
 
-class ITrackerProtocol(ABC):
-    """Scan sessions and build the LLM-read skills-only usage material."""
-
-    @abstractmethod
-    def scan_sessions(
-        self,
-        grok_home: str,
-        run_dir: str,
-        days: int = 0,
-        since_last: bool = False,
-        min_turns: int = 1,
-        limit: int = 0,
-    ) -> ScanResult:
-        """Scan the session tree with the filters and return a ``ScanResult``.
-
-        The capability writes the records into ``run_dir`` and returns
-        the kept records plus the scan counters (``sessions_seen``,
-        ``dropped``) as a VO — no raw JSON for the surface to re-parse.
-        """
-        ...
-
-    @abstractmethod
-    def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
-        """Return the skills-only usage (hit counts, sessions, last_used, unused_loaded)."""
-        ...
-
-
-class IPhrasesProtocol(ABC):
-    """Mine repeated exact prompts and repeated instruction lines."""
-
-    @abstractmethod
-    def build_phrases(
-        self, grok_home: str, run_dir: str
-    ) -> PhrasesReport:
-        """Read the session records the tracker wrote to *run_dir*.
-
-        Returns repeated exact prompts and repeated instruction lines
-        (distinct-session counts; single-turn automation excluded).
-        """
-        ...
-
-
 class IStateProtocol(ABC):
     """Drive the trace-learning lifecycle (status machine, trash, decisions)."""
 
@@ -327,7 +284,6 @@ class IStateProtocol(ABC):
 
 
 __all__ = [
-    "IPhrasesProtocol",
     "ISkillsCatalogProtocol",
     "ISkillsDiscovererProtocol",
     "ISkillsIndexProtocol",
@@ -337,5 +293,4 @@ __all__ = [
     "ISkillsTracesProtocol",
     "ISkillsValidatorProtocol",
     "IStateProtocol",
-    "ITrackerProtocol",
 ]
