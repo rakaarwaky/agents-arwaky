@@ -8,8 +8,8 @@ answers "which skill do I use".
 | Goal | Skill | Where |
 |---|---|---|
 | Author / validate / audit a `SKILL.md` | `skill-design` | `aa skills validate | show | list` |
-| Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
-| Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
+| Find / catalog / move / organize skills | `skill-library` | `aa skills catalog --check | discover | move | new-category` |
+| Prune / consolidate / merge / weed / archive skill trees | `skill-lifecycle` | `aa skills weed | archive | merge-plan` |
 | Create skills for things you keep typing out | `skill-learning` | `skills/skill-authoring/skill-learning/` |
 | Edit skills to adapt to conditions and demand | `skill-evolving` | `skills/skill-authoring/skill-evolving/` |
 | Remove skills and surfaces you never use | `skill-unlearn` | `skills/skill-authoring/skill-unlearn/` |
@@ -33,6 +33,10 @@ Read-only subcommands (`list`, `show`, `validate`, `catalog --check`,
 subcommands (`repair`, `move`, `archive`, `new-category`) default to
 dry-run — pass `--apply` to execute. Every subcommand accepts
 `--skills-root PATH`; the authoring subcommands also accept `--json`.
+Skill content repair (`aa skills repair`) is the `skill-design` audit
+mode; duplicate/obsolete pruning (`aa skills weed` / `aa skills archive`)
+is the `skill-lifecycle` mode; category moves and creation
+(`aa skills move` / `aa skills new-category`) are `skill-library` modes.
 CI runs `aa skills validate --summary` and `aa skills catalog --check` on
 every pull request (`.github/workflows/ci.yml`); run both locally before
 pushing.

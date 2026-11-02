@@ -7,8 +7,8 @@ description: Skill-authoring skills — create, validate, and improve SKILL.md f
 | Goal | Skill | Entry point |
 |---|---|---|
 | Author / validate / audit a `SKILL.md` | `skill-design` | `aa skills validate | show | list` |
-| Find / catalog / repair / weed skills | `skill-library` | `aa skills catalog --check | discover | weed` |
-| Prune / consolidate / merge skill trees | `skill-lifecycle` | `aa skills repair | move | archive | new-category | merge-plan` |
+| Find / catalog / move / organize skills | `skill-library` | `aa skills catalog --check | discover | move | new-category` |
+| Prune / consolidate / merge / weed / archive skill trees | `skill-lifecycle` | `aa skills weed | archive | merge-plan` |
 | Create skills for things you keep typing out | `skill-learning` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
 | Edit skills to adapt to conditions and demand | `skill-evolving` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
 | Remove skills and surfaces you never use | `skill-unlearn` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |

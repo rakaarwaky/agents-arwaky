@@ -1,14 +1,14 @@
 ---
 name: skill-lifecycle
-description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories (e.g., /skill-lifecycle, or a merge of one skill into another such as merging create-workflow into grok-build), pruning skills, consolidating skills, merging duplicate skills, collapsing skill folders, or running a scheduled self-evolution pass over a skill tree.
+description: Performs bulk skill-tree operations — prune, consolidate, merge, archive, and weed (detect duplicate/obsolete skills and archive them). Use when cleaning up, auditing, or merging agent skill directories, pruning skills, consolidating skills, merging duplicate skills, collapsing skill folders, or running a scheduled self-evolution pass over a skill tree.
 user-invocable: true
-when-to-use: Use when the user wants to prune, consolidate, or merge a skill tree; collapse duplicate or near-duplicate skill folders; audit a skill directory for structural issues; or run a scheduled headless evolution pass that applies approved changes without an interactive approval gate.
-argument-hint: "[<skill-dir>] [--dry-run | --auto | --evolution]"
+when-to-use: Use when the user wants to prune, consolidate, or merge a skill tree; collapse duplicate or near-duplicate skill folders; audit a skill directory for structural issues; weed duplicate or obsolete skills; archive removed skills into `_archive/`; or run a scheduled headless evolution pass that applies approved changes without an interactive approval gate.
+argument-hint: "[<skill-dir>] [--dry-run | --auto | --evolution] [--weed] [--archive <skill>]"
 ---
 
 # Skill Lifecycle
 
-You prune and consolidate agent skill directories (a collection of `SKILL.md` folders). Two skills covering the same job collapse into one folder with one `SKILL.md`; skills that share a domain but differ per scenario keep one folder with one `SKILL.md` plus a `references/` subfolder, one file per scenario. The two-phase structure mirrors `code-quality/deep-clean`: Phase 1 removes true duplicates, Phase 2 consolidates variants.
+You prune, consolidate, merge, archive, and weed agent skill directories (a collection of `SKILL.md` folders). Two skills covering the same job collapse into one folder with one `SKILL.md`; skills that share a domain but differ per scenario keep one folder with one `SKILL.md` plus a `references/` subfolder, one file per scenario. Weeding detects duplicate or obsolete skills and archives them into `_archive/`. The two-phase structure mirrors `code-quality/deep-clean`: Phase 1 removes true duplicates, Phase 2 consolidates variants.
 
 **Scope:** skill directories only — `SKILL.md` files, `references/`, `scripts/`, and category `DESCRIPTION.md` files. Never touch non-skill content.
 
@@ -37,6 +37,8 @@ Rules that apply to every step. Reference files cite these; they never restate t
 | Step 2 | [`references/step-2-group.md`](references/step-2-group.md) | Cluster by semantic scope; verify against body content. |
 | Step 3 | [`references/step-3-classify.md`](references/step-3-classify.md) | Classify each cluster: duplicate, variant, or separate jobs. |
 | Step 4 | [`references/step-4-dry-run.md`](references/step-4-dry-run.md) | Generate the planned prune report; wait for confirmation unless `--auto`/`--evolution`. |
+| weed | [`references/weed.md`](references/weed.md) | Run `aa skills weed` to detect duplicate/obsolete skills; archive each obsolete skill into `_archive/`; rebuild the catalog; report. |
+| archive | [`references/archive.md`](references/archive.md) | Archive a named skill into `_archive/` (dry-run by default; pass `--apply`); rebuild the catalog; report. |
 | Step 5 | [`references/step-5-snapshot.md`](references/step-5-snapshot.md) | `git add -A && git commit` or `git stash`; record the rollback target. |
 | Step 6 | [`references/step-6-execute.md`](references/step-6-execute.md) | Execute the merge: name survival, frontmatter union, body merge, conflict resolution, scripts, empty-category cleanup, DESCRIPTION.md. |
 | Step 7 | [`references/step-7-verify-report.md`](references/step-7-verify-report.md) | Verify every `SKILL.md` parses and links resolve; on failure trigger rollback; output the final report. |

@@ -14,15 +14,10 @@ Use this when skills may be in the wrong category.
 aa skills validate
 ```
 
-2. Run:
-
-```bash
-aa skills weed
-```
-
-3. Read `CATALOG.md`.
-4. Read the `DESCRIPTION.md` file for each category involved.
-5. Identify skills whose name or description conflicts with their current category.
+2. Read `CATALOG.md`.
+3. Read the `DESCRIPTION.md` file for each category involved.
+4. Identify skills whose name or description conflicts with their current category.
+5. If duplicate or obsolete skills need pruning, route to `skill-lifecycle` (the weed/archive mode) — this mode only decides category placement.
 6. If no category fits, create one:
 
 ```bash
@@ -45,6 +40,7 @@ aa skills catalog
 
 ## Completion
 
-- Every misplaced skill identified in steps 5–7 has been moved or archived.
-- The catalog was rebuilt after moves or archives.
+- Every misplaced skill identified in steps 4–7 has been moved.
+- Duplicates and obsolete skills have been routed to `skill-lifecycle`.
+- The catalog was rebuilt after moves.
 - `aa skills validate` reports no placement issues.
