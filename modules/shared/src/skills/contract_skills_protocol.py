@@ -41,7 +41,6 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
 from modules.shared.src.skills.taxonomy_skills_vo import (
     ScanResult,
     SkillContent,
-    SkillDescription,
     SkillQuery,
     SkillRecord,
     SkillsRoot,
@@ -330,8 +329,8 @@ __all__ = [
     "ISkillsCatalogProtocol",
     "ISkillsCreatorProtocol",
     "ISkillsDiscoverProtocol",
-    "ISkillsListerProtocol",
     "ISkillsLinterProtocol",
+    "ISkillsListerProtocol",
     "ISkillsMoverProtocol",
     "ISkillsReaderProtocol",
     "ISkillsTracesProtocol",

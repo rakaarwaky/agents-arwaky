@@ -12,18 +12,15 @@ reads them back) — there is no capability-to-capability import between
 them here.
 
 The trace-state lifecycle (status machine, trash guard, decide log,
-wait, restrict) is ported from the retired
-``skills/skill-authoring/_trace-pipeline/scripts/state.py`` and lives
-in this same capability so the whole pipeline is one class behind
-one protocol.
+wait, restrict) now lives in ``utility_skills_trace_state`` (shared
+kernel) and is imported here for re-export. ``SkillsTraces`` itself
+keeps only scan / usage / phrases plus the protocol ``dispatch`` seam,
+which routes the state sub-actions to the shared helpers.
 
 Status machine (over ``GROK_HOME/learn/state.json``): collected →
-running → report_ready → curating → done. Writes are atomic (tmp +
-``os.replace``); ``done`` stamps ``last_completed_at`` /
-``last_completed_dir``. The capability returns the resulting status;
-the surface maps pending → exit 3.
+running → report_ready → curating → done.
 
-Trash: path-shape guard VERBATIM — only a ``skills/<name>`` directory,
+Trash: path-shape guard verbatim — only a ``skills/<name>`` directory,
 a ``workflows/*.rhai`` file, or a ``hooks/*`` file under GROK_HOME /
 ``~/.agents`` / project ``.grok`` is moved into
 ``learn/trash/<run_name>``; any other shape is refused.
@@ -32,15 +29,13 @@ Decide: appends one line to ``learn/decisions.jsonl`` in the legacy key
 order (``TraceDecision.as_dict()`` pins it).
 
 Wait: blocks until ``report.md`` + ``actions.json`` exist under the run
-dir; phase-stall (no file change) / report-stall (verifiers finished,
-no report) / deadline timeouts, with exit-code semantics (0 ready / 3
-report-stall / 4 phase-stall / 2 deadline).
+dir; phase-stall / report-stall / deadline timeouts with distinct status
+returns (no exit-code logic here).
 
 Restrict: chmod 0600 where the OS supports it.
 
-No capability-to-capability imports: depends only on ``modules.shared``
-contract + taxonomy. I/O is limited to ``GROK_HOME/learn`` and the run
-dir.
+Depends only on ``modules.shared`` contract + taxonomy. I/O is limited
+to ``GROK_HOME/learn`` and the run dir.
 """
 
 from __future__ import annotations
@@ -49,18 +44,13 @@ import datetime as dt
 import json
 import os
 import re
-import shutil
-import stat
-import time
 import urllib.parse
 from collections import Counter, defaultdict
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import ClassVar
 
 from modules.shared.src.common.utility_skill_pack import (
     SLASH_RE,
-    WORD_RE,
     parse_skill_frontmatter,
 )
 from modules.shared.src.skills.contract_skills_protocol import (
@@ -70,7 +60,6 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
-from modules.shared.src.skills.taxonomy_skills_error import SkillsUsageError
 from modules.shared.src.skills.taxonomy_skills_vo import (
     PhraseRow,
     ScanResult,
@@ -80,12 +69,40 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     TraceStateDispatchResult,
     TraceStateStatus,
 )
+from modules.skills.src.utility_skills_trace_state import (
+    SECRET_RES,
+    STATUSES,
+    TURN_CAP,
+    decisions_path,
+    files_ready,
+    latest_synthesis,
+    load_state,
+    mark,
+    newest_mtime,
+    normalize,
+    redact,
+    save_state,
+    state_path,
+)
+from modules.skills.src.utility_skills_trace_state import (
+    dispatch as _state_dispatch,
+)
+from modules.skills.src.utility_skills_trace_state import (
+    restrict as _restrict,
+)
+from modules.skills.src.utility_skills_trace_state import (
+    trash as _trash,
+)
+from modules.skills.src.utility_skills_trace_state import (
+    wait as _wait,
+)
 
 __all__ = [
     "SECRET_RES",
     "STATUSES",
     "TURN_CAP",
     "SkillsTraces",
+    "decisions_path",
     "files_ready",
     "latest_synthesis",
     "load_state",
@@ -97,189 +114,23 @@ __all__ = [
     "state_path",
 ]
 
-TURN_CAP = 2000
-"""Max characters kept per human prompt (longer prompts are truncated)."""
 
-USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
+# ── trace-state lifecycle constants ──────────────────────────────────
+
+
+_STATUS_BY_VALUE = {s.value: s for s in STATUSES}
+
+_USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
 SUBAGENT_KINDS = {"subagent", "subagent_resume", "subagent_fork"}
 DEFAULT_EXCLUDE_SUBSTR = ["grok-e2e"]
 SKILL_PATH_RE = re.compile(r"[/\\]skills[/\\]([^/\\]+)[/\\]SKILL\.md$")
 # a slash command, not a path segment (~/x, ./x, a/b) and not followed by more path
 DEFAULT_DROP_PATTERNS = [r"^the user invoked `/feedback`"]
 
-# ── trace-state lifecycle constants ──────────────────────────────────
-
-STATUSES = (
-    TraceStateStatus.COLLECTED,
-    TraceStateStatus.RUNNING,
-    TraceStateStatus.REPORT_READY,
-    TraceStateStatus.CURATING,
-    TraceStateStatus.DONE,
-)
-
-_STATUS_BY_VALUE = {s.value: s for s in STATUSES}
-
-
-def state_path(grok_home: str) -> str:
-    return os.path.join(grok_home, "learn", "state.json")
-
-
-def decisions_path(grok_home: str) -> str:
-    return os.path.join(grok_home, "learn", "decisions.jsonl")
-
-
-def load_state(path: str) -> dict:
-    try:
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return {}
-
-
-def save_state(path: str, state: dict) -> None:
-    """Atomic write: tmp file then ``os.replace``."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(state, f, indent=1)
-    os.replace(tmp, path)
-
-
-def mark(
-    path: str,
-    run_dir: str,
-    status: TraceStateStatus | str,
-    extra: dict | None = None,
-) -> dict:
-    """Record ``status`` for ``run_dir`` as the pending run and save.
-
-    ``done`` also stamps ``last_completed_at`` / ``last_completed_dir``.
-    """
-    status_enum = (
-        status if isinstance(status, TraceStateStatus) else _STATUS_BY_VALUE[status]
-    )
-    state = load_state(path)
-    now = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
-    pending = state.get("pending") or {}
-    if pending.get("run_dir") != run_dir:
-        pending = {"run_dir": run_dir, "started_at": now}
-    pending["status"] = status_enum.value
-    pending["updated_at"] = now
-    pending["report_ready"] = files_ready(run_dir)
-    for k, v in (extra or {}).items():
-        if v:
-            pending[k] = v
-    if status_enum is TraceStateStatus.DONE:
-        state["last_completed_at"] = now
-        state["last_completed_dir"] = run_dir
-    state["pending"] = pending
-    save_state(path, state)
-    return state
-
-
-def files_ready(run_dir: str) -> bool:
-    return bool(run_dir) and os.path.isfile(
-        os.path.join(run_dir, "report.md")
-    ) and os.path.isfile(os.path.join(run_dir, "actions.json"))
-
-
-def newest_mtime(run_dir: str) -> float:
-    """Latest mtime of any file under the run dir (0 if none) — the heartbeat."""
-    newest = 0.0
-    for root, _dirs, files in os.walk(run_dir):
-        for f in files:
-            try:
-                newest = max(newest, os.path.getmtime(os.path.join(root, f)))
-            except OSError:
-                pass
-    return newest
-
-
-def latest_synthesis(run_dir: str) -> str | None:
-    """Newest reducer output; best available result when report.md never appears."""
-    d = os.path.join(run_dir, "reduce")
-    if not os.path.isdir(d):
-        return None
-    files = [os.path.join(d, f) for f in os.listdir(d) if f.endswith(".md")]
-    return max(files, key=os.path.getmtime) if files else None
-
-# pasted credentials must not be copied into the run directory
-# a credential is one unbroken run of letters and digits with digits in it;
-# hyphenated words (npm-package-for-widgets, sk-learn-utils) and 40-hex git SHAs
-# are not credentials
-SECRET_RES = [
-    # prefixed keys: sk-…, sk-proj-…, ghp_…, xai-…; hyphens allowed inside but at
-    # least three digits, so package names stay
-    re.compile(r"\b(xai|sk|ghp|gho|ghu|ghs|glpat|npm)[-_](?=(?:[A-Za-z_\-]*\d){3})[A-Za-z0-9_\-]{16,}\b"),
-    re.compile(r"\b(AKIA|ASIA)[A-Z0-9]{16}\b"),
-    re.compile(r"\bxox[abpsr]-\d[A-Za-z0-9-]{20,}\b"),
-    re.compile(r"\b[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\b"),  # JWT
-    re.compile(r"(?i)\bbearer\s+[A-Za-z0-9_\-./+=]{20,}"),
-    re.compile(r"(?i)\b(token|api[_-]?key|secret|password|passwd)\b\s*[:=]\s*['\"]?(?=[A-Za-z0-9_\-./+=]*\d)[A-Za-z0-9_\-./+=]{16,}"),
-    re.compile(r"\b[a-f0-9]{64,}\b"),
-    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY.*?-----END [A-Z ]*PRIVATE KEY", re.DOTALL),  # PEM key blocks
-    re.compile(r'"private_key"\s*:\s*"[^"]{16,}"'),  # JSON-shaped pasted private keys
-]
-
-_SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
-
-_EXACT_MIN_SESSIONS = 2
-_STEM_MIN_SESSIONS = 3
-_LINE_MIN_SESSIONS = 3
-_TOP = 60
-_MIN_PHRASE_LEN = 12
-_MIN_LINE_WORDS = 5
-_MIN_LINE_CHARS = 24
-
-
-def redact(text: str) -> str:
-    """Redact secrets verbatim from the retired collector (security-critical)."""
-    for rx in SECRET_RES:
-        text = rx.sub(lambda m: m.group(0)[:8] + "…[redacted]", text)
-    return text
-
-
-def normalize(s: str) -> str:
-    return WORD_RE.sub(" ", s.strip().lower())
-
-
-def _read_json(path: str):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _parse_time(s):
-    if not s:
-        return None
-    try:
-        return dt.datetime.fromisoformat(s)
-    except ValueError:
-        return None
-
-
-def _under(path: str, base: str) -> bool:
-    path, base = os.path.normcase(os.path.normpath(path)), os.path.normcase(os.path.normpath(base))
-    return path == base or path.startswith(base.rstrip(os.sep) + os.sep)
-
-
-def _default_exclude_cwd() -> list[str]:
-    import tempfile
-
-    return sorted(
-        {
-            os.path.normcase(os.path.normpath(p))
-            for p in (
-                tempfile.gettempdir(),
-                os.path.realpath(tempfile.gettempdir()),
-                "/tmp",
-                "/private/tmp",
-                "/var/folders",
-            )
-        }
-    )
-
 
 # ─── Block 1: SkillsTraces class definition & protocol methods ──────────────
+
+
 class SkillsTraces(ISkillsTracesProtocol):
     """Scans sessions, builds skills-only usage, and mines repeated phrases."""
 
@@ -317,9 +168,9 @@ class SkillsTraces(ISkillsTracesProtocol):
         if days > 0:
             cutoff = dt.datetime.now(dt.UTC) - dt.timedelta(days=days)
         if since_last:
-            state_path = os.path.join(grok_home, "learn", "state.json")
+            state_path_ = os.path.join(grok_home, "learn", "state.json")
             try:
-                cutoff = _parse_time(_read_json(state_path).get("last_completed_at"))
+                cutoff = _parse_time(_read_json(state_path_).get("last_completed_at"))
             except (OSError, ValueError):
                 cutoff = None
 
@@ -374,49 +225,47 @@ class SkillsTraces(ISkillsTracesProtocol):
                         continue
                     kept.append(rec)
 
-        kept.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
+            kept.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
 
-        # single-turn sessions that repeat one identical prompt across sessions
-        # look like automation; exclude them
-        single = Counter(
-            normalize(r["turns"][0]) for r in kept if r["human_turns"] == 1
-        )
-        for r in kept:
-            r["repeated_single_turn"] = bool(
-                r["human_turns"] == 1 and single[normalize(r["turns"][0])] >= 3
+            # single-turn sessions that repeat one identical prompt across sessions
+            # look like automation; exclude them
+            single = Counter(
+                normalize(r["turns"][0]) for r in kept if r["human_turns"] == 1
             )
+            for r in kept:
+                r["repeated_single_turn"] = bool(
+                    r["human_turns"] == 1 and single[normalize(r["turns"][0])] >= 3
+                )
 
-        kept = [r for r in kept if not r["repeated_single_turn"]]
+            kept = [r for r in kept if not r["repeated_single_turn"]]
+            kept = [r for r in kept if not r["smoke_test"]]
 
-        # "hi" / "Test" sessions with no real tool use are smoke tests, not habits
-        kept = [r for r in kept if not r["smoke_test"]]
+            if limit > 0 and len(kept) > limit:
+                dropped["beyond_limit"] += len(kept) - limit
+                kept = kept[:limit]
 
-        if limit > 0 and len(kept) > limit:
-            dropped["beyond_limit"] += len(kept) - limit
-            kept = kept[:limit]
+            records: list[TraceSessionRecord] = []
+            for i, r in enumerate(kept):
+                r["index"] = i
+                session_file = os.path.join(
+                    run_dir, "sessions", f"{i:04d}-{r['id']}.json"
+                )
+                with open(session_file, "w", encoding="utf-8") as f:
+                    json.dump(r, f, indent=1, ensure_ascii=False)
+                records.append(_record_from_dict(r))
 
-        records: list[TraceSessionRecord] = []
-        for i, r in enumerate(kept):
-            r["index"] = i
-            session_file = os.path.join(
-                run_dir, "sessions", f"{i:04d}-{r['id']}.json"
+            _write_manifest(
+                grok_home,
+                run_dir,
+                records,
+                kept,
+                seen,
+                dropped,
+                days,
+                since_last,
+                min_turns,
+                limit,
             )
-            with open(session_file, "w", encoding="utf-8") as f:
-                json.dump(r, f, indent=1, ensure_ascii=False)
-            records.append(_record_from_dict(r))
-
-        _write_manifest(
-            grok_home,
-            run_dir,
-            records,
-            kept,
-            seen,
-            dropped,
-            days,
-            since_last,
-            min_turns,
-            limit,
-        )
         return ScanResult(records=tuple(records), sessions_seen=seen, dropped=dict(dropped))
 
     def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
@@ -557,99 +406,34 @@ class SkillsTraces(ISkillsTracesProtocol):
         rows.sort(key=lambda x: (-x.sessions, -x.occurrences, x.phrase))
         return tuple(rows[:_TOP])
 
-    # ── Trace-state lifecycle ──────────────────────────────────────
+    # ── Trace-state lifecycle (delegated to utility_skills_trace_state) ──
+
 
     def set_status(
-        self,
-        grok_home: str,
-        run_dir: str,
-        status: TraceStateStatus,
+        self, grok_home: str, run_dir: str, status: TraceStateStatus
     ) -> TraceStateStatus:
         """Record ``status`` for the pending run; ``done`` stamps last_completed."""
-        grok_home = os.path.abspath(os.path.expanduser(grok_home))
-        path = state_path(grok_home)
-        result = mark(path, run_dir, status)
-        pending = result.get("pending") or {}
-        return TraceStateStatus(pending["status"])
+        state = mark(state_path(grok_home), run_dir, status)
+        return TraceStateStatus(state.get("pending", {}).get("status", status.value))
 
     def get_status(self, grok_home: str) -> TraceStateStatus:
-        """Return the current pending status.
-
-        ``done``-less pending runs exit 3 (the surface maps to exit 3); the
-        capability returns the status, the caller maps it to an exit code.
-        """
-        grok_home = os.path.abspath(os.path.expanduser(grok_home))
-        path = state_path(grok_home)
-        state = load_state(path)
+        """Return the current pending status."""
+        state = load_state(state_path(grok_home))
         pending = state.get("pending") or {}
         if (
             pending.get("status")
             in (TraceStateStatus.COLLECTED.value, TraceStateStatus.RUNNING.value)
             and files_ready(pending.get("run_dir") or "")
         ):
-            state = mark(path, pending["run_dir"], TraceStateStatus.REPORT_READY)
+            state = mark(state_path(grok_home), pending["run_dir"], TraceStateStatus.REPORT_READY)
             pending = state.get("pending") or {}
-        return TraceStateStatus(pending.get("status") or "done")
+        return TraceStateStatus(pending.get("status") or TraceStateStatus.DONE.value)
 
     def trash(
-        self,
-        grok_home: str,
-        run_name: str,
-        paths: Sequence[str],
+        self, grok_home: str, run_name: str, paths: Sequence[str]
     ) -> tuple[str, ...]:
-        """Move the validated paths into ``learn/trash/<run_name>``.
-
-        Only a ``skills/<name>`` directory, a ``workflows/*.rhai`` file, or a
-        ``hooks/*`` file under GROK_HOME / ``~/.agents`` / project ``.grok``
-        is moved; anything else is refused (exit 2 equivalent).
-        """
-        grok_home = os.path.abspath(os.path.expanduser(grok_home))
-        if run_name in ("", ".", "..") or os.path.basename(run_name) != run_name:
-            raise ValueError("run-name must be a single path component")
-        dest_dir = os.path.join(grok_home, "learn", "trash", run_name)
-        home_real = os.path.realpath(grok_home)
-        agents_real = os.path.realpath(os.path.expanduser("~/.agents"))
-        moved: list[str] = []
-        validated: list[str] = []
-        for src in paths:
-            src = os.path.abspath(os.path.expanduser(src))
-            real = os.path.realpath(src)
-            if not os.path.exists(src):
-                raise FileNotFoundError(f"missing: {src}")
-            parent = os.path.dirname(real)
-            kind = os.path.basename(parent)
-            grand = os.path.dirname(parent)
-            is_skill_dir = (
-                os.path.isdir(real)
-                and kind == "skills"
-                and (grand in (home_real, agents_real) or grand.endswith(os.sep + ".grok"))
-            )
-            is_workflow = (
-                os.path.isfile(real)
-                and real.endswith(".rhai")
-                and kind == "workflows"
-                and (grand == home_real or grand.endswith(os.sep + ".grok"))
-            )
-            is_hook = (
-                os.path.isfile(real)
-                and kind == "hooks"
-                and (grand == home_real or grand.endswith(os.sep + ".grok"))
-            )
-            if not (is_skill_dir or is_workflow or is_hook):
-                raise ValueError(
-                    "refusing: only a skills/<name> directory, a workflows/*.rhai "
-                    "file, or a hooks/* file under GROK_HOME, ~/.agents, or a "
-                    "project .grok directory can be trashed"
-                )
-            validated.append(src)
-        os.makedirs(dest_dir, exist_ok=True)
-        for src in validated:
-            dest = os.path.join(dest_dir, os.path.basename(src.rstrip("\\/")))
-            if os.path.exists(dest):
-                dest += "-" + dt.datetime.now(dt.UTC).strftime("%H%M%S")
-            shutil.move(src, dest)
-            moved.append(dest)
-        return tuple(moved)
+        """Move the validated paths into ``learn/trash/<run_name>``."""
+        return _trash(grok_home, run_name, list(paths))
 
     def decide(
         self,
@@ -657,12 +441,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         run_dir: str,
         decision: TraceDecision,
     ) -> TraceDecision:
-        """Append one decision line to ``learn/decisions.jsonl`` and return it.
-
-        The line is emitted in the legacy key order pinned by
-        ``TraceDecision.as_dict()``.
-        """
-        grok_home = os.path.abspath(os.path.expanduser(grok_home))
+        """Append one decision line to ``learn/decisions.jsonl`` and return it."""
         dec_path = decisions_path(grok_home)
         os.makedirs(os.path.dirname(dec_path), exist_ok=True)
         line = decision.as_dict()
@@ -678,157 +457,19 @@ class SkillsTraces(ISkillsTracesProtocol):
         phase_stall_min: int = 60,
         report_stall_min: int = 45,
     ) -> TraceStateStatus:
-        """Block until the run dir holds ``report.md`` + ``actions.json``.
-
-        Returns a distinct ``TraceStateStatus`` per outcome so the surface can
-        map exit codes explicitly: ``REPORT_READY`` (0), ``REPORT_STALL`` (3),
-        ``PHASE_STALL`` (4), ``DEADLINE`` (2). No exit-code logic lives in the
-        capability.
-        """
-        grok_home = os.path.abspath(os.path.expanduser(grok_home))
-        path = state_path(grok_home)
-        deadline = time.time() + timeout_min * 60
-        report = os.path.join(run_dir, "report.md")
-        actions = os.path.join(run_dir, "actions.json")
-        verify_dir = os.path.join(run_dir, "verify")
-        last_phase: str | None = None
-        verify_done_at: float | None = None
-        last_progress = (newest_mtime(run_dir), time.time())
-        while time.time() < deadline:
-            if os.path.isfile(report) and os.path.isfile(actions):
-                mark(path, run_dir, TraceStateStatus.REPORT_READY)
-                return TraceStateStatus.REPORT_READY
-            phase = next(
-                (
-                    p
-                    for p in ("verify", "reduce")
-                    if os.path.isdir(os.path.join(run_dir, p))
-                    and os.listdir(os.path.join(run_dir, p))
-                ),
-                None,
-            )
-            if phase is None:
-                phase = (
-                    "map"
-                    if any(
-                        f.startswith("map") and f.endswith(".md")
-                        for f in os.listdir(run_dir)
-                    )
-                    else TraceStateStatus.COLLECTED.value
-                )
-            if phase != last_phase:
-                last_phase = phase
-            newest = newest_mtime(run_dir)
-            if newest > last_progress[0]:
-                last_progress = (newest, time.time())
-            elif time.time() - last_progress[1] > phase_stall_min * 60:
-                mark(
-                    path,
-                    run_dir,
-                    TraceStateStatus.RUNNING,
-                    {
-                        "note": (
-                            f"no file changed under the run dir for {phase_stall_min} min"
-                        )
-                    },
-                )
-                return TraceStateStatus.PHASE_STALL
-            verdicts = [
-                f
-                for f in ("phrases.md", "stale.md", "deletes.md")
-                if os.path.isfile(os.path.join(verify_dir, f))
-            ]
-            if len(verdicts) == 3:
-                verify_done_at = verify_done_at or time.time()
-                if time.time() - verify_done_at > report_stall_min * 60:
-                    mark(
-                        path,
-                        run_dir,
-                        TraceStateStatus.RUNNING,
-                        {
-                            "note": (
-                                f"verifiers finished; no report.md after "
-                                f"{report_stall_min} min"
-                            )
-                        },
-                    )
-                    return TraceStateStatus.REPORT_STALL
-            time.sleep(30)
-        mark(path, run_dir, TraceStateStatus.RUNNING, {"note": "deadline exceeded"})
-        return TraceStateStatus.DEADLINE
+        """Block until the run dir holds ``report.md`` + ``actions.json``."""
+        return _wait(grok_home, run_dir, timeout_min=timeout_min)
 
     def restrict(self, paths: Sequence[str]) -> tuple[str, ...]:
         """chmod 0600 where the OS supports it; silently skip what it cannot."""
-        restricted: list[str] = []
-        for p in paths:
-            try:
-                os.chmod(p, stat.S_IRUSR | stat.S_IWUSR)
-                restricted.append(p)
-            except OSError:
-                pass
-        return tuple(restricted)
+        return _restrict(list(paths))
 
     # ── dispatch: one router call instead of seven branches upstream ──
+
 
     @staticmethod
     def _split_paths(flag_value: str) -> tuple[str, ...]:
         return tuple(p.strip() for p in flag_value.split(",") if p.strip())
-
-    # ── sub-action handlers ──────────────────────────────────────
-
-    def _do_set(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
-        status = TraceStateStatus(flags.get("status", "collected"))
-        got = self.set_status(grok_home, run_dir, status)
-        return TraceStateDispatchResult(state=got)
-
-    def _do_get(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
-        got = self.get_status(grok_home)
-        return TraceStateDispatchResult(state=got)
-
-    def _do_clear(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
-        self.set_status(grok_home, run_dir, TraceStateStatus.DONE)
-        return TraceStateDispatchResult(state=TraceStateStatus.DONE)
-
-    def _do_trash(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
-        run_name = flags.get("run_name", "")
-        moved = self.trash(grok_home, run_name, self._split_paths(flags.get("trash_paths", "")))
-        return TraceStateDispatchResult(lines=moved)
-
-    def _do_restrict(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
-        restricted = self.restrict(self._split_paths(flags.get("restrict_paths", "")))
-        return TraceStateDispatchResult(lines=restricted)
-
-    def _do_decide(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
-        decision = TraceDecision(
-            date=flags.get("date", ""),
-            run_dir=run_dir,
-            decision_id=flags.get("id", ""),
-            kind=flags.get("kind", ""),
-            action=flags.get("decide_action", ""),
-            target=flags.get("target", ""),
-            target_path=flags.get("path", ""),
-            decision=flags.get("decision", ""),
-            undo=flags.get("undo") or None,
-        )
-        got = self.decide(grok_home, run_dir, decision)
-        return TraceStateDispatchResult(lines=(json.dumps(got.as_dict(), ensure_ascii=False),))
-
-    def _do_wait(self, grok_home: str, run_dir: str, flags: Mapping[str, str]) -> TraceStateDispatchResult:
-        timeout_min = int(flags.get("timeout_min", "90"))
-        got = self.wait(grok_home, run_dir, timeout_min=timeout_min)
-        return TraceStateDispatchResult(state_status=got)
-
-    # ── router ───────────────────────────────────────────────────
-
-    _DISPATCH: ClassVar[dict[str, Callable[..., TraceStateDispatchResult]]] = {
-        "set": lambda self, g, r, f: self._do_set(g, r, f),
-        "get": lambda self, g, r, f: self._do_get(g, r, f),
-        "clear": lambda self, g, r, f: self._do_clear(g, r, f),
-        "trash": lambda self, g, r, f: self._do_trash(g, r, f),
-        "restrict": lambda self, g, r, f: self._do_restrict(g, r, f),
-        "decide": lambda self, g, r, f: self._do_decide(g, r, f),
-        "wait": lambda self, g, r, f: self._do_wait(g, r, f),
-    }
 
     def dispatch(
         self,
@@ -839,16 +480,32 @@ class SkillsTraces(ISkillsTracesProtocol):
     ) -> TraceStateDispatchResult:
         """Route one trace-state sub-action; the thin router the agent calls.
 
-        Dispatches via a class-level dict so each sub-action is individually
-        testable. Unknown actions raise ``SkillsUsageError`` (exit 2).
+        Dispatches via the shared ``utility_skills_trace_state.dispatch`` so
+        each sub-action (set/get/clear/trash/restrict/decide/wait) is
+        individually testable. Unknown actions raise ``SkillsUsageError``
+        (exit 2).
         """
-        handler = self._DISPATCH.get(action)
-        if handler is None:
-            raise SkillsUsageError(f"Unknown trace-state action: {action}")
-        return handler(self, grok_home, run_dir, flags)
+        return _state_dispatch(grok_home, run_dir, action, dict(flags))
 
 
 # ─── Block 2: inherent helper functions used by the class ──────────────
+
+
+def _default_exclude_cwd() -> list[str]:
+    import tempfile
+
+    return sorted(
+        {
+            os.path.normcase(os.path.normpath(p))
+            for p in (
+                tempfile.gettempdir(),
+                os.path.realpath(tempfile.gettempdir()),
+                "/tmp",
+                "/private/tmp",
+                "/var/folders",
+            )
+        }
+    )
 
 
 def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern]) -> dict | None:
@@ -982,7 +639,7 @@ def _human_turns(content) -> list[str]:
         txt = "\n".join(parts)
     else:
         txt = ""
-    found = [m.strip() for m in USER_QUERY_RE.findall(txt)]
+    found = [m.strip() for m in _USER_QUERY_RE.findall(txt)]
     return [t for t in found if t]
 
 
@@ -1126,3 +783,39 @@ def _toml_string_array(text: str, table: str, key: str) -> list[str] | None:
                 break
         i += 1
     return re.findall(r'"([^"]+)"', rest[start : i + 1])
+
+
+# --- module-level helpers imported from utility_skills_trace_state ---
+# (kept as local references so scan/usage/phrases work without the class)
+
+
+def _read_json(path: str):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _parse_time(s):
+    if not s:
+        return None
+    try:
+        return dt.datetime.fromisoformat(s)
+    except ValueError:
+        return None
+
+
+def _under(path: str, base: str) -> bool:
+    path, base = os.path.normcase(os.path.normpath(path)), os.path.normcase(os.path.normpath(base))
+    return path == base or path.startswith(base.rstrip(os.sep) + os.sep)
+
+
+# Minimal constants used by build_phrases (mirror the values in traces).
+_MIN_PHRASE_LEN = 12
+_MIN_LINE_WORDS = 5
+_MIN_LINE_CHARS = 24
+_TOP = 60
+_EXACT_MIN_SESSIONS = 2
+_STEM_MIN_SESSIONS = 3
+_LINE_MIN_SESSIONS = 3
+
+# _SLASH_ONLY lives in the traces capability (used only by build_phrases).
+_SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
