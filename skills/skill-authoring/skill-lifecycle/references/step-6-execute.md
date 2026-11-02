@@ -7,6 +7,16 @@ role: step
 
 Rules for merging skills in Phase 2 of `skill-lifecycle`.
 
+## Merge plan (read-only)
+
+Before executing, run the read-only merge plan:
+
+```bash
+aa skills merge-plan CATEGORY/SKILL_A CATEGORY/SKILL_B
+```
+
+This chooses the survivor by frontmatter-name alignment (ties: file count, description length) and lists asset moves, rewrites, and the absorbed folder. Nothing is executed.
+
 ## Name survival
 
 The surviving skill keeps the `name:` that best matches the merged scope; if
@@ -40,6 +50,10 @@ resolve manually.
 Keep `scripts/` of the surviving skill; move or re-link scripts of dropped
 skills only if the surviving skill's scenario needs them. Ensure no scripts
 referenced in the surviving body are deleted.
+
+## Archive dropped duplicates
+
+Dropped duplicates are archived into `_archive/` via `aa skills archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. Rebuild the catalog after archiving.
 
 ## Empty Category Cleanup
 

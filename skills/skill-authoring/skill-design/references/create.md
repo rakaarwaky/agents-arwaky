@@ -33,6 +33,7 @@ Create `<SKILL_DIR>/scripts/` if the skill ships helper scripts and `<SKILL_DIR>
 
 Two ways to write the skill; pick by description length:
 
+- **`aa skills create`** — the CLI verb; creates the directory and `SKILL.md` in one call with frontmatter keys `name`, `description`, `when-to-use`, `argument-hint`, and the body. Pass `--category <cat>` and `--apply` to write.
 - **`skill_manage(action=create)`** — safe default; creates the directory and `SKILL.md` in one call. It enforces a ~60-char budget on the `description:` line (the skill index clips anything longer) and rolls back the whole batch on any violation. Draft the description first and count it; if it will exceed ~60 chars, don't fight the validator loop — use the direct writer below. When this writer succeeds, skip to Step 6.
 - **Write the files directly** (`write_file`) — continue with Steps 5–6. Use this when the description needs more than ~60 chars, when building a richer multi-file skill, or when `create` keeps rejecting frontmatter. After writing, run `aa skills catalog` to register the skill.
 

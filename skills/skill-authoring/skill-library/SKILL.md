@@ -17,8 +17,8 @@ Rules that apply to every mode. Reference files cite these; they never restate t
 - **Auto-pilot rules**: apply changes directly; always rebuild `CATALOG.md` after moves or category changes; every category should have a `DESCRIPTION.md`; every skill lives at `category/skill-name/SKILL.md`; never nest skills deeper than one category level; do not author brand-new skills here (route to `skill-design`); do not repair `SKILL.md` content or weed/archive duplicates here (route to `skill-design` / `skill-lifecycle`).
 - **Dry-run discipline**: write commands default to dry-run that only prints the planned changes; exit 0 does not mean the change was made — check the output for "Planned" lines before claiming anything was applied.
 - **Exit codes**: `0` clean (no issues, or read-only success), `1` issues found (validation errors), `2` usage error (bad arguments, missing required input, nonexistent skill), `3` catalog drift (`catalog --check` only).
-- **Validation rules** (enforced by `aa skills validate` for categories and skill placement): category-description-present — Every category has a DESCRIPTION.md; category-description-nonempty — Category DESCRIPTION.md describes the category; category-nonempty — Every category holds at least one skill; category-depth — No nesting deeper than <category>/<skill>/; skill-placement — SKILL.md lives at <category>/<skill>/SKILL.md.
-- **Verification after writes**: `aa skills validate` checks structure, not link validity — grep the pack for the moved or deleted skill name and fix dangling pointers before committing.
+- **Validation rules** (enforced for categories and skill placement): category-description-present — Every category has a DESCRIPTION.md; category-description-nonempty — Category DESCRIPTION.md describes the category; category-nonempty — Every category holds at least one skill; category-depth — No nesting deeper than <category>/<skill>/; skill-placement — SKILL.md lives at <category>/<skill>/SKILL.md.
+- **Verification after writes**: checks structure, not link validity — grep the pack for the moved or deleted skill name and fix dangling pointers before committing.
 
 ## Routing
 
