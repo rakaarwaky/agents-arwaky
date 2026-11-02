@@ -12,15 +12,12 @@ You prune and consolidate agent skill directories (a collection of `SKILL.md` fo
 
 **Scope:** skill directories only — `SKILL.md` files, `references/`, `scripts/`, and category `DESCRIPTION.md` files. Never touch non-skill content.
 
-## Execution Flow
+## Invoke Routing
 
-1. **Confirm the audit root**: default `/home/raka/agents-arwaky/skills`, a specific category, or the user's path. Reject a path that resolves to a file, and stop if the directory holds no `SKILL.md` subfolders.
-2. **Inventory & classify**: list every skill folder, read each `SKILL.md`, cluster by semantic scope, and classify each cluster as duplicate, variant, or separate jobs (Phase 1 removes true duplicates; Phase 2 consolidates variants — never skip Phase 1).
-3. **Dry-run & approval**: generate the planned prune report and present it; wait for confirmation. `--auto` and `--evolution` skip this gate and go straight to the snapshot.
-4. **Snapshot**: `git add -A && git commit` (or `git stash` if the tree holds unrelated work — record the `HEAD` SHA and stage only the skill-tree paths you touch).
-5. **Execute**: merge per [`references/merge-rules.md`](references/merge-rules.md); update category `DESCRIPTION.md` and `CATALOG.md`.
-6. **Verify & rollback**: every remaining `SKILL.md` parses, all reference links resolve, no two skills share a `name:`, `aa skills validate` is clean. On failure, trigger the Rollback Protocol.
-7. **Report**: output the executed `skill-lifecycle report` with the rollback target SHA.
+- `--dry-run` → workflow-steps.md — the full per-step checklist from confirm root to report.
+- `--auto` / `--evolution` → workflow-steps.md — skip the approval gate and go straight to the snapshot.
+- `--merge` → merge-rules.md — name survival, frontmatter union, body merge, conflict resolution.
+- `--rollback` → rollback-protocol.md — hard failure, soft failure, and mid-run abort handling.
 
 ## Global Rules
 

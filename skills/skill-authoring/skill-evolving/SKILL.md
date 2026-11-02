@@ -9,14 +9,14 @@ argument-hint: "<none>"
 
 You edit existing skills so they match the conditions and demand the traces show. The trace pipeline produces report section 2 (Skills to update); you curate that section and apply `edit` and `propose` actions.
 
-## Execution Flow
+## Invoke Routing
 
-1. **Resume or price**: run `trace-state get` (exit 3 = pending run) and `trace-collect` to price the scope; use the hardcoded collector defaults.
-2. **Collect**: the collector writes `manifest.json` and `sessions/*.json` into the hardcoded run dir.
-3. **Launch**: run the `learn-traces` workflow; block on `trace-state wait` for `report.md` + `actions.json`.
-4. **Read**: present `report.md` Overview plus section 2 (Skills to update); curation questions wait for the next turn.
-5. **Apply**: edit or propose each owned action; record every decision with `trace-state decide`.
-6. **Verify**: re-read each touched file; the change must be present and the original backed up in the run's trash. Stop at the first failure 
+- Resume or price → step-0-resume-or-price.md — run `trace-state get` and `trace-collect` to price the scope.
+- Collect → step-1-collect.md — the collector writes `manifest.json` and sessions into the run dir.
+- Launch → step-2-launch.md — run the `learn-traces` workflow; block on `trace-state wait`.
+- Read → step-3-read-report.md — present `report.md` Overview plus section 2.
+- Apply → step-4-apply.md — edit or propose each owned action; record decisions.
+- Verify → step-5-verify.md — re-read touched files; confirm the change and the trash backup.
 
 ## Global Rules
 

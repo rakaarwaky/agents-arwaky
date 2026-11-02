@@ -9,15 +9,14 @@ argument-hint: "[--days N | --since-last | --limit N] [--batch N] [--estimate] [
 
 You create new skills from things the user keeps typing out. The trace pipeline finds the repeated phrases and gaps; you curate report section 1 (repeated phrases → skills) and section 4 (gaps), and apply `create` actions (and `propose` / `ask` where the target is a protected owner).
 
-## Execution Flow
+## Invoke Routing
 
-1. **Resume or price**: run `aa skills trace-state get` (resume check, exit 3 = pending run) and `aa skills trace-collect` (one-line price per scope).
-2. **Collect**: run the collector into a run dir.
-3. **Launch**: the `learn-traces` workflow; block on `aa skills trace-state wait`.
-4. **Read**: `report.md`, present the Overview plus section 1 (Repeated phrases → skills) and section 4 (Gaps). The report comes first on its own; curation questions belong to the next turn.
-5. **Apply**: for each owned action, follow the per-action rules; record every decision with `aa skills trace-state decide`.
-6. **Verify**: re-read every written `<user skills dir>/<name>/SKILL.md` and confirm the frontmatter parses; confirm every recorded decision is in the run dir. Stop at the first failure and report it before continuing.
-7. **Report**: what was created or deferred, how it was verified, and any duplication noticed but not fixed.
+- Resume or price → step-0-resume-or-price.md — `aa skills trace-state get` and `aa skills trace-collect`.
+- Collect → step-1-collect.md — run the collector into a run dir.
+- Launch → step-2-launch.md — the `learn-traces` workflow; block on `aa skills trace-state wait`.
+- Read → step-3-read-report.md — present Overview plus sections 1 and 4.
+- Apply → step-4-apply.md — per-action rules; record every decision with `aa skills trace-state decide`.
+- Verify → step-5-verify.md — re-read every written `<user skills dir>/<name>/SKILL.md`; confirm frontmatter parses.
 
 ## Global Rules
 

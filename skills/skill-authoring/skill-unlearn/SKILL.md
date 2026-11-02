@@ -10,13 +10,11 @@ argument-hint: "[--days N | --since-last | --limit N] [--batch N] [--estimate] [
 
 You remove skills, plugins, and other surfaces the user never uses. The trace pipeline produces report section 3 (Unused → delete or disable) from deterministic zero counts — never counted by an agent; you curate that section and apply `delete`, `disable`, `ask`, and `group` actions.
 
-## Execution Flow
+## Invoke Routing
 
-1. **Resume or price**: run `aa skills trace-state get` (resume check) and `aa skills trace-collect` (one-line price per scope).
-2. **Collect**: run the collector into a run dir. Keep enough sessions and span for the window to be wide — a narrow run may list but not retire.
-3. **Launch**: the `learn-traces` workflow from [`workflows/learn-traces.rhai`](../../workflows/learn-traces.rhai); block on `aa skills trace-state wait`.
-4. **Read**: `report.md`, present the Overview plus section 3 (Unused → delete or disable). The report comes first on its own; curation questions belong to the next turn.
-5. **Apply**: for each owned action, follow the mode in [`references/apply-rules.md`](references/apply-rules.md); record every decision with `aa skills trace-state decide`.
+- `--signals` → signals.md — what the trace mappers look for; ordered by blast radius.
+- `--report` → report-format.md — `actions.json` fields and emission rules, incl. grouping prohibitions.
+- `--apply` → apply-rules.md — trash mechanics, MCP table carving, restrict, undo.
 
 ## Global Rules
 
