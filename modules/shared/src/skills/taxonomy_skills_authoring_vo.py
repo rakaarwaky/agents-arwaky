@@ -33,6 +33,7 @@ __all__ = [
     "MutationStep",
     "NewCategoryPlan",
     "PhrasesReport",
+    "SkillCreatePlan",
     "UsageReport",
     "ValidationReport",
 ]
@@ -191,6 +192,29 @@ class NewCategoryPlan:
     description_file: Path = Path()
     will_write: bool = False
     created: bool = False
+    root: Path | None = None
+
+
+@dataclass(frozen=True)
+class SkillCreatePlan:
+    """The planned skill creation (dry-run default; ``--apply`` writes).
+
+    ``already_exists`` records that the skill directory was found, so the
+    handler can skip the apply. The frontmatter fields are the exact keys
+    the validator enforces (``name``, ``description``, ``when-to-use``,
+    ``argument-hint``); the ``body`` is the markdown content after the
+    frontmatter block.
+    """
+
+    skill: str
+    category: str
+    description: str = ""
+    when_to_use: str = ""
+    argument_hint: str = ""
+    body: str = ""
+    directory: Path = Path()
+    skill_md: Path = Path()
+    already_exists: bool = False
     root: Path | None = None
 
 

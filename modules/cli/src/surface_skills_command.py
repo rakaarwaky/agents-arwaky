@@ -84,6 +84,7 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         "move",
         "archive",
         "new-category",
+        "create",
         "merge-plan",
     ):
         return _cmd_authoring(sub, rest, aggregate)
@@ -119,6 +120,11 @@ def _print_usage() -> None:
         f"{BOLD()}aa skills archive <skill>{RESET()}       Archive a skill into _archive/"
     )
     info(f"{BOLD()}aa skills new-category <name>{RESET()}    Create a category")
+    info(
+        f"{BOLD()}aa skills create <name> --category <cat> --description <desc> "
+        f"--when-to-use <trigger> --argument-hint <hint> --body <body> [--apply]{RESET()}"
+        f"  Create a skill in the pack"
+    )
     info(
         f"{BOLD()}aa skills merge-plan <a> <b>{RESET()}    Emit the read-only merge plan"
     )
@@ -294,6 +300,47 @@ def _authoring_parser() -> argparse.ArgumentParser:
     )
 
     sub = subparsers.add_parser(
+        "create", help="Create a new skill in the pack (dry-run by default)"
+    )
+    add_common(sub)
+    sub.add_argument("name", help="Skill name (lowercase, hyphen-separated)")
+    sub.add_argument(
+        "--category",
+        metavar="CAT",
+        default="",
+        help="Target category folder (required unless the skill already exists)",
+    )
+    sub.add_argument(
+        "--description",
+        metavar="DESC",
+        default="",
+        help="Skill description (frontmatter description: key)",
+    )
+    sub.add_argument(
+        "--when-to-use",
+        metavar="TRIGGER",
+        default="",
+        help="when-to-use trigger phrases (frontmatter when-to-use: key)",
+    )
+    sub.add_argument(
+        "--argument-hint",
+        metavar="HINT",
+        default="",
+        help="Slash-command argument hint (frontmatter argument-hint: key)",
+    )
+    sub.add_argument(
+        "--body",
+        metavar="BODY",
+        default="",
+        help="SKILL.md body content (markdown after the frontmatter)",
+    )
+    sub.add_argument(
+        "--apply",
+        action="store_true",
+        help="Write the skill (default is a preview)",
+    )
+
+    sub = subparsers.add_parser(
         "merge-plan",
         help="Emit the merge plan for two skills (read-only; skill-lifecycle executes it)",
     )
@@ -336,6 +383,8 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         return _render_archive(result, request)
     if sub == "new-category":
         return _render_new_category(result, request)
+    if sub == "create":
+        return _render_create(result, request)
     if sub == "merge-plan":
         return _render_merge_plan(result, request)
     raise SkillsUsageError(f"Unknown skills subcommand: {sub}")
@@ -410,6 +459,21 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
             description=namespace.description or "",
             apply=namespace.apply,
             flags={"force": "1" if namespace.force else "0"},
+            root=root_value,
+            json=json_value,
+        )
+    if command == "create":
+        return SkillsRequest(
+            op=SkillsOp.CREATE,
+            query=SkillQuery(namespace.name),
+            description=namespace.description or "",
+            apply=namespace.apply,
+            flags={
+                "category": namespace.category or "",
+                "when_to_use": namespace.when_to_use or "",
+                "argument_hint": namespace.argument_hint or "",
+                "body": namespace.body or "",
+            },
             root=root_value,
             json=json_value,
         )
@@ -789,6 +853,46 @@ def _render_new_category(result: SkillsResult, request: SkillsRequest) -> int:
         print(f"Wrote {plan.name}/DESCRIPTION.md")
     else:
         print(f"Kept existing {plan.name}/DESCRIPTION.md; use --force to overwrite")
+    print(f"Rebuilt {catalog}")
+    return 0
+
+
+def _render_create(result: SkillsResult, request: SkillsRequest) -> int:
+    """Render a create preview or the applied report."""
+    plan = result.create_plan
+    if plan is None:
+        err("Internal error: no create plan produced")
+        return 1
+    root = _root_of(result)
+    catalog = root / "CATALOG.md"
+
+    if plan.already_exists:
+        rel = relpath(plan.skill_md, root) if plan.skill_md else ""
+        print(f"Skill already exists: {rel}")
+        return 0
+
+    rel_skill_md = relpath(plan.skill_md, root) if plan.skill_md else ""
+
+    if not request.apply:
+        if request.json:
+            _emit_json(
+                {
+                    "skills_root": str(root),
+                    "dry_run": True,
+                    "skill": plan.skill,
+                    "category": plan.category,
+                    "would_create": rel_skill_md,
+                    "would_rebuild": str(catalog),
+                    "note": _DRY_RUN_NOTE,
+                }
+            )
+        else:
+            print("Planned create (dry-run — pass --apply to execute):")
+            print(f"- create {rel_skill_md}")
+            print(f"- rebuild {catalog}")
+        return 0
+
+    print(f"Created {rel_skill_md}")
     print(f"Rebuilt {catalog}")
     return 0
 

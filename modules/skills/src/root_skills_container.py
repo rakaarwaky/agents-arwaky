@@ -260,3 +260,31 @@ class SkillsFacade:
                 flags={"target": ref_b},
             )
         )
+
+    def create(
+        self,
+        skill: str,
+        category: str,
+        description: str = "",
+        when_to_use: str = "",
+        argument_hint: str = "",
+        body: str = "",
+        apply: bool = False,
+        root: SkillsRoot | None = None,
+    ) -> SkillsResult:
+        """Plan (default) or apply creating a new skill SKILL.md."""
+        return self._agent().execute(
+            SkillsRequest(
+                op=SkillsOp.CREATE,
+                query=SkillQuery(skill),
+                description=description,
+                apply=apply,
+                root=root,
+                flags={
+                    "category": category,
+                    "when_to_use": when_to_use,
+                    "argument_hint": argument_hint,
+                    "body": body,
+                },
+            )
+        )

@@ -7,11 +7,14 @@ from pathlib import Path
 
 import pytest
 
+from modules.shared.src.skills.taxonomy_skills_vo import SkillsRequest, SkillsOp
 from modules.shared.src.skills.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
 )
+from modules.skills.src.agent_skills_orchestrator import SkillsAgent
+from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
@@ -244,3 +247,113 @@ def test_os_walk_does_not_follow_symlinked_directories(tmp_path: Path) -> None:
         (root / "loop").symlink_to(root, target_is_directory=True)
         found = {path.relative_to(root).as_posix() for path in iter_files(root)}
         assert found == {"a/file.txt"}
+
+
+def _create_agent(root: Path) -> SkillsAgent:
+    """Build a SkillsAgent wired to *root* with the create pipeline."""
+    catalog = SkillsCatalog()
+    return SkillsAgent(
+        None,  # index unused
+        None,  # reader unused
+        catalog=catalog,
+        default_root=root,
+    )
+
+
+def test_create_dry_run_writes_nothing(tmp_path: Path) -> None:
+    """§5.5: plan-only create leaves the tree untouched."""
+    agent = _create_agent(tmp_path)
+    request = SkillsRequest(
+        op=SkillsOp.CREATE,
+        query="doc-helper",
+        description="Helps with docs",
+        flags={
+            "category": "automation",
+            "when_to_use": "Use when writing documentation",
+            "argument_hint": "<path>",
+            "body": "# Doc Helper",
+        },
+        root=tmp_path,
+        apply=False,
+    )
+    result = agent.execute(request)
+    assert result.ok
+    assert not result.create_plan.already_exists
+    assert not (tmp_path / "automation" / "doc-helper" / "SKILL.md").exists()
+
+
+def test_create_apply_writes_skill_md_and_rebuilds_catalog(tmp_path: Path) -> None:
+    """Applying creates SKILL.md and rebuilds CATALOG.md."""
+    agent = _create_agent(tmp_path)
+    (tmp_path / "CATALOG.md").write_text("# CATALOG\n", encoding="utf-8")
+    request = SkillsRequest(
+        op=SkillsOp.CREATE,
+        query="doc-helper",
+        description="Helps with docs",
+        flags={
+            "category": "automation",
+            "when_to_use": "Use when writing documentation",
+            "argument_hint": "<path>",
+            "body": "# Doc Helper\n",
+        },
+        root=tmp_path,
+        apply=True,
+    )
+    result = agent.execute(request)
+    assert result.ok
+    skill_md = tmp_path / "automation" / "doc-helper" / "SKILL.md"
+    assert skill_md.exists()
+    text = skill_md.read_text(encoding="utf-8")
+    assert text.startswith("---\nname: doc-helper\n")
+    assert 'when-to-use: "Use when writing documentation"' in text
+    assert "argument-hint: <path>" in text
+    assert "# Doc Helper" in text
+    assert result.catalog is not None, "catalog should be rebuilt after apply"
+
+
+def test_create_already_exists_is_a_no_op(tmp_path: Path) -> None:
+    """Re-creating an existing skill writes nothing."""
+    (tmp_path / "automation" / "doc-helper").mkdir(parents=True)
+    (tmp_path / "automation" / "doc-helper" / "SKILL.md").write_text(
+        "---\nname: doc-helper\ndescription: old\nwhen-to-use: \"old\"\nargument-hint: <old>\n---\n",
+        encoding="utf-8",
+    )
+    agent = default_aggregate(default_root=tmp_path)
+    request = SkillsRequest(
+        op=SkillsOp.CREATE,
+        query="doc-helper",
+        description="Helps with docs",
+        flags={
+            "category": "automation",
+            "when_to_use": "Use when writing documentation",
+            "argument_hint": "<path>",
+            "body": "# Doc Helper\n",
+        },
+        root=tmp_path,
+        apply=True,
+    )
+    result = agent.execute(request)
+    assert result.ok
+    assert result.create_plan.already_exists
+    text = (tmp_path / "automation" / "doc-helper" / "SKILL.md").read_text(encoding="utf-8")
+    assert "description: old" in text, "existing skill file must not be overwritten"
+
+
+def test_create_without_category_is_a_usage_error(tmp_path: Path) -> None:
+    agent = default_aggregate(default_root=tmp_path)
+    request = SkillsRequest(
+        op=SkillsOp.CREATE,
+        query="doc-helper",
+        description="Helps with docs",
+        flags={
+            "category": "",
+            "when_to_use": "",
+            "argument_hint": "",
+            "body": "",
+        },
+        root=tmp_path,
+        apply=True,
+    )
+    result = agent.execute(request)
+    assert not result.ok
+    assert result.exit_code == 2
