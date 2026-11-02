@@ -820,6 +820,10 @@ def _cmd_traces_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     )
     result = aggregate.execute(request)
 
+    if not result.ok:
+        err(result.message)
+        return result.exit_code
+
     if ns.json:
         _emit_json(
             {
