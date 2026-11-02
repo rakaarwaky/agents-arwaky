@@ -1,3 +1,10 @@
+# Step 5 — Verify
+
+# Step 5 — Verify
+
+Re-read every touched file and confirm the change is present and the original backed up in the run's trash. Run `aa skills validate`; stop at the first failure and report it. Then output the report using the `report.md` and `actions.json` shapes in this file.
+
+
 # Trace-learning output format
 
 Two files in the run directory. `report.md` is for the user. `actions.json` is for the apply step. Every action in `actions.json` must appear in `report.md`, and every claim in sections 1–3 of `report.md` must be backed by a verifier's Kept list.

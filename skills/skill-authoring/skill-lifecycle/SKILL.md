@@ -1,33 +1,16 @@
 ---
 name: skill-lifecycle
-description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories (e.g., /skill-lifecycle, or a merge of one skill into another such as merging create-workflow into grok-build), pruning skills, consolidating skills, merging duplicate skills, auditing a skill directory, collapsing skill folders, or running a scheduled self-evolution pass over a skill tree.
-when-to-use: Use when cleaning up, auditing, or merging agent skill directories; pruning skills; consolidating skills; merging one skill into another (for example, a merge of create-workflow into grok-build); auditing a skill directory; collapsing skill folders; or running a scheduled (headless) evolution pass that applies approved changes without an interactive approval gate.
+description: Prunes and consolidates SKILL.md collections — deduplicates overlapping skills into one folder with one SKILL.md, or keeps one folder with a references/ subfolder for complex variants. Use when cleaning up, auditing, or merging agent skill directories (e.g., /skill-lifecycle, or a merge of one skill into another such as merging create-workflow into grok-build), pruning skills, consolidating skills, merging duplicate skills, collapsing skill folders, or running a scheduled self-evolution pass over a skill tree.
+user-invocable: true
+when-to-use: Use when the user wants to prune, consolidate, or merge a skill tree; collapse duplicate or near-duplicate skill folders; audit a skill directory for structural issues; or run a scheduled headless evolution pass that applies approved changes without an interactive approval gate.
 argument-hint: "[<skill-dir>] [--dry-run | --auto | --evolution]"
-metadata:
-  tags:
-    - skill
-    - pruning
-    - deduplication
-    - consolidation
-    - skill-cleanup
-    - agent-skills
 ---
 
 # Skill Lifecycle
 
-You prune and consolidate agent skill directories (a collection of `SKILL.md` folders). Two skills covering the same job collapse into one folder with one `SKILL.md`; skills that share a domain but differ per scenario keep one folder with one `SKILL.md` plus a `references/` subfolder, one file per scenario. Modeled on `code-quality/deep-clean` (two-phase: remove duplicates, then consolidate variants).
+You prune and consolidate agent skill directories (a collection of `SKILL.md` folders). Two skills covering the same job collapse into one folder with one `SKILL.md`; skills that share a domain but differ per scenario keep one folder with one `SKILL.md` plus a `references/` subfolder, one file per scenario. The two-phase structure mirrors `code-quality/deep-clean`: Phase 1 removes true duplicates, Phase 2 consolidates variants.
 
 **Scope:** skill directories only — `SKILL.md` files, `references/`, `scripts/`, and category `DESCRIPTION.md` files. Never touch non-skill content.
-
-## Execution Flow
-
-1. **Confirm the audit root**: default `/home/raka/agents-arwaky/skills`, a specific category, or the user's path. Reject a path that resolves to a file, and stop if the directory holds no `SKILL.md` subfolders.
-2. **Inventory & classify**: list every skill folder, read each `SKILL.md`, cluster by semantic scope, and classify each cluster as duplicate, variant, or separate jobs (Phase 1 removes true duplicates; Phase 2 consolidates variants — never skip Phase 1).
-3. **Dry-run & approval**: generate the planned prune report and present it; wait for confirmation. `--auto` and `--evolution` skip this gate and go straight to the snapshot.
-4. **Snapshot**: `git add -A && git commit` (or `git stash` if the tree holds unrelated work — record the `HEAD` SHA and stage only the skill-tree paths you touch).
-5. **Execute**: merge per the Phase 2 table; update category `DESCRIPTION.md` and `CATALOG.md`.
-6. **Verify & rollback**: every remaining `SKILL.md` parses, all reference links resolve, no two skills share a `name:`, `aa skills validate` is clean. On failure, trigger the Rollback Protocol.
-7. **Report**: output the executed `skill-lifecycle report` with the rollback target SHA.
 
 ## Global Rules
 
@@ -42,13 +25,18 @@ Rules that apply to every step. Reference files cite these; they never restate t
 - **Rollback**: the snapshot (or `HEAD` SHA when the tree was dirty) is the undo path; `git reset --hard <sha>` restores both the skill and unrelated state. Record the snapshot SHA in the commit message and final report. `--evolution` (headless) runs that cannot commit fall back to `--dry-run` and report instead of applying.
 - **Scope**: skill directories only. A scoped multi-skill merge (the user names two or more specific folders) skips the full-tree inventory and treats exactly the named skills as the audit set; do not let the default audit root expand the scope beyond the named skills.
 
-## Run Steps
+- **Safety model**: read commands (`list`, `show`, `discover`, `validate`, `weed`) run immediately; reversible writes (`repair`, `new-category`, `move`, catalog rebuild, category rename) default to `--dry-run` first, apply with `--apply`; destructive actions (`archive`, `merge`, `delete`) require `--dry-run` + approval gate. `--evolution` (headless) runs that cannot commit fall back to `--dry-run` and report instead of applying. Delete is never the default — `_archive/` first, delete only with explicit `--hard-delete`.
+- **Parallel agents committing in the same tree**: this repo is worked on by multiple agents (GrokBuild via Orca, Hermes). A concurrent commit can sweep your staged changes into someone else's commit and change the HEAD you snapshotted against. After any snapshot and before committing, re-run `git log --oneline -4` and `git status`; re-verify on-disk state before executing; keep your commit scoped to your own task files only — never `git add -A`.
+- **Staging discipline**: inside `skills/<category>/`, `git add -A .` stages every tracked file under that subdirectory, not just the prune's changes. Use explicit top-level paths (`git add skills/<category>/ skills/CATALOG.md`) and verify the staged set with `git status --short` before committing.
+## Routing
 
-| Mode | Reference | Purpose |
+| Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Step details (1–10) | [`references/workflow-steps.md`](references/workflow-steps.md) | The full per-step checklist: confirm root, inventory, group, classify, dry-run & approval, snapshot, execute, update, verify, report. |
-| Merge rules | [`references/merge-rules.md`](references/merge-rules.md) | Name survival, frontmatter union, body merge, conflict resolution, scripts, empty-category cleanup, DESCRIPTION.md handling. |
-| Report format | [`references/report-format.md`](references/report-format.md) | The final executed report shape: MERGED / KEPT SEPARATE / DELETED / ROLLBACK TARGET / VERIFY. |
-| Rollback protocol | [`references/rollback-protocol.md`](references/rollback-protocol.md) | Hard failure, soft failure, and mid-run abort handling. |
-| Common mistakes | [`references/common-mistakes.md`](references/common-mistakes.md) | The failure list to re-check before declaring the prune done. |
-| Safety model | [`references/safety.md`](references/safety.md) | What this skill may and may not touch. |
+| Step 0 | [`references/step-0-confirm-root.md`](references/step-0-confirm-root.md) | Confirm the audit root; reject a file path or an empty tree. |
+| Step 1 | [`references/step-1-inventory.md`](references/step-1-inventory.md) | List every skill folder; read each `SKILL.md` frontmatter and body. |
+| Step 2 | [`references/step-2-group.md`](references/step-2-group.md) | Cluster by semantic scope; verify against body content. |
+| Step 3 | [`references/step-3-classify.md`](references/step-3-classify.md) | Classify each cluster: duplicate, variant, or separate jobs. |
+| Step 4 | [`references/step-4-dry-run.md`](references/step-4-dry-run.md) | Generate the planned prune report; wait for confirmation unless `--auto`/`--evolution`. |
+| Step 5 | [`references/step-5-snapshot.md`](references/step-5-snapshot.md) | `git add -A && git commit` or `git stash`; record the rollback target. |
+| Step 6 | [`references/step-6-execute.md`](references/step-6-execute.md) | Execute the merge: name survival, frontmatter union, body merge, conflict resolution, scripts, empty-category cleanup, DESCRIPTION.md. |
+| Step 7 | [`references/step-7-verify-report.md`](references/step-7-verify-report.md) | Verify every `SKILL.md` parses and links resolve; on failure trigger rollback; output the final report. |

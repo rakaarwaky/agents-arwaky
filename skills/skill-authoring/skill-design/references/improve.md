@@ -5,17 +5,17 @@ role: reference
 
 # Improve
 
-Recipe for the improve step, plus the reference-pattern decision it owns. Verification after any edit is the Verify and Report steps of `SKILL.md` (Execution Flow 5–6) — this file adds only the edit actions that precede them.
+Recipe for the improve step, plus the reference-pattern decision it owns. Verification after any edit is the `aa skills validate` gate — this file adds only the edit actions that precede it.
 
 ## Improve a skill
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.
 2. **Identify the owner**: for each fact being changed, name its one home using the Information distribution test below — `SKILL.md` Global Rules for a fact read by more than one step, a step file for a fact read by exactly one step. A standalone `references/<name>.md` is a home only when it is the single authoritative copy of a fact that no step file already states. If the owner is ambiguous, stop and confirm before touching anything.
-3. **Pick the target pattern** (when the edit restructures `references/`, or when the current tree's pattern does not match the skill's shape): run the pattern decision below and apply it before editing. The answer to Step 1 and Step 2 below comes from the skill's **Execution Flow verbs and run-state**, never from the layout of the `references/` files that exist today — a tree that looks like Pattern A (flat per-mode files) is Pattern B the moment its flow is a single ordered pipeline with state passing between steps. Restructuring from A to B is a valid restructure; it is not "mixing patterns."
+3. **Pick the target pattern** (when the edit restructures `references/`, or when the current tree's pattern does not match the skill's shape): run the pattern decision below and apply it before editing. The answer to Step 1 and Step 2 below comes from the skill's **Routing table**, never from the layout of the `references/` files that exist today — a tree that looks like Pattern A (flat per-mode files) is Pattern B the moment its routing is a single ordered pipeline with state passing between steps. Restructuring from A to B is a valid restructure; it is not "mixing patterns."
 4. **Apply the edit** where the owner lives. If the owner is a reference file, edit the reference — never the body. If the owner is Global Rules, edit `SKILL.md`.
 5. **Sweep for second copies**: after the edit, search the skill directory for any other place that states the same fact. Report each one; do not silently rewrite them.
 6. **Resolve cross-skill links you touched**: every sibling mention and cross-skill link you edited must name a skill that exists in the tree (Global Rules: dangling refs rot fast).
-7. **Run Verify and Report**: the Verify and Report steps of `SKILL.md` (Execution Flow 5–6) — they own `aa skills validate` and the pre-publish checklist.
+7. **Run Verify and Report**: `aa skills validate` and the pre-publish checklist in `references/audit.md`.
 
 ## Information distribution
 
@@ -27,14 +27,14 @@ For each fact, ask one question: **how many steps read this fact during a single
 
 - **More than one step (or all steps)** → `SKILL.md` Global Rules. Cross-step policy, signal definitions, invariants, record formats.
 - **Exactly one step** → that step's reference file. Commands, field shapes, per-action rules, stop conditions, worked examples.
-- **Neither — the fact is a shared definition used by several pipeline skills** (the trace pipeline's `signals.md`, `report-format.md`, …) → it is a shared reference, not owned by any one step. In that case it may live as `references/<name>.md` and be linked from every skill that uses it; no single skill's step file is its home.
+- **Neither — the fact is a shared definition used by several pipeline skills** (the trace pipeline's `signals` definitions, `report-format` shapes, …) → it is a shared reference, not owned by any one step. In this pack the shared definition is inlined into each consuming skill's step file (as in the trace-pipeline set: `skill-evolving`, `skill-learning`, `skill-unlearn` each carry their own `step-3-read-report.md`, `step-4-apply.md`, `step-5-verify.md`); the standalone shared file is deleted, not kept. A standalone `references/<name>.md` linked from several consumers is legitimate only when the fact genuinely has no per-skill step home — which in this pack means a new shared pipeline has not yet been created.
 
 ### Rules
 
-- Never leave a definition file in a skill when its content is fully owned by the Global Rules + step files of that same skill. A file whose every line is restated in `SKILL.md` or a step file is a second copy and is deleted, not kept.
+- **Learned mistake (do not repeat).** When inlining a shared definition into a consuming skill's step file, the step file that gains the content must name the file it absorbed by reference, and the standalone file must be deleted in the same edit. The mistake that produced this rule: `skill-unlearn`'s `signals.md`, `report-format.md`, and `apply-rules.md` were inlined into `step-3`, `step-5`, and `step-4` respectively, but the three standalone files were left on disk and still linked from `SKILL.md` — creating second copies. The check that catches it: after inlining, grep the skill's `SKILL.md` and step files for the deleted filename; every hit is a dangling link and a second copy, and the edit is incomplete until both are removed.
 - A Global Rules bullet that fully defines a signal, action type, or invariant is the home for it; a step file that repeats that definition in full is the second copy. Point at the bullet, do not restate it.
 - A step file may reference the Global Rules bullet by name; it does not restate the bullet's content.
-- The shared-reference case (third rule above) is the only situation where a non-step `references/<name>.md` is legitimate in a Pattern B pipeline; name it in `SKILL.md` Run Steps and link it from the step that consumes it.
+- The shared-reference case (third rule above) is the only situation where a non-step `references/<name>.md` is legitimate in a Pattern B pipeline; name it in the `SKILL.md` Routing table and link it from the step that consumes it.
 
 ## Choosing the reference pattern
 
@@ -94,7 +94,7 @@ The pattern follows the skill's shape, not the tree it currently has. Run Step 1
 
 Ask: will the agent always execute all steps in sequence, with run state (attempt counters, hypotheses, repro commands, etc.) flowing from one step to the next?
 
-Answer this question from the **Execution Flow** in `SKILL.md` (the numbered verb list and whether each step's output feeds the next), not from the filenames under `references/`. Definition files (`signals.md`, `report-format.md`, …) do not make a skill mode-based; they are inputs a pipeline step reads. If the flow is one ordered sequence, the answer is **Yes** even if the current tree is flat Pattern A.
+Answer this question from the **Routing table** in `SKILL.md` (the Step rows and whether each row's output feeds the next), not from the filenames under `references/`. Definition files (signal definitions, report-format shapes, …) do not make a skill mode-based; they are inputs a pipeline step reads. If the pipeline is one ordered sequence, the answer is **Yes** even if the current tree is flat Pattern A.
 
 - **Yes** → **Pattern B**: numbered `references/step-<N>-<name>.md` files in execution order. Numbers encode order; sub-variants (`step-<N>a`, `step-<N>b`) branch by a runtime parameter.
   - Examples in this pack: `systematic-debugging`, `implement`, `skill-evolving`.
@@ -115,7 +115,7 @@ Run this before deciding where each fact lands. The test is the Information dist
 
 - **More than one step (or all steps) → `SKILL.md` Global Rules**: cross-step policy (scope, consent, validation), signal definitions, invariants, record formats.
 - **Exactly one step → that step's reference file**: commands and flags with exact syntax, outputs and their shape, the step's stop conditions and failure handling, worked examples for that step's shape.
-- **Shared definition used by several pipeline skills → `references/<name>.md` linked from every consumer**: it is not owned by any one skill's step file.
+- **Shared definition used by several pipeline skills → inline it into each consuming skill's step file** (as in the trace-pipeline set: `skill-evolving`, `skill-learning`, `skill-unlearn`); it is not owned by any one skill's step file. A standalone shared `references/<name>.md` is kept only when a consuming skill has not yet been restructured to Pattern B step files — the moment it does, inline and delete the shared file.
 
 The two trigger fields (`description:`, `when-to-use:`) follow their own budget rule (Global Rules: budget for permanent cost) — they are not "body". Move anything task-conditional out of the body into a reference or a step.
 

@@ -4,7 +4,7 @@ Turn a GitHub issue into a tested, verified PR. This section owns the end-to-end
 discipline — premise validation, duplicate sweeps, class-level fixes, and honest CI
 reporting; the sibling skills own their own mechanics. Use it for "Fix issue #123 and
 open a PR", "Implement this GitHub feature request", "Take this bug from issue to green
-CI". Don't use it for reviewing an existing PR (see `github-code-review`) or answering a
+CI". Don't use it for reviewing an existing PR (see `review`) or answering a
 code question with no requested change.
 
 ### 1. Read the live issue — body AND full thread

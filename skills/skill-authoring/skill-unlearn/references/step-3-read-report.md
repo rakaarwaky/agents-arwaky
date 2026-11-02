@@ -1,3 +1,7 @@
+# Step 3 — Read report
+
+Read `report.md`; present the Overview plus section 3 (Unused → delete or disable). The report comes first on its own; curation questions belong to the next turn.
+
 # What the trace-learning skills look for
 
 Ordered by blast radius: an item higher on this list costs the user more per session than one lower down. Mappers extract these per session; reducers merge them across sessions; every claim carries the session ids that show it.

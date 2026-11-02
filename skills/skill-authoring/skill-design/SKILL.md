@@ -9,15 +9,6 @@ argument-hint: "<skills path> [--create] [--improve] [--audit]"
 
 You create, improve, and audit SKILL.md files.
 
-## Execution Flow
-
-1. **Parse**: the first argument is the skills path; any combination of `--create`, `--improve`, `--audit` selects the steps. With no flags, default to `--audit` if the path exists or `--create` if it doesn't.
-2. **Route each step**: for each requested flag, open only the reference(s) the Run Steps table names for it — that reference is the executable logic for the step.
-3. **Apply Global Rules** throughout.
-4. **Execute** the steps in the order create → improve → audit. Each step hands its result to the next: `create` writes a new skill that `improve` then edits; `improve` leaves an updated skill that `audit` then checks.
-5. **Verify** after every step that edits a skill: run `aa skills validate`; search the skill directory for a second authoritative copy of each fact you added or moved; after any rename or move, grep the pack for the old name and fix dangling pointers; for create/improve, walk the pre-publish checklist in `references/audit.md`. Stop at the first failing verification and report it before continuing.
-6. **Report**: what changed in each step, how it was verified, and any duplication you noticed but did not fix — per One home per fact, you report it rather than silently rewriting the skill.
-
 ## Global Rules
 
 Rules that apply to every step. Reference files cite these; they never restate them.
@@ -36,10 +27,10 @@ Rules that apply to every step. Reference files cite these; they never restate t
 - **Structure.** Exactly one `SKILL.md` at `<category>/<skill>/SKILL.md` (nested SKILL.md files are rejected). The body is a routing table of contents, ~100–200 lines, with steps that end in checkable completion criteria; detail lives in `references/*.md` (subfolders allowed when the set is large) and every reference, whatever its depth, links directly from `SKILL.md`. Non-trivial logic ships as `scripts/<file>` referenced by path.
 - **Enforcement.** `aa skills validate` is the gate before publishing; the rule names it enforces are cataloged in `references/audit.md`.
 
-## Run Steps
+## Routing
 
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Create | [`references/create.md`](references/create.md) | Interactive creation workflow; ends at the pre-publish checklist. |
-| Improve | [`references/improve.md`](references/improve.md) | Improve checklist; owns the reference-pattern decision (A / B / C). |
-| Audit | [`references/audit.md`](references/audit.md) | Frontmatter key table, validator rule catalog, naming/content detail, pre-publish checklist; auto-resolves scope. |
+| `--create` | `[create.md](references/create.md)` | interactive creation workflow; ends at the pre-publish checklist. |
+| `--improve` | `[improve.md](references/improve.md)` | improve checklist; owns the reference-pattern decision (A / B / C). |
+| `--audit` | `[audit.md](references/audit.md)` | frontmatter key table, validator rule catalog, naming/content detail, pre-publish checklist; auto-resolves scope. |
