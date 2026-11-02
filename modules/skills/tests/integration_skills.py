@@ -20,6 +20,7 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_linter import SkillsLinter
+from modules.skills.src.capabilities_skills_validator import SkillsValidator
 from modules.skills.src.capabilities_skills_lister import SkillsLister
 from modules.skills.src.capabilities_skills_mover import SkillsMover
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
@@ -141,7 +142,7 @@ def test_agent_maps_typed_errors_to_exit_codes(tmp_path: Path) -> None:
         SkillsLister(root),
         SkillsPackReader(root),
         catalog=SkillsCatalog(),
-        linter=SkillsLinter(),
+        linter=SkillsLinter(SkillsValidator()),
         mover=SkillsMover(),
         default_root=root,
     )

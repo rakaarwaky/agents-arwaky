@@ -46,6 +46,7 @@ from modules.skills.src.capabilities_skills_lister import SkillsLister
 from modules.skills.src.capabilities_skills_mover import SkillsMover
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
+from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 __all__ = [
     "SkillsFacade",
@@ -70,10 +71,11 @@ def default_aggregate(
     """Return an agent bound to the repo's ``skills/`` pack (or overrides)."""
     root = default_root if default_root is not None else default_pack_root()
     wired_catalog = catalog or SkillsCatalog()
+    wired_linter = linter or SkillsLinter(SkillsValidator())
     return SkillsAgent(
         lister or SkillsLister(root),
         reader or SkillsPackReader(root),
-        linter=linter or SkillsLinter(),
+        linter=wired_linter,
         catalog=wired_catalog,
         discover=discover or SkillsDiscover(wired_catalog),
         mover=mover or SkillsMover(),
@@ -112,33 +114,25 @@ class SkillsFacade:
         traces: ISkillsTracesProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
-        self._lister = lister
-        self._reader = reader
-        self._linter = linter
-        self._catalog = catalog
-        self._discover = discover
-        self._mover = mover
-        self._archiver = archiver
-        self._creator = creator
-        self._traces = traces
-        self._default_root = default_root
+        root = default_root if default_root is not None else default_pack_root()
+        wired_catalog = catalog or SkillsCatalog()
+        wired_linter = linter or SkillsLinter(SkillsValidator())
+        self._agent_cache = SkillsAgent(
+            lister or SkillsLister(root),
+            reader or SkillsPackReader(root),
+            linter=wired_linter,
+            catalog=wired_catalog,
+            discover=discover or SkillsDiscover(wired_catalog),
+            mover=mover or SkillsMover(),
+            archiver=archiver or SkillsArchiver(),
+            creator=creator or SkillsCreator(),
+            traces=traces or SkillsTraces(),
+            default_root=root,
+        )
 
     def _agent(self) -> SkillsAgent:
-        """Build the agent lazily, defaulting every missing capability."""
-        root = default_pack_root()
-        catalog = self._catalog or SkillsCatalog()
-        return SkillsAgent(
-            self._lister or SkillsLister(root),
-            self._reader or SkillsPackReader(root),
-            linter=self._linter or SkillsLinter(),
-            catalog=catalog,
-            discover=self._discover or SkillsDiscover(catalog),
-            mover=self._mover or SkillsMover(),
-            archiver=self._archiver or SkillsArchiver(),
-            creator=self._creator or SkillsCreator(),
-            traces=self._traces or SkillsTraces(),
-            default_root=self._default_root or root,
-        )
+        """Return the built agent (instantiated once, never per call)."""
+        return self._agent_cache
 
     # ─── Read wrappers ───────────────────────────────────────
     def list_skills(self) -> Sequence[SkillRecord]:

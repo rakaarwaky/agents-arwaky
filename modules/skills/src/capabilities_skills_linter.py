@@ -36,7 +36,7 @@ __all__ = ["SkillsLinter"]
 class SkillsLinter(ISkillsLinterProtocol):
     """Combined lint: validator checks + weed report, optionally category-filtered."""
 
-    def __init__(self, validator: ISkillsValidatorProtocol | None = None) -> None:
+    def __init__(self, validator: ISkillsValidatorProtocol) -> None:
         self._validator = validator
 
     def lint(
@@ -52,12 +52,7 @@ class SkillsLinter(ISkillsLinterProtocol):
         skills_root = Path(root)
 
         # ── 1. Validator: 13-rule checks ─────────────────────────
-        if self._validator is not None:
-            report: ValidationReport = self._validator.validate(skills_root)
-        else:
-            # Lazy default: instantiate the concrete validator directly.
-            from modules.skills.src.capabilities_skills_validator import SkillsValidator
-            report = SkillsValidator().validate(skills_root)
+        report: ValidationReport = self._validator.validate(skills_root)
 
         # ── 2. Weed report ───────────────────────────────────────
         weed_plan = plan_weed(skills_root)
