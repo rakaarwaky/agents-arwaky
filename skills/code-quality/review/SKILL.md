@@ -23,7 +23,7 @@ metadata:
     - Review-Threads
   related_skills:
     - github-auth
-    - github-pr-workflow
+    - pr-babysit
 ---
 
 # Review Skill

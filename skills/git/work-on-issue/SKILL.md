@@ -28,7 +28,7 @@ metadata:
     - Triage
   related_skills:
     - github-auth
-    - github-pr-workflow
+    - pr-babysit
     - systematic-debugging
     - orca
 ---

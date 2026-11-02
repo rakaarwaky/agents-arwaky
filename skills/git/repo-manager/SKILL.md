@@ -14,7 +14,7 @@ metadata:
   related_skills:
     - github-auth
     - github-pr-workflow
-    - github-issues
+    - work-on-issue
 ---
 
 # GitHub Repository Management

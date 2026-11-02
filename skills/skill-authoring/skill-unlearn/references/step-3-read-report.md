@@ -2,31 +2,13 @@
 
 Read `report.md`; present the Overview plus section 3 (Unused → delete or disable). The report comes first on its own; curation questions belong to the next turn.
 
-# What the trace-learning skills look for
+# Signal Definitions
 
-Ordered by blast radius: an item higher on this list costs the user more per session than one lower down. Mappers extract these per session; reducers merge them across sessions; every claim carries the session ids that show it.
+The trace pipeline extracts five signal types per session. The full definitions for these signals are owned by the Global Rules of the respective consuming skills to avoid second copies:
 
-## 1. Instructions the user types by hand (a skill should own them)
-
-Text in `turns` that tells the agent HOW to work rather than WHAT to do: process, order of steps, tools to prefer, checks to run, style, who to notify. Quote it exactly (at most 200 characters). Then check the loaded skills in `surfaces.json`: if one already states it, the owner is that skill (the phrase joins it as a trigger or a line); if none does, the owner is NEW.
-
-The task content itself ("fix the flaky test in X") is not an instruction. A phrase seen in one session is a candidate; two or more distinct sessions make it a habit.
-
-## 2. Friction (the harness failed the user)
-
-Turns where the user corrected the agent, repeated an earlier instruction, said the result was wrong or too big, or asked "how's it going" while waiting. Quote briefly. Friction that recurs across sessions points at a missing or unclear skill line.
-
-## 3. Stale skill lines (a loaded skill is wrong)
-
-A line in a loaded SKILL.md that the session shows to be wrong or outdated: a path that did not exist, a flag or command that failed, a model or tool name that was overridden, a step the user told the agent to skip. Name the skill, quote the current line from the file, and quote the trace evidence. If the line is not in the current file, there is no claim.
-
-## 4. Unused surfaces (candidates to remove)
-
-Never counted by an agent. `usage.json` holds the deterministic counts: loaded skills with count 0 and absent from slash MRU, enabled plugins with count 0, MCP servers with count 0, workflows with count 0. `surfaces.json` holds the structural findings: plugins listed as enabled but not installed, and duplicate skill names loaded from two places. For each, the safety argument is what still does the job: a second loaded copy, a bundled or plugin copy, or the fact that the plugin was never enabled. A copy outside `surfaces.json` (a dotfiles repo, a backup) is not a loaded surface. If nothing else does the job, the action is `ask`, not `delete`. `surfaces.json` also carries `referenced_by` (loaded skills that name this one) and `protected` (plugin, bundled, git-tracked); a referenced skill is an `ask` that names the referrers, and a protected skill is never removed or edited in place (see `report-format.md`).
-
-## 5. Gaps (a recurring need with no owner)
-
-A job the user did by hand in two or more sessions that no skill, MCP, or workflow covers. Gaps are for discussion; they carry no action id unless the user asks for a skill.
+- **§1 Instructions typed by hand** & **§5 Gaps**: See `skill-learning` Global Rules.
+- **§2 Friction** & **§3 Stale skill lines**: See `skill-evolving` Global Rules.
+- **§4 Unused surfaces**: See `skill-unlearn` Global Rules (deterministic counts in `usage.json` and structural findings in `surfaces.json`).
 
 ## Per-session record shape (mappers)
 
@@ -42,3 +24,43 @@ A job the user did by hand in two or more sessions that no skill, MCP, or workfl
 ```
 
 End each mapper note with `## Batch candidates`: `- [phrase|stale|gap] <text> | sessions: <ids> | owner: <skill or NEW>`, duplicates merged within the batch.
+
+## Report shape (`report.md`)
+
+Write short sentences with one meaning each. No hedged summaries: a count is a number, a path is a path.
+
+```markdown
+# trace-learning report — <today>
+
+## Overview
+Problem: <2–4 sentences: what the traces show the user repeating, correcting, or never using>
+Proposed change: <2–4 sentences: the smallest set of harness edits that removes that repetition>
+Actions: <N> total — <a> new skills, <b> skill updates, <c> enables, <d> deletes/disables, <e> need a decision
+
+## 1. Repeated phrases -> skills
+| # | Phrase (quoted) | Sessions | Owner | Action |
+Owner is an existing skill (name, path) or NEW <name>. Action is the action id from actions.json.
+
+## 2. Skills to update
+| # | Skill (path) | Stale line (quoted) | Evidence (session ids) | Replacement | Action |
+
+## 3. Unused -> delete or disable
+| # | Name | Kind | Count | Last used | Why safe | Action |
+Kind is skill, plugin, mcp, workflow, or hook. "Why safe" names what still does the job, or says `only copy — ask`, or `referenced by <names> — ask`. A grouped action is one row that names the group and lists its members in the Name cell.
+
+## 4. Gaps
+Recurring needs with no owner. No action ids; these are for the user to decide.
+
+## Unverified claims
+Only present when a verifier section failed: the claims from that section, listed but not acted on unless the user asks; any action emitted for them carries `requires_confirmation: true`.
+
+## Dropped claims
+Bullet list: claim, reason it was dropped (which verifier, what failed). Include "previously rejected by the user" items here.
+
+## Coverage
+- sessions seen / kept / dropped by reason (from manifest.json)
+- human turns read; sessions read by mappers vs total
+- map or reduce slots lost; verifier sections that failed
+- window and filters used (params from manifest.json)
+- what this run could not see: headless sessions unless included, hook use, managed MCP servers, anything outside this machine's GROK_HOME
+```

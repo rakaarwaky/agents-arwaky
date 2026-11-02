@@ -1,6 +1,6 @@
 ---
 name: skill-learning
-description: "Create new skills for things the user keeps typing out. Mines Grok Build session traces for repeated hand-typed instructions and recurring gaps with no owner, drafts the new SKILL.md, and writes it to the user skills directory with origin: learn provenance. Use on slash-skill-learning, create a skill for what I keep typing, make a skill from my traces, what do I do that no skill covers. Not for editing existing skills (skill-evolving) or retiring unused ones (skill-unlearn); not for summarizing sessions into notes or memory."
+description: "Creates new skills for things the user keeps typing out. Mines Grok Build session traces for repeated hand-typed instructions and recurring gaps with no owner, drafts the new SKILL.md, and writes it to the user skills directory with origin: learn provenance. Use on slash-skill-learning, create a skill for what I keep typing, make a skill from my traces, what do I do that no skill covers. Not for editing existing skills (skill-evolving) or retiring unused ones (skill-unlearn); not for summarizing sessions into notes or memory."
 user-invocable: true
 when-to-use: Use when the user wants new skills created from their own session traces — repeated instructions they type by hand, or recurring jobs no skill, MCP, or workflow covers. Not for fixing stale skill lines or deleting unused surfaces.
 argument-hint: "[--days N | --since-last | --limit N] [--batch N] [--estimate] [--include-headless] [--cwd PATH] [--drop-pattern REGEX] ([--batch 1] is per-trace)"

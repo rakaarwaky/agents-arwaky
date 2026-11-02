@@ -19,7 +19,7 @@ metadata:
     - debugpy
     - cdp
   related_skills:
-    - github-pr-workflow
+    - pr-babysit
     - work-on-issue
     - deep-clean
 ---

@@ -28,5 +28,5 @@ Rules that apply to every mode. Reference files cite these; they never restate t
 | repair | `[repair.md](references/repair.md)` | fix mechanical faults; the agent edits broken SKILL.md bodies; rerun validate until clean; rebuild the catalog. |
 | weed | `[weed.md](references/weed.md)` | for duplicates, choose the best-maintained version; archive obsolete or duplicate skills; rebuild the catalog; report. |
 | organize | `[organize.md](references/organize.md)` | reorganize or create categories; improve DESCRIPTION.md wording; rebuild the catalog if hand-edited. |
-| audit | `aa skills validate + aa skills weed + read CATALOG.md` | decide the correct category for each misplaced skill; move with move --apply; report. |
+| audit | `[audit.md](references/audit.md)` | decide the correct category for each misplaced skill; move with move --apply; report. |
 | rename-category | `[rename-category.md](references/rename-category.md)` | in-place category rename: mv + cross-reference grep + catalog/validate rebuild. |

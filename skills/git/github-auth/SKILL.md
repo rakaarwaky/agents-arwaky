@@ -12,7 +12,7 @@ metadata:
     - SSH
     - Setup
   related_skills:
-    - github-pr-workflow
+    - pr-babysit
     - review
     - work-on-issue
     - repo-manager

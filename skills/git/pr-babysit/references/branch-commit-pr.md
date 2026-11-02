@@ -75,7 +75,7 @@ Closes #42"
 
 Options: `--draft`, `--reviewer user1,user2`, `--label "enhancement"`, `--base develop`
 
-For anything longer than a few lines, fill the matching skeleton and pass it with `--body-file` instead of an inline `--body`: [`templates/pr-body-feature.md`](../templates/pr-body-feature.md) or [`templates/pr-body-bugfix.md`](../templates/pr-body-bugfix.md).
+For anything longer than a few lines, fill the matching skeleton and pass it with `--body-file` instead of an inline `--body`: [`templates/pr-body-feature.md`](pr-body-feature.md) or [`templates/pr-body-bugfix.md`](pr-body-bugfix.md).
 
 **With git + curl:**
 
