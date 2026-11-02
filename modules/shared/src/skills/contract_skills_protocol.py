@@ -22,6 +22,7 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     CatalogReport,
     CatalogRow,
     DiscoveryResult,
+    LintReport,
     MergePlan,
     MutationOutcome,
     MutationPlan,
@@ -88,6 +89,24 @@ class ISkillsValidatorProtocol(ABC):
     @abstractmethod
     def validate(self, root: SkillsRoot) -> ValidationReport:
         """Run the 13 checks over *root*; the report is unfiltered by design."""
+        ...
+
+
+class ISkillsLintProtocol(ABC):
+    """Combined lint scan: 13-rule checks + weed report in one pass."""
+
+    @abstractmethod
+    def lint(
+        self, root: SkillsRoot, category: str | None = None
+    ) -> LintReport:
+        """Run the full lint over *root*; optionally filter by *category*.
+
+        The lint combines the 13-rule validator (per-skill, category,
+        placement, and duplicate checks) with the weed report (duplicate
+        skill names, duplicate descriptions, empty categories, missing
+        category descriptions). The result is a single ``LintReport``
+        carrying both the issues and the weed lines.
+        """
         ...
 
 
@@ -292,6 +311,7 @@ __all__ = [
     "ISkillsCatalogProtocol",
     "ISkillsDiscovererProtocol",
     "ISkillsIndexProtocol",
+    "ISkillsLintProtocol",
     "ISkillsMergePlannerProtocol",
     "ISkillsMutatorProtocol",
     "ISkillsReaderProtocol",

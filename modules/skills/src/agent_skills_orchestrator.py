@@ -28,6 +28,7 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
+    ISkillsLintProtocol,
     ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
@@ -36,6 +37,7 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ITrackerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+    LintReport,
     PhrasesReport,
     SkillCreatePlan,
     UsageReport,
@@ -68,6 +70,7 @@ class SkillsAgent(ISkillsAggregate):
         reader: ISkillsReaderProtocol,
         *,
         validator: ISkillsValidatorProtocol | None = None,
+        lint: ISkillsLintProtocol | None = None,
         catalog: ISkillsCatalogProtocol | None = None,
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
@@ -80,6 +83,7 @@ class SkillsAgent(ISkillsAggregate):
         self._index = index
         self._reader = reader
         self._validator = validator
+        self._lint = lint
         self._catalog = catalog
         self._discoverer = discoverer
         self._mutator = mutator
@@ -174,6 +178,27 @@ class SkillsAgent(ISkillsAggregate):
             op=op,
             exit_code=exit_code,
             report=report,
+            root=report.skills_root,
+        )
+
+    def _execute_lint(
+        self, request: SkillsRequest, op: SkillsOp
+    ) -> SkillsResult:
+        """Run the full lint scan (13-rule checks + weed report) over the root."""
+        lint = self._require(self._lint, "lint")
+        category = request.flags.get("category") or None
+        report = lint.lint(self._root(request), category=category)
+
+        exit_code = (
+            SkillsExitCode.CLEAN
+            if report.issue_count == 0
+            else SkillsExitCode.ISSUES_FOUND
+        )
+        return SkillsResult(
+            ok=exit_code == SkillsExitCode.CLEAN,
+            op=op,
+            exit_code=exit_code,
+            lint_report=report,
             root=report.skills_root,
         )
 

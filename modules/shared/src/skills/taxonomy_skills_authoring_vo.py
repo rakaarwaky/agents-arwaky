@@ -27,6 +27,7 @@ __all__ = [
     "CatalogRow",
     "DiscoveryMatch",
     "DiscoveryResult",
+    "LintReport",
     "MergePlan",
     "MutationOutcome",
     "MutationPlan",
@@ -63,6 +64,36 @@ class ValidationReport:
         """The one-line observability summary: issues / skills / categories."""
         return (
             f"{self.issue_count} issues / {self.skills} skills / "
+            f"{self.categories} categories"
+        )
+
+
+@dataclass(frozen=True)
+class LintReport:
+    """The combined result of the lint scan (13-rule checks + weed report)."""
+
+    skills_root: Path
+    issues: tuple[Issue, ...] = ()
+    weed_lines: tuple[str, ...] = ()
+    skills: int = 0
+    categories: int = 0
+    unfiltered_issues: tuple[Issue, ...] = ()
+    unfiltered_weed_lines: tuple[str, ...] = ()
+
+    @property
+    def issue_count(self) -> int:
+        """Total issues: filtered validator issues + filtered weed lines."""
+        return len(self.issues) + len(self.weed_lines)
+
+    @property
+    def unfiltered_issue_count(self) -> int:
+        """Total issues before category filtering (drives the exit code)."""
+        return len(self.unfiltered_issues) + len(self.unfiltered_weed_lines)
+
+    def summary(self) -> str:
+        """The one-line observability summary: issues / skills / categories."""
+        return (
+            f"{self.unfiltered_issue_count} issues / {self.skills} skills / "
             f"{self.categories} categories"
         )
 

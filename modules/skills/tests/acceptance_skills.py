@@ -46,11 +46,11 @@ def test_acceptance_fr_skill_unknown(tmp_path: Path):
     assert content is None
 
 # ─── Authoring acceptance (one case per `aa skills` subcommand) ────────
-def test_acceptance_validate_reports_and_exits(tmp_path: Path):
-    """AC-SKILLS-010: ``validate`` reports the crafted issue with exit 1."""
+def test_acceptance_lint_reports_and_exits(tmp_path: Path):
+    """AC-SKILLS-010: ``lint`` reports the crafted issue with exit 1."""
     from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
-    code, out, _ = run_surface(crafted_tree(tmp_path), "validate")
+    code, out, _ = run_surface(crafted_tree(tmp_path), "lint")
     assert code == 1
     assert "[name-mismatch]" in out
 
@@ -80,32 +80,6 @@ def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
     assert "| doc-drafts |" in out
 
 
-def test_acceptance_weed_is_clean_on_a_healthy_tree(tmp_path: Path):
-    """AC-SKILLS-013: ``weed`` exits 0 when there is nothing to weed."""
-    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
-
-    code, out, _ = run_surface(crafted_tree(tmp_path), "weed")
-    assert code == 0
-    assert "No obvious weeds found." in out
-
-
-def test_acceptance_repair_defaults_to_preview(tmp_path: Path):
-    """AC-SKILLS-014: ``repair`` previews and writes only with ``--apply``."""
-    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
-
-    root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(root, "repair")
-    assert code == 0
-    assert "dry-run" in out
-    assert "name: wrong-name" in (
-        root / "drafts" / "doc-drafts" / "SKILL.md"
-    ).read_text(encoding="utf-8")
-
-    code, out, _ = run_surface(root, "repair", "--apply")
-    assert code == 0
-    assert "Repairs applied:" in out
-
-
 def test_acceptance_move_archive_new_category(tmp_path: Path):
     """AC-SKILLS-015: the three path mutations preview and apply."""
     from modules.skills.tests.fixture_skills import crafted_tree, run_surface
@@ -120,19 +94,6 @@ def test_acceptance_move_archive_new_category(tmp_path: Path):
 
     assert run_surface(root, "new-category", "beta-cat", "Second", "--apply")[0] == 0
     assert (root / "beta-cat" / "DESCRIPTION.md").exists()
-
-
-def test_acceptance_merge_plan_is_read_only(tmp_path: Path):
-    """AC-SKILLS-016: ``merge-plan`` emits a plan and changes nothing."""
-    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
-
-    root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(
-        root, "merge-plan", "drafts/doc-drafts", "notes/note-taker"
-    )
-    assert code == 0
-    assert out.startswith("# Merge plan")
-    assert (root / "drafts" / "doc-drafts").exists()
 
 
 def test_acceptance_unknown_subcommand_is_usage_error(tmp_path: Path):

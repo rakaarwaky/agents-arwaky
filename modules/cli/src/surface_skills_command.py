@@ -1,8 +1,8 @@
 """Skills CLI surface — command handlers for every ``aa skills`` verb.
 
 Read-only discovery (``list``/``show``) plus the authoring commands
-(``validate``, ``catalog``, ``discover``, ``weed``, ``repair``, ``move``,
-``archive``, ``new-category``, ``merge-plan``).
+(``lint``, ``catalog``, ``discover``, ``move``, ``archive``,
+``new-category``, ``create``).
 
 The aggregate is injected by the caller (the root CLI), never imported
 here, so no root→surface coupling exists (AES205). Argv becomes a
@@ -76,16 +76,13 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
     if sub == "show":
         return _cmd_show(rest, aggregate)
     if sub in (
-        "validate",
+        "lint",
         "catalog",
         "discover",
-        "weed",
-        "repair",
         "move",
         "archive",
         "new-category",
         "create",
-        "merge-plan",
     ):
         return _cmd_authoring(sub, rest, aggregate)
     if sub in ("trace-collect", "trace-usage", "trace-phrases", "trace-materialize", "trace-state"):
@@ -102,17 +99,11 @@ def _print_usage() -> None:
         f"{BOLD()}aa skills list{RESET()}                  List all skills in the pack"
     )
     info(f"{BOLD()}aa skills show <name>{RESET()}           Print a skill's SKILL.md")
-    info(f"{BOLD()}aa skills validate{RESET()}              Report validation issues")
+    info(f"{BOLD()}aa skills lint [--category NAME]{RESET()}  Full lint scan (validate + weed)")
     info(
         f"{BOLD()}aa skills catalog [--check]{RESET()}     Rebuild CATALOG.md (or test it)"
     )
     info(f"{BOLD()}aa skills discover <query>{RESET()}      Search the catalog")
-    info(
-        f"{BOLD()}aa skills weed{RESET()}                  Report duplicates and empty categories"
-    )
-    info(
-        f"{BOLD()}aa skills repair [--apply]{RESET()}      Apply safe mechanical repairs"
-    )
     info(
         f"{BOLD()}aa skills move <skill> <cat>{RESET()}    Move a skill to another category"
     )
@@ -124,9 +115,6 @@ def _print_usage() -> None:
         f"{BOLD()}aa skills create <name> --category <cat> --description <desc> "
         f"--when-to-use <trigger> --argument-hint <hint> --body <body> [--apply]{RESET()}"
         f"  Create a skill in the pack"
-    )
-    info(
-        f"{BOLD()}aa skills merge-plan <a> <b>{RESET()}    Emit the read-only merge plan"
     )
     info(f"{BOLD()}aa skills trace-collect[...]{RESET()}    Scan sessions → build usage (run dir + kept/seen counts)")
     info(f"{BOLD()}aa skills trace-usage[...]{RESET()}      Read last run's usage (skills-only table, unused_loaded)")
@@ -218,18 +206,13 @@ def _authoring_parser() -> argparse.ArgumentParser:
         )
         sub.add_argument("--json", action="store_true", help="Emit the report as JSON")
 
-    sub = subparsers.add_parser("validate", help="Report validation issues")
+    sub = subparsers.add_parser("lint", help="Full lint scan (validate + weed)")
     add_common(sub)
     sub.add_argument(
         "--category",
         metavar="NAME",
         default=None,
         help="Only report issues in category NAME",
-    )
-    sub.add_argument(
-        "--rules-only",
-        action="store_true",
-        help="Only report the rule checks (skip library-wide duplicates)",
     )
     sub.add_argument(
         "--summary",
@@ -254,19 +237,6 @@ def _authoring_parser() -> argparse.ArgumentParser:
     add_common(sub)
     sub.add_argument("query", help="Search query")
     sub.add_argument("--limit", type=int, default=20, help="Maximum results")
-
-    sub = subparsers.add_parser("weed", help="Report duplicates and empty categories")
-    add_common(sub)
-
-    sub = subparsers.add_parser(
-        "repair", help="Apply safe mechanical repairs (dry-run by default)"
-    )
-    add_common(sub)
-    sub.add_argument(
-        "--apply",
-        action="store_true",
-        help="Execute the repairs (default is a preview)",
-    )
 
     sub = subparsers.add_parser("move", help="Move a skill to a target category")
     add_common(sub)
@@ -341,14 +311,6 @@ def _authoring_parser() -> argparse.ArgumentParser:
         help="Write the skill (default is a preview)",
     )
 
-    sub = subparsers.add_parser(
-        "merge-plan",
-        help="Emit the merge plan for two skills (read-only; skill-lifecycle executes it)",
-    )
-    add_common(sub)
-    sub.add_argument("skill_a", help="First skill reference, category/skill")
-    sub.add_argument("skill_b", help="Second skill reference, category/skill")
-
     return parser
 
 
@@ -368,16 +330,12 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         print(f"ERROR: {result.message}", file=sys.stderr)
         return result.exit_code
 
-    if sub == "validate":
-        return _render_validate(result, request)
+    if sub == "lint":
+        return _render_lint(result, request)
     if sub == "catalog":
         return _render_catalog(result, request)
     if sub == "discover":
         return _render_discover(result, request)
-    if sub == "weed":
-        return _render_weed(result, request)
-    if sub == "repair":
-        return _render_repair(result, request)
     if sub == "move":
         return _render_move(result, request)
     if sub == "archive":
@@ -386,8 +344,6 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         return _render_new_category(result, request)
     if sub == "create":
         return _render_create(result, request)
-    if sub == "merge-plan":
-        return _render_merge_plan(result, request)
     raise SkillsUsageError(f"Unknown skills subcommand: {sub}")
 
 
@@ -401,12 +357,11 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
     )
     json_value = bool(getattr(namespace, "json", False))
 
-    if command == "validate":
+    if command == "lint":
         return SkillsRequest(
-            op=SkillsOp.VALIDATE,
+            op=SkillsOp.LINT,
             flags={
                 "category": namespace.category or "",
-                "rules_only": "1" if namespace.rules_only else "0",
                 "summary": "1" if namespace.summary else "0",
             },
             root=root_value,
@@ -424,15 +379,6 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
             op=SkillsOp.DISCOVER,
             query=SkillQuery(namespace.query),
             flags={"limit": str(namespace.limit)},
-            root=root_value,
-            json=json_value,
-        )
-    if command == "weed":
-        return SkillsRequest(op=SkillsOp.WEED, root=root_value, json=json_value)
-    if command == "repair":
-        return SkillsRequest(
-            op=SkillsOp.REPAIR,
-            apply=namespace.apply,
             root=root_value,
             json=json_value,
         )
@@ -478,14 +424,6 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
             root=root_value,
             json=json_value,
         )
-    if command == "merge-plan":
-        return SkillsRequest(
-            op=SkillsOp.MERGE_PLAN,
-            query=SkillQuery(namespace.skill_a),
-            flags={"target": namespace.skill_b},
-            root=root_value,
-            json=json_value,
-        )
     raise SkillsUsageError(f"Unknown skills subcommand: {command}")
 
 
@@ -508,77 +446,6 @@ def _issue_payload(issue: Issue) -> dict[str, object]:
     if issue.category:
         payload["category"] = issue.category
     return payload
-
-
-def _render_validate(result: SkillsResult, request: SkillsRequest) -> int:
-    """Render a validation report, narrowed by --category/--rules-only."""
-    report = result.report
-    if report is None:
-        err("Internal error: no validation report produced")
-        return 1
-    total = report.issue_count
-    issues = list(report.issues)
-
-    if request.flags.get("category"):
-        category = request.flags["category"]
-        issues = [
-            issue
-            for issue in issues
-            if issue.category == category
-            or (issue.path or "").startswith(f"{category}/")
-        ]
-    if request.flags.get("rules_only") == "1":
-        issues = [issue for issue in issues if issue.type in RULE_ONLY_ISSUE_TYPES]
-
-    root = _root_of(result)
-
-    if request.json:
-        _emit_json(
-            {
-                "skills_root": str(root),
-                "category": request.flags.get("category") or None,
-                "rules_only": request.flags.get("rules_only") == "1",
-                "issue_count": len(issues),
-                "total_issue_count": total,
-                "issues": [_issue_payload(issue) for issue in issues],
-            }
-        )
-        return 1 if total else 0
-
-    if request.flags.get("summary") == "1":
-        print(report.summary())
-        return 1 if total else 0
-
-    if total == 0:
-        print("No validation issues found.")
-        return 0
-
-    scope_note = _filter_note(
-        request.flags.get("category"), request.flags.get("rules_only")
-    )
-    if scope_note:
-        print(
-            f"{total} validation issue(s) found ({len(issues)} in scope {scope_note}):"
-        )
-    else:
-        print(f"{total} validation issue(s) found:")
-
-    for issue in issues:
-        print(f"- [{issue.type}] {issue.locator}: {issue.message}")
-
-    if not issues:
-        print("(none in scope)")
-    return 1
-
-
-def _filter_note(category: str | None, rules_only: str | None) -> str:
-    """The parenthetical that names the active filter(s)."""
-    bits = []
-    if category:
-        bits.append(f"category={category}")
-    if rules_only == "1":
-        bits.append("rules-only")
-    return "; ".join(bits)
 
 
 def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
@@ -664,79 +531,61 @@ def _render_discover(result: SkillsResult, request: SkillsRequest) -> int:
     return 0
 
 
-def _weed_issue(line: str) -> dict[str, str]:
+def _lint_issue(issue: Issue) -> dict[str, object]:
+    """Parse one lint issue into the JSON report shape."""
+    payload: dict[str, object] = {"type": issue.type, "message": issue.message}
+    if issue.path:
+        payload["path"] = issue.path
+    if issue.category:
+        payload["category"] = issue.category
+    return payload
+
+
+def _lint_weed_issue(line: str) -> dict[str, str]:
     """Parse one weed line into the JSON report shape."""
     body = line.removeprefix("- ")
     kind, _, message = body.partition(": ")
     return {"type": kind, "message": message}
 
 
-def _render_weed(result: SkillsResult, request: SkillsRequest) -> int:
-    """Render the weeding report; any weed line means exit 1."""
-    plan = result.plan
-    if plan is None:
-        err("Internal error: no weed plan produced")
+def _render_lint(result: SkillsResult, request: SkillsRequest) -> int:
+    """Render a lint report, narrowed by --category."""
+    report = result.lint_report
+    if report is None:
+        err("Internal error: no lint report produced")
         return 1
-    lines = list(plan.lines)
+
+    total = report.issue_count
     root = _root_of(result)
 
     if request.json:
         _emit_json(
             {
                 "skills_root": str(root),
-                "issue_count": len(lines),
-                "issues": [_weed_issue(line) for line in lines],
+                "category": request.flags.get("category") or None,
+                "issue_count": total,
+                "issues": [_lint_issue(issue) for issue in report.issues],
+                "weed_lines": [
+                    _lint_weed_issue(line) for line in report.weed_lines
+                ],
             }
         )
-    else:
-        print("Weeding report:")
-        if lines:
-            for line in lines:
-                print(line)
-        else:
-            print("No obvious weeds found.")
-    return 1 if lines else 0
+        return 1 if total else 0
 
+    if request.flags.get("summary") == "1":
+        print(report.summary())
+        return 1 if total else 0
 
-def _render_repair(result: SkillsResult, request: SkillsRequest) -> int:
-    """Render a repair preview or the applied report."""
-    plan = result.plan
-    if plan is None:
-        err("Internal error: no repair plan produced")
-        return 1
-    root = _root_of(result)
-    catalog = root / "CATALOG.md"
-
-    if not request.apply:
-        if request.json:
-            _emit_json(
-                {
-                    "skills_root": str(root),
-                    "dry_run": True,
-                    "planned": list(plan.lines),
-                    "plan_count": len(plan.lines),
-                    "note": _DRY_RUN_NOTE,
-                }
-            )
-        else:
-            print("Planned repairs (dry-run — pass --apply to execute):")
-            if plan.lines:
-                for item in plan.lines:
-                    print(f"- {item}")
-            else:
-                print("- (none)")
-            print(f"Would rebuild {catalog}")
+    if total == 0:
+        print("No lint issues found.")
         return 0
 
-    applied = list(result.outcome.applied) if result.outcome else []
-    if applied:
-        print("Repairs applied:")
-        for item in applied:
-            print(f"- {item}")
-    else:
-        print("No mechanical repairs needed.")
-    print(f"Rebuilt {catalog}")
-    return 0
+    print(f"{total} lint issue(s) found:")
+    for issue in report.issues:
+        print(f"- [{issue.type}] {issue.locator}: {issue.message}")
+    for line in report.weed_lines:
+        print(f"- {line}")
+    return 1
 
 
 def _render_move(result: SkillsResult, request: SkillsRequest) -> int:
@@ -895,37 +744,6 @@ def _render_create(result: SkillsResult, request: SkillsRequest) -> int:
 
     print(f"Created {rel_skill_md}")
     print(f"Rebuilt {catalog}")
-    return 0
-
-
-def _render_merge_plan(result: SkillsResult, request: SkillsRequest) -> int:
-    """Render the merge plan (JSON projections keep the legacy key order)."""
-    plan = result.merge
-    if plan is None:
-        err("Internal error: no merge plan produced")
-        return 1
-    root = _root_of(result)
-
-    if request.json:
-        _emit_json(
-            {
-                "skills_root": str(root),
-                "survivor": plan.survivor,
-                "absorbed": plan.absorbed,
-                "survival_reason": plan.survival_reason,
-                "moves": [
-                    {"from": source, "to": destination}
-                    for source, destination in plan.moves
-                ],
-                "rewrites": list(plan.rewrites),
-                "category_after": plan.category_after,
-                "empty_category_after": plan.empty_category_after,
-            }
-        )
-        return 0
-
-    for line in result.lines:
-        print(line)
     return 0
 
 

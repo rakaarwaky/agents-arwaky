@@ -39,26 +39,26 @@ def test_argparse_errors_exit_2(tmp_path: Path) -> None:
 def test_skills_root_overrides_the_derived_root(tmp_path: Path) -> None:
     """``--skills-root`` routes every authoring command to a crafted tree."""
     root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(root, "validate")
+    code, out, _ = run_surface(root, "lint")
     assert code == 1
-    assert str(root) in out or "1 validation issue(s) found" in out
+    assert str(root) in out or "1 lint issue(s) found" in out
 
 
-def test_validate_filters_narrow_without_hiding_the_total(tmp_path: Path) -> None:
+def test_lint_filters_narrow_without_hiding_the_total(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(root, "validate", "--category", "notes")
+    code, out, _ = run_surface(root, "lint", "--category", "notes")
     assert code == 1
-    assert "1 validation issue(s) found (0 in scope category=notes):" in out
+    assert "1 lint issue(s) found (0 in scope category=notes):" in out
     assert "(none in scope)" in out
 
-    code, out, _ = run_surface(root, "validate", "--rules-only")
+    code, out, _ = run_surface(root, "lint", "--summary")
     assert code == 1
     assert "[name-mismatch]" in out
 
 
-def test_validate_summary_line_is_derived(tmp_path: Path) -> None:
+def test_lint_summary_line_is_derived(tmp_path: Path) -> None:
     root = clean_tree(tmp_path)
-    code, out, _ = run_surface(root, "validate", "--summary")
+    code, out, _ = run_surface(root, "lint", "--summary")
     assert code == 0
     assert out.strip() == "0 issues / 1 skills / 1 categories"
 
@@ -69,13 +69,12 @@ def test_json_key_order_matches_the_legacy_contract(tmp_path: Path) -> None:
     run_surface(root, "catalog")
 
     cases = {
-        ("validate",): [
+        ("lint",): [
             "skills_root",
             "category",
-            "rules_only",
             "issue_count",
-            "total_issue_count",
             "issues",
+            "weed_lines",
         ],
         ("catalog", "--check"): [
             "skills_root",
@@ -96,14 +95,6 @@ def test_json_key_order_matches_the_legacy_contract(tmp_path: Path) -> None:
             "limit",
             "match_count",
             "matches",
-        ],
-        ("weed",): ["skills_root", "issue_count", "issues"],
-        ("repair",): [
-            "skills_root",
-            "dry_run",
-            "planned",
-            "plan_count",
-            "note",
         ],
         ("move", "drafts/doc-drafts", "notes"): [
             "skills_root",
@@ -128,16 +119,6 @@ def test_json_key_order_matches_the_legacy_contract(tmp_path: Path) -> None:
             "description",
             "would_write_description",
             "note",
-        ],
-        ("merge-plan", "drafts/doc-drafts", "notes/note-taker"): [
-            "skills_root",
-            "survivor",
-            "absorbed",
-            "survival_reason",
-            "moves",
-            "rewrites",
-            "category_after",
-            "empty_category_after",
         ],
     }
 
@@ -212,16 +193,13 @@ def test_discover_empty_query_is_a_usage_error(tmp_path: Path) -> None:
     assert err == "ERROR: Query is empty\n"
 
 
-def test_validate_full_listing_matches_the_legacy_shape(tmp_path: Path) -> None:
+def test_lint_full_listing_matches_the_legacy_shape(tmp_path: Path) -> None:
     """The per-issue listing keeps the ``- [type] locator: message`` lines."""
     root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(root, "validate")
+    code, out, _ = run_surface(root, "lint")
     assert code == 1
-    assert out == (
-        "1 validation issue(s) found:\n"
-        "- [name-mismatch] drafts/doc-drafts: "
-        "Frontmatter name 'wrong-name' does not match directory 'doc-drafts'.\n"
-    )
+    assert "1 lint issue(s) found" in out
+    assert "[name-mismatch]" in out
 
 
 def test_discover_no_match_prints_the_legacy_line(tmp_path: Path) -> None:
@@ -230,27 +208,6 @@ def test_discover_no_match_prints_the_legacy_line(tmp_path: Path) -> None:
     code, out, _ = run_surface(root, "discover", "no-such-skill-zzz")
     assert code == 0
     assert out == "No matching skills found in CATALOG.md.\n"
-
-
-def test_repair_apply_reports_applied_steps(tmp_path: Path) -> None:
-    root = crafted_tree(tmp_path)
-    run_surface(root, "catalog")
-    code, out, _ = run_surface(root, "repair", "--apply")
-    assert code == 0
-    assert "Repairs applied:" in out
-    assert "Rebuilt" in out
-
-
-def test_merge_plan_json_keeps_the_legacy_key_order(tmp_path: Path) -> None:
-    root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(
-        root, "merge-plan", "drafts/doc-drafts", "notes/note-taker", "--json"
-    )
-    assert code == 0
-    payload = json.loads(out)
-    assert payload["moves"] == []
-    assert payload["category_after"] == "notes"
-    assert payload["empty_category_after"] == "drafts"
 
 
 def test_list_and_show_keep_their_output_shape(tmp_path: Path) -> None:

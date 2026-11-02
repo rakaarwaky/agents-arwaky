@@ -20,6 +20,7 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_index_builder import SkillsIndexBuilder
+from modules.skills.src.capabilities_skills_lint import SkillsLint
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_validator import SkillsValidator
@@ -143,6 +144,7 @@ def test_agent_maps_typed_errors_to_exit_codes(tmp_path: Path) -> None:
         catalog=SkillsCatalog(),
         mutator=SkillsMutator(),
         validator=SkillsValidator(),
+        lint=SkillsLint(),
         default_root=root,
     )
 
@@ -159,7 +161,7 @@ def test_agent_maps_typed_errors_to_exit_codes(tmp_path: Path) -> None:
     assert missing.message.startswith("Could not find skill directory")
 
     bad_root = agent.execute(
-        SkillsRequest(op=SkillsOp.VALIDATE, root=as_root(tmp_path / "nope"))
+        SkillsRequest(op=SkillsOp.LINT, root=as_root(tmp_path / "nope"))
     )
     assert bad_root.exit_code == 2
     assert bad_root.message.startswith("Skills root does not exist")

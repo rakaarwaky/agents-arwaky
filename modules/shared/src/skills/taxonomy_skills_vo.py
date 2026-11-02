@@ -27,7 +27,7 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
 
 if TYPE_CHECKING:
     # ``SkillsResult`` annotates an authoring VO (``ValidationReport``,
-    # ``CatalogReport``, ...). Those classes live in the authoring module,
+    # ``CatalogReport``, ``LintReport``, ...). Those classes live in the authoring module,
     # which re-imports the trace primitives from here — a runtime import
     # here would cycle, so the names are reserved for type-checking and the
     # PEP 563 string annotations. No consumer reads an authoring VO off this
@@ -37,6 +37,7 @@ if TYPE_CHECKING:
         CatalogCheckResult,
         CatalogReport,
         DiscoveryMatch,
+        LintReport,
         MergePlan,
         MutationOutcome,
         MutationPlan,
@@ -81,6 +82,7 @@ class SkillsOp(StrEnum):
     NEW_CATEGORY = "new-category"
     CREATE = "create"
     MERGE_PLAN = "merge-plan"
+    LINT = "lint"
     TRACE_COLLECT = "trace-collect"
     TRACE_USAGE = "trace-usage"
     TRACE_PHRASES = "trace-phrases"
@@ -284,6 +286,7 @@ class SkillsResult:
     records: tuple[SkillRecord, ...] = ()
     content: SkillContent | None = None
     report: ValidationReport | None = None
+    lint_report: LintReport | None = None
     catalog: CatalogReport | None = None
     check: CatalogCheckResult | None = None
     matches: tuple[DiscoveryMatch, ...] = ()
@@ -320,6 +323,7 @@ __all__ = [
     "SkillsRequest",
     "SkillsResult",
     "SkillsRoot",
+    "LintReport",
     "TraceDecision",
     "TraceSessionRecord",
     "TraceStateDispatchResult",

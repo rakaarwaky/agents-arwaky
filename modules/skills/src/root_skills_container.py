@@ -21,6 +21,7 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
+    ISkillsLintProtocol,
     ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
@@ -41,6 +42,7 @@ from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_discoverer import SkillsDiscoverer
 from modules.skills.src.capabilities_skills_index_builder import SkillsIndexBuilder
+from modules.skills.src.capabilities_skills_lint import SkillsLint
 from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlanner
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
@@ -61,6 +63,7 @@ def default_aggregate(
     reader: ISkillsReaderProtocol | None = None,
     *,
     validator: ISkillsValidatorProtocol | None = None,
+    lint: ISkillsLintProtocol | None = None,
     catalog: ISkillsCatalogProtocol | None = None,
     discoverer: ISkillsDiscovererProtocol | None = None,
     mutator: ISkillsMutatorProtocol | None = None,
@@ -77,6 +80,7 @@ def default_aggregate(
         index or SkillsIndexBuilder(root),
         reader or SkillsPackReader(root),
         validator=validator or SkillsValidator(),
+        lint=lint or SkillsLint(),
         catalog=wired_catalog,
         discoverer=discoverer or SkillsDiscoverer(wired_catalog),
         mutator=mutator or SkillsMutator(),
@@ -108,6 +112,7 @@ class SkillsFacade:
         reader: ISkillsReaderProtocol | None = None,
         *,
         validator: ISkillsValidatorProtocol | None = None,
+        lint: ISkillsLintProtocol | None = None,
         catalog: ISkillsCatalogProtocol | None = None,
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
@@ -120,6 +125,7 @@ class SkillsFacade:
         self._index = index
         self._reader = reader
         self._validator = validator
+        self._lint = lint
         self._catalog = catalog
         self._discoverer = discoverer
         self._mutator = mutator
@@ -137,6 +143,7 @@ class SkillsFacade:
             self._index or SkillsIndexBuilder(root),
             self._reader or SkillsPackReader(root),
             validator=self._validator or SkillsValidator(),
+            lint=self._lint or SkillsLint(),
             catalog=catalog,
             discoverer=self._discoverer or SkillsDiscoverer(catalog),
             mutator=self._mutator or SkillsMutator(),
@@ -159,6 +166,20 @@ class SkillsFacade:
         ).content
 
     # ─── Authoring wrappers ──────────────────────────────────
+    def lint(
+        self,
+        root: SkillsRoot | None = None,
+        category: str | None = None,
+    ) -> SkillsResult:
+        """Run the full lint scan (13-rule checks + weed report)."""
+        return self._agent().execute(
+            SkillsRequest(
+                op=SkillsOp.LINT,
+                root=root,
+                flags={"category": category or ""},
+            )
+        )
+
     def validate(self, root: SkillsRoot | None = None) -> SkillsResult:
         """Run the 13-rule validator."""
         return self._agent().execute(SkillsRequest(op=SkillsOp.VALIDATE, root=root))

@@ -30,8 +30,8 @@ def test_dogfood_skills_show():
 
 
 @pytest.mark.dogfood
-def test_dogfood_validate_live_pack_is_deterministic():
-    """DOG-SKILLS-003: validating the live pack is stable and self-consistent.
+def test_dogfood_lint_live_pack_is_deterministic():
+    """DOG-SKILLS-003: linting the live pack is stable and self-consistent.
 
     Deliberately does not assert a clean pack: what the live tree contains
     (including categories mounted from submodules) is the pack owner's
@@ -44,12 +44,13 @@ def test_dogfood_validate_live_pack_is_deterministic():
     from modules.shared.src.skills.taxonomy_skills_vo import SkillsRequest
     from modules.skills.src.root_skills_container import default_aggregate
 
-    first = default_aggregate().execute(SkillsRequest(op="validate"))
-    second = default_aggregate().execute(SkillsRequest(op="validate"))
+    first = default_aggregate().execute(SkillsRequest(op="lint"))
+    second = default_aggregate().execute(SkillsRequest(op="lint"))
 
-    assert first.report is not None and second.report is not None
-    assert first.report.issues == second.report.issues
-    assert first.exit_code == (1 if first.report.issue_count else 0)
-    for issue in first.report.issues:
+    assert first.lint_report is not None and second.lint_report is not None
+    assert first.lint_report.issues == second.lint_report.issues
+    assert first.lint_report.weed_lines == second.lint_report.weed_lines
+    assert first.exit_code == (1 if first.lint_report.issue_count else 0)
+    for issue in first.lint_report.issues:
         assert issue.message
         assert issue.locator
