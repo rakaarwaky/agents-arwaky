@@ -24,16 +24,15 @@ from typing import cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
-    IPhrasesProtocol,
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
     ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
+    ISkillsTracesProtocol,
     ISkillsValidatorProtocol,
     IStateProtocol,
-    ITrackerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     PhrasesReport,
@@ -72,8 +71,7 @@ class SkillsAgent(ISkillsAggregate):
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
         merge_planner: ISkillsMergePlannerProtocol | None = None,
-        tracker: ITrackerProtocol | None = None,
-        phrases: IPhrasesProtocol | None = None,
+        traces: ISkillsTracesProtocol | None = None,
         state: IStateProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
@@ -84,8 +82,7 @@ class SkillsAgent(ISkillsAggregate):
         self._discoverer = discoverer
         self._mutator = mutator
         self._merge_planner = merge_planner
-        self._tracker = tracker
-        self._phrases = phrases
+        self._traces = traces
         self._state = state
         self._default_root = default_root
 
@@ -377,7 +374,7 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_trace_collect(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Scan sessions then build usage: the collect half of the trace pipeline."""
-        tracker = self._require(self._tracker, "tracker")
+        traces = self._require(self._traces, "traces")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
         days = int(request.flags.get("days", "0"))
@@ -385,7 +382,7 @@ class SkillsAgent(ISkillsAggregate):
         min_turns = int(request.flags.get("min_turns", "1"))
         limit = int(request.flags.get("limit", "0"))
 
-        scan = tracker.scan_sessions(
+        scan = traces.scan_sessions(
             grok_home=grok_home,
             run_dir=run_dir,
             days=days,
@@ -393,7 +390,7 @@ class SkillsAgent(ISkillsAggregate):
             min_turns=min_turns,
             limit=limit,
         )
-        usage = tracker.build_usage(grok_home=grok_home, run_dir=run_dir)
+        usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
         kept = len(scan.records)
         seen = scan.sessions_seen
 
@@ -406,19 +403,19 @@ class SkillsAgent(ISkillsAggregate):
         )
 
     def _execute_trace_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Read the last run's usage report from the tracker."""
-        tracker = self._require(self._tracker, "tracker")
+        """Read the last run's usage report from the traces capability."""
+        traces = self._require(self._traces, "traces")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
-        usage = tracker.build_usage(grok_home=grok_home, run_dir=run_dir)
+        usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
         return SkillsResult(ok=True, op=op, usage=usage)
 
     def _execute_trace_phrases(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Mine repeated prompts and instruction lines from the session records."""
-        phrases = self._require(self._phrases, "phrases")
+        traces = self._require(self._traces, "traces")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
-        report = phrases.build_phrases(grok_home=grok_home, run_dir=run_dir)
+        report = traces.build_phrases(grok_home=grok_home, run_dir=run_dir)
         return SkillsResult(ok=True, op=op, phrases=report)
 
     def _execute_trace_materialize(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
@@ -432,15 +429,14 @@ class SkillsAgent(ISkillsAggregate):
         Skills-only: ``usage.json`` carries one row per loaded skill plus the
         ``unused_loaded`` verdict; no plugin / MCP / workflow / hook surfaces.
         """
-        tracker = self._require(self._tracker, "tracker")
-        phrases = self._require(self._phrases, "phrases")
+        traces = self._require(self._traces, "traces")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
         if not run_dir:
             raise SkillsUsageError("trace-materialize requires --run-dir")
 
-        usage = tracker.build_usage(grok_home=grok_home, run_dir=run_dir)
-        report = phrases.build_phrases(grok_home=grok_home, run_dir=run_dir)
+        usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
+        report = traces.build_phrases(grok_home=grok_home, run_dir=run_dir)
 
         usage_path = os.path.join(run_dir, "usage.json")
         phrases_path = os.path.join(run_dir, "phrases.json")

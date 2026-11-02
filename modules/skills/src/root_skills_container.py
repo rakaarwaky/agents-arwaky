@@ -1,7 +1,7 @@
 """Skills root container (AES composition root).
 
-Wires the seven capabilities (index, reader, validator, catalog,
-discoverer, mutator, merge planner) into the agent. The
+Wires the capabilities (index, reader, validator, catalog,
+discoverer, mutator, merge planner, traces) into the agent. The
 CLI surface receives an ``ISkillsAggregate`` (the agent itself), injected
 at the call site, so no root→surface coupling exists.
 
@@ -17,16 +17,15 @@ from pathlib import Path
 from modules.shared.src.common.utility_skill_pack import default_pack_root
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
-    IPhrasesProtocol,
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
     ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
+    ISkillsTracesProtocol,
     ISkillsValidatorProtocol,
     IStateProtocol,
-    ITrackerProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillContent,
@@ -44,9 +43,8 @@ from modules.skills.src.capabilities_skills_index_builder import SkillsIndexBuil
 from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlanner
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
-from modules.skills.src.capabilities_skills_phrases import SkillsPhrases
 from modules.skills.src.capabilities_skills_state import SkillsTraceState
-from modules.skills.src.capabilities_skills_tracker import SkillsTracker
+from modules.skills.src.capabilities_skills_traces import SkillsTraces
 from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 __all__ = [
@@ -65,8 +63,7 @@ def default_aggregate(
     discoverer: ISkillsDiscovererProtocol | None = None,
     mutator: ISkillsMutatorProtocol | None = None,
     merge_planner: ISkillsMergePlannerProtocol | None = None,
-    tracker: ITrackerProtocol | None = None,
-    phrases: IPhrasesProtocol | None = None,
+    traces: ISkillsTracesProtocol | None = None,
     state: IStateProtocol | None = None,
     default_root: Path | None = None,
 ) -> ISkillsAggregate:
@@ -81,8 +78,7 @@ def default_aggregate(
         discoverer=discoverer or SkillsDiscoverer(wired_catalog),
         mutator=mutator or SkillsMutator(),
         merge_planner=merge_planner or SkillsMergePlanner(),
-        tracker=tracker or SkillsTracker(),
-        phrases=phrases or SkillsPhrases(),
+        traces=traces or SkillsTraces(),
         state=state or SkillsTraceState(),
         default_root=root,
     )
@@ -112,8 +108,7 @@ class SkillsFacade:
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
         merge_planner: ISkillsMergePlannerProtocol | None = None,
-        tracker: ITrackerProtocol | None = None,
-        phrases: IPhrasesProtocol | None = None,
+        traces: ISkillsTracesProtocol | None = None,
         state: IStateProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
@@ -124,8 +119,7 @@ class SkillsFacade:
         self._discoverer = discoverer
         self._mutator = mutator
         self._merge_planner = merge_planner
-        self._tracker = tracker
-        self._phrases = phrases
+        self._traces = traces
         self._state = state
         self._default_root = default_root
 
@@ -141,8 +135,7 @@ class SkillsFacade:
             discoverer=self._discoverer or SkillsDiscoverer(catalog),
             mutator=self._mutator or SkillsMutator(),
             merge_planner=self._merge_planner or SkillsMergePlanner(),
-            tracker=self._tracker or SkillsTracker(),
-            phrases=self._phrases or SkillsPhrases(),
+            traces=self._traces or SkillsTraces(),
             state=self._state or SkillsTraceState(),
             default_root=self._default_root or root,
         )
