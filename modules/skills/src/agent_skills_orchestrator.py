@@ -191,7 +191,7 @@ class SkillsAgent(ISkillsAggregate):
 
         exit_code = (
             SkillsExitCode.CLEAN
-            if report.issue_count == 0
+            if report.unfiltered_issue_count == 0
             else SkillsExitCode.ISSUES_FOUND
         )
         return SkillsResult(
