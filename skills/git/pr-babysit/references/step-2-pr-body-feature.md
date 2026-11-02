@@ -1,3 +1,7 @@
+## PR body skeleton — feature PR
+
+Used by step 2 (`gh pr create --body-file`) when the change adds functionality.
+
 ## Summary
 
 <!-- 1-3 bullet points describing what this PR does -->

@@ -1,8 +1,8 @@
-# Auto-Fixing CI Failures
+# Step 4 — Auto-Fix Red Checks
 
-When CI fails, diagnose and fix. This loop works with either auth method.
+The CI fix loop. Works with either auth method.
 
-## Step 1: Get Failure Details
+## Get Failure Details
 
 **With gh:**
 
@@ -27,7 +27,7 @@ curl -s \
 import sys, json
 runs = json.load(sys.stdin)['workflow_runs']
 for r in runs:
-    print(f\"Run {r['id']}: {r['name']} - {r['conclusion'] or r['status']}\")"
+  print(f\"Run {r['id']}: {r['name']} - {r['conclusion'] or r['status']}\")"
 
 # Get failed job logs (download as zip, extract, read)
 RUN_ID=<run_id>
@@ -38,27 +38,23 @@ curl -s -L \
 cd /tmp && unzip -o ci-logs.zip -d ci-logs && cat ci-logs/*.txt
 ```
 
-## Step 2: Fix and Push
+Ambiguous failure? Load [step-5-troubleshoot.md](step-5-troubleshoot.md) to distinguish flake from real failure.
 
-After identifying the issue, use file tools (`patch`, `write_file`) to fix it:
+## Fix and Push
+
+Fix in the worktree (the worktree recovery rules in [step-5-decision-tree.md](step-5-decision-tree.md) apply when a fix attempt fails):
 
 ```bash
-git add <fixed_files>
+git add -A
 git commit -m "fix: resolve CI failure in <check_name>"
 git push
 ```
 
-## Step 3: Verify
+## Auto-Fix Loop
 
-Re-check CI status using the commands from [`ci-monitoring.md`](ci-monitoring.md).
-
-## Auto-Fix Loop Pattern
-
-When asked to auto-fix CI, follow this loop:
-
-1. Check CI status → identify failures
+1. Read CI status (step 3) → identify failures
 2. Read failure logs → understand the error
-3. Use `read_file` + `patch`/`write_file` → fix the code
-4. `git add . && git commit -m "fix: ..." && git push`
-5. Wait for CI → re-check status
-6. Repeat if still failing (up to 3 attempts, then ask the user)
+3. Fix the code in the worktree
+4. `git add -A && git commit -m "fix: ..." && git push`
+5. Re-check CI status (step 3)
+6. Repeat while red. After any push, also run the decision-tree pass from [step-5-decision-tree.md](step-5-decision-tree.md) before declaring the PR green — a green CI does not guarantee review threads or bot findings are handled.

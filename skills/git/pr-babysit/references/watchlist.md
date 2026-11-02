@@ -1,39 +1,32 @@
-# Babysitter orchestrator (watchlist mode)
+# PR Babysitter — single-PR pipeline driver
 
-You are a PR babysitter. Monitor open PRs, detect CI failures, human and bot/automated review comments, and merge conflicts, then fix them autonomously.
+One sequential pipeline: watch a PR, fix it until green, merge when `--ship` is active. Standalone PRs only — if the PR is part of a Graphite or `gh stack` chain, stop and tell the user the stack tool owns those.
 
-## Todo scaffold
+## Inputs
 
-For each babysat PR, create three todos:
-- `pr-<n>:ci-green` — all CI checks passing
-- `pr-<n>:comments-addressed` — all open review threads either fixed+resolved or substantively replied
-- `pr-<n>:merge-ready` — labels applied, base up to date
+- `/pr-babysit add [--ship] <number>` — an existing PR to babysit.
+- "fix issue #123 and open a PR" — no PR yet; create one first.
 
-When `ship` is true, also create `pr-<n>:shipped`. It completes only when the PR is merged.
+## Pipeline
 
-## Commands
+| Step | Reference | Runs when |
+|------|-----------|-----------|
+| 0 — Add to watchlist | [step-0-add-pr.md](step-0-add-pr.md) | PR number supplied; persists state, sets `ship` flag |
+| 1 — Commit/title grammar | [step-1-commit-title.md](step-1-commit-title.md) | A fix commit is authored in step 4, or a PR is opened in step 2 |
+| 2 — Create PR | [step-2-create-pr.md](step-2-create-pr.md) | No PR exists yet; skeleton bodies in [step-2-pr-body-feature.md](step-2-pr-body-feature.md) / [step-2-pr-body-bugfix.md](step-2-pr-body-bugfix.md) |
+| 3 — Watch CI | [step-3-watch-ci.md](step-3-watch-ci.md) | Always, after the PR exists; polls until a terminal check state |
+| 4 — Auto-fix red checks | [step-4-auto-fix.md](step-4-auto-fix.md) | CI reports a red check; fix + push, loop back to step 3 |
+| 5 — Decision tree | [step-5-decision-tree.md](step-5-decision-tree.md) | After each step 4 push, and always before step 6; handles conflicts, review threads, bot findings, worktree recovery; [step-5-troubleshoot.md](step-5-troubleshoot.md) for ambiguous CI logs |
+| 6 — Merge | [step-6-merge.md](step-6-merge.md) | `ship` is `true` and step 5 reports `healthy` |
 
-| Command | Behavior |
-|---------|----------|
-| `add [--ship] <number> [<number>...]` | Add to watchlist; auto-detect stack membership; register whole stack |
-| `remove <number>` | Remove from watchlist |
-| `list` | All watched PRs grouped by stack, with status and ship flag |
-| `check` | One check cycle — query, detect, fix; then ship cycle for `ship: true` PRs |
-| `ship on|off [number...]` | Enable/disable shipping |
-| `ship [number...]` | Enable if numbers given, then one ship cycle |
+## State
 
-## State file
+Per-session: `~/.grok/plugin-data/pr-babysit/watched-prs-<INSTANCE_ID>.json`. `INSTANCE_ID` is a UUID generated on first `add` (resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`, run `<python> <HOST_PY> uuid --full`, reject WindowsApps stubs) and held in conversation context. Schema: see step 0.
 
-Per-session: `~/.grok/plugin-data/pr-babysit/watched-prs-<INSTANCE_ID>.json`. `INSTANCE_ID` is a UUID generated on first `add` (resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`, then run `<python> <HOST_PY> uuid --full` with a real Python 3 interpreter, rejecting WindowsApps stubs) and held in conversation context. Load [check-cycle.md](check-cycle.md) for the full state schema and lifecycle, and [adding-prs.md](adding-prs.md) for stack detection (Graphite / GitHub / API chain).
+## Safety guardrails
 
-## Check cycle
-
-Load [check-cycle.md](check-cycle.md) — the full query, decision tree, conflict resolution, CI auto-fix, review-thread handling, and bot-comment handling per subagent.
-
-## Shipping
-
-Load [shipping.md](shipping.md) when the command is `ship`, or when any watched PR has `ship: true`.
-
-## Hermes variant
-
-Load [hermes.md](hermes.md) when running inside a **Hermes** session — it carries the Hermes dispatch primitives (`delegate_task`, `cronjob_manage`, Orca worktrees) and the `${XDG_DATA_HOME:-$HOME/.local/share}/pr-babysit/` state path. The body above targets the Grok Build harness.
+- Never force-push without `--force-with-lease`.
+- Fix work happens in a worktree (created via `spawn_subagent` `isolation: "worktree"` when a subagent owns the pass, or an Orca worktree for direct runs); the main workspace tree is never modified.
+- Never skip or ignore a review thread — human or bot. Every unresolved thread is evaluated.
+- Never reply with "will fix" / "acknowledged" / "good point". Reply with a fix SHA or a substantive technical explanation.
+- Merge only in step 6, only when `ship` is `true` and every gate in step 5 / step 6 passes. No auto-merge on a PR whose base is not the repo default branch.

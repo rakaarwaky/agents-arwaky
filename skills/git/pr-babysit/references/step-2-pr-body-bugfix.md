@@ -1,3 +1,7 @@
+## PR body skeleton — bugfix PR
+
+Used by step 2 (`gh pr create --body-file`) when the change fixes a bug.
+
 ## Bug Description
 
 <!-- What was happening? -->

@@ -1,4 +1,4 @@
-# CI Troubleshooting Quick Reference
+# Step 5 (troubleshoot) — CI Failure Patterns
 
 Common CI failure patterns and how to diagnose them from the logs.
 

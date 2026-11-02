@@ -1,4 +1,6 @@
-# Conventional Commits Quick Reference
+# Step 1 — Commit and PR Title Grammar
+
+Conventional Commits reference. Used when a fix commit is made in step 4, and when opening the PR in step 2.
 
 Format: `type(scope): description`
 
