@@ -41,6 +41,10 @@ Keep `scripts/` of the surviving skill; move or re-link scripts of dropped
 skills only if the surviving skill's scenario needs them. Ensure no scripts
 referenced in the surviving body are deleted.
 
+## Archive dropped duplicates
+
+Dropped duplicates are archived into `_archive/` via `aa skills archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. Rebuild the catalog after archiving.
+
 ## Empty Category Cleanup
 
 If deleting duplicate skills leaves a category folder entirely empty (no skill

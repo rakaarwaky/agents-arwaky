@@ -37,8 +37,6 @@ Rules that apply to every step. Reference files cite these; they never restate t
 | Step 2 | [`references/step-2-group.md`](references/step-2-group.md) | Cluster by semantic scope; verify against body content. |
 | Step 3 | [`references/step-3-classify.md`](references/step-3-classify.md) | Classify each cluster: duplicate, variant, or separate jobs. |
 | Step 4 | [`references/step-4-dry-run.md`](references/step-4-dry-run.md) | Generate the planned prune report; wait for confirmation unless `--auto`/`--evolution`. |
-| weed | [`references/weed.md`](references/weed.md) | Run `aa skills weed` to detect duplicate/obsolete skills; archive each obsolete skill into `_archive/`; rebuild the catalog; report. |
-| archive | [`references/archive.md`](references/archive.md) | Archive a named skill into `_archive/` (dry-run by default; pass `--apply`); rebuild the catalog; report. |
 | Step 5 | [`references/step-5-snapshot.md`](references/step-5-snapshot.md) | `git add -A && git commit` or `git stash`; record the rollback target. |
 | Step 6 | [`references/step-6-execute.md`](references/step-6-execute.md) | Execute the merge: name survival, frontmatter union, body merge, conflict resolution, scripts, empty-category cleanup, DESCRIPTION.md. |
 | Step 7 | [`references/step-7-verify-report.md`](references/step-7-verify-report.md) | Verify every `SKILL.md` parses and links resolve; on failure trigger rollback; output the final report. |
