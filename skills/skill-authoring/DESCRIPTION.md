@@ -14,4 +14,4 @@ description: Skill-authoring skills — create, validate, and improve SKILL.md f
 | Remove skills and surfaces you never use | `skill-unlearn` | `aa skills trace-collect | trace-usage | trace-phrases | trace-state` |
 | Learn, evolve, and unlearn skills from session traces (one pass) | `skill-traces` | `/skill-traces --learn [--evolve --unlearn]` → `aa skills trace-collect | trace-materialize | trace-state` |
 
-The trace-learning skill (`skill-traces`, modes `--learn` / `--evolve` / `--unlearn`) is driven by the `aa skills` trace verbs (`trace-collect`, `trace-materialize`, `trace-state`) backed by `capabilities_skills_tracker`, `capabilities_skills_phrases`, and `capabilities_skills_state`. See `README.md` for pack routing and `CATALOG.md` for the master index.
+The trace-learning skill (`skill-traces`, modes `--learn` / `--evolve` / `--unlearn`) is driven by the `aa skills` trace verbs (`trace-collect`, `trace-materialize`, `trace-state`) backed by `capabilities_skills_traces` and `capabilities_skills_state`. See `README.md` for pack routing and `CATALOG.md` for the master index.
