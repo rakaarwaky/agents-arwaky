@@ -1,6 +1,6 @@
 # Step 1 — Commit and PR Title Grammar
 
-Conventional Commits reference. Used when a fix commit is made in step 4, and when opening the PR in step 2.
+Conventional Commits reference. Used when a fix commit is authored in step 3 (auto-fix).
 
 Format: `type(scope): description`
 

@@ -1,4 +1,4 @@
-# Step 4 — Auto-Fix Red Checks
+# Step 3 — Auto-Fix Red Checks
 
 The CI fix loop. Works with either auth method.
 
@@ -38,11 +38,11 @@ curl -s -L \
 cd /tmp && unzip -o ci-logs.zip -d ci-logs && cat ci-logs/*.txt
 ```
 
-Ambiguous failure? Load [step-5-troubleshoot.md](step-5-troubleshoot.md) to distinguish flake from real failure.
+Ambiguous failure? Load [step-4-troubleshoot.md](step-4-troubleshoot.md) to distinguish flake from real failure.
 
 ## Fix and Push
 
-Fix in the worktree (the worktree recovery rules in [step-5-decision-tree.md](step-5-decision-tree.md) apply when a fix attempt fails):
+Fix in the worktree (the worktree recovery rules in [step-4-decision-tree.md](step-4-decision-tree.md) apply when a fix attempt fails):
 
 ```bash
 git add -A
@@ -52,9 +52,9 @@ git push
 
 ## Auto-Fix Loop
 
-1. Read CI status (step 3) → identify failures
+1. Read CI status (step 2) → identify failures
 2. Read failure logs → understand the error
 3. Fix the code in the worktree
 4. `git add -A && git commit -m "fix: ..." && git push`
-5. Re-check CI status (step 3)
-6. Repeat while red. After any push, also run the decision-tree pass from [step-5-decision-tree.md](step-5-decision-tree.md) before declaring the PR green — a green CI does not guarantee review threads or bot findings are handled.
+5. Re-check CI status (step 2)
+6. Repeat while red. After any push, also run the decision-tree pass from [step-4-decision-tree.md](step-4-decision-tree.md) before declaring the PR green — a green CI does not guarantee review threads or bot findings are handled.

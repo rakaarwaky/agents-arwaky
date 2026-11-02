@@ -1,6 +1,6 @@
-# Step 6 — Merge (when `--ship` is active)
+# Step 5 — Merge (when `--ship` is active)
 
-Run only after step 5 confirms the PR is `healthy` and `ship` is `true`. The default (no `--ship`) stops at "ready to merge" and reports green.
+Run only after step 4 confirms the PR is `healthy` and `ship` is `true`. The default (no `--ship`) stops at "ready to merge" and reports green.
 
 ## Ship-ready gates
 

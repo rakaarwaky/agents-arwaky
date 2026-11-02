@@ -1,15 +1,15 @@
-# Step 5 — Decision Tree and Auto-Fix Loop
+# Step 4 — Decision Tree and Auto-Fix Loop
 
 The core per-cycle pass. Runs on every `check` and on every scheduled `/loop` trigger. Single PR, single worktree — no subagent dispatch, no resume, no parallel groups.
 
 ## When this file loads
 
-After step 3 (watch CI) reports a red check, or after step 4 (auto-fix) has pushed a fix and needs to re-judge the PR. Runs before step 6 (merge) to confirm the PR is actually ready.
+After step 2 (watch CI) reports a red check, or after step 3 (auto-fix) has pushed a fix and needs to re-judge the PR. Runs before step 5 (merge) to confirm the PR is actually ready.
 
 ## Inputs
 
 - The PR number, `OWNER`, `REPO` (from step 0)
-- The worktree path (created in step 0 or step 2, per Global Rules)
+- The worktree path (created in step 0, per Global Rules)
 - `stack_type: null` — this skill handles standalone PRs only; if the user's PR is part of a Graphite/GitHub stack, stop and tell them the stack tool owns those
 
 ## State
@@ -24,7 +24,7 @@ Persist `last_status` and `fix_count` to `~/.grok/plugin-data/pr-babysit/watched
 
 ## Worktree initialization
 
-The subagent worktree from step 0 / step 2 is the working boundary. `git fetch origin` before the first ref-sensitive operation; `has_fetched` flag guards repeat fetches.
+The subagent worktree from step 0 is the working boundary. `git fetch origin` before the first ref-sensitive operation; `has_fetched` flag guards repeat fetches.
 
 ```bash
 git fetch origin || (sleep 2 && git fetch origin) || FETCH_FAILED=true
@@ -94,7 +94,7 @@ gh run view <run_id> --log-failed 2>/dev/null | tail -100
 
 For each failed check:
 
-1. Read the log. Load [step-5-troubleshoot.md](step-5-troubleshoot.md) if the failure is ambiguous (flake vs real).
+1. Read the log. Load [step-4-troubleshoot.md](step-4-troubleshoot.md) if the failure is ambiguous (flake vs real).
 2. Fix the code in the worktree.
 3. Commit and push:
    ```bash
@@ -329,7 +329,7 @@ All of:
 - No unresolved review threads (human or bot) — confirmed by the passes above
 - No open conversation-tab comment without a later `Addressed in ` closer
 
-Set `last_status` to `"healthy"`. No action. The PR is ready to merge. If `--ship` is active, load [step-6-merge.md](step-6-merge.md).
+Set `last_status` to `"healthy"`. No action. The PR is ready to merge. If `--ship` is active, load [step-5-merge.md](step-5-merge.md).
 
 ## Last-status precedence
 

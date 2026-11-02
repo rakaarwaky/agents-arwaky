@@ -58,4 +58,4 @@ for i in $(seq 1 20); do
 done
 ```
 
-Ambiguous failure logs: see [step-5-troubleshoot.md](step-5-troubleshoot.md).
+Ambiguous failure logs: see [step-4-troubleshoot.md](step-4-troubleshoot.md).
