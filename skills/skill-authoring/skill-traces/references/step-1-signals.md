@@ -24,7 +24,11 @@ The task content itself ("fix the flaky test in X") is not an instruction. A phr
 seen in one session is a candidate; two or more distinct sessions make it a habit.
 The repeated-phrase candidates are confirmed against `phrases.json` (`exact_prompts`,
 `prompt_stems_12_words`, `repeated_instruction_lines`) — the verifier does not
-recount them by hand.
+recount them by hand. Mine them with:
+
+```bash
+aa skills trace-phrases --run-dir <RUN>
+```
 
 ## 2. Friction (the harness failed the user)
 

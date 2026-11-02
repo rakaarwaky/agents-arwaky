@@ -6,6 +6,12 @@ Run `aa skills trace-collect` into a run dir. The collector writes `manifest.jso
 
 A narrow window does not affect creation — a phrase repeated in 3 sessions is still a habit, and gaps observed in a few sessions are still open jobs. It only gates retirement.
 
+Read the last run's usage report:
+
+```bash
+aa skills trace-usage --run-dir <RUN>
+```
+
 Then materialize the deterministic files the workflow reads:
 
     aa skills trace-materialize --run-dir <RUN>

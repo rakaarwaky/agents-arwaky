@@ -66,6 +66,8 @@ Which keys are mandatory is a Global Rule; this table is the full key reference,
 
 ## Pre-publish checklist
 
+- [ ] `aa skills show` — read back the target `SKILL.md` to confirm frontmatter and body landed correctly.
+- [ ] `aa skills repair` — run mechanical repairs (frontmatter rewrite, missing category `DESCRIPTION.md`) before publishing.
 - [ ] `aa skills validate` passes (catalog above).
 - [ ] Frontmatter satisfies the Global Rules bullets: mandatory keys, Frontmatter semantics, YAML hygiene, parser limits.
 - [ ] Body within ~100–200 lines; overflow moved into `references/`; every reference, whatever its depth, is linked from `SKILL.md` (Global Rules: Structure).
