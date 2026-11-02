@@ -14,12 +14,9 @@ from modules.cli.src.surface_skills_command import (
     _authoring_parser,
     _render_archive,
     _render_catalog,
-    _render_merge_plan,
+    _render_lint,
     _render_move,
     _render_new_category,
-    _render_repair,
-    _render_validate,
-    _render_weed,
     _split_root,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
@@ -39,22 +36,19 @@ def _request(flags: dict[str, str] | None = None, json: bool = False) -> SkillsR
 
 
 _RENDERERS = {
-    "validate": _render_validate,
+    "lint": _render_lint,
     "catalog_check": _render_catalog,
     "catalog": _render_catalog,
-    "weed": _render_weed,
-    "repair": _render_repair,
     "move": _render_move,
     "archive": _render_archive,
     "new_category": _render_new_category,
-    "merge_plan": _render_merge_plan,
 }
 
 
 @pytest.mark.parametrize(
     ("sub", "flags", "payload_attr", "stderr_fragment"),
     [
-        ("validate", {}, "report", "Internal error: no validation report produced"),
+        ("lint", {}, "lint_report", "Internal error: no lint report produced"),
         (
             "catalog_check",
             {"check": "1"},
@@ -67,8 +61,6 @@ _RENDERERS = {
             "catalog",
             "Internal error: no catalog report produced",
         ),
-        ("weed", {}, "plan", "Internal error: no weed plan produced"),
-        ("repair", {}, "plan", "Internal error: no repair plan produced"),
         ("move", {}, "plan", "Internal error: no move plan produced"),
         ("archive", {}, "plan", "Internal error: no archive plan produced"),
         (
@@ -77,7 +69,6 @@ _RENDERERS = {
             "new_category",
             "Internal error: no new-category plan produced",
         ),
-        ("merge_plan", {}, "merge", "Internal error: no merge plan produced"),
     ],
 )
 def test_guard_returns_internal_error(

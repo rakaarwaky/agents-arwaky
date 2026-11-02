@@ -49,11 +49,10 @@ def test_lint_filters_narrow_without_hiding_the_total(tmp_path: Path) -> None:
     code, out, _ = run_surface(root, "lint", "--category", "notes")
     assert code == 1
     assert "1 lint issue(s) found (0 in scope category=notes):" in out
-    assert "(none in scope)" in out
 
     code, out, _ = run_surface(root, "lint", "--summary")
     assert code == 1
-    assert "[name-mismatch]" in out
+    assert out.strip() == "1 issues / 2 skills / 2 categories"
 
 
 def test_lint_summary_line_is_derived(tmp_path: Path) -> None:
@@ -73,6 +72,7 @@ def test_json_key_order_matches_the_legacy_contract(tmp_path: Path) -> None:
             "skills_root",
             "category",
             "issue_count",
+            "total_issue_count",
             "issues",
             "weed_lines",
         ],
@@ -151,7 +151,6 @@ def test_mutating_commands_default_to_dry_run(tmp_path: Path) -> None:
     before = (root / "drafts" / "DESCRIPTION.md").read_text(encoding="utf-8")
 
     for args in (
-        ("repair",),
         ("move", "drafts/doc-drafts", "notes"),
         ("archive", "drafts/doc-drafts"),
         ("new-category", "beta-cat", "Second category"),
