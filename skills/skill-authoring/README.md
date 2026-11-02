@@ -1,6 +1,6 @@
 # Skill-authoring pack
 
-Seven skills with disjoint scopes, plus one shared pipeline library. This file is the pack entrypoint — it
+Four skills with disjoint scopes, plus one shared pipeline library. This file is the pack entrypoint — it
 answers "which skill do I use".
 
 ## ROUTING
@@ -10,16 +10,7 @@ answers "which skill do I use".
 | Author / validate / audit a `SKILL.md` | `skill-design` | `aa skills validate | show | list` |
 | Find / catalog / move / organize skills | `skill-library` | `aa skills catalog --check | discover | move | new-category` |
 | Prune / consolidate / merge / weed / archive skill trees | `skill-lifecycle` | `aa skills weed | archive | merge-plan` |
-| Create skills for things you keep typing out | `skill-learning` | `skills/skill-authoring/skill-learning/` |
-| Edit skills to adapt to conditions and demand | `skill-evolving` | `skills/skill-authoring/skill-evolving/` |
-| Remove skills and surfaces you never use | `skill-unlearn` | `skills/skill-authoring/skill-unlearn/` |
 | Learn, evolve, and unlearn skills from session traces (one pass) | `skill-traces` | `/skill-traces --learn [--evolve --unlearn]` → `aa skills trace-collect | trace-materialize | trace-state` |
-
-The three trace-learning skills (`skill-learning`, `skill-evolving`, `skill-unlearn`) all
-run on the `aa skills` trace verbs (`trace-collect`, `trace-usage`, `trace-phrases`, `trace-state`), backed by
-`capabilities_skills_tracker`, `capabilities_skills_phrases`, and `capabilities_skills_state` in `modules/skills`.
-They produce phrases, usage counts, and stale-skill signals in a single pass; each skill curates only its own action
-group from the shared `report.md` / `actions.json` run directory.
 
 ## Pack tooling
 
