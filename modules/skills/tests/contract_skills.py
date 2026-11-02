@@ -11,7 +11,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
-    ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
@@ -21,7 +20,6 @@ from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_discoverer import SkillsDiscoverer
 from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
-from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlanner
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
@@ -81,12 +79,6 @@ def test_mutator_implements_protocol() -> None:
     assert isinstance(mutator, ISkillsMutatorProtocol)
 
 
-def test_merge_planner_implements_protocol() -> None:
-    """CP-SKILLS-010: SkillsMergePlanner implements ISkillsMergePlannerProtocol."""
-    planner = SkillsMergePlanner()
-    assert isinstance(planner, ISkillsMergePlannerProtocol)
-
-
 @pytest.mark.parametrize(
     ("capability", "protocol"),
     [
@@ -96,7 +88,6 @@ def test_merge_planner_implements_protocol() -> None:
         (SkillsCatalog, ISkillsCatalogProtocol),
         (SkillsDiscoverer, ISkillsDiscovererProtocol),
         (SkillsMutator, ISkillsMutatorProtocol),
-        (SkillsMergePlanner, ISkillsMergePlannerProtocol),
         (SkillsAgent, ISkillsAggregate),
         (SkillsTraces, ISkillsTracesProtocol),
     ],
@@ -107,7 +98,6 @@ def test_merge_planner_implements_protocol() -> None:
         "catalog",
         "discoverer",
         "mutator",
-        "merge-planner",
         "agent",
         "traces",
     ],

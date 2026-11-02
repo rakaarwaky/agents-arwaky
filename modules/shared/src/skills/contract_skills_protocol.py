@@ -193,7 +193,7 @@ class ISkillsMutatorProtocol(ABC):
 
 
 class ISkillsTracesProtocol(ABC):
-    """Scan sessions, build skills-only usage, and mine repeated phrases."""
+    """Scan sessions, build skills-only usage, mine repeated phrases, and drive the trace-learning lifecycle (status machine, trash, decisions, wait)."""
 
     @abstractmethod
     def scan_sessions(
@@ -230,15 +230,22 @@ class ISkillsTracesProtocol(ABC):
         """
         ...
 
-
-class IStateProtocol(ABC):
-    """Drive the trace-learning lifecycle (status machine, trash, decisions)."""
+    # ── Trace-state lifecycle ─────────────────────────────────────────
 
     @abstractmethod
     def set_status(
         self, grok_home: str, run_dir: str, status: TraceStateStatus
     ) -> TraceStateStatus:
         """Record *status* for the pending run; ``done`` stamps last_completed."""
+        ...
+
+    @abstractmethod
+    def get_status(self, grok_home: str) -> TraceStateStatus:
+        """Return the current pending status.
+
+        ``done``-less pending runs exit 3 (the surface maps to exit 3); the
+        capability returns the status, the caller maps it to an exit code.
+        """
         ...
 
     @abstractmethod
@@ -295,5 +302,4 @@ __all__ = [
     "ISkillsReaderProtocol",
     "ISkillsTracesProtocol",
     "ISkillsValidatorProtocol",
-    "IStateProtocol",
 ]

@@ -69,12 +69,3 @@ def test_facade_new_category(tmp_path: Path) -> None:
     assert result.new_category is not None
     assert result.new_category.created
     assert (root / "beta-cat" / "DESCRIPTION.md").exists()
-
-
-def test_facade_merge_plan_is_read_only(tmp_path: Path) -> None:
-    root = crafted_tree(tmp_path)
-    result = _facade(root).merge_plan("drafts/doc-drafts", "notes/note-taker")
-    assert result.merge is not None
-    assert result.lines
-    assert (root / "drafts" / "doc-drafts").exists()
-    assert result.merge is not None

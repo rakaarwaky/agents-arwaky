@@ -32,7 +32,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
     ISkillsValidatorProtocol,
-    IStateProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     LintReport,
@@ -73,7 +72,6 @@ class SkillsAgent(ISkillsAggregate):
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
         traces: ISkillsTracesProtocol | None = None,
-        state: IStateProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._index = index
@@ -84,7 +82,6 @@ class SkillsAgent(ISkillsAggregate):
         self._discoverer = discoverer
         self._mutator = mutator
         self._traces = traces
-        self._state = state
         self._default_root = default_root
 
     # ─── Block 2: Aggregate Method Implementation ────────────
@@ -507,13 +504,13 @@ class SkillsAgent(ISkillsAggregate):
 
 
     def _execute_trace_state(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Drive the trace-learning lifecycle; the state capability routes it."""
-        state = self._require(self._state, "state")
+        """Drive the trace-learning lifecycle; the traces capability routes it."""
+        traces = self._require(self._traces, "traces")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
         action = request.flags.get("state_action", "")
 
-        result = state.dispatch(grok_home, run_dir, action, request.flags)
+        result = traces.dispatch(grok_home, run_dir, action, request.flags)
         return SkillsResult(
             ok=True,
             op=op,

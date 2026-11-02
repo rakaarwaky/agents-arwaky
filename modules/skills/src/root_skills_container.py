@@ -25,7 +25,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
     ISkillsValidatorProtocol,
-    IStateProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillContent,
@@ -43,7 +42,6 @@ from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
 from modules.skills.src.capabilities_skills_lint import SkillsLint
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
-from modules.skills.src.capabilities_skills_state import SkillsTraceState
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
 from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
@@ -253,19 +251,6 @@ class SkillsFacade:
                 apply=apply,
                 root=root,
                 flags={"force": "1" if force else "0"},
-            )
-        )
-
-    def merge_plan(
-        self, ref_a: str, ref_b: str, root: SkillsRoot | None = None
-    ) -> SkillsResult:
-        """Build the read-only merge plan."""
-        return self._agent().execute(
-            SkillsRequest(
-                op=SkillsOp.MERGE_PLAN,
-                query=SkillQuery(ref_a),
-                root=root,
-                flags={"target": ref_b},
             )
         )
 
