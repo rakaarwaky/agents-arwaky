@@ -28,7 +28,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
     ISkillsLintProtocol,
-    ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
@@ -73,7 +72,6 @@ class SkillsAgent(ISkillsAggregate):
         catalog: ISkillsCatalogProtocol | None = None,
         discoverer: ISkillsDiscovererProtocol | None = None,
         mutator: ISkillsMutatorProtocol | None = None,
-        merge_planner: ISkillsMergePlannerProtocol | None = None,
         traces: ISkillsTracesProtocol | None = None,
         state: IStateProtocol | None = None,
         default_root: Path | None = None,
@@ -85,7 +83,6 @@ class SkillsAgent(ISkillsAggregate):
         self._catalog = catalog
         self._discoverer = discoverer
         self._mutator = mutator
-        self._merge_planner = merge_planner
         self._traces = traces
         self._state = state
         self._default_root = default_root
@@ -382,19 +379,6 @@ class SkillsAgent(ISkillsAggregate):
             create_plan=plan,
             catalog=catalog,
             root=root,
-        )
-
-    def _execute_merge_plan(
-        self, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
-        """Emit the read-only merge plan; nothing is executed."""
-        planner = self._require(self._merge_planner, "merge planner")
-        root = self._root(request)
-        plan = planner.plan(
-            str(request.query), request.flags.get("target", ""), root
-        )
-        return SkillsResult(
-            ok=True, op=op, merge=plan, lines=planner.render(plan), root=root
         )
 
     def _execute_trace_collect(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:

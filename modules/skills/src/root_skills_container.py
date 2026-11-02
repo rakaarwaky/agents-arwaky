@@ -1,7 +1,7 @@
 """Skills root container (AES composition root).
 
 Wires the capabilities (index, reader, validator, catalog,
-discoverer, mutator, merge planner, traces) into the agent. The
+discoverer, mutator, traces) into the agent. The
 CLI surface receives an ``ISkillsAggregate`` (the agent itself), injected
 at the call site, so no root→surface coupling exists.
 
@@ -21,7 +21,6 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsDiscovererProtocol,
     ISkillsIndexProtocol,
     ISkillsLintProtocol,
-    ISkillsMergePlannerProtocol,
     ISkillsMutatorProtocol,
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
@@ -42,7 +41,6 @@ from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_discoverer import SkillsDiscoverer
 from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
 from modules.skills.src.capabilities_skills_lint import SkillsLint
-from modules.skills.src.capabilities_skills_merge_planner import SkillsMergePlanner
 from modules.skills.src.capabilities_skills_mutator import SkillsMutator
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_state import SkillsTraceState

@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING, NewType
 from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     CategoryName,
     SkillName,
-    SkillRef,
 )
 
 if TYPE_CHECKING:
@@ -38,7 +37,6 @@ if TYPE_CHECKING:
         CatalogReport,
         DiscoveryMatch,
         LintReport,
-        MergePlan,
         MutationOutcome,
         MutationPlan,
         NewCategoryPlan,
@@ -81,7 +79,6 @@ class SkillsOp(StrEnum):
     ARCHIVE = "archive"
     NEW_CATEGORY = "new-category"
     CREATE = "create"
-    MERGE_PLAN = "merge-plan"
     LINT = "lint"
     TRACE_COLLECT = "trace-collect"
     TRACE_USAGE = "trace-usage"
@@ -294,7 +291,6 @@ class SkillsResult:
     outcome: MutationOutcome | None = None
     new_category: NewCategoryPlan | None = None
     create_plan: SkillCreatePlan | None = None
-    merge: MergePlan | None = None
     lines: tuple[str, ...] = ()
     warning: str | None = None
     root: Path | None = None
@@ -316,7 +312,6 @@ __all__ = [
     "SkillName",
     "SkillQuery",
     "SkillRecord",
-    "SkillRef",
     "SkillUsageItem",
     "SkillsExitCode",
     "SkillsOp",

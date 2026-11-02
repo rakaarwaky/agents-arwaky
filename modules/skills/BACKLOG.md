@@ -38,7 +38,7 @@ counterpart.
 
 ## Backlog Status
 
-### FR-SKILLS-001: List every skill in the pack
+### FR-SKILLS-001: List Skills
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -48,7 +48,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-002: Show one skill's guide
+### FR-SKILLS-002: Show Skill Guide
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -58,7 +58,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-003: Validate the pack against the 13 rules
+### FR-SKILLS-003: Validate Pack
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -68,7 +68,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-004: Rebuild and guard CATALOG.md
+### FR-SKILLS-004: Rebuild Catalog
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -78,7 +78,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-005: Search the catalog
+### FR-SKILLS-005: Search Catalog
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -88,7 +88,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-006: Author the pack (dry-run by default)
+### FR-SKILLS-006: Author Pack
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -98,7 +98,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-007: Plan a merge (read-only)
+### FR-SKILLS-007: Plan Merge
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|

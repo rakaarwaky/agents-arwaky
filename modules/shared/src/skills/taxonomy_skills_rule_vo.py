@@ -28,9 +28,6 @@ SkillName = NewType("SkillName", str)
 #: A category directory name.
 CategoryName = NewType("CategoryName", str)
 
-#: A ``category/skill`` reference string used in merge plans and catalog rows.
-SkillRef = NewType("SkillRef", str)
-
 # ─── Issue taxonomy ─────────────────────────────────────────────────────
 
 #: Exactly the 13 strings ``librarian.py`` ``validate_library`` emits.
@@ -275,7 +272,6 @@ __all__ = [
     "Level",
     "Rule",
     "SkillName",
-    "SkillRef",
     "is_valid_skill_name",
     "issue_message",
     "rule",

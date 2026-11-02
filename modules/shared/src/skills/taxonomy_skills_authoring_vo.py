@@ -2,7 +2,7 @@
 
 Typed returns for every authoring capability: validation reports,
 catalog rows/rebuild/check results, discovery results, mutation plans
-and outcomes, merge plans, and the
+and outcomes, and the
 trace-pipeline report VOs. Pure data — no I/O and no imports from
 utility, capabilities, agent, root, or surface layers. The surface
 projects these to the legacy JSON shapes.
@@ -15,7 +15,6 @@ mutually importable without a cycle.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -28,7 +27,6 @@ __all__ = [
     "DiscoveryMatch",
     "DiscoveryResult",
     "LintReport",
-    "MergePlan",
     "MutationOutcome",
     "MutationPlan",
     "MutationStep",
@@ -247,19 +245,6 @@ class SkillCreatePlan:
     skill_md: Path = Path()
     already_exists: bool = False
     root: Path | None = None
-
-
-@dataclass(frozen=True)
-class MergePlan:
-    """The read-only merge plan ``skill-lifecycle`` executes."""
-
-    survivor: str
-    absorbed: str
-    survival_reason: str
-    moves: tuple[tuple[str, str], ...] = ()
-    rewrites: tuple[Mapping[str, str], ...] = ()
-    category_after: str = ""
-    empty_category_after: str | None = None
 
 
 @dataclass(frozen=True)

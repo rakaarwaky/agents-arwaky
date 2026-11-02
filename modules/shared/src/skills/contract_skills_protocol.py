@@ -2,7 +2,7 @@
 
 One seam per subsystem the skills agent coordinates: the pack index
 (list), the pack reader (show), the validator, the catalog, discovery,
-the mutator, and the merge planner, plus the
+and the mutator, plus the
 trace-learning pair (the traces capability and the lifecycle state). Capabilities implement these; the composition root injects them
 into the agent.
 
@@ -22,7 +22,6 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     CatalogRow,
     DiscoveryResult,
     LintReport,
-    MergePlan,
     MutationOutcome,
     MutationPlan,
     NewCategoryPlan,
@@ -33,7 +32,6 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
 from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     CategoryName,
     SkillName,
-    SkillRef,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
     ScanResult,
@@ -194,20 +192,6 @@ class ISkillsMutatorProtocol(ABC):
         ...
 
 
-class ISkillsMergePlannerProtocol(ABC):
-    """Read-only merge planning for ``skill-lifecycle``."""
-
-    @abstractmethod
-    def plan(self, ref_a: SkillRef, ref_b: SkillRef, root: SkillsRoot) -> MergePlan:
-        """Build the plan for merging two ``category/skill`` references."""
-        ...
-
-    @abstractmethod
-    def render(self, plan: MergePlan) -> tuple[str, ...]:
-        """Render a plan as the markdown report ``skill-lifecycle`` consumes."""
-        ...
-
-
 class ISkillsTracesProtocol(ABC):
     """Scan sessions, build skills-only usage, and mine repeated phrases."""
 
@@ -307,7 +291,6 @@ __all__ = [
     "ISkillsDiscovererProtocol",
     "ISkillsIndexProtocol",
     "ISkillsLintProtocol",
-    "ISkillsMergePlannerProtocol",
     "ISkillsMutatorProtocol",
     "ISkillsReaderProtocol",
     "ISkillsTracesProtocol",

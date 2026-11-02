@@ -98,6 +98,40 @@ apart.
 - Never print secrets; created and edited skill files must not carry tokens, keys,
   or credentials quoted from the traces.
 
+## Lifecycle status
+
+The status machine over `GROK_HOME/learn/state.json` is driven by `aa skills trace-state set`:
+
+```
+aa skills trace-state set --run-dir <RUN> --status running
+```
+
+Set `running` when the apply phase begins. The `done` status is written by `clear` (step 0) when a run completes or is abandoned.
+
+## Trash and restrict
+
+When an `edit` or `delete` action produces a trash copy, the apply step writes it
+to `<GROK_HOME>/learn/trash/<run name>/`. To move additional validated paths into
+the same trash dir (for example a workflow `.rhai` file or a `hooks/*` file the
+action touched), use:
+
+```
+aa skills trace-state trash --run-name <run name> <path> [<path> ...]
+```
+
+Only `skills/<name>` directories, `workflows/*.rhai` files, and `hooks/*` files
+under `$GROK_HOME`, `~/.agents`, or a project `.grok` directory are accepted; any
+other shape is refused.
+
+After applying changes, restrict the modified skill files to owner-only so no
+secret leaked into a trace record can be read by other users:
+
+```
+aa skills trace-state restrict <path> [<path> ...]
+```
+
+This chmods each path to `0600` where the OS supports it.
+
 Then record every decision with `aa skills trace-state decide --run-dir <RUN>
 --id <id> --kind skill --action create|edit|delete|propose|ask|group --target
 <name> --path <path> --decision applied|rejected|deferred [--undo <trash path>]`.
