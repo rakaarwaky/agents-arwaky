@@ -28,4 +28,4 @@ argument-hint: [--tag <tag>] [--target_commitish <sha>]
 | Step 3 | [`references/step-3-build-draft.md`](references/step-3-build-draft.md) | Build the draft: trigger `release.yml`, watch (~5–10 min), verify the draft carries exactly seven assets. Proceed immediately to Step 4. |
 | Step 4 | [`references/step-4-publish.md`](references/step-4-publish.md) | Publish: `gh release edit "$tag" --draft=false --latest`, watch the publish job (~5–10 min), confirm PyPI + Homebrew tap PR. |
 | Step 5 | [`references/step-5-verify.md`](references/step-5-verify.md) | Verify after publishing: confirm PyPI reports the new version and the Homebrew tap PR is open. Report final status. |
-| Recovery | [`references/recovery.md`](references/recovery.md) | Failed stages playbook: delete draft, rerun failed job, immutable-release traps, prep-PR re-merge. |
+| Recovery | [`references/recovery.md`](references/recovery.md) | Recovery from a failed stage: delete draft, rerun failed job, immutable-release traps, prep-PR re-merge. |

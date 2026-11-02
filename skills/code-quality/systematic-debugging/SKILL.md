@@ -20,7 +20,7 @@ metadata:
     - cdp
   related_skills:
     - pr-babysit
-    - work-on-issue
+    - issue-worker
     - deep-clean
 ---
 
@@ -119,7 +119,7 @@ One merged table for debugging and TDD excuses: [`references/step-6-guardrails.m
 ## Related Skills
 
 - `pr-babysit` — PR lifecycle; loads this skill for bug-class fixes
-- `work-on-issue` — issue triage; loads this skill for bug-class fixes
+- `issue-worker` — issue triage; loads this skill for bug-class fixes
 - `deep-clean` — post-fix cleanup pass
 
 ## Real-World Impact

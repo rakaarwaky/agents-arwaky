@@ -1,4 +1,4 @@
-# Task-Tracker Scanner persona
+# Issue-Maker Scanner persona
 
 description = "Read-only spec-document scanner, one per feature. Extracts State Definitions tables, task rows, FR-id sets, and the feature's roadmap roll-up row as JSON."
 instructions = """

@@ -1,4 +1,4 @@
-# Recovery — failed release runs
+# Step 5b — recovery from a failed stage
 
 Stop and fix with this table whenever a stage below fails; do not improvise.
 

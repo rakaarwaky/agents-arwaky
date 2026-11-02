@@ -21,7 +21,7 @@ The feature tag is the lowercase directory name of the owning feature (e.g. `bro
 **Body**
 
 ````markdown
-Source: `<source_doc>` · row `<ROW-ID>` · scanned by `/task-tracker` on `<date>`
+Source: `<source_doc>` · row `<ROW-ID>` · scanned by `/issue-maker` on `<date>`
 
 | Field | Value |
 | --- | --- |

@@ -28,6 +28,19 @@
 | `refactor` | Code refactor, no behaviour change | `refactor(feature-name): <refactor-description>` |
 | `chore` | Maintenance, deps, config | `chore: <bump-description>` |
 
+## Worktree-local catalog checks
+
+When validating or regenerating `skills/CATALOG.md` from an Orca worktree (a tree that is not the main clone), use the `--skills-root` flag to point at the worktree's `skills/` directory. The bare `aa` wrapper pins `AGENTS_ARWAKY_ROOT` to the main clone at `/home/raka/agents-arwaky` and does not reflect the worktree's tree:
+
+```bash
+# regenerate (worktree root as CWD)
+python3 -m modules.root_cli_entry skills catalog --skills-root "$PWD/skills"
+# verify (exit 0 = in sync)
+python3 -m modules.root_cli_entry skills catalog --check --skills-root "$PWD/skills"
+```
+
+In GitHub Actions CI, CWD is already the checkout root (`$GITHUB_WORKSPACE`), so the module's default skills root resolves to the branch's `skills/` tree and no `--skills-root` is needed.
+
 ## Reference
 
 | Artifact | Purpose | Link |
