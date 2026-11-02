@@ -13,7 +13,7 @@ metadata:
     - Setup
   related_skills:
     - github-pr-workflow
-    - github-code-review
+    - review
     - github-issues
     - github-repo-management
 ---

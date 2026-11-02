@@ -13,7 +13,7 @@ metadata:
     - stack
   related_skills:
     - github/github-pr-workflow
-    - github/github-code-review
+    - code-quality/review
     - github/releasing
   triggers:
     - mergify

@@ -14,7 +14,7 @@ metadata:
     - Issues
   related_skills:
     - github-auth
-    - github-code-review
+    - review
     - github-issues
     - systematic-debugging
     - requesting-code-review

@@ -11,8 +11,19 @@ description: >-
   through the UI. Use --main for an explicit clean-tree branch review, --stack
   for stacked PRs, --submit to publish immediately as COMMENT, or --approve to
   publish and approve; the default remains PENDING.
-when-to-use: "Use when asked to 'review', 'code review', 'review my changes', 'review my branch', 'review this PR', 'review a stack', '/review', '/review --main', '/review --stack', '/review --submit', or '/review --approve'."
+when-to-use: "Use when asked to 'review', 'code review', 'review my changes', 'review my branch', 'review this PR', 'review a stack', '/review', '/review --main', '/review --local', '/review --branch', '/review --pr', '/review --stack', '/review --submit', or '/review --approve'; also for posting inline comments and formal APPROVE / REQUEST_CHANGES / COMMENT reviews directly against an open PR via gh or curl (absorbed from github-code-review)."
 argument-hint: "[--main | --local | --branch <name> | --pr <number-or-url> | --stack <number-or-url> | <auto-detect>] [--approve | --submit]"
+metadata:
+  tags:
+    - GitHub
+    - Code-Review
+    - Pull-Requests
+    - Git
+    - Quality
+    - Review-Threads
+  related_skills:
+    - github-auth
+    - github-pr-workflow
 ---
 
 # Review Skill
@@ -187,6 +198,28 @@ Status-update phrasing after each phase (diff collection, reviewer completion, p
 - **`--approve` and `--submit` are PR-only and mutually exclusive** -- both modifiers are valid only with `--pr` and `--stack`; combining either with main, local, or branch mode (including an auto-detected branch) is rejected during argument parsing. Passing both together is rejected with `--approve and --submit are mutually exclusive.`
 - **Error handling** -- if the reviewer subagent fails, the diff collection fails, or the GitHub API call fails, report the error to the user and stop. Do not silently continue with missing results. EXCEPTION (stack mode): a single per-PR subagent failure does NOT abort the run -- record it against that PR, show it as `ERROR` in the stack table, and keep aggregating the other PRs (per Step 2 Stack mode).
 - **No emojis in output** -- match the conventions of the `reviewer` persona instructions and the surrounding skills.
+
+## Direct gh / curl PR review (absorbed from github-code-review)
+
+When the goal is to post findings straight to an open PR via `gh` or `curl` (view diff, inline comments, formal APPROVE / REQUEST_CHANGES / COMMENT review, reply to threads) without running the subagent orchestrator, use these recipes:
+
+| Task | Recipe |
+|------|--------|
+| View PR diff, list changed files | [`references/pr-review-commands.md`](references/pr-review-commands.md) |
+| Leave inline review comments | [`references/pr-review-commands.md`](references/pr-review-commands.md) |
+| Submit a formal APPROVE / REQUEST_CHANGES / COMMENT review | [`references/pr-review-commands.md`](references/pr-review-commands.md) |
+| Top-level summary-comment shape | [`references/review-output-template.md`](references/review-output-template.md) |
+| End-to-end "review PR #N" recipe | [`references/pr-review-workflow.md`](references/pr-review-workflow.md) |
+
+Prerequisites: authenticated with GitHub (see `github-auth` skill) and inside a git repository. Auth and repo detection live in `github-auth`'s helper — source it rather than re-implementing the fallback chain:
+
+```bash
+for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
+  [ -f "$R/github/github-auth/scripts/gh-env.sh" ] && source "$R/github/github-auth/scripts/gh-env.sh" && break
+done
+AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$GH_REPO"
+[ "$AUTH" = "none" ] && echo "Not authenticated — resolve it with the github-auth skill first"
+```
 
 ## Design notes
 
