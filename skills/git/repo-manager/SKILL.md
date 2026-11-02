@@ -28,5 +28,3 @@ Rules that apply to every repo-manager operation. Reference files cite these; th
 | Info | [`references/info.md`](references/info.md) | `gh repo view`, `gh repo list`, `gh search repos`. |
 | Settings | [`references/setting.md`](references/setting.md) | `gh repo edit` (description, visibility, topics, default branch) + branch protection REST. |
 | Actions & releases | [`references/action.md`](references/action.md) | `gh workflow` / `gh run` / `gh secret` / `gh release` (includes NaCl secrets fallback). |
-| Quick reference | deleted | Was one-line `gh` cheatsheet; not needed (command syntax lives in each mode file). |
-| GitHub REST cheatsheet | deleted | Was raw endpoint table; not needed (REST calls are inlined in each mode's fallback block). |

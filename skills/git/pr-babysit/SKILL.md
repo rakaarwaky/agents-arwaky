@@ -28,6 +28,5 @@ One sequential pipeline per PR: take a PR number, fix it until green and ready t
 | 3 — Watch CI | [`references/step-3-watch-ci.md`](references/step-3-watch-ci.md) | Always, after the PR exists |
 | 4 — Auto-fix red checks | [`references/step-4-auto-fix.md`](references/step-4-auto-fix.md) | CI reports a red check; loops back to step 3 after each push |
 | 5 — Decision tree | [`references/step-5-decision-tree.md`](references/step-5-decision-tree.md) | After each step 4 push and always before step 6; CI logs ambiguous → [`references/step-5-troubleshoot.md`](references/step-5-troubleshoot.md) |
-| 6 — Merge | [`references/step-6-merge.md`](references/step-6-merge.md) | `ship` is `true` and step 5 reports `healthy` |
-| Ship (merge gate) | [`references/step-7-ship.md`](references/step-7-ship.md) | `--ship` flag active; confirms ship-ready gates before step 6 merges |
+| 6 — Merge | [`references/step-6-merge.md`](references/step-6-merge.md) | `ship` is `true` and step 5 reports `healthy`; ship-ready gates + merge commands |
 | Pipeline driver | [`references/watchlist.md`](references/watchlist.md) | Full pipeline walkthrough and safety guardrails |
