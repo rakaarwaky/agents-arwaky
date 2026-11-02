@@ -8,4 +8,4 @@ gh release list --limit 3                                  # no leftover draft
 git log --oneline $(git describe --tags --abbrev=0)..origin/main  # what ships
 ```
 
-Report what ships since the previous tag. Report anything red and stop to [recovery.md](recovery.md). Do not silently proceed on a failing CI or a leftover draft.
+Report what ships since the previous tag. Report anything red and stop. Fix CI on the release branch or delete the leftover draft, then re-run Step 2. Do not silently proceed on a failing CI or a leftover draft.

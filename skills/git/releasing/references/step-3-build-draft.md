@@ -34,4 +34,9 @@ gh release view "$tag" --json isDraft,url,assets --jq '{draft:.isDraft,url:.url,
 - `SHA256SUMS`
 - `cli-schema.json`
 
+Recovery:
+
+- Step 3 failed mid-run: no release exists yet, or a draft does. Delete the draft (`gh release delete <tag> --cleanup-tag`) and re-run Step 3.
+- Draft missing assets: delete the draft and re-run Step 3 — never backfill by hand.
+
 Do not stop here (the publish step is the intended autonomous step); proceed immediately to [step-4-publish.md](step-4-publish.md).

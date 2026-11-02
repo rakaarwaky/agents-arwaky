@@ -26,4 +26,7 @@ Working directory: project root. The prep PR commits the version stamp and chang
    gh pr merge <pr-number> --admin --squash
    git checkout main
    git pull origin main
+```
+
+Recovery: if the prep PR merge failed, check CI on the release branch, fix in the same branch, re-merge, then continue from Step 2.
    ```

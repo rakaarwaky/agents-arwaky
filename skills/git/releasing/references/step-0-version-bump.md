@@ -51,3 +51,11 @@ Working directory: project root.
      bash scripts/bump.sh "$NEW_VERSION"
    fi
    ```
+
+Recovery: if the bump script is missing or fails to commit, create `scripts/bump.sh` or `scripts/bump.py` manually, or commit the version stamp yourself:
+
+```shell
+git commit -m "release: bump to $NEW_VERSION"
+```
+
+Then continue from Step 1.

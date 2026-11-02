@@ -13,4 +13,10 @@ gh run list --workflow=release.yml --limit 1
 gh run watch <run-id> --exit-status
 ```
 
+Recovery:
+
+- `assert-binaries-present` failed after publish: the release was created outside the workflow and is now immutable. Delete the release *and* its tag, then re-run Step 3 with the same tag.
+- PyPI publish failed (transient / outage): wheels are built; re-run just the failed job: `gh run rerun <run-id> --failed`.
+- Wrong version already on PyPI: PyPI versions cannot be reused or overwritten. Ship the next `N` — do not try to reuse the tag.
+
 Note edits must happen *before* this (`gh release edit "$tag" --notes-file notes.md`) — drafts are mutable, published releases are not. In the headless flow there are no note edits; the notes come from the prep PR.
