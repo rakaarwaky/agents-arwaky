@@ -555,7 +555,8 @@ def _render_lint(result: SkillsResult, request: SkillsRequest) -> int:
         err("Internal error: no lint report produced")
         return 1
 
-    total = report.issue_count
+    total = report.unfiltered_issue_count
+    in_scope = report.issue_count
     root = _root_of(result)
 
     if request.json:
@@ -563,7 +564,8 @@ def _render_lint(result: SkillsResult, request: SkillsRequest) -> int:
             {
                 "skills_root": str(root),
                 "category": request.flags.get("category") or None,
-                "issue_count": total,
+                "issue_count": in_scope,
+                "total_issue_count": total,
                 "issues": [_lint_issue(issue) for issue in report.issues],
                 "weed_lines": [
                     _lint_weed_issue(line) for line in report.weed_lines
@@ -580,7 +582,14 @@ def _render_lint(result: SkillsResult, request: SkillsRequest) -> int:
         print("No lint issues found.")
         return 0
 
-    print(f"{total} lint issue(s) found:")
+    if request.flags.get("category"):
+        category = request.flags["category"]
+        print(
+            f"{total} lint issue(s) found ({in_scope} in scope category={category}):"
+        )
+    else:
+        print(f"{total} lint issue(s) found:")
+
     for issue in report.issues:
         print(f"- [{issue.type}] {issue.locator}: {issue.message}")
     for line in report.weed_lines:
