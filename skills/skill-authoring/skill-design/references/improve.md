@@ -19,8 +19,6 @@ Recipe for the improve step, plus the reference-pattern decision it owns. Verifi
 
 ## Choosing the reference pattern
 
-Run this decision **before** restructuring the `references/` folder. The pattern must match the skill's shape — never match by convention.
-
 ### Step 1: Does the skill have one ordered pipeline?
 
 Ask: will the agent always execute all steps in sequence, with run state (attempt counters, hypotheses, repro commands, etc.) flowing from one step to the next?
