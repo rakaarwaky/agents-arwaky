@@ -1,231 +1,43 @@
 ---
 name: work-on-issue
-description: Create, search, triage, label, assign, and comment on GitHub issues via gh or REST, and take one or many issues from backlog to verified local commits with isolated Orca worktrees and parallel subagents. Use when fixing a GitHub issue, working a batch of issues, auditing which open issues can close, fanning issues out to parallel worktrees and subagents, or filing, searching, labeling, closing, or reopening an issue.
-when-to-use:
-  - work on issue
-  - fix issue
-  - fix many issues
-  - batch fix issues
-  - fan out issues
-  - parallel worktrees for issues
-  - audit open issues
-  - which issues can close
-  - create an issue
-  - list open issues
-  - search issues
-  - triage issues
-  - label or assign an issue
-  - close issue
-  - reopen issue
-  - comment on issue
+description: Create, search, triage, label, assign, and comment on GitHub issues via gh or REST, and take issues from backlog to verified local commits with isolated Orca worktrees and parallel subagents.
+when-to-use: Work on one issue ("fix #123"), fix many issues in batch with isolation (1 issue → 1 worktree), audit which open issues can close, or file/search/label/assign/close/reopen an issue.
 argument-hint: <issue-number> [<issue-number>...]
-metadata:
-  tags:
-    - GitHub
-    - Issues
-    - Worktrees
-    - Delegation
-    - Triage
-  related_skills:
-    - github-auth
-    - pr-babysit
-    - systematic-debugging
-    - orca
+disable-model-invocation: true
 ---
 
 # Work on Issue
 
-End-to-end skill for GitHub issue work: the CRUD mechanics (create, search, view, label, assign, comment, close/reopen, branch-from-issue) and the verify → decide → isolate → implement → verify-again pipeline at batch scale. Unit of isolation is always **1 issue → 1 Orca worktree**.
+End-to-end skill for GitHub issue work: the CRUD mechanics (create, search, view, label, assign, comment, close/reopen, branch-from-issue) and the verify → decide → isolate → implement → verify-again pipeline at batch scale. Unit of isolation is always **1 issue → 1 Orca worktree**. Per-scenario recipes live in `references/`; this file routes between them.
 
-Each CRUD recipe shows `gh` first, then the `curl` fallback. Per-scenario recipes live in `references/`; this file routes between them.
+## Global Rules
 
-| Task | Recipe |
-|------|--------|
-| List, search, view issues (gh + curl) | [references/viewing-issues.md](references/viewing-issues.md) |
-| Create an issue, pick a bug/feature template | [references/creating-issues.md](references/creating-issues.md) |
-| Label, assign, comment, close/reopen, link to PRs, branch from issue | [references/managing-issues.md](references/managing-issues.md) |
-| Issue triage workflow and bulk label/close operations | [references/triage-and-bulk.md](references/triage-and-bulk.md) |
-| Phase A: triage-verification command shapes | [references/triage-verification.md](references/triage-verification.md) |
-| Phase C/D: Orca worktree fan-out and build isolation | [references/isolation-recipes.md](references/isolation-recipes.md) |
-| Phase F: rebase open branches after a wave merges | [references/wave-rebase.md](references/wave-rebase.md) |
+Rules that apply to every work-on-issue operation. Reference files cite these; they never restate them.
 
-Bug-report and feature-request skeletons for new issues:
-[`templates/bug-report.md`](templates/bug-report.md), [`templates/feature-request.md`](templates/feature-request.md).
+- **Verify before closing**: Never close or skip work from a `status: done` label, an audit date, or a merged PR's `Closes #N` line alone. Verify every claim against the current tree at HEAD.
+- **One quiz for all decisions**: Collect all open questions and ask them in one interactive quiz — one question per decision, recommended option first — before implementation. Skip when every remaining issue has a fully determined fix at HEAD.
+- **One issue → one worktree**: Unit of isolation is always 1 issue → 1 Orca worktree. Children work only inside their assigned worktree; never touch sibling worktrees or shared state dirs.
+- **Build isolation**: Each worktree MUST use its own build artifact directory — shared dirs cause phantom sibling errors and lock/RAM contention.
+- **Child scope**: Local commits only (conventional messages); no push, no PR, no tracker writes.
+- **Self-report is not evidence**: Re-check each finished child's commits and verification inside that worktree path before reporting what landed.
+- **When to use**: Implement one issue, audit many open issues at once, fix a batch with isolation, work a repo carrying filed-audit issues needing per-issue verification, or file/search/label/assign/comment/close/reopen an issue.
+- **Prerequisites**: Authenticated with GitHub (see `github-auth`), inside a git repo with a GitHub remote, or specify the repo explicitly. Source the `gh-env.sh` helper for auth and repo detection.
+- **Overlap with `pr-babysit`**: Single-issue PR mechanics live in `pr-babysit`. This skill owns the CRUD mechanics plus the verify → decide → isolate → implement → verify-again pipeline end to end.
 
-## Prerequisites
+## Routing
 
-- Authenticated with GitHub (see `github-auth` skill)
-- Inside a git repo with a GitHub remote, or specify the repo explicitly
-
-### Setup
-
-Auth and repo detection live in `github-auth`'s helper — source it rather than
-re-implementing the fallback chain (it also resolves from `~/.qwen`, `~/.hermes`,
-or `~/.config/opencode` roots):
-
-```bash
-for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
-  [ -f "$R/github/github-auth/scripts/gh-env.sh" ] && source "$R/github/github-auth/scripts/gh-env.sh" && break
-done
-AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$GH_REPO"
-[ "$AUTH" = "none" ] && echo "Not authenticated — resolve it with the github-auth skill first"
-```
-
-## When to Use
-
-- Implement one issue ("fix #123", "work this issue").
-- Audit many open issues at once ("which open issues can be closed").
-- Fix a batch with isolation ("1 issue 1 worktree", parallel subagents).
-- A repo carries filed-audit issues needing per-issue verification against current HEAD.
-- File, search, label, assign, comment, close, or reopen an issue.
-- Create an issue from the bug-report or feature-request template.
-
-For single-issue PR discipline (duplicate sweeps, regression sabotage runs), see
-`pr-babysit`'s "Taking an Issue to a PR" section. This skill owns the
-**verify → decide → isolate → implement → verify-again** pipeline plus the CRUD
-mechanics that feed it, especially at batch scale.
-
-## Phase A — Load and triage
-
-Never close or skip work from a `status: done` label, an audit date, or a merged PR's
-`Closes #N` line alone. GitHub can silently fail to close issues a PR body declares while
-the fix itself did land. Verify every claim against the current tree.
-
-1. Dump open issues once:
-   `gh issue list --state open --limit 300 --json number,title,body,labels,updatedAt --jq '.[] | "### #\(.number)\n\(.title)\n\(.body)\n"' > /tmp/issues.md`
-2. Check per-issue state: `gh issue view N --json state,closed` — OPEN despite a merged
-   `Closes #N` means the closer didn't fire. Still verify the fix by code inspection before
-   closing manually with an evidence comment.
-3. Verify every claim at HEAD: grep the exact file:line the issue cites. Text still matching
-   the code = still valid, keep open. A fix may have landed in an unrelated PR:
-   `git log --oneline --since <issue-date> -- <path>`.
-4. Cross-references when `gh` is old and rejects newer fields (the error prints valid ones):
-   `gh api repos/{o}/{r}/issues/N/timeline --paginate --jq '[.[]|select(.event=="cross-referenced")|.source.issue.number]|unique'`
-   and grep `gh pr list --state merged --json number,body` for `Closes #N`.
-5. Close only verified ones, each with a comment stating the evidence (file:line or command
-   output).
-
-Full command recipes: [`references/triage-verification.md`](references/triage-verification.md).
-
-## Phase B — Decision quiz before implementation
-
-Issues the code cannot answer (versioning policy, whether to enforce a process gate, a bug
-whose fix may already be in main) need the user's decision, not a guess. Collect **all**
-open questions and ask them in **one** interactive quiz: one question per decision,
-recommended option first, choices concrete enough to execute directly from the answer.
-Do not start implementation before the quiz is answered.
-
-Skip this phase when every remaining issue has a fully determined fix at HEAD.
-
-## Phase C — Fan-out setup: 1 issue → 1 Orca worktree → 1 owner
-
-Resolve the Orca CLI once (`orca-cli` skill): `$ORCA_CLI_COMMAND`, else `orca-dev` in a dev
-checkout, else `orca-ide` on Linux outside Orca, else `orca`. Prefer `--json`.
-
-```bash
-ORCA repo list --json
-# capture repoId for this repository
-```
-
-Create all worktrees from the repo default base in one loop. Independent issue work uses
-`--no-parent` and omits `--base-branch` so Orca uses the repo default:
-
-```bash
-ORCA worktree create --repo id:<repoId> --name issue-N --no-parent --json
-```
-
-To spawn the owner in the same call, add `--agent <id> --prompt "<child brief>"`. For a
-single issue you implement yourself, omit `--agent` and open a shell/agent later.
-
-Defaults (override only when the user names different options):
-
-| Knob | Default |
-| --- | --- |
-| Worktree manager | Orca (`worktree create` / `set` / `rm`) |
-| Lineage | `--no-parent` for independent issue work |
-| Name / selector | `issue-N`; selector `path:<absPath>` or full `id:<repoId>::<path>` |
-| Branch | Orca default from repo base ref (do not base on the current feature branch) |
-| Isolation | one build artifact dir per worktree — see [`references/isolation-recipes.md`](references/isolation-recipes.md) |
-| Wave size | ≤ concurrency limit (typically 10) |
-| Child scope | local commits only; no push, no PR, no tracker writes |
-
-Write decisions + per-issue evidence to a session state file the children can read
-(e.g. `.agents/session-notes.md`). It is the source for every child's context — children
-see nothing else of this conversation.
-
-When driving an already-running agent terminal: wait for TUI idle before send.
-
-```bash
-ORCA terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json
-# only when satisfied: true
-ORCA terminal send --terminal <handle> --text "<child brief>" --enter --json
-```
-
-Every child brief must state:
-
-- Work **only** inside the assigned worktree; never touch sibling worktrees or shared state dirs.
-- Use **per-worktree build isolation** (own artifact/cache dir; never the repo-shared one).
-- Targeted checks only (`<tool> check/test -p <package>` or the language equivalent); never
-  workspace-wide gate scripts — they serialize and slow every sibling.
-- Local commits allowed (conventional messages); **no push, no PR, no tracker writes**.
-- Close the report with: files changed, mechanism, verification command + real output, commit sha.
-
-For "verify first, fix if still broken" issues, the child brief asks for a verdict
-(`fixed-on-main` / `still-broken`) plus the regression test pinning the behavior — never for
-issue closure (the parent decides closure).
-
-## Phase D — Build isolation
-
-Each worktree MUST use its own build artifact directory — shared dirs cause phantom
-sibling errors and lock/RAM contention, and a cold-dir retry never falls back to the
-shared dir. Rationale plus setup recipes for Cargo, Node, and Python:
-[`references/isolation-recipes.md`](references/isolation-recipes.md).
-
-## Phase E — Run waves and verify children
-
-Wave N+1 spawns after wave N's results arrive. Stacking all waves at once multiplies
-isolation contention.
-
-A child's summary is a self-report, not evidence. For each finished child, inside **its**
-worktree:
-
-1. `git log --oneline <default>..HEAD` and `git status` — clean tree, expected commits only.
-2. Read the changed code at the cited file:line.
-3. Re-run the key test yourself when the claim is load-bearing (e.g. "already fixed on main").
-4. Only then report what landed to the user.
-5. When the issue is done and ready for review, mark the Orca worktree:
-   `ORCA worktree set --worktree path:<WT> --workspace-status in-review --json`.
-
-Scan a worktree by `cd`ing **into** Orca's checkout path (`ORCA worktree show --worktree
-id:<repoId>::<path> --json` → path). Running checkers against a worktree path from the
-repo root often produces phantom violations from broken relative paths.
-
-## Phase F — Rebase open work after merges
-
-After a wave of PRs lands on the default branch, rebase every still-open branch onto the
-new tip before letting CI re-run. A stale base fails self-lint and format against
-already-merged code, and the fix is a one-command rebase.
-
-Rebase **one** branch at a time and confirm `git status` is clean before force-pushing — a
-blind rebase-and-force-push loop across worktrees leaves dirty rebase states that block the
-next wave.
-
-Sibling-PR conflict shape, stale-CI diagnosis, and the rebase checklist:
-[`references/wave-rebase.md`](references/wave-rebase.md).
-
-## Completion checklist
-
-- [ ] Every candidate issue verified against HEAD, or closed with evidence comment.
-- [ ] All non-code decisions answered in one quiz (or none needed).
-- [ ] One Orca worktree per issue (`worktree create --no-parent`, json id captured).
-- [ ] Each child used isolated build artifacts; no shared-target fallback.
-- [ ] Each child's commits and verification re-checked in that worktree path.
-- [ ] User report cites files, mechanism, and real command output — not child self-reports.
-- [ ] Finished worktrees marked `--workspace-status in-review` (or retired when done).
-- [ ] If PRs merged mid-batch: remaining branches rebased onto current default tip.
-
-## Overlap note
-
-Single-issue PR mechanics live in `pr-babysit`. This skill owns both the CRUD
-mechanics (create, search, label, assign, comment, close/reopen, branch-from-issue) and
-the verify → decide → isolate → implement → verify-again pipeline end to end.
+| Step | Reference | Purpose |
+| ---- | --------- | ------- |
+| Setup | [`references/setup.md`](references/setup.md) | Prerequisites, auth detection, `gh-env.sh` helper sourcing. |
+| List/search/view | [`references/viewing-issues.md`](references/viewing-issues.md) | List, search, view issues (gh + curl). |
+| Create | [`references/creating-issues.md`](references/creating-issues.md) | Create an issue, pick a bug/feature template. |
+| Manage | [`references/managing-issues.md`](references/managing-issues.md) | Label, assign, comment, close/reopen, link to PRs, branch from issue. |
+| Triage | [`references/triage-and-bulk.md`](references/triage-and-bulk.md) | Issue triage workflow and bulk label/close operations. |
+| Phase A | [`references/phase-a.md`](references/phase-a.md) | Load and triage: verify every claim at HEAD before closing. |
+| Phase B | [`references/phase-b.md`](references/phase-b.md) | Decision quiz before implementation. |
+| Phase C | [`references/phase-c.md`](references/phase-c.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner. |
+| Phase D | [`references/phase-d.md`](references/phase-d.md) | Build isolation per worktree. |
+| Phase E | [`references/phase-e.md`](references/phase-e.md) | Run waves and verify children. |
+| Phase F | [`references/phase-f.md`](references/phase-f.md) | Rebase open branches after a wave merges. |
+| Templates | `templates/bug-report.md`, `templates/feature-request.md` | Skeletons for new issues. |
+| Completion checklist | [`references/checklist.md`](references/checklist.md) | Pre-report checklist for the batch. |

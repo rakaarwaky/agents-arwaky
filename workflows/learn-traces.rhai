@@ -37,7 +37,7 @@ fn pad4(n) {
 }
 
 if args == () || args.run_dir == () || args.count == () || args.skill_dir == () {
-    pause("verification", "Pass args.run_dir (collector output), args.count (sessions_kept from manifest.json), and args.skill_dir (the skill root whose `references/` dir holds `signals.md` and `report-format.md`). Optional: batch (default 10), fan (default 10), today, user_label, focus; grok_home and python are accepted for compatibility and unused (the parent session owns state.json).");
+    pause("verification", "Pass args.run_dir (collector output — a dir with `manifest.json` and `sessions/`), args.count (`sessions_kept` from manifest.json), and args.skill_dir (the skill's own directory — `skills/skill-authoring/skill-learning`, `skill-evolving`, or `skill-unlearn`; its `references/` dir holds `signals.md` and `report-format.md`). Optional: batch (default 10), fan (default 10), today, user_label, focus; grok_home and python are accepted for compatibility and unused (the parent session owns state.json).");
 }
 
 let run_dir = trimmed(args.run_dir);
@@ -134,7 +134,7 @@ fn rules(run_dir, today, user_label) {
     p += "- Do not edit skills, plugins, hooks, config, or traces. Write only inside the run directory.\n";
     p += "- Never print secrets: tokens, headers, env values, API keys, auth files. Config inventory is names only.\n";
     p += "- Quote session ids from the files. Do not invent ids, counts, or skill names.\n";
-    p += "- Counts of skill, plugin, MCP, and workflow use come from usage.json. Do not recount them by hand.\n";
+    p += "- Skill use counts, `unused_loaded`, and per-skill sessions come from `manifest.json` and the `sessions/*.json` records. Do not recount them by hand; the run dir holds no usage.json / surfaces.json / phrases.json (the skills-only collector does not write them).\n";
     return p;
 }
 
@@ -158,7 +158,7 @@ while m < n_map {
     p += "\nYou are mapper " + (m + 1).to_string() + " of " + n_map.to_string() + ".\n";
     p += "Read every file in " + run_dir + sep + "sessions" + sep + " whose 4-digit prefix is between " + pad4(first) + " and " + pad4(last) + " inclusive (" + (last - first + 1).to_string() + " files). List the directory first, then read each file in full.\n";
     p += "Each file is one Grok Build session " + user_label + " sat at: `turns` (the human prompts, in order), `slash_commands`, `skills_loaded`, `mcp_servers_used`, `tools`, `top_dirs_touched`, `cwd`, `git_root`, `title`, `model`.\n";
-    p += "Read " + run_dir + sep + "surfaces.json once so you know which skills exist and are loaded (name, path, source, loaded).\n";
+    p += "Read " + run_dir + sep + "manifest.json once so you know which skills exist and are loaded (it lists the kept sessions; the per-session `skills_loaded` maps skill name -> load count). The run dir holds no surfaces.json.\n";
     p += "Read " + skill_dir + sep + "references" + sep + "signals.md: it defines what to extract (sections 1, 2, 3, 5) and the per-session record shape. Section 4 is not your job.\n";
     p += focus_line;
     p += "\nWrite " + note + " with one record per session in file order, in the shape signals.md gives, ending with `## Batch candidates`.\n";
@@ -238,14 +238,14 @@ loop {
         if is_final { p += " This is the final round: your output is the synthesis the whole run will act on."; }
         p += "\nRead every one of these notes in full:\n";
         for n in group { p += "- " + n + "\n"; }
-        p += "Then read " + run_dir + sep + "usage.json (deterministic use counts per skill, plugin, MCP, workflow; `unused_loaded`; `slash_commands_with_no_loaded_skill`; `mcp_servers_used_but_not_in_local_config`), " + run_dir + sep + "surfaces.json (what exists, paths, name collisions, plugins enabled but not installed), and " + run_dir + sep + "phrases.json (exact repeated prompts and repeated instruction lines with distinct-session counts).\n";
+        p += "Then read " + run_dir + sep + "manifest.json (coverage counts, `sessions_kept`, and `params`) and the `sessions/*.json` records for `skills_loaded` (per-skill hit counts, session ids) — the run dir holds no usage.json / surfaces.json / phrases.json; derive phrase repetition from the `turns` of the `sessions/*.json` files by hand (distinct-session count).\n";
         p += "If " + run_dir + sep + "decisions.jsonl exists, read it: it holds prior trace-learning decisions. Never re-propose an action the user rejected. Mark an item already applied as applied instead of proposing it again.\n";
         p += focus_line;
-        p += "Read " + skill_dir + sep + "references" + sep + "signals.md for the definition of each section and the safety rules for unused surfaces.\n";
+        p += "Read " + skill_dir + sep + "references" + sep + "signals.md for the definition of each section and the safety rules for unused skills.\n";
         p += "\nMerge the notes into " + out + " with these sections:\n";
         p += "## 1. Repeated phrases -> skills — one bullet per phrase: quoted phrase, distinct session ids, owner (existing loaded skill with path, or NEW <name>). Before naming an existing owner, open its SKILL.md and quote the line the phrase joins or that already covers it.\n";
         p += "## 2. Skills to update — one bullet per skill: path, the stale line quoted from the current file (open it; no line, no item), trace evidence with session ids, proposed replacement text.\n";
-        p += "## 3. Unused -> delete or disable — from usage.json only, per signals.md section 4: name, kind, path, count, last_used, why removal is safe or `ask`. Put zero-use surfaces that share kind and disposition in one bullet listing the names, referrers in parentheses; one bullet per surface only when it needs its own reason.\n";
+        p += "## 3. Unused -> delete or disable — from the per-skill `skills_loaded` counts in the `sessions/*.json` records only, per signals.md section 4: name, kind (skill), path, count (sessions with a load), last_used, why removal is safe or `ask`. Put zero-use skills that share a disposition in one bullet listing the names, referrers in parentheses; one bullet per skill only when it needs its own reason.\n";
         p += "## 4. Gaps — recurring needs with no owner, with session ids.\n";
         p += "## Dropped — every candidate from the input notes you did not carry forward, with the reason.\n";
         p += "\nKeep every session id. Do not merge two different instructions into one phrase. Keep the file under 350 lines: the readers after you load it whole, and a longer file fails their read. Write it in pieces — one `write` call for sections 1 and 2, then `search_replace` on the last line to append sections 3 and 4 — and keep any single tool call under roughly 6,000 words: a call whose arguments exceed the model's output limit is cut off by the API (`max_tokens_truncation`) and the whole turn is lost. Put the Dropped section in a sibling file `" + out + ".dropped.md` and leave a one-line pointer to it. Return ok=true after the file exists; proposals is the number of bullets in sections 1-3.";
@@ -290,7 +290,7 @@ vcommon += "Write your verdicts to the file named below as `## Kept` and `## Dro
 
 let v_phrases = vcommon;
 v_phrases += "\nSection to verify: 1. Repeated phrases -> skills. Write " + run_dir + sep + "verify" + sep + "phrases.md\n";
-v_phrases += "For each phrase: re-find it in " + run_dir + sep + "phrases.json or in the `turns` of the named session files under " + run_dir + sep + "sessions" + sep + ". Keep it only if at least 2 distinct sessions show it, or 1 session shows it and the user repeated it inside the session after a correction. Then grep the loaded skill files listed in " + run_dir + sep + "surfaces.json for the phrase's key words: if a loaded skill already states it, keep the item only with that skill as owner (correct the owner if the synthesis named NEW).";
+v_phrases += "For each phrase: re-find it in the `turns` of the named session files under " + run_dir + sep + "sessions" + sep + " (the run dir holds no phrases.json; the `sessions/*.json` `turns` arrays are the source of truth). Keep it only if at least 2 distinct sessions show it, or 1 session shows it and the user repeated it inside the session after a correction. Then grep the loaded skill files named in the session's `skills_loaded` for the phrase's key words: if a loaded skill already states it, keep the item only with that skill as owner (correct the owner if the synthesis named NEW).";
 
 let v_stale = vcommon;
 v_stale += "\nSection to verify: 2. Skills to update. Write " + run_dir + sep + "verify" + sep + "stale.md\n";
@@ -298,7 +298,7 @@ v_stale += "For each item: open the skill file and confirm the quoted stale line
 
 let v_delete = vcommon;
 v_delete += "\nSection to verify: 3. Unused -> delete or disable. Write " + run_dir + sep + "verify" + sep + "deletes.md\n";
-v_delete += "For each item: confirm in " + run_dir + sep + "usage.json that count is 0 and the name is not in slash MRU (surfaces.json `slash_mru`). Confirm the safety claim by reading surfaces.json (a duplicate exists, a bundled or plugin copy stays, the plugin was never enabled). If the item is the only copy of a job, change the action to ask. If " + run_dir + sep + "decisions.jsonl exists and the user rejected the same delete before, drop the item.";
+v_delete += "For each item: confirm in " + run_dir + sep + "manifest.json and the `sessions/*.json` records (per-skill `skills_loaded` counts) that count is 0 and the name is not in slash MRU. Confirm the safety claim by reading the session records (another loaded copy does the job, or a sibling skill covers it). If the item is the only copy of a job, change the action to ask. If " + run_dir + sep + "decisions.jsonl exists and the user rejected the same delete before, drop the item.";
 
 let verified = parallel([
     #{ prompt: v_phrases, label: "verify:phrases", capability_mode: "read-write", output_schema: verify_schema },
@@ -333,17 +333,17 @@ if verify_failed.len() > 0 {
     for n in verify_failed { rp += n + " "; }
     rp += ". Put every claim from those sections under `## Unverified claims` (not in sections 1-3) and set requires_confirmation=true on any action you still emit for them.\n";
 }
-rp += "Also read " + run_dir + sep + "manifest.json (coverage counts and params), " + run_dir + sep + "usage.json, and " + run_dir + sep + "surfaces.json.\n";
+rp += "Also read " + run_dir + sep + "manifest.json (coverage counts and params), and the " + run_dir + sep + "sessions" + sep + " records for per-skill `skills_loaded` counts. The run dir holds no usage.json or surfaces.json; the skills-only collector writes only manifest.json and the session records.\n";
 rp += "Only claims kept by a verifier go into sections 1-3. Dropped claims go under Dropped claims with their reasons.\n";
 rp += "Coverage facts for this run: map notes lost = " + lost_map.len().to_string() + ", reduce notes lost = " + lost_reduce.len().to_string() + ", sessions read by mappers = " + sessions_read.to_string() + " of " + count.to_string() + ".\n";
-rp += "For every action that edits a file, open that file and make `edit.anchor` an exact substring of it. For every create, write the complete SKILL.md content following the frontmatter shape of an existing user skill in surfaces.json.\n";
-rp += "surfaces.json marks each skill with `protected` (plugin, bundled, git-tracked, or null) and `referenced_by` (loaded skills that name it). A protected skill is never edited or deleted in place: emit the action with `action: propose` and `requires_confirmation: true`, and say in `reason` whether the fix belongs in a user-skill override with the same name (plugin, bundled) or in a pull request (git-tracked). A delete of a skill with a non-empty `referenced_by` becomes `ask` and lists the referrers in `reason`.\n";
-rp += "Check manifest.json `disuse_evidence` first: when `sufficient` is false the window cannot show disuse, so section 3 becomes `## 3. Not seen in this window` with no delete, disable, ask, or group action and the Overview quotes `disuse_evidence.reason`, per report-format.md.\n";
-rp += "Group before you write: unused surfaces (count 0, not in slash MRU) that share a kind and a disposition become ONE action with `kind: group` and an `items` array, per report-format.md. A report that lists thirty separate asks for thirty zero-use plugin skills is wrong; it should list one group. Keep single actions only for items with evidence of use (count > 0) and for a surface whose kind has no other zero-use member; a referenced zero-use skill goes into the ask group of its kind with referenced_by in its item.\n";
+rp += "For every action that edits a file, open that file and make `edit.anchor` an exact substring of it. For every create, write the complete SKILL.md content following the frontmatter shape of an existing user skill named in the session's `skills_loaded`. The run dir holds no surfaces.json: set `protected` to `bundled` for skills under `~/.grok/bundled/`, `git-tracked` for skills under a git repo, and null otherwise; set `referenced_by` to the loaded skills that name this one, read from the session records.\n";
+rp += "A protected skill (bundled or git-tracked) is never edited or deleted in place: emit the action with `action: propose` and `requires_confirmation: true`, and say in `reason` whether the fix belongs in a user-skill override with the same name (bundled) or in a pull request (git-tracked). A delete of a skill with a non-empty `referenced_by` becomes `ask` and lists the referrers in `reason`.\n";
+rp += "Narrow-window rule: when `manifest.json` -> `sessions_kept` is low (under 20) or the `params.days` window is under 7 days, the run cannot show disuse. In that case section 3 becomes `## 3. Not seen in this window`, lists zero-use skills as information only, and emits no `delete`, `disable`, `ask`, or `group` action; quote the reason (e.g. `only N sessions kept, M-day window`) in the Overview.\n";
+rp += "Group before you write: unused skills (count 0, not in slash MRU) that share a disposition become ONE action with `kind: group` and an `items` array, per report-format.md. Keep single actions only for items with evidence of use (count > 0) and for a skill whose disposition has no other zero-use member; a referenced zero-use skill goes into the ask group with referenced_by filled in its item.\n";
 rp += focus_line;
 rp += "\nWrite " + run_dir + sep + "report.md and " + run_dir + sep + "actions.json.";
 rp += " Every file you touch stays inside " + run_dir + "; do not delete files, and run no command that reaches outside the run directory — a command that needs the user's approval blocks this agent forever when the user is away. The parent session records the run as report_ready once both files exist.";
-rp += "\nWork budget: read each input file once (the synthesis, the three verifier files, manifest.json, usage.json, surfaces.json, and the skill files you must anchor edits in) — at most 40 file reads in total. Write report.md first, then actions.json, with the `write` tool in one call each — never through a shell heredoc or a script, and never by pasting the content into chat; if a write fails, retry once with the same tool. The shell is for reading only (e.g. counting lines); it runs nothing that touches files. If you reach 40 reads or 80 tool calls without both files written, stop reading, write both files from what you already have, and say in the Overview which sections are incomplete. Runs have burned tens of millions of tokens re-reading the same files on this step; a shorter report is the correct outcome, an unwritten one is not.";
+rp += "\nWork budget: read each input file once (the synthesis, the three verifier files, manifest.json, the `sessions/*.json` records, and the skill files you must anchor edits in) — at most 40 file reads in total. Write report.md first, then actions.json, with the `write` tool in one call each — never through a shell heredoc or a script, and never by pasting the content into chat; if a write fails, retry once with the same tool. The shell is for reading only (e.g. counting lines); it runs nothing that touches files. If you reach 40 reads or 80 tool calls without both files written, stop reading, write both files from what you already have, and say in the Overview which sections are incomplete. Runs have burned tens of millions of tokens re-reading the same files on this step; a shorter report is the correct outcome, an unwritten one is not.";
 rp += " Return ok=true after both files exist, report_path, actions_path, the Overview text as overview, and action_count.";
 
 log("Report: launching the report agent (synthesis " + synthesis + ", " + verify_notes.len().to_string() + " verifier files)");

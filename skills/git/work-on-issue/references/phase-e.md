@@ -1,0 +1,13 @@
+# Phase E — Run waves and verify children
+
+Wave N+1 spawns after wave N's results arrive. Stacking all waves at once multiplies isolation contention.
+
+A child's summary is a self-report, not evidence. For each finished child, inside **its** worktree:
+
+1. `git log --oneline <default>..HEAD` and `git status` — clean tree, expected commits only.
+2. Read the changed code at the cited file:line.
+3. Re-run the key test yourself when the claim is load-bearing (e.g. "already fixed on main").
+4. Only then report what landed to the user.
+5. When the issue is done and ready for review, mark the Orca worktree: `ORCA worktree set --worktree path:<WT> --workspace-status in-review --json`.
+
+Scan a worktree by `cd`ing into Orca's checkout path (`ORCA worktree show --worktree id:<repoId>::<path> --json` → path). Running checkers against a worktree path from the repo root often produces phantom violations from broken relative paths.

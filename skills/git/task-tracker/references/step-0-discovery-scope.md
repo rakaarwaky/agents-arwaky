@@ -1,10 +1,10 @@
-# Task Tracker — discovery, scope, and state sources
-
-## Scope
+# Step 0 — discovery, scope, and state sources
 
 The skill is repo-agnostic: any AES-architecture repo that keeps spec documents inside
 the repo tree works. Discover scope at run time with the two rules below; do not
 assume a layout.
+
+## Scope
 
 **In scope** — any `.md` that either:
 
@@ -28,7 +28,7 @@ Three layouts, all in scope:
 | --- | --- |
 | Roadmap-owned | `ROADMAP.md` (or `ROADMAP.md`/`DESIGN.md` at root) holds the definitions, a backlog table, a phase plan, and a feature roll-up; feature `BACKLOG.md` files carry only their own row table |
 | Backlog-owned | Root `BACKLOG.md` holds the definitions (`### State definitions`), the feature index, the roll-up, and the root row table; each feature `BACKLOG.md` declares its own doc-level `State: <value>` line plus its row table |
-| aes-docs entry shape | The `aes-docs` template dialect (`internal/lint-arwaky/crates/shared/skills/aes-docs/references`): entries are `### FR/DS/DT/PR-<SCOPE>-NNN` headings (the template appends `: <title>`; the title half is optional — real BACKLOG files often carry the bare ID alone) followed by an `\| Aspect \| Detail \|` table. Inside `## Backlog Status` each entry is a task row (its `State` row is the state, `Updated` the date); inside `## Roadmap Status` each `PR-` entry is a feature-index claim — the `State` row is the roll-up claim and the `Backlog` cell's link resolves the feature path (e.g. `crates/filesystem/BACKLOG.md` → `crates/filesystem`). The Aspect/Detail shape has no Next Action column, so those rows classify by state (see classification-and-trust.md). Any other section carrying the same shape (e.g. a PRD's Project Requirements) parses to no rows and no claims. |
+| aes-docs entry shape | The `aes-docs` template dialect (`internal/lint-arwaky/crates/shared/skills/aes-docs/references`): entries are `### FR/DS/DT/PR-<SCOPE>-NNN` headings (the template appends `: <title>`; the title half is optional — real BACKLOG files often carry the bare ID alone) followed by an `\| Aspect \| Detail \|` table. Inside `## Backlog Status` each entry is a task row (its `State` row is the state, `Updated` the date); inside `## Roadmap Status` each `PR-` entry is a feature-index claim — the `State` row is the roll-up claim and the `Backlog` cell's link resolves the feature path (e.g. `crates/filesystem/BACKLOG.md` → `crates/filesystem`). The Aspect/Detail shape has no Next Action column, so those rows classify by state (see [step-3-classify.md](step-3-classify.md)). Any other section carrying the same shape (e.g. a PRD's Project Requirements) parses to no rows and no claims. |
 
 In the backlog-owned shape the doc-level `State:` line at the top of a feature backlog
 is a real classification target in its own right — a feature still `In Progress` or

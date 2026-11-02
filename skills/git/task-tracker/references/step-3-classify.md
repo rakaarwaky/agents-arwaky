@@ -1,4 +1,32 @@
-# Task Tracker — scenario references
+# Step 3 — classify with zero trust
+
+**Default path: run the deterministic classifier script** on the scanner's
+ScanOutput JSON (no LLM, no inline re-derivation of the classification
+table):
+
+```bash
+python3 <this-skill>/scripts/classify.py --repo-root <repo-root> \
+    --scan-out <scan.json> --trust-mode <no-trust|trust>
+```
+
+The script applies the doc-determinable part of the classification table:
+state bucketing, the Next Action word-count skip rule, per-feature
+effective-state ranking, FR-orphan detection, roll-up mismatch detection,
+and the `next_action_pending` / `next_action_complete` closing-condition
+strings. Every other verdict leaves `closing_condition: null` for the LLM
+verifier to fill in. A non-zero exit is a hard stop — fix the classifier
+and re-run; there is no fallback to inline logic.
+
+**`--legacy` path (rollback escape):** apply the classification table
+locally (the workflow's inline Rhai logic).
+
+Either way, every `Done` row goes to the verifier as a **proof demand** in
+`--no-trust` mode, not as a skip candidate. A row whose `Updated` date is
+older than 14 days is a staleness flag; the verifier re-reads the code
+regardless.
+
+Compute the per-feature effective state here (the script does this), before
+verification, so the verifier can compare it against the roll-up claim.
 
 ## Trust modes
 
@@ -29,7 +57,6 @@ this field for all of them regardless of trust mode:
   No issue is created. The ledger records the skip.
 - **Empty Next Action cell** (column present, cell blank) → also `skip_next_action`;
   an empty cell in a table whose shape *has* the column is a "nothing to do" marker.
-
 - **Next Action has content** (not `none`/`<skip>`) → the verifier checks whether the
   described action is already implemented in the feature's source code and tests:
   - **Action already complete** (code + test exist): verdict `next_action_complete`.
@@ -125,7 +152,7 @@ recorded verbatim by the scanner and mapped by the classifier to the simplified 
 (see the State vocabulary section). There is no path where a `Done` marker alone
 suppresses an issue. Doc text is the hypothesis; live evidence is the verdict.
 
-### Evidence rules
+## Evidence rules
 
 | Claim shape | Verification |
 | --- | --- |
@@ -137,7 +164,7 @@ suppresses an issue. Doc text is the hypothesis; live evidence is the verdict.
 
 The verifier reads source files, not git history. A hash, PR number, or tag cited in a row is context, not evidence.
 
-### Roll-up double-check
+## Roll-up double-check
 
 For every `Feature Roll-up` row (roadmap-owned shape), feature index row
 (backlog-owned shape), or `## Roadmap Status` PR entry (aes-docs shape, feature
