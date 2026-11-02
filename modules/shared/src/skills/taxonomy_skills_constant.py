@@ -101,6 +101,26 @@ _KEEP_DIRS: Final = ("references", "scripts")
 #: produce two ``name:`` keys if it landed beside the survivor's.
 _SKIP_FILES: Final = ("SKILL.md", "SKILL.md.archived")
 
+# ── Trace-collect defaults for skill-evolving ──────────────────────────
+
+#: skill-evolving always scans sessions since the last completed trace run
+#: (never a day-window or full-history scan).
+TRACE_COLLECT_SINCE_LAST: Final = True
+
+#: skill-evolving drops signals observed in fewer than this many sessions.
+TRACE_COLLECT_MIN_TURNS: Final = 3
+
+#: skill-evolving keeps all matching sessions — ``limit = 0`` means unlimited.
+TRACE_COLLECT_LIMIT_UNLIMITED: Final = True
+
+#: skill-evolving always writes both ``report.md`` and ``actions.json`` into
+#: the run dir on every run.
+TRACE_COLLECT_WRITE_JSON_ALWAYS: Final = True
+
+#: Default run dir pattern for skill-evolving trace runs; ``<GROK_HOME>`` and
+#: ``<run-id>`` are substituted at call time.
+TRACE_COLLECT_RUN_DIR_PATTERN: Final = "{GROK_HOME}/skill-evolving/runs/{run_id}/"
+
 
 __all__ = [
     "ARCHIVE_DIRNAME",
@@ -115,6 +135,11 @@ __all__ = [
     "NAME_MIN",
     "NAME_RE",
     "PACK_MARKER_FILENAME",
+    "TRACE_COLLECT_LIMIT_UNLIMITED",
+    "TRACE_COLLECT_MIN_TURNS",
+    "TRACE_COLLECT_RUN_DIR_PATTERN",
+    "TRACE_COLLECT_SINCE_LAST",
+    "TRACE_COLLECT_WRITE_JSON_ALWAYS",
     "_HEADER",
     "_KEEP_DIRS",
     "_MISSING_DESCRIPTION_PLACEHOLDER",
