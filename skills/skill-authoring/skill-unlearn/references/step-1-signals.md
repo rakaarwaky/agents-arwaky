@@ -1,8 +1,12 @@
 # What the trace-learning pipeline looks for
 
-Skills-only: no plugins, MCP servers, workflows, or hooks. Every count derives from
-the `skills_loaded` field of the `sessions/*.json` records and from `manifest.json`;
-the run dir holds no `usage.json`, `surfaces.json`, or `phrases.json`.
+Skills-only: no plugins, MCP servers, workflows, or hooks. Section 3 (Unused →
+delete / disable) reads the deterministic per-skill counts and the `unused_loaded`
+list from `usage.json` in the run dir — the material `aa skills trace-materialize`
+writes before the workflow launches. Repeated-phrase material (used to confirm a
+skill's triggers still match) comes from `phrases.json`. No agent recounts the
+`sessions/*.json` records by hand; mappers and reducers read both files off disk.
+Coverage counts and window params come from `manifest.json`.
 
 Ordered by blast radius: an item higher on this list costs the user more per session
 than one lower down. Mappers extract these per session; reducers merge them across
@@ -36,15 +40,16 @@ current file, there is no claim.
 
 ## 4. Unused skills (candidates to retire)
 
-Never counted by an agent. For each skill named in any session's `skills_loaded`,
-the deterministic count is the number of distinct sessions that loaded it (read from
-the session records). A loaded skill with count 0 across the window and absent from
-slash MRU is a retirement candidate. The safety argument is what still does the
-job: another loaded copy, a bundled or git-tracked copy, or a sibling skill that
-covers the same job. If nothing else does the job, the action is `ask`, not
-`delete`. A skill that other loaded skills reference is an `ask` that names the
-referrers; a bundled or git-tracked skill is never removed in place — it is a
-`propose` of a user-skill override (bundled) or a pull request (git-tracked).
+Never counted by an agent. Per-skill `count`, `sessions`, `last_used`, `in_slash_mru`,
+and the `unused_loaded` list are read from `usage.json` in the run dir — the
+deterministic material `aa skills trace-materialize` writes before launch. A skill
+in `unused_loaded` (count 0 across the window, absent from slash MRU) is a
+retirement candidate. The safety argument is what still does the job: another
+loaded copy or a sibling skill that covers the same job. If nothing else does the
+job, the action is `ask`, not `delete`. A skill that other loaded skills reference
+is an `ask` that names the referrers; a bundled or git-tracked skill is never
+removed in place — it is a `propose` of a user-skill override (bundled) or a pull
+request (git-tracked).
 
 ## 5. Gaps (a recurring need with no owner)
 
