@@ -19,19 +19,18 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 # Import sibling modules with the same shim used by the other scripts.
 try:
-    from scripts import scan, classify
-    from scripts.common import GhAuthError, GhRateLimited, gh
+    from scripts import classify, scan
+    from scripts.common import GhAuthError
     from scripts.ledger import write_ledger_entry
-    from scripts.templates import closing_condition_next_action_pending
 except ModuleNotFoundError:  # pragma: no cover - standalone script path
-    import scan, classify  # type: ignore[no-redef]
-    from common import GhAuthError, GhRateLimited, gh  # type: ignore[no-redef]
-    from ledger import write_ledger_entry  # type: ignore[no-redef]
-    from templates import closing_condition_next_action_pending  # type: ignore[no-redef]
+    import classify  # type: ignore[no-redef, import-not-found]
+    import scan  # type: ignore[no-redef, import-not-found]
+    from common import GhAuthError  # type: ignore[no-redef, import-not-found]
+    from ledger import write_ledger_entry  # type: ignore[no-redef, import-not-found]
 
 
 def log(msg: str) -> None:
@@ -47,7 +46,7 @@ def _gh_issue_create(title: str, body: str, labels: list[str]) -> int | None:
     args = ["gh", "issue", "create", "--title", title, "--body", body]
     for label in labels:
         args += ["--label", label]
-    proc = subprocess.run(args, capture_output=True, text=True)
+    proc = subprocess.run(args, capture_output=True, text=True)  # noqa: PLW1510
     if proc.returncode != 0:
         log(f"gh issue create failed: {proc.stderr.strip()}")
         return None
@@ -114,8 +113,8 @@ def _build_issue_body(row: dict[str, Any], classification: str) -> str:
     lines.append(f"| State (doc) | {state} |")
     lines.append(f"| Priority | {priority} |")
     lines.append(f"| Health | {health} |")
-    lines.append(f"| Owner | — |")
-    lines.append(f"| Target | — |")
+    lines.append("| Owner | — |")
+    lines.append("| Target | — |")
     lines.append(f"| Classification | {classification} |")
     if fr_refs:
         lines.append(f"| FR | {', '.join(fr_refs)} |")
@@ -176,12 +175,12 @@ def _run_validate(repo_root: str, ledger_path: str, report_path: str | None) -> 
             "--ledger", ledger_path]
     if report_path:
         args += ["--report", report_path]
-    proc = subprocess.run(args, capture_output=True, text=True)
+    proc = subprocess.run(args, capture_output=True, text=True)  # noqa: PLW1510
     if proc.returncode != 0:
         log(proc.stderr.strip())
         raise RuntimeError("validate.py exited non-zero")
     try:
-        return json.loads(proc.stdout.strip() or "{}")
+        return cast("dict[str, Any]", json.loads(proc.stdout.strip() or "{}"))
     except json.JSONDecodeError:
         return {}
 
@@ -276,7 +275,7 @@ def run(repo_root: str,
     closing_conditions = len(issued_rows)
     actionable_verdict_count = closing_conditions
 
-    report_phase1 = {
+    report_phase1: dict[str, Any] = {
         "rows_scanned": len(rows),
         "incomplete": incomplete,
         "doc_sync": doc_sync,

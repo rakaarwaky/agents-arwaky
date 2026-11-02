@@ -10,9 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.skills.contract_skills_protocol import (
-    IPhrasesProtocol,
     IStateProtocol,
-    ITrackerProtocol,
+    ISkillsTracesProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     PhrasesReport,
@@ -27,9 +26,8 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
 from modules.skills.src.capabilities_skills_index_builder import SkillsIndexBuilder
 from modules.skills.src.capabilities_skills_pack_reader import SkillsPackReader
-from modules.skills.src.capabilities_skills_phrases import SkillsPhrases
 from modules.skills.src.capabilities_skills_state import SkillsTraceState
-from modules.skills.src.capabilities_skills_tracker import SkillsTracker
+from modules.skills.src.capabilities_skills_traces import SkillsTraces
 from modules.skills.tests.fixture_skills import make_grok_home
 
 
@@ -38,8 +36,7 @@ def _make_agent(root: Path) -> SkillsAgent:
     return SkillsAgent(
         SkillsIndexBuilder(root),
         SkillsPackReader(root),
-        tracker=SkillsTracker(),
-        phrases=SkillsPhrases(),
+        traces=SkillsTraces(),
         state=SkillsTraceState(),
         default_root=root,
     )
@@ -107,8 +104,7 @@ def test_integration_trace_collect_then_phrases_then_state(tmp_path: Path) -> No
     assert got.state in (TraceStateStatus.COLLECTED, TraceStateStatus.RUNNING)
 
     # Protocol conformance (capabilities are the real implementations).
-    assert isinstance(agent._tracker, ITrackerProtocol)
-    assert isinstance(agent._phrases, IPhrasesProtocol)
+    assert isinstance(agent._traces, ISkillsTracesProtocol)
     assert isinstance(agent._state, IStateProtocol)
 
 

@@ -1,8 +1,8 @@
-"""Unit tests for ``capabilities_skills_phrases.SkillsPhrases``.
+"""Unit tests for the traces phrases capability (``SkillsTraces.build_phrases``).
 
-Reads session records the tracker would have written into ``run_dir`` (a file
-dependency — phrases does NOT import the tracker capability) and mines
-repeated exact prompts, prompt stems, and repeated instruction lines.
+Reads session records written into ``run_dir`` (a file dependency — the
+phrases builder does not scan ``GROK_HOME`` itself) and mines repeated exact
+prompts, prompt stems, and repeated instruction lines.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from pathlib import Path
 
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import PhrasesReport
 from modules.shared.src.skills.taxonomy_skills_vo import PhraseRow
-from modules.skills.src.capabilities_skills_phrases import SkillsPhrases
+from modules.skills.src.capabilities_skills_traces import SkillsTraces
 
 
 def _write_record(run_dir: Path, session_id: str, turns: list[str], repeated_single_turn: bool = False) -> None:
@@ -26,10 +26,10 @@ def _write_record(run_dir: Path, session_id: str, turns: list[str], repeated_sin
 
 
 def test_phrases_implements_protocol() -> None:
-    """SkillsPhrases satisfies the IPhrasesProtocol contract."""
+    """SkillsTraces satisfies the ISkillsTracesProtocol contract."""
     import modules.shared.src.skills.contract_skills_protocol as cp  # noqa: WPS437
 
-    assert isinstance(SkillsPhrases(), cp.IPhrasesProtocol)
+    assert isinstance(SkillsTraces(), cp.ISkillsTracesProtocol)
 
 
 def test_build_phrases_returns_phrases_report() -> None:
@@ -38,7 +38,7 @@ def test_build_phrases_returns_phrases_report() -> None:
 
     with tempfile.TemporaryDirectory() as d:
         run_dir = Path(d)
-        report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
+        report = SkillsTraces().build_phrases("irrelevant", str(run_dir))
         assert isinstance(report, PhrasesReport)
         assert report.exact_prompts == ()
         assert report.repeated_instruction_lines == ()
@@ -53,7 +53,7 @@ def test_repeated_exact_prompt_across_sessions() -> None:
         prompt = "please refactor the login handler"
         for i in range(2):
             _write_record(run_dir, f"s{i}", [prompt])
-        report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
+        report = SkillsTraces().build_phrases("irrelevant", str(run_dir))
         assert report.exact_prompts == (
             PhraseRow(phrase=prompt, sessions=2, occurrences=2, session_ids=("s0", "s1")),
         )
@@ -66,7 +66,7 @@ def test_exact_prompt_below_threshold_is_dropped() -> None:
     with tempfile.TemporaryDirectory() as d:
         run_dir = Path(d)
         _write_record(run_dir, "s0", ["one-off prompt"])
-        report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
+        report = SkillsTraces().build_phrases("irrelevant", str(run_dir))
         assert report.exact_prompts == ()
 
 
@@ -79,7 +79,7 @@ def test_single_turn_automation_excluded() -> None:
         prompt = "automated canary prompt"
         for i in range(3):
             _write_record(run_dir, f"s{i}", [prompt], repeated_single_turn=True)
-        report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
+        report = SkillsTraces().build_phrases("irrelevant", str(run_dir))
         assert report.exact_prompts == ()
 
 
@@ -92,7 +92,7 @@ def test_prompt_stems_mined() -> None:
         stem = "please refactor the login handler and add tests"
         for i in range(3):
             _write_record(run_dir, f"s{i}", [stem + " extra words here"])
-        report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
+        report = SkillsTraces().build_phrases("irrelevant", str(run_dir))
         stems = [r.phrase for r in report.stems]
         assert any(stem in s for s in stems)
 
@@ -106,7 +106,7 @@ def test_repeated_instruction_lines() -> None:
         line = "always run the linter before committing"
         for i in range(3):
             _write_record(run_dir, f"s{i}", [line])
-        report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
+        report = SkillsTraces().build_phrases("irrelevant", str(run_dir))
         lines = [r.phrase for r in report.repeated_instruction_lines]
         assert any(line in l for l in lines)
 
@@ -119,7 +119,7 @@ def test_short_turns_ignored() -> None:
         run_dir = Path(d)
         for i in range(3):
             _write_record(run_dir, f"s{i}", ["hi"])
-        report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
+        report = SkillsTraces().build_phrases("irrelevant", str(run_dir))
         assert report.exact_prompts == ()
         assert report.repeated_instruction_lines == ()
 
@@ -132,5 +132,5 @@ def test_slash_only_turns_ignored() -> None:
         run_dir = Path(d)
         for i in range(3):
             _write_record(run_dir, f"s{i}", ["/status"])
-        report = SkillsPhrases().build_phrases("irrelevant", str(run_dir))
+        report = SkillsTraces().build_phrases("irrelevant", str(run_dir))
         assert report.exact_prompts == ()

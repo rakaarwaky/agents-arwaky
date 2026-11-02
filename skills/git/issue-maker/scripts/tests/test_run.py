@@ -17,7 +17,6 @@ if str(_SKILL_DIR) not in sys.path:
 
 from scripts import run
 
-
 REPO_ROOT = Path(__file__).resolve().parent / "fixtures" / "sample_repo"
 DISCOVERY = REPO_ROOT / "discovery.json"
 

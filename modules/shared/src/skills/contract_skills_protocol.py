@@ -3,8 +3,7 @@
 One seam per subsystem the skills agent coordinates: the pack index
 (list), the pack reader (show), the validator, the catalog, discovery,
 the mutator, and the merge planner, plus the
-trace-learning trio (the tracker, the phrases miner, and the lifecycle
-state). Capabilities implement these; the composition root injects them
+trace-learning pair (the traces capability and the lifecycle state). Capabilities implement these; the composition root injects them
 into the agent.
 
 Capabilities never import one another: where one needs another's data
@@ -209,8 +208,8 @@ class ISkillsMergePlannerProtocol(ABC):
         ...
 
 
-class ITrackerProtocol(ABC):
-    """Scan sessions and build the LLM-read skills-only usage material."""
+class ISkillsTracesProtocol(ABC):
+    """Scan sessions, build skills-only usage, and mine repeated phrases."""
 
     @abstractmethod
     def scan_sessions(
@@ -221,32 +220,29 @@ class ITrackerProtocol(ABC):
         since_last: bool = False,
         min_turns: int = 1,
         limit: int = 0,
+        include_headless: bool = False,
+        include_subagents: bool = False,
     ) -> ScanResult:
         """Scan the session tree with the filters and return a ``ScanResult``.
 
-        The capability writes the records into ``run_dir`` and returns
-        the kept records plus the scan counters (``sessions_seen``,
-        ``dropped``) as a VO — no raw JSON for the surface to re-parse.
+        Writes ``manifest.json`` plus ``sessions/*.json`` into *run_dir*
+        and returns the kept records plus the scan counters
+        (``sessions_seen``, ``dropped``) as a VO — no raw JSON for the
+        surface to re-parse.
         """
         ...
 
     @abstractmethod
     def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
-        """Return the skills-only usage (hit counts, sessions, last_used, unused_loaded)."""
+        """Return the skills-only usage: hit counts, sessions, last_used, unused_loaded."""
         ...
 
-
-class IPhrasesProtocol(ABC):
-    """Mine repeated exact prompts and repeated instruction lines."""
-
     @abstractmethod
-    def build_phrases(
-        self, grok_home: str, run_dir: str
-    ) -> PhrasesReport:
-        """Read the session records the tracker wrote to *run_dir*.
+    def build_phrases(self, grok_home: str, run_dir: str) -> PhrasesReport:
+        """Mine repeated exact prompts, prompt stems, and repeated instruction lines.
 
-        Returns repeated exact prompts and repeated instruction lines
-        (distinct-session counts; single-turn automation excluded).
+        Reads the session records written to *run_dir*; returns
+        distinct-session counts with single-turn automation excluded.
         """
         ...
 
@@ -307,7 +303,6 @@ class IStateProtocol(ABC):
 
 
 __all__ = [
-    "IPhrasesProtocol",
     "ISkillsCatalogProtocol",
     "ISkillsDiscovererProtocol",
     "ISkillsIndexProtocol",
@@ -315,7 +310,7 @@ __all__ = [
     "ISkillsMergePlannerProtocol",
     "ISkillsMutatorProtocol",
     "ISkillsReaderProtocol",
+    "ISkillsTracesProtocol",
     "ISkillsValidatorProtocol",
     "IStateProtocol",
-    "ITrackerProtocol",
 ]
