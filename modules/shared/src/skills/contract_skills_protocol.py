@@ -190,6 +190,45 @@ class ISkillsMergePlannerProtocol(ABC):
         ...
 
 
+class ISkillsTracesProtocol(ABC):
+    """Scan sessions, build skills-only usage, and mine repeated phrases."""
+
+    @abstractmethod
+    def scan_sessions(
+        self,
+        grok_home: str,
+        run_dir: str,
+        days: int = 0,
+        since_last: bool = False,
+        min_turns: int = 1,
+        limit: int = 0,
+        include_headless: bool = False,
+        include_subagents: bool = False,
+    ) -> ScanResult:
+        """Scan the session tree with the filters and return a ``ScanResult``.
+
+        Writes ``manifest.json`` plus ``sessions/*.json`` into *run_dir*
+        and returns the kept records plus the scan counters
+        (``sessions_seen``, ``dropped``) as a VO — no raw JSON for the
+        surface to re-parse.
+        """
+        ...
+
+    @abstractmethod
+    def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
+        """Return the skills-only usage: hit counts, sessions, last_used, unused_loaded."""
+        ...
+
+    @abstractmethod
+    def build_phrases(self, grok_home: str, run_dir: str) -> PhrasesReport:
+        """Mine repeated exact prompts, prompt stems, and repeated instruction lines.
+
+        Reads the session records written to *run_dir*; returns
+        distinct-session counts with single-turn automation excluded.
+        """
+        ...
+
+
 class ITrackerProtocol(ABC):
     """Scan sessions and build the LLM-read skills-only usage material."""
 
@@ -294,6 +333,7 @@ __all__ = [
     "ISkillsIndexProtocol",
     "ISkillsMergePlannerProtocol",
     "ISkillsMutatorProtocol",
+    "ISkillsTracesProtocol",
     "ISkillsReaderProtocol",
     "ISkillsValidatorProtocol",
     "IStateProtocol",
