@@ -27,7 +27,7 @@ Rules that apply to both auth paths. Detection and method files cite these; they
 
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Detection | [`references/detection-flow.md`](references/detection-flow.md) | Check `git`, `gh`, `gh auth status`, credential helper; choose git-only or gh-cli path. |
-| Git-only auth | [`references/git-only-auth.md`](references/git-only-auth.md) | HTTPS with personal access token or SSH key: full setup steps for both. |
-| gh CLI auth | [`references/gh-cli-auth.md`](references/gh-cli-auth.md) | `gh` login methods: browser, device flow, hosts.yml fallback. |
+| Step 0 | [`references/step-0-detect.md`](references/step-0-detect.md) | Check `git`, `gh`, `gh auth status`, credential helper; choose git-only or gh-cli path. |
+| Step 1 | [`references/step-1-gh-cli-auth.md`](references/step-1-gh-cli-auth.md) | `gh` login methods: browser, device flow, hosts.yml fallback. |
+| Step 2 | [`references/step-2-git-only-auth.md`](references/step-2-git-only-auth.md) | HTTPS with personal access token or SSH key: full setup steps for both. |
 

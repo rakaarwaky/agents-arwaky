@@ -15,5 +15,5 @@ git config --global credential.helper 2>/dev/null || echo "no git credential hel
 **Decision tree:**
 
 1. If `gh auth status` shows authenticated → you're good, use `gh` for everything
-2. If `gh` is installed but not authenticated → use [gh-cli-auth.md](gh-cli-auth.md)
-3. If `gh` is not installed → use [git-only-auth.md](git-only-auth.md)
+2. If `gh` is installed but not authenticated → use [step-1-gh-cli-auth.md](step-1-gh-cli-auth.md)
+3. If `gh` is not installed → use [step-2-git-only-auth.md](step-2-git-only-auth.md)
