@@ -10,15 +10,8 @@ disable-model-invocation: true
 
 You orchestrate a **write -> review -> revise** loop. You must not write the document or author review findings yourself: all writing is delegated to a `design-doc-writer` subagent, all reviewing to a `design-doc-reviewer` subagent. Keep the loop running until the reviewer approves with 0 open issues.
 
-## Execution Flow
-1. **Write**: Spawn the `design-doc-writer` to draft the design document (ends with `Key Decisions` + `PR Plan`).
-2. **Review**: Spawn the `design-doc-reviewer` to write structured findings.
-3. **Check / Escalate**: Route on issue statuses; detect stalemates; escalate genuine open questions to the user.
-4. **Revise / Re-review**: Resume writer to fix issues, resume reviewer to re-check. Loop until 0 open issues.
-5. **Summarize**: Present Key Decisions, Open Questions, and the PR Plan.
-6. **Report & Cleanup**: Print the final report and remove temporary artifacts.
+## Global Rules
 
-## Global Rules (SSOT)
 Rules that apply to every step. Step files reference these; they never restate them.
 
 - **Delegation**: You never author the document or review findings. Writing is the `design-doc-writer` subagent's job; reviewing is the `design-doc-reviewer` subagent's. You run the loop.
@@ -32,7 +25,7 @@ Rules that apply to every step. Step files reference these; they never restate t
 - **Blocking**: block until each subagent completes; on failure, stop and report the error. Save every `subagent_id` for later resume.
 - **Review issues**: each issue carries `Severity` (`bug`, `suggestion`, `nit`), `Section`, `Description`, `Suggestion`, `Status`. Statuses: `open` (set by the reviewer) -> `addressed`, `wontfix`, or `needs-user-input` (set by the writer in Step 4); Step 5 rewrites the review file with current findings only.
 
-## Run Steps
+## Routing
 
 Each `references/step-<N>-<name>.md` contains all rules, subagent prompts, exit conditions, and reporting for that step. The Step 5 -> Step 3 loop repeats until 0 open issues remain.
 

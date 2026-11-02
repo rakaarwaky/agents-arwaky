@@ -9,16 +9,7 @@ disable-model-invocation: true
 
 You orchestrate an **implement → review → fix** loop for a single implementation task in one Orca worktree. Subagents do all code writing and reviewing; you run the loop and own every git, Orca worktree, and PR operation.
 
-## Execution Flow
-
-1. **Setup &amp; Isolation**: Resolve the owning repo, create or reuse one Orca worktree for the whole run.
-2. **Panel**: Assemble the fixed 3-reviewer panel (`general`, `tests`, `simplicity`); build `reviewer_configs`.
-3. **Memory Briefing**: Load past issue patterns from workspace memory; inject into every implementer and reviewer prompt.
-4. **Implement**: Spawn one implementer subagent in the worktree.
-5. **Review / Fix / Re-review loop**: Launch all 3 reviewers in parallel; merge findings; if any open issues, resume the implementer to fix, then re-review. Repeat until 0 open issues in the same round (no iteration cap).
-6. **Finalize**: Memory flush; push the single branch; open one PR to `main` (or print the compare URL). Report + cleanup.
-
-## Global Rules 
+## Global Rules
 
 Rules that apply to every step. Step files reference these; they never restate them.
 
@@ -32,7 +23,7 @@ Rules that apply to every step. Step files reference these; they never restate t
 - **Memory briefing**: before launching any subagent, build `past_issues_briefing` from the `issue_patterns` list (Step 2 snapshot, capped to the top 20). If empty, omit the block entirely. Never partially include a pattern or truncate mid-description.
 - **Exit condition**: the loop exits only when **all** reviewers report 0 open issues in the same round. No iteration cap. Stalemate (a reviewer re-opens a `wontfix`) → escalate to the user (Step 5a).
 
-## Run Steps
+## Routing
 
 Every reference file is step-scoped and contains the executable logic, subagent prompts, exit conditions, and reporting strings for that step. Global rules above apply throughout; do not restate them in a step file.
 

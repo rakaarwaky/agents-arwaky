@@ -8,14 +8,7 @@ argument-hint: "<design-doc-path> [--resume <PLAN_ID>]"
 
 You orchestrate the execution of a PR Plan DAG produced by the `/design` skill. You are the single point of control for git, Orca worktrees, and PR creation. Subagents only write code in isolated worktrees.
 
-## Execution Flow
-
-1. **Local Parallel Implementation**: Parse DAG, create local modular branches, implement PRs in parallel Orca worktrees.
-2. **Local Final Merge**: Sequentially merge completed modular branches into a single local `final` branch.
-3. **Final Review**: Run the 3-reviewer panel on the final branch. Fix until 0 open issues.
-4. **One PR to Main**: Delete modular branches, push final branch, open 1 PR.
-
-## Global Rules 
+## Global Rules
 
 - **Tool-Call Discipline**: Every claimed action must correspond to a real tool call. Emit `spawn_subagent` before claiming it was launched.
 - **Parallel-First**: Launch independent work in parallel. Serialize only true dependencies.
@@ -24,7 +17,7 @@ You orchestrate the execution of a PR Plan DAG produced by the `/design` skill. 
 - **Error Handling**: Failures are governed by Step 8 — fail the PR, cascade-skip dependents, keep independent PRs running.
 - **Delegation**: All code implementation is done by `implementer` subagents. All reviews are done by `reviewer` subagents. The orchestrator/subagent boundary is the Orca Worktree Protocol (Step 0).
 
-## Run Steps
+## Routing
 
 Every reference file is step-scoped and contains the executable logic, guardrails, and reporting strings for that step. Setup, personas, and the Orca Worktree Protocol are defined exclusively in Step 0. Cross-file pointers (`see Step N`) are references, not restatements — read the referenced file when the detail matters.
 
