@@ -1,6 +1,6 @@
 ---
 name: work-on-issue
-description: Triage, decide, and implement one or many issues with isolated worktrees and verified results. Use when fixing a GitHub issue, working a batch of issues, auditing which open issues can close, or fanning issues out to parallel worktrees and subagents.
+description: Create, search, triage, label, assign, and comment on GitHub issues via gh or REST, and take one or many issues from backlog to verified local commits with isolated Orca worktrees and parallel subagents. Use when fixing a GitHub issue, working a batch of issues, auditing which open issues can close, fanning issues out to parallel worktrees and subagents, or filing, searching, labeling, closing, or reopening an issue.
 when-to-use:
   - work on issue
   - fix issue
@@ -10,6 +10,14 @@ when-to-use:
   - parallel worktrees for issues
   - audit open issues
   - which issues can close
+  - create an issue
+  - list open issues
+  - search issues
+  - triage issues
+  - label or assign an issue
+  - close issue
+  - reopen issue
+  - comment on issue
 argument-hint: <issue-number> [<issue-number>...]
 metadata:
   tags:
@@ -19,7 +27,7 @@ metadata:
     - Delegation
     - Triage
   related_skills:
-    - github-issues
+    - github-auth
     - github-pr-workflow
     - systematic-debugging
     - orca
@@ -27,16 +35,41 @@ metadata:
 
 # Work on Issue
 
-End-to-end pipeline for taking issue work from backlog to verified local commits.
-Works for a single issue or a batch. Unit of isolation is always **1 issue → 1 Orca worktree**.
+End-to-end skill for GitHub issue work: the CRUD mechanics (create, search, view, label, assign, comment, close/reopen, branch-from-issue) and the verify → decide → isolate → implement → verify-again pipeline at batch scale. Unit of isolation is always **1 issue → 1 Orca worktree**.
 
-Worktrees are Orca-managed via `orca worktree create`. Prefer `orca-cli` for create,
-status, terminal drive, and retire. Use raw `git worktree` only when Orca is unavailable,
-and say so in the report.
+Each CRUD recipe shows `gh` first, then the `curl` fallback. Per-scenario recipes live in `references/`; this file routes between them.
 
-Default until the user says otherwise: subagents commit locally only — no push, no PR.
-After a wave of PRs merges, rebase every still-open branch before CI re-runs — see
-[`references/wave-rebase.md`](references/wave-rebase.md).
+| Task | Recipe |
+|------|--------|
+| List, search, view issues (gh + curl) | [references/viewing-issues.md](references/viewing-issues.md) |
+| Create an issue, pick a bug/feature template | [references/creating-issues.md](references/creating-issues.md) |
+| Label, assign, comment, close/reopen, link to PRs, branch from issue | [references/managing-issues.md](references/managing-issues.md) |
+| Issue triage workflow and bulk label/close operations | [references/triage-and-bulk.md](references/triage-and-bulk.md) |
+| Phase A: triage-verification command shapes | [references/triage-verification.md](references/triage-verification.md) |
+| Phase C/D: Orca worktree fan-out and build isolation | [references/isolation-recipes.md](references/isolation-recipes.md) |
+| Phase F: rebase open branches after a wave merges | [references/wave-rebase.md](references/wave-rebase.md) |
+
+Bug-report and feature-request skeletons for new issues:
+[`templates/bug-report.md`](templates/bug-report.md), [`templates/feature-request.md`](templates/feature-request.md).
+
+## Prerequisites
+
+- Authenticated with GitHub (see `github-auth` skill)
+- Inside a git repo with a GitHub remote, or specify the repo explicitly
+
+### Setup
+
+Auth and repo detection live in `github-auth`'s helper — source it rather than
+re-implementing the fallback chain (it also resolves from `~/.qwen`, `~/.hermes`,
+or `~/.config/opencode` roots):
+
+```bash
+for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
+  [ -f "$R/github/github-auth/scripts/gh-env.sh" ] && source "$R/github/github-auth/scripts/gh-env.sh" && break
+done
+AUTH="$GH_AUTH_METHOD"; OWNER_REPO="$GH_OWNER_REPO"; OWNER="$GH_OWNER"; REPO="$GH_REPO"
+[ "$AUTH" = "none" ] && echo "Not authenticated — resolve it with the github-auth skill first"
+```
 
 ## When to Use
 
@@ -44,10 +77,13 @@ After a wave of PRs merges, rebase every still-open branch before CI re-runs —
 - Audit many open issues at once ("which open issues can be closed").
 - Fix a batch with isolation ("1 issue 1 worktree", parallel subagents).
 - A repo carries filed-audit issues needing per-issue verification against current HEAD.
+- File, search, label, assign, comment, close, or reopen an issue.
+- Create an issue from the bug-report or feature-request template.
 
 For single-issue PR discipline (duplicate sweeps, regression sabotage runs), see
 `github-pr-workflow`'s "Taking an Issue to a PR" section. This skill owns the
-**verify → decide → isolate → implement → verify-again** pipeline, especially at batch scale.
+**verify → decide → isolate → implement → verify-again** pipeline plus the CRUD
+mechanics that feed it, especially at batch scale.
 
 ## Phase A — Load and triage
 
@@ -190,6 +226,6 @@ Sibling-PR conflict shape, stale-CI diagnosis, and the rebase checklist:
 
 ## Overlap note
 
-Single-issue triage CRUD (create, label, assign, comment) lives in `github-issues`.
-Single-issue PR mechanics live in `github-pr-workflow`. This skill owns the
-verify → decide → isolate → implement → verify-again pipeline end to end.
+Single-issue PR mechanics live in `github-pr-workflow`. This skill owns both the CRUD
+mechanics (create, search, label, assign, comment, close/reopen, branch-from-issue) and
+the verify → decide → isolate → implement → verify-again pipeline end to end.

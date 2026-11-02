@@ -16,7 +16,7 @@ metadata:
     - impact
     - CodeGraph
   related_skills:
-    - github-repo-management
+    - repo-manager
 ---
 
 # Codebase Inspection

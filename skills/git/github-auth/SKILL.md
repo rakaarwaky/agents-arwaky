@@ -14,8 +14,8 @@ metadata:
   related_skills:
     - github-pr-workflow
     - review
-    - github-issues
-    - github-repo-management
+    - work-on-issue
+    - repo-manager
 ---
 
 # GitHub Authentication Setup
