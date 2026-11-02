@@ -25,6 +25,7 @@ Rules that apply to every step. Reference files cite these; they never restate t
 - **YAML hygiene.** Quote values containing `: ` or indicator characters (`{ } [ ] * & # ! | > % @`, backtick); never indent a field under a previous field's value (one nested line invalidates the whole frontmatter — only `name`, `description`, `when-to-use` survive recovery); multi-word keys kebab-case (`when_to_use` is the accepted alias).
 - **Grok Build parser limits.** `name` ≤ 64 chars; `description` and `when-to-use` ≤ 1,024 chars; top-level `version:`, `triggers:`, and `entry_points:` are ignored.
 - **Structure.** Exactly one `SKILL.md` at `<category>/<skill>/SKILL.md` (nested SKILL.md files are rejected). The body is a routing table of contents, ~100–200 lines, with steps that end in checkable completion criteria; detail lives in `references/*.md` (subfolders allowed when the set is large) and every reference, whatever its depth, links directly from `SKILL.md`. Non-trivial logic ships as `scripts/<file>` referenced by path.
+- **Mandatory body shape.** Every `SKILL.md` uses exactly three sections: `# Title`, `## Global rules`, `## Routing`. All task data, commands, examples, field shapes, stop conditions, and worked examples belong in `references/*.md` or `scripts/*`. If the body contains anything beyond those three sections, move it to a reference before publishing.
 - **Enforcement.** `aa skills validate` is the gate before publishing; the rule names it enforces are cataloged in `references/audit.md`.
 
 ## Routing

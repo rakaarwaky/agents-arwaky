@@ -1,4 +1,4 @@
-# Step 9 — Run waves and verify children
+# Step 8 — Run waves and verify children
 
 Wave N+1 spawns after wave N's results arrive. Stacking all waves at once multiplies isolation contention.
 
@@ -26,4 +26,4 @@ Before reporting the batch, confirm every box:
 - [ ] `Closes #N` added to each issue only after its PR merges (the skill does not merge).
 - [ ] User report cites files, mechanism, and real command output — not child self-reports.
 - [ ] Finished worktrees marked `--workspace-status in-review` (or retired when done).
-- [ ] If PRs merged mid-batch: remaining branches rebased onto current default tip (see Step 10).
+- [ ] If PRs merged mid-batch: remaining branches rebased onto current default tip (see Step 9).

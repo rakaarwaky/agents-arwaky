@@ -1,4 +1,4 @@
-# Step 5 — Load and triage
+# Step 4 — Load and triage
 
 Never close or skip work from a `status: done` label, an audit date, or a merged PR's `Closes #N` line alone. GitHub can silently fail to close issues a PR body declares while the fix itself did land. Verify every claim against the current tree.
 

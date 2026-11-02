@@ -38,6 +38,11 @@ aa skills catalog
 
 9. Verify the moved skills appear under the correct category.
 
+## Pitfalls
+
+- **Empty source category**: moving the last skill out of a category leaves it empty, and `aa skills validate` flags `empty-category`. Delete the empty `DESCRIPTION.md` and category directory, or retire the category row in `CATALOG.md`.
+- **Dangling paths**: after a move, grep the pack for the old `category/skill-name` path and update any hardcoded references.
+
 ## Completion
 
 - Every misplaced skill identified in steps 4–7 has been moved.

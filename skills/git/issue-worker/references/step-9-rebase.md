@@ -1,4 +1,4 @@
-# Step 10 — Rebase open work after merges
+# Step 9 — Rebase open work after merges
 
 After a wave of PRs lands on the default branch, rebase every still-open branch onto the new tip before letting CI re-run. A stale base fails self-lint and format against already-merged code, and the fix is a one-command rebase, not a debug session.
 

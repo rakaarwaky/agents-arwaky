@@ -15,7 +15,7 @@ The `--improve` flag takes a single skills path. Resolve it before editing:
 - **Category directory** — the path names a category folder without its own `SKILL.md`. Default to improving every `SKILL.md` in that tree. Do not ask the user to pick one skill; the request targets the whole category.
 - **Skills root** — the path is the `skills/` folder itself. Improve every skill in the tree.
 
-Do not prompt the user to disambiguate unless two or more distinct skills in the tree match the request equally well and acting on both would waste significant effort; in that case, name the two candidates and proceed with the more specific match.
+Do not prompt the user to disambiguate unless two or more distinct skills in the tree match the request equally well and acting on both would waste significant effort; in that case, name the two candidates and proceed with the more specific match. A category with exactly one skill is not ambiguity — improve that skill without asking.
 
 ## SKILL.md body format
 
@@ -39,6 +39,7 @@ All task data, commands, field shapes, examples, stop conditions, and worked exa
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.
 2. **Enforce body format**: before applying any content or structure fix, verify the target `SKILL.md` follows the format above. If it does not, restructure it first — move any out-of-place detail into `references/*.md`, then continue with the actual edit.
+3. **Handle empty categories**: if you move the last skill out of a category, the directory becomes empty and `aa skills validate` will flag `empty-category`. Delete the empty `DESCRIPTION.md` and category directory, or update the catalog count and remove the category row if it is intentionally retired.
 3. **Identify the owner**: for each fact being changed, name its one home using the Information distribution test below — `SKILL.md` Global Rules for a fact read by more than one step, a step file for a fact read by exactly one step. A standalone `references/<name>.md` is a home only when it is the single authoritative copy of a fact that no step file already states. If the owner is ambiguous, stop and confirm before touching anything.
 3. **Pick the target pattern** (when the edit restructures `references/`, or when the current tree's pattern does not match the skill's shape): run the pattern decision below and apply it before editing. The answer to Step 1 and Step 2 below comes from the skill's **Routing table**, never from the layout of the `references/` files that exist today — a tree that looks like Pattern A (flat per-mode files) is Pattern B the moment its routing is a single ordered pipeline with state passing between steps. Restructuring from A to B is a valid restructure; it is not "mixing patterns."
 4. **Apply the edit** where the owner lives. If the owner is a reference file, edit the reference — never the body. If the owner is Global Rules, edit `SKILL.md`.
