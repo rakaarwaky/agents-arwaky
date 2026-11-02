@@ -1,8 +1,8 @@
-"""Unit tests for ``capabilities_skills_traces.SkillsTraces``.
+"""Unit tests for the traces phrases capability (``SkillsTraces.build_phrases``).
 
-Reads session records the tracker would have written into ``run_dir`` (a file
-dependency — phrases does NOT import the tracker capability) and mines
-repeated exact prompts, prompt stems, and repeated instruction lines.
+Reads session records written into ``run_dir`` (a file dependency — the
+phrases builder does not scan ``GROK_HOME`` itself) and mines repeated exact
+prompts, prompt stems, and repeated instruction lines.
 """
 
 from __future__ import annotations
