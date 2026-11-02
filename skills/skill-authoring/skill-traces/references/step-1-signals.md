@@ -1,12 +1,12 @@
 # What the trace-learning pipeline looks for
 
-Skills-only: no plugins, MCP servers, workflows, or hooks. Repeated-phrase material
-(exact prompts, 12-word stems, repeated instruction lines with distinct-session
-counts) comes from `phrases.json` in the run dir; per-skill use counts and
-`unused_loaded` come from `usage.json`. Both are written by
-`aa skills trace-materialize` before the workflow launches, so mappers and reducers
-read them off disk instead of recounting the `sessions/*.json` records by hand.
-Coverage counts and window params come from `manifest.json`.
+Skills-only: no plugins, MCP servers, workflows, or hooks. Per-skill use counts and
+the `unused_loaded` verdict come from `usage.json` in the run dir; repeated-phrase
+material (exact prompts, 12-word stems, repeated instruction lines) comes from
+`phrases.json`. Both are written by `aa skills trace-materialize` into the run dir
+before the workflow launches, so mappers and reducers read them off disk instead of
+recounting the `sessions/*.json` records by hand. Coverage counts and window params
+come from `manifest.json`.
 
 Ordered by blast radius: an item higher on this list costs the user more per session
 than one lower down. Mappers extract these per session; reducers merge them across
@@ -22,6 +22,9 @@ phrase joins it as a trigger line); if none does, the owner is NEW.
 
 The task content itself ("fix the flaky test in X") is not an instruction. A phrase
 seen in one session is a candidate; two or more distinct sessions make it a habit.
+The repeated-phrase candidates are confirmed against `phrases.json` (`exact_prompts`,
+`prompt_stems_12_words`, `repeated_instruction_lines`) — the verifier does not
+recount them by hand.
 
 ## 2. Friction (the harness failed the user)
 
@@ -42,16 +45,13 @@ current file, there is no claim.
 
 Never counted by an agent. Per-skill `count`, `sessions`, `last_used`, `in_slash_mru`,
 and the `unused_loaded` list are read from `usage.json` in the run dir — the
-deterministic material `aa skills trace-materialize` writes before launch. Repeated
-instruction phrases are read from `phrases.json` (`exact_prompts`,
-`prompt_stems_12_words`, `repeated_instruction_lines`); a verifier confirms each one
-against the named `session_ids`. A skill in `unused_loaded` (count 0 across the
-window, absent from slash MRU) is a retirement candidate. The safety argument is
-what still does the job: another loaded copy or a sibling skill that covers the same
-job. If nothing else does the job, the action is `ask`, not `delete`. A skill that
-other loaded skills reference is an `ask` that names the referrers; a bundled or
-git-tracked skill is never removed in place — it is a `propose` of a user-skill
-override (bundled) or a pull request (git-tracked).
+deterministic material `aa skills trace-materialize` writes before launch. A skill in
+`unused_loaded` (count 0 across the window, absent from slash MRU) is a retirement
+candidate. The safety argument is what still does the job: another loaded copy or a
+sibling skill that covers the same job. If nothing else does the job, the action is
+`ask`, not `delete`. A skill that other loaded skills reference is an `ask` that
+names the referrers; a bundled or git-tracked skill is never removed in place — it
+is a `propose` of a user-skill override (bundled) or a pull request (git-tracked).
 
 ## 5. Gaps (a recurring need with no owner)
 

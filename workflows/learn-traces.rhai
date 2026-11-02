@@ -1,7 +1,7 @@
 let meta = #{
     name: "learn-traces",
     description: "Map-reduce a collected set of Grok Build sessions into a curated list of harness changes: new or edited skills, plugin enables, deletes",
-    when_to_use: "Launched by the trace-learning skills (skill-learning, skill-evolving, skill-unlearn) after collect_sessions.py has written a run directory. Not for direct use without that run directory.",
+    when_to_use: "Launched by the skill-traces skill (--learn, --evolve, --unlearn) after the trace collector has written a run directory. Not for direct use without that run directory.",
     phases: [
         #{ title: "Map", detail: "one agent per batch of sessions: phrases outside skills, skills and MCPs used, area, task type, friction" },
         #{ title: "Reduce", detail: "one agent per group of notes, repeated until one synthesis remains, with skill files as context" },
@@ -37,7 +37,7 @@ fn pad4(n) {
 }
 
 if args == () || args.run_dir == () || args.count == () || args.skill_dir == () {
-    pause("verification", "Pass args.run_dir (collector output — a dir with `manifest.json` and `sessions/`), args.count (`sessions_kept` from manifest.json), and args.skill_dir (the skill's own directory — `skills/skill-authoring/skill-learning`, `skill-evolving`, or `skill-unlearn`; its `references/` dir holds `step-1-signals.md` and `step-3-report-format.md`). Optional: batch (default 10), fan (default 10), today, user_label, focus; grok_home and python are accepted for compatibility and unused (the parent session owns state.json).");
+    pause("verification", "Pass args.run_dir (collector output — a dir with `manifest.json`, `usage.json`, `phrases.json`, and `sessions/`), args.count (`sessions_kept` from manifest.json), and args.skill_dir (the skill-traces skill's own directory — `skills/skill-authoring/skill-traces`; its `references/` dir holds `step-1-signals.md` and `step-3-report-format.md`). Optional: batch (default 10), fan (default 10), today, user_label, focus; grok_home and python are accepted for compatibility and unused (the parent session owns state.json).");
 }
 
 let run_dir = trimmed(args.run_dir);
