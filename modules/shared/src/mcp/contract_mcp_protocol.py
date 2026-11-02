@@ -56,7 +56,7 @@ class IMcpWriteProtocol(ABC):
 
 __all__ = [
     "ExitCode",
-    
+
     "IMcpListProtocol",
     "IMcpWriteProtocol",
     "McpAlias",

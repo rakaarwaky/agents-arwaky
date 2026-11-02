@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.common.utility_skills_markdown import yaml_quote
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCreatorProtocol,
 )
@@ -29,7 +28,7 @@ from modules.shared.src.skills.taxonomy_skills_constant import (
     CATEGORY_DESCRIPTION_FILENAME,
 )
 from modules.shared.src.skills.taxonomy_skills_rule_vo import CategoryName, SkillName
-from modules.shared.src.skills.taxonomy_skills_vo import SkillDescription, SkillsRoot
+from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
 from modules.skills.src.utility_skills_mutation import (
     assert_within_root,
     validate_category_name,

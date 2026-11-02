@@ -33,9 +33,6 @@ from modules.shared.src.common.utility_skills_tree import relpath
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.taxonomy_skills_entity import Issue
 from modules.shared.src.skills.taxonomy_skills_error import SkillsUsageError
-from modules.shared.src.skills.taxonomy_skills_rule_vo import (
-    RULE_ONLY_ISSUE_TYPES,
-)
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillQuery,
     SkillsOp,
@@ -768,7 +765,7 @@ def _cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
         if len(rest) > 1:
             return _cmd_traces_state(rest[1:], aggregate)
         # No sub-action: default to "get"
-        ns = argparse.Namespace(grok_home="", run_dir="")
+        argparse.Namespace(grok_home="", run_dir="")
         flags = {
             "traces_action": "state",
             "state_action": "get",

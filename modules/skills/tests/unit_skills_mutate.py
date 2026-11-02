@@ -18,14 +18,14 @@ from modules.skills.src.capabilities_skills_archiver import SkillsArchiver
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_creator import SkillsCreator
 from modules.skills.src.capabilities_skills_mover import SkillsMover
-from modules.skills.src.capabilities_skills_mutator import SkillsMutator
+from modules.skills.src.utility_skills_mutation import plan_repair, plan_weed
 from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 
 def test_repair_plan_is_pure_and_names_the_work(tmp_path: Path) -> None:
     """Planning writes nothing; the step lines match the legacy report."""
     root = crafted_tree(tmp_path)
-    plan = SkillsMutator().plan_repair(as_root(root))
+    plan = plan_repair(as_root(root))
 
     assert plan.kind == "repair"
     assert plan.lines == ("Fixed name in doc-drafts/SKILL.md",)
@@ -52,16 +52,17 @@ def test_mutating_commands_default_to_dry_run(tmp_path: Path) -> None:
     assert (root / "drafts" / "DESCRIPTION.md").read_text(encoding="utf-8") == before
 
 
-def test_repair_apply_rewrites_only_on_apply(tmp_path: Path) -> None:
-    """SkillsMutator still works directly for repair plans."""
+def test_repair_plan_is_pure_and_matches_the_legacy_report(tmp_path: Path) -> None:
+    """Repair is pure planning now: the step lines match the legacy report
+    and planning writes nothing to the tree."""
     root = crafted_tree(tmp_path)
-    mutator = SkillsMutator()
-    plan = mutator.plan_repair(as_root(root))
-    outcome = mutator.apply(plan)
+    snapshot = sorted(p.relative_to(root).as_posix() for p in root.rglob("*"))
 
-    assert outcome.applied == ("Fixed name in drafts/doc-drafts/SKILL.md",)
-    text = (root / "drafts" / "doc-drafts" / "SKILL.md").read_text(encoding="utf-8")
-    assert "name: doc-drafts" in text
+    plan = plan_repair(as_root(root))
+
+    assert plan.kind == "repair"
+    assert plan.lines == ("Fixed name in doc-drafts/SKILL.md",)
+    assert sorted(p.relative_to(root).as_posix() for p in root.rglob("*")) == snapshot
 
 
 def test_move_plan_then_apply(tmp_path: Path) -> None:
@@ -210,7 +211,7 @@ def test_weed_report_exempts_asset_containers(tmp_path: Path) -> None:
         "---\nkind: assets\ndescription: shared assets\n---\n", encoding="utf-8"
     )
 
-    plan = SkillsMutator().plan_weed(as_root(root))
+    plan = plan_weed(as_root(root))
     assert plan.lines == ()
 
 
@@ -221,7 +222,7 @@ def test_weed_reports_duplicates(tmp_path: Path) -> None:
         "---\nname: doc-drafts\ndescription: Drafts docs.\n---\n", encoding="utf-8"
     )
 
-    plan = SkillsMutator().plan_weed(as_root(root))
+    plan = plan_weed(as_root(root))
     assert any("duplicate-skill-name" in line for line in plan.lines)
     assert any("duplicate-description" in line for line in plan.lines)
 

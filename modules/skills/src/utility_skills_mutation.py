@@ -16,7 +16,6 @@ from modules.shared.src.common.utility_skills_tree import (
     assets_container,
     category_dirs,
     category_summaries,
-    relpath,
     skill_entries,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (

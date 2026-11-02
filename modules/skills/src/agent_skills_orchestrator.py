@@ -14,13 +14,11 @@ composition root injects every capability implementation.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
-from dataclasses import replace
-from pathlib import Path
-from typing import cast
-
 import json
 import os
+from collections.abc import Callable, Sequence
+from pathlib import Path
+from typing import cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
@@ -28,16 +26,14 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,
     ISkillsDiscoverProtocol,
-    ISkillsListerProtocol,
     ISkillsLinterProtocol,
+    ISkillsListerProtocol,
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
-    LintReport,
     PhrasesReport,
-    SkillCreatePlan,
     UsageReport,
 )
 from modules.shared.src.skills.taxonomy_skills_error import (
