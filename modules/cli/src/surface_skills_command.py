@@ -35,6 +35,7 @@ from modules.shared.src.skills.taxonomy_skills_entity import Issue
 from modules.shared.src.skills.taxonomy_skills_error import SkillsUsageError
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillQuery,
+    SkillsExitCode,
     SkillsOp,
     SkillsRequest,
     SkillsResult,
@@ -42,12 +43,12 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     TraceStateStatus,
 )
 
-_EXIT_USAGE = 2
-_EXIT_DRIFT = 3
-_EXIT_WAIT_READY = 0
-_EXIT_WAIT_PHASE_STALL = 4
-_EXIT_WAIT_REPORT_STALL = 3
-_EXIT_WAIT_DEADLINE = 2
+_EXIT_USAGE = SkillsExitCode.USAGE_ERROR
+_EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT
+_EXIT_WAIT_READY = SkillsExitCode.CLEAN
+_EXIT_WAIT_PHASE_STALL = SkillsExitCode.ISSUES_FOUND
+_EXIT_WAIT_REPORT_STALL = SkillsExitCode.CATALOG_DRIFT
+_EXIT_WAIT_DEADLINE = SkillsExitCode.USAGE_ERROR
 
 #: The results table header/separator and empty-result line, verbatim from
 #: the legacy command (presentation strings, owned by the surface).
@@ -594,22 +595,21 @@ def _render_move(result: SkillsResult, request: SkillsRequest) -> int:
     destination = relpath(plan.destination, root) if plan.destination else ""
 
     if not request.apply:
-        if request.json:
-            _emit_json(
-                {
-                    "skills_root": str(root),
-                    "dry_run": True,
-                    "skill": request.query,
-                    "from": source,
-                    "to": destination,
-                    "note": _DRY_RUN_NOTE,
-                }
-            )
-        else:
-            print("Planned move (dry-run — pass --apply to execute):")
-            print(f"- move {source} -> {destination}")
-            print(f"- rebuild {catalog}")
-        return 0
+        return _render_mutation_dry_run(
+            "move",
+            root,
+            catalog,
+            request,
+            {
+                "skills_root": str(root),
+                "dry_run": True,
+                "skill": request.query,
+                "from": source,
+                "to": destination,
+                "note": _DRY_RUN_NOTE,
+            },
+            f"- move {source} -> {destination}",
+        )
 
     print(f"Moved {source} -> {destination}")
     print(f"Rebuilt {catalog}")
@@ -628,23 +628,22 @@ def _render_archive(result: SkillsResult, request: SkillsRequest) -> int:
     destination = relpath(plan.destination, root) if plan.destination else ""
 
     if not request.apply:
-        if request.json:
-            _emit_json(
-                {
-                    "skills_root": str(root),
-                    "dry_run": True,
-                    "skill": request.query,
-                    "from": source,
-                    "to": destination,
-                    "note": _DRY_RUN_NOTE,
-                }
-            )
-        else:
-            print("Planned archive (dry-run — pass --apply to execute):")
-            print(f"- move {source} -> {destination}")
-            print(f"- rename {destination}/SKILL.md -> SKILL.md.archived")
-            print(f"- rebuild {catalog}")
-        return 0
+        return _render_mutation_dry_run(
+            "archive",
+            root,
+            catalog,
+            request,
+            {
+                "skills_root": str(root),
+                "dry_run": True,
+                "skill": request.query,
+                "from": source,
+                "to": destination,
+                "note": _DRY_RUN_NOTE,
+            },
+            f"- move {source} -> {destination}\n"
+            f"- rename {destination}/SKILL.md -> SKILL.md.archived",
+        )
 
     print(f"Archived {source} -> {destination}")
     print(f"Rebuilt {catalog}")
@@ -672,23 +671,22 @@ def _render_create(result: SkillsResult, request: SkillsRequest) -> int:
     rel_skill_md = relpath(plan.skill_md, root) if plan.skill_md else ""
 
     if not request.apply:
-        if request.json:
-            _emit_json(
-                {
-                    "skills_root": str(root),
-                    "dry_run": True,
-                    "skill": plan.skill,
-                    "category": plan.category,
-                    "would_create": rel_skill_md,
-                    "would_rebuild": str(catalog),
-                    "note": _DRY_RUN_NOTE,
-                }
-            )
-        else:
-            print("Planned create (dry-run — pass --apply to execute):")
-            print(f"- create {rel_skill_md}")
-            print(f"- rebuild {catalog}")
-        return 0
+        return _render_mutation_dry_run(
+            "create",
+            root,
+            catalog,
+            request,
+            {
+                "skills_root": str(root),
+                "dry_run": True,
+                "skill": plan.skill,
+                "category": plan.category,
+                "would_create": rel_skill_md,
+                "would_rebuild": str(catalog),
+                "note": _DRY_RUN_NOTE,
+            },
+            f"- create {rel_skill_md}",
+        )
 
     print(f"Created {rel_skill_md}")
     print(f"Rebuilt {catalog}")
@@ -703,38 +701,56 @@ def _render_create_category(
     catalog = root / "CATALOG.md"
 
     if not request.apply:
-        if request.json:
-            _emit_json(
-                {
-                    "skills_root": str(root),
-                    "dry_run": True,
-                    "category": plan.name,
-                    "description": plan.description,
-                    "would_write_description": plan.will_write,
-                    "note": _DRY_RUN_NOTE,
-                }
-            )
-        else:
-            print("Planned create category (dry-run — pass --apply to execute):")
-            print(f"- create {plan.name}/")
-            if plan.will_write:
-                print(
-                    f"- write {plan.name}/DESCRIPTION.md: "
-                    f"{yaml_quote(plan.description)}"
-                )
-            else:
-                print(
-                    f"- keep existing {plan.name}/DESCRIPTION.md; "
-                    "use --force to overwrite"
-                )
-            print(f"- rebuild {catalog}")
-        return 0
+        return _render_mutation_dry_run(
+            "create category",
+            root,
+            catalog,
+            request,
+            {
+                "skills_root": str(root),
+                "dry_run": True,
+                "category": plan.name,
+                "description": plan.description,
+                "would_write_description": plan.will_write,
+                "note": _DRY_RUN_NOTE,
+            },
+            f"- create {plan.name}/"
+            + (
+                f"\n- write {plan.name}/DESCRIPTION.md: {yaml_quote(plan.description)}"
+                if plan.will_write
+                else ""
+            ),
+        )
 
+    print(f"Created category {plan.name}/")
     if plan.created:
         print(f"Wrote {plan.name}/DESCRIPTION.md")
     else:
         print(f"Kept existing {plan.name}/DESCRIPTION.md; use --force to overwrite")
     print(f"Rebuilt {catalog}")
+    return 0
+
+
+def _render_mutation_dry_run(
+    verb: str,
+    root: Path,
+    catalog: Path,
+    request: SkillsRequest,
+    payload: dict,
+    detail_lines: str,
+) -> int:
+    """Render the shared dry-run / JSON preview for a mutating command.
+
+    Callers supply the full ordered payload dict (the legacy JSON key
+    order is pinned by the contract test, so this helper does not
+    reorder keys); this helper only decides JSON vs text output.
+    """
+    if request.json:
+        _emit_json(payload)
+        return 0
+    print(f"Planned {verb} (dry-run — pass --apply to execute):")
+    print(detail_lines)
+    print(f"- rebuild {catalog}")
     return 0
 
 
@@ -747,12 +763,6 @@ def _cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _EXIT_USAGE
     action = rest[0]
 
-    flags = {
-        "traces_action": action,
-        "grok_home": "",
-        "run_dir": "",
-    }
-
     if action == "collect":
         return _cmd_traces_collect(rest[1:], aggregate)
     if action == "usage":
@@ -762,26 +772,8 @@ def _cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
     if action == "materialize":
         return _cmd_traces_materialize(rest[1:], aggregate)
     if action == "state":
-        if len(rest) > 1:
-            return _cmd_traces_state(rest[1:], aggregate)
-        # No sub-action: default to "get"
-        argparse.Namespace(grok_home="", run_dir="")
-        flags = {
-            "traces_action": "state",
-            "state_action": "get",
-            "grok_home": "",
-            "run_dir": "",
-        }
-        request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
-        result = aggregate.execute(request)
-        status = result.state
-        if status in (
-            TraceStateStatus.COLLECTED,
-            TraceStateStatus.RUNNING,
-        ):
-            return 3
-        print(f"Pending status: {status}")
-        return 0
+        # No sub-action: default to "get" — route through the typed state parser.
+        return _cmd_traces_state(rest[1:] or ["get"], aggregate)
     err(f"Unknown traces action: {action}")
     return _EXIT_USAGE
 

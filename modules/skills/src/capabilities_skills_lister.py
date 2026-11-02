@@ -30,7 +30,7 @@ __all__ = [
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class SkillsLister(ISkillsListerProtocol):
-    """Builds and serves the skill-pack index rooted at *pack_root*."""
+    """Builds and serves the skill-pack listing rooted at *pack_root*."""
 
     def __init__(self, pack_root: Path | None = None) -> None:
         self._root = pack_root or default_pack_root()

@@ -481,7 +481,7 @@ class SkillsAgent(ISkillsAggregate):
         return capability
 
     def list_skills(self, root: SkillsRoot | None = None) -> Sequence[SkillRecord]:
-        """Convenience pass-through to the lister (used by the facade)."""
+        """Convenience pass-through to the lister (used by tests; the facade builds its own request)."""
         return self._lister.list_skills(root)
 
     def show_skill(

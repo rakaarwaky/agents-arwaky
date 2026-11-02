@@ -71,10 +71,11 @@ class SkillsArchiver(ISkillsArchiverProtocol):
         root = plan.root
         if plan.source is None or plan.destination is None:
             raise SkillsUsageError("Archive plan is missing its paths")
-        if root is not None:
-            assert_within_root(plan.destination, root)
+        # Pre-apply containment check is the TOCTOU fail-closed guard; the
+        # post-mkdir re-check below is redundant (mkdir can only create dirs
+        # inside an already-contained parent) and is dropped.
+        assert_within_root(plan.destination, root)
         plan.destination.parent.mkdir(parents=True, exist_ok=True)
-        assert_within_root(plan.destination, root or plan.destination.parent)
         shutil.move(str(plan.source), str(plan.destination))
         archived_md = plan.destination / "SKILL.md"
         if archived_md.exists():

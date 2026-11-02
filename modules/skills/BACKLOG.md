@@ -43,7 +43,7 @@ counterpart.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `capabilities_skills_index.py::list_skills` and the index/reader in `root_skills_container.py` are exercised by `unit_skills.py::test_list_skills_sorted_with_descriptions`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| Done         | `capabilities_skills_lister.py::list_skills` and the lister/reader in `root_skills_container.py` are exercised by `unit_skills.py::test_list_skills_sorted_with_descriptions`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
@@ -93,7 +93,7 @@ counterpart.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `capabilities_skills_mutator.py` enforces dry-run and containment; `agent_skills_orchestrator.py` owns the mutation→catalog pipeline; `unit_skills_surface.py::test_mutating_commands_default_to_dry_run` and `integration_skills.py::test_move_apply_applies_once_then_rebuilds_once`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
+| Done         | `utility_skills_mutation.py` enforces dry-run and containment; `agent_skills_orchestrator.py` owns the mutation→catalog pipeline; `unit_skills_surface.py::test_mutating_commands_default_to_dry_run` and `integration_skills.py::test_move_apply_applies_once_then_rebuilds_once`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed at `767b18672a0c0abd92f7225f267478db8271c334`. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |

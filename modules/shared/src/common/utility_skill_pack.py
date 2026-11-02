@@ -2,8 +2,7 @@
 
 Stateless readers over the skill pack: locating ``SKILL.md`` files, parsing
 frontmatter, and reading body text. Shared by the two skills capabilities
-(``SkillsIndexBuilder`` and ``SkillsPackReader``) so neither imports the
-other.
+(``SkillsLister`` and ``SkillsPackReader``) so neither imports the other.
 
 Also hosts the shared trace-pipeline regexes (``SLASH_RE``, ``WORD_RE``)
 ported verbatim from ``collect_sessions.py`` so capabilities reuse one

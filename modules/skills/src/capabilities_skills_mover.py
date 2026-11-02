@@ -59,7 +59,7 @@ class SkillsMover(ISkillsMoverProtocol):
         if not target_dir.is_dir():
             raise SkillsUsageError(
                 f"Target category does not exist: {target}. "
-                "Create it first with new-category."
+                "Create it first with aa skills create category."
             )
 
         destination = target_dir / source.name

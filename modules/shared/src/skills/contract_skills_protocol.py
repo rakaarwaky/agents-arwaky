@@ -320,7 +320,8 @@ class ISkillsTracesProtocol(ABC):
         """
 
 
-# ── Internal seams (consumed by the linter and creator, not exposed as CLI verbs) ──
+# ── Internal seam: validator (consumed by the linter, not exposed as a CLI verb) ──
+
 
 class ISkillsValidatorProtocol(ABC):
     """The 13-rule validator: per-skill, category, placement, and duplicate checks."""
@@ -331,43 +332,10 @@ class ISkillsValidatorProtocol(ABC):
         ...
 
 
-class ISkillsMutatorProtocol(ABC):
-    """The write-side mutation primitives (plan_weed, plan_repair, apply)."""
-
-    @abstractmethod
-    def plan_weed(self, root: SkillsRoot) -> MutationPlan:
-        """The weeding report body (duplicate names, duplicate descriptions,
-        empty categories, missing category descriptions)."""
-        ...
-
-    @abstractmethod
-    def plan_repair(self, root: SkillsRoot) -> MutationPlan:
-        """The mechanical repairs the old ``librarian.py repair`` applied."""
-        ...
-
-    @abstractmethod
-    def apply(self, plan: MutationPlan) -> MutationOutcome:
-        """Execute a repair/move/archive plan; re-checks containment first."""
-        ...
-
-    @abstractmethod
-    def plan_new_category(
-        self,
-        name: CategoryName,
-        description: "SkillDescription | None",
-        root: SkillsRoot,
-        force: bool,
-    ) -> NewCategoryPlan:
-        """Resolve a category creation; the folder is only created on apply."""
-        ...
-
-    @abstractmethod
-    def apply_new_category(self, plan: NewCategoryPlan) -> bool:
-        """Create the category and write its description; returns whether it wrote."""
-        ...
+# ── Internal seams end ──
 
 
-# Runtime import for the type annotations used in the internal seams above.
+# Runtime import for the type annotations used in the internal seam above.
 # Placed here so the module loads cleanly; the annotation is a string in the
 # ABC body, so no cycle at class-definition time.
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (  # noqa: E402
@@ -382,7 +350,6 @@ __all__ = [
     "ISkillsListerProtocol",
     "ISkillsLinterProtocol",
     "ISkillsMoverProtocol",
-    "ISkillsMutatorProtocol",
     "ISkillsReaderProtocol",
     "ISkillsTracesProtocol",
     "ISkillsValidatorProtocol",
