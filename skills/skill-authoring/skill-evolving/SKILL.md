@@ -12,8 +12,8 @@ You edit existing skills so they match the conditions and demand the traces show
 
 ## Execution Flow
 
-1. **Resume or price**: run `aa skills trace-state get` (resume check, exit 3 = pending run) and `aa skills trace-collect --since-last` (one-line price per scope). The collector is always scoped to `--since-last` — sessions since the last completed trace run.
-2. **Collect**: run the collector into the hardcoded run dir with `--since-last` and `--min-turns 3`. The window is fixed and incremental; `--min-turns 3` is the default trust threshold. Signals observed in fewer than 3 sessions are dropped.
+1. **Resume or price**: run `aa skills trace-state get` (resume check, exit 3 = pending run) and `aa skills trace-collect` (one-line price). The collector always uses the hardcoded defaults from `taxonomy_skills_constant.py` — `since_last=True`, `min_turns=3`, `limit=0` (unlimited), `json=True`. No user arguments needed.
+2. **Collect**: `trace-collect` writes `manifest.json` and `sessions/NNNN-<id>.json` into the hardcoded run dir (`$GROK_HOME/skill-evolving/runs/<run-id>/`).
 3. **Launch**: the `learn-traces` workflow from [`workflows/learn-traces.rhai`](../../../workflows/learn-traces.rhai); block on `aa skills trace-state wait`.
 4. **Read**: `report.md`, present the Overview plus section 2 (Skills to update). The report comes first on its own; curation questions belong to the next turn.
 5. **Apply**: for each owned action, follow the mode in [`references/apply-rules.md`](references/apply-rules.md); record every decision with `aa skills trace-state decide`.
