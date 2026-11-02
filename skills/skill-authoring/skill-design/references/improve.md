@@ -27,11 +27,11 @@ For each fact, ask one question: **how many steps read this fact during a single
 
 - **More than one step (or all steps)** → `SKILL.md` Global Rules. Cross-step policy, signal definitions, invariants, record formats.
 - **Exactly one step** → that step's reference file. Commands, field shapes, per-action rules, stop conditions, worked examples.
-- **Neither — the fact is a shared definition used by several pipeline skills** (the trace pipeline's `signals` definitions, `report-format` shapes, …) → it is a shared reference, not owned by any one step. In that case it may live as `references/<name>.md` and be linked from every skill that uses it; no single skill's step file is its home. If the shared definition now lives inlined in the step files of every pipeline skill (as in the trace-pipeline set: `skill-evolving`, `skill-learning`, `skill-unlearn`), the second-copy rule applies and the standalone file is deleted.
+- **Neither — the fact is a shared definition used by several pipeline skills** (the trace pipeline's `signals` definitions, `report-format` shapes, …) → it is a shared reference, not owned by any one step. In this pack the shared definition is inlined into each consuming skill's step file (as in the trace-pipeline set: `skill-evolving`, `skill-learning`, `skill-unlearn` each carry their own `step-3-read-report.md`, `step-4-apply.md`, `step-5-verify.md`); the standalone shared file is deleted, not kept. A standalone `references/<name>.md` linked from several consumers is legitimate only when the fact genuinely has no per-skill step home — which in this pack means a new shared pipeline has not yet been created.
 
 ### Rules
 
-- Never leave a definition file in a skill when its content is fully owned by the Global Rules + step files of that same skill. A file whose every line is restated in `SKILL.md` or a step file is a second copy and is deleted, not kept.
+- **Learned mistake (do not repeat).** When inlining a shared definition into a consuming skill's step file, the step file that gains the content must name the file it absorbed by reference, and the standalone file must be deleted in the same edit. The mistake that produced this rule: `skill-unlearn`'s `signals.md`, `report-format.md`, and `apply-rules.md` were inlined into `step-3`, `step-5`, and `step-4` respectively, but the three standalone files were left on disk and still linked from `SKILL.md` — creating second copies. The check that catches it: after inlining, grep the skill's `SKILL.md` and step files for the deleted filename; every hit is a dangling link and a second copy, and the edit is incomplete until both are removed.
 - A Global Rules bullet that fully defines a signal, action type, or invariant is the home for it; a step file that repeats that definition in full is the second copy. Point at the bullet, do not restate it.
 - A step file may reference the Global Rules bullet by name; it does not restate the bullet's content.
 - The shared-reference case (third rule above) is the only situation where a non-step `references/<name>.md` is legitimate in a Pattern B pipeline; name it in the `SKILL.md` Routing table and link it from the step that consumes it.
@@ -115,7 +115,7 @@ Run this before deciding where each fact lands. The test is the Information dist
 
 - **More than one step (or all steps) → `SKILL.md` Global Rules**: cross-step policy (scope, consent, validation), signal definitions, invariants, record formats.
 - **Exactly one step → that step's reference file**: commands and flags with exact syntax, outputs and their shape, the step's stop conditions and failure handling, worked examples for that step's shape.
-- **Shared definition used by several pipeline skills → `references/<name>.md` linked from every consumer**: it is not owned by any one skill's step file.
+- **Shared definition used by several pipeline skills → inline it into each consuming skill's step file** (as in the trace-pipeline set: `skill-evolving`, `skill-learning`, `skill-unlearn`); it is not owned by any one skill's step file. A standalone shared `references/<name>.md` is kept only when a consuming skill has not yet been restructured to Pattern B step files — the moment it does, inline and delete the shared file.
 
 The two trigger fields (`description:`, `when-to-use:`) follow their own budget rule (Global Rules: budget for permanent cost) — they are not "body". Move anything task-conditional out of the body into a reference or a step.
 
