@@ -1,3 +1,5 @@
+# Step 4 — Apply
+
 # Apply rules — deletes, disables, asks, groups
 
 Trash and restrict run through the `aa skills trace-state` CLI.

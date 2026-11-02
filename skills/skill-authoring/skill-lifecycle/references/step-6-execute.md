@@ -1,4 +1,9 @@
-# Merge Rules
+---
+title: Step 6 — Execute the merge
+role: step
+---
+
+# Step 6: Execute the merge
 
 Rules for merging skills in Phase 2 of `skill-lifecycle`.
 

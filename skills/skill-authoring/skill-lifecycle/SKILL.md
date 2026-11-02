@@ -25,11 +25,16 @@ Rules that apply to every step. Reference files cite these; they never restate t
 - **Rollback**: the snapshot (or `HEAD` SHA when the tree was dirty) is the undo path; `git reset --hard <sha>` restores both the skill and unrelated state. Record the snapshot SHA in the commit message and final report. `--evolution` (headless) runs that cannot commit fall back to `--dry-run` and report instead of applying.
 - **Scope**: skill directories only. A scoped multi-skill merge (the user names two or more specific folders) skips the full-tree inventory and treats exactly the named skills as the audit set; do not let the default audit root expand the scope beyond the named skills.
 
+- **Safety model**: read commands (`list`, `show`, `discover`, `validate`, `weed`) run immediately; reversible writes (`repair`, `new-category`, `move`, catalog rebuild, category rename) default to `--dry-run` first, apply with `--apply`; destructive actions (`archive`, `merge`, `delete`) require `--dry-run` + approval gate. `--evolution` (headless) runs that cannot commit fall back to `--dry-run` and report instead of applying. Delete is never the default — `_archive/` first, delete only with explicit `--hard-delete`.
+- **Parallel agents committing in the same tree**: this repo is worked on by multiple agents (GrokBuild via Orca, Hermes). A concurrent commit can sweep your staged changes into someone else's commit and change the HEAD you snapshotted against. After any snapshot and before committing, re-run `git log --oneline -4` and `git status`; re-verify on-disk state before executing; keep your commit scoped to your own task files only — never `git add -A`.
+- **Staging discipline**: inside `skills/<category>/`, `git add -A .` stages every tracked file under that subdirectory, not just the prune's changes. Use explicit top-level paths (`git add skills/<category>/ skills/CATALOG.md`) and verify the staged set with `git status --short` before committing.
 ## Routing
 
-| Step | Reference | Purpose |
-| ---- | --------- | ------- |
-| `--dry-run` | `[workflow-steps.md](references/workflow-steps.md)` | the full per-step checklist from confirm root to report. |
-| `--auto` / `--evolution` | `[workflow-steps.md](references/workflow-steps.md)` | skip the approval gate and go straight to the snapshot. |
-| `--merge` | `[merge-rules.md](references/merge-rules.md)` | name survival, frontmatter union, body merge, conflict resolution. |
-| `--rollback` | `[rollback-protocol.md](references/rollback-protocol.md)` | hard failure, soft failure, and mid-run abort handling. |
+| Step 0 | [`references/step-0-confirm-root.md`](references/step-0-confirm-root.md) | Confirm the audit root; reject a file path or an empty tree. |
+| Step 1 | [`references/step-1-inventory.md`](references/step-1-inventory.md) | List every skill folder; read each `SKILL.md` frontmatter and body. |
+| Step 2 | [`references/step-2-group.md`](references/step-2-group.md) | Cluster by semantic scope; verify against body content. |
+| Step 3 | [`references/step-3-classify.md`](references/step-3-classify.md) | Classify each cluster: duplicate, variant, or separate jobs. |
+| Step 4 | [`references/step-4-dry-run.md`](references/step-4-dry-run.md) | Generate the planned prune report; wait for confirmation unless `--auto`/`--evolution`. |
+| Step 5 | [`references/step-5-snapshot.md`](references/step-5-snapshot.md) | `git add -A && git commit` or `git stash`; record the rollback target. |
+| Step 6 | [`references/step-6-execute.md`](references/step-6-execute.md) | Execute the merge: name survival, frontmatter union, body merge, conflict resolution, scripts, empty-category cleanup, DESCRIPTION.md. |
+| Step 7 | [`references/step-7-verify-report.md`](references/step-7-verify-report.md) | Verify every `SKILL.md` parses and links resolve; on failure trigger rollback; output the final report. |
