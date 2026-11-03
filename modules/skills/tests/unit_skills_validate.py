@@ -16,8 +16,7 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     rule,
 )
 from modules.skills.src.capabilities_skills_linter import SkillsLinter
-from modules.skills.tests.fixture_skills import as_root
-from modules.skills.tests.fixture_skills import crafted_tree
+from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 

@@ -9,10 +9,11 @@ issues whose ``category`` or ``path`` belongs to that category are
 included in the report. The weed lines are not filtered (they are
 library-wide duplicate/empty-category signals).
 
-The 13-rule checks run inline here (ported from the retired
-``capabilities_skills_validator.py*). Rule IDs and message templates
-come from the shared rule SSOT, so the checker and the generated rules
-doc cannot drift apart. The weed-plan is consumed through the shared
+The 13-rule checks run inline here, ported from the retired
+``capabilities_skills_validator.py`` which was folded into this
+capability during the deep-clean. Rule IDs and message templates come
+from the shared rule SSOT, so the checker and the generated rules doc
+cannot drift apart. The weed-plan is consumed through the shared
 ``utility_skills_mutation.plan_weed`` helper, never through a sibling
 capability import.
 """
