@@ -88,7 +88,7 @@ jobs:
         run: python3 -m modules.root_cli_entry skills lint --category git --skills-root "$PWD/skills"
 
       - name: Skills and shared tests
-        run: python3 -m pytest modules/skills modules/shared -q
+        run: python3 -m pytest modules/skills_design modules/skills_traces modules/shared -q
 
       - name: Module tests
         # Advisory: modules/daemon, modules/service, and modules/tools carry

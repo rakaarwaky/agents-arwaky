@@ -12,6 +12,14 @@ here, so no root→surface coupling exists (AES205). Argv becomes a
 ``SkillsRequest``; the rendered text comes back on ``SkillsResult``.
 Exit codes are the legacy contract: 0 clean / 1 issues / 2 usage /
 3 catalog drift.
+
+The 13-verb surface spans two modules after the skills/skills split:
+the design-side verbs (list, read, lint, catalog, discover, move,
+archive, create) are routed here; the traces-side verbs (collect,
+usage, phrases, materialize, state) are routed to
+``modules.cli.src.surface_skills_traces_command.cmd_traces``. The
+aggregate is the design-side ``SkillsAgent`` which also dispatches
+``SkillsOp.TRACES`` through the injected traces capability.
 """
 
 from __future__ import annotations
