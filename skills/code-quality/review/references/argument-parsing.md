@@ -1,29 +1,38 @@
-# Argument parsing (mode flags, modifiers, auto-detect)
+# Argument parsing (path, persona flags, --all)
 
-### Argument parsing
+## Persona roster
 
-Parse the raw argument tokens in **two phases**: first extract the `--approve` / `--submit` modifiers, then resolve the mode from the remaining tokens.
+The 10 lens personas, in canonical order. Each maps to a flag of the same name and to `personas/<name>.toml`:
 
-**Phase 1 -- modifier extraction.** Scan the raw argument tokens for standalone `--approve` and `--submit` tokens anywhere in the list. If `--approve` is present, set `APPROVE=true` and remove all its occurrences; otherwise `APPROVE=false`. If `--submit` is present, set `SUBMIT=true` and remove all its occurrences; otherwise `SUBMIT=false`. If BOTH are present, reject with `--approve and --submit are mutually exclusive.` and stop. All of Phase 2 operates on the REMAINING tokens.
+| Flag | Persona |
+|---|---|
+| `--backend-engineer` | backend-engineer |
+| `--business-analyst` | business-analyst |
+| `--devops-engineer` | devops-engineer |
+| `--frontend-engineer` | frontend-engineer |
+| `--product-engineer` | product-engineer |
+| `--qa-engineer` | qa-engineer |
+| `--security-engineer` | security-engineer |
+| `--software-architect` | software-architect |
+| `--system-analyst` | system-analyst |
+| `--ui-ux-designer` | ui-ux-designer |
 
-**Phase 2 -- mode resolution.** First, reject input that contains more than one of the mode-selecting flags `--main` / `--local` / `--branch` / `--pr` / `--stack` (e.g. `--pr 1 --stack 2`) with `Only one of --main, --local, --branch, --pr, --stack may be given.` and stop. This cross-cutting check runs BEFORE the ordered rules below, because those rules stop at the first matching flag and would otherwise never see the second one. Then parse the remaining tokens with these deterministic rules, applied in order. The first rule that matches wins; do not fall through.
+## Parsing rules
 
-1. **Empty / whitespace-only**: run `git status --porcelain`. Non-empty (uncommitted changes) resolves `MODE=local`; empty (clean tree) resolves `MODE=main`. No target either way.
-2. **Starts with `--main`**: `MODE=main`. Reject any extra positional argument with an error.
-3. **Starts with `--local`**: `MODE=local`. Reject any extra positional argument with an error.
-4. **Starts with `--branch <name>`**: `MODE=branch`, `TARGET=<name>`. The branch name is required -- if the flag appears with no following token (or only with another `--`-prefixed token), reject with `Flag --branch requires an argument: <branch-name>` and stop.
-5. **Starts with `--pr <id-or-url>`**: `MODE=pr`, `TARGET=<id-or-url>`. The id or URL is required -- if the flag appears with no following token (or only with another `--`-prefixed token), reject with `Flag --pr requires an argument: <number-or-url>` and stop.
-6. **Starts with `--stack <id-or-url>`**: `MODE=stack`, `TARGET=<id-or-url>`. The id or URL is required -- if the flag appears with no following token (or only with another `--`-prefixed token), reject with `Flag --stack requires an argument: <number-or-url>` and stop.
-7. **Starts with `--` but does not match any of the above**: reject with `Unknown flag: <flag>. Valid flags: --main, --local, --branch <name>, --pr <number-or-url>, --stack <number-or-url>, --approve, --submit.` and stop. Do NOT fall through to auto-detect.
-8. **Plain argument given (no flag prefix)**: auto-detect against the rules below, also applied in order:
-   1. Matches the regex `^https?://github\.com/[^/]+/[^/]+/pull/\d+(?:[/?#].*)?$` -- treat as PR URL. `MODE=pr`, `TARGET=<url>`.
-   2. Matches `^#?\d+$` (optional leading `#`, then pure digits) -- treat as PR number. `MODE=pr`, `TARGET=<digits without leading #>`. A bare number always stays single-PR mode -- stack review requires the explicit `--stack` flag.
-   3. Resolves to a local or remote branch via `git rev-parse --verify --quiet <arg>` or `git rev-parse --verify --quiet origin/<arg>` -- treat as branch. `MODE=branch`, `TARGET=<arg>` (use the bare name, not `origin/<arg>`).
-   4. None of the above -- ask the user whether the argument is a PR identifier or a branch name (use the appropriate ask/question tool if available). Provide three options: "PR (treat as PR identifier)", "Branch (treat as branch name)", and "Cancel". On Cancel, stop.
+Parse the raw argument tokens in two phases: extract the persona flags, then resolve the module path.
 
-As enforced by the pre-check at the top of Phase 2, the mode-selecting flags `--main` / `--local` / `--branch` / `--pr` / `--stack` are mutually exclusive -- input containing more than one is rejected before the ordered rules run.
+**Phase 1 — persona flag extraction.** Scan the raw tokens for any of the 10 persona flags and for `--all`. For each persona flag found, add its name to the `personas` list and remove all occurrences. `--all` is a boolean `ALL=true` that is also removed. If `--all` appears together with one or more individual persona flags, treat the individual flags as a no-op (the set is all 10 either way) and note it once: "--all already selects every persona; ignoring --qa-engineer etc."
 
-**Modifier validation.** After resolving `MODE`, if `APPROVE` or `SUBMIT` is true and `MODE` is `main`, `local`, or `branch` (including an auto-detected branch), reject with `--approve/--submit are only valid with --pr or --stack (PR-based modes).` and stop.
+**Phase 2 — path resolution.** The first remaining token that is not a flag is the module path. Rules, applied in order:
 
-If the user passes both a mode flag and a positional argument (e.g., `/review --local somebranch`), reject with a clear error message and stop -- the mode flags are mutually exclusive and take no free positional. This rejection does NOT apply to `--approve`/`--submit`, which are co-flags rather than modes: `/review 1234 --approve`, `/review --pr 1234 --approve`, `/review --pr 1234 --submit`, and `/review --stack 1234 --submit` are all valid.
+1. **No path token**: reject with `Module path required. Usage: /review <path> [persona flags].` and stop.
+2. **Multiple path tokens**: reject with `Only one module path may be given.` and stop.
+3. **Path resolves to a file** (`[ -f <path> ]` is true after resolving against cwd): reject with `Path <path> is a file. Give a module, crate, or package directory.` and stop.
+4. **Path does not exist** (`[ -d <path> ]` is false and `[ -f <path> ]` is false): reject with `Path <path> not found under the current directory.` and stop.
+5. **Path exists but has no tracked files**: Step 1 detects this and short-circuits with "No tracked files under `<path>`. Nothing to review."
 
+If `ALL` is true (or no persona flags were given at all), `personas` is the full 10-name roster above in canonical order. Otherwise `personas` is exactly the set of flagged names, in the order the flags were passed.
+
+**Rejected flags.** Any `--`-prefixed token that is not one of the 10 persona flags or `--all` is rejected with `Unknown flag: <flag>. Valid persona flags: --backend-engineer, --business-analyst, --devops-engineer, --frontend-engineer, --product-engineer, --qa-engineer, --security-engineer, --software-architect, --system-analyst, --ui-ux-designer, --all.` and stop. Do NOT fall through to a default.
+
+This skill has no `--approve`, `--submit`, `--pr`, `--stack`, or `--main`/`--local`/`--branch` flags. Those forms are retired.
