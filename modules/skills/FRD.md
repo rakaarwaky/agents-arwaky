@@ -161,8 +161,9 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Edge Cases
 
-- `--read` alone with a missing `CATALOG.md` exits 1
+- `--read` alone with a missing `CATALOG.md` exits 1 with `CATALOG.md not found — run with --build first`
 - `--build` creates the file if it is missing
+- A corrupt or stale catalog blocks the read path; it is never silently rebuilt on read
 
 #### Technical Specification
 
@@ -173,7 +174,7 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 | **Protocol** | ISkillsCatalogProtocol                                          |
 | **Method**   | rebuild / read                                                  |
 | **Event**    | —                                                               |
-| **Error**    | missing catalog on read → exit 1                                |
+| **Error**    | missing catalog on read → exit 1 with `CATALOG.md not found — run with --build first` |
 
 #### Test
 
@@ -196,13 +197,14 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Business Logic
 
-- On catalog drift the command warns loudly on stderr (and in JSON) and answers from a live tree scan
+- On catalog drift the command warns on stderr and answers from a live tree scan
 - Exit stays 0 even on drift fallback
 
 #### Edge Cases
 
 - Empty query is a usage error (exit 2, legacy `ERROR: Query is empty`)
 - No matches yields an empty result set
+- `--limit 0` returns no rows even when matches exist
 
 #### Technical Specification
 
@@ -219,8 +221,10 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 | Context            | When Action                  | Then Observable Result              |
 |--------------------|------------------------------|-------------------------------------|
-| Query with matches | `aa skills discover <query>` | scored matches printed              |
-| Catalog drift      | `aa skills discover <query>` | warning, live-tree fallback, exit 0 |
+| Query with matches | `aa skills discover <query>` | scored matches printed, exit 0              |
+| No matches         | `aa skills discover no-such-skill-zzz` | `No matching skills found in CATALOG.md.`, exit 0 |
+| `--limit 0`       | `aa skills discover <query> --limit 0` | no rows printed, exit 0 |
+| Catalog drift      | `aa skills discover <query>` | drift warning on stderr, live-tree fallback, exit 0 |
 
 #### Metric
 
@@ -234,6 +238,7 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Business Logic
 
+- Reachable via the agent (orchestrator), not the CLI surface — `move` is not a CLI verb
 - `move` preserves the folder; the destination is asserted to remain inside the skills root
 - An already-in-category move is a no-op preview
 - Symlinked destinations outside the root fail closed at plan and apply
@@ -258,8 +263,10 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 | Context         | When Action                             | Then Observable Result                    |
 |-----------------|-----------------------------------------|-------------------------------------------|
-| Dry-run default | `aa skills move <skill> <cat>`          | plan shown, tree untouched                |
-| Apply           | `aa skills move <skill> <cat> --apply`  | one apply + one catalog rebuild, in order |
+| Dry-run default | agent op `move`, skill in same category | no-op plan, tree untouched                |
+| Apply           | agent op `move` + `--apply`             | one apply + one catalog rebuild, in order |
+| Unknown skill   | agent op `move` skill=nope              | `SkillNotFoundError`, exit 2              |
+| Outside-root symlink | agent op `move` target=/tmp/x    | containment assertion fails, exit 2       |
 
 #### Metric
 
@@ -273,6 +280,7 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Business Logic
 
+- Reachable via the agent (orchestrator), not the CLI surface — `archive` is not a CLI verb
 - No delete verb exists — `archive` moves a skill to `_archive/`
 - Every mutating command leaves the tree untouched without `--apply`
 
@@ -296,8 +304,10 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 | Context         | When Action                           | Then Observable Result                    |
 |-----------------|---------------------------------------|-------------------------------------------|
-| Dry-run default | `aa skills archive <skill>`           | plan shown, tree untouched                |
-| Apply           | `aa skills archive <skill> --apply`   | one apply + one catalog rebuild, in order |
+| Dry-run default | agent op `archive`, skill exists       | plan shown, tree untouched                |
+| Apply           | agent op `archive` + `--apply`        | one apply + one catalog rebuild, in order |
+| Unknown skill   | agent op `archive` skill=nope          | `SkillNotFoundError`, exit 2              |
+| Conflict        | agent op `archive` skill, dest exists  | `MutationConflictError`, exit 2          |
 
 #### Metric
 
@@ -311,8 +321,9 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Business Logic
 
-- `aa skills create skill <name> --category <cat>` creates a new skill
-- `aa skills create category <name> [--description <desc>] [--force]` creates a new category
+- Reachable via the agent (orchestrator), not the CLI surface — `create` is not a CLI verb
+- `create skill <name> --category <cat>` creates a new skill
+- `create category <name> [--description <desc>] [--force]` creates a new category
 - Every mutating command leaves the tree untouched without `--apply`
 
 #### Edge Cases
@@ -335,9 +346,11 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 | Context         | When Action                                              | Then Observable Result                    |
 |-----------------|----------------------------------------------------------|-------------------------------------------|
-| Dry-run default | `aa skills create skill <name> --category <cat>`         | plan shown, tree untouched                |
-| Apply           | `aa skills create skill <name> --category <cat> --apply` | one apply + one catalog rebuild, in order |
-| Category create | `aa skills create category <name> --apply`               | category folder + DESCRIPTION.md created  |
+| Dry-run default | agent op `create` skill, no `--apply`                     | plan shown, tree untouched                |
+| Apply           | agent op `create` skill + `--apply`                        | one apply + one catalog rebuild, in order |
+| Category create | agent op `create` category + `--apply`                     | category folder + DESCRIPTION.md created  |
+| Bad category name | agent op `create` category name `../escape`               | `CategoryNameError`, exit 2              |
+| Conflict        | agent op `create` skill, name already exists                | plan flagged, tree untouched, exit 2    |
 
 #### Metric
 
@@ -351,16 +364,18 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Business Logic
 
-- `aa skills traces collect` scans sessions and builds the usage report
-- `aa skills traces usage` reads the last run's usage report
-- `aa skills traces phrases` mines repeated prompts and instruction lines
-- `aa skills traces materialize --run-dir DIR` writes `usage.json` + `phrases.json` into the run dir
-- `aa skills traces state <get|set|clear|trash|restrict|decide|wait>` drives the lifecycle state machine
+- `traces` is reachable via the agent (orchestrator), not the CLI surface — `aa skills traces` exits 2 with usage help
+- `collect` scans sessions and builds the usage report
+- `usage` reads the last run's usage report
+- `phrases` mines repeated prompts and instruction lines
+- `materialize --run-dir DIR` writes `usage.json` + `phrases.json` into the run dir
+- `state <get|set|clear|trash|restrict|decide|wait>` drives the lifecycle state machine
 
 #### Edge Cases
 
 - Missing run dir for `materialize` is a usage error (exit 2)
 - `wait` blocks until `report.md` + `actions.json` exist; phase-stall / report-stall / deadline timeouts
+- Calling `aa skills traces` from the CLI exits 2 (traces is capability-only, no CLI surface verb)
 
 #### Technical Specification
 
@@ -377,9 +392,10 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 | Context         | When Action                                | Then Observable Result                    |
 |-----------------|--------------------------------------------|-------------------------------------------|
-| Collect         | `aa skills traces collect`                 | sessions scanned, usage built, exit 0     |
-| Wait timeout    | `aa skills traces state wait --run-dir D`  | deadline exit 2                           |
-| Phase stall     | `aa skills traces state wait --run-dir D`  | exit 4                                    |
+| CLI access      | `aa skills traces`                         | usage help printed, exit 2 (capability-only) |
+| Collect         | agent op `traces` action=collect           | sessions scanned, usage built, exit 0     |
+| Wait timeout    | agent op `traces` state=wait, run-dir D   | deadline exit 2                           |
+| Phase stall     | agent op `traces` state=wait, run-dir D   | exit 4                                    |
 
 #### Metric
 
