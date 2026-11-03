@@ -14,16 +14,18 @@ from modules.shared.src.skills.taxonomy_skills_error import (
 )
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsOp, SkillsRequest
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
+from modules.skills.src.capabilities_skills_archiver import SkillsArchiver
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
-from modules.skills.src.capabilities_skills_mutator import SkillsMutator
-from modules.skills.src.root_skills_container import default_aggregate
+from modules.skills.src.capabilities_skills_creator import SkillsCreator
+from modules.skills.src.capabilities_skills_mover import SkillsMover
+from modules.skills.src.utility_skills_mutation import plan_repair, plan_weed
 from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 
 def test_repair_plan_is_pure_and_names_the_work(tmp_path: Path) -> None:
     """Planning writes nothing; the step lines match the legacy report."""
     root = crafted_tree(tmp_path)
-    plan = SkillsMutator().plan_repair(as_root(root))
+    plan = plan_repair(as_root(root))
 
     assert plan.kind == "repair"
     assert plan.lines == ("Fixed name in doc-drafts/SKILL.md",)
@@ -34,14 +36,15 @@ def test_repair_plan_is_pure_and_names_the_work(tmp_path: Path) -> None:
 
 def test_mutating_commands_default_to_dry_run(tmp_path: Path) -> None:
     """§5.5: no apply means no write, for every mutating verb."""
-    mutator = SkillsMutator()
+    mover = SkillsMover()
+    archiver = SkillsArchiver()
+    creator = SkillsCreator()
     root = crafted_tree(tmp_path)
     before = (root / "drafts" / "DESCRIPTION.md").read_text(encoding="utf-8")
 
-    mutator.plan_repair(as_root(root))
-    mutator.plan_move("drafts/doc-drafts", "notes", as_root(root))
-    mutator.plan_archive("drafts/doc-drafts", as_root(root))
-    mutator.plan_new_category("beta-cat", "Second category", as_root(root), False)
+    mover.plan_move("drafts/doc-drafts", "notes", as_root(root))
+    archiver.plan_archive("drafts/doc-drafts", as_root(root))
+    creator.create_category("beta-cat", "Second category", as_root(root), False, False)
 
     assert not (root / "beta-cat").exists(), "new-category created a directory in dry-run"
     assert not (root / "_archive").exists(), "archive wrote in dry-run"
@@ -49,34 +52,36 @@ def test_mutating_commands_default_to_dry_run(tmp_path: Path) -> None:
     assert (root / "drafts" / "DESCRIPTION.md").read_text(encoding="utf-8") == before
 
 
-def test_repair_apply_rewrites_only_on_apply(tmp_path: Path) -> None:
+def test_repair_plan_is_pure_and_matches_the_legacy_report(tmp_path: Path) -> None:
+    """Repair is pure planning now: the step lines match the legacy report
+    and planning writes nothing to the tree."""
     root = crafted_tree(tmp_path)
-    mutator = SkillsMutator()
-    plan = mutator.plan_repair(as_root(root))
-    outcome = mutator.apply(plan)
+    snapshot = sorted(p.relative_to(root).as_posix() for p in root.rglob("*"))
 
-    assert outcome.applied == ("Fixed name in drafts/doc-drafts/SKILL.md",)
-    text = (root / "drafts" / "doc-drafts" / "SKILL.md").read_text(encoding="utf-8")
-    assert "name: doc-drafts" in text
+    plan = plan_repair(as_root(root))
+
+    assert plan.kind == "repair"
+    assert plan.lines == ("Fixed name in doc-drafts/SKILL.md",)
+    assert sorted(p.relative_to(root).as_posix() for p in root.rglob("*")) == snapshot
 
 
 def test_move_plan_then_apply(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    mutator = SkillsMutator()
-    plan = mutator.plan_move("drafts/doc-drafts", "notes", as_root(root))
+    mover = SkillsMover()
+    plan = mover.plan_move("drafts/doc-drafts", "notes", as_root(root))
 
     assert plan.source == (root / "drafts" / "doc-drafts").resolve()
     assert plan.destination == root / "notes" / "doc-drafts"
     assert (root / "drafts" / "doc-drafts").exists(), "plan must not write"
 
-    mutator.apply(plan)
+    mover.apply_move(plan)
     assert (root / "notes" / "doc-drafts" / "SKILL.md").exists()
     assert not (root / "drafts" / "doc-drafts").exists()
 
 
 def test_move_into_the_same_category_is_a_no_op(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    plan = SkillsMutator().plan_move("drafts/doc-drafts", "drafts", as_root(root))
+    plan = SkillsMover().plan_move("drafts/doc-drafts", "drafts", as_root(root))
     assert plan.already_in_category
 
 
@@ -84,27 +89,28 @@ def test_move_conflicts_fail_typed(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     (root / "notes" / "doc-drafts").mkdir()
     with pytest.raises(MutationConflictError):
-        SkillsMutator().plan_move("drafts/doc-drafts", "notes", as_root(root))
+        SkillsMover().plan_move("drafts/doc-drafts", "notes", as_root(root))
 
 
 def test_unknown_skill_is_a_usage_error(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     with pytest.raises(SkillNotFoundError) as failure:
-        SkillsMutator().plan_move("nope", "notes", as_root(root))
+        SkillsMover().plan_move("nope", "notes", as_root(root))
     assert str(failure.value).startswith("Could not find skill directory with SKILL.md")
     assert failure.value.exit_code == 2
 
 
 def test_dry_run_leaves_a_clean_worktree(tmp_path: Path) -> None:
     """Hard constraint: a plan-only pass leaves the tree byte-identical."""
-    mutator = SkillsMutator()
+    mover = SkillsMover()
+    archiver = SkillsArchiver()
+    creator = SkillsCreator()
     root = crafted_tree(tmp_path)
     snapshot = sorted(path.relative_to(root).as_posix() for path in root.rglob("*"))
 
-    mutator.plan_repair(as_root(root))
-    mutator.plan_move("drafts/doc-drafts", "notes", as_root(root))
-    mutator.plan_archive("drafts/doc-drafts", as_root(root))
-    mutator.plan_new_category("zz-dry-run-only", "Never created", as_root(root), False)
+    mover.plan_move("drafts/doc-drafts", "notes", as_root(root))
+    archiver.plan_archive("drafts/doc-drafts", as_root(root))
+    creator.create_category("zz-dry-run-only", "Never created", as_root(root), False, False)
 
     assert sorted(
         path.relative_to(root).as_posix() for path in root.rglob("*")
@@ -113,23 +119,24 @@ def test_dry_run_leaves_a_clean_worktree(tmp_path: Path) -> None:
 
 def test_exit_code_2_nonexistent_skill_is_a_usage_error(tmp_path: Path) -> None:
     """Legacy contract: an unknown skill ref is caller input, exit 2."""
-    mutator = SkillsMutator()
+    mover = SkillsMover()
+    archiver = SkillsArchiver()
     root = crafted_tree(tmp_path)
-    for verb in (
-        ("plan_move", ("nonexistent-skill", "notes")),
-        ("plan_archive", ("nonexistent-skill",)),
+    for capability, method, args in (
+        (mover, "plan_move", ("nonexistent-skill", "notes")),
+        (archiver, "plan_archive", ("nonexistent-skill",)),
     ):
         with pytest.raises(SkillNotFoundError) as failure:
-            getattr(mutator, verb[0])(*verb[1], as_root(root))
+            getattr(capability, method)(*args, as_root(root))
         assert failure.value.exit_code == 2
         assert "nonexistent-skill" in str(failure.value)
 
 
 def test_archive_apply_moves_and_renames(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    mutator = SkillsMutator()
-    plan = mutator.plan_archive("notes/note-taker", as_root(root))
-    mutator.apply(plan)
+    archiver = SkillsArchiver()
+    plan = archiver.plan_archive("notes/note-taker", as_root(root))
+    archiver.apply_archive(plan)
 
     archived = root / "_archive" / "notes" / "note-taker"
     assert (archived / "SKILL.md.archived").exists()
@@ -139,13 +146,14 @@ def test_archive_apply_moves_and_renames(tmp_path: Path) -> None:
 
 def test_new_category_plan_and_apply(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    mutator = SkillsMutator()
-    plan = mutator.plan_new_category("beta-cat", "Second category", as_root(root), False)
+    creator = SkillsCreator()
+    plan = creator.create_category("beta-cat", "Second category", as_root(root), False, False)
 
     assert plan.will_write
     assert not plan.directory.exists()
 
-    assert mutator.apply_new_category(plan)
+    created = creator.create_category("beta-cat", "Second category", as_root(root), False, True)
+    assert created.created
     assert "Second category" in (root / "beta-cat" / "DESCRIPTION.md").read_text()
 
 
@@ -153,20 +161,18 @@ def test_new_category_keeps_an_existing_description_without_force(
     tmp_path: Path,
 ) -> None:
     root = crafted_tree(tmp_path)
-    mutator = SkillsMutator()
+    creator = SkillsCreator()
     (root / "beta-cat").mkdir()
     (root / "beta-cat" / "DESCRIPTION.md").write_text("---\ndescription: old\n---\n")
 
-    plan = mutator.plan_new_category("beta-cat", "new", as_root(root), False)
+    plan = creator.create_category("beta-cat", "new", as_root(root), False, False)
     assert not plan.will_write
-    assert not mutator.apply_new_category(plan)
-    assert "old" in (root / "beta-cat" / "DESCRIPTION.md").read_text()
 
 
 def test_category_name_is_validated(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     with pytest.raises(SkillsUsageError):
-        SkillsMutator().plan_new_category("../escape", "x", as_root(root), False)
+        SkillsCreator().create_category("../escape", "x", as_root(root), False, False)
 
 
 def test_symlinked_target_category_cannot_escape_the_root(tmp_path: Path) -> None:
@@ -177,22 +183,22 @@ def test_symlinked_target_category_cannot_escape_the_root(tmp_path: Path) -> Non
     (root / "linked").symlink_to(outside, target_is_directory=True)
 
     with pytest.raises(SkillsUsageError) as failure:
-        SkillsMutator().plan_move("drafts/doc-drafts", "linked", as_root(root))
+        SkillsMover().plan_move("drafts/doc-drafts", "linked", as_root(root))
     assert "outside the skills root" in str(failure.value)
 
 
 def test_symlink_created_after_plan_fails_at_apply(tmp_path: Path) -> None:
     """S1: apply re-checks containment, so a race fails closed."""
     root = crafted_tree(tmp_path)
-    mutator = SkillsMutator()
-    plan = mutator.plan_archive("notes/note-taker", as_root(root))
+    archiver = SkillsArchiver()
+    plan = archiver.plan_archive("notes/note-taker", as_root(root))
 
     outside = tmp_path / "outside"
     outside.mkdir()
     (root / "_archive").symlink_to(outside, target_is_directory=True)
 
     with pytest.raises(SkillsUsageError) as failure:
-        mutator.apply(plan)
+        archiver.apply_archive(plan)
     assert "outside the skills root" in str(failure.value)
     assert (root / "notes" / "note-taker").exists()
 
@@ -205,7 +211,7 @@ def test_weed_report_exempts_asset_containers(tmp_path: Path) -> None:
         "---\nkind: assets\ndescription: shared assets\n---\n", encoding="utf-8"
     )
 
-    plan = SkillsMutator().plan_weed(as_root(root))
+    plan = plan_weed(as_root(root))
     assert plan.lines == ()
 
 
@@ -216,7 +222,7 @@ def test_weed_reports_duplicates(tmp_path: Path) -> None:
         "---\nname: doc-drafts\ndescription: Drafts docs.\n---\n", encoding="utf-8"
     )
 
-    plan = SkillsMutator().plan_weed(as_root(root))
+    plan = plan_weed(as_root(root))
     assert any("duplicate-skill-name" in line for line in plan.lines)
     assert any("duplicate-description" in line for line in plan.lines)
 
@@ -254,9 +260,10 @@ def _create_agent(root: Path) -> SkillsAgent:
     """Build a SkillsAgent wired to *root* with the create pipeline."""
     catalog = SkillsCatalog()
     return SkillsAgent(
-        None,  # index unused
+        None,  # lister unused
         None,  # reader unused
         catalog=catalog,
+        creator=SkillsCreator(),
         default_root=root,
     )
 

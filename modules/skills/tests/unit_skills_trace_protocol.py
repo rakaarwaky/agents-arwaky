@@ -7,7 +7,7 @@ import typing
 import pytest
 
 from modules.shared.src.skills.contract_skills_protocol import (
-    ISkillsIndexProtocol,
+    ISkillsListerProtocol,
     ISkillsTracesProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
@@ -25,11 +25,21 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 
 
 def test_trace_ops_exist() -> None:
-    """The four trace ops are registered on SkillsOp."""
-    assert SkillsOp.TRACE_COLLECT.value == "trace-collect"
-    assert SkillsOp.TRACE_USAGE.value == "trace-usage"
-    assert SkillsOp.TRACE_PHRASES.value == "trace-phrases"
-    assert SkillsOp.TRACE_STATE.value == "trace-state"
+    """The TRACES op is registered on SkillsOp."""
+    assert SkillsOp.TRACES.value == "traces"
+
+
+def test_skills_ops_are_registered() -> None:
+    """Every CLI subcommand op is registered on SkillsOp."""
+    assert SkillsOp.LIST.value == "list"
+    assert SkillsOp.READ.value == "read"
+    assert SkillsOp.LINT.value == "lint"
+    assert SkillsOp.CATALOG.value == "catalog"
+    assert SkillsOp.DISCOVER.value == "discover"
+    assert SkillsOp.MOVE.value == "move"
+    assert SkillsOp.ARCHIVE.value == "archive"
+    assert SkillsOp.CREATE.value == "create"
+    assert SkillsOp.TRACES.value == "traces"
 
 
 def test_trace_state_status_values() -> None:
@@ -88,11 +98,11 @@ def test_trace_protocols_are_abstract() -> None:
     assert "scan_sessions" in ISkillsTracesProtocol.__abstractmethods__
 
 
-def test_index_protocol_gains_json_list_method() -> None:
-    """ISkillsIndexProtocol now carries the global-skill JSON list seam."""
-    assert callable(ISkillsIndexProtocol.list_skills_json)
-    assert "list_skills" in ISkillsIndexProtocol.__abstractmethods__
-    assert "list_skills_json" not in ISkillsIndexProtocol.__abstractmethods__
+def test_lister_protocol_gains_json_list_method() -> None:
+    """ISkillsListerProtocol carries the global-skill JSON list seam."""
+    assert callable(ISkillsListerProtocol.list_skills_json)
+    assert "list_skills" in ISkillsListerProtocol.__abstractmethods__
+    assert "list_skills_json" not in ISkillsListerProtocol.__abstractmethods__
 
 
 def test_report_hints_resolve_at_runtime() -> None:

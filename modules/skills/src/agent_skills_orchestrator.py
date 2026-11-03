@@ -14,29 +14,26 @@ composition root injects every capability implementation.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
-from dataclasses import replace
-from pathlib import Path
-
 import json
 import os
+from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import cast
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
+    ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
-    ISkillsDiscovererProtocol,
-    ISkillsIndexProtocol,
-    ISkillsLintProtocol,
-    ISkillsMutatorProtocol,
+    ISkillsCreatorProtocol,
+    ISkillsDiscoverProtocol,
+    ISkillsLinterProtocol,
+    ISkillsListerProtocol,
+    ISkillsMoverProtocol,
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
-    ISkillsValidatorProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
-    LintReport,
     PhrasesReport,
-    SkillCreatePlan,
     UsageReport,
 )
 from modules.shared.src.skills.taxonomy_skills_error import (
@@ -63,24 +60,26 @@ class SkillsAgent(ISkillsAggregate):
 
     def __init__(
         self,
-        index: ISkillsIndexProtocol,
+        lister: ISkillsListerProtocol,
         reader: ISkillsReaderProtocol,
         *,
-        validator: ISkillsValidatorProtocol | None = None,
-        lint: ISkillsLintProtocol | None = None,
+        linter: ISkillsLinterProtocol | None = None,
         catalog: ISkillsCatalogProtocol | None = None,
-        discoverer: ISkillsDiscovererProtocol | None = None,
-        mutator: ISkillsMutatorProtocol | None = None,
+        discover: ISkillsDiscoverProtocol | None = None,
+        mover: ISkillsMoverProtocol | None = None,
+        archiver: ISkillsArchiverProtocol | None = None,
+        creator: ISkillsCreatorProtocol | None = None,
         traces: ISkillsTracesProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
-        self._index = index
+        self._lister = lister
         self._reader = reader
-        self._validator = validator
-        self._lint = lint
+        self._linter = linter
         self._catalog = catalog
-        self._discoverer = discoverer
-        self._mutator = mutator
+        self._discover = discover
+        self._mover = mover
+        self._archiver = archiver
+        self._creator = creator
         self._traces = traces
         self._default_root = default_root
 
@@ -130,7 +129,8 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_list(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """List every skill in the pack."""
-        records = tuple(self._index.list_skills(request.root))
+        lister = self._require(self._lister, "lister")
+        records = tuple(lister.list_skills(request.root))
         return SkillsResult(
             ok=True,
             op=op,
@@ -138,12 +138,10 @@ class SkillsAgent(ISkillsAggregate):
             message="" if records else "No skills found",
         )
 
-    def _execute_show(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Print one skill's raw SKILL.md content."""
+    def _execute_read(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Return one skill's raw SKILL.md content."""
         content = self._reader.show_skill(request.query, request.root)
         if content is None:
-            # ``show`` predates the authoring exit-code contract and keeps
-            # its historical exit 1 for an unknown name.
             return SkillsResult(
                 ok=False,
                 op=op,
@@ -152,33 +150,11 @@ class SkillsAgent(ISkillsAggregate):
             )
         return SkillsResult(ok=True, op=op, content=content)
 
-    def _execute_validate(
-        self, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
-        """Run the 13-rule validator over the resolved root."""
-        validator = self._require(self._validator, "validator")
-        report = validator.validate(self._root(request))
-
-        exit_code = (
-            SkillsExitCode.CLEAN
-            if report.issue_count == 0
-            else SkillsExitCode.ISSUES_FOUND
-        )
-        return SkillsResult(
-            ok=exit_code == SkillsExitCode.CLEAN,
-            op=op,
-            exit_code=exit_code,
-            report=report,
-            root=report.skills_root,
-        )
-
-    def _execute_lint(
-        self, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
+    def _execute_lint(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Run the full lint scan (13-rule checks + weed report) over the root."""
-        lint = self._require(self._lint, "lint")
+        linter = self._require(self._linter, "linter")
         category = request.flags.get("category") or None
-        report = lint.lint(self._root(request), category=category)
+        report = linter.lint(self._root(request), category=category)
 
         exit_code = (
             SkillsExitCode.CLEAN
@@ -221,10 +197,10 @@ class SkillsAgent(ISkillsAggregate):
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
         """Score the catalog against the query, with the drift fallback."""
-        discoverer = self._require(self._discoverer, "discoverer")
+        discover = self._require(self._discover, "discover")
         limit = int(request.flags.get("limit", "20"))
         root = self._root(request)
-        result = discoverer.discover(str(request.query), root, limit)
+        result = discover.discover(str(request.query), root, limit)
 
         return SkillsResult(
             ok=True,
@@ -235,49 +211,18 @@ class SkillsAgent(ISkillsAggregate):
             root=root,
         )
 
-    def _execute_weed(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Report weeds; any weed line makes the exit code 1."""
-        mutator = self._require(self._mutator, "mutator")
-        root = self._root(request)
-        plan = mutator.plan_weed(root)
-        exit_code = (
-            SkillsExitCode.ISSUES_FOUND if plan.lines else SkillsExitCode.CLEAN
-        )
-        return SkillsResult(
-            ok=not plan.lines,
-            op=op,
-            exit_code=exit_code,
-            plan=plan,
-            root=root,
-        )
-
-    def _execute_repair(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Apply safe mechanical repairs — preview by default."""
-        mutator = self._require(self._mutator, "mutator")
-        root = self._root(request)
-        plan = mutator.plan_repair(root)
-
-        if not request.apply:
-            return SkillsResult(ok=True, op=op, plan=plan, root=root)
-
-        outcome = mutator.apply(plan)
-        catalog = self._require(self._catalog, "catalog").rebuild(root)
-        return SkillsResult(
-            ok=True, op=op, plan=plan, outcome=outcome, catalog=catalog, root=root
-        )
-
     def _execute_move(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Move a skill folder to another category — preview by default."""
-        mutator = self._require(self._mutator, "mutator")
+        mover = self._require(self._mover, "mover")
         root = self._root(request)
-        plan = mutator.plan_move(
+        plan = mover.plan_move(
             str(request.query), request.flags.get("target", ""), root
         )
 
         if plan.already_in_category or not request.apply:
             return SkillsResult(ok=True, op=op, plan=plan, root=root)
 
-        outcome = mutator.apply(plan)
+        outcome = mover.apply_move(plan)
         catalog = self._require(self._catalog, "catalog").rebuild(root)
         return SkillsResult(
             ok=True, op=op, plan=plan, outcome=outcome, catalog=catalog, root=root
@@ -285,49 +230,53 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Archive a skill into ``_archive/`` — preview by default."""
-        mutator = self._require(self._mutator, "mutator")
+        archiver = self._require(self._archiver, "archiver")
         root = self._root(request)
-        plan = mutator.plan_archive(str(request.query), root)
+        plan = archiver.plan_archive(str(request.query), root)
 
         if not request.apply:
             return SkillsResult(ok=True, op=op, plan=plan, root=root)
 
-        outcome = mutator.apply(plan)
+        outcome = archiver.apply_archive(plan)
         catalog = self._require(self._catalog, "catalog").rebuild(root)
         return SkillsResult(
             ok=True, op=op, plan=plan, outcome=outcome, catalog=catalog, root=root
         )
 
-    def _execute_new_category(
-        self, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
-        """Create a category folder and its ``DESCRIPTION.md`` — preview by default."""
-        mutator = self._require(self._mutator, "mutator")
-        root = self._root(request)
-        plan = mutator.plan_new_category(
-            str(request.query),
-            request.description or None,
-            root,
-            force=request.flags.get("force") == "1",
-        )
-
-        if not request.apply:
-            return SkillsResult(ok=True, op=op, new_category=plan, root=root)
-
-        wrote = mutator.apply_new_category(plan)
-        plan = replace(plan, created=wrote)
-        catalog = self._require(self._catalog, "catalog").rebuild(root)
-        return SkillsResult(
-            ok=True,
-            op=op,
-            new_category=plan,
-            catalog=catalog,
-            root=root,
-        )
-
     def _execute_create(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Create a new skill SKILL.md at the default skills root — preview by default."""
+        """Create a skill or a category in the pack — preview by default.
+
+        ``flags["kind"]`` selects the verb: ``"skill"`` (default) or
+        ``"category"``. The agent routes to the matching creator method
+        and, on an applied write, rebuilds the catalog.
+        """
+        creator = self._require(self._creator, "creator")
         root = self._root(request)
+        kind = request.flags.get("kind", "skill")
+
+        if kind == "category":
+            name = str(request.query)
+            description = request.description or ""
+            force = request.flags.get("force") == "1"
+            plan = creator.create_category(
+                name=name,
+                description=description,
+                root=root,
+                force=force,
+                apply=request.apply,
+            )
+            if not request.apply:
+                return SkillsResult(ok=True, op=op, new_category=plan, root=root)
+            catalog = self._require(self._catalog, "catalog").rebuild(root)
+            return SkillsResult(
+                ok=True,
+                op=op,
+                new_category=plan,
+                catalog=catalog,
+                root=root,
+            )
+
+        # kind == "skill" (default)
         skill = str(request.query)
         category = request.flags.get("category", "")
         if not category:
@@ -340,34 +289,19 @@ class SkillsAgent(ISkillsAggregate):
         argument_hint = request.flags.get("argument_hint", "")
         body = request.flags.get("body", "")
 
-        directory = root / category / skill
-        skill_md = directory / "SKILL.md"
-        plan = SkillCreatePlan(
+        plan = creator.create_skill(
             skill=skill,
             category=category,
             description=description,
             when_to_use=when_to_use,
             argument_hint=argument_hint,
             body=body,
-            directory=directory,
-            skill_md=skill_md,
-            already_exists=skill_md.exists(),
             root=root,
+            apply=request.apply,
         )
 
         if plan.already_exists or not request.apply:
             return SkillsResult(ok=True, op=op, create_plan=plan, root=root)
-
-        directory.mkdir(parents=True, exist_ok=True)
-        frontmatter = (
-            "---\n"
-            f"name: {skill}\n"
-            f"description: {description}\n"
-            f'when-to-use: "{when_to_use}"\n'
-            f"argument-hint: {argument_hint}\n"
-            "---\n\n"
-        )
-        skill_md.write_text(frontmatter + body, encoding="utf-8")
 
         catalog = self._require(self._catalog, "catalog").rebuild(root)
         return SkillsResult(
@@ -378,9 +312,39 @@ class SkillsAgent(ISkillsAggregate):
             root=root,
         )
 
-    def _execute_trace_collect(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Scan sessions then build usage: the collect half of the trace pipeline."""
+    def _execute_traces(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Route one trace sub-action through the traces capability.
+
+        ``flags["traces_action"]`` selects the sub-action: collect, usage,
+        phrases, materialize, or state.
+        """
         traces = self._require(self._traces, "traces")
+        action = request.flags.get("traces_action", "")
+
+        if action == "collect":
+            return self._traces_collect(traces, request, op)
+        if action == "usage":
+            grok_home = request.flags.get("grok_home", "")
+            run_dir = request.flags.get("run_dir", "")
+            usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
+            return SkillsResult(ok=True, op=op, usage=usage)
+        if action == "phrases":
+            grok_home = request.flags.get("grok_home", "")
+            run_dir = request.flags.get("run_dir", "")
+            report = traces.build_phrases(grok_home=grok_home, run_dir=run_dir)
+            return SkillsResult(ok=True, op=op, phrases=report)
+        if action == "materialize":
+            return self._traces_materialize(traces, request, op)
+        if action == "state":
+            return self._traces_state(traces, request, op)
+        raise SkillsUsageError(f"Unknown traces action: {action}")
+
+    # ── trace sub-action helpers ──────────────────────────────
+
+    def _traces_collect(
+        self, traces: ISkillsTracesProtocol, request: SkillsRequest, op: SkillsOp
+    ) -> SkillsResult:
+        """Scan sessions then build usage: the collect half of the trace pipeline."""
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
         days = int(request.flags.get("days", "0"))
@@ -408,38 +372,14 @@ class SkillsAgent(ISkillsAggregate):
             message=f"{kept} of {seen} sessions kept → {run_dir}",
         )
 
-    def _execute_trace_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Read the last run's usage report from the traces capability."""
-        traces = self._require(self._traces, "traces")
-        grok_home = request.flags.get("grok_home", "")
-        run_dir = request.flags.get("run_dir", "")
-        usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
-        return SkillsResult(ok=True, op=op, usage=usage)
-
-    def _execute_trace_phrases(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Mine repeated prompts and instruction lines from the session records."""
-        traces = self._require(self._traces, "traces")
-        grok_home = request.flags.get("grok_home", "")
-        run_dir = request.flags.get("run_dir", "")
-        report = traces.build_phrases(grok_home=grok_home, run_dir=run_dir)
-        return SkillsResult(ok=True, op=op, phrases=report)
-
-    def _execute_trace_materialize(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Write usage.json + phrases.json into the run dir for the trace workflow.
-
-        The collector (``scan_sessions``) writes ``manifest.json`` and the
-        ``sessions/`` records but the usage / phrases material was only returned
-        as in-memory VOs, so the ``learn-traces`` workflow had no on-disk files to
-        read. This verb materializes both from the existing builders into the run
-        dir so every agent in the pipeline reads the same deterministic material.
-        Skills-only: ``usage.json`` carries one row per loaded skill plus the
-        ``unused_loaded`` verdict; no plugin / MCP / workflow / hook surfaces.
-        """
-        traces = self._require(self._traces, "traces")
+    def _traces_materialize(
+        self, traces: ISkillsTracesProtocol, request: SkillsRequest, op: SkillsOp
+    ) -> SkillsResult:
+        """Write usage.json + phrases.json into the run dir for the trace workflow."""
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
         if not run_dir:
-            raise SkillsUsageError("trace-materialize requires --run-dir")
+            raise SkillsUsageError("traces materialize requires --run-dir")
 
         usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
         report = traces.build_phrases(grok_home=grok_home, run_dir=run_dir)
@@ -458,6 +398,25 @@ class SkillsAgent(ISkillsAggregate):
             phrases=report,
             message=f"Materialized usage.json + phrases.json → {run_dir}",
         )
+
+    def _traces_state(
+        self, traces: ISkillsTracesProtocol, request: SkillsRequest, op: SkillsOp
+    ) -> SkillsResult:
+        """Drive the trace-learning lifecycle; the traces capability routes it."""
+        grok_home = request.flags.get("grok_home", "")
+        run_dir = request.flags.get("run_dir", "")
+        sub_action = request.flags.get("state_action", "")
+
+        result = traces.dispatch(grok_home, run_dir, sub_action, request.flags)
+        return SkillsResult(
+            ok=True,
+            op=op,
+            state=result.state,
+            state_status=result.state_status,
+            lines=result.lines,
+        )
+
+    # ── JSON projections ──────────────────────────────────────
 
     @staticmethod
     def _usage_to_json(usage: UsageReport) -> dict:
@@ -502,24 +461,7 @@ class SkillsAgent(ISkillsAggregate):
             "note": "counts are distinct sessions; single-turn sessions repeated 3+ times are excluded as likely automation",
         }
 
-
-    def _execute_trace_state(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Drive the trace-learning lifecycle; the traces capability routes it."""
-        traces = self._require(self._traces, "traces")
-        grok_home = request.flags.get("grok_home", "")
-        run_dir = request.flags.get("run_dir", "")
-        action = request.flags.get("state_action", "")
-
-        result = traces.dispatch(grok_home, run_dir, action, request.flags)
-        return SkillsResult(
-            ok=True,
-            op=op,
-            state=result.state,
-            state_status=result.state_status,
-            lines=result.lines,
-        )
-
-    # ─── Block 3: Helpers, Factories & Read Helpers ────────────
+    # ─── Block 4: Helpers, Factories & Read Helpers ────────────
     def _root(self, request: SkillsRequest) -> SkillsRoot:
         """Resolve the request's root: explicit beats derived, never silent."""
         if request.root is not None:
@@ -539,8 +481,8 @@ class SkillsAgent(ISkillsAggregate):
         return capability
 
     def list_skills(self, root: SkillsRoot | None = None) -> Sequence[SkillRecord]:
-        """Convenience pass-through to the index (used by the facade)."""
-        return self._index.list_skills(root)
+        """Convenience pass-through to the lister (used by tests; the facade builds its own request)."""
+        return self._lister.list_skills(root)
 
     def show_skill(
         self, name: str, root: SkillsRoot | None = None

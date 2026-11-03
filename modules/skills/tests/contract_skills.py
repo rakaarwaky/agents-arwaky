@@ -8,27 +8,31 @@ import pytest
 
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
+    ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
-    ISkillsDiscovererProtocol,
-    ISkillsIndexProtocol,
-    ISkillsMutatorProtocol,
+    ISkillsCreatorProtocol,
+    ISkillsDiscoverProtocol,
+    ISkillsLinterProtocol,
+    ISkillsListerProtocol,
+    ISkillsMoverProtocol,
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
-    ISkillsValidatorProtocol,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
+from modules.skills.src.capabilities_skills_archiver import SkillsArchiver
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
-from modules.skills.src.capabilities_skills_discoverer import SkillsDiscoverer
-from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
-from modules.skills.src.capabilities_skills_mutator import SkillsMutator
+from modules.skills.src.capabilities_skills_creator import SkillsCreator
+from modules.skills.src.capabilities_skills_discover import SkillsDiscover
+from modules.skills.src.capabilities_skills_linter import SkillsLinter
+from modules.skills.src.capabilities_skills_lister import SkillsLister
+from modules.skills.src.capabilities_skills_mover import SkillsMover
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
-from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 
-def test_skills_protocol_exists() -> None:
-    """CP-SKILLS-001: ISkillsIndexProtocol is an abstract contract with the index seam."""
-    assert "list_skills" in ISkillsIndexProtocol.__abstractmethods__
+def test_lister_protocol_exists() -> None:
+    """CP-SKILLS-001: ISkillsListerProtocol is an abstract contract with the lister seam."""
+    assert "list_skills" in ISkillsListerProtocol.__abstractmethods__
 
 
 def test_skills_aggregate_exists() -> None:
@@ -36,15 +40,15 @@ def test_skills_aggregate_exists() -> None:
     assert "execute" in ISkillsAggregate.__abstractmethods__
 
 
-def test_index_builder_implements_protocol(tmp_path: Path) -> None:
-    """CP-SKILLS-003: SkillsIndexBuilder implements ISkillsIndexProtocol."""
-    builder = SkillsIndexBuilder(tmp_path)
-    assert isinstance(builder, ISkillsIndexProtocol)
+def test_lister_implements_protocol(tmp_path: Path) -> None:
+    """CP-SKILLS-003: SkillsLister implements ISkillsListerProtocol."""
+    lister = SkillsLister(tmp_path)
+    assert isinstance(lister, ISkillsListerProtocol)
 
 
 def test_agent_implements_aggregate(tmp_path: Path) -> None:
     """CP-SKILLS-004: SkillsAgent implements ISkillsAggregate."""
-    agent = SkillsAgent(SkillsIndexBuilder(tmp_path), SkillsPackReader(tmp_path))
+    agent = SkillsAgent(SkillsLister(tmp_path), SkillsPackReader(tmp_path))
     assert isinstance(agent, ISkillsAggregate)
 
 
@@ -54,50 +58,42 @@ def test_reader_implements_protocol(tmp_path: Path) -> None:
     assert isinstance(reader, ISkillsReaderProtocol)
 
 
-def test_validator_implements_protocol() -> None:
-    """CP-SKILLS-006: SkillsValidator implements ISkillsValidatorProtocol."""
-    validator = SkillsValidator()
-    assert isinstance(validator, ISkillsValidatorProtocol)
-
-
 def test_catalog_implements_protocol() -> None:
     """CP-SKILLS-007: SkillsCatalog implements ISkillsCatalogProtocol."""
     catalog = SkillsCatalog()
     assert isinstance(catalog, ISkillsCatalogProtocol)
 
 
-def test_discoverer_implements_protocol() -> None:
-    """CP-SKILLS-008: SkillsDiscoverer implements ISkillsDiscovererProtocol."""
+def test_discover_implements_protocol() -> None:
+    """CP-SKILLS-008: SkillsDiscover implements ISkillsDiscoverProtocol."""
     catalog: ISkillsCatalogProtocol = SkillsCatalog()
-    discoverer = SkillsDiscoverer(catalog)
-    assert isinstance(discoverer, ISkillsDiscovererProtocol)
-
-
-def test_mutator_implements_protocol() -> None:
-    """CP-SKILLS-009: SkillsMutator implements ISkillsMutatorProtocol."""
-    mutator = SkillsMutator()
-    assert isinstance(mutator, ISkillsMutatorProtocol)
+    discover = SkillsDiscover(catalog)
+    assert isinstance(discover, ISkillsDiscoverProtocol)
 
 
 @pytest.mark.parametrize(
     ("capability", "protocol"),
     [
-        (SkillsIndexBuilder, ISkillsIndexProtocol),
+        (SkillsLister, ISkillsListerProtocol),
         (SkillsPackReader, ISkillsReaderProtocol),
-        (SkillsValidator, ISkillsValidatorProtocol),
+        (SkillsLinter, ISkillsLinterProtocol),
         (SkillsCatalog, ISkillsCatalogProtocol),
-        (SkillsDiscoverer, ISkillsDiscovererProtocol),
-        (SkillsMutator, ISkillsMutatorProtocol),
+        (SkillsDiscover, ISkillsDiscoverProtocol),
+        (SkillsMover, ISkillsMoverProtocol),
+        (SkillsArchiver, ISkillsArchiverProtocol),
+        (SkillsCreator, ISkillsCreatorProtocol),
         (SkillsAgent, ISkillsAggregate),
         (SkillsTraces, ISkillsTracesProtocol),
     ],
     ids=[
-        "index-builder",
+        "lister",
         "pack-reader",
-        "validator",
+        "linter",
         "catalog",
-        "discoverer",
-        "mutator",
+        "discover",
+        "mover",
+        "archiver",
+        "creator",
         "agent",
         "traces",
     ],

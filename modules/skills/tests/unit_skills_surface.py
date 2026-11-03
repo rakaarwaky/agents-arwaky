@@ -112,7 +112,7 @@ def test_json_key_order_matches_the_legacy_contract(tmp_path: Path) -> None:
             "to",
             "note",
         ],
-        ("new-category", "beta-cat", "Second"): [
+        ("create", "category", "beta-cat", "--description", "Second"): [
             "skills_root",
             "dry_run",
             "category",
@@ -153,7 +153,7 @@ def test_mutating_commands_default_to_dry_run(tmp_path: Path) -> None:
     for args in (
         ("move", "drafts/doc-drafts", "notes"),
         ("archive", "drafts/doc-drafts"),
-        ("new-category", "beta-cat", "Second category"),
+        ("create", "category", "beta-cat", "--description", "Second category"),
     ):
         code, out, _ = run_surface(root, *args)
         assert code == 0, args
@@ -168,7 +168,7 @@ def test_mutating_commands_default_to_dry_run(tmp_path: Path) -> None:
 def test_apply_writes_and_rebuilds_the_catalog(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     code, out, _ = run_surface(
-        root, "new-category", "beta-cat", "Second category", "--apply"
+        root, "create", "category", "beta-cat", "--description", "Second category", "--apply"
     )
     assert code == 0
     assert "Wrote beta-cat/DESCRIPTION.md" in out
@@ -209,7 +209,7 @@ def test_discover_no_match_prints_the_legacy_line(tmp_path: Path) -> None:
     assert out == "No matching skills found in CATALOG.md.\n"
 
 
-def test_list_and_show_keep_their_output_shape(tmp_path: Path) -> None:
+def test_list_and_read_keep_their_output_shape(tmp_path: Path) -> None:
     """The read-only surface is byte-stable (only ``--skills-root`` is new)."""
     root = clean_tree(tmp_path)
 
@@ -218,9 +218,9 @@ def test_list_and_show_keep_their_output_shape(tmp_path: Path) -> None:
     assert "SKILL" in out
     assert "1 skills in the pack." in out
 
-    code, out, _ = run_surface(root, "show", "alpha")
+    code, out, _ = run_surface(root, "read", "alpha")
     assert code == 0
     assert out.startswith("---\nname: alpha")
 
-    code, out, _ = run_surface(root, "show", "nope")
+    code, out, _ = run_surface(root, "read", "nope")
     assert code == 1

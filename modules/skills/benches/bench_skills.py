@@ -2,33 +2,33 @@
 from __future__ import annotations
 
 
-def bench_skills_index_builder_init(benchmark):
-    """BENCH-SKILLS-001: Benchmark SkillsIndexBuilder initialization."""
-    from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
+def bench_skills_lister_init(benchmark):
+    """BENCH-SKILLS-001: Benchmark SkillsLister initialization."""
+    from modules.skills.src.capabilities_skills_lister import SkillsLister
 
-    benchmark(SkillsIndexBuilder)
+    benchmark(SkillsLister)
 
 
 def bench_skills_list_skills(benchmark):
     """BENCH-SKILLS-002: Benchmark list_skills on the real pack."""
-    from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
+    from modules.skills.src.capabilities_skills_lister import SkillsLister
 
-    builder = SkillsIndexBuilder()
+    lister = SkillsLister()
 
     def _list():
-        return list(builder.list_skills())
+        return list(lister.list_skills())
 
     benchmark(_list)
 
 
-def bench_skills_show_skill(benchmark):
-    """BENCH-SKILLS-003: Benchmark show_skill on the real pack."""
+def bench_skills_read_skill(benchmark):
+    """BENCH-SKILLS-003: Benchmark show_skill (reader) on the real pack."""
     from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery
-    from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
+    from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 
-    builder = SkillsIndexBuilder()
+    reader = SkillsPackReader()
 
     def _show():
-        return builder.show_skill(SkillQuery("fetch-mcp"))
+        return reader.show_skill(SkillQuery("fetch-mcp"))
 
     benchmark(_show)

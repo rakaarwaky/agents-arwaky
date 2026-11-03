@@ -1,14 +1,21 @@
-"""Skills validator capability (AES capabilities layer).
+"""Skills linter capability (AES capabilities layer).
 
-Implements ``ISkillsValidatorProtocol``: the 13 issue checks ported from
-the retired legacy validator (itself lifted from ``librarian.py``).
-Issue-type strings and message templates come from the shared rule SSOT, so
-the checker and the generated rules doc cannot drift apart.
+Implements ``ISkillsLinterProtocol``: a combined scan that runs the
+13-rule validator plus the weed report in one pass, returning a single
+``LintReport``. The lint is read-only — it reports, it never writes.
 
-The report is unfiltered by design: ``--category`` and ``--rules-only``
-narrow what the surface lists, never what the validator finds, so the
-exit code cannot report a library clean while issues exist outside the
-scope.
+The lint supports an optional *category* filter: when provided, only
+issues whose ``category`` or ``path`` belongs to that category are
+included in the report. The weed lines are not filtered (they are
+library-wide duplicate/empty-category signals).
+
+The 13-rule checks run inline here, ported from the retired
+``capabilities_skills_validator.py`` which was folded into this
+capability during the deep-clean. Rule IDs and message templates come
+from the shared rule SSOT, so the checker and the generated rules doc
+cannot drift apart. The weed-plan is consumed through the shared
+``utility_skills_mutation.plan_weed`` helper, never through a sibling
+capability import.
 """
 
 from __future__ import annotations
@@ -25,10 +32,11 @@ from modules.shared.src.common.utility_skills_tree import (
     skill_entries,
     too_deep_exempt_paths,
 )
-from modules.shared.src.skills.contract_skills_protocol import (
-    ISkillsValidatorProtocol,
+from modules.shared.src.skills.contract_skills_protocol import ISkillsLinterProtocol
+from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+    LintReport,
+    ValidationReport,
 )
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import ValidationReport
 from modules.shared.src.skills.taxonomy_skills_constant import MAX_DESCRIPTION_LEN
 from modules.shared.src.skills.taxonomy_skills_entity import (
     CategorySummary,
@@ -41,18 +49,27 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     issue_message,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
+from modules.skills.src.utility_skills_mutation import plan_weed
 
-__all__ = ["SkillsValidator"]
+__all__ = ["SkillsLinter"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
-class SkillsValidator(ISkillsValidatorProtocol):
-    """Runs the 13 checks over an explicit skills root."""
+class SkillsLinter(ISkillsLinterProtocol):
+    """Combined lint: 13-rule checks + weed report, optionally category-filtered."""
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
-    def validate(self, root: SkillsRoot) -> ValidationReport:
-        """Return the unfiltered validation report for ``root``."""
+    def lint(
+        self, root: SkillsRoot, category: str | None = None
+    ) -> LintReport:
+        """Run the full lint over *root*; optionally filter by *category*.
+
+        Runs the 13-rule validator (per-skill, category, placement, and
+        duplicate checks) inline plus the shared ``plan_weed`` helper for
+        the weed lines. When *category* is set, issues are narrowed to
+        that category; weed lines are kept as-is (library-wide signals).
+        """
         skills_root = Path(root)
+
+        # ── 1. 13-rule validator checks ─────────────────────────
         entries = skill_entries(skills_root)
         categories = category_summaries(entries, skills_root)
         assets = assets_container(skills_root)
@@ -64,7 +81,7 @@ class SkillsValidator(ISkillsValidatorProtocol):
         self._check_placement(skills_root, issues)
         self._check_duplicates(entries, issues)
 
-        return ValidationReport(
+        report = ValidationReport(
             skills_root=skills_root,
             catalog=skills_root / "CATALOG.md",
             issues=tuple(issues),
@@ -72,7 +89,35 @@ class SkillsValidator(ISkillsValidatorProtocol):
             categories=len(list(category_dirs(skills_root))),
         )
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+        # ── 2. Weed report ───────────────────────────────────────
+        weed_plan = plan_weed(skills_root)
+        weed_lines = weed_plan.lines
+
+        # ── 3. Category filter ───────────────────────────────────
+        unfiltered_issues = report.issues
+        unfiltered_weed_lines = weed_lines
+        if category is not None:
+            issues = tuple(
+                issue
+                for issue in report.issues
+                if issue.category == category
+                or (issue.path or "").startswith(f"{category}/")
+            )
+        else:
+            issues = report.issues
+
+        return LintReport(
+            skills_root=skills_root,
+            issues=issues,
+            weed_lines=weed_lines,
+            skills=report.skills,
+            categories=report.categories,
+            unfiltered_issues=unfiltered_issues,
+            unfiltered_weed_lines=unfiltered_weed_lines,
+        )
+
+    # ── 13-rule checks (ported from the retired validator) ────────
+
     @staticmethod
     def _check_categories(
         categories: list[CategorySummary],

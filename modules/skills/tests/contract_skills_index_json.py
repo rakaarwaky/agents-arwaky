@@ -8,8 +8,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.skills.src.capabilities_skills_index import (
-    SkillsIndexBuilder,
+from modules.skills.src.capabilities_skills_lister import (
+    SkillsLister,
     default_pack_root,
 )
 
@@ -43,7 +43,7 @@ def _make_siblings(tmp_path: Path) -> Path:
 
 def test_json_key_order_pinned(tmp_path: Path) -> None:
     """Each entry carries exactly the keys {name, source, path, loaded}."""
-    builder = SkillsIndexBuilder(_make_pack(tmp_path))
+    builder = SkillsLister(_make_pack(tmp_path))
     payload = builder.list_skills_json()
     assert "skills" in payload
     assert len(payload["skills"]) == 2
@@ -55,7 +55,7 @@ def test_json_key_order_pinned(tmp_path: Path) -> None:
 
 def test_json_entries_sorted_by_name(tmp_path: Path) -> None:
     """Entries are sorted by skill name (deterministic)."""
-    builder = SkillsIndexBuilder(_make_pack(tmp_path))
+    builder = SkillsLister(_make_pack(tmp_path))
     payload = builder.list_skills_json()
     names = [e["name"] for e in payload["skills"]]
     assert names == sorted(names)
@@ -65,7 +65,7 @@ def test_source_is_repo_pack_only(tmp_path: Path) -> None:
     """A sibling root (~/.agents/skills-style) is NOT included in the output."""
     pack = _make_pack(tmp_path)
     _make_siblings(tmp_path)
-    builder = SkillsIndexBuilder(pack)
+    builder = SkillsLister(pack)
     payload = builder.list_skills_json()
     # The external skill must NOT appear.
     names = [e["name"] for e in payload["skills"]]
@@ -81,7 +81,7 @@ def test_source_is_repo_pack_only(tmp_path: Path) -> None:
 
 def test_source_matches_default_pack_root() -> None:
     """With no explicit root, the source is default_pack_root()."""
-    builder = SkillsIndexBuilder()
+    builder = SkillsLister()
     payload = builder.list_skills_json()
     expected = str(default_pack_root())
     for entry in payload["skills"]:
@@ -90,7 +90,7 @@ def test_source_matches_default_pack_root() -> None:
 
 def test_loaded_flag_is_true(tmp_path: Path) -> None:
     """Every entry in the global index is loaded=True."""
-    builder = SkillsIndexBuilder(_make_pack(tmp_path))
+    builder = SkillsLister(_make_pack(tmp_path))
     payload = builder.list_skills_json()
     for entry in payload["skills"]:
         assert entry["loaded"] is True
@@ -99,7 +99,7 @@ def test_loaded_flag_is_true(tmp_path: Path) -> None:
 def test_json_is_projection_of_list_skills(tmp_path: Path) -> None:
     """The JSON list and list_skills return the same skill set."""
     pack = _make_pack(tmp_path)
-    builder = SkillsIndexBuilder(pack)
+    builder = SkillsLister(pack)
     records = list(builder.list_skills())
     payload = builder.list_skills_json()
     json_names = {e["name"] for e in payload["skills"]}
@@ -118,7 +118,7 @@ def test_json_is_projection_of_list_skills(tmp_path: Path) -> None:
 
 def test_empty_pack_yields_empty_list(tmp_path: Path) -> None:
     """A missing pack root yields an empty skills list, not an error."""
-    builder = SkillsIndexBuilder(tmp_path / "nope")
+    builder = SkillsLister(tmp_path / "nope")
     payload = builder.list_skills_json()
     assert payload == {"skills": []}
 
@@ -133,7 +133,7 @@ def test_explicit_root_param_respected(tmp_path: Path) -> None:
         "---\nname: alpha\ndescription: A.\n---\n\n# alpha\n",
         encoding="utf-8",
     )
-    builder = SkillsIndexBuilder(pack)
+    builder = SkillsLister(pack)
     payload = builder.list_skills_json(SkillsRoot(alt))
     names = [e["name"] for e in payload["skills"]]
     assert names == ["alpha"]

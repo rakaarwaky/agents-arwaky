@@ -1,8 +1,9 @@
-"""Skills index capability (AES capabilities layer).
+"""Skills lister capability (AES capabilities layer).
 
-``SkillsIndexBuilder`` implements ``ISkillsIndexProtocol`` (listing).
+``SkillsLister`` implements ``ISkillsListerProtocol`` (listing).
 The pack-walking helpers live in ``utility_skill_pack`` (shared kernel), so
-this file depends on contracts and the shared taxonomy only.
+this file depends on contracts and the shared taxonomy only — never on a
+sibling capability.
 """
 from __future__ import annotations
 
@@ -14,7 +15,7 @@ from modules.shared.src.common.utility_skill_pack import (
     iter_skill_mds,
     parse_skill_frontmatter,
 )
-from modules.shared.src.skills.contract_skills_protocol import ISkillsIndexProtocol
+from modules.shared.src.skills.contract_skills_protocol import ISkillsListerProtocol
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillDescription,
     SkillRecord,
@@ -22,14 +23,14 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 )
 
 __all__ = [
-    "SkillsIndexBuilder",
+    "SkillsLister",
     "default_pack_root",
 ]
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class SkillsIndexBuilder(ISkillsIndexProtocol):
-    """Builds and serves the skill-pack index rooted at *pack_root*."""
+class SkillsLister(ISkillsListerProtocol):
+    """Builds and serves the skill-pack listing rooted at *pack_root*."""
 
     def __init__(self, pack_root: Path | None = None) -> None:
         self._root = pack_root or default_pack_root()
@@ -72,4 +73,4 @@ class SkillsIndexBuilder(ISkillsIndexProtocol):
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
-        return "SkillsIndexBuilder()"
+        return "SkillsLister()"

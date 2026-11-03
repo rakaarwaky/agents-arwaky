@@ -24,7 +24,7 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     TraceStateStatus,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
-from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
+from modules.skills.src.capabilities_skills_lister import SkillsLister
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
 from modules.skills.tests.fixture_skills import make_grok_home
@@ -33,7 +33,7 @@ from modules.skills.tests.fixture_skills import make_grok_home
 def _make_agent(root: Path) -> SkillsAgent:
     """Agent wired with the traces capability over a fixture root."""
     return SkillsAgent(
-        SkillsIndexBuilder(root),
+        SkillsLister(root),
         SkillsPackReader(root),
         traces=SkillsTraces(),
         default_root=root,
@@ -49,8 +49,9 @@ def test_integration_trace_collect_then_phrases_then_state(tmp_path: Path) -> No
     # --- collect: scan_sessions then build_usage (tracker) ---
     result = agent.execute(
         SkillsRequest(
-            op=SkillsOp.TRACE_COLLECT,
+            op=SkillsOp.TRACES,
             flags={
+                "traces_action": "collect",
                 "grok_home": str(grok_home),
                 "run_dir": str(run_dir),
                 "days": "0",
@@ -69,8 +70,8 @@ def test_integration_trace_collect_then_phrases_then_state(tmp_path: Path) -> No
     # --- phrases: build_phrases from the session records (phrases) ---
     result = agent.execute(
         SkillsRequest(
-            op=SkillsOp.TRACE_PHRASES,
-            flags={"grok_home": str(grok_home), "run_dir": str(run_dir)},
+            op=SkillsOp.TRACES,
+            flags={"traces_action": "phrases", "grok_home": str(grok_home), "run_dir": str(run_dir)},
         )
     )
     assert result.ok
@@ -79,8 +80,9 @@ def test_integration_trace_collect_then_phrases_then_state(tmp_path: Path) -> No
     # --- state-set: set the pending run status (state) ---
     got = agent.execute(
         SkillsRequest(
-            op=SkillsOp.TRACE_STATE,
+            op=SkillsOp.TRACES,
             flags={
+                "traces_action": "state",
                 "grok_home": str(grok_home),
                 "run_dir": str(run_dir),
                 "state_action": "set",
@@ -94,8 +96,8 @@ def test_integration_trace_collect_then_phrases_then_state(tmp_path: Path) -> No
     # --- state-get: the pending status is readable ---
     got = agent.execute(
         SkillsRequest(
-            op=SkillsOp.TRACE_STATE,
-            flags={"grok_home": str(grok_home), "state_action": "get"},
+            op=SkillsOp.TRACES,
+            flags={"traces_action": "state", "grok_home": str(grok_home), "state_action": "get"},
         )
     )
     assert got.ok
@@ -117,8 +119,9 @@ def test_integration_state_wait_maps_to_exit_statuses(tmp_path: Path) -> None:
     (run_dir / "actions.json").write_text("{}")
     got = agent.execute(
         SkillsRequest(
-            op=SkillsOp.TRACE_STATE,
+            op=SkillsOp.TRACES,
             flags={
+                "traces_action": "state",
                 "grok_home": str(grok_home),
                 "run_dir": str(run_dir),
                 "state_action": "wait",

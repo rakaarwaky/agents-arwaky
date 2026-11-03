@@ -14,7 +14,7 @@ from modules.shared.src.common.utility_skills_tree import (
 )
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
-    ISkillsIndexProtocol,
+    ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
@@ -32,11 +32,11 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillsRoot,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
-from modules.skills.src.capabilities_skills_index import (
-    SkillsIndexBuilder,
+from modules.skills.src.capabilities_skills_lister import (
+    SkillsLister,
     default_pack_root,
 )
-from modules.skills.src.capabilities_skills_mutator import SkillsMutator
+from modules.skills.src.capabilities_skills_mover import SkillsMover
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.root_skills_container import default_aggregate
 from modules.skills.tests.fixture_skills import as_root, crafted_tree
@@ -67,9 +67,9 @@ def test_default_pack_root_points_at_repo_skills() -> None:
     assert root.is_dir()
 
 
-def test_index_builder_implements_protocol() -> None:
-    """SkillsIndexBuilder satisfies the contract protocol."""
-    assert isinstance(SkillsIndexBuilder(), ISkillsIndexProtocol)
+def test_lister_implements_protocol() -> None:
+    """SkillsLister satisfies the contract protocol."""
+    assert isinstance(SkillsLister(), ISkillsListerProtocol)
 
 def test_pack_reader_implements_protocol() -> None:
     """SkillsPackReader satisfies the contract protocol."""
@@ -79,7 +79,7 @@ def test_pack_reader_implements_protocol() -> None:
 def test_list_skills_sorted_with_descriptions(tmp_path: Path) -> None:
     """list returns every skill sorted by name with its description."""
     pack = _make_pack(tmp_path)
-    rows = list(SkillsIndexBuilder(pack).list_skills())
+    rows = list(SkillsLister(pack).list_skills())
     names = [r.name for r in rows]
     assert names == sorted(names)
     assert "fetch-mcp" in names
@@ -90,7 +90,7 @@ def test_list_skills_sorted_with_descriptions(tmp_path: Path) -> None:
 
 def test_list_skills_empty_when_pack_missing(tmp_path: Path) -> None:
     """A missing pack root yields an empty listing, not an error."""
-    assert list(SkillsIndexBuilder(tmp_path / "nope").list_skills()) == []
+    assert list(SkillsLister(tmp_path / "nope").list_skills()) == []
 
 
 def test_show_skill_by_frontmatter_name(tmp_path: Path) -> None:
@@ -129,12 +129,12 @@ def test_show_skill_ambiguous_prefix_returns_none(tmp_path: Path) -> None:
 
 def test_agent_execute_list_and_show(tmp_path: Path) -> None:
     """The agent routes list/show through the injected index capability."""
-    agent = SkillsAgent(SkillsIndexBuilder(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
+    agent = SkillsAgent(SkillsLister(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
     listed = agent.execute(SkillsRequest(op=SkillsOp.LIST))
     assert listed.ok
     assert {r.name for r in listed.records} == {"fetch-mcp", "lint", "empty"}
 
-    shown = agent.execute(SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery("fetch")))
+    shown = agent.execute(SkillsRequest(op=SkillsOp.READ, query=SkillQuery("fetch")))
     assert shown.ok
     assert shown.content is not None
     assert "# Fetch" in shown.content
@@ -142,15 +142,15 @@ def test_agent_execute_list_and_show(tmp_path: Path) -> None:
 
 def test_agent_execute_show_unknown_is_not_ok(tmp_path: Path) -> None:
     """An unknown show target reports failure with a clear message."""
-    agent = SkillsAgent(SkillsIndexBuilder(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
-    result = agent.execute(SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery("nope")))
+    agent = SkillsAgent(SkillsLister(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
+    result = agent.execute(SkillsRequest(op=SkillsOp.READ, query=SkillQuery("nope")))
     assert not result.ok
     assert "nope" in result.message
 
 
 def test_agent_execute_unknown_op_is_not_ok(tmp_path: Path) -> None:
     """An unknown op is rejected rather than silently succeeding."""
-    agent = SkillsAgent(SkillsIndexBuilder(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
+    agent = SkillsAgent(SkillsLister(pack := _make_pack(tmp_path)), SkillsPackReader(pack))
     # raw str is intentional: SkillsRequest.op is typed SkillsOp (StrEnum),
     # mypy rejects a bare str; the agent must reject un-parseable ops at runtime.
     result = agent.execute(SkillsRequest(op="frobnicate"))  # type: ignore[arg-type]
@@ -179,24 +179,24 @@ class _SpyCatalog(ISkillsCatalogProtocol):
 def test_move_apply_produces_one_apply_and_one_rebuild_in_order(
     tmp_path: Path, monkeypatch
 ) -> None:
-    """move --apply yields exactly one mutator apply and one catalog
+    """move --apply yields exactly one mover apply and one catalog
     rebuild, in that order — the agent owns the mutation→catalog chain."""
     root = crafted_tree(tmp_path)
     calls: list[str] = []
 
-    original_apply = SkillsMutator.apply
+    original_apply = SkillsMover.apply_move
 
     def spy_apply(self, plan):  # type: ignore[no-untyped-def]
         calls.append("apply")
         return original_apply(self, plan)
 
-    monkeypatch.setattr(SkillsMutator, "apply", spy_apply)
+    monkeypatch.setattr(SkillsMover, "apply_move", spy_apply)
 
     agent = SkillsAgent(
-        SkillsIndexBuilder(root),
+        SkillsLister(root),
         SkillsPackReader(root),
         catalog=_SpyCatalog(calls),
-        mutator=SkillsMutator(),
+        mover=SkillsMover(),
         default_root=root,
     )
     result = agent.execute(
@@ -220,10 +220,10 @@ def test_move_dry_run_never_applies_or_rebuilds(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     calls: list[str] = []
     agent = SkillsAgent(
-        SkillsIndexBuilder(root),
+        SkillsLister(root),
         SkillsPackReader(root),
         catalog=_SpyCatalog(calls),
-        mutator=SkillsMutator(),
+        mover=SkillsMover(),
         default_root=root,
     )
 
@@ -247,7 +247,7 @@ def test_default_aggregate_bound_to_default_pack() -> None:
     listed = aggregate.execute(SkillsRequest(op=SkillsOp.LIST))
     assert listed.ok
     assert len(listed.records) > 0
-    shown = aggregate.execute(SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery("fetch")))
+    shown = aggregate.execute(SkillsRequest(op=SkillsOp.READ, query=SkillQuery("fetch")))
     assert shown.ok
     assert shown.content is not None
 

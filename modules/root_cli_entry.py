@@ -14,7 +14,7 @@ The only differences are the import swaps to the AES modules:
                    _find_* helpers (original tools/lib/tool_resolver.py
                    bodies as-is, import-swapped)
   - doc_pack        -> modules.shared.src.utility_doc_pack
-  - skill_pack      -> modules.skills.src.capabilities_skills_index
+  - skill_pack      -> modules.skills.src.capabilities_skills_lister
   - paths.repo_root -> modules.shared.src.utility_paths
 
 Delegated actions (skill/connect/disconnect/daemon/service/backup)

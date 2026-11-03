@@ -16,27 +16,27 @@ def _make_pack(tmp_path: Path) -> Path:
 
 def test_e2e_dispatch_list(tmp_path: Path, monkeypatch):
     """E2E-SKILLS-001: `aa skills list` dispatches and exits 0."""
-    import modules.skills.src.capabilities_skills_index as builder_mod
+    import modules.skills.src.capabilities_skills_lister as lister_mod
     import modules.skills.src.capabilities_skills_reader as reader_mod
     from modules.root_cli_entry import _dispatch
 
     pack = _make_pack(tmp_path)
-    monkeypatch.setattr(builder_mod, "default_pack_root", lambda: pack)
+    monkeypatch.setattr(lister_mod, "default_pack_root", lambda: pack)
     monkeypatch.setattr(reader_mod, "default_pack_root", lambda: pack)
     rc = _dispatch(["skills", "list"])
     assert rc == 0
 
 
-def test_e2e_dispatch_show(tmp_path: Path, monkeypatch):
-    """E2E-SKILLS-002: `aa skills show <name>` dispatches and exits 0."""
-    import modules.skills.src.capabilities_skills_index as builder_mod
+def test_e2e_dispatch_read(tmp_path: Path, monkeypatch):
+    """E2E-SKILLS-002: `aa skills read <name>` dispatches and exits 0."""
+    import modules.skills.src.capabilities_skills_lister as lister_mod
     import modules.skills.src.capabilities_skills_reader as reader_mod
     from modules.root_cli_entry import _dispatch
 
     pack = _make_pack(tmp_path)
-    monkeypatch.setattr(builder_mod, "default_pack_root", lambda: pack)
+    monkeypatch.setattr(lister_mod, "default_pack_root", lambda: pack)
     monkeypatch.setattr(reader_mod, "default_pack_root", lambda: pack)
-    rc = _dispatch(["skills", "show", "fetch-mcp"])
+    rc = _dispatch(["skills", "read", "fetch-mcp"])
     assert rc == 0
 
 
@@ -92,17 +92,22 @@ def test_e2e_dispatch_move_applies_then_rebuilds_catalog(tmp_path: Path):
 
 
 def test_e2e_dispatch_new_category_dry_run_then_apply(tmp_path: Path):
-    """E2E-SKILLS-007: new-category previews without writing, then --apply creates it."""
+    """E2E-SKILLS-007: create category previews without writing, then --apply creates it."""
     from modules.root_cli_entry import _dispatch
     from modules.skills.tests.fixture_skills import crafted_tree
 
     root = crafted_tree(tmp_path)
     root_arg = ["--skills-root", str(root)]
 
-    assert _dispatch(["skills", "new-category", "beta", "Beta", *root_arg]) == 0
+    assert _dispatch(["skills", "create", "category", "beta", "--description", "Beta", *root_arg]) == 0
     assert not (root / "beta").exists()
 
-    assert _dispatch(["skills", "new-category", "beta", "Beta", "--apply", *root_arg]) == 0
+    assert (
+        _dispatch(
+            ["skills", "create", "category", "beta", "--description", "Beta", "--apply", *root_arg]
+        )
+        == 0
+    )
     assert (root / "beta" / "DESCRIPTION.md").exists()
 
 

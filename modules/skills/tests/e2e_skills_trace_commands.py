@@ -19,7 +19,7 @@ def test_e2e_trace_collect_exits_0_and_prints_run_dir(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     code, out, _err = run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -36,7 +36,7 @@ def test_e2e_trace_collect_json_shape(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     code, out, _err = run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -59,7 +59,7 @@ def test_e2e_trace_usage_exits_0(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -67,7 +67,7 @@ def test_e2e_trace_usage_exits_0(tmp_path: Path) -> None:
     )
     code, out, _err = run_trace_surface(
         grok_home,
-        "trace-usage",
+        "traces", "usage",
         "--grok-home",
         str(grok_home),
         "--run-dir",
@@ -83,7 +83,7 @@ def test_e2e_trace_usage_json_shape(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -91,7 +91,7 @@ def test_e2e_trace_usage_json_shape(tmp_path: Path) -> None:
     )
     code, out, _err = run_trace_surface(
         grok_home,
-        "trace-usage",
+        "traces", "usage",
         "--grok-home",
         str(grok_home),
         "--run-dir",
@@ -109,7 +109,7 @@ def test_e2e_trace_phrases_exits_0(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -117,7 +117,7 @@ def test_e2e_trace_phrases_exits_0(tmp_path: Path) -> None:
     )
     code, _out, _err = run_trace_surface(
         grok_home,
-        "trace-phrases",
+        "traces", "phrases",
         "--run-dir",
         str(run_dir),
     )
@@ -130,7 +130,7 @@ def test_e2e_trace_phrases_json_shape(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     run_trace_surface(
         grok_home,
-        "trace-collect",
+        "traces", "collect",
         "--grok-home",
         str(grok_home),
         "--out",
@@ -138,7 +138,7 @@ def test_e2e_trace_phrases_json_shape(tmp_path: Path) -> None:
     )
     code, out, _err = run_trace_surface(
         grok_home,
-        "trace-phrases",
+        "traces", "phrases",
         "--run-dir",
         str(run_dir),
         "--json",
@@ -155,7 +155,7 @@ def test_e2e_trace_state_get_pending_exits_3(tmp_path: Path) -> None:
     # set status to collected (pending)
     code = run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "set",
         "--grok-home",
         str(grok_home),
@@ -169,7 +169,7 @@ def test_e2e_trace_state_get_pending_exits_3(tmp_path: Path) -> None:
     # get while pending → exit 3
     code = run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "get",
         "--grok-home",
         str(grok_home),
@@ -183,7 +183,7 @@ def test_e2e_trace_state_set_done_exits_0(tmp_path: Path) -> None:
     run_dir = tmp_path / "run"
     code = run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "set",
         "--grok-home",
         str(grok_home),
@@ -204,7 +204,7 @@ def test_e2e_trace_state_wait_report_ready_exits_0(tmp_path: Path) -> None:
     (run_dir / "actions.json").write_text("{}")
     code = run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "wait",
         "--grok-home",
         str(grok_home),
@@ -227,7 +227,7 @@ def test_e2e_trace_state_wait_deadline_exits_2(tmp_path: Path, monkeypatch) -> N
     monkeypatch.setattr(time, "sleep", lambda *a: None)
     code = run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "wait",
         "--grok-home",
         str(grok_home),
@@ -250,7 +250,7 @@ def test_e2e_trace_verbs_registered_in_help(tmp_path: Path) -> None:
         code = cmd_skills([], default_aggregate())
     assert code == 0
     out = stdout.getvalue()
-    for verb in ("trace-collect", "trace-usage", "trace-phrases", "trace-state"):
+    for verb in ("traces", "collect", "usage", "phrases", "materialize", "state"):
         assert verb in out
 
 
@@ -265,7 +265,7 @@ def test_e2e_trace_state_restrict_sets_mode_0600(tmp_path: Path) -> None:
 
     code, out, _err = run_trace_surface(
         grok_home,
-        "trace-state",
+        "traces", "state",
         "restrict",
         str(target),
     )

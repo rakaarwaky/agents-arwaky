@@ -1,4 +1,4 @@
-"""Skills discovery capability (AES capabilities layer).
+"""Skills discover capability (AES capabilities layer).
 
 Scores the catalog rows against a query. Reads the catalog through the
 injected ``ISkillsCatalogProtocol`` (never a sibling capability import),
@@ -23,7 +23,7 @@ from pathlib import Path
 from modules.shared.src.common.utility_skills_tree import skill_entries
 from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsCatalogProtocol,
-    ISkillsDiscovererProtocol,
+    ISkillsDiscoverProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     CatalogRow,
@@ -40,7 +40,7 @@ from modules.shared.src.skills.taxonomy_skills_error import (
 from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery, SkillsRoot
 
 __all__ = [
-    "SkillsDiscoverer",
+    "SkillsDiscover",
     "score_entries",
     "tokenize",
 ]
@@ -100,7 +100,7 @@ def tree_scan_rows(skills_root: Path) -> list[CatalogRow]:
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-class SkillsDiscoverer(ISkillsDiscovererProtocol):
+class SkillsDiscover(ISkillsDiscoverProtocol):
     """Scores catalog rows; falls back to a live tree scan on drift."""
 
     def __init__(self, catalog: ISkillsCatalogProtocol) -> None:

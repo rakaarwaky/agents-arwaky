@@ -66,25 +66,21 @@ SkillsRoot = NewType("SkillsRoot", Path)
 
 
 class SkillsOp(StrEnum):
-    """Every operation the skills aggregate understands."""
+    """Every operation the skills aggregate understands.
+
+    One op per CLI subcommand under ``aa skills``: list, read, lint,
+    catalog, discover, move, archive, create, traces.
+    """
 
     LIST = "list"
-    SHOW = "show"
-    VALIDATE = "validate"
+    READ = "read"
+    LINT = "lint"
     CATALOG = "catalog"
     DISCOVER = "discover"
-    WEED = "weed"
-    REPAIR = "repair"
     MOVE = "move"
     ARCHIVE = "archive"
-    NEW_CATEGORY = "new-category"
     CREATE = "create"
-    LINT = "lint"
-    TRACE_COLLECT = "trace-collect"
-    TRACE_USAGE = "trace-usage"
-    TRACE_PHRASES = "trace-phrases"
-    TRACE_MATERIALIZE = "trace-materialize"
-    TRACE_STATE = "trace-state"
+    TRACES = "traces"
 
 
 class TraceStateStatus(StrEnum):

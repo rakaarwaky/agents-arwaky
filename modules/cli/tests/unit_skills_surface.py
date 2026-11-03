@@ -14,9 +14,9 @@ from modules.cli.src.surface_skills_command import (
     _authoring_parser,
     _render_archive,
     _render_catalog,
+    _render_create,
     _render_lint,
     _render_move,
-    _render_new_category,
     _split_root,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
@@ -41,7 +41,7 @@ _RENDERERS = {
     "catalog": _render_catalog,
     "move": _render_move,
     "archive": _render_archive,
-    "new_category": _render_new_category,
+    "create": _render_create,
 }
 
 
@@ -64,10 +64,10 @@ _RENDERERS = {
         ("move", {}, "plan", "Internal error: no move plan produced"),
         ("archive", {}, "plan", "Internal error: no archive plan produced"),
         (
-            "new_category",
+            "create",
             {},
-            "new_category",
-            "Internal error: no new-category plan produced",
+            "create_plan",
+            "Internal error: no create plan produced",
         ),
     ],
 )

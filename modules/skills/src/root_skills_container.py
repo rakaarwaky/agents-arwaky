@@ -1,11 +1,11 @@
 """Skills root container (AES composition root).
 
-Wires the capabilities (index, reader, validator, catalog,
-discoverer, mutator, traces) into the agent. The
+Wires the capabilities (lister, reader, linter, catalog, discover,
+mover, archiver, creator, traces) into the agent. The
 CLI surface receives an ``ISkillsAggregate`` (the agent itself), injected
 at the call site, so no root→surface coupling exists.
 
-The discoverer receives the catalog through its contract protocol: the
+The discover receives the catalog through its contract protocol: the
 two capabilities never import each other.
 """
 
@@ -17,14 +17,15 @@ from pathlib import Path
 from modules.shared.src.common.utility_skill_pack import default_pack_root
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.contract_skills_protocol import (
+    ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
-    ISkillsDiscovererProtocol,
-    ISkillsIndexProtocol,
-    ISkillsLintProtocol,
-    ISkillsMutatorProtocol,
+    ISkillsCreatorProtocol,
+    ISkillsDiscoverProtocol,
+    ISkillsLinterProtocol,
+    ISkillsListerProtocol,
+    ISkillsMoverProtocol,
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
-    ISkillsValidatorProtocol,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillContent,
@@ -36,14 +37,15 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillsRoot,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent
+from modules.skills.src.capabilities_skills_archiver import SkillsArchiver
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
-from modules.skills.src.capabilities_skills_discoverer import SkillsDiscoverer
-from modules.skills.src.capabilities_skills_index import SkillsIndexBuilder
-from modules.skills.src.capabilities_skills_lint import SkillsLint
-from modules.skills.src.capabilities_skills_mutator import SkillsMutator
+from modules.skills.src.capabilities_skills_creator import SkillsCreator
+from modules.skills.src.capabilities_skills_discover import SkillsDiscover
+from modules.skills.src.capabilities_skills_linter import SkillsLinter
+from modules.skills.src.capabilities_skills_lister import SkillsLister
+from modules.skills.src.capabilities_skills_mover import SkillsMover
 from modules.skills.src.capabilities_skills_reader import SkillsPackReader
 from modules.skills.src.capabilities_skills_traces import SkillsTraces
-from modules.skills.src.capabilities_skills_validator import SkillsValidator
 
 __all__ = [
     "SkillsFacade",
@@ -53,28 +55,31 @@ __all__ = [
 
 
 def default_aggregate(
-    index: ISkillsIndexProtocol | None = None,
+    lister: ISkillsListerProtocol | None = None,
     reader: ISkillsReaderProtocol | None = None,
     *,
-    validator: ISkillsValidatorProtocol | None = None,
-    lint: ISkillsLintProtocol | None = None,
+    linter: ISkillsLinterProtocol | None = None,
     catalog: ISkillsCatalogProtocol | None = None,
-    discoverer: ISkillsDiscovererProtocol | None = None,
-    mutator: ISkillsMutatorProtocol | None = None,
+    discover: ISkillsDiscoverProtocol | None = None,
+    mover: ISkillsMoverProtocol | None = None,
+    archiver: ISkillsArchiverProtocol | None = None,
+    creator: ISkillsCreatorProtocol | None = None,
     traces: ISkillsTracesProtocol | None = None,
     default_root: Path | None = None,
 ) -> ISkillsAggregate:
     """Return an agent bound to the repo's ``skills/`` pack (or overrides)."""
     root = default_root if default_root is not None else default_pack_root()
     wired_catalog = catalog or SkillsCatalog()
+    wired_linter = linter or SkillsLinter()
     return SkillsAgent(
-        index or SkillsIndexBuilder(root),
+        lister or SkillsLister(root),
         reader or SkillsPackReader(root),
-        validator=validator or SkillsValidator(),
-        lint=lint or SkillsLint(),
+        linter=wired_linter,
         catalog=wired_catalog,
-        discoverer=discoverer or SkillsDiscoverer(wired_catalog),
-        mutator=mutator or SkillsMutator(),
+        discover=discover or SkillsDiscover(wired_catalog),
+        mover=mover or SkillsMover(),
+        archiver=archiver or SkillsArchiver(),
+        creator=creator or SkillsCreator(),
         traces=traces or SkillsTraces(),
         default_root=root,
     )
@@ -90,58 +95,53 @@ class SkillsFacade:
 
     Every wrapper returns the full ``SkillsResult`` so callers can read
     the plan, outcome, report, or rendered document without the facade
-    inventing a second projection. ``list_skills``/``show_skill`` keep
+    inventing a second projection. ``list_skills``/``read_skill`` keep
     their historical shapes.
     """
 
     def __init__(
         self,
-        index: ISkillsIndexProtocol | None = None,
+        lister: ISkillsListerProtocol | None = None,
         reader: ISkillsReaderProtocol | None = None,
         *,
-        validator: ISkillsValidatorProtocol | None = None,
-        lint: ISkillsLintProtocol | None = None,
+        linter: ISkillsLinterProtocol | None = None,
         catalog: ISkillsCatalogProtocol | None = None,
-        discoverer: ISkillsDiscovererProtocol | None = None,
-        mutator: ISkillsMutatorProtocol | None = None,
+        discover: ISkillsDiscoverProtocol | None = None,
+        mover: ISkillsMoverProtocol | None = None,
+        archiver: ISkillsArchiverProtocol | None = None,
+        creator: ISkillsCreatorProtocol | None = None,
         traces: ISkillsTracesProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
-        self._index = index
-        self._reader = reader
-        self._validator = validator
-        self._lint = lint
-        self._catalog = catalog
-        self._discoverer = discoverer
-        self._mutator = mutator
-        self._traces = traces
-        self._default_root = default_root
+        root = default_root if default_root is not None else default_pack_root()
+        wired_catalog = catalog or SkillsCatalog()
+        wired_linter = linter or SkillsLinter()
+        self._agent_cache = SkillsAgent(
+            lister or SkillsLister(root),
+            reader or SkillsPackReader(root),
+            linter=wired_linter,
+            catalog=wired_catalog,
+            discover=discover or SkillsDiscover(wired_catalog),
+            mover=mover or SkillsMover(),
+            archiver=archiver or SkillsArchiver(),
+            creator=creator or SkillsCreator(),
+            traces=traces or SkillsTraces(),
+            default_root=root,
+        )
 
     def _agent(self) -> SkillsAgent:
-        """Build the agent lazily, defaulting every missing capability."""
-        root = default_pack_root()
-        catalog = self._catalog or SkillsCatalog()
-        return SkillsAgent(
-            self._index or SkillsIndexBuilder(root),
-            self._reader or SkillsPackReader(root),
-            validator=self._validator or SkillsValidator(),
-            lint=self._lint or SkillsLint(),
-            catalog=catalog,
-            discoverer=self._discoverer or SkillsDiscoverer(catalog),
-            mutator=self._mutator or SkillsMutator(),
-            traces=self._traces or SkillsTraces(),
-            default_root=self._default_root or root,
-        )
+        """Return the built agent (instantiated once, never per call)."""
+        return self._agent_cache
 
     # ─── Read wrappers ───────────────────────────────────────
     def list_skills(self) -> Sequence[SkillRecord]:
         """Return one record per skill in the pack, sorted by name."""
         return self._agent().execute(SkillsRequest(op=SkillsOp.LIST)).records
 
-    def show_skill(self, name: str) -> SkillContent | None:
+    def read_skill(self, name: str) -> SkillContent | None:
         """Return the raw SKILL.md content for *name*, or None when unknown."""
         return self._agent().execute(
-            SkillsRequest(op=SkillsOp.SHOW, query=SkillQuery(name))
+            SkillsRequest(op=SkillsOp.READ, query=SkillQuery(name))
         ).content
 
     # ─── Authoring wrappers ──────────────────────────────────
@@ -158,10 +158,6 @@ class SkillsFacade:
                 flags={"category": category or ""},
             )
         )
-
-    def validate(self, root: SkillsRoot | None = None) -> SkillsResult:
-        """Run the 13-rule validator."""
-        return self._agent().execute(SkillsRequest(op=SkillsOp.VALIDATE, root=root))
 
     def catalog_rebuild(self, root: SkillsRoot | None = None) -> SkillsResult:
         """Rebuild ``CATALOG.md``."""
@@ -184,18 +180,6 @@ class SkillsFacade:
                 root=root,
                 flags={"limit": str(limit)},
             )
-        )
-
-    def weed(self, root: SkillsRoot | None = None) -> SkillsResult:
-        """Report duplicates, empty categories, and missing descriptions."""
-        return self._agent().execute(SkillsRequest(op=SkillsOp.WEED, root=root))
-
-    def repair(
-        self, apply: bool = False, root: SkillsRoot | None = None
-    ) -> SkillsResult:
-        """Plan (default) or apply the mechanical repairs."""
-        return self._agent().execute(
-            SkillsRequest(op=SkillsOp.REPAIR, apply=apply, root=root)
         )
 
     def move(
@@ -229,27 +213,7 @@ class SkillsFacade:
             )
         )
 
-    def new_category(
-        self,
-        name: str,
-        description: str = "",
-        force: bool = False,
-        apply: bool = False,
-        root: SkillsRoot | None = None,
-    ) -> SkillsResult:
-        """Plan (default) or apply a category creation."""
-        return self._agent().execute(
-            SkillsRequest(
-                op=SkillsOp.NEW_CATEGORY,
-                query=SkillQuery(name),
-                description=description,
-                apply=apply,
-                root=root,
-                flags={"force": "1" if force else "0"},
-            )
-        )
-
-    def create(
+    def create_skill(
         self,
         skill: str,
         category: str,
@@ -269,10 +233,31 @@ class SkillsFacade:
                 apply=apply,
                 root=root,
                 flags={
+                    "kind": "skill",
                     "category": category,
                     "when_to_use": when_to_use,
                     "argument_hint": argument_hint,
                     "body": body,
                 },
+            )
+        )
+
+    def create_category(
+        self,
+        name: str,
+        description: str = "",
+        force: bool = False,
+        apply: bool = False,
+        root: SkillsRoot | None = None,
+    ) -> SkillsResult:
+        """Plan (default) or apply a category creation."""
+        return self._agent().execute(
+            SkillsRequest(
+                op=SkillsOp.CREATE,
+                query=SkillQuery(name),
+                description=description,
+                apply=apply,
+                root=root,
+                flags={"kind": "category", "force": "1" if force else "0"},
             )
         )
