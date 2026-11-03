@@ -1,4 +1,4 @@
-# Step 3: Classify
+# Step 4: Classify
 
 Decide what each cluster is so Phase 1 and Phase 2 of the execute step know what to do.
 

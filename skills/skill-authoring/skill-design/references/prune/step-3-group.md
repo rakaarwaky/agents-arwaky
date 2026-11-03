@@ -1,6 +1,6 @@
-# Step 2: Group
+# Step 3: Group
 
-Form candidate clusters so Step 3 can classify them.
+Form candidate clusters so Step 4 can classify them.
 
 **Goal:** cluster skills by semantic scope, verified against body content.
 

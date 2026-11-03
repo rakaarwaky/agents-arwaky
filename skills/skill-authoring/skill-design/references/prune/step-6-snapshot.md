@@ -1,4 +1,4 @@
-# Step 5: Snapshot
+# Step 6: Snapshot
 
 Create the rollback point before executing any merge.
 
