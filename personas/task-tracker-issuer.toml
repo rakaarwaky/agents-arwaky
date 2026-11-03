@@ -35,25 +35,25 @@ Rules:
 - A "skip" verdict never produces an issue; it is ledger-only.
 """
 
-[[subagents.personas.task-tracker-issuer.inputs]]
+[[inputs]]
 name = "verdicts_json"
 io_type = "string"
 required = true
 description = """JSON array of verdicts from the verifier"""
 
-[[subagents.personas.task-tracker-issuer.inputs]]
+[[inputs]]
 name = "state_label"
 io_type = "string"
 required = false
 description = """Tracker label to apply (default task-tracker)"""
 
-[[subagents.personas.task-tracker-issuer.inputs]]
+[[inputs]]
 name = "dry_run"
 io_type = "boolean"
 required = false
 description = """Print would-be issues without creating"""
 
-[[subagents.personas.task-tracker-issuer.outputs]]
+[[outputs]]
 name = "issues_json"
 io_type = "string"
 required = true

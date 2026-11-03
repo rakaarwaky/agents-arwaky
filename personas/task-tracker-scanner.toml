@@ -26,19 +26,19 @@ Rules:
 - No tool other than read_file. No writes.
 """
 
-[[subagents.personas.task-tracker-scanner.inputs]]
+[[inputs]]
 name = "doc_path"
 io_type = "string"
 required = true
 description = """Absolute path to the spec document (PRD.md, ROADMAP.md, BACKLOG.md, FRD.md, or DESIGN.md)"""
 
-[[subagents.personas.task-tracker-scanner.inputs]]
+[[inputs]]
 name = "feature"
 io_type = "string"
 required = true
 description = """Name of the owning feature (feature directory name, or "root" for repo-level docs)"""
 
-[[subagents.personas.task-tracker-scanner.outputs]]
+[[outputs]]
 name = "rows_json"
 io_type = "string"
 required = true

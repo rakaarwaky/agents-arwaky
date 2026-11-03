@@ -56,19 +56,19 @@ Rules:
   each with "evidence" naming the file paths and line ranges read.
 """
 
-[[subagents.personas.task-tracker-verifier.inputs]]
+[[inputs]]
 name = "classified_json"
 io_type = "string"
 required = true
 description = """JSON object from the classifier: rows plus per-feature rollup claims"""
 
-[[subagents.personas.task-tracker-verifier.inputs]]
+[[inputs]]
 name = "repo_root"
 io_type = "string"
 required = true
 description = """Absolute path to the repository root"""
 
-[[subagents.personas.task-tracker-verifier.outputs]]
+[[outputs]]
 name = "verdicts_json"
 io_type = "string"
 required = true

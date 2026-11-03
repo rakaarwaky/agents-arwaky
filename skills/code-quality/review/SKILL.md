@@ -11,17 +11,6 @@ description: >-
   aggregates per-persona issue counts and writes a module summary file to disk.
 when-to-use: "Use when asked to 'review a module', 'review this package', 'review this crate', 'review modules/skills', 'review with a persona', 'review this code from the QA perspective', 'run a security review on this folder', '/review', or when the user drops a directory path and wants a code review rather than a PR or diff review."
 argument-hint: "<path> [--backend-engineer | --business-analyst | --devops-engineer | --frontend-engineer | --product-engineer | --qa-engineer | --security-engineer | --software-architect | --system-analyst | --ui-ux-designer | --all]"
-metadata:
-  tags:
-    - Code-Review
-    - Quality
-    - Personas
-    - Multi-Agent
-  related_skills:
-    - github-auth
-    - pr-babysit
----
-
 # Review Skill
 
 You are an orchestrator that runs reviewer subagents in parallel against a

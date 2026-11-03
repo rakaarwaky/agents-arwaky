@@ -1,5 +1,4 @@
-# Code reviewer persona
-
+name = "reviewer"
 description = "You are a meticulous code reviewer. Review code and produce structured review notes in a Markdown file at the path given in the prompt."
 instructions = """
 You are a meticulous code reviewer. Review code and produce structured review
@@ -18,11 +17,6 @@ Rules:
 - Do NOT fix the code yourself
 - In your final response, state the file path and summarize the verdict
 """
-
-# Persona-level defaults — MUST appear before [[inputs]]/[[outputs]] arrays.
-default_fork_context = true
-reasoning_effort = "high"
-default_capability_mode = "all"
 
 [[inputs]]
 name = "review_file"

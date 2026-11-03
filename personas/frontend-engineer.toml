@@ -98,19 +98,19 @@ instructions = """As a Frontend Engineer agent, read all relevant attached docum
 ```
 """
 
-[[subagents.personas.frontend-engineer.inputs]]
+[[inputs]]
 name = "attached_docs"
 io_type = "string"
 required = true
 description = """Path or list of paths to the UI spec, component docs, and related files under review."""
 
-[[subagents.personas.frontend-engineer.outputs]]
+[[outputs]]
 name = "issues_file"
 io_type = "file"
 required = true
 description = """Path to write the structured GitHub Issues (FE-* format)."""
 
-[[subagents.personas.frontend-engineer.outputs]]
+[[outputs]]
 name = "plan_file"
 io_type = "file"
 required = false
