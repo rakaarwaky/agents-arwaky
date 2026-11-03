@@ -60,7 +60,7 @@ There is no per-reviewer exit — if the tests reviewer has 0 issues but the gen
 
 ### Decision Logic
 
-- **0 open issues**: Report "All reviews passed with 0 issues. Committing worktree..." The worktree is done. The orchestrator commits it (`git -C <worktree_path> add -A && git -C <worktree_path> commit -m "<task description>"` — the orchestrator's single commit), then proceed to Step 8 (Memory Flush), then Step 9 (Stack Assembly), then Step 10 (Final Report & Cleanup).
+- **0 open issues**: Report "All reviews passed with 0 issues. Committing worktree..." The worktree is done. Before the orchestrator commit, re-run the Step 0 scope audit (`git -C <worktree_path> status --short`) — reviewer-side tool side effects (lockfile bumps from running the project's dependency tooling, catalog rebuilds, out-of-scope tree edits introduced by a stash-restore) land in the working tree between the fix round and the commit, and the exit condition above only counts *reviewer-reported* issues. Revert any path outside the resolved scope (`git -C <worktree_path> checkout -- <path>`, `rm` for untracked) so the commit is exactly the in-scope change set, then commit (`git -C <worktree_path> add -A && git -C <worktree_path> commit -m "<task description>"` — the orchestrator's single commit), then proceed to Step 8 (Memory Flush), then Step 9 (Stack Assembly), then Step 10 (Final Report & Cleanup).
 - **Stalemate detected**: Report "Stalemate detected on N issue(s). Escalating to user..." Proceed to Step 5a (Escalate to User).
 - **Any open issues (>0)**: Report "Merged review: N issues (X bugs [tag breakdown], Y suggestions [...], Z nits [...]). Resuming implementer to fix..." Proceed to Step 6 (Fix).
 

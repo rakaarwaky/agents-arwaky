@@ -7,15 +7,13 @@ Always use the parallel-reviewer path — every run is multi-reviewer, with indi
 
 ### Parallel Reviewers
 
-Launch all reviewers in parallel by calling `spawn_subagent` with `background: true` for each.
+Launch all reviewers in parallel by calling the subagent-spawn tool with `background: true` for each.
 
-For each config in `reviewer_configs`, launch with the appropriate prompt for the specialization:
+For each config in `reviewer_configs`, launch with the appropriate prompt for the specialization.
 
-`spawn_subagent` parameters:
-- `subagent_type`: `"general-purpose"`
-- `background`: `true`
-- `cwd`: `<worktree_path>` (reviewers read repo files relative to the run's worktree)
-- `description`: `"[<tag>] Review: <specialization>"` where `<tag>` matches the specialization: `[reviewer]` for `general`, `[tests]` for tests, `[simplicity]` for simplicity. The bracketed tag drives the pager's subagent row label.
+**Parameters (verify against the tool schema at dispatch time; the set is backend-dependent).** The spawn tool in this environment is `delegate_task`-shaped: its `tasks[]` entries take `goal` (the prompt body) and `context` (background, worktree path, file paths) — and on the default delegation backend there is NO `description`, `subagent_type`, `cwd`, `background`, or `persona` field: `cwd` is carried by the `context` text (each child is told the worktree path and told to work only there), `background` is implicit (children run in background and results re-enter the conversation as a new message when they finish), and tag/labeling (e.g. `[reviewer]`, `[tests]`, `[simplicity]`) goes into the `goal` text. The skill's canonical parameter table (`subagent_type`, `background`, `cwd`, `description`) describes a richer launcher; when that schema is not what the runtime offers, do not stall — adapt: put everything the parameters were meant to carry into `goal` + `context`, and emit the calls in ONE batched array. A batched call whose entries name unsupported fields is rejected whole; re-emit without them rather than serializing.
+
+Batch every independent launch (all 3 reviewers) into a single tool response — parallel-first; serialize only true dependencies.
 
 If `config.persona_to_inject` is non-null, prepend the corresponding persona instructions to the prompt. If null (Tests, Simplicity), use the prompt as-is — those specializations are prompt-only.
 

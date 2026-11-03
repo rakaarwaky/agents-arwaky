@@ -38,6 +38,8 @@ After launching all re-reviewers, wait for all to complete via `get_command_or_s
 
 Update each `subagent_id` in `reviewer_configs` with the new ones returned.
 
+**State-drift check before the merge (every round, before Step 5).** A re-reviewed round can end with the worktree in a different shape than the one that was reviewed: a resumed subagent may have stashed the in-flight changes and restored them, or a scope-cleanup `git checkout -- <out-of-scope-path>` from the orchestrator may have been re-introduced by a stash apply. Before merging, run `git -C <worktree_path> status --short` and `git stash list`, and compare the staged/working change set against the scope resolved in Step 0. If out-of-scope paths (sibling trees, lockfiles, generated catalogs) show up in the working tree, revert them in orchestrator tools (`git -C <worktree_path> checkout -- <paths>`) and log a warning. A reviewer's self-report of its verification counts (e.g. "242 passed") is made against whatever tree it reviewed; if the tree moved afterwards, re-run the gate command before acting on the merge. This is the orchestrator's job — the reviewers are not trusted with it, and it cannot be folded into the reviewer prompt.
+
 If a reviewer fails during re-review:
 - Report a warning and exclude that reviewer's findings from the merge.
 - Continue with remaining reviewers.
