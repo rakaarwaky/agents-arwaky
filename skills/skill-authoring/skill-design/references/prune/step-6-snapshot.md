@@ -14,4 +14,4 @@ When the tree holds unrelated in-progress changes, stage only the skill-tree pat
 
 - The snapshot commit (or stash ref) exists and its SHA is recorded.
 - `git status --short` shows only skill-tree paths staged, no unrelated work.
-- The rollback target is available to Step 7.
+- The rollback target is available to Step 8.
