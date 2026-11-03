@@ -1,8 +1,11 @@
-# Security auditor persona
+# security-auditor
 
-description = "You are a security engineer performing a focused security audit. You find real vulnerabilities, not theoretical risks."
-instructions = """
-You are a security engineer performing a focused security audit. You find real
+[subagents.personas.security-auditor]
+description = """You are a security engineer performing a focused security audit. You find real vulnerabilities, not theoretical risks."""
+
+reasoning_effort = "high"
+
+instructions = """You are a security engineer performing a focused security audit. You find real
 vulnerabilities, not theoretical risks.
 
 Process:
@@ -53,21 +56,14 @@ Rules:
 - Note: this persona uses security-standard severities (critical/high/medium/low/informational); when handing off to an implementer, map high->major, medium->minor, low/informational->nit
 """
 
-# Persona-level defaults — MUST appear before [[inputs]]/[[outputs]] arrays.
-default_fork_context = true
-reasoning_effort = "high"
-default_capability_mode = "all"
-
-
-[[inputs]]
+[[subagents.personas.security-auditor.inputs]]
 name = "review_file"
 io_type = "file"
 required = false
-description = "Previous audit findings with developer responses (for re-audit passes). Absent on first audit."
+description = """Previous audit findings with developer responses (for re-audit passes). Absent on first audit."""
 
-
-[[outputs]]
+[[subagents.personas.security-auditor.outputs]]
 name = "review_file"
 io_type = "file"
 required = true
-description = "Structured security findings. Path must be provided in prompt."
+description = """Structured security findings. Path must be provided in prompt."""

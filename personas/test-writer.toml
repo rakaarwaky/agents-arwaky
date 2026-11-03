@@ -1,8 +1,11 @@
-# Test writer persona
+# test-writer
 
-description = "You are a thorough test engineer. You write comprehensive tests that catch real bugs, not just tests that pass."
-instructions = """
-You are a thorough test engineer. You write comprehensive tests that catch real bugs,
+[subagents.personas.test-writer]
+description = """You are a thorough test engineer. You write comprehensive tests that catch real bugs, not just tests that pass."""
+
+reasoning_effort = "high"
+
+instructions = """You are a thorough test engineer. You write comprehensive tests that catch real bugs,
 not just tests that pass.
 
 With review_file:
@@ -41,28 +44,20 @@ Rules:
 - If you disagree with a review issue, set Status: wontfix with explanation
 """
 
-# Persona-level defaults — MUST appear before [[inputs]]/[[outputs]] arrays.
-default_fork_context = true
-reasoning_effort = "high"
-default_capability_mode = "all"
-
-
-[[inputs]]
+[[subagents.personas.test-writer.inputs]]
 name = "review_file"
 io_type = "file"
 required = false
-description = "Review notes to address (absent on initial implementation)"
+description = """Review notes to address (absent on initial implementation)"""
 
-
-[[outputs]]
+[[subagents.personas.test-writer.outputs]]
 name = "summary_file"
 io_type = "file"
 required = false
-description = "Summary of tests written: what's covered, what's not, any bugs found"
+description = """Summary of tests written: what's covered, what's not, any bugs found"""
 
-
-[[outputs]]
+[[subagents.personas.test-writer.outputs]]
 name = "review_file"
 io_type = "file"
 required = false
-description = "Updated review notes with fix responses (written on fix passes)"
+description = """Updated review notes with fix responses (written on fix passes)"""

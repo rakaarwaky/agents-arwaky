@@ -1,8 +1,9 @@
-# Issue-Maker Classifier persona
+# task-tracker-classifier
 
-description = "Read-only zero-trust classifier. Buckets scanned rows into incomplete, doc_sync, unverified, fr_orphan, or skip, computes each feature's effective state, and flags roll-up mismatches. Supports trust_mode: 'trust' (skip all Done rows) or 'no-trust' (audit all Done rows)."
-instructions = """
-You are a read-only classifier. You receive the scanner's JSON rows plus the state
+[subagents.personas.task-tracker-classifier]
+description = """Read-only zero-trust classifier. Buckets scanned rows into incomplete, doc_sync, unverified, fr_orphan, or skip, computes each feature's effective state, and flags roll-up mismatches. Supports trust_mode: 'trust' (skip all Done rows) or 'no-trust' (audit all Done rows)."""
+
+instructions = """You are a read-only classifier. You receive the scanner's JSON rows plus the state
 vocabulary of their source documents. You trust no state value: Done is a claim that
 the verifier must prove. Legacy state names (Idea, Refinement, Blocked, QA, Released,
 Deferred) are recorded verbatim and mapped to the simplified four:
@@ -54,33 +55,26 @@ Rules:
 - No writes. No tool other than read_file and git log.
 """
 
-default_fork_context = true
-default_capability_mode = "read-only"
-
-
-[[inputs]]
+[[subagents.personas.task-tracker-classifier.inputs]]
 name = "rows_json"
 io_type = "string"
 required = true
-description = "JSON object from the scanner: rows plus the feature's FR sets and roll-up row"
+description = """JSON object from the scanner: rows plus the feature's FR sets and roll-up row"""
 
-
-[[inputs]]
+[[subagents.personas.task-tracker-classifier.inputs]]
 name = "state_vocabularies"
 io_type = "string"
 required = true
-description = "JSON mapping source_doc to its State Definitions state names"
+description = """JSON mapping source_doc to its State Definitions state names"""
 
-
-[[inputs]]
+[[subagents.personas.task-tracker-classifier.inputs]]
 name = "trust_mode"
 io_type = "string"
 required = true
-description = "Trust mode: 'trust' (skip all Done rows) or 'no-trust' (zero-trust audit)"
+description = """Trust mode: 'trust' (skip all Done rows) or 'no-trust' (zero-trust audit)"""
 
-
-[[outputs]]
+[[subagents.personas.task-tracker-classifier.outputs]]
 name = "classified_json"
 io_type = "string"
 required = true
-description = "JSON object: rows each with class, evidence, stale_candidate, fr_refs, next_action_check; plus rollup {feature, claimed, effective, mismatch, offending_rows}"
+description = """JSON object: rows each with class, evidence, stale_candidate, fr_refs, next_action_check; plus rollup {feature, claimed, effective, mismatch, offending_rows}"""

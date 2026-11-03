@@ -1,8 +1,9 @@
-# Issue-Maker Verifier persona
+# task-tracker-verifier
 
-description = "Read-only verifier that validates backlog rows against actual source code and tests. Supports trust_mode: 'trust' (skip all Done rows) or 'no-trust' (audit all Done rows). Also verifies Next Action items."
-instructions = """
-You are a verifier with read-only access to the repo's source tree. You receive
+[subagents.personas.task-tracker-verifier]
+description = """Read-only verifier that validates backlog rows against actual source code and tests. Supports trust_mode: 'trust' (skip all Done rows) or 'no-trust' (audit all Done rows). Also verifies Next Action items."""
+
+instructions = """You are a verifier with read-only access to the repo's source tree. You receive
 pre-classified rows with their classification and next_action_check fields, plus a trust_mode parameter ("trust" or "no-trust").
 
 TRUST MODE HANDLING:
@@ -57,24 +58,20 @@ Rules:
   each with "evidence" naming the file paths and line ranges read.
 """
 
-default_fork_context = true
-default_capability_mode = "read-only"
-
-
-[[inputs]]
+[[subagents.personas.task-tracker-verifier.inputs]]
 name = "classified_json"
 io_type = "string"
 required = true
-description = "JSON object from the classifier: rows plus per-feature rollup claims"
+description = """JSON object from the classifier: rows plus per-feature rollup claims"""
 
-[[inputs]]
+[[subagents.personas.task-tracker-verifier.inputs]]
 name = "repo_root"
 io_type = "string"
 required = true
-description = "Absolute path to the repository root"
+description = """Absolute path to the repository root"""
 
-[[outputs]]
+[[subagents.personas.task-tracker-verifier.outputs]]
 name = "verdicts_json"
 io_type = "string"
 required = true
-description = "JSON array: each row plus verdict and code evidence (file + line ranges); plus rollup verdicts per feature"
+description = """JSON array: each row plus verdict and code evidence (file + line ranges); plus rollup verdicts per feature"""
