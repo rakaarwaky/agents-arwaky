@@ -52,7 +52,7 @@ def test_tools_orchestrator_list():
     orch = ToolsOrchestrator(registry={})
     response = orch.execute(ToolRequest(ToolsOp("list")))
     assert response.tools is not None
-    assert len(response.tools) >= 10
+    assert len(response.tools) >= 9
 
 
 def test_tools_orchestrator_resolve_known_tool():
@@ -181,7 +181,7 @@ def test_create_tools_feature():
     # The aggregate's single entry point routes every verb.
     response = feature.execute(ToolRequest(ToolsOp("list")))
     assert isinstance(response, ToolResponse)
-    assert len(response.tools) >= 10
+    assert len(response.tools) >= 9
 
 
 def test_tools_registry_exists():
@@ -189,7 +189,7 @@ def test_tools_registry_exists():
     from modules.tools.src.root_tools_container import TOOLS_REGISTRY
 
     assert isinstance(TOOLS_REGISTRY, dict)
-    assert len(TOOLS_REGISTRY) >= 10
+    assert len(TOOLS_REGISTRY) >= 9
 
 
 def test_orchestrator_repr():

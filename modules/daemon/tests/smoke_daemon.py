@@ -14,11 +14,8 @@ def test_import_daemon_capabilities():
     """SM-DAEMON-002: daemon capability modules can be imported."""
     from modules.daemon.src import (
         capabilities_9router_daemon,
-        capabilities_anytype_daemon,
         capabilities_omniroute_daemon,
     )
-
-    assert capabilities_anytype_daemon is not None
     assert capabilities_omniroute_daemon is not None
     assert capabilities_9router_daemon is not None
 
@@ -26,21 +23,18 @@ def test_import_daemon_capabilities():
 def test_import_daemon_orchestrator():
     """SM-DAEMON-003: daemon orchestrator module can be imported."""
     from modules.daemon.src import agent_daemon_orchestrator
-
     assert agent_daemon_orchestrator is not None
 
 
 def test_import_daemon_container():
     """SM-DAEMON-004: daemon container module can be imported."""
     from modules.daemon.src import root_daemon_container
-
     assert root_daemon_container is not None
 
 
 def test_import_daemon_surface():
     """SM-DAEMON-005: daemon surface module can be imported."""
     from modules.cli.src import surface_daemon_command
-
     assert surface_daemon_command is not None
 
 
@@ -50,7 +44,6 @@ def test_import_daemon_protocol():
         contract_daemon_aggregate,
         contract_daemon_protocol,
     )
-
     assert contract_daemon_protocol is not None
     assert contract_daemon_aggregate is not None
 
@@ -58,20 +51,7 @@ def test_import_daemon_protocol():
 def test_import_daemon_vo():
     """SM-DAEMON-007: daemon value objects can be imported."""
     from modules.shared.src.daemon import taxonomy_daemon_vo
-
     assert taxonomy_daemon_vo is not None
-
-
-def test_anytype_manager_instantiates():
-    """SM-DAEMON-008: AnytypeDaemonManager instantiates quickly."""
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-
-    start = time.time()
-    manager = AnytypeDaemonManager()
-    elapsed = time.time() - start
-
-    assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
-    assert repr(manager) == "AnytypeDaemonManager()"
 
 
 def test_omniroute_manager_instantiates():
@@ -97,16 +77,17 @@ def test_ninerouter_manager_instantiates():
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
     assert repr(manager) == "NinerouterDaemonManager()"
 
+
 def test_orchestrator_instantiates():
     """SM-DAEMON-010: DaemonOrchestrator instantiates quickly."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
+    from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
     from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 
     start = time.time()
     omniroute = OmnirouteDaemonManager()
-    anytype = AnytypeDaemonManager()
-    orchestrator = DaemonOrchestrator(omniroute, anytype)
+    ninerouter = NinerouterDaemonManager()
+    orchestrator = DaemonOrchestrator(omniroute, ninerouter)
     elapsed = time.time() - start
 
     assert elapsed < 1.0, f"Initialization took {elapsed:.2f}s"
@@ -135,22 +116,3 @@ def test_create_feature_quickly():
 
     assert elapsed < 1.0, f"Feature creation took {elapsed:.2f}s"
     assert result is not None
-
-
-def test_helper_functions_importable():
-    """SM-DAEMON-013: Helper functions are importable."""
-    from modules.daemon.src.capabilities_anytype_daemon import (
-        _extract_api_key,
-        api_ready,
-        container_exists,
-        container_running,
-        has_podman,
-        image_exists,
-    )
-
-    assert callable(api_ready)
-    assert callable(container_exists)
-    assert callable(container_running)
-    assert callable(has_podman)
-    assert callable(image_exists)
-    assert callable(_extract_api_key)

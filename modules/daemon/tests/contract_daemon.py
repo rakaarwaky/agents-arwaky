@@ -13,15 +13,6 @@ def test_idaemonprotocol_exists():
         assert hasattr(IDaemonProtocol, method)
 
 
-def test_anytype_daemon_manager_class_exists():
-    """CP-DAEMON-002: AnytypeDaemonManager class exists."""
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-
-    assert AnytypeDaemonManager is not None
-    assert hasattr(AnytypeDaemonManager, '__init__')
-    assert not hasattr(AnytypeDaemonManager, 'execute')
-
-
 def test_omniroute_daemon_manager_class_exists():
     """CP-DAEMON-003: OmnirouteDaemonManager class exists."""
     from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
@@ -39,15 +30,6 @@ def test_ninerouter_daemon_manager_class_exists():
     assert hasattr(NinerouterDaemonManager, '__init__')
     assert not hasattr(NinerouterDaemonManager, 'execute')
 
-def test_anytype_implements_idaemonprotocol():
-    """CP-DAEMON-004: AnytypeDaemonManager implements the rich IDaemonProtocol."""
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-    from modules.shared.src.daemon.contract_daemon_protocol import IDaemonProtocol
-
-    manager = AnytypeDaemonManager()
-    assert isinstance(manager, IDaemonProtocol)
-
-
 def test_omniroute_implements_idaemonprotocol():
     """CP-DAEMON-005: OmnirouteDaemonManager implements the rich IDaemonProtocol."""
     from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
@@ -64,16 +46,6 @@ def test_ninerouter_implements_idaemonprotocol():
 
     manager = NinerouterDaemonManager()
     assert isinstance(manager, IDaemonProtocol)
-
-def test_anytype_exposes_rich_methods():
-    """CP-DAEMON-006: AnytypeDaemonManager exposes rich protocol methods."""
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
-
-    manager = AnytypeDaemonManager()
-    for method in ("start", "stop", "restart", "status", "logs",
-                   "install_unit", "remove_unit", "unit_status"):
-        assert callable(getattr(manager, method))
-
 
 def test_omniroute_exposes_rich_methods():
     """CP-DAEMON-007: OmnirouteDaemonManager exposes rich protocol methods."""
@@ -110,13 +82,11 @@ def test_orchestrator_class_exists():
 def test_orchestrator_implements_idaemonaggregate():
     """CP-DAEMON-009: DaemonOrchestrator implements IDaemonAggregate."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
     from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
     from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 
     omniroute = OmnirouteDaemonManager()
-    anytype = AnytypeDaemonManager()
-    orchestrator = DaemonOrchestrator(omniroute, anytype)
+    orchestrator = DaemonOrchestrator(omniroute)
     assert isinstance(orchestrator, IDaemonAggregate)
 
 
@@ -124,16 +94,15 @@ def test_orchestrator_routes_both_gateways():
     """CP-DAEMON-011b: DaemonOrchestrator routes 9router and omniroute side by side."""
     from modules.daemon.src.agent_daemon_orchestrator import DaemonOrchestrator
     from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManager
-    from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
     from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
     from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 
     orchestrator = DaemonOrchestrator(
-        AnytypeDaemonManager(), OmnirouteDaemonManager(), NinerouterDaemonManager()
+        OmnirouteDaemonManager(), NinerouterDaemonManager()
     )
     assert isinstance(orchestrator, IDaemonAggregate)
     names = {str(name) for name in orchestrator.known}
-    assert {"anytype", "omniroute", "9router"} <= names
+    assert {"omniroute", "9router"} <= names
 
 def test_container_class_exists():
     """CP-DAEMON-010: DaemonContainer class exists."""

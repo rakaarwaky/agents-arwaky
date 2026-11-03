@@ -1,4 +1,4 @@
-"""Daemon feature package — OmniRoute + Anytype container daemon lifecycle.
+"""Daemon feature package — OmniRoute + 9router daemon lifecycle.
 
 Public re-exports: orchestrator + container.
 """

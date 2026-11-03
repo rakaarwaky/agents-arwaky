@@ -9,8 +9,8 @@ across orchestrator instances; the daemon aggregate is passed to
 
 Every tool id lives in a sibling capability module — the eight
 config-driven providers (blender / vision / qwen-web /
-workspace / codegraph / context7 / fetch / omniroute) plus anytype
-and lint — each exporting ``ADAPTER_UNITS``; all are merged into the
+workspace / codegraph / context7 / fetch / omniroute) plus
+lint — each exporting ``ADAPTER_UNITS``; all are merged into the
 single ``TOOLS_REGISTRY`` below.
 
 The daemon aggregate is imported lazily inside the factory so that importing
@@ -29,9 +29,6 @@ from modules.tools.src.capabilities_tools_9router_adapter import (
 # every adapter capability is constructed here and injected into the
 # agent orchestrator (which must stay capabilities-free). Importing them
 # here also wires them for the AES503 orphan check.
-from modules.tools.src.capabilities_tools_anytype_adapter import (
-    ADAPTER_UNITS as _ANYTYPE_UNITS,
-)
 from modules.tools.src.capabilities_tools_blender_adapter import (
     ADAPTER_UNITS as _BLENDER_UNITS,
 )
@@ -69,7 +66,6 @@ from modules.tools.src.capabilities_tools_workspace_adapter import (
 #: tool_id -> adapter unit (root composition data; each unit is a
 #: stateless `AdapterUnit` VO of action functions).
 TOOLS_REGISTRY: dict[str, object] = {
-    **_ANYTYPE_UNITS,
     **_BLENDER_UNITS,
     **_CODEGRAPH_UNITS,
     **_CONTEXT7_UNITS,

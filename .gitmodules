@@ -22,10 +22,6 @@
 	path = vendor/fetch-mcp
 	url = https://github.com/zcaceres/fetch-mcp.git
 	ignore = dirty
-[submodule "vendor/anytype-mcp"]
-	path = vendor/anytype-mcp
-	url = https://github.com/anyproto/anytype-mcp.git
-	ignore = dirty
 [submodule "vendor/codegraph"]
 	path = vendor/codegraph
 	url = https://github.com/colbymchenry/codegraph.git

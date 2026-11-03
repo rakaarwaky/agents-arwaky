@@ -35,15 +35,12 @@ TOOL_RUNNERS = {
 INSTALL_OVERRIDES = {
     "workspace": "google-workspace-mcp",
     "fetch": "fetch-mcp",
-    "anytype": "anytype-mcp",
-    "anytype-daemon": "anytype-mcp",
     "9router": "9router",
     "omniroute": "omniroute",
 }
 UNINSTALL_OVERRIDES = {
     "workspace": "google-workspace-mcp",
     "fetch": "fetch-mcp",
-    "anytype": "anytype-mcp",
     "9router": "9router",
     "omniroute": "omniroute",
 }
@@ -51,10 +48,6 @@ UNINSTALL_OVERRIDES = {
 # --- daemons -------------------------------------------------------------------
 NINEROUTER_PORT = "20128"
 OMNIROUTE_PORTS = ("20139", "20140", "20141")
-
-# --- anytype -------------------------------------------------------------------
-ANYTYPE_PORT = "31012"
-ANYTYPE_BASE_URL = "http://127.0.0.1:31012"
 
 # --- doc pack ------------------------------------------------------------------
 SPEC_DOCS = ("PRD.md", "FRD.md")

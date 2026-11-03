@@ -7,37 +7,13 @@ from modules.shared.src.daemon.contract_daemon_protocol import (
     IDaemonProtocol as IDaemonProtocol,
 )
 from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    ANYTYPE_CONFIG_DIR as ANYTYPE_CONFIG_DIR,
+    NINEROUTER_DATA_DIR as NINEROUTER_DATA_DIR,
 )
 from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    ANYTYPE_DATA_DIR as ANYTYPE_DATA_DIR,
+    NINEROUTER_PORT as NINEROUTER_PORT,
 )
 from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    ANYTYPE_PORT as ANYTYPE_PORT,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    ANYTYPE_SCRIPT_DIR as ANYTYPE_SCRIPT_DIR,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    ANYTYPE_UNIT_FILE as ANYTYPE_UNIT_FILE,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    CONTAINER_NAME as CONTAINER_NAME,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    DATA_DIR as DATA_DIR,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    DATA_ROOT as DATA_ROOT,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    DOT_ANYTYPE as DOT_ANYTYPE,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    IMAGE_NAME as IMAGE_NAME,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    LOCAL_BIN as LOCAL_BIN,
+    NINEROUTER_UNIT_FILE as NINEROUTER_UNIT_FILE,
 )
 from modules.shared.src.daemon.taxonomy_daemon_constant import (
     OMNIROUTE_CONFIG_DIR as OMNIROUTE_CONFIG_DIR,
@@ -61,13 +37,7 @@ from modules.shared.src.daemon.taxonomy_daemon_constant import (
     OMNIROUTE_UNIT_FILE as OMNIROUTE_UNIT_FILE,
 )
 from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    PID_FILE as PID_FILE,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
     ROOT as ROOT,
-)
-from modules.shared.src.daemon.taxonomy_daemon_constant import (
-    SHARE_DIR as SHARE_DIR,
 )
 from modules.shared.src.daemon.taxonomy_daemon_constant import (
     UNIT_DIR as UNIT_DIR,

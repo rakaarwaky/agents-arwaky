@@ -22,24 +22,6 @@ from modules.shared.src.tools.taxonomy_tools_constant import (
     ALIAS_TABLE as ALIAS_TABLE,
 )
 from modules.shared.src.tools.taxonomy_tools_constant import (
-    ANYTYPE_DAEMON_DATA_REL as ANYTYPE_DAEMON_DATA_REL,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    ANYTYPE_INTERNAL_BIN as ANYTYPE_INTERNAL_BIN,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    ANYTYPE_MCP_APP_REL as ANYTYPE_MCP_APP_REL,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    ANYTYPE_MCP_ENTRY as ANYTYPE_MCP_ENTRY,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    ANYTYPE_MCP_SRC_REL as ANYTYPE_MCP_SRC_REL,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    ANYTYPE_VOLUME_DIRS as ANYTYPE_VOLUME_DIRS,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
     CONTEXT7_LAUNCHER_ENTRIES as CONTEXT7_LAUNCHER_ENTRIES,
 )
 from modules.shared.src.tools.taxonomy_tools_constant import (

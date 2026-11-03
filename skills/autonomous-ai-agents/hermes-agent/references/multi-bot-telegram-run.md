@@ -45,7 +45,7 @@ profiles `currie`, `linus`, `tesla`, each with its own BotFather token.
   stalled; the real success lines were in `gateway.log`. Check the log file, not just journald.
 - One transient `Sticky Telegram path 149.154.x.x failed; re-walking IPv4 literals…` warning
   ~8 min after start — adapter self-healed, polling stayed healthy. Not actionable.
-- Pre-existing unrelated warning at every startup: MCP server 'anytype' parked/revived —
+- Pre-existing unrelated warning at every startup: an MCP server parked/revived —
   don't confuse it with messaging failures.
 - Before tokens were added, the running gateway logged
   `No env user allowlists configured…` and `No messaging platforms enabled.` — those two

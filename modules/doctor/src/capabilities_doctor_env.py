@@ -22,7 +22,7 @@ from modules.shared.src.doctor.taxonomy_doctor_constant import OPTIONAL, REQUIRE
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class EnvDiagnosticRunner(IDoctorProtocol):
-    """PATH check, required/optional toolchain, container engine detection."""
+    """PATH check and required/optional toolchain detection."""
 
     def __init__(self) -> None:
         """Prepare the XDG bin home required for binary lookups."""
@@ -30,17 +30,12 @@ class EnvDiagnosticRunner(IDoctorProtocol):
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def run(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
-        """Check PATH, toolchain binaries, and container engine availability."""
+        """Check PATH and toolchain binaries."""
         _ = flags
         banner()
         print(f"{BOLD()}Running Environment Diagnostics...{RESET()}")
         print("-" * 54)
         self._check_toolchain()
-        engine = shutil.which("podman") or shutil.which("docker")
-        if engine:
-            ok(f"Container engine: {engine}")
-        else:
-            warn("Podman/Docker not found (only needed for anytype daemons)")
         print("-" * 54)
         print(f"{GREEN()}Diagnostics complete.{RESET()}")
         return ExitCode(0)

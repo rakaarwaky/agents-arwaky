@@ -24,7 +24,7 @@ The service feature exposes typed control methods (`start`, `stop`, `restart`) a
 
 | Aspect | Detail |
 |--------|--------|
-| **Input** | target from the aggregate — `omniroute`, `9router`, `anytype`, or `all` (default `all`) |
+| **Input** | target from the aggregate — `omniroute`, `9router`, or `all` (default `all`) |
 | **Output** | `ExitCode`; one reported line per driven unit |
 | **Protocol** | IServiceProtocol |
 | **Method** | start/stop/restart |
@@ -51,7 +51,7 @@ The service feature exposes typed control methods (`start`, `stop`, `restart`) a
 
 - Status is read-only — it never starts, stops, or restarts anything; a stopped unit is a valid reported state, not an error.
 - Logs is read-only; a stopped unit's logs are still valid to tail.
-- Usage lists exactly the supported actions (`status`, `start`, `stop`, `restart`, `logs`, `help`) and targets (`omniroute`, `9router`, `anytype`, `all`).
+- Usage lists exactly the supported actions (`status`, `start`, `stop`, `restart`, `logs`, `help`) and targets (`omniroute`, `9router`, `all`).
 
 #### Edge Cases
 
@@ -63,7 +63,7 @@ The service feature exposes typed control methods (`start`, `stop`, `restart`) a
 
 | Aspect | Detail |
 |--------|--------|
-| **Input** | none (status, help) / target — `omniroute` (default), `9router`, or `anytype` (logs) |
+| **Input** | none (status, help) / target — `omniroute` (default), or `9router` (logs) |
 | **Output** | `ExitCode`; a state table on stdout (status); log lines on stdout (logs); usage text on stdout (help) |
 | **Protocol** | IServiceProtocol |
 | **Method** | status/logs/help |

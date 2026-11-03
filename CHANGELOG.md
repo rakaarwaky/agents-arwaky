@@ -31,6 +31,9 @@ All notable changes to this project are documented in this file.
 - **lint-arwaky install consolidated**: Merged 4 install scripts (`install.local.sh`, `install.remote.sh`, `install.global.sh`, `install.dev.sh`) into single `install.sh` with `--local`, `--global`, `--remote`, `--dev` flags.
 - **Venv symlinks moved to init**: `.venv`/`venv` symlinks in source directories are now created during `<tool> init`, not during install.
 
+### Removed
+- Anytype integration removed: the Anytype daemon manager, the `aa anytype` command, the anytype-mcp vendor submodule, and the `office/anytype-daemon` + `office/anytype-mcp` skills.
+
 ### Fixed
 - Resolved lint violations across the orchestration layer (Ruff/Mypy/Pylance/Codacy).
 - Env file quote round-trip escaping.

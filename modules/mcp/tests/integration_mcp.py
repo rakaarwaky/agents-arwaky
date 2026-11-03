@@ -67,7 +67,7 @@ def test_generate_entry_count_matches_canonical_manifest(tmp_path) -> None:
     manifest = load_mcp_manifest(writer._root)
     expected = {tool_id for tool_id, tool in manifest.items() if tool.get("mcp")}
 
-    assert len(expected) == 8
+    assert len(expected) == 7
     assert set(generated) == expected
     assert all(generated[tool_id]["command"] for tool_id in expected)
 

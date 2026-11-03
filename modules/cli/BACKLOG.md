@@ -4,7 +4,7 @@
 
 The CLI surface ships the shared verb families for `aa <tool>`: tools
 (list / run / install / update / uninstall / tool), daemon lifecycle
-(anytype / omniroute / 9router plus their service-* ops), and the
+(omniroute / 9router plus their service-* ops), and the
 wiring verbs (connect / disconnect / mcp / service / config / doctor /
 status / skills / backup / restore). All verbs route through their
 feature's aggregate contract; no surface file imports a capability
