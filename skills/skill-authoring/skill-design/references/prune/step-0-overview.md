@@ -8,14 +8,14 @@ Run the steps in order; each links to the next.
 
 | Step | File | What it does |
 | ---- | ---- | ------------ |
-| 0a | [`step-0-confirm-root.md`](step-0-confirm-root.md) | Resolve the audit root the prune runs on. |
-| 1 | [`step-1-inventory.md`](step-1-inventory.md) | List every skill folder and read frontmatter and body. |
-| 2 | [`step-2-group.md`](step-2-group.md) | Cluster skills by semantic scope, verified against bodies. |
-| 3 | [`step-3-classify.md`](step-3-classify.md) | Label each cluster: duplicate, variant, shared tooling, or separate jobs. |
-| 4 | [`step-4-dry-run.md`](step-4-dry-run.md) | Present the planned prune report and gate on approval. |
-| 5 | [`step-5-snapshot.md`](step-5-snapshot.md) | Commit the rollback target before touching the tree. |
-| 6 | [`step-6-execute.md`](step-6-execute.md) | Merge the clusters and archive dropped duplicates. |
-| 7 | [`step-7-verify-report.md`](step-7-verify-report.md) | Verify the merge and emit the final report. |
+| 1 | [`step-1-confirm-root.md`](step-1-confirm-root.md) | Resolve the audit root the prune runs on. |
+| 2 | [`step-2-inventory.md`](step-2-inventory.md) | List every skill folder and read frontmatter and body. |
+| 3 | [`step-3-group.md`](step-3-group.md) | Cluster skills by semantic scope, verified against bodies. |
+| 4 | [`step-4-classify.md`](step-4-classify.md) | Label each cluster: duplicate, variant, shared tooling, or separate jobs. |
+| 5 | [`step-5-dry-run.md`](step-5-dry-run.md) | Present the planned prune report and gate on approval. |
+| 6 | [`step-6-snapshot.md`](step-6-snapshot.md) | Commit the rollback target before touching the tree. |
+| 7 | [`step-7-execute.md`](step-7-execute.md) | Merge the clusters and archive dropped duplicates. |
+| 8 | [`step-8-verify-report.md`](step-8-verify-report.md) | Verify the merge and emit the final report. |
 
 ## Classification rules
 
