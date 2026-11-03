@@ -32,13 +32,60 @@ The single source of truth for the shape of any `references/<file>.md` a skill s
 
 ## The 3 reference patterns
 
-A reference can ship in one of three layouts. Pick the pattern from the skill's **shape** (its Routing table), never from what the tree currently looks like. The full decision procedure — pattern shapes, the "does the skill have one ordered pipeline?" and "multiple independent modes?" tests, and the placement rules — is `references/audit/step-10-reference-pattern.md`; this section is the quick reference.
+A reference can ship in one of three layouts. Pick the pattern from the skill's **shape** (its Routing table), never from what the tree currently looks like. The full decision procedure — pattern shapes, the "does the skill have one ordered pipeline?" and "multiple independent modes?" tests, and the placement rules — is `references/audit/step-10-reference-pattern.md`; this section is the quick reference with filled trees.
 
-- **Pattern A — one file per mode.** A single `references/<mode>.md` per mode; `SKILL.md` routes directly to it. Use when every mode file is under ~100 lines and under 5 ordered steps. This is the shape `template/reference.md` (above) is written for — one self-contained file with title, goal, sections, and a checkable `## Completion` block.
-- **Pattern B — numbered step files (single ordered pipeline).** `references/step-<N>-<name>.md` in execution order; numbers encode order, and sub-variants (`step-<N>a`, `step-<N>b`) branch by a runtime parameter. Use when the agent always runs all steps in sequence with run state flowing step to step. Each step file still follows the shape above (title, goal, the step's commands/field shapes, a checkable `## Completion`), just scoped to one step.
-- **Pattern C — hybrid: per-mode subdirs of numbered steps.** `references/<mode>/step-<N>-<name>.md`; the step files nest under the mode folder and each step file again follows the shape above. Use for a mode that exceeds ~100 lines or 5 ordered steps — that mode becomes a C folder while the smaller modes stay Pattern A single files.
+The file content shape is identical across all three — each file has a title, a one-line goal, sections with exact syntax, and a checkable `## Completion` block. Only the file tree and where `step-0` lives differ.
 
-Choose A, B, or C before writing the references; the shape (title / goal / sections / `## Completion`) is identical across all three — only the file tree and where `step-0` lives differ.
+### Pattern A — one file per mode
+
+Use when every mode file is under ~100 lines and under 5 ordered steps; `SKILL.md` routes directly to each.
+
+```
+<skill>/
+├── SKILL.md
+└── references/
+    ├── create.md
+    ├── audit.md
+    └── improve.md
+```
+
+### Pattern B — numbered step files (single ordered pipeline)
+
+Use when the agent always runs all steps in sequence with run state flowing step to step. Numbers encode order; sub-variants (`step-<N>a`, `step-<N>b`) branch by a runtime parameter.
+
+```
+<skill>/
+├── SKILL.md
+└── references/
+    ├── step-0-resume-or-price.md
+    ├── step-1-collect.md
+    ├── step-2-launch.md
+    ├── step-3-read-report.md
+    ├── step-4-apply.md
+    └── step-5-verify.md
+```
+
+### Pattern C — hybrid: per-mode subdirs of numbered steps
+
+Use for a mode that exceeds ~100 lines or 5 ordered steps — that mode becomes a C folder while smaller modes stay Pattern A single files.
+
+```
+<skill>/
+├── SKILL.md
+└── references/
+    ├── create/
+    │   ├── step-0-gather.md
+    │   ├── step-1-draft.md
+    │   ├── step-2-write.md
+    │   └── step-3-verify.md
+    ├── audit/
+    │   ├── step-0-frontmatter.md
+    │   ├── step-1-structure.md
+    │   └── step-2-checklist.md
+    └── improve.md            # smaller mode stays Pattern A
+```
+
+Choose A, B, or C before writing the references.
 
 ## Rules
 
