@@ -50,7 +50,9 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
 __all__ = [
     "SECRET_RES",
     "STATUSES",
+    "SUBAGENT_KINDS",
     "TURN_CAP",
+    "USER_QUERY_RE",
     "decisions_path",
     "dispatch",
     "files_ready",
@@ -77,6 +79,23 @@ STATUSES = (
 )
 
 _STATUS_BY_VALUE = {s.value: s for s in STATUSES}
+
+# ── trace-scan / phrase-mining constants (shared with the traces capability) ──
+
+USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
+SUBAGENT_KINDS = {"subagent", "subagent_resume", "subagent_fork"}
+DEFAULT_EXCLUDE_SUBSTR = ["grok-e2e"]
+SKILL_PATH_RE = re.compile(r"[/\\]skills[/\\]([^/\\]+)[/\\]SKILL\.md$")
+# a slash command, not a path segment (~/x, ./x, a/b) and not followed by more path
+DEFAULT_DROP_PATTERNS = [r"^the user invoked `/feedback`"]
+MIN_PHRASE_LEN = 12
+MIN_LINE_WORDS = 5
+MIN_LINE_CHARS = 24
+TOP = 60
+EXACT_MIN_SESSIONS = 2
+STEM_MIN_SESSIONS = 3
+LINE_MIN_SESSIONS = 3
+SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")
 
 
 # ─── lifecycle paths ─────────────────────────────────────────────

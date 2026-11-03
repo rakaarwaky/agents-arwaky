@@ -49,14 +49,16 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     issue_message,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.skills.src.utility_skills_mutation import plan_weed
+from modules.shared.src.skills.utility_skills_mutation import plan_weed
 
 __all__ = ["SkillsLinter"]
 
 
+# ─── Block 1: SkillsLinter class definition ──────────────
 class SkillsLinter(ISkillsLinterProtocol):
     """Combined lint: 13-rule checks + weed report, optionally category-filtered."""
 
+    # ─── Block 2: Protocol Method Implementation ───────────
     def lint(
         self, root: SkillsRoot, category: str | None = None
     ) -> LintReport:
@@ -115,6 +117,8 @@ class SkillsLinter(ISkillsLinterProtocol):
             unfiltered_issues=unfiltered_issues,
             unfiltered_weed_lines=unfiltered_weed_lines,
         )
+
+    # ── Block 3: Constructors, standard traits, helpers ──────────
 
     # ── 13-rule checks (ported from the retired validator) ────────
 

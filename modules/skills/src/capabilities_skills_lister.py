@@ -19,6 +19,7 @@ from modules.shared.src.skills.contract_skills_protocol import ISkillsListerProt
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillDescription,
     SkillRecord,
+    SkillsJsonPayload,
     SkillsRoot,
 )
 
@@ -52,7 +53,7 @@ class SkillsLister(ISkillsListerProtocol):
         records.sort(key=lambda r: r.name)
         return records
 
-    def list_skills_json(self, root: SkillsRoot | None = None) -> dict:
+    def list_skills_json(self, root: SkillsRoot | None = None) -> SkillsJsonPayload:
         """Return the global-skill JSON list: ``{"skills": [{name, source, path, loaded}]}``.
 
         Source is the repo pack only; the per-entry key order is pinned by
@@ -69,7 +70,7 @@ class SkillsLister(ISkillsListerProtocol):
                     "loaded": True,
                 }
             )
-        return {"skills": skills}
+        return SkillsJsonPayload({"skills": skills})
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:

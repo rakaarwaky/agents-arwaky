@@ -19,14 +19,9 @@ from enum import IntEnum, StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, NewType
 
-from modules.shared.src.skills.taxonomy_skills_rule_vo import (
-    CategoryName,
-    SkillName,
-)
-
 if TYPE_CHECKING:
-    # ``SkillsResult`` annotates an authoring VO (``ValidationReport``,
-    # ``CatalogReport``, ``LintReport``, ...). Those classes live in the authoring module,
+    # ``SkillsResult`` annotates authoring VOs (``ValidationReport``,
+    # ``CatalogReport``, ...). Those classes live in the authoring module,
     # which re-imports the trace primitives from here — a runtime import
     # here would cycle, so the names are reserved for type-checking and the
     # PEP 563 string annotations. No consumer reads an authoring VO off this
@@ -63,6 +58,22 @@ DiffLines = NewType("DiffLines", tuple[str, ...])
 
 SkillsRoot = NewType("SkillsRoot", Path)
 """An explicit skills root; ``None`` on a request means 'use the default'."""
+
+SkillsJsonPayload = NewType("SkillsJsonPayload", Mapping[str, object])
+"""The pure-data JSON list of global skills (``SkillsLister.list_skills_json``).
+
+One entry per skill (``name``, ``source``, ``path``, ``loaded``); the
+source is the repo pack only. A pure-data dict, so it never touches I/O.
+"""
+
+GrokHome = NewType("GrokHome", str)
+"""The ``$GROK_HOME`` directory the trace-learning lifecycle reads and writes."""
+
+TraceRunDir = NewType("TraceRunDir", str)
+"""The run directory one trace scan writes into (``report.md``, ``sessions/``)."""
+
+TraceRunName = NewType("TraceRunName", str)
+"""A single path component naming one trace run (trash/restrict target)."""
 
 
 class SkillsOp(StrEnum):
@@ -298,24 +309,25 @@ class SkillsResult:
 
 
 __all__ = [
-    "CategoryName",
     "DiffLines",
     "ErrorMessage",
+    "GrokHome",
     "PhraseRow",
     "ScanResult",
     "SkillContent",
     "SkillDescription",
-    "SkillName",
     "SkillQuery",
     "SkillRecord",
     "SkillUsageItem",
     "SkillsExitCode",
+    "SkillsJsonPayload",
     "SkillsOp",
     "SkillsRequest",
     "SkillsResult",
     "SkillsRoot",
-    "LintReport",
     "TraceDecision",
+    "TraceRunDir",
+    "TraceRunName",
     "TraceSessionRecord",
     "TraceStateDispatchResult",
     "TraceStateStatus",

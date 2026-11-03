@@ -8,7 +8,16 @@ from __future__ import annotations
 
 import posixpath
 import re
+from dataclasses import dataclass
 from pathlib import Path
+
+
+@dataclass(frozen=True)
+class SkillNameVO:
+    """The sanitised, directory-safe skill name and its canonical path."""
+
+    name: str
+    path: Path
 
 
 def extract_skill_name(skill_md: Path) -> str:
@@ -54,6 +63,7 @@ def safe_child(base: Path, name: str) -> Path:
 
 
 __all__ = [
+    "SkillNameVO",
     "extract_skill_name",
     "safe_child",
     "safe_skill_name",

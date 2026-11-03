@@ -18,7 +18,7 @@ from modules.skills.src.capabilities_skills_archiver import SkillsArchiver
 from modules.skills.src.capabilities_skills_catalog import SkillsCatalog
 from modules.skills.src.capabilities_skills_creator import SkillsCreator
 from modules.skills.src.capabilities_skills_mover import SkillsMover
-from modules.skills.src.utility_skills_mutation import plan_repair, plan_weed
+from modules.shared.src.skills.utility_skills_mutation import plan_repair, plan_weed
 from modules.skills.tests.fixture_skills import as_root, crafted_tree
 
 
