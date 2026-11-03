@@ -46,7 +46,7 @@ Bullet list: claim, reason it was dropped (which verifier, what failed). Include
 ## Coverage
 - sessions seen / kept / dropped by reason (from manifest.json)
 - usage source: `usage.json` (per-skill `count`, `in_slash_mru`, `unused_loaded`,
-  session ids) written by `aa skills trace-materialize`; phrase source:
+  session ids) written by `aa skills traces materialize`; phrase source:
   `phrases.json` (`exact_prompts`, `prompt_stems_12_words`,
   `repeated_instruction_lines`)
 - human turns read; sessions read by mappers vs total

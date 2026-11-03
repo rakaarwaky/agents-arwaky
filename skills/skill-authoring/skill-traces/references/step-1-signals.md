@@ -3,7 +3,7 @@
 Skills-only: no plugins, MCP servers, workflows, or hooks. Per-skill use counts and
 the `unused_loaded` verdict come from `usage.json` in the run dir; repeated-phrase
 material (exact prompts, 12-word stems, repeated instruction lines) comes from
-`phrases.json`. Both are written by `aa skills trace-materialize` into the run dir
+`phrases.json`. Both are written by `aa skills traces materialize` into the run dir
 before the workflow launches, so mappers and reducers read them off disk instead of
 recounting the `sessions/*.json` records by hand. Coverage counts and window params
 come from `manifest.json`.
@@ -27,7 +27,7 @@ The repeated-phrase candidates are confirmed against `phrases.json` (`exact_prom
 recount them by hand. Mine them with:
 
 ```bash
-aa skills trace-phrases --run-dir <RUN>
+aa skills traces phrases --run-dir <RUN>
 ```
 
 ## 2. Friction (the harness failed the user)
@@ -49,7 +49,7 @@ current file, there is no claim.
 
 Never counted by an agent. Per-skill `count`, `sessions`, `last_used`, `in_slash_mru`,
 and the `unused_loaded` list are read from `usage.json` in the run dir — the
-deterministic material `aa skills trace-materialize` writes before launch. A skill in
+deterministic material `aa skills traces materialize` writes before launch. A skill in
 `unused_loaded` (count 0 across the window, absent from slash MRU) is a retirement
 candidate. The safety argument is what still does the job: another loaded copy or a
 sibling skill that covers the same job. If nothing else does the job, the action is
