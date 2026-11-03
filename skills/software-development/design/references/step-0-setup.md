@@ -14,17 +14,17 @@ Parse the JSON on stdout and store:
 
 - `python` as `PYTHON`
 - `run_id` as `DESIGN_ID` (validate: exactly 8 hex characters)
-- `scratch_dir` as the artifact base directory. `host.py` is the single source of truth for this location: `~/.grok/plans/<repo-slug>/`, where `<repo-slug>` is the lowercased git repository name normalized to `[a-z0-9-]`. It also creates the directory. If setup fails (e.g. not inside a git repository), stop and report.
+- `scratch_dir` as the artifact base directory. `host.py` is the single source of truth for this location: `~/.grok/develop/<repo-slug>/plan/`, where `<repo-slug>` is the lowercased git repository name normalized to `[a-z0-9-]`. It also creates the directory. If setup fails (e.g. not inside a git repository), stop and report.
 
-Always use expanded absolute paths (for example `/home/<user>/.grok/plans/<repo-slug>/grok-design-doc-<DESIGN_ID>.md`), including in subagent prompts.
+Always use expanded absolute paths (for example `/home/<user>/.grok/develop/<repo-slug>/plan/design-doc-<DESIGN_ID>.md`), including in subagent prompts.
 
 ## Shared File Paths
 
 Fixed for the entire run; derive each from `scratch_dir`:
 
-- `design_doc_file`: `<scratch_dir>/grok-design-doc-<DESIGN_ID>.md`
-- `summary_file`: `<scratch_dir>/grok-design-summary-<DESIGN_ID>.md`
-- `review_file`: `<scratch_dir>/grok-design-review-<DESIGN_ID>.md`
+- `design_doc_file`: `<scratch_dir>/design-doc-<DESIGN_ID>.md`
+- `summary_file`: `<scratch_dir>/design-summary-<DESIGN_ID>.md`
+- `review_file`: `<scratch_dir>/design-review-<DESIGN_ID>.md`
 
 Never regenerate `DESIGN_ID` or these paths during review/revise iterations.
 

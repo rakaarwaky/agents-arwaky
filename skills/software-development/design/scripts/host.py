@@ -3,7 +3,7 @@
 
 This module is the single source of truth for the artifact root:
 
-    ~/.grok/plans/<projectreponame>/
+    ~/.grok/develop/<projectreponame>/plan/
 
 The `setup` command creates the per-repo directory and returns it as
 `scratch_dir`; the skill's step files derive every artifact path from that
@@ -46,8 +46,8 @@ def resolve_python() -> str:
     raise SystemExit("host.py: no Python 3 interpreter found")
 
 
-def _plans_root() -> Path:
-    return Path.home() / ".grok" / "plans"
+def _develop_root() -> Path:
+    return Path.home() / ".grok" / "develop"
 
 
 def _slugify(name: str) -> str:
@@ -80,8 +80,8 @@ def _repo_slug() -> str:
 
 
 def scratch_dir() -> Path:
-    """Per-repo artifact root: ``~/.grok/plans/<projectreponame>/``."""
-    path = _plans_root() / _repo_slug()
+    """Per-repo, per-skill artifact root: ``~/.grok/develop/<projectreponame>/plan/``."""
+    path = _develop_root() / _repo_slug() / "plan"
     path.mkdir(parents=True, exist_ok=True)
 
     try:

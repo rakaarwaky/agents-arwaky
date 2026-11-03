@@ -27,10 +27,10 @@ After the final report (memory was flushed in Step 8), clean up the temporary ar
 
 | File | Count |
 |------|-------|
-| Implementation summary | `<scratch_dir>/grok-impl-summary-<IMPL_ID>.md` |
-| Merged review | `<scratch_dir>/grok-review-<IMPL_ID>.md` |
-| Per-reviewer reviews | `<scratch_dir>/grok-review-<IMPL_ID>-<suffix>.md` (`general`, `tests`, `simplicity`) |
-| Memory update spec | `<scratch_dir>/grok-mem-<IMPL_ID>.json` |
+| Implementation summary | `<scratch_dir>/impl-summary-<IMPL_ID>.md` |
+| Merged review | `<scratch_dir>/review-<IMPL_ID>.md` |
+| Per-reviewer reviews | `<scratch_dir>/review-<IMPL_ID>-<suffix>.md` (`general`, `tests`, `simplicity`) |
+| Memory update spec | `<scratch_dir>/impl-mem-<IMPL_ID>.json` |
 
 ### Kept
 
