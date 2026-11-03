@@ -61,6 +61,7 @@ Ask: will the agent always execute all steps in sequence, with run state (attemp
 Answer this question from the **Routing table** in `SKILL.md` (the Step rows and whether each row's output feeds the next), not from the filenames under `references/`. Definition files (signal definitions, report-format shapes, …) do not make a skill mode-based; they are inputs a pipeline step reads. If the pipeline is one ordered sequence, the answer is **Yes** even if the current tree is flat Pattern A.
 
 - **Yes** → **Pattern B**: numbered `references/step-<N>-<name>.md` files in execution order. Numbers encode order; sub-variants (`step-<N>a`, `step-<N>b`) branch by a runtime parameter.
+  - **Every reference file in a Pattern B skill carries a `step-<N>` prefix — no exceptions.** A flat `references/<topic>.md` (e.g. `argument-parsing.md`, `reviewer-prompts.md`) in a Pattern B tree is a shape mismatch: renumber it into the pipeline sequence (`step-0-argument-parsing.md`, …) or fold its content into the owning step file. When two files would share one step number, they describe the same step — merge into a single `step-<N>-<name>.md` rather than coexisting as two `step-<N>-…` siblings.
   - Examples in this pack: `systematic-debugging`, `implement`, `skill-traces`.
 - **No** → continue to Step 2.
 
@@ -87,5 +88,5 @@ The two trigger fields (`description:`, `when-to-use:`) follow their own budget 
 
 - A fact used across multiple steps belongs in the target skill's `SKILL.md` Global Rules, not in a reference file.
 - Never mix patterns arbitrarily within one skill: if one mode moves to Pattern C, keep the other modes as Pattern A single files until they also need splitting.
-- Never renumber existing step files for the sake of consistency — the pattern follows the skill's shape.
+- Never renumber existing step files for the sake of consistency — the pattern follows the skill's shape. (Renumbering into a coherent `step-0…N` sequence is different and always required when a Pattern B skill gains new step files; that is completing the sequence, not "consistency".)
 - Renaming a reference file that other files link to requires a grep sweep of the whole pack for the old name (Global Rules: dangling refs rot fast).
