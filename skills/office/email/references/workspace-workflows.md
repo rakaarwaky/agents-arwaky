@@ -1,8 +1,8 @@
-# Google Workspace Common Workflows
+# Google Workspace — Common Workflows
 
 ## Daily / morning brief
 
-Load [daily-brief.md](daily-brief.md) and follow it: resolve the day window in
+Load `references/daily-brief.md` and follow it: resolve the day window in
 the account's timezone, fetch events (all calendars, accepted + tentative + all-day), pull only the
 mail that changes preparation or priority, link mail to meetings without guessing, then present the
 brief in its fixed order. Nothing is drafted or created until the user approves it.
@@ -50,15 +50,15 @@ brief in its fixed order. Nothing is drafted or created until the user approves 
 ## Tips
 
 - **Check parameters**: run `workspace-mcp --help` for server flags, and read the matching
-  `<service>.md` for a tool's arguments. There is no `workspace-mcp --cli` mode.
-- **Gmail queries**: [gmail-search-syntax.md](gmail-search-syntax.md) lists
+  `workspace-<service>.md` reference for a tool's arguments. There is no `workspace-mcp --cli` mode.
+- **Gmail queries**: `references/gmail-search-syntax.md` lists
   every supported operator (`is:unread`, `from:`, `newer_than:7d`, `has:attachment`,
   `filename:`, `larger:`, `in:anywhere`, `-from:`, `OR`, quoted phrases) with worked patterns.
 - **Email-only user**: if the user needs *just* mail and Workspace OAuth is the blocker,
   `himalaya` is the lighter alternative (Gmail App Password, no Google Cloud project) -- see
-  [pitfalls.md](pitfalls.md).
+  `references/workspace-pitfalls.md` and the email umbrella's `§ himalaya`.
 - **Calendar times**: recurring events must send wall-clock time + `timezone`, not a `+07:00`
-  offset. The exact rule and the error it prevents are in [pitfalls.md](pitfalls.md).
+  offset. The exact rule and the error it prevent are in `references/workspace-pitfalls.md`.
 - **Formatting Docs**: before building a document with headings, lists, or tables, load
-  [docs-layout-workflow.md](docs-layout-workflow.md) -- the Docs API
+  `references/workspace-docs-layout.md` -- the Docs API
   corrupts styles when content is inserted in one pass.

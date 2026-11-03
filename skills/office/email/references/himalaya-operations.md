@@ -66,7 +66,7 @@ himalaya template reply 42 | sed 's/^$/\nYour reply text here\n/' | himalaya tem
 
 Or build the reply manually:
 
-```bash
+```
 cat << 'EOF' | himalaya template send
 From: you@example.com
 To: sender@example.com
@@ -94,7 +94,7 @@ himalaya template forward 42 | sed 's/^To:.*/To: newrecipient@example.com/' | hi
 
 **Non-interactive (use this from Hermes)** — pipe the message via stdin:
 
-```bash
+```
 cat << 'EOF' | himalaya template send
 From: you@example.com
 To: recipient@example.com
@@ -201,5 +201,5 @@ RUST_LOG=trace RUST_BACKTRACE=1 himalaya envelope list
 
 - Use `himalaya --help` or `himalaya <command> --help` for detailed usage.
 - Message IDs are relative to the current folder; re-list after folder changes.
-- For composing rich emails with attachments, use MML syntax (see `message-composition.md`).
+- For composing rich emails with attachments, use MML syntax (see `himalaya-message-composition.md`).
 - Store passwords securely using `pass`, system keyring, or a command that outputs the password.

@@ -1,4 +1,4 @@
-## First-Time Setup
+## Google Workspace — First-Time Setup
 
 Auth is already configured on this host if `~/.google_workspace_mcp/credentials/<email>.json`
 exists. Walk the user through setup only when a tool call fails with a credential error.
@@ -29,6 +29,5 @@ submodule: treat that file as machine-local config, never a thing to edit or com
 - Credentials are cached in `~/.google_workspace_mcp/credentials/<email>.json` (override with
   `WORKSPACE_MCP_CREDENTIALS_DIR`, then legacy `GOOGLE_MCP_CREDENTIALS_DIR`) for future sessions
 
-Full loading order, transports, and tool filtering: [references/server-options.md](references/server-options.md)
-Reproduced error signatures and their workarounds: [references/pitfalls.md](references/pitfalls.md)
-
+Full loading order, transports, and tool filtering: `references/workspace-server-options.md`
+Reproduced error signatures and their workarounds: `references/workspace-pitfalls.md`

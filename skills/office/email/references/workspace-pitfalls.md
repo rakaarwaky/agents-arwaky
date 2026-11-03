@@ -1,8 +1,6 @@
-# Verified Pitfalls (2026-09)
+# Google Workspace — Verified Pitfalls
 
-Failure modes of the `workspace` MCP server that were reproduced on this host and are
-not visible from the tool schemas. Read this before debugging a 400, a 404, or an
-auth prompt that should not exist.
+Failure modes of the `workspace` MCP server that are not visible from the tool schemas. Read before debugging a 400, a 404, or an auth prompt that should not exist.
 
 ## Tool-call shape
 
@@ -14,7 +12,7 @@ auth prompt that should not exist.
 - `manage_event` with `recurrence` returns **400 "Missing time zone definition"** when
   `start_time`/`end_time` carry a `+07:00` (or any) offset.
 - Fix: send wall-clock `YYYY-MM-DDTHH:MM:SS` with **no offset and no `Z`**, plus
-  `timezone: "Asia/Jakarta"`.
+  `timezone: "Asia/Jakarta"` (or the account's IANA zone).
 - Non-recurring events accept offsets happily, so a successful single create does **not**
   prove the same arguments are safe for a recurring series.
 
@@ -35,16 +33,11 @@ auth prompt that should not exist.
   (override with `WORKSPACE_MCP_CREDENTIALS_DIR`, then legacy `GOOGLE_MCP_CREDENTIALS_DIR`).
 - **Client secret** resolution order: `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`
   env vars → `GOOGLE_CLIENT_SECRET_PATH` → `client_secret.json` in the server's project root.
-  On this host the launcher `~/.local/bin/workspace-mcp` is a wrapper that runs
-  `uv run --directory <repo>/vendor/google-workspace-mcp workspace-mcp`, so the project root is
-  `vendor/google-workspace-mcp/` and the file in use is
-  `vendor/google-workspace-mcp/client_secret.json` (confirmed by the server's own startup log
-  line `Loaded OAuth client credentials from file: ...`). `vendor/` is a **pinned git submodule**:
-  never edit it from the root repo and never commit a secret into it.
+  `vendor/` is a **pinned git submodule**: never edit it from the root repo and never commit a secret into it.
 - The XDG-looking paths `~/.config/google-workspace-mcp/client_secret.json` and
   `~/.local/share/google-workspace-mcp/credentials/` are **not** read by this server and do not
   exist on this host. Creating them does nothing; do not document them as the auth location.
-- Restoring `~/.google_workspace_mcp/credentials/` from an agents-arwaky backup still needs
+- Restoring `~/.google_workspace_mcp/credentials/` from a backup still needs
   **one fresh browser consent**: the scopes stored in the backup do not match the scopes the
   currently loaded tool set requests.
 - Backup location: `~/Downloads/Agents-Arwaky-Backups-*/Agents-Arwaky-Backups/<snapshot>/workspace/`.
@@ -52,5 +45,5 @@ auth prompt that should not exist.
 ## Mail-only escape hatch
 
 - If the user only needs email and Workspace OAuth is the blocker, `himalaya` is the
-  mail-only alternative (Gmail App Password, no Google Cloud project). It is not part of
-  this skill pack — check it is installed before recommending it.
+  mail-only alternative (Gmail App Password, no Google Cloud project) — see the email
+  umbrella's `§ himalaya`. Check it is installed before recommending it.
