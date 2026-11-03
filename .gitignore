@@ -89,6 +89,10 @@ tools/config/*.providers.json
 # Codacy review artifacts
 .codacy/
 
+# Runtime trace state lives under GROK_HOME/learn (typically ~/.grok/learn),
+# never in the repo root.
+/learn/
+
 # Large binary: diunduh saat install, bukan di-commit
 **/anytype-bin
 

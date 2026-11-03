@@ -1,9 +1,0 @@
-{
- "pending": {
-  "run_dir": "/tmp",
-  "started_at": "2026-11-03T08:55:12+00:00",
-  "status": "running",
-  "updated_at": "2026-11-03T08:55:12+00:00",
-  "report_ready": false
- }
-}
