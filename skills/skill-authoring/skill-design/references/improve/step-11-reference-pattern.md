@@ -1,5 +1,4 @@
-# Audit — Choosing the reference pattern
-
+# Improve — Step 11: Choosing the reference pattern
 
 Run this decision **before** restructuring the `references/` folder. The pattern must match the skill's shape — never match by convention.
 
@@ -31,8 +30,8 @@ references/create/step-0-gather.md
 references/create/step-1-draft.md
 references/create/step-2-write.md
 references/create/step-3-verify.md
-references/audit/step-0-frontmatter.md
-references/audit/step-1-structure.md
+references/improve/step-0-overview.md
+references/improve/step-1-scope.md
 ```
 
 Worked example (Pattern B, `skill-traces` — a single pipeline with mode flags, so it is B, not A):
@@ -74,7 +73,7 @@ Ask: does the agent pick exactly one mode per invocation, and no shared state fl
 
 #### Step 3: What goes in the body vs a reference (placement decision)
 
-Run this before deciding where each fact lands. The test is the Information distribution test above: **how many steps read this fact during a single invocation?**
+Run this before deciding where each fact lands. The test is the Information distribution test (`step-10-information-distribution.md`): **how many steps read this fact during a single invocation?**
 
 - **More than one step (or all steps) → `SKILL.md` Global Rules**: cross-step policy (scope, consent, validation), signal definitions, invariants, record formats.
 - **Exactly one step → that step's reference file**: commands and flags with exact syntax, outputs and their shape, the step's stop conditions and failure handling, worked examples for that step's shape.

@@ -1,5 +1,4 @@
-# Audit — Description detail
-
+# Improve — Step 6: Description detail
 
 - Third person: "Extracts text from PDFs", never "I can help".
 - Specific: "Helps with documents" fails — name the artifact and the action.

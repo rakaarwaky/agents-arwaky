@@ -26,7 +26,7 @@ Use this when the artifact kind you need is not in the registry.
 2. **Copy an existing template's structure, then specialize it.** Every template has the same three parts (below). Pick the most complete existing template as the structural model, then replace its body with the new artifact's own skeleton and `<placeholder>`s.
 3. **Write the three required parts.**
    - A **fenced template block** — the copy-source shape with `<placeholder>`s in place of real content. This is the only place the shape may appear.
-   - A **how-to-fill guide** — one bullet per section/field, stating what belongs there and which fact it owns. Point at the Global Rule or audit step that owns a fact instead of restating it.
+   - A **how-to-fill guide** — one bullet per section/field, stating what belongs there and which fact it owns. Point at the Global Rule or improve step that owns a fact instead of restating it.
    - A **`## Completion` block** — checkable stop conditions ("the file matches this skeleton and every placeholder is filled"), never "verify it works".
 4. **Register it.** Add a row to the registry above: what you are making → the template link → what it defines. An unregistered template is invisible to the next author.
 5. **Point the consumer at it.** The step or doc that produces this artifact stops inlining the shape and says "copy `template/<artifact>.md`" instead.

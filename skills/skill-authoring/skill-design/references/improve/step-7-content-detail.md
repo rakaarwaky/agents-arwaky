@@ -1,5 +1,4 @@
-# Audit — Content detail
-
+# Improve — Step 7: Content detail
 
 - Concrete examples over abstract description; input/output pairs for style-dependent output.
 - Defaults, not menus of alternatives.

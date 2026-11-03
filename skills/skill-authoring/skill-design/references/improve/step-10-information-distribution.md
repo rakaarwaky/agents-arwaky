@@ -1,5 +1,4 @@
-# Audit — Information distribution
-
+# Improve — Step 10: Information distribution
 
 Before editing any fact, route it with the test below. A fact that has more than one home is a bug; one home per fact (Global Rules). This is the check that catches a definition file that should have been split into the Global Rules + step files that use it.
 

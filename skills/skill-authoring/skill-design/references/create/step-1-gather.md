@@ -2,7 +2,7 @@
 
 Ask the user one at a time, as normal conversation (not option prompts):
 
-1. **Skill name** — must satisfy the `name-format` rule (see the validator catalog in `audit/step-3-validator-catalog.md`). Validate before continuing.
+1. **Skill name** — must satisfy the `name-format` rule (see the validator catalog in `../improve/step-4-validator-catalog.md`). Validate before continuing.
 2. **Category** — the category folder the skill belongs under: `<skills-dir>/<category>/<skill-name>/`. Default to the category of its sibling skills.
 3. **Scope** — present two options:
    - **Project** (recommended): `<repo-root>/<skills-dir>/<category>/<skill-name>/SKILL.md` — lives in this repo, shareable with teammates. Default when inside a git repo.

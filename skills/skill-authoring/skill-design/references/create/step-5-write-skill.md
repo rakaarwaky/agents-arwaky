@@ -6,7 +6,7 @@ The body is always exactly three sections in this order: `# <Skill Name>`, `## G
 
 Open `template/skill.md`, fill the placeholders, and write the result to `<SKILL_DIR>/SKILL.md`. Any reference docs the skill ships use `template/reference.md` as their shape (both chosen via `template/template.md`).
 
-Mandatory keys, YAML hygiene, parser limits, and which optional keys are safe to add are Global Rules; the full optional-key table is in `audit/step-2-frontmatter-keys.md`. Write supporting scripts and references as needed, using absolute paths so nothing lands in the wrong place.
+Mandatory keys, YAML hygiene, parser limits, and which optional keys are safe to add are Global Rules; the full optional-key table is in `../improve/step-3-frontmatter-keys.md`. Write supporting scripts and references as needed, using absolute paths so nothing lands in the wrong place.
 
 ## Completion
 

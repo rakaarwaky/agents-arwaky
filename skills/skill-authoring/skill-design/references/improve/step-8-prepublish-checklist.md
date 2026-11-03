@@ -1,9 +1,8 @@
-# Audit — Pre-publish checklist
-
+# Improve — Step 8: Pre-publish checklist
 
 - [ ] `aa skills read <name>` — read back the target `SKILL.md` to confirm frontmatter and body landed correctly.
-- [ ] `aa skills lint` passes (catalog above).
+- [ ] `aa skills lint` passes (catalog in `step-4-validator-catalog.md`).
 - [ ] Frontmatter satisfies the Global Rules bullets: mandatory keys, Frontmatter semantics, YAML hygiene, parser limits.
 - [ ] Body within ~100–200 lines; overflow moved into `references/`; every reference, whatever its depth, is linked from `SKILL.md` (Global Rules: Structure).
 - [ ] Every sibling mention and cross-skill link names a skill that exists in the tree (Global Rules: dangling refs).
-- [ ] Content detail section above satisfied.
+- [ ] Content detail (`step-7-content-detail.md`) satisfied.

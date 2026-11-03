@@ -1,4 +1,4 @@
-# Audit — Category-placement audit
+# Improve — Step 9: Category-placement audit
 
 Use this when skills may be in the wrong category.
 
@@ -17,6 +17,7 @@ aa skills catalog --read
 3. The catalog's `## Categories` table already carries each category's description, so it is enough to judge placement (step 4). Open `DESCRIPTION.md` directly only when you will **create or edit** a category's description (steps 6/7) or when `aa skills lint` flags `missing-category-description` / `empty-category-description` — the catalog row is a stale snapshot until `aa skills catalog` is rebuilt.
 4. Identify skills whose name or description conflicts with their current category.
 5. If duplicate or obsolete skills need pruning, route to `skill-design --prune` — this mode only decides category placement.
+
 6. If no category fits, create one:
 
 ```bash
@@ -29,7 +30,7 @@ aa skills create category CATEGORY_NAME --description "CATEGORY_DESCRIPTION" --a
 aa skills move CATEGORY/SKILL TARGET_CATEGORY --apply
 ```
 
-8. Rebuild the catalog (still a CLI verb):
+8. Rebuild the catalog:
 
 ```bash
 aa skills catalog

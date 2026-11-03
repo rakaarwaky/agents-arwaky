@@ -1,4 +1,4 @@
-# Audit — Validator catalog
+# Improve — Step 4: Validator catalog
 
 Run `aa skills lint` (whole pack) or `aa skills lint --category <name>` (scoped) to see which of the rules below fire.
 
