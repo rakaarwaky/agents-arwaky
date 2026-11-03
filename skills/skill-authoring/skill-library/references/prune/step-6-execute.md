@@ -5,7 +5,7 @@ role: step
 
 # Step 6: Execute the merge
 
-Rules for merging skills in Phase 2 of `skill-auditor --prune`.
+Rules for merging skills in Phase 2 of `skill-library --prune`.
 
 ## Name survival
 

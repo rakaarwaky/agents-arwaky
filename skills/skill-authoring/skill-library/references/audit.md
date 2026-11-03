@@ -88,7 +88,7 @@ aa skills lint
 2. Read `CATALOG.md`.
 3. Read the `DESCRIPTION.md` file for each category involved.
 4. Identify skills whose name or description conflicts with their current category.
-5. If duplicate or obsolete skills need pruning, route to `skill-auditor --prune` — this mode only decides category placement.
+5. If duplicate or obsolete skills need pruning, route to `skill-library --prune` — this mode only decides category placement.
 6. If no category fits, create one:
 
 ```bash
@@ -117,7 +117,7 @@ aa skills catalog
 ### Completion
 
 - Every misplaced skill identified in steps 4–7 has been moved.
-- Duplicates and obsolete skills have been routed to `skill-auditor --prune`.
+- Duplicates and obsolete skills have been routed to `skill-library --prune`.
 - The catalog was rebuilt after moves.
 - `aa skills lint` reports no placement issues.
 

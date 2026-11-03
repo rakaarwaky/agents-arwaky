@@ -1,12 +1,12 @@
 ---
-name: skill-auditor
+name: skill-library
 description: Audits and prunes the agent skill tree. --audit checks and fixes skills to the shared lint standard (structure, naming, frontmatter, dangling refs, reference-pattern). --prune reads every skill's description and body, then merges skills that duplicate, share a bounded purpose, or share tooling into one consolidated folder, archiving the dropped duplicates. Use when checking a skill or pack against the lint standard, or when consolidating duplicate or overlapping skills.
 user-invocable: true
 when-to-use: Use when the user wants to check or fix a skill against the lint standard (structure, frontmatter, naming, dangling refs, reference-pattern), or to read all skill descriptions and merge skills that duplicate, share a bounded purpose, or share tooling into one consolidated folder. --prune also runs scheduled headless evolution passes over a skill tree.
 argument-hint: "<skills path> [--audit | --prune] [--dry-run | --headless]"
 ---
 
-# Skill Auditor
+# Skill Library
 
 You audit and prune agent skill directories (a collection of `SKILL.md` folders). Two modes own two distinct jobs; pick one per invocation.
 
