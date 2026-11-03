@@ -2,7 +2,7 @@
 name: skill-design
 description: Authors, improves, and prunes agent skills. --create builds a new SKILL.md from a described job; --improve runs the full audit and improvement sequence on an existing skill — checks and fixes structure, naming, frontmatter, body shape, and dangling refs to the shared lint standard, then applies the edit recipe; --prune reads every skill's description and body, then merges skills that duplicate, share a bounded purpose, or share tooling into one consolidated folder, archiving the dropped duplicates. Use when creating, improving, auditing, or consolidating skills.
 user-invocable: true
-when-to-use: Author a new SKILL.md for a slash command that has no loaded skill, or improve an existing SKILL.md without losing intent.
+when-to-use: Author a new SKILL.md for a slash command that has no loaded skill; improve an existing SKILL.md (audit + repair in one pass); or prune duplicate or same-purpose skills into one folder.
 argument-hint: "<skills path> [--create | --improve | --prune] [--dry-run | --headless]"
 ---
 
@@ -32,11 +32,6 @@ Rules that apply to every step. Reference files cite these; they never restate t
 - **Mandatory body shape.** Every `SKILL.md` uses exactly three sections: `# Title`, `## Global rules`, `## Routing`. All task data, commands, examples, field shapes, stop conditions, and worked examples belong in `references/*.md` or `scripts/*`. If the body contains anything beyond those three sections, move it to a reference before publishing.
 - **Templates are the single source of truth for shape.** `template/template.md` is the entry index; `template/skill.md` is the canonical `SKILL.md` skeleton and `template/reference.md` is the canonical reference-file shape. Every create/improve step copies from the template the index names rather than restating the shape inline; a new artifact kind gets its own `template/<artifact>.md` registered in the index.
 - **Audit standard**: `aa skills lint` is the mechanical gate; `references/improve/step-0-overview.md` holds the key table, the validator rule catalog, the reference-pattern decision, and the pre-publish checklist. `--improve` runs the full audit-then-improve sequence against that standard and fixes every flagged issue.
-- **Prune standard**: two skills covering the same job become one folder with one `SKILL.md`; skills that share a domain but differ per scenario stay one folder with one `SKILL.md` plus a `references/` subfolder, one file per scenario, one level deep. Genuinely different jobs stay separate; note why in the report.
-- **Prune phase order**: Phase 1 (remove true duplicates) always precedes Phase 2 (consolidate variants). Merging skills that are already true duplicates is wasted effort.
-- **Provisioned copies**: same-folder-name mirrors under `.agents/skills/` or a harness home are provisioned artifacts — keep the repo source, flag the copy for re-provisioning, never edit the copy.
-- **Byte-identical or near-identical bodies**: merge into one; keep the more complete body, drop the rest.
-- **Same `name:` in two folders**: one is stale; keep the more complete, delete the other.
 - **Validation rules** (enforced when improving, pruning, and consolidating skills): the full rule catalog is `references/improve/step-4-validator-catalog.md`; `aa skills lint` is the mechanical gate.
 - **Rollback**: the snapshot (or `HEAD` SHA when the tree was dirty) is the undo path; `git reset --hard <sha>` restores both the skill and unrelated state. Record the snapshot SHA in the commit message and final report. A headless run that cannot commit falls back to `--dry-run` and reports instead of applying.
 - **Safety model**: `--dry-run` generates the report and stops before any snapshot or execute. `--headless` generates the same report and continues into the snapshot and execute steps, skipping the interactive approval gate. Read-only steps run immediately in either mode. Destructive actions go to `_archive/` first; permanent delete only with explicit `--hard-delete`.

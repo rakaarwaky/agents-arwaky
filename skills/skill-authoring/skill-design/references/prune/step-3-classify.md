@@ -15,7 +15,7 @@ Each cluster is one of:
 
 Detect duplicates and obsolete skills with `aa skills lint`; obsolete skills are archived into `_archive/` (never permanently deleted unless `--hard-delete` is explicitly passed).
 
-Phase 1 removes true duplicates; Phase 2 consolidates variants and shared tooling — never skip Phase 1 (Global Rules: Phase order).
+Phase 1 removes true duplicates; Phase 2 consolidates variants and shared tooling — never skip Phase 1 (`step-0-overview.md` classification rules).
 
 ## Completion
 
