@@ -55,10 +55,10 @@ Field notes:
 
 ### Step 12d: Invoke the Helper
 
-Resolve `<MEMORY_HELPER>` exactly as in Step 1 (*Resolve the helper path*) — absolute path, inlined. Use the `write` tool to create `${scratch_dir}/grok-exec-mem-${PLAN_ID}.json` with the JSON spec above, then invoke:
+Resolve `<MEMORY_HELPER>` exactly as in Step 1 (*Resolve the helper path*) — absolute path, inlined. Use the `write` tool to create `${scratch_dir}/exec-mem-${PLAN_ID}.json` with the JSON spec above, then invoke:
 
 ```
-<PYTHON> <MEMORY_HELPER> update --file <scratch_dir>/grok-exec-mem-<PLAN_ID>.json
+<PYTHON> <MEMORY_HELPER> update --file <scratch_dir>/exec-mem-<PLAN_ID>.json
 ```
 
 The helper acquires the lock, merges, compacts, writes atomically, and prints a JSON stats summary on stdout:
@@ -84,7 +84,7 @@ Map the `stats` output onto the report strings in *In-Progress Reporting* below 
 If the helper exits non-zero, log a warning with stderr and skip the memory update. The implementation is already complete and reviewed -- never fail the run due to memory flush issues. Clean up the temp JSON file regardless:
 
 ```
-<PYTHON> <HOST_PY> cleanup <scratch_dir>/grok-exec-mem-<PLAN_ID>.json
+<PYTHON> <HOST_PY> cleanup <scratch_dir>/exec-mem-<PLAN_ID>.json
 ```
 
 ## In-Progress Reporting

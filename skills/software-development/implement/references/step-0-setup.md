@@ -4,7 +4,7 @@ Everything the run needs before any subagent can spawn: host helpers, shared fil
 
 ## Host Setup
 
-Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Run `<python> <HOST_PY> setup` via `run_terminal_command` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `IMPL_ID`. `scratch_dir` is `~/.grok/plans/<repo-slug>/` (per-repo, created by `host.py`); every artifact path in later steps is derived from it.
+Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Run `<python> <HOST_PY> setup` via `run_terminal_command` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `IMPL_ID`. `scratch_dir` is `~/.grok/develop/<repo-slug>/implement/` (per-repo, created by `host.py`); every artifact path in later steps is derived from it.
 
 The helper is Linux-only and requires the current directory to be inside a git repository — it exits with a clear error on either condition. If it exits non-zero, report the error and stop.
 
@@ -16,13 +16,13 @@ The helper is Linux-only and requires the current directory to be inside a git r
 
 Define the shared file paths (all under `scratch_dir`):
 
-- `summary_file`: `${scratch_dir}/grok-impl-summary-${IMPL_ID}.md`
-- `review_file`: `${scratch_dir}/grok-review-${IMPL_ID}.md` (merged review — what the implementer reads)
+- `summary_file`: `${scratch_dir}/impl-summary-${IMPL_ID}.md`
+- `review_file`: `${scratch_dir}/review-${IMPL_ID}.md` (merged review — what the implementer reads)
 
 Always define individual review files per reviewer (the fixed panel is 3 reviewers):
-- `${scratch_dir}/grok-review-${IMPL_ID}-general.md`
-- `${scratch_dir}/grok-review-${IMPL_ID}-tests.md`
-- `${scratch_dir}/grok-review-${IMPL_ID}-simplicity.md`
+- `${scratch_dir}/review-${IMPL_ID}-general.md`
+- `${scratch_dir}/review-${IMPL_ID}-tests.md`
+- `${scratch_dir}/review-${IMPL_ID}-simplicity.md`
 
 **Thread the same file paths across all rounds** — these paths stay the same for the entire loop. Never regenerate them between iterations.
 

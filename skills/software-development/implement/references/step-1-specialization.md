@@ -39,7 +39,7 @@ for specialist in ["general", "tests", "simplicity"]:
         subagent_id: null,
         persona_to_inject: specialist == "general" ? "reviewer" : null,  # null = prompt-only, no persona prepended
         specialization: specialist,
-        review_file: f"${scratch_dir}/grok-review-{IMPL_ID}-{suffix_map[specialist]}.md"
+        review_file: f"${scratch_dir}/review-{IMPL_ID}-{suffix_map[specialist]}.md"
     })
 ```
 

@@ -78,10 +78,10 @@ Field notes (the helper rejects wrong-typed input with exit code 4 and a clear e
 
 ### Step 8d: Invoke the Helper
 
-Use the `write` tool to create `${scratch_dir}/grok-mem-${IMPL_ID}.json` with the JSON spec above (using a temp file avoids quoting issues that heredocs introduce), then invoke the helper via `run_terminal_command`:
+Use the `write` tool to create `${scratch_dir}/impl-mem-${IMPL_ID}.json` with the JSON spec above (using a temp file avoids quoting issues that heredocs introduce), then invoke the helper via `run_terminal_command`:
 
 ```
-<PYTHON> <MEMORY_HELPER> update --file <scratch_dir>/grok-mem-<IMPL_ID>.json
+<PYTHON> <MEMORY_HELPER> update --file <scratch_dir>/impl-mem-<IMPL_ID>.json
 ```
 
 The helper acquires the lock, parses the existing file, merges, compacts, writes atomically, and prints a JSON stats summary on stdout (pretty-printed with `indent=2`):

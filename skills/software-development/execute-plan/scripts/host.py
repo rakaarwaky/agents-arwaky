@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Linux-only host helpers for bundled orchestrator skills.
-Output root: ~/.grok/plans/<projectreponame>/
+Output root: ~/.grok/develop/<projectreponame>/execute/
 """
 
 from __future__ import annotations
@@ -14,8 +14,8 @@ def resolve_python() -> str:
     if found: return found
     raise SystemExit("host.py: no Python 3 interpreter found")
 
-def _plans_root() -> Path:
-    return Path.home() / ".grok" / "plans"
+def _develop_root() -> Path:
+    return Path.home() / ".grok" / "develop"
 
 def _slugify(name: str) -> str:
     slug = re.sub(r"[^a-z0-9-]+", "-", name.lower()).strip("-")
@@ -33,7 +33,7 @@ def _repo_slug() -> str:
     raise SystemExit("host.py: not inside a git repository")
 
 def scratch_dir() -> Path:
-    path = _plans_root() / _repo_slug()
+    path = _develop_root() / _repo_slug() / "execute"
     path.mkdir(parents=True, exist_ok=True)
     try: path.chmod(stat.S_IRWXU)
     except OSError: pass

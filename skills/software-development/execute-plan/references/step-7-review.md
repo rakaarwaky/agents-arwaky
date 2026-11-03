@@ -29,7 +29,7 @@ for specialist in PANEL:
         subagent_id: null,
         persona_to_inject: specialist == "general" ? "reviewer" : null,  # null = prompt-only
         specialization: specialist,
-        review_file: f"${scratch_dir}/grok-exec-review-${PLAN_ID}-<pr.id>-{suffix_map[specialist]}.md"
+        review_file: f"${scratch_dir}/exec-review-${PLAN_ID}-<pr.id>-{suffix_map[specialist]}.md"
     })
 ```
 
@@ -41,7 +41,7 @@ Announce the per-PR choice once, e.g. `"<pr.id> review: 1 general + tests + simp
 
 Always launch all 3 reviewers in `pr.reviewer_configs` in parallel. See *Parallel reviewers* and *Specialized Review Prompts* below.
 
-Before launching the reviewers, read the PR's implementation summary at `${scratch_dir}/grok-exec-summary-<PLAN_ID>-<pr.id>.md`. Based on it, identify 2-3 concrete areas the reviewers should pay extra attention to (e.g., "Verify error paths are tested", "Check that callers of renamed functions were updated"). Store as `reviewer_focus_areas` for this PR; include it in every reviewer prompt for this PR.
+Before launching the reviewers, read the PR's implementation summary at `${scratch_dir}/exec-summary-<PLAN_ID>-<pr.id>.md`. Based on it, identify 2-3 concrete areas the reviewers should pay extra attention to (e.g., "Verify error paths are tested", "Check that callers of renamed functions were updated"). Store as `reviewer_focus_areas` for this PR; include it in every reviewer prompt for this PR.
 
 #### Parallel reviewers
 
@@ -74,7 +74,7 @@ Each specialization gets a different prompt while sharing the same structured ou
 
 Review the changes made for <pr.id>: <pr.title>.
 
-The implementation summary is at: ${scratch_dir}/grok-exec-summary-<PLAN_ID>-<pr.id>.md
+The implementation summary is at: ${scratch_dir}/exec-summary-<PLAN_ID>-<pr.id>.md
 
 Review all modified files for code quality, correctness, naming, SOLID, style, and security-relevant defects (input validation, injection, secrets handling, authz), and confirm the implementation follows the design-doc section covering this PR (no scope creep, no missing planned items). The security and plan-alignment concerns are folded into this reviewer.
 
@@ -97,7 +97,7 @@ If the code is clean, write a summary confirming no issues found and an empty Is
 ```
 You are a thorough test engineer reviewing the changes for <pr.id>: <pr.title> for test coverage and quality.
 
-The implementation summary is at: ${scratch_dir}/grok-exec-summary-<PLAN_ID>-<pr.id>.md
+The implementation summary is at: ${scratch_dir}/exec-summary-<PLAN_ID>-<pr.id>.md
 
 Focus on: adequate coverage of new/changed code; edge cases, error paths, boundary conditions; specific assertions (not just "doesn't throw"); maintainable tests not over-coupled to implementation; integration tests for new endpoints/interfaces; appropriate (not excessive) mocking.
 
@@ -115,7 +115,7 @@ Use the structured format (severity bug|suggestion|nit; File; Description; Sugge
 ```
 You are reviewing the changes for <pr.id>: <pr.title> for over-engineering and unnecessary complexity only.
 
-The implementation summary is at: ${scratch_dir}/grok-exec-summary-<PLAN_ID>-<pr.id>.md
+The implementation summary is at: ${scratch_dir}/exec-summary-<PLAN_ID>-<pr.id>.md
 
 Hunt over-engineering and complexity only. Correctness bugs, security holes, and test-coverage holes are out of scope — other reviewers own those. Do not flag language-specific lint or ownership issues — the general reviewer owns those.
 
@@ -137,7 +137,7 @@ Use the structured format (severity bug|suggestion|nit; File; Description; Sugge
 
 ### Step 7b: Check / Merge Review Results
 
-Read each reviewer's individual `config.review_file`, then merge them into the single merged review file `${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr.id>.md` using the `write` tool. Prefix each issue with its source tag (`[General]`, `[Tests]`, `[Simplicity]`). Consolidate obviously duplicated findings (same file, same line, same underlying problem) using judgment — when in doubt, keep both. The merged file is what the implementer reads in Step 7c. Merge format:
+Read each reviewer's individual `config.review_file`, then merge them into the single merged review file `${scratch_dir}/exec-review-<PLAN_ID>-<pr.id>.md` using the `write` tool. Prefix each issue with its source tag (`[General]`, `[Tests]`, `[Simplicity]`). Consolidate obviously duplicated findings (same file, same line, same underlying problem) using judgment — when in doubt, keep both. The merged file is what the implementer reads in Step 7c. Merge format:
 
 ```markdown
 # Merged Review: <pr.id> — <pr.title>
@@ -163,7 +163,7 @@ After merging, count the total open issues across all source tags. This count dr
 
 If the merged review has open issues:
 
-1. Spawn a fixer subagent in `<pr.worktree_path>` seeded with the implementer persona and the merged review file `${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr.id>.md`. The fixer implements fixes and commits locally on `<pr.branch>` (subject to the *subagent boundary*, Step 0).
+1. Spawn a fixer subagent in `<pr.worktree_path>` seeded with the implementer persona and the merged review file `${scratch_dir}/exec-review-<PLAN_ID>-<pr.id>.md`. The fixer implements fixes and commits locally on `<pr.branch>` (subject to the *subagent boundary*, Step 0).
 2. Re-run Rules 1 & 2 (fetch + record `pr.commit_sha`) from `step-0-setup.md` so the orchestrator's main repo sees the fix commits.
 3. Re-launch all 3 reviewers in parallel (resume with `resume_from` where `config.subagent_id` is set, fresh spawn otherwise).
 4. Re-merge. Loop to step 1 while any reviewer reports open issues.

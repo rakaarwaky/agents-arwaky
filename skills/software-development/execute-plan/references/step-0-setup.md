@@ -46,16 +46,16 @@ Host commands run in bash on Linux. Use `run_terminal_command`.
 Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`.
 Run `python3 <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `SCRATCH_DIR`, and `run_id` as `PLAN_ID`.
 
-`SCRATCH_DIR` is `~/.grok/plans/<repo-slug>/`. State, summaries, and reviews live here.
+`SCRATCH_DIR` is `~/.grok/develop/<repo-slug>/execute/`. State, summaries, and reviews live here.
 **Validate** that `PLAN_ID` is 8 hex characters.
 **Inline the resolved absolute `SCRATCH_DIR` and `PYTHON`** into every later command.
 
 Define shared file paths (all under `SCRATCH_DIR`):
 
-- `state_file`: `<SCRATCH_DIR>/grok-exec-plan-<PLAN_ID>.json`
-- Per-PR summary: `<SCRATCH_DIR>/grok-exec-summary-<PLAN_ID>-<pr-id>.md`
-- Per-PR merged review: `<SCRATCH_DIR>/grok-exec-review-<PLAN_ID>-<pr-id>.md`
-- Individual reviewer files: `<SCRATCH_DIR>/grok-exec-review-<PLAN_ID>-<pr-id>-<specialist>.md`
+- `state_file`: `<SCRATCH_DIR>/exec-plan-<PLAN_ID>.json`
+- Per-PR summary: `<SCRATCH_DIR>/exec-summary-<PLAN_ID>-<pr-id>.md`
+- Per-PR merged review: `<SCRATCH_DIR>/exec-review-<PLAN_ID>-<pr-id>.md`
+- Individual reviewer files: `<SCRATCH_DIR>/exec-review-<PLAN_ID>-<pr-id>-<specialist>.md`
 
 Initialize orchestrator state variables:
 

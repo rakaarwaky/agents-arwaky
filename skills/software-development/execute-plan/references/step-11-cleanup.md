@@ -27,12 +27,12 @@ The final Orca worktree is exempt from Step 11 — it is retired post-merge only
 Then delete each per-PR summary, merged review, and individual reviewer file:
 
 ```
-<PYTHON> <HOST_PY> cleanup <each ${scratch_dir}/grok-exec-summary-<PLAN_ID>-<pr-id>.md, ${scratch_dir}/grok-exec-review-<PLAN_ID>-<pr-id>.md, and config.review_file you created>
+<PYTHON> <HOST_PY> cleanup <each ${scratch_dir}/exec-summary-<PLAN_ID>-<pr-id>.md, ${scratch_dir}/exec-review-<PLAN_ID>-<pr-id>.md, and config.review_file you created>
 ```
 
 **Keep the state file** -- the user may want to reference PR URLs or run history; remove manually if desired:
 ```bash
-rm ${scratch_dir}/grok-exec-plan-<PLAN_ID>.json
+rm ${scratch_dir}/exec-plan-<PLAN_ID>.json
 ```
 
 **After failure (resumable):** Worktrees for **completed** PRs are preserved (their commits are needed for final branch assembly in Step 10.1). Worktrees for **failed** or **crashed** PRs are cleaned up during `--resume` (Step 9) before retrying, since failed PRs are retried from scratch with new worktrees.

@@ -73,7 +73,7 @@ Do not switch branches. Do not attempt to push to a remote. Just implement the c
 
 ## Output Requirements
 1. Implement the changes described above.
-2. Write a summary of what you did to: <scratch_dir>/grok-exec-summary-<PLAN_ID>-<pr.id>.md
+2. Write a summary of what you did to: <scratch_dir>/exec-summary-<PLAN_ID>-<pr.id>.md
 3. Commit your changes with a clear, descriptive commit message.
 ```
 
