@@ -1,5 +1,7 @@
 # Improve — Step 5: Naming detail
 
+**Goal:** you can name or rename a skill following the gerund-form convention, keep frontmatter and catalog in sync with the directory, and resolve a `name-mismatch` lint report.
+
 - Gerund form preferred (`processing-pdfs`) over `pdf-processing`, when both are valid.
 - Renaming a skill = rename the directory (`git mv`); the dangling-pointer sweep afterwards is owned by the Verify step of `SKILL.md`. After the rename, verify the skill still resolves and the catalog is consistent:
 

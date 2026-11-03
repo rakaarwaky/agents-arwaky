@@ -1,5 +1,7 @@
 # Improve — Step 4: Validator catalog
 
+**Goal:** you can map every `aa skills lint` rule to what it checks and how to satisfy it, and know how to run lint whole-pack or scoped to a category.
+
 Run `aa skills lint` (whole pack) or `aa skills lint --category <name>` (scoped) to see which of the rules below fire.
 
 | Rule | Meaning |

@@ -1,5 +1,7 @@
 # Improve — Step 9: Category-placement audit
 
+**Goal:** you can audit and fix skill category placement — move misplaced skills, create a category when none fits, and leave the catalog rebuilt and lint clean.
+
 Use this when skills may be in the wrong category.
 
 1. Run:
@@ -37,6 +39,16 @@ aa skills catalog
 ```
 
 9. Verify the moved skills appear under the correct category.
+
+## Commands
+
+| Command | Use |
+| ------- | --- |
+| `aa skills lint` | Detect placement issues (`empty-category`, `missing-category-description`, etc.). |
+| `aa skills catalog --read` | Read the catalog's `## Categories` table without opening the file. |
+| `aa skills create category CATEGORY_NAME --description "CATEGORY_DESCRIPTION" --apply` | Create a new category when no existing one fits. |
+| `aa skills move CATEGORY/SKILL TARGET_CATEGORY --apply` | Move a misplaced skill to the correct category. |
+| `aa skills catalog` | Rebuild the catalog after moves or category changes. |
 
 ### Pitfalls
 

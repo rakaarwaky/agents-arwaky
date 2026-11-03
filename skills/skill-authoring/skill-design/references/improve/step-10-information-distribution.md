@@ -1,5 +1,7 @@
 # Improve — Step 10: Information distribution
 
+**Goal:** you can route every fact to its single home — Global Rules, one step file, or an inlined shared reference — before editing it.
+
 Before editing any fact, route it with the test below. A fact that has more than one home is a bug; one home per fact (Global Rules). This is the check that catches a definition file that should have been split into the Global Rules + step files that use it.
 
 ### The test

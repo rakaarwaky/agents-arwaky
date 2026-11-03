@@ -1,5 +1,7 @@
 # Create — Step 5: Write SKILL.md
 
+**Goal:** write `SKILL.md` and any supporting files from the templates.
+
 Frontmatter first, then the standard body. The shape of every template lives in `template/`, and `template/template.md` is the single entry point that routes to the right one — read that index, then copy the template it names rather than restating any shape here.
 
 The body is always exactly three sections in this order: `# <Skill Name>`, `## Global Rules`, `## Routing`.

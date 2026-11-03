@@ -1,5 +1,7 @@
 # Improve — Step 11: Choosing the reference pattern
 
+**Goal:** you can pick the reference pattern (A, B, or C) that matches the skill's shape, from the Routing table rather than the existing tree.
+
 Run this decision **before** restructuring the `references/` folder. The pattern must match the skill's shape — never match by convention.
 
 ### Pattern shapes (file trees)

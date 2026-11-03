@@ -1,5 +1,7 @@
 # Create — Step 1: Gather information
 
+**Goal:** collect the skill's name, category, scope, and job description before writing anything.
+
 Ask the user one at a time, as normal conversation (not option prompts):
 
 1. **Skill name** — must satisfy the `name-format` rule (see the validator catalog in `../improve/step-4-validator-catalog.md`). Validate before continuing.

@@ -1,5 +1,7 @@
 # Improve — Step 12: Apply the edit recipe
 
+**Goal:** you can apply the 9-point edit recipe end to end and verify with `aa skills lint` and the pre-publish checklist.
+
 Run the numbered recipe in order against the resolved scope (Step 1), the body-format check (Step 2), and the audit steps 3–11. Verification after any edit is the `aa skills lint` gate.
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.

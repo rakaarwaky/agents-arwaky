@@ -1,5 +1,7 @@
 # Create — Step 2: Draft the trigger fields
 
+**Goal:** draft `description:` and `when-to-use:` together, get user approval, and keep the two fields non-overlapping.
+
 Draft `description:` and `when-to-use:` together — both are mandatory (Global Rules) and both drive auto-invocation. Apply the Frontmatter semantics bullet and the description detail in `../improve/step-6-description-detail.md`. Keep the two fields non-overlapping (Global Rules: budget for permanent cost).
 
 Show both to the user for approval or edits before writing anything.

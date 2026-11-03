@@ -1,5 +1,7 @@
 # Improve — Step 2: Enforce the SKILL.md body format
 
+**Goal:** verify the target `SKILL.md` uses exactly `# Title` / `## Global rules` / `## Routing` before any edit.
+
 Every skill being improved must use this exact body shape in `SKILL.md`:
 
 ```

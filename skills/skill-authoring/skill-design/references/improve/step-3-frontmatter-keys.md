@@ -1,5 +1,7 @@
 # Improve — Step 3: Frontmatter keys
 
+**Goal:** you can state which frontmatter keys the target skill's `SKILL.md` must carry, which are optional Grok Build controls, and which are target-dependent, from the complete key reference.
+
 Which keys are mandatory is a Global Rule; this table is the full key reference, including the optional ones.
 
 | Field | Required | Notes |
