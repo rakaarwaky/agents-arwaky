@@ -32,7 +32,7 @@ from modules.shared.src.skills.taxonomy_skills_error import (
 )
 from modules.shared.src.skills.taxonomy_skills_rule_vo import CategoryName, SkillName
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.skills.src.utility_skills_mutation import (
+from modules.shared.src.skills.utility_skills_mutation import (
     assert_within_root,
     resolve_skill_dir,
     validate_category_name,

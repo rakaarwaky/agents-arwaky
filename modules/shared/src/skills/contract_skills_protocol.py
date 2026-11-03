@@ -39,12 +39,16 @@ from modules.shared.src.skills.taxonomy_skills_rule_vo import (
     SkillName,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
+    GrokHome,
     ScanResult,
     SkillContent,
     SkillQuery,
     SkillRecord,
+    SkillsJsonPayload,
     SkillsRoot,
     TraceDecision,
+    TraceRunDir,
+    TraceRunName,
     TraceStateDispatchResult,
     TraceStateStatus,
 )
@@ -62,15 +66,12 @@ class ISkillsListerProtocol(ABC):
         """
         ...
 
-    def list_skills_json(self, root: SkillsRoot | None = None) -> dict:
+    def list_skills_json(self, root: SkillsRoot | None = None) -> SkillsJsonPayload:
         """Return the global-skill JSON list as a pure-data dict.
 
         One entry per skill (``name``, ``source``, ``path``, ``loaded``);
-        the source is the repo pack only. ``SkillsLister`` provides
-        the real implementation; this default returns ``{}`` for other
-        implementors.
+        the source is the repo pack only.
         """
-        return {}
 
 
 class ISkillsReaderProtocol(ABC):
@@ -221,8 +222,8 @@ class ISkillsTracesProtocol(ABC):
     @abstractmethod
     def scan_sessions(
         self,
-        grok_home: str,
-        run_dir: str,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
         days: int = 0,
         since_last: bool = False,
         min_turns: int = 1,
@@ -240,12 +241,12 @@ class ISkillsTracesProtocol(ABC):
         ...
 
     @abstractmethod
-    def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
+    def build_usage(self, grok_home: GrokHome, run_dir: TraceRunDir) -> UsageReport:
         """Return the skills-only usage: hit counts, sessions, last_used, unused_loaded."""
         ...
 
     @abstractmethod
-    def build_phrases(self, grok_home: str, run_dir: str) -> PhrasesReport:
+    def build_phrases(self, grok_home: GrokHome, run_dir: TraceRunDir) -> PhrasesReport:
         """Mine repeated exact prompts, prompt stems, and repeated instruction lines.
 
         Reads the session records written to *run_dir*; returns
@@ -253,17 +254,26 @@ class ISkillsTracesProtocol(ABC):
         """
         ...
 
+    def materialize(
+        self, grok_home: GrokHome, run_dir: TraceRunDir
+    ) -> tuple[UsageReport, PhrasesReport]:
+        """Build usage + phrases for *run_dir* and write
+        ``usage.json`` + ``phrases.json`` into it.
+
+        Returns the two reports so the agent can echo them in the result.
+        """
+
     # ── Trace-state lifecycle ─────────────────────────────────────────
 
     @abstractmethod
     def set_status(
-        self, grok_home: str, run_dir: str, status: TraceStateStatus
+        self, grok_home: GrokHome, run_dir: TraceRunDir, status: TraceStateStatus
     ) -> TraceStateStatus:
         """Record *status* for the pending run; ``done`` stamps last_completed."""
         ...
 
     @abstractmethod
-    def get_status(self, grok_home: str) -> TraceStateStatus:
+    def get_status(self, grok_home: GrokHome) -> TraceStateStatus:
         """Return the current pending status.
 
         ``done``-less pending runs exit 3 (the surface maps to exit 3); the
@@ -272,7 +282,9 @@ class ISkillsTracesProtocol(ABC):
         ...
 
     @abstractmethod
-    def trash(self, grok_home: str, run_name: str, paths: Sequence[str]) -> tuple[str, ...]:
+    def trash(
+        self, grok_home: GrokHome, run_name: TraceRunName, paths: Sequence[str]
+    ) -> tuple[str, ...]:
         """Move the validated paths into ``learn/trash/<run_name>``.
 
         Only a ``skills/<name>`` directory, a ``workflows/*.rhai`` file, or a
@@ -284,8 +296,8 @@ class ISkillsTracesProtocol(ABC):
     @abstractmethod
     def decide(
         self,
-        grok_home: str,
-        run_dir: str,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
         decision: TraceDecision,
     ) -> TraceDecision:
         """Append one decision line to ``learn/decisions.jsonl`` and return it."""
@@ -294,8 +306,8 @@ class ISkillsTracesProtocol(ABC):
     @abstractmethod
     def wait(
         self,
-        grok_home: str,
-        run_dir: str,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
         timeout_min: int = 90,
         phase_stall_min: int = 60,
         report_stall_min: int = 45,

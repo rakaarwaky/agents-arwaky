@@ -14,8 +14,6 @@ composition root injects every capability implementation.
 
 from __future__ import annotations
 
-import json
-import os
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import cast
@@ -32,17 +30,12 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
 )
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
-    PhrasesReport,
-    UsageReport,
-)
 from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsError,
     SkillsRootError,
     SkillsUsageError,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
-    PhraseRow,
     SkillContent,
     SkillQuery,
     SkillRecord,
@@ -375,21 +368,13 @@ class SkillsAgent(ISkillsAggregate):
     def _traces_materialize(
         self, traces: ISkillsTracesProtocol, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
-        """Write usage.json + phrases.json into the run dir for the trace workflow."""
+        """Materialize usage.json + phrases.json into the run dir."""
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
         if not run_dir:
             raise SkillsUsageError("traces materialize requires --run-dir")
 
-        usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
-        report = traces.build_phrases(grok_home=grok_home, run_dir=run_dir)
-
-        usage_path = os.path.join(run_dir, "usage.json")
-        phrases_path = os.path.join(run_dir, "phrases.json")
-        with open(usage_path, "w", encoding="utf-8") as f:
-            json.dump(self._usage_to_json(usage), f, indent=1, ensure_ascii=False)
-        with open(phrases_path, "w", encoding="utf-8") as f:
-            json.dump(self._phrases_to_json(report), f, indent=1, ensure_ascii=False)
+        usage, report = traces.materialize(grok_home=grok_home, run_dir=run_dir)
 
         return SkillsResult(
             ok=True,
@@ -416,52 +401,6 @@ class SkillsAgent(ISkillsAggregate):
             lines=result.lines,
         )
 
-    # ── JSON projections ──────────────────────────────────────
-
-    @staticmethod
-    def _usage_to_json(usage: UsageReport) -> dict:
-        """The skills-only usage.json shape the trace workflow reads."""
-        return {
-            "kept_sessions": usage.kept_sessions,
-            "items": [
-                {
-                    "kind": "skill",
-                    "name": it.name,
-                    "source": it.source,
-                    "path": it.path,
-                    "loaded": it.loaded,
-                    "count": it.count,
-                    "sessions": list(it.sessions),
-                    "last_used": it.last_used,
-                    "in_slash_mru": it.in_slash_mru,
-                }
-                for it in usage.items
-            ],
-            "unused_loaded": list(usage.unused_loaded),
-        }
-
-    @staticmethod
-    def _phrases_to_json(report: PhrasesReport) -> dict:
-        """The legacy phrases.json shape (exact / stems / instruction lines)."""
-        def rows(rows_: tuple[PhraseRow, ...]) -> list[dict]:
-            return [
-                {
-                    "phrase": r.phrase,
-                    "sessions": r.sessions,
-                    "occurrences": r.occurrences,
-                    "session_ids": list(r.session_ids),
-                }
-                for r in rows_
-            ]
-
-        return {
-            "exact_prompts": rows(report.exact_prompts),
-            "prompt_stems_12_words": rows(report.stems),
-            "repeated_instruction_lines": rows(report.repeated_instruction_lines),
-            "note": "counts are distinct sessions; single-turn sessions repeated 3+ times are excluded as likely automation",
-        }
-
-    # ─── Block 4: Helpers, Factories & Read Helpers ────────────
     def _root(self, request: SkillsRequest) -> SkillsRoot:
         """Resolve the request's root: explicit beats derived, never silent."""
         if request.root is not None:

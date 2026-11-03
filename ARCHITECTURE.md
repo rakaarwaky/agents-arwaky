@@ -195,61 +195,13 @@ Group 3 enforces file size limits and content quality standards to maintain code
 
 ### AES301 / AES302 — File Line-Count Limits
 
-| Field | Value |
-| ----- | ----- |
-| Severity | HIGH |
-| Fires when (AES301) | File exceeds the maximum allowed line count (default: 1000) |
-| Fix (AES301) | Split into smaller files |
-| Fires when (AES302) | File is below the minimum required line count (default: 5) |
-| Fix (AES302) | Merge into a related module or add more documentation |
-| Scope | Every scanned source file; barrel/entry files and `*_constant` files are excepted |
-
 ### AES303 — Mandatory Definition
 
-| Field | Value |
-| ----- | ----- |
-| Severity | HIGH (missing) / MEDIUM (empty) |
-| Fires when | A source file has no struct/enum/trait/class definition, or a definition is empty |
-| Scope | Every scanned source file; barrel/entry files, `*_constant.rs`, `*_constant.py`, `main.rs`, `main.py`, `py.typed` are excepted |
-| Fix | Group functions into a struct or implement an interface; remove empty definitions |
-
-#### Sub-checks
-
-| # | Sub-check | Severity | Violation name | Fires when |
-| - | --------- | -------- | -------------- | ---------- |
-| 1 | Missing definition | HIGH | `MANDATORY_DEFINITION` | File has no struct/enum/trait/class at all |
-| 2 | Empty / dead definition | MEDIUM | `DEAD_INHERITANCE` | `struct Foo;`, `impl X for Y {}`, `class Foo: pass`, `class Foo {}` |
+Skipped for `utility`/`surface` layers; active for taxonomy/contract/capabilities/agent/root.
 
 ### AES304 — Bypass Comment
 
-| Field | Value |
-| ----- | ----- |
-| Severity | CRITICAL |
-| Fires when | A forbidden bypass pattern is detected |
-| Fix | Use proper error handling |
-
-#### Forbidden Bypass Patterns
-
-| Pattern | Violation kind |
-| ------- | -------------- |
-| `#[allow(...)]` | `BYPASS_COMMENT` |
-| `unwrap()` / `expect()` | `UNWRAP_EXPECT` |
-| `panic!` | `PANIC` |
-| `todo` | `TODO` |
-| `unimplemented` / `unreachable` | `UNIMPLEMENTED` |
-| `noqa` / `type: ignore` / `eslint-disable` / `ts-ignore` / `ts-expect-error` | `BYPASS_COMMENT` |
-| `FIXME` / `HACK` / `XXX` | `BYPASS_COMMENT` |
-| `raise NotImplementedError` / `assert False` | `UNIMPLEMENTED` / `PANIC` |
-| `throw new Error(...)` / `throw new TypeError(...)` / `throw new RangeError(...)` / `throw new ReferenceError(...)` / `throw new SyntaxError(...)` | `PANIC` |
-
 ### AES305 — Duplication Code
-
-| Field | Value |
-| ----- | ----- |
-| Severity | MEDIUM |
-| Fires when | A file's share of shared normalized content windows exceeds the duplication threshold |
-| Scope | Every scanned source file; import-only windows are excluded |
-| Fix | Extract duplicated logic into shared utilities |
 
 ---
 

@@ -17,17 +17,17 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 ### CLI Command Map
 
-| CLI Command | Capability File | Contract Protocol | FR ID |
-|---|---|---|---|
-| `aa skills list` | `capabilities_skills_lister.py` | `ISkillsListerProtocol` | FR-SKILLS-001 |
-| `aa skills read <name>` | `capabilities_skills_reader.py` | `ISkillsReaderProtocol` | FR-SKILLS-002 |
-| `aa skills lint [--category NAME]` | `capabilities_skills_linter.py` | `ISkillsLinterProtocol` | FR-SKILLS-003 |
-| `aa skills catalog [--check]` | `capabilities_skills_catalog.py` | `ISkillsCatalogProtocol` | FR-SKILLS-004 |
-| `aa skills discover <query>` | `capabilities_skills_discover.py` | `ISkillsDiscoverProtocol` | FR-SKILLS-005 |
-| `aa skills move <skill> <cat>` | `capabilities_skills_mover.py` | `ISkillsMoverProtocol` | FR-SKILLS-006 |
-| `aa skills archive <skill>` | `capabilities_skills_archiver.py` | `ISkillsArchiverProtocol` | FR-SKILLS-007 |
-| `aa skills create <skill\|category> <name>` | `capabilities_skills_creator.py` | `ISkillsCreatorProtocol` | FR-SKILLS-008 |
-| `aa skills traces <action>` | `capabilities_skills_traces.py` | `ISkillsTracesProtocol` | FR-SKILLS-009 |
+| CLI Command                     | Capability      | Contract Protocol         | FR ID         |
+|---------------------------------|-----------------|---------------------------|---------------|
+| `aa skills list`                | skills lister   | `ISkillsListerProtocol`   | FR-SKILLS-001 |
+| `aa skills read <name>`         | skills reader   | `ISkillsReaderProtocol`   | FR-SKILLS-002 |
+| `aa skills lint [--category X]` | skills linter   | `ISkillsLinterProtocol`   | FR-SKILLS-003 |
+| `aa skills catalog [--check]`   | skills catalog  | `ISkillsCatalogProtocol`  | FR-SKILLS-004 |
+| `aa skills discover <query>`    | skills discover | `ISkillsDiscoverProtocol` | FR-SKILLS-005 |
+| `aa skills move <skill> <cat>`  | skills mover    | `ISkillsMoverProtocol`    | FR-SKILLS-006 |
+| `aa skills archive <skill>`     | skills archiver | `ISkillsArchiverProtocol` | FR-SKILLS-007 |
+| `aa skills create <k> <name>`   | skills creator  | `ISkillsCreatorProtocol`  | FR-SKILLS-008 |
+| `aa skills traces <action>`     | skills traces   | `ISkillsTracesProtocol`   | FR-SKILLS-009 |
 
 ## Functional Requirements
 
@@ -49,7 +49,7 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Technical Specification
 
 | Aspect       | Detail                                                       |
-| ------------ | ------------------------------------------------------------ |
+|--------------|--------------------------------------------------------------|
 | **Input**    | none                                                         |
 | **Output**   | records sorted by name; empty result when the pack is absent |
 | **Protocol** | ISkillsListerProtocol                                        |
@@ -60,14 +60,14 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Test
 
 | Context      | When Action      | Then Observable Result                              |
-| ------------ | ---------------- | --------------------------------------------------- |
+|--------------|------------------|-----------------------------------------------------|
 | Pack present | `aa skills list` | every skill listed with description, sorted by name |
 | Pack absent  | `aa skills list` | empty result, non-zero exit                         |
 
 #### Metric
 
 | Target Metric | Value                               |
-| ------------- | ----------------------------------- |
+|---------------|-------------------------------------|
 | Determinism   | identical output on identical trees |
 
 ### FR-SKILLS-002: Read Skill Guide
@@ -87,7 +87,7 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Technical Specification
 
 | Aspect       | Detail                                                     |
-| ------------ | ---------------------------------------------------------- |
+|--------------|------------------------------------------------------------|
 | **Input**    | a skill name or identifier                                 |
 | **Output**   | the file's full text; a not-found result otherwise         |
 | **Protocol** | ISkillsReaderProtocol                                      |
@@ -98,14 +98,14 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Test
 
 | Context       | When Action             | Then Observable Result                      |
-| ------------- | ----------------------- | ------------------------------------------- |
+|---------------|-------------------------|---------------------------------------------|
 | Known skill   | `aa skills read <name>` | prints the raw SKILL.md                     |
 | Unknown skill | `aa skills read nope`   | exits non-zero with `Skill not found: nope` |
 
 #### Metric
 
 | Target Metric      | Value                 |
-| ------------------ | --------------------- |
+|--------------------|-----------------------|
 | Exit-code contract | 0 found / 1 not-found |
 
 ### FR-SKILLS-003: Lint Pack
@@ -128,10 +128,10 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Technical Specification
 
 | Aspect       | Detail                                                                            |
-| ------------ | --------------------------------------------------------------------------------- |
+|--------------|-----------------------------------------------------------------------------------|
 | **Input**    | a skills root; optional `--category` / `--summary` flags                          |
 | **Output**   | the filtered issue list, weed lines, and the derived summary                      |
-| **Protocol** | ISkillsLinterProtocol                                                            |
+| **Protocol** | ISkillsLinterProtocol                                                             |
 | **Method**   | lint                                                                              |
 | **Event**    | —                                                                                 |
 | **Error**    | missing/invalid root → usage error (exit 2)                                       |
@@ -139,14 +139,14 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Test
 
 | Context          | When Action      | Then Observable Result  |
-| ---------------- | ---------------- | ----------------------- |
+|------------------|------------------|-------------------------|
 | Clean pack       | `aa skills lint` | 0 issues, exit 0        |
 | Pack with issues | `aa skills lint` | issues reported, exit 1 |
 
 #### Metric
 
 | Target Metric      | Value              |
-| ------------------ | ------------------ |
+|--------------------|--------------------|
 | Exit-code contract | 0 clean / 1 issues |
 
 ### FR-SKILLS-004: Rebuild Catalog
@@ -168,7 +168,7 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Technical Specification
 
 | Aspect       | Detail                                                            |
-| ------------ | ----------------------------------------------------------------- |
+|--------------|-------------------------------------------------------------------|
 | **Input**    | a skills root; optional `--check` flag for read-only verification |
 | **Output**   | the rebuilt path and counts, or the drift summary plus diff       |
 | **Protocol** | ISkillsCatalogProtocol                                            |
@@ -179,14 +179,14 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Test
 
 | Context                 | When Action                 | Then Observable Result |
-| ----------------------- | --------------------------- | ---------------------- |
+|-------------------------|-----------------------------|------------------------|
 | Freshly rebuilt catalog | `aa skills catalog --check` | in sync, exit 0        |
 | Drifted catalog         | `aa skills catalog --check` | drift summary, exit 3  |
 
 #### Metric
 
 | Target Metric      | Value               |
-| ------------------ | ------------------- |
+|--------------------|---------------------|
 | Exit-code contract | 0 in-sync / 3 drift |
 
 ### FR-SKILLS-005: Search Catalog
@@ -206,7 +206,7 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Technical Specification
 
 | Aspect       | Detail                                   |
-| ------------ | ---------------------------------------- |
+|--------------|------------------------------------------|
 | **Input**    | a search query and an optional row limit |
 | **Output**   | the top scoring matches                  |
 | **Protocol** | ISkillsDiscoverProtocol                  |
@@ -217,14 +217,14 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Test
 
 | Context            | When Action                  | Then Observable Result              |
-| ------------------ | ---------------------------- | ----------------------------------- |
+|--------------------|------------------------------|-------------------------------------|
 | Query with matches | `aa skills discover <query>` | scored matches printed              |
 | Catalog drift      | `aa skills discover <query>` | warning, live-tree fallback, exit 0 |
 
 #### Metric
 
 | Target Metric | Value                                |
-| ------------- | ------------------------------------ |
+|---------------|--------------------------------------|
 | Determinism   | identical matches on identical trees |
 
 ### FR-SKILLS-006: Move Skill
@@ -245,7 +245,7 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Technical Specification
 
 | Aspect       | Detail                                                                                   |
-| ------------ | ---------------------------------------------------------------------------------------- |
+|--------------|------------------------------------------------------------------------------------------|
 | **Input**    | skill reference, target category; optional `--apply` flag                                |
 | **Output**   | a pure plan, or when `--apply` is given, a post-apply result                             |
 | **Protocol** | ISkillsMoverProtocol                                                                     |
@@ -255,15 +255,15 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Test
 
-| Context         | When Action                              | Then Observable Result                    |
-| --------------- | --------------------------------------- | ----------------------------------------- |
+| Context         | When Action                             | Then Observable Result                    |
+|-----------------|-----------------------------------------|-------------------------------------------|
 | Dry-run default | `aa skills move <skill> <cat>`          | plan shown, tree untouched                |
 | Apply           | `aa skills move <skill> <cat> --apply`  | one apply + one catalog rebuild, in order |
 
 #### Metric
 
 | Target Metric  | Value                                    |
-| -------------- | ---------------------------------------- |
+|----------------|------------------------------------------|
 | Dry-run safety | filesystem unchanged after every preview |
 
 ### FR-SKILLS-007: Archive Skill
@@ -283,25 +283,25 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Technical Specification
 
 | Aspect       | Detail                                                                                   |
-| ------------ | ---------------------------------------------------------------------------------------- |
-| **Input**    | skill reference; optional `--apply` flag                                                |
+|--------------|------------------------------------------------------------------------------------------|
+| **Input**    | skill reference; optional `--apply` flag                                                 |
 | **Output**   | a pure plan, or when `--apply` is given, a post-apply result                             |
 | **Protocol** | ISkillsArchiverProtocol                                                                  |
 | **Method**   | plan\_archive / apply\_archive                                                           |
 | **Event**    | —                                                                                        |
-| **Error**    | unknown skills, conflicts → typed usage error (exit 2)                                  |
+| **Error**    | unknown skills, conflicts → typed usage error (exit 2)                                   |
 
 #### Test
 
-| Context         | When Action                            | Then Observable Result                    |
-| --------------- | ------------------------------------- | ----------------------------------------- |
+| Context         | When Action                           | Then Observable Result                    |
+|-----------------|---------------------------------------|-------------------------------------------|
 | Dry-run default | `aa skills archive <skill>`           | plan shown, tree untouched                |
-| Apply           | `aa skills archive <skill> --apply`  | one apply + one catalog rebuild, in order |
+| Apply           | `aa skills archive <skill> --apply`   | one apply + one catalog rebuild, in order |
 
 #### Metric
 
 | Target Metric  | Value                                    |
-| -------------- | ---------------------------------------- |
+|----------------|------------------------------------------|
 | Dry-run safety | filesystem unchanged after every preview |
 
 ### FR-SKILLS-008: Create Skill or Category
@@ -321,27 +321,27 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Technical Specification
 
-| Aspect       | Detail                                                                                   |
-| ------------ | ---------------------------------------------------------------------------------------- |
-| **Input**    | kind (skill|category), name, optional category/description/when-to-use/argument-hint/body/force; optional `--apply` flag |
-| **Output**   | a pure plan, or when `--apply` is given, a post-apply result                             |
-| **Protocol** | ISkillsCreatorProtocol                                                                   |
-| **Method**   | create\_skill / create\_category                                                         |
-| **Event**    | —                                                                                        |
-| **Error**    | bad category names, conflicts → typed usage error (exit 2)                              |
+| Aspect       | Detail                                                                          |
+|--------------|---------------------------------------------------------------------------------|
+| **Input**    | kind (skill or category), name, optional flags; `--apply` executes the creation |
+| **Output**   | a pure plan, or when `--apply` is given, a post-apply result                    |
+| **Protocol** | ISkillsCreatorProtocol                                                          |
+| **Method**   | create\_skill / create\_category                                                |
+| **Event**    | —                                                                               |
+| **Error**    | bad category names, conflicts → typed usage error (exit 2)                      |
 
 #### Test
 
-| Context         | When Action                                   | Then Observable Result                    |
-| --------------- | -------------------------------------------- | ----------------------------------------- |
-| Dry-run default | `aa skills create skill <name> --category <cat>` | plan shown, tree untouched              |
-| Apply           | `aa skills create skill <name> --category <cat> --apply` | one apply + one catalog rebuild |
-| Category create | `aa skills create category <name> --apply`   | category folder + DESCRIPTION.md created |
+| Context         | When Action                                              | Then Observable Result                    |
+|-----------------|----------------------------------------------------------|-------------------------------------------|
+| Dry-run default | `aa skills create skill <name> --category <cat>`         | plan shown, tree untouched                |
+| Apply           | `aa skills create skill <name> --category <cat> --apply` | one apply + one catalog rebuild, in order |
+| Category create | `aa skills create category <name> --apply`               | category folder + DESCRIPTION.md created  |
 
 #### Metric
 
 | Target Metric  | Value                                    |
-| -------------- | ---------------------------------------- |
+|----------------|------------------------------------------|
 | Dry-run safety | filesystem unchanged after every preview |
 
 ### FR-SKILLS-009: Trace Learning Lifecycle
@@ -363,33 +363,33 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 #### Technical Specification
 
-| Aspect       | Detail                                                                                   |
-| ------------ | ---------------------------------------------------------------------------------------- |
-| **Input**    | action sub-command; optional flags per action                                            |
-| **Output**   | scan results, usage reports, phrase reports, state transitions                          |
-| **Protocol** | ISkillsTracesProtocol                                                                    |
+| Aspect       | Detail                                                                                                        |
+|--------------|---------------------------------------------------------------------------------------------------------------|
+| **Input**    | action sub-command; optional flags per action                                                                 |
+| **Output**   | scan results, usage reports, phrase reports, state transitions                                                |
+| **Protocol** | ISkillsTracesProtocol                                                                                         |
 | **Method**   | scan\_sessions / build\_usage / build\_phrases / set\_status / get\_status / trash / decide / wait / dispatch |
-| **Event**    | —                                                                                        |
-| **Error**    | unknown action → usage error (exit 2); missing run dir → usage error (exit 2)           |
+| **Event**    | —                                                                                                             |
+| **Error**    | unknown action → usage error (exit 2); missing run dir → usage error (exit 2)                                 |
 
 #### Test
 
 | Context         | When Action                                | Then Observable Result                    |
-| --------------- | ------------------------------------------ | ----------------------------------------- |
-| Collect         | `aa skills traces collect`                  | sessions scanned, usage built, exit 0    |
+|-----------------|--------------------------------------------|-------------------------------------------|
+| Collect         | `aa skills traces collect`                 | sessions scanned, usage built, exit 0     |
 | Wait timeout    | `aa skills traces state wait --run-dir D`  | deadline exit 2                           |
 | Phase stall     | `aa skills traces state wait --run-dir D`  | exit 4                                    |
 
 #### Metric
 
-| Target Metric  | Value                                    |
-| -------------- | ---------------------------------------- |
+| Target Metric      | Value                                              |
+|--------------------|----------------------------------------------------|
 | Exit-code contract | 0 ready / 2 usage / 3 report-stall / 4 phase-stall |
 
 ## Public Interface
 
 | Aspect    | Detail           |
-| --------- | ---------------- |
+|-----------|------------------|
 | Agent     | Skills Agent     |
 | Aggregate | ISkillsAggregate |
 | Method    | execute(request) |
@@ -399,8 +399,8 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 ## Reference
 
 | Artifact     | Purpose                                           | Link                                     |
-| ------------ | ------------------------------------------------- | ---------------------------------------- |
-| PRD          | <Business goals, user stories, and scope>         | [PRD.md](../../PRD.md)                   |
-| Backlog      | <Task tracking, epics, and implementation status> | [BACKLOG.md](BACKLOG.md)                 |
-| ROADMAP      | <Timeline, phasing, and dependencies>             | [ROADMAP.md](../../ROADMAP.md)           |
-| ARCHITECTURE | <System boundaries, tech stack, and infra>        | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
+|--------------|---------------------------------------------------|------------------------------------------|
+| PRD          | Business goals, user stories, and scope           | [PRD.md](../../PRD.md)                   |
+| Backlog      | Task tracking, epics, and implementation status   | [BACKLOG.md](BACKLOG.md)                 |
+| ROADMAP      | Timeline, phasing, and dependencies               | [ROADMAP.md](../../ROADMAP.md)           |
+| ARCHITECTURE | System boundaries, tech stack, and infrastructure | [ARCHITECTURE.md](../../ARCHITECTURE.md) |

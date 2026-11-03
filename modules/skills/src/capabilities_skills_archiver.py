@@ -31,7 +31,7 @@ from modules.shared.src.skills.taxonomy_skills_error import (
 )
 from modules.shared.src.skills.taxonomy_skills_rule_vo import SkillName
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.skills.src.utility_skills_mutation import (
+from modules.shared.src.skills.utility_skills_mutation import (
     archive_root,
     assert_within_root,
     resolve_skill_dir,

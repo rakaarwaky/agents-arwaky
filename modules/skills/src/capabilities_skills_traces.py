@@ -61,71 +61,74 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     UsageReport,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
+    GrokHome,
     PhraseRow,
     ScanResult,
     SkillUsageItem,
     TraceDecision,
+    TraceRunDir,
+    TraceRunName,
     TraceSessionRecord,
     TraceStateDispatchResult,
     TraceStateStatus,
 )
-from modules.skills.src.utility_skills_trace_state import (
-    SECRET_RES,
-    STATUSES,
+from modules.shared.src.skills.utility_skills_trace_state import (
+    DEFAULT_DROP_PATTERNS,
+    DEFAULT_EXCLUDE_SUBSTR,
+    SKILL_PATH_RE,
+    SUBAGENT_KINDS,
     TURN_CAP,
     decisions_path,
     files_ready,
-    latest_synthesis,
     load_state,
     mark,
-    newest_mtime,
     normalize,
     redact,
-    save_state,
     state_path,
 )
-from modules.skills.src.utility_skills_trace_state import (
+from modules.shared.src.skills.utility_skills_trace_state import (
+    EXACT_MIN_SESSIONS as _EXACT_MIN_SESSIONS,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
+    LINE_MIN_SESSIONS as _LINE_MIN_SESSIONS,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
+    MIN_LINE_CHARS as _MIN_LINE_CHARS,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
+    MIN_LINE_WORDS as _MIN_LINE_WORDS,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
+    MIN_PHRASE_LEN as _MIN_PHRASE_LEN,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
+    SLASH_ONLY as _SLASH_ONLY,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
+    STEM_MIN_SESSIONS as _STEM_MIN_SESSIONS,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
+    TOP as _TOP,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
+    USER_QUERY_RE as _USER_QUERY_RE,
+)
+from modules.shared.src.skills.utility_skills_trace_state import (
     dispatch as _state_dispatch,
 )
-from modules.skills.src.utility_skills_trace_state import (
+from modules.shared.src.skills.utility_skills_trace_state import (
     restrict as _restrict,
 )
-from modules.skills.src.utility_skills_trace_state import (
+from modules.shared.src.skills.utility_skills_trace_state import (
     trash as _trash,
 )
-from modules.skills.src.utility_skills_trace_state import (
+from modules.shared.src.skills.utility_skills_trace_state import (
     wait as _wait,
 )
 
 __all__ = [
-    "SECRET_RES",
-    "STATUSES",
-    "TURN_CAP",
     "SkillsTraces",
-    "decisions_path",
-    "files_ready",
-    "latest_synthesis",
-    "load_state",
-    "mark",
-    "newest_mtime",
-    "normalize",
-    "redact",
-    "save_state",
-    "state_path",
 ]
-
-
-# ── trace-state lifecycle constants ──────────────────────────────────
-
-
-_STATUS_BY_VALUE = {s.value: s for s in STATUSES}
-
-_USER_QUERY_RE = re.compile(r"<user_query>(.*?)</user_query>", re.DOTALL)
-SUBAGENT_KINDS = {"subagent", "subagent_resume", "subagent_fork"}
-DEFAULT_EXCLUDE_SUBSTR = ["grok-e2e"]
-SKILL_PATH_RE = re.compile(r"[/\\]skills[/\\]([^/\\]+)[/\\]SKILL\.md$")
-# a slash command, not a path segment (~/x, ./x, a/b) and not followed by more path
-DEFAULT_DROP_PATTERNS = [r"^the user invoked `/feedback`"]
 
 
 # ─── Block 1: SkillsTraces class definition & protocol methods ──────────────
@@ -138,8 +141,8 @@ class SkillsTraces(ISkillsTracesProtocol):
 
     def scan_sessions(
         self,
-        grok_home: str,
-        run_dir: str,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
         days: int = 0,
         since_last: bool = False,
         min_turns: int = 1,
@@ -268,7 +271,7 @@ class SkillsTraces(ISkillsTracesProtocol):
             )
         return ScanResult(records=tuple(records), sessions_seen=seen, dropped=dict(dropped))
 
-    def build_usage(self, grok_home: str, run_dir: str) -> UsageReport:
+    def build_usage(self, grok_home: GrokHome, run_dir: TraceRunDir) -> UsageReport:
         """Build the skills-only usage report from session records in ``run_dir``.
 
         Aggregates per-skill hit counts (hits, sessions, last_used) from the
@@ -334,7 +337,7 @@ class SkillsTraces(ISkillsTracesProtocol):
             unused_loaded=unused_loaded,
         )
 
-    def build_phrases(self, grok_home: str, run_dir: str) -> PhrasesReport:
+    def build_phrases(self, grok_home: GrokHome, run_dir: TraceRunDir) -> PhrasesReport:
         """Read session records from ``run_dir`` and return repeated phrases.
 
         Counts are distinct sessions; single-turn sessions repeated 3+ times
@@ -388,6 +391,66 @@ class SkillsTraces(ISkillsTracesProtocol):
             repeated_instruction_lines=tuple(instruction_lines),
         )
 
+    def materialize(
+        self, grok_home: GrokHome, run_dir: TraceRunDir
+    ) -> tuple[UsageReport, PhrasesReport]:
+        """Build usage + phrases for *run_dir*; write ``usage.json`` +
+        ``phrases.json`` into it and return the two reports."""
+        usage = self.build_usage(grok_home=grok_home, run_dir=run_dir)
+        report = self.build_phrases(grok_home=grok_home, run_dir=run_dir)
+
+        usage_path = os.path.join(run_dir, "usage.json")
+        phrases_path = os.path.join(run_dir, "phrases.json")
+        with open(usage_path, "w", encoding="utf-8") as f:
+            json.dump(self._usage_to_json(usage), f, indent=1, ensure_ascii=False)
+        with open(phrases_path, "w", encoding="utf-8") as f:
+            json.dump(self._phrases_to_json(report), f, indent=1, ensure_ascii=False)
+
+        return usage, report
+
+    @staticmethod
+    def _usage_to_json(usage: UsageReport) -> dict:
+        """The skills-only usage.json shape the trace workflow reads."""
+        return {
+            "kept_sessions": usage.kept_sessions,
+            "items": [
+                {
+                    "kind": "skill",
+                    "name": it.name,
+                    "source": it.source,
+                    "path": it.path,
+                    "loaded": it.loaded,
+                    "count": it.count,
+                    "sessions": list(it.sessions),
+                    "last_used": it.last_used,
+                    "in_slash_mru": it.in_slash_mru,
+                }
+                for it in usage.items
+            ],
+            "unused_loaded": list(usage.unused_loaded),
+        }
+
+    @staticmethod
+    def _phrases_to_json(report: PhrasesReport) -> dict:
+        """The legacy phrases.json shape (exact / stems / instruction lines)."""
+        def rows(rows_: tuple[PhraseRow, ...]) -> list[dict]:
+            return [
+                {
+                    "phrase": r.phrase,
+                    "sessions": r.sessions,
+                    "occurrences": r.occurrences,
+                    "session_ids": list(r.session_ids),
+                }
+                for r in rows_
+            ]
+
+        return {
+            "exact_prompts": rows(report.exact_prompts),
+            "prompt_stems_12_words": rows(report.stems),
+            "repeated_instruction_lines": rows(report.repeated_instruction_lines),
+            "note": "counts are distinct sessions; single-turn sessions repeated 3+ times are excluded as likely automation",
+        }
+
     @staticmethod
     def _top(data: dict, min_count: int, key_name: str) -> tuple[PhraseRow, ...]:
         rows: list[PhraseRow] = []
@@ -410,13 +473,13 @@ class SkillsTraces(ISkillsTracesProtocol):
 
 
     def set_status(
-        self, grok_home: str, run_dir: str, status: TraceStateStatus
+        self, grok_home: GrokHome, run_dir: TraceRunDir, status: TraceStateStatus
     ) -> TraceStateStatus:
         """Record ``status`` for the pending run; ``done`` stamps last_completed."""
         state = mark(state_path(grok_home), run_dir, status)
         return TraceStateStatus(state.get("pending", {}).get("status", status.value))
 
-    def get_status(self, grok_home: str) -> TraceStateStatus:
+    def get_status(self, grok_home: GrokHome) -> TraceStateStatus:
         """Return the current pending status."""
         state = load_state(state_path(grok_home))
         pending = state.get("pending") or {}
@@ -430,15 +493,15 @@ class SkillsTraces(ISkillsTracesProtocol):
         return TraceStateStatus(pending.get("status") or TraceStateStatus.DONE.value)
 
     def trash(
-        self, grok_home: str, run_name: str, paths: Sequence[str]
+        self, grok_home: GrokHome, run_name: TraceRunName, paths: Sequence[str]
     ) -> tuple[str, ...]:
         """Move the validated paths into ``learn/trash/<run_name>``."""
         return _trash(grok_home, run_name, list(paths))
 
     def decide(
         self,
-        grok_home: str,
-        run_dir: str,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
         decision: TraceDecision,
     ) -> TraceDecision:
         """Append one decision line to ``learn/decisions.jsonl`` and return it."""
@@ -451,8 +514,8 @@ class SkillsTraces(ISkillsTracesProtocol):
 
     def wait(
         self,
-        grok_home: str,
-        run_dir: str,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
         timeout_min: int = 90,
         phase_stall_min: int = 60,
         report_stall_min: int = 45,
@@ -489,6 +552,7 @@ class SkillsTraces(ISkillsTracesProtocol):
 
 
 # ─── Block 2: inherent helper functions used by the class ──────────────
+# ─── Block 3: module-level helpers & private free functions ──────────────
 
 
 def _default_exclude_cwd() -> list[str]:
@@ -808,14 +872,3 @@ def _under(path: str, base: str) -> bool:
     return path == base or path.startswith(base.rstrip(os.sep) + os.sep)
 
 
-# Minimal constants used by build_phrases (mirror the values in traces).
-_MIN_PHRASE_LEN = 12
-_MIN_LINE_WORDS = 5
-_MIN_LINE_CHARS = 24
-_TOP = 60
-_EXACT_MIN_SESSIONS = 2
-_STEM_MIN_SESSIONS = 3
-_LINE_MIN_SESSIONS = 3
-
-# _SLASH_ONLY lives in the traces capability (used only by build_phrases).
-_SLASH_ONLY = re.compile(r"/[a-z0-9-]+(\s+\S+){0,3}")

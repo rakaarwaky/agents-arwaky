@@ -108,6 +108,26 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-11-03                                                   |
 
+### FR-SKILLS-008: Create Skill or Category
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `capabilities_skills_creator.py::create_skill` / `create_category`; `unit_skills.py` covers name/category validation, dry-run, and `--apply`; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-03                                                   |
+
+### FR-SKILLS-009: Trace Learning Lifecycle
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `capabilities_skills_traces.py` drives the lifecycle state machine; `unit_skills.py` covers collect/usage/phrases/materialize/state/wait; `./.venv/bin/python -m pytest modules/skills -q` → 168 passed. |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-03                                                   |
+
 ## Reference
 
 | Artifact     | Purpose                                         | Link |

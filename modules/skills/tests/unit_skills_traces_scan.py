@@ -18,9 +18,9 @@ from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillUsageItem,
     TraceSessionRecord,
 )
-from modules.skills.src.capabilities_skills_traces import (
+from modules.skills.src.capabilities_skills_traces import SkillsTraces
+from modules.shared.src.skills.utility_skills_trace_state import (
     TURN_CAP,
-    SkillsTraces,
     redact,
 )
 
