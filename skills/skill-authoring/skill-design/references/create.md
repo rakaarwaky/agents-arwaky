@@ -79,6 +79,6 @@ This is the same skeleton this skill's own `SKILL.md` uses; open it as a filled-
 ## Step 6: Verify and confirm
 
 - [ ] Read the file back and confirm frontmatter and body landed correctly, and the body follows the Step 5 skeleton (`# <Skill Name>` / `## Global Rules` / `## Routing`).
-- [ ] Run `aa skills validate` and the pre-publish checklist.
+- [ ] Run `aa skills lint` and the pre-publish checklist.
 - [ ] Tell the user how to invoke it (slash command, skills menu, description matching — whichever the target harness provides).
 - [ ] Remind the user that new or renamed skills appear in the next session: loaders cache the skill list at session start. This is expected.

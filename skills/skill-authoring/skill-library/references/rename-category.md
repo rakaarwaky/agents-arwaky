@@ -21,7 +21,7 @@ grep -rn 'skills/<old>/' skills/ --include='*.md' | grep -v 'skills/<new>/'
 ```
 
 5. Run `aa skills catalog` to rebuild `CATALOG.md`.
-6. Run `aa skills validate` — it will flag any empty category left behind; clean it up.
+6. Run `aa skills lint` — it will flag any empty category left behind; clean it up.
 
 Do not use `aa skills move` to move skills one-by-one into a new category and then rename
 the category — that is two separate operations and the first one is unnecessary if the
@@ -31,4 +31,4 @@ category is being renamed in place.
 
 - The category directory was renamed and its `DESCRIPTION.md` updated.
 - No dangling references to the old category path remain in the skills tree.
-- `aa skills validate` reports no issues.
+- `aa skills lint` reports no issues.

@@ -63,7 +63,7 @@ git push --force-with-lease origin <final_branch>
 
 **Auto-PR (default on):** If `gh` is available and remote is GitHub:
 ```bash
-gh pr create --base main --head <final_branch> --fill --draft
+gh pr create --base main --head <final_branch> --fill
 ```
 Capture URL. Store in `pr_urls`.
 

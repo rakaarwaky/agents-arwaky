@@ -15,7 +15,7 @@ Reorganize or create categories; improve category `DESCRIPTION.md` wording.
 3. Create new categories where needed:
 
 ```bash
-aa skills new-category CATEGORY_NAME "CATEGORY_DESCRIPTION"
+aa skills create category CATEGORY_NAME --description "CATEGORY_DESCRIPTION" --apply
 ```
 
 4. Move skills into better categories:

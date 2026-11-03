@@ -6,8 +6,8 @@ Mechanical audit for a SKILL.md — before publishing (after create/improve) or 
 
 The audit auto-resolves its scope from the skills-path argument:
 
-- **Single skill** — the path names one skill folder (`<category>/<skill>/`). Run the checklist below for that one `SKILL.md`; run `aa skills validate` scoped to it.
-- **Pack / category** — the path names a category (`<category>/`) or the skills root. Run the single-skill checklist for every `SKILL.md` in the tree, and run `aa skills validate` over the whole tree — it covers the `unique-skill-name`, `unique-description`, `skill-placement`, `missing-category-description`, `empty-category-description`, and `empty-category` rules pack-wide. One pack-wide check the tool does not perform: no dangling cross-skill links.
+- **Single skill** — the path names one skill folder (`<category>/<skill>/`). Run the checklist below for that one `SKILL.md`; run `aa skills lint` scoped to it.
+- **Pack / category** — the path names a category (`<category>/`) or the skills root. Run the single-skill checklist for every `SKILL.md` in the tree, and run `aa skills lint` over the whole tree — it covers the `unique-skill-name`, `unique-description`, `skill-placement`, `missing-category-description`, `empty-category-description`, and `empty-category` rules pack-wide. One pack-wide check the tool does not perform: no dangling cross-skill links.
 
 When the path is ambiguous, default to the single-skill scope if it ends in a folder containing a `SKILL.md`, otherwise the pack scope.
 
@@ -26,7 +26,7 @@ Which keys are mandatory is a Global Rule; this table is the full key reference,
 | `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` | Optional | Grok Build controls. |
 | anything else (`version`, `author`, `platforms`, ...) | Optional | Target-dependent; match the field set the destination validator enforces. |
 
-## Validator catalog — what `aa skills validate` enforces
+## Validator catalog — what `aa skills lint` enforces
 
 | Rule | Meaning |
 | ---- | ------- |
@@ -66,9 +66,8 @@ Which keys are mandatory is a Global Rule; this table is the full key reference,
 
 ## Pre-publish checklist
 
-- [ ] `aa skills show` — read back the target `SKILL.md` to confirm frontmatter and body landed correctly.
-- [ ] `aa skills repair` — run mechanical repairs (frontmatter rewrite, missing category `DESCRIPTION.md`) before publishing.
-- [ ] `aa skills validate` passes (catalog above).
+- [ ] `aa skills read` — read back the target `SKILL.md` to confirm frontmatter and body landed correctly.
+- [ ] `aa skills lint` passes (catalog above).
 - [ ] Frontmatter satisfies the Global Rules bullets: mandatory keys, Frontmatter semantics, YAML hygiene, parser limits.
 - [ ] Body within ~100–200 lines; overflow moved into `references/`; every reference, whatever its depth, is linked from `SKILL.md` (Global Rules: Structure).
 - [ ] Every sibling mention and cross-skill link names a skill that exists in the tree (Global Rules: dangling refs).
@@ -81,7 +80,7 @@ Use this when skills may be in the wrong category.
 1. Run:
 
 ```bash
-aa skills validate
+aa skills lint
 ```
 
 2. Read `CATALOG.md`.
@@ -91,7 +90,7 @@ aa skills validate
 6. If no category fits, create one:
 
 ```bash
-aa skills new-category CATEGORY_NAME "CATEGORY_DESCRIPTION"
+aa skills create category CATEGORY_NAME --description "CATEGORY_DESCRIPTION" --apply
 ```
 
 7. Move each misplaced skill:
@@ -110,7 +109,7 @@ aa skills catalog
 
 ### Pitfalls
 
-- **Empty source category**: moving the last skill out of a category leaves it empty, and `aa skills validate` flags `empty-category`. Delete the empty `DESCRIPTION.md` and category directory, or retire the category row in `CATALOG.md`.
+- **Empty source category**: moving the last skill out of a category leaves it empty, and `aa skills lint` flags `empty-category`. Delete the empty `DESCRIPTION.md` and category directory, or retire the category row in `CATALOG.md`.
 - **Dangling paths**: after a move, grep the pack for the old `category/skill-name` path and update any hardcoded references.
 
 ### Completion
@@ -118,4 +117,4 @@ aa skills catalog
 - Every misplaced skill identified in steps 4–7 has been moved.
 - Duplicates and obsolete skills have been routed to `skill-lifecycle`.
 - The catalog was rebuilt after moves.
-- `aa skills validate` reports no placement issues.
+- `aa skills lint` reports no placement issues.
