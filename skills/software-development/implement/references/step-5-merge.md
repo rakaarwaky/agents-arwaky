@@ -14,6 +14,10 @@ After all reviewers complete:
 
 Increment `round_count`. Count all open issues and add their severities to `total_issues_by_severity`. Also extract a one-line description of each open issue and append to `issue_patterns` (skip exact duplicates already in the list).
 
+### Scope Audit
+
+Before deciding the round's outcome, audit the worktree diff against the resolved scope from Step 0: `git -C <worktree_path> status --short` — any change OUTSIDE the in-scope paths (a sibling tree the task never named, a new top-level directory) is an out-of-scope artifact. Revert it in the orchestrator's own tools (the subagent is not a safe actor after it has drifted) and add it to the next fix round's prompt as an explicit prohibition. Subagents that were told a directory was "context" sometimes treat it as writable; the diff makes that visible only if the orchestrator checks. A round with out-of-scope artifacts cannot exit even at 0 open issues — the scope audit must pass.
+
 **Merge format:**
 
 ```markdown

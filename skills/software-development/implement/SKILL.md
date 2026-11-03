@@ -21,6 +21,7 @@ Rules that apply to every step. Step files reference these; they never restate t
 - **Personas**: Loaded once in Step 0. Prepend persona instructions on a subagent's initial launch; never pass a `persona` parameter. On `resume_from`, keep the bracketed description tag only — the persona is already in the transcript. The tests and simplicity specialists are prompt-only (no persona).
 - **Spawn parameters**: every `spawn_subagent` call uses `subagent_type: "general-purpose"` and `background: false`. The description is prefixed `[implementer]`, `[reviewer]`, `[tests]`, or `[simplicity]`. Fresh launches pass `cwd: <worktree_path>`; `resume_from` follow-ups do not.
 - **Memory briefing**: before launching any subagent, build `past_issues_briefing` from the `issue_patterns` list (Step 2 snapshot, capped to the top 20). If empty, omit the block entirely. Never partially include a pattern or truncate mid-description.
+- **Scope lock**: the orchestrator decides task scope (in-scope vs out-of-scope paths) before launching the implementer — never the subagent. An explicit out-of-scope list is in every launch and every fix-round prompt (Step 3 / Step 6), and Step 5 audits the diff against it. When the user corrects scope mid-run, stop the running implementer, revert out-of-scope artifacts in the orchestrator's own tools, then relaunch.
 - **Exit condition**: the loop exits only when **all** reviewers report 0 open issues in the same round. No iteration cap. Stalemate (a reviewer re-opens a `wontfix`) → escalate to the user (Step 5a).
 
 ## Routing

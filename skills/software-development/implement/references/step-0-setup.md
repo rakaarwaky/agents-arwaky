@@ -45,6 +45,15 @@ The entire run runs inside a single dedicated Orca worktree whose path is `~/orc
 | Resolve the owning repo | Right after `host.py setup`, before worktree creation |
 | Reuse or create the worktree | Once per run |
 
+## Scope Disambiguation (before the implementer launches)
+
+A task description that names a path can be ambiguous when the repo has two trees with similar names — e.g. a Python module `modules/skills/` and a sibling content pack `skills/` it operates on. The orchestrator decides the intended target scope; it does not delegate that decision to the implementer.
+
+1. **Check the candidate paths on disk before launching** — list both trees, read one doc file from each — to confirm which one the user actually means. If genuinely ambiguous, ask the user ONE clarifying question naming both candidates with concrete paths; do not guess.
+2. **Restate the resolved scope as an explicit out-of-scope list in the implementer prompt** (Step 3), e.g. "ONLY modify `modules/skills/**` and its consumers; do NOT touch the `skills/` content pack, do NOT create new top-level directories under the repo root."
+3. **Post-implementation scope audit:** before Step 4 (review), run `git -C <worktree_path> status --short` and diff the touched paths against the resolved scope. Any out-of-scope path (new directories, files under the sibling tree) → revert it yourself (`git -C <worktree_path> checkout -- <path>` / `rm` for untracked) and tell the user what you reverted.
+4. **If the user corrects scope mid-run** (e.g. "no, I meant the module, not the pack"): stop the running implementer (`action=stop` with subagent_id), apply the above audit against the corrected scope, and re-launch or resume with the corrected out-of-scope list. Never let a wrong-scope implementation continue to be reviewed.
+
 ### Resolve the owning repo
 
 1. Collect candidate paths: every file or directory path named in `<description>` and in the conversation context.

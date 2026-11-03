@@ -34,4 +34,6 @@ Wait for completion. If it fails, report the error to the user and stop.
 
 Update the saved implementer `subagent_id` with the new one returned.
 
+**Scope lock is re-stated in every fix-round prompt, not only the launch prompt.** Steering text is best-effort (a child can finish its in-flight calls before seeing it, and a resumed child's memory of the original scope may already be contaminated by wrong-scope work). Every fix round re-attaches the full out-of-scope list from Step 3; if the scope was corrected mid-run, the corrected scope and a note of what was reverted is part of the prompt body.
+
 Report to the user: "Fixes applied. Running parallel re-review (round N)..." where N is the current `round_count` + 1. After re-review (Step 7), the loop returns to Step 5 (Merge & Check).

@@ -155,6 +155,15 @@ For work where the reader must be able to check the chain — medical, legal, fi
 - **Citing a search snippet as if you read the page.** A `web_search`
   description supports only what it literally says. Cite the extracted page
   when the claim needs the body — `web_extract` it first.
+- **Relying on search engines for "which package/tool exists on this distro"
+  questions.** Search engines (DuckDuckGo, Bing, Google) are either
+  CAPTCHA-gated or return irrelevant results when accessed programmatically.
+  `web_extract` on this deployment cannot fetch arbitrary URLs (search-only
+  backend). Go directly to the authoritative source: for Debian/Deepin
+  packages, query the package archive with
+  `curl -s "https://packages.debian.org/sid/<pkg>"` or
+  `apt-cache search <term>` in terminal; for a specific tool repo, hit the
+  GitHub or GitLab page URL directly with `curl` or `web_extract`.
 - **Over-citing.** Three ids on a sentence is the ceiling; a citation on every
   clause makes text unreadable and hides which source carries the load.
 - **Citing the ledger in code/config artifacts.** Source comments belong in

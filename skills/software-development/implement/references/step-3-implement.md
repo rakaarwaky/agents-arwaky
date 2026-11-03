@@ -15,6 +15,16 @@ Launch the implementer subagent by calling `spawn_subagent`. **Emit the `spawn_s
 
 **If the user provides additional instructions** (like "run tests after", "use this pattern", "don't touch file X"), include those constraints in the implementer prompt.
 
+**Always include the scope-lock block** (resolved in Step 0's Scope Disambiguation):
+```
+Scope: you modify ONLY <in-scope paths>.
+Out of scope — do not create, move, edit, or delete anything under:
+- <out-of-scope path 1> (e.g. the sibling content pack)
+- <out-of-scope path 2>
+Creating new top-level or sibling directories is out of scope unless the task says so explicitly.
+```
+Leaving ambiguity to the implementer's judgment produces wrong-scope work: it will drift toward the more literal-looking candidate or start scaffolding directories it was never asked for.
+
 Prompt:
 ```
 <implementer_persona_instructions>
