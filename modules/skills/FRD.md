@@ -15,18 +15,6 @@ for *the rules about that content*.
 
 Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-run by default, `--apply` gated, never deleting): `move`, `archive`, `create`. The agent — never a capability and never the surface — sequences a mutation into its catalog rebuild. Provisioning/distribution into harness homes remains `modules/harness` (`aa connect`); this feature does not link or copy the pack. Determinism, dry-run safety, the exit-code contract (0 clean / 1 issues / 2 usage / 3 drift), and output parity against the retired legacy script are pinned by the surface and contract test files.
 
-### CLI Command Map
-
-| CLI Command                     | Capability      | Contract Protocol         | FR ID         |
-|---------------------------------|-----------------|---------------------------|---------------|
-| `aa skills list`                | skills lister   | `ISkillsListerProtocol`   | FR-SKILLS-001 |
-| `aa skills read <name>`         | skills reader   | `ISkillsReaderProtocol`   | FR-SKILLS-002 |
-| `aa skills lint [--category X]` | skills linter   | `ISkillsLinterProtocol`   | FR-SKILLS-003 |
-| `aa skills catalog [--build] [--read]` | skills catalog | `ISkillsCatalogProtocol` | FR-SKILLS-004 |
-| `aa skills discover <query>`    | skills discover | `ISkillsDiscoverProtocol` | FR-SKILLS-005 |
-
-Capability-only ops (no CLI surface; reachable via the agent): `move` (FR-SKILLS-006), `archive` (FR-SKILLS-007), `create` (FR-SKILLS-008), `traces` (FR-SKILLS-009).
-
 ## Functional Requirements
 
 ### FR-SKILLS-001: List Skills
