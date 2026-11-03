@@ -33,9 +33,9 @@ Record `final_branch` and `final_commit_sha` in the state file.
 
 Run one orchestrator-level review on the final branch, targeting the full diff (`main..final_commit_sha`).
 
-Create a final worktree:
+Create a final worktree (with `--agent grok` — the Grok Build TUI in the first terminal is the orchestrator's monitoring surface; no task text is sent to it):
 ```bash
-orca-ide worktree create --repo path:<main_clone_path> --name <PLAN_ID>-final --base-branch <final_branch> --no-parent --json
+orca-ide worktree create --repo path:<main_clone_path> --name <PLAN_ID>-final --base-branch <final_branch> --agent grok --no-parent --json
 ```
 
 Launch the 3-reviewer panel (General, Tests, Simplicity) in parallel. Merge their findings.

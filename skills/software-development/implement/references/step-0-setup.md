@@ -72,7 +72,7 @@ Run `"$ORCA" worktree list --json` and decide:
 "$ORCA" worktree create --repo path:<repo_path> --name <wt_prefix> --no-parent --json
 ```
 
-Do **not** pass `--agent` or `--prompt` — the implementer runs as a `spawn_subagent` child, and `--agent` would start a competing TUI agent inside the worktree.
+The coding agent in this environment is **Grok Build**, so pass `--agent grok` — the worktree's first terminal is a Grok TUI. Do NOT send task text to that TUI (no `--prompt`): the implementer and all reviewers run as `spawn_subagent` children with `cwd` inside the worktree, and the TUI is the orchestrator's own monitoring surface. If an idle TUI session blocks later work, retire the worktree after the run (lifecycle table below) or kill its terminal before assembly.
 
 Parse the JSON: `result.worktree.path` → `worktree_path`, `result.worktree.id` → `worktree_id`, `result.worktree.branch` → `worktree_branch` (strip the `refs/heads/` prefix). Record all three, plus `wt_prefix`, immediately.
 
@@ -111,7 +111,7 @@ Follow these rules strictly for the rest of the run:
 
 - **Never touch the default branch or the main clone's working tree.** Every subagent runs in an Orca worktree. The orchestrator runs git only through `git -C <worktree_path>` inside the worktree (none of these change the main clone's checkout).
 - **Never `git reset --hard` or `git checkout` in the main clone.** Those commands discard the user's local work.
-- **One Orca worktree per run.** Create a single Orca worktree named after the task slug under `workspaces/<repo-basename>/<task-slug>` with `--repo path:<repo_path> --no-parent` and no `--agent`/`--prompt`. Tell the implementer not to create another worktree. The orchestrator owns commits, pushes, and PRs.
+- **One Orca worktree per run.** Create a single Orca worktree named after the task slug under `workspaces/<repo-basename>/<task-slug>` with `--repo path:<repo_path> --agent grok --no-parent` and no `--prompt` — the Grok Build TUI in the first terminal is the orchestrator's monitoring surface only. Tell the implementer not to create another worktree. The orchestrator owns commits, pushes, and PRs.
 - **Never force-push without a lease** — enforced in Step 9: always `git push --force-with-lease`, never `git push --force`.
 - **Orchestrator commits.** One commit, when the unit reaches 0 open issues (Step 5). Subagents never commit, create branches, push, touch the worktree lifecycle, or call `gh`.
 

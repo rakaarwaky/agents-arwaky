@@ -111,6 +111,7 @@ orca-ide worktree create \
   --repo path:<main_clone_path> \
   --name <PLAN_ID>-<pr.id> \
   --base-branch <pr.branch> \
+  --agent grok \
   --no-parent \
   --json
 ```
@@ -118,6 +119,7 @@ orca-ide worktree create \
 - `--repo path:<main_clone_path>` targets the orchestrator's main clone.
 - `--name <PLAN_ID>-<pr.id>` gives each PR a unique worktree display name.
 - `--base-branch <pr.branch>` checks the modular branch out inside the new worktree.
+- `--agent grok` puts a Grok Build TUI in the worktree's first terminal — the coding agent for this environment. Do NOT send task text to it (no `--prompt`): the implementer and reviewers are `spawn_subagent` children with `cwd` inside the worktree; the TUI is the orchestrator's monitoring surface only.
 - `--no-parent` keeps the DAG lineage out of Orca's model.
 Record `pr.orca_worktree_id` (`<repoId>::<worktreePath>`) and `pr.worktree_path`.
 

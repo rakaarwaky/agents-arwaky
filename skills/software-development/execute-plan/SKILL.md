@@ -15,7 +15,7 @@ You orchestrate the execution of a PR Plan DAG produced by the `/design` skill. 
 - **Single-Home Rule**: Every protocol, policy, and reporting string has exactly one home file (declared below); other files reference it instead of restating it.
 - **Scope Boundary**: Do not rewrite or re-review the design document. If the DAG is ambiguous, stop and point back to `/design`. Do not modify source files yourself (sole exception: merge-conflict resolution — see Step 10 Rules).
 - **Error Handling**: Failures are governed by Step 8 — fail the PR, cascade-skip dependents, keep independent PRs running.
-- **Delegation**: All code implementation is done by `implementer` subagents. All reviews are done by `reviewer` subagents. The orchestrator/subagent boundary is the Orca Worktree Protocol (Step 0).
+- **Delegation (Grok Build via Orca worktrees)**: All code implementation is done by `implementer` subagents; all reviews by `reviewer` subagents. Every Orca worktree is created with `--agent grok` — Grok Build's TUI sits in the worktree's first terminal as the orchestrator's monitoring surface, and never receives task text (no `--prompt`); subagent `cwd` isolation is what keeps Grok and subagents from fighting over the same checkout. The orchestrator/subagent boundary is the Orca Worktree Protocol (Step 0).
 
 ## Routing
 
