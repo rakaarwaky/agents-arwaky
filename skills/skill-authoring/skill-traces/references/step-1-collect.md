@@ -1,5 +1,7 @@
 # Step 1: Collect
 
+The collector scans the session store under `$GROK_HOME` (default `~/.grok`). If `aa skills traces collect` reports `kept: 0` / `seen: 0` despite recent activity, re-run with `--grok-home <path>` pointing at the populated session store — a scan root with no sessions yields a run the workflow cannot launch (`count` 0 pauses the run).
+
 Run `aa skills traces collect` into a run dir. The collector writes `manifest.json` (sessions seen / kept / dropped by reason, window and filters used) and `sessions/NNNN-<id>.json` (kept session records).
 
 `scan_sessions` drops records for: no_summary, summary_unreadable, subagent, headless, excluded_cwd, older_than_window, no_human_turns, repeated_single_turn, smoke_test, beyond_limit. The `--min-turns` flag (default `3`, constant `TRACE_COLLECT_MIN_TURNS`) is applied per session: sessions with fewer human turns than the threshold are dropped before record writing.
