@@ -124,10 +124,9 @@ def test_mutating_commands_in_cli_preview(tmp_path: Path) -> None:
         assert code == 0, args
         assert "Plan" in out or "dry-run" in out, (args, out)
 
-    # traces is not a verb of cmd_skills; it routes to the traces surface.
-    code, _out, err = run_surface(root, "traces", "drafts/doc-drafts", "notes")
-    assert code == 2
-    assert "Unknown skills subcommand" in err
+    # traces is now routed from cmd_skills to the traces surface.
+    code, _out, _err = run_surface(root, "traces")
+    assert code == 2  # no sub-action → usage error from cmd_traces
 
 
 def test_discover_empty_query_is_a_usage_error(tmp_path: Path) -> None:

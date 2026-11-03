@@ -62,6 +62,9 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_read(rest, aggregate)
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
+    if sub == "traces":
+        from modules.cli.src.surface_skills_traces_command import cmd_traces
+        return cmd_traces(rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
     _print_usage()
     return _EXIT_USAGE
@@ -87,6 +90,10 @@ def _print_usage() -> None:
     info(
         f"{BOLD()}aa skills create <kind> <name> [--category C] [--apply]{RESET()}  "
         "Create a skill or category"
+    )
+    info(
+        f"{BOLD()}aa skills traces <collect|usage|phrases|materialize|state>{RESET()}  "
+        "Trace-learning lifecycle"
     )
 
 
