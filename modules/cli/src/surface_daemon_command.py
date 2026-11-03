@@ -1,4 +1,4 @@
-"""Daemon surface — CLI adapters for aa anytype / aa omniroute.
+"""Daemon surface — CLI adapters for aa omniroute / aa 9router.
 
 The 8 shared daemon operations go through the aggregate's single ``execute``;
 the capability-specific verbs (models, auth-*, space-*, help) live on the
@@ -89,7 +89,7 @@ def _manager(name: str) -> IDaemonAggregate:
 def _orchestrator(orch: IDaemonAggregate | None) -> IDaemonAggregate:
     """Return *orch*, or build the wired daemon aggregate when it is omitted.
 
-    The CLI verbs (``aa anytype`` / ``aa omniroute``) pass only a manager, so the
+    The CLI verbs (``aa omniroute`` / ``aa 9router``) pass only a manager, so the
     shared ops must resolve their aggregate here instead of dereferencing a
     ``None`` orchestrator.
     """
@@ -151,22 +151,6 @@ def _exit_code(response: DaemonResponse) -> int:
     return 0 if response.success else 1
 
 
-def cmd_anytype(
-    args: list[str],
-    orch: IDaemonAggregate | None = None,
-    manager: IDaemonAggregate | None = None,
-) -> int:
-    """aa anytype <command> — start|stop|restart|status|logs|auth-*|space-*|service-*|help."""
-    return _dispatch(
-        orch,
-        manager or _manager("anytype"),
-        args,
-        name=DaemonName("anytype"),
-        unit=DaemonUnit("anytype-daemon.service"),
-        label="anytype",
-    )
-
-
 def cmd_omniroute(
     args: list[str],
     orch: IDaemonAggregate | None = None,
@@ -220,7 +204,6 @@ __all__ = [
     "DaemonResponse",
     "DaemonUnit",
     "cmd_9router",
-    "cmd_anytype",
     "cmd_omniroute",
     "register_manager_factory",
     "register_orchestrator_factory",

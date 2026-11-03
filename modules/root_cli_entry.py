@@ -188,7 +188,6 @@ def cmd_help(argv: list[str]) -> int:
     print(f"  {GREEN()}completion{RESET()} [bash|zsh]          Print shell completion script")
     print()
     print(f"{BOLD()}SERVICES & DAEMONS:{RESET()}")
-    print(f"  {GREEN()}anytype{RESET()} <cmd>                  Anytype daemon (start|stop|status|auth-key|...)")
     print(f"  {GREEN()}9router{RESET()} <cmd>                  9router daemon (start|stop|status|models|...)")
     print(f"  {GREEN()}omniroute{RESET()} <cmd>                OmniRoute daemon (start|stop|status|models|...)")
     print(f"  {GREEN()}service{RESET()} <cmd>                  Service manager (start|stop|restart|status|logs)")
@@ -618,23 +617,6 @@ def _doctor_feature_compat():
     return _doctor_feature()
 
 
-def cmd_anytype(argv: list[str]) -> int:
-    from modules.cli.src.surface_daemon_command import (
-        cmd_anytype as _daemon_anytype,
-    )
-    from modules.cli.src.surface_daemon_command import (
-        register_manager_factory as _reg_dm,
-    )
-    from modules.cli.src.surface_daemon_command import (
-        register_orchestrator_factory as _reg_da,
-    )
-    from modules.daemon.src.root_daemon_container import DaemonContainer
-    _c = DaemonContainer()
-    _reg_dm("anytype", lambda: _c.anytype)
-    _reg_da(lambda: _c.aggregate)
-    return _daemon_anytype(argv)
-
-
 def cmd_omniroute(argv: list[str]) -> int:
     from modules.cli.src.surface_daemon_command import (
         cmd_omniroute as _daemon_omniroute,
@@ -691,7 +673,7 @@ def cmd_daemon(argv: list[str]) -> int:
     known = {str(n) for n in orch.known}
     if not argv or argv[0] in ("-h", "--help", "help"):
         names = ", ".join(str(n) for n in orch.known)
-        print("Usage: aa daemon <anytype|9router|omniroute> <start|stop|restart|status|logs|help>")
+        print("Usage: aa daemon <9router|omniroute> <start|stop|restart|status|logs|help>")
         print(f"Known daemons: {names}")
         return 0
     daemon_id = argv[0]
@@ -709,13 +691,11 @@ def cmd_daemon(argv: list[str]) -> int:
         return int(outcome.exit_code or 0)
     if action == "status":
         _c = DaemonContainer()
-        _reg_dm("anytype", lambda: _c.anytype)
         _reg_dm("omniroute", lambda: _c.omniroute)
         _reg_da(lambda: _c.aggregate)
         from modules.cli.src import surface_daemon_command as _dv
 
         fn = {
-            "anytype": _dv.cmd_anytype,
             "omniroute": _dv.cmd_omniroute,
         }[daemon_id]
         return fn(["status", *rest])
@@ -872,7 +852,7 @@ def _dispatch(argv: list[str], ctx: dict | None = None) -> int:
         "connect": cmd_connect, "disconnect": cmd_disconnect,
         "mcp": cmd_mcp, "completion": cmd_completion,
         # Daemons & services
-        "anytype": cmd_anytype, "9router": cmd_9router, "omniroute": cmd_omniroute,
+        "9router": cmd_9router, "omniroute": cmd_omniroute,
         "service": cmd_service,
         "daemon": cmd_daemon,
         "backup": cmd_backup, "restore": cmd_restore,

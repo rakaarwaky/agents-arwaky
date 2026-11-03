@@ -39,8 +39,6 @@ tools/ponytail/hooks/
 tools/ponytail/skills/
 tools/ponytail/package.json
 tools/context7/package.json
-tools/anytype-mcp/daemon/anytype
-
 # Environment and local configs
 .env
 .env.*
@@ -51,7 +49,6 @@ config/*/.env
 config/omniroute.env
 config/ninerouter.env
 config/ninerouter.providers.json
-config/anytype.env
 # salinan LOCAL bersih dari config live sering tercopy ke *.example.json dengan
 # token asli (OAuth/refresh/API key). File *.example.json HARUS placeholder saja;
 # un-ignore satu-satu supaya file example baru tidak lolos default.
@@ -93,9 +90,6 @@ tools/config/*.providers.json
 # never in the repo root.
 /learn/
 
-# Large binary: diunduh saat install, bukan di-commit
-**/anytype-bin
-
 # Backup/verification residue a skill-sync run leaves beside the canonical file.
 /skills/**/SKILL.md.bak
 /skills/**/SKILL.md.sha256
@@ -119,7 +113,7 @@ tools/config/*.providers.json
 /skills/**/.codex/
 
 # Loader alias-indexes: harness loaders index underscore names from the hyphen
-# pack dirs THROUGH the harness root link (anytype-mcp -> anytype_mcp). Generated
+# pack dirs THROUGH the harness root link. Generated
 # noise, regenerates locally; the hyphen dir is the tracked canonical.
 /skills/*_*/
 # Archived skills are the reversible half of deprecation; they stay tracked.

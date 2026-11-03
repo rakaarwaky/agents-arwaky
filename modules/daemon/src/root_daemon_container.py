@@ -6,7 +6,6 @@ from modules.daemon.src.capabilities_9router_daemon import NinerouterDaemonManag
 from modules.daemon.src.capabilities_9router_import_omniroute import (
     NineRouterImportOmniroute,
 )
-from modules.daemon.src.capabilities_anytype_daemon import AnytypeDaemonManager
 from modules.daemon.src.capabilities_omniroute_daemon import OmnirouteDaemonManager
 from modules.shared.src.daemon.contract_daemon_aggregate import IDaemonAggregate
 
@@ -15,12 +14,10 @@ class DaemonContainer:
     """Construct the daemon managers and the routing orchestrator."""
 
     def __init__(self) -> None:
-        anytype = AnytypeDaemonManager()
         omniroute = OmnirouteDaemonManager()
         nine_import = NineRouterImportOmniroute()
         ninerouter = NinerouterDaemonManager(import_omni=nine_import)
-        self._orchestrator = DaemonOrchestrator(anytype, omniroute, ninerouter)
-        self._anytype = anytype
+        self._orchestrator = DaemonOrchestrator(omniroute, ninerouter)
         self._omniroute = omniroute
         self._ninerouter = ninerouter
 
@@ -28,11 +25,6 @@ class DaemonContainer:
     def aggregate(self) -> IDaemonAggregate:
         """The fully-wired DaemonOrchestrator."""
         return self._orchestrator
-
-    @property
-    def anytype(self):
-        """The AnytypeDaemonManager instance."""
-        return self._anytype
 
     @property
     def ninerouter(self):

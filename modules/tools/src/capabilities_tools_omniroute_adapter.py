@@ -134,7 +134,7 @@ def _omniroute_write_launcher(launcher: Path, root: Path) -> None:
     launcher.chmod(0o755)
 
 
-def _omniroute_install_unit(daemons) -> int:
+def _omniroute_install_unit(daemons) -> "DaemonOutcome":
     """Route the unit install through the daemon aggregate.
 
     The aggregate exposes ``execute`` rather than ``install_unit``; building a
@@ -143,16 +143,19 @@ def _omniroute_install_unit(daemons) -> int:
     from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
+        DaemonOutcome,
         DaemonRequest,
         DaemonUnit,
     )
 
+    if daemons is None:
+        return DaemonOutcome(success=False, exit_code=1, message="no aggregate")
     request = DaemonRequest(
         op=DaemonOp("install_unit"),
         name=DaemonName("omniroute"),
         unit=DaemonUnit("omniroute.service"),
     )
-    return int(daemons.execute(request))
+    return daemons.execute(request)
 
 
 def _omniroute_lifecycle(action: str, root: Path, daemons) -> list[Path]:
@@ -180,9 +183,9 @@ def _omniroute_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     except Exception as exc:
         print(f"  Warning: could not seed omniroute env: {exc}", file=sys.stderr)
 
-    rc = _omniroute_install_unit(daemons) if daemons is not None else 1
-    if rc != 0:
-        print(f"  Warning: omniroute service-install exited {rc} (see 'aa omniroute logs')", file=sys.stderr)
+    rc = _omniroute_install_unit(daemons)
+    if rc.exit_code != 0:
+        print(f"  Warning: omniroute service-install exited {rc.exit_code} (see 'aa omniroute logs')", file=sys.stderr)
 
     launcher = bin_home() / "omniroute"
     _omniroute_write_launcher(launcher, root)

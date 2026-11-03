@@ -7,7 +7,7 @@ from typing import NewType
 #: Process or command exit code (0 = success, non-zero = failure).
 ExitCode = NewType("ExitCode", int)
 
-#: Service target name ("anytype", "omniroute", "9router", "all").
+#: Service target name ("omniroute", "9router", "all").
 ServiceTarget = NewType("ServiceTarget", str)
 
 #: Service operation token carried by a ServiceRequest (``status``/``start``/...).

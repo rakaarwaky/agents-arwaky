@@ -127,7 +127,7 @@ def _9router_write_launcher(launcher: Path, root: Path) -> None:
     launcher.chmod(0o755)
 
 
-def _9router_install_unit(daemons) -> int:
+def _9router_install_unit(daemons) -> "DaemonOutcome":
     """Route the unit install through the daemon aggregate.
 
     The aggregate exposes ``execute`` rather than ``install_unit``; building a
@@ -136,16 +136,19 @@ def _9router_install_unit(daemons) -> int:
     from modules.shared.src.daemon.taxonomy_daemon_vo import (
         DaemonName,
         DaemonOp,
+        DaemonOutcome,
         DaemonRequest,
         DaemonUnit,
     )
 
+    if daemons is None:
+        return DaemonOutcome(success=False, exit_code=1, message="no aggregate")
     request = DaemonRequest(
         op=DaemonOp("install_unit"),
         name=DaemonName("9router"),
         unit=DaemonUnit("9router.service"),
     )
-    return int(daemons.execute(request))
+    return daemons.execute(request)
 
 
 def _9router_lifecycle(action: str, root: Path, daemons) -> list[Path]:
@@ -173,9 +176,9 @@ def _9router_lifecycle(action: str, root: Path, daemons) -> list[Path]:
     except Exception as exc:
         print(f"  Warning: could not seed 9router env: {exc}", file=sys.stderr)
 
-    rc = _9router_install_unit(daemons) if daemons is not None else 1
-    if rc != 0:
-        print(f"  Warning: 9router service-install exited {rc} (see 'aa 9router logs')", file=sys.stderr)
+    rc = _9router_install_unit(daemons)
+    if rc.exit_code != 0:
+        print(f"  Warning: 9router service-install exited {rc.exit_code} (see 'aa 9router logs')", file=sys.stderr)
 
     launcher = bin_home() / "9router"
     _9router_write_launcher(launcher, root)

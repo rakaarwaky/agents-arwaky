@@ -8,7 +8,7 @@ Last Updated: 2026-10-30
 
 ## Progress Overview
 
-The service feature drives daemon systemd units through typed service protocols (`start`, `stop`, `restart`, `status`, `logs`, `help`) dispatched by `ServiceOrchestrator.execute(ServiceRequest)`. Lifecycle/status/logs route through the injected daemon aggregate; help renders locally. OmniRoute, 9router, and anytype are first-class targets; `all` fans out over all known daemons. Gate: `./.venv/bin/python -m pytest modules/service -q` → 31 passed and `./.venv/bin/ruff check modules/service --ignore E501` → clean at `767b18672a0c0abd92f7225f267478db8271c334`.
+The service feature drives daemon systemd units through typed service protocols (`start`, `stop`, `restart`, `status`, `logs`, `help`) dispatched by `ServiceOrchestrator.execute(ServiceRequest)`. Lifecycle/status/logs route through the injected daemon aggregate; help renders locally. OmniRoute and 9router are first-class targets; `all` fans out over all known daemons. Gate: `./.venv/bin/python -m pytest modules/service -q` → 31 passed and `./.venv/bin/ruff check modules/service --ignore E501` → clean at `767b18672a0c0abd92f7225f267478db8271c334`.
 
 ## Backlog Status
 

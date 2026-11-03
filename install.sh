@@ -427,7 +427,7 @@ seed_xdg_configs() {
 
   # Repo reference configs -> XDG config home. Never overwrite a live config.
   local src dst name
-  for name in omniroute.env ninerouter.env anytype.env; do
+  for name in omniroute.env ninerouter.env; do
     src="$ROOT/config/$name"
     dst="$conf_dir/$name"
     if [[ ! -f "$src" ]]; then

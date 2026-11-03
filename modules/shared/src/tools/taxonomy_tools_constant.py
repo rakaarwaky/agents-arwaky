@@ -11,36 +11,27 @@ SENTINEL_EXECUTABLE_GONE = 126
 
 #: Tool ids that are long-running daemons (container isolation invariant).
 DAEMON_TOOL_IDS: frozenset[str] = frozenset(
-    {"anytype", "anytype-daemon", "omniroute", "9router"}
+    {"omniroute", "9router"}
 )
 
 #: Runner families a tool installs through (cargo / uv / bun / pnpm / npm / pip-venv).
 RUNNER_FAMILIES = ("cargo", "uv", "python", "bun", "pnpm", "npm")
 
 # Tool ids that have a systemd user unit managed under $XDG_CONFIG_HOME.
-# P1-5: the merged `anytype` id owns the daemon half too — uninstall must
-# stop the unit (or name it as a residual), not just delete its launcher.
 DAEMON_UNIT_TOOLS: dict[str, str] = {
     "omniroute": "omniroute.service",
     "9router": "9router.service",
-    "anytype": "anytype-daemon.service",
-    "anytype-daemon": "anytype-daemon.service",
 }
 
-# Tool id -> daemon feature name (keyed on manifest id; "anytype-daemon"
-# routes to the "anytype" daemon manager in the daemon orchestrator).
+# Tool id -> daemon feature name (keyed on manifest id).
 DAEMON_NAMES: dict[str, str] = {
     "omniroute": "omniroute",
     "9router": "9router",
-    "anytype": "anytype",
-    "anytype-daemon": "anytype",
 }
 
 # Per-tool launcher/alias names the installer registers under $XDG_BIN_HOME.
 # Data source for the remover capability's generic teardown.
 LAUNCHER_NAMES: dict[str, list[str]] = {
-    "anytype": ["anytype-mcp", "anytype-daemon", "ad"],
-    "anytype-daemon": ["anytype-daemon", "ad"],
     "blender-arwaky": ["blender-arwaky", "ba", "blender-mcp"],
     "codegraph": ["codegraph-mcp", "codegraph"],
     "context7": ["context7-mcp", "ctx7"],
@@ -54,12 +45,11 @@ LAUNCHER_NAMES: dict[str, list[str]] = {
 }
 
 # Tool ids whose XDG config subtree is NOT installer-owned and is kept on
-# removal (anytype-daemon keeps its config: the daemon owns it across updates).
-KEEP_CONFIG: frozenset[str] = frozenset({"anytype-daemon"})
+# removal.
+KEEP_CONFIG: frozenset[str] = frozenset()
 
 # Tool id -> manifest alias (short form; used for alias-targeted operations).
 ALIAS_TABLE: dict[str, str | None] = {
-    "anytype-daemon": "ad",
     "workspace": "google-workspace",
     "vision-arwaky": "va",
     "qwen-web-arwaky": "qwa",
@@ -108,14 +98,6 @@ FETCH_CLI_ARGS: frozenset[str] = frozenset({
     "--help", "-h", "--version", "-v",
 })
 
-# ── anytype (bun MCP + container daemon) ──
-ANYTYPE_MCP_SRC_REL = "vendor/anytype-mcp"
-ANYTYPE_MCP_APP_REL = "anytype-mcp"
-ANYTYPE_MCP_ENTRY = "bin/cli.mjs"
-ANYTYPE_DAEMON_DATA_REL = "anytype-daemon"
-ANYTYPE_INTERNAL_BIN = "internal-bin"
-ANYTYPE_VOLUME_DIRS: tuple[str, ...] = ("data", "dot-anytype", "config", "share")
-
 # ── lint (cargo — rustup bootstrap + atomic install) ──
 LINT_INTERNAL_DIR_REL = "internal/lint-arwaky"
 LINT_BINARIES: tuple[str, ...] = (
@@ -156,12 +138,6 @@ NINEROUTER_ENV_FILENAME = "ninerouter.env"
 
 __all__ = [
     "ALIAS_TABLE",
-    "ANYTYPE_DAEMON_DATA_REL",
-    "ANYTYPE_INTERNAL_BIN",
-    "ANYTYPE_MCP_APP_REL",
-    "ANYTYPE_MCP_ENTRY",
-    "ANYTYPE_MCP_SRC_REL",
-    "ANYTYPE_VOLUME_DIRS",
     "CONTEXT7_LAUNCHER_ENTRIES",
     "DAEMON_NAMES",
     "DAEMON_TOOL_IDS",

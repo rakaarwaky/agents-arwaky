@@ -34,15 +34,12 @@ def test_service_manager_execution():
     with patch.object(usd, "_DAEMON_AGGREGATE", mock_agg):
         result = inspect_cap.status()
         assert result is not None
-        assert mock_agg.execute.call_count == 3
+        assert mock_agg.execute.call_count == 2
         mock_agg.execute.assert_any_call(
             DaemonRequest(DaemonOp("status"), name=DaemonName("omniroute"))
         )
         mock_agg.execute.assert_any_call(
             DaemonRequest(DaemonOp("status"), name=DaemonName("9router"))
-        )
-        mock_agg.execute.assert_any_call(
-            DaemonRequest(DaemonOp("status"), name=DaemonName("anytype"))
         )
 
 
@@ -74,7 +71,7 @@ def test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate(capsys
     assert control.stop(ServiceTarget("all")) == 0
     assert control.restart(ServiceTarget("all")) == 0
     assert inspect_cap.status() == 0
-    assert inspect_cap.logs(ServiceTarget("anytype")) == 0
+    assert inspect_cap.logs(ServiceTarget("9router")) == 0
     assert inspect_cap.help() == 0
     capsys.readouterr()
 
@@ -83,8 +80,7 @@ def test_service_drive_and_inspect_operations_fan_out_to_daemon_aggregate(capsys
     for op in ("start", "stop", "restart", "status"):
         assert (op, "omniroute") in requested
         assert (op, "9router") in requested
-        assert (op, "anytype") in requested
-    assert ("logs", "anytype") in requested
+    assert ("logs", "9router") in requested
     assert all(isinstance(request, DaemonRequest) for request in requests)
     assert all(str(request.op) in {"start", "stop", "restart", "status", "logs"} for request in requests)
     assert all(isinstance(request.name, str) for request in requests)

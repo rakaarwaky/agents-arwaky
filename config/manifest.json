@@ -18,23 +18,6 @@
       "path": "vendor/fetch-mcp"
     },
     {
-      "id": "anytype",
-      "category": "vendor",
-      "binary": "anytype-mcp",
-      "isMcp": true,
-      "description": "Anytype desktop & sync MCP server",
-      "path": "vendor/anytype-mcp"
-    },
-    {
-      "id": "anytype-daemon",
-      "alias": "ad",
-      "category": "internal",
-      "binary": "anytype-daemon",
-      "isMcp": false,
-      "description": "Anytype headless daemon & Podman container manager",
-      "path": "tools/daemons"
-    },
-    {
       "id": "codegraph",
       "category": "vendor",
       "binary": "codegraph-mcp",

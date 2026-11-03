@@ -353,7 +353,6 @@ class TestAdapterCapabilities:
     """Tests for the per-tool adapter capabilities."""
 
     ADAPTERS = (
-        ("anytype", "AnytypeToolsAdapter"),
         ("blender", "BlenderToolsAdapter"),
         ("codegraph", "CodegraphToolsAdapter"),
         ("context7", "Context7ToolsAdapter"),
@@ -511,7 +510,7 @@ class TestDaemonAggregateUnitOps:
 
     `IDaemonAggregate` publishes a single `execute(request)` entry point, so
     `daemons.install_unit(...)` is an AttributeError at runtime. Both the
-    anytype and the omniroute adapter have to build a DaemonRequest instead.
+    omniroute and the 9router adapter have to build a DaemonRequest instead.
     """
 
     class _RecordingAggregate:
@@ -523,35 +522,9 @@ class TestDaemonAggregateUnitOps:
 
         def execute(self, request):
             self.requests.append(request)
-            return self._result
+            from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonOutcome
 
-    def test_anytype_uses_execute_not_install_unit(self):
-        """UT-TOOLS-045: the anytype adapter has no direct install_unit call."""
-        import inspect
-
-        from modules.tools.src import capabilities_tools_anytype_adapter as mod
-
-        src = inspect.getsource(mod)
-        assert "daemons.install_unit(" not in src, (
-            "anytype adapter calls daemons.install_unit(); the aggregate only "
-            "publishes execute(request)"
-        )
-
-    def test_anytype_routes_unit_op_through_aggregate(self):
-        """UT-TOOLS-040: anytype's unit helper builds a request and executes it."""
-        from modules.tools.src import capabilities_tools_anytype_adapter as mod
-
-        helper = getattr(mod, "_anytype_install_unit", None)
-        assert callable(helper), "anytype adapter exposes no unit-install helper"
-
-        agg = self._RecordingAggregate()
-        assert helper(agg) == 0
-        assert len(agg.requests) == 1
-
-        req = agg.requests[0]
-        assert str(req.op) == "install_unit"
-        assert str(req.name) == "anytype"
-        assert str(req.unit) == "anytype-daemon.service"
+            return DaemonOutcome(success=self._result == 0, exit_code=self._result, message="")
 
     def test_omniroute_routes_unit_op_through_aggregate(self):
         """UT-TOOLS-041: omniroute's unit helper builds a request and executes it."""
@@ -560,7 +533,7 @@ class TestDaemonAggregateUnitOps:
         )
 
         agg = self._RecordingAggregate()
-        assert _omniroute_install_unit(agg) == 0
+        assert _omniroute_install_unit(agg).exit_code == 0
 
         req = agg.requests[0]
         assert str(req.op) == "install_unit"
@@ -574,7 +547,7 @@ class TestDaemonAggregateUnitOps:
         )
 
         agg = self._RecordingAggregate()
-        assert _9router_install_unit(agg) == 0
+        assert _9router_install_unit(agg).exit_code == 0
 
         req = agg.requests[0]
         assert str(req.op) == "install_unit"

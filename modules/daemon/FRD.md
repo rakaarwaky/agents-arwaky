@@ -2,13 +2,13 @@
 
 ## Feature Overview
 
-The daemon feature manages Anytype, OmniRoute, and 9router gateways through
+The daemon feature manages OmniRoute and 9router gateways through
 `IDaemonProtocol` (typed lifecycle, authorization, enumeration, and unit
 methods), `IDaemonAggregate.execute(request)`, and `DaemonOrchestrator.known()`
-(anytype, omniroute, 9router). The root CLI (`aa anytype`, `aa omniroute`,
-`aa 9router`) routes to the daemon surface, which dispatches through the
-aggregate to daemon managers and deploy assets. The service feature delegates
-lifecycle, status, and log requests to this aggregate.
+(omniroute, 9router). The root CLI (`aa omniroute`, `aa 9router`) routes to the
+daemon surface, which dispatches through the aggregate to daemon managers and
+deploy assets. The service feature delegates lifecycle, status, and log requests
+to this aggregate.
 
 Two capability seams back the feature:
 
@@ -17,32 +17,26 @@ Two capability seams back the feature:
   unit operations (install/remove/unit_status).
 - `I9routerImportOmnirouteProtocol` — one seam covering the OmniRoute → 9router
   credential migration (`aa 9router import-omniroute`).
-
+20→
 ## Functional Requirements
 
 ### FR-DAEMON-001: Manage the daemon lifecycle through IDaemonProtocol
 
-**Description:** Manage Anytype, OmniRoute, and 9router daemons through a single
-protocol seam: start, stop, restart, report status, and show logs; create and
-store Anytype authorization locally; enumerate supported daemon ids; and install,
-remove, and report status for daemon user units. All operations route through
-`IDaemonProtocol` and `IDaemonAggregate.execute(request)`.
-
+**Description:** Manage OmniRoute and 9router daemons through a single protocol
+seam: start, stop, restart, report status, and show logs; enumerate supported
+daemon ids; and install, remove, and report status for daemon user units. All
+operations route through `IDaemonProtocol` and `IDaemonAggregate.execute(request)`.
+30→
 #### Business Logic
 
 - Starting an already-running daemon is an idempotent success with no second
   launch.
-- Anytype uses Podman when available and falls back to its native executable
-  otherwise.
 - OmniRoute and 9router remain host-native; the container-isolation invariant is
   unchanged.
 - Each lifecycle operation reports its exit code or a typed status snapshot to
   the caller.
-- `auth-key` writes `ANYTYPE_API_KEY` only to
-  `agents_arwaky_config_dir()/anytype.env`, at mode `0600`; the secret value is
-  never printed; the tracked example file is a template only.
 - Enumeration is read-only and independent of whether any daemon is running or
-  installed; the listed ids are `anytype`, `omniroute`, and `9router`.
+  installed; the listed ids are `omniroute` and `9router`.
 - Unit files come from this feature's deploy assets (`deploy/*.service`); install
   enables the user unit, remove disables and deletes it, and neither operation
   writes into the repository tree.
@@ -57,18 +51,16 @@ remove, and report status for daemon user units. All operations route through
   daemons remain in the enumeration.
 - Reinstalling an existing unit succeeds; removing a unit that is absent reports
   the state cleanly; missing `systemctl` returns a non-zero result.
-- Daemon stopped, command failure, or unparseable key output returns non-zero and
-  creates no repository credential file.
 - Credential-generation errors are reported without exposing the generated key.
 
 #### Technical Specification
 
 | Aspect | Detail |
 |--------|--------|
-| **Input** | canonical daemon id (`anytype`, `omniroute`, or `9router`) and operation |
+| **Input** | canonical daemon id (`omniroute`, or `9router`) and operation |
 | **Output** | operation exit code or a typed status snapshot |
 | **Protocol** | `IDaemonProtocol` |
-| **Method** | start/stop/restart/status/logs/auth-key/known/install_unit/remove_unit/unit_status |
+| **Method** | start/stop/restart/status/logs/known/install_unit/remove_unit/unit_status |
 | **Event** | — |
 | **Error** | process, runtime, crypto, and systemd errors are returned as reported failures; raw exceptions do not cross the CLI surface |
 
@@ -76,10 +68,8 @@ remove, and report status for daemon user units. All operations route through
 
 | Context | When Action | Then Observable Result |
 |---------|-------------|------------------------|
-| Host without Podman | `status` for Anytype | safe status without a traceback |
 | Already-running daemon | `start` | reports already running, exit 0 |
-| Daemon running | `auth-key` | key written to XDG config at mode `0600`, repo tree stays clean |
-| No daemon running | `known()` | returns every managed daemon id |
+| Daemon running | `known()` | returns every managed daemon id |
 | `install_unit` for a daemon | enables its user unit | a following `unit_status` reports it active |
 
 #### Metric
@@ -87,7 +77,6 @@ remove, and report status for daemon user units. All operations route through
 | Target Metric | Value |
 |---------------|-------|
 | Idempotent start | starting a running daemon is a no-op success |
-| No repo secrets | no real secrets tracked in the tree after auth flows |
 | Read-only | enumeration never mutates host state |
 | Idempotent unit install | re-installing an installed unit succeeds |
 
@@ -97,7 +86,7 @@ remove, and report status for daemon user units. All operations route through
 9router's `providerConnections` table, decrypting stored credentials and mapping
 each row into 9router's payload shape. Exposed as
 `aa 9router import-omniroute [--dry-run] [--provider <name>]...`.
-
+100→
 #### Business Logic
 
 - OmniRoute is opened strictly read-only (`mode=ro` URI); no decrypted plaintext

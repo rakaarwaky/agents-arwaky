@@ -1,4 +1,4 @@
-"""Daemon-domain constants — OmniRoute / Anytype host service parameters (AES layer: taxonomy)."""
+"""Daemon-domain constants — OmniRoute / 9router host service parameters (AES layer: taxonomy)."""
 from __future__ import annotations
 
 import os
@@ -8,7 +8,6 @@ from modules.shared.src.common.taxonomy_common_constant import REPO_ROOT
 from modules.shared.src.common.taxonomy_common_vo import (
     config_home,
     data_home,
-    state_home,
 )
 
 #: Repository root for deploy unit sources.
@@ -23,9 +22,6 @@ NINEROUTER_PORT = os.environ.get("NINEROUTER_PORT", "20128")
 NINEROUTER_DATA_DIR = data_home() / "9router"
 #: systemd user unit directory and 9router unit path.
 NINEROUTER_UNIT_FILE = UNIT_DIR / "9router.service"
-
-#: Anytype container data volume, mounted at /data by the compose unit.
-DATA_DIR = data_home() / "anytype"
 
 #: OmniRoute listen port (env-overridable). This is the port the pre-existing
 #: installation already used, and its state at ``~/.omniroute`` is bound to it:
@@ -94,38 +90,7 @@ SKIPPED_FIELDS = (
     "_9router_skipped_fields",
 )
 
-#: Anytype headless container identity.
-CONTAINER_NAME = "anytype-daemon"
-IMAGE_NAME = "localhost/anytype-daemon:latest"
-
-#: Anytype API port parsed from ANYTYPE_API_BASE_URL (default 31012).
-ANYTYPE_PORT = os.environ.get(
-    "ANYTYPE_API_BASE_URL", "http://127.0.0.1:31012"
-).split(":")[-1].strip("/")
-
-#: Anytype XDG layout.
-ANYTYPE_DATA_DIR = data_home() / "anytype-mcp"
-DOT_ANYTYPE = data_home() / "anytype"
-ANYTYPE_CONFIG_DIR = config_home() / "anytype"
-SHARE_DIR = data_home() / "anytype" / "share"
-LOCAL_BIN = data_home() / "anytype-mcp/bin"
-ANYTYPE_SCRIPT_DIR = ROOT / "modules/daemon/deploy"
-ANYTYPE_UNIT_FILE = UNIT_DIR / "anytype-daemon.service"
-DATA_ROOT = data_home() / "anytype-mcp"
-PID_FILE = state_home() / "anytype-daemon.pid"
-
 __all__ = [
-    "ANYTYPE_CONFIG_DIR",
-    "ANYTYPE_DATA_DIR",
-    "ANYTYPE_PORT",
-    "ANYTYPE_SCRIPT_DIR",
-    "ANYTYPE_UNIT_FILE",
-    "CONTAINER_NAME",
-    "DATA_DIR",
-    "DATA_ROOT",
-    "DOT_ANYTYPE",
-    "IMAGE_NAME",
-    "LOCAL_BIN",
     "NINEROUTER_DATA_DIR",
     "NINEROUTER_PORT",
     "NINEROUTER_UNIT_FILE",
@@ -136,9 +101,7 @@ __all__ = [
     "OMNIROUTE_HOST",
     "OMNIROUTE_PORT",
     "OMNIROUTE_UNIT_FILE",
-    "PID_FILE",
     "ROOT",
-    "SHARE_DIR",
     "UNIT_DIR",
     "WEAK_PASSWORDS",
 ]

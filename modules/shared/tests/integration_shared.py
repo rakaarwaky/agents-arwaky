@@ -10,7 +10,7 @@ def test_manifest_loads_real_tools():
     from modules.shared.src.common.utility_manifest_reader import load_tools
 
     tools = load_tools()
-    assert len(tools) >= 10, f"Expected at least 10 tools, got {len(tools)}"
+    assert len(tools) >= 9, f"Expected at least 9 tools, got {len(tools)}"
     for tool in tools:
         assert tool.id, "Tool has no id"
         assert tool.binary, "Tool has no binary"

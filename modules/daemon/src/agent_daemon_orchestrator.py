@@ -21,7 +21,6 @@ from modules.shared.src.daemon.taxonomy_daemon_vo import (
 
 #: Daemon ids the orchestrator can route to, in listing order.
 _KNOWN: tuple[DaemonName, ...] = (
-    DaemonName("anytype"),
     DaemonName("omniroute"),
     DaemonName("9router"),
 )
@@ -33,15 +32,12 @@ class DaemonOrchestrator(IDaemonAggregate):
 
     def __init__(
         self,
-        anytype: IDaemonProtocol,
         omniroute: IDaemonProtocol,
         ninerouter: IDaemonProtocol | None = None,
     ) -> None:
-        self._anytype = anytype
         self._omniroute = omniroute
         self._ninerouter = ninerouter
         self._managers: dict[str, IDaemonProtocol] = {
-            "anytype": anytype,
             "omniroute": omniroute,
         }
         if ninerouter is not None:
@@ -72,8 +68,6 @@ class DaemonOrchestrator(IDaemonAggregate):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────
     #: systemd unit filename → daemon id (unit ops accept either form).
     _UNIT_DAEMON: ClassVar[dict[str, str]] = {
-        "anytype-daemon.service": "anytype",
-        "anytype.service": "anytype",
         "omniroute.service": "omniroute",
         "9router.service": "9router",
     }

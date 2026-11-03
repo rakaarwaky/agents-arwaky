@@ -7,7 +7,7 @@ def test_manifest_e2e_workflow():
     from modules.shared.src.common.utility_manifest_reader import find_tool, load_tools
 
     tools = load_tools()
-    assert len(tools) >= 10
+    assert len(tools) >= 9
 
     lint_tool = find_tool("lint-arwaky")
     assert lint_tool is not None
