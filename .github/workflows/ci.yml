@@ -84,8 +84,8 @@ jobs:
       - name: Issue-maker script type check
         run: python3 -m mypy skills/git/issue-maker/scripts/ --strict
 
-      - name: Skills validate (git category)
-        run: python3 -m modules.root_cli_entry skills validate --category git --skills-root "$PWD/skills"
+      - name: Skills lint (git category)
+        run: python3 -m modules.root_cli_entry skills lint --category git --skills-root "$PWD/skills"
 
       - name: Skills and shared tests
         run: python3 -m pytest modules/skills modules/shared -q
@@ -98,12 +98,12 @@ jobs:
         continue-on-error: true
         run: python3 -m pytest modules/ -q
 
-      - name: Skill pack validate
+      - name: Skill pack lint
         # Blocking by design. NOTE: the tree currently reports one genuine
         # pack issue — category `aes-architecture` is mounted from the
         # internal/lint-arwaky submodule and ships no DESCRIPTION.md — so
         # this step is red on main too until that file lands upstream.
-        run: python3 -m modules.root_cli_entry skills validate --summary
+        run: python3 -m modules.root_cli_entry skills lint --summary
 
       - name: Submodule integrity
         run: git submodule status
