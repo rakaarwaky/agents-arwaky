@@ -180,6 +180,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         kept: list[dict] = []
         seen = 0
         dropped: Counter[str] = Counter()
+        records: list[TraceSessionRecord] = []
 
         if os.path.isdir(sessions_root):
             for enc_cwd in sorted(os.listdir(sessions_root)):
@@ -247,7 +248,6 @@ class SkillsTraces(ISkillsTracesProtocol):
                 dropped["beyond_limit"] += len(kept) - limit
                 kept = kept[:limit]
 
-            records: list[TraceSessionRecord] = []
             for i, r in enumerate(kept):
                 r["index"] = i
                 session_file = os.path.join(

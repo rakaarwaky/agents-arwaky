@@ -39,7 +39,7 @@ Rules that apply to every action. Reference files cite these; they never restate
 
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| Step 0 | [`references/step-0-resume-or-price.md`](references/step-0-resume-or-price.md) | Resume a pending run or price the scope; constants are hardcoded. |
+| Step 0 | [`references/step-0-resume-or-price.md`](references/step-0-resume-or-price.md) | Resume a pending run or price the scope; collect window filters are CLI flags with hardcoded defaults. |
 | Step 1 | [`references/step-1-collect.md`](references/step-1-collect.md) | The collector writes `manifest.json` and `sessions/*.json`; materialize `usage.json` and `phrases.json`. |
 | Step 2 | [`references/step-2-launch.md`](references/step-2-launch.md) | Launch the `learn-traces` workflow; block on trace-state wait. |
 | Step 3 | [`references/step-3-read-report.md`](references/step-3-read-report.md) | Present the Overview plus the sections the chosen modes own. |

@@ -2,7 +2,7 @@
 
 Run `aa skills traces collect` into a run dir. The collector writes `manifest.json` (sessions seen / kept / dropped by reason, window and filters used) and `sessions/NNNN-<id>.json` (kept session records).
 
-`scan_sessions` drops records for: no_summary, summary_unreadable, subagent, headless, excluded_cwd, older_than_window, no_human_turns, repeated_single_turn, smoke_test, beyond_limit. `min_turns` (hardcoded to 3) is applied per session: sessions with fewer than 3 human turns are dropped before record writing.
+`scan_sessions` drops records for: no_summary, summary_unreadable, subagent, headless, excluded_cwd, older_than_window, no_human_turns, repeated_single_turn, smoke_test, beyond_limit. The `--min-turns` flag (default `3`, constant `TRACE_COLLECT_MIN_TURNS`) is applied per session: sessions with fewer human turns than the threshold are dropped before record writing.
 
 A narrow window does not affect creation — a phrase repeated in 3 sessions is still a habit, and gaps observed in a few sessions are still open jobs. It only gates retirement.
 
