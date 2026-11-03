@@ -33,7 +33,7 @@ Rules that apply to every action. Reference files cite these; they never restate
 - **Report invariant**: every action in `actions.json` must appear in `report.md`, and every claim in sections 1-3 of `report.md` must be backed by a verifier's Kept list.
 - **Consent rules**: apply only actions backed by trace evidence and gated by the verifier.
 - **Record**: one trace-state decide line per applied action, `--kind skill` and the mode's `--action` kind, `--decision applied|rejected|deferred`, `--undo` where the apply step produced a trash copy.
-- **Validation**: run on every file this skill creates or edits; the rule catalog lives in [`skill-design/references/audit/entry.md`](../skill-design/references/audit/entry.md).
+- **Validation**: run on every file this skill creates or edits; the rule catalog lives in [`skill-design/references/audit/step-3-validator-catalog.md`](../skill-design/references/audit/step-3-validator-catalog.md).
 
 ## Routing
 
