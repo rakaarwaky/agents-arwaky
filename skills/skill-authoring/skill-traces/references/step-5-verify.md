@@ -1,4 +1,4 @@
-# Step 5 — Verify
+# Step 5: Verify
 
 Re-read every file the apply step touched:
 

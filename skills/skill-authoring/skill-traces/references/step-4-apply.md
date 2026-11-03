@@ -1,45 +1,4 @@
-# Step 4 — Apply
-
-## actions.json field shapes
-
-Each entry in `actions.json` carries:
-
-```json
-{
-  "id": "A1",
-  "kind": "skill",
-  "action": "create | edit | delete | propose | ask | group",
-  "target": "<name>",
-  "path": "<absolute path of the file or directory the action touches>",
-  "protected": "bundled | git-tracked | null",
-  "referenced_by": ["<loaded skill names that mention this skill>"],
-  "reversible": true,
-  "requires_confirmation": false,
-  "evidence": {
-    "sessions": ["<session id>", "..."],
-    "count": 0,
-    "quote": "<exact phrase or stale line, at most 300 chars>"
-  },
-  "reason": "<one sentence>",
-  "edit": {
-    "anchor": "<exact substring of the current file, or \"\" for create>",
-    "replacement": "<full replacement text, or full file content for create>",
-    "mode": "replace | insert_after | append"
-  }
-}
-```
-
-Field rules:
-
-- `id` is `A1`, `A2`, … in report order.
-- `path` is exact: the SKILL.md file for the skill the action touches, or the skill
-  directory for `delete`.
-- `protected` and `referenced_by` are derived from the skill's file location and the
-  session records; the run dir holds no `surfaces.json`.
-- `requires_confirmation` is `true` for `ask`, `propose`, any `delete` of the only
-  copy of a job, and any unverified claim.
-- `edit` is required for `create`, `edit`, and `propose`; omit it for `delete`,
-  `ask`, and `group`.
+# Step 4: Apply
 
 ## Per-action rules
 

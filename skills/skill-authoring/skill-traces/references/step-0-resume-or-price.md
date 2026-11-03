@@ -1,4 +1,4 @@
-# Step 0 — Resume or price
+# Step 0: Resume or price
 
 Run `aa skills traces state get`. Exit code 3 means a run is pending — resume it instead of starting over.
 

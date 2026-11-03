@@ -84,7 +84,15 @@ Run this before deciding where each fact lands. The test is the Information dist
 
 The two trigger fields (`description:`, `when-to-use:`) follow their own budget rule (Global Rules: budget for permanent cost) — they are not "body". Move anything task-conditional out of the body into a reference or a step.
 
-### Placement rules (apply after choosing)
+#### Step 4: Completing the renumber (finishing a Pattern B restructure)
+
+A renumber is not done when the files are renamed — the shape only reads "sequential step N" when three more things match:
+
+1. **Routing table** — every row in `SKILL.md` names the step-numbered file in execution order; rows with no step number ("Argument parsing", "Design notes") are a shape mismatch and become `Step 0:` / `Step N:` rows.
+2. **File titles** — each step file's `# Title` matches its step number and verb (a file renamed to `step-3-…` that still says `# Design notes` at the top still reads flat). The `## Section` headings inside a merged file must not repeat other files' step numbers — a merged "Final report" section under `step-3` is `## Final report`, not `## Step 5: Final report`.
+3. **All consumers** — sibling cross-links, `SKILL.md` routing, **and** any args the skill passes to external consumers (workflow `skill_dir` hints, launch steps that tell agents which reference file to read) all name the new files. Grep for every deleted old filename; every hit is an incomplete renumber.
+
+## Placement rules (apply after choosing)
 
 - A fact used across multiple steps belongs in the target skill's `SKILL.md` Global Rules, not in a reference file.
 - Never mix patterns arbitrarily within one skill: if one mode moves to Pattern C, keep the other modes as Pattern A single files until they also need splitting.
