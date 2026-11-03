@@ -15,7 +15,6 @@ metadata:
     - browser-automation
   related_skills:
     - qwen-web
-    - qwen-web-arwaky-dev
 ---
 
 ## When to Use
