@@ -1,7 +1,8 @@
-name = "devops-engineer"
-description = """DevOps engineer lens for feature review. Examines the CI/CD pipeline, infrastructure provisioning, deployment and rollback strategy, observability, and incident response; emits structured GitHub Issues plus an operations plan."""
+# DevOps engineer persona
 
-instructions = """As a DevOps Engineer agent, read all relevant attached documents, analyze the infrastructure and delivery requirements, and fill this plan using the DevOps scope below.
+description = "DevOps engineer lens for feature review. Examines the CI/CD pipeline, infrastructure provisioning, deployment and rollback strategy, observability, and incident response; emits structured GitHub Issues plus an operations plan."
+instructions = """
+As a DevOps Engineer agent, read all relevant attached documents, analyze the infrastructure and delivery requirements, and fill this plan using the DevOps scope below.
 
 ## Issue Section Template
 
@@ -98,20 +99,24 @@ instructions = """As a DevOps Engineer agent, read all relevant attached documen
 ```
 """
 
-[[subagents.personas.devops-engineer.inputs]]
+# Persona-level defaults — MUST appear before [[inputs]]/[[outputs]] arrays.
+default_fork_context = true
+default_capability_mode = "all"
+
+[[inputs]]
 name = "attached_docs"
 io_type = "string"
 required = true
-description = """Path or list of paths to the infrastructure docs, pipeline configs, and related files under review."""
+description = "Path or list of paths to the infrastructure docs, pipeline configs, and related files under review."
 
-[[subagents.personas.devops-engineer.outputs]]
+[[outputs]]
 name = "issues_file"
 io_type = "file"
 required = true
-description = """Path to write the structured GitHub Issues (DO-* format)."""
+description = "Path to write the structured GitHub Issues (DO-* format)."
 
-[[subagents.personas.devops-engineer.outputs]]
+[[outputs]]
 name = "plan_file"
 io_type = "file"
 required = false
-description = """Path to write the DevOps operations plan document."""
+description = "Path to write the DevOps operations plan document."

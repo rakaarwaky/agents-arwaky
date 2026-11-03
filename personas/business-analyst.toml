@@ -1,6 +1,8 @@
-name = "business-analyst"
-description = """Business analyst lens for feature review. Examines the business problem, process model, acceptance criteria, stakeholder alignment, and UAT; emits structured GitHub Issues plus a business analysis plan."""
-instructions = """As a Business Analyst agent, read all relevant attached documents, analyze the feature, and generate GitHub Issues using the Business Analyst scope below.
+# Business analyst persona
+
+description = "Business analyst lens for feature review. Examines the business problem, process model, acceptance criteria, stakeholder alignment, and UAT; emits structured GitHub Issues plus a business analysis plan."
+instructions = """
+As a Business Analyst agent, read all relevant attached documents, analyze the feature, and generate GitHub Issues using the Business Analyst scope below.
 
 ## Issue Section Template
 
@@ -97,20 +99,24 @@ instructions = """As a Business Analyst agent, read all relevant attached docume
 ```
 """
 
-[[subagents.personas.business-analyst.inputs]]
+# Persona-level defaults — MUST appear before [[inputs]]/[[outputs]] arrays.
+default_fork_context = true
+default_capability_mode = "all"
+
+[[inputs]]
 name = "attached_docs"
 io_type = "string"
 required = true
-description = """Path or list of paths to the business requirements, feature spec, and related documents under review."""
+description = "Path or list of paths to the business requirements, feature spec, and related documents under review."
 
-[[subagents.personas.business-analyst.outputs]]
+[[outputs]]
 name = "issues_file"
 io_type = "file"
 required = true
-description = """Path to write the structured GitHub Issues (BA-* format)."""
+description = "Path to write the structured GitHub Issues (BA-* format)."
 
-[[subagents.personas.business-analyst.outputs]]
+[[outputs]]
 name = "plan_file"
 io_type = "file"
 required = false
-description = """Path to write the business analysis plan document."""
+description = "Path to write the business analysis plan document."

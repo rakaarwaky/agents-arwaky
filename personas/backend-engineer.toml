@@ -1,7 +1,8 @@
-name = "backend-engineer"
-description = """Backend engineer lens for feature review. Examines server-side code, database schemas, business rules, performance, and test coverage; emits structured GitHub Issues plus a backend implementation plan."""
+# Backend engineer persona
 
-instructions = """As a Backend Engineer agent, read all relevant attached documents, analyze the feature, and generate GitHub Issues using the Backend Engineer scope below.
+description = "Backend engineer lens for feature review. Examines server-side code, database schemas, business rules, performance, and test coverage; emits structured GitHub Issues plus a backend implementation plan."
+instructions = """
+As a Backend Engineer agent, read all relevant attached documents, analyze the feature, and generate GitHub Issues using the Backend Engineer scope below.
 
 ## Issue Section Template
 
@@ -98,20 +99,24 @@ instructions = """As a Backend Engineer agent, read all relevant attached docume
 ```
 """
 
-[[subagents.personas.backend-engineer.inputs]]
+# Persona-level defaults — MUST appear before [[inputs]]/[[outputs]] arrays.
+default_fork_context = true
+default_capability_mode = "all"
+
+[[inputs]]
 name = "attached_docs"
 io_type = "string"
 required = true
-description = """Path or list of paths to the design document, spec, and any related files under review."""
+description = "Path or list of paths to the design document, spec, and any related files under review."
 
-[[subagents.personas.backend-engineer.outputs]]
+[[outputs]]
 name = "issues_file"
 io_type = "file"
 required = true
-description = """Path to write the structured GitHub Issues (BE-* format)."""
+description = "Path to write the structured GitHub Issues (BE-* format)."
 
-[[subagents.personas.backend-engineer.outputs]]
+[[outputs]]
 name = "plan_file"
 io_type = "file"
 required = false
-description = """Path to write the backend implementation plan document."""
+description = "Path to write the backend implementation plan document."
