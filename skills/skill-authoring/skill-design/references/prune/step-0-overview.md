@@ -8,7 +8,7 @@ Run the steps in order; each links to the next.
 
 | Step | File | What it does |
 | ---- | ---- | ------------ |
-| 0a | [`step-0-confirm-root.md`](step-0-confirm-root.md) | Resolve the audit root the prune runs on. |
+| 0a | [`step-0a-confirm-root.md`](step-0a-confirm-root.md) | Resolve the audit root the prune runs on. |
 | 1 | [`step-1-inventory.md`](step-1-inventory.md) | List every skill folder and read frontmatter and body. |
 | 2 | [`step-2-group.md`](step-2-group.md) | Cluster skills by semantic scope, verified against bodies. |
 | 3 | [`step-3-classify.md`](step-3-classify.md) | Label each cluster: duplicate, variant, shared tooling, or separate jobs. |
