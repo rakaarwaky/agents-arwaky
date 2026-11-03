@@ -3,102 +3,81 @@
 ## Design Overview
 
 Each CLI verb is a thin surface adapter: it parses its argv slice, builds a
-domain request value object, and hands it to the feature aggregate's single
-`execute` entry point. Capability-specific verbs with no other daemon
-implementation stay beside their shared dispatch in one surface file, and
-no surface module imports a capability module directly.
+typed domain request VO, and hands it to the feature aggregate's single
+`execute` entry point. Shared verbs (daemon lifecycle, tool, skills
+read-only, mcp, service, config, doctor, backup, harness) route through
+their feature aggregate contract; capability-specific verbs that no other
+feature shares stay beside their shared dispatch in one surface module.
+No surface module imports a capability module directly, and the surface
+returns the aggregate exit code unchanged.
 
 ## Design Requirements
-
-### DS-CLI-000: Surface module shapes and file map
-
-| Variant | Use case | Token | Value |
-|---------|----------|-------|-------|
-| shared  | every surface module | `cmd_*` function, facade class, or local branch | parse argv, build typed request, delegate to aggregate, render |
-| shared  | `surface_skills_command.py` | list / read / lint / catalog / discover | `ISkillsAggregate` |
-| shared  | `surface_skills_traces_command.py` | traces collect / usage / phrases / materialize / state | `ISkillsAggregate` |
-| shared  | `surface_daemon_command.py` | start / stop / restart / status / logs / service-* / models / auth-* / space-* | `IDaemonAggregate` |
-| shared  | `surface_tools_command.py` | tool list / run / install / update / uninstall | `IToolsAggregate` |
-| shared  | `surface_mcp_command.py` | mcp list / generate / show / alias / validate | `IMcpAggregate` |
-| shared  | `surface_service_command.py` | service status / start / stop / restart / logs | `IServiceAggregate` |
-| shared  | `surface_config_command.py` | config load / save / merge_servers / set_env / remove_entries / inspect | `IConfigAggregate` |
-| shared  | `surface_doctor_command.py` | doctor / status | `IDoctorAggregate` |
-| shared  | `surface_backup_command.py` | backup / restore | `IBackupAggregate` |
-| shared  | `surface_harness_command.py` | connect / disconnect | `IHarnessAggregate` |
 
 ### DS-CLI-001: One aggregate `execute` per shared verb
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| shared  | daemon shared ops (start, stop, restart, status, logs, service-*) | `DaemonRequest` | `IDaemonAggregate.execute` |
-| shared  | skills read-only ops (list, read, lint, catalog, discover) | `SkillsRequest` | `ISkillsAggregate.execute` |
-| shared  | tool ops (list, run, install, update, uninstall) | `ToolRequest` | `IToolsAggregate.execute` |
+| daemon  | start / stop / restart / status / logs / service-* | `DaemonRequest` | `IDaemonAggregate.execute` |
+| skills  | list / read / lint / catalog / discover | `SkillsRequest` | `ISkillsAggregate.execute` |
+| tools   | list / run / install / update / uninstall | `ToolRequest` | `IToolsAggregate.execute` |
+| mcp     | list / generate / show / alias / validate | `McpRequest` | `IMcpAggregate.execute` |
+| service | status / start / stop / restart / logs | `ServiceRequest` | `IServiceAggregate.execute` |
+| config  | load / save / merge_servers / set_env / remove_entries / inspect | `ConfigRequest` | `IConfigAggregate.execute` |
+| doctor  | diagnose / readiness | `DoctorRequest` | `IDoctorAggregate.execute` |
+| backup  | backup / restore / list / status / help | `BackupRequest` | `IBackupAggregate.execute` |
+| harness | connect / disconnect | `HarnessRequest` | `IHarnessAggregate.execute` |
 
-### DS-CLI-002: Branch-only import for capability-specific verbs
+### DS-CLI-002: Branch-only local verbs for capability-specific ops
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| local   | models, auth-create, auth-key, space-join, space-list | `_local_call` on manager | `IDaemonAggregate` (structural) |
+| daemon-local | models / auth-create / auth-key / space-join / space-list | `_LOCAL_OPS` dispatch map | called on manager via `getattr`; no aggregate routing |
+| capability-local | verbs unique to one feature and not in its shared contract | local branch in that module | no separate surface file |
 
 ### DS-CLI-003: Keep the surface within the function cap
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| shared  | many verbs on one daemon | grouped verb map | AES406 cap |
-| shared  | skills + traces split | two surface files | AES301 line budget |
-| local   | `cmd_traces` not routed from `cmd_skills` | driven by tests + facade | CLI exits 2 with usage help |
+| grouped | many shared verbs on one daemon | verb map per daemon | AES406 function cap |
+| split | skills + traces in two surface modules | separate surface files | AES301 line budget |
 
-### DS-CLI-004: Keep local-only verbs beside their dispatch
-
-| Variant | Use case | Token | Value |
-|---------|----------|-------|-------|
-| local   | verbs unique to a daemon | local branch | no extra file |
-
-### DS-CLI-005: Route tools and wiring verbs through their aggregates
+### DS-CLI-004: Surface returns the aggregate exit code unchanged
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| shared  | tools / mcp / service / config / doctor / skills / backup / harness | per-feature aggregate | `I<Feature>Aggregate.execute` |
+| shared | every verb | process exit code | returned unchanged from aggregate |
+| daemon | daemon verbs return a response VO | `DaemonResponse` | mapped to `int` via `_exit_code` |
 
-### DS-CLI-006: Surface returns the aggregate exit code unchanged
-
-| Variant | Use case | Token | Value |
-|---------|----------|-------|-------|
-| shared  | every verb | `int` | process exit code |
-| local   | daemon verbs | `DaemonResponse` → `int` | exception: response VO, not raw code |
-
-### DS-CLI-007: Skills surface — 5-verb agent-oriented contract
+### DS-CLI-005: Skills surface — 5-verb agent-oriented contract
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| shared  | `list` / `read <name>` / `lint [--category]` / `catalog [--build] [--read]` / `discover <query> [--limit]` | `SkillsRequest` | `ISkillsAggregate.execute` |
-| shared  | pack root hardcoded to `agents-arwaky/skills` | no `--skills-root` | no `--json` export |
-| local   | `catalog` flag tri-state | `_TriFlag(nargs=0, default=None)` | absent → `None`; present → `True` |
-| local   | no flags → build+read; `--build` → build; `--read` → read; both → build+read | `flags={"build","read"}` | sent to aggregate as `"1"`/`"0"` |
-| local   | facade bare catalog (no flags) | — | build-only |
-| local   | `move` / `archive` / `create` / `traces` from CLI | `SkillsOp` | exit 2 with usage help (capability-only) |
+| read-only | list / read / lint / catalog / discover | `SkillsRequest` | `ISkillsAggregate.execute` |
+| pack root | hardcoded to `agents-arwaky/skills` | no `--skills-root`, no `--json` | terminal output only |
+| catalog flags | `--build` / `--read` tri-state | `_TriFlag(nargs=0, default=None)` | absent → `None`; present → `True` |
+| catalog resolution | no flags → build+read; `--build` → build; `--read` → read | `flags={"build","read"}` | sent to aggregate as `"1"`/`"0"` |
+| facade | bare catalog (no flags) | — | build-only |
+| capability-only | move / archive / create / traces from CLI | `SkillsOp` | exit 2 with usage help |
 
-### DS-CLI-008: Harness surface — factory injection, no aggregate import
-
-| Variant | Use case | Token | Value |
-|---------|----------|-------|-------|
-| local   | `surface_harness_command.py` | `Callable[[], IHarnessAggregate]` | factory, not instance |
-| local   | factory called lazily after argv validation | — | unknown-target exits 1 without constructing aggregate |
-| local   | surface has no `root` import | AES205 | composition root wires the factory |
-
-### DS-CLI-009: Root CLI entry — dispatch table, not surface import
+### DS-CLI-006: Harness surface — factory injection, no aggregate import
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| shared  | `root_cli_entry.py` is the single `aa` entry point | noun → `cmd_*` handler | surface module or inline aggregate call |
-| shared  | unknown noun | legacy alias fallback | `install` / `run` / `update` / `uninstall` |
-| shared  | root entry imports surface modules | composition-root boundary | surface modules never import the root entry |
+| factory | harness connect / disconnect | `Callable[[], IHarnessAggregate]` | called lazily after argv validation; no `root` import |
+
+### DS-CLI-007: Root CLI entry — dispatch table, not surface import
+
+| Variant | Use case | Token | Value |
+|---------|----------|-------|-------|
+| entry | top-level `aa <noun>` | noun → `cmd_*` handler | routed to surface module or inline aggregate call |
+| fallback | unknown noun | legacy alias | install / run / update / uninstall |
+| boundary | root entry imports surface modules | composition-root boundary | surface modules never import the root entry |
 
 ## Reference
 
 | Artifact     | Purpose                                         | Link |
 |--------------|-------------------------------------------------|------|
-| PRD          | <Business goals, user stories, and scope>       | [PRD.md](../../PRD.md) |
-| Backlog      | <Task tracking, epics, and implementation status>| [BACKLOG.md](BACKLOG.md) |
-| Roadmap      | <Timeline, phasing, and dependencies>           | [ROADMAP.md](../../ROADMAP.md) |
-| Architecture | <System boundaries, tech stack, and infra>      | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
+| PRD          | Business goals, user stories, and scope         | [PRD.md](../../PRD.md) |
+| Backlog      | Task tracking, epics, and implementation status | [BACKLOG.md](BACKLOG.md) |
+| Roadmap      | Timeline, phasing, and dependencies             | [ROADMAP.md](../../ROADMAP.md) |
+| Architecture | System boundaries, tech stack, and infrastructure | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
