@@ -36,5 +36,7 @@ ROLLBACK TARGET:
 - <snapshot commit SHA or stash ref>
 
 VERIFY:
-- N skills remain, 0 shared names, all reference links resolve, all frontmatter parses
+- `aa skills list` — confirm the expected skill count (N remain, dropped folders absent)
+- `aa skills lint` — 0 shared names, all frontmatter parses, no empty categories
+- `aa skills catalog` — rebuilt; all surviving skills and references resolve
 ```
