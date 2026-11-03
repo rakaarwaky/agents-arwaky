@@ -14,42 +14,39 @@ no surface module imports a capability module directly.
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| function | `cmd_skills`, `cmd_mcp`, `cmd_backup`, `cmd_tools`, `cmd_service`, `cmd_config` | `cmd_*` functions | parse argv, build typed request, call injected aggregate, render result |
-| facade | `DoctorAction`, `DaemonAction`, `ServiceAction`, `McpAction`, `ConfigCommand` | thin `I<Feature>Aggregate` wrapper | delegates, adds no logic |
-| branch-only | `_local_call` in `surface_daemon_command` | `getattr(manager, verb)` | capability-specific verbs (models, auth-*, space-*) called on manager |
-| surface | `surface_skills_command.py` | list / read / lint / catalog / discover | `ISkillsAggregate` |
-| surface | `surface_skills_traces_command.py` | traces collect / usage / phrases / materialize / state | `ISkillsAggregate` |
-| surface | `surface_daemon_command.py` | start / stop / restart / status / logs / service-* / models / auth-* / space-* | `IDaemonAggregate` |
-| surface | `surface_tools_command.py` | tool list / run / install / update / uninstall | `IToolsAggregate` |
-| surface | `surface_mcp_command.py` | mcp list / generate / show / alias / validate | `IMcpAggregate` |
-| surface | `surface_service_command.py` | service status / start / stop / restart / logs | `IServiceAggregate` |
-| surface | `surface_config_command.py` | config load / save / merge_servers / set_env / remove_entries / inspect | `IConfigAggregate` |
-| surface | `surface_doctor_command.py` | doctor / status | `IDoctorAggregate` |
-| surface | `surface_backup_command.py` | backup / restore | `IBackupAggregate` |
-| surface | `surface_harness_command.py` | connect / disconnect | `IHarnessAggregate` |
+| shared  | every surface module | `cmd_*` function, facade class, or local branch | parse argv, build typed request, delegate to aggregate, render |
+| shared  | `surface_skills_command.py` | list / read / lint / catalog / discover | `ISkillsAggregate` |
+| shared  | `surface_skills_traces_command.py` | traces collect / usage / phrases / materialize / state | `ISkillsAggregate` |
+| shared  | `surface_daemon_command.py` | start / stop / restart / status / logs / service-* / models / auth-* / space-* | `IDaemonAggregate` |
+| shared  | `surface_tools_command.py` | tool list / run / install / update / uninstall | `IToolsAggregate` |
+| shared  | `surface_mcp_command.py` | mcp list / generate / show / alias / validate | `IMcpAggregate` |
+| shared  | `surface_service_command.py` | service status / start / stop / restart / logs | `IServiceAggregate` |
+| shared  | `surface_config_command.py` | config load / save / merge_servers / set_env / remove_entries / inspect | `IConfigAggregate` |
+| shared  | `surface_doctor_command.py` | doctor / status | `IDoctorAggregate` |
+| shared  | `surface_backup_command.py` | backup / restore | `IBackupAggregate` |
+| shared  | `surface_harness_command.py` | connect / disconnect | `IHarnessAggregate` |
 
 ### DS-CLI-001: One aggregate `execute` per shared verb
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| shared  | start / stop / restart / status / logs / service-* | `DaemonRequest` | `IDaemonAggregate.execute` |
-| shared  | list / read / lint / catalog / discover | `SkillsRequest` | `ISkillsAggregate.execute` |
-| shared  | tool list / run / install / update / uninstall | `ToolRequest` | `IToolsAggregate.execute` |
+| shared  | daemon shared ops (start, stop, restart, status, logs, service-*) | `DaemonRequest` | `IDaemonAggregate.execute` |
+| shared  | skills read-only ops (list, read, lint, catalog, discover) | `SkillsRequest` | `ISkillsAggregate.execute` |
+| shared  | tool ops (list, run, install, update, uninstall) | `ToolRequest` | `IToolsAggregate.execute` |
 
 ### DS-CLI-002: Branch-only import for capability-specific verbs
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
-| local   | models / auth-create / auth-key / space-join / space-list | `_local_call` on manager | `IDaemonAggregate` (structural) |
-| local   | capability-specific verbs bypass aggregate `execute` | `_LOCAL_OPS` dispatch map | `getattr(manager, verb)` |
+| local   | models, auth-create, auth-key, space-join, space-list | `_local_call` on manager | `IDaemonAggregate` (structural) |
 
 ### DS-CLI-003: Keep the surface within the function cap
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
 | shared  | many verbs on one daemon | grouped verb map | AES406 cap |
-| shared  | skills + traces | two surface files | AES301 line budget |
-| shared  | `cmd_traces` not routed from `cmd_skills` | driven by tests + facade | CLI exits 2 with usage help |
+| shared  | skills + traces split | two surface files | AES301 line budget |
+| local   | `cmd_traces` not routed from `cmd_skills` | driven by tests + facade | CLI exits 2 with usage help |
 
 ### DS-CLI-004: Keep local-only verbs beside their dispatch
 
@@ -68,7 +65,7 @@ no surface module imports a capability module directly.
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
 | shared  | every verb | `int` | process exit code |
-| local   | daemon verbs (`_exit_code`) | `DaemonResponse` → `int` | exception: response VO, not raw code |
+| local   | daemon verbs | `DaemonResponse` → `int` | exception: response VO, not raw code |
 
 ### DS-CLI-007: Skills surface — 5-verb agent-oriented contract
 
