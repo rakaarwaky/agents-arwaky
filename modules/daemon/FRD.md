@@ -17,7 +17,7 @@ Two capability seams back the feature:
   unit operations (install/remove/unit_status).
 - `I9routerImportOmnirouteProtocol` — one seam covering the OmniRoute → 9router
   credential migration (`aa 9router import-omniroute`).
-20→
+
 ## Functional Requirements
 
 ### FR-DAEMON-001: Manage the daemon lifecycle through IDaemonProtocol
@@ -26,7 +26,7 @@ Two capability seams back the feature:
 seam: start, stop, restart, report status, and show logs; enumerate supported
 daemon ids; and install, remove, and report status for daemon user units. All
 operations route through `IDaemonProtocol` and `IDaemonAggregate.execute(request)`.
-30→
+
 #### Business Logic
 
 - Starting an already-running daemon is an idempotent success with no second
@@ -86,7 +86,7 @@ operations route through `IDaemonProtocol` and `IDaemonAggregate.execute(request
 9router's `providerConnections` table, decrypting stored credentials and mapping
 each row into 9router's payload shape. Exposed as
 `aa 9router import-omniroute [--dry-run] [--provider <name>]...`.
-100→
+
 #### Business Logic
 
 - OmniRoute is opened strictly read-only (`mode=ro` URI); no decrypted plaintext

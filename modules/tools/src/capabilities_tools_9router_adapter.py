@@ -35,6 +35,13 @@ from modules.shared.src.common.utility_tools_adapter_body import (
     satisfied_unit,
     update_unit,
 )
+from modules.shared.src.daemon.taxonomy_daemon_vo import (
+    DaemonName,
+    DaemonOp,
+    DaemonOutcome,
+    DaemonRequest,
+    DaemonUnit,
+)
 from modules.shared.src.tools.contract_tools_protocol import IToolsAdapterProtocol
 from modules.shared.src.tools.taxonomy_tools_constant import (
     NINEROUTER_DATA_DIR_NAME,
@@ -127,20 +134,12 @@ def _9router_write_launcher(launcher: Path, root: Path) -> None:
     launcher.chmod(0o755)
 
 
-def _9router_install_unit(daemons) -> "DaemonOutcome":
+def _9router_install_unit(daemons) -> DaemonOutcome:
     """Route the unit install through the daemon aggregate.
 
     The aggregate exposes ``execute`` rather than ``install_unit``; building a
     request keeps the adapter on the published contract.
     """
-    from modules.shared.src.daemon.taxonomy_daemon_vo import (
-        DaemonName,
-        DaemonOp,
-        DaemonOutcome,
-        DaemonRequest,
-        DaemonUnit,
-    )
-
     if daemons is None:
         return DaemonOutcome(success=False, exit_code=1, message="no aggregate")
     request = DaemonRequest(
