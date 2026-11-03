@@ -1,9 +1,10 @@
----
-title: Step 3 — Classify
-role: step
----
-
 # Step 3: Classify
+
+Decide what each cluster is so Phase 1 and Phase 2 of the execute step know what to do.
+
+**Goal:** label every cluster as duplicate, variant, shared-tooling, or separate jobs.
+
+## Classes
 
 Each cluster is one of:
 
@@ -15,3 +16,9 @@ Each cluster is one of:
 Detect duplicates and obsolete skills with `aa skills lint`; obsolete skills are archived into `_archive/` (never permanently deleted unless `--hard-delete` is explicitly passed).
 
 Phase 1 removes true duplicates; Phase 2 consolidates variants and shared tooling — never skip Phase 1 (Global Rules: Phase order).
+
+## Completion
+
+- Every cluster has exactly one class label.
+- `aa skills lint` ran and flagged duplicates and obsolete skills.
+- Phase order is respected: Phase 1 is planned before Phase 2.

@@ -1,11 +1,8 @@
----
-title: Step 6 — Execute the merge
-role: step
----
-
 # Step 6: Execute the merge
 
 Rules for merging skills in Phase 2 of `skill-design --prune`.
+
+**Goal:** merge the classified clusters into surviving folders with one `SKILL.md` each, and archive the dropped duplicates.
 
 ## Name survival
 
@@ -55,3 +52,9 @@ as well. Note this in the DELETED section of the report.
 
 If a category is not empty, its description stays one line; update it only if
 the category's skill count changed in a way that breaks the description.
+
+## Completion
+
+- Every surviving skill has one `SKILL.md`; scenario-specific rules live in `references/`.
+- Dropped duplicates are archived into `_archive/` and the catalog is rebuilt.
+- No skill-tree file outside the classified clusters is modified.
