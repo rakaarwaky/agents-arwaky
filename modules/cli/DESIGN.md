@@ -8,7 +8,9 @@ domain request value object, and hands it to the feature aggregate's single
 implementation stay beside their shared dispatch in one surface file, and
 no surface module imports a capability module directly.
 
-Surface modules follow three shapes:
+## Design Requirements
+
+### DS-CLI-000: Surface module shapes and file map
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|
@@ -25,8 +27,6 @@ Surface modules follow three shapes:
 | surface | `surface_doctor_command.py` | doctor / status | `IDoctorAggregate` |
 | surface | `surface_backup_command.py` | backup / restore | `IBackupAggregate` |
 | surface | `surface_harness_command.py` | connect / disconnect | `IHarnessAggregate` |
-
-## Design Requirements
 
 ### DS-CLI-001: One aggregate `execute` per shared verb
 
