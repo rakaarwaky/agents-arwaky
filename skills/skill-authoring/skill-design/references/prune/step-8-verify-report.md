@@ -1,4 +1,4 @@
-# Step 9: Verify and report
+# Step 8: Verify and report
 
 Check the executed prune and write the final report the user reads.
 

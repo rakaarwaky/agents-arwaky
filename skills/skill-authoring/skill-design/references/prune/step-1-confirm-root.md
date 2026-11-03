@@ -1,4 +1,4 @@
-# Step 2: Confirm the audit root
+# Step 1: Confirm the audit root
 
 Resolve the directory the prune runs on before any read or merge.
 

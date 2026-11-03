@@ -1,4 +1,4 @@
-# Step 8: Execute the merge
+# Step 7: Execute the merge
 
 Rules for merging skills in Phase 2 of `skill-design --prune`.
 
