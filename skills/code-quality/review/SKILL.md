@@ -43,7 +43,7 @@ Resolve each persona name in this order:
 For each persona:
 1. Pick the first path that exists
 2. Read the file with `read_file`
-3. Extract the `instructions` field (the `""" ... """` body; ignore keys, `[[inputs]]`, and `[[outputs]]`)
+3. Parse the file (e.g. `python3 -c "import tomllib,sys; print(tomllib.load(open(sys.argv[1],'rb'))['subagents']['personas']['reviewer']['instructions'])" <path>`) and take the `instructions` value under the `[subagents.personas.<name>]` table (ignore `[[subagents.personas.<name>.inputs]]` and `[[subagents.personas.<name>.outputs]]` arrays)
 4. Store that body as the persona instructions variable named below
 
 Store the extracted body as `reviewer_persona_instructions`.

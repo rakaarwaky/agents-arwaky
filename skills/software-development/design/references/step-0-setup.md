@@ -36,7 +36,7 @@ Never regenerate `DESIGN_ID` or these paths during review/revise iterations.
 
 ## Persona Injection
 
-Load the writer and reviewer personas from `~/.grok/personas/<name>.toml`, extracting the full `instructions` field into:
+Load the `design-doc-writer` and `design-doc-reviewer` personas from `~/.grok/personas/<name>.toml`, extracting the full `instructions` value under the `[subagents.personas.<name>]` table into:
 
 - `writer_persona_instructions`
 - `reviewer_persona_instructions`

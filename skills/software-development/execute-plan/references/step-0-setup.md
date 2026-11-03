@@ -33,7 +33,7 @@ Resolve each persona name in this order:
 1. `~/.grok/personas/<name>.toml`
 2. `<skill_dir>/../../../../personas/<name>.toml`
 
-Extract the `instructions` field and store as:
+Extract the `instructions` value under the `[subagents.personas.<name>]` table in each file (e.g. `python3 -c "import tomllib,sys; print(tomllib.load(open(sys.argv[1],'rb'))['subagents']['personas']['implementer']['instructions'])" <path>`; ignore the `[[subagents.personas.<name>.inputs]]` and `[[subagents.personas.<name>.outputs]]` arrays) and store as:
 
 - `implementer_persona_instructions`
 - `reviewer_persona_instructions`
