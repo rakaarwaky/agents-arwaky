@@ -45,9 +45,9 @@ Rules that apply to every step. Reference files cite these; they never restate t
 
 ## Routing
 
-| Step | Reference | Goal / Purpose |
-| ---- | --------- | -------------- |
-| `--create` | [`references/create/`](references/create/) | **Goal:** produce a publishable `SKILL.md` + `references/` for a job the user describes. |
-| `--improve` | [`references/improve/`](references/improve/) | **Goal:** make an existing `SKILL.md` follow the body shape and lint standard without losing the skill's intent. |
-| `--audit` | [`references/audit/`](references/audit/) | **Goal:** make the target skill(s) pass `aa skills lint` and the pre-publish checklist — fix structure, naming, frontmatter, and dangling refs. |
-| `--prune` | [`references/prune/`](references/prune/) | **Goal:** read every skill's description and body; merge skills that duplicate, share a bounded purpose, or share tooling into one consolidated folder; archive dropped duplicates. |
+| Step        | Reference                                    | Purpose                                                                                                                                                                   |
+| ----------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--create`  | [`references/create/`](references/create/)   | produce a publishable `SKILL.md` + `references/` for a job the user describes.                                                                                            |
+| `--improve` | [`references/improve/`](references/improve/) | make an existing `SKILL.md` follow the body shape and lint standard without losing the skill's intent.                                                                    |
+| `--audit`   | [`references/audit/`](references/audit/)     | make the target skill(s) pass `aa skills lint` and the pre-publish checklist — fix structure, naming, frontmatter, and dangling refs.                                     |
+| `--prune`   | [`references/prune/`](references/prune/)     | read every skill's description and body; merge skills that duplicate, share a bounded purpose, or share tooling into one consolidated folder; archive dropped duplicates. |

@@ -8,6 +8,11 @@ The `--improve` flag takes a single skills path. Resolve it before editing:
 
 Do not prompt the user to disambiguate unless two or more distinct skills in the tree match the request equally well and acting on both would waste significant effort; in that case, name the two candidates and proceed with the more specific match. A category with exactly one skill is not ambiguity — improve that skill without asking.
 
+## Commands
+
+- `aa skills read <name>` — read the target `SKILL.md` before editing so the edit preserves its intent.
+- `aa skills lint --category <name>` — preview the target's lint issues scoped to its category before the edit; the lint gate runs again after.
+
 ## Completion
 
 - The target skill set is resolved (one skill, a category tree, or the whole tree).
