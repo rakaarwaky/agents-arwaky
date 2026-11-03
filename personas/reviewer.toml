@@ -32,17 +32,20 @@ Rules:
 default_fork_context = true
 default_capability_mode = "all"
 
+
 [[inputs]]
 name = "review_file"
 io_type = "file"
 required = false
 description = "Previous review notes with implementer responses (for re-review passes). Absent on first review."
 
+
 [[inputs]]
 name = "summary_file"
 io_type = "file"
 required = false
 description = "Implementation summary from implementer (optional context for first review)"
+
 
 [[outputs]]
 name = "review_file"

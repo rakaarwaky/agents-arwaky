@@ -58,11 +58,13 @@ default_fork_context = true
 reasoning_effort = "high"
 default_capability_mode = "all"
 
+
 [[inputs]]
 name = "review_file"
 io_type = "file"
 required = false
 description = "Previous audit findings with developer responses (for re-audit passes). Absent on first audit."
+
 
 [[outputs]]
 name = "review_file"

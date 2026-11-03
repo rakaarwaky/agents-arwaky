@@ -46,17 +46,20 @@ io_type = "string"
 required = true
 description = "JSON array of verdicts from the verifier"
 
+
 [[inputs]]
 name = "state_label"
 io_type = "string"
 required = false
 description = "Tracker label to apply (default task-tracker)"
 
+
 [[inputs]]
 name = "dry_run"
 io_type = "boolean"
 required = false
 description = "Print would-be issues without creating"
+
 
 [[outputs]]
 name = "issues_json"

@@ -64,17 +64,20 @@ io_type = "string"
 required = true
 description = "JSON object from the scanner: rows plus the feature's FR sets and roll-up row"
 
+
 [[inputs]]
 name = "state_vocabularies"
 io_type = "string"
 required = true
 description = "JSON mapping source_doc to its State Definitions state names"
 
+
 [[inputs]]
 name = "trust_mode"
 io_type = "string"
 required = true
 description = "Trust mode: 'trust' (skip all Done rows) or 'no-trust' (zero-trust audit)"
+
 
 [[outputs]]
 name = "classified_json"

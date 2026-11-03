@@ -46,17 +46,20 @@ default_fork_context = true
 reasoning_effort = "high"
 default_capability_mode = "all"
 
+
 [[inputs]]
 name = "review_file"
 io_type = "file"
 required = false
 description = "Review notes to address (absent on initial implementation)"
 
+
 [[outputs]]
 name = "summary_file"
 io_type = "file"
 required = false
 description = "Summary of tests written: what's covered, what's not, any bugs found"
+
 
 [[outputs]]
 name = "review_file"
