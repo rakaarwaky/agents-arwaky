@@ -10,8 +10,8 @@ if command -v gh >/dev/null 2>&1; then echo "yes"; else echo "no"; fi
 If Orca is missing, stop and report.
 Set `gh_available` based on the probe. Re-write the state file.
 
-If `auto_pr_flag` is true but `gh_available` is false, warn:
-`"--auto-pr was requested but gh is not installed; the orchestrator will fall back to printing a compare URL."`
+If `gh_available` is false, warn:
+`"gh is not installed; the orchestrator will fall back to printing a compare URL."`
 
 ## In-Progress Reporting
 

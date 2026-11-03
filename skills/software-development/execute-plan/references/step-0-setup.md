@@ -1,19 +1,22 @@
 # Step 0 Setup
 
 ## Invocation
+
 The user runs:
+
 ```text
-/execute-plan <design-doc-path> [--resume <PLAN_ID>] [--no-auto-pr] [--dry-run]
+/execute-plan <design-doc-path> [--resume <PLAN_ID>]
 ```
+
 - `<design-doc-path>`: Required. Design document containing the PR Plan DAG.
 - `--resume <PLAN_ID>`: Optional. Resume a previous run. If specified, skip to Step 9.
-- `--no-auto-pr`: Optional. Do not auto-create the final PR; print the compare URL instead.
-- `--dry-run`: Optional. Validate and report without executing.
 
-Internal defaults: `concurrency = 8`, `auto_pr = true`.
+Internal defaults: `concurrency = 8`.
 
 ## Todo Scaffold
+
 The PR plan is a DAG. Each DAG node becomes a top-level todo with id `pr-<node-id>`. Inside each node, use sub-id namespacing for phases:
+
 - `pr-<n>:branch-prep` — Step 5
 - `pr-<n>:execute` — Step 6 (worker loop)
 - `pr-<n>:review` — review phase if invoked
@@ -23,18 +26,22 @@ Terminal state: all `pr-<n>:merge-ready` ids `completed`. Only then write the fi
 **Reseed after compaction** — rebuild the todo list from the cached DAG (persisted in the state file) if a compaction lands mid-execution.
 
 ## Persona Injection
+
 This skill uses the `implementer` and `reviewer` personas.
 Resolve each persona name in this order:
+
 1. `~/.grok/personas/<name>.toml`
 2. `<skill_dir>/../../../../personas/<name>.toml`
 
 Extract the `instructions` field and store as:
+
 - `implementer_persona_instructions`
 - `reviewer_persona_instructions`
 
 When launching a subagent, **prepend** the appropriate persona instructions to its prompt. Do NOT pass a `persona` parameter to `spawn_subagent`. Prefix the `description` with a bracketed role tag (`[implementer]`, `[reviewer]`, `[tests]`, `[simplicity]`). Keep the tag on `resume_from` follow-ups.
 
-## Host & Environment Setup
+## Host &amp; Environment Setup
+
 Host commands run in bash on Linux. Use `run_terminal_command`.
 Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`.
 Run `python3 <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `SCRATCH_DIR`, and `run_id` as `PLAN_ID`.
@@ -44,12 +51,14 @@ Run `python3 <HOST_PY> setup` and parse the JSON stdout. Store `python` as `PYTH
 **Inline the resolved absolute `SCRATCH_DIR` and `PYTHON`** into every later command.
 
 Define shared file paths (all under `SCRATCH_DIR`):
+
 - `state_file`: `<SCRATCH_DIR>/grok-exec-plan-<PLAN_ID>.json`
 - Per-PR summary: `<SCRATCH_DIR>/grok-exec-summary-<PLAN_ID>-<pr-id>.md`
 - Per-PR merged review: `<SCRATCH_DIR>/grok-exec-review-<PLAN_ID>-<pr-id>.md`
 - Individual reviewer files: `<SCRATCH_DIR>/grok-exec-review-<PLAN_ID>-<pr-id>-<specialist>.md`
 
 Initialize orchestrator state variables:
+
 - `design_doc_path`, `main_clone_path` (`git rev-parse --show-toplevel`)
 - `max_concurrent` (default 8), `dag`, `linearized_order`, `ready_queue`, `in_progress`, `completed`, `failed`, `skipped`
 - `past_issues_briefing`: `""` (populated in Step 1)
@@ -58,16 +67,16 @@ Initialize orchestrator state variables:
 - `existing_patterns_snapshot`: `[]` (from Step 1)
 - `memory_existed_before`: `false` (from Step 1)
 - `user_instructions`: `""`
-- `auto_pr_flag`: `true` (unless `--no-auto-pr` is passed)
 - `gh_available`: `null` (populated in Step 2)
 
 Initialize the state file:
+
 ```json
 {
-  "plan_id": "<PLAN_ID>",
-  "design_doc_path": "<design-doc-path>",
+  "plan_id": "[[ORCA_RICH_MD:536ee93572483e85c9e50cab209fccda:inline-html:%3CPLAN_ID%3E]]",
+  "design_doc_path": "[[ORCA_RICH_MD:536ee93572483e85c9e50cab209fccda:inline-html:%3Cdesign-doc-path%3E]]",
   "status": "initializing",
-  "created_at": "<ISO 8601 timestamp>",
+  "created_at": "[[ORCA_RICH_MD:536ee93572483e85c9e50cab209fccda:inline-html:%3CISO%208601%20timestamp%3E]]",
   "max_concurrent": 8,
   "linearized_order": [],
   "dag": { "nodes": [] },
@@ -75,24 +84,28 @@ Initialize the state file:
   "final_branch_pushed": false,
   "pr_urls": [],
   "user_instructions": "",
-  "auto_pr_flag": true,
   "gh_available": null
 }
 ```
+
 Write this initial state file using the `write` tool.
 Report: `"Starting execute-plan with PLAN_ID: <PLAN_ID>, concurrency: <max_concurrent>"`
 
-## Orca Worktree Protocol (SSOT)
+## Orca Worktree Protocol
+
 Every subagent runs in its own Orca-managed worktree under `~/orca/workspaces/`. The orchestrator interacts with those worktrees through the `orca-ide` CLI. Do not work on the default branch in the main clone.
 
 ### Subagent boundary
+
 Subagents (implementers, fixers, reviewers) never create branches, push, fetch across worktrees, run `orca-ide`, or use `gh`. Their only git obligations are editing files and committing locally in their own worktree. The orchestrator owns all git, Orca-worktree, and stack-tooling operations, including merge-conflict resolution — its sole exception to the no-source-file-modification rule (applied in Step 5 branch prep and Steps 10.1/10.4; see Step 10 Rules).
 
 ### Worktree kinds
+
 - **Orca-managed worktrees** live under `~/orca/workspaces/` and are tracked by Orca. Remove them only with `orca-ide worktree rm --worktree <id> --force --json`; removing them via raw `git worktree remove` orphans Orca's internal registry. A `not found` response from `orca-ide worktree rm` counts as success (teardown is idempotent).
 - **Raw temp worktrees** (Step 5 diamond-dependency merges) are plain `git worktree add` worktrees under a `mktemp` directory — remove those with `git worktree remove`, not Orca.
 
 ### Worktree creation (Step 6a)
+
 ```bash
 orca-ide worktree create \
   --repo path:<main_clone_path> \
@@ -101,6 +114,7 @@ orca-ide worktree create \
   --no-parent \
   --json
 ```
+
 - `--repo path:<main_clone_path>` targets the orchestrator's main clone.
 - `--name <PLAN_ID>-<pr.id>` gives each PR a unique worktree display name.
 - `--base-branch <pr.branch>` checks the modular branch out inside the new worktree.
@@ -108,18 +122,25 @@ orca-ide worktree create \
 Record `pr.orca_worktree_id` (`<repoId>::<worktreePath>`) and `pr.worktree_path`.
 
 ### Completion and teardown
+
 **Rule 1 — fetch without a destination refspec.**
+
 ```bash
 git fetch <worktree_path> HEAD --no-tags
 ```
+
 **Rule 2 — `pr.commit_sha` is the authoritative reference.**
+
 ```bash
-pr.commit_sha = $(git -C <worktree_path> rev-parse HEAD)
-git cat-file -t <pr.commit_sha>
+pr.commit_sha = $(git -C [[ORCA_RICH_MD:536ee93572483e85c9e50cab209fccda:inline-html:%3Cworktree_path%3E]] rev-parse HEAD)
+git cat-file -t [[ORCA_RICH_MD:536ee93572483e85c9e50cab209fccda:inline-html:%3Cpr.commit_sha%3E]]
 ```
+
 Every downstream step keys off `commit_sha`, never off `refs/heads/<pr.branch>`.
 **Rule 3 — tear down the worktree before mutating its branch ref.**
+
 ```bash
 orca-ide worktree rm --worktree <pr.orca_worktree_id> --force --json
 ```
+
 Run this immediately before merging the branch into the final branch (Step 10.1).

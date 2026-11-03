@@ -8,7 +8,7 @@ Setup is skipped on resume, so first **recompute the scratch directory** — re-
 
 1. Read the state file at `<scratch_dir>/grok-exec-plan-<PLAN_ID>.json`.
 2. If the file does not exist, report the error and stop.
-3. Restore orchestrator state from the file: `design_doc_path`, `max_concurrent`, `dag`, `linearized_order`, `user_instructions`, `auto_pr_flag`, `gh_available`, `pr_urls`. Re-run the Step 2 probe to populate `gh_available`.
+3. Restore orchestrator state from the file: `design_doc_path`, `max_concurrent`, `dag`, `linearized_order`, `user_instructions`, `gh_available`, `pr_urls`. Re-run the Step 2 probe to populate `gh_available`.
 4. Evaluate each PR node's status:
    - **`completed`**: Skip. The commit SHA is already recorded.
    - **`failed`**: Clean up the old Orca worktree first (if `orca_worktree_id` is set and `worktree_cleaned` is false, run `orca-ide worktree rm --worktree <orca_worktree_id> --force --json`; a "not found" response counts as success), then reset to `"pending"`. Clear error, subagent_id, reviewer_configs, worktree_path, orca_worktree_id, base_sha, commit_sha, review_rounds, worktree_cleaned. This PR will be retried from scratch with a new Orca worktree.

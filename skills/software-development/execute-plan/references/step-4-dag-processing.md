@@ -42,10 +42,6 @@ Example: `execute-plan/a1b2c3d4-pr-1-add-retry-config-types`
 
 Update each node's `branch` field.
 
-### Dry-Run Exit
-
-If `--dry-run` was specified, report the full execution plan (linearized order, level assignments, branch names, dependency graph) and stop. Do not proceed to implementation.
-
 ## In-Progress Reporting
 
 - After level assignment: `"DAG levels: <L> levels, max parallelism: <P>"`
