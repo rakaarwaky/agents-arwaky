@@ -6,7 +6,7 @@ cover deck creation from a JSON spec, structured read-back, in-place
 edits, template-driven brand decks, and slide rendering — all offline, no
 PowerPoint installation required.
 
-> Merged in from the former `powerpoint` skill (skill-library prune
+> Merged in from the former `powerpoint` skill (skill-design prune
 > pass, 2026-10-30). The five `pptx_*.py` scripts and the
 > bundled test suite now live in this skill at `scripts-python-pptx/`
 > and `tests-python-pptx/` (sibling subdirs of `SKILL.md`), since

@@ -8,7 +8,7 @@ Interactive workflow for creating a new skill from scratch. Design rules and fro
 
 Ask the user one at a time, as normal conversation (not option prompts):
 
-1. **Skill name** — must satisfy the `name-format` rule (see the validator catalog in `skill-library/references/audit.md`). Validate before continuing.
+1. **Skill name** — must satisfy the `name-format` rule (see the validator catalog in `audit.md`). Validate before continuing.
 2. **Category** — the category folder the skill belongs under: `<skills-dir>/<category>/<skill-name>/`. Default to the category of its sibling skills.
 3. **Scope** — present two options:
    - **Project** (recommended): `<repo-root>/<skills-dir>/<category>/<skill-name>/SKILL.md` — lives in this repo, shareable with teammates. Default when inside a git repo.
@@ -19,7 +19,7 @@ Resolve the real directory for the chosen scope from the harness config or repo 
 
 ## Step 2: Draft the trigger fields
 
-Draft `description:` and `when-to-use:` together — both are mandatory (Global Rules) and both drive auto-invocation. Apply the Frontmatter semantics bullet and the description detail in `skill-library/references/audit.md`. Keep the two fields non-overlapping (Global Rules: budget for permanent cost).
+Draft `description:` and `when-to-use:` together — both are mandatory (Global Rules) and both drive auto-invocation. Apply the Frontmatter semantics bullet and the description detail in `audit.md`. Keep the two fields non-overlapping (Global Rules: budget for permanent cost).
 
 Show both to the user for approval or edits before writing anything.
 
@@ -81,6 +81,6 @@ This is the same skeleton this skill's own `SKILL.md` uses; open it as a filled-
 ## Step 6: Verify and confirm
 
 - [ ] Read the file back and confirm frontmatter and body landed correctly, and the body follows the Step 5 skeleton (`# <Skill Name>` / `## Global Rules` / `## Routing`).
-- [ ] Run `aa skills lint` and the pre-publish checklist in `skill-library/references/audit.md`.
+- [ ] Run `aa skills lint` and the pre-publish checklist in `audit.md`.
 - [ ] Tell the user how to invoke it (slash command, skills menu, description matching — whichever the target harness provides).
 - [ ] Remind the user that new or renamed skills appear in the next session: loaders cache the skill list at session start. This is expected.
