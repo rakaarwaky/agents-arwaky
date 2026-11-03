@@ -109,13 +109,25 @@ def test_catalog_build_then_read(tmp_path: Path) -> None:
     assert "## Skills" in out
 
 
-def test_mutating_commands_not_in_cli(tmp_path: Path) -> None:
-    """move / archive / create / traces are not routed from the CLI surface."""
+def test_mutating_commands_in_cli_preview(tmp_path: Path) -> None:
+    """move / archive / create preview a plan (exit 0) without --apply.
+
+    ``traces`` has its own surface file; it is not routed from ``cmd_skills``.
+    """
     root = crafted_tree(tmp_path)
-    for sub in ("move", "archive", "create", "traces"):
-        code, _out, err = run_surface(root, sub, "drafts/doc-drafts", "notes")
-        assert code == 2, sub
-        assert "Unknown skills subcommand" in err
+    for args in (
+        ("move", "drafts/doc-drafts", "notes"),
+        ("archive", "drafts/doc-drafts"),
+        ("create", "skill", "drafts/doc-drafts", "--category", "notes"),
+    ):
+        code, out, _ = run_surface(root, *args)
+        assert code == 0, args
+        assert "Plan" in out or "dry-run" in out, (args, out)
+
+    # traces is not a verb of cmd_skills; it routes to the traces surface.
+    code, _out, err = run_surface(root, "traces", "drafts/doc-drafts", "notes")
+    assert code == 2
+    assert "Unknown skills subcommand" in err
 
 
 def test_discover_empty_query_is_a_usage_error(tmp_path: Path) -> None:

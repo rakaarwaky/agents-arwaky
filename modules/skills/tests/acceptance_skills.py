@@ -92,19 +92,27 @@ def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
     assert "| doc-drafts |" in out
 
 
-def test_acceptance_mutation_verbs_not_in_cli(tmp_path: Path):
-    """AC-SKILLS-015: move/archive/create are capability-only, not routed from the CLI."""
+def test_acceptance_mutation_verbs_in_cli(tmp_path: Path):
+    """AC-SKILLS-015: move/archive/create are routed from the CLI.
+
+    Without ``--apply`` each verb previews a plan and exits 0 (no write).
+    """
     from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
-    for args in (
-        ("move", "drafts/doc-drafts", "notes"),
-        ("archive", "notes/doc-drafts", "--apply"),
-        ("create", "category", "beta-cat", "--description", "Second", "--apply"),
-    ):
-        code, _out, err = run_surface(root, *args)
-        assert code == 2, args
-        assert "Unknown skills subcommand" in err, args
+    code, out, _ = run_surface(root, "move", "drafts/doc-drafts", "notes")
+    assert code == 0, out
+    assert "Plan" in out or "dry-run" in out
+
+    code, out, _ = run_surface(root, "archive", "drafts/doc-drafts")
+    assert code == 0, out
+    assert "Plan" in out or "dry-run" in out
+
+    code, out, _ = run_surface(
+        root, "create", "category", "beta-cat", "--description", "Second"
+    )
+    assert code == 0, out
+    assert "Plan" in out or "dry-run" in out
 
 
 def test_acceptance_unknown_subcommand_is_usage_error(tmp_path: Path):

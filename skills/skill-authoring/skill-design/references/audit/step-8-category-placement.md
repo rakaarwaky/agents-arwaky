@@ -12,18 +12,16 @@ aa skills lint
 3. Read the `DESCRIPTION.md` file for each category involved.
 4. Identify skills whose name or description conflicts with their current category.
 5. If duplicate or obsolete skills need pruning, route to `skill-design --prune` — this mode only decides category placement.
-6. If no category fits, create one (capability path, no CLI verb):
+6. If no category fits, create one:
 
-```python
-from modules.skills.src.root_skills_container import default_facade
-facade = default_facade()
-facade.create_category(CATEGORY_NAME, description="CATEGORY_DESCRIPTION", apply=True)
+```bash
+aa skills create category CATEGORY_NAME --description "CATEGORY_DESCRIPTION" --apply
 ```
 
-7. Move each misplaced skill (capability path, no CLI verb):
+7. Move each misplaced skill:
 
-```python
-facade.move("CATEGORY/SKILL", "TARGET_CATEGORY", apply=True)
+```bash
+aa skills move CATEGORY/SKILL TARGET_CATEGORY --apply
 ```
 
 8. Rebuild the catalog (still a CLI verb):
