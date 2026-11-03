@@ -1,4 +1,4 @@
-# Step 5: Dry-run & approval
+# Step 6: Dry-run & approval
 
 Present the planned prune and get the go-ahead before touching the tree.
 
@@ -6,14 +6,14 @@ Present the planned prune and get the go-ahead before touching the tree.
 
 ## Mode behavior
 
-Generate the planned prune report in the shape `step-8-verify-report.md` defines and present it.
+Generate the planned prune report in the shape `step-9-verify-report.md` defines and present it.
 
 - With `--dry-run`, stop after the report. No snapshot, no execute.
-- With `--headless`, skip the confirmation and proceed straight to Step 6.
-- With no mode flag, ask: *"Here is the planned prune. Shall I proceed with the git snapshot and execute these changes?"* and wait for confirmation before Step 6.
+- With `--headless`, skip the confirmation and proceed straight to Step 7.
+- With no mode flag, ask: *"Here is the planned prune. Shall I proceed with the git snapshot and execute these changes?"* and wait for confirmation before Step 7.
 
 ## Completion
 
-- The prune report is presented in the Step 8 shape.
+- The prune report is presented in the Step 9 shape.
 - `--dry-run` runs stop here, with no snapshot or execute.
-- Interactive runs stop at the user's confirmation; `--headless` continues to Step 6 without asking.
+- Interactive runs stop at the user's confirmation; `--headless` continues to Step 7 without asking.
