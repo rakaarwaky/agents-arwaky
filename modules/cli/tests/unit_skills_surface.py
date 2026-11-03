@@ -1,8 +1,7 @@
 """Guard and parser tests for the skills CLI surface.
 
-Covers the nine ``if X is None`` error guards that replaced the old
-``assert`` statements (bandit B101), the equals-form ``--skills-root=``
-branch of ``_split_root``, and the default-flag behaviour of the
+Covers the internal-error guards that replaced the old ``assert``
+statements (bandit B101) and the default-flag behaviour of the
 authoring parser.
 """
 
@@ -12,12 +11,8 @@ import pytest
 
 from modules.cli.src.surface_skills_command import (
     _authoring_parser,
-    _render_archive,
     _render_catalog,
-    _render_create,
     _render_lint,
-    _render_move,
-    _split_root,
 )
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillsOp,
@@ -31,48 +26,33 @@ def _result() -> SkillsResult:
     return SkillsResult(ok=True, op=SkillsOp.LIST, root=None)
 
 
-def _request(flags: dict[str, str] | None = None, json: bool = False) -> SkillsRequest:
-    return SkillsRequest(op=SkillsOp.LIST, flags=flags or {}, json=json)
+def _request(flags: dict[str, str] | None = None) -> SkillsRequest:
+    return SkillsRequest(op=SkillsOp.LIST, flags=flags or {})
 
 
 _RENDERERS = {
     "lint": _render_lint,
-    "catalog_check": _render_catalog,
     "catalog": _render_catalog,
-    "move": _render_move,
-    "archive": _render_archive,
-    "create": _render_create,
 }
 
 
 @pytest.mark.parametrize(
     ("sub", "flags", "payload_attr", "stderr_fragment"),
     [
-        ("lint", {}, "lint_report", "Internal error: no lint report produced"),
         (
-            "catalog_check",
-            {"check": "1"},
-            "check",
-            "Internal error: no catalog check result produced",
-        ),
-        (
-            "catalog",
-            {"check": "0"},
-            "catalog",
-            "Internal error: no catalog report produced",
-        ),
-        ("move", {}, "plan", "Internal error: no move plan produced"),
-        ("archive", {}, "plan", "Internal error: no archive plan produced"),
-        (
-            "create",
+            "lint",
             {},
-            "create_plan",
-            "Internal error: no create plan produced",
+            "lint_report",
+            "Internal error: no lint report produced",
         ),
     ],
 )
 def test_guard_returns_internal_error(
-    sub: str, flags: dict[str, str], payload_attr: str, stderr_fragment: str, capsys
+    sub: str,
+    flags: dict[str, str],
+    payload_attr: str,
+    stderr_fragment: str,
+    capsys,
 ) -> None:
     """Every renderer guards a None payload with an internal error, not an assert.
 
@@ -90,30 +70,59 @@ def test_guard_returns_internal_error(
     assert stderr_fragment in err_
 
 
-def test_split_root_equals_form() -> None:
-    """``--skills-root=VALUE`` (equals form) is parsed without consuming a second arg."""
-    root, rest = _split_root(["--skills-root=custom", "list", "--limit", "5"])
-    assert root is not None
-    # resolve_skills_root() returns an absolute path; pin the basename
-    assert root.name == "custom"
-    assert rest == ["list", "--limit", "5"]
+def test_catalog_guard_no_report(capsys) -> None:
+    """A None catalog report is an internal error (exit 1), not an assert."""
+    result = SkillsResult(ok=True, op=SkillsOp.CATALOG, root=None)
+    request = _request({"build": "1", "read": "0"})
+    code = _render_catalog(result, request)
+    _out, err_ = capsys.readouterr()
+    assert code == 1
+    assert "Internal error: no catalog report produced" in err_
 
 
-def test_split_root_space_form_unchanged() -> None:
-    """The space form still consumes the value token."""
-    root, rest = _split_root(["list", "--skills-root", "custom"])
-    assert root is not None
-    assert root.name == "custom"
-    assert rest == ["list"]
+def test_catalog_read_missing_file_exits_1(capsys) -> None:
+    """A read with no catalog text exits 1 with a clear message."""
+    result = SkillsResult(ok=True, op=SkillsOp.CATALOG, root=None)
+    request = _request({"build": "0", "read": "1"})
+    code = _render_catalog(result, request)
+    _out, err_ = capsys.readouterr()
+    assert code == 1
+    assert "CATALOG.md not found" in err_
 
 
 def test_authoring_parser_defaults() -> None:
-    """Default-flag case: ``discover`` with no explicit ``--limit``/``--json``/``--skills-root``."""
+    """Default-flag case: ``catalog`` with no explicit flags → both None (surface resolves to build+read)."""
+    parser = _authoring_parser()
+    ns = parser.parse_args(["catalog"])
+    assert ns.command == "catalog"
+    assert ns.build is None  # parser default; the surface resolves to True
+    assert ns.read is None
+
+    ns = parser.parse_args(["catalog", "--build"])
+    assert ns.build is True
+    assert ns.read is None
+
+    ns = parser.parse_args(["catalog", "--read"])
+    assert ns.build is None
+    assert ns.read is True
+
+    ns = parser.parse_args(["catalog", "--build", "--read"])
+    assert ns.build is True
+    assert ns.read is True
+
+
+def test_lint_parser_category_flag() -> None:
+    parser = _authoring_parser()
+    ns = parser.parse_args(["lint", "--category", "notes"])
+    assert ns.category == "notes"
+
+    ns = parser.parse_args(["lint"])
+    assert ns.category is None
+
+
+def test_discover_parser_defaults() -> None:
     parser = _authoring_parser()
     ns = parser.parse_args(["discover", "fetch"])
     assert ns.command == "discover"
     assert ns.query == "fetch"
-    # flag defaults pinned by the parser, not inferred from usage
     assert ns.limit == 20
-    assert ns.json is False
-    assert ns.skills_root is None

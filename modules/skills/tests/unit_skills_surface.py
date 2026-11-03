@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from modules.cli.src.surface_skills_command import cmd_skills
-from modules.skills.src.root_skills_container import default_aggregate
 from modules.skills.tests.fixture_skills import (
     clean_tree,
     crafted_tree,
@@ -16,6 +14,8 @@ from modules.skills.tests.fixture_skills import (
 
 def test_unknown_subcommand_exits_2(capsys) -> None:
     """Flagged change: ``aa skills <unknown>`` is a usage error (2)."""
+    from modules.skills.src.root_skills_container import default_aggregate
+
     code = cmd_skills(["frobnicate"], default_aggregate())
     assert code == 2
     captured = capsys.readouterr()
@@ -24,24 +24,26 @@ def test_unknown_subcommand_exits_2(capsys) -> None:
 
 def test_bare_skills_prints_usage_and_exits_0(capsys) -> None:
     """The historical no-argument behavior is preserved."""
+    from modules.skills.src.root_skills_container import default_aggregate
+
     assert cmd_skills([], default_aggregate()) == 0
     captured = capsys.readouterr()
     assert "aa skills list" in captured.out
 
 
 def test_argparse_errors_exit_2(tmp_path: Path) -> None:
+    """A discover without a query is a usage error (2)."""
     root = crafted_tree(tmp_path)
     code, _out, err = run_surface(root, "discover")
     assert code == 2
     assert "the following arguments are required" in err
 
 
-def test_skills_root_overrides_the_derived_root(tmp_path: Path) -> None:
-    """``--skills-root`` routes every authoring command to a crafted tree."""
+def test_lint_reports_issues_and_exits_1(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     code, out, _ = run_surface(root, "lint")
     assert code == 1
-    assert str(root) in out or "1 lint issue(s) found" in out
+    assert "1 lint issue(s) found" in out
 
 
 def test_lint_filters_narrow_without_hiding_the_total(tmp_path: Path) -> None:
@@ -50,139 +52,70 @@ def test_lint_filters_narrow_without_hiding_the_total(tmp_path: Path) -> None:
     assert code == 1
     assert "1 lint issue(s) found (0 in scope category=notes):" in out
 
-    code, out, _ = run_surface(root, "lint", "--summary")
-    assert code == 1
-    assert out.strip() == "1 issues / 2 skills / 2 categories"
 
-
-def test_lint_summary_line_is_derived(tmp_path: Path) -> None:
+def test_lint_clean_pack_exits_0(tmp_path: Path) -> None:
     root = clean_tree(tmp_path)
-    code, out, _ = run_surface(root, "lint", "--summary")
+    code, out, _ = run_surface(root, "lint")
     assert code == 0
-    assert out.strip() == "0 issues / 1 skills / 1 categories"
+    assert "No lint issues found." in out
 
 
-def test_json_key_order_matches_the_legacy_contract(tmp_path: Path) -> None:
-    """``--json`` payloads keep the legacy key order byte-for-byte."""
+def test_catalog_default_builds_and_prints(tmp_path: Path) -> None:
+    """Neither flag → build + read (the convenient agent default)."""
     root = crafted_tree(tmp_path)
-    run_surface(root, "catalog")
-
-    cases = {
-        ("lint",): [
-            "skills_root",
-            "category",
-            "issue_count",
-            "total_issue_count",
-            "issues",
-            "weed_lines",
-        ],
-        ("catalog", "--check"): [
-            "skills_root",
-            "in_sync",
-            "catalog",
-            "diff",
-        ],
-        ("catalog",): [
-            "skills_root",
-            "catalog",
-            "rebuilt",
-            "categories",
-            "skills",
-        ],
-        ("discover", "docs"): [
-            "skills_root",
-            "query",
-            "limit",
-            "match_count",
-            "matches",
-        ],
-        ("move", "drafts/doc-drafts", "notes"): [
-            "skills_root",
-            "dry_run",
-            "skill",
-            "from",
-            "to",
-            "note",
-        ],
-        ("archive", "drafts/doc-drafts"): [
-            "skills_root",
-            "dry_run",
-            "skill",
-            "from",
-            "to",
-            "note",
-        ],
-        ("create", "category", "beta-cat", "--description", "Second"): [
-            "skills_root",
-            "dry_run",
-            "category",
-            "description",
-            "would_write_description",
-            "note",
-        ],
-    }
-
-    for args, keys in cases.items():
-        code, out, err = run_surface(root, *args, "--json")
-        assert code in (0, 1, 3), f"{args}: exit {code}: {err}"
-        payload = json.loads(out)
-        assert list(payload) == keys, f"{args}: {list(payload)}"
-
-
-def test_catalog_check_drift_exits_3_and_prints_the_summary(tmp_path: Path) -> None:
-    root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(root, "catalog", "--check")
-    assert code == 3
-    assert "Catalog missing" in out
-
-
-def test_catalog_check_in_sync_exits_0(tmp_path: Path) -> None:
-    root = crafted_tree(tmp_path)
-    run_surface(root, "catalog")
-    code, out, _ = run_surface(root, "catalog", "--check")
+    code, out, _ = run_surface(root, "catalog")
     assert code == 0
-    assert out.startswith("Catalog in sync:")
-
-
-def test_mutating_commands_default_to_dry_run(tmp_path: Path) -> None:
-    """S2/R6: no ``--apply`` means no write, for every mutating verb."""
-    root = crafted_tree(tmp_path)
-    run_surface(root, "catalog")
-    before = (root / "drafts" / "DESCRIPTION.md").read_text(encoding="utf-8")
-
-    for args in (
-        ("move", "drafts/doc-drafts", "notes"),
-        ("archive", "drafts/doc-drafts"),
-        ("create", "category", "beta-cat", "--description", "Second category"),
-    ):
-        code, out, _ = run_surface(root, *args)
-        assert code == 0, args
-        assert "dry-run" in out, args
-
-    assert not (root / "beta-cat").exists()
-    assert not (root / "_archive").exists()
-    assert (root / "drafts" / "doc-drafts").exists()
-    assert (root / "drafts" / "DESCRIPTION.md").read_text(encoding="utf-8") == before
-
-
-def test_apply_writes_and_rebuilds_the_catalog(tmp_path: Path) -> None:
-    root = crafted_tree(tmp_path)
-    code, out, _ = run_surface(
-        root, "create", "category", "beta-cat", "--description", "Second category", "--apply"
-    )
-    assert code == 0
-    assert "Wrote beta-cat/DESCRIPTION.md" in out
     assert "Rebuilt" in out
-    assert (root / "beta-cat" / "DESCRIPTION.md").exists()
+    assert "Categories:" in out
+    # the full catalog text follows the rebuild lines
+    assert "## Skills" in out
 
 
-def test_usage_errors_print_the_legacy_error_line(tmp_path: Path) -> None:
+def test_catalog_build_only_prints_counts(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    code, _out, err = run_surface(root, "move", "nonexistent-skill", "notes")
-    assert code == 2
-    assert err == (
-        "ERROR: Could not find skill directory with SKILL.md: nonexistent-skill\n"
-    )
+    code, out, _ = run_surface(root, "catalog", "--build")
+    assert code == 0
+    assert "Rebuilt" in out
+    # build only: no catalog body is printed
+    assert "## Skills" not in out
+
+
+def test_catalog_read_only_prints_content(tmp_path: Path) -> None:
+    """--read alone prints the existing CATALOG.md without rebuilding."""
+    root = crafted_tree(tmp_path)
+    # build first so the file exists
+    run_surface(root, "catalog", "--build")
+    code, out, _ = run_surface(root, "catalog", "--read")
+    assert code == 0
+    assert "## Skills" in out
+    # no rebuild happened in this invocation
+    assert "Rebuilt" not in out
+
+
+def test_catalog_read_missing_file_exits_1(tmp_path: Path) -> None:
+    """--read alone with no CATALOG.md exits 1 with a clear message."""
+    root = crafted_tree(tmp_path)  # no CATALOG.md yet
+    code, _out, err = run_surface(root, "catalog", "--read")
+    assert code == 1
+    assert "CATALOG.md not found" in err
+
+
+def test_catalog_build_then_read(tmp_path: Path) -> None:
+    """--build --read: rebuild counts line followed by the full content."""
+    root = crafted_tree(tmp_path)
+    code, out, _ = run_surface(root, "catalog", "--build", "--read")
+    assert code == 0
+    assert "Rebuilt" in out
+    assert "## Skills" in out
+
+
+def test_mutating_commands_not_in_cli(tmp_path: Path) -> None:
+    """move / archive / create / traces are not routed from the CLI surface."""
+    root = crafted_tree(tmp_path)
+    for sub in ("move", "archive", "create", "traces"):
+        code, _out, err = run_surface(root, sub, "drafts/doc-drafts", "notes")
+        assert code == 2, sub
+        assert "Unknown skills subcommand" in err
 
 
 def test_discover_empty_query_is_a_usage_error(tmp_path: Path) -> None:
@@ -209,8 +142,17 @@ def test_discover_no_match_prints_the_legacy_line(tmp_path: Path) -> None:
     assert out == "No matching skills found in CATALOG.md.\n"
 
 
+def test_discover_with_matches_prints_the_score_table(tmp_path: Path) -> None:
+    root = crafted_tree(tmp_path)
+    run_surface(root, "catalog")
+    code, out, _ = run_surface(root, "discover", "notes")
+    assert code == 0
+    assert "| Skill | Category | Description | Path | Score |" in out
+    assert "note-taker" in out
+
+
 def test_list_and_read_keep_their_output_shape(tmp_path: Path) -> None:
-    """The read-only surface is byte-stable (only ``--skills-root`` is new)."""
+    """The read-only surface is byte-stable."""
     root = clean_tree(tmp_path)
 
     code, out, _ = run_surface(root, "list")

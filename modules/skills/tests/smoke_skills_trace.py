@@ -118,8 +118,14 @@ def test_smoke_trace_state_wait_ready_exits_0(tmp_path: Path) -> None:
 
 
 def test_smoke_trace_verbs_parse_flags(tmp_path: Path) -> None:
-    """SM-TRACE-006: all trace actions parse their flags (--help)."""
+    """SM-TRACE-006: all trace actions parse their flags (--help).
+
+    Drives the extracted traces surface module (``cmd_traces``) directly —
+    the main CLI surface no longer routes the ``traces`` verb.
+    """
+    from modules.cli.src.surface_skills_traces_command import cmd_traces
+    from modules.skills.src.root_skills_container import default_aggregate
 
     for action in ("collect", "usage", "phrases", "materialize"):
-        assert cmd_skills(["traces", action, "--help"], default_aggregate()) == 0
-    assert cmd_skills(["traces", "state", "wait", "--help"], default_aggregate()) == 0
+        assert cmd_traces([action, "--help"], default_aggregate()) == 0
+    assert cmd_traces(["state", "wait", "--help"], default_aggregate()) == 0

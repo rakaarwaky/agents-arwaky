@@ -22,12 +22,10 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 | `aa skills list`                | skills lister   | `ISkillsListerProtocol`   | FR-SKILLS-001 |
 | `aa skills read <name>`         | skills reader   | `ISkillsReaderProtocol`   | FR-SKILLS-002 |
 | `aa skills lint [--category X]` | skills linter   | `ISkillsLinterProtocol`   | FR-SKILLS-003 |
-| `aa skills catalog [--check]`   | skills catalog  | `ISkillsCatalogProtocol`  | FR-SKILLS-004 |
+| `aa skills catalog [--build] [--read]` | skills catalog | `ISkillsCatalogProtocol` | FR-SKILLS-004 |
 | `aa skills discover <query>`    | skills discover | `ISkillsDiscoverProtocol` | FR-SKILLS-005 |
-| `aa skills move <skill> <cat>`  | skills mover    | `ISkillsMoverProtocol`    | FR-SKILLS-006 |
-| `aa skills archive <skill>`     | skills archiver | `ISkillsArchiverProtocol` | FR-SKILLS-007 |
-| `aa skills create <k> <name>`   | skills creator  | `ISkillsCreatorProtocol`  | FR-SKILLS-008 |
-| `aa skills traces <action>`     | skills traces   | `ISkillsTracesProtocol`   | FR-SKILLS-009 |
+
+Capability-only ops (no CLI surface; reachable via the agent): `move` (FR-SKILLS-006), `archive` (FR-SKILLS-007), `create` (FR-SKILLS-008), `traces` (FR-SKILLS-009).
 
 ## Functional Requirements
 
@@ -118,7 +116,6 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 - The exit code tracks the *unfiltered* issue total (1 when any issue exists)
 - A scoped report can never claim the library is clean while issues exist outside the scope
 - `--category` narrows the in-scope issue listing; weed lines are kept library-wide
-- `--summary` prints the `N issues / M skills / K categories` line instead of the per-issue listing; `--json` wins when both are passed
 
 #### Edge Cases
 
@@ -129,8 +126,8 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 | Aspect       | Detail                                                                            |
 |--------------|-----------------------------------------------------------------------------------|
-| **Input**    | a skills root; optional `--category` / `--summary` flags                          |
-| **Output**   | the filtered issue list, weed lines, and the derived summary                      |
+| **Input**    | optional `--category NAME` flag                                          |
+| **Output**   | the filtered issue list and weed lines                                    |
 | **Protocol** | ISkillsLinterProtocol                                                             |
 | **Method**   | lint                                                                              |
 | **Event**    | —                                                                                 |
@@ -149,45 +146,49 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 |--------------------|--------------------|
 | Exit-code contract | 0 clean / 1 issues |
 
-### FR-SKILLS-004: Rebuild Catalog
+### FR-SKILLS-004: Catalog (Build / Read)
 
-**Description:** Render the catalog from the live tree, or with `--check` regenerate to a temp file and diff the tracked artifact.
+**Description:** Rebuild `CATALOG.md` from the live tree and/or print the current catalog content to the terminal.
 
 #### Business Logic
 
-- A read through the catalog never repairs itself
-- A missing, stale, unparseable, or non-round-tripping catalog is drift (exit 3)
-- A crafted cell that loses its escape round-trip fails closed
-- The check is read-only and never rewrites the tracked file
+- `--build` alone: rebuild `CATALOG.md`, print a `Rebuilt <path>` + counts line
+- `--read` alone: print the full `CATALOG.md` content to stdout (no rebuild)
+- Neither flag (default): build then read — the convenient agent default
+- Both flags: build then read
+- A missing catalog file on a read-only path exits 1 with a clear message
+- The drift gate (`check`) remains available at the capability/agent level (exit 3); it is no longer exposed from the CLI
 
 #### Edge Cases
 
-- Missing catalog is drift
-- A non-round-tripping cell fails closed
+- `--read` alone with a missing `CATALOG.md` exits 1
+- `--build` creates the file if it is missing
 
 #### Technical Specification
 
-| Aspect       | Detail                                                            |
-|--------------|-------------------------------------------------------------------|
-| **Input**    | a skills root; optional `--check` flag for read-only verification |
-| **Output**   | the rebuilt path and counts, or the drift summary plus diff       |
-| **Protocol** | ISkillsCatalogProtocol                                            |
-| **Method**   | rebuild / check                                                   |
-| **Event**    | —                                                                 |
-| **Error**    | drift → exit 3                                                    |
+| Aspect       | Detail                                                          |
+|--------------|-----------------------------------------------------------------|
+| **Input**    | optional `--build` / `--read` boolean flags                    |
+| **Output**   | rebuild counts line (build), full catalog text (read)          |
+| **Protocol** | ISkillsCatalogProtocol                                          |
+| **Method**   | rebuild / read                                                  |
+| **Event**    | —                                                               |
+| **Error**    | missing catalog on read → exit 1                                |
 
 #### Test
 
-| Context                 | When Action                 | Then Observable Result |
-|-------------------------|-----------------------------|------------------------|
-| Freshly rebuilt catalog | `aa skills catalog --check` | in sync, exit 0        |
-| Drifted catalog         | `aa skills catalog --check` | drift summary, exit 3  |
+| Context                 | When Action               | Then Observable Result                 |
+|-------------------------|---------------------------|----------------------------------------|
+| Default                 | `aa skills catalog`       | rebuild + full content printed, exit 0 |
+| Build only              | `aa skills catalog --build` | rebuild counts line, exit 0         |
+| Read only               | `aa skills catalog --read` | full catalog content, exit 0         |
+| Read with missing file  | `aa skills catalog --read` | `CATALOG.md not found`, exit 1       |
 
 #### Metric
 
 | Target Metric      | Value               |
 |--------------------|---------------------|
-| Exit-code contract | 0 in-sync / 3 drift |
+| Exit-code contract | 0 ok / 1 missing file |
 
 ### FR-SKILLS-005: Search Catalog
 

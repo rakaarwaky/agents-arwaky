@@ -293,6 +293,7 @@ class SkillsResult:
     lint_report: LintReport | None = None
     catalog: CatalogReport | None = None
     check: CatalogCheckResult | None = None
+    catalog_text: str | None = None
     matches: tuple[DiscoveryMatch, ...] = ()
     plan: MutationPlan | None = None
     outcome: MutationOutcome | None = None

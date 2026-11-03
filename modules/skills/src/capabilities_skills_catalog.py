@@ -322,4 +322,11 @@ class SkillsCatalog(ISkillsCatalogProtocol):
 
         return tuple(rows)
 
+    def read(self, root: SkillsRoot) -> str:
+        """Return the raw tracked ``CATALOG.md`` text; ``""`` when missing."""
+        path = catalog_path(Path(root))
+        if not path.exists():
+            return ""
+        return read_catalog_text(path)
+
     # ─── Block 3: Dunder Methods, Factories & Helpers ──────────

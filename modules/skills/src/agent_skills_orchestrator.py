@@ -163,7 +163,11 @@ class SkillsAgent(ISkillsAggregate):
         )
 
     def _execute_catalog(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Rebuild the catalog, or with ``--check`` only test for drift."""
+        """Rebuild the catalog and/or read it back, per the ``build``/``read`` flags.
+
+        The ``check`` flag (drift gate, exit 3) stays available at the
+        capability/agent level but is no longer routed from the CLI.
+        """
         catalog = self._require(self._catalog, "catalog")
         root = self._root(request)
 
@@ -183,7 +187,39 @@ class SkillsAgent(ISkillsAggregate):
                 root=root,
             )
 
-        report = catalog.rebuild(root)
+        # CLI surface: the parser tri-state resolves to an explicit flag
+        # value; no flag at all → both (build then print).
+        # Facade: a bare catalog request (no build/read keys) → build only.
+        build = (
+            request.flags.get("build", "1") == "1"
+            if "build" in request.flags or "read" in request.flags
+            else True
+        )
+        read = request.flags.get("read", "0") == "1"
+
+        if build:
+            report = catalog.rebuild(root)
+        else:
+            report = None
+
+        if read:
+            text = catalog.read(root)
+            if not text:
+                return SkillsResult(
+                    ok=False,
+                    op=op,
+                    exit_code=SkillsExitCode.ISSUES_FOUND,
+                    message="CATALOG.md not found — run with --build first",
+                    root=root,
+                )
+            return SkillsResult(
+                ok=True,
+                op=op,
+                catalog=report,
+                catalog_text=text,
+                root=root,
+            )
+
         return SkillsResult(ok=True, op=op, catalog=report, root=root)
 
     def _execute_discover(

@@ -175,6 +175,10 @@ class _SpyCatalog(ISkillsCatalogProtocol):
         self.calls.append("load_rows")
         return ()
 
+    def read(self, root: SkillsRoot) -> str:
+        self.calls.append("read")
+        return ""
+
 
 def test_move_apply_produces_one_apply_and_one_rebuild_in_order(
     tmp_path: Path, monkeypatch

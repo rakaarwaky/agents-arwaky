@@ -72,6 +72,10 @@ class _SpyCatalog(ISkillsCatalogProtocol):
         self.calls.append("load_rows")
         return ()
 
+    def read(self, root: SkillsRoot) -> str:
+        self.calls.append("read")
+        return ""
+
 
 def test_move_apply_applies_once_then_rebuilds_once(tmp_path: Path) -> None:
     """The agent owns `plan → apply → catalog rebuild`, in that order."""

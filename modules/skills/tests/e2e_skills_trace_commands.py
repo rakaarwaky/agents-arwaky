@@ -240,18 +240,23 @@ def test_e2e_trace_state_wait_deadline_exits_2(tmp_path: Path, monkeypatch) -> N
 
 
 def test_e2e_trace_verbs_registered_in_help(tmp_path: Path) -> None:
-    """E2E-TRACE-011: all four trace verbs appear in the skills help."""
+    """E2E-TRACE-011: the traces sub-action parser accepts every action flag.
 
+    The traces verbs are no longer routed from the main CLI surface
+    (``cmd_skills``); the extracted parser module still exposes them and
+    each action's ``--help`` exits 0 through that parser.
+    """
     import io
     from contextlib import redirect_stdout
 
-    stdout = io.StringIO()
-    with redirect_stdout(stdout):
-        code = cmd_skills([], default_aggregate())
-    assert code == 0
-    out = stdout.getvalue()
-    for verb in ("traces", "collect", "usage", "phrases", "materialize", "state"):
-        assert verb in out
+    from modules.cli.src.surface_skills_traces_command import cmd_traces
+    from modules.skills.src.root_skills_container import default_aggregate
+
+    for action in ("collect", "usage", "phrases", "materialize"):
+        with redirect_stdout(io.StringIO()):
+            assert cmd_traces([action, "--help"], default_aggregate()) == 0
+    with redirect_stdout(io.StringIO()):
+        assert cmd_traces(["state", "wait", "--help"], default_aggregate()) == 0
 
 
 def test_e2e_trace_state_restrict_sets_mode_0600(tmp_path: Path) -> None:

@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 from modules.cli.src.surface_skills_command import cmd_skills
+from modules.cli.src.surface_skills_traces_command import cmd_traces
 from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
 from modules.skills.src.root_skills_container import default_aggregate
 
@@ -113,37 +114,33 @@ def clean_tree(tmp_path: Path) -> Path:
 def run_surface(root: Path, *args: str) -> tuple[int, str, str]:
     """Drive ``cmd_skills`` in-process against a crafted root.
 
-    Appends ``--skills-root <root>``; the pack-root verbs (list/show/
-    authoring) consume it. Returns ``(exit_code, stdout, stderr)``.
+    The surface no longer accepts ``--skills-root``; instead this helper
+    builds the aggregate with ``default_root=root`` so every capability
+    resolves the crafted tree. Returns ``(exit_code, stdout, stderr)``.
     """
     stdout = io.StringIO()
     stderr = io.StringIO()
     with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        code = cmd_skills(
-            [*args, "--skills-root", str(root)], default_aggregate()
-        )
+        code = cmd_skills(list(args), default_aggregate(default_root=root))
     return code, stdout.getvalue(), stderr.getvalue()
 
 
 def run_trace_surface(grok_home: Path, *args: str) -> tuple[int, str, str]:
     """Drive a trace verb in-process against a fixture GROK_HOME.
 
-    Does NOT append ``--skills-root``: trace verbs use their own
-    ``--grok-home``/``--run-dir``/``--out`` plumbing, so tests assert
-    against the real trace state machine, not the grok fixture's
-    incidental ``learn/`` directory.
+    The traces capability is no longer routed from the main CLI surface
+    (``cmd_skills``); this helper drives the extracted traces surface
+    module (``cmd_traces``) directly, stripping the leading ``"traces"``
+    token the old CLI surface consumed. Returns ``(exit_code, stdout,
+    stderr)``.
     """
+    if args and args[0] == "traces":
+        args = args[1:]
     stdout = io.StringIO()
     stderr = io.StringIO()
     with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-        code = cmd_skills(list(args), default_aggregate())
+        code = cmd_traces(list(args), default_aggregate())
     return code, stdout.getvalue(), stderr.getvalue()
-
-
-def run_surface_json(root: Path, *args: str) -> tuple[int, dict]:
-    """Drive one ``--json`` invocation and parse the payload."""
-    code, out, _err = run_surface(root, *args, "--json")
-    return code, json.loads(out)
 
 
 def as_root(root: Path) -> SkillsRoot:

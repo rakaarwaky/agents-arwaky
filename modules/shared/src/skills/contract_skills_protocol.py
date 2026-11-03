@@ -129,6 +129,17 @@ class ISkillsCatalogProtocol(ABC):
         """Raise ``CatalogDrift`` rather than repair or fall back — fail closed."""
         ...
 
+    @abstractmethod
+    def read(self, root: SkillsRoot) -> str:
+        """Return the raw tracked ``CATALOG.md`` text, or ``""`` if missing.
+
+        A read-only view for the CLI ``catalog --read`` path; unlike
+        ``load_rows`` this never parses, drift-checks, or raises — it
+        just hands the bytes back (empty string when the file is absent,
+        so the caller decides how to report it).
+        """
+        ...
+
 
 class ISkillsDiscoverProtocol(ABC):
     """Query the catalog, with a loud fallback when it drifts."""

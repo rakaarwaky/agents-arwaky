@@ -55,18 +55,30 @@ def test_acceptance_lint_reports_and_exits(tmp_path: Path):
     assert "[name-mismatch]" in out
 
 
-def test_acceptance_catalog_rebuilds_and_checks(tmp_path: Path):
-    """AC-SKILLS-011: ``catalog`` rebuilds; ``catalog --check`` gates drift."""
+def test_acceptance_catalog_builds_and_reads(tmp_path: Path):
+    """AC-SKILLS-011: ``catalog`` default builds + reads; ``--read`` alone prints."""
     from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
-    assert run_surface(root, "catalog")[0] == 0
-    assert run_surface(root, "catalog", "--check")[0] == 0
+    code, out, _ = run_surface(root, "catalog")
+    assert code == 0
+    assert "Rebuilt" in out
+    assert "## Skills" in out
 
-    (root / "notes" / "note-taker" / "SKILL.md").write_text(
-        "---\nname: note-taker\ndescription: changed\n---\n", encoding="utf-8"
-    )
-    assert run_surface(root, "catalog", "--check")[0] == 3
+    # --read alone: after a build, the content is present
+    code, out, _ = run_surface(root, "catalog", "--read")
+    assert code == 0
+    assert "## Skills" in out
+
+
+def test_acceptance_catalog_read_missing_file_exits_1(tmp_path: Path):
+    """AC-SKILLS-011b: ``--read`` with no CATALOG.md exits 1."""
+    from modules.skills.tests.fixture_skills import crafted_tree, run_surface
+
+    root = crafted_tree(tmp_path)  # no CATALOG.md yet
+    code, _out, err = run_surface(root, "catalog", "--read")
+    assert code == 1
+    assert "CATALOG.md not found" in err
 
 
 def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
@@ -80,23 +92,19 @@ def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
     assert "| doc-drafts |" in out
 
 
-def test_acceptance_move_archive_create_category(tmp_path: Path):
-    """AC-SKILLS-015: the path mutations and category creation preview and apply."""
+def test_acceptance_mutation_verbs_not_in_cli(tmp_path: Path):
+    """AC-SKILLS-015: move/archive/create are capability-only, not routed from the CLI."""
     from modules.skills.tests.fixture_skills import crafted_tree, run_surface
 
     root = crafted_tree(tmp_path)
-    assert run_surface(root, "move", "drafts/doc-drafts", "notes")[0] == 0
-    assert run_surface(root, "move", "drafts/doc-drafts", "notes", "--apply")[0] == 0
-    assert (root / "notes" / "doc-drafts").exists()
-
-    assert run_surface(root, "archive", "notes/doc-drafts", "--apply")[0] == 0
-    assert (root / "_archive" / "notes" / "doc-drafts" / "SKILL.md.archived").exists()
-
-    assert (
-        run_surface(root, "create", "category", "beta-cat", "--description", "Second", "--apply")[0]
-        == 0
-    )
-    assert (root / "beta-cat" / "DESCRIPTION.md").exists()
+    for args in (
+        ("move", "drafts/doc-drafts", "notes"),
+        ("archive", "notes/doc-drafts", "--apply"),
+        ("create", "category", "beta-cat", "--description", "Second", "--apply"),
+    ):
+        code, _out, err = run_surface(root, *args)
+        assert code == 2, args
+        assert "Unknown skills subcommand" in err, args
 
 
 def test_acceptance_unknown_subcommand_is_usage_error(tmp_path: Path):
