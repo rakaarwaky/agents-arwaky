@@ -1,4 +1,4 @@
-# Design notes (module/persona review)
+# Step 5: Design notes (module/persona review)
 
 ## Why module mode does not collect a diff
 

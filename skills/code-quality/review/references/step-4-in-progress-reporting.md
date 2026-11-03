@@ -1,10 +1,6 @@
-# Review in-progress reporting
+# Step 4: In-progress reporting
 
 Status-update phrasing emitted after each phase of the `review` skill. Keep lines short; the user sees them between subagent runs.
-
-## In-Progress Reporting
-
-Give the user a brief status update after each phase:
 
 - After argument parsing: "Reviewing module <path> with <N> persona(s)." (N is the number of selected personas; say "all 10" for the bare form or `--all`).
 - After Step 1 (file list collected): "Collected file list for <path> (<N> files). Launching <P> reviewers in parallel..."

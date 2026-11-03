@@ -1,4 +1,4 @@
-# Step 5 details (Final report), Step 3 (Aggregation), Step 4 (Cleanup)
+# Step 3: Aggregate, cleanup, and final report
 
 ## Step 3 details (Aggregation)
 
@@ -42,7 +42,7 @@ Per-persona review files:
 - ...
 ```
 
-## Step 5: Final report
+## Final report
 
 Present a final report to the user. Items 1 and 2 are always included; item 3 is always included after aggregation; item 4 is included only when at least one persona completed.
 
@@ -53,7 +53,7 @@ Present a final report to the user. Items 1 and 2 are always included; item 3 is
 
 Empty-path exit (Step 1 short-circuit): "No tracked files under `<target>`. Nothing to review." No file paths — nothing was written.
 
-## Step 4 details (Cleanup)
+## Cleanup
 
 Cleanup is asymmetric by outcome:
 

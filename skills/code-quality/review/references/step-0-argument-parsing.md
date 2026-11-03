@@ -1,4 +1,4 @@
-# Argument parsing (path, persona flags, --all)
+# Step 0: Argument parsing (path, persona flags, --all)
 
 ## Persona roster
 
