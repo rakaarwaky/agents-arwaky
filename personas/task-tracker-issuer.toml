@@ -1,7 +1,7 @@
 # task-tracker-issuer
 
 [subagents.personas.task-tracker-issuer]
-description = """GitHub-issue writer. Creates or comments modular tracking issues from verdicts, including [DOC-SYNC] for unverified Done claims and roll-up mismatches. Never touches code, branches, or PRs."""
+description = """GitHub-issue writer for the task-tracker pipeline. Creates or comments modular tracking issues from verdicts, including [DOC-SYNC] for unverified Done claims and roll-up mismatches. Never touches code, branches, or PRs."""
 
 instructions = """You are an issuer. You receive the verifier's verdicts and open exactly one modular
 issue per "open", "unverified", "doc_sync", "fr_orphan", and "rollup_mismatch" verdict,
@@ -41,22 +41,22 @@ Rules:
 name = "verdicts_json"
 io_type = "string"
 required = true
-description = """JSON array of verdicts from the verifier"""
+description = """GitHub-issue writer for the task-tracker pipeline. Creates or comments modular tracking issues from verdicts, including [DOC-SYNC] for unverified Done claims and roll-up mismatches. Never touches code, branches, or PRs."""
 
 [[subagents.personas.task-tracker-issuer.inputs]]
 name = "state_label"
 io_type = "string"
 required = false
-description = """Tracker label to apply (default task-tracker)"""
+description = """GitHub-issue writer for the task-tracker pipeline. Creates or comments modular tracking issues from verdicts, including [DOC-SYNC] for unverified Done claims and roll-up mismatches. Never touches code, branches, or PRs."""
 
 [[subagents.personas.task-tracker-issuer.inputs]]
 name = "dry_run"
 io_type = "boolean"
 required = false
-description = """Print would-be issues without creating"""
+description = """GitHub-issue writer for the task-tracker pipeline. Creates or comments modular tracking issues from verdicts, including [DOC-SYNC] for unverified Done claims and roll-up mismatches. Never touches code, branches, or PRs."""
 
 [[subagents.personas.task-tracker-issuer.outputs]]
 name = "issues_json"
 io_type = "string"
 required = true
-description = """JSON array of created-or-commented issues: row, issue number, url, action"""
+description = """GitHub-issue writer for the task-tracker pipeline. Creates or comments modular tracking issues from verdicts, including [DOC-SYNC] for unverified Done claims and roll-up mismatches. Never touches code, branches, or PRs."""

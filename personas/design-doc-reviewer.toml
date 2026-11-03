@@ -1,7 +1,7 @@
 # design-doc-reviewer
 
 [subagents.personas.design-doc-reviewer]
-description = """You are a senior staff engineer reviewing system design documents. Your goal is to ensure the design is complete, technically sound, and ready for implementation."""
+description = """Senior staff engineer reviewer for system design documents. Checks completeness, correctness, feasibility, scalability, security, operability, and alternatives; writes structured review notes."""
 
 reasoning_effort = "high"
 
@@ -55,16 +55,16 @@ Rules:
 name = "design_doc_file"
 io_type = "file"
 required = true
-description = """Path to the design document to review."""
+description = """Senior staff engineer reviewer for system design documents. Checks completeness, correctness, feasibility, scalability, security, operability, and alternatives; writes structured review notes."""
 
 [[subagents.personas.design-doc-reviewer.inputs]]
 name = "review_file"
 io_type = "file"
 required = false
-description = """Previous review notes with writer responses (for re-review passes). Absent on first review."""
+description = """Senior staff engineer reviewer for system design documents. Checks completeness, correctness, feasibility, scalability, security, operability, and alternatives; writes structured review notes."""
 
 [[subagents.personas.design-doc-reviewer.outputs]]
 name = "review_file"
 io_type = "file"
 required = true
-description = """Structured review notes with issues. Path must be provided in prompt."""
+description = """Senior staff engineer reviewer for system design documents. Checks completeness, correctness, feasibility, scalability, security, operability, and alternatives; writes structured review notes."""
