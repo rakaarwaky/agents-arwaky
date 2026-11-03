@@ -16,10 +16,10 @@ Verification (Step 9) is the gate for rollback:
 
 ## Report format
 
-The shape of the final executed `skill-lifecycle report`:
+The shape of the final executed `skill-auditor --prune` report:
 
 ```text
-skill-lifecycle report — <audit root>
+skill-auditor prune report — <audit root>
 
 MERGED:
 - <surviving folder>  <-  <dropped folder(s)>
