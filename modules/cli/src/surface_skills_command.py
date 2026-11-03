@@ -1,10 +1,11 @@
 """Skills CLI surface — command handlers for the ``aa skills`` verbs.
 
-Five agent-oriented commands: read-only discovery (``list``/``read``),
-the lint scan (``lint``), the catalog builder/reader (``catalog``), and
-the search (``discover``). The pack root is always the repository's
-``skills/`` pack; there is no ``--skills-root`` override and no JSON
-export — output is a terminal listing consumed by the agent.
+Agent-oriented commands: read-only discovery (``list``/``read``), the lint
+scan (``lint``), the catalog builder/reader (``catalog``), the search
+(``discover``), and the mutation verbs (``move``/``archive``/``create``).
+The pack root is always the repository's ``skills/`` pack; there is no
+``--skills-root`` override and no JSON export — output is a terminal
+listing consumed by the agent.
 
 The aggregate is injected by the caller (the root CLI), never imported
 here, so no root→surface coupling exists (AES205). Argv becomes a
@@ -59,7 +60,7 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_list(rest, aggregate)
     if sub == "read":
         return _cmd_read(rest, aggregate)
-    if sub in ("lint", "catalog", "discover"):
+    if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
     _print_usage()
@@ -77,6 +78,16 @@ def _print_usage() -> None:
         f"{BOLD()}aa skills catalog [--build] [--read]{RESET()}  Build and/or print CATALOG.md"
     )
     info(f"{BOLD()}aa skills discover <query>{RESET()}      Search the catalog")
+    info(
+        f"{BOLD()}aa skills move <name> <category>{RESET()}  Move a skill to a category"
+    )
+    info(
+        f"{BOLD()}aa skills archive <name> [--apply]{RESET()}  Archive a skill into _archive/"
+    )
+    info(
+        f"{BOLD()}aa skills create <kind> <name> [--category C] [--apply]{RESET()}  "
+        "Create a skill or category"
+    )
 
 
 # ─── Read-only surface ──────────────────────────────────────
@@ -177,6 +188,23 @@ def _authoring_parser() -> argparse.ArgumentParser:
     sub.add_argument("query", help="Search query")
     sub.add_argument("--limit", type=int, default=20, help="Maximum results")
 
+    sub = subparsers.add_parser("move", help="Move a skill to a category")
+    sub.add_argument("skill", help="Skill name to move")
+    sub.add_argument("category", help="Target category")
+    sub.add_argument("--apply", action="store_true", help="Apply the move")
+
+    sub = subparsers.add_parser("archive", help="Archive a skill into _archive/")
+    sub.add_argument("skill", help="Skill name to archive")
+    sub.add_argument("--apply", action="store_true", help="Apply the archive")
+
+    sub = subparsers.add_parser("create", help="Create a skill or category")
+    sub.add_argument("kind", choices=["skill", "category"], help="Kind to create")
+    sub.add_argument("name", help="Name of the skill or category")
+    sub.add_argument("--category", metavar="CAT", help="Target category (skill only)")
+    sub.add_argument("--description", default="", help="Description")
+    sub.add_argument("--force", action="store_true", help="Force (category only)")
+    sub.add_argument("--apply", action="store_true", help="Apply the create")
+
     return parser
 
 
@@ -202,6 +230,8 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         return _render_catalog(result, request)
     if sub == "discover":
         return _render_discover(result, request)
+    if sub in ("move", "archive", "create"):
+        return _render_mutation(sub, result, request)
     raise SkillsUsageError(f"Unknown skills subcommand: {sub}")
 
 
@@ -240,6 +270,38 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
             op=SkillsOp.DISCOVER,
             query=SkillQuery(namespace.query),
             flags={"limit": str(namespace.limit)},
+        )
+
+    if command == "move":
+        return SkillsRequest(
+            op=SkillsOp.MOVE,
+            query=SkillQuery(namespace.skill),
+            apply=namespace.apply,
+            flags={"target": namespace.category},
+        )
+
+    if command == "archive":
+        return SkillsRequest(
+            op=SkillsOp.ARCHIVE,
+            query=SkillQuery(namespace.skill),
+            apply=namespace.apply,
+        )
+
+    if command == "create":
+        if namespace.kind == "skill":
+            flags = {"kind": "skill"}
+            if namespace.category:
+                flags["category"] = namespace.category
+        else:
+            flags = {"kind": "category"}
+            if namespace.force:
+                flags["force"] = "1"
+        return SkillsRequest(
+            op=SkillsOp.CREATE,
+            query=SkillQuery(namespace.name),
+            description=namespace.description,
+            apply=namespace.apply,
+            flags=flags,
         )
 
     raise SkillsUsageError(f"Unknown skills subcommand: {command}")
@@ -321,3 +383,75 @@ def _render_lint(result: SkillsResult, request: SkillsRequest) -> int:
     for line in report.weed_lines:
         print(f"- {line}")
     return 1
+
+
+def _render_mutation(sub: str, result: SkillsResult, request: SkillsRequest) -> int:
+    """Render a move / archive / create result (plan or applied outcome)."""
+    if not result.ok:
+        if result.message:
+            err(result.message)
+        return result.exit_code or 1
+
+    # Plan (default, no --apply): show the plan and stop.
+    if not request.apply:
+        plan = result.plan or result.create_plan or result.new_category
+        if plan is not None:
+            _print_mutation_plan(sub, plan)
+        elif result.message:
+            print(result.message)
+        return 0
+
+    # Applied: show the outcome.
+    outcome = result.outcome
+    if outcome is not None:
+        print(f"{BOLD()}{sub.capitalize()} applied:{RESET()}")
+        for line in outcome.applied:
+            print(f"  {line}")
+        if outcome.message:
+            print(f"  {outcome.message}")
+    elif result.message:
+        print(result.message)
+    else:
+        print(f"{BOLD()}{sub.capitalize()} applied.")
+    return 0
+
+
+def _print_mutation_plan(sub: str, plan: object) -> None:
+    """Print a dry-run mutation plan (no write) from its real VO fields."""
+    label = sub.capitalize()
+    print(f"{BOLD()}Plan ({label}, dry-run — pass --apply to write):{RESET()}")
+
+    # SkillCreatePlan
+    if hasattr(plan, "already_exists"):
+        print(f"  skill: {plan.skill}")
+        print(f"  category: {plan.category}")
+        if getattr(plan, "already_exists", False):
+            print("  already exists — nothing to do")
+        return
+
+    # NewCategoryPlan
+    if hasattr(plan, "will_write"):
+        print(f"  name: {plan.name}")
+        if plan.description:
+            print(f"  description: {plan.description}")
+        if not plan.will_write:
+            print("  DESCRIPTION.md already present — kept (use --force to overwrite)")
+        return
+
+    # MutationPlan (move / archive)
+    if hasattr(plan, "already_in_category"):
+        if getattr(plan, "already_in_category", False):
+            print("  already in category — nothing to do")
+        if getattr(plan, "source", None):
+            print(f"  source: {plan.source}")
+        if getattr(plan, "destination", None):
+            print(f"  destination: {plan.destination}")
+        for step in getattr(plan, "lines", ()):
+            print(f"  {step}")
+        return
+
+    # Fallback: print whatever is available.
+    for attr in ("kind", "source", "destination", "lines"):
+        value = getattr(plan, attr, None)
+        if value not in (None, "", False, ()):
+            print(f"  {attr}: {value}")
