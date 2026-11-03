@@ -8,7 +8,12 @@ Use this when skills may be in the wrong category.
 aa skills lint
 ```
 
-2. Read `CATALOG.md`.
+2. Read the catalog via the CLI (no need to open the file manually):
+
+```bash
+aa skills catalog --read
+```
+
 3. Read the `DESCRIPTION.md` file for each category involved.
 4. Identify skills whose name or description conflicts with their current category.
 5. If duplicate or obsolete skills need pruning, route to `skill-design --prune` — this mode only decides category placement.
