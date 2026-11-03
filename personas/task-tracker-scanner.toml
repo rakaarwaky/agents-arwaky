@@ -32,16 +32,16 @@ Rules:
 name = "doc_path"
 io_type = "string"
 required = true
-description = """Read-only spec-document scanner for the task-tracker pipeline, one per feature. Extracts State Definitions tables, task rows, FR-id sets, and the feature's roadmap roll-up row as JSON."""
+description = """Absolute path to the spec document (PRD.md, ROADMAP.md, BACKLOG.md, FRD.md, or DESIGN.md)"""
 
 [[subagents.personas.task-tracker-scanner.inputs]]
 name = "feature"
 io_type = "string"
 required = true
-description = """Read-only spec-document scanner for the task-tracker pipeline, one per feature. Extracts State Definitions tables, task rows, FR-id sets, and the feature's roadmap roll-up row as JSON."""
+description = """Name of the owning feature (feature directory name, or "root" for repo-level docs)"""
 
 [[subagents.personas.task-tracker-scanner.outputs]]
 name = "rows_json"
 io_type = "string"
 required = true
-description = """Read-only spec-document scanner for the task-tracker pipeline, one per feature. Extracts State Definitions tables, task rows, FR-id sets, and the feature's roadmap roll-up row as JSON."""
+description = """JSON object {"rows":[…],"fr":{"fr_declared":[…],"fr_referenced":[…]},"rollup_row":"…|null"}"""

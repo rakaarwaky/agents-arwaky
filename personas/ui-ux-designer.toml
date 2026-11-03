@@ -99,3 +99,21 @@ instructions = """As a UI/UX Designer agent, read all relevant attached document
 | INFO | Visual polish, microinteraction, or nice to have improvement. Deferrable. |
 ```
 """
+
+[[subagents.personas.ui-ux-designer.inputs]]
+name = "attached_docs"
+io_type = "string"
+required = true
+description = """Path or list of paths to the user journey docs, wireframes, design system, and related files under review."""
+
+[[subagents.personas.ui-ux-designer.outputs]]
+name = "issues_file"
+io_type = "file"
+required = true
+description = """Path to write the structured GitHub Issues (UX-* format)."""
+
+[[subagents.personas.ui-ux-designer.outputs]]
+name = "plan_file"
+io_type = "file"
+required = false
+description = """Path to write the UI/UX design plan document."""

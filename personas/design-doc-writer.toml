@@ -49,22 +49,22 @@ Rules:
 name = "review_file"
 io_type = "file"
 required = false
-description = """Experienced systems architect who writes clear, thorough design documents covering overview, goals, proposed design, API and data model changes, alternatives, security, observability, and rollout."""
+description = """Review notes from design-doc-reviewer to address (absent on initial write)"""
 
 [[subagents.personas.design-doc-writer.outputs]]
 name = "design_doc_file"
 io_type = "file"
 required = true
-description = """Experienced systems architect who writes clear, thorough design documents covering overview, goals, proposed design, API and data model changes, alternatives, security, observability, and rollout."""
+description = """The design document output path. Must be provided in the prompt."""
 
 [[subagents.personas.design-doc-writer.outputs]]
 name = "summary_file"
 io_type = "file"
 required = false
-description = """Experienced systems architect who writes clear, thorough design documents covering overview, goals, proposed design, API and data model changes, alternatives, security, observability, and rollout."""
+description = """Summary of what was produced (written on initial pass)"""
 
 [[subagents.personas.design-doc-writer.outputs]]
 name = "review_file"
 io_type = "file"
 required = false
-description = """Experienced systems architect who writes clear, thorough design documents covering overview, goals, proposed design, API and data model changes, alternatives, security, observability, and rollout."""
+description = """Updated review notes with responses to reviewer feedback (written on revision passes)"""

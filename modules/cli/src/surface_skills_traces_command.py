@@ -19,10 +19,9 @@ import tempfile
 from modules.shared.src.common.utility_logging_setup import err
 from modules.shared.src.common.utility_paths_resolver import resolve_skills_root
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
+from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
+from modules.shared.src.skills.taxonomy_skills_response import SkillsExitCode
 from modules.shared.src.skills.taxonomy_skills_vo import (
-    SkillsExitCode,
-    SkillsOp,
-    SkillsRequest,
     SkillsRoot,
     TraceStateStatus,
 )

@@ -27,13 +27,12 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
 )
+from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
+from modules.shared.src.skills.taxonomy_skills_response import SkillsResult
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillContent,
     SkillQuery,
     SkillRecord,
-    SkillsOp,
-    SkillsRequest,
-    SkillsResult,
     SkillsRoot,
 )
 from modules.skills.src.agent_skills_orchestrator import SkillsAgent

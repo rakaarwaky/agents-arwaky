@@ -99,3 +99,21 @@ instructions = """As a Business Analyst agent, read all relevant attached docume
 | INFO | Documentation improvement, clarification, or optimization. Deferrable. |
 ```
 """
+
+[[subagents.personas.business-analyst.inputs]]
+name = "attached_docs"
+io_type = "string"
+required = true
+description = """Path or list of paths to the business requirements, feature spec, and related documents under review."""
+
+[[subagents.personas.business-analyst.outputs]]
+name = "issues_file"
+io_type = "file"
+required = true
+description = """Path to write the structured GitHub Issues (BA-* format)."""
+
+[[subagents.personas.business-analyst.outputs]]
+name = "plan_file"
+io_type = "file"
+required = false
+description = """Path to write the business analysis plan document."""

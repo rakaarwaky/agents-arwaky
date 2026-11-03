@@ -35,14 +35,15 @@ from modules.shared.src.skills.taxonomy_skills_error import (
     SkillsRootError,
     SkillsUsageError,
 )
+from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
+from modules.shared.src.skills.taxonomy_skills_response import (
+    SkillsExitCode,
+    SkillsResult,
+)
 from modules.shared.src.skills.taxonomy_skills_vo import (
     SkillContent,
     SkillQuery,
     SkillRecord,
-    SkillsExitCode,
-    SkillsOp,
-    SkillsRequest,
-    SkillsResult,
     SkillsRoot,
 )
 

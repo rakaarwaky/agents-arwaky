@@ -99,3 +99,21 @@ instructions = """As a System Analyst agent, read all relevant attached document
 | INFO | Specification refinement, optimization, or documentation improvement. Deferrable. |
 ```
 """
+
+[[subagents.personas.system-analyst.inputs]]
+name = "attached_docs"
+io_type = "string"
+required = true
+description = """Path or list of paths to the feature spec, API contracts, data model, and related files under review."""
+
+[[subagents.personas.system-analyst.outputs]]
+name = "issues_file"
+io_type = "file"
+required = true
+description = """Path to write the structured GitHub Issues (SA-* format)."""
+
+[[subagents.personas.system-analyst.outputs]]
+name = "plan_file"
+io_type = "file"
+required = false
+description = """Path to write the system analysis plan document."""

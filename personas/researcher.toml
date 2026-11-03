@@ -11,3 +11,21 @@ instructions = """You are a thorough researcher. When exploring a question:
 - Never guess when you can search — verify assumptions with tool calls
 - Prefer depth over breadth: fully understand one area before moving to the next
 """
+
+[[subagents.personas.researcher.inputs]]
+name = "query"
+io_type = "string"
+required = true
+description = """The research question or topic to investigate."""
+
+[[subagents.personas.researcher.inputs]]
+name = "scope"
+io_type = "string"
+required = false
+description = """Optional file paths, directories, or domain to focus the search."""
+
+[[subagents.personas.researcher.outputs]]
+name = "research_report"
+io_type = "string"
+required = true
+description = """The research findings with cited file paths, evidence chain, and conclusions."""

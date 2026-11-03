@@ -1,12 +1,17 @@
 """Skills taxonomy value objects (AES taxonomy layer).
 
 Pure data + helpers for the skills feature: the read-side VOs
-(``SkillQuery``/``SkillRecord``/...), the request/result envelope the
-surface and agent exchange, the exit-code contract, the trace-pipeline
-VOs, and the re-exported rule SSOT (defined in
-``taxonomy_skills_rule_vo.py`` so the rule table's dependencies stay
-acyclic). The trace report VOs (``UsageReport``/``PhrasesReport``) live
-in ``taxonomy_skills_authoring_vo.py`` over the primitives defined here.
+(``SkillRecord``/...), the trace-pipeline VOs, and the re-exported rule
+SSOT (defined in ``taxonomy_skills_rule_vo.py`` so the rule table's
+dependencies stay acyclic). The request envelope
+(``SkillsRequest``/``SkillsOp``/``SkillQuery``/``SkillsRoot``) lives in
+``taxonomy_skills_request.py`` and the response envelope
+(``SkillsResult``/``SkillsExitCode``) lives in
+``taxonomy_skills_response.py``; both are re-exported here (from
+``SkillQuery``/``SkillsRoot`` at the top and the two envelopes at the
+bottom) so existing imports keep working. The trace report VOs
+(``UsageReport``/``PhrasesReport``) live in
+``taxonomy_skills_authoring_vo.py`` over the primitives defined here.
 
 No I/O, no imports from utility/capabilities/agent/root/surface layers.
 """
@@ -15,35 +20,19 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from enum import IntEnum, StrEnum
+from enum import StrEnum
 from pathlib import Path
-from typing import TYPE_CHECKING, NewType
+from typing import NewType
 
-if TYPE_CHECKING:
-    # ``SkillsResult`` annotates authoring VOs (``ValidationReport``,
-    # ``CatalogReport``, ...). Those classes live in the authoring module,
-    # which re-imports the trace primitives from here — a runtime import
-    # here would cycle, so the names are reserved for type-checking and the
-    # PEP 563 string annotations. No consumer reads an authoring VO off this
-    # module (they import from the authoring module directly), so nothing is
-    # re-exported at runtime.
-    from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
-        CatalogCheckResult,
-        CatalogReport,
-        DiscoveryMatch,
-        LintReport,
-        MutationOutcome,
-        MutationPlan,
-        NewCategoryPlan,
-        PhrasesReport,
-        SkillCreatePlan,
-        UsageReport,
-        ValidationReport,
-    )
+from modules.shared.src.skills.taxonomy_skills_request import (
+    SkillQuery,
+    SkillsRoot,
+)
 
-SkillQuery = NewType("SkillQuery", str)
-"""A skill name / identifier to look up in the pack."""
-
+# Every other primitive below (``SkillContent``, ``SkillRecord``, the trace
+# VOs, ...) is re-exported back into the request/response envelope modules
+# after its definition, so the envelope modules never import this module at
+# runtime — no cycle in either import order.
 SkillContent = NewType("SkillContent", str)
 """Raw SKILL.md text returned by a read."""
 
@@ -55,9 +44,6 @@ ErrorMessage = NewType("ErrorMessage", str)
 
 DiffLines = NewType("DiffLines", tuple[str, ...])
 """A sequence of diff lines for catalog drift errors."""
-
-SkillsRoot = NewType("SkillsRoot", Path)
-"""An explicit skills root; ``None`` on a request means 'use the default'."""
 
 SkillsJsonPayload = NewType("SkillsJsonPayload", Mapping[str, object])
 """The pure-data JSON list of global skills (``SkillsLister.list_skills_json``).
@@ -74,24 +60,6 @@ TraceRunDir = NewType("TraceRunDir", str)
 
 TraceRunName = NewType("TraceRunName", str)
 """A single path component naming one trace run (trash/restrict target)."""
-
-
-class SkillsOp(StrEnum):
-    """Every operation the skills aggregate understands.
-
-    One op per CLI subcommand under ``aa skills``: list, read, lint,
-    catalog, discover, move, archive, create, traces.
-    """
-
-    LIST = "list"
-    READ = "read"
-    LINT = "lint"
-    CATALOG = "catalog"
-    DISCOVER = "discover"
-    MOVE = "move"
-    ARCHIVE = "archive"
-    CREATE = "create"
-    TRACES = "traces"
 
 
 class TraceStateStatus(StrEnum):
@@ -111,20 +79,6 @@ class TraceStateStatus(StrEnum):
     PHASE_STALL = "phase_stall"
     REPORT_STALL = "report_stall"
     DEADLINE = "deadline"
-
-
-class SkillsExitCode(IntEnum):
-    """Single source of truth for the CLI exit-code contract.
-
-    The surface maps ``SkillsResult.exit_code`` against this enum;
-    capabilities never emit exit codes themselves — they set them on the
-    errors they raise, and the agent derives them from check results.
-    """
-
-    CLEAN = 0
-    ISSUES_FOUND = 1
-    USAGE_ERROR = 2
-    CATALOG_DRIFT = 3
 
 
 @dataclass(frozen=True)
@@ -250,63 +204,15 @@ class TraceStateDispatchResult:
     lines: tuple[str, ...] = ()
 
 
-@dataclass(frozen=True)
-class SkillsRequest:
-    """Input for one skills operation.
-
-    ``op`` selects the capability; ``query`` carries the skill name or the
-    search query; ``root`` overrides the default pack root (explicit beats
-    derived); ``apply`` is the only path to a write; ``flags`` carries the
-    per-op positional/optional strings (``category``, ``target``,
-    ``limit``, ``force``, ...).
-    """
-
-    op: SkillsOp = SkillsOp.LIST
-    query: SkillQuery = field(default_factory=lambda: SkillQuery(""))
-    root: SkillsRoot | None = None
-    apply: bool = False
-    json: bool = False
-    description: str = ""
-    flags: Mapping[str, str] = field(default_factory=dict)
-
-
-@dataclass(frozen=True)
-class SkillsResult:
-    """Response to a skills operation.
-
-    ``exit_code`` is the CLI contract: 0 clean / 1 issues / 2 usage /
-    3 catalog drift. Payload fields are populated per op; the surface
-    renders them and never reaches back into a capability.
-
-    ``state`` is populated by trace-state set/get/clear; ``state_status``
-    is the ``wait`` outcome. ``collect_summary`` carries the tracker
-    scan counters (``ScanResult``) for trace-collect.
-    """
-
-    ok: bool
-    op: SkillsOp = SkillsOp.LIST
-    exit_code: int = 0
-    message: str = ""
-    records: tuple[SkillRecord, ...] = ()
-    content: SkillContent | None = None
-    report: ValidationReport | None = None
-    lint_report: LintReport | None = None
-    catalog: CatalogReport | None = None
-    check: CatalogCheckResult | None = None
-    catalog_text: str | None = None
-    matches: tuple[DiscoveryMatch, ...] = ()
-    plan: MutationPlan | None = None
-    outcome: MutationOutcome | None = None
-    new_category: NewCategoryPlan | None = None
-    create_plan: SkillCreatePlan | None = None
-    lines: tuple[str, ...] = ()
-    warning: str | None = None
-    root: Path | None = None
-    usage: UsageReport | None = None
-    phrases: PhrasesReport | None = None
-    state: TraceStateStatus | None = None
-    state_status: TraceStateStatus | None = None
-    collect_summary: ScanResult | None = None
+# Re-exported into the legacy import path: the request/response envelope
+# modules import *only* the primitives defined above (``SkillRecord``,
+# ``ScanResult``, ...) — no import of this module at runtime, so no cycle
+# in either direction.
+from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
+from modules.shared.src.skills.taxonomy_skills_response import (
+    SkillsExitCode,
+    SkillsResult,
+)
 
 
 __all__ = [

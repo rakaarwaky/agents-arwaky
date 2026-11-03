@@ -60,10 +60,10 @@ Rules:
 name = "review_file"
 io_type = "file"
 required = false
-description = """Focused security audit. Finds real vulnerabilities (injection, authentication, authorization, data exposure, cryptography, input validation, dependencies, configuration, race conditions) with reproduction steps and remediation; does not fix code."""
+description = """Previous audit findings with developer responses (for re-audit passes). Absent on first audit."""
 
 [[subagents.personas.security-auditor.outputs]]
 name = "review_file"
 io_type = "file"
 required = true
-description = """Focused security audit. Finds real vulnerabilities (injection, authentication, authorization, data exposure, cryptography, input validation, dependencies, configuration, race conditions) with reproduction steps and remediation; does not fix code."""
+description = """Structured security findings. Path must be provided in prompt."""

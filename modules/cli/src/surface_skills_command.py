@@ -29,13 +29,12 @@ from modules.shared.src.common.utility_logging_setup import (
 from modules.shared.src.common.utility_skills_markdown import md_escape
 from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
 from modules.shared.src.skills.taxonomy_skills_error import SkillsUsageError
-from modules.shared.src.skills.taxonomy_skills_vo import (
-    SkillQuery,
+from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
+from modules.shared.src.skills.taxonomy_skills_response import (
     SkillsExitCode,
-    SkillsOp,
-    SkillsRequest,
     SkillsResult,
 )
+from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery
 
 _EXIT_USAGE = SkillsExitCode.USAGE_ERROR
 _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT

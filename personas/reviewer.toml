@@ -33,16 +33,16 @@ Rules:
 name = "review_file"
 io_type = "file"
 required = false
-description = """Meticulous code reviewer. Reviews code, produces structured review notes in Markdown with severity, file:line, description, suggestion, and status; never fixes code itself."""
+description = """Previous review notes with implementer responses (for re-review passes). Absent on first review."""
 
 [[subagents.personas.reviewer.inputs]]
 name = "summary_file"
 io_type = "file"
 required = false
-description = """Meticulous code reviewer. Reviews code, produces structured review notes in Markdown with severity, file:line, description, suggestion, and status; never fixes code itself."""
+description = """Implementation summary from implementer (optional context for first review)"""
 
 [[subagents.personas.reviewer.outputs]]
 name = "review_file"
 io_type = "file"
 required = true
-description = """Meticulous code reviewer. Reviews code, produces structured review notes in Markdown with severity, file:line, description, suggestion, and status; never fixes code itself."""
+description = """Structured review notes with issues. Path must be provided in prompt."""

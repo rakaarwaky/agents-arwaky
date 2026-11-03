@@ -48,16 +48,16 @@ Rules:
 name = "review_file"
 io_type = "file"
 required = false
-description = """Thorough test engineer. Writes comprehensive tests that catch real bugs (happy path, edge cases, error paths, concurrency, integration), following the project's existing test framework and conventions."""
+description = """Review notes to address (absent on initial implementation)"""
 
 [[subagents.personas.test-writer.outputs]]
 name = "summary_file"
 io_type = "file"
 required = false
-description = """Thorough test engineer. Writes comprehensive tests that catch real bugs (happy path, edge cases, error paths, concurrency, integration), following the project's existing test framework and conventions."""
+description = """Summary of tests written: what's covered, what's not, any bugs found"""
 
 [[subagents.personas.test-writer.outputs]]
 name = "review_file"
 io_type = "file"
 required = false
-description = """Thorough test engineer. Writes comprehensive tests that catch real bugs (happy path, edge cases, error paths, concurrency, integration), following the project's existing test framework and conventions."""
+description = """Updated review notes with fix responses (written on fix passes)"""

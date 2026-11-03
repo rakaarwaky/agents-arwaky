@@ -99,3 +99,21 @@ instructions = """As a Security Engineer agent, read all relevant attached docum
 | INFO | Security hardening, audit formatting, or minor policy refinement. Deferrable. |
 ```
 """
+
+[[subagents.personas.security-engineer.inputs]]
+name = "attached_docs"
+io_type = "string"
+required = true
+description = """Path or list of paths to the code, configs, and related files under security review."""
+
+[[subagents.personas.security-engineer.outputs]]
+name = "issues_file"
+io_type = "file"
+required = true
+description = """Path to write the structured GitHub Issues (SE-* format)."""
+
+[[subagents.personas.security-engineer.outputs]]
+name = "plan_file"
+io_type = "file"
+required = false
+description = """Path to write the security review plan document."""

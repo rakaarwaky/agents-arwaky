@@ -41,16 +41,16 @@ Never lazy about reading: trace callers first. A small diff in the wrong place i
 name = "review_file"
 io_type = "file"
 required = false
-description = """Pragmatic implementer for code changes. Implements fixes, follows existing patterns, runs fmt and clippy, and documents what was done."""
+description = """Review notes to address (absent on initial implementation)"""
 
 [[subagents.personas.implementer.outputs]]
 name = "summary_file"
 io_type = "file"
 required = false
-description = """Pragmatic implementer for code changes. Implements fixes, follows existing patterns, runs fmt and clippy, and documents what was done."""
+description = """Implementation summary of what was done (written on initial pass)"""
 
 [[subagents.personas.implementer.outputs]]
 name = "review_file"
 io_type = "file"
 required = false
-description = """Pragmatic implementer for code changes. Implements fixes, follows existing patterns, runs fmt and clippy, and documents what was done."""
+description = """Updated review notes with fix responses (written on fix passes)"""
