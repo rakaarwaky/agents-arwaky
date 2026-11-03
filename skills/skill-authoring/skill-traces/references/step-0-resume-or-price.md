@@ -1,14 +1,14 @@
 # Step 0 — Resume or price
 
-Run `aa skills trace-state get`. Exit code 3 means a run is pending — resume it instead of starting over.
+Run `aa skills traces state get`. Exit code 3 means a run is pending — resume it instead of starting over.
 
 When the user abandons a pending run and wants to discard it, clear the status:
 
 ```
-aa skills trace-state clear --run-dir <RUN>
+aa skills traces state clear --run-dir <RUN>
 ```
 
-Then run `aa skills trace-collect` for a one-line price per scope. The collector uses the hardcoded defaults from `taxonomy_skills_constant.py`; none of them is a user-supplied flag:
+Then run `aa skills traces collect` for a one-line price per scope. The collector uses the hardcoded defaults from `taxonomy_skills_constant.py`; none of them is a user-supplied flag:
 
 - `since_last=True` — sessions since the last completed trace run
 - `min_turns=3` — drop signals seen in fewer than 3 sessions

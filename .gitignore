@@ -86,6 +86,10 @@ tools/config/*.providers.json
 # Codacy review artifacts
 .codacy/
 
+# Runtime trace state lives under GROK_HOME/learn (typically ~/.grok/learn),
+# never in the repo root.
+/learn/
+
 # Backup/verification residue a skill-sync run leaves beside the canonical file.
 /skills/**/SKILL.md.bak
 /skills/**/SKILL.md.sha256

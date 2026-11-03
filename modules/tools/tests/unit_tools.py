@@ -522,7 +522,9 @@ class TestDaemonAggregateUnitOps:
 
         def execute(self, request):
             self.requests.append(request)
-            return self._result
+            from modules.shared.src.daemon.taxonomy_daemon_vo import DaemonOutcome
+
+            return DaemonOutcome(success=self._result == 0, exit_code=self._result, message="")
 
     def test_omniroute_routes_unit_op_through_aggregate(self):
         """UT-TOOLS-041: omniroute's unit helper builds a request and executes it."""
@@ -531,7 +533,7 @@ class TestDaemonAggregateUnitOps:
         )
 
         agg = self._RecordingAggregate()
-        assert _omniroute_install_unit(agg) == 0
+        assert _omniroute_install_unit(agg).exit_code == 0
 
         req = agg.requests[0]
         assert str(req.op) == "install_unit"
@@ -545,7 +547,7 @@ class TestDaemonAggregateUnitOps:
         )
 
         agg = self._RecordingAggregate()
-        assert _9router_install_unit(agg) == 0
+        assert _9router_install_unit(agg).exit_code == 0
 
         req = agg.requests[0]
         assert str(req.op) == "install_unit"

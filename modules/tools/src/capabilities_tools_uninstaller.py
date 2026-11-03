@@ -234,10 +234,10 @@ def _stop_daemon(daemons: object, tool_id: str) -> bool:
     )
 
     unit = DAEMON_UNIT_TOOLS[tool_id]
-    rc = int(daemons.execute(
+    outcome = daemons.execute(
         DaemonRequest(op=DaemonOp("remove_unit"), unit=DaemonUnit(unit))
-    ))
-    if rc == 0:
+    )
+    if outcome.exit_code == 0:
         return True
 
     # A non-zero stop is only safe to treat as an idempotent no-op when
