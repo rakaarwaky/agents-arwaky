@@ -1,4 +1,3 @@
 ---
-description: Skill-authoring skills — create, validate, and improve SKILL.md files, plus discover, inspect, migrate, and prune skill trees. Also learn from your own session traces in one pass: create skills for repeated instructions, edit skills that no longer match reality, and retire skills you never use.
+description: Skill-authoring skills. skill-design creates new SKILL.md files and improves existing ones; skill-auditor checks skills against the lint standard and prunes duplicate or overlapping skills. skill-traces learns new skills from session traces.
 ---
-
