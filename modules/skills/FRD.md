@@ -24,31 +24,35 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Business Logic
 
 - A missing pack root yields an empty listing, never an exception
-- A malformed `SKILL.md` is still listed, with the directory name as fallback name
-- Sorting is by the parsed frontmatter name
+- A malformed `SKILL.md` (unparseable frontmatter) is still listed, with the directory name as fallback name and an empty description
+- Sorting is by the parsed frontmatter name; ties break on directory path
+- The pack root is always the repository's `skills/` pack; the surface never accepts an explicit root override
 
 #### Edge Cases
 
-- Unreadable file is skipped with an empty description
-- Empty pack surfaces as a non-zero exit with a clear message
+- Unreadable file is skipped with an empty description (no crash, no partial row)
+- Empty pack surfaces as a non-zero exit with a clear message (`No skills found`)
+- A `SKILL.md` with a `name:` different from its directory name is listed under the frontmatter name
 
 #### Technical Specification
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
-| **Input**    | none                                                         |
+| **Input**    | none (root is derived from the composition container)        |
 | **Output**   | records sorted by name; empty result when the pack is absent |
 | **Protocol** | ISkillsListerProtocol                                        |
 | **Method**   | list\_skills                                                 |
 | **Event**    | —                                                            |
-| **Error**    | typed error → exit code                                      |
+| **Error**    | empty pack → exit 1; unreadable file → skipped, no error    |
 
 #### Test
 
-| Context      | When Action      | Then Observable Result                              |
-|--------------|------------------|-----------------------------------------------------|
-| Pack present | `aa skills list` | every skill listed with description, sorted by name |
-| Pack absent  | `aa skills list` | empty result, non-zero exit                         |
+| Context                | When Action      | Then Observable Result                              |
+|------------------------|------------------|-----------------------------------------------------|
+| Pack present           | `aa skills list` | every skill listed with description, sorted by name |
+| Pack absent            | `aa skills list` | `No skills found` on stderr, exit 1                 |
+| Malformed SKILL.md     | `aa skills list` | directory name used, empty description, exit 0      |
+| name ≠ directory name  | `aa skills list` | listed under the frontmatter `name:`, not the dir  |
 
 #### Metric
 
@@ -64,11 +68,13 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 
 - Matching accepts the frontmatter name, the directory name, and the hyphen-free spelling
 - A prefix that matches several skills is rejected rather than guessed
+- The pack root is always the repository's `skills/` pack; no explicit root override
 
 #### Edge Cases
 
-- An ambiguous prefix returns not-found
+- An ambiguous prefix (multiple skills share the prefix) returns not-found
 - An unreadable file returns not-found
+- A name that matches a category folder but no skill returns not-found
 
 #### Technical Specification
 
@@ -79,14 +85,16 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 | **Protocol** | ISkillsReaderProtocol                                      |
 | **Method**   | show\_skill                                                |
 | **Event**    | —                                                          |
-| **Error**    | unknown names exit non-zero with `Skill not found: <name>` |
+| **Error**    | unknown/ambiguous name → exit 1 with `Skill not found: <name>` |
 
 #### Test
 
-| Context       | When Action             | Then Observable Result                      |
-|---------------|-------------------------|---------------------------------------------|
-| Known skill   | `aa skills read <name>` | prints the raw SKILL.md                     |
-| Unknown skill | `aa skills read nope`   | exits non-zero with `Skill not found: nope` |
+| Context        | When Action             | Then Observable Result                      |
+|----------------|-------------------------|---------------------------------------------|
+| Known skill    | `aa skills read <name>` | prints the raw SKILL.md, exit 0             |
+| Unknown skill  | `aa skills read nope`   | `Skill not found: nope`, exit 1             |
+| Ambiguous prefix | `aa skills read doc`  | not-found, exit 1 (no guess)                |
+| Category name  | `aa skills read office` | not-found, exit 1 (categories are not skills) |
 
 #### Metric
 
@@ -101,14 +109,16 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 #### Business Logic
 
 - The lint delegates to the validator for the 13-rule checks and to the shared `plan_weed` helper for the weed lines
-- The exit code tracks the *unfiltered* issue total (1 when any issue exists)
+- The exit code tracks the *unfiltered* issue total (1 when any issue exists anywhere in the pack)
 - A scoped report can never claim the library is clean while issues exist outside the scope
 - `--category` narrows the in-scope issue listing; weed lines are kept library-wide
+- An unrecognized `--category NAME` yields a scoped report with 0 in-scope issues; the unfiltered total and exit code are unaffected
 
 #### Edge Cases
 
 - Missing or invalid root is a usage error (exit 2)
-- An empty issue set still yields a clean report
+- An empty issue set still yields a clean report (exit 0)
+- `--category` naming a nonexistent folder: 0 in-scope issues, unfiltered total preserved
 
 #### Technical Specification
 
@@ -119,14 +129,16 @@ Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating ops (dry-
 | **Protocol** | ISkillsLinterProtocol                                                             |
 | **Method**   | lint                                                                              |
 | **Event**    | —                                                                                 |
-| **Error**    | missing/invalid root → usage error (exit 2)                                       |
+| **Error**    | missing/invalid root → usage error (exit 2); issues found → exit 1              |
 
 #### Test
 
-| Context          | When Action      | Then Observable Result  |
-|------------------|------------------|-------------------------|
-| Clean pack       | `aa skills lint` | 0 issues, exit 0        |
-| Pack with issues | `aa skills lint` | issues reported, exit 1 |
+| Context               | When Action                   | Then Observable Result  |
+|-----------------------|-------------------------------|-------------------------|
+| Clean pack            | `aa skills lint`              | 0 issues, exit 0        |
+| Pack with issues      | `aa skills lint`              | issues reported, exit 1 |
+| Scoped, out-of-scope issues | `aa skills lint --category notes` | `N issues (0 in scope category=notes)`, exit 1 |
+| Scoped, nonexistent category | `aa skills lint --category ghost` | `0 in scope`, unfiltered total preserved, exit 0 or 1 per total |
 
 #### Metric
 
