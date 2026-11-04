@@ -1,6 +1,6 @@
 """Skills traces surface (AES surface layer).
 
-CLI adapters for ``stc skills traces``: raw argv → typed ``SkillsRequest`` →
+CLI adapters for ``stc traces``: raw argv → typed ``SkillsRequest`` →
 aggregate execute → text/JSON rendering on ``SkillsResult``.
 
 The public entry point is ``cmd_traces``. argv parsing keeps every legacy
@@ -48,7 +48,7 @@ def _stderr(msg: str) -> None:
 def cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
     """Route a ``traces`` sub-action to its handler."""
     if not args:
-        _stderr("Usage: stc skills traces <collect|usage|phrases|materialize|state> [flags]")
+        _stderr("Usage: stc traces <collect|usage|phrases|materialize|state> [flags]")
         return _EXIT_USAGE
     action = args[0]
     dispatch = {
@@ -66,7 +66,7 @@ def cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _trace_collect_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="stc skills traces collect",
+        prog="stc traces collect",
         description="Scan sessions and build the skills-only usage material.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to scan")
@@ -123,7 +123,7 @@ def _cmd_traces_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _trace_usage_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="stc skills traces usage",
+        prog="stc traces usage",
         description="Read the last run's skills-only usage report.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to read")
@@ -186,7 +186,7 @@ def _cmd_traces_usage(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _trace_phrases_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="stc skills traces phrases",
+        prog="stc traces phrases",
         description="Mine repeated prompts and instruction lines from session records.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME (unused by phrases, kept for symmetry)")
@@ -266,7 +266,7 @@ def _cmd_traces_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _trace_materialize_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="stc skills traces materialize",
+        prog="stc traces materialize",
         description="Write usage.json + phrases.json into a run dir for the trace workflow.",
     )
     parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to read")
@@ -316,7 +316,7 @@ def _cmd_traces_materialize(args: list[str], aggregate: ISkillsAggregate) -> int
 
 def _trace_state_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="stc skills traces state",
+        prog="stc traces state",
         description="Drive the trace-learning lifecycle (status, trash, decisions, wait).",
     )
     subparsers = parser.add_subparsers(dest="action", required=True)

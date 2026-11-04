@@ -2,7 +2,7 @@
 
 ## Design Overview
 
-The `stc skills traces` surface is a thin CLI adapter layer: it parses raw argv
+The `stc traces` surface is a thin CLI adapter layer: it parses raw argv
 into a typed ``SkillsRequest``, hands it to the aggregate's single ``execute``
 entry point, and renders the ``SkillsResult`` as text or JSON. Each trace
 sub-action (collect / usage / phrases / materialize / state) is its own handler.

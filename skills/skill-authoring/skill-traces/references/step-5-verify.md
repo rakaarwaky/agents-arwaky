@@ -13,5 +13,5 @@ Re-read every file the apply step touched:
 - `group` — verify each member individually under the rules above.
 
 Confirm every recorded decision is in the run dir (`stc traces state get`
-shows the `decided` entries for this run). Run `stc skills lint` over the
+shows the `decided` entries for this run). Run `stc lint` over the
 touched skill paths. Stop at the first failure and report it before continuing.

@@ -113,7 +113,7 @@ def decisions_path(grok_home: str) -> str:
     return os.path.join(grok_home, "learn", "decisions.jsonl")
 
 
-def append_decision_line(decision: "TraceDecision", grok_home: str) -> dict[str, object]:
+def append_decision_line(decision: TraceDecision, grok_home: str) -> dict[str, object]:
     """Append one decision line to ``learn/decisions.jsonl``; return the dict.
 
     The single write path shared by ``SkillsTracesState.decide`` and
