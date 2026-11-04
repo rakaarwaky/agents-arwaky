@@ -82,9 +82,16 @@ def _resolve_modules_dir() -> Path:
                 )
             else:
                 return p
-    # Fallback: walk up from this binary to find the repo modules tree.
+    # Fallback 1: walk up from this binary to find the repo modules tree.
     here = Path(__file__).resolve()
     for candidate in (here.parent, *here.parents):
+        mod = candidate / _DEFAULT_MODULES
+        if mod.is_dir():
+            return mod
+    # Fallback 2: walk up from the current working directory (the repo root
+    # where the user runs aa) before giving up.
+    cwd = Path.cwd().resolve()
+    for candidate in (cwd, *cwd.parents):
         mod = candidate / _DEFAULT_MODULES
         if mod.is_dir():
             return mod
