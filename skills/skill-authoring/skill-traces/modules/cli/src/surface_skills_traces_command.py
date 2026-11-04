@@ -15,10 +15,10 @@ import tempfile
 
 # Import the path-bootstrap utility so its namespace-root registration runs
 # at import time and AES504 (utility orphan) does not fire.
-from shared.src.common import utility_path_bootstrap
+from shared.src.common.utility_path_bootstrap import _REPO_ROOT
 
 # Referenced once so the import is not flagged unused (AES203 / ruff F401).
-_ = utility_path_bootstrap
+_ = _REPO_ROOT
 
 from shared.src.skills_traces.contract_skills_aggregate import ISkillsAggregate
 from shared.src.skills_traces.taxonomy_skills_request import SkillsOp, SkillsRequest
