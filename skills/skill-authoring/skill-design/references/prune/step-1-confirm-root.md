@@ -2,11 +2,11 @@
 
 Resolve the directory the prune runs on before any read or merge.
 
-**Goal:** confirm a valid audit root: the `/home/raka/agents-arwaky/skills` root, a specific category, or the user's path.
+**Goal:** confirm a valid audit root: the repo's `skills` root, a specific category, or the user's path.
 
 ## Resolution
 
-Default to `/home/raka/agents-arwaky/skills`, a specific category, or the user's path. Reject a path that resolves to a file; stop if the directory holds no `SKILL.md` subfolders.
+Default to the repo's `skills` root, a specific category, or the user's path. Reject a path that resolves to a file; stop if the directory holds no `SKILL.md` subfolders.
 
 ## Commands
 

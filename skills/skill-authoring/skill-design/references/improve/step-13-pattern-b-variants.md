@@ -29,7 +29,7 @@ Record the split lines per file before editing. After the split, each original m
 
 ### 3. Rename the remaining flat files into step numbers
 
-Every other flat reference in the target skill that is actually a pipeline step gets a `step-<N>-<name>.md` name in execution order. The number is the pipeline step, not the order in the file list — the exemplar's Routing table is the authority. Use `git mv` (not a delete + create) so history is preserved. Update each file's `# Title` to `# Step <N>: <verb>` matching the exemplar's convention (e.g. `# Step 5: Apply Per Tier`, not `# Apply Per Tier`).
+Every other flat reference in the target skill that is actually a pipeline step gets a `step-<N>-<name>.md` name in execution order. The number is the pipeline step, not the order in the file list — the exemplar's Routing table is the authority. Use `git mv` (not a delete + create) so history is preserved. **`mkdir -p` the destination subdirectory first** — `git mv` of multiple files into a subdirectory that does not yet exist fails with `fatal: renaming ... failed: No such file or directory` (one failure aborts the whole chain, no files moved). Update each file's `# Title` to `# Step <N>: <verb>` matching the exemplar's convention (e.g. `# Step 5: Apply Per Tier`, not `# Apply Per Tier`).
 
 ### 4. Fix every internal cross-link
 

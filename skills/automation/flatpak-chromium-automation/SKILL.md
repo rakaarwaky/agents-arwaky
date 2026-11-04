@@ -25,6 +25,8 @@ Bitwarden CLI companion setup: `references/profile-provisioning.md`.
 
 ## Which paths the browser process can actually see
 
+See [`references/sandbox-paths-and-launch.md`](references/sandbox-paths-and-launch.md) for sandbox-visible paths, probe commands, orphan-instance cleanup, and first-in CDP launch verification.
+
 The sandbox does NOT bind host `/etc` or `~/.config` (outside `~/.var/app/...`):
 `/etc/brave/policies/managed/*.json` and `--policy-directory=/home/<user>/.config/...`
 silently load nothing (verify via `chrome://policy` over CDP — statuses come

@@ -5,7 +5,7 @@
 - [ ] `sdc read <name>` — read back the target `SKILL.md` to confirm frontmatter and body landed correctly.
 - [ ] `sdc lint` passes (catalog in `step-4-validator-catalog.md`).
 - [ ] Frontmatter satisfies the Global Rules bullets: mandatory keys, Frontmatter semantics, YAML hygiene, parser limits.
-- [ ] Body within ~100–200 lines; overflow moved into `references/`; every reference, whatever its depth, is linked from `SKILL.md` (Global Rules: Structure).
+- [ ] Body within ~100–200 lines; overflow moved into `references/`; every reference, whatever its depth, is linked from `SKILL.md` (Global Rules: Structure). Quick probe when unsure: `sdc lint` is the mechanical check, but a one-shot grep also works — `ls references/ | while read f; do grep -q "$f" SKILL.md || echo "unlinked: $f"; done` (basename containment, matching the linter's rule exactly).
 - [ ] Every sibling mention and cross-skill link names a skill that exists in the tree (Global Rules: dangling refs).
 - [ ] Content detail (`step-7-content-detail.md`) satisfied.
 - [ ] `sdc catalog` has been run so `skills/CATALOG.md` reflects the current frontmatter.

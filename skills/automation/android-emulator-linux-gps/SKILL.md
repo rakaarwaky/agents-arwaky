@@ -54,11 +54,15 @@ Verify with `adb shell dumpsys package <pkg> | grep -E 'versionName|primaryCpuAb
 
 ## Headless UI poking (no screenshots needed)
 
+See [`references/headless-and-host.md`](references/headless-and-host.md) for headless UI poking plus Deepin host facts (X11/kwin_x11, `-gpu host`, boot timing).
+
 `adb shell uiautomator dump` then read `/sdcard/window_dump.xml`; grep
 `text=`/`content-desc=` + `bounds="[x1,y1][x2,y2]"` → `adb shell input tap cx cy`.
 `adb shell monkey -p <pkg> -c android.intent.category.LAUNCHER 1` to launch.
 
 ## GPS spoof — the actual deliverable
+
+See [`references/gps-spoof.md`](references/gps-spoof.md) for the two mock-location mechanisms (`adb emu geo fix` and `add-test-provider`) plus the `settings`/`pm grant` prerequisites and helper scripts.
 
 Two independent mechanisms; know which one works:
 
