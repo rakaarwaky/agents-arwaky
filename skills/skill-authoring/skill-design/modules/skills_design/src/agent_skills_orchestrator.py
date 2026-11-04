@@ -11,10 +11,8 @@ sequencing in the UI layer).
 The agent depends only on contract protocols and taxonomy; the
 composition root injects every capability implementation.
 
-The ``traces`` capability is the one op whose implementation lives in
-the independent traces app; the orchestrator-owned CLI entry point
-(``modules/root_cli_entry.py``) injects it. This package never imports
-the sibling tree.
+The ``traces`` op is owned by the independent traces app; this package never
+imports the sibling tree and never dispatches ``SkillsOp.TRACES``.
 """
 
 from __future__ import annotations
@@ -33,7 +31,6 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsListerProtocol,
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
-    ISkillsTracesProtocol,
 )
 from shared.src.skills_design.taxonomy_skills_error import (
     SkillsError,
@@ -68,7 +65,6 @@ class SkillsAgent(ISkillsAggregate):
         mover: ISkillsMoverProtocol | None = None,
         archiver: ISkillsArchiverProtocol | None = None,
         creator: ISkillsCreatorProtocol | None = None,
-        traces: ISkillsTracesProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._lister = lister
@@ -79,7 +75,6 @@ class SkillsAgent(ISkillsAggregate):
         self._mover = mover
         self._archiver = archiver
         self._creator = creator
-        self._traces = traces
         self._default_root = default_root
 
     # ─── Block 2: Aggregate Method Implementation ────────────
@@ -345,104 +340,6 @@ class SkillsAgent(ISkillsAggregate):
             create_plan=plan,
             catalog=catalog,
             root=root,
-        )
-
-    def _execute_traces(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Route one trace sub-action through the traces capability.
-
-        The trace pipeline itself lives in the independent traces app;
-        the orchestrator-owned CLI entry point wires its capability into
-        this agent, which dispatches
-        the sub-action here through the shared protocol.
-        """
-        traces = self._require(self._traces, "traces")
-        action = request.flags.get("traces_action", "")
-
-        if action == "collect":
-            return self._traces_collect(traces, request, op)
-        if action == "usage":
-            grok_home = request.flags.get("grok_home", "")
-            run_dir = request.flags.get("run_dir", "")
-            usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
-            return SkillsResult(ok=True, op=op, usage=usage)
-        if action == "phrases":
-            grok_home = request.flags.get("grok_home", "")
-            run_dir = request.flags.get("run_dir", "")
-            report = traces.build_phrases(grok_home=grok_home, run_dir=run_dir)
-            return SkillsResult(ok=True, op=op, phrases=report)
-        if action == "materialize":
-            return self._traces_materialize(traces, request, op)
-        if action == "state":
-            return self._traces_state(traces, request, op)
-        raise SkillsUsageError(f"Unknown traces action: {action}")
-
-    # ── trace sub-action helpers ──────────────────────────────
-
-    def _traces_collect(
-        self, traces: ISkillsTracesProtocol, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
-        """Scan sessions then build usage: the collect half of the trace pipeline."""
-        grok_home = request.flags.get("grok_home", "")
-        run_dir = request.flags.get("run_dir", "")
-        days = int(request.flags.get("days", "0"))
-        since_last = request.flags.get("since_last") == "1"
-        min_turns = int(request.flags.get("min_turns", "1"))
-        limit = int(request.flags.get("limit", "0"))
-
-        scan = traces.scan_sessions(
-            grok_home=grok_home,
-            run_dir=run_dir,
-            days=days,
-            since_last=since_last,
-            min_turns=min_turns,
-            limit=limit,
-        )
-        usage = traces.build_usage(grok_home=grok_home, run_dir=run_dir)
-        kept = len(scan.records)
-        seen = scan.sessions_seen
-
-        return SkillsResult(
-            ok=True,
-            op=op,
-            usage=usage,
-            collect_summary=scan,
-            message=f"{kept} of {seen} sessions kept → {run_dir}",
-        )
-
-    def _traces_materialize(
-        self, traces: ISkillsTracesProtocol, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
-        """Materialize usage.json + phrases.json into the run dir."""
-        grok_home = request.flags.get("grok_home", "")
-        run_dir = request.flags.get("run_dir", "")
-        if not run_dir:
-            raise SkillsUsageError("traces materialize requires --run-dir")
-
-        usage, report = traces.materialize(grok_home=grok_home, run_dir=run_dir)
-
-        return SkillsResult(
-            ok=True,
-            op=op,
-            usage=usage,
-            phrases=report,
-            message=f"Materialized usage.json + phrases.json → {run_dir}",
-        )
-
-    def _traces_state(
-        self, traces: ISkillsTracesProtocol, request: SkillsRequest, op: SkillsOp
-    ) -> SkillsResult:
-        """Drive the trace-learning lifecycle; the traces capability routes it."""
-        grok_home = request.flags.get("grok_home", "")
-        run_dir = request.flags.get("run_dir", "")
-        sub_action = request.flags.get("state_action", "")
-
-        result = traces.dispatch(grok_home, run_dir, sub_action, request.flags)
-        return SkillsResult(
-            ok=True,
-            op=op,
-            state=result.state,
-            state_status=result.state_status,
-            lines=result.lines,
         )
 
     def _root(self, request: SkillsRequest) -> SkillsRoot:

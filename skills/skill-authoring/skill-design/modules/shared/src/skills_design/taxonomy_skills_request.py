@@ -28,9 +28,8 @@ SkillsRoot = NewType("SkillsRoot", Path)
 """An explicit skills root; ``None`` on a request means 'use the default'."""
 
 #: One op per capability the skills aggregate understands; the CLI
-#: surface exposes 5 of them (list, read, lint, catalog, discover);
-#: the remaining 4 (move, archive, create, traces) are reachable via
-#: the agent/facade only.
+#: surface exposes all of them (list, read, lint, catalog, discover,
+#: move, archive, create); traces lives only in the traces app.
 class SkillsOp(StrEnum):
     LIST = "list"
     READ = "read"
@@ -40,7 +39,6 @@ class SkillsOp(StrEnum):
     MOVE = "move"
     ARCHIVE = "archive"
     CREATE = "create"
-    TRACES = "traces"
 
 
 @dataclass(frozen=True)

@@ -30,27 +30,18 @@ from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     MutationOutcome,
     MutationPlan,
     NewCategoryPlan,
-    PhrasesReport,
     SkillCreatePlan,
-    UsageReport,
 )
 from shared.src.skills_design.taxonomy_skills_rule_vo import (
     CategoryName,
     SkillName,
 )
 from shared.src.skills_design.taxonomy_skills_vo import (
-    GrokHome,
-    ScanResult,
     SkillContent,
     SkillQuery,
     SkillRecord,
     SkillsJsonPayload,
     SkillsRoot,
-    TraceDecision,
-    TraceRunDir,
-    TraceRunName,
-    TraceStateDispatchResult,
-    TraceStateStatus,
 )
 
 
@@ -227,123 +218,6 @@ class ISkillsCreatorProtocol(ABC):
         ...
 
 
-class ISkillsTracesProtocol(ABC):
-    """Scan sessions, build skills-only usage, mine repeated phrases, and drive the trace-learning lifecycle (status machine, trash, decisions, wait)."""
-
-    @abstractmethod
-    def scan_sessions(
-        self,
-        grok_home: GrokHome,
-        run_dir: TraceRunDir,
-        days: int = 0,
-        since_last: bool = False,
-        min_turns: int = 1,
-        limit: int = 0,
-        include_headless: bool = False,
-        include_subagents: bool = False,
-    ) -> ScanResult:
-        """Scan the session tree with the filters and return a ``ScanResult``.
-
-        Writes ``manifest.json`` plus ``sessions/*.json`` into *run_dir*
-        and returns the kept records plus the scan counters
-        (``sessions_seen``, ``dropped``) as a VO — no raw JSON for the
-        surface to re-parse.
-        """
-        ...
-
-    @abstractmethod
-    def build_usage(self, grok_home: GrokHome, run_dir: TraceRunDir) -> UsageReport:
-        """Return the skills-only usage: hit counts, sessions, last_used, unused_loaded."""
-        ...
-
-    @abstractmethod
-    def build_phrases(self, grok_home: GrokHome, run_dir: TraceRunDir) -> PhrasesReport:
-        """Mine repeated exact prompts, prompt stems, and repeated instruction lines.
-
-        Reads the session records written to *run_dir*; returns
-        distinct-session counts with single-turn automation excluded.
-        """
-        ...
-
-    def materialize(
-        self, grok_home: GrokHome, run_dir: TraceRunDir
-    ) -> tuple[UsageReport, PhrasesReport]:
-        """Build usage + phrases for *run_dir* and write
-        ``usage.json`` + ``phrases.json`` into it.
-
-        Returns the two reports so the agent can echo them in the result.
-        """
-
-    # ── Trace-state lifecycle ─────────────────────────────────────────
-
-    @abstractmethod
-    def set_status(
-        self, grok_home: GrokHome, run_dir: TraceRunDir, status: TraceStateStatus
-    ) -> TraceStateStatus:
-        """Record *status* for the pending run; ``done`` stamps last_completed."""
-        ...
-
-    @abstractmethod
-    def get_status(self, grok_home: GrokHome) -> TraceStateStatus:
-        """Return the current pending status.
-
-        ``done``-less pending runs exit 3 (the surface maps to exit 3); the
-        capability returns the status, the caller maps it to an exit code.
-        """
-        ...
-
-    @abstractmethod
-    def trash(
-        self, grok_home: GrokHome, run_name: TraceRunName, paths: Sequence[str]
-    ) -> tuple[str, ...]:
-        """Move the validated paths into ``learn/trash/<run_name>``.
-
-        Only a ``skills/<name>`` directory, a ``workflows/*.rhai`` file, or a
-        ``hooks/*`` file under ``GROK_HOME`` / ``~/.agents`` / a project
-        ``.grok`` directory is moved; anything else is refused.
-        """
-        ...
-
-    @abstractmethod
-    def decide(
-        self,
-        grok_home: GrokHome,
-        run_dir: TraceRunDir,
-        decision: TraceDecision,
-    ) -> TraceDecision:
-        """Append one decision line to ``learn/decisions.jsonl`` and return it."""
-        ...
-
-    @abstractmethod
-    def wait(
-        self,
-        grok_home: GrokHome,
-        run_dir: TraceRunDir,
-        timeout_min: int = 90,
-        phase_stall_min: int = 60,
-        report_stall_min: int = 45,
-    ) -> TraceStateStatus:
-        """Block until the run dir holds ``report.md`` + ``actions.json``.
-
-        Returns ``report_ready`` on success; the surface maps a deadline
-        overrun to the legacy exit code.
-        """
-        ...
-
-    def dispatch(
-        self,
-        grok_home: str,
-        run_dir: str,
-        action: str,
-        flags: Mapping[str, str],
-    ) -> TraceStateDispatchResult:
-        """Route one trace-state sub-action through this capability.
-
-        The thin router behind the agent's single per-op call; ``flags``
-        carries the sub-action's parameters (status, run_name, paths, ...).
-        """
-
-
 # ── Internal seams end ──
 
 
@@ -356,5 +230,4 @@ __all__ = [
     "ISkillsListerProtocol",
     "ISkillsMoverProtocol",
     "ISkillsReaderProtocol",
-    "ISkillsTracesProtocol",
 ]
