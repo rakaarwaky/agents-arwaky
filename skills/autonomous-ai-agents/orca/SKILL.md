@@ -53,6 +53,7 @@ read-only discovery and do not guess unsupported commands.
 | Linear ticket work | [linear.md](references/linear.md) | `ORCA skills get orca-linear` |
 | Per-workspace environment recipes | [per-workspace-env.md](references/per-workspace-env.md) | `ORCA skills get orca-per-workspace-env` |
 | Supervised multi-agent coordination, DAGs, decision gates | [orchestration.md](references/orchestration.md) | `ORCA skills get orchestration` |
+| Large briefs and long-context guidance | [large-briefs.md](references/large-briefs.md) | `ORCA skills get orca --reference references/large-briefs.md` |
 
 ## Grok Build in Orca worktrees (agent slot)
 

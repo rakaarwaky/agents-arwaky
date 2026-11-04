@@ -81,3 +81,10 @@ to telnet+`~/.emulator_console_auth_token`) and `~/bin/android.sh [avd|stop]`.
 
 X11 session + kwin_x11, /dev/kvm group-accessible, `-gpu host` works, boots in ~27s.
 `emulator -no-boot-anim` + `adb wait-for-device` + poll `getprop sys.boot_completed`.
+
+## Routing
+
+| Reference | Purpose |
+|-----------|---------|
+| [`references/apk-retrieval.md`](references/apk-retrieval.md) | Getting APKs from apkpure/apkcombo without Cloudflare |
+| [`references/avd-and-abi.md`](references/avd-and-abi.md) | AVD path setup and ARM/x86 ABI trap |

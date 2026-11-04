@@ -178,3 +178,16 @@ pitfall that makes local runs disagree with CI), merged from the former
 - [ ] `.repowise/bot.yaml` + `.repowiseIgnore` + `health-rules.json`
 - [ ] `scripts/ci.sh` mirrors CI for local run + pre-push hook (see `references/local-ci.md`)
 - [ ] Release/labeler/cleanup workflows if the release train is needed
+
+## Routing
+
+| Reference | Purpose |
+|-----------|---------|
+| [`references/branch-protection.md`](references/branch-protection.md) | GitHub Ruleset and required status checks |
+| [`references/ci-workflow.md`](references/ci-workflow.md) | The five CI jobs (fmt, clippy, build, test, self-lint) |
+| [`references/container-image.md`](references/container-image.md) | Container image design for local CI mirroring |
+| [`references/self-lint.md`](references/self-lint.md) | Self-lint job script and AES rule assertion |
+| [`references/auto-merge.yml.md`](references/auto-merge.yml.md) | Squash-merge auto-merge workflow |
+| [`references/ai-review-layers.md`](references/ai-review-layers.md) | cubic and Repowise configuration |
+| [`references/local-ci.md`](references/local-ci.md) | Local quality gates mirror via scripts/ci.sh |
+| [`references/verify-runtimes.md`](references/verify-runtimes.md) | Runtime version verification |
