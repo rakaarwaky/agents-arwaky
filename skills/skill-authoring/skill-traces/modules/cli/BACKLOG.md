@@ -56,6 +56,7 @@ Pack root is hardcoded to `skills/`; no `--skills-root` or `--json`.
 | Artifact     | Purpose                                    | Link |
 |--------------|--------------------------------------------|------|
 | PRD          | Business goals and scope                   | [PRD.md](../../../../../PRD.md) |
+| Data         | Value objects, constants, and envelopes    | [DATA.md](../../shared/DATA.md) |
 | Design       | Visual & interaction contract              | [DESIGN.md](DESIGN.md) |
 | Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../../../../ROADMAP.md) |
 | Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |

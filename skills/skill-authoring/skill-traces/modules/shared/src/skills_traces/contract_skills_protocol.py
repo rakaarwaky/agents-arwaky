@@ -18,10 +18,20 @@ from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
+from shared.src.skills_traces.taxonomy_skills_constant import (
+    TRACE_COLLECT_MIN_TURNS,
+)
 from shared.src.skills_traces.taxonomy_skills_entity import (
     CategorySummary,
     Issue,
     SkillEntry,
+)
+from shared.src.skills_traces.taxonomy_skills_rule_vo import (
+    CategoryName,
+    IssueType,
+    Level,
+    Rule,
+    SkillName,
 )
 from shared.src.skills_traces.taxonomy_skills_vo import (
     GrokHome,
@@ -63,7 +73,12 @@ class ISkillsTraceScanProtocol(ABC):
         ...
 
     @abstractmethod
-    def build_phrases(self, grok_home: GrokHome, run_dir: TraceRunDir) -> PhrasesReport:
+    def build_phrases(
+        self,
+        grok_home: GrokHome,
+        run_dir: TraceRunDir,
+        min_sessions: int = TRACE_COLLECT_MIN_TURNS,
+    ) -> PhrasesReport:
         """Mine repeated exact prompts, prompt stems, and repeated instruction lines.
 
         Reads the session records written to *run_dir*; returns
@@ -143,8 +158,12 @@ class ISkillsTraceStateProtocol(ABC):
 
 __all__ = [
     "CategorySummary",
+    "Issue",
     "ISkillsTraceScanProtocol",
     "ISkillsTraceStateProtocol",
-    "Issue",
+    "IssueType",
+    "Level",
+    "Rule",
     "SkillEntry",
+    "SkillName",
 ]

@@ -52,14 +52,43 @@ report-stall / 2 deadline.
 
 #### Technical Specification
 
-| Aspect       | Detail                                                                                                        |
-|--------------|---------------------------------------------------------------------------------------------------------------|
-| **Input**    | action sub-command; optional flags per action                                                                 |
-| **Output**   | scan results, usage reports, phrase reports, state transitions                                                |
-| **Protocol** | ISkillsTraceScanProtocol, ISkillsTraceStateProtocol                                         |
-| **Method**   | scan\_sessions / build\_usage / build\_phrases / set\_status / get\_status / trash / decide / wait / dispatch |
-| **Event**    | —                                                                                                             |
-| **Error**    | unknown action → usage error (exit 2); missing run dir → usage error (exit 2)                                 |
+| Aspect | Detail |
+|--------|--------|
+| **Input** | action sub-command; optional flags per action |
+| **Output** | scan results, usage reports, phrase reports, state transitions |
+| **Protocol** | ISkillsTraceScanProtocol (FR-SkillsTraces-009), ISkillsTraceStateProtocol (FR-SkillsTraces-010) |
+| **Method** | scan_sessions / build_usage / build_phrases / set_status / get_status / trash / decide / wait / dispatch |
+| **Event** | — |
+| **Error** | unknown action → usage error (exit 2); missing run dir → usage error (exit 2) |
+
+### FR-SkillsTraces-010: Trace Learning State Protocol
+
+**Description:** Drive the trace-learning lifecycle state machine (status, trash, decisions, wait, restrict, dispatch).
+
+#### Business Logic
+
+- `state <get|set|clear|trash|restrict|decide|wait>` drives the lifecycle state machine
+- `state get` exits 3 while a run is pending (domain signal that a trace run is in progress)
+- `set_status` records the pending run's status; `done` stamps last_completed
+- `trash` moves validated paths into `learn/trash/<run_name>`
+- `decide` appends one decision line to `learn/decisions.jsonl`
+- `wait` blocks until `report.md` + `actions.json` exist under the run dir
+
+#### Edge Cases
+
+- `state wait` blocks until `report.md` + `actions.json` exist; phase-stall exits 1, report-stall exits 3, deadline exits 2
+- Trash refuses any path that is not a `skills/<name>` directory, `workflows/*.rhai` file, or `hooks/*` file under GROK_HOME / `~/.agents` / project `.grok`
+
+#### Technical Specification
+
+| Aspect | Detail |
+|--------|--------|
+| **Input** | state sub-action; optional flags per sub-action |
+| **Output** | state transitions, trash/restrict/decide output lines |
+| **Protocol** | ISkillsTraceStateProtocol |
+| **Method** | set_status / get_status / trash / restrict / decide / wait / dispatch |
+| **Event** | — |
+| **Error** | unknown action → usage error (exit 2) |
 
 #### Test
 
