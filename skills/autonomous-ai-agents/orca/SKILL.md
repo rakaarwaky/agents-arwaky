@@ -54,6 +54,24 @@ read-only discovery and do not guess unsupported commands.
 | Per-workspace environment recipes | [per-workspace-env.md](references/per-workspace-env.md) | `ORCA skills get orca-per-workspace-env` |
 | Supervised multi-agent coordination, DAGs, decision gates | [orchestration.md](references/orchestration.md) | `ORCA skills get orchestration` |
 
+## Grok Build in Orca worktrees (agent slot)
+
+Attach Grok Build to a worktree with `orca worktree create ... --agent grok --no-parent` — the
+Grok TUI runs in the worktree's first terminal (`--surface terminal`; `--surface chat` for
+pure read-only analysis). Two ways to use that slot:
+
+- **Supervised (default for /implement, /execute-plan runs)**: subagents bind to the
+  worktree via `cwd`; task text is NEVER sent to the TUI (`--prompt` stays off). The TUI
+  is the orchestrator's monitoring surface only. A monitoring TUI that stays idle or holds
+  unmerged local changes blocks later `worktree rm --force` — kill the terminal or retire
+  the worktree before assembly/teardown.
+- **Full handoff**: send the brief via `orca terminal send` after
+  `orca terminal wait --for tui-idle`; confirm accepted, then stop driving it.
+
+Mutually exclusive per worktree — pick one per worktree, never both. The `implement` and
+`execute-plan` skills in the agents-arwaky tree use the supervised mode; their step files
+are the authoritative protocol for that class of task.
+
 ## Handoff vs. supervision boundary
 
 Full ownership handoff — "hand off", "handover", "give this to another agent", "another

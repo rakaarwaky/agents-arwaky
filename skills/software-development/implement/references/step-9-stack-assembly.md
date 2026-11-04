@@ -67,9 +67,19 @@ This is listed in the final report as a manual post-merge action.
 
 The branch `implement/<IMPL_ID>` stays on `origin` after the PR merges (GitHub does not auto-delete unless configured). The skill does not delete it — merging is a human decision.
 
+## Step 9.4: Gate Verification Before and After Push
+
+After the orchestrator commits the unit and before Step 9.2 (open the PR), verify the repo's CI-relevant gate locally — in this repo: `CARGO_INCREMENTAL=0 cargo build --release && ./target/release/lint-arwaky-cli check .` must print `Total: 0 violations`, plus the guard/unit tests named in the repo AGENTS.md.
+
+Two rules make this step non-optional:
+
+- **Run the gate against the committed state, never against a dirty tree.** After editing and committing files, the on-disk working tree can still hold uncommitted variants (a sibling checkout or an interrupted session leaves modified files). A green local run on a dirty tree does not prove the pushed commit is green. Reset the tree first: `git -C <worktree_path> status --short` must be clean before the gate run; if it is not, `git checkout -- <paths>` (or re-apply the intended edits) and re-run.
+- **Treat a green push that then fails CI as a verification defect, not a CI flake.** When CI reports violations on the SHA you pushed, pull the job log (`gh api 'repos/OWNER/REPO/actions/runs/<run>/jobs'` → `<job>/logs`), locate the exact `file:line` entries, open the committed blob (`git show HEAD:<file>`), confirm the violation is really in the committed content, fix the on-disk files, re-run the gate on a clean tree, commit, and re-push. Never argue with the log or claim the violations are pre-existing without diffing the committed blob.
+
 ## Safety Rules (Assembly)
 
 - **The orchestrator resolves merge conflicts only during this step**, using `read_file` and `write`. This is the sole exception to the rule that the orchestrator never modifies source files itself.
+- **Commit hygiene before push**: the commit the orchestrator writes must carry a conventional, repo-conforming message. If a delegated agent left an artifact (a stray scratch file, an agent-narration commit message), amend the commit before pushing (`git rm --cached <artifact>`, `git commit --amend -m "<conventional message>"`, force-with-lease). The pushed branch HEAD is the CI input — a dirty message or stray tracked file fails review gates that are not about content.
 - **Assembly operations run sequentially.** `git push` and `gh pr create` never run concurrently; ordering is load-bearing.
 - **Never merge PRs.** The skill creates PRs. Merging to `main` is a human decision.
 - **All git commands run inside the worktree** (`git -C <worktree_path>`), never in the main clone's working tree.

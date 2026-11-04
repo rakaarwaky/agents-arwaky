@@ -19,3 +19,11 @@ Run `aa skills lint` (whole pack) or `aa skills lint --category <name>` (scoped)
 | `missing-category-description` | A category folder has no `DESCRIPTION.md`. |
 | `empty-category-description` | A category `DESCRIPTION.md` has no description text. |
 | `empty-category` | A category folder contains no skills. |
+
+## What lint does NOT check
+
+`aa skills lint` is a mechanical gate on frontmatter, naming, placement, and uniqueness. It does **not** verify:
+
+- **Reference linking** — every file in `references/` must be linked from the `SKILL.md` body or Routing table. Lint passes even when new reference files are on disk but unlinked. After adding or moving reference files, run a link-completeness sweep: list files on disk in `references/` (recursively), grep the `SKILL.md` for each filename, and add any missing link to the Routing table before publishing. A reference that no line of the body names is dead weight the agent will never find.
+- **Dangling cross-skill refs** — `related_skills:` and sibling mentions are existence-checked manually, not by lint. Resolve each named skill against the tree; lint will not flag a ref to a skill that does not exist.
+- **Body shape** — the three-section rule (`# Title` / `## Global rules` / `## Routing`) is enforced by convention and the pre-publish checklist, not by any lint rule. A body that drifts into prose sections still passes lint.

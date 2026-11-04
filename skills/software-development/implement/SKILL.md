@@ -41,5 +41,5 @@ Every reference file is step-scoped and contains the executable logic, subagent 
 | 6    | [`references/step-6-fix.md`](references/step-6-fix.md)                       | Resume the implementer to address open issues                                                               |
 | 7    | [`references/step-7-rereview.md`](references/step-7-rereview.md)             | Resume all reviewers in parallel; back to Step 5                                                            |
 | 8    | [`references/step-8-memory-flush.md`](references/step-8-memory-flush.md)     | Flush accumulated issue patterns to the workspace memory file                                               |
-| 9    | [`references/step-9-stack-assembly.md`](references/step-9-stack-assembly.md) | Push the single branch; open one PR to `main` (or print the compare URL)                                    |
+| 9    | [`references/step-9-stack-assembly.md`](references/step-9-stack-assembly.md) | Push the single branch; open one PR to `main` (or print the compare URL); gate verification on a clean tree + commit hygiene before push |
 | 10   | [`references/step-10-final-report.md`](references/step-10-final-report.md)   | Final report; cleanup of temporary artifacts                                                                |

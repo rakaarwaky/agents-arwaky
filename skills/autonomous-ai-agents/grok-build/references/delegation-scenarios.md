@@ -57,3 +57,22 @@ git worktree remove ~/.hermes/cache/scratch/issue-78
 
 The same worktrees can be Orca-managed (`orca worktree create`), but plain `git
 worktree` works without the Orca daemon.
+
+## Post-Delegation Verification (before commit/push)
+
+When a delegated agent finishes work inside a worktree, do not trust its
+"done" summary — verify the worktree yourself before committing or pushing:
+
+1. `git status --short` in the worktree: the agent may have left stray
+   artifacts (scratch files it wrote at the repo root, e.g. a `commit-msg.txt`)
+   or uncommitted variants of the files it claims to have fixed. Remove stray
+   files and reconcile on-disk content with what should be committed.
+2. If the agent committed for you, check the commit message:
+   `git log --oneline -1`. An agent-narration message (e.g. "I've written the
+   commit message to `commit-msg.txt`…") is not shippable — amend it to the
+   repo's conventional format before pushing (`git commit --amend -m …`,
+   force-with-lease).
+3. Re-run the repo's own gate (in this repo: `CARGO_INCREMENTAL=0 cargo build
+   --release && ./target/release/lint-arwaky-cli check .` expecting
+   `Total: 0 violations`) on a clean tree before pushing. A green run on a
+   dirty tree proves nothing about the committed blob.

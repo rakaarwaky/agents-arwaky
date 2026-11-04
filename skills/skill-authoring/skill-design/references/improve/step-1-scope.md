@@ -12,6 +12,7 @@ Do not prompt the user to disambiguate unless two or more distinct skills in the
 
 - `aa skills read <name>` — read the target `SKILL.md` before editing so the edit preserves its intent.
 - `aa skills lint --category <name>` — preview the target's lint issues scoped to its category before the edit; the lint gate runs again after.
+- **Absolute path as argument**: when the user passes a full filesystem path (e.g. `/repo/skills/web-design`), resolve its last segment as the category name and scope `aa skills lint --category <name>` accordingly. The `aa` CLI does not accept a bare path — only the category name. Verify the path is a directory containing `SKILL.md` files (a category directory) before proceeding; a path pointing at a single skill's directory scopes the run to that one skill.
 
 ## Completion
 
