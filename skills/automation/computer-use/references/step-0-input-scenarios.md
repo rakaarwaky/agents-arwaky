@@ -1,4 +1,6 @@
-# Input scenarios — drag & drop, scroll, focus, screenshots
+# Step 0 — Input scenarios: drag & drop, scroll, focus, screenshots
+
+Drag & drop (index and coordinate), viewport and point scroll, `list_apps`/`focus_app` focus routing, and delivering screenshots.
 
 ## Drag & drop
 
@@ -53,3 +55,7 @@ with `write_file` or the terminal (`base64 -d`).
 On CLI, you can just describe what you see — the screenshot data stays
 in your conversation context.
 
+## Completion
+
+- Every drag/scroll example above uses the element-index form first and falls back to coordinates only where the example says so.
+- Screenshots the user should see are saved durably and referenced as `MEDIA:/absolute/path.png` on messaging platforms.

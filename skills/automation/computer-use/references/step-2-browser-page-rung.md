@@ -1,4 +1,4 @@
-# Typed browser page rung
+# Step 2 — Typed browser page rung
 
 For page content in a supported GUI browser, the same `computer_use` tool
 exposes namespaced `cua_browser_*` actions. They do not collide with other
@@ -70,3 +70,9 @@ Use the host's idiomatic modifier:
 
 When in doubt, capture and look for menu hints, or ask the user which
 shortcut to use.
+
+## Completion
+
+- `cua_browser_state` returned `status:"ok"`, `binding_quality:"exact"`, `mutation_allowed:true` before any typed mutation, and refs used came from the newest `semantic_v2` snapshot.
+- Every mutation was followed by a fresh state snapshot before the next typed action; no refs were chained from memory.
+- Any `existing_profile` refusal was reported with the config key named (`computer_use.grant_existing_profile`), not retried or worked around.

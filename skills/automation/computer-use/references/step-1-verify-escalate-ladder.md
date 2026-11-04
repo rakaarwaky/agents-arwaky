@@ -1,4 +1,4 @@
-# The verify → escalate ladder (background-first)
+# Step 1 — The verify → escalate ladder (background-first)
 
 cua-driver delivers input in the **background** by default (no focus steal),
 but that is the first rung, not the only one. Every input action returns a
@@ -65,3 +65,7 @@ NOT conclude "cua-driver can't drive this app" — climb the ladder. If
 action schema lacks that property; choose another verified rung without
 inferring support from the executable's reported version.
 
+## Completion
+
+- Every input action's structured verdict (`effect`/`escalation`/`code`/`verified`) was read before the next action; escalation happened only in reaction to a returned signal, never as a prediction.
+- After one verified-lost keystroke round trip on a surface that swallows synthetic input, the run stopped climbing the ladder and used the app's own I/O instead.
