@@ -166,8 +166,11 @@ def parse_frontmatter(path: Path) -> dict[str, object]:
             parsed = yaml.safe_load(fm_text)
         except Exception:  # degraded to the fallback parser below
             parsed = None
-        if isinstance(parsed, dict):
-            return parsed
+    else:
+        parsed = None
+
+    if isinstance(parsed, dict):
+        return parsed
 
     data: dict[str, object] = {}
     for line in fm_text.splitlines():

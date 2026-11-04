@@ -25,9 +25,9 @@ from pathlib import Path
 from typing import NewType
 
 # Every other primitive below (``SkillContent``, ``SkillRecord``, the trace
-# VOs, ...) is re-exported back into the request/response envelope modules
-# after its definition, so the envelope modules never import this module at
-# runtime — no cycle in either import order.
+# VOs, ...) is defined here and re-exported back into the request/response
+# envelope modules after its definition, so the envelope modules never
+# import this module at runtime — no cycle in either import order.
 SkillContent = NewType("SkillContent", str)
 """Raw SKILL.md text returned by a read."""
 
@@ -199,10 +199,13 @@ class TraceStateDispatchResult:
     lines: tuple[str, ...] = ()
 
 
-# The primitives below are defined in this module; the request/response
-# envelopes re-import them at their own bottoms — no cycle in either
-# direction.
-
+# Re-exported into the legacy import path: the request/response envelope
+# modules import *only* the primitives defined above (``SkillRecord``,
+# ``ScanResult``, ...) — no import of this module at runtime, so no cycle
+# in either direction. Downstream consumers should import
+# ``SkillsOp``/``SkillsRequest`` from ``taxonomy_skills_request`` and
+# ``SkillsExitCode``/``SkillsResult`` from ``taxonomy_skills_response``
+# directly instead of through this module.
 
 __all__ = [
     "DiffLines",
