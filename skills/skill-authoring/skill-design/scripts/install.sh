@@ -17,6 +17,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 MODULES_DIR="$PACKAGE_ROOT/modules"
+MODULES_DIR="$(cd "$MODULES_DIR" && pwd)"
 
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
@@ -54,7 +55,7 @@ import os
 import sys
 from pathlib import Path
 
-_DEFAULT_MODULES = Path("skills") / "skill-authoring" / "skill-design" / "modules"
+_DEFAULT_MODULES = Path("__INSTALL_MODULES_DIR__")
 
 
 def _resolve_modules_dir() -> Path:
@@ -101,6 +102,8 @@ def main(argv: list[str] | None = None) -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 SDC_EOF
+sed -i "s#__INSTALL_MODULES_DIR__#$MODULES_DIR#" "$BIN_DIR/sdc"
+
 chmod 755 "$BIN_DIR/sdc"
 
 echo "Installed sdc to $BIN_DIR"
