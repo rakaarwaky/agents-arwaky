@@ -1,16 +1,16 @@
 # Improve — Step 12: Apply the edit recipe
 
-**Goal:** you can apply the 9-point edit recipe end to end and verify with `aa skills lint` and the pre-publish checklist.
+**Goal:** you can apply the 9-point edit recipe end to end and verify with `sdc skills lint` and the pre-publish checklist.
 
-Run the numbered recipe in order against the resolved scope (Step 1), the body-format check (Step 2), and the audit steps 3–11. Verification after any edit is the `aa skills lint` gate.
+Run the numbered recipe in order against the resolved scope (Step 1), the body-format check (Step 2), and the audit steps 3–11. Verification after any edit is the `sdc skills lint` gate.
 
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.
 2. **Enforce body format**: before applying any content or structure fix, verify the target `SKILL.md` follows the format in `step-2-body-format.md`. If it does not, restructure it first — move any out-of-place detail into `references/*.md`, then continue with the actual edit.
-3. **Handle empty categories**: if you move the last skill out of a category, the directory becomes empty and `aa skills lint` will flag `empty-category`. Archive the last skill instead of deleting it:
+3. **Handle empty categories**: if you move the last skill out of a category, the directory becomes empty and `sdc skills lint` will flag `empty-category`. Archive the last skill instead of deleting it:
 
    ```bash
-   aa skills archive <category>/<skill> --apply
-   aa skills catalog
+   sdc skills archive <category>/<skill> --apply
+   sdc skills catalog
    ```
 
    Then delete the now-empty category directory and its `DESCRIPTION.md`, or retire the category row in the catalog if it is intentionally retired.
@@ -19,8 +19,8 @@ Run the numbered recipe in order against the resolved scope (Step 1), the body-f
 6. **Apply the edit** where the owner lives. If the owner is a reference file, edit the reference — never the body. If the owner is Global Rules, edit `SKILL.md`.
 7. **Sweep for second copies**: after the edit, search the skill directory for any other place that states the same fact. Report each one; do not silently rewrite them.
 8. **Resolve cross-skill links you touched**: every sibling mention and cross-skill link you edited must name a skill that exists in the tree (Global Rules: dangling refs rot fast).
-9. **Run Verify and Report**: `aa skills lint` and the pre-publish checklist in `step-8-prepublish-checklist.md`. Before the commit, run `aa skills catalog` so `skills/CATALOG.md` reflects the current frontmatter — a stale CATALOG.md is not a lint issue but a publish defect — then re-run `git log --oneline -4` and `git status` in case a parallel agent committed in the same tree (Global Rules: Parallel agents, Staging discipline) and verify the staged set contains only this run's files plus `skills/CATALOG.md`. After the commit, `git show --stat <sha>` must list exactly this run's files — a swept-in or missing-file commit means a parallel agent or a `git reset` intervened: verify the on-disk state (grep the new body shape, list the new reference files), re-apply any lost edits via direct writes, re-stage scoped to this run's files, commit, and re-verify `git show --stat` on the new SHA. Commit fast while the tree is quiet; the post-commit `git show --stat` check is what defeats the race.
+9. **Run Verify and Report**: `sdc skills lint` and the pre-publish checklist in `step-8-prepublish-checklist.md`. Before the commit, run `sdc skills catalog` so `skills/CATALOG.md` reflects the current frontmatter — a stale CATALOG.md is not a lint issue but a publish defect — then re-run `git log --oneline -4` and `git status` in case a parallel agent committed in the same tree (Global Rules: Parallel agents, Staging discipline) and verify the staged set contains only this run's files plus `skills/CATALOG.md`. After the commit, `git show --stat <sha>` must list exactly this run's files — a swept-in or missing-file commit means a parallel agent or a `git reset` intervened: verify the on-disk state (grep the new body shape, list the new reference files), re-apply any lost edits via direct writes, re-stage scoped to this run's files, commit, and re-verify `git show --stat` on the new SHA. Commit fast while the tree is quiet; the post-commit `git show --stat` check is what defeats the race.
 
 ## Completion
 
-- The edit is applied at the single owner; no second copies; `aa skills lint` and the pre-publish checklist pass.
+- The edit is applied at the single owner; no second copies; `sdc skills lint` and the pre-publish checklist pass.
