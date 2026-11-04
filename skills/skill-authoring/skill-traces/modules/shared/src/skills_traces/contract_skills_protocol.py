@@ -142,6 +142,9 @@ class ISkillsTraceStateProtocol(ABC):
 
 
 __all__ = [
+    "CategorySummary",
     "ISkillsTraceScanProtocol",
     "ISkillsTraceStateProtocol",
+    "Issue",
+    "SkillEntry",
 ]

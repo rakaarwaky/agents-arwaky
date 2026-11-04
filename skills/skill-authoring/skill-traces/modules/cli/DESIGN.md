@@ -41,6 +41,7 @@ time; the surface never knows the concrete implementations.
 | Artifact | Purpose | Link |
 |----------|---------|------|
 | PRD | Business goals, user stories, and scope | [PRD.md](../../../../../PRD.md) |
+| Data | Value objects, constants, and request/response envelopes | [DATA.md](../../shared/DATA.md) |
 | Backlog | Task tracking, epics, and implementation status | [BACKLOG.md](BACKLOG.md) |
 | Roadmap | Timeline, phasing, and dependencies | [ROADMAP.md](../../../../../ROADMAP.md) |
 | Architecture | System boundaries, tech stack, and infra | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
