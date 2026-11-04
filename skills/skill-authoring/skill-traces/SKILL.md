@@ -37,6 +37,7 @@ Curates one trace-learning run that covers three dispositions at once: create ne
 | Step 3 | [`references/step-3-read-report.md`](references/step-3-read-report.md) | Present the Overview plus the sections the chosen modes own; the full `report.md` and `actions.json` shapes. |
 | Step 4 | [`references/step-4-apply.md`](references/step-4-apply.md) | Per-action rules for every kind; record decisions. |
 | Step 5 | [`references/step-5-verify.md`](references/step-5-verify.md) | Re-read touched files; confirm the change and every trash backup; run validation. |
+| Step 6 | [`references/step-6-prune.md`](references/step-6-prune.md) | Prune the raw session store to keep only the N most recent session dirs (`stc traces prune`). |
 
 Spec files the workflow agents read, by `skill_dir`:
 
