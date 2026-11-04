@@ -26,3 +26,4 @@ to telnet+`~/.emulator_console_auth_token`) and `~/bin/android.sh [avd|stop]`.
   coordinates while the fix loop is running.
 - The target app receives the location (the app's UI / logs / logs via
   `adb logcat | grep Location` show the new value).
+- The `add-test-provider` path was only used after `appops set com.android.shell android:mock_location allow`; `adb root` was NOT used to grant it.
