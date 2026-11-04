@@ -30,3 +30,15 @@ Append a Revision Summary to the bottom of the review file.
 ## After Completion
 
 Continue to Step 5.
+
+## Splitting a large revision
+
+If the review has more than ~3 open issues, or the design doc is large (>200 lines), do NOT address all issues in a single subagent call — the writer's response will truncate. Split the revision into batches of 2–3 related issues per subagent call (e.g. critical issues first, then majors, then nits). Each batch is a fresh spawn (not a resume) with the same prompt but scoped to that batch:
+
+```
+Address ONLY these open issues: <issue numbers>. Leave all other content unchanged.
+Review file: <review_file>
+Design doc: <design_doc_file>
+```
+
+After the final batch, update all issue statuses in the review file in one pass and append a single Revision Summary covering all batches.

@@ -13,7 +13,13 @@ Spawn the writer subagent to draft the design document.
 Write a design document for: <full user description and context from Step 0>.
 Save the document to: <design_doc_file>
 Save a summary to: <summary_file>
-The document must end with these two exact sections, in this specific order:
+
+Write ONLY to those two paths. Do NOT create files in the repo root or any other location. The repo is read-only for you — do not commit, branch, or edit source files.
+
+The document must end with these three exact sections, in this specific order:
+
+## Open Questions
+(Decisions that genuinely need user input, or "None" if all resolved.)
 
 ## Key Decisions
 (Summarize important architectural choices and rationale.)

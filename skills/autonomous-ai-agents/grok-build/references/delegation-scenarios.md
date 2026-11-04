@@ -11,8 +11,14 @@ anything:
 
 1. Prepare stable input files first with Hermes tools (`read_file`, `write_file`).
    Snapshot only relevant context into a temp file.
-2. Run Grok headless **without** `--always-approve` so it cannot auto-write; demand
+2. Run Grok headless **without**   `--always-approve` so it cannot auto-write; demand
    markdown only.
+   Pitfall: a headless `grok -p "<brief>"` with no `--max-turns` cap can
+   exceed the foreground timeout and exit 124 while still having written
+   partial filesystem changes before it died — verify the tree after every
+   headless run (especially on timeout) with the Delegation Verification
+   Protocol below; never assume a timed-out run left the tree untouched, and
+   cap long one-shots with `--max-turns` so a hang cannot run unbounded.
 3. Save stdout into the destination note with `write_file()`.
 
 Pitfall: for document rewrites, a loose "rewrite this" prompt may return a change
@@ -90,6 +96,7 @@ supervised run as untrusted until verified:
 
 When a delegated agent finishes work inside a worktree, do not trust its
 "done" summary — verify the worktree yourself before committing or pushing:
+0. **After reverting a divergent run, re-check the full `git status --short`, not just the tree.** A timed-out or off-brief run can leave staged deletions or renames (a ` D path` or `R` entry) even after the tracked-file changes look clean. A blanket `git checkout -- .` reverts the *working-tree* copy of tracked files but does NOT unstage or restore index entries — and it silently discards pre-existing uncommitted user work that was in the tree when you started. Capture the dirty state first (snapshot `git status --short` / the specific `git diff HEAD -- <path>` of user-modified files before the run), then after the run diff the status again and reconcile every unintended entry by path (`git reset HEAD -- <path>` to unstage, `git checkout HEAD -- <path>` to restore a deleted tracked file, re-apply or restore the pre-existing diff). Never `git add -A` or bare `git commit -a` in a shared multi-agent tree; commit only the explicitly staged paths from the fix, and re-check `git diff --cached --name-only` after every `git add` to catch files a parallel agent pre-staged.
 
 1. `git status --short` in the worktree: the agent may have left stray
    artifacts (scratch files it wrote at the repo root, e.g. a `commit-msg.txt`)
@@ -103,7 +110,12 @@ When a delegated agent finishes work inside a worktree, do not trust its
 3. Re-run the repo's own gate (in this repo: `CARGO_INCREMENTAL=0 cargo build
    --release && ./target/release/lint-arwaky-cli check .` expecting
    `Total: 0 violations`) on a clean tree before pushing. A green run on a
-   dirty tree proves nothing about the committed blob.
+   dirty tree proves nothing about the committed blob. GitHub-side follow-up:
+   `gh pr edit` against a repo with classic Projects can exit 1 on the
+   deprecation GraphQL warning (repository.pullRequest.projectCards) even
+   when the title/body write through — always re-read `gh pr view <n>
+   --json title,body,state,headRefOid` to confirm what actually landed
+   instead of trusting the exit code, and do not loop retrying the edit.
 4. Never trust a delegated agent's self-report that a gate passed —
    re-run the gate yourself against the exact commit that will be pushed,
    and verify that commit's blobs (e.g. `git show HEAD:<path>`) when in
