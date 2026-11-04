@@ -1,7 +1,7 @@
 ---
 name: hermes-agent
 description: "Use, configure, theme, extend, and orchestrate Hermes Agent — including multi-bot Telegram multiplex gateways and gateway persistence. Observed user phrasing: 'spawn sub agent / subagents to make all FRD becoming real', 'we need to spawn sub agent', 'can Hermes do X' / 'how do I set up X in Hermes', 'only spawn hermes', 'hanya spawn hermes', 'hermes' with a task to delegate."
-when-to-use: "Use when the user mentions Hermes, hermes CLI, TUI, skins/themes, desktop plugins, TUI widgets, pets, provider or model setup, spawning additional hermes instances or sub agents, multi-agent coordination, messaging-gateway bots, or asks 'can Hermes do X' / 'how do I set up X in Hermes'. Matches observed user phrasing: 'spawn sub agent / subagents to make all FRD becoming real', 'we need to spawn sub agent', 'only spawn hermes', 'hanya spawn hermes', 'can Hermes do X'."
+when-to-use: "Use when the user mentions Hermes, hermes CLI, TUI, skins/themes, desktop plugins, TUI widgets, pets, provider or model setup, spawning additional hermes instances or sub agents, multi-agent coordination, messaging-gateway bots, or asks 'can Hermes do X' / 'how do I set up X in Hermes'."
 argument-hint: "[<question | task>] [chat] [-q <query>] [-m <model>] [--provider <p>] [--resume <session> | --continue] [--oneshot | -Q] [--worktree]"
 metadata:
   tags:
@@ -22,92 +22,35 @@ metadata:
     - petdex
     - development
   related_skills:
-    - claude-code
-    - codex
-    - opencode
+    - resume-session
+    - omniroute
   homepage: "https://github.com/NousResearch/hermes-agent"
 ---
 
 # Hermes Agent
 
-Hermes Agent is an open-source AI agent framework by Nous Research that runs in your terminal, a native desktop app, messaging platforms, and IDEs. It's in the same category as Claude Code (Anthropic), Codex (OpenAI), and OpenClaw — autonomous coding and task-execution agents that use tool calling to interact with your system. Hermes works with any LLM provider (OpenRouter, Anthropic, OpenAI, Google, DeepSeek, xAI, local models, and 20+ others) and runs on Linux, macOS, Windows, and WSL.
+Hermes Agent is an open-source AI agent framework by Nous Research that runs in your terminal, a native desktop app, messaging platforms, and IDEs. It works with any LLM provider and runs on Linux, macOS, Windows, and WSL — self-improving through skills, persistent memory across sessions, a multi-platform gateway, and many surfaces driven by one agent core.
 
-What makes Hermes different:
+**This skill is a hub.** Load [`references/hub.md`](references/hub.md) for orientation (scope rule, quick start, key paths, surfaces). Everything task-specific lives in the reference the Routing table names — load it before answering; do not answer detail questions from the body alone.
 
-- **Self-improving through skills** — Hermes learns from experience by saving reusable procedures as skills that load into future sessions.
-- **Persistent memory across sessions** — remembers who you are, your preferences, environment details, and lessons learned. Pluggable memory backends.
-- **Multi-platform gateway** — the same agent runs on Telegram, Discord, Slack, WhatsApp, iMessage, Signal, Matrix, Teams, Email, and a dozen more platforms with full tool access, not just chat.
-- **Many surfaces** — the same agent core drives the CLI, the Ink TUI, a native Electron desktop app, a web dashboard, and an ACP server for IDEs (VS Code / Zed / JetBrains).
-- **Provider-agnostic** — swap models and providers mid-workflow; credential pools rotate across multiple API keys automatically.
-- **Profiles** — run multiple independent Hermes instances with isolated configs, sessions, skills, and memory.
-- **Extensible & themeable** — plugins, MCP servers, custom tools, webhook triggers, cron scheduling, skins that theme every surface, desktop UI plugins, TUI widgets, and pet mascots.
+## Global rules
 
-**This skill is a hub.** The body covers identity, quick start, and hard invariants. Everything else lives in reference files — **load the matching reference (below) before answering**; do not answer detail questions from the body alone.
+- **Never break prompt caching** — don't change past context, toolsets, or the system prompt mid-conversation. The only exception is context compression.
+- **Message role alternation** — never two assistant or two user messages in a row; only `tool` results can repeat.
+- **No unnecessary clarifying questions.** When the user's request is specific enough to act on, execute it. Only ask for clarification when the request is genuinely ambiguous and acting would change behavior in a way the user did not authorize. A path + flag is a directive, not a conversation opener.
+- **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
+- **Profile-safe paths** — `get_hermes_home()` in code, `$HERMES_HOME` when resolving paths in a session.
 
-**Siblings:** per-profile state, keys, and skill loading → `hermes-profiles`; shell hooks → `hermes-shell-hooks`; the routing table doubles as the cross-skill pointer table.
+- **Never hand-edit `config.yaml` for the user** — use `hermes config set KEY VAL`; a stray indent can corrupt the file and break the live gateway. List-valued keys are still CLI work, but only when the value is passed as a **JSON array literal** (`hermes config set skills.disabled '["a","b"]'`); the comma form stores a scalar that every later read treats as one bogus name, so it silently does nothing. Verify with `config get <key> --json`, which must print an array. The single sanctioned non-CLI writer is the ruamel round-trip, used when the file carries comments the CLI rewrite would destroy.
+- **Never stop/restart the gateway from inside the gateway process.** `systemctl --user stop hermes-gateway` (or any SIGTERM to the gateway) is blocked: the kill signal propagates to this very process's children, so the command dies before it completes. Restart the gateway with `hermes gateway restart` from a separate shell outside the running gateway. Desktop-app restarts follow the same rule — kill the *desktop* process, not the gateway.
+- **Two theming rules that hold even without loading the reference:** apply skins yourself (`hermes config set display.skin <name>` — every surface repaints live within ~a second; don't tell the user to run `/skin`), and to tweak one color, edit the ACTIVE skin (`hermes skin set <key> <hex>`) — never fork `default`, which drops the palette and resets the background.
+- **Spawning instances:** run additional Hermes processes as fully independent subprocesses — separate sessions, tools, and environments — never as in-process subagents.
 
-**Docs:** https://hermes-agent.nousresearch.com/docs/
-
-## Scope & Verification
-
-This skill is a concise operating guide, not the complete source of truth for every Hermes feature. If a Hermes feature, command, or setting is not mentioned here or in a reference, do not treat that absence as evidence that it does not exist. Check the live repository and official docs before giving a negative answer.
-
-Good verification targets, cheapest first:
-
-- **Every shipped feature, one line each: https://hermes-agent.nousresearch.com/docs/llms.txt.** Start here for any "can Hermes do X?" or "how do I do X?" — it indexes the entire documentation set with a link to the page that answers. It is generated from the docs tree on every build, so it is never behind the product. Fetch it with `web_extract`, or `curl -s https://hermes-agent.nousresearch.com/docs/llms.txt` when web tools are off. The whole documentation set in one file is at `/docs/llms-full.txt`.
-- CLI commands: `hermes --help`, `hermes <command> --help`, and `hermes_cli/main.py`
-- Source tree: https://github.com/NousResearch/hermes-agent
-
-Never answer "Hermes can't do that" from memory. Hermes ships far more than this skill body describes, and the index exists so a negative answer is always checkable.
-
-## Quick Start
-
-```bash
-# Install (shell installer — sets up uv, Python, the venv, and the launcher)
-curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
-
-# Interactive chat (default surface; set display.interface: tui to launch the Ink TUI instead)
-hermes
-
-# Single query
-hermes chat -q "What is the capital of France?"
-
-# Setup wizard  /  pick model+provider  /  health check
-hermes setup
-hermes model
-hermes doctor
-
-# Other surfaces
-hermes desktop                 # launch the native desktop app (alias: hermes gui)
-hermes dashboard               # web admin panel + embedded chat
-hermes proxy                   # OpenAI-compatible local proxy backed by your OAuth provider
-
-```text
-
-## Key Paths
-
-```text
-~/.hermes/config.yaml       Main configuration (settings — never secrets)
-~/.hermes/.env              API keys and secrets ONLY (under $HERMES_HOME if set)
-$HERMES_HOME/skills/        Installed skills
-~/.hermes/skins/            Custom themes (see references/themes.md)
-~/.hermes/desktop-plugins/  Desktop app UI plugins (see references/desktop-plugins.md)
-~/.hermes/tui-widgets/      TUI widget apps (see references/tui-widgets.md)
-~/.hermes/pets/             Installed pet mascots (see references/petdex.md)
-~/.hermes/state.db          Canonical session store (SQLite + FTS5)
-~/.hermes/sessions/         Gateway routing index, request dumps, *.jsonl transcripts
-~/.hermes/logs/             Gateway and error logs
-~/.hermes/auth.json         OAuth tokens and credential pools
-~/.hermes/hermes-agent/     Source code (if git-installed)
-
-```text
-
-Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile is active, resolve the real home from `$HERMES_HOME` — never hardcode `~/.hermes`.
-
-## Routing Table — load the reference for the task
+## Routing
 
 | User wants... | Load |
 |---|---|
+| Orientation: scope rule, quick start, key paths, surfaces | `references/hub.md` |
 | **Anything not listed below — "can Hermes do X?", "how do I set up X?"** | **https://hermes-agent.nousresearch.com/docs/llms.txt** |
 | Bots that chat, run routines, or message each other; the Bots tab | docs: `/user-guide/bot-mode` |
 | CLI commands, subcommands, flags, "how do I run X" | `references/cli-reference.md` |
@@ -116,8 +59,6 @@ Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile i
 | config.yaml sections, toolsets, voice/STT/TTS | `references/configuration.md` |
 | AGENTS.md / .hermes.md / CLAUDE.md project rules | `references/project-context-files.md` |
 | Standing behavior, identity, or task routing that must hold in every session | `references/soul-md-routing.md` |
-| Per-profile state: config, keys, skills, SOUL.md | sibling skill `hermes-profiles` |
-| Shell hooks (pre/post tool guards) per profile | sibling skill `hermes-shell-hooks` |
 | Secret redaction, PII, approval modes, "reset permissions" | `references/security-privacy.md` |
 | Delegation, cron, curator, kanban | `references/background-systems.md` |
 | MCP servers (add, catalog, `hermes mcp`) | `references/native-mcp.md` |
@@ -142,26 +83,3 @@ Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile i
 The reference list above is not the feature list — it is the set of topics that
 need more than their docs page. For everything else Hermes ships, fetch
 `llms.txt` and it maps the question to the page that answers it.
-
-Two theming rules that hold even without loading the reference: **you apply skins yourself** (`hermes config set display.skin <name>` — every surface repaints live within ~a second; don't tell the user to run `/skin`), and **to tweak one color, edit the ACTIVE skin** (`hermes skin set <key> <hex>`) — never fork `default`, which drops the palette and resets the background.
-
-## Spawning Additional Hermes Instances
-
-Run additional Hermes processes as fully independent subprocesses — separate sessions, tools, and environments. For the full procedure (one-shot, tmux PTY, multi-agent, resume, tips), load [references/spawning.md](references/spawning.md).
-
-## Surfaces (quick orientation)
-
-- **Desktop app** (`hermes desktop` / `hermes gui`) — native Electron app for macOS/Linux/Windows: streaming chat, session list, Cmd+K palette, drag-and-drop files, native notifications, per-profile remote-gateway login. Extend it with UI plugins — `references/desktop-plugins.md`.
-- **Web dashboard** (`hermes dashboard`) — full admin panel: messaging channels, MCP catalog, webhooks, memory, profile builder, plus an embedded `hermes --tui` chat. Secured behind an OAuth/token gate.
-- **Ink TUI** (`hermes --tui` or `display.interface: tui`) — terminal UI with docked widget apps — `references/tui-widgets.md`.
-- **OpenAI-compatible proxy** (`hermes proxy`) — a local OpenAI API backed by whichever OAuth provider you're signed into. Point Codex CLI, Aider, Cline, or any script at it — no API key.
-
-## Hard Invariants (never violate, regardless of what you loaded)
-
-- **Never break prompt caching** — don't change past context, toolsets, or the system prompt mid-conversation. The only exception is context compression.
-- **Message role alternation** — never two assistant or two user messages in a row; only `tool` results can repeat.
-- **No unnecessary clarifying questions.** When the user's request is specific enough to act on, execute it. Only ask for clarification when the request is genuinely ambiguous and acting would change behavior in a way the user did not authorize. A path + flag is a directive, not a conversation opener.
-- **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
-- **Profile-safe paths** — `get_hermes_home()` in code, `$HERMES_HOME` when resolving paths in a session.
-- **Never hand-edit `config.yaml` for the user** — use `hermes config set KEY VAL`; a stray indent can corrupt the file and break the live gateway. List-valued keys are still CLI work, but only when the value is passed as a **JSON array literal** (`hermes config set skills.disabled '["a","b"]'`); the comma form stores a scalar that every later read treats as one bogus name, so it silently does nothing. Verify with `config get <key> --json`, which must print an array. The single sanctioned non-CLI writer is the ruamel round-trip, used when the file carries comments the CLI rewrite would destroy.
-- **Never stop/restart the gateway from inside the gateway process.** `systemctl --user stop hermes-gateway` (or any SIGTERM to the gateway) is blocked: the kill signal propagates to this very process's children, so the command dies before it completes. Restart the gateway with `hermes gateway restart` from a separate shell outside the running gateway. Desktop-app restarts follow the same rule — kill the *desktop* process, not the gateway.
