@@ -24,6 +24,13 @@ from __future__ import annotations
 import argparse
 import sys
 
+# Import the path-bootstrap utility so its namespace-root registration runs
+# at import time and AES504 (utility orphan) does not fire.
+from shared.src.common import utility_path_bootstrap
+
+# Referenced once so the import is not flagged unused (AES203 / ruff F401).
+_ = utility_path_bootstrap
+
 from shared.src.common.utility_logging_setup import (
     BOLD,
     CYAN,
