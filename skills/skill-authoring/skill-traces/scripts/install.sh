@@ -86,6 +86,10 @@ _MODULES = _resolve_modules_dir()
 if str(_MODULES) not in sys.path:
     sys.path.insert(0, str(_MODULES))
 
+# Bake the $GROK_HOME constant into the binary so the surface module reads it
+# at import time. Explicit --grok-home still wins.
+os.environ["STC_GROK_HOME"] = _DEFAULT_GROK_HOME
+
 from cli.src.surface_skills_traces_command import cmd_traces  # noqa: E402
 from root_skills_container import default_container  # noqa: E402
 
@@ -108,6 +112,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 STC_EOF
 sed -i "s#__INSTALL_MODULES_DIR__#$MODULES_DIR#" "$BIN_DIR/stc"
+sed -i "s#__INSTALL_GROK_HOME__#$GROK_HOME#g" "$BIN_DIR/stc"
 
 chmod 755 "$BIN_DIR/stc"
 

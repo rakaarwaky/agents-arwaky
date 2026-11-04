@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import tempfile
+from pathlib import Path
 
 # Import the path-bootstrap utility so its namespace-root registration runs
 # at import time and AES504 (utility orphan) does not fire.
@@ -31,10 +33,15 @@ _EXIT_WAIT_PHASE_STALL = SkillsExitCode.ISSUES_FOUND
 _EXIT_WAIT_REPORT_STALL = SkillsExitCode.CATALOG_DRIFT
 _EXIT_WAIT_DEADLINE = SkillsExitCode.USAGE_ERROR
 
-#: Default $GROK_HOME: read from the GROK_HOME env var, else fall back to ~/.grok.
-_GROK_HOME_DEFAULT: str = __import__("os").environ.get("GROK_HOME") or __import__("os").path.expanduser(
-    "~/.grok"
-)
+#: Default $GROK_HOME: read from STC_GROK_HOME env var (set by the stc binary
+# to the path baked at install time), else fall back to ~/.grok.
+_GROK_HOME_DEFAULT = os.environ.get("STC_GROK_HOME") or str(Path.home() / ".grok")
+
+def _default_grok_home() -> str:
+    """Return the absolute $GROK_HOME baked into the binary, or ~/.grok."""
+    import pathlib
+
+    return str(pathlib.Path.home() / ".grok")
 
 _WAIT_EXIT = {
     TraceStateStatus.REPORT_READY: _EXIT_WAIT_READY,
