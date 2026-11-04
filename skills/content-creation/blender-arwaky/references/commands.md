@@ -77,6 +77,16 @@ blender-arwaky execute-blender-code --code '<python code>'
 
 CLI memakai command kebab-case satu-per-tool; MCP memakai `execute_command(action="<action_name>", args={...})` dengan action snake_case. Keduanya dipetakan dari catalog yang sama.
 
+### The five MCP tools
+
+| Tool | Purpose |
+|------|---------|
+| `execute_command` | Universal action executor — dispatches any action from the catalog. Shape: `{"action": "action_name", "args": {"param": "value"}}` |
+| `list_commands` | Discover available actions and parameters. Shape: `{"domain": "scene"}` — or `"object"`, `"viewport"`, `"render"`, `"io"`, `"infrastructure"`, `"all"` |
+| `health_check` | Verify Blender connectivity and system health |
+| `get_config` | Retrieve BlenderArwaky configuration settings |
+| `help` | Read embedded MCP and CLI usage guidance |
+
 ### Parameter Details
 
 | Action | Parameters | Description |
