@@ -17,9 +17,6 @@ from pathlib import Path
 SLASH_RE = re.compile(r"(?<![\w/~.])/([a-z][a-z0-9-]{1,63})\b(?!/)")
 WORD_RE = re.compile(r"\s+")
 
-from shared.src.common.taxonomy_skill_vo import (
-    extract_skill_name,
-)
 from shared.src.skills_traces.taxonomy_skills_constant import (
     IGNORED_CATEGORY_DIRS,
 )
@@ -40,7 +37,21 @@ def default_pack_root() -> Path:
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:
     """Return ``(name, description)`` from a SKILL.md, falling back to the dir."""
     fallback_name = skill_md.parent.name
-    name, description = extract_skill_name(skill_md)
+    try:
+        text = skill_md.read_text(encoding="utf-8", errors="replace")
+        m = re.search(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
+        name = fallback_name
+        description = ""
+        if m:
+            nm = re.search(r"^name:\s*[\"']?(.+?)[\"']?\s*$", m.group(1), re.MULTILINE)
+            if nm:
+                name = nm.group(1).strip()
+            dm = re.search(r"^description:\s*[\"']?(.+?)[\"']?\s*$", m.group(1), re.MULTILINE)
+            if dm:
+                description = dm.group(1).strip()
+    except OSError:
+        name = fallback_name
+        description = ""
     return (name or fallback_name, description)
 
 

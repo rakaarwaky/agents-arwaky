@@ -18,15 +18,34 @@ for _ns in (_MOD_ROOT, _REPO_ROOT):
     if _ns.is_dir() and _ns_str not in sys.path:
         sys.path.insert(0, _ns_str)
 
-# Extend the root ``shared`` package __path__ with BOTH skill trees' shared/src
-# so ``shared.src.skills_traces`` and ``shared.src.skills_design`` resolve
-# even when root modules/shared was imported first.
+# Extend shared.src.__path__ with ALL shared/src trees so
+# shared.src.skills_design and shared.src.skills_traces resolve regardless
+# of which conftest loads first or which ``shared`` package wins import.
 try:
-    import shared as _shared_pkg
-    _design_shared = _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "shared" / "src"
-    _traces_shared = _MOD_ROOT / "shared" / "src"
-    for _ext in (_design_shared, _traces_shared):
-        if _ext.is_dir() and str(_ext) not in _shared_pkg.__path__:
-            _shared_pkg.__path__.append(str(_ext))
+    import shared.src as _shared_src_pkg
+    _src_dirs = [
+        _REPO_ROOT / "modules" / "shared" / "src",
+        _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "shared" / "src",
+        _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "shared" / "src",
+    ]
+    for _ext in _src_dirs:
+        if _ext.is_dir() and str(_ext) not in _shared_src_pkg.__path__:
+            _shared_src_pkg.__path__.append(str(_ext))
+except ImportError:
+    pass
+
+# Extend cli.src.__path__ with ALL cli/src trees so both
+# cli.src.surface_skills_command and cli.src.surface_skills_traces_command
+# resolve regardless of which tree's ``cli`` package wins import.
+try:
+    import cli.src as _cli_src_pkg
+    _cli_src_dirs = [
+        _REPO_ROOT / "modules" / "cli" / "src",
+        _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "cli" / "src",
+        _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "cli" / "src",
+    ]
+    for _ext in _cli_src_dirs:
+        if _ext.is_dir() and str(_ext) not in _cli_src_pkg.__path__:
+            _cli_src_pkg.__path__.append(str(_ext))
 except ImportError:
     pass
