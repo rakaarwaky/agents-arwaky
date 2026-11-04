@@ -370,7 +370,6 @@ script are pinned by the surface and contract test files.
 |----------------|------------------------------------------|
 | Dry-run safety | filesystem unchanged after every preview |
 
-
 ## Public Interface
 
 | Aspect    | Detail           |

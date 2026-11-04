@@ -18,20 +18,10 @@ from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
-from shared.src.skills_traces.taxonomy_skills_constant import (
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
-)
 from shared.src.skills_traces.taxonomy_skills_entity import (
     CategorySummary,
     Issue,
     SkillEntry,
-)
-from shared.src.skills_traces.taxonomy_skills_rule_vo import (
-    IssueType,
-    Level,
-    Rule,
 )
 from shared.src.skills_traces.taxonomy_skills_vo import (
     GrokHome,
@@ -152,15 +142,6 @@ class ISkillsTraceStateProtocol(ABC):
 
 
 __all__ = [
-    "NAME_MAX",
-    "NAME_MIN",
-    "NAME_RE",
-    "CategorySummary",
     "ISkillsTraceScanProtocol",
     "ISkillsTraceStateProtocol",
-    "Issue",
-    "IssueType",
-    "Level",
-    "Rule",
-    "SkillEntry",
 ]

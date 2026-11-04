@@ -35,7 +35,7 @@ report-stall / 2 deadline.
 
 #### Business Logic
 
-- `traces` is a fully functional CLI surface verb — `aa skills traces <action>` routes to the traces surface command
+- `traces` is a fully functional CLI surface verb — `stc traces <action>` routes to the traces surface command
 - `collect` scans sessions and builds the usage report
 - `usage` reads the last run's usage report
 - `phrases` mines repeated prompts and instruction lines
@@ -47,8 +47,8 @@ report-stall / 2 deadline.
 
 - Missing run dir for `materialize` is a usage error (exit 2)
 - `state wait` blocks until `report.md` + `actions.json` exist; phase-stall exits 1, report-stall exits 3, deadline exits 2
-- `aa skills traces` with no sub-action prints usage and exits 2
-- `aa skills traces <unknown>` exits 2 with an unknown-action error
+- `stc traces` with no sub-action prints usage and exits 2
+- `stc traces <unknown>` exits 2 with an unknown-action error
 
 #### Technical Specification
 
@@ -56,7 +56,7 @@ report-stall / 2 deadline.
 |--------------|---------------------------------------------------------------------------------------------------------------|
 | **Input**    | action sub-command; optional flags per action                                                                 |
 | **Output**   | scan results, usage reports, phrase reports, state transitions                                                |
-| **Protocol** | ISkillsTracesProtocol                                                                                         |
+| **Protocol** | ISkillsTraceScanProtocol, ISkillsTraceStateProtocol                                         |
 | **Method**   | scan\_sessions / build\_usage / build\_phrases / set\_status / get\_status / trash / decide / wait / dispatch |
 | **Event**    | —                                                                                                             |
 | **Error**    | unknown action → usage error (exit 2); missing run dir → usage error (exit 2)                                 |
@@ -65,9 +65,9 @@ report-stall / 2 deadline.
 
 | Context         | When Action                                | Then Observable Result                    |
 |-----------------|--------------------------------------------|-------------------------------------------|
-| CLI access      | `aa skills traces <action>`               | routes to `cmd_traces`, executes action   |
-| CLI no action   | `aa skills traces`                        | usage help printed, exit 2                |
-| CLI unknown     | `aa skills traces frobnicate`             | unknown-action error, exit 2              |
+| CLI access      | `stc traces <action>`               | routes to `cmd_traces`, executes action   |
+| CLI no action   | `stc traces`                        | usage help printed, exit 2                |
+| CLI unknown     | `stc traces frobnicate`             | unknown-action error, exit 2              |
 | Collect         | agent op `traces` action=collect           | sessions scanned, usage built, exit 0     |
 | Wait ready      | agent op `traces` state=wait, files present | exit 0                                    |
 | Phase stall     | agent op `traces` state=wait, phase stall | exit 1                                    |
