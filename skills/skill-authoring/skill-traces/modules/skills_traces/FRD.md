@@ -29,7 +29,7 @@ report-stall / 2 deadline.
 
 ## Functional Requirements
 
-### FR-SkillsTraces-009: Trace Learning Lifecycle
+### FR-SkillsTraces-001: Trace Learning Lifecycle
 
 **Description:** Scan sessions, build skills-only usage, mine repeated phrases, materialize on-disk artifacts, and drive the trace-learning state machine (status, trash, decisions, wait).
 

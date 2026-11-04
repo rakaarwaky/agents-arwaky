@@ -27,7 +27,6 @@ from shared.src.skills_traces.taxonomy_skills_entity import (
     SkillEntry,
 )
 from shared.src.skills_traces.taxonomy_skills_rule_vo import (
-    CategoryName,
     IssueType,
     Level,
     Rule,
@@ -158,9 +157,9 @@ class ISkillsTraceStateProtocol(ABC):
 
 __all__ = [
     "CategorySummary",
-    "Issue",
     "ISkillsTraceScanProtocol",
     "ISkillsTraceStateProtocol",
+    "Issue",
     "IssueType",
     "Level",
     "Rule",

@@ -56,7 +56,22 @@ Pack root is hardcoded to `skills/`; no `--skills-root` or `--json`.
 | Artifact     | Purpose                                    | Link |
 |--------------|--------------------------------------------|------|
 | PRD          | Business goals and scope                   | [PRD.md](../../../../../PRD.md) |
-| Data         | Value objects, constants, and envelopes    | [DATA.md](../../shared/DATA.md) |
+| Data         | Value objects, constants, and envelopes    | [DATA.md](../shared/DATA.md) |
 | Design       | Visual & interaction contract              | [DESIGN.md](DESIGN.md) |
 | Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../../../../ROADMAP.md) |
 | Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
+
+## Reference (FR IDs declared in FRD)
+
+### FR-SkillsTraces-010: Trace Learning State Protocol
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `ISkillsTraceStateProtocol` in `contract_skills_protocol.py` |
+|              | implements status, trash, decisions, wait, restrict, and     |
+|              | dispatch; covered by `unit_skills_state.py` and              |
+|              | `e2e_skills_trace_commands.py`.                               |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-04                                                   |
