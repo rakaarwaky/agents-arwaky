@@ -1,4 +1,4 @@
-# Desktop Target — Toolset and Workflow
+# Step 1 — Desktop Target
 
 QA workflow for native desktop GUI apps using `computer_use` (cua-driver).
 See the [computer-use skill](../../automation/computer-use/SKILL.md) for the full
@@ -42,7 +42,7 @@ toolset and the verify → escalate ladder.
 - Test error dialogs: what happens when the app is given a bad input file?
 - Don't interact with the user's personal browser tabs (email, banking,
   Messages) unless that's the actual task.
-# Issue Taxonomy — Desktop
+## Issue Taxonomy — Desktop
 
 Desktop-GUI-specific category detail. Shared severity levels and universal
 

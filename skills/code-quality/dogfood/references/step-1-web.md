@@ -1,4 +1,4 @@
-# Web Target — Toolset and Workflow
+# Step 1 — Web Target
 
 Full web QA workflow using the `browser_*` toolset. This is the original dogfood
 flow, preserved unchanged.
@@ -32,7 +32,7 @@ For each page or feature:
 - Test keyboard navigation (Tab, Enter, Escape) for accessibility.
 - Check empty states, 404 pages, and broken external links.
 - Note layout issues visible in screenshots (overlapping elements, broken grids).
-# Issue Taxonomy — Web
+## Issue Taxonomy — Web
 
 Web-specific category detail. Shared severity levels and universal categories
 

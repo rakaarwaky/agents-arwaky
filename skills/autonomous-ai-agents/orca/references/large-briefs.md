@@ -51,13 +51,15 @@ Inline `--prompt "…"` is fine for short, single-paragraph instructions.
    ```
    The `accepted: true` in the receipt confirms the input reached the terminal.
 
-5. **Verify the agent picked it up** with `terminal read` — the tail should
-   show the agent reading `BRIEF.md` and starting to think or act:
+5. **Monitor completion with short repeating polls** — never one long block. Size each wait to the expected task duration (e.g. 5 min for a ~30-min job) and re-check the tail between polls:
    ```bash
-   ORCA terminal read --terminal <handle> --limit 40 --json
+   $ORCA terminal wait --terminal <handle> --for tui-idle --timeout-ms 300000 --json
+   # ok:false (timeout) is ambiguous by design: read the tail to decide
+   $ORCA terminal read --terminal <handle> --limit 40 --json
+   # status 'running' + fresh output → still working → next poll
+   # status idle/exited → recap on screen → verify the work on disk, then act
    ```
-   If the tail shows no activity after a reasonable wait, re-check the handle
-   and retry the wait.
+   Six 5-min polls beat one 30-min block: a single long cap that expires mid-task fires a "timeout" that looks like a clean completion, and a cap far longer than the task burns a blocking slot. Only a tail check tells you whether to keep waiting or move on.
 
 ## Pitfalls
 

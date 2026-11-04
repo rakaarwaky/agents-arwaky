@@ -1,6 +1,10 @@
 # Self-lint job (architecture enforcement)
 
-Split from `SKILL.md` §1 (GitHub Actions workflow).
+The `self-lint` job in `.github/workflows/ci.yml`, split out of the
+job table in `ci-workflow.md`.
+
+**Goal:** CI fails on the repo's own architecture violations, and the
+AES rule engine still fires on the bad fixture.
 
 This is the differentiator: the repo lints **itself** with its own
 architecture rules (AES 7-layer system). CI fails if the codebase violates
@@ -27,3 +31,8 @@ echo "Unique codes: ${codes:-0}"
 
 Use `cargo build --release` (or `--bin lint-arwaky-cli`) before these
 steps so the binary exists under `./target/release/`.
+## Completion
+
+- The exit code of `lint-arwaky-cli check .` is authoritative and
+  non-zero violations fail the job.
+- `scan workspaces-bad` reports ≥ 24 unique AES codes.

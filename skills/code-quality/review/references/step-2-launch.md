@@ -30,7 +30,7 @@ All 10 personas when no persona flag is given (the bare form) or when `--all` is
 
 Each subagent is seeded with exactly one persona. Build its prompt from that persona's `instructions`, then this module context. Substitute per-persona values plus the resolved absolute `scratch_dir`, `PYTHON`, `HOST_PY`, `REVIEW_ID`, and `target`.
 
-```
+```text
 <persona_instructions>
 
 ---

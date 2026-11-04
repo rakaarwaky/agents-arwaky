@@ -1,4 +1,4 @@
-# Going deeper — read the cua-driver skill pack
+# Step 4 — Going deeper: the cua-driver skill pack
 
 Hermes intentionally keeps THIS skill focused on the Hermes-side
 `computer_use` action vocabulary. The platform-specific deep dives
@@ -36,3 +36,7 @@ do differently.
 Hermes autodetection is a planned follow-up in trycua/cua. For now, the command
 installs the pack under `~/.cua-driver/skills/cua-driver`; point Hermes at that
 directory or symlink it into the user's skill space.
+
+## Completion
+
+- The platform-specific symptom (e.g. "on Windows the click landed on the wrong element") was answered by reading the matching deep-dive file (`WINDOWS.md`, `MACOS.md`, `LINUX.md`, …) rather than guessing.

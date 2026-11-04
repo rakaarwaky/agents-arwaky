@@ -42,6 +42,14 @@ referenced in the surviving body are deleted.
 
 Dropped duplicates are archived into `_archive/` via `sdc archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. Rebuild the catalog after archiving with `sdc catalog`.
 
+## Manual merge notes
+
+When performing a merge by hand instead of through `skill-design --prune`:
+
+- **Sync both trees.** The live skill tree (`~/.hermes/skills/<category>/<skill>/`) and any linked worktree copy must both receive the merge. `skill_manage(action='delete', absorbed_into=<survivor>)` removes the dropped skill from the live tree; the worktree deletion is a separate `git rm`/`git commit` step. A merge applied to only one tree leaves dangling references that fail `aa skills lint`.
+- **skill_manage delete.** `skill_manage(action='delete', absorbed_into=<survivor>)` is the Hermes-native way to remove a dropped skill from the live tree; `aa skills archive CATEGORY/SKILL --apply` is the `aa`-tooling equivalent. Either works, but do not run both for the same skill.
+- **Staging discipline for merges.** The index is shared with parallel agents. After `git add <path>`, verify `git diff --cached --name-only` lists only your task files; unstage anything else with `git reset HEAD -- <path>`. Never `git add -A` or `git commit -a`. If a commit sweeps in unrelated pre-staged files, `git reset HEAD~1 -- <unrelated paths>` then `git commit --amend --no-edit` scopes it back to your task files only; verify with `git show --stat <sha>`.
+
 ## Empty Category Cleanup
 
 If deleting duplicate skills leaves a category folder entirely empty (no skill

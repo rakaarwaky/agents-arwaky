@@ -1,4 +1,4 @@
-# Terminal / TUI Target — Toolset and Workflow
+# Step 1 — Terminal / TUI Target
 
 QA workflow for command-line tools and terminal user interface (TUI) apps.
 
@@ -65,7 +65,7 @@ QA workflow for command-line tools and terminal user interface (TUI) apps.
 - Non-interactive mode (`</dev/null` stdin) must not hang indefinitely.
 - Respect `TERM` and `LANG`/`LC_ALL`; test with `TERM=dumb` and `LANG=C`.
 - Test with very long lines and Unicode input for mojibake or truncation.
-# Issue Taxonomy — Terminal / TUI
+## Issue Taxonomy — Terminal / TUI
 
 Terminal- and TUI-specific category detail. Shared severity levels and universal
 

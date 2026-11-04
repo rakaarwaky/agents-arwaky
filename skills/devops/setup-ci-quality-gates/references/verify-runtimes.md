@@ -1,5 +1,8 @@
 # Verify both runtimes
 
+**Goal:** both the host and container gate runs are green, and the
+container really has the browser, not just the Python package.
+
 Run both runtimes and confirm they reach the same gates:
 
 ```bash
@@ -23,3 +26,9 @@ with sync_playwright() as p:
 
 `--entrypoint` is required: an image whose `ENTRYPOINT` is the app binary
 will interpret your `-c` as a subcommand.
+
+## Completion
+
+- `bash scripts/ci.sh` and `bash scripts/ci.sh --container` both exit
+  0.
+- The container launch prints `Chromium OK — viewport: ...`.

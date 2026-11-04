@@ -90,6 +90,7 @@ Your review should focus on:
 - Whether tests are maintainable and not overly coupled to implementation details
 - Whether integration tests exist for new endpoints or interfaces
 - Whether mocking is used appropriately (not over-mocking)
+- **Move/rename tasks — verify the moved test infrastructure itself** (the implementer's test counts prove collection at run time, not that the config is correct): test-runner config entries (testpaths/test globs, CI step paths) point at directories that actually match the test-file patterns — a package root whose tests live in a `tests/` subpackage collects 0 tests from that entry; verify with a bare collection run, not explicit-path runs. New bootstrap files (conftest.py, sys.path setup) are tracked in git, and a plain interpreter from the repo root resolves the new package names. Compare test counts old vs. new location — a silent drop means a glob or pattern stopped matching. Any new bootstrap or dispatch code the move introduced has at least one automated test exercising it.
 
 Do NOT review for general code style, naming, or architecture — another reviewer handles that.
 

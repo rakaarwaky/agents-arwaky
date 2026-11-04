@@ -40,7 +40,7 @@ Initialize run state for later steps:
 
 The user runs:
 
-```
+```text
 /systematic-debugging <issue-or-error> [--phase <1|2|3|4>] [--lang <python|typescript|rust|node>] [--repro <command>]
 ```
 

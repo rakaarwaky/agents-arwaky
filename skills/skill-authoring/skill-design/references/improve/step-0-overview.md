@@ -20,3 +20,4 @@ Run the steps in order.
 | 10 | [`step-10-information-distribution.md`](step-10-information-distribution.md) | The information-distribution test + rules. |
 | 11 | [`step-11-reference-pattern.md`](step-11-reference-pattern.md) | The reference-pattern decision (Patterns A/B/C). |
 | 12 | [`step-12-apply.md`](step-12-apply.md) | Apply the 9-point edit recipe; verify with lint + pre-publish checklist. |
+| 13 | [`step-13-pattern-b-variants.md`](step-13-pattern-b-variants.md) | Restructure a skill's `references/` into `step-<N>[a|b|c]` variants: split per-language monoliths at phase boundaries, rename flat files to step numbers, sync safety-model semantics, verify final shape. |

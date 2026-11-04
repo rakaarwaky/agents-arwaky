@@ -1,4 +1,4 @@
-# Mobile Target — Toolset and Workflow
+# Step 1 — Mobile Target
 
 QA workflow for Android apps on an AOSP emulator via `adb`.
 See the [android-emulator-linux-gps skill](../../automation/android-emulator-linux-gps/SKILL.md)
@@ -80,7 +80,7 @@ for AVD setup, ABI selection, and headless operation.
   an accessibility failure.
 - Test background/foreground transitions — does the app lose scroll position or
   form state?
-# Issue Taxonomy — Mobile (Android)
+## Issue Taxonomy — Mobile (Android)
 
 Android-specific category detail. Shared severity levels and universal categories
 

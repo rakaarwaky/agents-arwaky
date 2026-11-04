@@ -1,4 +1,4 @@
-# Failure modes — what to do when things go sideways
+# Step 3 — Failure modes: what to do when things go sideways
 
 | Symptom | Likely cause + remedy |
 |---|---|
@@ -9,3 +9,8 @@
 | Type text disappears into a terminal emulator | cua-driver detects terminals (Ghostty, iTerm2, Terminal.app, Windows Terminal, mintty, etc.) and routes through key-event synthesis — should "just work" on a recent cua-driver. If it doesn't, ask the user to run `hermes computer-use doctor` |
 | `blocked pattern in type text` | You tried to `type` a shell command matching the dangerous-pattern block list (`curl ... \| bash`, `sudo rm -rf`, etc.). Break the command up or reconsider |
 | Anything else weird | **First action: ask the user to run `hermes computer-use doctor`.** It runs the cua-driver `health_report` MCP tool and prints a structured per-check matrix. Their output tells you (and them) exactly what's wrong |
+
+## Completion
+
+- Each symptom the run hit was matched against the table above and its remedy applied; anything not in the table went to `hermes computer-use doctor`.
+- No conclusion of "the app is undrivable" was made without first exhausting the ladder in [step-1-verify-escalate-ladder.md](step-1-verify-escalate-ladder.md).

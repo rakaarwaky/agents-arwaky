@@ -1,12 +1,14 @@
-# General QA Rules (all target types)
+# Shared QA Rules and Issue Taxonomy (all target types)
 
-Shared evidence protocol, categorize rules, and report requirements that apply to
-every target type. The 5-phase pipeline lives in `workflow.md`. Per-target
-toolsets live in `web.md`, `terminal.md`, `desktop.md`, and `mobile.md`.
+Shared evidence protocol, categorize rules, report requirements, and issue
+taxonomy that apply to every target type. The pipeline is `step-0-plan` →
+explore (per-target reference) → collect evidence → categorize → report.
+Per-target toolsets live in `step-1-web.md`, `step-1-terminal.md`,
+`step-1-desktop.md`, and `step-1-mobile.md`.
 
 ## Output directory layout
 
-```
+```text
 {output_dir}/
 ├── screenshots/       # Visual evidence (web, desktop, mobile)
 ├── transcripts/       # Terminal output (terminal/TUI)
@@ -30,7 +32,7 @@ For every issue found, regardless of target type:
    - Evidence path (screenshot or transcript)
    - Runtime log lines if relevant (console errors, logcat, stderr)
 3. **Classify** using the issue taxonomy section of the matching per-target
-   reference file (`web.md`, `terminal.md`, `desktop.md`, or `mobile.md`).
+   reference file (`step-1-web.md`, `step-1-terminal.md`, `step-1-desktop.md`, or `step-1-mobile.md`).
    Severity and category are target-aware.
 
 ## Categorize rules
@@ -65,13 +67,13 @@ to `{output_dir}/report.md`. The report must include:
   repeated actions.
 - De-duplicate before reporting — the same bug often surfaces in multiple places.
 
-# Issue Taxonomy — General (all target types)
+## Issue Taxonomy (all target types)
 
 Shared severity levels and universal categories that apply to every target type.
 
-## Severity Levels
+### Severity Levels
 
-### Critical
+#### Critical
 The issue makes a core feature completely unusable or causes data loss.
 
 **Examples (all targets):**
@@ -82,7 +84,7 @@ The issue makes a core feature completely unusable or causes data loss.
 - Security vulnerability (XSS, exposed credentials in console or logs)
 - Uncaught exception in `logcat` (mobile) or fatal panic (terminal)
 
-### High
+#### High
 The issue significantly impairs functionality but a workaround may exist.
 
 **Examples:**
@@ -95,7 +97,7 @@ The issue significantly impairs functionality but a workaround may exist.
 - Terminal command hangs on non-interactive stdin instead of failing fast
 - App does not return to the expected screen on back navigation (mobile)
 
-### Medium
+#### Medium
 The issue is noticeable and affects user experience but doesn't block core functionality.
 
 **Examples:**
@@ -108,7 +110,7 @@ The issue is noticeable and affects user experience but doesn't block core funct
 - TUI colors or alignment break under specific TERM values or in a specific terminal emulator
 - Desktop app window restores at wrong size or position on relaunch
 
-### Low
+#### Low
 Minor polish issues that don't affect functionality.
 
 **Examples:**
@@ -121,11 +123,11 @@ Minor polish issues that don't affect functionality.
 - Touch target smaller than 48 dp (mobile) but still tappable
 - TUI missing a help hint or keyboard-shortcut legend
 
-## Categories (universal)
+### Categories (universal)
 
 These categories apply to every target type.
 
-### Functional (all)
+#### Functional (all)
 Issues where features don't work as expected.
 - Buttons / links / commands that don't respond
 - Forms that don't submit or submit incorrectly
@@ -133,7 +135,7 @@ Issues where features don't work as expected.
 - Incorrect data displayed
 - Features that work partially
 
-### Visual (all)
+#### Visual (all)
 Issues with the visual presentation.
 - Layout problems (overlapping elements, broken grids)
 - Broken images or missing media
@@ -142,7 +144,7 @@ Issues with the visual presentation.
 - Z-index issues
 - Text overflow or truncation
 
-### Accessibility (all)
+#### Accessibility (all)
 Issues that prevent or hinder access for users with disabilities.
 - Missing alt text on meaningful images
 - Poor color contrast (fails WCAG AA)
@@ -151,7 +153,7 @@ Issues that prevent or hinder access for users with disabilities.
 - Focus indicators missing or unclear
 - Screen reader incompatible content
 
-### Console (all)
+#### Console (all)
 Issues detected through runtime log output.
 - Uncaught exceptions and unhandled promise rejections
 - Failed network requests (4xx, 5xx)
@@ -159,7 +161,7 @@ Issues detected through runtime log output.
 - CORS errors
 - Excessive console.log output left from development
 
-### UX (all)
+#### UX (all)
 Issues where functionality works but the experience is poor.
 - Confusing navigation or information architecture
 - Missing loading indicators
@@ -168,7 +170,7 @@ Issues where functionality works but the experience is poor.
 - Missing confirmation dialogs for destructive actions
 - Poor error messages that don't help the user recover
 
-### Content (all)
+#### Content (all)
 Issues with the text, media, or information on the surface.
 - Typos and grammatical errors
 - Placeholder / dummy content in production
@@ -177,4 +179,6 @@ Issues with the text, media, or information on the surface.
 - Broken or dead external links
 - Incorrect or misleading labels
 
+## Completion
 
+- Every issue has captured evidence (screenshot or transcript) and is classified with a severity and category from this file or the per-target taxonomy.

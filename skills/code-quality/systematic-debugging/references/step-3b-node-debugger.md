@@ -170,7 +170,7 @@ node inspect -p <node pid>
 ```
 
 Then inside `debug>`:
-```
+```js
 sb('dist/app.js', 220)     # or wherever the suspect render is
 cont
 ```
@@ -263,7 +263,7 @@ repl
 ```
 
 **"What's the call path into this function?"**
-```
+```text
 debug> sb('suspectFn')
 debug> cont
 # paused on entry
@@ -271,7 +271,7 @@ debug> bt
 ```
 
 **"This async chain hangs — where?"**
-```
+```text
 # Start with --inspect (no -brk), let it run to the hang, then:
 debug> pause
 debug> bt

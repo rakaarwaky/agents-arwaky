@@ -1,5 +1,8 @@
 # Auto-merge (.github/workflows/auto-merge.yml)
 
+**Goal:** PRs to `main` squash-merge automatically once every required
+check passes, with no manual merge click.
+
 Squash-merges a PR to `main` once required checks pass:
 
 ```yaml
@@ -36,3 +39,8 @@ jobs:
 
 Use env vars (not inline interpolation) to avoid command injection through
 PR metadata.
+
+## Completion
+
+- `.github/workflows/auto-merge.yml` is committed and a PR with all
+  required checks green merges via squash without a manual click.

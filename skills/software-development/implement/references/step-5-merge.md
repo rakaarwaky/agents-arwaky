@@ -18,6 +18,10 @@ Increment `round_count`. Count all open issues and add their severities to `tota
 
 Before deciding the round's outcome, audit the worktree diff against the resolved scope from Step 0: `git -C <worktree_path> status --short` — any change OUTSIDE the in-scope paths (a sibling tree the task never named, a new top-level directory) is an out-of-scope artifact. Revert it in the orchestrator's own tools (the subagent is not a safe actor after it has drifted) and add it to the next fix round's prompt as an explicit prohibition. Subagents that were told a directory was "context" sometimes treat it as writable; the diff makes that visible only if the orchestrator checks. A round with out-of-scope artifacts cannot exit even at 0 open issues — the scope audit must pass.
 
+**Move/rename tasks:** the scope audit also verifies the move-task checklist from Step 3 — the orchestrator re-runs the old-path grep itself (never trusts the implementer's list), confirms new bootstrap/conftest files are tracked in git, and runs a bare collection (e.g. `pytest --co -q`) to prove the test-runner config actually collects the moved tests. Any gap is filed as a round-1 review issue.
+
+**Reviewer claims vs. worktree state:** a reviewer's findings are a snapshot of the worktree *as it was when it reviewed*. Re-verify each claimed issue against the current worktree before merging: subagents run in parallel, so one reviewer may have reviewed a tree state that an earlier subagent had already moved on from (stale "broken" claims against already-fixed files, or claims about files that no longer exist). Verified-stale claims are dropped from the merged review with a note; verified claims are kept. Never merge a reviewer's issue list wholesale without this check.
+
 **Merge format:**
 
 ```markdown

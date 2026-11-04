@@ -1,4 +1,4 @@
-# Developing qwen-web-arwaky
+# Step 5 — Developing qwen-web-arwaky
 
 Repo: `~/agents-arwaky/internal/qwen-web-arwaky` — AES layered layout
 (`modules/<layer>/src/...`), flat tests at repo root. Scope: editing this
@@ -223,3 +223,7 @@ Encode this by plumbing `attachment_path` through
 duplicating the attachment-vs-prompt decision in the TUI is the bug, not the
 fix. Verify with `uv run python -c` + `Path(tempfile.mkdtemp())` that the
 function returns the attachment stem when `attachment_path` is given.
+
+## Completion
+
+- `uv run pytest tests/ -m "not e2e and not slow"` passes and `la scan` reports Total: 0 violations after the change.

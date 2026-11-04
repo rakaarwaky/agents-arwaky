@@ -55,11 +55,11 @@ question whose options depend on an earlier answer:
 
 **Backup rule**: If `prompts/infographic.md` exists, rename to `prompts/infographic-backup-YYYYMMDD-HHMMSS.md`
 
-**Load references**: Read the selected layout from `references/layouts/<layout>.md` and style from `references/styles/<style>.md`.
+**Load references**: Read the selected layout from `templates/layouts/<layout>.md` and style from `templates/styles/<style>.md`.
 
 Combine:
-1. Layout definition from `references/layouts/<layout>.md`
-2. Style definition from `references/styles/<style>.md`
+1. Layout definition from `templates/layouts/<layout>.md`
+2. Style definition from `templates/styles/<style>.md`
 3. Base template from `references/base-prompt.md`
 4. Structured content from Step 2
 5. All text in confirmed language

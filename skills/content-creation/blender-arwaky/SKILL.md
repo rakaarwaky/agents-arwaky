@@ -32,8 +32,8 @@ action (scene, object, viewport, render, io, job, config, code).
 
 ## Routing
 
-| Step            | Reference                                                       | Purpose                                                                                  |
-| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Commands        | [`references/commands.md`](references/commands.md)             | Every CLI sub-command and MCP action, with parameter tables, screenshot parameters, and the five MCP tools. |
-| Workflows       | [`references/workflows.md`](references/workflows.md)          | Scene discovery, object creation/position, viewport analysis, asset import, render/status, custom code. |
-| Add-on & Troubleshooting | [`references/troubleshooting.md`](references/troubleshooting.md) | Blender add-on architecture, port/timeout details, and fixes for the five common failure modes. |
+| Step                     | Reference                                                     | Purpose                                                                                          |
+| ------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Commands                 | [`references/commands.md`](references/commands.md)           | Every CLI sub-command and MCP action, with parameter tables, screenshot parameters, and the five MCP tools. |
+| Workflows                | [`references/workflows.md`](references/workflows.md)        | Scene discovery, object creation/position, viewport analysis, asset import, render/status, custom code. |
+| Add-on & Troubleshooting | [`references/troubleshooting.md`](references/troubleshooting.md) | Blender add-on architecture, port/timeout details, and fixes for the common failure modes.        |

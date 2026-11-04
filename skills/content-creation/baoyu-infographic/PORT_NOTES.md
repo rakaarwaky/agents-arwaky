@@ -37,7 +37,7 @@ curl -sL https://raw.githubusercontent.com/JimLiu/baoyu-skills/main/skills/baoyu
 # Look for version: line
 
 # Diff reference files
-diff <(curl -sL https://raw.githubusercontent.com/.../references/layouts/bento-grid.md) references/layouts/bento-grid.md
+diff <(curl -sL https://raw.githubusercontent.com/.../templates/layouts/bento-grid.md) templates/layouts/bento-grid.md
 ```
 
 Reference files can be overwritten directly (they're unchanged from upstream). SKILL.md must be manually merged since it contains Hermes-specific adaptations.

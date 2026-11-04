@@ -1,5 +1,11 @@
 # AI review layers
 
+The two AI review layers that run on top of the quality gates.
+
+**Goal:** cubic's ultrareview findings and Repowise's advisory health
+gate are both active on the repo, with fixture code excluded from
+indexing.
+
 ## cubic AI reviewer (www.cubic.dev)
 
 GitHub App; runs "ultrareview" on each PR with P1/P2/P3 findings.
@@ -33,3 +39,10 @@ bot:
 Also configure `.repowiseIgnore` (committed) + `.repowise/config.yaml`
 exclude_patterns so fixture code is never indexed; `.repowise/health-rules.json`
 tunes scoring policy (see the `repowise-scan` skill).
+
+## Completion
+
+- The cubic app is installed on the repo and ultrareview runs on PRs.
+- `.repowise/bot.yaml` is committed with `ignore_paths` mirroring
+  `.repowiseIgnore`; `.repowise/health-rules.json` tunes the scoring
+  policy.
