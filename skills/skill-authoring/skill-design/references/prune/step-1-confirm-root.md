@@ -12,7 +12,7 @@ Default to `/home/raka/agents-arwaky/skills`, a specific category, or the user's
 
 ```bash
 # List the skill tree to confirm the root is a valid directory
-aa skills list
+sdc list
 ```
 
 ## Completion

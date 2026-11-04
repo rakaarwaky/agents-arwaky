@@ -40,7 +40,7 @@ referenced in the surviving body are deleted.
 
 ## Archive dropped duplicates
 
-Dropped duplicates are archived into `_archive/` via `aa skills archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. Rebuild the catalog after archiving with `aa skills catalog`.
+Dropped duplicates are archived into `_archive/` via `sdc archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. Rebuild the catalog after archiving with `sdc catalog`.
 
 ## Manual merge notes
 

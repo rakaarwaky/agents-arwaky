@@ -4,18 +4,18 @@
 
 Three ways to write the skill; pick by description length:
 
-- **`aa skills create skill <name> --category <cat> --apply`** — the CLI verb; creates the directory and `SKILL.md` in one call with frontmatter keys `name`, `description`, `when-to-use`, `argument-hint`, and the body. Pass `--apply` to write; without it you get a dry-run plan.
+- **`sdc create skill <name> --category <cat> --apply`** — the CLI verb; creates the directory and `SKILL.md` in one call with frontmatter keys `name`, `description`, `when-to-use`, `argument-hint`, and the body. Pass `--apply` to write; without it you get a dry-run plan.
 - **`skill_manage(action=create)`** — safe default; creates the directory and `SKILL.md` in one call. It enforces a ~60-char budget on the `description:` line (the skill index clips anything longer) and rolls back the whole batch on any violation. Draft the description first and count it; if it will exceed ~60 chars, don't fight the validator loop — use the direct writer below. When this writer succeeds, skip to `step-6-verify.md`.
-- **Write the files directly** (`write_file`) — continue with `step-5-write-skill.md`. Use this when the description needs more than ~60 chars, when building a richer multi-file skill, or when `aa skills create skill` keeps rejecting frontmatter. After writing, run `aa skills catalog` to register the skill.
+- **Write the files directly** (`write_file`) — continue with `step-5-write-skill.md`. Use this when the description needs more than ~60 chars, when building a richer multi-file skill, or when `sdc create skill` keeps rejecting frontmatter. After writing, run `sdc catalog` to register the skill.
 
 ## Commands
 
 ```bash
 # CLI verb (description ≤ ~60 chars)
-aa skills create skill <name> --category <cat> --apply
+sdc create skill <name> --category <cat> --apply
 
 # Register after direct write_file (long/rich skills)
-aa skills catalog
+sdc catalog
 ```
 
 The ~60-char index budget and the 1,024-char parser limit (Global Rules: Grok Build parser limits) are different ceilings: the parser accepts long descriptions, the index display clips them.

@@ -1,7 +1,7 @@
 ---
 name: orca
-description: "Orca CLI agent environment: Orca-managed worktrees, folder contexts, terminals, repos, automations and cron jobs, embedded browser, artifacts, and skill sharing via the orca CLI; visible local app windows via orca computer; iOS and Android emulator control; Linear ticket work; per-workspace environment recipes; multi-agent orchestration with DAGs and decision gates. Use for Orca worktrees, spawn codex/claude in a worktree, read/wait/send Orca terminal, handoff/give this to another agent, Orca browser, orca artifacts, share skills, scheduled agent tasks or cron jobs, visible GUI windows, booted iOS Simulator or Android emulator, linked Linear issue, per-workspace environment recipe setup, multi-agent DAG coordination. Observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree'."
-when-to-use: "Use for any Orca CLI agent-environment task. Load references/cli.md for worktrees, terminals, repos, automations, artifacts, skill sharing, and the embedded browser; references/automations.md for scheduled agent runs and cron jobs; references/computer-use.md for visible GUI windows; references/emulator.md for a booted iOS Simulator; references/emulator-android.md for an adb-connected Android emulator or phone; references/linear.md for Linear ticket work; references/per-workspace-env.md for per-workspace environment recipes; references/orchestration.md for supervised multi-agent coordination with DAGs and decision gates; references/large-briefs.md for delivering large briefs (full design docs, multi-PR plans, specs with embedded code) to worktree agents via the file-in-worktree pattern instead of inlining the text into a shell argument."
+description: "Orca CLI agent environment: Orca-managed worktrees, folder contexts, terminals, repos, automations and cron jobs, embedded browser, artifacts, and skill sharing via the orca CLI; visible local app windows via orca computer; iOS and Android emulator control; Linear ticket work; per-workspace environment recipes; multi-agent orchestration with DAGs and decision gates. Use for $orca-cli, Orca worktree, child worktree, spawn codex/claude in a worktree, read/wait/send Orca terminal, handoff/handover/give this to another agent, Orca browser, orca artifacts, share skills, scheduled agent tasks or cron jobs, visible GUI windows, booted iOS Simulator or Android emulator, linked Linear issue, per-workspace environment recipe setup, multi-agent DAG coordination. Observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree', orca cli-commands, orca config-system."
+when-to-use: "Use for any Orca CLI agent-environment task. Load references/cli.md for worktrees, terminals, repos, automations, artifacts, skill sharing, and the embedded browser; references/automations.md for scheduled agent runs and cron jobs; references/computer-use.md for visible GUI windows; references/emulator.md for a booted iOS Simulator; references/emulator-android.md for an adb-connected Android emulator or phone; references/linear.md for Linear ticket work; references/per-workspace-env.md for per-workspace environment recipes; references/orchestration.md for supervised multi-agent coordination with DAGs and decision gates. Also matches observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree'."
 argument-hint: "open --json | skills get <skill-name> [--json] [--reference <path>] | <command> [<flags>]"
 license: Apache-2.0
 ---
@@ -11,22 +11,41 @@ license: Apache-2.0
 One consolidated skill for the Orca agent environment. Each sub-scenario is a
 [reference file](references/); the shared rules live here once.
 
-## Global rules
+## Resolve the CLI for this session
 
-- **Resolve the CLI once, reuse it everywhere.** If the `ORCA_CLI_COMMAND` environment variable is set, use its value (Orca exports it for managed WSL sessions). Otherwise, in a dev checkout whose session exposes `ORCA_DEV_REPO_ROOT`, use `orca-dev`. Otherwise, on Linux outside an Orca-managed terminal, use `orca-ide` — never bare `orca` there: outside Orca's terminals it normally resolves to the GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine. Otherwise, use `orca`. Below, `ORCA` is a placeholder for the executable you resolved: substitute it before running anything; do not create a shell variable or run `ORCA` literally. This works the same way in POSIX shells, PowerShell, and cmd.exe. If the selected executable cannot run, report its exact error and stop — do not fall through to another executable, which could silently target a different Orca build.
-- **Load the version-matched guide before running Orca commands.** Each reference file names the guide its scenario loads; prefer `ORCA skills get <skill-name> --json`. Use the selected executable's `--help` for commands or flags the guide does not cover. If a command reports Orca is not running, start it with `ORCA open --json` and retry. If it fails with `runtime_access_denied`, your sandbox blocked the connection: re-run it with escalated permissions, and do not run `ORCA open` or restart Orca. If `skills get` is unknown, explain that updating Orca restores the guide; use `--help` for read-only discovery and do not guess unsupported commands.
-- **Grok Build in Orca worktrees (agent slot).** Attach Grok Build with `orca worktree create ... --agent grok --no-parent` — the Grok TUI runs in the worktree's first terminal (`--surface terminal`; `--surface chat` for pure read-only analysis). Two ways to use that slot, mutually exclusive per worktree — pick one, never both:
-  - **Supervised** (default for /implement and /execute-plan runs): subagents bind to the worktree via `cwd`; task text is NEVER sent to the TUI (`--prompt` stays off). The TUI is the orchestrator's monitoring surface only. A monitoring TUI that stays idle or holds unmerged local changes blocks later `worktree rm --force` — kill the terminal or retire the worktree before assembly/teardown.
-  - **Full handoff**: send the brief via `orca terminal send` after `orca terminal wait --for tui-idle`; confirm accepted, then stop driving it. For briefs beyond ~4 KB or containing shell-sensitive characters, use the file-in-worktree pattern instead of inlining — [`references/large-briefs.md`](references/large-briefs.md).
-  - **Wait-size discipline**: don't wait on a long single `--timeout-ms` (30 min is bad practice — too long to block, too short to guarantee, and a mid-task timeout fires an ambiguous notification that looks like a clean completion). Poll in short repeats sized to the task (e.g. 6×5-min polls for a ~30-min job), re-reading the terminal tail between polls: fresh output + `running` = keep waiting; TUI no longer running = read the recap and verify on disk. Details in [`references/large-briefs.md`](references/large-briefs.md) §5.
-  The `implement` and `execute-plan` skills in the agents-arwaky tree use the supervised mode; their step files are the authoritative protocol for that class of task.
-- **Handoff vs. supervision boundary.** Full ownership handoff — "hand off", "handover", "give this to another agent", "another worktree" — routes to [`references/cli.md`](references/cli.md) and stops after the prompt is accepted. Supervised orchestration — the user asked to monitor, coordinate a DAG, use decision gates, or manage ask/reply — routes to [`references/orchestration.md`](references/orchestration.md) and keeps the original agent in control.
+Choose the executable once and reuse it for every later command:
 
-## Routing
+- If the `ORCA_CLI_COMMAND` environment variable is set, use its value. Orca exports this
+  for managed WSL sessions.
+- Otherwise, in a dev checkout whose session exposes `ORCA_DEV_REPO_ROOT`, use `orca-dev`.
+- Otherwise, on Linux outside an Orca-managed terminal, use `orca-ide`. Never run bare
+  `orca` there — outside Orca's terminals it normally resolves to the
+  GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine.
+- Otherwise, use `orca`.
+
+Below, `ORCA` is a placeholder for the executable you resolved. Substitute it before
+running anything; do not create a shell variable or run `ORCA` literally. This works the
+same way in POSIX shells, PowerShell, and cmd.exe.
+
+If the selected executable cannot run, report its exact error and stop. Do not fall through
+to another executable, which could silently target a different Orca build.
+
+## Load the version-matched guide before running Orca commands
+
+Each reference file names the guide its scenario loads. Prefer `ORCA skills get <skill-name> --json`.
+Use the selected executable's `--help` for commands or flags the guide does not cover.
+
+If a command reports that Orca is not running, start it with `ORCA open --json` and retry.
+If it fails with `runtime_access_denied`, your sandbox blocked the connection: re-run it with
+escalated permissions, and do not run `ORCA open` or restart Orca.
+If `skills get` is unknown, explain that updating Orca restores the guide; use `--help` for
+read-only discovery and do not guess unsupported commands.
+
+## Scenario routing
 
 | Scenario | Reference | Load guide with |
 |---|---|---|
-| Worktrees, folder contexts, terminals, repos, automations, artifacts, skill sharing, embedded browser; full handoff prompts | [cli.md](references/cli.md) | `ORCA skills get orca-cli` |
+| Worktrees, folder contexts, terminals, repos, automations, artifacts, skill sharing, embedded browser | [cli.md](references/cli.md) | `ORCA skills get orca-cli` |
 | Scheduled automations and cron jobs | [automations.md](references/automations.md) | `ORCA skills get orca-cli --reference references/automations.md` |
 | Visible local app windows (native apps, browsers, webviews) | [computer-use.md](references/computer-use.md) | `ORCA skills get computer-use` |
 | Booted iOS Simulator on macOS | [emulator.md](references/emulator.md) | `ORCA skills get orca-emulator` |
@@ -34,4 +53,30 @@ One consolidated skill for the Orca agent environment. Each sub-scenario is a
 | Linear ticket work | [linear.md](references/linear.md) | `ORCA skills get orca-linear` |
 | Per-workspace environment recipes | [per-workspace-env.md](references/per-workspace-env.md) | `ORCA skills get orca-per-workspace-env` |
 | Supervised multi-agent coordination, DAGs, decision gates | [orchestration.md](references/orchestration.md) | `ORCA skills get orchestration` |
-| Large briefs (design docs, multi-PR plans, specs) delivered to a worktree agent | [large-briefs.md](references/large-briefs.md) | (no separate guide; see the Grok Build bullet in Global rules) |
+| Large briefs and long-context guidance | [large-briefs.md](references/large-briefs.md) | `ORCA skills get orca --reference references/large-briefs.md` |
+
+## Grok Build in Orca worktrees (agent slot)
+
+Attach Grok Build to a worktree with `orca worktree create ... --agent grok --no-parent` — the
+Grok TUI runs in the worktree's first terminal (`--surface terminal`; `--surface chat` for
+pure read-only analysis). Two ways to use that slot:
+
+- **Supervised (default for /implement, /execute-plan runs)**: subagents bind to the
+  worktree via `cwd`; task text is NEVER sent to the TUI (`--prompt` stays off). The TUI
+  is the orchestrator's monitoring surface only. A monitoring TUI that stays idle or holds
+  unmerged local changes blocks later `worktree rm --force` — kill the terminal or retire
+  the worktree before assembly/teardown.
+- **Full handoff**: send the brief via `orca terminal send` after
+  `orca terminal wait --for tui-idle`; confirm accepted, then stop driving it.
+
+Mutually exclusive per worktree — pick one per worktree, never both. The `implement` and
+`execute-plan` skills in the agents-arwaky tree use the supervised mode; their step files
+are the authoritative protocol for that class of task.
+
+## Handoff vs. supervision boundary
+
+Full ownership handoff — "hand off", "handover", "give this to another agent", "another
+worktree" — routes to [cli.md](references/cli.md) and stops after the prompt is accepted.
+Supervised orchestration — the user asked to monitor, coordinate a DAG, use decision gates,
+or manage ask/reply — routes to [orchestration.md](references/orchestration.md) and keeps the
+original agent in control. The two are mutually exclusive.

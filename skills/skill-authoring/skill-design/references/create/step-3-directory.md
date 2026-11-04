@@ -15,10 +15,10 @@ Create `<SKILL_DIR>/scripts/` if the skill ships helper scripts and `<SKILL_DIR>
 mkdir -p <SKILL_DIR>
 
 # Register a new category (only when the category folder is new)
-aa skills create category <cat> --description "<one-line category description>" --apply
+sdc create category <cat> --description "<one-line category description>" --apply
 
 # Rebuild the catalog so the new category appears
-aa skills catalog
+sdc catalog
 ```
 
 Without `--apply` the `create category` command previews the plan; with it, the category folder and `DESCRIPTION.md` are written.

@@ -49,3 +49,47 @@ Rules that apply to every step. Reference files cite these; they never restate t
 | `--create`  | [`references/create/`](references/create/)   | produce a publishable `SKILL.md` + `references/` for a job the user describes.                                                                                            |
 | `--improve` | [`references/improve/`](references/improve/) | run the full audit-then-improve sequence: check structure, naming, frontmatter, body shape, and dangling refs against the lint standard, then apply the edit recipe.          |
 | `--prune`   | [`references/prune/step-0-overview.md`](references/prune/step-0-overview.md) | read every skill's description and body; merge skills that duplicate, share a bounded purpose, or share tooling into one consolidated folder; archive dropped duplicates. |
+
+### Create reference files
+
+| File | Purpose |
+|------|---------|
+| [`references/create/step-0-overview.md`](references/create/step-0-overview.md) | Create mode overview |
+| [`references/create/step-1-gather.md`](references/create/step-1-gather.md) | Gather job context before creating |
+| [`references/create/step-2-trigger-fields.md`](references/create/step-2-trigger-fields.md) | Trigger fields (`when-to-use`, `argument-hint`) |
+| [`references/create/step-3-directory.md`](references/create/step-3-directory.md) | Skill directory placement |
+| [`references/create/step-4-writer.md`](references/create/step-4-writer.md) | Writer conventions |
+| [`references/create/step-5-write-skill.md`](references/create/step-5-write-skill.md) | Write the SKILL.md |
+| [`references/create/step-6-verify.md`](references/create/step-6-verify.md) | Verify the created skill |
+
+### Improve reference files
+
+| File | Purpose |
+|------|---------|
+| [`references/improve/step-0-overview.md`](references/improve/step-0-overview.md) | Improve mode overview |
+| [`references/improve/step-1-scope.md`](references/improve/step-1-scope.md) | Scope the improvement |
+| [`references/improve/step-10-information-distribution.md`](references/improve/step-10-information-distribution.md) | Information distribution |
+| [`references/improve/step-11-reference-pattern.md`](references/improve/step-11-reference-pattern.md) | Reference pattern rules |
+| [`references/improve/step-12-apply.md`](references/improve/step-12-apply.md) | Apply edits |
+| [`references/improve/step-2-body-format.md`](references/improve/step-2-body-format.md) | Body format |
+| [`references/improve/step-3-frontmatter-keys.md`](references/improve/step-3-frontmatter-keys.md) | Frontmatter keys |
+| [`references/improve/step-4-validator-catalog.md`](references/improve/step-4-validator-catalog.md) | Validator rule catalog |
+| [`references/improve/step-5-naming-detail.md`](references/improve/step-5-naming-detail.md) | Naming detail |
+| [`references/improve/step-6-description-detail.md`](references/improve/step-6-description-detail.md) | Description detail |
+| [`references/improve/step-7-content-detail.md`](references/improve/step-7-content-detail.md) | Content detail |
+| [`references/improve/step-8-prepublish-checklist.md`](references/improve/step-8-prepublish-checklist.md) | Pre-publish checklist |
+| [`references/improve/step-9-category-placement.md`](references/improve/step-9-category-placement.md) | Category placement |
+
+### Prune reference files
+
+| File | Purpose |
+|------|---------|
+| [`references/prune/step-0-overview.md`](references/prune/step-0-overview.md) | Prune mode overview |
+| [`references/prune/step-1-confirm-root.md`](references/prune/step-1-confirm-root.md) | Confirm prune root |
+| [`references/prune/step-2-inventory.md`](references/prune/step-2-inventory.md) | Inventory skills |
+| [`references/prune/step-3-group.md`](references/prune/step-3-group.md) | Group overlapping skills |
+| [`references/prune/step-4-classify.md`](references/prune/step-4-classify.md) | Classify groups |
+| [`references/prune/step-5-dry-run.md`](references/prune/step-5-dry-run.md) | Dry-run report |
+| [`references/prune/step-6-snapshot.md`](references/prune/step-6-snapshot.md) | Snapshot before prune |
+| [`references/prune/step-7-execute.md`](references/prune/step-7-execute.md) | Execute prune |
+| [`references/prune/step-8-verify-report.md`](references/prune/step-8-verify-report.md) | Verify report |

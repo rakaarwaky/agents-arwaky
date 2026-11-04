@@ -7,7 +7,7 @@ Which keys are mandatory is a Global Rule; this table is the full key reference,
 | Field | Required | Notes |
 | ----- | -------- | ----- |
 | `name` | Yes | Validator rules `name-format`, `name-mismatch`. |
-| `description` | Yes | Validator rules `description-*`. Keep it on one line (quoted when needed); a `>-` block scalar that runs straight into the `# Title` heading is dropped by the `aa skills` parser and fires `missing-description`. |
+| `description` | Yes | Validator rules `description-*`. Keep it on one line (quoted when needed); a `>-` block scalar that runs straight into the `# Title` heading is dropped by the `sdc` parser and fires `missing-description`. |
 | `when-to-use` | Yes | Dedicated trigger phrases; Grok Build matches it together with `description`. |
 | `argument-hint` | Yes | Slash-command autocomplete hint, e.g. `<command> [--flag]`. |
 | `user-invocable` | Optional | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool. |

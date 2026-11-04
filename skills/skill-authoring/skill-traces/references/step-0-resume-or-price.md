@@ -1,14 +1,14 @@
 # Step 0: Resume or price
 
-Run `aa skills traces state get`. Exit code 3 means a run is pending — resume it instead of starting over.
+Run `stc traces state get`. Exit code 3 means a run is pending — resume it instead of starting over.
 
 When the user abandons a pending run and wants to discard it, clear the status:
 
 ```
-aa skills traces state clear --run-dir <RUN>
+stc traces state clear --run-dir <RUN>
 ```
 
-Then run `aa skills traces collect` into a run dir. The collector's window filters are real CLI flags with these defaults:
+Then run `stc traces collect` into a run dir. The collector's window filters are real CLI flags with these defaults:
 
 - `--since-last` — sessions since the last completed trace run (on by default via the constant `TRACE_COLLECT_SINCE_LAST`)
 - `--min-turns N` — drop sessions with fewer than N human turns (default `3`, constant `TRACE_COLLECT_MIN_TURNS`)

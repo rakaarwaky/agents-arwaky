@@ -14,7 +14,7 @@ The only differences are the import swaps to the AES modules:
                    _find_* helpers (original tools/lib/tool_resolver.py
                    bodies as-is, import-swapped)
   - doc_pack        -> modules.shared.src.utility_doc_pack
-  - skill_pack      -> modules.skills_design.src.capabilities_skills_lister
+  - skill_pack      -> skills_design.src.capabilities_skills_lister (colocated under skills/skill-authoring/skill-design/modules)
   - paths.repo_root -> modules.shared.src.utility_paths
 
 Delegated actions (skill/connect/disconnect/daemon/service/backup)
@@ -40,6 +40,20 @@ from modules.shared.src.common.utility_paths_resolver import repo_root
 from modules.shared.src.common.utility_process_runner import run_cmd as _run_cmd_util
 
 ROOT = repo_root()
+
+# The skills feature lives in TWO fully independent standalone packages
+# (AES702, no shared layer): skills/skill-authoring/skill-design/modules/
+# exposes the top-level `skills_design` package,
+# skills/skill-authoring/skill-traces/modules/ the `skills_traces` package.
+# Each owns its own copies of the contract/taxonomy modules it needs; there
+# is no cross-tree import. This entry point adds both namespace roots so
+# either standalone package can be imported on demand.
+for _skills_ns in (
+    ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
+    ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules",
+):
+    if _skills_ns.is_dir() and str(_skills_ns) not in sys.path:
+        sys.path.insert(0, str(_skills_ns))
 
 from modules.shared.src.common.taxonomy_common_vo import (
     Tool,
@@ -555,11 +569,21 @@ def cmd_disconnect(argv: list[str]) -> int:
 
 
 def cmd_skills(argv: list[str]) -> int:
-    """Skill-pack discovery and authoring: aa skills <verb> [args]."""
-    from modules.cli.src.surface_skills_command import cmd_skills as _skills_surface
-    from modules.skills_design.src.root_skills_container import default_aggregate
+    """Skill-pack discovery and authoring: aa skills <verb> [args].
 
-    return _skills_surface(list(argv), default_aggregate())
+    Composition point for the two independent packages (AES702): the
+    design tree owns the agent + surface, the traces tree owns the
+    ``SkillsTraces`` capability. Only this orchestrator-owned entry wires
+    the two together — the design tree itself never imports
+    ``skills_traces``.
+    """
+    from skills_design.src.root_skills_container import default_aggregate
+    from cli.src.surface_skills_command import (
+        cmd_skills as _skills_surface,
+    )
+
+    aggregate = default_aggregate()
+    return _skills_surface(list(argv), aggregate)
 
 def cmd_completion(argv: list[str]) -> int:
     """Print a bash/zsh completion script for the aa CLI."""

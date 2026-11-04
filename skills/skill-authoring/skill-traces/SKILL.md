@@ -25,7 +25,7 @@ Curates one trace-learning run that covers three dispositions at once: create ne
 - **Report invariant**: every action in `actions.json` must appear in `report.md`, and every claim in sections 1-3 of `report.md` must be backed by a verifier's Kept list.
 - **Consent rules**: apply only actions backed by trace evidence and gated by the verifier.
 - **Record**: one trace-state decide line per applied action, `--kind skill` and the mode's `--action` kind, `--decision applied|rejected|deferred`, `--undo` where the apply step produced a trash copy.
-- **Validation**: run on every file this skill creates or edits; the rule catalog is `aa skills lint`.
+- **Validation**: run on every file this skill creates or edits; the rule catalog is `stc skills lint`.
 
 ## Routing
 
@@ -37,6 +37,7 @@ Curates one trace-learning run that covers three dispositions at once: create ne
 | Step 3 | [`references/step-3-read-report.md`](references/step-3-read-report.md) | Present the Overview plus the sections the chosen modes own; the full `report.md` and `actions.json` shapes. |
 | Step 4 | [`references/step-4-apply.md`](references/step-4-apply.md) | Per-action rules for every kind; record decisions. |
 | Step 5 | [`references/step-5-verify.md`](references/step-5-verify.md) | Re-read touched files; confirm the change and every trash backup; run validation. |
+| Step 6 | [`references/step-6-prune.md`](references/step-6-prune.md) | Prune the raw session store to keep only the N most recent session dirs (`stc traces prune`). |
 
 Spec files the workflow agents read, by `skill_dir`:
 

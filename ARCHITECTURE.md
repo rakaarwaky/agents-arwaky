@@ -477,7 +477,8 @@ project-root/
 
 **Cross-module composition (split modules):** when one feature folder
 is split into sibling modules that share a single contract/aggregate
-layer (e.g. `modules/skills_design` + `modules/skills_traces` share
+layer (e.g. `skills/skill-authoring/skill-design/modules/skills_design`
++ `skills/skill-authoring/skill-traces/modules/skills_traces` share
 `modules/shared/src/skills`), the composition root of one module MAY
 import the capability class of the sibling module to wire it into the
 shared agent. Only the root/agent layers of a split may cross module
