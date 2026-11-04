@@ -21,3 +21,5 @@ All task data, commands, field shapes, examples, stop conditions, and worked exa
 ## Completion
 
 - The target `SKILL.md` body is exactly `# Title` / `## Global rules` / `## Routing`; overflow is in references.
+- Verified mechanically: `grep -n '^#' <SKILL.md>` returns only the `#` title and exactly two `##` headings — `## Global rules`, `## Routing`. `aa skills lint` does not check this (body shape is convention-enforced, per `step-4-validator-catalog.md` — What lint does NOT check); the grep is the check. Case matters: the heading is `## Global rules` (lowercase `r`), matching the `template/skill.md` skeleton and the rebuilt skills in this pack (`research-study`, `web-design`).
+- A stop-condition is never its own `## Completion` section in the body — it is one bullet in `## Global rules` (e.g. "**Completion.** <criterion>"), because a fourth heading breaks the three-section shape.
