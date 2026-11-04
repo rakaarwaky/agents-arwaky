@@ -12,7 +12,7 @@ The skills-traces capability (scan/usage/phrases/materialize + state lifecycle) 
 
 ## Backlog Status
 
-### FR-SkillsDesign-009: Trace Learning Lifecycle
+### FR-SkillsTraces-009: Trace Learning Lifecycle
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
