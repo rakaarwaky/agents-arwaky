@@ -49,10 +49,10 @@ cat > "$BIN_DIR/aa" <<'AA_EOF'
 #!/usr/bin/env python3
 """aa — agent-arwaky CLI (standalone binary).
 
-Entry point for ``aa`` (agent-arwaky): the standalone AES package that
-bootstraps the top-level ``modules`` namespace root plus the two
-independent skills packages (skills-design and skills-traces). No shared
-dependency between aa and sdc/stc; each package boots its own namespace.
+Entry point for ``aa`` (agent-arwaky): a standalone AES package that
+bootstraps only the top-level ``modules`` namespace root. No shared
+dependency with sdc/stc; aa does not touch the skills-design or
+skills-traces packages.
 
 The modules tree is located via the ``AA_MODULES_DIR`` environment
 variable, which must be an absolute path (XDG Base Directory rule:
@@ -65,7 +65,7 @@ import os
 import sys
 from pathlib import Path
 
-_MODULES_ENV = "AA_MODULES_ENV"
+_MODULES_ENV = "AA_MODULES_DIR"
 _DEFAULT_MODULES = Path("modules")
 
 
@@ -99,19 +99,6 @@ if str(_MODULES) not in sys.path:
 # modules/) must be on sys.path, not modules/ itself.
 if str(_MODULES.parent) not in sys.path:
     sys.path.insert(0, str(_MODULES.parent))
-
-# Add the two independent skills package roots so the ``skills`` command
-# can import skills_design / skills_traces on demand.
-for _skills_ns in (
-    Path("skills") / "skill-authoring" / "skill-design" / "modules",
-    Path("skills") / "skill-authoring" / "skill-traces" / "modules",
-):
-    _here = Path(__file__).resolve()
-    for _candidate in (_here.parent, *_here.parents):
-        _ns = _candidate / _skills_ns
-        if _ns.is_dir() and str(_ns) not in sys.path:
-            sys.path.insert(0, str(_ns))
-            break
 
 from modules.root_cli_entry import main  # noqa: E402
 
