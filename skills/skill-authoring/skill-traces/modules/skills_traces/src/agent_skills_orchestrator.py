@@ -170,5 +170,4 @@ class SkillsAgent(ISkillsAggregate):
             raise SkillsUsageError(f"Skills {name} capability is not configured")
         return capability
 
-
 __all__ = ["SkillsAgent"]

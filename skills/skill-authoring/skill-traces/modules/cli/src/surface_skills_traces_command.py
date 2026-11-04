@@ -38,15 +38,12 @@ _WAIT_EXIT = {
     TraceStateStatus.DEADLINE: _EXIT_WAIT_DEADLINE,
 }
 
-
 def _emit_json(payload: dict[str, object]) -> None:
     """Print a JSON payload with a stable key order and a trailing newline."""
     print(json.dumps(payload, indent=2, ensure_ascii=False))
 
-
 def _stderr(msg: str) -> None:
     print(msg, file=__import__("sys").stderr)
-
 
 def cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
     """Route a ``traces`` sub-action to its handler."""
@@ -67,7 +64,6 @@ def cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _EXIT_USAGE
     return handler(args[1:], aggregate)
 
-
 def _trace_collect_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="aa skills traces collect",
@@ -86,7 +82,6 @@ def _trace_collect_parser() -> argparse.ArgumentParser:
     parser.add_argument("--limit", type=int, default=0, help="Max sessions to keep")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
-
 
 def _cmd_traces_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
@@ -126,7 +121,6 @@ def _cmd_traces_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     print(result.message or f"Trace collect → {run_dir}")
     return 0
 
-
 def _trace_usage_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="aa skills traces usage",
@@ -136,7 +130,6 @@ def _trace_usage_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to read usage from")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
-
 
 def _cmd_traces_usage(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
@@ -191,7 +184,6 @@ def _cmd_traces_usage(args: list[str], aggregate: ISkillsAggregate) -> int:
     print(f"\nUnused loaded: {', '.join(usage.unused_loaded) or '(none)'}")
     return 1 if usage.unused_loaded else 0
 
-
 def _trace_phrases_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="aa skills traces phrases",
@@ -201,7 +193,6 @@ def _trace_phrases_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir holding session records")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
-
 
 def _cmd_traces_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
@@ -273,7 +264,6 @@ def _cmd_traces_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
         print("No repeated phrases found.")
     return 0
 
-
 def _trace_materialize_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="aa skills traces materialize",
@@ -283,7 +273,6 @@ def _trace_materialize_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to write into (required)")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
-
 
 def _cmd_traces_materialize(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
@@ -324,7 +313,6 @@ def _cmd_traces_materialize(args: list[str], aggregate: ISkillsAggregate) -> int
         return 0
     print(result.message or f"Materialized usage.json + phrases.json → {ns.run_dir}")
     return 0
-
 
 def _trace_state_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -377,7 +365,6 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     p_wait.add_argument("--timeout-min", type=int, default=90, help="Max minutes to wait")
     return parser
 
-
 def _build_state_flags(ns: argparse.Namespace, action: str) -> dict[str, str]:
     flags = {
         "traces_action": "state",
@@ -405,7 +392,6 @@ def _build_state_flags(ns: argparse.Namespace, action: str) -> dict[str, str]:
         flags["timeout_min"] = str(getattr(ns, "timeout_min", 90))
     return flags
 
-
 def _cmd_traces_state(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
         ns = _trace_state_parser().parse_args(args)
@@ -428,7 +414,6 @@ def _cmd_traces_state(args: list[str], aggregate: ISkillsAggregate) -> int:
     }
     return handlers[action](result)
 
-
 def _handle_state_get(result) -> int:
     status = result.state
     if status in (
@@ -439,34 +424,28 @@ def _handle_state_get(result) -> int:
     print(f"Pending status: {status}")
     return 0
 
-
 def _handle_state_set(result) -> int:
     print(f"Status set: {result.state}")
     return 0
 
-
 def _handle_state_clear(result) -> int:
     print(f"Pending cleared: {result.state}")
     return 0
-
 
 def _handle_state_trash(result) -> int:
     for line in result.lines or ():
         print(line)
     return 0
 
-
 def _handle_state_restrict(result) -> int:
     for line in result.lines or ():
         print(line)
     return 0
 
-
 def _handle_state_decide(result) -> int:
     for line in result.lines or ():
         print(line)
     return 0
-
 
 def _handle_state_wait(result) -> int:
     status = result.state_status
@@ -474,6 +453,5 @@ def _handle_state_wait(result) -> int:
         return _WAIT_EXIT[status]
     print(f"Wait ended: {status}")
     return 0
-
 
 __all__ = ["cmd_traces"]

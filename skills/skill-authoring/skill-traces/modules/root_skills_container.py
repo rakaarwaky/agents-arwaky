@@ -54,15 +54,12 @@ class SkillsContainer:
         """Return the wired traces scan capability."""
         return self._traces
 
-
 def default_aggregate(default_root: Path | None = None) -> ISkillsAggregate:
     """Fully-wired traces feature aggregate."""
     return SkillsContainer(default_root=default_root).aggregate
 
-
 def default_container(default_root: Path | None = None) -> SkillsContainer:
     """Fully-wired traces feature container."""
     return SkillsContainer(default_root=default_root)
-
 
 __all__ = ["SkillsContainer", "default_aggregate", "default_container"]

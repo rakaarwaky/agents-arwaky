@@ -77,7 +77,6 @@ from shared.src.skills_traces.utility_skills_trace_state import (
 
 __all__ = ["SkillsTracesScan"]
 
-
 class SkillsTracesScan(ISkillsTraceScanProtocol):
     """Scans sessions, builds skills-only usage, and mines repeated phrases."""
 
@@ -395,12 +394,9 @@ class SkillsTracesScan(ISkillsTraceScanProtocol):
         rows.sort(key=lambda x: (-x.sessions, -x.occurrences, x.phrase))
         return tuple(rows[:_TOP])
 
-
 # ─── Block 3: Static Helpers, Factories & Dunders ─────────
 
-
 # ─── Module-level helpers used by the scan capability ──────────────
-
 
 def _parse_time(s):
     if not s:
@@ -410,11 +406,9 @@ def _parse_time(s):
     except ValueError:
         return None
 
-
 def _under(path: str, base: str) -> bool:
     path, base = os.path.normcase(os.path.normpath(path)), os.path.normcase(os.path.normpath(base))
     return path == base or path.startswith(base.rstrip(os.sep) + os.sep)
-
 
 def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern]) -> dict | None:
     """Scan one session dir; return a compact record dict or None."""
@@ -533,7 +527,6 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
         "repeated_single_turn": False,
     }
 
-
 def _human_turns(content) -> list[str]:
     if isinstance(content, str):
         txt = content
@@ -549,7 +542,6 @@ def _human_turns(content) -> list[str]:
         txt = ""
     found = [m.strip() for m in _USER_QUERY_RE.findall(txt)]
     return [t for t in found if t]
-
 
 def _record_from_dict(r: dict) -> TraceSessionRecord:
     return TraceSessionRecord(
@@ -574,7 +566,6 @@ def _record_from_dict(r: dict) -> TraceSessionRecord:
         repeated_single_turn=bool(r.get("repeated_single_turn")),
         trace_path=r.get("trace_path") or "",
     )
-
 
 def _write_manifest(
     grok_home: str,
@@ -616,7 +607,6 @@ def _write_manifest(
     }
     with open(os.path.join(run_dir, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=1, ensure_ascii=False)
-
 
 def _load_skill_catalog(grok_home: str) -> dict[str, dict]:
     """Load the user skill catalog: name -> {source, path, loaded, in_slash_mru}."""
@@ -660,7 +650,6 @@ def _load_skill_catalog(grok_home: str) -> dict[str, dict]:
                     "in_slash_mru": sname in slash_mru,
                 }
     return catalog
-
 
 def _toml_string_array(text: str, table: str, key: str) -> list[str] | None:
     """Read ``key = [ "a", "b" ]`` under ``[table]`` without YAML/TOML deps."""

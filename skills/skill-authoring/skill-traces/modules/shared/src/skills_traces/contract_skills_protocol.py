@@ -7,6 +7,10 @@ Two seams for the trace-learning lifecycle:
 Capabilities implement these; the composition root injects them into the agent.
 Capabilities never import one another: dependencies cross seams as protocols,
 wired by the root.
+The published taxonomy shapes (CategoryName, SkillName, CategorySummary,
+Issue, IssueType, Level, Rule, SkillEntry) are re-exported from this
+seam so callers can pull both the protocol classes and their VOs from
+one module.
 """
 
 from __future__ import annotations
@@ -83,7 +87,6 @@ class ISkillsTraceScanProtocol(ABC):
         Returns the two reports so the agent can echo them in the result.
         """
 
-
 class ISkillsTraceStateProtocol(ABC):
     """Trace-learning lifecycle: status machine, trash, decisions, wait, restrict, dispatch."""
 
@@ -140,9 +143,7 @@ class ISkillsTraceStateProtocol(ABC):
     ) -> TraceStateDispatchResult:
         """Route one trace-state sub-action through this capability."""
 
-
 # ── Internal seams end ──
-
 
 __all__ = [
     "ISkillsTraceScanProtocol",

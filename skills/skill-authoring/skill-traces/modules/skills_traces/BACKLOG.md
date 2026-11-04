@@ -22,6 +22,19 @@ The skills-traces capability (scan/usage/phrases/materialize + state lifecycle) 
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |
 
+### FR-SkillsTraces-002: Trace Learning State Protocol
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | `capabilities_skills_state.py` drives the trace-learning    |
+|              | state machine (status/trash/decisions/wait/restrict/dispatch); |
+|              | `unit_skills_state.py` and `e2e_skills_trace_commands.py`    |
+|              | cover state/wait at 2026-11-04.                              |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-04                                                   |
+
 ## Reference
 
 | Artifact     | Purpose                                         | Link |

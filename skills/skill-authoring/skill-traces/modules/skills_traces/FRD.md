@@ -22,9 +22,9 @@ state under `$GROK_HOME/learn`. The composition root wires
 entry point.
 
 Read-only pipeline ops: `collect`, `usage`, `phrases`.
-Materialization op: ``materialize``. Lifecycle state machine ops:
+Materialization op: `materialize`. Lifecycle state machine ops:
 `state get|set|clear|trash|restrict|decide|wait`. The exit-code
-contract for ``state wait`` is 0 ready / 1 phase-stall / 3
+contract for `state wait` is 0 ready / 1 phase-stall / 3
 report-stall / 2 deadline.
 
 ## Functional Requirements
@@ -52,16 +52,16 @@ report-stall / 2 deadline.
 
 #### Technical Specification
 
-| Aspect | Detail |
-|--------|--------|
-| **Input** | action sub-command; optional flags per action |
-| **Output** | scan results, usage reports, phrase reports, state transitions |
-| **Protocol** | ISkillsTraceScanProtocol (FR-SkillsTraces-009), ISkillsTraceStateProtocol (FR-SkillsTraces-010) |
-| **Method** | scan_sessions / build_usage / build_phrases / set_status / get_status / trash / decide / wait / dispatch |
-| **Event** | — |
-| **Error** | unknown action → usage error (exit 2); missing run dir → usage error (exit 2) |
+| Aspect       | Detail                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| **Input**    | action sub-command; optional flags per action                                                                 |
+| **Output**   | scan results, usage reports, phrase reports, state transitions                                                |
+| **Protocol** | ISkillsTraceScanProtocol                                                                                      |
+| **Method**   | scan\_sessions / build\_usage / build\_phrases / set\_status / get\_status / trash / decide / wait / dispatch |
+| **Event**    | —                                                                                                             |
+| **Error**    | unknown action → usage error (exit 2); missing run dir → usage error (exit 2)                                 |
 
-### FR-SkillsTraces-010: Trace Learning State Protocol
+### FR-SkillsTraces-002: Trace Learning State Protocol
 
 **Description:** Drive the trace-learning lifecycle state machine (status, trash, decisions, wait, restrict, dispatch).
 
@@ -81,49 +81,49 @@ report-stall / 2 deadline.
 
 #### Technical Specification
 
-| Aspect | Detail |
-|--------|--------|
-| **Input** | state sub-action; optional flags per sub-action |
-| **Output** | state transitions, trash/restrict/decide output lines |
-| **Protocol** | ISkillsTraceStateProtocol |
-| **Method** | set_status / get_status / trash / restrict / decide / wait / dispatch |
-| **Event** | — |
-| **Error** | unknown action → usage error (exit 2) |
+| Aspect       | Detail                                                                  |
+| ------------ | ----------------------------------------------------------------------- |
+| **Input**    | state sub-action; optional flags per sub-action                         |
+| **Output**   | state transitions, trash/restrict/decide output lines                   |
+| **Protocol** | ISkillsTraceStateProtocol                                               |
+| **Method**   | set\_status / get\_status / trash / restrict / decide / wait / dispatch |
+| **Event**    | —                                                                       |
+| **Error**    | unknown action → usage error (exit 2)                                   |
 
 #### Test
 
-| Context         | When Action                                | Then Observable Result                    |
-|-----------------|--------------------------------------------|-------------------------------------------|
-| CLI access      | `stc traces <action>`               | routes to `cmd_traces`, executes action   |
-| CLI no action   | `stc traces`                        | usage help printed, exit 2                |
-| CLI unknown     | `stc traces frobnicate`             | unknown-action error, exit 2              |
-| Collect         | agent op `traces` action=collect           | sessions scanned, usage built, exit 0     |
-| Wait ready      | agent op `traces` state=wait, files present | exit 0                                    |
-| Phase stall     | agent op `traces` state=wait, phase stall | exit 1                                    |
-| Report stall    | agent op `traces` state=wait, report stall| exit 3                                    |
-| Deadline        | agent op `traces` state=wait, deadline    | exit 2                                    |
+| Context       | When Action                                 | Then Observable Result                  |
+| ------------- | ------------------------------------------- | --------------------------------------- |
+| CLI access    | `stc traces <action>`                       | routes to `cmd_traces`, executes action |
+| CLI no action | `stc traces`                                | usage help printed, exit 2              |
+| CLI unknown   | `stc traces frobnicate`                     | unknown-action error, exit 2            |
+| Collect       | agent op `traces` action=collect            | sessions scanned, usage built, exit 0   |
+| Wait ready    | agent op `traces` state=wait, files present | exit 0                                  |
+| Phase stall   | agent op `traces` state=wait, phase stall   | exit 1                                  |
+| Report stall  | agent op `traces` state=wait, report stall  | exit 3                                  |
+| Deadline      | agent op `traces` state=wait, deadline      | exit 2                                  |
 
 #### Metric
 
-| Target Metric      | Value                                              |
-|--------------------|----------------------------------------------------|
+| Target Metric      | Value                                                 |
+| ------------------ | ----------------------------------------------------- |
 | Exit-code contract | 0 ready / 1 phase-stall / 3 report-stall / 2 deadline |
 
 ## Public Interface
 
-| Aspect    | Detail             |
-|-----------|--------------------|
-| Agent     | Skills Agent (design-side, shared aggregate contract) |
-| Aggregate | ISkillsAggregate (shared contract) |
-| Method    | execute(request)   |
-| Request   | SkillsRequest      |
-| Response  | SkillsResult       |
+| Aspect    | Detail                                                |
+| --------- | ----------------------------------------------------- |
+| Agent     | SkillsAgent                                           |
+| Aggregate | ISkillsAggregate                                      |
+| Method    | execute                                               |
+| Request   | SkillsRequest                                         |
+| Response  | SkillsResult                                          |
 
 ## Reference
 
-| Artifact     | Purpose                                           | Link                                     |
-|--------------|---------------------------------------------------|------------------------------------------|
+| Artifact     | Purpose                                           | Link                                              |
+| ------------ | ------------------------------------------------- | ------------------------------------------------- |
 | PRD          | Business goals, user stories, and scope           | [PRD.md](../../../../../PRD.md)                   |
-| Backlog      | Task tracking, epics, and implementation status   | [BACKLOG.md](BACKLOG.md)                 |
+| Backlog      | Task tracking, epics, and implementation status   | [BACKLOG.md](BACKLOG.md)                          |
 | ROADMAP      | Timeline, phasing, and dependencies               | [ROADMAP.md](../../../../../ROADMAP.md)           |
 | ARCHITECTURE | System boundaries, tech stack, and infrastructure | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |

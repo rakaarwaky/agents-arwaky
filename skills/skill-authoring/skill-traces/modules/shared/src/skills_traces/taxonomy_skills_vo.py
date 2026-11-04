@@ -56,7 +56,6 @@ TraceRunDir = NewType("TraceRunDir", str)
 TraceRunName = NewType("TraceRunName", str)
 """A single path component naming one trace run (trash/restrict target)."""
 
-
 class TraceStateStatus(StrEnum):
     """The trace-learning lifecycle status of a pending run.
 
@@ -75,7 +74,6 @@ class TraceStateStatus(StrEnum):
     REPORT_STALL = "report_stall"
     DEADLINE = "deadline"
 
-
 @dataclass(frozen=True)
 class SkillRecord:
     """One discoverable skill in the pack."""
@@ -83,7 +81,6 @@ class SkillRecord:
     name: str
     description: SkillDescription
     path: Path
-
 
 @dataclass(frozen=True)
 class TraceSessionRecord:
@@ -115,7 +112,6 @@ class TraceSessionRecord:
     repeated_single_turn: bool = False
     trace_path: str = ""
 
-
 @dataclass(frozen=True)
 class SkillUsageItem:
     """One loaded skill's usage row (the LLM's disuse verdict input)."""
@@ -129,7 +125,6 @@ class SkillUsageItem:
     last_used: str | None = None
     in_slash_mru: bool = False
 
-
 @dataclass(frozen=True)
 class PhraseRow:
     """One repeated-phrase row: the normalized text, distinct-session count, occurrences."""
@@ -138,7 +133,6 @@ class PhraseRow:
     sessions: int
     occurrences: int
     session_ids: tuple[str, ...] = ()
-
 
 @dataclass(frozen=True)
 class TraceDecision:
@@ -171,7 +165,6 @@ class TraceDecision:
             "undo": self.undo,
         }
 
-
 @dataclass(frozen=True)
 class ScanResult:
     """Outcome of one tracker scan: the kept records plus scan counters.
@@ -185,7 +178,6 @@ class ScanResult:
     sessions_seen: int
     dropped: Mapping[str, int] = field(default_factory=dict)
 
-
 @dataclass(frozen=True)
 class TraceStateDispatchResult:
     """The state capability's single-op projection for the agent's dispatch.
@@ -197,7 +189,6 @@ class TraceStateDispatchResult:
     state: TraceStateStatus | None = None
     state_status: TraceStateStatus | None = None
     lines: tuple[str, ...] = ()
-
 
 __all__ = [
     "DiffLines",

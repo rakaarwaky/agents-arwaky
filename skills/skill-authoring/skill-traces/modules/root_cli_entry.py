@@ -28,6 +28,5 @@ def main(argv: list[str] | None = None) -> int:
     aggregate = container.aggregate
     return cmd_traces(sub, aggregate)
 
-
 if __name__ == "__main__":
     raise SystemExit(main())

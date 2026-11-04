@@ -42,9 +42,7 @@ from shared.src.skills_traces.utility_skills_trace_state import (
 
 __all__ = ["SkillsTracesState"]
 
-
 # ─── Block 1: Class Definition & Constructor ──────────────
-
 
 class SkillsTracesState(ISkillsTraceStateProtocol):
     """Trace-learning lifecycle: status machine, trash, decisions, wait, restrict, dispatch."""
@@ -120,6 +118,5 @@ class SkillsTracesState(ISkillsTraceStateProtocol):
     ) -> TraceStateDispatchResult:
         """Route one trace-state sub-action through the shared helper."""
         return _state_dispatch(grok_home, run_dir, action, dict(flags))
-
 
 # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
