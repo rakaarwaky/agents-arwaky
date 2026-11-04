@@ -9,9 +9,9 @@ from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
 
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_discover import (
-    _Row,
     DRIFT_WARNING,
     SkillsDiscover,
+    _Row,
     score_entries,
     tokenize,
 )

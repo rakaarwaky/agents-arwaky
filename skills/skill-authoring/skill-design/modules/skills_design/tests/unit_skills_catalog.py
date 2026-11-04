@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 from shared.src.common.utility_skills_tree import category_summaries, skill_entries
 
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog

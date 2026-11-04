@@ -1,15 +1,16 @@
 """Skills discover capability (AES capabilities layer).
 
-Scores the catalog rows against a query. Reads the catalog through the
-injected ``ISkillsCatalogProtocol`` (never a sibling capability import),
-so a read answers from the same artifact ``catalog --check`` guards.
+Scores the catalog rows against a query. Reads the tracked
+``catalog.json`` through the injected ``ISkillsCatalogProtocol``
+(never a sibling capability import), so a read answers from the same
+artifact ``catalog --check`` guards.
 
-Drift contract: if the catalog fails the drift check (``CatalogDrift`` —
-missing, stale, or corrupt), discovery fails **loudly** (a warning the
-surface prints to stderr, a ``warning`` field in the ``--json`` result)
-and falls back to a read-only tree scan so the answer is real, current
-data — never a stale or phantom row. Exit stays 0: a successful search
-is a successful search; drift is ``catalog --check``'s exit 3.
+Drift contract: if the catalog is missing, corrupt, or empty, discovery
+fails **loudly** (a warning the surface prints to stderr, a ``warning``
+field in the ``--json`` result) and falls back to a read-only tree scan
+so the answer is real, current data — never a stale or phantom row.
+Exit stays 0: a successful search is a successful search; drift is
+``catalog --check``'s exit 3.
 
 The scoring is the original algorithm verbatim: per-token name +5 /
 description +3 / category +2 / path +1, highest score first, then the
@@ -36,7 +37,6 @@ from shared.src.skills_design.taxonomy_skills_constant import (
     DRIFT_WARNING,
 )
 from shared.src.skills_design.taxonomy_skills_error import (
-    CatalogDrift,
     SkillsUsageError,
 )
 from shared.src.skills_design.taxonomy_skills_request import (
