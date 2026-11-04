@@ -31,6 +31,11 @@ _EXIT_WAIT_PHASE_STALL = SkillsExitCode.ISSUES_FOUND
 _EXIT_WAIT_REPORT_STALL = SkillsExitCode.CATALOG_DRIFT
 _EXIT_WAIT_DEADLINE = SkillsExitCode.USAGE_ERROR
 
+#: Default $GROK_HOME: read from the GROK_HOME env var, else fall back to ~/.grok.
+_GROK_HOME_DEFAULT: str = __import__("os").environ.get("GROK_HOME") or __import__("os").path.expanduser(
+    "~/.grok"
+)
+
 _WAIT_EXIT = {
     TraceStateStatus.REPORT_READY: _EXIT_WAIT_READY,
     TraceStateStatus.PHASE_STALL: _EXIT_WAIT_PHASE_STALL,
