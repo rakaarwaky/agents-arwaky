@@ -63,7 +63,7 @@ class SkillsLinter(ISkillsLinterProtocol):
     ) -> LintReport:
         """Run the full lint over *root*; optionally filter by *category*.
 
-        Runs the 13-rule validator (per-skill, category, placement, and
+        Runs the 12-rule validator (per-skill, category, placement, and
         duplicate checks) inline plus the shared ``plan_weed`` helper for
         the weed lines. When *category* is set, issues are narrowed to
         that category; weed lines are kept as-is (library-wide signals).
