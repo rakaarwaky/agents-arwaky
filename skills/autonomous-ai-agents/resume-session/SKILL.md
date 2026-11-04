@@ -5,18 +5,18 @@ when-to-use: Use when the user switched from Claude Code, Codex, or Cursor and w
 argument-hint: "[words describing the session | session id]"
 metadata:
   short-description: "Continue from a recent Claude Code / Codex / Cursor session"
-  argument-hint: "[words describing the session | session id]"
 ---
 
-Set `TOOL` from the tool the user switched from:
+# Resume Session
 
-- Claude Code → `TOOL=claude`
-- Codex CLI or Codex VS Code → `TOOL=codex`
-- Cursor CLI or Cursor Desktop → `TOOL=cursor`
+Continue a recent Claude Code, Codex, or Cursor session in a fresh Grok session.
 
-If the tool is not stated in the request or `$ARGUMENTS`, ask which tool the
-session came from before proceeding.
+## Global rules
 
-Set `CORE_DIR="${SKILL_DIR}"`. Read and follow
-`${CORE_DIR}/CORE.md`, using `$ARGUMENTS` unchanged as the optional session
-reference.
+- **Determine the tool first.** Set `TOOL` from the tool the user switched from: Claude Code → `TOOL=claude`; Codex CLI or Codex VS Code → `TOOL=codex`; Cursor CLI or Cursor Desktop → `TOOL=cursor`. If the tool is not stated in the request or `$ARGUMENTS`, ask which tool the session came from before proceeding.
+
+## Routing
+
+| Step | Reference |
+| ---- | --------- |
+| Read and follow the full resume procedure (safety boundary, locating and reading the transcript, building the handoff, verification before continuing) | [`CORE.md`](CORE.md) — set `CORE_DIR="${SKILL_DIR}"` and pass `$ARGUMENTS` unchanged as the optional session reference |
