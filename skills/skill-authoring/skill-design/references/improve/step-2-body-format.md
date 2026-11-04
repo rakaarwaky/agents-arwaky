@@ -7,12 +7,15 @@ Every skill being improved must use this exact body shape in `SKILL.md`:
 ```
 # Title
 
+You <one paragraph: what the agent does when this skill loads>.
+
 ## Global rules
 
 ## Routing
 ```
 
 - **Title** — one `#` heading with the skill name.
+- **Intro paragraph** — immediately after the title, one short paragraph stating what the agent does when this skill loads. It is part of the `# Title` section (the template skeleton puts it under `# <Skill Name>`), not a heading of its own; a body with zero lines between the title and `## Global rules` reads as a dead TOC and is a shape defect.
 - **Global rules** — bullets only. Cross-step policy, invariants, record formats, and any fact read by more than one step.
 - **Routing** — a table of contents mapping each step/reference to its purpose.
 

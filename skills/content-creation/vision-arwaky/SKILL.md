@@ -15,13 +15,13 @@ TUI config interface (`vision-arwaky-tui`).
 
 - **Entry points.** `va` (or `vision-arwaky-cli`) runs every command;
   `vision-arwaky-mcp` starts the MCP server over stdio;
-  `vision-arwaky-tui` starts the Textual config interface. During development
+  `vision-arwaky-tui` starts the TUI config interface. During development
   use `uv run <command>` when the project is managed by `uv`.
 - **MCP tools.** The MCP server exposes six tools: `vision_init`,
   `vision_execute`, `vision_list_commands`, `vision_help`, `vision_status`,
   `vision_cancel`. The entry point is `modules/root_mcp_entry.py`, and the
   action surface is `modules/mcp/src/surface_mcp_action.py`. Command details:
-  [`internal/vision-arwaky/modules/mcp/FRD.md`](../../../internal/vision-arwaky/modules/mcp/FRD.md).
+  `internal/vision-arwaky/modules/mcp/FRD.md`.
 - **External VLM backend.** `analyze` and `analyze-video` use a configured
   external OpenAI-compatible vision endpoint and fall back to deterministic
   processing when no LLM response is available. Supported config:
@@ -39,17 +39,23 @@ TUI config interface (`vision-arwaky-tui`).
   headless OpenCV runtime for image and video. Install on Debian/Ubuntu:
   `sudo apt-get install -y ffmpeg libgl1 tesseract-ocr`.
 - **XDG layout.** Keep machine-specific paths and credentials out of version
-  control:
-  `~/.config/vision-arwaky/config.yaml` (`$XDG_CONFIG_HOME`),
-  `~/.local/share/vision-arwaky` (data & venv),
-  `~/.cache/vision-arwaky` (cache),
-  `~/.local/state/vision-arwaky` (logs & state),
-  `~/.local/bin` (executables). Use `LLAMA_API_URL`, `LLAMA_API_KEY`, and
-  `LLAMA_MODEL` for env overrides.
+  control: `~/.config/vision-arwaky/config.yaml` (`$XDG_CONFIG_HOME`),
+  `~/.local/share/vision-arwaky` (data & venv), `~/.cache/vision-arwaky`
+  (cache), `~/.local/state/vision-arwaky` (logs & state), `~/.local/bin`
+  (executables). Use `LLAMA_API_URL`, `LLAMA_API_KEY`, and `LLAMA_MODEL`
+  for env overrides.
 - **Documentation levels.** The `vision-arwaky` repository carries three
   documentation tiers — `PRD.md` (product problem, goals, scope, metrics,
   risks), per-feature `FRD.md` files (shared/system/image/video/cli/mcp),
   and `README.md` (install, commands, config, testing, contribution).
+- **Current limitations.** VLM analysis needs a reachable external vision
+  endpoint. OCR needs the `tesseract` binary. Video needs `ffmpeg`. Object
+  tracking uses OpenCV trackers, not a deep-learning detector. Smart-video
+  analysis samples a bounded representative set of frames rather than
+  sending every frame to the VLM.
+- **Completion.** The requested command returned the expected JSON or file;
+  for VLM commands the external endpoint was reachable (or the
+  deterministic fallback produced the expected output).
 
 ## Routing
 
@@ -60,17 +66,3 @@ TUI config interface (`vision-arwaky-tui`).
 | CLI (video)       | `video-info`, `extract-frames`, `check-corruption`, `detect-scenes`, `detect-motion`, `track --bbox X,Y,W,H`, `analyze-video` | Video metadata, frame extraction, integrity, scene/motion events, object tracking, smart-video VLM summary. |
 | Smart video       | scene-change + motion + uniform sampling; caps frames at 12; bounded summary prompt; per-frame VLM fallback; removes temp frames. | Owned by `analyze-video`.                                                                    |
 | Documentation map | `internal/vision-arwaky/` — `PRD.md`, `README.md`, and `modules/{shared,system,image,video,cli,mcp}/FRD.md`.      | Full product, install, and FRD-level specs.                                                   |
-
-## Current limitations
-
-VLM analysis needs a reachable external vision endpoint. OCR needs the
-`tesseract` binary. Video needs `ffmpeg`. Object tracking uses OpenCV
-trackers, not a deep-learning detector. Smart-video analysis samples a
-bounded representative set of frames rather than sending every frame to the
-VLM.
-
-## Completion
-
-- The requested command returned the expected JSON or file.
-- For VLM commands: the external endpoint was reachable (or the deterministic
-  fallback produced the expected output).

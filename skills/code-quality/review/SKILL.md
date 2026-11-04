@@ -3,6 +3,8 @@ name: review
 description: "Reviews a module, crate, or package in place with parallel reviewer subagents seeded with one of 10 lens personas. Each reviewer subagent reads the module's current files (no diff collection) and writes a per-persona review file to the host scratch directory. The orchestrator aggregates per-persona issue counts and writes a module summary file to disk."
 when-to-use: "Use when asked to 'review a module', 'review this package', 'review this crate', 'review modules/skills', 'review with a persona', 'review this code from the QA perspective', 'run a security review on this folder', '/review', or when the user drops a directory path and wants a code review rather than a PR or diff review. Bare /review on a path runs all 10 personas in parallel; select a single persona with its flag (e.g. /review modules/skills --qa-engineer) or any combination of flags; --all is equivalent to the bare form."
 argument-hint: "<path> [--backend-engineer | --business-analyst | --devops-engineer | --frontend-engineer | --product-engineer | --qa-engineer | --security-engineer | --software-architect | --system-analyst | --ui-ux-designer | --all]"
+---
+
 # Review
 
 Orchestrates parallel reviewer subagents, each seeded with one of 10 lens
@@ -33,4 +35,3 @@ coordinates only — all findings are authored by the subagents.
 | Step 3: aggregate/cleanup/report | [`references/step-3-final-report.md`](references/step-3-final-report.md) | Aggregation, cleanup, and final-report structure. |
 | Step 4: status updates | [`references/step-4-in-progress-reporting.md`](references/step-4-in-progress-reporting.md) | After each phase. |
 | Step 5: design notes | [`references/step-5-rules-and-design.md`](references/step-5-rules-and-design.md) | Rationale for non-obvious choices. |
-

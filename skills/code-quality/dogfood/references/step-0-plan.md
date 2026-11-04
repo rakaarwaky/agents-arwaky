@@ -1,10 +1,4 @@
-# Workflow (5-Phase Pipeline)
-
-Shared 5-phase QA pipeline that applies to every target type. Per-target toolsets
-live in `web.md`, `terminal.md`, `desktop.md`, and `mobile.md`. Shared evidence
-protocol, categorize rules, and report requirements live in `general.md`.
-
-## Phase 1: Plan
+# Step 0 — Plan
 
 Create the output directory structure:
 
@@ -13,7 +7,7 @@ Create the output directory structure:
 ├── screenshots/       # Visual evidence (web, desktop, mobile)
 ├── transcripts/       # Terminal output (terminal/TUI)
 ├── logs/              # Console / logcat / stderr captures
-└── report.md          # Final report (Phase 5)
+└── report.md          # Final report (step 4)
 ```
 
 Build the test plan based on target type:
@@ -29,29 +23,10 @@ Build the test plan based on target type:
   form input, touch targets, screen rotation, permission dialogs,
   background/foreground transitions.
 
-## Phase 2: Explore
+Shared QA rules, evidence protocol, categorize rules, report requirements, and
+the issue taxonomy live in [`shared.md`](shared.md).
 
-Per target type, follow the matching reference file. Every target type follows the
-same rhythm: **act → observe → record**.
+## Completion
 
-| Target type | Reference file |
-|---|---|
-| `web` | [web.md](web.md) — `browser_*` toolset |
-| `terminal` / `tui` | [terminal.md](terminal.md) — `run_terminal_command`, `screen`/`tmux` |
-| `desktop` | [desktop.md](desktop.md) — `computer_use` (cua-driver) |
-| `mobile` | [mobile.md](mobile.md) — `adb` shell commands |
-
-## Phase 3: Collect Evidence
-
-See [general.md](general.md) for the evidence protocol (screenshot/transcript
-capture, field list, classification rules).
-
-## Phase 4: Categorize
-
-See [general.md](general.md) for the categorize rules.
-
-## Phase 5: Report
-
-See [general.md](general.md) for the report requirements. Use
-[../templates/dogfood-report-template.md](../templates/dogfood-report-template.md).
-Save to `{output_dir}/report.md`.
+- The output directory layout exists under `{output_dir}` and the per-target
+  test-plan items are listed for the selected target type.

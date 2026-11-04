@@ -33,6 +33,8 @@ that matches the ask.
   rather than what a game needs from it.
 - **y-up engine mounting** for finished `.glb` so controls, camera, and
   facing agree is the `threejs-frame-conventions` tooling in Grok Build.
+- **Completion.** The generated asset matches the engine-ready defaults in
+  `assets.md` and reads back (frame count, palette, scale) without defects.
 
 ## Routing
 
@@ -44,8 +46,3 @@ that matches the ask.
 | UI, HUD, buttons, icons, item art, logos, title screens | [`ui-icons.md`](ui-icons.md) |
 | a 3D model, mesh or GLB from a picture or a generated image | [`3d.md`](3d.md) (its helper is `scripts/three_d.py`) |
 | core defaults, spec checklist, style anchoring, read-back verification | [`assets.md`](assets.md) |
-
-## Completion
-
-- The generated asset matches the engine-ready defaults in `assets.md`.
-- The asset is readable back (frame count, palette, scale) without defects.
