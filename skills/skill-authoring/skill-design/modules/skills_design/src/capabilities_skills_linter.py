@@ -27,7 +27,6 @@ from shared.src.common.utility_skills_tree import (
     assets_container,
     category_dirs,
     category_summaries,
-    iter_files,
     iter_relative_skill_mds,
     relpath,
     skill_entries,

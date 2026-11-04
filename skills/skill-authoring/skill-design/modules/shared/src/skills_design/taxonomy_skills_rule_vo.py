@@ -30,7 +30,7 @@ CategoryName = NewType("CategoryName", str)
 
 # ─── Issue taxonomy ─────────────────────────────────────────────────────
 
-#: Exactly the 13 strings ``librarian.py`` ``validate_library`` emits.
+#: Exactly the 12 strings ``librarian.py`` ``validate_library`` emits.
 #: The ``validate`` command must keep emitting these verbatim, so they
 #: live here, not in two places.
 class IssueType(str, Enum):
@@ -41,7 +41,6 @@ class IssueType(str, Enum):
     MISSING_DESCRIPTION = "missing-description"
     INVALID_DESCRIPTION_CHARACTERS = "invalid-description-characters"
     DESCRIPTION_TOO_LONG = "description-too-long"
-    NESTED_SKILL_MD = "nested-skill-md"
     INVALID_PLACEMENT = "invalid-placement"
     TOO_DEEP = "too-deep"
     DUPLICATE_SKILL_NAME = "duplicate-skill-name"
@@ -60,7 +59,6 @@ RULE_IDS: Final = {
     "description-present": IssueType.MISSING_DESCRIPTION,
     "description-characters": IssueType.INVALID_DESCRIPTION_CHARACTERS,
     "description-length": IssueType.DESCRIPTION_TOO_LONG,
-    "skill-md-nesting": IssueType.NESTED_SKILL_MD,
     "skill-placement": IssueType.INVALID_PLACEMENT,
     "category-depth": IssueType.TOO_DEEP,
     "unique-skill-name": IssueType.DUPLICATE_SKILL_NAME,
@@ -79,7 +77,6 @@ SUMMARIES: Final = {
     "description-present": "Every skill carries a `description:`",
     "description-characters": "Descriptions contain no `<`, `>`, or `\"`",
     "description-length": "Descriptions are at most 1024 characters",
-    "skill-md-nesting": "A skill directory holds exactly one `SKILL.md`",
     "skill-placement": "`SKILL.md` lives at `<category>/<skill>/SKILL.md`",
     "category-depth": "No nesting deeper than `<category>/<skill>/`",
     "unique-skill-name": "Each skill name is used by one folder only",
@@ -106,14 +103,6 @@ CITATIONS: Final = {
     "description-length": (
         "`create-skills/SKILL.md` and `validation-criteria.md` "
         "(both stated the 1,024-char ceiling)"
-    ),
-    "skill-md-nesting": (
-        "`create-skills/SKILL.md` (structure section: nested `SKILL.md` "
-        "is rejected on upload)"
-    ),
-    "skill-placement": (
-        "`create-skills/SKILL.md` (placement rule) and "
-        "`skill-librarian/references/category-rules.md` (folder shape)"
     ),
     "category-depth": (
         "`create-skills/SKILL.md` (loaders walk one level) and "
@@ -149,7 +138,6 @@ ISSUE_MESSAGES: Final = {
     IssueType.DESCRIPTION_TOO_LONG: (
         "Description is {length} chars; max is {max_len}."
     ),
-    IssueType.NESTED_SKILL_MD: "Nested SKILL.md files found: {paths}",
     IssueType.INVALID_PLACEMENT: (
         "SKILL.md is directly under a category; expected category/skill/SKILL.md."
     ),
@@ -227,7 +215,6 @@ RULE_ONLY_ISSUE_TYPES: Final = frozenset(
         IssueType.MISSING_DESCRIPTION.value,
         IssueType.INVALID_DESCRIPTION_CHARACTERS.value,
         IssueType.DESCRIPTION_TOO_LONG.value,
-        IssueType.NESTED_SKILL_MD.value,
         IssueType.INVALID_PLACEMENT.value,
         IssueType.TOO_DEEP.value,
         IssueType.MISSING_CATEGORY_DESCRIPTION.value,

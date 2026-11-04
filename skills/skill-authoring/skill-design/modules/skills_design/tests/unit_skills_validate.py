@@ -1,4 +1,4 @@
-"""Golden regression tests for the 13-rule validator folded into SkillsLinter."""
+"""Golden regression tests for the 12-rule validator folded into SkillsLinter."""
 
 from __future__ import annotations
 
