@@ -18,7 +18,6 @@ def test_e2e_trace_collect_exits_0_and_prints_run_dir(tmp_path: Path) -> None:
     code, out, _err = run_trace_surface(
         grok_home,
         "traces", "collect",
-
         "--out",
         str(run_dir),
     )
@@ -56,7 +55,6 @@ def test_e2e_trace_usage_exits_0(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-
         "--out",
         str(run_dir),
     )
@@ -78,7 +76,6 @@ def test_e2e_trace_usage_json_shape(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-
         "--out",
         str(run_dir),
     )
@@ -102,7 +99,6 @@ def test_e2e_trace_phrases_exits_0(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-
         "--out",
         str(run_dir),
     )
@@ -122,7 +118,6 @@ def test_e2e_trace_phrases_json_shape(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-
         "--out",
         str(run_dir),
     )
