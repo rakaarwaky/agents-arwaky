@@ -63,7 +63,7 @@ _NO_MATCH_LINE = "No matching skills found in CATALOG.md."
 
 
 def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
-    """Route ``sdc skills <sub>`` to the aggregate; render; return the exit code."""
+    """Route ``sdc <sub>`` to the aggregate; render; return the exit code."""
     if not args or args[0] in ("-h", "--help"):
         _print_usage()
         return 0
@@ -71,6 +71,9 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
     sub = args[0]
     rest = args[1:]
 
+    if sub == "skills":
+        err("Remove the legacy 'skills' subcommand: use 'sdc list' instead of 'sdc skills list'")
+        return _EXIT_USAGE
     if sub in ("list", "ls"):
         return _cmd_list(rest, aggregate)
     if sub == "read":

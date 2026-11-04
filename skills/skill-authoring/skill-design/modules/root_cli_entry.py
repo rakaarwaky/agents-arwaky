@@ -23,12 +23,6 @@ def main(argv: list[str] | None = None) -> int:
     if not args:
         print("Usage: sdc <list|read|lint|catalog|discover|move|archive|create> [flags]", file=sys.stderr)
         return 2
-    # Accept both `sdc list` and `sdc skills list` (strip the optional `skills` prefix).
-    if args[0] == "skills":
-        args = args[1:]
-        if not args:
-            print("Usage: sdc <list|read|lint|catalog|discover|move|archive|create> [flags]", file=sys.stderr)
-            return 2
     aggregate = default_aggregate()
     return cmd_skills(args, aggregate)
 

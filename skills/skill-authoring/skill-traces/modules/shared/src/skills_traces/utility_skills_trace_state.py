@@ -56,6 +56,7 @@ __all__ = [
     "_default_exclude_cwd",
     "_read_json",
     "_split_paths",
+    "append_decision_line",
     "decisions_path",
     "dispatch",
     "files_ready",
