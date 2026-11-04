@@ -16,9 +16,9 @@ Assemble the final Deep-Clean Report covering all phases above.
 
 Every finding carries a Verdict (KEEP / REMOVE / DELETE / INVESTIGATE / RESTRUCTURE) and a
 one-line Reason. Each language reference contains a fully worked example table
-(`step-1a-dead-code-python.md` § Phase 1 Workflow Step 1.7,
-`step-1b-dead-code-rust.md` § Phase 1 Workflow Step 1.7,
-`step-1c-dead-code-typescript.md` § Phase 1 Workflow Step 1.7).
+(`grok/step-1a-dead-code-python.md` § Phase 1 Workflow Step 1.7,
+`grok/step-1b-dead-code-rust.md` § Phase 1 Workflow Step 1.7,
+`grok/step-1c-dead-code-typescript.md` § Phase 1 Workflow Step 1.7).
 
 ## Completion
 
