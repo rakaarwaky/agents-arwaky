@@ -136,7 +136,17 @@ class ISkillsTraceStateProtocol(ABC):
 # ── Internal seams end ──
 
 
+class ISkillsTracesProtocol(ISkillsTraceScanProtocol, ISkillsTraceStateProtocol):
+    """Combined traces protocol: scan + state, implemented by SkillsTraces.
+
+    The capabilities layer owns this single protocol; root/surface entry
+    points wire the two skills together. Capabilities never import one
+    another: dependencies cross seams as protocols.
+    """
+
+
 __all__ = [
     "ISkillsTraceScanProtocol",
     "ISkillsTraceStateProtocol",
+    "ISkillsTracesProtocol",
 ]
