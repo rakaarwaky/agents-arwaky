@@ -24,84 +24,17 @@ adapter lets people email the agent and uses Hermes' built-in IMAP/SMTP
 adapter; this skill lets the agent operate a mailbox from terminal tools and
 requires the external `himalaya` CLI.
 
-## References
+## Global rules
 
-- `references/configuration.md` (config file setup + IMAP/SMTP authentication)
-- `references/message-composition.md` (MML syntax for composing emails)
-- `references/operations.md` (common operations: listing, reading, replying, forwarding, moving, flags, attachments, output formats, debugging)
+- **Always configure `folder.aliases` for any provider whose folder names don't match himalaya's canonical names.** Gmail is the common case — use the v1.2.0 `folder.aliases.X` syntax (plural, dotted keys, directly under `[accounts.NAME]`); the pre-v1.2.0 singular `alias` sub-section is silently ignored, which makes save-to-Sent fail *after* SMTP delivery succeeds and causes any retry-on-error caller to re-run SMTP — duplicate mail to recipients. Full mapping in `references/configuration.md`.
+- **Store passwords securely** — `pass`, system keyring, or a command that outputs the password; never inline `auth.raw` except in throwaway tests.
+- **Pipe non-interactive compose via `himalaya template send`**; interactive `$EDITOR` mode needs PTY + background and knowing the editor. Use `--output json` for structured output.
+- **Inspect Sent before retrying a send error** — SMTP may have succeeded while save-to-Sent failed; a blind retry duplicates the mail.
 
-## Prerequisites
+## Routing
 
-1. Himalaya CLI installed (`himalaya --version` to verify)
-2. A configuration file at `~/.config/himalaya/config.toml`
-3. IMAP/SMTP credentials configured (password stored securely)
-
-### Installation
-
-```bash
-# Pre-built binary (Linux/macOS — recommended)
-curl -sSL https://raw.githubusercontent.com/pimalaya/himalaya/master/install.sh | PREFIX=~/.local sh
-
-# macOS via Homebrew
-brew install himalaya
-
-# Or via cargo (any platform with Rust)
-cargo install himalaya --locked
-```
-
-## Configuration Setup
-
-Run the interactive wizard to set up an account:
-
-```bash
-himalaya account configure
-```
-
-Or create `~/.config/himalaya/config.toml` manually:
-
-```toml
-[accounts.personal]
-email = "you@example.com"
-display-name = "Your Name"
-default = true
-
-backend.type = "imap"
-backend.host = "imap.example.com"
-backend.port = 993
-backend.encryption.type = "tls"
-backend.login = "you@example.com"
-backend.auth.type = "password"
-backend.auth.cmd = "pass show email/imap"  # or use keyring
-
-message.send.backend.type = "smtp"
-message.send.backend.host = "smtp.example.com"
-message.send.backend.port = 587
-message.send.backend.encryption.type = "start-tls"
-message.send.backend.login = "you@example.com"
-message.send.backend.auth.type = "password"
-message.send.backend.auth.cmd = "pass show email/smtp"
-
-# Folder aliases (himalaya v1.2.0+ syntax). Required whenever the
-# server's folder names don't match himalaya's canonical names
-# (inbox/sent/drafts/trash). Gmail is the common case — see
-# `references/configuration.md` for the `[Gmail]/Sent Mail` mapping.
-folder.aliases.inbox = "INBOX"
-folder.aliases.sent = "Sent"
-folder.aliases.drafts = "Drafts"
-folder.aliases.trash = "Trash"
-```
-
-> **Heads up on the alias syntax.** Pre-v1.2.0 docs used a
-> `[accounts.NAME.folder.alias]` sub-section (singular `alias`).
-> v1.2.0 silently ignores that form — TOML parses fine, but the
-> alias resolver never reads it, so every lookup falls through to
-> the canonical name. On Gmail this means save-to-Sent fails *after*
-> SMTP delivery succeeds, and `himalaya message send` exits non-zero.
-> Any caller (agent, script, user) that retries on that exit code
-> will re-run the entire send — including SMTP — producing duplicate
-> emails to recipients. Always use `folder.aliases.X` (plural, dotted
-> keys, directly under `[accounts.NAME]`).
-
-## Common Operations
-
-All common operations (listing, reading, replying, forwarding, writing, moving, flags, attachments, output formats, debugging, and tips) live in `references/operations.md`.
+| Step | Reference | Purpose |
+| --- | --- | --- |
+| Configuration setup + IMAP/SMTP auth | [`references/configuration.md`](references/configuration.md) | Prerequisites, install, wizard or hand-written `config.toml`; Gmail/iCloud/notmuch/OAuth2/multi-account examples, and the `folder.aliases` block that prevents duplicate-mail on Gmail. |
+| MML syntax for rich messages | [`references/message-composition.md`](references/message-composition.md) | Multipart, attachments, inline images, mixed content. |
+| Common operations | [`references/operations.md`](references/operations.md) | Listing, reading, replying, forwarding, moving, flags, attachments, output formats, debugging. |

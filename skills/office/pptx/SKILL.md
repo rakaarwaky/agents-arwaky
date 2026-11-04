@@ -8,180 +8,22 @@ user-invocable: false
 
 # PPTX Skill
 
-Three workflows: raw XML unpack/edit/pack for templates, PptxGenJS for de novo
-decks, and the python-pptx structured programmatic tooling (the latter merged in
-from the former `powerpoint` skill).
+Three workflows: raw XML unpack/edit/pack for templates, PptxGenJS for de novo decks, and the python-pptx structured programmatic tooling (the latter merged in from the former `powerpoint` skill). Pick the workflow that matches the task; run QA before shipping any deck.
 
-## References
+## Global rules
 
-- `references/images.md` — image aspect-ratio rule, sources, options, sizing modes, and dimension calculations.
-- `references/python-pptx.md` — python-pptx programmatic workflow: create/read/edit/from-template/render, quick reference, and edge-case pitfalls.
+- **QA is required — do at least one fix-and-verify cycle** before declaring success. Your first render is almost never correct; approach QA as a bug hunt, not a confirmation step. Full checklist in `references/qa.md`.
+- **When in doubt, use the editing workflow.** If any `.pptx` file is attached or mentioned, edit the template directly; the creating workflow is only for when no existing presentation exists at all. The python-pptx workflow is for structured, script-driven operations rather than per-slide XML editing.
+- **Match the template's style exactly** — colors, fonts, backgrounds, and layout relationships; do not adapt the template's palette or typography to the topic's subject matter.
 
-## Workflow Selection
+## Routing
 
-| Situation | Action |
-|-----------|--------|
-| User attaches or references a `.pptx` template to edit | Read [editing.md](editing.md) — edit the template directly |
-| No `.pptx` provided — create from scratch | Read [creating.md](creating.md) — use PptxGenJS templates |
-| Programmatic create/read/edit via python-pptx (JSON spec, outline read-back, replace-text/chart-data/swap-image/duplicate/remove/move, template fill, slide PNG render) | Read `references/python-pptx.md` |
-| Legacy binary `.ppt` file | Convert first: `soffice --convert-to pptx old.ppt`, then use a .pptx workflow |
-| Read/analyze an existing presentation | See Reading Content below |
-
-**When in doubt:** If ANY `.pptx` file is attached or mentioned, use the
-editing workflow. The creating workflow is ONLY for when no existing
-presentation exists at all. The python-pptx workflow is for structured,
-script-driven operations on decks (including from-template brand decks)
-rather than per-slide XML editing.
-
----
-
-## Reading Content
-
-```bash
-# Text extraction
-python -m markitdown presentation.pptx
-
-# Visual overview
-python scripts/thumbnail.py presentation.pptx
-
-# Raw XML
-python scripts/office/unpack.py presentation.pptx unpacked/
-
-# Structured inspection (placeholders, text, images, media — USE THIS)
-python scripts/inspect_slide.py unpacked/ --theme --media
-```
-
-
----
-
-## QA (Required)
-
-**Assume there are problems. Your job is to find them.**
-
-Your first render is almost never correct. Approach QA as a bug hunt, not a confirmation step. If you found zero issues on first inspection, you weren't looking hard enough.
-
-### Overlap Check & Auto-Fix (Before Packing)
-
-**Run this on the unpacked XML before packing** — it catches overlapping text boxes instantly without needing a render, and `--fix` auto-applies text auto-shrink:
-
-```bash
-# Check and auto-fix (enables normAutofit on overlapping text shapes)
-python scripts/check_overlaps.py unpacked/ --fix
-
-# Check only (no modifications)
-python scripts/check_overlaps.py unpacked/
-```
-
-The `--fix` flag adds `<a:normAutofit/>` to every text shape involved in an overlap or off-slide overflow. This makes PowerPoint auto-shrink text to fit the box. If issues remain after `--fix`, shorten text or resize shapes manually.
-
-### Content QA
-
-```bash
-python -m markitdown output.pptx
-```
-
-Check for missing content, typos, wrong order.
-
-**When using templates, check for leftover placeholder text:**
-
-```bash
-python -m markitdown output.pptx | grep -iE "xxxx|lorem|ipsum|this.*(page|slide).*layout"
-```
-
-If grep returns results, fix them before declaring success.
-
-### Automated Checks
-
-Run these before visual inspection to catch common issues automatically:
-
-```bash
-python scripts/detect_fonts.py output.pptx
-python scripts/office/unpack.py output.pptx unpacked/
-python scripts/check_overlaps.py unpacked/ --fix
-python scripts/clean.py unpacked/
-python scripts/office/pack.py unpacked/ final_output.pptx --original output.pptx
-```
-
-Fix any issues these report before proceeding to visual QA.
-
-### Visual QA
-
-You've been staring at the code and will see what you expect, not what's there. 
-
-Convert slides to images, then look for:
-
-- Overlapping elements (text through shapes, lines through words, stacked elements)
-- Text overflow or cut off at edges/box boundaries
-- Decorative lines positioned for single-line text but title wrapped to two lines
-- Source citations or footers colliding with content above
-- Elements too close (< 0.3" gaps) or cards/sections nearly touching
-- Uneven gaps (large empty area in one place, cramped in another)
-- Insufficient margin from slide edges (< 0.5")
-- Columns or similar elements not aligned consistently
-- Low-contrast text (e.g., light gray text on cream-colored background)
-- Low-contrast icons (e.g., dark icons on dark backgrounds without a contrasting circle)
-- Text boxes too narrow causing excessive wrapping
-- Leftover placeholder content
-- **Style consistency** — does every slide feel like it belongs to the same deck?
-
-For each slide, list issues or areas of concern, even if minor.
-
-Read and analyze these images:
-1. /path/to/slide-01.jpg (Expected: [brief description])
-2. /path/to/slide-02.jpg (Expected: [brief description])
-
-### Verification Loop
-
-1. Generate slides → Convert to images → Inspect
-2. Run `detect_fonts.py` and `check_overlaps.py`
-3. **List issues found** (if none found, look again more critically)
-4. Fix issues
-5. **Re-verify affected slides** — one fix often creates another problem
-6. Repeat until a full pass reveals no new issues
-
-**Do not declare success until you've completed at least one fix-and-verify cycle.**
-
----
-
-## Converting to Images
-
-Convert presentations to individual slide images for visual inspection:
-
-```bash
-# Preferred — auto-calculates DPI from slide dimensions, with ODP fallback
-python scripts/render_slides.py output.pptx
-
-# Or with custom target resolution
-python scripts/render_slides.py output.pptx --output_dir slides/ --width 1920 --height 1080
-```
-
-This creates `slide-1.png`, `slide-2.png`, etc. in a folder named after the input file.
-
-**Fallback** (if render_slides.py dependencies aren't available):
-
-```bash
-python scripts/office/soffice.py --headless --convert-to pdf output.pptx
-pdftoppm -jpeg -r 150 output.pdf slide
-```
-
----
-
-## Images
-
-Image handling rules (aspect ratio, sources, options, sizing modes, dimension calculations) live in `references/images.md`.
-
----
-
-## Dependencies
-
-**All-in-one install:**
-
-```bash
-pip install "markitdown[pptx]" Pillow pdf2image python-pptx numpy defusedxml
-npm install -g pptxgenjs
-```
-
-**System packages** (pre-installed in the Docker image):
-- LibreOffice (`soffice`) — PDF conversion (auto-configured via `scripts/office/soffice.py`)
-- Poppler (`pdftoppm`) — PDF to images
-- fontconfig (`fc-list`) — font detection
+| Step | Reference | Purpose |
+| --- | --- | --- |
+| Workflow selection + reading + image conversion + dependencies | [`references/workflow-selection.md`](references/workflow-selection.md) | Which workflow to use per situation, content-reading commands, slide-to-image conversion, and install dependencies. |
+| Edit an attached `.pptx` template | [`references/editing.md`](references/editing.md) | Raw XML unpack/edit/pack workflow: inspect, replace text/media, repack. |
+| Create a de novo deck | [`references/creating.md`](references/creating.md) | PptxGenJS template-based creation from scratch. |
+| Structured python-pptx operations | [`references/python-pptx.md`](references/python-pptx.md) | Create from JSON spec, read-back, targeted text/chart/image edits, template fill, and slide PNG rendering. |
+| Image handling rules | [`references/images.md`](references/images.md) | Aspect-ratio rule, sources, options, sizing modes, and dimension calculations. |
+| QA checklist | [`references/qa.md`](references/qa.md) | Overlap check/auto-fix, content QA, automated checks, visual QA, and the fix-and-verify loop. |
+| Edge-case pitfalls | [`references/pitfalls.md`](references/pitfalls.md) | Run splitting, chart duplication limits, XML-level reordering, footer/slide-number constraints, hyperlinks, template sizing, layout indexes, UTF-8 specs. |
