@@ -14,7 +14,7 @@ The only differences are the import swaps to the AES modules:
                    _find_* helpers (original tools/lib/tool_resolver.py
                    bodies as-is, import-swapped)
   - doc_pack        -> modules.shared.src.utility_doc_pack
-  - skill_pack      -> modules.skills.src.capabilities_skills_lister
+  - skill_pack      -> modules.skills_design.src.capabilities_skills_lister
   - paths.repo_root -> modules.shared.src.utility_paths
 
 Delegated actions (skill/connect/disconnect/daemon/service/backup)
@@ -557,7 +557,7 @@ def cmd_disconnect(argv: list[str]) -> int:
 def cmd_skills(argv: list[str]) -> int:
     """Skill-pack discovery and authoring: aa skills <verb> [args]."""
     from modules.cli.src.surface_skills_command import cmd_skills as _skills_surface
-    from modules.skills.src.root_skills_container import default_aggregate
+    from modules.skills_design.src.root_skills_container import default_aggregate
 
     return _skills_surface(list(argv), default_aggregate())
 

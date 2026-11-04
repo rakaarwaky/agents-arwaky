@@ -475,6 +475,16 @@ project-root/
 | Scope | Member subdirectories (`crates/`, `modules/`, `packages/`) |
 | Fix | Add the missing orchestrator/capabilities file, remove foreign files, add the doc pair, add a `root_*` composition file, or mirror into `shared/src/<feature>/` |
 
+**Cross-module composition (split modules):** when one feature folder
+is split into sibling modules that share a single contract/aggregate
+layer (e.g. `modules/skills_design` + `modules/skills_traces` share
+`modules/shared/src/skills`), the composition root of one module MAY
+import the capability class of the sibling module to wire it into the
+shared agent. Only the root/agent layers of a split may cross module
+boundaries; capability layers never import a sibling module's
+capability, and each split module keeps its own `FRD.md` +
+`BACKLOG.md` doc pair (AES702).
+
 ### AES703 — Surface Folder Purity
 
 | Field | Value |
