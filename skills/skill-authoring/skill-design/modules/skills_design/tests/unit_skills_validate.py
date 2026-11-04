@@ -28,7 +28,6 @@ GOLDEN = {
     IssueType.MISSING_DESCRIPTION: "cat-a/good-skill",
     IssueType.INVALID_DESCRIPTION_CHARACTERS: "cat-a/good-skill",
     IssueType.DESCRIPTION_TOO_LONG: "cat-a/good-skill",
-    IssueType.NESTED_SKILL_MD: "cat-a/good-skill",
     IssueType.INVALID_PLACEMENT: "cat-a/SKILL.md",
     IssueType.TOO_DEEP: "cat-a/deep/nest/SKILL.md",
     IssueType.DUPLICATE_SKILL_NAME: "library",
@@ -39,10 +38,10 @@ GOLDEN = {
 }
 
 
-def test_rule_table_is_the_thirteen_rule_ssot() -> None:
-    """13 rules, stable ids, and messages that cannot drift from the table."""
-    assert len(RULES) == 13
-    assert len(RULE_IDS) == 13
+def test_rule_table_is_the_twelve_rule_ssot() -> None:
+    """12 rules, stable ids, and messages that cannot drift from the table."""
+    assert len(RULES) == 12
+    assert len(RULE_IDS) == 12
     assert tuple(item.id for item in RULES) == tuple(RULE_IDS)
     for one_rule in RULES:
         assert rule(one_rule.id) is one_rule
