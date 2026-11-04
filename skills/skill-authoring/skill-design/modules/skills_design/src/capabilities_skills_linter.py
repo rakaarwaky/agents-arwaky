@@ -222,23 +222,6 @@ class SkillsLinter(ISkillsLinterProtocol):
                         )
                     )
 
-            skill_dir = skills_root / entry.path
-            nested = [
-                relpath(path, skills_root)
-                for path in iter_files(skill_dir)
-                if path.name == "SKILL.md" and path != skill_dir / "SKILL.md"
-            ]
-
-            if nested:
-                issues.append(
-                    Issue(
-                        type=IssueType.NESTED_SKILL_MD.value,
-                        message=issue_message(
-                            IssueType.NESTED_SKILL_MD, paths=", ".join(nested)
-                        ),
-                        path=entry.path,
-                    )
-                )
 
     @staticmethod
     def _check_placement(skills_root: Path, issues: list[Issue]) -> None:
