@@ -84,6 +84,25 @@ The `--learn` path owns report sections 1 (Repeated phrases → skills) and 4 (G
 2. The state capability polls for `report.md` + `actions.json`.
 3. On readiness it exits 0; on stall/deadline it exits 1 / 3 / 2.
 
+### PR-SKILLTRACES-003: trace-learning artifact materialization
+<!-- Tier P2: the first P2 entry. -->
+
+#### User Stories
+
+| As a | I want | So that | Priority |
+|------|--------|---------|----------|
+| Skill author | Inspect `usage.json` and `phrases.json` | I can verify what the trace pipeline recorded | `usage.json`/`phrases.json` exist in run dir |
+
+#### Proposed Solution
+
+The trace pipeline materializes `usage.json` and `phrases.json` into the run dir before `learn-traces` launches, with one decide line per applied action recorded under `--kind skill`.
+
+#### Main User Flow
+
+1. Trace pipeline scans sessions and runs usage/phrase extraction.
+2. Pipeline writes `usage.json` and `phrases.json` into the run dir.
+3. `learn-traces` launches and the decide line is recorded per action.
+
 ## Reference
 
 | Artifact     | Purpose                                          | Link |

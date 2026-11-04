@@ -22,6 +22,14 @@ The skills-traces capability (scan/usage/phrases/materialize + state lifecycle) 
 | State        | Done                                                          |
 | Backlog      | [BACKLOG.md](modules/skills_traces/BACKLOG.md)               |
 
+### PR-SKILLTRACES-003: trace-learning artifact materialization
+
+| Aspect       | Detail                                                        |
+|--------------|---------------------------------------------------------------|
+| Priority     | P2                                                            |
+| State        | Done                                                          |
+| Backlog      | [BACKLOG.md](modules/skills_traces/BACKLOG.md)               |
+
 ## Reference
 
 | Artifact     | Purpose                                    | Link |
