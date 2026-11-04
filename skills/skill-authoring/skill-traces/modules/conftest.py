@@ -12,10 +12,8 @@ from pathlib import Path
 _MOD_ROOT = Path(__file__).resolve().parent
 _REPO_ROOT = _MOD_ROOT.parents[3]
 _NS_ROOTS = [
-    _MOD_ROOT,
-    _MOD_ROOT / "shared" / "src",
-    _MOD_ROOT / "cli" / "src",
-    _REPO_ROOT,
+    _MOD_ROOT,    # modules/       -> shared, cli, skills_traces namespace packages
+    _REPO_ROOT,   # repo root      -> top-level packages
 ]
 for _ns in _NS_ROOTS:
     _ns_str = str(_ns)
