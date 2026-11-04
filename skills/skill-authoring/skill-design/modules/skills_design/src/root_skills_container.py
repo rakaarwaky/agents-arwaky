@@ -5,8 +5,8 @@ discover, mover, archiver, creator) into the design-side agent. The
 package is fully self-contained: every contract / taxonomy / utility
 module it needs lives under ``skills_design/src/``.
 
-The traces capability of the sibling ``skills_traces`` package is NOT
-imported here — the two packages are independent (AES702). The agent
+The traces capability of the sibling traces app is NOT imported
+here — the two packages are independent (AES702). The agent
 accepts an optional ``traces`` protocol object (injected at the call
 site); the orchestrator-owned CLI entry point
 (``modules/root_cli_entry.py``) is the only place that knows both
@@ -75,9 +75,8 @@ def default_aggregate(
 
     ``traces`` stays optional: when omitted, the agent has no traces
     capability and ``SkillsOp.TRACES`` requests are usage errors. The
-    orchestrator-owned CLI entry point injects the concrete
-    ``skills_traces.SkillsTraces`` implementation, so this package
-    never imports the sibling tree.
+    orchestrator-owned CLI entry point injects the concrete traces
+    implementation, so this package never imports the sibling tree.
     """
     root = default_root if default_root is not None else default_pack_root()
     wired_catalog = catalog or SkillsCatalog()

@@ -12,9 +12,9 @@ The agent depends only on contract protocols and taxonomy; the
 composition root injects every capability implementation.
 
 The ``traces`` capability is the one op whose implementation lives in
-the independent ``skills_traces`` package; the orchestrator-owned CLI
-entry point (``modules/root_cli_entry.py``) injects it. This package
-never imports the sibling tree.
+the independent traces app; the orchestrator-owned CLI entry point
+(``modules/root_cli_entry.py``) injects it. This package never imports
+the sibling tree.
 """
 
 from __future__ import annotations
@@ -350,9 +350,9 @@ class SkillsAgent(ISkillsAggregate):
     def _execute_traces(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Route one trace sub-action through the traces capability.
 
-        The trace pipeline itself lives in the sibling ``modules/
-        skills_traces`` module; the composition root wires its
-        ``SkillsTraces`` capability into this agent, which dispatches
+        The trace pipeline itself lives in the independent traces app;
+        the orchestrator-owned CLI entry point wires its capability into
+        this agent, which dispatches
         the sub-action here through the shared protocol.
         """
         traces = self._require(self._traces, "traces")

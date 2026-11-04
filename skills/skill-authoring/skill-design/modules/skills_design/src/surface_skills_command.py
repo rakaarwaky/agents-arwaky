@@ -16,10 +16,10 @@ Exit codes are the legacy contract: 0 clean / 1 issues / 2 usage /
 The 13-verb surface spans two modules after the skills/skills split:
 the design-side verbs (list, read, lint, catalog, discover, move,
 archive, create) are routed here; the traces-side verbs (collect,
-usage, phrases, materialize, state) are routed to
-``skills_design.src.surface_skills_traces_command.cmd_traces``. The
-aggregate is the design-side ``SkillsAgent`` which also dispatches
-``SkillsOp.TRACES`` through the injected traces capability.
+usage, phrases, materialize, state) are routed to the sibling
+traces-side surface module in this package. The aggregate is the
+design-side ``SkillsAgent`` which also dispatches ``SkillsOp.TRACES``
+through the injected traces capability.
 """
 
 from __future__ import annotations

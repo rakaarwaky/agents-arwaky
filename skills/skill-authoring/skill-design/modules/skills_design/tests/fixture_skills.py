@@ -2,10 +2,8 @@
 
 Pack-tree builders (``make_pack``, ``crafted_tree``, ``clean_tree``,
 ``as_root``) and the design-side CLI driving helper (``run_surface``)
-are self-contained here. The skills_traces test tree keeps its own
-trace fixtures (``make_grok_home``, ``run_trace_surface``) and reuses
-these pack-tree builders across the trees; cross-tree src imports are
-limited to ``root_skills_container`` (AES702).
+are self-contained here. The traces test tree keeps its own trace
+fixtures; the two packages are fully independent (AES702).
 """
 
 from __future__ import annotations

@@ -363,7 +363,9 @@ def test_importing_the_feature_does_not_mutate_sys_path() -> None:
     """G3: the feature only resolves via its documented namespace roots.
 
     With the standalone-CLI namespace roots on PYTHONPATH, the imports
-    succeed and add nothing to sys.path beyond those documented roots."""
+    succeed and add nothing to sys.path beyond those documented roots.
+    Only the design tree's own root is needed: the package is fully
+    self-contained (AES702 independent packages)."""
     import os
     import subprocess
     import sys
@@ -371,16 +373,14 @@ def test_importing_the_feature_does_not_mutate_sys_path() -> None:
 
     repo_root = Path(__file__).resolve().parents[6]
     design_ns = str(repo_root / "skills" / "skill-authoring" / "skill-design" / "modules")
-    traces_ns = str(repo_root / "skills" / "skill-authoring" / "skill-traces" / "modules")
     code = (
         "import sys; "
         "import skills_design.src.root_skills_container; "
         "import skills_design.src.surface_skills_command; "
-        f"assert {design_ns!r} in sys.path, 'design ns missing from sys.path'; "
-        f"assert {traces_ns!r} in sys.path, 'traces ns missing from sys.path'"
+        f"assert {design_ns!r} in sys.path, 'design ns missing from sys.path'"
     )
     env = dict(os.environ)
-    env["PYTHONPATH"] = os.pathsep.join([design_ns, traces_ns, str(repo_root)])
+    env["PYTHONPATH"] = os.pathsep.join([design_ns, str(repo_root)])
     completed = subprocess.run(
         [sys.executable, "-c", code],
         cwd=str(repo_root),
