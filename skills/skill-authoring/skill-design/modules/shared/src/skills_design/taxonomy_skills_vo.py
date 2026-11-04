@@ -199,15 +199,10 @@ class TraceStateDispatchResult:
     lines: tuple[str, ...] = ()
 
 
-# Re-exported into the legacy import path: the request/response envelope
-# modules import *only* the primitives defined above (``SkillRecord``,
-# ``ScanResult``, ...) — no import of this module at runtime, so no cycle
-# in either direction.
-from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
-from shared.src.skills_design.taxonomy_skills_response import (
-    SkillsExitCode,
-    SkillsResult,
-)
+# The primitives below are defined in this module; the request/response
+# envelopes re-import them at their own bottoms — no cycle in either
+# direction.
+
 
 __all__ = [
     "DiffLines",
@@ -217,15 +212,9 @@ __all__ = [
     "ScanResult",
     "SkillContent",
     "SkillDescription",
-    "SkillQuery",
     "SkillRecord",
     "SkillUsageItem",
-    "SkillsExitCode",
     "SkillsJsonPayload",
-    "SkillsOp",
-    "SkillsRequest",
-    "SkillsResult",
-    "SkillsRoot",
     "TraceDecision",
     "TraceRunDir",
     "TraceRunName",

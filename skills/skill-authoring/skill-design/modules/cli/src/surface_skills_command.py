@@ -35,12 +35,15 @@ from shared.src.common.utility_logging_setup import (
 from shared.src.common.utility_skills_markdown import md_escape
 from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
-from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
+from shared.src.skills_design.taxonomy_skills_request import (
+    SkillQuery,
+    SkillsOp,
+    SkillsRequest,
+)
 from shared.src.skills_design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from shared.src.skills_design.taxonomy_skills_request import SkillQuery
 
 _EXIT_USAGE = SkillsExitCode.USAGE_ERROR
 _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT

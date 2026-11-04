@@ -29,11 +29,15 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
+from shared.src.skills_design.taxonomy_skills_request import (
+    SkillQuery,
+    SkillsOp,
+    SkillsRequest,
+    SkillsRoot,
+)
 from shared.src.skills_design.taxonomy_skills_response import SkillsResult
 from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
-    SkillQuery,
     SkillRecord,
 )
 

@@ -24,7 +24,7 @@ def bench_skills_list_skills(benchmark):
 def bench_skills_read_skill(benchmark):
     """BENCH-SKILLS-003: Benchmark show_skill (reader) on the real pack."""
     from skills_design.src.capabilities_skills_reader import SkillsPackReader
-    from skills_design.src.taxonomy_skills_vo import SkillQuery
+    from skills_design.src.taxonomy_skills_request import SkillQuery
 
     reader = SkillsPackReader()
 

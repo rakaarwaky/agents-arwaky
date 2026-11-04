@@ -37,14 +37,18 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillsRootError,
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
+from shared.src.skills_design.taxonomy_skills_request import (
+    SkillQuery,
+    SkillsOp,
+    SkillsRequest,
+    SkillsRoot,
+)
 from shared.src.skills_design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
 from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
-    SkillQuery,
     SkillRecord,
 )
 

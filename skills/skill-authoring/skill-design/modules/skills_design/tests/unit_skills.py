@@ -21,14 +21,16 @@ from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogReport,
 )
 from shared.src.skills_design.taxonomy_skills_error import SkillsRootError
-from shared.src.skills_design.taxonomy_skills_vo import (
-    SkillContent,
-    SkillDescription,
+from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
-    SkillRecord,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
+)
+from shared.src.skills_design.taxonomy_skills_vo import (
+    SkillContent,
+    SkillDescription,
+    SkillRecord,
 )
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent

@@ -11,7 +11,7 @@ from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
 )
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,

@@ -32,8 +32,8 @@ from shared.src.skills_design.taxonomy_skills_authoring_vo import (
 from shared.src.skills_design.taxonomy_skills_constant import (
     CATEGORY_DESCRIPTION_FILENAME,
 )
-from shared.src.skills_design.taxonomy_skills_rule_vo import CategoryName, SkillName
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
+from shared.src.skills_design.taxonomy_skills_rule_vo import CategoryName, SkillName
 
 __all__ = ["SkillsCreator"]
 

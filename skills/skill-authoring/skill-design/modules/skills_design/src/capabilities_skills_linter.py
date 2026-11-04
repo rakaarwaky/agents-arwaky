@@ -44,12 +44,12 @@ from shared.src.skills_design.taxonomy_skills_entity import (
     Issue,
     SkillEntry,
 )
+from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 from shared.src.skills_design.taxonomy_skills_rule_vo import (
     IssueType,
     is_valid_skill_name,
     issue_message,
 )
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
 __all__ = ["SkillsLinter"]
 
