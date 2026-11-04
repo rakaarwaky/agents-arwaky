@@ -94,8 +94,6 @@ def _expected_message(issue, issue_type: IssueType) -> str:
         return issue_message(issue_type, name="wrong-name", dir="good-skill")
     if issue_type is IssueType.DESCRIPTION_TOO_LONG:
         return issue_message(issue_type, length=1100, max_len=1024)
-    if issue_type is IssueType.NESTED_SKILL_MD:
-        return ISSUE_MESSAGES[issue_type].format(paths=issue.message.split(": ", 1)[1])
     if issue_type is IssueType.DUPLICATE_SKILL_NAME:
         return issue_message(
             issue_type, name="good-skill", paths="cat-a/good-skill, cat-b/good-skill"
