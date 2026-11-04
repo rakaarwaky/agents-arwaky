@@ -2,13 +2,11 @@
 # skills/skill-authoring/skill-design/scripts/install.sh
 #
 # Install the sdc (skill-design-cli) standalone binary to the XDG bin home
-<<<<<<< HEAD
 # ($XDG_BIN_HOME, default $HOME/.local/bin). sdc only — no stc, no other
 # binary.
-=======
-# ($XDG_BIN_HOME, default $HOME/.local/bin). No bin/ directory is kept in
-# the project; this installer is the source of the binary.
->>>>>>> 41a3fe05125330b21933abf1fe7a8be4afeee38f
+#
+# No bin/ directory is kept in the project; this installer is the source
+# of the sdc binary and carries it inline.
 #
 # XDG Base Directory spec (v0.8):
 #   - XDG_BIN_HOME must be absolute; relative/tilde values are rejected.
@@ -35,6 +33,12 @@ case "$BIN_DIR" in
     exit 1
     ;;
 esac
+
+# Remove any pre-existing file/symlink at $BIN_DIR/sdc so we never write
+# through a stale symlink to another location.
+if [[ -e "$BIN_DIR/sdc" || -L "$BIN_DIR/sdc" ]]; then
+  rm -f "$BIN_DIR/sdc"
+fi
 
 if [[ ! -d "$BIN_DIR" ]]; then
   mkdir -p "$BIN_DIR"
