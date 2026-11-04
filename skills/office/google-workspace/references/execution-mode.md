@@ -7,7 +7,7 @@ The server is registered under the name **`workspace`** (in `~/.qwen/settings.js
 `workspace-mcp`). So the callable tool names are **`mcp__workspace__search_gmail_messages`**,
 `mcp__workspace__manage_event`, and so on.
 
-The tables in `references/tool-reference.md` and `references/workspace-<service>.md`
+The tables in `references/tool-reference.md` and `references/<service>.md`
 list **base names only**. Prefix them with the server name your harness exposes
 (`mcp__workspace__` on Qwen Code). Do **not** use a `google-workspace:` prefix — no
 server is registered under that name and the calls fail.
@@ -37,5 +37,5 @@ workspace-mcp --tool-tier core          # fewer tools, fewer tokens
 workspace-mcp --read-only               # read-only scopes, write tools disabled
 ```
 
-For any tool, read the matching `references/workspace-<service>.md` before calling it. Only use
+For any tool, read the matching `references/<service>.md` before calling it. Only use
 parameters documented there — do not invent parameters.

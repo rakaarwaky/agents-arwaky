@@ -175,6 +175,7 @@ For multi-step layout work (headings, lists, tables), also follow `references/do
 | Get search engine info | `get_search_engine_info` |
 
 ### Auth
+### Auth
 
 | Task | Tool |
 |------|------|

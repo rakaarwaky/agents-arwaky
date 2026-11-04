@@ -50,7 +50,7 @@ brief in its fixed order. Nothing is drafted or created until the user approves 
 ## Tips
 
 - **Check parameters**: run `workspace-mcp --help` for server flags, and read the matching
-  `workspace-<service>.md` reference for a tool's arguments. There is no `workspace-mcp --cli` mode.
+  `<service>.md` reference for a tool's arguments. There is no `workspace-mcp --cli` mode.
 - **Gmail queries**: `references/gmail-search-syntax.md` lists
   every supported operator (`is:unread`, `from:`, `newer_than:7d`, `has:attachment`,
   `filename:`, `larger:`, `in:anywhere`, `-from:`, `OR`, quoted phrases) with worked patterns.
