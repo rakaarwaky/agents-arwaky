@@ -1,12 +1,17 @@
 # Improve — Step 1: Resolve scope
 
-The `--improve` flag takes a single skills path. Resolve it before editing:
+The `--improve` flag takes a skills path. Resolve it before editing:
 
 - **Skill directory** — the path names `<category>/<skill>/` containing a `SKILL.md`. Improve that one skill.
 - **Category directory** — the path names a category folder without its own `SKILL.md`. Default to improving every `SKILL.md` in that tree. Do not ask the user to pick one skill; the request targets the whole category.
 - **Skills root** — the path is the `skills/` folder itself. Improve every skill in the tree.
+- **Explicit skill list** — the user names two or more skill directories (by relative or absolute path) in one invocation. Improve every named skill, running the full audit-then-improve recipe on each in order; verify the whole set after all named skills are done, not one at a time. Naming several skills is not ambiguity — act on all of them without asking.
 
 Do not prompt the user to disambiguate unless two or more distinct skills in the tree match the request equally well and acting on both would waste significant effort; in that case, name the two candidates and proceed with the more specific match. A category with exactly one skill is not ambiguity — improve that skill without asking.
+
+## Embedded-catalog guard
+
+Some skill trees are embedded into a compiled artifact (for example a Rust `include_str!` catalog constant counting on-disk skill files, guarded by a test that compares the constant to the disk state). Check for that guard before editing: read the constant and its test to learn exactly what is counted (skill folders vs individual files, which subtree), state the resulting count in the plan up front, and keep the constant and the tree consistent in the same change — a guard failure on its own blocks the whole run even when every skill edit is correct.
 
 ## Commands
 
