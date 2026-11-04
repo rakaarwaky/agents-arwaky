@@ -20,8 +20,8 @@ if not _logger.handlers:
 
     class _CorrelationFilter(logging.Filter):
         def filter(self, record):
-            """Attach the correlation id to every log record from the ARWAKY_CORRELATION_ID env var."""
-            record.correlation_id = os.environ.get("ARWAKY_CORRELATION_ID", "-")
+            """Attach the correlation id to every log record from the SDC_CORRELATION_ID env var."""
+            record.correlation_id = os.environ.get("SDC_CORRELATION_ID", "-")
             return True
 
     _handler.addFilter(_CorrelationFilter())

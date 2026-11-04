@@ -40,19 +40,8 @@ def default_pack_root() -> Path:
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:
     """Return ``(name, description)`` from a SKILL.md, falling back to the dir."""
     fallback_name = skill_md.parent.name
-    name = extract_skill_name(skill_md)
-    description = ""
-    try:
-        text = skill_md.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return (name or fallback_name, description)
-    if text.startswith("---\n"):
-        end = text.find("\n---", 4)
-        if end != -1:
-            for line in text[4:end].splitlines():
-                if line.startswith("description:"):
-                    description = line.split(":", 1)[1].strip().strip("\"'")
-    return (name, description)
+    name, description = extract_skill_name(skill_md)
+    return (name or fallback_name, description)
 
 
 def iter_skill_mds(pack_root: Path) -> list[Path]:

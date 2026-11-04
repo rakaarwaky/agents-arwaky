@@ -22,21 +22,25 @@ class SkillDescriptor:
         return f"SkillDescriptor(name={self.name!r}, description={self.description!r})"
 
 
-def extract_skill_name(skill_md: Path) -> str | None:
-    """Return the ``name:`` from frontmatter, or None when absent."""
+def extract_skill_name(skill_md: Path) -> tuple[str | None, str]:
+    """Return ``(name, description)`` from frontmatter; ``None`` name when absent."""
     try:
         text = skill_md.read_text(encoding="utf-8", errors="replace")
     except OSError:
-        return None
+        return None, ""
     if not text.startswith("---\n"):
-        return None
+        return None, ""
     end = text.find("\n---", 4)
     if end == -1:
-        return None
+        return None, ""
+    name: str | None = None
+    description = ""
     for line in text[4:end].splitlines():
-        if line.startswith("name:"):
-            return line.split(":", 1)[1].strip().strip("\"'")
-    return None
+        if line.startswith("name:") and name is None:
+            name = line.split(":", 1)[1].strip().strip("\"'")
+        elif line.startswith("description:"):
+            description = line.split(":", 1)[1].strip().strip("\"'")
+    return name, description
 
 
 __all__ = ["SkillDescriptor", "extract_skill_name"]

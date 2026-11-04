@@ -5,7 +5,7 @@
 
 ## Feature Overview
 
-The skills-design feature reads and authors the `agents-arwaky` skill
+The skills-design feature reads and authors the `skill-design` skill
 pack: discovery, inspection, linting, cataloguing, and the authoring
 mutations (list, read, lint, catalog, discover, move, archive, create).
 A single aggregate entry point routes every op through the agent to

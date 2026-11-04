@@ -112,6 +112,20 @@ def decisions_path(grok_home: str) -> str:
     return os.path.join(grok_home, "learn", "decisions.jsonl")
 
 
+def append_decision_line(decision: "TraceDecision", grok_home: str) -> dict[str, object]:
+    """Append one decision line to ``learn/decisions.jsonl``; return the dict.
+
+    The single write path shared by ``SkillsTracesState.decide`` and
+    ``dispatch(action="decide")`` — one helper, one artifact.
+    """
+    dec_path = decisions_path(grok_home)
+    os.makedirs(os.path.dirname(dec_path), exist_ok=True)
+    line = decision.as_dict()
+    with open(dec_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(line, ensure_ascii=False) + "\n")
+    return line
+
+
 # ─── state read / write ──────────────────────────────────────────
 
 
@@ -479,11 +493,7 @@ def dispatch(
             decision=flags.get("decision", ""),
             undo=flags.get("undo") or None,
         )
-        dec_path = decisions_path(grok_home)
-        os.makedirs(os.path.dirname(dec_path), exist_ok=True)
-        line = decision.as_dict()
-        with open(dec_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(line) + "\n")
+        line = append_decision_line(decision, grok_home)
         return TraceStateDispatchResult(lines=(json.dumps(line, ensure_ascii=False),))
 
     if action == "wait":

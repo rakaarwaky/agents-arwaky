@@ -8,8 +8,6 @@ scan capability.
 
 from __future__ import annotations
 
-import json
-import os
 from collections.abc import Mapping, Sequence
 
 from shared.src.skills_traces.contract_skills_protocol import ISkillsTraceStateProtocol
@@ -21,7 +19,7 @@ from shared.src.skills_traces.taxonomy_skills_vo import (
     TraceStateStatus,
 )
 from shared.src.skills_traces.utility_skills_trace_state import (
-    decisions_path,
+    append_decision_line,
     files_ready,
     load_state,
     mark,
@@ -87,11 +85,7 @@ class SkillsTracesState(ISkillsTraceStateProtocol):
         decision: TraceDecision,
     ) -> TraceDecision:
         """Append one decision line to ``learn/decisions.jsonl`` and return it."""
-        dec_path = decisions_path(grok_home)
-        os.makedirs(os.path.dirname(dec_path), exist_ok=True)
-        line = decision.as_dict()
-        with open(dec_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(line) + "\n")
+        append_decision_line(decision, grok_home)
         return decision
 
     def wait(
