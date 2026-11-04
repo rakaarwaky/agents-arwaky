@@ -1,4 +1,6 @@
-# Report Format (all phases)
+# Step 7: Report Format
+
+Assemble the final Deep-Clean Report covering all phases above.
 
 ```text
 ## Deep-Clean Report: <unit>
@@ -14,8 +16,9 @@
 
 Every finding carries a Verdict (KEEP / REMOVE / DELETE / INVESTIGATE / RESTRUCTURE) and a
 one-line Reason. Each language reference contains a fully worked example table
-(`python.md` § Phase 1 Workflow Step 1.7, `rust.md` § Phase 1 Workflow Step 1.7,
-`typescript.md` § Phase 1 Workflow Step 1.7).
+(`step-1a-dead-code-python.md` § Phase 1 Workflow Step 1.7,
+`step-1b-dead-code-rust.md` § Phase 1 Workflow Step 1.7,
+`step-1c-dead-code-typescript.md` § Phase 1 Workflow Step 1.7).
 
 ## Completion
 

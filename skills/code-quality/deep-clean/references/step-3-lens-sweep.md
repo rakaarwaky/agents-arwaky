@@ -1,6 +1,6 @@
-# 4-Lens Diff Sweep — Execution Model and Lenses
+# Step 3 — 4-Lens Sweep
 
-Run when the request is diff-scoped (step 0 captured a diff). Four focused reviewers
+Run over the audited path from step 0 (not a git diff). Four focused reviewers
 run in parallel; each deeply searches the codebase for a single class of problem
 without diluting its attention across all four. Four narrow reviewers beat one broad
 reviewer.
@@ -17,13 +17,13 @@ reviewer.
   format. State clearly in the final summary that this was a single-pass inline review,
   not the parallel fan-out.
 
-**Give every reviewer the complete diff** (not fragments — cross-file issues hide in the
+**Give every reviewer the complete audited path** (not fragments — cross-file issues hide in the
 gaps) plus the absolute repo path so they can search the wider codebase. Each reviewer gets
 `terminal`, `file`, and `search` toolsets so it can `git`, `read_file`, and grep.
 
 ## The four lenses
 
-Full prompt text for each reviewer lives in [`reviewer-prompts.md`](reviewer-prompts.md).
+Full prompt text for each reviewer lives in [`step-4-reviewer-prompts.md`](step-4-reviewer-prompts.md).
 
 - **Reviewer 1 — Reuse.** Find code that duplicates functionality already in the codebase
   (utilities, shared helpers, canonical patterns). Flag new functions that duplicate existing

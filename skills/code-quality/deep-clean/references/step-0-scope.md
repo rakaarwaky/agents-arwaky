@@ -1,33 +1,27 @@
-# Step 0 — Scope Capture
+# Step 0 — Path Audit Capture
 
-Pick what the pipeline runs over: a diff (scoped request) or a named module/crate (module-scoped request).
+The deep-clean run audits a **path only**: a directory, package, crate, or file the user names. It never reads git diff, commits, or branches, and it never bases findings on git history.
 
-## Diff-scoped request
+## Argument form
 
-"Simplify my changes", "review my recent changes", a PR/branch name. Capture the diff in this default order:
-
-```bash
-git diff              # 1. uncommitted working tree (tracked files)
-git diff HEAD         # 2. if empty, include staged
-git diff --staged     # "staged changes"
-git diff HEAD~1       # "the last commit"
-git diff main...HEAD  # "this branch" / "my PR"
-git diff -- <path>    # specific file(s)
+```text
+/deep-clean <path> [--dry-run]
 ```
 
-If both `git diff` and `git diff HEAD` are empty and there is no git repo or no changes,
-fall back to the files the user explicitly named, or recently created/edited this session.
-If there is genuinely nothing to review, say so and stop.
+- `<path>` — the target: a file, directory, package, or crate. Validate it exists; if it does not, stop and ask for the correct path.
+- `--dry-run` — explicit only. When present: audit produces the report; nothing is executed or applied. When absent: the run is headless and autonomous — every step runs to completion without asking for permission.
 
-**Large-diff warning:** if the diff exceeds ~2000 changed lines, warn that four
-subagents each carrying the full diff is token-heavy, and offer to scope it down
-(per-directory, per-commit) before proceeding.
+## Audit scope
 
-## Module/crate-scoped request
+- **File-scoped:** audit the single file's contents (bloat, wrappers, dupes, structure).
+- **Directory/package/crate-scoped:** audit everything under the path, unit by unit (Python package, Rust crate, TS package). Entry points and public export surfaces are always in scope: `__init__.py` / `__all__` / `pyproject.toml` (Python), `mod.rs` / trait definitions / `lib.rs` (Rust), barrel `index.ts` / `package.json` `exports`/`main`/`types` (TypeScript).
+- The run audits **all aspects step by step**: Phase 1 dead-code cleanup → Phase 2 consolidation → the 4-lens sweep → the structural audit → tiered application → verification → report.
 
-"Deep clean this crate", "clean bloat in `foo/`": skip diff capture; operate
-directly on the named module or crate.
+## Mode gate
+
+- **Headless (default, no `--dry-run`):** proceed autonomously through every step; never block on a user question. RISKY-tier items and low-confidence items are recorded in the report's manual-review section instead of stalling the run.
+- **`--dry-run`:** run steps 1–6 in report-only mode; apply nothing; the commit step (if any) is skipped.
 
 ## Completion
 
-- The diff source is captured (or the module/crate named), or the run stopped with "nothing to review".
+- The path is validated and the target units identified; mode (headless vs `--dry-run`) is fixed for the whole run; no git diff or commit was used as input.

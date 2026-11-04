@@ -2,7 +2,7 @@
 
 Run the strict maintainability audit (the "code-judo" ambition) over the change. Altitude
 and quality findings that land in the RISKY tier are escalated here before tiering is
-finalized. Tone and output prioritization: [`review-tone.md`](review-tone.md).
+finalized. Tone and output prioritization: [`step-4-review-tone.md`](step-4-review-tone.md).
 
 ## Non-Negotiable Audit Standards
 
@@ -41,7 +41,7 @@ For every meaningful change, ask:
 - Is there a code-judo move that makes this dramatically simpler?
 - Can this be reframed so fewer concepts, branches, or helper layers are needed?
 - Does this improve or worsen the local architecture?
-- Did the diff add branching complexity where a better abstraction should exist?
+- Did the audited code add branching complexity where a better abstraction should exist?
 - Did a previously cohesive module become more coupled, more stateful, or harder to scan?
 - Is this logic in the right file and layer?
 - Did this change push a file or component past a healthy size boundary?
@@ -49,9 +49,9 @@ For every meaningful change, ask:
 - Is the implementation direct and legible, or does it lean on special cases and incidental
   control flow?
 - Is this abstraction earning its keep, or just a wrapper?
-- Did the diff introduce casts, optionality, or ad-hoc object shapes that obscure the real
+- Did the audited code introduce casts, optionality, or ad-hoc object shapes that obscure the real
   invariant?
-- Is this logic in the canonical layer, or did the diff leak details across a boundary?
+- Is this logic in the canonical layer, or does it leak details across a boundary?
 - Is this orchestration more sequential or less atomic than it needs to be?
 
 ## What to Flag Aggressively
@@ -134,4 +134,4 @@ decomposition.
 
 ## Completion
 
-- Every meaningful change in the diff was asked the primary audit questions; findings carry a concrete code-judo move (or why none exists).
+- Every meaningful unit in the audited path was asked the primary audit questions; findings carry a concrete code-judo move (or why none exists).
