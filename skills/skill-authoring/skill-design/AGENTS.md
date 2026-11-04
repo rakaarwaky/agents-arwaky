@@ -24,17 +24,21 @@ skill-design is the skill-authoring skill that keeps the skill tree clean, corre
 ## Project Structure
 
 ```text
-skills/skill-authoring/skill-design/
+.
 ├── PRD.md                      # What the skill does and why
 ├── ROADMAP.md                  # What ships next, in order
 ├── README.md                   # How to use/run
 ├── AGENTS.md                   # This file — how to work here safely
+├── CONTRIBUTING.md             # Branch, commit, and PR conventions
 ├── ARCHITECTURE.md             # Layer contract and linter rule catalog
 ├── SKILL.md                    # Skill frontmatter + routing table
 ├── lint_arwaky.config.yaml     # Lint gate configuration
 ├── template/                   # Canonical SKILL.md and reference templates
 ├── scripts/                    # Non-trivial logic referenced by SKILL.md
 └── modules/skills_design/      # AES layer implementation
+    ├── src/                    # agent + capability layers
+    ├── shared/src/skills_design/  # shared kernel (contract, taxonomy, utility)
+    └── tests/                  # unit / integration / e2e / smoke tests
 ```
 
 ## Commands
