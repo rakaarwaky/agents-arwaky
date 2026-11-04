@@ -58,6 +58,7 @@ import sys
 from pathlib import Path
 
 _DEFAULT_MODULES = Path("__INSTALL_MODULES_DIR__")
+_DEFAULT_GROK_HOME = "__INSTALL_GROK_HOME__"
 
 
 def _resolve_modules_dir() -> Path:
