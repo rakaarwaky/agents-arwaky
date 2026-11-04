@@ -13,13 +13,10 @@ here, so no root→surface coupling exists (AES205). Argv becomes a
 Exit codes are the legacy contract: 0 clean / 1 issues / 2 usage /
 3 catalog drift.
 
-The 13-verb surface spans two modules after the skills/skills split:
-the design-side verbs (list, read, lint, catalog, discover, move,
-archive, create) are routed here; the traces-side verbs (collect,
-usage, phrases, materialize, state) are routed to the sibling
-traces-side surface module in this package. The aggregate is the
-design-side ``SkillsAgent`` which also dispatches ``SkillsOp.TRACES``
-through the injected traces capability.
+The 8 design-side verbs (list, read, lint, catalog, discover, move,
+archive, create) are routed here; the traces-side verbs live only in
+the sibling traces CLI and are not part of this package (AES702
+independent packages).
 """
 
 from __future__ import annotations
@@ -70,9 +67,6 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_read(rest, aggregate)
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
-    if sub == "traces":
-        err("traces is not a design-side verb; use the traces skill CLI")
-        return _EXIT_USAGE
     err(f"Unknown skills subcommand: {sub}")
     _print_usage()
     return _EXIT_USAGE
@@ -98,10 +92,6 @@ def _print_usage() -> None:
     info(
         f"{BOLD()}aa skills create <kind> <name> [--category C] [--apply]{RESET()}  "
         "Create a skill or category"
-    )
-    info(
-        f"{BOLD()}aa skills traces <collect|usage|phrases|materialize|state>{RESET()}  "
-        "Trace-learning lifecycle"
     )
 
 

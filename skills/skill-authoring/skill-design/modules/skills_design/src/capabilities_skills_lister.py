@@ -24,12 +24,16 @@ from shared.src.skills_design.taxonomy_skills_vo import (
 
 __all__ = ["SkillsLister", "default_pack_root"]
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+
 
 class SkillsLister(ISkillsListerProtocol):
     """Read-only listing of the skill pack, sorted by name."""
 
     def __init__(self, pack_root: Path | None = None) -> None:
         self._root = pack_root or default_pack_root()
+
+    # ─── Block 2: Protocol Method Implementation ─────────────
 
     def list_skills(self, root: SkillsRoot | None = None):
         """Return one record per skill, sorted by name.
@@ -68,6 +72,8 @@ class SkillsLister(ISkillsListerProtocol):
                 for record in records
             ]
         }
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ──────────
 
     def __repr__(self) -> str:
         return "SkillsLister()"

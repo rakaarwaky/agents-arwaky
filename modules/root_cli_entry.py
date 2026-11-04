@@ -46,10 +46,8 @@ ROOT = repo_root()
 # exposes the top-level `skills_design` package,
 # skills/skill-authoring/skill-traces/modules/ the `skills_traces` package.
 # Each owns its own copies of the contract/taxonomy modules it needs; there
-# is no cross-tree import. This entry point is the ONLY place that knows
-# both packages exist and composes them: it exposes both namespace roots
-# and, in cmd_skills, builds the shared aggregate (design agent + traces
-# capability) so `aa skills` / `aa skills traces ...` dispatch end-to-end.
+# is no cross-tree import. This entry point adds both namespace roots so
+# either standalone package can be imported on demand.
 for _skills_ns in (
     ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules",
@@ -579,28 +577,12 @@ def cmd_skills(argv: list[str]) -> int:
     the two together — the design tree itself never imports
     ``skills_traces``.
     """
-    # AES702 independent packages: both skills own their own ``shared``
-    # copy under ``modules/shared``. ``skills_traces`` capability imports
-    # ``shared.src.skills_traces.*``, so its namespace root must be first
-    # on sys.path during this import so ``shared`` resolves to
-    # skill-traces' copy, not skill-design's. Save/restore sys.path so
-    # this entry point does not pollute the rest of the process.
-    _saved_path = list(sys.path)
-    _traces_ns = str(ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules")
-    if _traces_ns in sys.path:
-        sys.path.remove(_traces_ns)
-    sys.path.insert(0, _traces_ns)
-    try:
-        from skills_traces.src.capabilities_skills_traces import SkillsTraces
-    finally:
-        sys.path[:] = _saved_path
-
     from skills_design.src.root_skills_container import default_aggregate
     from cli.src.surface_skills_command import (
         cmd_skills as _skills_surface,
     )
 
-    aggregate = default_aggregate(traces=SkillsTraces())
+    aggregate = default_aggregate()
     return _skills_surface(list(argv), aggregate)
 
 def cmd_completion(argv: list[str]) -> int:

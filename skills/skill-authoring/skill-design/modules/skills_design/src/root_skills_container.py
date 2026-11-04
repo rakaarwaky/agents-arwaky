@@ -6,13 +6,10 @@ package is fully self-contained: every contract / taxonomy / utility
 module it needs lives under ``skills_design/src/``.
 
 The traces capability of the sibling traces app is NOT imported
-here — the two packages are independent (AES702). The agent
-accepts an optional ``traces`` protocol object (injected at the call
-site); the orchestrator-owned CLI entry point
-(``modules/root_cli_entry.py``) is the only place that knows both
-packages exist and composes them. The CLI surface receives an
-``ISkillsAggregate`` (the agent itself), injected at the call site, so
-no root→surface coupling exists.
+here — the two packages are independent (AES702). The agent accepts only design-side capabilities; the orchestrator-owned CLI entry point
+(``modules/root_cli_entry.py``) composes them at the call site. The CLI
+surface receives an ``ISkillsAggregate`` (the agent itself), injected
+at the call site, so no root→surface coupling exists.
 """
 
 from __future__ import annotations
@@ -31,7 +28,6 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsListerProtocol,
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
-    ISkillsTracesProtocol,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
 from shared.src.skills_design.taxonomy_skills_response import SkillsResult
@@ -69,15 +65,12 @@ def default_aggregate(
     mover: ISkillsMoverProtocol | None = None,
     archiver: ISkillsArchiverProtocol | None = None,
     creator: ISkillsCreatorProtocol | None = None,
-    traces: ISkillsTracesProtocol | None = None,
     default_root: Path | None = None,
 ) -> ISkillsAggregate:
     """Return an agent bound to the repo's ``skills/`` pack (or overrides).
 
-    ``traces`` stays optional: when omitted, the agent has no traces
-    capability and ``SkillsOp.TRACES`` requests are usage errors. The
-    orchestrator-owned CLI entry point injects the concrete traces
-    implementation, so this package never imports the sibling tree.
+    The agent has only design-side capabilities. ``SkillsOp.TRACES`` is
+    not recognized — traces live only in the independent traces app.
     """
     root = default_root if default_root is not None else default_pack_root()
     wired_catalog = catalog or SkillsCatalog()
@@ -91,7 +84,6 @@ def default_aggregate(
         mover=mover or SkillsMover(),
         archiver=archiver or SkillsArchiver(),
         creator=creator or SkillsCreator(),
-        traces=traces,
         default_root=root,
     )
 
@@ -121,7 +113,6 @@ class SkillsFacade:
         mover: ISkillsMoverProtocol | None = None,
         archiver: ISkillsArchiverProtocol | None = None,
         creator: ISkillsCreatorProtocol | None = None,
-        traces: ISkillsTracesProtocol | None = None,
         default_root: Path | None = None,
     ) -> None:
         root = default_root if default_root is not None else default_pack_root()
@@ -136,7 +127,6 @@ class SkillsFacade:
             mover=mover or SkillsMover(),
             archiver=archiver or SkillsArchiver(),
             creator=creator or SkillsCreator(),
-            traces=traces,
             default_root=root,
         )
 

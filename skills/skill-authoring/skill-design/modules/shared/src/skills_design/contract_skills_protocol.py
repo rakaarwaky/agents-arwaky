@@ -19,7 +19,7 @@ needed here.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,

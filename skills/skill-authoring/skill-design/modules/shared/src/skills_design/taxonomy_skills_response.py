@@ -6,11 +6,10 @@ never re-read from a capability). ``SkillsExitCode`` is the single
 source of truth for the CLI exit-code contract.
 
 The authoring VO fields (``ValidationReport``, ``LintReport``,
-``CatalogReport``, ...) and the trace-primitive fields (``SkillRecord``,
-``ScanResult``, ...) are imported under ``TYPE_CHECKING`` only — the
-authoring module (and, through it, ``taxonomy_skills_vo``) re-imports
-this module's names, so runtime imports would cycle; PEP 563 keeps the
-annotations as strings.
+``CatalogReport``, ...) are imported under ``TYPE_CHECKING`` only — the
+authoring module re-imports this module's names at the bottom of its own
+body, so runtime imports would cycle; PEP 563 keeps the annotations as
+strings.
 
 No I/O, no imports from utility/capabilities/agent/root/surface layers.
 """
@@ -25,12 +24,11 @@ from typing import TYPE_CHECKING
 from shared.src.skills_design.taxonomy_skills_request import SkillsOp
 
 if TYPE_CHECKING:
-    # ``SkillsResult`` annotates the authoring VOs (``ValidationReport``,
-    # ``LintReport``, ``CatalogReport``, ...). Those classes live in the
-    # authoring module, which imports the trace primitives back from
-    # ``taxonomy_skills_vo`` at the bottom — a runtime import here would
-    # cycle, so the names are reserved for type-checking (PEP 563 string
-    # annotations, same pattern the old vo module used).
+    # The authoring VOs (``ValidationReport``, ``LintReport``,
+    # ``CatalogReport``, ...) live in the authoring module, which imports
+    # the trace primitives back from ``taxonomy_skills_vo`` at the bottom
+    # — a runtime import here would cycle, so the names are reserved for
+    # type-checking (PEP 563 string annotations).
     from shared.src.skills_design.taxonomy_skills_authoring_vo import (
         CatalogCheckResult,
         CatalogReport,
@@ -39,22 +37,18 @@ if TYPE_CHECKING:
         MutationOutcome,
         MutationPlan,
         NewCategoryPlan,
-        PhrasesReport,
         SkillCreatePlan,
         UsageReport,
         ValidationReport,
     )
 
-    # The trace primitives also live in ``taxonomy_skills_vo``, which
-    # re-imports this module's names at the bottom of its own body (after
-    # the primitives are defined). Importing that module back at the top
-    # of this one would cycle, so the annotation names are reserved for
-    # type-checking too; PEP 563 keeps them as strings.
+    # ``SkillRecord`` and ``SkillContent`` live in ``taxonomy_skills_vo``,
+    # which re-imports this module's names at the bottom of its own body.
+    # Importing that module back at the top would cycle, so the names are
+    # reserved for type-checking; PEP 563 keeps them as strings.
     from shared.src.skills_design.taxonomy_skills_vo import (
-        ScanResult,
         SkillContent,
         SkillRecord,
-        TraceStateStatus,
     )
 
 
@@ -79,10 +73,6 @@ class SkillsResult:
     ``exit_code`` is the CLI contract: 0 clean / 1 issues / 2 usage /
     3 catalog drift. Payload fields are populated per op; the surface
     renders them and never reaches back into a capability.
-
-    ``state`` is populated by trace-state set/get/clear; ``state_status``
-    is the ``wait`` outcome. ``collect_summary`` carries the tracker
-    scan counters (``ScanResult``) for trace-collect.
     """
 
     ok: bool
@@ -105,10 +95,6 @@ class SkillsResult:
     warning: str | None = None
     root: Path | None = None
     usage: UsageReport | None = None
-    phrases: PhrasesReport | None = None
-    state: TraceStateStatus | None = None
-    state_status: TraceStateStatus | None = None
-    collect_summary: ScanResult | None = None
 
 
 __all__ = ["SkillsExitCode", "SkillsResult"]
