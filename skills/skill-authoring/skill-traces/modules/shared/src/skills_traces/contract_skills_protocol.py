@@ -18,6 +18,21 @@ from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
+from shared.src.skills_traces.taxonomy_skills_constant import (
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
+)
+from shared.src.skills_traces.taxonomy_skills_entity import (
+    CategorySummary,
+    Issue,
+    SkillEntry,
+)
+from shared.src.skills_traces.taxonomy_skills_rule_vo import (
+    IssueType,
+    Level,
+    Rule,
+)
 from shared.src.skills_traces.taxonomy_skills_vo import (
     GrokHome,
     ScanResult,
@@ -136,17 +151,16 @@ class ISkillsTraceStateProtocol(ABC):
 # ── Internal seams end ──
 
 
-class ISkillsTracesProtocol(ISkillsTraceScanProtocol, ISkillsTraceStateProtocol):
-    """Combined traces protocol: scan + state, implemented by SkillsTraces.
-
-    The capabilities layer owns this single protocol; root/surface entry
-    points wire the two skills together. Capabilities never import one
-    another: dependencies cross seams as protocols.
-    """
-
-
 __all__ = [
+    "NAME_MAX",
+    "NAME_MIN",
+    "NAME_RE",
+    "CategorySummary",
     "ISkillsTraceScanProtocol",
     "ISkillsTraceStateProtocol",
-    "ISkillsTracesProtocol",
+    "Issue",
+    "IssueType",
+    "Level",
+    "Rule",
+    "SkillEntry",
 ]

@@ -217,19 +217,3 @@ __all__ = [
     "TraceStateDispatchResult",
     "TraceStateStatus",
 ]
-
-# Re-exported into the legacy import path: the contract/response envelope
-# modules import only the primitives defined above — no runtime import of
-# this module, so no cycle.
-from shared.src.skills_traces.taxonomy_skills_request import SkillsOp, SkillsRequest
-from shared.src.skills_traces.taxonomy_skills_response import (
-    SkillsExitCode,
-    SkillsResult,
-)
-
-__all__ += [
-    "SkillsExitCode",
-    "SkillsOp",
-    "SkillsRequest",
-    "SkillsResult",
-]

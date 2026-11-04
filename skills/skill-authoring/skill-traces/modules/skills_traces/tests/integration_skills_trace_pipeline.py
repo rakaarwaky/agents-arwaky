@@ -15,24 +15,23 @@ from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
+from shared.src.skills_traces.taxonomy_skills_request import SkillsOp, SkillsRequest
 from shared.src.skills_traces.taxonomy_skills_vo import (
     ScanResult,
-    SkillsOp,
-    SkillsRequest,
     TraceStateStatus,
 )
 
 from skills_traces.src.agent_skills_orchestrator import SkillsAgent
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
+from skills_traces.src.capabilities_skills_scan import SkillsTracesScan
+from skills_traces.src.capabilities_skills_state import SkillsTracesState
 from skills_traces.tests.fixture_skills import make_grok_home
 
 
 def _make_agent(root: Path) -> SkillsAgent:
     """Agent wired with the traces capability over a fixture root."""
-    traces = SkillsTraces()
     return SkillsAgent(
-        scan=traces,
-        state=traces,
+        scan=SkillsTracesScan(),
+        state=SkillsTracesState(),
         default_root=root,
     )
 

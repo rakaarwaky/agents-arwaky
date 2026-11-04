@@ -1,8 +1,14 @@
-# BACKLOG — Skills Traces Shared Kernel
+# Feature Backlog: skills_traces
+
+FRD: [FRD.md](../../skills_traces/FRD.md)
+Architecture: [ARCHITECTURE.md](../../../../../ARCHITECTURE.md)
+State: root § State Definitions
+Health: root § State Definitions
+Last Updated: 2026-11-04
 
 ## Progress Overview
 
-The skill-traces shared kernel holds taxonomy, contract, and utility modules.
+The skill-traces shared kernel holds taxonomy, contract, and utility modules for the trace/learning pipeline.
 All backlog items are done; nothing is blocked.
 
 ## Backlog Status
@@ -23,6 +29,5 @@ All backlog items are done; nothing is blocked.
 |--------------|--------------------------------------------|------|
 | PRD          | Business goals, user stories, and scope    | [PRD.md](../../../../../PRD.md) |
 | FRD          | Functional requirements specification      | [FRD.md](../../skills_traces/FRD.md) |
-| DESIGN       | Design decisions and data flow             | [DESIGN.md](../cli/DESIGN.md) |
 | Roadmap      | Timeline, phasing, and dependencies        | [ROADMAP.md](../../../../../ROADMAP.md) |
 | Architecture | System boundaries, tech stack, and infra   | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |

@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from shared.src.skills_traces.taxonomy_skills_vo import SkillsRequest, SkillsResult
+from shared.src.skills_traces.taxonomy_skills_request import SkillsRequest
+from shared.src.skills_traces.taxonomy_skills_response import SkillsResult
 
 
 class ISkillsAggregate(ABC):

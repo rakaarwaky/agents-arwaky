@@ -13,9 +13,9 @@ from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
+from shared.src.skills_traces.taxonomy_skills_request import SkillsOp
 from shared.src.skills_traces.taxonomy_skills_vo import (
     PhraseRow,
-    SkillsOp,
     SkillUsageItem,
     TraceDecision,
     TraceSessionRecord,
