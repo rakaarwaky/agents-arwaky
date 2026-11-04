@@ -1,0 +1,418 @@
+{
+  "skills": [
+    {
+      "name": "android-emulator-linux-gps",
+      "description": "Use when running or installing Android apps on a Linux host with the AOSP emulator and spoofing GPS via adb emu geo fix, including AVD setup, x86 image ABI selection, and apkpure/apkcombo APK retrieval.",
+      "when_to_use": "Use when the user wants the Android emulator on Linux, Deepin or X11 hosts, an AVD that boots headlessly, 32-bit ARM APK installation, Android GPS spoofing or mock location, or apkpure/apkcombo APK downloads without browser automation.",
+      "category": "automation"
+    },
+    {
+      "name": "computer-use",
+      "description": "Drive the user's desktop in the background without stealing focus, via the Hermes computer_use tool backed by cua-driver, including a typed browser-page rung. Use when a task needs the user's actual desktop apps rather than headless browser or shell tools.",
+      "when_to_use": "Use when driving a native desktop app (browser GUI, mail client, editor, game, Figma, OS dialogs) in the background, when the user wants mouse/keyboard automation that must not steal focus, or when an input rung must be verified or escalated through the computer_use ladder. Not for headless web automation, plain file edits, or shell commands.",
+      "category": "automation"
+    },
+    {
+      "name": "flatpak-chromium-automation",
+      "description": "Drive Flatpak Chromium CDP, install unpacked extensions, manage profiles.",
+      "when_to_use": "Use when CDP debugging of a Flatpak browser fails to bind its port, when orphan Flatpak instances hijack a debug launch, when pkill/pgrep patterns threaten the agent shell, when adding a Web Store extension that cannot be clicked through, or when a tool must see or create browser profiles deterministically, when editing Local State or Preferences with a closed browser, when probing user-data dirs under native, Flatpak, Snap, or macOS installs, or when wiring NAME|user|pass|url envs into vault items plus browser profiles. Not for driving non-Flatpak browsers.",
+      "category": "automation"
+    },
+    {
+      "name": "qwen-web",
+      "description": "Automate Qwen AI Web (chat.qwen.ai) with the Qwen3.8-Max intelligence model — zero API keys, persistent browser sessions — and develop the qwen-web-arwaky repo source (TUI, slots, tests). Use when an AI agent needs to send prompts, review code, or analyze attachments via CLI/MCP tools, or edit the internal/qwen-web-arwaky source.",
+      "when_to_use": "Use when the user runs /qwen-web, sends a prompt to Qwen AI Web, sends prompt files or attachments for Qwen analysis or code review with role templates, sets up or resets the Qwen browser session, initializes the qwen-web workspace, or asks to develop or fix the internal/qwen-web-arwaky repo.",
+      "category": "automation"
+    },
+    {
+      "name": "aa-cli-bootstrap",
+      "description": "Fix aa CLI bootstrap: path resolution and namespace init.",
+      "when_to_use": "",
+      "category": "autonomous-ai-agents"
+    },
+    {
+      "name": "grok-build",
+      "description": "Delegates coding and multi-agent orchestration to the local Grok Build CLI over the OmniRoute gateway (model myomniroute, not an xAI subscription) — headless one-shots, interactive PTY/TUI sessions, PR reviews, and Rhai workflow authoring. Use when a coding task should go to Grok instead of being implemented inline, or when the user wants to author or automate a workflow pipeline (/create-workflow, /implement, /design, /execute-plan). Sibling of the orca skill: orca owns the worktrees and terminals; this drives the grok CLI inside them. Backed by the local OmniRoute gateway (myomniroute).",
+      "when_to_use": "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build; when a coding task should be delegated to Grok instead of implemented inline; or when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow, /implement, /design, /execute-plan. Observed user phrasing: '/implement paths cek dpc rules', '/implement ... buat pr untuk perbaiki template dari PRD', '/design file palse redesign rules aes ... remove all legacy', 'fix doc violations in crate', 'find any segfault error in my environment and clean it', 'we need to spawn sub agent to make all FRD becoming real FRD'.",
+      "category": "autonomous-ai-agents"
+    },
+    {
+      "name": "hermes-agent",
+      "description": "Use, configure, theme, extend, and orchestrate Hermes Agent — including multi-bot Telegram multiplex gateways and gateway persistence. Observed user phrasing: 'spawn sub agent / subagents to make all FRD becoming real', 'we need to spawn sub agent', 'can Hermes do X' / 'how do I set up X in Hermes', 'only spawn hermes', 'hanya spawn hermes', 'hermes' with a task to delegate.",
+      "when_to_use": "Use when the user mentions Hermes, hermes CLI, TUI, skins/themes, desktop plugins, TUI widgets, pets, provider or model setup, spawning additional hermes instances or sub agents, multi-agent coordination, messaging-gateway bots, or asks 'can Hermes do X' / 'how do I set up X in Hermes'.",
+      "category": "autonomous-ai-agents"
+    },
+    {
+      "name": "omniroute",
+      "description": "OmniRoute free AI gateway over OpenAI REST, 350+ providers with 150+ free tiers. Use when mentioning OmniRoute, OMNIROUTE_URL, auto/best-free, free-tier routing, checking a model context length (ctx) on the gateway, or building a model tier list / ranking the gateway model catalog. 9router (port 20128) is the second supported gateway vendor alongside OmniRoute.",
+      "when_to_use": "Use when asking about OmniRoute, OMNIROUTE_URL, OMNIROUTE_KEY, auto/best-free or other combo routing, free-tier routing, adding a custom OpenAI-compatible provider, managing the OmniRoute daemon (status, restart, logs), fixing OmniRoute errors, or building a model tier list / ranking the gateway model catalog.",
+      "category": "autonomous-ai-agents"
+    },
+    {
+      "name": "orca",
+      "description": "Orca CLI agent environment: Orca-managed worktrees, folder contexts, terminals, repos, automations and cron jobs, embedded browser, artifacts, and skill sharing via the orca CLI; visible local app windows via orca computer; iOS and Android emulator control; Linear ticket work; per-workspace environment recipes; multi-agent orchestration with DAGs and decision gates. Use for $orca-cli, Orca worktree, child worktree, spawn codex/claude in a worktree, read/wait/send Orca terminal, handoff/handover/give this to another agent, Orca browser, orca artifacts, share skills, scheduled agent tasks or cron jobs, visible GUI windows, booted iOS Simulator or Android emulator, linked Linear issue, per-workspace environment recipe setup, multi-agent DAG coordination. Observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree', orca cli-commands, orca config-system.",
+      "when_to_use": "Use for any Orca CLI agent-environment task. Load references/cli.md for worktrees, terminals, repos, automations, artifacts, skill sharing, and the embedded browser; references/automations.md for scheduled agent runs and cron jobs; references/computer-use.md for visible GUI windows; references/emulator.md for a booted iOS Simulator; references/emulator-android.md for an adb-connected Android emulator or phone; references/linear.md for Linear ticket work; references/per-workspace-env.md for per-workspace environment recipes; references/orchestration.md for supervised multi-agent coordination with DAGs and decision gates. Also matches observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree'.",
+      "category": "autonomous-ai-agents"
+    },
+    {
+      "name": "resume-session",
+      "description": "Resume or continue work from a recent Claude Code, Codex, or Cursor session. Use when the user switched from one of those tools, says continue from Claude-Codex-Cursor or resume my Claude-Codex-Cursor session, or names a session by description, path, or native ID.",
+      "when_to_use": "Use when the user switched from Claude Code, Codex, or Cursor and wants to continue/resume a session by description, path, or native ID.",
+      "category": "autonomous-ai-agents"
+    },
+    {
+      "name": "codegraph",
+      "description": "Inspect codebases: LOC, languages, ratios via pygount, plus symbol/call graphs and blast radius via CodeGraph.",
+      "when_to_use": "Repository LOC counts, language breakdowns, file counts, and code-vs-comment ratios (pygount — general 'how big is this repo' questions); or symbol lookup, callers/callees, cross-file impact, and test selection for a set of changed files (CodeGraph — use before grep/Read when asking 'what breaks if I change this').",
+      "category": "code-quality"
+    },
+    {
+      "name": "deep-clean",
+      "description": "Deep structural cleanup and simplification: remove dead code, merge duplicate files, run a 4-lens sweep, and audit maintainability over a named path. Use for pre-merge or post-refactor work across Python, Rust, and TypeScript. Also triggered by /simplify.",
+      "when_to_use": "Use before merge, before release, or after refactoring a path, package, crate, or file. Remove dead code (ruff/vulture/knip/clippy/udeps), consolidate overlapping files into single cohesive modules, run a 4-reviewer sweep (reuse, quality, efficiency, altitude), and execute a strict maintainability audit. Answers 'is this codebase drifting toward spaghetti?' — run over a path, step by step, all aspects. Do not use for routine lint/type-check runs (those are CI gates) or for style nits without a structural angle. `--dry-run` (explicit) reports without executing; without it the run is headless and autonomous — no permission prompts.",
+      "category": "code-quality"
+    },
+    {
+      "name": "dogfood",
+      "description": "Exploratory QA for web, terminal/TUI, desktop GUI, and mobile (Android) apps — finds bugs, captures evidence, and produces a structured report across all four target types.",
+      "when_to_use": "Use when doing exploratory QA of any application surface — web (navigate, interact, screenshot, console errors), terminal or TUI apps (command execution, exit codes, output capture), desktop GUI apps (click, type, accessibility tree, screenshot), or Android apps on an emulator (adb taps, swipes, logcat, screencap). Produces a structured bug report with per-issue evidence.",
+      "category": "code-quality"
+    },
+    {
+      "name": "review",
+      "description": "Reviews a module, crate, or package in place with parallel reviewer subagents seeded with one of 10 lens personas. Each reviewer subagent reads the module's current files (no diff collection) and writes a per-persona review file to the host scratch directory. The orchestrator aggregates per-persona issue counts and writes a module summary file to disk.",
+      "when_to_use": "Use when asked to 'review a module', 'review this package', 'review this crate', 'review modules/skills', 'review with a persona', 'review this code from the QA perspective', 'run a security review on this folder', '/review', or when the user drops a directory path and wants a code review rather than a PR or diff review. Bare /review on a path runs all 10 personas in parallel; select a single persona with its flag (e.g. /review modules/skills --qa-engineer) or any combination of flags; --all is equivalent to the bare form.",
+      "category": "code-quality"
+    },
+    {
+      "name": "systematic-debugging",
+      "description": "Systematic root-cause debugging in 7 step files (0–6) covering TypeScript/Node, Python, and Rust: read errors and build a red-capable feedback loop, trace data flow, analyze patterns, form ranked falsifiable hypotheses, implement one fix via TDD (RED-GREEN-REFACTOR), verify, and guard against rationalizations. Includes language-variant debugger/verify steps (3a/3b/3c, 5a/5b/5c). Observed phrasing: /systematic-debugging, fix this bug, test is failing, performance regression.",
+      "when_to_use": "Use for any technical issue — test failures, production bugs, build or performance problems, integration issues. Also for Python (pdb, debugpy), TypeScript/Node (node inspect, CDP, heap/CPU profiles), and Rust (dbg!, RUST_BACKTRACE, rust-gdb/lldb) debugging. Invoke directly as /systematic-debugging. Do not skip when the issue seems simple, you are in a hurry, or someone wants it fixed NOW — rushing guarantees rework.",
+      "category": "code-quality"
+    },
+    {
+      "name": "architecture-diagram",
+      "description": "Dark-themed SVG architecture/cloud/infra diagrams as HTML.",
+      "when_to_use": "Use when the user asks for architecture, cloud, or infrastructure diagrams — system topology, microservice mesh, VPC/region/subnet layout, database/API maps, or any dark-themed SVG diagram as a standalone HTML file.",
+      "category": "content-creation"
+    },
+    {
+      "name": "baoyu-infographic",
+      "description": "Infographics: 21 layouts x 21 styles (信息图, 可视化).",
+      "when_to_use": "Use when the user asks for an infographic, visual summary, or information graphic — they provide content (text, file, URL, topic) and optionally layout, style, aspect ratio, or language. Triggers include 信息图, 可视化, 高密度信息大图.",
+      "category": "content-creation"
+    },
+    {
+      "name": "blender-arwaky",
+      "description": "Blender asset search, GLB import/export, scene assembly, and rendering via MCP or CLI.",
+      "when_to_use": "Use when scripting Blender, placing GLB/assets, rendering frames, or managing Blender scenes via CLI or MCP execute_command.",
+      "category": "content-creation"
+    },
+    {
+      "name": "comfyui",
+      "description": "Generate images, video, and audio via ComfyUI diffusion workflows.",
+      "when_to_use": "Use when the user wants to generate images, video, or audio via ComfyUI diffusion workflows — Stable Diffusion, SDXL, Flux, SD3, AnimateDiff, Hunyuan, Wan, or ControlNet/inpainting/img2img pipelines; also to install, launch, or health-check ComfyUI.",
+      "category": "content-creation"
+    },
+    {
+      "name": "game-assets",
+      "description": "Game art and 3D models with the Imagine tools: sprites, sprite sheets, animation cycles and FX, tilesets and seamless terrain, character turnarounds and variants, UI, HUD, icons, logos; textured 3D models (.glb) from an image for Three.js, Unity, Godot or Unreal.",
+      "when_to_use": "Any game asset or game art, 2D or 3D; a 3D model, mesh or GLB from a picture; \"make this 3D\"; /game-assets.",
+      "category": "content-creation"
+    },
+    {
+      "name": "llm-writing",
+      "description": "Write, rewrite, audit, or shorten any text an AI agent reads and acts on — docs, prompts, briefs, specs, runbooks, instructions, notes, reports. Use when the reader is an AI agent and token efficiency and unambiguous execution matter.",
+      "when_to_use": "Use when the reader is an AI or agent and token efficiency and unambiguous execution matter: writing or editing documentation, system prompts, task briefs, specs, runbooks, instructions, notes, or reports that an AI acts on without prior context. NEVER use for marketing copy, blog posts, fiction, or text meant to persuade or entertain human readers.",
+      "category": "content-creation"
+    },
+    {
+      "name": "vision-arwaky",
+      "description": "Unified image and video intelligence for computer vision, OCR, video analysis, object tracking, and MCP integrations.",
+      "when_to_use": "Use when the user needs computer vision — image analysis, OCR, screenshot comparison, video info/frame extraction, scene/motion detection, object tracking, or smart-video understanding via CLI or MCP.",
+      "category": "content-creation"
+    },
+    {
+      "name": "youtube-content",
+      "description": "YouTube transcripts to summaries, threads, blogs.",
+      "when_to_use": "Use when the user shares a YouTube URL or video link, asks to summarize a video, requests a transcript, or wants to extract and reformat YouTube content into chapters, threads, blog posts, or quotes.",
+      "category": "content-creation"
+    },
+    {
+      "name": "playwright-cache-restore",
+      "description": "Restore Playwright browser cache (Chromium, headless shell, FFmpeg) when the CDN is unreachable or `playwright install` times out. Use when `playwright install chromium` fails on a network-restricted host, manually placed browser dirs are wiped every run, or headless-shell/FFmpeg is missing from `~/.cache/ms-playwright/`.",
+      "when_to_use": "Use when `playwright install` times out or fails on GFW/corporate proxy/data-cap hosts, `curl` reaches the CDN but Playwright's Node fetch cannot, browser dirs are wiped on each run, or headless-shell/FFmpeg is missing.",
+      "category": "devops"
+    },
+    {
+      "name": "setup-ci-quality-gates",
+      "description": "Set up CI quality gates and architecture checks on GitHub Actions, and reproduce those gates locally via a ci.sh mirror. Use when creating workflows, branch protection rulesets, auto-merge, AI review layers, or building scripts/ci.sh to mirror .github/workflows when GitHub Actions is quota-blocked.",
+      "when_to_use": "Use when replicating this repo's CI setup: ci.yml jobs, branch-protection ruleset, auto-merge workflow, AI review layers (cubic, Repowise), local scripts/ci.sh that mirrors the remote workflow, or running the same CI gates locally in a container when GitHub Actions is quota/billing-blocked.",
+      "category": "devops"
+    },
+    {
+      "name": "statusline",
+      "description": "Configure the optional Grok Build status-line row (`[ui.status_line]`). Use when the user wants built-in items (cwd, model, context), a custom command script, or the row disabled.",
+      "when_to_use": "Use when the user asks to configure the status line row: built-in items, a custom script path, refresh interval, padding, or off/disabled.",
+      "category": "devops"
+    },
+    {
+      "name": "systemd-headless-service",
+      "description": "Background a TTY/tray app as a 24/7 user systemd service that survives reboot. Use when an app exits under `systemd --user` with no TTY, auto-exits because `!process.stdin.isTTY`, or must run headless with linger after PC restart.",
+      "when_to_use": "Use when an app works in a terminal but dies under systemd --user (no TTY), drops to tray/background mode, or must survive reboot via `systemctl --user enable` with `loginctl linger`.",
+      "category": "devops"
+    },
+    {
+      "name": "xdg-spec-compliance",
+      "description": "Audit and fix XDG Base Directory compliance in a repo (data/config/cache/state paths, 0700 dirs, 0600 secrets, precedence). Use when the app resolves paths with `expanduser`/`Path.home`, writes logs outside `$XDG_STATE_HOME`, or ships world-readable secrets.",
+      "when_to_use": "Use when auditing a repo's path resolution against the XDG Base Directory spec: relative/tilde rejection, precedence (shell env > XDG file > .env), dir and file permissions, and vendor subdirs.",
+      "category": "devops"
+    },
+    {
+      "name": "github-auth",
+      "description": "GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login (browser and device flow).",
+      "when_to_use": "When gh is not authenticated or git lacks a token — run gh auth login (browser or device flow) or configure a git HTTPS token/SSH key so the agent can push, open PRs, and read issues via gh or git.",
+      "category": "git"
+    },
+    {
+      "name": "issue-maker",
+      "description": "repo → issues: zero-trust issue maker that maps AES spec documents (PRD, ROADMAP, BACKLOG, FRD, DESIGN, plus module and package feature docs) into modular GitHub tracking issues. Done rows are re-verified against live source and test evidence. Every issue carries a closing-condition that advances its ROW and all FR IDs to Done. Never opens a PR — issues only.",
+      "when_to_use": "/issue-maker — map incomplete tasks to GitHub issues (repo → issues), create tracking issues from ROADMAP or BACKLOG, verify Done claims against code, ensure every issue carries a closing-condition that advances the roadmap state to Done. Outputs GitHub issues only; never edits source, never creates a branch, never opens a PR.",
+      "category": "git"
+    },
+    {
+      "name": "issue-worker",
+      "description": "issue worker: analyze open GitHub issues and take each one from backlog to a PR opened to main — verify at HEAD → decide → 1 issue → 1 Orca worktree → implementer subagent → orchestrator verifies → orchestrator pushes branch + opens a (draft) PR to main → close/reopen the issue per result. Never merges. Takes EXISTING issues to PRs; does not create issues (that is `/issue-maker`'s domain). CRUD recipes (search/view/label/assign/comment/close/reopen/branch) stay as reference only; the spine is verify → decide → isolate → implement → verify → PR.",
+      "when_to_use": "",
+      "category": "git"
+    },
+    {
+      "name": "mergify",
+      "description": "Mergify CLI surface — stacked PRs, merge queue, CI insights, config validation, mergify events.",
+      "when_to_use": "Run any Mergify workflow — push or stack commits/PRs, diagnose merge-queue PRs, Depends-On/Merge-After/scheduled freezes, JUnit upload and quarantine, scopes detection, write or validate .mergify.yml, browse Mergify events.",
+      "category": "git"
+    },
+    {
+      "name": "pr-babysit",
+      "description": "Watch a GitHub PR end to end: track a PR number, auto-fix CI failures, resolve conflicts, address review and bot comments, and merge when green. Optional --ship flag lands the PR to the default branch when ship-ready.",
+      "when_to_use": "Triggers on \"/pr-babysit\". Phrasing: \"watch PR 123 until green\", \"babysit PR 123 and merge when ready\", \"fix issue #123 and open a PR\", \"keep fixing PR 123 until it can merge\", \"pr-babysit add --ship 123\".",
+      "category": "git"
+    },
+    {
+      "name": "releasing",
+      "description": "Release, cut a release, ship a new version, publish or tag a release for the mergify CLI, recover a failed release run.",
+      "when_to_use": "Cut a CalVer release of the mergify CLI autonomously — bump via the bump script, open and merge a release prep PR, build and publish the draft through GitHub workflows, and recover failed release runs. Triggers: \"release\", \"cut a release\", \"ship a new version\", \"publish a release\", \"tag a version\", \"release run recovery\".",
+      "category": "git"
+    },
+    {
+      "name": "repo-manager",
+      "description": "Clone/create/fork repos; manage remotes, releases, settings, secrets, and Actions CI via gh.",
+      "when_to_use": "Create, clone, fork, configure, and manage GitHub repositories — remotes, settings, secrets, releases, and Actions CI via gh.",
+      "category": "git"
+    },
+    {
+      "name": "ascii-art",
+      "description": "ASCII art: text banners (pyfiglet), cowsay, boxes, image-to-ascii, QR codes, weather art.",
+      "when_to_use": "Use when the user wants ASCII art — text banners, character speech bubbles (cowsay), decorative borders (boxes), colored text (toilet), image-to-ASCII conversion, QR codes, weather art, or pre-made ASCII art from the web.",
+      "category": "media-content"
+    },
+    {
+      "name": "ascii-video",
+      "description": "ASCII video: convert video/audio to colored ASCII MP4/GIF.",
+      "when_to_use": "Use when the user wants ASCII video — video-to-ASCII conversion, audio-reactive music visualizers, generative ASCII animations, hybrid video+audio, text/lyrics overlays, or TTS narration videos (MP4, GIF, image sequence).",
+      "category": "media-content"
+    },
+    {
+      "name": "gif-search",
+      "description": "Searches and downloads GIFs from Tenor via curl + jq using the Tenor API.",
+      "when_to_use": "Use when the user wants to search or download GIFs from Tenor — reaction GIFs, visual content for chat, or GIF metadata via the Tenor API with curl + jq.",
+      "category": "media-content"
+    },
+    {
+      "name": "music-library-downloader",
+      "description": "Downloads named song lists to a local MP3 library via mdl, resolving each song to a YouTube Music URL.",
+      "when_to_use": "Use when the user wants to download songs (by title + artist) to a local MP3 music library, or build/replenish a music library from a named list.",
+      "category": "media-content"
+    },
+    {
+      "name": "docx",
+      "description": "Create, read, edit, template, and review Word .docx files with python-docx CLIs: text, styles, tables, images, {{token}} templates, tracked changes, comments, TOC, and page-number fields.",
+      "when_to_use": "Use when generating, reading, editing, or templating Word .docx files — reports, letters, contracts — including tracked changes, comments, TOC, and page-number fields.",
+      "category": "office"
+    },
+    {
+      "name": "email",
+      "description": "Mailbox: triage, read, search, reply, send. Use for email.",
+      "when_to_use": "Use for any mailbox task: 'triage my inbox', 'draft replies', 'list mail from X', 'send email', 'what needs answering', 'morning brief'. Not for Google Docs/Drive/Calendar-only tasks.",
+      "category": "office"
+    },
+    {
+      "name": "email-inbox-triage",
+      "description": "Triage an inbox: prioritize threads, draft replies safely.",
+      "when_to_use": "Use when the user asks to triage their inbox, prioritize threads, draft replies, or reach inbox zero.",
+      "category": "office"
+    },
+    {
+      "name": "google-workspace",
+      "description": "Daily Google ops via workspace MCP: Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, Contacts, Chat. For user tasks.",
+      "when_to_use": "Use when performing daily Google Workspace operations — Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, Contacts, or Chat — via the workspace MCP server.",
+      "category": "office"
+    },
+    {
+      "name": "himalaya",
+      "description": "Himalaya CLI: IMAP/SMTP email from terminal.",
+      "when_to_use": "Use when managing email from the terminal via IMAP/SMTP — listing folders, reading and searching messages, composing and sending replies, moving/copying/deleting mail, and managing flags and attachments.",
+      "category": "office"
+    },
+    {
+      "name": "notion",
+      "description": "Notion API + ntn CLI: pages, databases, markdown, Workers.",
+      "when_to_use": "Use when reading or writing Notion pages, databases, markdown, file uploads, or Workers via the ntn CLI or the Notion API (curl).",
+      "category": "office"
+    },
+    {
+      "name": "pdf",
+      "description": "Create, read, merge, fill, and secure PDF files. Use when generating PDFs, extracting text/tables, building or filling AcroForm forms, merging/splitting/watermarking/stamping pages, encrypting or decrypting documents, or preparing official IRS tax forms.",
+      "when_to_use": "Use when generating reports/invoices as PDF, building or filling AcroForm forms (with layout linting and visual overlays), extracting text, tables, metadata, or form-field values, merging/splitting/rotating/watermarking/stamping pages, exporting pages as PNGs for visual review or OCR hand-off, managing metadata/attachments, or encrypting/decrypting with passwords. NOT for scanned/image-only PDFs (see references/ocr-extraction.md) and NOT for pixel-perfect HTML-to-PDF rendering (use a headless browser).",
+      "category": "office"
+    },
+    {
+      "name": "pptx",
+      "description": "Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Trigger whenever the user mentions 'deck', 'slides', 'presentation', or references a .pptx filename, regardless of what they plan to do with the content afterward. If a .pptx file needs to be opened, created, or touched, use this skill.",
+      "when_to_use": "Use whenever any .pptx file is involved — creating, reading, editing, combining, splitting, or working with templates, layouts, speaker notes, or comments — triggered by 'deck', 'slides', 'presentation', or a .pptx filename. Also use for structured programmatic work on .pptx decks via python-pptx (create from JSON spec, structured read-back, targeted text/chart/image edits, template filling, slide PNG rendering) and the legacy binary .ppt — convert it with `soffice --convert-to pptx old.ppt` first.",
+      "category": "office"
+    },
+    {
+      "name": "xlsx",
+      "description": "Create, read, edit Excel .xlsx workbooks and CSVs.",
+      "when_to_use": "Use when creating, reading, editing, or recalculating Excel .xlsx workbooks and CSVs — styled multi-sheet reports, formulas, tables, charts, data validation, and CSV interop — with openpyxl.",
+      "category": "office"
+    },
+    {
+      "name": "competitor-news-monitor",
+      "description": "Watch named companies for material news; cited digests. Use when monitoring a competitor set, tracking company launches, pricing, funding, partnerships, executive moves, or incidents, scheduling a recurring competitor-intelligence digest, or running the scheduled competitor-watch tick.",
+      "when_to_use": "Use when the user asks to monitor competitors, tell them when a named company changes pricing or launches a product, create a competitor intelligence digest, track funding/partnerships/executive moves/incidents, or when a cron tick fires for an existing competitor watch. Not for one-off company research (use web_search/web_extract) or plain feed reading (blogwatcher).",
+      "category": "productivity"
+    },
+    {
+      "name": "product-price-monitor",
+      "description": "Watch product, flight, or listing prices; alert on target. Use when tracking a product/listing/flight/hotel price, setting a price or availability alert, handling currency and all-in totals across variants, or running the scheduled price-watch tick.",
+      "when_to_use": "Use when the user wants an alert when a price drops below a target, wants to watch flights, hotel rooms, tickets, or listings for a fare or availability condition, track inventory or booking windows, or when a cron tick fires for an existing price watch. Not for one-off price lookups (use web_search/web_extract).",
+      "category": "productivity"
+    },
+    {
+      "name": "weekly-review-planning",
+      "description": "Weekly reset: commitments, stalled work, next-week plan. Use when running a weekly review of completed work and commitments, finding stalled projects and waiting items, or planning next week across calendar, tasks, and notes.",
+      "when_to_use": "Use when the user asks to run their weekly review, asks what they committed to and what is slipping, wants next week planned from calendar/tasks/notes, wants stale projects and waiting items found, or when a cron tick fires for a scheduled weekly review. Not for daily briefs or single-inbox triage.",
+      "category": "productivity"
+    },
+    {
+      "name": "arxiv",
+      "description": "Search arXiv papers by keyword, author, category, or ID.",
+      "when_to_use": "Use when the user asks to search arXiv papers by keyword, author, category, or ID, or to fetch a paper's metadata, abstract, or PDF.",
+      "category": "research-study"
+    },
+    {
+      "name": "blogwatcher",
+      "description": "Monitor blogs and RSS/Atom feeds via blogwatcher-cli tool.",
+      "when_to_use": "Use when the user wants to monitor blogs and RSS/Atom feeds, add or remove tracked blogs, scan for new articles, or manage read/unread articles via blogwatcher-cli.",
+      "category": "research-study"
+    },
+    {
+      "name": "context7-cli",
+      "description": "Operates the ctx7 CLI and Context7 MCP registry — resolve a library ID, then query its docs (doc lookup / find-docs), skills install/search/suggest/list/remove/generate, and MCP setup. Use when mentioning ctx7 or context7, looking up API docs or library docs for a library or framework, finding docs via ctx7, installing skills, or configuring Context7 MCP for an editor.",
+      "when_to_use": "Use when the user mentions ctx7, context7, or find-docs; asks to look up API docs or library docs for a library or framework; wants docs via MCP (context7__resolve-library-id / context7__query-docs) or the ctx7 CLI; wants to install, search, suggest, list, remove, or generate skills; or needs Context7 MCP set up for Claude Code, Cursor, OpenCode, or a project.",
+      "category": "research-study"
+    },
+    {
+      "name": "fetch-mcp",
+      "description": "Scrapes web to markdown with transcripts. Use when extracting articles, HTML, YouTube text.",
+      "when_to_use": "Use when reading content from external web pages, blogs, or documentation URLs; converting noisy pages to clean Markdown articles; fetching structured JSON from REST API endpoints; or extracting captions/transcripts from YouTube videos.",
+      "category": "research-study"
+    },
+    {
+      "name": "grounded-citations",
+      "description": "Ground answers and documents in cited, verifiable sources.",
+      "when_to_use": "Use whenever an answer or artifact rests on information you fetched rather than knew, and needs inline numbered citations plus a verifiable Sources block.",
+      "category": "research-study"
+    },
+    {
+      "name": "llm-wiki",
+      "description": "Karpathy's LLM Wiki: build/query interlinked markdown KB.",
+      "when_to_use": "Use when the user asks to create, build, or start a wiki, ingest a source into a wiki, ask a question about an existing wiki, or lint/audit/health-check a wiki.",
+      "category": "research-study"
+    },
+    {
+      "name": "reference-doc-fact-audit",
+      "description": "Audit a study reference doc for factual errors, then fix.",
+      "when_to_use": "Use when the user asks to audit, fact-check, verify, or fix a study or technical reference document the agent or a model wrote earlier.",
+      "category": "research-study"
+    },
+    {
+      "name": "study-roadmap-builder",
+      "description": "Build folder-structured quarterly study/learning roadmaps.",
+      "when_to_use": "Use when the user wants to build a folder-structured quarterly study/learning roadmap with specific sub-fields per quarter, or to teach a section from an existing roadmap.",
+      "category": "research-study"
+    },
+    {
+      "name": "skill-design",
+      "description": "Authors, improves, and prunes agent skills. --create builds a new SKILL.md from a described job; --improve runs the full audit and improvement sequence on an existing skill — checks and fixes structure, naming, frontmatter, body shape, and dangling refs to the shared lint standard, then applies the edit recipe; --prune reads every skill's description and body, then merges skills that duplicate, share a bounded purpose, or share tooling into one consolidated folder, archiving the dropped duplicates. Use when creating, improving, auditing, or consolidating skills.",
+      "when_to_use": "Author a new SKILL.md for a slash command that has no loaded skill; improve an existing SKILL.md (audit + repair in one pass); or prune duplicate or same-purpose skills into one folder.",
+      "category": "skill-authoring"
+    },
+    {
+      "name": "skill-router",
+      "description": "Route tasks to a Hermes skill via the jev-router CLI.",
+      "when_to_use": "Use when deciding which of Hermes's skills fits a task request — before manually scanning the skills list, or to verify a skill choice. Invoked by name in prompts, or when the user asks 'which skill handles X'.",
+      "category": "skill-authoring"
+    },
+    {
+      "name": "skill-traces",
+      "description": "Learns from, evolves, and unlearns skills from Grok Build session traces in one pass. --learn creates skills for repeated hand-typed instructions and open gaps; --evolve fixes stale lines in loaded skills; --unlearn retires skills the traces show are never used. Deterministic counts and repeated-phrase material come from the trace pipeline (usage.json, phrases.json); a narrow window lists but does not retire.",
+      "when_to_use": "Use when the user wants to learn new skills from repeated hand-typed instructions, evolve stale skill lines to match current reality, or retire skills the traces show they never use. Pick one or more modes: --learn, --evolve, --unlearn; the trace pipeline runs once and every mode applies its own action kinds.",
+      "category": "skill-authoring"
+    },
+    {
+      "name": "design",
+      "description": "Orchestrates a write-review-revise loop using `design-doc-writer` and `design-doc-reviewer` subagents to produce a polished design document and PR plan.",
+      "when_to_use": "Use when asked to write a design doc, produce a system architecture/spec, or via the `/design <description>` slash command. Triggers: 'design a feature', 'write a design doc', 'create technical spec'. Also acts as a step dependency inside `execute-plan`.",
+      "category": "software-development"
+    },
+    {
+      "name": "execute-plan",
+      "description": "Executes a PR Plan DAG end-to-end: Hermes validates the plan and drops /execute-plan into Grok Build (Grok runs parallel Orca worktrees, implementers, the 3-reviewer panel, fix loops, and final assembly), then Hermes verifies the final branch and ships the PR.",
+      "when_to_use": "Use for /execute-plan <design-doc-path>, execute plan, run the plan, implement the design, or after /design produces a PR plan.",
+      "category": "software-development"
+    },
+    {
+      "name": "implement",
+      "description": "Run the implement → review → fix loop for a single small-to-medium task in one Orca worktree: Hermes plans the brief, drops /implement into Grok Build (Grok runs the full loop with its 3-reviewer panel), then Hermes verifies, commits, pushes, and opens the PR.",
+      "when_to_use": "Use when asked to implement, build, add a feature, fix a bug, or via the /implement slash command. Best for tasks that fit in one worktree. For multi-PR stacks with dependencies, use /execute-plan instead.",
+      "category": "software-development"
+    },
+    {
+      "name": "design-md",
+      "description": "Author/validate/export Google's DESIGN.md design-token spec files.",
+      "when_to_use": "Use when the user wants a DESIGN.md design-token spec file — authoring, linting, diffing, or exporting to Tailwind or W3C DTCG JSON; also for WCAG contrast validation on color palettes.",
+      "category": "web-design"
+    },
+    {
+      "name": "p5js",
+      "description": "p5.js sketches: gen art, shaders, interactive, 3D.",
+      "when_to_use": "Use when the user wants a p5.js sketch — generative art, shaders, interactive visualizations, canvas animations, 3D WebGL scenes, audio-reactive visuals, or data viz, exported as HTML/PNG/GIF/MP4/SVG.",
+      "category": "web-design"
+    },
+    {
+      "name": "popular-web-designs",
+      "description": "54 real design systems (Stripe, Linear, Vercel) as HTML/CSS.",
+      "when_to_use": "Use when the user wants a page styled like a known site — 'build a page that looks like Stripe/Linear/Vercel', a landing page, dashboard, or UI using a real design system's tokens and components.",
+      "category": "web-design"
+    },
+    {
+      "name": "pretext",
+      "description": "Build creative browser demos with DOM-free text layout.",
+      "when_to_use": "Use when the user wants a pretext creative demo — text flowing around a moving shape, ASCII-art effects using real words, text-as-geometry games, kinetic typography, multiline shrink-wrap UI, or per-glyph physics.",
+      "category": "web-design"
+    }
+  ]
+}

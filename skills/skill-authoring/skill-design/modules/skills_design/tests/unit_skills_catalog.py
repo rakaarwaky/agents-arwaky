@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
+from shared.src.common.utility_skills_tree import category_summaries, skill_entries
 from shared.src.skills_design.taxonomy_skills_error import CatalogDrift
 
-from skills_design.src.capabilities_skills_catalog import SkillsCatalog
+from skills_design.src.capabilities_skills_catalog import (
+    SkillsCatalog,
+    render_catalog_json,
+)
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 
 
@@ -138,3 +143,47 @@ def test_crafted_pipe_row_round_trips(tmp_path: Path) -> None:
     rows = catalog.load_rows(as_root(root))
     assert rows[0].description == "a|b"
     assert catalog.check(as_root(root)).in_sync
+
+
+def test_render_catalog_json_emits_all_four_fields(tmp_path: Path) -> None:
+    """render_catalog_json emits exactly name, description, when_to_use,
+    category per skill (task 3)."""
+    root = crafted_tree(tmp_path)
+    entries = skill_entries(root)
+    categories = category_summaries(entries, root)
+    text = render_catalog_json(entries, categories)
+    data = json.loads(text)
+    assert set(data.keys()) == {"skills"}
+    skills = data["skills"]
+    assert len(skills) == 2
+    for s in skills:
+        assert set(s.keys()) == {"name", "description", "when_to_use", "category"}
+
+
+def test_rebuild_writes_catalog_json_with_all_fields(tmp_path: Path) -> None:
+    """Rebuild writes catalog.json with name, description, when_to_use,
+    category (task 4)."""
+    root = crafted_tree(tmp_path)
+    SkillsCatalog().rebuild(as_root(root))
+    json_path = root / "catalog.json"
+    assert json_path.exists()
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    assert set(data.keys()) == {"skills"}
+    skills = data["skills"]
+    assert len(skills) == 2
+    for s in skills:
+        assert set(s.keys()) == {"name", "description", "when_to_use", "category"}
+
+
+def test_check_detects_catalog_json_drift(tmp_path: Path) -> None:
+    """A hand-edited catalog.json is drift, fail-closed (task 5)."""
+    root = crafted_tree(tmp_path)
+    catalog = SkillsCatalog()
+    catalog.rebuild(as_root(root))
+    (root / "catalog.json").write_text(
+        '{"skills": [{"name":"x","description":"d","when_to_use":"w","category":"c"}]}',
+        encoding="utf-8",
+    )
+    result = catalog.check(as_root(root))
+    assert not result.in_sync
+    assert "Catalog JSON drift" in result.message

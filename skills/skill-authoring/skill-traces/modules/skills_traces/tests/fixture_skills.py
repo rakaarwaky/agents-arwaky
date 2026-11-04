@@ -56,7 +56,17 @@ def make_grok_home(
         encoding="utf-8",
     )
     (sessions / "chat_history.jsonl").write_text(
-        json.dumps(_TRAFIX_TURN) + "\n", encoding="utf-8"
+        "\n".join(
+            json.dumps(turn)
+            for turn in (
+                _TRAFIX_TURN,
+                {"type": "assistant", "content": "turn two"},
+                {"type": "user", "content": "<user_query>turn three</user_query>"},
+                {"type": "user", "content": "<user_query>turn four</user_query>"},
+            )
+        )
+        + "\n",
+        encoding="utf-8",
     )
     if with_skills:
         skill_dir = grok_home / "skills" / "cat" / "lint"
@@ -82,6 +92,18 @@ def run_trace_surface(grok_home: Path, *args: str) -> tuple[int, str, str]:
     """
     if args and args[0] == "traces":
         args = args[1:]
+    if grok_home:
+        action = args[0] if args else ""
+        rest = args[1:]
+        if action == "state" and rest:
+            # state uses subparsers: state <sub_action> [flags]
+            sub_action = rest[0]
+            rest_flags = rest[1:]
+            args = ["state", sub_action, "--grok-home", str(grok_home), *rest_flags]
+        elif action:
+            args = [action, "--grok-home", str(grok_home), *rest]
+        else:
+            args = ["--grok-home", str(grok_home)]
     stdout = io.StringIO()
     stderr = io.StringIO()
     with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):

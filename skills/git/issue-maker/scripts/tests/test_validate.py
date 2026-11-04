@@ -21,8 +21,9 @@ _SKILL_DIR = Path(__file__).resolve().parent.parent.parent
 if str(_SKILL_DIR) not in sys.path:
     sys.path.insert(0, str(_SKILL_DIR))
 
-from scripts import ledger, validate
 from scripts.ledger import LedgerEntry
+
+from scripts import ledger, validate
 
 LEDGER = Path(__file__).resolve().parent / "fixtures" / "sample_ledger.jsonl"
 

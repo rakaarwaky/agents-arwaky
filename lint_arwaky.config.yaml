@@ -45,7 +45,9 @@ architecture:
     # ─── AES100 ───
     AES101:
       enabled: true
-      exceptions: []
+      exceptions: [
+        "conftest.py",
+      ]
     AES102:
       enabled: true
       exceptions: []

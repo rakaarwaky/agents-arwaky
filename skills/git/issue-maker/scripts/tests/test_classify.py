@@ -15,11 +15,12 @@ if str(_SKILL_DIR) not in sys.path:
 
 from typing import Any, cast
 
-from scripts import classify, scan
 from scripts.templates import (
     closing_condition_next_action_complete,
     closing_condition_skip_next_action,
 )
+
+from scripts import classify, scan
 
 # A fixed reference date so staleness assertions are deterministic.
 TODAY = "2026-10-25"

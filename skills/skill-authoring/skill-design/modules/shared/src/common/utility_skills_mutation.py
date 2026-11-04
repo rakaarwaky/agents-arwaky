@@ -172,6 +172,7 @@ def _skill_entries(skills_root: Path) -> list[SkillEntry]:
                     ),
                     category=category.name,
                     description=_clean_one_line(frontmatter.get("description", "")),
+                    when_to_use=_clean_one_line(frontmatter.get("when-to-use", "")),
                     path=f"{category.name}/{skill_dir.name}",
                 )
             )
