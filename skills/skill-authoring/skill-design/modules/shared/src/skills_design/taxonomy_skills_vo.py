@@ -24,11 +24,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import NewType
 
-from shared.src.skills_design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
-)
-
 # Every other primitive below (``SkillContent``, ``SkillRecord``, the trace
 # VOs, ...) is re-exported back into the request/response envelope modules
 # after its definition, so the envelope modules never import this module at
