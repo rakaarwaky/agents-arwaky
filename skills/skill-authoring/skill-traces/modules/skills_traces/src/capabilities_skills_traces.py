@@ -2,12 +2,12 @@
 
 Combines the scan capability (scan_sessions / build_usage / build_phrases /
 materialize) and the state capability (status machine / trash / decide /
-wait / restrict / dispatch) into a single SkillsTraces implementation
-of ISkillsTracesProtocol. The scan and state halves depend on run-dir
+wait / restrict / dispatch) into a single ``SkillsTraces`` implementation
+of ``ISkillsTracesProtocol``. The scan and state halves depend on run-dir
 files only -- no capability-to-capability import between them here.
 
 Depends only on contract + taxonomy from the shared kernel plus shared
-trace-state helpers (imported from utility_skills_trace_state).
+trace-state helpers (imported from ``utility_skills_trace_state``).
 """
 
 from __future__ import annotations
@@ -104,7 +104,7 @@ __all__ = ["SkillsTraces"]
 
 
 def _toml_string_array(text: str, table: str, key: str) -> list[str] | None:
-    """Read key = [ "a", "b" ] under [table] without YAML/TOML deps."""
+    """Read ``key = [ "a", "b" ]`` under ``[table]`` without YAML/TOML deps."""
     m = re.search(r"^\[" + re.escape(table) + r"\]\s*$", text, re.MULTILINE)
     if not m:
         return None
@@ -112,7 +112,7 @@ def _toml_string_array(text: str, table: str, key: str) -> list[str] | None:
     nxt = re.search(r"^\[", rest, re.MULTILINE)
     if nxt:
         rest = rest[: nxt.start()]
-    km = re.search(r"^" + re.escape(key) + r"\s*=\s*\[", rest, re.MULTILINE)
+    km = re.search(r"^" + re.escape(key) + r"\s*=\s*\[" , rest, re.MULTILINE)
     if not km:
         return None
     depth, i = 0, km.end() - 1
@@ -144,8 +144,7 @@ def _human_turns(content) -> list[str]:
                 parts.append(c.get("text") or "")
             elif isinstance(c, str):
                 parts.append(c)
-        txt = "
-".join(parts)
+        txt = "\n".join(parts)
     else:
         txt = ""
     found = [m.strip() for m in _USER_QUERY_RE.findall(txt)]
@@ -289,7 +288,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         include_headless: bool = False,
         include_subagents: bool = False,
     ) -> ScanResult:
-        """Walk /sessions and return a compact scan outcome."""
+        """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome."""
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         sessions_root = os.path.join(grok_home, "sessions")
         run_dir = os.path.abspath(run_dir)
@@ -401,7 +400,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         return ScanResult(records=tuple(records), sessions_seen=seen, dropped=dict(dropped))
 
     def build_usage(self, grok_home: GrokHome, run_dir: TraceRunDir) -> UsageReport:
-        """Build the skills-only usage report from session records in run_dir."""
+        """Build the skills-only usage report from session records in ``run_dir``."""
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         run_dir = os.path.abspath(run_dir)
         sessions_dir = os.path.join(run_dir, "sessions")
@@ -460,7 +459,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         )
 
     def build_phrases(self, grok_home: GrokHome, run_dir: TraceRunDir) -> PhrasesReport:
-        """Read session records from run_dir and return repeated phrases."""
+        """Read session records from ``run_dir`` and return repeated phrases."""
         sessions_dir = os.path.join(run_dir, "sessions")
         exact: dict[str, list[str]] = defaultdict(list)
         stems: dict[str, list[str]] = defaultdict(list)
@@ -511,8 +510,8 @@ class SkillsTraces(ISkillsTracesProtocol):
     def materialize(
         self, grok_home: GrokHome, run_dir: TraceRunDir
     ) -> tuple[UsageReport, PhrasesReport]:
-        """Build usage + phrases for *run_dir*; write usage.json +
-        phrases.json into it and return the two reports."""
+        """Build usage + phrases for *run_dir*; write ``usage.json`` +
+        ``phrases.json`` into it and return the two reports."""
         usage = self.build_usage(grok_home=grok_home, run_dir=run_dir)
         report = self.build_phrases(grok_home=grok_home, run_dir=run_dir)
 
@@ -594,7 +593,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         run_dir: TraceRunDir,
         status: TraceStateStatus,
     ) -> TraceStateStatus:
-        """Record status for the pending run; done stamps last_completed."""
+        """Record ``status`` for the pending run; ``done`` stamps last_completed."""
         state = mark(state_path(grok_home), run_dir, status)
         return TraceStateStatus(state.get("pending", {}).get("status", status.value))
 
@@ -621,7 +620,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         run_name: TraceRunName,
         paths: Sequence[str],
     ) -> tuple[str, ...]:
-        """Move the validated paths into learn/trash/<run_name>."""
+        """Move the validated paths into ``learn/trash/<run_name>``."""
         return _trash(grok_home, run_name, list(paths))
 
     def decide(
@@ -630,13 +629,12 @@ class SkillsTraces(ISkillsTracesProtocol):
         run_dir: TraceRunDir,
         decision: TraceDecision,
     ) -> TraceDecision:
-        """Append one decision line to learn/decisions.jsonl and return it."""
+        """Append one decision line to ``learn/decisions.jsonl`` and return it."""
         dec_path = decisions_path(grok_home)
         os.makedirs(os.path.dirname(dec_path), exist_ok=True)
         line = decision.as_dict()
         with open(dec_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(line) + "
-")
+            f.write(json.dumps(line) + "\n")
         return decision
 
     def wait(
@@ -647,7 +645,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         phase_stall_min: int = 60,
         report_stall_min: int = 45,
     ) -> TraceStateStatus:
-        """Block until the run dir holds report.md + actions.json."""
+        """Block until the run dir holds ``report.md`` + ``actions.json``."""
         return _wait(grok_home, run_dir, timeout_min=timeout_min)
 
     def restrict(self, paths: Sequence[str]) -> tuple[str, ...]:
@@ -750,7 +748,7 @@ def _scan_session(
         rel = p
         if base and _under(p, base):
             rel = os.path.relpath(p, base)
-        parts = [x for x in re.split(r"[\/]+", rel) if x]
+        parts = [x for x in re.split(r"[\\/]+", rel) if x]
         key = "/".join(parts[:2]) if len(parts) > 2 else (parts[0] if parts else rel)
         dirs[key] += n
 
