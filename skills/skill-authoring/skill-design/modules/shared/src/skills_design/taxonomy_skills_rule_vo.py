@@ -48,6 +48,7 @@ class IssueType(str, Enum):
     MISSING_CATEGORY_DESCRIPTION = "missing-category-description"
     EMPTY_CATEGORY_DESCRIPTION = "empty-category-description"
     EMPTY_CATEGORY = "empty-category"
+    REFERENCE_NOT_LINKED = "reference-not-linked"
 
 
 #: Rule IDs are stable identifiers the skill bodies and the generated
@@ -66,6 +67,7 @@ RULE_IDS: Final = {
     "category-description-present": IssueType.MISSING_CATEGORY_DESCRIPTION,
     "category-description-nonempty": IssueType.EMPTY_CATEGORY_DESCRIPTION,
     "category-nonempty": IssueType.EMPTY_CATEGORY,
+    "references-linked": IssueType.REFERENCE_NOT_LINKED,
 }
 
 #: One-line summaries for the skill-rules reference doc headings.
@@ -84,6 +86,7 @@ SUMMARIES: Final = {
     "category-description-present": "Every category has a `DESCRIPTION.md`",
     "category-description-nonempty": "Category `DESCRIPTION.md` describes the category",
     "category-nonempty": "Every category holds at least one skill",
+    "references-linked": "Every file in `references/` is linked from `SKILL.md`",
 }
 
 #: Loader citations: the file each constraint was first read from. Empty
@@ -104,6 +107,10 @@ CITATIONS: Final = {
         "`create-skills/SKILL.md` and `validation-criteria.md` "
         "(both stated the 1,024-char ceiling)"
     ),
+    "skill-placement": (
+        "`create-skills/SKILL.md` (placement rule) and "
+        "`skill-librarian/references/category-rules.md` (folder shape)"
+    ),
     "category-depth": (
         "`create-skills/SKILL.md` (loaders walk one level) and "
         "`category-rules.md` (no nested subcategories)"
@@ -118,6 +125,9 @@ CITATIONS: Final = {
         "(the description decides where skills belong)"
     ),
     "category-nonempty": "",
+    "references-linked": (
+        "`SKILL.md` body or Routing table must name every `references/` file"
+    ),
 }
 
 #: Verbatim message templates. Fields are exactly the ones
@@ -149,6 +159,7 @@ ISSUE_MESSAGES: Final = {
     IssueType.MISSING_CATEGORY_DESCRIPTION: "DESCRIPTION.md is missing.",
     IssueType.EMPTY_CATEGORY_DESCRIPTION: "DESCRIPTION.md has no description.",
     IssueType.EMPTY_CATEGORY: "Category has no skills.",
+    IssueType.REFERENCE_NOT_LINKED: "Unlinked reference file(s): {paths}",
 }
 
 #: Severity of a rule. Every check the validator performs today fails the
@@ -219,6 +230,7 @@ RULE_ONLY_ISSUE_TYPES: Final = frozenset(
         IssueType.TOO_DEEP.value,
         IssueType.MISSING_CATEGORY_DESCRIPTION.value,
         IssueType.EMPTY_CATEGORY_DESCRIPTION.value,
+        IssueType.REFERENCE_NOT_LINKED.value,
     }
 )
 

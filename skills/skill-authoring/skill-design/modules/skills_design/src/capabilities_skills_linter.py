@@ -27,6 +27,7 @@ from shared.src.common.utility_skills_tree import (
     assets_container,
     category_dirs,
     category_summaries,
+    iter_files,
     iter_relative_skill_mds,
     relpath,
     skill_entries,
@@ -70,7 +71,7 @@ class SkillsLinter(ISkillsLinterProtocol):
         """
         skills_root = Path(root)
 
-        # ── 1. 13-rule validator checks ─────────────────────────
+        # ── 1. 12-rule validator checks ─────────────────────────
         entries = skill_entries(skills_root)
         categories = category_summaries(entries, skills_root)
         assets = assets_container(skills_root)
@@ -119,7 +120,7 @@ class SkillsLinter(ISkillsLinterProtocol):
 
     # ── Block 3: Constructors, standard traits, helpers ──────────
 
-    # ── 13-rule checks (ported from the retired validator) ────────
+    # ── 12-rule checks (ported from the retired validator) ────────
 
     @staticmethod
     def _check_categories(
