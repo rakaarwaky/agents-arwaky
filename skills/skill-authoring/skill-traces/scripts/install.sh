@@ -19,6 +19,8 @@ PACKAGE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 MODULES_DIR="$PACKAGE_ROOT/modules"
 MODULES_DIR="$(cd "$MODULES_DIR" && pwd)"
 
+GROK_HOME="${GROK_HOME:-$HOME/.grok}"
+
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
 case "$BIN_DIR" in
