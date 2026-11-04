@@ -17,7 +17,6 @@ def test_smoke_trace_collect_exits_0(tmp_path: Path) -> None:
     code, _out, _err = run_trace_surface(
         grok_home,
         "traces", "collect",
-
         "--out",
         str(run_dir),
     )
