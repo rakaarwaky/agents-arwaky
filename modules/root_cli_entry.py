@@ -49,11 +49,34 @@ ROOT = repo_root()
 # is no cross-tree import. This entry point adds both namespace roots so
 # either standalone package can be imported on demand.
 for _skills_ns in (
-    ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules",
+    ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
 ):
     if _skills_ns.is_dir() and str(_skills_ns) not in sys.path:
         sys.path.insert(0, str(_skills_ns))
+
+# Extend shared.src.__path__ with ALL shared/src trees so
+# shared.src.common.utility_skill_pack etc. resolve regardless of which
+# standalone skills tree wins the ``shared`` namespace import.
+for _shared_ns in (
+    ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "shared",
+    ROOT / "modules" / "shared",
+    ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "shared",
+):
+    if _shared_ns.is_dir() and str(_shared_ns) not in sys.path:
+        sys.path.insert(0, str(_shared_ns))
+try:
+    import shared.src as _shared_src_pkg
+    _src_dirs = [
+        ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "shared" / "src",
+        ROOT / "modules" / "shared" / "src",
+        ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "shared" / "src",
+    ]
+    for _ext in _src_dirs:
+        if _ext.is_dir() and str(_ext) not in _shared_src_pkg.__path__:
+            _shared_src_pkg.__path__.append(str(_ext))
+except ImportError:
+    pass
 
 from modules.shared.src.common.taxonomy_common_vo import (
     Tool,
@@ -577,10 +600,10 @@ def cmd_skills(argv: list[str]) -> int:
     the two together — the design tree itself never imports
     ``skills_traces``.
     """
-    from skills_design.src.root_skills_container import default_aggregate
     from cli.src.surface_skills_command import (
         cmd_skills as _skills_surface,
     )
+    from skills_design.src.root_skills_container import default_aggregate
 
     aggregate = default_aggregate()
     return _skills_surface(list(argv), aggregate)
