@@ -97,7 +97,7 @@ class ISkillsLinterProtocol(ABC):
 
 
 class ISkillsCatalogProtocol(ABC):
-    """Render, rebuild, check, and read the tracked ``CATALOG.md``."""
+    """Render, rebuild, check, and read the tracked ``catalog.json``."""
 
     @abstractmethod
     def rebuild(self, root: SkillsRoot) -> CatalogReport:
@@ -124,7 +124,7 @@ class ISkillsCatalogProtocol(ABC):
 
     @abstractmethod
     def read(self, root: SkillsRoot) -> SkillContent:
-        """Return the raw tracked ``CATALOG.md`` text, or ``""`` if missing.
+        """Return the raw tracked ``catalog.json`` text, or ``""`` if missing.
 
         A read-only view for the CLI ``catalog --read`` path; unlike
         ``load_rows`` this never parses, drift-checks, or raises — it

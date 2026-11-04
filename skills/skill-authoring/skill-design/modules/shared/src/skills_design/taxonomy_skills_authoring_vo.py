@@ -55,7 +55,7 @@ class ValidationReport:
 
     @property
     def catalog_path(self) -> Path:
-        """The ``CATALOG.md`` the report names."""
+        """The ``catalog.json`` the report names."""
         return self.catalog
 
     def summary(self) -> str:
@@ -98,7 +98,7 @@ class LintReport:
 
 @dataclass(frozen=True)
 class CatalogRow:
-    """One parsed ``## Skills`` row of ``CATALOG.md``."""
+    """One skill row of ``catalog.json`` (the legacy 4-field projection)."""
 
     skill: str
     category: str
@@ -117,7 +117,7 @@ class CatalogRow:
 
 @dataclass(frozen=True)
 class CatalogReport:
-    """The result of rebuilding ``CATALOG.md``."""
+    """The result of rebuilding ``catalog.json``."""
 
     path: Path
     skills: int

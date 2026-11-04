@@ -23,8 +23,8 @@ sdc catalog
 
 Without `--apply` the `create category` command previews the plan; with it, the category folder and `DESCRIPTION.md` are written.
 
-**Catalog artifacts:** `sdc catalog --build` regenerates both `CATALOG.md` and `catalog.json` at the skills root. `catalog.json` carries each skill's `name`, `description`, `when_to_use`, and `category`. `sdc catalog --check` drift-checks both artifacts fail-closed.
+**Catalog artifacts:** `sdc catalog --build` regenerates `catalog.json` at the skills root. `catalog.json` carries each skill's `name`, `description`, `when_to_use`, and `category`. `sdc catalog --check` drift-checks the artifact fail-closed.
 
 ## Completion
 
-- `<SKILL_DIR>` exists with any needed `scripts/` / `references/` subdirs; a new category has a `DESCRIPTION.md`. `CATALOG.md` and `catalog.json` are rebuilt by the catalog subcommand, not by this step.
+- `<SKILL_DIR>` exists with any needed `scripts/` / `references/` subdirs; a new category has a `DESCRIPTION.md`. `catalog.json` is rebuilt by the catalog subcommand, not by this step.

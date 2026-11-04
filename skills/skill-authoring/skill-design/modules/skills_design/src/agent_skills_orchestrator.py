@@ -213,7 +213,7 @@ class SkillsAgent(ISkillsAggregate):
                     ok=False,
                     op=op,
                     exit_code=SkillsExitCode.ISSUES_FOUND,
-                    message="CATALOG.md not found — run with --build first",
+                    message="catalog.json not found — run with --build first",
                     root=root,
                 )
             return SkillsResult(

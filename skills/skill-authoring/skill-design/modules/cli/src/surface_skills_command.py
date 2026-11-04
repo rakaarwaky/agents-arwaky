@@ -59,7 +59,7 @@ _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT
 #: the legacy command (presentation strings, owned by the surface).
 _SCORE_TABLE_HEADER = "| Skill | Category | Description | Path | Score |"
 _SCORE_TABLE_SEPARATOR = "|---|---|---|---|---|"
-_NO_MATCH_LINE = "No matching skills found in CATALOG.md."
+_NO_MATCH_LINE = "No matching skills found in catalog.json."
 
 
 def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
@@ -93,7 +93,7 @@ def _print_usage() -> None:
     info(f"{BOLD()}sdc read <name>{RESET()}                   Print a skill's SKILL.md")
     info(f"{BOLD()}sdc lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)")
     info(
-        f"{BOLD()}sdc catalog [--build] [--read]{RESET()}    Build and/or print CATALOG.md"
+        f"{BOLD()}sdc catalog [--build] [--read]{RESET()}    Build and/or print catalog.json"
     )
     info(f"{BOLD()}sdc discover <query>{RESET()}             Search the catalog")
     info(
@@ -186,29 +186,29 @@ def _authoring_parser() -> argparse.ArgumentParser:
         help="Only report issues in category NAME",
     )
 
-    sub = subparsers.add_parser("catalog", help="Build, read, and/or check CATALOG.md")
+    sub = subparsers.add_parser("catalog", help="Build, read, and/or check catalog.json")
     sub.add_argument(
         "--build",
         action=_TriFlag,
         nargs=0,
         default=None,
-        help="Rebuild CATALOG.md from the live tree",
+        help="Rebuild catalog.json from the live tree",
     )
     sub.add_argument(
         "--read",
         action=_TriFlag,
         nargs=0,
         default=None,
-        help="Print the current CATALOG.md content",
+        help="Print the current catalog.json content",
     )
     sub.add_argument(
         "--check",
         action="store_true",
         help="Drift gate: rebuild to a temp file and diff against the "
-        "tracked CATALOG.md (exit 0 in sync / 3 drift or corrupt)",
+        "tracked catalog.json (exit 0 in sync / 3 drift or corrupt)",
     )
 
-    sub = subparsers.add_parser("discover", help="Search CATALOG.md")
+    sub = subparsers.add_parser("discover", help="Search catalog.json")
     sub.add_argument("query", help="Search query")
     sub.add_argument("--limit", type=int, default=20, help="Maximum results")
 
@@ -377,7 +377,7 @@ def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
             if result.message:
                 err(result.message)
             else:
-                err("CATALOG.md not found — run with --build first")
+                err("catalog.json not found — run with --build first")
             return result.exit_code or 1
         print(text)
 

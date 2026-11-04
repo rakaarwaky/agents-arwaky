@@ -38,7 +38,10 @@ from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     LintReport,
     ValidationReport,
 )
-from shared.src.skills_design.taxonomy_skills_constant import MAX_DESCRIPTION_LEN
+from shared.src.skills_design.taxonomy_skills_constant import (
+    CATALOG_FILENAME,
+    MAX_DESCRIPTION_LEN,
+)
 from shared.src.skills_design.taxonomy_skills_entity import (
     CategorySummary,
     Issue,
@@ -86,7 +89,7 @@ class SkillsLinter(ISkillsLinterProtocol):
 
         report = ValidationReport(
             skills_root=skills_root,
-            catalog=skills_root / "CATALOG.md",
+            catalog=skills_root / CATALOG_FILENAME,
             issues=tuple(issues),
             skills=len(entries),
             categories=len(list(category_dirs(skills_root))),

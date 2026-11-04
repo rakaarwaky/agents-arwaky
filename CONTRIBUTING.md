@@ -28,7 +28,7 @@
 | `refactor` | Code refactor, no behaviour change | `refactor(feature-name): <refactor-description>` |
 | `chore` | Maintenance, deps, config | `chore: <bump-description>` |
 
-> Worktree-local catalog checks: when validating or regenerating `skills/CATALOG.md` from an Orca worktree (a tree that is not the main clone), pass `--skills-root "$PWD/skills"` to point at the worktree's `skills/` directory — the bare `aa` wrapper pins `AGENTS_ARWAKY_ROOT` to the main clone and does not reflect the worktree's tree. In GitHub Actions CI, CWD is already the checkout root, so the module's default skills root resolves to the branch's tree and no `--skills-root` is needed.
+> Worktree-local catalog checks: when validating or regenerating `skills/catalog.json` from an Orca worktree (a tree that is not the main clone), pass `--skills-root "$PWD/skills"` to point at the worktree's `skills/` directory — the bare `aa` wrapper pins `AGENTS_ARWAKY_ROOT` to the main clone and does not reflect the worktree's tree. In GitHub Actions CI, CWD is already the checkout root, so the module's default skills root resolves to the branch's tree and no `--skills-root` is needed.
 
 ## Reference
 

@@ -65,7 +65,7 @@ _DEFAULT_DIFF_LINES: DiffLines = DiffLines(())
 
 
 class CatalogDrift(SkillsUsageError):
-    """Tracked ``CATALOG.md`` is missing, stale, corrupt, or non-round-tripping.
+    """Tracked ``catalog.json`` is missing, stale, corrupt, or unparseable.
 
     Carries the summary message and optional diff lines; explicitly
     carries ``exit_code = 3`` — the CI drift signal. Raised by

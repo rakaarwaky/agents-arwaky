@@ -168,7 +168,7 @@ class _SpyCatalog(ISkillsCatalogProtocol):
 
     def rebuild(self, root: SkillsRoot) -> CatalogReport:
         self.calls.append("rebuild")
-        return CatalogReport(path=Path(root) / "CATALOG.md", skills=0, categories=0)
+        return CatalogReport(path=Path(root) / "catalog.json", skills=0, categories=0)
 
     def check(self, root: SkillsRoot) -> CatalogCheckResult:
         self.calls.append("check")
