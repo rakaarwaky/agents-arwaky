@@ -15,7 +15,7 @@ def _make_pack(tmp_path: Path) -> Path:
 
 
 def test_e2e_dispatch_list(tmp_path: Path, monkeypatch):
-    """E2E-SKILLS-001: `aa skills list` dispatches and exits 0."""
+    """E2E-SKILLS-001: `sdc skills list` dispatches and exits 0."""
     import skills_design.src.capabilities_skills_lister as lister_mod
     import skills_design.src.capabilities_skills_reader as reader_mod
     from modules.root_cli_entry import _dispatch
@@ -28,7 +28,7 @@ def test_e2e_dispatch_list(tmp_path: Path, monkeypatch):
 
 
 def test_e2e_dispatch_read(tmp_path: Path, monkeypatch):
-    """E2E-SKILLS-002: `aa skills read <name>` dispatches and exits 0."""
+    """E2E-SKILLS-002: `sdc skills read <name>` dispatches and exits 0."""
     import skills_design.src.capabilities_skills_lister as lister_mod
     import skills_design.src.capabilities_skills_reader as reader_mod
     from modules.root_cli_entry import _dispatch
@@ -41,7 +41,7 @@ def test_e2e_dispatch_read(tmp_path: Path, monkeypatch):
 
 
 def test_e2e_dispatch_lint(tmp_path: Path):
-    """E2E-SKILLS-003: `aa skills lint` dispatches end to end."""
+    """E2E-SKILLS-003: `sdc skills lint` dispatches end to end."""
     from modules.root_cli_entry import _dispatch
     from skills_design.tests.fixture_skills import crafted_tree
 
@@ -54,7 +54,7 @@ def test_e2e_dispatch_lint(tmp_path: Path):
 
 
 def test_e2e_dispatch_catalog_default(tmp_path: Path):
-    """E2E-SKILLS-003b: `aa skills catalog` (default: build + read) exits 0."""
+    """E2E-SKILLS-003b: `sdc skills catalog` (default: build + read) exits 0."""
     from modules.root_cli_entry import _dispatch
 
     rc = _dispatch(["skills", "catalog"])
@@ -62,7 +62,7 @@ def test_e2e_dispatch_catalog_default(tmp_path: Path):
 
 
 def test_e2e_dispatch_catalog_build_only(tmp_path: Path):
-    """E2E-SKILLS-003c: `aa skills catalog --build` exits 0."""
+    """E2E-SKILLS-003c: `sdc skills catalog --build` exits 0."""
     from modules.root_cli_entry import _dispatch
 
     rc = _dispatch(["skills", "catalog", "--build"])
@@ -70,7 +70,7 @@ def test_e2e_dispatch_catalog_build_only(tmp_path: Path):
 
 
 def test_e2e_dispatch_catalog_read_only(tmp_path: Path):
-    """E2E-SKILLS-003d: `aa skills catalog --read` exits 0 after a build."""
+    """E2E-SKILLS-003d: `sdc skills catalog --read` exits 0 after a build."""
     from modules.root_cli_entry import _dispatch
 
     _dispatch(["skills", "catalog", "--build"])

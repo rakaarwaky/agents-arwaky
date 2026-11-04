@@ -20,14 +20,14 @@ Last Updated: 2026-11-04
 - Done (amended 2026-10-25, PR-5): the feature *reads and authors* the
   pack — the read-only invariant is dropped; the agent dispatches every op
   and owns the mutation→catalog chain.
-- Done: `aa skills` exposes every capability of the retired
+- Done: `sdc skills` exposes every capability of the retired
   skill-authoring CLI — `list`, `show`, `validate`, `catalog`, `discover`,
   `weed`, `repair`, `move`, `archive`, `new-category` — with the legacy exit-code contract (0 / 1 / 2 / 3). Gate:
   `uv run pytest skills/skill-authoring/skill-design/modules/skills_design -q` → 125 passed at
   `37b76d738e6767869fc2ee8c2008a160177b1fa1`; Ruff is clean.
-- Done: the former `modules/skill/` provisioning feature and the `aa skill`
+- Done: the former `modules/skill/` provisioning feature and the `sdc skill`
   command were removed; agents read `skills/` directly and harnesses receive
-  the pack through `aa connect`.
+  the pack through `sdc connect`.
 - Done: the pack scripts (`skills/skill-authoring/scripts/`), legacy tests,
   and back-compat shims are retired.
 - Blocked: none.
@@ -106,7 +106,7 @@ counterpart.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Removed                                                        |
-| Done         | Removed — the read-only merge planner (`capabilities_skills_merge_planner.py`, `ISkillsMergePlannerProtocol`, `MergePlan` VO, and the `aa skills merge-plan` verb) was deep-cleaned out; `skill-lifecycle` owns merge execution agent-side. |
+| Done         | Removed — the read-only merge planner (`capabilities_skills_merge_planner.py`, `ISkillsMergePlannerProtocol`, `MergePlan` VO, and the `sdc skills merge-plan` verb) was deep-cleaned out; `skill-lifecycle` owns merge execution agent-side. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-03                                                   |

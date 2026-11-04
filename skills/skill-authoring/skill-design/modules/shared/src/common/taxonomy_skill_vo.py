@@ -1,7 +1,7 @@
 """Shared skill-name helpers (AES taxonomy layer, _vo: pure functions allowed).
 
 Trimmed to the helpers the harness skills capability uses; the project-copy
-provisioning feature (``aa skill install`` into ``.agents/skills/``) was
+provisioning feature (``sdc skill install`` into ``.agents/skills/``) was
 removed — agents read the pack at ``skills/`` directly.
 """
 from __future__ import annotations

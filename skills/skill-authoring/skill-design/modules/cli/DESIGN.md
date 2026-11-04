@@ -12,7 +12,7 @@ composition root.
 
 ## Design Requirements
 
-### DS-CLI-001: Route `aa skills` verbs to the aggregate
+### DS-CLI-001: Route `sdc skills` verbs to the aggregate
 
 | Variant | Use case | Token | Value |
 |---------|----------|-------|-------|

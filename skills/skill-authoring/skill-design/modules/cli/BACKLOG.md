@@ -9,14 +9,14 @@ Last Updated: 2026-11-04
 ## Progress Overview
 
 The skills CLI surface ships `surface_skills_command.py` handling the
-8 design-side `aa skills` verbs (list / read / lint / catalog /
+8 design-side `sdc skills` verbs (list / read / lint / catalog /
 discover / move / archive / create). Each verb builds a typed
 `SkillsRequest` and delegates to the injected `ISkillsAggregate`.
 Pack root is hardcoded to `skills/`; no `--skills-root` or `--json`.
 
 ## Backlog Status
 
-### DS-CLI-001: Route `aa skills` verbs to the aggregate
+### DS-CLI-001: Route `sdc skills` verbs to the aggregate
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|

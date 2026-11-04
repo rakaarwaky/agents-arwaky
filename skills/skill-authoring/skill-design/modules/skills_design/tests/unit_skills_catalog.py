@@ -22,7 +22,7 @@ def test_rebuild_writes_the_tracked_header_and_rows(tmp_path: Path) -> None:
 
     text = report.path.read_text(encoding="utf-8")
     assert text.startswith("# Skills Catalog\n")
-    assert "Rebuild with `aa skills catalog`" in text
+    assert "Rebuild with `sdc skills catalog`" in text
     assert "| doc-drafts | drafts | Drafts docs. | drafts/doc-drafts |" in text
 
 

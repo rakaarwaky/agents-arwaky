@@ -1,4 +1,4 @@
-"""Skills CLI surface — command handlers for the ``aa skills`` verbs.
+"""Skills CLI surface — command handlers for the ``sdc skills`` verbs.
 
 Agent-oriented commands: read-only discovery (``list``/``read``), the lint
 scan (``lint``), the catalog builder/reader (``catalog``), the search
@@ -63,7 +63,7 @@ _NO_MATCH_LINE = "No matching skills found in CATALOG.md."
 
 
 def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
-    """Route ``aa skills <sub>`` to the aggregate; render; return the exit code."""
+    """Route ``sdc skills <sub>`` to the aggregate; render; return the exit code."""
     if not args or args[0] in ("-h", "--help"):
         _print_usage()
         return 0
@@ -85,22 +85,22 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
 def _print_usage() -> None:
     banner()
     info(
-        f"{BOLD()}aa skills list{RESET()}                  List all skills in the pack"
+        f"{BOLD()}sdc skills list{RESET()}                  List all skills in the pack"
     )
-    info(f"{BOLD()}aa skills read <name>{RESET()}           Print a skill's SKILL.md")
-    info(f"{BOLD()}aa skills lint [--category NAME]{RESET()}  Lint scan all skills (optionally filter by category)")
+    info(f"{BOLD()}sdc skills read <name>{RESET()}           Print a skill's SKILL.md")
+    info(f"{BOLD()}sdc skills lint [--category NAME]{RESET()}  Lint scan all skills (optionally filter by category)")
     info(
-        f"{BOLD()}aa skills catalog [--build] [--read]{RESET()}  Build and/or print CATALOG.md"
+        f"{BOLD()}sdc skills catalog [--build] [--read]{RESET()}  Build and/or print CATALOG.md"
     )
-    info(f"{BOLD()}aa skills discover <query>{RESET()}      Search the catalog")
+    info(f"{BOLD()}sdc skills discover <query>{RESET()}      Search the catalog")
     info(
-        f"{BOLD()}aa skills move <name> <category>{RESET()}  Move a skill to a category"
-    )
-    info(
-        f"{BOLD()}aa skills archive <name> [--apply]{RESET()}  Archive a skill into _archive/"
+        f"{BOLD()}sdc skills move <name> <category>{RESET()}  Move a skill to a category"
     )
     info(
-        f"{BOLD()}aa skills create <kind> <name> [--category C] [--apply]{RESET()}  "
+        f"{BOLD()}sdc skills archive <name> [--apply]{RESET()}  Archive a skill into _archive/"
+    )
+    info(
+        f"{BOLD()}sdc skills create <kind> <name> [--category C] [--apply]{RESET()}  "
         "Create a skill or category"
     )
 
@@ -113,7 +113,7 @@ def _has_help(args: list[str]) -> bool:
 def _cmd_list(args: list[str], aggregate: ISkillsAggregate) -> int:
     """List every skill in the pack as a compact table."""
     if _has_help(args):
-        info("Usage: aa skills list — list all skills in the pack")
+        info("Usage: sdc skills list — list all skills in the pack")
         return 0
     result = aggregate.execute(SkillsRequest(op=SkillsOp.LIST))
     rows = list(result.records)
@@ -135,7 +135,7 @@ def _cmd_list(args: list[str], aggregate: ISkillsAggregate) -> int:
 def _cmd_read(args: list[str], aggregate: ISkillsAggregate) -> int:
     """Print the raw SKILL.md for one skill."""
     if _has_help(args) or not args:
-        info("Usage: aa skills read <name>")
+        info("Usage: sdc skills read <name>")
         return 0
     name = args[0]
     result = aggregate.execute(
@@ -170,7 +170,7 @@ class _TriFlag(argparse.Action):
 def _authoring_parser() -> argparse.ArgumentParser:
     """Construct the authoring CLI; exported so tests can drive it directly."""
     parser = argparse.ArgumentParser(
-        prog="aa skills",
+        prog="sdc skills",
         description="Skill-pack tooling: lint, catalog, discover.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)

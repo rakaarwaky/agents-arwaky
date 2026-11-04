@@ -22,7 +22,7 @@ ops (dry-run by default, `--apply` gated, never deleting): `move`,
 `archive`, `create`. The agent — never a capability and never the
 surface — sequences a mutation into its catalog rebuild.
 Provisioning/distribution into harness homes remains `modules/harness`
-(`aa connect`); this feature does not link or copy the pack.
+(`sdc connect`); this feature does not link or copy the pack.
 Determinism, dry-run safety, the exit-code contract (0 clean / 1 issues
 / 2 usage / 3 drift), and output parity against the retired legacy
 script are pinned by the surface and contract test files.
@@ -61,10 +61,10 @@ script are pinned by the surface and contract test files.
 
 | Context                | When Action      | Then Observable Result                              |
 |------------------------|------------------|-----------------------------------------------------|
-| Pack present           | `aa skills list` | every skill listed with description, sorted by name |
-| Pack absent            | `aa skills list` | `No skills found` on stderr, exit 1                 |
-| Malformed SKILL.md     | `aa skills list` | directory name used, empty description, exit 0      |
-| name ≠ directory name  | `aa skills list` | listed under the frontmatter `name:`, not the dir  |
+| Pack present           | `sdc skills list` | every skill listed with description, sorted by name |
+| Pack absent            | `sdc skills list` | `No skills found` on stderr, exit 1                 |
+| Malformed SKILL.md     | `sdc skills list` | directory name used, empty description, exit 0      |
+| name ≠ directory name  | `sdc skills list` | listed under the frontmatter `name:`, not the dir  |
 
 #### Metric
 
@@ -103,10 +103,10 @@ script are pinned by the surface and contract test files.
 
 | Context        | When Action             | Then Observable Result                      |
 |----------------|-------------------------|---------------------------------------------|
-| Known skill    | `aa skills read <name>` | prints the raw SKILL.md, exit 0             |
-| Unknown skill  | `aa skills read nope`   | `Skill not found: nope`, exit 1             |
-| Ambiguous prefix | `aa skills read doc`  | not-found, exit 1 (no guess)                |
-| Category name  | `aa skills read office` | not-found, exit 1 (categories are not skills) |
+| Known skill    | `sdc skills read <name>` | prints the raw SKILL.md, exit 0             |
+| Unknown skill  | `sdc skills read nope`   | `Skill not found: nope`, exit 1             |
+| Ambiguous prefix | `sdc skills read doc`  | not-found, exit 1 (no guess)                |
+| Category name  | `sdc skills read office` | not-found, exit 1 (categories are not skills) |
 
 #### Metric
 
@@ -147,10 +147,10 @@ script are pinned by the surface and contract test files.
 
 | Context               | When Action                   | Then Observable Result  |
 |-----------------------|-------------------------------|-------------------------|
-| Clean pack            | `aa skills lint`              | 0 issues, exit 0        |
-| Pack with issues      | `aa skills lint`              | issues reported, exit 1 |
-| Scoped, out-of-scope issues | `aa skills lint --category notes` | `N issues (0 in scope category=notes)`, exit 1 |
-| Scoped, nonexistent category | `aa skills lint --category ghost` | `0 in scope`, unfiltered total preserved, exit 0 or 1 per total |
+| Clean pack            | `sdc skills lint`              | 0 issues, exit 0        |
+| Pack with issues      | `sdc skills lint`              | issues reported, exit 1 |
+| Scoped, out-of-scope issues | `sdc skills lint --category notes` | `N issues (0 in scope category=notes)`, exit 1 |
+| Scoped, nonexistent category | `sdc skills lint --category ghost` | `0 in scope`, unfiltered total preserved, exit 0 or 1 per total |
 
 #### Metric
 
@@ -192,10 +192,10 @@ script are pinned by the surface and contract test files.
 
 | Context                 | When Action               | Then Observable Result                 |
 |-------------------------|---------------------------|----------------------------------------|
-| Default                 | `aa skills catalog`       | rebuild + full content printed, exit 0 |
-| Build only              | `aa skills catalog --build` | rebuild counts line, exit 0         |
-| Read only               | `aa skills catalog --read` | full catalog content, exit 0         |
-| Read with missing file  | `aa skills catalog --read` | `CATALOG.md not found`, exit 1       |
+| Default                 | `sdc skills catalog`       | rebuild + full content printed, exit 0 |
+| Build only              | `sdc skills catalog --build` | rebuild counts line, exit 0         |
+| Read only               | `sdc skills catalog --read` | full catalog content, exit 0         |
+| Read with missing file  | `sdc skills catalog --read` | `CATALOG.md not found`, exit 1       |
 
 #### Metric
 
@@ -233,10 +233,10 @@ script are pinned by the surface and contract test files.
 
 | Context            | When Action                  | Then Observable Result              |
 |--------------------|------------------------------|-------------------------------------|
-| Query with matches | `aa skills discover <query>` | scored matches printed, exit 0              |
-| No matches         | `aa skills discover no-such-skill-zzz` | `No matching skills found in CATALOG.md.`, exit 0 |
-| `--limit 0`       | `aa skills discover <query> --limit 0` | no rows printed, exit 0 |
-| Catalog drift      | `aa skills discover <query>` | drift warning on stderr, live-tree fallback, exit 0 |
+| Query with matches | `sdc skills discover <query>` | scored matches printed, exit 0              |
+| No matches         | `sdc skills discover no-such-skill-zzz` | `No matching skills found in CATALOG.md.`, exit 0 |
+| `--limit 0`       | `sdc skills discover <query> --limit 0` | no rows printed, exit 0 |
+| Catalog drift      | `sdc skills discover <query>` | drift warning on stderr, live-tree fallback, exit 0 |
 
 #### Metric
 

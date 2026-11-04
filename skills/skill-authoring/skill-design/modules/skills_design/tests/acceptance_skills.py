@@ -50,7 +50,7 @@ def test_acceptance_fr_skill_unknown(tmp_path: Path):
     content = SkillsPackReader(pack).show_skill(SkillQuery("nope-missing"))
     assert content is None
 
-# ─── Authoring acceptance (one case per `aa skills` subcommand) ────────
+# ─── Authoring acceptance (one case per `sdc skills` subcommand) ────────
 def test_acceptance_lint_reports_and_exits(tmp_path: Path):
     """AC-SKILLS-010: ``lint`` reports the crafted issue with exit 1."""
     from skills_design.tests.fixture_skills import (
