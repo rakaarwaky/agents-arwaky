@@ -27,3 +27,7 @@ subagents each carrying the full diff is token-heavy, and offer to scope it down
 
 "Deep clean this crate", "clean bloat in `foo/`": skip diff capture; operate
 directly on the named module or crate.
+
+## Completion
+
+- The diff source is captured (or the module/crate named), or the run stopped with "nothing to review".

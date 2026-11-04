@@ -264,7 +264,7 @@ type Maybe<T> = T | null | undefined;
 
 Files not imported by any other file in the package:
 
-```
+```text
 packages/my-pkg/src/orphan-feature.ts  // 0 inbound refs
 ```
 
@@ -730,7 +730,7 @@ services/user-deleter.ts
 
 #### Before Merge (Two Files)
 
-```
+```text
 packages/my-pkg/src/services/user-creator.ts
   - class UserCreator
   - Methods: create, validateInput
@@ -1045,7 +1045,7 @@ git reset --hard HEAD~1                                # nuclear option
 
 ## Decision Flowchart
 
-```
+```text
 START
 │
 ├─ PHASE 1: DEAD CODE CLEANUP

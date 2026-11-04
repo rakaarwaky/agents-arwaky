@@ -2,7 +2,7 @@
 
 Create the output directory structure:
 
-```
+```text
 {output_dir}/
 ├── screenshots/       # Visual evidence (web, desktop, mobile)
 ├── transcripts/       # Terminal output (terminal/TUI)

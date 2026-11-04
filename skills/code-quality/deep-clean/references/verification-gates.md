@@ -27,3 +27,7 @@ branch. Commit only after all gates pass, with a descriptive message itemising c
 removed (stubs, thin wrappers, duplicates, unused files, unused imports, commented-out
 code), files merged, and structural changes applied — per-language commit-message
 templates are in the references.
+
+## Completion
+
+- All gates in the order above pass; stale-reference grep is clean; any genuine bug is reported in the dedicated "Bugs found" section, not the cleanup tiers.

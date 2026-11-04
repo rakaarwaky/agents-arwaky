@@ -70,3 +70,7 @@ file:line → problem → cost (what's duplicated/wasted/harder to maintain) →
 - **Renaming without checking public contracts.** Export names, API route paths, DB column
   names, and config keys are contracts — even if the name is bad, renaming breaks consumers.
   Tag public-contract changes as RISKY; never auto-rename them.
+
+## Completion
+
+- All four lenses produced findings in the mandatory finding format; every flagged item has a `git blame` check or `confidence: low` marker.

@@ -200,7 +200,7 @@ for item in items:  # item never referenced in loop body
 
 Files not imported by any other file in the package:
 
-```
+```text
 my_package/orphan_feature.py  # 0 inbound refs
 ```
 
@@ -575,7 +575,7 @@ services/user_deleter.py
 
 #### Before Merge (Two Files)
 
-```
+```text
 my_package/services/user_creator.py
   - class UserCreator
   - Methods: create, validate_input
@@ -859,7 +859,7 @@ git reset --hard HEAD~1                      # nuclear option
 
 ## Decision Flowchart
 
-```
+```text
 START
 │
 ├─ PHASE 1: DEAD CODE CLEANUP

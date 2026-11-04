@@ -148,7 +148,7 @@ If **any** check fails → **KEEP** and add comment: `// REVIEW: candidate for r
 
 Files not imported, declared, or referenced by any other file in the crate:
 
-```
+```text
 crates/my-crate/src/capabilities_orphan_feature.rs  // 0 inbound refs
 ```
 
@@ -436,7 +436,7 @@ utility_video_ffmpeg_adapter.rs
 
 #### Before Merge (Two Files)
 
-```
+```text
 crates/<crate>/src/capabilities_<name1>.rs
   - StructA implements TraitA
   - Fields: field_a, field_b
@@ -774,7 +774,7 @@ git reset --hard HEAD~1                                  # nuclear option
 
 ## Decision Flowchart
 
-```
+```text
 START
 │
 ├─ PHASE 1: DEAD CODE CLEANUP

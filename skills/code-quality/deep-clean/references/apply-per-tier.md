@@ -40,3 +40,7 @@ fold those rules into the apply step so fixes match house style.
 - **Summarize** what you changed: a short list of applied fixes grouped by reviewer
   category and risk tier, plus any findings you deliberately skipped and why. If you ran
   inline (no delegation), say so here.
+
+## Completion
+
+- All SAFE/CAREFUL fixes applied and verified per-file; RISKY items presented (or all tiers presented, nothing applied, under `--dry-run`).

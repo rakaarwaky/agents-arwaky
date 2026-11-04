@@ -50,9 +50,3 @@ For any technical issue — test failures, production bugs, build or performance
 | 5. Verify & finish | [`references/step-5-verify.md`](references/step-5-verify.md) | Verification checklist, language cleanup pass (delegates to 5a/5b/5c), guardrails final pass, reporting format. |
 | 5a/5b/5c. Language verify | [`step-5a-python-verify.md`](references/step-5a-python-verify.md), [`step-5b-node-verify.md`](references/step-5b-node-verify.md), [`step-5c-rust-verify.md`](references/step-5c-rust-verify.md) | Per-language verification + cleanup grep. |
 | 6. Guardrails | [`references/step-6-guardrails.md`](references/step-6-guardrails.md) | Red-flags list, common-rationalizations table, TDD rationale, TDD cycle detail; cross-cutting rules applied before reporting done. |
-
-## Related skills
-
-- `pr-babysit` — PR lifecycle; loads this skill for bug-class fixes.
-- `issue-worker` — issue triage; loads this skill for bug-class fixes.
-- `deep-clean` — post-fix cleanup pass.

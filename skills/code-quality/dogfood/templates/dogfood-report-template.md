@@ -53,7 +53,7 @@
 MEDIA:{screenshot_path}
 
 **Runtime log lines** (if applicable):
-```
+```text
 {log_output}
 ```
 

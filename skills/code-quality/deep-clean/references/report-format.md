@@ -16,3 +16,7 @@ Every finding carries a Verdict (KEEP / REMOVE / DELETE / INVESTIGATE / RESTRUCT
 one-line Reason. Each language reference contains a fully worked example table
 (`python.md` § Phase 1 Workflow Step 1.7, `rust.md` § Phase 1 Workflow Step 1.7,
 `typescript.md` § Phase 1 Workflow Step 1.7).
+
+## Completion
+
+- The report contains every section above and every finding carries a Verdict and one-line Reason.

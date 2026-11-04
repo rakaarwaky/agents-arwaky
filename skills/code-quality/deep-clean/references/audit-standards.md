@@ -131,3 +131,7 @@ Presumptive blockers (the author must justify clearly):
 
 If those conditions are not met, leave explicit, actionable feedback and push for a cleaner
 decomposition.
+
+## Completion
+
+- Every meaningful change in the diff was asked the primary audit questions; findings carry a concrete code-judo move (or why none exists).
