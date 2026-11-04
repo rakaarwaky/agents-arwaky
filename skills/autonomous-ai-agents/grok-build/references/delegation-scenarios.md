@@ -92,6 +92,38 @@ supervised run as untrusted until verified:
    and already committed (or pushed) the follow-up work itself — a commit you
    expected to make may already exist on top of the work you were inspecting.
 
+## Drop-and-Wait Handoff to a Grok TUI (Hermes full handoff)
+
+When Hermes orchestrates a Grok Build TUI inside an Orca worktree (the
+/implement or /execute-plan handoff), the full contract lives in the repo
+skill's `references/hermes/` step files — load those before driving a run.
+This section carries only the class-level rules that generalize beyond any
+single skill:
+
+- **Hermes never spawns its own subagents for implementer/reviewer roles and
+  never runs the review panel itself** — the implement/review/fix loop runs
+  inside Grok's own skill. If you find yourself launching `spawn_subagent`
+  or `delegate_task` children to do Grok's job, stop: the worktree's Grok TUI
+  is the only "subagent", and Hermes's only job before the wait is to plan the
+  brief and drop it once.
+- **One-shot drop, no pings.** Send exactly one `orca terminal send` message:
+  the slash command (e.g. `/implement <task>` or `/execute-plan <doc>`) plus
+  the brief's goal, scope, out-of-scope list, constraints, and acceptance
+  criteria. Grok has zero conversation context — the brief must be
+  self-contained. After `accepted: true`, send no further text: no status
+  checks, no "is it done?", no course corrections. If you need to change
+  scope, stop the TUI, revert out-of-scope work in your own tools, and
+  re-drop.
+- **Wait, don't poll.** Use `orca terminal wait --for tui-idle` (retry with a
+  larger timeout while `satisfied: false`); fall back to `orca terminal read`
+  only to inspect output, never to prod Grok.
+- **Verify and ship yourself.** When idle, read Grok's artifacts (its state
+  file / summary / review files under its scratch dir), audit the worktree
+  against the in-scope paths, run the repo's local gate on a clean tree, then
+  commit, push (`--force-with-lease`), and open the PR in Hermes's own tools.
+  Never hand-assemble missing work: on partial failure, report it and suggest
+  the skill's `--resume` flag instead of re-doing Grok's assembly by hand.
+
 ## Post-Delegation Verification (before commit/push)
 
 When a delegated agent finishes work inside a worktree, do not trust its

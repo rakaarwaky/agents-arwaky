@@ -68,6 +68,15 @@ pure read-only analysis). Two ways to use that slot:
   the worktree before assembly/teardown.
 - **Full handoff**: send the brief via `orca terminal send` after
   `orca terminal wait --for tui-idle`; confirm accepted, then stop driving it.
+  Hermes-style agents (Hermes orchestrating a Grok Build TUI in the worktree)
+  use this mode exclusively: plan the brief, drop it once, wait for idle, then
+  verify the worktree state and ship (commit/push/PR) themselves. The full
+  handoff contract — including what to put in the brief, how to wait, and how
+  to verify + ship after Grok finishes — is codified in the agents-arwaky repo
+  skills `implement` and `execute-plan` under `references/hermes/` (their
+  Hermes lane). Load those step files before running a /implement or
+  /execute-plan handoff; they are the authoritative procedure for that class
+  of task.
 
 Mutually exclusive per worktree — pick one per worktree, never both. The `implement` and
 `execute-plan` skills in the agents-arwaky tree use the supervised mode; their step files

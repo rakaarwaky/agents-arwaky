@@ -12,6 +12,16 @@ for ordinary terminal control, shell commands, worktree management, and the
 built-in browser. Coordination requires real Orca runtime state; never
 substitute a non-Orca subagent tool.
 
+**Hermes full-handoff to a Grok Build TUI** (e.g. running /implement or
+/execute-plan as an orchestrator) is a full handoff, not a supervised DAG:
+Hermes plans the brief, drops it once via `orca terminal send`, waits for the
+TUI to go idle, then verifies and ships. Hermes does NOT spawn its own
+subagents for implementer/reviewer roles, does NOT run the review panel,
+and does NOT poll the TUI mid-run — that loop lives inside Grok's own skill.
+The authoritative step files for this handoff class live in the agents-arwaky
+repo skills `implement` and `execute-plan` under `references/hermes/` (their
+Hermes lane); load them before driving a /implement or /execute-plan run.
+
 ## Load the version-matched guide
 
 ```text
