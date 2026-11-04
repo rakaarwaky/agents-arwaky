@@ -1,4 +1,4 @@
-"""Golden fixtures for the 13 issue types.
+"""Golden fixtures for the 12 issue types.
 
 One crafted tree per issue type: ``fixtures/<issue-type>/`` contains a
 minimal skills root (one or two category directories, each a folder that
@@ -17,7 +17,6 @@ FIXTURES = {
     "missing-description": "cat-a/good-skill",
     "invalid-description-characters": "cat-a/good-skill",
     "description-too-long": "cat-a/good-skill",
-    "nested-skill-md": "cat-a/good-skill",
     "invalid-placement": "cat-a/SKILL.md",
     "too-deep": "cat-a/deep/nest/SKILL.md",
     "duplicate-skill-name": "cat-a/good-skill, cat-b/good-skill",
