@@ -34,7 +34,7 @@ __all__ = [
 
 def default_pack_root() -> Path:
     """Return the repo's ``skills/`` pack (the SSOT for all skills)."""
-    return Path(__file__).resolve().parents[4] / "skills"
+    return Path(__file__).resolve().parents[7] / "skills"
 
 
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:

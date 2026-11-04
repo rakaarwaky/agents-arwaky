@@ -408,16 +408,15 @@ def _read_json(path: str):
 
 def _default_exclude_cwd() -> list[str]:
     """Default cwd exclusions for session scanning (avoids temp dirs)."""
-    tmp = os.environ.get("TMPDIR", "/tmp")
+    tmp = os.environ.get("TMPDIR", os.path.expanduser("~/.cache"))
     return sorted(
         {
             os.path.normcase(os.path.normpath(p))
             for p in (
                 tmp,
                 os.path.realpath(tmp),
-                "/tmp",
-                "/private/tmp",
-                "/var/folders",
+                os.path.expanduser("~/.cache"),
+                os.path.expanduser("~/.local/share"),
             )
         }
     )

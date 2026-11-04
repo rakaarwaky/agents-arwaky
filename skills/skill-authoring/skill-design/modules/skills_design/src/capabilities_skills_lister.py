@@ -58,15 +58,18 @@ class SkillsLister(ISkillsListerProtocol):
     def list_skills_json(self, root: SkillsRoot | None = None) -> SkillsJsonPayload:
         """Return the global-skill JSON list as a pure-data dict."""
         skills_root = Path(root) if root is not None else self._root
-        return [
-            {
-                "name": record.name,
-                "source": "repo",
-                "path": str(record.path),
-                "loaded": True,
-            }
-            for record in self.list_skills(SkillsRoot(skills_root))
-        ]
+        records = self.list_skills(SkillsRoot(skills_root))
+        return {
+            "skills": [
+                {
+                    "name": record.name,
+                    "source": str(self._root),
+                    "path": str(record.path),
+                    "loaded": True,
+                }
+                for record in records
+            ]
+        }
 
     def __repr__(self) -> str:
         return "SkillsLister()"

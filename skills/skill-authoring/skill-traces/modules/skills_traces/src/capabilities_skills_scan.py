@@ -6,6 +6,8 @@ contract + taxonomy from the shared kernel plus shared trace-state helpers
 (imported from utility_skills_trace_state). Never imports the state capability.
 """
 
+# ─── Block 1: Class Definition & Constructor ──────────────
+
 from __future__ import annotations
 
 import datetime as dt
@@ -78,6 +80,7 @@ __all__ = ["SkillsTracesScan"]
 class SkillsTracesScan(ISkillsTraceScanProtocol):
     """Scans sessions, builds skills-only usage, and mines repeated phrases."""
 
+    # ─── Block 2: Protocol Method Implementation ──────────────
     def scan_sessions(
         self,
         grok_home: GrokHome,
@@ -385,6 +388,9 @@ class SkillsTracesScan(ISkillsTraceScanProtocol):
                 )
         rows.sort(key=lambda x: (-x.sessions, -x.occurrences, x.phrase))
         return tuple(rows[:_TOP])
+
+
+# ─── Block 3: Static Helpers, Factories & Dunders ─────────
 
 
 # ─── Module-level helpers used by the scan capability ──────────────
