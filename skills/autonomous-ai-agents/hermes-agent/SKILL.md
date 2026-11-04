@@ -72,7 +72,7 @@ Hermes Agent is an open-source AI agent framework by Nous Research that runs in 
 | Contributing code: adding tools, slash commands, tests | `references/contributor-guide.md` |
 | delegate_task "capped at N" reports | `references/delegate-task-concurrency-diagnosis.md` |
 | "What sessions do I have about X?" / "Clean up my session library" / "archive the stale ones" | `references/session-librarian.md` |
-| "Can app X use my Nous Portal subscription/OAUTH?" | `references/portal-auth-for-third-party-apps.md` |
+| "Can app X use my Nous Portal subscription/OAuth?" | `references/portal-auth-for-third-party-apps.md` |
 | Connecting a messaging platform (Telegram, Discord, Slack, WhatsApp, …) | docs: `/user-guide/messaging` |
 | Multi-bot Telegram setup, multiplex profiles, "gateway always on", gateway bot not answering | `references/multi-bot-telegram-run.md` + `references/systemd-always-on.md` |
 | Spawning additional Hermes instances or sub agents: one-shot, tmux PTY, multi-agent coordination, session resume | `references/spawning.md` |
