@@ -40,7 +40,7 @@ referenced in the surviving body are deleted.
 
 ## Archive dropped duplicates
 
-Dropped duplicates are archived into `_archive/` via `sdc archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. Rebuild the catalog after archiving with `sdc catalog`.
+Dropped duplicates are archived into `_archive/` via `sdc archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. The archive rewrites the moved files as `_archive/<category>/<skill>/...archived` and leaves the source directory deleted. Rebuild the catalog after archiving with `sdc catalog --build` (read the current state with `sdc catalog --read`) — not the bare `sdc catalog` verb; the builder must run so `CATALOG.md` and `catalog.json` both drop the archived skill and stay in sync.
 
 ## Manual merge notes
 

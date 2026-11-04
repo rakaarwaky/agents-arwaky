@@ -17,6 +17,22 @@ Detect duplicates and obsolete skills with `sdc lint`; obsolete skills are archi
 
 Phase 1 removes true duplicates; Phase 2 consolidates variants and shared tooling — never skip Phase 1 (`step-0-overview.md` classification rules).
 
+## Confirming a true duplicate (Phase 1 gate)
+
+Descriptions that rhyme are not proof of duplication — before archiving a candidate, prove the two skills own the same job with the same content:
+
+- `sdc discover <domain>` to list the candidates, then diff the scenario content, not the frontmatter. The decisive check is the procedure body (the step files under each skill's `references/`):
+
+```bash
+diff <(sed -n '<proc range> p' skills/<cat>/<a>/references/<scenario>.md) \
+     <(sed -n '<proc range> p' skills/<cat>/<b>/references/<scenario>.md)
+```
+
+- **Byte-equivalent or near-equivalent bodies** (differences are only wording like "connector skill" vs "connector") = true duplicate → archive the less complete one in Phase 1; the more complete body (usually the umbrella's) already owns the scenario, so the dropped folder is dropped, not merged.
+- **Different bodies or genuinely distinct completion criteria** = separate jobs or a variant → keep separate or consolidate in Phase 2, do not archive.
+
+Do not rely on `sdc lint` for this — it flags structural issues (name mismatch, unlinked references), not semantic overlap. `sdc discover` + the content diff is the duplicate test.
+
 ## Completion
 
 - Every cluster has exactly one class label.
