@@ -22,7 +22,7 @@ from shared.src.skills_traces.utility_skills_trace_state import (
     redact,
 )
 
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
+from skills_traces.src.capabilities_skills_scan import SkillsTracesScan as SkillsTraces
 
 
 def _write_session(grok_home: Path, enc_cwd: str, sid: str, summary: dict, turns: list[str]) -> Path:

@@ -13,7 +13,7 @@ from pathlib import Path
 from shared.src.skills_traces.taxonomy_skills_authoring_vo import PhrasesReport
 from shared.src.skills_traces.taxonomy_skills_vo import PhraseRow
 
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
+from skills_traces.src.capabilities_skills_scan import SkillsTracesScan as SkillsTraces
 
 
 def _write_record(run_dir: Path, session_id: str, turns: list[str], repeated_single_turn: bool = False) -> None:

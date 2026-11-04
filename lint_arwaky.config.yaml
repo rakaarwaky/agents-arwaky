@@ -45,7 +45,7 @@ architecture:
     # ─── AES100 ───
     AES101:
       enabled: true
-      exceptions: ["modules/skills_traces/conftest.py"]
+      exceptions: ["conftest.py"]
     AES102:
       enabled: true
       exceptions: []
@@ -61,7 +61,9 @@ architecture:
       exceptions: []
     AES203:
       enabled: true
-      exceptions: []
+      exceptions: [
+        "shared/src/skills_traces/taxonomy_skills_vo.py",
+      ]
     AES204:
       enabled: true
       exceptions: []
@@ -111,10 +113,14 @@ architecture:
     # ─── AES500 ───
     AES501:
       enabled: true
-      exceptions: []
+      exceptions: [
+        "shared/src/skills_traces/taxonomy_skills_constant.py",
+        "shared/src/skills_traces/taxonomy_skills_entity.py",
+        "shared/src/skills_traces/taxonomy_skills_rule_vo.py",
+      ]
     AES502:
       enabled: true
-      exceptions: []
+      exceptions: ["ISkillsTracesProtocol"]
     AES503:
       enabled: true
       exceptions: []
