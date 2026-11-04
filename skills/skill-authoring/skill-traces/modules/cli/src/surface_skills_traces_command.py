@@ -69,7 +69,7 @@ def _trace_collect_parser() -> argparse.ArgumentParser:
         prog="stc traces collect",
         description="Scan sessions and build the skills-only usage material.",
     )
-    parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to scan")
+    parser.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT, help="$GROK_HOME to scan")
     parser.add_argument(
         "--out",
         metavar="DIR",
@@ -126,7 +126,7 @@ def _trace_usage_parser() -> argparse.ArgumentParser:
         prog="stc traces usage",
         description="Read the last run's skills-only usage report.",
     )
-    parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to read")
+    parser.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT, help="$GROK_HOME to read")
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to read usage from")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
@@ -189,7 +189,7 @@ def _trace_phrases_parser() -> argparse.ArgumentParser:
         prog="stc traces phrases",
         description="Mine repeated prompts and instruction lines from session records.",
     )
-    parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME (unused by phrases, kept for symmetry)")
+    parser.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT, help="$GROK_HOME (unused by phrases, kept for symmetry)")
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir holding session records")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
@@ -269,7 +269,7 @@ def _trace_materialize_parser() -> argparse.ArgumentParser:
         prog="stc traces materialize",
         description="Write usage.json + phrases.json into a run dir for the trace workflow.",
     )
-    parser.add_argument("--grok-home", metavar="P", default="", help="$GROK_HOME to read")
+    parser.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT, help="$GROK_HOME to read")
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to write into (required)")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
