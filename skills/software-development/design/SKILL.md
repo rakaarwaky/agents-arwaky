@@ -8,34 +8,47 @@ disable-model-invocation: true
 
 # Design Skill
 
-You orchestrate a **write -> review -> revise** loop. You must not write the document or author review findings yourself: all writing is delegated to a `design-doc-writer` subagent, all reviewing to a `design-doc-reviewer` subagent. Keep the loop running until the reviewer approves with 0 open issues.
+You orchestrate a **write -> review -> revise** loop that produces a polished design document and PR plan. **All writing and reviewing is delegated to Grok Build** — you never author the document or review findings yourself. Grok runs the full loop (its own `design-doc-writer` / `design-doc-reviewer` subagents) inside one dedicated Orca worktree; your lane is four steps: plan the brief, drop `/design <description>`, wait, verify + validate the hand-off.
 
 ## Global Rules
 
-Rules that apply to every step. Step files reference these; they never restate them.
+Rules that apply to the Hermes lane. The Grok lane has its own rules, owned by `references/grok/`.
 
-- **Delegation**: You never author the document or review findings. Writing is the `design-doc-writer` subagent's job; reviewing is the `design-doc-reviewer` subagent's. You run the loop.
-- **Scope Boundary**: Design-only. The only deliverables are `design_doc_file` and `summary_file`. This skill never implements features, edits source or test files, creates branches/commits/worktrees, runs implementation subagents, or opens/merges PRs. Implementation is the separate `execute-plan` skill (run after Step 7).
-- **Tool-Call Discipline**: Every claimed action must correspond to a real tool call in the same response. Emit the `spawn_subagent` call first; once the result is in history, confirm in past tense. Never claim a launch without executing the tool, and never ask permission — proceed with sensible defaults.
-- **Parallel-First**: The write-review-revise loop is inherently serial. Parallelize only the surrounding I/O (batch persona loads, batch independent file reads). Never serialize independent tool calls. When in doubt, fan out.
-- **Single-Home Rule**: Every protocol, policy, and reporting string has exactly one home (a step file or this list). Other files reference it instead of restating it.
-- **Spawn parameters**: every `spawn_subagent` call uses `subagent_type: "general-purpose"` and `background: false`, with the description prefixed `[writer]` or `[reviewer]`. On Hermes TUI where `spawn_subagent` is not available, use `delegate_task` with `background: false` and pass the persona instructions as `context` in the task entry; save the returned `subagent_id` for resume.
-- **Personas**: on a subagent's initial launch, prepend its persona instructions (loaded in Step 0); never pass a `persona` parameter. On `resume_from` follow-ups, keep the description tag and do not re-inject the persona.
-- **Paths**: substitute every `<design_doc_file>`, `<summary_file>`, and `<review_file>` placeholder with its expanded absolute Linux path before sending any prompt.
-- **Blocking**: block until each subagent completes; on failure, stop and report the error. Save every `subagent_id` for later resume.
-- **Review issues**: each issue carries `Severity` (`bug`, `suggestion`, `nit`), `Section`, `Description`, `Suggestion`, `Status`. Statuses: `open` (set by the reviewer) -> `addressed`, `wontfix`, or `needs-user-input` (set by the writer in Step 4); Step 5 rewrites the review file with current findings only.
+- **Delegation (Grok Build via Orca worktree)**: You never write the design document, spawn the writer/reviewer, or run the review loop yourself. One Orca worktree with `--agent grok`; Grok Build runs the entire write→review→revise pipeline inside it. No `spawn_subagent` — your only "subagent" is the Grok Build TUI.
+- **One-shot task drop**: You send exactly one message to Grok: `/design <description>` plus the brief's constraints and acceptance criteria. No mid-run course corrections, no "any review rounds yet?". A `needs-user-input` status is Grok's to surface in its final report — you do not ping it mid-loop.
+- **Single point of control**: You own the surviving verification and delivery operations. Grok works inside `cwd: <worktree_path>`; the design lane is design-only — it never commits source, pushes, opens a PR, or implements features (that is `/execute-plan`'s job). You verify and report in Steps 2–3.
+- **Scope boundary**: design-only deliverables — `design_doc_file` and `summary_file`. If the worktree shows source-tree drift, the boundary was violated; report it, do not silently commit it.
+- **Hand-off gate.** Before declaring the design ready for `/execute-plan`, Step 2 runs the plan validator (`execute-plan`'s `validate-plan.py`) against the `## PR Plan` section of the design doc. A malformed plan stops the run — you do not hand-edit the plan to make it parse.
+- **Parallel-First for Hermes's own work**: when you need to read multiple artifact files or run multiple read-only checks, batch them in one tool call. Serialize only true dependencies.
+- **Exit condition for Hermes**: Grok's three artifacts exist, the final review file shows 0 open issues (or you have surfaced the `needs-user-input` decisions to the user), and your Step 2 hand-off validation (plan parses, scope held) passes. Then you report.
 
 ## Routing
 
-Each `references/step-<N>-<name>.md` contains all rules, subagent prompts, exit conditions, and reporting for that step. The Step 5 -> Step 3 loop repeats until 0 open issues remain.
+Each reference file is step-scoped and contains the executable logic, prompts, exit conditions, and reporting strings for that step. Global rules above apply throughout; do not restate them in a step file.
+
+The lane is chosen by **who is reading this skill**, not by a flag:
+
+- **Hermes lane** — you are Hermes orchestrating the run. Run Steps 0–3 in `references/hermes/`. You drop the task to Grok in Step 0 and never enter the Grok lane.
+- **Grok lane** — you are the Grok Build TUI inside the Orca worktree, having just received `/design <description>`. Run Steps 0–7 in `references/grok/`.
+
+### Hermes lane (Steps 0–3)
+
+| Step | Reference                                                                              | Purpose                                                                                                  |
+| ----: | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 0    | [`references/hermes/step-0-plan-and-spawn.md`](references/hermes/step-0-plan-and-spawn.md) | Plan the brief from `<description>` (description, constraints, acceptance criteria); create the Orca worktree with `--agent grok`; drop `/design <description>` |
+| 1    | [`references/hermes/step-1-wait-grok.md`](references/hermes/step-1-wait-grok.md)         | Wait for Grok to finish the write→review→revise loop; read its design doc, summary, and review files   |
+| 2    | [`references/hermes/step-2-verify-and-ship.md`](references/hermes/step-2-verify-and-ship.md) | Verify 0 open issues + scope held; run the plan validator on the PR plan as the `/execute-plan` hand-off gate |
+| 3    | [`references/hermes/step-3-final-report.md`](references/hermes/step-3-final-report.md) | Final report to the user (key decisions, rounds, validated PR plan stats, next-step command, worktree teardown) |
+
+### Grok lane (Steps 0–7, run by Grok Build)
 
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
-| 0 | [step-0-setup.md](references/step-0-setup.md) | Host setup, shared file paths, orchestrator state, personas |
-| 1 | [step-1-write.md](references/step-1-write.md) | Spawn writer: draft the design document |
-| 2 | [step-2-review.md](references/step-2-review.md) | Spawn reviewer: structured findings |
-| 3 | [step-3-check-exit.md](references/step-3-check-exit.md) | Exit check, stalemate detection, escalation to user |
-| 4 | [step-4-revise.md](references/step-4-revise.md) | Resume writer: address all open issues |
-| 5 | [step-5-rereview.md](references/step-5-rereview.md) | Resume reviewer: re-review revisions |
-| 6 | [step-6-summarize.md](references/step-6-summarize.md) | Key decisions, open questions, PR plan |
-| 7 | [step-7-cleanup-final-report.md](references/step-7-cleanup-final-report.md) | Final report and cleanup |
+| 0 | [step-0-setup.md](references/grok/step-0-setup.md) | Host setup, shared file paths, orchestrator state, personas |
+| 1 | [step-1-write.md](references/grok/step-1-write.md) | Spawn writer: draft the design document |
+| 2 | [step-2-review.md](references/grok/step-2-review.md) | Spawn reviewer: structured findings |
+| 3 | [step-3-check-exit.md](references/grok/step-3-check-exit.md) | Exit check, stalemate detection, escalation to user |
+| 4 | [step-4-revise.md](references/grok/step-4-revise.md) | Resume writer: address all open issues |
+| 5 | [step-5-rereview.md](references/grok/step-5-rereview.md) | Resume reviewer: re-review revisions |
+| 6 | [step-6-summarize.md](references/grok/step-6-summarize.md) | Key decisions, open questions, PR plan |
+| 7 | [step-7-cleanup-final-report.md](references/grok/step-7-cleanup-final-report.md) | Final report and cleanup |
