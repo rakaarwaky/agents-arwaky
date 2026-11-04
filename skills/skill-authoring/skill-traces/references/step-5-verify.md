@@ -12,6 +12,6 @@ Re-read every file the apply step touched:
   present in the run's trash.
 - `group` — verify each member individually under the rules above.
 
-Confirm every recorded decision is in the run dir (`aa skills traces state get`
+Confirm every recorded decision is in the run dir (`stc traces state get`
 shows the `decided` entries for this run). Run `aa skills lint` over the
 touched skill paths. Stop at the first failure and report it before continuing.

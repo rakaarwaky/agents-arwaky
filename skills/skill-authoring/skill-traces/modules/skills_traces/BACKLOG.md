@@ -1,4 +1,4 @@
-# Feature Backlog: skills_traces
+# BACKLOG — skills_traces
 
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../../../../ARCHITECTURE.md)
@@ -12,7 +12,7 @@ The skills-traces capability (scan/usage/phrases/materialize + state lifecycle) 
 
 ## Backlog Status
 
-### FR-SKILLS-009: Trace Learning Lifecycle
+### FR-SkillsDesign-009: Trace Learning Lifecycle
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|

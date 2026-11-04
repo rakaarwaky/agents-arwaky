@@ -12,7 +12,7 @@ A single aggregate entry point routes every op through the agent to
 injected capabilities, so the surface and CLI never touch the pack
 filesystem directly. The pack at `skills/` remains the single source of
 truth for *content*; this feature is the single source of truth for
-*the rules about that content*. The trace/learning pipeline (FR-SKILLS-009,
+*the rules about that content*. The trace/learning pipeline (FR-SkillsDesign-009,
 the `traces` op) is owned by the sibling `skills/skill-authoring/skill-traces/modules/skills_traces` module,
 which shares this feature's contract and taxonomy layers and is wired
 into the same aggregate by the composition root.
@@ -29,7 +29,7 @@ script are pinned by the surface and contract test files.
 
 ## Functional Requirements
 
-### FR-SKILLS-001: List Skills
+### FR-SkillsDesign-001: List Skills
 
 **Description:** Enumerate every `SKILL.md` in the pack with its frontmatter name and description, returning records sorted by name.
 
@@ -72,7 +72,7 @@ script are pinned by the surface and contract test files.
 |---------------|-------------------------------------|
 | Determinism   | identical output on identical trees |
 
-### FR-SKILLS-002: Read Skill Guide
+### FR-SkillsDesign-002: Read Skill Guide
 
 **Description:** Print the raw `SKILL.md` content for a named skill.
 
@@ -114,7 +114,7 @@ script are pinned by the surface and contract test files.
 |--------------------|-----------------------|
 | Exit-code contract | 0 found / 1 not-found |
 
-### FR-SKILLS-003: Lint Pack
+### FR-SkillsDesign-003: Lint Pack
 
 **Description:** Run every rule check and the weed report over a skills root in one pass, returning a single `LintReport`.
 
@@ -158,7 +158,7 @@ script are pinned by the surface and contract test files.
 |--------------------|--------------------|
 | Exit-code contract | 0 clean / 1 issues |
 
-### FR-SKILLS-004: Catalog (Build / Read)
+### FR-SkillsDesign-004: Catalog (Build / Read)
 
 **Description:** Rebuild `CATALOG.md` from the live tree and/or print the current catalog content to the terminal.
 
@@ -203,7 +203,7 @@ script are pinned by the surface and contract test files.
 |--------------------|---------------------|
 | Exit-code contract | 0 ok / 1 missing file |
 
-### FR-SKILLS-005: Search Catalog
+### FR-SkillsDesign-005: Search Catalog
 
 **Description:** Score catalog rows against a query (name +5, description +3, category +2, path +1) and return the top `--limit`.
 
@@ -244,7 +244,7 @@ script are pinned by the surface and contract test files.
 |---------------|--------------------------------------|
 | Determinism   | identical matches on identical trees |
 
-### FR-SKILLS-006: Move Skill
+### FR-SkillsDesign-006: Move Skill
 
 **Description:** Move a skill folder to another category; dry-run by default, `--apply` executes the move and rebuilds the catalog.
 
@@ -286,7 +286,7 @@ script are pinned by the surface and contract test files.
 |----------------|------------------------------------------|
 | Dry-run safety | filesystem unchanged after every preview |
 
-### FR-SKILLS-007: Archive Skill
+### FR-SkillsDesign-007: Archive Skill
 
 **Description:** Archive a skill into `_archive/<category>/<skill>/`; dry-run by default, `--apply` executes the archive and renames `SKILL.md` to `SKILL.md.archived`.
 
@@ -327,7 +327,7 @@ script are pinned by the surface and contract test files.
 |----------------|------------------------------------------|
 | Dry-run safety | filesystem unchanged after every preview |
 
-### FR-SKILLS-008: Create Skill or Category
+### FR-SkillsDesign-008: Create Skill or Category
 
 **Description:** Create a new skill `SKILL.md` or a new category folder with `DESCRIPTION.md`; dry-run by default, `--apply` executes the creation.
 

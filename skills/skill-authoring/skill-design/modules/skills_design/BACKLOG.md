@@ -1,4 +1,4 @@
-# Feature Backlog: skills_design
+# BACKLOG — skills_design
 
 FRD: [FRD.md](FRD.md)
 Architecture: [ARCHITECTURE.md](../../../../../ARCHITECTURE.md)
@@ -34,14 +34,14 @@ Last Updated: 2026-11-04
 - Next Action: none.
 
 Note: the SKL-NN implementation-tracking entries were removed and their
-evidence folded into the FR-SKILLS-NNN Backlog Status entries below,
+evidence folded into the FR-SkillsDesign-NNN Backlog Status entries below,
 because the linter ID-matching rule only allows BACKLOG entry IDs that
 the paired spec (FRD) declares — the SKL-NN IDs have no spec-declared
 counterpart.
 
 ## Backlog Status
 
-### FR-SKILLS-001: List Skills
+### FR-SkillsDesign-001: List Skills
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -51,7 +51,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-002: Show Skill Guide
+### FR-SkillsDesign-002: Show Skill Guide
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -61,7 +61,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-003: Validate Pack
+### FR-SkillsDesign-003: Validate Pack
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -71,7 +71,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-004: Rebuild Catalog
+### FR-SkillsDesign-004: Rebuild Catalog
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -81,7 +81,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-005: Search Catalog
+### FR-SkillsDesign-005: Search Catalog
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -91,7 +91,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-006: Author Pack
+### FR-SkillsDesign-006: Author Pack
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -101,7 +101,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-10-26                                                   |
 
-### FR-SKILLS-007: Plan Merge
+### FR-SkillsDesign-007: Plan Merge
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
@@ -111,7 +111,7 @@ counterpart.
 | Risk         | None                                                         |
 | Updated      | 2026-11-03                                                   |
 
-### FR-SKILLS-008: Create Skill or Category
+### FR-SkillsDesign-008: Create Skill or Category
 
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
