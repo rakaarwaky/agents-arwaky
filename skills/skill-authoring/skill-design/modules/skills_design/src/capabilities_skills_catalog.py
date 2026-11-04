@@ -19,6 +19,7 @@ import difflib
 import tempfile
 from pathlib import Path
 
+from shared.src.common.utility_skills_markdown import md_escape, md_unescape
 from shared.src.common.utility_skills_tree import (
     category_summaries,
     skill_entries,
@@ -43,7 +44,6 @@ from shared.src.skills_design.taxonomy_skills_entity import (
 )
 from shared.src.skills_design.taxonomy_skills_error import CatalogDrift
 from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
-from shared.src.common.utility_skills_markdown import md_escape, md_unescape
 
 __all__ = [
     "SkillsCatalog",

@@ -12,10 +12,10 @@ import contextlib
 import io
 from pathlib import Path
 
+from cli.src.surface_skills_command import cmd_skills
 from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
 
 from skills_design.src.root_skills_container import default_aggregate
-from cli.src.surface_skills_command import cmd_skills
 
 
 def make_pack(tmp_path: Path) -> Path:

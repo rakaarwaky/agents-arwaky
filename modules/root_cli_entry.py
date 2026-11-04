@@ -596,7 +596,7 @@ def cmd_skills(argv: list[str]) -> int:
         sys.path[:] = _saved_path
 
     from skills_design.src.root_skills_container import default_aggregate
-    from skills_design.src.surface_skills_command import (
+    from cli.src.surface_skills_command import (
         cmd_skills as _skills_surface,
     )
 

@@ -30,6 +30,7 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillsRequest,
     SkillsRoot,
 )
+
 from skills_design.src.agent_skills_orchestrator import SkillsAgent
 from skills_design.src.capabilities_skills_lister import (
     SkillsLister,
@@ -277,8 +278,8 @@ def test_skill_content_is_a_newtype_of_str() -> None:
 def test_two_walkers_agree_on_the_live_pack() -> None:
     """R5 cross-check: the read walker and the authoring walker see the
     same skill set, so drift fails a test instead of shipping silently."""
-    from shared.src.common.utility_skills_tree import skill_entries
     from shared.src.common.utility_skill_pack import iter_skill_mds
+    from shared.src.common.utility_skills_tree import skill_entries
 
     pack = default_pack_root()
     read_walk = {

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
 from shared.src.skills_traces.contract_skills_protocol import (
     ISkillsTracesProtocol,
 )
@@ -26,6 +25,7 @@ from shared.src.skills_traces.taxonomy_skills_vo import (
 )
 
 from skills_traces.src.agent_skills_orchestrator import SkillsAgent
+from skills_traces.src.capabilities_skills_traces import SkillsTraces
 from skills_traces.tests.fixture_skills import make_grok_home
 
 

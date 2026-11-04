@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from skills_design.src.root_skills_container import SkillsFacade
-
 from skills_design.tests.fixture_skills import crafted_tree
 
 

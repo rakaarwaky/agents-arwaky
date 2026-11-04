@@ -20,6 +20,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
+from shared.src.common.utility_skill_pack import default_pack_root
 from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
@@ -40,7 +41,6 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillRecord,
     SkillsRoot,
 )
-from shared.src.common.utility_skill_pack import default_pack_root
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent
 from skills_design.src.capabilities_skills_archiver import SkillsArchiver

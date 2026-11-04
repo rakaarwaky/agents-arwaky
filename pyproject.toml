@@ -25,6 +25,7 @@ markers = [
 "modules/shared/src/common/utility_config_engine.py" = ["BLE001"]
 # Intentional broad catch: YAML parse degradation must degrade, never raise.
 "modules/shared/src/common/utility_skills_tree.py" = ["BLE001", "S110"]
+"skills/skill-authoring/skill-design/modules/shared/src/common/utility_skills_tree.py" = ["BLE001", "S110"]
 "modules/daemon/src/capabilities_omniroute_daemon.py" = ["BLE001"]
 "modules/daemon/src/capabilities_9router_daemon.py" = ["BLE001"]
 "modules/tools/src/capabilities_tools_omniroute_adapter.py" = ["BLE001"]

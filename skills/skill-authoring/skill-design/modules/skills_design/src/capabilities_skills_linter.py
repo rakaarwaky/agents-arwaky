@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shared.src.common.utility_skills_mutation import plan_weed
 from shared.src.common.utility_skills_tree import (
     assets_container,
     category_dirs,
@@ -49,7 +50,6 @@ from shared.src.skills_design.taxonomy_skills_rule_vo import (
     issue_message,
 )
 from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
-from shared.src.common.utility_skills_mutation import plan_weed
 
 __all__ = ["SkillsLinter"]
 

@@ -17,6 +17,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shared.src.common.utility_skills_mutation import (
+    assert_within_root,
+    validate_category_name,
+    write_category_description,
+)
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCreatorProtocol,
 )
@@ -29,11 +34,6 @@ from shared.src.skills_design.taxonomy_skills_constant import (
 )
 from shared.src.skills_design.taxonomy_skills_rule_vo import CategoryName, SkillName
 from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
-from shared.src.common.utility_skills_mutation import (
-    assert_within_root,
-    validate_category_name,
-    write_category_description,
-)
 
 __all__ = ["SkillsCreator"]
 

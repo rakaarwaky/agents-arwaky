@@ -5,6 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from shared.src.skills_design.taxonomy_skills_authoring_vo import CatalogRow
+from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
+
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_discover import (
     DRIFT_WARNING,
@@ -12,9 +15,6 @@ from skills_design.src.capabilities_skills_discover import (
     score_entries,
     tokenize,
 )
-from shared.src.skills_design.taxonomy_skills_authoring_vo import CatalogRow
-from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
-
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 
 
