@@ -19,7 +19,7 @@ Run the numbered recipe in order against the resolved scope (Step 1), the body-f
 6. **Apply the edit** where the owner lives. If the owner is a reference file, edit the reference — never the body. If the owner is Global Rules, edit `SKILL.md`.
 7. **Sweep for second copies**: after the edit, search the skill directory for any other place that states the same fact. Report each one; do not silently rewrite them.
 8. **Resolve cross-skill links you touched**: every sibling mention and cross-skill link you edited must name a skill that exists in the tree (Global Rules: dangling refs rot fast).
-9. **Run Verify and Report**: `aa skills lint` and the pre-publish checklist in `step-8-prepublish-checklist.md`.
+9. **Run Verify and Report**: `aa skills lint` and the pre-publish checklist in `step-8-prepublish-checklist.md`. Before the commit, run `aa skills catalog` so `skills/CATALOG.md` reflects the current frontmatter — a stale CATALOG.md is not a lint issue but a publish defect — then re-run `git log --oneline -4` and `git status` in case a parallel agent committed in the same tree (Global Rules: Parallel agents, Staging discipline) and verify the staged set contains only this run's files plus `skills/CATALOG.md`.
 
 ## Completion
 

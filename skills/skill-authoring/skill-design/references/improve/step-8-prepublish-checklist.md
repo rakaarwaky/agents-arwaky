@@ -8,3 +8,4 @@
 - [ ] Body within ~100–200 lines; overflow moved into `references/`; every reference, whatever its depth, is linked from `SKILL.md` (Global Rules: Structure).
 - [ ] Every sibling mention and cross-skill link names a skill that exists in the tree (Global Rules: dangling refs).
 - [ ] Content detail (`step-7-content-detail.md`) satisfied.
+- [ ] `aa skills catalog` has been run so `skills/CATALOG.md` reflects the current frontmatter.
