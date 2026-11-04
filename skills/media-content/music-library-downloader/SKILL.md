@@ -9,7 +9,7 @@ argument-hint: "<song-list | songs...> [--out-dir DIR] [--format mp3|m4a|opus|fl
 
 You convert a list of named songs (title + artist) into a local MP3 library: resolve each song to a YouTube Music URL, then drive `mdl` in a loop. `mdl` (@mdlx/cli) pulls audio from YouTube; the only URL format that works headlessly is a YouTube Music track URL. No bundled scripts — implement resolve + download inline or write your own helpers.
 
-## Global Rules
+## Global rules
 
 - **Resolve-first.** `mdl` takes a concrete track/playlist URL and never searches — resolve every song to a `music.youtube.com/watch?v=…` URL before downloading (Step 2 of `references/workflow.md`).
 - **One mdl run = one collection.** N songs need N mdl calls; never concatenate URLs into one call.

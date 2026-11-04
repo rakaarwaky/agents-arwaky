@@ -2,6 +2,17 @@
 
 > **See also:** architecture.md · effects.md · scenes.md · shaders.md · optimization.md · troubleshooting.md
 
+## Mode Table
+
+| Mode | Input | Output | Where to start |
+|------|-------|--------|----------------|
+| **Video-to-ASCII** | Video file | ASCII recreation of source footage | § Video Sampling |
+| **Audio-reactive** | Audio file | Generative visuals driven by audio features | § Audio Analysis |
+| **Generative** | None (or seed params) | Procedural ASCII animation | `effects.md` |
+| **Hybrid** | Video + audio | ASCII video with audio-reactive overlays | § Video Sampling + § Audio Analysis |
+| **Lyrics/text** | Audio + text/SRT | Timed text with visual effects | § Text/Lyrics |
+| **TTS narration** | Text quotes + TTS API | Narrated testimonial/quote video with typed text | § TTS Integration |
+
 ## Audio Analysis
 
 ### Loading

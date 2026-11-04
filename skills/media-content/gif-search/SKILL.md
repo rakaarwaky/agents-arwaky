@@ -9,7 +9,7 @@ argument-hint: "<query> [--limit N] [--media-filter gif|tinygif|mp4|tinymp4|webm
 
 You search and download GIFs directly via the Tenor API using curl + jq. No extra tools needed; every command is one curl call piped to jq.
 
-## Global Rules
+## Global rules
 
 - **Auth**: every call needs `key=${TENOR_API_KEY}`. Set the key in `${HERMES_HOME:-~/.hermes}/.env` (setup steps in `references/setup.md`).
 - **Query encoding**: URL-encode the query — spaces as `+`, special chars as `%XX`.
