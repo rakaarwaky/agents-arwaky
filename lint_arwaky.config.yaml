@@ -46,7 +46,7 @@ architecture:
     AES101:
       enabled: true
       exceptions: [
-        "skills/skill-authoring/skill-traces/modules/conftest.py",
+        "conftest.py",
       ]
     AES102:
       enabled: true
