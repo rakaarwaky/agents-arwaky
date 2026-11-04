@@ -8,8 +8,8 @@
 - Renaming a skill = rename the directory (`git mv`); the dangling-pointer sweep afterwards is owned by the Verify step of `SKILL.md`. After the rename, verify the skill still resolves and the catalog is consistent:
 
 ```bash
-sdc skills read <new-name>
-sdc skills catalog
+sdc read <new-name>
+sdc catalog
 ```
 
-`sdc skills read` confirms the directory and frontmatter match; `sdc skills catalog` refreshes the `## Skills` rows that carry the old path. If `sdc skills lint` reports `name-mismatch`, the frontmatter `name:` was not updated to match the new directory name — fix the frontmatter, not the directory.
+`sdc read` confirms the directory and frontmatter match; `sdc catalog` refreshes the `## Skills` rows that carry the old path. If `sdc lint` reports `name-mismatch`, the frontmatter `name:` was not updated to match the new directory name — fix the frontmatter, not the directory.

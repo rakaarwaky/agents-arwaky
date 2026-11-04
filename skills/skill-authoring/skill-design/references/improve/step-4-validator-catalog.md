@@ -1,8 +1,8 @@
 # Improve — Step 4: Validator catalog
 
-**Goal:** you can map every `sdc skills lint` rule to what it checks and how to satisfy it, and know how to run lint whole-pack or scoped to a category.
+**Goal:** you can map every `sdc lint` rule to what it checks and how to satisfy it, and know how to run lint whole-pack or scoped to a category.
 
-Run `sdc skills lint` (whole pack) or `sdc skills lint --category <name>` (scoped) to see which of the rules below fire.
+Run `sdc lint` (whole pack) or `sdc lint --category <name>` (scoped) to see which of the rules below fire.
 
 | Rule | Meaning |
 | ---- | ------- |
@@ -22,9 +22,9 @@ Run `sdc skills lint` (whole pack) or `sdc skills lint --category <name>` (scope
 
 ## What lint does NOT check
 
-`sdc skills lint` is a mechanical gate on frontmatter, naming, placement, and uniqueness. It does **not** verify:
+`sdc lint` is a mechanical gate on frontmatter, naming, placement, and uniqueness. It does **not** verify:
 
 - **Reference linking** — every file in `references/` must be linked from the `SKILL.md` body or Routing table. Lint passes even when new reference files are on disk but unlinked. After adding or moving reference files, run a link-completeness sweep: list files on disk in `references/` (recursively), grep the `SKILL.md` for each filename, and add any missing link to the Routing table before publishing. A reference that no line of the body names is dead weight the agent will never find.
 - **Dangling cross-skill refs** — `related_skills:` and sibling mentions are existence-checked manually, not by lint. Resolve each named skill against the tree; lint will not flag a ref to a skill that does not exist.
 - **Body shape** — the three-section rule (`# Title` / `## Global rules` / `## Routing`) is enforced by convention and the pre-publish checklist, not by any lint rule. A body that drifts into prose sections still passes lint.
-- **Markdown hygiene of `SKILL.md` and `references/*.md`** — in repo-embedded skill trees, the tree's own markdown lint gate (here `lint-arwaky-cli check .` runs markdownlint over `crates/shared/skills/`) checks what `sdc skills lint` ignores: MD012 consecutive blank lines (including a doubled blank right before EOF), MD040 opening code fences without a language tag, and MD047 empty fenced blocks. Passes of `sdc skills lint` prove nothing about these. After every edit, run the tree's markdown gate on a clean tree and grep-scan the touched files for double blank lines and bare opening fences before calling the run done; a local gate run on a dirty tree (one whose on-disk content differs from the commit being pushed) is a false positive — re-verify against the exact commit.
+- **Markdown hygiene of `SKILL.md` and `references/*.md`** — in repo-embedded skill trees, the tree's own markdown lint gate (here `lint-arwaky-cli check .` runs markdownlint over `crates/shared/skills/`) checks what `sdc lint` ignores: MD012 consecutive blank lines (including a doubled blank right before EOF), MD040 opening code fences without a language tag, and MD047 empty fenced blocks. Passes of `sdc lint` prove nothing about these. After every edit, run the tree's markdown gate on a clean tree and grep-scan the touched files for double blank lines and bare opening fences before calling the run done; a local gate run on a dirty tree (one whose on-disk content differs from the commit being pushed) is a false positive — re-verify against the exact commit.

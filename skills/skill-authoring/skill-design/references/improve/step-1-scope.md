@@ -15,9 +15,9 @@ Some skill trees are embedded into a compiled artifact (for example a Rust `incl
 
 ## Commands
 
-- `sdc skills read <name>` — read the target `SKILL.md` before editing so the edit preserves its intent.
-- `sdc skills lint --category <name>` — preview the target's lint issues scoped to its category before the edit; the lint gate runs again after.
-- **Absolute path as argument**: when the user passes a full filesystem path (e.g. `/repo/skills/web-design`), resolve its last segment as the category name and scope `sdc skills lint --category <name>` accordingly. The `sdc` CLI does not accept a bare path — only the category name. Verify the path is a directory containing `SKILL.md` files (a category directory) before proceeding; a path pointing at a single skill's directory scopes the run to that one skill.
+- `sdc read <name>` — read the target `SKILL.md` before editing so the edit preserves its intent.
+- `sdc lint --category <name>` — preview the target's lint issues scoped to its category before the edit; the lint gate runs again after.
+- **Absolute path as argument**: when the user passes a full filesystem path (e.g. `/repo/skills/web-design`), resolve its last segment as the category name and scope `sdc lint --category <name>` accordingly. The `sdc` CLI does not accept a bare path — only the category name. Verify the path is a directory containing `SKILL.md` files (a category directory) before proceeding; a path pointing at a single skill's directory scopes the run to that one skill.
 
 ## Completion
 
