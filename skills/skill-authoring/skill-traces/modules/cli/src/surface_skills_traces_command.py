@@ -81,19 +81,9 @@ def _trace_collect_parser() -> argparse.ArgumentParser:
         prog="stc traces collect",
         description="Scan sessions and build the skills-only usage material.",
     )
-    parser.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT, help="$GROK_HOME to scan")
-    parser.add_argument(
-        "--out",
-        metavar="DIR",
-        default="",
-        help="Run dir for output records (default: a scratch skills-trace-* temp dir)",
-    )
-    parser.add_argument("--days", type=int, default=0, help="Only sessions updated within N days")
-    parser.add_argument("--since-last", action="store_true", help="Since the last completed run")
-    parser.add_argument("--min-turns", type=int, default=1, help="Minimum human turns per session")
-    parser.add_argument("--limit", type=int, default=0, help="Max sessions to keep")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
+
 
 def _cmd_traces_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     try:
@@ -101,17 +91,20 @@ def _cmd_traces_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     except SystemExit as exit_exc:
         return int(exit_exc.code or 0)
 
-    run_dir = ns.out or tempfile.mkdtemp(prefix="skills-trace-")
+    # Best-practice defaults (hardcoded, no flags):
+    #   since-last  -> skip sessions already processed in a prior run
+    #   min-turns 3 -> ignore single-turn probes and smoke tests
+    run_dir = tempfile.mkdtemp(prefix="skills-trace-")
     request = SkillsRequest(
         op=SkillsOp.TRACES,
         flags={
             "traces_action": "collect",
-            "grok_home": ns.grok_home,
+            "grok_home": _GROK_HOME_DEFAULT,
             "run_dir": run_dir,
-            "days": str(ns.days),
-            "since_last": "1" if ns.since_last else "0",
-            "min_turns": str(ns.min_turns),
-            "limit": str(ns.limit),
+            "days": "0",
+            "since_last": "1",
+            "min_turns": "3",
+            "limit": "0",
         },
     )
     result = aggregate.execute(request)
