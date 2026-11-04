@@ -1,4 +1,4 @@
-"""Golden regression tests for the 12-rule validator folded into SkillsLinter."""
+"""Golden regression tests for the 13-rule validator folded into SkillsLinter."""
 
 from __future__ import annotations
 
@@ -35,13 +35,14 @@ GOLDEN = {
     IssueType.MISSING_CATEGORY_DESCRIPTION: "cat-a",
     IssueType.EMPTY_CATEGORY_DESCRIPTION: "cat-a",
     IssueType.EMPTY_CATEGORY: "cat-a",
+    IssueType.REFERENCE_NOT_LINKED: "cat-a/good-skill",
 }
 
 
-def test_rule_table_is_the_twelve_rule_ssot() -> None:
-    """12 rules, stable ids, and messages that cannot drift from the table."""
-    assert len(RULES) == 12
-    assert len(RULE_IDS) == 12
+def test_rule_table_is_the_thirteen_rule_ssot() -> None:
+    """13 rules, stable ids, and messages that cannot drift from the table."""
+    assert len(RULES) == 13
+    assert len(RULE_IDS) == 13
     assert tuple(item.id for item in RULES) == tuple(RULE_IDS)
     for one_rule in RULES:
         assert rule(one_rule.id) is one_rule
@@ -94,6 +95,10 @@ def _expected_message(issue, issue_type: IssueType) -> str:
         return issue_message(issue_type, name="wrong-name", dir="good-skill")
     if issue_type is IssueType.DESCRIPTION_TOO_LONG:
         return issue_message(issue_type, length=1100, max_len=1024)
+    if issue_type is IssueType.REFERENCE_NOT_LINKED:
+        return ISSUE_MESSAGES[issue_type].format(
+            paths="cat-a/good-skill/references/unlinked-file.md"
+        )
     if issue_type is IssueType.DUPLICATE_SKILL_NAME:
         return issue_message(
             issue_type, name="good-skill", paths="cat-a/good-skill, cat-b/good-skill"

@@ -1,7 +1,7 @@
 """Skills linter capability (AES capabilities layer).
 
 Implements ``ISkillsLinterProtocol``: a combined scan that runs the
-12-rule validator plus the weed report in one pass, returning a single
+13-rule validator plus the weed report in one pass, returning a single
 ``LintReport``. The lint is read-only — it reports, it never writes.
 
 The lint supports an optional *category* filter: when provided, only
@@ -9,7 +9,7 @@ issues whose ``category`` or ``path`` belongs to that category are
 included in the report. The weed lines are not filtered (they are
 library-wide duplicate/empty-category signals).
 
-The 12-rule checks run inline here, ported from the retired
+The 13-rule checks run inline here, ported from the retired
 ``capabilities_skills_validator.py`` which was folded into this
 capability during the deep-clean. Rule IDs and message templates come
 from the shared rule SSOT, so the checker and the generated rules doc
@@ -56,7 +56,7 @@ __all__ = ["SkillsLinter"]
 
 # ─── Block 1: SkillsLinter class definition ──────────────
 class SkillsLinter(ISkillsLinterProtocol):
-    """Combined lint: 12-rule checks + weed report, optionally category-filtered."""
+    """Combined lint: 13-rule checks + weed report, optionally category-filtered."""
 
     # ─── Block 2: Protocol Method Implementation ───────────
     def lint(
@@ -64,14 +64,14 @@ class SkillsLinter(ISkillsLinterProtocol):
     ) -> LintReport:
         """Run the full lint over *root*; optionally filter by *category*.
 
-        Runs the 12-rule validator (per-skill, category, placement, and
+        Runs the 13-rule validator (per-skill, category, placement, and
         duplicate checks) inline plus the shared ``plan_weed`` helper for
         the weed lines. When *category* is set, issues are narrowed to
         that category; weed lines are kept as-is (library-wide signals).
         """
         skills_root = Path(root)
 
-        # ── 1. 12-rule validator checks ─────────────────────────
+        # ── 1. 13-rule validator checks ─────────────────────────
         entries = skill_entries(skills_root)
         categories = category_summaries(entries, skills_root)
         assets = assets_container(skills_root)
@@ -82,6 +82,7 @@ class SkillsLinter(ISkillsLinterProtocol):
         self._check_entries(skills_root, entries, issues)
         self._check_placement(skills_root, issues)
         self._check_duplicates(entries, issues)
+        self._check_references(skills_root, entries, issues)
 
         report = ValidationReport(
             skills_root=skills_root,
@@ -120,7 +121,7 @@ class SkillsLinter(ISkillsLinterProtocol):
 
     # ── Block 3: Constructors, standard traits, helpers ──────────
 
-    # ── 12-rule checks (ported from the retired validator) ────────
+    # ── 13-rule checks (ported from the retired validator) ────────
 
     @staticmethod
     def _check_categories(
@@ -283,5 +284,44 @@ class SkillsLinter(ISkillsLinterProtocol):
                             IssueType.DUPLICATE_DESCRIPTION,
                             paths=", ".join(sorted(paths)),
                         ),
+                    )
+                )
+
+    @staticmethod
+    def _check_references(
+        skills_root: Path,
+        entries: list[SkillEntry],
+        issues: list[Issue],
+    ) -> None:
+        """Every file in a skill's ``references/`` must be linked from SKILL.md."""
+        for entry in entries:
+            skill_dir = skills_root / entry.path
+            references_dir = skill_dir / "references"
+            if not references_dir.is_dir():
+                continue
+
+            skill_md = skill_dir / "SKILL.md"
+            if not skill_md.is_file():
+                continue
+            body = skill_md.read_text(encoding="utf-8")
+
+            unlinked: list[str] = []
+            for ref_path in iter_files(references_dir):
+                ref_name = ref_path.name
+                # A reference is "linked" if its filename appears anywhere in SKILL.md.
+                if ref_name not in body:
+                    unlinked.append(
+                        relpath(ref_path, skills_root)
+                    )
+
+            if unlinked:
+                issues.append(
+                    Issue(
+                        type=IssueType.REFERENCE_NOT_LINKED.value,
+                        message=issue_message(
+                            IssueType.REFERENCE_NOT_LINKED,
+                            paths=", ".join(sorted(unlinked)),
+                        ),
+                        path=entry.path,
                     )
                 )
