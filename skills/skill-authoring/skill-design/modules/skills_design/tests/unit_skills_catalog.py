@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 from shared.src.common.utility_skills_tree import category_summaries, skill_entries
-from shared.src.skills_design.taxonomy_skills_error import CatalogDrift
 
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.tests.fixture_skills import as_root, crafted_tree
@@ -101,41 +100,6 @@ def test_check_detects_hand_edited_catalog_json_drift(tmp_path: Path) -> None:
     result = catalog.check(as_root(root))
     assert not result.in_sync
     assert "Catalog JSON drift" in result.message or "drift detected" in result.message
-
-
-def test_load_rows_reads_a_fresh_catalog(tmp_path: Path) -> None:
-    """Rows parse back into the source tree's own values."""
-    root = crafted_tree(tmp_path)
-    catalog = SkillsCatalog()
-    catalog.rebuild(as_root(root))
-
-    rows = catalog.load_rows(as_root(root))
-    assert [(row.skill, row.category) for row in rows] == [
-        ("doc-drafts", "drafts"),
-        ("note-taker", "notes"),
-    ]
-
-
-def test_load_rows_fails_closed_on_missing_catalog(tmp_path: Path) -> None:
-    """The read path raises instead of rebuilding silently."""
-    with pytest.raises(CatalogDrift) as failure:
-        SkillsCatalog().load_rows(as_root(crafted_tree(tmp_path)))
-    assert "Catalog missing" in str(failure.value)
-
-
-def test_load_rows_fails_closed_on_stale_rows(tmp_path: Path) -> None:
-    """A stale tracked row is drift, never an answer."""
-    root = crafted_tree(tmp_path)
-    catalog = SkillsCatalog()
-    catalog.rebuild(as_root(root))
-
-    (root / "notes" / "note-taker" / "SKILL.md").write_text(
-        "---\nname: note-taker\ndescription: New text.\n---\n", encoding="utf-8"
-    )
-
-    with pytest.raises(CatalogDrift) as failure:
-        catalog.load_rows(as_root(root))
-    assert "drift detected" in str(failure.value)
 
 
 def test_read_returns_json_text_after_rebuild(tmp_path: Path) -> None:

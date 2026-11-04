@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from shared.src.skills_design.taxonomy_skills_authoring_vo import CatalogRow
 from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
 
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_discover import (
+    _Row,
     DRIFT_WARNING,
     SkillsDiscover,
     score_entries,
@@ -18,10 +18,10 @@ from skills_design.src.capabilities_skills_discover import (
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 
 
-def _rows() -> list[CatalogRow]:
+def _rows() -> list[_Row]:
     return [
-        CatalogRow("doc-drafts", "drafts", "Drafts docs.", "drafts/doc-drafts"),
-        CatalogRow("note-taker", "notes", "Takes notes.", "notes/note-taker"),
+        _Row("doc-drafts", "drafts", "Drafts docs.", "drafts/doc-drafts"),
+        _Row("note-taker", "notes", "Takes notes.", "notes/note-taker"),
     ]
 
 

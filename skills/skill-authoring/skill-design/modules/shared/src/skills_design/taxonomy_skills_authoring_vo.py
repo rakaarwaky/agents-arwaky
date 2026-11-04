@@ -98,7 +98,11 @@ class LintReport:
 
 @dataclass(frozen=True)
 class CatalogRow:
-    """One skill row of ``catalog.json`` (the legacy 4-field projection)."""
+    """One skill row in the catalog (the ``load_rows``/discover projection).
+
+    ``skill``/``category``/``description``/``path``; ``path`` is the
+    ``category/skill`` identity string.
+    """
 
     skill: str
     category: str

@@ -24,7 +24,6 @@ from collections.abc import Sequence
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
-    CatalogRow,
     DiscoveryResult,
     LintReport,
     MutationOutcome,
@@ -118,11 +117,6 @@ class ISkillsCatalogProtocol(ABC):
         ...
 
     @abstractmethod
-    def load_rows(self, root: SkillsRoot) -> tuple[CatalogRow, ...]:
-        """Raise ``CatalogDrift`` rather than repair or fall back — fail closed."""
-        ...
-
-    @abstractmethod
     def read(self, root: SkillsRoot) -> SkillContent:
         """Return the raw tracked ``catalog.json`` text, or ``""`` if missing.
 
@@ -144,8 +138,8 @@ class ISkillsDiscoverProtocol(ABC):
         """Search the catalog rows for *query*, returning top *limit* matches.
 
         Raises ``SkillsUsageError('Query is empty')`` when the query has no
-        search tokens (exit 2). On drift, catches ``CatalogDrift`` from
-        ``load_rows``, sets the result's warning fields, falls back to the
+        search tokens (exit 2). On drift (a missing or corrupt
+        ``catalog.json``), sets the result's warning fields, falls back to the
         live tree scan, and returns matches with exit 0.
         """
         ...

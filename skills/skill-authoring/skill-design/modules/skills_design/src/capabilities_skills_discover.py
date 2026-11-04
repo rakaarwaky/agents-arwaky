@@ -18,6 +18,8 @@ top ``limit`` rows.
 
 from __future__ import annotations
 
+import json
+from dataclasses import dataclass
 from pathlib import Path
 
 from shared.src.common.utility_skills_tree import skill_entries
@@ -26,11 +28,11 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsDiscoverProtocol,
 )
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
-    CatalogRow,
     DiscoveryMatch,
     DiscoveryResult,
 )
 from shared.src.skills_design.taxonomy_skills_constant import (
+    CATALOG_FILENAME,
     DRIFT_WARNING,
 )
 from shared.src.skills_design.taxonomy_skills_error import (
@@ -49,20 +51,30 @@ __all__ = [
 ]
 
 
+@dataclass(frozen=True)
+class _Row:
+    """One catalog row the discover capability scores."""
+
+    skill: str
+    category: str
+    description: str
+    path: str
+
+
 def tokenize(query: str) -> list[str]:
     """Split a query into lowercase tokens."""
     return [token.lower() for token in query.split() if token.strip()]
 
 
 def score_entries(
-    rows: list[CatalogRow], tokens: list[str]
-) -> list[tuple[int, CatalogRow]]:
+    rows: list[_Row], tokens: list[str]
+) -> list[tuple[int, _Row]]:
     """Score every row; returns ``(score, row)`` pairs sorted high-first.
 
     A row scores at all only when at least one token matched, matching the
     original behavior (score 0 rows are never listed).
     """
-    scored: list[tuple[int, CatalogRow]] = []
+    scored: list[tuple[int, _Row]] = []
 
     for row in rows:
         name = row.skill.lower()
@@ -89,10 +101,10 @@ def score_entries(
     return scored
 
 
-def tree_scan_rows(skills_root: Path) -> list[CatalogRow]:
+def tree_scan_rows(skills_root: Path) -> list[_Row]:
     """The read-only tree scan the drift fallback answers from."""
     return [
-        CatalogRow(
+        _Row(
             skill=entry.skill,
             category=entry.category,
             description=entry.description,
@@ -139,9 +151,38 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _rows_or_fallback(
         self, skills_root: Path
-    ) -> tuple[list[CatalogRow], str, str]:
-        """Load catalog rows; on drift, warn loudly and fall back to the tree."""
+    ) -> tuple[list[_Row], str, str]:
+        """Load catalog rows from catalog.json; on missing/stale, fall back to tree scan."""
+        path = skills_root / CATALOG_FILENAME
+        text = self._catalog.read(SkillsRoot(skills_root))
+        if not text:
+            return tree_scan_rows(skills_root), DRIFT_WARNING, f"Catalog missing: {path}"
+
         try:
-            return list(self._catalog.load_rows(SkillsRoot(skills_root))), "", ""
-        except CatalogDrift as drift:
-            return tree_scan_rows(skills_root), DRIFT_WARNING, str(drift)
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            return tree_scan_rows(skills_root), DRIFT_WARNING, f"Catalog corrupt: {path}"
+
+        skills = data.get("skills") if isinstance(data, dict) else None
+        if not isinstance(skills, list):
+            return tree_scan_rows(skills_root), DRIFT_WARNING, f"Catalog corrupt: {path}"
+
+        rows: list[_Row] = []
+        for item in skills:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("name", ""))
+            category = str(item.get("category", ""))
+            rows.append(
+                _Row(
+                    skill=name,
+                    category=category,
+                    description=str(item.get("description", "")),
+                    path=f"{category}/{name}",
+                )
+            )
+
+        if not rows:
+            return tree_scan_rows(skills_root), DRIFT_WARNING, f"Catalog empty: {path}"
+
+        return rows, "", ""

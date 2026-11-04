@@ -86,21 +86,6 @@ def write_catalog_json(
     )
 
 
-def read_catalog_text(path: Path) -> str:
-    """Read the catalog with the same codec the original parser used."""
-    return path.read_text(encoding="utf-8-sig", errors="replace")
-
-
-def _row_from_entry(entry: SkillEntry) -> CatalogRow:
-    """Project a source tree entry to the legacy ``CatalogRow`` shape."""
-    return CatalogRow(
-        skill=entry.skill,
-        category=entry.category,
-        description=entry.description,
-        path=entry.path,
-    )
-
-
 # ─── Block 1: Class Definition & Constructor ──────────────
 class SkillsCatalog(ISkillsCatalogProtocol):
     """Renders, rebuilds, checks, and reads the tracked catalog."""
@@ -113,6 +98,8 @@ class SkillsCatalog(ISkillsCatalogProtocol):
         categories = category_summaries(entries, skills_root)
         path = catalog_path(skills_root)
         write_catalog_json(entries, categories, path)
+        # Delete any legacy CATALOG.md so catalog.json is the sole artifact.
+        (skills_root / "CATALOG.md").unlink(missing_ok=True)
         return CatalogReport(
             path=path,
             skills=len(entries),
@@ -139,8 +126,8 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             entries = skill_entries(skills_root)
             categories = category_summaries(entries, skills_root)
             write_catalog_json(entries, categories, candidate)
-            current = read_catalog_text(path).splitlines()
-            regenerated = read_catalog_text(candidate).splitlines()
+            current = path.read_text(encoding="utf-8-sig", errors="replace").splitlines()
+            regenerated = candidate.read_text(encoding="utf-8-sig", errors="replace").splitlines()
 
         diff_lines = list(
             difflib.unified_diff(
@@ -166,6 +153,13 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             diff_lines=(),
             message=f"Catalog in sync: {path}",
         )
+
+    def read(self, root: SkillsRoot) -> str:
+        """Return the raw tracked ``catalog.json`` text; ``""`` when missing."""
+        path = catalog_path(Path(root))
+        if not path.exists():
+            return ""
+        return path.read_text(encoding="utf-8-sig", errors="replace")
 
     def load_rows(self, root: SkillsRoot) -> tuple[CatalogRow, ...]:
         """Parse the tracked catalog; raise ``CatalogDrift`` when it is not
@@ -198,14 +192,10 @@ class SkillsCatalog(ISkillsCatalogProtocol):
 
         return tuple(rows)
 
-    def read(self, root: SkillsRoot) -> str:
-        """Return the raw tracked ``catalog.json`` text; ``""`` when missing."""
-        path = catalog_path(Path(root))
-        if not path.exists():
-            return ""
-        return read_catalog_text(path)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+def read_catalog_text(path: Path) -> str:
+    """Read the catalog with the same codec the original parser used."""
+    return path.read_text(encoding="utf-8-sig", errors="replace")
 
 
 def _parse_catalog_json(text: str) -> list[CatalogRow]:

@@ -69,10 +69,6 @@ class _SpyCatalog(ISkillsCatalogProtocol):
         self.calls.append("check")
         return CatalogCheckResult(in_sync=True)
 
-    def load_rows(self, root: SkillsRoot):
-        self.calls.append("load_rows")
-        return ()
-
     def read(self, root: SkillsRoot) -> str:
         self.calls.append("read")
         return ""
