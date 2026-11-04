@@ -48,7 +48,7 @@ def test_container_wires_agent_to_capability(tmp_path: Path) -> None:
 
 def test_surface_through_container(tmp_path: Path) -> None:
     """INT-SKILLS-002: surface + container resolve a show request."""
-    from skills_design.src.surface_skills_command import cmd_skills
+    from cli.src.surface_skills_command import cmd_skills
 
     aggregate = default_aggregate(lister=SkillsLister(_make_pack(tmp_path)))
     rc = cmd_skills(["read", "fetch-mcp"], aggregate)

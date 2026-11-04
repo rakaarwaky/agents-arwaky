@@ -278,7 +278,7 @@ def test_two_walkers_agree_on_the_live_pack() -> None:
     """R5 cross-check: the read walker and the authoring walker see the
     same skill set, so drift fails a test instead of shipping silently."""
     from shared.src.common.utility_skills_tree import skill_entries
-    from shared.src.skills_design.utility_skill_pack import iter_skill_mds
+    from shared.src.common.utility_skill_pack import iter_skill_mds
 
     pack = default_pack_root()
     read_walk = {
@@ -375,7 +375,7 @@ def test_importing_the_feature_does_not_mutate_sys_path() -> None:
     code = (
         "import sys; "
         "import skills_design.src.root_skills_container; "
-        "import skills_design.src.surface_skills_command; "
+        "import cli.src.surface_skills_command; "
         f"assert {design_ns!r} in sys.path, 'design ns missing from sys.path'"
     )
     env = dict(os.environ)

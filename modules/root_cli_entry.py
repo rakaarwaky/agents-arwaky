@@ -579,7 +579,21 @@ def cmd_skills(argv: list[str]) -> int:
     the two together — the design tree itself never imports
     ``skills_traces``.
     """
-    from skills_traces.src.capabilities_skills_traces import SkillsTraces
+    # AES702 independent packages: both skills own their own ``shared``
+    # copy under ``modules/shared``. ``skills_traces`` capability imports
+    # ``shared.src.skills_traces.*``, so its namespace root must be first
+    # on sys.path during this import so ``shared`` resolves to
+    # skill-traces' copy, not skill-design's. Save/restore sys.path so
+    # this entry point does not pollute the rest of the process.
+    _saved_path = list(sys.path)
+    _traces_ns = str(ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules")
+    if _traces_ns in sys.path:
+        sys.path.remove(_traces_ns)
+    sys.path.insert(0, _traces_ns)
+    try:
+        from skills_traces.src.capabilities_skills_traces import SkillsTraces
+    finally:
+        sys.path[:] = _saved_path
 
     from skills_design.src.root_skills_container import default_aggregate
     from skills_design.src.surface_skills_command import (
