@@ -85,7 +85,7 @@ jobs:
         run: python3 -m mypy skills/git/issue-maker/scripts/ --strict
 
       - name: Skills lint (git category)
-        run: python3 -m modules.root_cli_entry skills lint --category git --skills-root "$PWD/skills"
+        run: python3 -m modules.root_cli_entry skills lint --category git
 
       - name: Skills and shared tests
         run: python3 -m pytest skills/skill-authoring/skill-design/modules/skills_design skills/skill-authoring/skill-traces/modules/skills_traces modules/shared -q
