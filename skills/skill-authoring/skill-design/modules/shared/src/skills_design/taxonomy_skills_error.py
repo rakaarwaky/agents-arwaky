@@ -68,14 +68,12 @@ class CatalogDrift(SkillsUsageError):
     """Tracked ``catalog.json`` is missing, stale, corrupt, or unparseable.
 
     Carries the summary message and optional diff lines; explicitly
-    carries ``exit_code = 3`` — the CI drift signal. Raised by
-    ``ISkillsCatalogProtocol.load_rows`` when loading catalog rows fails
-    closed. Under ``discover``, this error is caught and converted to a
-    loud warning with live-tree fallback. Under ``catalog --check``, the
-    catalog capability's ``check`` method *returns*
-    ``CatalogCheckResult(in_sync=False, ...)`` so diff lines, summary, and
-    JSON shape are fully preserved for the surface (which maps
-    ``in_sync=False`` to exit code 3).
+    carries ``exit_code = 3`` — the CI drift signal. Under ``discover``,
+    this error is caught and converted to a loud warning with live-tree
+    fallback. Under ``catalog --check``, the catalog capability's
+    ``check`` method *returns* ``CatalogCheckResult(in_sync=False, ...)``
+    so diff lines, summary, and JSON shape are fully preserved for the
+    surface (which maps ``in_sync=False`` to exit code 3).
     """
 
     exit_code: int = 3

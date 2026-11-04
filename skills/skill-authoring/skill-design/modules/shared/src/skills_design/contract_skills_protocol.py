@@ -120,10 +120,10 @@ class ISkillsCatalogProtocol(ABC):
     def read(self, root: SkillsRoot) -> SkillContent:
         """Return the raw tracked ``catalog.json`` text, or ``""`` if missing.
 
-        A read-only view for the CLI ``catalog --read`` path; unlike
-        ``load_rows`` this never parses, drift-checks, or raises — it
-        just hands the bytes back (empty string when the file is absent,
-        so the caller decides how to report it).
+        A read-only view for the CLI ``catalog --read`` path; never parses,
+        drift-checks, or raises — it just hands the bytes back (empty
+        string when the file is absent, so the caller decides how to report
+        it).
         """
         ...
 

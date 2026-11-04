@@ -39,14 +39,14 @@ Use `sdc discover` when browsing; use `jev-router route` when you need a single 
 
 ## Install (one-time)
 
-Installed at `/home/raka/agents-arwaky/skills/skill-authoring/skill-router/jev-agent-skill-router` with a `uv` venv at `.venv`.
-Catalogue at `/home/raka/agents-arwaky/skills/skill-authoring/skill-router/jev-agent-skill-router/hermes-catalogue.json` (67 skills, parsed from `~/.hermes/skills/CATALOG.md`).
+Installed at `/home/raka/tools/jev-agent-skill-router` with a `uv` venv at `.venv`.
+Catalogue at `/home/raka/tools/jev-agent-skill-router/hermes-catalogue.json` (67 skills, parsed from `skills/catalog.json`).
 
 If the venv or catalogue is missing, run:
 ```bash
 cd /home/raka/agents-arwaky/skills/skill-authoring/skill-router/jev-agent-skill-router
 git pull && uv pip install -e .
-# Rebuild catalogue when CATALOG.md changes — see 'Rebuild catalogue' below
+# Rebuild catalogue when skills/catalog.json changes — see 'Rebuild catalogue' below
 ```
 
 **After moving or copying the tool directory:** the `.venv/bin/jev-router` shebang hardcodes the old venv python path. Fix it with `patch` or rewrite line 1 to the new `.venv/bin/python` path, then run `uv pip install -e .` so `jev_router` imports resolve.
@@ -92,23 +92,19 @@ The repo has `.env.example` but the application does NOT read dotenv files — o
 
 ## Rebuild catalogue
 
-Hermes regenerates `CATALOG.md` with `aa skills catalog`. Re-parse it:
+Hermes regenerates `skills/catalog.json` with `sdc catalog --build`. Re-parse it:
 
 ```bash
 cd /home/raka/agents-arwaky/skills/skill-authoring/skill-router/jev-agent-skill-router
 python3 - <<'EOF'
-import json, re
+import json
 from pathlib import Path
-catalog_md = Path("/home/raka/.hermes/skills/CATALOG.md").read_text()
-skills, in_skills = [], False
-for line in catalog_md.splitlines():
-    if line.startswith("## Skills"): in_skills = True; continue
-    if in_skills and line.startswith("#"): break
-    if in_skills and line.startswith("|") and "---" not in line and "Skill Name" not in line:
-        parts = [p.strip() for p in line.strip().strip("|").split("|")]
-        if len(parts) == 4 and re.fullmatch(r"[a-z0-9][a-z0-9-]*", parts[0]):
-            name, category, description, path = parts
-            skills.append({"name": name, "description": f"[{category}] {description}"})
+catalog_json = Path("skills/catalog.json").read_text()
+data = json.loads(catalog_json)
+skills = [
+    {"name": s["name"], "description": f"[{s['category']}] {s['description']}"}
+    for s in data.get("skills", [])
+]
 Path("hermes-catalogue.json").write_text(json.dumps(skills, indent=2))
 print(f"{len(skills)} skills")
 EOF

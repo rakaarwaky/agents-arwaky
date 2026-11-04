@@ -23,7 +23,6 @@ from shared.src.skills_design.taxonomy_skills_entity import Issue
 __all__ = [
     "CatalogCheckResult",
     "CatalogReport",
-    "CatalogRow",
     "DiscoveryMatch",
     "DiscoveryResult",
     "LintReport",
@@ -94,29 +93,6 @@ class LintReport:
             f"{self.unfiltered_issue_count} issues / {self.skills} skills / "
             f"{self.categories} categories"
         )
-
-
-@dataclass(frozen=True)
-class CatalogRow:
-    """One skill row in the catalog (the ``load_rows``/discover projection).
-
-    ``skill``/``category``/``description``/``path``; ``path`` is the
-    ``category/skill`` identity string.
-    """
-
-    skill: str
-    category: str
-    description: str
-    path: str
-
-    def as_dict(self) -> dict[str, str]:
-        """The legacy row projection, in legacy key order."""
-        return {
-            "skill": self.skill,
-            "category": self.category,
-            "description": self.description,
-            "path": self.path,
-        }
 
 
 @dataclass(frozen=True)

@@ -29,7 +29,6 @@ from shared.src.skills_design.contract_skills_protocol import (
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
-    CatalogRow,
 )
 from shared.src.skills_design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
@@ -160,67 +159,3 @@ class SkillsCatalog(ISkillsCatalogProtocol):
         if not path.exists():
             return ""
         return path.read_text(encoding="utf-8-sig", errors="replace")
-
-    def load_rows(self, root: SkillsRoot) -> tuple[CatalogRow, ...]:
-        """Parse the tracked catalog; raise ``CatalogDrift`` when it is not
-        a trustworthy index (missing, stale, unparseable, or non-round-trip).
-        """
-        skills_root = Path(root)
-        path = catalog_path(skills_root)
-        if not path.exists():
-            raise CatalogDrift(
-                f"Catalog missing: {path} (rebuild with the catalog subcommand)"
-            )
-
-        text = read_catalog_text(path)
-        rows = _parse_catalog_json(text)
-        if not rows:
-            raise CatalogDrift(
-                f"Catalog parse yielded no skill rows: {path} "
-                "(check it against `catalog --check`; it drifted or is corrupt)"
-            )
-
-        # Hard drift signal: a stale row is drift, not an answer.
-        entries = skill_entries(skills_root)
-        categories = category_summaries(entries, skills_root)
-        regenerated_text = render_catalog_json(entries, categories)
-        if text.rstrip("\n") != regenerated_text.rstrip("\n"):
-            raise CatalogDrift(
-                f"Catalog drift detected: {path} does not match the live tree "
-                "(stale or phantom rows); rebuild with the catalog subcommand"
-            )
-
-        return tuple(rows)
-
-
-def read_catalog_text(path: Path) -> str:
-    """Read the catalog with the same codec the original parser used."""
-    return path.read_text(encoding="utf-8-sig", errors="replace")
-
-
-def _parse_catalog_json(text: str) -> list[CatalogRow]:
-    """Parse the catalog JSON into legacy ``CatalogRow`` objects."""
-    try:
-        data = json.loads(text)
-    except json.JSONDecodeError:
-        return []
-
-    skills = data.get("skills") if isinstance(data, dict) else None
-    if not isinstance(skills, list):
-        return []
-
-    rows: list[CatalogRow] = []
-    for item in skills:
-        if not isinstance(item, dict):
-            continue
-        name = str(item.get("name", ""))
-        category = str(item.get("category", ""))
-        rows.append(
-            CatalogRow(
-                skill=name,
-                category=category,
-                description=str(item.get("description", "")),
-                path=f"{category}/{name}",
-            )
-        )
-    return rows
