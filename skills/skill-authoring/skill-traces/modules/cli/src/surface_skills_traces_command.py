@@ -327,21 +327,21 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="action", required=True)
 
     p_get = subparsers.add_parser("get", help="Show the pending run status")
-    p_get.add_argument("--grok-home", metavar="P", default="")
+    p_get.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
 
     p_set = subparsers.add_parser("set", help="Set the pending run status")
-    p_set.add_argument("--grok-home", metavar="P", default="")
+    p_set.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_set.add_argument("--run-dir", metavar="DIR", default="")
     p_set.add_argument("--status", required=True, help="collected|running|report_ready|curating|done")
 
     p_clear = subparsers.add_parser("clear", help="Clear the pending run")
-    p_clear.add_argument("--grok-home", metavar="P", default="")
+    p_clear.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_clear.add_argument("--run-dir", metavar="DIR", default="")
 
     p_trash = subparsers.add_parser(
         "trash", help="Move validated paths into learn/trash/<run_name>"
     )
-    p_trash.add_argument("--grok-home", metavar="P", default="")
+    p_trash.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_trash.add_argument(
         "--run-name", required=True, help="Trash sub-dir name (single path component)"
     )
@@ -351,7 +351,7 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     p_restrict.add_argument("paths", nargs="*", help="Paths to restrict")
 
     p_decide = subparsers.add_parser("decide", help="Append a decision line to learn/decisions.jsonl")
-    p_decide.add_argument("--grok-home", metavar="P", default="")
+    p_decide.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_decide.add_argument("--run-dir", metavar="DIR", default="")
     p_decide.add_argument("--id", required=True, help="Decision id")
     p_decide.add_argument("--kind", required=True, help="skill|workflow|hook")
@@ -365,7 +365,7 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     p_decide.add_argument("--undo", default=None, help="Undo path")
 
     p_wait = subparsers.add_parser("wait", help="Wait for report.md + actions.json in the run dir")
-    p_wait.add_argument("--grok-home", metavar="P", default="")
+    p_wait.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_wait.add_argument("--run-dir", required=True, help="Run dir to watch")
     p_wait.add_argument("--timeout-min", type=int, default=90, help="Max minutes to wait")
     return parser
