@@ -25,6 +25,18 @@ Creating new top-level or sibling directories is out of scope unless the task sa
 ```
 Leaving ambiguity to the implementer's judgment produces wrong-scope work: it will drift toward the more literal-looking candidate or start scaffolding directories it was never asked for.
 
+**Move/rename tasks (git-mv of whole trees)** — add this checklist to the scope-lock block:
+```
+Move-task checklist (audit your worktree before finishing):
+1. Grep the whole worktree for the old path/package name in .py, .md, .toml, .yml, .yaml, .sh, .json — zero hits outside your commit message.
+2. Update out-of-tree test-runner config: CI workflow test globs, testpaths in package manifests, lint/scanner scopes.
+3. Update installed launchers/shims: CLI entry scripts, shell wrappers, package-install manifests that import or exec the old package name.
+4. New bootstrap files (conftest.py, sys.path setup) must be staged in git — untracked files are silently absent from the commit.
+5. Verify collectability: a bare collection run (e.g. `pytest --co -q`) from the repo root collects the moved tests — explicit-path runs prove execution, not config correctness.
+6. Add at least one automated test exercising any new bootstrap/dispatch code the move introduced.
+```
+The orchestrator audits this list at Step 5 against its own grep of the worktree; a missed consumer (CI glob or testpath still pointing at the old path, a launcher still importing the old package name) is a round-1 review issue, not a post-merge surprise.
+
 Prompt:
 ```
 <implementer_persona_instructions>
