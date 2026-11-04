@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
 # scripts/install.sh
 #
-# Install the standalone sdc (skill-design) and stc (skill-traces) CLI
-# binaries to the XDG bin home ($XDG_BIN_HOME, default $HOME/.local/bin)
-# so they live on PATH instead of inside the project directory.
+# Install the aa (agent-arwaky) standalone CLI binary to the XDG bin home
+# ($XDG_BIN_HOME, default $HOME/.local/bin). aa only — no sdc, no stc,
+# no other binary.
 #
 # No bin/ directory is kept in the project; this installer is the single
-# source of the binaries and carries them inline.
+# source of the aa binary and carries it inline.
 #
 # XDG Base Directory spec (v0.8) compliance:
 #   - XDG_BIN_HOME must be absolute; relative/tilde values are rejected.
 #   - Directories the installer creates are 0700.
-#   - Installed binaries are 0755.
-#   - Pre-existing shared ancestors (e.g. ~/.local) are left untouched.
+#   - Installed binary is 0755.
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+MODULES_DIR="$REPO_ROOT/modules"
 
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
-# XDG rule: absolute only. Reject relative values and tilde paths that
-# were never shell-expanded (Path("~/x").expanduser() would silently
-# write $HOME/x).
 case "$BIN_DIR" in
   /*) ;;
   *)
@@ -36,21 +34,27 @@ case "$BIN_DIR" in
     ;;
 esac
 
+# Remove any pre-existing file/symlink at $BIN_DIR/aa so we never write
+# through a stale symlink to another location.
+if [[ -e "$BIN_DIR/aa" || -L "$BIN_DIR/aa" ]]; then
+  rm -f "$BIN_DIR/aa"
+fi
+
 if [[ ! -d "$BIN_DIR" ]]; then
   mkdir -p "$BIN_DIR"
   chmod 700 "$BIN_DIR"
 fi
 
-cat > "$BIN_DIR/sdc" <<'SDC_EOF'
+cat > "$BIN_DIR/aa" <<'AA_EOF'
 #!/usr/bin/env python3
-"""sdc — skills-design CLI (standalone binary).
+"""aa — agent-arwaky CLI (standalone binary).
 
-Entry point for ``sdc`` (skill-design-cli): a fully standalone AES
-7-layer package that bootstraps only its own namespace root
-(``skills_design``/``cli``). No shared dependency, no coupling to the
-skill-traces app.
+Entry point for ``aa`` (agent-arwaky): the standalone AES package that
+bootstraps the top-level ``modules`` namespace root plus the two
+independent skills packages (skills-design and skills-traces). No shared
+dependency between aa and sdc/stc; each package boots its own namespace.
 
-The modules tree is located via the ``SDC_MODULES_DIR`` environment
+The modules tree is located via the ``AA_MODULES_DIR`` environment
 variable, which must be an absolute path (XDG Base Directory rule:
 relative/tilde values are rejected). Falls back to walking up from the
 binary to find the repository's modules tree.
@@ -61,24 +65,19 @@ import os
 import sys
 from pathlib import Path
 
-_MODULES_ENV = "SDC_MODULES_DIR"
-_DEFAULT_RELATIVE = Path("skills") / "skill-authoring" / "skill-design" / "modules"
+_MODULES_ENV = "AA_MODULES_ENV"
+_DEFAULT_MODULES = Path("modules")
 
 
 def _resolve_modules_dir() -> Path:
-    raw = os.environ.get(_MODULES_ENV)
+    raw = os.environ.get("AA_MODULES_DIR")
     if raw:
         value = raw.strip()
         if value:
             p = Path(value)
-            if not p.is_absolute():
+            if not p.is_absolute() or str(value).startswith("~"):
                 print(
-                    f"sdc: warning: ${_MODULES_ENV}={value!r} is not absolute; ignoring",
-                    file=sys.stderr,
-                )
-            elif str(value).startswith("~"):
-                print(
-                    f"sdc: warning: ${_MODULES_ENV}={value!r} is a tilde path; ignoring",
+                    f"aa: warning: AA_MODULES_DIR={value!r} ignored (not absolute)",
                     file=sys.stderr,
                 )
             else:
@@ -86,120 +85,43 @@ def _resolve_modules_dir() -> Path:
     # Fallback: walk up from this binary to find the repo modules tree.
     here = Path(__file__).resolve()
     for candidate in (here.parent, *here.parents):
-        mod = candidate / _DEFAULT_RELATIVE
+        mod = candidate / _DEFAULT_MODULES
         if mod.is_dir():
             return mod
-    return here.parent / _DEFAULT_RELATIVE
+    return here.parent / _DEFAULT_MODULES
 
 
 _MODULES = _resolve_modules_dir()
 if str(_MODULES) not in sys.path:
     sys.path.insert(0, str(_MODULES))
 
-from cli.src.surface_skills_command import cmd_skills  # noqa: E402
-from skills_design.src.root_skills_container import default_aggregate  # noqa: E402
+# root_cli_entry imports ``modules.shared...`` so the REPO_ROOT (parent of
+# modules/) must be on sys.path, not modules/ itself.
+if str(_MODULES.parent) not in sys.path:
+    sys.path.insert(0, str(_MODULES.parent))
 
+# Add the two independent skills package roots so the ``skills`` command
+# can import skills_design / skills_traces on demand.
+for _skills_ns in (
+    Path("skills") / "skill-authoring" / "skill-design" / "modules",
+    Path("skills") / "skill-authoring" / "skill-traces" / "modules",
+):
+    _here = Path(__file__).resolve()
+    for _candidate in (_here.parent, *_here.parents):
+        _ns = _candidate / _skills_ns
+        if _ns.is_dir() and str(_ns) not in sys.path:
+            sys.path.insert(0, str(_ns))
+            break
 
-def main(argv: list[str] | None = None) -> int:
-    """Entry point for ``sdc <verb> [flags]``."""
-    args = argv if argv is not None else sys.argv[1:]
-    if not args:
-        print(
-            "Usage: sdc <list|read|lint|catalog|discover|move|archive|create> [flags]",
-            file=sys.stderr,
-        )
-        return 2
-    aggregate = default_aggregate()
-    return cmd_skills(args, aggregate)
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
-SDC_EOF
-chmod 755 "$BIN_DIR/sdc"
-
-cat > "$BIN_DIR/stc" <<'STC_EOF'
-#!/usr/bin/env python3
-"""stc — skills-traces CLI (standalone binary).
-
-Entry point for ``stc`` (skill-traces-cli): a fully standalone AES
-7-layer package that bootstraps only its own namespace root
-(``skills_traces``/``cli``). No shared dependency, no coupling to the
-skill-design app.
-
-The modules tree is located via the ``STC_MODULES_DIR`` environment
-variable, which must be an absolute path (XDG Base Directory rule:
-relative/tilde values are rejected). Falls back to walking up from the
-binary to find the repository's modules tree.
-"""
-from __future__ import annotations
-
-import os
-import sys
-from pathlib import Path
-
-_MODULES_ENV = "STC_MODULES_DIR"
-_DEFAULT_RELATIVE = Path("skills") / "skill-authoring" / "skill-traces" / "modules"
-
-
-def _resolve_modules_dir() -> Path:
-    raw = os.environ.get(_MODULES_ENV)
-    if raw:
-        value = raw.strip()
-        if value:
-            p = Path(value)
-            if not p.is_absolute():
-                print(
-                    f"stc: warning: ${_MODULES_ENV}={value!r} is not absolute; ignoring",
-                    file=sys.stderr,
-                )
-            elif str(value).startswith("~"):
-                print(
-                    f"stc: warning: ${_MODULES_ENV}={value!r} is a tilde path; ignoring",
-                    file=sys.stderr,
-                )
-            else:
-                return p
-    # Fallback: walk up from this binary to find the repo modules tree.
-    here = Path(__file__).resolve()
-    for candidate in (here.parent, *here.parents):
-        mod = candidate / _DEFAULT_RELATIVE
-        if mod.is_dir():
-            return mod
-    return here.parent / _DEFAULT_RELATIVE
-
-
-_MODULES = _resolve_modules_dir()
-if str(_MODULES) not in sys.path:
-    sys.path.insert(0, str(_MODULES))
-
-from cli.src.surface_skills_traces_command import cmd_traces  # noqa: E402
-from root_skills_container import default_container  # noqa: E402
-
-
-def main(argv: list[str] | None = None) -> int:
-    """Entry point for ``stc traces <collect|usage|phrases|materialize|state> [flags]``."""
-    args = argv if argv is not None else sys.argv[1:]
-    if not args or args[0] != "traces":
-        print(
-            "Usage: stc traces <collect|usage|phrases|materialize|state> [flags]",
-            file=sys.stderr,
-        )
-        return 2
-    sub = args[1:]
-    container = default_container()
-    aggregate = container.aggregate
-    return cmd_traces(sub, aggregate)
-
+from modules.root_cli_entry import main  # noqa: E402
 
 if __name__ == "__main__":
-    raise SystemExit(main())
-STC_EOF
-chmod 755 "$BIN_DIR/stc"
+    raise SystemExit(main(sys.argv[1:]))
+AA_EOF
+chmod 755 "$BIN_DIR/aa"
 
-echo "Installed sdc and stc to $BIN_DIR"
+echo "Installed aa to $BIN_DIR"
 echo "Add $BIN_DIR to your PATH if it is not already."
-echo "Point each binary at its modules tree, e.g.:"
-echo "  export SDC_MODULES_DIR=$REPO_ROOT/skills/skill-authoring/skill-design/modules"
-echo "  export STC_MODULES_DIR=$REPO_ROOT/skills/skill-authoring/skill-traces/modules"
-echo "Then run:  sdc list   stc traces usage"
+echo "Then run (with AA_MODULES_DIR pointed at the repo modules tree):"
+echo "  export AA_MODULES_DIR=$MODULES_DIR"
+echo "  aa status   aa skills list   aa tool list"
