@@ -57,6 +57,7 @@ skill-design is the skill-authoring skill that keeps the skill tree clean, corre
 | Artifact     | Purpose                                    | Link |
 |--------------|--------------------------------------------|------|
 | README       | What the tool does, every command, install | [README.md](README.md) |
+| CONTRIBUTING | Branch, commit, and PR conventions         | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | PRD          | What the product does and why              | [PRD.md](PRD.md) |
 | ROADMAP      | What ships next, in order                  | [ROADMAP.md](ROADMAP.md) |
 | ARCHITECTURE | Layer contract for every crate             | [ARCHITECTURE.md](ARCHITECTURE.md) |

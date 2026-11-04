@@ -24,11 +24,12 @@ skill-traces is the trace-learning skill that curates one trace-learning run acr
 ## Project Structure
 
 ```text
-skills/skill-authoring/skill-traces/
+.
 ├── PRD.md                      # What the skill does and why
 ├── ROADMAP.md                  # What ships next, in order
 ├── README.md                   # How to use/run
 ├── AGENTS.md                   # This file — how to work here safely
+├── CONTRIBUTING.md             # Branch, commit, and PR conventions
 ├── ARCHITECTURE.md             # Layer contract and linter rule catalog
 ├── SKILL.md                    # Skill frontmatter + routing table
 ├── lint_arwaky.config.yaml     # Lint gate configuration
@@ -57,6 +58,7 @@ skills/skill-authoring/skill-traces/
 | Artifact     | Purpose                                    | Link |
 |--------------|--------------------------------------------|------|
 | README       | What the tool does, every command, install | [README.md](README.md) |
+| CONTRIBUTING | Branch, commit, and PR conventions         | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | PRD          | What the product does and why              | [PRD.md](PRD.md) |
 | ROADMAP      | What ships next, in order                  | [ROADMAP.md](ROADMAP.md) |
 | ARCHITECTURE | Layer contract for every crate             | [ARCHITECTURE.md](ARCHITECTURE.md) |
