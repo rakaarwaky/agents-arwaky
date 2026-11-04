@@ -67,10 +67,38 @@ pure read-only analysis). Two ways to use that slot:
   unmerged local changes blocks later `worktree rm --force` — kill the terminal or retire
   the worktree before assembly/teardown.
 - **Full handoff**: send the brief via `orca terminal send` after
-  `orca terminal wait --for tui-idle`; confirm accepted, then stop driving it.
-  Hermes-style agents (Hermes orchestrating a Grok Build TUI in the worktree)
-  use this mode exclusively: plan the brief, drop it once, wait for idle, then
-  verify the worktree state and ship (commit/push/PR) themselves. The full
+  `orca terminal wait --for tui-idle`; confirm `accepted: true`, then stop
+  driving it. Hermes-style agents (Hermes orchestrating a Grok Build TUI in
+  the worktree) use this mode exclusively: plan the brief, drop it once, wait
+  for idle, then verify the worktree state and ship (commit/push/PR)
+  themselves.
+
+**Full-handoff pitfalls** — these cost rework when ignored:
+
+- **`tui-idle` is not a reliable progress signal.** The terminal stream can
+  stay empty (`tail: []`, 0 returned lines) while Grok is actively writing
+  files and committing in the worktree. Never assume idleness from an empty
+  `orca terminal read` output. Verify progress directly in the worktree
+  directory: `git log --oneline -3`, `git status --short`,
+  `git show --stat <head-sha>`, and `ls <expected-new-file>`.
+- **`orca terminal wait` promotes past the 600s cap.** When a wait exceeds
+  the foreground cap it becomes a tracked background process with
+  `notify_on_complete=true` instead of being refused. Do not re-run the
+  wait; poll with `process_manage(action="poll", session_id=<session_id>)`
+  or wait for its completion notification.
+- **After `orca terminal send` returns `accepted: true`, stop driving.**
+  Grok owns the worktree from there; continued sends interleave with its
+  work. Confirm acceptance, then disengage and verify via worktree state.
+- **Grok can omit pieces it considers incidental.** Grok may drop functions
+  or methods it thinks are "legacy" (e.g. `load_rows`, `read_catalog_text`)
+  while keeping callers that need them. Always run the full test suite in
+  the worktree before declaring done — not just the subset Grok mentions —
+  and `git show --stat <head>` to confirm exactly which files changed.
+- **Base the worktree intentionally.** `worktree create` bases on
+  `origin/main` regardless of `--prompt`. For a task stacked on a sibling
+  feature branch, check `git log --oneline -3` in the worktree and
+  `git reset --hard <base-sha>` (or recreate) before sending the brief —
+  otherwise the work conflicts or misses predecessor commits. The full
   handoff contract — including what to put in the brief, how to wait, and how
   to verify + ship after Grok finishes — is codified in the agents-arwaky repo
   skills `implement` and `execute-plan` under `references/hermes/` (their

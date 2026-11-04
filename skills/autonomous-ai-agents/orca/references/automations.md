@@ -49,6 +49,20 @@ ORCA automations edit <automationId> --trigger weekdays --time 09:30 --fresh-ses
 ORCA automations remove <automationId> --json
 ```
 
+## Long prompts
+
+Write the full prompt to a file and pass it to `--prompt` via `$(cat file)` rather than
+inlining multi-paragraph text in the shell command. `$(cat ...)` expands inside double
+quotes, so multi-line prompts work. Keep the prompt file outside the repo the
+automation runs in (e.g. `/tmp/`) so a scheduled run does not treat it as a
+working-tree change:
+
+```bash
+ORCA automations create --name "Daily audit" --trigger daily --time 07:00 \
+  --prompt "$(cat /tmp/daily-audit-prompt.txt)" \
+  --provider grok --repo path:/abs/repo --json
+```
+
 ## Key Flags and Rules
 
 - Trigger types: `hourly`, `daily`, `weekdays`, `weekly`, 5-field cron expression (e.g. `"0 9 * * 1-5"`), or RRULE strings.

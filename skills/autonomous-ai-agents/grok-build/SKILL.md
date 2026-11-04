@@ -53,6 +53,14 @@ permission_mode = "always-approve"
 ```
 
 - **One orchestration mode per task.** Headless `-p` for one-shots (PREFERRED); interactive PTY + tmux only for multi-turn TUI work. Both modes run with `workdir` (or `--cwd`) set so Grok targets the right project; long tasks run in the background with `background=true, notify_on_complete=true` and are monitored via the process tool.
+
+**Delegation verification pitfalls** — these cost rework when ignored:
+
+- **Confirm `accepted: true` before considering a brief delivered.** `orca terminal send` can return ok while the brief never reaches the TUI; treat absence of `accepted: true` as not delivered.
+- **After `accepted: true`, stop driving.** Continued `orca terminal send` calls interleave with Grok's work. Disengage and verify via worktree state instead.
+- **`tui-idle` is not a reliable progress signal.** The terminal stream can stay empty (`tail: []`, 0 returned lines) while Grok actively writes files and commits. Verify progress in the worktree directory: `git log --oneline -3`, `git status --short`, `git show --stat <head-sha>`, and `ls <expected-new-file>`.
+- **Verify the diff, not just the commit SHA.** A matching commit message proves the commit exists, not that it contains the briefed changes. Run `git diff <base>..HEAD` and confirm it matches the brief exactly.
+- **Grok can omit pieces it considers incidental.** Grok may drop functions or methods it thinks are "legacy" while keeping callers that need them. Always run the full test suite in the worktree before declaring done — not just the subset Grok mentions.
 - **Verify the diff, not the commit SHA, before pushing or opening a PR.** `git diff <base>..HEAD` must show exactly what the brief asked for; a matching commit message proves the commit exists, not that it contains the briefed changes.
 - **Clean up.** `tmux kill-session -t <name>` when a TUI session is done; scratch commit tasks without a repo use `mktemp -d && git init`.
 
