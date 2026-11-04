@@ -183,7 +183,7 @@ def _authoring_parser() -> argparse.ArgumentParser:
         help="Only report issues in category NAME",
     )
 
-    sub = subparsers.add_parser("catalog", help="Build and/or print CATALOG.md")
+    sub = subparsers.add_parser("catalog", help="Build, read, and/or check CATALOG.md")
     sub.add_argument(
         "--build",
         action=_TriFlag,
@@ -197,6 +197,12 @@ def _authoring_parser() -> argparse.ArgumentParser:
         nargs=0,
         default=None,
         help="Print the current CATALOG.md content",
+    )
+    sub.add_argument(
+        "--check",
+        action="store_true",
+        help="Drift gate: rebuild to a temp file and diff against the "
+        "tracked CATALOG.md (exit 0 in sync / 3 drift or corrupt)",
     )
 
     sub = subparsers.add_parser("discover", help="Search CATALOG.md")
@@ -239,6 +245,10 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         print(f"ERROR: {result.message}", file=sys.stderr)
         return result.exit_code
 
+    # Drift gate: ``--check`` resolves to exit 0 (in sync) or 3 (drift).
+    if request.op == SkillsOp.CATALOG and request.flags.get("check") == "1":
+        return _render_catalog_check(result)
+
     if sub == "lint":
         return _render_lint(result, request)
     if sub == "catalog":
@@ -261,6 +271,13 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
         )
 
     if command == "catalog":
+        # ``--check`` is the drift gate (capability/agent level, exit 3);
+        # it takes precedence over the build/read tri-state.
+        if getattr(namespace, "check", False):
+            return SkillsRequest(
+                op=SkillsOp.CATALOG,
+                flags={"check": "1"},
+            )
         # Tri-state: no flag at all → both (the convenient agent default:
         # build then print). An explicit flag pins its value; the other
         # flag defaults to False.
@@ -323,6 +340,21 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
 
 
 # ─── Renderers ───────────────────────────────────────────────────────
+def _render_catalog_check(result: SkillsResult) -> int:
+    """Render the ``--check`` drift-gate output and return the exit code.
+
+    ``ok=True``  →  exit 0 (in sync, no output).
+    ``ok=False`` →  exit 3 (drift or corrupt), print diff/message.
+    """
+    if result.ok:
+        return 0
+    # ``result.message`` carries the diff text (``Catalog drift: ...``)
+    # or a corrupt-file notice — print it verbatim for the operator.
+    if result.message:
+        print(result.message)
+    return result.exit_code if result.exit_code else _EXIT_DRIFT
+
+
 def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the catalog build / read output."""
     build = request.flags.get("build", "1") == "1"
