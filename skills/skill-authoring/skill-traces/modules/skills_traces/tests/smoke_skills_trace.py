@@ -17,8 +17,7 @@ def test_smoke_trace_collect_exits_0(tmp_path: Path) -> None:
     code, _out, _err = run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
     )
@@ -32,16 +31,14 @@ def test_smoke_trace_usage_exits_0(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
     )
     code, _out, _err = run_trace_surface(
         grok_home,
         "traces", "usage",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
     )
@@ -55,8 +52,7 @@ def test_smoke_trace_phrases_exits_0(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
     )
@@ -77,8 +73,7 @@ def test_smoke_trace_state_get_exits_3_when_pending(tmp_path: Path) -> None:
         grok_home,
         "traces", "state",
         "set",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
         "--status",
@@ -88,8 +83,7 @@ def test_smoke_trace_state_get_exits_3_when_pending(tmp_path: Path) -> None:
         grok_home,
         "traces", "state",
         "get",
-        "--grok-home",
-        str(grok_home),
+
     )
     assert code[0] == 3
 
@@ -105,8 +99,7 @@ def test_smoke_trace_state_wait_ready_exits_0(tmp_path: Path) -> None:
         grok_home,
         "traces", "state",
         "wait",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
         "--timeout-min",

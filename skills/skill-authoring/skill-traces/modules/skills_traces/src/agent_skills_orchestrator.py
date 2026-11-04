@@ -141,6 +141,17 @@ class SkillsAgent(ISkillsAggregate):
                 message=f"Materialized usage.json + phrases.json → {run_dir}",
             )
 
+        if action == "prune":
+            max_sessions = int(request.flags.get("max_sessions", "100"))
+            kept, removed = traces.prune_sessions(
+                grok_home=GrokHome(grok_home), max_sessions=max_sessions
+            )
+            return SkillsResult(
+                ok=True,
+                op=op,
+                message=f"Pruned {removed} old session dirs; {kept} remain",
+            )
+
         if action == "state":
             return self._traces_state(request, op)
 

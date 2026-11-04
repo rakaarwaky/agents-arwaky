@@ -60,7 +60,9 @@ def _stderr(msg: str) -> None:
 def cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
     """Route a ``traces`` sub-action to its handler."""
     if not args:
-        _stderr("Usage: stc traces <collect|usage|phrases|materialize|state> [flags]")
+        _stderr(
+            "Usage: stc traces <collect|usage|phrases|materialize|prune|state> [flags]"
+        )
         return _EXIT_USAGE
     action = args[0]
     dispatch = {
@@ -68,6 +70,7 @@ def cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
         "usage": _cmd_traces_usage,
         "phrases": _cmd_traces_phrases,
         "materialize": _cmd_traces_materialize,
+        "prune": _cmd_traces_prune,
         "state": _cmd_traces_state,
     }
     handler = dispatch.get(action)
@@ -131,7 +134,6 @@ def _trace_usage_parser() -> argparse.ArgumentParser:
         prog="stc traces usage",
         description="Read the last run's skills-only usage report.",
     )
-    parser.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT, help="$GROK_HOME to read")
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to read usage from")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
@@ -146,7 +148,7 @@ def _cmd_traces_usage(args: list[str], aggregate: ISkillsAggregate) -> int:
         op=SkillsOp.TRACES,
         flags={
             "traces_action": "usage",
-            "grok_home": ns.grok_home,
+            "grok_home": _GROK_HOME_DEFAULT,
             "run_dir": ns.run_dir,
         },
     )
@@ -194,7 +196,6 @@ def _trace_phrases_parser() -> argparse.ArgumentParser:
         prog="stc traces phrases",
         description="Mine repeated prompts and instruction lines from session records.",
     )
-    parser.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT, help="$GROK_HOME (unused by phrases, kept for symmetry)")
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir holding session records")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
@@ -209,7 +210,7 @@ def _cmd_traces_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
         op=SkillsOp.TRACES,
         flags={
             "traces_action": "phrases",
-            "grok_home": ns.grok_home,
+            "grok_home": _GROK_HOME_DEFAULT,
             "run_dir": ns.run_dir,
         },
     )
@@ -274,7 +275,6 @@ def _trace_materialize_parser() -> argparse.ArgumentParser:
         prog="stc traces materialize",
         description="Write usage.json + phrases.json into a run dir for the trace workflow.",
     )
-    parser.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT, help="$GROK_HOME to read")
     parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to write into (required)")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
     return parser
@@ -293,7 +293,7 @@ def _cmd_traces_materialize(args: list[str], aggregate: ISkillsAggregate) -> int
         op=SkillsOp.TRACES,
         flags={
             "traces_action": "materialize",
-            "grok_home": ns.grok_home,
+            "grok_home": _GROK_HOME_DEFAULT,
             "run_dir": ns.run_dir,
         },
     )
@@ -319,6 +319,41 @@ def _cmd_traces_materialize(args: list[str], aggregate: ISkillsAggregate) -> int
     print(result.message or f"Materialized usage.json + phrases.json → {ns.run_dir}")
     return 0
 
+def _trace_prune_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="stc traces prune",
+        description="Remove old session dirs so at most N remain (default: 100).",
+    )
+    parser.add_argument(
+        "--max",
+        type=int,
+        default=100,
+        help="Maximum sessions to keep (default: 100)",
+    )
+    return parser
+
+
+def _cmd_traces_prune(args: list[str], aggregate: ISkillsAggregate) -> int:
+    try:
+        ns = _trace_prune_parser().parse_args(args)
+    except SystemExit as exit_exc:
+        return int(exit_exc.code or 0)
+
+    request = SkillsRequest(
+        op=SkillsOp.TRACES,
+        flags={
+            "traces_action": "prune",
+            "grok_home": _GROK_HOME_DEFAULT,
+            "max_sessions": str(ns.max),
+        },
+    )
+    result = aggregate.execute(request)
+    if not result.ok:
+        _stderr(result.message or "Prune failed")
+        return int(result.exit_code or 1)
+    print(result.message or "Prune complete")
+    return 0
+
 def _trace_state_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="stc traces state",
@@ -326,22 +361,18 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="action", required=True)
 
-    p_get = subparsers.add_parser("get", help="Show the pending run status")
-    p_get.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
+    _p_get = subparsers.add_parser("get", help="Show the pending run status")
 
     p_set = subparsers.add_parser("set", help="Set the pending run status")
-    p_set.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_set.add_argument("--run-dir", metavar="DIR", default="")
     p_set.add_argument("--status", required=True, help="collected|running|report_ready|curating|done")
 
     p_clear = subparsers.add_parser("clear", help="Clear the pending run")
-    p_clear.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_clear.add_argument("--run-dir", metavar="DIR", default="")
 
     p_trash = subparsers.add_parser(
         "trash", help="Move validated paths into learn/trash/<run_name>"
     )
-    p_trash.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_trash.add_argument(
         "--run-name", required=True, help="Trash sub-dir name (single path component)"
     )
@@ -351,7 +382,6 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     p_restrict.add_argument("paths", nargs="*", help="Paths to restrict")
 
     p_decide = subparsers.add_parser("decide", help="Append a decision line to learn/decisions.jsonl")
-    p_decide.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_decide.add_argument("--run-dir", metavar="DIR", default="")
     p_decide.add_argument("--id", required=True, help="Decision id")
     p_decide.add_argument("--kind", required=True, help="skill|workflow|hook")
@@ -365,7 +395,6 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     p_decide.add_argument("--undo", default=None, help="Undo path")
 
     p_wait = subparsers.add_parser("wait", help="Wait for report.md + actions.json in the run dir")
-    p_wait.add_argument("--grok-home", metavar="P", default=_GROK_HOME_DEFAULT)
     p_wait.add_argument("--run-dir", required=True, help="Run dir to watch")
     p_wait.add_argument("--timeout-min", type=int, default=90, help="Max minutes to wait")
     return parser
@@ -374,7 +403,7 @@ def _build_state_flags(ns: argparse.Namespace, action: str) -> dict[str, str]:
     flags = {
         "traces_action": "state",
         "state_action": action,
-        "grok_home": getattr(ns, "grok_home", ""),
+        "grok_home": _GROK_HOME_DEFAULT,
         "run_dir": getattr(ns, "run_dir", ""),
     }
     if action == "set":

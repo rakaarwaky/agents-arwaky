@@ -23,7 +23,10 @@ from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
-from shared.src.skills_traces.taxonomy_skills_constant import TRACE_COLLECT_MIN_TURNS
+from shared.src.skills_traces.taxonomy_skills_constant import (
+    TRACE_COLLECT_MIN_TURNS,
+    TRACE_PRUNE_MAX_SESSIONS,
+)
 from shared.src.skills_traces.taxonomy_skills_vo import (
     GrokHome,
     PhraseRow,
@@ -332,6 +335,39 @@ class SkillsTracesScan(ISkillsTraceScanProtocol):
             json.dump(self._phrases_to_json(report), f, indent=1, ensure_ascii=False)
 
         return usage, report
+
+    def prune_sessions(
+        self,
+        grok_home: GrokHome,
+        max_sessions: int = TRACE_PRUNE_MAX_SESSIONS,
+    ) -> tuple[int, int]:
+        """Remove the oldest session dirs until at most *max_sessions* remain.
+
+        Sessions are ordered by directory mtime (oldest first). Returns
+        ``(kept, removed)``. When ``<= max_sessions`` exist, nothing is
+        removed and ``(current_count, 0)`` is returned.
+        """
+        sessions_root = os.path.join(grok_home, "sessions")
+        if not os.path.isdir(sessions_root):
+            return 0, 0
+
+        entries = [
+            os.path.join(sessions_root, name)
+            for name in os.listdir(sessions_root)
+            if os.path.isdir(os.path.join(sessions_root, name))
+        ]
+        entries.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        kept_paths = entries[:max_sessions]
+        removed = 0
+        for path in entries[max_sessions:]:
+            try:
+                import shutil
+
+                shutil.rmtree(path)
+                removed += 1
+            except OSError:
+                pass
+        return len(kept_paths), removed
 
     @staticmethod
     def _usage_to_json(usage: UsageReport) -> dict:

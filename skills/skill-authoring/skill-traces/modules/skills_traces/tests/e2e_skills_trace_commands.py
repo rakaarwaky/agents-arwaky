@@ -18,8 +18,7 @@ def test_e2e_trace_collect_exits_0_and_prints_run_dir(tmp_path: Path) -> None:
     code, out, _err = run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
     )
@@ -35,8 +34,7 @@ def test_e2e_trace_collect_json_shape(tmp_path: Path) -> None:
     code, out, _err = run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
         "--json",
@@ -58,16 +56,14 @@ def test_e2e_trace_usage_exits_0(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
     )
     code, out, _err = run_trace_surface(
         grok_home,
         "traces", "usage",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
     )
@@ -82,16 +78,14 @@ def test_e2e_trace_usage_json_shape(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
     )
     code, out, _err = run_trace_surface(
         grok_home,
         "traces", "usage",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
         "--json",
@@ -108,8 +102,7 @@ def test_e2e_trace_phrases_exits_0(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
     )
@@ -129,8 +122,7 @@ def test_e2e_trace_phrases_json_shape(tmp_path: Path) -> None:
     run_trace_surface(
         grok_home,
         "traces", "collect",
-        "--grok-home",
-        str(grok_home),
+
         "--out",
         str(run_dir),
     )
@@ -155,8 +147,7 @@ def test_e2e_trace_state_get_pending_exits_3(tmp_path: Path) -> None:
         grok_home,
         "traces", "state",
         "set",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
         "--status",
@@ -169,8 +160,7 @@ def test_e2e_trace_state_get_pending_exits_3(tmp_path: Path) -> None:
         grok_home,
         "traces", "state",
         "get",
-        "--grok-home",
-        str(grok_home),
+
     )
     assert code[0] == 3
 
@@ -183,8 +173,7 @@ def test_e2e_trace_state_set_done_exits_0(tmp_path: Path) -> None:
         grok_home,
         "traces", "state",
         "set",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
         "--status",
@@ -204,8 +193,7 @@ def test_e2e_trace_state_wait_report_ready_exits_0(tmp_path: Path) -> None:
         grok_home,
         "traces", "state",
         "wait",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
         "--timeout-min",
@@ -227,8 +215,7 @@ def test_e2e_trace_state_wait_deadline_exits_2(tmp_path: Path, monkeypatch) -> N
         grok_home,
         "traces", "state",
         "wait",
-        "--grok-home",
-        str(grok_home),
+
         "--run-dir",
         str(run_dir),
         "--timeout-min",

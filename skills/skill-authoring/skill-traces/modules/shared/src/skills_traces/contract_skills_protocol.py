@@ -24,6 +24,7 @@ from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
 )
 from shared.src.skills_traces.taxonomy_skills_constant import (
     TRACE_COLLECT_MIN_TURNS,
+    TRACE_PRUNE_MAX_SESSIONS,
 )
 from shared.src.skills_traces.taxonomy_skills_vo import (
     GrokHome,
@@ -86,6 +87,21 @@ class ISkillsTraceScanProtocol(ABC):
 
         Returns the two reports so the agent can echo them in the result.
         """
+
+    @abstractmethod
+    def prune_sessions(
+        self,
+        grok_home: GrokHome,
+        max_sessions: int = TRACE_PRUNE_MAX_SESSIONS,
+    ) -> tuple[int, int]:
+        """Prune old session dirs so at most *max_sessions* remain.
+
+        Removes the oldest session directories (by mtime) from
+        ``$GROK_HOME/sessions`` until ``max_sessions`` are left, or does
+        nothing if fewer than ``max_sessions`` exist. Returns
+        ``(kept, removed)``.
+        """
+        ...
 
 class ISkillsTraceStateProtocol(ABC):
     """Trace-learning lifecycle: status machine, trash, decisions, wait, restrict, dispatch."""

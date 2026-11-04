@@ -117,6 +117,10 @@ TRACE_COLLECT_LIMIT_UNLIMITED: Final = True
 #: the run dir on every run.
 TRACE_COLLECT_WRITE_JSON_ALWAYS: Final = True
 
+#: Default maximum sessions kept in ``$GROK_HOME/sessions``; older sessions
+#: beyond this count are removed by ``stc traces prune``.
+TRACE_PRUNE_MAX_SESSIONS: Final = 100
+
 #: Default run dir pattern for skill-traces runs; ``<GROK_HOME>`` and
 #: ``<run-id>`` are substituted at call time.
 TRACE_COLLECT_RUN_DIR_PATTERN: Final = "{GROK_HOME}/skill-traces/runs/{run_id}/"
@@ -140,6 +144,7 @@ __all__ = [
     "TRACE_COLLECT_RUN_DIR_PATTERN",
     "TRACE_COLLECT_SINCE_LAST",
     "TRACE_COLLECT_WRITE_JSON_ALWAYS",
+    "TRACE_PRUNE_MAX_SESSIONS",
     "_HEADER",
     "_KEEP_DIRS",
     "_MISSING_DESCRIPTION_PLACEHOLDER",
