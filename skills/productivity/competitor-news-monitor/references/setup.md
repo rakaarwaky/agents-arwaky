@@ -19,7 +19,7 @@ For each company include, where available:
 
 Use `blogwatcher` (optional, stateful) for feeds, and `web_search`/`web_extract` for pages. Write the watch contract (watchlist, categories, materiality threshold, last cutoff) to a state file under `~/.hermes/competitor-watches/<watch-slug>.json`, then create the job:
 
-```
+```text
 cronjob(action="create",
         schedule="every monday 9am",
         prompt="Load the competitor-news-monitor skill and run the tick for the watch contract at ~/.hermes/competitor-watches/<watch-slug>.json.",
