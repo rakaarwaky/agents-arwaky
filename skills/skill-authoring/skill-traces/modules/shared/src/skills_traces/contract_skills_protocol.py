@@ -21,17 +21,6 @@ from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
 from shared.src.skills_traces.taxonomy_skills_constant import (
     TRACE_COLLECT_MIN_TURNS,
 )
-from shared.src.skills_traces.taxonomy_skills_entity import (
-    CategorySummary,
-    Issue,
-    SkillEntry,
-)
-from shared.src.skills_traces.taxonomy_skills_rule_vo import (
-    IssueType,
-    Level,
-    Rule,
-    SkillName,
-)
 from shared.src.skills_traces.taxonomy_skills_vo import (
     GrokHome,
     ScanResult,
@@ -156,13 +145,6 @@ class ISkillsTraceStateProtocol(ABC):
 
 
 __all__ = [
-    "CategorySummary",
     "ISkillsTraceScanProtocol",
     "ISkillsTraceStateProtocol",
-    "Issue",
-    "IssueType",
-    "Level",
-    "Rule",
-    "SkillEntry",
-    "SkillName",
 ]
