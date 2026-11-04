@@ -104,3 +104,10 @@ When a delegated agent finishes work inside a worktree, do not trust its
    --release && ./target/release/lint-arwaky-cli check .` expecting
    `Total: 0 violations`) on a clean tree before pushing. A green run on a
    dirty tree proves nothing about the committed blob.
+4. Never trust a delegated agent's self-report that a gate passed —
+   re-run the gate yourself against the exact commit that will be pushed,
+   and verify that commit's blobs (e.g. `git show HEAD:<path>`) when in
+   doubt. A green local run reported by the agent can be a false positive
+   on a dirty tree or on a commit different from the one that landed;
+   and a CI failure you already dismissed as "stale" can belong to the
+   newest SHA — re-fetch CI run state before believing any gate is green.
