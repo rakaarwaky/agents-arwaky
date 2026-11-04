@@ -74,6 +74,7 @@ repo's own multi-language workspace (`crates/`, `modules/`,
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
 | CI workflow | [`references/ci-workflow.md`](references/ci-workflow.md) | The five `ci.yml` jobs (Rust flavor), cache env, the self-lint job, and the supporting release/tag/cleanup/labeler workflows. |
+| Self-lint job | [`references/self-lint.md`](references/self-lint.md) | The exit-code-authoritative self-lint script, the ≥24 AES-code fixture assertion, and the `cargo build --release` prerequisite. |
 | Branch protection | [`references/branch-protection.md`](references/branch-protection.md) | The "Protect main - quality gates" ruleset with strict + push blocks. |
 | Auto-merge | [`references/auto-merge.yml.md`](references/auto-merge.yml.md) | The squash-merge workflow and the PR-metadata env-var injection rule. |
 | AI review layers | [`references/ai-review-layers.md`](references/ai-review-layers.md) | cubic ultrareview and Repowise health-gate config, plus fixture exclusion. |
