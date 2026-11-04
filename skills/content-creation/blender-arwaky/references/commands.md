@@ -82,7 +82,7 @@ CLI memakai command kebab-case satu-per-tool; MCP memakai `execute_command(actio
 | Tool | Purpose |
 |------|---------|
 | `execute_command` | Universal action executor — dispatches any action from the catalog. Shape: `{"action": "action_name", "args": {"param": "value"}}` |
-| `list_commands` | Discover available actions and parameters. Shape: `{"domain": "scene"}` — or `"object"`, `"viewport"`, `"render"`, `"io"`, `"infrastructure"`, `"all"` |
+| `list_commands` | Discover available actions and parameters by domain. Shape: `{"domain": "scene"}` |
 | `health_check` | Verify Blender connectivity and system health |
 | `get_config` | Retrieve BlenderArwaky configuration settings |
 | `help` | Read embedded MCP and CLI usage guidance |

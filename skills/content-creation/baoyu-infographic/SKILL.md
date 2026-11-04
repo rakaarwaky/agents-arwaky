@@ -44,5 +44,5 @@ the source data verbatim.
 | Content       | [`references/structured-content-template.md`](references/structured-content-template.md)      | The `structured-content.md` file format.                                                     |
 | Prompt        | [`references/base-prompt.md`](references/base-prompt.md)                                      | The base prompt template all generated prompts are built on.                                 |
 | Output        | [`references/output.md`](references/output.md)                                                 | Output directory layout, slug/conflict rules, and the final summary.                          |
-| Layouts       | [`references/layouts/<layout>.md`](references/layouts/bento-grid.md)                           | 21 layout definitions (one file per layout).                                                 |
-| Styles        | [`references/styles/<style>.md`](references/styles/craft-handmade.md)                         | 21 style definitions (one file per style).                                                   |
+| Layouts       | [`templates/layouts/`](templates/layouts/bento-grid.md)                                     | 21 layout definitions (one file per layout).                                                 |
+| Styles        | [`templates/styles/`](templates/styles/craft-handmade.md)                                   | 21 style definitions (one file per style).                                                   |

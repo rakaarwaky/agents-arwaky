@@ -1,4 +1,6 @@
-# Reviewer prompts — Phase 2 detail
+# Step 4 — Reviewer Prompts
+
+Full prompt text for each of the four reviewer lenses used by the 4-lens diff sweep.
 
 ## Reviewer 1 — Code Reuse
 

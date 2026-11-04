@@ -38,7 +38,7 @@ definition lives.
 | `circular-flow` | Cycles, recurring processes |
 | `dense-modules` | High-density modules, data-rich guides |
 
-Full definitions: `references/layouts/<layout>.md`
+Full definitions: `templates/layouts/<layout>.md` (one file per layout)
 
 ## Style Gallery
 
@@ -66,7 +66,7 @@ Full definitions: `references/layouts/<layout>.md`
 | `retro-pop-grid` | 1970s retro pop art, Swiss grid, thick outlines |
 | `hand-drawn-edu` | Macaron pastels, hand-drawn wobble, stick figures |
 
-Full definitions: `references/styles/<style>.md`
+Full definitions: `templates/styles/<style>.md` (one file per style)
 
 ## How to Combine
 
