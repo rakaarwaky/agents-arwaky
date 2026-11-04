@@ -10,9 +10,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from skills_traces.src.taxonomy_skills_authoring_vo import PhrasesReport
-from skills_traces.src.taxonomy_skills_vo import PhraseRow
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
+from shared.src.skills_traces.taxonomy_skills_authoring_vo import PhrasesReport
+from shared.src.skills_traces.taxonomy_skills_vo import PhraseRow
+from shared.src.skills_traces.capabilities_skills_traces import SkillsTraces
 
 
 def _write_record(run_dir: Path, session_id: str, turns: list[str], repeated_single_turn: bool = False) -> None:

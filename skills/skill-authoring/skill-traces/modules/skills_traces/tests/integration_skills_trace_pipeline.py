@@ -14,20 +14,20 @@ from skills_design.src.agent_skills_orchestrator import SkillsAgent
 from skills_design.src.capabilities_skills_lister import SkillsLister
 from skills_design.src.capabilities_skills_reader import SkillsPackReader
 
-from skills_traces.src.contract_skills_protocol import (
+from shared.src.skills_traces.contract_skills_protocol import (
     ISkillsTracesProtocol,
 )
-from skills_traces.src.taxonomy_skills_authoring_vo import (
+from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
-from skills_traces.src.taxonomy_skills_vo import (
+from shared.src.skills_traces.taxonomy_skills_vo import (
     ScanResult,
     SkillsOp,
     SkillsRequest,
     TraceStateStatus,
 )
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
+from shared.src.skills_traces.capabilities_skills_traces import SkillsTraces
 from skills_traces.tests.fixture_skills import make_grok_home
 
 

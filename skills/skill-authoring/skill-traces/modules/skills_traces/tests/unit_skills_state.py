@@ -15,11 +15,11 @@ from pathlib import Path
 
 import pytest
 
-from skills_traces.src.taxonomy_skills_vo import (
+from shared.src.skills_traces.taxonomy_skills_vo import (
     TraceDecision,
     TraceStateStatus,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     STATUSES,
     decisions_path,
     files_ready,
@@ -30,7 +30,7 @@ from skills_traces.src.utility_skills_trace_state import (
     save_state,
     state_path,
 )
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
+from shared.src.skills_traces.capabilities_skills_traces import SkillsTraces
 
 
 def _grok_home(tmp_path: Path) -> Path:
@@ -46,7 +46,7 @@ def _state(tmp_path: Path) -> SkillsTraces:
 
 def test_state_implements_protocol() -> None:
     """SkillsTraces satisfies the ISkillsTracesProtocol contract."""
-    from skills_traces.src.contract_skills_protocol import ISkillsTracesProtocol
+    from shared.src.skills_traces.contract_skills_protocol import ISkillsTracesProtocol
 
     assert isinstance(SkillsTraces(), ISkillsTracesProtocol)
 

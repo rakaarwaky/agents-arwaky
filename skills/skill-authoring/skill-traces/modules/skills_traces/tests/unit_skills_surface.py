@@ -10,8 +10,6 @@ from skills_design.tests.fixture_skills import (
     run_surface,
 )
 
-from skills_design.src.surface_skills_command import cmd_skills
-
 
 def test_unknown_subcommand_exits_2(capsys) -> None:
     """Flagged change: ``aa skills <unknown>`` is a usage error (2)."""

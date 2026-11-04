@@ -49,18 +49,18 @@ from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from skills_traces.src.utility_skill_pack import (
+from shared.src.skills_traces.utility_skill_pack import (
     SLASH_RE,
     parse_skill_frontmatter,
 )
-from skills_traces.src.contract_skills_protocol import (
+from shared.src.skills_traces.contract_skills_protocol import (
     ISkillsTracesProtocol,
 )
-from skills_traces.src.taxonomy_skills_authoring_vo import (
+from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
-from skills_traces.src.taxonomy_skills_vo import (
+from shared.src.skills_traces.taxonomy_skills_vo import (
     GrokHome,
     PhraseRow,
     ScanResult,
@@ -72,7 +72,7 @@ from skills_traces.src.taxonomy_skills_vo import (
     TraceStateDispatchResult,
     TraceStateStatus,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     DEFAULT_DROP_PATTERNS,
     DEFAULT_EXCLUDE_SUBSTR,
     SKILL_PATH_RE,
@@ -86,43 +86,43 @@ from skills_traces.src.utility_skills_trace_state import (
     redact,
     state_path,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     EXACT_MIN_SESSIONS as _EXACT_MIN_SESSIONS,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     LINE_MIN_SESSIONS as _LINE_MIN_SESSIONS,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     MIN_LINE_CHARS as _MIN_LINE_CHARS,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     MIN_LINE_WORDS as _MIN_LINE_WORDS,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     MIN_PHRASE_LEN as _MIN_PHRASE_LEN,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     SLASH_ONLY as _SLASH_ONLY,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     STEM_MIN_SESSIONS as _STEM_MIN_SESSIONS,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     TOP as _TOP,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     USER_QUERY_RE as _USER_QUERY_RE,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     dispatch as _state_dispatch,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     restrict as _restrict,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     trash as _trash,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     wait as _wait,
 )
 

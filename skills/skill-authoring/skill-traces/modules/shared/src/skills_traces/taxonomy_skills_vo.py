@@ -24,10 +24,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import NewType
 
-from skills_traces.src.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
-)
+from shared.src.skills_traces.taxonomy_skills_request import SkillQuery, SkillsRoot
 
 # Every other primitive below (``SkillContent``, ``SkillRecord``, the trace
 # VOs, ...) is re-exported back into the request/response envelope modules
@@ -204,16 +201,6 @@ class TraceStateDispatchResult:
     lines: tuple[str, ...] = ()
 
 
-# Re-exported into the legacy import path: the request/response envelope
-# modules import *only* the primitives defined above (``SkillRecord``,
-# ``ScanResult``, ...) — no import of this module at runtime, so no cycle
-# in either direction.
-from skills_traces.src.taxonomy_skills_request import SkillsOp, SkillsRequest
-from skills_traces.src.taxonomy_skills_response import (
-    SkillsExitCode,
-    SkillsResult,
-)
-
 __all__ = [
     "DiffLines",
     "ErrorMessage",
@@ -225,11 +212,7 @@ __all__ = [
     "SkillQuery",
     "SkillRecord",
     "SkillUsageItem",
-    "SkillsExitCode",
     "SkillsJsonPayload",
-    "SkillsOp",
-    "SkillsRequest",
-    "SkillsResult",
     "SkillsRoot",
     "TraceDecision",
     "TraceRunDir",

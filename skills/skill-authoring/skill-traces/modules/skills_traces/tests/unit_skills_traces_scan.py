@@ -11,18 +11,18 @@ from pathlib import Path
 
 import pytest
 
-from skills_traces.src.contract_skills_protocol import ISkillsTracesProtocol
-from skills_traces.src.taxonomy_skills_authoring_vo import UsageReport
-from skills_traces.src.taxonomy_skills_vo import (
+from shared.src.skills_traces.contract_skills_protocol import ISkillsTracesProtocol
+from shared.src.skills_traces.taxonomy_skills_authoring_vo import UsageReport
+from shared.src.skills_traces.taxonomy_skills_vo import (
     ScanResult,
     SkillUsageItem,
     TraceSessionRecord,
 )
-from skills_traces.src.utility_skills_trace_state import (
+from shared.src.skills_traces.utility_skills_trace_state import (
     TURN_CAP,
     redact,
 )
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
+from shared.src.skills_traces.capabilities_skills_traces import SkillsTraces
 
 
 def _write_session(grok_home: Path, enc_cwd: str, sid: str, summary: dict, turns: list[str]) -> Path:

@@ -6,15 +6,15 @@ import typing
 
 import pytest
 
-from skills_traces.src.contract_skills_protocol import (
+from shared.src.skills_traces.contract_skills_protocol import (
     ISkillsListerProtocol,
     ISkillsTracesProtocol,
 )
-from skills_traces.src.taxonomy_skills_authoring_vo import (
+from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
-from skills_traces.src.taxonomy_skills_vo import (
+from shared.src.skills_traces.taxonomy_skills_vo import (
     PhraseRow,
     SkillsOp,
     SkillUsageItem,

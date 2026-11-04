@@ -40,8 +40,8 @@ import shutil
 import stat
 import time
 
-from skills_traces.src.taxonomy_skills_error import SkillsUsageError
-from skills_traces.src.taxonomy_skills_vo import (
+from shared.src.skills_traces.taxonomy_skills_error import SkillsUsageError
+from shared.src.skills_traces.taxonomy_skills_vo import (
     TraceDecision,
     TraceStateDispatchResult,
     TraceStateStatus,

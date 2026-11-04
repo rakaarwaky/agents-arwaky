@@ -20,7 +20,7 @@ WORD_RE = re.compile(r"\s+")
 from modules.shared.src.common.taxonomy_skill_vo import (
     extract_skill_name,
 )
-from modules.shared.src.skills.taxonomy_skills_constant import (
+from skills_design.src.taxonomy_skills_constant import (
     IGNORED_CATEGORY_DIRS,
 )
 
@@ -34,7 +34,7 @@ __all__ = [
 
 def default_pack_root() -> Path:
     """Return the repo's ``skills/`` pack (the SSOT for all skills)."""
-    return Path(__file__).resolve().parents[4] / "skills"
+    return Path(__file__).resolve().parents[6] / "skills"
 
 
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:
