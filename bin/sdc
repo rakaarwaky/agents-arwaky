@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+"""sdc — skills-design CLI (standalone binary).
+
+Entry point for ``sdc`` (skill-design-cli): a fully standalone AES
+7-layer package that bootstraps only its own namespace root
+(``skills_design``/``cli``). No shared dependency, no coupling to the
+skill-traces app.
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+_MY_DIR = Path(__file__).resolve().parent
+_MODULES = _MY_DIR.parent / "skills" / "skill-authoring" / "skill-design" / "modules"
+if str(_MODULES) not in sys.path:
+    sys.path.insert(0, str(_MODULES))
+
+from cli.src.surface_skills_command import cmd_skills  # noqa: E402
+from skills_design.src.root_skills_container import default_aggregate  # noqa: E402
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entry point for ``sdc <verb> [flags]``."""
+    args = argv if argv is not None else sys.argv[1:]
+    if not args:
+        print("Usage: sdc <list|read|lint|catalog|discover|move|archive|create> [flags]", file=sys.stderr)
+        return 2
+    aggregate = default_aggregate()
+    return cmd_skills(args, aggregate)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
