@@ -72,7 +72,16 @@ change) and it runs with permissions bypassed, so nothing stops it from
 committing or even pushing before you read back what happened. Treat every
 supervised run as untrusted until verified:
 
-1. After the run, re-read the actual worktree state — `git status --short`,
+1. **Worktree base must match the plan.** `orca worktree create --agent grok`
+   can base the new branch on the remote default (`origin/main`) even when
+   the brief assumes a different base (e.g. stacked on a sibling feature
+   branch): before driving the run, `git log --oneline -3` in the worktree
+   and reset to the intended base (`git reset --hard <base-sha>` on the
+   new branch, or recreate) — a stacked task built on the wrong base will
+   either conflict or miss its predecessor's work. Untracked/staged
+   leftovers in a freshly created worktree are yours to reconcile; only
+   `git reset --hard` after verifying nothing of value is in it.
+2. After the run, re-read the actual worktree state — `git status --short`,
    `git log --oneline -3`, and the full `git diff <base>..HEAD` — rather than
    trusting the commit message or a "done" summary. If the diff diverges from
    the brief, re-brief with an explicit "do exactly these N changes, nothing
@@ -80,13 +89,23 @@ supervised run as untrusted until verified:
    over it.
 2. The agent may commit and push on its own before you do — after a wait times
    out, re-check `git log` and the remote branch before assuming the worktree
-   is still in the state you last saw. If it already opened a PR whose title
+   the worktree is still in the state you last saw. If it already opened a PR whose title
    or body describe a superseded design, rewrite both to match the final diff,
    not the original intent. Use `git push --force-with-lease=<ref>:<sha>` (never
    bare `--force`) to replace a superseded commit on an already-pushed branch,
    and check `gh pr list --head <branch>` to catch a PR that was opened as an
    unintended side effect of the agent's push.
-3. Same protocol applies to follow-up briefs sent while the previous run's
+4. **Judge inherited red by comparison with the base, not by an absolute
+   green.** Before believing a CI/test failure is caused by your branch,
+   run the same test command on the base branch (e.g. `main`) and diff the
+   failing sets: identical failures on both are pre-existing repo red
+   (main itself may be red for a while) and out of scope — note them in the
+   PR body and stop; failures present only on your branch are yours to fix.
+   CI can also fail on pre-existing lint in files you did not touch (e.g.
+   import-sort I001 in unrelated script tests); in that case run the linter
+   locally scoped to the failing files, apply the minimal `--fix`, and commit
+   it with a message naming the rule so the follow-up is auditable.
+5. Same protocol applies to follow-up briefs sent while the previous run's
    commit is still unpushed: re-check `git status`/`git log` before assuming the
    worktree is clean, since the agent may have raced ahead of your last check
    and already committed (or pushed) the follow-up work itself — a commit you
@@ -116,7 +135,15 @@ single skill:
   re-drop.
 - **Wait, don't poll.** Use `orca terminal wait --for tui-idle` (retry with a
   larger timeout while `satisfied: false`); fall back to `orca terminal read`
-  only to inspect output, never to prod Grok.
+  only to inspect output, never to prod Grok. Two read/`wait` quirks:
+  a `read` whose stream `tail` stays empty is not proof the agent has no
+  input queued (its stream can be empty while it is actively editing files) —
+  check the worktree's `git status`/`git log` instead; and
+  `satisfied: true` can come back while `status` is still `running`, meaning
+  'no pending input', not 'job finished'. A foreground `wait` whose timeout
+  exceeds the terminal tool's cap is promoted to a tracked background
+  process with a `session_id` — drive it via `process_manage`, never re-run
+  the wait.
 - **Verify and ship yourself.** When idle, read Grok's artifacts (its state
   file / summary / review files under its scratch dir), audit the worktree
   against the in-scope paths, run the repo's local gate on a clean tree, then

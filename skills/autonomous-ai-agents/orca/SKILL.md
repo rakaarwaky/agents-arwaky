@@ -82,6 +82,15 @@ Mutually exclusive per worktree — pick one per worktree, never both. The `impl
 `execute-plan` skills in the agents-arwaky tree use the supervised mode; their step files
 are the authoritative protocol for that class of task.
 
+- **Verify the worktree's base before dropping a brief.** `worktree create`
+  bases the new branch on the remote default (`origin/main`) regardless of
+  `--prompt`; for a task stacked on a sibling feature branch, check
+  `git log --oneline -3` in the worktree and `git reset --hard <base-sha>`
+  (or recreate) before sending the brief — otherwise the work conflicts or
+  misses its predecessor's commits. `--prompt` (if used) reaches the TUI
+  only as queued text; an empty TUI stream does not mean the prompt was
+  never delivered — check worktree state instead.
+
 ## Handoff vs. supervision boundary
 
 Full ownership handoff — "hand off", "handover", "give this to another agent", "another
