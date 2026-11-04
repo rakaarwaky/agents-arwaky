@@ -150,6 +150,12 @@ usual cause of "why is it still trying xAI". Global preferences live in
   run `/doctor` when keys or colors misbehave in tmux.
 - **No git repo needed** for a task, but for PR/commit workflows you still want one —
   use `mktemp -d && git init` for scratch commit tasks.
+- **Verify the diff, not just the commit SHA, before pushing or opening a PR.** A
+  matching commit message only proves the commit exists, not that it contains
+  exactly what you briefed. Always `git diff <base>..HEAD` and check the actual
+  hunks against the brief; if the diff diverges, re-brief with an explicit
+  "do exactly these N changes, nothing else" constraint rather than patching over
+  a broader design the agent invented on its own.
 - **Clean up tmux sessions** with `tmux kill-session -t <name>` when done.
 
 ## Rules for Hermes Agents

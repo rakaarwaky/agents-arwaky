@@ -58,6 +58,34 @@ git worktree remove ~/.hermes/cache/scratch/issue-78
 The same worktrees can be Orca-managed (`orca worktree create`), but plain `git
 worktree` works without the Orca daemon.
 
+## Delegation Verification Protocol (supervised Orca-TUI runs)
+
+The TUI brief you send is the only contract the agent has. It may do more than
+you asked (e.g. invent a broader design on a task you briefed as a narrow
+change) and it runs with permissions bypassed, so nothing stops it from
+committing or even pushing before you read back what happened. Treat every
+supervised run as untrusted until verified:
+
+1. After the run, re-read the actual worktree state — `git status --short`,
+   `git log --oneline -3`, and the full `git diff <base>..HEAD` — rather than
+   trusting the commit message or a "done" summary. If the diff diverges from
+   the brief, re-brief with an explicit "do exactly these N changes, nothing
+   else" constraint (or reset the divergent commit first) instead of patching
+   over it.
+2. The agent may commit and push on its own before you do — after a wait times
+   out, re-check `git log` and the remote branch before assuming the worktree
+   is still in the state you last saw. If it already opened a PR whose title
+   or body describe a superseded design, rewrite both to match the final diff,
+   not the original intent. Use `git push --force-with-lease=<ref>:<sha>` (never
+   bare `--force`) to replace a superseded commit on an already-pushed branch,
+   and check `gh pr list --head <branch>` to catch a PR that was opened as an
+   unintended side effect of the agent's push.
+3. Same protocol applies to follow-up briefs sent while the previous run's
+   commit is still unpushed: re-check `git status`/`git log` before assuming the
+   worktree is clean, since the agent may have raced ahead of your last check
+   and already committed (or pushed) the follow-up work itself — a commit you
+   expected to make may already exist on top of the work you were inspecting.
+
 ## Post-Delegation Verification (before commit/push)
 
 When a delegated agent finishes work inside a worktree, do not trust its
