@@ -24,15 +24,10 @@ from enum import StrEnum
 from pathlib import Path
 from typing import NewType
 
-from shared.src.skills_design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
-)
-
 # Every other primitive below (``SkillContent``, ``SkillRecord``, the trace
-# VOs, ...) is re-exported back into the request/response envelope modules
-# after its definition, so the envelope modules never import this module at
-# runtime — no cycle in either import order.
+# VOs, ...) is defined here and re-exported back into the request/response
+# envelope modules after its definition, so the envelope modules never
+# import this module at runtime — no cycle in either import order.
 SkillContent = NewType("SkillContent", str)
 """Raw SKILL.md text returned by a read."""
 
@@ -207,12 +202,10 @@ class TraceStateDispatchResult:
 # Re-exported into the legacy import path: the request/response envelope
 # modules import *only* the primitives defined above (``SkillRecord``,
 # ``ScanResult``, ...) — no import of this module at runtime, so no cycle
-# in either direction.
-from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
-from shared.src.skills_design.taxonomy_skills_response import (
-    SkillsExitCode,
-    SkillsResult,
-)
+# in either direction. Downstream consumers should import
+# ``SkillsOp``/``SkillsRequest`` from ``taxonomy_skills_request`` and
+# ``SkillsExitCode``/``SkillsResult`` from ``taxonomy_skills_response``
+# directly instead of through this module.
 
 __all__ = [
     "DiffLines",
@@ -225,12 +218,7 @@ __all__ = [
     "SkillQuery",
     "SkillRecord",
     "SkillUsageItem",
-    "SkillsExitCode",
     "SkillsJsonPayload",
-    "SkillsOp",
-    "SkillsRequest",
-    "SkillsResult",
-    "SkillsRoot",
     "TraceDecision",
     "TraceRunDir",
     "TraceRunName",

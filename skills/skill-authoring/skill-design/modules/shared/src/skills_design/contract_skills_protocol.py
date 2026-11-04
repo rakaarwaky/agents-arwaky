@@ -38,10 +38,8 @@ from shared.src.skills_design.taxonomy_skills_rule_vo import (
 )
 from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
-    SkillQuery,
     SkillRecord,
     SkillsJsonPayload,
-    SkillsRoot,
 )
 
 
