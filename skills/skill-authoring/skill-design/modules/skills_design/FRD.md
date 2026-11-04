@@ -385,7 +385,7 @@ script are pinned by the surface and contract test files.
 
 | Artifact     | Purpose                                           | Link                                     |
 |--------------|---------------------------------------------------|------------------------------------------|
-| PRD          | Business goals, user stories, and scope           | [PRD.md](../../PRD.md)                   |
+| PRD          | Business goals, user stories, and scope           | [PRD.md](../../../../../PRD.md)                   |
 | Backlog      | Task tracking, epics, and implementation status   | [BACKLOG.md](BACKLOG.md)                 |
-| ROADMAP      | Timeline, phasing, and dependencies               | [ROADMAP.md](../../ROADMAP.md)           |
-| ARCHITECTURE | System boundaries, tech stack, and infrastructure | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
+| ROADMAP      | Timeline, phasing, and dependencies               | [ROADMAP.md](../../../../../ROADMAP.md)           |
+| ARCHITECTURE | System boundaries, tech stack, and infrastructure | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |

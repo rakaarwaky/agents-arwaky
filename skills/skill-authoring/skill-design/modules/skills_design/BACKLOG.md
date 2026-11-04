@@ -1,7 +1,7 @@
 # Feature Backlog: skills_design
 
 FRD: [FRD.md](FRD.md)
-Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
+Architecture: [ARCHITECTURE.md](../../../../../ARCHITECTURE.md)
 State: root § State Definitions
 Health: root § State Definitions
 Last Updated: 2026-11-04
@@ -125,7 +125,7 @@ counterpart.
 
 | Artifact     | Purpose                                         | Link |
 |--------------|-------------------------------------------------|------|
-| PRD          | <Business goals, user stories, and scope>       | [PRD.md](../../PRD.md) |
+| PRD          | <Business goals, user stories, and scope>       | [PRD.md](../../../../../PRD.md) |
 | FRD          | <Functional requirements specification>         | [FRD.md](FRD.md) |
-| ROADMAP      | <Timeline, phasing, and dependencies>           | [ROADMAP.md](../../ROADMAP.md) |
-| ARCHITECTURE | <System boundaries, tech stack, and infra>      | [ARCHITECTURE.md](../../ARCHITECTURE.md) |
+| ROADMAP      | <Timeline, phasing, and dependencies>           | [ROADMAP.md](../../../../../ROADMAP.md) |
+| ARCHITECTURE | <System boundaries, tech stack, and infra>      | [ARCHITECTURE.md](../../../../../ARCHITECTURE.md) |
