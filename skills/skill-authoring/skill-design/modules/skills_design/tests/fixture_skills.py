@@ -14,8 +14,8 @@ import contextlib
 import io
 from pathlib import Path
 
-from modules.cli.src.surface_skills_command import cmd_skills
-from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
+from skills_design.src.surface_skills_command import cmd_skills
+from skills_design.src.taxonomy_skills_vo import SkillsRoot
 from skills_design.src.root_skills_container import default_aggregate
 
 

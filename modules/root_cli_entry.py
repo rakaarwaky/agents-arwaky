@@ -41,11 +41,15 @@ from modules.shared.src.common.utility_process_runner import run_cmd as _run_cmd
 
 ROOT = repo_root()
 
-# The skills feature modules live under their skill content dirs (standalone
-# CLI apps, AES702 split): skills/skill-authoring/skill-design/modules/
-# exposes the top-level `skills_design` package and
+# The skills feature lives in TWO fully independent standalone packages
+# (AES702, no shared layer): skills/skill-authoring/skill-design/modules/
+# exposes the top-level `skills_design` package,
 # skills/skill-authoring/skill-traces/modules/ the `skills_traces` package.
-# They sit outside the `modules` namespace, so expose their namespace roots.
+# Each owns its own copies of the contract/taxonomy modules it needs; there
+# is no cross-tree import. This entry point is the ONLY place that knows
+# both packages exist and composes them: it exposes both namespace roots
+# and, in cmd_skills, builds the shared aggregate (design agent + traces
+# capability) so `aa skills` / `aa skills traces ...` dispatch end-to-end.
 for _skills_ns in (
     ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules",
@@ -567,12 +571,23 @@ def cmd_disconnect(argv: list[str]) -> int:
 
 
 def cmd_skills(argv: list[str]) -> int:
-    """Skill-pack discovery and authoring: aa skills <verb> [args]."""
+    """Skill-pack discovery and authoring: aa skills <verb> [args].
+
+    Composition point for the two independent packages (AES702): the
+    design tree owns the agent + surface, the traces tree owns the
+    ``SkillsTraces`` capability. Only this orchestrator-owned entry wires
+    the two together — the design tree itself never imports
+    ``skills_traces``.
+    """
+    from skills_traces.src.capabilities_skills_traces import SkillsTraces
+
     from skills_design.src.root_skills_container import default_aggregate
+    from skills_design.src.surface_skills_command import (
+        cmd_skills as _skills_surface,
+    )
 
-    from modules.cli.src.surface_skills_command import cmd_skills as _skills_surface
-
-    return _skills_surface(list(argv), default_aggregate())
+    aggregate = default_aggregate(traces=SkillsTraces())
+    return _skills_surface(list(argv), aggregate)
 
 def cmd_completion(argv: list[str]) -> int:
     """Print a bash/zsh completion script for the aa CLI."""

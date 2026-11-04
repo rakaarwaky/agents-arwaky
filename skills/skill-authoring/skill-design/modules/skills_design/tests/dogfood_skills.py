@@ -17,7 +17,7 @@ def test_dogfood_skills_list():
 @pytest.mark.dogfood
 def test_dogfood_skills_show():
     """DOG-SKILLS-002: reading a real SKILL.md works end to end."""
-    from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery
+    from skills_design.src.taxonomy_skills_vo import SkillQuery
     from skills_design.src.capabilities_skills_lister import (
         SkillsLister,
     )
@@ -41,7 +41,7 @@ def test_dogfood_lint_live_pack_is_deterministic():
     issue carries a locator and a message — the invariants the CLI relies
     on.
     """
-    from modules.shared.src.skills.taxonomy_skills_vo import SkillsRequest
+    from skills_design.src.taxonomy_skills_vo import SkillsRequest
     from skills_design.src.root_skills_container import default_aggregate
 
     first = default_aggregate().execute(SkillsRequest(op="lint"))

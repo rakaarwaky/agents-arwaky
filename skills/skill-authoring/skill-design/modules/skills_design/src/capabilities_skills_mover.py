@@ -19,20 +19,20 @@ import shutil
 from pathlib import Path
 
 from modules.shared.src.common.utility_skills_tree import relpath
-from modules.shared.src.skills.contract_skills_protocol import (
+from skills_design.src.contract_skills_protocol import (
     ISkillsMoverProtocol,
 )
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+from skills_design.src.taxonomy_skills_authoring_vo import (
     MutationOutcome,
     MutationPlan,
 )
-from modules.shared.src.skills.taxonomy_skills_error import (
+from skills_design.src.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from modules.shared.src.skills.taxonomy_skills_rule_vo import CategoryName, SkillName
-from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.shared.src.skills.utility_skills_mutation import (
+from skills_design.src.taxonomy_skills_rule_vo import CategoryName, SkillName
+from skills_design.src.taxonomy_skills_vo import SkillsRoot
+from skills_design.src.utility_skills_mutation import (
     assert_within_root,
     resolve_skill_dir,
     validate_category_name,

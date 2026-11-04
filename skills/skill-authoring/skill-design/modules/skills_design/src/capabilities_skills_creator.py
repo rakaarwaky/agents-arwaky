@@ -17,19 +17,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.skills.contract_skills_protocol import (
+from skills_design.src.contract_skills_protocol import (
     ISkillsCreatorProtocol,
 )
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+from skills_design.src.taxonomy_skills_authoring_vo import (
     NewCategoryPlan,
     SkillCreatePlan,
 )
-from modules.shared.src.skills.taxonomy_skills_constant import (
+from skills_design.src.taxonomy_skills_constant import (
     CATEGORY_DESCRIPTION_FILENAME,
 )
-from modules.shared.src.skills.taxonomy_skills_rule_vo import CategoryName, SkillName
-from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.shared.src.skills.utility_skills_mutation import (
+from skills_design.src.taxonomy_skills_rule_vo import CategoryName, SkillName
+from skills_design.src.taxonomy_skills_vo import SkillsRoot
+from skills_design.src.utility_skills_mutation import (
     assert_within_root,
     validate_category_name,
     write_category_description,

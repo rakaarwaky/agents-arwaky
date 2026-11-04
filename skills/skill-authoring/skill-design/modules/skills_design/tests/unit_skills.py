@@ -12,17 +12,17 @@ from modules.shared.src.common.utility_skills_tree import (
     skill_entries,
     too_deep_exempt_paths,
 )
-from modules.shared.src.skills.contract_skills_protocol import (
+from skills_design.src.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+from skills_design.src.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
 )
-from modules.shared.src.skills.taxonomy_skills_error import SkillsRootError
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_design.src.taxonomy_skills_error import SkillsRootError
+from skills_design.src.taxonomy_skills_vo import (
     SkillContent,
     SkillDescription,
     SkillQuery,
@@ -278,7 +278,7 @@ def test_skill_content_is_a_newtype_of_str() -> None:
 def test_two_walkers_agree_on_the_live_pack() -> None:
     """R5 cross-check: the read walker and the authoring walker see the
     same skill set, so drift fails a test instead of shipping silently."""
-    from modules.shared.src.common.utility_skill_pack import iter_skill_mds
+    from skills_design.src.utility_skill_pack import iter_skill_mds
     from modules.shared.src.common.utility_skills_tree import skill_entries
 
     pack = default_pack_root()
@@ -375,7 +375,7 @@ def test_importing_the_feature_does_not_mutate_sys_path() -> None:
     code = (
         "import sys; "
         "import skills_design.src.root_skills_container; "
-        "import modules.cli.src.surface_skills_command; "
+        "import skills_design.src.surface_skills_command; "
         f"assert {design_ns!r} in sys.path, 'design ns missing from sys.path'; "
         f"assert {traces_ns!r} in sys.path, 'traces ns missing from sys.path'"
     )

@@ -19,11 +19,11 @@ from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import ModuleType
 
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+from skills_design.src.taxonomy_skills_authoring_vo import (
     MutationPlan,
     MutationStep,
 )
-from modules.shared.src.skills.taxonomy_skills_constant import (
+from skills_design.src.taxonomy_skills_constant import (
     ARCHIVE_DIRNAME,
     ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
@@ -32,11 +32,11 @@ from modules.shared.src.skills.taxonomy_skills_constant import (
     NAME_MIN,
     NAME_RE,
 )
-from modules.shared.src.skills.taxonomy_skills_entity import (
+from skills_design.src.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
 )
-from modules.shared.src.skills.taxonomy_skills_error import (
+from skills_design.src.taxonomy_skills_error import (
     CategoryNameError,
     SkillNotFoundError,
     SkillsRootError,

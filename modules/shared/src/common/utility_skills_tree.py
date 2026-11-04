@@ -10,6 +10,13 @@ Recursive scans use ``os.walk(followlinks=False)`` rather than
 ``Path.rglob`` so a symlinked directory is never descended and a
 symlink loop cannot hang a scan (design S6; version-independent — CI
 pins Python 3.12, where ``Path.rglob`` has no ``follow_symlinks``).
+
+Split-module note: the consumers of this walker (the skill-design
+feature's lint / catalog / discover / move capabilities) live in the
+standalone ``skills_design`` package under
+``skills/skill-authoring/skill-design/modules``. That tree is the
+default consumer, so the taxonomy imports resolve to its copies
+(``skills_design.src.taxonomy_*``).
 """
 
 from __future__ import annotations
@@ -19,7 +26,7 @@ from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import ModuleType
 
-from modules.shared.src.skills.taxonomy_skills_constant import (
+from skills_design.src.taxonomy_skills_constant import (
     ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
@@ -30,11 +37,11 @@ from modules.shared.src.skills.taxonomy_skills_constant import (
 def _clean_one_line(value: object) -> str:
     """Collapse whitespace to single spaces and strip the edges."""
     return " ".join(str(value).split()).strip()
-from modules.shared.src.skills.taxonomy_skills_entity import (
+from skills_design.src.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
 )
-from modules.shared.src.skills.taxonomy_skills_error import SkillsRootError
+from skills_design.src.taxonomy_skills_error import SkillsRootError
 
 yaml: ModuleType | None = None
 try:

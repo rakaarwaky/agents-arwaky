@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from modules.shared.src.skills.taxonomy_skills_error import CatalogDrift
+from skills_design.src.taxonomy_skills_error import CatalogDrift
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 

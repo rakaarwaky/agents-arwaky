@@ -10,7 +10,7 @@ legacy message text and the legacy exit code. The surface prints
 
 from __future__ import annotations
 
-from modules.shared.src.skills.taxonomy_skills_vo import DiffLines, ErrorMessage
+from skills_design.src.taxonomy_skills_vo import DiffLines, ErrorMessage
 
 __all__ = [
     "CatalogDrift",

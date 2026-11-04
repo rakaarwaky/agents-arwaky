@@ -16,7 +16,7 @@ from pathlib import Path
 
 from skills_design.src.root_skills_container import default_aggregate
 
-from modules.cli.src.surface_skills_traces_command import cmd_traces
+from skills_design.src.surface_skills_traces_command import cmd_traces
 
 __all__ = [
     "make_grok_home",

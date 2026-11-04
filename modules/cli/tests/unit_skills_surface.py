@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import pytest
 
-from modules.cli.src.surface_skills_command import (
+from skills_design.src.surface_skills_command import (
     _authoring_parser,
     _render_catalog,
     _render_lint,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_design.src.taxonomy_skills_vo import (
     SkillsOp,
     SkillsRequest,
     SkillsResult,

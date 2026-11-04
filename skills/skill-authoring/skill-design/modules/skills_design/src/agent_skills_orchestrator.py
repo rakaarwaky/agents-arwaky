@@ -11,9 +11,10 @@ sequencing in the UI layer).
 The agent depends only on contract protocols and taxonomy; the
 composition root injects every capability implementation.
 
-The ``traces`` capability (injected by the composition root) is the one
-op whose implementation lives in the sibling ``skills/skill-authoring/skill-traces/modules/skills_traces``
-module; all other capabilities are design-side.
+The ``traces`` capability is the one op whose implementation lives in
+the independent ``skills_traces`` package; the orchestrator-owned CLI
+entry point (``modules/root_cli_entry.py``) injects it. This package
+never imports the sibling tree.
 """
 
 from __future__ import annotations
@@ -22,8 +23,8 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import cast
 
-from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
-from modules.shared.src.skills.contract_skills_protocol import (
+from skills_design.src.contract_skills_aggregate import ISkillsAggregate
+from skills_design.src.contract_skills_protocol import (
     ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,
@@ -34,17 +35,17 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
 )
-from modules.shared.src.skills.taxonomy_skills_error import (
+from skills_design.src.taxonomy_skills_error import (
     SkillsError,
     SkillsRootError,
     SkillsUsageError,
 )
-from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
-from modules.shared.src.skills.taxonomy_skills_response import (
+from skills_design.src.taxonomy_skills_request import SkillsOp, SkillsRequest
+from skills_design.src.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_design.src.taxonomy_skills_vo import (
     SkillContent,
     SkillQuery,
     SkillRecord,

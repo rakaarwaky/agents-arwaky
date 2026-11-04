@@ -14,14 +14,14 @@ from skills_design.src.agent_skills_orchestrator import SkillsAgent
 from skills_design.src.capabilities_skills_lister import SkillsLister
 from skills_design.src.capabilities_skills_reader import SkillsPackReader
 
-from modules.shared.src.skills.contract_skills_protocol import (
+from skills_traces.src.contract_skills_protocol import (
     ISkillsTracesProtocol,
 )
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+from skills_traces.src.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_traces.src.taxonomy_skills_vo import (
     ScanResult,
     SkillsOp,
     SkillsRequest,

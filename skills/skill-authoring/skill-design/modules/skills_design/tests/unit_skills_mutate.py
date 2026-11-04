@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from modules.shared.src.skills.taxonomy_skills_error import (
+from skills_design.src.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import SkillsOp, SkillsRequest
-from modules.shared.src.skills.utility_skills_mutation import plan_repair, plan_weed
+from skills_design.src.taxonomy_skills_vo import SkillsOp, SkillsRequest
+from skills_design.src.utility_skills_mutation import plan_repair, plan_weed
 from skills_design.src.agent_skills_orchestrator import SkillsAgent
 from skills_design.src.capabilities_skills_archiver import SkillsArchiver
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog

@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from modules.shared.src.skills.taxonomy_skills_entity import Issue
+from skills_design.src.taxonomy_skills_entity import Issue
 
 __all__ = [
     "CatalogCheckResult",
@@ -281,7 +281,7 @@ class PhrasesReport:
 # both loaded by the time ``get_type_hints`` evaluates the string
 # annotations above. AES403-safe: imports only ``modules.shared`` types,
 # no I/O.
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_design.src.taxonomy_skills_vo import (
     PhraseRow,
     SkillUsageItem,
 )

@@ -15,8 +15,8 @@ from skills_design.src.capabilities_skills_lister import SkillsLister
 from skills_design.src.capabilities_skills_mover import SkillsMover
 from skills_design.src.capabilities_skills_reader import SkillsPackReader
 
-from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
-from modules.shared.src.skills.contract_skills_protocol import (
+from skills_traces.src.contract_skills_aggregate import ISkillsAggregate
+from skills_traces.src.contract_skills_protocol import (
     ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,

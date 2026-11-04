@@ -10,8 +10,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import PhrasesReport
-from modules.shared.src.skills.taxonomy_skills_vo import PhraseRow
+from skills_traces.src.taxonomy_skills_authoring_vo import PhrasesReport
+from skills_traces.src.taxonomy_skills_vo import PhraseRow
 from skills_traces.src.capabilities_skills_traces import SkillsTraces
 
 
@@ -27,7 +27,7 @@ def _write_record(run_dir: Path, session_id: str, turns: list[str], repeated_sin
 
 def test_phrases_implements_protocol() -> None:
     """SkillsTraces satisfies the ISkillsTracesProtocol contract."""
-    import modules.shared.src.skills.contract_skills_protocol as cp  # noqa: WPS437
+    import skills_traces.src.contract_skills_protocol as cp  # noqa: WPS437
 
     assert isinstance(SkillsTraces(), cp.ISkillsTracesProtocol)
 

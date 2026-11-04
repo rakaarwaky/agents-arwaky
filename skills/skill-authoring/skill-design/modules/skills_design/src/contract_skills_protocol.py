@@ -21,7 +21,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+from skills_design.src.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
     CatalogRow,
@@ -34,11 +34,11 @@ from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
     SkillCreatePlan,
     UsageReport,
 )
-from modules.shared.src.skills.taxonomy_skills_rule_vo import (
+from skills_design.src.taxonomy_skills_rule_vo import (
     CategoryName,
     SkillName,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_design.src.taxonomy_skills_vo import (
     GrokHome,
     ScanResult,
     SkillContent,

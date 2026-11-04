@@ -10,13 +10,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from modules.shared.src.common.utility_skill_pack import (
+from skills_design.src.utility_skill_pack import (
     default_pack_root,
     iter_skill_mds,
     parse_skill_frontmatter,
 )
-from modules.shared.src.skills.contract_skills_protocol import ISkillsListerProtocol
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_design.src.contract_skills_protocol import ISkillsListerProtocol
+from skills_design.src.taxonomy_skills_vo import (
     SkillDescription,
     SkillRecord,
     SkillsJsonPayload,

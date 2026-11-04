@@ -17,7 +17,7 @@ The 13-verb surface spans two modules after the skills/skills split:
 the design-side verbs (list, read, lint, catalog, discover, move,
 archive, create) are routed here; the traces-side verbs (collect,
 usage, phrases, materialize, state) are routed to
-``modules.cli.src.surface_skills_traces_command.cmd_traces``. The
+``skills_design.src.surface_skills_traces_command.cmd_traces``. The
 aggregate is the design-side ``SkillsAgent`` which also dispatches
 ``SkillsOp.TRACES`` through the injected traces capability.
 """
@@ -35,15 +35,15 @@ from modules.shared.src.common.utility_logging_setup import (
     err,
     info,
 )
-from modules.shared.src.common.utility_skills_markdown import md_escape
-from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
-from modules.shared.src.skills.taxonomy_skills_error import SkillsUsageError
-from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
-from modules.shared.src.skills.taxonomy_skills_response import (
+from skills_design.src.utility_skills_markdown import md_escape
+from skills_design.src.contract_skills_aggregate import ISkillsAggregate
+from skills_design.src.taxonomy_skills_error import SkillsUsageError
+from skills_design.src.taxonomy_skills_request import SkillsOp, SkillsRequest
+from skills_design.src.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery
+from skills_design.src.taxonomy_skills_vo import SkillQuery
 
 _EXIT_USAGE = SkillsExitCode.USAGE_ERROR
 _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT
@@ -71,7 +71,7 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
     if sub == "traces":
-        from modules.cli.src.surface_skills_traces_command import cmd_traces
+        from skills_design.src.surface_skills_traces_command import cmd_traces
         return cmd_traces(rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
     _print_usage()

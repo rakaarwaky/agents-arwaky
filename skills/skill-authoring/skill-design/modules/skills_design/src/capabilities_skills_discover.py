@@ -21,23 +21,23 @@ from __future__ import annotations
 from pathlib import Path
 
 from modules.shared.src.common.utility_skills_tree import skill_entries
-from modules.shared.src.skills.contract_skills_protocol import (
+from skills_design.src.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
 )
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+from skills_design.src.taxonomy_skills_authoring_vo import (
     CatalogRow,
     DiscoveryMatch,
     DiscoveryResult,
 )
-from modules.shared.src.skills.taxonomy_skills_constant import (
+from skills_design.src.taxonomy_skills_constant import (
     DRIFT_WARNING,
 )
-from modules.shared.src.skills.taxonomy_skills_error import (
+from skills_design.src.taxonomy_skills_error import (
     CatalogDrift,
     SkillsUsageError,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import SkillQuery, SkillsRoot
+from skills_design.src.taxonomy_skills_vo import SkillQuery, SkillsRoot
 
 __all__ = [
     "SkillsDiscover",

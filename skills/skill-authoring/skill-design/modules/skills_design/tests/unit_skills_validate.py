@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from modules.shared.src.skills.taxonomy_skills_rule_vo import (
+from skills_design.src.taxonomy_skills_rule_vo import (
     ISSUE_MESSAGES,
     RULE_IDS,
     RULES,

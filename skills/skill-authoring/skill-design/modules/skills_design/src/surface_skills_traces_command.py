@@ -1,8 +1,10 @@
 """Skills CLI surface — trace-lifecycle command handlers for ``aa skills traces``.
 
 Extracted from ``surface_skills_command`` to keep both surface modules under
-the AES301 line budget. The public entry point is ``cmd_traces`` (called by
-the parent ``cmd_skills`` router); argv becomes a ``SkillsRequest`` whose
+the AES301 line budget; the two surface modules now live side by side in
+``skills_design/src/`` (top-level ``skills_design`` namespace). The public
+entry point is ``cmd_traces`` (called by the parent ``cmd_skills`` router);
+argv becomes a ``SkillsRequest`` whose
 ``traces_action`` flag selects the sub-action, the aggregate executes it, and
 the text/JSON rendering comes back on ``SkillsResult``.
 
@@ -18,10 +20,10 @@ import tempfile
 
 from modules.shared.src.common.utility_logging_setup import err
 from modules.shared.src.common.utility_paths_resolver import resolve_skills_root
-from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
-from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
-from modules.shared.src.skills.taxonomy_skills_response import SkillsExitCode
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_design.src.contract_skills_aggregate import ISkillsAggregate
+from skills_design.src.taxonomy_skills_request import SkillsOp, SkillsRequest
+from skills_design.src.taxonomy_skills_response import SkillsExitCode
+from skills_design.src.taxonomy_skills_vo import (
     SkillsRoot,
     TraceStateStatus,
 )

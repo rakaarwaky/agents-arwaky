@@ -32,24 +32,24 @@ from modules.shared.src.common.utility_skills_tree import (
     skill_entries,
     too_deep_exempt_paths,
 )
-from modules.shared.src.skills.contract_skills_protocol import ISkillsLinterProtocol
-from modules.shared.src.skills.taxonomy_skills_authoring_vo import (
+from skills_design.src.contract_skills_protocol import ISkillsLinterProtocol
+from skills_design.src.taxonomy_skills_authoring_vo import (
     LintReport,
     ValidationReport,
 )
-from modules.shared.src.skills.taxonomy_skills_constant import MAX_DESCRIPTION_LEN
-from modules.shared.src.skills.taxonomy_skills_entity import (
+from skills_design.src.taxonomy_skills_constant import MAX_DESCRIPTION_LEN
+from skills_design.src.taxonomy_skills_entity import (
     CategorySummary,
     Issue,
     SkillEntry,
 )
-from modules.shared.src.skills.taxonomy_skills_rule_vo import (
+from skills_design.src.taxonomy_skills_rule_vo import (
     IssueType,
     is_valid_skill_name,
     issue_message,
 )
-from modules.shared.src.skills.taxonomy_skills_vo import SkillsRoot
-from modules.shared.src.skills.utility_skills_mutation import plan_weed
+from skills_design.src.taxonomy_skills_vo import SkillsRoot
+from skills_design.src.utility_skills_mutation import plan_weed
 
 __all__ = ["SkillsLinter"]
 

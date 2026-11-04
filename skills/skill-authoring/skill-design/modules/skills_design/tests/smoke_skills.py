@@ -31,7 +31,7 @@ def test_default_aggregate_quick():
 
 def test_list_skills_quick():
     """SM-SKILLS-003: list_skills returns a sequence of records."""
-    from modules.shared.src.skills.taxonomy_skills_vo import SkillsRequest
+    from skills_design.src.taxonomy_skills_vo import SkillsRequest
     from skills_design.src.root_skills_container import default_aggregate
 
     aggregate = default_aggregate()

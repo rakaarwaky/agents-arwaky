@@ -15,11 +15,11 @@ from pathlib import Path
 
 import pytest
 
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_traces.src.taxonomy_skills_vo import (
     TraceDecision,
     TraceStateStatus,
 )
-from modules.shared.src.skills.utility_skills_trace_state import (
+from skills_traces.src.utility_skills_trace_state import (
     STATUSES,
     decisions_path,
     files_ready,
@@ -46,7 +46,7 @@ def _state(tmp_path: Path) -> SkillsTraces:
 
 def test_state_implements_protocol() -> None:
     """SkillsTraces satisfies the ISkillsTracesProtocol contract."""
-    from modules.shared.src.skills.contract_skills_protocol import ISkillsTracesProtocol
+    from skills_traces.src.contract_skills_protocol import ISkillsTracesProtocol
 
     assert isinstance(SkillsTraces(), ISkillsTracesProtocol)
 

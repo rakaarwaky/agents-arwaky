@@ -1,13 +1,18 @@
 """Skills-design root container (AES composition root).
 
 Wires the design-side capabilities (lister, reader, linter, catalog,
-discover, mover, archiver, creator) and the traces capability from the
-sibling ``skills_traces`` package (in
-``skills/skill-authoring/skill-traces/modules/skills_traces``) into the
-design-side agent. Cross-module import boundary: see ARCHITECTURE.md
-AES702 ("Cross-module composition (split modules)"). The CLI surface
-receives an ``ISkillsAggregate`` (the agent itself), injected at the
-call site, so no root→surface coupling exists.
+discover, mover, archiver, creator) into the design-side agent. The
+package is fully self-contained: every contract / taxonomy / utility
+module it needs lives under ``skills_design/src/``.
+
+The traces capability of the sibling ``skills_traces`` package is NOT
+imported here — the two packages are independent (AES702). The agent
+accepts an optional ``traces`` protocol object (injected at the call
+site); the orchestrator-owned CLI entry point
+(``modules/root_cli_entry.py``) is the only place that knows both
+packages exist and composes them. The CLI surface receives an
+``ISkillsAggregate`` (the agent itself), injected at the call site, so
+no root→surface coupling exists.
 """
 
 from __future__ import annotations
@@ -15,11 +20,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
-
-from modules.shared.src.common.utility_skill_pack import default_pack_root
-from modules.shared.src.skills.contract_skills_aggregate import ISkillsAggregate
-from modules.shared.src.skills.contract_skills_protocol import (
+from skills_design.src.utility_skill_pack import default_pack_root
+from skills_design.src.contract_skills_aggregate import ISkillsAggregate
+from skills_design.src.contract_skills_protocol import (
     ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,
@@ -30,9 +33,9 @@ from modules.shared.src.skills.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
 )
-from modules.shared.src.skills.taxonomy_skills_request import SkillsOp, SkillsRequest
-from modules.shared.src.skills.taxonomy_skills_response import SkillsResult
-from modules.shared.src.skills.taxonomy_skills_vo import (
+from skills_design.src.taxonomy_skills_request import SkillsOp, SkillsRequest
+from skills_design.src.taxonomy_skills_response import SkillsResult
+from skills_design.src.taxonomy_skills_vo import (
     SkillContent,
     SkillQuery,
     SkillRecord,
@@ -68,7 +71,14 @@ def default_aggregate(
     traces: ISkillsTracesProtocol | None = None,
     default_root: Path | None = None,
 ) -> ISkillsAggregate:
-    """Return an agent bound to the repo's ``skills/`` pack (or overrides)."""
+    """Return an agent bound to the repo's ``skills/`` pack (or overrides).
+
+    ``traces`` stays optional: when omitted, the agent has no traces
+    capability and ``SkillsOp.TRACES`` requests are usage errors. The
+    orchestrator-owned CLI entry point injects the concrete
+    ``skills_traces.SkillsTraces`` implementation, so this package
+    never imports the sibling tree.
+    """
     root = default_root if default_root is not None else default_pack_root()
     wired_catalog = catalog or SkillsCatalog()
     wired_linter = linter or SkillsLinter()
@@ -81,7 +91,7 @@ def default_aggregate(
         mover=mover or SkillsMover(),
         archiver=archiver or SkillsArchiver(),
         creator=creator or SkillsCreator(),
-        traces=traces or SkillsTraces(),
+        traces=traces,
         default_root=root,
     )
 
@@ -126,7 +136,7 @@ class SkillsFacade:
             mover=mover or SkillsMover(),
             archiver=archiver or SkillsArchiver(),
             creator=creator or SkillsCreator(),
-            traces=traces or SkillsTraces(),
+            traces=traces,
             default_root=root,
         )
 

@@ -10,7 +10,7 @@ from skills_design.tests.fixture_skills import (
     run_surface,
 )
 
-from modules.cli.src.surface_skills_command import cmd_skills
+from skills_design.src.surface_skills_command import cmd_skills
 
 
 def test_unknown_subcommand_exits_2(capsys) -> None:

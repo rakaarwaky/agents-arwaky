@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from modules.shared.src.skills.taxonomy_skills_rule_vo import IssueType
+from skills_design.src.taxonomy_skills_rule_vo import IssueType
 
 __all__ = [
     "CategorySummary",
