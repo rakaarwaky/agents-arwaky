@@ -17,7 +17,7 @@ No I/O, no imports from utility/capabilities/agent/root/surface layers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -44,6 +44,7 @@ if TYPE_CHECKING:
         UsageReport,
         ValidationReport,
     )
+
     # The trace primitives also live in ``taxonomy_skills_vo``, which
     # re-imports this module's names at the bottom of its own body (after
     # the primitives are defined). Importing that module back at the top

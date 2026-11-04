@@ -214,7 +214,6 @@ from modules.shared.src.skills.taxonomy_skills_response import (
     SkillsResult,
 )
 
-
 __all__ = [
     "DiffLines",
     "ErrorMessage",
