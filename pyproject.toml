@@ -2,7 +2,12 @@
 target-version = "py313"
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "modules"]
+testpaths = [
+  "tests",
+  "modules",
+  "skills/skill-authoring/skill-design/modules/skills_design/tests",
+  "skills/skill-authoring/skill-traces/modules/skills_traces/tests",
+]
 python_files = ["test_*.py", "contract_*.py", "unit_*.py", "integration_*.py", "dogfood_*.py", "smoke_*.py", "e2e_*.py", "acceptance_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

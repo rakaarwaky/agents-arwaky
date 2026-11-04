@@ -14,7 +14,7 @@ The only differences are the import swaps to the AES modules:
                    _find_* helpers (original tools/lib/tool_resolver.py
                    bodies as-is, import-swapped)
   - doc_pack        -> modules.shared.src.utility_doc_pack
-  - skill_pack      -> modules.skills_design.src.capabilities_skills_lister
+  - skill_pack      -> skills_design.src.capabilities_skills_lister (colocated under skills/skill-authoring/skill-design/modules)
   - paths.repo_root -> modules.shared.src.utility_paths
 
 Delegated actions (skill/connect/disconnect/daemon/service/backup)
@@ -40,6 +40,18 @@ from modules.shared.src.common.utility_paths_resolver import repo_root
 from modules.shared.src.common.utility_process_runner import run_cmd as _run_cmd_util
 
 ROOT = repo_root()
+
+# The skills feature modules live under their skill content dirs (standalone
+# CLI apps, AES702 split): skills/skill-authoring/skill-design/modules/
+# exposes the top-level `skills_design` package and
+# skills/skill-authoring/skill-traces/modules/ the `skills_traces` package.
+# They sit outside the `modules` namespace, so expose their namespace roots.
+for _skills_ns in (
+    ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
+    ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules",
+):
+    if _skills_ns.is_dir() and str(_skills_ns) not in sys.path:
+        sys.path.insert(0, str(_skills_ns))
 
 from modules.shared.src.common.taxonomy_common_vo import (
     Tool,
@@ -556,8 +568,9 @@ def cmd_disconnect(argv: list[str]) -> int:
 
 def cmd_skills(argv: list[str]) -> int:
     """Skill-pack discovery and authoring: aa skills <verb> [args]."""
+    from skills_design.src.root_skills_container import default_aggregate
+
     from modules.cli.src.surface_skills_command import cmd_skills as _skills_surface
-    from modules.skills_design.src.root_skills_container import default_aggregate
 
     return _skills_surface(list(argv), default_aggregate())
 
