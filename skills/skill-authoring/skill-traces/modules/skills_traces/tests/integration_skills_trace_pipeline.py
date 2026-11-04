@@ -103,7 +103,7 @@ def test_integration_trace_collect_then_phrases_then_state(tmp_path: Path) -> No
     assert got.state in (TraceStateStatus.COLLECTED, TraceStateStatus.RUNNING)
 
     # Protocol conformance (capabilities are the real implementations).
-    assert isinstance(agent._traces, ISkillsTracesProtocol)
+    assert isinstance(agent._scan, ISkillsTracesProtocol)
 
 
 def test_integration_state_wait_maps_to_exit_statuses(tmp_path: Path) -> None:
