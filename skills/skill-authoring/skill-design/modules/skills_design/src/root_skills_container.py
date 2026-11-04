@@ -35,7 +35,6 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
     SkillQuery,
     SkillRecord,
-    SkillsRoot,
 )
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent

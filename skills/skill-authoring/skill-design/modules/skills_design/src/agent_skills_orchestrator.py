@@ -46,7 +46,6 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
     SkillQuery,
     SkillRecord,
-    SkillsRoot,
 )
 
 

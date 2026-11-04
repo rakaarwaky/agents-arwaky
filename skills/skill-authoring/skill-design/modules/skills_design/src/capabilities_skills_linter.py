@@ -49,7 +49,7 @@ from shared.src.skills_design.taxonomy_skills_rule_vo import (
     is_valid_skill_name,
     issue_message,
 )
-from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
+from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
 __all__ = ["SkillsLinter"]
 

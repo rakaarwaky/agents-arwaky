@@ -43,7 +43,7 @@ from shared.src.skills_design.taxonomy_skills_entity import (
     SkillEntry,
 )
 from shared.src.skills_design.taxonomy_skills_error import CatalogDrift
-from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
+from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
 __all__ = [
     "SkillsCatalog",

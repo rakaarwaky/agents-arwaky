@@ -37,7 +37,10 @@ from shared.src.skills_design.taxonomy_skills_error import (
     CatalogDrift,
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_vo import SkillQuery, SkillsRoot
+from shared.src.skills_design.taxonomy_skills_request import (
+    SkillQuery,
+    SkillsRoot,
+)
 
 __all__ = [
     "SkillsDiscover",

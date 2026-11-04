@@ -15,11 +15,11 @@ from shared.src.common.utility_skill_pack import (
     parse_skill_frontmatter,
 )
 from shared.src.skills_design.contract_skills_protocol import ISkillsListerProtocol
+from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
     SkillRecord,
     SkillsJsonPayload,
-    SkillsRoot,
 )
 
 __all__ = ["SkillsLister", "default_pack_root"]

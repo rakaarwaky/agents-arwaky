@@ -17,10 +17,12 @@ from shared.src.common.utility_skill_pack import (
     read_skill_md,
 )
 from shared.src.skills_design.contract_skills_protocol import ISkillsReaderProtocol
-from shared.src.skills_design.taxonomy_skills_vo import (
-    SkillContent,
+from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,
+)
+from shared.src.skills_design.taxonomy_skills_vo import (
+    SkillContent,
 )
 
 __all__ = ["SkillsPackReader"]

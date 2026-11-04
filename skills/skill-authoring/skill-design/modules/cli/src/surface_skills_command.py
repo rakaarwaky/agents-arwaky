@@ -40,7 +40,7 @@ from shared.src.skills_design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from shared.src.skills_design.taxonomy_skills_vo import SkillQuery
+from shared.src.skills_design.taxonomy_skills_request import SkillQuery
 
 _EXIT_USAGE = SkillsExitCode.USAGE_ERROR
 _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT

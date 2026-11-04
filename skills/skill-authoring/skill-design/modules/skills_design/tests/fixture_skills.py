@@ -13,7 +13,7 @@ import io
 from pathlib import Path
 
 from cli.src.surface_skills_command import cmd_skills
-from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
+from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
 from skills_design.src.root_skills_container import default_aggregate
 

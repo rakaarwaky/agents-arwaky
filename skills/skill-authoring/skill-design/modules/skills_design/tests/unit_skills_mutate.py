@@ -12,7 +12,7 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillNotFoundError,
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_vo import SkillsOp, SkillsRequest
+from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent
 from skills_design.src.capabilities_skills_archiver import SkillsArchiver
