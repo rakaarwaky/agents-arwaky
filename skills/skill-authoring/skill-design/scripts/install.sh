@@ -15,7 +15,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PACKAGE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 MODULES_DIR="$PACKAGE_ROOT/modules"
 
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
