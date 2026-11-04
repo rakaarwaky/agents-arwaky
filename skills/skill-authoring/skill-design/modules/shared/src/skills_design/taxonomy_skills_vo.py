@@ -215,7 +215,6 @@ __all__ = [
     "ScanResult",
     "SkillContent",
     "SkillDescription",
-    "SkillQuery",
     "SkillRecord",
     "SkillUsageItem",
     "SkillsJsonPayload",
