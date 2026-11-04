@@ -83,6 +83,9 @@ _MODULES = _resolve_modules_dir()
 if str(_MODULES) not in sys.path:
     sys.path.insert(0, str(_MODULES))
 
+# Bake the display name into the banner (falls back to "skill-design" if unset).
+os.environ.setdefault("SDC_DISPLAY_NAME", "skill-design")
+
 from cli.src.surface_skills_command import cmd_skills  # noqa: E402
 from skills_design.src.root_skills_container import default_aggregate  # noqa: E402
 

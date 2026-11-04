@@ -121,7 +121,7 @@ def _cmd_list(args: list[str], aggregate: ISkillsAggregate) -> int:
         if result.exit_code == _EXIT_USAGE and result.message:
             print(f"ERROR: {result.message}", file=sys.stderr)
             return _EXIT_USAGE
-        err("No skills found — is the agents-arwaky pack present?")
+        err("No skills found — is the skill-design pack present?")
         return 1
     print(f"{CYAN()}SKILL{RESET()}".ljust(28) + "DESCRIPTION")
     print("-" * 28 + " " + "-" * 60)

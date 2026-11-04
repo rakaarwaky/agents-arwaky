@@ -12,7 +12,7 @@ import re
 import sys
 
 # Structured logging (P1-O1): level + timestamp + correlation ID on log output
-_logger = logging.getLogger("agents-arwaky")
+_logger = logging.getLogger("sdc")
 if not _logger.handlers:
     _handler = logging.StreamHandler()
     _fmt = "%(asctime)s %(levelname)s [%(correlation_id)s] %(message)s"
@@ -123,10 +123,11 @@ def _term_width() -> int:
 
 
 def banner() -> None:
-    """Print the agents-arwaky ASCII-art banner (plain text on non-TTY)."""
+    """Print the CLI banner (plain text on non-TTY)."""
+    display_name = os.environ.get("SDC_DISPLAY_NAME") or "skill-design"
     if not sys.stdout.isatty():
         # Non-TTY: plain text, avoid broken ASCII art in pipe/log.
-        print("agents-arwaky — Unified Tool Orchestrator")
+        print(f"{display_name} — skill-design CLI")
         print()
         return
     print(f"{CYAN()}{BOLD()}   ___                           _          {RESET()}")
@@ -134,7 +135,7 @@ def banner() -> None:
     print(f"{CYAN()}{BOLD()} / __ |/ __/ _ \\/\\/ _ `/  '_/ // /   {RESET()}")
     print(f"{CYAN()}{BOLD()}/_/ |_/_/  \\_/\\_/\\_,_/_/\\_\\\\_, /    {RESET()}")
     print(f"{CYAN()}{BOLD()}                           /___/     {RESET()}")
-    print(f"{DIM()} agents-arwaky Unified Tool Orchestrator (Python, per-tool){RESET()}")
+    print(f"{DIM()} {display_name} CLI (Python, per-tool){RESET()}")
     print()
 
 
