@@ -10,9 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.skills_traces.contract_skills_protocol import (
-    ISkillsTracesProtocol,
-)
+from shared.src.skills_traces.contract_skills_protocol import ISkillsTraceScanProtocol
 from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
     UsageReport,
@@ -103,7 +101,7 @@ def test_integration_trace_collect_then_phrases_then_state(tmp_path: Path) -> No
     assert got.state in (TraceStateStatus.COLLECTED, TraceStateStatus.RUNNING)
 
     # Protocol conformance (capabilities are the real implementations).
-    assert isinstance(agent._scan, ISkillsTracesProtocol)
+    assert isinstance(agent._scan, ISkillsTraceScanProtocol)
 
 
 def test_integration_state_wait_maps_to_exit_statuses(tmp_path: Path) -> None:

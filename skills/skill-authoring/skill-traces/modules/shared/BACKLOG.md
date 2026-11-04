@@ -2,13 +2,12 @@
 
 ## Progress Overview
 
-The skill-traces shared kernel holds taxonomy, contract, and utility modules
-that every feature layer imports. All backlog items are done; nothing is
-blocked.
+The skill-traces shared kernel holds taxonomy, contract, and utility modules.
+All backlog items are done; nothing is blocked.
 
 ## Backlog Status
 
-### DT-SKILLS-TRACES-001
+### FR-SkillsTraces-009
 
 | Aspect       | Detail                                     |
 |--------------|--------------------------------------------|

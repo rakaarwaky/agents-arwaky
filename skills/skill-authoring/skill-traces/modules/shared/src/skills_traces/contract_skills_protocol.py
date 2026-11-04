@@ -133,15 +133,10 @@ class ISkillsTraceStateProtocol(ABC):
         """Route one trace-state sub-action through this capability."""
 
 
-class ISkillsTracesProtocol(ISkillsTraceScanProtocol, ISkillsTraceStateProtocol):
-    """Combined traces protocol: scan + state seams on one seam."""
-
-
 # ── Internal seams end ──
 
 
 __all__ = [
     "ISkillsTraceScanProtocol",
     "ISkillsTraceStateProtocol",
-    "ISkillsTracesProtocol",
 ]

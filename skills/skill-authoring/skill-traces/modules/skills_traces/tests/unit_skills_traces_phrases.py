@@ -27,10 +27,10 @@ def _write_record(run_dir: Path, session_id: str, turns: list[str], repeated_sin
 
 
 def test_phrases_implements_protocol() -> None:
-    """SkillsTraces satisfies the ISkillsTracesProtocol contract."""
-    from shared.src.skills_traces.contract_skills_protocol import ISkillsTracesProtocol
+    """SkillsTracesScan satisfies the ISkillsTraceScanProtocol contract."""
+    from shared.src.skills_traces.contract_skills_protocol import ISkillsTraceScanProtocol
 
-    assert isinstance(SkillsTraces(), ISkillsTracesProtocol)
+    assert isinstance(SkillsTraces(), ISkillsTraceScanProtocol)
 
 
 def test_build_phrases_returns_phrases_report() -> None:

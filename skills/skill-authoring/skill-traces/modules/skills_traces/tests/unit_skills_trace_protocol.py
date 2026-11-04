@@ -6,7 +6,8 @@ import typing
 
 import pytest
 from shared.src.skills_traces.contract_skills_protocol import (
-    ISkillsTracesProtocol,
+    ISkillsTraceScanProtocol,
+    ISkillsTraceStateProtocol,
 )
 from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
     PhrasesReport,
@@ -90,10 +91,11 @@ def test_report_vos_are_frozen() -> None:
 
 
 def test_trace_protocols_are_abstract() -> None:
-    """ISkillsTracesProtocol is an ABC: instantiating without methods raises."""
+    """Scan and state protocols are ABCs: instantiating without methods raises."""
     with pytest.raises(TypeError):
-        ISkillsTracesProtocol()  # type: ignore[abstract]
-    assert "scan_sessions" in ISkillsTracesProtocol.__abstractmethods__
+        ISkillsTraceScanProtocol()  # type: ignore[abstract]
+    assert "scan_sessions" in ISkillsTraceScanProtocol.__abstractmethods__
+    assert "set_status" in ISkillsTraceStateProtocol.__abstractmethods__
 
 
 def test_report_hints_resolve_at_runtime() -> None:

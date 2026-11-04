@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 import pytest
-from shared.src.skills_traces.contract_skills_protocol import ISkillsTracesProtocol
+from shared.src.skills_traces.contract_skills_protocol import ISkillsTraceScanProtocol
 from shared.src.skills_traces.taxonomy_skills_authoring_vo import UsageReport
 from shared.src.skills_traces.taxonomy_skills_vo import (
     ScanResult,
@@ -53,8 +53,8 @@ _PROJ_CWD = "/home/raka/proj"
 
 
 def test_traces_implements_protocol() -> None:
-    """SkillsTraces satisfies the ISkillsTracesProtocol contract."""
-    assert isinstance(_make_traces(), ISkillsTracesProtocol)
+    """SkillsTracesScan satisfies the ISkillsTraceScanProtocol contract."""
+    assert isinstance(_make_traces(), ISkillsTraceScanProtocol)
 
 
 def test_trace_session_record_is_frozen() -> None:
