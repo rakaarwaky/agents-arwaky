@@ -1,8 +1,8 @@
 ---
 name: flatpak-chromium-automation
-description: Use when driving Flatpak Brave/Chromium pages under sandbox paths over CDP, or installing Web Store extensions unpacked. Not profile setup.
-when-to-use: Use when CDP debugging of a Flatpak browser fails to bind its port, when orphan Flatpak instances hijack a debug launch, when pkill/pgrep patterns threaten the agent shell, or when adding a Web Store extension that cannot be clicked through. Not for creating or provisioning browser profiles.
-argument-hint: "<appid | ext-id | cmd>"
+description: Drive Flatpak Chromium CDP, install unpacked extensions, manage profiles.
+when-to-use: Use when CDP debugging of a Flatpak browser fails to bind its port, when orphan Flatpak instances hijack a debug launch, when pkill/pgrep patterns threaten the agent shell, when adding a Web Store extension that cannot be clicked through, or when a tool must see or create browser profiles deterministically, when editing Local State or Preferences with a closed browser, when probing user-data dirs under native, Flatpak, Snap, or macOS installs, or when wiring NAME|user|pass|url envs into vault items plus browser profiles. Not for driving non-Flatpak browsers.
+argument-hint: "<appid | ext-id | cmd | create | inspect> [user-data-dir] [--dry-run] [--yes]"
 metadata:
   tags:
     - browser
@@ -13,6 +13,15 @@ metadata:
 ---
 
 # Automating flatpak-packaged Chromium browsers
+
+You drive Flatpak-packaged Brave/Chromium over CDP from the host, install Web
+Store extensions unpacked, and manage (create, inspect, fix) the underlying
+Brave/Chromium profile dirs and `Local State` — the things that break when the
+sandbox is in the way or when a tool must see profiles deterministically.
+
+Profile provisioning detail — `Local State` `info_cache` registry, user-data
+dir locations across native/Flatpak/Snap/macOS, the closed-browser guard, and
+Bitwarden CLI companion setup: `references/profile-provisioning.md`.
 
 ## Which paths the browser process can actually see
 

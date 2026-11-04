@@ -1,18 +1,4 @@
----
-name: chromium-profile-provisioning
-description: Use when creating, inspecting, or fixing Brave/Chromium profile dirs, Local State info_cache, user-data locations, or provisioning profiles alongside the Bitwarden CLI. Not driving pages.
-when-to-use: Use when a tool must see or create browser profiles deterministically, when editing Local State or Preferences with a closed browser, when probing user-data dirs under native, Flatpak, Snap, or macOS installs, or when wiring NAME|user|pass|url envs into vault items plus browser profiles. Not for driving pages.
-argument-hint: "<create | inspect> <profile-name> [user-data-dir] [--dry-run] [--yes]"
-metadata:
-  tags:
-    - browser
-    - chromium
-    - brave
-    - automation
-    - python
----
-
-# Provisioning Chromium/Brave browser profiles
+# Creating, inspecting, and fixing Brave/Chromium browser profiles
 
 ## What "a profile exists" actually means
 
@@ -86,7 +72,7 @@ Correctness traps:
     display `arwaky90`). A user-written name equal to a display name must map
     to the existing folder; folder-only matching clones an empty twin under a
     name the user believes is taken.
-  * Validate the name before any filesystem/CLI use: reject `/`, `\`, `..`,
+  * Validate the name before any filesystem/CLI use: reject `/`, `\\`, `..`,
     and leading `-` (the dir name gets re-injected as a browser flag).
   * Count a dir as a profile only when it holds a `Preferences` file — the
     user-data dir is littered with non-profile dirs (Crashpad, extension IDs).
