@@ -1,105 +1,24 @@
 ---
 name: music-library-downloader
-description: Download named song lists to MP3 via mdl / YouTube URLs.
-metadata:
-  tags:
-    - mdl
-    - music-download
-    - youtube-music
-    - mp3
-  category: creative
+description: "Downloads named song lists to a local MP3 library via mdl, resolving each song to a YouTube Music URL."
+when-to-use: "Use when the user wants to download songs (by title + artist) to a local MP3 music library, or build/replenish a music library from a named list."
+argument-hint: "<song-list | songs...> [--out-dir DIR] [--format mp3|m4a|opus|flac|wav] [--bitrate 128K..320K|best]"
 ---
 
-# Music Library Downloader (mdl)
+# Music Library Downloader
 
-Convert a list of named songs (title + artist) into a local music library of
-MP3 files. Downloads are done by `mdl` (@mdlx/cli), which pulls audio from
-YouTube; the only URL format that works headlessly is a YouTube Music track
-URL, so the whole task is: resolve each song to a `music.youtube.com/watch?v=…`
-URL, then drive mdl in a loop. This skill is self-contained: no bundled scripts
-or references — implement resolve + download inline or write your own helpers.
+You convert a list of named songs (title + artist) into a local MP3 library: resolve each song to a YouTube Music URL, then drive `mdl` in a loop. `mdl` (@mdlx/cli) pulls audio from YouTube; the only URL format that works headlessly is a YouTube Music track URL. No bundled scripts — implement resolve + download inline or write your own helpers.
 
-## Workflow
+## Global Rules
 
-### 1. Collect the song list
+- **Resolve-first.** `mdl` takes a concrete track/playlist URL and never searches — resolve every song to a `music.youtube.com/watch?v=…` URL before downloading (Step 2 of `references/workflow.md`).
+- **One mdl run = one collection.** N songs need N mdl calls; never concatenate URLs into one call.
+- **Verify resolution before batching.** Check the first query returns real results; a silently empty endpoint makes every song look NOT FOUND (pitfall list in `references/workflow.md`).
+- **Locate the mdl binary explicitly.** `npm install -g @mdlx/cli` may not put `mdl` on PATH; resolve it with `npm root -g` (command reference in `references/mdl-reference.md`).
 
-Get every entry as `(title, artist)` pairs. If the user provides a Markdown list,
-convert it to a JSON file:
+## Routing
 
-```json
-[ {"title": "Lathi", "artist": "Weird Genius"}, … ]
-```
-
-Drop `ft.`/feature lines from the query — they only add noise to the search.
-
-### 2. Resolve to YouTube Music URLs
-
-Scrape `youtube.com/results` with the query `"<title> <artist> official audio"`,
-take the first `videoRenderer` hit, and write `https://music.youtube.com/watch?v=<id>`
-per song. No API key needed — parse the `ytInitialData` blob in the HTML page.
-Check `NOT FOUND` entries and re-query manually (or drop `official audio`
-to broaden). Resolve each song into a JSON file:
-
-```json
-[ {"title": "Lathi", "artist": "Weird Genius", "url": "https://music.youtube.com/watch?v=<id>"}, … ]
-```
-
-### 3. Batch download with mdl
-
-Install if missing: `npm install -g @mdlx/cli` — the binary is `mdl` in the
-dir next to the npm global `node` (`npm root -g` → `../bin`). It may not be
-on the default PATH; locate with `ls $(npm root -g)/../bin`.
-
-Loop over the resolved URLs and run one mdl call per song into the output dir,
-logging stdout to a file and running in the background: mdl prints a
-box-drawing UI on each run, and 100 songs is ~30–60 min. Check the log
-periodically and print a `[i/N] <name>` progress line plus a final ok/failed
-per-song tally (count mdl's 'Downloaded'/'Failed' counters on its final line).
-
-mdl creates one subfolder per song (title uppercased). After the run,
-optionally rename into a flat numbered layout, e.g. `001-Lathi - Weird Genius.mp3`.
-
-For a FLAT output dir (no subfolders, mp3-only): mdl's `-o` always nests each
-file in a subfolder it names itself, so download each track into a tempdir,
-then move the .mp3 into the flat dir renamed `NNN - Title - Artist.mp3`
-and delete the tempdir. No flag downloads directly flat.
-
-## mdl command reference (condensed)
-
-```bash
-mdl '<URL>' -o <dir> -c 1 -f mp3 -b 256K
-```
-
-- `-c 1` — limit to one track (mandatory for single-track URLs).
-- `-f` — mp3 | m4a | opus | flac | wav; `-b` — best | 0-10 | 128K…320K.
-- Provider URLs accepted: Spotify/Apple/Amazon/Tidal etc. only for
-  playlist/album/track pages; **audio is always sourced from YouTube**,
-  so a Spotify URL requires that track to exist on YouTube.
-- YouTube Music URLs: `music.youtube.com/watch?v=<id>` (track) or
-  `music.youtube.com/playlist?list=<id>` / `music.youtube.com/browse/<playlistId>`.
-  **Search URLs (`/search?q=…`) are rejected** — mdl does not perform search;
-  you must resolve to concrete track/playlist IDs yourself (Step 2).
-
-## Pitfalls
-
-1. **mdl's binary may not be on PATH after `npm install -g`** — the install
-   dir is the npm global prefix, which may not be on the user's PATH.
-   Resolve the absolute path with `npm root -g` and call it explicitly
-   (`--mdl <path>` if the default isn't found).
-2. **Spotify API / embed endpoints are network-blocked on this host** —
-   `open.spotify.com` responses come back as 403 from a Varnish cache, and
-   catalog token endpoints fail. Don't spend time trying Spotify
-   resolution; jump straight to YouTube scraping.
-   (Also: a catalog endpoint with a hard-coded client id may silently return
-   nothing; an `except: return []` around the fetch swallows that so every
-   song looks 'NOT FOUND'. Verify the first query returns real JSON before
-   running a batch.)
-3. **mdl's per-run UI box makes logs noisy** — filter with
-   `grep -E 'Downloaded|Failed|Error'` when checking a single run.
-4. **Per-song failure check** looks at the 'Downloaded' and 'Failed' counters
-   on mdl's final line; if a song's video is region-locked or deleted, mdl
-   prints 'This video is unavailable' and the folder may not exist — treat a
-   missing folder as a failure and re-resolve the URL in Step 2.
-5. **One mdl run = one collection**: for N songs you need N calls (the loop
-   does it). Don't try to concatenate URLs into one call — mdl takes a single
-   URL argument.
+| Step | Reference | Purpose |
+| ---- | --------- | ------- |
+| Resolve + download loop | [`references/workflow.md`](references/workflow.md) | Song-list collection, YouTube Music URL resolution, mdl batch loop, flat-output layout, pitfalls. |
+| mdl command reference | [`references/mdl-reference.md`](references/mdl-reference.md) | Condensed mdl flags, accepted URL forms, and which URL types it rejects. |

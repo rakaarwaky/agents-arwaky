@@ -1,6 +1,6 @@
 # ASCII Art — Tool Details
 
-Reference details for each ASCII art tool. Use `skill_view(name="ascii-art", file_path="references/tools.md")` when you need the full per-tool instructions.
+Reference details for each ASCII art tool.
 
 ## Tool 1: Text Banners (pyfiglet — local)
 
