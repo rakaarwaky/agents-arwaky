@@ -20,6 +20,7 @@ from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
 )
+from shared.src.skills_design.taxonomy_skills_entity import SkillEntry
 from shared.src.skills_design.taxonomy_skills_error import SkillsRootError
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
@@ -300,6 +301,21 @@ def test_skill_entries_walks_the_authoring_tree(tmp_path: Path) -> None:
     assert [e.skill for e in entries] == ["empty", "lint", "fetch-mcp"]
 
 
+def test_skill_entries_picks_up_when_to_use_frontmatter(tmp_path: Path) -> None:
+    """skill_entries populates when_to_use from ``when-to-use:`` frontmatter (task 2)."""
+    pack = tmp_path / "skills"
+    (pack / "web" / "fetch-mcp").mkdir(parents=True)
+    (pack / "web" / "fetch-mcp" / "SKILL.md").write_text(
+        "---\nname: fetch-mcp\ndescription: Scrapes web to markdown.\n"
+        "when-to-use: Use when scraping a webpage.\n---\n\n# Fetch\n",
+        encoding="utf-8",
+    )
+    entries = skill_entries(pack)
+    assert len(entries) == 1
+    assert entries[0].path == "web/fetch-mcp"
+    assert entries[0].when_to_use == "Use when scraping a webpage."
+
+
 def test_skill_entries_skips_ignored_category_dirs(tmp_path: Path) -> None:
     """IGNORED_CATEGORY_DIRS (e.g. _archive) never enter the walk."""
     pack = tmp_path / "skills"
@@ -392,3 +408,17 @@ def test_importing_the_feature_does_not_mutate_sys_path() -> None:
         check=False,
     )
     assert completed.returncode == 0, completed.stderr
+
+
+def test_skill_entry_carries_when_to_use() -> None:
+    """SkillEntry has a when_to_use field (task 1)."""
+    entry = SkillEntry(
+        skill="alpha",
+        frontmatter_name="alpha",
+        category="cat",
+        description="d",
+        when_to_use="Use when writing documentation",
+        path="cat/alpha",
+    )
+    assert entry.when_to_use == "Use when writing documentation"
+    assert entry.path == "cat/alpha"

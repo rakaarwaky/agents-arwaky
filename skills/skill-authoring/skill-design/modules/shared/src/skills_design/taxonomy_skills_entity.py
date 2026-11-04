@@ -31,6 +31,7 @@ class SkillEntry:
     frontmatter_name: str
     category: str
     description: str
+    when_to_use: str
     path: str
 
 

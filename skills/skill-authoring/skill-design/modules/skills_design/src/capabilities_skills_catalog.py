@@ -4,6 +4,10 @@ Owns everything that turns the live tree into a ``CATALOG.md``: the
 rendering, the reader ``discover`` scores against, and the drift gate
 (regenerate to a temporary file and diff the tracked artifact).
 
+Also owns the ``catalog.json`` artifact: one object per skill with
+``name``, ``description``, ``when_to_use``, and ``category``, written
+at the skills root alongside ``CATALOG.md``.
+
 Drift contract: the tracked ``CATALOG.md`` is a checked artifact. A read
 through it must never silently repair itself — a missing, unparseable,
 or corrupted catalog raises ``CatalogDrift`` instead of being rebuilt on
@@ -16,6 +20,7 @@ index.
 from __future__ import annotations
 
 import difflib
+import json
 import tempfile
 from pathlib import Path
 
@@ -48,6 +53,8 @@ from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 __all__ = [
     "SkillsCatalog",
     "catalog_path",
+    "render_catalog_json",
+    "write_catalog_json",
 ]
 
 
@@ -102,6 +109,33 @@ def write_catalog(
     path.write_text(
         "\n".join(render_catalog(entries, categories)) + "\n", encoding="utf-8"
     )
+
+
+def render_catalog_json(
+    entries: list[SkillEntry],
+    categories: list[CategorySummary],
+) -> str:
+    """Serialize the catalog as JSON: one object per skill with name,
+    description, when_to_use, and category."""
+    skills = [
+        {
+            "name": entry.skill,
+            "description": entry.description,
+            "when_to_use": entry.when_to_use,
+            "category": entry.category,
+        }
+        for entry in sorted(entries, key=lambda item: (item.category, item.skill))
+    ]
+    return json.dumps({"skills": skills}, indent=2, ensure_ascii=False) + "\n"
+
+
+def write_catalog_json(
+    entries: list[SkillEntry],
+    categories: list[CategorySummary],
+    path: Path,
+) -> None:
+    """Write the JSON catalog to ``path`` (trailing newline included)."""
+    path.write_text(render_catalog_json(entries, categories), encoding="utf-8")
 
 
 def read_catalog_text(path: Path) -> str:
@@ -215,6 +249,8 @@ class SkillsCatalog(ISkillsCatalogProtocol):
         categories = category_summaries(entries, skills_root)
         path = catalog_path(skills_root)
         write_catalog(entries, categories, path)
+        json_path = skills_root / "catalog.json"
+        write_catalog_json(entries, categories, json_path)
         return CatalogReport(
             path=path,
             skills=len(entries),
@@ -244,39 +280,74 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             current = read_catalog_text(path).splitlines()
             regenerated = read_catalog_text(candidate).splitlines()
 
-        diff_lines = list(
-            difflib.unified_diff(
-                current,
-                regenerated,
-                fromfile=str(path),
-                tofile=f"regenerated ({path})",
-                lineterm="",
-            )
-        )
-
-        if diff_lines:
-            message = (
-                f"Catalog drift detected: {path} does not match the live tree "
-                f"({len(diff_lines)} diff line(s)); rebuild with the catalog subcommand"
-            )
-            return CatalogCheckResult(
-                in_sync=False, diff_lines=tuple(diff_lines), message=message
+            diff_lines = list(
+                difflib.unified_diff(
+                    current,
+                    regenerated,
+                    fromfile=str(path),
+                    tofile=f"regenerated ({path})",
+                    lineterm="",
+                )
             )
 
-        # Fail-closed escaping assertion: no rendered cell may survive the
-        # escape→unescape round-trip lossily, or a crafted description
-        # silently corrupts the index.
-        cell_problems = catalog_cell_problems(entries, categories)
-        if cell_problems:
-            message = (
-                f"Catalog drift detected: {path} contains cells that do not "
-                f"round-trip through the catalog parser ({len(cell_problems)} cell(s))"
+            if diff_lines:
+                message = (
+                    f"Catalog drift detected: {path} does not match the live tree "
+                    f"({len(diff_lines)} diff line(s)); rebuild with the catalog subcommand"
+                )
+                return CatalogCheckResult(
+                    in_sync=False, diff_lines=tuple(diff_lines), message=message
+                )
+
+            # Fail-closed escaping assertion: no rendered cell may survive the
+            # escape→unescape round-trip lossily, or a crafted description
+            # silently corrupts the index.
+            cell_problems = catalog_cell_problems(entries, categories)
+            if cell_problems:
+                message = (
+                    f"Catalog drift detected: {path} contains cells that do not "
+                    f"round-trip through the catalog parser ({len(cell_problems)} cell(s))"
+                )
+                return CatalogCheckResult(
+                    in_sync=False,
+                    diff_lines=tuple(f"drift: {problem}" for problem in cell_problems),
+                    message=message,
+                )
+
+            # Drift-check the JSON catalog artifact too: regenerate to the same
+            # temp directory and diff against the tracked catalog.json.
+            json_path = skills_root / "catalog.json"
+            candidate_json = Path(tmp) / "catalog.json"
+            write_catalog_json(entries, categories, candidate_json)
+            if not json_path.exists():
+                return CatalogCheckResult(
+                    in_sync=False,
+                    diff_lines=(),
+                    message=(
+                        f"Catalog JSON missing: {json_path} "
+                        "(rebuild with the catalog subcommand)"
+                    ),
+                )
+            current_json = json_path.read_text(encoding="utf-8").splitlines()
+            regenerated_json = candidate_json.read_text(encoding="utf-8").splitlines()
+            json_diff = list(
+                difflib.unified_diff(
+                    current_json,
+                    regenerated_json,
+                    fromfile=str(json_path),
+                    tofile=f"regenerated ({json_path})",
+                    lineterm="",
+                )
             )
-            return CatalogCheckResult(
-                in_sync=False,
-                diff_lines=tuple(f"drift: {problem}" for problem in cell_problems),
-                message=message,
-            )
+            if json_diff:
+                message = (
+                    f"Catalog JSON drift detected: {json_path} does not match "
+                    f"the live tree ({len(json_diff)} diff line(s)); rebuild "
+                    "with the catalog subcommand"
+                )
+                return CatalogCheckResult(
+                    in_sync=False, diff_lines=tuple(json_diff), message=message
+                )
 
         return CatalogCheckResult(
             in_sync=True,
