@@ -22,7 +22,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.common.utility_skills_tree import (
+from shared.src.common.utility_skills_tree import (
     assets_container,
     category_dirs,
     category_summaries,
@@ -32,24 +32,24 @@ from modules.shared.src.common.utility_skills_tree import (
     skill_entries,
     too_deep_exempt_paths,
 )
-from skills_design.src.contract_skills_protocol import ISkillsLinterProtocol
-from skills_design.src.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.contract_skills_protocol import ISkillsLinterProtocol
+from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     LintReport,
     ValidationReport,
 )
-from skills_design.src.taxonomy_skills_constant import MAX_DESCRIPTION_LEN
-from skills_design.src.taxonomy_skills_entity import (
+from shared.src.skills_design.taxonomy_skills_constant import MAX_DESCRIPTION_LEN
+from shared.src.skills_design.taxonomy_skills_entity import (
     CategorySummary,
     Issue,
     SkillEntry,
 )
-from skills_design.src.taxonomy_skills_rule_vo import (
+from shared.src.skills_design.taxonomy_skills_rule_vo import (
     IssueType,
     is_valid_skill_name,
     issue_message,
 )
-from skills_design.src.taxonomy_skills_vo import SkillsRoot
-from skills_design.src.utility_skills_mutation import plan_weed
+from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
+from shared.src.common.utility_skills_mutation import plan_weed
 
 __all__ = ["SkillsLinter"]
 

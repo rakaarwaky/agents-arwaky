@@ -17,10 +17,8 @@ from pathlib import Path
 SLASH_RE = re.compile(r"(?<![\w/~.])/([a-z][a-z0-9-]{1,63})\b(?!/)")
 WORD_RE = re.compile(r"\s+")
 
-from modules.shared.src.common.taxonomy_skill_vo import (
-    extract_skill_name,
-)
-from skills_design.src.taxonomy_skills_constant import (
+from shared.src.common.taxonomy_skill_vo import extract_skill_name
+from shared.src.skills_design.taxonomy_skills_constant import (
     IGNORED_CATEGORY_DIRS,
 )
 

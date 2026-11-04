@@ -19,31 +19,31 @@ import difflib
 import tempfile
 from pathlib import Path
 
-from skills_design.src.utility_skills_markdown import md_escape, md_unescape
-from modules.shared.src.common.utility_skills_tree import (
+from shared.src.common.utility_skills_tree import (
     category_summaries,
     skill_entries,
 )
-from skills_design.src.contract_skills_protocol import (
+from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
 )
-from skills_design.src.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
     CatalogRow,
 )
-from skills_design.src.taxonomy_skills_constant import (
+from shared.src.skills_design.taxonomy_skills_constant import (
     _HEADER,
     _MISSING_DESCRIPTION_PLACEHOLDER,
     CATALOG_FILENAME,
     LINE_BREAKS,
 )
-from skills_design.src.taxonomy_skills_entity import (
+from shared.src.skills_design.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
 )
-from skills_design.src.taxonomy_skills_error import CatalogDrift
-from skills_design.src.taxonomy_skills_vo import SkillsRoot
+from shared.src.skills_design.taxonomy_skills_error import CatalogDrift
+from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
+from shared.src.common.utility_skills_markdown import md_escape, md_unescape
 
 __all__ = [
     "SkillsCatalog",

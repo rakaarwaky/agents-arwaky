@@ -1,59 +1,21 @@
 """Skills traces capability (AES capabilities layer).
 
-Ports the session-scanning / redaction / usage-building logic from
-``capabilities_skills_tracker.py`` and the repeated-prompt /
-repeated-instruction-line mining logic from
-``capabilities_skills_phrases.py`` into the single
-``ISkillsTracesProtocol`` seam.
+Combines the scan capability (scan_sessions / build_usage / build_phrases /
+materialize) and the state capability (status machine / trash / decide /
+wait / restrict / dispatch) into a single ``SkillsTraces`` implementation
+of ``ISkillsTracesProtocol``. The scan and state halves depend on run-dir
+files only — no capability-to-capability import between them here.
 
-The phrases half depends on the scan half through run-dir files only
-(the tracker writes ``manifest.json`` + ``sessions/*.json``; phrases
-reads them back) — there is no capability-to-capability import between
-them here.
-
-The trace-state lifecycle (status machine, trash guard, decide log,
-wait, restrict) now lives in ``utility_skills_trace_state`` (shared
-kernel) and is imported here for re-export. ``SkillsTraces`` itself
-keeps only scan / usage / phrases plus the protocol ``dispatch`` seam,
-which routes the state sub-actions to the shared helpers.
-
-Status machine (over ``GROK_HOME/learn/state.json``): collected →
-running → report_ready → curating → done.
-
-Trash: path-shape guard verbatim — only a ``skills/<name>`` directory,
-a ``workflows/*.rhai`` file, or a ``hooks/*`` file under GROK_HOME /
-``~/.agents`` / project ``.grok`` is moved into
-``learn/trash/<run_name>``; any other shape is refused.
-
-Decide: appends one line to ``learn/decisions.jsonl`` in the legacy key
-order (``TraceDecision.as_dict()`` pins it).
-
-Wait: blocks until ``report.md`` + ``actions.json`` exist under the run
-dir; phase-stall / report-stall / deadline timeouts with distinct status
-returns (no exit-code logic here).
-
-Restrict: chmod 0600 where the OS supports it.
-
-Depends only on ``modules.shared`` contract + taxonomy. I/O is limited
-to ``GROK_HOME/learn`` and the run dir.
+Depends only on contract + taxonomy from the shared kernel plus shared
+trace-state helpers (imported from ``utility_skills_trace_state``).
 """
-
 from __future__ import annotations
 
-import datetime as dt
-import json
-import os
-import re
-import urllib.parse
-from collections import Counter, defaultdict
-from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from shared.src.skills_traces.utility_skill_pack import (
-    SLASH_RE,
-    parse_skill_frontmatter,
-)
 from shared.src.skills_traces.contract_skills_protocol import (
+    ISkillsTraceScanProtocol,
+    ISkillsTraceStateProtocol,
     ISkillsTracesProtocol,
 )
 from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
@@ -72,19 +34,20 @@ from shared.src.skills_traces.taxonomy_skills_vo import (
     TraceStateDispatchResult,
     TraceStateStatus,
 )
+from shared.src.skills_traces.utility_skill_pack import (
+    SLASH_RE,
+    parse_skill_frontmatter,
+)
 from shared.src.skills_traces.utility_skills_trace_state import (
     DEFAULT_DROP_PATTERNS,
     DEFAULT_EXCLUDE_SUBSTR,
     SKILL_PATH_RE,
     SUBAGENT_KINDS,
     TURN_CAP,
-    decisions_path,
-    files_ready,
-    load_state,
-    mark,
+    _default_exclude_cwd,
+    _read_json,
     normalize,
     redact,
-    state_path,
 )
 from shared.src.skills_traces.utility_skills_trace_state import (
     EXACT_MIN_SESSIONS as _EXACT_MIN_SESSIONS,
@@ -126,18 +89,14 @@ from shared.src.skills_traces.utility_skills_trace_state import (
     wait as _wait,
 )
 
-__all__ = [
-    "SkillsTraces",
-]
-
-
-# ─── Block 1: SkillsTraces class definition & protocol methods ──────────────
+__all__ = ["SkillsTraces"]
 
 
 class SkillsTraces(ISkillsTracesProtocol):
-    """Scans sessions, builds skills-only usage, and mines repeated phrases."""
+    """Scans sessions, builds skills-only usage, mines repeated phrases,
+    and drives the trace-learning lifecycle."""
 
-    # ── ISkillsTracesProtocol ──────────────────────────────────────────
+    # ── ISkillsTraceScanProtocol ──────────────────────────────────────────
 
     def scan_sessions(
         self,
@@ -153,12 +112,19 @@ class SkillsTraces(ISkillsTracesProtocol):
         """Walk ``$GROK_HOME/sessions`` and return a compact scan outcome.
 
         Applies the subagent/headless/temp-cwd/grok-e2e/window/min-turns
-        filters, redacts secrets verbatim, caps prompts at ``TURN_CAP`` chars,
-        drops smoke-test sessions, writes ``manifest.json`` +
+        filters, redacts secrets verbatim, caps prompts at ``TURN_CAP``
+        chars, drops smoke-test sessions, writes ``manifest.json`` +
         ``sessions/NNNN-<id>.json`` into ``run_dir``, and returns the kept
         records plus the ``sessions_seen`` / ``dropped`` counters as a
         ``ScanResult`` VO.
         """
+        import datetime as dt
+        import json
+        import os
+        import re
+        import urllib.parse
+        from collections import Counter, defaultdict
+
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         sessions_root = os.path.join(grok_home, "sessions")
         run_dir = os.path.abspath(run_dir)
@@ -176,7 +142,6 @@ class SkillsTraces(ISkillsTracesProtocol):
                 cutoff = _parse_time(_read_json(state_path_).get("last_completed_at"))
             except (OSError, ValueError):
                 cutoff = None
-
         kept: list[dict] = []
         seen = 0
         dropped: Counter[str] = Counter()
@@ -231,8 +196,6 @@ class SkillsTraces(ISkillsTracesProtocol):
 
             kept.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
 
-            # single-turn sessions that repeat one identical prompt across sessions
-            # look like automation; exclude them
             single = Counter(
                 normalize(r["turns"][0]) for r in kept if r["human_turns"] == 1
             )
@@ -272,14 +235,11 @@ class SkillsTraces(ISkillsTracesProtocol):
         return ScanResult(records=tuple(records), sessions_seen=seen, dropped=dict(dropped))
 
     def build_usage(self, grok_home: GrokHome, run_dir: TraceRunDir) -> UsageReport:
-        """Build the skills-only usage report from session records in ``run_dir``.
+        """Build the skills-only usage report from session records in ``run_dir``."""
+        import json
+        import os
+        from collections import defaultdict
 
-        Aggregates per-skill hit counts (hits, sessions, last_used) from the
-        session records the tracker wrote, and derives ``unused_loaded``
-        (loaded, zero hits, not in slash-mru). Keeps the user-level slash-mru
-        read so the disuse verdict stays correct. ``kept_sessions`` is the
-        number of kept compact session records (not the number of skills with hits).
-        """
         grok_home = os.path.abspath(os.path.expanduser(grok_home))
         run_dir = os.path.abspath(run_dir)
         sessions_dir = os.path.join(run_dir, "sessions")
@@ -343,6 +303,10 @@ class SkillsTraces(ISkillsTracesProtocol):
         Counts are distinct sessions; single-turn sessions repeated 3+ times
         are excluded as likely automation.
         """
+        import json
+        import os
+        from collections import defaultdict
+
         sessions_dir = os.path.join(run_dir, "sessions")
         exact: dict[str, list[str]] = defaultdict(list)
         stems: dict[str, list[str]] = defaultdict(list)
@@ -396,6 +360,9 @@ class SkillsTraces(ISkillsTracesProtocol):
     ) -> tuple[UsageReport, PhrasesReport]:
         """Build usage + phrases for *run_dir*; write ``usage.json`` +
         ``phrases.json`` into it and return the two reports."""
+        import json
+        import os
+
         usage = self.build_usage(grok_home=grok_home, run_dir=run_dir)
         report = self.build_phrases(grok_home=grok_home, run_dir=run_dir)
 
@@ -433,6 +400,7 @@ class SkillsTraces(ISkillsTracesProtocol):
     @staticmethod
     def _phrases_to_json(report: PhrasesReport) -> dict:
         """The legacy phrases.json shape (exact / stems / instruction lines)."""
+
         def rows(rows_: tuple[PhraseRow, ...]) -> list[dict]:
             return [
                 {
@@ -469,18 +437,28 @@ class SkillsTraces(ISkillsTracesProtocol):
         rows.sort(key=lambda x: (-x.sessions, -x.occurrences, x.phrase))
         return tuple(rows[:_TOP])
 
-    # ── Trace-state lifecycle (delegated to utility_skills_trace_state) ──
-
+    # ── ISkillsTraceStateProtocol (delegated to utility_skills_trace_state) ──
 
     def set_status(
         self, grok_home: GrokHome, run_dir: TraceRunDir, status: TraceStateStatus
     ) -> TraceStateStatus:
         """Record ``status`` for the pending run; ``done`` stamps last_completed."""
+        from shared.src.skills_traces.utility_skills_trace_state import (
+            mark,
+            state_path,
+        )
+
         state = mark(state_path(grok_home), run_dir, status)
         return TraceStateStatus(state.get("pending", {}).get("status", status.value))
 
     def get_status(self, grok_home: GrokHome) -> TraceStateStatus:
         """Return the current pending status."""
+        from shared.src.skills_traces.utility_skills_trace_state import (
+            files_ready,
+            load_state,
+            state_path,
+        )
+
         state = load_state(state_path(grok_home))
         pending = state.get("pending") or {}
         if (
@@ -493,7 +471,7 @@ class SkillsTraces(ISkillsTracesProtocol):
         return TraceStateStatus(pending.get("status") or TraceStateStatus.DONE.value)
 
     def trash(
-        self, grok_home: GrokHome, run_name: TraceRunName, paths: Sequence[str]
+        self, grok_home: GrokHome, run_name: TraceRunName, paths: list[str]
     ) -> tuple[str, ...]:
         """Move the validated paths into ``learn/trash/<run_name>``."""
         return _trash(grok_home, run_name, list(paths))
@@ -505,6 +483,11 @@ class SkillsTraces(ISkillsTracesProtocol):
         decision: TraceDecision,
     ) -> TraceDecision:
         """Append one decision line to ``learn/decisions.jsonl`` and return it."""
+        import json
+        import os
+
+        from shared.src.skills_traces.utility_skills_trace_state import decisions_path
+
         dec_path = decisions_path(grok_home)
         os.makedirs(os.path.dirname(dec_path), exist_ok=True)
         line = decision.as_dict()
@@ -523,57 +506,49 @@ class SkillsTraces(ISkillsTracesProtocol):
         """Block until the run dir holds ``report.md`` + ``actions.json``."""
         return _wait(grok_home, run_dir, timeout_min=timeout_min)
 
-    def restrict(self, paths: Sequence[str]) -> tuple[str, ...]:
+    def restrict(self, paths: list[str]) -> tuple[str, ...]:
         """chmod 0600 where the OS supports it; silently skip what it cannot."""
         return _restrict(list(paths))
-
-    # ── dispatch: one router call instead of seven branches upstream ──
-
-
-    @staticmethod
-    def _split_paths(flag_value: str) -> tuple[str, ...]:
-        return tuple(p.strip() for p in flag_value.split(",") if p.strip())
 
     def dispatch(
         self,
         grok_home: str,
         run_dir: str,
         action: str,
-        flags: Mapping[str, str],
+        flags: dict[str, str],
     ) -> TraceStateDispatchResult:
-        """Route one trace-state sub-action; the thin router the agent calls.
-
-        Dispatches via the shared ``utility_skills_trace_state.dispatch`` so
-        each sub-action (set/get/clear/trash/restrict/decide/wait) is
-        individually testable. Unknown actions raise ``SkillsUsageError``
-        (exit 2).
-        """
+        """Route one trace-state sub-action through this capability."""
         return _state_dispatch(grok_home, run_dir, action, dict(flags))
 
 
-# ─── Block 2: inherent helper functions used by the class ──────────────
-# ─── Block 3: module-level helpers & private free functions ──────────────
+# ─── Module-level helpers ───────────────────────────────────────────────
 
 
-def _default_exclude_cwd() -> list[str]:
-    import tempfile
+def _parse_time(s):
+    if not s:
+        return None
+    import datetime as dt
 
-    return sorted(
-        {
-            os.path.normcase(os.path.normpath(p))
-            for p in (
-                tempfile.gettempdir(),
-                os.path.realpath(tempfile.gettempdir()),
-                "/tmp",
-                "/private/tmp",
-                "/var/folders",
-            )
-        }
-    )
+    try:
+        return dt.datetime.fromisoformat(s)
+    except ValueError:
+        return None
 
 
-def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern]) -> dict | None:
+def _under(path: str, base: str) -> bool:
+    import os
+
+    path, base = os.path.normcase(os.path.normpath(path)), os.path.normcase(os.path.normpath(base))
+    return path == base or path.startswith(base.rstrip(os.sep) + os.sep)
+
+
+def _scan_session(sess_dir: str, summary: dict, drop_patterns: list) -> dict | None:
     """Scan one session dir; return a compact record dict or None."""
+    import json
+    import os
+    import re
+    from collections import Counter
+
     chat = os.path.join(sess_dir, "chat_history.jsonl")
     if not os.path.isfile(chat):
         return None
@@ -691,6 +666,8 @@ def _scan_session(sess_dir: str, summary: dict, drop_patterns: list[re.Pattern])
 
 
 def _human_turns(content) -> list[str]:
+    import re
+
     if isinstance(content, str):
         txt = content
     elif isinstance(content, list):
@@ -738,12 +715,16 @@ def _write_manifest(
     records: list[TraceSessionRecord],
     kept: list[dict],
     seen: int,
-    dropped: Counter[str],
+    dropped: dict[str, int],
     days: int,
     since_last: bool,
     min_turns: int,
     limit: int,
 ) -> None:
+    import datetime as dt
+    import json
+    import os
+
     manifest = {
         "grok_home": grok_home,
         "run_dir": run_dir,
@@ -775,13 +756,12 @@ def _write_manifest(
 
 
 def _load_skill_catalog(grok_home: str) -> dict[str, dict]:
-    """Load the user skill catalog: name -> {source, path, loaded, in_slash_mru}.
+    """Load the user skill catalog: name -> {source, path, loaded, in_slash_mru}."""
+    import json
+    import os
+    import re
+    from pathlib import Path
 
-    Skills-only, user-level: walks ``$GROK_HOME/skills/<cat>/<name>/SKILL.md``,
-    parses frontmatter via the shared utility, applies the ``[skills] disabled``
-    list from ``config.toml``, and reads the user slash-mru for the
-    ``in_slash_mru`` flag.
-    """
     catalog: dict[str, dict] = {}
     skills_dir = os.path.join(grok_home, "skills")
     disabled: set[str] = set()
@@ -826,6 +806,8 @@ def _load_skill_catalog(grok_home: str) -> dict[str, dict]:
 
 def _toml_string_array(text: str, table: str, key: str) -> list[str] | None:
     """Read ``key = [ "a", "b" ]`` under ``[table]`` without YAML/TOML deps."""
+    import re
+
     m = re.search(r"^\[" + re.escape(table) + r"\]\s*$", text, re.MULTILINE)
     if not m:
         return None
@@ -847,28 +829,3 @@ def _toml_string_array(text: str, table: str, key: str) -> list[str] | None:
                 break
         i += 1
     return re.findall(r'"([^"]+)"', rest[start : i + 1])
-
-
-# --- module-level helpers imported from utility_skills_trace_state ---
-# (kept as local references so scan/usage/phrases work without the class)
-
-
-def _read_json(path: str):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _parse_time(s):
-    if not s:
-        return None
-    try:
-        return dt.datetime.fromisoformat(s)
-    except ValueError:
-        return None
-
-
-def _under(path: str, base: str) -> bool:
-    path, base = os.path.normcase(os.path.normpath(path)), os.path.normcase(os.path.normpath(base))
-    return path == base or path.startswith(base.rstrip(os.sep) + os.sep)
-
-

@@ -16,8 +16,7 @@ contract and taxonomy layers.
 The pipeline reads session traces from `$GROK_HOME/sessions` and the
 `skills/` pack, and writes run-dir artifacts (`manifest.json`,
 `sessions/*.json`, `usage.json`, `phrases.json`) plus lifecycle
-state under `$GROK_HOME/learn`. The design-side composition root
-(`skills/skill-authoring/skill-design/modules/skills_design/src/root_skills_container.py`) wires
+state under `$GROK_HOME/learn`. The composition root wires
 `SkillsTraces` (this module's capability) into the shared agent, so
 `SkillsOp.TRACES` is dispatched end-to-end through one aggregate
 entry point.
@@ -30,13 +29,13 @@ report-stall / 2 deadline.
 
 ## Functional Requirements
 
-### FR-SKILLS-009: Trace Learning Lifecycle
+### FR-SkillsTraces-009: Trace Learning Lifecycle
 
 **Description:** Scan sessions, build skills-only usage, mine repeated phrases, materialize on-disk artifacts, and drive the trace-learning state machine (status, trash, decisions, wait).
 
 #### Business Logic
 
-- `traces` is a fully functional CLI surface verb — `aa skills traces <action>` routes to `cmd_traces` in `surface_skills_traces_command.py`
+- `traces` is a fully functional CLI surface verb — `aa skills traces <action>` routes to the traces surface command
 - `collect` scans sessions and builds the usage report
 - `usage` reads the last run's usage report
 - `phrases` mines repeated prompts and instruction lines

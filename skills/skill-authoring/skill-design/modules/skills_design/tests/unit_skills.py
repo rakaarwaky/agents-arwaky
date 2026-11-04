@@ -5,24 +5,23 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
-from modules.shared.src.common.utility_skills_tree import (
+from shared.src.common.utility_skills_tree import (
     assets_container,
     category_summaries,
     skill_entries,
     too_deep_exempt_paths,
 )
-from skills_design.src.contract_skills_protocol import (
+from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
-from skills_design.src.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
 )
-from skills_design.src.taxonomy_skills_error import SkillsRootError
-from skills_design.src.taxonomy_skills_vo import (
+from shared.src.skills_design.taxonomy_skills_error import SkillsRootError
+from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
     SkillDescription,
     SkillQuery,
@@ -278,8 +277,8 @@ def test_skill_content_is_a_newtype_of_str() -> None:
 def test_two_walkers_agree_on_the_live_pack() -> None:
     """R5 cross-check: the read walker and the authoring walker see the
     same skill set, so drift fails a test instead of shipping silently."""
-    from skills_design.src.utility_skill_pack import iter_skill_mds
-    from modules.shared.src.common.utility_skills_tree import skill_entries
+    from shared.src.common.utility_skills_tree import skill_entries
+    from shared.src.skills_design.utility_skill_pack import iter_skill_mds
 
     pack = default_pack_root()
     read_walk = {

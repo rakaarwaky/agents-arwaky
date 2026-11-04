@@ -9,20 +9,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from modules.shared.src.common.taxonomy_skill_vo import (
-    sanitize_skill_name,
+from shared.src.common.taxonomy_skill_vo import sanitize_skill_name
+from shared.src.skills_design.contract_skills_protocol import ISkillsReaderProtocol
+from shared.src.skills_design.taxonomy_skills_vo import (
+    SkillContent,
+    SkillQuery,
+    SkillsRoot,
 )
-from skills_design.src.utility_skill_pack import (
+from shared.src.common.utility_skill_pack import (
     default_pack_root,
     iter_skill_mds,
     parse_skill_frontmatter,
     read_skill_md,
-)
-from skills_design.src.contract_skills_protocol import ISkillsReaderProtocol
-from skills_design.src.taxonomy_skills_vo import (
-    SkillContent,
-    SkillQuery,
-    SkillsRoot,
 )
 
 __all__ = ["SkillsPackReader"]

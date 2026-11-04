@@ -18,21 +18,21 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from modules.shared.src.common.utility_skills_tree import relpath
-from skills_design.src.contract_skills_protocol import (
+from shared.src.common.utility_skills_tree import relpath
+from shared.src.skills_design.contract_skills_protocol import (
     ISkillsMoverProtocol,
 )
-from skills_design.src.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     MutationOutcome,
     MutationPlan,
 )
-from skills_design.src.taxonomy_skills_error import (
+from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from skills_design.src.taxonomy_skills_rule_vo import CategoryName, SkillName
-from skills_design.src.taxonomy_skills_vo import SkillsRoot
-from skills_design.src.utility_skills_mutation import (
+from shared.src.skills_design.taxonomy_skills_rule_vo import CategoryName, SkillName
+from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
+from shared.src.common.utility_skills_mutation import (
     assert_within_root,
     resolve_skill_dir,
     validate_category_name,

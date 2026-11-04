@@ -247,9 +247,8 @@ def test_e2e_trace_verbs_registered_in_help(tmp_path: Path) -> None:
     import io
     from contextlib import redirect_stdout
 
-    from skills_design.src.root_skills_container import default_aggregate
-
-    from skills_design.src.surface_skills_traces_command import cmd_traces
+    from cli.src.surface_skills_traces_command import cmd_traces
+    from root_skills_container import default_aggregate
 
     for action in ("collect", "usage", "phrases", "materialize"):
         with redirect_stdout(io.StringIO()):

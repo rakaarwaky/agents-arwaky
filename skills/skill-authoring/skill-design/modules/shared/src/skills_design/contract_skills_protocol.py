@@ -21,7 +21,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 
-from skills_design.src.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
     CatalogRow,
@@ -34,11 +34,11 @@ from skills_design.src.taxonomy_skills_authoring_vo import (
     SkillCreatePlan,
     UsageReport,
 )
-from skills_design.src.taxonomy_skills_rule_vo import (
+from shared.src.skills_design.taxonomy_skills_rule_vo import (
     CategoryName,
     SkillName,
 )
-from skills_design.src.taxonomy_skills_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     GrokHome,
     ScanResult,
     SkillContent,
@@ -130,7 +130,7 @@ class ISkillsCatalogProtocol(ABC):
         ...
 
     @abstractmethod
-    def read(self, root: SkillsRoot) -> str:
+    def read(self, root: SkillsRoot) -> SkillContent:
         """Return the raw tracked ``CATALOG.md`` text, or ``""`` if missing.
 
         A read-only view for the CLI ``catalog --read`` path; unlike

@@ -27,7 +27,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from modules.shared.src.common.utility_logging_setup import (
+from shared.src.common.utility_logging_setup import (
     BOLD,
     CYAN,
     RESET,
@@ -35,15 +35,15 @@ from modules.shared.src.common.utility_logging_setup import (
     err,
     info,
 )
-from skills_design.src.utility_skills_markdown import md_escape
-from skills_design.src.contract_skills_aggregate import ISkillsAggregate
-from skills_design.src.taxonomy_skills_error import SkillsUsageError
-from skills_design.src.taxonomy_skills_request import SkillsOp, SkillsRequest
-from skills_design.src.taxonomy_skills_response import (
+from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
+from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
+from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
+from shared.src.skills_design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from skills_design.src.taxonomy_skills_vo import SkillQuery
+from shared.src.skills_design.taxonomy_skills_vo import SkillQuery
+from shared.src.common.utility_skills_markdown import md_escape
 
 _EXIT_USAGE = SkillsExitCode.USAGE_ERROR
 _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT
@@ -71,8 +71,8 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
     if sub == "traces":
-        from skills_design.src.surface_skills_traces_command import cmd_traces
-        return cmd_traces(rest, aggregate)
+        err("traces is not a design-side verb; use the traces skill CLI")
+        return _EXIT_USAGE
     err(f"Unknown skills subcommand: {sub}")
     _print_usage()
     return _EXIT_USAGE

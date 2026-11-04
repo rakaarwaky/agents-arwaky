@@ -7,7 +7,6 @@ The public entry point is ``cmd_traces``. argv parsing keeps every legacy
 behavior: exit code 2 for missing/unknown sub-action, JSON mode, and the
 per-action flag contracts. Rendering stays on the surface (AES406).
 """
-
 from __future__ import annotations
 
 import argparse
@@ -25,31 +24,41 @@ _EXIT_WAIT_PHASE_STALL = SkillsExitCode.ISSUES_FOUND
 _EXIT_WAIT_REPORT_STALL = SkillsExitCode.CATALOG_DRIFT
 _EXIT_WAIT_DEADLINE = SkillsExitCode.USAGE_ERROR
 
+_WAIT_EXIT = {
+    TraceStateStatus.REPORT_READY: _EXIT_WAIT_READY,
+    TraceStateStatus.PHASE_STALL: _EXIT_WAIT_PHASE_STALL,
+    TraceStateStatus.REPORT_STALL: _EXIT_WAIT_REPORT_STALL,
+    TraceStateStatus.DEADLINE: _EXIT_WAIT_DEADLINE,
+}
+
 
 def _emit_json(payload: dict[str, object]) -> None:
     """Print a JSON payload with a stable key order and a trailing newline."""
     print(json.dumps(payload, indent=2, ensure_ascii=False))
 
 
+def _stderr(msg: str) -> None:
+    print(msg, file=__import__("sys").stderr)
+
+
 def cmd_traces(args: list[str], aggregate: ISkillsAggregate) -> int:
     """Route a ``traces`` sub-action to its handler."""
     if not args:
-        print("Usage: aa skills traces <collect|usage|phrases|materialize|state> [flags]")
+        _stderr("Usage: aa skills traces <collect|usage|phrases|materialize|state> [flags]")
         return _EXIT_USAGE
     action = args[0]
-
-    if action == "collect":
-        return _cmd_traces_collect(args[1:], aggregate)
-    if action == "usage":
-        return _cmd_traces_usage(args[1:], aggregate)
-    if action == "phrases":
-        return _cmd_traces_phrases(args[1:], aggregate)
-    if action == "materialize":
-        return _cmd_traces_materialize(args[1:], aggregate)
-    if action == "state":
-        return _cmd_traces_state(args[1:] or ["get"], aggregate)
-    print(f"Unknown traces action: {action}")
-    return _EXIT_USAGE
+    dispatch = {
+        "collect": _cmd_traces_collect,
+        "usage": _cmd_traces_usage,
+        "phrases": _cmd_traces_phrases,
+        "materialize": _cmd_traces_materialize,
+        "state": _cmd_traces_state,
+    }
+    handler = dispatch.get(action)
+    if handler is None:
+        _stderr(f"Unknown traces action: {action}")
+        return _EXIT_USAGE
+    return handler(args[1:], aggregate)
 
 
 def _trace_collect_parser() -> argparse.ArgumentParser:
@@ -94,7 +103,7 @@ def _cmd_traces_collect(args: list[str], aggregate: ISkillsAggregate) -> int:
     result = aggregate.execute(request)
 
     if not result.ok:
-        print(result.message, file=__import__("sys").stderr)
+        _stderr(result.message)
         return result.exit_code
 
     if ns.json:
@@ -162,7 +171,7 @@ def _cmd_traces_usage(args: list[str], aggregate: ISkillsAggregate) -> int:
 
     usage = result.usage
     if usage is None:
-        print("Internal error: no usage report produced", file=__import__("sys").stderr)
+        _stderr("Internal error: no usage report produced")
         return 1
     print(f"Kept sessions: {usage.kept_sessions}")
     print(f"{'Skill':<28} {'Loaded':<7} {'Count':<6} {'Last used':<20} {'In slash MRU'}")
@@ -239,7 +248,7 @@ def _cmd_traces_phrases(args: list[str], aggregate: ISkillsAggregate) -> int:
 
     phrases = result.phrases
     if phrases is None:
-        print("Internal error: no phrases report produced", file=__import__("sys").stderr)
+        _stderr("Internal error: no phrases report produced")
         return 1
     if phrases.exact_prompts:
         print("Repeated exact prompts:")
@@ -276,7 +285,7 @@ def _cmd_traces_materialize(args: list[str], aggregate: ISkillsAggregate) -> int
         return int(exit_exc.code or 0)
 
     if not ns.run_dir:
-        print("--run-dir is required", file=__import__("sys").stderr)
+        _stderr("--run-dir is required")
         return 2
 
     request = SkillsRequest(
@@ -289,7 +298,7 @@ def _cmd_traces_materialize(args: list[str], aggregate: ISkillsAggregate) -> int
     )
     result = aggregate.execute(request)
     if not result.ok:
-        print(result.message or "Materialize failed", file=__import__("sys").stderr)
+        _stderr(result.message or "Materialize failed")
         return int(result.exit_code or 1)
 
     if ns.json:
@@ -362,20 +371,13 @@ def _trace_state_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _cmd_traces_state(args: list[str], aggregate: ISkillsAggregate) -> int:
-    try:
-        ns = _trace_state_parser().parse_args(args)
-    except SystemExit as exit_exc:
-        return int(exit_exc.code or 0)
-
-    action = ns.action
+def _build_state_flags(ns: argparse.Namespace, action: str) -> dict[str, str]:
     flags = {
         "traces_action": "state",
         "state_action": action,
         "grok_home": getattr(ns, "grok_home", ""),
         "run_dir": getattr(ns, "run_dir", ""),
     }
-
     if action == "set":
         flags["status"] = ns.status
     elif action == "trash":
@@ -394,56 +396,76 @@ def _cmd_traces_state(args: list[str], aggregate: ISkillsAggregate) -> int:
         flags["undo"] = getattr(ns, "undo", "") or ""
     elif action == "wait":
         flags["timeout_min"] = str(getattr(ns, "timeout_min", 90))
+    return flags
 
+
+def _cmd_traces_state(args: list[str], aggregate: ISkillsAggregate) -> int:
+    try:
+        ns = _trace_state_parser().parse_args(args)
+    except SystemExit as exit_exc:
+        return int(exit_exc.code or 0)
+
+    action = ns.action
+    flags = _build_state_flags(ns, action)
     request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
     result = aggregate.execute(request)
 
-    if action == "get":
-        status = result.state
-        if status in (
-            TraceStateStatus.COLLECTED,
-            TraceStateStatus.RUNNING,
-        ):
-            return 3
-        print(f"Pending status: {status}")
-        return 0
+    handlers = {
+        "get": _handle_state_get,
+        "set": _handle_state_set,
+        "clear": _handle_state_clear,
+        "trash": _handle_state_trash,
+        "restrict": _handle_state_restrict,
+        "decide": _handle_state_decide,
+        "wait": _handle_state_wait,
+    }
+    return handlers[action](result)
 
-    if action == "set":
-        print(f"Status set: {result.state}")
-        return 0
 
-    if action == "clear":
-        print(f"Pending cleared: {result.state}")
-        return 0
+def _handle_state_get(result) -> int:
+    status = result.state
+    if status in (
+        TraceStateStatus.COLLECTED,
+        TraceStateStatus.RUNNING,
+    ):
+        return 3
+    print(f"Pending status: {status}")
+    return 0
 
-    if action == "trash":
-        for line in result.lines or ():
-            print(line)
-        return 0
 
-    if action == "restrict":
-        for line in result.lines or ():
-            print(line)
-        return 0
+def _handle_state_set(result) -> int:
+    print(f"Status set: {result.state}")
+    return 0
 
-    if action == "decide":
-        for line in result.lines or ():
-            print(line)
-        return 0
 
-    if action == "wait":
-        status = result.state_status
-        if status == TraceStateStatus.REPORT_READY:
-            return _EXIT_WAIT_READY
-        if status == TraceStateStatus.PHASE_STALL:
-            return _EXIT_WAIT_PHASE_STALL
-        if status == TraceStateStatus.REPORT_STALL:
-            return _EXIT_WAIT_REPORT_STALL
-        if status == TraceStateStatus.DEADLINE:
-            return _EXIT_WAIT_DEADLINE
-        print(f"Wait ended: {status}")
-        return 0
+def _handle_state_clear(result) -> int:
+    print(f"Pending cleared: {result.state}")
+    return 0
 
+
+def _handle_state_trash(result) -> int:
+    for line in result.lines or ():
+        print(line)
+    return 0
+
+
+def _handle_state_restrict(result) -> int:
+    for line in result.lines or ():
+        print(line)
+    return 0
+
+
+def _handle_state_decide(result) -> int:
+    for line in result.lines or ():
+        print(line)
+    return 0
+
+
+def _handle_state_wait(result) -> int:
+    status = result.state_status
+    if status in _WAIT_EXIT:
+        return _WAIT_EXIT[status]
+    print(f"Wait ended: {status}")
     return 0
 
 

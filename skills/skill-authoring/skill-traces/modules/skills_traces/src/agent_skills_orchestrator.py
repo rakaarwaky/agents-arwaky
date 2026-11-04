@@ -16,7 +16,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from shared.src.skills_traces.contract_skills_aggregate import ISkillsAggregate
-from shared.src.skills_traces.contract_skills_protocol import ISkillsTracesProtocol
+from shared.src.skills_traces.contract_skills_protocol import (
+    ISkillsTraceScanProtocol,
+    ISkillsTraceStateProtocol,
+)
 from shared.src.skills_traces.taxonomy_skills_error import SkillsError, SkillsUsageError
 from shared.src.skills_traces.taxonomy_skills_request import SkillsOp, SkillsRequest
 from shared.src.skills_traces.taxonomy_skills_response import (
@@ -30,14 +33,21 @@ from shared.src.skills_traces.taxonomy_skills_vo import (
 
 
 class SkillsAgent(ISkillsAggregate):
-    """Dispatches every trace sub-action to the injected traces capability."""
+    """Dispatches every trace sub-action to the injected traces capability.
+
+    Coordinates two subsystems: the scan capability (scan/usage/phrases/
+    materialize) and the state capability (status machine, trash, decisions,
+    wait), both injected by the composition root.
+    """
 
     def __init__(
         self,
-        traces: ISkillsTracesProtocol,
+        scan: ISkillsTraceScanProtocol,
+        state: ISkillsTraceStateProtocol,
         default_root: Path | None = None,
     ) -> None:
-        self._traces = traces
+        self._scan = scan
+        self._state = state
         self._default_root = default_root
 
     def execute(self, request: SkillsRequest) -> SkillsResult:
@@ -74,7 +84,7 @@ class SkillsAgent(ISkillsAggregate):
         self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
         """Route one TRACES request to its sub-action handler."""
-        traces = self._require(self._traces, "traces")
+        traces = self._require(self._scan, "scan")
         action = request.flags.get("traces_action", "")
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
@@ -132,18 +142,19 @@ class SkillsAgent(ISkillsAggregate):
             )
 
         if action == "state":
-            return self._traces_state(traces, request, op)
+            return self._traces_state(request, op)
 
         raise SkillsUsageError(f"Unknown traces action: {action}")
 
     def _traces_state(
-        self, traces: ISkillsTracesProtocol, request: SkillsRequest, op: SkillsOp
+        self, request: SkillsRequest, op: SkillsOp
     ) -> SkillsResult:
-        """Drive the trace-learning lifecycle; the capability routes sub-actions."""
+        """Drive the trace-learning lifecycle; the state capability routes sub-actions."""
         grok_home = request.flags.get("grok_home", "")
         run_dir = request.flags.get("run_dir", "")
         sub_action = request.flags.get("state_action", "")
-        result = traces.dispatch(grok_home, run_dir, sub_action, request.flags)
+        state = self._require(self._state, "state")
+        result = state.dispatch(grok_home, run_dir, sub_action, request.flags)
         return SkillsResult(
             ok=True,
             op=op,

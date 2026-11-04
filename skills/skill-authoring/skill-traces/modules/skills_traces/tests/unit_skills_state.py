@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 import pytest
-
+from skills_traces.src.capabilities_skills_traces import SkillsTraces
 from shared.src.skills_traces.taxonomy_skills_vo import (
     TraceDecision,
     TraceStateStatus,
@@ -30,7 +30,6 @@ from shared.src.skills_traces.utility_skills_trace_state import (
     save_state,
     state_path,
 )
-from shared.src.skills_traces.capabilities_skills_traces import SkillsTraces
 
 
 def _grok_home(tmp_path: Path) -> Path:

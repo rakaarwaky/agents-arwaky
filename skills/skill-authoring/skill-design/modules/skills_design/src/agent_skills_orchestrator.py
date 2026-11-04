@@ -23,8 +23,8 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import cast
 
-from skills_design.src.contract_skills_aggregate import ISkillsAggregate
-from skills_design.src.contract_skills_protocol import (
+from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
+from shared.src.skills_design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,
@@ -35,17 +35,17 @@ from skills_design.src.contract_skills_protocol import (
     ISkillsReaderProtocol,
     ISkillsTracesProtocol,
 )
-from skills_design.src.taxonomy_skills_error import (
+from shared.src.skills_design.taxonomy_skills_error import (
     SkillsError,
     SkillsRootError,
     SkillsUsageError,
 )
-from skills_design.src.taxonomy_skills_request import SkillsOp, SkillsRequest
-from skills_design.src.taxonomy_skills_response import (
+from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
+from shared.src.skills_design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from skills_design.src.taxonomy_skills_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
     SkillQuery,
     SkillRecord,

@@ -53,6 +53,9 @@ __all__ = [
     "SUBAGENT_KINDS",
     "TURN_CAP",
     "USER_QUERY_RE",
+    "_default_exclude_cwd",
+    "_read_json",
+    "_split_paths",
     "decisions_path",
     "dispatch",
     "files_ready",
@@ -395,6 +398,29 @@ def wait(
         time.sleep(30)
     mark(path, run_dir, TraceStateStatus.RUNNING, {"note": "deadline exceeded"})
     return TraceStateStatus.DEADLINE
+
+
+def _read_json(path: str):
+    """Read a JSON file and return the parsed object."""
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _default_exclude_cwd() -> list[str]:
+    """Default cwd exclusions for session scanning (avoids temp dirs)."""
+    tmp = os.environ.get("TMPDIR", "/tmp")
+    return sorted(
+        {
+            os.path.normcase(os.path.normpath(p))
+            for p in (
+                tmp,
+                os.path.realpath(tmp),
+                "/tmp",
+                "/private/tmp",
+                "/var/folders",
+            )
+        }
+    )
 
 
 def dispatch(

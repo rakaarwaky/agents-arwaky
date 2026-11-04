@@ -24,7 +24,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import NewType
 
-from skills_design.src.taxonomy_skills_request import (
+from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,
 )
@@ -208,8 +208,8 @@ class TraceStateDispatchResult:
 # modules import *only* the primitives defined above (``SkillRecord``,
 # ``ScanResult``, ...) — no import of this module at runtime, so no cycle
 # in either direction.
-from skills_design.src.taxonomy_skills_request import SkillsOp, SkillsRequest
-from skills_design.src.taxonomy_skills_response import (
+from shared.src.skills_design.taxonomy_skills_request import SkillsOp, SkillsRequest
+from shared.src.skills_design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )

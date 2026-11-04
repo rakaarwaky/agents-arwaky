@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Final, NewType
 
-from skills_design.src.taxonomy_skills_constant import (
+from shared.src.skills_design.taxonomy_skills_constant import (
     NAME_MAX,
     NAME_MIN,
     NAME_RE,

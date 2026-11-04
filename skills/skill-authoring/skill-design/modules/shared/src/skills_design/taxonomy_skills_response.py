@@ -22,7 +22,7 @@ from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from skills_design.src.taxonomy_skills_request import SkillsOp
+from shared.src.skills_design.taxonomy_skills_request import SkillsOp
 
 if TYPE_CHECKING:
     # ``SkillsResult`` annotates the authoring VOs (``ValidationReport``,
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     # ``taxonomy_skills_vo`` at the bottom — a runtime import here would
     # cycle, so the names are reserved for type-checking (PEP 563 string
     # annotations, same pattern the old vo module used).
-    from skills_design.src.taxonomy_skills_authoring_vo import (
+    from shared.src.skills_design.taxonomy_skills_authoring_vo import (
         CatalogCheckResult,
         CatalogReport,
         DiscoveryMatch,
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
     # the primitives are defined). Importing that module back at the top
     # of this one would cycle, so the annotation names are reserved for
     # type-checking too; PEP 563 keeps them as strings.
-    from skills_design.src.taxonomy_skills_vo import (
+    from shared.src.skills_design.taxonomy_skills_vo import (
         ScanResult,
         SkillContent,
         SkillRecord,

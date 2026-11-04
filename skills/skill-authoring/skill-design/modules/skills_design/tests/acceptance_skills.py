@@ -29,7 +29,8 @@ def test_acceptance_fr_skill_discovery(tmp_path: Path):
 
 def test_acceptance_fr_skill_lookup(tmp_path: Path):
     """AC-SKILLS-002: FR-003 — a discovered skill's content is retrievable."""
-    from skills_design.src.taxonomy_skills_vo import SkillQuery
+    from shared.src.skills_design.taxonomy_skills_vo import SkillQuery
+
     from skills_design.src.capabilities_skills_reader import SkillsPackReader
 
     pack = _make_pack(tmp_path)
@@ -41,7 +42,8 @@ def test_acceptance_fr_skill_lookup(tmp_path: Path):
 
 def test_acceptance_fr_skill_unknown(tmp_path: Path):
     """AC-SKILLS-003: FR-003 — an unknown skill name returns None."""
-    from skills_design.src.taxonomy_skills_vo import SkillQuery
+    from shared.src.skills_design.taxonomy_skills_vo import SkillQuery
+
     from skills_design.src.capabilities_skills_reader import SkillsPackReader
 
     pack = _make_pack(tmp_path)

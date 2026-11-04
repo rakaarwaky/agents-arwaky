@@ -24,8 +24,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import NewType
 
-from shared.src.skills_traces.taxonomy_skills_request import SkillQuery, SkillsRoot
-
 # Every other primitive below (``SkillContent``, ``SkillRecord``, the trace
 # VOs, ...) is re-exported back into the request/response envelope modules
 # after its definition, so the envelope modules never import this module at
@@ -209,15 +207,29 @@ __all__ = [
     "ScanResult",
     "SkillContent",
     "SkillDescription",
-    "SkillQuery",
     "SkillRecord",
     "SkillUsageItem",
     "SkillsJsonPayload",
-    "SkillsRoot",
     "TraceDecision",
     "TraceRunDir",
     "TraceRunName",
     "TraceSessionRecord",
     "TraceStateDispatchResult",
     "TraceStateStatus",
+]
+
+# Re-exported into the legacy import path: the contract/response envelope
+# modules import only the primitives defined above — no runtime import of
+# this module, so no cycle.
+from shared.src.skills_traces.taxonomy_skills_request import SkillsOp, SkillsRequest
+from shared.src.skills_traces.taxonomy_skills_response import (
+    SkillsExitCode,
+    SkillsResult,
+)
+
+__all__ += [
+    "SkillsExitCode",
+    "SkillsOp",
+    "SkillsRequest",
+    "SkillsResult",
 ]

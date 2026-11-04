@@ -10,7 +10,8 @@ Every module it needs lives under this package tree:
   - utility:     shared/src/skills_traces/utility_skill_pack.py,
                  shared/src/skills_traces/utility_skills_trace_state.py,
                  shared/src/common/taxonomy_skill_vo.py
-  - capabilities: skills_traces/src/capabilities_skills_traces.py
+  - capabilities: skills_traces/src/capabilities_skills_scan.py
+                 skills_traces/src/capabilities_skills_state.py
   - agent:       skills_traces/src/agent_skills_orchestrator.py
 
 The surface is NOT imported here (no root→surface coupling); the CLI
@@ -22,18 +23,25 @@ from __future__ import annotations
 from pathlib import Path
 
 from shared.src.skills_traces.contract_skills_aggregate import ISkillsAggregate
-from shared.src.skills_traces.contract_skills_protocol import ISkillsTracesProtocol
+from shared.src.skills_traces.contract_skills_protocol import (
+    ISkillsTraceScanProtocol,
+    ISkillsTraceStateProtocol,
+)
 from skills_traces.src.agent_skills_orchestrator import SkillsAgent
-from skills_traces.src.capabilities_skills_traces import SkillsTraces
+from skills_traces.src.capabilities_skills_scan import SkillsTracesScan
+from skills_traces.src.capabilities_skills_state import SkillsTracesState
 
 
 class SkillsContainer:
     """Construct the wired traces feature."""
 
     def __init__(self, default_root: Path | None = None) -> None:
-        self._traces: ISkillsTracesProtocol = SkillsTraces()
+        self._traces: ISkillsTraceScanProtocol = SkillsTracesScan()
+        self._state: ISkillsTraceStateProtocol = SkillsTracesState()
         self._agent: ISkillsAggregate = SkillsAgent(
-            traces=self._traces, default_root=default_root
+            scan=self._traces,
+            state=self._state,
+            default_root=default_root,
         )
 
     @property
@@ -42,8 +50,8 @@ class SkillsContainer:
         return self._agent
 
     @property
-    def traces(self) -> ISkillsTracesProtocol:
-        """Return the wired traces capability."""
+    def traces(self) -> ISkillsTraceScanProtocol:
+        """Return the wired traces scan capability."""
         return self._traces
 
 

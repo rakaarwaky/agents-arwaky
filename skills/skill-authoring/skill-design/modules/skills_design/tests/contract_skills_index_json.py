@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from skills_design.src.taxonomy_skills_vo import SkillsRoot
+from shared.src.skills_design.taxonomy_skills_vo import SkillsRoot
+
 from skills_design.src.capabilities_skills_lister import (
     SkillsLister,
     default_pack_root,

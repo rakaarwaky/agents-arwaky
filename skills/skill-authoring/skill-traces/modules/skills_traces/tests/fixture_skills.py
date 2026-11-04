@@ -1,10 +1,8 @@
 """Shared test fixtures and helpers for the skills_traces tests.
 
 Trace-specific helpers (``make_grok_home``, ``run_trace_surface``) are
-defined here. The pack-tree builders (``make_pack``, ``crafted_tree``,
-``clean_tree``, ``as_root``) and the design-side CLI helper
-(``run_surface``) live in ``skills_design.tests.fixture_skills``
-— import them from there, not from this module.
+defined here. This module is self-contained (AES702): trace helpers live here; no
+cross-import from the sibling skills-design package.
 """
 
 from __future__ import annotations
@@ -14,9 +12,8 @@ import io
 import json
 from pathlib import Path
 
-from skills_design.src.root_skills_container import default_aggregate
-
-from skills_design.src.surface_skills_traces_command import cmd_traces
+from cli.src.surface_skills_traces_command import cmd_traces
+from root_skills_container import default_aggregate
 
 __all__ = [
     "make_grok_home",

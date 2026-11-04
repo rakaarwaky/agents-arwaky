@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
-from skills_design.src.taxonomy_skills_rule_vo import (
+from skills_design.src.capabilities_skills_linter import SkillsLinter
+from shared.src.skills_design.taxonomy_skills_rule_vo import (
     ISSUE_MESSAGES,
     RULE_IDS,
     RULES,
@@ -15,7 +15,7 @@ from skills_design.src.taxonomy_skills_rule_vo import (
     issue_message,
     rule,
 )
-from skills_design.src.capabilities_skills_linter import SkillsLinter
+
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"

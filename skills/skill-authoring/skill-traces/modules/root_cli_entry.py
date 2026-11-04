@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import sys
 
+from cli.src.surface_skills_traces_command import cmd_traces
 from root_skills_container import default_container
-from shared.src.skills_traces.cli.src.surfaces_skills_traces import cmd_traces
 
 
 def main(argv: list[str] | None = None) -> int:

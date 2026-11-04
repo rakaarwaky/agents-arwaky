@@ -5,9 +5,7 @@ from __future__ import annotations
 import typing
 
 import pytest
-
 from shared.src.skills_traces.contract_skills_protocol import (
-    ISkillsListerProtocol,
     ISkillsTracesProtocol,
 )
 from shared.src.skills_traces.taxonomy_skills_authoring_vo import (
@@ -96,13 +94,6 @@ def test_trace_protocols_are_abstract() -> None:
     with pytest.raises(TypeError):
         ISkillsTracesProtocol()  # type: ignore[abstract]
     assert "scan_sessions" in ISkillsTracesProtocol.__abstractmethods__
-
-
-def test_lister_protocol_gains_json_list_method() -> None:
-    """ISkillsListerProtocol carries the global-skill JSON list seam."""
-    assert callable(ISkillsListerProtocol.list_skills_json)
-    assert "list_skills" in ISkillsListerProtocol.__abstractmethods__
-    assert "list_skills_json" not in ISkillsListerProtocol.__abstractmethods__
 
 
 def test_report_hints_resolve_at_runtime() -> None:

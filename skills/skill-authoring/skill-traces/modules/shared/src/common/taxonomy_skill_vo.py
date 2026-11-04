@@ -5,6 +5,23 @@ from __future__ import annotations
 from pathlib import Path
 
 
+class SkillDescriptor:
+    """Resolved identity for one skill directory.
+
+    ``name`` is the frontmatter ``name:`` value (or directory name fallback);
+    ``description`` is the frontmatter ``description:`` (empty when absent).
+    """
+
+    __slots__ = ("description", "name")
+
+    def __init__(self, name: str, description: str = "") -> None:
+        self.name = name
+        self.description = description
+
+    def __repr__(self) -> str:
+        return f"SkillDescriptor(name={self.name!r}, description={self.description!r})"
+
+
 def extract_skill_name(skill_md: Path) -> str | None:
     """Return the ``name:`` from frontmatter, or None when absent."""
     try:
@@ -22,4 +39,4 @@ def extract_skill_name(skill_md: Path) -> str | None:
     return None
 
 
-__all__ = ["extract_skill_name"]
+__all__ = ["SkillDescriptor", "extract_skill_name"]
