@@ -22,6 +22,7 @@ from dataclasses import field as dataclass_field
 
 __all__ = [
     "BM25F_FIELD_WEIGHTS",
+    "BM25FHit",
     "build_index",
     "map_to_legacy_score",
     "rank_bm25f",
@@ -220,19 +221,20 @@ def _idf(index: _BM25FIndex, field: str, token: str) -> float:
 # ── Fuzzy BM25F ranking ───────────────────────────────────────────────
 
 
-def rank_bm25f(rows, tokens: list[str]) -> list[tuple[float, object]]:
-    """Return ``(score, row)`` pairs sorted high-first.
+@dataclass(frozen=True)
+class BM25FHit:
+    """A ranked result row plus which logical fields contributed to its score."""
 
-    For each query token, we scan every skill token in every field and
-    accumulate a similarity-weighted BM25F-style score. Exact matches
-    score 1.0, substring matches 0.9, Jaccard ≥ 0.75 scores 0.7–1.0.
+    score: float
+    row: object
+    matched_fields: tuple[str, ...]
 
-    The score formula per field:
-        field_score = Σ over matched (query_tok, skill_tok) pairs of
-                      strength(q, s) * IDF(s) * tf(s) / tf_norm
 
-    This is a fuzzy relaxation of BM25F that bridges morphological and
-    cross-language gaps (e.g. "mengimplementasikan" ↔ "implement").
+def rank_bm25f(rows, tokens: list[str]) -> list[BM25FHit]:
+    """Return ``BM25FHit`` results sorted high-first.
+
+    Each hit carries the float ``score``, the original row object, and
+    ``matched_fields`` — the logical field names that contributed.
     """
     if not rows or not tokens:
         return []
@@ -244,7 +246,6 @@ def rank_bm25f(rows, tokens: list[str]) -> list[tuple[float, object]]:
         if t not in _ALL_STOP_WORDS and t not in seen_q:
             query_tokens.append(t)
             seen_q.add(t)
-    # Also tokenize and deduplicate
     extra_stems = tokenize_full(" ".join(query_tokens))
     for t in extra_stems:
         if t not in seen_q:
@@ -254,9 +255,10 @@ def rank_bm25f(rows, tokens: list[str]) -> list[tuple[float, object]]:
     if not query_tokens:
         return []
 
-    scored: list[tuple[float, object]] = []
+    hits: list[BM25FHit] = []
     for row in index.rows:
         score = 0.0
+        matched: list[str] = []
         for logical in _RANKER_FIELDS:
             weight = BM25F_FIELD_WEIGHTS[logical]
             skill_toks = row.fields[logical]
@@ -267,6 +269,7 @@ def rank_bm25f(rows, tokens: list[str]) -> list[tuple[float, object]]:
                 continue
 
             field_score = 0.0
+            field_matched = False
             for q_tok in query_tokens:
                 if len(q_tok) < MIN_TOKEN_LEN:
                     continue
@@ -278,20 +281,20 @@ def rank_bm25f(rows, tokens: list[str]) -> list[tuple[float, object]]:
                         best_strength = strength
                         best_skill_tok = s_tok
                 if best_strength > 0 and best_skill_tok:
-                    # Use the IDF of the best-matching skill token (not the
-                    # query token, which is almost always absent from the
-                    # corpus and would default to max-idf for every skill).
                     idf = _idf(index, logical, best_skill_tok)
                     if idf == 0.0:
                         idf = 1.0
                     field_score += best_strength * idf
+                    field_matched = True
+            if field_matched:
+                matched.append(logical)
             score += weight * field_score
 
         if score > 0:
-            scored.append((score, row))
+            hits.append(BM25FHit(score=score, row=row, matched_fields=tuple(sorted(matched))))
 
-    scored.sort(key=lambda item: item[0], reverse=True)
-    return scored
+    hits.sort(key=lambda h: h.score, reverse=True)
+    return hits
 
 
 def map_to_legacy_score(score: float) -> int:

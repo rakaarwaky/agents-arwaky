@@ -113,9 +113,10 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
                 category=row.category,
                 description=row.description,
                 path=row.path,
-                score=map_to_legacy_score(score),
+                score=map_to_legacy_score(hit.score),
+                matched_fields=hit.matched_fields,
             )
-            for score, row in scored
+            for hit in scored
         )
 
         return DiscoveryResult(

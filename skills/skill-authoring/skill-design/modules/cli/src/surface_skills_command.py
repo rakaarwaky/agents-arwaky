@@ -26,10 +26,10 @@ import sys
 
 # Import the path-bootstrap utility so its namespace-root registration runs
 # at import time and AES504 (utility orphan) does not fire.
-from shared.src.common.utility_path_bootstrap import _REPO_ROOT
+from shared.src.common.utility_path_bootstrap import register_namespace_roots
 
-# Referenced once so the import is not flagged unused (AES203 / ruff F401).
-_ = _REPO_ROOT
+# Trigger the module-level side effect at import time; keep the name unused.
+register_namespace_roots()
 
 from shared.src.common.utility_logging_setup import (
     BOLD,
@@ -39,7 +39,6 @@ from shared.src.common.utility_logging_setup import (
     err,
     info,
 )
-from shared.src.common.utility_skills_markdown import md_escape  # noqa: F401
 from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
 from shared.src.skills_design.taxonomy_skills_request import (

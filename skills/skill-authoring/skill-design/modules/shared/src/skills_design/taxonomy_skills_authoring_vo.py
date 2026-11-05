@@ -107,13 +107,19 @@ class CatalogCheckResult:
 
 @dataclass(frozen=True)
 class DiscoveryMatch:
-    """One scored discovery row."""
+    """One scored discovery row.
+
+    ``matched_fields`` carries the logical field names that contributed
+    to this match (e.g. ``("name", "when_to_use")``) — empty on the
+    tree-scan fallback or when no field match was recorded.
+    """
 
     skill: str
     category: str
     description: str
     path: str
     score: int
+    matched_fields: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, object]:
         """The legacy match projection, in legacy key order."""
@@ -123,6 +129,7 @@ class DiscoveryMatch:
             "description": self.description,
             "path": self.path,
             "score": self.score,
+            "matched_fields": list(self.matched_fields),
         }
 
 
