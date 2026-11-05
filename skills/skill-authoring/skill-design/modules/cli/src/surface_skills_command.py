@@ -39,7 +39,7 @@ from shared.src.common.utility_logging_setup import (
     err,
     info,
 )
-from shared.src.common.utility_skills_markdown import md_escape
+from shared.src.common.utility_skills_markdown import md_escape  # noqa: F401
 from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
 from shared.src.skills_design.taxonomy_skills_request import (
@@ -57,8 +57,6 @@ _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT
 
 #: The results table header/separator and empty-result line, verbatim from
 #: the legacy command (presentation strings, owned by the surface).
-_SCORE_TABLE_HEADER = "| Skill | Category | Description | Path | Score |"
-_SCORE_TABLE_SEPARATOR = "|---|---|---|---|---|"
 _NO_MATCH_LINE = "No matching skills found in catalog.json."
 
 
@@ -385,7 +383,13 @@ def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
 
 
 def _render_discover(result: SkillsResult, request: SkillsRequest) -> int:
-    """Render the scored matches (or the legacy no-match line)."""
+    """Render the scored matches as a compact agent-oriented list.
+
+    One line per skill: ``<name>  <category>  <short description>``.
+    The description is truncated to 80 chars. No table, no score column,
+    no path column — just the ranked skill names the agent needs to pick
+    from.
+    """
     if result.warning:
         print(result.warning, file=sys.stderr)
         if result.message:
@@ -395,16 +399,11 @@ def _render_discover(result: SkillsResult, request: SkillsRequest) -> int:
         print(_NO_MATCH_LINE)
         return 0
 
-    print(_SCORE_TABLE_HEADER)
-    print(_SCORE_TABLE_SEPARATOR)
     for match in result.matches:
-        print(
-            f"| {md_escape(match.skill)} "
-            f"| {md_escape(match.category)} "
-            f"| {md_escape(match.description)} "
-            f"| {md_escape(match.path)} "
-            f"| {match.score} |"
-        )
+        desc = match.description
+        if len(desc) > 80:
+            desc = desc[:77] + "…"
+        print(f"{match.skill:24s} {match.category:20s} {desc}")
     return 0
 
 

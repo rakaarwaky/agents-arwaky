@@ -106,7 +106,7 @@ def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
     run_surface(root, "catalog")
     code, out, _ = run_surface(root, "discover", "docs")
     assert code == 0
-    assert "| doc-drafts |" in out
+    assert "doc-drafts" in out
 
 
 def test_acceptance_mutation_verbs_in_cli(tmp_path: Path):
