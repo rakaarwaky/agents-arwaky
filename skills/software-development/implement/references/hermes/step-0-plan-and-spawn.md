@@ -14,12 +14,14 @@ Grok has zero conversation context. Compose a brief that covers:
 
 ## Create the Orca Worktree
 
-Resolve `$ORCA` (`$ORCA_CLI_COMMAND` if set, else `orca-ide` on Linux — never bare `orca`) and the owning repo exactly as in `grok/step-0-setup.md` (owning-repo resolution, tie-break, project-name check, reuse-or-create).
+Resolve `orca-ide` to its absolute path (`/home/raka/.local/bin/orca-ide`) and the owning repo exactly as in `grok/step-0-setup.md` (owning-repo resolution, tie-break, project-name check, reuse-or-create).
+
+**Pitfall — Orca CLI path resolution:** Do not rely on `orca-ide` being on `$PATH` or on `$ORCA` being exported. The shell does not export `ORCA`, so `${ORCA}` expands to empty and bash reports `: command not found` instead of running the CLI. Always call the binary by its absolute path.
 
 Create:
 
 ```
-"$ORCA" worktree create --repo path:<repo_path> --name <task-slug> --agent grok --no-parent --surface terminal --json
+/home/raka/.local/bin/orca-ide worktree create --repo path:<repo_path> --name <task-slug> --agent grok --no-parent --surface terminal --json
 ```
 
 - `task-slug`: lowercase `[a-z0-9-]` slug of the task, ≤ 40 chars.

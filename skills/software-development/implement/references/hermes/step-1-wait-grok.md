@@ -6,6 +6,8 @@ Grok Build runs the full implement → review → fix loop itself, in its own Or
 
 Poll with `orca terminal read --terminal <handle> --cursor <cursor> --limit 1000 --json` until the session is idle. A fresh long run may need `orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json`; if `satisfied: false`, retry with a larger timeout. Do NOT send text while waiting.
 
+> `orca terminal status --terminal <handle>` is **not** a valid subcommand (returns `invalid_argument`). Use `terminal wait --for tui-idle` to test idle and `terminal read` to drain output.
+
 ## When Grok Is Done
 
 Grok writes two artifacts to its scratch dir (`~/.grok/develop/<repo-slug>/implement/`):
