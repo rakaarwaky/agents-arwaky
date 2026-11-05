@@ -52,6 +52,61 @@ STOP_WORDS: frozenset[str] = frozenset(
     .split()
 )
 
+#: Indonesian stop words dropped before indexing.
+_INDONESIAN_STOP_WORDS: frozenset[str] = frozenset(
+    "saya kau kamu dia kami kita anda mereka itu ini dan atau namun tetapi "
+    "yang dengan dari pada untuk adalah akan bisa tidak ya apa bagaimana "
+    "mengapa kapan mana sudah belum mau juga pun saja hanya hendak ingin "
+    "telah di per kan an"
+    .split()
+)
+
+#: Indonesian prefixes stripped for stem-matching (applied longest-first).
+_INDONESIAN_PREFIXES: tuple[str, ...] = (
+    "meng", "meny", "men", "per", "ber", "ke", "ter", "di", "pen", "pel", "pe",
+)
+
+#: Indonesian suffixes stripped for stem-matching (applied longest-first).
+_INDONESIAN_SUFFIXES: tuple[str, ...] = (
+    "nya", "kan", "an", "ik", "i",
+)
+
+# Combined stop-words (English + Indonesian).
+_ALL_STOP_WORDS: frozenset[str] = STOP_WORDS | _INDONESIAN_STOP_WORDS
+
+
+def _strip_indonesian_affixes(token: str) -> str:
+    """Strip Indonesian prefixes and suffixes to obtain a stem.
+
+    The token stabilises when no further affix is removed (a single pass
+    each direction is sufficient for common Indonesian morphology).
+    """
+    stem = token
+    for prefix in _INDONESIAN_PREFIXES:
+        if len(stem) > len(prefix) + 2 and stem.startswith(prefix):
+            stem = stem[len(prefix):]
+            break
+    for suffix in _INDONESIAN_SUFFIXES:
+        if len(stem) > len(suffix) + 2 and stem.endswith(suffix):
+            stem = stem[: -len(suffix)]
+            break
+    return stem
+
+
+def _stem_tokens(text: str) -> list[str]:
+    """Lowercase, split, drop stop words, stem each token.
+
+    Returns a sorted list of unique stems. Different surface forms that
+    share a base form collapse to one stem (``implement`` and
+    ``mengimplementasikan`` both → ``implement``).
+    """
+    stems: set[str] = set()
+    for raw in re.findall(r"[a-z0-9]+", text.lower()):
+        if raw in _ALL_STOP_WORDS:
+            continue
+        stems.add(_strip_indonesian_affixes(raw))
+    return sorted(stems)
+
 #: Logical field names. The row attribute that backs each field:
 #: "name" maps to the row's ``skill`` attribute (legacy frontmatter name).
 _FIELD_ATTR: dict[str, str] = {
@@ -64,8 +119,9 @@ _RANKER_FIELDS: tuple[str, ...] = ("name", "description", "category", "path")
 
 
 def tokenize_full(text: str) -> list[str]:
-    """Lowercase, split on non-alphanumerics (incl. hyphens), drop stop words."""
-    return [tok for tok in re.findall(r"[a-z0-9]+", text.lower()) if tok not in STOP_WORDS]
+    """Lowercase, split on non-alphanumerics (incl. hyphens), drop stop words,
+    and stem Indonesian affixes. Returns unique stems sorted alphabetically."""
+    return _stem_tokens(text)
 
 
 @dataclass(frozen=True)
