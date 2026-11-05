@@ -17,15 +17,12 @@ taxonomy dependency acyclic
 
 from __future__ import annotations
 
-import re
 from typing import Final
 
-# ── Naming budget ─────────────────────────────────────────────────────
-
-#: The naming-budget constants live in ``taxonomy_skills_rule_vo.py``
-#: (alongside ``is_valid_skill_name``, which consumes them); they are
-#: imported here so existing consumers of this module keep working.
-from shared.src.skills_design.taxonomy_skills_rule_vo import (  # noqa: E402
+# The naming-budget constants live in ``taxonomy_skills_rule_vo.py``
+# (alongside ``is_valid_skill_name``, which consumes them); they are
+# imported here so existing consumers of this module keep working.
+from shared.src.skills_design.taxonomy_skills_rule_vo import (
     NAME_MAX,
     NAME_MIN,
     NAME_RE,

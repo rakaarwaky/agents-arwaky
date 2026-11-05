@@ -29,6 +29,9 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
 )
+from shared.src.skills_design.contract_skills_bm25f_protocol import (
+    IBM25FRankerProtocol,
+)
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
@@ -43,6 +46,7 @@ from shared.src.skills_design.taxonomy_skills_vo import (
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent
 from skills_design.src.capabilities_skills_archiver import SkillsArchiver
+from skills_design.src.capabilities_skills_bm25f import SkillsBm25fRanker
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_creator import SkillsCreator
 from skills_design.src.capabilities_skills_discover import SkillsDiscover
@@ -64,6 +68,7 @@ def default_aggregate(
     linter: ISkillsLinterProtocol | None = None,
     catalog: ISkillsCatalogProtocol | None = None,
     discover: ISkillsDiscoverProtocol | None = None,
+    ranker: IBM25FRankerProtocol | None = None,
     mover: ISkillsMoverProtocol | None = None,
     archiver: ISkillsArchiverProtocol | None = None,
     creator: ISkillsCreatorProtocol | None = None,
@@ -77,12 +82,13 @@ def default_aggregate(
     root = default_root if default_root is not None else default_pack_root()
     wired_catalog = catalog or SkillsCatalog()
     wired_linter = linter or SkillsLinter()
+    wired_ranker = ranker or SkillsBm25fRanker()
     return SkillsAgent(
         lister or SkillsLister(root),
         reader or SkillsPackReader(root),
         linter=wired_linter,
         catalog=wired_catalog,
-        discover=discover or SkillsDiscover(wired_catalog),
+        discover=discover or SkillsDiscover(wired_catalog, ranker=wired_ranker),
         mover=mover or SkillsMover(),
         archiver=archiver or SkillsArchiver(),
         creator=creator or SkillsCreator(),
@@ -107,6 +113,7 @@ class SkillsFacade:
         linter: ISkillsLinterProtocol | None = None,
         catalog: ISkillsCatalogProtocol | None = None,
         discover: ISkillsDiscoverProtocol | None = None,
+        ranker: IBM25FRankerProtocol | None = None,
         mover: ISkillsMoverProtocol | None = None,
         archiver: ISkillsArchiverProtocol | None = None,
         creator: ISkillsCreatorProtocol | None = None,
@@ -115,12 +122,13 @@ class SkillsFacade:
         root = default_root if default_root is not None else default_pack_root()
         wired_catalog = catalog or SkillsCatalog()
         wired_linter = linter or SkillsLinter()
+        wired_ranker = ranker or SkillsBm25fRanker()
         self._agent_cache = SkillsAgent(
             lister or SkillsLister(root),
             reader or SkillsPackReader(root),
             linter=wired_linter,
             catalog=wired_catalog,
-            discover=discover or SkillsDiscover(wired_catalog),
+            discover=discover or SkillsDiscover(wired_catalog, ranker=wired_ranker),
             mover=mover or SkillsMover(),
             archiver=archiver or SkillsArchiver(),
             creator=creator or SkillsCreator(),

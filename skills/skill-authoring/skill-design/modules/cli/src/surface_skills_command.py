@@ -24,11 +24,6 @@ from __future__ import annotations
 import argparse
 import sys
 
-# Importing the path-bootstrap module runs its namespace-root registration
-# at import time and resolves AES504 (utility orphan): the module object is
-# pinned in ``_path_bootstrap`` so the utility stays wired without a dead name.
-import shared.src.common.utility_path_bootstrap as _path_bootstrap  # isort: skip
-
 from shared.src.common.utility_logging_setup import (
     BOLD,
     CYAN,
@@ -382,10 +377,10 @@ def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
 def _render_discover(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the scored matches as a compact agent-oriented list.
 
-    One line per skill: ``<name>  <category>  <short description>``.
-    The description is truncated to 80 chars. No table, no score column,
-    no path column — just the ranked skill names the agent needs to pick
-    from.
+    One line per skill: ``<name>  <when-to-use (truncated)>``.
+    No category, no score column, no path — just the ranked skill
+    names the agent needs to pick from, with the actionable reason
+    inlined.
     """
     if result.warning:
         print(result.warning, file=sys.stderr)
@@ -397,14 +392,10 @@ def _render_discover(result: SkillsResult, request: SkillsRequest) -> int:
         return 0
 
     for match in result.matches:
-        desc = match.description
-        if len(desc) > 80:
-            desc = desc[:77] + "…"
-        fields = ",".join(match.matched_fields) if match.matched_fields else ""
-        if fields:
-            print(f"{match.skill:24s} {match.category:20s} [{fields}]  {desc}")
-        else:
-            print(f"{match.skill:24s} {match.category:20s}          {desc}")
+        desc = match.when_to_use or match.description
+        if len(desc) > 100:
+            desc = desc[:97] + "…"
+        print(f"{match.skill:28s} {desc}")
     return 0
 
 

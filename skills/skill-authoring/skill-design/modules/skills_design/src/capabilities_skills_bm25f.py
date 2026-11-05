@@ -24,13 +24,13 @@ from shared.src.skills_design.contract_skills_bm25f_protocol import (
     IBM25FRankerProtocol,
 )
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+    BM25FHit,
     BM25F_SCORE_SCALE,
     map_to_legacy_score,
 )
 
 __all__ = [
     "BM25F_FIELD_WEIGHTS",
-    "BM25FHit",
     "SkillsBm25fRanker",
     "build_index",
     "rank_bm25f",
@@ -203,16 +203,6 @@ def _idf(index: _BM25FIndex, field: str, token: str) -> float:
     return math.log((n - n_ti + 0.5) / (n_ti + 0.5)) + 1.0
 
 # ─── Block 1: Class Definition & Constructor ──────────────
-
-
-@dataclass(frozen=True)
-class BM25FHit:
-    """A ranked result row plus which logical fields contributed to its score."""
-
-    score: float
-    row: object
-    matched_fields: tuple[str, ...]
-
 
 class SkillsBm25fRanker(IBM25FRankerProtocol):
     """Offline BM25F field-weighted ranker over catalog rows.

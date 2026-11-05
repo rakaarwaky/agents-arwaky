@@ -34,7 +34,8 @@ from shared.src.skills_design.taxonomy_skills_authoring_vo import (
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,
-)from shared.src.skills_design.taxonomy_skills_rule_vo import (
+)
+from shared.src.skills_design.taxonomy_skills_rule_vo import (
     CategoryName,
     SkillName,
 )

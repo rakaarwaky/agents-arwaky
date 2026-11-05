@@ -15,12 +15,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from shared.src.skills_design.taxonomy_skills_authoring_vo import BM25FHit
+
 
 class IBM25FRankerProtocol(ABC):
     """Scores rows against query tokens; pure data in, ranked hits out."""
 
     @abstractmethod
-    def rank(self, rows: object, tokens: list[str]) -> list["BM25FHit"]:
+    def rank(self, rows: object, tokens: list[str]) -> list[BM25FHit]:
         """Return ranked hits for *rows* scored against *tokens*.
 
         Each hit carries a float ``score``, the original row, and the

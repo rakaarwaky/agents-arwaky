@@ -70,23 +70,7 @@ class _Row:
     when_to_use: str = ""
 
 
-def tokenize(query: str) -> list[str]:
-    """Split a query into lowercase tokens (stop-word filtering happens in BM25F)."""
-    return [token.lower() for token in query.split() if token.strip()]
 
-
-def tree_scan_rows(skills_root: Path) -> list[_Row]:
-    """The read-only tree scan the drift fallback answers from."""
-    return [
-        _Row(
-            skill=entry.skill,
-            category=entry.category,
-            description=entry.description,
-            path=entry.path,
-            when_to_use=getattr(entry, "when_to_use", ""),
-        )
-        for entry in skill_entries(skills_root)
-    ]
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -96,7 +80,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
     def __init__(
         self,
         catalog: ISkillsCatalogProtocol,
-        ranker: IBM25FRankerProtocol | None = None,
+        ranker: IBM25FRankerProtocol,
     ) -> None:
         self._catalog = catalog
         self._ranker = ranker
@@ -109,8 +93,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
             raise SkillsUsageError("Query is empty")
 
         rows, warning, warning_detail = self._rows_or_fallback(Path(root))
-        ranker = self._ranker if self._ranker is not None else _default_ranker()
-        scored = ranker.rank(rows, tokens)[:limit]
+        scored = self._ranker.rank(rows, tokens)[:limit]
 
         matches = tuple(
             DiscoveryMatch(
@@ -120,6 +103,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
                 path=hit.row.path,
                 score=map_to_legacy_score(hit.score),
                 matched_fields=hit.matched_fields,
+                when_to_use=getattr(hit.row, "when_to_use", ""),
             )
             for hit in scored
         )
@@ -170,19 +154,20 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
 
         return rows, "", ""
 
-
-# ── Module-level helpers (stateless, no I/O, no cross-layer deps) ─────
-
-
-def _default_ranker() -> IBM25FRankerProtocol:
-    """Lazily instantiate the default BM25F ranker (avoids circular import)."""
-    from skills_design.src.capabilities_skills_bm25f import SkillsBm25fRanker
-
-    return SkillsBm25fRanker()
+def tokenize(query: str) -> list[str]:
+    """Split a query into lowercase tokens (stop-word filtering happens in BM25F)."""
+    return [token.lower() for token in query.split() if token.strip()]
 
 
-def _map_to_legacy_score(score: float) -> int:
-    """Map a float BM25F score to the legacy int projection."""
-    from skills_design.src.capabilities_skills_bm25f import map_to_legacy_score
-
-    return map_to_legacy_score(score)
+def tree_scan_rows(skills_root: Path) -> list[_Row]:
+    """The read-only tree scan the drift fallback answers from."""
+    return [
+        _Row(
+            skill=entry.skill,
+            category=entry.category,
+            description=entry.description,
+            path=entry.path,
+            when_to_use=getattr(entry, "when_to_use", ""),
+        )
+        for entry in skill_entries(skills_root)
+    ]

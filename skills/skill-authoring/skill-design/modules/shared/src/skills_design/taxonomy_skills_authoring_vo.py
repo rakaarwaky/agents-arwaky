@@ -32,6 +32,7 @@ def map_to_legacy_score(score: float) -> int:
     return max(0, round(score * BM25F_SCORE_SCALE))
 
 __all__ = [
+    "BM25FHit",
     "BM25F_SCORE_SCALE",
     "CatalogCheckResult",
     "CatalogReport",
@@ -125,6 +126,15 @@ class CatalogCheckResult:
 
 
 @dataclass(frozen=True)
+class BM25FHit:
+    """A ranked result row plus which logical fields contributed to its score."""
+
+    score: float
+    row: object
+    matched_fields: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class DiscoveryMatch:
     """One scored discovery row.
 
@@ -139,6 +149,7 @@ class DiscoveryMatch:
     path: str
     score: int
     matched_fields: tuple[str, ...] = ()
+    when_to_use: str = ""
 
     def as_dict(self) -> dict[str, object]:
         """The legacy match projection, in legacy key order."""
@@ -149,6 +160,7 @@ class DiscoveryMatch:
             "path": self.path,
             "score": self.score,
             "matched_fields": list(self.matched_fields),
+            "when_to_use": self.when_to_use,
         }
 
 
