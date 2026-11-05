@@ -194,7 +194,7 @@
     },
     {
       "name": "pr-babysit",
-      "description": "Watch a GitHub PR end to end: Hermes tracks the PR and observes CI, Grok Build runs every fix pass (auto-fix red checks, resolve conflicts, address review/bot comments) in an Orca worktree, and Hermes merges when green if --ship is set.",
+      "description": "Watch a GitHub PR end to end. Two lanes: Hermes orchestrates and ships; Grok Build fixes. Run Step R0 to identify the lane, then read only that lane's references.",
       "when_to_use": "Triggers on \"/pr-babysit\". Phrasing: \"watch PR 123 until green\", \"babysit PR 123 and merge when ready\", \"fix issue #123 and open a PR\", \"keep fixing PR 123 until it can merge\", \"pr-babysit add --ship 123\".",
       "category": "git"
     },

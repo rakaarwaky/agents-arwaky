@@ -12,9 +12,18 @@ so the answer is real, current data — never a stale or phantom row.
 Exit stays 0: a successful search is a successful search; drift is
 ``catalog --check``'s exit 3.
 
-The scoring is the original algorithm verbatim: per-token name +5 /
-description +3 / category +2 / path +1, highest score first, then the
-top ``limit`` rows.
+Two rankers are available:
+
+* **legacy** (default) — the original substring algorithm verbatim:
+  per-token name +5 / description +3 / category +2 / path +1, highest
+  score first, then the top ``limit`` rows.
+* **bm25f** — offline BM25F field-weighted ranking (see
+  :mod:`capabilities_skills_bm25f`), with the same field weights
+  (5/3/2/1) and stop-word filtering. No network, no third-party deps.
+
+Both produce ``DiscoveryMatch`` rows whose ``score`` is an int
+(the BM25F float is mapped via ``map_to_legacy_score`` so the legacy
+table projection stays stable).
 """
 
 from __future__ import annotations
@@ -42,6 +51,11 @@ from shared.src.skills_design.taxonomy_skills_error import (
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,
+)
+
+from skills_design.src.capabilities_skills_bm25f import (
+    map_to_legacy_score,
+    rank_bm25f,
 )
 
 __all__ = [
@@ -116,10 +130,22 @@ def tree_scan_rows(skills_root: Path) -> list[_Row]:
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class SkillsDiscover(ISkillsDiscoverProtocol):
-    """Scores catalog rows; falls back to a live tree scan on drift."""
+    """Scores catalog rows; falls back to a live tree scan on drift.
 
-    def __init__(self, catalog: ISkillsCatalogProtocol) -> None:
+    ``ranker`` selects the scoring algorithm:
+      * ``"legacy"`` — the original substring scorer (default; pinned).
+      * ``"bm25f"``  — BM25F field-weighted ranking (offline; no API).
+    """
+
+    RANKERS: tuple[str, ...] = ("legacy", "bm25f")
+
+    def __init__(self, catalog: ISkillsCatalogProtocol, ranker: str = "legacy") -> None:
+        if ranker not in self.RANKERS:
+            raise SkillsUsageError(
+                f"Unknown ranker {ranker!r}; expected one of {list(self.RANKERS)}"
+            )
         self._catalog = catalog
+        self._ranker = ranker
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def discover(self, query: SkillQuery, root: SkillsRoot, limit: int) -> DiscoveryResult:
@@ -129,18 +155,31 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
             raise SkillsUsageError("Query is empty")
 
         rows, warning, warning_detail = self._rows_or_fallback(Path(root))
-        scored = score_entries(rows, tokens)[:limit]
 
-        matches = tuple(
-            DiscoveryMatch(
-                skill=row.skill,
-                category=row.category,
-                description=row.description,
-                path=row.path,
-                score=score,
+        if self._ranker == "bm25f":
+            scored = rank_bm25f(rows, tokens)[:limit]
+            matches = tuple(
+                DiscoveryMatch(
+                    skill=row.skill,
+                    category=row.category,
+                    description=row.description,
+                    path=row.path,
+                    score=map_to_legacy_score(score),
+                )
+                for score, row in scored
             )
-            for score, row in scored
-        )
+        else:
+            scored = score_entries(rows, tokens)[:limit]
+            matches = tuple(
+                DiscoveryMatch(
+                    skill=row.skill,
+                    category=row.category,
+                    description=row.description,
+                    path=row.path,
+                    score=score,
+                )
+                for score, row in scored
+            )
 
         return DiscoveryResult(
             matches=matches,

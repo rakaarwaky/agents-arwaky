@@ -233,6 +233,16 @@ class SkillsAgent(ISkillsAggregate):
         discover = self._require(self._discover, "discover")
         limit = int(request.flags.get("limit", "20"))
         root = self._root(request)
+        # Optional ranker override: the agent swaps the capability for a
+        # BM25F variant when the flag is set (default stays legacy).
+        ranker = request.flags.get("ranker", "legacy")
+        if ranker == "bm25f":
+            from skills_design.src.capabilities_skills_discover import (
+                SkillsDiscover,
+            )
+            discover = SkillsDiscover(
+                self._require(self._catalog, "catalog"), ranker="bm25f"
+            )
         result = discover.discover(str(request.query), root, limit)
 
         return SkillsResult(

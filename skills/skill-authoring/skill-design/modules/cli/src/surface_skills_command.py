@@ -211,6 +211,12 @@ def _authoring_parser() -> argparse.ArgumentParser:
     sub = subparsers.add_parser("discover", help="Search catalog.json")
     sub.add_argument("query", help="Search query")
     sub.add_argument("--limit", type=int, default=20, help="Maximum results")
+    sub.add_argument(
+        "--ranker",
+        choices=["legacy", "bm25f"],
+        default="legacy",
+        help="Ranker: legacy substring (default) or offline BM25F",
+    )
 
     sub = subparsers.add_parser("move", help="Move a skill to a category")
     sub.add_argument("skill", help="Skill name to move")
@@ -304,7 +310,7 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
         return SkillsRequest(
             op=SkillsOp.DISCOVER,
             query=SkillQuery(namespace.query),
-            flags={"limit": str(namespace.limit)},
+            flags={"limit": str(namespace.limit), "ranker": namespace.ranker},
         )
 
     if command == "move":
