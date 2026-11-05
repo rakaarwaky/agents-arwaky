@@ -29,10 +29,10 @@ __all__ = [
 
 # ── Constants ──────────────────────────────────────────────────────────
 
-#: Field weights mirroring legacy discover (name +5 / description +3 /
-#: category +2 / path +1).
+#: Field weights: name +5, when_to_use +4, description +3, category +2, path +1.
 BM25F_FIELD_WEIGHTS: dict[str, float] = {
     "name": 5.0,
+    "when_to_use": 4.0,
     "description": 3.0,
     "category": 2.0,
     "path": 1.0,
@@ -71,11 +71,12 @@ _ALL_STOP_WORDS: frozenset[str] = STOP_WORDS | _INDONESIAN_STOP_WORDS
 #: "name" maps to the row's ``skill`` attribute (legacy frontmatter name).
 _FIELD_ATTR: dict[str, str] = {
     "name": "skill",
+    "when_to_use": "when_to_use",
     "description": "description",
     "category": "category",
     "path": "path",
 }
-_RANKER_FIELDS: tuple[str, ...] = ("name", "description", "category", "path")
+_RANKER_FIELDS: tuple[str, ...] = ("name", "when_to_use", "description", "category", "path")
 
 
 def tokenize_full(text: str) -> list[str]:
@@ -105,14 +106,18 @@ def _tokens_similar(query_tok: str, skill_tok: str) -> bool:
 
     A match fires when either:
     * one token is a substring of the other (min length 3)
-    * character-set Jaccard similarity ≥ SIMILARITY_THRESHOLD
+    * both tokens ≥ 4 chars and character-set Jaccard similarity
+      ≥ SIMILARITY_THRESHOLD
     """
     if len(query_tok) < MIN_TOKEN_LEN or len(skill_tok) < MIN_TOKEN_LEN:
         return False
     # Substring (either direction)
     if query_tok in skill_tok or skill_tok in query_tok:
         return True
-    # Jaccard char-set similarity
+    # Jaccard char-set similarity (both tokens must be ≥ 4 chars to
+    # avoid noise from very short tokens).
+    if len(query_tok) < 4 or len(skill_tok) < 4:
+        return False
     return _jaccard(query_tok, skill_tok) >= SIMILARITY_THRESHOLD
 
 
@@ -120,15 +125,17 @@ def _match_strength(query_tok: str, skill_tok: str) -> float:
     """Return a strength in [0, 1] for a fuzzy match; 0 means no match.
 
     Exact match → 1.0. Substring → 0.9. Jaccard ≥ threshold → 0.7 +
-    0.3 * jaccard (so 0.75 → 0.925, 1.0 → 1.0).
+    0.3 * jaccard (so 0.75 → 0.925, 1.0 → 1.0). Jaccard requires both
+    tokens ≥ 4 chars to avoid noise from very short tokens.
     """
     if query_tok == skill_tok:
         return 1.0
     if len(query_tok) >= MIN_TOKEN_LEN and (query_tok in skill_tok or skill_tok in query_tok):
         return 0.9
-    jac = _jaccard(query_tok, skill_tok)
-    if jac >= SIMILARITY_THRESHOLD:
-        return 0.7 + 0.3 * jac
+    if len(query_tok) >= 4 and len(skill_tok) >= 4:
+        jac = _jaccard(query_tok, skill_tok)
+        if jac >= SIMILARITY_THRESHOLD:
+            return 0.7 + 0.3 * jac
     return 0.0
 
 
@@ -143,6 +150,7 @@ class _BM25FRow:
     category: str
     description: str
     path: str
+    when_to_use: str = ""
     # Per-field token lists, keyed by logical field name.
     fields: dict[str, list[str]] = dataclass_field(default_factory=dict)
     # Per-field token counts.
@@ -183,6 +191,7 @@ def build_index(rows) -> _BM25FIndex:
                 category=getattr(row, "category", ""),
                 description=getattr(row, "description", ""),
                 path=getattr(row, "path", ""),
+                when_to_use=getattr(row, "when_to_use", ""),
                 fields=fields,
                 field_len=field_len,
             )

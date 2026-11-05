@@ -68,6 +68,7 @@ class _Row:
     category: str
     description: str
     path: str
+    when_to_use: str = ""
 
 
 def tokenize(query: str) -> list[str]:
@@ -83,6 +84,7 @@ def tree_scan_rows(skills_root: Path) -> list[_Row]:
             category=entry.category,
             description=entry.description,
             path=entry.path,
+            when_to_use=getattr(entry, "when_to_use", ""),
         )
         for entry in skill_entries(skills_root)
     ]
@@ -153,6 +155,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
                     category=category,
                     description=str(item.get("description", "")),
                     path=f"{category}/{name}",
+                    when_to_use=str(item.get("when_to_use", "")),
                 )
             )
 
