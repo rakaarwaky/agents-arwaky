@@ -74,29 +74,29 @@ def test_acceptance_catalog_builds_and_reads(tmp_path: Path):
     code, out, _ = run_surface(root, "catalog")
     assert code == 0
     assert "Rebuilt" in out
-    assert "## Skills" in out
+    assert '"skills"' in out
 
     # --read alone: after a build, the content is present
     code, out, _ = run_surface(root, "catalog", "--read")
     assert code == 0
-    assert "## Skills" in out
+    assert '"skills"' in out
 
 
 def test_acceptance_catalog_read_missing_file_exits_1(tmp_path: Path):
-    """AC-SKILLS-011b: ``--read`` with no CATALOG.md exits 1."""
+    """AC-SKILLS-011b: ``--read`` with no catalog.json exits 1."""
     from skills_design.tests.fixture_skills import (
         crafted_tree,
         run_surface,
     )
 
-    root = crafted_tree(tmp_path)  # no CATALOG.md yet
+    root = crafted_tree(tmp_path)  # no catalog.json yet
     code, _out, err = run_surface(root, "catalog", "--read")
     assert code == 1
-    assert "CATALOG.md not found" in err
+    assert "catalog.json not found" in err
 
 
 def test_acceptance_discover_finds_a_catalog_row(tmp_path: Path):
-    """AC-SKILLS-012: ``discover`` answers from CATALOG.md."""
+    """AC-SKILLS-012: ``discover`` answers from catalog.json."""
     from skills_design.tests.fixture_skills import (
         crafted_tree,
         run_surface,

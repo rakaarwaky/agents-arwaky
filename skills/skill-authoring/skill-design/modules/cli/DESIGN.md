@@ -19,7 +19,7 @@ composition root.
 | list | List every skill in the pack | `SkillsOp.LIST` | `ISkillsAggregate.execute` |
 | read | Print a skill's SKILL.md | `SkillsOp.READ` | `ISkillsAggregate.execute` |
 | lint | Lint scan all skills | `SkillsOp.LINT` | `ISkillsAggregate.execute` |
-| catalog | Build and/or print CATALOG.md | `SkillsOp.CATALOG` | `ISkillsAggregate.execute` |
+| catalog | Build and/or print catalog.json | `SkillsOp.CATALOG` | `ISkillsAggregate.execute` |
 | discover | Search the catalog | `SkillsOp.DISCOVER` | `ISkillsAggregate.execute` |
 | move | Move a skill to a category | `SkillsOp.MOVE` | `ISkillsAggregate.execute` |
 | archive | Archive a skill into _archive/ | `SkillsOp.ARCHIVE` | `ISkillsAggregate.execute` |
@@ -30,8 +30,8 @@ composition root.
 | Flag state | Meaning | Behavior |
 |------------|---------|----------|
 | neither `--build` nor `--read` | both | build then read |
-| `--build` only | build | rebuild CATALOG.md, print counts line |
-| `--read` only | read | print current CATALOG.md content |
+| `--build` only | build | rebuild catalog.json, print counts line |
+| `--read` only | read | print current catalog.json content |
 
 ### DS-CLI-003: Exit-code contract
 

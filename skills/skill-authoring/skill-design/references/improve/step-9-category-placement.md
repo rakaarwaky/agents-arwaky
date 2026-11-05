@@ -52,7 +52,7 @@ sdc catalog
 
 ### Pitfalls
 
-- **Empty source category**: moving the last skill out of a category leaves it empty, and `sdc lint` flags `empty-category`. Delete the empty `DESCRIPTION.md` and category directory, or retire the category row in `CATALOG.md`.
+- **Empty source category**: moving the last skill out of a category leaves it empty, and `sdc lint` flags `empty-category`. Delete the empty `DESCRIPTION.md` and category directory, or retire the category row in `catalog.json`.
 - **Dangling paths**: after a move, grep the pack for the old `category/skill-name` path and update any hardcoded references.
 
 ### Completion

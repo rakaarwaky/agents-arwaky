@@ -168,15 +168,11 @@ class _SpyCatalog(ISkillsCatalogProtocol):
 
     def rebuild(self, root: SkillsRoot) -> CatalogReport:
         self.calls.append("rebuild")
-        return CatalogReport(path=Path(root) / "CATALOG.md", skills=0, categories=0)
+        return CatalogReport(path=Path(root) / "catalog.json", skills=0, categories=0)
 
     def check(self, root: SkillsRoot) -> CatalogCheckResult:
         self.calls.append("check")
         return CatalogCheckResult(in_sync=True)
-
-    def load_rows(self, root: SkillsRoot):
-        self.calls.append("load_rows")
-        return ()
 
     def read(self, root: SkillsRoot) -> str:
         self.calls.append("read")

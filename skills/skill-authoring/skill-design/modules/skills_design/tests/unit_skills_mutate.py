@@ -291,9 +291,9 @@ def test_create_dry_run_writes_nothing(tmp_path: Path) -> None:
 
 
 def test_create_apply_writes_skill_md_and_rebuilds_catalog(tmp_path: Path) -> None:
-    """Applying creates SKILL.md and rebuilds CATALOG.md."""
+    """Applying creates SKILL.md and rebuilds catalog.json."""
     agent = _create_agent(tmp_path)
-    (tmp_path / "CATALOG.md").write_text("# CATALOG\n", encoding="utf-8")
+    (tmp_path / "catalog.json").write_text("{}", encoding="utf-8")
     request = SkillsRequest(
         op=SkillsOp.CREATE,
         query="doc-helper",
@@ -317,6 +317,7 @@ def test_create_apply_writes_skill_md_and_rebuilds_catalog(tmp_path: Path) -> No
     assert "argument-hint: <path>" in text
     assert "# Doc Helper" in text
     assert result.catalog is not None, "catalog should be rebuilt after apply"
+    assert (tmp_path / "catalog.json").exists()
 
 
 def test_create_already_exists_is_a_no_op(tmp_path: Path) -> None:

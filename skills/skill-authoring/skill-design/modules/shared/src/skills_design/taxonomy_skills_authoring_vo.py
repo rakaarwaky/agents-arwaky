@@ -23,7 +23,6 @@ from shared.src.skills_design.taxonomy_skills_entity import Issue
 __all__ = [
     "CatalogCheckResult",
     "CatalogReport",
-    "CatalogRow",
     "DiscoveryMatch",
     "DiscoveryResult",
     "LintReport",
@@ -55,7 +54,7 @@ class ValidationReport:
 
     @property
     def catalog_path(self) -> Path:
-        """The ``CATALOG.md`` the report names."""
+        """The ``catalog.json`` the report names."""
         return self.catalog
 
     def summary(self) -> str:
@@ -97,27 +96,8 @@ class LintReport:
 
 
 @dataclass(frozen=True)
-class CatalogRow:
-    """One parsed ``## Skills`` row of ``CATALOG.md``."""
-
-    skill: str
-    category: str
-    description: str
-    path: str
-
-    def as_dict(self) -> dict[str, str]:
-        """The legacy row projection, in legacy key order."""
-        return {
-            "skill": self.skill,
-            "category": self.category,
-            "description": self.description,
-            "path": self.path,
-        }
-
-
-@dataclass(frozen=True)
 class CatalogReport:
-    """The result of rebuilding ``CATALOG.md``."""
+    """The result of rebuilding ``catalog.json``."""
 
     path: Path
     skills: int

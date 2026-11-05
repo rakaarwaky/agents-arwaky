@@ -176,13 +176,13 @@
     },
     {
       "name": "issue-maker",
-      "description": "repo → issues: zero-trust issue maker that maps AES spec documents (PRD, ROADMAP, BACKLOG, FRD, DESIGN, plus module and package feature docs) into modular GitHub tracking issues. Done rows are re-verified against live source and test evidence. Every issue carries a closing-condition that advances its ROW and all FR IDs to Done. Never opens a PR — issues only.",
+      "description": "repo → issues: zero-trust issue maker that maps AES spec documents (PRD, ROADMAP, BACKLOG, FRD, DESIGN, plus module and package feature docs) into modular GitHub tracking issues. Done rows are re-verified against live source and test evidence. Every issue carries a closing-condition that advances its ROW and all FR IDs to Done. Never opens a PR — issues only. Hermes runs the audit driver via terminal (stdlib scripts, no subagent); no source edits, no branches, no PRs — nothing to delegate to Grok.",
       "when_to_use": "/issue-maker — map incomplete tasks to GitHub issues (repo → issues), create tracking issues from ROADMAP or BACKLOG, verify Done claims against code, ensure every issue carries a closing-condition that advances the roadmap state to Done. Outputs GitHub issues only; never edits source, never creates a branch, never opens a PR.",
       "category": "git"
     },
     {
       "name": "issue-worker",
-      "description": "issue worker: analyze open GitHub issues and take each one from backlog to a PR opened to main — verify at HEAD → decide → 1 issue → 1 Orca worktree → implementer subagent → orchestrator verifies → orchestrator pushes branch + opens a (draft) PR to main → close/reopen the issue per result. Never merges. Takes EXISTING issues to PRs; does not create issues (that is `/issue-maker`'s domain). CRUD recipes (search/view/label/assign/comment/close/reopen/branch) stay as reference only; the spine is verify → decide → isolate → implement → verify → PR.",
+      "description": "issue worker: analyze open GitHub issues and take each one from backlog to a PR opened to main — Hermes verifies at HEAD and runs the decision quiz, then 1 issue → 1 Orca worktree → Grok Build implements → Hermes verifies → Hermes pushes branch + opens a (draft) PR to main → close/reopen the issue per result. Never merges. Takes EXISTING issues to PRs; does not create issues (that is /issue-maker's domain). CRUD recipes stay as reference only; the spine is verify → decide → isolate → delegate → verify → PR.",
       "when_to_use": "",
       "category": "git"
     },
@@ -194,7 +194,7 @@
     },
     {
       "name": "pr-babysit",
-      "description": "Watch a GitHub PR end to end: track a PR number, auto-fix CI failures, resolve conflicts, address review and bot comments, and merge when green. Optional --ship flag lands the PR to the default branch when ship-ready.",
+      "description": "Watch a GitHub PR end to end: Hermes tracks the PR and observes CI, Grok Build runs every fix pass (auto-fix red checks, resolve conflicts, address review/bot comments) in an Orca worktree, and Hermes merges when green if --ship is set.",
       "when_to_use": "Triggers on \"/pr-babysit\". Phrasing: \"watch PR 123 until green\", \"babysit PR 123 and merge when ready\", \"fix issue #123 and open a PR\", \"keep fixing PR 123 until it can merge\", \"pr-babysit add --ship 123\".",
       "category": "git"
     },
@@ -244,12 +244,6 @@
       "name": "email",
       "description": "Mailbox: triage, read, search, reply, send. Use for email.",
       "when_to_use": "Use for any mailbox task: 'triage my inbox', 'draft replies', 'list mail from X', 'send email', 'what needs answering', 'morning brief'. Not for Google Docs/Drive/Calendar-only tasks.",
-      "category": "office"
-    },
-    {
-      "name": "email-inbox-triage",
-      "description": "Triage an inbox: prioritize threads, draft replies safely.",
-      "when_to_use": "Use when the user asks to triage their inbox, prioritize threads, draft replies, or reach inbox zero.",
       "category": "office"
     },
     {
