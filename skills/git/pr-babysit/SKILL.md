@@ -31,8 +31,8 @@ Each reference file is step-scoped. Global rules above apply throughout; do not 
 
 The lane is chosen by **who is reading this skill**, not by a flag:
 
-- **Hermes lane** — you are Hermes orchestrating the watch. Run Steps 0–3 in `references/hermes/`. You observe CI, spawn Grok for each fix pass, re-verify, and merge — you never enter the Grok lane.
-- **Grok lane** — you are the Grok Build TUI inside the Orca worktree, having just received `/pr-babysit fix <number>`. Run Steps 0–4 in `references/grok/` for the fix pass: watch CI, auto-fix red checks, decision tree, merge readiness (Grok reports merge-ready; it does not merge — the merge belongs to Hermes's Step 2).
+- **Hermes lane** — read when you are the Hermes orchestrator running `/pr-babysit add|check|ship`. Run Steps 0–3 in `references/hermes/`: observe CI, spawn a Grok worktree for each fix pass, re-verify, and merge. You never enter the Grok lane.
+- **Grok lane** — read when you are the Grok Build TUI inside the Orca worktree, having just received `/pr-babysit fix <number>`. Run Steps 0–4 in `references/grok/`: watch CI, auto-fix red checks, decision tree, merge readiness (Grok reports merge-ready; it does not merge — the merge belongs to Hermes's Step 2).
 
 ### Hermes lane (Steps 0–3)
 
