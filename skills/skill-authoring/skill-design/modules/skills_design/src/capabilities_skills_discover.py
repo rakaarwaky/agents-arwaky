@@ -29,6 +29,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from shared.src.common.utility_skills_tree import skill_entries
+from shared.src.skills_design.contract_skills_bm25f_protocol import (
+    IBM25FRankerProtocol,
+)
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -36,6 +39,7 @@ from shared.src.skills_design.contract_skills_protocol import (
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     DiscoveryMatch,
     DiscoveryResult,
+    map_to_legacy_score,
 )
 from shared.src.skills_design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
@@ -47,11 +51,6 @@ from shared.src.skills_design.taxonomy_skills_error import (
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,
-)
-
-from skills_design.src.capabilities_skills_bm25f import (
-    map_to_legacy_score,
-    rank_bm25f,
 )
 
 __all__ = [
@@ -94,8 +93,13 @@ def tree_scan_rows(skills_root: Path) -> list[_Row]:
 class SkillsDiscover(ISkillsDiscoverProtocol):
     """Scores catalog rows with BM25F; falls back to a live tree scan on drift."""
 
-    def __init__(self, catalog: ISkillsCatalogProtocol) -> None:
+    def __init__(
+        self,
+        catalog: ISkillsCatalogProtocol,
+        ranker: IBM25FRankerProtocol | None = None,
+    ) -> None:
         self._catalog = catalog
+        self._ranker = ranker
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def discover(self, query: SkillQuery, root: SkillsRoot, limit: int) -> DiscoveryResult:
@@ -105,14 +109,15 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
             raise SkillsUsageError("Query is empty")
 
         rows, warning, warning_detail = self._rows_or_fallback(Path(root))
-        scored = rank_bm25f(rows, tokens)[:limit]
+        ranker = self._ranker if self._ranker is not None else _default_ranker()
+        scored = ranker.rank(rows, tokens)[:limit]
 
         matches = tuple(
             DiscoveryMatch(
-                skill=row.skill,
-                category=row.category,
-                description=row.description,
-                path=row.path,
+                skill=hit.row.skill,
+                category=hit.row.category,
+                description=hit.row.description,
+                path=hit.row.path,
                 score=map_to_legacy_score(hit.score),
                 matched_fields=hit.matched_fields,
             )
@@ -164,3 +169,20 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
             return tree_scan_rows(skills_root), DRIFT_WARNING, f"Catalog empty: {path}"
 
         return rows, "", ""
+
+
+# ── Module-level helpers (stateless, no I/O, no cross-layer deps) ─────
+
+
+def _default_ranker() -> IBM25FRankerProtocol:
+    """Lazily instantiate the default BM25F ranker (avoids circular import)."""
+    from skills_design.src.capabilities_skills_bm25f import SkillsBm25fRanker
+
+    return SkillsBm25fRanker()
+
+
+def _map_to_legacy_score(score: float) -> int:
+    """Map a float BM25F score to the legacy int projection."""
+    from skills_design.src.capabilities_skills_bm25f import map_to_legacy_score
+
+    return map_to_legacy_score(score)

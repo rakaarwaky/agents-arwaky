@@ -32,7 +32,17 @@ permissions, plan-mode, dashboard, and keyboard-shortcuts guides.
 
 - Sessions are stored locally; `grok usage <session-id> [turn]` prints persisted
   per-turn token and cost totals from the shell.
-- Continuation pattern (assign your own UUID so you can resume by id):
+- **One headless task, one dedicated working directory.** Grok resumes the most
+  recent session for a given cwd, so a fresh-UUID one-shot launched from a
+  directory that already has an active session in it will silently resume *that*
+  session instead of starting fresh — even though the UUID you passed never
+  existed. Launch headless one-shots from a dedicated working directory (a git
+  worktree under `~/.grok/worktrees/` or `~/orca/workspaces/`, or `mktemp -d &&
+  git init` for scratch work) that no other active session is using. Reuse the
+  cwd + `-s <UUID>` continuation pattern below only for that cwd's own session.
+
+Continuation pattern (assign your own UUID so you can resume by id, in a
+dedicated cwd per task):
 
 ```bash
 SID=$(uuidgen)
@@ -154,6 +164,9 @@ image_description = "myomnivision"
   `OMNIROUTE_URL=http://127.0.0.1:7777` is exported in the environment.
 - Verify the gateway: `curl -s -o /dev/null -w '%{http_code}\n'
   "$OMNIROUTE_URL/v1/models"` → `200` (a `401` means the key is missing/invalid).
+  A bare `curl` without the `Authorization: Bearer $OMNIROUTE_KEY` header
+  returns `401` even with a valid `OMNIROUTE_KEY` — always send the header,
+  or read `OMNIROUTE_KEY` from the same shell environment the grok CLI uses.
 - A shared gateway is wired through a `[model_providers.<id>]` block that models
   inherit via `model_provider = "<id>"`; set `context_window` explicitly for new model
   names.

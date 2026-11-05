@@ -5,20 +5,25 @@ functions `rule`, `is_valid_skill_name`, `issue_message` — defined here
 rather than in `taxonomy_skills_constant.py` to satisfy AES401 (constant
 files must not contain classes or functions). The `RULES` table in
 `taxonomy_skills_constant` keys on these types; this file re-exports them
-so consumers can import the published shape from either module.
+so consumers can import the published shape from either module. The
+naming-budget constants (`NAME_MIN`, `NAME_MAX`, `NAME_RE`) live in this
+module now, not in the constant file.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Final, NewType
 
-from shared.src.skills_design.taxonomy_skills_constant import (
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
-)
+# ─── Naming budget ─────────────────────────────────────────────────────
+
+#: Naming budget (moved from ``taxonomy_skills_constant.py``; kept with the
+#: rule shape that consumes them in ``is_valid_skill_name`` below).
+NAME_MIN: Final = 2
+NAME_MAX: Final = 64
+NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
 
 # ─── Skill reference value objects ──────────────────────────────────────
 
@@ -240,9 +245,6 @@ def issue_message(issue_type: IssueType, **fields: Any) -> str:
 __all__ = [
     "CITATIONS",
     "ISSUE_MESSAGES",
-    "NAME_MAX",
-    "NAME_MIN",
-    "NAME_RE",
     "RULES",
     "RULE_IDS",
     "SUMMARIES",

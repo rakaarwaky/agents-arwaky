@@ -14,7 +14,25 @@ from pathlib import Path
 
 from shared.src.skills_design.taxonomy_skills_entity import Issue
 
+#: Score scale factor: float BM25F score * scale → int legacy projection.
+#: Lived in ``capabilities_skills_bm25f`` (AES403 CapabilityLocalConstant:
+#: module-level constants in capability files are flagged); taxonomy is the
+#: SSOT home for shared numeric constants.
+BM25F_SCORE_SCALE: int = 100
+
+
+def map_to_legacy_score(score: float) -> int:
+    """Map a float BM25F score to the legacy int score projection.
+
+    Pure data helper (no I/O, no imports from utility/capabilities/
+    agent/root/surface) so the discover capability can project the
+    ranker's float score onto the stable int ``DiscoveryMatch.score``
+    field without a cross-capability import (AES201).
+    """
+    return max(0, round(score * BM25F_SCORE_SCALE))
+
 __all__ = [
+    "BM25F_SCORE_SCALE",
     "CatalogCheckResult",
     "CatalogReport",
     "DiscoveryMatch",
@@ -26,6 +44,7 @@ __all__ = [
     "NewCategoryPlan",
     "SkillCreatePlan",
     "ValidationReport",
+    "map_to_legacy_score",
 ]
 
 

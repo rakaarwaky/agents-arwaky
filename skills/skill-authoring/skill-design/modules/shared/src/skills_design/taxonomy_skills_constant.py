@@ -1,17 +1,18 @@
 """SSOT for skill-library validation rules (AES taxonomy layer).
 
 The single executable source of truth for what a valid skill is: the
-naming / budget / layout constants, the escape helpers' rule text, the
-layout invariants, and the issue taxonomy — the 13 issue-type strings
-plus the exact message strings ``validate`` emits.
+budget / layout constants, the escape helpers' rule text, the layout
+invariants, and the issue taxonomy — the 13 issue-type strings plus the
+exact message strings ``validate`` emits.
 
 Lifted verbatim from ``librarian.py``. Nothing in this module
 is re-derivable from elsewhere: every consumer (the validator
 capability and the skill-rules reference doc) must read these constants
-rather than restate them. The rule shape is defined in
+rather than restate them. The rule shape and the naming-budget constants
+(``NAME_MIN`` / ``NAME_MAX`` / ``NAME_RE``) are defined in
 ``taxonomy_skills_rule_vo.py`` and imported here; this keeps the
 taxonomy dependency acyclic
-(constant imports nothing, rule imports constant for layout invariants).
+(constant imports nothing from rule-vo classes, only the published rule shape).
 """
 
 from __future__ import annotations
@@ -21,18 +22,17 @@ from typing import Final
 
 # ── Naming budget ─────────────────────────────────────────────────────
 
-#: Verbatim from ``librarian.py``: ``^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$``
-NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
+#: The naming-budget constants live in ``taxonomy_skills_rule_vo.py``
+#: (alongside ``is_valid_skill_name``, which consumes them); they are
+#: imported here so existing consumers of this module keep working.
+from shared.src.skills_design.taxonomy_skills_rule_vo import (  # noqa: E402
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
+)
 
-#: Verbatim from ``librarian.py``.
+# Verbatim from ``librarian.py``.
 MAX_DESCRIPTION_LEN: Final = 1024
-
-#: Inclusive bounds used by the validator (2-64 chars, no leading/trailing
-#: hyphen, no double hyphen — all three conditions are checked by the
-#: validator; ``NAME_RE`` alone enforces the character set and the
-#: no-leading/trailing-hyphen rule).
-NAME_MIN: Final = 2
-NAME_MAX: Final = 64
 
 # ── Layout invariants ─────────────────────────────────────────────────
 

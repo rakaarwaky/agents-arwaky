@@ -8,7 +8,7 @@ Jaccard character similarity ≥ 0.75) and score the match.
 
 No network, no third-party dependencies, no paid model. Offline by design.
 
-Row objects passed to :func:`rank` must have the four attributes
+Row objects passed to ``rank`` must have the four attributes
 ``skill``, ``category``, ``description``, and ``path`` (the shape of
 the discover ``_Row``).
 """
@@ -20,11 +20,19 @@ import re
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 
+from shared.src.skills_design.contract_skills_bm25f_protocol import (
+    IBM25FRankerProtocol,
+)
+from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+    BM25F_SCORE_SCALE,
+    map_to_legacy_score,
+)
+
 __all__ = [
     "BM25F_FIELD_WEIGHTS",
     "BM25FHit",
+    "SkillsBm25fRanker",
     "build_index",
-    "map_to_legacy_score",
     "rank_bm25f",
     "tokenize_full",
 ]
@@ -45,9 +53,6 @@ SIMILARITY_THRESHOLD: float = 0.75
 
 #: Minimum token length for a fuzzy match to count.
 MIN_TOKEN_LEN: int = 3
-
-#: Score scale factor: float score * scale → int for legacy projection.
-BM25F_SCORE_SCALE: int = 100
 
 #: English stop words dropped before indexing.
 STOP_WORDS: frozenset[str] = frozenset(
@@ -98,26 +103,6 @@ def _jaccard(a: str, b: str) -> float:
     inter = len(sa & sb)
     union = len(sa | sb)
     return inter / union if union else 0.0
-
-
-def _tokens_similar(query_tok: str, skill_tok: str) -> bool:
-    """True when two tokens are similar enough to count as a match.
-
-    A match fires when either:
-    * one token is a substring of the other (min length 3)
-    * both tokens ≥ 4 chars and character-set Jaccard similarity
-      ≥ SIMILARITY_THRESHOLD
-    """
-    if len(query_tok) < MIN_TOKEN_LEN or len(skill_tok) < MIN_TOKEN_LEN:
-        return False
-    # Substring (either direction)
-    if query_tok in skill_tok or skill_tok in query_tok:
-        return True
-    # Jaccard char-set similarity (both tokens must be ≥ 4 chars to
-    # avoid noise from very short tokens).
-    if len(query_tok) < 4 or len(skill_tok) < 4:
-        return False
-    return _jaccard(query_tok, skill_tok) >= SIMILARITY_THRESHOLD
 
 
 def _match_strength(query_tok: str, skill_tok: str) -> float:
@@ -217,8 +202,7 @@ def _idf(index: _BM25FIndex, field: str, token: str) -> float:
     # Robertson–Spac–Walker (log base e, +1 shift): always > 0.
     return math.log((n - n_ti + 0.5) / (n_ti + 0.5)) + 1.0
 
-
-# ── Fuzzy BM25F ranking ───────────────────────────────────────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 
 
 @dataclass(frozen=True)
@@ -228,6 +212,24 @@ class BM25FHit:
     score: float
     row: object
     matched_fields: tuple[str, ...]
+
+
+class SkillsBm25fRanker(IBM25FRankerProtocol):
+    """Offline BM25F field-weighted ranker over catalog rows.
+
+    Implements ``IBM25FRankerProtocol``: ``rank`` returns ``BM25FHit``
+    results sorted high-first. The stateless algorithm also lives as
+    module-level free functions (``rank_bm25f``) for direct callers.
+    """
+
+    # ─── Block 2: Protocol Method Implementation ──────────────
+    def rank(self, rows: object, tokens: list[str]) -> list[BM25FHit]:
+        """Score *rows* against *tokens*; empty input yields an empty list."""
+        return rank_bm25f(rows, tokens)
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ────────
+    def __repr__(self) -> str:
+        return "SkillsBm25fRanker()"
 
 
 def rank_bm25f(rows, tokens: list[str]) -> list[BM25FHit]:
@@ -295,8 +297,3 @@ def rank_bm25f(rows, tokens: list[str]) -> list[BM25FHit]:
 
     hits.sort(key=lambda h: h.score, reverse=True)
     return hits
-
-
-def map_to_legacy_score(score: float) -> int:
-    """Map a float BM25F score to the legacy int score projection."""
-    return max(0, round(score * BM25F_SCORE_SCALE))

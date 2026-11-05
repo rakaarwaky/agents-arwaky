@@ -8,7 +8,19 @@ from __future__ import annotations
 
 import posixpath
 import re
+from dataclasses import dataclass
 from pathlib import Path
+
+
+@dataclass(frozen=True)
+class SkillNameVo:
+    """Pure-name value object for the skill pack (no I/O, no state)."""
+
+    raw: str
+
+    def sanitized(self, fallback: str) -> str:
+        """Convert the raw name into a safe directory name."""
+        return sanitize_skill_name(self.raw, fallback)
 
 
 def extract_skill_name(skill_md: Path) -> str:
@@ -54,6 +66,7 @@ def safe_child(base: Path, name: str) -> Path:
 
 
 __all__ = [
+    "SkillNameVo",
     "extract_skill_name",
     "safe_child",
     "safe_skill_name",

@@ -72,18 +72,22 @@ def test_build_index_df_counts() -> None:
 
 def test_rank_bm25f_orders_pdf_above_notes_for_pdf_query() -> None:
     scored = rank_bm25f(_rows(), ["pdf"])
-    names = [row.skill for _, row in scored]
+    names = [hit.row.skill for hit in scored]
     assert names[0] == "pdf-extract", f"expected pdf-extract first, got {names}"
     # note-taker / doc-drafts / csv-clean have no "pdf" token → excluded
     assert "note-taker" not in names
     assert "doc-drafts" not in names
     assert "csv-clean" not in names
+    # The pdf-extract hit matched on name, description, and path fields
+    assert "name" in scored[0].matched_fields
+    assert "description" in scored[0].matched_fields
 
 
 def test_rank_bm25f_csv_ranks_csv_clean_first() -> None:
     scored = rank_bm25f(_rows(), ["csv", "clean"])
-    names = [row.skill for _, row in scored]
+    names = [hit.row.skill for hit in scored]
     assert names[0] == "csv-clean"
+    assert "name" in scored[0].matched_fields
 
 
 def test_rank_bm25f_zero_score_rows_excluded() -> None:

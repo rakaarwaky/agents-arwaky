@@ -24,12 +24,10 @@ from __future__ import annotations
 import argparse
 import sys
 
-# Import the path-bootstrap utility so its namespace-root registration runs
-# at import time and AES504 (utility orphan) does not fire.
-from shared.src.common.utility_path_bootstrap import register_namespace_roots
-
-# Trigger the module-level side effect at import time; keep the name unused.
-register_namespace_roots()
+# Importing the path-bootstrap module runs its namespace-root registration
+# at import time and resolves AES504 (utility orphan): the module object is
+# pinned in ``_path_bootstrap`` so the utility stays wired without a dead name.
+import shared.src.common.utility_path_bootstrap as _path_bootstrap  # isort: skip
 
 from shared.src.common.utility_logging_setup import (
     BOLD,
@@ -402,7 +400,11 @@ def _render_discover(result: SkillsResult, request: SkillsRequest) -> int:
         desc = match.description
         if len(desc) > 80:
             desc = desc[:77] + "…"
-        print(f"{match.skill:24s} {match.category:20s} {desc}")
+        fields = ",".join(match.matched_fields) if match.matched_fields else ""
+        if fields:
+            print(f"{match.skill:24s} {match.category:20s} [{fields}]  {desc}")
+        else:
+            print(f"{match.skill:24s} {match.category:20s}          {desc}")
     return 0
 
 
