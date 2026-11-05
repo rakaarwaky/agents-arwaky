@@ -44,8 +44,8 @@ Pack root is hardcoded to `skills/`; no `--skills-root` or `--json`.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | Exit codes 0 clean / 1 issues / 2 usage / 3 drift surfaced   |
-|              | from `SkillsExitCode` unchanged.                             |
+| Done         | Exit codes map to outcomes: clean → 0, issues → 1, usage → 2 |
+|              | catalog drift → 3.                                           |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |
@@ -58,6 +58,16 @@ Pack root is hardcoded to `skills/`; no `--skills-root` or `--json`.
 | Done         | Surface imports only `ISkillsAggregate`, `SkillsRequest`,    |
 |              | `SkillsOp`, `SkillsResult`, `SkillsExitCode`, `SkillQuery`;  |
 |              | composition root injects capabilities into `SkillsAgent`.    |
+| In Progress  | None                                                         |
+| Risk         | None                                                         |
+| Updated      | 2026-11-04                                                   |
+
+### DS-CLI-005: Agent-readable output contract
+
+| Aspect       | Detail                                                       |
+|--------------|--------------------------------------------------------------|
+| State        | Done                                                         |
+| Done         | Status-bearing lines carry a textual prefix (`[OK]`, `[FAIL]`, `[WARN]`, `[DRY-RUN]`, `[APPLIED]`); output never depends on spatial column alignment or color to convey state. Human accessibility modes (`--plain`/`--json`) out of scope per stakeholder decision. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-04                                                   |
