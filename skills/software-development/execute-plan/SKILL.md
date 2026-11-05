@@ -6,37 +6,30 @@ argument-hint: "<design-doc-path> [--resume <PLAN_ID>]"
 ---
 # Execute Plan Skill
 
-You orchestrate a PR Plan DAG end-to-end. **All code implementation, review, and assembly is delegated to Grok Build** — you never write code, run the review panel, or assemble branches yourself. The flow:
-
-1. **Validate & plan** — run `validate-plan.py` on `<design-doc-path>`; on success, build a self-contained brief (DAG summary, per-PR instructions, constraints, acceptance criteria).
-2. **Spawn Grok Build** in one dedicated Orca worktree and drop the brief as `/execute-plan <design-doc-path>`.
-3. **Wait** for Grok to finish the full loop — parallel per-PR worktrees, implementer subagents, 3-reviewer panel (general, tests, simplicity), fix rounds, failure cascades, final branch assembly, and the final PR.
-4. **Verify & ship** — read Grok's state file, confirm the final branch is on origin with a passing local gate, and report.
-5. **Flush memory & report** — write new issue patterns to the workspace memory file, final summary to the user.
+You orchestrate a PR Plan DAG end-to-end. This file is the lane identification step only; the working method lives in `references/hermes/` and `references/grok/`.
 
 ## Global Rules
 
-Rules that apply to every step. Step files reference these; they never restate them.
+The lane is determined from a physical signal, not by self-identification. Each agent's launcher stamps a fixed attribution env var into every command it runs; the model cannot set these.
 
-- **Delegation (Grok Build via Orca worktree)**: You never write code, review findings, or assemble branches yourself. One Orca worktree with `--agent grok` is created; Grok Build runs the entire DAG execution inside it (including its own per-PR worktrees). No `spawn_subagent` for implementer, reviewer, or fixer — your only "subagent" is the Grok Build TUI.
-- **Single point of control**: You own all git, Orca worktree, and PR operations that survive the run. Grok works inside `cwd: <worktree_path>`; it creates the final branch and PR, and you verify/adopt them in Step 2 — you do not re-do the assembly.
-- **One-shot task drop**: You send exactly one message to Grok: `/execute-plan <design-doc-path>` plus the brief's DAG summary, constraints, and acceptance criteria. No mid-run course corrections, no "is PR-3 done?".
-- **Parallel-First for Hermes's own work**: when you need to read multiple artifact files or run multiple read-only checks, batch them in one tool call. Serialize only true dependencies.
-- **Scope boundary**: you do not rewrite or re-review the design document. If the DAG is ambiguous or `validate-plan.py` fails, stop and point back to `/design` — do not hand-fix the plan and do not spawn Grok on a malformed plan.
-- **Personas**: none. Grok loads its own persona set; you do not inject personas into Grok's subagents.
-- **Hermes does not run the 3-reviewer panel or the final-review fix loop.** The panel runs inside Grok per the `grok/` references. Your job after Grok finishes is to verify its state file shows `final_review_passed: true`, not to re-run the panel.
-- **Memory briefing**: you do not build `past_issues_briefing` for Grok — Grok builds it for its own subagents from the same workspace memory file. If Grok's reviews surfaced new patterns, flush them after the run (Hermes Step 3).
-- **Exit condition for Hermes**: Grok's state file shows `status: completed`, `final_review_passed: true`, and `pr_urls` is populated; your Step 2 verification (final branch on origin + local gate on a clean tree) passes. Then you flush memory and report.
-- **Partial failure**: if some PRs failed/were cascade-skipped, do not hand-assemble the missing work. Report the failures and suggest `/execute-plan --resume <PLAN_ID>`.
+```bash
+if [[ -n "${HERMES_AGENT:-}" ]]; then echo HERMES
+elif [[ -n "${GROK_AGENT:-}" ]]; then echo GROK
+else echo UNSET; fi
+```
+
+- `HERMES` → **Hermes lane.** Read `references/hermes/`. Stop.
+- `GROK` → **Grok lane.** Read `references/grok/`. Stop.
+- `UNSET` → stop and report. Do not guess the lane.
+
+Marker provenance:
+
+- **Hermes** re-exports `AI_AGENT=hermes-agent` and `HERMES_AGENT=true` on every command.
+- **Grok Build** runs with `GROK_AGENT=1`.
+
+Read only the winning lane's references. Do not read the other lane's.
 
 ## Routing
-
-Each reference file is step-scoped and contains the executable logic, guardrails, and reporting strings for that step. Global rules above apply throughout; do not restate them in a step file.
-
-The lane is chosen by **who is reading this skill**, not by a flag:
-
-- **Hermes lane** — you are Hermes orchestrating the run. Run Steps 0–3 in `references/hermes/`. You drop the task to Grok in Step 0 and never enter the Grok lane.
-- **Grok lane** — you are the Grok Build TUI inside the Orca worktree, having just received `/execute-plan <design-doc-path>`. Run Steps 0–13 in `references/grok/`.
 
 ### Hermes lane (Steps 0–3)
 

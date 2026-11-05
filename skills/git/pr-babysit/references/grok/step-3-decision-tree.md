@@ -9,7 +9,7 @@ After step 2 (watch CI) reports a red check, or after step 3 (auto-fix) has push
 ## Inputs
 
 - The PR number, `OWNER`, `REPO` (from step 0)
-- The worktree path (created in step 0, per Global Rules)
+- The worktree path (created in step 0)
 - `stack_type: null` — this skill handles standalone PRs only; if the user's PR is part of a Graphite/GitHub stack, stop and tell them the stack tool owns those
 
 ## State

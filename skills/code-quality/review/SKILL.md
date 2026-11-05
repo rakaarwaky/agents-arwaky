@@ -7,32 +7,30 @@ argument-hint: "<path> [--backend-engineer | --business-analyst | --devops-engin
 
 # Review
 
-Reviews a module, crate, or package in place with parallel reviewer subagents seeded with one of 10 lens personas. Each reviewer subagent reads the module's current files (no diff collection) and writes a per-persona review file to the host scratch directory. The orchestrator aggregates per-persona issue counts and writes a module summary file to disk.
+Reviews a module, crate, or package in place with parallel reviewer subagents seeded with one of 10 lens personas. This file is the lane identification step only; the working method lives in `references/hermes/` and `references/grok/`.
 
-**All review work is delegated to Grok Build.** The parallel-persona fan-out is the Grok lane — Grok runs it inside one dedicated Orca worktree. Hermes's lane is four steps: plan the brief, drop `/review <path>` into Grok, wait, verify + aggregate. Hermes never spawns reviewer subagents or writes review files itself.
+## Global Rules
 
-## Global rules
+The lane is determined from a physical signal, not by self-identification. Each agent's launcher stamps a fixed attribution env var into every command it runs; the model cannot set these.
 
-Rules that apply to the Hermes lane. The Grok lane has its own rules, owned by `references/grok/`.
+```bash
+if [[ -n "${HERMES_AGENT:-}" ]]; then echo HERMES
+elif [[ -n "${GROK_AGENT:-}" ]]; then echo GROK
+else echo UNSET; fi
+```
 
-- **Delegation (Grok Build via Orca worktree)**: You never spawn reviewer subagents, read module files for findings, or write per-persona review files yourself. One Orca worktree with `--agent grok`; Grok Build runs the entire parallel-persona fan-out inside it. No `spawn_subagent` for reviewers — your only "subagent" is the Grok Build TUI.
-- **One-shot task drop**: You send exactly one message to Grok: `/review <path> <persona flags | --all>` plus the brief's roster, constraints, and acceptance criteria. No mid-run course corrections, no "any findings yet?".
-- **Single point of control**: You own the surviving verification and delivery operations. Grok works inside `cwd: <worktree_path>`; it never modifies source files, never commits, never pushes, never opens a PR (you verify and aggregate in Step 2).
-- **Persona roster**: the selected personas (all 10 for the bare form / `--all`, or exactly the flagged ones) are stated explicitly in the brief — Grok does not guess the roster.
-- **Module scope**: one module = one directory; subdirectories in scope, paths outside out of scope. Read-only git for the whole run (no `checkout`, `switch`, `reset`, `stash`, `fetch`); writers only under the scratch dir.
-- **Error handling**: a failed or timed-out persona records `ERROR` and the run continues — never aborts. If the file-list collection itself fails, report the error to the user and stop.
-- **Verification re-run.** Grok's aggregation is self-reported. Step 2 recounts `### Issue N — Severity: X` headings per persona file and cross-checks parity with the summary before trusting it.
-- **Parallel-First for Hermes's own work**: when you need to read multiple per-persona files or run multiple read-only checks, batch them in one tool call. Serialize only true dependencies.
-- **Deliverables**: per-persona files and the summary file are never deleted.
-- **No emojis in output.**
-- **Exit condition for Hermes**: Grok's summary file exists, your Step 2 count parity check passes (or flags mismatches), and the module source tree is unmodified. Then you triage and report.
+- `HERMES` → **Hermes lane.** Read `references/hermes/`. Stop.
+- `GROK` → **Grok lane.** Read `references/grok/`. Stop.
+- `UNSET` → stop and report. Do not guess the lane.
+
+Marker provenance:
+
+- **Hermes** re-exports `AI_AGENT=hermes-agent` and `HERMES_AGENT=true` on every command.
+- **Grok Build** runs with `GROK_AGENT=1`.
+
+Read only the winning lane's references. Do not read the other lane's.
 
 ## Routing
-
-The lane is chosen by **who is reading this skill**, not by a flag:
-
-- **Hermes lane** — you are Hermes orchestrating the run. Run Steps 0–3 in `references/hermes/`. You drop the task to Grok in Step 0 and never enter the Grok lane.
-- **Grok lane** — you are the Grok Build TUI inside the Orca worktree, having just received `/review <path>`. Run Steps 0–5 in `references/grok/`.
 
 ### Hermes lane (Steps 0–3)
 

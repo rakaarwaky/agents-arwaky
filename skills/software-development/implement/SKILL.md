@@ -7,36 +7,30 @@ disable-model-invocation: true
 ---
 # Implement Skill
 
-You orchestrate a single implementation task end-to-end. **All code writing, reviewing, and fixing is delegated to Grok Build** — you never implement or review yourself. The flow:
-
-1. **Plan** the task brief from `<task-description>` (goal, scope, constraints, acceptance criteria).
-2. **Spawn** Grok Build in a dedicated Orca worktree and drop the brief as `/implement <task-description>`.
-3. **Wait** for Grok to finish its full implement → review → fix loop (fixed 3-reviewer panel: general, tests, simplicity — runs inside Grok, not in your subagents).
-4. **Verify & ship**: read Grok's artifacts, audit the worktree, commit, push, open the PR.
-5. **Report**: final summary to the user.
+You orchestrate a single implementation task end-to-end. This file is the lane identification step only; the working method lives in `references/hermes/` and `references/grok/`.
 
 ## Global Rules
 
-Rules that apply to every step. Step files reference these; they never restate them.
+The lane is determined from a physical signal, not by self-identification. Each agent's launcher stamps a fixed attribution env var into every command it runs; the model cannot set these.
 
-- **Delegation (Grok Build via Orca worktree)**: You never write code, review findings, or run the review-fix loop yourself. The worktree is created with `--agent grok`; Grok Build runs the entire implement/review/fix pipeline inside it. No `spawn_subagent` for implementer or reviewers — your only "subagent" is the Grok Build TUI in the worktree.
-- **Single point of control**: You own all git, Orca worktree, and PR operations. Grok works inside `cwd: <worktree_path>`; it never commits, pushes, creates branches, or calls `gh` (you tell it so in the brief).
-- **One-shot task drop**: You send exactly one message to Grok: `/implement <task-description>` plus the brief's constraints and acceptance criteria. No mid-run course corrections, no status pings, no "is it done?" — Grok's own skill handles its loop internally.
-- **Parallel-First for Hermes's own work**: when you need to read multiple artifact files or run multiple read-only checks, batch them in one tool call. Serialize only true dependencies.
-- **Scope lock**: you decide task scope (in-scope vs out-of-scope paths) before dropping the task — never Grok. An explicit out-of-scope list is in the brief. If you correct scope mid-run, stop Grok, revert out-of-scope artifacts in your own tools, then re-drop.
-- **Personas**: none. Grok loads its own persona set; you do not inject personas into Grok's subagents.
-- **Hermes does not run the 3-reviewer panel.** The panel (general, tests, simplicity) runs inside Grok per the `grok/` references. Your job after Grok finishes is to verify its review file shows 0 open issues, not to run the panel yourself.
-- **Memory briefing**: you do not build `past_issues_briefing` for Grok — Grok builds it for its own subagents from the same workspace memory file. If Grok's review surfaced new patterns, flush them to the memory file after the run (Hermes Step 3).
-- **Exit condition for Hermes**: Grok reports done with 0 open issues in its review file, and your Step 2 verification (scope audit + local gate on a clean tree) passes. Then you commit, push, open the PR, and report.
+```bash
+if [[ -n "${HERMES_AGENT:-}" ]]; then echo HERMES
+elif [[ -n "${GROK_AGENT:-}" ]]; then echo GROK
+else echo UNSET; fi
+```
+
+- `HERMES` → **Hermes lane.** Read `references/hermes/`. Stop.
+- `GROK` → **Grok lane.** Read `references/grok/`. Stop.
+- `UNSET` → stop and report. Do not guess the lane.
+
+Marker provenance:
+
+- **Hermes** re-exports `AI_AGENT=hermes-agent` and `HERMES_AGENT=true` on every command.
+- **Grok Build** runs with `GROK_AGENT=1`.
+
+Read only the winning lane's references. Do not read the other lane's.
 
 ## Routing
-
-Each reference file is step-scoped and contains the executable logic, prompts, exit conditions, and reporting strings for that step. Global rules above apply throughout; do not restate them in a step file.
-
-The lane is chosen by **who is reading this skill**, not by a flag:
-
-- **Hermes lane** — you are Hermes orchestrating the run. Run Steps 0–3 in `references/hermes/`. You drop the task to Grok in Step 0 and never enter the Grok lane.
-- **Grok lane** — you are the Grok Build TUI inside the Orca worktree, having just received `/implement <task-description>`. Run Steps 0–10 in `references/grok/`.
 
 ### Hermes lane (Steps 0–3)
 

@@ -26,30 +26,30 @@ metadata:
 
 # Systematic Debugging
 
-For any technical issue — test failures, production bugs, build or performance problems — find the root cause before touching a fix, using a tight red-capable feedback loop and a single TDD-proven fix.
+For any technical issue — test failures, production bugs, build or performance problems — find the root cause before touching a fix. This file is the lane identification step only; the working method lives in `references/hermes/` and `references/grok/`.
 
-**All debugging work is delegated to Grok Build.** The 7-step pipeline is the Grok lane — Grok runs it inside one dedicated Orca worktree. Hermes's lane is four steps: plan the brief, drop `/systematic-debugging <issue-or-error>` into Grok, wait, verify + ship. Hermes never reads code to build a theory, runs the debugger, or writes the fix itself.
+## Global Rules
 
-## Global rules
+The lane is determined from a physical signal, not by self-identification. Each agent's launcher stamps a fixed attribution env var into every command it runs; the model cannot set these.
 
-Rules that apply to the Hermes lane. The Grok lane has its own rules, owned by `references/grok/`.
+```bash
+if [[ -n "${HERMES_AGENT:-}" ]]; then echo HERMES
+elif [[ -n "${GROK_AGENT:-}" ]]; then echo GROK
+else echo UNSET; fi
+```
 
-- **Delegation (Grok Build via Orca worktree)**: You never write code, run the red-capable loop, test hypotheses, or apply the fix yourself. One Orca worktree with `--agent grok`; Grok Build runs the entire debugging pipeline inside it. No `spawn_subagent` for a debugger — your only "subagent" is the Grok Build TUI.
-- **One-shot task drop**: You send exactly one message to Grok: `/systematic-debugging <issue-or-error> [--phase <n>] [--lang <lang>] [--repro <command>]` plus the brief's constraints and acceptance criteria. No mid-run course corrections, no "any progress yet?". Red-flag stops and architecture questions are Grok's to surface in its final report — you do not ping it mid-run.
-- **Single point of control**: You own the surviving git, Orca worktree, and PR operations. Grok works inside `cwd: <worktree_path>` and makes one local commit (regression test + minimal fix + refactor); it never pushes or opens a PR (you verify and ship in Step 2).
-- **Iron law, delegated.** The two iron-law gates (no fix without root cause; no production code without a failing test) bind Grok's run. Your Step 2 verification re-checks the commit contains both before trusting it — a fix without its regression test is reported as an iron-law violation, not silently accepted.
-- **Language routing**: `--lang` if given, else detect from the affected files (Python / TypeScript-Node / Rust) and state it in the brief — Grok picks the matching `3x`/`5x` variant. You do not pick it yourself.
-- **Verification re-run.** Grok's "gate passed" claim is self-reported. Step 2 re-runs the regression test and the repo's test/lint/build gate against the clean committed tree in Hermes's own tools before trusting it.
-- **Diff discipline.** Verify the commit's diff, not its message: `git diff <base>..HEAD` must show exactly the fix + regression test, not a drive-by refactor.
-- **Parallel-First for Hermes's own work**: when you need to read multiple report sections or run multiple read-only checks, batch them in one tool call. Serialize only true dependencies.
-- **Exit condition for Hermes**: Grok's report is complete, the commit contains the regression test + minimal fix, and your Step 2 verification (gate green on the clean committed tree, iron-law satisfied, no open red-flag stops you can't escalate) passes. Then you ship (if asked) and report.
+- `HERMES` → **Hermes lane.** Read `references/hermes/`. Stop.
+- `GROK` → **Grok lane.** Read `references/grok/`. Stop.
+- `UNSET` → stop and report. Do not guess the lane.
+
+Marker provenance:
+
+- **Hermes** re-exports `AI_AGENT=hermes-agent` and `HERMES_AGENT=true` on every command.
+- **Grok Build** runs with `GROK_AGENT=1`.
+
+Read only the winning lane's references. Do not read the other lane's.
 
 ## Routing
-
-The lane is chosen by **who is reading this skill**, not by a flag:
-
-- **Hermes lane** — you are Hermes orchestrating the run. Run Steps 0–3 in `references/hermes/`. You drop the task to Grok in Step 0 and never enter the Grok lane.
-- **Grok lane** — you are the Grok Build TUI inside the Orca worktree, having just received `/systematic-debugging <issue-or-error>`. Run the 7-step pipeline in `references/grok/` (steps 0–6, with language-variant `3x`/`5x` picked by `target_lang` from step 0).
 
 ### Hermes lane (Steps 0–3)
 

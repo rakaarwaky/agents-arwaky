@@ -7,28 +7,30 @@ argument-hint: "<target> [--type web|terminal|desktop|mobile] [--scope <scope>] 
 
 # Dogfood — Exploratory QA
 
-Runs one 5-phase pipeline — plan → explore → collect evidence → categorize → report — over any of four target types: `web`, `terminal`/`tui`, `desktop`, `mobile`. The phases and their shared rules never change; only the toolset, evidence format, and category vocabulary change per target.
+Runs one 5-phase pipeline — plan → explore → collect evidence → categorize → report — over any of four target types: `web`, `terminal`/`tui`, `desktop`, `mobile`. This file is the lane identification step only; the working method lives in `references/hermes/` and `references/grok/`.
 
-**All exploration is delegated to Grok Build.** The 5-phase pipeline is the Grok lane — Grok runs it inside one Orca worktree (repo targets) or headless (mobile / no-repo targets). Hermes's lane is four steps: plan the brief, drop `/dogfood <target>` into Grok, wait, verify + triage. Hermes never explores the target itself.
+## Global Rules
 
-## Global rules
+The lane is determined from a physical signal, not by self-identification. Each agent's launcher stamps a fixed attribution env var into every command it runs; the model cannot set these.
 
-Rules that apply to the Hermes lane. The Grok lane has its own rules, owned by `references/grok/`.
+```bash
+if [[ -n "${HERMES_AGENT:-}" ]]; then echo HERMES
+elif [[ -n "${GROK_AGENT:-}" ]]; then echo GROK
+else echo UNSET; fi
+```
 
-- **Delegation (Grok Build)**: You never run the act → observe → record loop, capture evidence, or write the report yourself. One Orca worktree with `--agent grok` (repo targets) or a headless `grok -p` run (mobile / no-repo targets); Grok Build runs the entire pipeline. No `spawn_subagent` for QA — your only "subagent" is the Grok Build TUI.
-- **One-shot task drop**: You send exactly one message to Grok: `/dogfood <target> --type <type> --scope <scope> --output-dir <dir>` plus the brief's constraints and acceptance criteria. No mid-run course corrections, no "any bugs yet?".
-- **Single point of control**: You own the surviving git and delivery operations. Grok works inside `cwd: <worktree_path>` (or headless `--cwd`); it never modifies the app under test, never commits app source, never pushes or opens a PR (you verify and deliver in Step 2).
-- **Target inference**: when `--type` is omitted, infer from the target value — a URL is `web`, a command or TUI binary is `terminal`, an app name is `desktop`, an APK or Android package name is `mobile`. State the inferred type in the brief so Grok picks the right step-1 variant.
-- **Evidence re-verification.** Grok's report is self-reported. Step 2 spot-checks that cited evidence files exist and flags unverifiable issues — you do not re-explore the target.
-- **Parallel-First for Hermes's own work**: when you need to read multiple report sections or verify multiple evidence files, batch them in one tool call. Serialize only true dependencies.
-- **Exit condition for Hermes**: Grok's `{output_dir}/report.md` exists and is complete per the template; your Step 2 evidence spot-check passes (or flags what it can't verify). Then you triage and report.
+- `HERMES` → **Hermes lane.** Read `references/hermes/`. Stop.
+- `GROK` → **Grok lane.** Read `references/grok/`. Stop.
+- `UNSET` → stop and report. Do not guess the lane.
+
+Marker provenance:
+
+- **Hermes** re-exports `AI_AGENT=hermes-agent` and `HERMES_AGENT=true` on every command.
+- **Grok Build** runs with `GROK_AGENT=1`.
+
+Read only the winning lane's references. Do not read the other lane's.
 
 ## Routing
-
-The lane is chosen by **who is reading this skill**, not by a flag:
-
-- **Hermes lane** — you are Hermes orchestrating the run. Run Steps 0–3 in `references/hermes/`. You drop the task to Grok in Step 0 and never enter the Grok lane.
-- **Grok lane** — you are the Grok Build TUI inside the Orca worktree (or a headless `grok -p` session), having just received `/dogfood <target>`. Run the 5-phase pipeline in `references/grok/` (step 0 plan, step 1 explore per target type, shared rules, report template).
 
 ### Hermes lane (Steps 0–3)
 

@@ -41,7 +41,7 @@ Load the `design-doc-writer` and `design-doc-reviewer` personas from `~/.grok/pe
 - `writer_persona_instructions`
 - `reviewer_persona_instructions`
 
-Injection timing follows the **Personas** rule in SKILL.md Global Rules (SSOT) — prepend on initial launch, never on resume.
+Injection timing: prepend the persona instructions on the initial launch only, never on resume.
 
 ## Invocation Input
 

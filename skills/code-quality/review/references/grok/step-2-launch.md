@@ -1,6 +1,6 @@
 # Step 2: Launch reviewer subagents in parallel
 
-Spawn one reviewer subagent per entry in `personas`, all with `background: true`, all with `subagent_type: "general-purpose"`. Each subagent's `description` is `[<persona-name>] module <target>`. Prepend that persona's instructions to the prompt (see Global rules: persona injection).
+Spawn one reviewer subagent per entry in `personas`, all with `background: true`, all with `subagent_type: "general-purpose"`. Each subagent's `description` is `[<persona-name>] module <target>`. Prepend that persona's instructions to the prompt (the persona loading and injection procedure is defined in this file, "For each selected persona").
 
 ## Invocation examples
 

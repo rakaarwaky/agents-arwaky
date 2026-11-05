@@ -14,7 +14,7 @@ Cross-check:
 
 - **0 open issues**: the final `review_file` must show no issue with `Status: open`. Any `needs-user-input` status is an open decision — surface it to the user and stop (do not proceed to the hand-off validation until the user decides; Grok will re-run the loop on a fresh drop if the user wants it closed).
 - **wontfix discipline**: any `wontfix` status should carry a substantive technical explanation in the review file — not a bare "won't fix". If one is bare, flag it.
-- **Scope held**: the design doc and summary must not contain implementation code, source-file edits, branches, commits, or PR links — the design-only boundary (Grok lane step 0 / Global rules). Any source-tree drift in the worktree (`git -C <worktree_path> status --short` should be clean or scratch-dir-only) means the boundary was violated; report it.
+- **Scope held**: the design doc and summary must not contain implementation code, source-file edits, branches, commits, or PR links — the design-only boundary (Grok lane step 1: the repo is read-only for the writer subagents). Any source-tree drift in the worktree (`git -C <worktree_path> status --short` should be clean or scratch-dir-only) means the boundary was violated; report it.
 
 ## 2b: Validate the PR Plan
 

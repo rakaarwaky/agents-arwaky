@@ -22,12 +22,24 @@ Rules that apply to every issue-maker run. Scripts and reference files cite thes
 
 ## Routing
 
-Each reference file is step-scoped. Global rules above apply throughout; do not restate them in a step file.
+The lane is determined from a physical signal, not by self-identification. Each agent's launcher stamps a fixed attribution env var into every command it runs; the model cannot set these.
 
-The lane is chosen by **who is reading this skill**, not by a flag:
+```bash
+if [[ -n "${HERMES_AGENT:-}" ]]; then echo HERMES
+elif [[ -n "${GROK_AGENT:-}" ]]; then echo GROK
+else echo UNSET; fi
+```
 
-- **Hermes lane** — you are Hermes orchestrating the run. Run Steps 0–2 in `references/hermes/`. You plan the audit, run `run.py` via terminal, verify `validate.py` exits 0, and report. No source edits, no branches, no PRs — issue-maker stays issues-only.
-- **Grok lane** — you are the Grok Build TUI working inside an Orca worktree **only if a separate coding task is launched from an issue-maker finding** (e.g. implement an issue it opened). That is a different skill's run; issue-maker itself never enters the Grok lane.
+- `HERMES` → **Hermes lane.** Read `references/hermes/` (Steps 0–2). Stop.
+- `GROK` → **Grok lane.** Read `references/grok/` (auxiliary recipes, Steps 0–6). Stop.
+- `UNSET` → stop and report. Do not guess the lane.
+
+Marker provenance:
+
+- **Hermes** re-exports `AI_AGENT=hermes-agent` and `HERMES_AGENT=true` on every command.
+- **Grok Build** runs with `GROK_AGENT=1`.
+
+Read only the winning lane's references. Do not read the other lane's. The Grok lane is auxiliary only — issue-maker itself never enters it; a coding task launched from an issue-maker finding is a different skill's run.
 
 ### Hermes lane (Steps 0–2)
 
