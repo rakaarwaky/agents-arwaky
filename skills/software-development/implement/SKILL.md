@@ -30,6 +30,19 @@ Marker provenance:
 
 Read only the winning lane's references. Do not read the other lane's.
 
+## Lint Progress Gate
+
+Every run bookends a lint baseline with the `lint-arwaky-cli report` progress command (binary at `/home/raka/.local/bin/lint-arwaky-cli`):
+
+- **Start-turn** — before any subagent spawns, run `lint-arwaky-cli report .` from the owning repo (Hermes lane: `hermes/step-0`; Grok lane: `grok/step-0-setup.md`). This records a scan snapshot in `$XDG_DATA_HOME/lint-arwaky/snapshots.json`, keyed by the canonicalized target path, so a later report can show per-member deltas. Log the report output verbatim — it is the baseline.
+- **End-turn** — after the loop reaches 0 open issues and before any PR or final report, run `lint-arwaky-cli report .` from the worktree again and compare against the baseline. A positive Delta column is a regression: stop, revert the offending changes, and re-run before proceeding. A zero or negative delta is the gate passing. Never open a PR or file a final report while a positive delta stands.
+
+Mechanics a future session will otherwise rediscover the hard way:
+
+- First-ever report on a target prints "No baseline yet" and absolute counts only; the snapshot store is what the start-turn call creates. If the store was wiped between start and end, the end report will show "No baseline yet" again — treat that as a failed gate, not a pass.
+- The store is shared across checkouts of the same repo but keyed by target path: an Orca worktree and its main clone are different keys, so each has its own baseline. The meaningful comparison is the same run's start versus end on the same target, not a cross-checkout delta.
+- This is the user's standing rule for this workspace: run `lint-arwaky-cli report` at turn start and end to verify what the run actually did to the codebase, and record both outputs.
+
 ## Routing
 
 ### Hermes lane (Steps 0–3)
