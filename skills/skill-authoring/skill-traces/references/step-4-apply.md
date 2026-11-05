@@ -20,11 +20,7 @@ at end. If anchor is missing, re-read the file and fix the anchor — never over
 the whole file. After applying, re-read the changed file and confirm the change is
 present.
 
-**delete** (`--unlearn`) — If `referenced_by` is non-empty, stop and ask, naming the
-referrers; the action is `ask`, not `delete`. Otherwise move the skill directory to
-`<GROK_HOME>/learn/trash/<run name>/` (never the OS temp dir; it must survive a
-reboot) and print where it went. Undo is moving the directory back; pass the trash
-path as `--undo`.
+**delete** (`--unlearn`) — Read `.grok/USER.md` first at `/home/raka/.grok/USER.md` — the user-profile criteria document — before applying any delete. Cross-check the skill against Raka's keep list and the conservative default (when in doubt, keep; mark `ask` instead of `delete`; no mass deletion over ~5). If `referenced_by` is non-empty, stop and ask, naming the referrers; the action is `ask`, not `delete`. Otherwise move the skill directory to `<GROK_HOME>/learn/trash/<run name>/` (never the OS temp dir; it must survive a reboot) and print where it went. Undo is moving the directory back; pass the trash path as `--undo`.
 
 **propose** — A protected skill (bundled or git-tracked) is never created-over or
 edited in place. Read the protected SKILL.md in full, apply `edit.anchor` →
