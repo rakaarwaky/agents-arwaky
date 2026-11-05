@@ -10,13 +10,10 @@ legacy message text and the legacy exit code. The surface prints
 
 from __future__ import annotations
 
-from shared.src.skills_design.taxonomy_skills_vo import DiffLines, ErrorMessage
+from shared.src.skills_design.taxonomy_skills_vo import ErrorMessage
 
 __all__ = [
-    "CatalogDrift",
     "CategoryNameError",
-    "DiffLines",
-    "ErrorMessage",
     "MutationConflictError",
     "SkillNotFoundError",
     "SkillsError",
@@ -58,26 +55,3 @@ class MutationConflictError(SkillsUsageError):
 
 class SkillsRootError(SkillsUsageError):
     """The skills root is missing or is not a directory."""
-
-
-#: Default empty diff lines for catalog drift errors.
-_DEFAULT_DIFF_LINES: DiffLines = DiffLines(())
-
-
-class CatalogDrift(SkillsUsageError):
-    """Tracked ``catalog.json`` is missing, stale, corrupt, or unparseable.
-
-    Carries the summary message and optional diff lines; explicitly
-    carries ``exit_code = 3`` — the CI drift signal. Under ``discover``,
-    this error is caught and converted to a loud warning with live-tree
-    fallback. Under ``catalog --check``, the catalog capability's
-    ``check`` method *returns* ``CatalogCheckResult(in_sync=False, ...)``
-    so diff lines, summary, and JSON shape are fully preserved for the
-    surface (which maps ``in_sync=False`` to exit code 3).
-    """
-
-    exit_code: int = 3
-
-    def __init__(self, message: ErrorMessage, diff_lines: DiffLines = _DEFAULT_DIFF_LINES) -> None:
-        super().__init__(message, exit_code=3)
-        self.diff_lines = diff_lines

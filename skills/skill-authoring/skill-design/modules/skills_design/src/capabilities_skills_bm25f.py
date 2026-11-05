@@ -17,7 +17,8 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass, field as dataclass_field
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 
 __all__ = [
     "BM25F_FIELD_WEIGHTS",
@@ -49,19 +50,12 @@ BM25F_SCORE_SCALE: int = 100
 
 #: English stop words dropped before indexing.
 STOP_WORDS: frozenset[str] = frozenset(
-    "a an the this that these those to of in on for from with and or is are be it its "
-    "as at by my me i you your please supplied attached existing not do does no into "
-    "using use their them then than just only can should would could what which how"
-    .split()
+    ["a", "an", "the", "this", "that", "these", "those", "to", "of", "in", "on", "for", "from", "with", "and", "or", "is", "are", "be", "it", "its", "as", "at", "by", "my", "me", "i", "you", "your", "please", "supplied", "attached", "existing", "not", "do", "does", "no", "into", "using", "use", "their", "them", "then", "than", "just", "only", "can", "should", "would", "could", "what", "which", "how"]
 )
 
 #: Indonesian stop words dropped before indexing.
 _INDONESIAN_STOP_WORDS: frozenset[str] = frozenset(
-    "saya kau kamu dia kami kita anda mereka itu ini dan atau namun tetapi "
-    "yang dengan dari pada untuk adalah akan bisa tidak ya apa bagaimana "
-    "mengapa kapan mana sudah belum mau juga pun saja hanya hendak ingin "
-    "telah"
-    .split()
+    ["saya", "kau", "kamu", "dia", "kami", "kita", "anda", "mereka", "itu", "ini", "dan", "atau", "namun", "tetapi", "yang", "dengan", "dari", "pada", "untuk", "adalah", "akan", "bisa", "tidak", "ya", "apa", "bagaimana", "mengapa", "kapan", "mana", "sudah", "belum", "mau", "juga", "pun", "saja", "hanya", "hendak", "ingin", "telah"]
 )
 
 # Combined stop-words (English + Indonesian).
@@ -80,8 +74,12 @@ _RANKER_FIELDS: tuple[str, ...] = ("name", "when_to_use", "description", "catego
 
 
 def tokenize_full(text: str) -> list[str]:
-    """Lowercase, split on non-alphanumerics (incl. hyphens), drop stop words."""
-    return [tok for tok in re.findall(r"[a-z0-9]+", text.lower()) if tok not in _ALL_STOP_WORDS]
+    """Lowercase, split on non-alphanumerics, drop stop words and short tokens."""
+    return [
+        tok
+        for tok in re.findall(r"[a-z0-9]+", text.lower())
+        if tok not in _ALL_STOP_WORDS and len(tok) >= MIN_TOKEN_LEN
+    ]
 
 
 # ── Similarity helpers ─────────────────────────────────────────────────
@@ -267,8 +265,6 @@ def rank_bm25f(rows, tokens: list[str]) -> list[tuple[float, object]]:
             dl = row.field_len[logical]
             if dl == 0:
                 continue
-            avgdl = index.avgdl[logical]
-            denom = 1.0  # simplified normalisation
 
             field_score = 0.0
             for q_tok in query_tokens:

@@ -54,7 +54,6 @@ from skills_design.src.capabilities_skills_reader import SkillsPackReader
 __all__ = [
     "SkillsFacade",
     "default_aggregate",
-    "default_facade",
 ]
 
 
@@ -89,11 +88,6 @@ def default_aggregate(
         creator=creator or SkillsCreator(),
         default_root=root,
     )
-
-
-def default_facade() -> SkillsFacade:
-    """Return a facade bound to the repo's ``skills/`` pack."""
-    return SkillsFacade()
 
 
 class SkillsFacade:
