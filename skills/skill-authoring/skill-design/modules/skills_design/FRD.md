@@ -160,12 +160,12 @@ script are pinned by the surface and contract test files.
 
 ### FR-SkillsDesign-004: Catalog (Build / Read)
 
-**Description:** Rebuild `CATALOG.md` from the live tree and/or print the current catalog content to the terminal.
+**Description:** Rebuild `catalog.json` from the live tree and/or print the current catalog content to the terminal.
 
 #### Business Logic
 
-- `--build` alone: rebuild `CATALOG.md`, print a `Rebuilt <path>` + counts line
-- `--read` alone: print the full `CATALOG.md` content to stdout (no rebuild)
+- `--build` alone: rebuild `catalog.json`, print a `Rebuilt <path>` + counts line
+- `--read` alone: print the full `catalog.json` content to stdout (no rebuild)
 - Neither flag (default): build then read — the convenient agent default
 - Both flags: build then read
 - A missing catalog file on a read-only path exits 1 with a clear message
@@ -173,7 +173,7 @@ script are pinned by the surface and contract test files.
 
 #### Edge Cases
 
-- `--read` alone with a missing `CATALOG.md` exits 1 with `CATALOG.md not found — run with --build first`
+- `--read` alone with a missing `catalog.json` exits 1 with `catalog.json not found — run with --build first`
 - `--build` creates the file if it is missing
 - A corrupt or stale catalog blocks the read path; it is never silently rebuilt on read
 
@@ -186,7 +186,7 @@ script are pinned by the surface and contract test files.
 | **Protocol** | ISkillsCatalogProtocol                                          |
 | **Method**   | rebuild / read                                                  |
 | **Event**    | —                                                               |
-| **Error**    | missing catalog on read → exit 1 with `CATALOG.md not found — run with --build first` |
+| **Error**    | missing catalog on read → exit 1 with `catalog.json not found — run with --build first` |
 
 #### Test
 
@@ -195,7 +195,7 @@ script are pinned by the surface and contract test files.
 | Default                 | `sdc skills catalog`       | rebuild + full content printed, exit 0 |
 | Build only              | `sdc skills catalog --build` | rebuild counts line, exit 0         |
 | Read only               | `sdc skills catalog --read` | full catalog content, exit 0         |
-| Read with missing file  | `sdc skills catalog --read` | `CATALOG.md not found`, exit 1       |
+| Read with missing file  | `sdc skills catalog --read` | `catalog.json not found`, exit 1       |
 
 #### Metric
 
@@ -234,7 +234,7 @@ script are pinned by the surface and contract test files.
 | Context            | When Action                  | Then Observable Result              |
 |--------------------|------------------------------|-------------------------------------|
 | Query with matches | `sdc skills discover <query>` | scored matches printed, exit 0              |
-| No matches         | `sdc skills discover no-such-skill-zzz` | `No matching skills found in CATALOG.md.`, exit 0 |
+| No matches         | `sdc skills discover no-such-skill-zzz` | `No matching skills found in catalog.json.`, exit 0 |
 | `--limit 0`       | `sdc skills discover <query> --limit 0` | no rows printed, exit 0 |
 | Catalog drift      | `sdc skills discover <query>` | drift warning on stderr, live-tree fallback, exit 0 |
 

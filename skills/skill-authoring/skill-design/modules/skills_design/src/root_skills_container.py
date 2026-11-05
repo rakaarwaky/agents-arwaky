@@ -164,7 +164,7 @@ class SkillsFacade:
         )
 
     def catalog_rebuild(self, root: SkillsRoot | None = None) -> SkillsResult:
-        """Rebuild ``CATALOG.md``."""
+        """Rebuild ``catalog.json``."""
         return self._agent().execute(SkillsRequest(op=SkillsOp.CATALOG, root=root))
 
     def catalog_check(self, root: SkillsRoot | None = None) -> SkillsResult:

@@ -1,20 +1,15 @@
 """Skills catalog capability (AES capabilities layer).
 
-Owns everything that turns the live tree into a ``CATALOG.md``: the
-rendering, the reader ``discover`` scores against, and the drift gate
+Owns everything that turns the live tree into ``catalog.json``: the JSON
+serialization, the reader ``discover`` scores against, and the drift gate
 (regenerate to a temporary file and diff the tracked artifact).
 
-Also owns the ``catalog.json`` artifact: one object per skill with
-``name``, ``description``, ``when_to_use``, and ``category``, written
-at the skills root alongside ``CATALOG.md``.
-
-Drift contract: the tracked ``CATALOG.md`` is a checked artifact. A read
-through it must never silently repair itself — a missing, unparseable,
-or corrupted catalog raises ``CatalogDrift`` instead of being rebuilt on
-the read path. ``check`` asserts the escape round-trip: an emitted row
-whose cells do not survive a parse/render fixed point is hard,
-fail-closed drift, so a crafted description cannot silently corrupt the
-index.
+Drift contract: the tracked ``catalog.json`` is a checked artifact.
+``check`` asserts the round-trip: an emitted catalog whose regenerated
+bytes differ from the tracked artifact is hard, fail-closed drift, so an
+operator cannot answer from a stale index. The read path is plain — it
+hands back the tracked bytes (or ``""`` when the file is absent) and
+lets the caller decide how to report it; staleness is ``check``'s job.
 """
 
 from __future__ import annotations
@@ -24,7 +19,6 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.common.utility_skills_markdown import md_escape, md_unescape
 from shared.src.common.utility_skills_tree import (
     category_summaries,
     skill_entries,
@@ -35,26 +29,19 @@ from shared.src.skills_design.contract_skills_protocol import (
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
     CatalogReport,
-    CatalogRow,
 )
 from shared.src.skills_design.taxonomy_skills_constant import (
-    _HEADER,
-    _MISSING_DESCRIPTION_PLACEHOLDER,
     CATALOG_FILENAME,
-    LINE_BREAKS,
 )
 from shared.src.skills_design.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
 )
-from shared.src.skills_design.taxonomy_skills_error import CatalogDrift
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
 __all__ = [
     "SkillsCatalog",
     "catalog_path",
-    "render_catalog_json",
-    "write_catalog_json",
 ]
 
 
@@ -63,60 +50,17 @@ def catalog_path(skills_root: Path) -> Path:
     return skills_root / CATALOG_FILENAME
 
 
-def render_catalog(
-    entries: list[SkillEntry],
-    categories: list[CategorySummary],
-) -> list[str]:
-    """Render the catalog body: the Categories table then the Skills table."""
-    lines = list(_HEADER)
-
-    for cat in sorted(categories, key=lambda item: item.category):
-        description = cat.description or "(missing DESCRIPTION.md)"
-        lines.append(
-            f"| {md_escape(cat.category)} "
-            f"| {md_escape(description)} "
-            f"| {cat.skill_count} |"
-        )
-
-    lines.extend(
-        [
-            "",
-            "## Skills",
-            "",
-            "| Skill Name | Category | Description | Path |",
-            "|---|---|---|---|",
-        ]
-    )
-
-    for entry in sorted(entries, key=lambda item: (item.category, item.skill)):
-        description = entry.description or _MISSING_DESCRIPTION_PLACEHOLDER
-        lines.append(
-            f"| {md_escape(entry.skill)} "
-            f"| {md_escape(entry.category)} "
-            f"| {md_escape(description)} "
-            f"| {md_escape(entry.path)} |"
-        )
-
-    return lines
-
-
-def write_catalog(
-    entries: list[SkillEntry],
-    categories: list[CategorySummary],
-    path: Path,
-) -> None:
-    """Write the rendered catalog to ``path`` (trailing newline included)."""
-    path.write_text(
-        "\n".join(render_catalog(entries, categories)) + "\n", encoding="utf-8"
-    )
-
-
 def render_catalog_json(
     entries: list[SkillEntry],
     categories: list[CategorySummary],
 ) -> str:
     """Serialize the catalog as JSON: one object per skill with name,
-    description, when_to_use, and category."""
+    description, when_to_use, and category.
+
+    ``categories`` is accepted for signature parity with the legacy
+    markdown renderer but carries no weight in the JSON shape (categories
+    are implicit in each skill's ``category`` field).
+    """
     skills = [
         {
             "name": entry.skill,
@@ -135,106 +79,9 @@ def write_catalog_json(
     path: Path,
 ) -> None:
     """Write the JSON catalog to ``path`` (trailing newline included)."""
-    path.write_text(render_catalog_json(entries, categories), encoding="utf-8")
-
-
-def read_catalog_text(path: Path) -> str:
-    """Read the catalog with the same codec the original parser used."""
-    return path.read_text(encoding="utf-8-sig", errors="replace")
-
-
-def _cell_round_trips(cell: str) -> bool:
-    """True if ``cell`` survives the catalog escape→unescape round-trip."""
-    if any(ch in cell for ch in LINE_BREAKS):
-        return False
-    return md_unescape(md_escape(cell)) == cell
-
-
-def catalog_cell_problems(
-    entries: list[SkillEntry], categories: list[CategorySummary]
-) -> list[str]:
-    """Return a readable line per catalog cell that does not round-trip."""
-    problems: list[str] = []
-    for cat in categories:
-        for field, value in (("category", cat.category), ("description", cat.description)):
-            if value and not _cell_round_trips(value):
-                problems.append(f"category {cat.category!r}:{field} = {value!r}")
-
-    for entry in entries:
-        for field in ("skill", "category", "description", "path"):
-            value = getattr(entry, field)
-            if value and not _cell_round_trips(value):
-                problems.append(f"skill {entry.path!r}:{field} = {value!r}")
-
-    return problems
-
-
-def _parse_skill_table(text: str) -> list[CatalogRow]:
-    """Parse the ``## Skills`` table out of catalog text."""
-    rows: list[CatalogRow] = []
-    in_skills = False
-
-    for line in text.splitlines():
-        stripped = line.strip()
-
-        if stripped == "## Skills":
-            in_skills = True
-            continue
-
-        if in_skills and stripped.startswith("## "):
-            break
-
-        if not in_skills:
-            continue
-
-        if not stripped.startswith("|"):
-            continue
-
-        if stripped.startswith("| Skill Name"):
-            continue
-
-        if set(stripped.replace("|", "").strip()) <= {"-", " "}:
-            continue
-
-        cells = [
-            md_unescape(cell.strip())
-            for cell in stripped.strip("|").split("|")
-        ]
-
-        if len(cells) >= 4:
-            rows.append(
-                CatalogRow(
-                    skill=cells[0],
-                    category=cells[1],
-                    description=cells[2],
-                    path=cells[3],
-                )
-            )
-
-    return rows
-
-
-def _entry_cells(entries: list[SkillEntry]) -> list[tuple[str, str, str, str]]:
-    """The comparable cell projection of source tree entries."""
-    return [
-        (entry.skill, entry.category, entry.description or "", entry.path)
-        for entry in entries
-    ]
-
-
-def _row_cells(rows: list[CatalogRow]) -> list[tuple[str, str, str, str]]:
-    """The comparable cell projection of parsed catalog rows."""
-    return [
-        (
-            row.skill,
-            row.category,
-            ""
-            if row.description == _MISSING_DESCRIPTION_PLACEHOLDER
-            else row.description,
-            row.path,
-        )
-        for row in rows
-    ]
+    path.write_text(
+        render_catalog_json(entries, categories), encoding="utf-8"
+    )
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -248,9 +95,9 @@ class SkillsCatalog(ISkillsCatalogProtocol):
         entries = skill_entries(skills_root)
         categories = category_summaries(entries, skills_root)
         path = catalog_path(skills_root)
-        write_catalog(entries, categories, path)
-        json_path = skills_root / "catalog.json"
-        write_catalog_json(entries, categories, json_path)
+        write_catalog_json(entries, categories, path)
+        # Delete any legacy CATALOG.md so catalog.json is the sole artifact.
+        (skills_root / "CATALOG.md").unlink(missing_ok=True)
         return CatalogReport(
             path=path,
             skills=len(entries),
@@ -276,78 +123,28 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             candidate = Path(tmp) / CATALOG_FILENAME
             entries = skill_entries(skills_root)
             categories = category_summaries(entries, skills_root)
-            write_catalog(entries, categories, candidate)
-            current = read_catalog_text(path).splitlines()
-            regenerated = read_catalog_text(candidate).splitlines()
+            write_catalog_json(entries, categories, candidate)
+            current = path.read_text(encoding="utf-8-sig", errors="replace").splitlines()
+            regenerated = candidate.read_text(encoding="utf-8-sig", errors="replace").splitlines()
 
-            diff_lines = list(
-                difflib.unified_diff(
-                    current,
-                    regenerated,
-                    fromfile=str(path),
-                    tofile=f"regenerated ({path})",
-                    lineterm="",
-                )
+        diff_lines = list(
+            difflib.unified_diff(
+                current,
+                regenerated,
+                fromfile=str(path),
+                tofile=f"regenerated ({path})",
+                lineterm="",
             )
+        )
 
-            if diff_lines:
-                message = (
-                    f"Catalog drift detected: {path} does not match the live tree "
-                    f"({len(diff_lines)} diff line(s)); rebuild with the catalog subcommand"
-                )
-                return CatalogCheckResult(
-                    in_sync=False, diff_lines=tuple(diff_lines), message=message
-                )
-
-            # Fail-closed escaping assertion: no rendered cell may survive the
-            # escape→unescape round-trip lossily, or a crafted description
-            # silently corrupts the index.
-            cell_problems = catalog_cell_problems(entries, categories)
-            if cell_problems:
-                message = (
-                    f"Catalog drift detected: {path} contains cells that do not "
-                    f"round-trip through the catalog parser ({len(cell_problems)} cell(s))"
-                )
-                return CatalogCheckResult(
-                    in_sync=False,
-                    diff_lines=tuple(f"drift: {problem}" for problem in cell_problems),
-                    message=message,
-                )
-
-            # Drift-check the JSON catalog artifact too: regenerate to the same
-            # temp directory and diff against the tracked catalog.json.
-            json_path = skills_root / "catalog.json"
-            candidate_json = Path(tmp) / "catalog.json"
-            write_catalog_json(entries, categories, candidate_json)
-            if not json_path.exists():
-                return CatalogCheckResult(
-                    in_sync=False,
-                    diff_lines=(),
-                    message=(
-                        f"Catalog JSON missing: {json_path} "
-                        "(rebuild with the catalog subcommand)"
-                    ),
-                )
-            current_json = json_path.read_text(encoding="utf-8").splitlines()
-            regenerated_json = candidate_json.read_text(encoding="utf-8").splitlines()
-            json_diff = list(
-                difflib.unified_diff(
-                    current_json,
-                    regenerated_json,
-                    fromfile=str(json_path),
-                    tofile=f"regenerated ({json_path})",
-                    lineterm="",
-                )
+        if diff_lines:
+            message = (
+                f"Catalog drift detected: {path} does not match the live tree "
+                f"({len(diff_lines)} diff line(s)); rebuild with the catalog subcommand"
             )
-            if json_diff:
-                message = (
-                    f"Catalog JSON drift detected: {json_path} does not match "
-                    f"the live tree ({len(json_diff)} diff line(s)); rebuild "
-                    "with the catalog subcommand"
-                )
-                return CatalogCheckResult(
-                    in_sync=False, diff_lines=tuple(json_diff), message=message
-                )
+            return CatalogCheckResult(
+                in_sync=False, diff_lines=tuple(diff_lines), message=message
+            )
 
         return CatalogCheckResult(
             in_sync=True,
@@ -355,49 +152,9 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             message=f"Catalog in sync: {path}",
         )
 
-    def load_rows(self, root: SkillsRoot) -> tuple[CatalogRow, ...]:
-        """Parse the tracked catalog; raise ``CatalogDrift`` when it is not
-        a trustworthy index (missing, stale, unparseable, or non-round-trip).
-        """
-        skills_root = Path(root)
-        path = catalog_path(skills_root)
-        if not path.exists():
-            raise CatalogDrift(
-                f"Catalog missing: {path} (rebuild with the catalog subcommand)"
-            )
-
-        text = read_catalog_text(path)
-        rows = _parse_skill_table(text)
-        if not rows:
-            raise CatalogDrift(
-                f"Catalog parse yielded no skill rows: {path} "
-                "(check it against `catalog --check`; it drifted or is corrupt)"
-            )
-
-        # Hard drift signal: a stale row is drift, not an answer.
-        entries = skill_entries(skills_root)
-        categories = category_summaries(entries, skills_root)
-        regenerated_text = "\n".join(render_catalog(entries, categories)) + "\n"
-        if text.rstrip("\n") != regenerated_text.rstrip("\n"):
-            raise CatalogDrift(
-                f"Catalog drift detected: {path} does not match the live tree "
-                "(stale or phantom rows); rebuild with the catalog subcommand"
-            )
-
-        # Round-trip: the parsed rows must equal the source tree's entries.
-        if _row_cells(rows) != _entry_cells(entries):
-            raise CatalogDrift(
-                f"Catalog round-trip failure: {path} cells do not match the live "
-                "tree (a crafted description corrupted the table); failing closed"
-            )
-
-        return tuple(rows)
-
     def read(self, root: SkillsRoot) -> str:
-        """Return the raw tracked ``CATALOG.md`` text; ``""`` when missing."""
+        """Return the raw tracked ``catalog.json`` text; ``""`` when missing."""
         path = catalog_path(Path(root))
         if not path.exists():
             return ""
-        return read_catalog_text(path)
-
-    # ─── Block 3: Dunder Methods, Factories & Helpers ──────────
+        return path.read_text(encoding="utf-8-sig", errors="replace")
