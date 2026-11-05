@@ -275,13 +275,19 @@ def rank_bm25f(rows, tokens: list[str]) -> list[tuple[float, object]]:
                 if len(q_tok) < MIN_TOKEN_LEN:
                     continue
                 best_strength = 0.0
+                best_skill_tok = ""
                 for s_tok in skill_toks:
                     strength = _match_strength(q_tok, s_tok)
                     if strength > best_strength:
                         best_strength = strength
-                if best_strength > 0:
-                    # tf = 1 (at least one matching token in the field)
-                    idf = _idf(index, logical, q_tok) or 1.0
+                        best_skill_tok = s_tok
+                if best_strength > 0 and best_skill_tok:
+                    # Use the IDF of the best-matching skill token (not the
+                    # query token, which is almost always absent from the
+                    # corpus and would default to max-idf for every skill).
+                    idf = _idf(index, logical, best_skill_tok)
+                    if idf == 0.0:
+                        idf = 1.0
                     field_score += best_strength * idf
             score += weight * field_score
 
