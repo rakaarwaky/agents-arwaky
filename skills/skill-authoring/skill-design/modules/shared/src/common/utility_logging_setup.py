@@ -111,10 +111,10 @@ def _term_width() -> int:
 
 
 def banner() -> None:
-    """Print the CLI banner (plain text on non-TTY)."""
+    """Print the CLI banner (plain text on non-TTY or narrow terminal)."""
     display_name = os.environ.get("SDC_DISPLAY_NAME") or "skill-design"
-    if not sys.stdout.isatty():
-        # Non-TTY: plain text, avoid broken ASCII art in pipe/log.
+    if not sys.stdout.isatty() or _term_width() < 50:
+        # Non-TTY or narrow terminal: plain text, avoid broken ASCII art.
         print(f"{display_name} — skill-design CLI")
         print()
         return

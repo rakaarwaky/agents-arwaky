@@ -15,11 +15,15 @@ skill-design is the skill-authoring skill that keeps the skill tree clean, corre
 - Running the skill-lint validator outside of `--improve` (use `sdc lint` for that).
 - Executing the code that a skill describes (skill-design only shapes skill docs).
 - Touching any file outside `skills/<category>/`.
+- Human accessibility output modes (`--plain`/`--json` for assistive tech); consumers are agents, so agent-readable text + the exit-code contract is the usability bar.
 
 ## Target Users
 
+Persona priority: **Skill Maintainer agent** first (bulk consolidation, prune, catalog rebuild), then **Skill Author agent** (single-skill create/improve). The CLI default flows are optimized for the Maintainer.
+
 | Persona     | Need                                           | Current Pain                                      | Desired Outcome                           |
 |-------------|------------------------------------------------|---------------------------------------------------|-------------------------------------------|
+| Skill maintainer agent (primary) | Bulk consolidate overlapping skill folders, prune duplicates, keep the catalog drift-free | Duplicate folders with same purpose/tooling; manual catalog rebuilds | One `sdc discover` + `sdc move`/`sdc archive` + `sdc catalog` flow |
 | Skill author| Publish a new skill body that follows the lint standard | Writing frontmatter/body shape by hand, missing keys | One `SKILL.md` + `references/` that passes `sdc lint` |
 | Skill owner | Repair an existing skill after a lint audit   | Hunting dangling refs and shape drift by hand     | A single `sdc improve` run fixes all |
 | Pack maintainer | Consolidate overlapping skill folders      | Duplicate folders with same purpose/tooling       | One folder, duplicates archived to `_archive/` |

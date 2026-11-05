@@ -2,6 +2,10 @@
 
 Everything the run needs before any subagent can spawn: host helpers, shared file paths, orchestrator state, the owning repo, and the single Orca worktree.
 
+## Start-Turn Gate: Lint Baseline
+
+Run `lint-arwaky-cli report .` from the owning repo or worktree (absolute path: `/home/raka/.local/bin/lint-arwaky-cli`) before any subagent spawns. This records the scan baseline in `$XDG_DATA_HOME/lint-arwaky/snapshots.json` keyed by target path. Paste the report output verbatim into the orchestrator's run log. The baseline is the starting violation count for this run. If the CLI is unavailable, note the failure and continue without the gate.
+
 ## Host Setup
 
 Resolve `HOST_PY` as `<dirname of this SKILL.md>/scripts/host.py`. Run `<python> <HOST_PY> setup` via `run_terminal_command` and parse the JSON stdout. Store `python` as `PYTHON`, `scratch_dir` as `scratch_dir`, and `run_id` as `IMPL_ID`. `scratch_dir` is `~/.grok/develop/<repo-slug>/implement/` (per-repo, created by `host.py`); every artifact path in later steps is derived from it.

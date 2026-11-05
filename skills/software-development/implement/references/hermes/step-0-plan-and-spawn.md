@@ -2,13 +2,17 @@
 
 Hermes never writes code. This entire run has exactly one subagent — the Grok Build TUI inside an Orca worktree. Hermes's job in this step: turn `<task-description>` into a self-contained brief, create the worktree with `--agent grok`, drop the brief, and stop talking to Grok.
 
+## Start-Turn Gate: Lint Baseline
+
+Before planning or spawning, run `lint-arwaky-cli report .` from the owning repo (absolute path: `/home/raka/.local/bin/lint-arwaky-cli`). This records the scan baseline in `$XDG_DATA_HOME/lint-arwaky/snapshots.json` keyed by target path, so the end-of-turn report shows deltas. Paste the report output verbatim into the run log or brief so the run starts from a known violation count. If the CLI is unavailable, note the failure and continue without the gate.
+
 ## Plan the Task Brief
 
 Grok has zero conversation context. Compose a brief that covers:
 
 1. **Goal** — the task in one or two sentences, restated plainly.
 2. **Scope** — in-scope paths, and an explicit out-of-scope list (sibling trees, new top-level directories, anything the task never named). Resolve scope the same way `grok/step-0-setup.md` describes (check candidate paths on disk; if genuinely ambiguous, ask the user ONE clarifying question naming both candidates).
-3. **Constraints** — style, tests to run, things not to touch, repo conventions from AGENTS.md / CONTRIBUTING.md.
+3. **Constraints** — style, tests to run, things not to touch, repo conventions from AGENTS.md / CONTRIBUTING.md. Include the lint gate: `lint-arwaky-cli report .` from the worktree at the end of the run must show a non-positive Delta versus the start-turn baseline recorded in this step's Start-Turn Gate section; positive delta means the run introduced new violations and the run is not done.
 4. **Acceptance criteria** — what "done" looks like: tests passing, linter clean, specific commands that must exit 0.
 5. **Deliverable** — commit the work in the worktree with a conventional commit message; do NOT push, do NOT open a PR, do NOT merge.
 

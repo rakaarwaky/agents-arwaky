@@ -13,6 +13,7 @@ Verify:
 1. `review-<run_id>.md` shows **0 open issues** (or 0 total). If open issues remain, stop and report to the user — do not fix them yourself.
 2. `git -C <worktree_path> status --short` — audit the working tree against the in-scope paths from Step 0. Any out-of-scope path (sibling tree, new top-level directory, stray lockfile) → revert it in Hermes's own tools (`git -C <worktree_path> checkout -- <path>` / `rm` for untracked).
 3. Run the repo's local gate against the clean tree (per AGENTS.md / the repo's lint commands — e.g. `pytest`, `cargo build`, `ruff check`, etc. whatever the repo uses). A dirty-tree green is not a proof; clean the tree first, then run.
+4. Run `lint-arwaky-cli report .` from the worktree (absolute path: `/home/raka/.local/bin/lint-arwaky-cli`). This is the end-of-run lint gate: the Delta column must be zero or negative versus the start-turn baseline recorded in `hermes/step-0-plan-and-spawn.md`. A positive delta means the run introduced new lint violations — stop, revert the offending changes, and re-run the gate before proceeding to commit. Include the final report output in the run log. If the CLI is unavailable, note the failure and continue.
 
 ## 2b: Commit
 
@@ -26,11 +27,19 @@ Commit message: conventional, repo-conforming. If Grok left stray artifacts (scr
 
 ## 2c: Push
 
-```
+```bash
 git -C <worktree_path> push --force-with-lease origin <worktree_branch>
 ```
 
 Always `--force-with-lease`, never bare `--force`.
+
+**Branch protection:** if push to `main` is rejected with `repository rule violations` / required status checks, do not force-push to `main`. Instead push a feature branch and open a PR against `main`:
+
+```bash
+git -C <worktree_path> push -u origin <worktree_branch>
+```
+
+Then open the PR with `gh pr create --base main --head <worktree_branch>`. A rejected push to `main` is not a reason to bypass CI gates — the PR lane is the supported path.
 
 ## 2d: Open the PR
 

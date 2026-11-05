@@ -19,9 +19,10 @@ into the same aggregate by the composition root.
 
 Read-only ops: `list`, `read`, `lint`, `catalog`, `discover`. Mutating
 ops (dry-run by default, `--apply` gated, never deleting): `move`,
-`archive`, `create`. The agent — never a capability and never the
-surface — sequences a mutation into its catalog rebuild.
-Provisioning/distribution into harness homes remains `modules/harness`
+`archive`, `create`. The agent orchestrator — never a capability and never the
+surface — sequences a mutation into its catalog rebuild. The same verbs are
+exposed directly on the CLI surface for power users (default dry-run,
+`--apply`-gated). Provisioning/distribution into harness homes remains `modules/harness`
 (`sdc connect`); this feature does not link or copy the pack.
 Determinism, dry-run safety, the exit-code contract (0 clean / 1 issues
 / 2 usage / 3 drift), and output parity against the retired legacy
@@ -43,7 +44,7 @@ script are pinned by the surface and contract test files.
 #### Edge Cases
 
 - Unreadable file is skipped with an empty description (no crash, no partial row)
-- Empty pack surfaces as a non-zero exit with a clear message (`No skills found`)
+- Empty pack is a valid empty state (new user/agent has not created skills yet) — `sdc list` exits 0 with an informational message and a next-step hint; a missing pack root is a distinct error
 - A `SKILL.md` with a `name:` different from its directory name is listed under the frontmatter name
 
 #### Technical Specification
@@ -55,14 +56,15 @@ script are pinned by the surface and contract test files.
 | **Protocol** | ISkillsListerProtocol                                        |
 | **Method**   | list\_skills                                                 |
 | **Event**    | —                                                            |
-| **Error**    | empty pack → exit 1; unreadable file → skipped, no error    |
+| **Error**    | missing pack root → exit 1; empty pack → exit 0 (valid state); unreadable file → skipped, no error |
 
 #### Test
 
 | Context                | When Action      | Then Observable Result                              |
 |------------------------|------------------|-----------------------------------------------------|
-| Pack present           | `sdc skills list` | every skill listed with description, sorted by name |
-| Pack absent            | `sdc skills list` | `No skills found` on stderr, exit 1                 |
+| Pack present, has skills | `sdc list` | every skill listed with description, sorted by name |
+| Pack present, empty    | `sdc list` | informational message + create hint on stdout, exit 0 |
+| Pack root missing      | `sdc list` | `No skills found` on stderr, exit 1                 |
 | Malformed SKILL.md     | `sdc skills list` | directory name used, empty description, exit 0      |
 | name ≠ directory name  | `sdc skills list` | listed under the frontmatter `name:`, not the dir  |
 
@@ -250,7 +252,9 @@ script are pinned by the surface and contract test files.
 
 #### Business Logic
 
-- Reachable via the agent (orchestrator), not the CLI surface — `move` is not a CLI verb
+- Exposed as the CLI verb `sdc move` for power users; also routable via the
+  agent orchestrator. Default dry-run; `--apply` executes the move and
+  rebuilds the catalog.
 - `move` preserves the folder; the destination is asserted to remain inside the skills root
 - An already-in-category move is a no-op preview
 - Symlinked destinations outside the root fail closed at plan and apply
@@ -275,10 +279,10 @@ script are pinned by the surface and contract test files.
 
 | Context         | When Action                             | Then Observable Result                    |
 |-----------------|-----------------------------------------|-------------------------------------------|
-| Dry-run default | agent op `move`, skill in same category | no-op plan, tree untouched                |
-| Apply           | agent op `move` + `--apply`             | one apply + one catalog rebuild, in order |
-| Unknown skill   | agent op `move` skill=nope              | `SkillNotFoundError`, exit 2              |
-| Outside-root symlink | agent op `move` target=/tmp/x    | containment assertion fails, exit 2       |
+| Dry-run default | `sdc move`, skill in same category | no-op plan, tree untouched                |
+| Apply           | `sdc move` + `--apply`             | one apply + one catalog rebuild, in order |
+| Unknown skill   | `sdc move` skill=nope              | `SkillNotFoundError`, exit 2              |
+| Outside-root symlink | `sdc move` target=/tmp/x    | containment assertion fails, exit 2       |
 
 #### Metric
 
@@ -292,7 +296,8 @@ script are pinned by the surface and contract test files.
 
 #### Business Logic
 
-- Reachable via the agent (orchestrator), not the CLI surface — `archive` is not a CLI verb
+- Exposed as the CLI verb `sdc archive` for power users; also routable via the
+  agent orchestrator. Default dry-run; `--apply` executes the archive.
 - No delete verb exists — `archive` moves a skill to `_archive/`
 - Every mutating command leaves the tree untouched without `--apply`
 
@@ -316,10 +321,10 @@ script are pinned by the surface and contract test files.
 
 | Context         | When Action                           | Then Observable Result                    |
 |-----------------|---------------------------------------|-------------------------------------------|
-| Dry-run default | agent op `archive`, skill exists       | plan shown, tree untouched                |
-| Apply           | agent op `archive` + `--apply`        | one apply + one catalog rebuild, in order |
-| Unknown skill   | agent op `archive` skill=nope          | `SkillNotFoundError`, exit 2              |
-| Conflict        | agent op `archive` skill, dest exists  | `MutationConflictError`, exit 2          |
+| Dry-run default | `sdc archive`, skill exists       | plan shown, tree untouched                |
+| Apply           | `sdc archive` + `--apply`        | one apply + one catalog rebuild, in order |
+| Unknown skill   | `sdc archive` skill=nope          | `SkillNotFoundError`, exit 2              |
+| Conflict        | `sdc archive` skill, dest exists  | `MutationConflictError`, exit 2          |
 
 #### Metric
 
@@ -333,7 +338,8 @@ script are pinned by the surface and contract test files.
 
 #### Business Logic
 
-- Reachable via the agent (orchestrator), not the CLI surface — `create` is not a CLI verb
+- Exposed as the CLI verb `sdc create` for power users; also routable via the
+  agent orchestrator. Default dry-run; `--apply` executes the creation.
 - `create skill <name> --category <cat>` creates a new skill
 - `create category <name> [--description <desc>] [--force]` creates a new category
 - Every mutating command leaves the tree untouched without `--apply`
@@ -358,11 +364,11 @@ script are pinned by the surface and contract test files.
 
 | Context         | When Action                                              | Then Observable Result                    |
 |-----------------|----------------------------------------------------------|-------------------------------------------|
-| Dry-run default | agent op `create` skill, no `--apply`                     | plan shown, tree untouched                |
-| Apply           | agent op `create` skill + `--apply`                        | one apply + one catalog rebuild, in order |
-| Category create | agent op `create` category + `--apply`                     | category folder + DESCRIPTION.md created  |
-| Bad category name | agent op `create` category name `../escape`               | `CategoryNameError`, exit 2              |
-| Conflict        | agent op `create` skill, name already exists                | plan flagged, tree untouched, exit 2    |
+| Dry-run default | `sdc create` skill, no `--apply`                     | plan shown, tree untouched                |
+| Apply           | `sdc create` skill + `--apply`                        | one apply + one catalog rebuild, in order |
+| Category create | `sdc create` category + `--apply`                     | category folder + DESCRIPTION.md created  |
+| Bad category name | `sdc create` category name `../escape`               | `CategoryNameError`, exit 2              |
+| Conflict        | `sdc create` skill, name already exists                | plan flagged, tree untouched, exit 2    |
 
 #### Metric
 

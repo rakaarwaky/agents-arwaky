@@ -15,6 +15,10 @@ When the review-fix loop reaches 0 open issues, memory is flushed (Step 8), and 
 
     `"$ORCA" worktree rm --worktree <worktree_id> --force --json`
 
+## End-Turn Gate: Lint Verification
+
+Before the final report, run `lint-arwaky-cli report .` from the worktree or owning repo (absolute path: `/home/raka/.local/bin/lint-arwaky-cli`). Compare against the start-turn baseline recorded in Step 0. The Delta column must be zero or negative — a positive delta means the run introduced new lint violations. Any regression: stop and fix before reporting; never claim completion while deltas are positive. Include the final report output in the final report to the user.
+
 ## Cleanup
 
 After the final report (memory was flushed in Step 8), clean up the temporary artifact files with `<PYTHON> <HOST_PY> cleanup`. List each concrete path; do not use `rm -f` or globs. Missing files are ok.

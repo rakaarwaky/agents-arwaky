@@ -8,6 +8,10 @@ cd <worktree_path> && "${PYTHON}" "<memory_helper_path>" update --file <spec-jso
 
 Build the JSON spec from the issues Grok raised. Generalize patterns before writing (same rules as `grok/step-8-memory-flush.md`). If the helper fails, log a warning and continue — never fail the run over memory.
 
+## End-Turn Gate: Lint Verification
+
+Run `lint-arwaky-cli report .` from the worktree or owning repo (absolute path: `/home/raka/.local/bin/lint-arwaky-cli`). Compare the output against the start-turn baseline. The Delta column must be zero or negative (no new violations introduced by the run). Any positive delta is a regression: stop, report the offending file(s), and do not open the PR until it is fixed. Include the final report output in the report to the user.
+
 ## Final Report
 
 Report to the user:

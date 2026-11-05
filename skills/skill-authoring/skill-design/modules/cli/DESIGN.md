@@ -45,8 +45,21 @@ composition root.
 ### DS-CLI-004: No capability import on the surface
 
 Every surface handler talks only to `ISkillsAggregate`. The composition
-root injects concrete capabilities into `SkillsAgent` at construction
-time; the surface never knows concrete implementations.
+root injects concrete capabilities into `SkillsAgent` at
+construction time; the surface never knows concrete implementations.
+
+### DS-CLI-005: Agent-readable output contract
+
+Consumers are agents, not humans. The usability bar is agent
+readability: unambiguous text, a stable exit-code contract (DS-CLI-003),
+and output that never depends on spatial column alignment or color to
+convey state. Human accessibility output modes (`--plain`/`--json` for
+assistive tech) are out of scope per stakeholder decision.
+
+Status-bearing lines carry a textual prefix from the documented
+vocabulary (`[OK]`, `[FAIL]`, `[WARN]`, `[DRY-RUN]`, `[APPLIED]`);
+data rows carry no prefix. Dry-run mutation output and applied mutation
+output are distinguished by text markers alone, with and without color.
 
 ## Reference
 

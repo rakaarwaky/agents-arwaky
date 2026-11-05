@@ -10,13 +10,28 @@ listing consumed by the agent.
 The aggregate is injected by the caller (the root CLI), never imported
 here, so no root→surface coupling exists (AES205). Argv becomes a
 ``SkillsRequest``; the rendered text comes back on ``SkillsResult``.
-Exit codes are the legacy contract: 0 clean / 1 issues / 2 usage /
-3 catalog drift.
 
 The 8 design-side verbs (list, read, lint, catalog, discover, move,
 archive, create) are routed here; the traces-side verbs live only in
 the sibling traces CLI and are not part of this package (AES702
 independent packages).
+
+Exit-code contract (primary agent-readable state signal — 0 clean /
+1 issues found / 2 usage error / 3 catalog drift):
+  0 clean      lint passed, listing built, read/mutation applied
+  1 issues     lint issues found, or a non-usage runtime failure
+  2 usage      bad argv, unknown skill/verb, missing required arg
+  3 drift      catalog drift or corrupt (agent-level check; not
+               exposed as a CLI flag)
+
+Status-prefix vocabulary (agent-readable; color never carries
+meaning, so the textual prefix is the entire signal):
+  [OK]      success
+  [FAIL]    error (stderr)
+  [WARN]    warning
+  [DRY-RUN] mutation plan (no write)
+  [APPLIED] mutation write performed
+Data rows carry no prefix; status lines always do.
 """
 
 from __future__ import annotations
@@ -77,17 +92,18 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
 
 def _print_usage() -> None:
     banner()
-    info(
-        f"{BOLD()}sdc list{RESET()}                          List all skills in the pack"
-    )
-    info(f"{BOLD()}sdc read <name>{RESET()}                   Print a skill's SKILL.md")
-    info(f"{BOLD()}sdc lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)")
-    info(
-        f"{BOLD()}sdc catalog [--build] [--read]{RESET()}    Build and/or print catalog.json"
-    )
+    info(f"{BOLD()}Modes (agent-level):{RESET()}")
+    info("  --create  ->  sdc create skill|category")
+    info("  --improve ->  sdc lint -> sdc read -> edit -> sdc catalog")
+    info("  --prune   ->  sdc discover -> sdc move|archive")
+    print()
+    info(f"{BOLD()}sdc catalog [--build] [--read]{RESET()}    Build and/or print catalog.json")
     info(f"{BOLD()}sdc discover <query>{RESET()}             Search the catalog")
+    info(f"{BOLD()}sdc lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)")
+    info(f"{BOLD()}sdc list{RESET()}                          List all skills in the pack")
+    info(f"{BOLD()}sdc read <name>{RESET()}                   Print a skill's SKILL.md")
     info(
-        f"{BOLD()}sdc move <name> <category>{RESET()}       Move a skill to a category"
+        f"{BOLD()}sdc move <name> <category> [--apply]{RESET()}  Move a skill to a category"
     )
     info(
         f"{BOLD()}sdc archive <name> [--apply]{RESET()}     Archive a skill into _archive/"
@@ -95,6 +111,11 @@ def _print_usage() -> None:
     info(
         f"{BOLD()}sdc create <kind> <name> [--category C] [--apply]{RESET()}  "
         "Create a skill or category"
+    )
+    print()
+    info(f"{BOLD()}Note:{RESET()} move/archive/create are dry-run by default; pass --apply to write.")
+    info(
+        f"{BOLD()}Exit codes:{RESET()} 0 clean | 1 issues found | 2 usage error | 3 catalog drift"
     )
 
 
@@ -114,13 +135,22 @@ def _cmd_list(args: list[str], aggregate: ISkillsAggregate) -> int:
         if result.exit_code == _EXIT_USAGE and result.message:
             print(f"ERROR: {result.message}", file=sys.stderr)
             return _EXIT_USAGE
-        err("No skills found — is the skill-design pack present?")
-        return 1
+        # Empty pack is a valid empty state (new user/agent, no skills
+        # yet) — exit 0 with onboarding guidance, not an error.
+        info("No skills in the pack yet.")
+        info("Create one: sdc create skill <name> --category <cat> --apply")
+        return 0
     print(f"{CYAN()}SKILL{RESET()}".ljust(28) + "DESCRIPTION")
     print("-" * 28 + " " + "-" * 60)
+    truncated = False
     for record in rows:
-        desc = (record.description or "").replace("\n", " ")[:70]
+        desc = (record.description or "").replace("\n", " ")
+        if len(desc) > 70:
+            desc = desc[:69] + "…"
+            truncated = True
         print(record.name.ljust(28) + " " + desc)
+    if truncated:
+        print("Tip: sdc read <name> for full content")
     print(f"\n{BOLD()}{len(rows)}{RESET()} skills in the pack.")
     return 0
 
@@ -176,7 +206,7 @@ def _authoring_parser() -> argparse.ArgumentParser:
         help="Only report issues in category NAME",
     )
 
-    sub = subparsers.add_parser("catalog", help="Build, read, and/or check catalog.json")
+    sub = subparsers.add_parser("catalog", help="Build and/or read catalog.json")
     sub.add_argument(
         "--build",
         action=_TriFlag,
@@ -190,12 +220,6 @@ def _authoring_parser() -> argparse.ArgumentParser:
         nargs=0,
         default=None,
         help="Print the current catalog.json content",
-    )
-    sub.add_argument(
-        "--check",
-        action="store_true",
-        help="Drift gate: rebuild to a temp file and diff against the "
-        "tracked catalog.json (exit 0 in sync / 3 drift or corrupt)",
     )
 
     sub = subparsers.add_parser("discover", help="Search catalog.json")
@@ -238,10 +262,6 @@ def _cmd_authoring(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
         print(f"ERROR: {result.message}", file=sys.stderr)
         return result.exit_code
 
-    # Drift gate: ``--check`` resolves to exit 0 (in sync) or 3 (drift).
-    if request.op == SkillsOp.CATALOG and request.flags.get("check") == "1":
-        return _render_catalog_check(result)
-
     if sub == "lint":
         return _render_lint(result, request)
     if sub == "catalog":
@@ -264,13 +284,6 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
         )
 
     if command == "catalog":
-        # ``--check`` is the drift gate (capability/agent level, exit 3);
-        # it takes precedence over the build/read tri-state.
-        if getattr(namespace, "check", False):
-            return SkillsRequest(
-                op=SkillsOp.CATALOG,
-                flags={"check": "1"},
-            )
         # Tri-state: no flag at all → both (the convenient agent default:
         # build then print). An explicit flag pins its value; the other
         # flag defaults to False.
@@ -333,21 +346,6 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
 
 
 # ─── Renderers ───────────────────────────────────────────────────────
-def _render_catalog_check(result: SkillsResult) -> int:
-    """Render the ``--check`` drift-gate output and return the exit code.
-
-    ``ok=True``  →  exit 0 (in sync, no output).
-    ``ok=False`` →  exit 3 (drift or corrupt), print diff/message.
-    """
-    if result.ok:
-        return 0
-    # ``result.message`` carries the diff text (``Catalog drift: ...``)
-    # or a corrupt-file notice — print it verbatim for the operator.
-    if result.message:
-        print(result.message)
-    return result.exit_code if result.exit_code else _EXIT_DRIFT
-
-
 def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the catalog build / read output."""
     build = request.flags.get("build", "1") == "1"
@@ -368,6 +366,7 @@ def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
                 err(result.message)
             else:
                 err("catalog.json not found — run with --build first")
+            info("Tip: sdc catalog --build to generate catalog.json")
             return result.exit_code or 1
         print(text)
 
@@ -415,7 +414,10 @@ def _render_lint(result: SkillsResult, request: SkillsRequest) -> int:
 
     if request.flags.get("category"):
         category = request.flags["category"]
-        print(f"{total} lint issue(s) found ({in_scope} in scope category={category}):")
+        if in_scope == 0 and total > 0:
+            print(f"No issues in category '{category}'. {total} issue(s) in other categories:")
+        else:
+            print(f"{total} lint issue(s) found ({in_scope} in scope category={category}):")
     else:
         print(f"{total} lint issue(s) found:")
 
@@ -438,61 +440,63 @@ def _render_mutation(sub: str, result: SkillsResult, request: SkillsRequest) -> 
         plan = result.plan or result.create_plan or result.new_category
         if plan is not None:
             _print_mutation_plan(sub, plan)
+            print("No files were modified. Pass --apply to execute.")
         elif result.message:
             print(result.message)
+            print("No files were modified. Pass --apply to execute.")
         return 0
 
     # Applied: show the outcome.
     outcome = result.outcome
     if outcome is not None:
-        print(f"{BOLD()}{sub.capitalize()} applied:{RESET()}")
+        print(f"[APPLIED] {sub.capitalize()} applied:")
         for line in outcome.applied:
-            print(f"  {line}")
+            print(f"  [APPLIED] {line}")
         if outcome.message:
-            print(f"  {outcome.message}")
+            print(f"  [APPLIED] {outcome.message}")
     elif result.message:
         print(result.message)
     else:
-        print(f"{BOLD()}{sub.capitalize()} applied.")
+        print(f"[APPLIED] {sub.capitalize()} applied.")
+    print("Files written.")
     return 0
 
 
 def _print_mutation_plan(sub: str, plan: object) -> None:
     """Print a dry-run mutation plan (no write) from its real VO fields."""
-    label = sub.capitalize()
-    print(f"{BOLD()}Plan ({label}, dry-run — pass --apply to write):{RESET()}")
+    print(f"[DRY-RUN] Plan ({sub.capitalize()}) — pass --apply to write:")
 
     # SkillCreatePlan
     if hasattr(plan, "already_exists"):
-        print(f"  skill: {plan.skill}")
-        print(f"  category: {plan.category}")
+        print(f"[DRY-RUN] skill: {plan.skill}")
+        print(f"[DRY-RUN] category: {plan.category}")
         if getattr(plan, "already_exists", False):
-            print("  already exists — nothing to do")
+            print("[DRY-RUN] already exists — nothing to do")
         return
 
     # NewCategoryPlan
     if hasattr(plan, "will_write"):
-        print(f"  name: {plan.name}")
+        print(f"[DRY-RUN] name: {plan.name}")
         if plan.description:
-            print(f"  description: {plan.description}")
+            print(f"[DRY-RUN] description: {plan.description}")
         if not plan.will_write:
-            print("  DESCRIPTION.md already present — kept (use --force to overwrite)")
+            print("[DRY-RUN] DESCRIPTION.md already present — kept (use --force to overwrite)")
         return
 
     # MutationPlan (move / archive)
     if hasattr(plan, "already_in_category"):
         if getattr(plan, "already_in_category", False):
-            print("  already in category — nothing to do")
+            print("[DRY-RUN] already in category — nothing to do")
         if getattr(plan, "source", None):
-            print(f"  source: {plan.source}")
+            print(f"[DRY-RUN] source: {plan.source}")
         if getattr(plan, "destination", None):
-            print(f"  destination: {plan.destination}")
+            print(f"[DRY-RUN] destination: {plan.destination}")
         for step in getattr(plan, "lines", ()):
-            print(f"  {step}")
+            print(f"[DRY-RUN] {step}")
         return
 
     # Fallback: print whatever is available.
     for attr in ("kind", "source", "destination", "lines"):
         value = getattr(plan, attr, None)
         if value not in (None, "", False, ()):
-            print(f"  {attr}: {value}")
+            print(f"[DRY-RUN] {attr}: {value}")
