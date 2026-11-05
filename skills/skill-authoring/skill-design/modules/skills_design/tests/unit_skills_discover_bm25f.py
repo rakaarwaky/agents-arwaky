@@ -12,9 +12,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
-
 from skills_design.src.capabilities_skills_bm25f import (
     build_index,
     map_to_legacy_score,
@@ -24,7 +21,6 @@ from skills_design.src.capabilities_skills_bm25f import (
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_discover import SkillsDiscover, _Row
 from skills_design.tests.fixture_skills import as_root, crafted_tree
-
 
 # ── Helpers ───────────────────────────────────────────────────────────
 
@@ -40,7 +36,8 @@ def _rows() -> list[_Row]:
 # ── tokenize_full ─────────────────────────────────────────────────────
 
 def test_tokenize_full_lowercases_and_splits_hyphens() -> None:
-    assert tokenize_full("PDF-Extract 2.0") == ["pdf", "extract", "2", "0"]
+    # "2" is dropped (single char < MIN_TOKEN_LEN)
+    assert tokenize_full("PDF-Extract 2.0") == ["pdf", "extract"]
 
 
 def test_tokenize_full_drops_stop_words() -> None:
@@ -144,6 +141,7 @@ def test_agent_discover_uses_bm25f(tmp_path: Path) -> None:
         SkillsOp,
         SkillsRequest,
     )
+
     from skills_design.src.agent_skills_orchestrator import SkillsAgent
     from skills_design.src.capabilities_skills_lister import SkillsLister
     from skills_design.src.capabilities_skills_reader import SkillsPackReader

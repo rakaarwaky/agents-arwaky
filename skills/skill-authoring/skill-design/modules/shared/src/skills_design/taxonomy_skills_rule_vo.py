@@ -215,25 +215,6 @@ RULES: Final = tuple(
 
 _RULES_BY_ID: Final = {r.id: r for r in RULES}
 
-#: The issue types ``validate --rules-only`` keeps. The other checks
-#: (duplicate names/descriptions, category emptiness) are library hygiene
-#: rather than per-rule frontmatter constraints, so the flag filters them
-#: out without changing which issues are found.
-RULE_ONLY_ISSUE_TYPES: Final = frozenset(
-    {
-        IssueType.INVALID_SKILL_NAME.value,
-        IssueType.NAME_MISMATCH.value,
-        IssueType.MISSING_DESCRIPTION.value,
-        IssueType.INVALID_DESCRIPTION_CHARACTERS.value,
-        IssueType.DESCRIPTION_TOO_LONG.value,
-        IssueType.INVALID_PLACEMENT.value,
-        IssueType.TOO_DEEP.value,
-        IssueType.MISSING_CATEGORY_DESCRIPTION.value,
-        IssueType.EMPTY_CATEGORY_DESCRIPTION.value,
-        IssueType.REFERENCE_NOT_LINKED.value,
-    }
-)
-
 
 def rule(rule_id: str) -> Rule:
     """The lookup: ``rule("name-format").detail_md`` is the message
@@ -264,7 +245,6 @@ __all__ = [
     "NAME_RE",
     "RULES",
     "RULE_IDS",
-    "RULE_ONLY_ISSUE_TYPES",
     "SUMMARIES",
     "CategoryName",
     "IssueType",
