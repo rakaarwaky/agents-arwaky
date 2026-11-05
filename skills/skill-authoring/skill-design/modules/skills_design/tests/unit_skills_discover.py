@@ -1,4 +1,4 @@
-"""Discovery scoring and drift-fallback tests (ported from test_discover.py)."""
+"""Discovery drift-fallback tests (the BM25F ranker is the only path)."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from skills_design.src.capabilities_skills_discover import (
     DRIFT_WARNING,
     SkillsDiscover,
     _Row,
-    score_entries,
     tokenize,
 )
 from skills_design.tests.fixture_skills import as_root, crafted_tree
@@ -27,15 +26,6 @@ def _rows() -> list[_Row]:
 
 def test_tokenize_lowercases_and_drops_blanks() -> None:
     assert tokenize("  PDF   Tool ") == ["pdf", "tool"]
-
-
-def test_scoring_order_and_weights() -> None:
-    """Name +5, description +3, category +2, path +1; highest first."""
-    scored = score_entries(_rows(), ["notes"])
-    assert scored[0][1].skill == "note-taker"
-    # "notes" hits the description (+3), category (+2), and path (+1);
-    # it is not a substring of the name "note-taker".
-    assert scored[0][0] == 3 + 2 + 1
 
 
 def test_discover_returns_top_limit_matches(tmp_path: Path) -> None:

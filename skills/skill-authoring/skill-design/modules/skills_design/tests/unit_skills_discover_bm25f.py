@@ -114,36 +114,31 @@ def test_map_to_legacy_score_negative_clamped() -> None:
     assert map_to_legacy_score(-1.0) == 0
 
 
-# ── SkillsDiscover with ranker="bm25f" ───────────────────────────────
+# ── End-to-end via SkillsDiscover ───────────────────────────────────
 
-def test_discover_bm25f_ranks_pdf_first(tmp_path: Path) -> None:
+def test_discover_uses_bm25f_by_default(tmp_path: Path) -> None:
+    """SkillsDiscover uses BM25F (the only ranker, no flag needed)."""
     root = crafted_tree(tmp_path)
     catalog = SkillsCatalog()
     catalog.rebuild(as_root(root))
-    discoverer = SkillsDiscover(catalog, ranker="bm25f")
+    discoverer = SkillsDiscover(catalog)
     result = discoverer.discover("drafts", as_root(root), 10)
     assert result.matches[0].skill == "doc-drafts"
 
 
-def test_discover_bm25f_drift_falls_back_to_tree(tmp_path: Path) -> None:
+def test_discover_drift_falls_back_to_tree(tmp_path: Path) -> None:
+    """Drift path: no catalog built → tree scan + loud warning."""
     root = crafted_tree(tmp_path)
-    # No catalog built → drift path
-    discoverer = SkillsDiscover(SkillsCatalog(), ranker="bm25f")
+    discoverer = SkillsDiscover(SkillsCatalog())
     result = discoverer.discover("notes", as_root(root), 10)
-    # Tree scan fallback still works; note-taker matches "notes"
     assert any(m.skill == "note-taker" for m in result.matches)
     assert result.warning != ""
 
 
-def test_discover_ranker_rejects_unknown_value(tmp_path: Path) -> None:
-    with pytest.raises(SkillsUsageError, match="Unknown ranker"):
-        SkillsDiscover(SkillsCatalog(), ranker="unknown")
+# ── Agent-level execution ───────────────────────────────────────────
 
-
-# ── Agent-level flag dispatch ────────────────────────────────────────
-
-def test_agent_discover_bm25f_flag(tmp_path: Path) -> None:
-    """The agent's ``ranker`` flag dispatches to a BM25F discoverer."""
+def test_agent_discover_uses_bm25f(tmp_path: Path) -> None:
+    """The agent's discover path uses BM25F (no ranker flag needed)."""
     from shared.src.skills_design.taxonomy_skills_request import (
         SkillQuery,
         SkillsOp,
@@ -161,14 +156,14 @@ def test_agent_discover_bm25f_flag(tmp_path: Path) -> None:
         SkillsLister(root),
         SkillsPackReader(root),
         catalog=catalog,
-        discover=SkillsDiscover(catalog, ranker="legacy"),  # legacy default
+        discover=SkillsDiscover(catalog),
     )
     request = SkillsRequest(
         op=SkillsOp.DISCOVER,
         query=SkillQuery("notes"),
         root=as_root(root),
-        flags={"limit": "10", "ranker": "bm25f"},
+        flags={"limit": "10"},
     )
     result = agent.execute(request)
-    # BM25F ranker should still find note-taker for "notes"
+    # BM25F ranker finds note-taker for "notes"
     assert any(m.skill == "note-taker" for m in result.matches)

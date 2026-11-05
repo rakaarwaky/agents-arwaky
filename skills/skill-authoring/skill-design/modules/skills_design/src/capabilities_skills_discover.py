@@ -12,18 +12,14 @@ so the answer is real, current data — never a stale or phantom row.
 Exit stays 0: a successful search is a successful search; drift is
 ``catalog --check``'s exit 3.
 
-Two rankers are available:
+The only ranker is **bm25f** — offline BM25F field-weighted ranking
+(see :mod:`capabilities_skills_bm25f`), with field weights (5/3/2/1)
+and stop-word filtering. No network, no third-party deps, no paid or
+closed model.
 
-* **legacy** (default) — the original substring algorithm verbatim:
-  per-token name +5 / description +3 / category +2 / path +1, highest
-  score first, then the top ``limit`` rows.
-* **bm25f** — offline BM25F field-weighted ranking (see
-  :mod:`capabilities_skills_bm25f`), with the same field weights
-  (5/3/2/1) and stop-word filtering. No network, no third-party deps.
-
-Both produce ``DiscoveryMatch`` rows whose ``score`` is an int
-(the BM25F float is mapped via ``map_to_legacy_score`` so the legacy
-table projection stays stable).
+Float BM25F scores are mapped to ints via ``map_to_legacy_score`` so
+the table projection and the ``score`` int on ``DiscoveryMatch`` stay
+stable.
 """
 
 from __future__ import annotations
@@ -60,7 +56,6 @@ from skills_design.src.capabilities_skills_bm25f import (
 
 __all__ = [
     "SkillsDiscover",
-    "score_entries",
     "tokenize",
 ]
 
@@ -76,43 +71,8 @@ class _Row:
 
 
 def tokenize(query: str) -> list[str]:
-    """Split a query into lowercase tokens."""
+    """Split a query into lowercase tokens (stop-word filtering happens in BM25F)."""
     return [token.lower() for token in query.split() if token.strip()]
-
-
-def score_entries(
-    rows: list[_Row], tokens: list[str]
-) -> list[tuple[int, _Row]]:
-    """Score every row; returns ``(score, row)`` pairs sorted high-first.
-
-    A row scores at all only when at least one token matched, matching the
-    original behavior (score 0 rows are never listed).
-    """
-    scored: list[tuple[int, _Row]] = []
-
-    for row in rows:
-        name = row.skill.lower()
-        category = row.category.lower()
-        description = row.description.lower()
-        path = row.path.lower()
-
-        score = 0
-
-        for token in tokens:
-            if token in name:
-                score += 5
-            if token in description:
-                score += 3
-            if token in category:
-                score += 2
-            if token in path:
-                score += 1
-
-        if score > 0:
-            scored.append((score, row))
-
-    scored.sort(key=lambda item: item[0], reverse=True)
-    return scored
 
 
 def tree_scan_rows(skills_root: Path) -> list[_Row]:
@@ -130,56 +90,31 @@ def tree_scan_rows(skills_root: Path) -> list[_Row]:
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class SkillsDiscover(ISkillsDiscoverProtocol):
-    """Scores catalog rows; falls back to a live tree scan on drift.
+    """Scores catalog rows with BM25F; falls back to a live tree scan on drift."""
 
-    ``ranker`` selects the scoring algorithm:
-      * ``"legacy"`` — the original substring scorer (default; pinned).
-      * ``"bm25f"``  — BM25F field-weighted ranking (offline; no API).
-    """
-
-    RANKERS: tuple[str, ...] = ("legacy", "bm25f")
-
-    def __init__(self, catalog: ISkillsCatalogProtocol, ranker: str = "legacy") -> None:
-        if ranker not in self.RANKERS:
-            raise SkillsUsageError(
-                f"Unknown ranker {ranker!r}; expected one of {list(self.RANKERS)}"
-            )
+    def __init__(self, catalog: ISkillsCatalogProtocol) -> None:
         self._catalog = catalog
-        self._ranker = ranker
 
     # ─── Block 2: Protocol Method Implementation ──────────────
     def discover(self, query: SkillQuery, root: SkillsRoot, limit: int) -> DiscoveryResult:
-        """Return the top ``limit`` matches for ``query``."""
+        """Return the top ``limit`` matches for ``query`` (BM25F)."""
         tokens = tokenize(query)
         if not tokens:
             raise SkillsUsageError("Query is empty")
 
         rows, warning, warning_detail = self._rows_or_fallback(Path(root))
+        scored = rank_bm25f(rows, tokens)[:limit]
 
-        if self._ranker == "bm25f":
-            scored = rank_bm25f(rows, tokens)[:limit]
-            matches = tuple(
-                DiscoveryMatch(
-                    skill=row.skill,
-                    category=row.category,
-                    description=row.description,
-                    path=row.path,
-                    score=map_to_legacy_score(score),
-                )
-                for score, row in scored
+        matches = tuple(
+            DiscoveryMatch(
+                skill=row.skill,
+                category=row.category,
+                description=row.description,
+                path=row.path,
+                score=map_to_legacy_score(score),
             )
-        else:
-            scored = score_entries(rows, tokens)[:limit]
-            matches = tuple(
-                DiscoveryMatch(
-                    skill=row.skill,
-                    category=row.category,
-                    description=row.description,
-                    path=row.path,
-                    score=score,
-                )
-                for score, row in scored
-            )
+            for score, row in scored
+        )
 
         return DiscoveryResult(
             matches=matches,
