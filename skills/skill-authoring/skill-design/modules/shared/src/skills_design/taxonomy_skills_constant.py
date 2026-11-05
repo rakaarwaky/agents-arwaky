@@ -74,36 +74,6 @@ DRIFT_WARNING: Final = (
 #: The catalog file name (tracked artifact name).
 CATALOG_FILENAME: Final = "catalog.json"
 
-#: Subdirectories a merged body keeps as-is: scenario material and
-#: category metadata are content, not build output.
-_KEEP_DIRS: Final = ("references", "scripts")
-
-#: Files never moved into the survivor: the identity card belongs to the
-#: surviving folder, and a stale frontmatter in the absorbed folder would
-#: produce two ``name:`` keys if it landed beside the survivor's.
-_SKIP_FILES: Final = ("SKILL.md", "SKILL.md.archived")
-
-# ── Trace-collect defaults for skill-traces ────────────────────────────
-
-#: skill-traces always scans sessions since the last completed trace run
-#: (never a day-window or full-history scan).
-TRACE_COLLECT_SINCE_LAST: Final = True
-
-#: skill-traces drops signals observed in fewer than this many sessions.
-TRACE_COLLECT_MIN_TURNS: Final = 3
-
-#: skill-traces keeps all matching sessions — ``limit = 0`` means unlimited.
-TRACE_COLLECT_LIMIT_UNLIMITED: Final = True
-
-#: skill-traces always writes both ``report.md`` and ``actions.json`` into
-#: the run dir on every run.
-TRACE_COLLECT_WRITE_JSON_ALWAYS: Final = True
-
-#: Default run dir pattern for skill-traces runs; ``<GROK_HOME>`` and
-#: ``<run-id>`` are substituted at call time.
-TRACE_COLLECT_RUN_DIR_PATTERN: Final = "{GROK_HOME}/skill-traces/runs/{run_id}/"
-
-
 __all__ = [
     "ARCHIVE_DIRNAME",
     "ASSETS_MARKER_FILENAME",
@@ -116,11 +86,4 @@ __all__ = [
     "NAME_MIN",
     "NAME_RE",
     "PACK_MARKER_FILENAME",
-    "TRACE_COLLECT_LIMIT_UNLIMITED",
-    "TRACE_COLLECT_MIN_TURNS",
-    "TRACE_COLLECT_RUN_DIR_PATTERN",
-    "TRACE_COLLECT_SINCE_LAST",
-    "TRACE_COLLECT_WRITE_JSON_ALWAYS",
-    "_KEEP_DIRS",
-    "_SKIP_FILES",
 ]

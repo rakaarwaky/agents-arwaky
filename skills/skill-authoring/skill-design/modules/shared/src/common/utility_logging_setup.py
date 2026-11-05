@@ -29,18 +29,6 @@ if not _logger.handlers:
     _logger.setLevel(logging.INFO)
 
 
-def log_debug(msg):
-    """Write a DEBUG-level message through the sdc logger."""
-
-
-def log_info(msg):
-    """Write an INFO-level message through the sdc logger."""
-
-
-def log_warning(msg):
-    """Write a WARNING-level message through the sdc logger."""
-
-
 def set_verbosity(level: str = "info") -> None:
     """Set logger verbosity: debug|info|warning|error (global -v/-q)."""
     _logger.setLevel(getattr(logging, level.upper(), logging.INFO))

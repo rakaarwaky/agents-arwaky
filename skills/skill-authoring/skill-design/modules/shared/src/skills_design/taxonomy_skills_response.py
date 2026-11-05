@@ -38,8 +38,6 @@ if TYPE_CHECKING:
         MutationPlan,
         NewCategoryPlan,
         SkillCreatePlan,
-        UsageReport,
-        ValidationReport,
     )
 
     # ``SkillRecord`` and ``SkillContent`` live in ``taxonomy_skills_vo``,
@@ -81,7 +79,6 @@ class SkillsResult:
     message: str = ""
     records: tuple[SkillRecord, ...] = ()
     content: SkillContent | None = None
-    report: ValidationReport | None = None
     lint_report: LintReport | None = None
     catalog: CatalogReport | None = None
     check: CatalogCheckResult | None = None
@@ -91,10 +88,8 @@ class SkillsResult:
     outcome: MutationOutcome | None = None
     new_category: NewCategoryPlan | None = None
     create_plan: SkillCreatePlan | None = None
-    lines: tuple[str, ...] = ()
     warning: str | None = None
     root: Path | None = None
-    usage: UsageReport | None = None
 
 
 __all__ = ["SkillsExitCode", "SkillsResult"]
