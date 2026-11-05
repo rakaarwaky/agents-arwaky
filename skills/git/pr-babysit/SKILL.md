@@ -1,6 +1,6 @@
 ---
 name: pr-babysit
-description: "Watch a GitHub PR end to end: Hermes tracks the PR and observes CI, Grok Build runs every fix pass (auto-fix red checks, resolve conflicts, address review/bot comments) in an Orca worktree, and Hermes merges when green if --ship is set."
+description: "Watch a GitHub PR end to end: Hermes (orchestrator) tracks the PR and observes CI; Grok Build (worker) runs every fix pass — auto-fix red checks, resolve conflicts, address review/bot comments — in an Orca worktree; Hermes merges when green if --ship is set. Two roles: Hermes orchestrates and ships; Grok fixes. Read the lane matching the invoking agent, never self-identify as a role that is not you."
 when-to-use: "Triggers on \"/pr-babysit\". Phrasing: \"watch PR 123 until green\", \"babysit PR 123 and merge when ready\", \"fix issue #123 and open a PR\", \"keep fixing PR 123 until it can merge\", \"pr-babysit add --ship 123\"."
 argument-hint: "add [--ship] <number> | check <number> | ship on <number>"
 disable-model-invocation: true
@@ -29,10 +29,15 @@ Rules that apply to the Hermes lane. The Grok lane has its own rules, owned by `
 
 Each reference file is step-scoped. Global rules above apply throughout; do not restate them in a step file.
 
-The lane is chosen by **who is reading this skill**, not by a flag:
+The lane is chosen by **who is invoking this skill**, and is settled by a hard rule at load time — the invoking agent must read only one lane, never both, and must never self-identify as the other:
 
-- **Hermes lane** — read when you are the Hermes orchestrator running `/pr-babysit add|check|ship`. Run Steps 0–3 in `references/hermes/`: observe CI, spawn a Grok worktree for each fix pass, re-verify, and merge. You never enter the Grok lane.
-- **Grok lane** — read when you are the Grok Build TUI inside the Orca worktree, having just received `/pr-babysit fix <number>`. Run Steps 0–4 in `references/grok/`: watch CI, auto-fix red checks, decision tree, merge readiness (Grok reports merge-ready; it does not merge — the merge belongs to Hermes's Step 2).
+1. **If you are the Grok Build TUI (you are running inside an Orca worktree, you have the `/pr-babysit` command in your prompt, and a brief from the orchestrator), you are the worker.** Run Steps 0–4 in `references/grok/`. Do not read `references/hermes/`. Do not spawn Orca worktrees, drop briefs, or manage watchlist state — you are that worktree, not the one that spawned it.
+2. **If you are the orchestrator invoking `/pr-babysit add|check|ship` from outside a worktree, you are the Hermes lane owner.** Run Steps 0–3 in `references/hermes/`. Do not read `references/grok/`. Do not run the auto-fix loop yourself; that belongs to the Grok worktree you spawn.
+
+**Disambiguation test** (run this first, before reading any step file):
+- Are you running inside an Orca worktree that was created with `orca worktree create --agent grok --name pr-babysit-<number>`? → **Grok lane.**
+- Are you running in the main clone or in a separate orchestrator TUI, and did the user type `/pr-babysit add|check|ship`? → **Hermes lane.**
+- You cannot be both in one process. If you are unsure, re-run the test: an Orca worktree path in your CWD means Grok lane; a main clone CWD means Hermes lane.
 
 ### Hermes lane (Steps 0–3)
 
