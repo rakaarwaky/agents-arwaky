@@ -12,6 +12,7 @@ Each cluster is one of:
 - **variant** — same domain, distinct scenarios; consolidate in Phase 2 into one folder with one `SKILL.md` plus a `references/` subfolder, one file per scenario.
 - **separate jobs** — genuinely different; keep separate and note why in the report.
 - **shared tooling / bounded purpose** — two skills that wrap the same underlying tooling or share a narrow, overlapping purpose consolidate into one folder in Phase 2; the surviving folder keeps the more complete body and absorbs the other's scenario-specific rules into `references/`.
+- **same domain ≠ same job** — two skills that share domain keywords or tooling names (e.g., GitHub issues) are not duplicates; keep them separate when they own different completion criteria or opposite direction of flow (one initiates/create, the other consumes/works existing). Compare the job each skill performs and its output artifact before labeling a cluster.
 
 Detect duplicates and obsolete skills with `sdc lint`; obsolete skills are archived into `_archive/` (never permanently deleted unless `--hard-delete` is explicitly passed).
 
