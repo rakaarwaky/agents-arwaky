@@ -1,8 +1,8 @@
 ---
 name: email
-description: "Mailbox: triage, read, search, reply, send. Use for email."
-when-to-use: "Use for any mailbox task: 'triage my inbox', 'draft replies', 'list mail from X', 'send email', 'what needs answering', 'morning brief'. Not for Google Docs/Drive/Calendar-only tasks."
-argument-hint: "[triage|reply|read|search|send|brief] [action]"
+description: "Mailbox: triage, read, search, reply, send — one umbrella for mailbox work split by access path and job: himalaya terminal IMAP/SMTP, the Google Workspace MCP connector, thread-aware triage, Gmail query operators, and the start-of-day brief. himalaya is the terminal access path for IMAP/SMTP mailboxes; google-workspace is the MCP path for Gmail/Docs/Drive/Calendar-only tasks. Not for Google Docs/Drive/Calendar-only tasks (that is google-workspace)."
+when-to-use: "Use for any mailbox task: 'triage my inbox', 'draft replies', 'list mail from X', 'send email', 'what needs answering', 'morning brief'. Not for Google Docs/Drive/Calendar-only tasks. Use himalaya for terminal IMAP/SMTP mailbox management (folders, read/search, replies, move/copy/delete, flags, attachments). Use google-workspace for Gmail via the workspace MCP server."
+argument-hint: "[triage|reply|read|search|send|brief] [action] | account configure|folder list|envelope list [--folder <name>] [--page N] [--page-size N]|message read <id>|message write|template send|message move <folder> <id>|message copy|message delete|flag add|flag remove|attachment download [--downloads-dir <dir>]"
 metadata:
   tags:
     - Email
@@ -12,9 +12,10 @@ metadata:
     - SMTP
     - Gmail
     - Workspace
+    - CLI
+    - Communication
   related_skills:
     - google-workspace
-    - himalaya
 ---
 
 # Email
@@ -29,11 +30,15 @@ One umbrella for mailbox work, split by access path and by job: himalaya (termin
 - **Calibrate voice before drafting.** Sample 20–50 of the user's own sent replies (truncated excerpts suffice) and match their greeting, length, register, and how they say no — not a generic-professional voice. If Sent is empty, say so and match the incoming thread's register.
 - **Paginate, don't truncate.** Follow `next_page_token` / `Next page token` before concluding a result set is complete; state any coverage gap explicitly.
 - **One quiz, not ten.** Batch all open questions into one set of prompts before implementing; skip only when everything is determined.
+- **Always configure `folder.aliases` for any provider whose folder names don't match himalaya's canonical names.** Gmail is the common case — use the v1.2.0 `folder.aliases.X` syntax (plural, dotted keys, directly under `[accounts.NAME]`); the pre-v1.2.0 singular `alias` sub-section is silently ignored, which makes save-to-Sent fail *after* SMTP delivery succeeds and causes any retry-on-error caller to re-run SMTP — duplicate mail to recipients. Full mapping in `references/himalaya-configuration.md`.
+- **Store passwords securely** — `pass`, system keyring, or a command that outputs the password; never inline `auth.raw` except in throwaway tests.
+- **Pipe non-interactive compose via `himalaya template send`**; interactive `$EDITOR` mode needs PTY + background and knowing the editor. Use `--output json` for structured output.
+- **Inspect Sent before retrying a send error** — SMTP may have succeeded while save-to-Sent failed; a blind retry duplicates the mail.
 
 ## Routing
 
 | Step | Reference | Purpose |
-| --- | --- | --- |
+| ---- | --------- | ------- |
 | Terminal IMAP/SMTP mailbox (any provider) | [`references/himalaya-configuration.md`](references/himalaya-configuration.md), [`references/himalaya-message-composition.md`](references/himalaya-message-composition.md), [`references/himalaya-operations.md`](references/himalaya-operations.md) | Install and account configuration; MML syntax for rich messages; list/read/search/reply/forward/move/flags/attachments operations. |
 | Google Workspace mail + other services via MCP | [`references/workspace-tool-reference.md`](references/workspace-tool-reference.md) | Task-to-tool index across every service. |
 | Per-service parameter reference | [`references/workspace-gmail.md`](references/workspace-gmail.md), [`references/workspace-drive.md`](references/workspace-drive.md), [`references/workspace-calendar.md`](references/workspace-calendar.md), [`references/workspace-docs.md`](references/workspace-docs.md), [`references/workspace-sheets.md`](references/workspace-sheets.md), [`references/workspace-slides.md`](references/workspace-slides.md), [`references/workspace-forms.md`](references/workspace-forms.md), [`references/workspace-tasks.md`](references/workspace-tasks.md), [`references/workspace-contacts.md`](references/workspace-contacts.md), [`references/workspace-chat.md`](references/workspace-chat.md), [`references/workspace-apps-script.md`](references/workspace-apps-script.md), [`references/workspace-search.md`](references/workspace-search.md) | Full parameter reference per service — read the matching file before calling a service's tools. |
