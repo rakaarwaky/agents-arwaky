@@ -13,6 +13,13 @@ from __future__ import annotations
 
 import sys
 
+from shared.src.common.utility_path_bootstrap import _REPO_ROOT
+
+# Register this tree's namespace roots on sys.path before any feature
+# imports resolve; the module-level side effect in utility_path_bootstrap
+# runs here, and the root entry layer is a consumer that AES504 accepts.
+_ = _REPO_ROOT
+
 from cli.src.surface_skills_command import cmd_skills
 from skills_design.src.root_skills_container import default_aggregate
 

@@ -23,11 +23,7 @@ from dataclasses import field as dataclass_field
 from shared.src.skills_design.contract_skills_bm25f_protocol import (
     IBM25FRankerProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_authoring_vo import (
-    BM25FHit,
-    BM25F_SCORE_SCALE,
-    map_to_legacy_score,
-)
+from shared.src.skills_design.taxonomy_skills_authoring_vo import BM25FHit
 
 __all__ = [
     "BM25F_FIELD_WEIGHTS",

@@ -19,6 +19,7 @@ import json
 import tempfile
 from pathlib import Path
 
+from shared.src.common.utility_skills_markdown import clean_one_line
 from shared.src.common.utility_skills_tree import (
     category_summaries,
     skill_entries,
@@ -64,8 +65,8 @@ def render_catalog_json(
     skills = [
         {
             "name": entry.skill,
-            "description": entry.description,
-            "when_to_use": entry.when_to_use,
+            "description": clean_one_line(entry.description),
+            "when_to_use": clean_one_line(entry.when_to_use),
             "category": entry.category,
         }
         for entry in sorted(entries, key=lambda item: (item.category, item.skill))
@@ -158,3 +159,7 @@ class SkillsCatalog(ISkillsCatalogProtocol):
         if not path.exists():
             return ""
         return path.read_text(encoding="utf-8-sig", errors="replace")
+
+    # ─── Block 3: Dunder Methods, Factories & Helpers ────────
+    def __repr__(self) -> str:
+        return "SkillsCatalog()"

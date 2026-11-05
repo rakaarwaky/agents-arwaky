@@ -8,25 +8,14 @@ exact message strings ``validate`` emits.
 Lifted verbatim from ``librarian.py``. Nothing in this module
 is re-derivable from elsewhere: every consumer (the validator
 capability and the skill-rules reference doc) must read these constants
-rather than restate them. The rule shape and the naming-budget constants
+rather than restate them. The naming-budget constants
 (``NAME_MIN`` / ``NAME_MAX`` / ``NAME_RE``) are defined in
-``taxonomy_skills_rule_vo.py`` and imported here; this keeps the
-taxonomy dependency acyclic
-(constant imports nothing from rule-vo classes, only the published rule shape).
+``taxonomy_skills_rule_vo.py``.
 """
 
 from __future__ import annotations
 
 from typing import Final
-
-# The naming-budget constants live in ``taxonomy_skills_rule_vo.py``
-# (alongside ``is_valid_skill_name``, which consumes them); they are
-# imported here so existing consumers of this module keep working.
-from shared.src.skills_design.taxonomy_skills_rule_vo import (
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
-)
 
 # Verbatim from ``librarian.py``.
 MAX_DESCRIPTION_LEN: Final = 1024
@@ -79,8 +68,5 @@ __all__ = [
     "DRIFT_WARNING",
     "IGNORED_CATEGORY_DIRS",
     "MAX_DESCRIPTION_LEN",
-    "NAME_MAX",
-    "NAME_MIN",
-    "NAME_RE",
     "PACK_MARKER_FILENAME",
 ]

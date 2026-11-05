@@ -12,9 +12,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shared.src.skills_design.taxonomy_skills_authoring_vo import map_to_legacy_score
+
 from skills_design.src.capabilities_skills_bm25f import (
+    SkillsBm25fRanker,
     build_index,
-    map_to_legacy_score,
     rank_bm25f,
     tokenize_full,
 )
@@ -122,7 +124,7 @@ def test_discover_uses_bm25f_by_default(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     catalog = SkillsCatalog()
     catalog.rebuild(as_root(root))
-    discoverer = SkillsDiscover(catalog)
+    discoverer = SkillsDiscover(catalog, SkillsBm25fRanker())
     result = discoverer.discover("drafts", as_root(root), 10)
     assert result.matches[0].skill == "doc-drafts"
 
@@ -130,7 +132,7 @@ def test_discover_uses_bm25f_by_default(tmp_path: Path) -> None:
 def test_discover_drift_falls_back_to_tree(tmp_path: Path) -> None:
     """Drift path: no catalog built → tree scan + loud warning."""
     root = crafted_tree(tmp_path)
-    discoverer = SkillsDiscover(SkillsCatalog())
+    discoverer = SkillsDiscover(SkillsCatalog(), SkillsBm25fRanker())
     result = discoverer.discover("notes", as_root(root), 10)
     assert any(m.skill == "note-taker" for m in result.matches)
     assert result.warning != ""
@@ -158,7 +160,7 @@ def test_agent_discover_uses_bm25f(tmp_path: Path) -> None:
         SkillsLister(root),
         SkillsPackReader(root),
         catalog=catalog,
-        discover=SkillsDiscover(catalog),
+        discover=SkillsDiscover(catalog, SkillsBm25fRanker()),
     )
     request = SkillsRequest(
         op=SkillsOp.DISCOVER,

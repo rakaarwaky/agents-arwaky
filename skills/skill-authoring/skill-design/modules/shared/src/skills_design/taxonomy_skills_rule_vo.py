@@ -245,6 +245,9 @@ def issue_message(issue_type: IssueType, **fields: Any) -> str:
 __all__ = [
     "CITATIONS",
     "ISSUE_MESSAGES",
+    "NAME_MAX",
+    "NAME_MIN",
+    "NAME_RE",
     "RULES",
     "RULE_IDS",
     "SUMMARIES",

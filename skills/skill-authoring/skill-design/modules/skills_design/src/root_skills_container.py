@@ -19,6 +19,9 @@ from pathlib import Path
 
 from shared.src.common.utility_skill_pack import default_pack_root
 from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
+from shared.src.skills_design.contract_skills_bm25f_protocol import (
+    IBM25FRankerProtocol,
+)
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
@@ -28,9 +31,6 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsListerProtocol,
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
-)
-from shared.src.skills_design.contract_skills_bm25f_protocol import (
-    IBM25FRankerProtocol,
 )
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,

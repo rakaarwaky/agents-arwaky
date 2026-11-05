@@ -370,6 +370,48 @@ script are pinned by the surface and contract test files.
 |----------------|------------------------------------------|
 | Dry-run safety | filesystem unchanged after every preview |
 
+### FR-SkillsDesign-009: Rank Search Results (BM25F Ranker)
+
+**Description:** Score catalog rows against query tokens with offline BM25F field-weighted ranking (name +5, when_to_use +4, description +3, category +2, path +1); no network, no third-party deps.
+
+#### Business Logic
+
+- The ranker is injected into the discover capability via `IBM25FRankerProtocol`; never a sibling capability import
+- Each hit carries a float `score`, the original row, and `matched_fields` — the logical field names that contributed
+- Float scores are projected to the legacy int scale via `map_to_legacy_score` (taxonomy, shared by all consumers)
+- Empty query or empty row set yields an empty result
+
+#### Edge Cases
+
+- Zero-score rows are excluded from the ranked output
+- Stop words are dropped before indexing and ranking
+- Fuzzy match fires when substring (either direction, min len 3) or Jaccard char-set similarity ≥ 0.75
+
+#### Technical Specification
+
+| Aspect       | Detail                                        |
+|--------------|-----------------------------------------------|
+| **Input**    | catalog rows and query tokens                 |
+| **Output**   | `BM25FHit` results sorted high-first          |
+| **Protocol** | IBM25FRankerProtocol                          |
+| **Method**   | rank                                          |
+| **Event**    | —                                             |
+| **Error**    | none (pure data in, pure data out)            |
+
+#### Test
+
+| Context         | When Action                      | Then Observable Result              |
+|-----------------|----------------------------------|-------------------------------------|
+| Matching query  | `rank(rows, ["docs"])`          | top hit is `doc-drafts`, exit 0    |
+| No match        | `rank(rows, ["nonexistent"])`   | empty result, exit 0               |
+| Empty rows      | `rank([], ["docs"])`            | empty result, exit 0               |
+
+#### Metric
+
+| Target Metric  | Value                                        |
+|----------------|----------------------------------------------|
+| Determinism    | identical hits on identical rows and tokens  |
+
 ## Public Interface
 
 | Aspect    | Detail           |

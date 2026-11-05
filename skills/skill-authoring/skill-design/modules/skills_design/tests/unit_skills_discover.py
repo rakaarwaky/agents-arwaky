@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
 
+from skills_design.src.capabilities_skills_bm25f import SkillsBm25fRanker
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_discover import (
     DRIFT_WARNING,
@@ -33,7 +34,7 @@ def test_discover_returns_top_limit_matches(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     catalog = SkillsCatalog()
     catalog.rebuild(as_root(root))
-    result = SkillsDiscover(catalog).discover("drafts", as_root(root), 1)
+    result = SkillsDiscover(catalog, SkillsBm25fRanker()).discover("drafts", as_root(root), 1)
     assert len(result.matches) == 1
 
 
@@ -41,7 +42,7 @@ def test_empty_query_is_a_usage_error(tmp_path: Path) -> None:
     """The legacy ``ERROR: Query is empty`` stays exit 2."""
     root = crafted_tree(tmp_path)
     with pytest.raises(SkillsUsageError) as failure:
-        SkillsDiscover(SkillsCatalog()).discover("   ", as_root(root), 20)
+        SkillsDiscover(SkillsCatalog(), SkillsBm25fRanker()).discover("   ", as_root(root), 20)
     assert str(failure.value) == "Query is empty"
     assert failure.value.exit_code == 2
 
@@ -52,7 +53,7 @@ def test_discover_reads_the_catalog(tmp_path: Path) -> None:
     catalog = SkillsCatalog()
     catalog.rebuild(as_root(root))
 
-    result = SkillsDiscover(catalog).discover("docs", as_root(root), 20)
+    result = SkillsDiscover(catalog, SkillsBm25fRanker()).discover("docs", as_root(root), 20)
     assert result.warning == ""
     assert [match.skill for match in result.matches] == ["doc-drafts"]
 
@@ -61,7 +62,7 @@ def test_drift_falls_back_to_the_tree_with_a_loud_warning(tmp_path: Path) -> Non
     """A drifted catalog warns and answers from a live tree scan (exit 0)."""
     root = crafted_tree(tmp_path)
 
-    result = SkillsDiscover(SkillsCatalog()).discover("docs", as_root(root), 20)
+    result = SkillsDiscover(SkillsCatalog(), SkillsBm25fRanker()).discover("docs", as_root(root), 20)
 
     assert result.warning == DRIFT_WARNING
     assert "Catalog missing" in result.warning_detail
@@ -71,7 +72,7 @@ def test_drift_falls_back_to_the_tree_with_a_loud_warning(tmp_path: Path) -> Non
 def test_no_match_returns_an_empty_result(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     SkillsCatalog().rebuild(as_root(root))
-    result = SkillsDiscover(SkillsCatalog()).discover(
+    result = SkillsDiscover(SkillsCatalog(), SkillsBm25fRanker()).discover(
         "definitely-not-a-real-skill-term", as_root(root), 20
     )
     assert result.matches == ()

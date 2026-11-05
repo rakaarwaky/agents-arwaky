@@ -32,8 +32,8 @@ def map_to_legacy_score(score: float) -> int:
     return max(0, round(score * BM25F_SCORE_SCALE))
 
 __all__ = [
-    "BM25FHit",
     "BM25F_SCORE_SCALE",
+    "BM25FHit",
     "CatalogCheckResult",
     "CatalogReport",
     "DiscoveryMatch",
