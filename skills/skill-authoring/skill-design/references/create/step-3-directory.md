@@ -23,7 +23,7 @@ sdc catalog
 
 Without `--apply` the `create category` command previews the plan; with it, the category folder and `DESCRIPTION.md` are written.
 
-**Catalog artifacts:** `sdc catalog --build` regenerates `catalog.json` at the skills root. `catalog.json` carries each skill's `name`, `description`, `when_to_use`, and `category`. `sdc catalog --check` drift-checks the artifact fail-closed.
+**Catalog artifacts:** `sdc catalog --build` regenerates `catalog.json` at the skills root. `catalog.json` carries each skill's `name`, `description`, `when_to_use`, and `category`. The drift check (exit 3) is available at the agent level; it is not a CLI flag on `sdc catalog`.
 
 ## Completion
 

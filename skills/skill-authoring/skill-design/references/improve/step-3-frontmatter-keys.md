@@ -14,3 +14,7 @@ Which keys are mandatory is a Global Rule; this table is the full key reference,
 | `disable-model-invocation` | Optional | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it. |
 | `paths`, `model`, `effort`, `allowed-tools`, `license`, `compatibility`, `origin`, `metadata` | Optional | Grok Build controls. |
 | anything else (`version`, `author`, `platforms`, ...) | Optional | Target-dependent; match the field set the destination validator enforces. |
+
+## Completion
+
+- Can state every mandatory key (`name`, `description`, `when-to-use`, `argument-hint`) and which optional keys apply to the target skill; `description`/`when-to-use`/`argument-hint` spelling verified against the Global Rules key reference.
