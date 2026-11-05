@@ -355,12 +355,6 @@
       "category": "skill-authoring"
     },
     {
-      "name": "skill-router",
-      "description": "Route tasks to a Hermes skill via the jev-router CLI.",
-      "when_to_use": "Use when deciding which of Hermes's skills fits a task request — before manually scanning the skills list, or to verify a skill choice. Invoked by name in prompts, or when the user asks 'which skill handles X'.",
-      "category": "skill-authoring"
-    },
-    {
       "name": "skill-traces",
       "description": "Learns from, evolves, and unlearns skills from Grok Build session traces in one pass. --learn creates skills for repeated hand-typed instructions and open gaps; --evolve fixes stale lines in loaded skills; --unlearn retires skills the traces show are never used. Deterministic counts and repeated-phrase material come from the trace pipeline (usage.json, phrases.json); a narrow window lists but does not retire.",
       "when_to_use": "Use when the user wants to learn new skills from repeated hand-typed instructions, evolve stale skill lines to match current reality, or retire skills the traces show they never use. Pick one or more modes: --learn, --evolve, --unlearn; the trace pipeline runs once and every mode applies its own action kinds.",
