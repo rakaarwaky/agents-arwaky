@@ -9,7 +9,7 @@ Run the steps in order.
 | Step | File | What it does |
 | ---- | ---- | ------------ |
 | 1 | [`step-1-scope.md`](step-1-scope.md) | Resolve the target skill set from the path. |
-| 2 | [`step-2-body-format.md`](step-2-body-format.md) | Enforce the `# Title` / `## Global rules` / `## Routing` body shape. |
+| 2 | [`step-2-body-format.md`](step-2-body-format.md) | Enforce the `# Title` / `## Rules` / `## Routing` body shape. |
 | 3 | [`step-3-frontmatter-keys.md`](step-3-frontmatter-keys.md) | Full frontmatter key reference (mandatory + optional). |
 | 4 | [`step-4-validator-catalog.md`](step-4-validator-catalog.md) | What `sdc lint` enforces, rule by rule. |
 | 5 | [`step-5-naming-detail.md`](step-5-naming-detail.md) | Naming conventions and rename mechanics. |

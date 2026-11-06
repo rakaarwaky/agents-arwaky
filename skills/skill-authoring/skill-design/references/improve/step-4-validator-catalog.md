@@ -28,4 +28,4 @@ Run `sdc lint` (whole pack) or `sdc lint --category <name>` (scoped) to see whic
 `sdc lint` is a mechanical gate on frontmatter, naming, placement, uniqueness, and reference linking. It does **not** verify:
 
 - **Dangling cross-skill refs** — `related_skills:` and sibling mentions are existence-checked manually, not by lint. Resolve each named skill against the tree; lint will not flag a ref to a skill that does not exist.
-- **Body shape** — the three-section rule (`# Title` / `## Global rules` / `## Routing`) is enforced by convention and the pre-publish checklist, not by any lint rule. A body that drifts into prose sections still passes lint.
+- **Body shape** — the three-section rule (`# Title` / `## Rules` / `## Routing`) is enforced by convention and the pre-publish checklist, not by any lint rule. A body that drifts into prose sections still passes lint.

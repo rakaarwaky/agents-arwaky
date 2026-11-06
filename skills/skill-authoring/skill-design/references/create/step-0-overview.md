@@ -1,6 +1,6 @@
 # Create — Step 0: Overview
 
-Autonomous workflow for creating a new skill from scratch — default runs write without confirmation; `--dry-run` stops after the report. Design rules and frontmatter constraints are Global Rules in `SKILL.md`; these files hold only the step order.
+Autonomous workflow for creating a new skill from scratch — default runs write without confirmation; `--dry-run` stops after the report. Design rules and frontmatter constraints are Rules in `SKILL.md`; these files hold only the step order.
 
 **Goal:** produce a publishable `SKILL.md` + `references/` for a job the user describes, ending at the pre-publish checklist with the skill registered in the catalog.
 

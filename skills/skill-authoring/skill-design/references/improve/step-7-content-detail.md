@@ -8,7 +8,7 @@
 - Prefer referencing existing CLI tools over writing custom scripts.
 - MCP tools named fully qualified (`ServerName:tool_name`).
 - Forward slashes in paths (`scripts/helper.py`); no time-sensitive content in the body.
-- **Safety-model consistency**: when the user re-specifies which mode control flag governs the run (e.g. `--dry-run` vs `--headless` vs no flag), the single source of truth is the **Safety model** bullet in `SKILL.md` Global Rules. Sync that bullet, the `argument-hint` in frontmatter, and every step-file line that describes mode behavior — all three must agree on default-vs-flag semantics before the edit is considered done.
+- **Safety-model consistency**: when the user re-specifies which mode control flag governs the run (e.g. `--dry-run` vs `--headless` vs no flag), the single source of truth is the **Safety model** bullet in `SKILL.md` Rules. Sync that bullet, the `argument-hint` in frontmatter, and every step-file line that describes mode behavior — all three must agree on default-vs-flag semantics before the edit is considered done.
 
 ## Completion
 

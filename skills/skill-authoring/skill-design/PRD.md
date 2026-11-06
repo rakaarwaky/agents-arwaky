@@ -34,7 +34,7 @@ Persona priority: **Skill Maintainer agent** first (bulk consolidation, prune, c
 
 - The three invocation modes `--create`, `--improve`, `--prune`.
 - Mandatory frontmatter keys `name`, `description`, `when-to-use`, `argument-hint`.
-- The body shape: exactly one `# Title`, one `## Global rules`, one `## Routing`.
+- The body shape: exactly one `# Title`, one `## Rules`, one `## Routing`.
 - Reference files under `references/` and optional `scripts/<file>`.
 - The safety model: `--dry-run` report-only, destructive actions to `_archive/`, rollback via snapshot SHA.
 
@@ -59,7 +59,7 @@ Persona priority: **Skill Maintainer agent** first (bulk consolidation, prune, c
 
 #### Proposed Solution
 
-The `--create` path copies `template/skill.md` (registered in `template/template.md`), fills the four mandatory frontmatter keys, writes exactly three body sections (`# Title`, `## Global rules`, `## Routing`), and creates each reference file from its canonical template. A completion grep on the body shape plus `sdc lint` confirms publication readiness.
+The `--create` path copies `template/skill.md` (registered in `template/template.md`), fills the four mandatory frontmatter keys, writes exactly three body sections (`# Title`, `## Rules`, `## Routing`), and creates each reference file from its canonical template. A completion grep on the body shape plus `sdc lint` confirms publication readiness.
 
 #### Main User Flow
 

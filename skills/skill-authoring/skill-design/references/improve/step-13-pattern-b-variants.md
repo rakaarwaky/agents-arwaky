@@ -36,7 +36,7 @@ Every other flat reference in the target skill that is actually a pipeline step 
 After the renames, grep the whole target skill directory for each old filename. Every hit is an incomplete rename. The link sites to fix:
 
 - `SKILL.md` Routing table rows.
-- `SKILL.md` Global Rules bullets that mention a reference file by name (language routing, report format, verification gates, etc.).
+- `SKILL.md` Rules bullets that mention a reference file by name (language routing, report format, verification gates, etc.).
 - Reference-to-reference links (a step file that links to a sibling step file, or to the report-format file).
 - The target skill's own `description:` and `when-to-use:` fields only if they name a reference file (rare).
 
@@ -48,7 +48,7 @@ A restructure into `step-<N>[a|b|c]` is often paired with a user instruction abo
 
 - Edit `SKILL.md` `argument-hint:` to the user's exact form (e.g. `<path> [--dry-run]`).
 - Edit every step file that carries a blocking approval step, a "wait for explicit approval" line, a Dry-Run Mode section, a verification checklist item, or a decision-flowchart branch. Grep the whole directory for `approv`, `wait for`, `explicit confirmation`, `default mode`, and the flag name (both bare and backtick-wrapped). Each hit is re-worded to the new semantics.
-- The new default mode and the flag's gated mode must be stated in exactly two places: a `SKILL.md` Global Rules bullet (the safety-model flip, stated once) and the affected step files (the per-step application of that bullet). No third copy.
+- The new default mode and the flag's gated mode must be stated in exactly two places: a `SKILL.md` Rules bullet (the safety-model flip, stated once) and the affected step files (the per-step application of that bullet). No third copy.
 
 ### 6. Verify the final shape
 

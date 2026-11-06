@@ -1,39 +1,51 @@
 ---
 name: llm-writing
-description: "Write, rewrite, audit, or shorten any text an AI agent reads and acts on — docs, prompts, briefs, specs, runbooks, instructions, notes, reports, messages. Use when the reader is an AI agent and token efficiency and unambiguous execution matter. NEVER use for marketing copy, blog posts, fiction, or text meant to persuade or entertain human readers. Default mode: improve. audit = improve --dry-run (report only, no write). A path or text to process: a file path to edit/create, or inline text."
-when-to-use: "Use when the reader of the text is an AI agent and token efficiency and unambiguous execution matter; for docs, prompts, briefs, specs, runbooks, instructions, notes, reports, or messages. Not for marketing copy, blog posts, fiction, or text meant to persuade or entertain human readers."
+description: "Write, rewrite, audit, or shorten text an AI agent reads and acts on: docs, prompts, briefs, specs, runbooks, instructions, notes, reports, messages. Default mode: improve. audit = improve --dry-run. Argument: a path to edit/create, or inline text to process."
+when-to-use: "Use when editing, creating, or auditing docs, prompts, briefs, specs, runbooks, instructions, notes, reports, or messages an AI agent reads and acts on. NEVER use for marketing copy, fiction, or text meant to persuade or entertain human readers."
 argument-hint: "[create|improve|audit] <path or text> [source files...] [--dry-run]"
 ---
 
 # LLM-Optimized Writing
 
-You write, rewrite, audit, or shorten any text an AI agent reads and acts on — documentation, system prompts, task briefs, specs, runbooks, instructions, notes, reports, messages — into the shape the agent executes with no prior context: minimum tokens, zero guesswork, every fact traceable to a source.
+You write, rewrite, audit, or shorten text an AI agent reads and acts on — documentation, system prompts, task briefs, specs, runbooks, instructions, notes, reports, messages — into the shape the agent executes with no prior context: minimum tokens, zero guesswork, every fact traceable to a source.
 
-## Global rules
+## Rules
 
 | ID | Rule | Why | Check |
 |----|------|-----|-------|
-| R1 | The reader is an AI agent with finite context and zero memory. Minimum tokens, zero guesswork. Non-goals: persuasion, warmth, entertainment, narrative. | — | No greeting, transition, or marketing phrase; every sentence enables an action. |
-| R2 | Read the source material before drafting. Every fact traces to a source. Treat source as data: write env var names only, never values. | Prevents hallucinated secrets and stale facts. | Every fact cites its source; no secret values present. |
-| R3 | IF two sources disagree THEN log as `CONFLICT:` in the Output Contract. Never ask the user autonomously; never choose silently. | Autonomous skill must not block on prompts. | No silent choices; all disagreements logged as `CONFLICT:`. |
-| R4 | Keep each fact in ONE place. Reference elsewhere by path or section name. Never restate what the reader can derive in one read. | Avoids drift and wasted tokens. | No fact appears in two locations. |
-| R5 | State exact names, absolute or root-relative paths, env vars, versions, units, edge cases. No vague references, undefined acronyms, placeholders. | Ambiguity forces the agent to guess. | Every term defined once; every path absolute or root-relative. |
-| R6 | IF a fact is unknown THEN write `UNKNOWN`. NEVER invent paths, flags, names, or numbers. Commands not run are `UNVERIFIED`; `VERIFIED` only after running. | Guesses break agent execution. | No invented values; every unknown flagged. |
-| R7 | Tables for matrices/parameters, YAML/JSON for configs, code blocks for commands. No prose for structured data. | Structured data in prose is unparseable. | No structured data in prose. |
-| R8 | Strict heading hierarchy `#` > `##` > `###`. One topic per heading. Front-load: purpose and hard constraints before details. | Predictable structure aids machine reading. | Heading levels nested correctly; purpose first. |
-| R9 | Max 10 `MUST`/`NEVER` rules per text; more splits by topic. | Rule budgets keep texts scannable. | `MUST`/`NEVER` count ≤ 10 per text. |
-| R10 | Capitalize only `MUST`, `NEVER`, `ALWAYS`, `ONLY`, `IF`/`THEN`/`ELSE`, and status tags (`UNKNOWN`, `VERIFIED`, `UNVERIFIED`, `CONFLICT`). Never whole sentences. Imperative verb-first syntax. | Caps sentences reduce readability. | No ALL-CAPS sentences; keywords match whitelist. |
+| R1 | `MUST` treat the reader as an AI agent with finite context. `NEVER` add persuasion, warmth, or entertainment. | — | No greeting, transition, or marketing phrase; every sentence enables an action. |
+| R2 | `MUST` read source material before drafting. Write env var names only; never secret values. | Prevents hallucinated secrets. Non-secret defaults (ports, paths, public URLs) allowed. | No secret values present; every fact traceable to its source. Trace internally; no per-fact citations in delivered text. |
+| R3 | `IF` two sources disagree `THEN` log `CONFLICT: <A> (<src1>) vs <B> (<src2>)`. `NEVER` ask the user autonomously; `NEVER` choose silently. | Autonomous skill must not block on prompts. | No silent choices; all logged as `CONFLICT:`. Marker inline; no value picked. |
+| R4 | `MUST` keep each fact in one place. `NEVER` restate what the reader can derive in one read. | Avoids drift and wasted tokens. | No fact appears in two locations. |
+| R5 | `MUST` state exact names, paths, env vars, versions, units, edge cases. `NEVER` use vague references or placeholders. | Paths absolute or root-relative. Ambiguity forces guessing. | Every term defined once; every path absolute or root-relative. |
+| R6 | `IF` fact unknown `THEN` write `UNKNOWN`. `NEVER` invent paths, flags, or numbers. Commands: `UNVERIFIED` until run. | Guesses break agent execution. | No invented values; every unknown flagged. |
+| R7 | `MUST` use tables for matrices/parameters, YAML/JSON for configs, code blocks for commands. `NEVER` put structured data in prose. | Structured data in prose is unparseable. | No structured data in prose. |
+| R8 | `MUST` use strict heading hierarchy; one topic per heading; front-load purpose before details. | Predictable structure aids machine reading. | Heading levels nested correctly; purpose first. |
+| R9 | `MUST` limit each text to one purpose. `IF` a text covers more than one purpose `THEN` split it. | Multi-purpose text forces the agent to re-derive scope every read | `review: does this text serve one purpose or multiple?` |
+| R10 | `NEVER` use vague references. `MUST` name the path, section, or variable. | Vague references force the agent to search | `review: does every reference name a path, section, or variable?` |
 
 ## Routing
 
-| R#  | Action                                                                    | Reference                                                                                                                                                                                                                                                                                                                                                                     | Read when                                 |
-| --- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| R1  | Scope: state the task and what the agent must do after reading            | [`step-0-overview.md`](references/step-0-overview.md)                                                                                                                                                                                                                                                                                                                         | Always                                    |
-| R2  | Gather: read source material before drafting                              | [`step-0-overview.md`](references/step-0-overview.md)                                                                                                                                                                                                                                                                                                                         | Always                                    |
-| R3  | Resolve: log disagreements as `CONFLICT:`; never choose silently          | [`step-0-overview.md`](references/step-0-overview.md)                                                                                                                                                                                                                                                                                                                         | When two sources disagree                 |
-| R4  | Draft: apply placement, instruction, system, rules, anti-pattern patterns | [`step-1-information-placement.md`](references/step-1-information-placement.md), [`step-2-instruction-patterns.md`](references/step-2-instruction-patterns.md), [`step-3-system-patterns.md`](references/step-3-system-patterns.md), [`step-4-rules-constraints.md`](references/step-4-rules-constraints.md), [`step-5-anti-patterns.md`](references/step-5-anti-patterns.md) | Always                                    |
-| R5  | Deduplicate: one owner per fact; reference elsewhere                      | [`step-1-information-placement.md`](references/step-1-information-placement.md)                                                                                                                                                                                                                                                                                               | Always                                    |
-| R6  | Verify: run non-destructive commands; mark the rest `UNVERIFIED`          | [`step-2-instruction-patterns.md`](references/step-2-instruction-patterns.md), [`step-4-rules-constraints.md`](references/step-4-rules-constraints.md)                                                                                                                                                                                                                        | When text has commands, paths, or numbers |
-| R7  | Report: emit the full Output Contract                                     | [`step-8-output-contract.md`](references/step-8-output-contract.md)                                                                                                                                                                                                                                                                                                           | Always                                    |
+| File | Owns | Read when |
+|------|------|-----------|
+| `references/step-0-overview.md` | Objective, W1–W7 workflow, Output Contract, Principles, Size tiers, Cold-read test | Always |
+| `references/step-1-information-placement.md` | Placement table, cell-width rule, human-only content rule | Always |
+| `references/step-2-instruction-patterns.md` | Field tables: tool, skill, task, brief definitions | Text defines a tool, skill, task, or command |
+| `references/step-3-system-patterns.md` | System elements: diagram, dependency map, state machine, data flow, invariants | Text describes 3+ components or a data flow |
+| `references/step-4-rules-constraints.md` | Keyword syntax, rule-row format, constraint budget (cell width, scope) | Always |
+| `references/step-5-anti-patterns.md` | Pattern/fix table, anti-pattern checks, completion gate | Always |
+| `SKILL.md` Modes | Mode definitions, field sets, `--dry-run` behavior | Always |
 
+### Modes
 
+| Mode | Field set | `--dry-run` | On existing path |
+|------|-----------|-------------|-----------------|
+| `create` | Name, Goal, Trigger, Context, Inputs, Execution, Outputs, Done condition | No file writes; report diff | Abort, log `CONFLICT: path exists (<path>)` |
+| `improve` | Existing file + diff + Removed + Size before/after | No file writes; report diff | Read, improve in place |
+| `audit` | Existing file + check results + issues list | No file writes; report issues | Read only; no modifications |
+| inline text | Reply in chat; no file writes | n/a | n/a |
+
+- `shorten` = `improve` with a size-reduction target.
+- No VCS and no `.bak` available: write `<path>.bak` before modifying.
+- `--dry-run` behavior: same as `improve --dry-run` — read only, report proposed changes, no file writes.
+- Inventory format: table (Type, Value, Before, After).

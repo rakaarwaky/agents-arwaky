@@ -1,8 +1,8 @@
-# LLM Writing — Step 0: Objective, Workflow, Principles
+# LLM Writing — Step 0: Objective, Workflow, Principles, Size, Cold-Read Test
 
-The objective, the ordered workflow, and the design principles the drafting step applies. Design rules live in `SKILL.md` Global Rules; this reference owns the tables.
+Objective, ordered workflow, design principles, size tiers, and the cold-read test. Design rules live in `SKILL.md` Rules; this reference owns the tables.
 
-**Goal:** state the objective, run the W1–W7 workflow in order, and apply every principle to the draft.
+**Goal:** state the objective, run W1–W7 in order, apply every principle, run the cold-read test, and gate on size.
 
 ## Objective
 
@@ -10,66 +10,75 @@ The objective, the ordered workflow, and the design principles the drafting step
 |-------|-------|
 | Goal | Text an AI agent acts on correctly with no prior context |
 | Reader | AI agent, finite context window, zero organizational memory |
-| Scope | Any text an AI reads: docs, prompts, briefs, specs, runbooks, instructions, notes, reports, messages |
 | Success metric | Fewest tokens that still let the agent act without guessing |
 | Non-goal | Persuasion, warmth, entertainment, narrative explanation |
 
 ## Workflow
 
-| Action                                                                                                                                                                             | Exit condition                          |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| Scope: state in one line the task the text serves and what the agent must be able to do after reading it                                                                           | Purpose stated                          |
-| Gather: read source material per Global Rule R2 (facts traced to source, env var names only, no values)                                                                            | Every fact traced to a source           |
-| Resolve: log disagreements per Global Rule R3 (`CONFLICT:` entry, no silent choice)                                                                                                | Conflicts logged, none silent           |
-| Draft: apply the Principles table and the patterns in `step-1` through `step-5`. Use headings + tables                                                                             | Every section serves the stated purpose |
-| Deduplicate: keep each fact in ONE place per Global Rule R4; reference elsewhere by path or section name                                                                           | No fact appears twice                   |
-| Verify: run every non-destructive command; check every path, name, number, and link against the source. Destructive or unwritable commands are marked `UNVERIFIED` without running | All pass, or marked `UNVERIFIED`        |
-| Report: follow the Output Contract in `step-8-output-contract.md`                                                                                                                  | Report sent                             |
+| W# | Action | Exit condition |
+|----|--------|----------------|
+| W1 | Scope: state the task the text serves and what the agent must do after reading | Purpose stated |
+| W2 | Gather: read source material per Rule R2 (facts traced to source, env var names only, no secret values) | Every fact traced to a source |
+| W3 | Resolve: log disagreements per Rule R3 (`CONFLICT:` entry, no silent choice; delivered text shows the marker inline) | Conflicts logged, none silent |
+| W4 | Draft: apply the Principles table and patterns in `step-1` through `step-5`. Use headings + tables | Every section serves the stated purpose |
+| W5 | Deduplicate: keep each fact in one place per Rule R4; reference elsewhere by path or section name | No fact appears twice |
+| W6 | Verify: run only the allowlist (`--version`, `--help`, `test -e`, `ls`). Run every Rule Check. Run the cold-read test. | Allowlist commands pass or `UNVERIFIED`; Rule Checks run; cold-read passed or `UNVERIFIED` |
+| W7 | Report: follow the Output Contract section below | Report sent |
+
+## Output Contract
+
+The report emitted at the end of every run: deliverable, open items, Removed, Size, verification, `CONFLICT:`.
+
+### Field table
+
+| Field | Content | Applies to |
+|-------|---------|------------|
+| Deliverable | The produced text, or the proposed diff when `--dry-run` | All modes |
+| Open items | Open `UNKNOWN` entries, with the fact unknown | All modes |
+| Removed | Text or facts dropped from the existing file | `improve` only |
+| Size before/after | `wc -w` on target file, before and after | `improve` only |
+| Verification | Each command/claim as `VERIFIED` (ran, matches source) or `UNVERIFIED` (did not run) | All modes |
+| `CONFLICT:` entries | Each unresolved disagreement: `CONFLICT: <A> (<src1>) vs <B> (<src2>)` | All modes |
+
+### Verification table
+
+| Item | Status | Evidence |
+|------|--------|----------|
+| Each path | `VERIFIED` / `UNVERIFIED` | Source match |
+| Each number | `VERIFIED` / `UNVERIFIED` | Source match |
+| Each command | `VERIFIED` / `UNVERIFIED` | Ran / did not run |
+
+### Completion
+
+- Deliverable present (or proposed diff under `--dry-run`).
+- All open items listed as `UNKNOWN`.
+- Removed listed for `improve`; absent otherwise.
+- Size before/after present for `improve`; absent otherwise.
+- Verification table complete: every path, number, and command marked `VERIFIED` or `UNVERIFIED`.
+- All `CONFLICT:` entries listed; none silent.
+- `Size after` ≤ `Size before`, or the increase is justified in `Open items` (Eval 2).
+- `Removed` row present only in `improve` mode; absent in `create` and `audit` (Eval 1, Eval 3).
 
 ## Principles
 
 | Principle | Rule | Bad → Good |
 |-----------|------|------------|
-| Token density | Remove pleasantries, transitions, marketing. Keep facts | "Welcome! Let's dive in." → *(delete)* |
-| Front-load | Order: purpose, hard constraints, then details. Task before background | Background first, task last → task first, background after |
-| Structural predictability | Strict hierarchy: `#` > `##` > `###`. One topic per heading. Heading names state content | "Misc" → "Environment Variables" |
-| Explicit over implicit | State exact names, absolute or root-relative paths, env vars, versions, units, edge cases | "the config file" → `config/app.toml` |
-| Machine-readable data | Tables for matrices and parameters. YAML or JSON for configs. Code blocks for commands. No prose for structured data | "Port is 8080 unless set" → `PORT` \| default `8080` |
-| Imperative syntax | Verb first. Name trigger, action, expected output | "You might want to run tests" → "Run `cargo test`. Expect exit 0" |
 | Examples | Give one input → output example for any non-obvious format | "Use a short summary" → "Summary: 1 sentence, ≤ 20 words. Example: ..." |
-| Single source of truth | Define each term, command, and rule once. Reference the owner | Same build command in 3 places → 1 owner, 2 references |
 | Concrete quantities | Use numbers, not vague words | "large file" → `> 1 MB` |
 | Local payload | Summarize external content locally, marked `Summary of <url>, as of <date>`. Link only as supplement | "See wiki" → 3-row summary + link |
-| Honest gaps | IF a fact is unknown THEN write `UNKNOWN` or report `CONFLICT:`. NEVER invent paths, flags, names, or numbers | Guessed flag → `UNKNOWN: verify flag` |
 
-## Modes
+## Size Tiers
 
-Three modes share one argument-hint: `[create|improve|audit] <path or text> [source files...] [--dry-run]`.
+| Tier | Size limit | Notes |
+|------|-----------|-------|
+| Small | ≤ 500 words | Single task, no sub-docs |
+| Medium | ≤ 1500 words | Multi-step workflow, ≤ 3 sub-docs |
+| Large | ≤ 3000 words | System or library doc; split further if exceeded |
 
-| Mode | Default behaviour | With `--dry-run` |
-|------|-------------------|------------------|
-| `create` | Write a new file at `<path>` and report via the Output Contract | Print the full proposed content, then the Output Contract; do NOT write the file |
-| `improve` | Edit the target file in place (requires clean VCS or `.bak`). Inventory facts before (existing file) and after (proposed diff), plus the Removed field, and report via the Output Contract | Print the unified diff, then the Output Contract; do NOT write the file |
-| `audit` | Same as `improve --dry-run` | Read-only checks only; side-effect commands marked `UNVERIFIED`; open items kept |
+`Size before/after` is measured with `wc -w` on the target file and reported in the Output Contract for `improve` runs.
 
-`--dry-run` (optional, all modes): autonomous execution ON, no confirmation prompt. Runs read-only checks only; commands with side effects are not run and marked `UNVERIFIED`. Prints proposed content/diff first, then the full Output Contract (deliverable, open `UNKNOWN`/`UNVERIFIED` items, `CONFLICT:` entries). No file is modified. No side effects.
+## Cold-Read Test
 
-Without `--dry-run`: the skill acts autonomously through all steps and ends with the full Output Contract report.
+A subagent receives only the delivered text and the stated task, with no access to the source material. Pass = zero questions or assumptions. Cap at 2 rewrites; if still failing after 2, mark `UNVERIFIED`. No subagent tool available → `UNVERIFIED`.
 
-## Cold-read test (success metric validation)
 
-A fresh agent, given only the delivered text, must be able to perform the stated task without guessing. If it cannot, the text fails — rewrite until it passes.
-
-## Size tiers (template applicability)
-
-| Size | Template |
-|------|----------|
-| Under 150 words | No template; purpose + rules only |
-| 150+ words | Full 5-section template |
-
-## Completion
-
-- Objective stated with purpose, reader, and success metric.
-- Workflow W1–W7 executed in order; each exit condition met.
-- Every principle applied at draft time, not as a post-hoc patch.
-- Cold-read test passes.

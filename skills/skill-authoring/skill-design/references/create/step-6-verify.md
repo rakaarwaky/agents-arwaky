@@ -1,6 +1,6 @@
 # Create — Step 6: Verify and report
 
-- [ ] Read the file back and confirm frontmatter and body landed correctly, and the body matches `template/skill.md` (`# <Skill Name>` / `## Global Rules` / `## Routing`).
+- [ ] Read the file back and confirm frontmatter and body landed correctly, and the body matches `template/skill.md` (`# <Skill Name>` / `## Rules` / `## Routing`).
 - [ ] Run `sdc lint` and the pre-publish checklist in `../improve/step-8-prepublish-checklist.md`.
 - [ ] `sdc read <name>` — confirm the skill is registered and the frontmatter parses.
 - [ ] Tell the user how to invoke it (slash command, skills menu, description matching — whichever the target harness provides).

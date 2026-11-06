@@ -11,8 +11,9 @@ Field tables and templates for defining tools, skills, tasks, and commands in ag
 | Tool | Tool definitions |
 | Skill | Skill definitions |
 | Task | Task definitions |
-| Command | Command definitions |
 | Brief | Task briefs |
+
+**Task vs Brief:** a Task is the work item an agent performs; a Brief is the packaged instruction (Goal, Trigger, Context, Inputs, Constraints, Execution, Outputs, Done condition, Error handling) handed to the agent to do the Task. Every Brief serves exactly one Task.
 
 ## Tool, Skill, and Task Definitions
 
@@ -20,7 +21,7 @@ Field tables and templates for defining tools, skills, tasks, and commands in ag
 |-------|---------|------|---------|
 | Name | Exact identifier | Matches code or config verbatim | Tool, Skill, Task |
 | Goal | One-line outcome wanted | Verb first. Measurable | Tool, Skill, Task, Brief |
-| Trigger | `Use when [condition]. NEVER use for [anti-pattern].` | Both halves required | Tool, Skill, Task |
+| Trigger | `Use when <condition>. NEVER use for <anti-pattern>.` | Both halves required | Tool, Skill, Task |
 | Context | Facts the agent lacks: state, background, prior decisions | Include only facts that change the action | Tool, Skill, Task, Brief |
 | Inputs | Parameter schema or provided materials | Mark each required or optional. Give type, default, example | Tool, Skill, Task |
 | Constraints | Hard limits: scope, forbidden actions, budgets | Rule row format from `step-4-rules-constraints.md` | Tool, Skill, Task, Brief |
@@ -33,7 +34,10 @@ Field tables and templates for defining tools, skills, tasks, and commands in ag
 
 ```yaml
 name: <identifier>
+goal: <one-line outcome>
 trigger: "Use when <condition>. NEVER use for <anti-pattern>."
+context:
+  - <fact the agent lacks>
 inputs:
   - name: <param>
     type: <type>
@@ -65,11 +69,18 @@ on_error:
 ## Trigger
 Use when <condition>. NEVER use for <anti-pattern>.
 
+## Context
+<Facts the agent lacks>
+
 ## Inputs
 | Item | Value | Required |
 |------|-------|----------|
 
-## Steps
+## Constraints
+| Rule | Check |
+|------|-------|
+
+## Execution
 | Step | Action | Expected |
 |------|--------|----------|
 
@@ -78,6 +89,10 @@ Use when <condition>. NEVER use for <anti-pattern>.
 
 ## Done condition
 <Boolean, verifiable without judgment>
+
+## Error handling
+| Symptom | Cause | Action |
+|---------|-------|--------|
 ```
 
 ## Commands
@@ -87,7 +102,7 @@ Use when <condition>. NEVER use for <anti-pattern>.
 | Format | One code block per command. No prompts (`$`) in copy-pasteable lines |
 | Context | State `cwd`, required env vars, and prerequisites |
 | Expectation | State expected exit code or output signature |
-| Verification | `VERIFIED` only after running; else `UNVERIFIED` (Global Rule R6) |
+| Verification | `VERIFIED` only after running; else `UNVERIFIED` (Rule R6) |
 
 The `VERIFIED`/`UNVERIFIED` marker sits in an adjacent column or field, never inside a copy-paste command block.
 
@@ -97,3 +112,4 @@ The `VERIFIED`/`UNVERIFIED` marker sits in an adjacent column or field, never in
 - Trigger fields contain both halves: `Use when ...` and `NEVER use for ...`.
 - Every command states cwd, prerequisites, expectation, and its verification status.
 - Error handling rows include Symptom, Cause, and Action.
+- All fields present and filled; no placeholders and no `UNKNOWN` without justification (Eval 1).

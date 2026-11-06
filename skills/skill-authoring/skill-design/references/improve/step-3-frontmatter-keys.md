@@ -2,13 +2,13 @@
 
 **Goal:** you can state which frontmatter keys the target skill's `SKILL.md` must carry, which are optional Grok Build controls, and which are target-dependent, from the complete key reference.
 
-Which keys are mandatory is a Global Rule; this table is the full key reference, including the optional ones.
+Which keys are mandatory is a Rule; this table is the full key reference, including the optional ones.
 
 | Field | Required | Notes |
 | ----- | -------- | ----- |
 | `name` | Yes | Validator rules `name-format`, `name-mismatch`. |
 | `description` | Yes | Validator rules `description-*`. Keep it on one line (quoted when needed); a `>-` block scalar that runs straight into the `# Title` heading is dropped by the `sdc` parser and fires `missing-description`. |
-| `when-to-use` | Yes | Dedicated trigger phrases; Grok Build matches it together with `description`. Same 1,024-char limit as `description` (Global Rules: Grok Build parser limits). |
+| `when-to-use` | Yes | Dedicated trigger phrases; Grok Build matches it together with `description`. Same 1,024-char limit as `description` (Rules: Grok Build parser limits). |
 | `argument-hint` | Yes | Slash-command autocomplete hint, e.g. `<command> [--flag]`. |
 | `user-invocable` | Optional | Boolean, default `true`. `false` hides the skill from slash commands and the model's skill tool. |
 | `disable-model-invocation` | Optional | Boolean, default `false`. `true` keeps the skill out of the model's listing; slash commands still run it. |
@@ -17,4 +17,4 @@ Which keys are mandatory is a Global Rule; this table is the full key reference,
 
 ## Completion
 
-- Can state every mandatory key (`name`, `description`, `when-to-use`, `argument-hint`) and which optional keys apply to the target skill; `description`/`when-to-use`/`argument-hint` spelling verified against the Global Rules key reference.
+- Can state every mandatory key (`name`, `description`, `when-to-use`, `argument-hint`) and which optional keys apply to the target skill; `description`/`when-to-use`/`argument-hint` spelling verified against the Rules key reference.

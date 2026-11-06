@@ -14,6 +14,8 @@ Keyword syntax, the rule-row format, and the constraint budget.
 | `ALWAYS` | Holds in every case, no exceptions | Stronger than MUST; use sparingly |
 | `IF / THEN / ELSE` | Conditional logic | Condition must be checkable: file exists, exit code, flag value |
 
+All keywords are backticked everywhere. Plain `MUST`, `NEVER`, `IF`, `THEN`, `ALWAYS` without backticks is a violation.
+
 ## Rule Row Format
 
 | ID | Rule | Why (≤ 1 line) | Check |
@@ -23,18 +25,48 @@ Keyword syntax, the rule-row format, and the constraint budget.
 | R3 | `NEVER` invent a path, flag, or number | Guesses break agent execution | Value traces to a source or is `UNKNOWN` |
 | R4 | `ALWAYS` state `cwd` before a command | Agent runs from the wrong directory | `cwd` field present |
 
-Why is required only for non-obvious rules; omit for self-evident ones. Checks may be mechanical (`<command>` exits 0) or a review (`review: <question>`, e.g. `review: does the path match the repo?`).
+Why is required only for non-obvious rules; omit for self-evident ones.
+
+Check types:
+- Mechanical: `<command>` exits 0
+- Review: `review: <question>` (e.g. `review: does the path match the repo?`)
+
+`R#` in the "ID" column refers to a text-specific rule row, not to the `SKILL.md` Rules R1–R10.
 
 ## Constraints
 
-| Constraint | Value |
-|------------|-------|
-| Rule budget | Max 10 `MUST`/`NEVER` rule rows per text; more splits by topic. Unit: rule rows per text. |
-| Why-column length | 1 line. Required only for non-obvious rules. |
-| Keyword style | Backticked everywhere: `MUST`, `NEVER`, `ONLY`, `ALWAYS`, `IF`/`THEN`/`ELSE`. Never plain, never whole sentences. |
+| Constraint | Value | Owner |
+|------------|-------|-------|
+| Rule budget | Max 10 `MUST`/`NEVER` rule rows per text; more splits by topic | `SKILL.md` R9 |
+| Cell width | Every table cell holds ≤ 20 words. Longer content moves to a code block or separate section | `step-1` + `step-4` |
+| Why-column length | 1 line. Required only for non-obvious rules | `step-4` |
+| Keyword style | Backticked: `MUST`, `NEVER`, `ONLY`, `ALWAYS`, `IF`/`THEN`/`ELSE`. No plain, no whole sentences | `step-4` |
+
+## R9 — Scope Limit
+
+| Field | Value |
+|-------|-------|
+| Rule | `MUST` limit each text to one purpose. `IF` a text covers more than one purpose `THEN` split it. |
+| Why | Multi-purpose text forces the agent to re-derive scope every read |
+| Check | `review: does this text serve one purpose or multiple?` |
+
+## R10 — No Vague References
+
+| Field | Value |
+|-------|-------|
+| Rule | `NEVER` use vague references. `MUST` name the path, section, or variable. |
+| Why | Vague references force the agent to search |
+| Check | `review: does every reference name a path, section, or variable?` |
+
+## Examples (not rules)
+
+| E# | Example | Source |
+|----|---------|--------|
+|| E1 | `cargo fmt` check before commit | R1 rule row above ||
+|| E2 | State `cwd` before a command | R4 rule row above ||
 
 ## Completion
-
-- Every `MUST`/`NEVER`/`ALWAYS`/`ONLY` is capitalized as a keyword only, never mid-sentence, always backticked.
-- Rule count per text ≤ 10, or the rules are split by topic.
-- Every rule row has a Check; non-obvious rules have a 1-line Why.
+- Every keyword backticked: `MUST`, `NEVER`, `ONLY`, `ALWAYS`, `IF`/`THEN`/`ELSE` (Eval 2).
+- No vague references; every reference names a path, section, or variable (Eval 1, Rule R10).
+- Every Rule Check in this step passes or is logged as `CONFLICT:` (Eval 2).
+- Every table cell holds ≤ 20 words (Eval 2).

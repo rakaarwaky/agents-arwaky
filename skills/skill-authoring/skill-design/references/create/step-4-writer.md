@@ -18,7 +18,7 @@ sdc create skill <name> --category <cat> --apply
 sdc catalog
 ```
 
-The ~60-char index budget and the 1,024-char parser limit (Global Rules: Grok Build parser limits) are different ceilings: the parser accepts long descriptions, the index display clips them.
+The ~60-char index budget and the 1,024-char parser limit (Rules: Grok Build parser limits) are different ceilings: the parser accepts long descriptions, the index display clips them.
 
 ## Completion
 
