@@ -25,12 +25,6 @@
       "category": "automation"
     },
     {
-      "name": "aa-cli-bootstrap",
-      "description": "Fix aa CLI bootstrap: path resolution and namespace init.",
-      "when_to_use": "",
-      "category": "autonomous-ai-agents"
-    },
-    {
       "name": "grok-build",
       "description": "Delegates coding and multi-agent orchestration to the local Grok Build CLI over the OmniRoute gateway (model myomniroute, not an xAI subscription) — headless one-shots, interactive PTY/TUI sessions, PR reviews, and Rhai workflow authoring. Use when a coding task should go to Grok instead of being implemented inline, or when the user wants to author or automate a workflow pipeline (/create-workflow, /implement, /design, /execute-plan). Sibling of the orca skill: orca owns the worktrees and terminals; this drives the grok CLI inside them. Backed by the local OmniRoute gateway (myomniroute).",
       "when_to_use": "Use when the user asks to build a feature, refactor, review a PR, or fix issues via Grok Build; when a coding task should be delegated to Grok instead of implemented inline; or when the user wants to author a Rhai workflow, automate a multi-agent pipeline, or runs /create-workflow, /implement, /design, /execute-plan. Observed user phrasing: '/implement paths cek dpc rules', '/implement ... buat pr untuk perbaiki template dari PRD', '/design file palse redesign rules aes ... remove all legacy', 'fix doc violations in crate', 'find any segfault error in my environment and clean it', 'we need to spawn sub agent to make all FRD becoming real FRD'.",
@@ -91,18 +85,6 @@
       "category": "code-quality"
     },
     {
-      "name": "architecture-diagram",
-      "description": "Dark-themed SVG architecture/cloud/infra diagrams as HTML.",
-      "when_to_use": "Use when the user asks for architecture, cloud, or infrastructure diagrams — system topology, microservice mesh, VPC/region/subnet layout, database/API maps, or any dark-themed SVG diagram as a standalone HTML file.",
-      "category": "content-creation"
-    },
-    {
-      "name": "baoyu-infographic",
-      "description": "Infographics: 21 layouts x 21 styles (信息图, 可视化).",
-      "when_to_use": "Use when the user asks for an infographic, visual summary, or information graphic — they provide content (text, file, URL, topic) and optionally layout, style, aspect ratio, or language. Triggers include 信息图, 可视化, 高密度信息大图.",
-      "category": "content-creation"
-    },
-    {
       "name": "blender-arwaky",
       "description": "Blender asset search, GLB import/export, scene assembly, and rendering via MCP or CLI.",
       "when_to_use": "Use when scripting Blender, placing GLB/assets, rendering frames, or managing Blender scenes via CLI or MCP execute_command.",
@@ -115,15 +97,9 @@
       "category": "content-creation"
     },
     {
-      "name": "game-assets",
-      "description": "Game art and 3D models with the Imagine tools: sprites, sprite sheets, animation cycles and FX, tilesets and seamless terrain, character turnarounds and variants, UI, HUD, icons, logos; textured 3D models (.glb) from an image for Three.js, Unity, Godot or Unreal.",
-      "when_to_use": "Any game asset or game art, 2D or 3D; a 3D model, mesh or GLB from a picture; \"make this 3D\"; /game-assets.",
-      "category": "content-creation"
-    },
-    {
       "name": "llm-writing",
-      "description": "Write, rewrite, or shorten text an AI agent reads and acts on: docs, prompts, briefs, specs, runbooks, instructions, notes, reports, messages. Default mode: improve. Argument: a path to edit/create, or inline text to process.",
-      "when_to_use": "Use when editing or creating docs, prompts, briefs, specs, runbooks, instructions, notes, reports, or messages an AI agent reads and acts on. NEVER use for marketing copy, fiction, or text meant to persuade or entertain human readers.",
+      "description": "Create or improve docs: minimum tokens, exact names, zero AI slop.",
+      "when_to_use": "Use ONLY for concise document creation (--create) or for improving existing text (--improve).",
       "category": "content-creation"
     },
     {
@@ -133,11 +109,9 @@
       "category": "content-creation"
     },
     {
-
-    {
-      "name": "playwright-cache-restore",
-      "description": "Restore Playwright browser cache (Chromium, headless shell, FFmpeg) when the CDN is unreachable or `playwright install` times out. Use when `playwright install chromium` fails on a network-restricted host, manually placed browser dirs are wiped every run, or headless-shell/FFmpeg is missing from `~/.cache/ms-playwright/`.",
-      "when_to_use": "Use when `playwright install` times out or fails on GFW/corporate proxy/data-cap hosts, `curl` reaches the CDN but Playwright's Node fetch cannot, browser dirs are wiped on each run, or headless-shell/FFmpeg is missing.",
+      "name": "playwright-tooling",
+      "description": "Recover Playwright browser cache on restricted hosts.",
+      "when_to_use": "Use when playwright install times out on a network-restricted host, manually placed browser dirs are wiped every run, or headless-shell/FFmpeg is missing from the Playwright cache.",
       "category": "devops"
     },
     {
@@ -168,12 +142,6 @@
       "name": "github-auth",
       "description": "GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login (browser and device flow).",
       "when_to_use": "When gh is not authenticated or git lacks a token — run gh auth login (browser or device flow) or configure a git HTTPS token/SSH key so the agent can push, open PRs, and read issues via gh or git.",
-      "category": "git"
-    },
-    {
-      "name": "gitignore-audit",
-      "description": "Find .gitignore coverage gaps and add missing rules.",
-      "when_to_use": "",
       "category": "git"
     },
     {
@@ -231,9 +199,9 @@
       "category": "media-content"
     },
     {
-      "name": "music-library-downloader",
-      "description": "Downloads named song lists to a local MP3 library via mdl, resolving each song to a YouTube Music URL.",
-      "when_to_use": "Use when the user wants to download songs (by title + artist) to a local MP3 music library, or build/replenish a music library from a named list.",
+      "name": "music-downloader",
+      "description": "Download music lists to a local MP3 library via mdl.",
+      "when_to_use": "Use when the user wants to download songs to a local MP3 music library, build/replenish a music library from a named list, or acquire media assets from external sources.",
       "category": "media-content"
     },
     {
@@ -303,12 +271,6 @@
       "category": "research-study"
     },
     {
-      "name": "blogwatcher",
-      "description": "Monitor blogs and RSS/Atom feeds via blogwatcher-cli tool.",
-      "when_to_use": "Use when the user wants to monitor blogs and RSS/Atom feeds, add or remove tracked blogs, scan for new articles, or manage read/unread articles via blogwatcher-cli.",
-      "category": "research-study"
-    },
-    {
       "name": "context7-cli",
       "description": "Operates the ctx7 CLI and Context7 MCP registry — resolve a library ID, then query its docs (doc lookup / find-docs), skills install/search/suggest/list/remove/generate, and MCP setup. Use when mentioning ctx7 or context7, looking up API docs or library docs for a library or framework, finding docs via ctx7, installing skills, or configuring Context7 MCP for an editor.",
       "when_to_use": "Use when the user mentions ctx7, context7, or find-docs; asks to look up API docs or library docs for a library or framework; wants docs via MCP (context7__resolve-library-id / context7__query-docs) or the ctx7 CLI; wants to install, search, suggest, list, remove, or generate skills; or needs Context7 MCP set up for Claude Code, Cursor, OpenCode, or a project.",
@@ -316,26 +278,14 @@
     },
     {
       "name": "fetch-mcp",
-      "description": "Scrapes web to markdown with transcripts. Use when extracting articles, HTML, YouTube text. Also supports YouTube transcripts to chapters, summaries, threads, blog posts, quotes.",
+      "description": "Scrapes web to markdown with transcripts. Use when extracting articles, HTML, YouTube text, or reformatting YouTube content into chapters, threads, blog posts, or quotes.",
       "when_to_use": "Use when reading content from external web pages, blogs, or documentation URLs; converting noisy pages to clean Markdown articles; fetching structured JSON from REST API endpoints; extracting captions/transcripts from YouTube videos; or reformatting YouTube content into chapters, threads, blog posts, or quotes.",
-      "category": "research-study"
-    },
-    {
-      "name": "grounded-citations",
-      "description": "Ground answers and documents in cited, verifiable sources.",
-      "when_to_use": "Use whenever an answer or artifact rests on information you fetched rather than knew, and needs inline numbered citations plus a verifiable Sources block.",
       "category": "research-study"
     },
     {
       "name": "llm-wiki",
       "description": "Karpathy's LLM Wiki: build/query interlinked markdown KB.",
       "when_to_use": "Use when the user asks to create, build, or start a wiki, ingest a source into a wiki, ask a question about an existing wiki, or lint/audit/health-check a wiki.",
-      "category": "research-study"
-    },
-    {
-      "name": "reference-doc-fact-audit",
-      "description": "Audit a study reference doc for factual errors, then fix.",
-      "when_to_use": "Use when the user asks to audit, fact-check, verify, or fix a study or technical reference document the agent or a model wrote earlier.",
       "category": "research-study"
     },
     {
@@ -352,7 +302,7 @@
     },
     {
       "name": "skill-research",
-      "description": "Helps users discover and install agent skills from the open skills ecosystem: searches by keyword, checks the skills.sh leaderboard, verifies quality before recommending, and presents install options.",
+      "description": "Helps users discover and install agent skills from the open skills ecosystem: searches by keyword, checks the skills.sh leaderboard, verifies quality before recommending, and presents install options. --improve audits and repairs an existing skill; --prune merges duplicate skills.",
       "when_to_use": "Use when the user asks \"how do I do X\" where X might be a common task with an existing skill, says \"find a skill for X\" or \"is there a skill that can...\", asks \"can you do X\" for a specialized capability, or expresses interest in extending agent capabilities.",
       "category": "skill-authoring"
     },
@@ -372,6 +322,12 @@
       "name": "execute-plan",
       "description": "Executes a PR Plan DAG end-to-end: Hermes validates the plan and drops /execute-plan into Grok Build (Grok runs parallel Orca worktrees, implementers, the 3-reviewer panel, fix loops, and final assembly), then Hermes verifies the final branch and ships the PR.",
       "when_to_use": "Use for /execute-plan <design-doc-path>, execute plan, run the plan, implement the design, or after /design produces a PR plan.",
+      "category": "software-development"
+    },
+    {
+      "name": "grill-me",
+      "description": "Relentlessly interviews a plan or design until a shared understanding is reached.",
+      "when_to_use": "Use when asked to grill, interview, or stress-test a plan, design, or decision tree until every branch is resolved. Triggers: 'grill this plan', 'interview this design', 'stress-test my approach'.",
       "category": "software-development"
     },
     {
