@@ -36,3 +36,26 @@ mcp-fetch youtube "https://www.youtube.com/watch?v=VIDEO_ID" --lang en
 
 Available commands: `html`, `markdown`, `readable`, `txt`, `json`, `youtube`.
 Flags: `--max-length <N>`, `--start-index <N>`, `--proxy <URL>`, `--lang <code>`.
+
+## Python helper: fetch_transcript.py
+
+The `scripts/fetch_transcript.py` helper fetches a YouTube transcript and outputs
+structured JSON. It requires the `youtube-transcript-api` package.
+
+```bash
+python scripts/fetch_transcript.py <url_or_video_id> [--language en,tr] [--timestamps]
+```
+
+Output JSON:
+
+```json
+{
+  "video_id": "dQw4w9WgXcQ",
+  "language": "en",
+  "segments": [{"text": "...", "start": 0.0, "duration": 2.5}],
+  "full_text": "complete transcript as plain text",
+  "timestamped_text": "00:00 first line\n00:05 second line\n..."
+}
+```
+
+Output formats: see [`output-formats.md`](output-formats.md).
