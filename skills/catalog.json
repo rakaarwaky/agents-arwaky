@@ -355,6 +355,12 @@
       "category": "skill-authoring"
     },
     {
+      "name": "skill-research",
+      "description": "Helps users discover and install agent skills from the open skills ecosystem: searches by keyword, checks the skills.sh leaderboard, verifies quality before recommending, and presents install options.",
+      "when_to_use": "Use when the user asks \"how do I do X\" where X might be a common task with an existing skill, says \"find a skill for X\" or \"is there a skill that can...\", asks \"can you do X\" for a specialized capability, or expresses interest in extending agent capabilities.",
+      "category": "skill-authoring"
+    },
+    {
       "name": "skill-traces",
       "description": "Learns from, evolves, and unlearns skills from Grok Build session traces in one pass. --learn creates skills for repeated hand-typed instructions and open gaps; --evolve fixes stale lines in loaded skills; --unlearn retires skills the traces show are never used. Deterministic counts and repeated-phrase material come from the trace pipeline (usage.json, phrases.json); a narrow window lists but does not retire.",
       "when_to_use": "Use when the user wants to learn new skills from repeated hand-typed instructions, evolve stale skill lines to match current reality, or retire skills the traces show they never use. Pick one or more modes: --learn, --evolve, --unlearn; the trace pipeline runs once and every mode applies its own action kinds.",
