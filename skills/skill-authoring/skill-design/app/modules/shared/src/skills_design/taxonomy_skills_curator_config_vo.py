@@ -81,7 +81,17 @@ def load_curator_config(pack_root: SkillsRoot | None = None) -> CuratorConfig:
         if key not in data:
             continue
         value = data[key]
-        if not isinstance(value, type(getattr(defaults, key))):
+        expected = type(getattr(defaults, key))
+        # ``bool`` subclasses ``int``, so a JSON ``true`` for an int key
+        # (or a JSON int for a bool key) must be rejected with a strict
+        # type check.
+        if not (
+            expected is int
+            and type(value) is int
+            or expected is bool
+            and type(value) is bool
+            or expected is not int and expected is not bool and isinstance(value, expected)
+        ):
             logger.warning(
                 "curator config %r has wrong type %s, using default",
                 key,
@@ -92,10 +102,11 @@ def load_curator_config(pack_root: SkillsRoot | None = None) -> CuratorConfig:
     # Nested ``backup`` keys flatten to ``backup_enabled`` / ``backup_keep``.
     backup = data.get("backup")
     if isinstance(backup, dict):
-        if isinstance(backup.get("enabled"), bool):
+        if isinstance(backup.get("enabled"), bool) and type(backup["enabled"]) is bool:
             overrides["backup_enabled"] = backup["enabled"]
-        if isinstance(backup.get("keep"), int):
-            overrides["backup_keep"] = backup["keep"]
+        keep = backup.get("keep")
+        if isinstance(keep, int) and type(keep) is int:
+            overrides["backup_keep"] = keep
     if overrides:
         return CuratorConfig(**overrides)  # type: ignore[arg-type]
     return defaults

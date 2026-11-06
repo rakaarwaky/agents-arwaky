@@ -1,10 +1,10 @@
 """Curator contract value objects (AES taxonomy layer, curator side).
 
-Named VOs backing the ``ISkillsCuratorProtocol`` seam (curator-parity
-redesign PR 1): telemetry rows, the automatic-transition summary,
-snapshot/rollback results, and audit-ledger entries. Fields mirror the
-design doc's data model (``skill-telemetry.md``, ``curator-lifecycle.md``,
-``curator-snapshot-rollback.md``, ``skill-audit-ledger.md``).
+The two named VOs the design doc's data model prescribes for
+curator-parity redesign PR 1: the ``curated_report`` telemetry row and
+the audit-ledger entry. The ``ISkillsCuratorProtocol`` seam types its
+remaining methods with raw ``dict`` / ``object`` per the doc, so no
+other named types live here.
 
 Pure data; no I/O, no imports from utility/capabilities/agent/root/
 surface layers. The contract module imports these under ``TYPE_CHECKING``
@@ -18,12 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 __all__ = [
-    "CuratorTransitionReport",
-    "CuratorTransitionSummary",
-    "CuratorUsageRow",
-    "LedgerCompactSummary",
     "LedgerEntry",
-    "SnapshotRollbackResult",
     "TelemetryRow",
 ]
 
@@ -51,51 +46,6 @@ class TelemetryRow:
     activity_window_start: str | None
 
 @dataclass(frozen=True)
-class CuratorUsageRow:
-    """One row of the ``curator usage`` view (telemetry + provenance)."""
-
-    name: str
-    state: str
-    uses: int
-    views: int
-    last_activity_at: str | None
-    pinned: bool
-
-@dataclass(frozen=True)
-class CuratorTransitionReport:
-    """One automatic transition the pass applied (or would, in dry-run)."""
-
-    skill: str
-    from_state: str
-    to_state: str
-    reason: str
-
-@dataclass(frozen=True)
-class CuratorTransitionSummary:
-    """Result of one ``apply_automatic_transitions`` pass."""
-
-    applied: tuple[CuratorTransitionReport, ...] = ()
-    skipped: dict[str, int] = field(default_factory=dict)
-
-    @property
-    def count(self) -> int:
-        """How many transitions the pass applied."""
-        return len(self.applied)
-
-@dataclass(frozen=True)
-class SnapshotRollbackResult:
-    """Outcome of a snapshot or rollback operation.
-
-    ``id_`` is the UTC-ISO snapshot id a ``backup`` created or a
-    ``rollback`` restored; empty for failures, which then carry
-    ``error``.
-    """
-
-    id_: str = ""
-    error: str | None = None
-    restored_files: int = 0
-
-@dataclass(frozen=True)
 class LedgerEntry:
     """One append-only audit-ledger row (``skill-audit-ledger.md``).
 
@@ -112,11 +62,3 @@ class LedgerEntry:
     before: tuple[dict[str, Any], ...] = ()
     after: tuple[dict[str, Any], ...] = ()
     evidence: dict[str, Any] = field(default_factory=dict)
-
-@dataclass(frozen=True)
-class LedgerCompactSummary:
-    """Result of one ledger/blob compaction pass."""
-
-    blobs_removed: int = 0
-    entries_kept: int = 0
-    bytes_freed: int = 0

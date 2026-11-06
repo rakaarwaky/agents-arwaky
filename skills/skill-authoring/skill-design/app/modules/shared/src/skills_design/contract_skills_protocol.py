@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
@@ -45,20 +44,6 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillRecord,
     SkillsJsonPayload,
 )
-
-if TYPE_CHECKING:
-    # Curator contract VOs live in the curator VO taxonomy module, which
-    # defines pure dataclasses and imports no contract types; a runtime
-    # import back into this module would add a cycle, so PEP 563 keeps
-    # the annotations as strings and the VOs are reserved for
-    # type-checking only.
-    from shared.src.skills_design.taxonomy_skills_curator_vo import (
-        CuratorTransitionSummary,
-        LedgerCompactSummary,
-        LedgerEntry,
-        SnapshotRollbackResult,
-        TelemetryRow,
-    )
 
 
 class ISkillsListerProtocol(ABC):
@@ -237,18 +222,19 @@ class ISkillsCuratorProtocol(ABC):
 
     One seam for the curator agent. The curator capabilities
     (telemetry, lifecycle, backup, ledger) implement subsets of this;
-    the composition root wires them into the agent. The named contract
-    VOs (``TelemetryRow``, ``LedgerEntry``, ...) live in
-    ``taxonomy_skills_curator_vo``.
+    the composition root wires them into the agent. Per the design
+    doc's API section the seam is typed with ``dict`` / ``object``;
+    the named data-model VOs (``TelemetryRow``, ``LedgerEntry``) live
+    in ``taxonomy_skills_curator_vo``.
     """
 
     @abstractmethod
-    def curated_report(self, root: SkillsRoot) -> Sequence[TelemetryRow]:
+    def curated_report(self, root: SkillsRoot) -> object:
         """Telemetry rows for every curator-managed skill, sorted by name."""
         ...
 
     @abstractmethod
-    def apply_automatic_transitions(self, root: SkillsRoot) -> CuratorTransitionSummary:
+    def apply_automatic_transitions(self, root: SkillsRoot) -> dict:
         """Run the ``active → stale → archived`` pass; report what moved."""
         ...
 
@@ -258,22 +244,22 @@ class ISkillsCuratorProtocol(ABC):
         root: SkillsRoot,
         action: str,
         id_: str | None = None,
-    ) -> SnapshotRollbackResult:
+    ) -> dict:
         """Create a snapshot or roll back to one (``action``: ``backup`` / ``rollback``)."""
         ...
 
     @abstractmethod
-    def ledger_append(self, root: SkillsRoot, entry: LedgerEntry) -> LedgerEntry:
+    def ledger_append(self, root: SkillsRoot, entry: dict) -> dict:
         """Append one audit entry to the ledger; return the stored entry."""
         ...
 
     @abstractmethod
-    def ledger_read(self, root: SkillsRoot) -> Sequence[LedgerEntry]:
+    def ledger_read(self, root: SkillsRoot) -> tuple[dict, ...]:
         """Read the audit ledger, oldest first."""
         ...
 
     @abstractmethod
-    def ledger_compact(self, root: SkillsRoot) -> LedgerCompactSummary:
+    def ledger_compact(self, root: SkillsRoot) -> dict:
         """GC unreferenced snapshot blobs; report what was removed."""
         ...
 
