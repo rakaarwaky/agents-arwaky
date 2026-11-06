@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import uuid
 from collections.abc import Iterable
@@ -35,7 +36,10 @@ from typing import Any
 from shared.src.skills_design.taxonomy_skills_curator_config_vo import (
     load_curator_config,
 )
-from shared.src.skills_design.taxonomy_skills_error import MutationConflictError
+from shared.src.skills_design.taxonomy_skills_error import (
+    MutationConflictError,
+    SkillsUsageError,
+)
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
 __all__ = [
@@ -80,7 +84,7 @@ def _parse_ts(ts: str) -> float | None:
         return None
     try:
         return datetime.fromisoformat(ts).timestamp()
-    except (ValueError, TypeError):
+    except ValueError:
         return None
 
 
@@ -93,13 +97,11 @@ def _is_newer_than(ts: str, days: int) -> bool:
     return parsed >= cutoff
 
 
-def _sha256_of(path: Path) -> str:
-    """SHA-256 of a file's bytes (the content-address key)."""
-    digest = sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(65536), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+
+
+def _is_valid_sha256(digest: str) -> bool:
+    """True only for a lowercase 64-char hex sha256 digest."""
+    return bool(re.fullmatch(r"[0-9a-f]{64}", digest))
 
 
 def manifest_sha256(manifest: Any) -> str:
@@ -164,13 +166,17 @@ class SkillsCuratorLedger:
                 digest = item.get("sha256")
                 if not isinstance(path, str) or not isinstance(digest, str):
                     continue
+                if not _is_valid_sha256(digest):
+                    raise SkillsUsageError(
+                        f"ledger_append: rejected invalid sha256 digest: {digest!r}"
+                    )
                 blob = blobs / digest
                 source = Path(path)
                 if blob.exists():
                     continue
                 if not source.is_file():
                     continue
-                if digest != _sha256_of(source):
+                if digest != sha256(source.read_bytes()).hexdigest():
                     # Manifest digest does not match the file's real bytes:
                     # the safety capture is absent by content, never forged.
                     continue

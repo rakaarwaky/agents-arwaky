@@ -13,7 +13,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from shared.src.skills_design.taxonomy_skills_error import MutationConflictError
+from shared.src.skills_design.taxonomy_skills_error import (
+    MutationConflictError,
+    SkillsUsageError,
+)
 
 from skills_design.src.capabilities_skills_curator_ledger import (
     BLOBS_DIRNAME,
@@ -91,6 +94,50 @@ def test_content_addressed_blob_dedup(tmp_path: Path) -> None:
 
     LEDGER.ledger_append(root, _entry("doc-drafts", "patch", after=manifest))
     assert len(_blob_names(root)) == count_after_first  # dedup: no second blob
+
+
+def _files_outside_ledger_and_blobs(root: Path) -> frozenset[str]:
+    ledger = root / LEDGER_FILENAME
+    blobs = _blobs(root)
+    return frozenset(
+        str(p.relative_to(root))
+        for p in root.rglob("*")
+        if p.is_file() and p != ledger and blobs not in p.parents
+    )
+
+
+def test_ledger_append_rejects_path_traversal_sha256(tmp_path: Path) -> None:
+    root = as_root(crafted_tree(tmp_path))
+    target = Path(root) / "drafts" / "doc-drafts" / "SKILL.md"
+    real_digest = _sha256(target.read_bytes())
+    malicious_digest = "../../etc/passwd"
+    before = _files_outside_ledger_and_blobs(root)
+    manifest = [
+        {"path": str(target), "sha256": real_digest},
+        {"path": str(target), "sha256": malicious_digest},
+    ]
+    with pytest.raises(SkillsUsageError) as exc_info:
+        LEDGER.ledger_append(root, _entry("doc-drafts", "patch", after=manifest))
+    assert malicious_digest in str(exc_info.value)
+    after = _files_outside_ledger_and_blobs(root)
+    assert after == before  # nothing new outside ledger + blobs
+
+
+def test_ledger_append_rejects_non_hex_sha256(tmp_path: Path) -> None:
+    root = as_root(crafted_tree(tmp_path))
+    target = Path(root) / "drafts" / "doc-drafts" / "SKILL.md"
+    real_digest = _sha256(target.read_bytes())
+    bad_digest = "z" * 64
+    before = _files_outside_ledger_and_blobs(root)
+    manifest = [
+        {"path": str(target), "sha256": real_digest},
+        {"path": str(target), "sha256": bad_digest},
+    ]
+    with pytest.raises(SkillsUsageError) as exc_info:
+        LEDGER.ledger_append(root, _entry("doc-drafts", "patch", after=manifest))
+    assert bad_digest in str(exc_info.value)
+    after = _files_outside_ledger_and_blobs(root)
+    assert after == before  # nothing new outside ledger + blobs
 
 
 def test_ledger_read_missing_file_returns_empty(tmp_path: Path) -> None:
