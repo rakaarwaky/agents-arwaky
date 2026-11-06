@@ -21,6 +21,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import cast
 
+from shared.src.common.utility_skills_mutation import atomic_write_json
 from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
@@ -31,6 +32,10 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsListerProtocol,
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
+)
+from shared.src.skills_design.taxonomy_skills_curator_config_vo import (
+    CuratorConfig,
+    load_curator_config,
 )
 from shared.src.skills_design.taxonomy_skills_error import (
     SkillsError,
@@ -52,6 +57,15 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillRecord,
 )
 
+from skills_design.src.capabilities_skills_curator_backup import SkillsCuratorBackup
+from skills_design.src.capabilities_skills_curator_ledger import SkillsCuratorLedger
+from skills_design.src.capabilities_skills_curator_lifecycle import (
+    SkillsCuratorLifecycle,
+)
+from skills_design.src.capabilities_skills_curator_telemetry import (
+    SkillsCuratorTelemetry,
+)
+
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class SkillsAgent(ISkillsAggregate):
@@ -68,6 +82,10 @@ class SkillsAgent(ISkillsAggregate):
         mover: ISkillsMoverProtocol | None = None,
         archiver: ISkillsArchiverProtocol | None = None,
         creator: ISkillsCreatorProtocol | None = None,
+        telemetry: SkillsCuratorTelemetry | None = None,
+        lifecycle: SkillsCuratorLifecycle | None = None,
+        backup: SkillsCuratorBackup | None = None,
+        ledger: SkillsCuratorLedger | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._lister = lister
@@ -78,6 +96,10 @@ class SkillsAgent(ISkillsAggregate):
         self._mover = mover
         self._archiver = archiver
         self._creator = creator
+        self._telemetry = telemetry or SkillsCuratorTelemetry()
+        self._lifecycle = lifecycle or SkillsCuratorLifecycle()
+        self._backup = backup or SkillsCuratorBackup()
+        self._ledger = ledger or SkillsCuratorLedger()
         self._default_root = default_root
 
     # ─── Block 2: Aggregate Method Implementation ────────────
@@ -344,6 +366,255 @@ class SkillsAgent(ISkillsAggregate):
             catalog=catalog,
             root=root,
         )
+
+    # ─── Block 3b: Curator handlers (PR 6) ──────────────────────────
+    # All 19 curator ops route here through the single execute seam
+    # (no separate SkillsCuratorAgent file, per AES405).
+
+    def _execute_curator_status(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_STATUS: telemetry report rows as records."""
+        telemetry = self._require(self._telemetry, "telemetry")
+        root = self._root(request)
+        try:
+            rows = telemetry.curated_report(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, records=rows, message=f"{len(rows)} skill(s) tracked")
+
+    def _execute_curator_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_USAGE: same telemetry report as status (surface decides rendering)."""
+        telemetry = self._require(self._telemetry, "telemetry")
+        root = self._root(request)
+        try:
+            rows = telemetry.curated_report(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, records=rows, message=f"{len(rows)} skill(s) tracked")
+
+    def _execute_curator_run(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_RUN: apply automatic transitions per pass."""
+        lifecycle = self._require(self._lifecycle, "lifecycle")
+        root = self._root(request)
+        try:
+            report = lifecycle.apply_automatic_transitions(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, records=report.get("applied", ()), message=str(report))
+
+    def _execute_curator_pause(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_PAUSE: set pause=True in .curator_config.json."""
+        root = self._root(request)
+        return self._flip_curator_config(root, True, op)
+
+    def _execute_curator_resume(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_RESUME: set pause=False in .curator_config.json."""
+        root = self._root(request)
+        return self._flip_curator_config(root, False, op)
+
+    def _flip_curator_config(self, root: Path, pause: bool, op: SkillsOp) -> SkillsResult:
+        """Flip the pause flag in ``<pack_root>/.curator_config.json`` atomically."""
+        config_path = root / ".curator_config.json"
+        try:
+            config = load_curator_config(SkillsRoot(root))
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        new_config = CuratorConfig(
+            enabled=config.enabled,
+            interval_hours=config.interval_hours,
+            min_idle_hours=config.min_idle_hours,
+            stale_after_days=config.stale_after_days,
+            archive_after_days=config.archive_after_days,
+            consolidate=config.consolidate,
+            backup_enabled=config.backup_enabled,
+            backup_keep=config.backup_keep,
+            archive_ttl_days=config.archive_ttl_days,
+            pause=pause,
+        )
+        try:
+            atomic_write_json(config_path, {
+                "enabled": new_config.enabled,
+                "interval_hours": new_config.interval_hours,
+                "min_idle_hours": new_config.min_idle_hours,
+                "stale_after_days": new_config.stale_after_days,
+                "archive_after_days": new_config.archive_after_days,
+                "consolidate": new_config.consolidate,
+                "backup_enabled": new_config.backup_enabled,
+                "backup_keep": new_config.backup_keep,
+                "archive_ttl_days": new_config.archive_ttl_days,
+                "pause": new_config.pause,
+            })
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, message=f"pause={pause}")
+
+    def _execute_curator_pin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_PIN: set pinned=True on *skill* sidecar."""
+        return self._flip_sidecar_bool(request, "pinned", True, op)
+
+    def _execute_curator_unpin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_UNPIN: set pinned=False on *skill* sidecar."""
+        return self._flip_sidecar_bool(request, "pinned", False, op)
+
+    def _execute_curator_lock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_LOCK: set locked=True on *skill* sidecar."""
+        return self._flip_sidecar_bool(request, "locked", True, op)
+
+    def _execute_curator_unlock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_UNLOCK: set locked=False on *skill* sidecar."""
+        return self._flip_sidecar_bool(request, "locked", False, op)
+
+    def _flip_sidecar_bool(self, request: SkillsRequest, field: str, value: bool, op: SkillsOp) -> SkillsResult:
+        """Flip a bool field on a skill's ``.usage.json`` sidecar via telemetry read + atomic write."""
+        root = self._root(request)
+        telemetry = self._require(self._telemetry, "telemetry")
+        skill_dir = self._find_skill_dir(str(request.query), root)
+        if skill_dir is None:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=f"Skill not found: {request.query}")
+        path = skill_dir / ".usage.json"
+        try:
+            report = telemetry.curated_report(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        row = next((r for r in report if r.get("name") == str(request.query)), None)
+        if row is None:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=f"No telemetry row for: {request.query}")
+        record = dict(row)
+        record[field] = value
+        try:
+            atomic_write_json(path, record)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, message=f"{field}={value} for {request.query}")
+
+    def _execute_curator_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_ARCHIVE: lifecycle.archive(skill, root)."""
+        lifecycle = self._require(self._lifecycle, "lifecycle")
+        root = self._root(request)
+        try:
+            result = lifecycle.archive(str(request.query), root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, message=str(result))
+
+    def _execute_curator_restore(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_RESTORE: lifecycle.restore(skill, root)."""
+        lifecycle = self._require(self._lifecycle, "lifecycle")
+        root = self._root(request)
+        try:
+            result = lifecycle.restore(str(request.query), root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, message=str(result))
+
+    def _execute_curator_prune(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_PRUNE: lifecycle.prune(root) — hard-delete stale past cutoff."""
+        lifecycle = self._require(self._lifecycle, "lifecycle")
+        root = self._root(request)
+        try:
+            report = lifecycle.prune(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, records=report.get("pruned", ()), message=str(report))
+
+    def _execute_curator_purge(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_PURGE: lifecycle.purge(skill, root) — hard-delete skill dir + sidecar + blobs."""
+        lifecycle = self._require(self._lifecycle, "lifecycle")
+        root = self._root(request)
+        try:
+            result = lifecycle.purge(str(request.query), root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, message=str(result))
+
+    def _execute_curator_adopt(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_ADOPT: seed baseline record + mark created_by="agent"."""
+        telemetry = self._require(self._telemetry, "telemetry")
+        root = self._root(request)
+        try:
+            telemetry.seed_record_if_missing(str(request.query), root)
+            skill_dir = self._find_skill_dir(str(request.query), root)
+            if skill_dir is None:
+                return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=f"Skill not found: {request.query}")
+            path = skill_dir / ".usage.json"
+            record = telemetry.curated_report(root)
+            row = next((r for r in record if r.get("name") == str(request.query)), None)
+            if row is None:
+                return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=f"No telemetry row for: {request.query}")
+            row["created_by"] = "agent"
+            atomic_write_json(path, row)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, message=f"adopted {request.query}")
+
+    def _execute_curator_backup(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_BACKUP: backup.create_snapshot(root) -> snapshot path."""
+        backup = self._require(self._backup, "backup")
+        root = self._root(request)
+        try:
+            path = backup.create_snapshot(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, content=str(path), message=f"snapshot at {path}")
+
+    def _execute_curator_rollback(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_ROLLBACK: backup.rollback(root, id_) with id from query/flags."""
+        backup = self._require(self._backup, "backup")
+        root = self._root(request)
+        snapshot_id = request.query or request.flags.get("id", "")
+        try:
+            result = backup.rollback(root, snapshot_id or None)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, message=str(result))
+
+    def _execute_curator_ledger(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_LEDGER: ledger_read, or ledger_compact when flags['--compact']."""
+        ledger = self._require(self._ledger, "ledger")
+        root = self._root(request)
+        if request.flags.get("compact") == "1":
+            try:
+                result = ledger.ledger_compact(root)
+            except OSError as failure:
+                return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+            return SkillsResult(ok=True, op=op, message=str(result))
+        try:
+            rows = ledger.ledger_read(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, records=rows, message=f"{len(rows)} ledger entry(ies)")
+
+    def _execute_curator_list_unmanaged(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_LIST_UNMANAGED: rows with no sidecar OR created_by != 'agent'."""
+        telemetry = self._require(self._telemetry, "telemetry")
+        root = self._root(request)
+        try:
+            rows = telemetry.curated_report(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        unmanaged = [r for r in rows if r.get("created_by") != "agent"]
+        return SkillsResult(ok=True, op=op, records=unmanaged, message=f"{len(unmanaged)} unmanaged")
+
+    def _execute_curator_list_archived(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """CURATOR_LIST_ARCHIVED: rows where state == 'archived'."""
+        telemetry = self._require(self._telemetry, "telemetry")
+        root = self._root(request)
+        try:
+            rows = telemetry.curated_report(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        archived = [r for r in rows if r.get("state") == "archived"]
+        return SkillsResult(ok=True, op=op, records=archived, message=f"{len(archived)} archived")
+
+    def _find_skill_dir(self, skill: str, root: Path) -> Path | None:
+        """Find a skill directory under *root* by name (any category)."""
+        if not root.is_dir():
+            return None
+        for child in root.iterdir():
+            if child.is_dir():
+                candidate = child / skill
+                if candidate.is_dir() and (candidate / "SKILL.md").exists():
+                    return candidate
+        return None
 
     def _root(self, request: SkillsRequest) -> SkillsRoot:
         """Resolve the request's root: explicit beats derived, never silent."""

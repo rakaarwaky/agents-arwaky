@@ -473,3 +473,74 @@ def test_config_overlay_stale_after_days(tmp_path: Path) -> None:
         {"skill": "ten", "from": "active", "to": "stale"},
     ]
     assert _read_sidecar(root / "cat" / "ten")["state"] == "stale"
+
+# ─── prune ──────────────────────────────────────────────────────────
+
+def test_prune_deletes_stale_past_cutoff(tmp_path: Path) -> None:
+    """A stale skill past archive_after_days gets hard-deleted by prune."""
+    root = _pack_empty(tmp_path)
+    _skill(root, "old", state="archived", archived_days=45)
+    _skill(root, "new", state="archived", archived_days=5)
+    (root / ".curator_config.json").write_text(
+        json.dumps({"archive_after_days": 30}), encoding="utf-8"
+    )
+
+    result = SkillsCuratorLifecycle().prune(as_root(root))
+    assert result == {
+        "pruned": [{"skill": "old", "state": "archived", "archived_at": result["pruned"][0]["archived_at"]}],
+        "kept": [{"skill": "new", "state": "archived"}],
+    }
+    assert not (root / "cat" / "old").exists()
+    assert (root / "cat" / "new").exists()
+
+def test_prune_keeps_pinned_stale_skill(tmp_path: Path) -> None:
+    """Pinned skills are kept even when past the cutoff."""
+    root = _pack_empty(tmp_path)
+    _skill(root, "old", state="archived", archived_days=45, pinned=True)
+    (root / ".curator_config.json").write_text(
+        json.dumps({"archive_after_days": 30}), encoding="utf-8"
+    )
+
+    result = SkillsCuratorLifecycle().prune(as_root(root))
+    assert result["pruned"] == []
+    assert any(k["skill"] == "old" for k in result["kept"])
+    assert (root / "cat" / "old").exists()
+
+def test_prune_keeps_locked_stale_skill(tmp_path: Path) -> None:
+    """Locked skills are kept even when past the cutoff."""
+    root = _pack_empty(tmp_path)
+    _skill(root, "old", state="archived", archived_days=45, locked=True)
+    (root / ".curator_config.json").write_text(
+        json.dumps({"archive_after_days": 30}), encoding="utf-8"
+    )
+
+    result = SkillsCuratorLifecycle().prune(as_root(root))
+    assert result["pruned"] == []
+    assert any(k["skill"] == "old" for k in result["kept"])
+    assert (root / "cat" / "old").exists()
+
+
+# ─── purge ──────────────────────────────────────────────────────────
+
+def test_purge_deletes_skill_dir_and_sidecar(tmp_path: Path) -> None:
+    """Purge hard-deletes skill dir + sidecar, no _archive move."""
+    root = _pack_empty(tmp_path)
+    skill_dir = _skill(root, "victim", state="active", uses=3)
+    assert (skill_dir / "SKILL.md").exists()
+    assert (skill_dir / ".usage.json").exists()
+
+    result = SkillsCuratorLifecycle().purge("victim", as_root(root))
+    assert result == {
+        "skill": "victim",
+        "purged": True,
+        "sidecar": True,
+        "dir": True,
+        "blobs": 0,
+    }
+    assert not skill_dir.exists()
+
+def test_purge_unknown_skill(tmp_path: Path) -> None:
+    """Purge of unknown skill returns not-found without crashing."""
+    root = _pack_empty(tmp_path)
+    result = SkillsCuratorLifecycle().purge("nope", as_root(root))
+    assert result == {"skill": "nope", "purged": False, "reason": "not-found"}

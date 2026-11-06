@@ -16,6 +16,7 @@ Public API:
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -36,6 +37,7 @@ from shared.src.skills_design.taxonomy_skills_error import (
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
+from skills_design.src.capabilities_skills_curator_ledger import BLOBS_DIRNAME
 from skills_design.src.capabilities_skills_curator_telemetry import (
     SkillsCuratorTelemetry,
 )
@@ -324,4 +326,105 @@ class SkillsCuratorLifecycle:
     def _write_record(self, skill_dir: Path, record: dict) -> None:
         """Atomically write *record* to *skill_dir*'s sidecar."""
         atomic_write_json(skill_dir / ".usage.json", record)
+
+    def prune(self, root: SkillsRoot | None = None) -> dict:
+        """CURATOR_PRUNE: hard-delete stale skills past ``archive_after_days``.
+
+        Skips pinned, locked, and cron-referenced skills. Unlike
+        ``archive``, never moves to ``_archive/`` — this is a
+        hard-delete (skill dir + sidecar removed outright).
+
+        Returns ``{"pruned": [...], "kept": [...]}`` where each entry is
+        ``{"skill": name, "state": ..., "archived_at": ...}``.
+        """
+        pack_root = Path(root) if root is not None else default_pack_root()
+        config = load_curator_config(pack_root)
+        cutoff = datetime.now(UTC) - timedelta(days=config.archive_after_days)
+
+        pruned: list[dict] = []
+        kept: list[dict] = []
+
+        for skill_md in iter_skill_mds(pack_root):
+            skill_dir = skill_md.parent
+            name = skill_dir.name
+            record = self._read_record(skill_dir)
+            state = record.get("state", ACTIVE)
+
+            if record.get("pinned") or record.get("locked"):
+                kept.append({"skill": name, "state": state, "reason": "pinned-or-locked"})
+                continue
+
+            if _cron_referenced(pack_root, name):
+                kept.append({"skill": name, "state": state, "reason": "cron-referenced"})
+                continue
+
+            archived_at = record.get("archived_at")
+            if state == ARCHIVED and archived_at:
+                parsed = _parse_iso(archived_at)
+                if parsed is not None and parsed <= cutoff:
+                    _delete_skill_tree(skill_dir)
+                    pruned.append({"skill": name, "state": state, "archived_at": archived_at})
+                    continue
+
+            kept.append({"skill": name, "state": state})
+
+        return {"pruned": pruned, "kept": kept}
+
+    def purge(self, skill: str, root: SkillsRoot | None = None) -> dict:
+        """CURATOR_PURGE: hard-delete *skill* dir + sidecar + ledger blobs.
+
+        No ``_archive/`` move. Removes the skill directory, its
+        ``.usage.json`` sidecar, and any content-addressed ledger blobs
+        referenced by the skill's ledger entries.
+
+        Returns ``{"skill": name, "purged": True, "sidecar": bool,
+        "dir": bool, "blobs": int}``.
+        """
+        pack_root = Path(root) if root is not None else default_pack_root()
+        skill_dir = self._find_skill_dir(skill, pack_root, in_archive=False)
+        if skill_dir is None:
+            return {"skill": skill, "purged": False, "reason": "not-found"}
+
+        sidecar_removed = False
+        dir_removed = False
+
+        sidecar_path = skill_dir / ".usage.json"
+        if sidecar_path.exists():
+            sidecar_path.unlink()
+            sidecar_removed = True
+
+        blob_count = self._purge_blobs_for_skill(pack_root, skill)
+
+        try:
+            skill_dir.rmdir()
+            dir_removed = True
+        except OSError:
+            shutil.rmtree(skill_dir, ignore_errors=True)
+            dir_removed = True
+
+        return {
+            "skill": skill,
+            "purged": True,
+            "sidecar": sidecar_removed,
+            "dir": dir_removed,
+            "blobs": blob_count,
+        }
+
+    def _purge_blobs_for_skill(self, pack_root: Path, skill: str) -> int:
+        """Delete ledger blobs whose filenames reference *skill*. Returns count removed."""
+        backup_root = pack_root / ".curator_backups"
+        blobs_dir = backup_root / BLOBS_DIRNAME
+        if not blobs_dir.is_dir():
+            return 0
+        removed = 0
+        for blob in blobs_dir.iterdir():
+            if skill in blob.name:
+                blob.unlink(missing_ok=True)
+                removed += 1
+        return removed
+
+
+def _delete_skill_tree(skill_dir: Path) -> None:
+    """Remove skill dir + sidecar outright (hard-delete, no archive move)."""
+    shutil.rmtree(skill_dir, ignore_errors=True)
 

@@ -483,11 +483,11 @@ def test_lifecycle_states_tuple() -> None:
 
 
 def test_unwired_curator_op_dispatch_path() -> None:
-    """A curator op with no capability wired must fail closed.
+    """A curator op with no capability wired must fail closed on bad root.
 
-    Pins the "no behavior change yet" contract for PR 1: dispatching a
-    curator op through the aggregate returns a failing result (no curator
-    handler exists yet) rather than a working capability.
+    PR 6: curator ops now route to handlers; the only failure path here is
+    the missing skills root (which the handler reports as a SkillsResult,
+    not an unhandled exception).
     """
     from skills_design.src.agent_skills_orchestrator import SkillsAgent
 
@@ -498,4 +498,4 @@ def test_unwired_curator_op_dispatch_path() -> None:
     request = SkillsRequest(SkillsOp.CURATOR_STATUS, root=Path("/nonexistent"))
     result = agent.execute(request)
     assert result.ok is False
-    assert "curator-status" in result.message
+    assert "Skills root does not exist" in result.message

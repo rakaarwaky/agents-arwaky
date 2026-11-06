@@ -46,6 +46,7 @@ class CuratorConfig:
     backup_enabled: bool = True
     backup_keep: int = 2
     archive_ttl_days: int = 0
+    pause: bool = False
 
 def load_curator_config(pack_root: SkillsRoot | None = None) -> CuratorConfig:
     """Read the curator config overlay, falling back to the defaults.
@@ -77,6 +78,7 @@ def load_curator_config(pack_root: SkillsRoot | None = None) -> CuratorConfig:
         "backup_enabled",
         "backup_keep",
         "archive_ttl_days",
+        "pause",
     ):
         if key not in data:
             continue

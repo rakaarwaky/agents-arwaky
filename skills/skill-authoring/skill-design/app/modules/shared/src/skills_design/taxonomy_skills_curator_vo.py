@@ -44,6 +44,7 @@ class TelemetryRow:
     views: int
     uses: int
     activity_window_start: str | None
+    locked: bool = False
 
 @dataclass(frozen=True)
 class LedgerEntry:
