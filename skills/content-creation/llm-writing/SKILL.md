@@ -16,6 +16,8 @@ Create or shorten docs with minimum tokens, exact names, and zero AI slop.
 | R2 | Action-only sentences. |
 | R3 | Exact name or `UNKNOWN`. |
 | R4 | Backtick control keywords; log `CONFLICT:`. |
+| R5 | No new facts in rewrite. |
+| R6 | Preserve user voice; no over-sterilizing. |
 
 ## Routing
 

@@ -16,5 +16,7 @@ skipped: <out-of-scope issues left unchanged, or none>
 - [ ] No filler sentence (R2).
 - [ ] Every name exact or `UNKNOWN` (R3).
 - [ ] Control keywords backticked (R4).
+- [ ] No new fact, number, or quote added (R5).
+- [ ] User-supplied voice/tone preserved, no over-sterilizing (R6).
 - [ ] Meaning preserved: no deleted action, constraint, or fact.
 - [ ] Nothing outside slop/concision/clarity was changed.
