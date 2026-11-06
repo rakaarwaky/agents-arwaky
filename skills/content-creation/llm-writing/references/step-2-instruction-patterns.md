@@ -112,4 +112,18 @@ The `VERIFIED`/`UNVERIFIED` marker sits in an adjacent column or field, never in
 - Trigger fields contain both halves: `Use when ...` and `NEVER use for ...`.
 - Every command states cwd, prerequisites, expectation, and its verification status.
 - Error handling rows include Symptom, Cause, and Action.
-- All fields present and filled; no placeholders and no `UNKNOWN` without justification (Eval 1).
+
+## Eval: Create from Sources
+**Input:** Target: `references/new-tool.md`. Sources: `config.yaml`, `scripts/deploy.sh`, existing `references/deploy-tool.md`. Mode: `create`.
+
+**Expected:**
+- New file created with all Tool definition fields (Name, Goal, Trigger, Context, Inputs, Execution, Outputs, Done condition).
+- Every fact traced to one of the three sources; no invented values.
+- Any disagreement between `config.yaml` and `deploy-tool.md` logged as `CONFLICT: <A> (<src1>) vs <B> (<src2>)`.
+- Output Contract includes: Deliverable, Open items, Verification, `CONFLICT:` entries. No `Removed` row (create mode).
+- No file at `references/new-tool.md` existed before the run; the file is now present.
+
+**Pass criteria:**
+- All fields present and filled (no placeholders, no `UNKNOWN` without justification).
+- All commands in Execution marked `VERIFIED` (ran) or `UNVERIFIED`.
+- No vague references; all paths absolute or root-relative.
