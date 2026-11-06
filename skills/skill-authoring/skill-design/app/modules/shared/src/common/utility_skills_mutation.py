@@ -15,9 +15,20 @@ consume them.
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import ModuleType
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows has no fcntl
+    fcntl = None
+
+try:
+    import msvcrt
+except ImportError:  # pragma: no cover - POSIX has no msvcrt
+    msvcrt = None
 
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     MutationPlan,
@@ -219,6 +230,7 @@ def _category_summaries(
 __all__ = [
     "archive_root",
     "assert_within_root",
+    "atomic_write_json",
     "ensure_frontmatter_name",
     "missing_category_descriptions",
     "name_mismatch_repairs",
@@ -454,3 +466,37 @@ def plan_repair(root: Path) -> MutationPlan:
         lines=tuple(lines),
         root=skills_root,
     )
+
+def atomic_write_json(path: Path, payload: object) -> None:
+    """Atomically write ``payload`` as JSON to ``path`` (temp + os.replace).
+
+    Cross-process lock on POSIX via ``fcntl.flock`` and on Windows via
+    ``msvcrt.locking`` so concurrent writers never interleave or tear
+    the file. Fails closed: I/O or lock failures raise ``OSError``
+    (the same error type neighboring mutation helpers raise) rather than
+    silently corrupting a sidecar.
+    """
+    if path.parent.is_dir():
+        tmp = path.with_name(path.name + ".tmp")
+        try:
+            with tmp.open("w", encoding="utf-8") as handle:
+                _lock(handle)
+                json.dump(payload, handle, ensure_ascii=False)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(tmp, path)
+        finally:
+            try:
+                tmp.unlink(missing_ok=True)
+            except OSError:
+                pass
+    else:
+        raise OSError(f"Cannot write JSON outside a directory: {path.parent}")
+
+def _lock(handle) -> None:
+    """Take an exclusive, blocking lock on the open file handle."""
+    if fcntl is not None:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+    elif msvcrt is not None:
+        handle.flush()
+        msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1 << 31 - 1)
