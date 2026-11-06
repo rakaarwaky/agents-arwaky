@@ -117,8 +117,6 @@ class SkillsCuratorLifecycle:
         now = datetime.now(UTC)
         stale_cutoff = now - timedelta(days=config.stale_after_days)
         archive_cutoff = now - timedelta(days=config.archive_after_days)
-        cron_cache: dict[str, bool] = {}
-
         applied: list[dict] = []
         skipped: list[dict] = []
         counts: dict[str, int] = {state: 0 for state in LIFECYCLE_STATES}
@@ -140,9 +138,7 @@ class SkillsCuratorLifecycle:
                     }
                 )
                 continue
-            if name not in cron_cache:
-                cron_cache[name] = _cron_referenced(pack_root, name)
-            if cron_cache[name]:
+            if _cron_referenced(pack_root, name):
                 skipped.append({"skill": name, "reason": "cron"})
                 continue
 
@@ -218,19 +214,15 @@ class SkillsCuratorLifecycle:
             raise MutationConflictError(
                 f"Archive slot already exists: {destination}"
             )
-        moved = False
         record["state"] = ARCHIVED
         record["archived_at"] = now_iso
         self._write_record(skill_dir, record)
         try:
             skill_dir.replace(destination)
-            moved = True
         except OSError:
-            # Roll back the two-step transaction: if the directory was
-            # already moved, move it back; restore the prior sidecar
-            # state. A pre-existing occupied archive slot is left as-is.
-            if moved:
-                destination.replace(skill_dir)
+            # Roll back the two-step transaction: the sidecar write is
+            # step 1 and ran before the move attempt, so undo it. The
+            # pre-existing archive slot is left as-is.
             record["state"] = prior_state
             record.pop("archived_at", None)
             self._write_record(skill_dir, record)
@@ -273,7 +265,6 @@ class SkillsCuratorLifecycle:
             raise MutationConflictError(
                 f"Restore slot already exists: {origin}"
             )
-        moved = False
         record["state"] = ACTIVE
         record.pop("archived_at", None)
         record["activity_window_start"] = _now_iso()
@@ -281,13 +272,10 @@ class SkillsCuratorLifecycle:
         self._write_record(archived_dir, record)
         try:
             archived_dir.replace(origin)
-            moved = True
         except OSError:
-            # Roll back the two-step transaction: if the directory was
-            # already moved, move it back; restore the prior sidecar
-            # state. A pre-existing occupied origin slot is left as-is.
-            if moved:
-                origin.replace(archived_dir)
+            # Roll back the two-step transaction: the sidecar write is
+            # step 1 and ran before the move attempt, so undo it. The
+            # pre-existing origin slot is left as-is.
             record["state"] = prior_state
             if prior_archived_at is not None:
                 record["archived_at"] = prior_archived_at
