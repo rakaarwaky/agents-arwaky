@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
     CatalogCheckResult,
@@ -44,6 +45,20 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillRecord,
     SkillsJsonPayload,
 )
+
+if TYPE_CHECKING:
+    # Curator contract VOs live in the curator VO taxonomy module, which
+    # defines pure dataclasses and imports no contract types; a runtime
+    # import back into this module would add a cycle, so PEP 563 keeps
+    # the annotations as strings and the VOs are reserved for
+    # type-checking only.
+    from shared.src.skills_design.taxonomy_skills_curator_vo import (
+        CuratorTransitionSummary,
+        LedgerCompactSummary,
+        LedgerEntry,
+        SnapshotRollbackResult,
+        TelemetryRow,
+    )
 
 
 class ISkillsListerProtocol(ABC):
@@ -217,10 +232,56 @@ class ISkillsCreatorProtocol(ABC):
 # ── Internal seams end ──
 
 
+class ISkillsCuratorProtocol(ABC):
+    """Curator-parity lifecycle: telemetry, auto-transitions, snapshots, ledger.
+
+    One seam for the curator agent. The curator capabilities
+    (telemetry, lifecycle, backup, ledger) implement subsets of this;
+    the composition root wires them into the agent. The named contract
+    VOs (``TelemetryRow``, ``LedgerEntry``, ...) live in
+    ``taxonomy_skills_curator_vo``.
+    """
+
+    @abstractmethod
+    def curated_report(self, root: SkillsRoot) -> Sequence[TelemetryRow]:
+        """Telemetry rows for every curator-managed skill, sorted by name."""
+        ...
+
+    @abstractmethod
+    def apply_automatic_transitions(self, root: SkillsRoot) -> CuratorTransitionSummary:
+        """Run the ``active → stale → archived`` pass; report what moved."""
+        ...
+
+    @abstractmethod
+    def snapshot_rollback(
+        self,
+        root: SkillsRoot,
+        action: str,
+        id_: str | None = None,
+    ) -> SnapshotRollbackResult:
+        """Create a snapshot or roll back to one (``action``: ``backup`` / ``rollback``)."""
+        ...
+
+    @abstractmethod
+    def ledger_append(self, root: SkillsRoot, entry: LedgerEntry) -> LedgerEntry:
+        """Append one audit entry to the ledger; return the stored entry."""
+        ...
+
+    @abstractmethod
+    def ledger_read(self, root: SkillsRoot) -> Sequence[LedgerEntry]:
+        """Read the audit ledger, oldest first."""
+        ...
+
+    @abstractmethod
+    def ledger_compact(self, root: SkillsRoot) -> LedgerCompactSummary:
+        """GC unreferenced snapshot blobs; report what was removed."""
+        ...
+
 __all__ = [
     "ISkillsArchiverProtocol",
     "ISkillsCatalogProtocol",
     "ISkillsCreatorProtocol",
+    "ISkillsCuratorProtocol",
     "ISkillsDiscoverProtocol",
     "ISkillsLinterProtocol",
     "ISkillsListerProtocol",

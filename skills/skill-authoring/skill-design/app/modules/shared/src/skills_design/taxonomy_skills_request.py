@@ -30,6 +30,9 @@ SkillsRoot = NewType("SkillsRoot", Path)
 #: One op per capability the skills aggregate understands; the CLI
 #: surface exposes all of them (list, read, lint, catalog, discover,
 #: move, archive, create); traces lives only in the traces app.
+#: The curator ops are additive (curator-parity redesign PR 1): they
+#: mirror the Hermes Agent Curator CLI verbs and route through the same
+#: aggregate seam without changing the 8 design-side ops above.
 class SkillsOp(StrEnum):
     LIST = "list"
     READ = "read"
@@ -39,6 +42,25 @@ class SkillsOp(StrEnum):
     MOVE = "move"
     ARCHIVE = "archive"
     CREATE = "create"
+    CURATOR_STATUS = "curator-status"
+    CURATOR_USAGE = "curator-usage"
+    CURATOR_RUN = "curator-run"
+    CURATOR_PAUSE = "curator-pause"
+    CURATOR_RESUME = "curator-resume"
+    CURATOR_PIN = "curator-pin"
+    CURATOR_UNPIN = "curator-unpin"
+    CURATOR_LOCK = "curator-lock"
+    CURATOR_UNLOCK = "curator-unlock"
+    CURATOR_ARCHIVE = "curator-archive"
+    CURATOR_RESTORE = "curator-restore"
+    CURATOR_PRUNE = "curator-prune"
+    CURATOR_PURGE = "curator-purge"
+    CURATOR_ADOPT = "curator-adopt"
+    CURATOR_BACKUP = "curator-backup"
+    CURATOR_ROLLBACK = "curator-rollback"
+    CURATOR_LEDGER = "curator-ledger"
+    CURATOR_LIST_UNMANAGED = "curator-list-unmanaged"
+    CURATOR_LIST_ARCHIVED = "curator-list-archived"
 
 
 @dataclass(frozen=True)
