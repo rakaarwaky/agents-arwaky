@@ -1,4 +1,4 @@
-# LLM Writing — Step 7: Output Contract
+# LLM Writing — Report
 
 Phase: Post Draft
 

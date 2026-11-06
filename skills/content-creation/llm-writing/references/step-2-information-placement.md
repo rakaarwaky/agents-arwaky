@@ -1,4 +1,4 @@
-# LLM Writing — Step 2: Information Placement
+# LLM Writing — Information Placement
 
 Phase: Pre Draft.
 

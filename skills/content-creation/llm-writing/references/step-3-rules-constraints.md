@@ -1,24 +1,24 @@
-# LLM Writing — Step 3: Rules and Constraints
-
-Phase: Pre Draft.
-
-**Goal:** every rule in the text is a checkable row with a Why (when non-obvious) and a Check, within the rule budget.
+# LLM Writing — Rules 
 
 ## Keywords
 
-| Keyword | Meaning | Usage |
-|---------|---------|-------|
-| `MUST` | Required behavior | Capitalize the keyword only, never the sentence |
-| `NEVER` | Forbidden behavior | Pair with the correct alternative |
-| `ONLY` | Exclusive permission | Name the single allowed option |
-| `ALWAYS` | Holds in every case, no exceptions | Stronger than MUST; use sparingly |
-| `IF / THEN / ELSE` | Conditional logic | Condition must be checkable: file exists, exit code, flag value |
+
+| Keyword            | Meaning                            | Usage                                                           |
+| ------------------ | ---------------------------------- | --------------------------------------------------------------- |
+| `MUST`             | Required behavior                  | Capitalize the keyword only, never the sentence                 |
+| `NEVER`            | Forbidden behavior                 | Pair with the correct alternative                               |
+| `ONLY`             | Exclusive permission               | Name the single allowed option                                  |
+| `ALWAYS`           | Holds in every case, no exceptions | Stronger than MUST; use sparingly                               |
+| `IF / THEN / ELSE` | Conditional logic                  | Condition must be checkable: file exists, exit code, flag value |
+
 
 ## Rule-Row Format
 
-| ID | Rule | Why | Check |
-|----|------|-----|-------|
-| Rn | `MUST`/`NEVER` action | Why this rule exists | How to verify it |
+
+| ID  | Rule                  | Why                  | Check            |
+| --- | --------------------- | -------------------- | ---------------- |
+| Rn  | `MUST`/`NEVER` action | Why this rule exists | How to verify it |
+
 
 ## Constraint Budget
 

@@ -1,8 +1,5 @@
-# LLM Writing — Step 5: System and Process Patterns
+# LLM Writing — Patterns
 
-Phase: Pre-draft
-
-**Goal:** every system description ships machine-readable structure
 
 | Element | Format | Required content | Pick when |
 |---------|--------|-----------------|-----------|
