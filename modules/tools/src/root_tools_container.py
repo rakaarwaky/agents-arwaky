@@ -32,6 +32,9 @@ from modules.tools.src.capabilities_tools_9router_adapter import (
 from modules.tools.src.capabilities_tools_blender_adapter import (
     ADAPTER_UNITS as _BLENDER_UNITS,
 )
+from modules.tools.src.capabilities_tools_brave_adapter import (
+    ADAPTER_UNITS as _BRAVE_UNITS,
+)
 from modules.tools.src.capabilities_tools_codegraph_adapter import (
     ADAPTER_UNITS as _CODEGRAPH_UNITS,
 )
@@ -67,6 +70,7 @@ from modules.tools.src.capabilities_tools_workspace_adapter import (
 #: stateless `AdapterUnit` VO of action functions).
 TOOLS_REGISTRY: dict[str, object] = {
     **_BLENDER_UNITS,
+    **_BRAVE_UNITS,
     **_CODEGRAPH_UNITS,
     **_CONTEXT7_UNITS,
     **_FETCH_UNITS,

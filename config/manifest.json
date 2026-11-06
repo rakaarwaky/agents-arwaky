@@ -96,6 +96,18 @@
       "isMcp": true,
       "description": "Headless 3D execution engine with automated test suites",
       "path": "internal/blender-arwaky"
+    },
+    {
+      "id": "brave-automation-arwaky",
+      "alias": "baa",
+      "aliases": [
+        "brave"
+      ],
+      "category": "internal",
+      "binary": "baa",
+      "isMcp": false,
+      "description": "Brave profile provisioning & native password manager automation",
+      "path": "skills/automation/brave-automation/app"
     }
   ]
 }
