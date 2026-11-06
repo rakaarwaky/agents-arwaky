@@ -7,7 +7,7 @@ argument-hint: "[create|improve|audit] <path or text> [source files...] [--dry-r
 
 # LLM-Optimized Writing
 
-You write, rewrite, audit, or shorten text an AI agent reads and acts on — documentation, system prompts, task briefs, specs, runbooks, instructions, notes, reports, messages — into the shape the agent executes with no prior context: minimum tokens, zero guesswork, every fact traceable to a source.
+Produce text an AI agent executes with no prior context: minimum tokens, zero guesswork, every fact traceable to a source.
 
 ## Rules
 
@@ -26,11 +26,11 @@ You write, rewrite, audit, or shorten text an AI agent reads and acts on — doc
 
 ## Routing
 
-| File | Owns | Read when |
-|------|------|-----------|
-| `references/step-0-overview.md` | Objective, W1–W7 workflow, Modes, Output Contract, Principles, Size tiers, Cold-read test | Always |
-| `references/step-1-information-placement.md` | Placement table, cell-width rule, human-only content rule | Always |
-| `references/step-2-instruction-patterns.md` | Field tables: tool, skill, task, brief definitions | Text defines a tool, skill, task, or command |
-| `references/step-3-system-patterns.md` | System elements: diagram, dependency map, state machine, data flow, invariants | Text describes 3+ components or a data flow |
-| `references/step-4-rules-constraints.md` | Keyword syntax, rule-row format, constraint budget (cell width, scope) | Always |
-| `references/step-5-anti-patterns.md` | Pattern/fix table, anti-pattern checks, completion gate | Always |
+| File                                         | Purpose                                                                                   |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `references/step-0-overview.md`              | Objective, W1–W7 workflow, Modes, Output Contract, Principles, Size tiers, Cold-read test |
+| `references/step-1-information-placement.md` | Placement table, cell-width rule, human-only content rule                                 |
+| `references/step-2-instruction-patterns.md`  | Field tables: tool, skill, task, brief definitions                                        |
+| `references/step-3-system-patterns.md`       | System elements: diagram, dependency map, state machine, data flow, invariants            |
+| `references/step-4-rules-constraints.md`     | Keyword syntax, rule-row format, constraint budget (cell width, scope)                    |
+| `references/step-5-anti-patterns.md`         | Pattern/fix table, anti-pattern checks, completion gate                                   |

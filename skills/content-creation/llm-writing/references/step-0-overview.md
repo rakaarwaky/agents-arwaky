@@ -15,8 +15,6 @@ Objective, ordered workflow, design principles, size tiers, and the cold-read te
 
 - `shorten` = `improve` with a size-reduction target.
 - No VCS and no `.bak` available: write `<path>.bak` before modifying.
-- `--dry-run` behavior: same as `improve --dry-run` — read only, report proposed changes, no file writes.
-- Inventory format: table (Type, Value, Before, After).
 
 ## Objective
 
@@ -32,11 +30,11 @@ Objective, ordered workflow, design principles, size tiers, and the cold-read te
 | W# | Action | Exit condition |
 |----|--------|----------------|
 | W1 | Scope: state the task the text serves and what the agent must do after reading | Purpose stated |
-| W2 | Gather: read source material per Rule R2 (facts traced to source, env var names only, no secret values) | Every fact traced to a source |
-| W3 | Resolve: log disagreements per Rule R3 (`CONFLICT:` entry, no silent choice; delivered text shows the marker inline) | Conflicts logged, none silent |
-| W4 | Draft: apply the Principles table and patterns in `step-1` through `step-5`. Use headings + tables | Every section serves the stated purpose |
-| W5 | Deduplicate: keep each fact in one place per Rule R4; reference elsewhere by path or section name | No fact appears twice |
-| W6 | Verify: run only the allowlist (`--version`, `--help`, `test -e`, `ls`). Run every Rule Check. Run the cold-read test. | Allowlist commands pass or `UNVERIFIED`; Rule Checks run; cold-read passed or `UNVERIFIED` |
+| W2 | Gather: read source material per R2 (facts traced, env var names only, no secrets) | Every fact traced to a source |
+| W3 | Resolve: log disagreements per R3 (`CONFLICT:` inline, no silent choice) | Conflicts logged, none silent |
+| W4 | Draft: apply Principles and patterns in `step-1` through `step-5`; use headings + tables | Every section serves the stated purpose |
+| W5 | Deduplicate: one owner per fact per R4; reference elsewhere by path or section | No fact appears twice |
+| W6 | Verify: run allowlist commands (`--version`, `--help`, `test -e`, `ls`). Run every Rule Check and cold-read test | Allowlist commands pass or `UNVERIFIED`; checks and cold-read done |
 | W7 | Report: follow the Output Contract section below | Report sent |
 
 ## Output Contract

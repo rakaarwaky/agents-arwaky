@@ -15,7 +15,7 @@ The fix table for common defects and the completion gate before delivery.
 | Unstated output format | State format, length, and structure of expected output | Output format stated |
 | External link without local summary | Summarize payload in a table, marked `Summary of <url>, as of <date>`; link as supplement | Local summary present; link optional |
 | Same fact in multiple places | One owner location; reference it elsewhere | No fact stated twice (Rule R4) |
-| Table cells with paragraphs | Shorten to a phrase; cell ≤ 20 words | Cells ≤ 20 words; no paragraphs (R9 constraint) |
+| Table cells with paragraphs | Shorten to a phrase; cell ≤ 20 words | Cells ≤ 20 words; no paragraphs (`step-4` Constraints) |
 | Restating what the reader can derive in one read | Keep only non-obvious facts and entry points | No derivable facts restated (Rule R4) |
 | Unreplaced placeholders (`<TODO>`, `...`) | Fill in or write `UNKNOWN` | No placeholders; unknowns marked `UNKNOWN` (Rule R5) |
 | Undefined acronym or project term | Define once at first use | One term per concept; all defined (Rule R5) |
@@ -26,7 +26,7 @@ The fix table for common defects and the completion gate before delivery.
 | Rule Check fails | Fix the failing rule or log `CONFLICT:` | All Rule Checks pass |
 | Section with no actionable fact | Delete the section, or move its fact to its owner location | Every section holds an actionable fact |
 | Vague reference ("this file", "the config") | Name the path, section, or variable | No vague references (R10) |
-| Plain keyword (`MUST`, `NEVER` without backticks) | Backtick every keyword | All keywords backticked (R10) |
+| Plain keyword (`MUST`, `NEVER` without backticks) | Backtick every keyword | All keywords backticked (`step-4` Keywords) |
 
 ## Completion
 

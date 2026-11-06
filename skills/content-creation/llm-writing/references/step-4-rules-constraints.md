@@ -31,7 +31,7 @@ Check types:
 - Mechanical: `<command>` exits 0
 - Review: `review: <question>` (e.g. `review: does the path match the repo?`)
 
-`R#` in the "ID" column refers to a text-specific rule row, not to the `SKILL.md` Rules R1–R10.
+`R#` IDs in text-specific rule rows are separate from `SKILL.md` R1–R10.
 
 ## Constraints
 
@@ -42,28 +42,16 @@ Check types:
 | Why-column length | 1 line. Required only for non-obvious rules | `step-4` |
 | Keyword style | Backticked: `MUST`, `NEVER`, `ONLY`, `ALWAYS`, `IF`/`THEN`/`ELSE`. No plain, no whole sentences | `step-4` |
 
-## R9 — Scope Limit
+## R9 and R10
 
-| Field | Value |
-|-------|-------|
-| Rule | `MUST` limit each text to one purpose. `IF` a text covers more than one purpose `THEN` split it. |
-| Why | Multi-purpose text forces the agent to re-derive scope every read |
-| Check | `review: does this text serve one purpose or multiple?` |
-
-## R10 — No Vague References
-
-| Field | Value |
-|-------|-------|
-| Rule | `NEVER` use vague references. `MUST` name the path, section, or variable. |
-| Why | Vague references force the agent to search |
-| Check | `review: does every reference name a path, section, or variable?` |
+R9 (scope limit) and R10 (no vague references) are defined in `SKILL.md` Rules table. This file owns the Keywords and Constraints sections; `SKILL.md` owns R9 and R10.
 
 ## Examples (not rules)
 
 | E# | Example | Source |
 |----|---------|--------|
-|| E1 | `cargo fmt` check before commit | R1 rule row above ||
-|| E2 | State `cwd` before a command | R4 rule row above ||
+| E1 | `cargo fmt` check before commit | R1 rule row above |
+| E2 | State `cwd` before a command | R4 rule row above |
 
 ## Completion
 - Every keyword backticked: `MUST`, `NEVER`, `ONLY`, `ALWAYS`, `IF`/`THEN`/`ELSE` (Eval 2).
