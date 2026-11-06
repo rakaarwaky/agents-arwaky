@@ -122,8 +122,8 @@
     },
     {
       "name": "llm-writing",
-      "description": "Write, rewrite, audit, or shorten any text an AI agent reads and acts on — docs, prompts, briefs, specs, runbooks, instructions, notes, reports. Use when the reader is an AI agent and token efficiency and unambiguous execution matter.",
-      "when_to_use": "Use when the reader is an AI or agent and token efficiency and unambiguous execution matter: writing or editing documentation, system prompts, task briefs, specs, runbooks, instructions, notes, or reports that an AI acts on without prior context. NEVER use for marketing copy, blog posts, fiction, or text meant to persuade or entertain human readers.",
+      "description": "Write, rewrite, audit, or shorten any text an AI agent reads and acts on — docs, prompts, briefs, specs, runbooks, instructions, notes, reports, messages. Use when the reader is an AI agent and token efficiency and unambiguous execution matter. NEVER use for marketing copy, blog posts, fiction, or text meant to persuade or entertain human readers. Default mode: improve. audit = improve --dry-run (report only, no write). A path or text to process: a file path to edit/create, or inline text.",
+      "when_to_use": "Use when the reader of the text is an AI agent and token efficiency and unambiguous execution matter; for docs, prompts, briefs, specs, runbooks, instructions, notes, reports, or messages. Not for marketing copy, blog posts, fiction, or text meant to persuade or entertain human readers.",
       "category": "content-creation"
     },
     {

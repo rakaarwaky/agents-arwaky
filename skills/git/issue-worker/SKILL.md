@@ -46,8 +46,9 @@ Read only the winning lane's references. Do not read the other lane's.
 | Step | Reference | Purpose |
 | ---- | --------- | ------- |
 | 4 | [`references/grok/step-4-verify-triage.md`](references/grok/step-4-verify-triage.md) | Load and triage: verify every claim at HEAD before closing. |
-| 5 | [`references/grok/step-5-validate.md`](references/grok/step-5-validate.md) | Validate issue state before deciding — rejects stale/fake/duplicate/already-fixed issues. |
-| 7 | [`references/grok/step-7-fanout.md`](references/grok/step-7-fanout.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner; child brief contract. |
+|| 5 | [`references/grok/step-5-validate.md`](references/grok/step-5-validate.md) | Validate issue state before deciding — rejects stale/fake/duplicate/already-fixed issues. |
+|| 6 | [`references/grok/step-6-decision-quiz.md`](references/grok/step-6-decision-quiz.md) | Decision quiz before implementation: collect all open questions, ask in one interactive quiz with concrete recommended options first. |
+|| 7 | [`references/grok/step-7-fanout.md`](references/grok/step-7-fanout.md) | Fan-out setup: 1 issue → 1 Orca worktree → 1 owner; child brief contract. |
 | 8 | [`references/grok/step-8-build-isolation.md`](references/grok/step-8-build-isolation.md) | Build isolation per worktree. |
 | 9 | [`references/grok/step-9-waves-verify.md`](references/grok/step-9-waves-verify.md) | Run waves, verify children (report files changed, mechanism, verification output, commit SHA). |
 | 10 | [`references/grok/step-10-rebase.md`](references/grok/step-10-rebase.md) | Rebase still-open worktree branches onto the default tip after PRs land. |
