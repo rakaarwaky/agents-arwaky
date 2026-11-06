@@ -68,8 +68,8 @@ The report emitted at the end of every run: deliverable, open items, Removed, Si
 - Size before/after present for `improve`; absent otherwise.
 - Verification table complete: every path, number, and command marked `VERIFIED` or `UNVERIFIED`.
 - All `CONFLICT:` entries listed; none silent.
-- `Size after` ≤ `Size before`, or the increase is justified in `Open items` (Eval 2).
-- `Removed` row present only in `improve` mode; absent in `create` and `audit` (Eval 1, Eval 3).
+- `Size after` ≤ `Size before`, or the increase is justified in `Open items`.
+- `Removed` row present only in `improve` mode; absent in `create` and `audit`.
 
 ## Principles
 
