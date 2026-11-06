@@ -21,7 +21,8 @@ Minimum tokens, exact names, zero AI slop. Fix only: AI slop, concision, clarity
 
 ## Boundary
 
-- **In:** filler and hedging, boilerplate openers and summaries, duplicated facts, vague references, nominalizations, passive voice that hides the actor.
-- **Out:** tone and voice, persuasion or branding, structure rewrites, fact or code changes, formatting, translation, grammar fixes that save no tokens and remove no ambiguity.
-- A requested fix that is out of scope: log `CONFLICT: <request>` and stop.
+| Case | Handling |
+|------|----------|
+| In scope | AI slop, concision, clarity. Patterns: `step-4-anti-patterns.md`. |
+| Out of scope | Tone and voice, persuasion or branding, structure rewrites, fact or code changes, formatting, translation, grammar fixes that save no tokens and remove no ambiguity. |
 
