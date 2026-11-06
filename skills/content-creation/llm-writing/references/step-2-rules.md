@@ -1,35 +1,29 @@
-# LLM Writing — Rules
+# Step 2 — Rules
 
-## Placement
+## R1 — One owner per fact
 
-| Info | Location |
-|------|----------|
-| Every task | Top: goal, constraints, commands, outputs. |
-| One part | Section/sub-doc with exact reference. |
-| Derivable | Delete. |
+State each fact once, at its most specific location. Elsewhere, reference the owner.
 
-## Control Keywords
+- Before: `Timeout is 30s. The retry timeout is 30 seconds.`
+- After: `Timeout is 30s. Retry reuses this timeout.`
 
-| Keyword | Meaning | Use |
-|---------|---------|-----|
-| `MUST` | Required behavior. | Capitalize only the keyword. |
-| `NEVER` | Forbidden behavior. | State the exact alternative. |
-| `ONLY` | Exclusive permission. | Name one allowed option. |
-| `ALWAYS` | No exceptions. | Use sparingly. |
-| `IF` / `THEN` / `ELSE` | Checkable condition. | Condition uses file, exit code, flag, or value. |
+## R2 — Action-only sentences
 
-## Rule Row
+Every sentence carries an action, decision, or constraint. Cut opener filler, hedging, restated introductions, and closing summaries that add nothing.
 
-| ID | Rule | Why | Check |
-|----|------|-----|-------|
-| Rn | `MUST` or `NEVER` action. | One short reason. | Exact checkable test. |
+- Before: `It is worth noting that you should probably consider running the tests first.`
+- After: `Run tests first.`
 
-## Constraints
+## R3 — Exact names
 
-- One owner per fact.
-- Delete derivable facts.
-- Table cells ≤ 20 words.
-- Backtick every control keyword.
-- Use exact path, section, variable, or `UNKNOWN`.
-- Log unresolved contradictions as `CONFLICT:`.
-- Delete persuasion, warmth, entertainment, greetings, and narrative.
+Use the exact path, command, flag, variable, or error string. If unknown, write `UNKNOWN`; never invent a value.
+
+- Before: `update the config file`
+- After: `update \`config/app.yaml\`` or `update UNKNOWN path`
+
+## R4 — Control keywords visible
+
+Backtick every keyword the reader must act on or must not change: flags, env vars, mode names, config keys. If two sources disagree on a term, log `CONFLICT: <term>: <a> vs <b>`.
+
+- Before: `Run in improve mode with the create flag disabled.`
+- After: `Run with \`--improve\`  \`--create\`.`

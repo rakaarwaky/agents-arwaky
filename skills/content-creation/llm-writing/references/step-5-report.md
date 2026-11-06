@@ -1,27 +1,20 @@
-# LLM Writing — Report
+# Step 5 — Report
 
-## Fields
+End every run with this report (max 10 lines):
 
-| Field | Content | Applies to |
-|-------|---------|------------|
-| Deliverable | Final text or proposed diff. | All |
-| Open items | `UNKNOWN` entries. | All |
-| Removed | Dropped text/facts. | `improve` |
-| Size before/after | `wc -w` values. | `improve` |
-| Conflicts | `CONFLICT: <A> vs <B>`. | All |
+```
+mode: create | improve
+files: <path> (<before> -> <after> lines) | new: <path> (<after> lines)
+tokens: ~<before> -> ~<after> (-<pct>%)
+conflicts: <n> (<CONFLICT: ...> lines, or none)
+skipped: <out-of-scope issues left unchanged, or none>
+```
 
-## Checks
+## Checks before completion
 
-| Check | Result |
-|-------|--------|
-| AI slop removed | `PASS` with deleted phrases, or `CONFLICT:`. |
-| Vague references fixed | `PASS` with exact names, or `CONFLICT:`. |
-| Duplicates removed | `PASS` with owner locations, or `CONFLICT:`. |
-| Size target met | `PASS` with `wc -w`, or `CONFLICT:`. |
-
-## Completion
-
-- All open items listed as `UNKNOWN`.
-- All conflicts listed as `CONFLICT:`.
-- `Size after` ≤ `Size before`, or justified in `Open items`.
-- No facts lost; removed facts listed.
+- [ ] No repeated fact (R1).
+- [ ] No filler sentence (R2).
+- [ ] Every name exact or `UNKNOWN` (R3).
+- [ ] Control keywords backticked (R4).
+- [ ] Meaning preserved: no deleted action, constraint, or fact.
+- [ ] Nothing outside slop/concision/clarity was changed.

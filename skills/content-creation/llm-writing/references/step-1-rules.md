@@ -1,20 +1,19 @@
-# LLM Writing — Overview
+# Step 1 — Overview
 
 ## Objective
 
-| Field | Value |
-|-------|-------|
-| Goal | Create concise docs, or shorten existing docs, while keeping actionable facts. |
-| Reader | AI agent with finite context and no prior organizational memory. |
-| Success metric | Fewer tokens, clearer actions, zero AI slop, no lost facts. |
-| Non-goal | Persuasion, warmth, entertainment, narrative, branding, fiction, or unrelated style issues. |
+Minimum tokens, exact names, zero AI slop. Fix only: AI slop, concision, clarity.
 
-## Modes
+## Mode dispatch
 
-| Mode | Output |
-|------|--------|
-| `create` | Goal, Trigger, Inputs, Steps, Outputs, Done. |
-| `improve` | Diff, Removed, Size before/after. |
+| Input | Mode |
+|-------|------|
+| `--create` + task and source files | Create: write a new doc from the step-3 skeleton, rules R1–R4 from the first draft. |
+| `--improve`, an existing path, inline text, or no flag | Improve: edit in place, apply steps 2–4. |
 
-- `IF` `--dry-run` `THEN` write nothing; report diff.
-- Before `improve` write, create `<path>.bak`; restore on validation failure, delete on pass.
+## Scope boundary
+
+- **In:** filler and hedging, boilerplate openers and summaries, duplicated facts, vague references (`it`, `the config`, `several`), nominalizations, passive voice that hides the actor.
+- **Out:** tone and voice, persuasion or branding, structure rewrites, fact or code changes, formatting, translation, grammar fixes that save no tokens and remove no ambiguity.
+- A requested fix that is out of scope: log `CONFLICT: <request>` and stop.
+
