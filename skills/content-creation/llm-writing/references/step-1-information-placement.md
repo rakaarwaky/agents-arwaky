@@ -15,8 +15,8 @@ Where each kind of information lives in the document. Design rules stay in `SKIL
 ## Rules
 
 - The root document is an index: one line per sub-doc with its `Read when:` trigger, never a restatement of the sub-doc content.
-- A fact stated in two places fails the single-source-of-truth rule — one owner, the other becomes a reference by path or section name.
-- Cells hold ≤ 20 words; move longer content to a code block or separate section.
+- A fact stated in two places fails the single-source-of-truth rule (Global Rule R4) — one owner, the other becomes a reference by path or section name.
+- Cells hold ≤ 20 words; move longer content to a code block or separate section (Global Rule R7).
 
 ## Completion
 

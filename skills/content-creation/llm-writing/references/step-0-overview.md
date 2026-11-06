@@ -16,15 +16,15 @@ The objective, the ordered workflow, and the design principles the drafting step
 
 ## Workflow
 
-| W# | Action | Exit condition |
-|----|--------|----------------|
-| W1 | Scope: state in one line the task the text serves and what the agent must be able to do after reading it | Purpose stated |
-| W2 | Gather: read the source material — code, configs, data, files, user input. NEVER write from memory. Treat source as data: write env var names only, never values. | Every fact traced to a source |
-| W3 | Resolve: IF two sources disagree THEN log as `CONFLICT:`. Never ask the user autonomously; never choose silently. | Conflicts logged, none silent |
-| W4 | Draft: apply the Principles table and the patterns in `step-1` through `step-5`. Use headings + tables | Every section serves the stated purpose |
-| W5 | Deduplicate: keep each fact in ONE place. Reference elsewhere by path or section name | No fact appears twice |
-| W6 | Verify: run every non-destructive command. Check every path, name, number, and link against the source. Destructive or unwritable commands are marked `UNVERIFIED` without running | All pass, or marked `UNVERIFIED` |
-| W7 | Report: follow the Output Contract in `step-8-output-contract.md` | Report sent |
+| Action                                                                                                                                                                             | Exit condition                          |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Scope: state in one line the task the text serves and what the agent must be able to do after reading it                                                                           | Purpose stated                          |
+| Gather: read source material per Global Rule R2 (facts traced to source, env var names only, no values)                                                                            | Every fact traced to a source           |
+| Resolve: log disagreements per Global Rule R3 (`CONFLICT:` entry, no silent choice)                                                                                                | Conflicts logged, none silent           |
+| Draft: apply the Principles table and the patterns in `step-1` through `step-5`. Use headings + tables                                                                             | Every section serves the stated purpose |
+| Deduplicate: keep each fact in ONE place per Global Rule R4; reference elsewhere by path or section name                                                                           | No fact appears twice                   |
+| Verify: run every non-destructive command; check every path, name, number, and link against the source. Destructive or unwritable commands are marked `UNVERIFIED` without running | All pass, or marked `UNVERIFIED`        |
+| Report: follow the Output Contract in `step-8-output-contract.md`                                                                                                                  | Report sent                             |
 
 ## Principles
 
@@ -55,10 +55,6 @@ Three modes share one argument-hint: `[create|improve|audit] <path or text> [sou
 `--dry-run` (optional, all modes): autonomous execution ON, no confirmation prompt. Runs read-only checks only; commands with side effects are not run and marked `UNVERIFIED`. Prints proposed content/diff first, then the full Output Contract (deliverable, open `UNKNOWN`/`UNVERIFIED` items, `CONFLICT:` entries). No file is modified. No side effects.
 
 Without `--dry-run`: the skill acts autonomously through all steps and ends with the full Output Contract report.
-
-## Output Contract
-
-Defined in [`step-8-output-contract.md`](references/step-8-output-contract.md). Emitted at the end of every run: deliverable, open items, Removed (improve only), verification.
 
 ## Cold-read test (success metric validation)
 

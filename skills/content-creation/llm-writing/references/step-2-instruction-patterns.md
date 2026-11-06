@@ -87,7 +87,7 @@ Use when <condition>. NEVER use for <anti-pattern>.
 | Format | One code block per command. No prompts (`$`) in copy-pasteable lines |
 | Context | State `cwd`, required env vars, and prerequisites |
 | Expectation | State expected exit code or output signature |
-| Verification | `VERIFIED` only after running. Else `UNVERIFIED`. Destructive commands are not run; mark `UNVERIFIED` |
+| Verification | `VERIFIED` only after running; else `UNVERIFIED` (Global Rule R6) |
 
 The `VERIFIED`/`UNVERIFIED` marker sits in an adjacent column or field, never inside a copy-paste command block.
 
