@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
-import stat
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -275,12 +273,22 @@ def test_empty_brace_sidecar_degrades_gracefully(tmp_path: Path) -> None:
 
 
 def test_wrong_schema_sidecar_degrades_gracefully(tmp_path: Path) -> None:
-    """Wrong-schema content → best-effort no-op, no raise from public methods."""
+    """Wrong-schema content → best-effort reseed to a valid baseline record, no raise."""
     root = tmp_path / "skills"
-    _write_sidecar(root, "alpha", ["not", "a", "dict"])
+    path = _write_sidecar(root, "alpha", ["not", "a", "dict"])
     SkillsCuratorTelemetry().view("alpha", as_root(root))
     SkillsCuratorTelemetry().use("alpha", as_root(root))
     SkillsCuratorTelemetry().reanchor_clock("alpha", as_root(root))
+
+    # A list payload is not a dict, so _read_sidecar returns {} and the public
+    # methods reseed the sidecar to a valid baseline record (never the raw list).
+    record = json.loads(path.read_text(encoding="utf-8"))
+    assert record["views"] == 1
+    assert record["uses"] == 1
+    assert record["state"] == "active"
+    assert set(record) == set(FIELDS)
+    assert record["created_at"] == record["first_seen_at"]
+    assert record["last_activity_at"] == record["activity_window_start"]
 
 
 # ─── atomic-write failure path ───────────────────────────────────────
@@ -345,15 +353,40 @@ def test_large_int_counters(tmp_path: Path) -> None:
 
 
 def test_non_writable_directory_no_op(tmp_path: Path, monkeypatch) -> None:
-    """Non-writable target directory → best-effort no-op, not a crash."""
+    """Write failure → best-effort no-op, sidecar unchanged on disk."""
     root = tmp_path / "skills"
     _skill_dir(root, "alpha").mkdir(parents=True)
     (root / "cat" / "alpha" / "SKILL.md").write_text(
         "---\nname: alpha\ndescription: x\n---\n", encoding="utf-8"
     )
-    # Make sidecar un-writable by removing write permission on the dir.
-    os.chmod(root / "cat" / "alpha", stat.S_IRUSR | stat.S_IXUSR)
-    try:
-        SkillsCuratorTelemetry().use("alpha", as_root(root))
-    finally:
-        os.chmod(root / "cat" / "alpha", stat.S_IRWXU)
+    path = root / "cat" / "alpha" / ".usage.json"
+    path.write_text(
+        json.dumps(
+            {
+                "state": "active",
+                "pinned": False,
+                "created_by": "agent",
+                "created_at": "t0",
+                "first_seen_at": "t0",
+                "last_activity_at": "t0",
+                "archived_at": "",
+                "views": 0,
+                "uses": 0,
+                "activity_window_start": "t0",
+            }
+        ),
+        encoding="utf-8",
+    )
+    before = json.loads(path.read_text(encoding="utf-8"))
+
+    def _boom(path: Path, payload: object) -> None:
+        raise PermissionError("read-only filesystem")
+
+    monkeypatch.setattr(
+        "skills_design.src.capabilities_skills_curator_telemetry.atomic_write_json",
+        _boom,
+    )
+    SkillsCuratorTelemetry().use("alpha", as_root(root))
+
+    # Sidecar untouched on disk: best-effort no-op degrades gracefully.
+    assert json.loads(path.read_text(encoding="utf-8")) == before
