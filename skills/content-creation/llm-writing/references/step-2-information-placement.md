@@ -1,9 +1,5 @@
 # LLM Writing — Information Placement
 
-Phase: Pre Draft.
-
-**Goal:** every fact has exactly one owner location; nothing is restated that the reader can derive in one read.
-
 ## Placement Table
 
 | Info type                    | Location                 | Rule                                                    |
