@@ -25,6 +25,7 @@ Rules that apply to every repo-manager operation. Reference files cite these; th
 | Clone | [`references/clone.md`](references/clone.md) | `git clone <url>` and `gh repo clone owner/repo` (HTTPS, SSH, shallow, branch). |
 | Create | [`references/create.md`](references/create.md) | `gh repo create NAME --public\|--private --clone` (user, org, template). |
 | Fork | [`references/fork.md`](references/fork.md) | `gh repo fork owner/repo --clone`, then `gh repo sync` for keeping in sync. |
+| .gitignore coverage | [`references/gitignore-audit.md`](references/gitignore-audit.md) | Three-way diff (tracked / untracked / on-disk) + `git check-ignore -v` to find gaps and add rules. |
 | Info | [`references/info.md`](references/info.md) | `gh repo view`, `gh repo list`, `gh search repos`. |
 | Settings | [`references/setting.md`](references/setting.md) | `gh repo edit` (description, visibility, topics, default branch) + branch protection REST. |
 | Actions & releases | [`references/action.md`](references/action.md) | `gh workflow` / `gh run` / `gh secret` / `gh release` (includes NaCl secrets fallback). |
