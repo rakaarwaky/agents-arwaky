@@ -350,7 +350,7 @@
     },
     {
       "name": "skill-design",
-      "description": "Authors, improves, and prunes agent skills. --create builds a new SKILL.md from a described job; --improve runs the full audit and improvement sequence on an existing skill — checks and fixes structure, naming, frontmatter, body shape, and dangling refs to the shared lint standard, then applies the edit recipe; --prune reads every skill's description and body, then merges skills that duplicate, share a bounded purpose, or share tooling into one consolidated folder, archiving the dropped duplicates. Use when creating, improving, auditing, or consolidating skills.",
+      "description": "Authors, improves, and prunes agent skills: --create builds a skill from a job description; --improve audits and repairs an existing skill; --prune merges duplicate skills into one folder.",
       "when_to_use": "Author a new SKILL.md for a slash command that has no loaded skill; improve an existing SKILL.md (audit + repair in one pass); or prune duplicate or same-purpose skills into one folder.",
       "category": "skill-authoring"
     },
