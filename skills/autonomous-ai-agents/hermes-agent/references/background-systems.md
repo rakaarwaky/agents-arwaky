@@ -50,22 +50,41 @@ Background maintenance for agent-created skills. Tracks usage, marks
 idle skills stale, archives stale ones, keeps a pre-run tar.gz backup
 so nothing is lost.
 
-- **CLI:** `hermes curator <verb>` — `status`, `usage`, `run`, `pause`,
-  `resume`, `pin`, `unpin`, `archive`, `restore`, `list-archived`, `prune`,
-  `backup`, `rollback`.
+- **CLI:** `hermes curator <verb>` — `status`, `usage`, `run` (`--consolidate`),
+  `pause`, `resume`, `pin`, `unpin`, `lock`, `unlock`, `archive`, `restore`,
+  `list-archived`, `list-unmanaged`, `adopt`, `prune` (`--days`), `purge`,
+  `ledger`, `backup`, `rollback` (`<id>`).
 - **Slash:** `/curator <subcommand>` mirrors the CLI.
 - **Scope:** only touches skills with `created_by: "agent"` provenance.
-  Bundled + hub-installed skills are off-limits. **Never deletes** —
-  max destructive action is archive. Pinned skills are exempt from
-  every auto-transition and every LLM review pass.
+  Bundled + hub-installed skills are off-limits; `plan` is a protected
+  built-in. **Never deletes** — max destructive action is archive.
+  Pinned/locked skills are exempt from every auto-transition and LLM
+  review pass. `cron=yes` skills may be consolidated but never pruned.
+- **Snapshot/rollback:** every mutating pass tars `skills/` to
+  `skills/.curator_backups/<utc-iso>/` (keeps `DEFAULT_KEEP=2`).
+  Rollback snapshots the current tree first (undoable), then restores
+  the chosen one. `cron/jobs.json` is copied as `cron-jobs.json`;
+  rollback restores only the `skills`/`skill` fields in it. Excluded:
+  `.hub/`, `.git/`, `.curator_backups/`, `.locks`.
 - **Cost:** the deterministic inactivity/prune sweep runs for free. The
   aux-model "consolidate overlapping skills into umbrellas" pass is
   **off by default** — opt in with `curator.consolidate: true` or
-  `hermes curator run --consolidate`. Routine background curation costs
-  zero tokens.
+  `hermes curator run --consolidate`. Consolidation is driven by an
+  auxiliary-model fork (config: `auxiliary.curator.{provider,model}`)
+  that writes a structured YAML summary; the curator then reconciles
+  the model's claims against the actual `skill_manage` tool-call
+  audit before writing the run report. Routine background curation
+  costs zero tokens.
 - **Telemetry:** sidecar at `~/.hermes/skills/.usage.json` holds
   per-skill `use_count`, `view_count`, `patch_count`,
-  `last_activity_at`, `state`, `pinned`.
+  `last_activity_at`, `state`, `pinned`; the ledger
+  (`tools/skill_ledger.py`) records lifecycle transitions. Per-run
+  reports land at `~/.hermes/logs/curator/{YYYYMMDD-HHMMSS}/` (`run.json`
+  + `REPORT.md`).
+- **Trigger:** inactivity-based, not cron — fires on CLI session start,
+  gateway housekeeping, and the `hermes serve` maintenance timer when
+  `interval_hours` (default 168) has elapsed and the agent has been
+  idle `min_idle_hours` (default 2).
 
 Config: `curator.*` (`enabled`, `interval_hours`, `min_idle_hours`,
 `stale_after_days`, `archive_after_days`, `backup.*`).
