@@ -4,6 +4,12 @@
 
 Run the numbered recipe in order against the resolved scope (Step 1), the body-format check (Step 2), and the audit steps 3–11. Verification after any edit is the `sdc lint` gate.
 
+## SDC Lint Fallback
+
+When `sdc lint` is unavailable (its `modules/` directory is missing → `ModuleNotFoundError: No module named 'cli'`, or an install is broken), do not block the improve run. Fall back to the grep-based mechanical checks that `sdc lint` would have gated: `grep -n '^#' <SKILL.md>` for body shape (step 2), a frontmatter scan for the four mandatory keys, description/when-to-use char-count against 1,024, the unlinked-refs probe (`ls references/ | while read f; do grep -q "$f" SKILL.md || echo "unlinked: $f"; done`), and a dangling-ref sweep for moved/renamed files. Report the fallback explicitly in the run report — a broken lint gate is an out-of-scope infra defect, not a blocker for the skill's own edits.
+
+A broken `sdc` CLI blocks both `sdc lint` and `sdc catalog --build` (same missing-`modules/` root, per `R20`), so the step-9 verify step's catalog rebuild also falls back to a plain `git add skills/catalog.json && git commit` if the file is stale — state the missing rebuild in the report; do not block the run on it.
+
 1. **Classify**: identify what the user's request touches — a content fix, a structure fix, or both. Do not start editing until the classification is clear; a content fix that is actually a structure fix will leave duplicates.
 2. **Enforce body format**: before applying any content or structure fix, verify the target `SKILL.md` follows the format in `step-2-body-format.md`. If it does not, restructure it first — move any out-of-place detail into `references/*.md`, then continue with the actual edit.
 3. **Handle empty categories**: if you move the last skill out of a category, the directory becomes empty and `sdc lint` will flag `empty-category`. Archive the last skill instead of deleting it:
