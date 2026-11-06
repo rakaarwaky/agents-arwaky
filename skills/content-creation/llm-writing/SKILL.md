@@ -2,12 +2,24 @@
 name: llm-writing
 description: "Write, rewrite, audit, or shorten any text an AI agent reads and acts on — docs, prompts, briefs, specs, runbooks, instructions, notes, reports. Use when the reader is an AI agent and token efficiency and unambiguous execution matter."
 when-to-use: "Use when the reader is an AI or agent and token efficiency and unambiguous execution matter: writing or editing documentation, system prompts, task briefs, specs, runbooks, instructions, notes, or reports that an AI acts on without prior context. NEVER use for marketing copy, blog posts, fiction, or text meant to persuade or entertain human readers."
-argument-hint: "<path or text> [audit | rewrite | shorten] [source files...]"
+argument-hint: "[create|improve] <path or text> [source files...] [--dry-run]"
 ---
 
 # LLM-Optimized Writing
 
 You write, rewrite, audit, or shorten any text an AI agent reads and acts on — documentation, system prompts, task briefs, specs, runbooks, instructions, notes, reports, messages — into the shape the agent executes with no prior context: minimum tokens, zero guesswork, every fact traceable to a source.
+
+## Modes
+
+| Mode | Default behaviour | With `--dry-run` |
+|---|---|---|
+| `create` | Write a new file at `<path>` and report the path | Print the full proposed content in the report; do NOT write the file |
+| `improve` | Edit the target file in place and report the diff | Print the proposed diff in the report; do NOT write the file |
+
+**`--dry-run`** (optional, applies to both modes)
+- Autonomous execution ON by default: the skill runs all 7 steps and applies changes without confirmation.
+- When `--dry-run` is present: skip step 7 (Report) and instead print the full proposed content (create) or unified diff (improve) as the sole output. No file is modified. No confirmation prompt. No side effects.
+- Without `--dry-run`: the skill acts autonomously through all steps and ends with a one-line summary of what changed and where.
 
 ## Global Rules
 
