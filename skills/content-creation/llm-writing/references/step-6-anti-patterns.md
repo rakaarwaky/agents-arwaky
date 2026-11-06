@@ -1,6 +1,6 @@
-# LLM Writing — Anti-Patterns
+# LLM Writing — Step 6: Anti-Patterns
 
-The fix table for common defects and the completion gate before delivery.
+Phase: W5. The fix table is a delivery sweep; run it after drafting.
 
 **Goal:** zero anti-patterns in the delivered text; every pattern row fixed or logged.
 
@@ -15,7 +15,7 @@ The fix table for common defects and the completion gate before delivery.
 | Unstated output format | State format, length, and structure of expected output | Output format stated |
 | External link without local summary | Summarize payload in a table, marked `Summary of <url>, as of <date>`; link as supplement | Local summary present; link optional |
 | Same fact in multiple places | One owner location; reference it elsewhere | No fact stated twice (Rule R4) |
-| Table cells with paragraphs | Shorten to a phrase; cell ≤ 20 words | Cells ≤ 20 words; no paragraphs (`step-4` Constraints) |
+| Table cells with paragraphs | Shorten to a phrase; cell ≤ 20 words | Cells ≤ 20 words; no paragraphs (`step-3` Constraints) |
 | Restating what the reader can derive in one read | Keep only non-obvious facts and entry points | No derivable facts restated (Rule R4) |
 | Unreplaced placeholders (`<TODO>`, `...`) | Fill in or write `UNKNOWN` | No placeholders; unknowns marked `UNKNOWN` (Rule R5) |
 | Undefined acronym or project term | Define once at first use | One term per concept; all defined (Rule R5) |
@@ -26,29 +26,13 @@ The fix table for common defects and the completion gate before delivery.
 | Rule Check fails | Fix the failing rule or log `CONFLICT:` | All Rule Checks pass |
 | Section with no actionable fact | Delete the section, or move its fact to its owner location | Every section holds an actionable fact |
 | Vague reference ("this file", "the config") | Name the path, section, or variable | No vague references (R10) |
-| Plain keyword (`MUST`, `NEVER` without backticks) | Backtick every keyword | All keywords backticked (`step-4` Keywords) |
+| Plain keyword (`MUST`, `NEVER` without backticks) | Backtick every keyword | All keywords backticked (`step-3` Keywords) |
 
 ## Completion
 
 - The pattern table is swept top-to-bottom against the text; every hit is fixed.
-- Every Rule Check in `SKILL.md` and `step-4` has been run; failures fixed or logged.
+- Every Rule Check in `SKILL.md` and `step-3` has been run; failures fixed or logged.
 - Cold-read test passed or marked `UNVERIFIED`.
 - Every finding is checkable by re-reading the target file (Eval 3).
 - No facts lost: every `CONFLICT:` entry in the target file is still present in the improved text (Eval 2).
 - All rows above pass before the Output Contract report is sent.
-
-## Eval: Dry-Run with No File Change
-**Input:** Target: `SKILL.md` (any existing file). Mode: `audit`. Flag: `--dry-run`.
-
-**Expected:**
-- No file written to disk. Target file byte-identical before and after.
-- Output is a report: list of findings (anti-patterns present, Rule Checks failed, vague references, plain keywords).
-- `Removed` row absent (audit mode does not modify).
-- `Size before/after` absent (audit mode does not modify).
-- Each finding cites the pattern row in `step-5` or the rule it violates.
-- `VERIFIED`/`UNVERIFIED` markers present for every path, number, and command in the target.
-
-**Pass criteria:**
-- Target file unchanged: `git diff --stat <file>` empty or `md5sum` identical before/after.
-- Report contains no `Removed` or `Size before/after` fields.
-- Every finding is checkable: the reader can verify it by re-reading the target file.
