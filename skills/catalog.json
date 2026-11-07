@@ -7,6 +7,12 @@
       "category": "automation"
     },
     {
+      "name": "brave-automation",
+      "description": "Drive the local baa CLI to provision Brave profiles from CSV, import credentials into Chromium's native Login Data DBs, and persist Google sessions in isolated profiles.",
+      "when_to_use": "Use when the user wants to set up or manage local Brave/Chromium browser profiles for automation, bulk-provision accounts from profile.csv or passwords.csv, generate Chromium Password Manager CSV imports, wipe or sync credentials across profiles, or script Google login/logout with persisted sessions. Not for headless scraping without profiles, non-Chromium browsers, or cloud password managers.",
+      "category": "automation"
+    },
+    {
       "name": "computer-use",
       "description": "Drive the user's desktop in the background without stealing focus, via the Hermes computer_use tool backed by cua-driver, including a typed browser-page rung. Use when a task needs the user's actual desktop apps rather than headless browser or shell tools.",
       "when_to_use": "Use when driving a native desktop app (browser GUI, mail client, editor, game, Figma, OS dialogs) in the background, when the user wants mouse/keyboard automation that must not steal focus, or when an input rung must be verified or escalated through the computer_use ladder. Not for headless web automation, plain file edits, or shell commands.",
@@ -46,12 +52,6 @@
       "name": "orca",
       "description": "Orca CLI agent environment: Orca-managed worktrees, folder contexts, terminals, repos, automations and cron jobs, embedded browser, artifacts, and skill sharing via the orca CLI; visible local app windows via orca computer; iOS and Android emulator control; Linear ticket work; per-workspace environment recipes; multi-agent orchestration with DAGs and decision gates. Use for $orca-cli, Orca worktree, child worktree, spawn codex/claude in a worktree, read/wait/send Orca terminal, handoff/handover/give this to another agent, Orca browser, orca artifacts, share skills, scheduled agent tasks or cron jobs, visible GUI windows, booted iOS Simulator or Android emulator, linked Linear issue, per-workspace environment recipe setup, multi-agent DAG coordination. Observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree', orca cli-commands, orca config-system.",
       "when_to_use": "Use for any Orca CLI agent-environment task. Load references/cli.md for worktrees, terminals, repos, automations, artifacts, skill sharing, and the embedded browser; references/automations.md for scheduled agent runs and cron jobs; references/computer-use.md for visible GUI windows; references/emulator.md for a booted iOS Simulator; references/emulator-android.md for an adb-connected Android emulator or phone; references/linear.md for Linear ticket work; references/per-workspace-env.md for per-workspace environment recipes; references/orchestration.md for supervised multi-agent coordination with DAGs and decision gates. Also matches observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree'.",
-      "category": "autonomous-ai-agents"
-    },
-    {
-      "name": "resume-session",
-      "description": "Resume or continue work from a recent Claude Code, Codex, or Cursor session. Use when the user switched from one of those tools, says continue from Claude-Codex-Cursor or resume my Claude-Codex-Cursor session, or names a session by description, path, or native ID.",
-      "when_to_use": "Use when the user switched from Claude Code, Codex, or Cursor and wants to continue/resume a session by description, path, or native ID.",
       "category": "autonomous-ai-agents"
     },
     {

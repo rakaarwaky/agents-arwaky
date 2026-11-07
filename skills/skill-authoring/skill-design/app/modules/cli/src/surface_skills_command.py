@@ -227,6 +227,12 @@ def _authoring_parser() -> argparse.ArgumentParser:
         default=None,
         help="Print the current catalog.json content",
     )
+    sub.add_argument(
+        "--check",
+        action="store_true",
+        default=False,
+        help="Verify catalog.json matches the live tree (drift gate; never writes)",
+    )
 
     sub = subparsers.add_parser("discover", help="Search catalog.json")
     sub.add_argument("query", help="Search query")
@@ -290,6 +296,11 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
         )
 
     if command == "catalog":
+        if namespace.check:
+            return SkillsRequest(
+                op=SkillsOp.CATALOG,
+                flags={"check": "1"},
+            )
         # Tri-state: no flag at all → both (the convenient agent default:
         # build then print). An explicit flag pins its value; the other
         # flag defaults to False.
@@ -354,6 +365,17 @@ def _build_request(namespace: argparse.Namespace) -> SkillsRequest:
 # ─── Renderers ───────────────────────────────────────────────────────
 def _render_catalog(result: SkillsResult, request: SkillsRequest) -> int:
     """Render the catalog build / read output."""
+    if request.flags.get("check") == "1":
+        check = result.check
+        if check is None:
+            err("Internal error: no catalog check produced")
+            return 1
+        if check.in_sync:
+            print(f"[OK] catalog.json is in sync with the live tree")
+            return result.exit_code
+        err(check.message or "catalog.json drifted from the live tree")
+        return result.exit_code or 3
+
     build = request.flags.get("build", "1") == "1"
     read = request.flags.get("read", "1") == "1"
 
