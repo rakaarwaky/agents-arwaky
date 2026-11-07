@@ -382,7 +382,7 @@ script are pinned by the surface and contract test files.
 
 #### Business Logic
 
-- The ranker is injected into the discover capability via `IBM25FRankerProtocol`; never a sibling capability import
+- `ISkillsDiscoverProtocol` declares both `discover` and `rank`; the BM25F ranker is injected into `SkillsDiscover` by the root container — never a sibling capability import
 - Each hit carries a float `score`, the original row, and `matched_fields` — the logical field names that contributed
 - Float scores are projected to the legacy int scale via `map_to_legacy_score` (taxonomy, shared by all consumers)
 - Empty query or empty row set yields an empty result
@@ -399,7 +399,7 @@ script are pinned by the surface and contract test files.
 |--------------|-----------------------------------------------|
 | **Input**    | catalog rows and query tokens                 |
 | **Output**   | `BM25FHit` results sorted high-first          |
-| **Protocol** | IBM25FRankerProtocol                          |
+| **Protocol** | ISkillsDiscoverProtocol (merged; `rank`)      |
 | **Method**   | rank                                          |
 | **Event**    | —                                             |
 | **Error**    | none (pure data in, pure data out)            |

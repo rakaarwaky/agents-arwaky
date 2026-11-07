@@ -126,7 +126,7 @@ counterpart.
 | Aspect       | Detail                                                       |
 |--------------|--------------------------------------------------------------|
 | State        | Done                                                         |
-| Done         | `SkillsBm25fRanker` in `capabilities_skills_bm25f.py` implements `IBM25FRankerProtocol`; injected into `SkillsDiscover` via the root container; `unit_skills_discover_bm25f.py` covers tokenization, ranking order, zero-score exclusion, and the legacy int projection. |
+| Done         | `SkillsDiscover` in `capabilities_skills_discover.py` implements the merged `ISkillsDiscoverProtocol` (`discover` + `rank`), delegating ranking to the injected `SkillsBm25fRanker`; `unit_skills_discover_bm25f.py` covers tokenization, ranking order, zero-score exclusion, and the legacy int projection. |
 | In Progress  | None                                                         |
 | Risk         | None                                                         |
 | Updated      | 2026-11-05                                                   |

@@ -27,9 +27,6 @@ from dataclasses import field as dataclass_field
 from pathlib import Path
 
 from shared.src.common.utility_skills_tree import skill_entries
-from shared.src.skills_design.contract_skills_bm25f_protocol import (
-    IBM25FRankerProtocol,
-)
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -285,12 +282,12 @@ def rank_bm25f(rows, tokens: list[str]) -> list[BM25FHit]:
 
 # ── BM25F ranker class ─────────────────────────────────────────────────
 
-class SkillsBm25fRanker(IBM25FRankerProtocol):
+class SkillsBm25fRanker:
     """Offline BM25F field-weighted ranker over catalog rows.
 
-    Implements ``IBM25FRankerProtocol``: ``rank`` returns ``BM25FHit``
-    results sorted high-first. The stateless algorithm also lives as
-    module-level free functions (``rank_bm25f``) for direct callers.
+    ``rank`` returns ``BM25FHit`` results sorted high-first. The stateless
+    algorithm also lives as module-level free functions (``rank_bm25f``)
+    for direct callers.
     """
 
     def rank(self, rows: object, tokens: list[str]) -> list[BM25FHit]:
@@ -336,7 +333,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
     def __init__(
         self,
         catalog: ISkillsCatalogProtocol,
-        ranker: IBM25FRankerProtocol,
+        ranker: SkillsBm25fRanker,
     ) -> None:
         self._catalog = catalog
         self._ranker = ranker
@@ -369,6 +366,10 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
             warning=warning,
             warning_detail=warning_detail,
         )
+
+    def rank(self, rows: object, tokens: list[str]) -> list[BM25FHit]:
+        """Score *rows* against *tokens* with the injected BM25F ranker."""
+        return self._ranker.rank(rows, tokens)
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _rows_or_fallback(

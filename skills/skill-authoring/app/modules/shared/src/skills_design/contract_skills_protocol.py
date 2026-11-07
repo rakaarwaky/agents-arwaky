@@ -22,6 +22,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
 from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+    BM25FHit,
     CatalogCheckResult,
     CatalogReport,
     DiscoveryResult,
@@ -141,6 +142,16 @@ class ISkillsDiscoverProtocol(ABC):
         search tokens (exit 2). On drift (a missing or corrupt
         ``catalog.json``), sets the result's warning fields, falls back to the
         live tree scan, and returns matches with exit 0.
+        """
+        ...
+
+    @abstractmethod
+    def rank(self, rows: object, tokens: list[str]) -> list[BM25FHit]:
+        """Return ranked hits for *rows* scored against *tokens*.
+
+        Each hit carries a float ``score``, the original row, and the
+        logical field names that contributed (``matched_fields``).
+        Empty *rows* or *tokens* yield an empty list.
         """
         ...
 

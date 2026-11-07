@@ -19,9 +19,6 @@ from pathlib import Path
 
 from shared.src.common.utility_skill_pack import default_pack_root
 from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
-from shared.src.skills_design.contract_skills_bm25f_protocol import (
-    IBM25FRankerProtocol,
-)
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
@@ -81,7 +78,7 @@ def default_aggregate(
     linter: ISkillsLinterProtocol | None = None,
     catalog: ISkillsCatalogProtocol | None = None,
     discover: ISkillsDiscoverProtocol | None = None,
-    ranker: IBM25FRankerProtocol | None = None,
+    ranker: SkillsBm25fRanker | None = None,
     mover: ISkillsMoverProtocol | None = None,
     archiver: ISkillsArchiverProtocol | None = None,
     creator: ISkillsCreatorProtocol | None = None,
@@ -151,7 +148,7 @@ class SkillsFacade:
         linter: ISkillsLinterProtocol | None = None,
         catalog: ISkillsCatalogProtocol | None = None,
         discover: ISkillsDiscoverProtocol | None = None,
-        ranker: IBM25FRankerProtocol | None = None,
+        ranker: SkillsBm25fRanker | None = None,
         mover: ISkillsMoverProtocol | None = None,
         archiver: ISkillsArchiverProtocol | None = None,
         creator: ISkillsCreatorProtocol | None = None,
