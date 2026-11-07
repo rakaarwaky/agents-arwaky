@@ -15,6 +15,7 @@ TOOL_DATA: dict[str, str] = {
     "omniroute": "omniroute",
     "9router": "9router",
     "google-workspace": "google-workspace-mcp",
+    "skills": "skills",
 }
 
 #: Local archive store the tar gateway writes to.

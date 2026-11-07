@@ -1,8 +1,9 @@
 """Skills archiver capability (AES capabilities layer).
 
 Implements ``ISkillsArchiverProtocol``: plan/apply an archive of a skill
-into ``_archive/`` (dry-run by default). Split from the retired
-``SkillsMutator`` so each mutation verb owns one capability file.
+into ``_archive/`` (dry-run by default). Delegates the physical move and
+sidecar state update to ``SkillsCuratorLifecycle`` so that the legacy
+``sdc archive`` verb and the Hermes curator engine stay in sync.
 
 Shared helpers (``resolve_skill_dir``, ``assert_within_root``,
 ``archive_root``) live in ``utility_skills_mutation`` (shared kernel)
@@ -15,7 +16,6 @@ between the two fails closed instead of writing outside the pack.
 
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 from shared.src.common.utility_skills_mutation import (
@@ -37,12 +37,24 @@ from shared.src.skills_design.taxonomy_skills_error import (
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 from shared.src.skills_design.taxonomy_skills_rule_vo import SkillName
 
-__all__ = ["SkillsArchiver"]
+from skills_design.src.capabilities_skills_curator_lifecycle import (
+    SkillsCuratorLifecycle,
+)
 
+__all__ = ["SkillsArchiver"]
 
 # ─── Block 1: Class Definition & Constructor ──────────────
 class SkillsArchiver(ISkillsArchiverProtocol):
-    """Plans and applies an archive of a skill into ``_archive/``."""
+    """Plans and applies an archive of a skill into ``_archive/``.
+
+    The lifecycle engine (``SkillsCuratorLifecycle``) is the single source
+    of truth for the move, sidecar state, and path containment.  This
+    facade keeps the legacy ``MutationPlan`` surface for ``sdc archive``
+    intact.
+    """
+
+    def __init__(self, lifecycle: SkillsCuratorLifecycle | None = None) -> None:
+        self._lifecycle = lifecycle if lifecycle is not None else SkillsCuratorLifecycle()
 
     # ─── Block 2: Protocol Method Implementation ─────────────
     def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
@@ -67,19 +79,21 @@ class SkillsArchiver(ISkillsArchiverProtocol):
         )
 
     def apply_archive(self, plan: MutationPlan) -> MutationOutcome:
-        """Execute an archive plan; re-checks containment first."""
+        """Execute an archive plan; re-checks containment first.
+
+        Delegates to the curator lifecycle engine so that ``SKILL.md``
+        remains in place and the ``.usage.json`` sidecar is updated to
+        ``state="archived"`` instead of the legacy rename.
+        """
         root = plan.root
         if plan.source is None or plan.destination is None:
             raise SkillsUsageError("Archive plan is missing its paths")
-        # Pre-apply containment check is the TOCTOU fail-closed guard; the
-        # post-mkdir re-check below is redundant (mkdir can only create dirs
-        # inside an already-contained parent) and is dropped.
+
+        # Fail-closed containment guard before we hand off to lifecycle.
         assert_within_root(plan.destination, root)
-        plan.destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(plan.source), str(plan.destination))
-        archived_md = plan.destination / "SKILL.md"
-        if archived_md.exists():
-            archived_md.rename(plan.destination / "SKILL.md.archived")
+
+        skill_name = plan.source.name
+        self._lifecycle.archive(skill_name, root)
         return MutationOutcome(message="archived")
 
     # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
