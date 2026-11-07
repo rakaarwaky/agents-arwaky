@@ -1,0 +1,110 @@
+"""Skill backup capability (AES capabilities layer).
+
+Creates content-addressed snapshots of the pack under
+``.lifecycle_backups/`` and prunes old ones.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import shutil
+import tarfile
+from pathlib import Path
+
+from shared.src.common.utility_skills_mutation import atomic_write_json
+from shared.src.skills_design.taxonomy_skills_error import (
+    SkillsRootError,
+    SkillsUsageError,
+)
+from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
+    load_lifecycle_config,
+)
+
+from skills_design.src.common_lifecycle_support import (
+    BACKUP_DIRNAME,
+    DEFAULT_KEEP,
+    MANIFEST_NAME,
+    TARBALL_NAME,
+    _assert_member_safe,
+    _iter_pack_files,
+    _new_snapshot_name,
+    _sha256_of,
+    _utc_iso_stamp,
+    tar_data_filter,
+)
+
+logger = logging.getLogger(__name__)
+
+__all__ = ["SkillsBackup"]
+
+
+class SkillsBackup:
+    """Backup capability: snapshot create / prune."""
+
+    def create_snapshot(self, root: Path, *, _prune: bool = True) -> Path:
+        skills_root = self._require_root(root)
+        backup_root = self._backup_root(skills_root)
+        base = _utc_iso_stamp()
+        existing = {p.name for p in backup_root.iterdir() if p.is_dir()}
+        snap_dir = backup_root / _new_snapshot_name(base, existing)
+        snap_dir.mkdir(parents=True)
+
+        manifest_files: list[dict] = []
+        tarball = snap_dir / TARBALL_NAME
+        with tarfile.open(tarball, "w:gz") as tar:
+            for rel, abs_path in _iter_pack_files(skills_root):
+                info = tar.gettarinfo(str(abs_path), arcname=rel)
+                if abs_path.is_dir():
+                    tar.addfile(info)
+                else:
+                    tar.addfile(info, abs_path.open("rb"))
+                manifest_files.append(
+                    {
+                        "path": rel,
+                        "sha256": _sha256_of(abs_path) if not abs_path.is_dir() else "",
+                    }
+                )
+
+        manifest = {"files": manifest_files, "created_at": base}
+        atomic_write_json(snap_dir / MANIFEST_NAME, manifest)
+
+        if _prune:
+            self.prune_old_snapshots(skills_root)
+        return snap_dir
+
+    def prune_old_snapshots(
+        self, root: Path, *, excluded: frozenset[str] | None = None
+    ) -> list[Path]:
+        skills_root = self._require_root(root)
+        keep = self._keep_count(skills_root)
+        excluded = excluded or frozenset()
+        snap_dirs = sorted(
+            (p for p in self._backup_root(skills_root).iterdir() if p.is_dir()),
+            key=lambda p: p.name,
+            reverse=True,
+        )
+        removable = [d for d in snap_dirs if d.name not in excluded]
+        removed: list[Path] = []
+        for snap in removable[keep:]:
+            shutil.rmtree(snap)
+            removed.append(snap)
+        return removed
+
+    # ─── internals ─────────────────────────────────────────────
+
+    def _require_root(self, root: Path) -> Path:
+        skills_root = Path(root)
+        if not skills_root.is_dir():
+            raise SkillsRootError(f"pack root not found: {skills_root}")
+        return skills_root
+
+    def _backup_root(self, skills_root: Path) -> Path:
+        d = skills_root / BACKUP_DIRNAME
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    def _keep_count(self, skills_root: Path) -> int:
+        config = load_lifecycle_config(skills_root)
+        val = getattr(config, "backup_keep", DEFAULT_KEEP)
+        return val if isinstance(val, int) and val > 0 else DEFAULT_KEEP
