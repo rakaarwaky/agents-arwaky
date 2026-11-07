@@ -16,5 +16,8 @@ Domain: General knowledge base — interlinked markdown notes.
 | [[skill-audit-ledger]] | concept | `.curator_ledger.jsonl` mutation audit trail | 2026-11-06 |
 | [[curator-prune-vs-archive]] | comparison | Prune vs archive — fates of unused skills | 2026-11-06 |
 | [[curator-auto-vs-manual]] | comparison | Automatic vs manual transitions | 2026-11-06 |
+| [[git-submodule-repair]] | concept | Broken .git/modules layout: diagnosis, the git-init nesting trap, bare-clone repair | 2026-11-07 |
+| [[git-submodule-topology]] | entity | agents-arwaky submodule map: internal/*, vendor/*, skills app; pin commits; ignore=dirty | 2026-11-07 |
+| [[repo-git-state]] | summary | Point-in-time snapshot 2026-11-07: branches, pin drift, open qwen-web-arwaky decision | 2026-11-07 |
 
-*10 pages. No pages are orphaned — every page links to at least 2 others.*
+*13 pages. No pages are orphaned — every page links to at least 2 others.*

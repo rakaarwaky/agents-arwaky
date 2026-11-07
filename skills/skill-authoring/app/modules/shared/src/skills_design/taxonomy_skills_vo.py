@@ -19,8 +19,6 @@ from __future__ import annotations
 
 import json
 import logging
-import posixpath
-import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
@@ -31,12 +29,15 @@ from shared.src.skills_design.taxonomy_skills_constant import (
     BM25F_SCORE_SCALE,
     CITATIONS,
     CONFIG_FILENAME,
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
     SUMMARIES,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
+# Re-exported so capabilities read these via the vo (single import surface);
+# no cycle: ``utility_skill_pack`` imports only from the constant module.
+from shared.src.skills_design.utility_skill_pack import (
+    is_valid_skill_name,
+    sanitize_skill_name,
+)
 
 if TYPE_CHECKING:
     # ``Issue`` lives in the entity module, which imports ``IssueType``
@@ -560,33 +561,8 @@ def load_lifecycle_config(pack_root: SkillsRoot | None = None) -> LifecycleConfi
     return defaults
 
 
-# ─── Skill-name helpers ────────────────────────────────────────────────
-
-
-@dataclass(frozen=True)
-class SkillNameVo:
-    """Pure-name value object for the skill pack (no I/O, no state)."""
-
-    raw: str
-
-    def sanitized(self, fallback: str) -> str:
-        """Convert the raw name into a safe directory name."""
-        return sanitize_skill_name(self.raw, fallback)
-
-
-from shared.src.skills_design.utility_skill_pack import (
-    extract_skill_name,
-    is_valid_skill_name,
-    safe_child,
-    safe_skill_name,
-    sanitize_skill_name,
-)
-
 __all__ = [
     "ISSUE_MESSAGES",
-    "NAME_MAX",
-    "NAME_MIN",
-    "NAME_RE",
     "RULES",
     "RULE_IDS",
     "BM25FHit",
@@ -598,7 +574,6 @@ __all__ = [
     "ErrorMessage",
     "IssueType",
     "LedgerEntry",
-    "Level",
     "LifecycleConfig",
     "LintReport",
     "MutationOutcome",
@@ -610,18 +585,14 @@ __all__ = [
     "SkillCreatePlan",
     "SkillDescription",
     "SkillName",
-    "SkillNameVo",
     "SkillRecord",
     "SkillsJsonPayload",
     "TelemetryRow",
     "ValidationReport",
-    "extract_skill_name",
     "is_valid_skill_name",
     "issue_message",
     "load_lifecycle_config",
     "map_to_legacy_score",
     "rule",
-    "safe_child",
-    "safe_skill_name",
     "sanitize_skill_name",
 ]
