@@ -17,12 +17,6 @@
       "description": "Unified image and video intelligence for computer vision, OCR, video analysis, object tracking, and MCP integrations.",
       "when_to_use": "",
       "category": "internal"
-    },
-    {
-      "name": "brave-automation-arwaky",
-      "description": "Linux CLI for Brave profile provisioning & native Chromium password manager automation (baa).",
-      "when_to_use": "",
-      "category": "internal"
     }
   ]
 }

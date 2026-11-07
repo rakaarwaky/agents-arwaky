@@ -27,7 +27,7 @@ from shared.src.common.utility_skills_tree import (
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     CatalogCheckResult,
     CatalogReport,
 )

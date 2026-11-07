@@ -21,27 +21,23 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
-from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_request import (
+    SkillQuery,
+    SkillsRoot,
+)
+from shared.src.skills_design.taxonomy_skills_vo import (
     BM25FHit,
     CatalogCheckResult,
     CatalogReport,
+    CategoryName,
     DiscoveryResult,
     LintReport,
     MutationOutcome,
     MutationPlan,
     NewCategoryPlan,
-    SkillCreatePlan,
-)
-from shared.src.skills_design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
-)
-from shared.src.skills_design.taxonomy_skills_rule_vo import (
-    CategoryName,
-    SkillName,
-)
-from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
+    SkillCreatePlan,
+    SkillName,
     SkillRecord,
     SkillsJsonPayload,
 )
@@ -235,7 +231,7 @@ class ISkillsLifecycleProtocol(ABC):
     implements this; the composition root wires it into the agent.
     Per the design doc's API section the seam is typed with ``dict`` /
     ``object``; the named data-model VOs (``TelemetryRow``,
-    ``LedgerEntry``) live in ``taxonomy_skills_lifecycle_vo``.
+    ``LedgerEntry``) live in ``taxonomy_skills_vo``.
     """
 
     @abstractmethod

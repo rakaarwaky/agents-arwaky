@@ -25,11 +25,11 @@ from shared.src.skills_design.taxonomy_skills_request import SkillsOp
 
 if TYPE_CHECKING:
     # The authoring VOs (``ValidationReport``, ``LintReport``,
-    # ``CatalogReport``, ...) live in the authoring module, which imports
-    # the trace primitives back from ``taxonomy_skills_vo`` at the bottom
-    # — a runtime import here would cycle, so the names are reserved for
-    # type-checking (PEP 563 string annotations).
-    from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+    # ``CatalogReport``, ...) and the core primitives (``SkillRecord``,
+    # ``SkillContent``) all live in ``taxonomy_skills_vo``. The names are
+    # reserved for type-checking because that module also imports this
+    # module's names; PEP 563 keeps the annotations as strings.
+    from shared.src.skills_design.taxonomy_skills_vo import (
         CatalogCheckResult,
         CatalogReport,
         DiscoveryMatch,
@@ -37,15 +37,8 @@ if TYPE_CHECKING:
         MutationOutcome,
         MutationPlan,
         NewCategoryPlan,
-        SkillCreatePlan,
-    )
-
-    # ``SkillRecord`` and ``SkillContent`` live in ``taxonomy_skills_vo``,
-    # which re-imports this module's names at the bottom of its own body.
-    # Importing that module back at the top would cycle, so the names are
-    # reserved for type-checking; PEP 563 keeps them as strings.
-    from shared.src.skills_design.taxonomy_skills_vo import (
         SkillContent,
+        SkillCreatePlan,
         SkillRecord,
     )
 

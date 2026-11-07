@@ -42,8 +42,8 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillNotFoundError,
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_lifecycle_vo import LIFECYCLE_STATES
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
+from shared.src.skills_design.taxonomy_skills_vo import LIFECYCLE_STATES
 
 __all__ = [
     "ACTIVE",

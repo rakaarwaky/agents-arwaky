@@ -16,7 +16,7 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     CatalogCheckResult,
     CatalogReport,
 )

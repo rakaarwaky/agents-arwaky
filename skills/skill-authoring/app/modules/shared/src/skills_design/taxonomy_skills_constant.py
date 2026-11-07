@@ -22,7 +22,7 @@ MAX_DESCRIPTION_LEN: Final = 1024
 # ─── Naming budget ─────────────────────────────────────────────────────
 
 #: Naming budget. ``is_valid_skill_name`` in
-#: ``taxonomy_skills_rule_vo.py`` consumes these.
+#: ``taxonomy_skills_vo.py`` consumes these.
 NAME_MIN: Final = 2
 NAME_MAX: Final = 64
 NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")

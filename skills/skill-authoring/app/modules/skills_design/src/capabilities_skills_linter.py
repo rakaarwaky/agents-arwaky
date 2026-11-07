@@ -34,10 +34,6 @@ from shared.src.common.utility_skills_tree import (
     too_deep_exempt_paths,
 )
 from shared.src.skills_design.contract_skills_protocol import ISkillsLinterProtocol
-from shared.src.skills_design.taxonomy_skills_authoring_vo import (
-    LintReport,
-    ValidationReport,
-)
 from shared.src.skills_design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
     MAX_DESCRIPTION_LEN,
@@ -48,8 +44,10 @@ from shared.src.skills_design.taxonomy_skills_entity import (
     SkillEntry,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.taxonomy_skills_rule_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     IssueType,
+    LintReport,
+    ValidationReport,
     is_valid_skill_name,
     issue_message,
 )

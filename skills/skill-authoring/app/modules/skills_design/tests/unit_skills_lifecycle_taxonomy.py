@@ -16,20 +16,18 @@ import pytest
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsLifecycleProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
-    CONFIG_FILENAME,
-    LifecycleConfig,
-    load_lifecycle_config,
-)
-from shared.src.skills_design.taxonomy_skills_lifecycle_vo import (
-    LIFECYCLE_STATES,
-    LedgerEntry,
-    TelemetryRow,
-)
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
+)
+from shared.src.skills_design.taxonomy_skills_vo import (
+    CONFIG_FILENAME,
+    LIFECYCLE_STATES,
+    LedgerEntry,
+    LifecycleConfig,
+    TelemetryRow,
+    load_lifecycle_config,
 )
 
 _EXPECTED_LIFECYCLE_OPS = [

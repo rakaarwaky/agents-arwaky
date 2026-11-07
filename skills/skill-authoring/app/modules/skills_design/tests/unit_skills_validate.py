@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from shared.src.skills_design.taxonomy_skills_rule_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     ISSUE_MESSAGES,
     RULE_IDS,
     RULES,

@@ -30,7 +30,7 @@ try:
 except ImportError:  # pragma: no cover - POSIX has no msvcrt
     msvcrt = None
 
-from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     MutationPlan,
     MutationStep,
 )

@@ -31,7 +31,7 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_authoring_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     BM25FHit,
     DiscoveryMatch,
     DiscoveryResult,

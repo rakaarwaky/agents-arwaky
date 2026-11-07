@@ -15,7 +15,7 @@ from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
+from shared.src.skills_design.taxonomy_skills_vo import (
     load_lifecycle_config,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot

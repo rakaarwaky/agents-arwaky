@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.skills_design.taxonomy_skills_authoring_vo import map_to_legacy_score
+from shared.src.skills_design.taxonomy_skills_vo import map_to_legacy_score
 
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_discover import (
