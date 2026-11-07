@@ -16,14 +16,16 @@ import pytest
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsLifecycleProtocol,
 )
+from shared.src.skills_design.taxonomy_skills_constant import (
+    CONFIG_FILENAME,
+    LIFECYCLE_STATES,
+)
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
 from shared.src.skills_design.taxonomy_skills_vo import (
-    CONFIG_FILENAME,
-    LIFECYCLE_STATES,
     LedgerEntry,
     LifecycleConfig,
     TelemetryRow,

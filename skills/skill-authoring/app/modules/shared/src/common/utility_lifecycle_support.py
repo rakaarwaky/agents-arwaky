@@ -36,14 +36,16 @@ from shared.src.common.utility_skills_mutation import (
     assert_within_root,
     atomic_write_json,
 )
-from shared.src.skills_design.taxonomy_skills_constant import ARCHIVE_DIRNAME
+from shared.src.skills_design.taxonomy_skills_constant import (
+    ARCHIVE_DIRNAME,
+    LIFECYCLE_STATES,
+)
 from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.taxonomy_skills_vo import LIFECYCLE_STATES
 
 __all__ = [
     "ACTIVE",
