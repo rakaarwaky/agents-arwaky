@@ -262,36 +262,34 @@ def verify_ledger_invariants(
             )
 
         # Check 2 — closing-condition re-runnability (created / commented).
-        if action in ("created", "commented") and cc:
-            if cls in _CC_CODE_CLASSES:
-                if not _cc_names_src_path(cc):
-                    violations.append(
-                        InvariantViolation(
-                            "closing_condition",
-                            "code-implementation closing condition must name a "
-                            "<feature>/src/ or <feature>/tests/ path",
-                            row_id,
-                        )
+        if action in ("created", "commented") and cls in _CC_CODE_CLASSES and cc:
+            if not _cc_names_src_path(cc):
+                violations.append(
+                    InvariantViolation(
+                        "closing_condition",
+                        "code-implementation closing condition must name a "
+                        "<feature>/src/ or <feature>/tests/ path",
+                        row_id,
                     )
-                if not _cc_has_test_command(cc):
-                    violations.append(
-                        InvariantViolation(
-                            "closing_condition",
-                            "code-implementation closing condition must name a "
-                            "test command",
-                            row_id,
-                        )
+                )
+            if not _cc_has_test_command(cc):
+                violations.append(
+                    InvariantViolation(
+                        "closing_condition",
+                        "code-implementation closing condition must name a "
+                        "test command",
+                        row_id,
                     )
-            elif cls in _CC_DOC_EDIT_CLASSES:
-                if not _cc_names_doc(cc):
-                    violations.append(
-                        InvariantViolation(
-                            "closing_condition",
-                            "doc-edit closing condition must name the source doc "
-                            "path and the exact cell/value it sets",
-                            row_id,
-                        )
-                    )
+                )
+        elif action in ("created", "commented") and cls in _CC_DOC_EDIT_CLASSES and not _cc_names_doc(cc):
+            violations.append(
+                InvariantViolation(
+                    "closing_condition",
+                    "doc-edit closing condition must name the source doc "
+                    "path and the exact cell/value it sets",
+                    row_id,
+                )
+            )
 
         # Check 3 — skip / Done evidence, split by action.
         # (a) skipped-evidence (class skip, no-trust path that exercised a
@@ -309,11 +307,10 @@ def verify_ledger_invariants(
                         row_id,
                     )
                 )
-            else:
-                if not _cc_names_src_path(evidence):
-                    violations.append(
-                        InvariantViolation(
-                            "proof.evidence",
+            elif not _cc_names_src_path(evidence):
+                violations.append(
+                    InvariantViolation(
+                        "proof.evidence",
                             "skipped-evidence proof must name a <feature>/src/ or "
                             "<feature>/tests/ file",
                             row_id,
