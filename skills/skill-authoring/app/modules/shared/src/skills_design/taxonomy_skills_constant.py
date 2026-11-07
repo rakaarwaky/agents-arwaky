@@ -3,7 +3,9 @@
 The single executable source of truth for what a valid skill is: the
 budget / layout constants, the escape helpers' rule text, the layout
 invariants, and the issue taxonomy — the 13 issue-type strings plus the
-exact message strings ``validate`` emits.
+exact message strings ``validate`` emits. It also carries the discovery
+score scale, the rule-doc summaries/citations, and the lifecycle state
+and config-file constants.
 
 Lifted verbatim from ``librarian.py``. Nothing in this module
 is re-derivable from elsewhere: every consumer (the validator

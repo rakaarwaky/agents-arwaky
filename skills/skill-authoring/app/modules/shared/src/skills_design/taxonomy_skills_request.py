@@ -32,6 +32,8 @@ SkillsRoot = NewType("SkillsRoot", Path)
 class SkillsOp(StrEnum):
     # Core pack operations
     LIST = "list"
+    LIST_UNMANAGED = "list-unmanaged"
+    LIST_ARCHIVED = "list-archived"
     READ = "read"
     LINT = "lint"
     CATALOG = "catalog"
@@ -39,8 +41,6 @@ class SkillsOp(StrEnum):
     MOVE = "move"
     ARCHIVE = "archive"
     CREATE = "create"
-
-    # Integrated lifecycle operations
     STATUS = "status"
     USAGE = "usage"
     RUN = "run"
@@ -57,8 +57,7 @@ class SkillsOp(StrEnum):
     BACKUP = "backup"
     ROLLBACK = "rollback"
     LEDGER = "ledger"
-    LIST_UNMANAGED = "list-unmanaged"
-    LIST_ARCHIVED = "list-archived"
+
 
 
 @dataclass(frozen=True)
