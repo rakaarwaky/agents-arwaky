@@ -134,7 +134,7 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
                 else:
                     flags[key] = value
 
-    request = SkillsRequest(op=op, query=query, flags=flags)
+    request = SkillsRequest(op=op, query=query, flags=flags, apply=bool(flags.get("apply", False)))
     result = aggregate.execute(request)
 
     return _render_lifecycle(sub, op, result)
@@ -145,6 +145,10 @@ def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog=f"sdc {sub}", add_help=True)
     if sub in ("pin", "unpin", "lock", "unlock", "restore", "adopt"):
         parser.add_argument("query")
+        parser.add_argument("--apply", action="store_true", default=False)
+    elif sub == "archive":
+        parser.add_argument("query")
+        parser.add_argument("--apply", action="store_true", default=False)
     elif sub == "prune":
         parser.add_argument("--days", type=str, default=None)
         parser.add_argument("--dry-run", action="store_true", default=False)

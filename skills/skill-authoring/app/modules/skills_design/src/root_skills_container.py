@@ -46,11 +46,13 @@ from shared.src.skills_design.taxonomy_skills_vo import (
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent
 from skills_design.src.capabilities_skills_archiver import SkillsArchiver
-from skills_design.src.capabilities_skills_bm25f import SkillsBm25fRanker
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_creator import SkillsCreator
+from skills_design.src.capabilities_skills_discover import (
+    SkillsBm25fRanker,
+    SkillsDiscover,
+)
 from skills_design.src.capabilities_skills_lifecycle import SkillsLifecycle
-from skills_design.src.capabilities_skills_discover import SkillsDiscover
 from skills_design.src.capabilities_skills_linter import SkillsLinter
 from skills_design.src.capabilities_skills_lister import SkillsLister
 from skills_design.src.capabilities_skills_mover import SkillsMover

@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
 
-from skills_design.src.capabilities_skills_bm25f import SkillsBm25fRanker
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_discover import (
     DRIFT_WARNING,
+    SkillsBm25fRanker,
     SkillsDiscover,
     _Row,
     tokenize,

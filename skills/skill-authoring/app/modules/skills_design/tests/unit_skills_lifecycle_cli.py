@@ -85,13 +85,15 @@ def test_lifecycle_cli_archive_and_restore(tmp_path: Path, capsys) -> None:
     root = _setup_pack_with_skill(tmp_path, "alpha")
     aggregate = default_aggregate(default_root=root)
 
-    code_archive = cmd_skills(["archive", "alpha"], aggregate)
+    code_archive = cmd_skills(["archive", "alpha", "--apply"], aggregate)
     assert code_archive == 0
-    assert "archive/restore" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "[APPLIED] archive/restore" in captured.out
 
-    code_restore = cmd_skills(["restore", "alpha"], aggregate)
+    code_restore = cmd_skills(["restore", "alpha", "--apply"], aggregate)
     assert code_restore == 0
-    assert "archive/restore" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "[APPLIED] archive/restore" in captured.out
 
 def test_lifecycle_cli_list_unmanaged_and_archived(tmp_path: Path, capsys) -> None:
     root = _setup_pack_with_skill(tmp_path, "alpha")

@@ -15,7 +15,7 @@ from pathlib import Path
 from shared.src.skills_design.taxonomy_skills_entity import Issue
 
 #: Score scale factor: float BM25F score * scale → int legacy projection.
-#: Lived in ``capabilities_skills_bm25f`` (AES403 CapabilityLocalConstant:
+#: Lived in ``capabilities_skills_discover`` (AES403 CapabilityLocalConstant:
 #: module-level constants in capability files are flagged); taxonomy is the
 #: SSOT home for shared numeric constants.
 BM25F_SCORE_SCALE: int = 100

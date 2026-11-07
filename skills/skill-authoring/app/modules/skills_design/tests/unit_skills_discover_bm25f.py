@@ -14,14 +14,15 @@ from pathlib import Path
 
 from shared.src.skills_design.taxonomy_skills_authoring_vo import map_to_legacy_score
 
-from skills_design.src.capabilities_skills_bm25f import (
+from skills_design.src.capabilities_skills_catalog import SkillsCatalog
+from skills_design.src.capabilities_skills_discover import (
     SkillsBm25fRanker,
+    SkillsDiscover,
+    _Row,
     build_index,
     rank_bm25f,
     tokenize_full,
 )
-from skills_design.src.capabilities_skills_catalog import SkillsCatalog
-from skills_design.src.capabilities_skills_discover import SkillsDiscover, _Row
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 
 # ── Helpers ───────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ against query tokens and returns ranked hits with the logical field
 names that contributed to each score.
 
 ``BM25FHit`` is the typed hit returned by ``rank``; the concrete
-dataclass lives in ``capabilities_skills_bm25f`` (the capability
+dataclass lives in ``capabilities_skills_discover`` (the capability
 that implements this protocol). Callers use the string type hint
 ``"BM25FHit"`` — no runtime import cycle.
 """
