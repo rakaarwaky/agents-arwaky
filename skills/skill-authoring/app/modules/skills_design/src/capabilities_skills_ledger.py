@@ -4,6 +4,10 @@ Append-only JSONL ledger with content-addressed blob storage.
 """
 
 from __future__ import annotations
+from shared.src.skills_design.contract_skills_protocol import (
+    ISkillsLedgerProtocol,
+)
+
 
 import json
 import logging
@@ -36,9 +40,11 @@ logger = logging.getLogger(__name__)
 __all__ = ["SkillsLedger"]
 
 
-class SkillsLedger:
+# ─── Block 1: Class Definition & Constructor ──────────────
+class SkillsLedger(ISkillsLedgerProtocol):
     """Ledger capability: append / read / compact / rollback."""
 
+# ─── Block 2: Protocol Method Implementation ─────────────
     def ledger_append(self, root: SkillsRoot | Path, entry: dict) -> dict:
         stored = dict(entry)
         stored.setdefault("id", str(uuid.uuid4()))
@@ -246,6 +252,7 @@ class SkillsLedger:
         }
 
     @staticmethod
+# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _digest_matches(src: Path, digest: str) -> bool:
         from hashlib import sha256 as _sha256
 

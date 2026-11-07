@@ -1,6 +1,6 @@
 """Unit tests for the skill lifecycle taxonomy.
 
-Covers the lifecycle ``SkillsOp`` values, the ``ISkillsLifecycleProtocol``
+Covers the lifecycle ``SkillsOp`` values, the ``ISkillsRunnerProtocol``
 seam, the named lifecycle VOs (``TelemetryRow``, ``LedgerEntry``,
 ``LIFECYCLE_STATES``), and the ``LifecycleConfig`` loader: defaults,
 overlay parsing, and the missing/invalid-file fallback.
@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 from shared.src.skills_design.contract_skills_protocol import (
-    ISkillsLifecycleProtocol,
+    ISkillsRunnerProtocol,
 )
 from shared.src.skills_design.taxonomy_skills_constant import (
     CONFIG_FILENAME,
@@ -134,25 +134,22 @@ def test_ledger_entry_dataclass() -> None:
 
 
 def test_skills_lifecycle_protocol_is_abc() -> None:
-    assert isinstance(ISkillsLifecycleProtocol, type)
-    assert ISkillsLifecycleProtocol.__name__ == "ISkillsLifecycleProtocol"
-    assert issubclass(ISkillsLifecycleProtocol, ABC)
+    assert isinstance(ISkillsRunnerProtocol, type)
+    assert ISkillsRunnerProtocol.__name__ == "ISkillsRunnerProtocol"
+    assert issubclass(ISkillsRunnerProtocol, ABC)
 
     with pytest.raises(TypeError):
-        ISkillsLifecycleProtocol()
+        ISkillsRunnerProtocol()
 
 
 def test_skills_lifecycle_protocol_declares_methods() -> None:
     required = {
-        "curated_report",
         "apply_automatic_transitions",
-        "snapshot_rollback",
-        "ledger_append",
-        "ledger_read",
-        "ledger_compact",
+        "pause",
+        "resume",
     }
     for name in required:
-        assert hasattr(ISkillsLifecycleProtocol, name)
+        assert hasattr(ISkillsRunnerProtocol, name)
 
 
 def test_lifecycle_config_defaults() -> None:

@@ -5,6 +5,10 @@ Creates content-addressed snapshots of the pack under
 """
 
 from __future__ import annotations
+from shared.src.skills_design.contract_skills_protocol import (
+    ISkillsBackupProtocol,
+)
+
 
 import json
 import logging
@@ -32,9 +36,11 @@ logger = logging.getLogger(__name__)
 __all__ = ["SkillsBackup"]
 
 
-class SkillsBackup:
+# ─── Block 1: Class Definition & Constructor ──────────────
+class SkillsBackup(ISkillsBackupProtocol):
     """Backup capability: snapshot create / prune."""
 
+# ─── Block 2: Protocol Method Implementation ─────────────
     def create_snapshot(self, root: Path, *, _prune: bool = True) -> Path:
         skills_root = self._require_root(root)
         backup_root = self._backup_root(skills_root)
@@ -108,6 +114,7 @@ class SkillsBackup:
         d.mkdir(parents=True, exist_ok=True)
         return d
 
+# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _keep_count(self, skills_root: Path) -> int:
         config = load_lifecycle_config(skills_root)
         val = getattr(config, "backup_keep", DEFAULT_KEEP)

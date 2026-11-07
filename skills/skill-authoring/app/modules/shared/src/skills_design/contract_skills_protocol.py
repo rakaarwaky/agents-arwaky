@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from pathlib import Path
 
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
@@ -224,60 +225,194 @@ class ISkillsCreatorProtocol(ABC):
 # ── Internal seams end ──
 
 
-class ISkillsLifecycleProtocol(ABC):
-    """Lifecycle: telemetry, auto-transitions, snapshots, audit ledger.
+# ── Internal seams end ──
 
-    One seam for the skill lifecycle. The lifecycle capability
-    implements this; the composition root wires it into the agent.
-    Per the design doc's API section the seam is typed with ``dict`` /
-    ``object``; the named data-model VOs (``TelemetryRow``,
-    ``LedgerEntry``) live in ``taxonomy_skills_vo``.
-    """
+
+class ISkillsPinerProtocol(ABC):
+    """Piner capability: pin/unpin verbs."""
 
     @abstractmethod
-    def curated_report(self, root: SkillsRoot) -> object:
-        """Telemetry rows for every managed skill, sorted by name."""
+    def pin(self, skill: str, root: SkillsRoot | None = None) -> dict:
         ...
 
     @abstractmethod
-    def apply_automatic_transitions(self, root: SkillsRoot) -> dict:
-        """Run the ``active → stale → archived`` pass; report what moved."""
+    def unpin(self, skill: str, root: SkillsRoot | None = None) -> dict:
+        ...
+
+class ISkillsLockerProtocol(ABC):
+    """Locker capability: lock/unlock verbs."""
+
+    @abstractmethod
+    def lock(self, skill: str, root: SkillsRoot | None = None) -> dict:
         ...
 
     @abstractmethod
-    def snapshot_rollback(
+    def unlock(self, skill: str, root: SkillsRoot | None = None) -> dict:
+        ...
+
+class ISkillsRestoreProtocol(ABC):
+    """Restore capability: archive / restore verbs."""
+
+    @abstractmethod
+    def archive(self, skill: str, root: SkillsRoot | None = None) -> dict:
+        ...
+
+    @abstractmethod
+    def restore(self, skill: str, root: SkillsRoot | None = None) -> dict:
+        ...
+
+class ISkillsPruneProtocol(ABC):
+    """Prune capability: bulk-archive idle skills."""
+
+    @abstractmethod
+    def prune(
         self,
-        root: SkillsRoot,
-        action: str,
-        id_: str | None = None,
+        root: SkillsRoot | None = None,
+        days: int | None = None,
+        dry_run: bool = False,
     ) -> dict:
-        """Create a snapshot or roll back to one (``action``: ``backup`` / ``rollback``)."""
+        ...
+
+class ISkillsPurgeProtocol(ABC):
+    """Purge capability: delete archived skills."""
+
+    @abstractmethod
+    def purge(
+        self,
+        skill: str | None = None,
+        root: SkillsRoot | None = None,
+        dry_run: bool = False,
+    ) -> dict:
+        ...
+
+class ISkillsAdopterProtocol(ABC):
+    """Adopter capability: adopt verb."""
+
+    @abstractmethod
+    def adopt(self, skill: str, root: SkillsRoot | None = None) -> dict:
+        ...
+
+class ISkillsBackupProtocol(ABC):
+    """Backup capability: snapshot create / prune."""
+
+    @abstractmethod
+    def create_snapshot(self, root: Path, *, _prune: bool = True) -> Path:
         ...
 
     @abstractmethod
-    def ledger_append(self, root: SkillsRoot, entry: dict) -> dict:
-        """Append one audit entry to the ledger; return the stored entry."""
+    def prune_old_snapshots(
+        self, root: Path, *, excluded: frozenset[str] | None = None
+    ) -> list[Path]:
         ...
 
     @abstractmethod
-    def ledger_read(self, root: SkillsRoot) -> tuple[dict, ...]:
-        """Read the audit ledger, oldest first."""
+    def resolve_root(self, root: Path) -> Path:
+        """Validate and return the pack root, raising ``SkillsRootError``."""
         ...
 
     @abstractmethod
-    def ledger_compact(self, root: SkillsRoot) -> dict:
-        """GC unreferenced snapshot blobs; report what was removed."""
+    def backup_root(self, skills_root: Path) -> Path:
+        """Return (creating if needed) the snapshot directory under *skills_root*."""
         ...
 
+class ISkillsRollbackProtocol(ABC):
+    """Rollback capability: restore pack from snapshot."""
+
+    @abstractmethod
+    def rollback(self, root: SkillsRoot | Path, id_: str | None = None) -> dict:
+        ...
+
+class ISkillsLedgerProtocol(ABC):
+    """Ledger capability: append / read / compact / rollback."""
+
+    @abstractmethod
+    def ledger_append(self, root: SkillsRoot | Path, entry: dict) -> dict:
+        ...
+
+    @abstractmethod
+    def ledger_read(
+        self,
+        root: SkillsRoot | Path,
+        limit: int | None = None,
+    ) -> tuple[dict, ...]:
+        ...
+
+    @abstractmethod
+    def ledger_compact(
+        self,
+        root: SkillsRoot | Path,
+        older_than_days: int | None = None,
+        keep_recent: int = 0,
+    ) -> dict:
+        ...
+
+    @abstractmethod
+    def rollback_entry(self, root: SkillsRoot | Path, entry_id: str) -> dict:
+        ...
+
+class ISkillsTelemetryProtocol(ABC):
+    """Telemetry capability: usage tracking and status reports."""
+
+    @abstractmethod
+    def seed_record_if_missing(self, skill: str, root: SkillsRoot) -> None:
+        ...
+
+    @abstractmethod
+    def reanchor_clock(self, skill: str, root: SkillsRoot) -> None:
+        ...
+
+    @abstractmethod
+    def curated_report(self, root: SkillsRoot) -> list[dict]:
+        ...
+
+    @abstractmethod
+    def view(self, skill: str, root: SkillsRoot) -> None:
+        ...
+
+    @abstractmethod
+    def use(self, skill: str, root: SkillsRoot) -> None:
+        ...
+
+    @abstractmethod
+    def use_with_timestamp(
+        self, skill: str, root: SkillsRoot, now_iso: str | None = None
+    ) -> None:
+        ...
+
+class ISkillsRunnerProtocol(ABC):
+    """Runner capability: run/pause/resume lifecycle verbs."""
+
+    @abstractmethod
+    def apply_automatic_transitions(self, root: SkillsRoot | None = None) -> dict:
+        ...
+
+    @abstractmethod
+    def pause(self, root: SkillsRoot) -> dict:
+        ...
+
+    @abstractmethod
+    def resume(self, root: SkillsRoot) -> dict:
+        ...
 
 __all__ = [
+    "ISkillsAdopterProtocol",
     "ISkillsArchiverProtocol",
+    "ISkillsBackupProtocol",
     "ISkillsCatalogProtocol",
     "ISkillsCreatorProtocol",
     "ISkillsDiscoverProtocol",
-    "ISkillsLifecycleProtocol",
+    "ISkillsLedgerProtocol",
     "ISkillsLinterProtocol",
     "ISkillsListerProtocol",
+    "ISkillsLockerProtocol",
     "ISkillsMoverProtocol",
+    "ISkillsPinerProtocol",
+    "ISkillsPruneProtocol",
+    "ISkillsPurgeProtocol",
     "ISkillsReaderProtocol",
+    "ISkillsRestoreProtocol",
+    "ISkillsRollbackProtocol",
+    "ISkillsRunnerProtocol",
+    "ISkillsTelemetryProtocol",
 ]
+

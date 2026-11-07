@@ -5,6 +5,10 @@ lifecycle config.
 """
 
 from __future__ import annotations
+from shared.src.skills_design.contract_skills_protocol import (
+    ISkillsRunnerProtocol,
+)
+
 
 from dataclasses import asdict, replace
 from datetime import UTC, datetime, timedelta
@@ -34,9 +38,11 @@ from shared.src.skills_design.taxonomy_skills_vo import load_lifecycle_config
 __all__ = ["SkillsRunner"]
 
 
-class SkillsRunner:
+# ─── Block 1: Class Definition & Constructor ──────────────
+class SkillsRunner(ISkillsRunnerProtocol):
     """Runner capability: run/pause/resume verbs."""
 
+# ─── Block 2: Protocol Method Implementation ─────────────
     def apply_automatic_transitions(self, root: SkillsRoot | None = None) -> dict:
         pack_root = Path(root) if root is not None else default_pack_root()
         config = load_lifecycle_config(pack_root)
@@ -149,6 +155,7 @@ class SkillsRunner:
 
         _with_lock(path, work)
 
+# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _set_state(
         self,
         skill: str,

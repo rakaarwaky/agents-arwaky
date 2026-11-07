@@ -6,6 +6,10 @@ report consumed by the ``status`` / ``usage`` surface verbs.
 """
 
 from __future__ import annotations
+from shared.src.skills_design.contract_skills_protocol import (
+    ISkillsTelemetryProtocol,
+)
+
 
 from pathlib import Path
 
@@ -26,9 +30,11 @@ from shared.src.common.utility_lifecycle_support import (
 __all__ = ["SkillsTelemetry"]
 
 
-class SkillsTelemetry:
+# ─── Block 1: Class Definition & Constructor ──────────────
+class SkillsTelemetry(ISkillsTelemetryProtocol):
     """Telemetry capability: sidecar reads, bumps, and the curated report."""
 
+# ─── Block 2: Protocol Method Implementation ─────────────
     def seed_record_if_missing(self, skill: str, root: SkillsRoot) -> None:
         skills_root = Path(root)
         skill_dir = find_skill_dir(skill, skills_root)
@@ -93,6 +99,7 @@ class SkillsTelemetry:
     ) -> None:
         self._bump(skill, root, "uses", now_iso=now_iso)
 
+# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _bump(
         self,
         skill: str,

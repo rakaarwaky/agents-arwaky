@@ -376,47 +376,347 @@ script are pinned by the surface and contract test files.
 |----------------|------------------------------------------|
 | Dry-run safety | filesystem unchanged after every preview |
 
-### FR-SkillsDesign-009: Rank Search Results (BM25F Ranker)
 
-**Description:** Score catalog rows against query tokens with offline BM25F field-weighted ranking (name +5, when_to_use +4, description +3, category +2, path +1); no network, no third-party deps.
+
+### FR-SkillsDesign-010: Adopt Skill
+
+**Description:** Mark a skill as agent-managed by setting ``created_by="agent"`` on its sidecar.
 
 #### Business Logic
 
-- `ISkillsDiscoverProtocol` declares both `discover` and `rank`; the BM25F ranker is injected into `SkillsDiscover` by the root container — never a sibling capability import
-- Each hit carries a float `score`, the original row, and `matched_fields` — the logical field names that contributed
-- Float scores are projected to the legacy int scale via `map_to_legacy_score` (taxonomy, shared by all consumers)
-- Empty query or empty row set yields an empty result
+- ``ISkillsAdopterProtocol`` declares a single ``adopt`` verb
+- Sets ``created_by="agent"``; returns ``{"skill": name, "created_by": "agent"}``
+- Errors if the skill directory does not exist
 
 #### Edge Cases
 
-- Zero-score rows are excluded from the ranked output
-- Stop words are dropped before indexing and ranking
-- Fuzzy match fires when substring (either direction, min len 3) or Jaccard char-set similarity ≥ 0.75
+- Missing skill → ``ValueError`` (exit 2)
 
 #### Technical Specification
 
-| Aspect       | Detail                                        |
-|--------------|-----------------------------------------------|
-| **Input**    | catalog rows and query tokens                 |
-| **Output**   | `BM25FHit` results sorted high-first          |
-| **Protocol** | ISkillsDiscoverProtocol (merged; `rank`)      |
-| **Method**   | rank                                          |
-| **Event**    | —                                             |
-| **Error**    | none (pure data in, pure data out)            |
-
-#### Test
-
-| Context         | When Action                      | Then Observable Result              |
-|-----------------|----------------------------------|-------------------------------------|
-| Matching query  | `rank(rows, ["docs"])`          | top hit is `doc-drafts`, exit 0    |
-| No match        | `rank(rows, ["nonexistent"])`   | empty result, exit 0               |
-| Empty rows      | `rank([], ["docs"])`            | empty result, exit 0               |
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | skill name, optional root         |
+| **Output**   | ``{"skill": ..., "created_by": "agent"}`` |
+| **Protocol** | ISkillsAdopterProtocol            |
+| **Method**   | adopt                             |
+| **Event**    | —                                 |
+| **Error**    | missing skill → usage error (2)   |
 
 #### Metric
 
-| Target Metric  | Value                                        |
-|----------------|----------------------------------------------|
-| Determinism    | identical hits on identical rows and tokens  |
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Correctness    | created_by == agent |
+
+
+### FR-SkillsDesign-011: Backup Snapshot
+
+**Description:** Create a content-addressed snapshot of the pack under ``.lifecycle_backups/`` and prune old ones.
+
+#### Business Logic
+
+- ``ISkillsBackupProtocol`` declares ``create_snapshot``, ``prune_old_snapshots``, ``resolve_root``, ``backup_root``
+- Snapshot is a gzipped tarball with per-file SHA-256 manifest
+- Old snapshots beyond keep count are pruned
+
+#### Edge Cases
+
+- Missing root → ``SkillsRootError``
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | pack root                         |
+| **Output**   | snapshot path                     |
+| **Protocol** | ISkillsBackupProtocol             |
+| **Method** | create_snapshot, prune_old_snapshots, resolve_root, backup_root |
+| **Event**    | —                                 |
+| **Error**    | invalid root → error              |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Determinism    | identical bytes for identical tree |
+
+
+### FR-SkillsDesign-012: Lock / Unlock Skill
+
+**Description:** Set or clear the ``locked`` flag on a skill's sidecar.
+
+#### Business Logic
+
+- ``ISkillsLockerProtocol`` declares ``lock`` and ``unlock``
+- ``lock`` sets ``locked=true``; ``unlock`` sets ``locked=false``
+
+#### Edge Cases
+
+- Missing skill → usage error (2)
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | skill name, optional root         |
+| **Output**   | dict result                       |
+| **Protocol** | ISkillsLockerProtocol             |
+| **Method** | lock, unlock                      |
+| **Event**    | —                                 |
+| **Error**    | missing skill → usage error (2)   |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Correctness    | locked flag set correctly |
+
+
+### FR-SkillsDesign-013: Pin / Unpin Skill
+
+**Description:** Set or clear the ``pinned`` flag on a skill's sidecar.
+
+#### Business Logic
+
+- ``ISkillsPinerProtocol`` declares ``pin`` and ``unpin``
+- ``pin`` sets ``pinned=true``; ``unpin`` sets ``pinned=false``
+
+#### Edge Cases
+
+- Missing skill → usage error (2)
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | skill name, optional root         |
+| **Output**   | dict result                       |
+| **Protocol** | ISkillsPinerProtocol              |
+| **Method** | pin, unpin                        |
+| **Event**    | —                                 |
+| **Error**    | missing skill → usage error (2)   |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Correctness    | pinned flag set correctly |
+
+
+### FR-SkillsDesign-014: Prune Idle Skills
+
+**Description:** Bulk-archive idle skills older than a threshold (dry-run by default).
+
+#### Business Logic
+
+- ``ISkillsPruneProtocol`` declares ``prune`` with ``root``, ``days``, ``dry_run``
+- Archives skills idle beyond ``days`` threshold
+
+#### Edge Cases
+
+- ``dry_run`` previews without writing
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | root, days, dry_run               |
+| **Output**   | prune report                      |
+| **Protocol** | ISkillsPruneProtocol              |
+| **Method**   | prune                             |
+| **Event**    | —                                 |
+| **Error**    | invalid days → usage error (2)    |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Dry-run safety | no writes without --apply |
+
+
+### FR-SkillsDesign-015: Purge Archived Skills
+
+**Description:** Delete archived skills (dry-run by default).
+
+#### Business Logic
+
+- ``ISkillsPurgeProtocol`` declares ``purge`` with optional ``skill``, ``root``, ``dry_run``
+
+#### Edge Cases
+
+- ``dry_run`` previews without writing
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | optional skill name, root, dry_run |
+| **Output**   | purge report                      |
+| **Protocol** | ISkillsPurgeProtocol              |
+| **Method**   | purge                             |
+| **Event**    | —                                 |
+| **Error**    | missing skill → usage error (2)   |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Dry-run safety | no writes without --apply |
+
+
+### FR-SkillsDesign-016: Restore Skill
+
+**Description:** Restore an archived skill back into the pack.
+
+#### Business Logic
+
+- ``ISkillsRestoreProtocol`` declares ``archive`` and ``restore``
+- ``restore`` moves skill from ``_archive/`` back and updates sidecar state
+
+#### Edge Cases
+
+- Missing archived skill → usage error (2)
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | skill name, optional root         |
+| **Output**   | dict result                       |
+| **Protocol** | ISkillsRestoreProtocol            |
+| **Method** | archive, restore                  |
+| **Event**    | —                                 |
+| **Error**    | missing skill → usage error (2)   |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Correctness    | skill restored to pack |
+
+
+### FR-SkillsDesign-017: Rollback Snapshot
+
+**Description:** Roll back the pack to a previous snapshot.
+
+#### Business Logic
+
+- ``ISkillsRollbackProtocol`` declares ``rollback`` with ``root`` and optional ``id_``
+
+#### Edge Cases
+
+- Missing snapshot id → error
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | root, optional snapshot id        |
+| **Output**   | rollback result                   |
+| **Protocol** | ISkillsRollbackProtocol           |
+| **Method**   | rollback                          |
+| **Event**    | —                                 |
+| **Error**    | missing snapshot → error          |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Correctness    | pack restored to snapshot |
+
+
+### FR-SkillsDesign-018: Run Lifecycle Transitions
+
+**Description:** Run automatic active → stale → archived transitions per pass.
+
+#### Business Logic
+
+- ``ISkillsRunnerProtocol`` declares ``apply_automatic_transitions``, ``pause``, ``resume``
+- Transitions idle skills to stale/archive based on config thresholds
+
+#### Edge Cases
+
+- Pinned, locked, or cron-referenced skills are skipped
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | optional root                     |
+| **Output**   | transition report                 |
+| **Protocol** | ISkillsRunnerProtocol             |
+| **Method** | apply_automatic_transitions, pause, resume |
+| **Event**    | —                                 |
+| **Error**    | OS error on write                 |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Determinism    | same config → same transitions |
+
+
+### FR-SkillsDesign-019: Telemetry Usage Report
+
+**Description:** Track skill usage and produce curated status reports.
+
+#### Business Logic
+
+- ``ISkillsTelemetryProtocol`` declares ``seed_record_if_missing``, ``reanchor_clock``, ``curated_report``, ``view``, ``use``, ``use_with_timestamp``
+- ``curated_report`` returns telemetry rows for every managed skill
+
+#### Edge Cases
+
+- Missing sidecar record is seeded on first access
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | skill name, optional root         |
+| **Output**   | report rows / None                |
+| **Protocol** | ISkillsTelemetryProtocol          |
+| **Method** | seed_record_if_missing, reanchor_clock, curated_report, view, use, use_with_timestamp |
+| **Event**    | —                                 |
+| **Error**    | OS error on write                 |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Completeness   | every managed skill has a row |
+
+### FR-SkillsDesign-020: Audit Ledger
+
+**Description:** Append-only JSONL audit ledger with content-addressed blob storage: append, read, compact, and rollback entries.
+
+#### Business Logic
+
+- ``ISkillsLedgerProtocol`` declares ``ledger_append``, ``ledger_read``, ``ledger_compact``, ``rollback_entry``
+- Each entry is UUID-stamped, time-stamped, and content-addressed via blobs
+- ``ledger_compact`` GCs unreferenced snapshot blobs
+
+#### Edge Cases
+
+- Missing ledger file starts empty
+
+#### Technical Specification
+
+| Aspect       | Detail                            |
+|--------------|-----------------------------------|
+| **Input**    | root, entry dict                  |
+| **Output**   | stored entry / tuple of entries   |
+| **Protocol** | ISkillsLedgerProtocol             |
+| **Method** | ledger_append, ledger_read, ledger_compact, rollback_entry |
+| **Event**    | —                                 |
+| **Error**    | OS error on write                 |
+
+#### Metric
+
+| Target Metric  | Value             |
+|----------------|-------------------|
+| Append-only    | entries only added, never mutated in place |
 
 ## Public Interface
 

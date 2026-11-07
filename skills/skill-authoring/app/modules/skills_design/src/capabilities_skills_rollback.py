@@ -6,6 +6,10 @@ module never imports a sibling capability.
 """
 
 from __future__ import annotations
+from shared.src.skills_design.contract_skills_protocol import (
+    ISkillsRollbackProtocol,
+)
+
 
 import json
 import logging
@@ -31,12 +35,14 @@ logger = logging.getLogger(__name__)
 __all__ = ["SkillsRollback"]
 
 
-class SkillsRollback:
+# ─── Block 1: Class Definition & Constructor ──────────────
+class SkillsRollback(ISkillsRollbackProtocol):
     """Rollback capability: restore the pack tree from a snapshot."""
 
     def __init__(self, backup: Any) -> None:
         self._backup = backup
 
+# ─── Block 2: Protocol Method Implementation ─────────────
     def rollback(self, root: Path, id_: str | None = None) -> dict:
         skills_root = self._backup.resolve_root(root)
         target = self._resolve_snapshot(skills_root, id_)
@@ -124,6 +130,7 @@ class SkillsRollback:
             raise SkillsUsageError(f"unknown snapshot id: {id_}")
         return snap
 
+# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def _read_manifest(self, snap_dir: Path) -> dict:
         manifest_file = snap_dir / MANIFEST_NAME
         if not manifest_file.is_file():

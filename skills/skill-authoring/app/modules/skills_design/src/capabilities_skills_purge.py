@@ -4,6 +4,10 @@ Removes archived skills past a TTL, or a single named archived skill.
 """
 
 from __future__ import annotations
+from shared.src.skills_design.contract_skills_protocol import (
+    ISkillsPurgeProtocol,
+)
+
 
 import shutil
 from datetime import UTC, datetime, timedelta
@@ -24,9 +28,11 @@ from shared.src.common.utility_lifecycle_support import (
 __all__ = ["SkillsPurge"]
 
 
-class SkillsPurge:
+# ─── Block 1: Class Definition & Constructor ──────────────
+class SkillsPurge(ISkillsPurgeProtocol):
     """Purge capability: archive-TTL cleanup."""
 
+# ─── Block 2: Protocol Method Implementation ─────────────
     def purge(
         self,
         skill: str | None = None,
@@ -71,3 +77,4 @@ class SkillsPurge:
                 kept.append({"skill": name, "archived_at": str(archived_at)})
 
         return {"purged": purged, "kept": kept, "dry_run": dry_run}
+# ─── Block 3: Dunder Methods, Factories & Helpers ─────────

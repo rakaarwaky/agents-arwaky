@@ -4,6 +4,10 @@ Bulk-archives idle skills past a configurable days threshold.
 """
 
 from __future__ import annotations
+from shared.src.skills_design.contract_skills_protocol import (
+    ISkillsPruneProtocol,
+)
+
 
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -24,9 +28,11 @@ from shared.src.common.utility_lifecycle_support import (
 __all__ = ["SkillsPrune"]
 
 
-class SkillsPrune:
+# ─── Block 1: Class Definition & Constructor ──────────────
+class SkillsPrune(ISkillsPruneProtocol):
     """Prune capability: idle-skill archiving."""
 
+# ─── Block 2: Protocol Method Implementation ─────────────
     def prune(
         self,
         root: SkillsRoot | None = None,
@@ -79,3 +85,4 @@ class SkillsPrune:
                 kept.append({"skill": name, "state": state})
 
         return {"pruned": pruned, "kept": kept}
+# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
