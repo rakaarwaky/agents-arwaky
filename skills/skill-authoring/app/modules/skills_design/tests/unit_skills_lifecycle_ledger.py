@@ -17,7 +17,7 @@ from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.common.utility_lifecycle_support import (
     BLOBS_DIRNAME,
     DEFAULT_LEDGER_ACTOR,
     LEDGER_FILENAME,

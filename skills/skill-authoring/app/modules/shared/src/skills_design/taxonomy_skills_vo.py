@@ -19,13 +19,14 @@ from __future__ import annotations
 
 import json
 import logging
+import posixpath
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final, NewType
 
-from shared.src.common.utility_skill_pack import default_pack_root
 from shared.src.skills_design.taxonomy_skills_constant import (
     NAME_MAX,
     NAME_MIN,
@@ -578,6 +579,10 @@ class LifecycleConfig:
 
 def load_lifecycle_config(pack_root: SkillsRoot | None = None) -> LifecycleConfig:
     """Read lifecycle config, falling back to defaults."""
+    # Imported lazily: ``utility_skill_pack`` imports ``extract_skill_name``
+    # from this module, so a module-level import here would cycle.
+    from shared.src.common.utility_skill_pack import default_pack_root
+
     defaults = LifecycleConfig()
     root = Path(pack_root) if pack_root is not None else default_pack_root()
     path = root / CONFIG_FILENAME
@@ -631,6 +636,62 @@ def load_lifecycle_config(pack_root: SkillsRoot | None = None) -> LifecycleConfi
     return defaults
 
 
+# ─── Skill-name helpers ────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class SkillNameVo:
+    """Pure-name value object for the skill pack (no I/O, no state)."""
+
+    raw: str
+
+    def sanitized(self, fallback: str) -> str:
+        """Convert the raw name into a safe directory name."""
+        return sanitize_skill_name(self.raw, fallback)
+
+
+def extract_skill_name(skill_md: Path) -> str:
+    """Extract `name:` from SKILL.md frontmatter; fallback to parent dir name."""
+    try:
+        text = skill_md.read_text(encoding="utf-8", errors="replace")
+        m = re.search(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
+        if m:
+            nm = re.search(r"^name:\s*[\"']?(.+?)[\"']?\s*$", m.group(1), re.MULTILINE)
+            if nm:
+                return nm.group(1).strip()
+    except OSError:
+        pass
+    return skill_md.parent.name
+
+
+def sanitize_skill_name(raw: str, fallback: str) -> str:
+    """Convert frontmatter name into a safe directory name (prevents path traversal)."""
+    raw = (raw or "").strip().replace("\\", "/")
+    raw = posixpath.basename(raw)
+    name = re.sub(r"[^A-Za-z0-9._-]+", "-", raw).strip(".-")
+    if not name:
+        name = re.sub(r"[^A-Za-z0-9._-]+", "-", fallback).strip(".-") or "skill"
+    return name[:64]
+
+
+def safe_skill_name(skill_md: Path) -> str:
+    """Return a sanitised directory-safe name for *skill_md*."""
+    return sanitize_skill_name(extract_skill_name(skill_md), skill_md.parent.name)
+
+
+def safe_child(base: Path, name: str) -> Path:
+    """Lexical ``base / name`` for a provisioned skill dir.
+
+    Unlike ensure_under this never resolves symlinks: a destination that is
+    already a symlink into the skill pack resolves OUTSIDE the harness skills
+    dir, which would make every re-provision fail the containment check.
+    Traversal is blocked by rejecting anything but a single safe component.
+    """
+    if not name or name in (".", "..") or "/" in name or "\\" in name:
+        raise ValueError(f"Refusing unsafe skill name: {name!r}")
+    return base / name
+
+
 __all__ = [
     "BM25F_SCORE_SCALE",
     "CITATIONS",
@@ -664,13 +725,18 @@ __all__ = [
     "SkillCreatePlan",
     "SkillDescription",
     "SkillName",
+    "SkillNameVo",
     "SkillRecord",
     "SkillsJsonPayload",
     "TelemetryRow",
     "ValidationReport",
+    "extract_skill_name",
     "is_valid_skill_name",
     "issue_message",
     "load_lifecycle_config",
     "map_to_legacy_score",
     "rule",
+    "safe_child",
+    "safe_skill_name",
+    "sanitize_skill_name",
 ]

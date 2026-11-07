@@ -7,15 +7,15 @@ from pathlib import Path
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_vo import (
-    CatalogCheckResult,
-    CatalogReport,
-)
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
+)
+from shared.src.skills_design.taxonomy_skills_vo import (
+    CatalogCheckResult,
+    CatalogReport,
 )
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent

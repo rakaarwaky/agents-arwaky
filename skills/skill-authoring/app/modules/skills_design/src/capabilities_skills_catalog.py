@@ -27,10 +27,6 @@ from shared.src.common.utility_skills_tree import (
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_vo import (
-    CatalogCheckResult,
-    CatalogReport,
-)
 from shared.src.skills_design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
 )
@@ -39,6 +35,10 @@ from shared.src.skills_design.taxonomy_skills_entity import (
     SkillEntry,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
+from shared.src.skills_design.taxonomy_skills_vo import (
+    CatalogCheckResult,
+    CatalogReport,
+)
 
 __all__ = [
     "SkillsCatalog",

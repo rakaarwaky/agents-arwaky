@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.common.taxonomy_skill_vo import sanitize_skill_name
 from shared.src.common.utility_skill_pack import (
     default_pack_root,
     iter_skill_mds,
@@ -23,6 +22,7 @@ from shared.src.skills_design.taxonomy_skills_request import (
 )
 from shared.src.skills_design.taxonomy_skills_vo import (
     SkillContent,
+    sanitize_skill_name,
 )
 
 __all__ = ["SkillsPackReader"]

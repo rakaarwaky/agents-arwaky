@@ -11,7 +11,7 @@ from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
 )
-from shared.src.skills_design.utility_lifecycle_support import _parse_iso
+from shared.src.common.utility_lifecycle_support import _parse_iso
 
 from skills_design.src.capabilities_skills_prune import SkillsPrune
 from skills_design.src.capabilities_skills_purge import SkillsPurge

@@ -11,7 +11,7 @@ from pathlib import Path
 
 from shared.src.common.utility_skill_pack import default_pack_root
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.common.utility_lifecycle_support import (
     archive_skill,
     restore_skill,
 )

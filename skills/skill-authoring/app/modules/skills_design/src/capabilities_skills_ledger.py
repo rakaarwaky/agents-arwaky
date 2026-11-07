@@ -15,11 +15,11 @@ from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
+from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 from shared.src.skills_design.taxonomy_skills_vo import (
     load_lifecycle_config,
 )
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.common.utility_lifecycle_support import (
     BLOBS_DIRNAME,
     DEFAULT_LEDGER_ACTOR,
     DEFAULT_LEDGER_COMPACT_DAYS,

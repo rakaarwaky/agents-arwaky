@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.common.taxonomy_skill_vo import extract_skill_name
 from shared.src.skills_design.taxonomy_skills_constant import (
     IGNORED_CATEGORY_DIRS,
 )
+from shared.src.skills_design.taxonomy_skills_vo import extract_skill_name
 
 __all__ = [
     "default_pack_root",

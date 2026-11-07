@@ -30,10 +30,6 @@ try:
 except ImportError:  # pragma: no cover - POSIX has no msvcrt
     msvcrt = None
 
-from shared.src.skills_design.taxonomy_skills_vo import (
-    MutationPlan,
-    MutationStep,
-)
 from shared.src.skills_design.taxonomy_skills_constant import (
     ARCHIVE_DIRNAME,
     ASSETS_MARKER_FILENAME,
@@ -52,6 +48,10 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillNotFoundError,
     SkillsRootError,
     SkillsUsageError,
+)
+from shared.src.skills_design.taxonomy_skills_vo import (
+    MutationPlan,
+    MutationStep,
 )
 
 # ─── Inlined tree walkers (private; utility files stay independent, AES201) ──

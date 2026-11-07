@@ -16,10 +16,6 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_vo import (
-    CatalogCheckResult,
-    CatalogReport,
-)
 from shared.src.skills_design.taxonomy_skills_entity import SkillEntry
 from shared.src.skills_design.taxonomy_skills_error import SkillsRootError
 from shared.src.skills_design.taxonomy_skills_request import (
@@ -29,6 +25,8 @@ from shared.src.skills_design.taxonomy_skills_request import (
     SkillsRoot,
 )
 from shared.src.skills_design.taxonomy_skills_vo import (
+    CatalogCheckResult,
+    CatalogReport,
     SkillContent,
     SkillDescription,
     SkillRecord,

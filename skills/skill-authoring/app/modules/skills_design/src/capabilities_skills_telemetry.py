@@ -12,7 +12,7 @@ from pathlib import Path
 from shared.src.common.utility_skill_pack import iter_skill_mds
 from shared.src.common.utility_skills_mutation import atomic_write_json
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.common.utility_lifecycle_support import (
     DEFAULT_STATE,
     _baseline_record,
     _normalize,

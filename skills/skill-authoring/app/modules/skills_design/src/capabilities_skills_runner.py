@@ -17,7 +17,7 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     LIFECYCLE_STATES,
     load_lifecycle_config,
 )
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.common.utility_lifecycle_support import (
     ACTIVE,
     ARCHIVED,
     DEFAULT_STATE,

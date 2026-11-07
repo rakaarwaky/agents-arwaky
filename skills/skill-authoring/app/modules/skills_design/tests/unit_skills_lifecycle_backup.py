@@ -19,7 +19,7 @@ from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from shared.src.skills_design.utility_lifecycle_support import DEFAULT_KEEP
+from shared.src.common.utility_lifecycle_support import DEFAULT_KEEP
 
 from skills_design.src.capabilities_skills_backup import SkillsBackup
 from skills_design.src.capabilities_skills_rollback import SkillsRollback
