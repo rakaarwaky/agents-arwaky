@@ -1,8 +1,13 @@
-"""Skills CLI surface — command handlers for the ``sdc skills`` verbs.
+"""Skills CLI surface — command handlers for the ``sdc`` verbs.
 
 Agent-oriented commands: read-only discovery (``list``/``read``), the lint
 scan (``lint``), the catalog builder/reader (``catalog``), the search
-(``discover``), and the mutation verbs (``move``/``archive``/``create``).
+(``discover``), the mutation verbs (``move``/``archive``/``create``), and the
+lifecycle verbs (``status``/``usage``/``run``/``pause``/``resume``/
+``pin``/``unpin``/``lock``/``unlock``/``restore``/``list-unmanaged``/
+``list-archived``/``prune``/``purge``/``adopt``/``backup``/``rollback``/
+``ledger``).
+
 The pack root is always the repository's ``skills/`` pack; there is no
 ``--skills-root`` override and no JSON export — output is a terminal
 listing consumed by the agent.
@@ -10,11 +15,6 @@ listing consumed by the agent.
 The aggregate is injected by the caller (the root CLI), never imported
 here, so no root→surface coupling exists (AES205). Argv becomes a
 ``SkillsRequest``; the rendered text comes back on ``SkillsResult``.
-
-The 8 design-side verbs (list, read, lint, catalog, discover, move,
-archive, create) are routed here; the traces-side verbs live only in
-the sibling traces CLI and are not part of this package (AES702
-independent packages).
 
 Exit-code contract (primary agent-readable state signal — 0 clean /
 1 issues found / 2 usage error / 3 catalog drift):
@@ -62,6 +62,28 @@ from shared.src.skills_design.taxonomy_skills_response import (
 _EXIT_USAGE = SkillsExitCode.USAGE_ERROR
 _EXIT_DRIFT = SkillsExitCode.CATALOG_DRIFT
 
+#: Lifecycle verbs mapped to SkillsOp values — flat top-level commands.
+_LIFECYCLE_OPS = {
+    "status": SkillsOp.STATUS,
+    "usage": SkillsOp.USAGE,
+    "run": SkillsOp.RUN,
+    "pause": SkillsOp.PAUSE,
+    "resume": SkillsOp.RESUME,
+    "pin": SkillsOp.PIN,
+    "unpin": SkillsOp.UNPIN,
+    "lock": SkillsOp.LOCK,
+    "unlock": SkillsOp.UNLOCK,
+    "restore": SkillsOp.RESTORE,
+    "list-unmanaged": SkillsOp.LIST_UNMANAGED,
+    "list-archived": SkillsOp.LIST_ARCHIVED,
+    "prune": SkillsOp.PRUNE,
+    "purge": SkillsOp.PURGE,
+    "adopt": SkillsOp.ADOPT,
+    "backup": SkillsOp.BACKUP,
+    "rollback": SkillsOp.ROLLBACK,
+    "ledger": SkillsOp.LEDGER,
+}
+
 #: The results table header/separator and empty-result line, verbatim from
 #: the legacy command (presentation strings, owned by the surface).
 _NO_MATCH_LINE = "No matching skills found in catalog.json."
@@ -85,12 +107,186 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_read(rest, aggregate)
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
-    if sub == "lifecycle":
-        from cli.src.surface_skills_lifecycle_command import cmd_skills_lifecycle
-        return cmd_skills_lifecycle(rest, aggregate)
+    if sub in _LIFECYCLE_OPS:
+        return _cmd_lifecycle(sub, rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
     _print_usage()
     return _EXIT_USAGE
+
+
+def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> int:
+    """Route a flat lifecycle verb to the aggregate; render; return exit code."""
+    op = _LIFECYCLE_OPS[sub]
+    parser = _lifecycle_verb_parser(sub)
+    try:
+        namespace = parser.parse_args(rest)
+    except SystemExit as exit_exc:
+        return int(exit_exc.code or 0)
+
+    query = getattr(namespace, "query", "") or ""
+    flags: dict[str, object] = {}
+    for key in ("days", "dry_run", "apply", "compact", "id"):
+        if hasattr(namespace, key):
+            value = getattr(namespace, key)
+            if value is not None:
+                if key == "compact":
+                    flags[key] = "1" if value else "0"
+                else:
+                    flags[key] = value
+
+    request = SkillsRequest(op=op, query=query, flags=flags)
+    result = aggregate.execute(request)
+
+    return _render_lifecycle(sub, op, result)
+
+
+def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
+    """Build the argparse parser for one lifecycle verb."""
+    parser = argparse.ArgumentParser(prog=f"sdc {sub}", add_help=True)
+    if sub in ("pin", "unpin", "lock", "unlock", "restore", "adopt"):
+        parser.add_argument("query")
+    elif sub == "prune":
+        parser.add_argument("--days", type=str, default=None)
+        parser.add_argument("--dry-run", action="store_true", default=False)
+        parser.add_argument("--apply", action="store_true", default=False)
+    elif sub == "purge":
+        parser.add_argument("--days", type=str, default=None)
+        parser.add_argument("--dry-run", action="store_true", default=False)
+        parser.add_argument("--apply", action="store_true", default=False)
+    elif sub == "rollback":
+        parser.add_argument("--id", type=str, default=None)
+    elif sub == "ledger":
+        parser.add_argument("--compact", action="store_true", default=False)
+    return parser
+
+
+def _render_lifecycle(sub: str, op: SkillsOp, result: SkillsResult) -> int:
+    """Render a lifecycle result and return its exit code."""
+    if not result.ok:
+        err(f"{result.message}")
+        return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
+
+    exit_code = result.exit_code
+
+    if sub == "status":
+        return _render_status(result)
+    if sub == "usage":
+        return _render_usage(result)
+    if sub == "run":
+        return _render_run(result)
+    if sub in ("pause", "resume"):
+        return _render_pause_resume(op, result)
+    if sub in ("pin", "unpin", "lock", "unlock", "adopt"):
+        return _render_bool(sub, result)
+    if sub == "restore":
+        return _render_archive_restore(op, result)
+    if sub == "list-unmanaged":
+        return _render_list_unmanaged(result)
+    if sub == "list-archived":
+        return _render_list_archived(result)
+    if sub == "prune":
+        return _render_prune(result)
+    if sub == "purge":
+        return _render_purge(result)
+    if sub == "backup":
+        return _render_backup(result)
+    if sub == "rollback":
+        return _render_rollback(result)
+    if sub == "ledger":
+        return _render_ledger(result)
+
+    return exit_code
+
+
+def _render_status(result: SkillsResult) -> int:
+    records = result.records or ()
+    info(f"[OK] status — {len(records)} state row(s)")
+    if records:
+        for rec in records:
+            info(f"  {rec}")
+    return 0
+
+
+def _render_usage(result: SkillsResult) -> int:
+    records = result.records or ()
+    info(f"[OK] usage — {len(records)} skill row(s)")
+    if records:
+        for rec in records:
+            info(f"  {rec}")
+    return 0
+
+
+def _render_run(result: SkillsResult) -> int:
+    info(f"[OK] run — {result.message}")
+    return 0
+
+
+def _render_pause_resume(op: SkillsOp, result: SkillsResult) -> int:
+    action = "paused" if op == SkillsOp.PAUSE else "resumed"
+    info(f"[OK] lifecycle {action}")
+    return 0
+
+
+def _render_bool(sub: str, result: SkillsResult) -> int:
+    info(f"[OK] {sub} — {result.message}")
+    return 0
+
+
+def _render_archive_restore(op: SkillsOp, result: SkillsResult) -> int:
+    if result.exit_code == SkillsExitCode.CLEAN:
+        info(f"[APPLIED] archive/restore — {result.message}")
+    else:
+        info(f"[OK] archive/restore — {result.message}")
+    return 0
+
+
+def _render_list_unmanaged(result: SkillsResult) -> int:
+    records = result.records or ()
+    info(f"[OK] list-unmanaged — {len(records)} unmanaged skill(s)")
+    for rec in records:
+        info(f"  {rec}")
+    return 0
+
+
+def _render_list_archived(result: SkillsResult) -> int:
+    records = result.records or ()
+    info(f"[OK] list-archived — {len(records)} archived skill(s)")
+    for rec in records:
+        info(f"  {rec}")
+    return 0
+
+
+def _render_prune(result: SkillsResult) -> int:
+    pruned = result.records or ()
+    dry_run = False
+    if "'dry_run': True" in str(result.message) or '"dry_run": true' in str(result.message):
+        dry_run = True
+    prefix = "[DRY-RUN]" if dry_run else "[OK]"
+    info(f"{prefix} prune — {len(pruned)} pruned; {result.message}")
+    return 0
+
+
+def _render_purge(result: SkillsResult) -> int:
+    info(f"[OK] purge — {result.message}")
+    return 0
+
+
+def _render_backup(result: SkillsResult) -> int:
+    info(f"[OK] backup — {result.content or result.message}")
+    return 0
+
+
+def _render_rollback(result: SkillsResult) -> int:
+    info(f"[OK] rollback — {result.message}")
+    return 0
+
+
+def _render_ledger(result: SkillsResult) -> int:
+    records = result.records or ()
+    info(f"[OK] ledger — {len(records)} record(s)")
+    for rec in records:
+        info(f"  {rec}")
+    return 0
 
 
 def _print_usage() -> None:
@@ -100,24 +296,42 @@ def _print_usage() -> None:
     info("  --improve ->  sdc lint -> sdc read -> edit -> sdc catalog")
     info("  --prune   ->  sdc discover -> sdc move|archive")
     print()
-    info(f"{BOLD()}sdc catalog [--build] [--read]{RESET()}    Build and/or print catalog.json")
-    info(f"{BOLD()}sdc discover <query>{RESET()}             Search the catalog")
-    info(f"{BOLD()}sdc lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)")
+    info(f"{BOLD()}Discovery:{RESET()}")
     info(f"{BOLD()}sdc list{RESET()}                          List all skills in the pack")
     info(f"{BOLD()}sdc read <name>{RESET()}                   Print a skill's SKILL.md")
-    info(
-        f"{BOLD()}sdc move <name> <category> [--apply]{RESET()}  Move a skill to a category"
-    )
-    info(
-        f"{BOLD()}sdc archive <name> [--apply]{RESET()}     Archive a skill into _archive/"
-    )
-    info(
-        f"{BOLD()}sdc lifecycle <verb> [args]{RESET()}      Skill lifecycle management (status, usage, run, ...)"
-    )
-    info(
-        f"{BOLD()}sdc create <kind> <name> [--category C] [--apply]{RESET()}  "
-        "Create a skill or category"
-    )
+    info(f"{BOLD()}sdc lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)")
+    info(f"{BOLD()}sdc catalog [--build] [--read]{RESET()}    Build and/or print catalog.json")
+    info(f"{BOLD()}sdc discover <query>{RESET()}             Search the catalog")
+    print()
+    info(f"{BOLD()}Mutations:{RESET()}")
+    info(f"{BOLD()}sdc move <name> <category> [--apply]{RESET()}  Move a skill to a category")
+    info(f"{BOLD()}sdc archive <name> [--apply]{RESET()}     Archive a skill into _archive/")
+    info(f"{BOLD()}sdc create <kind> <name> [--category C] [--apply]{RESET()}  "
+         "Create a skill or category")
+    print()
+    info(f"{BOLD()}Lifecycle:{RESET()}")
+    info(f"{BOLD()}sdc status{RESET()}                        Show per-skill lifecycle states")
+    info(f"{BOLD()}sdc usage{RESET()}                         Show usage telemetry rows")
+    info(f"{BOLD()}sdc run{RESET()}                           Run automated state transitions")
+    info(f"{BOLD()}sdc pause{RESET()}                         Pause automatic transitions")
+    info(f"{BOLD()}sdc resume{RESET()}                        Resume automatic transitions")
+    info(f"{BOLD()}sdc pin <skill>{RESET()}                   Pin a skill in active state")
+    info(f"{BOLD()}sdc unpin <skill>{RESET()}                 Unpin a skill")
+    info(f"{BOLD()}sdc lock <skill>{RESET()}                  Lock a skill from mutation")
+    info(f"{BOLD()}sdc unlock <skill>{RESET()}                Unlock a skill")
+    info(f"{BOLD()}sdc adopt <skill>{RESET()}                 Mark skill as agent-managed")
+    print()
+    info(f"{BOLD()}Archive & Restore:{RESET()}")
+    info(f"{BOLD()}sdc restore <skill>{RESET()}               Restore an archived skill")
+    info(f"{BOLD()}sdc list-unmanaged{RESET()}                List skills without telemetry")
+    info(f"{BOLD()}sdc list-archived{RESET()}                 List archived skills")
+    info(f"{BOLD()}sdc prune [--days N] [--apply]{RESET()}    Bulk archive idle skills")
+    info(f"{BOLD()}sdc purge [--days N] [--apply]{RESET()}    Permanently remove archived skills")
+    print()
+    info(f"{BOLD()}Backup & Rollback:{RESET()}")
+    info(f"{BOLD()}sdc backup{RESET()}                        Create a snapshot of skills pack")
+    info(f"{BOLD()}sdc rollback [--id ID]{RESET()}            Restore from snapshot")
+    info(f"{BOLD()}sdc ledger [--compact]{RESET()}            View or compact audit ledger")
     print()
     info(f"{BOLD()}Note:{RESET()} move/archive/create are dry-run by default; pass --apply to write.")
     info(

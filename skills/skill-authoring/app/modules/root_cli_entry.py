@@ -28,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
     """Entry point for ``sdc <verb> [flags]``."""
     args = argv if argv is not None else sys.argv[1:]
     if not args:
-        print("Usage: sdc <list|read|lint|catalog|discover|move|archive|create> [flags]", file=sys.stderr)
+        print("Usage: sdc <list|read|lint|catalog|discover|move|archive|create|status|usage|run|pause|resume|pin|unpin|lock|unlock|restore|list-unmanaged|list-archived|prune|purge|adopt|backup|rollback|ledger> [flags]", file=sys.stderr)
         return 2
     aggregate = default_aggregate()
     return cmd_skills(args, aggregate)
