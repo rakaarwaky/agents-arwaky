@@ -49,6 +49,14 @@ from skills_design.src.capabilities_skills_archiver import SkillsArchiver
 from skills_design.src.capabilities_skills_bm25f import SkillsBm25fRanker
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_creator import SkillsCreator
+from skills_design.src.capabilities_skills_curator_backup import SkillsCuratorBackup
+from skills_design.src.capabilities_skills_curator_ledger import SkillsCuratorLedger
+from skills_design.src.capabilities_skills_curator_lifecycle import (
+    SkillsCuratorLifecycle,
+)
+from skills_design.src.capabilities_skills_curator_telemetry import (
+    SkillsCuratorTelemetry,
+)
 from skills_design.src.capabilities_skills_discover import SkillsDiscover
 from skills_design.src.capabilities_skills_linter import SkillsLinter
 from skills_design.src.capabilities_skills_lister import SkillsLister
@@ -72,6 +80,10 @@ def default_aggregate(
     mover: ISkillsMoverProtocol | None = None,
     archiver: ISkillsArchiverProtocol | None = None,
     creator: ISkillsCreatorProtocol | None = None,
+    telemetry: SkillsCuratorTelemetry | None = None,
+    lifecycle: SkillsCuratorLifecycle | None = None,
+    backup: SkillsCuratorBackup | None = None,
+    ledger: SkillsCuratorLedger | None = None,
     default_root: Path | None = None,
 ) -> ISkillsAggregate:
     """Return an agent bound to the repo's ``skills/`` pack (or overrides).
@@ -92,6 +104,10 @@ def default_aggregate(
         mover=mover or SkillsMover(),
         archiver=archiver or SkillsArchiver(),
         creator=creator or SkillsCreator(),
+        telemetry=telemetry or SkillsCuratorTelemetry(),
+        lifecycle=lifecycle or SkillsCuratorLifecycle(),
+        backup=backup or SkillsCuratorBackup(),
+        ledger=ledger or SkillsCuratorLedger(),
         default_root=root,
     )
 

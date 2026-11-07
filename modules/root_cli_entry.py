@@ -49,6 +49,8 @@ ROOT = repo_root()
 # is no cross-tree import. This entry point adds both namespace roots so
 # either standalone package can be imported on demand.
 for _skills_ns in (
+    ROOT / "skills" / "skill-authoring" / "skill-traces" / "app" / "modules",
+    ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
 ):
@@ -59,8 +61,10 @@ for _skills_ns in (
 # shared.src.common.utility_skill_pack etc. resolve regardless of which
 # standalone skills tree wins the ``shared`` namespace import.
 for _shared_ns in (
+    ROOT / "skills" / "skill-authoring" / "skill-traces" / "app" / "modules" / "shared",
     ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "shared",
     ROOT / "modules" / "shared",
+    ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules" / "shared",
     ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "shared",
 ):
     if _shared_ns.is_dir() and str(_shared_ns) not in sys.path:
@@ -68,8 +72,10 @@ for _shared_ns in (
 try:
     import shared.src as _shared_src_pkg
     _src_dirs = [
+        ROOT / "skills" / "skill-authoring" / "skill-traces" / "app" / "modules" / "shared" / "src",
         ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "shared" / "src",
         ROOT / "modules" / "shared" / "src",
+        ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules" / "shared" / "src",
         ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "shared" / "src",
     ]
     for _ext in _src_dirs:
