@@ -39,6 +39,9 @@ from shared.src.skills_design.taxonomy_skills_constant import (
     ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
 )
 from shared.src.skills_design.taxonomy_skills_entity import (
     CategorySummary,
@@ -49,11 +52,6 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillNotFoundError,
     SkillsRootError,
     SkillsUsageError,
-)
-from shared.src.skills_design.taxonomy_skills_rule_vo import (
-    NAME_MAX,
-    NAME_MIN,
-    NAME_RE,
 )
 
 # ─── Inlined tree walkers (private; utility files stay independent, AES201) ──

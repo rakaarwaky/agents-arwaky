@@ -1,4 +1,4 @@
-"""Curator audit-ledger capability tests (append, read, compact, rollback).
+"""Lifecycle audit-ledger capability tests (append, read, compact, rollback).
 
 Covers the ledger round-trip, content-addressed blob dedup, missing/torn
 ledger reads, compact trimming + blob GC, the ``pre-rollback``/
@@ -18,14 +18,15 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillsUsageError,
 )
 
-from skills_design.src.capabilities_skills_curator_ledger import (
+from skills_design.src.capabilities_skills_lifecycle import (
     BLOBS_DIRNAME,
+    DEFAULT_LEDGER_ACTOR,
     LEDGER_FILENAME,
-    SkillsCuratorLedger,
+    SkillsLifecycle,
 )
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 
-LEDGER = SkillsCuratorLedger()
+LEDGER = SkillsLifecycle()
 
 
 def _sha256(data: bytes) -> str:
@@ -39,7 +40,7 @@ def _iso(delta_days: int = 0) -> str:
 
 
 def _blobs(root: Path) -> Path:
-    return root / ".curator_backups" / BLOBS_DIRNAME
+    return root / ".lifecycle_backups" / BLOBS_DIRNAME
 
 
 def _blob_names(root: Path) -> list[str]:
@@ -176,7 +177,7 @@ def test_ledger_compact_trims_old_entries_and_gcs_orphan_blobs(
     _append_raw(root, old_entry, new_entry)
 
     monkeypatch.setattr(
-        "skills_design.src.capabilities_skills_curator_ledger.DEFAULT_LEDGER_COMPACT_DAYS",
+        "skills_design.src.capabilities_skills_lifecycle.DEFAULT_LEDGER_COMPACT_DAYS",
         1,
     )
     result = LEDGER.ledger_compact(root)
@@ -250,7 +251,7 @@ def test_rollback_entry_fails_closed_on_missing_blob(tmp_path: Path) -> None:
 def test_actor_default_from_config(tmp_path: Path) -> None:
     root = as_root(crafted_tree(tmp_path))
     stored = LEDGER.ledger_append(root, _entry("doc-drafts", "patch"))
-    assert stored["actor"] == "curator"  # PR-1 spec default
+    assert stored["actor"] == DEFAULT_LEDGER_ACTOR
 
 
 def test_actor_explicit_override(tmp_path: Path) -> None:

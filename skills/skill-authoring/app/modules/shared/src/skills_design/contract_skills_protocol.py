@@ -217,20 +217,19 @@ class ISkillsCreatorProtocol(ABC):
 # ── Internal seams end ──
 
 
-class ISkillsCuratorProtocol(ABC):
-    """Curator-parity lifecycle: telemetry, auto-transitions, snapshots, ledger.
+class ISkillsLifecycleProtocol(ABC):
+    """Lifecycle: telemetry, auto-transitions, snapshots, audit ledger.
 
-    One seam for the curator agent. The curator capabilities
-    (telemetry, lifecycle, backup, ledger) implement subsets of this;
-    the composition root wires them into the agent. Per the design
-    doc's API section the seam is typed with ``dict`` / ``object``;
-    the named data-model VOs (``TelemetryRow``, ``LedgerEntry``) live
-    in ``taxonomy_skills_curator_vo``.
+    One seam for the skill lifecycle. The lifecycle capability
+    implements this; the composition root wires it into the agent.
+    Per the design doc's API section the seam is typed with ``dict`` /
+    ``object``; the named data-model VOs (``TelemetryRow``,
+    ``LedgerEntry``) live in ``taxonomy_skills_lifecycle_vo``.
     """
 
     @abstractmethod
     def curated_report(self, root: SkillsRoot) -> object:
-        """Telemetry rows for every curator-managed skill, sorted by name."""
+        """Telemetry rows for every managed skill, sorted by name."""
         ...
 
     @abstractmethod
@@ -263,12 +262,13 @@ class ISkillsCuratorProtocol(ABC):
         """GC unreferenced snapshot blobs; report what was removed."""
         ...
 
+
 __all__ = [
     "ISkillsArchiverProtocol",
     "ISkillsCatalogProtocol",
     "ISkillsCreatorProtocol",
-    "ISkillsCuratorProtocol",
     "ISkillsDiscoverProtocol",
+    "ISkillsLifecycleProtocol",
     "ISkillsLinterProtocol",
     "ISkillsListerProtocol",
     "ISkillsMoverProtocol",

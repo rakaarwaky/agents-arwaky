@@ -8,17 +8,24 @@ exact message strings ``validate`` emits.
 Lifted verbatim from ``librarian.py``. Nothing in this module
 is re-derivable from elsewhere: every consumer (the validator
 capability and the skill-rules reference doc) must read these constants
-rather than restate them. The naming-budget constants
-(``NAME_MIN`` / ``NAME_MAX`` / ``NAME_RE``) are defined in
-``taxonomy_skills_rule_vo.py``.
+rather than restate them.
 """
 
 from __future__ import annotations
 
+import re
 from typing import Final
 
 # Verbatim from ``librarian.py``.
 MAX_DESCRIPTION_LEN: Final = 1024
+
+# ─── Naming budget ─────────────────────────────────────────────────────
+
+#: Naming budget. ``is_valid_skill_name`` in
+#: ``taxonomy_skills_rule_vo.py`` consumes these.
+NAME_MIN: Final = 2
+NAME_MAX: Final = 64
+NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
 
 # ── Layout invariants ─────────────────────────────────────────────────
 
@@ -68,5 +75,8 @@ __all__ = [
     "DRIFT_WARNING",
     "IGNORED_CATEGORY_DIRS",
     "MAX_DESCRIPTION_LEN",
+    "NAME_MAX",
+    "NAME_MIN",
+    "NAME_RE",
     "PACK_MARKER_FILENAME",
 ]

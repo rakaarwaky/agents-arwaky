@@ -36,8 +36,8 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsReaderProtocol,
 )
 from shared.src.skills_design.taxonomy_skills_constant import ARCHIVE_DIRNAME
-from shared.src.skills_design.taxonomy_skills_curator_config_vo import (
-    load_curator_config,
+from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
+    load_lifecycle_config,
 )
 from shared.src.skills_design.taxonomy_skills_error import (
     SkillsError,
@@ -59,13 +59,8 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillRecord,
 )
 
-from skills_design.src.capabilities_skills_curator_backup import SkillsCuratorBackup
-from skills_design.src.capabilities_skills_curator_ledger import SkillsCuratorLedger
-from skills_design.src.capabilities_skills_curator_lifecycle import (
-    SkillsCuratorLifecycle,
-)
-from skills_design.src.capabilities_skills_curator_telemetry import (
-    SkillsCuratorTelemetry,
+from skills_design.src.capabilities_skills_lifecycle import (
+    SkillsLifecycle,
 )
 
 
@@ -84,10 +79,7 @@ class SkillsAgent(ISkillsAggregate):
         mover: ISkillsMoverProtocol | None = None,
         archiver: ISkillsArchiverProtocol | None = None,
         creator: ISkillsCreatorProtocol | None = None,
-        telemetry: SkillsCuratorTelemetry | None = None,
-        lifecycle: SkillsCuratorLifecycle | None = None,
-        backup: SkillsCuratorBackup | None = None,
-        ledger: SkillsCuratorLedger | None = None,
+        lifecycle: SkillsLifecycle | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._lister = lister
@@ -98,10 +90,10 @@ class SkillsAgent(ISkillsAggregate):
         self._mover = mover
         self._archiver = archiver
         self._creator = creator
-        self._telemetry = telemetry
-        self._lifecycle = lifecycle
-        self._backup = backup
-        self._ledger = ledger
+        self._lifecycle = lifecycle if lifecycle is not None else SkillsLifecycle()
+        self._telemetry = self._lifecycle
+        self._backup = self._lifecycle
+        self._ledger = self._lifecycle
         self._default_root = default_root
 
     # ─── Block 2: Aggregate Method Implementation ────────────
@@ -369,12 +361,11 @@ class SkillsAgent(ISkillsAggregate):
             root=root,
         )
 
-    # ─── Block 3b: Curator handlers (PR 6) ──────────────────────────
-    # All 19 curator ops route here through the single execute seam
-    # (no separate SkillsCuratorAgent file, per AES405).
+    # ─── Block 3b: Lifecycle handlers ──────────────────────────────
+    # All lifecycle ops route here through the single execute seam.
 
-    def _execute_curator_status(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_STATUS: telemetry report rows as records."""
+    def _execute_status(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """STATUS: telemetry report rows as records."""
         telemetry = self._require(self._telemetry, "telemetry")
         root = self._root(request)
         try:
@@ -383,8 +374,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, records=rows, message=f"{len(rows)} skill(s) tracked")
 
-    def _execute_curator_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_USAGE: same telemetry report as status (surface decides rendering)."""
+    def _execute_usage(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """USAGE: same telemetry report as status (surface decides rendering)."""
         telemetry = self._require(self._telemetry, "telemetry")
         root = self._root(request)
         try:
@@ -393,8 +384,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, records=rows, message=f"{len(rows)} skill(s) tracked")
 
-    def _execute_curator_run(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_RUN: apply automatic transitions per pass."""
+    def _execute_run(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """RUN: apply automatic transitions per pass."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
         try:
@@ -403,21 +394,21 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, records=report.get("applied", ()), message=str(report))
 
-    def _execute_curator_pause(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_PAUSE: set pause=True in .curator_config.json."""
+    def _execute_pause(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """PAUSE: set pause=True in config."""
         root = self._root(request)
-        return self._flip_curator_config(root, True, op)
+        return self._flip_lifecycle_config(root, True, op)
 
-    def _execute_curator_resume(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_RESUME: set pause=False in .curator_config.json."""
+    def _execute_resume(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """RESUME: set pause=False in config."""
         root = self._root(request)
-        return self._flip_curator_config(root, False, op)
+        return self._flip_lifecycle_config(root, False, op)
 
-    def _flip_curator_config(self, root: Path, pause: bool, op: SkillsOp) -> SkillsResult:
-        """Flip the pause flag in ``<pack_root>/.curator_config.json`` atomically."""
-        config_path = root / ".curator_config.json"
+    def _flip_lifecycle_config(self, root: Path, pause: bool, op: SkillsOp) -> SkillsResult:
+        """Flip the pause flag in ``<pack_root>/.lifecycle_config.json`` atomically."""
+        config_path = root / ".lifecycle_config.json"
         try:
-            config = load_curator_config(SkillsRoot(root))
+            config = load_lifecycle_config(SkillsRoot(root))
         except OSError as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         new_dict = asdict(replace(config, pause=pause))
@@ -426,22 +417,22 @@ class SkillsAgent(ISkillsAggregate):
         except OSError as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         action = "paused" if pause else "resumed"
-        return SkillsResult(ok=True, op=op, message=f"curator {action}")
+        return SkillsResult(ok=True, op=op, message=f"lifecycle {action}")
 
-    def _execute_curator_pin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_PIN: set pinned=True on *skill* sidecar."""
+    def _execute_pin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """PIN: set pinned=True on *skill* sidecar."""
         return self._flip_sidecar_bool(request, "pinned", True, op)
 
-    def _execute_curator_unpin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_UNPIN: set pinned=False on *skill* sidecar."""
+    def _execute_unpin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """UNPIN: set pinned=False on *skill* sidecar."""
         return self._flip_sidecar_bool(request, "pinned", False, op)
 
-    def _execute_curator_lock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_LOCK: set locked=True on *skill* sidecar."""
+    def _execute_lock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """LOCK: set locked=True on *skill* sidecar."""
         return self._flip_sidecar_bool(request, "locked", True, op)
 
-    def _execute_curator_unlock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_UNLOCK: set locked=False on *skill* sidecar."""
+    def _execute_unlock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """UNLOCK: set locked=False on *skill* sidecar."""
         return self._flip_sidecar_bool(request, "locked", False, op)
 
     def _flip_sidecar_bool(
@@ -489,8 +480,8 @@ class SkillsAgent(ISkillsAggregate):
             )
         return SkillsResult(ok=True, op=op, message=f"{field}={value} for {skill_name}")
 
-    def _execute_curator_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_ARCHIVE: lifecycle.archive(skill, root)."""
+    def _execute_lifecycle_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """Archive: lifecycle.archive(skill, root)."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
         if not request.query or str(request.query).strip() in ("", "None"):
@@ -507,8 +498,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
-    def _execute_curator_restore(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_RESTORE: lifecycle.restore(skill, root)."""
+    def _execute_restore(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """RESTORE: lifecycle.restore(skill, root)."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
         if not request.query or str(request.query).strip() in ("", "None"):
@@ -525,8 +516,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
-    def _execute_curator_prune(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_PRUNE: lifecycle.prune(root, days, dry_run) — bulk-archive idle skills."""
+    def _execute_prune(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """PRUNE: lifecycle.prune(root, days, dry_run) — bulk-archive idle skills."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
         days = int(request.flags["days"]) if "days" in request.flags else None
@@ -537,8 +528,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, records=report.get("pruned", ()), message=str(report))
 
-    def _execute_curator_purge(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_PURGE: lifecycle.purge(skill, root, dry_run) — delete archived skills."""
+    def _execute_purge(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """PURGE: lifecycle.purge(skill, root, dry_run) — delete archived skills."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
         query = str(request.query).strip() if request.query else ""
@@ -550,8 +541,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
-    def _execute_curator_adopt(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_ADOPT: mark skill as agent-managed (created_by="agent")."""
+    def _execute_adopt(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """ADOPT: mark skill as agent-managed (created_by="agent")."""
         self._require(self._telemetry, "telemetry")
         if not request.query or str(request.query).strip() in ("", "None"):
             return SkillsResult(
@@ -593,8 +584,8 @@ class SkillsAgent(ISkillsAggregate):
             )
         return SkillsResult(ok=True, op=op, message=f"adopted {skill_name}")
 
-    def _execute_curator_backup(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_BACKUP: backup.create_snapshot(root) -> snapshot path."""
+    def _execute_backup(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """BACKUP: backup.create_snapshot(root) -> snapshot path."""
         backup = self._require(self._backup, "backup")
         root = self._root(request)
         try:
@@ -603,8 +594,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, content=str(path), message=f"snapshot at {path}")
 
-    def _execute_curator_rollback(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_ROLLBACK: backup.rollback(root, id_) with id from query/flags."""
+    def _execute_rollback(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """ROLLBACK: backup.rollback(root, id_) with id from query/flags."""
         backup = self._require(self._backup, "backup")
         root = self._root(request)
         snapshot_id = request.query or request.flags.get("id", "")
@@ -614,8 +605,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
-    def _execute_curator_ledger(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_LEDGER: ledger_read, or ledger_compact when flags['--compact']."""
+    def _execute_ledger(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """LEDGER: ledger_read, or ledger_compact when flags['--compact']."""
         ledger = self._require(self._ledger, "ledger")
         root = self._root(request)
         if request.flags.get("compact") == "1":
@@ -630,8 +621,8 @@ class SkillsAgent(ISkillsAggregate):
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, records=rows, message=f"{len(rows)} ledger entry(ies)")
 
-    def _execute_curator_list_unmanaged(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_LIST_UNMANAGED: skills with no sidecar OR created_by != 'agent'."""
+    def _execute_list_unmanaged(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """LIST_UNMANAGED: skills with no sidecar OR created_by != 'agent'."""
         self._require(self._telemetry, "telemetry")
         root = Path(self._root(request))
         if not root.is_dir():
@@ -655,8 +646,8 @@ class SkillsAgent(ISkillsAggregate):
                         unmanaged.append({"name": skill_dir.name, "category": cat_dir.name, "created_by": rec.get("created_by", "unmanaged")})
         return SkillsResult(ok=True, op=op, records=unmanaged, message=f"{len(unmanaged)} unmanaged")
 
-    def _execute_curator_list_archived(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_LIST_ARCHIVED: skills currently in _archive/."""
+    def _execute_list_archived(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
+        """LIST_ARCHIVED: skills currently in _archive/."""
         self._require(self._lifecycle, "lifecycle")
         root = Path(self._root(request))
         arch_dir = root / ARCHIVE_DIRNAME

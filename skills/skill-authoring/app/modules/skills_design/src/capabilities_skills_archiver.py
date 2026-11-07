@@ -2,8 +2,7 @@
 
 Implements ``ISkillsArchiverProtocol``: plan/apply an archive of a skill
 into ``_archive/`` (dry-run by default). Delegates the physical move and
-sidecar state update to ``SkillsCuratorLifecycle`` so that the legacy
-``sdc archive`` verb and the Hermes curator engine stay in sync.
+sidecar state update to ``SkillsLifecycle``.
 
 Shared helpers (``resolve_skill_dir``, ``assert_within_root``,
 ``archive_root``) live in ``utility_skills_mutation`` (shared kernel)
@@ -37,8 +36,8 @@ from shared.src.skills_design.taxonomy_skills_error import (
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 from shared.src.skills_design.taxonomy_skills_rule_vo import SkillName
 
-from skills_design.src.capabilities_skills_curator_lifecycle import (
-    SkillsCuratorLifecycle,
+from skills_design.src.capabilities_skills_lifecycle import (
+    SkillsLifecycle,
 )
 
 __all__ = ["SkillsArchiver"]
@@ -47,14 +46,14 @@ __all__ = ["SkillsArchiver"]
 class SkillsArchiver(ISkillsArchiverProtocol):
     """Plans and applies an archive of a skill into ``_archive/``.
 
-    The lifecycle engine (``SkillsCuratorLifecycle``) is the single source
+    The lifecycle engine (``SkillsLifecycle``) is the single source
     of truth for the move, sidecar state, and path containment.  This
     facade keeps the legacy ``MutationPlan`` surface for ``sdc archive``
     intact.
     """
 
-    def __init__(self, lifecycle: SkillsCuratorLifecycle | None = None) -> None:
-        self._lifecycle = lifecycle if lifecycle is not None else SkillsCuratorLifecycle()
+    def __init__(self, lifecycle: SkillsLifecycle | None = None) -> None:
+        self._lifecycle = lifecycle if lifecycle is not None else SkillsLifecycle()
 
     # ─── Block 2: Protocol Method Implementation ─────────────
     def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
@@ -81,7 +80,7 @@ class SkillsArchiver(ISkillsArchiverProtocol):
     def apply_archive(self, plan: MutationPlan) -> MutationOutcome:
         """Execute an archive plan; re-checks containment first.
 
-        Delegates to the curator lifecycle engine so that ``SKILL.md``
+        Delegates to the lifecycle engine so that ``SKILL.md``
         remains in place and the ``.usage.json`` sidecar is updated to
         ``state="archived"`` instead of the legacy rename.
         """

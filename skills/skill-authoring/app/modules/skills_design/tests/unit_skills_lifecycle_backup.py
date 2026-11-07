@@ -1,4 +1,4 @@
-"""Curator backup capability tests (snapshot + rollback, keep-knob, traversal).
+"""Lifecycle backup capability tests (snapshot + rollback, keep-knob, traversal).
 
 Locks the two round-1 CRITICAL regressions:
 * the safety-snapshot prune evicting the rollback target at the keep
@@ -20,15 +20,15 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillsUsageError,
 )
 
-from skills_design.src.capabilities_skills_curator_backup import (
+from skills_design.src.capabilities_skills_lifecycle import (
     DEFAULT_KEEP,
-    SkillsCuratorBackup,
+    SkillsLifecycle,
 )
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 
 
 def _backup_dir(root: Path) -> Path:
-    return root / ".curator_backups"
+    return root / ".lifecycle_backups"
 
 
 def _snap_names(root: Path) -> list[str]:
@@ -53,7 +53,7 @@ def _make_snapshots(root: Path, count: int, safety: bool = True) -> list[str]:
     ``count`` names.
     """
     names = [f"2026-01-01T00:{i:02d}:00" for i in range(count)]
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     monkey = _stamp_sequence(*((names + [names[-1] + "-safety"]) if safety else names))
     try:
         for _ in names:
@@ -69,7 +69,7 @@ def _stamp_sequence(*stamps: str) -> pytest.MonkeyPatch:
     The queue drains; the last name repeats so a rollback's safety
     snapshot (a later call) still gets a name that sorts newest.
     """
-    import skills_design.src.capabilities_skills_curator_backup as mod
+    import skills_design.src.capabilities_skills_lifecycle as mod
 
     queue = list(stamps)
 
@@ -86,7 +86,7 @@ def _stamp_sequence(*stamps: str) -> pytest.MonkeyPatch:
 
 def test_create_snapshot_produces_tarball_and_manifest(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     snap = cap.create_snapshot(root)
 
     assert snap.parent == _backup_dir(root)
@@ -128,9 +128,9 @@ def test_create_snapshot_excludes_excluded_paths(tmp_path: Path) -> None:
         d = root / name
         d.mkdir()
         (d / "junk.txt").write_text("x", encoding="utf-8")
-    (root / ".curator_ledger.jsonl").write_text("{}\n", encoding="utf-8")
+    (root / ".lifecycle_ledger.jsonl").write_text("{}\n", encoding="utf-8")
 
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     snap = cap.create_snapshot(root)
     with tarfile.open(snap / "skills.tar.gz", "r:gz") as tar:
         names = set(tar.getnames())
@@ -143,7 +143,7 @@ def test_create_snapshot_excludes_excluded_paths(tmp_path: Path) -> None:
         "venv",
         "node_modules",
         "__pycache__",
-        ".curator_ledger.jsonl",
+        ".lifecycle_ledger.jsonl",
     ]:
         assert not any(
             n == name or n.startswith(name + "/") for n in names
@@ -153,7 +153,7 @@ def test_create_snapshot_excludes_excluded_paths(tmp_path: Path) -> None:
 
 def test_create_snapshot_same_second_retake_gets_uniqueness_suffix(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
 
     monkey = _stamp_sequence("2026-01-01T00:00:00")
     try:
@@ -173,7 +173,7 @@ def test_create_snapshot_same_second_retake_gets_uniqueness_suffix(tmp_path: Pat
 
 def test_prune_old_snapshots_keeps_newest_keep(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
 
     monkey = _stamp_sequence(
         "2026-01-01T00:00:00",
@@ -187,7 +187,7 @@ def test_prune_old_snapshots_keeps_newest_keep(tmp_path: Path) -> None:
         cap.create_snapshot(root, _prune=False)
         cap.create_snapshot(root, _prune=False)
 
-        (root / ".curator_config.json").write_text(
+        (root / ".lifecycle_config.json").write_text(
             json.dumps({"backup": {"keep": 2}}), encoding="utf-8"
         )
         removed = cap.prune_old_snapshots(root)
@@ -202,7 +202,7 @@ def test_prune_old_snapshots_keeps_newest_keep(tmp_path: Path) -> None:
 
 def test_prune_old_snapshots_uses_config_backup_keep(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     monkey = _stamp_sequence(
         "2026-01-01T00:00:00",
         "2026-01-01T00:00:01",
@@ -212,7 +212,7 @@ def test_prune_old_snapshots_uses_config_backup_keep(tmp_path: Path) -> None:
         cap.create_snapshot(root, _prune=False)
         cap.create_snapshot(root, _prune=False)
         cap.create_snapshot(root, _prune=False)
-        (root / ".curator_config.json").write_text(
+        (root / ".lifecycle_config.json").write_text(
             json.dumps({"backup": {"keep": 1}}), encoding="utf-8"
         )
         removed = cap.prune_old_snapshots(root)
@@ -230,7 +230,7 @@ def test_prune_old_snapshots_unset_config_falls_back_to_default_keep(
     tmp_path: Path,
 ) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     monkey = _stamp_sequence(
         "2026-01-01T00:00:00",
         "2026-01-01T00:00:01",
@@ -263,7 +263,7 @@ def test_rollback_to_older_snapshot_succeeds_at_keep_boundary(tmp_path: Path) ->
     restored.
     """
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     names = _make_two_snapshots(root)
     (older, _) = names
     target_dir = _backup_dir(root) / older
@@ -273,7 +273,7 @@ def test_rollback_to_older_snapshot_succeeds_at_keep_boundary(tmp_path: Path) ->
     )
     assert (target_dir / "skills.tar.gz").is_file()
 
-    (root / ".curator_config.json").write_text(
+    (root / ".lifecycle_config.json").write_text(
         json.dumps({"backup": {"keep": 2}}), encoding="utf-8"
     )
     result = cap.rollback(root, older)
@@ -294,7 +294,7 @@ def test_rollback_to_older_snapshot_succeeds_at_keep_boundary(tmp_path: Path) ->
 def test_rollback_rejects_traversal_id(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     _make_two_snapshots(root)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     with pytest.raises(SkillsUsageError, match="invalid snapshot id"):
         cap.rollback(root, "../../../../etc")
 
@@ -302,7 +302,7 @@ def test_rollback_rejects_traversal_id(tmp_path: Path) -> None:
 def test_rollback_rejects_id_with_separator(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     _make_two_snapshots(root)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     with pytest.raises(SkillsUsageError, match="invalid snapshot id"):
         cap.rollback(root, "a/b")
 
@@ -310,7 +310,7 @@ def test_rollback_rejects_id_with_separator(tmp_path: Path) -> None:
 def test_rollback_rejects_dotdot_only_id_escapes_backup_root(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     _make_two_snapshots(root)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     with pytest.raises(SkillsUsageError, match="escapes the backup root"):
         cap.rollback(root, "..")
 
@@ -318,14 +318,14 @@ def test_rollback_rejects_dotdot_only_id_escapes_backup_root(tmp_path: Path) -> 
 def test_rollback_rejects_unknown_snapshot_id(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     _make_two_snapshots(root)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     with pytest.raises(SkillsUsageError, match="unknown snapshot id"):
         cap.rollback(root, "no-such-snapshot")
 
 
 def test_rollback_with_no_snapshots_is_a_usage_error(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     with pytest.raises(SkillsUsageError, match="no snapshots"):
         cap.rollback(root, None)
 
@@ -337,7 +337,7 @@ def test_rollback_restores_modified_file_and_carries_excluded_subtrees(
     tmp_path: Path,
 ) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     names = _make_two_snapshots(root)
     target = names[-1]
 
@@ -361,7 +361,7 @@ def test_rollback_happy_path_via_explicit_id_and_dispatch(
     tmp_path: Path,
 ) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     names = _make_two_snapshots(root)
     target = names[0]
     out = cap.snapshot_rollback(as_root(root), "rollback", target)
@@ -375,7 +375,7 @@ def test_rollback_happy_path_via_explicit_id_and_dispatch(
 
 def test_rollback_corrupt_tarball_keeps_unrestored_and_raises(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     names = _make_two_snapshots(root)
     target = names[-1]
     target_dir = _backup_dir(root) / target
@@ -396,7 +396,7 @@ def test_rollback_corrupt_tarball_keeps_unrestored_and_raises(tmp_path: Path) ->
 def test_rollback_extract_failure_with_traversal_member(tmp_path: Path) -> None:
     """A tarball member that walks outside the root is rejected explicitly."""
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     names = _make_two_snapshots(root)
     target = names[-1]
     target_dir = _backup_dir(root) / target
@@ -428,7 +428,7 @@ def test_rollback_extract_failure_with_traversal_member(tmp_path: Path) -> None:
 
 def test_snapshot_rollback_dispatch_snapshot_and_prune(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     out = cap.snapshot_rollback(as_root(root), "snapshot")
     assert out["action"] == "snapshot"
     assert out["snapshot"] == out["snapshot_dir"].rsplit("/", 1)[-1]
@@ -443,7 +443,7 @@ def test_snapshot_rollback_dispatch_unknown_action_is_usage_error(
     tmp_path: Path,
 ) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     with pytest.raises(SkillsUsageError, match="unknown snapshot_rollback action"):
         cap.snapshot_rollback(as_root(root), "bogus")
 
@@ -451,7 +451,7 @@ def test_snapshot_rollback_dispatch_unknown_action_is_usage_error(
 def test_rollback_newest_snapshot_when_id_is_none(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     names = _make_two_snapshots(root)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     out = cap.snapshot_rollback(as_root(root), "rollback", None)
     assert out["action"] == "rollback"
     assert out["snapshot"] == names[-1]
@@ -462,10 +462,10 @@ def test_prune_old_snapshots_excluded_param_protects_a_named_dir(
 ) -> None:
     root = crafted_tree(tmp_path)
     names = _make_snapshots(root, 4, safety=False)
-    (root / ".curator_config.json").write_text(
+    (root / ".lifecycle_config.json").write_text(
         json.dumps({"backup": {"keep": 2}}), encoding="utf-8"
     )
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     removed = cap.prune_old_snapshots(root, excluded=frozenset({names[0]}))
     # keep=2: the two newest dirs (names[3], names[2]) survive; the excluded
     # oldest dir (names[0]) is protected; only names[1] is removed.
@@ -475,7 +475,7 @@ def test_prune_old_snapshots_excluded_param_protects_a_named_dir(
 
 def test_rollback_carries_excluded_locks_subtree_back(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     names = _make_two_snapshots(root)
     target = names[-1]
 
@@ -494,8 +494,8 @@ def test_rollback_carries_excluded_locks_subtree_back(tmp_path: Path) -> None:
 def test_snapshot_prune_removes_excess_when_keep_exceeded(tmp_path: Path) -> None:
     """create_snapshot prunes to keep after each take."""
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
-    (root / ".curator_config.json").write_text(
+    cap = SkillsLifecycle()
+    (root / ".lifecycle_config.json").write_text(
         json.dumps({"backup": {"keep": 1}}), encoding="utf-8"
     )
     names = _make_snapshots(root, 1, safety=False)
@@ -508,7 +508,7 @@ def test_snapshot_prune_removes_excess_when_keep_exceeded(tmp_path: Path) -> Non
 
 def test_manifest_has_no_keep_key_and_uses_utc_stamp(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     snap = cap.create_snapshot(root)
     manifest = json.loads((snap / "manifest.json").read_text(encoding="utf-8"))
     assert set(manifest) == {"created_utc", "files"}
@@ -518,9 +518,9 @@ def test_manifest_has_no_keep_key_and_uses_utc_stamp(tmp_path: Path) -> None:
 
 def test_create_snapshot_default_prunes_to_keep_after_take(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
-    cap = SkillsCuratorBackup()
+    cap = SkillsLifecycle()
     names = _make_snapshots(root, 3, safety=False)
-    (root / ".curator_config.json").write_text(
+    (root / ".lifecycle_config.json").write_text(
         json.dumps({"backup": {"keep": 1}}), encoding="utf-8"
     )
     # a fourth take prunes to keep=1, so only the newest survives

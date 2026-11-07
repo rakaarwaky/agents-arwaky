@@ -1,15 +1,8 @@
-"""Curator config value object (AES taxonomy layer, config side).
+"""Lifecycle config value object (AES taxonomy layer, config side).
 
-``CuratorConfig`` mirrors the ``curator:`` keys from the Hermes Agent
-Curator config spec (``curator-config.md``) with their defaults,
-flattening the nested ``backup`` keys into ``backup_enabled`` /
-``backup_keep``. ``load_curator_config`` overlays
-``<pack_root>/.curator_config.json`` over the dataclass defaults; a
-missing or invalid file returns the bare defaults, so capabilities stay
-config-free and never raise on a bad file.
-
-No I/O beyond the one config read; no imports from
-utility/capabilities/agent/root/surface layers.
+``LifecycleConfig`` defines the lifecycle settings with sensible defaults.
+``load_lifecycle_config`` reads ``.lifecycle_config.json`` from the pack
+root and overlays it over the dataclass defaults.
 """
 
 from __future__ import annotations
@@ -24,18 +17,17 @@ from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
 logger = logging.getLogger(__name__)
 
-#: Curator config filename under the pack root.
-CONFIG_FILENAME = ".curator_config.json"
+CONFIG_FILENAME = ".lifecycle_config.json"
 
 __all__ = [
     "CONFIG_FILENAME",
-    "CuratorConfig",
-    "load_curator_config",
+    "LifecycleConfig",
+    "load_lifecycle_config",
 ]
 
 @dataclass(frozen=True)
-class CuratorConfig:
-    """Defaults for the curator lifecycle (``curator-config.md`` table)."""
+class LifecycleConfig:
+    """Defaults for skill lifecycle management."""
 
     enabled: bool = True
     interval_hours: int = 168
@@ -48,16 +40,10 @@ class CuratorConfig:
     archive_ttl_days: int = 0
     pause: bool = False
 
-def load_curator_config(pack_root: SkillsRoot | None = None) -> CuratorConfig:
-    """Read the curator config overlay, falling back to the defaults.
 
-    Resolves the pack root via ``default_pack_root()`` when ``pack_root``
-    is ``None``; reads ``<pack_root>/.curator_config.json`` and overlays
-    its values over the ``CuratorConfig`` defaults. A missing file,
-    invalid JSON, or wrong-typed keys all return the bare defaults
-    (a logged warning, never an exception).
-    """
-    defaults = CuratorConfig()
+def load_lifecycle_config(pack_root: SkillsRoot | None = None) -> LifecycleConfig:
+    """Read lifecycle config, falling back to defaults."""
+    defaults = LifecycleConfig()
     root = Path(pack_root) if pack_root is not None else default_pack_root()
     path = root / CONFIG_FILENAME
     try:
@@ -84,9 +70,6 @@ def load_curator_config(pack_root: SkillsRoot | None = None) -> CuratorConfig:
             continue
         value = data[key]
         expected = type(getattr(defaults, key))
-        # ``bool`` subclasses ``int``, so a JSON ``true`` for an int key
-        # (or a JSON int for a bool key) must be rejected with a strict
-        # type check.
         if not (
             expected is int
             and type(value) is int
@@ -95,13 +78,12 @@ def load_curator_config(pack_root: SkillsRoot | None = None) -> CuratorConfig:
             or expected is not int and expected is not bool and isinstance(value, expected)
         ):
             logger.warning(
-                "curator config %r has wrong type %s, using default",
+                "lifecycle config %r has wrong type %s, using default",
                 key,
                 type(value).__name__,
             )
             continue
         overrides[key] = value
-    # Nested ``backup`` keys flatten to ``backup_enabled`` / ``backup_keep``.
     backup = data.get("backup")
     if isinstance(backup, dict):
         if isinstance(backup.get("enabled"), bool) and type(backup["enabled"]) is bool:
@@ -110,5 +92,5 @@ def load_curator_config(pack_root: SkillsRoot | None = None) -> CuratorConfig:
         if isinstance(keep, int) and type(keep) is int:
             overrides["backup_keep"] = keep
     if overrides:
-        return CuratorConfig(**overrides)  # type: ignore[arg-type]
+        return LifecycleConfig(**overrides)
     return defaults

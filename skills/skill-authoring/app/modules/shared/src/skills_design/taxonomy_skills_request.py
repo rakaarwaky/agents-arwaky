@@ -27,13 +27,10 @@ SkillQuery = NewType("SkillQuery", str)
 SkillsRoot = NewType("SkillsRoot", Path)
 """An explicit skills root; ``None`` on a request means 'use the default'."""
 
-#: One op per capability the skills aggregate understands; the CLI
-#: surface exposes all of them (list, read, lint, catalog, discover,
-#: move, archive, create); traces lives only in the traces app.
-#: The curator ops are additive (curator-parity redesign PR 1): they
-#: mirror the Hermes Agent Curator CLI verbs and route through the same
-#: aggregate seam without changing the 8 design-side ops above.
+#: Operations the skills aggregate understands.
+#: Unified skill operations: read-only, authoring mutations, and lifecycle.
 class SkillsOp(StrEnum):
+    # Core pack operations
     LIST = "list"
     READ = "read"
     LINT = "lint"
@@ -42,48 +39,35 @@ class SkillsOp(StrEnum):
     MOVE = "move"
     ARCHIVE = "archive"
     CREATE = "create"
-    CURATOR_STATUS = "curator-status"
-    CURATOR_USAGE = "curator-usage"
-    CURATOR_RUN = "curator-run"
-    CURATOR_PAUSE = "curator-pause"
-    CURATOR_RESUME = "curator-resume"
-    CURATOR_PIN = "curator-pin"
-    CURATOR_UNPIN = "curator-unpin"
-    CURATOR_LOCK = "curator-lock"
-    CURATOR_UNLOCK = "curator-unlock"
-    CURATOR_ARCHIVE = "curator-archive"
-    CURATOR_RESTORE = "curator-restore"
-    CURATOR_PRUNE = "curator-prune"
-    CURATOR_PURGE = "curator-purge"
-    CURATOR_ADOPT = "curator-adopt"
-    CURATOR_BACKUP = "curator-backup"
-    CURATOR_ROLLBACK = "curator-rollback"
-    CURATOR_LEDGER = "curator-ledger"
-    CURATOR_LIST_UNMANAGED = "curator-list-unmanaged"
-    CURATOR_LIST_ARCHIVED = "curator-list-archived"
+
+    # Integrated lifecycle operations
+    STATUS = "status"
+    USAGE = "usage"
+    RUN = "run"
+    PAUSE = "pause"
+    RESUME = "resume"
+    PIN = "pin"
+    UNPIN = "unpin"
+    LOCK = "lock"
+    UNLOCK = "unlock"
+    RESTORE = "restore"
+    PRUNE = "prune"
+    PURGE = "purge"
+    ADOPT = "adopt"
+    BACKUP = "backup"
+    ROLLBACK = "rollback"
+    LEDGER = "ledger"
+    LIST_UNMANAGED = "list-unmanaged"
+    LIST_ARCHIVED = "list-archived"
 
 
 @dataclass(frozen=True)
 class SkillsRequest:
-    """Input for one skills operation.
+    """The aggregate entry point's single argument (AES401)."""
 
-    ``op`` selects the capability; ``query`` carries the skill name or the
-    search query; ``root`` overrides the default pack root (explicit beats
-    derived); ``apply`` is the only path to a write; ``flags`` carries the
-    per-op positional/optional strings (``category``, ``target``,
-    ``limit``, ``force``, ...). The traces sub-action (collect, usage,
-    phrases, materialize, state-get/set/clear/trash/restrict/decide/wait)
-    is carried in ``flags`` (``traces_action`` / ``state_action``) — no
-    dedicated field; the surface and agent agree on the flag keys.
-    """
-
-    op: SkillsOp = SkillsOp.LIST
+    op: SkillsOp
     query: SkillQuery = field(default_factory=lambda: SkillQuery(""))
-    root: SkillsRoot | None = None
-    apply: bool = False
-    json: bool = False
     description: str = ""
+    apply: bool = False
+    root: SkillsRoot | None = None
     flags: Mapping[str, str] = field(default_factory=dict)
-
-
-__all__ = ["SkillQuery", "SkillsOp", "SkillsRequest", "SkillsRoot"]

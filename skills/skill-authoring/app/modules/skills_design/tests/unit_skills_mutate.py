@@ -132,7 +132,7 @@ def test_exit_code_2_nonexistent_skill_is_a_usage_error(tmp_path: Path) -> None:
         assert "nonexistent-skill" in str(failure.value)
 
 
-def test_archive_apply_moves_to_curator_location(tmp_path: Path) -> None:
+def test_archive_apply_moves_to_archive_location(tmp_path: Path) -> None:
     root = crafted_tree(tmp_path)
     archiver = SkillsArchiver()
     plan = archiver.plan_archive("notes/note-taker", as_root(root))
