@@ -324,15 +324,14 @@ def verify_ledger_invariants(
                             row_id,
                         )
                     )
-        elif action == "skipped-exists":
-            if not entry["issue"]:
-                violations.append(
-                    InvariantViolation(
-                        "issue",
-                        "skipped-exists row requires a populated issue number",
-                        row_id,
-                    )
+        elif action == "skipped-exists" and not entry["issue"]:
+            violations.append(
+                InvariantViolation(
+                    "issue",
+                    "skipped-exists row requires a populated issue number",
+                    row_id,
                 )
+            )
 
         # Check 4 — incomplete / doc_sync / unverified / fr_orphan → issue.
         if cls in _ISSUE_REQUIRED_CLASSES and not entry["issue"]:
