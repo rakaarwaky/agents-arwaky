@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 _MOD_ROOT = Path(__file__).resolve().parent
-_REPO_ROOT = _MOD_ROOT.parents[3]
+_REPO_ROOT = _MOD_ROOT.parents[4]
 # Add this tree's modules/ dir so root_cli_entry / shared / cli from this
 # tree shadow the root modules/ packages when both paths are on sys.path.
 for _ns in (_MOD_ROOT, _REPO_ROOT):
@@ -25,6 +25,8 @@ try:
     import shared.src as _shared_src_pkg
     _src_dirs = [
         _REPO_ROOT / "modules" / "shared" / "src",
+        _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules" / "shared" / "src",
+        _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "app" / "modules" / "shared" / "src",
         _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "shared" / "src",
         _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "shared" / "src",
     ]
@@ -41,6 +43,8 @@ try:
     import cli.src as _cli_src_pkg
     _cli_src_dirs = [
         _REPO_ROOT / "modules" / "cli" / "src",
+        _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules" / "cli" / "src",
+        _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "app" / "modules" / "cli" / "src",
         _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "cli" / "src",
         _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "cli" / "src",
     ]

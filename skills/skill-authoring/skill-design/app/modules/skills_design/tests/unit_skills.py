@@ -385,8 +385,8 @@ def test_importing_the_feature_does_not_mutate_sys_path() -> None:
     import sys
     from pathlib import Path
 
-    repo_root = Path(__file__).resolve().parents[6]
-    design_ns = str(repo_root / "skills" / "skill-authoring" / "skill-design" / "modules")
+    repo_root = Path(__file__).resolve().parents[7]
+    design_ns = str(repo_root / "skills" / "skill-authoring" / "skill-design" / "app" / "modules")
     code = (
         "import sys; "
         "import skills_design.src.root_skills_container; "
