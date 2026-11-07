@@ -23,7 +23,6 @@ __all__ = [
     "iter_skill_mds",
     "parse_skill_frontmatter",
     "read_skill_md",
-    "safe_skill_name",
     "sanitize_skill_name",
 ]
 
@@ -108,19 +107,3 @@ def sanitize_skill_name(raw: str, fallback: str) -> str:
     if not name:
         name = re.sub(r"[^A-Za-z0-9._-]+", "-", fallback).strip(".-") or "skill"
     return name[:64]
-
-def safe_skill_name(skill_md: Path) -> str:
-    """Return a sanitised directory-safe name for *skill_md*."""
-    return sanitize_skill_name(extract_skill_name(skill_md), skill_md.parent.name)
-
-def safe_child(base: Path, name: str) -> Path:
-    """Lexical ``base / name`` for a provisioned skill dir.
-
-    Unlike ensure_under this never resolves symlinks: a destination that is
-    already a symlink into the skill pack resolves OUTSIDE the harness skills
-    dir, which would make every re-provision fail the containment check.
-    Traversal is blocked by rejecting anything but a single safe component.
-    """
-    if not name or name in (".", "..") or "/" in name or "\\" in name:
-        raise ValueError(f"Refusing unsafe skill name: {name!r}")
-    return base / name

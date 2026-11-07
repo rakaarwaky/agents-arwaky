@@ -27,18 +27,7 @@ if not _logger.handlers:
     _logger.setLevel(logging.INFO)
 
 
-def set_verbosity(level: str = "info") -> None:
-    """Set logger verbosity: debug|info|warning|error (global -v/-q)."""
-    _logger.setLevel(getattr(logging, level.upper(), logging.INFO))
-
-
 _color_override = None
-
-
-def set_color_mode(enabled):
-    """Override color detection. None = auto-detect."""
-    global _color_override
-    _color_override = enabled
 
 
 def _color_enabled() -> bool:
@@ -57,40 +46,22 @@ def _c(code: str) -> str:
 
 
 # Lazy color accessors: evaluated at call time, not import time,
-# so set_color_mode()/NO_COLOR/FORCE_COLOR always take effect.
 def BOLD() -> str:
     """Return the ANSI escape for bold weight (empty when colour is disabled)."""
     return _c("1")
-
-
 def DIM() -> str:
     """Return the ANSI escape for faint/dim weight."""
     return _c("2")
 
 
-def GREEN() -> str:
-    """Return the ANSI escape for green foreground."""
-    return _c("0;32")
-
-
-def BLUE() -> str:
-    """Return the ANSI escape for blue foreground."""
-    return _c("0;34")
-
 
 def CYAN() -> str:
     """Return the ANSI escape for cyan foreground."""
     return _c("0;36")
-
-
-def YELLOW() -> str:
-    """Return the ANSI escape for yellow foreground."""
-    return _c("0;33")
-
-
 def RED() -> str:
     """Return the ANSI escape for red foreground."""
     return _c("0;31")
+
 
 
 def RESET() -> str:
@@ -130,21 +101,6 @@ def info(msg: str) -> None:
     print(f"{CYAN()}==>{RESET()} {BOLD()}{msg}{RESET()}")
 
 
-def sub(msg: str) -> None:
-    """Print a blue '->' indented message to stdout."""
-    print(f"  {BLUE()}->{RESET()} {msg}")
-
-
-def ok(msg: str) -> None:
-    """Print a green '[OK]' confirmation message to stdout."""
-    print(f"  {GREEN()}[OK]{RESET()} {msg}")
-
-
-def warn(msg: str) -> None:
-    """Print a yellow '[WARN]' warning message to stdout."""
-    print(f"  {YELLOW()}[WARN]{RESET()} {msg}")
-
-
 def err(msg: str) -> None:
     """Print a red '[FAIL]' error message to stderr."""
     print(f"  {RED()}[FAIL]{RESET()} {msg}", file=sys.stderr)
@@ -166,23 +122,3 @@ def _harden_stdio() -> None:
 _harden_stdio()
 
 
-def pad(s: str, width: int) -> str:
-    """Pad a possibly-ANSI-colored string to width; truncate with ellipsis."""
-    visible = _ANSI_RE.sub("", s)
-    if len(visible) > width:
-        overflow = len(visible) - width + 1
-        s = s[: max(0, len(s) - overflow)] + RESET() + "…"
-        visible = _ANSI_RE.sub("", s)
-    return s + " " * max(0, width - len(visible))
-
-
-def table_widths(available: int, weights: list[int]) -> list[int]:
-    """Distribute available terminal width across columns by weight."""
-    total_w = sum(weights)
-    widths = []
-    for i, w in enumerate(weights):
-        if i == len(weights) - 1:
-            widths.append(max(1, available - sum(widths)))
-        else:
-            widths.append(max(1, int(available * w / total_w)))
-    return widths

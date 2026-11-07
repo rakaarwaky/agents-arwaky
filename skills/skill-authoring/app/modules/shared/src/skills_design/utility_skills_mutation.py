@@ -229,7 +229,6 @@ __all__ = [
     "archive_root",
     "assert_within_root",
     "atomic_write_json",
-    "ensure_frontmatter_name",
     "missing_category_descriptions",
     "name_mismatch_repairs",
     "plan_repair",
@@ -253,45 +252,6 @@ def assert_within_root(path: Path, root: Path) -> None:
         contained = False
     if not contained:
         raise SkillsUsageError(f"Refusing to write outside the skills root: {path}")
-
-
-def ensure_frontmatter_name(skill_md: Path, expected_name: str) -> bool:
-    """Rewrite ``name:`` in ``skill_md`` to ``expected_name``.
-
-    Verbatim from the original ``librarian.py``: inserts a minimal
-    frontmatter block when the file has none. Returns whether the file
-    changed.
-    """
-    text = skill_md.read_text(encoding="utf-8-sig", errors="replace")
-    stripped = text.lstrip()
-
-    if not stripped.startswith("---"):
-        new_text = f"---\nname: {expected_name}\ndescription: TODO\n---\n\n{text}"
-        skill_md.write_text(new_text, encoding="utf-8")
-        return True
-
-    parts = stripped.split("---", 2)
-    if len(parts) < 3:
-        return False
-
-    fm_lines = parts[1].splitlines()
-    replaced = False
-
-    for i, line in enumerate(fm_lines):
-        if line.startswith("name:"):
-            fm_lines[i] = f"name: {expected_name}"
-            replaced = True
-            break
-
-    if not replaced:
-        fm_lines.insert(0, f"name: {expected_name}")
-
-    fm_body = "\n".join(fm_lines).strip("\n")
-    body = parts[2]
-    new_text = f"---\n{fm_body}\n---{body}"
-
-    skill_md.write_text(new_text, encoding="utf-8")
-    return True
 
 
 def write_category_description(

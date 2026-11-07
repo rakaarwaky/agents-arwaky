@@ -8,14 +8,10 @@ discoverer, and the surface all share them.
 
 from __future__ import annotations
 
-__all__ = ["clean_one_line", "md_escape"]
+__all__ = ["clean_one_line"]
 
 
 def clean_one_line(value: object) -> str:
     """Collapse whitespace to single spaces and strip the edges."""
     return " ".join(str(value).split()).strip()
 
-
-def md_escape(value: object) -> str:
-    """Escape a value for Markdown table cells (pipes, newlines)."""
-    return str(value).replace("|", "&#124;").replace("\n", " ").strip()

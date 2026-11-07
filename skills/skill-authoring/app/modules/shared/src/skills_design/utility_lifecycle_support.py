@@ -64,14 +64,12 @@ __all__ = [
     "STALE",
     "TARBALL_NAME",
     "archive_skill",
-    "entry_ts",
     "find_skill_dir",
     "manifest_sha256",
     "now_iso",
     "read_record",
     "restore_skill",
     "set_field",
-    "set_state",
     "tar_data_filter",
     "write_record",
 ]
@@ -156,7 +154,6 @@ def entry_ts(entry: dict) -> str:
     value = entry.get("ts")
     return value if isinstance(value, str) and value else ""
 
-
 def _parse_ts(ts: str) -> float | None:
     if not ts:
         return None
@@ -164,7 +161,6 @@ def _parse_ts(ts: str) -> float | None:
         return datetime.fromisoformat(ts).timestamp()
     except ValueError:
         return None
-
 
 def _is_newer_than(entry: dict, days: int) -> bool:
     ts = entry_ts(entry)
@@ -200,7 +196,6 @@ def _ledger_file(root: Path | SkillsRoot | None) -> Path:
 
 def _is_cache_dir(name: str) -> bool:
     return name == "__pycache__" or "cache" in name.lower()
-
 
 def _is_excluded(rel: str) -> bool:
     parts = Path(rel).parts
@@ -277,17 +272,8 @@ def tar_data_filter(member: tarfile.TarInfo, dest_path: str) -> tarfile.TarInfo:
     return member
 
 
-def _skill_dirs(root: Path) -> Iterable[Path]:
-    for md in iter_skill_mds(root):
-        yield md.parent
-
-
 def _usage_path(skill_dir: Path) -> Path:
     return skill_dir / ".usage.json"
-
-
-def _lock_path(usage_path: Path) -> Path:
-    return usage_path.parent / ".usage.json.lock"
 
 
 def _read_sidecar(path: Path) -> dict:
@@ -325,13 +311,15 @@ def _normalize(raw: dict) -> dict:
     return rec
 
 
+def _lock_path(usage_path: Path) -> Path:
+    return usage_path.parent / ".usage.json.lock"
+
 def _lock_file(handle: Any) -> None:
     if fcntl is not None:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
     elif msvcrt is not None:
         handle.flush()
         msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1 << 31 - 1)
-
 
 def _unlock_file(handle: Any) -> None:
     if fcntl is not None:
@@ -341,7 +329,6 @@ def _unlock_file(handle: Any) -> None:
             msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1 << 31 - 1)
         except OSError:
             pass
-
 
 def _with_lock(path: Path, fn: Any) -> None:
     try:
@@ -403,12 +390,10 @@ def read_record(skill_dir: Path) -> dict:
 def write_record(skill_dir: Path, record: dict) -> None:
     atomic_write_json(_usage_path(skill_dir), record)
 
-
 def set_field(skill_dir: Path, field: str, value: object) -> None:
     record = read_record(skill_dir)
     record[field] = value
     write_record(skill_dir, record)
-
 
 def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> None:
     record = read_record(skill_dir)
@@ -416,8 +401,6 @@ def set_state(skill_dir: Path, state: str, archived_at: str | None = None) -> No
     if archived_at is not None:
         record["archived_at"] = archived_at
     write_record(skill_dir, record)
-
-
 def archive_skill(skill: str, pack_root: Path) -> dict:
     skill_dir = find_skill_dir(skill, pack_root, in_archive=False)
     if skill_dir is None:

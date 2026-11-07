@@ -56,7 +56,6 @@ __all__ = [
     "category_dirs",
     "category_summaries",
     "iter_files",
-    "iter_markdown_files",
     "iter_relative_skill_mds",
     "parse_frontmatter",
     "relpath",
@@ -105,13 +104,6 @@ def iter_files(folder: Path) -> Iterator[Path]:
         dirnames.sort()
         for name in sorted(filenames):
             yield Path(dirpath) / name
-
-
-def iter_markdown_files(skills_root: Path) -> Iterator[Path]:
-    """Yield every ``*.md`` file under ``skills_root`` (no symlink descent)."""
-    for path in iter_files(skills_root):
-        if path.suffix == ".md":
-            yield path
 
 
 def iter_relative_skill_mds(skills_root: Path, depth: int) -> Iterator[Path]:
