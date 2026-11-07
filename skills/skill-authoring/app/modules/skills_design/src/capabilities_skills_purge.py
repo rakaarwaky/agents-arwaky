@@ -15,7 +15,6 @@ from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
     load_lifecycle_config,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-
 from shared.src.skills_design.utility_lifecycle_support import (
     _parse_iso,
     find_skill_dir,

@@ -17,16 +17,16 @@ from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-
-from skills_design.src.capabilities_skills_lifecycle import (
+from shared.src.skills_design.utility_lifecycle_support import (
     BLOBS_DIRNAME,
     DEFAULT_LEDGER_ACTOR,
     LEDGER_FILENAME,
-    SkillsLifecycle,
 )
+
+from skills_design.src.capabilities_skills_ledger import SkillsLedger
 from skills_design.tests.fixture_skills import as_root, crafted_tree
 
-LEDGER = SkillsLifecycle()
+LEDGER = SkillsLedger()
 
 
 def _sha256(data: bytes) -> str:
@@ -177,7 +177,7 @@ def test_ledger_compact_trims_old_entries_and_gcs_orphan_blobs(
     _append_raw(root, old_entry, new_entry)
 
     monkeypatch.setattr(
-        "skills_design.src.capabilities_skills_lifecycle.DEFAULT_LEDGER_COMPACT_DAYS",
+        "skills_design.src.capabilities_skills_ledger.DEFAULT_LEDGER_COMPACT_DAYS",
         1,
     )
     result = LEDGER.ledger_compact(root)

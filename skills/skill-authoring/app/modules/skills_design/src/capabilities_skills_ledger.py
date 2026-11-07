@@ -10,7 +10,6 @@ import logging
 import shutil
 import uuid
 from pathlib import Path
-from typing import Any
 
 from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
@@ -20,7 +19,6 @@ from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
     load_lifecycle_config,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-
 from shared.src.skills_design.utility_lifecycle_support import (
     BLOBS_DIRNAME,
     DEFAULT_LEDGER_ACTOR,
@@ -29,7 +27,6 @@ from shared.src.skills_design.utility_lifecycle_support import (
     _is_newer_than,
     _is_valid_sha256,
     _ledger_file,
-    entry_ts,
     manifest_sha256,
     now_iso,
 )

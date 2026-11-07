@@ -391,7 +391,7 @@ def find_skill_dir(skill: str, root: Path, in_archive: bool = False) -> Path | N
             continue
         if p.parent.name == skill:
             matches.append(p.parent)
-    return sorted(matches)[0] if matches else None
+    return min(matches) if matches else None
 
 
 def read_record(skill_dir: Path) -> dict:
