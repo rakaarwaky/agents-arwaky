@@ -19,6 +19,8 @@ from __future__ import annotations
 
 import json
 import logging
+import posixpath
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
@@ -29,14 +31,10 @@ from shared.src.skills_design.taxonomy_skills_constant import (
     BM25F_SCORE_SCALE,
     CITATIONS,
     CONFIG_FILENAME,
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
     SUMMARIES,
-)
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-# Re-exported so capabilities read these via the vo (single import surface);
-# no cycle: ``utility_skill_pack`` imports only from the constant module.
-from shared.src.skills_design.utility_skill_pack import (
-    is_valid_skill_name,
-    sanitize_skill_name,
 )
 
 if TYPE_CHECKING:
@@ -219,6 +217,24 @@ def rule(rule_id: str) -> Rule:
     ``validate`` emits. A typo'd id fails loudly (KeyError) rather than
     silently falling back to a generic message."""
     return _RULES_BY_ID[rule_id]
+
+
+def is_valid_skill_name(name: str) -> bool:
+    """The name-format predicate for skill directory names.
+
+    ``NAME_RE`` match AND no double hyphen AND 2-64 chars.
+    """
+    return bool(NAME_RE.match(name)) and "--" not in name and NAME_MIN <= len(name) <= NAME_MAX
+
+
+def sanitize_skill_name(raw: str, fallback: str) -> str:
+    """Convert frontmatter name into a safe directory name (prevents path traversal)."""
+    raw = (raw or "").strip().replace("\\\\", "/")
+    raw = posixpath.basename(raw)
+    name = re.sub(r"[^A-Za-z0-9._-]+", "-", raw).strip(".-")
+    if not name:
+        name = re.sub(r"[^A-Za-z0-9._-]+", "-", fallback).strip(".-") or "skill"
+    return name[:64]
 
 
 def issue_message(issue_type: IssueType, **fields: Any) -> str:
@@ -502,14 +518,11 @@ class LifecycleConfig:
     pause: bool = False
 
 
-def load_lifecycle_config(pack_root: SkillsRoot | None = None) -> LifecycleConfig:
+def load_lifecycle_config(pack_root: Path | None = None) -> LifecycleConfig:
     """Read lifecycle config, falling back to defaults."""
-    # Imported lazily: ``utility_skill_pack`` imports ``extract_skill_name``
-    # from this module, so a module-level import here would cycle.
-    from shared.src.skills_design.utility_skill_pack import default_pack_root
 
     defaults = LifecycleConfig()
-    root = Path(pack_root) if pack_root is not None else default_pack_root()
+    root = pack_root or Path(__file__).resolve().parents[7]
     path = root / CONFIG_FILENAME
     try:
         raw = path.read_text(encoding="utf-8")

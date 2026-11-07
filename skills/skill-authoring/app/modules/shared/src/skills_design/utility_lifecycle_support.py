@@ -36,6 +36,7 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillsUsageError,
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
+import shared.src.skills_design.utility_skills_core as _core
 
 __all__ = [
     "ACTIVE",

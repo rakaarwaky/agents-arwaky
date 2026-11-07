@@ -228,6 +228,7 @@ def test_weed_reports_duplicates(tmp_path: Path) -> None:
 
 def test_parse_frontmatter_falls_back_without_pyyaml(tmp_path: Path, monkeypatch) -> None:
     """S8: the optional-PyYAML fallback keeps parsing the pack."""
+    import shared.src.skills_design.utility_skills_core as core
     import shared.src.skills_design.utility_skills_tree as tree
 
     skill_md = tmp_path / "SKILL.md"
@@ -236,7 +237,7 @@ def test_parse_frontmatter_falls_back_without_pyyaml(tmp_path: Path, monkeypatch
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(tree, "yaml", None)
+    monkeypatch.setattr(core, "_yaml_mod", None)
     frontmatter = tree.parse_frontmatter(skill_md)
     assert frontmatter["name"] == "alpha"
     assert frontmatter["description"] == "Does alpha."
