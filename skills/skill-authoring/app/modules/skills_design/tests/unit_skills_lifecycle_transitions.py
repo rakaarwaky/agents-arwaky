@@ -1,4 +1,4 @@
-"""Unit tests for ``SkillsLifecycle`` (``.usage.json`` sidecar + ``_archive/`` move)."""
+"""Unit tests for the focused lifecycle capabilities (sidecar + ``_archive/`` move)."""
 
 from __future__ import annotations
 
@@ -12,10 +12,12 @@ from shared.src.skills_design.taxonomy_skills_error import (
     SkillNotFoundError,
 )
 
-from skills_design.src.capabilities_skills_lifecycle import (
-    SkillsLifecycle,
-    _parse_iso,
-)
+from shared.src.skills_design.utility_lifecycle_support import _parse_iso
+
+from skills_design.src.capabilities_skills_prune import SkillsPrune
+from skills_design.src.capabilities_skills_purge import SkillsPurge
+from skills_design.src.capabilities_skills_restore import SkillsRestore
+from skills_design.src.capabilities_skills_runner import SkillsRunner
 from skills_design.tests.fixture_skills import as_root
 
 # ─── helpers ─────────────────────────────────────────────────────────
@@ -86,7 +88,7 @@ def _pack_empty(tmp_path: Path) -> Path:
 def test_empty_pack_yields_empty_summary(tmp_path: Path) -> None:
     """No skills, no sidecars: summary is empty and nothing was written."""
     root = _pack_empty(tmp_path)
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
     assert summary == {
         "applied": [],
         "skipped": [],
@@ -101,7 +103,7 @@ def test_active_to_stale_updates_on_disk_sidecar(tmp_path: Path) -> None:
     """``last_activity_at`` 20 days ago (> 14) → state is stale on disk."""
     root = _pack_empty(tmp_path)
     _skill(root, "a20", state="active", last_activity_days=20)
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     applied = [entry for entry in summary["applied"] if entry["skill"] == "a20"]
     assert len(applied) == 1
@@ -117,7 +119,7 @@ def test_active_recent_skill_stays_active(tmp_path: Path) -> None:
     """``last_activity_at`` 2 days ago (< 14) → no transition applied."""
     root = _pack_empty(tmp_path)
     _skill(root, "fresh", state="active", last_activity_days=2)
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     assert summary["applied"] == []
     assert _read_sidecar(root / "cat" / "fresh")["state"] == "active"
@@ -136,7 +138,7 @@ def test_stale_to_active_reactivation_reanchors_clock(tmp_path: Path) -> None:
         last_activity_days=40,
         window_days=5,
     )
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     applied = [entry for entry in summary["applied"] if entry["skill"] == "react"]
     assert applied == [{"skill": "react", "from": "stale", "to": "active"}]
@@ -159,7 +161,7 @@ def test_stale_to_archived_sets_archived_at(tmp_path: Path) -> None:
         last_activity_days=35,
         window_days=35,
     )
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     applied = [entry for entry in summary["applied"] if entry["skill"] == "arch35"]
     assert applied == [{"skill": "arch35", "from": "stale", "to": "archived"}]
@@ -183,7 +185,7 @@ def test_young_unused_skill_stays_active(tmp_path: Path) -> None:
         created_days=5,
         last_activity_days=20,
     )
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     # Precondition: the last_activity anchor sits inside the stale-eligible
     # window, so the invariant (not any other condition) is what keeps the
@@ -210,7 +212,7 @@ def test_young_unused_stale_still_archives_after_archive_cutoff(tmp_path: Path) 
         last_activity_days=35,
         window_days=35,
     )
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     assert [entry for entry in summary["applied"] if entry["skill"] == "old-unused"] == [
         {"skill": "old-unused", "from": "stale", "to": "archived"},
@@ -226,7 +228,7 @@ def test_pinned_skill_is_unchanged(tmp_path: Path) -> None:
     skill_dir = _skill(root, "pin", state="active", pinned=True, last_activity_days=40)
     before = skill_dir.joinpath(".usage.json").read_bytes()
 
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     assert {"skill": "pin", "reason": "pinned"} in summary["skipped"]
     assert skill_dir.joinpath(".usage.json").read_bytes() == before
@@ -241,7 +243,7 @@ def test_locked_skill_is_unchanged(tmp_path: Path) -> None:
     )
     before = skill_dir.joinpath(".usage.json").read_bytes()
 
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     assert {"skill": "lock", "reason": "locked"} in summary["skipped"]
     assert skill_dir.joinpath(".usage.json").read_bytes() == before
@@ -258,7 +260,7 @@ def test_cron_referenced_skill_is_unchanged(tmp_path: Path) -> None:
     )
     before = skill_dir.joinpath(".usage.json").read_bytes()
 
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     assert {"skill": "cr", "reason": "cron"} in summary["skipped"]
     assert skill_dir.joinpath(".usage.json").read_bytes() == before
@@ -271,7 +273,7 @@ def test_archive_moves_directory_and_updates_sidecar(tmp_path: Path) -> None:
     root = _pack_empty(tmp_path)
     _skill(root, "arch", state="active", last_activity_days=2)
 
-    result = SkillsLifecycle().archive("arch", as_root(root))
+    result = SkillsRestore().archive("arch", as_root(root))
     assert result["archived"] is True
     assert result["archived_at"]
 
@@ -287,7 +289,7 @@ def test_second_archive_on_archived_skill_is_noop(tmp_path: Path) -> None:
     """A second ``archive`` on an already-archived skill is a no-op."""
     root = _pack_empty(tmp_path)
     _skill(root, "arch", state="active", last_activity_days=2)
-    lifecycle = SkillsLifecycle()
+    lifecycle = SkillsRestore()
     lifecycle.archive("arch", as_root(root))
 
     result = lifecycle.archive("arch", as_root(root))
@@ -302,7 +304,7 @@ def test_second_archive_on_archived_skill_is_noop(tmp_path: Path) -> None:
 def test_archive_unknown_skill_raises(tmp_path: Path) -> None:
     root = _pack_empty(tmp_path)
     with pytest.raises(SkillNotFoundError):
-        SkillsLifecycle().archive("nope", as_root(root))
+        SkillsRestore().archive("nope", as_root(root))
 
 
 def test_archive_occupied_slot_raises_conflict(tmp_path: Path) -> None:
@@ -314,7 +316,7 @@ def test_archive_occupied_slot_raises_conflict(tmp_path: Path) -> None:
     before_bytes = skill_dir.joinpath(".usage.json").read_bytes()
 
     with pytest.raises(MutationConflictError):
-        SkillsLifecycle().archive("tx", as_root(root))
+        SkillsRestore().archive("tx", as_root(root))
 
     assert (skill_dir / "SKILL.md").is_file()
     assert skill_dir.joinpath(".usage.json").read_bytes() == before_bytes
@@ -327,7 +329,7 @@ def test_restore_moves_directory_back_and_reanchors(tmp_path: Path) -> None:
     """``restore`` moves the dir back + state=active + archived_at cleared + clock reanchored."""
     root = _pack_empty(tmp_path)
     _skill(root, "arch", state="active", last_activity_days=2)
-    lifecycle = SkillsLifecycle()
+    lifecycle = SkillsRestore()
     lifecycle.archive("arch", as_root(root))
     result = lifecycle.restore("arch", as_root(root))
 
@@ -344,14 +346,14 @@ def test_restore_moves_directory_back_and_reanchors(tmp_path: Path) -> None:
 def test_restore_of_non_archived_skill_is_noop(tmp_path: Path) -> None:
     root = _pack_empty(tmp_path)
     _skill(root, "plain", state="active", last_activity_days=2)
-    result = SkillsLifecycle().restore("plain", as_root(root))
+    result = SkillsRestore().restore("plain", as_root(root))
     assert result == {"skill": "plain", "restored": False, "reason": "not-archived"}
 
 
 def test_restore_unknown_skill_raises(tmp_path: Path) -> None:
     root = _pack_empty(tmp_path)
     with pytest.raises(SkillNotFoundError):
-        SkillsLifecycle().restore("nope", as_root(root))
+        SkillsRestore().restore("nope", as_root(root))
 
 # ─── two-step transaction rollback ──────────────────────────────────
 
@@ -362,7 +364,7 @@ def test_archive_rolls_back_on_second_step_failure(tmp_path: Path, monkeypatch) 
     skill_dir = _skill(root, "rb-a", state="stale")
     prior_state = _read_sidecar(skill_dir)["state"]
 
-    import skills_design.src.capabilities_skills_lifecycle as cap
+    import skills_design.src.capabilities_skills_restore as cap
 
     original_replace = cap.Path.replace
 
@@ -374,7 +376,7 @@ def test_archive_rolls_back_on_second_step_failure(tmp_path: Path, monkeypatch) 
     monkeypatch.setattr(cap.Path, "replace", _replace)
 
     with pytest.raises(MutationConflictError):
-        SkillsLifecycle().archive("rb-a", as_root(root))
+        SkillsRestore().archive("rb-a", as_root(root))
 
     assert (root / "cat" / "rb-a").is_dir()
     assert not (root / "_archive" / "cat" / "rb-a").exists()
@@ -386,12 +388,12 @@ def test_restore_rolls_back_on_second_step_failure(tmp_path: Path, monkeypatch) 
     restored, ``MutationConflictError`` raised."""
     root = _pack_empty(tmp_path)
     _skill(root, "arch-rb", state="active")
-    result = SkillsLifecycle().archive("arch-rb", as_root(root))
+    result = SkillsRestore().archive("arch-rb", as_root(root))
     assert result["archived"] is True
     archived_dir = root / "_archive" / "cat" / "arch-rb"
     prior_state = _read_sidecar(archived_dir)["state"]
 
-    import skills_design.src.capabilities_skills_lifecycle as cap
+    import skills_design.src.capabilities_skills_restore as cap
 
     original_replace = cap.Path.replace
 
@@ -403,7 +405,7 @@ def test_restore_rolls_back_on_second_step_failure(tmp_path: Path, monkeypatch) 
     monkeypatch.setattr(cap.Path, "replace", _replace)
 
     with pytest.raises(MutationConflictError):
-        SkillsLifecycle().restore("arch-rb", as_root(root))
+        SkillsRestore().restore("arch-rb", as_root(root))
 
     assert archived_dir.is_dir()
     assert not (root / "cat" / "arch-rb").exists()
@@ -424,7 +426,7 @@ def test_missing_sidecar_is_seeded_before_transition(tmp_path: Path) -> None:
     sidecar = skill_dir / ".usage.json"
     assert not sidecar.exists()
 
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
 
     assert sidecar.exists()
     record = _read_sidecar(skill_dir)
@@ -442,7 +444,7 @@ def test_restore_occupied_origin_raises_conflict(tmp_path: Path) -> None:
     ``MutationConflictError`` and the archived dir stays put."""
     root = _pack_empty(tmp_path)
     _skill(root, "txr", state="stale", last_activity_days=35)
-    lifecycle = SkillsLifecycle()
+    lifecycle = SkillsRestore()
     lifecycle.archive("txr", as_root(root))
     (root / "cat" / "txr").mkdir()
     archived_dir = root / "_archive" / "cat" / "txr"
@@ -468,7 +470,7 @@ def test_config_overlay_stale_after_days(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    summary = SkillsLifecycle().apply_automatic_transitions(as_root(root))
+    summary = SkillsRunner().apply_automatic_transitions(as_root(root))
     assert [entry for entry in summary["applied"] if entry["skill"] == "ten"] == [
         {"skill": "ten", "from": "active", "to": "stale"},
     ]
@@ -485,7 +487,7 @@ def test_prune_bulk_archives_idle_skills(tmp_path: Path) -> None:
         json.dumps({"archive_after_days": 30}), encoding="utf-8"
     )
 
-    result = SkillsLifecycle().prune(as_root(root))
+    result = SkillsPrune().prune(as_root(root))
     assert len(result["pruned"]) == 1
     assert result["pruned"][0]["skill"] == "old"
     assert any(k["skill"] == "new" for k in result["kept"])
@@ -496,7 +498,7 @@ def test_prune_bulk_archives_idle_skills(tmp_path: Path) -> None:
 def test_prune_refuses_days_less_than_one(tmp_path: Path) -> None:
     root = _pack_empty(tmp_path)
     with pytest.raises(ValueError, match="days must be >= 1"):
-        SkillsLifecycle().prune(as_root(root), days=0)
+        SkillsPrune().prune(as_root(root), days=0)
 
 def test_prune_keeps_pinned_stale_skill(tmp_path: Path) -> None:
     """Pinned skills are kept even when past the cutoff."""
@@ -506,7 +508,7 @@ def test_prune_keeps_pinned_stale_skill(tmp_path: Path) -> None:
         json.dumps({"archive_after_days": 30}), encoding="utf-8"
     )
 
-    result = SkillsLifecycle().prune(as_root(root))
+    result = SkillsPrune().prune(as_root(root))
     assert result["pruned"] == []
     assert any(k["skill"] == "old" for k in result["kept"])
     assert (root / "cat" / "old").exists()
@@ -519,7 +521,7 @@ def test_prune_keeps_locked_stale_skill(tmp_path: Path) -> None:
         json.dumps({"archive_after_days": 30}), encoding="utf-8"
     )
 
-    result = SkillsLifecycle().prune(as_root(root))
+    result = SkillsPrune().prune(as_root(root))
     assert result["pruned"] == []
     assert any(k["skill"] == "old" for k in result["kept"])
     assert (root / "cat" / "old").exists()
@@ -531,12 +533,12 @@ def test_purge_deletes_archived_skill(tmp_path: Path) -> None:
     """Purge hard-deletes skill from _archive/."""
     root = _pack_empty(tmp_path)
     _skill(root, "victim", state="active", uses=3)
-    lifecycle = SkillsLifecycle()
+    lifecycle = SkillsRestore()
     lifecycle.archive("victim", as_root(root))
     archived_dir = root / "_archive" / "cat" / "victim"
     assert (archived_dir / "SKILL.md").exists()
 
-    result = lifecycle.purge("victim", as_root(root))
+    result = SkillsPurge().purge("victim", as_root(root))
     assert result == {
         "skill": "victim",
         "purged": True,
@@ -547,5 +549,5 @@ def test_purge_deletes_archived_skill(tmp_path: Path) -> None:
 def test_purge_unknown_skill(tmp_path: Path) -> None:
     """Purge of non-archived skill returns not-found without crashing."""
     root = _pack_empty(tmp_path)
-    result = SkillsLifecycle().purge("nope", as_root(root))
+    result = SkillsPurge().purge("nope", as_root(root))
     assert result == {"skill": "nope", "purged": False, "reason": "not-found-in-archive"}

@@ -1,4 +1,4 @@
-"""Unit tests for ``SkillsLifecycle`` telemetry (``.usage.json`` sidecar)."""
+"""Unit tests for ``SkillsTelemetry`` (``.usage.json`` sidecar)."""
 
 from __future__ import annotations
 
@@ -6,11 +6,9 @@ import json
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
-from skills_design.src.capabilities_skills_lifecycle import (
-    DEFAULT_STATE,
-    FIELDS,
-    SkillsLifecycle,
-)
+from shared.src.skills_design.utility_lifecycle_support import DEFAULT_STATE, FIELDS
+
+from skills_design.src.capabilities_skills_telemetry import SkillsTelemetry
 from skills_design.tests.fixture_skills import as_root
 
 
@@ -46,7 +44,7 @@ def test_seed_missing_writes_full_baseline(tmp_path: Path) -> None:
     (root / "cat" / "alpha" / "SKILL.md").write_text(
         "---\nname: alpha\ndescription: x\n---\n", encoding="utf-8"
     )
-    SkillsLifecycle().seed_record_if_missing("alpha", as_root(root))
+    SkillsTelemetry().seed_record_if_missing("alpha", as_root(root))
 
     record = _read_sidecar(root, "alpha")
     assert set(record) == set(FIELDS)
@@ -77,7 +75,7 @@ def test_seed_existing_never_overwrites(tmp_path: Path) -> None:
         "activity_window_start": "2026-01-01T00:00:00+00:00",
     }
     _write_sidecar(root, "alpha", custom)
-    SkillsLifecycle().seed_record_if_missing("alpha", as_root(root))
+    SkillsTelemetry().seed_record_if_missing("alpha", as_root(root))
     assert _read_sidecar(root, "alpha") == custom
 
 
@@ -100,7 +98,7 @@ def test_reanchor_not_pinned_resets_state_to_active(tmp_path: Path) -> None:
         "activity_window_start": "2026-01-01T00:00:00+00:00",
     }
     _write_sidecar(root, "alpha", stale)
-    SkillsLifecycle().reanchor_clock("alpha", as_root(root))
+    SkillsTelemetry().reanchor_clock("alpha", as_root(root))
 
     record = _read_sidecar(root, "alpha")
     assert record["state"] == DEFAULT_STATE
@@ -124,7 +122,7 @@ def test_reanchor_pinned_keeps_state_still_anchors(tmp_path: Path) -> None:
         "activity_window_start": "2026-01-01T00:00:00+00:00",
     }
     _write_sidecar(root, "alpha", pinned)
-    SkillsLifecycle().reanchor_clock("alpha", as_root(root))
+    SkillsTelemetry().reanchor_clock("alpha", as_root(root))
 
     record = _read_sidecar(root, "alpha")
     assert record["state"] == "archived"  # pinned: state untouched
@@ -138,7 +136,7 @@ def test_curated_report_empty_pack(tmp_path: Path) -> None:
     """Empty pack → empty list."""
     root = tmp_path / "skills"
     root.mkdir()
-    assert SkillsLifecycle().curated_report(as_root(root)) == []
+    assert SkillsTelemetry().curated_report(as_root(root)) == []
 
 
 def test_curated_report_mixed_seeds_unsorted_and_sorts(tmp_path: Path) -> None:
@@ -164,7 +162,7 @@ def test_curated_report_mixed_seeds_unsorted_and_sorts(tmp_path: Path) -> None:
             f"---\nname: {skill}\ndescription: x\n---\n", encoding="utf-8"
         )
 
-    report = SkillsLifecycle().curated_report(as_root(root))
+    report = SkillsTelemetry().curated_report(as_root(root))
     assert [row["state"] for row in report] == ["stale", "active", "active"]
     assert [row["uses"] for row in report] == [2, 0, 0]
 
@@ -173,7 +171,7 @@ def test_curated_report_fields_match_sidecar(tmp_path: Path) -> None:
     """Report rows are keyed by the .usage.json field names."""
     root = tmp_path / "skills"
     _write_sidecar(root, "alpha", {"state": "active", "pinned": False})
-    report = SkillsLifecycle().curated_report(as_root(root))
+    report = SkillsTelemetry().curated_report(as_root(root))
     assert len(report) == 1
     assert set(report[0]) == set(FIELDS)
 
@@ -186,7 +184,7 @@ def test_view_bumps_counter_and_reanchors(tmp_path: Path) -> None:
     root = tmp_path / "skills"
     _write_sidecar(root, "alpha", {"views": 2, "uses": 0, "last_activity_at": "old"})
     before = _read_sidecar(root, "alpha")["last_activity_at"]
-    SkillsLifecycle().view("alpha", as_root(root))
+    SkillsTelemetry().view("alpha", as_root(root))
     after = _read_sidecar(root, "alpha")
     assert after["views"] == 3
     assert after["uses"] == 0
@@ -197,7 +195,7 @@ def test_use_bumps_counter_and_reanchors(tmp_path: Path) -> None:
     """use: uses bumped, clock reanchored, sidecar updated on disk."""
     root = tmp_path / "skills"
     _write_sidecar(root, "alpha", {"views": 0, "uses": 5})
-    SkillsLifecycle().use("alpha", as_root(root))
+    SkillsTelemetry().use("alpha", as_root(root))
     after = _read_sidecar(root, "alpha")
     assert after["uses"] == 6
     assert after["views"] == 0
@@ -208,7 +206,7 @@ def test_use_with_timestamp_bumps_counter_and_reanchors(tmp_path: Path) -> None:
     """use_with_timestamp: uses bumped, clock reanchored, sidecar updated."""
     root = tmp_path / "skills"
     _write_sidecar(root, "alpha", {"uses": 0})
-    SkillsLifecycle().use_with_timestamp("alpha", as_root(root))
+    SkillsTelemetry().use_with_timestamp("alpha", as_root(root))
     after = _read_sidecar(root, "alpha")
     assert after["uses"] == 1
     assert after["last_activity_at"] != ""
@@ -220,7 +218,7 @@ def test_use_with_timestamp_bumps_counter_and_reanchors(tmp_path: Path) -> None:
 def _worker(args: tuple[str, int]) -> int:
     """Hammer seed_record_if_missing + use on the same sidecar; return bumps done."""
     root_str, n = args
-    telemetry = SkillsLifecycle()
+    telemetry = SkillsTelemetry()
     for _ in range(n):
         telemetry.seed_record_if_missing("alpha", as_root(Path(root_str)))
         telemetry.use("alpha", as_root(Path(root_str)))
@@ -256,7 +254,7 @@ def test_truncated_json_degrades_gracefully(tmp_path: Path) -> None:
     """Truncated (non-JSON) sidecar → best-effort reseed, no raise."""
     root = tmp_path / "skills"
     path = _write_sidecar(root, "alpha", "{not valid json")
-    SkillsLifecycle().use("alpha", as_root(root))
+    SkillsTelemetry().use("alpha", as_root(root))
     # No exception propagated; file holds valid JSON after reseed.
     record = json.loads(path.read_text(encoding="utf-8"))
     assert record["uses"] == 1
@@ -267,7 +265,7 @@ def test_empty_brace_sidecar_degrades_gracefully(tmp_path: Path) -> None:
     """Empty {} sidecar → best-effort reseed on use, no crash."""
     root = tmp_path / "skills"
     _write_sidecar(root, "alpha", {})
-    SkillsLifecycle().use("alpha", as_root(root))
+    SkillsTelemetry().use("alpha", as_root(root))
     record = _read_sidecar(root, "alpha")
     assert record["uses"] == 1
 
@@ -276,9 +274,9 @@ def test_wrong_schema_sidecar_degrades_gracefully(tmp_path: Path) -> None:
     """Wrong-schema content → best-effort reseed to a valid baseline record, no raise."""
     root = tmp_path / "skills"
     path = _write_sidecar(root, "alpha", ["not", "a", "dict"])
-    SkillsLifecycle().view("alpha", as_root(root))
-    SkillsLifecycle().use("alpha", as_root(root))
-    SkillsLifecycle().reanchor_clock("alpha", as_root(root))
+    SkillsTelemetry().view("alpha", as_root(root))
+    SkillsTelemetry().use("alpha", as_root(root))
+    SkillsTelemetry().reanchor_clock("alpha", as_root(root))
 
     # A list payload is not a dict, so _read_sidecar returns {} and the public
     # methods reseed the sidecar to a valid baseline record (never the raw list).
@@ -303,10 +301,10 @@ def test_atomic_write_failure_degrades_all_methods(tmp_path: Path, monkeypatch) 
     root = tmp_path / "skills"
     _write_sidecar(root, "alpha", {"views": 1, "uses": 2})
     monkeypatch.setattr(
-        "skills_design.src.capabilities_skills_lifecycle.atomic_write_json",
+        "skills_design.src.capabilities_skills_telemetry.atomic_write_json",
         _boom,
     )
-    telemetry = SkillsLifecycle()
+    telemetry = SkillsTelemetry()
     before = _read_sidecar(root, "alpha")
     telemetry.view("alpha", as_root(root))
     telemetry.use("alpha", as_root(root))
@@ -339,7 +337,7 @@ def test_zero_and_negative_timestamps_accepted(tmp_path: Path) -> None:
             "activity_window_start": 0,
         },
     )
-    SkillsLifecycle().use("alpha", as_root(root))
+    SkillsTelemetry().use("alpha", as_root(root))
     record = _read_sidecar(root, "alpha")
     assert record["uses"] == 1
 
@@ -348,7 +346,7 @@ def test_large_int_counters(tmp_path: Path) -> None:
     """Large int counters → bump works, no crash."""
     root = tmp_path / "skills"
     _write_sidecar(root, "alpha", {"views": 2**62, "uses": 2**62})
-    SkillsLifecycle().view("alpha", as_root(root))
+    SkillsTelemetry().view("alpha", as_root(root))
     assert _read_sidecar(root, "alpha")["views"] == 2**62 + 1
 
 
@@ -383,10 +381,10 @@ def test_non_writable_directory_no_op(tmp_path: Path, monkeypatch) -> None:
         raise PermissionError("read-only filesystem")
 
     monkeypatch.setattr(
-        "skills_design.src.capabilities_skills_lifecycle.atomic_write_json",
+        "skills_design.src.capabilities_skills_telemetry.atomic_write_json",
         _boom,
     )
-    SkillsLifecycle().use("alpha", as_root(root))
+    SkillsTelemetry().use("alpha", as_root(root))
 
     # Sidecar untouched on disk: best-effort no-op degrades gracefully.
     assert json.loads(path.read_text(encoding="utf-8")) == before

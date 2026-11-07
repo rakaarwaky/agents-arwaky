@@ -16,9 +16,12 @@ from shared.src.skills_design.taxonomy_skills_response import (
 )
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent
-from skills_design.src.capabilities_skills_lifecycle import SkillsLifecycle
+from skills_design.src.capabilities_skills_backup import SkillsBackup
+from skills_design.src.capabilities_skills_ledger import SkillsLedger
 from skills_design.src.capabilities_skills_lister import SkillsLister
 from skills_design.src.capabilities_skills_reader import SkillsPackReader
+from skills_design.src.capabilities_skills_restore import SkillsRestore
+from skills_design.src.capabilities_skills_telemetry import SkillsTelemetry
 from skills_design.src.root_skills_container import default_aggregate
 from skills_design.tests.fixture_skills import clean_tree
 
@@ -47,17 +50,16 @@ def test_default_aggregate_wires_lifecycle_capability(tmp_path: Path) -> None:
     root = clean_tree(tmp_path)
     agent = default_aggregate(default_root=root)
     assert isinstance(agent, SkillsAgent)
-    assert isinstance(agent._lifecycle, SkillsLifecycle)
-    assert isinstance(agent._telemetry, SkillsLifecycle)
-    assert isinstance(agent._backup, SkillsLifecycle)
-    assert isinstance(agent._ledger, SkillsLifecycle)
+    assert isinstance(agent._telemetry, SkillsTelemetry)
+    assert isinstance(agent._backup, SkillsBackup)
+    assert isinstance(agent._ledger, SkillsLedger)
+    assert isinstance(agent._restore, SkillsRestore)
 
 
 # ─── Negative tests: unwired capabilities and missing query ──────────
 
 def test_unwired_lifecycle_capabilities_fail() -> None:
     agent = SkillsAgent(lister=SkillsLister(), reader=SkillsPackReader())
-    agent._lifecycle = None
     agent._telemetry = None
     req = SkillsRequest(op=SkillsOp.STATUS, root=SkillsRoot("."))
     result = agent.execute(req)
@@ -143,8 +145,7 @@ def test_list_unmanaged_does_not_mutate_disk(tmp_path: Path) -> None:
 def test_list_archived_shows_archived_skills(tmp_path: Path) -> None:
     root = _setup_pack_with_skill(tmp_path, "gamma")
     _execute(root, SkillsOp.RESTORE, query="gamma")  # non-fatal
-    lifecycle = SkillsLifecycle()
-    lifecycle.archive("gamma", root)
+    SkillsRestore().archive("gamma", root)
 
     result = _execute(root, SkillsOp.LIST_ARCHIVED)
     assert result.ok is True
@@ -158,8 +159,7 @@ def test_archive_restore_round_trip(tmp_path: Path) -> None:
     root = _setup_pack_with_skill(tmp_path, "alpha")
     archive_dir = root / "_archive" / "cat" / "alpha"
 
-    lifecycle = SkillsLifecycle()
-    lifecycle.archive("alpha", root)
+    SkillsRestore().archive("alpha", root)
     assert archive_dir.is_dir()
     assert not (root / "cat" / "alpha").exists()
 
@@ -197,9 +197,9 @@ def test_ledger_empty_and_after_append(tmp_path: Path) -> None:
     assert result.exit_code == SkillsExitCode.CLEAN
     assert result.records == ()
 
-    lifecycle = SkillsLifecycle()
+    ledger = SkillsLedger()
     entry = {"id": "t1", "actor": "user", "action": "append", "skill": "alpha"}
-    lifecycle.ledger_append(root, entry)
+    ledger.ledger_append(root, entry)
 
     result2 = _execute(root, SkillsOp.LEDGER)
     assert result2.ok is True
